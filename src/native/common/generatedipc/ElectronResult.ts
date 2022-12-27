@@ -1,6 +1,5 @@
 /* generated file, don't edit. */
 
-
 /**
  * Search-in-page result by Electron.
  */

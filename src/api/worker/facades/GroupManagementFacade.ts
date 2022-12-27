@@ -1,43 +1,41 @@
-import {Const, GroupType} from "../../common/TutanotaConstants"
-import type {InternalGroupData, UserAreaGroupData} from "../../entities/tutanota/TypeRefs.js"
+import { Const, GroupType } from "../../common/TutanotaConstants"
+import type { InternalGroupData, UserAreaGroupData } from "../../entities/tutanota/TypeRefs.js"
 import {
 	createCreateLocalAdminGroupData,
 	createCreateMailGroupData,
 	createDeleteGroupData,
 	createInternalGroupData,
 	createUserAreaGroupData,
-	createUserAreaGroupPostData
+	createUserAreaGroupPostData,
 } from "../../entities/tutanota/TypeRefs.js"
-import {assertNotNull, hexToUint8Array, neverNull} from "@tutao/tutanota-utils"
-import type {Group, User} from "../../entities/sys/TypeRefs.js"
-import {createMembershipAddData, createMembershipRemoveData, GroupTypeRef, UserTypeRef} from "../../entities/sys/TypeRefs.js"
-import {CounterFacade} from "./CounterFacade"
-import {EntityClient} from "../../common/EntityClient"
-import {assertWorkerOrNode} from "../../common/Env"
-import {encryptString} from "../crypto/CryptoFacade"
-import type {RsaImplementation} from "../crypto/RsaImplementation"
-import {aes128RandomKey, decryptKey, encryptKey, encryptRsaKey, publicKeyToHex, RsaKeyPair} from "@tutao/tutanota-crypto";
-import {IServiceExecutor} from "../../common/ServiceRequest"
-import {LocalAdminGroupService, MailGroupService, TemplateGroupService} from "../../entities/tutanota/Services"
-import {MembershipService} from "../../entities/sys/Services"
-import {UserFacade} from "./UserFacade"
-import {ProgrammingError} from "../../common/error/ProgrammingError.js"
+import { assertNotNull, hexToUint8Array, neverNull } from "@tutao/tutanota-utils"
+import type { Group, User } from "../../entities/sys/TypeRefs.js"
+import { createMembershipAddData, createMembershipRemoveData, GroupTypeRef, UserTypeRef } from "../../entities/sys/TypeRefs.js"
+import { CounterFacade } from "./CounterFacade"
+import { EntityClient } from "../../common/EntityClient"
+import { assertWorkerOrNode } from "../../common/Env"
+import { encryptString } from "../crypto/CryptoFacade"
+import type { RsaImplementation } from "../crypto/RsaImplementation"
+import { aes128RandomKey, decryptKey, encryptKey, encryptRsaKey, publicKeyToHex, RsaKeyPair } from "@tutao/tutanota-crypto"
+import { IServiceExecutor } from "../../common/ServiceRequest"
+import { LocalAdminGroupService, MailGroupService, TemplateGroupService } from "../../entities/tutanota/Services"
+import { MembershipService } from "../../entities/sys/Services"
+import { UserFacade } from "./UserFacade"
+import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 
 assertWorkerOrNode()
 
 export class GroupManagementFacade {
-
 	constructor(
 		private readonly user: UserFacade,
 		private readonly counters: CounterFacade,
 		private readonly entityClient: EntityClient,
 		private readonly rsa: RsaImplementation,
 		private readonly serviceExecutor: IServiceExecutor,
-	) {
-	}
+	) {}
 
 	readUsedGroupStorage(groupId: Id): Promise<number> {
-		return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY, groupId).then(usedStorage => {
+		return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY, groupId).then((usedStorage) => {
 			return Number(usedStorage)
 		})
 	}
@@ -102,7 +100,7 @@ export class GroupManagementFacade {
 	 * @param name Name of the group
 	 */
 	generateUserAreaGroupData(name: string): Promise<UserAreaGroupData> {
-		return this.entityClient.load(GroupTypeRef, this.user.getUserGroupId()).then(userGroup => {
+		return this.entityClient.load(GroupTypeRef, this.user.getUserGroupId()).then((userGroup) => {
 			const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
 
 			let adminGroupKey: BitArray | null = null
@@ -131,12 +129,11 @@ export class GroupManagementFacade {
 	}
 
 	createTemplateGroup(name: string): Promise<Id> {
-		return this.generateUserAreaGroupData(name).then(groupData => {
+		return this.generateUserAreaGroupData(name).then((groupData) => {
 			const serviceData = createUserAreaGroupPostData({
 				groupData: groupData,
 			})
-			return this.serviceExecutor.post(TemplateGroupService, serviceData)
-					   .then(returnValue => returnValue.group)
+			return this.serviceExecutor.post(TemplateGroupService, serviceData).then((returnValue) => returnValue.group)
 		})
 	}
 
@@ -218,33 +215,33 @@ export class GroupManagementFacade {
 			// e.g. I am a global admin and want to add another user to the global admin group
 			return Promise.resolve(this.user.getGroupKey(groupId))
 		} else {
-			return this.entityClient.load(GroupTypeRef, groupId).then(group => {
+			return this.entityClient.load(GroupTypeRef, groupId).then((group) => {
 				if (group.adminGroupEncGKey == null || group.adminGroupEncGKey.length === 0) {
 					throw new ProgrammingError("Group doesn't have adminGroupEncGKey, you can't get group key this way")
 				}
 				return Promise.resolve()
-							  .then(() => {
-								  if (group.admin && this.user.hasGroup(group.admin)) {
-									  // e.g. I am a member of the group that administrates group G and want to add a new member to G
-									  return this.user.getGroupKey(assertNotNull(group.admin))
-								  } else {
-									  // e.g. I am a global admin but group G is administrated by a local admin group and want to add a new member to G
-									  let globalAdminGroupId = this.user.getGroupId(GroupType.Admin)
+					.then(() => {
+						if (group.admin && this.user.hasGroup(group.admin)) {
+							// e.g. I am a member of the group that administrates group G and want to add a new member to G
+							return this.user.getGroupKey(assertNotNull(group.admin))
+						} else {
+							// e.g. I am a global admin but group G is administrated by a local admin group and want to add a new member to G
+							let globalAdminGroupId = this.user.getGroupId(GroupType.Admin)
 
-									  let globalAdminGroupKey = this.user.getGroupKey(globalAdminGroupId)
+							let globalAdminGroupKey = this.user.getGroupKey(globalAdminGroupId)
 
-									  return this.entityClient.load(GroupTypeRef, assertNotNull(group.admin)).then(localAdminGroup => {
-										  if (localAdminGroup.admin === globalAdminGroupId) {
-											  return decryptKey(globalAdminGroupKey, assertNotNull(localAdminGroup.adminGroupEncGKey))
-										  } else {
-											  throw new Error(`local admin group ${localAdminGroup._id} is not administrated by global admin group ${globalAdminGroupId}`)
-										  }
-									  })
-								  }
-							  })
-							  .then(adminGroupKey => {
-								  return decryptKey(adminGroupKey, assertNotNull(group.adminGroupEncGKey))
-							  })
+							return this.entityClient.load(GroupTypeRef, assertNotNull(group.admin)).then((localAdminGroup) => {
+								if (localAdminGroup.admin === globalAdminGroupId) {
+									return decryptKey(globalAdminGroupKey, assertNotNull(localAdminGroup.adminGroupEncGKey))
+								} else {
+									throw new Error(`local admin group ${localAdminGroup._id} is not administrated by global admin group ${globalAdminGroupId}`)
+								}
+							})
+						}
+					})
+					.then((adminGroupKey) => {
+						return decryptKey(adminGroupKey, assertNotNull(group.adminGroupEncGKey))
+					})
 			})
 		}
 	}

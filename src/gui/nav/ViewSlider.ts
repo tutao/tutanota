@@ -1,16 +1,16 @@
-import m, {Children, Component} from "mithril"
-import {ColumnType, ViewColumn} from "../base/ViewColumn.js"
-import type {windowSizeListener} from "../../misc/WindowFacade.js"
-import {windowFacade} from "../../misc/WindowFacade.js"
-import {size} from "../size.js"
-import {alpha, AlphaEnum, animations, transform, TransformEnum} from "../animation/Animations.js"
-import {ease} from "../animation/Easing.js"
-import {theme} from "../theme.js"
-import {neverNull} from "@tutao/tutanota-utils"
-import {styles} from "../styles.js"
-import {AriaLandmarks} from "../AriaUtils.js"
-import {LayerType} from "../../RootView.js"
-import {assertMainOrNode} from "../../api/common/Env.js"
+import m, { Children, Component } from "mithril"
+import { ColumnType, ViewColumn } from "../base/ViewColumn.js"
+import type { windowSizeListener } from "../../misc/WindowFacade.js"
+import { windowFacade } from "../../misc/WindowFacade.js"
+import { size } from "../size.js"
+import { alpha, AlphaEnum, animations, transform, TransformEnum } from "../animation/Animations.js"
+import { ease } from "../animation/Easing.js"
+import { theme } from "../theme.js"
+import { neverNull } from "@tutao/tutanota-utils"
+import { styles } from "../styles.js"
+import { AriaLandmarks } from "../AriaUtils.js"
+import { LayerType } from "../../RootView.js"
+import { assertMainOrNode } from "../../api/common/Env.js"
 
 assertMainOrNode()
 export type GestureInfo = {
@@ -76,7 +76,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 
 	constructor(viewColumns: ViewColumn[], parentName: string) {
 		this.columns = viewColumns
-		this._mainColumn = neverNull(viewColumns.find(column => column.columnType === ColumnType.Background)) // the first background column is the main column
+		this._mainColumn = neverNull(viewColumns.find((column) => column.columnType === ColumnType.Background)) // the first background column is the main column
 
 		this.focusedColumn = this._mainColumn
 		this._visibleBackgroundColumns = []
@@ -86,16 +86,16 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		this._busy = Promise.resolve()
 		this._parentName = parentName
 		this._isModalBackgroundVisible = false
-		this.columns.forEach(column => column.setRole(this._getColumnRole(column)))
+		this.columns.forEach((column) => column.setRole(this._getColumnRole(column)))
 
-		this.view = ({attrs}): Children => {
+		this.view = ({ attrs }): Children => {
 			const mainSliderColumns = this._getColumnsForMainSlider()
 
 			const allBackgroundColumnsAreVisible = this._visibleBackgroundColumns.length === mainSliderColumns.length
 			return m(
 				".fill-absolute.flex.col",
 				{
-					oncreate: vnode => {
+					oncreate: (vnode) => {
 						this._attachTouchHandler(vnode.dom as HTMLElement)
 					},
 					onremove: () => {
@@ -110,7 +110,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 					m(
 						".view-columns.flex-grow.rel",
 						{
-							oncreate: vnode => {
+							oncreate: (vnode) => {
 								this._domSlidingPart = vnode.dom as HTMLElement
 							},
 							style: {
@@ -127,7 +127,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 						),
 					),
 					styles.isUsingBottomNavigation() ? attrs.bottomNav : null,
-					this._getColumnsForOverlay().map(c => m(c, {})),
+					this._getColumnsForOverlay().map((c) => m(c, {})),
 					this._createModalBackground(),
 				],
 			)
@@ -148,11 +148,11 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	_getColumnsForMainSlider(): Array<ViewColumn> {
-		return this.columns.filter(c => c.columnType === ColumnType.Background || c.visible)
+		return this.columns.filter((c) => c.columnType === ColumnType.Background || c.visible)
 	}
 
 	_getColumnsForOverlay(): Array<ViewColumn> {
-		return this.columns.filter(c => c.columnType === ColumnType.Foreground && !c.visible)
+		return this.columns.filter((c) => c.columnType === ColumnType.Foreground && !c.visible)
 	}
 
 	_createModalBackground(): Children {
@@ -162,10 +162,10 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 					style: {
 						zIndex: LayerType.ForegroundMenu,
 					},
-					oncreate: vnode => {
+					oncreate: (vnode) => {
 						this._busy.then(() => animations.add(vnode.dom as HTMLElement, alpha(AlphaEnum.BackgroundColor, theme.modal_bg, 0, 0.5)))
 					},
-					onbeforeremove: vnode => {
+					onbeforeremove: (vnode) => {
 						return this._busy.then(() => animations.add(vnode.dom as HTMLElement, alpha(AlphaEnum.BackgroundColor, theme.modal_bg, 0.5, 0)))
 					},
 					onclick: () => {
@@ -197,7 +197,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 
 		this._setWidthForHiddenColumns(visibleColumns)
 
-		this.columns.forEach(column => (column.visible = visibleColumns.includes(column)))
+		this.columns.forEach((column) => (column.visible = visibleColumns.includes(column)))
 		this.updateOffsets()
 		this._visibleBackgroundColumns = visibleColumns
 
@@ -218,7 +218,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	isUsingOverlayColumns(): boolean {
-		return this.columns.every(c => c.columnType !== ColumnType.Foreground || c.visible)
+		return this.columns.every((c) => c.columnType !== ColumnType.Foreground || c.visible)
 	}
 
 	/**
@@ -228,13 +228,13 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	 */
 	getNextVisibleColumn(visibleColumns: ViewColumn[], allColumns: ViewColumn[]): ViewColumn | null {
 		// First: try to find a background column which is not visible
-		let nextColumn = allColumns.find(column => {
+		let nextColumn = allColumns.find((column) => {
 			return column.columnType === ColumnType.Background && visibleColumns.indexOf(column) < 0
 		})
 
 		if (!nextColumn) {
 			// Second: if no more background columns are available add the foreground column to the visible columns
-			nextColumn = allColumns.find(column => {
+			nextColumn = allColumns.find((column) => {
 				return column.columnType === ColumnType.Foreground && visibleColumns.indexOf(column) < 0
 			})
 		}
@@ -243,7 +243,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	getBackgroundColumns(): ViewColumn[] {
-		return this.columns.filter(c => c.columnType === ColumnType.Background)
+		return this.columns.filter((c) => c.columnType === ColumnType.Background)
 	}
 
 	/**
@@ -273,11 +273,11 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 
 		// if only one column is visible set the same width for all columns ignoring max width
 		if (visibleColumns.length === 1) {
-			this.columns.forEach(column => column.setWidth(visibleColumns[0].width))
+			this.columns.forEach((column) => column.setWidth(visibleColumns[0].width))
 		}
 
 		// Reduce the width of the foreground button to keep always a small part of the background button visible.
-		let foreGroundColumn = this.columns.find(column => column.columnType === ColumnType.Foreground)
+		let foreGroundColumn = this.columns.find((column) => column.columnType === ColumnType.Foreground)
 
 		if (foreGroundColumn) {
 			let remainingSpace = window.innerWidth - foreGroundColumn.minWidth - size.hpad_large
@@ -288,34 +288,34 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 
 	focus(viewColumn: ViewColumn): Promise<unknown> {
 		return this._busy
-				   .then(() => {
-					   // hide the foreground column if the column is in foreground
-					   if (this.focusedColumn.isInForeground) {
-						   this._busy = this._slideForegroundColumn(this.focusedColumn, false)
-						   return this._busy
-					   }
-				   })
-				   .then(() => {
-					   this.focusedColumn = viewColumn
+			.then(() => {
+				// hide the foreground column if the column is in foreground
+				if (this.focusedColumn.isInForeground) {
+					this._busy = this._slideForegroundColumn(this.focusedColumn, false)
+					return this._busy
+				}
+			})
+			.then(() => {
+				this.focusedColumn = viewColumn
 
-					   if (
-						   viewColumn.columnType === ColumnType.Background &&
-						   this._visibleBackgroundColumns.length === 1 &&
-						   this._visibleBackgroundColumns.indexOf(viewColumn) < 0
-					   ) {
-						   const currentOffset = this._domSlidingPart.getBoundingClientRect().left
+				if (
+					viewColumn.columnType === ColumnType.Background &&
+					this._visibleBackgroundColumns.length === 1 &&
+					this._visibleBackgroundColumns.indexOf(viewColumn) < 0
+				) {
+					const currentOffset = this._domSlidingPart.getBoundingClientRect().left
 
-						   this._busy = this._slideBackgroundColumns(viewColumn, currentOffset, this.getOffset(viewColumn))
-					   } else if (viewColumn.columnType === ColumnType.Foreground && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
-						   this._busy = this._slideForegroundColumn(viewColumn, true)
-					   }
+					this._busy = this._slideBackgroundColumns(viewColumn, currentOffset, this.getOffset(viewColumn))
+				} else if (viewColumn.columnType === ColumnType.Foreground && this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
+					this._busy = this._slideForegroundColumn(viewColumn, true)
+				}
 
-					   return this._busy
-				   })
-				   .finally(() => {
-					   m.redraw()
-					   viewColumn.focus()
-				   }) // for updating header bar after animation
+				return this._busy
+			})
+			.finally(() => {
+				m.redraw()
+				viewColumn.focus()
+			}) // for updating header bar after animation
 	}
 
 	/**
@@ -403,7 +403,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	isFirstBackgroundColumnFocused(): boolean {
-		return this.columns.filter(column => column.columnType === ColumnType.Background).indexOf(this.focusedColumn) === 0
+		return this.columns.filter((column) => column.columnType === ColumnType.Background).indexOf(this.focusedColumn) === 0
 	}
 
 	isForegroundColumnFocused(): boolean {

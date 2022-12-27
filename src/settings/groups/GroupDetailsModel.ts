@@ -7,24 +7,24 @@ import {
 	GroupInfoTypeRef,
 	GroupMemberTypeRef,
 	GroupTypeRef,
-	UserTypeRef
+	UserTypeRef,
 } from "../../api/entities/sys/TypeRefs.js"
-import {assertNotNull, getFirstOrThrow, LazyLoaded, neverNull, promiseMap} from "@tutao/tutanota-utils"
-import {EntityClient} from "../../api/common/EntityClient.js"
-import {GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId} from "../../api/common/utils/EntityUtils.js"
-import {BookingItemFeatureType, GroupType, OperationType} from "../../api/common/TutanotaConstants.js"
-import {localAdminGroupInfoModel} from "../LocalAdminGroupInfoModel.js"
-import {lang} from "../../misc/LanguageViewModel.js"
-import {SelectorItemList} from "../../gui/base/DropDownSelector.js"
-import {logins} from "../../api/main/LoginController.js"
-import {stringValidator} from "../../gui/base/Dialog.js"
-import {locator} from "../../api/main/MainLocator.js"
-import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../../api/common/error/RestError.js"
-import {compareGroupInfos, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils.js"
-import {EntityUpdateData, isUpdateForTypeRef} from "../../api/main/EventController.js"
-import {MailboxPropertiesTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {UserError} from "../../api/main/UserError.js"
-import {BookingParams} from "../../subscription/BuyDialog.js"
+import { assertNotNull, getFirstOrThrow, LazyLoaded, neverNull, promiseMap } from "@tutao/tutanota-utils"
+import { EntityClient } from "../../api/common/EntityClient.js"
+import { GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId } from "../../api/common/utils/EntityUtils.js"
+import { BookingItemFeatureType, GroupType, OperationType } from "../../api/common/TutanotaConstants.js"
+import { localAdminGroupInfoModel } from "../LocalAdminGroupInfoModel.js"
+import { lang } from "../../misc/LanguageViewModel.js"
+import { SelectorItemList } from "../../gui/base/DropDownSelector.js"
+import { logins } from "../../api/main/LoginController.js"
+import { stringValidator } from "../../gui/base/Dialog.js"
+import { locator } from "../../api/main/MainLocator.js"
+import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../../api/common/error/RestError.js"
+import { compareGroupInfos, getGroupInfoDisplayName } from "../../api/common/utils/GroupUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../api/main/EventController.js"
+import { MailboxPropertiesTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { UserError } from "../../api/main/UserError.js"
+import { BookingParams } from "../../subscription/BuyDialog.js"
 
 export class GroupDetailsModel {
 	groupInfo: GroupInfo
@@ -36,11 +36,7 @@ export class GroupDetailsModel {
 
 	private senderName!: LazyLoaded<string>
 
-	constructor(
-		groupInfo: GroupInfo,
-		private readonly entityClient: EntityClient,
-		private readonly updateViewCallback: () => void,
-	) {
+	constructor(groupInfo: GroupInfo, private readonly entityClient: EntityClient, private readonly updateViewCallback: () => void) {
 		this.entityClient = entityClient
 		this.groupInfo = groupInfo
 		this.group = new LazyLoaded(() => this.entityClient.load(GroupTypeRef, this.groupInfo.group))
@@ -51,7 +47,7 @@ export class GroupDetailsModel {
 			const group = await this.group.getAsync()
 			// load only up to 200 members to avoid too long loading, like for account groups
 			const groupMembers = await this.entityClient.loadRange(GroupMemberTypeRef, group.members, GENERATED_MIN_ID, 200, false)
-			return promiseMap(groupMembers, member => this.entityClient.load(GroupInfoTypeRef, member.userGroupInfo))
+			return promiseMap(groupMembers, (member) => this.entityClient.load(GroupInfoTypeRef, member.userGroupInfo))
 		})
 
 		// noinspection JSIgnoredPromiseFromCall
@@ -87,9 +83,9 @@ export class GroupDetailsModel {
 			assertNotNull(group.administratedGroups).items,
 			GENERATED_MAX_ID,
 			200,
-			true
+			true,
 		)
-		return promiseMap(administratedGroups, administratedGroup => this.entityClient.load(GroupInfoTypeRef, administratedGroup.groupInfo))
+		return promiseMap(administratedGroups, (administratedGroup) => this.entityClient.load(GroupInfoTypeRef, administratedGroup.groupInfo))
 	}
 
 	private async loadSenderName(): Promise<string> {
@@ -102,10 +98,7 @@ export class GroupDetailsModel {
 	}
 
 	getGroupType(): string | null {
-		return this.group.isLoaded()
-			? this.group.getLoaded().type
-			: null
-
+		return this.group.isLoaded() ? this.group.getLoaded().type : null
 	}
 
 	getGroupName(): string {
@@ -121,15 +114,11 @@ export class GroupDetailsModel {
 	}
 
 	getMembersInfo(): Array<GroupInfo> {
-		return this.members.isLoaded()
-			? this.members.getLoaded()
-			: []
+		return this.members.isLoaded() ? this.members.getLoaded() : []
 	}
 
 	getAdministratedGroups(): Array<GroupInfo> {
-		return this.administratedGroups.isLoaded()
-			? this.administratedGroups.getLoaded()
-			: []
+		return this.administratedGroups.isLoaded() ? this.administratedGroups.getLoaded() : []
 	}
 
 	getGroupMailAddress(): string {
@@ -137,9 +126,7 @@ export class GroupDetailsModel {
 	}
 
 	getGroupSenderName(): string {
-		return this.senderName.isLoaded()
-			? this.senderName.getLoaded()
-			: lang.get("loading_msg")
+		return this.senderName.isLoaded() ? this.senderName.getLoaded() : lang.get("loading_msg")
 	}
 
 	/**
@@ -212,40 +199,39 @@ export class GroupDetailsModel {
 		if (deactivate && members.length > 0) {
 			throw new UserError("groupNotEmpty_msg")
 		} else {
-			const bookingItemType = this.groupInfo.groupType === GroupType.LocalAdmin
-				? BookingItemFeatureType.LocalAdminGroup
-				: BookingItemFeatureType.SharedMailGroup
+			const bookingItemType =
+				this.groupInfo.groupType === GroupType.LocalAdmin ? BookingItemFeatureType.LocalAdminGroup : BookingItemFeatureType.SharedMailGroup
 
 			return {
 				featureType: bookingItemType,
 				count: deactivate ? -1 : 1,
 				freeAmount: 0,
-				reactivate: !deactivate
+				reactivate: !deactivate,
 			}
 		}
 	}
 
-	createAdministratedByInfo(): {options: SelectorItemList<Id | null>, currentVal: Id | null} | null {
+	createAdministratedByInfo(): { options: SelectorItemList<Id | null>; currentVal: Id | null } | null {
 		if (!logins.getUserController().isGlobalAdmin() || !this.localAdminGroupInfo.isLoaded()) return null
 
-		const filteredLocalAdminGroupInfo = this.localAdminGroupInfo.getLoaded().filter(groupInfo => !groupInfo.deleted)
+		const filteredLocalAdminGroupInfo = this.localAdminGroupInfo.getLoaded().filter((groupInfo) => !groupInfo.deleted)
 
 		const adminGroupIdToName: SelectorItemList<Id | null> = [
 			{
 				name: lang.get("globalAdmin_label"),
 				value: null,
 			},
-			...filteredLocalAdminGroupInfo.map(gi => {
+			...filteredLocalAdminGroupInfo.map((gi) => {
 				return {
 					name: getGroupInfoDisplayName(gi),
 					value: gi.group,
 				}
-			})
+			}),
 		]
 
 		return {
 			options: adminGroupIdToName,
-			currentVal: this.groupInfo.localAdmin
+			currentVal: this.groupInfo.localAdmin,
 		}
 	}
 
@@ -276,12 +262,12 @@ export class GroupDetailsModel {
 
 	private getAdminGroupId(): Id {
 		return assertNotNull(
-			logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin),
-			"this user is not in any admin group"
+			logins.getUserController().user.memberships.find((gm) => gm.groupType === GroupType.Admin),
+			"this user is not in any admin group",
 		).group
 	}
 
-	async getPossibleMembers(): Promise<Array<{name: string, value: Id}>> {
+	async getPossibleMembers(): Promise<Array<{ name: string; value: Id }>> {
 		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 		const userGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
 		// remove all users that are already member
@@ -289,23 +275,27 @@ export class GroupDetailsModel {
 		let myLocalAdminShips = logins
 			.getUserController()
 			.getLocalAdminGroupMemberships()
-			.map(gm => gm.group)
-		let availableUserGroupInfos = userGroupInfos.filter(userGroupInfo => {
-			if (!globalAdmin && // if we are global admin we may add anyone, don't filter
-				!( // don't filter if both:
-					userGroupInfo.localAdmin != null && // the user does have a local admin and
-					myLocalAdminShips.includes(userGroupInfo.localAdmin) // we are a member of the users local admin group
+			.map((gm) => gm.group)
+		let availableUserGroupInfos = userGroupInfos.filter((userGroupInfo) => {
+			if (
+				!globalAdmin && // if we are global admin we may add anyone, don't filter
+				!(
+					// don't filter if both:
+					(
+						userGroupInfo.localAdmin != null && // the user does have a local admin and
+						myLocalAdminShips.includes(userGroupInfo.localAdmin)
+					) // we are a member of the users local admin group
 				)
 			) {
 				return false
 			} else {
 				// only show users that are not deleted and not already in the group.
-				return !userGroupInfo.deleted && this.members.getLoaded().find(m => isSameId(m._id, userGroupInfo._id)) == null
+				return !userGroupInfo.deleted && this.members.getLoaded().find((m) => isSameId(m._id, userGroupInfo._id)) == null
 			}
 		})
 
 		availableUserGroupInfos.sort(compareGroupInfos)
-		return availableUserGroupInfos.map(g => ({name: getGroupInfoDisplayName(g), value: g.group}))
+		return availableUserGroupInfos.map((g) => ({ name: getGroupInfoDisplayName(g), value: g.group }))
 	}
 
 	async addUserToGroup(group: Id): Promise<any> {
@@ -348,8 +338,8 @@ export class GroupDetailsModel {
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		await promiseMap(updates, async update => {
-			const {instanceListId, instanceId, operation} = update
+		await promiseMap(updates, async (update) => {
+			const { instanceListId, instanceId, operation } = update
 
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE) {
 				const updatedUserGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.groupInfo._id)
@@ -374,11 +364,7 @@ export class GroupDetailsModel {
 				this.group.getLoaded().administratedGroups!.items === assertNotNull(instanceListId, "got administratedGroup update without instanceListId")
 			) {
 				return this.updateAdministratedGroups()
-			} else if (
-				this.isMailGroup() &&
-				isUpdateForTypeRef(MailboxPropertiesTypeRef, update) &&
-				update.operation === OperationType.UPDATE
-			) {
+			} else if (this.isMailGroup() && isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 				// the sender name belonging to this group may have changed.
 				// noinspection ES6MissingAwait
 				this.updateSenderName()

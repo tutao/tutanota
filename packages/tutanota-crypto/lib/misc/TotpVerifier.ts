@@ -1,15 +1,15 @@
 // @ts-ignore[untyped-import]
 import sjcl from "../internal/sjcl.js"
-import {bitArrayToUint8Array, uint8ArrayToBitArray} from "./Utils.js"
-import {hexToUint8Array} from "@tutao/tutanota-utils"
-import {random} from "../random/Randomizer.js"
+import { bitArrayToUint8Array, uint8ArrayToBitArray } from "./Utils.js"
+import { hexToUint8Array } from "@tutao/tutanota-utils"
+import { random } from "../random/Randomizer.js"
 
 export let DIGITS: number = 6
 export type Base32 = string
 
 const DIGITS_POWER =
-		// 0   1   2    3    4      5       6        7         8
-		[1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000]
+	// 0   1   2    3    4      5       6        7         8
+	[1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000]
 const base32 = sjcl.codec.base32
 export type TotpSecret = {
 	key: Uint8Array
@@ -51,11 +51,7 @@ export class TotpVerifier {
 		let msg = hexToUint8Array(timeHex)
 		let hash = this.hmac_sha(key, msg)
 		let offset = hash[hash.length - 1] & 0xf
-		let binary =
-				((hash[offset] & 0x7f) << 24) |
-				((hash[offset + 1] & 0xff) << 16) |
-				((hash[offset + 2] & 0xff) << 8) |
-				(hash[offset + 3] & 0xff)
+		let binary = ((hash[offset] & 0x7f) << 24) | ((hash[offset + 1] & 0xff) << 16) | ((hash[offset + 2] & 0xff) << 8) | (hash[offset + 3] & 0xff)
 		let code = binary % DIGITS_POWER[this._digits]
 		return code
 	}
@@ -67,10 +63,10 @@ export class TotpVerifier {
 
 	static readableKey(key: Uint8Array): Base32 {
 		return base32
-				.fromBits(uint8ArrayToBitArray(key))
-				.toLowerCase()
-				.replace(/(.{4})/g, "$1 ")
-				.replace(/=/g, "")
-				.trim()
+			.fromBits(uint8ArrayToBitArray(key))
+			.toLowerCase()
+			.replace(/(.{4})/g, "$1 ")
+			.replace(/=/g, "")
+			.trim()
 	}
 }

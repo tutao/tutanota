@@ -1,4 +1,4 @@
-import {default as path} from "path"
+import { default as path } from "path"
 import fs from "fs-extra"
 
 export function nativeDepWorkaroundPlugin() {
@@ -17,7 +17,7 @@ export function nativeDepWorkaroundPlugin() {
 			if (id.endsWith("RsaApp")) {
 				return false
 			}
-		}
+		},
 	}
 }
 
@@ -37,7 +37,7 @@ export function pluginNativeLoader() {
 				const name = path.basename(id)
 				const content = await fs.promises.readFile(id)
 				this.emitFile({
-					type: 'asset',
+					type: "asset",
 					name,
 					fileName: name,
 					source: content,

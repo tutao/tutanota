@@ -1,6 +1,6 @@
-import type {MailboxProperties} from "../api/entities/tutanota/TypeRefs.js"
-import {ReportMovedMailsType} from "../api/common/TutanotaConstants"
-import {downcast} from "@tutao/tutanota-utils"
+import type { MailboxProperties } from "../api/entities/tutanota/TypeRefs.js"
+import { ReportMovedMailsType } from "../api/common/TutanotaConstants"
+import { downcast } from "@tutao/tutanota-utils"
 
 /**
  * @returns ALWAYS_ASK if not set yet.

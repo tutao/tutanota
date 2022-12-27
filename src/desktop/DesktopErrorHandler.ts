@@ -1,10 +1,10 @@
-import {app, dialog} from "electron"
-import {lang} from "../misc/LanguageViewModel"
+import { app, dialog } from "electron"
+import { lang } from "../misc/LanguageViewModel"
 import fs from "fs"
 import path from "path"
 import os from "os"
-import type {WindowManager} from "./DesktopWindowManager"
-import {log} from "./DesktopLog"
+import type { WindowManager } from "./DesktopWindowManager"
+import { log } from "./DesktopLog"
 
 type ErrorLog = {
 	name: string
@@ -29,7 +29,7 @@ export class DesktopErrorHandler {
 	init(wm: WindowManager) {
 		this.wm = wm
 		process
-			.on("uncaughtException", error => {
+			.on("uncaughtException", (error) => {
 				this.handleUnexpectedFailure(error)
 			})
 			.on("unhandledRejection", (error: Error, p) => {
@@ -80,7 +80,7 @@ export class DesktopErrorHandler {
 				checkboxChecked: false,
 				type: "error",
 			})
-			.then(async ({response, checkboxChecked}) => {
+			.then(async ({ response, checkboxChecked }) => {
 				if (response === 1) {
 					// clicked yes
 					if (checkboxChecked) {
@@ -91,7 +91,7 @@ export class DesktopErrorHandler {
 						})
 						app.exit(0)
 					} else {
-						const loggedInWindow = this.wm.getAll().find(w => w.getUserId() != null)
+						const loggedInWindow = this.wm.getAll().find((w) => w.getUserId() != null)
 
 						if (loggedInWindow) {
 							return this.sendErrorReport(loggedInWindow.id)

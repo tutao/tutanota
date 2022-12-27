@@ -1,30 +1,30 @@
-import type {ImageHandler} from "../model/MailUtils"
-import {getMailAddressDisplayText} from "../model/MailUtils"
-import {ALLOWED_IMAGE_FORMATS, Keys, MailReportType, MAX_BASE64_IMAGE_SIZE} from "../../api/common/TutanotaConstants"
-import {neverNull, ofClass, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {InfoLink, lang} from "../../misc/LanguageViewModel"
-import {Dialog} from "../../gui/base/Dialog"
-import {DataFile} from "../../api/common/DataFile"
-import {showFileChooser} from "../../file/FileController.js"
+import type { ImageHandler } from "../model/MailUtils"
+import { getMailAddressDisplayText } from "../model/MailUtils"
+import { ALLOWED_IMAGE_FORMATS, Keys, MailReportType, MAX_BASE64_IMAGE_SIZE } from "../../api/common/TutanotaConstants"
+import { neverNull, ofClass, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { InfoLink, lang } from "../../misc/LanguageViewModel"
+import { Dialog } from "../../gui/base/Dialog"
+import { DataFile } from "../../api/common/DataFile"
+import { showFileChooser } from "../../file/FileController.js"
 import m from "mithril"
-import {Button, ButtonType} from "../../gui/base/Button.js"
-import {progressIcon} from "../../gui/base/Icon.js"
-import {checkApprovalStatus} from "../../misc/LoginUtils.js"
-import {logins} from "../../api/main/LoginController.js"
-import {locator} from "../../api/main/MainLocator.js"
-import {UserError} from "../../api/main/UserError.js"
-import {showUserError} from "../../misc/ErrorHandlerImpl.js"
-import {ContentBlockingStatus, MailViewerViewModel} from "./MailViewerViewModel.js"
-import {DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
-import {BootIcons} from "../../gui/base/icons/BootIcons.js"
-import {Icons} from "../../gui/base/icons/Icons.js"
-import {client} from "../../misc/ClientDetector.js"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
-import {LockedError} from "../../api/common/error/RestError.js"
-import {ifAllowedTutanotaLinks} from "../../gui/base/GuiUtils.js"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import { progressIcon } from "../../gui/base/Icon.js"
+import { checkApprovalStatus } from "../../misc/LoginUtils.js"
+import { logins } from "../../api/main/LoginController.js"
+import { locator } from "../../api/main/MainLocator.js"
+import { UserError } from "../../api/main/UserError.js"
+import { showUserError } from "../../misc/ErrorHandlerImpl.js"
+import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
+import { DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
+import { BootIcons } from "../../gui/base/icons/BootIcons.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { client } from "../../misc/ClientDetector.js"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
+import { LockedError } from "../../api/common/error/RestError.js"
+import { ifAllowedTutanotaLinks } from "../../gui/base/GuiUtils.js"
 
 export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
-	showFileChooser(true, ALLOWED_IMAGE_FORMATS).then(files => {
+	showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
 		const tooBig: DataFile[] = []
 
 		for (let file of files) {
@@ -50,21 +50,20 @@ export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandle
 }
 
 export async function showHeaderDialog(headersPromise: Promise<string | null>) {
-	let state: {state: "loading"} | {state: "loaded", headers: string | null} = {state: "loading"}
+	let state: { state: "loading" } | { state: "loaded"; headers: string | null } = { state: "loading" }
 
-	headersPromise
-		.then((headers) => {
-			state = {state: "loaded", headers}
-			m.redraw()
-		})
+	headersPromise.then((headers) => {
+		state = { state: "loaded", headers }
+		m.redraw()
+	})
 
 	let mailHeadersDialog: Dialog
 	const closeHeadersAction = () => {
 		mailHeadersDialog?.close()
 	}
 
-	mailHeadersDialog = Dialog
-		.largeDialog({
+	mailHeadersDialog = Dialog.largeDialog(
+		{
 			right: [
 				{
 					label: "ok_action",
@@ -73,13 +72,15 @@ export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 				},
 			],
 			middle: () => lang.get("mailHeaders_title"),
-		}, {
-			view: () => m(".white-space-pre.pt.pb.selectable",
-				state.state === "loading"
-					? m(".center", progressIcon())
-					: state.headers ?? m(".center", lang.get("noEntries_msg")),
-			),
-		})
+		},
+		{
+			view: () =>
+				m(
+					".white-space-pre.pt.pb.selectable",
+					state.state === "loading" ? m(".center", progressIcon()) : state.headers ?? m(".center", lang.get("noEntries_msg")),
+				),
+		},
+	)
 		.addShortcut({
 			key: Keys.ESC,
 			exec: closeHeadersAction,
@@ -99,7 +100,7 @@ export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
 			locator.minimizedMailModel.reopenMinimizedEditor(minimizedEditor)
 		} else {
 			try {
-				const [mailboxDetails, {newMailEditorFromDraft}] = await Promise.all([
+				const [mailboxDetails, { newMailEditorFromDraft }] = await Promise.all([
 					viewModel.mailModel.getMailboxDetailsForMail(viewModel.mail),
 					import("../editor/MailEditor"),
 				])
@@ -127,7 +128,7 @@ export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
 export async function makeAssignMailsButtons(viewModel: MailViewerViewModel): Promise<DropdownButtonAttrs[]> {
 	const assignmentGroupInfos = await viewModel.getAssignmentGroupInfos()
 
-	return assignmentGroupInfos.map(userOrMailGroupInfo => {
+	return assignmentGroupInfos.map((userOrMailGroupInfo) => {
 		return {
 			label: () => getMailAddressDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true),
 			icon: BootIcons.Contacts,
@@ -136,9 +137,7 @@ export async function makeAssignMailsButtons(viewModel: MailViewerViewModel): Pr
 	})
 }
 
-export function mailViewerMoreActions(
-	viewModel: MailViewerViewModel,
-): Array<DropdownButtonAttrs> {
+export function mailViewerMoreActions(viewModel: MailViewerViewModel): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
 	if (viewModel.isUnread()) {
 		moreButtons.push({
@@ -215,12 +214,12 @@ export function mailViewerMoreActions(
 
 function unsubscribe(viewModel: MailViewerViewModel): Promise<void> {
 	return showProgressDialog("pleaseWait_msg", viewModel.unsubscribe())
-		.then(success => {
+		.then((success) => {
 			if (success) {
 				return Dialog.message("unsubscribeSuccessful_msg")
 			}
 		})
-		.catch(e => {
+		.catch((e) => {
 			if (e instanceof LockedError) {
 				return Dialog.message("operationStillActive_msg")
 			} else {
@@ -231,9 +230,10 @@ function unsubscribe(viewModel: MailViewerViewModel): Promise<void> {
 
 function reportMail(viewModel: MailViewerViewModel) {
 	const sendReport = (reportType: MailReportType) => {
-		viewModel.reportMail(reportType)
-				 .catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
-				 .finally(m.redraw)
+		viewModel
+			.reportMail(reportType)
+			.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
+			.finally(m.redraw)
 	}
 
 	const dialog = Dialog.showActionDialog({
@@ -249,7 +249,7 @@ function reportMail(viewModel: MailViewerViewModel) {
 				},
 				[
 					m("div", lang.get("phishingReport_msg")),
-					ifAllowedTutanotaLinks(InfoLink.Phishing, link =>
+					ifAllowedTutanotaLinks(InfoLink.Phishing, (link) =>
 						m(
 							"a.mt-s",
 							{

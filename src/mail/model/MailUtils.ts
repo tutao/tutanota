@@ -1,5 +1,5 @@
-import type {Contact, EncryptedMailAddress, InboxRule, Mail, MailFolder, TutanotaProperties} from "../../api/entities/tutanota/TypeRefs.js"
-import {createContact, createContactMailAddress, createEncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
+import type { Contact, EncryptedMailAddress, InboxRule, Mail, MailFolder, TutanotaProperties } from "../../api/entities/tutanota/TypeRefs.js"
+import { createContact, createContactMailAddress, createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
 import {
 	ContactAddressType,
 	ConversationType,
@@ -11,25 +11,25 @@ import {
 	ReplyType,
 	TUTANOTA_MAIL_ADDRESS_DOMAINS,
 } from "../../api/common/TutanotaConstants"
-import {assertNotNull, contains, endsWith, first, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
-import {assertMainOrNode, isDesktop} from "../../api/common/Env"
-import {LockedError, NotFoundError} from "../../api/common/error/RestError"
-import type {LoginController} from "../../api/main/LoginController"
-import type {Language, TranslationKey} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import {Icons} from "../../gui/base/icons/Icons"
-import type {MailboxDetail} from "./MailModel"
-import {MailModel} from "./MailModel"
-import type {lazyIcon} from "../../gui/base/Icon"
-import type {GroupInfo, User} from "../../api/entities/sys/TypeRefs.js"
-import {CustomerPropertiesTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import type {UserController} from "../../api/main/UserController"
-import type {EntityClient} from "../../api/common/EntityClient"
-import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
-import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName} from "../../misc/parsing/MailAddressParser"
-import type {Attachment} from "../editor/SendMailModel"
-import {getListId} from "../../api/common/utils/EntityUtils.js"
-import {FolderSystem} from "./FolderSystem.js"
+import { assertNotNull, contains, endsWith, first, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertMainOrNode, isDesktop } from "../../api/common/Env"
+import { LockedError, NotFoundError } from "../../api/common/error/RestError"
+import type { LoginController } from "../../api/main/LoginController"
+import type { Language, TranslationKey } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import { Icons } from "../../gui/base/icons/Icons"
+import type { MailboxDetail } from "./MailModel"
+import { MailModel } from "./MailModel"
+import type { lazyIcon } from "../../gui/base/Icon"
+import type { GroupInfo, User } from "../../api/entities/sys/TypeRefs.js"
+import { CustomerPropertiesTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import type { UserController } from "../../api/main/UserController"
+import type { EntityClient } from "../../api/common/EntityClient"
+import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "../../api/common/utils/GroupUtils"
+import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../../misc/parsing/MailAddressParser"
+import type { Attachment } from "../editor/SendMailModel"
+import { getListId } from "../../api/common/utils/EntityUtils.js"
+import { FolderSystem } from "./FolderSystem.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -50,7 +50,7 @@ export function createNewContact(user: User, mailAddress: string, name: string):
 	let firstAndLastName = name.trim() !== "" ? fullNameToFirstAndLastName(name) : mailAddressToFirstAndLastName(mailAddress)
 	let contact = createContact()
 	contact._owner = user._id
-	contact._ownerGroup = assertNotNull(user.memberships.find(m => m.groupType === GroupType.Contact)).group
+	contact._ownerGroup = assertNotNull(user.memberships.find((m) => m.groupType === GroupType.Contact)).group
 	contact.firstName = firstAndLastName.firstName
 	contact.lastName = firstAndLastName.lastName
 	let ma = createContactMailAddress()
@@ -116,7 +116,7 @@ export function isExcludedMailAddress(mailAddress: string): boolean {
 /**
  * @return {string} default mail address
  */
-export function getDefaultSenderFromUser({props, userGroupInfo}: UserController): string {
+export function getDefaultSenderFromUser({ props, userGroupInfo }: UserController): string {
 	return props.defaultSender && contains(getEnabledMailAddressesForGroupInfo(userGroupInfo), props.defaultSender)
 		? props.defaultSender
 		: neverNull(userGroupInfo.mailAddress)
@@ -232,7 +232,7 @@ export interface ImageHandler {
 
 export function markMails(entityClient: EntityClient, mails: Mail[], unread: boolean): Promise<void> {
 	return Promise.all(
-		mails.map(mail => {
+		mails.map((mail) => {
 			if (mail.unread !== unread) {
 				mail.unread = unread
 				return entityClient.update(mail).catch(ofClass(NotFoundError, noOp)).catch(ofClass(LockedError, noOp))
@@ -248,11 +248,7 @@ export function markMails(entityClient: EntityClient, mails: Mail[], unread: boo
  * @param mails
  */
 export function emptyOrContainsDraftsAndNonDrafts(mails: ReadonlyArray<Mail>): boolean {
-	return mails.length === 0
-		|| (
-			mails.some(mail => mail.state === MailState.DRAFT)
-			&& mails.some(mail => mail.state !== MailState.DRAFT)
-		)
+	return mails.length === 0 || (mails.some((mail) => mail.state === MailState.DRAFT) && mails.some((mail) => mail.state !== MailState.DRAFT))
 }
 
 /**
@@ -282,7 +278,7 @@ export function mailStateAllowedInsideFolderType(mailState: string, folderType: 
 	}
 }
 
-export function copyMailAddress({address, name}: EncryptedMailAddress): EncryptedMailAddress {
+export function copyMailAddress({ address, name }: EncryptedMailAddress): EncryptedMailAddress {
 	return createEncryptedMailAddress({
 		address,
 		name,
@@ -293,9 +289,9 @@ export function getTemplateLanguages(sortedLanguages: Array<Language>, entityCli
 	return loginController
 		.getUserController()
 		.loadCustomer()
-		.then(customer => entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
-		.then(customerProperties => {
-			return sortedLanguages.filter(sL => customerProperties.notificationMailTemplates.find(nmt => nmt.language === sL.code))
+		.then((customer) => entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
+		.then((customerProperties) => {
+			return sortedLanguages.filter((sL) => customerProperties.notificationMailTemplates.find((nmt) => nmt.language === sL.code))
 		})
 		.catch(() => [])
 }
@@ -324,7 +320,7 @@ export function conversationTypeString(conversationType: ConversationType): stri
 }
 
 export function getExistingRuleForType(props: TutanotaProperties, cleanValue: string, type: string): InboxRule | null {
-	return props.inboxRules.find(rule => type === rule.type && cleanValue === rule.value) ?? null
+	return props.inboxRules.find((rule) => type === rule.type && cleanValue === rule.value) ?? null
 }
 
 export function canDoDragAndDropExport(): boolean {
@@ -344,7 +340,7 @@ export function checkAttachmentSize(files: ReadonlyArray<Attachment>, maxAttachm
 	let totalSize = 0
 	const attachableFiles: Array<Attachment> = []
 	const tooBigFiles: Array<string> = []
-	files.forEach(file => {
+	files.forEach((file) => {
 		if (totalSize + Number(file.size) > maxAttachmentSize) {
 			tooBigFiles.push(file.name)
 		} else {
@@ -372,17 +368,17 @@ export enum RecipientField {
 	BCC = "bcc",
 }
 
-export async function getMoveTargetFolderSystems(model: MailModel, mails: Mail[]): Promise<{level: number, folder: MailFolder}[]> {
+export async function getMoveTargetFolderSystems(model: MailModel, mails: Mail[]): Promise<{ level: number; folder: MailFolder }[]> {
 	const firstMail = first(mails)
 	if (firstMail == null) return []
 
-	const targetFolders = (await model.getMailboxDetailsForMail(firstMail)).folders.getIndentedList().filter(f => f.folder.mails !== getListId(firstMail))
-	return targetFolders.filter(f => allMailsAllowedInsideFolder([firstMail], f.folder))
+	const targetFolders = (await model.getMailboxDetailsForMail(firstMail)).folders.getIndentedList().filter((f) => f.folder.mails !== getListId(firstMail))
+	return targetFolders.filter((f) => allMailsAllowedInsideFolder([firstMail], f.folder))
 }
 
 export const MAX_FOLDER_INDENT_LEVEL = 10
 
-export function getIndentedFolderNameForDropdown(folderInfo: {level: number; folder: MailFolder}) {
+export function getIndentedFolderNameForDropdown(folderInfo: { level: number; folder: MailFolder }) {
 	const indentLevel = Math.min(folderInfo.level, MAX_FOLDER_INDENT_LEVEL)
 	return ". ".repeat(indentLevel) + getFolderName(folderInfo.folder)
 }

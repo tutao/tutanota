@@ -2,9 +2,9 @@
 
 /** Modifies each function interface to add spy attributes (for convenience). */
 interface Function {
-	callCount: number,
-	args: any[],
-	calls: {this: this, args: any[]}[]
+	callCount: number
+	args: any[]
+	calls: { this: this; args: any[] }[]
 }
 
 /**

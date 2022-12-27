@@ -1,13 +1,13 @@
-import {OperationType} from "../../common/TutanotaConstants"
-import {containsEventOfType, getEventOfType} from "../../common/utils/Utils"
-import {assertNotNull, findAllAndRemove, isSameTypeRefByAttr, remove} from "@tutao/tutanota-utils"
-import {ConnectionError, ServiceUnavailableError} from "../../common/error/RestError"
-import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
-import {ProgrammingError} from "../../common/error/ProgrammingError"
-import {MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
-import {isSameId} from "../../common/utils/EntityUtils"
-import {CustomerInfoTypeRef} from "../../entities/sys/TypeRefs.js"
-import {EntityUpdateData} from "../../main/EventController";
+import { OperationType } from "../../common/TutanotaConstants"
+import { containsEventOfType, getEventOfType } from "../../common/utils/Utils"
+import { assertNotNull, findAllAndRemove, isSameTypeRefByAttr, remove } from "@tutao/tutanota-utils"
+import { ConnectionError, ServiceUnavailableError } from "../../common/error/RestError"
+import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
+import { ProgrammingError } from "../../common/error/ProgrammingError"
+import { MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { isSameId } from "../../common/utils/EntityUtils"
+import { CustomerInfoTypeRef } from "../../entities/sys/TypeRefs.js"
+import { EntityUpdateData } from "../../main/EventController"
 
 export type QueuedBatch = {
 	events: EntityUpdate[]
@@ -33,7 +33,7 @@ const MOVABLE_EVENT_TYPE_REFS = [
  * Whether the entity of the event supports MOVE operation. MOVE is supposed to be immutable so we cannot apply it to all instances.
  */
 function isMovableEventType(event: EntityUpdate): boolean {
-	return MOVABLE_EVENT_TYPE_REFS.some(typeRef => isSameTypeRefByAttr(typeRef, event.application, event.type))
+	return MOVABLE_EVENT_TYPE_REFS.some((typeRef) => isSameTypeRefByAttr(typeRef, event.application, event.type))
 }
 
 /**
@@ -200,7 +200,9 @@ export class EventQueue {
 				} else if (newEntityModification === EntityModificationType.DELETE) {
 					// find first move or delete (at different list) operation
 					const firstMoveIndex = this._eventQueue.findIndex(
-						queuedBatch => this._processingBatch !== queuedBatch && containsEventOfType(queuedBatch.events as readonly EntityUpdateData[], OperationType.DELETE, elementId),
+						(queuedBatch) =>
+							this._processingBatch !== queuedBatch &&
+							containsEventOfType(queuedBatch.events as readonly EntityUpdateData[], OperationType.DELETE, elementId),
 					)
 
 					if (firstMoveIndex !== -1) {
@@ -241,13 +243,13 @@ export class EventQueue {
 		// this will remove batches with an empty event list
 		findAllAndRemove(
 			this._eventQueue,
-			batchInThePast => {
+			(batchInThePast) => {
 				if (this._processingBatch === batchInThePast) {
 					return false
 				}
 
 				// this will remove all events for the element id from the batch
-				findAllAndRemove(batchInThePast.events, event => isSameId(event.instanceId, elementId))
+				findAllAndRemove(batchInThePast.events, (event) => isSameId(event.instanceId, elementId))
 				return batchInThePast.events.length === 0
 			},
 			startIndex,
@@ -291,7 +293,7 @@ export class EventQueue {
 
 					this._processNext()
 				})
-				.catch(e => {
+				.catch((e) => {
 					// processing continues if the event bus receives a new event
 					this._processingBatch = null
 
@@ -322,7 +324,7 @@ export class EventQueue {
 	}
 
 	_replace(batch: QueuedBatch, newMod: EntityUpdate) {
-		batch.events = batch.events.filter(e => e.instanceId !== newMod.instanceId)
+		batch.events = batch.events.filter((e) => e.instanceId !== newMod.instanceId)
 		batch.events.push(newMod)
 	}
 }

@@ -1,4 +1,4 @@
-import type {Base64, Base64Url} from "@tutao/tutanota-utils"
+import type { Base64, Base64Url } from "@tutao/tutanota-utils"
 
 /** Data obtained after logging in. */
 export interface Credentials {

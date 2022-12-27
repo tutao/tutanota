@@ -10,6 +10,6 @@ export {
 	assertResolvedIn,
 	assertNotResolvedIn,
 	makeTimeoutMock,
-	verify
+	verify,
 } from "./TestUtils.js"
-export type {Spy, TimeoutMock} from "./TestUtils.js"
+export type { Spy, TimeoutMock } from "./TestUtils.js"

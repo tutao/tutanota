@@ -1,43 +1,43 @@
-import {TextFieldType} from "../gui/base/TextField.js"
-import m, {Children, Component, Vnode} from "mithril"
-import {Icons} from "../gui/base/icons/Icons"
-import {logins} from "../api/main/LoginController"
-import {inputLineHeight, px, size} from "../gui/size"
+import { TextFieldType } from "../gui/base/TextField.js"
+import m, { Children, Component, Vnode } from "mithril"
+import { Icons } from "../gui/base/icons/Icons"
+import { logins } from "../api/main/LoginController"
+import { inputLineHeight, px, size } from "../gui/size"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {theme} from "../gui/theme"
-import {Icon} from "../gui/base/Icon"
-import {DefaultAnimationTime} from "../gui/animation/Animations"
-import {BootIcons} from "../gui/base/icons/BootIcons"
-import type {PositionRect} from "../gui/base/Overlay"
-import {displayOverlay} from "../gui/base/Overlay"
-import type {Contact, Mail} from "../api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef, MailTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import type {Shortcut} from "../misc/KeyManager"
-import {keyManager} from "../misc/KeyManager"
-import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
-import {getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl} from "./model/SearchUtils"
-import {locator} from "../api/main/MainLocator"
-import {Dialog} from "../gui/base/Dialog"
-import type {GroupInfo, WhitelabelChild} from "../api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef, WhitelabelChildTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {FULL_INDEXED_TIMESTAMP, Keys, TabIndex} from "../api/common/TutanotaConstants"
-import {assertMainOrNode, isApp} from "../api/common/Env"
-import {styles} from "../gui/styles"
-import {client} from "../misc/ClientDetector"
-import {debounce, downcast, flat, groupBy, isSameTypeRef, mod, noOp, ofClass, promiseMap, TypeRef} from "@tutao/tutanota-utils"
-import {PageSize} from "../gui/base/List"
-import {BrowserType} from "../misc/ClientConstants"
-import {hasMoreResults} from "./model/SearchModel"
-import {SearchBarOverlay} from "./SearchBarOverlay"
-import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
-import {lang} from "../misc/LanguageViewModel"
-import {AriaLandmarks, landmarkAttrs} from "../gui/AriaUtils"
-import type {SearchIndexStateInfo, SearchRestriction, SearchResult} from "../api/worker/search/SearchTypes"
-import type {ListElement} from "../api/common/utils/EntityUtils"
-import {elementIdPart, getElementId, listIdPart} from "../api/common/utils/EntityUtils"
-import {compareContacts} from "../contacts/view/ContactGuiUtils"
-import {LayerType} from "../RootView"
+import { theme } from "../gui/theme"
+import { Icon } from "../gui/base/Icon"
+import { DefaultAnimationTime } from "../gui/animation/Animations"
+import { BootIcons } from "../gui/base/icons/BootIcons"
+import type { PositionRect } from "../gui/base/Overlay"
+import { displayOverlay } from "../gui/base/Overlay"
+import type { Contact, Mail } from "../api/entities/tutanota/TypeRefs.js"
+import { ContactTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import type { Shortcut } from "../misc/KeyManager"
+import { keyManager } from "../misc/KeyManager"
+import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError"
+import { getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl } from "./model/SearchUtils"
+import { locator } from "../api/main/MainLocator"
+import { Dialog } from "../gui/base/Dialog"
+import type { GroupInfo, WhitelabelChild } from "../api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef, WhitelabelChildTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { FULL_INDEXED_TIMESTAMP, Keys, TabIndex } from "../api/common/TutanotaConstants"
+import { assertMainOrNode, isApp } from "../api/common/Env"
+import { styles } from "../gui/styles"
+import { client } from "../misc/ClientDetector"
+import { debounce, downcast, flat, groupBy, isSameTypeRef, mod, noOp, ofClass, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import { PageSize } from "../gui/base/List"
+import { BrowserType } from "../misc/ClientConstants"
+import { hasMoreResults } from "./model/SearchModel"
+import { SearchBarOverlay } from "./SearchBarOverlay"
+import { IndexingNotSupportedError } from "../api/common/error/IndexingNotSupportedError"
+import { lang } from "../misc/LanguageViewModel"
+import { AriaLandmarks, landmarkAttrs } from "../gui/AriaUtils"
+import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../api/worker/search/SearchTypes"
+import type { ListElement } from "../api/common/utils/EntityUtils"
+import { elementIdPart, getElementId, listIdPart } from "../api/common/utils/EntityUtils"
+import { compareContacts } from "../contacts/view/ContactGuiUtils"
+import { LayerType } from "../RootView"
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -107,7 +107,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 					isFocused: this.focused,
 					isExpanded: this.expanded,
 					skipNextBlur: this.skipNextBlur,
-					selectResult: selected => this._selectResult(selected),
+					selectResult: (selected) => this._selectResult(selected),
 				})
 			},
 		}
@@ -138,11 +138,11 @@ export class SearchBar implements Component<SearchBarAttrs> {
 					m(
 						".search-bar.flex-end.items-center" + landmarkAttrs(AriaLandmarks.Search),
 						{
-							oncreate: vnode => {
+							oncreate: (vnode) => {
 								this._domWrapper = vnode.dom as HTMLElement
 								shortcuts = this._setupShortcuts()
 								keyManager.registerShortcuts(shortcuts)
-								indexStateStream = locator.search.indexState.map(indexState => {
+								indexStateStream = locator.search.indexState.map((indexState) => {
 									// When we finished indexing, search again forcibly to not confuse anyone with old results
 									const currentResult = this._state().searchResult
 
@@ -161,7 +161,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 										indexState,
 									})
 								})
-								stateStream = this._state.map(state => {
+								stateStream = this._state.map((state) => {
 									this._showOverlay()
 
 									if (this._domInput) {
@@ -174,7 +174,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 									m.redraw()
 								})
-								lastQueryStream = locator.search.lastQuery.map(value => {
+								lastQueryStream = locator.search.lastQuery.map((value) => {
 									// Set value from the model when we it's set from the URL e.g. reloading the page on the search screen
 									if (value) {
 										this._updateState({
@@ -217,28 +217,28 @@ export class SearchBar implements Component<SearchBarAttrs> {
 						[
 							styles.isDesktopLayout()
 								? m(
-									"button.ml-negative-xs.click",
-									{
-										tabindex: TabIndex.Default,
-										title: lang.get("search_label"),
-										onmousedown: () => {
-											if (this.focused) {
-												this.skipNextBlur(true) // avoid closing of overlay when clicking search icon
-											}
+										"button.ml-negative-xs.click",
+										{
+											tabindex: TabIndex.Default,
+											title: lang.get("search_label"),
+											onmousedown: () => {
+												if (this.focused) {
+													this.skipNextBlur(true) // avoid closing of overlay when clicking search icon
+												}
+											},
+											onclick: (e: MouseEvent) => {
+												e.preventDefault()
+												this.handleSearchClick(e)
+											},
 										},
-										onclick: (e: MouseEvent) => {
-											e.preventDefault()
-											this.handleSearchClick(e)
-										},
-									},
-									m(Icon, {
-										icon: BootIcons.Search,
-										class: "flex-center items-center icon-large",
-										style: {
-											fill: this.focused ? theme.header_button_selected : theme.header_button,
-										},
-									}),
-								)
+										m(Icon, {
+											icon: BootIcons.Search,
+											class: "flex-center items-center icon-large",
+											style: {
+												fill: this.focused ? theme.header_button_selected : theme.header_button,
+											},
+										}),
+								  )
 								: null,
 							m(
 								".searchInputWrapper.flex.items-center",
@@ -282,16 +282,16 @@ export class SearchBar implements Component<SearchBarAttrs> {
 										},
 										this.busy
 											? m(Icon, {
-												icon: BootIcons.Progress,
-												class: "flex-center items-center icon-progress-search icon-progress",
-											})
+													icon: BootIcons.Progress,
+													class: "flex-center items-center icon-progress-search icon-progress",
+											  })
 											: m(Icon, {
-												icon: Icons.Close,
-												class: "flex-center items-center icon-large",
-												style: {
-													fill: theme.header_button,
-												},
-											}),
+													icon: Icons.Close,
+													class: "flex-center items-center icon-large",
+													style: {
+														fill: theme.header_button,
+													},
+											  }),
 									),
 								],
 							),
@@ -373,7 +373,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			{
 				key: Keys.F,
 				enabled: () => true,
-				exec: key => {
+				exec: (key) => {
 					this.focus()
 					m.redraw()
 				},
@@ -387,7 +387,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		this._groupInfoRestrictionListId = listId
 	}
 
-	_downloadResults({results, restriction}: SearchResult): Promise<Array<Entry>> {
+	_downloadResults({ results, restriction }: SearchResult): Promise<Array<Entry>> {
 		if (results.length === 0) {
 			return Promise.resolve([])
 		}
@@ -397,19 +397,19 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			byList,
 			([listId, idTuples]) => {
 				return locator.entityClient
-							  .loadMultiple(restriction.type, listId, idTuples.map(elementIdPart))
-							  .catch(
-								  ofClass(NotFoundError, () => {
-									  console.log("mail list from search index not found")
-									  return []
-								  }),
-							  )
-							  .catch(
-								  ofClass(NotAuthorizedError, () => {
-									  console.log("no permission on instance from search index")
-									  return []
-								  }),
-							  )
+					.loadMultiple(restriction.type, listId, idTuples.map(elementIdPart))
+					.catch(
+						ofClass(NotFoundError, () => {
+							console.log("mail list from search index not found")
+							return []
+						}),
+					)
+					.catch(
+						ofClass(NotAuthorizedError, () => {
+							console.log("no permission on instance from search index")
+							return []
+						}),
+					)
 			},
 			{
 				concurrency: 3,
@@ -419,7 +419,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	_selectResult(result: (Mail | null) | Contact | GroupInfo | WhitelabelChild | ShowMoreAction) {
-		const {query} = this._state()
+		const { query } = this._state()
 
 		if (result != null) {
 			this._domInput.blur()
@@ -481,22 +481,22 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			this.focused = false
 			this._confirmDialogShown = true
 			Dialog.confirm("enableSearchMailbox_msg", "search_label")
-				  .then(confirmed => {
-					  if (confirmed) {
-						  locator.indexerFacade
-								 .enableMailIndexing()
-								 .then(() => {
-									 this.search()
-									 this.focus()
-								 })
-								 .catch(
-									 ofClass(IndexingNotSupportedError, () => {
-										 Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
-									 }),
-								 )
-					  }
-				  })
-				  .finally(() => (this._confirmDialogShown = false))
+				.then((confirmed) => {
+					if (confirmed) {
+						locator.indexerFacade
+							.enableMailIndexing()
+							.then(() => {
+								this.search()
+								this.focus()
+							})
+							.catch(
+								ofClass(IndexingNotSupportedError, () => {
+									Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+								}),
+							)
+					}
+				})
+				.finally(() => (this._confirmDialogShown = false))
 		} else {
 			if (!locator.search.isNewSearch(query, restriction) && oldQuery === query) {
 				const result = locator.search.result()
@@ -526,14 +526,14 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			// We don't limit contacts because we need to download all of them to sort them. They should be cached anyway.
 			const limit = isSameTypeRef(MailTypeRef, restriction.type) ? (this._isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize) : null
 			locator.search
-				   .search({
-					   query: query ?? "",
-					   restriction,
-					   minSuggestionCount: useSuggestions ? 10 : 0,
-					   maxResults: limit,
-				   })
-				   .then(result => this._loadAndDisplayResult(query, result ? result : null, limit))
-				   .finally(() => cb())
+				.search({
+					query: query ?? "",
+					restriction,
+					minSuggestionCount: useSuggestions ? 10 : 0,
+					maxResults: limit,
+				})
+				.then((result) => this._loadAndDisplayResult(query, result ? result : null, limit))
+				.finally(() => cb())
 		},
 	)
 
@@ -552,7 +552,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 		if (this._isQuickSearch()) {
 			if (safeLimit && hasMoreResults(safeResult) && safeResult.results.length < safeLimit) {
-				locator.searchFacade.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then(moreResults => {
+				locator.searchFacade.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
 					if (locator.search.isNewSearch(query, moreResults.restriction)) {
 						return
 					} else {
@@ -589,7 +589,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	_showResultsInOverlay(result: SearchResult): Promise<void> {
-		return this._downloadResults(result).then(entries => {
+		return this._downloadResults(result).then((entries) => {
 			// If there was no new search while we've been downloading the result
 			if (!locator.search.isNewSearch(result.query, result.restriction)) {
 				const filteredResults = this._filterResults(entries, result.restriction)
@@ -633,8 +633,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			const localAdminGroupIds = logins
 				.getUserController()
 				.getLocalAdminGroupMemberships()
-				.map(gm => gm.group)
-			filteredInstances = filteredInstances.filter(gi => isAdministratedGroup(localAdminGroupIds, downcast(gi)))
+				.map((gm) => gm.group)
+			filteredInstances = filteredInstances.filter((gi) => isAdministratedGroup(localAdminGroupIds, downcast(gi)))
 		} else if (isSameTypeRef(restriction.type, ContactTypeRef)) {
 			// Sort contacts by name
 			filteredInstances.sort((o1, o2) => compareContacts(o1 as any, o2 as any))
@@ -651,7 +651,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			placeholder: attrs.placeholder,
 			type: TextFieldType.Text,
 			value: this._state().query,
-			oncreate: vnode => {
+			oncreate: (vnode) => {
 				this._domInput = vnode.dom as HTMLInputElement
 			},
 			onclick: () => this.focus(),
@@ -680,7 +680,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				}
 			},
 			onkeydown: (e: KeyboardEvent) => {
-				const {selected, entities} = this._state()
+				const { selected, entities } = this._state()
 
 				const keyHandlers = [
 					{
@@ -737,7 +737,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 					},
 				]
 				let keyCode = e.which
-				let keyHandler = keyHandlers.find(handler => handler.key.code === keyCode)
+				let keyHandler = keyHandlers.find((handler) => handler.key.code === keyCode)
 
 				if (keyHandler) {
 					keyHandler.exec()

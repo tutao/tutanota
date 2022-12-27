@@ -1,21 +1,21 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {Icons} from "../base/icons/Icons"
-import {client} from "../../misc/ClientDetector"
-import {formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear} from "../../misc/Formatter"
-import type {TranslationText} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import {px} from "../size"
-import {theme} from "../theme"
-import {BootIcons} from "../base/icons/BootIcons"
-import {Icon} from "../base/Icon"
-import {getStartOfDay, isSameDayOfDate} from "@tutao/tutanota-utils"
-import {DateTime} from "luxon"
-import {getAllDayDateLocal} from "../../api/common/utils/CommonCalendarUtils"
-import {TextField} from "../base/TextField.js"
-import {Keys} from "../../api/common/TutanotaConstants"
-import type {CalendarDay} from "../../calendar/date/CalendarUtils"
-import {getCalendarMonth, getDateIndicator} from "../../calendar/date/CalendarUtils"
-import {parseDate} from "../../misc/DateParser"
+import m, { Children, Component, Vnode } from "mithril"
+import { Icons } from "../base/icons/Icons"
+import { client } from "../../misc/ClientDetector"
+import { formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear } from "../../misc/Formatter"
+import type { TranslationText } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import { px } from "../size"
+import { theme } from "../theme"
+import { BootIcons } from "../base/icons/BootIcons"
+import { Icon } from "../base/Icon"
+import { getStartOfDay, isSameDayOfDate } from "@tutao/tutanota-utils"
+import { DateTime } from "luxon"
+import { getAllDayDateLocal } from "../../api/common/utils/CommonCalendarUtils"
+import { TextField } from "../base/TextField.js"
+import { Keys } from "../../api/common/TutanotaConstants"
+import type { CalendarDay } from "../../calendar/date/CalendarUtils"
+import { getCalendarMonth, getDateIndicator } from "../../calendar/date/CalendarUtils"
+import { parseDate } from "../../misc/DateParser"
 import Stream from "mithril/stream"
 
 export interface DatePickerAttrs {
@@ -46,7 +46,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 	private documentClickListener: ((e: MouseEvent) => unknown) | null = null
 	private textFieldHasFocus: boolean = false
 
-	constructor({attrs}: Vnode<DatePickerAttrs>) {
+	constructor({ attrs }: Vnode<DatePickerAttrs>) {
 		const initDate = attrs.date
 
 		if (initDate) {
@@ -56,7 +56,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		}
 	}
 
-	view({attrs}: Vnode<DatePickerAttrs>): Children {
+	view({ attrs }: Vnode<DatePickerAttrs>): Children {
 		const date = attrs.date
 
 		// If the user is interacting with the textfield, then we want the textfield to accept their input, so never override the text
@@ -74,7 +74,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		])
 	}
 
-	private renderTextField({date, onDateSelected, label, nullSelectionText, disabled}: DatePickerAttrs): Children {
+	private renderTextField({ date, onDateSelected, label, nullSelectionText, disabled }: DatePickerAttrs): Children {
 		return m(
 			"",
 			{
@@ -97,10 +97,10 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				onblur: () => {
 					this.textFieldHasFocus = false
 				},
-				oncreate: vnode => {
+				oncreate: (vnode) => {
 					this.domInput = vnode.dom as HTMLElement
 				},
-				keyHandler: key => {
+				keyHandler: (key) => {
 					if (key.keyCode === Keys.TAB.code) {
 						this.showingDropdown = false
 					}
@@ -121,7 +121,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		}
 	}
 
-	private renderDropdown({date, onDateSelected, startOfTheWeekOffset, rightAlignDropdown}: DatePickerAttrs): Children {
+	private renderDropdown({ date, onDateSelected, startOfTheWeekOffset, rightAlignDropdown }: DatePickerAttrs): Children {
 		return m(
 			".fixed.content-bg.z3.menu-shadow.plr.pb-s",
 			{
@@ -130,7 +130,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					right: rightAlignDropdown ? "0" : null,
 				},
 				onblur: () => (this.showingDropdown = false),
-				oncreate: vnode => {
+				oncreate: (vnode) => {
 					const listener = (e: MouseEvent) => {
 						if (!vnode.dom.contains(e.target as HTMLElement)) {
 							this.showingDropdown = false
@@ -141,7 +141,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					this.documentClickListener = listener
 					document.addEventListener("click", listener, true)
 				},
-				onremove: vnode => {
+				onremove: (vnode) => {
 					if (this.documentClickListener) {
 						document.removeEventListener("click", this.documentClickListener, true)
 					}
@@ -163,7 +163,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		)
 	}
 
-	private renderMobileDateInput({date, onDateSelected}: DatePickerAttrs): Children {
+	private renderMobileDateInput({ date, onDateSelected }: DatePickerAttrs): Children {
 		return m("input.fill-absolute", {
 			type: "date",
 			style: {
@@ -233,7 +233,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		}
 
 		let date = new Date(this.displayingDate)
-		const {weeks, weekdays} = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, true)
+		const { weeks, weekdays } = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, true)
 		return m(".flex.flex-column", [
 			m(".flex.flex-space-between.pt-s.pb-s.items-center", [
 				this.renderSwitchMonthArrowIcon(false, vnode.attrs),
@@ -257,7 +257,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 						lineHeight: px(this.getElementWidth(vnode.attrs)),
 					},
 				},
-				weeks.map(w => this.renderWeek(w, vnode.attrs)),
+				weeks.map((w) => this.renderWeek(w, vnode.attrs)),
 			),
 		])
 	}
@@ -291,7 +291,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		this.displayingDate.setMonth(this.displayingDate.getMonth() + 1)
 	}
 
-	private renderDay({date, day, paddingDay}: CalendarDay, attrs: VisualDatePickerAttrs): Children {
+	private renderDay({ date, day, paddingDay }: CalendarDay, attrs: VisualDatePickerAttrs): Children {
 		const size = px(this.getElementWidth(attrs))
 		return m(
 			".center.click" + (paddingDay ? "" : getDateIndicator(date, attrs.selectedDate)),
@@ -317,14 +317,14 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	private renderWeek(week: Array<CalendarDay>, attrs: VisualDatePickerAttrs): Children {
 		return m(
 			".flex.flex-space-between",
-			week.map(d => this.renderDay(d, attrs)),
+			week.map((d) => this.renderDay(d, attrs)),
 		)
 	}
 
 	private renderWeekDays(wide: boolean, weekdays: string[]): Children {
 		const size = px(wide ? 40 : 24)
 		const fontSize = px(14)
-		return weekdays.map(wd =>
+		return weekdays.map((wd) =>
 			m(
 				".center",
 				{

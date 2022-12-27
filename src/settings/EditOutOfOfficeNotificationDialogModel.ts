@@ -1,19 +1,19 @@
-import type {OutOfOfficeNotification} from "../api/entities/tutanota/TypeRefs.js"
-import {createOutOfOfficeNotification} from "../api/entities/tutanota/TypeRefs.js"
+import type { OutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
+import { createOutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
 import stream from "mithril/stream"
-import {getDayShifted, getStartOfDay, getStartOfNextDay} from "@tutao/tutanota-utils"
-import {OutOfOfficeNotificationMessageType} from "../api/common/TutanotaConstants"
-import type {OutOfOfficeNotificationMessage} from "../api/entities/tutanota/TypeRefs.js"
-import {createOutOfOfficeNotificationMessage} from "../api/entities/tutanota/TypeRefs.js"
-import {InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError"
-import {BusinessFeatureRequiredError} from "../api/main/BusinessFeatureRequiredError"
-import type {EntityClient} from "../api/common/EntityClient"
-import type {LanguageViewModel} from "../misc/LanguageViewModel"
-import type {UserController} from "../api/main/UserController"
-import {appendEmailSignature} from "../mail/signature/Signature"
-import {UserError} from "../api/main/UserError"
-import {ofClass} from "@tutao/tutanota-utils"
-import Stream from "mithril/stream";
+import { getDayShifted, getStartOfDay, getStartOfNextDay } from "@tutao/tutanota-utils"
+import { OutOfOfficeNotificationMessageType } from "../api/common/TutanotaConstants"
+import type { OutOfOfficeNotificationMessage } from "../api/entities/tutanota/TypeRefs.js"
+import { createOutOfOfficeNotificationMessage } from "../api/entities/tutanota/TypeRefs.js"
+import { InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError"
+import { BusinessFeatureRequiredError } from "../api/main/BusinessFeatureRequiredError"
+import type { EntityClient } from "../api/common/EntityClient"
+import type { LanguageViewModel } from "../misc/LanguageViewModel"
+import type { UserController } from "../api/main/UserController"
+import { appendEmailSignature } from "../mail/signature/Signature"
+import { UserError } from "../api/main/UserError"
+import { ofClass } from "@tutao/tutanota-utils"
+import Stream from "mithril/stream"
 
 export const enum RecipientMessageType {
 	EXTERNAL_TO_EVERYONE = 0,
@@ -59,7 +59,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 			this.enabled(outOfOfficeNotification.enabled)
 			let defaultEnabled = false
 			let organizationEnabled = false
-			outOfOfficeNotification.notifications.forEach(notification => {
+			outOfOfficeNotification.notifications.forEach((notification) => {
 				if (notification.type === OutOfOfficeNotificationMessageType.Default) {
 					defaultEnabled = true
 					this.defaultSubject(notification.subject)
@@ -174,29 +174,29 @@ export class EditOutOfOfficeNotificationDialogModel {
 	 */
 	saveOutOfOfficeNotification(): Promise<any> {
 		return Promise.resolve()
-					  .then(() => this.getNotificationFromData())
-					  .then(async sendableNotification => {
-						  // Error messages are already shown if sendableNotification is null. We do not close the dialog.
-						  if (this._isNewNotification()) {
-							  await this._entityClient.setup(null, sendableNotification)
-						  } else {
-							  await this._entityClient.update(sendableNotification)
-						  }
-					  })
-					  .catch(
-						  ofClass(InvalidDataError, e => {
-							  throw new UserError("outOfOfficeMessageInvalid_msg")
-						  }),
-					  )
-					  .catch(
-						  ofClass(PreconditionFailedError, e => {
-							  if (e.data === FAILURE_BUSINESS_FEATURE_REQUIRED) {
-								  throw new BusinessFeatureRequiredError("businessFeatureRequiredGeneral_msg")
-							  } else {
-								  throw new UserError(() => e.toString())
-							  }
-						  }),
-					  )
+			.then(() => this.getNotificationFromData())
+			.then(async (sendableNotification) => {
+				// Error messages are already shown if sendableNotification is null. We do not close the dialog.
+				if (this._isNewNotification()) {
+					await this._entityClient.setup(null, sendableNotification)
+				} else {
+					await this._entityClient.update(sendableNotification)
+				}
+			})
+			.catch(
+				ofClass(InvalidDataError, (e) => {
+					throw new UserError("outOfOfficeMessageInvalid_msg")
+				}),
+			)
+			.catch(
+				ofClass(PreconditionFailedError, (e) => {
+					if (e.data === FAILURE_BUSINESS_FEATURE_REQUIRED) {
+						throw new BusinessFeatureRequiredError("businessFeatureRequiredGeneral_msg")
+					} else {
+						throw new UserError(() => e.toString())
+					}
+				}),
+			)
 	}
 
 	_isNewNotification(): boolean {

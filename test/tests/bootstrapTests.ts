@@ -1,7 +1,6 @@
 // @ts-nocheck
 globalThis.isBrowser = typeof window !== "undefined"
 globalThis.mocks = {}
-
 ;(async function () {
 	if (globalThis.isBrowser) {
 		await setupBrowser()
@@ -11,16 +10,14 @@ globalThis.mocks = {}
 
 	window.tutao = {
 		appState: {
-			prefixWithoutFile: "./"
-		}
+			prefixWithoutFile: "./",
+		},
 	}
 
-	import('../tests/Suite.js')
-
+	import("../tests/Suite.js")
 })()
 
-const noOp = () => {
-}
+const noOp = () => {}
 
 function setupBrowser() {
 	/**
@@ -45,7 +42,7 @@ async function setupNode() {
 	 */
 	globalThis.node = (func) => func
 
-	const {JSDOM} = await import("jsdom")
+	const { JSDOM } = await import("jsdom")
 	var dom = new JSDOM("", {
 		// So we can get `requestAnimationFrame`
 		pretendToBeVisual: true,
@@ -53,29 +50,27 @@ async function setupNode() {
 
 	globalThis.requestAnimationFrame = dom.window.requestAnimationFrame
 	globalThis.window = dom.window
-	dom.reconfigure({"url": "http://tutanota.com"})
-	globalThis.window.getElementsByTagName = function () {
-	} // for styles.js
-	globalThis.window.document.addEventListener = function () {
-	}
+	dom.reconfigure({ url: "http://tutanota.com" })
+	globalThis.window.getElementsByTagName = function () {} // for styles.js
+	globalThis.window.document.addEventListener = function () {}
 	globalThis.document = globalThis.window.document
 	globalThis.navigator = globalThis.window.navigator
 	const local = {}
 	globalThis.localStorage = {
-		getItem: key => local[key],
-		setItem: (key, value) => local[key] = value
+		getItem: (key) => local[key],
+		setItem: (key, value) => (local[key] = value),
 	}
-	globalThis.requestAnimationFrame = globalThis.requestAnimationFrame || (callback => setTimeout(callback, 10))
+	globalThis.requestAnimationFrame = globalThis.requestAnimationFrame || ((callback) => setTimeout(callback, 10))
 
-	globalThis.btoa = str => Buffer.from(str, 'binary').toString('base64')
-	globalThis.atob = b64Encoded => Buffer.from(b64Encoded, 'base64').toString('binary')
+	globalThis.btoa = (str) => Buffer.from(str, "binary").toString("base64")
+	globalThis.atob = (b64Encoded) => Buffer.from(b64Encoded, "base64").toString("binary")
 	globalThis.WebSocket = noOp
 
-	const nowOffset = Date.now();
+	const nowOffset = Date.now()
 	globalThis.performance = {
 		now: function () {
-			return Date.now() - nowOffset;
-		}
+			return Date.now() - nowOffset
+		},
 	}
 	globalThis.performance = {
 		now: Date.now,
@@ -87,14 +82,14 @@ async function setupNode() {
 		getRandomValues: function (bytes) {
 			let randomBytes = crypto.randomBytes(bytes.length)
 			bytes.set(randomBytes)
-		}
+		},
 	}
 	globalThis.XMLHttpRequest = (await import("xhr2")).default
 	process.on("unhandledRejection", function (e) {
 		console.log("Uncaught (in promise) " + e.stack)
 	})
 	globalThis.electronMock = {
-		app: {}
+		app: {},
 	}
 
 	globalThis.XMLHttpRequest = (await import("xhr2")).default

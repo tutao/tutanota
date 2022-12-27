@@ -1,14 +1,14 @@
-import type {NativeImage} from "electron"
-import {app, Menu, MenuItem, nativeImage, Tray} from "electron"
-import type {DesktopConfig} from "../config/DesktopConfig"
-import type {WindowManager} from "../DesktopWindowManager"
-import type {DesktopNotifier} from "../DesktopNotifier"
-import {lang} from "../../misc/LanguageViewModel"
-import {MacTray} from "./MacTray"
-import {NonMacTray} from "./NonMacTray"
-import {getResourcePath} from "../resources"
-import {BuildConfigKey, DesktopConfigKey} from "../config/ConfigKeys";
-import {log} from "../DesktopLog.js"
+import type { NativeImage } from "electron"
+import { app, Menu, MenuItem, nativeImage, Tray } from "electron"
+import type { DesktopConfig } from "../config/DesktopConfig"
+import type { WindowManager } from "../DesktopWindowManager"
+import type { DesktopNotifier } from "../DesktopNotifier"
+import { lang } from "../../misc/LanguageViewModel"
+import { MacTray } from "./MacTray"
+import { NonMacTray } from "./NonMacTray"
+import { getResourcePath } from "../resources"
+import { BuildConfigKey, DesktopConfigKey } from "../config/ConfigKeys"
+import { log } from "../DesktopLog.js"
 
 export interface PlatformTray {
 	setBadge(): void
@@ -43,10 +43,12 @@ export class DesktopTray {
 
 				this._tray = null
 			}
-		}).whenReady().then(async () => {
-			if (!this._wm) log.warn("Tray: No WM set before 'ready'!")
-			this._tray = platformTray.getTray(this._wm, await this.getAppIcon())
 		})
+			.whenReady()
+			.then(async () => {
+				if (!this._wm) log.warn("Tray: No WM set before 'ready'!")
+				this._tray = platformTray.getTray(this._wm, await this.getAppIcon())
+			})
 	}
 
 	async update(notifier: DesktopNotifier): Promise<void> {
@@ -69,7 +71,7 @@ export class DesktopTray {
 				}),
 			)
 
-			this._wm.getAll().forEach(w => {
+			this._wm.getAll().forEach((w) => {
 				let label = w.getTitle()
 
 				if (notifier.hasNotificationsForWindow(w)) {
@@ -87,7 +89,7 @@ export class DesktopTray {
 			})
 		}
 
-		platformTray.getPlatformMenuItems().forEach(mi => m.append(mi))
+		platformTray.getPlatformMenuItems().forEach((mi) => m.append(mi))
 		platformTray.attachMenuToTray(m, this._tray)
 	}
 

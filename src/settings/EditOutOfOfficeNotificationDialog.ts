@@ -1,30 +1,30 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {Dialog} from "../gui/base/Dialog"
-import {getStartOfTheWeekOffsetForUser} from "../calendar/date/CalendarUtils"
-import type {OutOfOfficeNotification} from "../api/entities/tutanota/TypeRefs.js"
-import type {TextFieldAttrs} from "../gui/base/TextField.js"
-import {TextField} from "../gui/base/TextField.js"
-import {lang} from "../misc/LanguageViewModel"
-import {Keys, OUT_OF_OFFICE_SUBJECT_PREFIX} from "../api/common/TutanotaConstants"
-import type {CheckboxAttrs} from "../gui/base/Checkbox.js"
-import {Checkbox} from "../gui/base/Checkbox.js"
-import {px} from "../gui/size"
-import {ButtonType} from "../gui/base/Button.js"
-import {getDefaultNotificationLabel} from "../misc/OutOfOfficeNotificationUtils"
-import {showBusinessFeatureRequiredDialog} from "../misc/SubscriptionDialogs"
-import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelector.js"
-import {DropDownSelector} from "../gui/base/DropDownSelector.js"
-import {showUserError} from "../misc/ErrorHandlerImpl"
-import {BusinessFeatureRequiredError} from "../api/main/BusinessFeatureRequiredError"
-import {locator} from "../api/main/MainLocator"
-import {logins} from "../api/main/LoginController"
-import {EditOutOfOfficeNotificationDialogModel, RecipientMessageType} from "./EditOutOfOfficeNotificationDialogModel"
-import {HtmlEditor} from "../gui/editor/HtmlEditor"
-import {UserError} from "../api/main/UserError"
-import {DatePicker} from "../gui/date/DatePicker"
-import type {lazy} from "@tutao/tutanota-utils"
-import {ofClass} from "@tutao/tutanota-utils"
-import {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar";
+import m, { Children, Component, Vnode } from "mithril"
+import { Dialog } from "../gui/base/Dialog"
+import { getStartOfTheWeekOffsetForUser } from "../calendar/date/CalendarUtils"
+import type { OutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
+import type { TextFieldAttrs } from "../gui/base/TextField.js"
+import { TextField } from "../gui/base/TextField.js"
+import { lang } from "../misc/LanguageViewModel"
+import { Keys, OUT_OF_OFFICE_SUBJECT_PREFIX } from "../api/common/TutanotaConstants"
+import type { CheckboxAttrs } from "../gui/base/Checkbox.js"
+import { Checkbox } from "../gui/base/Checkbox.js"
+import { px } from "../gui/size"
+import { ButtonType } from "../gui/base/Button.js"
+import { getDefaultNotificationLabel } from "../misc/OutOfOfficeNotificationUtils"
+import { showBusinessFeatureRequiredDialog } from "../misc/SubscriptionDialogs"
+import type { DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
+import { DropDownSelector } from "../gui/base/DropDownSelector.js"
+import { showUserError } from "../misc/ErrorHandlerImpl"
+import { BusinessFeatureRequiredError } from "../api/main/BusinessFeatureRequiredError"
+import { locator } from "../api/main/MainLocator"
+import { logins } from "../api/main/LoginController"
+import { EditOutOfOfficeNotificationDialogModel, RecipientMessageType } from "./EditOutOfOfficeNotificationDialogModel"
+import { HtmlEditor } from "../gui/editor/HtmlEditor"
+import { UserError } from "../api/main/UserError"
+import { DatePicker } from "../gui/date/DatePicker"
+import type { lazy } from "@tutao/tutanota-utils"
+import { ofClass } from "@tutao/tutanota-utils"
+import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 
 export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: OutOfOfficeNotification | null) {
 	const dialogModel = new EditOutOfOfficeNotificationDialogModel(outOfOfficeNotification, locator.entityClient, logins.getUserController(), lang)
@@ -33,11 +33,7 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: O
 		.showBorders()
 		.setValue(dialogModel.organizationMessage())
 		.enableToolbar()
-	const defaultMessageEditor = new HtmlEditor("message_label")
-		.setMinHeight(100)
-		.showBorders()
-		.setValue(dialogModel.defaultMessage())
-		.enableToolbar()
+	const defaultMessageEditor = new HtmlEditor("message_label").setMinHeight(100).showBorders().setValue(dialogModel.defaultMessage()).enableToolbar()
 
 	const saveOutOfOfficeNotification = () => {
 		dialogModel.organizationMessage(organizationMessageEditor.getValue())
@@ -45,8 +41,8 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: O
 		dialogModel
 			.saveOutOfOfficeNotification()
 			.then(() => cancel())
-			.catch(ofClass(UserError, e => showUserError(e)))
-			.catch(ofClass(BusinessFeatureRequiredError, e => showBusinessFeatureRequiredDialog(() => e.message)))
+			.catch(ofClass(UserError, (e) => showUserError(e)))
+			.catch(ofClass(BusinessFeatureRequiredError, (e) => showBusinessFeatureRequiredDialog(() => e.message)))
 	}
 
 	function cancel() {
@@ -75,17 +71,17 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: O
 		organizationMessageEditor,
 		defaultMessageEditor,
 	})
-						 .addShortcut({
-							 key: Keys.ESC,
-							 exec: cancel,
-							 help: "close_alt",
-						 })
-						 .addShortcut({
-							 key: Keys.S,
-							 ctrl: true,
-							 exec: saveOutOfOfficeNotification,
-							 help: "save_action",
-						 })
+		.addShortcut({
+			key: Keys.ESC,
+			exec: cancel,
+			help: "close_alt",
+		})
+		.addShortcut({
+			key: Keys.S,
+			ctrl: true,
+			exec: saveOutOfOfficeNotification,
+			help: "save_action",
+		})
 	dialog.show()
 }
 
@@ -97,66 +93,62 @@ type EditOutOfOfficeNotificationDialogAttrs = {
 
 class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNotificationDialogAttrs> {
 	view(vnode: Vnode<EditOutOfOfficeNotificationDialogAttrs>): Children {
-		const {model, defaultMessageEditor, organizationMessageEditor} = vnode.attrs
+		const { model, defaultMessageEditor, organizationMessageEditor } = vnode.attrs
 		const defaultEnabled = model.isDefaultMessageEnabled()
 		const organizationEnabled = model.isOrganizationMessageEnabled()
 		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
 		return [
 			this.renderEnabled(model),
 			this.renderRecipients(model),
-			m(".mt.flex-start", m(Checkbox, {
+			m(
+				".mt.flex-start",
+				m(Checkbox, {
 					label: () => lang.get("outOfOfficeTimeRange_msg"),
 					checked: model.timeRangeEnabled(),
 					onChecked: model.timeRangeEnabled,
 					helpLabel: () => lang.get("outOfOfficeTimeRangeHelp_msg"),
-				}
-			)),
+				}),
+			),
 			model.timeRangeEnabled() ? this.renderTimeRangeSelector(model, startOfTheWeekOffset) : null,
 			m(".mt-l", lang.get("outOfOfficeUnencrypted_msg")),
-			organizationEnabled
-				? this.renderOrganizations(model, organizationMessageEditor)
-				: null,
-			defaultEnabled
-				? this.renderDefault(organizationEnabled, model, defaultMessageEditor)
-				: null,
+			organizationEnabled ? this.renderOrganizations(model, organizationMessageEditor) : null,
+			defaultEnabled ? this.renderDefault(organizationEnabled, model, defaultMessageEditor) : null,
 			m(".pb", ""),
 		]
 	}
 
 	private renderEnabled(model: EditOutOfOfficeNotificationDialogModel) {
 		const statusItems = [
-			{name: lang.get("deactivated_label"), value: false},
-			{name: lang.get("activated_label"), value: true},
+			{ name: lang.get("deactivated_label"), value: false },
+			{ name: lang.get("activated_label"), value: true },
 		]
 		return m(DropDownSelector, {
-				label: "state_label",
-				items: statusItems,
-				selectedValue: model.enabled(),
-				selectionChangedHandler: model.enabled,
-			}
-		)
+			label: "state_label",
+			items: statusItems,
+			selectedValue: model.enabled(),
+			selectionChangedHandler: model.enabled,
+		})
 	}
 
 	private renderDefault(organizationEnabled: boolean, model: EditOutOfOfficeNotificationDialogModel, defaultMessageEditor: HtmlEditor) {
 		return [
 			m(".h4.text-center.mt-l", getDefaultNotificationLabel(organizationEnabled)),
 			m(TextField, {
-					label: "subject_label",
-					value: model.defaultSubject(),
-					oninput: model.defaultSubject,
-					injectionsLeft: () =>
-						m(
-							".flex-no-grow-no-shrink-auto.pr-s",
-							{
-								style: {
-									"line-height": px(24),
-									opacity: "1",
-								},
+				label: "subject_label",
+				value: model.defaultSubject(),
+				oninput: model.defaultSubject,
+				injectionsLeft: () =>
+					m(
+						".flex-no-grow-no-shrink-auto.pr-s",
+						{
+							style: {
+								"line-height": px(24),
+								opacity: "1",
 							},
-							OUT_OF_OFFICE_SUBJECT_PREFIX,
-						),
-				}
-			),
+						},
+						OUT_OF_OFFICE_SUBJECT_PREFIX,
+					),
+			}),
 			m(defaultMessageEditor),
 		]
 	}
@@ -165,31 +157,30 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 		return [
 			m(".h4.text-center.mt-l", lang.get("outOfOfficeInternal_msg")),
 			m(TextField, {
-					label: "subject_label",
-					value: model.organizationSubject(),
-					oninput: model.organizationSubject,
-					injectionsLeft: () =>
-						m(
-							".flex-no-grow-no-shrink-auto.pr-s",
-							{
-								style: {
-									"line-height": px(24),
-									opacity: "1",
-								},
+				label: "subject_label",
+				value: model.organizationSubject(),
+				oninput: model.organizationSubject,
+				injectionsLeft: () =>
+					m(
+						".flex-no-grow-no-shrink-auto.pr-s",
+						{
+							style: {
+								"line-height": px(24),
+								opacity: "1",
 							},
-							OUT_OF_OFFICE_SUBJECT_PREFIX,
-						),
-				}
-			),
-			m(organizationMessageEditor)
+						},
+						OUT_OF_OFFICE_SUBJECT_PREFIX,
+					),
+			}),
+			m(organizationMessageEditor),
 		]
 	}
 
 	private renderRecipients(model: EditOutOfOfficeNotificationDialogModel) {
 		const recipientItems = [
-			{name: lang.get("everyone_label"), value: RecipientMessageType.EXTERNAL_TO_EVERYONE},
-			{name: lang.get("insideOutside_label"), value: RecipientMessageType.INTERNAL_AND_EXTERNAL},
-			{name: lang.get("insideOnly_label"), value: RecipientMessageType.INTERNAL_ONLY},
+			{ name: lang.get("everyone_label"), value: RecipientMessageType.EXTERNAL_TO_EVERYONE },
+			{ name: lang.get("insideOutside_label"), value: RecipientMessageType.INTERNAL_AND_EXTERNAL },
+			{ name: lang.get("insideOnly_label"), value: RecipientMessageType.INTERNAL_ONLY },
 		]
 		const recipientHelpLabel: lazy<string> = () => {
 			switch (model.recipientMessageTypes()) {
@@ -232,12 +223,12 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 			}),
 			!model.indefiniteTimeRange()
 				? m(DatePicker, {
-					date: model.endDate(),
-					onDateSelected: model.endDate,
-					label: "dateTo_label",
-					nullSelectionText: "emptyString_msg",
-					startOfTheWeekOffset,
-				})
+						date: model.endDate(),
+						onDateSelected: model.endDate,
+						label: "dateTo_label",
+						nullSelectionText: "emptyString_msg",
+						startOfTheWeekOffset,
+				  })
 				: null,
 		])
 	}

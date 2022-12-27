@@ -1,8 +1,8 @@
 import o from "ospec"
-import {createBirthday} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import {birthdayToIsoDate, isoDateToBirthday} from "../../../../../src/api/common/utils/BirthdayUtils.js"
-import {ParsingError} from "../../../../../src/api/common/error/ParsingError.js"
-import {TutanotaError} from "../../../../../src/api/common/error/TutanotaError.js"
+import { createBirthday } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { birthdayToIsoDate, isoDateToBirthday } from "../../../../../src/api/common/utils/BirthdayUtils.js"
+import { ParsingError } from "../../../../../src/api/common/error/ParsingError.js"
+import { TutanotaError } from "../../../../../src/api/common/error/TutanotaError.js"
 
 o.spec("BirthdayUtilsTest", function () {
 	o("birthdayToIsoDate", function () {

@@ -1,9 +1,8 @@
 import o from "ospec"
-import {LazyLoaded} from "../lib/LazyLoaded.js"
-import {assertThrows} from "@tutao/tutanota-test-utils"
+import { LazyLoaded } from "../lib/LazyLoaded.js"
+import { assertThrows } from "@tutao/tutanota-test-utils"
 
 o.spec("LazyLoaded", function () {
-
 	o("default value", async function () {
 		const ll = new LazyLoaded<number>(() => Promise.resolve(1), 3)
 		o(ll.isLoaded()).equals(false)
@@ -30,21 +29,14 @@ o.spec("LazyLoaded", function () {
 	o("multiple getAsync", async function () {
 		let ret = 0
 		const ll = new LazyLoaded<number>(() => Promise.resolve(ret++))
-		const arr = await Promise.all([
-			ll.getAsync(),
-			ll.getAsync(),
-			ll.getAsync()
-		])
+		const arr = await Promise.all([ll.getAsync(), ll.getAsync(), ll.getAsync()])
 
 		o(arr).deepEquals([0, 0, 0])
 	})
 
 	o("don't cache errors", async function () {
 		let ret = 0
-		const ll = new LazyLoaded<number>(() => ret % 2 === 1
-			? Promise.resolve(ret++)
-			: Promise.reject((ret++, new Error("fail")))
-		)
+		const ll = new LazyLoaded<number>(() => (ret % 2 === 1 ? Promise.resolve(ret++) : Promise.reject((ret++, new Error("fail")))))
 		await assertThrows(Error, async () => await ll.getAsync())
 		o(ret).equals(1)
 		const one = await ll.getAsync()

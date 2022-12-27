@@ -1,46 +1,30 @@
 {
-  "name": "NativeCryptoFacade",
-  "type": "facade",
-  "senders": ["web"],
-  "receivers": ["ios", "desktop", "android"],
-  "methods": {
-	"rsaEncrypt": {
-	  "arg": [
-		{"publicKey": "RsaPublicKey"},
-		{"data": "bytes"},
-		{"seed": "bytes"}
-	  ],
-	  "ret": "bytes"
-	},
-	"rsaDecrypt": {
-	  "arg": [
-		{"privateKey": "RsaPrivateKey"},
-		{"data": "bytes"}
-	  ],
-	  "ret": "bytes"
-	},
-	"aesEncryptFile": {
-	  "doc": "Encrypt file specified by the `fileUri`. Returns URI of the encrypted file.",
-	  "arg": [
-		{"key": "bytes"},
-		{"fileUri": "string"},
-		{"iv": "bytes"}
-	  ],
-	  "ret": "EncryptedFileInfo"
-	},
-	"aesDecryptFile": {
-	  "doc": "Decrypt file specified by the `fileUri`. Returns URI of the decrypted file.",
-	  "arg": [
-		{"key": "bytes"},
-		{"fileUri": "string"}
-	  ],
-	  "ret": "string"
-	},
-	"generateRsaKey": {
-	  "arg": [
-		{"seed": "bytes"}
-	  ],
-	  "ret": "RsaKeyPair"
+	"name": "NativeCryptoFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["ios", "desktop", "android"],
+	"methods": {
+		"rsaEncrypt": {
+			"arg": [{ "publicKey": "RsaPublicKey" }, { "data": "bytes" }, { "seed": "bytes" }],
+			"ret": "bytes"
+		},
+		"rsaDecrypt": {
+			"arg": [{ "privateKey": "RsaPrivateKey" }, { "data": "bytes" }],
+			"ret": "bytes"
+		},
+		"aesEncryptFile": {
+			"doc": "Encrypt file specified by the `fileUri`. Returns URI of the encrypted file.",
+			"arg": [{ "key": "bytes" }, { "fileUri": "string" }, { "iv": "bytes" }],
+			"ret": "EncryptedFileInfo"
+		},
+		"aesDecryptFile": {
+			"doc": "Decrypt file specified by the `fileUri`. Returns URI of the decrypted file.",
+			"arg": [{ "key": "bytes" }, { "fileUri": "string" }],
+			"ret": "string"
+		},
+		"generateRsaKey": {
+			"arg": [{ "seed": "bytes" }],
+			"ret": "RsaKeyPair"
+		}
 	}
-  }
 }

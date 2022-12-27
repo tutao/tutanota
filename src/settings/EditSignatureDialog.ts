@@ -1,24 +1,24 @@
 import m from "mithril"
-import {Dialog, DialogType} from "../gui/base/Dialog"
-import {lang} from "../misc/LanguageViewModel"
-import {EmailSignatureType, FeatureType} from "../api/common/TutanotaConstants"
-import {logins} from "../api/main/LoginController"
-import {HtmlEditor} from "../gui/editor/HtmlEditor"
-import type {TutanotaProperties} from "../api/entities/tutanota/TypeRefs.js"
-import {insertInlineImageB64ClickHandler} from "../mail/view/MailViewerUtils"
-import {PayloadTooLargeError} from "../api/common/error/RestError"
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {neverNull, ofClass} from "@tutao/tutanota-utils"
-import {locator} from "../api/main/MainLocator"
-import {assertMainOrNode} from "../api/common/Env"
-import {DropDownSelector} from "../gui/base/DropDownSelector.js"
+import { Dialog, DialogType } from "../gui/base/Dialog"
+import { lang } from "../misc/LanguageViewModel"
+import { EmailSignatureType, FeatureType } from "../api/common/TutanotaConstants"
+import { logins } from "../api/main/LoginController"
+import { HtmlEditor } from "../gui/editor/HtmlEditor"
+import type { TutanotaProperties } from "../api/entities/tutanota/TypeRefs.js"
+import { insertInlineImageB64ClickHandler } from "../mail/view/MailViewerUtils"
+import { PayloadTooLargeError } from "../api/common/error/RestError"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { neverNull, ofClass } from "@tutao/tutanota-utils"
+import { locator } from "../api/main/MainLocator"
+import { assertMainOrNode } from "../api/common/Env"
+import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 
 assertMainOrNode()
 // signatures can become large, for example if they include a base64 embedded image. we ask for confirmation in such cases
 const RECOMMENDED_SIGNATURE_SIZE_LIMIT = 15 * 1024
 
 export function show(props: TutanotaProperties) {
-	import("../mail/signature/Signature").then(({getDefaultSignature}) => {
+	import("../mail/signature/Signature").then(({ getDefaultSignature }) => {
 		const defaultSignature = getDefaultSignature()
 		let currentCustomSignature = logins.getUserController().props.customEmailSignature
 
@@ -54,9 +54,9 @@ export function show(props: TutanotaProperties) {
 							selectedType = type
 							editor.setValue(getSignature(type, defaultSignature, currentCustomSignature))
 							editor.setEnabled(type === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM)
-						}
+						},
 					}),
-					m(editor)
+					m(editor),
 				]
 			},
 		}
@@ -125,9 +125,7 @@ export function show(props: TutanotaProperties) {
 	})
 }
 
-export function getSignatureTypes(
-	props: TutanotaProperties,
-): {
+export function getSignatureTypes(props: TutanotaProperties): {
 	name: string
 	value: string
 }[] {
@@ -162,11 +160,9 @@ function getSignature(type: string, defaultSignature: string, currentCustomSigna
 	}
 }
 
-export function getSignatureType(
-	props: TutanotaProperties,
-): {
+export function getSignatureType(props: TutanotaProperties): {
 	name: string
 	value: string
 } {
-	return neverNull(getSignatureTypes(props).find(t => t.value === props.emailSignatureType))
+	return neverNull(getSignatureTypes(props).find((t) => t.value === props.emailSignatureType))
 }

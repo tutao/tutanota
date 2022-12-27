@@ -1,8 +1,8 @@
-import {lang} from "./LanguageViewModel"
-import {DateTime} from "luxon"
-import type {Birthday} from "../api/entities/tutanota/TypeRefs.js"
-import {createBirthday} from "../api/entities/tutanota/TypeRefs.js"
-import {formatDate} from "./Formatter"
+import { lang } from "./LanguageViewModel"
+import { DateTime } from "luxon"
+import type { Birthday } from "../api/entities/tutanota/TypeRefs.js"
+import { createBirthday } from "../api/entities/tutanota/TypeRefs.js"
+import { formatDate } from "./Formatter"
 
 /**
  * parses the following formats:
@@ -49,9 +49,9 @@ export function parseDate(dateString: string): Date {
 	let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
 
 	// for finding day month and year position of locale date format  in cleanAndSplit array
-	const dayPos = referenceParts.findIndex(e => e === 23)
-	const monthPos = referenceParts.findIndex(e => e === 6)
-	const yearPos = referenceParts.findIndex(e => e === 2017)
+	const dayPos = referenceParts.findIndex((e) => e === 23)
+	const monthPos = referenceParts.findIndex((e) => e === 6)
+	const yearPos = referenceParts.findIndex((e) => e === 2017)
 
 	const parts = _cleanupAndSplit(dateString)
 
@@ -128,9 +128,9 @@ export function parseBirthday(text: string): Birthday | null {
 		let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
 
 		//for finding day month and year position of locale date format  in cleanAndSplit array
-		let dayPos = referenceParts.findIndex(e => e === 23)
-		let monthPos = referenceParts.findIndex(e => e === 6)
-		let yearPos = referenceParts.findIndex(e => e === 2017)
+		let dayPos = referenceParts.findIndex((e) => e === 23)
+		let monthPos = referenceParts.findIndex((e) => e === 6)
+		let yearPos = referenceParts.findIndex((e) => e === 2017)
 
 		let birthdayValues = _cleanupAndSplit(text)
 
@@ -180,5 +180,5 @@ export function _cleanupAndSplit(dateString: string): number[] {
 	return dateString
 		.split(/[.\/-]/g)
 		.slice(0, 3) // keep at most three date parts even if the string contains more than two separators (e.g., extra '.' at the end)
-		.map(part => parseInt(part))
+		.map((part) => parseInt(part))
 }

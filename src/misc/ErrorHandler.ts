@@ -2,8 +2,8 @@
  * @file Handler for all the uncaught errors.
  * ErrorHandler is decoupled from ErrorHandlerImpl to reduce boot bundle size.
  */
-import {assertMainOrNodeBoot, isTest} from "../api/common/Env"
-import {delay} from "@tutao/tutanota-utils"
+import { assertMainOrNodeBoot, isTest } from "../api/common/Env"
+import { delay } from "@tutao/tutanota-utils"
 
 assertMainOrNodeBoot()
 
@@ -24,7 +24,7 @@ function produceThrottledFunction<R>(ms: number, fn: () => Promise<R>): () => Pr
 		// c: previousTry + ms
 		// If the last call was at 1001 and we are now calling fn again at 1003 then we want to wait until 1011 which would be (a + ms) - b.
 
-		if (previousTry !== 0 &&  sincePreviousTry < ms) {
+		if (previousTry !== 0 && sincePreviousTry < ms) {
 			const waitShouldEndAt = previousTry + ms
 			const timeUntilWaitEnd = waitShouldEndAt - Date.now()
 			await delay(timeUntilWaitEnd)
@@ -48,7 +48,7 @@ export async function handleUncaughtError(e: Error) {
 	console.log("error", e, e.stack)
 
 	try {
-		const {handleUncaughtErrorImpl} = await importErrorHandler()
+		const { handleUncaughtErrorImpl } = await importErrorHandler()
 		await handleUncaughtErrorImpl(e)
 	} catch (e) {
 		console.error("Encountered error when trying to handle errors with ErrorHandlerImpl", e)
@@ -57,7 +57,7 @@ export async function handleUncaughtError(e: Error) {
 
 export async function disableErrorHandlingDuringLogout() {
 	try {
-		const {disableErrorHandlingDuringLogout} = await importErrorHandler()
+		const { disableErrorHandlingDuringLogout } = await importErrorHandler()
 		disableErrorHandlingDuringLogout()
 	} catch (e) {
 		console.error("Could not import ErrorHandlerImpl", e)

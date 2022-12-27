@@ -1,27 +1,27 @@
-import m, {Child, Children, ClassComponent, Component} from "mithril"
-import {lang} from "../../misc/LanguageViewModel"
-import {ContactEditor} from "../ContactEditor"
-import {TextField, TextFieldType} from "../../gui/base/TextField.js"
-import {keyManager, Shortcut} from "../../misc/KeyManager"
-import {Dialog} from "../../gui/base/Dialog"
-import {Icons} from "../../gui/base/icons/Icons"
-import {NotFoundError} from "../../api/common/error/RestError"
-import {BootIcons} from "../../gui/base/icons/BootIcons"
-import type {ContactAddressType} from "../../api/common/TutanotaConstants"
-import {getContactSocialType, Keys} from "../../api/common/TutanotaConstants"
-import type {Contact, ContactAddress, ContactPhoneNumber, ContactSocialId} from "../../api/entities/tutanota/TypeRefs.js"
-import {locator} from "../../api/main/MainLocator"
-import {newMailEditorFromTemplate} from "../../mail/editor/MailEditor"
-import {logins} from "../../api/main/LoginController"
-import {downcast, NBSP, noOp, ofClass} from "@tutao/tutanota-utils"
-import {ActionBar} from "../../gui/base/ActionBar"
-import {getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactGuiUtils"
-import {appendEmailSignature} from "../../mail/signature/Signature"
-import {formatBirthdayOfContact, getSocialUrl} from "../model/ContactUtils"
-import {ButtonAttrs, Button} from "../../gui/base/Button.js"
-import {assertMainOrNode} from "../../api/common/Env"
-import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
-import {ButtonSize} from "../../gui/base/ButtonSize.js";
+import m, { Child, Children, ClassComponent, Component } from "mithril"
+import { lang } from "../../misc/LanguageViewModel"
+import { ContactEditor } from "../ContactEditor"
+import { TextField, TextFieldType } from "../../gui/base/TextField.js"
+import { keyManager, Shortcut } from "../../misc/KeyManager"
+import { Dialog } from "../../gui/base/Dialog"
+import { Icons } from "../../gui/base/icons/Icons"
+import { NotFoundError } from "../../api/common/error/RestError"
+import { BootIcons } from "../../gui/base/icons/BootIcons"
+import type { ContactAddressType } from "../../api/common/TutanotaConstants"
+import { getContactSocialType, Keys } from "../../api/common/TutanotaConstants"
+import type { Contact, ContactAddress, ContactPhoneNumber, ContactSocialId } from "../../api/entities/tutanota/TypeRefs.js"
+import { locator } from "../../api/main/MainLocator"
+import { newMailEditorFromTemplate } from "../../mail/editor/MailEditor"
+import { logins } from "../../api/main/LoginController"
+import { downcast, NBSP, noOp, ofClass } from "@tutao/tutanota-utils"
+import { ActionBar } from "../../gui/base/ActionBar"
+import { getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel } from "./ContactGuiUtils"
+import { appendEmailSignature } from "../../mail/signature/Signature"
+import { formatBirthdayOfContact, getSocialUrl } from "../model/ContactUtils"
+import { ButtonAttrs, Button } from "../../gui/base/Button.js"
+import { assertMainOrNode } from "../../api/common/Env"
+import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
@@ -105,24 +105,24 @@ export class ContactViewer implements ClassComponent {
 	}
 
 	_renderAddressesAndSocialIds(): Children {
-		const addresses = this.contact.addresses.map(element => this._createAddress(element))
-		const socials = this.contact.socialIds.map(element => this._createSocialId(element))
+		const addresses = this.contact.addresses.map((element) => this._createAddress(element))
+		const socials = this.contact.socialIds.map((element) => this._createSocialId(element))
 		return addresses.length > 0 || socials.length > 0
 			? m(".wrapping-row", [
-				m(".address.mt-l", addresses.length > 0 ? [m(".h4", lang.get("address_label")), m(".aggregateEditors", addresses)] : null),
-				m(".social.mt-l", socials.length > 0 ? [m(".h4", lang.get("social_label")), m(".aggregateEditors", socials)] : null),
-			])
+					m(".address.mt-l", addresses.length > 0 ? [m(".h4", lang.get("address_label")), m(".aggregateEditors", addresses)] : null),
+					m(".social.mt-l", socials.length > 0 ? [m(".h4", lang.get("social_label")), m(".aggregateEditors", socials)] : null),
+			  ])
 			: null
 	}
 
 	_renderMailAddressesAndPhones(): Children {
-		const mailAddresses = this.contact.mailAddresses.map(element => this._createMailAddress(element))
-		const phones = this.contact.phoneNumbers.map(element => this._createPhone(element))
+		const mailAddresses = this.contact.mailAddresses.map((element) => this._createMailAddress(element))
+		const phones = this.contact.phoneNumbers.map((element) => this._createPhone(element))
 		return mailAddresses.length > 0 || phones.length > 0
 			? m(".wrapping-row", [
-				m(".mail.mt-l", mailAddresses.length > 0 ? [m(".h4", lang.get("email_label")), m(".aggregateEditors", [mailAddresses])] : null),
-				m(".phone.mt-l", phones.length > 0 ? [m(".h4", lang.get("phone_label")), m(".aggregateEditors", [phones])] : null),
-			])
+					m(".mail.mt-l", mailAddresses.length > 0 ? [m(".h4", lang.get("email_label")), m(".aggregateEditors", [mailAddresses])] : null),
+					m(".phone.mt-l", phones.length > 0 ? [m(".h4", lang.get("phone_label")), m(".aggregateEditors", [phones])] : null),
+			  ])
 			: null
 	}
 
@@ -220,7 +220,7 @@ export class ContactViewer implements ClassComponent {
 	}
 
 	_writeMail(mailAddress: string): Promise<any> {
-		return locator.mailModel.getUserMailboxDetails().then(mailboxDetails => {
+		return locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
 			const name = `${this.contact.firstName} ${this.contact.lastName}`.trim()
 			return newMailEditorFromTemplate(
 				mailboxDetails,
@@ -234,15 +234,15 @@ export class ContactViewer implements ClassComponent {
 				},
 				"",
 				appendEmailSignature("", logins.getUserController().props),
-			).then(editor => editor.show())
+			).then((editor) => editor.show())
 		})
 	}
 
 	delete() {
-		Dialog.confirm("deleteContact_msg").then(confirmed => {
+		Dialog.confirm("deleteContact_msg").then((confirmed) => {
 			if (confirmed) {
 				locator.entityClient.erase(this.contact).catch(
-					ofClass(NotFoundError, e => {
+					ofClass(NotFoundError, (e) => {
 						// ignore because the delete key shortcut may be executed again while the contact is already deleted
 					}),
 				)

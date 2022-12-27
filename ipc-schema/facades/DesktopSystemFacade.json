@@ -1,22 +1,22 @@
 {
-  "name": "DesktopSystemFacade",
-  "type": "facade",
-  "senders": ["web"],
-  "receivers": ["desktop"],
-  "methods": {
-	"openNewWindow": {
-	  "arg": [],
-	  "ret": "void"
-	},
-	"focusApplicationWindow": {
-	  "doc": "Focuses sending window on the OS level",
-	  "arg": [],
-	  "ret": "void"
-	},
-	"sendSocketMessage": {
-	  "doc": "Sends message to the admin socket.",
-	  "arg": [{"message": "string"}],
-	  "ret": "void"
+	"name": "DesktopSystemFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["desktop"],
+	"methods": {
+		"openNewWindow": {
+			"arg": [],
+			"ret": "void"
+		},
+		"focusApplicationWindow": {
+			"doc": "Focuses sending window on the OS level",
+			"arg": [],
+			"ret": "void"
+		},
+		"sendSocketMessage": {
+			"doc": "Sends message to the admin socket.",
+			"arg": [{ "message": "string" }],
+			"ret": "void"
+		}
 	}
-  }
 }

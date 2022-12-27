@@ -1,16 +1,16 @@
 import o from "ospec"
-import type {App} from "electron"
-import type {DesktopNativeCryptoFacade} from "../../../src/desktop/DesktopNativeCryptoFacade.js"
-import {delay, downcast} from "@tutao/tutanota-utils"
-import {ElectronUpdater} from "../../../src/desktop/ElectronUpdater.js"
-import type {UpdaterWrapper} from "../../../src/desktop/UpdaterWrapper.js"
+import type { App } from "electron"
+import type { DesktopNativeCryptoFacade } from "../../../src/desktop/DesktopNativeCryptoFacade.js"
+import { delay, downcast } from "@tutao/tutanota-utils"
+import { ElectronUpdater } from "../../../src/desktop/ElectronUpdater.js"
+import type { UpdaterWrapper } from "../../../src/desktop/UpdaterWrapper.js"
 import n from "../nodemocker.js"
-import type {DesktopConfig} from "../../../src/desktop/config/DesktopConfig.js"
-import type {DesktopNotifier} from "../../../src/desktop/DesktopNotifier.js"
-import {lang} from "../../../src/misc/LanguageViewModel.js"
+import type { DesktopConfig } from "../../../src/desktop/config/DesktopConfig.js"
+import type { DesktopNotifier } from "../../../src/desktop/DesktopNotifier.js"
+import { lang } from "../../../src/misc/LanguageViewModel.js"
 import en from "../../../src/translations/en.js"
-import {matchers, object, verify, when} from "testdouble"
-import {FsExports} from "../../../src/desktop/ElectronExportTypes.js"
+import { matchers, object, verify, when } from "testdouble"
+import { FsExports } from "../../../src/desktop/ElectronExportTypes.js"
 
 lang.init(en)
 
@@ -33,7 +33,7 @@ o.spec("ElectronUpdater Test", function () {
 		when(fs.promises.unlink("downloadedFile.AppImage")).thenResolve()
 		when(fs.promises.readFile("downloadedFile.AppImage")).thenResolve(data)
 		notifier = downcast({
-			showOneShot: o.spy((prop: {title: string; body: string; icon: any}) => Promise.resolve("click")),
+			showOneShot: o.spy((prop: { title: string; body: string; icon: any }) => Promise.resolve("click")),
 		})
 		conf = downcast({
 			removeListener: o.spy((key: string, cb: () => void) => conf),
@@ -72,7 +72,7 @@ o.spec("ElectronUpdater Test", function () {
 		})
 		const app: Electron.App = object()
 		when(app.getVersion()).thenReturn("3.45.0")
-		electron = {app}
+		electron = { app }
 		const pathCaptor = matchers.captor()
 		when(app.getPath(pathCaptor.capture())).thenReturn(`/mock-${pathCaptor.value}/`)
 		when(app.once(matchers.anything(), matchers.anything())).thenReturn(app)
@@ -102,7 +102,7 @@ o.spec("ElectronUpdater Test", function () {
 			},
 			removeListener: function (ev: string, cb: (arg0: any) => void) {
 				if (!this.callbacks[ev]) return
-				this.callbacks[ev] = this.callbacks[ev].filter(entry => entry.fn !== cb)
+				this.callbacks[ev] = this.callbacks[ev].filter((entry) => entry.fn !== cb)
 			},
 			removeAllListeners: o.spy(function (ev: string) {
 				this.callbacks[ev] = []
@@ -110,10 +110,10 @@ o.spec("ElectronUpdater Test", function () {
 			}),
 			emit: function (ev: string, args: any) {
 				const entries = this.callbacks[ev]
-				entries.forEach(entry => {
+				entries.forEach((entry) => {
 					setTimeout(() => entry.fn(args), 1)
 				})
-				this.callbacks[ev] = entries.filter(entry => !entry.once)
+				this.callbacks[ev] = entries.filter((entry) => !entry.once)
 			},
 			checkForUpdates: o.spy(function () {
 				this.emit("update-available", {
@@ -156,7 +156,7 @@ o.spec("ElectronUpdater Test", function () {
 		await delay(190)
 		// show notification
 		o(notifier.showOneShot.callCount).equals(1)
-		verify(electron.app.emit("enable-force-quit"), {times: 1})
+		verify(electron.app.emit("enable-force-quit"), { times: 1 })
 		o(autoUpdater.quitAndInstall.callCount).equals(1)
 		o(autoUpdater.quitAndInstall.args[0]).equals(false)
 		o(autoUpdater.quitAndInstall.args[1]).equals(true)
@@ -168,7 +168,7 @@ o.spec("ElectronUpdater Test", function () {
 		await delay(190)
 		o(autoUpdater.checkForUpdates.callCount).equals(1)
 		// don't check signature
-		verify(crypto.verifySignature(matchers.anything(), matchers.anything(), matchers.anything()), {times: 0})
+		verify(crypto.verifySignature(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		// don't show notification
 		o(notifier.showOneShot.callCount).equals(0)
 		o(autoUpdater.quitAndInstall.callCount).equals(0)
@@ -215,19 +215,11 @@ o.spec("ElectronUpdater Test", function () {
 		o(conf.removeListener.callCount).equals(2)
 		o(conf.on.callCount).equals(2)
 		// check signature
-		verify(crypto.verifySignature(
-			"yes",
-			data,
-			Buffer.from(sigB64, "base64")
-		))
-		verify(crypto.verifySignature(
-			"no",
-			data,
-			Buffer.from(sigB64, "base64")
-		))
+		verify(crypto.verifySignature("yes", data, Buffer.from(sigB64, "base64")))
+		verify(crypto.verifySignature("no", data, Buffer.from(sigB64, "base64")))
 		// show notification
 		o(notifier.showOneShot.callCount).equals(1)
-		verify(electron.app.emit("enable-force-quit"), {times: 1})
+		verify(electron.app.emit("enable-force-quit"), { times: 1 })
 		o(autoUpdater.quitAndInstall.callCount).equals(1)
 		o(autoUpdater.quitAndInstall.args[0]).equals(false)
 		o(autoUpdater.quitAndInstall.args[1]).equals(true)
@@ -273,7 +265,7 @@ o.spec("ElectronUpdater Test", function () {
 			return Promise.resolve()
 		}
 
-		const scheduler = fn => setInterval(fn, 5)
+		const scheduler = (fn) => setInterval(fn, 5)
 
 		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
 		upd.start()
@@ -296,19 +288,11 @@ o.spec("ElectronUpdater Test", function () {
 		await delay(250)
 		o(autoUpdater.checkForUpdates.callCount).equals(1)
 		// check signature
-		verify(crypto.verifySignature(
-			"no",
-			data,
-			Buffer.from(sigB64, "base64")
-		))
-		verify(crypto.verifySignature(
-			"yes",
-			data,
-			Buffer.from(sigB64, "base64")
-		))
+		verify(crypto.verifySignature("no", data, Buffer.from(sigB64, "base64")))
+		verify(crypto.verifySignature("yes", data, Buffer.from(sigB64, "base64")))
 		// show notification
 		o(notifier.showOneShot.callCount).equals(1)
-		verify(electron.app.emit("enable-force-quit"), {times: 1})
+		verify(electron.app.emit("enable-force-quit"), { times: 1 })
 		o(autoUpdater.quitAndInstall.callCount).equals(1)
 		o(autoUpdater.quitAndInstall.args[0]).equals(false)
 		o(autoUpdater.quitAndInstall.args[1]).equals(true)

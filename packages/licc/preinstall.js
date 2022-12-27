@@ -2,8 +2,6 @@
 import * as fs from "fs"
 
 // mkdir -p dist
-fs.mkdirSync("dist", {recursive: true})
+fs.mkdirSync("dist", { recursive: true })
 // touch dist/cli.js
-fs.closeSync(fs.openSync("dist/cli.js", 'w'))
-
-
+fs.closeSync(fs.openSync("dist/cli.js", "w"))

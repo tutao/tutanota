@@ -9,15 +9,15 @@ import {
 	stringToUtf8Uint8Array,
 	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
-import {createDataFile, DataFile, getCleanedMimeType} from "../../api/common/DataFile"
-import type {MailBundle, MailBundleRecipient} from "./Bundler"
-import {makeMailBundle} from "./Bundler"
-import {isDesktop} from "../../api/common/Env"
-import {sanitizeFilename} from "../../api/common/utils/FileUtils"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import type {EntityClient} from "../../api/common/EntityClient"
-import {locator} from "../../api/main/MainLocator"
-import {FileController, zipDataFiles} from "../../file/FileController"
+import { createDataFile, DataFile, getCleanedMimeType } from "../../api/common/DataFile"
+import type { MailBundle, MailBundleRecipient } from "./Bundler"
+import { makeMailBundle } from "./Bundler"
+import { isDesktop } from "../../api/common/Env"
+import { sanitizeFilename } from "../../api/common/utils/FileUtils"
+import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import type { EntityClient } from "../../api/common/EntityClient"
+import { locator } from "../../api/main/MainLocator"
+import { FileController, zipDataFiles } from "../../file/FileController"
 // .msg export is handled in DesktopFileExport because it uses APIs that can't be loaded web side
 export type MailExportMode = "msg" | "eml"
 
@@ -28,7 +28,9 @@ export async function generateMailFile(bundle: MailBundle, fileName: string, mod
 export async function getMailExportMode(): Promise<MailExportMode> {
 	if (isDesktop()) {
 		const ConfigKeys = await import("../../desktop/config/ConfigKeys")
-		const mailExportMode = (await locator.desktopSettingsFacade.getStringConfigValue(ConfigKeys.DesktopConfigKey.mailExportMode).catch(noOp)) as MailExportMode
+		const mailExportMode = (await locator.desktopSettingsFacade
+			.getStringConfigValue(ConfigKeys.DesktopConfigKey.mailExportMode)
+			.catch(noOp)) as MailExportMode
 		return mailExportMode ?? "eml"
 	} else {
 		return "eml"
@@ -56,14 +58,14 @@ export function generateExportFileName(subject: string, sentOn: Date, mode: Mail
  * was instructed to open the new zip File containing the exported files
  */
 export function exportMails(mails: Array<Mail>, entityClient: EntityClient, fileController: FileController): Promise<void> {
-	const downloadPromise = promiseMap(mails, mail =>
-		import("../../misc/HtmlSanitizer").then(({htmlSanitizer}) => makeMailBundle(mail, entityClient, fileController, htmlSanitizer)),
+	const downloadPromise = promiseMap(mails, (mail) =>
+		import("../../misc/HtmlSanitizer").then(({ htmlSanitizer }) => makeMailBundle(mail, entityClient, fileController, htmlSanitizer)),
 	)
 	return Promise.all([getMailExportMode(), downloadPromise]).then(([mode, bundles]) => {
-		promiseMap(bundles, bundle => generateMailFile(bundle, generateExportFileName(bundle.subject, new Date(bundle.sentOn), mode), mode)).then(files => {
+		promiseMap(bundles, (bundle) => generateMailFile(bundle, generateExportFileName(bundle.subject, new Date(bundle.sentOn), mode), mode)).then((files) => {
 			const zipName = `${sortableTimestamp()}-${mode}-mail-export.zip`
 			const maybeZipPromise = files.length === 1 ? Promise.resolve(files[0]) : zipDataFiles(files, zipName)
-			maybeZipPromise.then(outputFile => fileController.saveDataFile(outputFile))
+			maybeZipPromise.then((outputFile) => fileController.saveDataFile(outputFile))
 		})
 	})
 }
@@ -80,14 +82,16 @@ export function mailToEml(mail: MailBundle): string {
 	const lines: string[] = []
 
 	if (mail.headers) {
-		const filteredHeaders = mail.headers.split("\n").filter(line => !line.match(/^\s*(Content-Type:|boundary=)/))
+		const filteredHeaders = mail.headers.split("\n").filter((line) => !line.match(/^\s*(Content-Type:|boundary=)/))
 		// We join the headers back together with \n, but the eml itself has \r\n line endings, so the headers are essentially one "line" of the eml
 		lines.push(filteredHeaders.join("\n"))
 	} else {
 		lines.push("From: " + mail.sender.address, "MIME-Version: 1.0")
 
 		const formatRecipients = (key: string, recipients: MailBundleRecipient[]) =>
-			`${key}: ${recipients.map(recipient => (recipient.name ? `${escapeSpecialCharacters(recipient.name)} ` : "") + `<${recipient.address}>`).join(",")}`
+			`${key}: ${recipients
+				.map((recipient) => (recipient.name ? `${escapeSpecialCharacters(recipient.name)} ` : "") + `<${recipient.address}>`)
+				.join(",")}`
 
 		if (mail.to.length > 0) {
 			lines.push(formatRecipients("To", mail.to))

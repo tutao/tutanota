@@ -1,7 +1,6 @@
 import o from "ospec"
 import * as td from "testdouble"
-import {mapObject} from "@tutao/tutanota-utils"
-
+import { mapObject } from "@tutao/tutanota-utils"
 
 /**
  * Mocks an attribute (function or object) on an object and makes sure that it can be restored to the original attribute by calling unmockAttribute() later.
@@ -17,12 +16,10 @@ export function mockAttribute(
 	attributeMock: ((...args: Array<any>) => any) | Record<string, any>,
 ): Record<string, any> {
 	if (attributeOnObject == null) throw new Error("attributeOnObject is undefined")
-	let attributeName = Object.getOwnPropertyNames(object).find(key => object[key] === attributeOnObject)
+	let attributeName = Object.getOwnPropertyNames(object).find((key) => object[key] === attributeOnObject)
 
 	if (!attributeName) {
-		attributeName = Object.getOwnPropertyNames(Object.getPrototypeOf(object)).find(
-			key => object[key] === attributeOnObject,
-		)
+		attributeName = Object.getOwnPropertyNames(Object.getPrototypeOf(object)).find((key) => object[key] === attributeOnObject)
 	}
 
 	if (!attributeName) {
@@ -80,24 +77,22 @@ export function replaceAllMaps(toReplace: any): any {
 	return toReplace instanceof Map
 		? replaceAllMaps(mapToObject(toReplace))
 		: toReplace instanceof Array
-			? toReplace.map(replaceAllMaps)
-			: toReplace != null && Object.getPrototypeOf(toReplace) === (Object as any).prototype // plain object
-				? mapObject(replaceAllMaps, toReplace)
-				: toReplace
+		? toReplace.map(replaceAllMaps)
+		: toReplace != null && Object.getPrototypeOf(toReplace) === (Object as any).prototype // plain object
+		? mapObject(replaceAllMaps, toReplace)
+		: toReplace
 }
 
 /** Catch error and return either value or error */
 export async function asResult<T>(p: Promise<T>): Promise<T | Error> {
-	return p.catch(e => e)
+	return p.catch((e) => e)
 }
 
 export async function assertThrows<T extends Error>(expected: Class<T>, fn: () => Promise<unknown>): Promise<T> {
 	try {
 		await fn()
 	} catch (e) {
-		o(e instanceof expected).equals(true)(
-			"AssertThrows failed: Expected a " + (expected.name) + " to be thrown, but got a " + e,
-		)
+		o(e instanceof expected).equals(true)("AssertThrows failed: Expected a " + expected.name + " to be thrown, but got a " + e)
 		return e as T
 	}
 
@@ -105,17 +100,13 @@ export async function assertThrows<T extends Error>(expected: Class<T>, fn: () =
 }
 
 export async function assertResolvedIn(ms: number, ...promises: ReadonlyArray<Promise<any>>): Promise<any> {
-	const allP = [delay(ms).then(() => "timeout")].concat(
-		promises.map((p, i) => p.then(() => `promise ${i} is resolved`)),
-	)
+	const allP = [delay(ms).then(() => "timeout")].concat(promises.map((p, i) => p.then(() => `promise ${i} is resolved`)))
 	const result = await Promise.race(allP)
 	o(result).notEquals("timeout")
 }
 
 export async function assertNotResolvedIn(ms: number, ...promises: ReadonlyArray<Promise<any>>): Promise<any> {
-	const allP = [delay(ms).then(() => "timeout")].concat(
-		promises.map((p, i) => p.then(() => `promise ${i} is resolved`)),
-	)
+	const allP = [delay(ms).then(() => "timeout")].concat(promises.map((p, i) => p.then(() => `promise ${i} is resolved`)))
 	const result = await Promise.race(allP)
 	o(result).equals("timeout")
 }
@@ -146,7 +137,7 @@ export function makeTimeoutMock(): TimeoutMock {
 }
 
 function delay(ms: number): Promise<void> {
-	return new Promise(resolve => {
+	return new Promise((resolve) => {
 		setTimeout(resolve, ms)
 	})
 }
@@ -158,12 +149,12 @@ export function verify(demonstration: any, config?: td.VerificationConfig) {
 			td.verify(demonstration, config)
 			return {
 				pass: true,
-				message: "Successful verification"
+				message: "Successful verification",
 			}
 		} catch (e) {
 			return {
 				pass: false,
-				message: e.toString()
+				message: e.toString(),
 			}
 		}
 	}

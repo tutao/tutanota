@@ -1,32 +1,31 @@
 import o from "ospec"
-import {createWizardDialog, WizardPageWrapper} from "../../../../src/gui/base/WizardDialog.js"
-import {Dialog} from "../../../../src/gui/base/Dialog.js"
-import {EnterDomainPageAttrs} from "../../../../src/settings/emaildomain/EnterDomainPage.js"
-import stream from "mithril/stream";
-import {createCustomerInfo} from "../../../../src/api/entities/sys/TypeRefs.js";
-import {createDnsRecord} from "../../../../src/api/entities/sys/TypeRefs.js";
-import {DomainDnsStatus} from "../../../../src/settings/DomainDnsStatus.js";
-import {AddDomainData} from "../../../../src/settings/emaildomain/AddDomainWizard.js";
-import {createGroupInfo} from "../../../../src/api/entities/sys/TypeRefs.js";
-import {MailAddressTableModel} from "../../../../src/settings/mailaddress/MailAddressTableModel.js"
-import {object} from "testdouble"
+import { createWizardDialog, WizardPageWrapper } from "../../../../src/gui/base/WizardDialog.js"
+import { Dialog } from "../../../../src/gui/base/Dialog.js"
+import { EnterDomainPageAttrs } from "../../../../src/settings/emaildomain/EnterDomainPage.js"
+import stream from "mithril/stream"
+import { createCustomerInfo } from "../../../../src/api/entities/sys/TypeRefs.js"
+import { createDnsRecord } from "../../../../src/api/entities/sys/TypeRefs.js"
+import { DomainDnsStatus } from "../../../../src/settings/DomainDnsStatus.js"
+import { AddDomainData } from "../../../../src/settings/emaildomain/AddDomainWizard.js"
+import { createGroupInfo } from "../../../../src/api/entities/sys/TypeRefs.js"
+import { MailAddressTableModel } from "../../../../src/settings/mailaddress/MailAddressTableModel.js"
+import { object } from "testdouble"
 
 const data: AddDomainData = {
 	domain: stream("domain"),
 	customerInfo: createCustomerInfo(),
 	expectedVerificationRecord: createDnsRecord(),
 	editAliasFormAttrs: {
-		model: object<MailAddressTableModel>()
+		model: object<MailAddressTableModel>(),
 	},
 	domainStatus: new DomainDnsStatus("domain"),
 }
-
 
 const wizardPages: WizardPageWrapper<AddDomainData>[] = [
 	{
 		attrs: new EnterDomainPageAttrs(data),
 		view: () => null,
-	}
+	},
 ]
 
 let counter = 0

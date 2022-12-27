@@ -1,24 +1,24 @@
-import m, {Children, Component, Vnode} from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {Dialog, DialogType} from "../../gui/base/Dialog"
-import {ButtonType} from "../../gui/base/Button.js"
-import {isMailAddress} from "../../misc/FormatValidator"
-import {UserError} from "../../api/main/UserError"
-import {showUserError} from "../../misc/ErrorHandlerImpl"
-import {defaultSendMailModel} from "../editor/SendMailModel"
-import type {MailboxDetail} from "../model/MailModel"
-import {Keys, MailMethod, TabIndex} from "../../api/common/TutanotaConstants"
-import {getDefaultSender} from "../model/MailUtils"
-import {logins} from "../../api/main/LoginController"
-import {progressIcon} from "../../gui/base/Icon"
-import {Editor} from "../../gui/editor/Editor"
-import {htmlSanitizer} from "../../misc/HtmlSanitizer"
-import {replaceInlineImagesWithCids} from "../view/MailGuiUtils"
-import {TextField} from "../../gui/base/TextField.js"
-import {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar";
-import {RichTextToolbar} from "../../gui/base/RichTextToolbar.js"
-import {locator} from "../../api/main/MainLocator.js"
+import { Dialog, DialogType } from "../../gui/base/Dialog"
+import { ButtonType } from "../../gui/base/Button.js"
+import { isMailAddress } from "../../misc/FormatValidator"
+import { UserError } from "../../api/main/UserError"
+import { showUserError } from "../../misc/ErrorHandlerImpl"
+import { defaultSendMailModel } from "../editor/SendMailModel"
+import type { MailboxDetail } from "../model/MailModel"
+import { Keys, MailMethod, TabIndex } from "../../api/common/TutanotaConstants"
+import { getDefaultSender } from "../model/MailUtils"
+import { logins } from "../../api/main/LoginController"
+import { progressIcon } from "../../gui/base/Icon"
+import { Editor } from "../../gui/editor/Editor"
+import { htmlSanitizer } from "../../misc/HtmlSanitizer"
+import { replaceInlineImagesWithCids } from "../view/MailGuiUtils"
+import { TextField } from "../../gui/base/TextField.js"
+import { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
+import { RichTextToolbar } from "../../gui/base/RichTextToolbar.js"
+import { locator } from "../../api/main/MainLocator.js"
 
 type PressContact = {
 	email: string
@@ -47,20 +47,23 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
 		}
 
 		// We aren't using translation keys here because it's not a user facing feature
-		const choice = await Dialog.choice(() => `Really send the press release out to ${recipients.length} recipients?`, [
-			{
-				text: () => "Cancel",
-				value: "cancel",
-			},
-			{
-				text: () => "Just test",
-				value: "test",
-			},
-			{
-				text: () => "Yes please",
-				value: "send",
-			},
-		])
+		const choice = await Dialog.choice(
+			() => `Really send the press release out to ${recipients.length} recipients?`,
+			[
+				{
+					text: () => "Cancel",
+					value: "cancel",
+				},
+				{
+					text: () => "Just test",
+					value: "test",
+				},
+				{
+					text: () => "Yes please",
+					value: "send",
+				},
+			],
+		)
 
 		if (choice === "cancel") {
 			return
@@ -88,7 +91,7 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
 						oncreate(vnode) {
 							// We need to delay so that the eelement is attached to the parent
 							setTimeout(() => {
-								(vnode.dom as HTMLElement).focus()
+								;(vnode.dom as HTMLElement).focus()
 							}, 10)
 						},
 					},
@@ -188,7 +191,7 @@ function getValidRecipients(recipientsJSON: string): Array<PressContact> {
 		throw new UserError(() => "Recipients must be an array")
 	}
 
-	return parsed.map(({email, greeting}) => {
+	return parsed.map(({ email, greeting }) => {
 		if (typeof email !== "string" || !isMailAddress(email, false)) {
 			throw new UserError(() => `Not all provided recipients have an "email" field`)
 		}
@@ -215,7 +218,7 @@ export class PressReleaseForm implements Component<PressReleaseFormAttrs> {
 	editor: Editor
 
 	constructor(vnode: Vnode<PressReleaseFormAttrs>) {
-		const {bodyHtml} = vnode.attrs
+		const { bodyHtml } = vnode.attrs
 		this.editor = new Editor(
 			200,
 			(html, _) =>
@@ -230,7 +233,7 @@ export class PressReleaseForm implements Component<PressReleaseFormAttrs> {
 	}
 
 	view(vnode: Vnode<PressReleaseFormAttrs>): Children {
-		const {subject, recipientsJson} = vnode.attrs
+		const { subject, recipientsJson } = vnode.attrs
 		return m("", [
 			m("label.i.monospace", "Recipients JSON"),
 			m("textarea.full-width", {
@@ -246,7 +249,7 @@ export class PressReleaseForm implements Component<PressReleaseFormAttrs> {
 				value: subject(),
 				oninput: subject,
 			}),
-			m(RichTextToolbar, {editor: this.editor}),
+			m(RichTextToolbar, { editor: this.editor }),
 			m(".border-top", m(this.editor)),
 		])
 	}

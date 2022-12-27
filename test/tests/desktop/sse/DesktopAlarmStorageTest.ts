@@ -1,15 +1,14 @@
 import o from "ospec"
-import {instance, matchers, object, verify, when} from "testdouble"
-import {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarmStorage.js"
-import {DesktopConfig} from "../../../../src/desktop/config/DesktopConfig.js"
-import {DesktopNativeCryptoFacade} from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
-import type {DesktopKeyStoreFacade} from "../../../../src/desktop/KeyStoreFacadeImpl.js"
-import {makeKeyStoreFacade} from "../../TestUtils.js"
-import {DesktopConfigKey} from "../../../../src/desktop/config/ConfigKeys.js"
-import {assertNotNull, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import { instance, matchers, object, verify, when } from "testdouble"
+import { DesktopAlarmStorage } from "../../../../src/desktop/sse/DesktopAlarmStorage.js"
+import { DesktopConfig } from "../../../../src/desktop/config/DesktopConfig.js"
+import { DesktopNativeCryptoFacade } from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
+import type { DesktopKeyStoreFacade } from "../../../../src/desktop/KeyStoreFacadeImpl.js"
+import { makeKeyStoreFacade } from "../../TestUtils.js"
+import { DesktopConfigKey } from "../../../../src/desktop/config/ConfigKeys.js"
+import { assertNotNull, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 
 o.spec("DesktopAlarmStorageTest", function () {
-
 	let cryptoMock: DesktopNativeCryptoFacade
 	let confMock: DesktopConfig
 
@@ -27,10 +26,10 @@ o.spec("DesktopAlarmStorageTest", function () {
 
 		confMock = object()
 		when(confMock.getVar(DesktopConfigKey.pushEncSessionKeys)).thenResolve({
-			"user1": uint8ArrayToBase64(key1),
-			"user2": uint8ArrayToBase64(key2),
-			"twoId": uint8ArrayToBase64(key3),
-			"fourId": uint8ArrayToBase64(key4),
+			user1: uint8ArrayToBase64(key1),
+			user2: uint8ArrayToBase64(key2),
+			twoId: uint8ArrayToBase64(key3),
+			fourId: uint8ArrayToBase64(key4),
 		})
 	})
 
@@ -40,10 +39,10 @@ o.spec("DesktopAlarmStorageTest", function () {
 		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, keyStoreFacade)
 		const key = await desktopStorage.getPushIdentifierSessionKey({
 			pushIdentifierSessionEncSessionKey: "abc",
-			pushIdentifier: ["oneId", "twoId"]
+			pushIdentifier: ["oneId", "twoId"],
 		})
 
-		verify(confMock.getVar(DesktopConfigKey.pushEncSessionKeys), {times: 1})
+		verify(confMock.getVar(DesktopConfigKey.pushEncSessionKeys), { times: 1 })
 		o(Array.from(assertNotNull(key))).deepEquals(Array.from(decryptedKey))
 	})
 
@@ -52,11 +51,11 @@ o.spec("DesktopAlarmStorageTest", function () {
 		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, keyStoreFacade)
 		await desktopStorage.storePushIdentifierSessionKey("fourId", key4)
 
-		verify(confMock.setVar(DesktopConfigKey.pushEncSessionKeys, {fourId: uint8ArrayToBase64(encryptedKey)}), {times: 1})
+		verify(confMock.setVar(DesktopConfigKey.pushEncSessionKeys, { fourId: uint8ArrayToBase64(encryptedKey) }), { times: 1 })
 
 		const key = await desktopStorage.getPushIdentifierSessionKey({
 			pushIdentifierSessionEncSessionKey: "def",
-			pushIdentifier: ["threeId", "fourId"]
+			pushIdentifier: ["threeId", "fourId"],
 		})
 		o(Array.from(assertNotNull(key))).deepEquals(Array.from(key4))
 	})
@@ -65,7 +64,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, keyStoreFacade)
 		const key1 = await desktopStorage.getPushIdentifierSessionKey({
 			pushIdentifierSessionEncSessionKey: "def",
-			pushIdentifier: ["fiveId", "sixId"]
+			pushIdentifier: ["fiveId", "sixId"],
 		})
 		o(key1).equals(null)
 	})

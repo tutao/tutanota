@@ -1,23 +1,23 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {modal, ModalComponent} from "./Modal"
-import {animations, opacity, transform, TransformEnum} from "../animation/Animations"
-import {ease} from "../animation/Easing"
-import {px, size} from "../size"
-import type {Shortcut} from "../../misc/KeyManager"
-import {focusNext, focusPrevious} from "../../misc/KeyManager"
-import type {ButtonAttrs} from "./Button.js"
-import {lang, TranslationText} from "../../misc/LanguageViewModel"
-import {Keys, TabIndex} from "../../api/common/TutanotaConstants"
-import {getSafeAreaInsetBottom, getSafeAreaInsetTop, newMouseEvent} from "../HtmlUtils"
-import type {$Promisable, lazy, lazyAsync} from "@tutao/tutanota-utils"
-import {assertNotNull, delay, downcast, filterNull, neverNull} from "@tutao/tutanota-utils"
-import {client} from "../../misc/ClientDetector"
-import {pureComponent} from "./PureComponent"
-import type {clickHandler} from "./GuiUtils"
-import {assertMainOrNode} from "../../api/common/Env"
-import {IconButtonAttrs} from "./IconButton.js"
-import {AllIcons, Icon} from "./Icon.js"
-import {theme} from "../theme.js"
+import m, { Children, Component, Vnode } from "mithril"
+import { modal, ModalComponent } from "./Modal"
+import { animations, opacity, transform, TransformEnum } from "../animation/Animations"
+import { ease } from "../animation/Easing"
+import { px, size } from "../size"
+import type { Shortcut } from "../../misc/KeyManager"
+import { focusNext, focusPrevious } from "../../misc/KeyManager"
+import type { ButtonAttrs } from "./Button.js"
+import { lang, TranslationText } from "../../misc/LanguageViewModel"
+import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
+import { getSafeAreaInsetBottom, getSafeAreaInsetTop, newMouseEvent } from "../HtmlUtils"
+import type { $Promisable, lazy, lazyAsync } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, downcast, filterNull, neverNull } from "@tutao/tutanota-utils"
+import { client } from "../../misc/ClientDetector"
+import { pureComponent } from "./PureComponent"
+import type { clickHandler } from "./GuiUtils"
+import { assertMainOrNode } from "../../api/common/Env"
+import { IconButtonAttrs } from "./IconButton.js"
+import { AllIcons, Icon } from "./Icon.js"
+import { theme } from "../theme.js"
 
 assertMainOrNode()
 export type DropdownInfoAttrs = {
@@ -29,7 +29,7 @@ export type DropdownInfoAttrs = {
 /**
  * Renders small info message inside the dropdown.
  */
-const DropdownInfo = pureComponent<DropdownInfoAttrs>(({center, bold, info}) => {
+const DropdownInfo = pureComponent<DropdownInfoAttrs>(({ center, bold, info }) => {
 	return m(".dropdown-info.text-break.selectable" + (center ? ".center" : "") + (bold ? ".b" : ""), info)
 })
 export type DropdownChildAttrs = DropdownInfoAttrs | DropdownButtonAttrs
@@ -102,7 +102,7 @@ export class Dropdown implements ModalComponent {
 		this.oninit = () => {
 			this.children = filterNull(lazyChildren())
 			this._isFilterable = this.children.length > 10
-			this.children.map(child => {
+			this.children.map((child) => {
 				if (isDropDownInfo(child)) {
 					return child
 				}
@@ -123,39 +123,41 @@ export class Dropdown implements ModalComponent {
 		const _inputField = () => {
 			return this._isFilterable
 				? m(
-					"input.dropdown-bar.elevated-bg.doNotClose.pl-l.button-height.abs",
-					{
-						placeholder: lang.get("typeToFilter_label"),
-						oncreate: vnode => {
-							this._domInput = downcast<HTMLInputElement>(vnode.dom)
-							this._domInput.value = this._filterString
+						"input.dropdown-bar.elevated-bg.doNotClose.pl-l.button-height.abs",
+						{
+							placeholder: lang.get("typeToFilter_label"),
+							oncreate: (vnode) => {
+								this._domInput = downcast<HTMLInputElement>(vnode.dom)
+								this._domInput.value = this._filterString
+							},
+							oninput: () => {
+								this._filterString = neverNull(this._domInput).value
+							},
+							style: {
+								paddingLeft: px(size.hpad_large * 2),
+								paddingRight: px(size.hpad_small),
+								width: px(this._width - size.hpad_large),
+								top: 0,
+								height: px(size.button_height),
+								left: 0,
+							},
 						},
-						oninput: () => {
-							this._filterString = neverNull(this._domInput).value
-						},
-						style: {
-							paddingLeft: px(size.hpad_large * 2),
-							paddingRight: px(size.hpad_small),
-							width: px(this._width - size.hpad_large),
-							top: 0,
-							height: px(size.button_height),
-							left: 0,
-						},
-					},
-					this._filterString,
-				)
+						this._filterString,
+				  )
 				: null
 		}
 
 		const _contents = () => {
-			const showingIcons = this.children.some(c => "icon" in c && typeof c.icon !== "undefined")
-			return m(".dropdown-content.scroll.abs", {
+			const showingIcons = this.children.some((c) => "icon" in c && typeof c.icon !== "undefined")
+			return m(
+				".dropdown-content.scroll.abs",
+				{
 					role: "menu",
 					tabindex: TabIndex.Default,
-					oncreate: vnode => {
+					oncreate: (vnode) => {
 						this._domContents = vnode.dom as HTMLElement
 					},
-					onupdate: vnode => {
+					onupdate: (vnode) => {
 						if (this._maxHeight == null) {
 							const children = Array.from(vnode.dom.children) as Array<HTMLElement>
 							this._maxHeight = children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad
@@ -188,11 +190,11 @@ export class Dropdown implements ModalComponent {
 						bottom: 0,
 					},
 				},
-				this._visibleChildren().map(child => {
+				this._visibleChildren().map((child) => {
 					if (isDropDownInfo(child)) {
 						return m(DropdownInfo, child)
 					} else {
-						return m(DropdownButton, {...child, showingIcons} as InternalDropdownButtonAttrs)
+						return m(DropdownButton, { ...child, showingIcons } as InternalDropdownButtonAttrs)
 					}
 				}),
 			)
@@ -202,7 +204,7 @@ export class Dropdown implements ModalComponent {
 			return m(
 				".dropdown-panel.elevated-bg.border-radius.dropdown-shadow",
 				{
-					oncreate: vnode => {
+					oncreate: (vnode) => {
 						this._domDropdown = vnode.dom as HTMLElement
 						// It is important to set initial opacity so that user doesn't see it with full opacity before animating.
 						this._domDropdown.style.opacity = "0"
@@ -246,23 +248,23 @@ export class Dropdown implements ModalComponent {
 			{
 				key: Keys.TAB,
 				shift: true,
-				exec: () => this._domDropdown ? focusPrevious(this._domDropdown) : false,
+				exec: () => (this._domDropdown ? focusPrevious(this._domDropdown) : false),
 				help: "selectPrevious_action",
 			},
 			{
 				key: Keys.TAB,
 				shift: false,
-				exec: () => this._domDropdown ? focusNext(this._domDropdown) : false,
+				exec: () => (this._domDropdown ? focusNext(this._domDropdown) : false),
 				help: "selectNext_action",
 			},
 			{
 				key: Keys.UP,
-				exec: () => this._domDropdown ? focusPrevious(this._domDropdown) : false,
+				exec: () => (this._domDropdown ? focusPrevious(this._domDropdown) : false),
 				help: "selectPrevious_action",
 			},
 			{
 				key: Keys.DOWN,
-				exec: () => this._domDropdown ? focusNext(this._domDropdown) : false,
+				exec: () => (this._domDropdown ? focusNext(this._domDropdown) : false),
 				help: "selectNext_action",
 			},
 			{
@@ -293,9 +295,9 @@ export class Dropdown implements ModalComponent {
 	chooseMatch: () => boolean = () => {
 		const filterString = this._filterString.toLowerCase()
 
-		let visibleElements: Array<ButtonAttrs> = downcast(this._visibleChildren().filter(b => !isDropDownInfo(b)))
+		let visibleElements: Array<ButtonAttrs> = downcast(this._visibleChildren().filter((b) => !isDropDownInfo(b)))
 		let matchingButton =
-			visibleElements.length === 1 ? visibleElements[0] : visibleElements.find(b => lang.getMaybeLazy(b.label).toLowerCase() === filterString)
+			visibleElements.length === 1 ? visibleElements[0] : visibleElements.find((b) => lang.getMaybeLazy(b.label).toLowerCase() === filterString)
 
 		if (this._domInput && document.activeElement === this._domInput && matchingButton && matchingButton.click) {
 			const click = matchingButton.click
@@ -314,7 +316,7 @@ export class Dropdown implements ModalComponent {
 	}
 
 	_visibleChildren(): Array<DropdownChildAttrs> {
-		return this.children.filter(b => {
+		return this.children.filter((b) => {
 			if (isDropDownInfo(b)) {
 				return b.info.includes(this._filterString.toLowerCase())
 			} else if (this._isFilterable) {
@@ -330,20 +332,30 @@ export class Dropdown implements ModalComponent {
 	}
 }
 
-export function createDropdown({lazyButtons, overrideOrigin, width, withBackground}: {
-	lazyButtons: lazy<ReadonlyArray<DropdownChildAttrs | null>>,
-	overrideOrigin?: (original: PosRect) => PosRect,
-	width?: number,
-	withBackground?: boolean,
+export function createDropdown({
+	lazyButtons,
+	overrideOrigin,
+	width,
+	withBackground,
+}: {
+	lazyButtons: lazy<ReadonlyArray<DropdownChildAttrs | null>>
+	overrideOrigin?: (original: PosRect) => PosRect
+	width?: number
+	withBackground?: boolean
 }): clickHandler {
-	return createAsyncDropdown({lazyButtons: async () => lazyButtons(), overrideOrigin, width, withBackground})
+	return createAsyncDropdown({ lazyButtons: async () => lazyButtons(), overrideOrigin, width, withBackground })
 }
 
-export function createAsyncDropdown({lazyButtons, overrideOrigin, width = 200, withBackground = false}: {
-	lazyButtons: lazyAsync<ReadonlyArray<DropdownChildAttrs | null>>,
-	overrideOrigin?: (original: PosRect) => PosRect,
-	width?: number,
-	withBackground?: boolean,
+export function createAsyncDropdown({
+	lazyButtons,
+	overrideOrigin,
+	width = 200,
+	withBackground = false,
+}: {
+	lazyButtons: lazyAsync<ReadonlyArray<DropdownChildAttrs | null>>
+	overrideOrigin?: (original: PosRect) => PosRect
+	width?: number
+	withBackground?: boolean
 }): clickHandler {
 	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 	return (e, dom) => {
@@ -364,7 +376,7 @@ export function createAsyncDropdown({lazyButtons, overrideOrigin, width = 200, w
 				}
 			}),
 		])
-		buttons.then(buttons => {
+		buttons.then((buttons) => {
 			let dropdown = new Dropdown(() => buttons, width)
 
 			let buttonRect
@@ -387,12 +399,11 @@ export function showDropdownAtPosition(buttons: ReadonlyArray<DropdownChildAttrs
 	modal.displayUnique(dropdown, false)
 }
 
-
 type AttachDropdownParams = {
-	mainButtonAttrs: Omit<IconButtonAttrs, "click">,
-	childAttrs: lazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
-	showDropdown?: lazy<boolean>,
-	width?: number,
+	mainButtonAttrs: Omit<IconButtonAttrs, "click">
+	childAttrs: lazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>
+	showDropdown?: lazy<boolean>
+	width?: number
 	overrideOrigin?: (original: PosRect) => PosRect
 }
 
@@ -406,19 +417,11 @@ type AttachDropdownParams = {
  * @returns {ButtonAttrs} modified mainButtonAttrs that shows a dropdown on click or
  * button doesn't do anything if showDropdown returns false
  */
-export function attachDropdown(
-	{
-		mainButtonAttrs,
-		childAttrs,
-		showDropdown = () => true,
-		width,
-		overrideOrigin
-	}: AttachDropdownParams
-): IconButtonAttrs {
+export function attachDropdown({ mainButtonAttrs, childAttrs, showDropdown = () => true, width, overrideOrigin }: AttachDropdownParams): IconButtonAttrs {
 	return Object.assign({}, mainButtonAttrs, {
 		click: (e: MouseEvent, dom: HTMLElement) => {
 			if (showDropdown()) {
-				const dropDownFn = createAsyncDropdown({lazyButtons: () => Promise.resolve(childAttrs()), overrideOrigin, width})
+				const dropDownFn = createAsyncDropdown({ lazyButtons: () => Promise.resolve(childAttrs()), overrideOrigin, width })
 				dropDownFn(e, dom)
 				e.stopPropagation()
 			}
@@ -530,35 +533,43 @@ interface InternalDropdownButtonAttrs extends DropdownButtonAttrs {
 class DropdownButton implements Component<InternalDropdownButtonAttrs> {
 	private dom: HTMLElement | null = null
 
-	view({attrs}: Vnode<InternalDropdownButtonAttrs>): Children {
+	view({ attrs }: Vnode<InternalDropdownButtonAttrs>): Children {
 		const color = attrs.selected ? theme.content_button_selected : theme.content_button
-		return m("button.flex.dropdown-button.items-center.state-bg", {
-			role: "menuitem",
-			oncreate: (vnode) => this.dom = vnode.dom as HTMLElement,
-			onclick: (e: MouseEvent) => attrs.click?.(e, neverNull(this.dom)),
-		}, [
-			attrs.icon && attrs.showingIcons
-				? m(Icon, {
-					icon: attrs.icon,
-					large: true,
-					style: {
-						fill: color,
-						// margin on the sides of the button is 16px, but it actually looks more coherent to have the smaller spacing between the icon and text
-						marginRight: px(12),
-					},
-				})
-				: attrs.showingIcons
+		return m(
+			"button.flex.dropdown-button.items-center.state-bg",
+			{
+				role: "menuitem",
+				oncreate: (vnode) => (this.dom = vnode.dom as HTMLElement),
+				onclick: (e: MouseEvent) => attrs.click?.(e, neverNull(this.dom)),
+			},
+			[
+				attrs.icon && attrs.showingIcons
+					? m(Icon, {
+							icon: attrs.icon,
+							large: true,
+							style: {
+								fill: color,
+								// margin on the sides of the button is 16px, but it actually looks more coherent to have the smaller spacing between the icon and text
+								marginRight: px(12),
+							},
+					  })
+					: attrs.showingIcons
 					? m(".icon-large", {
-						style: {
-							marginRight: px(12),
-						}
-					})
+							style: {
+								marginRight: px(12),
+							},
+					  })
 					: null,
-			m(".text-ellipsis", {
-				style: {
-					color,
-				},
-			}, lang.getMaybeLazy(attrs.label))
-		])
+				m(
+					".text-ellipsis",
+					{
+						style: {
+							color,
+						},
+					},
+					lang.getMaybeLazy(attrs.label),
+				),
+			],
+		)
 	}
 }

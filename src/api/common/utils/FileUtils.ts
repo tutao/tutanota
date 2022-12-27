@@ -1,8 +1,8 @@
-import {downcast, intersection, isSameTypeRef, toLowerCase} from "@tutao/tutanota-utils"
-import type {File as TutanotaFile} from "../../entities/tutanota/TypeRefs.js"
-import {FileTypeRef as TutanotaFileTypeRef} from "../../entities/tutanota/TypeRefs.js"
-import {DataFile} from "../DataFile";
-import {Attachment} from "../../../mail/editor/SendMailModel.js"
+import { downcast, intersection, isSameTypeRef, toLowerCase } from "@tutao/tutanota-utils"
+import type { File as TutanotaFile } from "../../entities/tutanota/TypeRefs.js"
+import { FileTypeRef as TutanotaFileTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { DataFile } from "../DataFile"
+import { Attachment } from "../../../mail/editor/SendMailModel.js"
 
 type StringPredicate = (arg0: string) => boolean
 
@@ -10,11 +10,11 @@ type StringPredicate = (arg0: string) => boolean
  * a reference by path to a file on disk
  */
 export interface FileReference {
-	readonly _type: 'FileReference',
-	name: string,
-	mimeType: string,
-	location: string,
-	size: number,
+	readonly _type: "FileReference"
+	name: string
+	mimeType: string
+	location: string
+	size: number
 	cid?: string
 }
 
@@ -81,7 +81,7 @@ export function deduplicateFilenames(filenames: Array<string>, _taken: ReadonlyS
 	// None of the filenames were duplicated or taken
 	if (deduplicatedNames.size === filenames.length && intersection(deduplicatedNames, taken).size === 0) {
 		// if all file names are good then just return an identity map
-		return Object.fromEntries(filenames.map(f => [f, [f]])) // convert into map oldname -> [newname]
+		return Object.fromEntries(filenames.map((f) => [f, [f]])) // convert into map oldname -> [newname]
 	}
 
 	const suffix = (name: string, number: number) => {
@@ -131,10 +131,7 @@ export function isReservedFilename(filename: string): boolean {
 }
 
 export function isTutanotaFile(file: Attachment): file is TutanotaFile {
-	return file._type
-		&& file._type.hasOwnProperty("app")
-		&& file._type.hasOwnProperty("type")
-		&& isSameTypeRef(downcast(file._type), TutanotaFileTypeRef)
+	return file._type && file._type.hasOwnProperty("app") && file._type.hasOwnProperty("type") && isSameTypeRef(downcast(file._type), TutanotaFileTypeRef)
 }
 
 export function isDataFile(file: Attachment): file is DataFile {

@@ -1,16 +1,16 @@
-import {AccountType, GroupType, OperationType} from "../common/TutanotaConstants"
-import type {Base64Url} from "@tutao/tutanota-utils"
-import {downcast, first, mapAndFilterNull, neverNull, ofClass} from "@tutao/tutanota-utils"
-import {MediaType} from "../common/EntityFunctions"
-import {assertMainOrNode, getApiOrigin, isDesktop} from "../common/Env"
-import type {EntityUpdateData} from "./EventController"
-import {isUpdateForTypeRef} from "./EventController"
-import {NotFoundError} from "../common/error/RestError"
-import {locator} from "./MainLocator"
-import {isSameId} from "../common/utils/EntityUtils"
-import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
-import {EntityClient} from "../common/EntityClient"
-import {CloseSessionService} from "../entities/sys/Services"
+import { AccountType, GroupType, OperationType } from "../common/TutanotaConstants"
+import type { Base64Url } from "@tutao/tutanota-utils"
+import { downcast, first, mapAndFilterNull, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { MediaType } from "../common/EntityFunctions"
+import { assertMainOrNode, getApiOrigin, isDesktop } from "../common/Env"
+import type { EntityUpdateData } from "./EventController"
+import { isUpdateForTypeRef } from "./EventController"
+import { NotFoundError } from "../common/error/RestError"
+import { locator } from "./MainLocator"
+import { isSameId } from "../common/utils/EntityUtils"
+import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations"
+import { EntityClient } from "../common/EntityClient"
+import { CloseSessionService } from "../entities/sys/Services"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
@@ -26,22 +26,21 @@ import {
 	User,
 	UserTypeRef,
 	WhitelabelConfig,
-	WhitelabelConfigTypeRef
+	WhitelabelConfigTypeRef,
 } from "../entities/sys/TypeRefs"
 import {
 	createUserSettingsGroupRoot,
 	TutanotaProperties,
 	TutanotaPropertiesTypeRef,
 	UserSettingsGroupRoot,
-	UserSettingsGroupRootTypeRef
+	UserSettingsGroupRootTypeRef,
 } from "../entities/tutanota/TypeRefs"
-import {typeModels as sysTypeModels} from "../entities/sys/TypeModels"
-import {SessionType} from "../common/SessionType"
+import { typeModels as sysTypeModels } from "../entities/sys/TypeModels"
+import { SessionType } from "../common/SessionType"
 
 assertMainOrNode()
 
 export class UserController {
-
 	constructor(
 		// should be readonly but is needed for a workaround in CalendarModel
 		public user: User,
@@ -52,8 +51,7 @@ export class UserController {
 		private _userSettingsGroupRoot: UserSettingsGroupRoot,
 		public readonly sessionType: SessionType,
 		private readonly entityClient: EntityClient,
-	) {
-	}
+	) {}
 
 	get userId(): Id {
 		return this.user._id
@@ -77,7 +75,7 @@ export class UserController {
 	 */
 	isGlobalAdmin(): boolean {
 		if (this.isInternalUser()) {
-			return this.user.memberships.find(m => m.groupType === GroupType.Admin) != null
+			return this.user.memberships.find((m) => m.groupType === GroupType.Admin) != null
 		} else {
 			return false
 		}
@@ -85,7 +83,7 @@ export class UserController {
 
 	isGlobalOrLocalAdmin(): boolean {
 		if (this.isInternalUser()) {
-			return this.user.memberships.find(m => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin) != null
+			return this.user.memberships.find((m) => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin) != null
 		} else {
 			return false
 		}
@@ -116,19 +114,19 @@ export class UserController {
 	}
 
 	loadCustomerInfo(): Promise<CustomerInfo> {
-		return this.loadCustomer().then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
+		return this.loadCustomer().then((customer) => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 	}
 
 	loadAccountingInfo(): Promise<AccountingInfo> {
-		return this.loadCustomerInfo().then(customerInfo => locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo))
+		return this.loadCustomerInfo().then((customerInfo) => locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo))
 	}
 
 	getMailGroupMemberships(): GroupMembership[] {
-		return this.user.memberships.filter(membership => membership.groupType === GroupType.Mail)
+		return this.user.memberships.filter((membership) => membership.groupType === GroupType.Mail)
 	}
 
 	getCalendarMemberships(): GroupMembership[] {
-		return this.user.memberships.filter(membership => membership.groupType === GroupType.Calendar)
+		return this.user.memberships.filter((membership) => membership.groupType === GroupType.Calendar)
 	}
 
 	getUserMailGroupMembership(): GroupMembership {
@@ -136,16 +134,16 @@ export class UserController {
 	}
 
 	getLocalAdminGroupMemberships(): GroupMembership[] {
-		return this.user.memberships.filter(membership => membership.groupType === GroupType.LocalAdmin)
+		return this.user.memberships.filter((membership) => membership.groupType === GroupType.LocalAdmin)
 	}
 
 	getTemplateMemberships(): GroupMembership[] {
-		return this.user.memberships.filter(membership => membership.groupType === GroupType.Template)
+		return this.user.memberships.filter((membership) => membership.groupType === GroupType.Template)
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
-			const {instanceListId, instanceId, operation} = update
+			const { instanceListId, instanceId, operation } = update
 			if (operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, update) && isSameId(this.user.userGroup.group, eventOwnerGroupId)) {
 				this.user = await this.entityClient.load(UserTypeRef, this.user._id)
 			} else if (
@@ -177,8 +175,7 @@ export class UserController {
 			}
 		} else {
 			if (this.sessionType !== SessionType.Persistent) {
-				await locator.loginFacade.deleteSession(this.accessToken)
-							 .catch((e) => console.log("Error ignored on Logout:", e))
+				await locator.loginFacade.deleteSession(this.accessToken).catch((e) => console.log("Error ignored on Logout:", e))
 			}
 			await locator.worker.reset()
 		}
@@ -251,15 +248,17 @@ export class UserController {
 		}
 
 		const customerInfo = await this.loadCustomerInfo()
-		return customerInfo.domainInfos.some(domainInfo => domainInfo.whitelabelConfig)
+		return customerInfo.domainInfos.some((domainInfo) => domainInfo.whitelabelConfig)
 	}
 
-	async loadWhitelabelConfig(): Promise<| {
-		whitelabelConfig: WhitelabelConfig
-		domainInfo: DomainInfo
-	}
+	async loadWhitelabelConfig(): Promise<
+		| {
+				whitelabelConfig: WhitelabelConfig
+				domainInfo: DomainInfo
+		  }
 		| null
-		| undefined> {
+		| undefined
+	> {
 		// The model allows for multiple domainInfos to have whitelabel configs
 		// but in reality on the server only a single custom configuration is allowed
 		// therefore the result of the filtering all domainInfos with no whitelabelConfig
@@ -268,7 +267,7 @@ export class UserController {
 		const domainInfoAndConfig = first(
 			mapAndFilterNull(
 				customerInfo.domainInfos,
-				domainInfo =>
+				(domainInfo) =>
 					domainInfo.whitelabelConfig && {
 						domainInfo,
 						whitelabelConfig: domainInfo.whitelabelConfig,
@@ -299,27 +298,19 @@ export type UserControllerInitData = {
 }
 // noinspection JSUnusedGlobalSymbols
 // dynamically imported
-export async function initUserController(
-	{
-		user,
-		userGroupInfo,
-		sessionId,
-		accessToken,
-		sessionType
-	}: UserControllerInitData
-): Promise<UserController> {
+export async function initUserController({ user, userGroupInfo, sessionId, accessToken, sessionType }: UserControllerInitData): Promise<UserController> {
 	const entityClient = locator.entityClient
-	const [
-		props,
-		userSettingsGroupRoot,
-	] = await Promise.all([
+	const [props, userSettingsGroupRoot] = await Promise.all([
 		entityClient.loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group),
-		entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group)
-					.catch(ofClass(NotFoundError, () =>
-							entityClient.setup(null, createUserSettingsGroupRoot({_ownerGroup: user.userGroup.group}))
-										.then(() => entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group)),
-						),
-					),
+		entityClient
+			.load(UserSettingsGroupRootTypeRef, user.userGroup.group)
+			.catch(
+				ofClass(NotFoundError, () =>
+					entityClient
+						.setup(null, createUserSettingsGroupRoot({ _ownerGroup: user.userGroup.group }))
+						.then(() => entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group)),
+				),
+			),
 	])
 	return new UserController(user, userGroupInfo, sessionId, props, accessToken, userSettingsGroupRoot, sessionType, entityClient)
 }

@@ -1,10 +1,10 @@
-import {GroupType} from "../../common/TutanotaConstants"
-import {decryptKey} from "@tutao/tutanota-crypto"
-import {assertNotNull, getFromMap} from "@tutao/tutanota-utils"
-import {ProgrammingError} from "../../common/error/ProgrammingError"
-import {createWebsocketLeaderStatus, GroupMembership, User, WebsocketLeaderStatus} from "../../entities/sys/TypeRefs"
-import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
-import {LoginIncompleteError} from "../../common/error/LoginIncompleteError"
+import { GroupType } from "../../common/TutanotaConstants"
+import { decryptKey } from "@tutao/tutanota-crypto"
+import { assertNotNull, getFromMap } from "@tutao/tutanota-utils"
+import { ProgrammingError } from "../../common/error/ProgrammingError"
+import { createWebsocketLeaderStatus, GroupMembership, User, WebsocketLeaderStatus } from "../../entities/sys/TypeRefs"
+import { Aes128Key } from "@tutao/tutanota-crypto/dist/encryption/Aes"
+import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
 
 export interface AuthDataProvider {
 	/**
@@ -69,8 +69,8 @@ export class UserFacade implements AuthDataProvider {
 	createAuthHeaders(): Dict {
 		return this.accessToken
 			? {
-				accessToken: this.accessToken,
-			}
+					accessToken: this.accessToken,
+			  }
 			: {}
 	}
 
@@ -79,7 +79,7 @@ export class UserFacade implements AuthDataProvider {
 	}
 
 	getAllGroupIds(): Id[] {
-		let groups = this.getLoggedInUser().memberships.map(membership => membership.group)
+		let groups = this.getLoggedInUser().memberships.map((membership) => membership.group)
 		groups.push(this.getLoggedInUser().userGroup.group)
 		return groups
 	}
@@ -96,7 +96,6 @@ export class UserFacade implements AuthDataProvider {
 			}
 		}
 		return userGroupKey
-
 	}
 
 	getGroupKey(groupId: Id): Aes128Key {
@@ -119,7 +118,7 @@ export class UserFacade implements AuthDataProvider {
 		if (!this.user) {
 			return false
 		} else {
-			return groupId === this.user.userGroup.group || this.user.memberships.some(m => m.group === groupId)
+			return groupId === this.user.userGroup.group || this.user.memberships.some((m) => m.group === groupId)
 		}
 	}
 
@@ -127,7 +126,7 @@ export class UserFacade implements AuthDataProvider {
 		if (groupType === GroupType.User) {
 			return this.getUserGroupId()
 		} else {
-			let membership = this.getLoggedInUser().memberships.find(m => m.groupType === groupType)
+			let membership = this.getLoggedInUser().memberships.find((m) => m.groupType === groupType)
 
 			if (!membership) {
 				throw new Error("could not find groupType " + groupType + " for user " + this.getLoggedInUser()._id)
@@ -139,8 +138,8 @@ export class UserFacade implements AuthDataProvider {
 
 	getGroupIds(groupType: GroupType): Id[] {
 		return this.getLoggedInUser()
-				   .memberships.filter(m => m.groupType === groupType)
-				   .map(gm => gm.group)
+			.memberships.filter((m) => m.groupType === groupType)
+			.map((gm) => gm.group)
 	}
 
 	isPartiallyLoggedIn(): boolean {

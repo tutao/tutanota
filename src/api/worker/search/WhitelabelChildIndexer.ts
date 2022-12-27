@@ -1,20 +1,20 @@
-import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
-import {NotFoundError} from "../../common/error/RestError"
-import type {WhitelabelChild} from "../../entities/sys/TypeRefs.js"
-import {WhitelabelChildTypeRef} from "../../entities/sys/TypeRefs.js"
-import {neverNull, noOp} from "@tutao/tutanota-utils"
-import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
-import {_createNewIndexUpdate, typeRefToTypeInfo, userIsGlobalAdmin} from "./IndexUtils"
-import {CustomerTypeRef} from "../../entities/sys/TypeRefs.js"
-import {GroupDataOS} from "./Indexer"
-import {IndexerCore} from "./IndexerCore"
-import {SuggestionFacade} from "./SuggestionFacade"
-import {tokenize} from "./Tokenizer"
-import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
-import type {User} from "../../entities/sys/TypeRefs.js"
-import {EntityClient} from "../../common/EntityClient"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
-import {typeModels} from "../../entities/sys/TypeModels"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../common/TutanotaConstants"
+import { NotFoundError } from "../../common/error/RestError"
+import type { WhitelabelChild } from "../../entities/sys/TypeRefs.js"
+import { WhitelabelChildTypeRef } from "../../entities/sys/TypeRefs.js"
+import { neverNull, noOp } from "@tutao/tutanota-utils"
+import type { Db, GroupData, IndexUpdate, SearchIndexEntry } from "./SearchTypes"
+import { _createNewIndexUpdate, typeRefToTypeInfo, userIsGlobalAdmin } from "./IndexUtils"
+import { CustomerTypeRef } from "../../entities/sys/TypeRefs.js"
+import { GroupDataOS } from "./Indexer"
+import { IndexerCore } from "./IndexerCore"
+import { SuggestionFacade } from "./SuggestionFacade"
+import { tokenize } from "./Tokenizer"
+import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
+import type { User } from "../../entities/sys/TypeRefs.js"
+import { EntityClient } from "../../common/EntityClient"
+import { ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { typeModels } from "../../entities/sys/TypeModels"
 
 export class WhitelabelChildIndexer {
 	_core: IndexerCore
@@ -48,31 +48,31 @@ export class WhitelabelChildIndexer {
 		return tokenize(whitelabelChild.mailAddress)
 	}
 
-	processNewWhitelabelChild(
-		event: EntityUpdate,
-	): Promise<| {
-		whitelabelChild: WhitelabelChild
-		keyToIndexEntries: Map<string, SearchIndexEntry[]>
-	}
+	processNewWhitelabelChild(event: EntityUpdate): Promise<
+		| {
+				whitelabelChild: WhitelabelChild
+				keyToIndexEntries: Map<string, SearchIndexEntry[]>
+		  }
 		| null
-		| undefined> {
+		| undefined
+	> {
 		return this._entity
-				   .load(WhitelabelChildTypeRef, [event.instanceListId, event.instanceId])
-				   .then(whitelabelChild => {
-					   let keyToIndexEntries = this.createWhitelabelChildIndexEntries(whitelabelChild)
-					   return this.suggestionFacade.store().then(() => {
-						   return {
-							   whitelabelChild,
-							   keyToIndexEntries,
-						   }
-					   })
-				   })
-				   .catch(
-					   ofClass(NotFoundError, () => {
-						   console.log("tried to index non existing whitelabel child")
-						   return null
-					   }),
-				   )
+			.load(WhitelabelChildTypeRef, [event.instanceListId, event.instanceId])
+			.then((whitelabelChild) => {
+				let keyToIndexEntries = this.createWhitelabelChildIndexEntries(whitelabelChild)
+				return this.suggestionFacade.store().then(() => {
+					return {
+						whitelabelChild,
+						keyToIndexEntries,
+					}
+				})
+			})
+			.catch(
+				ofClass(NotFoundError, () => {
+					console.log("tried to index non existing whitelabel child")
+					return null
+				}),
+			)
 	}
 
 	/**
@@ -80,8 +80,8 @@ export class WhitelabelChildIndexer {
 	 */
 	indexAllWhitelabelChildrenForAdmin(user: User): Promise<void> {
 		if (userIsGlobalAdmin(user)) {
-			return this._entity.load(CustomerTypeRef, neverNull(user.customer)).then(customer => {
-				return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
+			return this._entity.load(CustomerTypeRef, neverNull(user.customer)).then((customer) => {
+				return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then((t) => {
 					return t.get(GroupDataOS, customer.adminGroup).then((groupData: GroupData | null) => {
 						if (groupData && groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP) {
 							let children: Promise<WhitelabelChild[]> = Promise.resolve([])
@@ -90,10 +90,10 @@ export class WhitelabelChildIndexer {
 								children = this._entity.loadAll(WhitelabelChildTypeRef, customer.whitelabelChildren.items)
 							}
 
-							return children.then(allChildren => {
+							return children.then((allChildren) => {
 								let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(WhitelabelChildTypeRef))
 
-								allChildren.forEach(child => {
+								allChildren.forEach((child) => {
 									let keyToIndexEntries = this.createWhitelabelChildIndexEntries(child)
 
 									this._core.encryptSearchIndexEntries(child._id, neverNull(child._ownerGroup), keyToIndexEntries, indexUpdate)
@@ -124,7 +124,7 @@ export class WhitelabelChildIndexer {
 		return promiseMap(events, async (event) => {
 			if (userIsGlobalAdmin(user)) {
 				if (event.operation === OperationType.CREATE) {
-					await this.processNewWhitelabelChild(event).then(result => {
+					await this.processNewWhitelabelChild(event).then((result) => {
 						if (result) {
 							this._core.encryptSearchIndexEntries(
 								result.whitelabelChild._id,
@@ -137,7 +137,7 @@ export class WhitelabelChildIndexer {
 				} else if (event.operation === OperationType.UPDATE) {
 					await Promise.all([
 						this._core._processDeleted(event, indexUpdate),
-						this.processNewWhitelabelChild(event).then(result => {
+						this.processNewWhitelabelChild(event).then((result) => {
 							if (result) {
 								this._core.encryptSearchIndexEntries(
 									result.whitelabelChild._id,

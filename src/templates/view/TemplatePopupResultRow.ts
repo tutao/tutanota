@@ -1,8 +1,8 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {TEMPLATE_LIST_ENTRY_HEIGHT} from "./TemplatePopup"
-import {px} from "../../gui/size"
-import type {EmailTemplate} from "../../api/entities/tutanota/TypeRefs.js"
-import {TEMPLATE_SHORTCUT_PREFIX} from "../model/TemplatePopupModel"
+import m, { Children, Component, Vnode } from "mithril"
+import { TEMPLATE_LIST_ENTRY_HEIGHT } from "./TemplatePopup"
+import { px } from "../../gui/size"
+import type { EmailTemplate } from "../../api/entities/tutanota/TypeRefs.js"
+import { TEMPLATE_SHORTCUT_PREFIX } from "../model/TemplatePopupModel"
 
 export type TemplateResultRowAttrs = {
 	template: EmailTemplate
@@ -13,7 +13,7 @@ export type TemplateResultRowAttrs = {
  */
 export class TemplatePopupResultRow implements Component<TemplateResultRowAttrs> {
 	view(vnode: Vnode<TemplateResultRowAttrs>): Children {
-		const {title, tag} = vnode.attrs.template
+		const { title, tag } = vnode.attrs.template
 		return m(
 			".flex.flex-column.overflow-hidden.full-width.ml-s",
 			{

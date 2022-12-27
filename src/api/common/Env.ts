@@ -1,7 +1,7 @@
 //@bundleInto:common-min
 
 // keep in sync with LaunchHtml.js meta tag title
-import {ProgrammingError} from "./error/ProgrammingError.js"
+import { ProgrammingError } from "./error/ProgrammingError.js"
 
 export const LOGIN_TITLE = "Mail. Done. Right. Tutanota Login & Sign up for an Ad-free Mailbox"
 export const Mode: Record<EnvMode, EnvMode> = Object.freeze({
@@ -14,11 +14,13 @@ export const Mode: Record<EnvMode, EnvMode> = Object.freeze({
 })
 
 export function getWebsocketOrigin(): string {
-	return getApiOrigin()
-		// replaces http: with ws: and https: with wss:
-		.replace(/^http/, "ws")
-		// for ios app custom protocol
-		.replace(/^api/, "ws")
+	return (
+		getApiOrigin()
+			// replaces http: with ws: and https: with wss:
+			.replace(/^http/, "ws")
+			// for ios app custom protocol
+			.replace(/^api/, "ws")
+	)
 }
 
 /** Returns the origin which should be used for API requests. */
@@ -41,7 +43,7 @@ export function getApiOrigin(): string {
 export function getWebRoot(): string {
 	let origin: string
 	if (env.staticUrl) {
-			origin = env.staticUrl
+		origin = env.staticUrl
 	} else {
 		return location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")
 	}

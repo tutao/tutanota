@@ -1,5 +1,5 @@
 import o from "ospec"
-import {EXECUTABLE_EXTENSIONS, looksExecutable, nonClobberingFilename, swapFilename} from "../../../src/desktop/PathUtils.js"
+import { EXECUTABLE_EXTENSIONS, looksExecutable, nonClobberingFilename, swapFilename } from "../../../src/desktop/PathUtils.js"
 import path from "path"
 
 o.spec("PathUtils", function () {
@@ -49,26 +49,17 @@ o.spec("PathUtils", function () {
 			o(nonClobberingFilename(["hello-1.ext"], "hello-1.ext")).equals("hello-1-1.ext")
 		})
 		o("intermediate value", function () {
-			o(
-				nonClobberingFilename(
-					["hello.ext", "hello-3.ext", "hello-1.ext", "hello-undefined.ext", "hello-Infinity.ext"],
-					"hello.ext",
-				),
-			).equals("hello-2.ext")
-			o(nonClobberingFilename(["hello-0.ext", "hello.ext", "hello-3.ext", "hello-1.ext"], "hello.ext")).equals(
+			o(nonClobberingFilename(["hello.ext", "hello-3.ext", "hello-1.ext", "hello-undefined.ext", "hello-Infinity.ext"], "hello.ext")).equals(
 				"hello-2.ext",
 			)
-			o(nonClobberingFilename(["hello--2.ext", "hello-0.ext", "hello-3.ext", "hello-1.ext"], "hello.ext")).equals(
-				"hello.ext",
-			)
+			o(nonClobberingFilename(["hello-0.ext", "hello.ext", "hello-3.ext", "hello-1.ext"], "hello.ext")).equals("hello-2.ext")
+			o(nonClobberingFilename(["hello--2.ext", "hello-0.ext", "hello-3.ext", "hello-1.ext"], "hello.ext")).equals("hello.ext")
 		})
 		o("truncated clashes", function () {
 			o(nonClobberingFilename(["hello-.ext", "hello.", "hello", "ello.ext"], "hello.ext")).equals("hello.ext")
 		})
 		o("almost clashes", function () {
-			o(
-				nonClobberingFilename(["hello.ext", "hello-a.ext", "hello-01.ext", "hello-0x01.ext"], "hello.ext"),
-			).equals("hello-1.ext")
+			o(nonClobberingFilename(["hello.ext", "hello-a.ext", "hello-01.ext", "hello-0x01.ext"], "hello.ext")).equals("hello-1.ext")
 		})
 		o("dotfiles", function () {
 			o(
@@ -151,37 +142,21 @@ o.spec("PathUtils", function () {
 			})
 		}
 
-		EXECUTABLE_EXTENSIONS
-			.map(extension => `someFile.${extension}`)
-			.forEach(testDoesLookExecutable)
+		EXECUTABLE_EXTENSIONS.map((extension) => `someFile.${extension}`).forEach(testDoesLookExecutable)
 
-		EXECUTABLE_EXTENSIONS
-			.map(extension => `C:\\a\\b\\someFile.${extension}`)
-			.forEach(testDoesLookExecutable)
+		EXECUTABLE_EXTENSIONS.map((extension) => `C:\\a\\b\\someFile.${extension}`).forEach(testDoesLookExecutable)
 
-		EXECUTABLE_EXTENSIONS
-			.map(extension => `C:\\a\\b\\.${extension}`)
-			.forEach(testDoesLookExecutable)
+		EXECUTABLE_EXTENSIONS.map((extension) => `C:\\a\\b\\.${extension}`).forEach(testDoesLookExecutable)
 
-		EXECUTABLE_EXTENSIONS
-			.map(extension => `/a/b/someFile.${extension}`)
-			.forEach(testDoesLookExecutable)
+		EXECUTABLE_EXTENSIONS.map((extension) => `/a/b/someFile.${extension}`).forEach(testDoesLookExecutable)
 
-		EXECUTABLE_EXTENSIONS
-			.map(extension => `/a/b/.${extension}`)
-			.forEach(testDoesLookExecutable)
+		EXECUTABLE_EXTENSIONS.map((extension) => `/a/b/.${extension}`).forEach(testDoesLookExecutable)
 
-		EXECUTABLE_EXTENSIONS
-			.map(extension => `file:///a/b/someFile.${extension}`)
-			.forEach(testDoesLookExecutable)
+		EXECUTABLE_EXTENSIONS.map((extension) => `file:///a/b/someFile.${extension}`).forEach(testDoesLookExecutable)
 
-		EXECUTABLE_EXTENSIONS
-			.map(extension => `file:///a/b/.${extension}`)
-			.forEach(testDoesLookExecutable)
+		EXECUTABLE_EXTENSIONS.map((extension) => `file:///a/b/.${extension}`).forEach(testDoesLookExecutable)
 
-		EXECUTABLE_EXTENSIONS
-			.map(extension => `.${extension}`)
-			.forEach(testDoesLookExecutable)
+		EXECUTABLE_EXTENSIONS.map((extension) => `.${extension}`).forEach(testDoesLookExecutable)
 
 		o("should not detect non executable extensions as looking executable", function () {
 			o(looksExecutable("picture.jpg")).equals(false)

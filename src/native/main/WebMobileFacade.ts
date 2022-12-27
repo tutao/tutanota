@@ -1,13 +1,13 @@
 import m from "mithril"
-import {assertMainOrNode} from "../../api/common/Env"
-import {header} from "../../gui/Header.js"
-import {modal} from "../../gui/base/Modal"
-import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX, SETTINGS_PREFIX} from "../../misc/RouteChange"
-import {IMainLocator, locator} from "../../api/main/MainLocator"
-import {last} from "@tutao/tutanota-utils"
-import {CloseEventBusOption, MailFolderType, SECOND_MS} from "../../api/common/TutanotaConstants.js"
-import {MobileFacade} from "../common/generatedipc/MobileFacade.js"
-import {styles} from "../../gui/styles"
+import { assertMainOrNode } from "../../api/common/Env"
+import { header } from "../../gui/Header.js"
+import { modal } from "../../gui/base/Modal"
+import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX, SETTINGS_PREFIX } from "../../misc/RouteChange"
+import { IMainLocator, locator } from "../../api/main/MainLocator"
+import { last } from "@tutao/tutanota-utils"
+import { CloseEventBusOption, MailFolderType, SECOND_MS } from "../../api/common/TutanotaConstants.js"
+import { MobileFacade } from "../common/generatedipc/MobileFacade.js"
+import { styles } from "../../gui/styles"
 
 assertMainOrNode()
 
@@ -16,8 +16,6 @@ assertMainOrNode()
  * False if the caller must handle the button press (quit the application)
  */
 export class WebMobileFacade implements MobileFacade {
-
-
 	private disconnectTimeoutId: TimeoutID | null
 
 	async handleBackPress(): Promise<boolean> {
@@ -63,13 +61,13 @@ export class WebMobileFacade implements MobileFacade {
 					// If in inbox already, quit
 					if (m.route.get().startsWith(MAIL_PREFIX)) {
 						const parts = m.route
-									   .get()
-									   .split("/")
-									   .filter(part => part !== "")
+							.get()
+							.split("/")
+							.filter((part) => part !== "")
 
 						if (parts.length > 1) {
 							const selectedMailListId = parts[1]
-							return locator.mailModel.getMailboxDetails().then(mailboxDetails => {
+							return locator.mailModel.getMailboxDetails().then((mailboxDetails) => {
 								const inboxMailListId = mailboxDetails[0].folders.getSystemFolderByType(MailFolderType.INBOX).mails
 
 								if (inboxMailListId !== selectedMailListId) {
@@ -109,12 +107,12 @@ export class WebMobileFacade implements MobileFacade {
 	}
 
 	async keyboardSizeChanged(newSize: number): Promise<void> {
-		const {windowFacade} = await import("../../misc/WindowFacade.js")
+		const { windowFacade } = await import("../../misc/WindowFacade.js")
 		return windowFacade.onKeyboardSizeChanged(newSize)
 	}
 
 	private static async getInitializedLocator(): Promise<IMainLocator> {
-		const {locator} = await import("../../api/main/MainLocator")
+		const { locator } = await import("../../api/main/MainLocator")
 		await locator.initialized
 		return locator
 	}

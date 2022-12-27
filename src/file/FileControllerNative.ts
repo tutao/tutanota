@@ -1,27 +1,22 @@
-import {Dialog} from "../gui/base/Dialog"
-import {DataFile} from "../api/common/DataFile"
-import {assertMainOrNode, isAndroidApp, isApp, isDesktop, isElectronClient, isIOSApp, isTest} from "../api/common/Env"
-import {assert, neverNull, promiseMap, sortableTimestamp} from "@tutao/tutanota-utils"
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {lang} from "../misc/LanguageViewModel"
-import {File as TutanotaFile} from "../api/entities/tutanota/TypeRefs.js"
-import {FileReference} from "../api/common/utils/FileUtils"
-import {CancelledError} from "../api/common/error/CancelledError"
-import type {NativeFileApp} from "../native/common/FileApp"
-import {ArchiveDataType} from "../api/common/TutanotaConstants"
-import {BlobFacade} from "../api/worker/facades/BlobFacade"
-import {FileFacade} from "../api/worker/facades/FileFacade"
-import {downloadAndDecryptDataFile, FileController, handleDownloadErrors, isLegacyFile, openDataFileInBrowser, zipDataFiles} from "./FileController.js"
+import { Dialog } from "../gui/base/Dialog"
+import { DataFile } from "../api/common/DataFile"
+import { assertMainOrNode, isAndroidApp, isApp, isDesktop, isElectronClient, isIOSApp, isTest } from "../api/common/Env"
+import { assert, neverNull, promiseMap, sortableTimestamp } from "@tutao/tutanota-utils"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { lang } from "../misc/LanguageViewModel"
+import { File as TutanotaFile } from "../api/entities/tutanota/TypeRefs.js"
+import { FileReference } from "../api/common/utils/FileUtils"
+import { CancelledError } from "../api/common/error/CancelledError"
+import type { NativeFileApp } from "../native/common/FileApp"
+import { ArchiveDataType } from "../api/common/TutanotaConstants"
+import { BlobFacade } from "../api/worker/facades/BlobFacade"
+import { FileFacade } from "../api/worker/facades/FileFacade"
+import { downloadAndDecryptDataFile, FileController, handleDownloadErrors, isLegacyFile, openDataFileInBrowser, zipDataFiles } from "./FileController.js"
 
 assertMainOrNode()
 
 export class FileControllerNative implements FileController {
-
-	constructor(
-		private readonly fileApp: NativeFileApp,
-		private readonly blobFacade: BlobFacade,
-		private readonly fileFacade: FileFacade
-	) {
+	constructor(private readonly fileApp: NativeFileApp, private readonly blobFacade: BlobFacade, private readonly fileFacade: FileFacade) {
 		assert(isElectronClient() || isApp() || isTest(), "Don't make native file controller when not in native")
 	}
 
@@ -64,8 +59,8 @@ export class FileControllerNative implements FileController {
 		} finally {
 			if (temporaryFile && isApp()) {
 				// can't delete on desktop as we can't wait until the viewer has actually loaded the file
-				const {location} = temporaryFile
-				this.fileApp.deleteFile(location).catch(e => console.log("failed to delete file", location, e))
+				const { location } = temporaryFile
+				this.fileApp.deleteFile(location).catch((e) => console.log("failed to delete file", location, e))
 			}
 		}
 	}
@@ -76,17 +71,14 @@ export class FileControllerNative implements FileController {
 	 * TODO this could probably just use this.doDownload. Temporary files are not being cleaned up on android
 	 */
 	async downloadAll(tutanotaFiles: Array<TutanotaFile>): Promise<void> {
-		const downloadAll = async <T>(
-			downloadFile: (file: TutanotaFile) => Promise<T>,
-			processDownloadedFiles: (downloadedFiles: T[]) => Promise<unknown>
-		) => {
+		const downloadAll = async <T>(downloadFile: (file: TutanotaFile) => Promise<T>, processDownloadedFiles: (downloadedFiles: T[]) => Promise<unknown>) => {
 			const downloadedFiles: Array<T> = []
 			for (const file of tutanotaFiles) {
 				try {
 					const downloadedFile = await downloadFile(file)
 					downloadedFiles.push(downloadedFile)
 				} catch (e) {
-					await handleDownloadErrors(e, msg => Dialog.message(() => lang.get(msg) + " " + file.name))
+					await handleDownloadErrors(e, (msg) => Dialog.message(() => lang.get(msg) + " " + file.name))
 				}
 			}
 			await processDownloadedFiles(downloadedFiles)
@@ -94,27 +86,25 @@ export class FileControllerNative implements FileController {
 
 		if (isAndroidApp()) {
 			await downloadAll(
-				file => this.downloadAndDecryptInNative(file),
-				files => promiseMap(files, file => this.fileApp.putFileIntoDownloadsFolder(file.location))
+				(file) => this.downloadAndDecryptInNative(file),
+				(files) => promiseMap(files, (file) => this.fileApp.putFileIntoDownloadsFolder(file.location)),
 			)
 		} else if (isIOSApp()) {
 			await downloadAll(
-				file => this.downloadAndDecryptInNative(file),
-				files => promiseMap(
-					files,
-					async file => {
+				(file) => this.downloadAndDecryptInNative(file),
+				(files) =>
+					promiseMap(files, async (file) => {
 						try {
 							await this.fileApp.open(file)
 						} finally {
-							await this.fileApp.deleteFile(file.location).catch(e => console.log("failed to delete file", file.location, e))
+							await this.fileApp.deleteFile(file.location).catch((e) => console.log("failed to delete file", file.location, e))
 						}
-					}
-				)
+					}),
 			)
 		} else {
 			await downloadAll(
-				file => this.downloadAndDecrypt(file),
-				async files => openDataFileInBrowser(await zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`))
+				(file) => this.downloadAndDecrypt(file),
+				async (files) => openDataFileInBrowser(await zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`)),
 			)
 		}
 	}
@@ -147,13 +137,18 @@ export class FileControllerNative implements FileController {
 		return downloadAndDecryptDataFile(file, this.fileFacade, this.blobFacade)
 	}
 
-
 	/** Public for testing */
 	async downloadAndDecryptInNative(tutanotaFile: TutanotaFile): Promise<FileReference> {
 		if (isLegacyFile(tutanotaFile)) {
 			return await this.fileFacade.downloadFileContentNative(tutanotaFile)
 		} else {
-			return await this.blobFacade.downloadAndDecryptNative(ArchiveDataType.Attachments, tutanotaFile.blobs, tutanotaFile, tutanotaFile.name, neverNull(tutanotaFile.mimeType))
+			return await this.blobFacade.downloadAndDecryptNative(
+				ArchiveDataType.Attachments,
+				tutanotaFile.blobs,
+				tutanotaFile,
+				tutanotaFile.name,
+				neverNull(tutanotaFile.mimeType),
+			)
 		}
 	}
 }

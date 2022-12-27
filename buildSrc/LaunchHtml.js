@@ -58,33 +58,35 @@ function csp(env) {
 		if (env.mode === "App" || env.mode === "Desktop") {
 			// differences in comparison to web csp:
 			// * Content Security Policies delivered via a <meta> element may not contain the frame-ancestors directive.
-			const cspContent = "default-src 'none';"
-				+ " script-src 'self';"
-				+ " child-src 'self';"
-				+ " font-src 'self';"
-				+ " img-src http: blob: data: *;"
-				+ " style-src 'unsafe-inline';"
-				+ "base-uri 'none';"
-				+ ` connect-src 'self' ${getCspUrls(env)} https://tutanota.com;`
+			const cspContent =
+				"default-src 'none';" +
+				" script-src 'self';" +
+				" child-src 'self';" +
+				" font-src 'self';" +
+				" img-src http: blob: data: *;" +
+				" style-src 'unsafe-inline';" +
+				"base-uri 'none';" +
+				` connect-src 'self' ${getCspUrls(env)} https://tutanota.com;`
 
 			return `<meta http-equiv="Content-Security-Policy" content="${cspContent}">`
 		} else {
 			return ""
 		}
 	} else {
-		const cspContent = "default-src * 'unsafe-inline';"
-			+ " script-src * 'unsafe-inline';"
-			+ " img-src * data: blob: 'unsafe-inline';"
-			+ " media-src * data: blob: 'unsafe-inline';"
-			+ " style-src * 'unsafe-inline';"
-			+ " frame-src *;"
-			+ ` connect-src 'self' 'unsafe-inline' ${getCspUrls(env)} ws://localhost:9001 https://tutanota.com;`
+		const cspContent =
+			"default-src * 'unsafe-inline';" +
+			" script-src * 'unsafe-inline';" +
+			" img-src * data: blob: 'unsafe-inline';" +
+			" media-src * data: blob: 'unsafe-inline';" +
+			" style-src * 'unsafe-inline';" +
+			" frame-src *;" +
+			` connect-src 'self' 'unsafe-inline' ${getCspUrls(env)} ws://localhost:9001 https://tutanota.com;`
 
 		return `<meta http-equiv="Content-Security-Policy" content="${cspContent}">`
 	}
 }
 
-function renderScriptImport({src, type}) {
+function renderScriptImport({ src, type }) {
 	const typeString = type ? ` type="${type}"` : ""
 	return `<script src="${src}"${typeString} defer></script>`
 }

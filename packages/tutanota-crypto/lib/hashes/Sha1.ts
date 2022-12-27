@@ -8,10 +8,10 @@ const sha1 = new sjcl.hash.sha1()
  * @return The hash.
  */
 export function sha1Hash(uint8Array: Uint8Array): Uint8Array {
-    try {
-        sha1.update(sjcl.codec.arrayBuffer.toBits(uint8Array.buffer))
-        return new Uint8Array(sjcl.codec.arrayBuffer.fromBits(sha1.finalize(), false))
-    } finally {
-        sha1.reset()
-    }
+	try {
+		sha1.update(sjcl.codec.arrayBuffer.toBits(uint8Array.buffer))
+		return new Uint8Array(sjcl.codec.arrayBuffer.fromBits(sha1.finalize(), false))
+	} finally {
+		sha1.reset()
+	}
 }

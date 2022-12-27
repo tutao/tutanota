@@ -1,19 +1,19 @@
-import m, {Children, Component, RouteLinkAttrs, Vnode} from "mithril"
-import {handleUncaughtError} from "../../misc/ErrorHandler"
-import {px, size} from "../size"
-import {addFlash, removeFlash} from "./Flash"
-import type {lazy} from "@tutao/tutanota-utils"
-import {lazyStringValue, neverNull} from "@tutao/tutanota-utils"
-import type {lazyIcon} from "./Icon"
-import {Icon} from "./Icon"
-import {theme} from "../theme"
-import {styles} from "../styles"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import {Keys} from "../../api/common/TutanotaConstants"
-import {isKeyPressed} from "../../misc/KeyManager"
-import type {dropHandler} from "./GuiUtils"
-import {assertMainOrNode} from "../../api/common/Env"
+import m, { Children, Component, RouteLinkAttrs, Vnode } from "mithril"
+import { handleUncaughtError } from "../../misc/ErrorHandler"
+import { px, size } from "../size"
+import { addFlash, removeFlash } from "./Flash"
+import type { lazy } from "@tutao/tutanota-utils"
+import { lazyStringValue, neverNull } from "@tutao/tutanota-utils"
+import type { lazyIcon } from "./Icon"
+import { Icon } from "./Icon"
+import { theme } from "../theme"
+import { styles } from "../styles"
+import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import { Keys } from "../../api/common/TutanotaConstants"
+import { isKeyPressed } from "../../misc/KeyManager"
+import type { dropHandler } from "./GuiUtils"
+import { assertMainOrNode } from "../../api/common/Env"
 
 assertMainOrNode()
 export type NavButtonAttrs = {
@@ -21,14 +21,14 @@ export type NavButtonAttrs = {
 	icon?: lazyIcon
 	href: string | lazy<string>
 	isSelectedPrefix?: string | boolean
-	click?: (event: Event, dom: HTMLElement) => unknown,
+	click?: (event: Event, dom: HTMLElement) => unknown
 	colors?: NavButtonColor
 	dropHandler?: dropHandler
 	hideLabel?: boolean
 	vertical?: boolean
 	fontSize?: number
 	small?: boolean
-	centred?: boolean,
+	centred?: boolean
 	leftInjection?: () => Children
 }
 
@@ -55,12 +55,12 @@ export class NavButton implements Component<NavButtonAttrs> {
 			a.leftInjection?.() ?? null,
 			a.icon && a.icon()
 				? m(Icon, {
-					icon: a.icon(),
-					class: this._getIconClass(a),
-					style: {
-						fill: isNavButtonSelected(vnode.attrs) || this._draggedOver ? getColors(a.colors).button_selected : getColors(a.colors).button,
-					},
-				})
+						icon: a.icon(),
+						class: this._getIconClass(a),
+						style: {
+							fill: isNavButtonSelected(vnode.attrs) || this._draggedOver ? getColors(a.colors).button_selected : getColors(a.colors).button,
+						},
+				  })
 				: null,
 			!a.hideLabel ? m("span.label.click.text-ellipsis.b" + (a.vertical ? "" : ".pl-m"), this.getLabel(a.label)) : null,
 		]
@@ -114,7 +114,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 				this._domButton = vnode.dom as HTMLElement
 				addFlash(vnode.dom)
 			},
-			onremove: vnode => {
+			onremove: (vnode) => {
 				removeFlash(vnode.dom)
 			},
 			selector: navButtonSelector(a.vertical),

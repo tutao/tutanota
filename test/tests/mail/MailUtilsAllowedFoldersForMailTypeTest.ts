@@ -1,14 +1,14 @@
 import o from "ospec"
-import {createMail, createMailFolder, Mail, MailFolder} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {MailFolderType, MailState} from "../../../src/api/common/TutanotaConstants.js"
-import {allMailsAllowedInsideFolder, emptyOrContainsDraftsAndNonDrafts, mailStateAllowedInsideFolderType} from "../../../src/mail/model/MailUtils.js"
+import { createMail, createMailFolder, Mail, MailFolder } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { MailFolderType, MailState } from "../../../src/api/common/TutanotaConstants.js"
+import { allMailsAllowedInsideFolder, emptyOrContainsDraftsAndNonDrafts, mailStateAllowedInsideFolderType } from "../../../src/mail/model/MailUtils.js"
 
 function createMailOfState(mailState: MailState): Mail {
-	return createMail({state: mailState})
+	return createMail({ state: mailState })
 }
 
 function createMailFolderOfType(folderType: MailFolderType): MailFolder {
-	return createMailFolder({folderType: folderType})
+	return createMailFolder({ folderType: folderType })
 }
 
 o.spec("MailUtilsAllowedFoldersForMailTypeTest", function () {

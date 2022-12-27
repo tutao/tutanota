@@ -1,12 +1,12 @@
 import o from "ospec"
-import n, {Mocked} from "../../nodemocker.js"
-import {DesktopDownloadManager} from "../../../../src/desktop/net/DesktopDownloadManager.js"
-import {assertThrows} from "@tutao/tutanota-test-utils"
-import {DesktopNetworkClient} from "../../../../src/desktop/net/DesktopNetworkClient.js"
-import {PreconditionFailedError, TooManyRequestsError} from "../../../../src/api/common/error/RestError.js"
+import n, { Mocked } from "../../nodemocker.js"
+import { DesktopDownloadManager } from "../../../../src/desktop/net/DesktopDownloadManager.js"
+import { assertThrows } from "@tutao/tutanota-test-utils"
+import { DesktopNetworkClient } from "../../../../src/desktop/net/DesktopNetworkClient.js"
+import { PreconditionFailedError, TooManyRequestsError } from "../../../../src/api/common/error/RestError.js"
 import type * as fs from "fs"
-import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import {createDataFile} from "../../../../src/api/common/DataFile.js"
+import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { createDataFile } from "../../../../src/api/common/DataFile.js"
 
 const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
 
@@ -33,8 +33,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 						throw new Error(`unexpected getVar key ${key}`)
 				}
 			},
-			setVar: (key: string, val: any) => {
-			},
+			setVar: (key: string, val: any) => {},
 			getConst: (key: string) => {
 				switch (key) {
 					case "fileManagerTimeout":
@@ -57,7 +56,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 					}),
 			},
 			shell: {
-				openPath: path => Promise.resolve(path !== "invalid" ? "" : "invalid path"),
+				openPath: (path) => Promise.resolve(path !== "invalid" ? "" : "invalid path"),
 			},
 			app: {
 				getPath: () => "/some/path/",
@@ -69,8 +68,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 				this.callbacks = {}
 				return this
 			},
-			setSpellCheckerDictionaryDownloadURL: () => {
-			},
+			setSpellCheckerDictionaryDownloadURL: () => {},
 			on: function (ev, cb) {
 				this.callbacks[ev] = cb
 				return this
@@ -93,8 +91,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 						this.callbacks[ev] = cb
 						return this
 					},
-					setEncoding: function (enc) {
-					},
+					setEncoding: function (enc) {},
 					destroy: function (e) {
 						this.callbacks["error"](e)
 					},
@@ -126,8 +123,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 					this.callbacks["close"]()
 				},
 				removeAllListeners: function (ev) {
-					this.callbacks[ev] = () => {
-					}
+					this.callbacks[ev] = () => {}
 
 					return this
 				},
@@ -151,8 +147,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 					this.callbacks["close"]()
 				},
 				removeAllListeners: function (ev) {
-					this.callbacks[ev] = () => {
-					}
+					this.callbacks[ev] = () => {}
 
 					return this
 				},
@@ -161,20 +156,17 @@ o.spec("DesktopDownloadManagerTest", function () {
 				},
 				pipe: function () {
 					this.callbacks["end"]()
-				}
+				},
 			},
 			statics: {},
 		})
 		fs = {
-			closeSync: () => {
-			},
-			openSync: () => {
-			},
+			closeSync: () => {},
+			openSync: () => {},
 			createWriteStream: () => new WriteStream(),
 			createReadStream: () => new ReadStream(),
-			existsSync: path => path === DEFAULT_DOWNLOAD_PATH,
-			mkdirSync: () => {
-			},
+			existsSync: (path) => path === DEFAULT_DOWNLOAD_PATH,
+			mkdirSync: () => {},
 
 			promises: {
 				unlink: () => Promise.resolve(),
@@ -183,17 +175,16 @@ o.spec("DesktopDownloadManagerTest", function () {
 				copyFile: () => Promise.resolve(),
 				readdir: () => Promise.resolve([]),
 				stat: () => {
-					return {size: 33}
+					return { size: 33 }
 				},
-				readFile: (fileName) => Promise.resolve(stringToUtf8Uint8Array(fileName))
+				readFile: (fileName) => Promise.resolve(stringToUtf8Uint8Array(fileName)),
 			},
 		}
 		const lang = {
-			get: key => key,
+			get: (key) => key,
 		}
 		const desktopUtils = {
-			touch: path => {
-			},
+			touch: (path) => {},
 			getTutanotaTempPath: (...subdirs) => "/tutanota/tmp/path/" + subdirs.join("/"),
 		}
 		dateProvider = {
@@ -210,7 +201,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		}
 	}
 
-	function makeMockedDownloadManager({electronMock, desktopUtilsMock, confMock, netMock, fsMock, dateProviderMock}) {
+	function makeMockedDownloadManager({ electronMock, desktopUtilsMock, confMock, netMock, fsMock, dateProviderMock }) {
 		return new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, dateProviderMock, fsMock, electronMock)
 	}
 
@@ -310,11 +301,11 @@ o.spec("DesktopDownloadManagerTest", function () {
 						accessToken: "bar",
 					},
 					timeout: 20000,
-				}
+				},
 			])
 
 			o(mocks.fsMock.createWriteStream.callCount).equals(1)
-			o(mocks.fsMock.createWriteStream.args).deepEquals([expectedFilePath, {emitClose: true}])
+			o(mocks.fsMock.createWriteStream.args).deepEquals([expectedFilePath, { emitClose: true }])
 
 			o(response.pipe.callCount).equals(1)
 			o(response.pipe.args[0]).deepEquals(ws)
@@ -433,19 +424,18 @@ o.spec("DesktopDownloadManagerTest", function () {
 				return this
 			}
 
-			const returnedError = await assertThrows(Error, () => dl.downloadNative("some://url/file", "nativelyDownloadedFile", {
+			const returnedError = await assertThrows(Error, () =>
+				dl.downloadNative("some://url/file", "nativelyDownloadedFile", {
 					v: "foo",
 					accessToken: "bar",
-				})
+				}),
 			)
 			o(returnedError).equals(error)
 
 			o(mocks.fsMock.createWriteStream.callCount).equals(1)("createStream calls")
 			const ws = WriteStream.mockedInstances[0]
 			o(ws.close.callCount).equals(1)("stream is closed")
-			o(mocks.fsMock.promises.unlink.calls.map(c => c.args)).deepEquals([
-				["/tutanota/tmp/path/encrypted/nativelyDownloadedFile"]
-			])("unlink")
+			o(mocks.fsMock.promises.unlink.calls.map((c) => c.args)).deepEquals([["/tutanota/tmp/path/encrypted/nativelyDownloadedFile"]])("unlink")
 		})
 	})
 
@@ -455,8 +445,8 @@ o.spec("DesktopDownloadManagerTest", function () {
 		let mocks
 		let dl
 
-		function mockResponse(statusCode: number, resOpts: {responseBody?: Uint8Array, responseHeaders?: Record<string, string>}) {
-			const {responseBody, responseHeaders} = resOpts
+		function mockResponse(statusCode: number, resOpts: { responseBody?: Uint8Array; responseHeaders?: Record<string, string> }) {
+			const { responseBody, responseHeaders } = resOpts
 			const response = new mocks.netMock.Response(statusCode)
 			response.headers = responseHeaders ?? {}
 			response.on = (eventName, cb) => {
@@ -484,10 +474,10 @@ o.spec("DesktopDownloadManagerTest", function () {
 
 		o("when there's no error it uploads correct data and returns the right result", async function () {
 			const body = stringToUtf8Uint8Array("BODY")
-			const response = mockResponse(200, {responseBody: body})
+			const response = mockResponse(200, { responseBody: body })
 			mocks.netMock.executeRequest = o.spy(() => response)
 			const headers = {
-				"blobAccessToken": "1236",
+				blobAccessToken: "1236",
 			}
 			const fileStreamMock = {}
 			mocks.fsMock.createReadStream = (path) => {
@@ -500,8 +490,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 
 			const uploadResult = await dl.upload(fileToUploadPath, targetUrl, "POST", headers)
 
-
-			o(mocks.netMock.executeRequest.args).deepEquals([targetUrl, {method: "POST", headers, timeout: 20000}, fileStreamMock])
+			o(mocks.netMock.executeRequest.args).deepEquals([targetUrl, { method: "POST", headers, timeout: 20000 }, fileStreamMock])
 
 			o(uploadResult.statusCode).equals(200)
 			o(uploadResult.errorId).equals(null)
@@ -513,10 +502,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 
 		o("when 404 is returned it returns correct result", async function () {
 			const errorId = "123"
-			const response = mockResponse(
-				404,
-				{responseHeaders: {"error-id": errorId}}
-			)
+			const response = mockResponse(404, { responseHeaders: { "error-id": errorId } })
 			mocks.netMock.executeRequest = o.spy(() => response)
 
 			const uploadResult = await dl.upload(fileToUploadPath, targetUrl, "POST", {})
@@ -531,15 +517,12 @@ o.spec("DesktopDownloadManagerTest", function () {
 		o("when retry-after is returned, it is propagated", async function () {
 			const retryAFter = "20"
 			const errorId = "123"
-			const response = mockResponse(
-				TooManyRequestsError.CODE,
-				{
-					responseHeaders: {
-						"error-id": errorId,
-						"retry-after": retryAFter,
-					}
-				}
-			)
+			const response = mockResponse(TooManyRequestsError.CODE, {
+				responseHeaders: {
+					"error-id": errorId,
+					"retry-after": retryAFter,
+				},
+			})
 			mocks.netMock.executeRequest = o.spy(() => response)
 
 			const uploadResult = await dl.upload(fileToUploadPath, targetUrl, "POST", {})
@@ -554,15 +537,12 @@ o.spec("DesktopDownloadManagerTest", function () {
 		o("when suspension-time is returned, it is propagated", async function () {
 			const retryAFter = "20"
 			const errorId = "123"
-			const response = mockResponse(
-				TooManyRequestsError.CODE,
-				{
-					responseHeaders: {
-						"error-id": errorId,
-						"suspension-time": retryAFter,
-					}
-				}
-			)
+			const response = mockResponse(TooManyRequestsError.CODE, {
+				responseHeaders: {
+					"error-id": errorId,
+					"suspension-time": retryAFter,
+				},
+			})
 			mocks.netMock.executeRequest = o.spy(() => response)
 
 			const uploadResult = await dl.upload(fileToUploadPath, targetUrl, "POST", {})
@@ -578,15 +558,12 @@ o.spec("DesktopDownloadManagerTest", function () {
 			const precondition = "a.2"
 			const retryAFter = "20"
 			const errorId = "123"
-			const response = mockResponse(
-				PreconditionFailedError.CODE,
-				{
-					responseHeaders: {
-						"error-id": errorId,
-						"precondition": precondition,
-					}
-				}
-			)
+			const response = mockResponse(PreconditionFailedError.CODE, {
+				responseHeaders: {
+					"error-id": errorId,
+					precondition: precondition,
+				},
+			})
 			mocks.netMock.executeRequest = o.spy(() => response)
 
 			const uploadResult = await dl.upload(fileToUploadPath, targetUrl, "POST", {})
@@ -641,7 +618,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 			o(mocks.fsMock.createReadStream.callCount).equals(1)("createStream calls")
 			const rs = ReadStream.mockedInstances[0]
 			o(rs.pipe.callCount).equals(1)("stream was piped")
-			o(rs.pipe.args).deepEquals([ws, {end: false}])
+			o(rs.pipe.args).deepEquals([ws, { end: false }])
 			o(ws.end.callCount).equals(1)
 
 			o(joinedFile).equals("/tutanota/tmp/path/download/fileName.pdf")

@@ -18,11 +18,11 @@ type SearchMatch<T> = {
  * @returns a list of entries, sorted by priority, that match the query string
  */
 export function search<T>(queryString: string, entries: ReadonlyArray<T>, attributeNames: string[], markHits: boolean = false): ReadonlyArray<T> {
-	entries = entries.map(e => Object.assign({}, e)) // create a copy in order to not override the original values
+	entries = entries.map((e) => Object.assign({}, e)) // create a copy in order to not override the original values
 
 	if (queryString) {
 		return _search<T>(queryString, entries, attributeNames, markHits)
-			.filter(match => match.matchedWords.length > 0) // a and be are two matches that refer to entries (e.g. faqs)
+			.filter((match) => match.matchedWords.length > 0) // a and be are two matches that refer to entries (e.g. faqs)
 			.sort((a, b) => {
 				if (a.completeMatch !== b.completeMatch) {
 					return b.completeMatch - a.completeMatch
@@ -38,7 +38,7 @@ export function search<T>(queryString: string, entries: ReadonlyArray<T>, attrib
 					return 0
 				}
 			})
-			.map(match => match.entry)
+			.map((match) => match.entry)
 	} else {
 		return entries
 	}
@@ -64,10 +64,10 @@ function _findMatchInEntry<T>(
 	const completeRegExp = new RegExp(escapeRegExp(queryString), "gi")
 	searchMatch.completeMatch += _findMatches(splittedValue, completeRegExp, false).hits
 	// create regualar expression to match whole words, case insensitive
-	const fullWordRegExp = new RegExp(queryWords.map(queryWord => "\\b" + escapeRegExp(queryWord) + "\\b").join("|"), "gi")
+	const fullWordRegExp = new RegExp(queryWords.map((queryWord) => "\\b" + escapeRegExp(queryWord) + "\\b").join("|"), "gi")
 	searchMatch.fullWordMatches += _findMatches(splittedValue, fullWordRegExp, false).hits
 	// regular expression for finding all matches (including partial matches)
-	let regExp = new RegExp(queryWords.map(queryWord => escapeRegExp(queryWord)).join("|"), "gi")
+	let regExp = new RegExp(queryWords.map((queryWord) => escapeRegExp(queryWord)).join("|"), "gi")
 
 	let findResult = _findMatches(splittedValue, regExp, markHits)
 
@@ -75,7 +75,7 @@ function _findMatchInEntry<T>(
 		nestedEntry[attributeName] = splittedValue.join("")
 	}
 
-	findResult.matchedQueryWords.forEach(queryWord => {
+	findResult.matchedQueryWords.forEach((queryWord) => {
 		if (searchMatch.matchedWords.indexOf(queryWord) === -1) {
 			searchMatch.matchedWords.push(queryWord)
 		}
@@ -91,9 +91,9 @@ export function _search<T>(queryString: string, entries: ReadonlyArray<T>, attri
 	let queryWords = queryString
 		.toLocaleLowerCase()
 		.split(" ")
-		.map(word => word.trim())
-		.filter(word => word.length > 0)
-	return entries.map(entry => {
+		.map((word) => word.trim())
+		.filter((word) => word.length > 0)
+	return entries.map((entry) => {
 		const searchMatch = {
 			entry,
 			completeMatch: 0,
@@ -115,7 +115,7 @@ export function _search<T>(queryString: string, entries: ReadonlyArray<T>, attri
 				const nestedArray: Array<Record<string, any>> = entry[nestedArrayName]
 
 				if (Array.isArray(nestedArray)) {
-					nestedArray.forEach(nestedEntry => {
+					nestedArray.forEach((nestedEntry) => {
 						_findMatchInEntry(nestedEntry, nestedEntryAttributeName, queryString, queryWords, searchMatch, markHits)
 					})
 				}
@@ -138,7 +138,7 @@ export function _findMatches(splittedValue: Array<string>, regExp: RegExp, markH
 				return sum
 			}
 
-			splittedValue[index] = value.replace(regExp, match => {
+			splittedValue[index] = value.replace(regExp, (match) => {
 				sum.hits++
 
 				if (sum.matchedQueryWords.indexOf(match.toLowerCase()) === -1) {

@@ -1,30 +1,29 @@
-import {addParamsToUrl, isSuspensionResponse, RestClient} from "../rest/RestClient"
-import {CryptoFacade, encryptBytes} from "../crypto/CryptoFacade"
-import type {File as TutanotaFile} from "../../entities/tutanota/TypeRefs.js"
-import {createFileDataDataGet, createFileDataDataPost, FileDataDataGetTypeRef, FileTypeRef} from "../../entities/tutanota/TypeRefs.js"
-import {assert, assertNotNull, filterInt, neverNull} from "@tutao/tutanota-utils"
-import {GroupType} from "../../common/TutanotaConstants"
+import { addParamsToUrl, isSuspensionResponse, RestClient } from "../rest/RestClient"
+import { CryptoFacade, encryptBytes } from "../crypto/CryptoFacade"
+import type { File as TutanotaFile } from "../../entities/tutanota/TypeRefs.js"
+import { createFileDataDataGet, createFileDataDataPost, FileDataDataGetTypeRef, FileTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { assert, assertNotNull, filterInt, neverNull } from "@tutao/tutanota-utils"
+import { GroupType } from "../../common/TutanotaConstants"
 
-import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
-import {assertWorkerOrNode, getApiOrigin, Mode} from "../../common/Env"
-import {handleRestError} from "../../common/error/RestError"
-import {convertToDataFile, DataFile} from "../../common/DataFile"
-import type {SuspensionHandler} from "../SuspensionHandler"
-import {aes128Decrypt, random} from "@tutao/tutanota-crypto"
-import type {NativeFileApp} from "../../../native/common/FileApp"
-import type {AesApp} from "../../../native/worker/AesApp"
-import {InstanceMapper} from "../crypto/InstanceMapper"
-import {FileReference} from "../../common/utils/FileUtils";
-import {IServiceExecutor} from "../../common/ServiceRequest"
-import {FileDataService} from "../../entities/tutanota/Services"
+import { HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
+import { assertWorkerOrNode, getApiOrigin, Mode } from "../../common/Env"
+import { handleRestError } from "../../common/error/RestError"
+import { convertToDataFile, DataFile } from "../../common/DataFile"
+import type { SuspensionHandler } from "../SuspensionHandler"
+import { aes128Decrypt, random } from "@tutao/tutanota-crypto"
+import type { NativeFileApp } from "../../../native/common/FileApp"
+import type { AesApp } from "../../../native/worker/AesApp"
+import { InstanceMapper } from "../crypto/InstanceMapper"
+import { FileReference } from "../../common/utils/FileUtils"
+import { IServiceExecutor } from "../../common/ServiceRequest"
+import { FileDataService } from "../../entities/tutanota/Services"
 import modelInfo from "../../entities/tutanota/ModelInfo"
-import {UserFacade} from "./UserFacade"
+import { UserFacade } from "./UserFacade"
 
 assertWorkerOrNode()
 const REST_PATH = "/rest/tutanota/filedataservice"
 
 export class FileFacade {
-
 	constructor(
 		private readonly user: UserFacade,
 		private readonly restClient: RestClient,
@@ -50,7 +49,7 @@ export class FileFacade {
 
 		headers["v"] = String(modelInfo.version)
 		let body = JSON.stringify(entityToSend)
-		const data = await this.restClient.request(REST_PATH, HttpMethod.GET, {body, responseType: MediaType.Binary, headers})
+		const data = await this.restClient.request(REST_PATH, HttpMethod.GET, { body, responseType: MediaType.Binary, headers })
 		return convertToDataFile(file, aes128Decrypt(neverNull(sessionKey), data))
 	}
 
@@ -79,13 +78,7 @@ export class FileFacade {
 			_body: body,
 		}
 		const url = addParamsToUrl(new URL(getApiOrigin() + REST_PATH), queryParams)
-		const {
-			statusCode,
-			encryptedFileUri,
-			errorId,
-			precondition,
-			suspensionTime
-		} = await this.fileApp.download(url.toString(), file.name, headers)
+		const { statusCode, encryptedFileUri, errorId, precondition, suspensionTime } = await this.fileApp.download(url.toString(), file.name, headers)
 
 		if (suspensionTime && isSuspensionResponse(statusCode, suspensionTime)) {
 			this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
@@ -116,27 +109,22 @@ export class FileFacade {
 		const encryptedData = encryptBytes(sessionKey, dataFile.data)
 		const fileData = createFileDataDataPost({
 			size: dataFile.data.byteLength.toString(),
-			group: this.user.getGroupId(GroupType.Mail)  // currently only used for attachments
+			group: this.user.getGroupId(GroupType.Mail), // currently only used for attachments
 		})
-		const fileDataPostReturn = await this.serviceExecutor.post(FileDataService, fileData, {sessionKey})
+		const fileDataPostReturn = await this.serviceExecutor.post(FileDataService, fileData, { sessionKey })
 		// upload the file content
 		let fileDataId = fileDataPostReturn.fileData
 
 		const headers = this.user.createAuthHeaders()
 		headers["v"] = String(modelInfo.version)
-		await this.restClient
-				  .request(
-					  REST_PATH,
-					  HttpMethod.PUT,
-					  {
-						  queryParams: {
-							  fileDataId: fileDataId,
-						  },
-						  headers,
-						  body: encryptedData,
-						  responseType: MediaType.Binary,
-					  },
-				  )
+		await this.restClient.request(REST_PATH, HttpMethod.PUT, {
+			queryParams: {
+				fileDataId: fileDataId,
+			},
+			headers,
+			body: encryptedData,
+			responseType: MediaType.Binary,
+		})
 		return fileDataId
 	}
 
@@ -153,7 +141,7 @@ export class FileFacade {
 			size: encryptedFileInfo.unencryptedSize.toString(),
 			group: this.user.getGroupId(GroupType.Mail), // currently only used for attachments
 		})
-		const fileDataPostReturn = await this.serviceExecutor.post(FileDataService, fileData, {sessionKey})
+		const fileDataPostReturn = await this.serviceExecutor.post(FileDataService, fileData, { sessionKey })
 		const fileDataId = fileDataPostReturn.fileData
 
 		const headers = this.user.createAuthHeaders()
@@ -162,12 +150,7 @@ export class FileFacade {
 		const url = addParamsToUrl(new URL(getApiOrigin() + "/rest/tutanota/filedataservice"), {
 			fileDataId,
 		})
-		const {
-			statusCode,
-			errorId,
-			precondition,
-			suspensionTime
-		} = await this.fileApp.upload(encryptedFileInfo.uri, url.toString(), HttpMethod.PUT, headers)
+		const { statusCode, errorId, precondition, suspensionTime } = await this.fileApp.upload(encryptedFileInfo.uri, url.toString(), HttpMethod.PUT, headers)
 
 		if (statusCode === 200) {
 			return fileDataId
@@ -179,5 +162,4 @@ export class FileFacade {
 			throw handleRestError(statusCode, ` | PUT ${url.toString()} failed to natively upload attachment`, errorId, precondition)
 		}
 	}
-
 }

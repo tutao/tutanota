@@ -1,11 +1,11 @@
-import type {CredentialEncryptionMode} from "./CredentialEncryptionMode"
-import type {Base64, Base64Url} from "@tutao/tutanota-utils"
-import {assertNotNull} from "@tutao/tutanota-utils"
-import type {Credentials} from "./Credentials"
-import {DatabaseKeyFactory} from "./DatabaseKeyFactory"
-import {CredentialsKeyMigrator} from "./CredentialsKeyMigrator.js"
-import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import {SqlCipherFacade} from "../../native/common/generatedipc/SqlCipherFacade.js"
+import type { CredentialEncryptionMode } from "./CredentialEncryptionMode"
+import type { Base64, Base64Url } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/tutanota-utils"
+import type { Credentials } from "./Credentials"
+import { DatabaseKeyFactory } from "./DatabaseKeyFactory"
+import { CredentialsKeyMigrator } from "./CredentialsKeyMigrator.js"
+import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 
 /**
  * Type for persistent credentials, that contain the full credentials data.
@@ -101,7 +101,7 @@ export interface CredentialsStorage {
 }
 
 export type CredentialsAndDatabaseKey = {
-	credentials: Credentials,
+	credentials: Credentials
 	databaseKey?: Uint8Array | null
 }
 
@@ -109,7 +109,6 @@ export type CredentialsAndDatabaseKey = {
  * Main entry point to interact with credentials, i.e. storing and retrieving credentials from/to persistence.
  */
 export class CredentialsProvider {
-
 	constructor(
 		private readonly credentialsEncryption: CredentialsEncryption,
 		private readonly storage: CredentialsStorage,
@@ -117,8 +116,7 @@ export class CredentialsProvider {
 		private readonly databaseKeyFactory: DatabaseKeyFactory,
 		private readonly sqliteCipherFacade: SqlCipherFacade | null,
 		private readonly interWindowEventSender: InterWindowEventFacadeSendDispatcher | null,
-	) {
-	}
+	) {}
 
 	/**
 	 * Stores credentials. If credentials already exist for login, they will be overwritten.
@@ -168,8 +166,8 @@ export class CredentialsProvider {
 	 * have a secure external mailbox.
 	 */
 	async getInternalCredentialsInfos(): Promise<ReadonlyArray<CredentialsInfo>> {
-		const allCredentials = this.storage.loadAll().map(persistentCredentials => persistentCredentials.credentialInfo)
-		return allCredentials.filter(credential => {
+		const allCredentials = this.storage.loadAll().map((persistentCredentials) => persistentCredentials.credentialInfo)
+		return allCredentials.filter((credential) => {
 			return credential.type === "internal"
 		})
 	}
@@ -179,7 +177,7 @@ export class CredentialsProvider {
 	 * No-op if credentials are not there.
 	 * @param opts.deleteOfflineDb whether to delete offline database. Will delete by default.
 	 */
-	async deleteByUserId(userId: Id, opts: {deleteOfflineDb: boolean} = {deleteOfflineDb: true}): Promise<void> {
+	async deleteByUserId(userId: Id, opts: { deleteOfflineDb: boolean } = { deleteOfflineDb: true }): Promise<void> {
 		await this.interWindowEventSender?.localUserDataInvalidated(userId)
 		if (opts.deleteOfflineDb) {
 			await this.sqliteCipherFacade?.deleteDb(userId)

@@ -1,32 +1,28 @@
-import {ExportFacade} from "../native/common/generatedipc/ExportFacade.js"
-import {MailBundle} from "../mail/export/Bundler.js"
-import {createDataFile, DataFile} from "../api/common/DataFile.js"
-import {fileExists} from "./PathUtils.js"
+import { ExportFacade } from "../native/common/generatedipc/ExportFacade.js"
+import { MailBundle } from "../mail/export/Bundler.js"
+import { createDataFile, DataFile } from "../api/common/DataFile.js"
+import { fileExists } from "./PathUtils.js"
 import path from "path"
-import {DesktopDownloadManager} from "./net/DesktopDownloadManager.js"
-import {MailExportMode} from "../mail/export/Exporter.js"
-import {DesktopConfigKey} from "./config/ConfigKeys.js"
-import {DesktopConfig} from "./config/DesktopConfig.js"
-import {NativeImage} from "electron"
-import {ApplicationWindow} from "./ApplicationWindow.js"
-import {Attachment, Email, MessageEditorFormat} from "@tutao/oxmsg"
-import {sanitizeFilename} from "../api/common/utils/FileUtils.js"
-import {promises as fs} from "fs"
-import {DesktopUtils} from "./DesktopUtils.js"
-
+import { DesktopDownloadManager } from "./net/DesktopDownloadManager.js"
+import { MailExportMode } from "../mail/export/Exporter.js"
+import { DesktopConfigKey } from "./config/ConfigKeys.js"
+import { DesktopConfig } from "./config/DesktopConfig.js"
+import { NativeImage } from "electron"
+import { ApplicationWindow } from "./ApplicationWindow.js"
+import { Attachment, Email, MessageEditorFormat } from "@tutao/oxmsg"
+import { sanitizeFilename } from "../api/common/utils/FileUtils.js"
+import { promises as fs } from "fs"
+import { DesktopUtils } from "./DesktopUtils.js"
 
 const EXPORT_DIR = "export"
 
 export class DesktopExportFacade implements ExportFacade {
-
 	constructor(
 		private readonly desktopUtils: DesktopUtils,
 		private readonly conf: DesktopConfig,
 		private readonly window: ApplicationWindow,
 		private readonly dragIcons: Record<MailExportMode, NativeImage>,
-	) {
-
-	}
+	) {}
 
 	async checkFileExistsInExportDir(fileName: string): Promise<boolean> {
 		return fileExists(path.join(await this.getExportDirectoryPath(), fileName))
@@ -66,11 +62,11 @@ export class DesktopExportFacade implements ExportFacade {
 
 	async startNativeDrag(fileNames: ReadonlyArray<string>): Promise<void> {
 		const exportDir = await this.getExportDirectoryPath()
-		const files = fileNames.map(fileName => path.join(exportDir, fileName)).filter(fileExists)
+		const files = fileNames.map((fileName) => path.join(exportDir, fileName)).filter(fileExists)
 		const exportMode: MailExportMode = await this.conf.getVar(DesktopConfigKey.mailExportMode)
 		const icon = this.dragIcons[exportMode]
 		this.window._browserWindow.webContents.startDrag({
-			file: '',
+			file: "",
 			files,
 			icon,
 		})
@@ -78,7 +74,7 @@ export class DesktopExportFacade implements ExportFacade {
 
 	private async getExportDirectoryPath(): Promise<string> {
 		const directory = path.join(this.desktopUtils.getTutanotaTempPath(), EXPORT_DIR)
-		await fs.mkdir(directory, {recursive: true})
+		await fs.mkdir(directory, { recursive: true })
 		return directory
 	}
 }

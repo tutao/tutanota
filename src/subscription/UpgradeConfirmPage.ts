@@ -1,24 +1,24 @@
-import m, {Children, Vnode, VnodeDOM} from "mithril"
-import {Dialog} from "../gui/base/Dialog"
-import {lang} from "../misc/LanguageViewModel"
-import {formatPriceWithInfo, getPaymentMethodName, PaymentInterval} from "./PriceUtils"
-import {VisSignupImage} from "../gui/base/icons/Icons"
-import {createSwitchAccountTypeData} from "../api/entities/sys/TypeRefs.js"
-import {AccountType, Const, PaidSubscriptionType, PaymentMethodTypeToName} from "../api/common/TutanotaConstants"
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
-import {BadGatewayError, PreconditionFailedError} from "../api/common/error/RestError"
-import {logins} from "../api/main/LoginController"
-import {getPreconditionFailedPaymentMsg, UpgradeType} from "./SubscriptionUtils"
-import {Button, ButtonType} from "../gui/base/Button.js"
-import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialog.js"
-import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialog.js"
-import {TextField} from "../gui/base/TextField.js"
-import {ofClass} from "@tutao/tutanota-utils"
-import {locator} from "../api/main/MainLocator"
-import {SwitchAccountTypeService} from "../api/entities/sys/Services"
-import {UsageTest} from "@tutao/tutanota-usagetests"
-import {getDisplayNameOfSubscriptionType, SelectedSubscriptionOptions, SubscriptionType} from "./FeatureListProvider"
+import m, { Children, Vnode, VnodeDOM } from "mithril"
+import { Dialog } from "../gui/base/Dialog"
+import { lang } from "../misc/LanguageViewModel"
+import { formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./PriceUtils"
+import { VisSignupImage } from "../gui/base/icons/Icons"
+import { createSwitchAccountTypeData } from "../api/entities/sys/TypeRefs.js"
+import { AccountType, Const, PaidSubscriptionType, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
+import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
+import { logins } from "../api/main/LoginController"
+import { getPreconditionFailedPaymentMsg, UpgradeType } from "./SubscriptionUtils"
+import { Button, ButtonType } from "../gui/base/Button.js"
+import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
+import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
+import { TextField } from "../gui/base/TextField.js"
+import { ofClass } from "@tutao/tutanota-utils"
+import { locator } from "../api/main/MainLocator"
+import { SwitchAccountTypeService } from "../api/entities/sys/Services"
+import { UsageTest } from "@tutao/tutanota-usagetests"
+import { getDisplayNameOfSubscriptionType, SelectedSubscriptionOptions, SubscriptionType } from "./FeatureListProvider"
 
 export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -32,19 +32,15 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 		this.dom = vnode.dom as HTMLElement
 	}
 
-	view({attrs}: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
-		return [
-			attrs.data.type === SubscriptionType.Free
-				? this.renderFree(attrs)
-				: this.renderPaid(attrs),
-		]
+	view({ attrs }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
+		return [attrs.data.type === SubscriptionType.Free ? this.renderFree(attrs) : this.renderPaid(attrs)]
 	}
 
 	private upgrade(data: UpgradeSubscriptionData) {
 		const serviceData = createSwitchAccountTypeData({
 			accountType: AccountType.PREMIUM,
 			subscriptionType: this.subscriptionTypeToPaidSubscriptionType(data.type),
-			date: Const.CURRENT_DATE
+			date: Const.CURRENT_DATE,
 		})
 		showProgressDialog(
 			"pleaseWait_msg",
@@ -67,7 +63,8 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 
 				return this.close(data, this.dom)
 			})
-			.catch(ofClass(PreconditionFailedError, e => {
+			.catch(
+				ofClass(PreconditionFailedError, (e) => {
 					Dialog.message(
 						() =>
 							lang.get(getPreconditionFailedPaymentMsg(e.data)) +
@@ -75,7 +72,8 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 					)
 				}),
 			)
-			.catch(ofClass(BadGatewayError, e => {
+			.catch(
+				ofClass(BadGatewayError, (e) => {
 					Dialog.message(
 						() =>
 							lang.get("paymentProviderNotAvailableError_msg") +
@@ -87,7 +85,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 
 	private renderPaid(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {
 		const isYearly = attrs.data.options.paymentInterval() === PaymentInterval.Yearly
-		const subscription = (isYearly ? lang.get("pricing.yearly_label") : lang.get("pricing.monthly_label"))
+		const subscription = isYearly ? lang.get("pricing.yearly_label") : lang.get("pricing.monthly_label")
 
 		return [
 			m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
@@ -115,7 +113,8 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 						disabled: true,
 					}),
 				]),
-				m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
+				m(
+					".flex-grow-shrink-half.plr-l.flex-center.items-end",
 					m("img.pt.bg-white.border-radius", {
 						src: VisSignupImage,
 						style: {
@@ -124,13 +123,17 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 					}),
 				),
 			]),
-			m(".smaller.center.pt-l",
+			m(
+				".smaller.center.pt-l",
 				attrs.data.options.businessUse()
 					? lang.get("pricing.subscriptionPeriodInfoBusiness_msg")
-					: lang.get("pricing.subscriptionPeriodInfoPrivate_msg")
+					: lang.get("pricing.subscriptionPeriodInfoPrivate_msg"),
 			),
-			m(".flex-center.full-width.pt-l",
-				m("", {
+			m(
+				".flex-center.full-width.pt-l",
+				m(
+					"",
+					{
 						style: {
 							width: "260px",
 						},
@@ -148,10 +151,10 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 	private renderPriceNextYear(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {
 		return attrs.data.priceNextYear
 			? m(TextField, {
-				label: "priceForNextYear_label",
-				value: buildPriceString(attrs.data.priceNextYear, attrs.data.options),
-				disabled: true,
-			})
+					label: "priceForNextYear_label",
+					value: buildPriceString(attrs.data.priceNextYear, attrs.data.options),
+					disabled: true,
+			  })
 			: null
 	}
 
@@ -159,7 +162,8 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 		return [
 			m(".center.h4.pt", lang.get("accountCreationCongratulation_msg")),
 			m(".flex-space-around.flex-wrap", [
-				m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
+				m(
+					".flex-grow-shrink-half.plr-l.flex-center.items-end",
 					m("img.pt.bg-white.border-radius", {
 						src: VisSignupImage,
 						style: {
@@ -168,8 +172,11 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 					}),
 				),
 			]),
-			m(".flex-center.full-width.pt-l",
-				m("", {
+			m(
+				".flex-center.full-width.pt-l",
+				m(
+					"",
+					{
 						style: {
 							width: "260px",
 						},

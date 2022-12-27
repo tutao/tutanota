@@ -1,6 +1,5 @@
 /* generated file, don't edit. */
 
-
 /**
  * Result of Webauthn authentication with hardware key.
  */

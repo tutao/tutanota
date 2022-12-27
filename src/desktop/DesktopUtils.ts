@@ -1,26 +1,22 @@
 import path from "path"
-import {spawn} from "child_process"
-import type {Rectangle} from "electron"
-import {NativeImage} from "electron"
-import {base64ToBase64Url, defer, delay, noOp, uint8ArrayToBase64, uint8ArrayToHex} from "@tutao/tutanota-utils"
-import {log} from "./DesktopLog"
-import {fileExists, swapFilename} from "./PathUtils"
-import {makeRegisterKeysScript, makeUnregisterKeysScript, RegistryRoot} from "./reg-templater"
-import type {ElectronExports, FsExports} from "./ElectronExportTypes";
-import {ProgrammingError} from "../api/common/error/ProgrammingError"
-import {CryptoFunctions} from "./CryptoFns"
-import {getResourcePath} from "./resources.js"
+import { spawn } from "child_process"
+import type { Rectangle } from "electron"
+import { NativeImage } from "electron"
+import { base64ToBase64Url, defer, delay, noOp, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { log } from "./DesktopLog"
+import { fileExists, swapFilename } from "./PathUtils"
+import { makeRegisterKeysScript, makeUnregisterKeysScript, RegistryRoot } from "./reg-templater"
+import type { ElectronExports, FsExports } from "./ElectronExportTypes"
+import { ProgrammingError } from "../api/common/error/ProgrammingError"
+import { CryptoFunctions } from "./CryptoFns"
+import { getResourcePath } from "./resources.js"
 
 export class DesktopUtils {
 	private readonly topLevelTempDir = "tutanota"
 	/** we store all temporary files in a directory with a random name, so that the download location is not predictable */
 	private readonly randomDirectoryName: string
 
-	constructor(
-		private readonly fs: FsExports,
-		private readonly electron: ElectronExports,
-		private readonly cryptoFunctions: CryptoFunctions,
-	) {
+	constructor(private readonly fs: FsExports, private readonly electron: ElectronExports, private readonly cryptoFunctions: CryptoFunctions) {
 		this.randomDirectoryName = base64ToBase64Url(uint8ArrayToBase64(cryptoFunctions.randomBytes(16)))
 	}
 
@@ -87,11 +83,11 @@ export class DesktopUtils {
 	singleInstanceLockOverridden(): Promise<boolean> {
 		const lockfilePath = this.getLockFilePath()
 		return this.fs.promises
-				   .readFile(lockfilePath, "utf8")
-				   .then(version => {
-					   return this.fs.promises.writeFile(lockfilePath, this.electron.app.getVersion(), "utf8").then(() => version !== this.electron.app.getVersion())
-				   })
-				   .catch(() => false)
+			.readFile(lockfilePath, "utf8")
+			.then((version) => {
+				return this.fs.promises.writeFile(lockfilePath, this.electron.app.getVersion(), "utf8").then(() => version !== this.electron.app.getVersion())
+			})
+			.catch(() => false)
 	}
 
 	/**
@@ -111,27 +107,27 @@ export class DesktopUtils {
 		// will overwrite if it already exists.
 		// errors are ignored and we fall back to a version agnostic single instance lock.
 		return this.fs.promises
-				   .writeFile(lockfilePath, this.electron.app.getVersion(), "utf8")
-				   .catch(noOp)
-				   .then(() => {
-					   // try to get the lock, if there's already an instance running,
-					   // give the other instance time to see if it wants to release the lock.
-					   // if it changes the version back, it was a different version and
-					   // will terminate itself.
-					   return this.electron.app.requestSingleInstanceLock()
-						   ? Promise.resolve(true)
-						   : delay(1500)
-							   .then(() => this.singleInstanceLockOverridden())
-							   .then(canStay => {
-								   if (canStay) {
-									   this.electron.app.requestSingleInstanceLock()
-								   } else {
-									   this.electron.app.quit()
-								   }
+			.writeFile(lockfilePath, this.electron.app.getVersion(), "utf8")
+			.catch(noOp)
+			.then(() => {
+				// try to get the lock, if there's already an instance running,
+				// give the other instance time to see if it wants to release the lock.
+				// if it changes the version back, it was a different version and
+				// will terminate itself.
+				return this.electron.app.requestSingleInstanceLock()
+					? Promise.resolve(true)
+					: delay(1500)
+							.then(() => this.singleInstanceLockOverridden())
+							.then((canStay) => {
+								if (canStay) {
+									this.electron.app.requestSingleInstanceLock()
+								} else {
+									this.electron.app.quit()
+								}
 
-								   return canStay
-							   })
-				   })
+								return canStay
+							})
+			})
 	}
 
 	/**
@@ -167,7 +163,7 @@ export class DesktopUtils {
 	private async _writeToDisk(contents: string): Promise<string> {
 		const filename = uint8ArrayToHex(this.cryptoFunctions.randomBytes(12))
 		const tmpPath = path.join(this.getTutanotaTempPath(), "reg")
-		await this.fs.promises.mkdir(tmpPath, {recursive: true})
+		await this.fs.promises.mkdir(tmpPath, { recursive: true })
 		const filePath = path.join(tmpPath, filename)
 
 		await this.fs.promises.writeFile(filePath, contents, {
@@ -195,7 +191,7 @@ export class DesktopUtils {
 		const appData = path.join("%USERPROFILE%", "AppData")
 		const logPath = path.join(appData, "Roaming", this.electron.app.getName(), "logs")
 		const tmpPath = path.join(appData, "Local", "Temp", this.topLevelTempDir, "attach")
-		const tmpRegScript = makeRegisterKeysScript(RegistryRoot.CURRENT_USER, {execPath, dllPath, logPath, tmpPath})
+		const tmpRegScript = makeRegisterKeysScript(RegistryRoot.CURRENT_USER, { execPath, dllPath, logPath, tmpPath })
 		await this._executeRegistryScript(tmpRegScript)
 		this.electron.app.setAsDefaultProtocolClient("mailto")
 		await this._openDefaultAppsSettings()
@@ -205,7 +201,7 @@ export class DesktopUtils {
 		if (process.platform !== "win32") {
 			throw new ProgrammingError("Not win32")
 		}
-		this.electron.app.removeAsDefaultProtocolClient('mailto')
+		this.electron.app.removeAsDefaultProtocolClient("mailto")
 		const tmpRegScript = makeUnregisterKeysScript(RegistryRoot.CURRENT_USER)
 		await this._executeRegistryScript(tmpRegScript)
 		await this._openDefaultAppsSettings()
@@ -238,7 +234,7 @@ export class DesktopUtils {
 		const directory = path.join(this.electron.app.getPath("temp"), this.topLevelTempDir, this.randomDirectoryName)
 
 		// only readable by owner (current user)
-		this.fs.mkdirSync(directory, {recursive: true, mode: 0o700})
+		this.fs.mkdirSync(directory, { recursive: true, mode: 0o700 })
 
 		return path.join(directory)
 	}
@@ -250,7 +246,7 @@ export class DesktopUtils {
 			for (const tmp of tmps) {
 				const tmpSubPath = path.join(topLvlTmpDir, tmp)
 				try {
-					this.fs.rmSync(tmpSubPath, {recursive: true})
+					this.fs.rmSync(tmpSubPath, { recursive: true })
 				} catch (e) {
 					// ignore if the file was deleted between readdir and delete
 					// or if it's not our tmp dir
@@ -273,7 +269,6 @@ export class DesktopUtils {
 		const iconPath = getResourcePath(`icons/${iconName}`)
 		return this.electron.nativeImage.createFromPath(iconPath)
 	}
-
 }
 
 export function isRectContainedInRect(closestRect: Rectangle, lastBounds: Rectangle): boolean {

@@ -1,34 +1,34 @@
-import m, {Children, Component} from "mithril"
-import type {ModalComponent} from "./Modal"
-import {modal} from "./Modal"
-import {alpha, AlphaEnum, AnimationPromise, animations, DefaultAnimationTime, opacity, transform, TransformEnum} from "../animation/Animations"
-import {ease} from "../animation/Easing"
-import type {TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import type {KeyPress, Shortcut} from "../../misc/KeyManager"
-import {focusNext, focusPrevious, isKeyPressed, keyManager} from "../../misc/KeyManager"
-import {getElevatedBackground} from "../theme"
-import {px, size} from "../size"
-import {HabReminderImage} from "./icons/Icons"
-import {windowFacade} from "../../misc/WindowFacade"
-import type {ButtonAttrs} from "./Button.js"
-import {Button, ButtonType} from "./Button.js"
-import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
-import {DialogHeaderBar} from "./DialogHeaderBar"
-import {Autocomplete, TextField, TextFieldType} from "./TextField.js"
-import type {DropDownSelectorAttrs, SelectorItemList} from "./DropDownSelector.js"
-import {DropDownSelector} from "./DropDownSelector.js"
-import {Keys} from "../../api/common/TutanotaConstants"
-import {dialogAttrs} from "../AriaUtils"
-import {styles} from "../styles"
-import type {lazy, MaybeLazy, Thunk} from "@tutao/tutanota-utils"
-import {$Promisable, assertNotNull, getAsLazy, identity, mapLazily, noOp} from "@tutao/tutanota-utils"
-import type {DialogInjectionRightAttrs} from "./DialogInjectionRight"
-import {DialogInjectionRight} from "./DialogInjectionRight"
-import {assertMainOrNode} from "../../api/common/Env"
-import {Icon} from "./Icon"
-import {BootIcons} from "./icons/BootIcons"
-import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
+import m, { Children, Component } from "mithril"
+import type { ModalComponent } from "./Modal"
+import { modal } from "./Modal"
+import { alpha, AlphaEnum, AnimationPromise, animations, DefaultAnimationTime, opacity, transform, TransformEnum } from "../animation/Animations"
+import { ease } from "../animation/Easing"
+import type { TranslationKey, TranslationText } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import type { KeyPress, Shortcut } from "../../misc/KeyManager"
+import { focusNext, focusPrevious, isKeyPressed, keyManager } from "../../misc/KeyManager"
+import { getElevatedBackground } from "../theme"
+import { px, size } from "../size"
+import { HabReminderImage } from "./icons/Icons"
+import { windowFacade } from "../../misc/WindowFacade"
+import type { ButtonAttrs } from "./Button.js"
+import { Button, ButtonType } from "./Button.js"
+import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
+import { DialogHeaderBar } from "./DialogHeaderBar"
+import { Autocomplete, TextField, TextFieldType } from "./TextField.js"
+import type { DropDownSelectorAttrs, SelectorItemList } from "./DropDownSelector.js"
+import { DropDownSelector } from "./DropDownSelector.js"
+import { Keys } from "../../api/common/TutanotaConstants"
+import { dialogAttrs } from "../AriaUtils"
+import { styles } from "../styles"
+import type { lazy, MaybeLazy, Thunk } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, getAsLazy, identity, mapLazily, noOp } from "@tutao/tutanota-utils"
+import type { DialogInjectionRightAttrs } from "./DialogInjectionRight"
+import { DialogInjectionRight } from "./DialogInjectionRight"
+import { assertMainOrNode } from "../../api/common/Env"
+import { Icon } from "./Icon"
+import { BootIcons } from "./icons/BootIcons"
+import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 
 assertMainOrNode()
 export const INPUT = "input, textarea, div[contenteditable='true']"
@@ -66,7 +66,7 @@ export class Dialog implements ModalComponent {
 	visible: boolean
 	private _focusOnLoadFunction: Thunk
 	private _wasFocusOnLoadCalled: boolean
-	private _closeHandler: (Thunk) | null = null
+	private _closeHandler: Thunk | null = null
 	private _focusedBeforeShown: HTMLElement | null = null
 	private _injectionRightAttrs: DialogInjectionRightAttrs<any> | null = null
 
@@ -80,13 +80,13 @@ export class Dialog implements ModalComponent {
 			{
 				key: Keys.TAB,
 				shift: true,
-				exec: () => this._domDialog ? focusPrevious(this._domDialog) : false,
+				exec: () => (this._domDialog ? focusPrevious(this._domDialog) : false),
 				help: "selectPrevious_action",
 			},
 			{
 				key: Keys.TAB,
 				shift: false,
-				exec: () => this._domDialog ? focusNext(this._domDialog) : false,
+				exec: () => (this._domDialog ? focusNext(this._domDialog) : false),
 				help: "selectNext_action",
 			},
 		]
@@ -121,7 +121,7 @@ export class Dialog implements ModalComponent {
 							{
 								onclick: (e: MouseEvent) => e.stopPropagation(),
 								// do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
-								oncreate: vnode => {
+								oncreate: (vnode) => {
 									this._domDialog = vnode.dom as HTMLElement
 									let animation: AnimationPromise | null = null
 
@@ -305,8 +305,7 @@ export class Dialog implements ModalComponent {
 		}
 	}
 
-	backgroundClick(e: MouseEvent) {
-	}
+	backgroundClick(e: MouseEvent) {}
 
 	/**
 	 * show a dialog with only a "ok" button
@@ -316,7 +315,7 @@ export class Dialog implements ModalComponent {
 	 * @returns {Promise<void>} a promise that resolves after the dialog is fully closed
 	 */
 	static message(messageIdOrMessageFunction: TranslationKey | lazy<string>, infoToAppend?: string | lazy<Children>): Promise<void> {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			let dialog: Dialog
 
 			const closeAction = () => {
@@ -337,13 +336,10 @@ export class Dialog implements ModalComponent {
 			}
 			dialog = new Dialog(DialogType.Alert, {
 				view: () => [
-					m(
-						"#dialog-message.dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll",
-						[
-							lines.map(line => m(".text-break.selectable", line)),
-							typeof infoToAppend == "function" ? infoToAppend() : null
-						]
-					),
+					m("#dialog-message.dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll", [
+						lines.map((line) => m(".text-break.selectable", line)),
+						typeof infoToAppend == "function" ? infoToAppend() : null,
+					]),
 					m(".flex-center.dialog-buttons", m(Button, buttonAttrs)),
 				],
 			})
@@ -368,7 +364,7 @@ export class Dialog implements ModalComponent {
 	 * fallback for cases where we can't directly download and open a file
 	 */
 	static legacyDownload(filename: string, url: string): Promise<void> {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			let dialog: Dialog
 
 			const closeAction = () => {
@@ -414,7 +410,7 @@ export class Dialog implements ModalComponent {
 		confirmId: TranslationKey = "ok_action",
 		infoToAppend?: string | lazy<Children>,
 	): Promise<boolean> {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			const closeAction = (conf: boolean) => {
 				dialog.close()
 				setTimeout(() => resolve(conf), DefaultAnimationTime)
@@ -459,16 +455,14 @@ export class Dialog implements ModalComponent {
 
 		// Wrap in a function to ensure that m() is called in every view() update for the infoToAppend
 		function getContent(): Children {
-			const additionalChild = typeof infoToAppend === "string"
-				? m(".dialog-contentButtonsBottom.text-break.selectable", infoToAppend)
-				: typeof infoToAppend === "function"
+			const additionalChild =
+				typeof infoToAppend === "string"
+					? m(".dialog-contentButtonsBottom.text-break.selectable", infoToAppend)
+					: typeof infoToAppend === "function"
 					? infoToAppend()
 					: null
 
-			return [
-				lang.getMaybeLazy(messageIdOrMessageFunction),
-				additionalChild
-			]
+			return [lang.getMaybeLazy(messageIdOrMessageFunction), additionalChild]
 		}
 
 		dialog = new Dialog(DialogType.Alert, {
@@ -476,7 +470,7 @@ export class Dialog implements ModalComponent {
 				m("#dialog-message.dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll", getContent()),
 				m(
 					".flex-center.dialog-buttons",
-					buttons.map(a => m(Button, a)),
+					buttons.map((a) => m(Button, a)),
 				),
 			],
 		})
@@ -498,13 +492,13 @@ export class Dialog implements ModalComponent {
 			value: T
 		}>,
 	): Promise<T> {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			const choose = (choice: T) => {
 				dialog.close()
 				setTimeout(() => resolve(choice), DefaultAnimationTime)
 			}
 
-			const buttonAttrs = choices.map(choice => {
+			const buttonAttrs = choices.map((choice) => {
 				return {
 					label: choice.text,
 					click: () => choose(choice.value),
@@ -517,7 +511,7 @@ export class Dialog implements ModalComponent {
 
 	// used in admin client
 	static save(title: lazy<string>, saveAction: () => Promise<void>, child: Component): Promise<void> {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			let saveDialog: Dialog
 
 			const closeAction = () => {
@@ -558,7 +552,7 @@ export class Dialog implements ModalComponent {
 	}
 
 	static reminder(title: string, message: string, link: string): Promise<boolean> {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			let dialog: Dialog
 
 			const closeAction = (res: boolean) => {
@@ -594,7 +588,7 @@ export class Dialog implements ModalComponent {
 					]),
 					m(
 						".flex-center.dialog-buttons.flex-no-grow-no-shrink-auto",
-						buttonAttrs.map(a => m(Button, a)),
+						buttonAttrs.map((a) => m(Button, a)),
 					),
 				],
 			})
@@ -624,18 +618,7 @@ export class Dialog implements ModalComponent {
 
 	static createActionDialog(props: ActionDialogProps): Dialog {
 		let dialog: Dialog
-		const {
-			title,
-			child,
-			okAction,
-			validator,
-			allowCancel,
-			allowOkWithReturn,
-			okActionTextId,
-			cancelActionTextId,
-			cancelAction,
-			type
-		} = Object.assign(
+		const { title, child, okAction, validator, allowCancel, allowOkWithReturn, okActionTextId, cancelActionTextId, cancelAction, type } = Object.assign(
 			{},
 			{
 				allowCancel: true,
@@ -666,7 +649,7 @@ export class Dialog implements ModalComponent {
 				validationResult = validator()
 			}
 
-			let finalizer = Promise.resolve(validationResult).then(error_id => {
+			let finalizer = Promise.resolve(validationResult).then((error_id) => {
 				if (error_id) {
 					Dialog.message(error_id)
 				} else {
@@ -676,30 +659,30 @@ export class Dialog implements ModalComponent {
 
 			if (validationResult instanceof Promise) {
 				// breaking hard circular dependency
-				import("../dialogs/ProgressDialog").then(module => module.showProgressDialog("pleaseWait_msg", finalizer))
+				import("../dialogs/ProgressDialog").then((module) => module.showProgressDialog("pleaseWait_msg", finalizer))
 			}
 		}
 
 		const actionBarAttrs: DialogHeaderBarAttrs = {
-			left: mapLazily(allowCancel, allow =>
+			left: mapLazily(allowCancel, (allow) =>
 				allow
 					? [
-						{
-							label: cancelActionTextId,
-							click: doCancel,
-							type: ButtonType.Secondary,
-						},
-					]
+							{
+								label: cancelActionTextId,
+								click: doCancel,
+								type: ButtonType.Secondary,
+							},
+					  ]
 					: [],
 			),
 			right: okAction
 				? [
-					{
-						label: mapLazily(okActionTextId, id => lang.get(id)),
-						click: doAction,
-						type: ButtonType.Primary,
-					},
-				]
+						{
+							label: mapLazily(okActionTextId, (id) => lang.get(id)),
+							click: doAction,
+							type: ButtonType.Primary,
+						},
+				  ]
 				: [],
 			middle: typeof title === "function" ? title : () => title,
 		}
@@ -712,7 +695,7 @@ export class Dialog implements ModalComponent {
 		dialog.addShortcut({
 			key: Keys.ESC,
 			shift: false,
-			exec: mapLazily(allowCancel, allow => allow && doCancel()),
+			exec: mapLazily(allowCancel, (allow) => allow && doCancel()),
 			help: "cancel_action",
 			enabled: getAsLazy(allowCancel),
 		})
@@ -745,16 +728,17 @@ export class Dialog implements ModalComponent {
 		value: string,
 		inputValidator?: stringValidator,
 	): Promise<string> {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			let result = value
 			Dialog.showActionDialog({
 				title: lang.getMaybeLazy(titleId),
-				child: () => m(TextField, {
-					label: labelIdOrLabelFunction,
-					value: result,
-					oninput: (newValue) => result = newValue,
-					helpLabel: () => (infoMsgId ? lang.getMaybeLazy(infoMsgId) : ""),
-				}),
+				child: () =>
+					m(TextField, {
+						label: labelIdOrLabelFunction,
+						value: result,
+						oninput: (newValue) => (result = newValue),
+						helpLabel: () => (infoMsgId ? lang.getMaybeLazy(infoMsgId) : ""),
+					}),
 				validator: () => (inputValidator ? inputValidator(result) : null),
 				allowOkWithReturn: true,
 				okAction: (dialog: Dialog) => {
@@ -785,24 +769,27 @@ export class Dialog implements ModalComponent {
 		let result = value
 		Dialog.showActionDialog({
 			title: lang.getMaybeLazy(titleId),
-			child: () => m(TextField, {
-				label: labelIdOrLabelFunction,
-				value: result,
-				oninput: (newValue) => result = newValue,
-				helpLabel: () => (infoMsgId ? lang.getMaybeLazy(infoMsgId) : ""),
-			}),
+			child: () =>
+				m(TextField, {
+					label: labelIdOrLabelFunction,
+					value: result,
+					oninput: (newValue) => (result = newValue),
+					helpLabel: () => (infoMsgId ? lang.getMaybeLazy(infoMsgId) : ""),
+				}),
 			validator: () => (inputValidator ? inputValidator(result) : null),
 			allowOkWithReturn: true,
 			okAction: (dialog: Dialog) => {
-				okAction(result).then(() => {
-					dialog.close()
-				}).catch(error => {
-					if (!(isOfflineError(error))) {
+				okAction(result)
+					.then(() => {
 						dialog.close()
-					}
-					throw error
-				})
-			}
+					})
+					.catch((error) => {
+						if (!isOfflineError(error)) {
+							dialog.close()
+						}
+						throw error
+					})
+			},
 		})
 	}
 
@@ -820,18 +807,19 @@ export class Dialog implements ModalComponent {
 		infoMsgId: TranslationKey | null,
 		value: string,
 	): Promise<string> {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			let result: string = value
 			Dialog.showActionDialog({
 				title: lang.get(titleId),
 				child: {
-					view: () => m(TextField, {
-						label: labelIdOrLabelFunction,
-						helpLabel: () => (infoMsgId ? lang.get(infoMsgId) : ""),
-						value: result,
-						oninput: (newValue) => result = newValue,
-						type: TextFieldType.Area,
-					}),
+					view: () =>
+						m(TextField, {
+							label: labelIdOrLabelFunction,
+							helpLabel: () => (infoMsgId ? lang.get(infoMsgId) : ""),
+							value: result,
+							oninput: (newValue) => (result = newValue),
+							type: TextFieldType.Area,
+						}),
 				},
 				okAction: (dialog: Dialog) => {
 					resolve(result)
@@ -860,18 +848,21 @@ export class Dialog implements ModalComponent {
 		dropdownWidth?: number,
 	): Promise<T> {
 		let selectedValue: T = initialValue
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			Dialog.showActionDialog({
 				title: lang.get(titleId),
 				child: {
 					view: () =>
 						// identity as type assertion
-						m(DropDownSelector, identity<DropDownSelectorAttrs<T>>({
-							label,
-							items,
-							selectedValue: selectedValue,
-							selectionChangedHandler: (newValue) => selectedValue = newValue,
-						})),
+						m(
+							DropDownSelector,
+							identity<DropDownSelectorAttrs<T>>({
+								label,
+								items,
+								selectedValue: selectedValue,
+								selectionChangedHandler: (newValue) => (selectedValue = newValue),
+							}),
+						),
 				},
 				okAction: (dialog: Dialog) => {
 					resolve(selectedValue)
@@ -907,54 +898,52 @@ export class Dialog implements ModalComponent {
 	 * Requests a password from the user. Stays open until the caller sets the error message to "".
 	 * @param props.action will be executed as an attempt to apply new password. Error message is the return value.
 	 */
-	static showRequestPasswordDialog(
-		props: {
-			action: (pw: string) => Promise<string>
-			cancel: {
-				textId: TranslationKey,
-				action: () => void,
-			} | null
-		},
-	): Dialog {
+	static showRequestPasswordDialog(props: {
+		action: (pw: string) => Promise<string>
+		cancel: {
+			textId: TranslationKey
+			action: () => void
+		} | null
+	}): Dialog {
 		let value = ""
-		let state: {type: "progress"} | {type: "idle", message: string} = {type: "idle", message: ""}
+		let state: { type: "progress" } | { type: "idle"; message: string } = { type: "idle", message: "" }
 
 		const doAction = async () => {
-			state = {type: "progress"}
+			state = { type: "progress" }
 			m.redraw()
 			const errorMessage = await props.action(value)
-			state = {type: "idle", message: errorMessage}
+			state = { type: "idle", message: errorMessage }
 			m.redraw()
 		}
 
 		const child = {
 			view: () => {
 				const savedState = state
-				return (savedState.type == "idle")
+				return savedState.type == "idle"
 					? m(TextField, {
-						label: "password_label",
-						helpLabel: () => savedState.message,
-						value: value,
-						oninput: (newValue) => value = newValue,
-						autocompleteAs: Autocomplete.off,
-						type: TextFieldType.Password,
-						keyHandler: (key: KeyPress) => {
-							if (isKeyPressed(key.keyCode, Keys.RETURN)) {
-								doAction()
-								return false
-							}
+							label: "password_label",
+							helpLabel: () => savedState.message,
+							value: value,
+							oninput: (newValue) => (value = newValue),
+							autocompleteAs: Autocomplete.off,
+							type: TextFieldType.Password,
+							keyHandler: (key: KeyPress) => {
+								if (isKeyPressed(key.keyCode, Keys.RETURN)) {
+									doAction()
+									return false
+								}
 
-							return true
-						},
-					})
+								return true
+							},
+					  })
 					: m(Icon, {
-						icon: BootIcons.Progress,
-						class: "icon-xl icon-progress block mt mb",
-						style: {
-							marginLeft: 'auto',
-							marginRight: 'auto',
-						}
-					})
+							icon: BootIcons.Progress,
+							class: "icon-xl icon-progress block mt mb",
+							style: {
+								marginLeft: "auto",
+								marginRight: "auto",
+							},
+					  })
 			},
 		}
 		const dialog = Dialog.showActionDialog({

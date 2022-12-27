@@ -46,12 +46,12 @@ class ConfigFile {
 
 	readJSON(): Promise<any> {
 		this._accessPromise = this._accessPromise
-								  .then(() => this._fs.promises.readFile(this._path, "utf8"))
-								  .then(t => JSON.parse(t))
-								  .catch(e => {
-									  // catch needed to make future reads/writes work
-									  console.error("failed to read config!", e)
-								  })
+			.then(() => this._fs.promises.readFile(this._path, "utf8"))
+			.then((t) => JSON.parse(t))
+			.catch((e) => {
+				// catch needed to make future reads/writes work
+				console.error("failed to read config!", e)
+			})
 		return this._accessPromise
 	}
 
@@ -66,11 +66,11 @@ class ConfigFile {
 	 */
 	writeJSON(obj: any): Promise<void> {
 		this._accessPromise = this._accessPromise
-								  .then(() => JSON.stringify(obj, null, 2))
-								  .then(json => this._fs.promises.writeFile(this._path, json))
-								  .catch(e => {
-									  console.error("failed to write conf:", e)
-								  })
+			.then(() => JSON.stringify(obj, null, 2))
+			.then((json) => this._fs.promises.writeFile(this._path, json))
+			.catch((e) => {
+				console.error("failed to write conf:", e)
+			})
 		return this._accessPromise
 	}
 }

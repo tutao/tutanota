@@ -1,9 +1,9 @@
-import {ResolvableRecipient, ResolveMode} from "../../../src/api/main/RecipientsModel.js";
-import {Recipient, RecipientType} from "../../../src/api/common/recipients/Recipient.js";
-import {LazyLoaded} from "@tutao/tutanota-utils";
-import {Contact} from "../../../src/api/entities/tutanota/TypeRefs.js";
-import {createNewContact, isTutanotaMailAddress} from "../../../src/mail/model/MailUtils.js";
-import {User} from "../../../src/api/entities/sys/TypeRefs.js"
+import { ResolvableRecipient, ResolveMode } from "../../../src/api/main/RecipientsModel.js"
+import { Recipient, RecipientType } from "../../../src/api/common/recipients/Recipient.js"
+import { LazyLoaded } from "@tutao/tutanota-utils"
+import { Contact } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { createNewContact, isTutanotaMailAddress } from "../../../src/mail/model/MailUtils.js"
+import { User } from "../../../src/api/entities/sys/TypeRefs.js"
 
 /**
  * Creating actual ResolvableRecipients is annoying because you have to mock a bunch of stuff in other model classes
@@ -15,25 +15,20 @@ export class ResolvableRecipientMock implements ResolvableRecipient {
 	private _resolved = false
 	private lazyResolve = new LazyLoaded<Recipient>(async () => {
 		this._resolved = true
-		this.type = this.type !== RecipientType.UNKNOWN
-			? this.type
-			: (
-				this.internalAddresses.includes(this.address)
-					? RecipientType.INTERNAL
-					: RecipientType.EXTERNAL
-			)
-		this.contact = this.contact
-			?? this.existingContacts.find(({mailAddresses}) => mailAddresses.some(({address}) => address === this.address))
-			?? createNewContact(this.user, this.address, this.name)
+		this.type =
+			this.type !== RecipientType.UNKNOWN ? this.type : this.internalAddresses.includes(this.address) ? RecipientType.INTERNAL : RecipientType.EXTERNAL
+		this.contact =
+			this.contact ??
+			this.existingContacts.find(({ mailAddresses }) => mailAddresses.some(({ address }) => address === this.address)) ??
+			createNewContact(this.user, this.address, this.name)
 
 		return {
 			address: this.address,
 			name: this.name,
 			contact: this.contact,
-			type: this.type
+			type: this.type,
 		}
 	})
-
 
 	constructor(
 		public address: string,
@@ -56,11 +51,11 @@ export class ResolvableRecipientMock implements ResolvableRecipient {
 	}
 
 	isResolved(): boolean {
-		return this._resolved;
+		return this._resolved
 	}
 
 	resolved(): Promise<Recipient> {
-		return this.lazyResolve.getAsync();
+		return this.lazyResolve.getAsync()
 	}
 
 	setContact(contact: Contact): void {

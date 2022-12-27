@@ -1,12 +1,12 @@
-import {downcast, identity, isSameTypeRefByAttr, noOp, remove, TypeRef} from "@tutao/tutanota-utils"
-import type {LoginController} from "./LoginController"
-import type {OperationType} from "../common/TutanotaConstants"
+import { downcast, identity, isSameTypeRefByAttr, noOp, remove, TypeRef } from "@tutao/tutanota-utils"
+import type { LoginController } from "./LoginController"
+import type { OperationType } from "../common/TutanotaConstants"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {assertMainOrNode} from "../common/Env"
-import {EntityUpdate, WebsocketCounterData} from "../entities/sys/TypeRefs"
-import {SomeEntity} from "../common/EntityTypes.js"
-import {isSameId} from "../common/utils/EntityUtils.js"
+import { assertMainOrNode } from "../common/Env"
+import { EntityUpdate, WebsocketCounterData } from "../entities/sys/TypeRefs"
+import { SomeEntity } from "../common/EntityTypes.js"
+import { isSameId } from "../common/utils/EntityUtils.js"
 
 assertMainOrNode()
 export type EntityUpdateData = {
@@ -20,18 +20,17 @@ export type EntityEventsListener = (updates: ReadonlyArray<EntityUpdateData>, ev
 export const isUpdateForTypeRef = <T>(typeRef: TypeRef<T>, update: EntityUpdateData): boolean => isSameTypeRefByAttr(typeRef, update.application, update.type)
 export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdateData): boolean {
 	const typeRef = entity._type as TypeRef<T>
-	return isUpdateForTypeRef(typeRef, update)
-		&& (update.instanceListId === "" ? isSameId(update.instanceId, entity._id) : isSameId([update.instanceListId, update.instanceId], entity._id))
+	return (
+		isUpdateForTypeRef(typeRef, update) &&
+		(update.instanceListId === "" ? isSameId(update.instanceId, entity._id) : isSameId([update.instanceListId, update.instanceId], entity._id))
+	)
 }
 
 export class EventController {
 	private countersStream: Stream<WebsocketCounterData> = stream()
 	private entityListeners: Array<EntityEventsListener> = []
 
-	constructor(
-		private readonly logins: LoginController
-	) {
-	}
+	constructor(private readonly logins: LoginController) {}
 
 	addEntityListener(listener: EntityEventsListener) {
 		this.entityListeners.push(listener)

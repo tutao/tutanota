@@ -1,12 +1,12 @@
-import type {Thunk} from "@tutao/tutanota-utils"
-import {downcast, isSameDay} from "@tutao/tutanota-utils"
-import {formatDateWithWeekdayAndTime, formatTime} from "../../misc/Formatter"
-import {EndType} from "../../api/common/TutanotaConstants"
-import type {AlarmInfo} from "../../api/entities/sys/TypeRefs.js"
-import type {RepeatRule} from "../../api/entities/sys/TypeRefs.js"
-import type {ScheduledTimeoutId, Scheduler} from "../../api/common/utils/Scheduler.js"
-import {calculateAlarmTime, findNextAlarmOccurrence, getEventStartByTimes, getValidTimeZone} from "./CalendarUtils"
-import {DateProvider} from "../../api/common/DateProvider"
+import type { Thunk } from "@tutao/tutanota-utils"
+import { downcast, isSameDay } from "@tutao/tutanota-utils"
+import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter"
+import { EndType } from "../../api/common/TutanotaConstants"
+import type { AlarmInfo } from "../../api/entities/sys/TypeRefs.js"
+import type { RepeatRule } from "../../api/entities/sys/TypeRefs.js"
+import type { ScheduledTimeoutId, Scheduler } from "../../api/common/utils/Scheduler.js"
+import { calculateAlarmTime, findNextAlarmOccurrence, getEventStartByTimes, getValidTimeZone } from "./CalendarUtils"
+import { DateProvider } from "../../api/common/DateProvider"
 
 type NotificationSender = (title: string, message: string) => void
 type EventInfo = {

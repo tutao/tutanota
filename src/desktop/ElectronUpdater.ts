@@ -1,15 +1,14 @@
-import type {DesktopNotifier} from "./DesktopNotifier"
-import {NotificationResult} from "./DesktopNotifier";
-import {lang} from '../misc/LanguageViewModel'
-import type {DesktopConfig} from './config/DesktopConfig'
-import {assertNotNull, downcast, neverNull} from "@tutao/tutanota-utils"
-import {DesktopNativeCryptoFacade} from "./DesktopNativeCryptoFacade"
-import type {App, NativeImage} from "electron"
-import type {UpdaterWrapper} from "./UpdaterWrapper"
-import type {UpdateDownloadedEvent, UpdateInfo} from "electron-updater"
-import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys"
-import {FsExports} from "./ElectronExportTypes.js"
-
+import type { DesktopNotifier } from "./DesktopNotifier"
+import { NotificationResult } from "./DesktopNotifier"
+import { lang } from "../misc/LanguageViewModel"
+import type { DesktopConfig } from "./config/DesktopConfig"
+import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
+import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
+import type { App, NativeImage } from "electron"
+import type { UpdaterWrapper } from "./UpdaterWrapper"
+import type { UpdateDownloadedEvent, UpdateInfo } from "electron-updater"
+import { BuildConfigKey, DesktopConfigKey } from "./config/ConfigKeys"
+import { FsExports } from "./ElectronExportTypes.js"
 
 /**
  * Wraps electron-updater for Tutanota Desktop
@@ -26,9 +25,9 @@ import {FsExports} from "./ElectronExportTypes.js"
 const TAG = "[ElectronUpdater]"
 
 type LoggerFn = (_: string, ...args: any) => void
-type UpdaterLogger = {debug: LoggerFn, info: LoggerFn, warn: LoggerFn, error: LoggerFn, silly: LoggerFn, verbose: LoggerFn}
+type UpdaterLogger = { debug: LoggerFn; info: LoggerFn; warn: LoggerFn; error: LoggerFn; silly: LoggerFn; verbose: LoggerFn }
 /** we add the signature to the UpdateInfo when building the client */
-type TutanotaUpdateInfo = UpdateInfo & {signature: string}
+type TutanotaUpdateInfo = UpdateInfo & { signature: string }
 type IntervalID = ReturnType<typeof setTimeout>
 
 // re-do the type as opposed to doing typeof because it doesn't work otherwise
@@ -73,49 +72,55 @@ export class ElectronUpdater {
 			// before telling the updater to get the file.
 			autoUpdater.autoDownload = false
 			autoUpdater.autoInstallOnAppQuit = false
-			autoUpdater.on('checking-for-update', () => {
-				this.logger.info("checking-for-update")
-			}).on('update-available', () => {
-				this.logger.info("update-available")
-				this.stopPolling()
-				this.downloadUpdate()
-			}).on('update-not-available', info => {
-				this.logger.info("update not available:", info)
-			}).on("download-progress", (prg) => {
-				this.logger.debug('update dl progress:', prg)
-			}).on('update-downloaded', async (info: UpdateDownloadedEvent & {signature: string}) => {
-				this._updateInfo = info
-				this.logger.info(`update-downloaded: ${JSON.stringify(info)}`)
-				this.stopPolling()
+			autoUpdater
+				.on("checking-for-update", () => {
+					this.logger.info("checking-for-update")
+				})
+				.on("update-available", () => {
+					this.logger.info("update-available")
+					this.stopPolling()
+					this.downloadUpdate()
+				})
+				.on("update-not-available", (info) => {
+					this.logger.info("update not available:", info)
+				})
+				.on("download-progress", (prg) => {
+					this.logger.debug("update dl progress:", prg)
+				})
+				.on("update-downloaded", async (info: UpdateDownloadedEvent & { signature: string }) => {
+					this._updateInfo = info
+					this.logger.info(`update-downloaded: ${JSON.stringify(info)}`)
+					this.stopPolling()
 
-				const data = await this.fs.promises.readFile(info.downloadedFile)
-				const publicKeys: string[] = await this.conf.getConst(BuildConfigKey.pubKeys)
-				const verified = publicKeys.some(pk => this.verifySignature(pk, assertNotNull(info), data))
+					const data = await this.fs.promises.readFile(info.downloadedFile)
+					const publicKeys: string[] = await this.conf.getConst(BuildConfigKey.pubKeys)
+					const verified = publicKeys.some((pk) => this.verifySignature(pk, assertNotNull(info), data))
 
-				if (verified) {
-					this.notifyAndInstall(info)
-				} else {
-					this._updateInfo = null
-					this.logger.warn(`all signatures invalid, could not update. Deleting ${info.downloadedFile}.`)
-					this.fs.promises.unlink(info.downloadedFile)
-				}
-			}).on('error', e => {
-				this.stopPolling()
-				this.errorCount += 1
-				const messageEvent: {message: string} = downcast(e)
-				if (this.errorCount >= 5) {
-					this.logger.error(`Auto Update Error ${this.errorCount}, shutting down updater:\n${messageEvent.message}`)
-					autoUpdater.removeAllListeners('update-available')
-					autoUpdater.removeAllListeners('update-downloaded')
-					autoUpdater.removeAllListeners('checking-for-update')
-					autoUpdater.removeAllListeners('error')
-					this.notifyUpdateError()
-					this.logger.error(`Update failed multiple times. Last error:\n${messageEvent.message}`)
-				} else {
-					this.logger.error(`Auto Update Error ${this.errorCount}, continuing polling:\n${messageEvent.message}`)
-					this.startPolling()
-				}
-			})
+					if (verified) {
+						this.notifyAndInstall(info)
+					} else {
+						this._updateInfo = null
+						this.logger.warn(`all signatures invalid, could not update. Deleting ${info.downloadedFile}.`)
+						this.fs.promises.unlink(info.downloadedFile)
+					}
+				})
+				.on("error", (e) => {
+					this.stopPolling()
+					this.errorCount += 1
+					const messageEvent: { message: string } = downcast(e)
+					if (this.errorCount >= 5) {
+						this.logger.error(`Auto Update Error ${this.errorCount}, shutting down updater:\n${messageEvent.message}`)
+						autoUpdater.removeAllListeners("update-available")
+						autoUpdater.removeAllListeners("update-downloaded")
+						autoUpdater.removeAllListeners("checking-for-update")
+						autoUpdater.removeAllListeners("error")
+						this.notifyUpdateError()
+						this.logger.error(`Update failed multiple times. Last error:\n${messageEvent.message}`)
+					} else {
+						this.logger.error(`Auto Update Error ${this.errorCount}, continuing polling:\n${messageEvent.message}`)
+						this.startPolling()
+					}
+				})
 		})
 
 		/**
@@ -126,7 +131,7 @@ export class ElectronUpdater {
 		 * should be removed once https://github.com/electron-userland/electron-builder/issues/4815
 		 * is resolved.
 		 */
-		this.app.once('before-quit', ev => {
+		this.app.once("before-quit", (ev) => {
 			if (this._updateInfo) {
 				ev.preventDefault()
 				this._updateInfo = null
@@ -143,7 +148,6 @@ export class ElectronUpdater {
 						autoUpdater.quitAndInstall(true, false)
 					})
 				}
-
 			}
 		})
 	}
@@ -160,14 +164,16 @@ export class ElectronUpdater {
 		this.conf.setVar(DesktopConfigKey.showAutoUpdateOption, true)
 
 		// if user changes auto update setting, we want to know
-		this.conf.removeListener(DesktopConfigKey.enableAutoUpdate, this.enableAutoUpdateListener)
+		this.conf
+			.removeListener(DesktopConfigKey.enableAutoUpdate, this.enableAutoUpdateListener)
 			.on(DesktopConfigKey.enableAutoUpdate, this.enableAutoUpdateListener)
 
 		if (!(await this.conf.getVar(DesktopConfigKey.enableAutoUpdate))) {
 			this.stopPolling()
 			return
 		}
-		if (this.updatePollInterval) { //already running
+		if (this.updatePollInterval) {
+			//already running
 			// TODO: reset any other fields?
 			return
 		}
@@ -184,10 +190,10 @@ export class ElectronUpdater {
 			return true
 		}
 		try {
-			const signature = Buffer.from(updateInfo.signature, 'base64')
+			const signature = Buffer.from(updateInfo.signature, "base64")
 
 			if (this.crypto.verifySignature(pubKey, data, signature)) {
-				this.logger.info('Signature verification successful, installing update')
+				this.logger.info("Signature verification successful, installing update")
 				return true
 			}
 		} catch (e) {
@@ -198,7 +204,7 @@ export class ElectronUpdater {
 	}
 
 	setUpdateDownloadedListener(listener: () => void): void {
-		this.updater.electronUpdater.then((autoUpdater) => autoUpdater.on('update-downloaded', listener))
+		this.updater.electronUpdater.then((autoUpdater) => autoUpdater.on("update-downloaded", listener))
 	}
 
 	private async startPolling() {
@@ -228,27 +234,22 @@ export class ElectronUpdater {
 	 */
 	private async checkUpdate(): Promise<boolean> {
 		const autoUpdater = await this.updater.electronUpdater
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			let cleanup = (hasUpdate: boolean) => {
-				cleanup = hasUpdate => {
-				}
+				cleanup = (hasUpdate) => {}
 				resolve(hasUpdate)
-				autoUpdater.removeListener('update-not-available', updateNotAvailable)
-				autoUpdater.removeListener('update-downloaded', updateDownloaded)
-				autoUpdater.removeListener('error', updateNotAvailable)
+				autoUpdater.removeListener("update-not-available", updateNotAvailable)
+				autoUpdater.removeListener("update-downloaded", updateDownloaded)
+				autoUpdater.removeListener("error", updateNotAvailable)
 			}
 			const updateNotAvailable = () => cleanup(false)
 			const updateDownloaded = () => cleanup(true)
-			autoUpdater
-				.checkForUpdates()
-				.catch((e: Error) => {
-					this.logger.error("Update check failed,", e.message)
-					cleanup(false)
-				})
+			autoUpdater.checkForUpdates().catch((e: Error) => {
+				this.logger.error("Update check failed,", e.message)
+				cleanup(false)
+			})
 
-			autoUpdater.once('update-not-available', updateNotAvailable)
-					   .once('update-downloaded', updateDownloaded)
-					   .once('error', updateNotAvailable)
+			autoUpdater.once("update-not-available", updateNotAvailable).once("update-downloaded", updateDownloaded).once("error", updateNotAvailable)
 		})
 	}
 
@@ -269,21 +270,21 @@ export class ElectronUpdater {
 	private downloadUpdate(): Promise<Array<string>> {
 		this.logger.debug("downloading")
 		return this.updater.electronUpdater
-				   .then((autoUpdater) => autoUpdater.downloadUpdate())
-				   .catch(e => {
-					   this.logger.error("Update Download failed,", e.message)
-					   // no files have been dl'd
-					   return []
-				   })
+			.then((autoUpdater) => autoUpdater.downloadUpdate())
+			.catch((e) => {
+				this.logger.error("Update Download failed,", e.message)
+				// no files have been dl'd
+				return []
+			})
 	}
 
 	private async notifyAndInstall(info: TutanotaUpdateInfo): Promise<void> {
 		this.logger.debug("notifying for update")
 		this.notifier
 			.showOneShot({
-				title: lang.get('updateAvailable_label', {"{version}": info.version}),
-				body: lang.get('clickToUpdate_msg'),
-				icon: this.icon
+				title: lang.get("updateAvailable_label", { "{version}": info.version }),
+				body: lang.get("clickToUpdate_msg"),
+				icon: this.icon,
 			})
 			.then((res) => {
 				if (res === NotificationResult.Click) {
@@ -298,7 +299,7 @@ export class ElectronUpdater {
 		//the window manager enables force-quit on the app-quit event,
 		// which is not emitted for quitAndInstall
 		// so we enable force-quit manually with a custom event
-		this.app.emit('enable-force-quit')
+		this.app.emit("enable-force-quit")
 		this._updateInfo = null
 		// first argument: isSilent Boolean - windows-only Runs the installer in silent mode. Defaults to false.
 		// second argument: isForceRunAfter Boolean - Run the app after finish even on silent install. Not applicable for macOS.
@@ -309,10 +310,12 @@ export class ElectronUpdater {
 	}
 
 	private async notifyUpdateError() {
-		this.notifier.showOneShot({
-			title: lang.get("errorReport_label"),
-			body: lang.get("errorDuringUpdate_msg"),
-			icon: this.icon
-		}).catch(e => this.logger.error("Error Notification failed,", e.message))
+		this.notifier
+			.showOneShot({
+				title: lang.get("errorReport_label"),
+				body: lang.get("errorDuringUpdate_msg"),
+				icon: this.icon,
+			})
+			.catch((e) => this.logger.error("Error Notification failed,", e.message))
 	}
 }

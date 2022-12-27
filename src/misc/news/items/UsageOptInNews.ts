@@ -1,19 +1,18 @@
-import {NewsListItem} from "../NewsListItem.js"
-import m, {Children} from "mithril"
-import {NewsId} from "../../../api/entities/tutanota/TypeRefs.js"
-import {locator} from "../../../api/main/MainLocator.js"
-import {InfoLink, lang} from "../../LanguageViewModel.js"
-import {Dialog} from "../../../gui/base/Dialog.js"
-import {Button, ButtonAttrs, ButtonType} from "../../../gui/base/Button.js"
-import {NewsModel} from "../NewsModel.js"
-import {UsageTestModel} from "../../UsageTestModel.js"
+import { NewsListItem } from "../NewsListItem.js"
+import m, { Children } from "mithril"
+import { NewsId } from "../../../api/entities/tutanota/TypeRefs.js"
+import { locator } from "../../../api/main/MainLocator.js"
+import { InfoLink, lang } from "../../LanguageViewModel.js"
+import { Dialog } from "../../../gui/base/Dialog.js"
+import { Button, ButtonAttrs, ButtonType } from "../../../gui/base/Button.js"
+import { NewsModel } from "../NewsModel.js"
+import { UsageTestModel } from "../../UsageTestModel.js"
 
 /**
  * News item that informs users about the usage data opt-in.
  */
 export class UsageOptInNews implements NewsListItem {
-	constructor(private readonly newsModel: NewsModel, private readonly usageTestModel: UsageTestModel) {
-	}
+	constructor(private readonly newsModel: NewsModel, private readonly usageTestModel: UsageTestModel) {}
 
 	isShown(): boolean {
 		return locator.usageTestModel.showOptInIndicator()
@@ -23,14 +22,16 @@ export class UsageOptInNews implements NewsListItem {
 		const lnk = InfoLink.Privacy
 
 		const closeAction = (optedIn?: boolean) => {
-			this.newsModel.acknowledgeNews(newsId.newsItemId)
+			this.newsModel
+				.acknowledgeNews(newsId.newsItemId)
 				.then(() => {
 					if (optedIn) {
 						Dialog.message("userUsageDataOptInThankYouOptedIn_msg")
 					} else if (optedIn !== undefined) {
 						Dialog.message("userUsageDataOptInThankYouOptedOut_msg")
 					}
-				}).then(m.redraw)
+				})
+				.then(m.redraw)
 		}
 
 		const buttonAttrs: Array<ButtonAttrs> = [
@@ -65,17 +66,25 @@ export class UsageOptInNews implements NewsListItem {
 				m("li", lang.get("userUsageDataOptInStatement2_msg")),
 				m("li", lang.get("userUsageDataOptInStatement3_msg")),
 				m("li", lang.get("userUsageDataOptInStatement4_msg")),
-				m("p", lang.get("moreInfo_msg") + " ", m("small.text-break", [m("a", {
-					href: lnk,
-					target: "_blank",
-				}, lnk)])),
+				m(
+					"p",
+					lang.get("moreInfo_msg") + " ",
+					m("small.text-break", [
+						m(
+							"a",
+							{
+								href: lnk,
+								target: "_blank",
+							},
+							lnk,
+						),
+					]),
+				),
 			]),
 			m(
 				".flex-end.flex-no-grow-no-shrink-auto.flex-wrap",
-				buttonAttrs.map(a => m(Button, a)),
+				buttonAttrs.map((a) => m(Button, a)),
 			),
 		])
-
 	}
-
 }

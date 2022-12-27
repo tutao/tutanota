@@ -1,25 +1,25 @@
-import {SelectMailAddressForm, SelectMailAddressFormAttrs} from "../SelectMailAddressForm"
-import {logins} from "../../api/main/LoginController"
-import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
-import {getAliasLineAttrs} from "../mailaddress/MailAddressTable.js"
-import type {AddDomainData} from "./AddDomainWizard"
-import {CustomerTypeRef, GroupInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {neverNull, ofClass} from "@tutao/tutanota-utils"
-import {Dialog} from "../../gui/base/Dialog"
-import {locator} from "../../api/main/MainLocator"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import type {TableAttrs} from "../../gui/base/Table.js"
-import {ColumnWidth, Table} from "../../gui/base/Table.js"
-import {theme} from "../../gui/theme"
-import type {WizardPageAttrs} from "../../gui/base/WizardDialog.js"
-import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialog.js"
-import {Button, ButtonType} from "../../gui/base/Button.js"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {InvalidDataError, LimitReachedError} from "../../api/common/error/RestError"
-import {assertMainOrNode} from "../../api/common/Env"
-import {Icons} from "../../gui/base/icons/Icons";
-import {ButtonSize} from "../../gui/base/ButtonSize.js"
+import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../SelectMailAddressForm"
+import { logins } from "../../api/main/LoginController"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import { getAliasLineAttrs } from "../mailaddress/MailAddressTable.js"
+import type { AddDomainData } from "./AddDomainWizard"
+import { CustomerTypeRef, GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { neverNull, ofClass } from "@tutao/tutanota-utils"
+import { Dialog } from "../../gui/base/Dialog"
+import { locator } from "../../api/main/MainLocator"
+import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import type { TableAttrs } from "../../gui/base/Table.js"
+import { ColumnWidth, Table } from "../../gui/base/Table.js"
+import { theme } from "../../gui/theme"
+import type { WizardPageAttrs } from "../../gui/base/WizardDialog.js"
+import { emitWizardEvent, WizardEventType } from "../../gui/base/WizardDialog.js"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import { InvalidDataError, LimitReachedError } from "../../api/common/error/RestError"
+import { assertMainOrNode } from "../../api/common/Env"
+import { Icons } from "../../gui/base/icons/Icons"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import type Stream from "mithril/stream"
 
 assertMainOrNode()
@@ -27,12 +27,12 @@ assertMainOrNode()
 export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAttrs> {
 	private redrawSubscription: Stream<void> | null = null
 
-	oncreate({attrs}: VnodeDOM<AddEmailAddressesPageAttrs>) {
+	oncreate({ attrs }: VnodeDOM<AddEmailAddressesPageAttrs>) {
 		attrs.data.editAliasFormAttrs.model.init()
 		this.redrawSubscription = attrs.data.editAliasFormAttrs.model.redraw.map(m.redraw)
 	}
 
-	onremove({attrs}: Vnode<AddEmailAddressesPageAttrs>) {
+	onremove({ attrs }: Vnode<AddEmailAddressesPageAttrs>) {
 		attrs.data.editAliasFormAttrs.model.dispose()
 	}
 
@@ -42,7 +42,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 			columnWidths: [ColumnWidth.Largest],
 			showActionButtonColumn: true,
 			addButtonAttrs: null,
-			lines: getAliasLineAttrs(a.data.editAliasFormAttrs).map(row => {
+			lines: getAliasLineAttrs(a.data.editAliasFormAttrs).map((row) => {
 				return {
 					actionButtonAttrs: row.actionButtonAttrs ?? null,
 					cells: row.cells,
@@ -59,7 +59,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 					a.errorMessageId = validationResult.errorId
 				}
 			},
-			onBusyStateChanged: isBusy => (a.isMailVerificationBusy = isBusy),
+			onBusyStateChanged: (isBusy) => (a.isMailVerificationBusy = isBusy),
 			injectionsRightButtonAttrs: {
 				title: "addEmailAlias_label",
 				icon: Icons.Add,
@@ -107,10 +107,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 					m(Button, {
 						type: ButtonType.Login,
 						label: "next_action",
-						click: () => emitWizardEvent(
-							(vnode as VnodeDOM<AddEmailAddressesPageAttrs>).dom as HTMLElement,
-							WizardEventType.SHOWNEXTPAGE
-						),
+						click: () => emitWizardEvent((vnode as VnodeDOM<AddEmailAddressesPageAttrs>).dom as HTMLElement, WizardEventType.SHOWNEXTPAGE),
 					}),
 				),
 			),
@@ -127,7 +124,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 			".small.left",
 			aliasCount.availableToCreate === 0
 				? lang.get("adminMaxNbrOfAliasesReached_msg")
-				: lang.get("mailAddressAliasesMaxNbr_label", {"{1}": aliasCount.availableToCreate}),
+				: lang.get("mailAddressAliasesMaxNbr_label", { "{1}": aliasCount.availableToCreate }),
 		)
 	}
 
@@ -139,7 +136,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 					return [m("p", lang.get("userManagementRedirect_msg"))]
 				},
 			},
-			okAction: confirmationDialog => {
+			okAction: (confirmationDialog) => {
 				m.route.set("/settings/users")
 				confirmationDialog.close()
 				emitWizardEvent(dom, WizardEventType.CLOSEDIALOG)
@@ -178,24 +175,24 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 
 		//Otherwise we check that there is either an alias or a user (or an alias for some other user) defined for the custom domain regardless of activation status
 		const checkMailAddresses = Promise.resolve().then(() => {
-			const hasAliases = logins.getUserController().userGroupInfo.mailAddressAliases.some(alias => alias.mailAddress.endsWith(`@${this.data.domain()}`))
+			const hasAliases = logins.getUserController().userGroupInfo.mailAddressAliases.some((alias) => alias.mailAddress.endsWith(`@${this.data.domain()}`))
 
 			if (hasAliases) {
 				return true
 			} else {
 				return locator.entityClient
-							  .load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-							  .then(customer => locator.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups))
-							  .then(allUserGroupInfos => {
-								  return allUserGroupInfos.some(
-									  u =>
-										  neverNull(u.mailAddress).endsWith("@" + this.data.domain()) ||
-										  u.mailAddressAliases.some(a => neverNull(a.mailAddress).endsWith("@" + this.data.domain())),
-								  )
-							  })
+					.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+					.then((customer) => locator.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups))
+					.then((allUserGroupInfos) => {
+						return allUserGroupInfos.some(
+							(u) =>
+								neverNull(u.mailAddress).endsWith("@" + this.data.domain()) ||
+								u.mailAddressAliases.some((a) => neverNull(a.mailAddress).endsWith("@" + this.data.domain())),
+						)
+					})
 			}
 		})
-		return showProgressDialog("pleaseWait_msg", checkMailAddresses).then(nextAllowed => {
+		return showProgressDialog("pleaseWait_msg", checkMailAddresses).then((nextAllowed) => {
 			if (showErrorDialog && !nextAllowed) Dialog.message("enforceAliasSetup_msg")
 			return nextAllowed
 		})
@@ -222,7 +219,7 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 			return showProgressDialog(
 				"pleaseWait_msg",
 				// Using default sender name for now
-				mailAddressTableModel.addAlias(this.mailAddress, mailAddressTableModel.defaultSenderName())
+				mailAddressTableModel.addAlias(this.mailAddress, mailAddressTableModel.defaultSenderName()),
 			)
 				.then(() => {
 					return true

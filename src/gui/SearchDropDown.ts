@@ -1,7 +1,7 @@
-import m, {Children, ClassComponent, Vnode} from "mithril"
-import {scrollListDom} from "./base/GuiUtils.js"
-import {px, size} from "./size.js"
-import {windowFacade} from "../misc/WindowFacade.js"
+import m, { Children, ClassComponent, Vnode } from "mithril"
+import { scrollListDom } from "./base/GuiUtils.js"
+import { px, size } from "./size.js"
+import { windowFacade } from "../misc/WindowFacade.js"
 
 const EntryHeight = 60
 
@@ -15,18 +15,17 @@ export interface SearchDropDownAttrs<T extends Suggestion> {
 }
 
 export interface Suggestion {
-	firstRow: string | null,
-	secondRow: string,
-	display?: boolean,
+	firstRow: string | null
+	secondRow: string
+	display?: boolean
 }
 
 export class SearchDropDown<T extends Suggestion> implements ClassComponent<SearchDropDownAttrs<T>> {
-
 	private domSuggestions!: HTMLElement
 	private keyboardHeight: number = 0
 
 	oncreate() {
-		windowFacade.addKeyboardSizeListener(newSize => {
+		windowFacade.addKeyboardSizeListener((newSize) => {
 			// *-------------------*  -
 			// |                   |  |
 			// |   -------------   |  - <- top
@@ -41,7 +40,7 @@ export class SearchDropDown<T extends Suggestion> implements ClassComponent<Sear
 		})
 	}
 
-	view({attrs}: Vnode<SearchDropDownAttrs<T>>): Children {
+	view({ attrs }: Vnode<SearchDropDownAttrs<T>>): Children {
 		if (attrs.selectedSuggestionIndex !== attrs.selectedSuggestionIndex && this.domSuggestions) {
 			requestAnimationFrame(() => {
 				scrollListDom(this.domSuggestions, EntryHeight, attrs.selectedSuggestionIndex)
@@ -60,17 +59,17 @@ export class SearchDropDown<T extends Suggestion> implements ClassComponent<Sear
 		return m(
 			`.abs.z4.full-width.elevated-bg.scroll.text-ellipsis${attrs.suggestions.length ? ".dropdown-shadow" : ""}`,
 			{
-				oncreate: vnode => this.domSuggestions = vnode.dom as HTMLElement,
+				oncreate: (vnode) => (this.domSuggestions = vnode.dom as HTMLElement),
 				style: {
 					transition: "height 0.2s",
-					height: px(dropdownHeight)
+					height: px(dropdownHeight),
 				},
 			},
-			attrs.suggestions.map((suggestion, idx) => this.renderSuggestion(attrs, suggestion, idx))
+			attrs.suggestions.map((suggestion, idx) => this.renderSuggestion(attrs, suggestion, idx)),
 		)
 	}
 
-	private renderSuggestion(attrs: SearchDropDownAttrs<T>, {firstRow, secondRow, display}: T, idx: number): Children {
+	private renderSuggestion(attrs: SearchDropDownAttrs<T>, { firstRow, secondRow, display }: T, idx: number): Children {
 		const selected = idx === attrs.selectedSuggestionIndex
 
 		if (display !== undefined && !display) {
@@ -88,10 +87,7 @@ export class SearchDropDown<T extends Suggestion> implements ClassComponent<Sear
 					height: px(EntryHeight),
 				},
 			},
-			[
-				m(".small.full-width.text-ellipsis", firstRow),
-				m(".name.full-width.text-ellipsis", secondRow),
-			],
+			[m(".small.full-width.text-ellipsis", firstRow), m(".name.full-width.text-ellipsis", secondRow)],
 		)
 	}
 }

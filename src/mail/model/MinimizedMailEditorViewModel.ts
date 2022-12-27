@@ -1,9 +1,9 @@
-import type {Dialog} from "../../gui/base/Dialog"
-import type {SendMailModel} from "../editor/SendMailModel"
-import {lastThrow, remove} from "@tutao/tutanota-utils"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {isSameId} from "../../api/common/utils/EntityUtils"
-import Stream from "mithril/stream";
+import type { Dialog } from "../../gui/base/Dialog"
+import type { SendMailModel } from "../editor/SendMailModel"
+import { lastThrow, remove } from "@tutao/tutanota-utils"
+import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { isSameId } from "../../api/common/utils/EntityUtils"
+import Stream from "mithril/stream"
 
 export const enum SaveStatusEnum {
 	Saving = 0,
@@ -13,17 +13,20 @@ export const enum SaveStatusEnum {
 
 export const enum SaveErrorReason {
 	Unknown,
-	ConnectionLost
+	ConnectionLost,
 }
 
-export type SaveStatus = {
-	status: SaveStatusEnum.Saving
-} | {
-	status: SaveStatusEnum.Saved
-} | {
-	status: SaveStatusEnum.NotSaved,
-	reason: SaveErrorReason
-}
+export type SaveStatus =
+	| {
+			status: SaveStatusEnum.Saving
+	  }
+	| {
+			status: SaveStatusEnum.Saved
+	  }
+	| {
+			status: SaveStatusEnum.NotSaved
+			reason: SaveErrorReason
+	  }
 
 export type MinimizedEditor = {
 	dialog: Dialog
@@ -55,7 +58,7 @@ export class MinimizedMailEditorViewModel {
 		dialog.close()
 
 		// disallow creation of duplicate minimized mails
-		if (!this._minimizedEditors.find(editor => editor.dialog === dialog)) {
+		if (!this._minimizedEditors.find((editor) => editor.dialog === dialog)) {
 			this._minimizedEditors.push({
 				sendMailModel: sendMailModel,
 				dialog: dialog,
@@ -87,9 +90,11 @@ export class MinimizedMailEditorViewModel {
 	}
 
 	getEditorForDraft(mail: Mail): MinimizedEditor | null {
-		return this.getMinimizedEditors().find(e => {
-			const draft = e.sendMailModel.getDraft()
-			return draft ? isSameId(draft._id, mail._id) : null
-		}) ?? null
+		return (
+			this.getMinimizedEditors().find((e) => {
+				const draft = e.sendMailModel.getDraft()
+				return draft ? isSameId(draft._id, mail._id) : null
+			}) ?? null
+		)
 	}
 }

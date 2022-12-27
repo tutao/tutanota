@@ -4,9 +4,9 @@
  *   <li>The worker sends {ClientCommands}s to the client. The commands are executed by the client (without any response to the worker).
  * </ul>
  */
-import {downcast} from "@tutao/tutanota-utils"
-import {objToError} from "./utils/Utils"
-import {isWorker} from "./Env"
+import { downcast } from "@tutao/tutanota-utils"
+import { objToError } from "./utils/Utils"
+import { isWorker } from "./Env"
 
 export type Command<T> = (msg: Request<T>) => Promise<any>
 export type Commands<T extends string> = Record<T, Command<T>>
@@ -102,7 +102,7 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 		this._messages = {}
 		this._commands = commands
 		this._transport = transport
-		this._transport.setMessageHandler(msg => this.handleMessage(msg))
+		this._transport.setMessageHandler((msg) => this.handleMessage(msg))
 	}
 
 	postRequest(msg: Request<OutgoingRequestType>): Promise<any> {
@@ -150,14 +150,14 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 					throw new Error(`Handler returned non-promise result: ${message.requestType}`)
 				}
 
-				commandResult
-					.then(
-						(value) => {
-							this._transport.postMessage(new Response(message.id, value))
-						},
-						(error) => {
-							this._transport.postMessage(new RequestError(message.id, error))
-						})
+				commandResult.then(
+					(value) => {
+						this._transport.postMessage(new Response(message.id, value))
+					},
+					(error) => {
+						this._transport.postMessage(new RequestError(message.id, error))
+					},
+				)
 			} else {
 				let error = new Error(`unexpected request: ${message.id}, ${message.requestType}`)
 
@@ -194,9 +194,7 @@ function _createRequestId() {
 }
 
 // Serialize error stack traces, when they are sent via the websocket.
-export function errorToObj(
-	error: Error,
-): {
+export function errorToObj(error: Error): {
 	data: any
 	message: any
 	name: any

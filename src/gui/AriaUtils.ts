@@ -1,4 +1,4 @@
-import {assertMainOrNodeBoot} from "../api/common/Env"
+import { assertMainOrNodeBoot } from "../api/common/Env"
 
 assertMainOrNodeBoot()
 
@@ -11,7 +11,7 @@ assertMainOrNodeBoot()
  * https://www.w3.org/TR/wai-aria-1.1/
  *
  */
-import {TabIndex} from "../api/common/TutanotaConstants"
+import { TabIndex } from "../api/common/TutanotaConstants"
 
 // See: https://webaim.org/techniques/aria/#landmarks
 export const enum AriaLandmarks {

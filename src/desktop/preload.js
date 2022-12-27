@@ -7,7 +7,7 @@
  * Note: we can't import any other desktop code here because it is in the web (render) process.
  */
 
-const {ipcRenderer, contextBridge} = require("electron")
+const { ipcRenderer, contextBridge } = require("electron")
 
 contextBridge.exposeInMainWorld("nativeApp", {
 	invoke: (msg) => ipcRenderer.invoke("to-main", msg),

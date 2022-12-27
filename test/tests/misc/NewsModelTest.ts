@@ -1,11 +1,11 @@
 import o from "ospec"
-import {IServiceExecutor} from "../../../src/api/common/ServiceRequest.js"
-import {object, verify, when} from "testdouble"
-import {NewsModel} from "../../../src/misc/news/NewsModel.js"
-import {NewsService} from "../../../src/api/entities/tutanota/Services.js"
-import {createNewsId, createNewsIn, createNewsOut, NewsId} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {NewsListItem} from "../../../src/misc/news/NewsListItem.js"
-import {Children} from "mithril"
+import { IServiceExecutor } from "../../../src/api/common/ServiceRequest.js"
+import { object, verify, when } from "testdouble"
+import { NewsModel } from "../../../src/misc/news/NewsModel.js"
+import { NewsService } from "../../../src/api/entities/tutanota/Services.js"
+import { createNewsId, createNewsIn, createNewsOut, NewsId } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { NewsListItem } from "../../../src/misc/news/NewsListItem.js"
+import { Children } from "mithril"
 
 o.spec("NewsModel", function () {
 	let newsModel: NewsModel
@@ -22,7 +22,6 @@ o.spec("NewsModel", function () {
 		}
 	}
 
-
 	o.beforeEach(function () {
 		serviceExecutor = object()
 
@@ -32,15 +31,15 @@ o.spec("NewsModel", function () {
 			createNewsId({
 				newsItemId: "ID:dummyNews",
 				newsItemName: "dummyNews",
-			})
+			}),
 		]
 
-		when(serviceExecutor.get(NewsService, null))
-			.thenResolve(createNewsOut({
+		when(serviceExecutor.get(NewsService, null)).thenResolve(
+			createNewsOut({
 				newsItemIds: newsIds,
-			}))
+			}),
+		)
 	})
-
 
 	o.spec("news", function () {
 		o("correctly loads news", async function () {
@@ -55,7 +54,7 @@ o.spec("NewsModel", function () {
 
 			await newsModel.acknowledgeNews(newsIds[0].newsItemId)
 
-			verify(serviceExecutor.post(NewsService, createNewsIn({newsItemId: newsIds[0].newsItemId})))
+			verify(serviceExecutor.post(NewsService, createNewsIn({ newsItemId: newsIds[0].newsItemId })))
 		})
 	})
 })

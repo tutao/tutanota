@@ -1,7 +1,7 @@
-import DOMPurify, {Config, DOMPurifyI, HookEvent} from "dompurify"
-import {ReplacementImage} from "../gui/base/icons/Icons"
-import {downcast, stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
-import {DataFile} from "../api/common/DataFile"
+import DOMPurify, { Config, DOMPurifyI, HookEvent } from "dompurify"
+import { ReplacementImage } from "../gui/base/icons/Icons"
+import { downcast, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { DataFile } from "../api/common/DataFile"
 // the svg data string must contain ' instead of " to avoid display errors in Edge
 // '#' character is reserved in URL and FF won't display SVG otherwise
 export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string = "data:image/svg+xml;utf8," + ReplacementImage.replace(/"/g, "'").replace(/#/g, "%23")
@@ -35,7 +35,6 @@ export type SanitizedFragment = {
 	links: Array<Link>
 }
 
-
 // for target = _blank, controls for audio element, cid for embedded images to allow our own cid attribute
 const ADD_ATTR = ["target", "controls", "cid"] as const
 // poster for video element.
@@ -43,20 +42,20 @@ const ADD_URI_SAFE_ATTR = ["poster"] as const
 // prevent loading of external fonts,
 const FORBID_TAGS = ["style"] as const
 
-const HTML_CONFIG: DOMPurify.Config & {RETURN_DOM_FRAGMENT?: undefined, RETURN_DOM?: undefined} = {
+const HTML_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT?: undefined; RETURN_DOM?: undefined } = {
 	ADD_ATTR: ADD_ATTR.slice(),
 	ADD_URI_SAFE_ATTR: ADD_URI_SAFE_ATTR.slice(),
 	FORBID_TAGS: FORBID_TAGS.slice(),
 } as const
 
-const SVG_CONFIG: DOMPurify.Config & {RETURN_DOM_FRAGMENT?: undefined, RETURN_DOM?: undefined} = {
+const SVG_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT?: undefined; RETURN_DOM?: undefined } = {
 	ADD_ATTR: ADD_ATTR.slice(),
 	ADD_URI_SAFE_ATTR: ADD_URI_SAFE_ATTR.slice(),
 	FORBID_TAGS: FORBID_TAGS.slice(),
-	NAMESPACE: "http://www.w3.org/2000/svg"
+	NAMESPACE: "http://www.w3.org/2000/svg",
 } as const
 
-const FRAGMENT_CONFIG: DOMPurify.Config & {RETURN_DOM_FRAGMENT: true} = {
+const FRAGMENT_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT: true } = {
 	ADD_ATTR: ADD_ATTR.slice(),
 	ADD_URI_SAFE_ATTR: ADD_URI_SAFE_ATTR.slice(),
 	FORBID_TAGS: FORBID_TAGS.slice(),
@@ -196,7 +195,6 @@ export class HtmlSanitizer {
 		this.processLink(currentNode as HTMLElement, typedConfig)
 
 		return currentNode
-
 	}
 
 	private replaceAttributes(htmlNode: HTMLElement, config: SanitizeConfig) {
@@ -238,7 +236,7 @@ export class HtmlSanitizer {
 	}
 
 	private replaceAttributeValue(htmlNode: HTMLElement, config: SanitizeConfig) {
-		EXTERNAL_CONTENT_ATTRS.forEach(attrName => {
+		EXTERNAL_CONTENT_ATTRS.forEach((attrName) => {
 			let attribute = htmlNode.attributes.getNamedItem(attrName)
 
 			if (attribute) {
@@ -287,7 +285,6 @@ export class HtmlSanitizer {
 			value = value.replace(/"*\)$/, "")
 
 			this.externalContent.push(value)
-
 			;(htmlNode.style as any)[styleAttributeName] = 'url("' + PREVENT_EXTERNAL_IMAGE_LOADING_ICON + '")'
 
 			if (limitWidth) {

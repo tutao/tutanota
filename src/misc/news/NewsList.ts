@@ -1,10 +1,9 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {NewsId} from "../../api/entities/tutanota/TypeRefs.js"
-import {NewsListItem} from "./NewsListItem.js"
+import m, { Children, Component, Vnode } from "mithril"
+import { NewsId } from "../../api/entities/tutanota/TypeRefs.js"
+import { NewsListItem } from "./NewsListItem.js"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
-import {theme} from "../../gui/theme.js"
-import {Icons} from "../../gui/base/icons/Icons.js"
-
+import { theme } from "../../gui/theme.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
 
 /**
  * Renders the user's list of unacknowledged news.
@@ -24,11 +23,13 @@ export class NewsList implements Component<NewsListAttrs> {
 			})
 		}
 
-		return m("", vnode.attrs.liveNewsIds.map(liveNewsId => {
-			const newsListItem = vnode.attrs.liveNewsListItems[liveNewsId.newsItemName]
+		return m(
+			"",
+			vnode.attrs.liveNewsIds.map((liveNewsId) => {
+				const newsListItem = vnode.attrs.liveNewsListItems[liveNewsId.newsItemName]
 
-			return m(".pt.pl-l.pr-l.flex.fill.border-grey.left.list-border-bottom",
-				{key: liveNewsId.newsItemId}, newsListItem.render(liveNewsId))
-		}))
+				return m(".pt.pl-l.pr-l.flex.fill.border-grey.left.list-border-bottom", { key: liveNewsId.newsItemId }, newsListItem.render(liveNewsId))
+			}),
+		)
 	}
 }

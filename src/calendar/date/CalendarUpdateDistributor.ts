@@ -1,22 +1,22 @@
-import {lang} from "../../misc/LanguageViewModel"
-import {makeInvitationCalendarFile} from "../export/CalendarImporter"
+import { lang } from "../../misc/LanguageViewModel"
+import { makeInvitationCalendarFile } from "../export/CalendarImporter"
 import {
 	CalendarAttendeeStatus,
 	CalendarMethod,
 	ConversationType,
 	getAttendeeStatus,
 	MailMethod,
-	mailMethodToCalendarMethod
+	mailMethodToCalendarMethod,
 } from "../../api/common/TutanotaConstants"
-import {calendarAttendeeStatusSymbol, formatEventDuration, getTimeZone} from "./CalendarUtils"
-import type {CalendarEvent, CalendarEventAttendee, EncryptedMailAddress, Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {createCalendarEventAttendee} from "../../api/entities/tutanota/TypeRefs.js"
-import {assertNotNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import type {SendMailModel} from "../../mail/editor/SendMailModel"
-import {windowFacade} from "../../misc/WindowFacade"
-import {themeController} from "../../gui/theme"
-import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFoundError"
-import {isTutanotaMailAddress, RecipientField} from "../../mail/model/MailUtils"
+import { calendarAttendeeStatusSymbol, formatEventDuration, getTimeZone } from "./CalendarUtils"
+import type { CalendarEvent, CalendarEventAttendee, EncryptedMailAddress, Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { createCalendarEventAttendee } from "../../api/entities/tutanota/TypeRefs.js"
+import { assertNotNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import type { SendMailModel } from "../../mail/editor/SendMailModel"
+import { windowFacade } from "../../misc/WindowFacade"
+import { themeController } from "../../gui/theme"
+import { RecipientsNotFoundError } from "../../api/common/error/RecipientsNotFoundError"
+import { isTutanotaMailAddress, RecipientField } from "../../mail/model/MailUtils"
 
 export interface CalendarUpdateDistributor {
 	sendInvite(existingEvent: CalendarEvent, sendMailModel: SendMailModel): Promise<void>
@@ -25,13 +25,7 @@ export interface CalendarUpdateDistributor {
 
 	sendCancellation(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void>
 
-	sendResponse(
-		event: CalendarEvent,
-		sendMailModel: SendMailModel,
-		sendAs: string,
-		responseTo: Mail | null,
-		status: CalendarAttendeeStatus,
-	): Promise<void>
+	sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, sendAs: string, responseTo: Mail | null, status: CalendarAttendeeStatus): Promise<void>
 }
 
 export class CalendarMailDistributor implements CalendarUpdateDistributor {
@@ -85,13 +79,13 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 			event,
 			sender,
 		}).catch(
-			ofClass(RecipientsNotFoundError, e => {
+			ofClass(RecipientsNotFoundError, (e) => {
 				// we want to delete the event even if the recipient is not an existing tutanota address
 				// and just exclude them from sending out updates but leave the event untouched for other recipients
 				const invalidRecipients = e.message.split("\n")
 				let hasRemovedRecipient = false
-				invalidRecipients.forEach(invalidRecipient => {
-					const recipientInfo = sendMailModel.bccRecipients().find(r => r.address === invalidRecipient)
+				invalidRecipients.forEach((invalidRecipient) => {
+					const recipientInfo = sendMailModel.bccRecipients().find((r) => r.address === invalidRecipient)
 
 					if (recipientInfo) {
 						hasRemovedRecipient = sendMailModel.removeRecipient(recipientInfo, RecipientField.BCC, false) || hasRemovedRecipient
@@ -106,13 +100,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 		)
 	}
 
-	sendResponse(
-		event: CalendarEvent,
-		sendMailModel: SendMailModel,
-		sendAs: string,
-		responseTo: Mail | null,
-		status: CalendarAttendeeStatus,
-	): Promise<void> {
+	sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, sendAs: string, responseTo: Mail | null, status: CalendarAttendeeStatus): Promise<void> {
 		const message = lang.get("repliedToEventInvite_msg", {
 			"{sender}": sendAs,
 			"{event}": event.summary,
@@ -122,33 +110,33 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 
 		if (responseTo) {
 			return Promise.resolve()
-						  .then(() => {
-							  this._sendStart()
+				.then(() => {
+					this._sendStart()
 
-							  return sendMailModel.initAsResponse(
-								  {
-									  previousMail: responseTo,
-									  conversationType: ConversationType.REPLY,
-									  senderMailAddress: sendAs,
-									  recipients: [
-										  {
-											  address: organizer.address,
-											  name: organizer.name,
-										  },
-									  ],
-									  attachments: [],
-									  bodyText: body,
-									  subject: message,
-									  replyTos: [],
-								  },
-								  new Map(),
-							  )
-						  })
-						  .then(model => {
-							  model.attachFiles([makeInvitationCalendarFile(event, CalendarMethod.REPLY, new Date(), getTimeZone())])
-							  return model.send(MailMethod.ICAL_REPLY).then(noOp)
-						  })
-						  .finally(() => this._sendEnd())
+					return sendMailModel.initAsResponse(
+						{
+							previousMail: responseTo,
+							conversationType: ConversationType.REPLY,
+							senderMailAddress: sendAs,
+							recipients: [
+								{
+									address: organizer.address,
+									name: organizer.name,
+								},
+							],
+							attachments: [],
+							bodyText: body,
+							subject: message,
+							replyTos: [],
+						},
+						new Map(),
+					)
+				})
+				.then((model) => {
+					model.attachFiles([makeInvitationCalendarFile(event, CalendarMethod.REPLY, new Date(), getTimeZone())])
+					return model.send(MailMethod.ICAL_REPLY).then(noOp)
+				})
+				.finally(() => this._sendEnd())
 		} else {
 			return this._sendCalendarFile({
 				sendMailModel,
@@ -162,13 +150,13 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 	}
 
 	async _sendCalendarFile({
-								sendMailModel,
-								method,
-								subject,
-								event,
-								body,
-								sender,
-							}: {
+		sendMailModel,
+		method,
+		subject,
+		event,
+		body,
+		sender,
+	}: {
 		sendMailModel: SendMailModel
 		method: MailMethod
 		subject: string
@@ -186,10 +174,10 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 
 		await sendMailModel
 			.send(method)
-			.catch(e => {
+			.catch((e) => {
 				// we remove the attachment from the model to prevent adding more than one calendar file
 				// in case the user changes the event and tries to send again a new attachment is created
-				const attachedInviteFile = sendMailModel.getAttachments().find(file => file.name === inviteFile.name)
+				const attachedInviteFile = sendMailModel.getAttachments().find((file) => file.name === inviteFile.name)
 
 				if (attachedInviteFile) {
 					sendMailModel.removeAttachment(attachedInviteFile)
@@ -239,11 +227,11 @@ function newLine(label: string, content: string): string {
 }
 
 function attendeesLine(event: CalendarEvent): string {
-	const {organizer} = event
+	const { organizer } = event
 	var attendees = ""
 
 	// If organizer is already in the attendees, we don't have to add them separately.
-	if (organizer && !event.attendees.find(a => a.address.address === organizer.address)) {
+	if (organizer && !event.attendees.find((a) => a.address.address === organizer.address)) {
 		attendees = makeAttendee(
 			organizer,
 			createCalendarEventAttendee({
@@ -252,7 +240,7 @@ function attendeesLine(event: CalendarEvent): string {
 		)
 	}
 
-	attendees += event.attendees.map(a => makeAttendee(assertNotNull(organizer), a)).join("\n")
+	attendees += event.attendees.map((a) => makeAttendee(assertNotNull(organizer), a)).join("\n")
 	return newLine(lang.get("who_label"), `<div>${attendees}</div>`)
 }
 

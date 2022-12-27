@@ -1,19 +1,14 @@
 #!/usr/bin/env node
 // @ts-check
 
-import {Argument, Option, program} from "commander"
+import { Argument, Option, program } from "commander"
 import fs from "fs"
 import path from "path"
-import {$} from "zx"
+import { $ } from "zx"
 
 await program
-	.addArgument(new Argument("which", "which version segment to bump")
-		.choices(["major", "minor", "patch"])
-		.default("patch")
-		.argOptional())
-	.addOption(new Option("-p, --platform <platform>", "version for which platform to bump")
-		.choices(["all", "webdesktop", "android", "ios"])
-		.default("all"))
+	.addArgument(new Argument("which", "which version segment to bump").choices(["major", "minor", "patch"]).default("patch").argOptional())
+	.addOption(new Option("-p, --platform <platform>", "version for which platform to bump").choices(["all", "webdesktop", "android", "ios"]).default("all"))
 	.action(run)
 	.parseAsync(process.argv)
 
@@ -27,7 +22,7 @@ await program
  * @param platform {undefined | "webdesktop" | "android" | "ios"}
  * @return {Promise<void>}
  */
-async function run(which, {platform}) {
+async function run(which, { platform }) {
 	console.log(`bumping ${which} version for ${platform ?? "all"}`)
 	const currentVersionString = await readCurrentVersion()
 	const currentVersion = parseCurrentVersion(currentVersionString)
@@ -54,7 +49,7 @@ async function run(which, {platform}) {
 }
 
 async function readCurrentVersion() {
-	return JSON.parse(await fs.promises.readFile("./package.json", {encoding: "utf8"})).version
+	return JSON.parse(await fs.promises.readFile("./package.json", { encoding: "utf8" })).version
 }
 
 /**
@@ -78,7 +73,7 @@ async function bumpIosVersion(newVersionString) {
 		(match, _, __, version) => {
 			found += 1
 			return match.replace(version, newVersionString)
-		}
+		},
 	)
 
 	if (found !== 2) {
@@ -141,7 +136,7 @@ function makeNewVersion(currentVersion, which) {
 function getWorkspaceDirs() {
 	const packagesDir = path.resolve("./packages")
 	const relativePaths = fs.readdirSync(packagesDir)
-	return relativePaths.map(relativePath => path.join(packagesDir, relativePath))
+	return relativePaths.map((relativePath) => path.join(packagesDir, relativePath))
 }
 
 /**
@@ -149,7 +144,7 @@ function getWorkspaceDirs() {
  */
 async function getWorkspaces() {
 	const workspaces = []
-	const workspaceDirs = getWorkspaceDirs();
+	const workspaceDirs = getWorkspaceDirs()
 	for (let workspaceDir of workspaceDirs) {
 		const packageJson = await readPackageJsonFromDir(workspaceDir)
 		workspaces.push({
@@ -188,7 +183,7 @@ async function bumpWorkspaceVersion(version, workspace) {
  */
 async function readPackageJsonFromDir(directory) {
 	const packageJsonPath = path.join(directory, "package.json")
-	const packageJsonContents = await fs.promises.readFile(packageJsonPath, {encoding: "utf8"})
+	const packageJsonContents = await fs.promises.readFile(packageJsonPath, { encoding: "utf8" })
 	return JSON.parse(packageJsonContents)
 }
 
@@ -199,10 +194,10 @@ async function readPackageJsonFromDir(directory) {
  * @return {Promise<void>}
  */
 async function updateDependencyForWorkspaces(version, dependency, workspaces) {
-	await updateDependency({version, dependency, directory: "."})
+	await updateDependency({ version, dependency, directory: "." })
 	for (let workspace of workspaces) {
 		const directory = workspace.directory
-		await updateDependency({version, dependency, directory})
+		await updateDependency({ version, dependency, directory })
 	}
 }
 
@@ -212,7 +207,7 @@ async function updateDependencyForWorkspaces(version, dependency, workspaces) {
  * @param directory {string}
  * @return {Promise<void>}
  */
-async function updateDependency({version, dependency, directory}) {
+async function updateDependency({ version, dependency, directory }) {
 	const packageJson = await readPackageJsonFromDir(directory)
 
 	if (packageJson.dependencies && dependency in packageJson.dependencies) {
@@ -223,5 +218,5 @@ async function updateDependency({version, dependency, directory}) {
 		packageJson.devDependencies[dependency] = version
 	}
 
-	await fs.promises.writeFile(path.join(directory, "package.json"), JSON.stringify(packageJson, null, "\t"), {encoding: "utf8"})
+	await fs.promises.writeFile(path.join(directory, "package.json"), JSON.stringify(packageJson, null, "\t"), { encoding: "utf8" })
 }

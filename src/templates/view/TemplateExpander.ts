@@ -1,10 +1,10 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {TEMPLATE_POPUP_HEIGHT} from "./TemplatePopup"
-import {px, size} from "../../gui/size"
-import {Keys} from "../../api/common/TutanotaConstants"
-import {TemplatePopupModel} from "../model/TemplatePopupModel"
-import {isKeyPressed} from "../../misc/KeyManager"
-import type {EmailTemplate} from "../../api/entities/tutanota/TypeRefs.js"
+import m, { Children, Component, Vnode } from "mithril"
+import { TEMPLATE_POPUP_HEIGHT } from "./TemplatePopup"
+import { px, size } from "../../gui/size"
+import { Keys } from "../../api/common/TutanotaConstants"
+import { TemplatePopupModel } from "../model/TemplatePopupModel"
+import { isKeyPressed } from "../../misc/KeyManager"
+import type { EmailTemplate } from "../../api/entities/tutanota/TypeRefs.js"
 
 /**
  * TemplateExpander is the right side that is rendered within the Popup. Consists of Dropdown, Content and Button.
@@ -16,8 +16,8 @@ export type TemplateExpanderAttrs = {
 }
 
 export class TemplateExpander implements Component<TemplateExpanderAttrs> {
-	view({attrs}: Vnode<TemplateExpanderAttrs>): Children {
-		const {model} = attrs
+	view({ attrs }: Vnode<TemplateExpanderAttrs>): Children {
+		const { model } = attrs
 		const selectedContent = model.getSelectedContent()
 		return m(
 			".flex.flex-column.flex-grow.scroll.ml-s",

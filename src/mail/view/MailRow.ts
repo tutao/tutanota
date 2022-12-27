@@ -1,13 +1,13 @@
-import {getMailFolderType, MailFolderType, ReplyType} from "../../api/common/TutanotaConstants"
-import {FontIcons} from "../../gui/base/icons/FontIcons"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {formatDateTimeFromYesterdayOn} from "../../misc/Formatter"
-import {getSenderOrRecipientHeading, isTutanotaTeamMail} from "../model/MailUtils"
-import {locator} from "../../api/main/MainLocator"
-import m, {Children} from "mithril"
+import { getMailFolderType, MailFolderType, ReplyType } from "../../api/common/TutanotaConstants"
+import { FontIcons } from "../../gui/base/icons/FontIcons"
+import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { formatDateTimeFromYesterdayOn } from "../../misc/Formatter"
+import { getSenderOrRecipientHeading, isTutanotaTeamMail } from "../model/MailUtils"
+import { locator } from "../../api/main/MainLocator"
+import m, { Children } from "mithril"
 import Badge from "../../gui/base/Badge"
-import {px} from "../../gui/size"
-import type {VirtualRow} from "../../gui/base/List"
+import { px } from "../../gui/size"
+import type { VirtualRow } from "../../gui/base/List"
 
 const iconMap: Record<MailFolderType, string> = {
 	[MailFolderType.CUSTOM]: FontIcons.Folder,
@@ -121,7 +121,7 @@ export class MailRow implements VirtualRow<Mail> {
 			m(
 				".flex.items-start.flex-no-grow.no-shrink.pr-s.pb-xs",
 				m(".dot.bg-accent-fg.hidden", {
-					oncreate: vnode => (this._domUnread = vnode.dom as HTMLElement),
+					oncreate: (vnode) => (this._domUnread = vnode.dom as HTMLElement),
 				}),
 			),
 			m(".flex-grow.min-width-0", [
@@ -130,16 +130,16 @@ export class MailRow implements VirtualRow<Mail> {
 						Badge,
 						{
 							classes: ".small.mr-s",
-							oncreate: vnode => (this._domTeamLabel = vnode.dom as HTMLElement),
+							oncreate: (vnode) => (this._domTeamLabel = vnode.dom as HTMLElement),
 						},
 						"Tutanota Team",
 					),
 					m("small.text-ellipsis", {
-						oncreate: vnode => (this._domSender = vnode.dom as HTMLElement),
+						oncreate: (vnode) => (this._domSender = vnode.dom as HTMLElement),
 					}),
 					m(".flex-grow"),
 					m("small.text-ellipsis.flex-fixed", {
-						oncreate: vnode => (this._domDate = vnode.dom as HTMLElement),
+						oncreate: (vnode) => (this._domDate = vnode.dom as HTMLElement),
 					}),
 				]),
 				m(
@@ -151,10 +151,10 @@ export class MailRow implements VirtualRow<Mail> {
 					},
 					[
 						m(".text-ellipsis.flex-grow", {
-							oncreate: vnode => (this._domSubject = vnode.dom as HTMLElement),
+							oncreate: (vnode) => (this._domSubject = vnode.dom as HTMLElement),
 						}),
 						m("span.ion.ml-s.list-font-icons.secondary", {
-							oncreate: vnode => (this._iconsDom = vnode.dom as HTMLElement),
+							oncreate: (vnode) => (this._iconsDom = vnode.dom as HTMLElement),
 						}),
 					],
 				),

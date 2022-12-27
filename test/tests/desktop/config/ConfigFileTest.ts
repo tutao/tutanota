@@ -1,7 +1,7 @@
 import o from "ospec"
 import n from "../../nodemocker.js"
-import {delay, numberRange} from "@tutao/tutanota-utils"
-import {getConfigFile} from "../../../../src/desktop/config/ConfigFile.js"
+import { delay, numberRange } from "@tutao/tutanota-utils"
+import { getConfigFile } from "../../../../src/desktop/config/ConfigFile.js"
 
 const MAX_LATENCY = 20
 const rndDelay = () => delay(Math.floor(Math.random() * MAX_LATENCY))
@@ -13,62 +13,53 @@ const fsMock = {
 	},
 	constants: {},
 	promises: {
-		"fs": {
-			"present.json": JSON.stringify({a: "hello", b: ""})
+		fs: {
+			"present.json": JSON.stringify({ a: "hello", b: "" }),
 		},
 		writeFile: function (p: string, v: string) {
-			return rndDelay().then(() => this.fs[p] = v)
+			return rndDelay().then(() => (this.fs[p] = v))
 		},
 		readFile: function (p: string) {
 			return rndDelay().then(() => this.fs[p])
 		},
-	}
+	},
 }
-
 
 o.spec("ConfigFileTest", function () {
 	o("ensurePresence works", async function () {
-		const newV = {a: "bye", b: "hello"}
-		const cf = getConfigFile(
-			"present.json",
-			n.mock<typeof import("fs")>("fs", fsMock).set()
-		)
-		return cf.ensurePresence(newV)
-		         .then(() => cf.readJSON())
-		         .then(v => {
-			         o(v).notDeepEquals(newV)
-		         })
+		const newV = { a: "bye", b: "hello" }
+		const cf = getConfigFile("present.json", n.mock<typeof import("fs")>("fs", fsMock).set())
+		return cf
+			.ensurePresence(newV)
+			.then(() => cf.readJSON())
+			.then((v) => {
+				o(v).notDeepEquals(newV)
+			})
 	})
 
 	o("ensurePresence works 2", async function () {
-		const cf = getConfigFile(
-			"not-present.json",
-			n.mock<typeof import("fs")>("fs", fsMock).set()
-		)
-		const newV = {a: "bye", b: "hello"}
-		return cf.ensurePresence(newV)
-		         .then(() => cf.readJSON())
-		         .then(v => {
-			         o(v).deepEquals(newV)
-		         })
+		const cf = getConfigFile("not-present.json", n.mock<typeof import("fs")>("fs", fsMock).set())
+		const newV = { a: "bye", b: "hello" }
+		return cf
+			.ensurePresence(newV)
+			.then(() => cf.readJSON())
+			.then((v) => {
+				o(v).deepEquals(newV)
+			})
 	})
 
 	o("interleaved reads/writes work", async function () {
 		o.timeout(500)
-		const cf = getConfigFile(
-			"conf.json",
-			n.mock<typeof import("fs")>("fs", fsMock).set()
-		)
+		const cf = getConfigFile("conf.json", n.mock<typeof import("fs")>("fs", fsMock).set())
 
 		const cycles = 19
 		const res: number[] = []
 
-
-		for (let i = 0; i < cycles + 1;) {
+		for (let i = 0; i < cycles + 1; ) {
 			await Promise.resolve()
-			cf.writeJSON({a: i++})
+			cf.writeJSON({ a: i++ })
 			await Promise.resolve()
-			cf.readJSON().then(v => {
+			cf.readJSON().then((v) => {
 				i = v.a
 				res.push(i)
 			})
@@ -82,27 +73,21 @@ o.spec("ConfigFileTest", function () {
 
 	o("instance pool works", async function () {
 		const fs = n.mock<typeof import("fs")>("fs", fsMock).set()
-		const first = getConfigFile(
-			"somepath.json",
-			fs
-		)
+		const first = getConfigFile("somepath.json", fs)
 
-		await first.ensurePresence({"mork": 123})
+		await first.ensurePresence({ mork: 123 })
 
-		const second = getConfigFile(
-			"somepath.json",
-			fs
-		)
+		const second = getConfigFile("somepath.json", fs)
 
-		await second.ensurePresence({"mork": 321})
+		await second.ensurePresence({ mork: 321 })
 
 		const unchanged_content = await first.readJSON()
-		o(unchanged_content).deepEquals({"mork": 123})
+		o(unchanged_content).deepEquals({ mork: 123 })
 
-		second.writeJSON({a: false})
+		second.writeJSON({ a: false })
 
 		const changed_content = await first.readJSON()
-		o(changed_content).deepEquals({a: false})
+		o(changed_content).deepEquals({ a: false })
 
 		// @ts-ignore
 		first.t = true
@@ -110,4 +95,3 @@ o.spec("ConfigFileTest", function () {
 		o(second.t).equals(true)
 	})
 })
-

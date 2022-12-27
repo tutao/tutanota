@@ -1,46 +1,46 @@
-import type {Commands} from "../common/MessageDispatcher"
-import {errorToObj, MessageDispatcher, Request, WorkerTransport} from "../common/MessageDispatcher"
-import {CryptoError} from "../common/error/CryptoError"
-import {BookingFacade} from "./facades/BookingFacade"
-import {NotAuthenticatedError} from "../common/error/RestError"
-import {ProgrammingError} from "../common/error/ProgrammingError"
-import {initLocator, locator, resetLocator} from "./WorkerLocator"
-import {assertWorkerOrNode, isMainOrNode} from "../common/Env"
-import type {ContactFormFacade} from "./facades/ContactFormFacade"
-import type {BrowserData} from "../../misc/ClientConstants"
-import type {InfoMessage} from "../common/CommonTypes"
-import {CryptoFacade} from "./crypto/CryptoFacade"
-import {delay} from "@tutao/tutanota-utils"
-import type {EntityUpdate, WebsocketCounterData, WebsocketLeaderStatus} from "../entities/sys/TypeRefs.js"
-import type {ProgressMonitorId} from "../common/utils/ProgressMonitor"
-import {urlify} from "./Urlifier"
-import type {GiftCardFacade} from "./facades/GiftCardFacade"
-import type {LoginFacade} from "./facades/LoginFacade"
-import type {CustomerFacade} from "./facades/CustomerFacade"
-import type {GroupManagementFacade} from "./facades/GroupManagementFacade"
-import {ConfigurationDatabase} from "./facades/ConfigurationDatabase"
-import {CalendarFacade} from "./facades/CalendarFacade"
-import {MailFacade} from "./facades/MailFacade"
-import {ShareFacade} from "./facades/ShareFacade"
-import {CounterFacade} from "./facades/CounterFacade"
-import {Indexer} from "./search/Indexer"
-import {SearchFacade} from "./search/SearchFacade"
-import {MailAddressFacade} from "./facades/MailAddressFacade"
-import {FileFacade} from "./facades/FileFacade.js"
-import {UserManagementFacade} from "./facades/UserManagementFacade"
-import {exposeLocal, exposeRemote} from "../common/WorkerProxy"
-import type {SearchIndexStateInfo} from "./search/SearchTypes"
-import type {DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
-import type {EntropySource} from "@tutao/tutanota-crypto"
-import {aes256RandomKey, keyToBase64, random} from "@tutao/tutanota-crypto"
-import type {NativeInterface} from "../../native/common/NativeInterface"
-import type {EntityRestInterface} from "./rest/EntityRestClient"
-import {WsConnectionState} from "../main/WorkerClient";
-import {RestClient} from "./rest/RestClient"
-import {IServiceExecutor} from "../common/ServiceRequest.js"
-import {BlobFacade} from "./facades/BlobFacade"
-import {ExposedCacheStorage} from "./rest/DefaultEntityRestCache.js"
-import {LoginListener} from "../main/LoginListener"
+import type { Commands } from "../common/MessageDispatcher"
+import { errorToObj, MessageDispatcher, Request, WorkerTransport } from "../common/MessageDispatcher"
+import { CryptoError } from "../common/error/CryptoError"
+import { BookingFacade } from "./facades/BookingFacade"
+import { NotAuthenticatedError } from "../common/error/RestError"
+import { ProgrammingError } from "../common/error/ProgrammingError"
+import { initLocator, locator, resetLocator } from "./WorkerLocator"
+import { assertWorkerOrNode, isMainOrNode } from "../common/Env"
+import type { ContactFormFacade } from "./facades/ContactFormFacade"
+import type { BrowserData } from "../../misc/ClientConstants"
+import type { InfoMessage } from "../common/CommonTypes"
+import { CryptoFacade } from "./crypto/CryptoFacade"
+import { delay } from "@tutao/tutanota-utils"
+import type { EntityUpdate, WebsocketCounterData, WebsocketLeaderStatus } from "../entities/sys/TypeRefs.js"
+import type { ProgressMonitorId } from "../common/utils/ProgressMonitor"
+import { urlify } from "./Urlifier"
+import type { GiftCardFacade } from "./facades/GiftCardFacade"
+import type { LoginFacade } from "./facades/LoginFacade"
+import type { CustomerFacade } from "./facades/CustomerFacade"
+import type { GroupManagementFacade } from "./facades/GroupManagementFacade"
+import { ConfigurationDatabase } from "./facades/ConfigurationDatabase"
+import { CalendarFacade } from "./facades/CalendarFacade"
+import { MailFacade } from "./facades/MailFacade"
+import { ShareFacade } from "./facades/ShareFacade"
+import { CounterFacade } from "./facades/CounterFacade"
+import { Indexer } from "./search/Indexer"
+import { SearchFacade } from "./search/SearchFacade"
+import { MailAddressFacade } from "./facades/MailAddressFacade"
+import { FileFacade } from "./facades/FileFacade.js"
+import { UserManagementFacade } from "./facades/UserManagementFacade"
+import { exposeLocal, exposeRemote } from "../common/WorkerProxy"
+import type { SearchIndexStateInfo } from "./search/SearchTypes"
+import type { DeviceEncryptionFacade } from "./facades/DeviceEncryptionFacade"
+import type { EntropySource } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, keyToBase64, random } from "@tutao/tutanota-crypto"
+import type { NativeInterface } from "../../native/common/NativeInterface"
+import type { EntityRestInterface } from "./rest/EntityRestClient"
+import { WsConnectionState } from "../main/WorkerClient"
+import { RestClient } from "./rest/RestClient"
+import { IServiceExecutor } from "../common/ServiceRequest.js"
+import { BlobFacade } from "./facades/BlobFacade"
+import { ExposedCacheStorage } from "./rest/DefaultEntityRestCache.js"
+import { LoginListener } from "../main/LoginListener"
 
 assertWorkerOrNode()
 
@@ -219,9 +219,9 @@ export class WorkerImpl implements NativeInterface {
 				return {
 					async generateRandomNumber(nbrOfBytes: number) {
 						return random.generateRandomNumber(nbrOfBytes)
-					}
+					},
 				}
-			}
+			},
 		}
 	}
 
@@ -252,7 +252,7 @@ export class WorkerImpl implements NativeInterface {
 				const args = message.args as Parameters<RestClient["request"]>
 				let [path, method, options] = args
 				options = options ?? {}
-				options.headers = {...locator.user.createAuthHeaders(), ...options.headers}
+				options.headers = { ...locator.user.createAuthHeaders(), ...options.headers }
 				return locator.restClient.request(path, method, options)
 			},
 			entropy: (message: WorkerRequest) => {
@@ -260,11 +260,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			tryReconnectEventBus(message: WorkerRequest) {
-				locator.eventBusClient.tryReconnect(
-					message.args[0],
-					message.args[1],
-					message.args[2],
-				)
+				locator.eventBusClient.tryReconnect(message.args[0], message.args[1], message.args[2])
 				return Promise.resolve()
 			},
 
@@ -297,7 +293,7 @@ export class WorkerImpl implements NativeInterface {
 	}
 
 	getMainInterface(): MainInterface {
-		return exposeRemote<MainInterface>(request => this._dispatcher.postRequest(request))
+		return exposeRemote<MainInterface>((request) => this._dispatcher.postRequest(request))
 	}
 
 	/**

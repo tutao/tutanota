@@ -1,9 +1,9 @@
 import o from "ospec"
-import {isSuspensionResponse, RestClient} from "../../../../../src/api/worker/rest/RestClient.js"
-import {HttpMethod, MediaType} from "../../../../../src/api/common/EntityFunctions.js"
-import {ResourceError} from "../../../../../src/api/common/error/RestError.js"
-import {downcast} from "@tutao/tutanota-utils"
-import http from "http";
+import { isSuspensionResponse, RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
+import { HttpMethod, MediaType } from "../../../../../src/api/common/EntityFunctions.js"
+import { ResourceError } from "../../../../../src/api/common/error/RestError.js"
+import { downcast } from "@tutao/tutanota-utils"
+import http from "http"
 
 const SERVER_TIME_IN_HEADER = "Mon, 12 Jul 2021 13:18:39 GMT"
 const SERVER_TIMESTAMP = 1626095919000
@@ -12,7 +12,7 @@ o.spec("rest client", function () {
 	const suspensionHandlerMock = {
 		activateSuspensionIfInactive: o.spy(),
 		isSuspended: o.spy(() => false),
-		deferRequest: o.spy(request => request()),
+		deferRequest: o.spy((request) => request()),
 	}
 	const restClient = new RestClient(downcast(suspensionHandlerMock))
 	o.spec(
@@ -42,7 +42,7 @@ o.spec("rest client", function () {
 				})
 				const res = await restClient.request("/get/json", HttpMethod.GET, {
 					responseType: MediaType.Json,
-					baseUrl: "http://localhost:3000"
+					baseUrl: "http://localhost:3000",
 				})
 				o(res).equals(responseText)
 			})
@@ -58,7 +58,7 @@ o.spec("rest client", function () {
 				restClient.request("/get/with-body", HttpMethod.GET, {
 					body: request,
 					responseType: MediaType.Json,
-					baseUrl: "http://localhost:3000"
+					baseUrl: "http://localhost:3000",
 				})
 			})
 			o("GET binary", function (done) {
@@ -71,15 +71,17 @@ o.spec("rest client", function () {
 					o(req.headers["accept"]).equals("application/octet-stream")
 					res.send(response)
 				})
-				restClient.request("/get/binary", HttpMethod.GET, {
-					queryParams: {},
-					responseType: MediaType.Binary,
-					baseUrl: "http://localhost:3000",
-				}).then(res => {
-					o(res instanceof Uint8Array).equals(true)
-					o(Array.from(res as any)).deepEquals(Array.from(response))
-					done()
-				})
+				restClient
+					.request("/get/binary", HttpMethod.GET, {
+						queryParams: {},
+						responseType: MediaType.Binary,
+						baseUrl: "http://localhost:3000",
+					})
+					.then((res) => {
+						o(res instanceof Uint8Array).equals(true)
+						o(Array.from(res as any)).deepEquals(Array.from(response))
+						done()
+					})
 			})
 			o("POST json", testJson("POST"))
 			o("PUT json", testJson("PUT"))
@@ -102,14 +104,16 @@ o.spec("rest client", function () {
 
 						res.send(responseText)
 					})
-					restClient.request(url, method, {
-						body: requestText,
-						responseType: MediaType.Json,
-						baseUrl: "http://localhost:3000",
-					}).then(res => {
-						o(res).equals(responseText)
-						done()
-					})
+					restClient
+						.request(url, method, {
+							body: requestText,
+							responseType: MediaType.Json,
+							baseUrl: "http://localhost:3000",
+						})
+						.then((res) => {
+							o(res).equals(responseText)
+							done()
+						})
 				}
 			}
 
@@ -133,15 +137,17 @@ o.spec("rest client", function () {
 
 						res.send(response)
 					})
-					restClient.request(url, method, {
-						body: new Uint8Array(request),
-						responseType: MediaType.Binary,
-						baseUrl: "http://localhost:3000",
-					}).then(res => {
-						o(res instanceof Uint8Array).equals(true)
-						o(Array.from(res as any)).deepEquals(Array.from(response))
-						done()
-					})
+					restClient
+						.request(url, method, {
+							body: new Uint8Array(request),
+							responseType: MediaType.Binary,
+							baseUrl: "http://localhost:3000",
+						})
+						.then((res) => {
+							o(res instanceof Uint8Array).equals(true)
+							o(Array.from(res as any)).deepEquals(Array.from(response))
+							done()
+						})
 				}
 			}
 
@@ -153,7 +159,7 @@ o.spec("rest client", function () {
 			function testEmptyBody(method) {
 				return function () {
 					o.timeout(200)
-					return new Promise(resolve => {
+					return new Promise((resolve) => {
 						let url = "/" + method + "/empty-body"
 						app[method.toLowerCase()](url, (req, res) => {
 							o(req.headers["content-type"]).equals(undefined)
@@ -161,12 +167,14 @@ o.spec("rest client", function () {
 							res.set("Date", SERVER_TIME_IN_HEADER)
 							res.send()
 						})
-						restClient.request(url, method, {
-							baseUrl: "http://localhost:3000"
-						}).then(res => {
-							o(res).equals(null)
-							resolve(null)
-						})
+						restClient
+							.request(url, method, {
+								baseUrl: "http://localhost:3000",
+							})
+							.then((res) => {
+								o(res).equals(null)
+								resolve(null)
+							})
 					})
 				}
 			}
@@ -185,9 +193,9 @@ o.spec("rest client", function () {
 							res.status(205).send() // every status code !== 200 is currently handled as error
 						})
 						restClient
-							.request(url, method, {baseUrl: "http://localhost:3000"})
+							.request(url, method, { baseUrl: "http://localhost:3000" })
 							.then(reject)
-							.catch(e => {
+							.catch((e) => {
 								o(e instanceof ResourceError).equals(true)
 								resolve(null)
 							})

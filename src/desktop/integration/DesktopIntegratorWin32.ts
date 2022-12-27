@@ -1,6 +1,6 @@
-import type {WindowManager} from "../DesktopWindowManager"
-import type {DesktopIntegrator} from "./DesktopIntegrator"
-import {Registry} from "winreg"
+import type { WindowManager } from "../DesktopWindowManager"
+import type { DesktopIntegrator } from "./DesktopIntegrator"
+import { Registry } from "winreg"
 
 type Electron = typeof Electron.CrossProcessExports
 
@@ -35,7 +35,7 @@ export class DesktopIntegratorWin32 implements DesktopIntegrator {
 		if (!(await this.isAutoLaunchEnabled())) {
 			// can't promisify here because it screws with autoRunKeys 'this' semantics
 			return new Promise((resolve, reject) => {
-				this._autoRunKey.set(this._electron.app.name, this._registry.REG_SZ, `${process.execPath} -a`, err => {
+				this._autoRunKey.set(this._electron.app.name, this._registry.REG_SZ, `${process.execPath} -a`, (err) => {
 					if (err) {
 						reject(err)
 					}
@@ -50,7 +50,7 @@ export class DesktopIntegratorWin32 implements DesktopIntegrator {
 		// can't promisify here because it screws with autoRunKeys 'this' semantics
 		if (await this.isAutoLaunchEnabled()) {
 			return new Promise((resolve, reject) => {
-				this._autoRunKey.remove(this._electron.app.name, err => {
+				this._autoRunKey.remove(this._electron.app.name, (err) => {
 					if (err) {
 						reject(err)
 					}

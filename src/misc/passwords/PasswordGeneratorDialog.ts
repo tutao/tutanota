@@ -1,11 +1,11 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {Dialog} from "../../gui/base/Dialog"
-import {PasswordGenerator} from "./PasswordGenerator"
-import {Button, ButtonType} from "../../gui/base/Button.js"
-import {locator} from "../../api/main/MainLocator"
-import {px} from "../../gui/size"
-import {copyToClipboard} from "../ClipboardUtils"
-import {lang} from "../LanguageViewModel.js"
+import m, { Children, Component, Vnode } from "mithril"
+import { Dialog } from "../../gui/base/Dialog"
+import { PasswordGenerator } from "./PasswordGenerator"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import { locator } from "../../api/main/MainLocator"
+import { px } from "../../gui/size"
+import { copyToClipboard } from "../ClipboardUtils"
+import { lang } from "../LanguageViewModel.js"
 
 let dictionary: string[] | null = null
 
@@ -16,7 +16,7 @@ let dictionary: string[] | null = null
 export async function showPasswordGeneratorDialog(): Promise<string> {
 	if (dictionary == null) {
 		const appState = window.tutao.appState
-		const baseUrl = location.protocol + "//" + location.hostname + (location.port ? (":" + location.port) : "") + appState.prefixWithoutFile
+		const baseUrl = location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "") + appState.prefixWithoutFile
 		dictionary = await fetch(baseUrl + "/wordlibrary.json").then((response) => response.json())
 	}
 
@@ -39,13 +39,14 @@ export async function showPasswordGeneratorDialog(): Promise<string> {
 		const dialog = Dialog.showActionDialog({
 			title: () => "Passphrase",
 			child: {
-				view: () => m(PasswordGeneratorDialog, {
-					okAction: insertPasswordOkAction,
-					updateAction,
-					password
-				})
+				view: () =>
+					m(PasswordGeneratorDialog, {
+						okAction: insertPasswordOkAction,
+						updateAction,
+						password,
+					}),
 			},
-			okAction: null
+			okAction: null,
 		})
 	})
 }
@@ -58,27 +59,35 @@ interface PasswordGeneratorDialogAttrs {
 
 class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs> {
 	view(vnode: Vnode<PasswordGeneratorDialogAttrs>): Children {
-		const {updateAction, okAction, password} = vnode.attrs
+		const { updateAction, okAction, password } = vnode.attrs
 		return m("", [
-			m(".editor-border.mt.flex.center-horizontally.center-vertically", {
-				style: {
-					minHeight: px(65) // needs 65px for displaying two rows
-				}
-			}, m(".center.b.monospace", password)),
+			m(
+				".editor-border.mt.flex.center-horizontally.center-vertically",
+				{
+					style: {
+						minHeight: px(65), // needs 65px for displaying two rows
+					},
+				},
+				m(".center.b.monospace", password),
+			),
 			m(".small.mt-xs", [
 				lang.get("passphraseGeneratorHelp_msg"),
 				" ",
-				m("a", {
-					href: "https://tutanota.com/faq#passphrase-generator",
-					target: "_blank",
-					rel: "nooopener noreferer"
-				}, lang.get("faqEntry_label"))
+				m(
+					"a",
+					{
+						href: "https://tutanota.com/faq#passphrase-generator",
+						target: "_blank",
+						rel: "nooopener noreferer",
+					},
+					lang.get("faqEntry_label"),
+				),
 			]),
 			m(".flex-end", [
 				m(Button, {
 					label: "regeneratePassword_action",
 					click: () => updateAction(),
-					type: ButtonType.Secondary
+					type: ButtonType.Secondary,
 				}),
 				m(Button, {
 					click: () => copyToClipboard(password),
@@ -86,11 +95,14 @@ class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs>
 					type: ButtonType.Secondary,
 				}),
 			]),
-			m(".flex", m(Button, {
-				label: "apply_action",
-				click: () => okAction(),
-				type: ButtonType.Login
-			})),
+			m(
+				".flex",
+				m(Button, {
+					label: "apply_action",
+					click: () => okAction(),
+					type: ButtonType.Login,
+				}),
+			),
 		])
 	}
 }

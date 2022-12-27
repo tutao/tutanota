@@ -2,16 +2,16 @@ import path from "path"
 
 // These are the dependencies that must be provided for the module loader systemjs
 export const dependencyMap = {
-	"mithril": path.normalize("./libs/mithril.js"),
+	mithril: path.normalize("./libs/mithril.js"),
 	"mithril/stream": path.normalize("./libs/stream.js"),
 	"squire-rte": path.normalize("./libs/squire-raw.js"),
-	"dompurify": path.normalize("./libs/purify.js"),
+	dompurify: path.normalize("./libs/purify.js"),
 	"qrcode-svg": path.normalize("./libs/qrcode.js"),
-	"jszip": path.normalize("./libs/jszip.js"),
-	"luxon": path.normalize("./libs/luxon.js"),
-	"linkifyjs": path.normalize("./libs/linkify.js"),
+	jszip: path.normalize("./libs/jszip.js"),
+	luxon: path.normalize("./libs/luxon.js"),
+	linkifyjs: path.normalize("./libs/linkify.js"),
 	"linkifyjs/html": path.normalize("./libs/linkify-html.js"),
-	"cborg": path.normalize("./libs/cborg.js")
+	cborg: path.normalize("./libs/cborg.js"),
 }
 
 /**
@@ -20,34 +20,41 @@ export const dependencyMap = {
 export const allowedImports = {
 	"polyfill-helpers": [],
 	"common-min": ["polyfill-helpers"],
-	"boot": ["polyfill-helpers", "common-min"],
-	"common": ["polyfill-helpers", "common-min"],
+	boot: ["polyfill-helpers", "common-min"],
+	common: ["polyfill-helpers", "common-min"],
 	"gui-base": ["polyfill-helpers", "common-min", "common", "boot"],
-	"main": ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
-	"sanitizer": ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
-	"date": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing"],
+	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
+	sanitizer: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
+	date: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing"],
 	"mail-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
 	"mail-editor": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "sanitizer", "sharing"],
-	"search": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "contacts", "date"],
+	search: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "contacts", "date"],
 	// ContactMergeView needs HtmlEditor even though ContactEditor doesn't?
-	"contacts": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "mail-editor"],
+	contacts: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "mail-editor"],
 	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "sharing"],
-	"login": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main",],
-	"worker": ["polyfill-helpers", "common-min", "common", "native-common", "native-worker"],
-	"settings": [
-		"polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "contacts", "sanitizer", "mail-editor", "mail-view", "date",
-		"login", "sharing"
+	login: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
+	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker"],
+	settings: [
+		"polyfill-helpers",
+		"common-min",
+		"common",
+		"boot",
+		"gui-base",
+		"main",
+		"contacts",
+		"sanitizer",
+		"mail-editor",
+		"mail-view",
+		"date",
+		"login",
+		"sharing",
 	],
-	"ui-extra": [
-		"polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "settings", "contacts", "sanitizer", "login", "mail-editor"
-	],
-	"sharing": [
-		"polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"
-	],
+	"ui-extra": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "settings", "contacts", "sanitizer", "login", "mail-editor"],
+	sharing: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
 	"native-common": ["polyfill-helpers", "common-min", "common"],
 	"native-main": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "native-common", "login"],
 	"native-worker": ["polyfill-helpers", "common-min", "common"],
-	"jszip": ["polyfill-helpers"]
+	jszip: ["polyfill-helpers"],
 }
 
 export function resolveLibs(baseDir = ".") {
@@ -56,7 +63,7 @@ export function resolveLibs(baseDir = ".") {
 		resolveId(source) {
 			const resolved = dependencyMap[source]
 			return resolved && path.join(baseDir, resolved)
-		}
+		},
 	}
 }
 
@@ -66,7 +73,7 @@ export function resolveLibs(baseDir = ".") {
  * @param getModuleInfo Helper function to get information about the ES module.
  * @returns {string} Chunk name
  */
-export function getChunkName(moduleId, {getModuleInfo}) {
+export function getChunkName(moduleId, { getModuleInfo }) {
 	// See HACKING.md for rules
 	const moduleInfo = getModuleInfo(moduleId)
 	const code = moduleInfo.code
@@ -74,12 +81,13 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		console.log("SYNTHETIC MODULE??", moduleId)
 	}
 	if (
-		code.includes("@bundleInto:common-min")
-		|| moduleId.includes(path.normalize("libs/stream"))
-		|| moduleId.includes(path.normalize("packages/tutanota-utils"))
+		code.includes("@bundleInto:common-min") ||
+		moduleId.includes(path.normalize("libs/stream")) ||
+		moduleId.includes(path.normalize("packages/tutanota-utils"))
 	) {
 		return "common-min"
-	} else if (code.includes("assertMainOrNodeBoot") ||
+	} else if (
+		code.includes("assertMainOrNodeBoot") ||
 		moduleId.includes(path.normalize("libs/mithril")) ||
 		moduleId.includes(path.normalize("src/app.ts")) ||
 		code.includes("@bundleInto:boot")
@@ -87,7 +95,8 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		// everything marked as assertMainOrNodeBoot goes into boot bundle right now
 		// (which is getting merged into app.js)
 		return "boot"
-	} else if (moduleId.includes(path.normalize("src/gui/date")) ||
+	} else if (
+		moduleId.includes(path.normalize("src/gui/date")) ||
 		moduleId.includes(path.normalize("src/misc/DateParser")) ||
 		moduleId.includes("luxon") ||
 		moduleId.includes(path.normalize("src/calendar/date")) ||
@@ -102,7 +111,8 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		return "gui-base"
 	} else if (moduleId.includes(path.normalize("src/native/main")) || moduleId.includes("SearchInPageOverlay")) {
 		return "native-main"
-	} else if (moduleId.includes(path.normalize("src/mail/editor")) ||
+	} else if (
+		moduleId.includes(path.normalize("src/mail/editor")) ||
 		moduleId.includes("squire") ||
 		moduleId.includes(path.normalize("src/gui/editor")) ||
 		moduleId.includes(path.normalize("src/mail/signature")) ||
@@ -128,9 +138,11 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		return "main"
 	} else if (moduleId.includes(path.normalize("src/mail/view")) || moduleId.includes(path.normalize("src/mail/export"))) {
 		return "mail-view"
-	} else if (moduleId.includes(path.normalize("src/native/worker"))
-		|| moduleId.includes(path.normalize("libs/linkify"))
-		|| moduleId.includes(path.normalize("libs/linkify-html"))) {
+	} else if (
+		moduleId.includes(path.normalize("src/native/worker")) ||
+		moduleId.includes(path.normalize("libs/linkify")) ||
+		moduleId.includes(path.normalize("libs/linkify-html"))
+	) {
 		return "worker"
 	} else if (moduleId.includes(path.normalize("src/native/common"))) {
 		return "native-common"
@@ -140,37 +152,41 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		return "calendar-view"
 	} else if (moduleId.includes(path.normalize("src/contacts"))) {
 		return "contacts"
-	} else if (moduleId.includes(path.normalize("src/login/recover"))
-		|| moduleId.includes(path.normalize("src/support"))
-		|| moduleId.includes(path.normalize("src/login/contactform"))) {
+	} else if (
+		moduleId.includes(path.normalize("src/login/recover")) ||
+		moduleId.includes(path.normalize("src/support")) ||
+		moduleId.includes(path.normalize("src/login/contactform"))
+	) {
 		// Collection of small UI components which are used not too often
 		// Perhaps contact form should be separate
 		// Recover things depends on HtmlEditor which we don't want to load on each login
 		return "ui-extra"
 	} else if (moduleId.includes(path.normalize("src/login"))) {
 		return "login"
-	} else if (moduleId.includes(path.normalize("src/api/common"))
-		|| moduleId.includes(path.normalize("src/api/entities"))
-		|| moduleId.includes(path.normalize("src/desktop/config/ConfigKeys"))
-		|| moduleId.includes("cborg")
-		|| moduleId.includes(path.normalize("src/offline"))
+	} else if (
+		moduleId.includes(path.normalize("src/api/common")) ||
+		moduleId.includes(path.normalize("src/api/entities")) ||
+		moduleId.includes(path.normalize("src/desktop/config/ConfigKeys")) ||
+		moduleId.includes("cborg") ||
+		moduleId.includes(path.normalize("src/offline"))
 	) {
 		// things that are used in both worker and client
 		// entities could be separate in theory but in practice they are anyway
 		return "common"
 	} else if (moduleId.includes("rollupPluginBabelHelpers") || moduleId.includes("commonjsHelpers") || moduleId.includes("tslib")) {
 		return "polyfill-helpers"
-	} else if (moduleId.includes(path.normalize("src/settings")) ||
+	} else if (
+		moduleId.includes(path.normalize("src/settings")) ||
 		moduleId.includes(path.normalize("src/subscription")) ||
 		moduleId.includes(path.normalize("libs/qrcode")) ||
-		moduleId.includes(path.normalize("src/termination"))) {
+		moduleId.includes(path.normalize("src/termination"))
+	) {
 		// subscription and settings depend on each other right now.
 		// subscription is also a kitchen sink with signup, utils and views, we should break it up
 		return "settings"
 	} else if (moduleId.includes(path.normalize("src/sharing"))) {
 		return "sharing"
-	} else if (moduleId.includes(path.normalize("src/api/worker"))
-		|| moduleId.includes(path.normalize("packages/tutanota-crypto"))) {
+	} else if (moduleId.includes(path.normalize("src/api/worker")) || moduleId.includes(path.normalize("packages/tutanota-crypto"))) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (moduleId.includes(path.normalize("libs/jszip"))) {
 		return "jszip"
@@ -253,7 +269,7 @@ export function bundleDependencyCheckPlugin() {
 					if (moduleId.includes(path.normalize("src/translations"))) {
 						continue
 					}
-					const ownChunk = getChunkName(moduleId, {getModuleInfo})
+					const ownChunk = getChunkName(moduleId, { getModuleInfo })
 					if (!allowedImports[ownChunk]) {
 						unknownChunks.push(`${ownChunk} of ${moduleId}`)
 					}
@@ -263,7 +279,7 @@ export function bundleDependencyCheckPlugin() {
 						if (importedId.includes(path.normalize("src/translations"))) {
 							pushToMapEntry(staticLangImports, moduleId, importedId)
 						}
-						const importedChunk = getChunkName(importedId, {getModuleInfo})
+						const importedChunk = getChunkName(importedId, { getModuleInfo })
 						if (!allowedImports[importedChunk]) {
 							unknownChunks.push(`${importedChunk} of ${importedId}`)
 						}
@@ -275,6 +291,6 @@ export function bundleDependencyCheckPlugin() {
 			}
 
 			reportErrors()
-		}
+		},
 	}
 }

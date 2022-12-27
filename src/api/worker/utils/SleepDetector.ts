@@ -1,6 +1,6 @@
-import {Thunk} from "@tutao/tutanota-utils"
-import {Scheduler} from "../../common/utils/Scheduler.js"
-import {DateProvider} from "../../common/DateProvider.js"
+import { Thunk } from "@tutao/tutanota-utils"
+import { Scheduler } from "../../common/utils/Scheduler.js"
+import { DateProvider } from "../../common/DateProvider.js"
 
 // exported for testing
 /** How often do we check for sleep. */
@@ -9,9 +9,9 @@ export const CHECK_INTERVAL = 5000
 export const SLEEP_INTERVAL = 15000
 
 interface ScheduledState {
-	scheduledId: number,
-	lastTime: number,
-	readonly onSleep: Thunk,
+	scheduledId: number
+	lastTime: number
+	readonly onSleep: Thunk
 }
 
 /**
@@ -26,11 +26,7 @@ interface ScheduledState {
 export class SleepDetector {
 	private scheduledState: ScheduledState | null = null
 
-	constructor(
-		private readonly scheduler: Scheduler,
-		private readonly dateProvider: DateProvider,
-	) {
-	}
+	constructor(private readonly scheduler: Scheduler, private readonly dateProvider: DateProvider) {}
 
 	start(onSleep: Thunk): void {
 		this.stop()

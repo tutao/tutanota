@@ -3,10 +3,10 @@
  *
  * We do this to be able to audit changes in the libraries and not rely on npm for checksums.
  */
-import fs from "fs-extra";
-import path, {dirname} from "path";
-import {fileURLToPath} from "url";
-import {rollup} from "rollup"
+import fs from "fs-extra"
+import path, { dirname } from "path"
+import { fileURLToPath } from "url"
+import { rollup } from "rollup"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -24,10 +24,10 @@ const clientDependencies = [
 	"../node_modules/mithril/stream/stream.js",
 	"../node_modules/squire-rte/build/squire-raw.js",
 	"../node_modules/dompurify/dist/purify.js",
-	{src: "../node_modules/linkifyjs/dist/linkify.module.js", target: "linkify.js"},
-	{src: "../node_modules/linkifyjs/dist/linkify-html.module.js", target: "linkify-html.js"},
+	{ src: "../node_modules/linkifyjs/dist/linkify.module.js", target: "linkify.js" },
+	{ src: "../node_modules/linkifyjs/dist/linkify-html.module.js", target: "linkify-html.js" },
 	"../node_modules/luxon/build/cjs-browser/luxon.js",
-	{src: "../node_modules/cborg/esm/cborg.js", target: "cborg.js", rollup: true},
+	{ src: "../node_modules/cborg/esm/cborg.js", target: "cborg.js", rollup: true },
 ]
 
 run()
@@ -50,13 +50,12 @@ async function copyToLibs(files) {
 		} else {
 			targetName = path.basename(srcFile)
 		}
-		await fs.copy(path.join(__dirname, srcFile), path.join(__dirname, '../libs/', targetName))
+		await fs.copy(path.join(__dirname, srcFile), path.join(__dirname, "../libs/", targetName))
 	}
 }
 
 /** Will bundle starting at {@param src} into a single file at {@param target}. */
 async function roll(src, target) {
-	const bundle = await rollup({input: path.join(__dirname, src)})
-	await bundle.write({file: path.join(__dirname, "../libs", target)})
+	const bundle = await rollup({ input: path.join(__dirname, src) })
+	await bundle.write({ file: path.join(__dirname, "../libs", target) })
 }
-

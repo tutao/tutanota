@@ -1,7 +1,7 @@
 {
-  "name": "UpdateInfo",
-  "type": "typeref",
-  "location": {
-	"typescript": "electron-updater"
-  }
+	"name": "UpdateInfo",
+	"type": "typeref",
+	"location": {
+		"typescript": "electron-updater"
+	}
 }

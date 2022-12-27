@@ -1,4 +1,4 @@
-import {OperationType} from "../../api/common/TutanotaConstants.js"
+import { OperationType } from "../../api/common/TutanotaConstants.js"
 
 export type NotificationSessionKey = {
 	pushIdentifierSessionEncSessionKey: string

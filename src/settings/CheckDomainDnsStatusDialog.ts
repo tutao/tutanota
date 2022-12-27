@@ -1,9 +1,9 @@
 import m from "mithril"
-import {lang} from "../misc/LanguageViewModel"
-import {Dialog, DialogType} from "../gui/base/Dialog"
-import {DomainDnsStatus} from "./DomainDnsStatus"
-import {renderCheckResult} from "./emaildomain/VerifyDnsRecordsPage"
-import {assertMainOrNode} from "../api/common/Env"
+import { lang } from "../misc/LanguageViewModel"
+import { Dialog, DialogType } from "../gui/base/Dialog"
+import { DomainDnsStatus } from "./DomainDnsStatus"
+import { renderCheckResult } from "./emaildomain/VerifyDnsRecordsPage"
+import { assertMainOrNode } from "../api/common/Env"
 
 assertMainOrNode()
 

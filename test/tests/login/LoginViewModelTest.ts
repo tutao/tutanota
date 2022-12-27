@@ -1,22 +1,22 @@
 import o from "ospec"
-import {DisplayMode, LoginState, LoginViewModel} from "../../../src/login/LoginViewModel.js"
-import type {LoginController} from "../../../src/api/main/LoginController.js"
-import {createGroupInfo, createUser} from "../../../src/api/entities/sys/TypeRefs.js"
-import type {UserController} from "../../../src/api/main/UserController.js"
-import {KeyPermanentlyInvalidatedError} from "../../../src/api/common/error/KeyPermanentlyInvalidatedError.js"
-import {CredentialAuthenticationError} from "../../../src/api/common/error/CredentialAuthenticationError.js"
-import type {Credentials} from "../../../src/misc/credentials/Credentials.js"
-import {SecondFactorHandler} from "../../../src/misc/2fa/SecondFactorHandler"
-import {assertThrows} from "@tutao/tutanota-test-utils"
-import type {CredentialsAndDatabaseKey, CredentialsProvider, PersistentCredentials,} from "../../../src/misc/credentials/CredentialsProvider.js"
-import {SessionType} from "../../../src/api/common/SessionType.js";
-import {instance, matchers, object, replace, verify, when} from "testdouble"
-import {AccessExpiredError, NotAuthenticatedError} from "../../../src/api/common/error/RestError"
-import {DatabaseKeyFactory} from "../../../src/misc/credentials/DatabaseKeyFactory"
-import {DeviceConfig} from "../../../src/misc/DeviceConfig"
-import {ResumeSessionErrorReason} from "../../../src/api/worker/facades/LoginFacade"
+import { DisplayMode, LoginState, LoginViewModel } from "../../../src/login/LoginViewModel.js"
+import type { LoginController } from "../../../src/api/main/LoginController.js"
+import { createGroupInfo, createUser } from "../../../src/api/entities/sys/TypeRefs.js"
+import type { UserController } from "../../../src/api/main/UserController.js"
+import { KeyPermanentlyInvalidatedError } from "../../../src/api/common/error/KeyPermanentlyInvalidatedError.js"
+import { CredentialAuthenticationError } from "../../../src/api/common/error/CredentialAuthenticationError.js"
+import type { Credentials } from "../../../src/misc/credentials/Credentials.js"
+import { SecondFactorHandler } from "../../../src/misc/2fa/SecondFactorHandler"
+import { assertThrows } from "@tutao/tutanota-test-utils"
+import type { CredentialsAndDatabaseKey, CredentialsProvider, PersistentCredentials } from "../../../src/misc/credentials/CredentialsProvider.js"
+import { SessionType } from "../../../src/api/common/SessionType.js"
+import { instance, matchers, object, replace, verify, when } from "testdouble"
+import { AccessExpiredError, NotAuthenticatedError } from "../../../src/api/common/error/RestError"
+import { DatabaseKeyFactory } from "../../../src/misc/credentials/DatabaseKeyFactory"
+import { DeviceConfig } from "../../../src/misc/DeviceConfig"
+import { ResumeSessionErrorReason } from "../../../src/api/worker/facades/LoginFacade"
 
-const {anything} = matchers
+const { anything } = matchers
 
 /**
  * A mocked implementation of an ICredentialsProvider
@@ -37,7 +37,7 @@ function getCredentialsProviderStub(): CredentialsProvider {
 		return persistentCredentials?.credentialInfo ?? null
 	})
 
-	when(provider.getCredentialsByUserId(anything())).thenDo(userId => {
+	when(provider.getCredentialsByUserId(anything())).thenDo((userId) => {
 		const storedCredentials = credentials.get(userId)
 		if (!storedCredentials) return null
 		return {
@@ -48,11 +48,11 @@ function getCredentialsProviderStub(): CredentialsProvider {
 				accessToken: storedCredentials.accessToken,
 				encryptedPassword: storedCredentials.encryptedPassword,
 			},
-			databaseKey: storedCredentials.databaseKey
+			databaseKey: storedCredentials.databaseKey,
 		}
 	})
 
-	when(provider.store(anything())).thenDo(({credentials: credential, databaseKey}) => {
+	when(provider.store(anything())).thenDo(({ credentials: credential, databaseKey }) => {
 		credentials.set(credential.userId, {
 			credentialInfo: {
 				userId: credential.userId,
@@ -61,16 +61,16 @@ function getCredentialsProviderStub(): CredentialsProvider {
 			},
 			accessToken: credential.accessToken,
 			encryptedPassword: credential.encryptedPassword,
-			databaseKey
+			databaseKey,
 		})
 	})
 
-	when(provider.deleteByUserId(anything())).thenDo(userId => {
+	when(provider.deleteByUserId(anything())).thenDo((userId) => {
 		credentials.delete(userId)
 	})
 
 	when(provider.getInternalCredentialsInfos()).thenDo(() => {
-		return Array.from(credentials.values()).map(persistentCredentials => persistentCredentials.credentialInfo)
+		return Array.from(credentials.values()).map((persistentCredentials) => persistentCredentials.credentialInfo)
 	})
 
 	when(provider.getSupportedEncryptionModes()).thenResolve([])
@@ -91,7 +91,7 @@ o.spec("LoginViewModelTest", () => {
 		},
 		encryptedPassword: "encryptedPassword",
 		accessToken: "accessToken",
-		databaseKey: null
+		databaseKey: null,
 	} as const)
 
 	const testCredentials: Credentials = Object.freeze({
@@ -118,7 +118,7 @@ o.spec("LoginViewModelTest", () => {
 			"userGroupInfo",
 			createGroupInfo({
 				mailAddress: "test@example.com",
-			})
+			}),
 		)
 
 		when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
@@ -129,7 +129,6 @@ o.spec("LoginViewModelTest", () => {
 		databaseKeyFactory = instance(DatabaseKeyFactory)
 
 		deviceConfigMock = instance(DeviceConfig)
-
 	})
 
 	/**
@@ -149,19 +148,18 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.displayMode).equals(DisplayMode.Form)
 		})
 		o("Should switch to credentials mode if stored credentials can be found", async function () {
-			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
+			await credentialsProviderMock.store({ credentials: testCredentials, databaseKey: null })
 			const viewModel = await getViewModel()
 			await viewModel.useUserId(testCredentials.userId)
 			o(viewModel.displayMode).equals(DisplayMode.Credentials)
 		})
 		o("Should switch to form mode if stored credentials cannot be found", async function () {
-
 			const viewModel = await getViewModel()
 			await viewModel.useUserId(testCredentials.userId)
 			o(viewModel.displayMode).equals(DisplayMode.Form)
 		})
 		o("Should switch to credentials mode if credentials are set", async function () {
-			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
+			await credentialsProviderMock.store({ credentials: testCredentials, databaseKey: null })
 			const viewModel = await getViewModel()
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
@@ -192,7 +190,7 @@ o.spec("LoginViewModelTest", () => {
 	})
 	o.spec("deleteCredentials", function () {
 		o("Should switch to form mode if last stored credential is deleted", async function () {
-			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
+			await credentialsProviderMock.store({ credentials: testCredentials, databaseKey: null })
 			const viewModel = await getViewModel()
 
 			viewModel.displayMode = DisplayMode.Credentials
@@ -200,7 +198,7 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.displayMode as DisplayMode).equals(DisplayMode.Form)
 		})
 		o("Should handle CredentialAuthenticationError", async function () {
-			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
+			await credentialsProviderMock.store({ credentials: testCredentials, databaseKey: null })
 			when(credentialsProviderMock.getCredentialsByUserId(testCredentials.userId)).thenReject(new CredentialAuthenticationError("test"))
 			const viewModel = await getViewModel()
 
@@ -209,10 +207,10 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.state).equals(LoginState.NotAuthenticated)
 			o(viewModel.displayMode).equals(DisplayMode.DeleteCredentials)
 			o(viewModel.getSavedCredentials()).deepEquals([encryptedTestCredentials.credentialInfo])
-			verify(credentialsProviderMock.clearCredentials(anything()), {times: 0})
+			verify(credentialsProviderMock.clearCredentials(anything()), { times: 0 })
 		})
 		o("Should handle KeyPermanentlyInvalidatedError", async function () {
-			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
+			await credentialsProviderMock.store({ credentials: testCredentials, databaseKey: null })
 			when(credentialsProviderMock.getCredentialsByUserId(testCredentials.userId)).thenReject(new KeyPermanentlyInvalidatedError("test"))
 			const viewModel = await getViewModel()
 
@@ -221,7 +219,7 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.state).equals(LoginState.NotAuthenticated)
 			o(viewModel.displayMode as DisplayMode).equals(DisplayMode.Form)
 			o(viewModel.getSavedCredentials()).deepEquals([])
-			verify(credentialsProviderMock.clearCredentials(anything()), {times: 1})
+			verify(credentialsProviderMock.clearCredentials(anything()), { times: 1 })
 		})
 	})
 	o.spec("Login with stored credentials", function () {
@@ -230,11 +228,17 @@ o.spec("LoginViewModelTest", () => {
 			when(deviceConfigMock.getOfflineTimeRangeDays(testCredentials.userId)).thenReturn(offlineTimeRangeDays)
 		})
 		o("login should succeed with valid stored credentials", async function () {
-			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
-			when(loginControllerMock.resumeSession({
-				credentials: testCredentials,
-				databaseKey: null
-			}, null, offlineTimeRangeDays)).thenResolve({type: "success"})
+			await credentialsProviderMock.store({ credentials: testCredentials, databaseKey: null })
+			when(
+				loginControllerMock.resumeSession(
+					{
+						credentials: testCredentials,
+						databaseKey: null,
+					},
+					null,
+					offlineTimeRangeDays,
+				),
+			).thenResolve({ type: "success" })
 			const viewModel = await getViewModel()
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
@@ -242,11 +246,17 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.state).equals(LoginState.LoggedIn)
 		})
 		o("login should succeed with valid stored credentials in DeleteCredentials display mode", async function () {
-			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
-			when(loginControllerMock.resumeSession({
-				credentials: testCredentials,
-				databaseKey: null
-			}, null, offlineTimeRangeDays)).thenResolve({type: "success"})
+			await credentialsProviderMock.store({ credentials: testCredentials, databaseKey: null })
+			when(
+				loginControllerMock.resumeSession(
+					{
+						credentials: testCredentials,
+						databaseKey: null,
+					},
+					null,
+					offlineTimeRangeDays,
+				),
+			).thenResolve({ type: "success" })
 			const viewModel = await getViewModel()
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
@@ -255,7 +265,7 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.state).equals(LoginState.LoggedIn)
 		})
 		o("login should fail with invalid stored credentials", async function () {
-			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
+			await credentialsProviderMock.store({ credentials: testCredentials, databaseKey: null })
 			when(loginControllerMock.resumeSession(anything(), null, offlineTimeRangeDays)).thenReject(new NotAuthenticatedError("test"))
 			const viewModel = await getViewModel()
 
@@ -269,7 +279,7 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel._autoLoginCredentials).equals(null)
 		})
 		o("login should fail for expired stored credentials", async function () {
-			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
+			await credentialsProviderMock.store({ credentials: testCredentials, databaseKey: null })
 			when(loginControllerMock.resumeSession(anything(), null, offlineTimeRangeDays)).thenReject(new AccessExpiredError("test"))
 			const viewModel = await getViewModel()
 
@@ -279,23 +289,22 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.displayMode).equals(DisplayMode.Form)
 		})
 		o("should handle KeyPermanentlyInvalidatedError and clear credentials", async function () {
-			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
+			await credentialsProviderMock.store({ credentials: testCredentials, databaseKey: null })
 			when(credentialsProviderMock.getCredentialsByUserId(testCredentials.userId)).thenReject(new KeyPermanentlyInvalidatedError("oh no"))
 			const viewModel = await getViewModel()
-
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
 			await viewModel.login()
 			o(viewModel.state).equals(LoginState.NotAuthenticated)
 			o(viewModel.displayMode).equals(DisplayMode.Form)
 			o(viewModel.getSavedCredentials()).deepEquals([])
-			verify(credentialsProviderMock.clearCredentials(anything()), {times: 1})
+			verify(credentialsProviderMock.clearCredentials(anything()), { times: 1 })
 		})
 		o("should handle error result", async function () {
-			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
-			when(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null}, null, offlineTimeRangeDays)).thenResolve({
+			await credentialsProviderMock.store({ credentials: testCredentials, databaseKey: null })
+			when(loginControllerMock.resumeSession({ credentials: testCredentials, databaseKey: null }, null, offlineTimeRangeDays)).thenResolve({
 				type: "error",
-				reason: ResumeSessionErrorReason.OfflineNotAvailableForFree
+				reason: ResumeSessionErrorReason.OfflineNotAvailableForFree,
 			})
 			const viewModel = await getViewModel()
 
@@ -314,11 +323,9 @@ o.spec("LoginViewModelTest", () => {
 		}
 		const password = "password"
 		o("should login and not store password", async function () {
-
 			const viewModel = await getViewModel()
 
-			when(loginControllerMock.createSession(testCredentials.login, password, SessionType.Login, anything()))
-				.thenResolve(credentialsWithoutPassword)
+			when(loginControllerMock.createSession(testCredentials.login, password, SessionType.Login, anything())).thenResolve(credentialsWithoutPassword)
 
 			viewModel.showLoginForm()
 			viewModel.mailAddress(credentialsWithoutPassword.login)
@@ -326,11 +333,10 @@ o.spec("LoginViewModelTest", () => {
 			viewModel.savePassword(false)
 			await viewModel.login()
 			o(viewModel.state).equals(LoginState.LoggedIn)
-			verify(credentialsProviderMock.store({credentials: credentialsWithoutPassword, databaseKey: null}), {times: 0})
+			verify(credentialsProviderMock.store({ credentials: credentialsWithoutPassword, databaseKey: null }), { times: 0 })
 		})
 		o("should login and store password", async function () {
-			when(loginControllerMock.createSession(testCredentials.login, password, SessionType.Persistent, anything()))
-				.thenResolve(testCredentials)
+			when(loginControllerMock.createSession(testCredentials.login, password, SessionType.Persistent, anything())).thenResolve(testCredentials)
 
 			const viewModel = await getViewModel()
 
@@ -340,7 +346,7 @@ o.spec("LoginViewModelTest", () => {
 			viewModel.savePassword(true)
 			await viewModel.login()
 			o(viewModel.state).equals(LoginState.LoggedIn)
-			verify(credentialsProviderMock.store({credentials: testCredentials, databaseKey: anything()}), {times: 1})
+			verify(credentialsProviderMock.store({ credentials: testCredentials, databaseKey: anything() }), { times: 1 })
 		})
 		o("should login and overwrite existing stored credentials", async function () {
 			const oldCredentials: CredentialsAndDatabaseKey = {
@@ -351,12 +357,11 @@ o.spec("LoginViewModelTest", () => {
 					userId: testCredentials.userId,
 					type: "internal",
 				},
-				databaseKey: null
+				databaseKey: null,
 			}
 			await credentialsProviderMock.store(oldCredentials)
 
-			when(loginControllerMock.createSession(testCredentials.login, password, SessionType.Persistent, anything()))
-				.thenResolve(testCredentials)
+			when(loginControllerMock.createSession(testCredentials.login, password, SessionType.Persistent, anything())).thenResolve(testCredentials)
 
 			const viewModel = await getViewModel()
 
@@ -366,27 +371,28 @@ o.spec("LoginViewModelTest", () => {
 			viewModel.savePassword(true)
 			await viewModel.login()
 			o(viewModel.state).equals(LoginState.LoggedIn)
-			verify(credentialsProviderMock.store({credentials: testCredentials, databaseKey: anything()}))
-			verify(loginControllerMock.deleteOldSession(oldCredentials.credentials), {times: 1})
+			verify(credentialsProviderMock.store({ credentials: testCredentials, databaseKey: anything() }))
+			verify(loginControllerMock.deleteOldSession(oldCredentials.credentials), { times: 1 })
 		})
 
 		o.spec("Should clear old credentials on login", function () {
-
-			const oldCredentials = Object.assign({}, credentialsWithoutPassword, {accessToken: "oldAccessToken", encryptedPassword: "encPw"})
+			const oldCredentials = Object.assign({}, credentialsWithoutPassword, { accessToken: "oldAccessToken", encryptedPassword: "encPw" })
 
 			o("same address & same user id", async function () {
 				await doTest(oldCredentials)
 			})
 			o("same address & different user id", async function () {
-				await doTest(Object.assign({}, oldCredentials, {userId: "differentId"}))
+				await doTest(Object.assign({}, oldCredentials, { userId: "differentId" }))
 			})
 			o("different address & same user id", async function () {
-				await doTest(Object.assign({}, oldCredentials, {login: "another@login.de"}))
+				await doTest(Object.assign({}, oldCredentials, { login: "another@login.de" }))
 			})
 
 			async function doTest(oldCredentials) {
-				when(loginControllerMock.createSession(credentialsWithoutPassword.login, password, SessionType.Login, anything())).thenResolve(credentialsWithoutPassword)
-				await credentialsProviderMock.store({credentials: oldCredentials, databaseKey: null})
+				when(loginControllerMock.createSession(credentialsWithoutPassword.login, password, SessionType.Login, anything())).thenResolve(
+					credentialsWithoutPassword,
+				)
+				await credentialsProviderMock.store({ credentials: oldCredentials, databaseKey: null })
 				const viewModel = await getViewModel()
 				viewModel.showLoginForm()
 
@@ -397,7 +403,7 @@ o.spec("LoginViewModelTest", () => {
 				await viewModel.login()
 
 				o(viewModel.state).equals(LoginState.LoggedIn)
-				verify(credentialsProviderMock.deleteByUserId(oldCredentials.userId, {deleteOfflineDb: false}))
+				verify(credentialsProviderMock.deleteByUserId(oldCredentials.userId, { deleteOfflineDb: false }))
 				verify(loginControllerMock.deleteOldSession(oldCredentials))
 			}
 		})
@@ -415,9 +421,11 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.state).equals(LoginState.UnknownError)
 		})
 		o("should handle KeyPermanentlyInvalidatedError and clear credentials", async function () {
-			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
-			when(credentialsProviderMock.store({credentials: testCredentials, databaseKey: anything()})).thenReject(new KeyPermanentlyInvalidatedError("oops"))
-			when(loginControllerMock.createSession(anything(), anything(), anything(), anything(),)).thenResolve(testCredentials)
+			await credentialsProviderMock.store({ credentials: testCredentials, databaseKey: null })
+			when(credentialsProviderMock.store({ credentials: testCredentials, databaseKey: anything() })).thenReject(
+				new KeyPermanentlyInvalidatedError("oops"),
+			)
+			when(loginControllerMock.createSession(anything(), anything(), anything(), anything())).thenResolve(testCredentials)
 
 			const viewModel = await getViewModel()
 
@@ -428,10 +436,9 @@ o.spec("LoginViewModelTest", () => {
 			await viewModel.login()
 			o(viewModel.state).equals(LoginState.LoggedIn)
 			o(viewModel.getSavedCredentials()).deepEquals([])
-			verify(credentialsProviderMock.clearCredentials(anything()), {times: 1})
+			verify(credentialsProviderMock.clearCredentials(anything()), { times: 1 })
 		})
 		o("should be in error state if email address is empty", async function () {
-
 			const viewModel = await getViewModel()
 
 			viewModel.showLoginForm()
@@ -440,10 +447,9 @@ o.spec("LoginViewModelTest", () => {
 			await viewModel.login()
 			o(viewModel.state).equals(LoginState.InvalidCredentials)
 			o(viewModel.helpText).equals("loginFailed_msg")
-			verify(loginControllerMock.createSession(anything(), anything(), anything(), anything(),), {times: 0})
+			verify(loginControllerMock.createSession(anything(), anything(), anything(), anything()), { times: 0 })
 		})
 		o("should be in error state if password is empty", async function () {
-
 			const viewModel = await getViewModel()
 
 			viewModel.showLoginForm()
@@ -452,7 +458,7 @@ o.spec("LoginViewModelTest", () => {
 			await viewModel.login()
 			o(viewModel.state).equals(LoginState.InvalidCredentials)
 			o(viewModel.helpText).equals("loginFailed_msg")
-			verify(loginControllerMock.createSession(anything(), anything(), anything(), anything(),), {times: 0})
+			verify(loginControllerMock.createSession(anything(), anything(), anything(), anything()), { times: 0 })
 		})
 		o("should generate a new database key when starting a persistent session", async function () {
 			const mailAddress = "test@example.com"
@@ -469,7 +475,7 @@ o.spec("LoginViewModelTest", () => {
 
 			await viewModel.login()
 
-			verify(credentialsProviderMock.store({credentials: testCredentials, databaseKey: newKey}))
+			verify(credentialsProviderMock.store({ credentials: testCredentials, databaseKey: newKey }))
 		})
 		o("should not generate a database key when starting a non persistent session", async function () {
 			const mailAddress = "test@example.com"
@@ -485,7 +491,7 @@ o.spec("LoginViewModelTest", () => {
 
 			await viewModel.login()
 
-			verify(databaseKeyFactory.generateKey(), {times: 0})
+			verify(databaseKeyFactory.generateKey(), { times: 0 })
 		})
 	})
 })

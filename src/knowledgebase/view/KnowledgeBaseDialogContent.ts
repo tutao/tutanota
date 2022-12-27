@@ -1,18 +1,18 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {KnowledgeBaseModel} from "../model/KnowledgeBaseModel"
-import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/TypeRefs.js"
-import {KNOWLEDGEBASE_LIST_ENTRY_HEIGHT, KnowledgeBaseListEntry} from "./KnowledgeBaseListEntry"
-import {lang} from "../../misc/LanguageViewModel"
+import m, { Children, Component, Vnode } from "mithril"
+import { KnowledgeBaseModel } from "../model/KnowledgeBaseModel"
+import type { KnowledgeBaseEntry } from "../../api/entities/tutanota/TypeRefs.js"
+import { KNOWLEDGEBASE_LIST_ENTRY_HEIGHT, KnowledgeBaseListEntry } from "./KnowledgeBaseListEntry"
+import { lang } from "../../misc/LanguageViewModel"
 import stream from "mithril/stream"
-import {KnowledgeBaseEntryView} from "./KnowledgeBaseEntryView"
-import type {EmailTemplate} from "../../api/entities/tutanota/TypeRefs.js"
-import {NotFoundError} from "../../api/common/error/RestError"
-import {Dialog} from "../../gui/base/Dialog"
-import type {TextFieldAttrs} from "../../gui/base/TextField.js"
-import {TextField} from "../../gui/base/TextField.js"
-import {makeListSelectionChangedScrollHandler} from "../../gui/base/GuiUtils"
-import {ofClass} from "@tutao/tutanota-utils"
-import Stream from "mithril/stream";
+import { KnowledgeBaseEntryView } from "./KnowledgeBaseEntryView"
+import type { EmailTemplate } from "../../api/entities/tutanota/TypeRefs.js"
+import { NotFoundError } from "../../api/common/error/RestError"
+import { Dialog } from "../../gui/base/Dialog"
+import type { TextFieldAttrs } from "../../gui/base/TextField.js"
+import { TextField } from "../../gui/base/TextField.js"
+import { makeListSelectionChangedScrollHandler } from "../../gui/base/GuiUtils"
+import { ofClass } from "@tutao/tutanota-utils"
+import Stream from "mithril/stream"
 
 export type KnowledgebaseDialogContentAttrs = {
 	readonly onTemplateSelect: (arg0: EmailTemplate) => void
@@ -31,8 +31,8 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 		this._streams = []
 	}
 
-	oncreate({attrs}: Vnode<KnowledgebaseDialogContentAttrs>) {
-		const {model} = attrs
+	oncreate({ attrs }: Vnode<KnowledgebaseDialogContentAttrs>) {
+		const { model } = attrs
 
 		this._streams.push(
 			stream.combine(() => {
@@ -47,24 +47,24 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 		}
 	}
 
-	view({attrs}: Vnode<KnowledgebaseDialogContentAttrs>): Children {
+	view({ attrs }: Vnode<KnowledgebaseDialogContentAttrs>): Children {
 		const model = attrs.model
 		const selectedEntry = model.selectedEntry()
 		return selectedEntry
 			? m(KnowledgeBaseEntryView, {
-				entry: selectedEntry,
-				onTemplateSelected: templateId => {
-					model
-						.loadTemplate(templateId)
-						.then(fetchedTemplate => {
-							attrs.onTemplateSelect(fetchedTemplate)
-						})
-						.catch(ofClass(NotFoundError, () => Dialog.message("templateNotExists_msg")))
-				},
-				readonly: model.isReadOnly(selectedEntry),
-			})
+					entry: selectedEntry,
+					onTemplateSelected: (templateId) => {
+						model
+							.loadTemplate(templateId)
+							.then((fetchedTemplate) => {
+								attrs.onTemplateSelect(fetchedTemplate)
+							})
+							.catch(ofClass(NotFoundError, () => Dialog.message("templateNotExists_msg")))
+					},
+					readonly: model.isReadOnly(selectedEntry),
+			  })
 			: [
-				m(TextField, {
+					m(TextField, {
 						label: () => lang.get("filter_label"),
 						value: this.filterValue,
 						oninput: (value) => {
@@ -72,18 +72,17 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 							model.filter(value)
 							m.redraw()
 						},
-					}
-				),
-				this._renderKeywords(model),
-				this._renderList(model, attrs),
-			]
+					}),
+					this._renderKeywords(model),
+					this._renderList(model, attrs),
+			  ]
 	}
 
 	_renderKeywords(model: KnowledgeBaseModel): Children {
 		const matchedKeywords = model.getMatchedKeywordsInContent()
 		return m(".flex.mt-s.wrap", [
 			matchedKeywords.length > 0 ? m(".small.full-width", lang.get("matchingKeywords_label")) : null,
-			matchedKeywords.map(keyword => {
+			matchedKeywords.map((keyword) => {
 				return m(".keyword-bubble-no-padding.plr-button.pl-s.pr-s.border-radius.no-wrap.mr-s.min-content", keyword)
 			}),
 		])
@@ -93,12 +92,12 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 		return m(
 			".mt-s.scroll",
 			{
-				oncreate: vnode => {
+				oncreate: (vnode) => {
 					this._selectionChangedListener = model.selectedEntry.map(
 						makeListSelectionChangedScrollHandler(
 							vnode.dom as HTMLElement,
 							KNOWLEDGEBASE_LIST_ENTRY_HEIGHT,
-							model.getSelectedEntryIndex.bind(model)
+							model.getSelectedEntryIndex.bind(model),
 						),
 					)
 				},
@@ -106,7 +105,11 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 					this._selectionChangedListener.end()
 				},
 			},
-			[model.containsResult() ? model.filteredEntries().map(entry => this._renderListEntry(model, entry)) : m(".center", lang.get("noEntryFound_label"))],
+			[
+				model.containsResult()
+					? model.filteredEntries().map((entry) => this._renderListEntry(model, entry))
+					: m(".center", lang.get("noEntryFound_label")),
+			],
 		)
 	}
 

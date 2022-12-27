@@ -1,21 +1,21 @@
-import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
-import m, {Children, Component, Vnode} from "mithril"
-import {AllIcons, Icon} from "../../gui/base/Icon"
-import {theme} from "../../gui/theme"
-import {BootIcons} from "../../gui/base/icons/BootIcons"
-import {Icons} from "../../gui/base/icons/Icons"
-import {iconForAttendeeStatus} from "./CalendarEventEditDialog"
-import {createRepeatRuleFrequencyValues, formatEventDuration, getRepeatEndTime, getTimeZone} from "../date/CalendarUtils"
-import {CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod} from "../../api/common/TutanotaConstants"
-import {downcast, memoized} from "@tutao/tutanota-utils"
-import type {CalendarEventAttendee} from "../../api/entities/tutanota/TypeRefs.js"
-import {lang} from "../../misc/LanguageViewModel"
-import type {RepeatRule} from "../../api/entities/sys/TypeRefs.js"
-import {isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
-import {formatDateWithMonth} from "../../misc/Formatter"
-import {hasError} from "../../api/common/utils/ErrorCheckUtils"
-import {createEncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
-import {createCalendarEventAttendee} from "../../api/entities/tutanota/TypeRefs.js"
+import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
+import m, { Children, Component, Vnode } from "mithril"
+import { AllIcons, Icon } from "../../gui/base/Icon"
+import { theme } from "../../gui/theme"
+import { BootIcons } from "../../gui/base/icons/BootIcons"
+import { Icons } from "../../gui/base/icons/Icons"
+import { iconForAttendeeStatus } from "./CalendarEventEditDialog"
+import { createRepeatRuleFrequencyValues, formatEventDuration, getRepeatEndTime, getTimeZone } from "../date/CalendarUtils"
+import { CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod } from "../../api/common/TutanotaConstants"
+import { downcast, memoized } from "@tutao/tutanota-utils"
+import type { CalendarEventAttendee } from "../../api/entities/tutanota/TypeRefs.js"
+import { lang } from "../../misc/LanguageViewModel"
+import type { RepeatRule } from "../../api/entities/sys/TypeRefs.js"
+import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
+import { formatDateWithMonth } from "../../misc/Formatter"
+import { hasError } from "../../api/common/utils/ErrorCheckUtils"
+import { createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
+import { createCalendarEventAttendee } from "../../api/entities/tutanota/TypeRefs.js"
 
 export type Attrs = {
 	event: CalendarEvent
@@ -30,7 +30,7 @@ export class EventPreviewView implements Component<Attrs> {
 		this._getLocationUrl = memoized(getLocationUrl)
 	}
 
-	view({attrs: {event, sanitizedDescription}}: Vnode<Attrs>): Children {
+	view({ attrs: { event, sanitizedDescription } }: Vnode<Attrs>): Children {
 		const url = this._getLocationUrl(event.location.trim())
 
 		// We copy the attendees array so that we can add the organizer, in the case that they are not already in attendees
@@ -39,7 +39,7 @@ export class EventPreviewView implements Component<Attrs> {
 		const attendees = event.attendees.slice()
 		const organizer = event.organizer
 
-		if (organizer != null && attendees.length > 0 && !attendees.some(attendee => attendee.address.address === organizer.address)) {
+		if (organizer != null && attendees.length > 0 && !attendees.some((attendee) => attendee.address.address === organizer.address)) {
 			attendees.unshift(
 				createCalendarEventAttendee({
 					address: createEncryptedMailAddress({
@@ -59,37 +59,37 @@ export class EventPreviewView implements Component<Attrs> {
 				]),
 				event.location
 					? m(".flex.pb-s.items-center", [
-						this._renderSectionIndicator(Icons.Pin),
-						m(
-							".text-ellipsis.selectable",
+							this._renderSectionIndicator(Icons.Pin),
 							m(
-								"a",
-								{
-									href: url.toString(),
-									target: "_blank",
-									rel: "noopener noreferrer",
-								},
-								event.location,
+								".text-ellipsis.selectable",
+								m(
+									"a",
+									{
+										href: url.toString(),
+										target: "_blank",
+										rel: "noopener noreferrer",
+									},
+									event.location,
+								),
 							),
-						),
-					])
+					  ])
 					: null,
 				attendees.length !== 0
 					? m(".flex.pb-s", [
-						this._renderSectionIndicator(BootIcons.Contacts),
-						m(
-							".flex-wrap",
-							attendees.map(a => this._renderAttendee(a)),
-						),
-					])
+							this._renderSectionIndicator(BootIcons.Contacts),
+							m(
+								".flex-wrap",
+								attendees.map((a) => this._renderAttendee(a)),
+							),
+					  ])
 					: null,
 				event.description
 					? m(".flex.pb-s.items-start", [
-						this._renderSectionIndicator(Icons.AlignLeft, {
-							marginTop: "2px",
-						}),
-						m(".full-width.selectable.text-break", m.trust(sanitizedDescription)),
-					])
+							this._renderSectionIndicator(Icons.AlignLeft, {
+								marginTop: "2px",
+							}),
+							m(".full-width.selectable.text-break", m.trust(sanitizedDescription)),
+					  ])
 					: null,
 			]),
 		])
@@ -171,7 +171,7 @@ function getLocationUrl(text: string): URL {
 
 function formatRepetitionFrequency(repeatRule: RepeatRule): string | null {
 	if (repeatRule.interval === "1") {
-		const frequency = createRepeatRuleFrequencyValues().find(frequency => frequency.value === repeatRule.frequency)
+		const frequency = createRepeatRuleFrequencyValues().find((frequency) => frequency.value === repeatRule.frequency)
 
 		if (frequency) {
 			return frequency.name

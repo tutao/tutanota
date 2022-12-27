@@ -1,32 +1,32 @@
-import type {Entry, SearchBarState, ShowMoreAction} from "./SearchBar"
-import {px, size} from "../gui/size"
-import {lang} from "../misc/LanguageViewModel"
-import {Button, ButtonType} from "../gui/base/Button.js"
-import {Icons} from "../gui/base/icons/Icons"
-import {isEmpty, isSameTypeRef, TypeRef} from "@tutao/tutanota-utils"
-import {logins} from "../api/main/LoginController"
-import {FULL_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
-import {formatDate, formatDateTimeFromYesterdayOn, formatDateWithMonth} from "../misc/Formatter"
-import type {Mail} from "../api/entities/tutanota/TypeRefs.js"
-import {MailTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import {getSenderOrRecipientHeading, isTutanotaTeamMail} from "../mail/model/MailUtils"
+import type { Entry, SearchBarState, ShowMoreAction } from "./SearchBar"
+import { px, size } from "../gui/size"
+import { lang } from "../misc/LanguageViewModel"
+import { Button, ButtonType } from "../gui/base/Button.js"
+import { Icons } from "../gui/base/icons/Icons"
+import { isEmpty, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
+import { logins } from "../api/main/LoginController"
+import { FULL_INDEXED_TIMESTAMP } from "../api/common/TutanotaConstants"
+import { formatDate, formatDateTimeFromYesterdayOn, formatDateWithMonth } from "../misc/Formatter"
+import type { Mail } from "../api/entities/tutanota/TypeRefs.js"
+import { MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import { getSenderOrRecipientHeading, isTutanotaTeamMail } from "../mail/model/MailUtils"
 import Badge from "../gui/base/Badge"
-import {Icon} from "../gui/base/Icon"
-import type {Contact} from "../api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import type {GroupInfo} from "../api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {BootIcons} from "../gui/base/icons/BootIcons"
-import type {WhitelabelChild} from "../api/entities/sys/TypeRefs.js"
-import {WhitelabelChildTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {client} from "../misc/ClientDetector"
-import m, {Children, Component, Vnode} from "mithril"
-import {theme} from "../gui/theme"
-import {getContactListName} from "../contacts/model/ContactUtils"
-import {getMailFolderIcon} from "../mail/view/MailGuiUtils"
-import {locator} from "../api/main/MainLocator"
-import Stream from "mithril/stream";
-import {IndexingErrorReason} from "../api/worker/search/SearchTypes"
+import { Icon } from "../gui/base/Icon"
+import type { Contact } from "../api/entities/tutanota/TypeRefs.js"
+import { ContactTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import type { GroupInfo } from "../api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { BootIcons } from "../gui/base/icons/BootIcons"
+import type { WhitelabelChild } from "../api/entities/sys/TypeRefs.js"
+import { WhitelabelChildTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { client } from "../misc/ClientDetector"
+import m, { Children, Component, Vnode } from "mithril"
+import { theme } from "../gui/theme"
+import { getContactListName } from "../contacts/model/ContactUtils"
+import { getMailFolderIcon } from "../mail/view/MailGuiUtils"
+import { locator } from "../api/main/MainLocator"
+import Stream from "mithril/stream"
+import { IndexingErrorReason } from "../api/worker/search/SearchTypes"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState
@@ -38,8 +38,8 @@ type SearchBarOverlayAttrs = {
 }
 
 export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
-	view({attrs}: Vnode<SearchBarOverlayAttrs>): Children {
-		const {state} = attrs
+	view({ attrs }: Vnode<SearchBarOverlayAttrs>): Children {
+		const { state } = attrs
 		return [
 			this._renderIndexingStatus(state, attrs),
 			state.entities && !isEmpty(state.entities) && attrs.isQuickSearch && attrs.isExpanded && attrs.isFocused ? this.renderResults(state, attrs) : null,
@@ -48,7 +48,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 
 	renderResults(state: SearchBarState, attrs: SearchBarOverlayAttrs): Children {
 		return m("ul.list.click.mail-list", [
-			state.entities.map(result => {
+			state.entities.map((result) => {
 				return m(
 					"li.plr-l.flex-v-center.",
 					{
@@ -106,17 +106,17 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 					),
 					state.indexState.progress !== 100
 						? m(
-							"div",
-							{
-								onmousedown: () => attrs.skipNextBlur(true),
-							},
-							m(Button, {
-								label: "cancel_action",
-								click: () => locator.indexerFacade.cancelMailIndexing(),
-								//icon: () => Icons.Cancel
-								type: ButtonType.Secondary,
-							}),
-						)
+								"div",
+								{
+									onmousedown: () => attrs.skipNextBlur(true),
+								},
+								m(Button, {
+									label: "cancel_action",
+									click: () => locator.indexerFacade.cancelMailIndexing(),
+									//icon: () => Icons.Cancel
+									type: ButtonType.Secondary,
+								}),
+						  )
 						: null, // avoid closing overlay before the click event can be received
 				],
 			),
@@ -132,9 +132,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 	}
 
 	private renderError(failedIndexingUpTo: number, attrs: SearchBarOverlayAttrs): Children {
-		const errorMessageKey = attrs.state.indexState.error === IndexingErrorReason.ConnectionLost
-			? "indexingFailedConnection_error"
-			: "indexing_error"
+		const errorMessageKey = attrs.state.indexState.error === IndexingErrorReason.ConnectionLost ? "indexingFailedConnection_error" : "indexing_error"
 
 		return m(".flex.rel", [
 			m(
@@ -168,7 +166,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 
 		if (!type) {
 			// show more action
-			let showMoreAction = (result as any) as ShowMoreAction
+			let showMoreAction = result as any as ShowMoreAction
 			let infoText
 			let indexInfo
 
@@ -194,17 +192,17 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 				? [m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)]
 				: m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))
 		} else if (isSameTypeRef(MailTypeRef, type)) {
-			let mail = (result as any) as Mail
+			let mail = result as any as Mail
 			return [
 				m(".top.flex-space-between.badge-line-height", [
 					isTutanotaTeamMail(mail)
 						? m(
-							Badge,
-							{
-								classes: ".small.mr-s",
-							},
-							"Tutanota Team",
-						)
+								Badge,
+								{
+									classes: ".small.mr-s",
+								},
+								"Tutanota Team",
+						  )
 						: null,
 					m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
 					m("small.text-ellipsis.flex-fixed", formatDateTimeFromYesterdayOn(mail.receivedDate)),
@@ -236,7 +234,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 				]),
 			]
 		} else if (isSameTypeRef(ContactTypeRef, type)) {
-			let contact = (result as any) as Contact
+			let contact = result as any as Contact
 			return [
 				m(".top.flex-space-between", m(".name", getContactListName(contact))),
 				m(
@@ -245,7 +243,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 				),
 			]
 		} else if (isSameTypeRef(GroupInfoTypeRef, type)) {
-			let groupInfo = (result as any) as GroupInfo
+			let groupInfo = result as any as GroupInfo
 			return [
 				m(".top.flex-space-between", m(".name", groupInfo.name)),
 				m(".bottom.flex-space-between", [
@@ -253,27 +251,27 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 					m(".icons.flex", [
 						groupInfo.deleted
 							? m(Icon, {
-								icon: Icons.Trash,
-								class: "svg-list-accent-fg",
-							})
+									icon: Icons.Trash,
+									class: "svg-list-accent-fg",
+							  })
 							: null,
 						!groupInfo.mailAddress && m.route.get().startsWith("/settings/groups")
 							? m(Icon, {
-								icon: BootIcons.Settings,
-								class: "svg-list-accent-fg",
-							})
+									icon: BootIcons.Settings,
+									class: "svg-list-accent-fg",
+							  })
 							: null,
 						groupInfo.mailAddress && m.route.get().startsWith("/settings/groups")
 							? m(Icon, {
-								icon: BootIcons.Mail,
-								class: "svg-list-accent-fg",
-							})
+									icon: BootIcons.Mail,
+									class: "svg-list-accent-fg",
+							  })
 							: null,
 					]),
 				]),
 			]
 		} else if (isSameTypeRef(WhitelabelChildTypeRef, type)) {
-			let whitelabelChild = (result as any) as WhitelabelChild
+			let whitelabelChild = result as any as WhitelabelChild
 			return [
 				m(".top.flex-space-between", m(".name", whitelabelChild.mailAddress)),
 				m(".bottom.flex-space-between", [
@@ -281,9 +279,9 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 					m(".icons.flex", [
 						whitelabelChild.deletedDate
 							? m(Icon, {
-								icon: Icons.Trash,
-								class: "svg-list-accent-fg",
-							})
+									icon: Icons.Trash,
+									class: "svg-list-accent-fg",
+							  })
 							: null,
 					]),
 				]),

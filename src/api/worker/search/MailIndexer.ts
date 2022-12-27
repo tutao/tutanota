@@ -1,28 +1,28 @@
-import {FULL_INDEXED_TIMESTAMP, MailFolderType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
-import type {File as TutanotaFile, Mail, MailBody, MailBox, MailFolder} from "../../entities/tutanota/TypeRefs.js"
-import {FileTypeRef, MailBodyTypeRef, MailboxGroupRootTypeRef, MailBoxTypeRef, MailFolderTypeRef, MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
-import {ConnectionError, NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
-import {typeModels} from "../../entities/tutanota/TypeModels"
-import {containsEventOfType, getMailBodyText} from "../../common/utils/Utils"
-import {flat, groupBy, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef} from "@tutao/tutanota-utils"
-import {elementIdPart, isSameId, listIdPart, timestampToGeneratedId} from "../../common/utils/EntityUtils"
-import {_createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo} from "./IndexUtils"
-import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
-import {IndexingErrorReason} from "./SearchTypes"
-import {CancelledError} from "../../common/error/CancelledError"
-import {IndexerCore} from "./IndexerCore"
-import {ElementDataOS, GroupDataOS, Metadata, MetaDataOS} from "./Indexer"
-import type {WorkerImpl} from "../WorkerImpl"
-import {DbError} from "../../common/error/DbError"
-import {DefaultEntityRestCache} from "../rest/DefaultEntityRestCache.js"
-import type {DateProvider} from "../DateProvider"
-import type {EntityUpdate, GroupMembership, User} from "../../entities/sys/TypeRefs.js"
-import {EntityRestClient} from "../rest/EntityRestClient"
-import {EntityClient} from "../../common/EntityClient"
-import {ProgressMonitor} from "../../common/utils/ProgressMonitor"
-import type {SomeEntity} from "../../common/EntityTypes"
-import {EntityUpdateData} from "../../main/EventController";
-import {EphemeralCacheStorage} from "../rest/EphemeralCacheStorage";
+import { FULL_INDEXED_TIMESTAMP, MailFolderType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../common/TutanotaConstants"
+import type { File as TutanotaFile, Mail, MailBody, MailBox, MailFolder } from "../../entities/tutanota/TypeRefs.js"
+import { FileTypeRef, MailBodyTypeRef, MailboxGroupRootTypeRef, MailBoxTypeRef, MailFolderTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
+import { typeModels } from "../../entities/tutanota/TypeModels"
+import { containsEventOfType, getMailBodyText } from "../../common/utils/Utils"
+import { flat, groupBy, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../../common/utils/EntityUtils"
+import { _createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo } from "./IndexUtils"
+import type { Db, GroupData, IndexUpdate, SearchIndexEntry } from "./SearchTypes"
+import { IndexingErrorReason } from "./SearchTypes"
+import { CancelledError } from "../../common/error/CancelledError"
+import { IndexerCore } from "./IndexerCore"
+import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "./Indexer"
+import type { WorkerImpl } from "../WorkerImpl"
+import { DbError } from "../../common/error/DbError"
+import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
+import type { DateProvider } from "../DateProvider"
+import type { EntityUpdate, GroupMembership, User } from "../../entities/sys/TypeRefs.js"
+import { EntityRestClient } from "../rest/EntityRestClient"
+import { EntityClient } from "../../common/EntityClient"
+import { ProgressMonitor } from "../../common/utils/ProgressMonitor"
+import type { SomeEntity } from "../../common/EntityTypes"
+import { EntityUpdateData } from "../../main/EventController"
+import { EphemeralCacheStorage } from "../rest/EphemeralCacheStorage"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
@@ -84,15 +84,15 @@ export class MailIndexer {
 			},
 			{
 				attribute: MailModel.associations["toRecipients"],
-				value: () => mail.toRecipients.map(r => r.name + " <" + r.address + ">").join(","),
+				value: () => mail.toRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
 				attribute: MailModel.associations["ccRecipients"],
-				value: () => mail.ccRecipients.map(r => r.name + " <" + r.address + ">").join(","),
+				value: () => mail.ccRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
 				attribute: MailModel.associations["bccRecipients"],
-				value: () => mail.bccRecipients.map(r => r.name + " <" + r.address + ">").join(","),
+				value: () => mail.bccRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
 				attribute: MailModel.associations["sender"],
@@ -105,7 +105,7 @@ export class MailIndexer {
 			},
 			{
 				attribute: MailModel.associations["attachments"],
-				value: () => files.map(file => file.name).join(" "),
+				value: () => files.map((file) => file.name).join(" "),
 			},
 		])
 
@@ -113,49 +113,46 @@ export class MailIndexer {
 		return keyToIndexEntries
 	}
 
-	processNewMail(
-		event: EntityUpdate,
-	): Promise<| {
+	processNewMail(event: EntityUpdate): Promise<{
 		mail: Mail
 		keyToIndexEntries: Map<string, SearchIndexEntry[]>
-	}
-		| null> {
+	} | null> {
 		if (this._isExcluded(event)) {
 			return Promise.resolve(null)
 		}
 
 		return this._defaultCachingEntity
-				   .load(MailTypeRef, [event.instanceListId, event.instanceId])
-				   .then(mail => {
-					   return Promise.all([
-						   promiseMap(mail.attachments, attachmentId => this._defaultCachingEntity.load(FileTypeRef, attachmentId)),
-						   this._defaultCachingEntity.load(MailBodyTypeRef, mail.body),
-					   ]).then(([files, body]) => {
-						   let keyToIndexEntries = this.createMailIndexEntries(mail, body, files)
-						   return {
-							   mail,
-							   keyToIndexEntries,
-						   }
-					   })
-				   })
-				   .catch(
-					   ofClass(NotFoundError, () => {
-						   console.log("tried to index non existing mail")
-						   return null
-					   }),
-				   )
-				   .catch(
-					   ofClass(NotAuthorizedError, () => {
-						   console.log("tried to index contact without permission")
-						   return null
-					   }),
-				   )
+			.load(MailTypeRef, [event.instanceListId, event.instanceId])
+			.then((mail) => {
+				return Promise.all([
+					promiseMap(mail.attachments, (attachmentId) => this._defaultCachingEntity.load(FileTypeRef, attachmentId)),
+					this._defaultCachingEntity.load(MailBodyTypeRef, mail.body),
+				]).then(([files, body]) => {
+					let keyToIndexEntries = this.createMailIndexEntries(mail, body, files)
+					return {
+						mail,
+						keyToIndexEntries,
+					}
+				})
+			})
+			.catch(
+				ofClass(NotFoundError, () => {
+					console.log("tried to index non existing mail")
+					return null
+				}),
+			)
+			.catch(
+				ofClass(NotAuthorizedError, () => {
+					console.log("tried to index contact without permission")
+					return null
+				}),
+			)
 	}
 
 	processMovedMail(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
 		let encInstanceId = encryptIndexKeyBase64(this._db.key, event.instanceId, this._db.iv)
-		return this._db.dbFacade.createTransaction(true, [ElementDataOS]).then(transaction => {
-			return transaction.get(ElementDataOS, encInstanceId).then(elementData => {
+		return this._db.dbFacade.createTransaction(true, [ElementDataOS]).then((transaction) => {
+			return transaction.get(ElementDataOS, encInstanceId).then((elementData) => {
 				if (elementData) {
 					if (this._isExcluded(event)) {
 						return this._core._processDeleted(event, indexUpdate) // move to spam folder
@@ -167,7 +164,7 @@ export class MailIndexer {
 					}
 				} else {
 					// instance is moved but not yet indexed: handle as new for example moving a mail from non indexed folder like spam to indexed folder
-					return this.processNewMail(event).then(result => {
+					return this.processNewMail(event).then((result) => {
 						if (result) {
 							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
 						}
@@ -178,13 +175,13 @@ export class MailIndexer {
 	}
 
 	enableMailIndexing(user: User): Promise<void> {
-		return this._db.dbFacade.createTransaction(true, [MetaDataOS]).then(t => {
-			return t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(enabled => {
+		return this._db.dbFacade.createTransaction(true, [MetaDataOS]).then((t) => {
+			return t.get(MetaDataOS, Metadata.mailIndexingEnabled).then((enabled) => {
 				if (!enabled) {
-					return promiseMap(filterMailMemberships(user), mailGroupMembership => this._getSpamFolder(mailGroupMembership)).then(spamFolders => {
-						this._excludedListIds = spamFolders.map(folder => folder.mails)
+					return promiseMap(filterMailMemberships(user), (mailGroupMembership) => this._getSpamFolder(mailGroupMembership)).then((spamFolders) => {
+						this._excludedListIds = spamFolders.map((folder) => folder.mails)
 						this.mailIndexingEnabled = true
-						return this._db.dbFacade.createTransaction(false, [MetaDataOS]).then(t2 => {
+						return this._db.dbFacade.createTransaction(false, [MetaDataOS]).then((t2) => {
 							t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
 							t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
 
@@ -192,7 +189,7 @@ export class MailIndexer {
 							const oldestTimestamp = this._dateProvider.getStartOfDayShiftedBy(-INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
 
 							this.indexMailboxes(user, oldestTimestamp).catch(
-								ofClass(CancelledError, e => {
+								ofClass(CancelledError, (e) => {
 									console.log("cancelled initial indexing", e)
 								}),
 							)
@@ -200,7 +197,7 @@ export class MailIndexer {
 						})
 					})
 				} else {
-					return t.get(MetaDataOS, Metadata.excludedListIds).then(excludedListIds => {
+					return t.get(MetaDataOS, Metadata.excludedListIds).then((excludedListIds) => {
 						this.mailIndexingEnabled = true
 						this._excludedListIds = excludedListIds || []
 					})
@@ -227,11 +224,16 @@ export class MailIndexer {
 	 */
 	async extendIndexIfNeeded(user: User, newOldestTimestamp: number): Promise<void> {
 		if (this.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && this.currentIndexTimestamp > newOldestTimestamp) {
-			this.mailboxIndexingPromise = this.mailboxIndexingPromise.then(async () => await this.indexMailboxes(user, newOldestTimestamp),
-				async () => await this.indexMailboxes(user, newOldestTimestamp)
-			).catch(ofClass(CancelledError, e => {
-				console.log("extend mail index has been cancelled", e)
-			}))
+			this.mailboxIndexingPromise = this.mailboxIndexingPromise
+				.then(
+					async () => await this.indexMailboxes(user, newOldestTimestamp),
+					async () => await this.indexMailboxes(user, newOldestTimestamp),
+				)
+				.catch(
+					ofClass(CancelledError, (e) => {
+						console.log("extend mail index has been cancelled", e)
+					}),
+				)
 			return this.mailboxIndexingPromise
 		}
 	}
@@ -264,7 +266,7 @@ export class MailIndexer {
 		this._core.queue.pause()
 
 		try {
-			const mailBoxes: Array<{mbox: MailBox, newestTimestamp: number}> = []
+			const mailBoxes: Array<{ mbox: MailBox; newestTimestamp: number }> = []
 
 			for (let mailGroupMembership of memberships) {
 				let mailGroupId = mailGroupMembership.group
@@ -315,15 +317,9 @@ export class MailIndexer {
 
 			const success = this._core.isStoppedProcessing() || e instanceof CancelledError
 
-			const failedIndexingUpTo = success
-				? null
-				: oldestTimestamp
+			const failedIndexingUpTo = success ? null : oldestTimestamp
 
-			const error = success
-				? null
-				: e instanceof ConnectionError
-					? IndexingErrorReason.ConnectionLost
-					: IndexingErrorReason.Unknown
+			const error = success ? null : e instanceof ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown
 
 			await this._worker.sendIndexState({
 				initializing: false,
@@ -333,7 +329,7 @@ export class MailIndexer {
 				aimedMailIndexTimestamp: oldestTimestamp,
 				indexedMailCount: this._core._stats.mailcount,
 				failedIndexingUpTo,
-				error
+				error,
 			})
 		} finally {
 			this._core.queue.resume()
@@ -341,12 +337,9 @@ export class MailIndexer {
 		}
 	}
 
-	_indexMailLists(
-		mailBoxes: Array<{mbox: MailBox, newestTimestamp: number}>,
-		oldestTimestamp: number,
-	): Promise<void> {
+	_indexMailLists(mailBoxes: Array<{ mbox: MailBox; newestTimestamp: number }>, oldestTimestamp: number): Promise<void> {
 		const newestTimestamp = mailBoxes.reduce((acc, data) => Math.max(acc, data.newestTimestamp), 0)
-		const progress = new ProgressMonitor(newestTimestamp - oldestTimestamp, progress => {
+		const progress = new ProgressMonitor(newestTimestamp - oldestTimestamp, (progress) => {
 			this._worker.sendIndexState({
 				initializing: false,
 				mailIndexEnabled: this.mailIndexingEnabled,
@@ -360,18 +353,17 @@ export class MailIndexer {
 
 		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 
-
 		const indexLoader = new IndexLoader(this._entityRestClient, this._defaultCachingEntityRestClient, this.isUsingOfflineCache)
 
-		return promiseMap(mailBoxes, mBoxData => {
-			return this._loadMailListIds(mBoxData.mbox).then(mailListIds => {
+		return promiseMap(mailBoxes, (mBoxData) => {
+			return this._loadMailListIds(mBoxData.mbox).then((mailListIds) => {
 				return {
 					mailListIds,
 					newestTimestamp: mBoxData.newestTimestamp,
 					ownerGroup: neverNull(mBoxData.mbox._ownerGroup),
 				}
 			})
-		}).then(mailboxData => this._indexMailListsInTimeBatches(mailboxData, [newestTimestamp, oldestTimestamp], indexUpdate, progress, indexLoader))
+		}).then((mailboxData) => this._indexMailListsInTimeBatches(mailboxData, [newestTimestamp, oldestTimestamp], indexUpdate, progress, indexLoader))
 	}
 
 	_processedEnough(indexUpdate: IndexUpdate): boolean {
@@ -393,7 +385,7 @@ export class MailIndexer {
 			batchEnd = rangeEnd
 		}
 
-		const mailboxesToWrite = dataPerMailbox.filter(mboxData => batchEnd < mboxData.newestTimestamp)
+		const mailboxesToWrite = dataPerMailbox.filter((mboxData) => batchEnd < mboxData.newestTimestamp)
 		const batchRange = [rangeStart, batchEnd] as TimeRange
 
 		// rangeStart is what we have indexed at the previous step. If it's equals to rangeEnd then we're done.
@@ -401,7 +393,7 @@ export class MailIndexer {
 		// we will continue from it next time.
 		if (rangeStart <= rangeEnd) {
 			// all ranges have been processed
-			const indexTimestampPerGroup = mailboxesToWrite.map(data => ({
+			const indexTimestampPerGroup = mailboxesToWrite.map((data) => ({
 				groupId: data.ownerGroup,
 				indexTimestamp: data.mailListIds.length === 0 ? FULL_INDEXED_TIMESTAMP : rangeStart,
 			}))
@@ -415,7 +407,7 @@ export class MailIndexer {
 
 			if (this._processedEnough(indexUpdate)) {
 				// only write to database if we have collected enough entities
-				const indexTimestampPerGroup = mailboxesToWrite.map(data => ({
+				const indexTimestampPerGroup = mailboxesToWrite.map((data) => ({
 					groupId: data.ownerGroup,
 					indexTimestamp: data.mailListIds.length === 0 ? FULL_INDEXED_TIMESTAMP : batchEnd,
 				}))
@@ -437,16 +429,21 @@ export class MailIndexer {
 	 * @return Number of processed emails?
 	 * @private
 	 */
-	async _prepareMailDataForTimeBatch(mboxDataList: Array<MboxIndexData>, timeRange: TimeRange, indexUpdate: IndexUpdate, indexLoader: IndexLoader): Promise<void> {
+	async _prepareMailDataForTimeBatch(
+		mboxDataList: Array<MboxIndexData>,
+		timeRange: TimeRange,
+		indexUpdate: IndexUpdate,
+		indexLoader: IndexLoader,
+	): Promise<void> {
 		const startTimeLoad = getPerformanceTimestamp()
 		return promiseMap(
 			mboxDataList,
-			mboxData => {
+			(mboxData) => {
 				return promiseMap(
 					mboxData.mailListIds.slice(),
-					async listId => {
+					async (listId) => {
 						// We use caching here because we may load same emails twice
-						const {elements: mails, loadedCompletely} = await indexLoader.loadMailsWithCache(listId, timeRange)
+						const { elements: mails, loadedCompletely } = await indexLoader.loadMailsWithCache(listId, timeRange)
 						// If we loaded mail list completely, don't try to load from it anymore
 						if (loadedCompletely) {
 							mboxData.mailListIds.splice(mboxData.mailListIds.indexOf(listId), 1)
@@ -454,7 +451,7 @@ export class MailIndexer {
 
 						this._core._stats.mailcount += mails.length
 						// Remove all processed entities from cache
-						await Promise.all(mails.map(m => indexLoader.removeFromCache(m._id)))
+						await Promise.all(mails.map((m) => indexLoader.removeFromCache(m._id)))
 						return this._processIndexMails(mails, indexUpdate, indexLoader)
 					},
 					{
@@ -475,35 +472,35 @@ export class MailIndexer {
 		const bodies = indexLoader.loadMailBodies(mails)
 		const files = indexLoader.loadAttachments(mails)
 		return Promise.all([bodies, files])
-					  .then(([bodies, files]) =>
-						  mails
-							  .map(mail => {
-								  const body = bodies.find(b => isSameId(b._id, mail.body))
-								  if (body == null) return null
-								  return {
-									  mail: mail,
-									  body,
-									  files: files.filter(file => mail.attachments.find(a => isSameId(a, file._id))),
-								  }
-							  })
-							  .filter(isNotNull),
-					  )
-					  .then(
-						  (
-							  mailWithBodyAndFiles: {
-								  mail: Mail
-								  body: MailBody
-								  files: TutanotaFile[]
-							  }[],
-						  ) => {
-							  mailWithBodyAndFiles.forEach(element => {
-								  let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)
+			.then(([bodies, files]) =>
+				mails
+					.map((mail) => {
+						const body = bodies.find((b) => isSameId(b._id, mail.body))
+						if (body == null) return null
+						return {
+							mail: mail,
+							body,
+							files: files.filter((file) => mail.attachments.find((a) => isSameId(a, file._id))),
+						}
+					})
+					.filter(isNotNull),
+			)
+			.then(
+				(
+					mailWithBodyAndFiles: {
+						mail: Mail
+						body: MailBody
+						files: TutanotaFile[]
+					}[],
+				) => {
+					mailWithBodyAndFiles.forEach((element) => {
+						let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)
 
-								  this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
-							  })
-						  },
-					  )
-					  .then(() => mails.length)
+						this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
+					})
+				},
+			)
+			.then(() => mails.length)
 	}
 
 	_writeIndexUpdate(
@@ -518,27 +515,27 @@ export class MailIndexer {
 
 	updateCurrentIndexTimestamp(user: User): Promise<void> {
 		return this._db.dbFacade
-				   .createTransaction(true, [GroupDataOS])
-				   .then(t => {
-					   return Promise.all(
-						   filterMailMemberships(user).map(mailGroupMembership => {
-							   return t.get(GroupDataOS, mailGroupMembership.group).then((groupData: GroupData | null) => {
-								   if (!groupData) {
-									   return NOTHING_INDEXED_TIMESTAMP
-								   } else {
-									   return groupData.indexTimestamp
-								   }
-							   })
-						   }),
-					   ).then(groupIndexTimestamps => {
-						   this.currentIndexTimestamp = _getCurrentIndexTimestamp(groupIndexTimestamps)
-					   })
-				   })
-				   .catch(err => {
-					   if (err instanceof DbError && this._core.isStoppedProcessing()) {
-						   console.log("The database was closed, do not write currentIndexTimestamp")
-					   }
-				   })
+			.createTransaction(true, [GroupDataOS])
+			.then((t) => {
+				return Promise.all(
+					filterMailMemberships(user).map((mailGroupMembership) => {
+						return t.get(GroupDataOS, mailGroupMembership.group).then((groupData: GroupData | null) => {
+							if (!groupData) {
+								return NOTHING_INDEXED_TIMESTAMP
+							} else {
+								return groupData.indexTimestamp
+							}
+						})
+					}),
+				).then((groupIndexTimestamps) => {
+					this.currentIndexTimestamp = _getCurrentIndexTimestamp(groupIndexTimestamps)
+				})
+			})
+			.catch((err) => {
+				if (err instanceof DbError && this._core.isStoppedProcessing()) {
+					console.log("The database was closed, do not write currentIndexTimestamp")
+				}
+			})
 	}
 
 	_isExcluded(event: EntityUpdate): boolean {
@@ -563,13 +560,13 @@ export class MailIndexer {
 
 	_getSpamFolder(mailGroup: GroupMembership): Promise<MailFolder> {
 		return this._defaultCachingEntity
-				   .load(MailboxGroupRootTypeRef, mailGroup.group)
-				   .then(mailGroupRoot => this._defaultCachingEntity.load(MailBoxTypeRef, mailGroupRoot.mailbox))
-				   .then(mbox => {
-					   return this._defaultCachingEntity
-								  .loadAll(MailFolderTypeRef, neverNull(mbox.folders).folders)
-								  .then(folders => neverNull(folders.find(folder => folder.folderType === MailFolderType.SPAM)))
-				   })
+			.load(MailboxGroupRootTypeRef, mailGroup.group)
+			.then((mailGroupRoot) => this._defaultCachingEntity.load(MailBoxTypeRef, mailGroupRoot.mailbox))
+			.then((mbox) => {
+				return this._defaultCachingEntity
+					.loadAll(MailFolderTypeRef, neverNull(mbox.folders).folders)
+					.then((folders) => neverNull(folders.find((folder) => folder.folderType === MailFolderType.SPAM)))
+			})
 	}
 
 	/**
@@ -583,13 +580,13 @@ export class MailIndexer {
 	 */
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		if (!this.mailIndexingEnabled) return Promise.resolve()
-		return promiseMap(events, event => {
+		return promiseMap(events, (event) => {
 			if (event.operation === OperationType.CREATE) {
 				if (containsEventOfType(events as readonly EntityUpdateData[], OperationType.DELETE, event.instanceId)) {
 					// do not execute move operation if there is a delete event or another move event.
 					return this.processMovedMail(event, indexUpdate)
 				} else {
-					return this.processNewMail(event).then(result => {
+					return this.processNewMail(event).then((result) => {
 						if (result) {
 							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
 						}
@@ -597,25 +594,25 @@ export class MailIndexer {
 				}
 			} else if (event.operation === OperationType.UPDATE) {
 				return this._defaultCachingEntity
-						   .load(MailTypeRef, [event.instanceListId, event.instanceId])
-						   .then(mail => {
-							   if (mail.state === MailState.DRAFT) {
-								   return Promise.all([
-									   this._core._processDeleted(event, indexUpdate),
-									   this.processNewMail(event).then(result => {
-										   if (result) {
-											   this._core.encryptSearchIndexEntries(
-												   result.mail._id,
-												   neverNull(result.mail._ownerGroup),
-												   result.keyToIndexEntries,
-												   indexUpdate,
-											   )
-										   }
-									   }),
-								   ])
-							   }
-						   })
-						   .catch(ofClass(NotFoundError, () => console.log("tried to index update event for non existing mail")))
+					.load(MailTypeRef, [event.instanceListId, event.instanceId])
+					.then((mail) => {
+						if (mail.state === MailState.DRAFT) {
+							return Promise.all([
+								this._core._processDeleted(event, indexUpdate),
+								this.processNewMail(event).then((result) => {
+									if (result) {
+										this._core.encryptSearchIndexEntries(
+											result.mail._id,
+											neverNull(result.mail._ownerGroup),
+											result.keyToIndexEntries,
+											indexUpdate,
+										)
+									}
+								}),
+							])
+						}
+					})
+					.catch(ofClass(NotFoundError, () => console.log("tried to index update event for non existing mail")))
 			} else if (event.operation === OperationType.DELETE) {
 				if (!containsEventOfType(events as readonly EntityUpdateData[], OperationType.CREATE, event.instanceId)) {
 					// Check that this is *not* a move event. Move events are handled separately.
@@ -661,11 +658,7 @@ class IndexLoader {
 	_entity: EntityClient
 	private readonly cachingEntity: EntityClient
 
-	constructor(
-		restClient: EntityRestClient,
-		cachingEntityClient: DefaultEntityRestCache,
-		private isUsingOfflineCache: boolean
-	) {
+	constructor(restClient: EntityRestClient, cachingEntityClient: DefaultEntityRestCache, private isUsingOfflineCache: boolean) {
 		if (isUsingOfflineCache) {
 			this.entityCache = cachingEntityClient
 			this._entity = new EntityClient(cachingEntityClient)
@@ -700,23 +693,23 @@ class IndexLoader {
 	}
 
 	loadMailBodies(mails: Mail[]): Promise<MailBody[]> {
-		const ids = mails.map(m => m.body)
+		const ids = mails.map((m) => m.body)
 		return this.loadInChunks(MailBodyTypeRef, null, ids)
 	}
 
 	loadAttachments(mails: Mail[]): Promise<TutanotaFile[]> {
 		const attachmentIds: IdTuple[] = []
-		mails.forEach(mail => {
+		mails.forEach((mail) => {
 			attachmentIds.push(...mail.attachments)
 		})
-		const filesByList = groupBy(attachmentIds, a => a[0])
+		const filesByList = groupBy(attachmentIds, (a) => a[0])
 		const fileLoadingPromises: Array<Promise<Array<TutanotaFile>>> = []
 		filesByList.forEach((fileIds, listId) => {
 			fileLoadingPromises.push(
 				this.loadInChunks(
 					FileTypeRef,
 					listId,
-					fileIds.map(f => f[1]),
+					fileIds.map((f) => f[1]),
 				),
 			)
 		})
@@ -728,12 +721,12 @@ class IndexLoader {
 		const byChunk = splitInChunks(ENTITY_INDEXER_CHUNK, ids)
 		return promiseMap(
 			byChunk,
-			chunk => {
+			(chunk) => {
 				return chunk.length > 0 ? this._entity.loadMultiple(typeRef, listId, chunk) : Promise.resolve([])
 			},
 			{
 				concurrency: 2,
 			},
-		).then(entityResults => flat(entityResults))
+		).then((entityResults) => flat(entityResults))
 	}
 }

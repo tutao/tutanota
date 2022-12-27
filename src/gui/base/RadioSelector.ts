@@ -1,7 +1,7 @@
-import type {TranslationText} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import m, {Children, Component, Vnode} from "mithril"
-import {theme} from "../theme"
+import type { TranslationText } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import m, { Children, Component, Vnode } from "mithril"
+import { theme } from "../theme"
 
 export type RadioSelectorOption<T> = {
 	name: TranslationText
@@ -18,8 +18,8 @@ export type RadioSelectorAttrs<T> = {
  * Component which shows selection for a single choice.
  */
 export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
-	view({attrs}: Vnode<RadioSelectorAttrs<T>>): Children {
-		return attrs.options.map(option => this._renderOption(option, attrs.selectedOption, attrs.onOptionSelected))
+	view({ attrs }: Vnode<RadioSelectorAttrs<T>>): Children {
+		return attrs.options.map((option) => this._renderOption(option, attrs.selectedOption, attrs.onOptionSelected))
 	}
 
 	_renderOption(option: RadioSelectorOption<T>, selectedOption: T, onOptionSelected: (arg0: T) => unknown): Children {

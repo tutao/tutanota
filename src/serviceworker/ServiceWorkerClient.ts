@@ -1,9 +1,9 @@
-import {assertMainOrNodeBoot, isApp, isDesktop, isTutanotaDomain} from "../api/common/Env"
-import {lang} from "../misc/LanguageViewModel"
-import {windowFacade} from "../misc/WindowFacade"
-import m, {Component} from "mithril"
-import {handleUncaughtError} from "../misc/ErrorHandler"
-import {isNotSupportedError, isSecurityError, objToError} from "../api/common/utils/Utils"
+import { assertMainOrNodeBoot, isApp, isDesktop, isTutanotaDomain } from "../api/common/Env"
+import { lang } from "../misc/LanguageViewModel"
+import { windowFacade } from "../misc/WindowFacade"
+import m, { Component } from "mithril"
+import { handleUncaughtError } from "../misc/ErrorHandler"
+import { isNotSupportedError, isSecurityError, objToError } from "../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
@@ -15,18 +15,18 @@ function showUpdateOverlay(onUpdate: () => void) {
 				" ",
 				isTutanotaDomain()
 					? m(
-						"a",
-						{
-							href: `https://github.com/tutao/tutanota/releases/`,
-							target: "_blank",
-						},
-						lang.get("releaseNotes_action"),
-					)
+							"a",
+							{
+								href: `https://github.com/tutao/tutanota/releases/`,
+								target: "_blank",
+							},
+							lang.get("releaseNotes_action"),
+					  )
 					: null,
 			])
 		},
 	}
-	Promise.all([import("../gui/base/NotificationOverlay"), import("../gui/base/Button.js")]).then(([notificationOverlay, {ButtonType}]) => {
+	Promise.all([import("../gui/base/NotificationOverlay"), import("../gui/base/Button.js")]).then(([notificationOverlay, { ButtonType }]) => {
 		notificationOverlay.show(
 			notificationMessage,
 			{
@@ -64,7 +64,7 @@ export function init() {
 			console.log("Registering ServiceWorker")
 			serviceWorker
 				.register(window.tutao.appState.prefixWithoutFile + "/sw.js")
-				.then(registration => {
+				.then((registration) => {
 					console.log("ServiceWorker has been installed")
 					showUpdateMessageIfNeeded(registration)
 					registration.addEventListener("updatefound", () => {
@@ -100,7 +100,7 @@ export function init() {
 						}
 					})
 				})
-				.catch(e => {
+				.catch((e) => {
 					console.warn("Failed to register the service worker:", e.message)
 
 					// We get a rejection when trying to register the service worker in firefox with security settings like

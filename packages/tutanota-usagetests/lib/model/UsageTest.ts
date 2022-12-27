@@ -1,5 +1,5 @@
-import {ObsoleteStage, Stage} from "./Stage.js"
-import {PingAdapter} from "../storage/PingAdapter.js"
+import { ObsoleteStage, Stage } from "./Stage.js"
+import { PingAdapter } from "../storage/PingAdapter.js"
 
 const NO_PARTICIPATION_VARIANT = 0
 const ASSIGNMENT_STAGE = -1
@@ -25,13 +25,7 @@ export class UsageTest {
 	public recordTime = false
 	private lastPingDate?: Date
 
-	constructor(
-		readonly testId: string,
-		readonly testName: string,
-		readonly variant: number,
-		public active: boolean,
-	) {
-	}
+	constructor(readonly testId: string, readonly testName: string, readonly variant: number, public active: boolean) {}
 
 	/**
 	Tries to restart the test (by sending stage 0) regardless of the allowEarlyRestarts setting
@@ -102,11 +96,12 @@ export class UsageTest {
 			let currentStage = this.stages.get(i)
 
 			if (!!currentStage && currentStage.minPings != 0) {
-				console.log(`Not sending ping for stage (${stage.number}) in wrong order of test '${this.testId}' because stage ${currentStage.number} is not finished`)
+				console.log(
+					`Not sending ping for stage (${stage.number}) in wrong order of test '${this.testId}' because stage ${currentStage.number} is not finished`,
+				)
 				return false
 			}
 		}
-
 
 		console.log(`Test '${this.testName}': Completing stage ${stage.number}, variant ${this.variant}`)
 		this.sentPings = stage.number === this.lastCompletedStage ? this.sentPings + 1 : 1

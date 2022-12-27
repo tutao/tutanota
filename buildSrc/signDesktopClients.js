@@ -6,9 +6,8 @@
  */
 import fs from "fs"
 import path from "path"
-import {fileExists} from "./buildUtils.js"
-import {sign} from "./installerSigner.js"
-
+import { fileExists } from "./buildUtils.js"
+import { sign } from "./installerSigner.js"
 
 console.log("Sign Desktop Clients")
 
@@ -26,14 +25,14 @@ if (process.env.DEBUG_SIGN) {
 }
 
 async function signDesktopClients() {
-	const MAC_ZIP_SIGNATURE_FILE = 'mac-sig-zip.bin'
-	const MAC_DMG_SIGNATURE_FILE = 'mac-sig-dmg.bin'
-	const WIN_SIGNATURE_FILE = 'win-sig.bin'
-	const LINUX_SIGNATURE_FILE = 'linux-sig.bin'
+	const MAC_ZIP_SIGNATURE_FILE = "mac-sig-zip.bin"
+	const MAC_DMG_SIGNATURE_FILE = "mac-sig-dmg.bin"
+	const WIN_SIGNATURE_FILE = "win-sig.bin"
+	const LINUX_SIGNATURE_FILE = "linux-sig.bin"
 
-	const MAC_YML_FILE = 'latest-mac.yml'
-	const WIN_YML_FILE = 'latest.yml'
-	const LINUX_YML_FILE = 'latest-linux.yml'
+	const MAC_YML_FILE = "latest-mac.yml"
+	const WIN_YML_FILE = "latest.yml"
+	const LINUX_YML_FILE = "latest-linux.yml"
 
 	let filesSigned = 0
 	const signIfExists = async (fileName, sigName, ymlName) => {
@@ -44,20 +43,20 @@ async function signDesktopClients() {
 		}
 	}
 
-	await signIfExists('./build/desktop/tutanota-desktop-mac.zip', MAC_ZIP_SIGNATURE_FILE, MAC_YML_FILE)
-	await signIfExists('./build/desktop/tutanota-desktop-mac.dmg', MAC_DMG_SIGNATURE_FILE, null)
-	await signIfExists('./build/desktop/tutanota-desktop-win.exe', WIN_SIGNATURE_FILE, WIN_YML_FILE)
-	await signIfExists('./build/desktop/tutanota-desktop-linux.AppImage', LINUX_SIGNATURE_FILE, LINUX_YML_FILE)
+	await signIfExists("./build/desktop/tutanota-desktop-mac.zip", MAC_ZIP_SIGNATURE_FILE, MAC_YML_FILE)
+	await signIfExists("./build/desktop/tutanota-desktop-mac.dmg", MAC_DMG_SIGNATURE_FILE, null)
+	await signIfExists("./build/desktop/tutanota-desktop-win.exe", WIN_SIGNATURE_FILE, WIN_YML_FILE)
+	await signIfExists("./build/desktop/tutanota-desktop-linux.AppImage", LINUX_SIGNATURE_FILE, LINUX_YML_FILE)
 
-	await signIfExists('./build/desktop-test/tutanota-desktop-test-mac.zip', MAC_ZIP_SIGNATURE_FILE, MAC_YML_FILE)
-	await signIfExists('./build/desktop-test/tutanota-desktop-test-mac.dmg', MAC_DMG_SIGNATURE_FILE, null)
-	await signIfExists('./build/desktop-test/tutanota-desktop-test-win.exe', WIN_SIGNATURE_FILE, WIN_YML_FILE)
-	await signIfExists('./build/desktop-test/tutanota-desktop-test-linux.AppImage', LINUX_SIGNATURE_FILE, LINUX_YML_FILE)
+	await signIfExists("./build/desktop-test/tutanota-desktop-test-mac.zip", MAC_ZIP_SIGNATURE_FILE, MAC_YML_FILE)
+	await signIfExists("./build/desktop-test/tutanota-desktop-test-mac.dmg", MAC_DMG_SIGNATURE_FILE, null)
+	await signIfExists("./build/desktop-test/tutanota-desktop-test-win.exe", WIN_SIGNATURE_FILE, WIN_YML_FILE)
+	await signIfExists("./build/desktop-test/tutanota-desktop-test-linux.AppImage", LINUX_SIGNATURE_FILE, LINUX_YML_FILE)
 
-	await signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-mac.zip', MAC_ZIP_SIGNATURE_FILE, MAC_YML_FILE)
-	await signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-mac.dmg', MAC_DMG_SIGNATURE_FILE, null)
-	await signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-win.exe', WIN_SIGNATURE_FILE, WIN_YML_FILE)
-	await signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage', LINUX_SIGNATURE_FILE, LINUX_YML_FILE)
+	await signIfExists("./build/desktop-snapshot/tutanota-desktop-snapshot-mac.zip", MAC_ZIP_SIGNATURE_FILE, MAC_YML_FILE)
+	await signIfExists("./build/desktop-snapshot/tutanota-desktop-snapshot-mac.dmg", MAC_DMG_SIGNATURE_FILE, null)
+	await signIfExists("./build/desktop-snapshot/tutanota-desktop-snapshot-win.exe", WIN_SIGNATURE_FILE, WIN_YML_FILE)
+	await signIfExists("./build/desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage", LINUX_SIGNATURE_FILE, LINUX_YML_FILE)
 
 	if (filesSigned === 0) {
 		console.log("Error: no files were signed!")
@@ -66,4 +65,3 @@ async function signDesktopClients() {
 		console.log(`Signed ${filesSigned} files!`)
 	}
 }
-

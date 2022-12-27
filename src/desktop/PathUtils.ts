@@ -1,8 +1,8 @@
 import path from "path"
-import {sanitizeFilename} from "../api/common/utils/FileUtils"
-import {neverNull} from "@tutao/tutanota-utils"
-import {promises as fs} from "fs"
-import {PathExports} from "./ElectronExportTypes";
+import { sanitizeFilename } from "../api/common/utils/FileUtils"
+import { neverNull } from "@tutao/tutanota-utils"
+import { promises as fs } from "fs"
+import { PathExports } from "./ElectronExportTypes"
 
 /**
  * Can be used when you want to ensure only valid file extensions are being provided. feel free to add some
@@ -186,7 +186,7 @@ export const EXECUTABLE_EXTENSIONS = [
  */
 export function nonClobberingFilename(files: Array<string>, filename: string): string {
 	filename = sanitizeFilename(filename)
-	const clashingFile = files.find(f => f === filename)
+	const clashingFile = files.find((f) => f === filename)
 
 	if (typeof clashingFile !== "string") {
 		// all is well
@@ -196,17 +196,17 @@ export function nonClobberingFilename(files: Array<string>, filename: string): s
 		const ext = path.extname(filename)
 		const basename = path.basename(filename, ext)
 		const clashNumbers: Array<number> = files
-			.filter(f => f.startsWith(`${basename}-`))
-			.map(f => f.slice(0, f.length - ext.length))
-			.map(f => f.slice(basename.length + 1, f.length))
-			.map(f => (!f.startsWith("0") ? parseInt(f, 10) : 0))
-			.filter(n => !isNaN(n) && n > 0)
+			.filter((f) => f.startsWith(`${basename}-`))
+			.map((f) => f.slice(0, f.length - ext.length))
+			.map((f) => f.slice(basename.length + 1, f.length))
+			.map((f) => (!f.startsWith("0") ? parseInt(f, 10) : 0))
+			.filter((n) => !isNaN(n) && n > 0)
 		const clashNumbersSet: Set<number> = new Set(clashNumbers)
 		clashNumbersSet.add(0)
 		// if a number is bigger than its index, there is room somewhere before that number
 		const firstGapMinusOne = Array.from(clashNumbersSet)
-									  .sort((a, b) => a - b)
-									  .find((n, i, a) => a[i + 1] > i + 1)
+			.sort((a, b) => a - b)
+			.find((n, i, a) => a[i + 1] > i + 1)
 		return firstGapMinusOne != null && !isNaN(firstGapMinusOne)
 			? `${basename}-${neverNull(firstGapMinusOne) + 1}${ext}`
 			: `${basename}-${clashNumbersSet.size}${ext}`
@@ -218,9 +218,7 @@ export function looksExecutable(file: string): boolean {
 	// if the file has an empty filename with just an extension (e.g. just ".exe" or ".bat")
 	// then path.extname will return an empty string resulting in this function returning false
 	// this is a problem because windows would still try to execute a file named ".exe", so it should return true
-	const ext = basename.match(/^\.[^.]+$/)
-		? basename
-		: path.extname(basename)
+	const ext = basename.match(/^\.[^.]+$/) ? basename : path.extname(basename)
 
 	return EXECUTABLE_EXTENSIONS.includes(ext.toLowerCase().slice(1))
 }
@@ -233,7 +231,7 @@ export function looksExecutable(file: string): boolean {
 export async function fileExists(filePath: string): Promise<boolean> {
 	return fs
 		.stat(filePath)
-		.then(stats => stats.isFile())
+		.then((stats) => stats.isFile())
 		.catch(() => false)
 }
 

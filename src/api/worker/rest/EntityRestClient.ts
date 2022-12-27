@@ -1,22 +1,22 @@
-import type {RestClient} from "./RestClient"
-import type {CryptoFacade} from "../crypto/CryptoFacade"
-import {_verifyType, HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
-import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError"
-import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
-import {PushIdentifierTypeRef} from "../../entities/sys/TypeRefs.js"
-import {NotAuthenticatedError, PayloadTooLargeError} from "../../common/error/RestError"
-import type {lazy} from "@tutao/tutanota-utils"
-import {flat, isSameTypeRef, ofClass, promiseMap, splitInChunks, TypeRef} from "@tutao/tutanota-utils"
-import {assertWorkerOrNode} from "../../common/Env"
-import type {ListElementEntity, SomeEntity, TypeModel} from "../../common/EntityTypes"
-import {LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT} from "../../common/utils/EntityUtils"
-import {Type} from "../../common/EntityConstants"
-import {SetupMultipleError} from "../../common/error/SetupMultipleError"
-import {expandId} from "./DefaultEntityRestCache.js"
-import {InstanceMapper} from "../crypto/InstanceMapper"
-import {QueuedBatch} from "../search/EventQueue"
-import {AuthDataProvider} from "../facades/UserFacade"
-import {LoginIncompleteError} from "../../common/error/LoginIncompleteError.js"
+import type { RestClient } from "./RestClient"
+import type { CryptoFacade } from "../crypto/CryptoFacade"
+import { _verifyType, HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
+import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
+import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
+import { PushIdentifierTypeRef } from "../../entities/sys/TypeRefs.js"
+import { NotAuthenticatedError, PayloadTooLargeError } from "../../common/error/RestError"
+import type { lazy } from "@tutao/tutanota-utils"
+import { flat, isSameTypeRef, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import { assertWorkerOrNode } from "../../common/Env"
+import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
+import { LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
+import { Type } from "../../common/EntityConstants"
+import { SetupMultipleError } from "../../common/error/SetupMultipleError"
+import { expandId } from "./DefaultEntityRestCache.js"
+import { InstanceMapper } from "../crypto/InstanceMapper"
+import { QueuedBatch } from "../search/EventQueue"
+import { AuthDataProvider } from "../facades/UserFacade"
+import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 
 assertWorkerOrNode()
 
@@ -25,9 +25,9 @@ export function typeRefToPath(typeRef: TypeRef<any>): string {
 }
 
 export interface EntityRestClientSetupOptions {
-	baseUrl?: string,
+	baseUrl?: string
 	/** Use this key to encrypt session key instead of trying to resolve the owner key based on the ownerGroup. */
-	ownerKey?: Aes128Key,
+	ownerKey?: Aes128Key
 }
 
 /**
@@ -113,13 +113,15 @@ export class EntityRestClient implements EntityRestInterface {
 		extraHeaders?: Dict,
 		ownerKey?: Aes128Key,
 	): Promise<T> {
-		const {listId, elementId} = expandId(id)
-		const {
-			path,
-			queryParams,
-			headers,
-			typeModel
-		} = await this._validateAndPrepareRestRequest(typeRef, listId, elementId, queryParameters, extraHeaders, ownerKey)
+		const { listId, elementId } = expandId(id)
+		const { path, queryParams, headers, typeModel } = await this._validateAndPrepareRestRequest(
+			typeRef,
+			listId,
+			elementId,
+			queryParameters,
+			extraHeaders,
+			ownerKey,
+		)
 		const json = await this._restClient.request(path, HttpMethod.GET, {
 			queryParams,
 			headers,
@@ -127,14 +129,14 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 		const entity = JSON.parse(json)
 		const migratedEntity = await this._crypto.applyMigrations(typeRef, entity)
-		const sessionKey = ownerKey ?
-			this._crypto.resolveSessionKeyWithOwnerKey(migratedEntity, ownerKey)
-			: await this._crypto.resolveSessionKey(typeModel, migratedEntity)
-						.catch(ofClass(SessionKeyNotFoundError, e => {
-								console.log("could not resolve session key", e)
-								return null // will result in _errors being set on the instance
-							}),
-						)
+		const sessionKey = ownerKey
+			? this._crypto.resolveSessionKeyWithOwnerKey(migratedEntity, ownerKey)
+			: await this._crypto.resolveSessionKey(typeModel, migratedEntity).catch(
+					ofClass(SessionKeyNotFoundError, (e) => {
+						console.log("could not resolve session key", e)
+						return null // will result in _errors being set on the instance
+					}),
+			  )
 		const instance = await this._instanceMapper.decryptAndMapToInstance<T>(typeModel, migratedEntity, sessionKey)
 		return this._crypto.applyMigrationsForInstance(instance)
 	}
@@ -145,12 +147,14 @@ export class EntityRestClient implements EntityRestInterface {
 			count: String(count),
 			reverse: String(reverse),
 		}
-		const {
-			path,
-			headers,
-			typeModel,
-			queryParams
-		} = await this._validateAndPrepareRestRequest(typeRef, listId, null, rangeRequestParams, undefined, undefined)
+		const { path, headers, typeModel, queryParams } = await this._validateAndPrepareRestRequest(
+			typeRef,
+			listId,
+			null,
+			rangeRequestParams,
+			undefined,
+			undefined,
+		)
 		// This should never happen if type checking is not bypassed with any
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		const json = await this._restClient.request(path, HttpMethod.GET, {
@@ -162,16 +166,16 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	async loadMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementIds: Array<Id>): Promise<Array<T>> {
-		const {path, headers} = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, undefined, undefined)
+		const { path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, undefined, undefined)
 		const idChunks = splitInChunks(LOAD_MULTIPLE_LIMIT, elementIds)
-		const loadedChunks = await promiseMap(idChunks, async idChunk => {
+		const loadedChunks = await promiseMap(idChunks, async (idChunk) => {
 			const queryParams = {
 				ids: idChunk.join(","),
 			}
 			const json = await this._restClient.request(path, HttpMethod.GET, {
 				queryParams,
 				headers,
-				responseType: MediaType.Json
+				responseType: MediaType.Json,
 			})
 			return this._handleLoadMultipleResult(typeRef, JSON.parse(json))
 		})
@@ -184,12 +188,12 @@ export class EntityRestClient implements EntityRestInterface {
 		// PushIdentifier was changed in the system model v43 to encrypt the name.
 		// We check here to check the type only once per array and not for each element.
 		if (isSameTypeRef(typeRef, PushIdentifierTypeRef)) {
-			await promiseMap(loadedEntities, instance => this._crypto.applyMigrations(typeRef, instance), {
+			await promiseMap(loadedEntities, (instance) => this._crypto.applyMigrations(typeRef, instance), {
 				concurrency: 5,
 			})
 		}
 
-		return promiseMap(loadedEntities, (instance) => this._decryptMapAndMigrate(instance, model), {concurrency: 5})
+		return promiseMap(loadedEntities, (instance) => this._decryptMapAndMigrate(instance, model), { concurrency: 5 })
 	}
 
 	async _decryptMapAndMigrate<T>(instance: any, model: TypeModel): Promise<T> {
@@ -210,12 +214,14 @@ export class EntityRestClient implements EntityRestInterface {
 
 	async setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id> {
 		const typeRef = instance._type
-		const {
-			typeModel,
-			path,
-			headers,
-			queryParams
-		} = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, extraHeaders, options?.ownerKey)
+		const { typeModel, path, headers, queryParams } = await this._validateAndPrepareRestRequest(
+			typeRef,
+			listId,
+			null,
+			undefined,
+			extraHeaders,
+			options?.ownerKey,
+		)
 
 		if (typeModel.type === Type.ListElement) {
 			if (!listId) throw new Error("List id must be defined for LETs")
@@ -226,17 +232,13 @@ export class EntityRestClient implements EntityRestInterface {
 		const sk = this._crypto.setNewOwnerEncSessionKey(typeModel, instance, options?.ownerKey)
 
 		const encryptedEntity = await this._instanceMapper.encryptAndMapToLiteral(typeModel, instance, sk)
-		const persistencePostReturn = await this._restClient.request(
-			path,
-			HttpMethod.POST,
-			{
-				baseUrl: options?.baseUrl,
-				queryParams,
-				headers,
-				body: JSON.stringify(encryptedEntity),
-				responseType: MediaType.Json,
-			},
-		)
+		const persistencePostReturn = await this._restClient.request(path, HttpMethod.POST, {
+			baseUrl: options?.baseUrl,
+			queryParams,
+			headers,
+			body: JSON.stringify(encryptedEntity),
+			responseType: MediaType.Json,
+		})
 		return JSON.parse(persistencePostReturn).generatedId
 	}
 
@@ -249,7 +251,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 		const instanceChunks = splitInChunks(POST_MULTIPLE_LIMIT, instances)
 		const typeRef = instances[0]._type
-		const {typeModel, path, headers} = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, undefined, undefined)
+		const { typeModel, path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, undefined, undefined)
 
 		if (typeModel.type === Type.ListElement) {
 			if (!listId) throw new Error("List id must be defined for LETs")
@@ -259,9 +261,9 @@ export class EntityRestClient implements EntityRestInterface {
 
 		const errors: Error[] = []
 		const failedInstances: T[] = []
-		const idChunks: Array<Array<Id>> = await promiseMap(instanceChunks, async instanceChunk => {
+		const idChunks: Array<Array<Id>> = await promiseMap(instanceChunks, async (instanceChunk) => {
 			try {
-				const encryptedEntities = await promiseMap(instanceChunk, e => {
+				const encryptedEntities = await promiseMap(instanceChunk, (e) => {
 					const sk = this._crypto.setNewOwnerEncSessionKey(typeModel, e)
 
 					return this._instanceMapper.encryptAndMapToLiteral(typeModel, e, sk)
@@ -270,23 +272,19 @@ export class EntityRestClient implements EntityRestInterface {
 				const queryParams = {
 					count: String(instanceChunk.length),
 				}
-				const persistencePostReturn = await this._restClient.request(
-					path,
-					HttpMethod.POST,
-					{
-						queryParams,
-						headers,
-						body: JSON.stringify(encryptedEntities),
-						responseType: MediaType.Json,
-					},
-				)
+				const persistencePostReturn = await this._restClient.request(path, HttpMethod.POST, {
+					queryParams,
+					headers,
+					body: JSON.stringify(encryptedEntities),
+					responseType: MediaType.Json,
+				})
 				return this.parseSetupMultiple(persistencePostReturn)
 			} catch (e) {
 				if (e instanceof PayloadTooLargeError) {
 					// If we try to post too many large instances then we get PayloadTooLarge
 					// So we fall back to posting single instances
-					const returnedIds = await promiseMap(instanceChunk, instance => {
-						return this.setup(listId, instance).catch(e => {
+					const returnedIds = await promiseMap(instanceChunk, (instance) => {
+						return this.setup(listId, instance).catch((e) => {
 							errors.push(e)
 							failedInstances.push(instance)
 						})
@@ -309,16 +307,16 @@ export class EntityRestClient implements EntityRestInterface {
 
 	async update<T extends SomeEntity>(instance: T, ownerKey?: Aes128Key): Promise<void> {
 		if (!instance._id) throw new Error("Id must be defined")
-		const {listId, elementId} = expandId(instance._id)
-		const {
-			path,
-			queryParams,
-			headers,
-			typeModel
-		} = await this._validateAndPrepareRestRequest(instance._type, listId, elementId, undefined, undefined, ownerKey)
-		const sessionKey = (ownerKey)
-			? this._crypto.resolveSessionKeyWithOwnerKey(instance, ownerKey)
-			: await this._crypto.resolveSessionKey(typeModel, instance)
+		const { listId, elementId } = expandId(instance._id)
+		const { path, queryParams, headers, typeModel } = await this._validateAndPrepareRestRequest(
+			instance._type,
+			listId,
+			elementId,
+			undefined,
+			undefined,
+			ownerKey,
+		)
+		const sessionKey = ownerKey ? this._crypto.resolveSessionKeyWithOwnerKey(instance, ownerKey) : await this._crypto.resolveSessionKey(typeModel, instance)
 		const encryptedEntity = await this._instanceMapper.encryptAndMapToLiteral(typeModel, instance, sessionKey)
 		await this._restClient.request(path, HttpMethod.PUT, {
 			queryParams,
@@ -329,12 +327,8 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	async erase<T extends SomeEntity>(instance: T): Promise<void> {
-		const {listId, elementId} = expandId(instance._id)
-		const {
-			path,
-			queryParams,
-			headers
-		} = await this._validateAndPrepareRestRequest(instance._type, listId, elementId, undefined, undefined, undefined)
+		const { listId, elementId } = expandId(instance._id)
+		const { path, queryParams, headers } = await this._validateAndPrepareRestRequest(instance._type, listId, elementId, undefined, undefined, undefined)
 		await this._restClient.request(path, HttpMethod.DELETE, {
 			queryParams,
 			headers,
@@ -347,7 +341,7 @@ export class EntityRestClient implements EntityRestInterface {
 		elementId: Id | null,
 		queryParams: Dict | undefined,
 		extraHeaders: Dict | undefined,
-		ownerKey: Aes128Key | undefined
+		ownerKey: Aes128Key | undefined,
 	): Promise<{
 		path: string
 		queryParams: Dict | undefined

@@ -1,11 +1,11 @@
-import type {InvoiceData, PaymentData, SpamRuleFieldType, SpamRuleType} from "../../common/TutanotaConstants"
-import {AccountType, BookingItemFeatureType, Const, GroupType} from "../../common/TutanotaConstants"
+import type { InvoiceData, PaymentData, SpamRuleFieldType, SpamRuleType } from "../../common/TutanotaConstants"
+import { AccountType, BookingItemFeatureType, Const, GroupType } from "../../common/TutanotaConstants"
 import type {
 	AccountingInfo,
 	CustomDomainReturn,
 	CustomerServerProperties,
 	EmailSenderListElement,
-	PaymentDataServicePutReturn
+	PaymentDataServicePutReturn,
 } from "../../entities/sys/TypeRefs.js"
 import {
 	AccountingInfoTypeRef,
@@ -20,13 +20,13 @@ import {
 	createPdfInvoiceServiceData,
 	CustomerInfoTypeRef,
 	CustomerServerPropertiesTypeRef,
-	CustomerTypeRef
+	CustomerTypeRef,
 } from "../../entities/sys/TypeRefs.js"
-import {assertWorkerOrNode} from "../../common/Env"
-import type {Hex} from "@tutao/tutanota-utils"
-import {assertNotNull, downcast, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "@tutao/tutanota-utils"
-import {getWhitelabelDomain} from "../../common/utils/Utils"
-import {CryptoFacade} from "../crypto/CryptoFacade"
+import { assertWorkerOrNode } from "../../common/Env"
+import type { Hex } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { getWhitelabelDomain } from "../../common/utils/Utils"
+import { CryptoFacade } from "../crypto/CryptoFacade"
 import {
 	BrandingDomainService,
 	CreateCustomerServerProperties,
@@ -34,26 +34,26 @@ import {
 	MembershipService,
 	PaymentDataService,
 	PdfInvoiceService,
-	SystemKeysService
+	SystemKeysService,
 } from "../../entities/sys/Services.js"
-import type {ContactFormAccountReturn, InternalGroupData} from "../../entities/tutanota/TypeRefs.js"
-import {createContactFormAccountData, createCustomerAccountCreateData} from "../../entities/tutanota/TypeRefs.js"
-import type {UserManagementFacade} from "./UserManagementFacade"
-import type {GroupManagementFacade} from "./GroupManagementFacade"
-import type {WorkerImpl} from "../WorkerImpl"
-import {CounterFacade} from "./CounterFacade"
-import type {Country} from "../../common/CountryList"
-import {LockedError} from "../../common/error/RestError"
-import type {RsaKeyPair} from "@tutao/tutanota-crypto"
-import {aes128RandomKey, bitArrayToUint8Array, encryptKey, hexToPublicKey, sha256Hash, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
-import type {RsaImplementation} from "../crypto/RsaImplementation"
-import {EntityClient} from "../../common/EntityClient"
-import {DataFile} from "../../common/DataFile";
-import {IServiceExecutor} from "../../common/ServiceRequest"
-import {ContactFormAccountService, CustomerAccountService} from "../../entities/tutanota/Services"
-import {BookingFacade} from "./BookingFacade"
-import {UserFacade} from "./UserFacade"
-import {PaymentInterval} from "../../../subscription/PriceUtils.js"
+import type { ContactFormAccountReturn, InternalGroupData } from "../../entities/tutanota/TypeRefs.js"
+import { createContactFormAccountData, createCustomerAccountCreateData } from "../../entities/tutanota/TypeRefs.js"
+import type { UserManagementFacade } from "./UserManagementFacade"
+import type { GroupManagementFacade } from "./GroupManagementFacade"
+import type { WorkerImpl } from "../WorkerImpl"
+import { CounterFacade } from "./CounterFacade"
+import type { Country } from "../../common/CountryList"
+import { LockedError } from "../../common/error/RestError"
+import type { RsaKeyPair } from "@tutao/tutanota-crypto"
+import { aes128RandomKey, bitArrayToUint8Array, encryptKey, hexToPublicKey, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import type { RsaImplementation } from "../crypto/RsaImplementation"
+import { EntityClient } from "../../common/EntityClient"
+import { DataFile } from "../../common/DataFile"
+import { IServiceExecutor } from "../../common/ServiceRequest"
+import { ContactFormAccountService, CustomerAccountService } from "../../entities/tutanota/Services"
+import { BookingFacade } from "./BookingFacade"
+import { UserFacade } from "./UserFacade"
+import { PaymentInterval } from "../../../subscription/PriceUtils.js"
 
 assertWorkerOrNode()
 
@@ -145,8 +145,8 @@ export class CustomerFacade {
 	 * @return The amount of used storage in byte.
 	 */
 	readUsedCustomerStorage(customerId: Id): Promise<number> {
-		return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY_INTERNAL, customerId).then(usedMemoryInternal => {
-			return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY_EXTERNAL, customerId).then(usedMemoryExternal => {
+		return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY_INTERNAL, customerId).then((usedMemoryInternal) => {
+			return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY_EXTERNAL, customerId).then((usedMemoryExternal) => {
 				return Number(usedMemoryInternal) + Number(usedMemoryExternal)
 			})
 		})
@@ -157,15 +157,15 @@ export class CustomerFacade {
 	 * @return The amount of available storage capacity in byte.
 	 */
 	readAvailableCustomerStorage(customerId: Id): Promise<number> {
-		return this.entityClient.load(CustomerTypeRef, customerId).then(customer => {
-			return this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+		return this.entityClient.load(CustomerTypeRef, customerId).then((customer) => {
+			return this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then((customerInfo) => {
 				let includedStorage = Number(customerInfo.includedStorageCapacity)
 				let promotionStorage = Number(customerInfo.promotionStorageCapacity)
 				let availableStorage = Math.max(includedStorage, promotionStorage)
 				let bookedStorage = 0
 
 				if (customer.type === AccountType.PREMIUM) {
-					return this.bookingFacade.getCurrentPrice().then(price => {
+					return this.bookingFacade.getCurrentPrice().then((price) => {
 						let currentStorageItem = this.bookingFacade.getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Storage)
 
 						if (currentStorageItem != null) {
@@ -203,7 +203,7 @@ export class CustomerFacade {
 	}
 
 	addSpamRule(field: SpamRuleFieldType, type: SpamRuleType, value: string): Promise<void> {
-		return this.loadCustomerServerProperties().then(props => {
+		return this.loadCustomerServerProperties().then((props) => {
 			value = value.toLowerCase().trim()
 			let newListEntry = createEmailSenderListElement({
 				value,
@@ -217,9 +217,9 @@ export class CustomerFacade {
 	}
 
 	editSpamRule(spamRule: EmailSenderListElement): Promise<void> {
-		return this.loadCustomerServerProperties().then(props => {
+		return this.loadCustomerServerProperties().then((props) => {
 			spamRule.value = spamRule.value.toLowerCase().trim()
-			const index = props.emailSenderList.findIndex(item => spamRule._id === item._id)
+			const index = props.emailSenderList.findIndex((item) => spamRule._id === item._id)
 
 			if (index === -1) {
 				throw new Error("spam rule does not exist " + JSON.stringify(spamRule))
@@ -309,7 +309,7 @@ export class CustomerFacade {
 			customerGroupData,
 			adminEncAccountingInfoSessionKey: encryptKey(adminGroupKey, accountingInfoSessionKey),
 			systemAdminPubEncAccountingInfoSessionKey,
-			adminEncCustomerServerPropertiesSessionKey: encryptKey(adminGroupKey, customerServerPropertiesSessionKey)
+			adminEncCustomerServerPropertiesSessionKey: encryptKey(adminGroupKey, customerServerPropertiesSessionKey),
 		})
 		await this.serviceExecutor.post(CustomerAccountService, data)
 		return recoverData.hexCode
@@ -319,14 +319,14 @@ export class CustomerFacade {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
 		this.contactFormUserGroupData = this.rsa
-											.generateKey()
-											.then(keyPair => this.groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, null, userGroupKey, userGroupKey))
-											.then(userGroupData => {
-												return {
-													userGroupKey,
-													userGroupData,
-												}
-											})
+			.generateKey()
+			.then((keyPair) => this.groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, null, userGroupKey, userGroupKey))
+			.then((userGroupData) => {
+				return {
+					userGroupKey,
+					userGroupData,
+				}
+			})
 		return Promise.resolve()
 	}
 
@@ -344,7 +344,7 @@ export class CustomerFacade {
 	 */
 	async createContactFormUser(password: string, contactFormId: IdTuple): Promise<ContactFormAccountReturn> {
 		const contactFormUserGroupData = await this.getContactFormUserGroupData()
-		let {userGroupKey, userGroupData} = contactFormUserGroupData
+		let { userGroupKey, userGroupData } = contactFormUserGroupData
 		await this.worker.sendProgress(35)
 		let data = createContactFormAccountData()
 		data.userData = this.userManagement.generateContactFormUserAccountData(userGroupKey, password)
@@ -383,7 +383,7 @@ export class CustomerFacade {
 			const membershipAddData = createMembershipAddData({
 				user: this.userFacade.getLoggedInUser()._id,
 				group: neverNull(keyData.freeGroup),
-				symEncGKey: encryptKey(this.userFacade.getUserGroupKey(), uint8ArrayToBitArray(keyData.freeGroupKey))
+				symEncGKey: encryptKey(this.userFacade.getUserGroupKey(), uint8ArrayToBitArray(keyData.freeGroupKey)),
 			})
 			await this.serviceExecutor.post(MembershipService, membershipAddData)
 			const membershipRemoveData = createMembershipRemoveData({
@@ -404,10 +404,10 @@ export class CustomerFacade {
 		paymentData: PaymentData | null,
 		confirmedInvoiceCountry: Country | null,
 	): Promise<PaymentDataServicePutReturn> {
-		return this.entityClient.load(CustomerTypeRef, assertNotNull(this.userFacade.getLoggedInUser().customer)).then(customer => {
-			return this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-				return this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(async accountingInfo => {
-					return this.cryptoFacade.resolveSessionKeyForInstance(accountingInfo).then(accountingInfoSessionKey => {
+		return this.entityClient.load(CustomerTypeRef, assertNotNull(this.userFacade.getLoggedInUser().customer)).then((customer) => {
+			return this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then((customerInfo) => {
+				return this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(async (accountingInfo) => {
+					return this.cryptoFacade.resolveSessionKeyForInstance(accountingInfo).then((accountingInfoSessionKey) => {
 						const service = createPaymentDataServicePutData()
 						service.business = false // not used, must be set to false currently, will be removed later
 
@@ -425,7 +425,7 @@ export class CustomerFacade {
 						}
 
 						service.confirmedCountry = confirmedInvoiceCountry ? confirmedInvoiceCountry.a : null
-						return this.serviceExecutor.put(PaymentDataService, service, {sessionKey: accountingInfoSessionKey ?? undefined})
+						return this.serviceExecutor.put(PaymentDataService, service, { sessionKey: accountingInfoSessionKey ?? undefined })
 					})
 				})
 			})
@@ -436,7 +436,7 @@ export class CustomerFacade {
 		const data = createPdfInvoiceServiceData({
 			invoiceNumber,
 		})
-		return this.serviceExecutor.get(PdfInvoiceService, data).then(returnData => {
+		return this.serviceExecutor.get(PdfInvoiceService, data).then((returnData) => {
 			return {
 				_type: "DataFile",
 				name: String(invoiceNumber) + ".pdf",

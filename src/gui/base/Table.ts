@@ -1,16 +1,16 @@
-import m, {Children, Component, Vnode} from "mithril"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import {progressIcon} from "./Icon"
-import type {lazy} from "@tutao/tutanota-utils"
-import {downcast, neverNull} from "@tutao/tutanota-utils"
-import {createDropdown, DropdownButtonAttrs} from "./Dropdown.js"
-import {Icons} from "./icons/Icons"
-import type {clickHandler} from "./GuiUtils"
-import {assertMainOrNode} from "../../api/common/Env"
-import {IconButton, IconButtonAttrs} from "./IconButton.js"
-import {ButtonSize} from "./ButtonSize.js";
-import {px, size} from "../size.js"
+import m, { Children, Component, Vnode } from "mithril"
+import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import { progressIcon } from "./Icon"
+import type { lazy } from "@tutao/tutanota-utils"
+import { downcast, neverNull } from "@tutao/tutanota-utils"
+import { createDropdown, DropdownButtonAttrs } from "./Dropdown.js"
+import { Icons } from "./icons/Icons"
+import type { clickHandler } from "./GuiUtils"
+import { assertMainOrNode } from "../../api/common/Env"
+import { IconButton, IconButtonAttrs } from "./IconButton.js"
+import { ButtonSize } from "./ButtonSize.js"
+import { px, size } from "../size.js"
 
 assertMainOrNode()
 
@@ -57,14 +57,16 @@ export class Table implements Component<TableAttrs> {
 		const a = vnode.attrs
 		const loading = !a.lines
 		const alignments = a.columnAlignments || []
-		const lineAttrs = a.lines ? a.lines.map(lineAttrs => this._createLine(lineAttrs, a.showActionButtonColumn, a.columnWidths, false, alignments, false)) : []
+		const lineAttrs = a.lines
+			? a.lines.map((lineAttrs) => this._createLine(lineAttrs, a.showActionButtonColumn, a.columnWidths, false, alignments, false))
+			: []
 		return m("", [
 			m(`table.table${a.columnHeading ? ".table-header-border" : ""}`, [
 				(a.columnHeading
-						? [
+					? [
 							this._createLine(
 								{
-									cells: a.columnHeading.map(textIdOrFunction => lang.getMaybeLazy(textIdOrFunction)),
+									cells: a.columnHeading.map((textIdOrFunction) => lang.getMaybeLazy(textIdOrFunction)),
 									actionButtonAttrs: loading ? null : a.addButtonAttrs,
 								},
 								a.showActionButtonColumn,
@@ -73,8 +75,8 @@ export class Table implements Component<TableAttrs> {
 								alignments,
 								a.verticalColumnHeadings ?? false,
 							),
-						]
-						: []
+					  ]
+					: []
 				).concat(lineAttrs),
 			]),
 			loading ? m(".flex-center.items-center.button-height", progressIcon()) : null,
@@ -97,10 +99,10 @@ export class Table implements Component<TableAttrs> {
 				m("td", [
 					m(
 						".text-ellipsis.pr.pt-s" +
-						columnWidths[index] +
-						(bold ? ".b" : "") +
-						(cellTextData.click ? ".click" : "" + (cellTextData.mainStyle ? cellTextData.mainStyle : "")) +
-						(columnAlignments[index] ? ".right" : ""),
+							columnWidths[index] +
+							(bold ? ".b" : "") +
+							(cellTextData.click ? ".click" : "" + (cellTextData.mainStyle ? cellTextData.mainStyle : "")) +
+							(columnAlignments[index] ? ".right" : ""),
 						{
 							title: cellTextData.main,
 							// show the text as tooltip, so ellipsed lines can be shown
@@ -119,7 +121,7 @@ export class Table implements Component<TableAttrs> {
 								cellTextData.click ? cellTextData.click(event, dom) : null
 							},
 						},
-						cellTextData.info ? cellTextData.info.map(line => m("", line)) : null,
+						cellTextData.info ? cellTextData.info.map((line) => m("", line)) : null,
 					),
 				]),
 			)
@@ -137,15 +139,14 @@ export class Table implements Component<TableAttrs> {
 
 		if (showActionButtonColumn) {
 			cells.push(
-				m("td",
+				m(
+					"td",
 					{
 						style: {
-							width: px(size.button_height_compact)
+							width: px(size.button_height_compact),
 						},
 					},
-					lineAttrs.actionButtonAttrs
-						? m(IconButton, lineAttrs.actionButtonAttrs)
-						: [],
+					lineAttrs.actionButtonAttrs ? m(IconButton, lineAttrs.actionButtonAttrs) : [],
 				),
 			)
 		}
@@ -170,45 +171,45 @@ export function createRowActions<T>(
 		...prefixActions,
 		indexOfElement > 1
 			? {
-				label: "moveToTop_action",
-				click: () => {
-					elements.splice(indexOfElement, 1)
-					elements.unshift(currentElement)
-					instance.updateInstance()
-				},
-			}
+					label: "moveToTop_action",
+					click: () => {
+						elements.splice(indexOfElement, 1)
+						elements.unshift(currentElement)
+						instance.updateInstance()
+					},
+			  }
 			: null,
 		indexOfElement > 0
 			? {
-				label: "moveUp_action",
-				click: () => {
-					let prev = elements[indexOfElement - 1]
-					elements[indexOfElement - 1] = currentElement
-					elements[indexOfElement] = prev
-					instance.updateInstance()
-				},
-			}
+					label: "moveUp_action",
+					click: () => {
+						let prev = elements[indexOfElement - 1]
+						elements[indexOfElement - 1] = currentElement
+						elements[indexOfElement] = prev
+						instance.updateInstance()
+					},
+			  }
 			: null,
 		indexOfElement < instance.getArray().length - 1
 			? {
-				label: "moveDown_action",
-				click: () => {
-					let next = elements[indexOfElement + 1]
-					elements[indexOfElement + 1] = currentElement
-					elements[indexOfElement] = next
-					instance.updateInstance()
-				},
-			}
+					label: "moveDown_action",
+					click: () => {
+						let next = elements[indexOfElement + 1]
+						elements[indexOfElement + 1] = currentElement
+						elements[indexOfElement] = next
+						instance.updateInstance()
+					},
+			  }
 			: null,
 		indexOfElement < instance.getArray().length - 2
 			? {
-				label: "moveToBottom_action",
-				click: () => {
-					elements.splice(indexOfElement, 1)
-					elements.push(currentElement)
-					instance.updateInstance()
-				},
-			}
+					label: "moveToBottom_action",
+					click: () => {
+						elements.splice(indexOfElement, 1)
+						elements.push(currentElement)
+						instance.updateInstance()
+					},
+			  }
 			: null,
 		{
 			label: "delete_action",
@@ -220,7 +221,7 @@ export function createRowActions<T>(
 	]
 	return {
 		title: "edit_action",
-		click: createDropdown({lazyButtons: makeButtonAttrs, width: 260}),
+		click: createDropdown({ lazyButtons: makeButtonAttrs, width: 260 }),
 		icon: Icons.More,
 		size: ButtonSize.Compact,
 	}

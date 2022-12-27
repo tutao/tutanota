@@ -1,19 +1,19 @@
-import {assertEnumValue, CustomDomainValidationResult} from "../../api/common/TutanotaConstants"
-import m, {Children, Vnode, VnodeDOM} from "mithril"
-import type {AddDomainData} from "./AddDomainWizard"
-import {createDnsRecordTable} from "./AddDomainWizard"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {lang, TranslationKey} from "../../misc/LanguageViewModel"
-import {Dialog} from "../../gui/base/Dialog"
-import {getCustomMailDomains} from "../../api/common/utils/Utils"
-import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialog.js"
-import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialog.js"
-import {Button, ButtonType} from "../../gui/base/Button.js"
-import {PreconditionFailedError} from "../../api/common/error/RestError"
-import {showBusinessFeatureRequiredDialog} from "../../misc/SubscriptionDialogs"
-import {ofClass} from "@tutao/tutanota-utils"
-import {locator} from "../../api/main/MainLocator"
-import {assertMainOrNode} from "../../api/common/Env"
+import { assertEnumValue, CustomDomainValidationResult } from "../../api/common/TutanotaConstants"
+import m, { Children, Vnode, VnodeDOM } from "mithril"
+import type { AddDomainData } from "./AddDomainWizard"
+import { createDnsRecordTable } from "./AddDomainWizard"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import { lang, TranslationKey } from "../../misc/LanguageViewModel"
+import { Dialog } from "../../gui/base/Dialog"
+import { getCustomMailDomains } from "../../api/common/utils/Utils"
+import type { WizardPageAttrs, WizardPageN } from "../../gui/base/WizardDialog.js"
+import { emitWizardEvent, WizardEventType } from "../../gui/base/WizardDialog.js"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import { PreconditionFailedError } from "../../api/common/error/RestError"
+import { showBusinessFeatureRequiredDialog } from "../../misc/SubscriptionDialogs"
+import { ofClass } from "@tutao/tutanota-utils"
+import { locator } from "../../api/main/MainLocator"
+import { assertMainOrNode } from "../../api/common/Env"
 
 assertMainOrNode()
 
@@ -28,8 +28,8 @@ export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<AddDomainData>>) {
 		this.dom = vnode.dom as HTMLElement
 		// We expect that the page is created again each time when domain is changed so we only need to load it in oncreate.
-		const {data} = vnode.attrs
-		locator.customerFacade.getDomainValidationRecord(data.domain()).then(recordValue => {
+		const { data } = vnode.attrs
+		locator.customerFacade.getDomainValidationRecord(data.domain()).then((recordValue) => {
 			data.expectedVerificationRecord.value = recordValue
 			m.redraw()
 		})
@@ -81,7 +81,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 	nextAction(showErrorDialog: boolean = true): Promise<boolean> {
 		return showProgressDialog(
 			"pleaseWait_msg",
-			locator.customerFacade.addDomain(this.data.domain()).then(result => {
+			locator.customerFacade.addDomain(this.data.domain()).then((result) => {
 				const validationResult = assertEnumValue(CustomDomainValidationResult, result.validationResult)
 				if (validationResult === CustomDomainValidationResult.CUSTOM_DOMAIN_VALIDATION_RESULT_OK) {
 					return null
@@ -89,7 +89,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 					let customDomainInfos = getCustomMailDomains(this.data.customerInfo)
 
 					//domain is already assigned to this account
-					if (customDomainInfos.some(domainInfo => domainInfo.domain === this.data.domain())) {
+					if (customDomainInfos.some((domainInfo) => domainInfo.domain === this.data.domain())) {
 						return null
 					}
 
@@ -106,12 +106,12 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 					return () =>
 						lang.get(errorMessageMap[validationResult]) + //TODO correct to use? customDomainErrorOtherTxtRecords_msg
 						(result.invalidDnsRecords.length > 0
-							? " " + lang.get("customDomainErrorOtherTxtRecords_msg") + "\n" + result.invalidDnsRecords.map(r => r.value).join("\n")
+							? " " + lang.get("customDomainErrorOtherTxtRecords_msg") + "\n" + result.invalidDnsRecords.map((r) => r.value).join("\n")
 							: "")
 				}
 			}),
 		)
-			.then(message => {
+			.then((message) => {
 				if (message) {
 					return showErrorDialog ? Dialog.message(message).then(() => false) : false
 				}
@@ -119,7 +119,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 				return true
 			})
 			.catch(
-				ofClass(PreconditionFailedError, e => {
+				ofClass(PreconditionFailedError, (e) => {
 					if (e.data === CustomDomainFailureReasons.LIMIT_REACHED) {
 						// ignore promise. always return false to not switch to next page.
 						showBusinessFeatureRequiredDialog("businessFeatureRequiredMultipleDomains_msg")

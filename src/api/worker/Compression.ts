@@ -49,7 +49,7 @@ export function uncompress(input: Uint8Array): Uint8Array {
 	let j = 0
 
 	// Process each sequence in the incoming data
-	for (let i = 0, n = endIndex; i < n;) {
+	for (let i = 0, n = endIndex; i < n; ) {
 		let token = input[i++]
 		// Literals
 		let literals_length = token >> 4

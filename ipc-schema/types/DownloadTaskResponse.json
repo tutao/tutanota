@@ -1,12 +1,12 @@
 {
-  "name": "DownloadTaskResponse",
-  "type": "struct",
-  "doc": "Result of the download operation done via native. 'suspensionTime' is from either 'Retry-After' or 'Suspension-Time' headers.",
-  "fields": {
-	"statusCode": "number",
-	"errorId": "string?",
-	"precondition": "string?",
-	"suspensionTime": "string?",
-	"encryptedFileUri": "string?"
-  }
+	"name": "DownloadTaskResponse",
+	"type": "struct",
+	"doc": "Result of the download operation done via native. 'suspensionTime' is from either 'Retry-After' or 'Suspension-Time' headers.",
+	"fields": {
+		"statusCode": "number",
+		"errorId": "string?",
+		"precondition": "string?",
+		"suspensionTime": "string?",
+		"encryptedFileUri": "string?"
+	}
 }

@@ -1,21 +1,21 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {px} from "../size"
-import {DefaultAnimationTime, transform, TransformEnum} from "../animation/Animations"
-import {displayOverlay} from "./Overlay"
-import type {ButtonAttrs} from "./Button.js"
-import {Button, ButtonType} from "./Button.js"
-import {assertMainOrNode} from "../../api/common/Env"
-import {clickHandler} from "./GuiUtils"
+import m, { Children, Component, Vnode } from "mithril"
+import { px } from "../size"
+import { DefaultAnimationTime, transform, TransformEnum } from "../animation/Animations"
+import { displayOverlay } from "./Overlay"
+import type { ButtonAttrs } from "./Button.js"
+import { Button, ButtonType } from "./Button.js"
+import { assertMainOrNode } from "../../api/common/Env"
+import { clickHandler } from "./GuiUtils"
 
 assertMainOrNode()
 
 interface NotificationOverlayAttrs {
-	message: Component,
-	buttons: Array<ButtonAttrs>,
+	message: Component
+	buttons: Array<ButtonAttrs>
 }
 
 interface QueueItem extends NotificationOverlayAttrs {
-	closeButtonAttrs: Partial<ButtonAttrs>,
+	closeButtonAttrs: Partial<ButtonAttrs>
 }
 
 const notificationQueue: QueueItem[] = []
@@ -27,7 +27,7 @@ class NotificationOverlay implements Component<NotificationOverlayAttrs> {
 			m(vnode.attrs.message),
 			m(
 				".flex.justify-end.flex-wrap",
-				vnode.attrs.buttons.map(b => m(Button, b)),
+				vnode.attrs.buttons.map((b) => m(Button, b)),
 			),
 		])
 	}
@@ -55,7 +55,7 @@ export function show(message: Component, closeButtonAttrs: Partial<ButtonAttrs>,
 }
 
 function showNextNotification() {
-	const {message, buttons, closeButtonAttrs} = notificationQueue[0]
+	const { message, buttons, closeButtonAttrs } = notificationQueue[0]
 	currentAnimationTimeout = null
 	const width = window.innerWidth
 	const margin = (width - Math.min(400, width)) / 2
@@ -74,8 +74,8 @@ function showNextNotification() {
 					buttons: allButtons,
 				}),
 		},
-		dom => transform(TransformEnum.TranslateY, -dom.offsetHeight, 0),
-		dom => transform(TransformEnum.TranslateY, 0, -dom.offsetHeight),
+		(dom) => transform(TransformEnum.TranslateY, -dom.offsetHeight, 0),
+		(dom) => transform(TransformEnum.TranslateY, 0, -dom.offsetHeight),
 	)
 
 	const closeAndOpenNext = () => {
@@ -92,7 +92,7 @@ function showNextNotification() {
 	}
 
 	// close the notification by default when pressing any button
-	allButtons.forEach(b => {
+	allButtons.forEach((b) => {
 		const originClickHandler: clickHandler | undefined = b.click
 
 		b.click = (e, dom) => {

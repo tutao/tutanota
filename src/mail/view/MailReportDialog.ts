@@ -1,22 +1,23 @@
-import type {Mail, MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
-import {Checkbox} from "../../gui/base/Checkbox.js"
-import {lang} from "../../misc/LanguageViewModel"
+import type { Mail, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
+import { Checkbox } from "../../gui/base/Checkbox.js"
+import { lang } from "../../misc/LanguageViewModel"
 import m from "mithril"
-import {MailReportType, ReportMovedMailsType} from "../../api/common/TutanotaConstants"
-import {ButtonAttrs, ButtonType} from "../../gui/base/Button.js"
-import {Dialog} from "../../gui/base/Dialog"
-import type {MailboxDetail, MailModel} from "../model/MailModel"
-import {showSnackBar} from "../../gui/base/SnackBar"
+import { MailReportType, ReportMovedMailsType } from "../../api/common/TutanotaConstants"
+import { ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
+import { Dialog } from "../../gui/base/Dialog"
+import type { MailboxDetail, MailModel } from "../model/MailModel"
+import { showSnackBar } from "../../gui/base/SnackBar"
 
 function confirmMailReportDialog(mailModel: MailModel, mailboxDetails: MailboxDetail): Promise<boolean> {
-	return new Promise(resolve => {
+	return new Promise((resolve) => {
 		let shallRememberDecision = false
-		const child = () => m(Checkbox, {
-			label: () => lang.get("rememberDecision_msg"),
-			checked: shallRememberDecision,
-			onChecked: (v) => shallRememberDecision = v,
-			helpLabel: () => lang.get("changeMailSettings_msg"),
-		})
+		const child = () =>
+			m(Checkbox, {
+				label: () => lang.get("rememberDecision_msg"),
+				checked: shallRememberDecision,
+				onChecked: (v) => (shallRememberDecision = v),
+				helpLabel: () => lang.get("changeMailSettings_msg"),
+			})
 
 		async function updateSpamReportSetting(areMailsReported: boolean) {
 			if (shallRememberDecision) {
@@ -95,7 +96,7 @@ export async function reportMailsAutomatically(
 					if (!undoClicked) {
 						mailModel.reportMails(mailReportType, mails)
 					}
-				}
+				},
 			})
 		} else {
 			mailModel.reportMails(mailReportType, mails)

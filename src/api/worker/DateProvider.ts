@@ -1,4 +1,4 @@
-import {getDayShifted, getStartOfDay} from "@tutao/tutanota-utils"
+import { getDayShifted, getStartOfDay } from "@tutao/tutanota-utils"
 
 export interface DateProvider {
 	getStartOfDayShiftedBy(shiftByDays: number): Date

@@ -1,82 +1,69 @@
 {
-  "name": "SettingsFacade",
-  "type": "facade",
-  "senders": ["web"],
-  "receivers": ["desktop"],
-  "doc": "Desktop preferences.",
-  "methods": {
-	"getStringConfigValue": {
-	  "arg": [
-		{"name": "DesktopConfigKey"}
-	  ],
-	  "ret": "string?"
-	},
-	"setStringConfigValue": {
-	  "arg": [
-		{"name": "DesktopConfigKey"},
-		{"value": "string?"}
-	  ],
-	  "ret": "void"
-	},
-	"getBooleanConfigValue": {
-	  "arg": [
-		{"name": "DesktopConfigKey"}
-	  ],
-	  "ret": "boolean"
-	},
-	"setBooleanConfigValue": {
-	  "arg": [
-		{"name": "DesktopConfigKey"},
-		{"value": "boolean"}
-	  ],
-	  "ret": "void"
-	},
-	"getUpdateInfo": {
-	  "arg": [],
-	  "ret": "UpdateInfo?"
-	},
-	"registerMailto": {
-	  "arg": [],
-	  "ret": "void"
-	},
-	"unregisterMailto": {
-	  "arg": [],
-	  "ret": "void"
-	},
-	"integrateDesktop": {
-	  "arg": [],
-	  "ret": "void"
-	},
-	"unIntegrateDesktop": {
-	  "arg": [],
-	  "ret": "void"
-	},
-	"getSpellcheckLanguages": {
-	  "arg": [],
-	  "ret": "List<string>"
-	},
-	"getIntegrationInfo": {
-	  "arg": [],
-	  "ret": "IntegrationInfo"
-	},
-	"enableAutoLaunch": {
-	  "arg": [],
-	  "ret": "void"
-	},
-	"disableAutoLaunch": {
-	  "arg": [],
-	  "ret": "void"
-	},
-	"manualUpdate": {
-	  "arg": [],
-	  "ret": "boolean"
-	},
-	"changeLanguage": {
-	  "arg": [
-		{"code": "string"},
-		{"languageTag": "string"}
-	  ],
-	  "ret": "void"
+	"name": "SettingsFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["desktop"],
+	"doc": "Desktop preferences.",
+	"methods": {
+		"getStringConfigValue": {
+			"arg": [{ "name": "DesktopConfigKey" }],
+			"ret": "string?"
+		},
+		"setStringConfigValue": {
+			"arg": [{ "name": "DesktopConfigKey" }, { "value": "string?" }],
+			"ret": "void"
+		},
+		"getBooleanConfigValue": {
+			"arg": [{ "name": "DesktopConfigKey" }],
+			"ret": "boolean"
+		},
+		"setBooleanConfigValue": {
+			"arg": [{ "name": "DesktopConfigKey" }, { "value": "boolean" }],
+			"ret": "void"
+		},
+		"getUpdateInfo": {
+			"arg": [],
+			"ret": "UpdateInfo?"
+		},
+		"registerMailto": {
+			"arg": [],
+			"ret": "void"
+		},
+		"unregisterMailto": {
+			"arg": [],
+			"ret": "void"
+		},
+		"integrateDesktop": {
+			"arg": [],
+			"ret": "void"
+		},
+		"unIntegrateDesktop": {
+			"arg": [],
+			"ret": "void"
+		},
+		"getSpellcheckLanguages": {
+			"arg": [],
+			"ret": "List<string>"
+		},
+		"getIntegrationInfo": {
+			"arg": [],
+			"ret": "IntegrationInfo"
+		},
+		"enableAutoLaunch": {
+			"arg": [],
+			"ret": "void"
+		},
+		"disableAutoLaunch": {
+			"arg": [],
+			"ret": "void"
+		},
+		"manualUpdate": {
+			"arg": [],
+			"ret": "boolean"
+		},
+		"changeLanguage": {
+			"arg": [{ "code": "string" }, { "languageTag": "string" }],
+			"ret": "void"
+		}
 	}
-  }
 }

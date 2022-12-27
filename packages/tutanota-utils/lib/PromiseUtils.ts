@@ -1,5 +1,5 @@
-import type {Options as PromiseMapOptions} from "./PromiseMap.js"
-import {pMap as promiseMap} from "./PromiseMap.js"
+import type { Options as PromiseMapOptions } from "./PromiseMap.js"
+import { pMap as promiseMap } from "./PromiseMap.js"
 
 export type $Promisable<T> = Promise<T> | T
 type PromiseMapCallback<T, U> = (el: T, index: number) => $Promisable<U>
@@ -15,12 +15,7 @@ export function mapInCallContext<T, U>(values: T[], callback: PromiseMapCallback
 	return new PromisableWrapper(_mapInCallContext(values, callback, 0, []))
 }
 
-function _mapInCallContext<T, U>(
-		values: T[],
-		callback: PromiseMapCallback<T, U>,
-		index: number,
-		acc: U[],
-): $Promisable<Array<U>> {
+function _mapInCallContext<T, U>(values: T[], callback: PromiseMapCallback<T, U>, index: number, acc: U[]): $Promisable<Array<U>> {
 	if (index >= values.length) {
 		return acc
 	}
@@ -28,7 +23,7 @@ function _mapInCallContext<T, U>(
 	let mappedValue = callback(values[index], index)
 
 	if (mappedValue instanceof Promise) {
-		return mappedValue.then(v => {
+		return mappedValue.then((v) => {
 			acc.push(v)
 			return _mapInCallContext(values, callback, index + 1, acc)
 		})
@@ -38,12 +33,8 @@ function _mapInCallContext<T, U>(
 	}
 }
 
-export {pMap as promiseMap} from "./PromiseMap.js"
-export type PromiseMapFn = <T, U>(
-		values: T[],
-		callback: PromiseMapCallback<T, U>,
-		options?: PromiseMapOptions,
-) => PromisableWrapper<U[]>
+export { pMap as promiseMap } from "./PromiseMap.js"
+export type PromiseMapFn = <T, U>(values: T[], callback: PromiseMapCallback<T, U>, options?: PromiseMapOptions) => PromisableWrapper<U[]>
 
 function mapNoFallback<T, U>(values: Array<T>, callback: PromiseMapCallback<T, U>, options?: PromiseMapOptions) {
 	return PromisableWrapper.from(promiseMap(values, callback, options))
@@ -71,8 +62,8 @@ export class PromisableWrapper<T> {
 	}
 
 	thenOrApply<R>(
-			onFulfill: (arg0: T) => $Promisable<PromisableWrapper<R> | R>,
-			onReject?: (arg0: any) => $Promisable<R | PromisableWrapper<R>>,
+		onFulfill: (arg0: T) => $Promisable<PromisableWrapper<R> | R>,
+		onReject?: (arg0: any) => $Promisable<R | PromisableWrapper<R>>,
 	): PromisableWrapper<R> {
 		if (this.value instanceof Promise) {
 			const v: Promise<PromisableWrapper<R> | R> = this.value.then(onFulfill, onReject)
@@ -99,7 +90,7 @@ export function delay(ms: number): Promise<void> {
 	if (Number.isNaN(ms) || ms < 0) {
 		throw new Error(`Invalid delay: ${ms}`)
 	}
-	return new Promise(resolve => {
+	return new Promise((resolve) => {
 		setTimeout(resolve, ms)
 	})
 }
@@ -131,7 +122,7 @@ export function tap<T>(action: (arg0: T) => unknown): (arg0: T) => T {
  * @returns handler which either forwards to catcher or rethrows
  */
 export function ofClass<E, R>(cls: Class<E>, catcher: (arg0: E) => $Promisable<R>): (arg0: any) => Promise<R> {
-	return async e => {
+	return async (e) => {
 		if (e instanceof cls) {
 			return catcher(e)
 		} else {
@@ -146,10 +137,7 @@ export function ofClass<E, R>(cls: Class<E>, catcher: (arg0: E) => $Promisable<R
 /**
  * Filter iterable. Just like Array.prototype.filter but callback can return promises
  */
-export async function promiseFilter<T>(
-		iterable: Iterable<T>,
-		filter: (item: T, index: number) => $Promisable<boolean>,
-): Promise<Array<T>> {
+export async function promiseFilter<T>(iterable: Iterable<T>, filter: (item: T, index: number) => $Promisable<boolean>): Promise<Array<T>> {
 	let index = 0
 	const result: T[] = []
 

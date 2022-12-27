@@ -1,4 +1,4 @@
-import {assertMainOrNodeBoot} from "../api/common/Env"
+import { assertMainOrNodeBoot } from "../api/common/Env"
 
 assertMainOrNodeBoot()
 type LogCategory = Record<string, string>
@@ -37,8 +37,7 @@ export function log(category: LogCategory, message: string, ...args: any[]) {
 
 export function timer(category: LogCategory): (...args: Array<any>) => any {
 	if (activeCategories.indexOf(category) === -1) {
-		return function () {
-		}
+		return function () {}
 	}
 
 	let start = window.performance.now()

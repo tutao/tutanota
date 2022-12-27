@@ -1,9 +1,9 @@
 import o from "ospec"
 import n from "../nodemocker.js"
-import {DesktopContextMenu} from "../../../src/desktop/DesktopContextMenu.js"
-import {downcast} from "@tutao/tutanota-utils"
-import {object} from "testdouble"
-import {WindowManager} from "../../../src/desktop/DesktopWindowManager.js"
+import { DesktopContextMenu } from "../../../src/desktop/DesktopContextMenu.js"
+import { downcast } from "@tutao/tutanota-utils"
+import { object } from "testdouble"
+import { WindowManager } from "../../../src/desktop/DesktopWindowManager.js"
 import ContextMenuParams = Electron.ContextMenuParams
 
 o.spec("DesktopContextMenu Test", () => {
@@ -11,15 +11,12 @@ o.spec("DesktopContextMenu Test", () => {
 		// node modules
 		const electron = {
 			clipboard: {
-				writeText: () => {
-				},
+				writeText: () => {},
 			},
 			Menu: n.classify({
 				prototype: {
-					append: function () {
-					},
-					popup: function () {
-					},
+					append: function () {},
+					popup: function () {},
 				},
 				statics: {},
 			}),
@@ -40,7 +37,7 @@ o.spec("DesktopContextMenu Test", () => {
 	}
 
 	o("can handle undefined browserWindow and webContents in callback", () => {
-		const {electronMock} = standardMocks()
+		const { electronMock } = standardMocks()
 		const wm = object<WindowManager>()
 		const contextMenu = new DesktopContextMenu(electronMock, wm)
 		const contextMenuParams: Partial<ContextMenuParams> = {
@@ -56,10 +53,10 @@ o.spec("DesktopContextMenu Test", () => {
 				canSelectAll: false,
 			},
 			dictionarySuggestions: [],
-			misspelledWord: ""
-		};
+			misspelledWord: "",
+		}
 		contextMenu.open(contextMenuParams as ContextMenuParams)
-		downcast(electronMock.MenuItem).mockedInstances.forEach(i => i.click && i.click(undefined, undefined))
-		downcast(electronMock.MenuItem).mockedInstances.forEach(i => i.click && i.click(undefined, "nowebcontents"))
+		downcast(electronMock.MenuItem).mockedInstances.forEach((i) => i.click && i.click(undefined, undefined))
+		downcast(electronMock.MenuItem).mockedInstances.forEach((i) => i.click && i.click(undefined, "nowebcontents"))
 	})
 })

@@ -1,29 +1,29 @@
-import m, {Children, Component, Vnode} from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {Dialog} from "../gui/base/Dialog"
-import {Autocomplete, TextField} from "../gui/base/TextField.js"
-import {Button, ButtonType} from "../gui/base/Button.js"
-import {getWhitelabelRegistrationDomains} from "../login/LoginView"
-import type {NewAccountData} from "./UpgradeSubscriptionWizard"
-import {SelectMailAddressForm, SelectMailAddressFormAttrs} from "../settings/SelectMailAddressForm"
-import {isTutanotaDomain} from "../api/common/Env"
-import {AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
-import {PasswordForm, PasswordModel} from "../settings/PasswordForm"
-import type {CheckboxAttrs} from "../gui/base/Checkbox.js"
-import {Checkbox} from "../gui/base/Checkbox.js"
-import type {lazy} from "@tutao/tutanota-utils"
-import {assertNotNull, ofClass} from "@tutao/tutanota-utils"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import {showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {InvalidDataError} from "../api/common/error/RestError"
-import {locator} from "../api/main/MainLocator"
-import {CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection} from "./TermsAndConditions"
-import {UsageTest} from "@tutao/tutanota-usagetests"
-import {logins} from "../api/main/LoginController.js"
-import {runCaptchaFlow} from "./Captcha.js"
-import {SelectMailAddressFormWithSuggestions} from "../settings/SelectMailAddressFormWithSuggestions.js"
+import { Dialog } from "../gui/base/Dialog"
+import { Autocomplete, TextField } from "../gui/base/TextField.js"
+import { Button, ButtonType } from "../gui/base/Button.js"
+import { getWhitelabelRegistrationDomains } from "../login/LoginView"
+import type { NewAccountData } from "./UpgradeSubscriptionWizard"
+import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../settings/SelectMailAddressForm"
+import { isTutanotaDomain } from "../api/common/Env"
+import { AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../api/common/TutanotaConstants"
+import { PasswordForm, PasswordModel } from "../settings/PasswordForm"
+import type { CheckboxAttrs } from "../gui/base/Checkbox.js"
+import { Checkbox } from "../gui/base/Checkbox.js"
+import type { lazy } from "@tutao/tutanota-utils"
+import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
+import { showWorkerProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { InvalidDataError } from "../api/common/error/RestError"
+import { locator } from "../api/main/MainLocator"
+import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
+import { UsageTest } from "@tutao/tutanota-usagetests"
+import { logins } from "../api/main/LoginController.js"
+import { runCaptchaFlow } from "./Captcha.js"
+import { SelectMailAddressFormWithSuggestions } from "../settings/SelectMailAddressFormWithSuggestions.js"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -55,7 +55,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	constructor() {
 		this.__mailValid = stream(false)
 		this.__lastMailValidationError = stream(null)
-		this.passwordModel = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: true, repeatInput: false}, this.__mailValid)
+		this.passwordModel = new PasswordModel(logins, { checkOldPassword: false, enforceStrength: true, repeatInput: false }, this.__mailValid)
 
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
@@ -69,7 +69,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		this._isMailVerificationBusy = false
 		this._mailAddressFormErrorId = "mailAddressNeutral_msg"
 	}
-
 
 	view(vnode: Vnode<SignupFormAttrs>): Children {
 		const a = vnode.attrs
@@ -90,7 +89,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 					}
 				}
 			},
-			onBusyStateChanged: isBusy => {
+			onBusyStateChanged: (isBusy) => {
 				this._isMailVerificationBusy = isBusy
 			},
 		}
@@ -130,7 +129,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			}
 
 			const ageConfirmPromise = this._confirmAge() ? Promise.resolve(true) : Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
-			ageConfirmPromise.then(confirmed => {
+			ageConfirmPromise.then((confirmed) => {
 				if (confirmed) {
 					this.__completePreviousStages()
 
@@ -141,7 +140,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 						a.isBusinessUse(),
 						a.isPaidSubscription(),
 						a.campaign(),
-					).then(newAccountData => {
+					).then((newAccountData) => {
 						a.newSignupHandler(newAccountData ? newAccountData : null)
 					})
 				}
@@ -155,46 +154,48 @@ export class SignupForm implements Component<SignupFormAttrs> {
 					this.__signupPasswordStrengthTest.getStage(0).complete()
 					this.__signupEmailDomainsTest.getStage(0).complete()
 					this.__signupUnavailableEmailsTest.getStage(0).complete()
-				}
+				},
 			},
 			m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
 				a.readonly
 					? m(TextField, {
-						label: "mailAddress_label",
-						value: a.prefilledMailAddress ?? "",
-						autocompleteAs: Autocomplete.newPassword,
-						disabled: true,
-					})
+							label: "mailAddress_label",
+							value: a.prefilledMailAddress ?? "",
+							autocompleteAs: Autocomplete.newPassword,
+							disabled: true,
+					  })
 					: [
-						this.__signupEmailDomainsTest.renderVariant({
-							[0]: () => m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
-							[1]: () => m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
-							[2]: () => m(SelectMailAddressForm, {...mailAddressFormAttrs, mailAddressNAError: "mailAddressNANudge_msg"}), // Extended supporting text
-							[3]: () => m(SelectMailAddressFormWithSuggestions, {
-								...mailAddressFormAttrs,
-								displayUnavailableMailAddresses: true,
-								maxSuggestionsToShow: 3,
-							}), // New UI with suggestions
-							[4]: () => m(SelectMailAddressFormWithSuggestions, {
-								...mailAddressFormAttrs,
-								displayUnavailableMailAddresses: false,
-								maxSuggestionsToShow: 3,
-							}), // New UI with suggestions, do not show unavailable emails
-						}),
-						m(PasswordForm, {
-							model: this.passwordModel,
-							passwordInfoKey: "passwordImportance_msg"
-						}),
-						getWhitelabelRegistrationDomains().length > 0
-							? m(TextField, {
-								value: this._code(),
-								oninput: this._code,
-								label: "whitelabelRegistrationCode_label",
-							})
-							: null,
-						m(Checkbox, confirmTermsCheckBoxAttrs),
-						m(Checkbox, confirmAgeCheckBoxAttrs),
-					],
+							this.__signupEmailDomainsTest.renderVariant({
+								[0]: () => m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
+								[1]: () => m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
+								[2]: () => m(SelectMailAddressForm, { ...mailAddressFormAttrs, mailAddressNAError: "mailAddressNANudge_msg" }), // Extended supporting text
+								[3]: () =>
+									m(SelectMailAddressFormWithSuggestions, {
+										...mailAddressFormAttrs,
+										displayUnavailableMailAddresses: true,
+										maxSuggestionsToShow: 3,
+									}), // New UI with suggestions
+								[4]: () =>
+									m(SelectMailAddressFormWithSuggestions, {
+										...mailAddressFormAttrs,
+										displayUnavailableMailAddresses: false,
+										maxSuggestionsToShow: 3,
+									}), // New UI with suggestions, do not show unavailable emails
+							}),
+							m(PasswordForm, {
+								model: this.passwordModel,
+								passwordInfoKey: "passwordImportance_msg",
+							}),
+							getWhitelabelRegistrationDomains().length > 0
+								? m(TextField, {
+										value: this._code(),
+										oninput: this._code,
+										label: "whitelabelRegistrationCode_label",
+								  })
+								: null,
+							m(Checkbox, confirmTermsCheckBoxAttrs),
+							m(Checkbox, confirmAgeCheckBoxAttrs),
+					  ],
 				m(
 					".mt-l.mb-l",
 					m(Button, {
@@ -233,7 +234,7 @@ function renderTermsLabel(): Children {
 	return [
 		m("div", lang.get("termsAndConditions_label")),
 		m("div", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
-		m("div", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION))
+		m("div", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
 	]
 }
 
@@ -248,14 +249,14 @@ function signup(
 	isPaidSubscription: boolean,
 	campaign: string | null,
 ): Promise<NewAccountData | void> {
-	const {customerFacade} = locator
+	const { customerFacade } = locator
 	return showWorkerProgressDialog(
 		locator.worker,
 		"createAccountRunning_msg",
-		customerFacade.generateSignupKeys().then(keyPairs => {
-			return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign).then(regDataId => {
+		customerFacade.generateSignupKeys().then((keyPairs) => {
+			return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign).then((regDataId) => {
 				if (regDataId) {
-					return customerFacade.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code).then(recoverCode => {
+					return customerFacade.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code).then((recoverCode) => {
 						return {
 							mailAddress,
 							password: pw,

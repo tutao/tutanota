@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import {TutanotaError} from "./TutanotaError"
+import { TutanotaError } from "./TutanotaError"
 
 //Error cannot be serialized to be passed between worker and main thread
 export class SetupMultipleError<T> extends TutanotaError {
@@ -8,9 +8,12 @@ export class SetupMultipleError<T> extends TutanotaError {
 	failedInstances: Array<T>
 
 	constructor(message: string, errors: Error[], instances: Array<T>) {
-		super("SetupMultipleError", `${message}
+		super(
+			"SetupMultipleError",
+			`${message}
 Number of errors: ${errors.length}
-First error: ${errors[0]}`)
+First error: ${errors[0]}`,
+		)
 		this.errors = errors
 		this.failedInstances = instances
 	}

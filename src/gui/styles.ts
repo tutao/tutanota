@@ -1,10 +1,10 @@
-import {Cat, log, timer} from "../misc/Log"
-import {size} from "./size"
-import {assertMainOrNodeBoot, isAdminClient, isTest} from "../api/common/Env"
-import {windowFacade} from "../misc/WindowFacade"
-import {theme, themeController} from "./theme"
-import {assertNotNull, neverNull} from "@tutao/tutanota-utils"
-import {client} from "../misc/ClientDetector"
+import { Cat, log, timer } from "../misc/Log"
+import { size } from "./size"
+import { assertMainOrNodeBoot, isAdminClient, isTest } from "../api/common/Env"
+import { windowFacade } from "../misc/WindowFacade"
+import { theme, themeController } from "./theme"
+import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
+import { client } from "../misc/ClientDetector"
 
 assertMainOrNodeBoot()
 
@@ -46,7 +46,6 @@ class Styles {
 	getStyleSheetElement(id: StyleSheetId): Node {
 		return assertNotNull(this.styleSheets.get(id)).cloneNode(true)
 	}
-
 
 	isDesktopLayout(): boolean {
 		return this.bodyWidth >= size.desktop_layout_width
@@ -92,7 +91,7 @@ class Styles {
 		}
 
 		let time = timer(Cat.css)
-		Array.from(this.styles.entries()).map(entry => {
+		Array.from(this.styles.entries()).map((entry) => {
 			this.updateDomStyle(entry[0], entry[1])
 		})
 		log(Cat.css, "creation time", time())
@@ -127,20 +126,20 @@ function objectToCss(indent: string, key: string, o: Record<string, string>) {
 
 function toCss(obj: Record<string, any>, indent = "") {
 	let ret = Object.keys(obj)
-					.map(key => {
-						if (obj[key] instanceof Array) {
-							return obj[key]
-								.map((o: any) => {
-									return objectToCss(indent, key, o)
-								})
-								.join("\n")
-						} else if (obj[key] instanceof Object) {
-							return objectToCss(indent, key, obj[key])
-						} else {
-							return `${indent}${key}: ${obj[key]};`
-						}
+		.map((key) => {
+			if (obj[key] instanceof Array) {
+				return obj[key]
+					.map((o: any) => {
+						return objectToCss(indent, key, o)
 					})
 					.join("\n")
+			} else if (obj[key] instanceof Object) {
+				return objectToCss(indent, key, obj[key])
+			} else {
+				return `${indent}${key}: ${obj[key]};`
+			}
+		})
+		.join("\n")
 	return ret
 }
 

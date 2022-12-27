@@ -1,13 +1,13 @@
 import n from "../nodemocker.js"
 import o from "ospec"
-import {DesktopNativeCryptoFacade} from "../../../src/desktop/DesktopNativeCryptoFacade.js"
-import type {Base64} from "@tutao/tutanota-utils"
-import {arrayEquals, downcast, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import type {CryptoFunctions} from "../../../src/desktop/CryptoFns.js"
-import type {TypeModel} from "../../../src/api/common/EntityTypes.js"
-import {keyToUint8Array, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
-import {object, when} from "testdouble"
-import {DesktopUtils} from "../../../src/desktop/DesktopUtils.js"
+import { DesktopNativeCryptoFacade } from "../../../src/desktop/DesktopNativeCryptoFacade.js"
+import type { Base64 } from "@tutao/tutanota-utils"
+import { arrayEquals, downcast, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import type { CryptoFunctions } from "../../../src/desktop/CryptoFns.js"
+import type { TypeModel } from "../../../src/api/common/EntityTypes.js"
+import { keyToUint8Array, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { object, when } from "testdouble"
+import { DesktopUtils } from "../../../src/desktop/DesktopUtils.js"
 
 o.spec("DesktopCryptoFacadeTest", () => {
 	const data = "uint8_somedata"
@@ -35,13 +35,7 @@ o.spec("DesktopCryptoFacadeTest", () => {
 			}
 		},
 
-		aes256Encrypt(
-			key: Aes256Key,
-			bytes: Uint8Array,
-			iv: Uint8Array,
-			usePadding: boolean,
-			useMac: boolean,
-		): Uint8Array {
+		aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array {
 			if (key === aes256Key && arrayEquals(aes256DecryptedKey, bytes)) {
 				return aes256EncryptedKey
 			} else {
@@ -85,11 +79,7 @@ o.spec("DesktopCryptoFacadeTest", () => {
 			return Buffer.alloc(nbrOfBytes, 4)
 		},
 
-		decryptAndMapToInstance<T>(
-			model: TypeModel,
-			instance: Record<string, any>,
-			sk: Aes128Key | null | undefined,
-		): Promise<T> {
+		decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: Aes128Key | null | undefined): Promise<T> {
 			return Promise.resolve(instance as T)
 		},
 
@@ -101,16 +91,15 @@ o.spec("DesktopCryptoFacadeTest", () => {
 		promises: {
 			readFile: () => Promise.resolve(data),
 			mkdir: () => Promise.resolve(),
-			writeFile: (file, data) =>
-				data === decryptedUint8 ? Promise.resolve() : Promise.reject("decryption failed"),
+			writeFile: (file, data) => (data === decryptedUint8 ? Promise.resolve() : Promise.reject("decryption failed")),
 		},
 	}
 	const instanceMapper = {
 		decryptAndMapToInstance: (model, obj, sk) => Promise.resolve(obj),
 	}
 	const encoding = {
-		base64ToUint8Array: b64 => (b64.startsWith("b64") ? "uint8_stuff" : "nonsense_uint8array"),
-		uint8ArrayToBase64: uint8 => (uint8.startsWith("uint8") ? "b64_stuff" : "nonsense_b64"),
+		base64ToUint8Array: (b64) => (b64.startsWith("b64") ? "uint8_stuff" : "nonsense_uint8array"),
+		uint8ArrayToBase64: (uint8) => (uint8.startsWith("uint8") ? "b64_stuff" : "nonsense_b64"),
 	}
 
 	const bufferComp = (a, b) => a.length === b.length && a.includes(b)
@@ -137,30 +126,30 @@ o.spec("DesktopCryptoFacadeTest", () => {
 		})
 	}
 	o("aesEncryptFile", async function () {
-		const {desktopCrypto, fsMock} = setupSubject()
-		const {uri} = await desktopCrypto.aesEncryptFile(someKey, "/some/path/to/encrypted/file.pdf")
+		const { desktopCrypto, fsMock } = setupSubject()
+		const { uri } = await desktopCrypto.aesEncryptFile(someKey, "/some/path/to/encrypted/file.pdf")
 		o(uri).equals("/some/other/path/to/encrypted/file.pdf")
 		o(fsMock.promises.writeFile.callCount).equals(1)
 	})
 	o("aesDecryptFile", async function () {
-		const {desktopCrypto, fsMock} = setupSubject()
+		const { desktopCrypto, fsMock } = setupSubject()
 		const file = await desktopCrypto.aesDecryptFile(someKey, "/some/path/to/file.pdf")
 		o(file).equals("/some/other/path/to/decrypted/file.pdf")
 		o(fsMock.promises.writeFile.callCount).equals(1)
 	})
 	o("aes256DecryptKey", function () {
-		const {desktopCrypto} = setupSubject()
+		const { desktopCrypto } = setupSubject()
 		const key = desktopCrypto.aes256DecryptKey(aes256Key, aes256EncryptedKey)
 		o(Array.from(key)).deepEquals(Array.from(aes256DecryptedKey))
 	})
 	o("aes256EncryptKey", function () {
-		const {desktopCrypto, cryptoFnsMock} = setupSubject()
+		const { desktopCrypto, cryptoFnsMock } = setupSubject()
 		const key = desktopCrypto.aes256EncryptKey(aes256Key, aes256DecryptedKey)
 		o(Array.from(key)).deepEquals(Array.from(aes256EncryptedKey))
 		o(cryptoFnsMock.randomBytes.callCount).equals(1)
 	})
 	o("decryptAndMapToInstance", async function () {
-		const {desktopCrypto, cryptoFnsMock} = setupSubject()
+		const { desktopCrypto, cryptoFnsMock } = setupSubject()
 		const instance = await desktopCrypto.decryptAndMapToInstance(
 			downcast("somemodel"),
 			{

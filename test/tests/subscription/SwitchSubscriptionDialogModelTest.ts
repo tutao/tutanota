@@ -1,5 +1,5 @@
 import o from "ospec"
-import type {AccountingInfo, Booking, Customer, CustomerInfo, PlanPrices, PriceData, PriceServiceReturn} from "../../../src/api/entities/sys/TypeRefs.js"
+import type { AccountingInfo, Booking, Customer, CustomerInfo, PlanPrices, PriceData, PriceServiceReturn } from "../../../src/api/entities/sys/TypeRefs.js"
 import {
 	createAccountingInfo,
 	createBooking,
@@ -9,72 +9,72 @@ import {
 	createPriceData,
 	createPriceItemData,
 	createPriceServiceReturn,
-	PlanPricesTypeRef
+	PlanPricesTypeRef,
 } from "../../../src/api/entities/sys/TypeRefs.js"
-import {AccountType, BookingItemFeatureType} from "../../../src/api/common/TutanotaConstants.js"
-import {SwitchSubscriptionDialogModel} from "../../../src/subscription/SwitchSubscriptionDialogModel.js"
-import {downcast, neverNull} from "@tutao/tutanota-utils"
-import {getCurrentCount, PriceAndConfigProvider} from "../../../src/subscription/PriceUtils.js"
-import {BookingFacade} from "../../../src/api/worker/facades/BookingFacade.js"
-import {matchers, object, when} from "testdouble"
-import {SubscriptionConfig, SubscriptionType} from "../../../src/subscription/FeatureListProvider"
-import {createPriceMock} from "./PriceUtilsTest"
+import { AccountType, BookingItemFeatureType } from "../../../src/api/common/TutanotaConstants.js"
+import { SwitchSubscriptionDialogModel } from "../../../src/subscription/SwitchSubscriptionDialogModel.js"
+import { downcast, neverNull } from "@tutao/tutanota-utils"
+import { getCurrentCount, PriceAndConfigProvider } from "../../../src/subscription/PriceUtils.js"
+import { BookingFacade } from "../../../src/api/worker/facades/BookingFacade.js"
+import { matchers, object, when } from "testdouble"
+import { SubscriptionConfig, SubscriptionType } from "../../../src/subscription/FeatureListProvider"
+import { createPriceMock } from "./PriceUtilsTest"
 
 const SUBSCRIPTION_CONFIG = {
-	"Free": {
-		"nbrOfAliases": 0,
-		"orderNbrOfAliases": 0,
-		"storageGb": 1,
-		"orderStorageGb": 0,
-		"sharing": false,
-		"business": false,
-		"whitelabel": false
+	Free: {
+		nbrOfAliases: 0,
+		orderNbrOfAliases: 0,
+		storageGb: 1,
+		orderStorageGb: 0,
+		sharing: false,
+		business: false,
+		whitelabel: false,
 	},
-	"Premium": {
-		"nbrOfAliases": 5,
-		"orderNbrOfAliases": 0,
-		"storageGb": 1,
-		"orderStorageGb": 0,
-		"sharing": false,
-		"business": false,
-		"whitelabel": false
+	Premium: {
+		nbrOfAliases: 5,
+		orderNbrOfAliases: 0,
+		storageGb: 1,
+		orderStorageGb: 0,
+		sharing: false,
+		business: false,
+		whitelabel: false,
 	},
-	"PremiumBusiness": {
-		"nbrOfAliases": 5,
-		"orderNbrOfAliases": 0,
-		"storageGb": 1,
-		"orderStorageGb": 0,
-		"sharing": false,
-		"business": true,
-		"whitelabel": false
+	PremiumBusiness: {
+		nbrOfAliases: 5,
+		orderNbrOfAliases: 0,
+		storageGb: 1,
+		orderStorageGb: 0,
+		sharing: false,
+		business: true,
+		whitelabel: false,
 	},
-	"Teams": {
-		"nbrOfAliases": 5,
-		"orderNbrOfAliases": 0,
-		"storageGb": 10,
-		"orderStorageGb": 10,
-		"sharing": true,
-		"business": false,
-		"whitelabel": false
+	Teams: {
+		nbrOfAliases: 5,
+		orderNbrOfAliases: 0,
+		storageGb: 10,
+		orderStorageGb: 10,
+		sharing: true,
+		business: false,
+		whitelabel: false,
 	},
-	"TeamsBusiness": {
-		"nbrOfAliases": 5,
-		"orderNbrOfAliases": 0,
-		"storageGb": 10,
-		"orderStorageGb": 10,
-		"sharing": true,
-		"business": true,
-		"whitelabel": false
+	TeamsBusiness: {
+		nbrOfAliases: 5,
+		orderNbrOfAliases: 0,
+		storageGb: 10,
+		orderStorageGb: 10,
+		sharing: true,
+		business: true,
+		whitelabel: false,
 	},
-	"Pro": {
-		"nbrOfAliases": 20,
-		"orderNbrOfAliases": 20,
-		"storageGb": 10,
-		"orderStorageGb": 10,
-		"sharing": true,
-		"business": true,
-		"whitelabel": true
-	}
+	Pro: {
+		nbrOfAliases: 20,
+		orderNbrOfAliases: 20,
+		storageGb: 10,
+		orderStorageGb: 10,
+		sharing: true,
+		business: true,
+		whitelabel: true,
+	},
 } as { [K in SubscriptionType]: SubscriptionConfig }
 
 o.spec("SwitchSubscriptionModelTest", function () {
@@ -148,26 +148,23 @@ o.spec("SwitchSubscriptionModelTest", function () {
 	let planPricesAndConfigMock: PriceAndConfigProvider
 	o.spec("loadSwitchSubscriptionPrices", function () {
 		o.beforeEach(function () {
-			({customer, customerInfo, accountingInfo, lastBooking} = createPremiumCustomerInstances())
+			;({ customer, customerInfo, accountingInfo, lastBooking } = createPremiumCustomerInstances())
 			bookingMock = createbookingMock(lastBooking)
 			planPricesAndConfigMock = object()
 			when(planPricesAndConfigMock.getSubscriptionConfig(SubscriptionType.Free)).thenReturn(SUBSCRIPTION_CONFIG[SubscriptionType.Free])
 			when(planPricesAndConfigMock.getSubscriptionConfig(SubscriptionType.Premium)).thenReturn(SUBSCRIPTION_CONFIG[SubscriptionType.Premium])
 			when(planPricesAndConfigMock.getSubscriptionConfig(SubscriptionType.Teams)).thenReturn(SUBSCRIPTION_CONFIG[SubscriptionType.Teams])
-			when(planPricesAndConfigMock.getSubscriptionConfig(SubscriptionType.PremiumBusiness)).thenReturn(SUBSCRIPTION_CONFIG[SubscriptionType.PremiumBusiness])
+			when(planPricesAndConfigMock.getSubscriptionConfig(SubscriptionType.PremiumBusiness)).thenReturn(
+				SUBSCRIPTION_CONFIG[SubscriptionType.PremiumBusiness],
+			)
 			when(planPricesAndConfigMock.getSubscriptionConfig(SubscriptionType.TeamsBusiness)).thenReturn(SUBSCRIPTION_CONFIG[SubscriptionType.TeamsBusiness])
 			when(planPricesAndConfigMock.getSubscriptionConfig(SubscriptionType.Pro)).thenReturn(SUBSCRIPTION_CONFIG[SubscriptionType.Pro])
-			when(planPricesAndConfigMock.getSubscriptionType(matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(SubscriptionType.Premium)
+			when(planPricesAndConfigMock.getSubscriptionType(matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(
+				SubscriptionType.Premium,
+			)
 		})
 		o("switch premium to default", async function () {
-			model = new SwitchSubscriptionDialogModel(
-				bookingMock,
-				customer,
-				customerInfo,
-				accountingInfo,
-				lastBooking,
-				planPricesAndConfigMock,
-			)
+			model = new SwitchSubscriptionDialogModel(bookingMock, customer, customerInfo, accountingInfo, lastBooking, planPricesAndConfigMock)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(DEFAULT_PREMIUM_PRICE)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(DEFAULT_PREMIUM_BUSINESS_PRICE)
@@ -177,15 +174,10 @@ o.spec("SwitchSubscriptionModelTest", function () {
 		})
 		o("switch premium business to default", async function () {
 			setBookingItem(lastBooking, BookingItemFeatureType.Business, 1)
-			when(planPricesAndConfigMock.getSubscriptionType(matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(SubscriptionType.PremiumBusiness)
-			model = new SwitchSubscriptionDialogModel(
-				bookingMock,
-				customer,
-				customerInfo,
-				accountingInfo,
-				lastBooking,
-				planPricesAndConfigMock,
+			when(planPricesAndConfigMock.getSubscriptionType(matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(
+				SubscriptionType.PremiumBusiness,
 			)
+			model = new SwitchSubscriptionDialogModel(bookingMock, customer, customerInfo, accountingInfo, lastBooking, planPricesAndConfigMock)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(DEFAULT_PREMIUM_PRICE)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(DEFAULT_PREMIUM_BUSINESS_PRICE)
@@ -197,14 +189,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 			setBookingItem(lastBooking, BookingItemFeatureType.Sharing, 1)
 			setBookingItem(lastBooking, BookingItemFeatureType.Storage, 10)
 			when(planPricesAndConfigMock.getSubscriptionType(matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(SubscriptionType.Teams)
-			model = new SwitchSubscriptionDialogModel(
-				bookingMock,
-				customer,
-				customerInfo,
-				accountingInfo,
-				lastBooking,
-				planPricesAndConfigMock,
-			)
+			model = new SwitchSubscriptionDialogModel(bookingMock, customer, customerInfo, accountingInfo, lastBooking, planPricesAndConfigMock)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(DEFAULT_PREMIUM_PRICE)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(DEFAULT_PREMIUM_BUSINESS_PRICE)
@@ -216,15 +201,10 @@ o.spec("SwitchSubscriptionModelTest", function () {
 			setBookingItem(lastBooking, BookingItemFeatureType.Sharing, 1)
 			setBookingItem(lastBooking, BookingItemFeatureType.Business, 1)
 			setBookingItem(lastBooking, BookingItemFeatureType.Storage, 10)
-			when(planPricesAndConfigMock.getSubscriptionType(matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(SubscriptionType.TeamsBusiness)
-			model = new SwitchSubscriptionDialogModel(
-				bookingMock,
-				customer,
-				customerInfo,
-				accountingInfo,
-				lastBooking,
-				planPricesAndConfigMock,
+			when(planPricesAndConfigMock.getSubscriptionType(matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(
+				SubscriptionType.TeamsBusiness,
 			)
+			model = new SwitchSubscriptionDialogModel(bookingMock, customer, customerInfo, accountingInfo, lastBooking, planPricesAndConfigMock)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(DEFAULT_PREMIUM_PRICE)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(DEFAULT_PREMIUM_BUSINESS_PRICE)
@@ -239,14 +219,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 			setBookingItem(lastBooking, BookingItemFeatureType.Storage, 10)
 			setBookingItem(lastBooking, BookingItemFeatureType.Alias, 20)
 			when(planPricesAndConfigMock.getSubscriptionType(matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(SubscriptionType.Pro)
-			model = new SwitchSubscriptionDialogModel(
-				bookingMock,
-				customer,
-				customerInfo,
-				accountingInfo,
-				lastBooking,
-				planPricesAndConfigMock,
-			)
+			model = new SwitchSubscriptionDialogModel(bookingMock, customer, customerInfo, accountingInfo, lastBooking, planPricesAndConfigMock)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(DEFAULT_PREMIUM_PRICE)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(DEFAULT_PREMIUM_BUSINESS_PRICE)
@@ -311,14 +284,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 				monthlyReferencePrice: "18",
 			}
 			setBookingItem(lastBooking, BookingItemFeatureType.Storage, 100)
-			model = new SwitchSubscriptionDialogModel(
-				bookingMock,
-				customer,
-				customerInfo,
-				accountingInfo,
-				lastBooking,
-				planPricesAndConfigMock,
-			)
+			model = new SwitchSubscriptionDialogModel(bookingMock, customer, customerInfo, accountingInfo, lastBooking, planPricesAndConfigMock)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(upgradedPremiumPrices)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(upgradedPremiumBusinessPrices)
@@ -353,14 +319,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 			setBookingItem(lastBooking, BookingItemFeatureType.Sharing, 1)
 			setBookingItem(lastBooking, BookingItemFeatureType.Storage, 10)
 			when(planPricesAndConfigMock.getSubscriptionType(matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(SubscriptionType.Teams)
-			model = new SwitchSubscriptionDialogModel(
-				bookingMock,
-				customer,
-				customerInfo,
-				accountingInfo,
-				lastBooking,
-				planPricesAndConfigMock,
-			)
+			model = new SwitchSubscriptionDialogModel(bookingMock, customer, customerInfo, accountingInfo, lastBooking, planPricesAndConfigMock)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(DEFAULT_PREMIUM_PRICE)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(DEFAULT_PREMIUM_BUSINESS_PRICE)
@@ -415,14 +374,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 			}
 			setBookingItem(lastBooking, BookingItemFeatureType.Storage, 10)
 			setBookingItem(lastBooking, BookingItemFeatureType.Whitelabel, 1)
-			model = new SwitchSubscriptionDialogModel(
-				bookingMock,
-				customer,
-				customerInfo,
-				accountingInfo,
-				lastBooking,
-				planPricesAndConfigMock,
-			)
+			model = new SwitchSubscriptionDialogModel(bookingMock, customer, customerInfo, accountingInfo, lastBooking, planPricesAndConfigMock)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(upgradedPremiumPrices)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(upgradedPremiumBusinessPrices)
@@ -447,14 +399,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 			setBookingItem(lastBooking, BookingItemFeatureType.Storage, 10)
 			setBookingItem(lastBooking, BookingItemFeatureType.Alias, 20)
 			when(planPricesAndConfigMock.getSubscriptionType(matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(SubscriptionType.Teams)
-			model = new SwitchSubscriptionDialogModel(
-				bookingMock,
-				customer,
-				customerInfo,
-				accountingInfo,
-				lastBooking,
-				planPricesAndConfigMock,
-			)
+			model = new SwitchSubscriptionDialogModel(bookingMock, customer, customerInfo, accountingInfo, lastBooking, planPricesAndConfigMock)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(DEFAULT_PREMIUM_PRICE)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(DEFAULT_PREMIUM_BUSINESS_PRICE)
@@ -523,14 +468,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 			setBookingItem(lastBooking, BookingItemFeatureType.Storage, 10)
 			setBookingItem(lastBooking, BookingItemFeatureType.Sharing, 1)
 			when(planPricesAndConfigMock.getSubscriptionType(matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(SubscriptionType.Teams)
-			model = new SwitchSubscriptionDialogModel(
-				bookingMock,
-				customer,
-				customerInfo,
-				accountingInfo,
-				lastBooking,
-				planPricesAndConfigMock,
-			)
+			model = new SwitchSubscriptionDialogModel(bookingMock, customer, customerInfo, accountingInfo, lastBooking, planPricesAndConfigMock)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(upgradedPremiumPrices)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(upgradedPremiumBusinessPrices)
@@ -548,7 +486,7 @@ o.spec("getSubscriptionType test", () => {
 	let bookingMock: BookingFacade
 	o.before(() => {
 		const fakeFetch = () => ({
-			json: () => Promise.resolve(SUBSCRIPTION_CONFIG)
+			json: () => Promise.resolve(SUBSCRIPTION_CONFIG),
 		})
 
 		global.fetch = fakeFetch as any
@@ -557,7 +495,7 @@ o.spec("getSubscriptionType test", () => {
 		global.fetch = originalFetch
 	})
 	o.beforeEach(() => {
-		({customer, customerInfo, lastBooking} = createPremiumCustomerInstances())
+		;({ customer, customerInfo, lastBooking } = createPremiumCustomerInstances())
 		bookingMock = createbookingMock(lastBooking)
 	})
 
@@ -619,7 +557,7 @@ function createPremiumCustomerInstances() {
 	const accountingInfo = createAccountingInfo({
 		paymentInterval: "12",
 	})
-	const lastBooking = createBooking({paymentInterval: "1"})
+	const lastBooking = createBooking({ paymentInterval: "1" })
 
 	// always create user booking
 	lastBooking.items.push(
@@ -630,16 +568,12 @@ function createPremiumCustomerInstances() {
 			price: "1.20",
 		}),
 	)
-	return {customer, customerInfo, accountingInfo, lastBooking}
+	return { customer, customerInfo, accountingInfo, lastBooking }
 }
 
 function createbookingMock(lastBooking: Booking): BookingFacade {
 	return downcast({
-		getPrice(
-			type: BookingItemFeatureType,
-			count: number,
-			reactivate: boolean,
-		): Promise<PriceServiceReturn> {
+		getPrice(type: BookingItemFeatureType, count: number, reactivate: boolean): Promise<PriceServiceReturn> {
 			const currentPriceData = getPriceData(lastBooking)
 			const futureBooking = JSON.parse(JSON.stringify(lastBooking))
 			setBookingItem(futureBooking, type, count)
@@ -656,7 +590,7 @@ function createbookingMock(lastBooking: Booking): BookingFacade {
 }
 
 function setBookingItem(booking: Booking, featureType: BookingItemFeatureType, count: number) {
-	const featureItem = booking.items.find(item => item.featureType === featureType)
+	const featureItem = booking.items.find((item) => item.featureType === featureType)
 
 	if (featureItem) {
 		featureItem.currentCount = String(count)
@@ -699,7 +633,7 @@ function getPriceData(booking: Booking): PriceData {
 	}, 0)
 	return createPriceData({
 		price: String(currentTotalPrice),
-		items: booking.items.map(item => {
+		items: booking.items.map((item) => {
 			return createPriceItemData({
 				count: item.currentCount,
 				featureType: item.featureType,

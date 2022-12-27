@@ -1,6 +1,6 @@
-import {OfflineMigration} from "../OfflineStorageMigrator.js"
-import {OfflineStorage, sql} from "../OfflineStorage.js"
-import {SqlCipherFacade} from "../../../../native/common/generatedipc/SqlCipherFacade.js"
+import { OfflineMigration } from "../OfflineStorageMigrator.js"
+import { OfflineStorage, sql } from "../OfflineStorage.js"
+import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade.js"
 
 /**
  * Migration to add ownerGroup
@@ -22,15 +22,15 @@ export const offline1: OfflineMigration = {
 		console.log("nuked lastUpdateTime")
 		await sqlCipherFacade.run("DELETE FROM lastUpdateBatchIdPerGroupId", [])
 		console.log("nuked lastUpdateBatchIdPerGroupId")
-	}
+	},
 }
 
 async function addOwnerToElementEntities(sqlCipherFacade: SqlCipherFacade) {
-	const {query, params} = sql`ALTER TABLE element_entities add column ownerGroup TEXT`
+	const { query, params } = sql`ALTER TABLE element_entities add column ownerGroup TEXT`
 	await sqlCipherFacade.run(query, params)
 }
 
 async function addOwnerToListEntities(sqlCipherFacade: SqlCipherFacade) {
-	const {query, params} = sql`ALTER TABLE list_entities add column ownerGroup TEXT`
+	const { query, params } = sql`ALTER TABLE list_entities add column ownerGroup TEXT`
 	await sqlCipherFacade.run(query, params)
 }

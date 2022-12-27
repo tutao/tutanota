@@ -1,26 +1,25 @@
-import {InfoLink, lang} from "../../misc/LanguageViewModel.js"
-import {Dialog, DialogType} from "../../gui/base/Dialog.js"
-import type {Hex} from "@tutao/tutanota-utils"
-import {neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
-import m, {Children, Vnode} from "mithril"
-import {assertMainOrNode, isApp} from "../../api/common/Env.js"
-import {copyToClipboard} from "../../misc/ClipboardUtils.js"
-import {Button} from "../../gui/base/Button.js"
-import {AccessBlockedError, NotAuthenticatedError} from "../../api/common/error/RestError.js"
-import {locator} from "../../api/main/MainLocator.js"
-import {Icons} from "../../gui/base/icons/Icons.js"
-import {User} from "../../api/entities/sys/TypeRefs.js"
-import {getEtId, isSameId} from "../../api/common/utils/EntityUtils.js"
-import {logins} from "../../api/main/LoginController.js"
-import {GroupType} from "../../api/common/TutanotaConstants.js"
+import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
+import { Dialog, DialogType } from "../../gui/base/Dialog.js"
+import type { Hex } from "@tutao/tutanota-utils"
+import { neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import m, { Children, Vnode } from "mithril"
+import { assertMainOrNode, isApp } from "../../api/common/Env.js"
+import { copyToClipboard } from "../../misc/ClipboardUtils.js"
+import { Button } from "../../gui/base/Button.js"
+import { AccessBlockedError, NotAuthenticatedError } from "../../api/common/error/RestError.js"
+import { locator } from "../../api/main/MainLocator.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { User } from "../../api/entities/sys/TypeRefs.js"
+import { getEtId, isSameId } from "../../api/common/utils/EntityUtils.js"
+import { logins } from "../../api/main/LoginController.js"
+import { GroupType } from "../../api/common/TutanotaConstants.js"
 
 type Action = "get" | "create"
 assertMainOrNode()
 
-
 export function showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user: User) {
 	// We only show the recovery code if it is for the current user and it is a global admin
-	if (!isSameId(getEtId(logins.getUserController().user), getEtId(user)) || !user.memberships.find(gm => gm.groupType === GroupType.Admin)) {
+	if (!isSameId(getEtId(logins.getUserController().user), getEtId(user)) || !user.memberships.find((gm) => gm.groupType === GroupType.Admin)) {
 		return
 	}
 
@@ -43,7 +42,7 @@ export function showRecoverCodeDialogAfterPasswordVerification(action: Action, s
 	const dialog = Dialog.showRequestPasswordDialog({
 		action: (pw) => {
 			return (action === "get" ? userManagementFacade.getRecoverCode(pw) : userManagementFacade.createRecoveryCode(pw))
-				.then(recoverCode => {
+				.then((recoverCode) => {
 					dialog.close()
 					showRecoverCodeDialog(recoverCode, showMessage)
 					return ""
@@ -54,12 +53,12 @@ export function showRecoverCodeDialogAfterPasswordVerification(action: Action, s
 		cancel: {
 			textId: "cancel_action",
 			action: noOp,
-		}
+		},
 	})
 }
 
 export function showRecoverCodeDialog(recoverCode: Hex, showMessage: boolean): Promise<void> {
-	return new Promise(resolve => {
+	return new Promise((resolve) => {
 		Dialog.showActionDialog({
 			title: lang.get("recoveryCode_label"),
 			child: {
@@ -91,15 +90,15 @@ export class RecoverCodeField {
 	view(vnode: Vnode<RecoverCodeFieldAttrs>): Children {
 		const lnk = InfoLink.RecoverCode
 
-		let {recoverCode, showButtons, showMessage} = vnode.attrs
+		let { recoverCode, showButtons, showMessage } = vnode.attrs
 		showButtons = showButtons ?? true
 
 		return [
 			showMessage
 				? m(".pt.pb", [
-					lang.get("recoveryCode_msg"),
-					m("", [m("small", lang.get("moreInfo_msg") + " "), m("small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])]),
-				])
+						lang.get("recoveryCode_msg"),
+						m("", [m("small", lang.get("moreInfo_msg") + " "), m("small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])]),
+				  ])
 				: m("", lang.get("emptyString_msg")),
 			m(
 				".text-break.monospace.selectable.flex.flex-wrap.border.pt.pb.plr",
@@ -107,19 +106,19 @@ export class RecoverCodeField {
 			),
 			showButtons
 				? m(".flex.flex-end.mt-m", [
-					m(Button, {
-						label: "copy_action",
-						icon: () => Icons.Clipboard,
-						click: () => copyToClipboard(recoverCode),
-					}),
-					isApp() || typeof window.print !== "function"
-						? null
-						: m(Button, {
-							label: "print_action",
-							icon: () => Icons.Print,
-							click: () => window.print(),
+						m(Button, {
+							label: "copy_action",
+							icon: () => Icons.Clipboard,
+							click: () => copyToClipboard(recoverCode),
 						}),
-				])
+						isApp() || typeof window.print !== "function"
+							? null
+							: m(Button, {
+									label: "print_action",
+									icon: () => Icons.Print,
+									click: () => window.print(),
+							  }),
+				  ])
 				: null,
 		]
 	}

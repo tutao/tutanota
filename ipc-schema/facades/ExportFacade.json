@@ -1,35 +1,26 @@
 {
-  "name": "ExportFacade",
-  "type": "facade",
-  "senders": ["web"],
-  "receivers": ["desktop"],
-  "methods": {
-	"mailToMsg": {
-	  "doc": "Convert mail to .msg format.",
-	  "arg": [
-		{"bundle": "MailBundle"},
-		{"fileName": "string"}
-	  ],
-	  "ret": "DataFile"
-	},
-	"saveToExportDir": {
-	  "arg": [
-		{"file": "DataFile"}
-	  ],
-	  "ret": "void"
-	},
-	"startNativeDrag": {
-	  "doc": "Sets specified fileNames as the current 'drag' items.",
-	  "arg": [
-		{"fileNames": "List<string>"}
-	  ],
-	  "ret": "void"
-	},
-	"checkFileExistsInExportDir": {
-	  "arg": [
-		{"fileName": "string"}
-	  ],
-	  "ret": "boolean"
+	"name": "ExportFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["desktop"],
+	"methods": {
+		"mailToMsg": {
+			"doc": "Convert mail to .msg format.",
+			"arg": [{ "bundle": "MailBundle" }, { "fileName": "string" }],
+			"ret": "DataFile"
+		},
+		"saveToExportDir": {
+			"arg": [{ "file": "DataFile" }],
+			"ret": "void"
+		},
+		"startNativeDrag": {
+			"doc": "Sets specified fileNames as the current 'drag' items.",
+			"arg": [{ "fileNames": "List<string>" }],
+			"ret": "void"
+		},
+		"checkFileExistsInExportDir": {
+			"arg": [{ "fileName": "string" }],
+			"ret": "boolean"
+		}
 	}
-  }
 }

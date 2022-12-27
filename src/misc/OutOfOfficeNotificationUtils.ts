@@ -1,11 +1,11 @@
-import type {OutOfOfficeNotification} from "../api/entities/tutanota/TypeRefs.js"
-import {OutOfOfficeNotificationTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import {formatDate} from "./Formatter"
-import {lang} from "./LanguageViewModel"
-import {locator} from "../api/main/MainLocator"
-import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import {logins} from "../api/main/LoginController"
-import {getDayShifted} from "@tutao/tutanota-utils"
+import type { OutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
+import { OutOfOfficeNotificationTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import { formatDate } from "./Formatter"
+import { lang } from "./LanguageViewModel"
+import { locator } from "../api/main/MainLocator"
+import { MailboxGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import { logins } from "../api/main/LoginController"
+import { getDayShifted } from "@tutao/tutanota-utils"
 
 /**
  * Returns true if notifications are currently sent.
@@ -66,7 +66,7 @@ export function getDefaultNotificationLabel(organizationMessageEnabled: boolean)
  */
 export function loadOutOfOfficeNotification(): Promise<OutOfOfficeNotification | null> {
 	const mailMembership = logins.getUserController().getUserMailGroupMembership()
-	return locator.entityClient.load(MailboxGroupRootTypeRef, mailMembership.group).then(grouproot => {
+	return locator.entityClient.load(MailboxGroupRootTypeRef, mailMembership.group).then((grouproot) => {
 		if (grouproot.outOfOfficeNotification) {
 			return locator.entityClient.load<OutOfOfficeNotification>(OutOfOfficeNotificationTypeRef, grouproot.outOfOfficeNotification)
 		} else {

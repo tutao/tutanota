@@ -1,5 +1,5 @@
-import {assertNotNull, downcast} from "@tutao/tutanota-utils"
-import {assertMainOrNodeBoot} from "../api/common/Env"
+import { assertNotNull, downcast } from "@tutao/tutanota-utils"
+import { assertMainOrNodeBoot } from "../api/common/Env"
 
 assertMainOrNodeBoot()
 

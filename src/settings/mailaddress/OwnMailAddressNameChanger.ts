@@ -1,16 +1,12 @@
-import {AddressToName, MailAddressNameChanger} from "./MailAddressTableModel.js"
-import {MailModel} from "../../mail/model/MailModel.js"
-import {createMailAddressProperties, MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
-import {EntityClient} from "../../api/common/EntityClient.js"
-import {findAndRemove} from "@tutao/tutanota-utils"
+import { AddressToName, MailAddressNameChanger } from "./MailAddressTableModel.js"
+import { MailModel } from "../../mail/model/MailModel.js"
+import { createMailAddressProperties, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
+import { EntityClient } from "../../api/common/EntityClient.js"
+import { findAndRemove } from "@tutao/tutanota-utils"
 
 /** Name changer for personal mailbox of the currently logged-in user. */
 export class OwnMailAddressNameChanger implements MailAddressNameChanger {
-	constructor(
-		private readonly mailModel: MailModel,
-		private readonly entityClient: EntityClient,
-	) {
-	}
+	constructor(private readonly mailModel: MailModel, private readonly entityClient: EntityClient) {}
 
 	async getSenderNames(): Promise<AddressToName> {
 		const mailboxProperties = await this.getMailboxProperties()
@@ -19,11 +15,10 @@ export class OwnMailAddressNameChanger implements MailAddressNameChanger {
 
 	async setSenderName(address: string, name: string): Promise<AddressToName> {
 		const mailboxDetails = await this.mailModel.getUserMailboxDetails()
-		const mailboxProperties =
-			await this.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 		let aliasConfig = mailboxProperties.mailAddressProperties.find((p) => p.mailAddress === address)
 		if (aliasConfig == null) {
-			aliasConfig = createMailAddressProperties({mailAddress: address})
+			aliasConfig = createMailAddressProperties({ mailAddress: address })
 			mailboxProperties.mailAddressProperties.push(aliasConfig)
 		}
 		aliasConfig.senderName = name

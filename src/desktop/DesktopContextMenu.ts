@@ -1,19 +1,14 @@
-import type {ContextMenuParams, Menu, WebContents} from "electron"
-import {lang} from "../misc/LanguageViewModel"
-import {WindowManager} from "./DesktopWindowManager.js"
+import type { ContextMenuParams, Menu, WebContents } from "electron"
+import { lang } from "../misc/LanguageViewModel"
+import { WindowManager } from "./DesktopWindowManager.js"
 
 type Electron = typeof Electron.CrossProcessExports
 
 export class DesktopContextMenu {
-
-	constructor(
-		private readonly electron: Electron,
-		private readonly windowManager: WindowManager,
-	) {
-	}
+	constructor(private readonly electron: Electron, private readonly windowManager: WindowManager) {}
 
 	open(params: ContextMenuParams) {
-		const {linkURL, editFlags, misspelledWord, dictionarySuggestions} = params
+		const { linkURL, editFlags, misspelledWord, dictionarySuggestions } = params
 		const menu = new this.electron.Menu()
 		const pasteItem = new this.electron.MenuItem({
 			label: lang.get("paste_action"),
@@ -85,13 +80,13 @@ export class DesktopContextMenu {
 		if (misspelledWord !== "") {
 			dictionarySuggestions
 				.map(
-					s =>
+					(s) =>
 						new this.electron.MenuItem({
 							label: s,
 							click: (mi, bw) => bw && bw.webContents && bw.webContents.replaceMisspelling(s),
 						}),
 				)
-				.forEach(mi => submenu.append(mi))
+				.forEach((mi) => submenu.append(mi))
 			submenu.append(
 				new this.electron.MenuItem({
 					type: "separator",

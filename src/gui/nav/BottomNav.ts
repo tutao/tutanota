@@ -1,10 +1,10 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {NavButton} from "../base/NavButton.js"
-import {size} from "../size"
-import {CALENDAR_PREFIX, CONTACTS_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
-import {logins} from "../../api/main/LoginController"
-import {FeatureType} from "../../api/common/TutanotaConstants"
-import {BootIcons} from "../base/icons/BootIcons";
+import m, { Children, Component, Vnode } from "mithril"
+import { NavButton } from "../base/NavButton.js"
+import { size } from "../size"
+import { CALENDAR_PREFIX, CONTACTS_PREFIX, navButtonRoutes, SEARCH_PREFIX } from "../../misc/RouteChange"
+import { logins } from "../../api/main/LoginController"
+import { FeatureType } from "../../api/common/TutanotaConstants"
+import { BootIcons } from "../base/icons/BootIcons"
 
 type Attrs = void
 const fontSize = size.font_size_small
@@ -22,36 +22,36 @@ export class BottomNav implements Component<Attrs> {
 			}),
 			logins.isInternalUserLoggedIn()
 				? m(NavButton, {
-					label: "search_label",
-					icon: () => BootIcons.Search,
-					href: m.route.get().startsWith(SEARCH_PREFIX)
-						? m.route.get()
-						: m.route.get().startsWith(CONTACTS_PREFIX)
+						label: "search_label",
+						icon: () => BootIcons.Search,
+						href: m.route.get().startsWith(SEARCH_PREFIX)
+							? m.route.get()
+							: m.route.get().startsWith(CONTACTS_PREFIX)
 							? "/search/contact"
 							: "/search/mail",
-					isSelectedPrefix: SEARCH_PREFIX,
-					vertical: true,
-					fontSize,
-				})
+						isSelectedPrefix: SEARCH_PREFIX,
+						vertical: true,
+						fontSize,
+				  })
 				: null,
 			logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)
 				? m(NavButton, {
-					label: "contacts_label",
-					icon: () => BootIcons.Contacts,
-					href: () => navButtonRoutes.contactsUrl,
-					isSelectedPrefix: CONTACTS_PREFIX,
-					vertical: true,
-					fontSize,
-				})
+						label: "contacts_label",
+						icon: () => BootIcons.Contacts,
+						href: () => navButtonRoutes.contactsUrl,
+						isSelectedPrefix: CONTACTS_PREFIX,
+						vertical: true,
+						fontSize,
+				  })
 				: null,
 			logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar)
 				? m(NavButton, {
-					label: "calendar_label",
-					icon: () => BootIcons.Calendar,
-					href: CALENDAR_PREFIX,
-					vertical: true,
-					fontSize,
-				})
+						label: "calendar_label",
+						icon: () => BootIcons.Calendar,
+						href: CALENDAR_PREFIX,
+						vertical: true,
+						fontSize,
+				  })
 				: null,
 		])
 	}

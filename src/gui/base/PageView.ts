@@ -1,6 +1,6 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {SwipeHandler} from "./SwipeHandler"
-import {animations, transform, TransformEnum} from "../animation/Animations"
+import m, { Children, Component, Vnode } from "mithril"
+import { SwipeHandler } from "./SwipeHandler"
+import { animations, transform, TransformEnum } from "../animation/Animations"
 
 type Page = {
 	key: string | number
@@ -18,8 +18,8 @@ export class PageView implements Component<Attrs> {
 	private _swipeHandler!: PageSwipeHandler
 	private _onChangePage!: (_: boolean) => unknown
 
-	view({attrs}: Vnode<Attrs>): Children {
-		this._onChangePage = next => attrs.onChangePage(next)
+	view({ attrs }: Vnode<Attrs>): Children {
+		this._onChangePage = (next) => attrs.onChangePage(next)
 
 		return m(
 			".fill-absolute",
@@ -30,9 +30,9 @@ export class PageView implements Component<Attrs> {
 					// overflow-y: hidden produces *horizontal* scrollbar for some reason? clip should do a similar thing
 					"overflow-y": "clip",
 				},
-				oncreate: vnode => {
+				oncreate: (vnode) => {
 					this._viewDom = vnode.dom as HTMLElement
-					this._swipeHandler = new PageSwipeHandler(this._viewDom, next => this._onChangePage(next))
+					this._swipeHandler = new PageSwipeHandler(this._viewDom, (next) => this._onChangePage(next))
 				},
 			},
 			[
@@ -93,7 +93,7 @@ export class PageSwipeHandler extends SwipeHandler {
 		this.touchArea.style.transform = `translateX(${this._xoffset}px)`
 	}
 
-	onHorizontalGestureCompleted(delta: {x: number; y: number}): Promise<void> {
+	onHorizontalGestureCompleted(delta: { x: number; y: number }): Promise<void> {
 		if (Math.abs(delta.x) > 100) {
 			this._xoffset = 0
 			return animations
@@ -110,7 +110,7 @@ export class PageSwipeHandler extends SwipeHandler {
 		}
 	}
 
-	reset(delta: {x: number; y: number}): Promise<any> {
+	reset(delta: { x: number; y: number }): Promise<any> {
 		if (Math.abs(this._xoffset) > 40) {
 			animations.add(this.touchArea, transform(TransformEnum.TranslateX, delta.x, 0))
 		} else {

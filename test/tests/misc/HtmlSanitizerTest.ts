@@ -1,7 +1,7 @@
 import o from "ospec"
-import {htmlSanitizer, PREVENT_EXTERNAL_IMAGE_LOADING_ICON} from "../../../src/misc/HtmlSanitizer.js"
-import {createDataFile} from "../../../src/api/common/DataFile.js"
-import {stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
+import { htmlSanitizer, PREVENT_EXTERNAL_IMAGE_LOADING_ICON } from "../../../src/misc/HtmlSanitizer.js"
+import { createDataFile } from "../../../src/api/common/DataFile.js"
+import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 
 o.spec(
 	"HtmlSanitizerTest",
@@ -10,8 +10,7 @@ o.spec(
 			// see https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet
 			let tests = [
 				{
-					html:
-						"<div>';alert(String.fromCharCode(88,83,83))//';alert(String.fromCharCode(88,83,83))//\";\nalert(String.fromCharCode(88,83,83))//\";alert(String.fromCharCode(88,83,83))//--\n></SCRIPT>\">'><SCRIPT>alert(String.fromCharCode(88,83,83))</SCRIPT></div>",
+					html: "<div>';alert(String.fromCharCode(88,83,83))//';alert(String.fromCharCode(88,83,83))//\";\nalert(String.fromCharCode(88,83,83))//\";alert(String.fromCharCode(88,83,83))//--\n></SCRIPT>\">'><SCRIPT>alert(String.fromCharCode(88,83,83))</SCRIPT></div>",
 					expected:
 						"<div>';alert(String.fromCharCode(88,83,83))//';alert(String.fromCharCode(88,83,83))//\";\nalert(String.fromCharCode(88,83,83))//\";alert(String.fromCharCode(88,83,83))//--\n&gt;\"&gt;'&gt;</div>",
 				},
@@ -32,7 +31,7 @@ o.spec(
 					expected: "<img>",
 				},
 			]
-			tests.forEach(test => {
+			tests.forEach((test) => {
 				// attacks should not be possible even if we load external content
 				o(
 					htmlSanitizer.sanitizeHTML(test.html, {
@@ -55,14 +54,10 @@ o.spec(
 			).equals('<blockquote type="cite"></blockquote>')
 		})
 		o("custom classes", function () {
-			o(htmlSanitizer.sanitizeHTML('<div class="custom1 tutanota_quote custom2">test</div>').html).equals(
-				'<div class="tutanota_quote">test</div>',
-			)
+			o(htmlSanitizer.sanitizeHTML('<div class="custom1 tutanota_quote custom2">test</div>').html).equals('<div class="tutanota_quote">test</div>')
 		})
 		o("leading text node", function () {
-			o(htmlSanitizer.sanitizeHTML("hello<blockquote>test</blockquote>").html).equals(
-				"hello<blockquote>test</blockquote>",
-			)
+			o(htmlSanitizer.sanitizeHTML("hello<blockquote>test</blockquote>").html).equals("hello<blockquote>test</blockquote>")
 		})
 		o("html links", function () {
 			let simpleHtmlLink = '<a href="https://tutanota.com">here</a>'
@@ -265,12 +260,9 @@ o.spec(
 			o(result.html.includes("list-style-image: url(&quot;data:image/svg+xml;utf8,")).equals(true)
 		})
 		o("detect style content urls", function () {
-			let result = htmlSanitizer.sanitizeHTML(
-				'<div style="content: url(http://www.heise.de/icons/ho/heise_online_logo_top.gif)"></div>',
-				{
-					blockExternalContent: true,
-				},
-			)
+			let result = htmlSanitizer.sanitizeHTML('<div style="content: url(http://www.heise.de/icons/ho/heise_online_logo_top.gif)"></div>', {
+				blockExternalContent: true,
+			})
 			o(result.externalContent[0]).equals("http://www.heise.de/icons/ho/heise_online_logo_top.gif")
 			o(result.html.includes("content: url(&quot;data:image/svg+xml;utf8,")).equals(true)
 			// do not modify non url content
@@ -281,12 +273,9 @@ o.spec(
 			o(result.html.includes("content: blabla")).equals(true)
 		})
 		o("detect style cursor images", function () {
-			let result = htmlSanitizer.sanitizeHTML(
-				'<div style="cursor:url(https://tutanota.com/images/favicon/favicon.ico),auto;" ></div>',
-				{
-					blockExternalContent: true,
-				},
-			)
+			let result = htmlSanitizer.sanitizeHTML('<div style="cursor:url(https://tutanota.com/images/favicon/favicon.ico),auto;" ></div>', {
+				blockExternalContent: true,
+			})
 			o(result.externalContent.length).equals(1)
 			o(result.html).equals('<div style=""></div>')
 			o(result.html.includes("cursor:")).equals(false)
@@ -302,38 +291,26 @@ o.spec(
 			)
 		})
 		o("detect style filter files", function () {
-			let result = htmlSanitizer.sanitizeHTML(
-				'<div style="filter:url(https://tutanota.com/images/favicon/favicon.ico);" ></div>',
-				{
-					blockExternalContent: true,
-				},
-			)
+			let result = htmlSanitizer.sanitizeHTML('<div style="filter:url(https://tutanota.com/images/favicon/favicon.ico);" ></div>', {
+				blockExternalContent: true,
+			})
 			o(result.externalContent.length).equals(1)
 			o(result.html.includes("filter:")).equals(false)
-			result = htmlSanitizer.sanitizeHTML(
-				'<div style="filter:url(https://tutanota.com/images/favicon/favicon.ico);" ></div>',
-				{
-					blockExternalContent: false,
-				},
-			)
+			result = htmlSanitizer.sanitizeHTML('<div style="filter:url(https://tutanota.com/images/favicon/favicon.ico);" ></div>', {
+				blockExternalContent: false,
+			})
 			o(result.externalContent.length).equals(0)
 			o(result.html).equals('<div style="filter:url(https://tutanota.com/images/favicon/favicon.ico);"></div>')
 		})
 		o("detect style element", function () {
-			let result = htmlSanitizer.sanitizeHTML(
-				"<div><style>@import url(https://fonts.googleapis.com/css?family=Diplomata+SC);</style></div>",
-				{
-					blockExternalContent: true,
-				},
-			)
+			let result = htmlSanitizer.sanitizeHTML("<div><style>@import url(https://fonts.googleapis.com/css?family=Diplomata+SC);</style></div>", {
+				blockExternalContent: true,
+			})
 			o(result.externalContent.length).equals(0)
 			o(result.html).equals("<div></div>")
-			result = htmlSanitizer.sanitizeHTML(
-				"<div><style>@import url(https://fonts.googleapis.com/css?family=Diplomata+SC);</style></div>",
-				{
-					blockExternalContent: false,
-				},
-			)
+			result = htmlSanitizer.sanitizeHTML("<div><style>@import url(https://fonts.googleapis.com/css?family=Diplomata+SC);</style></div>", {
+				blockExternalContent: false,
+			})
 			o(result.externalContent.length).equals(0)
 			o(result.html).equals("<div></div>")
 		})
@@ -347,12 +324,8 @@ o.spec(
 			o(result.externalContent.length).equals(9)
 			// do not replace links
 			o(
-				result.html.includes(
-					'<a target="_blank" rel="noopener noreferrer" href="http://localhost/index.html">',
-				) ||
-				result.html.includes(
-					'<a href="http://localhost/index.html" rel="noopener noreferrer" target="_blank">',
-				),
+				result.html.includes('<a target="_blank" rel="noopener noreferrer" href="http://localhost/index.html">') ||
+					result.html.includes('<a href="http://localhost/index.html" rel="noopener noreferrer" target="_blank">'),
 			).equals(true)
 		})
 		o("do not replace inline images", function () {
@@ -377,30 +350,20 @@ o.spec(
 			o(result.html.includes("data:image/svg+xml;utf8,")).equals(true)
 		})
 		o("embed tag", function () {
-			let result = htmlSanitizer.sanitizeHTML(
-				'<div><embed src="https://tutanota.com/images/favicon/favicon.ico"></div>',
-				{
-					blockExternalContent: true,
-				},
-			)
+			let result = htmlSanitizer.sanitizeHTML('<div><embed src="https://tutanota.com/images/favicon/favicon.ico"></div>', {
+				blockExternalContent: true,
+			})
 			o(result.externalContent.length).equals(0)
 			o(result.html).equals("<div></div>")
-			result = htmlSanitizer.sanitizeHTML(
-				'<div><embed src="https://tutanota.com/images/favicon/favicon.ico"></div>',
-				{
-					blockExternalContent: false,
-				},
-			)
+			result = htmlSanitizer.sanitizeHTML('<div><embed src="https://tutanota.com/images/favicon/favicon.ico"></div>', {
+				blockExternalContent: false,
+			})
 			o(result.externalContent.length).equals(0)
 			o(result.html).equals("<div></div>")
 		})
 		o("disallow relative links", function () {
-			o(htmlSanitizer.sanitizeHTML('<a href="relative">text</a>').html).equals(
-				'<a href="javascript:void(0)">text</a>',
-			)
-			o(htmlSanitizer.sanitizeHTML('<a href="/relative">text</a>').html).equals(
-				'<a href="javascript:void(0)">text</a>',
-			)
+			o(htmlSanitizer.sanitizeHTML('<a href="relative">text</a>').html).equals('<a href="javascript:void(0)">text</a>')
+			o(htmlSanitizer.sanitizeHTML('<a href="/relative">text</a>').html).equals('<a href="javascript:void(0)">text</a>')
 		})
 		o("allow relative links when asked", function () {
 			o(
@@ -415,9 +378,7 @@ o.spec(
 			).equals('<a href="/relative" rel="noopener noreferrer" target="_blank">text</a>')
 		})
 		o("filter out position css", function () {
-			o(htmlSanitizer.sanitizeHTML(`<div style="color: red; position: absolute;"></div>`).html).equals(
-				`<div style="color: red;"></div>`,
-			)
+			o(htmlSanitizer.sanitizeHTML(`<div style="color: red; position: absolute;"></div>`).html).equals(`<div style="color: red;"></div>`)
 			o(
 				htmlSanitizer.sanitizeHTML(`<div style="color: red; position: absolute;"></div>`, {
 					blockExternalContent: false,
@@ -439,9 +400,7 @@ o.spec(
 			o(result).equals(`<img src="cid:123456">`)
 		})
 		o("svg tag not removed", function () {
-			const result = htmlSanitizer
-				.sanitizeSVG(`<svg> <rect x="10" y="10" width="10" height="10"> </rect> </svg>`)
-				.html.trim()
+			const result = htmlSanitizer.sanitizeSVG(`<svg> <rect x="10" y="10" width="10" height="10"> </rect> </svg>`).html.trim()
 			const element = document.createElement("div")
 			element.innerHTML = result
 			o(element.children[0]?.nodeName).equals("svg")
@@ -452,9 +411,7 @@ o.spec(
 			o(element.children[0]?.children[0]?.getAttribute("height")).equals("10")
 		})
 		o("svg fragment should not be removed", function () {
-			const result = htmlSanitizer
-				.sanitizeSVG(`<rect x="10" y="10" width="10" height="10"> </rect>`)
-				.html.trim()
+			const result = htmlSanitizer.sanitizeSVG(`<rect x="10" y="10" width="10" height="10"> </rect>`).html.trim()
 			const element = document.createElement("svg")
 			element.innerHTML = result
 			o(element.children[0]?.nodeName.toLowerCase()).equals("rect")
@@ -464,32 +421,27 @@ o.spec(
 			o(element.children[0]?.getAttribute("height")).equals("10")
 		})
 		o("svg fragment should be removed", function () {
-			const result = htmlSanitizer
-				.sanitizeHTML(`<rect x="10" y="10" width="10" height="10"> </rect>`)
-				.html.trim()
+			const result = htmlSanitizer.sanitizeHTML(`<rect x="10" y="10" width="10" height="10"> </rect>`).html.trim()
 			o(result).equals(``)
 		})
 
 		o.spec("inline attachment sanitization", function () {
 			o("svg with xss gets sanitized", function () {
-				const svgDocumentWithXSS = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' +
+				const svgDocumentWithXSS =
+					'<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' +
 					'<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
-					'\n' +
+					"\n" +
 					'<svg version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg">\n' +
 					'<polygon id="triangle" points="0,0 0,50 50,0" fill="#009900" stroke="#004400"/>\n' +
 					'<script type="text/javascript">\n' +
 					'alert(localStorage.getItem("tutanotaConfig"));\n' +
-					'</script></svg>'
-				const expectedSvgDocument = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' +
+					"</script></svg>"
+				const expectedSvgDocument =
+					'<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' +
 					'<svg xmlns="http://www.w3.org/2000/svg" version="1.1">\n' +
 					'<polygon stroke="#004400" fill="#009900" points="0,0 0,50 50,0" id="triangle"/>\n' +
-					'</svg>'
-				const xssDataFile = createDataFile(
-					"xss.svg",
-					"image/svg+xml",
-					stringToUtf8Uint8Array(svgDocumentWithXSS),
-					"some-cid"
-				)
+					"</svg>"
+				const xssDataFile = createDataFile("xss.svg", "image/svg+xml", stringToUtf8Uint8Array(svgDocumentWithXSS), "some-cid")
 				const sanitizedDataFile = htmlSanitizer.sanitizeInlineAttachment(xssDataFile)
 				o(sanitizedDataFile.cid).equals("some-cid")
 				o(sanitizedDataFile.mimeType).equals("image/svg+xml")
@@ -504,16 +456,12 @@ o.spec(
 			})
 
 			o("svg without xss gets left alone", function () {
-				const svgDocumentWithoutXSS = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' +
+				const svgDocumentWithoutXSS =
+					'<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' +
 					'<svg version="1.1" xmlns="http://www.w3.org/2000/svg">\n' +
 					'<polygon stroke="#004400" fill="#009900" points="0,0 0,50 50,0" id="script"/>\n' +
-					'</svg>'
-				const noxssDataFile = createDataFile(
-					"no-xss.svg",
-					"image/svg+xml",
-					stringToUtf8Uint8Array(svgDocumentWithoutXSS),
-					"some-other-cid"
-				)
+					"</svg>"
+				const noxssDataFile = createDataFile("no-xss.svg", "image/svg+xml", stringToUtf8Uint8Array(svgDocumentWithoutXSS), "some-other-cid")
 				const sanitizedDataFile = htmlSanitizer.sanitizeInlineAttachment(noxssDataFile)
 				const parser = new DOMParser()
 				const cleanSvgTree = parser.parseFromString(utf8Uint8ArrayToString(sanitizedDataFile.data), "image/svg+xml")
@@ -537,24 +485,14 @@ o.spec(
 				// svg with invalid encoding (non-utf8) will and should be indistinguishable from just plain invalid svg
 				// so we don't test invalid encoding separately
 				const invalidSvg = '<svg/><?xml version="1.0">'
-				const utf16DataFile = createDataFile(
-					"no-xss.svg",
-					"image/svg+xml",
-					stringToUtf8Uint8Array(invalidSvg),
-					"third-cid"
-				)
+				const utf16DataFile = createDataFile("no-xss.svg", "image/svg+xml", stringToUtf8Uint8Array(invalidSvg), "third-cid")
 				const sanitizedDataFile = htmlSanitizer.sanitizeInlineAttachment(utf16DataFile)
 				o(sanitizedDataFile.data.length).equals(0)
 			})
 
 			o("non-svg inline attachments get left alone", function () {
-				const someData = Uint8Array.from([84, 0, 89, 0, 80, 47, 0, 47, 0, 87,])
-				const someDataFile = createDataFile(
-					"no-xss.svg",
-					"image/png",
-					someData,
-					"third-cid"
-				)
+				const someData = Uint8Array.from([84, 0, 89, 0, 80, 47, 0, 47, 0, 87])
+				const someDataFile = createDataFile("no-xss.svg", "image/png", someData, "third-cid")
 				const sanitizedDataFile = htmlSanitizer.sanitizeInlineAttachment(someDataFile)
 				o(sanitizedDataFile.data).deepEquals(someData)
 			})

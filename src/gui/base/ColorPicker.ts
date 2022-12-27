@@ -1,8 +1,8 @@
-import m, {Children, Component, Vnode} from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 
 export type ColorPickerAttrs = {
-	value: string,
-	onValueChange: (value: string) => unknown,
+	value: string
+	onValueChange: (value: string) => unknown
 }
 
 export class ColorPicker implements Component<ColorPickerAttrs> {

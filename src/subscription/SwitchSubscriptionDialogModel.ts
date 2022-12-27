@@ -9,13 +9,13 @@ import {
 	isSharingActive,
 	isWhitelabelActive,
 } from "./SubscriptionUtils"
-import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
-import {assertNotNull, neverNull, promiseMap} from "@tutao/tutanota-utils"
-import type {AccountingInfo, Booking, Customer, CustomerInfo, PlanPrices, PriceServiceReturn} from "../api/entities/sys/TypeRefs.js"
-import {createPlanPrices} from "../api/entities/sys/TypeRefs.js"
-import {asPaymentInterval, getPriceFromPriceData, getPriceItem, isSubscriptionDowngrade, PaymentInterval, PriceAndConfigProvider} from "./PriceUtils"
-import type {BookingFacade} from "../api/worker/facades/BookingFacade"
-import {SubscriptionConfig, SubscriptionPlanPrices, SubscriptionType} from "./FeatureListProvider"
+import { BookingItemFeatureType } from "../api/common/TutanotaConstants"
+import { assertNotNull, neverNull, promiseMap } from "@tutao/tutanota-utils"
+import type { AccountingInfo, Booking, Customer, CustomerInfo, PlanPrices, PriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
+import { createPlanPrices } from "../api/entities/sys/TypeRefs.js"
+import { asPaymentInterval, getPriceFromPriceData, getPriceItem, isSubscriptionDowngrade, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
+import type { BookingFacade } from "../api/worker/facades/BookingFacade"
+import { SubscriptionConfig, SubscriptionPlanPrices, SubscriptionType } from "./FeatureListProvider"
 
 type PlanPriceCalc = {
 	monthlyPrice: number
@@ -65,7 +65,7 @@ export class SwitchSubscriptionDialogModel {
 		private readonly customerInfo: CustomerInfo,
 		private readonly accountingInfo: AccountingInfo,
 		private readonly lastBooking: Booking,
-		private readonly priceAndConfigProvider: PriceAndConfigProvider
+		private readonly priceAndConfigProvider: PriceAndConfigProvider,
 	) {
 		this.currentSubscriptionInfo = this._initCurrentSubscriptionInfo()
 	}
@@ -91,11 +91,36 @@ export class SwitchSubscriptionDialogModel {
 	async loadSwitchSubscriptionPrices(): Promise<SubscriptionPlanPrices> {
 		const upgradeDowngradePrices = await this.fetchUpgradeDowngradePrices()
 		return {
-			Premium: this.getPrice(this.currentSubscriptionInfo, upgradeDowngradePrices, SubscriptionType.Premium, this.priceAndConfigProvider.getSubscriptionConfig(SubscriptionType.Premium)),
-			PremiumBusiness: this.getPrice(this.currentSubscriptionInfo, upgradeDowngradePrices, SubscriptionType.PremiumBusiness, this.priceAndConfigProvider.getSubscriptionConfig(SubscriptionType.PremiumBusiness)),
-			Teams: this.getPrice(this.currentSubscriptionInfo, upgradeDowngradePrices, SubscriptionType.Teams, this.priceAndConfigProvider.getSubscriptionConfig(SubscriptionType.Teams)),
-			TeamsBusiness: this.getPrice(this.currentSubscriptionInfo, upgradeDowngradePrices, SubscriptionType.TeamsBusiness, this.priceAndConfigProvider.getSubscriptionConfig(SubscriptionType.TeamsBusiness)),
-			Pro: this.getPrice(this.currentSubscriptionInfo, upgradeDowngradePrices, SubscriptionType.Pro, this.priceAndConfigProvider.getSubscriptionConfig(SubscriptionType.Pro)),
+			Premium: this.getPrice(
+				this.currentSubscriptionInfo,
+				upgradeDowngradePrices,
+				SubscriptionType.Premium,
+				this.priceAndConfigProvider.getSubscriptionConfig(SubscriptionType.Premium),
+			),
+			PremiumBusiness: this.getPrice(
+				this.currentSubscriptionInfo,
+				upgradeDowngradePrices,
+				SubscriptionType.PremiumBusiness,
+				this.priceAndConfigProvider.getSubscriptionConfig(SubscriptionType.PremiumBusiness),
+			),
+			Teams: this.getPrice(
+				this.currentSubscriptionInfo,
+				upgradeDowngradePrices,
+				SubscriptionType.Teams,
+				this.priceAndConfigProvider.getSubscriptionConfig(SubscriptionType.Teams),
+			),
+			TeamsBusiness: this.getPrice(
+				this.currentSubscriptionInfo,
+				upgradeDowngradePrices,
+				SubscriptionType.TeamsBusiness,
+				this.priceAndConfigProvider.getSubscriptionConfig(SubscriptionType.TeamsBusiness),
+			),
+			Pro: this.getPrice(
+				this.currentSubscriptionInfo,
+				upgradeDowngradePrices,
+				SubscriptionType.Pro,
+				this.priceAndConfigProvider.getSubscriptionConfig(SubscriptionType.Pro),
+			),
 		}
 	}
 
@@ -103,7 +128,7 @@ export class SwitchSubscriptionDialogModel {
 		currentSubscription: CurrentSubscriptionInfo,
 		prices: UpgradeDowngradePrices,
 		targetSubscription: SubscriptionType,
-		targetSubscriptionConfig: SubscriptionConfig
+		targetSubscriptionConfig: SubscriptionConfig,
 	): PlanPrices {
 		const paymentInterval: PaymentInterval = asPaymentInterval(assertNotNull(prices.addUserPrice.futurePriceNextPeriod).paymentInterval)
 		let paymentIntervalFactor = paymentInterval === PaymentInterval.Yearly ? 0.1 : 1
@@ -240,21 +265,21 @@ export class SwitchSubscriptionDialogModel {
 				count: 1,
 			},
 		]
-		return promiseMap(getPriceFeatureList, getPriceFeature => this.bookingFacade.getPrice(getPriceFeature.type, getPriceFeature.count, false)).then(
+		return promiseMap(getPriceFeatureList, (getPriceFeature) => this.bookingFacade.getPrice(getPriceFeature.type, getPriceFeature.count, false)).then(
 			([
-				 addUserPrice,
-				 upgrade20AliasesPrice,
-				 downgrade5AliasesPrice,
-				 upgrade10GbStoragePrice,
-				 downgrade1GbStoragePrice,
-				 upgradeSharingPrice,
-				 downgradeSharingPrice,
-				 upgradeBusinessPrice,
-				 downgradeBusinessPrice,
-				 upgradeWhitelabelPrice,
-				 downgradeWhitelabelPrice,
-				 contactFormPrice,
-			 ]) => {
+				addUserPrice,
+				upgrade20AliasesPrice,
+				downgrade5AliasesPrice,
+				upgrade10GbStoragePrice,
+				downgrade1GbStoragePrice,
+				upgradeSharingPrice,
+				downgradeSharingPrice,
+				upgradeBusinessPrice,
+				downgradeBusinessPrice,
+				upgradeWhitelabelPrice,
+				downgradeWhitelabelPrice,
+				contactFormPrice,
+			]) => {
 				return {
 					addUserPrice: addUserPrice,
 					upgrade20AliasesPrice: upgrade20AliasesPrice,
@@ -322,7 +347,7 @@ function calcWhitelabelFeature(
 	upgradeWhitelabelPrice: PriceServiceReturn,
 	downgradeWhitelabelPrice: PriceServiceReturn,
 ): void {
-	const {targetSubscriptionConfig, targetIsDowngrade, paymentIntervalFactor} = planPrices
+	const { targetSubscriptionConfig, targetIsDowngrade, paymentIntervalFactor } = planPrices
 
 	if (isUpgradeWhitelabelNeeded(targetSubscriptionConfig, currentlyWhitelabelOrdered)) {
 		planPrices.monthlyPrice +=
@@ -343,7 +368,7 @@ function calcSharingFeature(
 	upgradeSharingPrice: PriceServiceReturn,
 	downgradeSharingPrice: PriceServiceReturn,
 ): void {
-	const {targetSubscriptionConfig, targetIsDowngrade, paymentIntervalFactor} = planPrices
+	const { targetSubscriptionConfig, targetIsDowngrade, paymentIntervalFactor } = planPrices
 
 	if (isUpgradeSharingNeeded(targetSubscriptionConfig, currentlySharingOrdered)) {
 		planPrices.monthlyPrice +=
@@ -364,7 +389,7 @@ function calcBusinessFeature(
 	upgradeBusinessPrice: PriceServiceReturn,
 	downgradeBusinessPrice: PriceServiceReturn,
 ): void {
-	const {targetSubscriptionConfig, targetIsDowngrade, paymentIntervalFactor} = planPrices
+	const { targetSubscriptionConfig, targetIsDowngrade, paymentIntervalFactor } = planPrices
 
 	if (isUpgradeBusinessNeeded(targetSubscriptionConfig, currentlyBusinessOrdered)) {
 		planPrices.monthlyPrice +=
@@ -385,7 +410,7 @@ function calcStorage(
 	upgrade10GbStoragePrice: PriceServiceReturn,
 	downgrade1GbStoragePrice: PriceServiceReturn,
 ): void {
-	const {targetIsDowngrade, targetSubscriptionConfig} = planPrices
+	const { targetIsDowngrade, targetSubscriptionConfig } = planPrices
 
 	if (isUpgradeStorageNeeded(targetSubscriptionConfig, currentTotalStorage)) {
 		planPrices.monthlyPrice +=
@@ -406,7 +431,7 @@ function calcAliases(
 	upgrade20AliasesPrice: PriceServiceReturn,
 	downgrade5AliasesPrice: PriceServiceReturn,
 ): void {
-	const {targetSubscriptionConfig, targetIsDowngrade} = planPrices
+	const { targetSubscriptionConfig, targetIsDowngrade } = planPrices
 
 	if (isUpgradeAliasesNeeded(targetSubscriptionConfig, currentTotalAliases)) {
 		planPrices.monthlyPrice +=

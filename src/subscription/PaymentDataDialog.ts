@@ -1,21 +1,21 @@
 import m from "mithril"
 import stream from "mithril/stream"
-import {Dialog} from "../gui/base/Dialog"
-import {lang} from "../misc/LanguageViewModel"
-import {getByAbbreviation} from "../api/common/CountryList"
-import {PaymentMethodInput} from "./PaymentMethodInput"
-import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
-import {px} from "../gui/size"
-import {formatNameAndAddress} from "../misc/Formatter"
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {getClientType, PaymentMethodType} from "../api/common/TutanotaConstants"
-import {assertNotNull, LazyLoaded, neverNull} from "@tutao/tutanota-utils"
-import type {AccountingInfo, Customer} from "../api/entities/sys/TypeRefs.js"
-import {createPaymentDataServiceGetData} from "../api/entities/sys/TypeRefs.js"
-import {locator} from "../api/main/MainLocator"
-import {PaymentDataService} from "../api/entities/sys/Services"
-import {DropDownSelector} from "../gui/base/DropDownSelector.js"
-import {asPaymentInterval} from "./PriceUtils.js"
+import { Dialog } from "../gui/base/Dialog"
+import { lang } from "../misc/LanguageViewModel"
+import { getByAbbreviation } from "../api/common/CountryList"
+import { PaymentMethodInput } from "./PaymentMethodInput"
+import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
+import { px } from "../gui/size"
+import { formatNameAndAddress } from "../misc/Formatter"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { getClientType, PaymentMethodType } from "../api/common/TutanotaConstants"
+import { assertNotNull, LazyLoaded, neverNull } from "@tutao/tutanota-utils"
+import type { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
+import { createPaymentDataServiceGetData } from "../api/entities/sys/TypeRefs.js"
+import { locator } from "../api/main/MainLocator"
+import { PaymentDataService } from "../api/entities/sys/Services"
+import { DropDownSelector } from "../gui/base/DropDownSelector.js"
+import { asPaymentInterval } from "./PriceUtils.js"
 
 /**
  * @returns {boolean} true if the payment data update was successful
@@ -46,8 +46,7 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 
 	const didLinkPaypal = () => selectedPaymentMethod === PaymentMethodType.Paypal && paymentMethodInput.isPaypalAssigned()
 
-	return new Promise(resolve => {
-
+	return new Promise((resolve) => {
 		const confirmAction = () => {
 			let error = paymentMethodInput.validatePaymentData()
 
@@ -98,9 +97,9 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 								items: availablePaymentMethods,
 								selectedValue: selectedPaymentMethod,
 								selectionChangedHandler: selectedPaymentMethodChangedHandler,
-								dropdownWidth: 250
+								dropdownWidth: 250,
 							}),
-							m(paymentMethodInput)
+							m(paymentMethodInput),
 						],
 					),
 			},
@@ -116,10 +115,15 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
 	return new LazyLoaded(() => {
 		const clientType = getClientType()
-		return locator.serviceExecutor.get(PaymentDataService, createPaymentDataServiceGetData({
-			clientType,
-		})).then(result => {
-			return result.loginUrl
-		})
+		return locator.serviceExecutor
+			.get(
+				PaymentDataService,
+				createPaymentDataServiceGetData({
+					clientType,
+				}),
+			)
+			.then((result) => {
+				return result.loginUrl
+			})
 	})
 }

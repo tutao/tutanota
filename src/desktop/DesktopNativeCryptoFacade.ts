@@ -1,28 +1,22 @@
-import {base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
-import type {CryptoFunctions} from "./CryptoFns"
-import type {TypeModel} from "../api/common/EntityTypes"
+import { base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import type { CryptoFunctions } from "./CryptoFns"
+import type { TypeModel } from "../api/common/EntityTypes"
 import type * as FsModule from "fs"
-import {Aes256Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
-import {aes256Decrypt256Key, aes256Encrypt256Key, IV_BYTE_LENGTH, uint8ArrayToKey} from "@tutao/tutanota-crypto"
-import {FileUri} from "../native/common/FileApp"
+import { Aes256Key } from "@tutao/tutanota-crypto/dist/encryption/Aes"
+import { aes256Decrypt256Key, aes256Encrypt256Key, IV_BYTE_LENGTH, uint8ArrayToKey } from "@tutao/tutanota-crypto"
+import { FileUri } from "../native/common/FileApp"
 import path from "path"
-import {NativeCryptoFacade} from "../native/common/generatedipc/NativeCryptoFacade"
-import {EncryptedFileInfo} from "../native/common/generatedipc/EncryptedFileInfo"
-import {RsaPrivateKey} from "../native/common/generatedipc/RsaPrivateKey.js"
-import {RsaPublicKey} from "../native/common/generatedipc/RsaPublicKey.js"
-import {RsaKeyPair} from "../native/common/generatedipc/RsaKeyPair"
-import {DesktopUtils} from "./DesktopUtils"
+import { NativeCryptoFacade } from "../native/common/generatedipc/NativeCryptoFacade"
+import { EncryptedFileInfo } from "../native/common/generatedipc/EncryptedFileInfo"
+import { RsaPrivateKey } from "../native/common/generatedipc/RsaPrivateKey.js"
+import { RsaPublicKey } from "../native/common/generatedipc/RsaPublicKey.js"
+import { RsaKeyPair } from "../native/common/generatedipc/RsaKeyPair"
+import { DesktopUtils } from "./DesktopUtils"
 
 type FsExports = typeof FsModule
 
 export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
-
-	constructor(
-		private readonly fs: FsExports,
-		private readonly cryptoFns: CryptoFunctions,
-		private readonly utils: DesktopUtils,
-	) {
-	}
+	constructor(private readonly fs: FsExports, private readonly cryptoFns: CryptoFunctions, private readonly utils: DesktopUtils) {}
 
 	aes256Encrypt256Key(encryptionKey: Aes256Key, keyToEncrypt: Aes256Key): Uint8Array {
 		return aes256Encrypt256Key(encryptionKey, keyToEncrypt)
@@ -31,7 +25,6 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	aes256Decrypt256Key(encryptionKey: Aes256Key, keyToDecrypt: Uint8Array): Aes256Key {
 		return aes256Decrypt256Key(encryptionKey, keyToDecrypt)
 	}
-
 
 	aesEncryptObject(encryptionKey: Aes256Key, object: number | string | boolean | ReadonlyArray<any> | {}): string {
 		const serializedObject = JSON.stringify(object)
@@ -57,7 +50,7 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	 */
 	async aesDecryptFile(key: Uint8Array, encryptedFileUri: FileUri): Promise<FileUri> {
 		const targetDir = path.join(this.utils.getTutanotaTempPath(), "decrypted")
-		await this.fs.promises.mkdir(targetDir, {recursive: true})
+		await this.fs.promises.mkdir(targetDir, { recursive: true })
 
 		const encData = await this.fs.promises.readFile(encryptedFileUri)
 		const bitKey = this.cryptoFns.bytesToKey(key)
@@ -109,7 +102,7 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		const encrypted = this.cryptoFns.aes128Encrypt(this.cryptoFns.bytesToKey(key), bytes, this.cryptoFns.randomBytes(16), true, true)
 
 		const targetDir = path.join(this.utils.getTutanotaTempPath(), "encrypted")
-		await this.fs.promises.mkdir(targetDir, {recursive: true})
+		await this.fs.promises.mkdir(targetDir, { recursive: true })
 		const filePath = path.join(targetDir, path.basename(fileUri))
 		await this.fs.promises.writeFile(filePath, encrypted)
 		return {

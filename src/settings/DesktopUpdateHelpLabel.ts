@@ -1,9 +1,9 @@
-import m, {Child, Children, Vnode} from "mithril"
-import {Icon} from "../gui/base/Icon"
-import {lang} from "../misc/LanguageViewModel"
-import {BootIcons} from "../gui/base/icons/BootIcons"
-import {delay} from "@tutao/tutanota-utils"
-import Stream from "mithril/stream";
+import m, { Child, Children, Vnode } from "mithril"
+import { Icon } from "../gui/base/Icon"
+import { lang } from "../misc/LanguageViewModel"
+import { BootIcons } from "../gui/base/icons/BootIcons"
+import { delay } from "@tutao/tutanota-utils"
+import Stream from "mithril/stream"
 
 export type UpdateHelpLabelAttrs = {
 	updateAvailable: Stream<boolean>
@@ -14,7 +14,7 @@ export class DesktopUpdateHelpLabel {
 	private _waiting: boolean = false
 	private _error: boolean = false
 
-	getActionLink({updateAvailable, manualUpdate}: UpdateHelpLabelAttrs): Child {
+	getActionLink({ updateAvailable, manualUpdate }: UpdateHelpLabelAttrs): Child {
 		if (this._waiting || this._error) return null
 
 		const onclick = async () => {
@@ -70,9 +70,9 @@ export class DesktopUpdateHelpLabel {
 	getIcon(): Child {
 		return this._waiting && !this._error
 			? m(Icon, {
-				icon: BootIcons.Progress,
-				class: "flex-center items-center icon-progress-tiny icon-progress",
-			})
+					icon: BootIcons.Progress,
+					class: "flex-center items-center icon-progress-tiny icon-progress",
+			  })
 			: null
 	}
 

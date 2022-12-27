@@ -1,35 +1,28 @@
 {
 	name: "SqlCipherFacade",
 	type: "facade",
-	senders: [
-		"web"
-	],
-	receivers: [
-		"desktop",
-		"android",
-		"ios"
-	],
+	senders: ["web"],
+	receivers: ["desktop", "android", "ios"],
 	methods: {
 		openDb: {
 			arg: [
 				{
-					userId: "string"
+					userId: "string",
 				},
 				{
-					dbKey: "bytes"
+					dbKey: "bytes",
 				},
 			],
 			ret: "void",
 		},
 		closeDb: {
-			arg: [
-			],
+			arg: [],
 			ret: "void",
 		},
 		deleteDb: {
 			arg: [
 				{
-					userId: "string"
+					userId: "string",
 				},
 			],
 			ret: "void",
@@ -37,55 +30,55 @@
 		run: {
 			arg: [
 				{
-					query: "string"
+					query: "string",
 				},
 				{
-					params: "List<TaggedSqlValue>"
+					params: "List<TaggedSqlValue>",
 				},
 			],
-			ret: "void"
+			ret: "void",
 		},
 		get: {
 			doc: "get a single object or null if the query returns nothing",
 			arg: [
 				{
-					query: "string"
+					query: "string",
 				},
 				{
-					params: "List<TaggedSqlValue>"
+					params: "List<TaggedSqlValue>",
 				},
 			],
-			ret: "Map<string, TaggedSqlValue>?"
+			ret: "Map<string, TaggedSqlValue>?",
 		},
 		all: {
 			doc: "return a list of objects or an empty list if the query returns nothing",
 			arg: [
 				{
-					query: "string"
+					query: "string",
 				},
 				{
-					params: "List<TaggedSqlValue>"
-				}
+					params: "List<TaggedSqlValue>",
+				},
 			],
-			ret: "List<Map<string, TaggedSqlValue>>"
+			ret: "List<Map<string, TaggedSqlValue>>",
 		},
 		lockRangesDbAccess: {
-			doc: "We want to lock the access to the \"ranges\" db when updating / reading the offline available mail list ranges for each mail list (referenced using the listId)",
+			doc: 'We want to lock the access to the "ranges" db when updating / reading the offline available mail list ranges for each mail list (referenced using the listId)',
 			arg: [
 				{
-					listId: "string"
-				}
+					listId: "string",
+				},
 			],
-			ret: "void"
+			ret: "void",
 		},
 		unlockRangesDbAccess: {
-			doc: "This is the counterpart to the function \"lockRangesDbAccess(listId)\"",
+			doc: 'This is the counterpart to the function "lockRangesDbAccess(listId)"',
 			arg: [
 				{
-					listId: "string"
-				}
+					listId: "string",
+				},
 			],
-			ret: "void"
-		}
-	}
+			ret: "void",
+		},
+	},
 }

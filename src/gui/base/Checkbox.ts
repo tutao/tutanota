@@ -1,10 +1,10 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {BootIcons} from "./icons/BootIcons"
-import {Icon} from "./Icon"
-import {addFlash, removeFlash} from "./Flash"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import type {lazy} from "@tutao/tutanota-utils"
+import m, { Children, Component, Vnode } from "mithril"
+import { BootIcons } from "./icons/BootIcons"
+import { Icon } from "./Icon"
+import { addFlash, removeFlash } from "./Flash"
+import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import type { lazy } from "@tutao/tutanota-utils"
 
 export type CheckboxAttrs = {
 	label: lazy<string | Children>
@@ -39,18 +39,18 @@ export class Checkbox implements Component<CheckboxAttrs> {
 				m(
 					".wrapper.flex.items-center",
 					{
-						oncreate: vnode => addFlash(vnode.dom),
-						onremove: vnode => removeFlash(vnode.dom),
+						oncreate: (vnode) => addFlash(vnode.dom),
+						onremove: (vnode) => removeFlash(vnode.dom),
 					},
 					[
 						// the real checkbox is transparent and only used to allow keyboard focusing and selection
 						m("input[type=checkbox]", {
-							oncreate: vnode => (this._domInput = vnode.dom as HTMLElement),
+							oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
 							onchange: (e: Event) => this.toggle(e, a),
 							checked: a.checked,
-							onfocus: () => this.focused = true,
-							onblur: () => this.focused = false,
-							onremove: e => {
+							onfocus: () => (this.focused = true),
+							onblur: () => (this.focused = false),
+							onremove: (e) => {
 								// workaround for chrome error on login with return shortcut "Error: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?"
 								// TODO test if still needed with mithril 1.1.1
 								if (this._domInput) this._domInput.onblur = null
@@ -65,7 +65,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 						m(Icon, {
 							icon: a.checked ? BootIcons.CheckboxSelected : BootIcons.Checkbox,
 							class: this.focused ? "svg-content-accent-fg" : "svg-content-fg",
-							oncreate: vnode => (this._domIcon = vnode.dom as HTMLElement),
+							oncreate: (vnode) => (this._domIcon = vnode.dom as HTMLElement),
 						}),
 						m(
 							".pl",

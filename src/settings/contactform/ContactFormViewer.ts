@@ -1,28 +1,28 @@
-import m, {Children} from "mithril"
-import {lang} from "../../misc/LanguageViewModel"
-import {BookingItemFeatureType} from "../../api/common/TutanotaConstants"
-import {ActionBar} from "../../gui/base/ActionBar"
+import m, { Children } from "mithril"
+import { lang } from "../../misc/LanguageViewModel"
+import { BookingItemFeatureType } from "../../api/common/TutanotaConstants"
+import { ActionBar } from "../../gui/base/ActionBar"
 import * as ContactFormEditor from "./ContactFormEditor"
-import type {ContactForm} from "../../api/entities/tutanota/TypeRefs.js"
-import {createContactForm} from "../../api/entities/tutanota/TypeRefs.js"
-import {loadGroupInfos} from "../LoadingUtils"
-import {Icons} from "../../gui/base/icons/Icons"
-import {Dialog} from "../../gui/base/Dialog"
-import {isNotNull, neverNull} from "@tutao/tutanota-utils"
-import {GroupInfo, GroupInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {getDefaultContactFormLanguage} from "./ContactFormUtils.js"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import type {EntityUpdateData} from "../../api/main/EventController"
-import {getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
-import {showBuyDialog} from "../../subscription/BuyDialog"
+import type { ContactForm } from "../../api/entities/tutanota/TypeRefs.js"
+import { createContactForm } from "../../api/entities/tutanota/TypeRefs.js"
+import { loadGroupInfos } from "../LoadingUtils"
+import { Icons } from "../../gui/base/icons/Icons"
+import { Dialog } from "../../gui/base/Dialog"
+import { isNotNull, neverNull } from "@tutao/tutanota-utils"
+import { GroupInfo, GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { getDefaultContactFormLanguage } from "./ContactFormUtils.js"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import type { EntityUpdateData } from "../../api/main/EventController"
+import { getGroupInfoDisplayName } from "../../api/common/utils/GroupUtils"
+import { showBuyDialog } from "../../subscription/BuyDialog"
 import stream from "mithril/stream"
-import {TextField} from "../../gui/base/TextField.js"
-import {UpdatableSettingsDetailsViewer} from "../SettingsView"
-import {assertMainOrNode} from "../../api/common/Env"
-import {locator} from "../../api/main/MainLocator"
-import {ContactFormLanguage} from "../../api/entities/tutanota/TypeRefs.js"
-import {ButtonAttrs} from "../../gui/base/Button.js"
-import {IconButtonAttrs} from "../../gui/base/IconButton.js"
+import { TextField } from "../../gui/base/TextField.js"
+import { UpdatableSettingsDetailsViewer } from "../SettingsView"
+import { assertMainOrNode } from "../../api/common/Env"
+import { locator } from "../../api/main/MainLocator"
+import { ContactFormLanguage } from "../../api/entities/tutanota/TypeRefs.js"
+import { ButtonAttrs } from "../../gui/base/Button.js"
+import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 
 assertMainOrNode()
 
@@ -38,11 +38,11 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 	) {
 		this.language = getDefaultContactFormLanguage(this.contactForm.languages)
 
-		locator.entityClient.load(GroupInfoTypeRef, neverNull(contactForm.targetGroupInfo)).then(groupInfo => {
+		locator.entityClient.load(GroupInfoTypeRef, neverNull(contactForm.targetGroupInfo)).then((groupInfo) => {
 			this.mailGroupInfo = groupInfo
 			m.redraw()
 		})
-		loadGroupInfos(contactForm.participantGroupInfos).then(groupInfos => {
+		loadGroupInfos(contactForm.participantGroupInfos).then((groupInfos) => {
 			this.participationGroupInfos = groupInfos
 			m.redraw()
 		})
@@ -51,10 +51,7 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 	renderView(): Children {
 		return [
 			m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
-				m(".flex-space-between.pt", [
-					m(".h4", lang.get("emailProcessing_label")),
-					this.renderActionBar(),
-				]),
+				m(".flex-space-between.pt", [m(".h4", lang.get("emailProcessing_label")), this.renderActionBar()]),
 				m(TextField, {
 					label: "receivingMailbox_label",
 					value: this.mailGroupInfo ? getGroupInfoDisplayName(this.mailGroupInfo) : lang.get("loading_msg"),
@@ -80,23 +77,23 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 		const buttons: (IconButtonAttrs | null)[] = [
 			this.brandingDomain
 				? {
-					title: "edit_action",
-					click: () => ContactFormEditor.show(this.contactForm, false, this.newContactFormIdReceiver),
-					icon: Icons.Edit,
-				}
+						title: "edit_action",
+						click: () => ContactFormEditor.show(this.contactForm, false, this.newContactFormIdReceiver),
+						icon: Icons.Edit,
+				  }
 				: null,
 			this.brandingDomain
 				? {
-					title: "copy_action",
-					click: () => this.copy(),
-					icon: Icons.Copy,
-				}
+						title: "copy_action",
+						click: () => this.copy(),
+						icon: Icons.Copy,
+				  }
 				: null,
 			{
 				title: "delete_action",
 				click: () => this.delete(),
 				icon: Icons.Trash,
-			}
+			},
 		]
 		return m(ActionBar, {
 			buttons: buttons.filter(isNotNull),
@@ -107,12 +104,15 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 		if (this.participationGroupInfos == null || this.participationGroupInfos.length === 0) {
 			return null
 		} else {
-			const mailGroupNames = this.participationGroupInfos.map(groupInfo => getGroupInfoDisplayName(groupInfo))
-			return m(".mt-l", m(TextField, {
-				label: "responsiblePersons_label",
-				value: mailGroupNames.join("; "),
-				disabled: true,
-			}))
+			const mailGroupNames = this.participationGroupInfos.map((groupInfo) => getGroupInfoDisplayName(groupInfo))
+			return m(
+				".mt-l",
+				m(TextField, {
+					label: "responsiblePersons_label",
+					value: mailGroupNames.join("; "),
+					disabled: true,
+				}),
+			)
 		}
 	}
 
@@ -123,16 +123,16 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 		newForm.participantGroupInfos = this.contactForm.participantGroupInfos.slice()
 		newForm.path = "" // do not copy the path
 
-		newForm.languages = this.contactForm.languages.map(l => Object.assign({}, l))
+		newForm.languages = this.contactForm.languages.map((l) => Object.assign({}, l))
 		ContactFormEditor.show(newForm, true, this.newContactFormIdReceiver)
 	}
 
 	private delete() {
-		Dialog.confirm("confirmDeleteContactForm_msg").then(confirmed => {
+		Dialog.confirm("confirmDeleteContactForm_msg").then((confirmed) => {
 			if (confirmed) {
 				showProgressDialog(
 					"pleaseWait_msg",
-					showBuyDialog({featureType: BookingItemFeatureType.ContactForm, count: -1, freeAmount: 0, reactivate: false}).then(accepted => {
+					showBuyDialog({ featureType: BookingItemFeatureType.ContactForm, count: -1, freeAmount: 0, reactivate: false }).then((accepted) => {
 						if (accepted) {
 							return locator.entityClient.erase(this.contactForm)
 						}

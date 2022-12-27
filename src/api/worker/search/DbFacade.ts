@@ -1,11 +1,11 @@
-import {DbError} from "../../common/error/DbError"
-import {delay, downcast, LazyLoaded, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {IndexingNotSupportedError} from "../../common/error/IndexingNotSupportedError"
-import {QuotaExceededError} from "../../common/error/QuotaExceededError"
-import type {User} from "../../entities/sys/TypeRefs.js"
-import {getEtId} from "../../common/utils/EntityUtils"
-import type {IndexName} from "./Indexer"
-import {sha256Hash} from "@tutao/tutanota-crypto"
+import { DbError } from "../../common/error/DbError"
+import { delay, downcast, LazyLoaded, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { IndexingNotSupportedError } from "../../common/error/IndexingNotSupportedError"
+import { QuotaExceededError } from "../../common/error/QuotaExceededError"
+import type { User } from "../../entities/sys/TypeRefs.js"
+import { getEtId } from "../../common/utils/EntityUtils"
+import type { IndexName } from "./Indexer"
+import { sha256Hash } from "@tutao/tutanota-crypto"
 
 export type ObjectStoreName = string
 export const osName = (objectStoreName: ObjectStoreName): string => objectStoreName
@@ -63,7 +63,7 @@ export class DbFacade {
 					try {
 						DBOpenRequest = self.indexedDB.open(this._id, version)
 
-						DBOpenRequest.onerror = event => {
+						DBOpenRequest.onerror = (event) => {
 							const target = event.target
 							// @ts-ignore
 							const error = event.target?.error
@@ -100,17 +100,17 @@ export class DbFacade {
 							}
 						}
 
-						DBOpenRequest.onsuccess = event => {
+						DBOpenRequest.onsuccess = (event) => {
 							//console.log("opened db", event)
-							DBOpenRequest.result.onabort = event => console.log("db aborted", event)
+							DBOpenRequest.result.onabort = (event) => console.log("db aborted", event)
 
-							DBOpenRequest.result.onclose = event => {
+							DBOpenRequest.result.onclose = (event) => {
 								console.log("db closed", event)
 
 								this._db.reset()
 							}
 
-							DBOpenRequest.result.onerror = event => console.log("db error", event)
+							DBOpenRequest.result.onerror = (event) => console.log("db error", event)
 
 							resolve(DBOpenRequest.result)
 						}
@@ -146,7 +146,7 @@ export class DbFacade {
 						reject(new DbError(`could not delete database ${this._db.getLoaded().name}`, downcast<Error>(event)))
 					}
 
-					deleteRequest.onsuccess = event => {
+					deleteRequest.onsuccess = (event) => {
 						this._db.reset()
 
 						resolve()
@@ -162,7 +162,7 @@ export class DbFacade {
 	 * @pre open() must have been called before, but the promise does not need to have returned.
 	 */
 	createTransaction(readOnly: boolean, objectStores: ObjectStoreName[]): Promise<DbTransaction> {
-		return this._db.getAsync().then(db => {
+		return this._db.getAsync().then((db) => {
 			try {
 				const idbTransaction = db.transaction(objectStores as string[], readOnly ? "readonly" : "readwrite")
 				const transaction = new IndexedDbTransaction(idbTransaction, () => {
@@ -204,9 +204,9 @@ export class IndexedDbTransaction implements DbTransaction {
 		this._promise = new Promise((resolve, reject) => {
 			let done = false
 
-			transaction.onerror = event => {
+			transaction.onerror = (event) => {
 				if (!done) {
-					this._handleDbError(event, this._transaction, "transaction.onerror", e => {
+					this._handleDbError(event, this._transaction, "transaction.onerror", (e) => {
 						reject(e)
 					})
 				} else {
@@ -219,7 +219,7 @@ export class IndexedDbTransaction implements DbTransaction {
 				resolve()
 			}
 
-			transaction.onabort = event => {
+			transaction.onabort = (event) => {
 				event.stopPropagation()
 				done = true
 				resolve()
@@ -233,11 +233,11 @@ export class IndexedDbTransaction implements DbTransaction {
 				let keys: DatabaseEntry[] = []
 				let request = this._transaction.objectStore(objectStore).openCursor()
 
-				request.onerror = event => {
+				request.onerror = (event) => {
 					this._handleDbError(event, request, "getAll().onError " + objectStore, reject)
 				}
 
-				request.onsuccess = event => {
+				request.onsuccess = (event) => {
 					let cursor = request.result
 
 					if (cursor) {
@@ -270,11 +270,11 @@ export class IndexedDbTransaction implements DbTransaction {
 					request = os.get(key)
 				}
 
-				request.onerror = event => {
+				request.onerror = (event) => {
 					this._handleDbError(event, request, "get().onerror " + objectStore, reject)
 				}
 
-				request.onsuccess = event => {
+				request.onsuccess = (event) => {
 					// @ts-ignore
 					resolve(event.target.result)
 				}
@@ -294,7 +294,7 @@ export class IndexedDbTransaction implements DbTransaction {
 			try {
 				let request = key ? this._transaction.objectStore(objectStore).put(value, key) : this._transaction.objectStore(objectStore).put(value)
 
-				request.onerror = event => {
+				request.onerror = (event) => {
 					this._handleDbError(event, request, "put().onerror " + objectStore, reject)
 				}
 
@@ -314,11 +314,11 @@ export class IndexedDbTransaction implements DbTransaction {
 			try {
 				let request = this._transaction.objectStore(objectStore).delete(key)
 
-				request.onerror = event => {
+				request.onerror = (event) => {
 					this._handleDbError(event, request, "delete().onerror " + objectStore, reject)
 				}
 
-				request.onsuccess = event => {
+				request.onsuccess = (event) => {
 					resolve()
 				}
 			} catch (e) {

@@ -1,6 +1,6 @@
 // @bundleInto:boot
 
-import {RouteResolver} from "mithril";
+import { RouteResolver } from "mithril"
 
 export type ApplicationPaths = Record<string, RouteResolver>
 type ViewResolvers = {
@@ -15,28 +15,27 @@ type ViewResolvers = {
 	calendar: RouteResolver
 	signup: RouteResolver
 	giftcard: RouteResolver
-	recover: RouteResolver,
-	webauthn: RouteResolver,
+	recover: RouteResolver
+	webauthn: RouteResolver
 	webauthnmobile: RouteResolver
 }
 
 export function applicationPaths({
-									 login,
-									 termination,
-									 mail,
-									 externalLogin,
-									 contact,
-									 search,
-									 settings,
-									 contactForm,
-									 calendar,
-									 signup,
-									 giftcard,
-									 recover,
-									 webauthn,
-									 webauthnmobile
-								 }: ViewResolvers
-): ApplicationPaths {
+	login,
+	termination,
+	mail,
+	externalLogin,
+	contact,
+	search,
+	settings,
+	contactForm,
+	calendar,
+	signup,
+	giftcard,
+	recover,
+	webauthn,
+	webauthnmobile,
+}: ViewResolvers): ApplicationPaths {
 	return {
 		"/login": login,
 		"/termination": termination,
@@ -67,6 +66,6 @@ export function applicationPaths({
 
 export function getPathBases(): Array<string> {
 	const paths = Object.keys(applicationPaths({} as any))
-	const uniquePathBases = new Set(paths.map(path => path.split("/")[1]))
+	const uniquePathBases = new Set(paths.map((path) => path.split("/")[1]))
 	return Array.from(uniquePathBases)
 }

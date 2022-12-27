@@ -1,25 +1,25 @@
-import m, {Children} from "mithril"
-import type {SettingsView, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer} from "./SettingsView"
-import type {KnowledgeBaseEntry, TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
-import {KnowledgeBaseEntryTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import {Button, ButtonType} from "../gui/base/Button.js"
-import {lang} from "../misc/LanguageViewModel"
-import type {ListConfig, VirtualRow} from "../gui/base/List"
-import {List} from "../gui/base/List"
-import type {EntityUpdateData} from "../api/main/EventController"
-import {isUpdateForTypeRef} from "../api/main/EventController"
-import {size} from "../gui/size"
-import {EntityClient} from "../api/common/EntityClient"
-import {showKnowledgeBaseEditor} from "./KnowledgeBaseEditor"
-import {getElementId, isSameId, listIdPart} from "../api/common/utils/EntityUtils"
-import {hasCapabilityOnGroup} from "../sharing/GroupUtils"
-import {OperationType, ShareCapability} from "../api/common/TutanotaConstants"
-import type {LoginController} from "../api/main/LoginController"
-import type {Group} from "../api/entities/sys/TypeRefs.js"
-import {ListColumnWrapper} from "../gui/ListColumnWrapper"
-import {KnowledgeBaseEntryView} from "../knowledgebase/view/KnowledgeBaseEntryView"
-import {promiseMap} from "@tutao/tutanota-utils"
-import {assertMainOrNode} from "../api/common/Env"
+import m, { Children } from "mithril"
+import type { SettingsView, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "./SettingsView"
+import type { KnowledgeBaseEntry, TemplateGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
+import { KnowledgeBaseEntryTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import { Button, ButtonType } from "../gui/base/Button.js"
+import { lang } from "../misc/LanguageViewModel"
+import type { ListConfig, VirtualRow } from "../gui/base/List"
+import { List } from "../gui/base/List"
+import type { EntityUpdateData } from "../api/main/EventController"
+import { isUpdateForTypeRef } from "../api/main/EventController"
+import { size } from "../gui/size"
+import { EntityClient } from "../api/common/EntityClient"
+import { showKnowledgeBaseEditor } from "./KnowledgeBaseEditor"
+import { getElementId, isSameId, listIdPart } from "../api/common/utils/EntityUtils"
+import { hasCapabilityOnGroup } from "../sharing/GroupUtils"
+import { OperationType, ShareCapability } from "../api/common/TutanotaConstants"
+import type { LoginController } from "../api/main/LoginController"
+import type { Group } from "../api/entities/sys/TypeRefs.js"
+import { ListColumnWrapper } from "../gui/ListColumnWrapper"
+import { KnowledgeBaseEntryView } from "../knowledgebase/view/KnowledgeBaseEntryView"
+import { promiseMap } from "@tutao/tutanota-utils"
+import { assertMainOrNode } from "../api/common/Env"
 
 assertMainOrNode()
 
@@ -51,9 +51,9 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			rowHeight: size.list_row_height,
 			fetch: async (startId, count) => {
 				const items = await this._entityClient.loadRange(KnowledgeBaseEntryTypeRef, knowledgebaseListId, startId, count, true)
-				return {items, complete: items.length < count}
+				return { items, complete: items.length < count }
 			},
-			loadSingle: elementId => {
+			loadSingle: (elementId) => {
 				return this._entityClient.load<KnowledgeBaseEntry>(KnowledgeBaseEntryTypeRef, [knowledgebaseListId, elementId])
 			},
 			sortCompare: (a: KnowledgeBaseEntry, b: KnowledgeBaseEntry) => {
@@ -79,8 +79,8 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			swipe: {
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],
-				swipeLeft: listElement => Promise.resolve(false),
-				swipeRight: listElement => Promise.resolve(false),
+				swipeLeft: (listElement) => Promise.resolve(false),
+				swipeRight: (listElement) => Promise.resolve(false),
 				enabled: false,
 			},
 			multiSelectionAllowed: false,
@@ -100,15 +100,15 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			{
 				headerContent: this.userCanEdit()
 					? m(
-						".plr-l.mr-negative-s.align-self-end",
-						m(Button, {
-							label: "addEntry_label",
-							type: ButtonType.Primary,
-							click: () => {
-								showKnowledgeBaseEditor(null, this._templateGroupRoot)
-							},
-						}),
-					)
+							".plr-l.mr-negative-s.align-self-end",
+							m(Button, {
+								label: "addEntry_label",
+								type: ButtonType.Primary,
+								click: () => {
+									showKnowledgeBaseEditor(null, this._templateGroupRoot)
+								},
+							}),
+					  )
 					: null,
 			},
 			this._list ? m(this._list) : null,
@@ -116,7 +116,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	}
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
-		return promiseMap(updates, update => {
+		return promiseMap(updates, (update) => {
 			const list = this._list
 
 			if (list && this._listId && isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update) && isSameId(this._listId, update.instanceListId)) {
@@ -168,7 +168,7 @@ export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
 		return [
 			m(".top", [
 				m(".name.text-ellipsis", {
-					oncreate: vnode => (this._domEntryTitle = vnode.dom as HTMLElement),
+					oncreate: (vnode) => (this._domEntryTitle = vnode.dom as HTMLElement),
 				}),
 			]),
 		]
@@ -189,7 +189,7 @@ class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsDetailsView
 			".plr-l",
 			m(KnowledgeBaseEntryView, {
 				entry: this.entry,
-				onTemplateSelected: templateId => m.route.set(`/settings/templates/${listIdPart(templateId)}}`),
+				onTemplateSelected: (templateId) => m.route.set(`/settings/templates/${listIdPart(templateId)}}`),
 				readonly: this.readonly,
 			}),
 		)

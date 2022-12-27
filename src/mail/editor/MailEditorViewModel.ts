@@ -1,25 +1,25 @@
 import m from "mithril"
-import type {Attachment} from "./SendMailModel"
-import {SendMailModel} from "./SendMailModel"
-import {debounce, findAllAndRemove, ofClass, remove} from "@tutao/tutanota-utils"
-import {Mode} from "../../api/common/Env"
-import {PermissionError} from "../../api/common/error/PermissionError"
-import {Dialog} from "../../gui/base/Dialog"
-import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
-import {lang} from "../../misc/LanguageViewModel"
-import type {ButtonAttrs} from "../../gui/base/Button.js"
-import {ButtonColor, ButtonType} from "../../gui/base/Button.js"
-import {FileOpenError} from "../../api/common/error/FileOpenError"
-import {createDropdown, DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
-import {Icons} from "../../gui/base/icons/Icons"
-import {formatStorageSize} from "../../misc/Formatter"
-import {UserError} from "../../api/main/UserError"
-import {showUserError} from "../../misc/ErrorHandlerImpl"
-import {locator} from "../../api/main/MainLocator"
-import {FileReference, isDataFile, isFileReference, isTutanotaFile} from "../../api/common/utils/FileUtils";
-import {DataFile} from "../../api/common/DataFile";
-import {showFileChooser} from "../../file/FileController.js"
-import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
+import type { Attachment } from "./SendMailModel"
+import { SendMailModel } from "./SendMailModel"
+import { debounce, findAllAndRemove, ofClass, remove } from "@tutao/tutanota-utils"
+import { Mode } from "../../api/common/Env"
+import { PermissionError } from "../../api/common/error/PermissionError"
+import { Dialog } from "../../gui/base/Dialog"
+import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"
+import { lang } from "../../misc/LanguageViewModel"
+import type { ButtonAttrs } from "../../gui/base/Button.js"
+import { ButtonColor, ButtonType } from "../../gui/base/Button.js"
+import { FileOpenError } from "../../api/common/error/FileOpenError"
+import { createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
+import { Icons } from "../../gui/base/icons/Icons"
+import { formatStorageSize } from "../../misc/Formatter"
+import { UserError } from "../../api/main/UserError"
+import { showUserError } from "../../misc/ErrorHandlerImpl"
+import { locator } from "../../api/main/MainLocator"
+import { FileReference, isDataFile, isFileReference, isTutanotaFile } from "../../api/common/utils/FileUtils"
+import { DataFile } from "../../api/common/DataFile"
+import { showFileChooser } from "../../file/FileController.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 export function chooseAndAttachFile(
 	model: SendMailModel,
@@ -31,7 +31,7 @@ export function chooseAndAttachFile(
 	boundingRect.x = Math.round(boundingRect.x)
 	boundingRect.y = Math.round(boundingRect.y)
 	return showFileChooserForAttachments(boundingRect, fileTypes)
-		.then(async files => {
+		.then(async (files) => {
 			if (files) {
 				model.attachFiles(files)
 			}
@@ -41,10 +41,7 @@ export function chooseAndAttachFile(
 		.catch(ofClass(UserError, showUserError))
 }
 
-export function showFileChooserForAttachments(
-	boundingRect: ClientRect,
-	fileTypes?: Array<string>,
-): Promise<ReadonlyArray<FileReference | DataFile> | void> {
+export function showFileChooserForAttachments(boundingRect: ClientRect, fileTypes?: Array<string>): Promise<ReadonlyArray<FileReference | DataFile> | void> {
 	const fileSelector = env.mode === Mode.App ? locator.fileApp.openFileChooser(boundingRect) : showFileChooser(true, fileTypes)
 	return fileSelector
 		.catch(
@@ -60,7 +57,7 @@ export function showFileChooserForAttachments(
 }
 
 export function createAttachmentButtonAttrs(model: SendMailModel, inlineImageElements: Array<HTMLElement>): Array<ButtonAttrs> {
-	return model.getAttachments().map(file => {
+	return model.getAttachments().map((file) => {
 		const lazyButtonAttrs: DropdownButtonAttrs[] = [
 			{
 				label: "download_action",
@@ -73,7 +70,7 @@ export function createAttachmentButtonAttrs(model: SendMailModel, inlineImageEle
 
 					// If an attachment has a cid it means it could be in the editor's inline images too
 					if (file.cid) {
-						const imageElement = inlineImageElements.find(e => e.getAttribute("cid") === file.cid)
+						const imageElement = inlineImageElements.find((e) => e.getAttribute("cid") === file.cid)
 
 						if (imageElement) {
 							imageElement.remove()
@@ -94,7 +91,7 @@ export function createAttachmentButtonAttrs(model: SendMailModel, inlineImageEle
 			colors: ButtonColor.Elevated,
 			click: createDropdown({
 				lazyButtons: () => lazyButtonAttrs,
-			})
+			}),
 		}
 	})
 }
@@ -136,10 +133,10 @@ export const cleanupInlineAttachments: (arg0: HTMLElement, arg1: Array<HTMLEleme
 		// briefly, e.g. if some text is inserted before/after the element, Squire would put it into another diff and this
 		// means removal + insertion.
 		const elementsToRemove: HTMLElement[] = []
-		inlineImageElements.forEach(inlineImage => {
+		inlineImageElements.forEach((inlineImage) => {
 			if (domElement && !domElement.contains(inlineImage)) {
 				const cid = inlineImage.getAttribute("cid")
-				const attachmentIndex = attachments.findIndex(a => a.cid === cid)
+				const attachmentIndex = attachments.findIndex((a) => a.cid === cid)
 
 				if (attachmentIndex !== -1) {
 					attachments.splice(attachmentIndex, 1)
@@ -148,7 +145,7 @@ export const cleanupInlineAttachments: (arg0: HTMLElement, arg1: Array<HTMLEleme
 				}
 			}
 		})
-		findAllAndRemove(inlineImageElements, imageElement => elementsToRemove.includes(imageElement))
+		findAllAndRemove(inlineImageElements, (imageElement) => elementsToRemove.includes(imageElement))
 	},
 )
 

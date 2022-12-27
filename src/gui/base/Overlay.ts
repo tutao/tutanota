@@ -1,11 +1,11 @@
-import m, {Children, Component, Vnode} from "mithril"
-import type {DomMutation} from "../animation/Animations"
-import {animations} from "../animation/Animations"
-import {ease} from "../animation/Easing"
-import {LayerType} from "../../RootView"
-import {remove} from "@tutao/tutanota-utils"
-import type {lazy} from "@tutao/tutanota-utils"
-import {assertMainOrNodeBoot} from "../../api/common/Env"
+import m, { Children, Component, Vnode } from "mithril"
+import type { DomMutation } from "../animation/Animations"
+import { animations } from "../animation/Animations"
+import { ease } from "../animation/Easing"
+import { LayerType } from "../../RootView"
+import { remove } from "@tutao/tutanota-utils"
+import type { lazy } from "@tutao/tutanota-utils"
+import { assertMainOrNodeBoot } from "../../api/common/Env"
 
 assertMainOrNodeBoot()
 export type PositionRect = {
@@ -51,9 +51,9 @@ export function displayOverlay(
 		const animation =
 			newAttrs.closeAnimation && dom
 				? animations.add(dom, newAttrs.closeAnimation(dom), {
-					duration: 100,
-					easing: ease.in,
-				})
+						duration: 100,
+						easing: ease.in,
+				  })
 				: Promise.resolve()
 		await animation
 
@@ -79,7 +79,7 @@ export const overlay: Component = {
 				},
 				"aria-hidden": overlays.length === 0,
 			},
-			overlays.map(overlayAttrs => {
+			overlays.map((overlayAttrs) => {
 				const [attrs, dom, key] = overlayAttrs
 				const position = attrs.position()
 				return m(
@@ -94,7 +94,6 @@ export const overlay: Component = {
 							left: position.left,
 							height: position.height,
 							"z-index": position.zIndex != null ? position.zIndex : LayerType.Overlay,
-
 						},
 						oncreate: (vnode) => {
 							const dom = vnode.dom as HTMLElement

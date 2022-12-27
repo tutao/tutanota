@@ -1,5 +1,5 @@
-import {downcast} from "@tutao/tutanota-utils"
-import {TutanotaError} from "../../api/common/error/TutanotaError"
+import { downcast } from "@tutao/tutanota-utils"
+import { TutanotaError } from "../../api/common/error/TutanotaError"
 
 export type Parser<T> = (arg0: StringIterator) => T
 
@@ -15,13 +15,11 @@ export class ParserError extends TutanotaError {
 export const combineParsers: (<A, B>(arg0: Parser<A>, arg1: Parser<B>) => Parser<[A, B]>) &
 	(<A, B, C>(arg0: Parser<A>, arg1: Parser<B>, arg2: Parser<C>) => Parser<[A, B, C]>) &
 	(<A, B, C, D>(arg0: Parser<A>, arg1: Parser<B>, arg2: Parser<C>, arg3: Parser<D>) => Parser<[A, B, C, D]>) &
-	(<A, B, C, D, E>(
-		arg0: Parser<A>,
-		arg1: Parser<B>,
-		arg2: Parser<C>,
-		arg3: Parser<D>,
-		arg4: Parser<E>,
-	) => Parser<[A, B, C, D, E]>) = downcast((...parsers: any[]) => (iterator: StringIterator) => parsers.map(p => p(iterator)))
+	(<A, B, C, D, E>(arg0: Parser<A>, arg1: Parser<B>, arg2: Parser<C>, arg3: Parser<D>, arg4: Parser<E>) => Parser<[A, B, C, D, E]>) = downcast(
+	(...parsers: any[]) =>
+		(iterator: StringIterator) =>
+			parsers.map((p) => p(iterator)),
+)
 
 export function makeCharacterParser(character: string): Parser<string> {
 	return (iterator: StringIterator) => {
@@ -64,8 +62,7 @@ export function makeZeroOrMoreParser<T>(anotherParser: Parser<T>): Parser<Array<
 				result.push(parseResult)
 				parseResult = anotherParser(iterator)
 			}
-		} catch (e) {
-		}
+		} catch (e) {}
 
 		return result
 	}
@@ -88,7 +85,7 @@ export function makeOneOrMoreParser<T>(parser: Parser<T>): Parser<Array<T>> {
 }
 
 export function maybeParse<T>(parser: Parser<T>): Parser<T | null> {
-	return iterator => {
+	return (iterator) => {
 		try {
 			return parser(iterator)
 		} catch (e) {
@@ -98,7 +95,7 @@ export function maybeParse<T>(parser: Parser<T>): Parser<T | null> {
 }
 
 export function makeSeparatedByParser<S, T>(separatorParser: Parser<S>, valueParser: Parser<T>): Parser<Array<T>> {
-	return iterator => {
+	return (iterator) => {
 		const result: T[] = []
 		result.push(valueParser(iterator))
 
@@ -117,7 +114,7 @@ export function makeSeparatedByParser<S, T>(separatorParser: Parser<S>, valuePar
 }
 
 export function makeEitherParser<A, B>(parserA: Parser<A>, parserB: Parser<B>): Parser<A | B> {
-	return iterator => {
+	return (iterator) => {
 		const iteratorPosition = iterator.position
 
 		try {
@@ -142,7 +139,7 @@ export function makeOneOfCharactersParser(allowed: Array<string>): Parser<string
 			return value
 		}
 
-		throw new ParserError(`Expected one of ${allowed.map(c => `"${c}"`).join(", ")}, but got "${value}\n${context(iterator, iterator.position, 10)}"`)
+		throw new ParserError(`Expected one of ${allowed.map((c) => `"${c}"`).join(", ")}, but got "${value}\n${context(iterator, iterator.position, 10)}"`)
 	}
 }
 
@@ -159,13 +156,13 @@ export function makeNotOneOfCharactersParser(notAllowed: Array<string>): Parser<
 			return value
 		}
 
-		throw new ParserError(`Expected none of ${notAllowed.map(c => `"${c}"`).join(", ")}, but got "${value}"\n${context(iterator, iterator.position, 10)}`)
+		throw new ParserError(`Expected none of ${notAllowed.map((c) => `"${c}"`).join(", ")}, but got "${value}"\n${context(iterator, iterator.position, 10)}`)
 	}
 }
 
 export const numberParser: Parser<number> = mapParser(
 	makeOneOrMoreParser(makeOneOfCharactersParser(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])),
-	values => parseInt(values.join(""), 10),
+	(values) => parseInt(values.join(""), 10),
 )
 
 export class StringIterator {
@@ -181,13 +178,13 @@ export class StringIterator {
 		const done: boolean = this.position >= this.iteratee.length
 		return done
 			? {
-				done: true,
-				value: undefined
-			}
+					done: true,
+					value: undefined,
+			  }
 			: {
-				done: false,
-				value,
-			}
+					done: false,
+					value,
+			  }
 	}
 
 	peek(): string {

@@ -3,7 +3,7 @@
  */
 
 import o from "ospec"
-import {downcast} from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/tutanota-utils"
 
 /**
  * you need to call .get() on the return value to actually register the replacer to spyify its functions.
@@ -17,33 +17,33 @@ function mock<T>(old: string, replacer: any): MockBuilder<T> {
 }
 
 function getAllPropertyNames(obj) {
-	const props: string[] = [];
+	const props: string[] = []
 
 	do {
 		for (const prop of Object.getOwnPropertyNames(obj)) {
 			if (props.indexOf(prop) === -1) {
-				props.push(prop);
+				props.push(prop)
 			}
 		}
 		// eslint-disable-next-line no-cond-assign
-	} while (obj = Object.getPrototypeOf(obj));
+	} while ((obj = Object.getPrototypeOf(obj)))
 
-	return props;
+	return props
 }
 
 export function spyify<T>(obj: T): T {
 	const anyObj: any = obj
 	switch (typeof obj) {
-		case 'function':
+		case "function":
 			// @ts-ignore
 			const spy = o.spy(obj)
 
 			Object.keys(anyObj) // classes are functions
-				  .filter(k => !['args', 'callCount', 'spy'].includes(k))
-				  .forEach(k => spy[k] = spyify(anyObj[k]))
+				.filter((k) => !["args", "callCount", "spy"].includes(k))
+				.forEach((k) => (spy[k] = spyify(anyObj[k])))
 
 			return downcast<T>(spy)
-		case 'object':
+		case "object":
 			if (anyObj instanceof Promise) {
 				return downcast<T>(anyObj)
 			}
@@ -62,9 +62,9 @@ export function spyify<T>(obj: T): T {
 					for (let key of getAllPropertyNames(anyObj)) {
 						// if it's a proto, don't deeply copy it, just assign a new one
 						if (key === "__proto__") {
-							(newObj as any)[key] = (obj as any)[key]
+							;(newObj as any)[key] = (obj as any)[key]
 						} else {
-							(newObj as any)[key] = spyify((obj as any)[key])
+							;(newObj as any)[key] = spyify((obj as any)[key])
 						}
 					}
 					return downcast<T>(newObj)
@@ -76,7 +76,7 @@ export function spyify<T>(obj: T): T {
 }
 
 export type Mocked<T> = Class<T> & {
-	mockedInstances: Array<T>;
+	mockedInstances: Array<T>
 }
 
 /**
@@ -84,33 +84,34 @@ export type Mocked<T> = Class<T> & {
  * @param template
  * @returns {cls}
  */
-function classify(template: {prototype: {}, statics: {}}): Mocked<any> {
+function classify(template: { prototype: {}; statics: {} }): Mocked<any> {
 	const cls = function () {
 		cls.mockedInstances.push(this)
-		Object.keys(template.prototype).forEach(p => {
-			if ('function' === typeof template.prototype[p]) {
+		Object.keys(template.prototype).forEach((p) => {
+			if ("function" === typeof template.prototype[p]) {
 				this[p] = o.spy(template.prototype[p]) // don't use spyify, we don't want these to be spyCached
-			} else if ('object' === typeof template.prototype[p]) {
+			} else if ("object" === typeof template.prototype[p]) {
 				// duplicate properties
 				const obj = template.prototype[p]
-				this[p] = obj == null
-					? obj
-					: (Object.keys(obj).reduce((newObj, key) => {
-						(newObj as any)[key] = ((obj as any)[key])
-						return newObj
-					}, ({} as any)))
+				this[p] =
+					obj == null
+						? obj
+						: Object.keys(obj).reduce((newObj, key) => {
+								;(newObj as any)[key] = (obj as any)[key]
+								return newObj
+						  }, {} as any)
 			} else {
 				this[p] = template.prototype[p]
 			}
 		})
 
-		if (typeof template.prototype["constructor"] === 'function') {
+		if (typeof template.prototype["constructor"] === "function") {
 			template.prototype["constructor"].apply(this, arguments)
 		}
 	}
 
 	if (template.statics) {
-		Object.keys(template.statics).forEach(s => cls[s] = template.statics[s])
+		Object.keys(template.statics).forEach((s) => (cls[s] = template.statics[s]))
 	}
 
 	cls.mockedInstances = []
@@ -118,12 +119,12 @@ function classify(template: {prototype: {}, statics: {}}): Mocked<any> {
 }
 
 function setPlatform(newPlatform: string) {
-	setProperty(process, 'platform', newPlatform)
+	setProperty(process, "platform", newPlatform)
 }
 
 function setProperty(object, property, value) {
 	const originalProperty = Object.getOwnPropertyDescriptor(object, property)
-	Object.defineProperty(object, property, {value})
+	Object.defineProperty(object, property, { value })
 	return originalProperty
 }
 
@@ -136,11 +137,11 @@ function setProperty(object, property, value) {
  */
 function deepAssign<T, B>(obj: T, adder: B): T & B {
 	let ret
-	if (typeof adder !== 'object' || typeof obj !== 'object' || adder == null || obj == null) {
+	if (typeof adder !== "object" || typeof obj !== "object" || adder == null || obj == null) {
 		ret = adder
 	} else {
 		ret = Object.keys(adder).reduce((newObj, key) => {
-			(newObj as any)[key] = deepAssign((newObj as any)[key], (adder as any)[key])
+			;(newObj as any)[key] = deepAssign((newObj as any)[key], (adder as any)[key])
 			return newObj
 		}, Object.assign({}, obj))
 	}

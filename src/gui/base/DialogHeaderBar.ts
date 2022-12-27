@@ -1,8 +1,8 @@
-import m, {Children, Component, Vnode} from "mithril"
-import type {ButtonAttrs} from "./Button.js"
-import {Button} from "./Button.js"
-import type {lazy, MaybeLazy} from "@tutao/tutanota-utils"
-import {resolveMaybeLazy} from "@tutao/tutanota-utils"
+import m, { Children, Component, Vnode } from "mithril"
+import type { ButtonAttrs } from "./Button.js"
+import { Button } from "./Button.js"
+import type { lazy, MaybeLazy } from "@tutao/tutanota-utils"
+import { resolveMaybeLazy } from "@tutao/tutanota-utils"
 
 export type DialogHeaderBarAttrs = {
 	left?: MaybeLazy<Array<ButtonAttrs>>

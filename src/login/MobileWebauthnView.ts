@@ -1,18 +1,18 @@
-import type {Children, Vnode} from "mithril"
+import type { Children, Vnode } from "mithril"
 import m from "mithril"
-import type {CurrentView, TopLevelAttrs} from "../gui/Header.js"
-import {DialogHeaderBar, DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar.js"
-import {SecondFactorImage} from "../gui/base/icons/Icons.js"
-import {progressIcon} from "../gui/base/Icon.js"
-import {lang} from "../misc/LanguageViewModel.js"
-import {ButtonType} from "../gui/base/Button.js"
-import {BrowserWebauthn} from "../misc/2fa/webauthn/BrowserWebauthn.js"
-import {WebAuthnSignChallenge} from "../native/common/generatedipc/WebAuthnSignChallenge.js"
-import {stringToBase64} from "@tutao/tutanota-utils"
-import {WebAuthnRegistrationChallenge} from "../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
+import type { CurrentView, TopLevelAttrs } from "../gui/Header.js"
+import { DialogHeaderBar, DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar.js"
+import { SecondFactorImage } from "../gui/base/icons/Icons.js"
+import { progressIcon } from "../gui/base/Icon.js"
+import { lang } from "../misc/LanguageViewModel.js"
+import { ButtonType } from "../gui/base/Button.js"
+import { BrowserWebauthn } from "../misc/2fa/webauthn/BrowserWebauthn.js"
+import { WebAuthnSignChallenge } from "../native/common/generatedipc/WebAuthnSignChallenge.js"
+import { stringToBase64 } from "@tutao/tutanota-utils"
+import { WebAuthnRegistrationChallenge } from "../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
 
 export interface MobileWebauthnAttrs extends TopLevelAttrs {
-	browserWebauthn: BrowserWebauthn,
+	browserWebauthn: BrowserWebauthn
 }
 
 /**
@@ -21,8 +21,7 @@ export interface MobileWebauthnAttrs extends TopLevelAttrs {
  * See AndroidWebauthnFacade and IosWebauthnFacade.
  */
 export class MobileWebauthnView implements CurrentView<MobileWebauthnAttrs> {
-
-	oncreate({attrs}: Vnode<MobileWebauthnAttrs>) {
+	oncreate({ attrs }: Vnode<MobileWebauthnAttrs>) {
 		if (attrs.args["action"] === "sign") {
 			this.authenticate(attrs)
 		} else if (attrs.args["action"] === "register") {
@@ -32,35 +31,37 @@ export class MobileWebauthnView implements CurrentView<MobileWebauthnAttrs> {
 		}
 	}
 
-	view({attrs}: Vnode<MobileWebauthnAttrs>): Children {
+	view({ attrs }: Vnode<MobileWebauthnAttrs>): Children {
 		const headerBarAttrs: DialogHeaderBarAttrs = {
-			left: [{
-				label: "cancel_action",
-				click: () => window.close(),
-				type: ButtonType.Secondary
-			}],
+			left: [
+				{
+					label: "cancel_action",
+					click: () => window.close(),
+					type: ButtonType.Secondary,
+				},
+			],
 			right: [],
 			middle: () => lang.get("u2fSecurityKey_label"),
 		}
 
-		return m(".mt.flex.col.flex-center.center", {
+		return m(
+			".mt.flex.col.flex-center.center",
+			{
 				style: {
 					margin: "0 auto",
-				}
+				},
 			},
 			[
 				m(".flex.col.justify-center", [
 					m(".dialog-header", m(DialogHeaderBar, headerBarAttrs)),
-					m(".flex-center.mt-s", m("img", {src: SecondFactorImage})),
-					m(".mt.flex.col", [
-						m(".flex.justify-center", [m(".mr-s", progressIcon()), m("", lang.get("waitingForU2f_msg"))])
-					]),
-				])
-			]
+					m(".flex-center.mt-s", m("img", { src: SecondFactorImage })),
+					m(".mt.flex.col", [m(".flex.justify-center", [m(".mr-s", progressIcon()), m("", lang.get("waitingForU2f_msg"))])]),
+				]),
+			],
 		)
 	}
 
-	private async getParams(attrs: MobileWebauthnAttrs): Promise<{challenge: string, cbUrlTemplate: string}> {
+	private async getParams(attrs: MobileWebauthnAttrs): Promise<{ challenge: string; cbUrlTemplate: string }> {
 		if (!(await attrs.browserWebauthn.isSupported())) {
 			throw new Error("Webauthn not supported?")
 		}
@@ -72,19 +73,19 @@ export class MobileWebauthnView implements CurrentView<MobileWebauthnAttrs> {
 		if (typeof cbUrlTemplate !== "string") {
 			throw new Error("cbUrl is not passed")
 		}
-		return {challenge, cbUrlTemplate}
+		return { challenge, cbUrlTemplate }
 	}
 
 	private async sendSuccess(value: unknown, cbUrlTemplate: string) {
-		await this.sendResultObject({type: "success", value}, cbUrlTemplate)
+		await this.sendResultObject({ type: "success", value }, cbUrlTemplate)
 	}
 
 	private async sendFailure(e: Error, cbUrlTemplate: string) {
-		await this.sendResultObject({type: "error", name: e.name, stack: e.stack}, cbUrlTemplate)
+		await this.sendResultObject({ type: "error", name: e.name, stack: e.stack }, cbUrlTemplate)
 	}
 
 	private async sendResultObject(result: object, cbUrlTemplate: string) {
-		const {encodeValueForNative} = await import("../native/common/NativeLineProtocol.js")
+		const { encodeValueForNative } = await import("../native/common/NativeLineProtocol.js")
 		const serializedResult = encodeValueForNative(result)
 		const base64Result = stringToBase64(serializedResult)
 		const cbUrl = cbUrlTemplate.replace("{result}", base64Result)
@@ -92,9 +93,9 @@ export class MobileWebauthnView implements CurrentView<MobileWebauthnAttrs> {
 	}
 
 	async authenticate(attrs: MobileWebauthnAttrs) {
-		const {challenge, cbUrlTemplate} = await this.getParams(attrs)
+		const { challenge, cbUrlTemplate } = await this.getParams(attrs)
 		try {
-			const {decodeValueFromNative} = await import("../native/common/NativeLineProtocol.js")
+			const { decodeValueFromNative } = await import("../native/common/NativeLineProtocol.js")
 			const rawChallengeObj = decodeValueFromNative(challenge) as WebAuthnSignChallenge
 			const signResult = await attrs.browserWebauthn.sign({
 				challenge: rawChallengeObj.challenge,
@@ -108,17 +109,17 @@ export class MobileWebauthnView implements CurrentView<MobileWebauthnAttrs> {
 	}
 
 	async register(attrs: MobileWebauthnAttrs) {
-		const {challenge, cbUrlTemplate} = await this.getParams(attrs)
+		const { challenge, cbUrlTemplate } = await this.getParams(attrs)
 
 		try {
-			const {decodeValueFromNative} = await import("../native/common/NativeLineProtocol.js")
+			const { decodeValueFromNative } = await import("../native/common/NativeLineProtocol.js")
 			const rawChallengeObj = decodeValueFromNative(challenge) as WebAuthnRegistrationChallenge
 			const registrationResult = await attrs.browserWebauthn.register({
 				challenge: rawChallengeObj.challenge,
 				domain: rawChallengeObj.domain,
 				name: rawChallengeObj.name,
 				displayName: rawChallengeObj.displayName,
-				userId: rawChallengeObj.userId
+				userId: rawChallengeObj.userId,
 			})
 			await this.sendSuccess(registrationResult, cbUrlTemplate)
 		} catch (e) {

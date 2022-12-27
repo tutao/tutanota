@@ -1,17 +1,17 @@
 import m from "mithril"
-import {assertMainOrNode, isAdminClient} from "../../api/common/Env"
-import {Dialog, DialogType} from "../base/Dialog"
-import {DefaultAnimationTime} from "../animation/Animations"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import {progressIcon} from "../base/Icon"
-import {CompletenessIndicator} from "../CompletenessIndicator.js"
+import { assertMainOrNode, isAdminClient } from "../../api/common/Env"
+import { Dialog, DialogType } from "../base/Dialog"
+import { DefaultAnimationTime } from "../animation/Animations"
+import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import { progressIcon } from "../base/Icon"
+import { CompletenessIndicator } from "../CompletenessIndicator.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type {WorkerClient} from "../../api/main/WorkerClient"
-import {TabIndex} from "../../api/common/TutanotaConstants"
-import type {lazy} from "@tutao/tutanota-utils"
-import {delay} from "@tutao/tutanota-utils"
+import type { WorkerClient } from "../../api/main/WorkerClient"
+import { TabIndex } from "../../api/common/TutanotaConstants"
+import type { lazy } from "@tutao/tutanota-utils"
+import { delay } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -27,24 +27,25 @@ export async function showProgressDialog<T>(
 	}
 
 	const progressDialog = new Dialog(DialogType.Progress, {
-		view: () => m(
-			".hide-outline",
-			{
-				// We make this element focusable so that the screen reader announces the dialog
-				tabindex: TabIndex.Default,
+		view: () =>
+			m(
+				".hide-outline",
+				{
+					// We make this element focusable so that the screen reader announces the dialog
+					tabindex: TabIndex.Default,
 
-				oncreate(vnode) {
-					// We need to delay so that the eelement is attached to the parent
-					setTimeout(() => {
-						(vnode.dom as HTMLElement).focus()
-					}, 10)
+					oncreate(vnode) {
+						// We need to delay so that the eelement is attached to the parent
+						setTimeout(() => {
+							;(vnode.dom as HTMLElement).focus()
+						}, 10)
+					},
 				},
-			},
-			[
-				m(".flex-center", progressStream ? m(CompletenessIndicator, {percentageCompleted: progressStream()}) : progressIcon()),
-				m("p#dialog-title", lang.getMaybeLazy(messageIdOrMessageFunction)),
-			],
-		),
+				[
+					m(".flex-center", progressStream ? m(CompletenessIndicator, { percentageCompleted: progressStream() }) : progressIcon()),
+					m("p#dialog-title", lang.getMaybeLazy(messageIdOrMessageFunction)),
+				],
+			),
 	}).setCloseHandler(() => {
 		// do not close progress on onClose event
 	})

@@ -1,15 +1,15 @@
-import type {CredentialsAndDatabaseKey, CredentialsEncryption, PersistentCredentials} from "./CredentialsProvider.js"
-import {CredentialsProvider} from "./CredentialsProvider.js"
-import {deviceConfig} from "../DeviceConfig"
-import {isApp, isDesktop, isOfflineStorageAvailable} from "../../api/common/Env"
-import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
-import {CredentialsKeyProvider} from "./CredentialsKeyProvider"
-import {NativeCredentialsEncryption} from "./NativeCredentialsEncryption"
-import type {NativeInterface} from "../../native/common/NativeInterface"
-import {assertNotNull} from "@tutao/tutanota-utils"
-import {DatabaseKeyFactory} from "./DatabaseKeyFactory"
-import {DefaultCredentialsKeyMigrator, StubCredentialsKeyMigrator} from "./CredentialsKeyMigrator.js"
-import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import type { CredentialsAndDatabaseKey, CredentialsEncryption, PersistentCredentials } from "./CredentialsProvider.js"
+import { CredentialsProvider } from "./CredentialsProvider.js"
+import { deviceConfig } from "../DeviceConfig"
+import { isApp, isDesktop, isOfflineStorageAvailable } from "../../api/common/Env"
+import type { DeviceEncryptionFacade } from "../../api/worker/facades/DeviceEncryptionFacade"
+import { CredentialsKeyProvider } from "./CredentialsKeyProvider"
+import { NativeCredentialsEncryption } from "./NativeCredentialsEncryption"
+import type { NativeInterface } from "../../native/common/NativeInterface"
+import { assertNotNull } from "@tutao/tutanota-utils"
+import { DatabaseKeyFactory } from "./DatabaseKeyFactory"
+import { DefaultCredentialsKeyMigrator, StubCredentialsKeyMigrator } from "./CredentialsKeyMigrator.js"
+import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 
 export function usingKeychainAuthentication(): boolean {
 	return isApp() || isDesktop()
@@ -31,15 +31,13 @@ export async function createCredentialsProvider(
 	interWindowEventSender: InterWindowEventFacadeSendDispatcher | null,
 ): Promise<CredentialsProvider> {
 	if (usingKeychainAuthentication()) {
-		const {NativeCredentialsFacadeSendDispatcher} = await import( "../../native/common/generatedipc/NativeCredentialsFacadeSendDispatcher.js")
-		const {SqlCipherFacadeSendDispatcher} = await import("../../native/common/generatedipc/SqlCipherFacadeSendDispatcher.js")
+		const { NativeCredentialsFacadeSendDispatcher } = await import("../../native/common/generatedipc/NativeCredentialsFacadeSendDispatcher.js")
+		const { SqlCipherFacadeSendDispatcher } = await import("../../native/common/generatedipc/SqlCipherFacadeSendDispatcher.js")
 		const nativeCredentials = new NativeCredentialsFacadeSendDispatcher(assertNotNull(nativeApp))
 		const credentialsKeyProvider = new CredentialsKeyProvider(nativeCredentials, deviceConfig, deviceEncryptionFacade)
 		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nativeCredentials)
 		const credentialsKeyMigrator = new DefaultCredentialsKeyMigrator(nativeCredentials)
-		const sqlcipherFacade = nativeApp && isOfflineStorageAvailable()
-			? new SqlCipherFacadeSendDispatcher(nativeApp)
-			: null
+		const sqlcipherFacade = nativeApp && isOfflineStorageAvailable() ? new SqlCipherFacadeSendDispatcher(nativeApp) : null
 		return new CredentialsProvider(
 			credentialsEncryption,
 			deviceConfig,
@@ -67,8 +65,8 @@ export async function createCredentialsProvider(
  */
 
 class CredentialsEncryptionStub implements CredentialsEncryption {
-	async encrypt({credentials, databaseKey}: CredentialsAndDatabaseKey): Promise<PersistentCredentials> {
-		const {encryptedPassword} = credentials
+	async encrypt({ credentials, databaseKey }: CredentialsAndDatabaseKey): Promise<PersistentCredentials> {
+		const { encryptedPassword } = credentials
 
 		if (encryptedPassword == null) {
 			throw new Error("Trying to encrypt non-persistent credentials")
@@ -82,7 +80,7 @@ class CredentialsEncryptionStub implements CredentialsEncryption {
 			},
 			encryptedPassword,
 			accessToken: credentials.accessToken,
-			databaseKey: null
+			databaseKey: null,
 		}
 	}
 
@@ -95,7 +93,7 @@ class CredentialsEncryptionStub implements CredentialsEncryption {
 				userId: encryptedCredentials.credentialInfo.userId,
 				type: encryptedCredentials.credentialInfo.type,
 			},
-			databaseKey: null
+			databaseKey: null,
 		}
 	}
 

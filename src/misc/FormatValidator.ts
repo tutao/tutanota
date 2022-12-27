@@ -1,4 +1,4 @@
-import {startsWith} from "@tutao/tutanota-utils"
+import { startsWith } from "@tutao/tutanota-utils"
 
 const DOMAIN_PART_REGEX = "[\\w\\-\\+_]+"
 const DOMAIN_REGEXP = new RegExp(`^${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)
@@ -108,7 +108,7 @@ export function isValidCreditCardNumber(input: string): boolean {
 		return false
 	}
 
-	const digits = cleaned[0].split("").filter(c => !/\s/.test(c))
+	const digits = cleaned[0].split("").filter((c) => !/\s/.test(c))
 
 	if (digits.length < 6 || digits.length > 20) {
 		return false
@@ -117,12 +117,12 @@ export function isValidCreditCardNumber(input: string): boolean {
 	return (
 		digits
 			.reverse()
-			.map(num => Number(num))
+			.map((num) => Number(num))
 			.reduce((acc, cur, idx) => {
 				const num = idx % 2 === 0 ? cur : cur * 2 - (cur > 4 ? 9 : 0)
 				return acc + num
 			}, 0) %
-		10 ===
+			10 ===
 		0
 	)
 }

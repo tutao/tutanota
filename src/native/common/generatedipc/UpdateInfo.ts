@@ -1,4 +1,3 @@
 /* generated file, don't edit. */
 
-
-export {UpdateInfo} from "electron-updater"
+export { UpdateInfo } from "electron-updater"

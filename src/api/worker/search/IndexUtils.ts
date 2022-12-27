@@ -1,4 +1,4 @@
-import {concat, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
+import { concat, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import type {
 	DecryptedSearchIndexEntry,
 	EncryptedSearchIndexEntry,
@@ -8,22 +8,16 @@ import type {
 	SearchIndexMetadataEntry,
 	SearchIndexMetaDataRow,
 } from "./SearchTypes"
-import {GroupType} from "../../common/TutanotaConstants"
-import {
-	calculateNeededSpaceForNumber,
-	calculateNeededSpaceForNumbers,
-	decodeNumberBlock,
-	decodeNumbers,
-	encodeNumbers
-} from "./SearchIndexEncoding"
-import {typeModels as sysTypeModels} from "../../entities/sys/TypeModels"
-import {typeModels as tutanotaTypeModels} from "../../entities/tutanota/TypeModels"
-import type {User} from "../../entities/sys/TypeRefs.js"
-import type {GroupMembership} from "../../entities/sys/TypeRefs.js"
-import type {TypeModel} from "../../common/EntityTypes"
-import {isTest} from "../../common/Env"
-import type {Base64} from "@tutao/tutanota-utils"
-import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
+import { GroupType } from "../../common/TutanotaConstants"
+import { calculateNeededSpaceForNumber, calculateNeededSpaceForNumbers, decodeNumberBlock, decodeNumbers, encodeNumbers } from "./SearchIndexEncoding"
+import { typeModels as sysTypeModels } from "../../entities/sys/TypeModels"
+import { typeModels as tutanotaTypeModels } from "../../entities/tutanota/TypeModels"
+import type { User } from "../../entities/sys/TypeRefs.js"
+import type { GroupMembership } from "../../entities/sys/TypeRefs.js"
+import type { TypeModel } from "../../common/EntityTypes"
+import { isTest } from "../../common/Env"
+import type { Base64 } from "@tutao/tutanota-utils"
+import { aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))
@@ -155,8 +149,8 @@ const typeInfos = {
 
 function getAttributeIds(model: TypeModel) {
 	return Object.keys(model.values)
-				 .map(name => model.values[name].id)
-				 .concat(Object.keys(model.associations).map(name => model.associations[name].id))
+		.map((name) => model.values[name].id)
+		.concat(Object.keys(model.associations).map((name) => model.associations[name].id))
 }
 
 export function typeRefToTypeInfo(typeRef: TypeRef<any>): TypeInfo {
@@ -177,21 +171,21 @@ export function typeRefToTypeInfo(typeRef: TypeRef<any>): TypeInfo {
 }
 
 export function userIsLocalOrGlobalAdmin(user: User): boolean {
-	return user.memberships.find(m => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin) != null
+	return user.memberships.find((m) => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin) != null
 }
 
 export function userIsGlobalAdmin(user: User): boolean {
-	return user.memberships.find(m => m.groupType === GroupType.Admin) != null
+	return user.memberships.find((m) => m.groupType === GroupType.Admin) != null
 }
 
 export function filterIndexMemberships(user: User): GroupMembership[] {
 	return user.memberships.filter(
-		m => m.groupType === GroupType.Mail || m.groupType === GroupType.Contact || m.groupType === GroupType.Customer || m.groupType === GroupType.Admin,
+		(m) => m.groupType === GroupType.Mail || m.groupType === GroupType.Contact || m.groupType === GroupType.Customer || m.groupType === GroupType.Admin,
 	)
 }
 
 export function filterMailMemberships(user: User): GroupMembership[] {
-	return user.memberships.filter(m => m.groupType === GroupType.Mail)
+	return user.memberships.filter((m) => m.groupType === GroupType.Mail)
 }
 
 export function _createNewIndexUpdate(typeInfo: TypeInfo): IndexUpdate {
@@ -212,7 +206,7 @@ export function _createNewIndexUpdate(typeInfo: TypeInfo): IndexUpdate {
 export function htmlToText(html: string | null): string {
 	if (html == null) return ""
 	let text = html.replace(/<[^>]*>?/gm, " ")
-	return text.replace(/&[#0-9a-zA-Z]+;/g, match => {
+	return text.replace(/&[#0-9a-zA-Z]+;/g, (match) => {
 		let replacement
 
 		if (match.startsWith("&#")) {
@@ -371,8 +365,7 @@ export function printMeasure(prefix: string, names: string[]) {
 			performance.clearMeasures(name)
 			performance.clearMarks(name + "-end")
 			performance.clearMarks(name + "-start")
-		} catch (e) {
-		}
+		} catch (e) {}
 	}
 }
 
@@ -386,8 +379,7 @@ export function markEnd(name: string) {
 	try {
 		performance.mark(name + "-end")
 		performance.measure(name, name + "-start", name + "-end")
-	} catch (e) {
-	}
+	} catch (e) {}
 }
 
 export function shouldMeasure(): boolean {

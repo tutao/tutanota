@@ -1,14 +1,14 @@
 import m from "mithril"
-import type {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef, WhitelabelChildTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {getDayShifted, getStartOfDay, isSameTypeRef, neverNull} from "@tutao/tutanota-utils"
-import {logins} from "../../api/main/LoginController"
-import {throttleRoute} from "../../misc/RouteChange"
-import type {SearchRestriction} from "../../api/worker/search/SearchTypes"
-import {assertMainOrNode} from "../../api/common/Env"
-import {TranslationKey} from "../../misc/LanguageViewModel";
-import {ContactTypeRef, MailTypeRef} from "../../api/entities/tutanota/TypeRefs"
-import {typeModels} from "../../api/entities/tutanota/TypeModels.js"
+import type { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef, WhitelabelChildTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { getDayShifted, getStartOfDay, isSameTypeRef, neverNull } from "@tutao/tutanota-utils"
+import { logins } from "../../api/main/LoginController"
+import { throttleRoute } from "../../misc/RouteChange"
+import type { SearchRestriction } from "../../api/worker/search/SearchTypes"
+import { assertMainOrNode } from "../../api/common/Env"
+import { TranslationKey } from "../../misc/LanguageViewModel"
+import { ContactTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs"
+import { typeModels } from "../../api/entities/tutanota/TypeModels.js"
 
 assertMainOrNode()
 
@@ -34,8 +34,8 @@ export const SEARCH_CATEGORIES = [
 ]
 
 interface SearchMailField {
-	readonly textId: TranslationKey,
-	readonly field: string | null,
+	readonly textId: TranslationKey
+	readonly field: string | null
 	readonly attributeIds: number[] | null
 }
 
@@ -85,7 +85,7 @@ export function setSearchUrl(url: string) {
 }
 
 export function getSearchUrl(query: string | null, restriction: SearchRestriction, selectedId?: Id): string {
-	let category = neverNull(SEARCH_CATEGORIES.find(c => isSameTypeRef(c.typeRef, restriction.type))).name
+	let category = neverNull(SEARCH_CATEGORIES.find((c) => isSameTypeRef(c.typeRef, restriction.type))).name
 	let url = "/search/" + category + (selectedId ? "/" + selectedId : "") + "?query=" + encodeURIComponent(query || "")
 
 	if (restriction.start) {
@@ -129,7 +129,7 @@ export function createRestriction(
 	}
 
 	let r: SearchRestriction = {
-		type: neverNull(SEARCH_CATEGORIES.find(c => c.name === searchCategory)).typeRef,
+		type: neverNull(SEARCH_CATEGORIES.find((c) => c.name === searchCategory)).typeRef,
 		start: start,
 		end: end,
 		field: null,
@@ -138,7 +138,7 @@ export function createRestriction(
 	}
 
 	if (field && searchCategory === "mail") {
-		let fieldData = SEARCH_MAIL_FIELDS.find(f => f.field === field)
+		let fieldData = SEARCH_MAIL_FIELDS.find((f) => f.field === field)
 
 		if (fieldData) {
 			r.field = field
@@ -147,7 +147,11 @@ export function createRestriction(
 	} else if (field && searchCategory === "contact") {
 		if (field === "recipient") {
 			r.field = field
-			r.attributeIds = [typeModels.Contact.values["firstName"].id, typeModels.Contact.values["lastName"].id, typeModels.Contact.associations["mailAddresses"].id]
+			r.attributeIds = [
+				typeModels.Contact.values["firstName"].id,
+				typeModels.Contact.values["lastName"].id,
+				typeModels.Contact.associations["mailAddresses"].id,
+			]
 		} else if (field === "mailAddress") {
 			r.field = field
 			r.attributeIds = [typeModels.Contact.associations["mailAddresses"].id]
@@ -185,7 +189,7 @@ export function getRestriction(route: string): SearchRestriction {
 				}
 
 				let fieldString = getValueFromRoute(route, "field")
-				let fieldData = SEARCH_MAIL_FIELDS.find(f => f.field === fieldString)
+				let fieldData = SEARCH_MAIL_FIELDS.find((f) => f.field === fieldString)
 
 				if (fieldData) {
 					field = fieldString

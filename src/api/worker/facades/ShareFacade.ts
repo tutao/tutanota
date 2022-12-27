@@ -1,35 +1,33 @@
-import type {CryptoFacade} from "../crypto/CryptoFacade"
-import {encryptBytes, encryptString} from "../crypto/CryptoFacade"
-import {GroupInfoTypeRef} from "../../entities/sys/TypeRefs.js"
-import type {GroupInfo, ReceivedGroupInvitation} from "../../entities/sys/TypeRefs.js"
-import type {ShareCapability} from "../../common/TutanotaConstants"
-import type {GroupInvitationPostReturn} from "../../entities/tutanota/TypeRefs.js"
+import type { CryptoFacade } from "../crypto/CryptoFacade"
+import { encryptBytes, encryptString } from "../crypto/CryptoFacade"
+import { GroupInfoTypeRef } from "../../entities/sys/TypeRefs.js"
+import type { GroupInfo, ReceivedGroupInvitation } from "../../entities/sys/TypeRefs.js"
+import type { ShareCapability } from "../../common/TutanotaConstants"
+import type { GroupInvitationPostReturn } from "../../entities/tutanota/TypeRefs.js"
 import {
 	createGroupInvitationDeleteData,
 	createGroupInvitationPostData,
 	createGroupInvitationPutData,
-	createSharedGroupData
+	createSharedGroupData,
 } from "../../entities/tutanota/TypeRefs.js"
-import {neverNull} from "@tutao/tutanota-utils"
-import {RecipientsNotFoundError} from "../../common/error/RecipientsNotFoundError"
-import {assertWorkerOrNode} from "../../common/Env"
-import {aes128RandomKey, bitArrayToUint8Array, encryptKey, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
-import {IServiceExecutor} from "../../common/ServiceRequest"
-import {GroupInvitationService} from "../../entities/tutanota/Services.js"
-import {UserFacade} from "./UserFacade"
-import {EntityClient} from "../../common/EntityClient"
+import { neverNull } from "@tutao/tutanota-utils"
+import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError"
+import { assertWorkerOrNode } from "../../common/Env"
+import { aes128RandomKey, bitArrayToUint8Array, encryptKey, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { IServiceExecutor } from "../../common/ServiceRequest"
+import { GroupInvitationService } from "../../entities/tutanota/Services.js"
+import { UserFacade } from "./UserFacade"
+import { EntityClient } from "../../common/EntityClient"
 
 assertWorkerOrNode()
 
 export class ShareFacade {
-
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly entityClient: EntityClient,
-	) {
-	}
+	) {}
 
 	async sendGroupInvitation(
 		sharedGroupInfo: GroupInfo,
@@ -81,7 +79,7 @@ export class ShareFacade {
 		const serviceData = createGroupInvitationPutData({
 			receivedInvitation: invitation._id,
 			userGroupEncGroupKey: encryptKey(this.userFacade.getUserGroupKey(), sharedGroupKey),
-			sharedGroupEncInviteeGroupInfoKey: encryptKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
+			sharedGroupEncInviteeGroupInfoKey: encryptKey(sharedGroupKey, neverNull(userGroupInfoSessionKey)),
 		})
 		await this.serviceExecutor.put(GroupInvitationService, serviceData)
 	}

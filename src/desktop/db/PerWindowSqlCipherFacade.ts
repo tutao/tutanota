@@ -1,19 +1,16 @@
-import {SqlCipherFacade} from "../../native/common/generatedipc/SqlCipherFacade.js"
-import {TaggedSqlValue} from "../../api/worker/offline/SqlValue.js"
-import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
-import {defer, DeferredObject, delay} from "@tutao/tutanota-utils"
-import {log} from "../DesktopLog.js"
-import {OfflineDbClosedError} from "../../api/common/error/OfflineDbClosedError.js"
+import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
+import { TaggedSqlValue } from "../../api/worker/offline/SqlValue.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { defer, DeferredObject, delay } from "@tutao/tutanota-utils"
+import { log } from "../DesktopLog.js"
+import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"
 
 const MAX_WAIT_FOR_DB_CLOSE_MS = 1000
 
 export class PerWindowSqlCipherFacade implements SqlCipherFacade {
-	private state: {userId: string, db: SqlCipherFacade} | null = null
+	private state: { userId: string; db: SqlCipherFacade } | null = null
 
-	constructor(
-		private readonly manager: OfflineDbManager,
-	) {
-	}
+	constructor(private readonly manager: OfflineDbManager) {}
 
 	async openDb(userId: string, dbKey: Uint8Array): Promise<void> {
 		if (this.state != null) {
@@ -95,10 +92,7 @@ export class OfflineDbManager {
 	 */
 	private readonly listIdLocks: Map<Id, DeferredObject<void>> = new Map()
 
-	constructor(
-		private readonly offlineDbFactory: OfflineDbFactory,
-	) {
-	}
+	constructor(private readonly offlineDbFactory: OfflineDbFactory) {}
 
 	async getOrCreateDb(userId: Id, dbKey: Uint8Array): Promise<SqlCipherFacade> {
 		let entry: CacheEntry | undefined = this.cache.get(userId)
@@ -107,7 +101,7 @@ export class OfflineDbManager {
 			return entry.db
 		} else {
 			const db = await this.offlineDbFactory.create(userId, dbKey)
-			entry = {db, counter: 1}
+			entry = { db, counter: 1 }
 			this.cache.set(userId, entry)
 			return entry.db
 		}

@@ -1,4 +1,4 @@
-import {assertMainOrNodeBoot} from "../../api/common/Env"
+import { assertMainOrNodeBoot } from "../../api/common/Env"
 
 assertMainOrNodeBoot()
 export type EasingFunction = (percent: number) => number

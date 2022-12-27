@@ -1,10 +1,10 @@
-import {OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS} from "../api/common/TutanotaConstants.js";
-import {isOfflineStorageAvailable} from "../api/common/Env.js";
-import {assert} from "@tutao/tutanota-utils";
-import {UserController} from "../api/main/UserController"
-import {DesktopConfigKey} from "../desktop/config/ConfigKeys"
-import {DeviceConfig} from "../misc/DeviceConfig"
-import {SettingsFacade} from "../native/common/generatedipc/SettingsFacade.js"
+import { OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../api/common/TutanotaConstants.js"
+import { isOfflineStorageAvailable } from "../api/common/Env.js"
+import { assert } from "@tutao/tutanota-utils"
+import { UserController } from "../api/main/UserController"
+import { DesktopConfigKey } from "../desktop/config/ConfigKeys"
+import { DeviceConfig } from "../misc/DeviceConfig"
+import { SettingsFacade } from "../native/common/generatedipc/SettingsFacade.js"
 
 /**
  * A model for handling offline storage configuration
@@ -12,7 +12,6 @@ import {SettingsFacade} from "../native/common/generatedipc/SettingsFacade.js"
  * Some logic is duplicated from OfflineStorage
  */
 export class OfflineStorageSettingsModel {
-
 	private _isInitialized = false
 	private isEnabled: boolean | null = null
 
@@ -21,11 +20,7 @@ export class OfflineStorageSettingsModel {
 
 	// Native interfaces are lazy to allow us to unconditionally construct the SettingsModel
 	// If we are not in a native context, then they should never be accessed
-	constructor(
-		private readonly userController: UserController,
-		private readonly deviceConfig: DeviceConfig,
-	) {
-	}
+	constructor(private readonly userController: UserController, private readonly deviceConfig: DeviceConfig) {}
 
 	available(): boolean {
 		return this._isInitialized && isOfflineStorageAvailable() && !!this.isEnabled
@@ -43,7 +38,7 @@ export class OfflineStorageSettingsModel {
 	getTimeRange(): number {
 		this.assertAvailable()
 		if (this.userController.isFreeAccount() && this.timeRange !== OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS) {
-			this.setTimeRange(OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS).catch(e => console.log("error while resetting storage time range:", e))
+			this.setTimeRange(OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS).catch((e) => console.log("error while resetting storage time range:", e))
 			this.timeRange = OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS
 			return OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS
 		}
@@ -69,4 +64,3 @@ export class OfflineStorageSettingsModel {
 		this._isInitialized = true
 	}
 }
-

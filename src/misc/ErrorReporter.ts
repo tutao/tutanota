@@ -1,32 +1,32 @@
-import {logins} from "../api/main/LoginController"
+import { logins } from "../api/main/LoginController"
 import stream from "mithril/stream"
-import {TextField, TextFieldType} from "../gui/base/TextField.js"
-import {lang} from "./LanguageViewModel"
-import {Dialog, DialogType} from "../gui/base/Dialog"
+import { TextField, TextFieldType } from "../gui/base/TextField.js"
+import { lang } from "./LanguageViewModel"
+import { Dialog, DialogType } from "../gui/base/Dialog"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import m from "mithril"
-import {Checkbox} from "../gui/base/Checkbox.js"
-import {Button, ButtonType} from "../gui/base/Button.js"
-import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
-import {errorToString, neverNull, typedKeys} from "@tutao/tutanota-utils"
-import {locator} from "../api/main/MainLocator"
-import {AccountType, ConversationType, MailMethod} from "../api/common/TutanotaConstants"
-import {copyToClipboard} from "./ClipboardUtils"
-import {px} from "../gui/size"
-import {Mode} from "../api/common/Env"
-import {RecipientType} from "../api/common/recipients/Recipient.js"
-import {ErrorInfo} from "@tutao/tutanota-utils"
+import { Checkbox } from "../gui/base/Checkbox.js"
+import { Button, ButtonType } from "../gui/base/Button.js"
+import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
+import { errorToString, neverNull, typedKeys } from "@tutao/tutanota-utils"
+import { locator } from "../api/main/MainLocator"
+import { AccountType, ConversationType, MailMethod } from "../api/common/TutanotaConstants"
+import { copyToClipboard } from "./ClipboardUtils"
+import { px } from "../gui/size"
+import { Mode } from "../api/common/Env"
+import { RecipientType } from "../api/common/recipients/Recipient.js"
+import { ErrorInfo } from "@tutao/tutanota-utils"
 
 type FeedbackContent = {
 	message: string
 	subject: string
 }
 
-export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ignored: boolean}> {
+export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ ignored: boolean }> {
 	const loggedIn = logins.isUserLoggedIn()
 	let ignoreChecked = false
 
-	return new Promise(resolve => {
+	return new Promise((resolve) => {
 		const preparedContent = prepareFeedbackContent(e, loggedIn)
 		const detailsExpanded = stream(false)
 		let userMessage = ""
@@ -46,7 +46,7 @@ export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ignored: boolea
 							checked: ignoreChecked,
 							onChecked: (checked) => {
 								ignoreChecked = checked
-							}
+							},
 						}),
 					]),
 			},
@@ -79,7 +79,7 @@ export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ignored: boolea
 								helpLabel: () => lang.get("feedbackOnErrorInfo_msg"),
 								value: userMessage,
 								type: TextFieldType.Area,
-								oninput: value => {
+								oninput: (value) => {
 									userMessage = value
 								},
 							}),
@@ -101,7 +101,7 @@ export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ignored: boolea
 								},
 								m(".selectable", [
 									m(".selectable", preparedContent.subject),
-									preparedContent.message.split("\n").map(l => (l.trim() === "" ? m(".pb-m", "") : m("", l))),
+									preparedContent.message.split("\n").map((l) => (l.trim() === "" ? m(".pb-m", "") : m("", l))),
 								]),
 							),
 						]
@@ -113,11 +113,11 @@ export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ignored: boolea
 				},
 			})
 		}
-	}).then(content => {
+	}).then((content) => {
 		if (content) {
 			sendFeedbackMail(content as FeedbackContent)
 		}
-		return {ignored: ignoreChecked}
+		return { ignored: ignoreChecked }
 	})
 }
 
@@ -180,29 +180,26 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 	const mailAddress = "reports@tutao.de"
 	// We want to treat what we have as text, not as HTML so we escape it. This is an easy way to do it.
 	const escapedBody = new Option(content.message).innerHTML
-	const draft = await locator.mailFacade.createDraft(
-		{
-			subject: content.subject,
-			bodyText: escapedBody.split("\n").join("<br>"),
-			senderMailAddress: neverNull(logins.getUserController().userGroupInfo.mailAddress),
-			senderName: "",
-			toRecipients: [
-				{
-					name,
-					address: mailAddress,
-
-				}
-			],
-			ccRecipients: [],
-			bccRecipients: [],
-			conversationType: ConversationType.NEW,
-			previousMessageId: null,
-			attachments: [],
-			confidential: true,
-			replyTos: [],
-			method: MailMethod.NONE
-		},
-	)
+	const draft = await locator.mailFacade.createDraft({
+		subject: content.subject,
+		bodyText: escapedBody.split("\n").join("<br>"),
+		senderMailAddress: neverNull(logins.getUserController().userGroupInfo.mailAddress),
+		senderName: "",
+		toRecipients: [
+			{
+				name,
+				address: mailAddress,
+			},
+		],
+		ccRecipients: [],
+		bccRecipients: [],
+		conversationType: ConversationType.NEW,
+		previousMessageId: null,
+		attachments: [],
+		confidential: true,
+		replyTos: [],
+		method: MailMethod.NONE,
+	})
 	await locator.mailFacade.sendDraft(
 		draft,
 		[
@@ -210,7 +207,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 				name,
 				address: mailAddress,
 				type: RecipientType.INTERNAL,
-				contact: null
+				contact: null,
 			},
 		],
 		"de",
@@ -219,7 +216,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 
 function prepareFeedbackContent(error: ErrorInfo, loggedIn: boolean): FeedbackContent {
 	const timestamp = new Date()
-	let {message, client, type} = clientInfoString(timestamp, loggedIn)
+	let { message, client, type } = clientInfoString(timestamp, loggedIn)
 
 	if (error) {
 		message += errorToString(error)
@@ -241,7 +238,7 @@ export function clientInfoString(
 	type: string
 } {
 	const type = loggedIn
-		? neverNull(typedKeys(AccountType).find(typeName => AccountType[typeName] === logins.getUserController().user.accountType))
+		? neverNull(typedKeys(AccountType).find((typeName) => AccountType[typeName] === logins.getUserController().user.accountType))
 		: "UNKNOWN"
 
 	const client = (() => {

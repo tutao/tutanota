@@ -1,8 +1,8 @@
-import {TutanotaError} from "../common/error/TutanotaError"
-import type {TranslationKeyType} from "../../misc/TranslationKey"
-import {lang} from "../../misc/LanguageViewModel"
-import type {lazy} from "@tutao/tutanota-utils"
-import {assertMainOrNode} from "../common/Env"
+import { TutanotaError } from "../common/error/TutanotaError"
+import type { TranslationKeyType } from "../../misc/TranslationKey"
+import { lang } from "../../misc/LanguageViewModel"
+import type { lazy } from "@tutao/tutanota-utils"
+import { assertMainOrNode } from "../common/Env"
 
 assertMainOrNode()
 

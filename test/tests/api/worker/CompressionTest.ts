@@ -1,6 +1,6 @@
 import o from "ospec"
-import {compress, uncompress} from "../../../../src/api/worker/Compression.js"
-import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
+import { compress, uncompress } from "../../../../src/api/worker/Compression.js"
+import { base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 
 import testData from "./CompressionCompatibilityTestData.json"
 

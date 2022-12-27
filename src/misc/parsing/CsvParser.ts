@@ -1,4 +1,4 @@
-import type {Parser} from "./ParserCombinator"
+import type { Parser } from "./ParserCombinator"
 import {
 	combineParsers,
 	makeCharacterParser,
@@ -24,7 +24,7 @@ const DEFAULT_CSV_PARSE_OPTIONS = {
 }
 
 export function parseCsv(input: string, options?: Partial<CsvParseOptions>): ParsedCsv {
-	const {delimiter} = Object.assign({}, DEFAULT_CSV_PARSE_OPTIONS, options)
+	const { delimiter } = Object.assign({}, DEFAULT_CSV_PARSE_OPTIONS, options)
 	const lineDelimiterParser = makeOneOrMoreParser(makeCharacterParser("\n"))
 	const parser = makeSeparatedByParser(lineDelimiterParser, makeRowParser(delimiter))
 	const rows = parser(new StringIterator(input.replace(/\r\n/g, "\n")))
@@ -43,7 +43,7 @@ function makeColumnParser(delimiter: Delimiter): Parser<string> {
 
 const quotedColumnParser: Parser<string> = mapParser(
 	combineParsers(makeZeroOrMoreParser(makeCharacterParser(" ")), parseQuotedColumn, makeZeroOrMoreParser(makeCharacterParser(" "))),
-	result => result[1],
+	(result) => result[1],
 )
 
 /**
@@ -53,7 +53,7 @@ const quotedColumnParser: Parser<string> = mapParser(
  */
 function makeUnquotedColumnParser(delimiter: string): Parser<string> {
 	// We don't use trim spaces parser because it won't remove trailing spaces in this case
-	return mapParser(makeZeroOrMoreParser(makeNotOneOfCharactersParser(['"', "\n", delimiter])), arr => arr.join(""))
+	return mapParser(makeZeroOrMoreParser(makeNotOneOfCharactersParser(['"', "\n", delimiter])), (arr) => arr.join(""))
 }
 
 /**

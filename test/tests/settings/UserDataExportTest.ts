@@ -1,19 +1,19 @@
 import o from "ospec"
-import {loadUserExportData} from "../../../src/settings/UserDataExporter.js"
-import {EntityClient} from "../../../src/api/common/EntityClient.js"
-import {UserManagementFacade} from "../../../src/api/worker/facades/UserManagementFacade.js"
-import {LoginController} from "../../../src/api/main/LoginController.js"
-import {FileController} from "../../../src/file/FileController.js"
-import {object, when} from "testdouble"
-import {CustomerTypeRef, GroupInfo, GroupInfoTypeRef, GroupTypeRef, User, UserTypeRef} from "../../../src/api/entities/sys/TypeRefs.js"
-import {formatDateTimeUTC} from "../../../src/calendar/export/CalendarImporter.js"
+import { loadUserExportData } from "../../../src/settings/UserDataExporter.js"
+import { EntityClient } from "../../../src/api/common/EntityClient.js"
+import { UserManagementFacade } from "../../../src/api/worker/facades/UserManagementFacade.js"
+import { LoginController } from "../../../src/api/main/LoginController.js"
+import { FileController } from "../../../src/file/FileController.js"
+import { object, when } from "testdouble"
+import { CustomerTypeRef, GroupInfo, GroupInfoTypeRef, GroupTypeRef, User, UserTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
+import { formatDateTimeUTC } from "../../../src/calendar/export/CalendarImporter.js"
 
 o.spec("user data export", function () {
 	const customerId = "customerId"
 	const userGroupsId = "userGroupsId"
 	const user = {
 		_id: "userId",
-		customer: customerId
+		customer: customerId,
 	} as User
 
 	let allUserGroupInfos: Array<GroupInfo>
@@ -24,7 +24,6 @@ o.spec("user data export", function () {
 	let fileControllerMock: FileController
 
 	o.beforeEach(function () {
-
 		allUserGroupInfos = []
 
 		loginsMock = object()
@@ -32,12 +31,12 @@ o.spec("user data export", function () {
 			user,
 			// we only test the case where we are global admin for now
 			isGlobalAdmin: () => true,
-			getLocalAdminGroupMemberships: () => []
+			getLocalAdminGroupMemberships: () => [],
 		})
 
 		entityClientMock = object()
 		when(entityClientMock.load(CustomerTypeRef, customerId)).thenResolve({
-			userGroups: userGroupsId
+			userGroups: userGroupsId,
 		})
 		when(entityClientMock.loadAll(GroupInfoTypeRef, userGroupsId)).thenResolve(allUserGroupInfos)
 
@@ -79,12 +78,12 @@ o.spec("user data export", function () {
 			mailAddress,
 			created,
 			deleted,
-			mailAddressAliases: aliases.map(alias => ({mailAddress: alias})),
-			group: groupId
+			mailAddressAliases: aliases.map((alias) => ({ mailAddress: alias })),
+			group: groupId,
 		} as GroupInfo)
 
-		const user = {_id: userId} as User
-		when(entityClientMock.load(GroupTypeRef, groupId)).thenResolve({user: userId})
+		const user = { _id: userId } as User
+		when(entityClientMock.load(GroupTypeRef, groupId)).thenResolve({ user: userId })
 		when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
 		when(userManagementFacadeMock.readUsedUserStorage(user)).thenResolve(usedStorage)
 	}

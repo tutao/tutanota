@@ -1,11 +1,11 @@
-import {createCustomDomainCheckData} from "../api/entities/sys/TypeRefs.js"
-import type {CustomDomainCheckReturn} from "../api/entities/sys/TypeRefs.js"
-import {CustomDomainCheckResult, DnsRecordType, DnsRecordValidation} from "../api/common/TutanotaConstants"
-import {LazyLoaded, noOp} from "@tutao/tutanota-utils"
-import {lang} from "../misc/LanguageViewModel"
-import {assertMainOrNode} from "../api/common/Env"
-import {locator} from "../api/main/MainLocator"
-import {CustomDomainCheckService} from "../api/entities/sys/Services"
+import { createCustomDomainCheckData } from "../api/entities/sys/TypeRefs.js"
+import type { CustomDomainCheckReturn } from "../api/entities/sys/TypeRefs.js"
+import { CustomDomainCheckResult, DnsRecordType, DnsRecordValidation } from "../api/common/TutanotaConstants"
+import { LazyLoaded, noOp } from "@tutao/tutanota-utils"
+import { lang } from "../misc/LanguageViewModel"
+import { assertMainOrNode } from "../api/common/Env"
+import { locator } from "../api/main/MainLocator"
+import { CustomDomainCheckService } from "../api/entities/sys/Services"
 
 assertMainOrNode()
 
@@ -38,9 +38,8 @@ export class DomainDnsStatus {
 		}
 
 		const requiredMissingRecords = this.status
-										   .getLoaded()
-										   .missingRecords
-										   .filter(r => r.type === DnsRecordType.DNS_RECORD_TYPE_MX || r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF)
+			.getLoaded()
+			.missingRecords.filter((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_MX || r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF)
 		return !requiredMissingRecords.length
 	}
 
@@ -64,19 +63,19 @@ export class DomainDnsStatus {
 
 			if (result.checkResult === CustomDomainCheckResult.CUSTOM_DOMAIN_CHECK_RESULT_OK) {
 				let mxOk =
-					!result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_MX) &&
-					!result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_MX)
+					!result.missingRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_MX) &&
+					!result.invalidRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_MX)
 				let spfOk =
-					!result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF) &&
-					!result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF)
+					!result.missingRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF) &&
+					!result.invalidRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF)
 				let dkimOk =
-					!result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM) &&
-					!result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM)
+					!result.missingRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM) &&
+					!result.invalidRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM)
 				let mtaStsOk =
-					!result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS) &&
-					!result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS)
-				let dmarcWarn = result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_DMARC)
-				let dmarcBad = result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_DMARC)
+					!result.missingRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS) &&
+					!result.invalidRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS)
+				let dmarcWarn = result.missingRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_DMARC)
+				let dmarcBad = result.invalidRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_DMARC)
 				return (
 					"MX " +
 					(mxOk ? DnsRecordValidation.OK : DnsRecordValidation.BAD) +

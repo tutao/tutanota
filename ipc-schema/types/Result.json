@@ -1,7 +1,7 @@
 {
-  "name": "Result",
-  "type": "typeref",
-  "location": {
-	"typescript": "electron"
-  }
+	"name": "Result",
+	"type": "typeref",
+	"location": {
+		"typescript": "electron"
+	}
 }

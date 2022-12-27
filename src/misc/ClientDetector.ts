@@ -1,5 +1,5 @@
-import {assertMainOrNodeBoot, Mode} from "../api/common/Env"
-import {BrowserData, BrowserType, DeviceType} from "./ClientConstants"
+import { assertMainOrNodeBoot, Mode } from "../api/common/Env"
+import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 
 assertMainOrNodeBoot()
 
@@ -11,8 +11,7 @@ export class ClientDetector {
 	overflowAuto!: string
 	isMacOS!: boolean
 
-	constructor() {
-	}
+	constructor() {}
 
 	init(userAgent: string, platform: string) {
 		this.userAgent = userAgent
@@ -40,14 +39,11 @@ export class ClientDetector {
 
 			let aLet = 2
 
-			function* testGenerator() {
-			}
+			function* testGenerator() {}
 
-			async function testAsync() {
-			}
+			async function testAsync() {}
 
-			function testDefaultArgs(a = 2) {
-			}
+			function testDefaultArgs(a = 2) {}
 
 			testGenerator()
 			testAsync()
@@ -64,15 +60,13 @@ export class ClientDetector {
 			const objectSyntax = {
 				[dynamicString]: true,
 
-				testFn() {
-				},
+				testFn() {},
 
 				get accessor() {
 					return null
 				},
 
-				set accessor(newValue) {
-				},
+				set accessor(newValue) {},
 			}
 			const templateString = `test ${dynamicString}`
 			const x = 1
@@ -81,18 +75,16 @@ export class ClientDetector {
 				x,
 				y,
 			}
-			const {x: x2, y: y2} = propertyShorthand
+			const { x: x2, y: y2 } = propertyShorthand
 			const [a1, a2, ...arest] = anArray
 
 			class WithStatisMember {
-				static aFuncton() {
-				}
+				static aFuncton() {}
 			}
 
 			for (const item of testGenerator()) {
 			}
-		} catch (e) {
-		}
+		} catch (e) {}
 	}
 
 	testBuiltins(): boolean {
@@ -179,8 +171,7 @@ export class ClientDetector {
 					supportsPassive = true
 				},
 			})
-		} catch (e) {
-		}
+		} catch (e) {}
 
 		return supportsPassive
 	}
@@ -261,8 +252,7 @@ export class ClientDetector {
 			if (mainVersionEndIndex !== -1) {
 				try {
 					this.browserVersion = Number(this.userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
-				} catch (e) {
-				}
+				} catch (e) {}
 			}
 		}
 
@@ -299,8 +289,7 @@ export class ClientDetector {
 
 				const numberString = this.userAgent.substring(versionIndex + 4, pos)
 				this.browserVersion = Number(numberString.replace(/_/g, "."))
-			} catch (e) {
-			}
+			} catch (e) {}
 		}
 	}
 

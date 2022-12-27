@@ -1,5 +1,5 @@
 import o from "ospec"
-import {murmurHash} from "../lib/hashes/MurmurHash.js"
+import { murmurHash } from "../lib/hashes/MurmurHash.js"
 
 o.spec("murmur hash", function () {
 	o("32bitHash", function () {

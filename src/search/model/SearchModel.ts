@@ -1,12 +1,12 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {NOTHING_INDEXED_TIMESTAMP} from "../../api/common/TutanotaConstants"
-import {DbError} from "../../api/common/error/DbError"
-import type {SearchIndexStateInfo, SearchRestriction, SearchResult} from "../../api/worker/search/SearchTypes"
-import {arrayEquals, isSameTypeRef, ofClass} from "@tutao/tutanota-utils"
-import type {SearchFacade} from "../../api/worker/search/SearchFacade"
-import {assertMainOrNode} from "../../api/common/Env"
+import { MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { NOTHING_INDEXED_TIMESTAMP } from "../../api/common/TutanotaConstants"
+import { DbError } from "../../api/common/error/DbError"
+import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../api/worker/search/SearchTypes"
+import { arrayEquals, isSameTypeRef, ofClass } from "@tutao/tutanota-utils"
+import type { SearchFacade } from "../../api/worker/search/SearchFacade"
+import { assertMainOrNode } from "../../api/common/Env"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -49,7 +49,7 @@ export class SearchModel {
 		}
 
 		this._lastQuery = searchQuery
-		const {query, restriction, minSuggestionCount, maxResults} = searchQuery
+		const { query, restriction, minSuggestionCount, maxResults } = searchQuery
 		this.lastQuery(query)
 		let result = this.result()
 
@@ -72,29 +72,29 @@ export class SearchModel {
 				maxResults: 0,
 				matchWordOrder: false,
 				moreResults: [],
-				moreResultsEntries: []
+				moreResultsEntries: [],
 			}
 			this.result(result)
 			this._lastSearchPromise = Promise.resolve(result)
 		} else {
 			this._lastSearchPromise = this._searchFacade
-										  .search(query, restriction, minSuggestionCount, maxResults ?? undefined)
-										  .then(result => {
-											  this.result(result)
-											  return result
-										  })
-										  .catch(
-											  ofClass(DbError, e => {
-												  console.log("DBError while search", e)
+				.search(query, restriction, minSuggestionCount, maxResults ?? undefined)
+				.then((result) => {
+					this.result(result)
+					return result
+				})
+				.catch(
+					ofClass(DbError, (e) => {
+						console.log("DBError while search", e)
 
-												  if (isSameTypeRef(MailTypeRef, restriction.type) && !this.indexState().mailIndexEnabled) {
-													  console.log("Mail indexing was disabled, ignoring DBError")
-													  this.result(null)
-												  } else {
-													  throw e
-												  }
-											  }),
-										  )
+						if (isSameTypeRef(MailTypeRef, restriction.type) && !this.indexState().mailIndexEnabled) {
+							console.log("Mail indexing was disabled, ignoring DBError")
+							this.result(null)
+						} else {
+							throw e
+						}
+					}),
+				)
 		}
 
 		return this._lastSearchPromise

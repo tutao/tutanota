@@ -1,24 +1,24 @@
 import m from "mithril"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import {isDomainOrTopLevelDomain, isMailAddress} from "../misc/FormatValidator"
-import {getSpamRuleField, getSpamRuleType, SpamRuleFieldType, SpamRuleType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
-import {contains, neverNull, objectEntries} from "@tutao/tutanota-utils"
-import {Dialog} from "../gui/base/Dialog"
-import type {EmailSenderListElement} from "../api/entities/sys/TypeRefs.js"
-import {CustomerInfoTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {logins} from "../api/main/LoginController"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
+import { isDomainOrTopLevelDomain, isMailAddress } from "../misc/FormatValidator"
+import { getSpamRuleField, getSpamRuleType, SpamRuleFieldType, SpamRuleType, TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../api/common/TutanotaConstants"
+import { contains, neverNull, objectEntries } from "@tutao/tutanota-utils"
+import { Dialog } from "../gui/base/Dialog"
+import type { EmailSenderListElement } from "../api/entities/sys/TypeRefs.js"
+import { CustomerInfoTypeRef, CustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { logins } from "../api/main/LoginController"
 import stream from "mithril/stream"
-import type {SelectorItemList} from "../gui/base/DropDownSelector.js"
-import {DropDownSelector} from "../gui/base/DropDownSelector.js"
-import {TextField} from "../gui/base/TextField.js"
-import {locator} from "../api/main/MainLocator"
-import {assertMainOrNode} from "../api/common/Env"
-import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
+import type { SelectorItemList } from "../gui/base/DropDownSelector.js"
+import { DropDownSelector } from "../gui/base/DropDownSelector.js"
+import { TextField } from "../gui/base/TextField.js"
+import { locator } from "../api/main/MainLocator"
+import { assertMainOrNode } from "../api/common/Env"
+import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
 
 assertMainOrNode()
 
-type LoadedData = {customDomains: string[], existingSpamRules: EmailSenderListElement[]}
+type LoadedData = { customDomains: string[]; existingSpamRules: EmailSenderListElement[] }
 
 export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderListElement | null) {
 	let loadedData: LoadedData | null = null
@@ -41,9 +41,7 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 			value: valueFieldValue(),
 			oninput: valueFieldValue,
 			helpLabel: () =>
-				lang.get(
-					validate(selectedType(), valueFieldValue(), selectedField(), loadedData, existingSpamRuleOrTemplate) ?? "emptyString_msg",
-				),
+				lang.get(validate(selectedType(), valueFieldValue(), selectedField(), loadedData, existingSpamRuleOrTemplate) ?? "emptyString_msg"),
 		}),
 		m(DropDownSelector, {
 			items: typeItems,
@@ -52,7 +50,6 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 			selectionChangedHandler: selectedType,
 		}),
 	]
-
 
 	let addSpamRuleOkAction = async (dialog: Dialog) => {
 		try {
@@ -94,7 +91,7 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 			// Might be an offline error, if we can't load data we should close the dialog regardless, they can try opening it again
 			dialog.close()
 			throw e
-		}
+		},
 	)
 }
 
@@ -103,10 +100,10 @@ async function loadData(): Promise<LoadedData> {
 	const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 	const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 
-	const customDomains = customerInfo.domainInfos.map(d => d.domain)
+	const customDomains = customerInfo.domainInfos.map((d) => d.domain)
 	const existingSpamRules = customerServerProperties.emailSenderList
 
-	return {customDomains, existingSpamRules}
+	return { customDomains, existingSpamRules }
 }
 
 /** @return translation key if validation fails or null if it succeeds */
@@ -129,7 +126,7 @@ function validate(
 		return "emailSenderInvalidRule_msg"
 	} else if (
 		loadedData.existingSpamRules.some(
-			r =>
+			(r) =>
 				r.value === currentValue && // Only collision if we don't edit existing one or existing one has different id
 				(existingSpamRuleOrTemplate == null || r._id !== existingSpamRuleOrTemplate._id) &&
 				r.field === field,

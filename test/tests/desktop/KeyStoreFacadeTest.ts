@@ -1,12 +1,12 @@
 import o from "ospec"
-import {CredentialsKeySpec, DeviceKeySpec, KeyStoreFacadeImpl} from "../../../src/desktop/KeyStoreFacadeImpl.js"
-import {DesktopNativeCryptoFacade} from "../../../src/desktop/DesktopNativeCryptoFacade.js"
-import type {SecretStorage} from "../../../src/desktop/sse/SecretStorage.js"
-import {spyify} from "../nodemocker.js"
-import {keyToBase64, uint8ArrayToKey} from "@tutao/tutanota-crypto"
-import {CancelledError} from "../../../src/api/common/error/CancelledError.js"
-import {assertThrows} from "@tutao/tutanota-test-utils"
-import {DeviceStorageUnavailableError} from "../../../src/api/common/error/DeviceStorageUnavailableError.js"
+import { CredentialsKeySpec, DeviceKeySpec, KeyStoreFacadeImpl } from "../../../src/desktop/KeyStoreFacadeImpl.js"
+import { DesktopNativeCryptoFacade } from "../../../src/desktop/DesktopNativeCryptoFacade.js"
+import type { SecretStorage } from "../../../src/desktop/sse/SecretStorage.js"
+import { spyify } from "../nodemocker.js"
+import { keyToBase64, uint8ArrayToKey } from "@tutao/tutanota-crypto"
+import { CancelledError } from "../../../src/api/common/error/CancelledError.js"
+import { assertThrows } from "@tutao/tutanota-test-utils"
+import { DeviceStorageUnavailableError } from "../../../src/api/common/error/DeviceStorageUnavailableError.js"
 
 function initKeyStoreFacade(secretStorage: SecretStorage, crypto: DesktopNativeCryptoFacade): KeyStoreFacadeImpl {
 	return new KeyStoreFacadeImpl(secretStorage, crypto)
@@ -17,13 +17,13 @@ o.spec("KeyStoreFacade test", function () {
 	let cryptoFacadeSpy: DesktopNativeCryptoFacade
 
 	o.beforeEach(function () {
-		const stub = {generateDeviceKey: () => uint8ArrayToKey(new Uint8Array([0, 0]))} as DesktopNativeCryptoFacade
+		const stub = { generateDeviceKey: () => uint8ArrayToKey(new Uint8Array([0, 0])) } as DesktopNativeCryptoFacade
 		cryptoFacadeSpy = spyify(stub)
 	})
 
 	const toSpec = {
-		"getDeviceKey": DeviceKeySpec,
-		"getCredentialsKey": CredentialsKeySpec
+		getDeviceKey: DeviceKeySpec,
+		getCredentialsKey: CredentialsKeySpec,
 	}
 
 	for (const [opName, spec] of Object.entries(toSpec)) {
@@ -34,8 +34,7 @@ o.spec("KeyStoreFacade test", function () {
 						return keyToBase64(aes256Key)
 					},
 
-					async setPassword(service: string, account: string, password: string): Promise<void> {
-					},
+					async setPassword(service: string, account: string, password: string): Promise<void> {},
 				})
 				const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
 				const actualKey = await keyStoreFacade[opName]()
@@ -50,8 +49,7 @@ o.spec("KeyStoreFacade test", function () {
 						return null
 					},
 
-					async setPassword(service: string, account: string, password: string): Promise<void> {
-					},
+					async setPassword(service: string, account: string, password: string): Promise<void> {},
 				})
 				cryptoFacadeSpy = {
 					generateDeviceKey() {
@@ -69,8 +67,7 @@ o.spec("KeyStoreFacade test", function () {
 						return keyToBase64(aes256Key)
 					},
 
-					async setPassword(service: string, account: string, password: string): Promise<void> {
-					},
+					async setPassword(service: string, account: string, password: string): Promise<void> {},
 				})
 				const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
 				const actualKey = await keyStoreFacade[opName]()
@@ -100,8 +97,7 @@ o.spec("KeyStoreFacade test", function () {
 						}
 					},
 
-					async setPassword(service: string, account: string, password: string): Promise<void> {
-					},
+					async setPassword(service: string, account: string, password: string): Promise<void> {},
 				})
 
 				const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
@@ -117,8 +113,7 @@ o.spec("KeyStoreFacade test", function () {
 	}
 
 	o.spec("key storage errors get propagated properly", function () {
-
-		async function testErrorWrapping({onget, onset, expectError}) {
+		async function testErrorWrapping({ onget, onset, expectError }) {
 			const secretStorageSpy = spyify<SecretStorage>({
 				async getPassword(service: string, account: string): Promise<string | null> {
 					return onget()
@@ -137,9 +132,8 @@ o.spec("KeyStoreFacade test", function () {
 				onget: () => {
 					throw new CancelledError("getting")
 				},
-				onset: () => {
-				},
-				expectError: CancelledError
+				onset: () => {},
+				expectError: CancelledError,
 			})
 		})
 
@@ -149,7 +143,7 @@ o.spec("KeyStoreFacade test", function () {
 				onset: () => {
 					throw new CancelledError("setting")
 				},
-				expectError: CancelledError
+				expectError: CancelledError,
 			})
 		})
 
@@ -158,9 +152,8 @@ o.spec("KeyStoreFacade test", function () {
 				onget: () => {
 					throw new Error("random get failure")
 				},
-				onset: () => {
-				},
-				expectError: DeviceStorageUnavailableError
+				onset: () => {},
+				expectError: DeviceStorageUnavailableError,
 			})
 		})
 
@@ -170,7 +163,7 @@ o.spec("KeyStoreFacade test", function () {
 				onset: () => {
 					throw new Error("random set failure")
 				},
-				expectError: DeviceStorageUnavailableError
+				expectError: DeviceStorageUnavailableError,
 			})
 		})
 	})

@@ -1,4 +1,4 @@
-import m, {Component, Vnode} from "mithril"
+import m, { Component, Vnode } from "mithril"
 
 export type ProgressBarAttrs = {
 	progress: number
@@ -34,16 +34,17 @@ export class ProgressBar implements Component<ProgressBarAttrs> {
 
 		this.lastProgress = a.progress
 		return m(".abs.accent-bg", {
-			onbeforeremove: vn => new Promise<void>(resolve => {
-				vn.dom.addEventListener("transitionend", () => {
-					this.lastProgress = null
-					resolve()
-				})
-				setTimeout(() => {
-					this.lastProgress = null
-					resolve()
-				}, 500)
-			}),
+			onbeforeremove: (vn) =>
+				new Promise<void>((resolve) => {
+					vn.dom.addEventListener("transitionend", () => {
+						this.lastProgress = null
+						resolve()
+					})
+					setTimeout(() => {
+						this.lastProgress = null
+						resolve()
+					}, 500)
+				}),
 			style: {
 				bottom: 0,
 				left: 0,

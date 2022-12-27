@@ -1,5 +1,5 @@
-import {pad} from "@tutao/tutanota-utils"
-import type {DateTime} from "luxon"
+import { pad } from "@tutao/tutanota-utils"
+import type { DateTime } from "luxon"
 
 /**
  * A wrapper around time handling for the calendar stuff, mostly for the CalendarEventViewModel
@@ -17,7 +17,7 @@ export class Time {
 		return new Time(date.getHours(), date.getMinutes())
 	}
 
-	static fromDateTime({hour, minute}: DateTime): Time {
+	static fromDateTime({ hour, minute }: DateTime): Time {
 		return new Time(hour, minute)
 	}
 

@@ -1,18 +1,18 @@
-import m, {Children, Component} from "mithril"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import type {Country} from "../api/common/CountryList"
-import {Countries, CountryType} from "../api/common/CountryList"
-import {HtmlEditor, HtmlEditorMode} from "../gui/editor/HtmlEditor"
-import type {LocationServiceGetReturn} from "../api/entities/sys/TypeRefs.js"
-import {renderCountryDropdown} from "../gui/base/GuiUtils"
-import {TextField} from "../gui/base/TextField.js"
-import type {InvoiceData} from "../api/common/TutanotaConstants"
-import {LocationService} from "../api/entities/sys/Services"
-import {locator} from "../api/main/MainLocator"
+import m, { Children, Component } from "mithril"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
+import type { Country } from "../api/common/CountryList"
+import { Countries, CountryType } from "../api/common/CountryList"
+import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
+import type { LocationServiceGetReturn } from "../api/entities/sys/TypeRefs.js"
+import { renderCountryDropdown } from "../gui/base/GuiUtils"
+import { TextField } from "../gui/base/TextField.js"
+import type { InvoiceData } from "../api/common/TutanotaConstants"
+import { LocationService } from "../api/entities/sys/Services"
+import { locator } from "../api/main/MainLocator"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import {UsageTest} from "@tutao/tutanota-usagetests"
+import { UsageTest } from "@tutao/tutanota-usagetests"
 
 export enum InvoiceDataInputLocation {
 	InWizard = 0,
@@ -26,11 +26,7 @@ export class InvoiceDataInput implements Component {
 	private __paymentPaypalTest?: UsageTest
 	private __paymentCreditTest?: UsageTest
 
-	constructor(
-		private businessUse: boolean,
-		invoiceData: InvoiceData,
-		private readonly location = InvoiceDataInputLocation.Other,
-	) {
+	constructor(private businessUse: boolean, invoiceData: InvoiceData, private readonly location = InvoiceDataInputLocation.Other) {
 		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
 		this.__paymentCreditTest = locator.usageTestController.getTest("payment.credit")
 
@@ -52,22 +48,22 @@ export class InvoiceDataInput implements Component {
 		return [
 			this.businessUse || this.location !== InvoiceDataInputLocation.InWizard
 				? m("", [
-					m(".pt", m(this.invoiceAddressComponent)),
-					m(".small", lang.get(this.businessUse ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoPrivate_msg")),
-				])
+						m(".pt", m(this.invoiceAddressComponent)),
+						m(".small", lang.get(this.businessUse ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoPrivate_msg")),
+				  ])
 				: null,
 			renderCountryDropdown({
 				selectedCountry: this.selectedCountry(),
 				onSelectionChanged: this.selectedCountry,
-				helpLabel: () => lang.get("invoiceCountryInfoConsumer_msg")
+				helpLabel: () => lang.get("invoiceCountryInfoConsumer_msg"),
 			}),
 			this.isVatIdFieldVisible()
 				? m(TextField, {
-					label: "invoiceVatIdNo_label",
-					value: this.vatNumber,
-					oninput: value => this.vatNumber = value,
-					helpLabel: () => lang.get("invoiceVatIdNoInfoBusiness_msg"),
-				})
+						label: "invoiceVatIdNo_label",
+						value: this.vatNumber,
+						oninput: (value) => (this.vatNumber = value),
+						helpLabel: () => lang.get("invoiceVatIdNoInfoBusiness_msg"),
+				  })
 				: null,
 		]
 	}
@@ -75,7 +71,7 @@ export class InvoiceDataInput implements Component {
 	oncreate() {
 		locator.serviceExecutor.get(LocationService, null).then((location: LocationServiceGetReturn) => {
 			if (!this.selectedCountry()) {
-				const country = Countries.find(c => c.a === location.country)
+				const country = Countries.find((c) => c.a === location.country)
 
 				if (country) {
 					this.selectedCountry(country)
@@ -132,9 +128,10 @@ export class InvoiceDataInput implements Component {
 	}
 
 	private getAddress(): string {
-		return this.invoiceAddressComponent.getValue()
-				   .split("\n")
-				   .filter(line => line.trim().length > 0)
-				   .join("\n")
+		return this.invoiceAddressComponent
+			.getValue()
+			.split("\n")
+			.filter((line) => line.trim().length > 0)
+			.join("\n")
 	}
 }

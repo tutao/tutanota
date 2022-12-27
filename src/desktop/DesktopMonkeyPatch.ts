@@ -1,10 +1,10 @@
 import fs from "fs"
 import path from "path"
-import {app} from "electron"
-import {execSync} from "child_process"
-import {last, neverNull} from "@tutao/tutanota-utils"
-import {Logger, replaceNativeLogger} from "../api/common/Logger"
-import {log, rebindDesktopLog} from "./DesktopLog"
+import { app } from "electron"
+import { execSync } from "child_process"
+import { last, neverNull } from "@tutao/tutanota-utils"
+import { Logger, replaceNativeLogger } from "../api/common/Logger"
+import { log, rebindDesktopLog } from "./DesktopLog"
 
 const logger = new Logger()
 replaceNativeLogger(global, logger, true)
@@ -64,9 +64,9 @@ if (process.platform === "win32") {
 	}
 }
 
-global.btoa = str => Buffer.from(str, "binary").toString("base64")
+global.btoa = (str) => Buffer.from(str, "binary").toString("base64")
 
-global.atob = b64 => Buffer.from(b64, "base64").toString("binary")
+global.atob = (b64) => Buffer.from(b64, "base64").toString("binary")
 
 export function mp() {
 	log.debug("the monkey has been patched")

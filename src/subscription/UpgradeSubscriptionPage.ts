@@ -1,24 +1,24 @@
-import m, {Children, Vnode, VnodeDOM} from "mithril"
+import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
-import {lang} from "../misc/LanguageViewModel"
-import type {SubscriptionParameters, UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
-import {SubscriptionTypeParameter} from "./UpgradeSubscriptionWizard"
-import {SubscriptionActionButtons, SubscriptionSelector} from "./SubscriptionSelector"
-import {isApp, isTutanotaDomain} from "../api/common/Env"
-import {client} from "../misc/ClientDetector"
-import {Button, ButtonAttrs, ButtonType} from "../gui/base/Button.js"
-import {UpgradeType} from "./SubscriptionUtils"
-import {Dialog, DialogType} from "../gui/base/Dialog"
-import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialog.js"
-import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialog.js"
-import {DefaultAnimationTime} from "../gui/animation/Animations"
-import {Keys} from "../api/common/TutanotaConstants"
-import {Checkbox} from "../gui/base/Checkbox.js"
-import {locator} from "../api/main/MainLocator"
-import {UsageTest} from "@tutao/tutanota-usagetests"
-import {SubscriptionType, UpgradePriceType} from "./FeatureListProvider"
-import {asPaymentInterval, PaymentInterval} from "./PriceUtils.js"
-import {lazy} from "@tutao/tutanota-utils"
+import { lang } from "../misc/LanguageViewModel"
+import type { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
+import { SubscriptionTypeParameter } from "./UpgradeSubscriptionWizard"
+import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
+import { isApp, isTutanotaDomain } from "../api/common/Env"
+import { client } from "../misc/ClientDetector"
+import { Button, ButtonAttrs, ButtonType } from "../gui/base/Button.js"
+import { UpgradeType } from "./SubscriptionUtils"
+import { Dialog, DialogType } from "../gui/base/Dialog"
+import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
+import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
+import { DefaultAnimationTime } from "../gui/animation/Animations"
+import { Keys } from "../api/common/TutanotaConstants"
+import { Checkbox } from "../gui/base/Checkbox.js"
+import { locator } from "../api/main/MainLocator"
+import { UsageTest } from "@tutao/tutanota-usagetests"
+import { SubscriptionType, UpgradePriceType } from "./FeatureListProvider"
+import { asPaymentInterval, PaymentInterval } from "./PriceUtils.js"
+import { lazy } from "@tutao/tutanota-utils"
 
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private _dom: HTMLElement | null = null
@@ -50,11 +50,11 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		const data = vnode.attrs.data
 		const subscriptionActionButtons: SubscriptionActionButtons = {
 			Free: () => {
-				return ({
+				return {
 					label: "pricing.select_action",
 					click: () => this.selectFree(data),
 					type: ButtonType.Login,
-				})
+				}
 			},
 			Premium: this.createUpgradeButton(data, SubscriptionType.Premium),
 			PremiumBusiness: this.createUpgradeButton(data, SubscriptionType.PremiumBusiness),
@@ -76,7 +76,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 				orderedContactForms: 0,
 				actionButtons: subscriptionActionButtons,
 				featureListProvider: vnode.attrs.data.featureListProvider,
-				priceAndConfigProvider: vnode.attrs.data.planPrices
+				priceAndConfigProvider: vnode.attrs.data.planPrices,
 			}),
 		])
 	}
@@ -91,7 +91,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			this.__signupFreeTest.active = true
 			this.__signupFreeTest.getStage(0).complete()
 		}
-		confirmFreeSubscription().then(confirmed => {
+		confirmFreeSubscription().then((confirmed) => {
 			if (confirmed) {
 				// Confirmation of free/business dialog (click on ok)
 				this.__signupFreeTest?.getStage(1).complete()
@@ -167,7 +167,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			this.__signupPaidTest.getStage(0).complete()
 		}
 		data.type = subscriptionType
-		const {planPrices, options} = data
+		const { planPrices, options } = data
 		data.price = String(planPrices.getSubscriptionPrice(options.paymentInterval(), data.type, UpgradePriceType.PlanActualPrice))
 		let nextYear = String(planPrices.getSubscriptionPrice(options.paymentInterval(), data.type, UpgradePriceType.PlanNextYearsPrice))
 		data.priceNextYear = data.price !== nextYear ? nextYear : null
@@ -176,16 +176,15 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 
 	createUpgradeButton(data: UpgradeSubscriptionData, subscriptionType: SubscriptionType): lazy<ButtonAttrs> {
 		return () => ({
-				label: "pricing.select_action",
-				click: () => this.setNonFreeDataAndGoToNextPage(data, subscriptionType),
-				type: ButtonType.Login,
-			}
-		)
+			label: "pricing.select_action",
+			click: () => this.setNonFreeDataAndGoToNextPage(data, subscriptionType),
+			type: ButtonType.Login,
+		})
 	}
 }
 
 function confirmFreeSubscription(): Promise<boolean> {
-	return new Promise(resolve => {
+	return new Promise((resolve) => {
 		let oneAccountValue = stream(false)
 		let privateUseValue = stream(false)
 		let dialog: Dialog
@@ -211,25 +210,22 @@ function confirmFreeSubscription(): Promise<boolean> {
 						onChecked: privateUseValue,
 					}),
 				]),
-				m(
-					".flex-center.dialog-buttons",
-					[
-						m(Button, {
-							label: "cancel_action",
-							click: () => closeAction(false),
-							type: ButtonType.Secondary,
-						}),
-						m(Button, {
-							label: "ok_action",
-							click: () => {
-								if (oneAccountValue() && privateUseValue()) {
-									closeAction(true)
-								}
-							},
-							type: ButtonType.Primary,
-						}),
-					]
-				),
+				m(".flex-center.dialog-buttons", [
+					m(Button, {
+						label: "cancel_action",
+						click: () => closeAction(false),
+						type: ButtonType.Secondary,
+					}),
+					m(Button, {
+						label: "ok_action",
+						click: () => {
+							if (oneAccountValue() && privateUseValue()) {
+								closeAction(true)
+							}
+						},
+						type: ButtonType.Primary,
+					}),
+				]),
 			],
 		})
 			.setCloseHandler(() => closeAction(false))

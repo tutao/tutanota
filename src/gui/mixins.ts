@@ -1,5 +1,5 @@
-import {px} from "./size"
-import {assertMainOrNodeBoot} from "../api/common/Env"
+import { px } from "./size"
+import { assertMainOrNodeBoot } from "../api/common/Env"
 
 assertMainOrNodeBoot()
 export const noselect = {
@@ -53,9 +53,7 @@ export function positionValue(value: number | null): number | string {
 	}
 }
 
-export function flex(
-	args: string,
-): {
+export function flex(args: string): {
 	_ms_flex: string
 	_webkit_box_flex: string
 	_webkit_flex: string

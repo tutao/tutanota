@@ -1,7 +1,7 @@
-import {downcast} from "@tutao/tutanota-utils"
-import {Entity} from "../EntityTypes"
-import {ConnectionError} from "../error/RestError.js"
-import {LoginIncompleteError} from "../error/LoginIncompleteError.js"
+import { downcast } from "@tutao/tutanota-utils"
+import { Entity } from "../EntityTypes"
+import { ConnectionError } from "../error/RestError.js"
+import { LoginIncompleteError } from "../error/LoginIncompleteError.js"
 
 /**
  * Checks if the given instance has an error in the _errors property which is usually written

@@ -1,15 +1,15 @@
-import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
-import {Dialog} from "./Dialog"
-import type {ButtonAttrs} from "./Button.js"
-import {ButtonType} from "./Button.js"
-import {Icons} from "./icons/Icons"
-import {Icon} from "./Icon"
-import {getContentButtonIconBackground, theme} from "../theme"
-import {lang} from "../../misc/LanguageViewModel"
-import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
-import {Keys} from "../../api/common/TutanotaConstants"
-import {assertMainOrNode} from "../../api/common/Env"
-import {$Promisable} from "@tutao/tutanota-utils"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import { Dialog } from "./Dialog"
+import type { ButtonAttrs } from "./Button.js"
+import { ButtonType } from "./Button.js"
+import { Icons } from "./icons/Icons"
+import { Icon } from "./Icon"
+import { getContentButtonIconBackground, theme } from "../theme"
+import { lang } from "../../misc/LanguageViewModel"
+import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
+import { Keys } from "../../api/common/TutanotaConstants"
+import { assertMainOrNode } from "../../api/common/Env"
+import { $Promisable } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -73,7 +73,7 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 			e.stopPropagation()
 
 			if (vnode.attrs.currentPage) {
-				vnode.attrs.currentPage.attrs.nextAction(true).then(ready => {
+				vnode.attrs.currentPage.attrs.nextAction(true).then((ready) => {
 					if (ready) vnode.attrs.goToNextPageOrCloseWizard()
 				})
 			}
@@ -103,8 +103,8 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 				a._getEnabledPages().map((p, index) =>
 					m(WizardPagingButton, {
 						pageIndex: index,
-						getSelectedPageIndex: () => a.currentPage ? a._getEnabledPages().indexOf(a.currentPage) : -1,
-						navigateBackHandler: index => a._goToPageAction(index),
+						getSelectedPageIndex: () => (a.currentPage ? a._getEnabledPages().indexOf(a.currentPage) : -1),
+						navigateBackHandler: (index) => a._goToPageAction(index),
 					}),
 				),
 			),
@@ -127,10 +127,10 @@ export interface WizardPageWrapper<T> {
 	readonly view: () => Children
 }
 
-export function wizardPageWrapper<T, A extends WizardPageAttrs<T>>(component: Class<Component<A>>, attributes: A,): WizardPageWrapper<T> {
+export function wizardPageWrapper<T, A extends WizardPageAttrs<T>>(component: Class<Component<A>>, attributes: A): WizardPageWrapper<T> {
 	return {
 		attrs: attributes,
-		view: () => m(component, attributes)
+		view: () => m(component, attributes),
 	}
 }
 
@@ -143,12 +143,12 @@ class WizardDialogAttrs<T> {
 	constructor(data: T, pages: ReadonlyArray<WizardPageWrapper<T>>, closeAction?: () => Promise<void>) {
 		this.data = data
 		this.pages = pages
-		this.currentPage = pages.find(p => p.attrs.isEnabled()) ?? null
+		this.currentPage = pages.find((p) => p.attrs.isEnabled()) ?? null
 		this.closeAction = closeAction
 			? () => closeAction()
 			: () => {
-				return Promise.resolve()
-			}
+					return Promise.resolve()
+			  }
 	}
 
 	goToPreviousPageOrClose(): void {
@@ -176,18 +176,18 @@ class WizardDialogAttrs<T> {
 		}
 		return {
 			left: [backButtonAttrs],
-			right: () => (
-				this.currentPage && this.currentPage.attrs.isSkipAvailable()
-				&& this._getEnabledPages().indexOf(this.currentPage) !== this._getEnabledPages().length - 1
-			)
-				? [skipButtonAttrs]
-				: [],
+			right: () =>
+				this.currentPage &&
+				this.currentPage.attrs.isSkipAvailable() &&
+				this._getEnabledPages().indexOf(this.currentPage) !== this._getEnabledPages().length - 1
+					? [skipButtonAttrs]
+					: [],
 			middle: () => (this.currentPage ? this.currentPage.attrs.headerTitle() : ""),
 		}
 	}
 
 	_getEnabledPages(): Array<WizardPageWrapper<T>> {
-		return this.pages.filter(p => p.attrs.isEnabled())
+		return this.pages.filter((p) => p.attrs.isEnabled())
 	}
 
 	_goToPageAction(targetIndex: number): void {
@@ -247,12 +247,12 @@ export class WizardPagingButton {
 				},
 				pageIndex < selectedPageIndex
 					? m(Icon, {
-						icon: Icons.Checkmark,
-						style: {
-							fill: theme.content_button_icon,
-							"background-color": filledBg,
-						},
-					})
+							icon: Icons.Checkmark,
+							style: {
+								fill: theme.content_button_icon,
+								"background-color": filledBg,
+							},
+					  })
 					: "" + (pageIndex + 1),
 			),
 		)
@@ -278,9 +278,7 @@ export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWr
 	const wizardDialogAttrs = new WizardDialogAttrs(
 		data,
 		pages,
-		closeAction
-			? () => Promise.resolve(closeAction()).then(() => wizardDialog.close())
-			: async () => wizardDialog.close(),
+		closeAction ? () => Promise.resolve(closeAction()).then(() => wizardDialog.close()) : async () => wizardDialog.close(),
 	)
 	// We replace the dummy values from dialog creation
 	const wizardDialogHeaderBarAttrs: DialogHeaderBarAttrs = wizardDialogAttrs.getHeaderBarAttrs()

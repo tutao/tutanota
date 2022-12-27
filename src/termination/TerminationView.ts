@@ -1,29 +1,27 @@
-import m, {Children, Vnode} from "mithril";
-import {assertMainOrNode} from "../api/common/Env.js"
-import {CurrentView, header, TopLevelAttrs} from "../gui/Header.js"
-import {windowFacade} from "../misc/WindowFacade.js"
-import {AriaLandmarks, landmarkAttrs} from "../gui/AriaUtils.js"
-import {lang} from "../misc/LanguageViewModel.js"
-import {TerminationViewModel} from "./TerminationViewModel.js"
-import {TerminationForm} from "./TerminationForm.js"
-import {formatDateTime, formatDateWithMonth} from "../misc/Formatter.js"
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog.js"
-import {CustomerAccountTerminationRequest} from "../api/entities/sys/TypeRefs.js"
-import {BaseTopLevelView} from "../gui/BaseTopLevelView.js"
+import m, { Children, Vnode } from "mithril"
+import { assertMainOrNode } from "../api/common/Env.js"
+import { CurrentView, header, TopLevelAttrs } from "../gui/Header.js"
+import { windowFacade } from "../misc/WindowFacade.js"
+import { AriaLandmarks, landmarkAttrs } from "../gui/AriaUtils.js"
+import { lang } from "../misc/LanguageViewModel.js"
+import { TerminationViewModel } from "./TerminationViewModel.js"
+import { TerminationForm } from "./TerminationForm.js"
+import { formatDateTime, formatDateWithMonth } from "../misc/Formatter.js"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
+import { CustomerAccountTerminationRequest } from "../api/entities/sys/TypeRefs.js"
+import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 
 assertMainOrNode()
 
 export interface TerminationViewAttrs extends TopLevelAttrs {
-	makeViewModel: () => TerminationViewModel,
+	makeViewModel: () => TerminationViewModel
 }
 
 export class TerminationView extends BaseTopLevelView implements CurrentView<TerminationViewAttrs> {
-
-
 	private bottomMargin = 0
 	private model: TerminationViewModel
 
-	constructor({attrs}: Vnode<TerminationViewAttrs>) {
+	constructor({ attrs }: Vnode<TerminationViewAttrs>) {
 		super()
 		this.model = attrs.makeViewModel()
 	}
@@ -37,7 +35,7 @@ export class TerminationView extends BaseTopLevelView implements CurrentView<Ter
 		// do nothing
 	}
 
-	public view({attrs}: Vnode<TerminationViewAttrs>) {
+	public view({ attrs }: Vnode<TerminationViewAttrs>) {
 		return m(
 			"#termination-view.main-view.flex.col",
 			{
@@ -54,8 +52,8 @@ export class TerminationView extends BaseTopLevelView implements CurrentView<Ter
 					m(
 						".flex-grow-shrink-auto.max-width-m.pt.plr-l" + landmarkAttrs(AriaLandmarks.Main, lang.get("terminationForm_title")),
 						{
-							oncreate: vnode => {
-								(vnode.dom as HTMLElement).focus()
+							oncreate: (vnode) => {
+								;(vnode.dom as HTMLElement).focus()
 							},
 						},
 						[
@@ -69,15 +67,17 @@ export class TerminationView extends BaseTopLevelView implements CurrentView<Ter
 		)
 	}
 
-
 	private renderTerminationInfo(mailAddress: string, acceptedTerminationRequest: CustomerAccountTerminationRequest): Children {
 		return m("", [
 			m(".h3.mt-l", "Termination successful"),
-			m("p.mt", lang.get("terminationSuccessful_msg", {
-				"{accountName}": mailAddress,
-				"{receivedDate}": formatDateTime(acceptedTerminationRequest.terminationRequestDate),
-				"{deletionDate}": formatDateWithMonth(acceptedTerminationRequest.terminationDate)
-			}))
+			m(
+				"p.mt",
+				lang.get("terminationSuccessful_msg", {
+					"{accountName}": mailAddress,
+					"{receivedDate}": formatDateTime(acceptedTerminationRequest.terminationRequestDate),
+					"{deletionDate}": formatDateWithMonth(acceptedTerminationRequest.terminationDate),
+				}),
+			),
 		])
 	}
 
@@ -90,13 +90,13 @@ export class TerminationView extends BaseTopLevelView implements CurrentView<Ter
 		return m(TerminationForm, {
 			onSubmit: () => this.cancelWithProgressDialog(),
 			mailAddress: this.model.mailAddress,
-			onMailAddressChanged: (mailAddress) => this.model.mailAddress = mailAddress,
+			onMailAddressChanged: (mailAddress) => (this.model.mailAddress = mailAddress),
 			password: this.model.password,
-			onPasswordChanged: (password) => this.model.password = password,
+			onPasswordChanged: (password) => (this.model.password = password),
 			date: this.model.date,
-			onDateChanged: (date) => this.model.date = date,
+			onDateChanged: (date) => (this.model.date = date),
 			terminationPeriodOption: this.model.terminationPeriodOption,
-			onTerminationPeriodOptionChanged: (option) => this.model.terminationPeriodOption = option,
+			onTerminationPeriodOptionChanged: (option) => (this.model.terminationPeriodOption = option),
 			helpText: lang.getMaybeLazy(this.model.helpText),
 		})
 	}
