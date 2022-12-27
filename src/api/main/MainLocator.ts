@@ -84,90 +84,8 @@ import { NoZoneDateProvider } from "../common/utils/NoZoneDateProvider.js"
 
 assertMainOrNode()
 
-// We use interface here mostly to make things readonly from the outside.
-export interface IMainLocator {
-	readonly eventController: EventController
-	readonly search: SearchModel
-	readonly mailModel: MailModel
-	readonly calendarModel: CalendarModel
-	readonly minimizedMailModel: MinimizedMailEditorViewModel
-	readonly contactModel: ContactModel
-	readonly entityClient: EntityClient
-	readonly progressTracker: ProgressTracker
-	readonly credentialsProvider: CredentialsProvider
-	readonly worker: WorkerClient
-	readonly native: NativeInterfaceMain
-	readonly fileController: FileController
-	readonly fileApp: NativeFileApp
-	readonly pushService: NativePushServiceApp
-	readonly commonSystemFacade: CommonSystemFacade
-	readonly themeFacade: ThemeFacade
-	readonly systemFacade: MobileSystemFacade
-	readonly secondFactorHandler: SecondFactorHandler
-	readonly webAuthn: WebauthnClient
-	readonly loginFacade: LoginFacade
-	readonly customerFacade: CustomerFacade
-	readonly giftCardFacade: GiftCardFacade
-	readonly groupManagementFacade: GroupManagementFacade
-	readonly configFacade: ConfigurationDatabase
-	readonly calendarFacade: CalendarFacade
-	readonly mailFacade: MailFacade
-	readonly shareFacade: ShareFacade
-	readonly counterFacade: CounterFacade
-	readonly indexerFacade: Indexer
-	readonly searchFacade: SearchFacade
-	readonly bookingFacade: BookingFacade
-	readonly mailAddressFacade: MailAddressFacade
-	readonly fileFacade: FileFacade
-	readonly blobFacade: BlobFacade
-	readonly userManagementFacade: UserManagementFacade
-	readonly contactFormFacade: ContactFormFacade
-	readonly deviceEncryptionFacade: DeviceEncryptionFacade
-	readonly usageTestController: UsageTestController
-	readonly usageTestModel: UsageTestModel
-	readonly newsModel: NewsModel
-	readonly serviceExecutor: IServiceExecutor
-	readonly cryptoFacade: CryptoFacade
-	readonly loginListener: LoginListener
-	readonly sqlCipherFacade: SqlCipherFacade
-	readonly cacheStorage: ExposedCacheStorage
-	readonly searchTextFacade: SearchTextInAppFacade
-	readonly desktopSettingsFacade: SettingsFacade
-	readonly desktopSystemFacade: DesktopSystemFacade
-	readonly interWindowEventSender: InterWindowEventFacade
-	readonly random: WorkerRandomizer
 
-	mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel>
-
-	mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userGroupInfo: GroupInfo): Promise<MailAddressTableModel>
-
-	recipientsModel(): Promise<RecipientsModel>
-
-	sendMailModel(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): Promise<SendMailModel>
-
-	calenderEventViewModel(
-		date: Date,
-		calendars: ReadonlyMap<Id, CalendarInfo>,
-		mailboxDetail: MailboxDetail,
-		mailboxProperties: MailboxProperties,
-		existingEvent: CalendarEvent | null,
-		previousMail: Mail | null,
-		resolveRecipientsLazily: boolean,
-	): Promise<CalendarEventViewModel>
-
-	recipientsSearchModel(): Promise<RecipientsSearchModel>
-
-	mailViewerViewModel(
-		{ mail, showFolder, delayBodyRenderingUntil }: CreateMailViewerOptions,
-		mailboxDetails: MailboxDetail,
-		mailboxProperties: MailboxProperties,
-	): Promise<MailViewerViewModel>
-
-	readonly init: () => Promise<void>
-	readonly initialized: Promise<void>
-}
-
-class MainLocator implements IMainLocator {
+class MainLocator {
 	eventController!: EventController
 	search!: SearchModel
 	mailModel!: MailModel
@@ -580,6 +498,8 @@ class MainLocator implements IMainLocator {
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 	}
 }
+
+export type IMainLocator = Readonly<MainLocator>
 
 export const locator: IMainLocator = new MainLocator()
 
