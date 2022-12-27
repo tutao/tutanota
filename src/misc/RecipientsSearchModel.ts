@@ -6,7 +6,7 @@ import { ofClass } from "@tutao/tutanota-utils"
 import { DbError } from "../api/common/error/DbError.js"
 import { locator } from "../api/main/MainLocator.js"
 import { ContactTypeRef } from "../api/entities/tutanota/TypeRefs.js"
-import { isApp, Mode } from "../api/common/Env.js"
+import { Mode } from "../api/common/Env.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
 import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
 import { MobileSystemFacade } from "../native/common/generatedipc/MobileSystemFacade.js"
@@ -125,11 +125,4 @@ export class RecipientsSearchModel {
 		const recipients = await this.systemFacade.findSuggestions(text).catch(ofClass(PermissionError, () => []))
 		return recipients.map(({ name, mailAddress }) => ({ name, address: mailAddress }))
 	}
-}
-
-export async function getRecipientsSearchModel(): Promise<RecipientsSearchModel> {
-	const { locator } = await import("../api/main/MainLocator.js")
-	const { recipientsModel, contactModel } = locator
-	const systemFacade = isApp() ? locator.systemFacade : null
-	return new RecipientsSearchModel(recipientsModel, contactModel, systemFacade)
 }

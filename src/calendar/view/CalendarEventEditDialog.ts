@@ -18,7 +18,7 @@ import { Checkbox } from "../../gui/base/Checkbox.js"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander"
 import { client } from "../../misc/ClientDetector"
 import type { Guest, RepeatData } from "../date/CalendarEventViewModel"
-import { CalendarEventViewModel, createCalendarEventViewModel } from "../date/CalendarEventViewModel"
+import { CalendarEventViewModel } from "../date/CalendarEventViewModel"
 import { UserError } from "../../api/main/UserError"
 import { theme } from "../../gui/theme"
 import { showBusinessFeatureRequiredDialog } from "../../misc/SubscriptionDialogs"
@@ -38,11 +38,12 @@ import { MailRecipientsTextField } from "../../gui/MailRecipientsTextField.js"
 import { noOp, numberRange, ofClass } from "@tutao/tutanota-utils"
 import { createDropdown } from "../../gui/base/Dropdown.js"
 import { CalendarEvent, createEncryptedMailAddress, Mail } from "../../api/entities/tutanota/TypeRefs.js"
-import { getRecipientsSearchModel, RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
+import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 import type { HtmlEditor } from "../../gui/editor/HtmlEditor.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { ToggleButton } from "../../gui/base/ToggleButton.js"
+import { locator } from "../../api/main/MainLocator.js"
 
 export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -98,9 +99,18 @@ export async function showCalendarEventDialog(
 	responseMail?: Mail,
 ) {
 	const { HtmlEditor } = await import("../../gui/editor/HtmlEditor")
-	const recipientsSearch = await getRecipientsSearchModel()
+	const recipientsSearch = await locator.recipientsSearchModel()
+	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
 
-	const viewModel = await createCalendarEventViewModel(date, calendars, mailboxDetail, existingEvent ?? null, responseMail ?? null, false)
+	const viewModel = await locator.calenderEventViewModel(
+		date,
+		calendars,
+		mailboxDetail,
+		mailboxProperties,
+		existingEvent ?? null,
+		responseMail ?? null,
+		false,
+	)
 	const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
 	const groupColors = logins.getUserController().userSettingsGroupRoot.groupSettings.reduce((acc, gc) => {
 		acc.set(gc.group, gc.color)

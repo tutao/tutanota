@@ -1,7 +1,7 @@
 import o from "ospec"
 // @ts-ignore[untyped-import]
 import en from "../../../src/translations/en.js"
-import type { Guest } from "../../../src/calendar/date/CalendarEventViewModel.js"
+import type { Guest, SendMailPurpose } from "../../../src/calendar/date/CalendarEventViewModel.js"
 import { CalendarEventViewModel } from "../../../src/calendar/date/CalendarEventViewModel.js"
 import { lang } from "../../../src/misc/LanguageViewModel.js"
 import { assertThrows, unmockAttribute } from "@tutao/tutanota-test-utils"
@@ -193,7 +193,7 @@ o.spec("CalendarEventViewModel", function () {
 			mailboxProperties,
 		)
 
-		const sendFactory = (_, purpose) => {
+		const sendFactory = (purpose: SendMailPurpose): SendMailModel => {
 			return {
 				invite: inviteModel,
 				update: updateModel,

@@ -88,8 +88,8 @@ export type Guest = {
 	type: RecipientType
 	status: CalendarAttendeeStatus
 }
-type SendMailPurpose = "invite" | "update" | "cancel" | "response"
-type SendMailModelFactory = (arg0: MailboxDetail, arg1: SendMailPurpose) => SendMailModel
+export type SendMailPurpose = "invite" | "update" | "cancel" | "response"
+type SendMailModelFactory = (arg1: SendMailPurpose) => SendMailModel
 export type RepeatData = {
 	frequency: RepeatPeriod
 	interval: number
@@ -173,12 +173,12 @@ export class CalendarEventViewModel {
 		this._entityClient = entityClient
 		this._userController = userController
 		this._responseTo = responseTo ?? null
-		this._inviteModel = sendMailModelFactory(mailboxDetail, "invite")
-		this._updateModel = sendMailModelFactory(mailboxDetail, "update")
-		this._cancelModel = sendMailModelFactory(mailboxDetail, "cancel")
+		this._inviteModel = sendMailModelFactory("invite")
+		this._updateModel = sendMailModelFactory("update")
+		this._cancelModel = sendMailModelFactory("cancel")
 		this.summary = stream("")
 
-		this._sendModelFactory = () => sendMailModelFactory(mailboxDetail, "response")
+		this._sendModelFactory = () => sendMailModelFactory("response")
 
 		this._ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetail, userController.userGroupInfo)
 		this._ownAttendee = stream<EncryptedMailAddress | null>(null)
@@ -1284,32 +1284,4 @@ function createCalendarAlarm(identifier: string, trigger: string): AlarmInfo {
 	calendarAlarmInfo.alarmIdentifier = identifier
 	calendarAlarmInfo.trigger = trigger
 	return calendarAlarmInfo
-}
-
-export async function createCalendarEventViewModel(
-	date: Date,
-	calendars: ReadonlyMap<Id, CalendarInfo>,
-	mailboxDetail: MailboxDetail,
-	existingEvent: CalendarEvent | null,
-	previousMail: Mail | null,
-	resolveRecipientsLazily: boolean,
-): Promise<CalendarEventViewModel> {
-	const model = await import("../../mail/editor/SendMailModel")
-
-	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
-	return await new CalendarEventViewModel(
-		logins.getUserController(),
-		calendarUpdateDistributor,
-		locator.calendarModel,
-		locator.entityClient,
-		mailboxDetail,
-		mailboxProperties,
-		(mailboxDetail) => model.defaultSendMailModel(mailboxDetail, mailboxProperties),
-		date,
-		getTimeZone(),
-		calendars,
-		existingEvent,
-		previousMail,
-		resolveRecipientsLazily,
-	).initialized
 }
