@@ -24,7 +24,7 @@ export class FolderSystem {
 	}
 
 	getIndentedList(excludeFolder: MailFolder | null = null): IndentedFolder[] {
-		return [...this.getIndentedFolderList(this.systemSubtrees, excludeFolder), ...this.getIndentedFolderList(this.customSubtrees, excludeFolder)]
+		return [...this.getIndentedFolderList(this.customSubtrees, excludeFolder), ...this.getIndentedFolderList(this.systemSubtrees, excludeFolder)]
 	}
 
 	getSystemFolderByType(type: Omit<MailFolderType, MailFolderType.CUSTOM>): MailFolder {

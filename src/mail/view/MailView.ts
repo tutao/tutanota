@@ -31,7 +31,6 @@ import {
 	getFolderName,
 	getIndentedFolderNameForDropdown,
 	getMailboxName,
-	getPathToFolderString,
 	markMails,
 	MAX_FOLDER_INDENT_LEVEL,
 } from "../model/MailUtils"
@@ -51,7 +50,7 @@ import {FolderColumnView} from "../../gui/FolderColumnView.js"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {archiveMails, moveMails, moveToInbox, promptAndDeleteMails, showMoveMailsDropdown} from "./MailGuiUtils"
-import {elementIdPart, getElementId, isSameId} from "../../api/common/utils/EntityUtils"
+import {getElementId, isSameId} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {SidebarSection} from "../../gui/SidebarSection"
 import {CancelledError} from "../../api/common/error/CancelledError"
@@ -449,39 +448,21 @@ export class MailView implements CurrentView {
 		const customSystems = mailboxDetail.folders.customSubtrees
 		const systemSystems = mailboxDetail.folders.systemSubtrees
 		const children: Children = []
-		children.push(...systemSystems.map(s => {
-			const id = getElementId(s.folder)
-			const count = groupCounters[s.folder.mails]
-			const button: NavButtonAttrs = {
-				label: () => getFolderName(s.folder),
-				icon: getFolderIcon(s.folder),
-				href: () => this.folderToUrl[s.folder._id[1]],
-				isSelectedPrefix: MAIL_PREFIX + "/" + s.folder.mails,
-				colors: NavButtonColor.Nav,
-				click: () => this.viewSlider.focus(this.listColumn),
-				dropHandler: (droppedMailId) => this.handleFolderDrop(droppedMailId, s.folder),
-			}
-			return m(MailFolderRow, {
-				count: count,
-				button,
-				rightButton: null,
-				key: id,
-				expanded: null,
-				indentationLevel: 0,
-				onExpanderClick: noOp,
-			})
-		}))
+		const systemChildren = this.renderFolderTree(systemSystems, groupCounters, mailboxDetail)
+		if (systemChildren) {
+			children.push(...systemChildren)
+		}
 		if (logins.isInternalUserLoggedIn()) {
 			children.push(m(SidebarSection, {
 				name: "yourFolders_action",
 				button: m(IconButton, this.createFolderAddButton(mailboxDetail.mailGroup._id, null)),
 				key: "yourFolders", // we need to set a key because folder rows also have a key.
-			}, this.renderCustomFolderTree(customSystems, groupCounters, mailboxDetail)))
+			}, this.renderFolderTree(customSystems, groupCounters, mailboxDetail)))
 		}
 		return children
 	}
 
-	private renderCustomFolderTree(subSystems: readonly FolderSubtree[], groupCounters: Counters, mailboxDetail: MailboxDetail, indentationLevel: number = 0): Children[] | null {
+	private renderFolderTree(subSystems: readonly FolderSubtree[], groupCounters: Counters, mailboxDetail: MailboxDetail, indentationLevel: number = 0): Children[] | null {
 		return subSystems.map((system) => {
 			const id = getElementId(system.folder)
 			const button: NavButtonAttrs = {
@@ -502,14 +483,16 @@ export class MailView implements CurrentView {
 				m(MailFolderRow, {
 					count: summedCount,
 					button,
-					rightButton: this.createFolderMoreButton(mailboxDetail.mailGroup._id, system.folder, mailboxDetail.folders),
+					rightButton: system.folder.folderType === MailFolderType.CUSTOM
+						? this.createFolderMoreButton(mailboxDetail.mailGroup._id, system.folder, mailboxDetail.folders)
+						: null,
 					expanded: hasChildren ? currentExpansionState : null,
 					indentationLevel: Math.min(indentationLevel, MAX_FOLDER_INDENT_LEVEL),
 					onExpanderClick: hasChildren
 						? () => this.setExpandedState(system, currentExpansionState)
 						: noOp
 				}),
-				hasChildren && currentExpansionState ? this.renderCustomFolderTree(system.children, groupCounters, mailboxDetail, indentationLevel + 1) : null
+				hasChildren && currentExpansionState ? this.renderFolderTree(system.children, groupCounters, mailboxDetail, indentationLevel + 1) : null
 			])
 		})
 	}
@@ -674,7 +657,6 @@ export class MailView implements CurrentView {
 		// TODO getMailboxDetails wont work for shared mailboxes?
 		const mailBoxDetail = await this.getMailboxDetails()
 		let targetFolders: SelectorItemList<MailFolder | null> = mailBoxDetail.folders.getIndentedList(folder)
-																			  .filter(folderInfo => folderInfo.folder.folderType === MailFolderType.CUSTOM)
 																			  .map(folderInfo => {
 																				  return {
 																					  name: getIndentedFolderNameForDropdown(folderInfo),
@@ -725,19 +707,6 @@ export class MailView implements CurrentView {
 			allowOkWithReturn: true,
 			okAction: okAction,
 		})
-	}
-
-
-	private showCreateFolderDialog(mailGroupId: string, parentFolder: MailFolder | null, folderSystem: FolderSystem) {
-		const infoMsg = parentFolder ? () => getPathToFolderString(folderSystem, parentFolder) : null
-		const parentFolderId: IdTuple | null = parentFolder ? parentFolder._id : null
-		Dialog.showProcessTextInputDialog("folderNameCreate_label", "folderName_label", infoMsg, "", async (name) => {
-				if (parentFolderId) {
-					this.expandedState.add(elementIdPart(parentFolderId))
-				}
-				locator.mailFacade.createMailFolder(name, parentFolderId, mailGroupId)
-			}, name => this.checkFolderName(name, mailGroupId, parentFolderId),
-		)
 	}
 
 	private createFolderMoreButton(mailGroupId: Id, folder: MailFolder, folderSystem: FolderSystem): IconButtonAttrs {
