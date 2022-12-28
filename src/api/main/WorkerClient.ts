@@ -1,5 +1,5 @@
 import { CryptoError } from "../common/error/CryptoError"
-import type { Commands } from "../common/MessageDispatcher"
+import type { Commands, Transport } from "../common/MessageDispatcher"
 import { MessageDispatcher, Request, WorkerTransport } from "../common/MessageDispatcher"
 import { assertMainOrNode } from "../common/Env"
 import type { IMainLocator } from "./MainLocator"
@@ -11,10 +11,9 @@ import type { InfoMessage } from "../common/CommonTypes"
 import { handleUncaughtError } from "../../misc/ErrorHandler"
 import type { MainInterface, WorkerInterface } from "../worker/WorkerImpl"
 import { exposeLocal, exposeRemote } from "../common/WorkerProxy"
-import type { EntropySource } from "@tutao/tutanota-crypto"
 import stream from "mithril/stream"
 import type { RestClient } from "../worker/rest/RestClient"
-import { createWebsocketLeaderStatus, WebsocketLeaderStatus } from "../entities/sys/TypeRefs"
+import { EntropyDataChunk } from "../worker/facades/EntropyFacade.js"
 
 assertMainOrNode()
 
@@ -35,13 +34,8 @@ export class WorkerClient {
 	private _progressUpdater: ProgressUpdater | null = null
 	// Should be empty stream unless there's really a message.
 	readonly infoMessages: stream<InfoMessage> = stream()
-	private _leaderStatus: WebsocketLeaderStatus
 
 	constructor() {
-		this._leaderStatus = createWebsocketLeaderStatus({
-			leaderStatus: false, // init as non-leader
-		})
-
 		this.initialized.then(() => {
 			this._isInitialized = true
 		})
@@ -61,7 +55,7 @@ export class WorkerClient {
 			const workerUrl = prefixWithoutFile + "/worker-bootstrap.js"
 			const worker = new Worker(workerUrl)
 			this._dispatcher = new MessageDispatcher(new WorkerTransport(worker), this.queueCommands(locator))
-			await this._dispatcher.postRequest(new Request("setup", [window.env, this._getInitialEntropy(), client.browserData()]))
+			await this._dispatcher.postRequest(new Request("setup", [window.env, this.getInitialEntropy(), client.browserData()]))
 
 			worker.onerror = (e: any) => {
 				throw new CryptoError("could not setup worker", e)
@@ -81,7 +75,7 @@ export class WorkerClient {
 					postMessage: function (msg: any) {
 						workerImpl._queue.handleMessage(msg)
 					},
-				} as any,
+				} as Transport<WorkerRequestType, MainRequestType>,
 				this.queueCommands(locator),
 			)
 		}
@@ -116,10 +110,6 @@ export class WorkerClient {
 				locator.eventController.counterUpdateReceived(downcast(message.args[0]))
 				return Promise.resolve()
 			},
-			updateLeaderStatus: (message: MainRequest) => {
-				this._leaderStatus = downcast(message.args[0])
-				return Promise.resolve()
-			},
 			infoMessage: (message: MainRequest) => {
 				this.infoMessages(downcast(message.args[0]))
 				return Promise.resolve()
@@ -142,7 +132,7 @@ export class WorkerClient {
 				},
 				get wsConnectivityListener() {
 					return locator.connectivityModel
-				}
+				},
 			}),
 		}
 	}
@@ -184,10 +174,6 @@ export class WorkerClient {
 		return this._dispatcher.postRequest(new Request("getLog", []))
 	}
 
-	isLeader(): boolean {
-		return this._leaderStatus.leaderStatus
-	}
-
 	urlify(html: string): Promise<string> {
 		return this._postRequest(new Request("urlify", [html]))
 	}
@@ -195,18 +181,10 @@ export class WorkerClient {
 	/**
 	 * Add data from either secure random source or Math.random as entropy.
 	 */
-	_getInitialEntropy(): Array<{
-		source: EntropySource
-		entropy: number
-		data: number
-	}> {
+	private getInitialEntropy(): Array<EntropyDataChunk> {
 		const valueList = new Uint32Array(16)
 		crypto.getRandomValues(valueList)
-		const entropy: Array<{
-			source: EntropySource
-			entropy: number
-			data: number
-		}> = []
+		const entropy: Array<EntropyDataChunk> = []
 
 		for (let i = 0; i < valueList.length; i++) {
 			// 32 because we have 32-bit values Uint32Array

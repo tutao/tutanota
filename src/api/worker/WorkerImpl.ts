@@ -97,7 +97,7 @@ type WorkerRequest = Request<WorkerRequestType>
 export class WorkerImpl implements NativeInterface {
 	private readonly _scope: DedicatedWorkerGlobalScope
 	private readonly _dispatcher: MessageDispatcher<MainRequestType, WorkerRequestType>
-	private readonly wsConnectivityListener = lazyMemoized(() => this.getMainInterface().wsConnectivityListener)
+	private readonly connectivityListener = lazyMemoized(() => this.getMainInterface().wsConnectivityListener)
 
 	constructor(self: DedicatedWorkerGlobalScope) {
 		this._scope = self
@@ -240,7 +240,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 			get entropyFacade() {
 				return locator.entropyFacade
-			}
+			},
 		}
 	}
 
@@ -324,7 +324,7 @@ export class WorkerImpl implements NativeInterface {
 	/** this method should eventually be just removed */
 	updateWebSocketState(state: WsConnectionState): Promise<void> {
 		console.log("ws displayed state: ", state)
-		return this.wsConnectivityListener().updateWebSocketState(state)
+		return this.connectivityListener().updateWebSocketState(state)
 	}
 
 	updateCounter(update: WebsocketCounterData): Promise<void> {
@@ -344,6 +344,6 @@ export class WorkerImpl implements NativeInterface {
 	}
 
 	updateLeaderStatus(status: WebsocketLeaderStatus): Promise<void> {
-		return this._dispatcher.postRequest(new Request("updateLeaderStatus", [status]))
+		return this.connectivityListener().updateLeaderStatus(status)
 	}
 }

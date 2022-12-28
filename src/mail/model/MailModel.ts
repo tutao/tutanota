@@ -37,6 +37,7 @@ import { LoginController } from "../../api/main/LoginController.js"
 import { getEnabledMailAddressesWithUser } from "./MailUtils.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { FolderSystem } from "./FolderSystem.js"
+import {WebsocketConnectivityModel} from "../../misc/WebsocketConnectivityModel.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox
@@ -46,10 +47,6 @@ export type MailboxDetail = {
 	mailboxGroupRoot: MailboxGroupRoot
 }
 export type MailboxCounters = Record<Id, Record<string, number>>
-
-interface LeaderDetector {
-	isLeader(): boolean
-}
 
 export class MailModel {
 	/** Empty stream until init() is finished, exposed mostly for map()-ing, use getMailboxDetails to get a promise */
@@ -66,7 +63,7 @@ export class MailModel {
 	constructor(
 		private readonly notifications: Notifications,
 		private readonly eventController: EventController,
-		private readonly leaderDetector: LeaderDetector,
+		private readonly connectivityModel: WebsocketConnectivityModel,
 		private readonly mailFacade: MailFacade,
 		private readonly entityClient: EntityClient,
 		private readonly logins: LoginController,
@@ -306,7 +303,7 @@ export class MailModel {
 					await this.getMailboxDetailsForMailListId(update.instanceListId)
 						.then((mailboxDetail) => {
 							// We only apply rules on server if we are the leader in case of incoming messages
-							return findAndApplyMatchingRule(this.mailFacade, this.entityClient, mailboxDetail, mail, this.leaderDetector.isLeader())
+							return findAndApplyMatchingRule(this.mailFacade, this.entityClient, mailboxDetail, mail, this.connectivityModel.isLeader())
 						})
 						.then((newId) => this._showNotification(newId || mailId))
 						.catch(noOp)
