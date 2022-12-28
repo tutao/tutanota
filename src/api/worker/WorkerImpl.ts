@@ -43,6 +43,7 @@ import { EventBusClient } from "./EventBusClient.js"
 import { EntropyFacade } from "./facades/EntropyFacade.js"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 import { ExposedEventController } from "../main/EventController.js"
+import {ExposedOperationProgressTracker} from "../main/OperationProgressTracker.js"
 
 assertWorkerOrNode()
 
@@ -91,6 +92,7 @@ export interface MainInterface {
 	readonly wsConnectivityListener: WebsocketConnectivityListener
 	readonly progressTracker: ExposedProgressTracker
 	readonly eventController: ExposedEventController
+	readonly operationProgressTracker: ExposedOperationProgressTracker
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -98,7 +100,6 @@ type WorkerRequest = Request<WorkerRequestType>
 export class WorkerImpl implements NativeInterface {
 	private readonly _scope: DedicatedWorkerGlobalScope
 	private readonly _dispatcher: MessageDispatcher<MainRequestType, WorkerRequestType>
-	private readonly connectivityListener = lazyMemoized(() => this.getMainInterface().wsConnectivityListener)
 
 	constructor(self: DedicatedWorkerGlobalScope) {
 		this._scope = self
