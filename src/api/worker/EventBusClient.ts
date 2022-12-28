@@ -220,7 +220,7 @@ export class EventBusClient {
 	 * Sends a close event to the server and finally closes the connection.
 	 * The state of this event bus client is reset and the client is terminated (does not automatically reconnect) except reconnect == true
 	 */
-	close(closeOption: CloseEventBusOption) {
+	async close(closeOption: CloseEventBusOption): Promise<void> {
 		console.log("ws close closeOption: ", closeOption, "state:", this.state)
 
 		switch (closeOption) {
@@ -245,7 +245,7 @@ export class EventBusClient {
 		this.socket?.close()
 	}
 
-	tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean, delay: number | null = null) {
+	async tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean, delay: number | null = null): Promise<void> {
 		console.log("ws tryReconnect closeIfOpen:", closeIfOpen, "enableAutomaticState:", enableAutomaticState, "delay:", delay)
 
 		if (this.reconnectTimer) {

@@ -24,6 +24,12 @@ import { TerminationView, TerminationViewAttrs } from "./termination/Termination
 import { TerminationViewModel } from "./termination/TerminationViewModel.js"
 import { MobileWebauthnAttrs, MobileWebauthnView } from "./login/MobileWebauthnView.js"
 import { BrowserWebauthn } from "./misc/2fa/webauthn/BrowserWebauthn.js"
+import { CalendarView, CalendarViewAttrs } from "./calendar/view/CalendarView.js"
+import { DrawerMenuAttrs } from "./gui/nav/DrawerMenu.js"
+import { MailView, MailViewAttrs, MailViewCache } from "./mail/view/MailView.js"
+import { ContactView, ContactViewAttrs } from "./contacts/view/ContactView.js"
+import { SettingsView, SettingsViewAttrs } from "./settings/SettingsView.js"
+import { SearchView, SearchViewAttrs } from "./search/view/SearchView.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -138,7 +144,7 @@ import("./translations/en")
 
 		const { PostLoginActions } = await import("./login/PostLoginActions")
 		const { CachePostLoginAction } = await import("./offline/CachePostLoginAction")
-		logins.addPostLoginAction(new PostLoginActions(locator.credentialsProvider, locator.secondFactorHandler))
+		logins.addPostLoginAction(new PostLoginActions(locator.credentialsProvider, locator.secondFactorHandler, locator.connectivityModel))
 		if (isOfflineStorageAvailable()) {
 			logins.addPostLoginAction(
 				new CachePostLoginAction(locator.calendarModel, locator.entityClient, locator.progressTracker, locator.cacheStorage, logins),
@@ -196,7 +202,6 @@ import("./translations/en")
 			termination: makeViewResolver<TerminationViewAttrs, TerminationView, { makeViewModel: () => TerminationViewModel }>({
 				prepareRoute: async () => {
 					const { TerminationViewModel } = await import("./termination/TerminationViewModel.js")
-					const { locator } = await import("./api/main/MainLocator")
 					const { TerminationView } = await import("./termination/TerminationView.js")
 					return {
 						component: TerminationView,
@@ -208,17 +213,69 @@ import("./translations/en")
 				prepareAttrs: (cache) => ({ makeViewModel: cache.makeViewModel }),
 				requireLogin: false,
 			}),
-			contact: makeOldViewResolver(() => import("./contacts/view/ContactView.js").then((module) => new module.ContactView())),
+			contact: makeViewResolver<ContactViewAttrs, ContactView, { drawerAttrsFactory: () => DrawerMenuAttrs }>({
+				prepareRoute: async () => {
+					const { ContactView } = await import("./contacts/view/ContactView.js")
+					const drawerAttrsFactory = await locator.drawerAttrsFactory()
+					return {
+						component: ContactView,
+						cache: { drawerAttrsFactory },
+					}
+				},
+				prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory() }),
+			}),
 			externalLogin: makeOldViewResolver(() => import("./login/ExternalLoginView.js").then((module) => new module.ExternalLoginView()), {
 				requireLogin: false,
 			}),
-			mail: makeOldViewResolver(() => import("./mail/view/MailView.js").then((module) => new module.MailView())),
-			settings: makeOldViewResolver(() => import("./settings/SettingsView.js").then((module) => new module.SettingsView())),
-			search: makeOldViewResolver(() => import("./search/view/SearchView.js").then((module) => new module.SearchView())),
+			mail: makeViewResolver<MailViewAttrs, MailView, { drawerAttrsFactory: () => DrawerMenuAttrs; cache: MailViewCache }>({
+				prepareRoute: async (previousCache) => {
+					const { MailView } = await import("./mail/view/MailView.js")
+					return {
+						component: MailView,
+						cache: previousCache ?? {
+							drawerAttrsFactory: await locator.drawerAttrsFactory(),
+							cache: { mailList: null, selectedFolder: null, mailViewerViewModel: null, },
+						},
+					}
+				},
+				prepareAttrs: ({ drawerAttrsFactory, cache }) => ({ drawerAttrs: drawerAttrsFactory(), cache }),
+			}),
+			settings: makeViewResolver<SettingsViewAttrs, SettingsView, { drawerAttrsFactory: () => DrawerMenuAttrs }>({
+				prepareRoute: async () => {
+					const { SettingsView } = await import("./settings/SettingsView.js")
+					const drawerAttrsFactory = await locator.drawerAttrsFactory()
+					return {
+						component: SettingsView,
+						cache: { drawerAttrsFactory },
+					}
+				},
+				prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory() }),
+			}),
+			search: makeViewResolver<SearchViewAttrs, SearchView, { drawerAttrsFactory: () => DrawerMenuAttrs }>({
+				prepareRoute: async () => {
+					const { SearchView } = await import("./search/view/SearchView.js")
+					const drawerAttrsFactory = await locator.drawerAttrsFactory()
+					return {
+						component: SearchView,
+						cache: { drawerAttrsFactory },
+					}
+				},
+				prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory() }),
+			}),
 			contactForm: makeOldViewResolver(() => import("./login/contactform/ContactFormView.js").then((module) => module.contactFormView), {
 				requireLogin: false,
 			}),
-			calendar: makeOldViewResolver(() => import("./calendar/view/CalendarView.js").then((module) => new module.CalendarView())),
+			calendar: makeViewResolver<CalendarViewAttrs, CalendarView, { drawerAttrsFactory: () => DrawerMenuAttrs }>({
+				prepareRoute: async () => {
+					const { CalendarView } = await import("./calendar/view/CalendarView.js")
+					const drawerAttrsFactory = await locator.drawerAttrsFactory()
+					return {
+						component: CalendarView,
+						cache: { drawerAttrsFactory },
+					}
+				},
+				prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory() }),
+			}),
 
 			/**
 			 * The following resolvers are programmed by hand instead of using createViewResolver() in order to be able to properly redirect
