@@ -1,26 +1,19 @@
-import { WorkerImpl } from "./WorkerImpl"
 import type { IProgressMonitor, ProgressMonitorId } from "../common/utils/ProgressMonitor"
+import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 
+/** A wrapper that will send completed work remotely */
 export class ProgressMonitorDelegate implements IProgressMonitor {
-	_worker: WorkerImpl
-	_ref: Promise<ProgressMonitorId>
-	_totalAmount: number
+	private readonly ref: Promise<ProgressMonitorId>
 
-	constructor(totalAmount: number, worker: WorkerImpl) {
-		this._worker = worker
-		this._totalAmount = totalAmount
-		this._ref = this._worker.createProgressMonitor(totalAmount)
+	constructor(private readonly progressTracker: ExposedProgressTracker, readonly totalAmount: number) {
+		this.ref = progressTracker.registerMonitor(totalAmount)
 	}
 
-	workDone(amount: number) {
-		this._ref.then((refIdentifier) => {
-			this._worker.progressWorkDone(refIdentifier, amount)
-		})
+	async workDone(amount: number) {
+		await this.progressTracker.workDoneForMonitor(await this.ref, amount)
 	}
 
-	completed() {
-		this._ref.then((refIdentifier) => {
-			this._worker.progressWorkDone(refIdentifier, this._totalAmount)
-		})
+	async completed() {
+		await this.progressTracker.workDoneForMonitor(await this.ref, this.totalAmount)
 	}
 }
