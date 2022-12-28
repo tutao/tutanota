@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
 import { assertMainOrNode, isApp, isDesktop, isIOSApp, isTutanotaDomain } from "../api/common/Env"
 import { ColumnType, ViewColumn } from "../gui/base/ViewColumn"
@@ -6,7 +6,7 @@ import { ViewSlider } from "../gui/nav/ViewSlider.js"
 import { SettingsFolder } from "./SettingsFolder"
 import { lang } from "../misc/LanguageViewModel"
 import type { CurrentView } from "../gui/Header.js"
-import { header } from "../gui/Header.js"
+import { header, TopLevelAttrs } from "../gui/Header.js"
 import { LoginSettingsViewer } from "./login/LoginSettingsViewer.js"
 import { GlobalSettingsViewer } from "./GlobalSettingsViewer"
 import { DesktopSettingsViewer } from "./DesktopSettingsViewer"
@@ -61,6 +61,8 @@ import { exportUserCsv } from "./UserDataExporter.js"
 import { IconButton } from "../gui/base/IconButton.js"
 import { BottomNav } from "../gui/nav/BottomNav.js"
 import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
+import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu.js"
+import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 
 assertMainOrNode()
 
@@ -76,8 +78,11 @@ export interface UpdatableSettingsDetailsViewer {
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown>
 }
 
-export class SettingsView implements CurrentView {
-	readonly view: CurrentView["view"]
+export interface SettingsViewAttrs extends TopLevelAttrs {
+	drawerAttrs: DrawerMenuAttrs
+}
+
+export class SettingsView extends BaseTopLevelView implements CurrentView<SettingsViewAttrs> {
 	viewSlider: ViewSlider
 	private readonly _settingsFoldersColumn: ViewColumn
 	private readonly _settingsColumn: ViewColumn
@@ -94,7 +99,8 @@ export class SettingsView implements CurrentView {
 	_customDomains: LazyLoaded<string[]>
 	_templateInvitations: ReceivedGroupInvitationsModel
 
-	constructor() {
+	constructor(vnode: Vnode<SettingsViewAttrs>) {
+		super()
 		this._userFolders = [
 			new SettingsFolder(
 				"login_label",
@@ -282,6 +288,7 @@ export class SettingsView implements CurrentView {
 					const templateInvitations = this._templateInvitations.invitations()
 
 					return m(FolderColumnView, {
+						drawer: vnode.attrs.drawerAttrs,
 						button: null,
 						content: m(".flex.flex-grow.col", [
 							m(
@@ -359,24 +366,34 @@ export class SettingsView implements CurrentView {
 		)
 		this.viewSlider = new ViewSlider([this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn], "SettingsView")
 
-		this.view = (): Vnode<any> => {
-			return m(
-				"#settings.main-view",
-				m(this.viewSlider, {
-					header: m(header),
-					bottomNav: m(BottomNav),
-				}),
-			)
-		}
-
-		locator.eventController.addEntityListener((updates) => {
-			return this.entityEventsReceived(updates)
-		})
 		this._customDomains = new LazyLoaded(() => {
 			return getAvailableDomains(locator.entityClient, logins, true)
 		})
 
 		this._customDomains.getAsync().then(() => m.redraw())
+	}
+
+	oncreate(vnode: Vnode<SettingsViewAttrs>) {
+		super.oncreate(vnode)
+		locator.eventController.addEntityListener(this.entityListener)
+	}
+
+	onremove(vnode: VnodeDOM<SettingsViewAttrs>) {
+		locator.eventController.removeEntityListener(this.entityListener)
+	}
+
+	private entityListener = (updates: EntityUpdateData[]) => {
+		return this.entityEventsReceived(updates)
+	}
+
+	view(): Children {
+		return m(
+			"#settings.main-view",
+			m(this.viewSlider, {
+				header: m(header),
+				bottomNav: m(BottomNav),
+			}),
+		)
 	}
 
 	_createSettingsFolderNavButton(folder: SettingsFolder<unknown>): NavButtonAttrs {
@@ -502,7 +519,7 @@ export class SettingsView implements CurrentView {
 	/**
 	 * Notifies the current view about changes of the url within its scope.
 	 */
-	updateUrl(args: Record<string, any>, requestedPath: string) {
+	onNewUrl(args: Record<string, any>, requestedPath: string) {
 		if (!args.folder) {
 			this._setUrl(this._userFolders[0].url)
 		} else if (args.folder || !m.route.get().startsWith("/settings")) {

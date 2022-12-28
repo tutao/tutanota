@@ -3,8 +3,7 @@ import { Button, ButtonColor, ButtonType } from "../base/Button.js"
 import { BootIcons } from "../base/icons/BootIcons"
 import { LogoutUrl } from "../Header.js"
 import { isNewMailActionAvailable, showSupportDialog, showUpgradeDialog, writeInviteMail } from "./NavFunctions"
-import { isDesktop, isIOSApp } from "../../api/common/Env"
-import { logins } from "../../api/main/LoginController"
+import { isIOSApp } from "../../api/common/Env"
 import { navButtonRoutes } from "../../misc/RouteChange"
 import { getSafeAreaInsetLeft } from "../HtmlUtils"
 import { Icons } from "../base/icons/Icons"
@@ -14,16 +13,20 @@ import { keyManager } from "../../misc/KeyManager"
 import { CounterBadge } from "../base/CounterBadge.js"
 import { px } from "../size.js"
 import { theme } from "../theme.js"
-import { locator } from "../../api/main/MainLocator.js"
 import { showNewsDialog } from "../../misc/news/NewsDialog.js"
+import { LoginController } from "../../api/main/LoginController.js"
+import { NewsModel } from "../../misc/news/NewsModel.js"
+import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
 
-type Attrs = {
-	openNewWindow(): unknown
+export interface DrawerMenuAttrs {
+	logins: LoginController
+	newsModel: NewsModel
+	desktopSystemFacade: DesktopSystemFacade | null
 }
 
-export class DrawerMenu implements Component<Attrs> {
-	view(vnode: Vnode<Attrs>): Children {
-		const newsModel = locator.newsModel
+export class DrawerMenu implements Component<DrawerMenuAttrs> {
+	view(vnode: Vnode<DrawerMenuAttrs>): Children {
+		const { logins, newsModel, desktopSystemFacade } = vnode.attrs
 		const liveNewsCount = newsModel.liveNewsIds.length
 
 		return m(
@@ -71,12 +74,12 @@ export class DrawerMenu implements Component<Attrs> {
 							colors: ButtonColor.DrawerNav,
 					  })
 					: null,
-				isDesktop()
+				desktopSystemFacade
 					? m(Button, {
 							icon: () => Icons.NewWindow,
 							label: "openNewWindow_action",
 							click: () => {
-								vnode.attrs.openNewWindow()
+								desktopSystemFacade.openNewWindow()
 							},
 							type: ButtonType.ActionLarge,
 							colors: ButtonColor.DrawerNav,

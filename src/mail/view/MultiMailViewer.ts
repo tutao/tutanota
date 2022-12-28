@@ -36,7 +36,7 @@ export class MultiMailViewer implements Component {
 			return [
 				m(
 					".fill-absolute.mt-xs",
-					mailView.mailList && mailView.mailList.list.getSelectedEntities().length > 0
+					mailView.cache.mailList && mailView.cache.mailList.list.getSelectedEntities().length > 0
 						? [
 								m(
 									".flex-space-between.pl-l",
@@ -64,7 +64,7 @@ export class MultiMailViewer implements Component {
 	}
 
 	_getMailSelectionMessage(mailView: MailView): string {
-		let nbrOfSelectedMails = mailView.mailList ? mailView.mailList.list.getSelectedEntities().length : 0
+		let nbrOfSelectedMails = mailView.cache.mailList ? mailView.cache.mailList.list.getSelectedEntities().length : 0
 
 		if (nbrOfSelectedMails === 0) {
 			return lang.get("noMail_msg")
@@ -78,13 +78,13 @@ export class MultiMailViewer implements Component {
 	}
 
 	getActionBarButtons(prependCancel: boolean = false): IconButtonAttrs[] {
-		const selectedMails = this._mailView.mailList?.list.getSelectedEntities() ?? []
+		const selectedMails = this._mailView.cache.mailList?.list.getSelectedEntities() ?? []
 
 		const cancel: IconButtonAttrs[] = prependCancel
 			? [
 					{
 						title: "cancel_action",
-						click: () => this._mailView.mailList?.list.selectNone(),
+						click: () => this._mailView.cache.mailList?.list.selectNone(),
 						icon: Icons.Cancel,
 					},
 			  ]
@@ -108,7 +108,7 @@ export class MultiMailViewer implements Component {
 			{
 				title: "delete_action",
 				click: () => {
-					promptAndDeleteMails(locator.mailModel, selectedMails, () => this._mailView.mailList?.list.selectNone())
+					promptAndDeleteMails(locator.mailModel, selectedMails, () => this._mailView.cache.mailList?.list.selectNone())
 				},
 				icon: Icons.Trash,
 			},
@@ -166,7 +166,7 @@ export class MultiMailViewer implements Component {
 			.filter(
 				(folderInfo) =>
 					allMailsAllowedInsideFolder(selectedEntities, folderInfo.folder) &&
-					(this._mailView.selectedFolder == null || !haveSameId(folderInfo.folder, this._mailView.selectedFolder)),
+					(this._mailView.cache.selectedFolder == null || !haveSameId(folderInfo.folder, this._mailView.cache.selectedFolder)),
 			)
 			.map((folderInfo) => {
 				return {
@@ -192,9 +192,9 @@ export class MultiMailViewer implements Component {
 	 */
 	_actionBarAction(action: (arg0: Mail[]) => unknown): () => void {
 		return () => {
-			const mails = this._mailView.mailList?.list.getSelectedEntities() ?? []
+			const mails = this._mailView.cache.mailList?.list.getSelectedEntities() ?? []
 
-			this._mailView.mailList?.list.selectNone()
+			this._mailView.cache.mailList?.list.selectNone()
 
 			action(mails)
 		}
