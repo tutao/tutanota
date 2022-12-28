@@ -3,11 +3,12 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { header } from "../../gui/Header.js"
 import { modal } from "../../gui/base/Modal"
 import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX, SETTINGS_PREFIX } from "../../misc/RouteChange"
-import { IMainLocator, locator } from "../../api/main/MainLocator"
 import { last } from "@tutao/tutanota-utils"
 import { CloseEventBusOption, MailFolderType, SECOND_MS } from "../../api/common/TutanotaConstants.js"
 import { MobileFacade } from "../common/generatedipc/MobileFacade.js"
 import { styles } from "../../gui/styles"
+import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
+import { MailModel } from "../../mail/model/MailModel.js"
 
 assertMainOrNode()
 
@@ -17,6 +18,8 @@ assertMainOrNode()
  */
 export class WebMobileFacade implements MobileFacade {
 	private disconnectTimeoutId: TimeoutID | null
+
+	constructor(private readonly connectivityModel: WebsocketConnectivityModel, private readonly mailModel: MailModel) {}
 
 	async handleBackPress(): Promise<boolean> {
 		return Promise.resolve().then(() => {
@@ -67,7 +70,7 @@ export class WebMobileFacade implements MobileFacade {
 
 						if (parts.length > 1) {
 							const selectedMailListId = parts[1]
-							return locator.mailModel.getMailboxDetails().then((mailboxDetails) => {
+							return this.mailModel.getMailboxDetails().then((mailboxDetails) => {
 								const inboxMailListId = mailboxDetails[0].folders.getSystemFolderByType(MailFolderType.INBOX).mails
 
 								if (inboxMailListId !== selectedMailListId) {
@@ -90,7 +93,6 @@ export class WebMobileFacade implements MobileFacade {
 
 	async visibilityChange(visibility: boolean): Promise<void> {
 		console.log("native visibility change", visibility)
-		const locator = await WebMobileFacade.getInitializedLocator()
 
 		if (visibility) {
 			if (this.disconnectTimeoutId != null) {
@@ -98,10 +100,10 @@ export class WebMobileFacade implements MobileFacade {
 				this.disconnectTimeoutId = null
 			}
 
-			return locator.worker.tryReconnectEventBus(false, true)
+			return this.connectivityModel.tryReconnect(false, true)
 		} else {
 			this.disconnectTimeoutId = setTimeout(() => {
-				locator.worker.closeEventBus(CloseEventBusOption.Pause)
+				this.connectivityModel.close(CloseEventBusOption.Pause)
 			}, 30 * SECOND_MS)
 		}
 	}
@@ -109,11 +111,5 @@ export class WebMobileFacade implements MobileFacade {
 	async keyboardSizeChanged(newSize: number): Promise<void> {
 		const { windowFacade } = await import("../../misc/WindowFacade.js")
 		return windowFacade.onKeyboardSizeChanged(newSize)
-	}
-
-	private static async getInitializedLocator(): Promise<IMainLocator> {
-		const { locator } = await import("../../api/main/MainLocator")
-		await locator.initialized
-		return locator
 	}
 }

@@ -66,7 +66,6 @@ import { ThemeFacade } from "../../native/common/generatedipc/ThemeFacade.js"
 import { FileControllerBrowser } from "../../file/FileControllerBrowser.js"
 import { FileControllerNative } from "../../file/FileControllerNative.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
-import { InterWindowEventFacade } from "../../native/common/generatedipc/InterWindowEventFacade.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 import { NewsModel } from "../../misc/news/NewsModel.js"
@@ -81,9 +80,10 @@ import type { CreateMailViewerOptions } from "../../mail/view/MailViewer.js"
 import type { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 import type { MailViewerViewModel } from "../../mail/view/MailViewerViewModel.js"
 import { NoZoneDateProvider } from "../common/utils/NoZoneDateProvider.js"
+import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
+import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 
 assertMainOrNode()
-
 
 class MainLocator {
 	eventController!: EventController
@@ -130,6 +130,7 @@ class MainLocator {
 	loginListener!: LoginListener
 	random!: WorkerRandomizer
 	sqlCipherFacade!: SqlCipherFacade
+	connectivityModel!: WebsocketConnectivityModel
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private exposedNativeInterfaces: ExposedNativeInterface | null = null
@@ -230,6 +231,7 @@ class MainLocator {
 			await this.loginController(),
 			this.serviceExecutor,
 			() => this.sendMailModel(mailboxDetails, mailboxProperties),
+			this.eventController,
 		)
 	}
 
@@ -284,6 +286,15 @@ class MainLocator {
 	async adminNameChanger(mailGroupId: Id, userId: Id): Promise<MailAddressNameChanger> {
 		const { AnotherUserMailAddressNameChanger } = await import("../../settings/mailaddress/AnotherUserMailAddressNameChanger.js")
 		return new AnotherUserMailAddressNameChanger(this.mailAddressFacade, mailGroupId, userId)
+	}
+
+	async drawerAttrsFactory(): Promise<() => DrawerMenuAttrs> {
+		const logins = await this.loginController()
+		return () => ({
+			logins,
+			newsModel: this.newsModel,
+			desktopSystemFacade: this.desktopSystemFacade,
+		})
 	}
 
 	private getExposedNativeInterface(): ExposedNativeInterface {
@@ -356,6 +367,7 @@ class MainLocator {
 			cryptoFacade,
 			cacheStorage,
 			random,
+			eventBus
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -382,6 +394,8 @@ class MainLocator {
 		this.entityClient = new EntityClient(restInterface)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
+		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
+		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient, logins)
 
 		if (!isBrowser()) {
 			const { WebDesktopFacade } = await import("../../native/main/WebDesktopFacade")
@@ -391,7 +405,7 @@ class MainLocator {
 			const { WebAuthnFacadeSendDispatcher } = await import("../../native/common/generatedipc/WebAuthnFacadeSendDispatcher.js")
 			const { createNativeInterfaces, createDesktopInterfaces } = await import("../../native/main/NativeInterfaceFactory.js")
 			this.nativeInterfaces = createNativeInterfaces(
-				new WebMobileFacade(),
+				new WebMobileFacade(this.connectivityModel, this.mailModel),
 				new WebDesktopFacade(),
 				new WebInterWindowEventFacade(logins, windowFacade),
 				new WebCommonNativeFacade(),
@@ -427,7 +441,6 @@ class MainLocator {
 			this.nativeInterfaces?.native ?? null,
 			isDesktop() ? this.interWindowEventSender : null,
 		)
-		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient, logins)
 		this.random = random
 
 		this.usageTestModel = new UsageTestModel(

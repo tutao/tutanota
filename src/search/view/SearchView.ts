@@ -1,4 +1,4 @@
-import m, { Children } from "mithril"
+import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
@@ -33,7 +33,7 @@ import { logins } from "../../api/main/LoginController"
 import { PageSize } from "../../gui/base/List"
 import { MultiSelectionBar } from "../../gui/base/MultiSelectionBar"
 import type { CurrentView } from "../../gui/Header.js"
-import { header } from "../../gui/Header.js"
+import { header, TopLevelAttrs } from "../../gui/Header.js"
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { isUpdateForTypeRef } from "../../api/main/EventController"
 import { getStartOfTheWeekOffsetForUser } from "../../calendar/date/CalendarUtils"
@@ -55,12 +55,16 @@ import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { MobileMailActionBar } from "../../mail/view/MobileMailActionBar.js"
+import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
+import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 
 assertMainOrNode()
 
-export class SearchView implements CurrentView {
-	view: CurrentView["view"]
-	oncreate: CurrentView["oncreate"]
+export interface SearchViewAttrs extends TopLevelAttrs {
+	drawerAttrs: DrawerMenuAttrs
+}
+
+export class SearchView extends BaseTopLevelView implements CurrentView<SearchViewAttrs> {
 	onremove: CurrentView["onremove"]
 
 	private resultListColumn: ViewColumn
@@ -94,7 +98,8 @@ export class SearchView implements CurrentView {
 	private selectedMailField: string | null = null
 	private readonly availableMailFields = SEARCH_MAIL_FIELDS.map((f) => ({ name: lang.get(f.textId), value: f.field }))
 
-	constructor() {
+	constructor(vnode: Vnode<SearchViewAttrs>) {
+		super()
 		locator.mailModel.mailboxDetails.map((mailboxes) => {
 			this.availableMailFolders = [
 				{
@@ -127,6 +132,7 @@ export class SearchView implements CurrentView {
 				view: () => {
 					const restriction = getRestriction(m.route.get())
 					return m(FolderColumnView, {
+						drawer: vnode.attrs.drawerAttrs,
 						button: this.getMainButton(restriction.type),
 						content: [
 							m(
@@ -191,26 +197,26 @@ export class SearchView implements CurrentView {
 		)
 		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn], "ContactView")
 
-		this.view = (): Children => {
-			return m(
-				"#search.main-view",
-				m(this.viewSlider, {
-					header: m(header),
-					bottomNav:
-						styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.resultDetailsColumn && this.viewer._viewer?.mode === "mail"
-							? m(MobileMailActionBar, { viewModel: this.viewer._viewer.viewModel })
-							: m(BottomNav),
-				}),
-			)
-		}
-
 		this._setupShortcuts()
+	}
 
-		locator.eventController.addEntityListener((updates) => {
-			return promiseMap(updates, (update) => {
-				return this.entityEventReceived(update)
-			}).then(noOp)
-		})
+	private entityListener = (updates: EntityUpdateData[]) => {
+		return promiseMap(updates, (update) => {
+			return this.entityEventReceived(update)
+		}).then(noOp)
+	}
+
+	view(): Children {
+		return m(
+			"#search.main-view",
+			m(this.viewSlider, {
+				header: m(header),
+				bottomNav:
+					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.resultDetailsColumn && this.viewer._viewer?.mode === "mail"
+						? m(MobileMailActionBar, { viewModel: this.viewer._viewer.viewModel })
+						: m(BottomNav),
+			}),
+		)
 	}
 
 	_renderSearchFilters(): Children {
@@ -410,7 +416,7 @@ export class SearchView implements CurrentView {
 	}
 
 	_setupShortcuts() {
-		let shortcuts = [
+		let shortcuts: Array<Shortcut> = [
 			{
 				key: Keys.UP,
 				exec: () => this.searchList.selectPrevious(false),
@@ -488,16 +494,19 @@ export class SearchView implements CurrentView {
 				exec: () => this.searchList.moveSelectedToInbox(),
 				help: "moveToInbox_action",
 			},
-		] as Array<Shortcut>
+		]
 
-		this.oncreate = () => {
+		this.oncreate = (vnode) => {
+			super.oncreate(vnode)
 			keyManager.registerShortcuts(shortcuts)
 			neverNull(header.searchBar).setReturnListener(() => this.resultListColumn.focus())
+			locator.eventController.addEntityListener(this.entityListener)
 		}
 
 		this.onremove = () => {
 			keyManager.unregisterShortcuts(shortcuts)
 			neverNull(header.searchBar).setReturnListener(noOp)
+			locator.eventController.removeEntityListener(this.entityListener)
 		}
 	}
 
@@ -518,12 +527,7 @@ export class SearchView implements CurrentView {
 		}
 	}
 
-	/**
-	 * Notifies the current view about changes of the url within its scope.
-	 *
-	 * @param args Object containing the optional parts of the url which are listId and contactId for the contact view.
-	 */
-	updateUrl(args: Record<string, any>, requestedPath: string) {
+	onNewUrl(args: Record<string, any>, requestedPath: string) {
 		let restriction
 
 		try {

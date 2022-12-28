@@ -6,6 +6,7 @@ import { client } from "./ClientDetector"
 import { logins } from "../api/main/LoginController"
 import type { Indexer } from "../api/worker/search/Indexer"
 import { remove } from "@tutao/tutanota-utils"
+import {WebsocketConnectivityModel} from "./WebsocketConnectivityModel.js"
 
 assertMainOrNodeBoot()
 export type KeyboardSizeListener = (keyboardSize: number) => unknown
@@ -17,12 +18,12 @@ export class WindowFacade {
 	windowCloseConfirmation: boolean
 	private _windowCloseListeners: Set<(e: Event) => unknown>
 	private _historyStateEventListeners: Array<(e: Event) => boolean> = []
-	private _worker: WorkerClient | null = null
 	private _indexerFacade: Indexer | null = null
 	// following two properties are for the iOS
 	private _keyboardSize: number = 0
 	private _keyboardSizeListeners: KeyboardSizeListener[] = []
 	private _ignoreNextPopstate: boolean = false
+	private connectivityModel!: WebsocketConnectivityModel
 
 	constructor() {
 		this._windowSizeListeners = []
@@ -34,8 +35,8 @@ export class WindowFacade {
 			// We need to wait til the locator has finished initializing before we read from it
 			// because it is happening concurrently
 			await locator.initialized
-			this._worker = locator.worker
 			this._indexerFacade = locator.indexerFacade
+			this.connectivityModel = locator.connectivityModel
 
 			if (env.mode === Mode.App || env.mode === Mode.Desktop || env.mode === Mode.Admin) {
 				this.addPageInBackgroundListener()
@@ -261,7 +262,7 @@ export class WindowFacade {
 					// We used to handle it in the EventBus and reconnect immediately but isIosApp()
 					// check does not work in the worker currently.
 					// Doing this for all apps just to be sure.
-					setTimeout(() => this._worker?.tryReconnectEventBus(false, true), 100)
+					setTimeout(() => this.connectivityModel?.tryReconnect(false, true), 100)
 				}
 			})
 		}

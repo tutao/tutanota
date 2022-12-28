@@ -1,9 +1,9 @@
-import m, { Children } from "mithril"
+import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { ContactViewer } from "./ContactViewer"
 import type { CurrentView } from "../../gui/Header.js"
-import { header } from "../../gui/Header.js"
+import { header, TopLevelAttrs } from "../../gui/Header.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { ContactEditor } from "../ContactEditor"
 import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
@@ -46,10 +46,16 @@ import { showFileChooser } from "../../file/FileController.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { BottomNav } from "../../gui/nav/BottomNav.js"
+import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
+import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 
 assertMainOrNode()
 
-export class ContactView implements CurrentView {
+export interface ContactViewAttrs extends TopLevelAttrs {
+	drawerAttrs: DrawerMenuAttrs
+}
+
+export class ContactView extends BaseTopLevelView implements CurrentView<ContactViewAttrs> {
 	listColumn: ViewColumn
 	contactColumn: ViewColumn
 	folderColumn: ViewColumn
@@ -57,17 +63,17 @@ export class ContactView implements CurrentView {
 	viewSlider: ViewSlider
 	_contactList: ContactListView | null = null
 	private _multiContactViewer: MultiContactViewer
-	view: CurrentView["view"]
-	oncreate: CurrentView["oncreate"]
 	onremove: CurrentView["onremove"]
 	private _throttledSetUrl: (url: string) => void
 
-	constructor() {
+	constructor(vnode: Vnode<ContactViewAttrs>) {
+		super()
 		this._throttledSetUrl = throttleRoute()
 		this.folderColumn = new ViewColumn(
 			{
 				view: () =>
 					m(FolderColumnView, {
+						drawer: vnode.attrs.drawerAttrs,
 						button:
 							styles.isUsingBottomNavigation() || !this._contactList
 								? null
@@ -128,21 +134,32 @@ export class ContactView implements CurrentView {
 		)
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.contactColumn], "ContactView")
 
-		this.view = (): Children => {
-			return m(
-				"#contact.main-view",
-				m(this.viewSlider, {
-					header: m(header),
-					bottomNav: m(BottomNav),
-				}),
-			)
+		const shortcuts = this.getShortcuts()
+		this.oncreate = (vnode) => {
+			super.oncreate(vnode)
+			keyManager.registerShortcuts(shortcuts)
+			locator.eventController.addEntityListener(this.entityListener)
 		}
 
-		this._setupShortcuts()
+		this.onremove = () => {
+			keyManager.unregisterShortcuts(shortcuts)
+			locator.eventController.removeEntityListener(this.entityListener)
+		}
 
-		locator.eventController.addEntityListener((updates) => {
-			return promiseMap(updates, (update) => this._processEntityUpdate(update)).then(noOp)
-		})
+	}
+
+	private entityListener = (updates: EntityUpdateData[]) => {
+		return promiseMap(updates, (update) => this._processEntityUpdate(update)).then(noOp)
+	}
+
+	view(): Children {
+		return m(
+			"#contact.main-view",
+			m(this.viewSlider, {
+				header: m(header),
+				bottomNav: m(BottomNav),
+			}),
+		)
 	}
 
 	createNewContact(): void {
@@ -167,7 +184,7 @@ export class ContactView implements CurrentView {
 		}
 	}
 
-	_setupShortcuts() {
+	private getShortcuts() {
 		let shortcuts: Shortcut[] = [
 			{
 				key: Keys.UP,
@@ -238,9 +255,7 @@ export class ContactView implements CurrentView {
 			},
 		]
 
-		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
-
-		this.onremove = () => keyManager.unregisterShortcuts(shortcuts)
+		return shortcuts
 	}
 
 	createContactFoldersExpanderChildren(): Children {
@@ -456,12 +471,7 @@ export class ContactView implements CurrentView {
 		}
 	}
 
-	/**
-	 * Notifies the current view about changes of the url within its scope.
-	 *
-	 * @param args Object containing the optional parts of the url which are listId and contactId for the contact view.
-	 */
-	updateUrl(args: Record<string, any>) {
+	onNewUrl(args: Record<string, any>) {
 		if (!this._contactList && !args.listId) {
 			locator.contactModel.contactListId().then((contactListId) => {
 				contactListId && this._setUrl(`/contact/${contactListId}`)

@@ -1,5 +1,5 @@
-import m, { Children } from "mithril"
-import type { CurrentView } from "../../gui/Header.js"
+import m, { Children, Component, Vnode } from "mithril"
+import type { CurrentView, TopLevelAttrs } from "../../gui/Header.js"
 import { header } from "../../gui/Header.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
@@ -52,12 +52,17 @@ import { IconButton } from "../../gui/base/IconButton.js"
 import { createDropdown } from "../../gui/base/Dropdown.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { BottomNav } from "../../gui/nav/BottomNav.js"
+import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
+import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 export type GroupColors = Map<Id, string>
 
-// noinspection JSUnusedGlobalSymbols
-export class CalendarView implements CurrentView {
+export interface CalendarViewAttrs extends TopLevelAttrs {
+	drawerAttrs: DrawerMenuAttrs
+}
+
+export class CalendarView extends BaseTopLevelView implements CurrentView<CalendarViewAttrs> {
 	sidebarColumn: ViewColumn
 	contentColumn: ViewColumn
 	viewSlider: ViewSlider
@@ -65,10 +70,10 @@ export class CalendarView implements CurrentView {
 	_calendarViewModel: CalendarViewModel
 	// For sanitizing event descriptions, which get rendered as html in the CalendarEventPopup
 	readonly _htmlSanitizer: Promise<HtmlSanitizer>
-	oncreate: (...args: Array<any>) => any
-	onremove: (...args: Array<any>) => any
+	onremove: Component["onremove"]
 
-	constructor() {
+	constructor(vnode: Vnode<CalendarViewAttrs>) {
+		super()
 		const userId = logins.getUserController().user._id
 
 		const calendarInvitations = new ReceivedGroupInvitationsModel(GroupType.Calendar, locator.eventController, locator.entityClient, logins)
@@ -89,6 +94,7 @@ export class CalendarView implements CurrentView {
 			{
 				view: () =>
 					m(FolderColumnView, {
+						drawer: vnode.attrs.drawerAttrs,
 						button: styles.isUsingBottomNavigation()
 							? null
 							: {
@@ -298,7 +304,8 @@ export class CalendarView implements CurrentView {
 
 		const streamListeners: Stream<void>[] = []
 
-		this.oncreate = () => {
+		this.oncreate = (vnode) => {
+			super.oncreate(vnode)
 			keyManager.registerShortcuts(shortcuts)
 			streamListeners.push(
 				this._calendarViewModel.calendarInvitations.map(() => {
@@ -734,7 +741,7 @@ export class CalendarView implements CurrentView {
 		)
 	}
 
-	updateUrl(args: Record<string, any>) {
+	onNewUrl(args: Record<string, any>) {
 		if (!args.view) {
 			this._setUrl(this._currentViewType, this._calendarViewModel.selectedDate(), true)
 		} else {
