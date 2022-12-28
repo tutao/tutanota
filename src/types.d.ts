@@ -28,7 +28,6 @@ declare type MainRequestType =
 	| "progress"
 	| "updateIndexState"
 	| "counterUpdate"
-	| "updateLeaderStatus"
 	| "infoMessage"
 	| "createProgressMonitor"
 	| "progressWorkDone"
