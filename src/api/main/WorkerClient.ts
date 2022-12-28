@@ -5,14 +5,13 @@ import { assertMainOrNode } from "../common/Env"
 import type { IMainLocator } from "./MainLocator"
 import { client } from "../../misc/ClientDetector"
 import type { DeferredObject } from "@tutao/tutanota-utils"
-import { defer, downcast, identity } from "@tutao/tutanota-utils"
+import { defer, downcast } from "@tutao/tutanota-utils"
 import { objToError } from "../common/utils/Utils"
 import type { InfoMessage } from "../common/CommonTypes"
 import { handleUncaughtError } from "../../misc/ErrorHandler"
 import type { MainInterface, WorkerInterface } from "../worker/WorkerImpl"
 import { exposeLocal, exposeRemote } from "../common/WorkerProxy"
 import type { EntropySource } from "@tutao/tutanota-crypto"
-import type { CloseEventBusOption } from "../common/TutanotaConstants"
 import stream from "mithril/stream"
 import type { RestClient } from "../worker/rest/RestClient"
 import { createWebsocketLeaderStatus, WebsocketLeaderStatus } from "../entities/sys/TypeRefs"
@@ -34,7 +33,6 @@ export class WorkerClient {
 
 	private _dispatcher!: MessageDispatcher<WorkerRequestType, MainRequestType>
 	private _progressUpdater: ProgressUpdater | null = null
-	readonly _wsConnection: stream<WsConnectionState> = stream<WsConnectionState>(WsConnectionState.terminated)
 	// Should be empty stream unless there's really a message.
 	readonly infoMessages: stream<InfoMessage> = stream()
 	private _leaderStatus: WebsocketLeaderStatus
@@ -114,11 +112,6 @@ export class WorkerClient {
 				locator.search.indexState(downcast(message.args[0]))
 				return Promise.resolve()
 			},
-			updateWebSocketState: (message: MainRequest) => {
-				this._wsConnection(downcast(message.args[0]))
-
-				return Promise.resolve()
-			},
 			counterUpdate: (message: MainRequest) => {
 				locator.eventController.counterUpdateReceived(downcast(message.args[0]))
 				return Promise.resolve()
@@ -147,16 +140,15 @@ export class WorkerClient {
 				get loginListener() {
 					return locator.loginListener
 				},
+				get wsConnectivityListener() {
+					return locator.connectivityModel
+				}
 			}),
 		}
 	}
 
 	getWorkerInterface(): WorkerInterface {
 		return exposeRemote<WorkerInterface>(async (request) => this._postRequest(request))
-	}
-
-	tryReconnectEventBus(closeIfOpen: boolean, enableAutomaticState: boolean, delay: number | null = null): Promise<void> {
-		return this._postRequest(new Request("tryReconnectEventBus", [closeIfOpen, enableAutomaticState, delay]))
 	}
 
 	restRequest(...args: Parameters<RestClient["request"]>): Promise<any | null> {
@@ -186,14 +178,6 @@ export class WorkerClient {
 
 	generateSsePushIdentifer(): Promise<string> {
 		return this._postRequest(new Request("generateSsePushIdentifer", [...arguments]))
-	}
-
-	wsConnection(): stream<WsConnectionState> {
-		return this._wsConnection.map(identity)
-	}
-
-	closeEventBus(closeOption: CloseEventBusOption): Promise<void> {
-		return this._dispatcher.postRequest(new Request("closeEventBus", [closeOption]))
 	}
 
 	reset(): Promise<void> {

@@ -31,6 +31,7 @@ import { WsConnectionState } from "../../api/main/WorkerClient"
 import { findAndApplyMatchingRule, isInboxList } from "../model/InboxRuleHandler.js"
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { FolderSystem } from "../model/FolderSystem.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../api/main/EventController.js"
 
 assertMainOrNode()
 const className = "mail-list"
@@ -148,6 +149,24 @@ export class MailListView implements Component {
 
 		// "this" is incorrectly bound if we don't do it this way
 		this.view = this.view.bind(this)
+
+		locator.eventController.addEntityListener(this.entityListener)
+	}
+
+	dispose() {
+		locator.eventController.removeEntityListener(this.entityListener)
+	}
+
+	private entityListener = async (events: EntityUpdateData[]) => {
+		for (const update of events) {
+			if (isUpdateForTypeRef(MailTypeRef, update)) {
+				const { instanceListId, instanceId, operation } = update
+
+				if (instanceListId === this.listId) {
+					await this.list.entityEventReceived(instanceId, operation)
+				}
+			}
+		}
 	}
 
 	private getRecoverFolder(mail: Mail, folders: FolderSystem) {
@@ -318,7 +337,7 @@ export class MailListView implements Component {
 		async (listId: Id, checkIfListChanged: () => boolean) => {
 			// If folders are changed, list won't have the data we need.
 			// Do not rely on counters if we are not connected
-			if (this.listId !== listId || locator.worker.wsConnection()() !== WsConnectionState.connected) {
+			if (this.listId !== listId || locator.connectivityModel.wsConnection()() !== WsConnectionState.connected) {
 				return
 			}
 
@@ -342,7 +361,7 @@ export class MailListView implements Component {
 
 	view(vnode: Vnode): Children {
 		// Save the folder before showing the dialog so that there's no chance that it will change
-		const folder = this.mailView.selectedFolder
+		const folder = this.mailView.cache.selectedFolder
 		const purgeButtonAttrs: ButtonAttrs = {
 			label: "clearFolder_action",
 			type: ButtonType.Primary,
@@ -404,25 +423,30 @@ export class MailListView implements Component {
 		)
 	}
 
-	targetInbox(): boolean {
-		if (this.mailView.selectedFolder) {
-			return this.mailView.selectedFolder.folderType === MailFolderType.ARCHIVE || this.mailView.selectedFolder.folderType === MailFolderType.TRASH
+	private targetInbox(): boolean {
+		if (this.mailView.cache.selectedFolder) {
+			return (
+				this.mailView.cache.selectedFolder.folderType === MailFolderType.ARCHIVE ||
+				this.mailView.cache.selectedFolder.folderType === MailFolderType.TRASH
+			)
 		} else {
 			return false
 		}
 	}
 
-	showingTrashOrSpamFolder(): boolean {
-		if (this.mailView.selectedFolder) {
-			return this.mailView.selectedFolder.folderType === MailFolderType.SPAM || this.mailView.selectedFolder.folderType === MailFolderType.TRASH
+	private showingTrashOrSpamFolder(): boolean {
+		if (this.mailView.cache.selectedFolder) {
+			return (
+				this.mailView.cache.selectedFolder.folderType === MailFolderType.SPAM || this.mailView.cache.selectedFolder.folderType === MailFolderType.TRASH
+			)
 		} else {
 			return false
 		}
 	}
 
-	showingDraftFolder(): boolean {
-		if (this.mailView.selectedFolder) {
-			return this.mailView.selectedFolder.folderType === MailFolderType.DRAFT
+	private showingDraftFolder(): boolean {
+		if (this.mailView.cache.selectedFolder) {
+			return this.mailView.cache.selectedFolder.folderType === MailFolderType.DRAFT
 		} else {
 			return false
 		}

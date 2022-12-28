@@ -68,7 +68,8 @@ export class SearchResultDetailsViewer {
 				showFolder: true,
 			}
 			if (this._viewer != null && this._viewer.mode === "mail" && isSameId(this._viewer.viewModel.mail._id, mail._id)) {
-				this._viewer.viewModel.updateMail(viewModelParams)
+				// FIXME why
+				// this._viewer.viewModel.updateMail(viewModelParams)
 			} else {
 				const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(viewModelParams.mail)
 				const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
