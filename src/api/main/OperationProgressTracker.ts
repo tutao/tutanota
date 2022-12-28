@@ -12,7 +12,7 @@ export class OperationProgressTracker {
 
 	registerOperation(): { id: OperationId; progress: Stream<number>; done: () => unknown } {
 		const id = this.operationId++
-		const progress = stream<number>()
+		const progress = stream<number>(0)
 		this.progressPerOp.set(id, progress)
 		return { id, progress, done: () => this.progressPerOp.delete(id) }
 	}

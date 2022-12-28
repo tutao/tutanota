@@ -308,13 +308,6 @@ export class WorkerImpl implements NativeInterface {
 		return this._dispatcher.postRequest(new Request("error", [errorToObj(e)]))
 	}
 
-	sendProgress(progressPercentage: number): Promise<void> {
-		return this._dispatcher.postRequest(new Request("progress", [progressPercentage])).then(() => {
-			// the worker sometimes does not send the request if it does not get time
-			return delay(0)
-		})
-	}
-
 	sendIndexState(state: SearchIndexStateInfo): Promise<void> {
 		return this._dispatcher.postRequest(new Request("updateIndexState", [state]))
 	}

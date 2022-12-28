@@ -2,12 +2,13 @@ import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import { isMailAddress } from "../misc/FormatValidator"
-import { showWorkerProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { BookingItemFeatureType } from "../api/common/TutanotaConstants"
 import { contains, delay, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { PreconditionFailedError } from "../api/common/error/RestError"
 import { showBuyDialog } from "../subscription/BuyDialog"
 import { locator } from "../api/main/MainLocator"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
+import stream from "mithril/stream"
 
 const delayTime = 900
 type UserImportDetails = {
@@ -126,8 +127,8 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
 	// index
 	showBuyDialog({ featureType: BookingItemFeatureType.Users, count: userDetailsArray.length, freeAmount: 0, reactivate: false }).then((accepted) => {
 		if (accepted) {
-			return showWorkerProgressDialog(
-				locator.worker,
+			const progress = stream(0)
+			return showProgressDialog(
 				() =>
 					lang.get("createActionStatus_msg", {
 						"{index}": nbrOfCreatedUsers,
@@ -141,8 +142,10 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
 						} else {
 							notAvailableUsers.push(user)
 						}
+						progress((nbrOfCreatedUsers + notAvailableUsers.length) / userDetailsArray.length)
 					})
 				}),
+				progress,
 			)
 				.catch(ofClass(PreconditionFailedError, () => Dialog.message("createUserFailed_msg")))
 				.then(() => {
@@ -171,12 +174,15 @@ function createUserIfMailAddressAvailable(user: UserImportDetails, index: number
 	let cleanMailAddress = user.mailAddress.trim().toLowerCase()
 	return locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress).then((available) => {
 		if (available) {
+			// we don't use it currently
+			const operation = locator.operationProgressTracker.registerOperation()
 			return locator.userManagementFacade
-				.createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers)
+				.createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers, operation.id)
 				.then(() => {
 					// delay is needed so that there are not too many requests from isMailAddressAvailable service if users ar not available (are not created)
 					return delay(delayTime).then(() => true)
 				})
+				.finally(() => operation.done())
 		} else {
 			return delay(delayTime).then(() => false)
 		}
