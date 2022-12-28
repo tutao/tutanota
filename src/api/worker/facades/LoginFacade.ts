@@ -97,6 +97,7 @@ import { CacheStorageLateInitializer } from "../rest/CacheStorageProxy"
 import { AuthDataProvider, UserFacade } from "./UserFacade"
 import { LoginFailReason, LoginListener } from "../../main/LoginListener"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
+import {EntropyFacade} from "./EntropyFacade.js"
 import { BlobAccessTokenFacade } from "./BlobAccessTokenFacade.js"
 
 assertWorkerOrNode()
@@ -166,6 +167,7 @@ export class LoginFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly userFacade: UserFacade,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
+		private readonly entropyFacade: EntropyFacade,
 	) {}
 
 	init(indexer: Indexer, eventBusClient: EventBusClient) {
@@ -573,7 +575,7 @@ export class LoginFacade {
 				this.eventBusClient.connect(ConnectMode.Initial)
 			}
 
-			await this.storeEntropy()
+			await this.entropyFacade.storeEntropy()
 			this.loginListener.onFullLoginSuccess()
 			return { user, accessToken, userGroupInfo }
 		} catch (e) {
@@ -742,28 +744,6 @@ export class LoginFacade {
 				}
 			}
 		})
-	}
-
-	storeEntropy(): Promise<void> {
-		// We only store entropy to the server if we are the leader
-		if (!this.userFacade.isFullyLoggedIn() || !this.userFacade.isLeader()) return Promise.resolve()
-		const userGroupKey = this.userFacade.getUserGroupKey()
-		const entropyData = createEntropyData({
-			groupEncEntropy: encryptBytes(userGroupKey, random.generateRandomData(32)),
-		})
-		return this.serviceExecutor
-			.put(EntropyService, entropyData)
-			.catch(ofClass(LockedError, noOp))
-			.catch(
-				ofClass(ConnectionError, (e) => {
-					console.log("could not store entropy", e)
-				}),
-			)
-			.catch(
-				ofClass(ServiceUnavailableError, (e) => {
-					console.log("could not store entropy", e)
-				}),
-			)
 	}
 
 	async changePassword(oldPassword: string, newPassword: string): Promise<void> {
