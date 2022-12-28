@@ -40,18 +40,19 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { MembershipService, ResetPasswordService, SystemKeysService, UpdateAdminshipService, UserService } from "../../entities/sys/Services"
 import { UserAccountService } from "../../entities/tutanota/Services"
 import { UserFacade } from "./UserFacade"
+import { ExposedOperationProgressTracker, OperationId } from "../../main/OperationProgressTracker.js"
 
 assertWorkerOrNode()
 
 export class UserManagementFacade {
 	constructor(
-		private readonly worker: WorkerImpl,
 		private readonly userFacade: UserFacade,
 		private readonly groupManagement: GroupManagementFacade,
 		private readonly counters: CounterFacade,
 		private readonly rsa: RsaImplementation,
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
+		private readonly operationProgressTracker: ExposedOperationProgressTracker,
 	) {}
 
 	async changeUserPassword(user: User, newPassword: string): Promise<void> {
@@ -191,7 +192,14 @@ export class UserManagementFacade {
 		}
 	}
 
-	createUser(name: string, mailAddress: string, password: string, userIndex: number, overallNbrOfUsersToCreate: number): Promise<void> {
+	createUser(
+		name: string,
+		mailAddress: string,
+		password: string,
+		userIndex: number,
+		overallNbrOfUsersToCreate: number,
+		operationId: OperationId,
+	): Promise<void> {
 		let adminGroupIds = this.userFacade.getGroupIds(GroupType.Admin)
 
 		if (adminGroupIds.length === 0) {
@@ -212,7 +220,7 @@ export class UserManagementFacade {
 				this.groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey),
 			)
 			.then((userGroupData) => {
-				return this.worker.sendProgress(((userIndex + 0.8) / overallNbrOfUsersToCreate) * 100).then(() => {
+				return this.operationProgressTracker.onProgress(operationId, ((userIndex + 0.8) / overallNbrOfUsersToCreate) * 100).then(() => {
 					let data = createUserAccountCreateData()
 					data.date = Const.CURRENT_DATE
 					data.userGroupData = userGroupData
@@ -226,7 +234,7 @@ export class UserManagementFacade {
 						this.generateRecoveryCode(userGroupKey),
 					)
 					return this.serviceExecutor.post(UserAccountService, data).then(() => {
-						return this.worker.sendProgress(((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
+						return this.operationProgressTracker.onProgress(operationId, ((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
 					})
 				})
 			})

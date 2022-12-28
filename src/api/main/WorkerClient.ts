@@ -31,7 +31,6 @@ export class WorkerClient {
 	private _isInitialized: boolean = false
 
 	private _dispatcher!: MessageDispatcher<WorkerRequestType, MainRequestType>
-	private _progressUpdater: ProgressUpdater | null = null
 	// Should be empty stream unless there's really a message.
 	readonly infoMessages: stream<InfoMessage> = stream()
 
@@ -90,15 +89,6 @@ export class WorkerClient {
 				handleUncaughtError(objToError(message.args[0]))
 				return Promise.resolve()
 			},
-			progress: (message: MainRequest) => {
-				const progressUpdater = this._progressUpdater
-
-				if (progressUpdater) {
-					progressUpdater(downcast(message.args[0]))
-				}
-
-				return Promise.resolve()
-			},
 			updateIndexState: (message: MainRequest) => {
 				locator.search.indexState(downcast(message.args[0]))
 				return Promise.resolve()
@@ -139,17 +129,6 @@ export class WorkerClient {
 	async _postRequest(msg: Request<WorkerRequestType>): Promise<any> {
 		await this.initialized
 		return this._dispatcher.postRequest(msg)
-	}
-
-	registerProgressUpdater(updater: ProgressUpdater | null) {
-		this._progressUpdater = updater
-	}
-
-	unregisterProgressUpdater(updater: ProgressUpdater | null) {
-		// another one might have been registered in the mean time
-		if (this._progressUpdater === updater) {
-			this._progressUpdater = null
-		}
 	}
 
 	generateSsePushIdentifer(): Promise<string> {

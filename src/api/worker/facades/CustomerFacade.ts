@@ -40,7 +40,6 @@ import type { ContactFormAccountReturn, InternalGroupData } from "../../entities
 import { createContactFormAccountData, createCustomerAccountCreateData } from "../../entities/tutanota/TypeRefs.js"
 import type { UserManagementFacade } from "./UserManagementFacade"
 import type { GroupManagementFacade } from "./GroupManagementFacade"
-import type { WorkerImpl } from "../WorkerImpl"
 import { CounterFacade } from "./CounterFacade"
 import type { Country } from "../../common/CountryList"
 import { LockedError } from "../../common/error/RestError"
@@ -54,6 +53,7 @@ import { ContactFormAccountService, CustomerAccountService } from "../../entitie
 import { BookingFacade } from "./BookingFacade"
 import { UserFacade } from "./UserFacade"
 import { PaymentInterval } from "../../../subscription/PriceUtils.js"
+import { ExposedOperationProgressTracker, OperationId } from "../../main/OperationProgressTracker.js"
 
 assertWorkerOrNode()
 
@@ -66,7 +66,6 @@ export class CustomerFacade {
 	private contactFormUserGroupData: Promise<ContactFormUserGroupData> | null
 
 	constructor(
-		private readonly worker: WorkerImpl,
 		private readonly userFacade: UserFacade,
 		private readonly groupManagement: GroupManagementFacade,
 		private readonly userManagement: UserManagementFacade,
@@ -76,6 +75,7 @@ export class CustomerFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly bookingFacade: BookingFacade,
 		private readonly cryptoFacade: CryptoFacade,
+		private readonly operationProgressTracker: ExposedOperationProgressTracker,
 	) {
 		this.contactFormUserGroupData = null
 	}
@@ -140,6 +140,7 @@ export class CustomerFacade {
 		})
 		await this.serviceExecutor.delete(BrandingDomainService, data)
 	}
+
 	/**
 	 * Reads the used storage of a customer in bytes.
 	 * @return The amount of used storage in byte.
@@ -230,13 +231,13 @@ export class CustomerFacade {
 		})
 	}
 
-	async generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]> {
+	async generateSignupKeys(operationId: OperationId): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]> {
 		const key1 = await this.rsa.generateKey()
-		await this.worker.sendProgress(33)
+		await this.operationProgressTracker.onProgress(operationId, 33)
 		const key2 = await this.rsa.generateKey()
-		await this.worker.sendProgress(66)
+		await this.operationProgressTracker.onProgress(operationId, 66)
 		const key3 = await this.rsa.generateKey()
-		await this.worker.sendProgress(100)
+		await this.operationProgressTracker.onProgress(operationId, 100)
 		return [key1, key2, key3]
 	}
 
@@ -342,13 +343,13 @@ export class CustomerFacade {
 	/**
 	 * @pre CustomerFacade#createContactFormUserGroupData has been invoked before
 	 */
-	async createContactFormUser(password: string, contactFormId: IdTuple): Promise<ContactFormAccountReturn> {
+	async createContactFormUser(password: string, contactFormId: IdTuple, operationId: OperationId): Promise<ContactFormAccountReturn> {
 		const contactFormUserGroupData = await this.getContactFormUserGroupData()
 		let { userGroupKey, userGroupData } = contactFormUserGroupData
-		await this.worker.sendProgress(35)
+		await this.operationProgressTracker.onProgress(operationId, 35)
 		let data = createContactFormAccountData()
 		data.userData = this.userManagement.generateContactFormUserAccountData(userGroupKey, password)
-		await this.worker.sendProgress(95)
+		await this.operationProgressTracker.onProgress(operationId, 95)
 		data.userGroupData = userGroupData
 		data.contactForm = contactFormId
 		const result = this.serviceExecutor.post(ContactFormAccountService, data)
