@@ -234,7 +234,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.groupManagement,
 			assertNotNull(cache),
 			nativePushFacade,
-			worker,
+			mainInterface.operationProgressTracker,
 			locator.instanceMapper,
 			locator.serviceExecutor,
 			locator.crypto,

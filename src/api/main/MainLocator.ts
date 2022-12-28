@@ -83,6 +83,7 @@ import { NoZoneDateProvider } from "../common/utils/NoZoneDateProvider.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { EntropyFacade } from "../worker/facades/EntropyFacade.js"
+import { OperationProgressTracker } from "./OperationProgressTracker.js"
 
 assertMainOrNode()
 
@@ -132,6 +133,7 @@ class MainLocator {
 	random!: WorkerRandomizer
 	sqlCipherFacade!: SqlCipherFacade
 	connectivityModel!: WebsocketConnectivityModel
+	operationProgressTracker!: OperationProgressTracker
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private exposedNativeInterfaces: ExposedNativeInterface | null = null
@@ -400,6 +402,7 @@ class MainLocator {
 		this.entropyFacade = entropyFacade
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
 		this.mailModel = new MailModel(notifications, this.eventController, this.connectivityModel, this.mailFacade, this.entityClient, logins)
+		this.operationProgressTracker = new OperationProgressTracker()
 
 		if (!isBrowser()) {
 			const { WebDesktopFacade } = await import("../../native/main/WebDesktopFacade")
