@@ -82,6 +82,7 @@ import type { MailViewerViewModel } from "../../mail/view/MailViewerViewModel.js
 import { NoZoneDateProvider } from "../common/utils/NoZoneDateProvider.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
+import { EntropyFacade } from "../worker/facades/EntropyFacade.js"
 
 assertMainOrNode()
 
@@ -134,6 +135,7 @@ class MainLocator {
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private exposedNativeInterfaces: ExposedNativeInterface | null = null
+	private entropyFacade!: EntropyFacade
 
 	async loginController(): Promise<LoginController> {
 		const { logins } = await import("./LoginController.js")
@@ -335,7 +337,7 @@ class MainLocator {
 		// worker we end up losing state on the worker side (including our session).
 		this.worker = bootstrapWorker(this)
 		await this._createInstances()
-		this._entropyCollector = new EntropyCollector(this.worker)
+		this._entropyCollector = new EntropyCollector(this.entropyFacade)
 
 		this._entropyCollector.start()
 
@@ -367,7 +369,8 @@ class MainLocator {
 			cryptoFacade,
 			cacheStorage,
 			random,
-			eventBus
+			eventBus,
+			entropyFacade,
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -394,6 +397,7 @@ class MainLocator {
 		this.entityClient = new EntityClient(restInterface)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
+		this.entropyFacade = entropyFacade
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
 		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient, logins)
 

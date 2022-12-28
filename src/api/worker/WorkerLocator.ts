@@ -53,6 +53,7 @@ import { ExportFacadeSendDispatcher } from "../../native/common/generatedipc/Exp
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacadeSendDispatcher } from "../../native/common/generatedipc/SqlCipherFacadeSendDispatcher.js"
+import { EntropyFacade } from "./facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./crypto/OwnerEncSessionKeysUpdateQueue.js"
 
@@ -93,6 +94,7 @@ export type WorkerLocatorType = {
 	instanceMapper: InstanceMapper
 	booking: BookingFacade
 	cacheStorage: CacheStorage
+	entropyFacade: EntropyFacade
 }
 export const locator: WorkerLocatorType = {} as any
 
@@ -105,6 +107,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.rsa = await createRsaImplementation(worker)
 	locator.restClient = new RestClient(suspensionHandler)
 	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instanceMapper, () => locator.crypto)
+	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random)
 	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, dateProvider)
 	const entityRestClient = new EntityRestClient(locator.user, locator.restClient, () => locator.crypto, locator.instanceMapper, locator.blobAccessToken)
 	locator._browserData = browserData
@@ -168,6 +171,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.serviceExecutor,
 		locator.user,
 		locator.blobAccessToken,
+		locator.entropyFacade,
 	)
 	const suggestionFacades = [
 		locator.indexer._contact.suggestionFacade,

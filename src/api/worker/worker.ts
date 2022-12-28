@@ -25,7 +25,7 @@ self.onmessage = function (msg) {
 				// @ts-ignore
 				const workerImpl = new WorkerImpl(typeof self !== "undefined" ? self : null)
 				await workerImpl.init(browserData)
-				workerImpl.addEntropy(initialRandomizerEntropy)
+				workerImpl.exposedInterface.entropyFacade.addEntropy(initialRandomizerEntropy)
 				self.postMessage({
 					id: data.id,
 					type: "response",
