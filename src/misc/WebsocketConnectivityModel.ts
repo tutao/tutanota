@@ -7,7 +7,7 @@ import {WebsocketLeaderStatus} from "../api/entities/sys/TypeRefs.js"
 
 export interface WebsocketConnectivityListener {
 	updateWebSocketState(wsConnectionState: WsConnectionState): Promise<void>
-	updateLeaderStatus(leaderStatus: WebsocketLeaderStatus): Promise<void>
+	onLeaderStatusChanged(leaderStatus: WebsocketLeaderStatus): Promise<void>
 }
 
 /** A web page thread view on websocket/event bus. */
@@ -21,7 +21,7 @@ export class WebsocketConnectivityModel implements WebsocketConnectivityListener
 		this._wsConnection(wsConnectionState)
 	}
 
-	async updateLeaderStatus(leaderStatus: WebsocketLeaderStatus): Promise<void> {
+	async onLeaderStatusChanged(leaderStatus: WebsocketLeaderStatus): Promise<void> {
 		this._leaderStatus = leaderStatus.leaderStatus
 	}
 

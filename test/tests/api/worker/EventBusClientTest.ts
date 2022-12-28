@@ -1,5 +1,5 @@
 import o from "ospec"
-import {ConnectMode, EventBusClient} from "../../../../src/api/worker/EventBusClient.js"
+import { ConnectMode, EventBusClient, EventBusListener } from "../../../../src/api/worker/EventBusClient.js"
 import {GroupType, OperationType} from "../../../../src/api/common/TutanotaConstants.js"
 import type {EntityUpdate} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {
@@ -18,38 +18,33 @@ import {
 import {EntityRestClientMock} from "./rest/EntityRestClientMock.js"
 import {EntityClient} from "../../../../src/api/common/EntityClient.js"
 import {defer, noOp} from "@tutao/tutanota-utils"
-import {WorkerImpl} from "../../../../src/api/worker/WorkerImpl.js"
-import {LoginFacade} from "../../../../src/api/worker/facades/LoginFacade.js"
 import {InstanceMapper} from "../../../../src/api/worker/crypto/InstanceMapper.js"
 import {DefaultEntityRestCache} from "../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import {QueuedBatch} from "../../../../src/api/worker/search/EventQueue.js"
 import {OutOfSyncError} from "../../../../src/api/common/error/OutOfSyncError.js"
 import {matchers, object, verify, when} from "testdouble"
-import {MailFacade} from "../../../../src/api/worker/facades/MailFacade.js"
-import {Indexer} from "../../../../src/api/worker/search/Indexer.js"
 import {getElementId} from "../../../../src/api/common/utils/EntityUtils.js"
 import {SleepDetector} from "../../../../src/api/worker/utils/SleepDetector.js"
 import {WsConnectionState} from "../../../../src/api/main/WorkerClient.js"
 import {UserFacade} from "../../../../src/api/worker/facades/UserFacade"
+import { ExposedProgressTracker } from "../../../../src/api/main/ProgressTracker.js"
 
 o.spec("EventBusClient test", function () {
 	let ebc: EventBusClient
 	let cacheMock: DefaultEntityRestCache
 	let restClient: EntityRestClientMock
-	let workerMock: WorkerImpl
-	let loginMock: LoginFacade
 	let userMock: UserFacade
-	let mailMock: MailFacade
-	let indexerMock: Indexer
 	let socket: WebSocket
 	let user: User
 	let sleepDetector: SleepDetector
+	let listenerMock: EventBusListener
+	let progressTrackerMock: ExposedProgressTracker
 	let socketFactory
 
 	function initEventBus() {
 		const entityClient = new EntityClient(restClient)
 		const instanceMapper = new InstanceMapper()
-		ebc = new EventBusClient(workerMock, indexerMock, cacheMock, mailMock, userMock, entityClient, instanceMapper, socketFactory, sleepDetector, loginMock)
+		ebc = new EventBusClient(listenerMock, cacheMock, userMock, entityClient, instanceMapper, socketFactory, sleepDetector, progressTrackerMock)
 	}
 
 	o.before(function () {
@@ -67,6 +62,8 @@ o.spec("EventBusClient test", function () {
 	})
 
 	o.beforeEach(async function () {
+		listenerMock = object()
+		progressTrackerMock = object()
 		cacheMock = object({
 			async entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>> {
 				return batch.events.slice()
@@ -95,25 +92,10 @@ o.spec("EventBusClient test", function () {
 			}),
 		})
 
-		loginMock = object("login")
-		when(loginMock.entityEventsReceived(matchers.anything())).thenResolve(undefined)
-
 		userMock = object("user")
 		when(userMock.getLoggedInUser()).thenReturn(user)
 		when(userMock.isFullyLoggedIn()).thenReturn(true)
 		when(userMock.createAuthHeaders()).thenReturn({})
-
-		mailMock = object("mail")
-		when(mailMock.entityEventsReceived(matchers.anything())).thenResolve(undefined)
-
-		workerMock = object("worker")
-		when(workerMock.entityEventsReceived(matchers.anything(), matchers.anything())).thenResolve(undefined)
-		when(workerMock.updateCounter(matchers.anything())).thenResolve(undefined)
-		when(workerMock.updateWebSocketState(matchers.anything())).thenResolve(undefined)
-		when(workerMock.createProgressMonitor(matchers.anything())).thenResolve(42)
-		when(workerMock.progressWorkDone(matchers.anything(), matchers.anything())).thenResolve(undefined)
-
-		indexerMock = object("indexer")
 
 		restClient = new EntityRestClientMock()
 
@@ -194,7 +176,7 @@ o.spec("EventBusClient test", function () {
 			await socket.onopen?.(new Event("open"))
 
 			verify(cacheMock.purgeStorage(), { times: 1 })
-			verify(workerMock.sendError(matchers.isA(OutOfSyncError)))
+			verify(listenerMock.onError(matchers.isA(OutOfSyncError)))
 		})
 
 		o("initial connect: when the cache is out of sync with the server, the cache is purged", async function () {
@@ -205,7 +187,7 @@ o.spec("EventBusClient test", function () {
 			await socket.onopen?.(new Event("open"))
 
 			verify(cacheMock.purgeStorage(), { times: 1 })
-			verify(workerMock.sendError(matchers.isA(OutOfSyncError)))
+			verify(listenerMock.onError(matchers.isA(OutOfSyncError)))
 		})
 	})
 
@@ -243,7 +225,7 @@ o.spec("EventBusClient test", function () {
 		await socket.onmessage?.({
 			data: createCounterMessage(counterUpdate),
 		} as MessageEvent)
-		verify(workerMock.updateCounter(counterUpdate))
+		verify(listenerMock.onCounterChanged(counterUpdate))
 	})
 
 	o.spec("sleep detection", function () {
@@ -278,9 +260,9 @@ o.spec("EventBusClient test", function () {
 			passedCb()
 
 			verify(firstSocket.close(), { ignoreExtraArgs: true, times: 1 })
-			verify(workerMock.updateWebSocketState(WsConnectionState.connecting))
+			verify(listenerMock.onWebsocketStateChanged(WsConnectionState.connecting))
 			await secondSocket.onopen?.(new Event("open"))
-			verify(workerMock.updateWebSocketState(WsConnectionState.connected))
+			verify(listenerMock.onWebsocketStateChanged(WsConnectionState.connected))
 		})
 	})
 

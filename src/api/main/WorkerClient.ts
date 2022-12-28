@@ -86,9 +86,6 @@ export class WorkerClient {
 	queueCommands(locator: IMainLocator): Commands<MainRequestType> {
 		return {
 			execNative: (message: MainRequest) => locator.native.invokeNative(downcast(message.args[0]), downcast(message.args[1])),
-			entityEvent: (message: MainRequest) => {
-				return locator.eventController.notificationReceived(downcast(message.args[0]), downcast(message.args[1]))
-			},
 			error: (message: MainRequest) => {
 				handleUncaughtError(objToError(message.args[0]))
 				return Promise.resolve()
@@ -106,24 +103,8 @@ export class WorkerClient {
 				locator.search.indexState(downcast(message.args[0]))
 				return Promise.resolve()
 			},
-			counterUpdate: (message: MainRequest) => {
-				locator.eventController.counterUpdateReceived(downcast(message.args[0]))
-				return Promise.resolve()
-			},
 			infoMessage: (message: MainRequest) => {
 				this.infoMessages(downcast(message.args[0]))
-				return Promise.resolve()
-			},
-			createProgressMonitor: (message: MainRequest) => {
-				const work = downcast<number>(message.args[0])
-				const reference = locator.progressTracker.registerMonitor(work)
-				return Promise.resolve(reference)
-			},
-			progressWorkDone: (message: MainRequest) => {
-				const reference = downcast<number>(message.args[0])
-				const workDone = downcast<number>(message.args[1])
-				const monitor = locator.progressTracker.getMonitor(reference)
-				monitor && monitor.workDone(workDone)
 				return Promise.resolve()
 			},
 			facade: exposeLocal<MainInterface, MainRequestType>({
@@ -133,6 +114,12 @@ export class WorkerClient {
 				get wsConnectivityListener() {
 					return locator.connectivityModel
 				},
+				get progressTracker() {
+					return locator.progressTracker
+				},
+				get eventController() {
+					return locator.eventController
+				}
 			}),
 		}
 	}

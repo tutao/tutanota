@@ -23,14 +23,10 @@ declare type WorkerRequestType =
 declare type MainRequestType =
 	| "facade"
 	| "execNative"
-	| "entityEvent"
 	| "error"
 	| "progress"
 	| "updateIndexState"
-	| "counterUpdate"
 	| "infoMessage"
-	| "createProgressMonitor"
-	| "progressWorkDone"
 
 /** Requests from web to native */
 declare type NativeRequestType = "ipc" | "facade"

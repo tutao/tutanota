@@ -56,6 +56,7 @@ import { SqlCipherFacadeSendDispatcher } from "../../native/common/generatedipc/
 import { EntropyFacade } from "./facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./crypto/OwnerEncSessionKeysUpdateQueue.js"
+import { EventBusEventCoordinator } from "./EventBusEventCoordinator.js"
 
 assertWorkerOrNode()
 
@@ -248,17 +249,25 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
 
-	locator.eventBusClient = new EventBusClient(
+	const eventBusCoordinator = new EventBusEventCoordinator(
 		worker,
-		locator.indexer,
-		cache ?? new AdminClientDummyEntityRestCache(),
+		mainInterface.wsConnectivityListener,
 		locator.mail,
+		locator.indexer,
+		locator.user,
+		locator.cachingEntityClient,
+		mainInterface.eventController,
+	)
+
+	locator.eventBusClient = new EventBusClient(
+		eventBusCoordinator,
+		cache ?? new AdminClientDummyEntityRestCache(),
 		locator.user,
 		locator.cachingEntityClient,
 		locator.instanceMapper,
 		(path) => new WebSocket(getWebsocketOrigin() + path),
 		new SleepDetector(scheduler, dateProvider),
-		locator.login,
+		mainInterface.progressTracker,
 	)
 	locator.login.init(locator.indexer, locator.eventBusClient)
 	locator.Const = Const
