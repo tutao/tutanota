@@ -2,6 +2,8 @@ import stream from "mithril/stream"
 import type { ProgressMonitorId } from "../common/utils/ProgressMonitor"
 import { ProgressMonitor } from "../common/utils/ProgressMonitor"
 
+export type ExposedProgressTracker = Pick<ProgressTracker, "registerMonitor" | "workDoneForMonitor">
+
 /**
  * The progress tracker controls the progress bar located in Header.js
  * You can register progress monitors with it and then make workDone calls on them
@@ -10,14 +12,14 @@ import { ProgressMonitor } from "../common/utils/ProgressMonitor"
 export class ProgressTracker {
 	// Will stream a number between 0 and 1
 	onProgressUpdate: stream<number>
-	private _monitors: Map<ProgressMonitorId, ProgressMonitor>
-	private _idCounter: ProgressMonitorId
+	private monitors: Map<ProgressMonitorId, ProgressMonitor>
+	private idCounter: ProgressMonitorId
 
 	constructor() {
 		// initially, there is no work so we are done by default.
 		this.onProgressUpdate = stream(1)
-		this._monitors = new Map()
-		this._idCounter = 0
+		this.monitors = new Map()
+		this.idCounter = 0
 	}
 
 	/**
@@ -27,57 +29,63 @@ export class ProgressTracker {
 	 * Make sure that monitor completes so it can be unregistered.
 	 * @param work - total work to do
 	 */
-	registerMonitor(work: number): ProgressMonitorId {
-		const id = this._idCounter++
-		const monitor = new ProgressMonitor(work, (completed) => this._onProgress(id, completed))
+	registerMonitorSync(work: number): ProgressMonitorId {
+		const id = this.idCounter++
+		const monitor = new ProgressMonitor(work, (percentage) => this.onProgress(id, percentage))
 
-		this._monitors.set(id, monitor)
+		this.monitors.set(id, monitor)
 
 		return id
 	}
 
-	getMonitor(id: ProgressMonitorId): ProgressMonitor | null {
-		return this._monitors.get(id) ?? null
+	/** async wrapper for remote */
+	async registerMonitor(work: number): Promise<ProgressMonitorId> {
+		return this.registerMonitorSync(work)
 	}
 
-	_onProgress(id: ProgressMonitorId, completed: number) {
+	async workDoneForMonitor(id: ProgressMonitorId, amount: number): Promise<void> {
+		this.getMonitor(id)?.workDone(amount)
+	}
+
+	getMonitor(id: ProgressMonitorId): ProgressMonitor | null {
+		return this.monitors.get(id) ?? null
+	}
+
+	private onProgress(id: ProgressMonitorId, percentage: number) {
 		// notify
 		this.onProgressUpdate(this.completedAmount())
 		// we might be done with this one
-		if (completed >= 100) this._monitors.delete(id)
+		if (percentage >= 100) this.monitors.delete(id)
 	}
 
 	/**
 	 * Total work that will be done from all monitors
-	 * @returns {void|number}
 	 */
 	totalWork(): number {
 		let total = 0
 
-		for (const value of this._monitors.values()) {
-			total += value.totalWork
+		for (const monitor of this.monitors.values()) {
+			total += monitor.totalWork
 		}
 
 		return total
 	}
 
 	/**
-	 * Current amount of completed work from all monitors
-	 * @returns {void|number}
+	 * Current absolute amount of completed work from all monitors
 	 */
 	completedWork(): number {
 		let total = 0
 
-		for (const value of this._monitors.values()) {
-			total += value.workCompleted
+		for (const monitor of this.monitors.values()) {
+			total += monitor.workCompleted
 		}
 
 		return total
 	}
 
 	/**
-	 * Completed amount as a number between 0 and 1
-	 * @returns {number}
+	 * Completed percentage of completed work as a number between 0 and 1
 	 */
 	completedAmount(): number {
 		const totalWork = this.totalWork()

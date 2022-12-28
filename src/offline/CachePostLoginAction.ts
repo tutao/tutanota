@@ -25,7 +25,7 @@ export class CachePostLoginAction implements IPostLoginAction {
 		// 3 work to load calendar info, 2 work to load short and long events
 		const workPerCalendar = 3 + 2
 		const totalWork = this.logins.getUserController().getCalendarMemberships().length * workPerCalendar
-		const monitorHandle = this.progressTracker.registerMonitor(totalWork)
+		const monitorHandle = await this.progressTracker.registerMonitor(totalWork)
 		const progressMonitor = this.progressTracker.getMonitor(monitorHandle) ?? new NoopProgressMonitor()
 		const calendarInfos = await this.calendarModel.loadCalendarInfos(progressMonitor)
 
