@@ -2,7 +2,7 @@ import o from "ospec"
 import { accountMailAddress, calendarGroupId, makeCalendarModel, makeEvent, makeUserController } from "./CalendarTestUtils.js"
 import type { LoginController } from "../../../src/api/main/LoginController.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
-import { assertNotNull, downcast, getStartOfDay, LazyLoaded, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, getStartOfDay, LazyLoaded, neverNull, noOp } from "@tutao/tutanota-utils"
 import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { createCalendarEvent, createEncryptedMailAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { DateTime } from "luxon"
@@ -20,6 +20,7 @@ import { OperationType } from "../../../src/api/common/TutanotaConstants.js"
 import { getElementId, getListId } from "../../../src/api/common/utils/EntityUtils.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import { ReceivedGroupInvitationsModel } from "../../../src/sharing/model/ReceivedGroupInvitationsModel.js"
+import { ProgressMonitor } from "../../../src/api/common/utils/ProgressMonitor.js"
 
 let saveAndSendMock
 let rescheduleEventMock
@@ -33,15 +34,12 @@ o.spec("CalendarViewModel", async function () {
 			})
 		}
 
-		const progressTracker: ProgressTracker = downcast({
-			registerMonitor: () => Promise.resolve(),
+		const progressTracker: ProgressTracker = {
+			registerMonitorSync: () => 1,
 			getMonitor: () => {
-				return {
-					workDone: () => Promise.resolve(),
-					completed: () => Promise.resolve(),
-				}
+				return new ProgressMonitor(100, noOp)
 			},
-		})
+		} as Partial<ProgressTracker> as ProgressTracker
 		const deviceConfig: DeviceConfig = downcast({
 			getHiddenCalendars: (Id) => [],
 		})

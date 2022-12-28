@@ -11,11 +11,11 @@ import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import nodemocker from "../nodemocker.js"
 import { downcast } from "@tutao/tutanota-utils"
-import { WorkerClient } from "../../../src/api/main/WorkerClient.js"
 import { MailFacade } from "../../../src/api/worker/facades/MailFacade.js"
 import { LoginController } from "../../../src/api/main/LoginController.js"
 import { object } from "testdouble"
 import { FolderSystem } from "../../../src/mail/model/FolderSystem.js"
+import { WebsocketConnectivityModel } from "../../../src/misc/WebsocketConnectivityModel.js"
 
 o.spec("MailModelTest", function () {
 	let notifications: Partial<Notifications>
@@ -38,10 +38,10 @@ o.spec("MailModelTest", function () {
 		notifications = {}
 		showSpy = notifications.showNotification = spy()
 		const restClient = new EntityRestClientMock()
-		const workerClient = nodemocker.mock<WorkerClient>("worker", {}).set()
+		const connectivityModel = object<WebsocketConnectivityModel>()
 		const mailFacade = nodemocker.mock<MailFacade>("mailFacade", {}).set()
 		logins = object()
-		model = new MailModel(downcast(notifications), downcast({}), workerClient, mailFacade, new EntityClient(restClient), logins)
+		model = new MailModel(downcast(notifications), downcast({}), connectivityModel, mailFacade, new EntityClient(restClient), logins)
 		// not pretty, but works
 		model.mailboxDetails(mailboxDetails as MailboxDetail[])
 	})

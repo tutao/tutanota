@@ -1,7 +1,4 @@
-import { LoginFacade } from "./facades/LoginFacade"
-import type { MailFacade } from "./facades/MailFacade"
-import type { WorkerImpl } from "./WorkerImpl"
-import { assertWorkerOrNode, isAdminClient, isTest } from "../common/Env"
+import { assertWorkerOrNode } from "../common/Env"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -25,7 +22,6 @@ import {
 } from "../entities/sys/TypeRefs.js"
 import { assertNotNull, binarySearch, delay, identity, lastThrow, ofClass, randomIntFromInterval } from "@tutao/tutanota-utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
-import type { Indexer } from "./search/Indexer"
 import { CloseEventBusOption, GroupType, SECOND_MS } from "../common/TutanotaConstants"
 import { CancelledError } from "../common/error/CancelledError"
 import { EntityClient } from "../common/EntityClient"
@@ -42,8 +38,9 @@ import { SleepDetector } from "./utils/SleepDetector.js"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
 import { resolveTypeReference } from "../common/EntityFunctions.js"
-import { PhishingMarkerWebsocketData, PhishingMarkerWebsocketDataTypeRef } from "../entities/tutanota/TypeRefs"
+import { PhishingMarker, PhishingMarkerWebsocketData, PhishingMarkerWebsocketDataTypeRef } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
+import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 
 assertWorkerOrNode()
 
@@ -87,6 +84,20 @@ export const enum ConnectMode {
 	Reconnect,
 }
 
+export interface EventBusListener {
+	onWebsocketStateChanged(state: WsConnectionState): unknown
+
+	onCounterChanged(counter: WebsocketCounterData): unknown
+
+	onLeaderStatusChanged(leaderStatus: WebsocketLeaderStatus): unknown
+
+	onEntityEventsReceived(events: EntityUpdate[], batchId: Id, groupId: Id): Promise<void>
+
+	onPhishingMarkersReceived(markers: PhishingMarker[]): unknown
+
+	onError(tutanotaError: Error): void
+}
+
 export class EventBusClient {
 	private state: EventBusState
 	private socket: WebSocket | null
@@ -124,16 +135,14 @@ export class EventBusClient {
 	private progressMonitor: IProgressMonitor
 
 	constructor(
-		private readonly worker: WorkerImpl,
-		private readonly indexer: Indexer,
+		private readonly listener: EventBusListener,
 		private readonly cache: EntityRestCache,
-		private readonly mail: MailFacade,
 		private readonly userFacade: UserFacade,
 		private readonly entity: EntityClient,
 		private readonly instanceMapper: InstanceMapper,
 		private readonly socketFactory: (path: string) => WebSocket,
 		private readonly sleepDetector: SleepDetector,
-		private readonly loginFacade: LoginFacade,
+		private readonly progressTracker: ExposedProgressTracker,
 	) {
 		// We are not connected by default and will not try to unless connect() is called
 		this.state = EventBusState.Terminated
@@ -171,7 +180,7 @@ export class EventBusClient {
 		// make sure a retry will be cancelled by setting _serviceUnavailableRetry to null
 		this.serviceUnavailableRetry = null
 
-		this.worker.updateWebSocketState(WsConnectionState.connecting)
+		this.listener.onWebsocketStateChanged(WsConnectionState.connecting)
 
 		// Task for updating events are number of groups + 2. Use 2 as base for reconnect state.
 		if (this.progressMonitor) {
@@ -179,7 +188,7 @@ export class EventBusClient {
 			this.progressMonitor.completed()
 		}
 
-		this.progressMonitor = new ProgressMonitorDelegate(this.eventGroups().length + 2, this.worker)
+		this.progressMonitor = new ProgressMonitorDelegate(this.progressTracker, this.eventGroups().length + 2)
 		this.progressMonitor.workDone(1)
 
 		this.state = EventBusState.Automatic
@@ -232,12 +241,12 @@ export class EventBusClient {
 			case CloseEventBusOption.Pause:
 				this.state = EventBusState.Suspended
 
-				this.worker.updateWebSocketState(WsConnectionState.connecting)
+				this.listener.onWebsocketStateChanged(WsConnectionState.connecting)
 
 				break
 
 			case CloseEventBusOption.Reconnect:
-				this.worker.updateWebSocketState(WsConnectionState.connecting)
+				this.listener.onWebsocketStateChanged(WsConnectionState.connecting)
 
 				break
 		}
@@ -271,7 +280,7 @@ export class EventBusClient {
 
 		const p = this.initEntityEvents(connectMode)
 
-		this.worker.updateWebSocketState(WsConnectionState.connected)
+		this.listener.onWebsocketStateChanged(WsConnectionState.connected)
 
 		return p
 	}
@@ -299,7 +308,7 @@ export class EventBusClient {
 					JSON.parse(value),
 					null,
 				)
-				this.worker.updateCounter(counterData)
+				this.listener.onCounterChanged(counterData)
 				break
 			}
 			case MessageType.PhishingMarkers: {
@@ -309,7 +318,7 @@ export class EventBusClient {
 					null,
 				)
 				this.lastAntiphishingMarkersId = data.lastId
-				this.mail.phishingMarkersUpdateReceived(data.markers)
+				this.listener.onPhishingMarkersReceived(data.markers)
 				break
 			}
 			case MessageType.LeaderStatus:
@@ -319,7 +328,7 @@ export class EventBusClient {
 					null,
 				)
 				await this.userFacade.setLeaderStatus(data)
-				await this.worker.updateLeaderStatus(data)
+				await this.listener.onLeaderStatusChanged(data)
 				break
 			default:
 				console.log("ws message with unknown type", type)
@@ -346,13 +355,13 @@ export class EventBusClient {
 
 		if ([NotAuthorizedError.CODE, AccessDeactivatedError.CODE, AccessBlockedError.CODE].includes(serverCode)) {
 			this.terminate()
-			this.worker.sendError(handleRestError(serverCode, "web socket error", null, null))
+			this.listener.onError(handleRestError(serverCode, "web socket error", null, null))
 		} else if (serverCode === SessionExpiredError.CODE) {
 			// session is expired. do not try to reconnect until the user creates a new session
 			this.state = EventBusState.Suspended
-			this.worker.updateWebSocketState(WsConnectionState.connecting)
+			this.listener.onWebsocketStateChanged(WsConnectionState.connecting)
 		} else if (this.state === EventBusState.Automatic && this.userFacade.isFullyLoggedIn()) {
-			this.worker.updateWebSocketState(WsConnectionState.connecting)
+			this.listener.onWebsocketStateChanged(WsConnectionState.connecting)
 
 			if (this.immediateReconnect) {
 				this.immediateReconnect = false
@@ -440,7 +449,7 @@ export class EventBusClient {
 
 				this.eventQueue.resume()
 
-				this.worker.sendError(e)
+				this.listener.onError(e)
 			})
 	}
 
@@ -546,7 +555,7 @@ export class EventBusClient {
 			await this.processEventBatch(modification)
 		} catch (e) {
 			console.log("ws error while processing event batches", e)
-			this.worker.sendError(e)
+			this.listener.onError(e)
 			throw e
 		}
 
@@ -575,7 +584,7 @@ export class EventBusClient {
 
 		this.reset()
 
-		this.worker.updateWebSocketState(WsConnectionState.terminated)
+		this.listener.onWebsocketStateChanged(WsConnectionState.terminated)
 	}
 
 	/**
@@ -643,20 +652,7 @@ export class EventBusClient {
 		try {
 			if (this.isTerminated()) return
 			const filteredEvents = await this.cache.entityEventsReceived(batch)
-			if (!this.isTerminated()) await this.loginFacade.entityEventsReceived(filteredEvents)
-			if (!this.isTerminated()) await this.mail.entityEventsReceived(filteredEvents)
-			if (!this.isTerminated()) await this.worker.entityEventsReceived(filteredEvents, batch.groupId)
-			// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
-			// shall not receive the event twice.
-			if (!isTest() && !isAdminClient() && !this.isTerminated()) {
-				const queuedBatch = {
-					groupId: batch.groupId,
-					batchId: batch.batchId,
-					events: filteredEvents,
-				}
-				this.indexer.addBatchesToQueue([queuedBatch])
-				this.indexer.startProcessing()
-			}
+			if (!this.isTerminated()) await this.listener.onEntityEventsReceived(filteredEvents, batch.batchId, batch.groupId)
 		} catch (e) {
 			if (e instanceof ServiceUnavailableError) {
 				// a ServiceUnavailableError is a temporary error and we have to retry to avoid data inconsistencies

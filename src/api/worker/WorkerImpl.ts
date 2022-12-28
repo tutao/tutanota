@@ -11,8 +11,6 @@ import type { BrowserData } from "../../misc/ClientConstants"
 import type { InfoMessage } from "../common/CommonTypes"
 import { CryptoFacade } from "./crypto/CryptoFacade"
 import { delay, lazyMemoized } from "@tutao/tutanota-utils"
-import type { EntityUpdate, WebsocketCounterData, WebsocketLeaderStatus } from "../entities/sys/TypeRefs.js"
-import type { ProgressMonitorId } from "../common/utils/ProgressMonitor"
 import { urlify } from "./Urlifier"
 import type { GiftCardFacade } from "./facades/GiftCardFacade"
 import type { LoginFacade } from "./facades/LoginFacade"
@@ -34,7 +32,6 @@ import type { DeviceEncryptionFacade } from "./facades/DeviceEncryptionFacade"
 import { aes256RandomKey, keyToBase64, random } from "@tutao/tutanota-crypto"
 import type { NativeInterface } from "../../native/common/NativeInterface"
 import type { EntityRestInterface } from "./rest/EntityRestClient"
-import { WsConnectionState } from "../main/WorkerClient"
 import { RestClient } from "./rest/RestClient"
 import { IServiceExecutor } from "../common/ServiceRequest.js"
 import { BlobFacade } from "./facades/BlobFacade"
@@ -44,6 +41,8 @@ import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
 import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel.js"
 import { EventBusClient } from "./EventBusClient.js"
 import { EntropyFacade } from "./facades/EntropyFacade.js"
+import { ExposedProgressTracker } from "../main/ProgressTracker.js"
+import { ExposedEventController } from "../main/EventController.js"
 
 assertWorkerOrNode()
 
@@ -90,6 +89,8 @@ export interface WorkerInterface {
 export interface MainInterface {
 	readonly loginListener: LoginListener
 	readonly wsConnectivityListener: WebsocketConnectivityListener
+	readonly progressTracker: ExposedProgressTracker
+	readonly eventController: ExposedEventController
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -302,10 +303,6 @@ export class WorkerImpl implements NativeInterface {
 		return exposeRemote<MainInterface>((request) => this._dispatcher.postRequest(request))
 	}
 
-	entityEventsReceived(data: EntityUpdate[], eventOwnerGroupId: Id): Promise<void> {
-		return this._dispatcher.postRequest(new Request("entityEvent", [data, eventOwnerGroupId]))
-	}
-
 	sendError(e: Error): Promise<void> {
 		return this._dispatcher.postRequest(new Request("error", [errorToObj(e)]))
 	}
@@ -321,29 +318,7 @@ export class WorkerImpl implements NativeInterface {
 		return this._dispatcher.postRequest(new Request("updateIndexState", [state]))
 	}
 
-	/** this method should eventually be just removed */
-	updateWebSocketState(state: WsConnectionState): Promise<void> {
-		console.log("ws displayed state: ", state)
-		return this.connectivityListener().updateWebSocketState(state)
-	}
-
-	updateCounter(update: WebsocketCounterData): Promise<void> {
-		return this._dispatcher.postRequest(new Request("counterUpdate", [update]))
-	}
-
 	infoMessage(message: InfoMessage): Promise<void> {
 		return this._dispatcher.postRequest(new Request("infoMessage", [message]))
-	}
-
-	createProgressMonitor(totalWork: number): Promise<ProgressMonitorId> {
-		return this._dispatcher.postRequest(new Request("createProgressMonitor", [totalWork]))
-	}
-
-	progressWorkDone(reference: ProgressMonitorId, totalWork: number): Promise<void> {
-		return this._dispatcher.postRequest(new Request("progressWorkDone", [reference, totalWork]))
-	}
-
-	updateLeaderStatus(status: WebsocketLeaderStatus): Promise<void> {
-		return this.connectivityListener().updateLeaderStatus(status)
 	}
 }

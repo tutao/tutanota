@@ -901,21 +901,6 @@ export class LoginFacade {
 		return Promise.resolve(new TotpVerifier())
 	}
 
-	async entityEventsReceived(data: EntityUpdate[]): Promise<void> {
-		// This is a compromise to not add entityClient to UserFacade which would introduce a circular dep.
-		for (const update of data) {
-			const user = this.userFacade.getUser()
-			if (
-				user != null &&
-				update.operation === OperationType.UPDATE &&
-				isSameTypeRefByAttr(UserTypeRef, update.application, update.type) &&
-				isSameId(user._id, update.instanceId)
-			) {
-				this.userFacade.updateUser(await this.entityClient.load(UserTypeRef, user._id))
-			}
-		}
-	}
-
 	async retryAsyncLogin(): Promise<void> {
 		if (this.asyncLoginState.state === "running") {
 			return
