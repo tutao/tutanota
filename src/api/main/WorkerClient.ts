@@ -155,10 +155,6 @@ export class WorkerClient {
 		return this._postRequest(new Request("restRequest", Array.from(arguments)))
 	}
 
-	entropy(entropyCache: { source: EntropySource; entropy: number; data: number }[]): Promise<void> {
-		return this._postRequest(new Request("entropy", [entropyCache]))
-	}
-
 	/** @private visible for tests */
 	async _postRequest(msg: Request<WorkerRequestType>): Promise<any> {
 		await this.initialized
