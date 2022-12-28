@@ -24,7 +24,6 @@ declare type MainRequestType =
 	| "facade"
 	| "execNative"
 	| "error"
-	| "progress"
 	| "updateIndexState"
 	| "infoMessage"
 

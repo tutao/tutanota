@@ -183,16 +183,15 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.counters = new CounterFacade(locator.serviceExecutor)
 	locator.groupManagement = new GroupManagementFacade(locator.user, locator.counters, locator.cachingEntityClient, locator.rsa, locator.serviceExecutor)
 	locator.userManagement = new UserManagementFacade(
-		worker,
 		locator.user,
 		locator.groupManagement,
 		locator.counters,
 		locator.rsa,
 		locator.cachingEntityClient,
 		locator.serviceExecutor,
+		mainInterface.operationProgressTracker,
 	)
 	locator.customer = new CustomerFacade(
-		worker,
 		locator.user,
 		locator.groupManagement,
 		locator.userManagement,
@@ -202,6 +201,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.serviceExecutor,
 		locator.booking,
 		locator.crypto,
+		mainInterface.operationProgressTracker,
 	)
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
 	locator.blob = new BlobFacade(

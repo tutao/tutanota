@@ -6,7 +6,7 @@ import { logins } from "../api/main/LoginController"
 import { PasswordForm, PasswordModel } from "./PasswordForm"
 import { SelectMailAddressForm } from "./SelectMailAddressForm"
 import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
-import { showProgressDialog, showWorkerProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { PreconditionFailedError } from "../api/common/error/RestError"
 import { showBuyDialog } from "../subscription/BuyDialog"
 import { TextField } from "../gui/base/TextField.js"
@@ -73,18 +73,27 @@ export function show(): Promise<void> {
 				}),
 			).then((accepted) => {
 				if (accepted) {
-					let p = locator.userManagementFacade.createUser(userName.trim(), assertNotNull(emailAddress), passwordModel.getNewPassword(), 0, 1)
-					showWorkerProgressDialog(
-						locator.worker,
+					const operation = locator.operationProgressTracker.registerOperation()
+					const p = locator.userManagementFacade.createUser(
+						userName.trim(),
+						assertNotNull(emailAddress),
+						passwordModel.getNewPassword(),
+						0,
+						1,
+						operation.id,
+					)
+					showProgressDialog(
 						() =>
 							lang.get("createActionStatus_msg", {
 								"{index}": 0,
 								"{count}": 1,
 							}),
 						p,
+						operation.progress,
 					)
 						.catch(ofClass(PreconditionFailedError, (e) => Dialog.message("createUserFailed_msg")))
 						.then(() => dialog.close())
+						.finally(() => operation.done())
 				}
 			})
 		}
