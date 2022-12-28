@@ -26,6 +26,8 @@ export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdat
 	)
 }
 
+export type ExposedEventController = Pick<EventController, "onEntityUpdateReceived" | "onCountersUpdateReceied">
+
 export class EventController {
 	private countersStream: Stream<WebsocketCounterData> = stream()
 	private entityListeners: Array<EntityEventsListener> = []
@@ -45,7 +47,7 @@ export class EventController {
 		return this.countersStream.map(identity)
 	}
 
-	notificationReceived(entityUpdates: ReadonlyArray<EntityUpdate>, eventOwnerGroupId: Id): Promise<void> {
+	async onEntityUpdateReceived(entityUpdates: ReadonlyArray<EntityUpdate>, eventOwnerGroupId: Id): Promise<void> {
 		let loginsUpdates = Promise.resolve()
 
 		if (this.logins.isUserLoggedIn()) {
@@ -64,7 +66,7 @@ export class EventController {
 			.then(noOp)
 	}
 
-	counterUpdateReceived(update: WebsocketCounterData) {
+	async onCountersUpdateReceied(update: WebsocketCounterData): Promise<void> {
 		this.countersStream(update)
 	}
 }

@@ -130,7 +130,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		// for each calendar we load short events for three months +3
 		const workPerCalendar = 3 + 3
 		const totalWork = loginController.getUserController().getCalendarMemberships().length * workPerCalendar
-		const monitorHandle = progressTracker.registerMonitor(totalWork)
+		const monitorHandle = progressTracker.registerMonitorSync(totalWork)
 		let progressMonitor: IProgressMonitor = neverNull(progressTracker.getMonitor(monitorHandle))
 		this._calendarInfos = new LazyLoaded(() =>
 			this._calendarModel.loadOrCreateCalendarInfo(progressMonitor).then((it) => {
