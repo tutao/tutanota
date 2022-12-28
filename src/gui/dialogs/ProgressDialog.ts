@@ -6,9 +6,7 @@ import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { progressIcon } from "../base/Icon"
 import { CompletenessIndicator } from "../CompletenessIndicator.js"
-import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type { WorkerClient } from "../../api/main/WorkerClient"
 import { TabIndex } from "../../api/common/TutanotaConstants"
 import type { lazy } from "@tutao/tutanota-utils"
 import { delay } from "@tutao/tutanota-utils"
@@ -60,12 +58,4 @@ export async function showProgressDialog<T>(
 		progressDialog.close()
 		await delay(DefaultAnimationTime)
 	}
-}
-
-export function showWorkerProgressDialog<T>(worker: WorkerClient, messageIdOrMessageFunction: TranslationKey | lazy<string>, action: Promise<T>): Promise<T> {
-	const progress = stream(0)
-	worker.registerProgressUpdater(progress)
-	return showProgressDialog(messageIdOrMessageFunction, action, progress).finally(() => {
-		worker.unregisterProgressUpdater(progress)
-	})
 }

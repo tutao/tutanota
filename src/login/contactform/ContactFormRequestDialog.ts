@@ -299,7 +299,9 @@ export class ContactFormRequestDialog {
 			const password = this.passwordModel.getNewPassword()
 
 			const doSend = async () => {
-				const contactFormResult = await customerFacade.createContactFormUser(password, this._contactForm._id)
+				const operation = locator.operationProgressTracker.registerOperation()
+				const contactFormResult = await customerFacade.createContactFormUser(password, this._contactForm._id, operation.id)
+					.finally(() => operation.done())
 				const userEmailAddress = contactFormResult.responseMailAddress
 				await logins.createSession(userEmailAddress, password, SessionType.Temporary, null)
 
