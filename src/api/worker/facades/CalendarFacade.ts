@@ -43,10 +43,7 @@ import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
 import { EntityClient } from "../../common/EntityClient"
 import { elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId } from "../../common/utils/EntityUtils"
-import { Request } from "../../common/MessageDispatcher"
 import { GroupManagementFacade } from "./GroupManagementFacade"
-import type { NativeInterface } from "../../../native/common/NativeInterface"
-import type { WorkerImpl } from "../WorkerImpl"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { ImportError } from "../../common/error/ImportError"
 import { aes128RandomKey, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
@@ -60,6 +57,7 @@ import { UserFacade } from "./UserFacade"
 import { isOfflineError } from "../../common/utils/ErrorCheckUtils.js"
 import { EncryptedAlarmNotification } from "../../../native/common/EncryptedAlarmNotification.js"
 import { NativePushFacade } from "../../../native/common/generatedipc/NativePushFacade.js"
+import { ExposedOperationProgressTracker, OperationId } from "../../main/OperationProgressTracker.js"
 
 assertWorkerOrNode()
 
@@ -83,7 +81,7 @@ export class CalendarFacade {
 		// We inject cache directly because we need to delete user from it for a hack
 		private readonly entityRestCache: DefaultEntityRestCache,
 		private readonly nativePushFacade: NativePushFacade,
-		private readonly worker: WorkerImpl,
+		private readonly operationProgressTracker: ExposedOperationProgressTracker,
 		private readonly instanceMapper: InstanceMapper,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
@@ -100,10 +98,11 @@ export class CalendarFacade {
 			event: CalendarEvent
 			alarms: Array<AlarmInfo>
 		}>,
+		operationId: OperationId,
 	): Promise<void> {
 		// it is safe to assume that all event uids are set here
 		eventsWrapper.forEach(({ event }) => this.hashEventUid(event))
-		return this._saveCalendarEvents(eventsWrapper)
+		return this._saveCalendarEvents(eventsWrapper, (percent) => this.operationProgressTracker.onProgress(operationId, percent))
 	}
 
 	/**
@@ -112,15 +111,17 @@ export class CalendarFacade {
 	 * This function does not perform any checks on the event so it should only be called internally when
 	 * we can be sure that those checks have already been performed.
 	 * @param eventsWrapper the events and alarmNotifications to be created.
+	 * @param onProgress
 	 */
 	async _saveCalendarEvents(
 		eventsWrapper: Array<{
 			event: CalendarEvent
 			alarms: Array<AlarmInfo>
 		}>,
+		onProgress: (percent: number) => Promise<void>,
 	): Promise<void> {
 		let currentProgress = 10
-		await this.worker.sendProgress(currentProgress)
+		await onProgress(currentProgress)
 
 		const user = this.userFacade.getLoggedInUser()
 
@@ -137,7 +138,7 @@ export class CalendarFacade {
 		)
 		eventsWithAlarms.forEach(({ event, alarmInfoIds }) => (event.alarmInfos = alarmInfoIds))
 		currentProgress = 33
-		await this.worker.sendProgress(currentProgress)
+		await onProgress(currentProgress)
 		const eventsWithAlarmsByEventListId = groupBy(eventsWithAlarms, (eventWrapper) => getListId(eventWrapper.event))
 		let collectedAlarmNotifications: AlarmNotification[] = []
 		//we have different lists for short and long events so this is 1 or 2
@@ -162,7 +163,7 @@ export class CalendarFacade {
 			const allAlarmNotificationsOfListId = flat(successfulEvents.map((event) => event.alarmNotifications))
 			collectedAlarmNotifications = collectedAlarmNotifications.concat(allAlarmNotificationsOfListId)
 			currentProgress += Math.floor(56 / size)
-			await this.worker.sendProgress(currentProgress)
+			await onProgress(currentProgress)
 		}
 
 		const pushIdentifierList = await this.entityClient.loadAll(PushIdentifierTypeRef, neverNull(this.userFacade.getLoggedInUser().pushIdentifierList).list)
@@ -171,7 +172,7 @@ export class CalendarFacade {
 			await this._sendAlarmNotifications(collectedAlarmNotifications, pushIdentifierList)
 		}
 
-		await this.worker.sendProgress(100)
+		await onProgress(100)
 
 		if (failed !== 0) {
 			if (errors.some(isOfflineError)) {
@@ -193,12 +194,15 @@ export class CalendarFacade {
 			await this.entityClient.erase(oldEvent).catch(ofClass(NotFoundError, noOp))
 		}
 
-		return await this._saveCalendarEvents([
-			{
-				event,
-				alarms: alarmInfos,
-			},
-		])
+		return await this._saveCalendarEvents(
+			[
+				{
+					event,
+					alarms: alarmInfos,
+				},
+			],
+			() => Promise.resolve(),
+		)
 	}
 
 	async updateCalendarEvent(event: CalendarEvent, newAlarms: Array<AlarmInfo>, existingEvent: CalendarEvent): Promise<void> {
