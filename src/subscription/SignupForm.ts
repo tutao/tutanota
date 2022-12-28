@@ -16,7 +16,7 @@ import type { lazy } from "@tutao/tutanota-utils"
 import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
-import { showWorkerProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { InvalidDataError } from "../api/common/error/RestError"
 import { locator } from "../api/main/MainLocator"
 import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
@@ -250,10 +250,10 @@ function signup(
 	campaign: string | null,
 ): Promise<NewAccountData | void> {
 	const { customerFacade } = locator
-	return showWorkerProgressDialog(
-		locator.worker,
+	const operation = locator.operationProgressTracker.registerOperation()
+	return showProgressDialog(
 		"createAccountRunning_msg",
-		customerFacade.generateSignupKeys().then((keyPairs) => {
+		customerFacade.generateSignupKeys(operation.id).then((keyPairs) => {
 			return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign).then((regDataId) => {
 				if (regDataId) {
 					return customerFacade.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code).then((recoverCode) => {
@@ -266,9 +266,11 @@ function signup(
 				}
 			})
 		}),
+		operation.progress,
 	).catch(
 		ofClass(InvalidDataError, () => {
 			Dialog.message("invalidRegistrationCode_msg")
 		}),
 	)
+		.finally(() =>  operation.done())
 }
