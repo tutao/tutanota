@@ -10,6 +10,7 @@ import {
 	Mail,
 	MailAddress,
 	MailRestriction,
+	MailTypeRef,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import {
 	CalendarMethod,
@@ -69,6 +70,7 @@ import { InitAsResponseArgs, SendMailModel } from "../editor/SendMailModel"
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
 import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
+import { EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -137,6 +139,7 @@ export class MailViewerViewModel {
 		readonly logins: LoginController,
 		readonly service: IServiceExecutor,
 		private sendMailModelFactory: (mailboxDetails: MailboxDetail) => Promise<SendMailModel>,
+		private readonly eventController: EventController,
 	) {
 		this.delayBodyRenderingUntil.then(() => {
 			this.renderIsDelayed = false
@@ -150,6 +153,27 @@ export class MailViewerViewModel {
 		this.folderText = null
 		if (showFolder) {
 			this.showFolder()
+		}
+		this.eventController.addEntityListener(this.entityListener)
+	}
+
+	private readonly entityListener = async (events: EntityUpdateData[]) => {
+		for (const update of events) {
+			if (isUpdateForTypeRef(MailTypeRef, update)) {
+				const { instanceListId, instanceId, operation } = update
+				if (isSameId(this.mail._id, [instanceListId, instanceId])) {
+					try {
+						const updatedMail = await locator.entityClient.load(MailTypeRef, this.mail._id)
+						this.updateMail({ mail: updatedMail })
+					} catch (e) {
+						if (e instanceof NotFoundError) {
+							console.log(`Could not find updated mail ${JSON.stringify([instanceListId, instanceId])}`)
+						} else {
+							throw e
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -189,6 +213,7 @@ export class MailViewerViewModel {
 	async dispose() {
 		const inlineImages = await this.getLoadedInlineImages()
 		revokeInlineImages(inlineImages)
+		this.eventController.removeEntityListener(this.entityListener)
 	}
 
 	async loadAll(
@@ -1017,7 +1042,7 @@ export class MailViewerViewModel {
 		return this.mail._ownerGroup
 	}
 
-	updateMail({ mail, delayBodyRenderingUntil, showFolder }: { mail: Mail; delayBodyRenderingUntil?: Promise<void>; showFolder?: boolean }) {
+	private updateMail({ mail, delayBodyRenderingUntil, showFolder }: { mail: Mail; delayBodyRenderingUntil?: Promise<void>; showFolder?: boolean }) {
 		if (!isSameId(mail._id, this.mail._id)) {
 			throw new ProgrammingError(
 				`Trying to update MailViewerViewModel with unrelated email ${JSON.stringify(this.mail._id)} ${JSON.stringify(mail._id)} ${m.route.get()}`,

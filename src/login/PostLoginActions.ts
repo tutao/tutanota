@@ -29,13 +29,18 @@ import { CredentialEncryptionMode } from "../misc/credentials/CredentialEncrypti
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler"
 import { SessionType } from "../api/common/SessionType"
 import { StorageBehavior } from "../misc/UsageTestModel.js"
+import type { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
  */
 
 export class PostLoginActions implements IPostLoginAction {
-	constructor(public readonly credentialsProvider: CredentialsProvider, public secondFactorHandler: SecondFactorHandler) {}
+	constructor(
+		public readonly credentialsProvider: CredentialsProvider,
+		public secondFactorHandler: SecondFactorHandler,
+		private readonly connectivityModel: WebsocketConnectivityModel,
+	) {}
 
 	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
 		// We establish websocket connection even for temporary sessions because we need to get updates e.g. during signup
@@ -43,7 +48,7 @@ export class PostLoginActions implements IPostLoginAction {
 			console.log(new Date().toISOString(), "online - try reconnect")
 			if (logins.isFullyLoggedIn()) {
 				// When we try to connect after receiving online event it might not succeed so we delay reconnect attempt by 2s
-				locator.worker.tryReconnectEventBus(true, true, 2000)
+				this.connectivityModel.tryReconnect(true, true, 2000)
 			} else {
 				// log in user
 				logins.retryAsyncLogin()
@@ -51,7 +56,7 @@ export class PostLoginActions implements IPostLoginAction {
 		})
 		windowFacade.addOfflineListener(() => {
 			console.log(new Date().toISOString(), "offline - pause event bus")
-			locator.worker.closeEventBus(CloseEventBusOption.Pause)
+			this.connectivityModel.close(CloseEventBusOption.Pause)
 		})
 
 		// only show "Tutanota" after login if there is no custom title set

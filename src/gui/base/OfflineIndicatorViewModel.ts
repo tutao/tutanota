@@ -6,6 +6,7 @@ import { LoginListener } from "../../api/main/LoginListener.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { OfflineIndicatorAttrs, OfflineIndicatorState } from "./OfflineIndicator.js"
 import { IMainLocator } from "../../api/main/MainLocator.js"
+import {WebsocketConnectivityModel} from "../../misc/WebsocketConnectivityModel.js"
 
 /**
  * the offline indicator must take into account information
@@ -22,7 +23,7 @@ import { IMainLocator } from "../../api/main/MainLocator.js"
 export class OfflineIndicatorViewModel {
 	private cacheStorage: ExposedCacheStorage | null = null
 	private loginListener: LoginListener | null = null
-	private worker: WorkerClient | null = null
+	private connectivityModel: WebsocketConnectivityModel | null = null
 	private logins: LoginController | null = null
 	private isInit = false
 
@@ -44,13 +45,13 @@ export class OfflineIndicatorViewModel {
 		logins.waitForFullLogin().then(() => this.cb())
 		this.cacheStorage = locator.cacheStorage
 		this.loginListener = locator.loginListener
-		this.worker = locator.worker
+		this.connectivityModel = locator.connectivityModel
 		this.logins = logins
 		logins.waitForFullLogin().then(() => this.cb())
 		this.isInit = true
 
 		this.setProgressUpdateStream(locator.progressTracker.onProgressUpdate)
-		this.setWsStateStream(this.worker.wsConnection())
+		this.setWsStateStream(this.connectivityModel.wsConnection())
 	}
 
 	private setProgressUpdateStream(progressStream: Stream<number>): void {
@@ -110,7 +111,7 @@ export class OfflineIndicatorViewModel {
 					lastUpdate: this.lastUpdate,
 					reconnectAction: () => {
 						console.log("try reconnect ws")
-						this.worker!.tryReconnectEventBus(true, true, 2000)
+						this.connectivityModel!.tryReconnect(true, true, 2000)
 					},
 				}
 			}

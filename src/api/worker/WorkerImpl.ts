@@ -10,7 +10,7 @@ import type { ContactFormFacade } from "./facades/ContactFormFacade"
 import type { BrowserData } from "../../misc/ClientConstants"
 import type { InfoMessage } from "../common/CommonTypes"
 import { CryptoFacade } from "./crypto/CryptoFacade"
-import { delay } from "@tutao/tutanota-utils"
+import { delay, lazyMemoized } from "@tutao/tutanota-utils"
 import type { EntityUpdate, WebsocketCounterData, WebsocketLeaderStatus } from "../entities/sys/TypeRefs.js"
 import type { ProgressMonitorId } from "../common/utils/ProgressMonitor"
 import { urlify } from "./Urlifier"
@@ -42,11 +42,18 @@ import { BlobFacade } from "./facades/BlobFacade"
 import { ExposedCacheStorage } from "./rest/DefaultEntityRestCache.js"
 import { LoginListener } from "../main/LoginListener"
 import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
+import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel.js"
+import { EventBusClient } from "./EventBusClient.js"
 
 assertWorkerOrNode()
 
 export interface WorkerRandomizer {
 	generateRandomNumber(numBytes: number): Promise<number>
+}
+
+export interface ExposedEventBus {
+	tryReconnect: EventBusClient["tryReconnect"]
+	close: EventBusClient["close"]
 }
 
 /** Interface of the facades exposed by the worker, basically interface for the worker itself */
@@ -75,11 +82,13 @@ export interface WorkerInterface {
 	readonly cryptoFacade: CryptoFacade
 	readonly cacheStorage: ExposedCacheStorage
 	readonly random: WorkerRandomizer
+	readonly eventBus: ExposedEventBus
 }
 
 /** Interface for the "main"/webpage context of the app, interface for the worker client. */
 export interface MainInterface {
 	readonly loginListener: LoginListener
+	readonly wsConnectivityListener: WebsocketConnectivityListener
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -89,6 +98,7 @@ export class WorkerImpl implements NativeInterface {
 	private readonly _dispatcher: MessageDispatcher<MainRequestType, WorkerRequestType>
 	private _newEntropy: number
 	private _lastEntropyUpdate: number
+	private readonly wsConnectivityListener = lazyMemoized(() => this.getMainInterface().wsConnectivityListener)
 
 	constructor(self: DedicatedWorkerGlobalScope) {
 		this._scope = self
@@ -228,6 +238,9 @@ export class WorkerImpl implements NativeInterface {
 					},
 				}
 			},
+			get eventBus() {
+				return locator.eventBusClient
+			},
 		}
 	}
 
@@ -265,18 +278,10 @@ export class WorkerImpl implements NativeInterface {
 				return this.addEntropy(message.args[0])
 			},
 
-			tryReconnectEventBus(message: WorkerRequest) {
-				locator.eventBusClient.tryReconnect(message.args[0], message.args[1], message.args[2])
-				return Promise.resolve()
-			},
-
 			generateSsePushIdentifer: () => {
 				return Promise.resolve(keyToBase64(aes256RandomKey()))
 			},
-			closeEventBus: (message: WorkerRequest) => {
-				locator.eventBusClient.close(message.args[0])
-				return Promise.resolve()
-			},
+
 			getLog: () => {
 				const global = self as any
 
@@ -347,9 +352,10 @@ export class WorkerImpl implements NativeInterface {
 		return this._dispatcher.postRequest(new Request("updateIndexState", [state]))
 	}
 
+	/** this method should eventually be just removed */
 	updateWebSocketState(state: WsConnectionState): Promise<void> {
 		console.log("ws displayed state: ", state)
-		return this._dispatcher.postRequest(new Request("updateWebSocketState", [state]))
+		return this.wsConnectivityListener().updateWebSocketState(state)
 	}
 
 	updateCounter(update: WebsocketCounterData): Promise<void> {
