@@ -10,8 +10,6 @@ import type { ContactFormFacade } from "./facades/ContactFormFacade"
 import type { BrowserData } from "../../misc/ClientConstants"
 import type { InfoMessage } from "../common/CommonTypes"
 import { CryptoFacade } from "./crypto/CryptoFacade"
-import { delay, lazyMemoized } from "@tutao/tutanota-utils"
-import { urlify } from "./Urlifier"
 import type { GiftCardFacade } from "./facades/GiftCardFacade"
 import type { LoginFacade } from "./facades/LoginFacade"
 import type { CustomerFacade } from "./facades/CustomerFacade"
@@ -29,7 +27,7 @@ import { UserManagementFacade } from "./facades/UserManagementFacade"
 import { exposeLocal, exposeRemote } from "../common/WorkerProxy"
 import type { SearchIndexStateInfo } from "./search/SearchTypes"
 import type { DeviceEncryptionFacade } from "./facades/DeviceEncryptionFacade"
-import { aes256RandomKey, keyToBase64, random } from "@tutao/tutanota-crypto"
+import { random } from "@tutao/tutanota-crypto"
 import type { NativeInterface } from "../../native/common/NativeInterface"
 import type { EntityRestInterface } from "./rest/EntityRestClient"
 import { RestClient } from "./rest/RestClient"
@@ -43,7 +41,8 @@ import { EventBusClient } from "./EventBusClient.js"
 import { EntropyFacade } from "./facades/EntropyFacade.js"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 import { ExposedEventController } from "../main/EventController.js"
-import {ExposedOperationProgressTracker} from "../main/OperationProgressTracker.js"
+import { ExposedOperationProgressTracker } from "../main/OperationProgressTracker.js"
+import { WorkerFacade } from "./facades/WorkerFacade.js"
 
 assertWorkerOrNode()
 
@@ -84,6 +83,7 @@ export interface WorkerInterface {
 	readonly random: WorkerRandomizer
 	readonly eventBus: ExposedEventBus
 	readonly entropyFacade: EntropyFacade
+	readonly workerFacade: WorkerFacade
 }
 
 /** Interface for the "main"/webpage context of the app, interface for the worker client. */
@@ -221,15 +221,19 @@ export class WorkerImpl implements NativeInterface {
 			get restInterface() {
 				return locator.cache
 			},
+
 			get serviceExecutor() {
 				return locator.serviceExecutor
 			},
+
 			get cryptoFacade() {
 				return locator.crypto
 			},
+
 			get cacheStorage() {
 				return locator.cacheStorage
 			},
+
 			get random() {
 				return {
 					async generateRandomNumber(nbrOfBytes: number) {
@@ -237,11 +241,18 @@ export class WorkerImpl implements NativeInterface {
 					},
 				}
 			},
+
 			get eventBus() {
 				return locator.eventBusClient
 			},
+
 			get entropyFacade() {
 				return locator.entropyFacade
+			},
+
+			get workerFacade() {
+				// just creating it inline because no one on the worker side actually needs it so no reason to keep it around
+				return new WorkerFacade()
 			},
 		}
 	}
@@ -276,22 +287,7 @@ export class WorkerImpl implements NativeInterface {
 				options.headers = { ...locator.user.createAuthHeaders(), ...options.headers }
 				return locator.restClient.request(path, method, options)
 			},
-			generateSsePushIdentifer: () => {
-				return Promise.resolve(keyToBase64(aes256RandomKey()))
-			},
-			getLog: () => {
-				const global = self as any
 
-				if (global.logger) {
-					return Promise.resolve(global.logger.getEntries())
-				} else {
-					return Promise.resolve([])
-				}
-			},
-			urlify: async (message: WorkerRequest) => {
-				const html: string = message.args[0]
-				return Promise.resolve(urlify(html))
-			},
 			facade: exposeLocal(exposedWorker),
 		}
 	}

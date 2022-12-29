@@ -45,7 +45,7 @@ async function prepareLogContent() {
 ${window.logger.getEntries().join("\n")}
 `)
 	}
-	const workerLog = await locator.worker.getLog()
+	const workerLog = await locator.workerFacade.getLog()
 	if (workerLog.length > 0) {
 		entries.push(`== WORKER LOG ==
 ${workerLog.join("\n")}
