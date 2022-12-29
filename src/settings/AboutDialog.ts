@@ -57,7 +57,7 @@ export class AboutDialog implements Component {
 			const mainEntries = global.logger.getEntries()
 			const mainLogFile = createLogFile(timestamp.getTime(), mainEntries.join("\n"), "main")
 			attachments.push(mainLogFile)
-			const workerLogEntries = await locator.worker.getLog()
+			const workerLogEntries = await locator.workerFacade.getLog()
 			const workerLogFile = await createLogFile(timestamp.getTime(), workerLogEntries.join("\n"), "worker")
 			attachments.push(workerLogFile)
 		}

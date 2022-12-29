@@ -8,24 +8,10 @@ declare type NumberString = string
 declare type Dict = { [key: string]: string }
 
 /** Requests from main web thread to worker */
-declare type WorkerRequestType =
-	| "setup"
-	| "reset"
-	| "testEcho"
-	| "testError"
-	| "restRequest"
-	| "getLog"
-	| "urlify"
-	| "generateSsePushIdentifer"
-	| "facade"
+declare type WorkerRequestType = "setup" | "reset" | "testEcho" | "testError" | "restRequest" | "facade"
 
 /** Requests from worker web thread to main web thread */
-declare type MainRequestType =
-	| "facade"
-	| "execNative"
-	| "error"
-	| "updateIndexState"
-	| "infoMessage"
+declare type MainRequestType = "facade" | "execNative" | "error" | "updateIndexState" | "infoMessage"
 
 /** Requests from web to native */
 declare type NativeRequestType = "ipc" | "facade"

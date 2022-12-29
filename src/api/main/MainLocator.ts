@@ -84,6 +84,7 @@ import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityMode
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { EntropyFacade } from "../worker/facades/EntropyFacade.js"
 import { OperationProgressTracker } from "./OperationProgressTracker.js"
+import {WorkerFacade} from "../worker/facades/WorkerFacade.js"
 
 assertMainOrNode()
 
@@ -129,6 +130,7 @@ class MainLocator {
 	desktopSystemFacade!: DesktopSystemFacade
 	interWindowEventSender!: InterWindowEventFacadeSendDispatcher
 	cacheStorage!: ExposedCacheStorage
+	workerFacade!: WorkerFacade
 	loginListener!: LoginListener
 	random!: WorkerRandomizer
 	sqlCipherFacade!: SqlCipherFacade
@@ -233,9 +235,10 @@ class MainLocator {
 			this.fileFacade,
 			this.fileController,
 			await this.loginController(),
-			this.serviceExecutor,
 			() => this.sendMailModel(mailboxDetails, mailboxProperties),
 			this.eventController,
+			this.workerFacade,
+			this.search,
 		)
 	}
 
@@ -373,6 +376,7 @@ class MainLocator {
 			random,
 			eventBus,
 			entropyFacade,
+			workerFacade,
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -400,6 +404,7 @@ class MainLocator {
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
 		this.entropyFacade = entropyFacade
+		this.workerFacade = workerFacade
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
 		this.mailModel = new MailModel(notifications, this.eventController, this.connectivityModel, this.mailFacade, this.entityClient, logins)
 		this.operationProgressTracker = new OperationProgressTracker()
