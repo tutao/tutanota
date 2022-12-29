@@ -31,7 +31,7 @@ export class NativePushServiceApp {
 		console.log("Registering for push notifications")
 		if (isAndroidApp() || isDesktop()) {
 			try {
-				const identifier = (await this.loadPushIdentifierFromNative()) ?? (await locator.worker.generateSsePushIdentifer())
+				const identifier = (await this.loadPushIdentifierFromNative()) ?? (await locator.workerFacade.generateSsePushIdentifer())
 				this._currentIdentifier = identifier
 				const pushIdentifier = (await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentiferInstance(identifier, PushServiceType.SSE))
 				await this.storePushIdentifierLocally(pushIdentifier)

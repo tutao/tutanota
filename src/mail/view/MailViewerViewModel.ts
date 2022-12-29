@@ -2,7 +2,6 @@ import {
 	CalendarEvent,
 	ConversationEntryTypeRef,
 	createEncryptedMailAddress,
-	createListUnsubscribeData,
 	createMailAddress,
 	EncryptedMailAddress,
 	File as TutanotaFile,
@@ -49,7 +48,6 @@ import m from "mithril"
 import { LockedError, NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
 import { elementIdPart, haveSameId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
 import { getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages } from "./MailGuiUtils"
-import { locator } from "../../api/main/MainLocator"
 import { SanitizedFragment } from "../../misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../file/FileController"
 import { exportMails } from "../export/Exporter.js"
@@ -63,14 +61,14 @@ import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { CustomerTypeRef, GroupInfo } from "../../api/entities/sys/TypeRefs.js"
 import { LoadingStateTracker } from "../../offline/LoadingState"
-import { IServiceExecutor } from "../../api/common/ServiceRequest"
-import { ListUnsubscribeService } from "../../api/entities/tutanota/Services"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import { InitAsResponseArgs, SendMailModel } from "../editor/SendMailModel"
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
 import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
+import { WorkerFacade } from "../../api/worker/facades/WorkerFacade.js"
+import { SearchModel } from "../../search/model/SearchModel.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -137,9 +135,10 @@ export class MailViewerViewModel {
 		private readonly fileFacade: FileFacade,
 		private readonly fileController: FileController,
 		readonly logins: LoginController,
-		readonly service: IServiceExecutor,
 		private sendMailModelFactory: (mailboxDetails: MailboxDetail) => Promise<SendMailModel>,
 		private readonly eventController: EventController,
+		private readonly workerFacade: WorkerFacade,
+		private readonly searchModel: SearchModel,
 	) {
 		this.delayBodyRenderingUntil.then(() => {
 			this.renderIsDelayed = false
@@ -163,7 +162,7 @@ export class MailViewerViewModel {
 				const { instanceListId, instanceId, operation } = update
 				if (isSameId(this.mail._id, [instanceListId, instanceId])) {
 					try {
-						const updatedMail = await locator.entityClient.load(MailTypeRef, this.mail._id)
+						const updatedMail = await this.entityClient.load(MailTypeRef, this.mail._id)
 						this.updateMail({ mail: updatedMail })
 					} catch (e) {
 						if (e instanceof NotFoundError) {
@@ -517,7 +516,7 @@ export class MailViewerViewModel {
 	}
 
 	canPersistBlockingStatus(): boolean {
-		return locator.search.indexingSupported
+		return this.searchModel.indexingSupported
 	}
 
 	async exportMail(): Promise<void> {
@@ -560,26 +559,18 @@ export class MailViewerViewModel {
 			return false
 		}
 
-		return this.getHeaders().then((mailHeaders) => {
-			if (!mailHeaders) {
-				return false
-			}
-
-			let headers = mailHeaders.split("\n").filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe"))
-
-			if (headers.length > 0) {
-				return this.getSenderOfResponseMail().then((recipient) => {
-					const postData = createListUnsubscribeData({
-						mail: this.getMailId(),
-						recipient,
-						headers: headers.join("\n"),
-					})
-					return this.service.post(ListUnsubscribeService, postData).then(() => true)
-				})
-			} else {
-				return false
-			}
-		})
+		const mailHeaders = await this.getHeaders()
+		if (!mailHeaders) {
+			return false
+		}
+		const unsubHeaders = mailHeaders.split("\n").filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe"))
+		if (unsubHeaders.length > 0) {
+			const recipient = await this.getSenderOfResponseMail()
+			await this.mailModel.unsubscribe(this.mail, recipient, unsubHeaders)
+			return true
+		} else {
+			return false
+		}
 	}
 
 	private getMailboxDetails(): Promise<MailboxDetail> {
@@ -889,7 +880,7 @@ export class MailViewerViewModel {
 	private async sanitizeMailBody(mail: Mail, blockExternalContent: boolean): Promise<SanitizedFragment> {
 		const { htmlSanitizer } = await import("../../misc/HtmlSanitizer")
 		const rawBody = this.getMailBody()
-		const urlified = await locator.worker.urlify(rawBody).catch((e) => {
+		const urlified = await this.workerFacade.urlify(rawBody).catch((e) => {
 			console.warn("Failed to urlify mail body!", e)
 			return rawBody
 		})
