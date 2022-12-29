@@ -25,7 +25,6 @@ import { firstBiggerThanSecond, GENERATED_MAX_ID, generatedIdToTimestamp, getEle
 import { _createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, typeRefToTypeInfo } from "./IndexUtils"
 import type { Db, GroupData } from "./SearchTypes"
 import { IndexingErrorReason } from "./SearchTypes"
-import type { WorkerImpl } from "../WorkerImpl"
 import { ContactIndexer } from "./ContactIndexer"
 import { ContactList, ContactListTypeRef, ContactTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { GroupInfoIndexer } from "./GroupInfoIndexer"
@@ -48,6 +47,7 @@ import { deleteObjectStores } from "../utils/DbUtils"
 import { aes256Decrypt, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt256Key, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CacheInfo } from "../facades/LoginFacade.js"
+import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -106,7 +106,6 @@ export function newSearchIndexDB(): DbFacade {
 export class Indexer {
 	readonly db: Db
 	private readonly _dbInitializedDeferredObject: DeferredObject<void>
-	private readonly _worker: WorkerImpl
 	private _initParams!: InitParams
 	readonly _contact: ContactIndexer
 	readonly _mail: MailIndexer
@@ -129,7 +128,12 @@ export class Indexer {
 	_entityRestClient: EntityRestClient
 	_indexedGroupIds: Array<Id>
 
-	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, browserData: BrowserData, defaultEntityRestCache: DefaultEntityRestCache) {
+	constructor(
+		entityRestClient: EntityRestClient,
+		private readonly infoMessageHandler: InfoMessageHandler,
+		browserData: BrowserData,
+		defaultEntityRestCache: DefaultEntityRestCache,
+	) {
 		let deferred = defer<void>()
 		this._dbInitializedDeferredObject = deferred
 		this.db = {
@@ -139,14 +143,13 @@ export class Indexer {
 			initialized: deferred.promise,
 		}
 		// correctly initialized during init()
-		this._worker = worker
 		this._core = new IndexerCore(this.db, new EventQueue(true, (batch) => this._processEntityEvents(batch)), browserData)
 		this._entityRestClient = entityRestClient
 		this._entity = new EntityClient(defaultEntityRestCache)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))
 		const dateProvider = new LocalTimeDateProvider()
-		this._mail = new MailIndexer(this._core, this.db, worker, entityRestClient, defaultEntityRestCache, dateProvider)
+		this._mail = new MailIndexer(this._core, this.db, this.infoMessageHandler, entityRestClient, defaultEntityRestCache, dateProvider)
 		this._groupInfo = new GroupInfoIndexer(this._core, this.db, this._entity, new SuggestionFacade(GroupInfoTypeRef, this.db))
 		this._indexedGroupIds = []
 		this._initiallyLoadedBatchIdsPerGroup = new Map()
@@ -190,7 +193,7 @@ export class Indexer {
 			}
 
 			await transaction.wait()
-			await this._worker.sendIndexState({
+			await this.infoMessageHandler.onSearchIndexStateUpdate({
 				initializing: false,
 				mailIndexEnabled: this._mail.mailIndexingEnabled,
 				progress: 0,
@@ -220,7 +223,7 @@ export class Indexer {
 				console.log("disable mail indexing and init again", e)
 				return this._reCreateIndex()
 			} else {
-				await this._worker.sendIndexState({
+				await this.infoMessageHandler.onSearchIndexStateUpdate({
 					initializing: false,
 					mailIndexEnabled: this._mail.mailIndexingEnabled,
 					progress: 0,
