@@ -38,6 +38,8 @@ import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
 import { MailWrapper } from "../../../../../src/api/common/MailWrapper.js"
+import {object} from "testdouble"
+import {InfoMessageHandler} from "../../../../../src/gui/InfoMessageHandler.js"
 
 class FixedDateProvider implements DateProvider {
 	now: number
@@ -517,10 +519,8 @@ o.spec("MailIndexer test", () => {
 					mocked.writeIndexUpdate = o.spy(() => Promise.resolve())
 				},
 			)
-			const worker = {
-				sendIndexState: () => Promise.resolve(),
-			} as any
-			indexer = new MailIndexer(core, db, worker, entityMock, entityCache, dateProvider)
+			const infoMessageHandler = object<InfoMessageHandler>()
+			indexer = new MailIndexer(core, db, infoMessageHandler, entityMock, entityCache, dateProvider)
 		})
 		o("one mailbox until certain point", async function () {
 			transaction.put(GroupDataOS, mailGroup, {
@@ -808,10 +808,8 @@ async function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number
 		},
 		iv: fixedIv,
 	} as any
-	let worker: WorkerImpl = {
-		sendIndexState: o.spy(),
-	} as any
-	const indexer = mock(new MailIndexer(core, db, worker, entityMock, entityCacheMock, new LocalTimeDateProvider()), (mock) => {
+	const infoMessageHandler = object<InfoMessageHandler>()
+	const indexer = mock(new MailIndexer(core, db, infoMessageHandler, entityMock, entityCacheMock, new LocalTimeDateProvider()), (mock) => {
 		mock.mailIndexingEnabled = true
 
 		mock._loadMailListIds = (mbox) => {
