@@ -1,21 +1,19 @@
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer, noOp } from "@tutao/tutanota-utils"
-import { WorkerImpl } from "./WorkerImpl"
 import type { SystemTimeout } from "../common/utils/Scheduler.js"
+import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
 
 export class SuspensionHandler {
 	_isSuspended: boolean
 	_suspendedUntil: number
 	_deferredRequests: Array<DeferredObject<any>>
-	_worker: WorkerImpl
 	_hasSentInfoMessage: boolean
 	_timeout: SystemTimeout
 
-	constructor(worker: WorkerImpl, systemTimeout: SystemTimeout) {
+	constructor(private readonly infoMessageHandler: InfoMessageHandler, systemTimeout: SystemTimeout) {
 		this._isSuspended = false
 		this._suspendedUntil = 0
 		this._deferredRequests = []
-		this._worker = worker
 		this._hasSentInfoMessage = false
 		this._timeout = systemTimeout
 	}
@@ -37,7 +35,7 @@ export class SuspensionHandler {
 			}, suspensionDurationSeconds * 1000)
 
 			if (!this._hasSentInfoMessage) {
-				this._worker.infoMessage({
+				this.infoMessageHandler.onInfoMessage({
 					translationKey: "clientSuspensionWait_label",
 					args: {},
 				})

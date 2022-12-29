@@ -22,7 +22,6 @@ import { IndexingErrorReason } from "./SearchTypes"
 import { CancelledError } from "../../common/error/CancelledError"
 import { IndexerCore } from "./IndexerCore"
 import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "./Indexer"
-import type { WorkerImpl } from "../WorkerImpl"
 import { DbError } from "../../common/error/DbError"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import type { DateProvider } from "../DateProvider"
@@ -34,6 +33,7 @@ import type { SomeEntity } from "../../common/EntityTypes"
 import { isDetailsDraft, isLegacyMail, MailWrapper } from "../../common/MailWrapper.js"
 import { EntityUpdateData } from "../../main/EventController"
 import { EphemeralCacheStorage } from "../rest/EphemeralCacheStorage"
+import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
@@ -50,7 +50,6 @@ export class MailIndexer {
 	_excludedListIds: Id[]
 	_core: IndexerCore
 	_db: Db
-	_worker: WorkerImpl
 	_entityRestClient: EntityRestClient
 	_defaultCachingEntityRestClient: DefaultEntityRestCache
 	_defaultCachingEntity: EntityClient
@@ -61,7 +60,7 @@ export class MailIndexer {
 	constructor(
 		core: IndexerCore,
 		db: Db,
-		worker: WorkerImpl,
+		private readonly infoMessageHandler: InfoMessageHandler,
 		entityRestClient: EntityRestClient,
 		defaultCachingRestClient: DefaultEntityRestCache,
 		dateProvider: DateProvider,
@@ -70,7 +69,6 @@ export class MailIndexer {
 		this._db = db
 		this._defaultCachingEntityRestClient = defaultCachingRestClient
 		this._defaultCachingEntity = new EntityClient(defaultCachingRestClient)
-		this._worker = worker
 		this.currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
 		this.mailIndexingEnabled = false
 		this.mailboxIndexingPromise = Promise.resolve()
@@ -284,7 +282,7 @@ export class MailIndexer {
 
 		this._core.resetStats()
 
-		await this._worker.sendIndexState({
+		await this.infoMessageHandler.onSearchIndexStateUpdate({
 			initializing: false,
 			mailIndexEnabled: this.mailIndexingEnabled,
 			progress: 1,
@@ -333,7 +331,7 @@ export class MailIndexer {
 
 			await this.updateCurrentIndexTimestamp(user)
 
-			await this._worker.sendIndexState({
+			await this.infoMessageHandler.onSearchIndexStateUpdate({
 				initializing: false,
 				mailIndexEnabled: this.mailIndexingEnabled,
 				progress: 0,
@@ -354,7 +352,7 @@ export class MailIndexer {
 
 			const error = success ? null : e instanceof ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown
 
-			await this._worker.sendIndexState({
+			await this.infoMessageHandler.onSearchIndexStateUpdate({
 				initializing: false,
 				mailIndexEnabled: this.mailIndexingEnabled,
 				progress: 0,
@@ -373,7 +371,7 @@ export class MailIndexer {
 	_indexMailLists(mailBoxes: Array<{ mbox: MailBox; newestTimestamp: number }>, oldestTimestamp: number): Promise<void> {
 		const newestTimestamp = mailBoxes.reduce((acc, data) => Math.max(acc, data.newestTimestamp), 0)
 		const progress = new ProgressMonitor(newestTimestamp - oldestTimestamp, (progress) => {
-			this._worker.sendIndexState({
+			this.infoMessageHandler.onSearchIndexStateUpdate({
 				initializing: false,
 				mailIndexEnabled: this.mailIndexingEnabled,
 				progress,
