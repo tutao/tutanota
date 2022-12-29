@@ -3,16 +3,16 @@ import { SuspensionHandler } from "../../../../src/api/worker/SuspensionHandler.
 import { deferWithHandler, downcast } from "@tutao/tutanota-utils"
 import type { WorkerImpl } from "../../../../src/api/worker/WorkerImpl.js"
 import type { SystemTimeout } from "../../../../src/api/common/utils/Scheduler.js"
+import {InfoMessageHandler} from "../../../../src/gui/InfoMessageHandler.js"
+import {matchers, object} from "testdouble"
+import {verify} from "@tutao/tutanota-test-utils"
 
 o.spec("SuspensionHandler test", () => {
 	let suspensionHandler
-	let workerMock: WorkerImpl
 	let systemTimeout
+	let messageHandlerMock: InfoMessageHandler
 	o.beforeEach(() => {
-		workerMock = downcast({
-			infoMessage: o.spy(),
-		})
-
+		messageHandlerMock = object()
 		let timeoutFn = () => {}
 
 		systemTimeout = {
@@ -22,7 +22,7 @@ o.spec("SuspensionHandler test", () => {
 			clearTimeout: o.spy(),
 			finish: () => timeoutFn(),
 		}
-		suspensionHandler = new SuspensionHandler(workerMock, downcast<SystemTimeout>(systemTimeout))
+		suspensionHandler = new SuspensionHandler(messageHandlerMock, downcast<SystemTimeout>(systemTimeout))
 	})
 	o.spec("activating suspension", function () {
 		o(
@@ -43,8 +43,7 @@ o.spec("SuspensionHandler test", () => {
 				suspensionHandler.activateSuspensionIfInactive(100)
 				o(systemTimeout.setTimeout.callCount).equals(0)
 				o(suspensionHandler.isSuspended()).equals(true)
-				// @ts-ignore
-				o(workerMock.infoMessage.callCount).equals(0)
+				verify(messageHandlerMock.onInfoMessage(matchers.anything()), {times: 0})
 			}),
 		)
 		o(
@@ -62,8 +61,7 @@ o.spec("SuspensionHandler test", () => {
 				suspensionHandler._isSuspended = false
 				suspensionHandler._hasSentInfoMessage = false
 				suspensionHandler.activateSuspensionIfInactive(100)
-				// @ts-ignore
-				o(workerMock.infoMessage.callCount).equals(1)
+				verify(messageHandlerMock.onInfoMessage(matchers.anything()), {times: 1})
 			}),
 		)
 		o(
@@ -72,8 +70,7 @@ o.spec("SuspensionHandler test", () => {
 				suspensionHandler._isSuspended = false
 				suspensionHandler._hasSentInfoMessage = true
 				suspensionHandler.activateSuspensionIfInactive(100)
-				// @ts-ignore
-				o(workerMock.infoMessage.callCount).equals(0)
+				verify(messageHandlerMock.onInfoMessage(matchers.anything()), {times: 0})
 			}),
 		)
 	})
