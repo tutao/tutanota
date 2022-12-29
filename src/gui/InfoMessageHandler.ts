@@ -1,14 +1,21 @@
 import m from "mithril"
 import { show as showNotificationOverlay } from "./base/NotificationOverlay"
-import { lang } from "../misc/LanguageViewModel"
-import { locator } from "../api/main/MainLocator"
+import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import { assertMainOrNode } from "../api/common/Env"
+import { SearchModel } from "../search/model/SearchModel.js"
+import {SearchIndexStateInfo} from "../api/worker/search/SearchTypes.js"
 
 assertMainOrNode()
 
-export async function registerInfoMessageHandler(): Promise<void> {
-	await locator.initialized
-	locator.worker.infoMessages.map((message) => {
+export interface InfoMessage {
+	translationKey: TranslationKey
+	args: Record<string, any>
+}
+
+export class InfoMessageHandler {
+	constructor(private readonly searchModel: SearchModel) {}
+
+	async onInfoMessage(message: InfoMessage): Promise<void> {
 		showNotificationOverlay(
 			{
 				view: () => m("", lang.get(message.translationKey, message.args)),
@@ -18,5 +25,9 @@ export async function registerInfoMessageHandler(): Promise<void> {
 			},
 			[],
 		)
-	})
+	}
+
+	async onSearchIndexStateUpdate(state: SearchIndexStateInfo): Promise<void> {
+		this.searchModel.indexState(state)
+	}
 }

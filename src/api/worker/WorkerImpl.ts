@@ -8,7 +8,6 @@ import { initLocator, locator, resetLocator } from "./WorkerLocator"
 import { assertWorkerOrNode, isMainOrNode } from "../common/Env"
 import type { ContactFormFacade } from "./facades/ContactFormFacade"
 import type { BrowserData } from "../../misc/ClientConstants"
-import type { InfoMessage } from "../common/CommonTypes"
 import { CryptoFacade } from "./crypto/CryptoFacade"
 import type { GiftCardFacade } from "./facades/GiftCardFacade"
 import type { LoginFacade } from "./facades/LoginFacade"
@@ -25,7 +24,6 @@ import { MailAddressFacade } from "./facades/MailAddressFacade"
 import { FileFacade } from "./facades/FileFacade.js"
 import { UserManagementFacade } from "./facades/UserManagementFacade"
 import { exposeLocal, exposeRemote } from "../common/WorkerProxy"
-import type { SearchIndexStateInfo } from "./search/SearchTypes"
 import type { DeviceEncryptionFacade } from "./facades/DeviceEncryptionFacade"
 import { random } from "@tutao/tutanota-crypto"
 import type { NativeInterface } from "../../native/common/NativeInterface"
@@ -43,6 +41,7 @@ import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 import { ExposedEventController } from "../main/EventController.js"
 import { ExposedOperationProgressTracker } from "../main/OperationProgressTracker.js"
 import { WorkerFacade } from "./facades/WorkerFacade.js"
+import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
 
 assertWorkerOrNode()
 
@@ -93,6 +92,7 @@ export interface MainInterface {
 	readonly progressTracker: ExposedProgressTracker
 	readonly eventController: ExposedEventController
 	readonly operationProgressTracker: ExposedOperationProgressTracker
+	readonly infoMessageHandler: InfoMessageHandler
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -302,13 +302,5 @@ export class WorkerImpl implements NativeInterface {
 
 	sendError(e: Error): Promise<void> {
 		return this._dispatcher.postRequest(new Request("error", [errorToObj(e)]))
-	}
-
-	sendIndexState(state: SearchIndexStateInfo): Promise<void> {
-		return this._dispatcher.postRequest(new Request("updateIndexState", [state]))
-	}
-
-	infoMessage(message: InfoMessage): Promise<void> {
-		return this._dispatcher.postRequest(new Request("infoMessage", [message]))
 	}
 }

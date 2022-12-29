@@ -103,7 +103,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.user = new UserFacade()
 	const dateProvider = new NoZoneDateProvider()
 
-	const suspensionHandler = new SuspensionHandler(worker, self)
+	const mainInterface = worker.getMainInterface()
+
+	const suspensionHandler = new SuspensionHandler(mainInterface.infoMessageHandler, self)
 	locator.instanceMapper = new InstanceMapper()
 	locator.rsa = await createRsaImplementation(worker)
 	locator.restClient = new RestClient(suspensionHandler)
@@ -144,8 +146,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.cache = cache ?? entityRestClient
 
 	locator.cachingEntityClient = new EntityClient(locator.cache)
-	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache as DefaultEntityRestCache)
-	const mainInterface = worker.getMainInterface()
+	locator.indexer = new Indexer(entityRestClient, mainInterface.infoMessageHandler, browserData, locator.cache as DefaultEntityRestCache)
 
 	locator.ownerEncSessionKeysUpdateQueue = new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor)
 
