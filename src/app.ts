@@ -378,8 +378,6 @@ import("./translations/en")
 			const { exposeNativeInterface } = await import("./api/common/ExposeNativeInterface")
 			logins.addPostLoginAction(exposeNativeInterface(locator.native).postLoginActions)
 		}
-
-		import("./gui/InfoMessageHandler.js").then((module) => module.registerInfoMessageHandler())
 		// after we set up prefixWithoutFile
 		initSW()
 	})

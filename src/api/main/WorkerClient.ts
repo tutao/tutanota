@@ -7,11 +7,9 @@ import { client } from "../../misc/ClientDetector"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer, downcast } from "@tutao/tutanota-utils"
 import { objToError } from "../common/utils/Utils"
-import type { InfoMessage } from "../common/CommonTypes"
 import { handleUncaughtError } from "../../misc/ErrorHandler"
 import type { MainInterface, WorkerInterface } from "../worker/WorkerImpl"
 import { exposeLocal, exposeRemote } from "../common/WorkerProxy"
-import stream from "mithril/stream"
 import type { RestClient } from "../worker/rest/RestClient"
 import { EntropyDataChunk } from "../worker/facades/EntropyFacade.js"
 
@@ -31,8 +29,6 @@ export class WorkerClient {
 	private _isInitialized: boolean = false
 
 	private _dispatcher!: MessageDispatcher<WorkerRequestType, MainRequestType>
-	// Should be empty stream unless there's really a message.
-	readonly infoMessages: stream<InfoMessage> = stream()
 
 	constructor() {
 		this.initialized.then(() => {
@@ -89,14 +85,6 @@ export class WorkerClient {
 				handleUncaughtError(objToError(message.args[0]))
 				return Promise.resolve()
 			},
-			updateIndexState: (message: MainRequest) => {
-				locator.search.indexState(downcast(message.args[0]))
-				return Promise.resolve()
-			},
-			infoMessage: (message: MainRequest) => {
-				this.infoMessages(downcast(message.args[0]))
-				return Promise.resolve()
-			},
 			facade: exposeLocal<MainInterface, MainRequestType>({
 				get loginListener() {
 					return locator.loginListener
@@ -112,6 +100,9 @@ export class WorkerClient {
 				},
 				get operationProgressTracker() {
 					return locator.operationProgressTracker
+				},
+				get infoMessageHandler() {
+					return locator.infoMessageHandler
 				},
 			}),
 		}
