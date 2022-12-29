@@ -84,7 +84,8 @@ import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityMode
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { EntropyFacade } from "../worker/facades/EntropyFacade.js"
 import { OperationProgressTracker } from "./OperationProgressTracker.js"
-import {WorkerFacade} from "../worker/facades/WorkerFacade.js"
+import { WorkerFacade } from "../worker/facades/WorkerFacade.js"
+import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
 
 assertMainOrNode()
 
@@ -136,6 +137,7 @@ class MainLocator {
 	sqlCipherFacade!: SqlCipherFacade
 	connectivityModel!: WebsocketConnectivityModel
 	operationProgressTracker!: OperationProgressTracker
+	infoMessageHandler!: InfoMessageHandler
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private exposedNativeInterfaces: ExposedNativeInterface | null = null
@@ -408,6 +410,7 @@ class MainLocator {
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
 		this.mailModel = new MailModel(notifications, this.eventController, this.connectivityModel, this.mailFacade, this.entityClient, logins)
 		this.operationProgressTracker = new OperationProgressTracker()
+		this.infoMessageHandler = new InfoMessageHandler(this.search)
 
 		if (!isBrowser()) {
 			const { WebDesktopFacade } = await import("../../native/main/WebDesktopFacade")

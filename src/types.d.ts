@@ -11,7 +11,7 @@ declare type Dict = { [key: string]: string }
 declare type WorkerRequestType = "setup" | "reset" | "testEcho" | "testError" | "restRequest" | "facade"
 
 /** Requests from worker web thread to main web thread */
-declare type MainRequestType = "facade" | "execNative" | "error" | "updateIndexState" | "infoMessage"
+declare type MainRequestType = "facade" | "execNative" | "error"
 
 /** Requests from web to native */
 declare type NativeRequestType = "ipc" | "facade"
