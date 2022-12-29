@@ -112,7 +112,7 @@ export class WorkerClient {
 				},
 				get operationProgressTracker() {
 					return locator.operationProgressTracker
-				}
+				},
 			}),
 		}
 	}
@@ -131,20 +131,8 @@ export class WorkerClient {
 		return this._dispatcher.postRequest(msg)
 	}
 
-	generateSsePushIdentifer(): Promise<string> {
-		return this._postRequest(new Request("generateSsePushIdentifer", [...arguments]))
-	}
-
 	reset(): Promise<void> {
 		return this._postRequest(new Request("reset", []))
-	}
-
-	getLog(): Promise<Array<string>> {
-		return this._dispatcher.postRequest(new Request("getLog", []))
-	}
-
-	urlify(html: string): Promise<string> {
-		return this._postRequest(new Request("urlify", [html]))
 	}
 
 	/**
