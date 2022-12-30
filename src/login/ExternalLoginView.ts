@@ -14,7 +14,7 @@ import { Checkbox } from "../gui/base/Checkbox.js"
 import { logins } from "../api/main/LoginController"
 import { MessageBox } from "../gui/base/MessageBox.js"
 import { renderInfoLinks } from "./LoginView"
-import { CurrentView, header } from "../gui/Header.js"
+import { header } from "../gui/Header.js"
 import { GENERATED_MIN_ID } from "../api/common/utils/EntityUtils"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../misc/LoginUtils"
 import { locator } from "../api/main/MainLocator"
@@ -23,6 +23,7 @@ import { assertMainOrNode } from "../api/common/Env"
 import type { Credentials } from "../misc/credentials/Credentials"
 import { SessionType } from "../api/common/SessionType.js"
 import { ResumeSessionErrorReason } from "../api/worker/facades/LoginFacade"
+import {CurrentView} from "../TopLevelView.js"
 
 assertMainOrNode()
 

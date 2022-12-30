@@ -1,6 +1,5 @@
 import type { Children, Vnode } from "mithril"
 import m from "mithril"
-import type { CurrentView } from "../gui/Header.js"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar.js"
 import type { WebauthnNativeBridge } from "../native/main/WebauthnNativeBridge"
 import { SecondFactorImage } from "../gui/base/icons/Icons.js"
@@ -8,6 +7,7 @@ import { progressIcon } from "../gui/base/Icon.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { ButtonType } from "../gui/base/Button.js"
 import { BrowserWebauthn } from "../misc/2fa/webauthn/BrowserWebauthn.js"
+import {CurrentView} from "../TopLevelView.js";
 
 /**
  * This is a special view which is not used by the web client

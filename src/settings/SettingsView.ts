@@ -5,8 +5,7 @@ import { ColumnType, ViewColumn } from "../gui/base/ViewColumn"
 import { ViewSlider } from "../gui/nav/ViewSlider.js"
 import { SettingsFolder } from "./SettingsFolder"
 import { lang } from "../misc/LanguageViewModel"
-import type { CurrentView } from "../gui/Header.js"
-import { header, TopLevelAttrs } from "../gui/Header.js"
+import { BaseHeaderAttrs, header } from "../gui/Header.js"
 import { LoginSettingsViewer } from "./login/LoginSettingsViewer.js"
 import { GlobalSettingsViewer } from "./GlobalSettingsViewer"
 import { DesktopSettingsViewer } from "./DesktopSettingsViewer"
@@ -63,6 +62,7 @@ import { BottomNav } from "../gui/nav/BottomNav.js"
 import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
+import { CurrentView, TopLevelAttrs } from "../TopLevelView.js"
 
 assertMainOrNode()
 
@@ -80,6 +80,7 @@ export interface UpdatableSettingsDetailsViewer {
 
 export interface SettingsViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
+	header: BaseHeaderAttrs
 }
 
 export class SettingsView extends BaseTopLevelView implements CurrentView<SettingsViewAttrs> {
@@ -386,11 +387,14 @@ export class SettingsView extends BaseTopLevelView implements CurrentView<Settin
 		return this.entityEventsReceived(updates)
 	}
 
-	view(): Children {
+	view({ attrs }: Vnode<SettingsViewAttrs>): Children {
 		return m(
 			"#settings.main-view",
 			m(this.viewSlider, {
-				header: m(header),
+				header: m(header, {
+					viewSlider: this.viewSlider,
+					...attrs.header,
+				}),
 				bottomNav: m(BottomNav),
 			}),
 		)
