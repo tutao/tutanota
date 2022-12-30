@@ -1,6 +1,6 @@
 import m, { Children, Vnode } from "mithril"
 import { assertMainOrNode } from "../api/common/Env.js"
-import { CurrentView, header, TopLevelAttrs } from "../gui/Header.js"
+import {BaseHeaderAttrs, header} from "../gui/Header.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { AriaLandmarks, landmarkAttrs } from "../gui/AriaUtils.js"
 import { lang } from "../misc/LanguageViewModel.js"
@@ -10,11 +10,13 @@ import { formatDateTime, formatDateWithMonth } from "../misc/Formatter.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { CustomerAccountTerminationRequest } from "../api/entities/sys/TypeRefs.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
+import {CurrentView, TopLevelAttrs} from "../TopLevelView.js"
 
 assertMainOrNode()
 
 export interface TerminationViewAttrs extends TopLevelAttrs {
 	makeViewModel: () => TerminationViewModel
+	header: BaseHeaderAttrs
 }
 
 export class TerminationView extends BaseTopLevelView implements CurrentView<TerminationViewAttrs> {
@@ -46,7 +48,10 @@ export class TerminationView extends BaseTopLevelView implements CurrentView<Ter
 				},
 			},
 			[
-				m(header),
+				m(header, {
+					viewSlider: null,
+					...attrs.header,
+				}),
 				m(
 					".flex-grow.flex-center.scroll",
 					m(

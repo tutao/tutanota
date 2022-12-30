@@ -14,7 +14,6 @@ import { Logger, replaceNativeLogger } from "./api/common/Logger"
 import { init as initSW } from "./serviceworker/ServiceWorkerClient"
 import { applicationPaths } from "./ApplicationPaths"
 import { ProgrammingError } from "./api/common/error/ProgrammingError"
-import { CurrentView, TopLevelAttrs } from "./gui/Header.js"
 import { NativeWebauthnView } from "./login/NativeWebauthnView"
 import { WebauthnNativeBridge } from "./native/main/WebauthnNativeBridge"
 import { PostLoginActions } from "./login/PostLoginActions"
@@ -30,6 +29,8 @@ import { MailView, MailViewAttrs, MailViewCache } from "./mail/view/MailView.js"
 import { ContactView, ContactViewAttrs } from "./contacts/view/ContactView.js"
 import { SettingsView, SettingsViewAttrs } from "./settings/SettingsView.js"
 import { SearchView, SearchViewAttrs } from "./search/view/SearchView.js"
+import { CurrentView, TopLevelAttrs } from "./TopLevelView.js"
+import { BaseHeaderAttrs } from "./gui/Header.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -177,7 +178,7 @@ import("./translations/en")
 		}
 
 		const paths = applicationPaths({
-			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel }>({
+			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel; header: BaseHeaderAttrs }>({
 				prepareRoute: async () => {
 					const { LoginViewModel } = await import("./login/LoginViewModel.js")
 					const { DatabaseKeyFactory } = await import("./misc/credentials/DatabaseKeyFactory.js")
@@ -193,13 +194,14 @@ import("./translations/en")
 									new DatabaseKeyFactory(locator.deviceEncryptionFacade),
 									deviceConfig,
 								),
+							header: await locator.baseHeaderAttrs(),
 						},
 					}
 				},
-				prepareAttrs: (cache) => ({ targetPath: "/mail", makeViewModel: cache.makeViewModel }),
+				prepareAttrs: ({ makeViewModel, header }) => ({ targetPath: "/mail", makeViewModel, header }),
 				requireLogin: false,
 			}),
-			termination: makeViewResolver<TerminationViewAttrs, TerminationView, { makeViewModel: () => TerminationViewModel }>({
+			termination: makeViewResolver<TerminationViewAttrs, TerminationView, { makeViewModel: () => TerminationViewModel; header: BaseHeaderAttrs }>({
 				prepareRoute: async () => {
 					const { TerminationViewModel } = await import("./termination/TerminationViewModel.js")
 					const { TerminationView } = await import("./termination/TerminationView.js")
@@ -207,74 +209,83 @@ import("./translations/en")
 						component: TerminationView,
 						cache: {
 							makeViewModel: () => new TerminationViewModel(logins, locator.secondFactorHandler, locator.serviceExecutor, locator.entityClient),
+							header: await locator.baseHeaderAttrs(),
 						},
 					}
 				},
-				prepareAttrs: (cache) => ({ makeViewModel: cache.makeViewModel }),
+				prepareAttrs: ({ makeViewModel, header }) => ({ makeViewModel, header }),
 				requireLogin: false,
 			}),
-			contact: makeViewResolver<ContactViewAttrs, ContactView, { drawerAttrsFactory: () => DrawerMenuAttrs }>({
+			contact: makeViewResolver<ContactViewAttrs, ContactView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: BaseHeaderAttrs }>({
 				prepareRoute: async () => {
 					const { ContactView } = await import("./contacts/view/ContactView.js")
 					const drawerAttrsFactory = await locator.drawerAttrsFactory()
 					return {
 						component: ContactView,
-						cache: { drawerAttrsFactory },
+						cache: { drawerAttrsFactory, header: await locator.baseHeaderAttrs() },
 					}
 				},
-				prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory() }),
+				prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header }),
 			}),
 			externalLogin: makeOldViewResolver(() => import("./login/ExternalLoginView.js").then((module) => new module.ExternalLoginView()), {
 				requireLogin: false,
 			}),
-			mail: makeViewResolver<MailViewAttrs, MailView, { drawerAttrsFactory: () => DrawerMenuAttrs; cache: MailViewCache }>({
+			mail: makeViewResolver<MailViewAttrs, MailView, { drawerAttrsFactory: () => DrawerMenuAttrs; cache: MailViewCache; header: BaseHeaderAttrs }>({
 				prepareRoute: async (previousCache) => {
 					const { MailView } = await import("./mail/view/MailView.js")
 					return {
 						component: MailView,
 						cache: previousCache ?? {
 							drawerAttrsFactory: await locator.drawerAttrsFactory(),
-							cache: { mailList: null, selectedFolder: null, mailViewerViewModel: null, },
+							cache: { mailList: null, selectedFolder: null, mailViewerViewModel: null },
+							header: await locator.baseHeaderAttrs(),
 						},
 					}
 				},
-				prepareAttrs: ({ drawerAttrsFactory, cache }) => ({ drawerAttrs: drawerAttrsFactory(), cache }),
+				prepareAttrs: ({ drawerAttrsFactory, cache, header }) => ({ drawerAttrs: drawerAttrsFactory(), cache, header }),
 			}),
-			settings: makeViewResolver<SettingsViewAttrs, SettingsView, { drawerAttrsFactory: () => DrawerMenuAttrs }>({
+			settings: makeViewResolver<SettingsViewAttrs, SettingsView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: BaseHeaderAttrs }>({
 				prepareRoute: async () => {
 					const { SettingsView } = await import("./settings/SettingsView.js")
 					const drawerAttrsFactory = await locator.drawerAttrsFactory()
 					return {
 						component: SettingsView,
-						cache: { drawerAttrsFactory },
+						cache: { drawerAttrsFactory, header: await locator.baseHeaderAttrs() },
 					}
 				},
-				prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory() }),
+				prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header }),
 			}),
-			search: makeViewResolver<SearchViewAttrs, SearchView, { drawerAttrsFactory: () => DrawerMenuAttrs }>({
+			search: makeViewResolver<SearchViewAttrs, SearchView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: BaseHeaderAttrs }>({
 				prepareRoute: async () => {
 					const { SearchView } = await import("./search/view/SearchView.js")
 					const drawerAttrsFactory = await locator.drawerAttrsFactory()
 					return {
 						component: SearchView,
-						cache: { drawerAttrsFactory },
+						cache: { drawerAttrsFactory, header: await locator.baseHeaderAttrs() },
 					}
 				},
-				prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory() }),
+				prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header }),
 			}),
-			contactForm: makeOldViewResolver(() => import("./login/contactform/ContactFormView.js").then((module) => module.contactFormView), {
-				requireLogin: false,
-			}),
-			calendar: makeViewResolver<CalendarViewAttrs, CalendarView, { drawerAttrsFactory: () => DrawerMenuAttrs }>({
+			contactForm: makeOldViewResolver(
+				async () => {
+					const { ContactFormView } = await import("./login/contactform/ContactFormView.js")
+					const header = await locator.baseHeaderAttrs()
+					return new ContactFormView(header)
+				},
+				{
+					requireLogin: false,
+				},
+			),
+			calendar: makeViewResolver<CalendarViewAttrs, CalendarView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: BaseHeaderAttrs }>({
 				prepareRoute: async () => {
 					const { CalendarView } = await import("./calendar/view/CalendarView.js")
 					const drawerAttrsFactory = await locator.drawerAttrsFactory()
 					return {
 						component: CalendarView,
-						cache: { drawerAttrsFactory },
+						cache: { drawerAttrsFactory, header: await locator.baseHeaderAttrs() },
 					}
 				},
-				prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory() }),
+				prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header }),
 			}),
 
 			/**
@@ -495,11 +506,6 @@ function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType
 					...attrs,
 					oncreate({ state }: VnodeDOM<FullAttrs, ComponentType>) {
 						window.tutao.currentView = state
-
-						import("./gui/Header.js").then(({ header }) => {
-							header.updateCurrentView(state)
-							m.redraw()
-						})
 					},
 				}),
 			)
@@ -538,10 +544,9 @@ function makeOldViewResolver(
 					promise = Promise.resolve(viewCache.view)
 				}
 
-				Promise.all([promise, import("./gui/Header.js")]).then(([view, { header }]) => {
+				Promise.all([promise]).then(([view]) => {
 					view.updateUrl?.(args, requestedPath)
 					const currentPath = m.route.get()
-					header.updateCurrentView(view)
 					window.tutao.currentView = view
 				})
 				return promise

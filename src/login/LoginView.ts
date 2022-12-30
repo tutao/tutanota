@@ -9,8 +9,8 @@ import { BootIcons } from "../gui/base/icons/BootIcons"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { windowFacade } from "../misc/WindowFacade"
 import { DeviceType } from "../misc/ClientConstants"
-import { Button, ButtonAttrs, ButtonType } from "../gui/base/Button.js"
-import { CurrentView, header, TopLevelAttrs } from "../gui/Header.js"
+import { Button, ButtonType } from "../gui/base/Button.js"
+import { BaseHeaderAttrs, header } from "../gui/Header.js"
 import { AriaLandmarks, landmarkAttrs, liveDataAttrs } from "../gui/AriaUtils"
 import { DisplayMode, LoginState, LoginViewModel } from "./LoginViewModel"
 import { LoginForm } from "./LoginForm"
@@ -22,6 +22,7 @@ import type { clickHandler } from "../gui/base/GuiUtils"
 import { IconButton } from "../gui/base/IconButton.js"
 import { showLogsDialog } from "./LoginLogDialog.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
+import { CurrentView, TopLevelAttrs } from "../TopLevelView.js"
 
 assertMainOrNode()
 
@@ -29,6 +30,7 @@ export interface LoginViewAttrs extends TopLevelAttrs {
 	/** Default path to redirect to after the login. Can be overridden with query param `requestedPath`. */
 	targetPath: string
 	makeViewModel: () => LoginViewModel
+	header: BaseHeaderAttrs
 }
 
 export class LoginView extends BaseTopLevelView implements CurrentView<LoginViewAttrs> {
@@ -70,7 +72,10 @@ export class LoginView extends BaseTopLevelView implements CurrentView<LoginView
 				},
 			},
 			[
-				m(header),
+				m(header, {
+					viewSlider: null,
+					...attrs.header,
+				}),
 				m(
 					".flex-grow.flex-center.scroll",
 					m(
