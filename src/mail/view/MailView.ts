@@ -10,7 +10,7 @@ import { isSelectedPrefix, NavButtonColor } from "../../gui/base/NavButton.js"
 import { MailViewer } from "./MailViewer"
 import { Dialog } from "../../gui/base/Dialog"
 import { FeatureType, Keys, MailFolderType } from "../../api/common/TutanotaConstants"
-import { CurrentView, header, TopLevelAttrs } from "../../gui/Header.js"
+import { BaseHeaderAttrs, header } from "../../gui/Header.js"
 import type { Mail, MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertNotNull, defer, getFirstOrThrow, noOp, ofClass } from "@tutao/tutanota-utils"
@@ -62,6 +62,7 @@ import { FolderSubtree, FolderSystem } from "../model/FolderSystem.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
+import { CurrentView, TopLevelAttrs } from "../../TopLevelView.js"
 
 assertMainOrNode()
 
@@ -83,6 +84,7 @@ export interface MailViewCache {
 export interface MailViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	cache: MailViewCache
+	header: BaseHeaderAttrs
 }
 
 /**
@@ -222,7 +224,7 @@ export class MailView extends BaseTopLevelView implements CurrentView<MailViewAt
 		}
 	}
 
-	view(): Children {
+	view({attrs}: Vnode<MailViewAttrs>): Children {
 		return m(
 			"#mail.main-view",
 			{
@@ -255,7 +257,12 @@ export class MailView extends BaseTopLevelView implements CurrentView<MailViewAt
 				},
 			},
 			m(this.viewSlider, {
-				header: m(header),
+				header: m(header, {
+					headerView: this.renderHeaderView(),
+					rightView: this.renderHeaderRightView(),
+					viewSlider: this.viewSlider,
+					...attrs.header,
+				}),
 				bottomNav:
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.mailColumn && this.mailViewerViewModel
 						? m(MobileMailActionBar, { viewModel: this.mailViewerViewModel })
@@ -294,7 +301,7 @@ export class MailView extends BaseTopLevelView implements CurrentView<MailViewAt
 		return this.viewSlider
 	}
 
-	headerRightView(): Children {
+	private renderHeaderRightView(): Children {
 		const openMailButtonAttrs: ButtonAttrs = {
 			label: "newMail_action",
 			click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
@@ -894,7 +901,7 @@ export class MailView extends BaseTopLevelView implements CurrentView<MailViewAt
 	 * Used by Header to figure out when content needs to be injected there
 	 * @returns {Children} Mithril children or null
 	 */
-	headerView(): Children {
+	private renderHeaderView(): Children {
 		return this.viewSlider.getVisibleBackgroundColumns().length === 1 && this.cache.mailList?.list.isMobileMultiSelectionActionActive()
 			? m(
 					MultiSelectionBar,
