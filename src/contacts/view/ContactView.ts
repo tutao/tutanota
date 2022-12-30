@@ -2,8 +2,7 @@ import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { ContactViewer } from "./ContactViewer"
-import type { CurrentView } from "../../gui/Header.js"
-import { header, TopLevelAttrs } from "../../gui/Header.js"
+import { BaseHeaderAttrs, header } from "../../gui/Header.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { ContactEditor } from "../ContactEditor"
 import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
@@ -48,11 +47,13 @@ import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
+import { CurrentView, TopLevelAttrs } from "../../TopLevelView.js"
 
 assertMainOrNode()
 
 export interface ContactViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
+	header: BaseHeaderAttrs
 }
 
 export class ContactView extends BaseTopLevelView implements CurrentView<ContactViewAttrs> {
@@ -152,11 +153,16 @@ export class ContactView extends BaseTopLevelView implements CurrentView<Contact
 		return promiseMap(updates, (update) => this._processEntityUpdate(update)).then(noOp)
 	}
 
-	view(): Children {
+	view({attrs}: Vnode<ContactViewAttrs>): Children {
 		return m(
 			"#contact.main-view",
 			m(this.viewSlider, {
-				header: m(header),
+				header: m(header, {
+					headerView: this.renderHeaderView(),
+					rightView: this.renderHeaderRightView(),
+					viewSlider: this.viewSlider,
+					...attrs.header
+				}),
 				bottomNav: m(BottomNav),
 			}),
 		)
@@ -170,7 +176,7 @@ export class ContactView extends BaseTopLevelView implements CurrentView<Contact
 		}
 	}
 
-	headerRightView(): Children {
+	private renderHeaderRightView(): Children {
 		if (this._contactList) {
 			return m(Button, {
 				label: "newContact_action",
@@ -612,7 +618,7 @@ export class ContactView extends BaseTopLevelView implements CurrentView<Contact
 	 * Used by Header to figure out when content needs to be injected there
 	 * @returns {Children} Mithril children or null
 	 */
-	headerView(): Children {
+	private renderHeaderView(): Children {
 		const contactList = this._contactList
 
 		if (

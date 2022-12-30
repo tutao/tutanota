@@ -32,8 +32,7 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { logins } from "../../api/main/LoginController"
 import { PageSize } from "../../gui/base/List"
 import { MultiSelectionBar } from "../../gui/base/MultiSelectionBar"
-import type { CurrentView } from "../../gui/Header.js"
-import { header, TopLevelAttrs } from "../../gui/Header.js"
+import { BaseHeaderAttrs, header } from "../../gui/Header.js"
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { isUpdateForTypeRef } from "../../api/main/EventController"
 import { getStartOfTheWeekOffsetForUser } from "../../calendar/date/CalendarUtils"
@@ -57,11 +56,13 @@ import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { MobileMailActionBar } from "../../mail/view/MobileMailActionBar.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
+import { CurrentView, TopLevelAttrs } from "../../TopLevelView.js"
 
 assertMainOrNode()
 
 export interface SearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
+	header: BaseHeaderAttrs
 }
 
 export class SearchView extends BaseTopLevelView implements CurrentView<SearchViewAttrs> {
@@ -100,6 +101,7 @@ export class SearchView extends BaseTopLevelView implements CurrentView<SearchVi
 
 	constructor(vnode: Vnode<SearchViewAttrs>) {
 		super()
+		// fixme unsubscribe?
 		locator.mailModel.mailboxDetails.map((mailboxes) => {
 			this.availableMailFolders = [
 				{
@@ -206,11 +208,16 @@ export class SearchView extends BaseTopLevelView implements CurrentView<SearchVi
 		}).then(noOp)
 	}
 
-	view(): Children {
+	view({attrs}: Vnode<SearchViewAttrs>): Children {
 		return m(
 			"#search.main-view",
 			m(this.viewSlider, {
-				header: m(header),
+				header: m(header, {
+					headerView: this.renderHeaderView(),
+					rightView: this.renderHeaderRightView(),
+					viewSlider: this.viewSlider,
+					...attrs.header
+				}),
 				bottomNav:
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.resultDetailsColumn && this.viewer._viewer?.mode === "mail"
 						? m(MobileMailActionBar, { viewModel: this.viewer._viewer.viewModel })
@@ -265,7 +272,7 @@ export class SearchView extends BaseTopLevelView implements CurrentView<SearchVi
 		return this.viewSlider
 	}
 
-	headerRightView(): Children {
+	private renderHeaderRightView(): Children {
 		const restriction = getRestriction(m.route.get())
 		return styles.isUsingBottomNavigation()
 			? isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()
@@ -613,7 +620,7 @@ export class SearchView extends BaseTopLevelView implements CurrentView<SearchVi
 	 * Used by Header to figure out when content needs to be injected there
 	 * @returns {Children} Mithril children or null
 	 */
-	headerView(): Children {
+	private renderHeaderView(): Children {
 		return this.viewSlider.getVisibleBackgroundColumns().length === 1 && this.searchList.list && this.searchList.list.isMobileMultiSelectionActionActive()
 			? m(
 					MultiSelectionBar,

@@ -86,6 +86,8 @@ import { EntropyFacade } from "../worker/facades/EntropyFacade.js"
 import { OperationProgressTracker } from "./OperationProgressTracker.js"
 import { WorkerFacade } from "../worker/facades/WorkerFacade.js"
 import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
+import { OfflineIndicatorViewModel } from "../../gui/base/OfflineIndicatorViewModel.js"
+import {BaseHeaderAttrs} from "../../gui/Header.js"
 
 assertMainOrNode()
 
@@ -160,6 +162,19 @@ class MainLocator {
 	async sendMailModel(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): Promise<SendMailModel> {
 		const factory = await this.sendMailModelSyncFactory(mailboxDetails, mailboxProperties)
 		return factory()
+	}
+
+	offlineIndicatorViewModel = lazyMemoized(async () => {
+		// just to make sure that some random place that imports locator doesn't import mithril too
+		const m = await import("mithril")
+		return new OfflineIndicatorViewModel(this.cacheStorage, this.loginListener, this.connectivityModel, logins, this.progressTracker, m.redraw)
+	})
+
+	async baseHeaderAttrs(): Promise<BaseHeaderAttrs> {
+		return {
+			offlineIndicatorModel: await this.offlineIndicatorViewModel(),
+			newsModel: this.newsModel,
+		}
 	}
 
 	/** This ugly bit exists because CalendarEventViewModel wants a sync factory. */

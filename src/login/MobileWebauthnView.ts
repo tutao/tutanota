@@ -1,6 +1,5 @@
 import type { Children, Vnode } from "mithril"
 import m from "mithril"
-import type { CurrentView, TopLevelAttrs } from "../gui/Header.js"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar.js"
 import { SecondFactorImage } from "../gui/base/icons/Icons.js"
 import { progressIcon } from "../gui/base/Icon.js"
@@ -10,6 +9,7 @@ import { BrowserWebauthn } from "../misc/2fa/webauthn/BrowserWebauthn.js"
 import { WebAuthnSignChallenge } from "../native/common/generatedipc/WebAuthnSignChallenge.js"
 import { stringToBase64 } from "@tutao/tutanota-utils"
 import { WebAuthnRegistrationChallenge } from "../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
+import {CurrentView, TopLevelAttrs} from "../TopLevelView.js";
 
 export interface MobileWebauthnAttrs extends TopLevelAttrs {
 	browserWebauthn: BrowserWebauthn

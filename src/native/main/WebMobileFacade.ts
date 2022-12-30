@@ -9,6 +9,7 @@ import { MobileFacade } from "../common/generatedipc/MobileFacade.js"
 import { styles } from "../../gui/styles"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { MailModel } from "../../mail/model/MailModel.js"
+import {CurrentView} from "../../TopLevelView.js"
 
 assertMainOrNode()
 
@@ -31,7 +32,7 @@ export class WebMobileFacade implements MobileFacade {
 				return true
 			} else {
 				// otherwise try to navigate back in the current view
-				const viewSlider = header.getViewSlider()
+				const viewSlider = window.tutao.currentView?.getViewSlider?.()
 
 				const currentRoute = m.route.get()
 
@@ -39,7 +40,7 @@ export class WebMobileFacade implements MobileFacade {
 				if (viewSlider && viewSlider.isForegroundColumnFocused()) {
 					viewSlider.focusNextColumn()
 					return true
-				} else if (window.tutao.currentView && window.tutao.currentView.handleBackButton && window.tutao.currentView.handleBackButton()) {
+				} else if (this.currentViewHandlesBackButton()) {
 					return true
 				} else if (
 					viewSlider &&
@@ -89,6 +90,11 @@ export class WebMobileFacade implements MobileFacade {
 				}
 			}
 		})
+	}
+
+	private currentViewHandlesBackButton(): boolean {
+		const currentView: CurrentView | null = window.tutao.currentView
+		return currentView?.handleBackButton != null && currentView.handleBackButton()
 	}
 
 	async visibilityChange(visibility: boolean): Promise<void> {
