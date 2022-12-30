@@ -1,4 +1,4 @@
-import m, { Children, Component } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { NavBar } from "./base/NavBar.js"
 import { NavButton, NavButtonColor } from "./base/NavButton.js"
 import { styles } from "./styles.js"
@@ -22,54 +22,36 @@ import { OfflineIndicatorViewModel } from "./base/OfflineIndicatorViewModel.js"
 import { ProgressBar } from "./base/ProgressBar.js"
 import { CounterBadge } from "./base/CounterBadge.js"
 import { SessionType } from "../api/common/SessionType.js"
-import { UsageTestModel } from "../misc/UsageTestModel.js"
 import { NewsModel } from "../misc/news/NewsModel.js"
 
 const LogoutPath = "/login?noAutoLogin=true"
 export const LogoutUrl: string = window.location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath
 assertMainOrNode()
 
-export interface TopLevelAttrs {
-	requestedPath: string
-	args: Record<string, any>
+export interface BaseHeaderAttrs {
+	newsModel: NewsModel
+	offlineIndicatorModel: OfflineIndicatorViewModel
 }
 
-export interface CurrentView<Attrs extends TopLevelAttrs = TopLevelAttrs> extends Component<Attrs> {
-	/** Called when URL is updated. Optional as is only needed for old-style components (the ones we instantiate manually) */
-	updateUrl?(args: Record<string, any>, requestedPath: string): void
-
-	readonly headerView?: () => Children
-	readonly headerRightView?: () => Children
-	readonly getViewSlider?: () => ViewSlider | null
-
-	/** @return true if view handled press itself */
-	readonly handleBackButton?: () => boolean
-
-	/** @return true if "back/up" icon should be shown, false if menu icon */
-	readonly overrideBackIcon?: () => boolean
+export interface HeaderAttrs extends BaseHeaderAttrs {
+	viewSlider: ViewSlider | null
+	headerView?: Children
+	rightView?: Children
+	handleBackPress?: () => boolean
+	overrideBackIcon?: "back" | "menu"
 }
 
-export class Header implements Component {
+export class Header implements Component<HeaderAttrs> {
 	searchBar: SearchBar | null = null
 
-	private currentView: CurrentView | null = null // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
 	private readonly shortcuts: Shortcut[]
-	private offlineIndicatorModel: OfflineIndicatorViewModel = new OfflineIndicatorViewModel(() => m.redraw())
-	private usageTestModel?: UsageTestModel
-	private newsModel?: NewsModel
 
 	constructor() {
 		this.shortcuts = this.setupShortcuts()
 
-		import("../api/main/MainLocator.js").then(async (mod) => {
-			await mod.locator.initialized
-			const worker = mod.locator.worker
-			this.offlineIndicatorModel.init(mod.locator, logins)
-			await worker.initialized
-			const { SearchBar } = await import("../search/SearchBar.js")
+		import("../search/SearchBar.js").then(({ SearchBar }) => {
 			this.searchBar = new SearchBar()
-			this.usageTestModel = mod.locator.usageTestModel
-			this.newsModel = mod.locator.newsModel
+			m.redraw()
 		})
 
 		// we may be able to remove this when we stop creating the Header with new
@@ -78,17 +60,17 @@ export class Header implements Component {
 		this.oncreate = this.oncreate.bind(this)
 	}
 
-	view(): Children {
+	view({ attrs }: Vnode<HeaderAttrs>): Children {
 		// Do not return undefined if headerView is not present
-		const injectedView = this.currentView?.headerView?.()
-		return m(".header-nav.overflow-hidden.flex.items-end.flex-center", [
-			isNotTemporary() ? m(ProgressBar, { progress: this.offlineIndicatorModel.getProgress() }) : null,
+		const injectedView = attrs.headerView
+		return m(".header-nav .overflow-hidden.flex.items-end.flex-center", [
+			isNotTemporary() ? m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }) : null,
 			injectedView
 				? // Make sure this wrapper takes up the full height like the things inside it expect
 				  m(".flex-grow.height-100p", injectedView)
-				: [this.renderLeftContent(), this.renderCenterContent(), this.renderRightContent()],
+				: [this.renderLeftContent(attrs), this.renderCenterContent(attrs), this.renderRightContent(attrs)],
 			styles.isUsingBottomNavigation() && logins.isAtLeastPartiallyLoggedIn() && !this.mobileSearchBarVisible() && !injectedView && isNotTemporary()
-				? m(OfflineIndicatorMobile, this.offlineIndicatorModel.getCurrentAttrs())
+				? m(OfflineIndicatorMobile, attrs.offlineIndicatorModel.getCurrentAttrs())
 				: null,
 		])
 	}
@@ -105,25 +87,25 @@ export class Header implements Component {
 	 * render the new mail/contact/event button in the top right of the one- and two-column layouts.
 	 * @private
 	 */
-	private renderHeaderAction(): Children {
-		return m(".header-right.pr-s.flex-end.items-center", this.currentView?.headerRightView?.())
+	private renderHeaderAction(attrs: HeaderAttrs): Children {
+		return m(".header-right.pr-s.flex-end.items-center", attrs.rightView)
 	}
 
 	/**
 	 * render the search and navigation bar in three-column layouts. if there is a navigation, also render an offline indicator.
 	 * @private
 	 */
-	private renderFullNavigation(): Children {
+	private renderFullNavigation(attrs: HeaderAttrs): Children {
 		return m(
 			".header-right.pr-l.mr-negative-m.flex-end.items-center",
 			logins.isAtLeastPartiallyLoggedIn()
 				? [
 						this.renderDesktopSearchBar(),
-						m(OfflineIndicatorDesktop, this.offlineIndicatorModel.getCurrentAttrs()),
+						m(OfflineIndicatorDesktop, attrs.offlineIndicatorModel.getCurrentAttrs()),
 						m(".nav-bar-spacer"),
-						m(NavBar, this.renderButtons()),
+						m(NavBar, this.renderButtons(attrs)),
 				  ]
-				: [this.renderDesktopSearchBar(), m(NavBar, this.renderButtons())],
+				: [this.renderDesktopSearchBar(), m(NavBar, this.renderButtons(attrs))],
 		)
 	}
 
@@ -136,13 +118,11 @@ export class Header implements Component {
 			: null
 	}
 
-	private focusMain() {
-		const viewSlider = this.currentView && this.currentView.getViewSlider && this.currentView.getViewSlider()
-
-		viewSlider && viewSlider.getMainColumn().focus()
+	private focusMain(attrs: HeaderAttrs) {
+		attrs.viewSlider?.getMainColumn().focus()
 	}
 
-	private renderButtons(): Children {
+	private renderButtons(attrs: HeaderAttrs): Children {
 		// We assign click listeners to buttons to move focus correctly if the view is already open
 		return logins.isInternalUserLoggedIn()
 			? [
@@ -152,7 +132,7 @@ export class Header implements Component {
 						href: navButtonRoutes.mailUrl,
 						isSelectedPrefix: MAIL_PREFIX,
 						colors: NavButtonColor.Header,
-						click: () => m.route.get() === navButtonRoutes.mailUrl && this.focusMain(),
+						click: () => m.route.get() === navButtonRoutes.mailUrl && this.focusMain(attrs),
 					}),
 					!logins.isEnabled(FeatureType.DisableContacts)
 						? m(NavButton, {
@@ -161,7 +141,7 @@ export class Header implements Component {
 								href: navButtonRoutes.contactsUrl,
 								isSelectedPrefix: CONTACTS_PREFIX,
 								colors: NavButtonColor.Header,
-								click: () => m.route.get() === navButtonRoutes.contactsUrl && this.focusMain(),
+								click: () => m.route.get() === navButtonRoutes.contactsUrl && this.focusMain(attrs),
 						  })
 						: null,
 					!logins.isEnabled(FeatureType.DisableCalendar)
@@ -170,7 +150,7 @@ export class Header implements Component {
 								icon: () => BootIcons.Calendar,
 								href: CALENDAR_PREFIX,
 								colors: NavButtonColor.Header,
-								click: () => m.route.get().startsWith(CALENDAR_PREFIX) && this.focusMain(),
+								click: () => m.route.get().startsWith(CALENDAR_PREFIX) && this.focusMain(attrs),
 						  })
 						: null,
 			  ]
@@ -227,10 +207,8 @@ export class Header implements Component {
 		]
 	}
 
-	private renderCenterContent(): Children {
+	private renderCenterContent(attrs: HeaderAttrs): Children {
 		if (!styles.isUsingBottomNavigation()) return null
-
-		const viewSlider = this.getViewSlider()
 
 		const header = (title: string, left?: Children, right?: Children) => {
 			return m(".flex-center.header-middle.text-ellipsis.b", [left || null, m(".mt-s", title), right || null])
@@ -238,8 +216,8 @@ export class Header implements Component {
 
 		if (this.mobileSearchBarVisible()) {
 			return this.renderMobileSearchBar()
-		} else if (viewSlider) {
-			const firstVisibleBgColumn = viewSlider.getBackgroundColumns().find((c) => c.visible)
+		} else if (attrs.viewSlider) {
+			const firstVisibleBgColumn = attrs.viewSlider.getBackgroundColumns().find((c) => c.visible)
 
 			if (firstVisibleBgColumn) {
 				const title = firstVisibleBgColumn.getTitle()
@@ -260,8 +238,8 @@ export class Header implements Component {
 		}
 	}
 
-	private renderRightContent(): Children {
-		return isNotTemporary() ? (styles.isUsingBottomNavigation() ? this.renderHeaderAction() : this.renderFullNavigation()) : null
+	private renderRightContent(attrs: HeaderAttrs): Children {
+		return isNotTemporary() ? (styles.isUsingBottomNavigation() ? this.renderHeaderAction(attrs) : this.renderFullNavigation(attrs)) : null
 	}
 
 	private renderMobileSearchBar(): Children {
@@ -288,11 +266,11 @@ export class Header implements Component {
 		})
 	}
 
-	private renderLeftContent(): Children {
-		const viewSlider = this.getViewSlider()
-		const showBackButton = this.isBackButtonVisible()
+	private renderLeftContent(attrs: HeaderAttrs): Children {
+		const showBackButton = this.isBackButtonVisible(attrs)
 		const showNewsIndicator = !showBackButton && styles.isUsingBottomNavigation()
-		const liveNewsCount = this.newsModel ? this.newsModel.liveNewsIds.length : 0
+		const liveNewsCount = attrs.newsModel.liveNewsIds.length
+		const { viewSlider } = attrs
 
 		const style = {
 			"margin-left": styles.isUsingBottomNavigation() ? px(-15) : null, // manual margin to align the hamburger icon on mobile devices
@@ -307,11 +285,12 @@ export class Header implements Component {
 						const prevColumn = viewSlider.getPreviousColumn()
 						return prevColumn ? prevColumn.getTitle() : ""
 					},
-					icon: () => (this.isBackButtonVisible() ? BootIcons.Back : BootIcons.MoreVertical),
+					icon: () => (this.isBackButtonVisible(attrs) ? BootIcons.Back : BootIcons.MoreVertical),
 					colors: NavButtonColor.Header,
 					href: () => m.route.get(),
 					click: () => {
-						if (!this.currentView || !this.currentView.handleBackButton || !this.currentView.handleBackButton()) {
+						attrs.handleBackPress
+						if (!attrs.handleBackPress?.()) {
 							viewSlider.focusPreviousColumn()
 						}
 					},
@@ -348,26 +327,12 @@ export class Header implements Component {
 	 * Returns true iff the menu icon should be replaced by the back button.
 	 * Calls overrideBackIcon().
 	 */
-	private isBackButtonVisible() {
-		const viewSlider = this.getViewSlider()
-
-		if (!viewSlider) {
+	private isBackButtonVisible(attrs: HeaderAttrs): boolean {
+		if (!attrs.viewSlider) {
 			return false
 		}
 
-		return this.currentView && this.currentView.overrideBackIcon ? this.currentView.overrideBackIcon() : !viewSlider.getBackgroundColumns()[0].visible
-	}
-
-	updateCurrentView(currentView: CurrentView) {
-		this.currentView = currentView
-	}
-
-	getViewSlider(): ViewSlider | null {
-		if (this.currentView && this.currentView.getViewSlider) {
-			return this.currentView.getViewSlider()
-		} else {
-			return null
-		}
+		return attrs.overrideBackIcon ? attrs.overrideBackIcon === "back" : !attrs.viewSlider.getBackgroundColumns()[0].visible
 	}
 
 	private searchPlaceholder(): string | null {

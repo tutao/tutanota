@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { CurrentView, TopLevelAttrs } from "../../gui/Header.js"
-import { header } from "../../gui/Header.js"
+import { BaseHeaderAttrs, header, HeaderAttrs } from "../../gui/Header.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
@@ -54,12 +53,14 @@ import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
+import { CurrentView, TopLevelAttrs } from "../../TopLevelView.js"
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 export type GroupColors = Map<Id, string>
 
 export interface CalendarViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
+	header: BaseHeaderAttrs
 }
 
 export class CalendarView extends BaseTopLevelView implements CurrentView<CalendarViewAttrs> {
@@ -497,7 +498,7 @@ export class CalendarView extends BaseTopLevelView implements CurrentView<Calend
 		)
 	}
 
-	headerRightView(): Children {
+	private renderHeaderRightView(): Children {
 		return m(Button, {
 			label: "newEvent_action",
 			click: () => this._createNewEventDialog(),
@@ -519,10 +520,6 @@ export class CalendarView extends BaseTopLevelView implements CurrentView<Calend
 		} else {
 			return false
 		}
-	}
-
-	overrideBackIcon(): boolean {
-		return this._currentViewType === CalendarViewType.WEEK || this._currentViewType === CalendarViewType.DAY
 	}
 
 	_onPressedAddCalendar() {
@@ -731,14 +728,24 @@ export class CalendarView extends BaseTopLevelView implements CurrentView<Calend
 		)
 	}
 
-	view(): Children {
+	view({ attrs }: Vnode<CalendarViewAttrs>): Children {
 		return m(
 			".main-view",
 			m(this.viewSlider, {
-				header: m(header),
+				header: m(header, {
+					viewSlider: this.viewSlider,
+					overrideBackIcon: this.getHeaderBackIcon(),
+					rightView: this.renderHeaderRightView(),
+					handleBackPress: () => this.handleBackButton(),
+					...attrs.header,
+				}),
 				bottomNav: m(BottomNav),
 			}),
 		)
+	}
+
+	private getHeaderBackIcon(): NonNullable<HeaderAttrs["overrideBackIcon"]> {
+		return this._currentViewType === CalendarViewType.WEEK || this._currentViewType === CalendarViewType.DAY ? "back" : "menu"
 	}
 
 	onNewUrl(args: Record<string, any>) {
