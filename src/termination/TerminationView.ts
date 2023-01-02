@@ -10,7 +10,7 @@ import { formatDateTime, formatDateWithMonth } from "../misc/Formatter.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { CustomerAccountTerminationRequest } from "../api/entities/sys/TypeRefs.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
-import {CurrentView, TopLevelAttrs} from "../TopLevelView.js"
+import {TopLevelView, TopLevelAttrs} from "../TopLevelView.js"
 
 assertMainOrNode()
 
@@ -19,7 +19,7 @@ export interface TerminationViewAttrs extends TopLevelAttrs {
 	header: BaseHeaderAttrs
 }
 
-export class TerminationView extends BaseTopLevelView implements CurrentView<TerminationViewAttrs> {
+export class TerminationView extends BaseTopLevelView implements TopLevelView<TerminationViewAttrs> {
 	private bottomMargin = 0
 	private model: TerminationViewModel
 

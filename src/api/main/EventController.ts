@@ -26,7 +26,7 @@ export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdat
 	)
 }
 
-export type ExposedEventController = Pick<EventController, "onEntityUpdateReceived" | "onCountersUpdateReceied">
+export type ExposedEventController = Pick<EventController, "onEntityUpdateReceived" | "onCountersUpdateReceived">
 
 export class EventController {
 	private countersStream: Stream<WebsocketCounterData> = stream()
@@ -66,7 +66,7 @@ export class EventController {
 			.then(noOp)
 	}
 
-	async onCountersUpdateReceied(update: WebsocketCounterData): Promise<void> {
+	async onCountersUpdateReceived(update: WebsocketCounterData): Promise<void> {
 		this.countersStream(update)
 	}
 }

@@ -23,7 +23,7 @@ import { assertMainOrNode } from "../api/common/Env"
 import type { Credentials } from "../misc/credentials/Credentials"
 import { SessionType } from "../api/common/SessionType.js"
 import { ResumeSessionErrorReason } from "../api/worker/facades/LoginFacade"
-import {CurrentView} from "../TopLevelView.js"
+import {TopLevelView} from "../TopLevelView.js"
 
 assertMainOrNode()
 
@@ -157,7 +157,7 @@ class ExternalLoginViewModel {
 	}
 }
 
-export class ExternalLoginView implements CurrentView {
+export class ExternalLoginView implements TopLevelView {
 	private readonly viewModel = new ExternalLoginViewModel(locator.credentialsProvider)
 	private readonly shortcuts: Array<Shortcut> = [
 		{

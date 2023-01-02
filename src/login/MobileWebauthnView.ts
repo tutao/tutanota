@@ -9,7 +9,7 @@ import { BrowserWebauthn } from "../misc/2fa/webauthn/BrowserWebauthn.js"
 import { WebAuthnSignChallenge } from "../native/common/generatedipc/WebAuthnSignChallenge.js"
 import { stringToBase64 } from "@tutao/tutanota-utils"
 import { WebAuthnRegistrationChallenge } from "../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
-import {CurrentView, TopLevelAttrs} from "../TopLevelView.js";
+import {TopLevelView, TopLevelAttrs} from "../TopLevelView.js";
 
 export interface MobileWebauthnAttrs extends TopLevelAttrs {
 	browserWebauthn: BrowserWebauthn
@@ -20,7 +20,7 @@ export interface MobileWebauthnAttrs extends TopLevelAttrs {
  * directly but is loaded remotely by mobile client.
  * See AndroidWebauthnFacade and IosWebauthnFacade.
  */
-export class MobileWebauthnView implements CurrentView<MobileWebauthnAttrs> {
+export class MobileWebauthnView implements TopLevelView<MobileWebauthnAttrs> {
 	oncreate({ attrs }: Vnode<MobileWebauthnAttrs>) {
 		if (attrs.args["action"] === "sign") {
 			this.authenticate(attrs)
