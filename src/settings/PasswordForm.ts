@@ -1,23 +1,23 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {Autocomplete, TextField, TextFieldType} from "../gui/base/TextField.js"
-import {CompletenessIndicator} from "../gui/CompletenessIndicator.js"
-import {getPasswordStrength, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../misc/passwords/PasswordUtils"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import type {Status} from "../gui/base/StatusField"
-import {StatusField} from "../gui/base/StatusField"
-import {LoginController} from "../api/main/LoginController"
-import {assertMainOrNode} from "../api/common/Env"
-import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils.js"
-import {showPasswordGeneratorDialog} from "../misc/passwords/PasswordGeneratorDialog"
-import {theme} from "../gui/theme"
-import {Icons} from "../gui/base/icons/Icons"
-import {px, size} from "../gui/size.js"
-import {UsageTest} from "@tutao/tutanota-usagetests"
+import m, { Children, Component, Vnode } from "mithril"
+import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
+import { CompletenessIndicator } from "../gui/CompletenessIndicator.js"
+import { getPasswordStrength, isSecurePassword, PASSWORD_MIN_SECURE_VALUE } from "../misc/passwords/PasswordUtils"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
+import type { Status } from "../gui/base/StatusField"
+import { StatusField } from "../gui/base/StatusField"
+import { LoginController } from "../api/main/LoginController"
+import { assertMainOrNode } from "../api/common/Env"
+import { getEnabledMailAddressesForGroupInfo } from "../api/common/utils/GroupUtils.js"
+import { showPasswordGeneratorDialog } from "../misc/passwords/PasswordGeneratorDialog"
+import { theme } from "../gui/theme"
+import { Icons } from "../gui/base/icons/Icons"
+import { px, size } from "../gui/size.js"
+import { UsageTest } from "@tutao/tutanota-usagetests"
 import Stream from "mithril/stream"
-import {locator} from "../api/main/MainLocator.js"
-import {ButtonSize} from "../gui/base/ButtonSize.js";
-import {ToggleButton} from "../gui/base/ToggleButton.js"
+import { locator } from "../api/main/MainLocator.js"
+import { ButtonSize } from "../gui/base/ButtonSize.js"
+import { ToggleButton } from "../gui/base/ToggleButton.js"
 
 assertMainOrNode()
 
@@ -27,9 +27,9 @@ export interface PasswordFormAttrs {
 }
 
 export interface PasswordModelConfig {
-	readonly checkOldPassword: boolean,
-	readonly enforceStrength: boolean,
-	readonly repeatInput: boolean,
+	readonly checkOldPassword: boolean
+	readonly enforceStrength: boolean
+	readonly repeatInput: boolean
 }
 
 export class PasswordModel {
@@ -43,11 +43,7 @@ export class PasswordModel {
 	private __signupPaidTest?: UsageTest
 	private __signupPasswordStrengthTest: UsageTest
 
-	constructor(
-		private readonly logins: LoginController,
-		readonly config: PasswordModelConfig,
-		mailValid?: Stream<boolean>,
-	) {
+	constructor(private readonly logins: LoginController, readonly config: PasswordModelConfig, mailValid?: Stream<boolean>) {
 		this.passwordStrength = this.calculatePasswordStrength()
 
 		this.__mailValid = mailValid
@@ -112,9 +108,9 @@ export class PasswordModel {
 
 	getErrorMessageId(): TranslationKey | null {
 		return (
-			this.getErrorFromStatus(this.getOldPasswordStatus())
-			?? this.getErrorFromStatus(this.getNewPasswordStatus())
-			?? this.getErrorFromStatus(this.getRepeatedPasswordStatus())
+			this.getErrorFromStatus(this.getOldPasswordStatus()) ??
+			this.getErrorFromStatus(this.getNewPasswordStatus()) ??
+			this.getErrorFromStatus(this.getRepeatedPasswordStatus())
 		)
 	}
 
@@ -193,8 +189,8 @@ export class PasswordModel {
 		return this.__signupPasswordStrengthTest.renderVariant({
 			[0]: defaultFunc,
 			[1]: defaultFunc,
-			[2]: () => isSecurePasswordPercentage(.8, this.getPasswordStrength()),
-			[3]: () => isSecurePasswordPercentage(.6, this.getPasswordStrength()),
+			[2]: () => isSecurePasswordPercentage(0.8, this.getPasswordStrength()),
+			[3]: () => isSecurePasswordPercentage(0.6, this.getPasswordStrength()),
 		})
 	}
 
@@ -211,8 +207,9 @@ export class PasswordModel {
 		let reserved: string[] = []
 
 		if (this.logins.isUserLoggedIn()) {
-			reserved = getEnabledMailAddressesForGroupInfo(this.logins.getUserController().userGroupInfo)
-				.concat(this.logins.getUserController().userGroupInfo.name)
+			reserved = getEnabledMailAddressesForGroupInfo(this.logins.getUserController().userGroupInfo).concat(
+				this.logins.getUserController().userGroupInfo.name,
+			)
 		}
 
 		// 80% strength is minimum. we expand it to 100%, so the password indicator if completely filled when the password is strong enough
@@ -233,35 +230,40 @@ export class PasswordModel {
  * showChangeOwnPasswordDialog() and showChangeUserPasswordAsAdminDialog() show this form as dialog.
  */
 export class PasswordForm implements Component<PasswordFormAttrs> {
-
-	view({attrs}: Vnode<PasswordFormAttrs>): Children {
-		return m("", {
+	view({ attrs }: Vnode<PasswordFormAttrs>): Children {
+		return m(
+			"",
+			{
 				onremove: () => attrs.model.clear(),
 			},
 			[
-				attrs.model.config.checkOldPassword ?
-					m(TextField, {
-						label: "oldPassword_label",
-						value: attrs.model.getOldPassword(),
-						helpLabel: () => m(StatusField, {status: attrs.model.getOldPasswordStatus()}),
-						oninput: (input) => attrs.model.setOldPassword(input),
-						autocompleteAs: Autocomplete.currentPassword,
-						type: TextFieldType.Password,
-						fontSize: px(size.font_size_smaller),
-					})
+				attrs.model.config.checkOldPassword
+					? m(TextField, {
+							label: "oldPassword_label",
+							value: attrs.model.getOldPassword(),
+							helpLabel: () => m(StatusField, { status: attrs.model.getOldPasswordStatus() }),
+							oninput: (input) => attrs.model.setOldPassword(input),
+							autocompleteAs: Autocomplete.currentPassword,
+							type: TextFieldType.Password,
+							fontSize: px(size.font_size_smaller),
+					  })
 					: null,
 				m(TextField, {
 					label: "newPassword_label",
 					value: attrs.model.getNewPassword(),
-					helpLabel: () => m(".flex.col.mt-xs", [
-						m(".flex.items-center", [
-							m(".mr-s", m(CompletenessIndicator, {
-								percentageCompleted: attrs.model.getPasswordStrength(),
-							})),
-							m(StatusField, {status: attrs.model.getNewPasswordStatus()}),
+					helpLabel: () =>
+						m(".flex.col.mt-xs", [
+							m(".flex.items-center", [
+								m(
+									".mr-s",
+									m(CompletenessIndicator, {
+										percentageCompleted: attrs.model.getPasswordStrength(),
+									}),
+								),
+								m(StatusField, { status: attrs.model.getNewPasswordStatus() }),
+							]),
+							this.renderPasswordGeneratorHelp(attrs),
 						]),
-						this.renderPasswordGeneratorHelp(attrs)
-					]),
 					oninput: (input) => attrs.model.setNewPassword(input),
 					type: attrs.model.isPasswordRevealed() ? TextFieldType.Text : TextFieldType.Password,
 					autocompleteAs: Autocomplete.newPassword,
@@ -271,31 +273,34 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 				attrs.passwordInfoKey ? m(".small.mt-xs", lang.get(attrs.passwordInfoKey)) : null,
 				attrs.model.config.repeatInput
 					? m(TextField, {
-						label: "repeatedPassword_label",
-						value: attrs.model.getRepeatedPassword(),
-						autocompleteAs: Autocomplete.newPassword,
-						helpLabel: () =>
-							m(StatusField, {
-								status: attrs.model.getRepeatedPasswordStatus(),
-							}),
-						oninput: (input) => attrs.model.setRepeatedPassword(input),
-						type: TextFieldType.Password,
-					})
+							label: "repeatedPassword_label",
+							value: attrs.model.getRepeatedPassword(),
+							autocompleteAs: Autocomplete.newPassword,
+							helpLabel: () =>
+								m(StatusField, {
+									status: attrs.model.getRepeatedPasswordStatus(),
+								}),
+							oninput: (input) => attrs.model.setRepeatedPassword(input),
+							type: TextFieldType.Password,
+					  })
 					: null,
 			],
 		)
-
 	}
 
 	private renderPasswordGeneratorHelp(attrs: PasswordFormAttrs): Children {
 		return m("", [
-			m(".b.mr-xs.hover.click.darkest-hover.mt-xs", {
-				style: {display: "inline-block", color: theme.navigation_button_selected},
-				onclick: async () => {
-					attrs.model.setNewPassword(await showPasswordGeneratorDialog())
-					m.redraw()
-				}
-			}, lang.get("generatePassphrase_action")),
+			m(
+				".b.mr-xs.hover.click.darkest-hover.mt-xs",
+				{
+					style: { display: "inline-block", color: theme.navigation_button_selected },
+					onclick: async () => {
+						attrs.model.setNewPassword(await showPasswordGeneratorDialog())
+						m.redraw()
+					},
+				},
+				lang.get("generatePassphrase_action"),
+			),
 		])
 	}
 

@@ -1,18 +1,18 @@
-import {DrawerMenu} from "./nav/DrawerMenu.js"
-import {theme} from "./theme.js"
-import m, {Children, Component, Vnode} from "mithril"
-import type {TranslationKey} from "../misc/LanguageViewModel.js"
-import {lang} from "../misc/LanguageViewModel.js"
-import {AriaLandmarks, landmarkAttrs} from "./AriaUtils.js"
-import type {clickHandler} from "./base/GuiUtils.js"
-import type {lazy} from "@tutao/tutanota-utils"
-import {Request} from "../api/common/MessageDispatcher.js"
-import {WsConnectionState} from "../api/main/WorkerClient.js"
-import {FolderColumnHeaderButton} from "./base/buttons/FolderColumnHeaderButton.js"
+import { DrawerMenu } from "./nav/DrawerMenu.js"
+import { theme } from "./theme.js"
+import m, { Children, Component, Vnode } from "mithril"
+import type { TranslationKey } from "../misc/LanguageViewModel.js"
+import { lang } from "../misc/LanguageViewModel.js"
+import { AriaLandmarks, landmarkAttrs } from "./AriaUtils.js"
+import type { clickHandler } from "./base/GuiUtils.js"
+import type { lazy } from "@tutao/tutanota-utils"
+import { Request } from "../api/common/MessageDispatcher.js"
+import { WsConnectionState } from "../api/main/WorkerClient.js"
+import { FolderColumnHeaderButton } from "./base/buttons/FolderColumnHeaderButton.js"
 
 export type Attrs = {
 	/** Button to be displayed on top of the column*/
-	button: | {label: TranslationKey, click: clickHandler} | null | undefined
+	button: { label: TranslationKey; click: clickHandler } | null | undefined
 	content: Children
 	ariaLabel: TranslationKey | lazy<string>
 }
@@ -21,11 +21,11 @@ export class FolderColumnView implements Component<Attrs> {
 	private wsState: WsConnectionState = WsConnectionState.connecting
 
 	constructor() {
-		import("../api/main/MainLocator.js").then(async ({locator}) => {
+		import("../api/main/MainLocator.js").then(async ({ locator }) => {
 			await locator.initialized
 			const worker = locator.worker
 			this.wsState = worker.wsConnection()()
-			worker.wsConnection().map(state => {
+			worker.wsConnection().map((state) => {
 				this.wsState = state
 				m.redraw()
 			})
@@ -33,11 +33,11 @@ export class FolderColumnView implements Component<Attrs> {
 		})
 	}
 
-	view({attrs}: Vnode<Attrs>): Children {
+	view({ attrs }: Vnode<Attrs>): Children {
 		return m(".flex.height-100p", [
 			m(DrawerMenu, {
 				openNewWindow: async () => {
-					const {locator} = await import("../api/main/MainLocator.js")
+					const { locator } = await import("../api/main/MainLocator.js")
 					return locator.desktopSystemFacade.openNewWindow()
 				},
 			}),
@@ -63,10 +63,13 @@ export class FolderColumnView implements Component<Attrs> {
 
 	private renderMainButton(attrs: Attrs): Children {
 		return attrs.button
-			? m(".mlr-l.mt.mb", m(FolderColumnHeaderButton, {
-				label: attrs.button.label,
-				click: attrs.button.click,
-			}))
+			? m(
+					".mlr-l.mt.mb",
+					m(FolderColumnHeaderButton, {
+						label: attrs.button.label,
+						click: attrs.button.click,
+					}),
+			  )
 			: null
 	}
 }

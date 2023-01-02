@@ -6,11 +6,7 @@
 		"outDir": "build/dist",
 		"incremental": true
 	},
-	"include": [
-		"src/",
-		"libs/*.ts",
-		"types/*.d.ts"
-	],
+	"include": ["src/", "libs/*.ts", "types/*.d.ts"],
 	"references": [
 		{
 			"path": "./packages/tutanota-utils"

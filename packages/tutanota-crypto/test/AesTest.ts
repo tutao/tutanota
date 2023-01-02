@@ -1,12 +1,6 @@
 import o from "ospec"
-import type {Hex} from "@tutao/tutanota-utils"
-import {
-	concat,
-	hexToUint8Array,
-	stringToUtf8Uint8Array,
-	uint8ArrayToHex,
-	utf8Uint8ArrayToString
-} from "@tutao/tutanota-utils"
+import type { Hex } from "@tutao/tutanota-utils"
+import { concat, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import {
 	aes128Decrypt,
 	aes128Encrypt,
@@ -18,18 +12,14 @@ import {
 	aes256RandomKey,
 	IV_BYTE_LENGTH,
 } from "../lib/encryption/Aes.js"
-import {base64ToKey, bitArrayToUint8Array, keyToBase64, uint8ArrayToBitArray} from "../lib/misc/Utils.js"
-import {CryptoError} from "../lib/misc/CryptoError.js"
-import {random} from "../lib/random/Randomizer.js"
+import { base64ToKey, bitArrayToUint8Array, keyToBase64, uint8ArrayToBitArray } from "../lib/misc/Utils.js"
+import { CryptoError } from "../lib/misc/CryptoError.js"
+import { random } from "../lib/random/Randomizer.js"
 
 o.spec("aes", function () {
-	o("encryption roundtrip 128 without mac", () =>
-			arrayRoundtrip(aes128Encrypt, aes128Decrypt, aes128RandomKey(), false),
-	)
+	o("encryption roundtrip 128 without mac", () => arrayRoundtrip(aes128Encrypt, aes128Decrypt, aes128RandomKey(), false))
 	o("encryption roundtrip 128 with mac", () => arrayRoundtrip(aes128Encrypt, aes128Decrypt, aes128RandomKey(), true))
-	o("encryption roundtrip 256 without mac", () =>
-			arrayRoundtrip(aes256Encrypt, aes256Decrypt, aes256RandomKey(), false),
-	)
+	o("encryption roundtrip 256 without mac", () => arrayRoundtrip(aes256Encrypt, aes256Decrypt, aes256RandomKey(), false))
 	o("encrypted roundtrip 256 with mac", () => arrayRoundtrip(aes256Encrypt, aes256Decrypt, aes256RandomKey(), true))
 
 	// o("encryption roundtrip 256 webcrypto", browser(function (done, timeout) {
@@ -40,12 +30,12 @@ o.spec("aes", function () {
 		function runArrayRoundtrip(key: Aes128Key | Aes256Key, plainText) {
 			let encrypted = encrypt(key, plainText, random.generateRandomData(IV_BYTE_LENGTH), true, useMac)
 			return Promise.resolve(encrypted)
-					.then(encrypted => {
-						return (decrypt as any)(key, encrypted, true, useMac) // useMac is only used for aes256Decrypt
-					})
-					.then(decrypted => {
-						o(Array.from(decrypted)).deepEquals(Array.from(plainText))
-					})
+				.then((encrypted) => {
+					return (decrypt as any)(key, encrypted, true, useMac) // useMac is only used for aes256Decrypt
+				})
+				.then((decrypted) => {
+					o(Array.from(decrypted)).deepEquals(Array.from(plainText))
+				})
 		}
 
 		await runArrayRoundtrip(key, random.generateRandomData(0))
@@ -84,9 +74,9 @@ o.spec("aes", function () {
 		return uint8ArrayToHex(bitArrayToUint8Array(key))
 	}
 
-	o("encryptWithInvalidKey 128 without mac", done => encryptWithInvalidKey(done, aes128Encrypt, false))
-	o("encryptWithInvalidKey 128 with mac", done => encryptWithInvalidKey(done, aes128Encrypt, true))
-	o("encryptWithInvalidKey 256 without mac", done => encryptWithInvalidKey(done, aes256Encrypt, false))
+	o("encryptWithInvalidKey 128 without mac", (done) => encryptWithInvalidKey(done, aes128Encrypt, false))
+	o("encryptWithInvalidKey 128 with mac", (done) => encryptWithInvalidKey(done, aes128Encrypt, true))
+	o("encryptWithInvalidKey 256 without mac", (done) => encryptWithInvalidKey(done, aes256Encrypt, false))
 
 	// o("encryptWithInvalidKey 256 webcrypto", done => encryptWithInvalidKey(done, aes256EncryptFile, true))
 	function encryptWithInvalidKey(done, encrypt, useMac) {
@@ -102,8 +92,8 @@ o.spec("aes", function () {
 		}
 	}
 
-	o("decryptWithInvalidKey 128", done => decryptWithInvalidKey(done, aes128Decrypt))
-	o("decryptWithInvalidKey 256 without hmac", done => decryptWithInvalidKey(done, aes256Decrypt))
+	o("decryptWithInvalidKey 128", (done) => decryptWithInvalidKey(done, aes128Decrypt))
+	o("decryptWithInvalidKey 256 without hmac", (done) => decryptWithInvalidKey(done, aes256Decrypt))
 
 	// o("decryptWithInvalidKey 256 webcrypto", done => decryptWithInvalidKey(done, aes256DecryptFile))
 	function decryptWithInvalidKey(done, decrypt) {
@@ -119,21 +109,11 @@ o.spec("aes", function () {
 		}
 	}
 
-	o("decryptInvalidData 128", done =>
-			decryptInvalidData(
-					done,
-					aes128RandomKey(),
-					aes128Decrypt,
-					"Invalid IV length in AES128Decrypt: 10 bytes, must be 16 bytes (128 bits)",
-			),
+	o("decryptInvalidData 128", (done) =>
+		decryptInvalidData(done, aes128RandomKey(), aes128Decrypt, "Invalid IV length in AES128Decrypt: 10 bytes, must be 16 bytes (128 bits)"),
 	)
-	o("decryptInvalidData 256 without hmac", done =>
-			decryptInvalidData(
-					done,
-					aes256RandomKey(),
-					aes256Decrypt,
-					"Invalid IV length in AES256Decrypt: 10 bytes, must be 16 bytes (128 bits)",
-			),
+	o("decryptInvalidData 256 without hmac", (done) =>
+		decryptInvalidData(done, aes256RandomKey(), aes256Decrypt, "Invalid IV length in AES256Decrypt: 10 bytes, must be 16 bytes (128 bits)"),
 	)
 
 	function decryptInvalidData(done, key, decrypt, errorMessage) {
@@ -230,49 +210,19 @@ o.spec("aes", function () {
 	// 		done()
 	// 	})
 	// }))
-	o("decryptWithWrongKey 128 without mac", done =>
-			decryptWithWrongKey(
-					done,
-					aes128RandomKey(),
-					aes128RandomKey(),
-					aes128Encrypt,
-					aes128Decrypt,
-					false,
-					"aes decryption failed> pkcs#5 padding corrupt",
-			),
+	o("decryptWithWrongKey 128 without mac", (done) =>
+		decryptWithWrongKey(done, aes128RandomKey(), aes128RandomKey(), aes128Encrypt, aes128Decrypt, false, "aes decryption failed> pkcs#5 padding corrupt"),
 	)
-	o("decryptWithWrongKey 128 with mac", done =>
-			decryptWithWrongKey(
-					done,
-					aes128RandomKey(),
-					aes128RandomKey(),
-					aes128Encrypt,
-					aes128Decrypt,
-					true,
-					"invalid mac",
-			),
+	o("decryptWithWrongKey 128 with mac", (done) =>
+		decryptWithWrongKey(done, aes128RandomKey(), aes128RandomKey(), aes128Encrypt, aes128Decrypt, true, "invalid mac"),
 	)
-	o("decryptWithWrongKey 256 without mac", done =>
-			decryptWithWrongKey(
-					done,
-					aes256RandomKey(),
-					aes256RandomKey(),
-					aes256Encrypt,
-					aes256Decrypt,
-					false,
-					"aes decryption failed> pkcs#5 padding corrupt",
-			),
+	o("decryptWithWrongKey 256 without mac", (done) =>
+		decryptWithWrongKey(done, aes256RandomKey(), aes256RandomKey(), aes256Encrypt, aes256Decrypt, false, "aes decryption failed> pkcs#5 padding corrupt"),
 	)
 
 	function decryptWithWrongKey(done, key, key2, encrypt, decrypt, useMac, errorMessage) {
 		try {
-			let encrypted = encrypt(
-							key,
-							stringToUtf8Uint8Array("hello"),
-							random.generateRandomData(IV_BYTE_LENGTH),
-							true,
-							useMac,
-					)
+			let encrypted = encrypt(key, stringToUtf8Uint8Array("hello"), random.generateRandomData(IV_BYTE_LENGTH), true, useMac)
 			;(decrypt as any)(key2, encrypted, true, useMac) // useMac is only used for aes256Decrypt
 		} catch (e) {
 			const error = e as Error
@@ -300,25 +250,11 @@ o.spec("aes", function () {
 
 	function ciphertextLengths(key, encrypt, length15BytePlainText, length16BytePlainText, useMac) {
 		// check that 15 bytes fit into one block
-		o(
-				encrypt(
-						key,
-						stringToUtf8Uint8Array("1234567890abcde"),
-						random.generateRandomData(IV_BYTE_LENGTH),
-						true,
-						useMac,
-				).length,
-		).equals(length15BytePlainText)
+		o(encrypt(key, stringToUtf8Uint8Array("1234567890abcde"), random.generateRandomData(IV_BYTE_LENGTH), true, useMac).length).equals(length15BytePlainText)
 		// check that 16 bytes need two blocks (because of one byte padding length info)
-		o(
-				encrypt(
-						key,
-						stringToUtf8Uint8Array("1234567890abcdef"),
-						random.generateRandomData(IV_BYTE_LENGTH),
-						true,
-						useMac,
-				).length,
-		).equals(length16BytePlainText)
+		o(encrypt(key, stringToUtf8Uint8Array("1234567890abcdef"), random.generateRandomData(IV_BYTE_LENGTH), true, useMac).length).equals(
+			length16BytePlainText,
+		)
 	} // o("ciphertextLengths 256 webcrypto", browser(done => {
 	// 	Promise.all([
 	// 		aes256EncryptFile(aes256RandomKey(), stringToUtf8Uint8Array("1234567890abcde"), random.generateRandomData(IV_BYTE_LENGTH)).then(encrypted => o(encrypted.length).equals(48)), // check that 15 bytes fit into one block

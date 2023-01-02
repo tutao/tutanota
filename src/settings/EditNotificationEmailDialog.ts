@@ -1,55 +1,55 @@
-import type {Booking, CustomerInfo, CustomerProperties, NotificationMailTemplate} from "../api/entities/sys/TypeRefs.js"
-import {BookingTypeRef, createNotificationMailTemplate, CustomerInfoTypeRef, CustomerPropertiesTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {HtmlEditor} from "../gui/editor/HtmlEditor"
-import {InfoLink, lang, languages} from "../misc/LanguageViewModel"
+import type { Booking, CustomerInfo, CustomerProperties, NotificationMailTemplate } from "../api/entities/sys/TypeRefs.js"
+import { BookingTypeRef, createNotificationMailTemplate, CustomerInfoTypeRef, CustomerPropertiesTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { HtmlEditor } from "../gui/editor/HtmlEditor"
+import { InfoLink, lang, languages } from "../misc/LanguageViewModel"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {Dialog, DialogType} from "../gui/base/Dialog"
+import { Dialog, DialogType } from "../gui/base/Dialog"
 import m from "mithril"
-import type {SelectorItemList} from "../gui/base/DropDownSelector.js"
-import {DropDownSelector} from "../gui/base/DropDownSelector.js"
-import {TextField} from "../gui/base/TextField.js"
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {assertNotNull, LazyLoaded, memoized, neverNull, ofClass} from "@tutao/tutanota-utils"
-import {htmlSanitizer} from "../misc/HtmlSanitizer"
-import {getWhitelabelDomain} from "../api/common/utils/Utils"
-import {logins} from "../api/main/LoginController"
-import {PayloadTooLargeError} from "../api/common/error/RestError"
-import {SegmentControl} from "../gui/base/SegmentControl"
-import {insertInlineImageB64ClickHandler} from "../mail/view/MailViewerUtils"
-import {UserError} from "../api/main/UserError"
-import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
-import {isWhitelabelActive} from "../subscription/SubscriptionUtils"
-import {showWhitelabelBuyDialog} from "../subscription/BuyDialog"
-import type {UserController} from "../api/main/UserController"
-import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
-import {locator} from "../api/main/MainLocator"
+import type { SelectorItemList } from "../gui/base/DropDownSelector.js"
+import { DropDownSelector } from "../gui/base/DropDownSelector.js"
+import { TextField } from "../gui/base/TextField.js"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { assertNotNull, LazyLoaded, memoized, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { htmlSanitizer } from "../misc/HtmlSanitizer"
+import { getWhitelabelDomain } from "../api/common/utils/Utils"
+import { logins } from "../api/main/LoginController"
+import { PayloadTooLargeError } from "../api/common/error/RestError"
+import { SegmentControl } from "../gui/base/SegmentControl"
+import { insertInlineImageB64ClickHandler } from "../mail/view/MailViewerUtils"
+import { UserError } from "../api/main/UserError"
+import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs"
+import { isWhitelabelActive } from "../subscription/SubscriptionUtils"
+import { showWhitelabelBuyDialog } from "../subscription/BuyDialog"
+import type { UserController } from "../api/main/UserController"
+import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils"
+import { locator } from "../api/main/MainLocator"
 
 export function showAddOrEditNotificationEmailDialog(userController: UserController, selectedNotificationLanguage?: string) {
 	let existingTemplate: NotificationMailTemplate | undefined = undefined
-	userController.loadCustomer().then(customer => {
+	userController.loadCustomer().then((customer) => {
 		if (customer.properties) {
 			const customerProperties = new LazyLoaded(() => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
 			return customerProperties
 				.getAsync()
-				.then(loadedCustomerProperties => {
+				.then((loadedCustomerProperties) => {
 					if (selectedNotificationLanguage != null) {
 						existingTemplate = loadedCustomerProperties.notificationMailTemplates.find(
-							template => template.language === selectedNotificationLanguage,
+							(template) => template.language === selectedNotificationLanguage,
 						)
 					}
 				})
 				.then(() => {
 					return userController
 						.loadCustomerInfo()
-						.then(customerInfo => {
+						.then((customerInfo) => {
 							return customerInfo.bookings
 								? locator.entityClient
-										 .loadRange(BookingTypeRef, customerInfo.bookings.items, GENERATED_MAX_ID, 1, true)
-										 .then(bookings => (bookings.length === 1 ? bookings[0] : null))
+										.loadRange(BookingTypeRef, customerInfo.bookings.items, GENERATED_MAX_ID, 1, true)
+										.then((bookings) => (bookings.length === 1 ? bookings[0] : null))
 								: null
 						})
-						.then(lastBooking => {
+						.then((lastBooking) => {
 							showBuyOrSetNotificationEmailDialog(lastBooking, customerProperties, existingTemplate)
 						})
 				})
@@ -66,7 +66,7 @@ export function showBuyOrSetNotificationEmailDialog(
 		showNotAvailableForFreeDialog(false)
 	} else {
 		const whitelabelFailedPromise = isWhitelabelActive(lastBooking) ? Promise.resolve(false) : showWhitelabelBuyDialog(true)
-		whitelabelFailedPromise.then(failed => {
+		whitelabelFailedPromise.then((failed) => {
 			if (!failed) {
 				show(existingTemplate ?? null, customerProperties)
 			}
@@ -95,7 +95,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 		.setValue(template.body)
 		.enableToolbar()
 		.setToolbarOptions({
-			imageButtonClickHandler: insertInlineImageB64ClickHandler
+			imageButtonClickHandler: insertInlineImageB64ClickHandler,
 		})
 	const editSegment = {
 		name: lang.get("edit_action"),
@@ -109,18 +109,18 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 	const sortedLanguages: SelectorItemList<string> = languages
 		.slice()
 		.sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
-		.map(language => {
+		.map((language) => {
 			return {
 				name: lang.get(language.textId),
 				value: language.code,
 			}
 		})
-	const selectedLanguage = assertNotNull(sortedLanguages.find(({value}) => value === template.language))
+	const selectedLanguage = assertNotNull(sortedLanguages.find(({ value }) => value === template.language))
 	const selectedLanguageStream: Stream<string> = stream(selectedLanguage.value)
 	const subject = stream(template.subject)
 	// Editor resets its value on re-attach so we keep it ourselves
 	let savedHtml = editor.getValue()
-	selectedTab.map(tab => {
+	selectedTab.map((tab) => {
 		if (tab === editSegment.value) {
 			editor.setValue(savedHtml)
 		} else {
@@ -132,17 +132,17 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 		m(".small.mt-s", lang.get("templateHelp_msg")),
 		existingTemplate
 			? m(TextField, {
-				label: "notificationMailLanguage_label",
-				disabled: true,
-				value: selectedLanguage.name,
-			})
+					label: "notificationMailLanguage_label",
+					disabled: true,
+					value: selectedLanguage.name,
+			  })
 			: m(DropDownSelector, {
-				label: "notificationMailLanguage_label",
-				items: sortedLanguages,
-				selectedValue: selectedLanguageStream(),
-				selectionChangedHandler: selectedLanguageStream,
-				dropdownWidth: 250,
-			}),
+					label: "notificationMailLanguage_label",
+					items: sortedLanguages,
+					selectedValue: selectedLanguageStream(),
+					selectionChangedHandler: selectedLanguageStream,
+					dropdownWidth: 250,
+			  }),
 		m(TextField, {
 			label: "subject_label",
 			value: subject(),
@@ -153,13 +153,13 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 
 	const senderName = logins.getUserController().userGroupInfo.name
 	let senderDomain = "https://mail.tutanota.com"
-	loadCustomerInfo().then(customerInfo => {
+	loadCustomerInfo().then((customerInfo) => {
 		const whitelabelDomainInfo = customerInfo && getWhitelabelDomain(customerInfo)
 		senderDomain = "https://" + ((whitelabelDomainInfo && whitelabelDomainInfo.domain) || "mail.tutanota.com")
 		m.redraw()
 	})
 	// Even though savedHtml is always sanitized changing it might lead to mXSS
-	const sanitizePreview = memoized<string, string>(html => {
+	const sanitizePreview = memoized<string, string>((html) => {
 		return htmlSanitizer.sanitizeHTML(html).html
 	})
 
@@ -202,10 +202,10 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 			const oldBody = template.body
 			return showProgressDialog(
 				"pleaseWait_msg",
-				customerProperties.getAsync().then(customerProperties => {
+				customerProperties.getAsync().then((customerProperties) => {
 					templates = customerProperties.notificationMailTemplates
 
-					if (customerProperties.notificationMailTemplates.some(t => t !== existingTemplate && t.language === selectedLanguageStream())) {
+					if (customerProperties.notificationMailTemplates.some((t) => t !== existingTemplate && t.language === selectedLanguageStream())) {
 						throw new UserError("templateLanguageExists_msg")
 					}
 
@@ -226,7 +226,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 				}),
 			)
 				.catch(
-					ofClass(UserError, err => {
+					ofClass(UserError, (err) => {
 						return Dialog.message(() => err.message)
 					}),
 				)
@@ -286,5 +286,5 @@ function loadCustomerInfo(): Promise<CustomerInfo | null> {
 	return logins
 		.getUserController()
 		.loadCustomer()
-		.then(customer => locator.entityClient.load<CustomerInfo>(CustomerInfoTypeRef, customer.customerInfo))
+		.then((customer) => locator.entityClient.load<CustomerInfo>(CustomerInfoTypeRef, customer.customerInfo))
 }

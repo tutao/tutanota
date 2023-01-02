@@ -1,40 +1,40 @@
-import m, {Children} from "mithril"
-import {Dialog, DialogType} from "../../gui/base/Dialog"
-import {Autocomplete, TextField, TextFieldType} from "../../gui/base/TextField.js"
-import {lang} from "../../misc/LanguageViewModel"
-import {formatStorageSize} from "../../misc/Formatter"
-import {ConversationType, Keys, MailMethod, MAX_ATTACHMENT_SIZE, PushServiceType} from "../../api/common/TutanotaConstants"
-import {animations, height} from "../../gui/animation/Animations"
-import {downcast, neverNull, noOp, ofClass, remove} from "@tutao/tutanota-utils"
-import {windowFacade} from "../../misc/WindowFacade"
-import {progressIcon} from "../../gui/base/Icon"
-import {AccessDeactivatedError} from "../../api/common/error/RestError"
-import {client} from "../../misc/ClientDetector"
-import {createPushIdentifier} from "../../api/entities/sys/TypeRefs.js"
-import {logins} from "../../api/main/LoginController"
-import {PasswordForm, PasswordModel} from "../../settings/PasswordForm"
-import {HtmlEditor} from "../../gui/editor/HtmlEditor"
-import {Icons} from "../../gui/base/icons/Icons"
+import m, { Children } from "mithril"
+import { Dialog, DialogType } from "../../gui/base/Dialog"
+import { Autocomplete, TextField, TextFieldType } from "../../gui/base/TextField.js"
+import { lang } from "../../misc/LanguageViewModel"
+import { formatStorageSize } from "../../misc/Formatter"
+import { ConversationType, Keys, MailMethod, MAX_ATTACHMENT_SIZE, PushServiceType } from "../../api/common/TutanotaConstants"
+import { animations, height } from "../../gui/animation/Animations"
+import { downcast, neverNull, noOp, ofClass, remove } from "@tutao/tutanota-utils"
+import { windowFacade } from "../../misc/WindowFacade"
+import { progressIcon } from "../../gui/base/Icon"
+import { AccessDeactivatedError } from "../../api/common/error/RestError"
+import { client } from "../../misc/ClientDetector"
+import { createPushIdentifier } from "../../api/entities/sys/TypeRefs.js"
+import { logins } from "../../api/main/LoginController"
+import { PasswordForm, PasswordModel } from "../../settings/PasswordForm"
+import { HtmlEditor } from "../../gui/editor/HtmlEditor"
+import { Icons } from "../../gui/base/icons/Icons"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {Checkbox} from "../../gui/base/Checkbox.js"
-import {getPrivacyStatementLink} from "../LoginView"
-import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
-import {Button, ButtonAttrs, ButtonType} from "../../gui/base/Button.js"
-import type {ContactForm, File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {getCleanedMailAddress} from "../../misc/parsing/MailAddressParser"
-import {checkAttachmentSize} from "../../mail/model/MailUtils"
-import {locator} from "../../api/main/MainLocator"
-import {assertMainOrNode} from "../../api/common/Env"
-import {DataFile} from "../../api/common/DataFile";
-import {FileReference} from "../../api/common/utils/FileUtils";
-import {SessionType} from "../../api/common/SessionType.js";
-import {RecipientType} from "../../api/common/recipients/Recipient"
-import {createDropdown} from "../../gui/base/Dropdown.js"
-import {readLocalFiles, showFileChooser} from "../../file/FileController.js"
-import {IconButton} from "../../gui/base/IconButton.js"
-import {ButtonSize} from "../../gui/base/ButtonSize.js"
+import { Checkbox } from "../../gui/base/Checkbox.js"
+import { getPrivacyStatementLink } from "../LoginView"
+import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
+import { Button, ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
+import type { ContactForm, File as TutanotaFile } from "../../api/entities/tutanota/TypeRefs.js"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
+import { checkAttachmentSize } from "../../mail/model/MailUtils"
+import { locator } from "../../api/main/MainLocator"
+import { assertMainOrNode } from "../../api/common/Env"
+import { DataFile } from "../../api/common/DataFile"
+import { FileReference } from "../../api/common/utils/FileUtils"
+import { SessionType } from "../../api/common/SessionType.js"
+import { RecipientType } from "../../api/common/recipients/Recipient"
+import { createDropdown } from "../../gui/base/Dropdown.js"
+import { readLocalFiles, showFileChooser } from "../../file/FileController.js"
+import { IconButton } from "../../gui/base/IconButton.js"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
@@ -44,12 +44,12 @@ export class ContactFormRequestDialog {
 	_editor: HtmlEditor
 	_attachments: Array<TutanotaFile | DataFile | FileReference> // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 
-	_attachmentButtonAttrs: Array<ButtonAttrs> = []// these map 1:1 to the _attachments
+	_attachmentButtonAttrs: Array<ButtonAttrs> = [] // these map 1:1 to the _attachments
 
 	_loadingAttachments: boolean
 	_contactForm: ContactForm
 	_notificationEmailAddress: string
-	private passwordModel = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: false, repeatInput: false})
+	private passwordModel = new PasswordModel(logins, { checkOldPassword: false, enforceStrength: false, repeatInput: false })
 	_privacyPolicyAccepted: Stream<boolean>
 	_windowCloseUnsubscribe: () => void
 
@@ -87,21 +87,21 @@ export class ContactFormRequestDialog {
 		this.view.bind(this)
 
 		this._dialog = Dialog.largeDialog(headerBarAttrs, this)
-							 .addShortcut({
-								 key: Keys.ESC,
-								 exec: () => this._close(),
-								 help: "close_alt",
-							 })
-							 .addShortcut({
-								 key: Keys.S,
-								 ctrl: true,
-								 shift: true,
-								 exec: () => {
-									 this.send()
-								 },
-								 help: "send_action",
-							 })
-							 .setCloseHandler(() => this._close())
+			.addShortcut({
+				key: Keys.ESC,
+				exec: () => this._close(),
+				help: "close_alt",
+			})
+			.addShortcut({
+				key: Keys.S,
+				ctrl: true,
+				shift: true,
+				exec: () => {
+					this.send()
+				},
+				help: "send_action",
+			})
+			.setCloseHandler(() => this._close())
 		locator.customerFacade.createContactFormUserGroupData()
 	}
 
@@ -110,29 +110,30 @@ export class ContactFormRequestDialog {
 			label: "subject_label",
 			value: this._subject,
 			helpLabel: this.getConfidentialStateMessage,
-			injectionsRight: () => m(IconButton, {
-				title: "attachFiles_action",
-				click: () => this._showFileChooserForAttachments(),
-				icon: Icons.Attachment,
-				size: ButtonSize.Compact,
-			}),
-			oninput: value => (this._subject = value),
+			injectionsRight: () =>
+				m(IconButton, {
+					title: "attachFiles_action",
+					click: () => this._showFileChooserForAttachments(),
+					icon: Icons.Attachment,
+					size: ButtonSize.Compact,
+				}),
+			oninput: (value) => (this._subject = value),
 		})
 		const notificationEmailAddress = m(TextField, {
 			label: "mailAddress_label",
 			value: this._notificationEmailAddress,
 			autocompleteAs: Autocomplete.email,
 			helpLabel: () => lang.get("contactFormMailAddressInfo_msg"),
-			oninput: value => this._notificationEmailAddress = value.trim(),
+			oninput: (value) => (this._notificationEmailAddress = value.trim()),
 			type: TextFieldType.Area,
 		})
 		return m(
 			"#mail-editor.text.pb",
 			{
-				oncreate: vnode => {
+				oncreate: (vnode) => {
 					this._windowCloseUnsubscribe = windowFacade.addWindowCloseListener(noOp)
 				},
-				onremove: vnode => this._windowCloseUnsubscribe(),
+				onremove: (vnode) => this._windowCloseUnsubscribe(),
 				ondragover: (ev: DragEvent) => {
 					// do not check the datatransfer here because it is not always filled, e.g. in Safari
 					ev.stopPropagation()
@@ -141,12 +142,12 @@ export class ContactFormRequestDialog {
 				ondrop: (ev: DragEvent) => {
 					if (ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
 						readLocalFiles(ev.dataTransfer.files)
-							.then(dataFiles => {
+							.then((dataFiles) => {
 								this._attachFiles(dataFiles as any)
 
 								m.redraw()
 							})
-							.catch(e => {
+							.catch((e) => {
 								console.log(e)
 								return Dialog.message("couldNotAttachFile_msg")
 							})
@@ -157,24 +158,25 @@ export class ContactFormRequestDialog {
 			},
 			[
 				m(".row", subject),
-				m(".flex-start.flex-wrap.column-gap" + (this._attachmentButtonAttrs.length > 0 ? ".pt" : ""),
+				m(
+					".flex-start.flex-wrap.column-gap" + (this._attachmentButtonAttrs.length > 0 ? ".pt" : ""),
 					!this._loadingAttachments
-						? this._attachmentButtonAttrs.map(attrs => m(Button, attrs))
+						? this._attachmentButtonAttrs.map((attrs) => m(Button, attrs))
 						: [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))],
 				),
 				this._attachmentButtonAttrs.length > 0 ? m("hr.hr") : null,
 				m(PasswordForm, {
 					model: this.passwordModel,
-					passwordInfoKey: "contactFormEnterPasswordInfo_msg"
+					passwordInfoKey: "contactFormEnterPasswordInfo_msg",
 				}),
 				m(".pt-l.text", m(this._editor)),
 				notificationEmailAddress,
 				getPrivacyStatementLink()
 					? m(Checkbox, {
-						label: () => this._getPrivacyPolicyCheckboxContent(),
-						checked: this._privacyPolicyAccepted(),
-						onChecked: this._privacyPolicyAccepted,
-					})
+							label: () => this._getPrivacyPolicyCheckboxContent(),
+							checked: this._privacyPolicyAccepted(),
+							onChecked: this._privacyPolicyAccepted,
+					  })
 					: null,
 			],
 		)
@@ -205,7 +207,7 @@ export class ContactFormRequestDialog {
 	}
 
 	_showFileChooserForAttachments(): Promise<void> {
-		return showFileChooser(true).then(files => {
+		return showFileChooser(true).then((files) => {
 			this._attachFiles(files as any)
 
 			m.redraw()
@@ -224,13 +226,13 @@ export class ContactFormRequestDialog {
 		if (sizeCheckResult.tooBigFiles.length > 0) {
 			Dialog.message(
 				() => lang.get("tooBigAttachment_msg"),
-				() => sizeCheckResult.tooBigFiles.map(file => m(".text-break.selectable", file)),
+				() => sizeCheckResult.tooBigFiles.map((file) => m(".text-break.selectable", file)),
 			)
 		}
 	}
 
 	_updateAttachmentButtons() {
-		this._attachmentButtonAttrs = this._attachments.map(file => {
+		this._attachmentButtonAttrs = this._attachments.map((file) => {
 			return {
 				label: () => file.name,
 				icon: () => Icons.Attachment,
@@ -247,7 +249,7 @@ export class ContactFormRequestDialog {
 									locator.fileController.open(file as TutanotaFile)
 								}
 							},
-							type: ButtonType.Secondary
+							type: ButtonType.Secondary,
 						},
 						{
 							label: "remove_action",
@@ -258,11 +260,10 @@ export class ContactFormRequestDialog {
 
 								m.redraw()
 							},
-							type: ButtonType.Secondary
-						}
-					]
-
-				})
+							type: ButtonType.Secondary,
+						},
+					],
+				}),
 			}
 		})
 	}
@@ -272,7 +273,7 @@ export class ContactFormRequestDialog {
 	}
 
 	async send(): Promise<void> {
-		const {mailFacade, customerFacade} = locator
+		const { mailFacade, customerFacade } = locator
 
 		const passwordErrorId = this.passwordModel.getErrorMessageId()
 
@@ -319,24 +320,22 @@ export class ContactFormRequestDialog {
 
 					const name = ""
 					const mailAddress = contactFormResult.requestMailAddress
-					const draft = await mailFacade.createDraft(
-						{
-							subject: this._subject,
-							bodyText: this._editor.getValue(),
-							senderMailAddress: userEmailAddress,
-							senderName: "",
-							toRecipients: [{name, address: mailAddress}],
-							ccRecipients: [],
-							bccRecipients: [],
-							conversationType: ConversationType.NEW,
-							previousMessageId: null,
-							attachments: this._attachments,
-							confidential: true,
-							replyTos: [],
-							method: MailMethod.NONE,
-						},
-					)
-					await mailFacade.sendDraft(draft, [{name, address: mailAddress, type: RecipientType.INTERNAL, contact: null}], lang.code)
+					const draft = await mailFacade.createDraft({
+						subject: this._subject,
+						bodyText: this._editor.getValue(),
+						senderMailAddress: userEmailAddress,
+						senderName: "",
+						toRecipients: [{ name, address: mailAddress }],
+						ccRecipients: [],
+						bccRecipients: [],
+						conversationType: ConversationType.NEW,
+						previousMessageId: null,
+						attachments: this._attachments,
+						confidential: true,
+						replyTos: [],
+						method: MailMethod.NONE,
+					})
+					await mailFacade.sendDraft(draft, [{ name, address: mailAddress, type: RecipientType.INTERNAL, contact: null }], lang.code)
 				} finally {
 					await logins.logout(false)
 				}
@@ -347,34 +346,41 @@ export class ContactFormRequestDialog {
 			}
 
 			return showProgressDialog("sending_msg", doSend())
-				.then(result => {
+				.then((result) => {
 					return showConfirmDialog(result.userEmailAddress)
 				})
 				.then(() => this._close())
-				.catch(ofClass(AccessDeactivatedError, e => Dialog.message("contactFormSubmitError_msg")))
+				.catch(ofClass(AccessDeactivatedError, (e) => Dialog.message("contactFormSubmitError_msg")))
 		}
 	}
 }
 
 function showConfirmDialog(userEmailAddress: string): Promise<void> {
-	return new Promise(resolve => {
+	return new Promise((resolve) => {
 		const dialog = new Dialog(DialogType.EditMedium, {
 			view: () =>
 				m("", [
 					m(".dialog-header.plr-l.flex.justify-center.items-center.b", lang.get("loginCredentials_label")),
-					m(".plr-l.pb.text-break", m(".pt", lang.get("contactFormSubmitConfirm_msg")), m(TextField, {
-						label: "mailAddress_label",
-						value: userEmailAddress,
-						disabled: true,
-					})),
-					m(".mb-s.mlr.flex.child-grow", m(Button, {
-						label: "contactFormSubmitConfirm_action",
-						click: () => {
-							dialog.close()
-							resolve()
-						},
-						type: ButtonType.Login,
-					})),
+					m(
+						".plr-l.pb.text-break",
+						m(".pt", lang.get("contactFormSubmitConfirm_msg")),
+						m(TextField, {
+							label: "mailAddress_label",
+							value: userEmailAddress,
+							disabled: true,
+						}),
+					),
+					m(
+						".mb-s.mlr.flex.child-grow",
+						m(Button, {
+							label: "contactFormSubmitConfirm_action",
+							click: () => {
+								dialog.close()
+								resolve()
+							},
+							type: ButtonType.Login,
+						}),
+					),
 				]),
 		})
 			.setCloseHandler(() => {

@@ -1,22 +1,13 @@
 import o from "ospec"
-import {createContact} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {formatBirthdayNumeric} from "../../../src/contacts/model/ContactUtils.js"
-import {createContactMailAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createBirthday} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {lang} from "../../../src/misc/LanguageViewModel.js"
-import {compareContacts} from "../../../src/contacts/view/ContactGuiUtils.js"
+import { createContact } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { formatBirthdayNumeric } from "../../../src/contacts/model/ContactUtils.js"
+import { createContactMailAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { createBirthday } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { lang } from "../../../src/misc/LanguageViewModel.js"
+import { compareContacts } from "../../../src/contacts/view/ContactGuiUtils.js"
 
 o.spec("ContactUtilsTest", function () {
-	let compare = function (
-		c1Firstname,
-		c1Lastname,
-		c1MailAddress,
-		c2Firstname,
-		c2Lastname,
-		c2MailAddress,
-		byFirstName,
-		expectedResult,
-	) {
+	let compare = function (c1Firstname, c1Lastname, c1MailAddress, c2Firstname, c2Lastname, c2MailAddress, byFirstName, expectedResult) {
 		let c1 = createContact()
 		let c2 = createContact()
 		c1._id = ["a", "1"]

@@ -1,19 +1,19 @@
-import {CredentialEncryptionMode} from "../../misc/credentials/CredentialEncryptionMode"
-import {Dialog, DialogType} from "../base/Dialog"
-import type {CredentialsProvider} from "../../misc/credentials/CredentialsProvider.js"
-import m, {Children, Component, Vnode} from "mithril"
-import {lang} from "../../misc/LanguageViewModel"
-import {theme} from "../theme"
-import {DialogHeaderBar} from "../base/DialogHeaderBar"
-import type {RadioSelectorOption} from "../base/RadioSelector"
-import {RadioSelector} from "../base/RadioSelector"
-import {ButtonType} from "../base/Button.js"
-import {CredentialAuthenticationError} from "../../api/common/error/CredentialAuthenticationError"
-import {KeyPermanentlyInvalidatedError} from "../../api/common/error/KeyPermanentlyInvalidatedError"
-import {liveDataAttrs} from "../AriaUtils"
-import type {DeferredObject} from "@tutao/tutanota-utils"
-import {defer} from "@tutao/tutanota-utils"
-import {windowFacade} from "../../misc/WindowFacade"
+import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode"
+import { Dialog, DialogType } from "../base/Dialog"
+import type { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
+import m, { Children, Component, Vnode } from "mithril"
+import { lang } from "../../misc/LanguageViewModel"
+import { theme } from "../theme"
+import { DialogHeaderBar } from "../base/DialogHeaderBar"
+import type { RadioSelectorOption } from "../base/RadioSelector"
+import { RadioSelector } from "../base/RadioSelector"
+import { ButtonType } from "../base/Button.js"
+import { CredentialAuthenticationError } from "../../api/common/error/CredentialAuthenticationError"
+import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPermanentlyInvalidatedError"
+import { liveDataAttrs } from "../AriaUtils"
+import type { DeferredObject } from "@tutao/tutanota-utils"
+import { defer } from "@tutao/tutanota-utils"
+import { windowFacade } from "../../misc/WindowFacade"
 
 const DEFAULT_MODE = CredentialEncryptionMode.DEVICE_LOCK
 
@@ -50,23 +50,23 @@ class CredentialEncryptionMethodDialog {
 					// Only allow skipping if it's first time user selects mode (not from settings)
 					previousSelection == null
 						? m(
-							".dialog-header.plr-l",
-							m(DialogHeaderBar, {
-								left: () => [
-									{
-										label: "skip_action",
-										click: () => this._onModeSelected(DEFAULT_MODE),
-										type: ButtonType.Secondary,
-									} as const,
-								],
-							}),
-						)
+								".dialog-header.plr-l",
+								m(DialogHeaderBar, {
+									left: () => [
+										{
+											label: "skip_action",
+											click: () => this._onModeSelected(DEFAULT_MODE),
+											type: ButtonType.Secondary,
+										} as const,
+									],
+								}),
+						  )
 						: null,
 					m(
 						".rel",
 						m(SelectCredentialsEncryptionModeView, {
 							error: this._error,
-							onModeSelected: mode => this._onModeSelected(mode),
+							onModeSelected: (mode) => this._onModeSelected(mode),
 							supportedModes: this._supportedModes,
 							previousSelection: this._previousSelection ?? DEFAULT_MODE,
 						}),
@@ -121,11 +121,11 @@ type SelectCredentialEncryptionModeDialogAttrs = {
 class SelectCredentialsEncryptionModeView implements Component<SelectCredentialEncryptionModeDialogAttrs> {
 	_currentMode: CredentialEncryptionMode
 
-	constructor({attrs}: Vnode<SelectCredentialEncryptionModeDialogAttrs>) {
+	constructor({ attrs }: Vnode<SelectCredentialEncryptionModeDialogAttrs>) {
 		this._currentMode = attrs.previousSelection
 	}
 
-	view({attrs}: Vnode<SelectCredentialEncryptionModeDialogAttrs>): Children {
+	view({ attrs }: Vnode<SelectCredentialEncryptionModeDialogAttrs>): Children {
 		const options = this._getSupportedOptions(attrs)
 
 		return [
@@ -175,7 +175,7 @@ class SelectCredentialsEncryptionModeView implements Component<SelectCredentialE
 				helpText: "credentialsEncryptionModeBiometricsHelp_msg",
 			},
 		] as const
-		return options.filter(option => attrs.supportedModes.includes(option.value))
+		return options.filter((option) => attrs.supportedModes.includes(option.value))
 	}
 
 	_renderSelectButton(onclick: () => unknown) {

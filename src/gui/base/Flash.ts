@@ -1,6 +1,6 @@
-import {animations, opacity} from "../animation/Animations"
-import {client} from "../../misc/ClientDetector"
-import {assertMainOrNodeBoot} from "../../api/common/Env"
+import { animations, opacity } from "../animation/Animations"
+import { client } from "../../misc/ClientDetector"
+import { assertMainOrNodeBoot } from "../../api/common/Env"
 
 assertMainOrNodeBoot()
 const flashedIn: Map<HTMLElement, number> = new Map() // currently flashed in element -> target opacity value
@@ -9,8 +9,8 @@ const PREVENT = (e: Event) => e.preventDefault()
 
 const eventListenerArgs = client.passive()
 	? {
-		passive: true,
-	}
+			passive: true,
+	  }
 	: false
 
 export function addFlash(target: any) {
@@ -22,8 +22,8 @@ export function addFlash(target: any) {
 			PREVENT,
 			client.passive()
 				? {
-					passive: false,
-				}
+						passive: false,
+				  }
 				: false,
 		)
 		target.addEventListener("mouseleave", flashOut, eventListenerArgs)

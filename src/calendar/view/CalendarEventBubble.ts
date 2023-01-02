@@ -1,9 +1,9 @@
-import m, {Child, Children, Component, Vnode} from "mithril"
-import {colorForBg} from "../date/CalendarUtils"
-import {px, size} from "../../gui/size"
-import {Icon} from "../../gui/base/Icon"
-import {Icons} from "../../gui/base/icons/Icons"
-import type {clickHandler} from "../../gui/base/GuiUtils"
+import m, { Child, Children, Component, Vnode } from "mithril"
+import { colorForBg } from "../date/CalendarUtils"
+import { px, size } from "../../gui/size"
+import { Icon } from "../../gui/base/Icon"
+import { Icons } from "../../gui/base/icons/Icons"
+import type { clickHandler } from "../../gui/base/GuiUtils"
 
 export type CalendarEventBubbleAttrs = {
 	text: string
@@ -29,16 +29,16 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		this._hasFinishedInitialRender = true
 	}
 
-	view({attrs}: Vnode<CalendarEventBubbleAttrs>): Children {
+	view({ attrs }: Vnode<CalendarEventBubbleAttrs>): Children {
 		// This helps us stop flickering in certain cases where we want to disable and re-enable fade in (ie. when dragging events)
 		// Reapplying the animation to the element will cause it to trigger instantly, so we don't want to do that
 		const doFadeIn = !this._hasFinishedInitialRender && attrs.fadeIn
 		let enablePointerEvents = attrs.enablePointerEvents
 		return m(
 			".calendar-event.small.overflow-hidden.flex.cursor-pointer" +
-			(doFadeIn ? ".fade-in" : "") +
-			(attrs.noBorderLeft ? ".event-continues-left" : "") +
-			(attrs.noBorderRight ? ".event-continues-right" : ""),
+				(doFadeIn ? ".fade-in" : "") +
+				(attrs.noBorderLeft ? ".event-continues-left" : "") +
+				(attrs.noBorderRight ? ".event-continues-right" : ""),
 			{
 				style: {
 					background: "#" + attrs.color,
@@ -57,14 +57,14 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			[
 				attrs.hasAlarm
 					? m(Icon, {
-						icon: Icons.Notifications,
-						style: {
-							fill: colorForBg("#" + attrs.color),
-							"padding-top": "2px",
-							"padding-right": "2px",
-						},
-						class: "icon-small",
-					})
+							icon: Icons.Notifications,
+							style: {
+								fill: colorForBg("#" + attrs.color),
+								"padding-top": "2px",
+								"padding-right": "2px",
+							},
+							class: "icon-small",
+					  })
 					: null,
 				m(
 					".flex.col",
@@ -80,7 +80,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		)
 	}
 
-	renderContent({height: maybeHeight, text, secondLineText, color}: CalendarEventBubbleAttrs): Children {
+	renderContent({ height: maybeHeight, text, secondLineText, color }: CalendarEventBubbleAttrs): Children {
 		// If the bubble has 2 or more lines worth of vertical space, then we will render the text + the secondLineText on separate lines
 		// Otherwise we will combine them onto a single line
 		const height = maybeHeight ?? lineHeight
@@ -102,19 +102,19 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 				".text-ellipsis",
 				secondLineText
 					? [
-						`${text} `,
-						m(Icon, {
-							icon: Icons.Time,
-							style: {
-								fill: colorForBg("#" + color),
-								"padding-top": "2px",
-								"padding-right": "2px",
-								"vertical-align": "text-top",
-							},
-							class: "icon-small",
-						}),
-						`${secondLineText}`,
-					]
+							`${text} `,
+							m(Icon, {
+								icon: Icons.Time,
+								style: {
+									fill: colorForBg("#" + color),
+									"padding-top": "2px",
+									"padding-right": "2px",
+									"vertical-align": "text-top",
+								},
+								class: "icon-small",
+							}),
+							`${secondLineText}`,
+					  ]
 					: text,
 				lineHeight,
 			)

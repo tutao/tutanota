@@ -1,7 +1,7 @@
-import {TypescriptGenerator} from "./TypescriptGenerator.js"
-import {capitalize, EnumDefinition, FacadeDefinition, LangGenerator, Language, Platform, StructDefinition, TypeRefDefinition} from "./common.js"
-import {SwiftGenerator} from "./SwiftGenerator.js"
-import {KotlinGenerator} from "./KotlinGenerator.js"
+import { TypescriptGenerator } from "./TypescriptGenerator.js"
+import { capitalize, EnumDefinition, FacadeDefinition, LangGenerator, Language, Platform, StructDefinition, TypeRefDefinition } from "./common.js"
+import { SwiftGenerator } from "./SwiftGenerator.js"
+import { KotlinGenerator } from "./KotlinGenerator.js"
 import * as path from "path"
 import * as fs from "fs"
 import JSON5 from "json5"
@@ -117,14 +117,14 @@ function getFileExtensionForLang(lang: string): string {
 }
 
 function write(code: string, outDir: string, target: string) {
-	fs.mkdirSync(outDir, {recursive: true})
+	fs.mkdirSync(outDir, { recursive: true })
 	const filePath = path.join(outDir, target)
 	fs.writeFileSync(filePath, code)
 	console.log("written:", filePath)
 }
 
 function assertReturnTypesPresent(definition: FacadeDefinition): void {
-	const methNoRet = Object.entries(definition.methods).find(([_, {ret}]) => ret == null)
+	const methNoRet = Object.entries(definition.methods).find(([_, { ret }]) => ret == null)
 	if (methNoRet) {
 		throw new Error(`missing return type on method ${methNoRet[0]} in ${definition.name}`)
 	}

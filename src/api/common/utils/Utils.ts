@@ -1,8 +1,8 @@
 //@bundleInto:common-min
 
-import type {EntityUpdateData} from "../../main/EventController"
-import type {Customer, CustomerInfo, DomainInfo, EntityUpdate} from "../../entities/sys/TypeRefs.js"
-import type {MailBody, MailHeaders} from "../../entities/tutanota/TypeRefs.js"
+import type { EntityUpdateData } from "../../main/EventController"
+import type { Customer, CustomerInfo, DomainInfo, EntityUpdate } from "../../entities/sys/TypeRefs.js"
+import type { MailBody, MailHeaders } from "../../entities/tutanota/TypeRefs.js"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -27,45 +27,45 @@ import {
 	SessionExpiredError,
 	TooManyRequestsError,
 } from "../error/RestError"
-import {CryptoError} from "../error/CryptoError"
-import {SessionKeyNotFoundError} from "../error/SessionKeyNotFoundError"
-import {SseError} from "../error/SseError"
-import {ProgrammingError} from "../error/ProgrammingError"
-import {RecipientsNotFoundError} from "../error/RecipientsNotFoundError"
-import {RecipientNotResolvedError} from "../error/RecipientNotResolvedError"
-import {OutOfSyncError} from "../error/OutOfSyncError"
-import {DbError} from "../error/DbError"
-import {IndexingNotSupportedError} from "../error/IndexingNotSupportedError"
-import {QuotaExceededError} from "../error/QuotaExceededError"
-import {CancelledError} from "../error/CancelledError"
-import {FileOpenError} from "../error/FileOpenError"
-import {PermissionError} from "../error/PermissionError"
-import {FileNotFoundError} from "../error/FileNotFoundError"
-import {DeviceStorageUnavailableError} from "../error/DeviceStorageUnavailableError"
-import {MailBodyTooLargeError} from "../error/MailBodyTooLargeError"
-import {CredentialAuthenticationError} from "../error/CredentialAuthenticationError"
-import {KeyPermanentlyInvalidatedError} from "../error/KeyPermanentlyInvalidatedError"
-import type {FeatureType, OperationType} from "../TutanotaConstants"
-import {ImportError} from "../error/ImportError"
-import {WebauthnError} from "../error/WebauthnError"
-import {SuspensionError} from "../error/SuspensionError.js"
-import {LoginIncompleteError} from "../error/LoginIncompleteError.js"
-import {OfflineDbClosedError} from "../error/OfflineDbClosedError.js"
+import { CryptoError } from "../error/CryptoError"
+import { SessionKeyNotFoundError } from "../error/SessionKeyNotFoundError"
+import { SseError } from "../error/SseError"
+import { ProgrammingError } from "../error/ProgrammingError"
+import { RecipientsNotFoundError } from "../error/RecipientsNotFoundError"
+import { RecipientNotResolvedError } from "../error/RecipientNotResolvedError"
+import { OutOfSyncError } from "../error/OutOfSyncError"
+import { DbError } from "../error/DbError"
+import { IndexingNotSupportedError } from "../error/IndexingNotSupportedError"
+import { QuotaExceededError } from "../error/QuotaExceededError"
+import { CancelledError } from "../error/CancelledError"
+import { FileOpenError } from "../error/FileOpenError"
+import { PermissionError } from "../error/PermissionError"
+import { FileNotFoundError } from "../error/FileNotFoundError"
+import { DeviceStorageUnavailableError } from "../error/DeviceStorageUnavailableError"
+import { MailBodyTooLargeError } from "../error/MailBodyTooLargeError"
+import { CredentialAuthenticationError } from "../error/CredentialAuthenticationError"
+import { KeyPermanentlyInvalidatedError } from "../error/KeyPermanentlyInvalidatedError"
+import type { FeatureType, OperationType } from "../TutanotaConstants"
+import { ImportError } from "../error/ImportError"
+import { WebauthnError } from "../error/WebauthnError"
+import { SuspensionError } from "../error/SuspensionError.js"
+import { LoginIncompleteError } from "../error/LoginIncompleteError.js"
+import { OfflineDbClosedError } from "../error/OfflineDbClosedError.js"
 
 export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName?: string): DomainInfo | null {
-	return customerInfo.domainInfos.find(info => info.whitelabelConfig != null && (domainName == null || info.domain === domainName)) ?? null
+	return customerInfo.domainInfos.find((info) => info.whitelabelConfig != null && (domainName == null || info.domain === domainName)) ?? null
 }
 
 export function getCustomMailDomains(customerInfo: CustomerInfo): Array<DomainInfo> {
-	return customerInfo.domainInfos.filter(di => di.whitelabelConfig == null)
+	return customerInfo.domainInfos.filter((di) => di.whitelabelConfig == null)
 }
 
 export function containsEventOfType(events: ReadonlyArray<EntityUpdateData>, type: OperationType, elementId: Id): boolean {
-	return events.find(event => event.operation === type && event.instanceId === elementId) != null
+	return events.find((event) => event.operation === type && event.instanceId === elementId) != null
 }
 
 export function getEventOfType(events: ReadonlyArray<EntityUpdate>, type: OperationType, elementId: Id): EntityUpdate | null {
-	return events.find(event => event.operation === type && event.instanceId === elementId) ?? null
+	return events.find((event) => event.operation === type && event.instanceId === elementId) ?? null
 }
 
 export function getMailBodyText(body: MailBody): string {
@@ -147,7 +147,7 @@ const ErrorNameToType = {
 }
 
 export function isCustomizationEnabledForCustomer(customer: Customer, feature: FeatureType): boolean {
-	return !!customer.customizations.find(customization => customization.feature === feature)
+	return !!customer.customizations.find((customization) => customization.feature === feature)
 }
 
 export function isSecurityError(e: any): boolean {

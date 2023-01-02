@@ -1,17 +1,17 @@
-import type {Thunk} from "@tutao/tutanota-utils"
-import {DateProvider} from "../DateProvider.js"
+import type { Thunk } from "@tutao/tutanota-utils"
+import { DateProvider } from "../DateProvider.js"
 
 export type ScheduledTimeoutId = TimeoutID
 export type ScheduledPeriodicId = TimeoutID
 
 export interface Scheduler {
-	scheduleAt(thunk: Thunk, date: Date): ScheduledTimeoutId;
+	scheduleAt(thunk: Thunk, date: Date): ScheduledTimeoutId
 
-	unscheduleTimeout(id: ScheduledTimeoutId): void;
+	unscheduleTimeout(id: ScheduledTimeoutId): void
 
 	schedulePeriodic(thunk: Thunk, period: number): ScheduledPeriodicId
 
-	unschedulePeriodic(id: ScheduledPeriodicId): void;
+	unschedulePeriodic(id: ScheduledPeriodicId): void
 }
 
 /**
@@ -24,7 +24,7 @@ export const SET_TIMEOUT_LIMIT = 0x7fffffff
 export type SystemTimeout = {
 	// Copying it because ts has some weird properties attach to it in node tslib.
 	// no-arg version because lambadas exist.
-	setTimeout(callback: () => void, ms: number): number;
+	setTimeout(callback: () => void, ms: number): number
 	clearTimeout: typeof clearTimeout
 }
 
@@ -32,8 +32,8 @@ export type SystemTimeout = {
 export type SystemInterval = {
 	// Copying it because ts has some weird properties attach to it in node tslib.
 	// no-arg version because lambadas exist.
-	setInterval(callback: () => void, ms: number): number;
-	clearInterval: typeof clearInterval,
+	setInterval(callback: () => void, ms: number): number
+	clearInterval: typeof clearInterval
 }
 
 export class SchedulerImpl implements Scheduler {
@@ -42,11 +42,7 @@ export class SchedulerImpl implements Scheduler {
 	 */
 	private readonly bridgedTimeouts: Map<ScheduledTimeoutId, ScheduledTimeoutId>
 
-	constructor(
-		private readonly dateProvider: DateProvider,
-		private readonly systemTimeout: SystemTimeout,
-		private readonly systemInterval: SystemInterval
-		) {
+	constructor(private readonly dateProvider: DateProvider, private readonly systemTimeout: SystemTimeout, private readonly systemInterval: SystemInterval) {
 		this.bridgedTimeouts = new Map()
 	}
 

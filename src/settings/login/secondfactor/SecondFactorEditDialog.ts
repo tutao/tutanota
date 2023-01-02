@@ -1,35 +1,33 @@
-import {showProgressDialog} from "../../../gui/dialogs/ProgressDialog.js"
-import {SecondFactorType} from "../../../api/common/TutanotaConstants.js"
-import type {DropDownSelectorAttrs} from "../../../gui/base/DropDownSelector.js"
-import {DropDownSelector} from "../../../gui/base/DropDownSelector.js"
-import {lang} from "../../../misc/LanguageViewModel.js"
-import type {TextFieldAttrs} from "../../../gui/base/TextField.js"
-import {Autocomplete, TextField} from "../../../gui/base/TextField.js"
-import {isApp} from "../../../api/common/Env.js"
-import m, {Children} from "mithril"
-import {Button, ButtonType} from "../../../gui/base/Button.js"
-import {copyToClipboard} from "../../../misc/ClipboardUtils.js"
-import {Icons} from "../../../gui/base/icons/Icons.js"
-import {Dialog} from "../../../gui/base/Dialog.js"
-import {Icon, progressIcon} from "../../../gui/base/Icon.js"
-import {theme} from "../../../gui/theme.js"
-import type {User} from "../../../api/entities/sys/TypeRefs.js"
-import {assertNotNull, LazyLoaded} from "@tutao/tutanota-utils"
-import {locator} from "../../../api/main/MainLocator.js"
+import { showProgressDialog } from "../../../gui/dialogs/ProgressDialog.js"
+import { SecondFactorType } from "../../../api/common/TutanotaConstants.js"
+import type { DropDownSelectorAttrs } from "../../../gui/base/DropDownSelector.js"
+import { DropDownSelector } from "../../../gui/base/DropDownSelector.js"
+import { lang } from "../../../misc/LanguageViewModel.js"
+import type { TextFieldAttrs } from "../../../gui/base/TextField.js"
+import { Autocomplete, TextField } from "../../../gui/base/TextField.js"
+import { isApp } from "../../../api/common/Env.js"
+import m, { Children } from "mithril"
+import { Button, ButtonType } from "../../../gui/base/Button.js"
+import { copyToClipboard } from "../../../misc/ClipboardUtils.js"
+import { Icons } from "../../../gui/base/icons/Icons.js"
+import { Dialog } from "../../../gui/base/Dialog.js"
+import { Icon, progressIcon } from "../../../gui/base/Icon.js"
+import { theme } from "../../../gui/theme.js"
+import type { User } from "../../../api/entities/sys/TypeRefs.js"
+import { assertNotNull, LazyLoaded } from "@tutao/tutanota-utils"
+import { locator } from "../../../api/main/MainLocator.js"
 import * as RecoverCodeDialog from "../RecoverCodeDialog.js"
-import {EntityClient} from "../../../api/common/EntityClient.js"
-import {ProgrammingError} from "../../../api/common/error/ProgrammingError.js"
-import {IconButton, IconButtonAttrs} from "../../../gui/base/IconButton.js"
-import {ButtonSize} from "../../../gui/base/ButtonSize.js"
-import {NameValidationStatus, SecondFactorEditModel, SecondFactorTypeToNameTextId, VerificationStatus} from "./SecondFactorEditModel.js"
-import {UserError} from "../../../api/main/UserError.js"
+import { EntityClient } from "../../../api/common/EntityClient.js"
+import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
+import { IconButton, IconButtonAttrs } from "../../../gui/base/IconButton.js"
+import { ButtonSize } from "../../../gui/base/ButtonSize.js"
+import { NameValidationStatus, SecondFactorEditModel, SecondFactorTypeToNameTextId, VerificationStatus } from "./SecondFactorEditModel.js"
+import { UserError } from "../../../api/main/UserError.js"
 
 export class SecondFactorEditDialog {
 	private readonly dialog: Dialog
 
-	constructor(
-		private readonly model: SecondFactorEditModel
-	) {
+	constructor(private readonly model: SecondFactorEditModel) {
 		this.dialog = Dialog.createActionDialog({
 			title: lang.get("add_action"),
 			allowOkWithReturn: true,
@@ -40,7 +38,7 @@ export class SecondFactorEditDialog {
 			allowCancel: true,
 			okActionTextId: "save_action",
 			cancelAction: () => this.model.abort(),
-			validator: () => this.model.validationMessage()
+			validator: () => this.model.validationMessage(),
 		})
 	}
 
@@ -67,16 +65,15 @@ export class SecondFactorEditDialog {
 	}
 
 	private render(): Children {
-		const optionsItems = this.model.getFactorTypesOptions()
-								 .map(o => ({
-									 name: lang.get(SecondFactorTypeToNameTextId[o]),
-									 value: o
-								 }))
+		const optionsItems = this.model.getFactorTypesOptions().map((o) => ({
+			name: lang.get(SecondFactorTypeToNameTextId[o]),
+			value: o,
+		}))
 
 		const typeDropdownAttrs: DropDownSelectorAttrs<SecondFactorType> = {
 			label: "type_label",
 			selectedValue: this.model.selectedType,
-			selectionChangedHandler: newValue => this.model.onTypeSelected(newValue),
+			selectionChangedHandler: (newValue) => this.model.onTypeSelected(newValue),
 			items: optionsItems,
 			dropdownWidth: 300,
 		}
@@ -84,7 +81,7 @@ export class SecondFactorEditDialog {
 			label: "name_label",
 			helpLabel: () => this.renderHelpLabel(),
 			value: this.model.name,
-			oninput: value => this.model.onNameChange(value),
+			oninput: (value) => this.model.onNameChange(value),
 		}
 		return [m(DropDownSelector, typeDropdownAttrs), m(TextField, nameFieldAttrs), this.renderTypeSpecificFields()]
 	}
@@ -130,17 +127,20 @@ export class SecondFactorEditDialog {
 				disabled: true,
 			}),
 			isApp()
-				? m(".pt", m(Button, {
-					label: "addOpenOTPApp_action",
-					click: () => this.openOtpLink(),
-					type: ButtonType.Login,
-				}))
+				? m(
+						".pt",
+						m(Button, {
+							label: "addOpenOTPApp_action",
+							click: () => this.openOtpLink(),
+							type: ButtonType.Login,
+						}),
+				  )
 				: this.renderOtpQrCode(),
 			m(TextField, {
 				label: "totpCode_label",
 				value: this.model.totpCode,
 				autocompleteAs: Autocomplete.oneTimeCode,
-				oninput: newValue => this.model.onTotpValueChange(newValue),
+				oninput: (newValue) => this.model.onTotpValueChange(newValue),
 			}),
 		])
 	}
@@ -158,7 +158,7 @@ export class SecondFactorEditDialog {
 	}
 
 	private async openOtpLink() {
-		const {url} = await this.model.otpInfo.getAsync()
+		const { url } = await this.model.otpInfo.getAsync()
 		const successful = await locator.systemFacade.openLink(url)
 
 		if (!successful) {
@@ -180,7 +180,7 @@ export class SecondFactorEditDialog {
 			webauthnSupported,
 			lang,
 			locator.loginFacade,
-			m.redraw
+			m.redraw,
 		)
 		return new SecondFactorEditDialog(model)
 	}
@@ -215,9 +215,7 @@ export class SecondFactorEditDialog {
 
 	private statusMessage(): string {
 		if (this.model.selectedType === SecondFactorType.webauthn) {
-			return this.model.verificationStatus === VerificationStatus.Success
-				? lang.get("registeredU2fDevice_msg")
-				: lang.get("unrecognizedU2fDevice_msg")
+			return this.model.verificationStatus === VerificationStatus.Success ? lang.get("registeredU2fDevice_msg") : lang.get("unrecognizedU2fDevice_msg")
 		} else {
 			if (this.model.verificationStatus === VerificationStatus.Success) {
 				return lang.get("totpCodeConfirmed_msg")

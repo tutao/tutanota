@@ -1,12 +1,12 @@
 /**
  * This file provides the functionality used by DesktopTray on mac
  */
-import type {NativeImage} from "electron"
-import {app, Menu, MenuItem, Tray} from "electron"
-import type {WindowManager} from "../DesktopWindowManager"
+import type { NativeImage } from "electron"
+import { app, Menu, MenuItem, Tray } from "electron"
+import type { WindowManager } from "../DesktopWindowManager"
 import os from "os"
-import {getResourcePath} from "../resources"
-import type {PlatformTray} from "./DesktopTray"
+import { getResourcePath } from "../resources"
+import type { PlatformTray } from "./DesktopTray"
 
 export class MacTray implements PlatformTray {
 	needsWindowListInMenu(): boolean {

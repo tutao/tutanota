@@ -1,5 +1,5 @@
-import {assertWorkerOrNode} from "../../common/Env"
-import type {AlarmInfo, AlarmNotification, Group, PushIdentifier, RepeatRule, User, UserAlarmInfo} from "../../entities/sys/TypeRefs.js"
+import { assertWorkerOrNode } from "../../common/Env"
+import type { AlarmInfo, AlarmNotification, Group, PushIdentifier, RepeatRule, User, UserAlarmInfo } from "../../entities/sys/TypeRefs.js"
 import {
 	AlarmServicePostTypeRef,
 	createAlarmInfo,
@@ -12,7 +12,7 @@ import {
 	GroupTypeRef,
 	PushIdentifierTypeRef,
 	UserAlarmInfoTypeRef,
-	UserTypeRef
+	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import {
 	asyncFindAndMap,
@@ -29,37 +29,37 @@ import {
 	promiseMap,
 	stringToUtf8Uint8Array,
 } from "@tutao/tutanota-utils"
-import {CryptoFacade} from "../crypto/CryptoFacade"
-import {GroupType, OperationType} from "../../common/TutanotaConstants"
-import type {CalendarEvent, CalendarEventUidIndex, CalendarRepeatRule} from "../../entities/tutanota/TypeRefs.js"
+import { CryptoFacade } from "../crypto/CryptoFacade"
+import { GroupType, OperationType } from "../../common/TutanotaConstants"
+import type { CalendarEvent, CalendarEventUidIndex, CalendarRepeatRule } from "../../entities/tutanota/TypeRefs.js"
 import {
 	CalendarEventTypeRef,
 	CalendarEventUidIndexTypeRef,
 	CalendarGroupRootTypeRef,
 	createCalendarDeleteData,
-	createUserAreaGroupPostData
+	createUserAreaGroupPostData,
 } from "../../entities/tutanota/TypeRefs.js"
-import {DefaultEntityRestCache} from "../rest/DefaultEntityRestCache.js"
-import {ConnectionError, NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
-import {EntityClient} from "../../common/EntityClient"
-import {elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/utils/EntityUtils"
-import {Request} from "../../common/MessageDispatcher"
-import {GroupManagementFacade} from "./GroupManagementFacade"
-import type {NativeInterface} from "../../../native/common/NativeInterface"
-import type {WorkerImpl} from "../WorkerImpl"
-import {SetupMultipleError} from "../../common/error/SetupMultipleError"
-import {ImportError} from "../../common/error/ImportError"
-import {aes128RandomKey, encryptKey, sha256Hash} from "@tutao/tutanota-crypto"
-import {InstanceMapper} from "../crypto/InstanceMapper"
-import {TutanotaError} from "../../common/error/TutanotaError"
-import {IServiceExecutor} from "../../common/ServiceRequest"
-import {AlarmService} from "../../entities/sys/Services"
-import {CalendarService} from "../../entities/tutanota/Services"
-import {resolveTypeReference} from "../../common/EntityFunctions"
-import {UserFacade} from "./UserFacade"
-import {isOfflineError} from "../../common/utils/ErrorCheckUtils.js"
-import {EncryptedAlarmNotification} from "../../../native/common/EncryptedAlarmNotification.js"
-import {NativePushFacade} from "../../../native/common/generatedipc/NativePushFacade.js"
+import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
+import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
+import { EntityClient } from "../../common/EntityClient"
+import { elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId } from "../../common/utils/EntityUtils"
+import { Request } from "../../common/MessageDispatcher"
+import { GroupManagementFacade } from "./GroupManagementFacade"
+import type { NativeInterface } from "../../../native/common/NativeInterface"
+import type { WorkerImpl } from "../WorkerImpl"
+import { SetupMultipleError } from "../../common/error/SetupMultipleError"
+import { ImportError } from "../../common/error/ImportError"
+import { aes128RandomKey, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
+import { InstanceMapper } from "../crypto/InstanceMapper"
+import { TutanotaError } from "../../common/error/TutanotaError"
+import { IServiceExecutor } from "../../common/ServiceRequest"
+import { AlarmService } from "../../entities/sys/Services"
+import { CalendarService } from "../../entities/tutanota/Services"
+import { resolveTypeReference } from "../../common/EntityFunctions"
+import { UserFacade } from "./UserFacade"
+import { isOfflineError } from "../../common/utils/ErrorCheckUtils.js"
+import { EncryptedAlarmNotification } from "../../../native/common/EncryptedAlarmNotification.js"
+import { NativePushFacade } from "../../../native/common/generatedipc/NativePushFacade.js"
 
 assertWorkerOrNode()
 
@@ -74,7 +74,6 @@ type AlarmNotificationsPerEvent = {
 }
 
 export class CalendarFacade {
-
 	// visible for testing
 	readonly entityClient: EntityClient
 
@@ -92,7 +91,6 @@ export class CalendarFacade {
 		this.entityClient = new EntityClient(this.entityRestCache)
 	}
 
-
 	hashEventUid(event: CalendarEvent) {
 		event.hashedUid = event.uid ? hashUid(event.uid) : null
 	}
@@ -104,7 +102,7 @@ export class CalendarFacade {
 		}>,
 	): Promise<void> {
 		// it is safe to assume that all event uids are set here
-		eventsWrapper.forEach(({event}) => this.hashEventUid(event))
+		eventsWrapper.forEach(({ event }) => this.hashEventUid(event))
 		return this._saveCalendarEvents(eventsWrapper)
 	}
 
@@ -128,7 +126,7 @@ export class CalendarFacade {
 
 		const numEvents = eventsWrapper.length
 		const eventsWithAlarms: Array<AlarmNotificationsPerEvent> = await this._saveMultipleAlarms(user, eventsWrapper).catch(
-			ofClass(SetupMultipleError, e => {
+			ofClass(SetupMultipleError, (e) => {
 				if (e.errors.some(isOfflineError)) {
 					//In this case the user will not be informed about the number of failed alarms. We considered this is okay because it is not actionable anyways.
 					throw new ConnectionError("Connection lost while saving alarms")
@@ -137,10 +135,10 @@ export class CalendarFacade {
 				}
 			}),
 		)
-		eventsWithAlarms.forEach(({event, alarmInfoIds}) => (event.alarmInfos = alarmInfoIds))
+		eventsWithAlarms.forEach(({ event, alarmInfoIds }) => (event.alarmInfos = alarmInfoIds))
 		currentProgress = 33
 		await this.worker.sendProgress(currentProgress)
-		const eventsWithAlarmsByEventListId = groupBy(eventsWithAlarms, eventWrapper => getListId(eventWrapper.event))
+		const eventsWithAlarmsByEventListId = groupBy(eventsWithAlarms, (eventWrapper) => getListId(eventWrapper.event))
 		let collectedAlarmNotifications: AlarmNotification[] = []
 		//we have different lists for short and long events so this is 1 or 2
 		const size = eventsWithAlarmsByEventListId.size
@@ -150,27 +148,24 @@ export class CalendarFacade {
 		for (const [listId, eventsWithAlarmsOfOneList] of eventsWithAlarmsByEventListId) {
 			let successfulEvents = eventsWithAlarmsOfOneList
 			await this.entityClient
-					  .setupMultipleEntities(
-						  listId,
-						  eventsWithAlarmsOfOneList.map(e => e.event),
-					  )
-					  .catch(
-						  ofClass(SetupMultipleError, e => {
-							  failed += e.failedInstances.length
-							  errors = errors.concat(e.errors)
-							  successfulEvents = eventsWithAlarmsOfOneList.filter(({event}) => !e.failedInstances.includes(event))
-						  }),
-					  )
-			const allAlarmNotificationsOfListId = flat(successfulEvents.map(event => event.alarmNotifications))
+				.setupMultipleEntities(
+					listId,
+					eventsWithAlarmsOfOneList.map((e) => e.event),
+				)
+				.catch(
+					ofClass(SetupMultipleError, (e) => {
+						failed += e.failedInstances.length
+						errors = errors.concat(e.errors)
+						successfulEvents = eventsWithAlarmsOfOneList.filter(({ event }) => !e.failedInstances.includes(event))
+					}),
+				)
+			const allAlarmNotificationsOfListId = flat(successfulEvents.map((event) => event.alarmNotifications))
 			collectedAlarmNotifications = collectedAlarmNotifications.concat(allAlarmNotificationsOfListId)
 			currentProgress += Math.floor(56 / size)
 			await this.worker.sendProgress(currentProgress)
 		}
 
-		const pushIdentifierList = await this.entityClient.loadAll(
-			PushIdentifierTypeRef,
-			neverNull(this.userFacade.getLoggedInUser().pushIdentifierList).list,
-		)
+		const pushIdentifierList = await this.entityClient.loadAll(PushIdentifierTypeRef, neverNull(this.userFacade.getLoggedInUser().pushIdentifierList).list)
 
 		if (collectedAlarmNotifications.length > 0 && pushIdentifierList.length > 0) {
 			await this._sendAlarmNotifications(collectedAlarmNotifications, pushIdentifierList)
@@ -219,11 +214,11 @@ export class CalendarFacade {
 				alarms: newAlarms,
 			},
 		])
-		const {alarmInfoIds, alarmNotifications} = userAlarmIdsWithAlarmNotificationsPerEvent[0]
+		const { alarmInfoIds, alarmNotifications } = userAlarmIdsWithAlarmNotificationsPerEvent[0]
 		const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
 		// Remove all alarms which belongs to the current user. We need to be careful about other users' alarms.
 		// Server takes care of the removed alarms,
-		event.alarmInfos = existingEvent.alarmInfos.filter(a => !isSameId(listIdPart(a), userAlarmInfoListId)).concat(alarmInfoIds)
+		event.alarmInfos = existingEvent.alarmInfos.filter((a) => !isSameId(listIdPart(a), userAlarmInfoListId)).concat(alarmInfoIds)
 		await this.entityClient.update(event)
 
 		if (alarmNotifications.length > 0) {
@@ -241,7 +236,7 @@ export class CalendarFacade {
 			const requestEntity = createAlarmServicePost({
 				alarmNotifications,
 			})
-			return this.serviceExecutor.post(AlarmService, requestEntity, {sessionKey: notificationSessionKey})
+			return this.serviceExecutor.post(AlarmService, requestEntity, { sessionKey: notificationSessionKey })
 		})
 	}
 
@@ -251,8 +246,8 @@ export class CalendarFacade {
 		pushIdentifierList: Array<PushIdentifier>,
 	): Promise<void> {
 		// PushID SK ->* Notification SK -> alarm fields
-		return promiseMap(pushIdentifierList, async identifier => {
-			return this.cryptoFacade.resolveSessionKeyForInstance(identifier).then(pushIdentifierSk => {
+		return promiseMap(pushIdentifierList, async (identifier) => {
+			return this.cryptoFacade.resolveSessionKeyForInstance(identifier).then((pushIdentifierSk) => {
 				if (pushIdentifierSk) {
 					const pushIdentifierSessionEncSessionKey = encryptKey(pushIdentifierSk, notificationSessionKey)
 					return {
@@ -264,11 +259,11 @@ export class CalendarFacade {
 				}
 			})
 		}) // rate limiting against blocking while resolving session keys (neccessary)
-			.then(maybeEncSessionKeys => {
+			.then((maybeEncSessionKeys) => {
 				const encSessionKeys = maybeEncSessionKeys.filter(isNotNull)
 
 				for (let notification of alarmNotifications) {
-					notification.notificationSessionKeys = encSessionKeys.map(esk => {
+					notification.notificationSessionKeys = encSessionKeys.map((esk) => {
 						return createNotificationSessionKey({
 							pushIdentifier: esk.identifierId,
 							pushIdentifierSessionEncSessionKey: esk.pushIdentifierSessionEncSessionKey,
@@ -278,7 +273,7 @@ export class CalendarFacade {
 			})
 	}
 
-	async addCalendar(name: string,): Promise<{user: User, group: Group}> {
+	async addCalendar(name: string): Promise<{ user: User; group: Group }> {
 		const groupData = await this.groupManagementFacade.generateUserAreaGroupData(name)
 		const postData = createUserAreaGroupPostData({
 			groupData,
@@ -300,15 +295,15 @@ export class CalendarFacade {
 	}
 
 	async deleteCalendar(groupRootId: Id): Promise<void> {
-		await this.serviceExecutor.delete(CalendarService, createCalendarDeleteData({groupRootId}))
+		await this.serviceExecutor.delete(CalendarService, createCalendarDeleteData({ groupRootId }))
 	}
 
 	async scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier): Promise<void> {
 		const user = this.userFacade.getLoggedInUser()
 
 		const eventsWithAlarmInfos = await this.loadAlarmEvents()
-		const alarmNotifications = flatMap(eventsWithAlarmInfos, ({event, userAlarmInfos}) =>
-			userAlarmInfos.map(userAlarmInfo => createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id)),
+		const alarmNotifications = flatMap(eventsWithAlarmInfos, ({ event, userAlarmInfos }) =>
+			userAlarmInfos.map((userAlarmInfo) => createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id)),
 		)
 		// Theoretically we don't need to encrypt anything if we are sending things locally but we use already encrypted data on the client
 		// to store alarms securely.
@@ -339,14 +334,14 @@ export class CalendarFacade {
 		// Group referenced event ids by list id so we can load events of one list in one request.
 		const listIdToElementIds = groupByAndMapUniquely(
 			userAlarmInfos,
-			userAlarmInfo => userAlarmInfo.alarmInfo.calendarRef.listId,
-			userAlarmInfo => userAlarmInfo.alarmInfo.calendarRef.elementId,
+			(userAlarmInfo) => userAlarmInfo.alarmInfo.calendarRef.listId,
+			(userAlarmInfo) => userAlarmInfo.alarmInfo.calendarRef.elementId,
 		)
 		// we group by the full concatenated list id
 		// because there might be collisions between event element ids due to being custom ids
-		const eventIdToAlarmInfos = groupBy(userAlarmInfos, userAlarmInfo => getEventIdFromUserAlarmInfo(userAlarmInfo).join(""))
+		const eventIdToAlarmInfos = groupBy(userAlarmInfos, (userAlarmInfo) => getEventIdFromUserAlarmInfo(userAlarmInfo).join(""))
 		const calendarEvents = await promiseMap(listIdToElementIds.entries(), ([listId, elementIds]) => {
-			return this.entityClient.loadMultiple(CalendarEventTypeRef, listId, Array.from(elementIds)).catch(error => {
+			return this.entityClient.loadMultiple(CalendarEventTypeRef, listId, Array.from(elementIds)).catch((error) => {
 				// handle NotAuthorized here because user could have been removed from group.
 				if (error instanceof NotAuthorizedError) {
 					console.warn("NotAuthorized when downloading alarm events", error)
@@ -356,7 +351,7 @@ export class CalendarFacade {
 				throw error
 			})
 		})
-		return flat(calendarEvents).map(event => {
+		return flat(calendarEvents).map((event) => {
 			return {
 				event,
 				userAlarmInfos: getFromMap(eventIdToAlarmInfos, getLetId(event).join(""), () => []),
@@ -369,22 +364,19 @@ export class CalendarFacade {
 	 * We currently only need this for calendar event updates and for that we don't want to look into shared calendars.
 	 */
 	getEventByUid(uid: string): Promise<CalendarEvent | null> {
-		const calendarMemberships = this.userFacade.getLoggedInUser().memberships.filter(m => m.groupType === GroupType.Calendar && m.capability == null)
+		const calendarMemberships = this.userFacade.getLoggedInUser().memberships.filter((m) => m.groupType === GroupType.Calendar && m.capability == null)
 
-		return asyncFindAndMap(calendarMemberships, membership => {
+		return asyncFindAndMap(calendarMemberships, (membership) => {
 			return this.entityClient
-					   .load(CalendarGroupRootTypeRef, membership.group)
-					   .then(
-						   groupRoot =>
-							   groupRoot.index &&
-							   this.entityClient.load<CalendarEventUidIndex>(CalendarEventUidIndexTypeRef, [
-								   groupRoot.index.list,
-								   uint8arrayToCustomId(hashUid(uid)),
-							   ]),
-					   )
-					   .catch(ofClass(NotFoundError, () => null))
-					   .catch(ofClass(NotAuthorizedError, () => null))
-		}).then(indexEntry => {
+				.load(CalendarGroupRootTypeRef, membership.group)
+				.then(
+					(groupRoot) =>
+						groupRoot.index &&
+						this.entityClient.load<CalendarEventUidIndex>(CalendarEventUidIndexTypeRef, [groupRoot.index.list, uint8arrayToCustomId(hashUid(uid))]),
+				)
+				.catch(ofClass(NotFoundError, () => null))
+				.catch(ofClass(NotAuthorizedError, () => null))
+		}).then((indexEntry) => {
 			if (indexEntry) {
 				return this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, indexEntry.calendarEvent).catch(ofClass(NotFoundError, () => null))
 			} else {
@@ -410,7 +402,7 @@ export class CalendarFacade {
 		const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
 		const ownerGroup = user.userGroup.group
 
-		for (const {event, alarms} of eventsWrapper) {
+		for (const { event, alarms } of eventsWrapper) {
 			const userAlarmInfoAndNotification: Array<{
 				alarm: UserAlarmInfo
 				alarmNotification: AlarmNotification
@@ -441,19 +433,18 @@ export class CalendarFacade {
 		}
 
 		const allAlarms = flat(
-			userAlarmInfosAndNotificationsPerEvent.map(({userAlarmInfoAndNotification}) => userAlarmInfoAndNotification.map(({alarm}) => alarm)),
+			userAlarmInfosAndNotificationsPerEvent.map(({ userAlarmInfoAndNotification }) => userAlarmInfoAndNotification.map(({ alarm }) => alarm)),
 		)
 		const alarmIds = await this.entityClient.setupMultipleEntities(userAlarmInfoListId, allAlarms)
 		let currentIndex = 0
-		return userAlarmInfosAndNotificationsPerEvent.map(({event, userAlarmInfoAndNotification}) => {
+		return userAlarmInfosAndNotificationsPerEvent.map(({ event, userAlarmInfoAndNotification }) => {
 			return {
 				event,
 				alarmInfoIds: userAlarmInfoAndNotification.map(() => [userAlarmInfoListId, alarmIds[currentIndex++]]),
-				alarmNotifications: userAlarmInfoAndNotification.map(({alarmNotification}) => alarmNotification),
+				alarmNotifications: userAlarmInfoAndNotification.map(({ alarmNotification }) => alarmNotification),
 			}
 		})
 	}
-
 }
 
 export type EventWithAlarmInfos = {

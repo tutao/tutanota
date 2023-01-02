@@ -1,28 +1,25 @@
-import {SecondFactorType} from "../../api/common/TutanotaConstants.js"
-import type {Thunk} from "@tutao/tutanota-utils"
-import {assertNotNull, getFirstOrThrow} from "@tutao/tutanota-utils"
-import type {TranslationKey} from "../LanguageViewModel.js"
-import type {Challenge} from "../../api/entities/sys/TypeRefs.js"
-import {createSecondFactorAuthData} from "../../api/entities/sys/TypeRefs.js"
-import {AccessBlockedError, BadRequestError, NotAuthenticatedError} from "../../api/common/error/RestError.js"
-import {Dialog} from "../../gui/base/Dialog.js"
+import { SecondFactorType } from "../../api/common/TutanotaConstants.js"
+import type { Thunk } from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow } from "@tutao/tutanota-utils"
+import type { TranslationKey } from "../LanguageViewModel.js"
+import type { Challenge } from "../../api/entities/sys/TypeRefs.js"
+import { createSecondFactorAuthData } from "../../api/entities/sys/TypeRefs.js"
+import { AccessBlockedError, BadRequestError, NotAuthenticatedError } from "../../api/common/error/RestError.js"
+import { Dialog } from "../../gui/base/Dialog.js"
 import m from "mithril"
-import {SecondFactorAuthView} from "./SecondFactorAuthView.js"
-import {WebauthnClient} from "./webauthn/WebauthnClient.js"
-import type {LoginFacade} from "../../api/worker/facades/LoginFacade.js"
-import {CancelledError} from "../../api/common/error/CancelledError.js"
-import {WebauthnError} from "../../api/common/error/WebauthnError.js"
-import {appIdToLoginDomain} from "./SecondFactorHandler"
+import { SecondFactorAuthView } from "./SecondFactorAuthView.js"
+import { WebauthnClient } from "./webauthn/WebauthnClient.js"
+import type { LoginFacade } from "../../api/worker/facades/LoginFacade.js"
+import { CancelledError } from "../../api/common/error/CancelledError.js"
+import { WebauthnError } from "../../api/common/error/WebauthnError.js"
+import { appIdToLoginDomain } from "./SecondFactorHandler"
 
 type AuthData = {
 	readonly sessionId: IdTuple
 	readonly challenges: ReadonlyArray<Challenge>
 	readonly mailAddress: string | null
 }
-type WebauthnState =
-	| {state: "init"}
-	| {state: "progress"}
-	| {state: "error", error: TranslationKey}
+type WebauthnState = { state: "init" } | { state: "progress" } | { state: "error"; error: TranslationKey }
 
 type OtpState = {
 	code: string
@@ -40,8 +37,8 @@ type OtpState = {
  * */
 export class SecondFactorAuthDialog {
 	private waitingForSecondFactorDialog: Dialog | null = null
-	private webauthnState: WebauthnState = {state: "init"}
-	private otpState: OtpState = {code: "", inProgress: false}
+	private webauthnState: WebauthnState = { state: "init" }
+	private otpState: OtpState = { code: "", inProgress: false }
 
 	/** @private */
 	private constructor(
@@ -49,8 +46,7 @@ export class SecondFactorAuthDialog {
 		private readonly loginFacade: LoginFacade,
 		private readonly authData: AuthData,
 		private readonly onClose: Thunk,
-	) {
-	}
+	) {}
 
 	/**
 	 * @param webauthnClient
@@ -79,10 +75,10 @@ export class SecondFactorAuthDialog {
 
 	private async show() {
 		const u2fChallenge = this.authData.challenges.find(
-			challenge => challenge.type === SecondFactorType.u2f || challenge.type === SecondFactorType.webauthn,
+			(challenge) => challenge.type === SecondFactorType.u2f || challenge.type === SecondFactorType.webauthn,
 		)
 
-		const otpChallenge = this.authData.challenges.find(challenge => challenge.type === SecondFactorType.totp)
+		const otpChallenge = this.authData.challenges.find((challenge) => challenge.type === SecondFactorType.totp)
 		const u2fSupported = await this.webauthnClient.isSupported()
 
 		console.log("webauthn supported: ", u2fSupported)
@@ -90,7 +86,7 @@ export class SecondFactorAuthDialog {
 		let canLoginWithU2f: boolean
 		let otherLoginDomain: string | null
 		if (u2fChallenge?.u2f != null && u2fSupported) {
-			const {canAttempt, cannotAttempt} = await this.webauthnClient.canAttemptChallenge(u2fChallenge.u2f)
+			const { canAttempt, cannotAttempt } = await this.webauthnClient.canAttemptChallenge(u2fChallenge.u2f)
 			canLoginWithU2f = canAttempt.length !== 0
 			otherLoginDomain = cannotAttempt.length > 0 ? appIdToLoginDomain(getFirstOrThrow(cannotAttempt).appId) : null
 		} else {
@@ -98,7 +94,7 @@ export class SecondFactorAuthDialog {
 			otherLoginDomain = null
 		}
 
-		const {mailAddress} = this.authData
+		const { mailAddress } = this.authData
 		this.waitingForSecondFactorDialog = Dialog.showActionDialog({
 			title: "",
 			allowOkWithReturn: true,
@@ -107,22 +103,22 @@ export class SecondFactorAuthDialog {
 					return m(SecondFactorAuthView, {
 						webauthn: canLoginWithU2f
 							? {
-								canLogin: true,
-								state: this.webauthnState,
-								doWebauthn: () => this.doWebauthn(assertNotNull(u2fChallenge)),
-							}
+									canLogin: true,
+									state: this.webauthnState,
+									doWebauthn: () => this.doWebauthn(assertNotNull(u2fChallenge)),
+							  }
 							: otherLoginDomain
-								? {
+							? {
 									canLogin: false,
 									otherLoginDomain,
-								}
-								: null,
+							  }
+							: null,
 						otp: otpChallenge
 							? {
-								codeFieldValue: this.otpState.code,
-								inProgress: this.otpState.inProgress,
-								onValueChanged: newValue => (this.otpState.code = newValue),
-							}
+									codeFieldValue: this.otpState.code,
+									inProgress: this.otpState.inProgress,
+									onValueChanged: (newValue) => (this.otpState.code = newValue),
+							  }
 							: null,
 						onRecover: mailAddress ? () => this.recoverLogin(mailAddress) : null,
 					})

@@ -1,7 +1,7 @@
-import {Transport} from "../../api/common/MessageDispatcher.js"
-import {decodeNativeMessage, encodeNativeMessage, JsMessageHandler, NativeMessage} from "../common/NativeLineProtocol.js"
-import {Base64, base64ToUint8Array, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
-import {assertMainOrNode} from "../../api/common/Env.js"
+import { Transport } from "../../api/common/MessageDispatcher.js"
+import { decodeNativeMessage, encodeNativeMessage, JsMessageHandler, NativeMessage } from "../common/NativeLineProtocol.js"
+import { Base64, base64ToUint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { assertMainOrNode } from "../../api/common/Env.js"
 
 assertMainOrNode()
 
@@ -14,9 +14,7 @@ assertMainOrNode()
 export class IosNativeTransport implements Transport<NativeRequestType, JsRequestType> {
 	private messageHandler: JsMessageHandler | null = null
 
-	constructor(
-		private readonly window: Window
-	) {
+	constructor(private readonly window: Window) {
 		this.window.tutao.nativeApp = this
 	}
 

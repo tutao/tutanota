@@ -1,12 +1,12 @@
-import m, {Children, ClassComponent, Component, Vnode} from "mithril"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import {inputLineHeight, px} from "../../gui/size"
-import type {keyHandler} from "../../misc/KeyManager"
-import {theme} from "../../gui/theme"
-import type {lazy} from "@tutao/tutanota-utils"
-import Stream from "mithril/stream";
-import {assertNotNull} from "@tutao/tutanota-utils"
+import m, { Children, ClassComponent, Component, Vnode } from "mithril"
+import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import { inputLineHeight, px } from "../../gui/size"
+import type { keyHandler } from "../../misc/KeyManager"
+import { theme } from "../../gui/theme"
+import type { lazy } from "@tutao/tutanota-utils"
+import Stream from "mithril/stream"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 export type TemplateSearchBarAttrs = {
 	value: Stream<string>
@@ -34,7 +34,7 @@ export class TemplateSearchBar implements ClassComponent<TemplateSearchBarAttrs>
 	_getInputField(a: TemplateSearchBarAttrs): Children {
 		return m("input.input", {
 			placeholder: a.placeholder && lang.getMaybeLazy(a.placeholder),
-			oncreate: vnode => {
+			oncreate: (vnode) => {
 				this.domInput = vnode.dom as HTMLInputElement
 				this.domInput.value = a.value()
 				this.domInput.focus()

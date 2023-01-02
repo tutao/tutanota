@@ -1,11 +1,11 @@
-import m, {Params} from "mithril"
-import {assertMainOrNodeBoot, isApp, isElectronClient, isIOSApp, Mode} from "../api/common/Env"
-import {lang} from "./LanguageViewModel"
-import type {WorkerClient} from "../api/main/WorkerClient"
-import {client} from "./ClientDetector"
-import {logins} from "../api/main/LoginController"
-import type {Indexer} from "../api/worker/search/Indexer"
-import {remove} from "@tutao/tutanota-utils"
+import m, { Params } from "mithril"
+import { assertMainOrNodeBoot, isApp, isElectronClient, isIOSApp, Mode } from "../api/common/Env"
+import { lang } from "./LanguageViewModel"
+import type { WorkerClient } from "../api/main/WorkerClient"
+import { client } from "./ClientDetector"
+import { logins } from "../api/main/LoginController"
+import type { Indexer } from "../api/worker/search/Indexer"
+import { remove } from "@tutao/tutanota-utils"
 
 assertMainOrNodeBoot()
 export type KeyboardSizeListener = (keyboardSize: number) => unknown
@@ -30,7 +30,7 @@ export class WindowFacade {
 		this.windowCloseConfirmation = false
 		this._windowCloseListeners = new Set()
 		// load async to reduce size of boot bundle
-		import("../api/main/MainLocator").then(async ({locator}) => {
+		import("../api/main/MainLocator").then(async ({ locator }) => {
 			// We need to wait til the locator has finished initializing before we read from it
 			// because it is happening concurrently
 			await locator.initialized
@@ -68,7 +68,7 @@ export class WindowFacade {
 	}
 
 	_notifyCloseListeners(e: Event) {
-		this._windowCloseListeners.forEach(f => f(e))
+		this._windowCloseListeners.forEach((f) => f(e))
 	}
 
 	addKeyboardSizeListener(listener: KeyboardSizeListener) {
@@ -110,15 +110,15 @@ export class WindowFacade {
 		window.onorientationchange = onresize
 
 		if (window.addEventListener && !isApp()) {
-			window.addEventListener("beforeunload", e => this._beforeUnload(e))
-			window.addEventListener("popstate", e => this._popState(e))
-			window.addEventListener("unload", e => this._onUnload())
+			window.addEventListener("beforeunload", (e) => this._beforeUnload(e))
+			window.addEventListener("popstate", (e) => this._popState(e))
+			window.addEventListener("unload", (e) => this._onUnload())
 		}
 
 		// needed to help the MacOs desktop client to distinguish between Cmd+Arrow to navigate the history
 		// and Cmd+Arrow to navigate a text editor
 		if (env.mode === Mode.Desktop && client.isMacOS && window.addEventListener) {
-			window.addEventListener("keydown", e => {
+			window.addEventListener("keydown", (e) => {
 				if (!e.metaKey || e.key === "Meta") return
 
 				const target = e.target as HTMLElement | null
@@ -229,7 +229,7 @@ export class WindowFacade {
 				args.noAutoLogin = true
 			}
 
-			const {locator} = await import("../api/main/MainLocator")
+			const { locator } = await import("../api/main/MainLocator")
 
 			const stringifiedArgs: Record<string, string> = {}
 			for (const [k, v] of Object.entries(args)) {

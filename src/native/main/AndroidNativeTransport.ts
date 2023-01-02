@@ -1,7 +1,7 @@
-import {Transport} from "../../api/common/MessageDispatcher.js"
-import {decodeNativeMessage, encodeNativeMessage, JsMessageHandler, NativeMessage} from "../common/NativeLineProtocol.js"
-import {defer, DeferredObject} from "@tutao/tutanota-utils"
-import {assertMainOrNode} from "../../api/common/Env.js"
+import { Transport } from "../../api/common/MessageDispatcher.js"
+import { decodeNativeMessage, encodeNativeMessage, JsMessageHandler, NativeMessage } from "../common/NativeLineProtocol.js"
+import { defer, DeferredObject } from "@tutao/tutanota-utils"
+import { assertMainOrNode } from "../../api/common/Env.js"
 
 assertMainOrNode()
 
@@ -14,11 +14,7 @@ export class AndroidNativeTransport implements Transport<NativeRequestType, JsRe
 	private messageHandler: JsMessageHandler | null = null
 	private deferredPort: DeferredObject<MessagePort> = defer()
 
-	constructor(
-		private readonly window: Window
-	) {
-
-	}
+	constructor(private readonly window: Window) {}
 
 	/**
 	 * Creates a global `window.onmessage` handler, and then tells native to create the messageport channel
@@ -52,7 +48,7 @@ export class AndroidNativeTransport implements Transport<NativeRequestType, JsRe
 
 	postMessage(message: NativeMessage): void {
 		const encoded = encodeNativeMessage(message)
-		this.deferredPort.promise.then(port => port.postMessage(encoded))
+		this.deferredPort.promise.then((port) => port.postMessage(encoded))
 	}
 
 	setMessageHandler(handler: JsMessageHandler): void {

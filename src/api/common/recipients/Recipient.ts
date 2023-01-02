@@ -1,4 +1,4 @@
-import {Contact} from "../../entities/tutanota/TypeRefs"
+import { Contact } from "../../entities/tutanota/TypeRefs"
 
 export const enum RecipientType {
 	UNKNOWN = "unknown",
@@ -30,8 +30,10 @@ export type RecipientList = Array<PartialRecipient>
  * A collection of recipients
  * When it's a single list, will generally be interpreted as "to" recipients
  */
-export type Recipients = {
-	to?: RecipientList
-	cc?: RecipientList
-	bcc?: RecipientList
-} | RecipientList
+export type Recipients =
+	| {
+			to?: RecipientList
+			cc?: RecipientList
+			bcc?: RecipientList
+	  }
+	| RecipientList

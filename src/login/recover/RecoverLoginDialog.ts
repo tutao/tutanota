@@ -1,31 +1,31 @@
 import m from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {AccessBlockedError, AccessDeactivatedError, NotAuthenticatedError, TooManyRequestsError} from "../../api/common/error/RestError"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {isMailAddress} from "../../misc/FormatValidator"
-import {Autocomplete, TextField, TextFieldType} from "../../gui/base/TextField.js"
-import {lang} from "../../misc/LanguageViewModel"
-import {PasswordForm, PasswordModel} from "../../settings/PasswordForm"
-import {Icons} from "../../gui/base/icons/Icons"
-import {Dialog, DialogType} from "../../gui/base/Dialog"
-import {HtmlEditor, HtmlEditorMode} from "../../gui/editor/HtmlEditor"
-import {client} from "../../misc/ClientDetector"
-import {CancelledError} from "../../api/common/error/CancelledError"
-import {locator} from "../../api/main/MainLocator"
-import {windowFacade} from "../../misc/WindowFacade"
-import {assertMainOrNode} from "../../api/common/Env"
-import {logins} from "../../api/main/LoginController.js"
-import {createDropdown, DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
-import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
-import {ButtonSize} from "../../gui/base/ButtonSize.js";
+import { AccessBlockedError, AccessDeactivatedError, NotAuthenticatedError, TooManyRequestsError } from "../../api/common/error/RestError"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import { isMailAddress } from "../../misc/FormatValidator"
+import { Autocomplete, TextField, TextFieldType } from "../../gui/base/TextField.js"
+import { lang } from "../../misc/LanguageViewModel"
+import { PasswordForm, PasswordModel } from "../../settings/PasswordForm"
+import { Icons } from "../../gui/base/icons/Icons"
+import { Dialog, DialogType } from "../../gui/base/Dialog"
+import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor"
+import { client } from "../../misc/ClientDetector"
+import { CancelledError } from "../../api/common/error/CancelledError"
+import { locator } from "../../api/main/MainLocator"
+import { windowFacade } from "../../misc/WindowFacade"
+import { assertMainOrNode } from "../../api/common/Env"
+import { logins } from "../../api/main/LoginController.js"
+import { createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
+import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"
 
 export function show(mailAddress?: string | null, resetAction?: ResetAction): Dialog {
 	const selectedAction: Stream<ResetAction | null> = stream(resetAction ?? null)
-	const passwordModel = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: true, repeatInput: true})
+	const passwordModel = new PasswordModel(logins, { checkOldPassword: false, enforceStrength: true, repeatInput: true })
 	const passwordValueStream = stream("")
 	const emailAddressStream = stream(mailAddress || "")
 	const resetPasswordAction: DropdownButtonAttrs = {
@@ -38,7 +38,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 	}
 	const resetActionClickHandler = createDropdown({
 		lazyButtons: () => [resetPasswordAction, resetSecondFactorAction],
-		width: 300
+		width: 300,
 	})
 	const resetActionButtonAttrs: IconButtonAttrs = {
 		title: "action_label",
@@ -46,7 +46,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 		icon: Icons.Edit,
 		size: ButtonSize.Compact,
 	}
-	const selectedValueLabelStream = selectedAction.map(v => {
+	const selectedValueLabelStream = selectedAction.map((v) => {
 		if (v === "password") {
 			return lang.get("recoverSetNewPassword_action")
 		} else if (v === "secondFactor") {
@@ -83,14 +83,14 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 					selectedAction() == null
 						? null
 						: selectedAction() === "password"
-							? m(PasswordForm, {model: passwordModel})
-							: m(TextField, {
+						? m(PasswordForm, { model: passwordModel })
+						: m(TextField, {
 								label: "password_label",
 								type: TextFieldType.Password,
 								value: passwordValueStream(),
 								autocompleteAs: Autocomplete.currentPassword,
 								oninput: passwordValueStream,
-							}),
+						  }),
 				]
 			},
 		},
@@ -117,7 +117,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 							await deleteCredentialsByMailAddress(cleanMailAddress)
 							windowFacade.reload({})
 						})
-						.catch(e => handleError(e))
+						.catch((e) => handleError(e))
 						.finally(() => locator.secondFactorHandler.closeWaitingForSecondFactorDialog())
 				}
 			} else if (selectedAction() === "secondFactor") {
@@ -128,7 +128,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						await deleteCredentialsByMailAddress(cleanMailAddress)
 						windowFacade.reload({})
 					})
-					.catch(e => handleError(e))
+					.catch((e) => handleError(e))
 			}
 		},
 		cancelAction: () =>
@@ -141,7 +141,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 
 async function deleteCredentialsByMailAddress(cleanMailAddress: string) {
 	const allCredentials = await locator.credentialsProvider.getInternalCredentialsInfos()
-	const credentials = allCredentials.find(c => c.login === cleanMailAddress)
+	const credentials = allCredentials.find((c) => c.login === cleanMailAddress)
 
 	if (credentials) {
 		await locator.credentialsProvider.deleteByUserId(credentials.userId)

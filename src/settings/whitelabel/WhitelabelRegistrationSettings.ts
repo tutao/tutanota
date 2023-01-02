@@ -1,11 +1,11 @@
-import m, {Children, Component, Vnode} from "mithril"
-import type {SelectorItemList} from "../../gui/base/DropDownSelector.js"
-import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
-import {Dialog} from "../../gui/base/Dialog"
-import {Icons} from "../../gui/base/icons/Icons"
-import {TextField} from "../../gui/base/TextField.js"
-import {IconButton} from "../../gui/base/IconButton.js"
-import {ButtonSize} from "../../gui/base/ButtonSize.js";
+import m, { Children, Component, Vnode } from "mithril"
+import type { SelectorItemList } from "../../gui/base/DropDownSelector.js"
+import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
+import { Dialog } from "../../gui/base/Dialog"
+import { Icons } from "../../gui/base/icons/Icons"
+import { TextField } from "../../gui/base/TextField.js"
+import { IconButton } from "../../gui/base/IconButton.js"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
 
 export type WhitelabelRegistrationSettingsAttrs = {
 	whitelabelCode: string
@@ -16,17 +16,10 @@ export type WhitelabelRegistrationSettingsAttrs = {
 }
 
 export class WhitelabelRegistrationSettings implements Component<WhitelabelRegistrationSettingsAttrs> {
-	constructor(vnode: Vnode<WhitelabelRegistrationSettingsAttrs>) {
-	}
+	constructor(vnode: Vnode<WhitelabelRegistrationSettingsAttrs>) {}
 
 	view(vnode: Vnode<WhitelabelRegistrationSettingsAttrs>): Children {
-		const {
-			currentRegistrationDomain,
-			possibleRegistrationDomains,
-			onRegistrationDomainSelected,
-			whitelabelCode,
-			onWhitelabelCodeChanged
-		} = vnode.attrs
+		const { currentRegistrationDomain, possibleRegistrationDomains, onRegistrationDomainSelected, whitelabelCode, onWhitelabelCodeChanged } = vnode.attrs
 		return m("", [
 			this._renderRegistrationDomain(currentRegistrationDomain, possibleRegistrationDomains, onRegistrationDomainSelected),
 			this._renderWhitelabelCodeField(whitelabelCode, onWhitelabelCodeChanged),
@@ -44,8 +37,8 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
 			items: possibleRegistrationDomains,
 			selectionChangedHandler: onRegistrationDomainSelected
 				? (selectedValue: string | null) => {
-					onRegistrationDomainSelected(selectedValue)
-				}
+						onRegistrationDomainSelected(selectedValue)
+				  }
 				: null,
 			disabled: !onRegistrationDomainSelected,
 		})
@@ -56,19 +49,20 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
 			label: "whitelabelRegistrationCode_label",
 			value: whitelabelCode,
 			disabled: true,
-			injectionsRight: () => onWhitelabelCodeChanged ?
-				m(IconButton, {
-					title: "edit_action",
-					click: () => this.editRegistrationCode(whitelabelCode, onWhitelabelCodeChanged),
-					icon: Icons.Edit,
-					size: ButtonSize.Compact,
-				})
-				: null,
+			injectionsRight: () =>
+				onWhitelabelCodeChanged
+					? m(IconButton, {
+							title: "edit_action",
+							click: () => this.editRegistrationCode(whitelabelCode, onWhitelabelCodeChanged),
+							icon: Icons.Edit,
+							size: ButtonSize.Compact,
+					  })
+					: null,
 		} as const)
 	}
 
 	private editRegistrationCode(whitelabelCode: string, onWhitelabelCodeChanged: (arg0: string) => unknown) {
-		Dialog.showTextInputDialog("edit_action", "whitelabelRegistrationCode_label", null, whitelabelCode).then(newCode => {
+		Dialog.showTextInputDialog("edit_action", "whitelabelRegistrationCode_label", null, whitelabelCode).then((newCode) => {
 			onWhitelabelCodeChanged(newCode)
 		})
 	}

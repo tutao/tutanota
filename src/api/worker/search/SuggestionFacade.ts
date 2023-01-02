@@ -1,8 +1,8 @@
-import type {Db} from "./SearchTypes"
-import {utf8Uint8ArrayToString, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import {TypeRef} from "@tutao/tutanota-utils"
-import {SearchTermSuggestionsOS} from "./Indexer"
-import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
+import type { Db } from "./SearchTypes"
+import { utf8Uint8ArrayToString, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { TypeRef } from "@tutao/tutanota-utils"
+import { SearchTermSuggestionsOS } from "./Indexer"
+import { aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 
 export type SuggestionsType = Record<string, string[]>
 
@@ -19,8 +19,8 @@ export class SuggestionFacade<T> {
 
 	load(): Promise<void> {
 		return this._db.initialized.then(() => {
-			return this._db.dbFacade.createTransaction(true, [SearchTermSuggestionsOS]).then(t => {
-				return t.get(SearchTermSuggestionsOS, this.type.type.toLowerCase()).then(encSuggestions => {
+			return this._db.dbFacade.createTransaction(true, [SearchTermSuggestionsOS]).then((t) => {
+				return t.get(SearchTermSuggestionsOS, this.type.type.toLowerCase()).then((encSuggestions) => {
 					if (encSuggestions) {
 						this._suggestions = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(this._db.key, encSuggestions, true, false)))
 					} else {
@@ -32,7 +32,7 @@ export class SuggestionFacade<T> {
 	}
 
 	addSuggestions(words: string[]): void {
-		words.forEach(word => {
+		words.forEach((word) => {
 			if (word.length > 0) {
 				let key = word.charAt(0)
 
@@ -40,7 +40,7 @@ export class SuggestionFacade<T> {
 					let existingValues = this._suggestions[key]
 
 					if (existingValues.indexOf(word) === -1) {
-						let insertIndex = existingValues.findIndex(v => word < v)
+						let insertIndex = existingValues.findIndex((v) => word < v)
 
 						if (insertIndex === -1) {
 							existingValues.push(word)
@@ -59,7 +59,7 @@ export class SuggestionFacade<T> {
 		if (word.length > 0) {
 			let key = word.charAt(0)
 			let result = this._suggestions[key]
-			return result ? result.filter(r => r.startsWith(word)) : []
+			return result ? result.filter((r) => r.startsWith(word)) : []
 		} else {
 			return []
 		}
@@ -67,7 +67,7 @@ export class SuggestionFacade<T> {
 
 	store(): Promise<void> {
 		return this._db.initialized.then(() => {
-			return this._db.dbFacade.createTransaction(false, [SearchTermSuggestionsOS]).then(t => {
+			return this._db.dbFacade.createTransaction(false, [SearchTermSuggestionsOS]).then((t) => {
 				let encSuggestions = aes256Encrypt(
 					this._db.key,
 					stringToUtf8Uint8Array(JSON.stringify(this._suggestions)),

@@ -1,9 +1,8 @@
-import {createNewsIn, NewsId, NewsOut} from "../../api/entities/tutanota/TypeRefs.js"
-import {IServiceExecutor} from "../../api/common/ServiceRequest.js"
-import {NewsService} from "../../api/entities/tutanota/Services.js"
-import {NotFoundError} from "../../api/common/error/RestError.js"
-import {NewsListItem} from "./NewsListItem.js"
-
+import { createNewsIn, NewsId, NewsOut } from "../../api/entities/tutanota/TypeRefs.js"
+import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
+import { NewsService } from "../../api/entities/tutanota/Services.js"
+import { NotFoundError } from "../../api/common/error/RestError.js"
+import { NewsListItem } from "./NewsListItem.js"
 
 /**
  * Makes calls to the NewsService in order to load the user's unacknowledged NewsItems and stores them.
@@ -12,11 +11,7 @@ export class NewsModel {
 	liveNewsIds: NewsId[] = []
 	liveNewsListItems: Record<string, NewsListItem> = {}
 
-	constructor(
-		private readonly serviceExecutor: IServiceExecutor,
-		private readonly newsListItemFactory: (name: string) => Promise<NewsListItem | null>,
-	) {
-	}
+	constructor(private readonly serviceExecutor: IServiceExecutor, private readonly newsListItemFactory: (name: string) => Promise<NewsListItem | null>) {}
 
 	/**
 	 * Loads the user's unacknowledged NewsItems.
@@ -44,7 +39,7 @@ export class NewsModel {
 	 * Acknowledges the NewsItem with the given ID.
 	 */
 	async acknowledgeNews(newsItemId: string): Promise<boolean> {
-		const data = createNewsIn({newsItemId})
+		const data = createNewsIn({ newsItemId })
 
 		try {
 			await this.serviceExecutor.post(NewsService, data)

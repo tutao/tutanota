@@ -1,7 +1,7 @@
 /// <reference lib="dom" /> // fixes MouseEvent conflict with react
-import type {WorkerClient} from "./WorkerClient"
-import {assertMainOrNode} from "../common/Env"
-import type {EntropySource} from "@tutao/tutanota-crypto"
+import type { WorkerClient } from "./WorkerClient"
+import { assertMainOrNode } from "../common/Env"
+import type { EntropySource } from "@tutao/tutanota-crypto"
 
 assertMainOrNode()
 
@@ -54,7 +54,7 @@ export class EntropyCollector {
 				this._addEntropy(window.orientation, 0, "accel")
 			}
 
-			if (!!e.accelerationIncludingGravity) {
+			if (e.accelerationIncludingGravity) {
 				this._addEntropy(e.accelerationIncludingGravity.x ^ e.accelerationIncludingGravity.y ^ e.accelerationIncludingGravity.z, 2, "accel")
 			}
 		}

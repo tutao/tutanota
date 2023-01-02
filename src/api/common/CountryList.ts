@@ -1520,7 +1520,7 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
 ])
 
 export function getByAbbreviation(abbreviation: string): Country | null {
-	return Countries.find(c => c.a === abbreviation) ?? null
+	return Countries.find((c) => c.a === abbreviation) ?? null
 }
 
 export function getDecimalSeparator(abbreviation: string): string {

@@ -1,4 +1,4 @@
-import {GroupType} from "../../common/TutanotaConstants"
+import { GroupType } from "../../common/TutanotaConstants"
 import {
 	assertNotNull,
 	Base64,
@@ -7,18 +7,18 @@ import {
 	base64ToBase64Url,
 	base64UrlToBase64,
 	getFirstOrThrow,
-	uint8ArrayToBase64
+	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
-import type {GiftCardRedeemGetReturn} from "../../entities/sys/TypeRefs.js"
-import {createGiftCardCreateData, createGiftCardRedeemData, GiftCard} from "../../entities/sys/TypeRefs.js"
-import {aes128RandomKey, base64ToKey, bitArrayToUint8Array, encryptKey, sha256Hash} from "@tutao/tutanota-crypto"
-import {IServiceExecutor} from "../../common/ServiceRequest"
-import {GiftCardRedeemService, GiftCardService} from "../../entities/sys/Services"
-import {elementIdPart, GENERATED_MAX_ID} from "../../common/utils/EntityUtils"
-import {CryptoFacade} from "../crypto/CryptoFacade"
-import {UserFacade} from "./UserFacade"
-import {ProgrammingError} from "../../common/error/ProgrammingError.js"
-import {CustomerFacade} from "./CustomerFacade.js"
+import type { GiftCardRedeemGetReturn } from "../../entities/sys/TypeRefs.js"
+import { createGiftCardCreateData, createGiftCardRedeemData, GiftCard } from "../../entities/sys/TypeRefs.js"
+import { aes128RandomKey, base64ToKey, bitArrayToUint8Array, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
+import { IServiceExecutor } from "../../common/ServiceRequest"
+import { GiftCardRedeemService, GiftCardService } from "../../entities/sys/Services"
+import { elementIdPart, GENERATED_MAX_ID } from "../../common/utils/EntityUtils"
+import { CryptoFacade } from "../crypto/CryptoFacade"
+import { UserFacade } from "./UserFacade"
+import { ProgrammingError } from "../../common/error/ProgrammingError.js"
+import { CustomerFacade } from "./CustomerFacade.js"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH_B64 = 24
@@ -29,11 +29,9 @@ export class GiftCardFacade {
 		private customer: CustomerFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
-	) {
-	}
+	) {}
 
 	async generateGiftCard(message: string, value: NumberString): Promise<IdTuple> {
-
 		const adminGroupIds = this.user.getGroupIds(GroupType.Admin)
 
 		if (adminGroupIds.length === 0) {
@@ -43,7 +41,7 @@ export class GiftCardFacade {
 		const ownerKey = this.user.getGroupKey(getFirstOrThrow(adminGroupIds)) // adminGroupKey
 
 		const sessionKey = aes128RandomKey()
-		const {giftCard} = await this.serviceExecutor.post(
+		const { giftCard } = await this.serviceExecutor.post(
 			GiftCardService,
 			createGiftCardCreateData({
 				message: message,
@@ -51,7 +49,7 @@ export class GiftCardFacade {
 				value,
 				ownerEncSessionKey: encryptKey(ownerKey, sessionKey),
 			}),
-			{sessionKey}
+			{ sessionKey },
 		)
 
 		return giftCard
@@ -65,8 +63,8 @@ export class GiftCardFacade {
 				keyHash: sha256Hash(bitArrayToUint8Array(base64ToKey(key))),
 			}),
 			{
-				sessionKey: base64ToKey(key)
-			}
+				sessionKey: base64ToKey(key),
+			},
 		)
 	}
 
@@ -74,13 +72,9 @@ export class GiftCardFacade {
 		giftCardInfoId: Id,
 		key: string,
 		/** Country code to use if a free user is being upgraded to premium (required if accountType is free) */
-		countryCode: string
+		countryCode: string,
 	): Promise<void> {
-
-		if (
-			(await this.customer.loadAccountingInfo()).invoiceCountry == null
-			&& countryCode == null
-		) {
+		if ((await this.customer.loadAccountingInfo()).invoiceCountry == null && countryCode == null) {
 			throw new ProgrammingError("User must provide a country")
 		}
 
@@ -89,8 +83,8 @@ export class GiftCardFacade {
 			createGiftCardRedeemData({
 				giftCardInfo: giftCardInfoId,
 				keyHash: sha256Hash(bitArrayToUint8Array(base64ToKey(key))),
-				countryCode
-			})
+				countryCode,
+			}),
 		)
 	}
 
@@ -99,7 +93,7 @@ export class GiftCardFacade {
 		return this.encodeToken(elementIdPart(giftCard._id), bitArrayToUint8Array(key))
 	}
 
-	async decodeGiftCardToken(token: string): Promise<{id: Id; key: Base64}> {
+	async decodeGiftCardToken(token: string): Promise<{ id: Id; key: Base64 }> {
 		const id = base64ToBase64Ext(base64UrlToBase64(token.slice(0, ID_LENGTH)))
 		const key = base64UrlToBase64(token.slice(ID_LENGTH, token.length))
 
@@ -107,7 +101,7 @@ export class GiftCardFacade {
 			throw new Error("invalid token")
 		}
 
-		return {id, key}
+		return { id, key }
 	}
 
 	private encodeToken(id: Id, key: Uint8Array): Base64 {

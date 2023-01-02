@@ -1,5 +1,5 @@
-import {Stage} from "../model/Stage.js"
-import {UsageTest} from "../model/UsageTest.js"
+import { Stage } from "../model/Stage.js"
+import { UsageTest } from "../model/UsageTest.js"
 
 export interface PingAdapter {
 	sendPing(test: UsageTest, stage: Stage): Promise<void>

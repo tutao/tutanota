@@ -1,10 +1,10 @@
 {
-  "name": "RsaPublicKey",
-  "type": "struct",
-  "fields": {
-	"version": "number",
-	"keyLength": "number",
-	"modulus": "string",
-	"publicExponent": "number"
-  }
+	"name": "RsaPublicKey",
+	"type": "struct",
+	"fields": {
+		"version": "number",
+		"keyLength": "number",
+		"modulus": "string",
+		"publicExponent": "number"
+	}
 }

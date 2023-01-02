@@ -4,10 +4,7 @@ export class Accumulator {
 	private code = ""
 	private readonly imports = new Set<string>()
 
-	constructor(
-		private readonly appender: (code: string) => void = (code) => this.code += code,
-	) {
-	}
+	constructor(private readonly appender: (code: string) => void = (code) => (this.code += code)) {}
 
 	line(code: string = ""): this {
 		this.appender(code + "\n")
@@ -21,17 +18,15 @@ export class Accumulator {
 		lines: Array<string>,
 		opts?: {
 			/** additional string to append to line end */
-			suffix?: string,
+			suffix?: string
 			/** whether suffix should be appended on the final line */
 			trailing?: boolean
-		}
+		},
 	): this {
 		const lineJoiner = opts?.suffix ?? ""
 		const trailingJoiner = opts?.trailing ?? false
 		lines.forEach((line, idx) => {
-			const joiner = trailingJoiner || idx < lines.length - 1
-				? lineJoiner
-				: ""
+			const joiner = trailingJoiner || idx < lines.length - 1 ? lineJoiner : ""
 			this.line(line + joiner)
 		})
 		return this

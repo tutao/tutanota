@@ -1,10 +1,10 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {formatEventTime, hasAlarmsForTheUser} from "../date/CalendarUtils"
-import {CalendarEventBubble} from "./CalendarEventBubble"
-import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
-import type {User} from "../../api/entities/sys/TypeRefs.js"
-import type {EventTextTimeOption} from "../../api/common/TutanotaConstants"
-import type {CalendarEventBubbleClickHandler} from "./CalendarViewModel"
+import m, { Children, Component, Vnode } from "mithril"
+import { formatEventTime, hasAlarmsForTheUser } from "../date/CalendarUtils"
+import { CalendarEventBubble } from "./CalendarEventBubble"
+import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
+import type { User } from "../../api/entities/sys/TypeRefs.js"
+import type { EventTextTimeOption } from "../../api/common/TutanotaConstants"
+import type { CalendarEventBubbleClickHandler } from "./CalendarViewModel"
 
 type ContinuingCalendarEventBubbleAttrs = {
 	event: CalendarEvent
@@ -20,24 +20,24 @@ type ContinuingCalendarEventBubbleAttrs = {
 }
 
 export class ContinuingCalendarEventBubble implements Component<ContinuingCalendarEventBubbleAttrs> {
-	view({attrs}: Vnode<ContinuingCalendarEventBubbleAttrs>): Children {
+	view({ attrs }: Vnode<ContinuingCalendarEventBubbleAttrs>): Children {
 		return m(".flex.calendar-event-container.darker-hover", [
 			attrs.startsBefore
 				? m(".event-continues-right-arrow", {
-					style: {
-						"border-left-color": "transparent",
-						"border-top-color": "#" + attrs.color,
-						"border-bottom-color": "#" + attrs.color,
-						opacity: attrs.opacity,
-					},
-				})
+						style: {
+							"border-left-color": "transparent",
+							"border-top-color": "#" + attrs.color,
+							"border-bottom-color": "#" + attrs.color,
+							opacity: attrs.opacity,
+						},
+				  })
 				: null,
 			m(
 				".flex-grow.overflow-hidden",
 				m(CalendarEventBubble, {
 					text: (attrs.showTime != null ? formatEventTime(attrs.event, attrs.showTime) + " " : "") + attrs.event.summary,
 					color: attrs.color,
-					click: e => attrs.onEventClicked(attrs.event, e),
+					click: (e) => attrs.onEventClicked(attrs.event, e),
 					noBorderLeft: attrs.startsBefore,
 					noBorderRight: attrs.endsAfter,
 					hasAlarm: hasAlarmsForTheUser(attrs.user, attrs.event),
@@ -48,11 +48,11 @@ export class ContinuingCalendarEventBubble implements Component<ContinuingCalend
 			),
 			attrs.endsAfter
 				? m(".event-continues-right-arrow", {
-					style: {
-						"border-left-color": "#" + attrs.color,
-						opacity: attrs.opacity,
-					},
-				})
+						style: {
+							"border-left-color": "#" + attrs.color,
+							opacity: attrs.opacity,
+						},
+				  })
 				: null,
 		])
 	}

@@ -1,15 +1,11 @@
 import fs from "fs"
-import {program} from "commander"
+import { program } from "commander"
 import glob from "glob"
-import {fileURLToPath} from "url"
+import { fileURLToPath } from "url"
 import "zx/globals"
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	program
-		.usage('make|dist')
-		.arguments('<target>')
-		.action(prepareMobileBuild)
-		.parse(process.argv)
+	program.usage("make|dist").arguments("<target>").action(prepareMobileBuild).parse(process.argv)
 }
 
 /**
@@ -30,13 +26,11 @@ export async function prepareMobileBuild(buildType) {
 	}
 
 	const imagesPath = prefix + "images"
-	const imagesToKeep = [
-		"ionicons.ttf", "logo-solo-red.png"
-	]
+	const imagesToKeep = ["ionicons.ttf", "logo-solo-red.png"]
 	if (fs.existsSync(imagesPath)) {
 		const imageFiles = await globby(prefix + "images/*")
 		for (let file of imageFiles) {
-			const doDiscard = !imagesToKeep.find(name => file.endsWith(name))
+			const doDiscard = !imagesToKeep.find((name) => file.endsWith(name))
 			if (doDiscard) {
 				console.log("unlinking ", file)
 				fs.unlinkSync(file)

@@ -1,29 +1,29 @@
-import m, {Children, Component} from "mithril"
-import {ListFetchResult, List} from "../../gui/base/List"
-import {assertMainOrNode} from "../../api/common/Env"
-import {lang} from "../../misc/LanguageViewModel"
-import {size} from "../../gui/size"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {ContactRow} from "../../contacts/view/ContactListView"
-import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import type {SearchView} from "./SearchView"
-import {NotFoundError} from "../../api/common/error/RestError"
-import {locator} from "../../api/main/MainLocator"
-import type {DeferredObject} from "@tutao/tutanota-utils"
-import {defer, downcast, groupBy, isSameTypeRef, neverNull, noOp, ofClass, TypeRef} from "@tutao/tutanota-utils"
-import type {OperationType} from "../../api/common/TutanotaConstants"
-import {logins} from "../../api/main/LoginController"
-import {hasMoreResults} from "../model/SearchModel"
-import {Dialog} from "../../gui/base/Dialog"
-import {elementIdPart, GENERATED_MAX_ID, isSameId, listIdPart, sortCompareByReverseId} from "../../api/common/utils/EntityUtils"
-import {archiveMails, moveToInbox, showDeleteConfirmationDialog} from "../../mail/view/MailGuiUtils"
-import {MailRow} from "../../mail/view/MailRow"
-import {compareContacts} from "../../contacts/view/ContactGuiUtils"
-import type {SearchResult} from "../../api/worker/search/SearchTypes"
-import type {ListElementEntity} from "../../api/common/EntityTypes"
-import Stream from "mithril/stream";
+import m, { Children, Component } from "mithril"
+import { ListFetchResult, List } from "../../gui/base/List"
+import { assertMainOrNode } from "../../api/common/Env"
+import { lang } from "../../misc/LanguageViewModel"
+import { size } from "../../gui/size"
+import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { ContactRow } from "../../contacts/view/ContactListView"
+import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
+import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import type { SearchView } from "./SearchView"
+import { NotFoundError } from "../../api/common/error/RestError"
+import { locator } from "../../api/main/MainLocator"
+import type { DeferredObject } from "@tutao/tutanota-utils"
+import { defer, downcast, groupBy, isSameTypeRef, neverNull, noOp, ofClass, TypeRef } from "@tutao/tutanota-utils"
+import type { OperationType } from "../../api/common/TutanotaConstants"
+import { logins } from "../../api/main/LoginController"
+import { hasMoreResults } from "../model/SearchModel"
+import { Dialog } from "../../gui/base/Dialog"
+import { elementIdPart, GENERATED_MAX_ID, isSameId, listIdPart, sortCompareByReverseId } from "../../api/common/utils/EntityUtils"
+import { archiveMails, moveToInbox, showDeleteConfirmationDialog } from "../../mail/view/MailGuiUtils"
+import { MailRow } from "../../mail/view/MailRow"
+import { compareContacts } from "../../contacts/view/ContactGuiUtils"
+import type { SearchResult } from "../../api/worker/search/SearchTypes"
+import type { ListElementEntity } from "../../api/common/EntityTypes"
+import Stream from "mithril/stream"
 
 assertMainOrNode()
 
@@ -63,7 +63,7 @@ export class SearchListView implements Component {
 				this._loadInitial(neverNull(this.list))
 			}
 
-			this._resultStreamDependency = locator.search.result.map(result => {
+			this._resultStreamDependency = locator.search.result.map((result) => {
 				const oldResult = this._searchResult
 				this._searchResult = result
 
@@ -118,7 +118,7 @@ export class SearchListView implements Component {
 
 	isInSearchResult(typeRef: TypeRef<any>, id: IdTuple): boolean {
 		const result = this._searchResult
-		return !!(result && isSameTypeRef(typeRef, result.restriction.type) && result.results.find(r => isSameId(r, id)))
+		return !!(result && isSameTypeRef(typeRef, result.restriction.type) && result.results.find((r) => isSameId(r, id)))
 	}
 
 	_createList(): List<SearchResultListEntry, SearchResultListRow> {
@@ -134,7 +134,7 @@ export class SearchListView implements Component {
 				const lastResult = this._searchResult
 
 				if (!lastResult || (lastResult.results.length === 0 && !hasMoreResults(lastResult))) {
-					return {items: [], complete: true}
+					return { items: [], complete: true }
 				}
 
 				// If search is triggered and completes again before we finished loading the results from the previous search
@@ -142,20 +142,20 @@ export class SearchListView implements Component {
 				// this can happen if the user hits the enter key fast while in the search bar
 				// so we will ignore whatever is being downloaded from the last search, and the new search will update the list
 				if (this._lastSearchResults) {
-					this._lastSearchResults.resolve({items: [], complete: true})
+					this._lastSearchResults.resolve({ items: [], complete: true })
 				}
 
 				const deferredResult = defer<ListFetchResult<SearchResultListEntry>>()
 				this._lastSearchResults = deferredResult
 
 				this.loadSearchResults(lastResult, startId !== GENERATED_MAX_ID, startId, count)
-					.then(results => {
-						const entries = results.map(instance => new SearchResultListEntry(instance))
+					.then((results) => {
+						const entries = results.map((instance) => new SearchResultListEntry(instance))
 
 						// We only want to resolve the most recent deferred object with it's respective search query results
 						// Any queries that started but didn't finish before this one began have already been resolved with `[]`
 						if (this._lastSearchResults === deferredResult) {
-							deferredResult.resolve({items: entries, complete: entries.length < count})
+							deferredResult.resolve({ items: entries, complete: entries.length < count })
 							this._lastSearchResults = null
 						}
 					})
@@ -163,21 +163,21 @@ export class SearchListView implements Component {
 
 				return deferredResult.promise.finally(m.redraw)
 			},
-			loadSingle: elementId => {
+			loadSingle: (elementId) => {
 				if (this._searchResult) {
 					const currentResult = this._searchResult
-					let id = currentResult.results.find(r => r[1] === elementId)
+					let id = currentResult.results.find((r) => r[1] === elementId)
 
 					if (id) {
 						return locator.entityClient
-									  .load(currentResult.restriction.type, id)
-									  .then(entity => new SearchResultListEntry(entity))
-									  .catch(
-										  ofClass(NotFoundError, e => {
-											  // we return null if the entity does not exist
-											  return null
-										  }),
-									  )
+							.load(currentResult.restriction.type, id)
+							.then((entity) => new SearchResultListEntry(entity))
+							.catch(
+								ofClass(NotFoundError, (e) => {
+									// we return null if the entity does not exist
+									return null
+								}),
+							)
 					} else {
 						return Promise.resolve(null)
 					}
@@ -216,7 +216,7 @@ export class SearchListView implements Component {
 		currentResult: SearchResult,
 		getMoreFromSearch: boolean,
 		startId: Id,
-		count: number
+		count: number,
 	): Promise<T[]> {
 		const mail = isSameTypeRef(currentResult.restriction.type, MailTypeRef)
 		const contact = isSameTypeRef(currentResult.restriction.type, ContactTypeRef)
@@ -225,9 +225,8 @@ export class SearchListView implements Component {
 			return []
 		}
 
-		const result = getMoreFromSearch && hasMoreResults(currentResult)
-			? await locator.searchFacade.getMoreSearchResults(currentResult, count)
-			: currentResult
+		const result =
+			getMoreFromSearch && hasMoreResults(currentResult) ? await locator.searchFacade.getMoreSearchResults(currentResult, count) : currentResult
 
 		// we need to override global reference for other functions
 		this._searchResult = result
@@ -237,7 +236,7 @@ export class SearchListView implements Component {
 			let startIndex = 0
 
 			if (startId !== GENERATED_MAX_ID) {
-				startIndex = result.results.findIndex(id => id[1] === startId)
+				startIndex = result.results.findIndex((id) => id[1] === startId)
 
 				if (startIndex === -1) {
 					throw new Error("start index not found")
@@ -258,7 +257,6 @@ export class SearchListView implements Component {
 				this.list && this.list.setLoadedCompletely()
 				m.redraw()
 			}
-
 		} else {
 			// this type is not shown in the search view, e.g. group info
 			searchResult = []
@@ -281,7 +279,12 @@ export class SearchListView implements Component {
 		return Promise.resolve()
 	}
 
-	private async loadAndFilterInstances<T extends ListElementEntity>(type: TypeRef<T>, toLoad: IdTuple[], currentResult: SearchResult, startIndex: number): Promise<T[]> {
+	private async loadAndFilterInstances<T extends ListElementEntity>(
+		type: TypeRef<T>,
+		toLoad: IdTuple[],
+		currentResult: SearchResult,
+		startIndex: number,
+	): Promise<T[]> {
 		let instances = [] as T[]
 		for (let [listId, ids] of groupBy(toLoad, listIdPart)) {
 			const loaded = await locator.entityClient.loadMultiple(type, listId, ids.map(elementIdPart))
@@ -297,7 +300,7 @@ export class SearchListView implements Component {
 			for (let i = toLoad.length - 1; i >= 0; i--) {
 				const toLoadId = toLoad[i]
 
-				if (instances.find(instance => isSameId(instance._id, toLoadId)) == null) {
+				if (instances.find((instance) => isSameId(instance._id, toLoadId)) == null) {
 					currentResult.results.splice(startIndex + i, 1)
 
 					if (instances.length === toLoad.length) {
@@ -367,7 +370,7 @@ export class SearchListView implements Component {
 
 		if (selected.length > 0) {
 			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
-				let selectedMails = selected.map(m => (m.entry as any) as Mail)
+				let selectedMails = selected.map((m) => m.entry as any as Mail)
 
 				if (selected.length > 1) {
 					// is needed for correct selection behavior on mobile
@@ -384,7 +387,7 @@ export class SearchListView implements Component {
 
 		if (selected.length > 0) {
 			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
-				let selectedMails = selected.map(m => (m.entry as any) as Mail)
+				let selectedMails = selected.map((m) => m.entry as any as Mail)
 
 				if (selected.length > 1) {
 					// is needed for correct selection behavior on mobile
@@ -401,8 +404,8 @@ export class SearchListView implements Component {
 
 		if (selected.length > 0) {
 			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
-				let selectedMails = selected.map(m => (m.entry as any) as Mail)
-				showDeleteConfirmationDialog(selectedMails).then(confirmed => {
+				let selectedMails = selected.map((m) => m.entry as any as Mail)
+				showDeleteConfirmationDialog(selectedMails).then((confirmed) => {
 					if (confirmed) {
 						if (selected.length > 1) {
 							// is needed for correct selection behavior on mobile
@@ -413,17 +416,17 @@ export class SearchListView implements Component {
 					}
 				})
 			} else if (isSameTypeRef(selected[0].entry._type, ContactTypeRef)) {
-				let selectedContacts = selected.map(m => (m.entry as any) as Contact)
-				Dialog.confirm("deleteContacts_msg").then(confirmed => {
+				let selectedContacts = selected.map((m) => m.entry as any as Contact)
+				Dialog.confirm("deleteContacts_msg").then((confirmed) => {
 					if (confirmed) {
 						if (selected.length > 1) {
 							// is needed for correct selection behavior on mobile
 							this.selectNone()
 						}
 
-						selectedContacts.forEach(c =>
+						selectedContacts.forEach((c) =>
 							locator.entityClient.erase(c).catch(
-								ofClass(NotFoundError, e => {
+								ofClass(NotFoundError, (e) => {
 									// ignore because the delete key shortcut may be executed again while the contact is already deleted
 								}),
 							),

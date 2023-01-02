@@ -1,10 +1,10 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {ListColumnWrapper} from "../gui/ListColumnWrapper"
-import {Button, ButtonType} from "../gui/base/Button.js"
-import {theme} from "../gui/theme"
+import m, { Children, Component, Vnode } from "mithril"
+import { ListColumnWrapper } from "../gui/ListColumnWrapper"
+import { Button, ButtonType } from "../gui/base/Button.js"
+import { theme } from "../gui/theme"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
-import {createInitialTemplateListIfAllowed} from "../templates/TemplateGroupUtils"
-import {showTemplateEditor} from "./TemplateEditor"
+import { createInitialTemplateListIfAllowed } from "../templates/TemplateGroupUtils"
+import { showTemplateEditor } from "./TemplateEditor"
 
 export type DummyTemplateListViewAttrs = void
 
@@ -20,7 +20,7 @@ export class DummyTemplateListView implements Component<DummyTemplateListViewAtt
 						type: ButtonType.Primary,
 						click: () => {
 							// SettingsView will reroute to the folder for the newly created template list (if there is one)
-							createInitialTemplateListIfAllowed().then(groupRoot => {
+							createInitialTemplateListIfAllowed().then((groupRoot) => {
 								if (groupRoot) {
 									showTemplateEditor(null, groupRoot)
 								}

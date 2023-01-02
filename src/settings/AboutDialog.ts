@@ -1,16 +1,16 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {Button, ButtonType} from "../gui/base/Button.js"
-import {getColouredTutanotaLogo} from "../gui/theme"
-import {isApp, isDesktop} from "../api/common/Env"
-import {createLogFile} from "../api/common/Logger"
-import {downcast} from "@tutao/tutanota-utils"
-import {showUserError} from "../misc/ErrorHandlerImpl"
-import {locator} from "../api/main/MainLocator"
-import {InfoLink} from "../misc/LanguageViewModel"
-import {newMailEditorFromTemplate} from "../mail/editor/MailEditor"
-import {UserError} from "../api/main/UserError"
-import {Attachment} from "../mail/editor/SendMailModel";
-import {clientInfoString} from "../misc/ErrorReporter"
+import m, { Children, Component, Vnode } from "mithril"
+import { Button, ButtonType } from "../gui/base/Button.js"
+import { getColouredTutanotaLogo } from "../gui/theme"
+import { isApp, isDesktop } from "../api/common/Env"
+import { createLogFile } from "../api/common/Logger"
+import { downcast } from "@tutao/tutanota-utils"
+import { showUserError } from "../misc/ErrorHandlerImpl"
+import { locator } from "../api/main/MainLocator"
+import { InfoLink } from "../misc/LanguageViewModel"
+import { newMailEditorFromTemplate } from "../mail/editor/MailEditor"
+import { UserError } from "../api/main/UserError"
+import { Attachment } from "../mail/editor/SendMailModel"
+import { clientInfoString } from "../misc/ErrorReporter"
 
 export class AboutDialog implements Component {
 	view(vnode: Vnode): Children {
@@ -64,20 +64,16 @@ export class AboutDialog implements Component {
 
 		if (isDesktop() || isApp()) {
 			const nativeLog = await locator.commonSystemFacade.getLog()
-			const nativeLogFile = createLogFile(
-				timestamp.getTime(),
-				nativeLog,
-				isDesktop() ? "desktop" : "device"
-			)
+			const nativeLogFile = createLogFile(timestamp.getTime(), nativeLog, isDesktop() ? "desktop" : "device")
 			attachments.push(nativeLogFile)
 		}
 
 		const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
-		let {message, type, client} = clientInfoString(timestamp, true)
+		let { message, type, client } = clientInfoString(timestamp, true)
 		message = message
 			.split("\n")
 			.filter(Boolean)
-			.map(l => `<div>${l}<br></div>`)
+			.map((l) => `<div>${l}<br></div>`)
 			.join("")
 
 		try {

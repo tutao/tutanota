@@ -1,11 +1,11 @@
 // @ts-ignore[untyped-import]
 import bCrypt from "../internal/bCrypt.js"
-import {random} from "../random/Randomizer.js"
-import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import {uint8ArrayToBitArray} from "../misc/Utils.js"
-import {KeyLength} from "../misc/Constants.js"
-import {CryptoError} from "../misc/CryptoError.js"
-import {sha256Hash} from "./Sha256.js"
+import { random } from "../random/Randomizer.js"
+import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { uint8ArrayToBitArray } from "../misc/Utils.js"
+import { KeyLength } from "../misc/Constants.js"
+import { CryptoError } from "../misc/CryptoError.js"
+import { sha256Hash } from "./Sha256.js"
 import { Aes128Key, Aes256Key } from "../encryption/Aes.js"
 const logRounds = 8 // pbkdf2 number of iterations
 
@@ -16,7 +16,7 @@ export type SignedBytes = number[]
  * return _salt 128 bit of random data, encoded as a hex string.
  */
 export function generateRandomSalt(): Uint8Array {
-    return random.generateRandomData(128 / 8)
+	return random.generateRandomData(128 / 8)
 }
 
 /**
@@ -26,35 +26,25 @@ export function generateRandomSalt(): Uint8Array {
  * @param keyLengthType Defines the length of the key that shall be generated.
  * @return resolved with the key
  */
-export function generateKeyFromPassphrase(
-    passphrase: string,
-    salt: Uint8Array,
-    keyLengthType: KeyLength,
-): Aes128Key | Aes256Key {
-    // hash the password first to avoid login with multiples of a password, i.e. "hello" and "hellohello" produce the same key if the same _salt is used
-    let passphraseBytes = sha256Hash(stringToUtf8Uint8Array(passphrase))
-    let bytes = crypt_raw(passphraseBytes, salt, logRounds)
+export function generateKeyFromPassphrase(passphrase: string, salt: Uint8Array, keyLengthType: KeyLength): Aes128Key | Aes256Key {
+	// hash the password first to avoid login with multiples of a password, i.e. "hello" and "hellohello" produce the same key if the same _salt is used
+	let passphraseBytes = sha256Hash(stringToUtf8Uint8Array(passphrase))
+	let bytes = crypt_raw(passphraseBytes, salt, logRounds)
 
-    if (keyLengthType === KeyLength.b128) {
-        return uint8ArrayToBitArray(bytes.slice(0, 16))
-    } else {
-        return uint8ArrayToBitArray(sha256Hash(bytes))
-    }
+	if (keyLengthType === KeyLength.b128) {
+		return uint8ArrayToBitArray(bytes.slice(0, 16))
+	} else {
+		return uint8ArrayToBitArray(sha256Hash(bytes))
+	}
 }
 
 function crypt_raw(passphraseBytes: Uint8Array, saltBytes: Uint8Array, logRounds: number): Uint8Array {
-    try {
-        return _signedBytesToUint8Array(
-            new bCrypt().crypt_raw(
-                _uint8ArrayToSignedBytes(passphraseBytes),
-                _uint8ArrayToSignedBytes(saltBytes),
-                logRounds,
-            ),
-        )
-    } catch (e) {
+	try {
+		return _signedBytesToUint8Array(new bCrypt().crypt_raw(_uint8ArrayToSignedBytes(passphraseBytes), _uint8ArrayToSignedBytes(saltBytes), logRounds))
+	} catch (e) {
 		const error = e as Error
-        throw new CryptoError(error.message, error)
-    }
+		throw new CryptoError(error.message, error)
+	}
 }
 
 /**
@@ -63,7 +53,7 @@ function crypt_raw(passphraseBytes: Uint8Array, saltBytes: Uint8Array, logRounds
  * @return The unsigned byte values.
  */
 function _signedBytesToUint8Array(signedBytes: SignedBytes): Uint8Array {
-    return new Uint8Array(new Int8Array(signedBytes))
+	return new Uint8Array(new Int8Array(signedBytes))
 }
 
 /**
@@ -72,5 +62,5 @@ function _signedBytesToUint8Array(signedBytes: SignedBytes): Uint8Array {
  * @return The signed byte values.
  */
 function _uint8ArrayToSignedBytes(unsignedBytes: Uint8Array): SignedBytes {
-    return Array.from(new Uint8Array(new Int8Array(unsignedBytes)))
+	return Array.from(new Uint8Array(new Int8Array(unsignedBytes)))
 }

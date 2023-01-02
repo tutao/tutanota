@@ -1,27 +1,27 @@
-import type {DesktopConfig} from "../config/DesktopConfig.js"
+import type { DesktopConfig } from "../config/DesktopConfig.js"
 import path from "path"
-import {assertNotNull, splitUint8ArrayInChunks, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "@tutao/tutanota-utils"
-import {lang} from "../../misc/LanguageViewModel.js"
-import type {DesktopNetworkClient} from "./DesktopNetworkClient.js"
-import {FileOpenError} from "../../api/common/error/FileOpenError.js"
-import {looksExecutable, nonClobberingFilename} from "../PathUtils.js"
-import type {DesktopUtils} from "../DesktopUtils.js"
+import { assertNotNull, splitUint8ArrayInChunks, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { lang } from "../../misc/LanguageViewModel.js"
+import type { DesktopNetworkClient } from "./DesktopNetworkClient.js"
+import { FileOpenError } from "../../api/common/error/FileOpenError.js"
+import { looksExecutable, nonClobberingFilename } from "../PathUtils.js"
+import type { DesktopUtils } from "../DesktopUtils.js"
 import type * as FsModule from "fs"
-import {CancelledError} from "../../api/common/error/CancelledError.js"
-import {BuildConfigKey, DesktopConfigKey} from "../config/ConfigKeys.js"
-import {WriteStream} from "fs-extra"
+import { CancelledError } from "../../api/common/error/CancelledError.js"
+import { BuildConfigKey, DesktopConfigKey } from "../config/ConfigKeys.js"
+import { WriteStream } from "fs-extra"
 // Make sure to only import the type
-import type {FileUri} from "../../native/common/FileApp.js"
+import type { FileUri } from "../../native/common/FileApp.js"
 import type http from "http"
 import type * as stream from "stream"
-import {DateProvider} from "../../api/common/DateProvider.js"
-import {sha256Hash} from "@tutao/tutanota-crypto"
-import {DownloadTaskResponse} from "../../native/common/generatedipc/DownloadTaskResponse.js"
-import {DataFile} from "../../api/common/DataFile.js"
+import { DateProvider } from "../../api/common/DateProvider.js"
+import { sha256Hash } from "@tutao/tutanota-crypto"
+import { DownloadTaskResponse } from "../../native/common/generatedipc/DownloadTaskResponse.js"
+import { DataFile } from "../../api/common/DataFile.js"
 import url from "url"
-import {log} from "../DesktopLog.js"
-import {UploadTaskResponse} from "../../native/common/generatedipc/UploadTaskResponse.js"
-import {Buffer} from "buffer"
+import { log } from "../DesktopLog.js"
+import { UploadTaskResponse } from "../../native/common/generatedipc/UploadTaskResponse.js"
+import { Buffer } from "buffer"
 
 type FsExports = typeof FsModule
 type ElectronExports = typeof Electron.CrossProcessExports
@@ -55,11 +55,7 @@ export class DesktopDownloadManager {
 	/**
 	 * Download file into the encrypted files directory.
 	 */
-	async downloadNative(
-		sourceUrl: string,
-		fileName: string,
-		headers: Dict,
-	): Promise<DownloadTaskResponse> {
+	async downloadNative(sourceUrl: string, fileName: string, headers: Dict): Promise<DownloadTaskResponse> {
 		// Propagate error in initial request if it occurs (I/O errors and such)
 		const response = await this.net.executeRequest(sourceUrl, {
 			method: "GET",
@@ -92,11 +88,7 @@ export class DesktopDownloadManager {
 
 	async upload(fileUri: string, targetUrl: string, method: string, headers: Record<string, string>): Promise<UploadTaskResponse> {
 		const fileStream = this.fs.createReadStream(fileUri)
-		const response = await this.net.executeRequest(
-			targetUrl,
-			{method, headers, timeout: 20000},
-			fileStream
-		)
+		const response = await this.net.executeRequest(targetUrl, { method, headers, timeout: 20000 }, fileStream)
 
 		let responseBody: Uint8Array
 		if (response.statusCode == 200 || response.statusCode == 201) {
@@ -122,25 +114,25 @@ export class DesktopDownloadManager {
 			this.electron.shell
 				.openPath(itemPath) // may resolve with "" or an error message
 				.catch(() => "failed to open path.")
-				.then(errMsg => (errMsg === "" ? Promise.resolve() : Promise.reject(new FileOpenError("Could not open " + itemPath + ", " + errMsg))))
+				.then((errMsg) => (errMsg === "" ? Promise.resolve() : Promise.reject(new FileOpenError("Could not open " + itemPath + ", " + errMsg))))
 
 		// only windows will happily execute a just downloaded program
 		if (process.platform === "win32" && looksExecutable(itemPath)) {
 			return this.electron.dialog
-					   .showMessageBox({
-						   type: "warning",
-						   buttons: [lang.get("yes_label"), lang.get("no_label")],
-						   title: lang.get("executableOpen_label"),
-						   message: lang.get("executableOpen_msg"),
-						   defaultId: 1, // default button
-					   })
-					   .then(({response}) => {
-						   if (response === 0) {
-							   return tryOpen()
-						   } else {
-							   return Promise.resolve()
-						   }
-					   })
+				.showMessageBox({
+					type: "warning",
+					buttons: [lang.get("yes_label"), lang.get("no_label")],
+					title: lang.get("executableOpen_label"),
+					message: lang.get("executableOpen_msg"),
+					defaultId: 1, // default button
+				})
+				.then(({ response }) => {
+					if (response === 0) {
+						return tryOpen()
+					} else {
+						return Promise.resolve()
+					}
+				})
 		} else {
 			return tryOpen()
 		}
@@ -222,7 +214,6 @@ export class DesktopDownloadManager {
 		}
 	}
 
-
 	private async pickSavePath(filename: string): Promise<string> {
 		const defaultDownloadPath = await this.conf.getVar(DesktopConfigKey.defaultDownloadPath)
 
@@ -230,7 +221,7 @@ export class DesktopDownloadManager {
 			const fileName = path.basename(filename)
 			return path.join(defaultDownloadPath, nonClobberingFilename(await this.fs.promises.readdir(defaultDownloadPath), fileName))
 		} else {
-			const {canceled, filePath} = await this.electron.dialog.showSaveDialog({
+			const { canceled, filePath } = await this.electron.dialog.showSaveDialog({
 				defaultPath: path.join(this.electron.app.getPath("downloads"), filename),
 			})
 
@@ -243,7 +234,7 @@ export class DesktopDownloadManager {
 	}
 
 	private async pipeIntoFile(response: stream.Readable, encryptedFilePath: string) {
-		const fileStream: WriteStream = this.fs.createWriteStream(encryptedFilePath, {emitClose: true})
+		const fileStream: WriteStream = this.fs.createWriteStream(encryptedFilePath, { emitClose: true })
 		try {
 			await pipeStream(response, fileStream)
 			await closeFileStream(fileStream)
@@ -263,14 +254,14 @@ export class DesktopDownloadManager {
 		const downloadDirectory = await this.ensureUnencrytpedDir()
 
 		const fileUri = path.join(downloadDirectory, filename)
-		const outStream = this.fs.createWriteStream(fileUri, {autoClose: false})
+		const outStream = this.fs.createWriteStream(fileUri, { autoClose: false })
 
 		for (const infile of files) {
 			await new Promise((resolve, reject) => {
 				const readStream = this.fs.createReadStream(infile)
-				readStream.on('end', resolve)
-				readStream.on('error', reject)
-				readStream.pipe(outStream, {end: false})
+				readStream.on("end", resolve)
+				readStream.on("error", reject)
+				readStream.pipe(outStream, { end: false })
 			})
 		}
 		// Wait for the write stream to finish
@@ -313,13 +304,13 @@ export class DesktopDownloadManager {
 
 	private async ensureEncryptedDir() {
 		const downloadDirectory = this.getEncryptedTempDir()
-		await this.fs.promises.mkdir(downloadDirectory, {recursive: true})
+		await this.fs.promises.mkdir(downloadDirectory, { recursive: true })
 		return downloadDirectory
 	}
 
 	private async ensureUnencrytpedDir() {
 		const downloadDirectory = this.getUnenecryptedTempDir()
-		await this.fs.promises.mkdir(downloadDirectory, {recursive: true})
+		await this.fs.promises.mkdir(downloadDirectory, { recursive: true })
 		return downloadDirectory
 	}
 
@@ -345,10 +336,11 @@ function getHttpHeader(headers: http.IncomingHttpHeaders, name: string): string 
 function pipeStream(stream: stream.Readable, into: stream.Writable): Promise<void> {
 	return new Promise((resolve, reject) => {
 		stream.on("error", reject)
-		stream.pipe(into)
+		stream
+			.pipe(into)
 			// pipe returns destination
-			  .on("finish", resolve)
-			  .on("error", reject)
+			.on("finish", resolve)
+			.on("error", reject)
 	})
 }
 
@@ -363,15 +355,15 @@ export async function readStreamToBuffer(stream: stream.Readable): Promise<Uint8
 	return new Promise((resolve, reject) => {
 		const data: Buffer[] = []
 
-		stream.on('data', (chunk) => {
+		stream.on("data", (chunk) => {
 			data.push(chunk as Buffer)
 		})
 
-		stream.on('end', () => {
+		stream.on("end", () => {
 			resolve(Buffer.concat(data))
 		})
 
-		stream.on('error', (err) => {
+		stream.on("error", (err) => {
 			reject(err)
 		})
 	})

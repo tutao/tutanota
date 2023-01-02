@@ -1,10 +1,10 @@
-import {lang} from "./LanguageViewModel"
-import {getByAbbreviation} from "../api/common/CountryList"
-import {neverNull} from "@tutao/tutanota-utils"
-import type {UserSettingsGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
-import {TimeFormat} from "../api/common/TutanotaConstants"
-import {pad} from "@tutao/tutanota-utils"
-import {assertMainOrNode} from "../api/common/Env"
+import { lang } from "./LanguageViewModel"
+import { getByAbbreviation } from "../api/common/CountryList"
+import { neverNull } from "@tutao/tutanota-utils"
+import type { UserSettingsGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
+import { TimeFormat } from "../api/common/TutanotaConstants"
+import { pad } from "@tutao/tutanota-utils"
+import { assertMainOrNode } from "../api/common/Env"
 
 assertMainOrNode()
 

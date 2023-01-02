@@ -1,10 +1,10 @@
-import m, {Children, ClassComponent, Component, CVnode, CVnodeDOM, Vnode, VnodeDOM} from "mithril"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import {Icon} from "./base/Icon"
-import {Icons} from "./base/icons/Icons"
-import type {MaybeLazy} from "@tutao/tutanota-utils"
-import {resolveMaybeLazy} from "@tutao/tutanota-utils"
+import m, { Children, ClassComponent, Component, CVnode, CVnodeDOM, Vnode, VnodeDOM } from "mithril"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
+import { Icon } from "./base/Icon"
+import { Icons } from "./base/icons/Icons"
+import type { MaybeLazy } from "@tutao/tutanota-utils"
+import { resolveMaybeLazy } from "@tutao/tutanota-utils"
 
 export type ScrollSelectListAttrs<T> = {
 	items: ReadonlyArray<T>
@@ -21,9 +21,10 @@ export class ScrollSelectList<T> implements ClassComponent<ScrollSelectListAttrs
 
 	view(vnode: CVnode<ScrollSelectListAttrs<T>>): Children {
 		const a = vnode.attrs
-		return m(".flex.flex-column.scroll-no-overlay",
-			(a.items.length > 0)
-				? a.items.map(item => this.renderRow(item, vnode))
+		return m(
+			".flex.flex-column.scroll-no-overlay",
+			a.items.length > 0
+				? a.items.map((item) => this.renderRow(item, vnode))
 				: m(".row-selected.text-center.pt", lang.get(resolveMaybeLazy(a.emptyListMessage))),
 		)
 	}
@@ -68,18 +69,18 @@ export class ScrollSelectList<T> implements ClassComponent<ScrollSelectListAttrs
 						a.renderItem(item),
 						isSelected
 							? m(Icon, {
-								icon: Icons.ArrowForward,
-								style: {
-									marginTop: "auto",
-									marginBottom: "auto",
-								},
-							})
+									icon: Icons.ArrowForward,
+									style: {
+										marginTop: "auto",
+										marginBottom: "auto",
+									},
+							  })
 							: m("", {
-								style: {
-									width: "17.1px",
-									height: "16px",
-								},
-							}),
+									style: {
+										width: "17.1px",
+										height: "16px",
+									},
+							  }),
 					],
 				),
 			],

@@ -1,9 +1,8 @@
-
-import {OfflineMigration} from "../OfflineStorageMigrator.js"
-import {OfflineStorage} from "../OfflineStorage.js"
-import {createGiftCard, GiftCardTypeRef} from "../../../entities/sys/TypeRefs.js"
-import {booleanToNumberValue, migrateAllListElements, renameAttribute} from "../StandardMigrations.js"
-import {GiftCardStatus} from "../../../../subscription/giftcards/GiftCardUtils.js"
+import { OfflineMigration } from "../OfflineStorageMigrator.js"
+import { OfflineStorage } from "../OfflineStorage.js"
+import { createGiftCard, GiftCardTypeRef } from "../../../entities/sys/TypeRefs.js"
+import { booleanToNumberValue, migrateAllListElements, renameAttribute } from "../StandardMigrations.js"
+import { GiftCardStatus } from "../../../../subscription/giftcards/GiftCardUtils.js"
 
 export const sys75: OfflineMigration = {
 	app: "sys",
@@ -13,7 +12,7 @@ export const sys75: OfflineMigration = {
 			booleanToNumberValue("usable"),
 			renameAttribute("usable", "status"),
 			// add value
-			createGiftCard
+			createGiftCard,
 		])
-	}
+	},
 }

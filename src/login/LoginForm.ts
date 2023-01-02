@@ -1,16 +1,16 @@
-import m, {ChildArray, Children, Component, Vnode} from "mithril"
+import m, { ChildArray, Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
-import {Button, ButtonType} from "../gui/base/Button.js"
-import {liveDataAttrs} from "../gui/AriaUtils"
-import {lang, TranslationKey} from "../misc/LanguageViewModel"
-import {Autocomplete, TextField, TextFieldType} from "../gui/base/TextField.js"
-import {Checkbox} from "../gui/base/Checkbox.js"
-import {client} from "../misc/ClientDetector"
-import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
-import {assertNotNull} from "@tutao/tutanota-utils"
-import {isOfflineStorageAvailable} from "../api/common/Env"
+import { BootstrapFeatureType } from "../api/common/TutanotaConstants"
+import { Button, ButtonType } from "../gui/base/Button.js"
+import { liveDataAttrs } from "../gui/AriaUtils"
+import { lang, TranslationKey } from "../misc/LanguageViewModel"
+import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
+import { Checkbox } from "../gui/base/Checkbox.js"
+import { client } from "../misc/ClientDetector"
+import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
+import { assertNotNull } from "@tutao/tutanota-utils"
+import { isOfflineStorageAvailable } from "../api/common/Env"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown
@@ -72,7 +72,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 				m(
 					"",
 					{
-						oncreate: vnode => {
+						oncreate: (vnode) => {
 							const childArray = assertNotNull(vnode.children) as ChildArray
 							const child = childArray[0] as Vnode<unknown, TextField>
 							this.mailAddressTextField = child.state
@@ -88,13 +88,13 @@ export class LoginForm implements Component<LoginFormAttrs> {
 							if (!client.isMobileDevice()) {
 								dom.focus() // have email address auto-focus so the user can immediately type their username (unless on mobile)
 							}
-						}
+						},
 					}),
 				),
 				m(
 					"",
 					{
-						oncreate: vnode => {
+						oncreate: (vnode) => {
 							const childArray = assertNotNull(vnode.children) as ChildArray
 							const child = childArray[0] as Vnode<unknown, TextField>
 							this.passwordTextField = child.state
@@ -110,14 +110,14 @@ export class LoginForm implements Component<LoginFormAttrs> {
 				),
 				a.savePassword && !this._passwordDisabled()
 					? m(Checkbox, {
-						label: () => lang.get("storePassword_action"),
-						checked: a.savePassword(),
-						onChecked: a.savePassword,
-						helpLabel: (canSaveCredentials)
-							? () => lang.get("onlyPrivateComputer_msg") + (isOfflineStorageAvailable() ? "\n" + lang.get("dataWillBeStored_msg") : "")
-							: "functionNotSupported_msg",
-						disabled: !canSaveCredentials,
-					})
+							label: () => lang.get("storePassword_action"),
+							checked: a.savePassword(),
+							onChecked: a.savePassword,
+							helpLabel: canSaveCredentials
+								? () => lang.get("onlyPrivateComputer_msg") + (isOfflineStorageAvailable() ? "\n" + lang.get("dataWillBeStored_msg") : "")
+								: "functionNotSupported_msg",
+							disabled: !canSaveCredentials,
+					  })
 					: null,
 				m(
 					".pt",
@@ -134,35 +134,35 @@ export class LoginForm implements Component<LoginFormAttrs> {
 						" ",
 						a.invalidCredentials && a.showRecoveryOption
 							? m(
-								"a",
-								{
-									href: "/recover",
-									onclick: (e: MouseEvent) => {
-										m.route.set("/recover", {
-											mailAddress: a.mailAddress(),
-											resetAction: "password",
-										})
-										e.preventDefault()
+									"a",
+									{
+										href: "/recover",
+										onclick: (e: MouseEvent) => {
+											m.route.set("/recover", {
+												mailAddress: a.mailAddress(),
+												resetAction: "password",
+											})
+											e.preventDefault()
+										},
 									},
-								},
-								lang.get("recoverAccountAccess_action"),
-							)
+									lang.get("recoverAccountAccess_action"),
+							  )
 							: a.accessExpired && a.accessExpired
-								? m(
+							? m(
 									"a",
 									{
 										// We import the dialog directly rather than redirecting to /recover here in order to not pass the password in plaintext via the URL
 										href: "#",
 										onclick: (e: MouseEvent) => {
-											import("./recover/TakeOverDeletedAddressDialog").then(({showTakeOverDialog}) =>
+											import("./recover/TakeOverDeletedAddressDialog").then(({ showTakeOverDialog }) =>
 												showTakeOverDialog(a.mailAddress(), a.password()),
 											)
 											e.preventDefault()
 										},
 									},
 									lang.get("help_label"),
-								)
-								: null,
+							  )
+							: null,
 					]),
 				),
 			],

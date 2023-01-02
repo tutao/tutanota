@@ -1,8 +1,8 @@
 import http from "http"
 import https from "https"
-import {ConnectionError} from "../../api/common/error/RestError.js"
-import {log} from "../DesktopLog.js"
-import type {ReadStream} from "fs"
+import { ConnectionError } from "../../api/common/error/RestError.js"
+import { log } from "../DesktopLog.js"
+import type { ReadStream } from "fs"
 
 const TAG = "[DesktopNetworkClient]"
 
@@ -51,19 +51,17 @@ export class DesktopNetworkClient {
 			}
 
 			const req: http.ClientRequest = this.request(url, opts)
-												.on("response", r => {
-													resp = r
-													resolve(r)
-												})
-												.on("error", onerror)
-												.on("timeout", () => {
-													log.debug(TAG, "timed out req")
-													req.destroy(new ConnectionError("timed out"))
-												})
+				.on("response", (r) => {
+					resp = r
+					resolve(r)
+				})
+				.on("error", onerror)
+				.on("timeout", () => {
+					log.debug(TAG, "timed out req")
+					req.destroy(new ConnectionError("timed out"))
+				})
 			if (uploadStream) {
-				uploadStream
-					.on("error", onerror)
-					.pipe(req)
+				uploadStream.on("error", onerror).pipe(req)
 			} else {
 				req.end()
 			}

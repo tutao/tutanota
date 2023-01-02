@@ -1,28 +1,26 @@
-import type {CredentialsEncryption, PersistentCredentials} from "./CredentialsProvider.js"
-import {CredentialsAndDatabaseKey} from "./CredentialsProvider.js"
-import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
-import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
-import type {CredentialEncryptionMode} from "./CredentialEncryptionMode"
-import {CryptoError} from "../../api/common/error/CryptoError.js"
-import {KeyPermanentlyInvalidatedError} from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
-import {CredentialsKeyProvider} from "./CredentialsKeyProvider.js"
-import {NativeCredentialsFacade} from "../../native/common/generatedipc/NativeCredentialsFacade.js"
+import type { CredentialsEncryption, PersistentCredentials } from "./CredentialsProvider.js"
+import { CredentialsAndDatabaseKey } from "./CredentialsProvider.js"
+import type { DeviceEncryptionFacade } from "../../api/worker/facades/DeviceEncryptionFacade"
+import { base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import type { CredentialEncryptionMode } from "./CredentialEncryptionMode"
+import { CryptoError } from "../../api/common/error/CryptoError.js"
+import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
+import { CredentialsKeyProvider } from "./CredentialsKeyProvider.js"
+import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade.js"
 
 /**
  * Credentials encryption implementation that uses the native (platform-specific) keychain implementation. It uses an intermediate key to
  * encrypt the credentials stored on the device. The intermediate key in turn is encrypted using the native keychain.
  */
 export class NativeCredentialsEncryption implements CredentialsEncryption {
-
 	constructor(
 		private readonly credentialsKeyProvider: CredentialsKeyProvider,
 		private readonly deviceEncryptionFacade: DeviceEncryptionFacade,
 		private readonly nativeCredentials: NativeCredentialsFacade,
-	) {
-	}
+	) {}
 
-	async encrypt({credentials, databaseKey}: CredentialsAndDatabaseKey): Promise<PersistentCredentials> {
-		const {encryptedPassword} = credentials
+	async encrypt({ credentials, databaseKey }: CredentialsAndDatabaseKey): Promise<PersistentCredentials> {
+		const { encryptedPassword } = credentials
 
 		if (encryptedPassword == null) {
 			throw new Error("Trying to encrypt non-persistent credentials")
@@ -48,7 +46,7 @@ export class NativeCredentialsEncryption implements CredentialsEncryption {
 			},
 			encryptedPassword,
 			accessToken: encryptedAccessTokenBase64,
-			databaseKey: encryptedDatabaseKeyBase64
+			databaseKey: encryptedDatabaseKeyBase64,
 		}
 	}
 
@@ -57,7 +55,7 @@ export class NativeCredentialsEncryption implements CredentialsEncryption {
 
 		try {
 			const accessToken = utf8Uint8ArrayToString(
-				await this.deviceEncryptionFacade.decrypt(credentialsKey, base64ToUint8Array(encryptedCredentials.accessToken))
+				await this.deviceEncryptionFacade.decrypt(credentialsKey, base64ToUint8Array(encryptedCredentials.accessToken)),
 			)
 
 			const databaseKey = encryptedCredentials.databaseKey
@@ -72,9 +70,8 @@ export class NativeCredentialsEncryption implements CredentialsEncryption {
 					encryptedPassword: encryptedCredentials.encryptedPassword,
 					accessToken,
 				},
-				databaseKey
+				databaseKey,
 			}
-
 		} catch (e) {
 			if (e instanceof CryptoError) {
 				// If the key could not be decrypted it means that something went very wrong. We will probably not be able to do anything about it so just

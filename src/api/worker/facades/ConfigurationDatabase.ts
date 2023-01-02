@@ -1,14 +1,14 @@
-import type {ObjectStoreName} from "../search/DbFacade"
-import {b64UserIdHash, DbFacade} from "../search/DbFacade"
-import {LoginFacade} from "./LoginFacade"
-import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import {Metadata} from "../search/Indexer"
-import {LazyLoaded} from "@tutao/tutanota-utils"
-import type {User} from "../../entities/sys/TypeRefs.js"
-import {assertNotNull} from "@tutao/tutanota-utils"
-import {ExternalImageRule} from "../../common/TutanotaConstants"
-import {aes256Decrypt, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt256Key, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
-import {UserFacade} from "./UserFacade"
+import type { ObjectStoreName } from "../search/DbFacade"
+import { b64UserIdHash, DbFacade } from "../search/DbFacade"
+import { LoginFacade } from "./LoginFacade"
+import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { Metadata } from "../search/Indexer"
+import { LazyLoaded } from "@tutao/tutanota-utils"
+import type { User } from "../../entities/sys/TypeRefs.js"
+import { assertNotNull } from "@tutao/tutanota-utils"
+import { ExternalImageRule } from "../../common/TutanotaConstants"
+import { aes256Decrypt, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt256Key, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { UserFacade } from "./UserFacade"
 
 const VERSION: number = 1
 const DB_KEY_PREFIX: string = "ConfigStorage"
@@ -46,14 +46,14 @@ export class ConfigurationDatabase {
 	}
 
 	async addExternalImageRule(address: string, rule: ExternalImageRule): Promise<void> {
-		const {db, metaData} = await this.db.getAsync()
+		const { db, metaData } = await this.db.getAsync()
 		if (!db.indexingSupported) return
 		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
 		return this._addAddressToImageList(encryptedAddress, rule)
 	}
 
 	async getExternalImageRule(address: string): Promise<ExternalImageRule> {
-		const {db, metaData} = await this.db.getAsync()
+		const { db, metaData } = await this.db.getAsync()
 		if (!db.indexingSupported) return ExternalImageRule.None
 		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
 		const transaction = await db.createTransaction(true, [ExternalImageListOS])
@@ -74,7 +74,7 @@ export class ConfigurationDatabase {
 	}
 
 	async _addAddressToImageList(encryptedAddress: Uint8Array, rule: ExternalImageRule): Promise<void> {
-		const {db} = await this.db.getAsync()
+		const { db } = await this.db.getAsync()
 		const transaction = await db.createTransaction(false, [ExternalImageListOS])
 		return transaction.put(ExternalImageListOS, null, {
 			address: encryptedAddress,

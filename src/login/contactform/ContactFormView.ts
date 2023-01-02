@@ -1,22 +1,22 @@
-import m, {Children} from "mithril"
-import {animations, opacity} from "../../gui/animation/Animations"
-import {NotFoundError} from "../../api/common/error/RestError"
-import {downcast, neverNull, ofClass} from "@tutao/tutanota-utils"
-import {ContactFormRequestDialog} from "./ContactFormRequestDialog"
-import {Dialog} from "../../gui/base/Dialog"
-import {getLanguage, lang} from "../../misc/LanguageViewModel"
-import {progressIcon} from "../../gui/base/Icon"
-import {NotFoundPage} from "../../gui/base/NotFoundPage.js"
-import {getDefaultContactFormLanguage} from "../../settings/contactform/ContactFormUtils"
-import {htmlSanitizer} from "../../misc/HtmlSanitizer"
-import {renderInfoLinks} from "../LoginView"
-import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
-import {CurrentView, header} from "../../gui/Header.js"
-import {Button, ButtonType} from "../../gui/base/Button.js"
-import {Keys} from "../../api/common/TutanotaConstants"
-import type {ContactForm} from "../../api/entities/tutanota/TypeRefs.js"
-import {locator} from "../../api/main/MainLocator"
-import {assertMainOrNode} from "../../api/common/Env"
+import m, { Children } from "mithril"
+import { animations, opacity } from "../../gui/animation/Animations"
+import { NotFoundError } from "../../api/common/error/RestError"
+import { downcast, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { ContactFormRequestDialog } from "./ContactFormRequestDialog"
+import { Dialog } from "../../gui/base/Dialog"
+import { getLanguage, lang } from "../../misc/LanguageViewModel"
+import { progressIcon } from "../../gui/base/Icon"
+import { NotFoundPage } from "../../gui/base/NotFoundPage.js"
+import { getDefaultContactFormLanguage } from "../../settings/contactform/ContactFormUtils"
+import { htmlSanitizer } from "../../misc/HtmlSanitizer"
+import { renderInfoLinks } from "../LoginView"
+import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
+import { CurrentView, header } from "../../gui/Header.js"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import { Keys } from "../../api/common/TutanotaConstants"
+import type { ContactForm } from "../../api/entities/tutanota/TypeRefs.js"
+import { locator } from "../../api/main/MainLocator"
+import { assertMainOrNode } from "../../api/common/Env"
 
 assertMainOrNode()
 
@@ -48,12 +48,11 @@ class ContactFormView implements CurrentView {
 			],
 			middle: () => lang.get("moreInformation_action"),
 		}
-		this._moreInformationDialog = Dialog
-			.largeDialog(moreInfoHeaderBarAttrs, {
-				view: () => {
-					return m(".pb", m.trust(neverNull(this._helpHtml))) // is sanitized in updateUrl
-				},
-			})
+		this._moreInformationDialog = Dialog.largeDialog(moreInfoHeaderBarAttrs, {
+			view: () => {
+				return m(".pb", m.trust(neverNull(this._helpHtml))) // is sanitized in updateUrl
+			},
+		})
 			.addShortcut({
 				key: Keys.ESC,
 				exec: closeAction,
@@ -74,10 +73,7 @@ class ContactFormView implements CurrentView {
 			return m(
 				".flex-center.items-center.pt-l",
 				{
-					onbeforeremove: vnode => animations.add(
-						vnode.dom as HTMLElement,
-						opacity(1, 0, false)
-					),
+					onbeforeremove: (vnode) => animations.add(vnode.dom as HTMLElement, opacity(1, 0, false)),
 				},
 				progressIcon(),
 			)
@@ -86,10 +82,7 @@ class ContactFormView implements CurrentView {
 			return m(
 				".mt",
 				{
-					oncreate: vnode => animations.add(
-						vnode.dom as HTMLElement,
-						opacity(0, 1, false)
-					),
+					oncreate: (vnode) => animations.add(vnode.dom as HTMLElement, opacity(0, 1, false)),
 				},
 				[
 					language.pageTitle ? m("h1.center.pt", language.pageTitle) : null,
@@ -114,13 +107,13 @@ class ContactFormView implements CurrentView {
 							),
 							this._helpHtml
 								? m(
-									".pt-l.flex-center",
-									m(Button, {
-										label: "moreInformation_action",
-										click: () => this._moreInformationDialog.show(),
-										type: ButtonType.Secondary,
-									}),
-								)
+										".pt-l.flex-center",
+										m(Button, {
+											label: "moreInformation_action",
+											click: () => this._moreInformationDialog.show(),
+											type: ButtonType.Secondary,
+										}),
+								  )
 								: null,
 						]),
 					]),
@@ -138,32 +131,32 @@ class ContactFormView implements CurrentView {
 			this._formId = args.formId
 			this._loading = true
 			locator.contactFormFacade
-				   .loadContactForm(args.formId)
-				   .then(contactForm => {
-					   this._contactForm = contactForm
-					   lang.setLanguage(getLanguage(this._contactForm.languages.map(l => downcast(l.code)))).finally(() => {
-						   let language = getDefaultContactFormLanguage(contactForm.languages)
-						   document.title = language.pageTitle
-						   this._headerHtml = htmlSanitizer.sanitizeHTML(language.headerHtml, {
-							   blockExternalContent: false,
-						   }).html
-						   this._footerHtml = htmlSanitizer.sanitizeHTML(language.footerHtml, {
-							   blockExternalContent: false,
-						   }).html
-						   this._helpHtml = htmlSanitizer.sanitizeHTML(language.helpHtml, {
-							   blockExternalContent: false,
-						   }).html
-						   this._loading = false
-						   m.redraw()
-					   })
-				   })
-				   .catch(
-					   ofClass(NotFoundError, () => {
-						   this._loading = false
-						   this._contactForm = null
-						   m.redraw()
-					   }),
-				   )
+				.loadContactForm(args.formId)
+				.then((contactForm) => {
+					this._contactForm = contactForm
+					lang.setLanguage(getLanguage(this._contactForm.languages.map((l) => downcast(l.code)))).finally(() => {
+						let language = getDefaultContactFormLanguage(contactForm.languages)
+						document.title = language.pageTitle
+						this._headerHtml = htmlSanitizer.sanitizeHTML(language.headerHtml, {
+							blockExternalContent: false,
+						}).html
+						this._footerHtml = htmlSanitizer.sanitizeHTML(language.footerHtml, {
+							blockExternalContent: false,
+						}).html
+						this._helpHtml = htmlSanitizer.sanitizeHTML(language.helpHtml, {
+							blockExternalContent: false,
+						}).html
+						this._loading = false
+						m.redraw()
+					})
+				})
+				.catch(
+					ofClass(NotFoundError, () => {
+						this._loading = false
+						this._contactForm = null
+						m.redraw()
+					}),
+				)
 		}
 	}
 }

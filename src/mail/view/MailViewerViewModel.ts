@@ -12,7 +12,7 @@ import {
 	MailBody,
 	MailBodyTypeRef,
 	MailHeadersTypeRef,
-	MailRestriction
+	MailRestriction,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import {
 	CalendarMethod,
@@ -27,15 +27,15 @@ import {
 	MailReportType,
 	MailState,
 } from "../../api/common/TutanotaConstants"
-import {EntityClient} from "../../api/common/EntityClient"
-import {MailboxDetail, MailModel} from "../model/MailModel"
-import {ContactModel} from "../../contacts/model/ContactModel"
-import {ConfigurationDatabase} from "../../api/worker/facades/ConfigurationDatabase"
-import {InlineImages} from "./MailViewer"
-import {isDesktop} from "../../api/common/Env"
+import { EntityClient } from "../../api/common/EntityClient"
+import { MailboxDetail, MailModel } from "../model/MailModel"
+import { ContactModel } from "../../contacts/model/ContactModel"
+import { ConfigurationDatabase } from "../../api/worker/facades/ConfigurationDatabase"
+import { InlineImages } from "./MailViewer"
+import { isDesktop } from "../../api/common/Env"
 import stream from "mithril/stream"
-import {addAll, contains, downcast, first, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
-import {lang} from "../../misc/LanguageViewModel"
+import { addAll, contains, downcast, first, neverNull, noOp, ofClass, startsWith } from "@tutao/tutanota-utils"
+import { lang } from "../../misc/LanguageViewModel"
 import {
 	getDefaultSender,
 	getEnabledMailAddressesWithUser,
@@ -43,35 +43,34 @@ import {
 	getMailboxName,
 	getPathToFolderString,
 	isExcludedMailAddress,
-	isTutanotaTeamMail
+	isTutanotaTeamMail,
 } from "../model/MailUtils"
-import {LoginController} from "../../api/main/LoginController"
+import { LoginController } from "../../api/main/LoginController"
 import m from "mithril"
-import {LockedError, NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
-import {elementIdPart, haveSameId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils"
-import {getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages} from "./MailGuiUtils"
-import {locator} from "../../api/main/MainLocator"
-import {SanitizedFragment} from "../../misc/HtmlSanitizer"
-import {CALENDAR_MIME_TYPE, FileController} from "../../file/FileController"
-import {getMailBodyText, getMailHeaders} from "../../api/common/utils/Utils"
-import {exportMails} from "../export/Exporter.js"
-import {FileFacade} from "../../api/worker/facades/FileFacade"
-import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
-import {FileOpenError} from "../../api/common/error/FileOpenError"
-import {Dialog} from "../../gui/base/Dialog"
-import {checkApprovalStatus} from "../../misc/LoginUtils"
-import {formatDateTime, urlEncodeHtmlTags} from "../../misc/Formatter"
-import {UserError} from "../../api/main/UserError"
-import {showUserError} from "../../misc/ErrorHandlerImpl"
-import {CustomerTypeRef, GroupInfo} from "../../api/entities/sys/TypeRefs.js"
-import {LoadingStateTracker} from "../../offline/LoadingState"
-import {IServiceExecutor} from "../../api/common/ServiceRequest"
-import {ListUnsubscribeService} from "../../api/entities/tutanota/Services"
-import {ProgrammingError} from "../../api/common/error/ProgrammingError"
-import {InitAsResponseArgs} from "../editor/SendMailModel"
-import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
-import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSystemFacade.js"
-
+import { LockedError, NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
+import { elementIdPart, haveSameId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
+import { getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages } from "./MailGuiUtils"
+import { locator } from "../../api/main/MainLocator"
+import { SanitizedFragment } from "../../misc/HtmlSanitizer"
+import { CALENDAR_MIME_TYPE, FileController } from "../../file/FileController"
+import { getMailBodyText, getMailHeaders } from "../../api/common/utils/Utils"
+import { exportMails } from "../export/Exporter.js"
+import { FileFacade } from "../../api/worker/facades/FileFacade"
+import { IndexingNotSupportedError } from "../../api/common/error/IndexingNotSupportedError"
+import { FileOpenError } from "../../api/common/error/FileOpenError"
+import { Dialog } from "../../gui/base/Dialog"
+import { checkApprovalStatus } from "../../misc/LoginUtils"
+import { formatDateTime, urlEncodeHtmlTags } from "../../misc/Formatter"
+import { UserError } from "../../api/main/UserError"
+import { showUserError } from "../../misc/ErrorHandlerImpl"
+import { CustomerTypeRef, GroupInfo } from "../../api/entities/sys/TypeRefs.js"
+import { LoadingStateTracker } from "../../offline/LoadingState"
+import { IServiceExecutor } from "../../api/common/ServiceRequest"
+import { ListUnsubscribeService } from "../../api/entities/tutanota/Services"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError"
+import { InitAsResponseArgs } from "../editor/SendMailModel"
+import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
+import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -136,18 +135,16 @@ export class MailViewerViewModel {
 		private readonly fileFacade: FileFacade,
 		private readonly fileController: FileController,
 		readonly logins: LoginController,
-		readonly service: IServiceExecutor
+		readonly service: IServiceExecutor,
 	) {
 		this.delayBodyRenderingUntil.then(() => {
-				this.renderIsDelayed = false
-				m.redraw()
-			}
-		)
+			this.renderIsDelayed = false
+			m.redraw()
+		})
 		if (isDesktop()) {
 			// Notify the admin client about the mail being selected
 			desktopSystemFacade?.sendSocketMessage(this.mail.sender.address)
 		}
-
 
 		this.folderText = null
 		if (showFolder) {
@@ -162,12 +159,13 @@ export class MailViewerViewModel {
 		// other one
 		const mailboxDetails = await this.mailModel.getMailboxDetailsForMail(this.mail)
 		const enabledMailAddresses = new Set(getEnabledMailAddressesWithUser(mailboxDetails, this.logins.getUserController().userGroupInfo))
-		this.relevantRecipient = this.mail.toRecipients.find(r => enabledMailAddresses.has(r.address))
-			?? this.mail.ccRecipients.find(r => enabledMailAddresses.has(r.address))
-			?? this.mail.bccRecipients.find(r => enabledMailAddresses.has(r.address))
-			?? first(this.mail.toRecipients)
-			?? first(this.mail.ccRecipients)
-			?? first(this.mail.bccRecipients)
+		this.relevantRecipient =
+			this.mail.toRecipients.find((r) => enabledMailAddresses.has(r.address)) ??
+			this.mail.ccRecipients.find((r) => enabledMailAddresses.has(r.address)) ??
+			this.mail.bccRecipients.find((r) => enabledMailAddresses.has(r.address)) ??
+			first(this.mail.toRecipients) ??
+			first(this.mail.ccRecipients) ??
+			first(this.mail.bccRecipients)
 		m.redraw()
 	}
 
@@ -176,7 +174,7 @@ export class MailViewerViewModel {
 		const folder = this.mailModel.getMailFolder(this.mail._id[0])
 
 		if (folder) {
-			this.mailModel.getMailboxDetailsForMail(this.mail).then(mailboxDetails => {
+			this.mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
 				const name = getPathToFolderString(mailboxDetails.folders, folder)
 				this.folderText = `${getMailboxName(this.logins, mailboxDetails)} / ${name}`
 				m.redraw()
@@ -190,15 +188,14 @@ export class MailViewerViewModel {
 	}
 
 	async loadAll(
-		{notify}: {
+		{
+			notify,
+		}: {
 			notify: boolean
-		} = {notify: true}
+		} = { notify: true },
 	) {
 		try {
-			await this.loadingState.trackPromise(
-				this.loadMailBody(this.mail)
-					.then((inlineImageCids) => this.loadAttachments(this.mail, inlineImageCids))
-			)
+			await this.loadingState.trackPromise(this.loadMailBody(this.mail).then((inlineImageCids) => this.loadAttachments(this.mail, inlineImageCids)))
 
 			if (notify) this.loadCompleteNotification(null)
 		} catch (e) {
@@ -212,17 +209,15 @@ export class MailViewerViewModel {
 		// We need the conversation entry in order to reply to the message.
 		// We don't want the user to have to wait for it to load when they click reply,
 		// So we load it here pre-emptively to make sure it is in the cache.
-		this.entityClient
-			.load(ConversationEntryTypeRef, this.mail.conversationEntry)
-			.catch((e) => {
-				if (e instanceof NotFoundError) {
-					console.log("could load conversation entry as it has been moved/deleted already", e)
-				} else if (isOfflineError(e)) {
-					console.log("failed to load conversation entry, because of a lost connection", e)
-				} else {
-					throw e
-				}
-			})
+		this.entityClient.load(ConversationEntryTypeRef, this.mail.conversationEntry).catch((e) => {
+			if (e instanceof NotFoundError) {
+				console.log("could load conversation entry as it has been moved/deleted already", e)
+			} else if (isOfflineError(e)) {
+				console.log("failed to load conversation entry, because of a lost connection", e)
+			} else {
+				throw e
+			}
+		})
 	}
 
 	isLoading(): boolean {
@@ -256,7 +251,6 @@ export class MailViewerViewModel {
 	isReceivedMail() {
 		return this.mail.state === MailState.RECEIVED
 	}
-
 
 	isLoadingAttachments(): boolean {
 		return this.loadingAttachments
@@ -344,7 +338,7 @@ export class MailViewerViewModel {
 	}
 
 	didErrorsOccur(): boolean {
-		return this.errorOccurred || typeof this.mail._errors !== 'undefined' || (this.mailBody != null && typeof this.mailBody._errors !== 'undefined')
+		return this.errorOccurred || typeof this.mail._errors !== "undefined" || (this.mailBody != null && typeof this.mailBody._errors !== "undefined")
 	}
 
 	isTutanotaTeamMail(): boolean {
@@ -386,9 +380,10 @@ export class MailViewerViewModel {
 	async setContentBlockingStatus(status: ContentBlockingStatus): Promise<void> {
 		// We can only be set to NoExternalContent when initially loading the mailbody (_loadMailBody)
 		// so we ignore it here, and don't do anything if we were already set to NoExternalContent
-		if (status === ContentBlockingStatus.NoExternalContent
-			|| this.contentBlockingStatus === ContentBlockingStatus.NoExternalContent
-			|| this.contentBlockingStatus === status
+		if (
+			status === ContentBlockingStatus.NoExternalContent ||
+			this.contentBlockingStatus === ContentBlockingStatus.NoExternalContent ||
+			this.contentBlockingStatus === status
 		) {
 			return
 		}
@@ -417,14 +412,11 @@ export class MailViewerViewModel {
 
 		this.setPhishingStatus(MailPhishingStatus.WHITELISTED)
 
-		await this.entityClient
-				  .update(this.mail)
-				  .catch(() => this.setPhishingStatus(oldStatus))
+		await this.entityClient.update(this.mail).catch(() => this.setPhishingStatus(oldStatus))
 	}
 
 	async reportMail(reportType: MailReportType): Promise<void> {
 		try {
-
 			await this.mailModel.reportMails(reportType, [this.mail])
 			if (reportType === MailReportType.PHISHING) {
 				this.setPhishingStatus(MailPhishingStatus.SUSPICIOUS)
@@ -433,7 +425,7 @@ export class MailViewerViewModel {
 			const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(this.mail)
 			const spamFolder = mailboxDetail.folders.getSystemFolderByType(MailFolderType.SPAM)
 			// do not report moved mails again
-			await moveMails({mailModel: this.mailModel, mails: [this.mail], targetMailFolder: spamFolder, isReportable: false})
+			await moveMails({ mailModel: this.mailModel, mails: [this.mail], targetMailFolder: spamFolder, isReportable: false })
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				console.log("mail already moved")
@@ -473,9 +465,9 @@ export class MailViewerViewModel {
 		}
 
 		return this.entityClient
-				   .load(MailHeadersTypeRef, this.mail.headers)
-				   .then(headers => getMailHeaders(headers) ?? null)
-				   .catch(ofClass(NotFoundError, () => null))
+			.load(MailHeadersTypeRef, this.mail.headers)
+			.then((headers) => getMailHeaders(headers) ?? null)
+			.catch(ofClass(NotFoundError, () => null))
 	}
 
 	isUnread(): boolean {
@@ -500,22 +492,19 @@ export class MailViewerViewModel {
 	}
 
 	async unsubscribe(): Promise<boolean> {
-
 		if (!this.isListUnsubscribe()) {
 			return false
 		}
 
-		return this.getHeaders().then(mailHeaders => {
+		return this.getHeaders().then((mailHeaders) => {
 			if (!mailHeaders) {
 				return false
 			}
 
-			let headers = mailHeaders
-				.split("\n")
-				.filter(headerLine => headerLine.toLowerCase().startsWith("list-unsubscribe"))
+			let headers = mailHeaders.split("\n").filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe"))
 
 			if (headers.length > 0) {
-				return this.getSenderOfResponseMail().then(recipient => {
+				return this.getSenderOfResponseMail().then((recipient) => {
 					const postData = createListUnsubscribeData({
 						mail: this.getMailId(),
 						recipient,
@@ -535,14 +524,9 @@ export class MailViewerViewModel {
 
 	/** @return list of inline referenced cid */
 	private async loadMailBody(mail: Mail): Promise<string[]> {
-
 		// If the mail is a non-draft and we have loaded it before, we don't need to reload it because it cannot have been edited, so we return early
 		// drafts however can be edited, and we want to receive the changes, so for drafts we will always reload
-		if (
-			this.renderedMail != null && haveSameId(mail, this.renderedMail)
-			&& mail.state !== MailState.DRAFT
-			&& this.sanitizeResult != null
-		) {
+		if (this.renderedMail != null && haveSameId(mail, this.renderedMail) && mail.state !== MailState.DRAFT && this.sanitizeResult != null) {
 			return this.sanitizeResult.inlineImageCids
 		}
 
@@ -564,7 +548,7 @@ export class MailViewerViewModel {
 			throw e
 		}
 
-		const externalImageRule = await this.configFacade.getExternalImageRule(mail.sender.address).catch(e => {
+		const externalImageRule = await this.configFacade.getExternalImageRule(mail.sender.address).catch((e) => {
 			console.log("Error getting external image rule:", e)
 			return ExternalImageRule.None
 		})
@@ -581,10 +565,10 @@ export class MailViewerViewModel {
 			externalImageRule === ExternalImageRule.Block
 				? ContentBlockingStatus.AlwaysBlock
 				: isAllowedAndAuthenticatedExternalSender
-					? ContentBlockingStatus.AlwaysShow
-					: this.sanitizeResult.externalContent.length > 0
-						? ContentBlockingStatus.Block
-						: ContentBlockingStatus.NoExternalContent
+				? ContentBlockingStatus.AlwaysShow
+				: this.sanitizeResult.externalContent.length > 0
+				? ContentBlockingStatus.Block
+				: ContentBlockingStatus.NoExternalContent
 		m.redraw()
 		this.renderedMail = this.mail
 		return this.sanitizeResult.inlineImageCids
@@ -596,7 +580,7 @@ export class MailViewerViewModel {
 		} else {
 			this.loadingAttachments = true
 			const attachmentsListId = listIdPart(mail.attachments[0])
-			const attachmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
+			const attachmentElementIds = mail.attachments.map((attachment) => elementIdPart(attachment))
 
 			try {
 				const files = await this.entityClient.loadMultiple(FileTypeRef, attachmentsListId, attachmentElementIds)
@@ -627,22 +611,22 @@ export class MailViewerViewModel {
 		if (mail.phishingStatus === MailPhishingStatus.SUSPICIOUS) {
 			this.suspicious = true
 		} else if (mail.phishingStatus === MailPhishingStatus.UNKNOWN) {
-			const linkObjects = links.map(link => {
+			const linkObjects = links.map((link) => {
 				return {
 					href: link.getAttribute("href") || "",
 					innerHTML: link.innerHTML,
 				}
 			})
 
-			this.mailModel.checkMailForPhishing(mail, linkObjects).then(isSuspicious => {
+			this.mailModel.checkMailForPhishing(mail, linkObjects).then((isSuspicious) => {
 				if (isSuspicious) {
 					this.suspicious = true
 					mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
 
 					this.entityClient
 						.update(mail)
-						.catch(ofClass(LockedError, e => console.log("could not update mail phishing status as mail is locked")))
-						.catch(ofClass(NotFoundError, e => console.log("mail already moved")))
+						.catch(ofClass(LockedError, (e) => console.log("could not update mail phishing status as mail is locked")))
+						.catch(ofClass(NotFoundError, (e) => console.log("mail already moved")))
 
 					m.redraw()
 				}
@@ -655,11 +639,11 @@ export class MailViewerViewModel {
 	 * should contain only one iCal attachment so we only process the first matching one.
 	 */
 	private handleCalendarFile(files: Array<TutanotaFile>, mail: Mail): void {
-		const calendarFile = files.find(a => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
+		const calendarFile = files.find((a) => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
 
 		if (calendarFile && (mail.method === MailMethod.ICAL_REQUEST || mail.method === MailMethod.ICAL_REPLY) && mail.state === MailState.RECEIVED) {
 			Promise.all([
-				import("../../calendar/date/CalendarInvites").then(({getEventFromFile}) => getEventFromFile(calendarFile)),
+				import("../../calendar/date/CalendarInvites").then(({ getEventFromFile }) => getEventFromFile(calendarFile)),
 				this.getSenderOfResponseMail(),
 			]).then(([event, recipient]) => {
 				this.calendarEventAttachment = event && {
@@ -673,14 +657,14 @@ export class MailViewerViewModel {
 	}
 
 	private getSenderOfResponseMail(): Promise<string> {
-		return this.mailModel.getMailboxDetailsForMail(this.mail).then(mailboxDetails => {
+		return this.mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
 			const myMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, this.logins.getUserController().userGroupInfo)
 			const addressesInMail: MailAddress[] = []
 			addAll(addressesInMail, this.mail.toRecipients)
 			addAll(addressesInMail, this.mail.ccRecipients)
 			addAll(addressesInMail, this.mail.bccRecipients)
 			addressesInMail.push(this.mail.sender)
-			const foundAddress = addressesInMail.find(address => contains(myMailAddresses, address.address.toLowerCase()))
+			const foundAddress = addressesInMail.find((address) => contains(myMailAddresses, address.address.toLowerCase()))
 			if (foundAddress) {
 				return foundAddress.address.toLowerCase()
 			} else {
@@ -694,34 +678,46 @@ export class MailViewerViewModel {
 		const sendAllowed = await checkApprovalStatus(this.logins, false)
 		if (sendAllowed) {
 			const args = await this.createResponseMailArgsForForwarding([], [], true)
-			const [mailboxDetails, {newMailEditorAsResponse}] = await Promise.all([this.getMailboxDetails(), import("../editor/MailEditor")])
+			const [mailboxDetails, { newMailEditorAsResponse }] = await Promise.all([this.getMailboxDetails(), import("../editor/MailEditor")])
 			// Call this again to make sure everything is loaded, including inline images because this can be called earlier than all the parts are loaded.
-			await this.loadAll({notify: false})
+			await this.loadAll({ notify: false })
 			const editor = await newMailEditorAsResponse(args, this.isBlockingExternalImages(), this.getLoadedInlineImages(), mailboxDetails)
 			editor.show()
 		}
 	}
 
-
-	private async createResponseMailArgsForForwarding(recipients: MailAddress[], replyTos: EncryptedMailAddress[], addSignature: boolean): Promise<InitAsResponseArgs> {
+	private async createResponseMailArgsForForwarding(
+		recipients: MailAddress[],
+		replyTos: EncryptedMailAddress[],
+		addSignature: boolean,
+	): Promise<InitAsResponseArgs> {
 		let infoLine = lang.get("date_label") + ": " + formatDateTime(this.mail.sentDate) + "<br>"
 		infoLine += lang.get("from_label") + ": " + this.getSender().address + "<br>"
 
-		if (this.getToRecipients().length > 0
-		) {
-			infoLine += lang.get("to_label") + ": " + this.getToRecipients().map(recipient => recipient.address).join(", ")
+		if (this.getToRecipients().length > 0) {
+			infoLine +=
+				lang.get("to_label") +
+				": " +
+				this.getToRecipients()
+					.map((recipient) => recipient.address)
+					.join(", ")
 			infoLine += "<br>"
 		}
 
 		if (this.getCcRecipients().length > 0) {
-			infoLine += lang.get("cc_label") + ": " + this.getCcRecipients().map(recipient => recipient.address).join(", ")
+			infoLine +=
+				lang.get("cc_label") +
+				": " +
+				this.getCcRecipients()
+					.map((recipient) => recipient.address)
+					.join(", ")
 			infoLine += "<br>"
 		}
 
 		const mailSubject = this.getSubject() || ""
 		infoLine += lang.get("subject_label") + ": " + urlEncodeHtmlTags(mailSubject)
 		let body = infoLine + '<br><br><blockquote class="tutanota_quote">' + this.getMailBody() + "</blockquote>"
-		const {prependEmailSignature} = await import("../signature/Signature")
+		const { prependEmailSignature } = await import("../signature/Signature")
 		const senderMailAddress = await this.getSenderOfResponseMail()
 		return {
 			previousMail: this.mail,
@@ -756,7 +752,7 @@ export class MailViewerViewModel {
 			if (!this.logins.getUserController().isInternalUser() && this.isReceivedMail()) {
 				toRecipients.push(this.getSender())
 			} else if (this.isReceivedMail()) {
-				if (this.getReplyTos().some(address => !downcast(address)._errors)) {
+				if (this.getReplyTos().some((address) => !downcast(address)._errors)) {
 					addAll(toRecipients, this.getReplyTos())
 				} else {
 					toRecipients.push(this.getSender())
@@ -766,11 +762,11 @@ export class MailViewerViewModel {
 					let myMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, this.logins.getUserController().userGroupInfo)
 					addAll(
 						ccRecipients,
-						this.getToRecipients().filter(recipient => !contains(myMailAddresses, recipient.address.toLowerCase())),
+						this.getToRecipients().filter((recipient) => !contains(myMailAddresses, recipient.address.toLowerCase())),
 					)
 					addAll(
 						ccRecipients,
-						this.getCcRecipients().filter(recipient => !contains(myMailAddresses, recipient.address.toLowerCase())),
+						this.getCcRecipients().filter((recipient) => !contains(myMailAddresses, recipient.address.toLowerCase())),
 					)
 				}
 			} else {
@@ -783,10 +779,10 @@ export class MailViewerViewModel {
 				}
 			}
 
-			const {prependEmailSignature} = await import("../signature/Signature.js")
-			const {newMailEditorAsResponse} = await import("../editor/MailEditor")
+			const { prependEmailSignature } = await import("../signature/Signature.js")
+			const { newMailEditorAsResponse } = await import("../editor/MailEditor")
 
-			await this.loadAll({notify: false})
+			await this.loadAll({ notify: false })
 			// It should be there after loadAll() but if not we just give up
 			const inlineImageCids = this.sanitizeResult?.inlineImageCids ?? []
 
@@ -794,7 +790,6 @@ export class MailViewerViewModel {
 
 			const attachmentsForReply = getReferencedAttachments(this.attachments, referencedCids)
 			try {
-
 				const editor = await newMailEditorAsResponse(
 					{
 						previousMail: this.mail,
@@ -826,7 +821,7 @@ export class MailViewerViewModel {
 	}
 
 	private async sanitizeMailBody(mail: Mail, blockExternalContent: boolean): Promise<SanitizedFragment> {
-		const {htmlSanitizer} = await import("../../misc/HtmlSanitizer")
+		const { htmlSanitizer } = await import("../../misc/HtmlSanitizer")
 		const rawBody = this.getMailBody()
 		const urlified = await locator.worker.urlify(rawBody).catch((e) => {
 			console.warn("Failed to urlify mail body!", e)
@@ -836,7 +831,7 @@ export class MailViewerViewModel {
 			blockExternalContent,
 			allowRelativeLinks: isTutanotaTeamMail(mail),
 		})
-		const {fragment, inlineImageCids, links, externalContent} = sanitizeResult
+		const { fragment, inlineImageCids, links, externalContent } = sanitizeResult
 
 		/**
 		 * Check if we need to improve contrast for dark theme. We apply the contrast fix if any of the following is contained in
@@ -846,8 +841,8 @@ export class MailViewerViewModel {
 		 *  * any font tag with the color attribute set
 		 */
 		this.contrastFixNeeded =
-			Array.from(fragment.querySelectorAll("*[style]"), e => (e as HTMLElement).style).some(
-				s => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"),
+			Array.from(fragment.querySelectorAll("*[style]"), (e) => (e as HTMLElement).style).some(
+				(s) => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"),
 			) || fragment.querySelectorAll("font[color]").length > 0
 
 		m.redraw()
@@ -866,13 +861,13 @@ export class MailViewerViewModel {
 		if (this.mail.restrictions != null && this.mail.restrictions.participantGroupInfos.length > 0) {
 			const participantGroupInfos = this.mail.restrictions.participantGroupInfos
 			const customer = await this.entityClient.load(CustomerTypeRef, neverNull(this.logins.getUserController().user.customer))
-			const {loadGroupInfos} = await import("../../settings/LoadingUtils")
+			const { loadGroupInfos } = await import("../../settings/LoadingUtils")
 			const groupInfos = await loadGroupInfos(
-				participantGroupInfos.filter(groupInfoId => {
+				participantGroupInfos.filter((groupInfoId) => {
 					return neverNull(customer.contactFormUserGroups).list !== groupInfoId[0]
 				}),
 			)
-			return groupInfos.filter(groupInfo => groupInfo.deleted == null)
+			return groupInfos.filter((groupInfo) => groupInfo.deleted == null)
 		} else {
 			return []
 		}
@@ -898,19 +893,19 @@ export class MailViewerViewModel {
 		const args = await this.createResponseMailArgsForForwarding([recipient], newReplyTos, false)
 		const mailboxDetails = await this.getMailboxDetails()
 		const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-		const {defaultSendMailModel} = await import("../editor/SendMailModel")
+		const { defaultSendMailModel } = await import("../editor/SendMailModel")
 		// Make sure inline images are loaded
-		await this.loadAll({notify: false})
+		await this.loadAll({ notify: false })
 		const model = await defaultSendMailModel(mailboxDetails, mailboxProperties).initAsResponse(args, this.getLoadedInlineImages())
 		await model.send(MailMethod.NONE)
 		const folders = await this.mailModel.getMailboxFolders(this.mail)
-		return moveMails({mailModel: this.mailModel, mails: [this.mail], targetMailFolder: folders.getSystemFolderByType(MailFolderType.ARCHIVE)})
+		return moveMails({ mailModel: this.mailModel, mails: [this.mail], targetMailFolder: folders.getSystemFolderByType(MailFolderType.ARCHIVE) })
 	}
 
 	getNonInlineAttachments(): TutanotaFile[] {
 		// If we have attachments it is safe to assume that we already have body and referenced cids from it
 		const inlineFileIds = this.sanitizeResult?.inlineImageCids ?? []
-		return this.attachments.filter(a => a.cid == null || !inlineFileIds.includes(a.cid))
+		return this.attachments.filter((a) => a.cid == null || !inlineFileIds.includes(a.cid))
 	}
 
 	async downloadAll(): Promise<void> {
@@ -938,9 +933,11 @@ export class MailViewerViewModel {
 	/** Special feature for contact forms with shared mailboxes. */
 	canAssignMails(): boolean {
 		// do not allow re-assigning from personal mailbox
-		return this.logins.getUserController().isInternalUser() &&
+		return (
+			this.logins.getUserController().isInternalUser() &&
 			this.areParticipantsRestricted() &&
 			this.logins.getUserController().getUserMailGroupMembership().group !== this.getMailOwnerGroup()
+		)
 	}
 
 	private areParticipantsRestricted(): boolean {
@@ -949,9 +946,11 @@ export class MailViewerViewModel {
 	}
 
 	canReplyAll(): boolean {
-		return this.logins.getUserController().isInternalUser() &&
+		return (
+			this.logins.getUserController().isInternalUser() &&
 			this.getToRecipients().length + this.getCcRecipients().length + this.getBccRecipients().length > 1 &&
 			!this.areParticipantsRestricted()
+		)
 	}
 
 	canForwardOrMove(): boolean {
@@ -965,34 +964,24 @@ export class MailViewerViewModel {
 	async getAssignmentGroupInfos(): Promise<GroupInfo[]> {
 		// remove the current mailbox/owner from the recipients list.
 		const userOrMailGroupInfos = await this.getAssignableMailRecipients()
-		return userOrMailGroupInfos
-			.filter(userOrMailGroupInfo => {
-				if (this.logins.getUserController().getUserMailGroupMembership().group === this.getMailOwnerGroup()) {
-					return userOrMailGroupInfo.group !== this.logins.getUserController().userGroupInfo.group && userOrMailGroupInfo.group !== this.mail._ownerGroup
-				} else {
-					return userOrMailGroupInfo.group !== this.mail._ownerGroup
-				}
-			})
-
+		return userOrMailGroupInfos.filter((userOrMailGroupInfo) => {
+			if (this.logins.getUserController().getUserMailGroupMembership().group === this.getMailOwnerGroup()) {
+				return userOrMailGroupInfo.group !== this.logins.getUserController().userGroupInfo.group && userOrMailGroupInfo.group !== this.mail._ownerGroup
+			} else {
+				return userOrMailGroupInfo.group !== this.mail._ownerGroup
+			}
+		})
 	}
 
 	private getMailOwnerGroup(): Id | null {
 		return this.mail._ownerGroup
 	}
 
-	updateMail(
-		{
-			mail,
-			delayBodyRenderingUntil,
-			showFolder
-		}: {
-			mail: Mail,
-			delayBodyRenderingUntil?: Promise<void>,
-			showFolder?: boolean
-		}
-	) {
+	updateMail({ mail, delayBodyRenderingUntil, showFolder }: { mail: Mail; delayBodyRenderingUntil?: Promise<void>; showFolder?: boolean }) {
 		if (!isSameId(mail._id, this.mail._id)) {
-			throw new ProgrammingError(`Trying to update MailViewerViewModel with unrelated email ${JSON.stringify(this.mail._id)} ${JSON.stringify(mail._id)} ${m.route.get()}`)
+			throw new ProgrammingError(
+				`Trying to update MailViewerViewModel with unrelated email ${JSON.stringify(this.mail._id)} ${JSON.stringify(mail._id)} ${m.route.get()}`,
+			)
 		}
 		this._mail = mail
 
@@ -1000,10 +989,9 @@ export class MailViewerViewModel {
 			this.delayBodyRenderingUntil = delayBodyRenderingUntil
 			this.renderIsDelayed = true
 			this.delayBodyRenderingUntil.then(() => {
-					this.renderIsDelayed = false
-					m.redraw()
-				}
-			)
+				this.renderIsDelayed = false
+				m.redraw()
+			})
 		}
 
 		this.folderText = null
@@ -1014,6 +1002,6 @@ export class MailViewerViewModel {
 		this.relevantRecipient = null
 		this.determineRelevantRecipient()
 
-		this.loadAll({notify: true})
+		this.loadAll({ notify: true })
 	}
 }

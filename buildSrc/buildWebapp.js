@@ -1,18 +1,18 @@
 /**
 	Exports the buildWebapp function that can be used for production builds.
  */
-import {rollup} from "rollup"
+import { rollup } from "rollup"
 import typescript from "@rollup/plugin-typescript"
-import {terser} from "rollup-plugin-terser"
+import { terser } from "rollup-plugin-terser"
 import path from "path"
-import {nodeResolve} from "@rollup/plugin-node-resolve"
+import { nodeResolve } from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
 import fs from "fs-extra"
-import {bundleDependencyCheckPlugin, getChunkName, resolveLibs} from "./RollupConfig.js"
-import {visualizer} from "rollup-plugin-visualizer"
+import { bundleDependencyCheckPlugin, getChunkName, resolveLibs } from "./RollupConfig.js"
+import { visualizer } from "rollup-plugin-visualizer"
 import os from "os"
 import * as env from "./env.js"
-import {createHtml} from "./createHtml.js"
+import { createHtml } from "./createHtml.js"
 
 /**
  * Builds the web app for production.
@@ -25,7 +25,7 @@ import {createHtml} from "./createHtml.js"
  * @returns Nothing meaningful.
  */
 
-export async function buildWebapp({version, stage, host, measure, minify, projectDir}) {
+export async function buildWebapp({ version, stage, host, measure, minify, projectDir }) {
 	console.log("started cleaning", measure())
 	await fs.emptyDir("build")
 
@@ -51,14 +51,14 @@ export async function buildWebapp({version, stage, host, measure, minify, projec
 	await polyfillBundle.write({
 		sourcemap: false,
 		format: "iife",
-		file: "build/dist/polyfill.js"
+		file: "build/dist/polyfill.js",
 	})
 
 	console.log("started copying images", measure())
-	await fs.copy(path.join(projectDir, '/resources/images'), path.join(projectDir, '/build/dist/images'))
-	await fs.copy(path.join(projectDir, '/resources/favicon'), path.join(projectDir, 'build/dist/images'))
-	await fs.copy(path.join(projectDir, '/resources/wordlibrary.json'), path.join(projectDir, 'build/dist/wordlibrary.json'))
-	await fs.copy(path.join(projectDir, '/src/braintree.html'), path.join(projectDir, '/build/dist/braintree.html'))
+	await fs.copy(path.join(projectDir, "/resources/images"), path.join(projectDir, "/build/dist/images"))
+	await fs.copy(path.join(projectDir, "/resources/favicon"), path.join(projectDir, "build/dist/images"))
+	await fs.copy(path.join(projectDir, "/resources/wordlibrary.json"), path.join(projectDir, "build/dist/wordlibrary.json"))
+	await fs.copy(path.join(projectDir, "/src/braintree.html"), path.join(projectDir, "/build/dist/braintree.html"))
 
 	console.log("started bundling", measure())
 	const bundle = await rollup({
@@ -73,7 +73,7 @@ export async function buildWebapp({version, stage, host, measure, minify, projec
 			}),
 			minify && terser(),
 			analyzer(projectDir),
-			visualizer({filename: "build/stats.html", gzipSize: true}),
+			visualizer({ filename: "build/stats.html", gzipSize: true }),
 			bundleDependencyCheckPlugin(),
 			nodeResolve(),
 		],
@@ -88,49 +88,52 @@ export async function buildWebapp({version, stage, host, measure, minify, projec
 		sourcemap: true,
 		format: "system",
 		dir: "build/dist",
-		manualChunks(id, {getModuleInfo, getModuleIds}) {
-			return getChunkName(id, {getModuleInfo})
+		manualChunks(id, { getModuleInfo, getModuleIds }) {
+			return getChunkName(id, { getModuleInfo })
 		},
 		chunkFileNames: (chunkInfo) => {
 			return "[name]-[hash].js"
-		}
+		},
 	})
-	const chunks = output.output.map(c => c.fileName)
+	const chunks = output.output.map((c) => c.fileName)
 
 	// we have to use System.import here because bootstrap is not executed until we actually import()
 	// unlike nollup+es format where it just runs on being loaded like you expect
-	await fs.promises.writeFile("build/dist/worker-bootstrap.js", `importScripts("./polyfill.js")
+	await fs.promises.writeFile(
+		"build/dist/worker-bootstrap.js",
+		`importScripts("./polyfill.js")
 const importPromise = System.import("./worker.js")
 self.onmessage = function (msg) {
 	importPromise.then(function () {
 		self.onmessage(msg)
 	})
 }
-`)
-
+`,
+	)
 
 	let restUrl
-	if (stage === 'test') {
-		restUrl = 'https://test.tutanota.com'
-	} else if (stage === 'prod') {
-		restUrl = 'https://mail.tutanota.com'
-	} else if (stage === 'local') {
+	if (stage === "test") {
+		restUrl = "https://test.tutanota.com"
+	} else if (stage === "prod") {
+		restUrl = "https://mail.tutanota.com"
+	} else if (stage === "local") {
 		restUrl = "http://" + os.hostname() + ":9000"
-	} else if (stage === 'release') {
+	} else if (stage === "release") {
 		restUrl = undefined
-	} else { // host
+	} else {
+		// host
 		restUrl = host
 	}
 	await createHtml(
 		env.create({
-			staticUrl: (stage === 'release' || stage === 'local') ? null : restUrl,
+			staticUrl: stage === "release" || stage === "local" ? null : restUrl,
 			version,
 			mode: "Browser",
-			dist: true
+			dist: true,
 		}),
 	)
 	if (stage !== "release") {
-		await createHtml(env.create({staticUrl: restUrl, version, mode: "App", dist: true}))
+		await createHtml(env.create({ staticUrl: restUrl, version, mode: "App", dist: true }))
 	}
 
 	await bundleServiceWorker(chunks, version, minify)
@@ -141,8 +144,13 @@ async function bundleServiceWorker(bundles, version, minify) {
 	const filesToCache = ["index.js", "index.html", "polyfill.js", "worker-bootstrap.js"]
 		// we always include English
 		// we still cache native-common even though we don't need it because worker has to statically depend on it
-		.concat(bundles.filter(it => it.startsWith("translation-en") ||
-			!it.startsWith("translation") && !it.startsWith("native-main") && !it.startsWith("SearchInPageOverlay")))
+		.concat(
+			bundles.filter(
+				(it) =>
+					it.startsWith("translation-en") ||
+					(!it.startsWith("translation") && !it.startsWith("native-main") && !it.startsWith("SearchInPageOverlay")),
+			),
+		)
 		.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/ionicons.ttf"])
 	const swBundle = await rollup({
 		input: ["src/serviceworker/sw.ts"],
@@ -155,14 +163,14 @@ async function bundleServiceWorker(bundles, version, minify) {
 					return `function filesToCache() { return ${JSON.stringify(filesToCache)} }
 					function version() { return "${version}" }
 					function customDomainCacheExclusions() { return ${JSON.stringify(customDomainFileExclusions)} }`
-				}
-			}
+				},
+			},
 		],
 	})
 	await swBundle.write({
 		sourcemap: true,
 		format: "iife",
-		file: "build/dist/sw.js"
+		file: "build/dist/sw.js",
 	})
 }
 
@@ -186,7 +194,6 @@ function analyzer(projectDir) {
 						buffer += `"${dep}" -> "${key}"\n`
 					}
 				}
-
 
 				console.log(key, "", value.code.length / 1024 + "K")
 				for (const module of Object.keys(value.modules)) {

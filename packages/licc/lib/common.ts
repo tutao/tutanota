@@ -50,7 +50,7 @@ export interface FacadeDefinition {
 	senders: Array<Platform>
 	receivers: Array<Platform>
 	methods: Record<string, MethodDefinition>
-	doc?: string,
+	doc?: string
 }
 
 export interface TypeRefDefinition {
@@ -66,8 +66,8 @@ export interface MethodDefinition {
 }
 
 export interface EnumDefinition {
-	type: "enum",
-	name: string,
+	type: "enum"
+	name: string
 	values: Array<string>
 	doc?: string
 }
@@ -75,11 +75,11 @@ export interface EnumDefinition {
 export type ArgumentDefinition = Record<string, string>
 
 export interface RenderedType {
-	externals: string[],
+	externals: string[]
 	name: string
 }
 
-export function getArgs(methName: string, methodDef: MethodDefinition): {name: string, type: string}[] {
+export function getArgs(methName: string, methodDef: MethodDefinition): { name: string; type: string }[] {
 	return methodDef.arg.map((a, i) => {
 		const entries = Object.entries(a)
 		if (entries.length === 0) {
@@ -87,14 +87,14 @@ export function getArgs(methName: string, methodDef: MethodDefinition): {name: s
 		} else if (entries.length > 1) {
 			throw new Error(`Syntax Error: method ${methName} argument ${i} has too many entries`)
 		}
-		return {"name": entries[0][0], "type": entries[0][1]}
+		return { name: entries[0][0], type: entries[0][1] }
 	})
 }
 
 export function capitalize(input: string): string {
-	return input.replace(/^\w/, c => c.toUpperCase())
+	return input.replace(/^\w/, (c) => c.toUpperCase())
 }
 
 export function minusculize(input: string): string {
-	return input.replace(/^\w/, c => c.toLowerCase())
+	return input.replace(/^\w/, (c) => c.toLowerCase())
 }

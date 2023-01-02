@@ -1,16 +1,16 @@
-import {OfflineDbMeta, OfflineStorage, VersionMetadataBaseKey} from "./OfflineStorage.js"
-import {ModelInfos} from "../../common/EntityFunctions.js"
-import {typedKeys} from "@tutao/tutanota-utils"
-import {ProgrammingError} from "../../common/error/ProgrammingError.js"
-import {sys75} from "./migrations/sys-v75.js"
-import {sys76} from "./migrations/sys-v76.js"
-import {tutanota54} from "./migrations/tutanota-v54.js"
-import {sys79} from "./migrations/sys-v79.js"
-import {sys80} from "./migrations/sys-v80.js"
-import {SqlCipherFacade} from "../../../native/common/generatedipc/SqlCipherFacade.js"
-import {offline1} from "./migrations/offline-v1.js"
-import {tutanota56} from "./migrations/tutanota-v56.js"
-import {tutanota57} from "./migrations/tutanota-v57.js"
+import { OfflineDbMeta, OfflineStorage, VersionMetadataBaseKey } from "./OfflineStorage.js"
+import { ModelInfos } from "../../common/EntityFunctions.js"
+import { typedKeys } from "@tutao/tutanota-utils"
+import { ProgrammingError } from "../../common/error/ProgrammingError.js"
+import { sys75 } from "./migrations/sys-v75.js"
+import { sys76 } from "./migrations/sys-v76.js"
+import { tutanota54 } from "./migrations/tutanota-v54.js"
+import { sys79 } from "./migrations/sys-v79.js"
+import { sys80 } from "./migrations/sys-v80.js"
+import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
+import { offline1 } from "./migrations/offline-v1.js"
+import { tutanota56 } from "./migrations/tutanota-v56.js"
+import { tutanota57 } from "./migrations/tutanota-v57.js"
 
 export interface OfflineMigration {
 	readonly app: VersionMetadataBaseKey
@@ -50,12 +50,7 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
  *  Migrations might read and write to the database and they should use StandardMigrations when needed.
  */
 export class OfflineStorageMigrator {
-
-	constructor(
-		private readonly migrations: ReadonlyArray<OfflineMigration>,
-		private readonly modelInfos: ModelInfos
-	) {
-	}
+	constructor(private readonly migrations: ReadonlyArray<OfflineMigration>, private readonly modelInfos: ModelInfos) {}
 
 	async migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
 		let meta = await storage.dumpMetadata()
@@ -76,7 +71,7 @@ export class OfflineStorageMigrator {
 		}
 
 		// Run the migrations
-		for (const {app, version, migrate} of this.migrations) {
+		for (const { app, version, migrate } of this.migrations) {
 			const storedVersion = meta[`${app}-version`]!
 			if (storedVersion < version) {
 				console.log(`running offline db migration for ${app} from ${storedVersion} to ${version}`)
@@ -92,7 +87,9 @@ export class OfflineStorageMigrator {
 			const compatibleSince = this.modelInfos[app].compatibleSince
 			let metaVersion = meta[`${app}-version`]!
 			if (metaVersion < compatibleSince) {
-				throw new ProgrammingError(`You forgot to migrate your databases! ${app}.version should be >= ${this.modelInfos[app].compatibleSince} but in db it is ${metaVersion}`)
+				throw new ProgrammingError(
+					`You forgot to migrate your databases! ${app}.version should be >= ${this.modelInfos[app].compatibleSince} but in db it is ${metaVersion}`,
+				)
 			}
 		}
 	}

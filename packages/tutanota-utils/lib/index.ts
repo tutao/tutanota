@@ -40,10 +40,10 @@ export {
 	splitUint8ArrayInChunks,
 	partitionAsync,
 	arrayOf,
-	count
+	count,
 } from "./ArrayUtils.js"
-export {AsyncResult} from "./AsyncResult.js"
-export {intersection} from "./CollectionUtils.js"
+export { AsyncResult } from "./AsyncResult.js"
+export { intersection } from "./CollectionUtils.js"
 export {
 	DAY_IN_MILLIS,
 	getStartOfNextDay,
@@ -84,24 +84,15 @@ export {
 	decodeBase64,
 	stringToBase64,
 } from "./Encoding.js"
-export type {Base64, Base64Ext, Base64Url, Hex} from "./Encoding.js"
-export {LazyLoaded} from "./LazyLoaded.js"
-export {mergeMaps, getFromMap, addMapEntry, deleteMapEntry} from "./MapUtils.js"
-export {pMap} from "./PromiseMap.js"
-export type {Mapper} from "./PromiseMap.js"
-export {
-	mapInCallContext,
-	promiseMap,
-	promiseMapCompat,
-	PromisableWrapper,
-	delay,
-	tap,
-	ofClass,
-	promiseFilter,
-} from "./PromiseUtils.js"
-export type {PromiseMapFn, $Promisable} from "./PromiseUtils.js"
-export {SortedArray} from "./SortedArray.js"
-export type {CompareFn} from "./SortedArray.js"
+export type { Base64, Base64Ext, Base64Url, Hex } from "./Encoding.js"
+export { LazyLoaded } from "./LazyLoaded.js"
+export { mergeMaps, getFromMap, addMapEntry, deleteMapEntry } from "./MapUtils.js"
+export { pMap } from "./PromiseMap.js"
+export type { Mapper } from "./PromiseMap.js"
+export { mapInCallContext, promiseMap, promiseMapCompat, PromisableWrapper, delay, tap, ofClass, promiseFilter } from "./PromiseUtils.js"
+export type { PromiseMapFn, $Promisable } from "./PromiseUtils.js"
+export { SortedArray } from "./SortedArray.js"
+export type { CompareFn } from "./SortedArray.js"
 export {
 	pad,
 	startsWith,
@@ -117,7 +108,7 @@ export {
 	byteLength,
 	replaceAll,
 } from "./StringUtils.js"
-export {TypeRef, isSameTypeRefByAttr, isSameTypeRef, getTypeId} from "./TypeRef.js"
+export { TypeRef, isSameTypeRefByAttr, isSameTypeRef, getTypeId } from "./TypeRef.js"
 export {
 	defer,
 	deferWithHandler,
@@ -154,14 +145,8 @@ export {
 	mapNullable,
 	mapObject,
 } from "./Utils.js"
-export type {
-	DeferredObject, lazy, lazyAsync, Thunk, DeferredObjectWithHandler, MaybeLazy, TimeoutSetter, ErrorInfo
-} from "./Utils.js"
+export type { DeferredObject, lazy, lazyAsync, Thunk, DeferredObjectWithHandler, MaybeLazy, TimeoutSetter, ErrorInfo } from "./Utils.js"
 
-export {
-	mod, clamp
-} from "./MathUtils.js"
+export { mod, clamp } from "./MathUtils.js"
 
-export {
-	renderCsv
-} from "./Csv.js"
+export { renderCsv } from "./Csv.js"

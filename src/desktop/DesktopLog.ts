@@ -1,5 +1,5 @@
-import {noOp} from "@tutao/tutanota-utils"
-import {Mode} from "../api/common/Env"
+import { noOp } from "@tutao/tutanota-utils"
+import { Mode } from "../api/common/Env"
 
 type LogFn = (...args: any) => void
 export const log: {
@@ -10,11 +10,11 @@ export const log: {
 } =
 	typeof env !== "undefined" && env.mode === Mode.Test
 		? {
-			debug: noOp,
-			warn: noOp,
-			error: noOp,
-			info: noOp,
-		}
+				debug: noOp,
+				warn: noOp,
+				error: noOp,
+				info: noOp,
+		  }
 		: makeLog()
 
 export function rebindDesktopLog() {
@@ -26,6 +26,6 @@ function makeLog() {
 		debug: console.log.bind(console),
 		warn: console.warn.bind(console),
 		error: console.error.bind(console),
-		info: console.info.bind(console)
+		info: console.info.bind(console),
 	}
 }

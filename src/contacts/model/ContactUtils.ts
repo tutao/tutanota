@@ -1,9 +1,9 @@
-import {lang} from "../../misc/LanguageViewModel"
-import type {Birthday, Contact, ContactSocialId} from "../../api/entities/tutanota/TypeRefs.js"
-import {formatDate} from "../../misc/Formatter"
-import {isoDateToBirthday} from "../../api/common/utils/BirthdayUtils"
-import {assertMainOrNode} from "../../api/common/Env"
-import { ContactSocialType } from '../../api/common/TutanotaConstants'
+import { lang } from "../../misc/LanguageViewModel"
+import type { Birthday, Contact, ContactSocialId } from "../../api/entities/tutanota/TypeRefs.js"
+import { formatDate } from "../../misc/Formatter"
+import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
+import { assertMainOrNode } from "../../api/common/Env"
+import { ContactSocialType } from "../../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

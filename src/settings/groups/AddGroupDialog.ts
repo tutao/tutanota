@@ -1,24 +1,24 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {BookingItemFeatureType, FeatureType, GroupType} from "../../api/common/TutanotaConstants.js"
-import {Dialog} from "../../gui/base/Dialog.js"
-import type {ValidationResult} from "../SelectMailAddressForm.js"
-import {SelectMailAddressForm} from "../SelectMailAddressForm.js"
-import {getGroupTypeDisplayName} from "./GroupDetailsView.js"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
-import {logins} from "../../api/main/LoginController.js"
-import type {TranslationKey} from "../../misc/LanguageViewModel.js"
-import {lang} from "../../misc/LanguageViewModel.js"
-import {showBuyDialog} from "../../subscription/BuyDialog.js"
-import {PreconditionFailedError} from "../../api/common/error/RestError.js"
-import {showBusinessFeatureRequiredDialog} from "../../misc/SubscriptionDialogs.js"
-import {TemplateGroupPreconditionFailedReason} from "../../sharing/GroupUtils.js"
-import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
-import {TextField} from "../../gui/base/TextField.js"
-import {getFirstOrThrow, ofClass} from "@tutao/tutanota-utils"
-import type {GroupManagementFacade} from "../../api/worker/facades/GroupManagementFacade.js"
-import {locator} from "../../api/main/MainLocator.js"
-import {assertMainOrNode} from "../../api/common/Env.js"
-import {getAvailableDomains} from "../mailaddress/MailAddressesUtils.js"
+import m, { Children, Component, Vnode } from "mithril"
+import { BookingItemFeatureType, FeatureType, GroupType } from "../../api/common/TutanotaConstants.js"
+import { Dialog } from "../../gui/base/Dialog.js"
+import type { ValidationResult } from "../SelectMailAddressForm.js"
+import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
+import { getGroupTypeDisplayName } from "./GroupDetailsView.js"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
+import { logins } from "../../api/main/LoginController.js"
+import type { TranslationKey } from "../../misc/LanguageViewModel.js"
+import { lang } from "../../misc/LanguageViewModel.js"
+import { showBuyDialog } from "../../subscription/BuyDialog.js"
+import { PreconditionFailedError } from "../../api/common/error/RestError.js"
+import { showBusinessFeatureRequiredDialog } from "../../misc/SubscriptionDialogs.js"
+import { TemplateGroupPreconditionFailedReason } from "../../sharing/GroupUtils.js"
+import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
+import { TextField } from "../../gui/base/TextField.js"
+import { getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
+import type { GroupManagementFacade } from "../../api/worker/facades/GroupManagementFacade.js"
+import { locator } from "../../api/main/MainLocator.js"
+import { assertMainOrNode } from "../../api/common/Env.js"
+import { getAvailableDomains } from "../mailaddress/MailAddressesUtils.js"
 
 assertMainOrNode()
 
@@ -35,11 +35,11 @@ export type AddGroupDialogAttrs = {
 
 export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 	view(vnode: Vnode<AddGroupDialogAttrs>): Children {
-		const {availableGroupTypes, groupType, availableDomains, onEmailChanged, onBusyStateChanged} = vnode.attrs
+		const { availableGroupTypes, groupType, availableDomains, onEmailChanged, onBusyStateChanged } = vnode.attrs
 		return [
 			m(DropDownSelector, {
 				label: "groupType_label",
-				items: availableGroupTypes.map(t => {
+				items: availableGroupTypes.map((t) => {
 					return {
 						name: getGroupTypeDisplayName(t),
 						value: t,
@@ -55,10 +55,10 @@ export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 			}),
 			groupType === GroupType.Mail
 				? m(SelectMailAddressForm, {
-					availableDomains,
-					onValidationResult: onEmailChanged,
-					onBusyStateChanged,
-				})
+						availableDomains,
+						onValidationResult: onEmailChanged,
+						onBusyStateChanged,
+				  })
 				: m(""),
 		]
 	}
@@ -121,7 +121,7 @@ export class AddGroupDialogViewModel {
 }
 
 export function show(): void {
-	getAvailableDomains(locator.entityClient, logins).then(availableDomains => {
+	getAvailableDomains(locator.entityClient, logins).then((availableDomains) => {
 		const viewModel = new AddGroupDialogViewModel(availableDomains, locator.groupManagementFacade)
 		if (viewModel.getAvailableGroupTypes().length === 0) return Dialog.message("selectionNotAvailable_msg")
 
@@ -137,7 +137,7 @@ export function show(): void {
 			if (viewModel.groupType === GroupType.Mail) {
 				showProgressDialog(
 					"pleaseWait_msg",
-					showBuyDialog({featureType: BookingItemFeatureType.SharedMailGroup, count: 1, freeAmount: 0, reactivate: false}).then(accepted => {
+					showBuyDialog({ featureType: BookingItemFeatureType.SharedMailGroup, count: 1, freeAmount: 0, reactivate: false }).then((accepted) => {
 						if (accepted) {
 							dialog.close()
 							return viewModel.createMailGroup()
@@ -147,7 +147,7 @@ export function show(): void {
 			} else if (viewModel.groupType === GroupType.LocalAdmin) {
 				showProgressDialog(
 					"pleaseWait_msg",
-					showBuyDialog({featureType: BookingItemFeatureType.LocalAdminGroup, count: 1, freeAmount: 0, reactivate: false}).then(accepted => {
+					showBuyDialog({ featureType: BookingItemFeatureType.LocalAdminGroup, count: 1, freeAmount: 0, reactivate: false }).then((accepted) => {
 						if (accepted) {
 							dialog.close()
 							return viewModel.createLocalAdminGroup()
@@ -155,7 +155,7 @@ export function show(): void {
 					}),
 				)
 			} else if (viewModel.groupType === GroupType.Template) {
-				addTemplateGroup(viewModel.groupName).then(success => {
+				addTemplateGroup(viewModel.groupName).then((success) => {
 					if (success) {
 						dialog.close()
 					}
@@ -171,10 +171,10 @@ export function show(): void {
 					availableDomains: availableDomains,
 					availableGroupTypes: viewModel.groupTypes,
 					name: viewModel.groupName,
-					onGroupNameChanged: newName => (viewModel.groupName = newName),
-					onGroupTypeChanged: newType => (viewModel.groupType = newType),
+					onGroupNameChanged: (newName) => (viewModel.groupName = newName),
+					onGroupTypeChanged: (newType) => (viewModel.groupType = newType),
 					onEmailChanged: (mailAddress, validationResult) => viewModel.onEmailChanged(mailAddress, validationResult),
-					onBusyStateChanged: isBusy => (viewModel.isVerifactionBusy = isBusy),
+					onBusyStateChanged: (isBusy) => (viewModel.isVerifactionBusy = isBusy),
 				}),
 			okAction: addGroupOkAction,
 		})
@@ -188,18 +188,18 @@ function addTemplateGroup(name: string): Promise<boolean> {
 	return showProgressDialog(
 		"pleaseWait_msg",
 		locator.groupManagementFacade
-			   .createTemplateGroup(name)
-			   .then(() => true)
-			   .catch(
-				   ofClass(PreconditionFailedError, e => {
-					   if (e.data === TemplateGroupPreconditionFailedReason.BUSINESS_FEATURE_REQUIRED) {
-						   showBusinessFeatureRequiredDialog("businessFeatureRequiredGeneral_msg")
-					   } else {
-						   Dialog.message(() => e.message)
-					   }
+			.createTemplateGroup(name)
+			.then(() => true)
+			.catch(
+				ofClass(PreconditionFailedError, (e) => {
+					if (e.data === TemplateGroupPreconditionFailedReason.BUSINESS_FEATURE_REQUIRED) {
+						showBusinessFeatureRequiredDialog("businessFeatureRequiredGeneral_msg")
+					} else {
+						Dialog.message(() => e.message)
+					}
 
-					   return false
-				   }),
-			   ),
+					return false
+				}),
+			),
 	)
 }

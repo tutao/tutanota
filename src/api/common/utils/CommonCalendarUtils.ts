@@ -1,6 +1,6 @@
-import {DAY_IN_MILLIS} from "@tutao/tutanota-utils"
-import type {CalendarEvent} from "../../entities/tutanota/TypeRefs.js"
-import {stringToCustomId} from "./EntityUtils"
+import { DAY_IN_MILLIS } from "@tutao/tutanota-utils"
+import type { CalendarEvent } from "../../entities/tutanota/TypeRefs.js"
+import { stringToCustomId } from "./EntityUtils"
 
 /**
  * the time in ms that element ids for calendar events and alarms  get randomized by
@@ -10,7 +10,7 @@ export const DAYS_SHIFTED_MS = 15 * DAY_IN_MILLIS
 /*
  * convenience wrapper for isAllDayEventByTimes
  */
-export function isAllDayEvent({startTime, endTime}: CalendarEvent): boolean {
+export function isAllDayEvent({ startTime, endTime }: CalendarEvent): boolean {
 	return isAllDayEventByTimes(startTime, endTime)
 }
 
@@ -44,7 +44,6 @@ export function getAllDayDateLocal(utcDate: Date): Date {
 	return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate())
 }
 
-
 /**
  * generate a semi-randomized element id for a calendar event or an alarm
  * @param timestamp the start time of the event or the creation time of the alarm
@@ -57,7 +56,6 @@ export function generateEventElementId(timestamp: number): string {
 	const randomDay = Math.floor(Math.random() * DAYS_SHIFTED_MS) * 2
 	return createEventElementId(timestamp, randomDay - DAYS_SHIFTED_MS)
 }
-
 
 /**
  * https://262.ecma-international.org/5.1/#sec-15.9.1.1

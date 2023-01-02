@@ -1,18 +1,11 @@
 // @ts-ignore[untyped-import]
-import {BigInteger, parseBigInt, RSAKey} from "../internal/crypto-jsbn-2012-08-09_1.js"
-import type {Base64, Hex} from "@tutao/tutanota-utils"
-import {
-	base64ToHex,
-	base64ToUint8Array,
-	concat,
-	int8ArrayToBase64,
-	uint8ArrayToBase64,
-	uint8ArrayToHex,
-} from "@tutao/tutanota-utils"
-import {random} from "../random/Randomizer.js"
-import type {PrivateKey, PublicKey, RsaKeyPair} from "./RsaKeyPair.js"
-import {CryptoError} from "../misc/CryptoError.js"
-import {sha256Hash} from "../hashes/Sha256.js"
+import { BigInteger, parseBigInt, RSAKey } from "../internal/crypto-jsbn-2012-08-09_1.js"
+import type { Base64, Hex } from "@tutao/tutanota-utils"
+import { base64ToHex, base64ToUint8Array, concat, int8ArrayToBase64, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { random } from "../random/Randomizer.js"
+import type { PrivateKey, PublicKey, RsaKeyPair } from "./RsaKeyPair.js"
+import { CryptoError } from "../misc/CryptoError.js"
+import { sha256Hash } from "../hashes/Sha256.js"
 
 const RSA_KEY_LENGTH_BITS = 2048
 const RSA_PUBLIC_EXPONENT = 65537
@@ -143,9 +136,7 @@ export function oaepPad(value: Uint8Array, keyLength: number, seed: Uint8Array):
 	}
 
 	if (value.length > keyLength / 8 - hashLength - 1) {
-		throw new CryptoError(
-				"invalid value length: " + value.length + ". expected: max. " + (keyLength / 8 - hashLength - 1),
-		)
+		throw new CryptoError("invalid value length: " + value.length + ". expected: max. " + (keyLength / 8 - hashLength - 1))
 	}
 
 	let block = _getPSBlock(value, keyLength)
@@ -175,9 +166,7 @@ export function oaepUnpad(value: Uint8Array, keyLength: number): Uint8Array {
 	let hashLength = 32 // bytes sha256
 
 	if (value.length !== keyLength / 8 - 1) {
-		throw new CryptoError(
-				"invalid value length: " + value.length + ". expected: " + (keyLength / 8 - 1) + " bytes!",
-		)
+		throw new CryptoError("invalid value length: " + value.length + ". expected: " + (keyLength / 8 - 1) + " bytes!")
 	}
 
 	let seedMask = mgf1(value.slice(hashLength, value.length), hashLength)
@@ -453,9 +442,7 @@ function _validateKeyLength(key: BigInteger[]) {
 	}
 
 	if (key[0].bitLength() < RSA_KEY_LENGTH_BITS - 1 || key[0].bitLength() > RSA_KEY_LENGTH_BITS) {
-		throw new Error(
-				"invalid key length, expected: around " + RSA_KEY_LENGTH_BITS + ", but was: " + key[0].bitLength(),
-		)
+		throw new Error("invalid key length, expected: around " + RSA_KEY_LENGTH_BITS + ", but was: " + key[0].bitLength())
 	}
 }
 

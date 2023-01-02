@@ -1,5 +1,5 @@
 export interface DateProvider {
-    now(): number
+	now(): number
 
-    timeZone(): string
+	timeZone(): string
 }

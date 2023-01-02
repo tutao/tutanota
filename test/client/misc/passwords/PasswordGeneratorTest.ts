@@ -1,14 +1,35 @@
 import o from "ospec"
-import {BYTE_RANGE, PasswordGenerator} from "../../../../src/misc/passwords/PasswordGenerator"
-import {downcast} from "@tutao/tutanota-utils"
+import { BYTE_RANGE, PasswordGenerator } from "../../../../src/misc/passwords/PasswordGenerator"
+import { downcast } from "@tutao/tutanota-utils"
 
 o.spec("PasswordGenerator", function () {
 	let generator: PasswordGenerator
 	let randomNumber: number
 	const DICTIONARY = [
-		"dash", "flash", "neighbour", "escape", "office", "season", "priority", "liberty",
-		"bottom", "summary", "affair", "peak", "lazy", "method", "computer", "smooth",
-		"muzzle", "fine", "assume", "distant", "fling", "give", "borrow", "conservation",
+		"dash",
+		"flash",
+		"neighbour",
+		"escape",
+		"office",
+		"season",
+		"priority",
+		"liberty",
+		"bottom",
+		"summary",
+		"affair",
+		"peak",
+		"lazy",
+		"method",
+		"computer",
+		"smooth",
+		"muzzle",
+		"fine",
+		"assume",
+		"distant",
+		"fling",
+		"give",
+		"borrow",
+		"conservation",
 	]
 
 	o.beforeEach(function () {
@@ -16,7 +37,7 @@ o.spec("PasswordGenerator", function () {
 		const randomizerMock = {
 			async generateRandomNumber() {
 				return randomNumber
-			}
+			},
 		}
 
 		generator = new PasswordGenerator(randomizerMock, [])
@@ -51,9 +72,7 @@ o.spec("PasswordGenerator", function () {
 		})
 
 		o("there should be no duplicates in the generated password", async function () {
-			const passwordGenerator = new PasswordGenerator(downcast({}),
-				["a", "B", "c", "d", "c", "e", "f", "g"]
-			)
+			const passwordGenerator = new PasswordGenerator(downcast({}), ["a", "B", "c", "d", "c", "e", "f", "g"])
 
 			let i = 0
 			passwordGenerator.generateRandomNumberInRange = async function () {

@@ -1,25 +1,20 @@
-import {promiseMap} from "@tutao/tutanota-utils"
-import type {MailBundle} from "../../mail/export/Bundler"
-import type {NativeInterface} from "./NativeInterface"
-import {FileReference} from "../../api/common/utils/FileUtils"
-import {DataFile} from "../../api/common/DataFile"
-import {HttpMethod} from "../../api/common/EntityFunctions"
-import {FileFacade} from "./generatedipc/FileFacade.js"
-import {ExportFacade} from "./generatedipc/ExportFacade.js"
-import {DownloadTaskResponse} from "./generatedipc/DownloadTaskResponse"
-import {UploadTaskResponse} from "./generatedipc/UploadTaskResponse"
-import {isDesktop} from "../../api/common/Env.js"
-import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
+import { promiseMap } from "@tutao/tutanota-utils"
+import type { MailBundle } from "../../mail/export/Bundler"
+import type { NativeInterface } from "./NativeInterface"
+import { FileReference } from "../../api/common/utils/FileUtils"
+import { DataFile } from "../../api/common/DataFile"
+import { HttpMethod } from "../../api/common/EntityFunctions"
+import { FileFacade } from "./generatedipc/FileFacade.js"
+import { ExportFacade } from "./generatedipc/ExportFacade.js"
+import { DownloadTaskResponse } from "./generatedipc/DownloadTaskResponse"
+import { UploadTaskResponse } from "./generatedipc/UploadTaskResponse"
+import { isDesktop } from "../../api/common/Env.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 export type FileUri = string
 
 export class NativeFileApp {
-
-	constructor(
-		private readonly fileFacade: FileFacade,
-		private readonly exportFacade: ExportFacade,
-	) {
-	}
+	constructor(private readonly fileFacade: FileFacade, private readonly exportFacade: ExportFacade) {}
 
 	/**
 	 * Open the file
@@ -176,7 +171,7 @@ export class NativeFileApp {
 	}
 
 	getFilesMetaData(filesUris: ReadonlyArray<string>): Promise<Array<FileReference>> {
-		return promiseMap(filesUris, async uri => {
+		return promiseMap(filesUris, async (uri) => {
 			const [name, mimeType, size] = await Promise.all([this.getName(uri), this.getMimeType(uri), this.getSize(uri)])
 			return {
 				_type: "FileReference",

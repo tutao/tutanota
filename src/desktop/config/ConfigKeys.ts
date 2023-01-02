@@ -16,7 +16,7 @@ export enum DesktopConfigKey {
 	spellcheck = "spellcheck",
 	selectedTheme = "selectedTheme",
 	themes = "themes",
-	webConfigLocation = "webConfigLocation"
+	webConfigLocation = "webConfigLocation",
 }
 
 export enum DesktopConfigEncKey {

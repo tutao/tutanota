@@ -1,4 +1,4 @@
-import type {Base64Url, DeferredObject, Hex} from "@tutao/tutanota-utils"
+import type { Base64Url, DeferredObject, Hex } from "@tutao/tutanota-utils"
 import {
 	arrayEquals,
 	assertNotNull,
@@ -25,11 +25,11 @@ import {
 	SaltService,
 	SecondFactorAuthService,
 	SessionService,
-	TakeOverDeletedAddressService
+	TakeOverDeletedAddressService,
 } from "../../entities/sys/Services"
-import {AccountType, CloseEventBusOption, OperationType} from "../../common/TutanotaConstants"
-import {CryptoError} from "../../common/error/CryptoError"
-import type {GroupInfo, SaltReturn, SecondFactorAuthData, User} from "../../entities/sys/TypeRefs.js"
+import { AccountType, CloseEventBusOption, OperationType } from "../../common/TutanotaConstants"
+import { CryptoError } from "../../common/error/CryptoError"
+import type { GroupInfo, SaltReturn, SecondFactorAuthData, User } from "../../entities/sys/TypeRefs.js"
 import {
 	createAutoLoginDataGet,
 	createChangePasswordData,
@@ -45,13 +45,13 @@ import {
 	GroupInfoTypeRef,
 	RecoverCodeTypeRef,
 	SessionTypeRef,
-	UserTypeRef
+	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
-import {createEntropyData, TutanotaPropertiesTypeRef} from "../../entities/tutanota/TypeRefs.js"
-import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
-import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
-import {ConnectMode, EventBusClient} from "../EventBusClient"
-import {EntityRestClient, typeRefToPath} from "../rest/EntityRestClient"
+import { createEntropyData, TutanotaPropertiesTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
+import { assertWorkerOrNode, isAdminClient, isTest } from "../../common/Env"
+import { ConnectMode, EventBusClient } from "../EventBusClient"
+import { EntityRestClient, typeRefToPath } from "../rest/EntityRestClient"
 import {
 	AccessExpiredError,
 	ConnectionError,
@@ -59,15 +59,15 @@ import {
 	NotAuthenticatedError,
 	NotFoundError,
 	ServiceUnavailableError,
-	SessionExpiredError
+	SessionExpiredError,
 } from "../../common/error/RestError"
-import type {WorkerImpl} from "../WorkerImpl"
-import type {Indexer} from "../search/Indexer"
-import {CancelledError} from "../../common/error/CancelledError"
-import {RestClient} from "../rest/RestClient"
-import {EntityClient} from "../../common/EntityClient"
-import {GENERATED_ID_BYTES_LENGTH, isSameId} from "../../common/utils/EntityUtils"
-import type {Credentials} from "../../../misc/credentials/Credentials"
+import type { WorkerImpl } from "../WorkerImpl"
+import type { Indexer } from "../search/Indexer"
+import { CancelledError } from "../../common/error/CancelledError"
+import { RestClient } from "../rest/RestClient"
+import { EntityClient } from "../../common/EntityClient"
+import { GENERATED_ID_BYTES_LENGTH, isSameId } from "../../common/utils/EntityUtils"
+import type { Credentials } from "../../../misc/credentials/Credentials"
 import {
 	aes128Decrypt,
 	aes128RandomKey,
@@ -87,16 +87,16 @@ import {
 	uint8ArrayToBitArray,
 	uint8ArrayToKey,
 } from "@tutao/tutanota-crypto"
-import {CryptoFacade, encryptBytes, encryptString} from "../crypto/CryptoFacade"
-import {InstanceMapper} from "../crypto/InstanceMapper"
-import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
-import {EntropyService} from "../../entities/tutanota/Services"
-import {IServiceExecutor} from "../../common/ServiceRequest"
-import {SessionType} from "../../common/SessionType"
-import {CacheStorageLateInitializer} from "../rest/CacheStorageProxy"
-import {AuthDataProvider, UserFacade} from "./UserFacade"
-import {LoginFailReason, LoginListener} from "../../main/LoginListener"
-import {LoginIncompleteError} from "../../common/error/LoginIncompleteError.js"
+import { CryptoFacade, encryptBytes, encryptString } from "../crypto/CryptoFacade"
+import { InstanceMapper } from "../crypto/InstanceMapper"
+import { Aes128Key } from "@tutao/tutanota-crypto/dist/encryption/Aes"
+import { EntropyService } from "../../entities/tutanota/Services"
+import { IServiceExecutor } from "../../common/ServiceRequest"
+import { SessionType } from "../../common/SessionType"
+import { CacheStorageLateInitializer } from "../rest/CacheStorageProxy"
+import { AuthDataProvider, UserFacade } from "./UserFacade"
+import { LoginFailReason, LoginListener } from "../../main/LoginListener"
+import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 
 assertWorkerOrNode()
 const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
@@ -119,24 +119,19 @@ interface ResumeSessionResultData {
 }
 
 export const enum ResumeSessionErrorReason {
-	OfflineNotAvailableForFree
+	OfflineNotAvailableForFree,
 }
 
 export type InitCacheOptions = {
-	userId: Id,
-	databaseKey: Uint8Array | null,
-	timeRangeDays: number | null,
+	userId: Id
+	databaseKey: Uint8Array | null
+	timeRangeDays: number | null
 	forceNewDatabase: boolean
 }
 
-type ResumeSessionResult =
-	| {type: "success", data: ResumeSessionResultData}
-	| {type: "error", reason: ResumeSessionErrorReason}
+type ResumeSessionResult = { type: "success"; data: ResumeSessionResultData } | { type: "error"; reason: ResumeSessionErrorReason }
 
-type AsyncLoginState =
-	| {state: "idle"}
-	| {state: "running"}
-	| {state: "failed", credentials: Credentials, cacheInfo: CacheInfo}
+type AsyncLoginState = { state: "idle" } | { state: "running" } | { state: "failed"; credentials: Credentials; cacheInfo: CacheInfo }
 
 export class LoginFacade {
 	private eventBusClient!: EventBusClient
@@ -152,7 +147,7 @@ export class LoginFacade {
 	private loggingInPromiseWrapper: DeferredObject<void> | null = null
 
 	/** On platforms with offline cache we do the actual login asynchronously and we can retry it. This is the state of such async login. */
-	asyncLoginState: AsyncLoginState = {state: "idle"}
+	asyncLoginState: AsyncLoginState = { state: "idle" }
 
 	constructor(
 		readonly worker: WorkerImpl,
@@ -169,15 +164,12 @@ export class LoginFacade {
 		private readonly cacheInitializer: CacheStorageLateInitializer,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly userFacade: UserFacade,
-	) {
-
-	}
+	) {}
 
 	init(indexer: Indexer, eventBusClient: EventBusClient) {
 		this.indexer = indexer
 		this.eventBusClient = eventBusClient
 	}
-
 
 	async resetSession(): Promise<void> {
 		this.eventBusClient.close(CloseEventBusOption.Terminate)
@@ -222,13 +214,15 @@ export class LoginFacade {
 			userId: sessionData.userId,
 			databaseKey,
 			timeRangeDays: null,
-			forceNewDatabase: true
+			forceNewDatabase: true,
 		})
-		const {
-			user,
-			userGroupInfo,
-			accessToken
-		} = await this.initSession(sessionData.userId, sessionData.accessToken, userPassphraseKey, sessionType, cacheInfo)
+		const { user, userGroupInfo, accessToken } = await this.initSession(
+			sessionData.userId,
+			sessionData.accessToken,
+			userPassphraseKey,
+			sessionType,
+			cacheInfo,
+		)
 
 		return {
 			user,
@@ -300,7 +294,13 @@ export class LoginFacade {
 	 * Create external (temporary mailbox for password-protected emails) session and log in.
 	 * Changes internal state to refer to the logged in user.
 	 */
-	async createExternalSession(userId: Id, passphrase: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean): Promise<NewSessionData> {
+	async createExternalSession(
+		userId: Id,
+		passphrase: string,
+		salt: Uint8Array,
+		clientIdentifier: string,
+		persistentSession: boolean,
+	): Promise<NewSessionData> {
 		if (this.userFacade.isPartiallyLoggedIn()) {
 			throw new Error("user already logged in")
 		}
@@ -324,19 +324,20 @@ export class LoginFacade {
 
 		const createSessionReturn = await this.serviceExecutor.post(SessionService, sessionData)
 
-
 		let sessionId = [this.getSessionListId(createSessionReturn.accessToken), this.getSessionElementId(createSessionReturn.accessToken)] as const
 		const cacheInfo = await this.initCache({
 			userId,
 			databaseKey: null,
 			timeRangeDays: null,
-			forceNewDatabase: true
+			forceNewDatabase: true,
 		})
-		const {
-			user,
-			userGroupInfo,
-			accessToken
-		} = await this.initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey, SessionType.Login, cacheInfo)
+		const { user, userGroupInfo, accessToken } = await this.initSession(
+			createSessionReturn.user,
+			createSessionReturn.accessToken,
+			userPassphraseKey,
+			SessionType.Login,
+			cacheInfo,
+		)
 		return {
 			user,
 			userGroupInfo,
@@ -360,12 +361,13 @@ export class LoginFacade {
 		const secondFactorAuthDeleteData = createSecondFactorAuthDeleteData({
 			session: sessionId,
 		})
-		await this.serviceExecutor.delete(SecondFactorAuthService, secondFactorAuthDeleteData)
-				  .catch(ofClass(NotFoundError, (e) => {
-					  // This can happen during some odd behavior in browser where main loop would be blocked by webauthn (hello, FF) and then we would try to
-					  // cancel too late. No harm here anyway if the session is already gone.
-					  console.warn("Tried to cancel second factor but it was not there anymore", e)
-				  }))
+		await this.serviceExecutor.delete(SecondFactorAuthService, secondFactorAuthDeleteData).catch(
+			ofClass(NotFoundError, (e) => {
+				// This can happen during some odd behavior in browser where main loop would be blocked by webauthn (hello, FF) and then we would try to
+				// cancel too late. No harm here anyway if the session is already gone.
+				console.warn("Tried to cancel second factor but it was not there anymore", e)
+			}),
+		)
 		this.loginRequestSessionId = null
 		this.loggingInPromiseWrapper?.reject(new CancelledError("login cancelled"))
 	}
@@ -386,14 +388,14 @@ export class LoginFacade {
 		credentials: Credentials,
 		externalUserSalt: Uint8Array | null,
 		databaseKey: Uint8Array | null,
-		timeRangeDays: number | null
+		timeRangeDays: number | null,
 	): Promise<ResumeSessionResult> {
 		this.userFacade.setAccessToken(credentials.accessToken)
 		const cacheInfo = await this.initCache({
 			userId: credentials.userId,
 			databaseKey,
 			timeRangeDays,
-			forceNewDatabase: false
+			forceNewDatabase: false,
 		})
 		const sessionId = this.getSessionId(credentials)
 		try {
@@ -415,10 +417,11 @@ export class LoginFacade {
 				if (user.accountType !== AccountType.PREMIUM) {
 					// if account is free do not start offline login/async login workflow.
 					// await before return to catch errors here instead of up the stack
-					return await this.finishResumeSession(credentials, externalUserSalt, cacheInfo)
-									 .catch(ofClass(ConnectionError, (e) => {
-										 return {type: "error", reason: ResumeSessionErrorReason.OfflineNotAvailableForFree}
-									 }))
+					return await this.finishResumeSession(credentials, externalUserSalt, cacheInfo).catch(
+						ofClass(ConnectionError, (e) => {
+							return { type: "error", reason: ResumeSessionErrorReason.OfflineNotAvailableForFree }
+						}),
+					)
 				}
 				this.userFacade.setUser(user)
 				this.loginListener.onPartialLoginSuccess()
@@ -447,7 +450,7 @@ export class LoginFacade {
 					userGroupInfo,
 					sessionId,
 				}
-				return {type: "success", data}
+				return { type: "success", data }
 			} else {
 				// await before return to catch errors here instead of up the stack
 				return await this.finishResumeSession(credentials, externalUserSalt, cacheInfo)
@@ -470,16 +473,16 @@ export class LoginFacade {
 		if (this.asyncLoginState.state === "running") {
 			throw new Error("finishLoginResume run in parallel")
 		}
-		this.asyncLoginState = {state: "running"}
+		this.asyncLoginState = { state: "running" }
 		try {
 			await this.finishResumeSession(credentials, null, cacheInfo)
 		} catch (e) {
 			if (e instanceof NotAuthenticatedError || e instanceof SessionExpiredError) {
 				// For this type of errors we cannot use credentials anymore.
-				this.asyncLoginState = {state: "idle"}
+				this.asyncLoginState = { state: "idle" }
 				await this.loginListener.onLoginFailure(LoginFailReason.SessionExpired)
 			} else {
-				this.asyncLoginState = {state: "failed", credentials, cacheInfo}
+				this.asyncLoginState = { state: "failed", credentials, cacheInfo }
 				if (!(e instanceof ConnectionError)) await this.worker.sendError(e)
 				await this.loginListener.onLoginFailure(LoginFailReason.Error)
 			}
@@ -499,12 +502,15 @@ export class LoginFacade {
 			userPassphraseKey = await this.loadUserPassphraseKey(credentials.login, passphrase)
 		}
 
-		const {
-			user,
-			userGroupInfo
-		} = await this.initSession(sessionData.userId, credentials.accessToken, userPassphraseKey, SessionType.Persistent, cacheInfo)
+		const { user, userGroupInfo } = await this.initSession(
+			sessionData.userId,
+			credentials.accessToken,
+			userPassphraseKey,
+			SessionType.Persistent,
+			cacheInfo,
+		)
 
-		this.asyncLoginState = {state: "idle"}
+		this.asyncLoginState = { state: "idle" }
 
 		const data = {
 			user,
@@ -512,7 +518,7 @@ export class LoginFacade {
 			sessionId,
 		}
 
-		return {type: "success", data}
+		return { type: "success", data }
 	}
 
 	private async initSession(
@@ -521,7 +527,7 @@ export class LoginFacade {
 		userPassphraseKey: Aes128Key,
 		sessionType: SessionType,
 		cacheInfo: CacheInfo,
-	): Promise<{user: User, accessToken: string, userGroupInfo: GroupInfo}> {
+	): Promise<{ user: User; accessToken: string; userGroupInfo: GroupInfo }> {
 		// We might have userId already if:
 		// - session has expired and a new one was created
 		// - if it's a partial login
@@ -547,7 +553,6 @@ export class LoginFacade {
 			this.userFacade.unlockUserGroupKey(userPassphraseKey)
 			const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
 
-
 			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
 				// index new items in background
 				console.log("_initIndexer after log in")
@@ -568,18 +573,18 @@ export class LoginFacade {
 
 			await this.storeEntropy()
 			this.loginListener.onFullLoginSuccess()
-			return {user, accessToken, userGroupInfo}
+			return { user, accessToken, userGroupInfo }
 		} catch (e) {
 			this.resetSession()
 			throw e
 		}
 	}
 
-	private async initCache({userId, databaseKey, timeRangeDays, forceNewDatabase}: InitCacheOptions): Promise<CacheInfo> {
+	private async initCache({ userId, databaseKey, timeRangeDays, forceNewDatabase }: InitCacheOptions): Promise<CacheInfo> {
 		if (databaseKey != null) {
-			return this.cacheInitializer.initialize({type: "offline", userId, databaseKey, timeRangeDays, forceNewDatabase})
+			return this.cacheInitializer.initialize({ type: "offline", userId, databaseKey, timeRangeDays, forceNewDatabase })
 		} else {
-			return this.cacheInitializer.initialize({type: "ephemeral", userId})
+			return this.cacheInitializer.initialize({ type: "ephemeral", userId })
 		}
 	}
 
@@ -590,7 +595,7 @@ export class LoginFacade {
 	/**
 	 * Check whether the passed salt for external user is up-to-date (whether an outdated link was used).
 	 */
-	private async checkOutdatedExternalSalt(credentials: Credentials, sessionData: {userId: Id; accessKey: Aes128Key}, externalUserSalt: Uint8Array) {
+	private async checkOutdatedExternalSalt(credentials: Credentials, sessionData: { userId: Id; accessKey: Aes128Key }, externalUserSalt: Uint8Array) {
 		this.userFacade.setAccessToken(credentials.accessToken)
 		const user = await this.entityClient.load(UserTypeRef, sessionData.userId)
 		const latestSaltHash = assertNotNull(user.externalAuthInfo!.latestSaltHash, "latestSaltHash is not set!")
@@ -620,38 +625,37 @@ export class LoginFacade {
 
 	private initIndexer(cacheInfo: CacheInfo): Promise<void> {
 		return this.indexer
-				   .init({
-						   user: assertNotNull(this.userFacade.getUser()),
-						   userGroupKey: this.userFacade.getUserGroupKey(),
-						   cacheInfo
-					   }
-				   )
-				   .catch(
-					   ofClass(ServiceUnavailableError, e => {
-						   console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
-						   return delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
-							   console.log("_initIndexer after ServiceUnavailableError")
-							   return this.initIndexer(cacheInfo)
-						   })
-					   }),
-				   )
-				   .catch(
-					   ofClass(ConnectionError, e => {
-						   console.log("Retry init indexer in 30 seconds after ConnectionError")
-						   return delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
-							   console.log("_initIndexer after ConnectionError")
-							   return this.initIndexer(cacheInfo)
-						   })
-					   }),
-				   )
-				   .catch(e => {
-					   this.worker.sendError(e)
-				   })
+			.init({
+				user: assertNotNull(this.userFacade.getUser()),
+				userGroupKey: this.userFacade.getUserGroupKey(),
+				cacheInfo,
+			})
+			.catch(
+				ofClass(ServiceUnavailableError, (e) => {
+					console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
+					return delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
+						console.log("_initIndexer after ServiceUnavailableError")
+						return this.initIndexer(cacheInfo)
+					})
+				}),
+			)
+			.catch(
+				ofClass(ConnectionError, (e) => {
+					console.log("Retry init indexer in 30 seconds after ConnectionError")
+					return delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
+						console.log("_initIndexer after ConnectionError")
+						return this.initIndexer(cacheInfo)
+					})
+				}),
+			)
+			.catch((e) => {
+				this.worker.sendError(e)
+			})
 	}
 
 	private loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<Aes128Key> {
 		mailAddress = mailAddress.toLowerCase().trim()
-		const saltRequest = createSaltData({mailAddress})
+		const saltRequest = createSaltData({ mailAddress })
 		return this.serviceExecutor.get(SaltService, saltRequest).then((saltReturn: SaltReturn) => {
 			return generateKeyFromPassphrase(passphrase, saltReturn.salt, KeyLength.b128)
 		})
@@ -669,20 +673,20 @@ export class LoginFacade {
 			v: sessionTypeModel.version,
 		}
 		return this.restClient
-				   .request(path, HttpMethod.DELETE, {
-					   headers,
-					   responseType: MediaType.Json,
-				   })
-				   .catch(
-					   ofClass(NotAuthenticatedError, () => {
-						   console.log("authentication failed => session is already closed")
-					   }),
-				   )
-				   .catch(
-					   ofClass(NotFoundError, () => {
-						   console.log("authentication failed => session instance is already deleted")
-					   }),
-				   )
+			.request(path, HttpMethod.DELETE, {
+				headers,
+				responseType: MediaType.Json,
+			})
+			.catch(
+				ofClass(NotAuthenticatedError, () => {
+					console.log("authentication failed => session is already closed")
+				}),
+			)
+			.catch(
+				ofClass(NotFoundError, () => {
+					console.log("authentication failed => session instance is already deleted")
+				}),
+			)
 	}
 
 	private getSessionElementId(accessToken: Base64Url): Id {
@@ -695,9 +699,7 @@ export class LoginFacade {
 		return base64ToBase64Ext(uint8ArrayToBase64(byteAccessToken.slice(0, GENERATED_ID_BYTES_LENGTH)))
 	}
 
-	private async loadSessionData(
-		accessToken: Base64Url,
-	): Promise<{
+	private async loadSessionData(accessToken: Base64Url): Promise<{
 		userId: Id
 		accessKey: Aes128Key
 	}> {
@@ -708,23 +710,25 @@ export class LoginFacade {
 			accessToken: accessToken,
 			v: SessionTypeModel.version,
 		}
-		return this.restClient.request(path, HttpMethod.GET, {
-			headers,
-			responseType: MediaType.Json,
-		}).then(instance => {
-			let session = JSON.parse(instance)
-			return {
-				userId: session.user,
-				accessKey: base64ToKey(session.accessKey),
-			}
-		})
+		return this.restClient
+			.request(path, HttpMethod.GET, {
+				headers,
+				responseType: MediaType.Json,
+			})
+			.then((instance) => {
+				let session = JSON.parse(instance)
+				return {
+					userId: session.user,
+					accessKey: base64ToKey(session.accessKey),
+				}
+			})
 	}
 
 	/**
 	 * Loads entropy from the last logout.
 	 */
 	private loadEntropy(): Promise<void> {
-		return this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then(tutanotaProperties => {
+		return this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then((tutanotaProperties) => {
 			if (tutanotaProperties.groupEncEntropy) {
 				try {
 					let entropy = aes128Decrypt(this.userFacade.getUserGroupKey(), neverNull(tutanotaProperties.groupEncEntropy))
@@ -745,18 +749,19 @@ export class LoginFacade {
 		const entropyData = createEntropyData({
 			groupEncEntropy: encryptBytes(userGroupKey, random.generateRandomData(32)),
 		})
-		return this.serviceExecutor.put(EntropyService, entropyData)
-				   .catch(ofClass(LockedError, noOp))
-				   .catch(
-					   ofClass(ConnectionError, e => {
-						   console.log("could not store entropy", e)
-					   }),
-				   )
-				   .catch(
-					   ofClass(ServiceUnavailableError, e => {
-						   console.log("could not store entropy", e)
-					   }),
-				   )
+		return this.serviceExecutor
+			.put(EntropyService, entropyData)
+			.catch(ofClass(LockedError, noOp))
+			.catch(
+				ofClass(ConnectionError, (e) => {
+					console.log("could not store entropy", e)
+				}),
+			)
+			.catch(
+				ofClass(ServiceUnavailableError, (e) => {
+					console.log("could not store entropy", e)
+				}),
+			)
 	}
 
 	async changePassword(oldPassword: string, newPassword: string): Promise<void> {
@@ -794,7 +799,7 @@ export class LoginFacade {
 		const getData = createAutoLoginDataGet()
 		getData.userId = userId
 		getData.deviceToken = deviceToken
-		return this.serviceExecutor.get(AutoLoginService, getData).then(returnData => {
+		return this.serviceExecutor.get(AutoLoginService, getData).then((returnData) => {
 			const key = uint8ArrayToKey(returnData.deviceKey)
 			return utf8Uint8ArrayToString(aes128Decrypt(key, base64ToUint8Array(encryptedPassword)))
 		})
@@ -820,56 +825,52 @@ export class LoginFacade {
 			},
 			isFullyLoggedIn(): boolean {
 				return false
-			}
+			},
 		}
-		const eventRestClient = new EntityRestClient(
-			tempAuthDataProvider,
-			this.restClient,
-			() => this.cryptoFacade,
-			this.instanceMapper,
-		)
+		const eventRestClient = new EntityRestClient(tempAuthDataProvider, this.restClient, () => this.cryptoFacade, this.instanceMapper)
 		const entityClient = new EntityClient(eventRestClient)
-		return this.serviceExecutor.post(SessionService, sessionData) // Don't pass email address to avoid proposing to reset second factor when we're resetting password
-				   .then(createSessionReturn => this.waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, null))
-				   .then(sessionData => {
-					   return entityClient
-						   .load(UserTypeRef, sessionData.userId, undefined, {
-							   accessToken: sessionData.accessToken,
-						   })
-						   .then(user => {
-							   if (user.auth == null || user.auth.recoverCode == null) {
-								   return Promise.reject(new Error("missing recover code"))
-							   }
+		return this.serviceExecutor
+			.post(SessionService, sessionData) // Don't pass email address to avoid proposing to reset second factor when we're resetting password
+			.then((createSessionReturn) => this.waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, null))
+			.then((sessionData) => {
+				return entityClient
+					.load(UserTypeRef, sessionData.userId, undefined, {
+						accessToken: sessionData.accessToken,
+					})
+					.then((user) => {
+						if (user.auth == null || user.auth.recoverCode == null) {
+							return Promise.reject(new Error("missing recover code"))
+						}
 
-							   const extraHeaders = {
-								   accessToken: sessionData.accessToken,
-								   recoverCodeVerifier: recoverCodeVerifierBase64,
-							   }
-							   return entityClient.load(RecoverCodeTypeRef, user.auth.recoverCode, undefined, extraHeaders)
-						   })
-						   .then(recoverCode => {
-							   const groupKey = aes256DecryptKey(recoverCodeKey, recoverCode.recoverCodeEncUserGroupKey)
-							   let salt = generateRandomSalt()
-							   let userPassphraseKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
-							   let pwEncUserGroupKey = encryptKey(userPassphraseKey, groupKey)
-							   let newPasswordVerifier = createAuthVerifier(userPassphraseKey)
-							   const postData = createChangePasswordData()
-							   postData.salt = salt
-							   postData.pwEncUserGroupKey = pwEncUserGroupKey
-							   postData.verifier = newPasswordVerifier
-							   postData.recoverCodeVerifier = recoverCodeVerifier
-							   const extraHeaders = {
-								   accessToken: sessionData.accessToken,
-							   }
-							   return this.serviceExecutor.post(ChangePasswordService, postData, {extraHeaders})
-						   })
-						   .finally(() => this.deleteSession(sessionData.accessToken))
-				   })
+						const extraHeaders = {
+							accessToken: sessionData.accessToken,
+							recoverCodeVerifier: recoverCodeVerifierBase64,
+						}
+						return entityClient.load(RecoverCodeTypeRef, user.auth.recoverCode, undefined, extraHeaders)
+					})
+					.then((recoverCode) => {
+						const groupKey = aes256DecryptKey(recoverCodeKey, recoverCode.recoverCodeEncUserGroupKey)
+						let salt = generateRandomSalt()
+						let userPassphraseKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
+						let pwEncUserGroupKey = encryptKey(userPassphraseKey, groupKey)
+						let newPasswordVerifier = createAuthVerifier(userPassphraseKey)
+						const postData = createChangePasswordData()
+						postData.salt = salt
+						postData.pwEncUserGroupKey = pwEncUserGroupKey
+						postData.verifier = newPasswordVerifier
+						postData.recoverCodeVerifier = recoverCodeVerifier
+						const extraHeaders = {
+							accessToken: sessionData.accessToken,
+						}
+						return this.serviceExecutor.post(ChangePasswordService, postData, { extraHeaders })
+					})
+					.finally(() => this.deleteSession(sessionData.accessToken))
+			})
 	}
 
 	/** Deletes second factors using recoverCode as second factor. */
 	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void> {
-		return this.loadUserPassphraseKey(mailAddress, password).then(passphraseReturn => {
+		return this.loadUserPassphraseKey(mailAddress, password).then((passphraseReturn) => {
 			const authVerifier = createAuthVerifierAsBase64Url(passphraseReturn)
 			const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
 			const recoverCodeVerifier = createAuthVerifierAsBase64Url(recoverCodeKey)
@@ -882,7 +883,7 @@ export class LoginFacade {
 	}
 
 	takeOverDeletedAddress(mailAddress: string, password: string, recoverCode: Hex | null, targetAccountMailAddress: string): Promise<void> {
-		return this.loadUserPassphraseKey(mailAddress, password).then(passphraseReturn => {
+		return this.loadUserPassphraseKey(mailAddress, password).then((passphraseReturn) => {
 			const authVerifier = createAuthVerifierAsBase64Url(passphraseReturn)
 			let recoverCodeVerifier: Base64 | null = null
 
@@ -900,13 +901,12 @@ export class LoginFacade {
 		})
 	}
 
-
 	generateTotpSecret(): Promise<TotpSecret> {
-		return this.getTotpVerifier().then(totp => totp.generateSecret())
+		return this.getTotpVerifier().then((totp) => totp.generateSecret())
 	}
 
 	generateTotpCode(time: number, key: Uint8Array): Promise<number> {
-		return this.getTotpVerifier().then(totp => totp.generateTotp(time, key))
+		return this.getTotpVerifier().then((totp) => totp.generateTotp(time, key))
 	}
 
 	private getTotpVerifier(): Promise<TotpVerifier> {

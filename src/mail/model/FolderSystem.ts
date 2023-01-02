@@ -1,10 +1,10 @@
-import {MailFolder} from "../../api/entities/tutanota/TypeRefs.js"
-import {assertNotNull, groupBy, partition} from "@tutao/tutanota-utils"
-import {elementIdPart, getElementId, isSameId} from "../../api/common/utils/EntityUtils.js"
-import {MailFolderType} from "../../api/common/TutanotaConstants.js"
+import { MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
+import { assertNotNull, groupBy, partition } from "@tutao/tutanota-utils"
+import { elementIdPart, getElementId, isSameId } from "../../api/common/utils/EntityUtils.js"
+import { MailFolderType } from "../../api/common/TutanotaConstants.js"
 
 interface IndentedFolder {
-	level: number,
+	level: number
 	folder: MailFolder
 }
 
@@ -14,8 +14,8 @@ export class FolderSystem {
 	readonly customSubtrees: ReadonlyArray<FolderSubtree>
 
 	constructor(folders: readonly MailFolder[]) {
-		const folderByParent = groupBy(folders, folder => folder.parentFolder ? elementIdPart(folder.parentFolder) : null)
-		const topLevelFolders = folders.filter(f => f.parentFolder == null)
+		const folderByParent = groupBy(folders, (folder) => (folder.parentFolder ? elementIdPart(folder.parentFolder) : null))
+		const topLevelFolders = folders.filter((f) => f.parentFolder == null)
 
 		const [systemFolders, customFolders] = partition(topLevelFolders, (f) => f.folderType !== MailFolderType.CUSTOM)
 
@@ -37,8 +37,8 @@ export class FolderSystem {
 	}
 
 	getFolderByMailListId(mailListId: Id): MailFolder | null {
-		const subtree = this.getFolderByMailListIdInSubtrees(this.systemSubtrees, mailListId)
-			?? this.getFolderByMailListIdInSubtrees(this.customSubtrees, mailListId)
+		const subtree =
+			this.getFolderByMailListIdInSubtrees(this.systemSubtrees, mailListId) ?? this.getFolderByMailListIdInSubtrees(this.customSubtrees, mailListId)
 		return subtree?.folder ?? null
 	}
 
@@ -49,9 +49,9 @@ export class FolderSystem {
 	getCustomFoldersOfParent(parent: IdTuple | null): MailFolder[] {
 		if (parent) {
 			const parentFolder = this.getFolderByIdInSubtrees(this.customSubtrees, parent)
-			return parentFolder ? parentFolder.children.map(child => child.folder) : []
+			return parentFolder ? parentFolder.children.map((child) => child.folder) : []
 		} else {
-			return this.customSubtrees.map(subtree => subtree.folder)
+			return this.customSubtrees.map((subtree) => subtree.folder)
 		}
 	}
 
@@ -63,7 +63,7 @@ export class FolderSystem {
 	private getIndentedCustomList(subtrees: ReadonlyArray<FolderSubtree>, currentLevel: number = 0): IndentedFolder[] {
 		const plainList: IndentedFolder[] = []
 		for (const subtree of subtrees) {
-			plainList.push({level: currentLevel, folder: subtree.folder})
+			plainList.push({ level: currentLevel, folder: subtree.folder })
 			plainList.push(...this.getIndentedCustomList(subtree.children, currentLevel + 1))
 		}
 		return plainList
@@ -71,7 +71,7 @@ export class FolderSystem {
 
 	private getIndentedSystemList(): IndentedFolder[] {
 		return this.systemSubtrees.map((subtree) => {
-			return {level: 0, folder: subtree.folder}
+			return { level: 0, folder: subtree.folder }
 		})
 	}
 
@@ -118,9 +118,9 @@ export class FolderSystem {
 				.slice()
 				.sort(comparator)
 				.map((child) => this.makeSubtree(folderByParent, child, comparator))
-			return {folder: parent, children: childSystems}
+			return { folder: parent, children: childSystems }
 		} else {
-			return {folder: parent, children: []}
+			return { folder: parent, children: [] }
 		}
 	}
 }
@@ -153,6 +153,6 @@ function compareSystem(folder1: MailFolder, folder2: MailFolder): number {
  * the top folders are the toplevel folders in with their respective subfolders.
  */
 export interface FolderSubtree {
-	readonly folder: MailFolder,
-	readonly children: readonly FolderSubtree[],
+	readonly folder: MailFolder
+	readonly children: readonly FolderSubtree[]
 }

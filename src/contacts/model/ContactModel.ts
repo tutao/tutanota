@@ -1,15 +1,15 @@
-import type {Contact, ContactList} from "../../api/entities/tutanota/TypeRefs.js"
-import {ContactListTypeRef, ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {createRestriction} from "../../search/model/SearchUtils"
-import {flat, groupBy, LazyLoaded, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
-import {DbError} from "../../api/common/error/DbError"
-import {EntityClient} from "../../api/common/EntityClient"
-import type {LoginController} from "../../api/main/LoginController"
-import {compareOldestFirst, elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils"
-import type {SearchFacade} from "../../api/worker/search/SearchFacade"
-import {assertMainOrNode} from "../../api/common/Env"
-import {LoginIncompleteError} from "../../api/common/error/LoginIncompleteError"
+import type { Contact, ContactList } from "../../api/entities/tutanota/TypeRefs.js"
+import { ContactListTypeRef, ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { createRestriction } from "../../search/model/SearchUtils"
+import { flat, groupBy, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
+import { DbError } from "../../api/common/error/DbError"
+import { EntityClient } from "../../api/common/EntityClient"
+import type { LoginController } from "../../api/main/LoginController"
+import { compareOldestFirst, elementIdPart, listIdPart } from "../../api/common/utils/EntityUtils"
+import type { SearchFacade } from "../../api/worker/search/SearchFacade"
+import { assertMainOrNode } from "../../api/common/Env"
+import { LoginIncompleteError } from "../../api/common/error/LoginIncompleteError"
 
 assertMainOrNode()
 
@@ -50,18 +50,7 @@ export class ContactModelImpl implements ContactModel {
 		const cleanMailAddress = mailAddress.trim().toLowerCase()
 		let result
 		try {
-			result = await this._searchFacade
-							   .search(
-								   '"' + cleanMailAddress + '"',
-								   createRestriction(
-									   "contact",
-									   null,
-									   null,
-									   "mailAddress",
-									   null
-								   ),
-								   0
-							   )
+			result = await this._searchFacade.search('"' + cleanMailAddress + '"', createRestriction("contact", null, null, "mailAddress", null), 0)
 		} catch (e) {
 			// If IndexedDB is not supported or isn't working for some reason we load contacts from the server and
 			// search manually.
@@ -70,10 +59,7 @@ export class ContactModelImpl implements ContactModel {
 
 				if (listId) {
 					const contacts = await this._entityClient.loadAll(ContactTypeRef, listId)
-					return contacts.find(
-						contact => contact.mailAddresses.some(
-							a => a.address.trim().toLowerCase() === cleanMailAddress)
-					) ?? null
+					return contacts.find((contact) => contact.mailAddresses.some((a) => a.address.trim().toLowerCase() === cleanMailAddress)) ?? null
 				} else {
 					return null
 				}
@@ -86,9 +72,8 @@ export class ContactModelImpl implements ContactModel {
 
 		for (const contactId of result.results) {
 			try {
-				const contact = await this._entityClient
-										  .load(ContactTypeRef, contactId)
-				if (contact.mailAddresses.some(a => a.address.trim().toLowerCase() === cleanMailAddress)) {
+				const contact = await this._entityClient.load(ContactTypeRef, contactId)
+				if (contact.mailAddresses.some((a) => a.address.trim().toLowerCase() === cleanMailAddress)) {
 					return contact
 				}
 			} catch (e) {
@@ -116,7 +101,7 @@ export class ContactModelImpl implements ContactModel {
 			([listId, idTuples]) => {
 				// we try to load all contacts from the same list in one request
 				return this._entityClient.loadMultiple(ContactTypeRef, listId, idTuples.map(elementIdPart)).catch(
-					ofClass(NotAuthorizedError, e => {
+					ofClass(NotAuthorizedError, (e) => {
 						console.log("tried to access contact without authorization", e)
 						return []
 					}),
@@ -138,7 +123,7 @@ export function lazyContactListId(logins: LoginController, entityClient: EntityC
 				return contactList.contacts
 			})
 			.catch(
-				ofClass(NotFoundError, e => {
+				ofClass(NotFoundError, (e) => {
 					if (!logins.getUserController().isInternalUser()) {
 						return null // external users have no contact list.
 					} else {

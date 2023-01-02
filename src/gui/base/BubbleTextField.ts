@@ -1,9 +1,9 @@
-import m, {Children, ClassComponent, Vnode} from "mithril"
-import {TextField} from "./TextField.js"
-import {TranslationText} from "../../misc/LanguageViewModel"
-import {Button, ButtonType} from "./Button.js"
-import {Keys} from "../../api/common/TutanotaConstants"
-import {createAsyncDropdown, DropdownChildAttrs} from "./Dropdown.js"
+import m, { Children, ClassComponent, Vnode } from "mithril"
+import { TextField } from "./TextField.js"
+import { TranslationText } from "../../misc/LanguageViewModel"
+import { Button, ButtonType } from "./Button.js"
+import { Keys } from "../../api/common/TutanotaConstants"
+import { createAsyncDropdown, DropdownChildAttrs } from "./Dropdown.js"
 
 export interface BubbleTextFieldAttrs {
 	label: TranslationText
@@ -26,7 +26,7 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 	private active: boolean = false
 	private domInput: HTMLInputElement | null = null
 
-	view({attrs}: Vnode<BubbleTextFieldAttrs>) {
+	view({ attrs }: Vnode<BubbleTextFieldAttrs>) {
 		return m(".bubble-text-field", [
 			m(TextField, {
 				label: attrs.label,
@@ -38,21 +38,20 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 						// We need overflow: hidden on both so that ellipsis on button works.
 						// flex is for reserving space for the comma. align-items: end so that comma is pushed to the bottom.
 						return m(".flex.overflow-hidden.items-end", [
-							m(".flex-no-grow-shrink-auto.overflow-hidden",
-								m(Button,
-									{
-										label: () => attrs.renderBubbleText(item),
-										type: ButtonType.TextBubble,
-										isSelected: () => false,
-										click: (e) => {
-											e.stopPropagation() // do not focus the text field
-											createAsyncDropdown({
-												lazyButtons: () => attrs.getBubbleDropdownAttrs(item),
-												width: 250
-											})(e, e.target as HTMLElement)
-										}
+							m(
+								".flex-no-grow-shrink-auto.overflow-hidden",
+								m(Button, {
+									label: () => attrs.renderBubbleText(item),
+									type: ButtonType.TextBubble,
+									isSelected: () => false,
+									click: (e) => {
+										e.stopPropagation() // do not focus the text field
+										createAsyncDropdown({
+											lazyButtons: () => attrs.getBubbleDropdownAttrs(item),
+											width: 250,
+										})(e, e.target as HTMLElement)
 									},
-								)
+								}),
 							),
 							// Comma is shown when there's text/another bubble afterwards or if the field is active
 							this.active || idx < items.length - 1 || attrs.text !== "" ? m("span.pr", ",") : null,
@@ -60,7 +59,7 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 					})
 				},
 				injectionsRight: () => attrs.injectionsRight ?? null,
-				oncreate: vnode => {
+				oncreate: (vnode) => {
 					// If the field is initialized with bubbles but the user did not edit it yet then field will not have correct size
 					// and last bubble will not be on the same line with right injections (like "show" button). It is fixed after user
 					// edits the field and autocompletion changes the field but before that it's broken. To avoid it we set the size
@@ -72,7 +71,7 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 						if (this.domInput) this.domInput.size = 1
 					})
 				},
-				onDomInputCreated: dom => this.domInput = dom,
+				onDomInputCreated: (dom) => (this.domInput = dom),
 				onfocus: () => {
 					this.active = true
 					attrs.onFocus()
@@ -81,7 +80,7 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 					this.active = false
 					attrs.onBlur()
 				},
-				keyHandler: key => {
+				keyHandler: (key) => {
 					switch (key.keyCode) {
 						case Keys.BACKSPACE.code:
 							return attrs.onBackspace()
@@ -96,7 +95,7 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 							return attrs.onDownKey()
 					}
 					return true
-				}
+				},
 			}),
 		])
 	}

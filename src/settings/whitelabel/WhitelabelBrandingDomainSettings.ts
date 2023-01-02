@@ -1,21 +1,21 @@
-import {TextField} from "../../gui/base/TextField.js"
-import {Dialog} from "../../gui/base/Dialog"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {neverNull} from "@tutao/tutanota-utils"
-import {PreconditionFailedError} from "../../api/common/error/RestError"
-import {Icons} from "../../gui/base/icons/Icons"
-import {logins} from "../../api/main/LoginController"
-import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
-import {showWhitelabelBuyDialog} from "../../subscription/BuyDialog"
+import { TextField } from "../../gui/base/TextField.js"
+import { Dialog } from "../../gui/base/Dialog"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import { neverNull } from "@tutao/tutanota-utils"
+import { PreconditionFailedError } from "../../api/common/error/RestError"
+import { Icons } from "../../gui/base/icons/Icons"
+import { logins } from "../../api/main/LoginController"
+import { showNotAvailableForFreeDialog } from "../../misc/SubscriptionDialogs"
+import { showWhitelabelBuyDialog } from "../../subscription/BuyDialog"
 import * as SetCustomDomainCertificateDialog from "../SetDomainCertificateDialog"
-import {lang} from "../../misc/LanguageViewModel"
-import m, {Children, Component, Vnode} from "mithril"
-import type {CertificateInfo, CustomerInfo} from "../../api/entities/sys/TypeRefs.js"
-import {CertificateState, CertificateType} from "../../api/common/TutanotaConstants"
-import {formatDateTime} from "../../misc/Formatter"
-import {locator} from "../../api/main/MainLocator"
-import {IconButton} from "../../gui/base/IconButton.js"
-import {ButtonSize} from "../../gui/base/ButtonSize.js"
+import { lang } from "../../misc/LanguageViewModel"
+import m, { Children, Component, Vnode } from "mithril"
+import type { CertificateInfo, CustomerInfo } from "../../api/entities/sys/TypeRefs.js"
+import { CertificateState, CertificateType } from "../../api/common/TutanotaConstants"
+import { formatDateTime } from "../../misc/Formatter"
+import { locator } from "../../api/main/MainLocator"
+import { IconButton } from "../../gui/base/IconButton.js"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
 
 export type WhitelabelBrandingDomainSettingsAttrs = {
 	customerInfo: CustomerInfo
@@ -29,16 +29,17 @@ const FAILURE_CONTACT_FORM_ACTIVE = "domain.contact_form_active"
 
 export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBrandingDomainSettingsAttrs> {
 	view(vnode: Vnode<WhitelabelBrandingDomainSettingsAttrs>): Children {
-		const {customerInfo, certificateInfo, whitelabelDomain, isWhitelabelFeatureEnabled} = vnode.attrs
+		const { customerInfo, certificateInfo, whitelabelDomain, isWhitelabelFeatureEnabled } = vnode.attrs
 		return m(TextField, {
 			label: "whitelabelDomain_label",
 			value: whitelabelDomain ? whitelabelDomain : lang.get("deactivated_label"),
 			helpLabel: this.renderWhitelabelInfo(certificateInfo),
 			disabled: true,
-			injectionsRight: () => m(".ml-between-s", [
-				whitelabelDomain ? this.renderDeactivateButton(whitelabelDomain) : null,
-				customerInfo ? this._renderEditButton(customerInfo, certificateInfo, isWhitelabelFeatureEnabled) : null,
-			]),
+			injectionsRight: () =>
+				m(".ml-between-s", [
+					whitelabelDomain ? this.renderDeactivateButton(whitelabelDomain) : null,
+					customerInfo ? this._renderEditButton(customerInfo, certificateInfo, isWhitelabelFeatureEnabled) : null,
+				]),
 		})
 	}
 
@@ -60,7 +61,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 					if (e.data === FAILURE_LOCKED) {
 						return await Dialog.message("operationStillActive_msg")
 					} else if (e.data === FAILURE_CONTACT_FORM_ACTIVE) {
-						return await Dialog.message(() => lang.get("domainStillHasContactForms_msg", {"{domain}": whitelabelDomain}))
+						return await Dialog.message(() => lang.get("domainStillHasContactForms_msg", { "{domain}": whitelabelDomain }))
 					}
 				}
 				throw e
@@ -82,7 +83,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 			showNotAvailableForFreeDialog(false)
 		} else {
 			const whitelabelFailedPromise: Promise<boolean> = isWhitelabelFeatureEnabled ? Promise.resolve(false) : showWhitelabelBuyDialog(true)
-			whitelabelFailedPromise.then(failed => {
+			whitelabelFailedPromise.then((failed) => {
 				if (!failed) {
 					SetCustomDomainCertificateDialog.show(customerInfo)
 				}
@@ -122,7 +123,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 		return () =>
 			m(
 				".flex",
-				components.map(c => m(".pr-s", c)),
+				components.map((c) => m(".pr-s", c)),
 			)
 	}
 

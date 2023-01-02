@@ -1,8 +1,8 @@
 import o from "ospec"
-import {random} from "../lib/random/Randomizer.js"
+import { random } from "../lib/random/Randomizer.js"
 import sjcl from "../lib/internal/sjcl.js"
-import {CryptoError} from "../lib/misc/CryptoError.js"
-import {assertThrows} from "@tutao/tutanota-test-utils";
+import { CryptoError } from "../lib/misc/CryptoError.js"
+import { assertThrows } from "@tutao/tutanota-test-utils"
 
 o.spec("Randomizer", function () {
 	o.beforeEach(function () {
@@ -63,7 +63,7 @@ o.spec("Randomizer", function () {
 
 		for (var i = 1; i <= runs; i++) {
 			let r = random.generateRandomData(bytesPerRun)
-			r.forEach(number => {
+			r.forEach((number) => {
 				results[number]++
 
 				if (number >= 128) {
@@ -74,7 +74,7 @@ o.spec("Randomizer", function () {
 			})
 		}
 
-		results.forEach(count => {
+		results.forEach((count) => {
 			o(count >= 500).equals(true) // uniform distribution would mean that each possible number occured 625 times (80%)
 		})
 		let lowerHalfPercent = (100 / (runs * bytesPerRun)) * lowerHalfCount

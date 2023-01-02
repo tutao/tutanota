@@ -1,16 +1,16 @@
-import m, {Children, Component} from "mithril"
-import {logins} from "../api/main/LoginController"
-import type {PositionRect} from "./base/Overlay"
-import {displayOverlay} from "./base/Overlay"
-import {px, size} from "./size"
-import {Icons} from "./base/icons/Icons"
-import {assertMainOrNode} from "../api/common/Env"
-import {lang} from "../misc/LanguageViewModel"
-import {transform, TransformEnum} from "./animation/Animations"
-import {Button, ButtonType} from "./base/Button.js"
-import {Keys} from "../api/common/TutanotaConstants"
-import {locator} from "../api/main/MainLocator"
-import {ElectronResult} from "../native/common/generatedipc/ElectronResult.js"
+import m, { Children, Component } from "mithril"
+import { logins } from "../api/main/LoginController"
+import type { PositionRect } from "./base/Overlay"
+import { displayOverlay } from "./base/Overlay"
+import { px, size } from "./size"
+import { Icons } from "./base/icons/Icons"
+import { assertMainOrNode } from "../api/common/Env"
+import { lang } from "../misc/LanguageViewModel"
+import { transform, TransformEnum } from "./animation/Animations"
+import { Button, ButtonType } from "./base/Button.js"
+import { Keys } from "../api/common/TutanotaConstants"
+import { locator } from "../api/main/MainLocator"
+import { ElectronResult } from "../native/common/generatedipc/ElectronResult.js"
 
 assertMainOrNode()
 
@@ -36,8 +36,8 @@ export class SearchInPageOverlay {
 				this._closeFunction = displayOverlay(
 					() => this._getRect(),
 					this._getComponent(),
-					dom => transform(TransformEnum.TranslateY, dom.offsetHeight, 0),
-					dom => transform(TransformEnum.TranslateY, 0, dom.offsetHeight),
+					(dom) => transform(TransformEnum.TranslateY, dom.offsetHeight, 0),
+					(dom) => transform(TransformEnum.TranslateY, 0, dom.offsetHeight),
 				)
 			} else {
 				//already open, refocus
@@ -76,7 +76,7 @@ export class SearchInPageOverlay {
 			"input#search-overlay-input.dropdown-bar.elevated-bg.pl-l.button-height.inputWrapper",
 			{
 				placeholder: lang.get("searchPage_action"),
-				oncreate: vnode => {
+				oncreate: (vnode) => {
 					this._domInput = vnode.dom as HTMLInputElement
 
 					this._domInput.focus()
@@ -113,7 +113,7 @@ export class SearchInPageOverlay {
 			this._numberOfMatches = 0
 			this._currentMatch = 0
 		} else {
-			const {activeMatchOrdinal, matches} = result
+			const { activeMatchOrdinal, matches } = result
 
 			if (matches === 1) {
 				/* the search bar loses focus without any events when there

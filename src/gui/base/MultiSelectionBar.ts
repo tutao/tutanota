@@ -1,6 +1,6 @@
-import {Icons} from "./icons/Icons"
-import m, {Children, Vnode} from "mithril"
-import {IconButton} from "./IconButton.js"
+import { Icons } from "./icons/Icons"
+import m, { Children, Vnode } from "mithril"
+import { IconButton } from "./IconButton.js"
 
 interface MultiSelectionBarAttrs {
 	selectNoneHandler: () => void
@@ -24,7 +24,7 @@ export class MultiSelectionBar {
 					icon: Icons.Cancel,
 				}),
 				m(".ml-s.b", vnode.attrs.text),
-				vnode.children
+				vnode.children,
 			],
 		)
 	}

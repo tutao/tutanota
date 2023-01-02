@@ -1,12 +1,12 @@
 import o from "ospec"
-import {createMailFolder} from "../../../../src/api/entities/tutanota/TypeRefs.js"
-import {MailFolderType} from "../../../../src/api/common/TutanotaConstants.js"
-import {FolderSystem} from "../../../../src/mail/model/FolderSystem.js"
+import { createMailFolder } from "../../../../src/api/entities/tutanota/TypeRefs.js"
+import { MailFolderType } from "../../../../src/api/common/TutanotaConstants.js"
+import { FolderSystem } from "../../../../src/mail/model/FolderSystem.js"
 
 o.spec("FolderSystem", function () {
 	const listId = "listId"
-	const inbox = createMailFolder({_id: [listId, "inbox"], folderType: MailFolderType.INBOX})
-	const archive = createMailFolder({_id: [listId, "archive"], folderType: MailFolderType.ARCHIVE})
+	const inbox = createMailFolder({ _id: [listId, "inbox"], folderType: MailFolderType.INBOX })
+	const archive = createMailFolder({ _id: [listId, "archive"], folderType: MailFolderType.ARCHIVE })
 	const customFolder = createMailFolder({
 		_id: [listId, "custom"],
 		folderType: MailFolderType.CUSTOM,
@@ -17,7 +17,7 @@ o.spec("FolderSystem", function () {
 		folderType: MailFolderType.CUSTOM,
 		parentFolder: customFolder._id,
 		name: "AA",
-		mails: "customSubMailList"
+		mails: "customSubMailList",
 	})
 	const customSubSubfolder = createMailFolder({
 		_id: [listId, "customSubSub"],
@@ -38,8 +38,8 @@ o.spec("FolderSystem", function () {
 		const system = new FolderSystem(allFolders)
 
 		o(system.systemSubtrees).deepEquals([
-			{folder: inbox, children: []},
-			{folder: archive, children: []},
+			{ folder: inbox, children: [] },
+			{ folder: archive, children: [] },
 		])("system subtrees")
 		o(system.customSubtrees).deepEquals([
 			{
@@ -48,12 +48,12 @@ o.spec("FolderSystem", function () {
 					{
 						folder: customSubfolder,
 						children: [
-							{folder: customSubSubfolderAnother, children: []},
-							{folder: customSubSubfolder, children: []}
-						]
-					}
-				]
-			}
+							{ folder: customSubSubfolderAnother, children: [] },
+							{ folder: customSubSubfolder, children: [] },
+						],
+					},
+				],
+			},
 		])("custom subtrees")
 	})
 
@@ -61,12 +61,12 @@ o.spec("FolderSystem", function () {
 		const system = new FolderSystem(allFolders)
 
 		o(system.getIndentedList()).deepEquals([
-			{level: 0, folder: inbox},
-			{level: 0, folder: archive},
-			{level: 0, folder: customFolder},
-			{level: 1, folder: customSubfolder},
-			{level: 2, folder: customSubSubfolderAnother},
-			{level: 2, folder: customSubSubfolder},
+			{ level: 0, folder: inbox },
+			{ level: 0, folder: archive },
+			{ level: 0, folder: customFolder },
+			{ level: 1, folder: customSubfolder },
+			{ level: 2, folder: customSubSubfolderAnother },
+			{ level: 2, folder: customSubSubfolder },
 		])
 	})
 
@@ -86,14 +86,14 @@ o.spec("FolderSystem", function () {
 		const system = new FolderSystem([...allFolders, customFolderAnother, customFolderAnotherSub])
 
 		o(system.getIndentedList()).deepEquals([
-			{level: 0, folder: inbox},
-			{level: 0, folder: archive},
-			{level: 0, folder: customFolderAnother},
-			{level: 1, folder: customFolderAnotherSub},
-			{level: 0, folder: customFolder},
-			{level: 1, folder: customSubfolder},
-			{level: 2, folder: customSubSubfolderAnother},
-			{level: 2, folder: customSubSubfolder},
+			{ level: 0, folder: inbox },
+			{ level: 0, folder: archive },
+			{ level: 0, folder: customFolderAnother },
+			{ level: 1, folder: customFolderAnotherSub },
+			{ level: 0, folder: customFolder },
+			{ level: 1, folder: customSubfolder },
+			{ level: 2, folder: customSubSubfolderAnother },
+			{ level: 2, folder: customSubSubfolder },
 		])
 	})
 

@@ -1,57 +1,57 @@
-import m, {Children} from "mithril"
-import type {CurrentView} from "../../gui/Header.js"
-import {header} from "../../gui/Header.js"
-import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
-import {lang, TranslationKey} from "../../misc/LanguageViewModel"
-import {ViewSlider} from "../../gui/nav/ViewSlider.js"
-import type {Shortcut} from "../../misc/KeyManager"
-import {keyManager} from "../../misc/KeyManager"
-import {Icons} from "../../gui/base/icons/Icons"
-import {downcast, incrementDate, LazyLoaded, memoized, ofClass} from "@tutao/tutanota-utils"
-import type {CalendarEvent, GroupSettings, UserSettingsGroupRoot} from "../../api/entities/tutanota/TypeRefs.js"
-import {CalendarEventTypeRef, createGroupSettings} from "../../api/entities/tutanota/TypeRefs.js"
-import {logins} from "../../api/main/LoginController"
-import {defaultCalendarColor, GroupType, Keys, ShareCapability, TimeFormat} from "../../api/common/TutanotaConstants"
-import {locator} from "../../api/main/MainLocator"
-import {getEventStart, getStartOfTheWeekOffset, getStartOfWeek, getTimeZone, shouldDefaultToAmPmTimeFormat} from "../date/CalendarUtils"
-import {Button, ButtonColor, ButtonType} from "../../gui/base/Button.js"
-import {formatDateWithWeekday, formatDateWithWeekdayAndYearLong, formatMonthWithFullYear} from "../../misc/Formatter"
-import {NavButton, NavButtonColor} from "../../gui/base/NavButton.js"
-import {CalendarMonthView} from "./CalendarMonthView"
-import {DateTime} from "luxon"
-import {NotFoundError} from "../../api/common/error/RestError"
-import {CalendarAgendaView} from "./CalendarAgendaView"
-import type {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
-import {showEditCalendarDialog} from "./EditCalendarDialog"
-import {styles} from "../../gui/styles"
-import {MultiDayCalendarView} from "./MultiDayCalendarView"
-import {Dialog} from "../../gui/base/Dialog"
-import {isApp} from "../../api/common/Env"
-import {size} from "../../gui/size"
-import {FolderColumnView} from "../../gui/FolderColumnView.js"
-import {deviceConfig} from "../../misc/DeviceConfig"
-import {exportCalendar, showCalendarImportDialog} from "../export/CalendarImporterDialog"
-import {CalendarEventViewModel, createCalendarEventViewModel} from "../date/CalendarEventViewModel"
-import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
-import {getSharedGroupName, hasCapabilityOnGroup, loadGroupMembers} from "../../sharing/GroupUtils"
-import {showGroupSharingDialog} from "../../sharing/view/GroupSharingDialog"
-import {GroupInvitationFolderRow} from "../../sharing/view/GroupInvitationFolderRow"
-import {SidebarSection} from "../../gui/SidebarSection"
-import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
-import {ProgrammingError} from "../../api/common/error/ProgrammingError"
-import {renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton} from "./CalendarGuiUtils"
-import {CalendarViewModel, CalendarViewType, CalendarViewTypeByValue, MouseOrPointerEvent} from "./CalendarViewModel"
-import {showCalendarEventDialog} from "./CalendarEventEditDialog"
-import {CalendarEventPopup} from "./CalendarEventPopup"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import type {CalendarInfo} from "../model/CalendarModel"
-import {ReceivedGroupInvitationsModel} from "../../sharing/model/ReceivedGroupInvitationsModel"
-import {client} from "../../misc/ClientDetector"
+import m, { Children } from "mithril"
+import type { CurrentView } from "../../gui/Header.js"
+import { header } from "../../gui/Header.js"
+import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
+import { lang, TranslationKey } from "../../misc/LanguageViewModel"
+import { ViewSlider } from "../../gui/nav/ViewSlider.js"
+import type { Shortcut } from "../../misc/KeyManager"
+import { keyManager } from "../../misc/KeyManager"
+import { Icons } from "../../gui/base/icons/Icons"
+import { downcast, incrementDate, LazyLoaded, memoized, ofClass } from "@tutao/tutanota-utils"
+import type { CalendarEvent, GroupSettings, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
+import { CalendarEventTypeRef, createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
+import { logins } from "../../api/main/LoginController"
+import { defaultCalendarColor, GroupType, Keys, ShareCapability, TimeFormat } from "../../api/common/TutanotaConstants"
+import { locator } from "../../api/main/MainLocator"
+import { getEventStart, getStartOfTheWeekOffset, getStartOfWeek, getTimeZone, shouldDefaultToAmPmTimeFormat } from "../date/CalendarUtils"
+import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
+import { formatDateWithWeekday, formatDateWithWeekdayAndYearLong, formatMonthWithFullYear } from "../../misc/Formatter"
+import { NavButton, NavButtonColor } from "../../gui/base/NavButton.js"
+import { CalendarMonthView } from "./CalendarMonthView"
+import { DateTime } from "luxon"
+import { NotFoundError } from "../../api/common/error/RestError"
+import { CalendarAgendaView } from "./CalendarAgendaView"
+import type { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
+import { showEditCalendarDialog } from "./EditCalendarDialog"
+import { styles } from "../../gui/styles"
+import { MultiDayCalendarView } from "./MultiDayCalendarView"
+import { Dialog } from "../../gui/base/Dialog"
+import { isApp } from "../../api/common/Env"
+import { size } from "../../gui/size"
+import { FolderColumnView } from "../../gui/FolderColumnView.js"
+import { deviceConfig } from "../../misc/DeviceConfig"
+import { exportCalendar, showCalendarImportDialog } from "../export/CalendarImporterDialog"
+import { CalendarEventViewModel, createCalendarEventViewModel } from "../date/CalendarEventViewModel"
+import { showNotAvailableForFreeDialog } from "../../misc/SubscriptionDialogs"
+import { getSharedGroupName, hasCapabilityOnGroup, loadGroupMembers } from "../../sharing/GroupUtils"
+import { showGroupSharingDialog } from "../../sharing/view/GroupSharingDialog"
+import { GroupInvitationFolderRow } from "../../sharing/view/GroupInvitationFolderRow"
+import { SidebarSection } from "../../gui/SidebarSection"
+import type { HtmlSanitizer } from "../../misc/HtmlSanitizer"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError"
+import { renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton } from "./CalendarGuiUtils"
+import { CalendarViewModel, CalendarViewType, CalendarViewTypeByValue, MouseOrPointerEvent } from "./CalendarViewModel"
+import { showCalendarEventDialog } from "./CalendarEventEditDialog"
+import { CalendarEventPopup } from "./CalendarEventPopup"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import type { CalendarInfo } from "../model/CalendarModel"
+import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel"
+import { client } from "../../misc/ClientDetector"
 import type Stream from "mithril/stream"
-import {IconButton} from "../../gui/base/IconButton.js"
-import {createDropdown} from "../../gui/base/Dropdown.js"
-import {ButtonSize} from "../../gui/base/ButtonSize.js"
-import {BottomNav} from "../../gui/nav/BottomNav.js"
+import { IconButton } from "../../gui/base/IconButton.js"
+import { createDropdown } from "../../gui/base/Dropdown.js"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { BottomNav } from "../../gui/nav/BottomNav.js"
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 export type GroupColors = Map<Id, string>
@@ -84,7 +84,7 @@ export class CalendarView implements CurrentView {
 			calendarInvitations,
 		)
 		this._currentViewType = deviceConfig.getDefaultCalendarView(userId) || CalendarViewType.MONTH
-		this._htmlSanitizer = import("../../misc/HtmlSanitizer").then(m => m.htmlSanitizer)
+		this._htmlSanitizer = import("../../misc/HtmlSanitizer").then((m) => m.htmlSanitizer)
 		this.sidebarColumn = new ViewColumn(
 			{
 				view: () =>
@@ -92,9 +92,9 @@ export class CalendarView implements CurrentView {
 						button: styles.isUsingBottomNavigation()
 							? null
 							: {
-								label: "newEvent_action",
-								click: () => this._createNewEventDialog(),
-							},
+									label: "newEvent_action",
+									click: () => this._createNewEventDialog(),
+							  },
 						content: [
 							m(
 								SidebarSection,
@@ -109,8 +109,8 @@ export class CalendarView implements CurrentView {
 													},
 													colors: ButtonColor.Nav,
 													type: ButtonType.Primary,
-												}
-											) : null,
+											  })
+											: null,
 								},
 								this._renderCalendarViewButtons(),
 							),
@@ -137,16 +137,16 @@ export class CalendarView implements CurrentView {
 							),
 							this._calendarViewModel.calendarInvitations().length > 0
 								? m(
-									SidebarSection,
-									{
-										name: "calendarInvitations_label",
-									},
-									this._calendarViewModel.calendarInvitations().map(invitation =>
-										m(GroupInvitationFolderRow, {
-											invitation,
-										}),
-									),
-								)
+										SidebarSection,
+										{
+											name: "calendarInvitations_label",
+										},
+										this._calendarViewModel.calendarInvitations().map((invitation) =>
+											m(GroupInvitationFolderRow, {
+												invitation,
+											}),
+										),
+								  )
 								: null,
 						],
 						ariaLabel: "calendar_label",
@@ -175,14 +175,14 @@ export class CalendarView implements CurrentView {
 								eventsForDays: this._calendarViewModel.eventsForDays,
 								getEventsOnDays: this._calendarViewModel.getEventsOnDays.bind(this._calendarViewModel),
 								onEventClicked: (calendarEvent, domEvent) => this._onEventSelected(calendarEvent, domEvent, this._htmlSanitizer),
-								onNewEvent: date => {
+								onNewEvent: (date) => {
 									this._createNewEventDialog(date)
 								},
 								selectedDate: this._calendarViewModel.selectedDate(),
 								onDateSelected: (date, calendarViewType) => {
 									this._setUrl(calendarViewType, date)
 								},
-								onChangeMonth: next => this._viewPeriod(next, CalendarViewType.MONTH),
+								onChangeMonth: (next) => this._viewPeriod(next, CalendarViewType.MONTH),
 								amPmFormat: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS,
 								startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 								groupColors,
@@ -197,11 +197,11 @@ export class CalendarView implements CurrentView {
 								renderHeaderText: formatDateWithWeekdayAndYearLong,
 								daysInPeriod: 1,
 								onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this._htmlSanitizer),
-								onNewEvent: date => {
+								onNewEvent: (date) => {
 									this._createNewEventDialog(date)
 								},
 								selectedDate: this._calendarViewModel.selectedDate(),
-								onDateSelected: date => {
+								onDateSelected: (date) => {
 									this._calendarViewModel.selectedDate(date)
 
 									m.redraw()
@@ -210,7 +210,7 @@ export class CalendarView implements CurrentView {
 								},
 								groupColors,
 								hiddenCalendars: this._calendarViewModel.hiddenCalendars,
-								onChangeViewPeriod: next => this._viewPeriod(next, CalendarViewType.DAY),
+								onChangeViewPeriod: (next) => this._viewPeriod(next, CalendarViewType.DAY),
 								startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 								dragHandlerCallbacks: this._calendarViewModel,
 							})
@@ -220,7 +220,7 @@ export class CalendarView implements CurrentView {
 								temporaryEvents: this._calendarViewModel.temporaryEvents,
 								getEventsOnDays: this._calendarViewModel.getEventsOnDays.bind(this._calendarViewModel),
 								daysInPeriod: 7,
-								renderHeaderText: date => {
+								renderHeaderText: (date) => {
 									const startOfTheWeekOffset = getStartOfTheWeekOffset(
 										downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 									)
@@ -236,7 +236,7 @@ export class CalendarView implements CurrentView {
 									}
 								},
 								onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this._htmlSanitizer),
-								onNewEvent: date => {
+								onNewEvent: (date) => {
 									this._createNewEventDialog(date)
 								},
 								selectedDate: this._calendarViewModel.selectedDate(),
@@ -246,7 +246,7 @@ export class CalendarView implements CurrentView {
 								startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 								groupColors,
 								hiddenCalendars: this._calendarViewModel.hiddenCalendars,
-								onChangeViewPeriod: next => this._viewPeriod(next, CalendarViewType.WEEK),
+								onChangeViewPeriod: (next) => this._viewPeriod(next, CalendarViewType.WEEK),
 								dragHandlerCallbacks: this._calendarViewModel,
 							})
 
@@ -257,7 +257,7 @@ export class CalendarView implements CurrentView {
 								onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this._htmlSanitizer),
 								groupColors,
 								hiddenCalendars: this._calendarViewModel.hiddenCalendars,
-								onDateSelected: date => {
+								onDateSelected: (date) => {
 									this._setUrl(CalendarViewType.DAY, date)
 								},
 							})
@@ -385,7 +385,7 @@ export class CalendarView implements CurrentView {
 				p = locator.entityClient.load(CalendarEventTypeRef, event._id)
 			}
 
-			p.then(e => showCalendarEventDialog(getEventStart(e, getTimeZone()), calendarInfos, mailboxDetails, e)).catch(
+			p.then((e) => showCalendarEventDialog(getEventStart(e, getTimeZone()), calendarInfos, mailboxDetails, e)).catch(
 				ofClass(NotFoundError, () => {
 					console.log("calendar event not found when clicking on the event")
 				}),
@@ -434,7 +434,7 @@ export class CalendarView implements CurrentView {
 	}
 
 	_renderCalendarViewButtons(): Children {
-		const calendarViewValues: Array<{name: string, value: CalendarViewType, icon: Icons, href: string}> = [
+		const calendarViewValues: Array<{ name: string; value: CalendarViewType; icon: Icons; href: string }> = [
 			{
 				name: lang.get("month_label"),
 				value: CalendarViewType.MONTH,
@@ -467,7 +467,7 @@ export class CalendarView implements CurrentView {
 			})
 		}
 
-		return calendarViewValues.map(viewType =>
+		return calendarViewValues.map((viewType) =>
 			m(
 				".folder-row.flex-start.plr-l", // undo the padding of NavButton and prevent .folder-row > a from selecting NavButton
 				m(
@@ -523,8 +523,8 @@ export class CalendarView implements CurrentView {
 			this._showCreateCalendarDialog()
 		} else {
 			import("../../misc/SubscriptionDialogs")
-				.then(SubscriptionDialogUtils => SubscriptionDialogUtils.checkPremiumSubscription(true))
-				.then(ok => {
+				.then((SubscriptionDialogUtils) => SubscriptionDialogUtils.checkPremiumSubscription(true))
+				.then((ok) => {
 					if (ok) {
 						this._showCreateCalendarDialog()
 					}
@@ -550,43 +550,43 @@ export class CalendarView implements CurrentView {
 	_renderCalendars(shared: boolean): Children {
 		return this._calendarViewModel.calendarInfos.isLoaded()
 			? Array.from(this._calendarViewModel.calendarInfos.getLoaded().values())
-				   .filter(calendarInfo => calendarInfo.shared === shared)
-				   .map(calendarInfo => {
-					   const {userSettingsGroupRoot} = logins.getUserController()
-					   const existingGroupSettings = userSettingsGroupRoot.groupSettings.find(gc => gc.group === calendarInfo.groupInfo.group) ?? null
-					   const colorValue = "#" + (existingGroupSettings ? existingGroupSettings.color : defaultCalendarColor)
-					   const groupRootId = calendarInfo.groupRoot._id
-					   return m(".folder-row.flex-start.plr-l", [
-						   m(".flex.flex-grow.center-vertically.button-height", [
-							   m(".calendar-checkbox", {
-								   onclick: () => {
-									   const newHiddenCalendars = new Set(this._calendarViewModel.hiddenCalendars)
-									   this._calendarViewModel.hiddenCalendars.has(groupRootId)
-										   ? newHiddenCalendars.delete(groupRootId)
-										   : newHiddenCalendars.add(groupRootId)
+					.filter((calendarInfo) => calendarInfo.shared === shared)
+					.map((calendarInfo) => {
+						const { userSettingsGroupRoot } = logins.getUserController()
+						const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? null
+						const colorValue = "#" + (existingGroupSettings ? existingGroupSettings.color : defaultCalendarColor)
+						const groupRootId = calendarInfo.groupRoot._id
+						return m(".folder-row.flex-start.plr-l", [
+							m(".flex.flex-grow.center-vertically.button-height", [
+								m(".calendar-checkbox", {
+									onclick: () => {
+										const newHiddenCalendars = new Set(this._calendarViewModel.hiddenCalendars)
+										this._calendarViewModel.hiddenCalendars.has(groupRootId)
+											? newHiddenCalendars.delete(groupRootId)
+											: newHiddenCalendars.add(groupRootId)
 
-									   this._calendarViewModel.setHiddenCalendars(newHiddenCalendars)
-								   },
-								   style: {
-									   "border-color": colorValue,
-									   background: this._calendarViewModel.hiddenCalendars.has(groupRootId) ? "" : colorValue,
-									   transition: "all 0.3s",
-									   cursor: "pointer",
-								   },
-							   }),
-							   m(
-								   ".pl-m.b.flex-grow.text-ellipsis",
-								   {
-									   style: {
-										   width: 0,
-									   },
-								   },
-								   getSharedGroupName(calendarInfo.groupInfo, shared),
-							   ),
-						   ]),
-						   this._createCalendarActionDropdown(calendarInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, shared),
-					   ])
-				   })
+										this._calendarViewModel.setHiddenCalendars(newHiddenCalendars)
+									},
+									style: {
+										"border-color": colorValue,
+										background: this._calendarViewModel.hiddenCalendars.has(groupRootId) ? "" : colorValue,
+										transition: "all 0.3s",
+										cursor: "pointer",
+									},
+								}),
+								m(
+									".pl-m.b.flex-grow.text-ellipsis",
+									{
+										style: {
+											width: 0,
+										},
+									},
+									getSharedGroupName(calendarInfo.groupInfo, shared),
+								),
+							]),
+							this._createCalendarActionDropdown(calendarInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, shared),
+						])
+					})
 			: null
 	}
 
@@ -597,81 +597,87 @@ export class CalendarView implements CurrentView {
 		userSettingsGroupRoot: UserSettingsGroupRoot,
 		sharedCalendar: boolean,
 	): Children {
-		const {group, groupInfo, groupRoot} = calendarInfo
+		const { group, groupInfo, groupRoot } = calendarInfo
 		const user = logins.getUserController().user
 		return m(IconButton, {
-				title: "more_label",
-				colors: ButtonColor.Nav,
-				icon: Icons.More,
-				size: ButtonSize.Compact,
-				click: createDropdown({
-					lazyButtons: () => [
-						{
-							label: "edit_action",
-							icon: Icons.Edit,
-							size: ButtonSize.Compact,
-							click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, sharedCalendar),
+			title: "more_label",
+			colors: ButtonColor.Nav,
+			icon: Icons.More,
+			size: ButtonSize.Compact,
+			click: createDropdown({
+				lazyButtons: () => [
+					{
+						label: "edit_action",
+						icon: Icons.Edit,
+						size: ButtonSize.Compact,
+						click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, sharedCalendar),
+					},
+					{
+						label: "sharing_label",
+						icon: Icons.ContactImport,
+						click: () => {
+							if (logins.getUserController().isFreeAccount()) {
+								showNotAvailableForFreeDialog(false)
+							} else {
+								showGroupSharingDialog(groupInfo, sharedCalendar)
+							}
 						},
-						{
-							label: "sharing_label",
-							icon: Icons.ContactImport,
-							click: () => {
-								if (logins.getUserController().isFreeAccount()) {
-									showNotAvailableForFreeDialog(false)
-								} else {
-									showGroupSharingDialog(groupInfo, sharedCalendar)
-								}
-							},
-						},
-						!isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Write)
-							? {
+					},
+					!isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Write)
+						? {
 								label: "import_action",
 								icon: Icons.Import,
 								click: () => showCalendarImportDialog(groupRoot),
-							}
-							: null,
-						!isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Read)
-							? {
+						  }
+						: null,
+					!isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Read)
+						? {
 								label: "export_action",
 								icon: Icons.Export,
 								click: () => {
 									const alarmInfoList = user.alarmInfoList
 									alarmInfoList &&
-									exportCalendar(getSharedGroupName(groupInfo, sharedCalendar), groupRoot, alarmInfoList.alarms, new Date(), getTimeZone())
+										exportCalendar(
+											getSharedGroupName(groupInfo, sharedCalendar),
+											groupRoot,
+											alarmInfoList.alarms,
+											new Date(),
+											getTimeZone(),
+										)
 								},
-							}
-							: null,
-						!sharedCalendar
-							? {
+						  }
+						: null,
+					!sharedCalendar
+						? {
 								label: "delete_action",
 								icon: Icons.Trash,
 								click: () => this._confirmDeleteCalendar(calendarInfo),
-							}
-							: null,
-					],
-				})
-			}
-		)
+						  }
+						: null,
+				],
+			}),
+		})
 	}
 
 	_confirmDeleteCalendar(calendarInfo: CalendarInfo) {
 		const calendarName = getSharedGroupName(calendarInfo.groupInfo, false)
-		loadGroupMembers(calendarInfo.group, locator.entityClient).then(members => {
+		loadGroupMembers(calendarInfo.group, locator.entityClient).then((members) => {
 			const ownerMail = logins.getUserController().userGroupInfo.mailAddress
-			const otherMembers = members.filter(member => member.info.mailAddress !== ownerMail)
+			const otherMembers = members.filter((member) => member.info.mailAddress !== ownerMail)
 			Dialog.confirm(
 				() =>
 					(otherMembers.length > 0
 						? lang.get("deleteSharedCalendarConfirm_msg", {
-						"{calendar}": calendarName,
-					}) + " "
+								"{calendar}": calendarName,
+						  }) + " "
 						: "") +
 					lang.get("deleteCalendarConfirm_msg", {
 						"{calendar}": calendarName,
 					}),
-			).then(confirmed => {
+			).then((confirmed) => {
 				if (confirmed) {
-					this._calendarViewModel.deleteCalendar(calendarInfo)
+					this._calendarViewModel
+						.deleteCalendar(calendarInfo)
 						.catch(ofClass(NotFoundError, () => console.log("Calendar to be deleted was not found.")))
 				}
 			})
@@ -719,10 +725,13 @@ export class CalendarView implements CurrentView {
 	}
 
 	view(): Children {
-		return m(".main-view", m(this.viewSlider, {
-			header: m(header),
-			bottomNav: m(BottomNav),
-		}))
+		return m(
+			".main-view",
+			m(this.viewSlider, {
+				header: m(header),
+				bottomNav: m(BottomNav),
+			}),
+		)
 	}
 
 	updateUrl(args: Record<string, any>) {

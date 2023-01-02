@@ -1,17 +1,17 @@
-import type {Language, LanguageCode} from "../misc/LanguageViewModel"
-import {lang, languageByCode, languages} from "../misc/LanguageViewModel"
-import type {EmailTemplateContent} from "../api/entities/tutanota/TypeRefs.js"
-import type {EmailTemplate} from "../api/entities/tutanota/TypeRefs.js"
-import {createEmailTemplateContent} from "../api/entities/tutanota/TypeRefs.js"
-import {clone, downcast} from "@tutao/tutanota-utils"
-import type {TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
-import {createEmailTemplate, EmailTemplateTypeRef} from "../api/entities/tutanota/TypeRefs.js"
+import type { Language, LanguageCode } from "../misc/LanguageViewModel"
+import { lang, languageByCode, languages } from "../misc/LanguageViewModel"
+import type { EmailTemplateContent } from "../api/entities/tutanota/TypeRefs.js"
+import type { EmailTemplate } from "../api/entities/tutanota/TypeRefs.js"
+import { createEmailTemplateContent } from "../api/entities/tutanota/TypeRefs.js"
+import { clone, downcast } from "@tutao/tutanota-utils"
+import type { TemplateGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
+import { createEmailTemplate, EmailTemplateTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import stream from "mithril/stream"
-import {difference, getFirstOrThrow, remove} from "@tutao/tutanota-utils"
-import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
-import type {EntityClient} from "../api/common/EntityClient"
-import {UserError} from "../api/main/UserError"
-import Stream from "mithril/stream";
+import { difference, getFirstOrThrow, remove } from "@tutao/tutanota-utils"
+import { getElementId, isSameId } from "../api/common/utils/EntityUtils"
+import type { EntityClient } from "../api/common/EntityClient"
+import { UserError } from "../api/main/UserError"
+import Stream from "mithril/stream"
 
 export class TemplateEditorModel {
 	template: EmailTemplate
@@ -75,19 +75,19 @@ export class TemplateEditorModel {
 	}
 
 	getAddedLanguages(): Array<Language> {
-		return this.template.contents.map(content => languageByCode[getLanguageCode(content)])
+		return this.template.contents.map((content) => languageByCode[getLanguageCode(content)])
 	}
 
 	tagAlreadyExists(): Promise<boolean> {
 		if (this.template._id) {
 			// the current edited template should not be included in find()
-			return this._entityClient.loadAll(EmailTemplateTypeRef, this._templateGroupRoot.templates).then(allTemplates => {
-				const filteredTemplates = allTemplates.filter(template => !isSameId(getElementId(this.template), getElementId(template)))
-				return !!filteredTemplates.find(template => template.tag.toLowerCase() === this.template.tag.toLowerCase())
+			return this._entityClient.loadAll(EmailTemplateTypeRef, this._templateGroupRoot.templates).then((allTemplates) => {
+				const filteredTemplates = allTemplates.filter((template) => !isSameId(getElementId(this.template), getElementId(template)))
+				return !!filteredTemplates.find((template) => template.tag.toLowerCase() === this.template.tag.toLowerCase())
 			})
 		} else {
-			return this._entityClient.loadAll(EmailTemplateTypeRef, this._templateGroupRoot.templates).then(allTemplates => {
-				return !!allTemplates.find(template => template.tag.toLowerCase() === this.template.tag.toLowerCase())
+			return this._entityClient.loadAll(EmailTemplateTypeRef, this._templateGroupRoot.templates).then((allTemplates) => {
+				return !!allTemplates.find((template) => template.tag.toLowerCase() === this.template.tag.toLowerCase())
 			})
 		}
 	}
@@ -104,7 +104,7 @@ export class TemplateEditorModel {
 		this.updateContent()
 		this.template.title = this.title().trim()
 		this.template.tag = this.tag().trim()
-		return this.tagAlreadyExists().then(async exists => {
+		return this.tagAlreadyExists().then(async (exists) => {
 			if (exists) {
 				return Promise.reject(new UserError("templateShortcutExists_msg"))
 			} else if (this.template._id) {

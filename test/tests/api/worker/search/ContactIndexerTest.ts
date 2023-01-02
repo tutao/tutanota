@@ -7,40 +7,36 @@ import {
 	createContactList,
 	createContactMailAddress,
 	createContactPhoneNumber,
-	createContactSocialId
+	createContactSocialId,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import {ContactIndexer} from "../../../../../src/api/worker/search/ContactIndexer.js"
-import {NotAuthorizedError, NotFoundError} from "../../../../../src/api/common/error/RestError.js"
-import {DbTransaction} from "../../../../../src/api/worker/search/DbFacade.js"
-import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../../src/api/common/TutanotaConstants.js"
-import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../../src/api/worker/search/IndexUtils.js"
-import type {EntityUpdate} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {createEntityUpdate} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {makeCore} from "../../../TestUtils.js"
-import {downcast} from "@tutao/tutanota-utils"
-import {isSameId} from "../../../../../src/api/common/utils/EntityUtils.js";
-import {GroupDataOS} from "../../../../../src/api/worker/search/Indexer.js"
-import {fixedIv} from "@tutao/tutanota-crypto"
-import {resolveTypeReference} from "../../../../../src/api/common/EntityFunctions.js"
+import { ContactIndexer } from "../../../../../src/api/worker/search/ContactIndexer.js"
+import { NotAuthorizedError, NotFoundError } from "../../../../../src/api/common/error/RestError.js"
+import { DbTransaction } from "../../../../../src/api/worker/search/DbFacade.js"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../../../src/api/common/TutanotaConstants.js"
+import { _createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo } from "../../../../../src/api/worker/search/IndexUtils.js"
+import type { EntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { createEntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { makeCore } from "../../../TestUtils.js"
+import { downcast } from "@tutao/tutanota-utils"
+import { isSameId } from "../../../../../src/api/common/utils/EntityUtils.js"
+import { GroupDataOS } from "../../../../../src/api/worker/search/Indexer.js"
+import { fixedIv } from "@tutao/tutanota-crypto"
+import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
 
-
-const dbMock: any = {iv: fixedIv}
+const dbMock: any = { iv: fixedIv }
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
 
 o.spec("ContactIndexer test", () => {
-
-
 	let suggestionFacadeMock
 	o.beforeEach(function () {
-		suggestionFacadeMock = ({} as any)
+		suggestionFacadeMock = {} as any
 		suggestionFacadeMock.addSuggestions = o.spy()
 		suggestionFacadeMock.store = o.spy(() => Promise.resolve())
 	})
 
-
 	o("createContactIndexEntries without entries", function () {
 		let c = createContact()
-		let contact = new ContactIndexer(makeCore(), (null as any), (null as any), suggestionFacadeMock)
+		let contact = new ContactIndexer(makeCore(), null as any, null as any, suggestionFacadeMock)
 		let keyToIndexEntries = contact.createContactIndexEntries(c)
 		o(suggestionFacadeMock.addSuggestions.callCount).equals(1)
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("")
@@ -50,16 +46,15 @@ o.spec("ContactIndexer test", () => {
 	o("createContactIndexEntries with one entry", function () {
 		let c = createContact()
 		c.company = "test"
-		let contact = new ContactIndexer(makeCore(), (null as any), (null as any), suggestionFacadeMock)
+		let contact = new ContactIndexer(makeCore(), null as any, null as any, suggestionFacadeMock)
 		let keyToIndexEntries = contact.createContactIndexEntries(c)
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("")
 		o(keyToIndexEntries.size).equals(1)
-
 	})
 
 	o("createContactIndexEntries", async function () {
-		let core = ({createIndexEntriesForAttributes: o.spy()} as any)
-		const contactIndexer = new ContactIndexer(core, dbMock, (null as any), suggestionFacadeMock)
+		let core = { createIndexEntriesForAttributes: o.spy() } as any
+		const contactIndexer = new ContactIndexer(core, dbMock, null as any, suggestionFacadeMock)
 
 		let addresses = [createContactAddress(), createContactAddress()]
 		addresses[0].address = "A0"
@@ -72,7 +67,6 @@ o.spec("ContactIndexer test", () => {
 		let phoneNumbers = [createContactPhoneNumber(), createContactPhoneNumber()]
 		phoneNumbers[0].number = "PN0"
 		phoneNumbers[1].number = "PN1"
-
 
 		let socialIds = [createContactSocialId(), createContactSocialId()]
 		socialIds[0].socialId = "S0"
@@ -96,41 +90,39 @@ o.spec("ContactIndexer test", () => {
 		let args = core.createIndexEntriesForAttributes.args
 		let attributeHandlers = core.createIndexEntriesForAttributes.args[1]
 		o(args[0]).equals(c)
-		let attributes = attributeHandlers.map(h => {
-			return {attribute: h.attribute.id, value: h.value()}
+		let attributes = attributeHandlers.map((h) => {
+			return { attribute: h.attribute.id, value: h.value() }
 		})
 		const ContactModel = await resolveTypeReference(ContactTypeRef)
 		o(attributes).deepEquals([
-			{attribute: ContactModel.values["firstName"].id, value: "FN"},
-			{attribute: ContactModel.values["lastName"].id, value: "LN"},
-			{attribute: ContactModel.values["nickname"].id, value: "NN"},
-			{attribute: ContactModel.values["role"].id, value: "R"},
-			{attribute: ContactModel.values["title"].id, value: "T"},
-			{attribute: ContactModel.values["comment"].id, value: "C"},
-			{attribute: ContactModel.values["company"].id, value: "co"},
-			{attribute: ContactModel.associations["addresses"].id, value: "A0,A1"},
-			{attribute: ContactModel.associations["mailAddresses"].id, value: "MA0,MA1"},
-			{attribute: ContactModel.associations["phoneNumbers"].id, value: "PN0,PN1"},
-			{attribute: ContactModel.associations["socialIds"].id, value: ""},
+			{ attribute: ContactModel.values["firstName"].id, value: "FN" },
+			{ attribute: ContactModel.values["lastName"].id, value: "LN" },
+			{ attribute: ContactModel.values["nickname"].id, value: "NN" },
+			{ attribute: ContactModel.values["role"].id, value: "R" },
+			{ attribute: ContactModel.values["title"].id, value: "T" },
+			{ attribute: ContactModel.values["comment"].id, value: "C" },
+			{ attribute: ContactModel.values["company"].id, value: "co" },
+			{ attribute: ContactModel.associations["addresses"].id, value: "A0,A1" },
+			{ attribute: ContactModel.associations["mailAddresses"].id, value: "MA0,MA1" },
+			{ attribute: ContactModel.associations["phoneNumbers"].id, value: "PN0,PN1" },
+			{ attribute: ContactModel.associations["socialIds"].id, value: "" },
 		])
 	})
-
 
 	o("processNewContact", async function () {
 		let contact = createContact()
 		let keyToIndexEntries = new Map()
 
-		let indexer = ({createIndexEntriesForAttributes: () => keyToIndexEntries} as any)
-		let entity = ({
-			load: o.spy(() => Promise.resolve(contact))
-		} as any)
-
+		let indexer = { createIndexEntriesForAttributes: () => keyToIndexEntries } as any
+		let entity = {
+			load: o.spy(() => Promise.resolve(contact)),
+		} as any
 
 		const contactIndexer = new ContactIndexer(indexer, dbMock, entity, suggestionFacadeMock)
-		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"} as any)
+		let event: EntityUpdate = { instanceListId: "lid", instanceId: "eid" } as any
 		const result = await contactIndexer.processNewContact(event)
 		// @ts-ignore
-		o(result).deepEquals({contact, keyToIndexEntries})
+		o(result).deepEquals({ contact, keyToIndexEntries })
 		// @ts-ignore
 		o(contactIndexer._entity.load.args[0]).equals(ContactTypeRef)
 		// @ts-ignore
@@ -138,77 +130,71 @@ o.spec("ContactIndexer test", () => {
 		o(suggestionFacadeMock.addSuggestions.callCount).equals(1)
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("")
 		o(suggestionFacadeMock.store.callCount).equals(1)
-
 	})
 
 	o("processNewContact catches NotFoundError", function () {
-		let core = ({
-			createIndexEntriesForAttributes: () => {
-			}
-		} as any)
-		let entity = ({
-			load: () => Promise.reject(new NotFoundError("blah"))
-		} as any)
+		let core = {
+			createIndexEntriesForAttributes: () => {},
+		} as any
+		let entity = {
+			load: () => Promise.reject(new NotFoundError("blah")),
+		} as any
 		const contactIndexer = new ContactIndexer(core, dbMock, entity, suggestionFacadeMock)
-		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"} as any)
-		return contactIndexer.processNewContact(event).then(result => {
+		let event: EntityUpdate = { instanceListId: "lid", instanceId: "eid" } as any
+		return contactIndexer.processNewContact(event).then((result) => {
 			o(result).equals(null)
 			o(suggestionFacadeMock.addSuggestions.callCount).equals(0)
 		})
 	})
 
 	o("processNewContact catches NotAuthorizedError", function () {
-		let indexer = ({
-			createIndexEntriesForAttributes: () => {
-			}
-		} as any)
-		let entity = ({
-			load: () => Promise.reject(new NotAuthorizedError("blah"))
-		} as any)
+		let indexer = {
+			createIndexEntriesForAttributes: () => {},
+		} as any
+		let entity = {
+			load: () => Promise.reject(new NotAuthorizedError("blah")),
+		} as any
 		const contactIndexer = new ContactIndexer(indexer, dbMock, entity, suggestionFacadeMock)
-		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"} as any)
-		return contactIndexer.processNewContact(event).then(result => {
+		let event: EntityUpdate = { instanceListId: "lid", instanceId: "eid" } as any
+		return contactIndexer.processNewContact(event).then((result) => {
 			o(result).equals(null)
 			o(suggestionFacadeMock.addSuggestions.callCount).equals(0)
 		})
 	})
 
 	o("processNewContact passes other Errors", function () {
-		let core = ({
-			createIndexEntriesForAttributes: () => {
-			}
-		} as any)
-		let entity = ({
-			load: () => Promise.reject(new Error("blah"))
-		} as any)
+		let core = {
+			createIndexEntriesForAttributes: () => {},
+		} as any
+		let entity = {
+			load: () => Promise.reject(new Error("blah")),
+		} as any
 		const contactIndexer = new ContactIndexer(core, dbMock, entity, suggestionFacadeMock)
-		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"} as any)
-		return contactIndexer.processNewContact(event).catch(e => {
+		let event: EntityUpdate = { instanceListId: "lid", instanceId: "eid" } as any
+		return contactIndexer.processNewContact(event).catch((e) => {
 			o(suggestionFacadeMock.addSuggestions.callCount).equals(0)
 		})
 	})
 
 	o("indexFullContactList", function () {
-		let groupData = {indexTimestamp: NOTHING_INDEXED_TIMESTAMP}
+		let groupData = { indexTimestamp: NOTHING_INDEXED_TIMESTAMP }
 		let transaction: DbTransaction = downcast({
 			get: (os, groupId) => {
 				if (os != GroupDataOS || groupId != contactList._ownerGroup) {
 					throw new Error("unexpected params " + os + " " + groupId)
 				}
 				return Promise.resolve(groupData)
-			}
+			},
 		})
 
-		const core = makeCore({transaction}, (mocked) => {
+		const core = makeCore({ transaction }, (mocked) => {
 			mocked.writeIndexUpdate = o.spy()
 		})
-
 
 		let userGroupId = "userGroupId"
 		let contactList = createContactList()
 		contactList._ownerGroup = "ownerGroupId"
 		contactList.contacts = "contactListId"
-
 
 		let contacts = [createContact(), createContact()]
 		contacts[0]._id = [contactList.contacts, "c0"]
@@ -216,31 +202,29 @@ o.spec("ContactIndexer test", () => {
 		contacts[1]._id = [contactList.contacts, "c1"]
 		contacts[1]._ownerGroup = "c1owner"
 
-		let entity = ({
+		let entity = {
 			loadRoot: (type, groupId) => {
 				if (type != ContactListTypeRef || groupId != userGroupId) {
-					throw new Error("unexpected params " + type
-						+ " " + groupId)
+					throw new Error("unexpected params " + type + " " + groupId)
 				}
 				return Promise.resolve(contactList)
 			},
 			loadAll: (type, listId) => {
 				if (type != ContactTypeRef || listId != contactList.contacts) {
-					throw new Error("unexpected params "
-						+ type + " " + listId)
+					throw new Error("unexpected params " + type + " " + listId)
 				}
 				return Promise.resolve(contacts)
-			}
-		} as any)
+			},
+		} as any
 		const contactIndexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 		return contactIndexer.indexFullContactList(contactList).then(() => {
 			// @ts-ignore
-			const [[{groupId, indexTimestamp}], indexUpdate] = core.writeIndexUpdate.args
+			const [[{ groupId, indexTimestamp }], indexUpdate] = core.writeIndexUpdate.args
 			o(indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
 			o(groupId).equals(contactList._ownerGroup)
 			let expectedKeys = [
 				encryptIndexKeyBase64(core.db.key, contacts[0]._id[1], fixedIv),
-				encryptIndexKeyBase64(core.db.key, contacts[1]._id[1], fixedIv)
+				encryptIndexKeyBase64(core.db.key, contacts[1]._id[1], fixedIv),
 			]
 			o(Array.from(indexUpdate.create.encInstanceIdToElementData.keys())).deepEquals(expectedKeys)
 			o(suggestionFacadeMock.addSuggestions.callCount).equals(contacts.length)
@@ -259,7 +243,7 @@ o.spec("ContactIndexer test", () => {
 			load: (type, id) => {
 				if (type == ContactTypeRef && isSameId(id, contact._id)) return Promise.resolve(contact)
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
-			}
+			},
 		}
 		const indexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 
@@ -285,7 +269,7 @@ o.spec("ContactIndexer test", () => {
 			load: (type, id) => {
 				if (type == ContactTypeRef && isSameId(id, contact._id)) return Promise.resolve(contact)
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
-			}
+			},
 		}
 		const indexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 
@@ -314,7 +298,7 @@ o.spec("ContactIndexer test", () => {
 			load: (type, id) => {
 				if (type == ContactTypeRef && isSameId(id, contact._id)) return Promise.resolve(contact)
 				throw new Error("Not found " + JSON.stringify(type) + " / " + JSON.stringify(id))
-			}
+			},
 		}
 		const indexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 
@@ -330,7 +314,6 @@ o.spec("ContactIndexer test", () => {
 			o(core._processDeleted.args).deepEquals([events[0], indexUpdate])
 		})
 	})
-
 })
 
 function createUpdate(type: OperationType, listId: Id, id: Id) {

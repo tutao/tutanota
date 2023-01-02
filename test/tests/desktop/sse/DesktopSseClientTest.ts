@@ -1,77 +1,75 @@
 import o from "ospec"
 import n from "../../nodemocker.js"
-import type {DeferredObject} from "@tutao/tutanota-utils"
-import type {TimeoutMock} from "@tutao/tutanota-test-utils"
-import {makeTimeoutMock} from "@tutao/tutanota-test-utils"
-import {defer, delay, downcast, neverNull, noOp, numberRange} from "@tutao/tutanota-utils"
-import {AlarmInterval} from "../../../../src/api/common/TutanotaConstants.js"
+import type { DeferredObject } from "@tutao/tutanota-utils"
+import type { TimeoutMock } from "@tutao/tutanota-test-utils"
+import { makeTimeoutMock } from "@tutao/tutanota-test-utils"
+import { defer, delay, downcast, neverNull, noOp, numberRange } from "@tutao/tutanota-utils"
+import { AlarmInterval } from "../../../../src/api/common/TutanotaConstants.js"
 import * as url from "url"
 import * as querystring from "querystring"
-import {createMissedNotification} from "../../../../src/api/entities/sys/TypeRefs.js"
-import {DesktopSseClient} from "../../../../src/desktop/sse/DesktopSseClient.js"
-import {DesktopConfigEncKey, DesktopConfigKey} from "../../../../src/desktop/config/ConfigKeys.js"
-import type {DesktopConfig} from "../../../../src/desktop/config/DesktopConfig.js"
-import type {DesktopNotifier} from "../../../../src/desktop/DesktopNotifier.js"
-import type {WindowManager} from "../../../../src/desktop/DesktopWindowManager.js"
-import type {DesktopAlarmScheduler} from "../../../../src/desktop/sse/DesktopAlarmScheduler.js"
-import type {DesktopNativeCryptoFacade} from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
-import type {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarmStorage.js"
-import type {LanguageViewModel} from "../../../../src/misc/LanguageViewModel.js"
-import type {DesktopNetworkClient} from "../../../../src/desktop/net/DesktopNetworkClient.js"
-import {ServiceUnavailableError, TooManyRequestsError} from "../../../../src/api/common/error/RestError.js"
+import { createMissedNotification } from "../../../../src/api/entities/sys/TypeRefs.js"
+import { DesktopSseClient } from "../../../../src/desktop/sse/DesktopSseClient.js"
+import { DesktopConfigEncKey, DesktopConfigKey } from "../../../../src/desktop/config/ConfigKeys.js"
+import type { DesktopConfig } from "../../../../src/desktop/config/DesktopConfig.js"
+import type { DesktopNotifier } from "../../../../src/desktop/DesktopNotifier.js"
+import type { WindowManager } from "../../../../src/desktop/DesktopWindowManager.js"
+import type { DesktopAlarmScheduler } from "../../../../src/desktop/sse/DesktopAlarmScheduler.js"
+import type { DesktopNativeCryptoFacade } from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
+import type { DesktopAlarmStorage } from "../../../../src/desktop/sse/DesktopAlarmStorage.js"
+import type { LanguageViewModel } from "../../../../src/misc/LanguageViewModel.js"
+import type { DesktopNetworkClient } from "../../../../src/desktop/net/DesktopNetworkClient.js"
+import { ServiceUnavailableError, TooManyRequestsError } from "../../../../src/api/common/error/RestError.js"
 import modelInfo from "../../../../src/api/entities/sys/ModelInfo.js"
 
 o.spec("DesktopSseClient Test", function () {
-	const identifier = 'identifier'
+	const identifier = "identifier"
 	const userIds = ["id1", "id2"]
 
 	let conf
 	let net
-	let electronMock: typeof import('electron')
+	let electronMock: typeof import("electron")
 	let confMock: DesktopConfig
 	let notifierMock: DesktopNotifier
 	let wmMock: WindowManager
-	let netMock: DesktopNetworkClient & {requestMade: DeferredObject<void>}
+	let netMock: DesktopNetworkClient & { requestMade: DeferredObject<void> }
 	let alarmSchedulerMock: DesktopAlarmScheduler
 	let cryptoMock: DesktopNativeCryptoFacade
 	let alarmStorageMock: DesktopAlarmStorage
 	let timeoutMock: TimeoutMock
 	let langMock: LanguageViewModel
 
-
 	o.beforeEach(function () {
 		conf = {
-			removeListener: (key: string, cb: ()=>void) => n.spyify(conf),
+			removeListener: (key: string, cb: () => void) => n.spyify(conf),
 			on: (key: string) => n.spyify(conf),
 			getVar: (key: string) => {
 				switch (key) {
-					case 'heartbeatTimeoutInSeconds':
+					case "heartbeatTimeoutInSeconds":
 						return 30
 
-					case 'lastMissedNotificationCheckTime':
+					case "lastMissedNotificationCheckTime":
 						return null
 
-					case 'lastProcessedNotificationId':
+					case "lastProcessedNotificationId":
 						return null
 
 					case DesktopConfigEncKey.sseInfo:
 						return {
 							identifier: identifier,
-							sseOrigin: 'http://here.there',
-							userIds: userIds.slice()
+							sseOrigin: "http://here.there",
+							userIds: userIds.slice(),
 						}
 
 					default:
 						throw new Error(`unexpected getVar key ${key}`)
 				}
 			},
-			setVar: (key: string, val: any) => {
-			},
+			setVar: (key: string, val: any) => {},
 			getConst: (key: string) => {
 				switch (key) {
-					case 'initialSseConnectTimeoutInSeconds':
+					case "initialSseConnectTimeoutInSeconds":
 						return 1
-					case 'maxSseConnectTimeoutInSeconds':
+					case "maxSseConnectTimeoutInSeconds":
 						return 10
 					default:
 						throw new Error(`unexpected getConst key ${key}`)
@@ -82,14 +80,14 @@ o.spec("DesktopSseClient Test", function () {
 		const electron = {
 			app: {
 				callbacks: {},
-				on: function (ev: string, cb: ()=>void) {
+				on: function (ev: string, cb: () => void) {
 					this.callbacks[ev] = cb
 					return n.spyify(electron.app)
 				},
 				getAppPath: () => "/app/path/",
-				getVersion: () => "x.y.z"
+				getVersion: () => "x.y.z",
 			},
-			net: {}
+			net: {},
 		}
 
 		const wm = {
@@ -101,26 +99,26 @@ o.spec("DesktopSseClient Test", function () {
 						id: 1,
 						isFocused: () => true,
 						getUserId: () => "notYourId",
-						userInfo: {userId: "myId", mailAddress: "a@b.c"}
-					}
+						userInfo: { userId: "myId", mailAddress: "a@b.c" },
+					},
 				]
 			},
-			invalidateAlarms: () => Promise.resolve()
+			invalidateAlarms: () => Promise.resolve(),
 		}
 
 		const alarmScheduler = {
 			handleAlarmNotification: () => {},
-			unscheduleAllAlarms: () => {}
+			unscheduleAllAlarms: () => {},
 		}
 
 		const crypto = {
-			generateId: () => "an_id"
+			generateId: () => "an_id",
 		}
 
 		const lang = {
 			get: (key: string) => {
 				return key
-			}
+			},
 		}
 
 		net = {
@@ -147,10 +145,9 @@ o.spec("DesktopSseClient Test", function () {
 					end: function () {
 						return this
 					},
-					abort: function () {
-					},
+					abort: function () {},
 				},
-				statics: {}
+				statics: {},
 			}),
 			Response: n.classify({
 				prototype: {
@@ -162,37 +159,47 @@ o.spec("DesktopSseClient Test", function () {
 						this.callbacks[ev] = cb
 						return this
 					},
-					setEncoding: function (enc) {
-					},
+					setEncoding: function (enc) {},
 					destroy: function () {},
 					headers: {},
 				},
-				statics: {}
-			})
+				statics: {},
+			}),
 		}
 		const notifier = {
-			submitGroupedNotification: () => {
-			},
-			showOneShot: () => {}
+			submitGroupedNotification: () => {},
+			showOneShot: () => {},
 		}
 
 		electronMock = n.mock<typeof import("electron")>("electron", electron).set()
 		confMock = n.mock<DesktopConfig>("__conf", conf).set()
 		notifierMock = n.mock<DesktopNotifier>("../DesktopNotifier", notifier).set()
-		wmMock = n.mock<WindowManager>('__wm', wm).set()
+		wmMock = n.mock<WindowManager>("__wm", wm).set()
 		netMock = n.mock<typeof net>("__net", net).set()
-		alarmStorageMock = n.mock<DesktopAlarmStorage>("__alarmStorage", {
-			removePushIdentifierKeys: () => {}
-		}).set()
+		alarmStorageMock = n
+			.mock<DesktopAlarmStorage>("__alarmStorage", {
+				removePushIdentifierKeys: () => {},
+			})
+			.set()
 		cryptoMock = downcast(crypto)
-		alarmSchedulerMock = n.mock<DesktopAlarmScheduler>('__alarmScheduler', alarmScheduler).set()
+		alarmSchedulerMock = n.mock<DesktopAlarmScheduler>("__alarmScheduler", alarmScheduler).set()
 		timeoutMock = makeTimeoutMock()
-		langMock = n.mock<LanguageViewModel>('__lang', lang).set()
+		langMock = n.mock<LanguageViewModel>("__lang", lang).set()
 	})
 
 	o("start, connect, shutdown", async function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutMock)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutMock,
+		)
 
 		await sse.start()
 
@@ -213,24 +220,24 @@ o.spec("DesktopSseClient Test", function () {
 		o(requestUrl.pathname).equals("/sse")
 		const requestBody = JSON.parse(querystring.parse(neverNull(requestUrl.query))._body as string)
 		o(requestBody).deepEquals({
-			_format: '0',
+			_format: "0",
 			identifier,
-			userIds: [{_id: "an_id", value: userIds[0]}],
+			userIds: [{ _id: "an_id", value: userIds[0] }],
 		})
 
 		const res = new net.Response(200)
-		await net.ClientRequest.mockedInstances[1].callbacks['response'](res)
+		await net.ClientRequest.mockedInstances[1].callbacks["response"](res)
 		o(sse._nextReconnect).notEquals(undefined)
 		o(res.setEncoding.callCount).equals(1)
-		o(res.setEncoding.args[0]).equals('utf8')
+		o(res.setEncoding.args[0]).equals("utf8")
 
 		//store new timeout value
-		res.callbacks['data']("data: heartbeatTimeout:42\n")
+		res.callbacks["data"]("data: heartbeatTimeout:42\n")
 		o(confMock.setVar.calls[1].args).deepEquals([DesktopConfigKey.heartbeatTimeoutInSeconds, 42])
 
 		//check for reschedule on heartbeat
 		let oldTimeout = sse._nextReconnect
-		res.callbacks['data']("\n")
+		res.callbacks["data"]("\n")
 		o(sse._nextReconnect).notEquals(oldTimeout)
 
 		// reschedule on connection close
@@ -239,22 +246,32 @@ o.spec("DesktopSseClient Test", function () {
 		o(sse._nextReconnect).notEquals(oldTimeout)
 
 		//done
-		res.callbacks['data']("data: heartbeatTimeout:1\n")
-		downcast(electronMock.app).callbacks['will-quit']()
+		res.callbacks["data"]("data: heartbeatTimeout:1\n")
+		downcast(electronMock.app).callbacks["will-quit"]()
 		o(net.ClientRequest.mockedInstances[1].abort.callCount).equals(1)
 	})
 
 	o("reschedule on heartbeat timeout", async function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutMock)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutMock,
+		)
 		let res = new net.Response(200)
 		let oldTimeoutId
 		await sse.start()
 		timeoutMock.next()
 		await netMock.requestMade.promise
 
-		await net.ClientRequest.mockedInstances[0].callbacks['response'](res)
-		res.callbacks['data']("data: heartbeatTimeout:1")
+		await net.ClientRequest.mockedInstances[0].callbacks["response"](res)
+		res.callbacks["data"]("data: heartbeatTimeout:1")
 		oldTimeoutId = sse._nextReconnect
 
 		// heartbeat times out...
@@ -265,113 +282,167 @@ o.spec("DesktopSseClient Test", function () {
 		o(sse._nextReconnect).notEquals(oldTimeoutId)
 
 		//done
-		downcast(electronMock.app).callbacks['will-quit']()
+		downcast(electronMock.app).callbacks["will-quit"]()
 	})
 
 	o("403 response causes deletion of userid", async function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutMock)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutMock,
+		)
 		const res = new net.Response(403)
 		await sse.start()
 		timeoutMock.next()
 		await netMock.requestMade.promise
-		await net.ClientRequest.mockedInstances[0].callbacks['response'](res)
+		await net.ClientRequest.mockedInstances[0].callbacks["response"](res)
 		await net.requestMade.promise
 		o(confMock.setVar.args[0]).equals(DesktopConfigEncKey.sseInfo)
 		o(confMock.setVar.args[1]).deepEquals({
 			identifier,
-			sseOrigin: 'http://here.there',
-			userIds: ['id2'],
+			sseOrigin: "http://here.there",
+			userIds: ["id2"],
 		})
-		o(alarmSchedulerMock.unscheduleAllAlarms.calls[0].args).deepEquals(['id1'])
+		o(alarmSchedulerMock.unscheduleAllAlarms.calls[0].args).deepEquals(["id1"])
 		o(sse._nextReconnect).notEquals(null)
 
 		// done
-		res.callbacks['data']("data: heartbeatTimeout:1\n")
-		downcast(electronMock.app).callbacks['will-quit']()
+		res.callbacks["data"]("data: heartbeatTimeout:1\n")
+		downcast(electronMock.app).callbacks["will-quit"]()
 	})
 
 	o("invalid heartbeatTimeout from server is not saved", async function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutMock)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutMock,
+		)
 		let res = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
 		await net.requestMade.promise
-		await net.ClientRequest.mockedInstances[0].callbacks['response'](res)
+		await net.ClientRequest.mockedInstances[0].callbacks["response"](res)
 
 		await Promise.resolve()
-		res.callbacks['data']("data: heartbeatTimeout:42\n")
-		res.callbacks['data']("data: heartbeatTimeout:baz\n")
+		res.callbacks["data"]("data: heartbeatTimeout:42\n")
+		res.callbacks["data"]("data: heartbeatTimeout:baz\n")
 
 		await Promise.resolve()
 		o(sse._readTimeoutInSeconds).equals(42)
 
 		// done
-		res.callbacks['data']("data: heartbeatTimeout:1")
-		downcast(electronMock.app).callbacks['will-quit']()
+		res.callbacks["data"]("data: heartbeatTimeout:1")
+		downcast(electronMock.app).callbacks["will-quit"]()
 	})
 
 	o("reschedule after receiving pushMessages", async function () {
 		const timeoutSpy: any = n.spyify(timeoutMock)
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutSpy)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutSpy,
+		)
 		let res = new net.Response(200)
 		await sse.start()
 		o(timeoutSpy.callCount).equals(1)
 		timeoutSpy.next()
 		await net.requestMade.promise
 		o(timeoutSpy.callCount).equals(2)
-		await net.ClientRequest.mockedInstances[0].callbacks['response'](res)
-		res.callbacks['data']("data: heartbeatTimeout:1\n")
+		await net.ClientRequest.mockedInstances[0].callbacks["response"](res)
+		res.callbacks["data"]("data: heartbeatTimeout:1\n")
 		res.callbacks["data"]("data: notification\n")
 
 		// await delay(1)
 		o(timeoutSpy.callCount).equals(3)
-		downcast(electronMock.app).callbacks['will-quit']()
+		downcast(electronMock.app).callbacks["will-quit"]()
 	})
 
 	o("invalid pushMessages from server prevents reschedule", async function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutMock)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutMock,
+		)
 		let res = new net.Response(200)
 		let oldTimeout
 		await sse.start()
 		timeoutMock.next()
 		await net.requestMade.promise
 
-		await net.ClientRequest.mockedInstances[0].callbacks['response'](res)
-		res.callbacks['data']("data: heartbeatTimeout:3\n")
+		await net.ClientRequest.mockedInstances[0].callbacks["response"](res)
+		res.callbacks["data"]("data: heartbeatTimeout:3\n")
 		oldTimeout = sse._nextReconnect
-		res.callbacks["data"](`data: ${JSON.stringify({
-			title: "invalid"
-		})}`)
+		res.callbacks["data"](
+			`data: ${JSON.stringify({
+				title: "invalid",
+			})}`,
+		)
 		// should not have rescheduled
 		o(sse._nextReconnect).equals(oldTimeout)
 		//done
-		downcast(electronMock.app).callbacks['will-quit']()
+		downcast(electronMock.app).callbacks["will-quit"]()
 	})
 
 	o("retry connection later if there is no sseInfo", async function () {
-		const confMock = n.mock<DesktopConfig>("__conf", conf)
-		                  .with({
-			                  getVar: (key: string) => {
-				                  switch (key) {
-					                  case 'heartbeatTimeoutInSeconds':
-						                  return 30
-					                  case 'lastMissedNotificationCheckTime':
-						                  return 0
-					                  case DesktopConfigEncKey.sseInfo:
-						                  return null
-					                  default:
-						                  throw new Error(`unexpected getVar key ${key}`)
-				                  }
-			                  },
-		                  }).set()
+		const confMock = n
+			.mock<DesktopConfig>("__conf", conf)
+			.with({
+				getVar: (key: string) => {
+					switch (key) {
+						case "heartbeatTimeoutInSeconds":
+							return 30
+						case "lastMissedNotificationCheckTime":
+							return 0
+						case DesktopConfigEncKey.sseInfo:
+							return null
+						default:
+							throw new Error(`unexpected getVar key ${key}`)
+					}
+				},
+			})
+			.set()
 		const timeoutSpy = o.spy(timeoutMock)
 
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutSpy)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutSpy,
+		)
 		await sse.start()
 		o(timeoutSpy.args[1]).equals(1000)
 		timeoutMock.next()
@@ -381,33 +452,45 @@ o.spec("DesktopSseClient Test", function () {
 
 	o("send notification for incoming pm", async function () {
 		let setVars = {}
-		const confMock = n.mock<DesktopConfig>("__conf", conf)
-		                  .with({
-			                  getVar: (key: string) => {
-				                  switch (key) {
-					                  case 'heartbeatTimeoutInSeconds':
-						                  return 30
-					                  case DesktopConfigKey.lastProcessedNotificationId:
-						                  return lastProcessedId
-					                  case DesktopConfigKey.lastMissedNotificationCheckTime:
-						                  return null
-					                  case DesktopConfigEncKey.sseInfo:
-						                  return {
-							                  identifier: 'identifier',
-							                  sseOrigin: 'http://here.there',
-							                  userIds: ["id1", "id2"]
-						                  }
-					                  default:
-						                  throw new Error(`unexpected getVar key ${key}`)
-				                  }
-			                  },
-			                  setVar(k, v) {
-				                  setVars[k] = v
-			                  },
-		                  }).set()
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutMock)
-		const lastProcessedId = 'ab2c'
+		const confMock = n
+			.mock<DesktopConfig>("__conf", conf)
+			.with({
+				getVar: (key: string) => {
+					switch (key) {
+						case "heartbeatTimeoutInSeconds":
+							return 30
+						case DesktopConfigKey.lastProcessedNotificationId:
+							return lastProcessedId
+						case DesktopConfigKey.lastMissedNotificationCheckTime:
+							return null
+						case DesktopConfigEncKey.sseInfo:
+							return {
+								identifier: "identifier",
+								sseOrigin: "http://here.there",
+								userIds: ["id1", "id2"],
+							}
+						default:
+							throw new Error(`unexpected getVar key ${key}`)
+					}
+				},
+				setVar(k, v) {
+					setVars[k] = v
+				},
+			})
+			.set()
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutMock,
+		)
+		const lastProcessedId = "ab2c"
 		let sseConnectResponse = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
@@ -415,9 +498,9 @@ o.spec("DesktopSseClient Test", function () {
 		const sseConnectRequest = net.ClientRequest.mockedInstances[0]
 		const clientRequest = url.parse(sseConnectRequest.requestUrl)
 		o(clientRequest.pathname).equals("/sse")
-		await sseConnectRequest.callbacks['response'](sseConnectResponse)
-		sseConnectResponse.callbacks['data']("data: heartbeatTimeout:3\n")
-		sseConnectResponse.callbacks['data'](`data: notification\n`)
+		await sseConnectRequest.callbacks["response"](sseConnectResponse)
+		sseConnectResponse.callbacks["data"]("data: heartbeatTimeout:3\n")
+		sseConnectResponse.callbacks["data"](`data: notification\n`)
 		await delay(5)
 		o(setVars[DesktopConfigKey.heartbeatTimeoutInSeconds]).equals(3)
 
@@ -431,72 +514,94 @@ o.spec("DesktopSseClient Test", function () {
 				{
 					mailAddress: "me@here.com",
 					counter: 2,
-					userId: "someId"
-				}
+					userId: "someId",
+				},
 			],
 			alarmNotifications: [],
-			lastProcessedNotificationId: '1',
+			lastProcessedNotificationId: "1",
 		}
 		const missedNotificationResponse = new net.Response(200)
-		await missedNotificationRequest.callbacks['response'](missedNotificationResponse)
-		missedNotificationResponse.callbacks['data'](JSON.stringify(missedNotification))
-		missedNotificationResponse.callbacks['end']()
-		sseConnectResponse.callbacks['data'](`data: notification\n`)
+		await missedNotificationRequest.callbacks["response"](missedNotificationResponse)
+		missedNotificationResponse.callbacks["data"](JSON.stringify(missedNotification))
+		missedNotificationResponse.callbacks["end"]()
+		sseConnectResponse.callbacks["data"](`data: notification\n`)
 
 		await delay(1)
-		o(confMock.setVar.calls[2].args).deepEquals([DesktopConfigKey.lastProcessedNotificationId, '1'])
+		o(confMock.setVar.calls[2].args).deepEquals([DesktopConfigKey.lastProcessedNotificationId, "1"])
 		o(notifierMock.submitGroupedNotification.callCount).equals(1)
 		o(notifierMock.submitGroupedNotification.args[0]).equals("pushNewMail_msg")
 		o(notifierMock.submitGroupedNotification.args[1]).equals("me@here.com (2)")
 		o(notifierMock.submitGroupedNotification.args[2]).equals("someId")
 
-		downcast(electronMock.app).callbacks['will-quit']()
+		downcast(electronMock.app).callbacks["will-quit"]()
 	})
 
 	o("don't send notification for active window", async function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutMock)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutMock,
+		)
 		let res = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
 		await net.requestMade.promise
 
-		await net.ClientRequest.mockedInstances[0].callbacks['response'](res)
-		res.callbacks['data']("data: heartbeatTimeout:3\n")
+		await net.ClientRequest.mockedInstances[0].callbacks["response"](res)
+		res.callbacks["data"]("data: heartbeatTimeout:3\n")
 		o(notifierMock.submitGroupedNotification.callCount).equals(0)
-		res.callbacks['data'](`data: ${JSON.stringify({
-			title: "pm-title",
-			confirmationId: "confId-aw",
-			hasAlarmNotifications: false,
-			changeTime: "2345678901234",
-			notificationInfos: [
-				{
-					address: "me@here.com",
-					counter: 2,
-					userId: "notYourId"
-				}
-			]
-		})}\n`)
+		res.callbacks["data"](
+			`data: ${JSON.stringify({
+				title: "pm-title",
+				confirmationId: "confId-aw",
+				hasAlarmNotifications: false,
+				changeTime: "2345678901234",
+				notificationInfos: [
+					{
+						address: "me@here.com",
+						counter: 2,
+						userId: "notYourId",
+					},
+				],
+			})}\n`,
+		)
 
 		o(notifierMock.submitGroupedNotification.callCount).equals(0)
 
 		//done
-		res.callbacks['data']("data: heartbeatTimeout:1\n")
-		downcast(electronMock.app).callbacks['will-quit']()
+		res.callbacks["data"]("data: heartbeatTimeout:1\n")
+		downcast(electronMock.app).callbacks["will-quit"]()
 	})
 
 	o("download missed notification", async function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutMock)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutMock,
+		)
 		let sseResponse = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
 
 		await netMock.requestMade.promise
 		const sseRequest = net.ClientRequest.mockedInstances[0]
-		await sseRequest.callbacks['response'](sseResponse)
-		sseResponse.callbacks['data']("data: heartbeatTimeout:3\n")
-		sseResponse.callbacks['data'](`data: notification\n`)
+		await sseRequest.callbacks["response"](sseResponse)
+		sseResponse.callbacks["data"]("data: heartbeatTimeout:3\n")
+		sseResponse.callbacks["data"](`data: notification\n`)
 
 		timeoutMock.next()
 		await netMock.requestMade.promise
@@ -504,51 +609,50 @@ o.spec("DesktopSseClient Test", function () {
 		o(netMock.request.callCount).equals(2)
 		o(netMock.request.args[0]).equals("http://here.there/rest/sys/missednotification/aWRlbnRpZmllcg")
 		o(netMock.request.args[1]).deepEquals({
-			method: 'GET',
+			method: "GET",
 			headers: {
-				userIds: 'id1',
+				userIds: "id1",
 				v: String(modelInfo.version),
-				cv: electronMock.app.getVersion()
+				cv: electronMock.app.getVersion(),
 			},
-			timeout: 20000
+			timeout: 20000,
 		})
-
 
 		const missedNotification = {
 			alarmNotifications: [
 				{
-					eventStart: new Date('2019-10-08T09:38:14.835Z'),
-					eventEnd: new Date('2019-10-08T09:38:14.900Z'),
+					eventStart: new Date("2019-10-08T09:38:14.835Z"),
+					eventEnd: new Date("2019-10-08T09:38:14.900Z"),
 					operation: "0",
 					summary: "this is a summary",
-					alarmInfo: {alarmIdentifier: "alarmId", trigger: AlarmInterval.FIVE_MINUTES},
+					alarmInfo: { alarmIdentifier: "alarmId", trigger: AlarmInterval.FIVE_MINUTES },
 					notificationSessionKeys: [
 						{
 							pushIdentifierSessionEncSessionKey: Uint8Array.from(numberRange(0, 255)),
-							pushIdentifier: ["idpart1", "idpart2"]
-						}
+							pushIdentifier: ["idpart1", "idpart2"],
+						},
 					],
 					repeatRule: null,
-					user: "id1"
-				}
+					user: "id1",
+				},
 			],
 			notificationInfos: [
 				{
 					mailAddress: "id1@tuta.io",
 					userId: "id1",
-					counter: 42
-				}
+					counter: 42,
+				},
 			],
 			changeTime: "2345678901234",
-			confirmationId: "missedNotificationConfId"
+			confirmationId: "missedNotificationConfId",
 		}
 
 		timeoutMock.next()
 		await netMock.requestMade.promise
 		const missedNotificationRequest = net.ClientRequest.mockedInstances[1]
-		await missedNotificationRequest.callbacks['response'](missedNotificationResponse)
-		missedNotificationResponse.callbacks['data'](`${JSON.stringify(missedNotification)}\n`)
-		missedNotificationResponse.callbacks['end']()
+		await missedNotificationRequest.callbacks["response"](missedNotificationResponse)
+		missedNotificationResponse.callbacks["data"](`${JSON.stringify(missedNotification)}\n`)
+		missedNotificationResponse.callbacks["end"]()
 
 		await sse._handlingPushMessage
 
@@ -557,69 +661,89 @@ o.spec("DesktopSseClient Test", function () {
 		o(notifierMock.submitGroupedNotification.args[0]).equals("pushNewMail_msg")
 		o(notifierMock.submitGroupedNotification.args[1]).equals("id1@tuta.io (42)")
 		o(notifierMock.submitGroupedNotification.args[2]).equals("id1")
-		o(typeof notifierMock.submitGroupedNotification.args[3]).equals('function')
+		o(typeof notifierMock.submitGroupedNotification.args[3]).equals("function")
 
 		o(alarmSchedulerMock.handleAlarmNotification.callCount).equals(1)
 		o(alarmSchedulerMock.handleAlarmNotification.args.length).equals(1)
 		o(alarmSchedulerMock.handleAlarmNotification.args[0]).deepEquals({
-			eventStart: '2019-10-08T09:38:14.835Z',
-			eventEnd: '2019-10-08T09:38:14.900Z',
+			eventStart: "2019-10-08T09:38:14.835Z",
+			eventEnd: "2019-10-08T09:38:14.900Z",
 			operation: "0",
 			summary: "this is a summary",
-			alarmInfo: {alarmIdentifier: "alarmId", trigger: AlarmInterval.FIVE_MINUTES},
+			alarmInfo: { alarmIdentifier: "alarmId", trigger: AlarmInterval.FIVE_MINUTES },
 			notificationSessionKeys: [
 				{
 					pushIdentifierSessionEncSessionKey: Object.assign({}, downcast(numberRange(0, 255))),
-					pushIdentifier: ["idpart1", "idpart2"]
-				}
+					pushIdentifier: ["idpart1", "idpart2"],
+				},
 			],
 			repeatRule: null,
-			user: "id1"
+			user: "id1",
 		})
 
-		downcast(electronMock.app).callbacks['will-quit']()
+		downcast(electronMock.app).callbacks["will-quit"]()
 	})
 
 	o("download nonexistent missed notification", async function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutMock)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutMock,
+		)
 		let res = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
 		await netMock.requestMade.promise
-		await net.ClientRequest.mockedInstances[0].callbacks['response'](res)
-		res.callbacks['data']("data: heartbeatTimeout:3\n")
-		res.callbacks['data'](`data: notification\n`)
+		await net.ClientRequest.mockedInstances[0].callbacks["response"](res)
+		res.callbacks["data"]("data: heartbeatTimeout:3\n")
+		res.callbacks["data"](`data: notification\n`)
 		timeoutMock.next()
 		await netMock.requestMade.promise
 		// wait for missedNotification request to be sent...
 		let missedNotificationResponse = new net.Response(200)
-		await net.ClientRequest.mockedInstances[1].callbacks['response'](missedNotificationResponse)
+		await net.ClientRequest.mockedInstances[1].callbacks["response"](missedNotificationResponse)
 		missedNotificationResponse.callbacks["data"](JSON.stringify(createMissedNotification()) + "\n")
 
 		await Promise.resolve()
 		o(notifierMock.submitGroupedNotification.callCount).equals(0)
 		o(alarmSchedulerMock.handleAlarmNotification.callCount).equals(0)
-		downcast(electronMock.app).callbacks['will-quit']()
+		downcast(electronMock.app).callbacks["will-quit"]()
 	})
 
 	o("download missed notification with 401", async function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutMock)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutMock,
+		)
 		let res = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
 		await netMock.requestMade.promise
 
-		await net.ClientRequest.mockedInstances[0].callbacks['response'](res)
-		res.callbacks['data']("data: heartbeatTimeout:3\n")
-		res.callbacks['data'](`data: notification\n`)
+		await net.ClientRequest.mockedInstances[0].callbacks["response"](res)
+		res.callbacks["data"]("data: heartbeatTimeout:3\n")
+		res.callbacks["data"](`data: notification\n`)
 
 		timeoutMock.next()
 		await netMock.requestMade.promise
 		// wait for missedNotification request to be sent...
 		let missedNotificationResponse = new net.Response(401)
-		await net.ClientRequest.mockedInstances[1].callbacks['response'](missedNotificationResponse)
+		await net.ClientRequest.mockedInstances[1].callbacks["response"](missedNotificationResponse)
 
 		await sse._handlingPushMessage.catch(noOp)
 		await Promise.resolve()
@@ -627,33 +751,44 @@ o.spec("DesktopSseClient Test", function () {
 		o(notifierMock.submitGroupedNotification.callCount).equals(0)
 		o(alarmSchedulerMock.handleAlarmNotification.callCount).equals(0)
 		await Promise.resolve()
-		o(confMock.setVar.calls.find(c => c.args[0] === DesktopConfigEncKey.sseInfo)?.args!).deepEquals([
-			DesktopConfigEncKey.sseInfo, {
+		o(confMock.setVar.calls.find((c) => c.args[0] === DesktopConfigEncKey.sseInfo)?.args!).deepEquals([
+			DesktopConfigEncKey.sseInfo,
+			{
 				identifier,
-				sseOrigin: 'http://here.there',
-				userIds: ['id2'],
-			}
+				sseOrigin: "http://here.there",
+				userIds: ["id2"],
+			},
 		])
-		o(alarmSchedulerMock.unscheduleAllAlarms.calls[0].args).deepEquals(['id1'])
-		downcast(electronMock.app).callbacks['will-quit']()
+		o(alarmSchedulerMock.unscheduleAllAlarms.calls[0].args).deepEquals(["id1"])
+		downcast(electronMock.app).callbacks["will-quit"]()
 	})
 
 	o("error code on downloadMissedNotification", async function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutMock)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutMock,
+		)
 		const sseResponse = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
 		await delay(8)
 
-		await net.ClientRequest.mockedInstances[0].callbacks['response'](sseResponse)
-		sseResponse.callbacks['data']("data: heartbeatTimeout:3\n")
-		sseResponse.callbacks['data'](`data: notification\n`)
+		await net.ClientRequest.mockedInstances[0].callbacks["response"](sseResponse)
+		sseResponse.callbacks["data"]("data: heartbeatTimeout:3\n")
+		sseResponse.callbacks["data"](`data: notification\n`)
 
 		// wait for missedNotification request to be sent...
 		await delay(1)
 		let missedNotificationResponse = new net.Response(1234)
-		await net.ClientRequest.mockedInstances[1].callbacks['response'](missedNotificationResponse)
+		await net.ClientRequest.mockedInstances[1].callbacks["response"](missedNotificationResponse)
 		o(net.ClientRequest.mockedInstances[1].abort.callCount).equals(1)
 		o(missedNotificationResponse.destroy.callCount).equals(1)
 
@@ -661,111 +796,142 @@ o.spec("DesktopSseClient Test", function () {
 		o(netMock.request.callCount).equals(2)
 		o(notifierMock.showOneShot.callCount).equals(1)
 		o(notifierMock.showOneShot.args.length).equals(1)
-		o(notifierMock.showOneShot.args[0]).deepEquals({title: "Failed to handle PushMessage"})
+		o(notifierMock.showOneShot.args[0]).deepEquals({ title: "Failed to handle PushMessage" })
 
-		downcast(electronMock.app).callbacks['will-quit']()
+		downcast(electronMock.app).callbacks["will-quit"]()
 	})
 
 	o("suspension on downloadMissedNotification Service Unavailable", async function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutMock)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutMock,
+		)
 		const sseResponse = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
 		await delay(8)
 
-		await net.ClientRequest.mockedInstances[0].callbacks['response'](sseResponse)
-		sseResponse.callbacks['data']("data: heartbeatTimeout:3\n")
-		sseResponse.callbacks['data'](`data: notification\n`)
+		await net.ClientRequest.mockedInstances[0].callbacks["response"](sseResponse)
+		sseResponse.callbacks["data"]("data: heartbeatTimeout:3\n")
+		sseResponse.callbacks["data"](`data: notification\n`)
 
 		// wait for missedNotification request to be sent...
 		await delay(1)
 		let missedNotificationResponse = new net.Response(ServiceUnavailableError.CODE)
 		missedNotificationResponse.headers["suspension-time"] = 5
 
-		await net.ClientRequest.mockedInstances[1].callbacks['response'](missedNotificationResponse)
+		await net.ClientRequest.mockedInstances[1].callbacks["response"](missedNotificationResponse)
 		o(net.ClientRequest.mockedInstances[1].abort.callCount).equals(1)
 		o(missedNotificationResponse.destroy.callCount).equals(1)
 
-		o(downcast(timeoutMock).calls.some(c => c.args[1] === 5000)).equals(true)
+		o(downcast(timeoutMock).calls.some((c) => c.args[1] === 5000)).equals(true)
 		timeoutMock.next()
 
 		// wait for missedNotification request to be sent...
 		let successfulResponse = new net.Response(200)
-		await net.ClientRequest.mockedInstances[1].callbacks['response'](successfulResponse)
+		await net.ClientRequest.mockedInstances[1].callbacks["response"](successfulResponse)
 		successfulResponse.callbacks["data"](JSON.stringify(createMissedNotification()) + "\n")
 
 		await Promise.resolve()
 		o(notifierMock.submitGroupedNotification.callCount).equals(0)
 		o(alarmSchedulerMock.handleAlarmNotification.callCount).equals(0)
-		downcast(electronMock.app).callbacks['will-quit']()
+		downcast(electronMock.app).callbacks["will-quit"]()
 	})
 
 	o("suspension on downloadMissedNotification Too Many Requests", async function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutMock)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutMock,
+		)
 		const sseResponse = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
 		await delay(8)
 
-		await net.ClientRequest.mockedInstances[0].callbacks['response'](sseResponse)
-		sseResponse.callbacks['data']("data: heartbeatTimeout:3\n")
-		sseResponse.callbacks['data'](`data: notification\n`)
+		await net.ClientRequest.mockedInstances[0].callbacks["response"](sseResponse)
+		sseResponse.callbacks["data"]("data: heartbeatTimeout:3\n")
+		sseResponse.callbacks["data"](`data: notification\n`)
 
 		// wait for missedNotification request to be sent...
 		await delay(1)
 		let missedNotificationResponse = new net.Response(TooManyRequestsError.CODE)
 		missedNotificationResponse.headers["retry-after"] = 5
 
-		await net.ClientRequest.mockedInstances[1].callbacks['response'](missedNotificationResponse)
+		await net.ClientRequest.mockedInstances[1].callbacks["response"](missedNotificationResponse)
 		o(net.ClientRequest.mockedInstances[1].abort.callCount).equals(1)
 		o(missedNotificationResponse.destroy.callCount).equals(1)
 
-		o(downcast(timeoutMock).calls.some(c => c.args[1] === 5000)).equals(true)
+		o(downcast(timeoutMock).calls.some((c) => c.args[1] === 5000)).equals(true)
 		timeoutMock.next()
 
 		// wait for missedNotification request to be sent...
 		let successfulResponse = new net.Response(200)
-		await net.ClientRequest.mockedInstances[1].callbacks['response'](successfulResponse)
+		await net.ClientRequest.mockedInstances[1].callbacks["response"](successfulResponse)
 		successfulResponse.callbacks["data"](JSON.stringify(createMissedNotification()) + "\n")
 
 		await Promise.resolve()
 		o(notifierMock.submitGroupedNotification.callCount).equals(0)
 		o(alarmSchedulerMock.handleAlarmNotification.callCount).equals(0)
-		downcast(electronMock.app).callbacks['will-quit']()
+		downcast(electronMock.app).callbacks["will-quit"]()
 	})
 
 	o("invalidateAlarms", async function () {
 		const lastNotificationCheckTime = Date.now() - 1000 * 60 * 60 * 24 * 31 // 31 day
-		const sseInfo = {identifier, userIds, sseOrigin: 'origin'}
-		const confMock = n.mock<DesktopConfig>("__conf", conf)
-		                  .with({
-			                  getVar: (key: string) => {
-				                  switch (key) {
-					                  case 'heartbeatTimeoutInSeconds':
-						                  return 30
-					                  case DesktopConfigKey.lastMissedNotificationCheckTime:
-						                  return String(lastNotificationCheckTime)
-					                  case DesktopConfigEncKey.sseInfo:
-						                  return sseInfo
-					                  default:
-						                  throw new Error(`unexpected getVar key ${key}`)
-				                  }
-			                  },
-		                  }).set()
+		const sseInfo = { identifier, userIds, sseOrigin: "origin" }
+		const confMock = n
+			.mock<DesktopConfig>("__conf", conf)
+			.with({
+				getVar: (key: string) => {
+					switch (key) {
+						case "heartbeatTimeoutInSeconds":
+							return 30
+						case DesktopConfigKey.lastMissedNotificationCheckTime:
+							return String(lastNotificationCheckTime)
+						case DesktopConfigEncKey.sseInfo:
+							return sseInfo
+						default:
+							throw new Error(`unexpected getVar key ${key}`)
+					}
+				},
+			})
+			.set()
 		const timeoutSpy = o.spy(timeoutMock)
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, langMock, timeoutSpy)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutSpy,
+		)
 		await sse.start()
 		timeoutMock.next()
 		await delay(10)
 
 		o(alarmSchedulerMock.unscheduleAllAlarms.callCount).equals(1)
 		o(confMock.setVar.calls[0].args).deepEquals([DesktopConfigKey.lastMissedNotificationCheckTime, null])
-		o(confMock.setVar.calls[1].args).deepEquals(['lastProcessedNotificationId', null])
-		o(confMock.setVar.calls[2].args)
-			.deepEquals([DesktopConfigEncKey.sseInfo, {identifier, userIds: [], sseOrigin: sseInfo.sseOrigin}])
+		o(confMock.setVar.calls[1].args).deepEquals(["lastProcessedNotificationId", null])
+		o(confMock.setVar.calls[2].args).deepEquals([DesktopConfigEncKey.sseInfo, { identifier, userIds: [], sseOrigin: sseInfo.sseOrigin }])
 		o(alarmStorageMock.removePushIdentifierKeys.callCount).equals(1)
 		o(timeoutSpy.callCount).equals(1)
 	})

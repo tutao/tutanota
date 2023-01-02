@@ -1,14 +1,14 @@
 import m from "mithril"
 import stream from "mithril/stream"
-import {AccessBlockedError, AccessDeactivatedError, InvalidDataError, NotAuthenticatedError, TooManyRequestsError} from "../../api/common/error/RestError"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {isMailAddress} from "../../misc/FormatValidator"
-import {lang} from "../../misc/LanguageViewModel"
-import {Autocomplete, TextField} from "../../gui/base/TextField.js"
-import {Dialog, DialogType} from "../../gui/base/Dialog"
-import {HtmlEditor, HtmlEditorMode} from "../../gui/editor/HtmlEditor"
-import {locator} from "../../api/main/MainLocator"
-import {assertMainOrNode} from "../../api/common/Env"
+import { AccessBlockedError, AccessDeactivatedError, InvalidDataError, NotAuthenticatedError, TooManyRequestsError } from "../../api/common/error/RestError"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import { isMailAddress } from "../../misc/FormatValidator"
+import { lang } from "../../misc/LanguageViewModel"
+import { Autocomplete, TextField } from "../../gui/base/TextField.js"
+import { Dialog, DialogType } from "../../gui/base/Dialog"
+import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor"
+import { locator } from "../../api/main/MainLocator"
+import { assertMainOrNode } from "../../api/common/Env"
 
 assertMainOrNode()
 
@@ -69,12 +69,13 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 							noAutoLogin: true,
 						})
 					})
-					.catch(e => handleError(e))
+					.catch((e) => handleError(e))
 			}
 		},
-		cancelAction: () => m.route.set("/login", {
-			noAutoLogin: true,
-		}),
+		cancelAction: () =>
+			m.route.set("/login", {
+				noAutoLogin: true,
+			}),
 	})
 	return takeoverDialog
 }

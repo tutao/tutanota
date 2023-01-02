@@ -1,4 +1,4 @@
-import type {Contact} from "../api/entities/tutanota/TypeRefs.js"
+import type { Contact } from "../api/entities/tutanota/TypeRefs.js"
 import {
 	Birthday,
 	createBirthday,
@@ -6,13 +6,13 @@ import {
 	createContactAddress,
 	createContactMailAddress,
 	createContactPhoneNumber,
-	createContactSocialId
+	createContactSocialId,
 } from "../api/entities/tutanota/TypeRefs.js"
-import {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../api/common/TutanotaConstants"
-import {decodeBase64, decodeQuotedPrintable} from "@tutao/tutanota-utils"
-import {birthdayToIsoDate, isValidBirthday} from "../api/common/utils/BirthdayUtils"
-import {ParsingError} from "../api/common/error/ParsingError"
-import {assertMainOrNode} from "../api/common/Env"
+import { ContactAddressType, ContactPhoneNumberType, ContactSocialType } from "../api/common/TutanotaConstants"
+import { decodeBase64, decodeQuotedPrintable } from "@tutao/tutanota-utils"
+import { birthdayToIsoDate, isValidBirthday } from "../api/common/utils/BirthdayUtils"
+import { ParsingError } from "../api/common/error/ParsingError"
+import { assertMainOrNode } from "../api/common/Env"
 
 assertMainOrNode()
 
@@ -53,14 +53,14 @@ export function vCardEscapingSplit(details: string): string[] {
 	details = details.replace(/\\;/g, "--semiColonsemiColon++")
 	details = details.replace(/\\:/g, "--dPunktdPunkt++")
 	let array = details.split(";")
-	array = array.map(elem => {
+	array = array.map((elem) => {
 		return elem.trim()
 	})
 	return array
 }
 
 export function vCardReescapingArray(details: string[]): string[] {
-	return details.map(a => {
+	return details.map((a) => {
 		a = a.replace(/\-\-bslashbslash\+\+/g, "\\")
 		a = a.replace(/\-\-semiColonsemiColon\+\+/g, ";")
 		a = a.replace(/\-\-dPunktdPunkt\+\+/g, ":")
@@ -74,7 +74,7 @@ export function vCardEscapingSplitAdr(addressDetails: string): string[] {
 	addressDetails = addressDetails.replace(/\\\\/g, "--bslashbslash++")
 	addressDetails = addressDetails.replace(/\\;/g, "--semiColonsemiColon++")
 	let array = addressDetails.split(";")
-	return array.map(elem => {
+	return array.map((elem) => {
 		if (elem.trim().length > 0) {
 			return elem.trim().concat("\n")
 		} else {
@@ -98,7 +98,7 @@ function _decodeTag(encoding: string, charset: string, text: string): string {
 
 	return text
 		.split(";")
-		.map(line => decoder(charset, line))
+		.map((line) => decoder(charset, line))
 		.join(";")
 }
 
@@ -123,9 +123,9 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 			let tagAndTypeString = vCardLines[j].substring(0, indexAfterTag).toUpperCase()
 			let tagName = tagAndTypeString.split(";")[0]
 			let tagValue = vCardLines[j].substring(indexAfterTag + 1)
-			let encodingObj = vCardLines[j].split(";").find(line => line.includes("ENCODING="))
+			let encodingObj = vCardLines[j].split(";").find((line) => line.includes("ENCODING="))
 			let encoding = encodingObj ? encodingObj.split("=")[1] : ""
-			let charsetObj = vCardLines[j].split(";").find(line => line.includes("CHARSET="))
+			let charsetObj = vCardLines[j].split(";").find((line) => line.includes("CHARSET="))
 			let charset = charsetObj ? charsetObj.split("=")[1] : "utf-8"
 			tagValue = _decodeTag(encoding, charset, tagValue)
 

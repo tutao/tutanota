@@ -1,7 +1,7 @@
 //@bundleInto:common-min
 
-import {errorToString, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import {DataFile} from "./DataFile";
+import { errorToString, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { DataFile } from "./DataFile"
 
 export const LOG_SIZE = 1000
 
@@ -41,11 +41,9 @@ export class Logger {
 	}
 
 	formatLogEntry(date: Date, level: string, ...rest: Array<any>): string {
-		const formattedArgs = rest.map(obj => {
+		const formattedArgs = rest.map((obj) => {
 			try {
-				return obj instanceof Error
-					? errorToString(Object.assign({stack: null}, obj))
-					: JSON.stringify(obj)
+				return obj instanceof Error ? errorToString(Object.assign({ stack: null }, obj)) : JSON.stringify(obj)
 			} catch (e) {
 				return "[cyclic object]"
 			}
@@ -106,7 +104,7 @@ export function replaceNativeLogger(global: any, loggerInstance: Logger, force: 
 			},
 			info(...args: any[]) {
 				globalConsole.info(...args)
-			}
+			},
 		}
 	}
 }

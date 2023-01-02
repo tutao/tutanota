@@ -1,10 +1,10 @@
 import o from "ospec"
-import type {EventWithAlarmInfos} from "../../../../../src/api/worker/facades/CalendarFacade.js"
-import {CalendarFacade} from "../../../../../src/api/worker/facades/CalendarFacade.js"
-import {EntityRestClientMock} from "../rest/EntityRestClientMock.js"
-import {DefaultEntityRestCache} from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
-import {downcast, isSameTypeRef, neverNull, noOp} from "@tutao/tutanota-utils"
-import type {AlarmInfo, User, UserAlarmInfo} from "../../../../../src/api/entities/sys/TypeRefs.js"
+import type { EventWithAlarmInfos } from "../../../../../src/api/worker/facades/CalendarFacade.js"
+import { CalendarFacade } from "../../../../../src/api/worker/facades/CalendarFacade.js"
+import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
+import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
+import { downcast, isSameTypeRef, neverNull, noOp } from "@tutao/tutanota-utils"
+import type { AlarmInfo, User, UserAlarmInfo } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import {
 	createAlarmInfo,
 	createCalendarEventRef,
@@ -13,25 +13,23 @@ import {
 	createUserAlarmInfo,
 	createUserAlarmInfoListType,
 	PushIdentifierTypeRef,
-	UserAlarmInfoTypeRef
+	UserAlarmInfoTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {getElementId, getLetId, getListId} from "../../../../../src/api/common/utils/EntityUtils.js"
-import type {CalendarEvent} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import {CalendarEventTypeRef, createCalendarEvent} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import {ProgressMonitor} from "../../../../../src/api/common/utils/ProgressMonitor.js"
-import {assertThrows, mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
-import {ImportError} from "../../../../../src/api/common/error/ImportError.js"
-import {SetupMultipleError} from "../../../../../src/api/common/error/SetupMultipleError.js"
-import {InstanceMapper} from "../../../../../src/api/worker/crypto/InstanceMapper.js"
-import {GroupManagementFacade} from "../../../../../src/api/worker/facades/GroupManagementFacade.js";
-import {object} from "testdouble"
-import {IServiceExecutor} from "../../../../../src/api/common/ServiceRequest"
-import {CryptoFacade} from "../../../../../src/api/worker/crypto/CryptoFacade"
-import {UserFacade} from "../../../../../src/api/worker/facades/UserFacade"
-
+import { getElementId, getLetId, getListId } from "../../../../../src/api/common/utils/EntityUtils.js"
+import type { CalendarEvent } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { CalendarEventTypeRef, createCalendarEvent } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { ProgressMonitor } from "../../../../../src/api/common/utils/ProgressMonitor.js"
+import { assertThrows, mockAttribute, unmockAttribute } from "@tutao/tutanota-test-utils"
+import { ImportError } from "../../../../../src/api/common/error/ImportError.js"
+import { SetupMultipleError } from "../../../../../src/api/common/error/SetupMultipleError.js"
+import { InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
+import { GroupManagementFacade } from "../../../../../src/api/worker/facades/GroupManagementFacade.js"
+import { object } from "testdouble"
+import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest"
+import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade"
+import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade"
 
 o.spec("CalendarFacadeTest", async function () {
-
 	let userAlarmInfoListId: Id
 	let user: User
 	let userFacade: UserFacade
@@ -52,13 +50,12 @@ o.spec("CalendarFacadeTest", async function () {
 	let serviceExecutor: IServiceExecutor
 	let cryptoFacade: CryptoFacade
 
-
 	function sortEventsWithAlarmInfos(eventsWithAlarmInfos: Array<EventWithAlarmInfos>) {
 		const idCompare = (el1, el2) => getLetId(el1).join("").localeCompare(getLetId(el2).join(""))
 
 		eventsWithAlarmInfos.sort((a, b) => idCompare(a.event, b.event))
 
-		for (let {userAlarmInfos} of eventsWithAlarmInfos) {
+		for (let { userAlarmInfos } of eventsWithAlarmInfos) {
 			userAlarmInfos.sort(idCompare)
 		}
 		return eventsWithAlarmInfos
@@ -69,17 +66,16 @@ o.spec("CalendarFacadeTest", async function () {
 		o(sortEventsWithAlarmInfos(actual)).deepEquals(sortEventsWithAlarmInfos(expected))
 	}
 
-
 	function makeEvent(listId: Id, elementId?: Id): CalendarEvent {
 		return createCalendarEvent({
-			_id: [listId, elementId || restClientMock.getNextId()]
+			_id: [listId, elementId || restClientMock.getNextId()],
 		})
 	}
 
 	function makeUserAlarmInfo(event: CalendarEvent): UserAlarmInfo {
 		return createUserAlarmInfo({
 			_id: [userAlarmInfoListId, restClientMock.getNextId()],
-			alarmInfo: makeAlarmInfo(event)
+			alarmInfo: makeAlarmInfo(event),
 		})
 	}
 
@@ -87,8 +83,8 @@ o.spec("CalendarFacadeTest", async function () {
 		return createAlarmInfo({
 			calendarRef: createCalendarEventRef({
 				elementId: getElementId(event),
-				listId: getListId(event)
-			})
+				listId: getListId(event),
+			}),
 		})
 	}
 
@@ -98,36 +94,44 @@ o.spec("CalendarFacadeTest", async function () {
 
 		user = createUser({
 			alarmInfoList: createUserAlarmInfoListType({
-				alarms: userAlarmInfoListId
+				alarms: userAlarmInfoListId,
 			}),
-			pushIdentifierList: createPushIdentifierList({list: "pushIdentifierList"}),
+			pushIdentifierList: createPushIdentifierList({ list: "pushIdentifierList" }),
 			userGroup: downcast({
-				group: "Id"
-			})
+				group: "Id",
+			}),
 		})
 		userFacade = downcast({
-			getLoggedInUser: () => user
+			getLoggedInUser: () => user,
 		})
 		groupManagementFacade = downcast({})
 
 		entityRestCache = downcast(restClientMock)
 		workerMock = downcast({
-			sendProgress: () => Promise.resolve()
+			sendProgress: () => Promise.resolve(),
 		})
 		nativeMock = downcast({
-			invokeNative: o.spy(() => Promise.resolve())
+			invokeNative: o.spy(() => Promise.resolve()),
 		})
 		instanceMapper = new InstanceMapper()
 		serviceExecutor = object()
 		cryptoFacade = object()
-		calendarFacade = new CalendarFacade(userFacade, groupManagementFacade, entityRestCache, nativeMock, workerMock, instanceMapper, serviceExecutor, cryptoFacade)
+		calendarFacade = new CalendarFacade(
+			userFacade,
+			groupManagementFacade,
+			entityRestCache,
+			nativeMock,
+			workerMock,
+			instanceMapper,
+			serviceExecutor,
+			cryptoFacade,
+		)
 	})
-
 
 	o.spec("saveCalendarEvents", async function () {
 		o.beforeEach(async function () {
 			progressMonitor = downcast({
-				workDone: noOp
+				workDone: noOp,
 			})
 
 			loadAllMock = function (typeRef, listId, start) {
@@ -138,11 +142,10 @@ o.spec("CalendarFacadeTest", async function () {
 			}
 			entityRequest = function () {
 				return Promise.resolve()
-			}//dummy overwrite in test
+			} //dummy overwrite in test
 			requestSpy = o.spy(function () {
 				return entityRequest.apply(this, arguments)
 			})
-
 
 			sendAlarmNotificationsMock = mockAttribute(calendarFacade, calendarFacade._sendAlarmNotifications, () => Promise.resolve())
 			enitityClientLoadAllMock = mockAttribute(calendarFacade.entityClient, calendarFacade.entityClient.loadAll, loadAllMock)
@@ -155,125 +158,119 @@ o.spec("CalendarFacadeTest", async function () {
 		})
 
 		o("save events with alarms posts all alarms in one post multiple", async function () {
-				entityRequest = function (listId, instances) {
-					const typeRef = instances[0]?._type
-					if (isSameTypeRef(typeRef, CalendarEventTypeRef)) {
-						o(instances.length).equals(2)
-						o(instances[0].alarmInfos).deepEquals([[userAlarmInfoListId, "1"]])
-						o(instances[1].alarmInfos).deepEquals([[userAlarmInfoListId, "2"], [userAlarmInfoListId, "3"]])
-						return Promise.resolve(["eventId1", "eventId2"])
-					} else if (isSameTypeRef(typeRef, UserAlarmInfoTypeRef)) {
-						o(instances.length).equals(3)
-						return Promise.resolve(["1", "2", "3"])
-					}
+			entityRequest = function (listId, instances) {
+				const typeRef = instances[0]?._type
+				if (isSameTypeRef(typeRef, CalendarEventTypeRef)) {
+					o(instances.length).equals(2)
+					o(instances[0].alarmInfos).deepEquals([[userAlarmInfoListId, "1"]])
+					o(instances[1].alarmInfos).deepEquals([
+						[userAlarmInfoListId, "2"],
+						[userAlarmInfoListId, "3"],
+					])
+					return Promise.resolve(["eventId1", "eventId2"])
+				} else if (isSameTypeRef(typeRef, UserAlarmInfoTypeRef)) {
+					o(instances.length).equals(3)
+					return Promise.resolve(["1", "2", "3"])
 				}
-
-				const listId = "listID"
-				const event1 = makeEvent(listId, "eventId1")
-				const event2 = makeEvent(listId, "eventId2")
-				const eventsWrapper = [
-					{
-						event: event1,
-						alarms: [makeAlarmInfo(event1)]
-					},
-					{
-						event: event2,
-						alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)]
-					}
-
-				]
-				await calendarFacade._saveCalendarEvents(eventsWrapper)
-				// @ts-ignore
-				o(calendarFacade._sendAlarmNotifications.callCount).equals(1)
-				// @ts-ignore
-				o(calendarFacade._sendAlarmNotifications.args[0].length).equals(3)
-				// @ts-ignore
-				o(entityRestCache.setupMultiple.callCount).equals(2)
 			}
-		)
 
+			const listId = "listID"
+			const event1 = makeEvent(listId, "eventId1")
+			const event2 = makeEvent(listId, "eventId2")
+			const eventsWrapper = [
+				{
+					event: event1,
+					alarms: [makeAlarmInfo(event1)],
+				},
+				{
+					event: event2,
+					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
+				},
+			]
+			await calendarFacade._saveCalendarEvents(eventsWrapper)
+			// @ts-ignore
+			o(calendarFacade._sendAlarmNotifications.callCount).equals(1)
+			// @ts-ignore
+			o(calendarFacade._sendAlarmNotifications.args[0].length).equals(3)
+			// @ts-ignore
+			o(entityRestCache.setupMultiple.callCount).equals(2)
+		})
 
 		o("If alarms cannot be saved a user error is thrown and events are not created", async function () {
-				entityRequest = function (listId, instances) {
-					const typeRef = instances[0]?._type
-					if (isSameTypeRef(typeRef, UserAlarmInfoTypeRef)) {
-						return Promise.reject(new SetupMultipleError("could not create alarms", [new Error("failed")], instances))
-					} else {
-						throw new Error("Wrong typeref")
-					}
+			entityRequest = function (listId, instances) {
+				const typeRef = instances[0]?._type
+				if (isSameTypeRef(typeRef, UserAlarmInfoTypeRef)) {
+					return Promise.reject(new SetupMultipleError("could not create alarms", [new Error("failed")], instances))
+				} else {
+					throw new Error("Wrong typeref")
 				}
-
-				const listId = "listID"
-				const event1 = makeEvent(listId, "eventId1")
-				const event2 = makeEvent(listId, "eventId2")
-				const eventsWrapper = [
-					{
-						event: event1,
-						alarms: [makeAlarmInfo(event1)]
-					},
-					{
-						event: event2,
-						alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)]
-					}
-
-				]
-				const result = await assertThrows(ImportError, async () => await calendarFacade._saveCalendarEvents(eventsWrapper))
-				o(result.numFailed).equals(2)
-				// @ts-ignore
-				o(calendarFacade._sendAlarmNotifications.callCount).equals(0)
-				// @ts-ignore
-				o(entityRestCache.setupMultiple.callCount).equals(1)
-
 			}
-		)
+
+			const listId = "listID"
+			const event1 = makeEvent(listId, "eventId1")
+			const event2 = makeEvent(listId, "eventId2")
+			const eventsWrapper = [
+				{
+					event: event1,
+					alarms: [makeAlarmInfo(event1)],
+				},
+				{
+					event: event2,
+					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
+				},
+			]
+			const result = await assertThrows(ImportError, async () => await calendarFacade._saveCalendarEvents(eventsWrapper))
+			o(result.numFailed).equals(2)
+			// @ts-ignore
+			o(calendarFacade._sendAlarmNotifications.callCount).equals(0)
+			// @ts-ignore
+			o(entityRestCache.setupMultiple.callCount).equals(1)
+		})
 
 		o("If not all events can be saved an ImportError is thrown", async function () {
-				const listId1 = "listID1"
-				const listId2 = "listID2"
-				entityRequest = function (listId, instances) {
-					const typeRef = instances[0]?._type
-					if (isSameTypeRef(typeRef, CalendarEventTypeRef)) {
-						if (listId === listId1) {
-							return Promise.reject(new SetupMultipleError("could not save event", [new Error("failed")], instances))
-						} else if (listId === listId2) {
-							return Promise.resolve(["eventId2"])
-						} else {
-							throw new Error("Unknown id")
-						}
-					} else if (isSameTypeRef(typeRef, UserAlarmInfoTypeRef)) {
-						o(instances.length).equals(3)
-						return Promise.resolve(["1", "2", "3"])
+			const listId1 = "listID1"
+			const listId2 = "listID2"
+			entityRequest = function (listId, instances) {
+				const typeRef = instances[0]?._type
+				if (isSameTypeRef(typeRef, CalendarEventTypeRef)) {
+					if (listId === listId1) {
+						return Promise.reject(new SetupMultipleError("could not save event", [new Error("failed")], instances))
+					} else if (listId === listId2) {
+						return Promise.resolve(["eventId2"])
+					} else {
+						throw new Error("Unknown id")
 					}
-					throw new Error("should not be reached")
+				} else if (isSameTypeRef(typeRef, UserAlarmInfoTypeRef)) {
+					o(instances.length).equals(3)
+					return Promise.resolve(["1", "2", "3"])
 				}
-
-				const event1 = makeEvent(listId1, "eventId1")
-				const event2 = makeEvent(listId2, "eventId2")
-				const eventsWrapper = [
-					{
-						event: event1,
-						alarms: [makeAlarmInfo(event1)]
-					},
-					{
-						event: event2,
-						alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)]
-					}
-
-				]
-				const result = await assertThrows(ImportError, async () => await calendarFacade._saveCalendarEvents(eventsWrapper))
-				o(result.numFailed).equals(1)
-				// @ts-ignore
-				o(calendarFacade._sendAlarmNotifications.callCount).equals(1)
-				// @ts-ignore
-				o(calendarFacade._sendAlarmNotifications.args[0].length).equals(2)
-				// @ts-ignore
-				o(entityRestCache.setupMultiple.callCount).equals(3)
+				throw new Error("should not be reached")
 			}
-		)
+
+			const event1 = makeEvent(listId1, "eventId1")
+			const event2 = makeEvent(listId2, "eventId2")
+			const eventsWrapper = [
+				{
+					event: event1,
+					alarms: [makeAlarmInfo(event1)],
+				},
+				{
+					event: event2,
+					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
+				},
+			]
+			const result = await assertThrows(ImportError, async () => await calendarFacade._saveCalendarEvents(eventsWrapper))
+			o(result.numFailed).equals(1)
+			// @ts-ignore
+			o(calendarFacade._sendAlarmNotifications.callCount).equals(1)
+			// @ts-ignore
+			o(calendarFacade._sendAlarmNotifications.args[0].length).equals(2)
+			// @ts-ignore
+			o(entityRestCache.setupMultiple.callCount).equals(3)
+		})
 	})
 
 	o.spec("loadAlarmEvents", function () {
-
 		o("no alarms", async function () {
 			o(await calendarFacade.loadAlarmEvents()).deepEquals([])
 		})
@@ -283,7 +280,7 @@ o.spec("CalendarFacadeTest", async function () {
 			const alarm = makeUserAlarmInfo(event)
 			restClientMock.addListInstances(event, alarm)
 			const actual = await calendarFacade.loadAlarmEvents()
-			const expected = [{event, userAlarmInfos: [alarm]}]
+			const expected = [{ event, userAlarmInfos: [alarm] }]
 			assertSortedEquals(actual, expected)
 		})
 		o("multiple alarms, same event", async function () {
@@ -293,7 +290,7 @@ o.spec("CalendarFacadeTest", async function () {
 			const alarm2 = makeUserAlarmInfo(event)
 			restClientMock.addListInstances(event, alarm1, alarm2)
 			const actual = await calendarFacade.loadAlarmEvents()
-			const expected = [{event, userAlarmInfos: [alarm1, alarm2]}]
+			const expected = [{ event, userAlarmInfos: [alarm1, alarm2] }]
 			assertSortedEquals(actual, expected)
 		})
 		o("multiple alarms, different events", async function () {
@@ -306,8 +303,8 @@ o.spec("CalendarFacadeTest", async function () {
 			restClientMock.addListInstances(event1, event2, alarm1, alarm2, alarm3)
 			const actual = await calendarFacade.loadAlarmEvents()
 			const expected = [
-				{event: event1, userAlarmInfos: [alarm1]},
-				{event: event2, userAlarmInfos: [alarm2, alarm3]}
+				{ event: event1, userAlarmInfos: [alarm1] },
+				{ event: event2, userAlarmInfos: [alarm2, alarm3] },
 			]
 			assertSortedEquals(actual, expected)
 		})
@@ -324,9 +321,9 @@ o.spec("CalendarFacadeTest", async function () {
 			restClientMock.addListInstances(event1, event2, event3, alarm1, alarm2, alarm3, alarm4)
 			const actual = await calendarFacade.loadAlarmEvents()
 			const expected = [
-				{event: event1, userAlarmInfos: [alarm1]},
-				{event: event2, userAlarmInfos: [alarm2, alarm3]},
-				{event: event3, userAlarmInfos: [alarm4]}
+				{ event: event1, userAlarmInfos: [alarm1] },
+				{ event: event2, userAlarmInfos: [alarm2, alarm3] },
+				{ event: event3, userAlarmInfos: [alarm4] },
 			]
 			assertSortedEquals(actual, expected)
 		})
@@ -353,10 +350,10 @@ o.spec("CalendarFacadeTest", async function () {
 
 			const actual = await calendarFacade.loadAlarmEvents()
 			const expected = [
-				{event: event1, userAlarmInfos: [alarm1]},
-				{event: event2, userAlarmInfos: [alarm2, alarm3]},
-				{event: clashEvent1, userAlarmInfos: [alarm4]},
-				{event: clashEvent2, userAlarmInfos: [alarm5, alarm6]}
+				{ event: event1, userAlarmInfos: [alarm1] },
+				{ event: event2, userAlarmInfos: [alarm2, alarm3] },
+				{ event: clashEvent1, userAlarmInfos: [alarm4] },
+				{ event: clashEvent2, userAlarmInfos: [alarm5, alarm6] },
 			]
 			assertSortedEquals(actual, expected)
 		})
@@ -370,7 +367,7 @@ o.spec("CalendarFacadeTest", async function () {
 			const missingAlarm = makeUserAlarmInfo(missingEvent)
 			restClientMock.addListInstances(event, alarm, missingAlarm)
 			const actual = await calendarFacade.loadAlarmEvents()
-			const expected = [{event, userAlarmInfos: [alarm]}]
+			const expected = [{ event, userAlarmInfos: [alarm] }]
 			assertSortedEquals(actual, expected)
 		})
 	})

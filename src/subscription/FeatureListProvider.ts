@@ -1,22 +1,21 @@
-import Stream from "mithril/stream";
-import {PlanPrices} from "../api/entities/sys/TypeRefs"
-import {TranslationKey} from "../misc/LanguageViewModel"
-import {PaymentInterval} from "./PriceUtils.js"
+import Stream from "mithril/stream"
+import { PlanPrices } from "../api/entities/sys/TypeRefs"
+import { TranslationKey } from "../misc/LanguageViewModel"
+import { PaymentInterval } from "./PriceUtils.js"
 
 const FEATURE_LIST_RESOURCE_URL = "https://tutanota.com/resources/data/features.json"
 let dataProvider: FeatureListProvider | null = null
 
 export class FeatureListProvider {
-
 	private featureList: FeatureLists | null = null
 
-	private constructor() { }
+	private constructor() {}
 
 	private async init(): Promise<void> {
 		if ("undefined" === typeof fetch) return
 		this.featureList = await resolveOrNull(
-			() => fetch(FEATURE_LIST_RESOURCE_URL).then(r => r.json()),
-			e => console.log("failed to fetch feature list:", e)
+			() => fetch(FEATURE_LIST_RESOURCE_URL).then((r) => r.json()),
+			(e) => console.log("failed to fetch feature list:", e),
 		)
 	}
 
@@ -29,9 +28,7 @@ export class FeatureListProvider {
 	}
 
 	getFeatureList(targetSubscription: SubscriptionType): FeatureLists[SubscriptionType] {
-		return this.featureList == null
-			? {features: [], subtitle: "emptyString_msg"}
-			: this.featureList[targetSubscription]
+		return this.featureList == null ? { features: [], subtitle: "emptyString_msg" } : this.featureList[targetSubscription]
 	}
 
 	featureLoadingDone(): boolean {
@@ -43,12 +40,10 @@ export class FeatureListProvider {
  * tutanota-3 has a typeRef for plan prices, while the web site defines the type with only
  * some of the properties of the model type. using this method to maintain symmetry.
  */
-export type WebsitePlanPrices = Pick<PlanPrices,
-	"additionalUserPriceMonthly" |
-	"contactFormPriceMonthly" |
-	"firstYearDiscount" |
-	"monthlyPrice" |
-	"monthlyReferencePrice">
+export type WebsitePlanPrices = Pick<
+	PlanPrices,
+	"additionalUserPriceMonthly" | "contactFormPriceMonthly" | "firstYearDiscount" | "monthlyPrice" | "monthlyReferencePrice"
+>
 
 async function resolveOrNull<T>(fn: () => Promise<T>, handler: (a: Error) => void): Promise<T | null> {
 	try {
@@ -89,11 +84,7 @@ export type SubscriptionConfig = {
  * we have to provide functions to produce it. these
  * are used to select the correct one.
  **/
-export type ReplacementKey
-	= "pricePerExtraUser"
-	| "mailAddressAliases"
-	| "storage"
-	| "contactForm"
+export type ReplacementKey = "pricePerExtraUser" | "mailAddressAliases" | "storage" | "contactForm"
 
 /**
  * one item in the list that's shown below a subscription box,
@@ -105,10 +96,10 @@ export type ReplacementKey
  * replacements: a key to select the correct content to replace the slots in the translation
  */
 export type FeatureListItem = {
-	text: TranslationKey,
-	toolTip?: TranslationKey,
-	omit: boolean,
-	antiFeature?: boolean,
+	text: TranslationKey
+	toolTip?: TranslationKey
+	omit: boolean
+	antiFeature?: boolean
 	replacements?: ReplacementKey
 }
 
@@ -116,14 +107,12 @@ export type FeatureListItem = {
  * subtitle: the short text shown below the subscription name in the buy box
  * features: flat, ordered list of features for this subscription type
  */
-type FeatureLists = { [K in SubscriptionType]: {subtitle: string, features: Array<FeatureListItem>} }
+type FeatureLists = { [K in SubscriptionType]: { subtitle: string; features: Array<FeatureListItem> } }
 
 /**
  * @returns the name to show to the user for the current subscription (PremiumBusiness -> Premium etc.)
  */
-export function getDisplayNameOfSubscriptionType(
-	subscription: SubscriptionType
-): string {
+export function getDisplayNameOfSubscriptionType(subscription: SubscriptionType): string {
 	switch (subscription) {
 		case SubscriptionType.PremiumBusiness:
 			return SubscriptionType.Premium

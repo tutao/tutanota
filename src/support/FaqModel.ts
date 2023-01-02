@@ -1,9 +1,9 @@
-import type {LanguageViewModelType} from "../misc/LanguageViewModel"
-import {lang, LanguageViewModel} from "../misc/LanguageViewModel"
-import {delay, downcast, LazyLoaded} from "@tutao/tutanota-utils"
-import {search} from "../api/common/utils/PlainTextSearch"
-import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
-import {htmlSanitizer} from "../misc/HtmlSanitizer.js"
+import type { LanguageViewModelType } from "../misc/LanguageViewModel"
+import { lang, LanguageViewModel } from "../misc/LanguageViewModel"
+import { delay, downcast, LazyLoaded } from "@tutao/tutanota-utils"
+import { search } from "../api/common/utils/PlainTextSearch"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { htmlSanitizer } from "../misc/HtmlSanitizer.js"
 
 export type FaqEntry = {
 	id: string
@@ -58,7 +58,7 @@ export class FaqModel {
 	 * with <mark> tags. it is safe to insert the results of this call into the DOM.
 	 *
 	 */
-	async* search(query: string): AsyncGenerator<FaqEntry> {
+	async *search(query: string): AsyncGenerator<FaqEntry> {
 		const cleanQuery = query.trim()
 
 		if (cleanQuery === "") {
@@ -80,7 +80,7 @@ export class FaqModel {
 			id: result.id,
 			title: htmlSanitizer.sanitizeHTML(result.title).html,
 			tags: htmlSanitizer.sanitizeHTML(result.tags).html,
-			text: htmlSanitizer.sanitizeHTML(result.text, {blockExternalContent: false}).html,
+			text: htmlSanitizer.sanitizeHTML(result.text, { blockExternalContent: false }).html,
 		}
 	}
 
@@ -90,9 +90,9 @@ export class FaqModel {
 	private async fetchFAQ(langCode: string): Promise<Translation> {
 		const faqPath = `https://tutanota.com/faq-entries/${langCode}.json`
 		const translations: Record<string, string> = await fetch(faqPath)
-			.then(response => response.json())
-			.then(language => language.keys)
-			.catch(error => {
+			.then((response) => response.json())
+			.then((language) => language.keys)
+			.catch((error) => {
 				console.log("Failed to fetch FAQ entries", error)
 				return {}
 			})
@@ -116,7 +116,7 @@ export class FaqModel {
 			this.currentLanguageCode = lang.code
 			const faqNames = Object.keys(this.faqLang.fallback.keys)
 			this.list = faqNames
-				.filter(key => key.startsWith(FAQ_PREFIX) && key.endsWith(MARKDOWN_SUFFIX))
+				.filter((key) => key.startsWith(FAQ_PREFIX) && key.endsWith(MARKDOWN_SUFFIX))
 				.map((titleKey: string) => titleKey.substring(FAQ_PREFIX.length, titleKey.indexOf(MARKDOWN_SUFFIX)))
 				.map((name: string) => this.createFAQ(name))
 		}

@@ -1,29 +1,23 @@
-import type {CalendarAttendeeStatus, CalendarMethod} from "../../api/common/TutanotaConstants"
-import {AlarmInterval, assertEnumValue, EndType, RepeatPeriod, SECOND_MS} from "../../api/common/TutanotaConstants"
-import {stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
-import {
-	calendarAttendeeStatusToParstat,
-	iCalReplacements,
-	parseCalendarEvents,
-	parseICalendar,
-	repeatPeriodToIcalFrequency
-} from "./CalendarParser"
-import {getAllDayDateLocal, isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
-import {generateUid, getTimeZone} from "../date/CalendarUtils"
-import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
-import {createFile} from "../../api/entities/tutanota/TypeRefs.js"
-import {convertToDataFile, DataFile} from "../../api/common/DataFile"
-import {pad} from "@tutao/tutanota-utils"
-import {assertNotNull, downcast, neverNull} from "@tutao/tutanota-utils"
-import type {UserAlarmInfo} from "../../api/entities/sys/TypeRefs.js"
-import {ParserError} from "../../misc/parsing/ParserCombinator"
-import {incrementDate} from "@tutao/tutanota-utils"
-import {flat, mapAndFilterNull} from "@tutao/tutanota-utils"
-import {DateTime} from "luxon"
-import type {AlarmInfo} from "../../api/entities/sys/TypeRefs.js"
-import type {RepeatRule} from "../../api/entities/sys/TypeRefs.js"
-import {CALENDAR_MIME_TYPE} from "../../file/FileController"
-import {getLetId} from "../../api/common/utils/EntityUtils"
+import type { CalendarAttendeeStatus, CalendarMethod } from "../../api/common/TutanotaConstants"
+import { AlarmInterval, assertEnumValue, EndType, RepeatPeriod, SECOND_MS } from "../../api/common/TutanotaConstants"
+import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { calendarAttendeeStatusToParstat, iCalReplacements, parseCalendarEvents, parseICalendar, repeatPeriodToIcalFrequency } from "./CalendarParser"
+import { getAllDayDateLocal, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
+import { generateUid, getTimeZone } from "../date/CalendarUtils"
+import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
+import { createFile } from "../../api/entities/tutanota/TypeRefs.js"
+import { convertToDataFile, DataFile } from "../../api/common/DataFile"
+import { pad } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
+import type { UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
+import { ParserError } from "../../misc/parsing/ParserCombinator"
+import { incrementDate } from "@tutao/tutanota-utils"
+import { flat, mapAndFilterNull } from "@tutao/tutanota-utils"
+import { DateTime } from "luxon"
+import type { AlarmInfo } from "../../api/entities/sys/TypeRefs.js"
+import type { RepeatRule } from "../../api/entities/sys/TypeRefs.js"
+import { CALENDAR_MIME_TYPE } from "../../file/FileController"
+import { getLetId } from "../../api/common/utils/EntityUtils"
 
 export type ParsedEvent = {
 	event: CalendarEvent
@@ -85,7 +79,7 @@ export function serializeCalendar(
 	now: Date,
 	zone: string,
 ): string {
-	return wrapIntoCalendar(versionNumber, "PUBLISH", flat(events.map(({event, alarms}) => serializeEvent(event, alarms, now, zone))))
+	return wrapIntoCalendar(versionNumber, "PUBLISH", flat(events.map(({ event, alarms }) => serializeEvent(event, alarms, now, zone))))
 }
 
 function serializeRepeatRule(repeatRule: RepeatRule | null, isAllDayEvent: boolean, localTimeZone: string) {
@@ -202,7 +196,7 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 		.concat(serializeRepeatRule(repeatRule, isAllDay, timeZone))
 		.concat(event.location && event.location.length > 0 ? `LOCATION:${escapeSemicolons(event.location)}` : [])
 		.concat(
-			...mapAndFilterNull(alarms, alarm => {
+			...mapAndFilterNull(alarms, (alarm) => {
 				try {
 					return serializeAlarm(event, alarm)
 				} catch (e) {
@@ -216,7 +210,7 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 }
 
 function serializeParticipants(event: CalendarEvent): Array<string> {
-	const {organizer, attendees} = event
+	const { organizer, attendees } = event
 
 	if (attendees.length === 0 && organizer == null) {
 		return []
@@ -229,7 +223,7 @@ function serializeParticipants(event: CalendarEvent): Array<string> {
 		lines.push(`ORGANIZER${namePart};EMAIL=${organizer.address}:mailto:${organizer.address}`)
 	}
 
-	const attendeesProperties = attendees.map(({address, status}) => {
+	const attendeesProperties = attendees.map(({ address, status }) => {
 		const namePart = address.name ? `;CN=${quotedString(address.name)}` : ""
 		const partstat = calendarAttendeeStatusToParstat[downcast<CalendarAttendeeStatus>(status)]
 		return (

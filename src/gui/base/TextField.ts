@@ -1,13 +1,13 @@
-import m, {Children, ClassComponent, CVnode} from "mithril"
-import {px, size} from "../size"
-import {DefaultAnimationTime} from "../animation/Animations"
-import {theme} from "../theme"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import type {lazy} from "@tutao/tutanota-utils"
-import type {keyHandler} from "../../misc/KeyManager"
-import {TabIndex} from "../../api/common/TutanotaConstants"
-import type {clickHandler} from "./GuiUtils"
+import m, { Children, ClassComponent, CVnode } from "mithril"
+import { px, size } from "../size"
+import { DefaultAnimationTime } from "../animation/Animations"
+import { theme } from "../theme"
+import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import type { lazy } from "@tutao/tutanota-utils"
+import type { keyHandler } from "../../misc/KeyManager"
+import { TabIndex } from "../../api/common/TutanotaConstants"
+import type { clickHandler } from "./GuiUtils"
 
 export type TextFieldAttrs = {
 	id?: string
@@ -21,7 +21,7 @@ export type TextFieldAttrs = {
 	// only used by the BubbleTextField (-> uses old TextField) to display bubbles and out of office notification
 	injectionsRight?: lazy<Children>
 	keyHandler?: keyHandler
-	onDomInputCreated?: (dom: HTMLInputElement) => void,
+	onDomInputCreated?: (dom: HTMLInputElement) => void
 	// interceptor used by the BubbleTextField to react on certain keys
 	onfocus?: (dom: HTMLElement, input: HTMLInputElement) => unknown
 	onblur?: (...args: Array<any>) => any
@@ -30,7 +30,7 @@ export type TextFieldAttrs = {
 	disabled?: boolean
 	oninput?: (value: string, input: HTMLInputElement) => unknown
 	onclick?: clickHandler
-	doShowBorder?: boolean | null,
+	doShowBorder?: boolean | null
 	fontSize?: string
 }
 
@@ -51,7 +51,7 @@ export const enum Autocomplete {
 	username = "username",
 	newPassword = "new-password",
 	currentPassword = "current-password",
-	oneTimeCode = "one-time-code"
+	oneTimeCode = "one-time-code",
 }
 
 export const inputLineHeight: number = size.font_size_base + 8
@@ -89,13 +89,13 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 			".text-field.rel.overflow-hidden",
 			{
 				id: vnode.attrs.id,
-				oncreate: vnode => (this._domWrapper = vnode.dom as HTMLElement),
+				oncreate: (vnode) => (this._domWrapper = vnode.dom as HTMLElement),
 				onclick: (e: MouseEvent) => (a.onclick ? a.onclick(e, this._domInputWrapper) : this.focus(e, a)),
 				class: a.class != null ? a.class : "text pt",
 				style: maxWidth
 					? {
-						maxWidth: px(maxWidth),
-					}
+							maxWidth: px(maxWidth),
+					  }
 					: {},
 			},
 			[
@@ -103,7 +103,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 					"label.abs.text-ellipsis.noselect.z1.i.pr-s.text",
 					{
 						class: this.active ? "content-accent-fg" : "",
-						oncreate: vnode => {
+						oncreate: (vnode) => {
 							this._domLabel = vnode.dom as HTMLElement
 						},
 						style: {
@@ -135,13 +135,19 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 									style: {
 										minHeight: px(minInputHeight - 2), // minus padding
 									},
-									oncreate: vnode => (this._domInputWrapper = vnode.dom as HTMLElement),
+									oncreate: (vnode) => (this._domInputWrapper = vnode.dom as HTMLElement),
 								},
 								[
 									a.type !== TextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
-									a.injectionsRight ? m(".flex-end.items-center", {
-										style: {minHeight: px(minInputHeight - 2)},
-									}, a.injectionsRight()) : null,
+									a.injectionsRight
+										? m(
+												".flex-end.items-center",
+												{
+													style: { minHeight: px(minInputHeight - 2) },
+												},
+												a.injectionsRight(),
+										  )
+										: null,
 								],
 							),
 						],
@@ -149,14 +155,14 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				]),
 				a.helpLabel
 					? m(
-						"small.noselect",
-						{
-							onclick: (e: MouseEvent) => {
-								e.stopPropagation()
+							"small.noselect",
+							{
+								onclick: (e: MouseEvent) => {
+									e.stopPropagation()
+								},
 							},
-						},
-						a.helpLabel(),
-					)
+							a.helpLabel(),
+					  )
 					: [],
 			],
 		)
@@ -180,34 +186,35 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 			// that shouldn't be autofilled.
 			// since the autofill algorithm looks at inputs that come before and after the password field we need
 			// three dummies.
-			const autofillGuard: Children = a.autocompleteAs === Autocomplete.off
-				? [
-					m("input.abs", {
-						style: {
-							opacity: "0",
-							height: "0",
-						},
-						tabIndex: TabIndex.Programmatic,
-						type: TextFieldType.Text,
-					}),
-					m("input.abs", {
-						style: {
-							opacity: "0",
-							height: "0",
-						},
-						tabIndex: TabIndex.Programmatic,
-						type: TextFieldType.Password,
-					}),
-					m("input.abs", {
-						style: {
-							opacity: "0",
-							height: "0",
-						},
-						tabIndex: TabIndex.Programmatic,
-						type: TextFieldType.Text,
-					}),
-				]
-				: []
+			const autofillGuard: Children =
+				a.autocompleteAs === Autocomplete.off
+					? [
+							m("input.abs", {
+								style: {
+									opacity: "0",
+									height: "0",
+								},
+								tabIndex: TabIndex.Programmatic,
+								type: TextFieldType.Text,
+							}),
+							m("input.abs", {
+								style: {
+									opacity: "0",
+									height: "0",
+								},
+								tabIndex: TabIndex.Programmatic,
+								type: TextFieldType.Password,
+							}),
+							m("input.abs", {
+								style: {
+									opacity: "0",
+									height: "0",
+								},
+								tabIndex: TabIndex.Programmatic,
+								type: TextFieldType.Text,
+							}),
+					  ]
+					: []
 			return m(
 				".flex-grow.rel",
 				autofillGuard.concat([
@@ -215,12 +222,12 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						autocomplete: a.autocompleteAs ?? "",
 						type: a.type,
 						"aria-label": lang.getMaybeLazy(a.label),
-						oncreate: vnode => {
+						oncreate: (vnode) => {
 							this.domInput = vnode.dom as HTMLInputElement
 							a.onDomInputCreated?.(this.domInput)
 							this.domInput.value = a.value
 							if (a.type !== TextFieldType.Area) {
-								(vnode.dom as HTMLElement).addEventListener("animationstart", (e: AnimationEvent) => {
+								;(vnode.dom as HTMLElement).addEventListener("animationstart", (e: AnimationEvent) => {
 									if (e.animationName === "onAutoFillStart") {
 										this._didAutofill = true
 										m.redraw()
@@ -247,7 +254,6 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							return a.keyHandler != null ? a.keyHandler(key) : true
 						},
 						onupdate: () => {
-
 							// only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
 							if (this.domInput.value !== a.value) {
 								this.domInput.value = a.value
@@ -267,7 +273,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							lineHeight: px(inputLineHeight),
 							fontSize: a.fontSize,
 						},
-					})
+					}),
 				]),
 			)
 		}
@@ -288,7 +294,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		} else {
 			return m("textarea.input-area.text-pre", {
 				"aria-label": lang.getMaybeLazy(a.label),
-				oncreate: vnode => {
+				oncreate: (vnode) => {
 					this.domInput = vnode.dom as HTMLInputElement
 					this.domInput.value = a.value
 					this.domInput.style.height = px(Math.max(a.value.split("\n").length, 1) * inputLineHeight) // display all lines on creation of text area

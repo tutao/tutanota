@@ -1,12 +1,12 @@
-import {lang} from "../../misc/LanguageViewModel"
-import m, {Component, Vnode} from "mithril"
+import { lang } from "../../misc/LanguageViewModel"
+import m, { Component, Vnode } from "mithril"
 import stream from "mithril/stream"
-import {Dialog} from "../base/Dialog"
-import {Keys} from "../../api/common/TutanotaConstants"
-import {TextField} from "../base/TextField.js"
-import type {Shortcut} from "../../misc/KeyManager"
-import {ButtonType} from "../base/Button.js"
-import {DialogHeaderBarAttrs} from "../base/DialogHeaderBar";
+import { Dialog } from "../base/Dialog"
+import { Keys } from "../../api/common/TutanotaConstants"
+import { TextField } from "../base/TextField.js"
+import type { Shortcut } from "../../misc/KeyManager"
+import { ButtonType } from "../base/Button.js"
+import { DialogHeaderBarAttrs } from "../base/DialogHeaderBar"
 
 function makeShortcutName(shortcut: Shortcut): string {
 	return (
@@ -22,7 +22,7 @@ function makeShortcutName(shortcut: Shortcut): string {
  * return a promise that resolves when the dialog is closed
  */
 export function showShortcutDialog(shortcuts: Array<Shortcut>): Promise<void> {
-	return new Promise(resolve => {
+	return new Promise((resolve) => {
 		let dialog: Dialog
 
 		const close = () => {
@@ -43,12 +43,12 @@ export function showShortcutDialog(shortcuts: Array<Shortcut>): Promise<void> {
 		dialog = Dialog.largeDialogN(headerAttrs, ShortcutDialog, {
 			shortcuts,
 		})
-					   .addShortcut({
-						   key: Keys.ESC,
-						   exec: close,
-						   help: "close_alt",
-					   })
-					   .show()
+			.addShortcut({
+				key: Keys.ESC,
+				exec: close,
+				help: "close_alt",
+			})
+			.show()
 	})
 }
 
@@ -64,17 +64,17 @@ type ShortcutDialogAttrs = {
 
 class ShortcutDialog implements Component<ShortcutDialogAttrs> {
 	view(vnode: Vnode<ShortcutDialogAttrs>) {
-		const {shortcuts} = vnode.attrs
+		const { shortcuts } = vnode.attrs
 		const textFieldAttrs = shortcuts
-			.filter(shortcut => shortcut.enabled == null || shortcut.enabled())
-			.map(shortcut => ({
+			.filter((shortcut) => shortcut.enabled == null || shortcut.enabled())
+			.map((shortcut) => ({
 				label: () => makeShortcutName(shortcut),
 				value: lang.get(shortcut.help),
 				disabled: true,
 			}))
 		return m(
 			"div.pb",
-			textFieldAttrs.map(t => m(TextField, t)),
+			textFieldAttrs.map((t) => m(TextField, t)),
 		)
 	}
 }

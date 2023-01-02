@@ -1,5 +1,5 @@
-import {WorkerImpl} from "./WorkerImpl"
-import type {IProgressMonitor, ProgressMonitorId} from "../common/utils/ProgressMonitor"
+import { WorkerImpl } from "./WorkerImpl"
+import type { IProgressMonitor, ProgressMonitorId } from "../common/utils/ProgressMonitor"
 
 export class ProgressMonitorDelegate implements IProgressMonitor {
 	_worker: WorkerImpl
@@ -13,13 +13,13 @@ export class ProgressMonitorDelegate implements IProgressMonitor {
 	}
 
 	workDone(amount: number) {
-		this._ref.then(refIdentifier => {
+		this._ref.then((refIdentifier) => {
 			this._worker.progressWorkDone(refIdentifier, amount)
 		})
 	}
 
 	completed() {
-		this._ref.then(refIdentifier => {
+		this._ref.then((refIdentifier) => {
 			this._worker.progressWorkDone(refIdentifier, this._totalAmount)
 		})
 	}

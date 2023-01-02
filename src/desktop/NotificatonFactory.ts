@@ -1,6 +1,6 @@
-import type {NativeImage} from "electron"
-import {Notification} from "electron"
-import {NotificationResult} from "./DesktopNotifier";
+import type { NativeImage } from "electron"
+import { Notification } from "electron"
+import { NotificationResult } from "./DesktopNotifier"
 
 type Dismisser = () => void
 
@@ -23,7 +23,7 @@ export class ElectronNotificationFactory {
 		},
 		onClick: (res: NotificationResult) => void,
 	): Dismisser {
-		const {title, body, icon} = Object.assign(
+		const { title, body, icon } = Object.assign(
 			{},
 			{
 				body: "",

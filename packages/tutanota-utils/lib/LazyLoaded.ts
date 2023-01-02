@@ -1,16 +1,15 @@
-import type {lazyAsync} from "./Utils.js"
-import {neverNull} from "./Utils.js"
+import type { lazyAsync } from "./Utils.js"
+import { neverNull } from "./Utils.js"
 
 /**
  * A wrapper for an object that shall be lazy loaded asynchronously. If loading the object is triggered in parallel (getAsync()) the object is actually only loaded once but returned to all calls of getAsync().
  * If the object was loaded once it is not loaded again.
  */
 export class LazyLoaded<T> {
-
 	_isLoaded: boolean
-	_loadingPromise: Promise<T> | null; // null if loading is not started yet
-	_loadedObject: T | null;
-	_loadFunction: lazyAsync<T>;
+	_loadingPromise: Promise<T> | null // null if loading is not started yet
+	_loadedObject: T | null
+	_loadFunction: lazyAsync<T>
 
 	/**
 	 * @param loadFunction The function that actually loads the object as soon as getAsync() is called the first time.
@@ -40,14 +39,16 @@ export class LazyLoaded<T> {
 			return Promise.resolve(neverNull(this._loadedObject))
 		} else {
 			if (!this._loadingPromise) {
-				this._loadingPromise = this._loadFunction().catch(e => {
-					this._loadingPromise = null
-					throw e
-				}).then(result => {
-					this._loadedObject = result
-					this._isLoaded = true
-					return result
-				})
+				this._loadingPromise = this._loadFunction()
+					.catch((e) => {
+						this._loadingPromise = null
+						throw e
+					})
+					.then((result) => {
+						this._loadedObject = result
+						this._isLoaded = true
+						return result
+					})
 			}
 			return this._loadingPromise
 		}
@@ -80,7 +81,7 @@ export class LazyLoaded<T> {
 	 * Loads the object again and replaces the current one
 	 */
 	reload(): Promise<T> {
-		return this._loadFunction().then(result => {
+		return this._loadFunction().then((result) => {
 			this._isLoaded = true
 			this._loadedObject = result
 			return result

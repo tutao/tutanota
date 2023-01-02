@@ -1,4 +1,4 @@
-import type {Config} from "../ConfigCommon"
+import type { Config } from "../ConfigCommon"
 
 async function migrateSpellcheckTrue(oldConfig: Config): Promise<void> {
 	Object.assign(oldConfig, {

@@ -1,25 +1,25 @@
-import type {LanguageCode} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import {searchInTemplates} from "./TemplateSearchFilter"
-import type {EmailTemplate} from "../../api/entities/tutanota/TypeRefs.js"
-import {EmailTemplateTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import type {EntityEventsListener, EntityUpdateData} from "../../api/main/EventController"
-import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"
-import {OperationType} from "../../api/common/TutanotaConstants"
+import type { LanguageCode } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import { searchInTemplates } from "./TemplateSearchFilter"
+import type { EmailTemplate } from "../../api/entities/tutanota/TypeRefs.js"
+import { EmailTemplateTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import type { EntityEventsListener, EntityUpdateData } from "../../api/main/EventController"
+import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
+import { OperationType } from "../../api/common/TutanotaConstants"
 import stream from "mithril/stream"
-import type {EntityClient} from "../../api/common/EntityClient"
-import type {LoginController} from "../../api/main/LoginController"
-import {logins} from "../../api/main/LoginController"
-import {getElementId, getEtId, isSameId} from "../../api/common/utils/EntityUtils"
-import type {EmailTemplateContent} from "../../api/entities/tutanota/TypeRefs.js"
-import type {GroupMembership} from "../../api/entities/sys/TypeRefs.js"
-import {flat, LazyLoaded, promiseMap, SortedArray} from "@tutao/tutanota-utils"
-import {GroupInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {TemplateGroupRootTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import type {TemplateGroupInstance} from "./TemplateGroupModel"
-import {GroupTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {UserTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import Stream from "mithril/stream";
+import type { EntityClient } from "../../api/common/EntityClient"
+import type { LoginController } from "../../api/main/LoginController"
+import { logins } from "../../api/main/LoginController"
+import { getElementId, getEtId, isSameId } from "../../api/common/utils/EntityUtils"
+import type { EmailTemplateContent } from "../../api/entities/tutanota/TypeRefs.js"
+import type { GroupMembership } from "../../api/entities/sys/TypeRefs.js"
+import { flat, LazyLoaded, promiseMap, SortedArray } from "@tutao/tutanota-utils"
+import { GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { TemplateGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import type { TemplateGroupInstance } from "./TemplateGroupModel"
+import { GroupTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import Stream from "mithril/stream"
 
 /**
  *   Model that holds main logic for the Template Feature.
@@ -60,7 +60,7 @@ export class TemplatePopupModel {
 		this._searchFilter = new TemplateSearchFilter()
 		this._groupInstances = []
 
-		this._entityEventReceived = updates => {
+		this._entityEventReceived = (updates) => {
 			return this._entityUpdate(updates)
 		}
 
@@ -68,8 +68,8 @@ export class TemplatePopupModel {
 			const templateMemberships = this._logins.getUserController().getTemplateMemberships()
 
 			return loadTemplateGroupInstances(templateMemberships, this._entityClient)
-				.then(templateGroupInstances =>
-					loadTemplates(templateGroupInstances, this._entityClient).then(templates => {
+				.then((templateGroupInstances) =>
+					loadTemplates(templateGroupInstances, this._entityClient).then((templates) => {
 						this._allTemplates.insertAll(templates)
 
 						this._groupInstances = templateGroupInstances
@@ -113,8 +113,8 @@ export class TemplatePopupModel {
 		const selectedTemplate = this.selectedTemplate()
 		return (
 			selectedTemplate &&
-			(selectedTemplate.contents.find(contents => contents.languageCode === this._selectedContentLanguage) ||
-				selectedTemplate.contents.find(contents => contents.languageCode === lang.code) ||
+			(selectedTemplate.contents.find((contents) => contents.languageCode === this._selectedContentLanguage) ||
+				selectedTemplate.contents.find((contents) => contents.languageCode === lang.code) ||
 				selectedTemplate.contents[0])
 		)
 	}
@@ -166,14 +166,14 @@ export class TemplatePopupModel {
 	findTemplateWithTag(selectedText: string): EmailTemplate | null {
 		const tag = selectedText.substring(TEMPLATE_SHORTCUT_PREFIX.length) // remove TEMPLATE_SHORTCUT_PREFIX from selected text
 
-		return this._allTemplates.array.find(template => template.tag === tag) ?? null
+		return this._allTemplates.array.find((template) => template.tag === tag) ?? null
 	}
 
 	_entityUpdate(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
-		return promiseMap(updates, update => {
+		return promiseMap(updates, (update) => {
 			if (isUpdateForTypeRef(EmailTemplateTypeRef, update)) {
 				if (update.operation === OperationType.CREATE) {
-					return this._entityClient.load(EmailTemplateTypeRef, [update.instanceListId, update.instanceId]).then(template => {
+					return this._entityClient.load(EmailTemplateTypeRef, [update.instanceListId, update.instanceId]).then((template) => {
 						this._allTemplates.insert(template)
 
 						this._rerunSearch()
@@ -181,8 +181,8 @@ export class TemplatePopupModel {
 						this.setSelectedTemplate(template)
 					})
 				} else if (update.operation === OperationType.UPDATE) {
-					return this._entityClient.load(EmailTemplateTypeRef, [update.instanceListId, update.instanceId]).then(template => {
-						this._allTemplates.removeFirst(t => isSameId(getElementId(t), update.instanceId))
+					return this._entityClient.load(EmailTemplateTypeRef, [update.instanceListId, update.instanceId]).then((template) => {
+						this._allTemplates.removeFirst((t) => isSameId(getElementId(t), update.instanceId))
 
 						this._allTemplates.insert(template)
 
@@ -197,7 +197,7 @@ export class TemplatePopupModel {
 						this.setSelectedTemplate(null)
 					}
 
-					this._allTemplates.removeFirst(t => isSameId(getElementId(t), update.instanceId))
+					this._allTemplates.removeFirst((t) => isSameId(getElementId(t), update.instanceId))
 
 					this._rerunSearch()
 				}
@@ -220,19 +220,19 @@ export class TemplatePopupModel {
 		if (selected == null) {
 			return null
 		} else {
-			return this._groupInstances.find(instance => isSameId(getEtId(instance.group), selected._ownerGroup)) ?? null
+			return this._groupInstances.find((instance) => isSameId(getEtId(instance.group), selected._ownerGroup)) ?? null
 		}
 	}
 }
 
 export function loadTemplateGroupInstances(memberships: Array<GroupMembership>, entityClient: EntityClient): Promise<Array<TemplateGroupInstance>> {
-	return promiseMap(memberships, membership => loadTemplateGroupInstance(membership, entityClient))
+	return promiseMap(memberships, (membership) => loadTemplateGroupInstance(membership, entityClient))
 }
 
 export function loadTemplateGroupInstance(groupMembership: GroupMembership, entityClient: EntityClient): Promise<TemplateGroupInstance> {
-	return entityClient.load(GroupInfoTypeRef, groupMembership.groupInfo).then(groupInfo =>
-		entityClient.load(TemplateGroupRootTypeRef, groupInfo.group).then(groupRoot =>
-			entityClient.load(GroupTypeRef, groupInfo.group).then(group => {
+	return entityClient.load(GroupInfoTypeRef, groupMembership.groupInfo).then((groupInfo) =>
+		entityClient.load(TemplateGroupRootTypeRef, groupInfo.group).then((groupRoot) =>
+			entityClient.load(GroupTypeRef, groupInfo.group).then((group) => {
 				return {
 					groupInfo,
 					group,
@@ -245,7 +245,7 @@ export function loadTemplateGroupInstance(groupMembership: GroupMembership, enti
 }
 
 function loadTemplates(templateGroups: Array<TemplateGroupInstance>, entityClient: EntityClient): Promise<Array<EmailTemplate>> {
-	return promiseMap(templateGroups, group => entityClient.loadAll(EmailTemplateTypeRef, group.groupRoot.templates)).then(groupedTemplates =>
+	return promiseMap(templateGroups, (group) => entityClient.loadAll(EmailTemplateTypeRef, group.groupRoot.templates)).then((groupedTemplates) =>
 		flat(groupedTemplates),
 	)
 }

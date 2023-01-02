@@ -1,36 +1,34 @@
-import m, {ChildArray, Children, Vnode} from "mithril"
-import {client} from "../misc/ClientDetector"
-import {assertMainOrNode, isApp, isDesktop, isTutanotaDomain} from "../api/common/Env"
-import {InfoLink, lang} from "../misc/LanguageViewModel"
-import type {DeferredObject} from "@tutao/tutanota-utils"
-import {defer, mapNullable} from "@tutao/tutanota-utils"
-import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
-import {BootIcons} from "../gui/base/icons/BootIcons"
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {windowFacade} from "../misc/WindowFacade"
-import {DeviceType} from "../misc/ClientConstants"
-import {Button, ButtonAttrs, ButtonType} from "../gui/base/Button.js"
-import {CurrentView, header, TopLevelAttrs} from "../gui/Header.js"
-import {AriaLandmarks, landmarkAttrs, liveDataAttrs} from "../gui/AriaUtils"
-import {DisplayMode, LoginState, LoginViewModel} from "./LoginViewModel"
-import {LoginForm} from "./LoginForm"
-import {CredentialsSelector} from "./CredentialsSelector"
-import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
-import {themeController} from "../gui/theme"
-import {createAsyncDropdown, createDropdown, DropdownButtonAttrs} from "../gui/base/Dropdown.js"
-import type {clickHandler} from "../gui/base/GuiUtils"
-import {IconButton} from "../gui/base/IconButton.js"
-import {showLogsDialog} from "./LoginLogDialog.js"
-import {BaseTopLevelView} from "../gui/BaseTopLevelView.js"
+import m, { ChildArray, Children, Vnode } from "mithril"
+import { client } from "../misc/ClientDetector"
+import { assertMainOrNode, isApp, isDesktop, isTutanotaDomain } from "../api/common/Env"
+import { InfoLink, lang } from "../misc/LanguageViewModel"
+import type { DeferredObject } from "@tutao/tutanota-utils"
+import { defer, mapNullable } from "@tutao/tutanota-utils"
+import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
+import { BootIcons } from "../gui/base/icons/BootIcons"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { windowFacade } from "../misc/WindowFacade"
+import { DeviceType } from "../misc/ClientConstants"
+import { Button, ButtonAttrs, ButtonType } from "../gui/base/Button.js"
+import { CurrentView, header, TopLevelAttrs } from "../gui/Header.js"
+import { AriaLandmarks, landmarkAttrs, liveDataAttrs } from "../gui/AriaUtils"
+import { DisplayMode, LoginState, LoginViewModel } from "./LoginViewModel"
+import { LoginForm } from "./LoginForm"
+import { CredentialsSelector } from "./CredentialsSelector"
+import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
+import { themeController } from "../gui/theme"
+import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
+import type { clickHandler } from "../gui/base/GuiUtils"
+import { IconButton } from "../gui/base/IconButton.js"
+import { showLogsDialog } from "./LoginLogDialog.js"
+import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 
 assertMainOrNode()
-
 
 export interface LoginViewAttrs extends TopLevelAttrs {
 	/** Default path to redirect to after the login. Can be overridden with query param `requestedPath`. */
 	targetPath: string
-	makeViewModel: () => LoginViewModel,
-
+	makeViewModel: () => LoginViewModel
 }
 
 export class LoginView extends BaseTopLevelView implements CurrentView<LoginViewAttrs> {
@@ -45,7 +43,7 @@ export class LoginView extends BaseTopLevelView implements CurrentView<LoginView
 	private selectedRedirect: string
 	private bottomMargin = 0
 
-	constructor({attrs}: Vnode<LoginViewAttrs>) {
+	constructor({ attrs }: Vnode<LoginViewAttrs>) {
 		super()
 		this.defaultRedirect = attrs.targetPath
 		this.selectedRedirect = this.defaultRedirect
@@ -61,7 +59,7 @@ export class LoginView extends BaseTopLevelView implements CurrentView<LoginView
 		m.redraw()
 	}
 
-	view({attrs}: Vnode<LoginViewAttrs>) {
+	view({ attrs }: Vnode<LoginViewAttrs>) {
 		return m(
 			"#login-view.main-view.flex.col",
 			{
@@ -78,8 +76,8 @@ export class LoginView extends BaseTopLevelView implements CurrentView<LoginView
 					m(
 						".flex-grow-shrink-auto.max-width-s.pt.plr-l" + landmarkAttrs(AriaLandmarks.Main, lang.get("login_label")),
 						{
-							oncreate: vnode => {
-								(vnode.dom as HTMLElement).focus()
+							oncreate: (vnode) => {
+								;(vnode.dom as HTMLElement).focus()
 							},
 							style: {
 								// width: workaround for IE11 which does not center the area, otherwise
@@ -107,7 +105,7 @@ export class LoginView extends BaseTopLevelView implements CurrentView<LoginView
 				m(ExpanderButton, {
 					label: "more_label",
 					expanded: this.moreExpanded,
-					onExpandedChange: (v) => this.moreExpanded = v,
+					onExpandedChange: (v) => (this.moreExpanded = v),
 				}),
 			),
 			m(
@@ -119,49 +117,49 @@ export class LoginView extends BaseTopLevelView implements CurrentView<LoginView
 					m(".flex-center.flex-column", [
 						this._loginAnotherLinkVisible()
 							? m(Button, {
-								label: "loginOtherAccount_action",
-								type: ButtonType.Secondary,
-								click: () => {
-									this.viewModel.showLoginForm()
-								},
-							})
+									label: "loginOtherAccount_action",
+									type: ButtonType.Secondary,
+									click: () => {
+										this.viewModel.showLoginForm()
+									},
+							  })
 							: null,
 						this._deleteCredentialsLinkVisible()
 							? m(Button, {
-								label: this.viewModel.displayMode === DisplayMode.DeleteCredentials ? "cancel_action" : "deleteCredentials_action",
-								type: ButtonType.Secondary,
-								click: () => this._switchDeleteCredentialsState(),
-							})
+									label: this.viewModel.displayMode === DisplayMode.DeleteCredentials ? "cancel_action" : "deleteCredentials_action",
+									type: ButtonType.Secondary,
+									click: () => this._switchDeleteCredentialsState(),
+							  })
 							: null,
 						this._knownCredentialsLinkVisible()
 							? m(Button, {
-								label: "knownCredentials_label",
-								type: ButtonType.Secondary,
-								click: () => this.viewModel.showCredentials(),
-							})
+									label: "knownCredentials_label",
+									type: ButtonType.Secondary,
+									click: () => this.viewModel.showCredentials(),
+							  })
 							: null,
 						this._signupLinkVisible()
 							? m(Button, {
-								label: "register_label",
-								type: ButtonType.Secondary,
-								click: () => m.route.set("/signup"),
-							})
+									label: "register_label",
+									type: ButtonType.Secondary,
+									click: () => m.route.set("/signup"),
+							  })
 							: null,
 						this._switchThemeLinkVisible()
 							? m(Button, {
-								label: "switchColorTheme_action",
-								type: ButtonType.Secondary,
-								click: this.themeSwitchListener(),
-							})
+									label: "switchColorTheme_action",
+									type: ButtonType.Secondary,
+									click: this.themeSwitchListener(),
+							  })
 							: null,
 						this._recoverLoginVisible()
 							? m(Button, {
-								label: "recoverAccountAccess_action",
-								click: () => {
-									m.route.set("/recover")
-								},
-								type: ButtonType.Secondary,
-							})
+									label: "recoverAccountAccess_action",
+									click: () => {
+										m.route.set("/recover")
+									},
+									type: ButtonType.Secondary,
+							  })
 							: null,
 					]),
 				],
@@ -172,29 +170,30 @@ export class LoginView extends BaseTopLevelView implements CurrentView<LoginView
 	themeSwitchListener(): clickHandler {
 		return createAsyncDropdown({
 			lazyButtons: async () => {
-                const defaultButtons: ReadonlyArray<DropdownButtonAttrs> = [
-                    {
-                        label: "light_label",
-                        click: () => themeController.setThemeId("light"),
-                    },
-                    {
-                        label: "dark_label",
-                        click: () => themeController.setThemeId("dark"),
-                    },
-                    {
-                        label: "blue_label",
-                        click: () => themeController.setThemeId("blue"),
-                    },
-                ]
-                const customButtons = (await themeController.getCustomThemes()).map(themeId => {
-                    return {
-                        label: () => themeId,
-                        click: () => themeController.setThemeId(themeId),
-                    }
-                })
-                return defaultButtons.concat(customButtons)
-            }, width: 300
-        })
+				const defaultButtons: ReadonlyArray<DropdownButtonAttrs> = [
+					{
+						label: "light_label",
+						click: () => themeController.setThemeId("light"),
+					},
+					{
+						label: "dark_label",
+						click: () => themeController.setThemeId("dark"),
+					},
+					{
+						label: "blue_label",
+						click: () => themeController.setThemeId("blue"),
+					},
+				]
+				const customButtons = (await themeController.getCustomThemes()).map((themeId) => {
+					return {
+						label: () => themeId,
+						click: () => themeController.setThemeId(themeId),
+					}
+				})
+				return defaultButtons.concat(customButtons)
+			},
+			width: 300,
+		})
 	}
 
 	_signupLinkVisible(): boolean {
@@ -236,7 +235,7 @@ export class LoginView extends BaseTopLevelView implements CurrentView<LoginView
 		return m(
 			"",
 			{
-				oncreate: vnode => {
+				oncreate: (vnode) => {
 					const children = vnode.children as ChildArray
 					const firstChild = children[0] as Vnode<unknown, LoginForm>
 					this.loginForm.resolve(firstChild.state)
@@ -269,15 +268,15 @@ export class LoginView extends BaseTopLevelView implements CurrentView<LoginView
 			m(".small.center.statusTextColor.pt" + liveDataAttrs(), lang.getMaybeLazy(this.viewModel.helpText)),
 			m(CredentialsSelector, {
 				credentials: this.viewModel.getSavedCredentials(),
-				onCredentialsSelected: async c => {
+				onCredentialsSelected: async (c) => {
 					await this.viewModel.useCredentials(c)
 					await this._loginWithProgressDialog()
 				},
 				onCredentialsDeleted:
 					this.viewModel.displayMode === DisplayMode.DeleteCredentials
-						? credentials => {
-							this.viewModel.deleteCredentials(credentials).then(() => m.redraw())
-						}
+						? (credentials) => {
+								this.viewModel.deleteCredentials(credentials).then(() => m.redraw())
+						  }
 						: null,
 			}),
 		]
@@ -287,36 +286,36 @@ export class LoginView extends BaseTopLevelView implements CurrentView<LoginView
 		return m(".flex-center.pt-l.ml-between-s", [
 			client.isDesktopDevice() || client.device === DeviceType.ANDROID
 				? m(IconButton, {
-					title: "appInfoAndroidImageAlt_alt",
-					click: e => {
-						this._openUrl("https://play.google.com/store/apps/details?id=de.tutao.tutanota")
+						title: "appInfoAndroidImageAlt_alt",
+						click: (e) => {
+							this._openUrl("https://play.google.com/store/apps/details?id=de.tutao.tutanota")
 
-						e.preventDefault()
-					},
-					icon: BootIcons.Android,
-				})
+							e.preventDefault()
+						},
+						icon: BootIcons.Android,
+				  })
 				: null,
 			client.isDesktopDevice() || client.device === DeviceType.IPAD || client.device === DeviceType.IPHONE
 				? m(IconButton, {
-					title: "appInfoIosImageAlt_alt",
-					click: e => {
-						this._openUrl("https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb")
+						title: "appInfoIosImageAlt_alt",
+						click: (e) => {
+							this._openUrl("https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb")
 
-						e.preventDefault()
-					},
-					icon: BootIcons.Apple,
-				})
+							e.preventDefault()
+						},
+						icon: BootIcons.Apple,
+				  })
 				: null,
 			client.isDesktopDevice() || client.device === DeviceType.ANDROID
 				? m(IconButton, {
-					title: "appInfoFDroidImageAlt_alt",
-					click: e => {
-						this._openUrl("https://f-droid.org/packages/de.tutao.tutanota/")
+						title: "appInfoFDroidImageAlt_alt",
+						click: (e) => {
+							this._openUrl("https://f-droid.org/packages/de.tutao.tutanota/")
 
-						e.preventDefault()
-					},
-					icon: BootIcons.FDroid,
-				})
+							e.preventDefault()
+						},
+						icon: BootIcons.FDroid,
+				  })
 				: null,
 		])
 	}
@@ -383,52 +382,57 @@ export class LoginView extends BaseTopLevelView implements CurrentView<LoginView
 }
 
 export function getWhitelabelRegistrationDomains(): string[] {
-	return mapNullable(getWhitelabelCustomizations(window), c => c.registrationDomains) || []
+	return mapNullable(getWhitelabelCustomizations(window), (c) => c.registrationDomains) || []
 }
 
 export function getImprintLink(): string | null {
-	return mapNullable(getWhitelabelCustomizations(window), c => c.imprintUrl) || InfoLink.About
+	return mapNullable(getWhitelabelCustomizations(window), (c) => c.imprintUrl) || InfoLink.About
 }
 
 export function getPrivacyStatementLink(): string | null {
-	return mapNullable(getWhitelabelCustomizations(window), c => c.privacyStatementUrl) || InfoLink.Privacy
+	return mapNullable(getWhitelabelCustomizations(window), (c) => c.privacyStatementUrl) || InfoLink.Privacy
 }
 
 export function renderInfoLinks(): Children {
 	return m("div.center.flex.flex-grow.items-end.justify-center.mb-l.mt-xl.wrap", [
 		!isApp() && getPrivacyStatementLink()
 			? m(
-				"a.plr",
-				{
-					href: getPrivacyStatementLink(),
-					target: "_blank",
-				},
-				lang.get("privacyLink_label"),
-			)
+					"a.plr",
+					{
+						href: getPrivacyStatementLink(),
+						target: "_blank",
+					},
+					lang.get("privacyLink_label"),
+			  )
 			: null,
 		!isApp() && getImprintLink()
 			? m(
-				"a.plr",
-				{
-					href: getImprintLink(),
-					target: "_blank",
-				},
-				lang.get("imprint_label"),
-			)
+					"a.plr",
+					{
+						href: getImprintLink(),
+						target: "_blank",
+					},
+					lang.get("imprint_label"),
+			  )
 			: null,
-		m(".mt.mb.center.small.full-width", {
-			onclick: (e: MouseEvent) => showVersionDropdown(e),
-		}, `v${env.versionNumber}`),
+		m(
+			".mt.mb.center.small.full-width",
+			{
+				onclick: (e: MouseEvent) => showVersionDropdown(e),
+			},
+			`v${env.versionNumber}`,
+		),
 	])
 }
 
 function showVersionDropdown(e: MouseEvent) {
 	// A semi-hidden option to get the logs before logging in, in a text form
 	createDropdown({
-		lazyButtons: () => [{
-			label: () => "Get logs",
-			click: () => showLogsDialog()
-		}],
+		lazyButtons: () => [
+			{
+				label: () => "Get logs",
+				click: () => showLogsDialog(),
+			},
+		],
 	})(e, e.target as HTMLElement)
 }
-

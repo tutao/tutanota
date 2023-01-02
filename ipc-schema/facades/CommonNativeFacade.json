@@ -1,43 +1,37 @@
 {
-  "name": "CommonNativeFacade",
-  "type": "facade",
-  "senders": ["ios", "desktop", "android"],
-  "receivers": ["web"],
-  "doc": "Common operations used by all native platforms.",
-  "methods": {
-	"createMailEditor": {
-	  "doc": "Opens mail editor to write a new email. If `mailToUrlString` is specified it takes priority.",
-	  "arg": [
-		{"filesUris": "List<string>"},
-		{"text": "string"},
-		{"addresses": "List<string>"},
-		{"subject": "string"},
-		{"mailToUrlString": "string"}
-	  ],
-	  "ret": "void"
-	},
-	"openMailBox": {
-	  "arg": [
-		{"userId": "string"},
-		{"address": "string"},
-		{"requestedPath": "string?"}
-	  ],
-	  "ret": "void"
-	},
-	"openCalendar": {
-	  "arg": [
-		{"userId": "string"}
-	  ],
-	  "ret": "void"
-	},
-	"showAlertDialog": {
-	  "arg": [{"translationKey": "string"}],
-	  "ret": "void"
-	},
-	"invalidateAlarms": {
-	  "doc": "All local alarms have been deleted, reschedule alarms for the current user.",
-	  "arg": [],
-	  "ret": "void"
+	"name": "CommonNativeFacade",
+	"type": "facade",
+	"senders": ["ios", "desktop", "android"],
+	"receivers": ["web"],
+	"doc": "Common operations used by all native platforms.",
+	"methods": {
+		"createMailEditor": {
+			"doc": "Opens mail editor to write a new email. If `mailToUrlString` is specified it takes priority.",
+			"arg": [
+				{ "filesUris": "List<string>" },
+				{ "text": "string" },
+				{ "addresses": "List<string>" },
+				{ "subject": "string" },
+				{ "mailToUrlString": "string" }
+			],
+			"ret": "void"
+		},
+		"openMailBox": {
+			"arg": [{ "userId": "string" }, { "address": "string" }, { "requestedPath": "string?" }],
+			"ret": "void"
+		},
+		"openCalendar": {
+			"arg": [{ "userId": "string" }],
+			"ret": "void"
+		},
+		"showAlertDialog": {
+			"arg": [{ "translationKey": "string" }],
+			"ret": "void"
+		},
+		"invalidateAlarms": {
+			"doc": "All local alarms have been deleted, reschedule alarms for the current user.",
+			"arg": [],
+			"ret": "void"
+		}
 	}
-  }
 }

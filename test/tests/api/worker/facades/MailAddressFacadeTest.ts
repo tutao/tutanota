@@ -1,29 +1,29 @@
 import o from "ospec"
-import {WorkerImpl} from "../../../../../src/api/worker/WorkerImpl.js"
-import {UserFacade} from "../../../../../src/api/worker/facades/UserFacade.js"
-import {GroupManagementFacade} from "../../../../../src/api/worker/facades/GroupManagementFacade.js"
-import {CounterFacade} from "../../../../../src/api/worker/facades/CounterFacade.js"
-import {RsaImplementation} from "../../../../../src/api/worker/crypto/RsaImplementation.js"
-import {EntityClient} from "../../../../../src/api/common/EntityClient.js"
-import {ServiceExecutor} from "../../../../../src/api/worker/rest/ServiceExecutor.js"
-import {matchers, object, when} from "testdouble"
+import { WorkerImpl } from "../../../../../src/api/worker/WorkerImpl.js"
+import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
+import { GroupManagementFacade } from "../../../../../src/api/worker/facades/GroupManagementFacade.js"
+import { CounterFacade } from "../../../../../src/api/worker/facades/CounterFacade.js"
+import { RsaImplementation } from "../../../../../src/api/worker/crypto/RsaImplementation.js"
+import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
+import { ServiceExecutor } from "../../../../../src/api/worker/rest/ServiceExecutor.js"
+import { matchers, object, when } from "testdouble"
 import {
 	createMailAddressProperties,
 	createMailboxGroupRoot,
 	createMailboxProperties,
 	MailboxGroupRootTypeRef,
-	MailboxPropertiesTypeRef
+	MailboxPropertiesTypeRef,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import {mapToObject} from "@tutao/tutanota-test-utils"
+import { mapToObject } from "@tutao/tutanota-test-utils"
 import {
 	createGroupInfo,
 	createGroupMembership,
 	createMailAddressAlias,
 	createUser,
 	GroupInfoTypeRef,
-	UserTypeRef
+	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {MailAddressFacade} from "../../../../../src/api/worker/facades/MailAddressFacade.js"
+import { MailAddressFacade } from "../../../../../src/api/worker/facades/MailAddressFacade.js"
 
 o.spec("MailAddressFacadeTest", function () {
 	let worker: WorkerImpl
@@ -35,7 +35,6 @@ o.spec("MailAddressFacadeTest", function () {
 	let serviceExecutor: ServiceExecutor
 	let nonCachingEntityClient: EntityClient
 
-
 	let facade: MailAddressFacade
 
 	o.beforeEach(function () {
@@ -44,12 +43,7 @@ o.spec("MailAddressFacadeTest", function () {
 		serviceExecutor = object()
 		nonCachingEntityClient = object()
 
-		facade = new MailAddressFacade(
-			userFacade,
-			groupManagementFacade,
-			serviceExecutor,
-			nonCachingEntityClient,
-		)
+		facade = new MailAddressFacade(userFacade, groupManagementFacade, serviceExecutor, nonCachingEntityClient)
 	})
 
 	o.spec("getSenderNames", function () {
@@ -71,8 +65,8 @@ o.spec("MailAddressFacadeTest", function () {
 					createMailAddressProperties({
 						mailAddress: "b@b.com",
 						senderName: "b",
-					})
-				]
+					}),
+				],
 			})
 
 			when(groupManagementFacade.getGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
@@ -99,30 +93,32 @@ o.spec("MailAddressFacadeTest", function () {
 				_id: mailboxPropertiesId,
 				_ownerGroup: mailGroupId,
 				reportMovedMails: "",
-				mailAddressProperties: []
+				mailAddressProperties: [],
 			})
 			const userGroupInfoId: IdTuple = ["groupInfoListId", "groupInfoId"]
 			const user = createUser({
 				_id: viaUser,
 				userGroup: createGroupMembership({
 					groupInfo: userGroupInfoId,
-				})
+				}),
 			})
 			const userGroupInfo = createGroupInfo({
 				_id: userGroupInfoId,
 				name: "User name",
 				mailAddress: "primary@example.com",
-				mailAddressAliases: [createMailAddressAlias({
-					mailAddress: "a@a.com",
-					enabled: true,
-				})]
+				mailAddressAliases: [
+					createMailAddressAlias({
+						mailAddress: "a@a.com",
+						enabled: true,
+					}),
+				],
 			})
 
 			when(nonCachingEntityClient.load(UserTypeRef, viaUser)).thenResolve(user)
 			when(nonCachingEntityClient.load(GroupInfoTypeRef, userGroupInfoId)).thenResolve(userGroupInfo)
 			when(groupManagementFacade.getGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
 			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRoot)
-			when(nonCachingEntityClient.setup(null, matchers.anything(), undefined, {ownerKey: mailGroupKey})).thenResolve(mailboxPropertiesId)
+			when(nonCachingEntityClient.setup(null, matchers.anything(), undefined, { ownerKey: mailGroupKey })).thenResolve(mailboxPropertiesId)
 			when(nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxPropertiesId, undefined, undefined, mailGroupKey)).thenResolve(mailboxProperties)
 
 			const result = await facade.getSenderNames(mailGroupId, viaUser)

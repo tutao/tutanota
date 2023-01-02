@@ -1,6 +1,6 @@
-import {WebContentsEvent} from "../ElectronExportTypes.js"
-import {IpcMain, WebContents} from 'electron'
-import {Message} from "../../api/common/MessageDispatcher.js"
+import { WebContentsEvent } from "../ElectronExportTypes.js"
+import { IpcMain, WebContents } from "electron"
+import { Message } from "../../api/common/MessageDispatcher.js"
 
 export interface IpcConfig<RenderToMainEvent extends string, MainToRenderEvent extends string> {
 	renderToMainEvent: RenderToMainEvent
@@ -20,10 +20,7 @@ export class CentralIpcHandler<IpcConfigType extends IpcConfig<string, string>> 
 	// and we don't know if ids get reused.
 	private readonly webContentsToRequestHandler = new WeakMap<WebContents, RequestHandler>()
 
-	constructor(
-		ipcMain: IpcMain,
-		private readonly config: IpcConfigType,
-	) {
+	constructor(ipcMain: IpcMain, private readonly config: IpcConfigType) {
 		ipcMain.handle(this.config.renderToMainEvent, (ev: WebContentsEvent, request) => {
 			// either the WC is not set to be handled by us or it's already been GC'd
 			this.webContentsToRequestHandler.get(ev.sender)?.(request)

@@ -1,15 +1,15 @@
-import {assertMainOrNode} from "../../api/common/Env"
-import type {BaseThemeId, Theme} from "../../gui/theme"
-import {assertNotNull, clone, debounceStart, downcast} from "@tutao/tutanota-utils"
-import type {WhitelabelConfig} from "../../api/entities/sys/TypeRefs.js"
-import type {DomainInfo} from "../../api/entities/sys/TypeRefs.js"
-import {VALID_HEX_CODE_FORMAT} from "../../gui/base/Color"
+import { assertMainOrNode } from "../../api/common/Env"
+import type { BaseThemeId, Theme } from "../../gui/theme"
+import { assertNotNull, clone, debounceStart, downcast } from "@tutao/tutanota-utils"
+import type { WhitelabelConfig } from "../../api/entities/sys/TypeRefs.js"
+import type { DomainInfo } from "../../api/entities/sys/TypeRefs.js"
+import { VALID_HEX_CODE_FORMAT } from "../../gui/base/Color"
 import stream from "mithril/stream"
-import type {ThemeCustomizations, CustomizationKey, ThemeKey} from "../../misc/WhitelabelCustomizations"
-import {ThemeController} from "../../gui/ThemeController"
-import {EntityClient} from "../../api/common/EntityClient"
-import type {LoginController} from "../../api/main/LoginController"
-import Stream from "mithril/stream";
+import type { ThemeCustomizations, CustomizationKey, ThemeKey } from "../../misc/WhitelabelCustomizations"
+import { ThemeController } from "../../gui/ThemeController"
+import { EntityClient } from "../../api/common/EntityClient"
+import type { LoginController } from "../../api/main/LoginController"
+import Stream from "mithril/stream"
 
 assertMainOrNode()
 export type CustomColor = {
@@ -64,21 +64,21 @@ export class CustomColorsEditorViewModel {
 		const base = this._themeController.getBaseTheme(this.baseThemeId)
 
 		return Object.keys(base)
-					 .map(key => key as CustomizationKey)
-					 .filter(name => !this._shallBeExcluded(name))
-					 .map(key => key as ThemeKey)
-					 .sort((a, b) => a.localeCompare(b))
-					 .map(key => {
-						 const value = this._customizations[key] ?? ""
-						 // @ts-ignore we already checked that it's safe
-						 const defaultValue = base[key]
-						 return {
-							 name: key,
-							 value,
-							 defaultValue: assertNotNull(defaultValue),
-							 valid: this._isValidColorValue(value),
-						 }
-					 })
+			.map((key) => key as CustomizationKey)
+			.filter((name) => !this._shallBeExcluded(name))
+			.map((key) => key as ThemeKey)
+			.sort((a, b) => a.localeCompare(b))
+			.map((key) => {
+				const value = this._customizations[key] ?? ""
+				// @ts-ignore we already checked that it's safe
+				const defaultValue = base[key]
+				return {
+					name: key,
+					value,
+					defaultValue: assertNotNull(defaultValue),
+					valid: this._isValidColorValue(value),
+				}
+			})
 	}
 
 	get accentColor(): string {
@@ -119,7 +119,7 @@ export class CustomColorsEditorViewModel {
 	 * Try to save changes. if there are invalid color values in the theme doesn't save and returns false, else saves and returns true
 	 */
 	async save(): Promise<boolean> {
-		const colors = Object.keys(this.customizations).filter(name => name !== "logo" && name !== "themeId" && name !== "base") as CustomizationKey[]
+		const colors = Object.keys(this.customizations).filter((name) => name !== "logo" && name !== "themeId" && name !== "base") as CustomizationKey[]
 
 		for (let i = 0; i < colors.length; i++) {
 			if (!this._isValidColorValue(this.customizations[colors[i]] ?? "")) {

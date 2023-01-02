@@ -1,14 +1,14 @@
-import {EntityClient} from "../../api/common/EntityClient.js"
-import {MailboxPropertiesTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {MailAddressFacade} from "../../api/worker/facades/MailAddressFacade.js"
-import {LoginController} from "../../api/main/LoginController.js"
+import { EntityClient } from "../../api/common/EntityClient.js"
+import { MailboxPropertiesTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { MailAddressFacade } from "../../api/worker/facades/MailAddressFacade.js"
+import { LoginController } from "../../api/main/LoginController.js"
 import stream from "mithril/stream"
-import {EntityUpdateData, EventController, isUpdateFor, isUpdateForTypeRef} from "../../api/main/EventController.js"
-import {OperationType} from "../../api/common/TutanotaConstants.js"
-import {getAvailableDomains} from "./MailAddressesUtils.js"
-import {CustomerInfoTypeRef, GroupInfo, GroupInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {assertNotNull} from "@tutao/tutanota-utils"
-import {isTutanotaMailAddress} from "../../mail/model/MailUtils.js"
+import { EntityUpdateData, EventController, isUpdateFor, isUpdateForTypeRef } from "../../api/main/EventController.js"
+import { OperationType } from "../../api/common/TutanotaConstants.js"
+import { getAvailableDomains } from "./MailAddressesUtils.js"
+import { CustomerInfoTypeRef, GroupInfo, GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { assertNotNull } from "@tutao/tutanota-utils"
+import { isTutanotaMailAddress } from "../../mail/model/MailUtils.js"
 
 export interface AliasCount {
 	availableToCreate: number
@@ -52,8 +52,7 @@ export class MailAddressTableModel {
 		private readonly eventController: EventController,
 		private userGroupInfo: GroupInfo,
 		private readonly nameChanger: MailAddressNameChanger,
-	) {
-	}
+	) {}
 
 	async init() {
 		this.eventController.addEntityListener(this.entityEventsReceived)
@@ -72,7 +71,7 @@ export class MailAddressTableModel {
 	}
 
 	addresses(): AddressInfo[] {
-		const {nameMappings} = this
+		const { nameMappings } = this
 		if (nameMappings == null) {
 			return []
 		}
@@ -85,23 +84,19 @@ export class MailAddressTableModel {
 		}
 
 		const aliasesInfo = this.userGroupInfo.mailAddressAliases
-								.slice()
-								.sort((a, b) => (a.mailAddress > b.mailAddress ? 1 : -1))
-								.map(({mailAddress, enabled}) => {
-									const status =
-										// O(aliases * TUTANOTA_MAIL_ADDRESS_DOMAINS)
-										(isTutanotaMailAddress(mailAddress))
-											? (enabled)
-												? AddressStatus.Alias
-												: AddressStatus.DisabledAlias
-											: AddressStatus.Custom
+			.slice()
+			.sort((a, b) => (a.mailAddress > b.mailAddress ? 1 : -1))
+			.map(({ mailAddress, enabled }) => {
+				const status =
+					// O(aliases * TUTANOTA_MAIL_ADDRESS_DOMAINS)
+					isTutanotaMailAddress(mailAddress) ? (enabled ? AddressStatus.Alias : AddressStatus.DisabledAlias) : AddressStatus.Custom
 
-									return {
-										name: nameMappings.get(mailAddress) ?? "",
-										address: mailAddress,
-										status,
-									}
-								})
+				return {
+					name: nameMappings.get(mailAddress) ?? "",
+					address: mailAddress,
+					status,
+				}
+			})
 		return [primaryAddressInfo, ...aliasesInfo]
 	}
 

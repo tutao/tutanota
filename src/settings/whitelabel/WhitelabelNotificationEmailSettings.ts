@@ -1,16 +1,16 @@
-import m, {Children, Component, Vnode} from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
-import {lang, languageByCode} from "../../misc/LanguageViewModel"
-import {ExpanderButton, ExpanderPanel} from "../../gui/base/Expander"
-import {ColumnWidth, Table} from "../../gui/base/Table.js"
-import {ButtonType} from "../../gui/base/Button.js"
-import {Icons} from "../../gui/base/icons/Icons"
-import {attachDropdown} from "../../gui/base/Dropdown.js"
-import type {NotificationMailTemplate} from "../../api/entities/sys/TypeRefs.js"
-import {downcast} from "@tutao/tutanota-utils"
-import type {LanguageCode} from "../../misc/LanguageViewModel"
-import Stream from "mithril/stream";
-import {ButtonSize} from "../../gui/base/ButtonSize.js"
+import { lang, languageByCode } from "../../misc/LanguageViewModel"
+import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander"
+import { ColumnWidth, Table } from "../../gui/base/Table.js"
+import { ButtonType } from "../../gui/base/Button.js"
+import { Icons } from "../../gui/base/icons/Icons"
+import { attachDropdown } from "../../gui/base/Dropdown.js"
+import type { NotificationMailTemplate } from "../../api/entities/sys/TypeRefs.js"
+import { downcast } from "@tutao/tutanota-utils"
+import type { LanguageCode } from "../../misc/LanguageViewModel"
+import Stream from "mithril/stream"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
 
 export type WhitelabelNotificationEmailSettingsAttrs = {
 	notificationMailTemplates: Array<NotificationMailTemplate>
@@ -27,7 +27,7 @@ export class WhitelabelNotificationEmailSettings implements Component<Whitelabel
 	}
 
 	view(vnode: Vnode<WhitelabelNotificationEmailSettingsAttrs>): Children {
-		const {onAddTemplate, onEditTemplate, onRemoveTemplate, notificationMailTemplates} = vnode.attrs
+		const { onAddTemplate, onEditTemplate, onRemoveTemplate, notificationMailTemplates } = vnode.attrs
 		return this._renderNotificationEmailSettings(notificationMailTemplates, onAddTemplate, onEditTemplate, onRemoveTemplate)
 	}
 
@@ -46,7 +46,9 @@ export class WhitelabelNotificationEmailSettings implements Component<Whitelabel
 					onExpandedChange: this._notificationEmailsExpanded,
 				}),
 			]),
-			m(ExpanderPanel, {
+			m(
+				ExpanderPanel,
+				{
 					expanded: this._notificationEmailsExpanded(),
 				},
 				m(Table, {
@@ -61,29 +63,28 @@ export class WhitelabelNotificationEmailSettings implements Component<Whitelabel
 						icon: Icons.Add,
 						size: ButtonSize.Compact,
 					},
-					lines: notificationMailTemplates.map(template => {
+					lines: notificationMailTemplates.map((template) => {
 						const languageCode: LanguageCode = downcast(template.language)
 						const langName = lang.get(languageByCode[languageCode].textId)
 						return {
 							cells: [langName, template.subject],
-							actionButtonAttrs: attachDropdown(
-								{
-                                    mainButtonAttrs: {
-                                        title: "edit_action",
-                                        icon: Icons.Edit,
-										size: ButtonSize.Compact,
-                                    }, childAttrs: () => [
-                                        {
-                                            label: "edit_action",
-                                            click: () => onEditTemplate(template),
-                                        },
-                                        {
-                                            label: "remove_action",
-                                            click: () => onRemoveTemplate(template),
-                                        },
-                                    ]
-                                },
-							),
+							actionButtonAttrs: attachDropdown({
+								mainButtonAttrs: {
+									title: "edit_action",
+									icon: Icons.Edit,
+									size: ButtonSize.Compact,
+								},
+								childAttrs: () => [
+									{
+										label: "edit_action",
+										click: () => onEditTemplate(template),
+									},
+									{
+										label: "remove_action",
+										click: () => onRemoveTemplate(template),
+									},
+								],
+							}),
 						}
 					}),
 				}),

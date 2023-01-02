@@ -1,16 +1,14 @@
-import {getNativeLibModulePath} from "./nativeLibraryProvider.js"
+import { getNativeLibModulePath } from "./nativeLibraryProvider.js"
 import fs from "fs-extra"
 import path from "path"
-import {dependencyMap} from "./RollupConfig.js"
-import {esbuildPluginAliasPath} from "esbuild-plugin-alias-path"
+import { dependencyMap } from "./RollupConfig.js"
+import { esbuildPluginAliasPath } from "esbuild-plugin-alias-path"
 
 /**
  * Little plugin that obtains compiled keytar, copies it to dstPath and sets the path to nativeBindingPath.
  * We do not use default file loader from esbuild, it is much simpler and reliable to do it manually.
  */
-export function keytarNativePlugin(
-	{environment, dstPath, nativeBindingPath, platform}
-) {
+export function keytarNativePlugin({ environment, dstPath, nativeBindingPath, platform }) {
 	return {
 		name: "keytar-native-plugin",
 		setup(build) {
@@ -23,17 +21,17 @@ export function keytarNativePlugin(
 					platform,
 					copyTarget: "keytar",
 				})
-				await fs.promises.mkdir(path.dirname(dstPath), {recursive: true})
+				await fs.promises.mkdir(path.dirname(dstPath), { recursive: true })
 				await fs.promises.copyFile(modulePath, dstPath)
 			})
 
-			build.onResolve({filter: /.*keytar.*\.node/, namespace: 'file'}, (args) => {
+			build.onResolve({ filter: /.*keytar.*\.node/, namespace: "file" }, (args) => {
 				return {
 					path: nativeBindingPath,
 					external: true,
 				}
 			})
-		}
+		},
 	}
 }
 
@@ -43,15 +41,13 @@ export function keytarNativePlugin(
  * anyway.
  * It will also replace `buildOptions.sqliteNativePath` with the nativeBindingPath
  */
-export function sqliteNativePlugin(
-	{environment, dstPath, nativeBindingPath, platform}
-) {
+export function sqliteNativePlugin({ environment, dstPath, nativeBindingPath, platform }) {
 	return {
 		name: "sqlite-native-plugin",
 		setup(build) {
 			const options = build.initialOptions
 			options.define = options.define ?? {}
-			const nativeLibPath = (nativeBindingPath ?? dstPath)
+			const nativeLibPath = nativeBindingPath ?? dstPath
 			// Replace mentions of buildOptions.sqliteNativePath with the actual path
 			options.define["buildOptions.sqliteNativePath"] = `"${nativeLibPath}"`
 
@@ -64,7 +60,7 @@ export function sqliteNativePlugin(
 					platform,
 					copyTarget: "better_sqlite3",
 				})
-				await fs.promises.mkdir(path.dirname(dstPath), {recursive: true})
+				await fs.promises.mkdir(path.dirname(dstPath), { recursive: true })
 				await fs.promises.copyFile(modulePath, dstPath)
 			})
 		},
@@ -74,12 +70,9 @@ export function sqliteNativePlugin(
 /** Little plugin that replaces imports for libs from dependencyMap with their prebuilt versions in libs directory. */
 export function libDeps(prefix = ".") {
 	const absoluteDependencyMap = Object.fromEntries(
-		Object.entries(dependencyMap)
-			  .map(
-				  (([k, v]) => {
-					  return [k, path.resolve(prefix, v)]
-				  })
-			  )
+		Object.entries(dependencyMap).map(([k, v]) => {
+			return [k, path.resolve(prefix, v)]
+		}),
 	)
 
 	return esbuildPluginAliasPath({
@@ -106,7 +99,7 @@ export function externalTranslationsPlugin() {
 		name: "skip-translations",
 		setup(build) {
 			// We do a few tricks here
-			build.onResolve({filter: /^\.\.\/translations\/.+$/, namespace: "file"}, ({path}) => {
+			build.onResolve({ filter: /^\.\.\/translations\/.+$/, namespace: "file" }, ({ path }) => {
 				// We replace all the translation imports (they all start with .. but we could rewrite it more generally at the cost of complexity
 				// We should go from ../translations/en.js to ./translations/en.mjs
 				// Out output structure is always flat (except for desktop which is it's own flat structure) so we know that we can find translations in the
@@ -131,12 +124,12 @@ export function externalTranslationsPlugin() {
 					outdir: build.initialOptions.outdir,
 					entryPoints: translations,
 					// Rename it to .mjs for reasons mentioned above
-					outExtension: {[".js"]: ".mjs"},
+					outExtension: { [".js"]: ".mjs" },
 					// So that it outputs build/translations/de.js instead of build/de.js
 					// (or build/desktop/translations/de.js instead of build/desktop/de.js)
 					outbase: "src",
 				})
 			})
-		}
+		},
 	}
 }

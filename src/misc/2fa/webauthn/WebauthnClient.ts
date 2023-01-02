@@ -1,43 +1,38 @@
-import {decode} from "cborg"
-import {assert, downcast, getFirstOrThrow, partitionAsync, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import type {U2fChallenge, U2fRegisteredDevice, WebauthnResponseData} from "../../../api/entities/sys/TypeRefs.js"
-import {createU2fRegisteredDevice, createWebauthnResponseData, U2fKey} from "../../../api/entities/sys/TypeRefs.js"
-import {WebAuthnFacade} from "../../../native/common/generatedipc/WebAuthnFacade.js"
-import {U2F_APPID, U2f_APPID_SUFFIX, WEBAUTHN_RP_ID} from "./WebAuthn.js"
-import {WebauthnKeyDescriptor} from "../../../native/common/generatedipc/WebauthnKeyDescriptor.js"
+import { decode } from "cborg"
+import { assert, downcast, getFirstOrThrow, partitionAsync, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import type { U2fChallenge, U2fRegisteredDevice, WebauthnResponseData } from "../../../api/entities/sys/TypeRefs.js"
+import { createU2fRegisteredDevice, createWebauthnResponseData, U2fKey } from "../../../api/entities/sys/TypeRefs.js"
+import { WebAuthnFacade } from "../../../native/common/generatedipc/WebAuthnFacade.js"
+import { U2F_APPID, U2f_APPID_SUFFIX, WEBAUTHN_RP_ID } from "./WebAuthn.js"
+import { WebauthnKeyDescriptor } from "../../../native/common/generatedipc/WebauthnKeyDescriptor.js"
 
 /** Web authentication entry point for the rest of the app. */
 export class WebauthnClient {
-	constructor(
-		private readonly webauthn: WebAuthnFacade,
-		private readonly clientWebRoot: string,
-	) {
-	}
+	constructor(private readonly webauthn: WebAuthnFacade, private readonly clientWebRoot: string) {}
 
 	isSupported(): Promise<boolean> {
 		return this.webauthn.isSupported()
 	}
 
 	/** Whether it's possible to attempt a challenge. It might not be possible if there are not keys for this domain. */
-	async canAttemptChallenge(challenge: U2fChallenge): Promise<{canAttempt: Array<U2fKey>, cannotAttempt: Array<U2fKey>}> {
+	async canAttemptChallenge(challenge: U2fChallenge): Promise<{ canAttempt: Array<U2fKey>; cannotAttempt: Array<U2fKey> }> {
 		// Whitelabel keys can ge registered other (whitelabel) domains.
 		// If it's a new Webauthn key it will match rpId, otherwise it will match legacy appId.
 
 		// Partition in keys that might work and which certainly cannot work.
 		const [canAttempt, cannotAttempt] = await partitionAsync(
 			challenge.keys,
-			async k => await this.webauthn.canAttemptChallengeForRpId(k.appId) || await this.webauthn.canAttemptChallengeForU2FAppId(k.appId)
+			async (k) => (await this.webauthn.canAttemptChallengeForRpId(k.appId)) || (await this.webauthn.canAttemptChallengeForU2FAppId(k.appId)),
 		)
-		return {canAttempt, cannotAttempt}
+		return { canAttempt, cannotAttempt }
 	}
 
 	async register(userId: Id, displayName: string): Promise<U2fRegisteredDevice> {
-
 		const challenge = this.getChallenge()
 		// this must be at most 64 bytes because the authenticators are allowed to truncate it
 		// https://www.w3.org/TR/webauthn-2/#user-handle
 		const name = `userId="${userId}"`
-		const registrationResult = await this.webauthn.register({challenge, userId, name, displayName, domain: this.clientWebRoot})
+		const registrationResult = await this.webauthn.register({ challenge, userId, name, displayName, domain: this.clientWebRoot })
 		const attestationObject = this.parseAttestationObject(registrationResult.attestationObject)
 		const publicKey = this.parsePublicKey(downcast(attestationObject).authData)
 
@@ -52,7 +47,7 @@ export class WebauthnClient {
 	}
 
 	async authenticate(challenge: U2fChallenge, signal?: AbortSignal): Promise<WebauthnResponseData> {
-		const allowedKeys: WebauthnKeyDescriptor[] = challenge.keys.map(key => {
+		const allowedKeys: WebauthnKeyDescriptor[] = challenge.keys.map((key) => {
 			return {
 				id: key.keyHandle,
 			}
@@ -61,7 +56,7 @@ export class WebauthnClient {
 		const signResult = await this.webauthn.sign({
 			challenge: challenge.challenge,
 			keys: allowedKeys,
-			domain: this.selectAuthenticationUrl(challenge)
+			domain: this.selectAuthenticationUrl(challenge),
 		})
 
 		return createWebauthnResponseData({
@@ -81,7 +76,7 @@ export class WebauthnClient {
 		// domains as well as for whitelabel domains.
 
 		let selectedClientUrl
-		if (challenge.keys.some(k => k.appId === WEBAUTHN_RP_ID)) {
+		if (challenge.keys.some((k) => k.appId === WEBAUTHN_RP_ID)) {
 			// First, if we find our own key then open web client on our URL.
 			// Even if it's a different subdomain of ours it can still match because it is scoped for all tutanota.com subdomains
 			selectedClientUrl = this.clientWebRoot
@@ -90,10 +85,10 @@ export class WebauthnClient {
 			selectedClientUrl = this.clientWebRoot
 		} else {
 			// If it isn't there, look for any Webauthn key. Legacy U2F key ids ends with json subpath.
-			const webauthnKey = challenge.keys.find(k => !this.isLegacyU2fKey(k))
+			const webauthnKey = challenge.keys.find((k) => !this.isLegacyU2fKey(k))
 			if (webauthnKey) {
 				selectedClientUrl = `https://${webauthnKey.appId}`
-			} else if (challenge.keys.some(k => k.appId === U2F_APPID)) {
+			} else if (challenge.keys.some((k) => k.appId === U2F_APPID)) {
 				// There are only legacy U2F keys but there is one for our domain, take it
 				selectedClientUrl = this.clientWebRoot
 			} else {
@@ -111,7 +106,7 @@ export class WebauthnClient {
 	private legacyU2fKeyToBaseUrl(key: U2fKey): string {
 		assert(this.isLegacyU2fKey(key), "Is not a legacy u2f key")
 
-		return key.appId.slice(0, -(U2f_APPID_SUFFIX.length))
+		return key.appId.slice(0, -U2f_APPID_SUFFIX.length)
 	}
 
 	private getChallenge(): Uint8Array {

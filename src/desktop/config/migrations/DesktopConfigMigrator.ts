@@ -1,4 +1,4 @@
-import {log} from "../../DesktopLog"
+import { log } from "../../DesktopLog"
 
 /**
  * Should not import them all manually but we need make the whole thing async then.
@@ -11,12 +11,12 @@ import * as migration0004 from "./migration-0004"
 import * as migration0005 from "./migration-0005"
 import * as migration0006 from "./migration-0006"
 import * as migration0007 from "./migration-0007"
-import type {Config, ConfigMigration} from "../ConfigCommon"
-import {DesktopNativeCryptoFacade} from "../../DesktopNativeCryptoFacade"
-import type {DesktopKeyStoreFacade} from "../../KeyStoreFacadeImpl"
+import type { Config, ConfigMigration } from "../ConfigCommon"
+import { DesktopNativeCryptoFacade } from "../../DesktopNativeCryptoFacade"
+import type { DesktopKeyStoreFacade } from "../../KeyStoreFacadeImpl"
 
 export type MigrationKind = "migrateClient" | "migrateAdmin"
-export type ElectronExports = typeof Electron.CrossProcessExports;
+export type ElectronExports = typeof Electron.CrossProcessExports
 
 export class DesktopConfigMigrator {
 	readonly crypto: DesktopNativeCryptoFacade
@@ -43,13 +43,13 @@ export class DesktopConfigMigrator {
 				await applyMigration(migration0002[migrationFunction], oldConfig)
 
 			case 2:
-				await applyMigration(config => migration0003[migrationFunction](config, this.crypto, this._keyStoreFacade), oldConfig)
+				await applyMigration((config) => migration0003[migrationFunction](config, this.crypto, this._keyStoreFacade), oldConfig)
 
 			case 3:
 				await applyMigration(migration0004[migrationFunction], oldConfig)
 
 			case 4:
-				await applyMigration(config => migration0005[migrationFunction](config, this._electron), oldConfig)
+				await applyMigration((config) => migration0005[migrationFunction](config, this._electron), oldConfig)
 
 			case 5:
 				await applyMigration(migration0006[migrationFunction], oldConfig)

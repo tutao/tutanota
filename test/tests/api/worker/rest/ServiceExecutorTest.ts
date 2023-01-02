@@ -1,25 +1,25 @@
 import o from "ospec"
-import {ServiceExecutor} from "../../../../../src/api/worker/rest/ServiceExecutor.js"
-import {RestClient, RestClientOptions} from "../../../../../src/api/worker/rest/RestClient.js"
-import {InstanceMapper} from "../../../../../src/api/worker/crypto/InstanceMapper.js"
-import {CryptoFacade} from "../../../../../src/api/worker/crypto/CryptoFacade.js"
-import {matchers, object, when} from "testdouble"
-import {DeleteService, GetService, PostService, PutService} from "../../../../../src/api/common/ServiceRequest.js"
+import { ServiceExecutor } from "../../../../../src/api/worker/rest/ServiceExecutor.js"
+import { RestClient, RestClientOptions } from "../../../../../src/api/worker/rest/RestClient.js"
+import { InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
+import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
+import { matchers, object, when } from "testdouble"
+import { DeleteService, GetService, PostService, PutService } from "../../../../../src/api/common/ServiceRequest.js"
 import {
 	AlarmServicePostTypeRef,
 	createGiftCardCreateData,
 	createSaltData,
 	GiftCardCreateDataTypeRef,
-	SaltDataTypeRef
+	SaltDataTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {HttpMethod, MediaType, resolveTypeReference} from "../../../../../src/api/common/EntityFunctions.js"
-import {deepEqual} from "@tutao/tutanota-utils"
-import {assertThrows, verify} from "@tutao/tutanota-test-utils"
-import {ProgrammingError} from "../../../../../src/api/common/error/ProgrammingError"
-import {AuthDataProvider} from "../../../../../src/api/worker/facades/UserFacade"
-import {LoginIncompleteError} from "../../../../../src/api/common/error/LoginIncompleteError.js"
+import { HttpMethod, MediaType, resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
+import { deepEqual } from "@tutao/tutanota-utils"
+import { assertThrows, verify } from "@tutao/tutanota-test-utils"
+import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError"
+import { AuthDataProvider } from "../../../../../src/api/worker/facades/UserFacade"
+import { LoginIncompleteError } from "../../../../../src/api/common/error/LoginIncompleteError.js"
 
-const {anything} = matchers
+const { anything } = matchers
 
 o.spec("ServiceExecutor", function () {
 	const service = {
@@ -48,21 +48,15 @@ o.spec("ServiceExecutor", function () {
 		}
 		instanceMapper = object()
 		cryptoFacade = object()
-		executor = new ServiceExecutor(
-			restClient,
-			authDataProvider,
-			instanceMapper,
-			() => cryptoFacade,
-		)
+		executor = new ServiceExecutor(restClient, authDataProvider, instanceMapper, () => cryptoFacade)
 	})
 
 	function assertThatNoRequestsWereMade() {
-		verify(restClient.request(anything(), anything()), {ignoreExtraArgs: true, times: 0})
+		verify(restClient.request(anything(), anything()), { ignoreExtraArgs: true, times: 0 })
 	}
 
 	function respondWith(response) {
-		when(restClient.request(anything(), anything()), {ignoreExtraArgs: true})
-			.thenResolve(response)
+		when(restClient.request(anything(), anything()), { ignoreExtraArgs: true }).thenResolve(response)
 	}
 
 	o.spec("GET", function () {
@@ -72,13 +66,12 @@ o.spec("ServiceExecutor", function () {
 				get: {
 					data: SaltDataTypeRef,
 					return: null,
-				}
+				},
 			}
-			const data = createSaltData({mailAddress: "test"})
-			const literal = {literal: true}
+			const data = createSaltData({ mailAddress: "test" })
+			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
-			when(instanceMapper.encryptAndMapToLiteral(saltTypeModel, data, null))
-				.thenResolve(literal)
+			when(instanceMapper.encryptAndMapToLiteral(saltTypeModel, data, null)).thenResolve(literal)
 
 			respondWith(undefined)
 
@@ -102,11 +95,10 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const returnData = createSaltData({mailAddress: "test"})
-			const literal = {literal: true}
+			const returnData = createSaltData({ mailAddress: "test" })
+			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
-			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null))
-				.thenResolve(returnData)
+			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null)).thenResolve(returnData)
 
 			respondWith(`{"literal":true}`)
 
@@ -114,7 +106,11 @@ o.spec("ServiceExecutor", function () {
 
 			o(response).equals(returnData)
 			verify(
-				restClient.request("/rest/testapp/testservice", HttpMethod.GET, matchers.argThat((p) => p.responseType === MediaType.Json))
+				restClient.request(
+					"/rest/testapp/testservice",
+					HttpMethod.GET,
+					matchers.argThat((p) => p.responseType === MediaType.Json),
+				),
 			)
 		})
 		o("maps encrypted response data to instance", async function () {
@@ -125,11 +121,10 @@ o.spec("ServiceExecutor", function () {
 					return: AlarmServicePostTypeRef,
 				},
 			}
-			const returnData = createSaltData({mailAddress: "test"})
-			const literal = {literal: true}
+			const returnData = createSaltData({ mailAddress: "test" })
+			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(AlarmServicePostTypeRef)
-			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null))
-				.thenResolve(returnData)
+			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null)).thenResolve(returnData)
 
 			respondWith(`{"literal":true}`)
 
@@ -137,7 +132,11 @@ o.spec("ServiceExecutor", function () {
 
 			o(response).equals(returnData)
 			verify(
-				restClient.request("/rest/testapp/testservice", HttpMethod.GET, matchers.argThat((p) => p.responseType === MediaType.Json))
+				restClient.request(
+					"/rest/testapp/testservice",
+					HttpMethod.GET,
+					matchers.argThat((p) => p.responseType === MediaType.Json),
+				),
 			)
 		})
 		o("when get returns encrypted data and we are not logged in it throws an error", async function () {
@@ -163,19 +162,22 @@ o.spec("ServiceExecutor", function () {
 			}
 			const sessionKey = [1, 2, 3]
 			fullyLoggedIn = false
-			const returnData = createSaltData({mailAddress: "test"})
-			const literal = {literal: true}
+			const returnData = createSaltData({ mailAddress: "test" })
+			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(AlarmServicePostTypeRef)
-			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, sessionKey))
-				.thenResolve(returnData)
+			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, sessionKey)).thenResolve(returnData)
 
 			respondWith(`{"literal":true}`)
 
-			const response = await executor.get(getService, null, {sessionKey})
+			const response = await executor.get(getService, null, { sessionKey })
 
 			o(response).equals(returnData)
 			verify(
-				restClient.request("/rest/testapp/testservice", HttpMethod.GET, matchers.argThat((p) => p.responseType === MediaType.Json))
+				restClient.request(
+					"/rest/testapp/testservice",
+					HttpMethod.GET,
+					matchers.argThat((p) => p.responseType === MediaType.Json),
+				),
 			)
 		})
 
@@ -188,11 +190,10 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			fullyLoggedIn = false
-			const returnData = createSaltData({mailAddress: "test"})
-			const literal = {literal: true}
+			const returnData = createSaltData({ mailAddress: "test" })
+			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
-			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null))
-				.thenResolve(returnData)
+			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null)).thenResolve(returnData)
 
 			respondWith(`{"literal":true}`)
 
@@ -200,7 +201,11 @@ o.spec("ServiceExecutor", function () {
 
 			o(response).equals(returnData)
 			verify(
-				restClient.request("/rest/testapp/testservice", HttpMethod.GET, matchers.argThat((p) => p.responseType === MediaType.Json))
+				restClient.request(
+					"/rest/testapp/testservice",
+					HttpMethod.GET,
+					matchers.argThat((p) => p.responseType === MediaType.Json),
+				),
 			)
 		})
 	})
@@ -212,13 +217,12 @@ o.spec("ServiceExecutor", function () {
 				post: {
 					data: SaltDataTypeRef,
 					return: null,
-				}
+				},
 			}
-			const data = createSaltData({mailAddress: "test"})
-			const literal = {literal: true}
+			const data = createSaltData({ mailAddress: "test" })
+			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
-			when(instanceMapper.encryptAndMapToLiteral(saltTypeModel, data, null))
-				.thenResolve(literal)
+			when(instanceMapper.encryptAndMapToLiteral(saltTypeModel, data, null)).thenResolve(literal)
 
 			respondWith(undefined)
 
@@ -242,11 +246,10 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const returnData = createSaltData({mailAddress: "test"})
-			const literal = {literal: true}
+			const returnData = createSaltData({ mailAddress: "test" })
+			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
-			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null))
-				.thenResolve(returnData)
+			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null)).thenResolve(returnData)
 
 			respondWith(`{"literal":true}`)
 
@@ -254,7 +257,11 @@ o.spec("ServiceExecutor", function () {
 
 			o(response).equals(returnData)
 			verify(
-				restClient.request("/rest/testapp/testservice", HttpMethod.POST, matchers.argThat((p) => p.responseType === MediaType.Json))
+				restClient.request(
+					"/rest/testapp/testservice",
+					HttpMethod.POST,
+					matchers.argThat((p) => p.responseType === MediaType.Json),
+				),
 			)
 		})
 		o("when post returns encrypted data and we are not logged in it throws an error", async function () {
@@ -280,19 +287,22 @@ o.spec("ServiceExecutor", function () {
 			}
 			const sessionKey = [1, 2, 3]
 			fullyLoggedIn = false
-			const returnData = createSaltData({mailAddress: "test"})
-			const literal = {literal: true}
+			const returnData = createSaltData({ mailAddress: "test" })
+			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(AlarmServicePostTypeRef)
-			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, sessionKey))
-				.thenResolve(returnData)
+			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, sessionKey)).thenResolve(returnData)
 
 			respondWith(`{"literal":true}`)
 
-			const response = await executor.post(getService, null, {sessionKey})
+			const response = await executor.post(getService, null, { sessionKey })
 
 			o(response).equals(returnData)
 			verify(
-				restClient.request("/rest/testapp/testservice", HttpMethod.POST, matchers.argThat((p) => p.responseType === MediaType.Json))
+				restClient.request(
+					"/rest/testapp/testservice",
+					HttpMethod.POST,
+					matchers.argThat((p) => p.responseType === MediaType.Json),
+				),
 			)
 		})
 	})
@@ -304,13 +314,12 @@ o.spec("ServiceExecutor", function () {
 				put: {
 					data: SaltDataTypeRef,
 					return: null,
-				}
+				},
 			}
-			const data = createSaltData({mailAddress: "test"})
-			const literal = {literal: true}
+			const data = createSaltData({ mailAddress: "test" })
+			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
-			when(instanceMapper.encryptAndMapToLiteral(saltTypeModel, data, null))
-				.thenResolve(literal)
+			when(instanceMapper.encryptAndMapToLiteral(saltTypeModel, data, null)).thenResolve(literal)
 
 			respondWith(undefined)
 
@@ -334,11 +343,10 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const returnData = createSaltData({mailAddress: "test"})
-			const literal = {literal: true}
+			const returnData = createSaltData({ mailAddress: "test" })
+			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
-			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null))
-				.thenResolve(returnData)
+			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null)).thenResolve(returnData)
 
 			respondWith(`{"literal":true}`)
 
@@ -346,7 +354,11 @@ o.spec("ServiceExecutor", function () {
 
 			o(response).equals(returnData)
 			verify(
-				restClient.request("/rest/testapp/testservice", HttpMethod.PUT, matchers.argThat((p) => p.responseType === MediaType.Json))
+				restClient.request(
+					"/rest/testapp/testservice",
+					HttpMethod.PUT,
+					matchers.argThat((p) => p.responseType === MediaType.Json),
+				),
 			)
 		})
 		o("when put returns encrypted data and we are not logged in it throws an error", async function () {
@@ -370,13 +382,12 @@ o.spec("ServiceExecutor", function () {
 				delete: {
 					data: SaltDataTypeRef,
 					return: null,
-				}
+				},
 			}
-			const data = createSaltData({mailAddress: "test"})
-			const literal = {literal: true}
+			const data = createSaltData({ mailAddress: "test" })
+			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
-			when(instanceMapper.encryptAndMapToLiteral(saltTypeModel, data, null))
-				.thenResolve(literal)
+			when(instanceMapper.encryptAndMapToLiteral(saltTypeModel, data, null)).thenResolve(literal)
 
 			respondWith(undefined)
 
@@ -400,11 +411,10 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const returnData = createSaltData({mailAddress: "test"})
-			const literal = {literal: true}
+			const returnData = createSaltData({ mailAddress: "test" })
+			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
-			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null))
-				.thenResolve(returnData)
+			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null)).thenResolve(returnData)
 
 			respondWith(`{"literal":true}`)
 
@@ -412,7 +422,11 @@ o.spec("ServiceExecutor", function () {
 
 			o(response).equals(returnData)
 			verify(
-				restClient.request("/rest/testapp/testservice", HttpMethod.DELETE, matchers.argThat((p) => p.responseType === MediaType.Json))
+				restClient.request(
+					"/rest/testapp/testservice",
+					HttpMethod.DELETE,
+					matchers.argThat((p) => p.responseType === MediaType.Json),
+				),
 			)
 		})
 
@@ -437,23 +451,22 @@ o.spec("ServiceExecutor", function () {
 				get: {
 					data: SaltDataTypeRef,
 					return: null,
-				}
+				},
 			}
-			const data = createSaltData({mailAddress: "test"})
-			const query = Object.freeze({myQueryParam: "2"})
-			when(instanceMapper.encryptAndMapToLiteral(anything(), anything(), anything()))
-				.thenResolve({})
+			const data = createSaltData({ mailAddress: "test" })
+			const query = Object.freeze({ myQueryParam: "2" })
+			when(instanceMapper.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve({})
 			respondWith(undefined)
 
-			const response = await executor.get(getService, data, {queryParams: query})
+			const response = await executor.get(getService, data, { queryParams: query })
 
 			o(response).equals(undefined)
 			verify(
 				restClient.request(
 					"/rest/testapp/testservice",
 					HttpMethod.GET,
-					matchers.argThat((opts: RestClientOptions) => deepEqual(opts.queryParams, query))
-				)
+					matchers.argThat((opts: RestClientOptions) => deepEqual(opts.queryParams, query)),
+				),
 			)
 		})
 
@@ -463,16 +476,15 @@ o.spec("ServiceExecutor", function () {
 				get: {
 					data: SaltDataTypeRef,
 					return: null,
-				}
+				},
 			}
-			const data = createSaltData({mailAddress: "test"})
-			const headers = Object.freeze({myHeader: "2"})
+			const data = createSaltData({ mailAddress: "test" })
+			const headers = Object.freeze({ myHeader: "2" })
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
-			when(instanceMapper.encryptAndMapToLiteral(anything(), anything(), anything()))
-				.thenResolve({})
+			when(instanceMapper.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve({})
 			respondWith(undefined)
 
-			const response = await executor.get(getService, data, {extraHeaders: headers})
+			const response = await executor.get(getService, data, { extraHeaders: headers })
 
 			o(response).equals(undefined)
 
@@ -480,8 +492,8 @@ o.spec("ServiceExecutor", function () {
 				restClient.request(
 					"/rest/testapp/testservice",
 					HttpMethod.GET,
-					matchers.argThat((opts: RestClientOptions) => deepEqual(opts.headers, {v: saltTypeModel.version, myHeader: "2"}))
-				)
+					matchers.argThat((opts: RestClientOptions) => deepEqual(opts.headers, { v: saltTypeModel.version, myHeader: "2" })),
+				),
 			)
 		})
 
@@ -491,14 +503,13 @@ o.spec("ServiceExecutor", function () {
 				get: {
 					data: SaltDataTypeRef,
 					return: null,
-				}
+				},
 			}
-			const data = createSaltData({mailAddress: "test"})
+			const data = createSaltData({ mailAddress: "test" })
 			const accessToken = "myAccessToken"
-			authHeaders = {accessToken}
+			authHeaders = { accessToken }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
-			when(instanceMapper.encryptAndMapToLiteral(anything(), anything(), anything()))
-				.thenResolve({})
+			when(instanceMapper.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve({})
 			respondWith(undefined)
 
 			const response = await executor.get(getService, data)
@@ -508,8 +519,8 @@ o.spec("ServiceExecutor", function () {
 				restClient.request(
 					"/rest/testapp/testservice",
 					HttpMethod.GET,
-					matchers.argThat((opts: RestClientOptions) => deepEqual(opts.headers, {v: saltTypeModel.version, accessToken}))
-				)
+					matchers.argThat((opts: RestClientOptions) => deepEqual(opts.headers, { v: saltTypeModel.version, accessToken })),
+				),
 			)
 		})
 	})
@@ -523,13 +534,12 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const returnData = createSaltData({mailAddress: "test"})
-			const literal = {literal: true}
+			const returnData = createSaltData({ mailAddress: "test" })
+			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			const sessionKey = [1, 2, 3]
 			when(cryptoFacade.resolveServiceSessionKey(saltTypeModel, literal)).thenResolve(sessionKey)
-			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, sessionKey))
-				.thenResolve(returnData)
+			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, sessionKey)).thenResolve(returnData)
 
 			respondWith(`{"literal":true}`)
 
@@ -537,7 +547,11 @@ o.spec("ServiceExecutor", function () {
 
 			o(response).equals(returnData)
 			verify(
-				restClient.request("/rest/testapp/testservice", HttpMethod.GET, matchers.argThat((p) => p.responseType === MediaType.Json))
+				restClient.request(
+					"/rest/testapp/testservice",
+					HttpMethod.GET,
+					matchers.argThat((p) => p.responseType === MediaType.Json),
+				),
 			)
 		})
 
@@ -549,21 +563,24 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const returnData = createSaltData({mailAddress: "test"})
-			const literal = {literal: true}
+			const returnData = createSaltData({ mailAddress: "test" })
+			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			const sessionKey = [1, 2, 3]
 			when(cryptoFacade.resolveServiceSessionKey(saltTypeModel, literal)).thenResolve(null)
-			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, sessionKey))
-				.thenResolve(returnData)
+			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, sessionKey)).thenResolve(returnData)
 
 			respondWith(`{"literal":true}`)
 
-			const response = await executor.get(getService, null, {sessionKey})
+			const response = await executor.get(getService, null, { sessionKey })
 
 			o(response).equals(returnData)
 			verify(
-				restClient.request("/rest/testapp/testservice", HttpMethod.GET, matchers.argThat((p) => p.responseType === MediaType.Json))
+				restClient.request(
+					"/rest/testapp/testservice",
+					HttpMethod.GET,
+					matchers.argThat((p) => p.responseType === MediaType.Json),
+				),
 			)
 		})
 
@@ -575,20 +592,23 @@ o.spec("ServiceExecutor", function () {
 					return: null,
 				},
 			}
-			const giftCardCreateData = createGiftCardCreateData({message: "test"})
+			const giftCardCreateData = createGiftCardCreateData({ message: "test" })
 			const dataTypeModel = await resolveTypeReference(GiftCardCreateDataTypeRef)
 			const sessionKey = [1, 2, 3]
-			const encrypted = {encrypted: true}
-			when(instanceMapper.encryptAndMapToLiteral(dataTypeModel, giftCardCreateData, sessionKey))
-				.thenResolve(encrypted)
+			const encrypted = { encrypted: true }
+			when(instanceMapper.encryptAndMapToLiteral(dataTypeModel, giftCardCreateData, sessionKey)).thenResolve(encrypted)
 
 			respondWith(undefined)
 
-			const response = await executor.get(getService, giftCardCreateData, {sessionKey})
+			const response = await executor.get(getService, giftCardCreateData, { sessionKey })
 
 			o(response).equals(undefined)
 			verify(
-				restClient.request("/rest/testapp/testservice", HttpMethod.GET, matchers.argThat((p) => p.body === `{"encrypted":true}`))
+				restClient.request(
+					"/rest/testapp/testservice",
+					HttpMethod.GET,
+					matchers.argThat((p) => p.body === `{"encrypted":true}`),
+				),
 			)
 		})
 
@@ -600,14 +620,11 @@ o.spec("ServiceExecutor", function () {
 					return: null,
 				},
 			}
-			const giftCardCreateData = createGiftCardCreateData({message: "test"})
+			const giftCardCreateData = createGiftCardCreateData({ message: "test" })
 
 			assertThrows(ProgrammingError, () => executor.get(getService, giftCardCreateData))
 
-			verify(
-				restClient.request(anything(), anything()),
-				{ignoreExtraArgs: true, times: 0},
-			)
+			verify(restClient.request(anything(), anything()), { ignoreExtraArgs: true, times: 0 })
 		})
 	})
 })

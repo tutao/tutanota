@@ -1,9 +1,9 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {theme} from "../theme"
-import type {lazy} from "@tutao/tutanota-utils"
-import {assertMainOrNode} from "../../api/common/Env"
-import {BootIcons, BootIconsSvg} from "./icons/BootIcons";
-import {Icons} from "./icons/Icons";
+import m, { Children, Component, Vnode } from "mithril"
+import { theme } from "../theme"
+import type { lazy } from "@tutao/tutanota-utils"
+import { assertMainOrNode } from "../../api/common/Env"
+import { BootIcons, BootIconsSvg } from "./icons/BootIcons"
+import { Icons } from "./icons/Icons"
 
 assertMainOrNode()
 
@@ -21,7 +21,7 @@ export type lazyIcon = lazy<AllIcons>
 
 let IconsSvg = {}
 
-import("./icons/Icons.js").then(IconsModule => {
+import("./icons/Icons.js").then((IconsModule) => {
 	IconsSvg = IconsModule.IconsSvg
 })
 
@@ -41,9 +41,7 @@ export class Icon implements Component<IconAttrs> {
 		) // icon is typed, so we may not embed untrusted data
 	}
 
-	getStyle(
-		style: Record<string, any> | null,
-	): {
+	getStyle(style: Record<string, any> | null): {
 		fill: string
 	} {
 		style = style ? style : {}
@@ -52,7 +50,7 @@ export class Icon implements Component<IconAttrs> {
 			style.fill = theme.content_accent
 		}
 
-		return style as {fill: string}
+		return style as { fill: string }
 	}
 
 	getClass(attrs: IconAttrs): string {

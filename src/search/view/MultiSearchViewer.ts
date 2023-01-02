@@ -1,29 +1,29 @@
-import m, {Component} from "mithril"
-import {assertMainOrNode, isApp} from "../../api/common/Env"
-import {ActionBar} from "../../gui/base/ActionBar"
-import {Icons} from "../../gui/base/icons/Icons"
-import {lang} from "../../misc/LanguageViewModel"
+import m, { Component } from "mithril"
+import { assertMainOrNode, isApp } from "../../api/common/Env"
+import { ActionBar } from "../../gui/base/ActionBar"
+import { Icons } from "../../gui/base/icons/Icons"
+import { lang } from "../../misc/LanguageViewModel"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
-import {SearchListView} from "./SearchListView"
-import {NotFoundError} from "../../api/common/error/RestError"
-import type {Contact, Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef, MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {Dialog} from "../../gui/base/Dialog"
-import {allMailsAllowedInsideFolder, getFolderIcon, getIndentedFolderNameForDropdown, markMails} from "../../mail/model/MailUtils"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {mergeContacts} from "../../contacts/ContactMergeUtils"
-import {logins} from "../../api/main/LoginController"
-import {FeatureType} from "../../api/common/TutanotaConstants"
-import {exportContacts} from "../../contacts/VCardExporter"
-import {downcast, isNotNull, isSameTypeRef, lazyMemoized, NBSP, noOp, ofClass} from "@tutao/tutanota-utils"
-import {theme} from "../../gui/theme"
-import {BootIcons} from "../../gui/base/icons/BootIcons"
-import {locator} from "../../api/main/MainLocator"
-import {attachDropdown, DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
-import {moveMails} from "../../mail/view/MailGuiUtils"
-import {exportMails} from "../../mail/export/Exporter"
-import {MailboxDetail} from "../../mail/model/MailModel";
-import {IconButtonAttrs} from "../../gui/base/IconButton.js"
+import { SearchListView } from "./SearchListView"
+import { NotFoundError } from "../../api/common/error/RestError"
+import type { Contact, Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { ContactTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { Dialog } from "../../gui/base/Dialog"
+import { allMailsAllowedInsideFolder, getFolderIcon, getIndentedFolderNameForDropdown, markMails } from "../../mail/model/MailUtils"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import { mergeContacts } from "../../contacts/ContactMergeUtils"
+import { logins } from "../../api/main/LoginController"
+import { FeatureType } from "../../api/common/TutanotaConstants"
+import { exportContacts } from "../../contacts/VCardExporter"
+import { downcast, isNotNull, isSameTypeRef, lazyMemoized, NBSP, noOp, ofClass } from "@tutao/tutanota-utils"
+import { theme } from "../../gui/theme"
+import { BootIcons } from "../../gui/base/icons/BootIcons"
+import { locator } from "../../api/main/MainLocator"
+import { attachDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
+import { moveMails } from "../../mail/view/MailGuiUtils"
+import { exportMails } from "../../mail/export/Exporter"
+import { MailboxDetail } from "../../mail/model/MailModel"
+import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 
 assertMainOrNode()
 
@@ -58,44 +58,44 @@ export class MultiSearchViewer implements Component {
 					this._searchListView.list && this._searchListView.list.getSelectedEntities().length > 0
 						? this._viewingMails()
 							? [
-								// Add spacing so the buttons are where the mail view are
-								m(
-									".flex-space-between.button-min-height",
-									m(".flex.flex-column-reverse", [
-										m(".small.flex.text-break.selectable.badge-line-height.flex-wrap pt-s", NBSP),
-										m("small.b.flex.pt", NBSP),
-									]),
-								),
-								m(".flex-space-between.mr-negative-s", [
-									m(".flex.items-center", this._getSearchSelectionMessage(this._searchListView)),
-									m(ActionBar, {
-										buttons: mailActionBarButtons,
-									}),
-								]),
-							]
-							: [
-								// Add spacing so buttons for contacts also align with the regular client view's buttons
-								m(
-									".header.pt-ml.flex-space-between",
-									m(".left.flex-grow", [
-										m(".contact-actions.flex-wrap.flex-grow-shrink", [
-											m(".h2", NBSP),
-											m(".flex-space-between", m(".flex-wrap.items-center", this._getSearchSelectionMessage(this._searchListView))),
-										]),
-									]),
+									// Add spacing so the buttons are where the mail view are
 									m(
-										".action-bar.align-self-end",
-										m(ActionBar, {
-											buttons: contactActionBarButtons,
-										}),
+										".flex-space-between.button-min-height",
+										m(".flex.flex-column-reverse", [
+											m(".small.flex.text-break.selectable.badge-line-height.flex-wrap pt-s", NBSP),
+											m("small.b.flex.pt", NBSP),
+										]),
 									),
-								),
-							]
+									m(".flex-space-between.mr-negative-s", [
+										m(".flex.items-center", this._getSearchSelectionMessage(this._searchListView)),
+										m(ActionBar, {
+											buttons: mailActionBarButtons,
+										}),
+									]),
+							  ]
+							: [
+									// Add spacing so buttons for contacts also align with the regular client view's buttons
+									m(
+										".header.pt-ml.flex-space-between",
+										m(".left.flex-grow", [
+											m(".contact-actions.flex-wrap.flex-grow-shrink", [
+												m(".h2", NBSP),
+												m(".flex-space-between", m(".flex-wrap.items-center", this._getSearchSelectionMessage(this._searchListView))),
+											]),
+										]),
+										m(
+											".action-bar.align-self-end",
+											m(ActionBar, {
+												buttons: contactActionBarButtons,
+											}),
+										),
+									),
+							  ]
 						: m(ColumnEmptyMessageBox, {
-							message: () => this._getSearchSelectionMessage(this._searchListView),
-							color: theme.content_message_bg,
-							icon: this._isMailList ? BootIcons.Mail : BootIcons.Contacts,
-						}),
+								message: () => this._getSearchSelectionMessage(this._searchListView),
+								color: theme.content_message_bg,
+								icon: this._isMailList ? BootIcons.Mail : BootIcons.Contacts,
+						  }),
 				),
 			]
 		}
@@ -131,10 +131,10 @@ export class MultiSearchViewer implements Component {
 		const buttons: (IconButtonAttrs | null)[] = [
 			prependCancel
 				? {
-					title: "cancel_action",
-					click: () => this._searchListView.list && this._searchListView.list.selectNone(),
-					icon: Icons.Cancel,
-				}
+						title: "cancel_action",
+						click: () => this._searchListView.list && this._searchListView.list.selectNone(),
+						icon: Icons.Cancel,
+				  }
 				: null,
 			{
 				title: "delete_action",
@@ -143,10 +143,10 @@ export class MultiSearchViewer implements Component {
 			},
 			this._searchListView.getSelectedEntities().length === 2
 				? {
-					title: "merge_action",
-					click: () => this.mergeSelected(),
-					icon: Icons.People,
-				}
+						title: "merge_action",
+						click: () => this.mergeSelected(),
+						icon: Icons.People,
+				  }
 				: null,
 			{
 				title: "exportSelectedAsVCard_action",
@@ -157,7 +157,7 @@ export class MultiSearchViewer implements Component {
 
 					if (selected.length > 0) {
 						if (isSameTypeRef(selected[0].entry._type, ContactTypeRef)) {
-							selected.forEach(c => {
+							selected.forEach((c) => {
 								selectedContacts.push(downcast<Contact>(c.entry))
 							})
 						}
@@ -175,52 +175,49 @@ export class MultiSearchViewer implements Component {
 		const buttons: (IconButtonAttrs | null)[] = [
 			prependCancel
 				? {
-					title: "cancel_action",
-					click: () => this._searchListView.list && this._searchListView.list.selectNone(),
-					icon: Icons.Cancel,
-				}
+						title: "cancel_action",
+						click: () => this._searchListView.list && this._searchListView.list.selectNone(),
+						icon: Icons.Cancel,
+				  }
 				: null,
-			attachDropdown(
-				{
-					mainButtonAttrs: {
-						title: "move_action",
-						icon: Icons.Folder,
-					},
-					childAttrs: () => this.createMoveMailButtons()
+			attachDropdown({
+				mainButtonAttrs: {
+					title: "move_action",
+					icon: Icons.Folder,
 				},
-			),
+				childAttrs: () => this.createMoveMailButtons(),
+			}),
 			{
 				title: "delete_action",
 				click: () => this._searchListView.deleteSelected(),
 				icon: Icons.Trash,
 			},
-			attachDropdown(
-				{
-					mainButtonAttrs: {
-						title: "more_label",
-						icon: Icons.More,
-					},
-					childAttrs: () => [
-						{
-							label: "markUnread_action",
-							click: () => markMails(locator.entityClient, this.getSelectedMails(), true).then(() => this._searchListView.selectNone()),
-							icon: Icons.NoEye,
-						},
-						{
-							label: "markRead_action",
-							click: () => markMails(locator.entityClient, this.getSelectedMails(), false).then(() => this._searchListView.selectNone()),
-							icon: Icons.Eye,
-						},
-						!isApp() && !logins.isEnabled(FeatureType.DisableMailExport)
-							? {
-								label: "export_action",
-								click: () => showProgressDialog("pleaseWait_msg", exportMails(this.getSelectedMails(), locator.entityClient, locator.fileController)),
-								icon: Icons.Export,
-							}
-							: null,
-					]
+			attachDropdown({
+				mainButtonAttrs: {
+					title: "more_label",
+					icon: Icons.More,
 				},
-			),
+				childAttrs: () => [
+					{
+						label: "markUnread_action",
+						click: () => markMails(locator.entityClient, this.getSelectedMails(), true).then(() => this._searchListView.selectNone()),
+						icon: Icons.NoEye,
+					},
+					{
+						label: "markRead_action",
+						click: () => markMails(locator.entityClient, this.getSelectedMails(), false).then(() => this._searchListView.selectNone()),
+						icon: Icons.Eye,
+					},
+					!isApp() && !logins.isEnabled(FeatureType.DisableMailExport)
+						? {
+								label: "export_action",
+								click: () =>
+									showProgressDialog("pleaseWait_msg", exportMails(this.getSelectedMails(), locator.entityClient, locator.fileController)),
+								icon: Icons.Export,
+						  }
+						: null,
+				],
+			}),
 		]
 		return buttons.filter(isNotNull)
 	}
@@ -231,7 +228,7 @@ export class MultiSearchViewer implements Component {
 		let selectedMails: Mail[] = []
 
 		if (selected.length > 0 && isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
-			selected.forEach(m => {
+			selected.forEach((m) => {
 				selectedMails.push(downcast<Mail>(m.entry))
 			})
 		}
@@ -250,41 +247,42 @@ export class MultiSearchViewer implements Component {
 		}
 
 		if (selectedMailbox == null) return []
-		return selectedMailbox.folders.getIndentedList()
-							  .filter(folder => allMailsAllowedInsideFolder(selectedMails, folder.folder))
-							  .map(f => ({
-								  label: () => getIndentedFolderNameForDropdown(f),
-								  click: () => {
-									  //is needed for correct selection behavior on mobile
-									  this._searchListView.selectNone()
+		return selectedMailbox.folders
+			.getIndentedList()
+			.filter((folder) => allMailsAllowedInsideFolder(selectedMails, folder.folder))
+			.map((f) => ({
+				label: () => getIndentedFolderNameForDropdown(f),
+				click: () => {
+					//is needed for correct selection behavior on mobile
+					this._searchListView.selectNone()
 
-									  // move all groups one by one because the mail list cannot be modified in parallel
-									  return moveMails({mailModel: locator.mailModel, mails: selectedMails, targetMailFolder: f.folder})
-								  },
-								  icon: getFolderIcon(f.folder)(),
-							  }))
+					// move all groups one by one because the mail list cannot be modified in parallel
+					return moveMails({ mailModel: locator.mailModel, mails: selectedMails, targetMailFolder: f.folder })
+				},
+				icon: getFolderIcon(f.folder)(),
+			}))
 	}
 
 	mergeSelected(): Promise<void> {
 		if (this._searchListView.getSelectedEntities().length === 2) {
 			if (isSameTypeRef(this._searchListView.getSelectedEntities()[0].entry._type, ContactTypeRef)) {
-				let keptContact = (this._searchListView.getSelectedEntities()[0].entry as any) as Contact
-				let goodbyeContact = (this._searchListView.getSelectedEntities()[1].entry as any) as Contact
+				let keptContact = this._searchListView.getSelectedEntities()[0].entry as any as Contact
+				let goodbyeContact = this._searchListView.getSelectedEntities()[1].entry as any as Contact
 
 				if (!keptContact.presharedPassword || !goodbyeContact.presharedPassword || keptContact.presharedPassword === goodbyeContact.presharedPassword) {
-					return Dialog.confirm("mergeAllSelectedContacts_msg").then(confirmed => {
+					return Dialog.confirm("mergeAllSelectedContacts_msg").then((confirmed) => {
 						if (confirmed) {
 							mergeContacts(keptContact, goodbyeContact)
 							return showProgressDialog(
 								"pleaseWait_msg",
 								locator.entityClient.update(keptContact).then(() => {
 									return locator.entityClient
-												  .erase(goodbyeContact)
-												  .catch(ofClass(NotFoundError, noOp))
-												  .then(() => {
-													  //is needed for correct selection behavior on mobile
-													  this._searchListView.selectNone()
-												  })
+										.erase(goodbyeContact)
+										.catch(ofClass(NotFoundError, noOp))
+										.then(() => {
+											//is needed for correct selection behavior on mobile
+											this._searchListView.selectNone()
+										})
 								}),
 							)
 						}
@@ -307,8 +305,8 @@ export class MultiSearchViewer implements Component {
 
 		if (selected.length > 0) {
 			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
-				selected.forEach(m => {
-					selectedMails.push((m.entry as any) as Mail)
+				selected.forEach((m) => {
+					selectedMails.push(m.entry as any as Mail)
 				})
 			}
 		}

@@ -1,14 +1,14 @@
-import {assertMainOrNode, isAndroidApp, isElectronClient, isIOSApp} from "../../api/common/Env"
-import type {Transport} from "../../api/common/MessageDispatcher"
-import {MessageDispatcher, Request} from "../../api/common/MessageDispatcher"
-import type {DeferredObject} from "@tutao/tutanota-utils"
-import {defer} from "@tutao/tutanota-utils"
-import type {NativeInterface} from "../common/NativeInterface"
-import {ProgrammingError} from "../../api/common/error/ProgrammingError"
-import {IosNativeTransport} from './IosNativeTransport.js'
-import {AndroidNativeTransport} from "./AndroidNativeTransport.js"
-import {DesktopNativeTransport} from "./DesktopNativeTransport.js"
-import {WebGlobalDispatcher} from "../common/generatedipc/WebGlobalDispatcher.js"
+import { assertMainOrNode, isAndroidApp, isElectronClient, isIOSApp } from "../../api/common/Env"
+import type { Transport } from "../../api/common/MessageDispatcher"
+import { MessageDispatcher, Request } from "../../api/common/MessageDispatcher"
+import type { DeferredObject } from "@tutao/tutanota-utils"
+import { defer } from "@tutao/tutanota-utils"
+import type { NativeInterface } from "../common/NativeInterface"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError"
+import { IosNativeTransport } from "./IosNativeTransport.js"
+import { AndroidNativeTransport } from "./AndroidNativeTransport.js"
+import { DesktopNativeTransport } from "./DesktopNativeTransport.js"
+import { WebGlobalDispatcher } from "../common/generatedipc/WebGlobalDispatcher.js"
 
 assertMainOrNode()
 
@@ -16,10 +16,7 @@ export class NativeInterfaceMain implements NativeInterface {
 	private readonly _dispatchDeferred: DeferredObject<MessageDispatcher<NativeRequestType, JsRequestType>> = defer()
 	private _appUpdateListener: (() => void) | null = null
 
-	constructor(
-		private readonly globalDispatcher: WebGlobalDispatcher,
-	) {
-	}
+	constructor(private readonly globalDispatcher: WebGlobalDispatcher) {}
 
 	async init() {
 		let transport: Transport<NativeRequestType, JsRequestType>
@@ -38,7 +35,7 @@ export class NativeInterfaceMain implements NativeInterface {
 
 		// Ensure that we have messaged native with "init" before we allow anyone else to make native requests
 		const queue = new MessageDispatcher<NativeRequestType, JsRequestType>(transport, {
-			"ipc": (request: Request<JsRequestType>) => this.globalDispatcher.dispatch(request.args[0], request.args[1], request.args.slice(2))
+			ipc: (request: Request<JsRequestType>) => this.globalDispatcher.dispatch(request.args[0], request.args[1], request.args.slice(2)),
 		})
 		await queue.postRequest(new Request("ipc", ["CommonSystemFacade", "initializeRemoteBridge"]))
 		this._dispatchDeferred.resolve(queue)

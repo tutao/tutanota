@@ -1,22 +1,22 @@
-import m, {Children, Component, Vnode} from "mithril"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import {isMailAddress} from "../misc/FormatValidator"
-import {AccessDeactivatedError} from "../api/common/error/RestError"
-import {debounce, getFirstOrThrow} from "@tutao/tutanota-utils"
-import {formatMailAddressFromParts} from "../misc/Formatter"
-import {Icon} from "../gui/base/Icon"
-import {BootIcons} from "../gui/base/icons/BootIcons"
-import {locator} from "../api/main/MainLocator"
-import {assertMainOrNode} from "../api/common/Env"
-import {isTutanotaMailAddress} from "../mail/model/MailUtils.js";
-import {px, size} from "../gui/size.js"
-import {Autocomplete, inputLineHeight, TextField} from "../gui/base/TextField.js"
-import {attachDropdown, DropdownButtonAttrs} from "../gui/base/Dropdown.js"
-import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
-import {ButtonSize} from "../gui/base/ButtonSize.js"
-import {MailAddressAvailability} from "../api/entities/sys/TypeRefs.js"
-import {SearchDropDown} from "../gui/SearchDropDown.js"
+import m, { Children, Component, Vnode } from "mithril"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
+import { isMailAddress } from "../misc/FormatValidator"
+import { AccessDeactivatedError } from "../api/common/error/RestError"
+import { debounce, getFirstOrThrow } from "@tutao/tutanota-utils"
+import { formatMailAddressFromParts } from "../misc/Formatter"
+import { Icon } from "../gui/base/Icon"
+import { BootIcons } from "../gui/base/icons/BootIcons"
+import { locator } from "../api/main/MainLocator"
+import { assertMainOrNode } from "../api/common/Env"
+import { isTutanotaMailAddress } from "../mail/model/MailUtils.js"
+import { px, size } from "../gui/size.js"
+import { Autocomplete, inputLineHeight, TextField } from "../gui/base/TextField.js"
+import { attachDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
+import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
+import { ButtonSize } from "../gui/base/ButtonSize.js"
+import { MailAddressAvailability } from "../api/entities/sys/TypeRefs.js"
+import { SearchDropDown } from "../gui/SearchDropDown.js"
 
 assertMainOrNode()
 
@@ -33,7 +33,7 @@ export interface SelectMailAddressFormWithSuggestionsAttrs {
 }
 
 export interface ValidationResult {
-	isValid: boolean,
+	isValid: boolean
 	errorId: TranslationKey | null
 }
 
@@ -49,7 +49,7 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 	private selectedMailAddressSuggestionIndex = 0
 	private suggestionsLoaded = false
 
-	constructor({attrs}: Vnode<SelectMailAddressFormWithSuggestionsAttrs>) {
+	constructor({ attrs }: Vnode<SelectMailAddressFormWithSuggestionsAttrs>) {
 		this.isVerificationBusy = false
 		this.checkAddressTimeout = null
 		this.domain = getFirstOrThrow(attrs.availableDomains)
@@ -58,7 +58,7 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 		this.messageId = "mailAddressNeutral_msg"
 	}
 
-	view({attrs}: Vnode<SelectMailAddressFormWithSuggestionsAttrs>): Children {
+	view({ attrs }: Vnode<SelectMailAddressFormWithSuggestionsAttrs>): Children {
 		// this is a semi-good hack to reset the username after the user pressed "ok"
 		if (attrs.injectionsRightButtonAttrs?.click) {
 			const originalCallback = attrs.injectionsRightButtonAttrs.click
@@ -103,23 +103,25 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 						`@${this.domain}`,
 					),
 					attrs.availableDomains.length > 1
-						? m(IconButton, attachDropdown(
-							{
-								mainButtonAttrs: {
-									title: "domain_label",
-									icon: BootIcons.Expand,
-									size: ButtonSize.Compact,
-								},
-								childAttrs: () => attrs.availableDomains.map((domain, index) => this.createDropdownItemAttrs(domain, index, attrs)),
-								showDropdown: () => true,
-								width: 250,
-							},
-						))
+						? m(
+								IconButton,
+								attachDropdown({
+									mainButtonAttrs: {
+										title: "domain_label",
+										icon: BootIcons.Expand,
+										size: ButtonSize.Compact,
+									},
+									childAttrs: () => attrs.availableDomains.map((domain, index) => this.createDropdownItemAttrs(domain, index, attrs)),
+									showDropdown: () => true,
+									width: 250,
+								}),
+						  )
 						: attrs.injectionsRightButtonAttrs
-							? m(IconButton, attrs.injectionsRightButtonAttrs)
-							: null,
+						? m(IconButton, attrs.injectionsRightButtonAttrs)
+						: null,
 				],
-			}), this.displaySuggestions() ? this.renderSuggestions(attrs) : null
+			}),
+			this.displaySuggestions() ? this.renderSuggestions(attrs) : null,
 		])
 	}
 
@@ -128,18 +130,21 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 	}
 
 	private renderSuggestions(attrs: SelectMailAddressFormWithSuggestionsAttrs): Children {
-		return m(".rel", m(SearchDropDown, {
-			suggestions: this.mailAvailabilities.map(availability => {
-				return {
-					firstRow: lang.get(availability.available ? "available_label" : "unavailable_label"),
-					secondRow: availability.mailAddress,
-					display: attrs.displayUnavailableMailAddresses ? true : availability.available,
-				}
+		return m(
+			".rel",
+			m(SearchDropDown, {
+				suggestions: this.mailAvailabilities.map((availability) => {
+					return {
+						firstRow: lang.get(availability.available ? "available_label" : "unavailable_label"),
+						secondRow: availability.mailAddress,
+						display: attrs.displayUnavailableMailAddresses ? true : availability.available,
+					}
+				}),
+				selectedSuggestionIndex: this.selectedMailAddressSuggestionIndex,
+				onSuggestionSelected: (sel) => this.selectSuggestion(attrs, sel),
+				maxHeight: Math.min(this.mailAvailabilities.filter((mailAvailability) => mailAvailability.available).length, attrs.maxSuggestionsToShow),
 			}),
-			selectedSuggestionIndex: this.selectedMailAddressSuggestionIndex,
-			onSuggestionSelected: sel => this.selectSuggestion(attrs, sel),
-			maxHeight: Math.min(this.mailAvailabilities.filter(mailAvailability => mailAvailability.available).length, attrs.maxSuggestionsToShow),
-		}))
+		)
 	}
 
 	private selectSuggestion(attrs: SelectMailAddressFormWithSuggestionsAttrs, selection: number) {
@@ -186,7 +191,7 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 	}
 
 	private getCleanMailAddresses() {
-		return this.domains.map(domain => formatMailAddressFromParts(this.username, domain))
+		return this.domains.map((domain) => formatMailAddressFromParts(this.username, domain))
 	}
 
 	private addressHelpLabel(): Children {
@@ -218,40 +223,42 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 		m.redraw()
 	}
 
-	private onValidationFinished(email: string, validationResult: ValidationResult, onValidationResult: SelectMailAddressFormWithSuggestionsAttrs["onValidationResult"]): void {
+	private onValidationFinished(
+		email: string,
+		validationResult: ValidationResult,
+		onValidationResult: SelectMailAddressFormWithSuggestionsAttrs["onValidationResult"],
+	): void {
 		this.messageId = validationResult.errorId
 		onValidationResult(email, validationResult)
 	}
 
-	private getEmailSuggestions = debounce(1000,
-		async (attrs: SelectMailAddressFormWithSuggestionsAttrs) => {
-			const {onBusyStateChanged} = attrs
+	private getEmailSuggestions = debounce(1000, async (attrs: SelectMailAddressFormWithSuggestionsAttrs) => {
+		const { onBusyStateChanged } = attrs
 
-			const {valid} = this.performClientSideEmailValidation(attrs)
+		const { valid } = this.performClientSideEmailValidation(attrs)
 
-			if (!valid) {
-				this.suggestionsLoaded = false
-				return
-			}
-
-			let availabilities: MailAddressAvailability[] = []
-			let firstAvailableIndex = 0
-
-			try {
-				availabilities = await locator.mailAddressFacade.areMailAddressesAvailable(this.getCleanMailAddresses())
-				this.mailAvailabilities = availabilities
-				firstAvailableIndex = availabilities.findIndex(el => el.available)
-			} finally {
-				this.onBusyStateChanged(false, onBusyStateChanged)
-				this.suggestionsLoaded = true
-				this.selectSuggestion(attrs, firstAvailableIndex)
-
-				m.redraw()
-			}
+		if (!valid) {
+			this.suggestionsLoaded = false
+			return
 		}
-	)
 
-	private performClientSideEmailValidation({onValidationResult, onBusyStateChanged}: SelectMailAddressFormWithSuggestionsAttrs) {
+		let availabilities: MailAddressAvailability[] = []
+		let firstAvailableIndex = 0
+
+		try {
+			availabilities = await locator.mailAddressFacade.areMailAddressesAvailable(this.getCleanMailAddresses())
+			this.mailAvailabilities = availabilities
+			firstAvailableIndex = availabilities.findIndex((el) => el.available)
+		} finally {
+			this.onBusyStateChanged(false, onBusyStateChanged)
+			this.suggestionsLoaded = true
+			this.selectSuggestion(attrs, firstAvailableIndex)
+
+			m.redraw()
+		}
+	})
+
+	private performClientSideEmailValidation({ onValidationResult, onBusyStateChanged }: SelectMailAddressFormWithSuggestionsAttrs) {
 		const cleanMailAddress = this.getCleanMailAddress()
 		const cleanUsername = this.username.trim().toLowerCase()
 
@@ -266,7 +273,7 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 			)
 			this.onBusyStateChanged(false, onBusyStateChanged)
 
-			return {valid: false}
+			return { valid: false }
 		} else if (!isMailAddress(cleanMailAddress, true) || (isTutanotaMailAddress(cleanMailAddress) && cleanUsername.length < 3)) {
 			this.onValidationFinished(
 				cleanMailAddress,
@@ -278,18 +285,18 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 			)
 			this.onBusyStateChanged(false, onBusyStateChanged)
 
-			return {valid: false}
+			return { valid: false }
 		}
 
-		return {valid: true, cleanMailAddress, cleanUsername}
+		return { valid: true, cleanMailAddress, cleanUsername }
 	}
 
 	private verifyMailAddress(attrs: SelectMailAddressFormWithSuggestionsAttrs) {
-		const {onValidationResult, onBusyStateChanged} = attrs
+		const { onValidationResult, onBusyStateChanged } = attrs
 
 		this.checkAddressTimeout && clearTimeout(this.checkAddressTimeout)
 
-		const {cleanMailAddress, valid} = this.performClientSideEmailValidation(attrs)
+		const { cleanMailAddress, valid } = this.performClientSideEmailValidation(attrs)
 
 		if (!valid) {
 			return
@@ -303,10 +310,10 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 			let result: ValidationResult
 			try {
 				const available = await locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress)
-				result = available ? {isValid: true, errorId: null} : {isValid: false, errorId: "mailAddressNA_msg"}
+				result = available ? { isValid: true, errorId: null } : { isValid: false, errorId: "mailAddressNA_msg" }
 			} catch (e) {
 				if (e instanceof AccessDeactivatedError) {
-					result = {isValid: false, errorId: "mailAddressDelay_msg"}
+					result = { isValid: false, errorId: "mailAddressDelay_msg" }
 				} else {
 					throw e
 				}

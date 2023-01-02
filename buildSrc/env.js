@@ -1,5 +1,5 @@
 export function create(params) {
-	const {staticUrl, version, mode, dist} = params
+	const { staticUrl, version, mode, dist } = params
 
 	if (version == null || mode == null || dist == null) {
 		throw new Error(`Invalid env parameters: ${JSON.stringify(params)}`)
@@ -18,6 +18,6 @@ export function preludeEnvPlugin(env) {
 		name: "prelude-env",
 		banner() {
 			return `globalThis.env = ${JSON.stringify(env, null, 2)};`
-		}
+		},
 	}
 }

@@ -1,14 +1,14 @@
 type StatePending<T> = {
-    status: "pending"
-    promise: Promise<T>
+	status: "pending"
+	promise: Promise<T>
 }
 type StateComplete<T> = {
-    status: "complete"
-    result: T
+	status: "complete"
+	result: T
 }
 type StateFailure = {
-    status: "failure"
-    error: any
+	status: "failure"
+	error: any
 }
 type AsyncResultState<T> = StatePending<T> | StateComplete<T> | StateFailure
 
@@ -17,35 +17,35 @@ type AsyncResultState<T> = StatePending<T> | StateComplete<T> | StateFailure
  * Sort of fills a similar role to LazyLoaded, usage is more verbose but also more typesafe. maybe this should be reconciled.
  */
 export class AsyncResult<T> {
-    _state: AsyncResultState<T>
+	_state: AsyncResultState<T>
 
-    constructor(promise: Promise<T>) {
-        this._state = pending(promise)
-        promise.then(result => (this._state = complete(result))).catch(error => (this._state = failure(error)))
-    }
+	constructor(promise: Promise<T>) {
+		this._state = pending(promise)
+		promise.then((result) => (this._state = complete(result))).catch((error) => (this._state = failure(error)))
+	}
 
-    state(): Readonly<AsyncResultState<T>> {
-        return this._state
-    }
+	state(): Readonly<AsyncResultState<T>> {
+		return this._state
+	}
 }
 
 function pending<T>(promise: Promise<T>): StatePending<T> {
-    return {
-        status: "pending",
-        promise,
-    }
+	return {
+		status: "pending",
+		promise,
+	}
 }
 
 function complete<T>(result: T): StateComplete<T> {
-    return {
-        status: "complete",
-        result,
-    }
+	return {
+		status: "complete",
+		result,
+	}
 }
 
 function failure(error: any): StateFailure {
-    return {
-        status: "failure",
-        error,
-    }
+	return {
+		status: "failure",
+		error,
+	}
 }

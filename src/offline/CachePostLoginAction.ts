@@ -1,26 +1,22 @@
-import {IPostLoginAction, LoggedInEvent, LoginController} from "../api/main/LoginController.js"
-import {CalendarModel} from "../calendar/model/CalendarModel.js"
-import {CalendarEventTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import {CUSTOM_MIN_ID} from "../api/common/utils/EntityUtils.js"
-import {EntityClient} from "../api/common/EntityClient.js"
-import {ProgressTracker} from "../api/main/ProgressTracker.js"
-import {promiseMap} from "@tutao/tutanota-utils"
-import {NoopProgressMonitor} from "../api/common/utils/ProgressMonitor.js"
-import {SessionType} from "../api/common/SessionType.js"
-import {ExposedCacheStorage} from "../api/worker/rest/DefaultEntityRestCache.js"
-
+import { IPostLoginAction, LoggedInEvent, LoginController } from "../api/main/LoginController.js"
+import { CalendarModel } from "../calendar/model/CalendarModel.js"
+import { CalendarEventTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import { CUSTOM_MIN_ID } from "../api/common/utils/EntityUtils.js"
+import { EntityClient } from "../api/common/EntityClient.js"
+import { ProgressTracker } from "../api/main/ProgressTracker.js"
+import { promiseMap } from "@tutao/tutanota-utils"
+import { NoopProgressMonitor } from "../api/common/utils/ProgressMonitor.js"
+import { SessionType } from "../api/common/SessionType.js"
+import { ExposedCacheStorage } from "../api/worker/rest/DefaultEntityRestCache.js"
 
 export class CachePostLoginAction implements IPostLoginAction {
-
 	constructor(
 		private readonly calendarModel: CalendarModel,
 		private readonly entityClient: EntityClient,
 		private readonly progressTracker: ProgressTracker,
 		private readonly cacheStorage: ExposedCacheStorage,
 		private readonly logins: LoginController,
-	) {
-
-	}
+	) {}
 
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
 		// we use an ephemeral cache for non-persistent sessions which doesn't
@@ -33,10 +29,10 @@ export class CachePostLoginAction implements IPostLoginAction {
 		const progressMonitor = this.progressTracker.getMonitor(monitorHandle) ?? new NoopProgressMonitor()
 		const calendarInfos = await this.calendarModel.loadCalendarInfos(progressMonitor)
 
-		await promiseMap(calendarInfos.values(), async ({groupRoot}) => {
+		await promiseMap(calendarInfos.values(), async ({ groupRoot }) => {
 			await Promise.all([
 				this.entityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents, CUSTOM_MIN_ID).then(() => progressMonitor.workDone(1)),
-				this.entityClient.loadAll(CalendarEventTypeRef, groupRoot.shortEvents, CUSTOM_MIN_ID).then(() => progressMonitor.workDone(1))
+				this.entityClient.loadAll(CalendarEventTypeRef, groupRoot.shortEvents, CUSTOM_MIN_ID).then(() => progressMonitor.workDone(1)),
 			])
 		})
 		progressMonitor.completed()

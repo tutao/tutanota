@@ -1,33 +1,33 @@
-import m, {Children} from "mithril"
-import type {VirtualRow} from "../../gui/base/List.js"
-import {List} from "../../gui/base/List.js"
-import {lang} from "../../misc/LanguageViewModel.js"
-import {NotFoundError} from "../../api/common/error/RestError.js"
-import {size} from "../../gui/size.js"
-import type {GroupInfo, GroupMembership} from "../../api/entities/sys/TypeRefs.js"
-import {CustomerTypeRef, GroupInfoTypeRef, GroupMemberTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import type {SettingsView, UpdatableSettingsViewer} from "../SettingsView.js"
-import {logins} from "../../api/main/LoginController.js"
-import {GroupDetailsView} from "./GroupDetailsView.js"
+import m, { Children } from "mithril"
+import type { VirtualRow } from "../../gui/base/List.js"
+import { List } from "../../gui/base/List.js"
+import { lang } from "../../misc/LanguageViewModel.js"
+import { NotFoundError } from "../../api/common/error/RestError.js"
+import { size } from "../../gui/size.js"
+import type { GroupInfo, GroupMembership } from "../../api/entities/sys/TypeRefs.js"
+import { CustomerTypeRef, GroupInfoTypeRef, GroupMemberTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import type { SettingsView, UpdatableSettingsViewer } from "../SettingsView.js"
+import { logins } from "../../api/main/LoginController.js"
+import { GroupDetailsView } from "./GroupDetailsView.js"
 import * as AddGroupDialog from "./AddGroupDialog.js"
-import {Icon} from "../../gui/base/Icon.js"
-import {Icons} from "../../gui/base/icons/Icons.js"
-import {OperationType} from "../../api/common/TutanotaConstants.js"
-import {BootIcons} from "../../gui/base/icons/BootIcons.js"
-import {header} from "../../gui/Header.js"
-import {isAdministratedGroup} from "../../search/model/SearchUtils.js"
-import type {EntityUpdateData} from "../../api/main/EventController.js"
-import {isUpdateForTypeRef} from "../../api/main/EventController.js"
-import {Button, ButtonType} from "../../gui/base/Button.js"
-import {compareGroupInfos} from "../../api/common/utils/GroupUtils.js"
-import {GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils.js"
-import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs.js"
-import {locator} from "../../api/main/MainLocator.js"
-import {ListColumnWrapper} from "../../gui/ListColumnWrapper.js"
-import {assertMainOrNode} from "../../api/common/Env.js"
-import Stream from "mithril/stream";
-import {GroupDetailsModel} from "./GroupDetailsModel.js"
+import { Icon } from "../../gui/base/Icon.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { OperationType } from "../../api/common/TutanotaConstants.js"
+import { BootIcons } from "../../gui/base/icons/BootIcons.js"
+import { header } from "../../gui/Header.js"
+import { isAdministratedGroup } from "../../search/model/SearchUtils.js"
+import type { EntityUpdateData } from "../../api/main/EventController.js"
+import { isUpdateForTypeRef } from "../../api/main/EventController.js"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import { compareGroupInfos } from "../../api/common/utils/GroupUtils.js"
+import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils.js"
+import { showNotAvailableForFreeDialog } from "../../misc/SubscriptionDialogs.js"
+import { locator } from "../../api/main/MainLocator.js"
+import { ListColumnWrapper } from "../../gui/ListColumnWrapper.js"
+import { assertMainOrNode } from "../../api/common/Env.js"
+import Stream from "mithril/stream"
+import { GroupDetailsModel } from "./GroupDetailsModel.js"
 
 assertMainOrNode()
 const className = "group-list"
@@ -44,7 +44,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 	constructor(settingsView: SettingsView) {
 		this._settingsView = settingsView
 		this._listId = new LazyLoaded(() => {
-			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
 				return customer.teamGroups
 			})
 		})
@@ -62,24 +62,22 @@ export class GroupListView implements UpdatableSettingsViewer {
 						let localAdminGroupIds = logins
 							.getUserController()
 							.getLocalAdminGroupMemberships()
-							.map(gm => gm.group)
+							.map((gm) => gm.group)
 						items = allGroupInfos.filter((gi: GroupInfo) => isAdministratedGroup(localAdminGroupIds, gi))
 					}
-					return {items, complete: true}
+					return { items, complete: true }
 				} else {
 					throw new Error("fetch user group infos called for specific start id")
 				}
 			},
-			loadSingle: elementId => {
-				return this._listId.getAsync().then(listId => {
-					return locator.entityClient
-								  .load<GroupInfo>(GroupInfoTypeRef, [listId, elementId])
-								  .catch(
-									  ofClass(NotFoundError, e => {
-										  // we return null if the entity does not exist
-										  return null
-									  }),
-								  )
+			loadSingle: (elementId) => {
+				return this._listId.getAsync().then((listId) => {
+					return locator.entityClient.load<GroupInfo>(GroupInfoTypeRef, [listId, elementId]).catch(
+						ofClass(NotFoundError, (e) => {
+							// we return null if the entity does not exist
+							return null
+						}),
+					)
 				})
 			},
 			sortCompare: compareGroupInfos,
@@ -90,8 +88,8 @@ export class GroupListView implements UpdatableSettingsViewer {
 			swipe: {
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],
-				swipeLeft: listElement => Promise.resolve(false),
-				swipeRight: listElement => Promise.resolve(false),
+				swipeLeft: (listElement) => Promise.resolve(false),
+				swipeRight: (listElement) => Promise.resolve(false),
 				enabled: false,
 			},
 			multiSelectionAllowed: false,
@@ -118,11 +116,11 @@ export class GroupListView implements UpdatableSettingsViewer {
 		this.list.loadInitial()
 		const searchBar = neverNull(header.searchBar)
 
-		this._listId.getAsync().then(listId => {
+		this._listId.getAsync().then((listId) => {
 			searchBar.setGroupInfoRestrictionListId(listId)
 		})
 
-		this._searchResultStreamDependency = searchBar.lastSelectedGroupInfoResult.map(groupInfo => {
+		this._searchResultStreamDependency = searchBar.lastSelectedGroupInfoResult.map((groupInfo) => {
 			if (this._listId.isLoaded() && this._listId.getSync() === groupInfo._id[0]) {
 				this.list.scrollToIdAndSelect(groupInfo._id[1])
 			}
@@ -162,22 +160,22 @@ export class GroupListView implements UpdatableSettingsViewer {
 	}
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		return promiseMap(updates, update => {
+		return promiseMap(updates, (update) => {
 			return this.processUpdate(update)
 		}).then(noOp)
 	}
 
 	processUpdate(update: EntityUpdateData): Promise<void> {
-		const {instanceListId, instanceId, operation} = update
+		const { instanceListId, instanceId, operation } = update
 
 		if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this._listId.getSync() === instanceListId) {
 			if (!logins.getUserController().isGlobalAdmin()) {
 				let listEntity = this.list.getEntity(instanceId)
-				return locator.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(gi => {
+				return locator.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then((gi) => {
 					let localAdminGroupIds = logins
 						.getUserController()
 						.getLocalAdminGroupMemberships()
-						.map(gm => gm.group)
+						.map((gm) => gm.group)
 
 					if (listEntity) {
 						if (!isAdministratedGroup(localAdminGroupIds, gi)) {
@@ -195,12 +193,12 @@ export class GroupListView implements UpdatableSettingsViewer {
 				return this.list.entityEventReceived(instanceId, operation)
 			}
 		} else if (!logins.getUserController().isGlobalAdmin() && isUpdateForTypeRef(GroupMemberTypeRef, update)) {
-			let oldLocalAdminGroupMembership = this._localAdminGroupMemberships.find(gm => gm.groupMember[1] === instanceId)
+			let oldLocalAdminGroupMembership = this._localAdminGroupMemberships.find((gm) => gm.groupMember[1] === instanceId)
 
 			let newLocalAdminGroupMembership = logins
 				.getUserController()
 				.getLocalAdminGroupMemberships()
-				.find(gm => gm.groupMember[1] === instanceId)
+				.find((gm) => gm.groupMember[1] === instanceId)
 			let promise = Promise.resolve()
 
 			if (operation === OperationType.CREATE && !oldLocalAdminGroupMembership && newLocalAdminGroupMembership) {
@@ -270,17 +268,17 @@ export class GroupRow implements VirtualRow<GroupInfo> {
 		let elements = [
 			m(".top", [
 				m(".name", {
-					oncreate: vnode => (this._domName = vnode.dom as HTMLElement),
+					oncreate: (vnode) => (this._domName = vnode.dom as HTMLElement),
 				}),
 			]),
 			m(".bottom.flex-space-between", [
 				m("small.mail-address", {
-					oncreate: vnode => (this._domAddress = vnode.dom as HTMLElement),
+					oncreate: (vnode) => (this._domAddress = vnode.dom as HTMLElement),
 				}),
 				m(".icons.flex", [
 					m(Icon, {
 						icon: Icons.Trash,
-						oncreate: vnode => (this._domDeletedIcon = vnode.dom as HTMLElement),
+						oncreate: (vnode) => (this._domDeletedIcon = vnode.dom as HTMLElement),
 						class: "svg-list-accent-fg",
 						style: {
 							display: "none",
@@ -288,7 +286,7 @@ export class GroupRow implements VirtualRow<GroupInfo> {
 					}),
 					m(Icon, {
 						icon: BootIcons.Settings,
-						oncreate: vnode => (this._domLocalAdminIcon = vnode.dom as HTMLElement),
+						oncreate: (vnode) => (this._domLocalAdminIcon = vnode.dom as HTMLElement),
 						class: "svg-list-accent-fg",
 						style: {
 							display: "none",
@@ -296,7 +294,7 @@ export class GroupRow implements VirtualRow<GroupInfo> {
 					}),
 					m(Icon, {
 						icon: BootIcons.Mail,
-						oncreate: vnode => (this._domMailIcon = vnode.dom as HTMLElement),
+						oncreate: (vnode) => (this._domMailIcon = vnode.dom as HTMLElement),
 						class: "svg-list-accent-fg",
 						style: {
 							display: "none",

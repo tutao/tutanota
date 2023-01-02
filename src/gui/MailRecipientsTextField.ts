@@ -1,21 +1,21 @@
-import m, {Children, ClassComponent, Vnode} from "mithril"
-import {BubbleTextField} from "./base/BubbleTextField.js"
-import {Recipient} from "../api/common/recipients/Recipient.js"
-import {getMailAddressDisplayText} from "../mail/model/MailUtils.js"
-import {px, size} from "./size.js"
-import {progressIcon} from "./base/Icon.js"
-import {lang, TranslationKey} from "../misc/LanguageViewModel.js"
-import {stringToNameAndMailAddress} from "../misc/parsing/MailAddressParser.js"
-import {DropdownChildAttrs} from "./base/Dropdown.js"
-import {Contact} from "../api/entities/tutanota/TypeRefs.js"
-import {RecipientsSearchModel} from "../misc/RecipientsSearchModel.js"
-import {getFirstOrThrow} from "@tutao/tutanota-utils"
-import {Dialog} from "./base/Dialog.js"
-import {SearchDropDown} from "./SearchDropDown.js"
+import m, { Children, ClassComponent, Vnode } from "mithril"
+import { BubbleTextField } from "./base/BubbleTextField.js"
+import { Recipient } from "../api/common/recipients/Recipient.js"
+import { getMailAddressDisplayText } from "../mail/model/MailUtils.js"
+import { px, size } from "./size.js"
+import { progressIcon } from "./base/Icon.js"
+import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
+import { stringToNameAndMailAddress } from "../misc/parsing/MailAddressParser.js"
+import { DropdownChildAttrs } from "./base/Dropdown.js"
+import { Contact } from "../api/entities/tutanota/TypeRefs.js"
+import { RecipientsSearchModel } from "../misc/RecipientsSearchModel.js"
+import { getFirstOrThrow } from "@tutao/tutanota-utils"
+import { Dialog } from "./base/Dialog.js"
+import { SearchDropDown } from "./SearchDropDown.js"
 
 export interface MailRecipientsTextFieldAttrs {
-	label: TranslationKey,
-	text: string,
+	label: TranslationKey
+	text: string
 	onTextChanged: (text: string) => void
 	recipients: ReadonlyArray<Recipient>
 	onRecipientAdded: (address: string, name: string | null, contact: Contact | null) => void
@@ -33,32 +33,26 @@ export interface MailRecipientsTextFieldAttrs {
  * recipients are represented as bubbles, and a contact search dropdown is shown as the user types
  */
 export class MailRecipientsTextField implements ClassComponent<MailRecipientsTextFieldAttrs> {
-
 	// don't access me directly, use getter and setter
 	private selectedSuggestionIdx = 0
 	private focused = false
 
-	view({attrs}: Vnode<MailRecipientsTextFieldAttrs>): Children {
-		return [
-			this.renderTextField(attrs),
-			this.focused ? this.renderSuggestions(attrs) : null
-		]
+	view({ attrs }: Vnode<MailRecipientsTextFieldAttrs>): Children {
+		return [this.renderTextField(attrs), this.focused ? this.renderSuggestions(attrs) : null]
 	}
 
 	private renderTextField(attrs: MailRecipientsTextFieldAttrs): Children {
 		return m(BubbleTextField, {
 			label: attrs.label,
 			text: attrs.text,
-			onInput: text => {
+			onInput: (text) => {
 				attrs.search.search(text).then(() => m.redraw())
 
 				// if the new text length is more than one character longer,
 				// it means the user pasted the text in, so we want to try and resolve a list of contacts
-				const {remainingText, newRecipients, errors} = text.length - attrs.text.length > 1
-					? parsePastedInput(text)
-					: parseTypedInput(text)
+				const { remainingText, newRecipients, errors } = text.length - attrs.text.length > 1 ? parsePastedInput(text) : parseTypedInput(text)
 
-				for (const {address, name} of newRecipients) {
+				for (const { address, name } of newRecipients) {
 					attrs.onRecipientAdded(address, name, null)
 				}
 
@@ -72,21 +66,20 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 					attrs.onTextChanged(remainingText)
 				}
 			},
-			items: attrs.recipients.map(recipient => recipient.address),
+			items: attrs.recipients.map((recipient) => recipient.address),
 			renderBubbleText: (address: string) => {
-				const name = attrs.recipients.find(recipient => recipient.address === address)?.name ?? null
+				const name = attrs.recipients.find((recipient) => recipient.address === address)?.name ?? null
 				return getMailAddressDisplayText(name, address, false)
 			},
 			getBubbleDropdownAttrs: async (address) => (await attrs.getRecipientClickedDropdownAttrs?.(address)) ?? [],
 			onBackspace: () => {
 				if (attrs.text === "" && attrs.recipients.length > 0) {
-					const {address} = attrs.recipients.slice().pop()!
+					const { address } = attrs.recipients.slice().pop()!
 					attrs.onTextChanged(address)
 					attrs.onRecipientRemoved(address)
 					return false
 				}
 				return true
-
 			},
 			onEnterKey: () => {
 				this.resolveInput(attrs)
@@ -122,23 +115,26 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 					},
 					attrs.search.isLoading() ? progressIcon() : null,
 				),
-				attrs.injectionsRight
-			]
-)		})
+				attrs.injectionsRight,
+			]),
+		})
 	}
 
 	private renderSuggestions(attrs: MailRecipientsTextFieldAttrs): Children {
-		return m(".rel", m(SearchDropDown, {
-			suggestions: attrs.search.results().map(recipient => {
-				return {
-					firstRow: recipient.name,
-					secondRow: recipient.address,
-				}
+		return m(
+			".rel",
+			m(SearchDropDown, {
+				suggestions: attrs.search.results().map((recipient) => {
+					return {
+						firstRow: recipient.name,
+						secondRow: recipient.address,
+					}
+				}),
+				selectedSuggestionIndex: this.getSelectedSuggestionIdx(attrs),
+				onSuggestionSelected: (idx) => this.selectSuggestion(attrs, idx),
+				maxHeight: attrs.maxSuggestionsToShow ?? null,
 			}),
-			selectedSuggestionIndex: this.getSelectedSuggestionIdx(attrs),
-			onSuggestionSelected: idx => this.selectSuggestion(attrs, idx),
-			maxHeight: attrs.maxSuggestionsToShow ?? null
-		}))
+		)
 	}
 
 	private resolveInput(attrs: MailRecipientsTextFieldAttrs) {
@@ -160,7 +156,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 			return
 		}
 
-		const {address, name, contact} = selection
+		const { address, name, contact } = selection
 		attrs.onRecipientAdded(address, name, contact)
 		attrs.search.clear()
 		attrs.onTextChanged("")
@@ -177,7 +173,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 
 interface ParsedInput {
 	remainingText: string
-	newRecipients: Array<{address: string, name: string | null}>
+	newRecipients: Array<{ address: string; name: string | null }>
 	errors: Array<string>
 }
 
@@ -187,12 +183,12 @@ interface ParsedInput {
  */
 function parsePastedInput(text: string): ParsedInput {
 	const separator = text.indexOf(";") !== -1 ? ";" : ","
-	const textParts = text.split(separator).map(part => part.trim())
+	const textParts = text.split(separator).map((part) => part.trim())
 
 	const result: ParsedInput = {
 		remainingText: "",
 		newRecipients: [],
-		errors: []
+		errors: [],
 	}
 
 	for (let part of textParts) {
@@ -221,7 +217,6 @@ function parsePastedInput(text: string): ParsedInput {
  * @param text
  */
 function parseTypedInput(text: string): ParsedInput {
-
 	const lastCharacter = text.slice(-1)
 
 	// on semicolon, comman or space we want to try to resolve the input text
@@ -229,9 +224,7 @@ function parseTypedInput(text: string): ParsedInput {
 		const textMinusLast = text.slice(0, -1)
 
 		const result = parseMailAddress(textMinusLast)
-		const remainingText = result != null
-			? ""
-			: textMinusLast
+		const remainingText = result != null ? "" : textMinusLast
 
 		return {
 			remainingText,
@@ -247,7 +240,7 @@ function parseTypedInput(text: string): ParsedInput {
 	}
 }
 
-function parseMailAddress(text: string): {address: string, name: string | null} | null {
+function parseMailAddress(text: string): { address: string; name: string | null } | null {
 	text = text.trim()
 
 	if (text === "") return null
@@ -255,11 +248,9 @@ function parseMailAddress(text: string): {address: string, name: string | null} 
 	const nameAndMailAddress = stringToNameAndMailAddress(text)
 
 	if (nameAndMailAddress) {
-		const name = nameAndMailAddress.name
-			? nameAndMailAddress.name
-			: null
+		const name = nameAndMailAddress.name ? nameAndMailAddress.name : null
 
-		return {name, address: nameAndMailAddress.mailAddress}
+		return { name, address: nameAndMailAddress.mailAddress }
 	} else {
 		return null
 	}

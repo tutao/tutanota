@@ -1,22 +1,22 @@
-import type {User} from "../api/entities/sys/TypeRefs.js"
-import type {Group} from "../api/entities/sys/TypeRefs.js"
-import {GroupType, GroupTypeNameByCode, ShareCapability} from "../api/common/TutanotaConstants"
-import type {GroupMembership} from "../api/entities/sys/TypeRefs.js"
-import {getEtId, isSameId} from "../api/common/utils/EntityUtils"
-import {lang} from "../misc/LanguageViewModel"
-import type {GroupInfo} from "../api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {logins} from "../api/main/LoginController"
-import {downcast} from "@tutao/tutanota-utils"
-import type {GroupMember} from "../api/entities/sys/TypeRefs.js"
-import {GroupMemberTypeRef} from "../api/entities/sys/TypeRefs.js"
-import type {EntityClient} from "../api/common/EntityClient"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
-import type {ReceivedGroupInvitation} from "../api/entities/sys/TypeRefs.js"
-import {ReceivedGroupInvitationTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {UserGroupRootTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {NotFoundError} from "../api/common/error/RestError"
-import type {UserController} from "../api/main/UserController"
+import type { User } from "../api/entities/sys/TypeRefs.js"
+import type { Group } from "../api/entities/sys/TypeRefs.js"
+import { GroupType, GroupTypeNameByCode, ShareCapability } from "../api/common/TutanotaConstants"
+import type { GroupMembership } from "../api/entities/sys/TypeRefs.js"
+import { getEtId, isSameId } from "../api/common/utils/EntityUtils"
+import { lang } from "../misc/LanguageViewModel"
+import type { GroupInfo } from "../api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { logins } from "../api/main/LoginController"
+import { downcast } from "@tutao/tutanota-utils"
+import type { GroupMember } from "../api/entities/sys/TypeRefs.js"
+import { GroupMemberTypeRef } from "../api/entities/sys/TypeRefs.js"
+import type { EntityClient } from "../api/common/EntityClient"
+import { ofClass, promiseMap } from "@tutao/tutanota-utils"
+import type { ReceivedGroupInvitation } from "../api/entities/sys/TypeRefs.js"
+import { ReceivedGroupInvitationTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { UserGroupRootTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { NotFoundError } from "../api/common/error/RestError"
+import type { UserController } from "../api/main/UserController"
 
 /**
  * Whether or not a user has a given capability for a shared group. If the group type is not shareable, this will always return false
@@ -64,8 +64,8 @@ export function getCapabilityText(capability: ShareCapability): string {
 }
 
 export function getSharedGroupName(groupInfo: GroupInfo, allowGroupNameOverride: boolean): string {
-	const {userSettingsGroupRoot} = logins.getUserController()
-	const groupSettings = userSettingsGroupRoot.groupSettings.find(gc => gc.group === groupInfo.group)
+	const { userSettingsGroupRoot } = logins.getUserController()
+	const groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === groupInfo.group)
 	return (allowGroupNameOverride && groupSettings && groupSettings.name) || groupInfo.name || getDefaultGroupName(downcast(groupInfo.groupType))
 }
 
@@ -83,11 +83,13 @@ export function getMemberCabability(memberInfo: GroupMemberInfo, group: Group): 
 }
 
 export function loadGroupMembers(group: Group, entityClient: EntityClient): Promise<Array<GroupMemberInfo>> {
-	return entityClient.loadAll(GroupMemberTypeRef, group.members).then(members => promiseMap(members, member => loadGroupInfoForMember(member, entityClient)))
+	return entityClient
+		.loadAll(GroupMemberTypeRef, group.members)
+		.then((members) => promiseMap(members, (member) => loadGroupInfoForMember(member, entityClient)))
 }
 
 export function loadGroupInfoForMember(groupMember: GroupMember, entityClient: EntityClient): Promise<GroupMemberInfo> {
-	return entityClient.load(GroupInfoTypeRef, groupMember.userGroupInfo).then(userGroupInfo => {
+	return entityClient.load(GroupInfoTypeRef, groupMember.userGroupInfo).then((userGroupInfo) => {
 		return {
 			member: groupMember,
 			info: userGroupInfo,
@@ -113,8 +115,8 @@ export function loadReceivedGroupInvitations(
 ): Promise<Array<ReceivedGroupInvitation>> {
 	return entityClient
 		.load(UserGroupRootTypeRef, userController.userGroupInfo.group)
-		.then(userGroupRoot => entityClient.loadAll(ReceivedGroupInvitationTypeRef, userGroupRoot.invitations))
-		.then(invitations => invitations.filter(invitation => getInvitationGroupType(invitation) === type))
+		.then((userGroupRoot) => entityClient.loadAll(ReceivedGroupInvitationTypeRef, userGroupRoot.invitations))
+		.then((invitations) => invitations.filter((invitation) => getInvitationGroupType(invitation) === type))
 		.catch(ofClass(NotFoundError, () => []))
 }
 

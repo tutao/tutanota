@@ -1,23 +1,23 @@
-import type {Config} from "../ConfigCommon"
-import {DesktopConfigKey} from "../ConfigKeys.js"
-import {WindowBounds} from "../../DesktopWindowManager.js"
+import type { Config } from "../ConfigCommon"
+import { DesktopConfigKey } from "../ConfigKeys.js"
+import { WindowBounds } from "../../DesktopWindowManager.js"
 
 const newDefault = {
 	rect: {
 		x: 200,
 		y: 200,
 		width: 1200,
-		height: 700
+		height: 700,
 	},
 	fullscreen: false,
-	scale: 1
+	scale: 1,
 }
 
 async function migrate(oldConfig: Config): Promise<void> {
 	// only migrate those that
 	// * have the old default size
 	// * don't have a value set (first run)
-	let oldBounds = (oldConfig[DesktopConfigKey.lastBounds] as WindowBounds)
+	let oldBounds = oldConfig[DesktopConfigKey.lastBounds] as WindowBounds
 	if (oldBounds == null) {
 		oldBounds = newDefault
 	} else if (oldBounds.rect.width === 800 && oldBounds.rect.height === 600) {

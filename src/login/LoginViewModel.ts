@@ -1,20 +1,20 @@
-import {AccessExpiredError, BadRequestError, NotAuthenticatedError,} from "../api/common/error/RestError"
-import type {TranslationText} from "../misc/LanguageViewModel"
-import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler"
-import {getLoginErrorMessage, handleExpectedLoginError} from "../misc/LoginUtils"
-import type {LoginController} from "../api/main/LoginController"
+import { AccessExpiredError, BadRequestError, NotAuthenticatedError } from "../api/common/error/RestError"
+import type { TranslationText } from "../misc/LanguageViewModel"
+import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler"
+import { getLoginErrorMessage, handleExpectedLoginError } from "../misc/LoginUtils"
+import type { LoginController } from "../api/main/LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {ProgrammingError} from "../api/common/error/ProgrammingError"
-import type {CredentialsInfo, CredentialsProvider} from "../misc/credentials/CredentialsProvider.js"
-import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthenticationError"
-import {first, noOp} from "@tutao/tutanota-utils"
-import {KeyPermanentlyInvalidatedError} from "../api/common/error/KeyPermanentlyInvalidatedError"
-import {assertMainOrNode} from "../api/common/Env"
-import {SessionType} from "../api/common/SessionType"
-import {DeviceStorageUnavailableError} from "../api/common/error/DeviceStorageUnavailableError"
-import {DatabaseKeyFactory} from "../misc/credentials/DatabaseKeyFactory"
-import {DeviceConfig} from "../misc/DeviceConfig"
+import { ProgrammingError } from "../api/common/error/ProgrammingError"
+import type { CredentialsInfo, CredentialsProvider } from "../misc/credentials/CredentialsProvider.js"
+import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
+import { first, noOp } from "@tutao/tutanota-utils"
+import { KeyPermanentlyInvalidatedError } from "../api/common/error/KeyPermanentlyInvalidatedError"
+import { assertMainOrNode } from "../api/common/Env"
+import { SessionType } from "../api/common/SessionType"
+import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
+import { DatabaseKeyFactory } from "../misc/credentials/DatabaseKeyFactory"
+import { DeviceConfig } from "../misc/DeviceConfig"
 
 assertMainOrNode()
 
@@ -338,7 +338,7 @@ export class LoginViewModel implements ILoginViewModel {
 			// we don't want to have multiple credentials that
 			// * share the same userId with different mail addresses (may happen if a user chooses a different alias to log in than the one they saved)
 			// * share the same mail address (may happen if mail aliases are moved between users)
-			const storedCredentialsToDelete = this.savedInternalCredentials.filter(c => c.login === mailAddress || c.userId === newCredentials.userId)
+			const storedCredentialsToDelete = this.savedInternalCredentials.filter((c) => c.login === mailAddress || c.userId === newCredentials.userId)
 
 			for (const credentialToDelete of storedCredentialsToDelete) {
 				const credentials = await this.credentialsProvider.getCredentialsByUserId(credentialToDelete.userId)
@@ -346,7 +346,7 @@ export class LoginViewModel implements ILoginViewModel {
 				if (credentials) {
 					await this.loginController.deleteOldSession(credentials.credentials)
 					// we handled the deletion of the offlineDb in createSession already
-					await this.credentialsProvider.deleteByUserId(credentials.credentials.userId, {deleteOfflineDb: false})
+					await this.credentialsProvider.deleteByUserId(credentials.credentials.userId, { deleteOfflineDb: false })
 				}
 			}
 
@@ -354,7 +354,7 @@ export class LoginViewModel implements ILoginViewModel {
 				try {
 					await this.credentialsProvider.store({
 						credentials: newCredentials,
-						databaseKey: newDatabaseKey
+						databaseKey: newDatabaseKey,
 					})
 				} catch (e) {
 					if (e instanceof KeyPermanentlyInvalidatedError) {

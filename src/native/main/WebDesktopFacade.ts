@@ -1,14 +1,13 @@
-import {DesktopFacade} from "../common/generatedipc/DesktopFacade"
-import {showSpellcheckLanguageDialog} from "../../gui/dialogs/SpellcheckLanguageDialog"
-import {ElectronResult} from "../common/generatedipc/ElectronResult.js"
-import {ErrorInfo} from "../common/generatedipc/ErrorInfo.js"
-import {NativeShortcut} from "../common/generatedipc/NativeShortcut.js"
-import {Shortcut} from "../../misc/KeyManager.js"
-import {Keys} from "../../api/common/TutanotaConstants.js"
-import {IMainLocator} from "../../api/main/MainLocator.js"
+import { DesktopFacade } from "../common/generatedipc/DesktopFacade"
+import { showSpellcheckLanguageDialog } from "../../gui/dialogs/SpellcheckLanguageDialog"
+import { ElectronResult } from "../common/generatedipc/ElectronResult.js"
+import { ErrorInfo } from "../common/generatedipc/ErrorInfo.js"
+import { NativeShortcut } from "../common/generatedipc/NativeShortcut.js"
+import { Shortcut } from "../../misc/KeyManager.js"
+import { Keys } from "../../api/common/TutanotaConstants.js"
+import { IMainLocator } from "../../api/main/MainLocator.js"
 
 export class WebDesktopFacade implements DesktopFacade {
-
 	print(): Promise<void> {
 		window.print()
 		return Promise.resolve()
@@ -19,20 +18,20 @@ export class WebDesktopFacade implements DesktopFacade {
 	}
 
 	async applySearchResultToOverlay(result: ElectronResult | null): Promise<void> {
-		const {searchInPageOverlay} = await import("../../gui/SearchInPageOverlay.js")
+		const { searchInPageOverlay } = await import("../../gui/SearchInPageOverlay.js")
 		searchInPageOverlay.applyNextResult(result)
 		return Promise.resolve()
 	}
 
 	async openFindInPage(): Promise<void> {
-		const {searchInPageOverlay} = await import("../../gui/SearchInPageOverlay.js")
+		const { searchInPageOverlay } = await import("../../gui/SearchInPageOverlay.js")
 		searchInPageOverlay.open()
 		return Promise.resolve()
 	}
 
 	async reportError(errorInfo: ErrorInfo): Promise<void> {
-		const {promptForFeedbackAndSend} = await import("../../misc/ErrorReporter.js")
-		const {logins} = await import("../../api/main/LoginController.js")
+		const { promptForFeedbackAndSend } = await import("../../misc/ErrorReporter.js")
+		const { logins } = await import("../../api/main/LoginController.js")
 		await logins.waitForPartialLogin()
 		await promptForFeedbackAndSend(errorInfo)
 	}
@@ -79,10 +78,10 @@ export class WebDesktopFacade implements DesktopFacade {
 			alt: false,
 			meta: false,
 			help: "emptyString_msg",
-			key: Keys.F
+			key: Keys.F,
 		}
-		const fixedShortcuts: Array<Shortcut> = shortcuts.map(nsc => Object.assign({}, baseShortcut, nsc))
-		const {keyManager} = await import("../../misc/KeyManager.js")
+		const fixedShortcuts: Array<Shortcut> = shortcuts.map((nsc) => Object.assign({}, baseShortcut, nsc))
+		const { keyManager } = await import("../../misc/KeyManager.js")
 		keyManager.registerDesktopShortcuts(fixedShortcuts)
 	}
 
@@ -92,7 +91,7 @@ export class WebDesktopFacade implements DesktopFacade {
 	}
 
 	private static async getInitializedLocator(): Promise<IMainLocator> {
-		const {locator} = await import("../../api/main/MainLocator")
+		const { locator } = await import("../../api/main/MainLocator")
 		await locator.initialized
 		return locator
 	}

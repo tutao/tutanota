@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
-import type {ProgressMonitorId} from "../common/utils/ProgressMonitor"
-import {ProgressMonitor} from "../common/utils/ProgressMonitor"
+import type { ProgressMonitorId } from "../common/utils/ProgressMonitor"
+import { ProgressMonitor } from "../common/utils/ProgressMonitor"
 
 /**
  * The progress tracker controls the progress bar located in Header.js
@@ -29,7 +29,7 @@ export class ProgressTracker {
 	 */
 	registerMonitor(work: number): ProgressMonitorId {
 		const id = this._idCounter++
-		const monitor = new ProgressMonitor(work, completed => this._onProgress(id, completed))
+		const monitor = new ProgressMonitor(work, (completed) => this._onProgress(id, completed))
 
 		this._monitors.set(id, monitor)
 

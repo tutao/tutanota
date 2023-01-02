@@ -1,15 +1,15 @@
-import m, {Children, Component, Vnode} from "mithril"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import {addFlash, removeFlash} from "./Flash"
-import {Icon} from "./Icon"
-import {Icons} from "./icons/Icons"
-import {BootIcons} from "./icons/BootIcons"
-import {theme} from "../theme"
-import {px} from "../size"
-import {DefaultAnimationTime} from "../animation/Animations"
-import type {lazy} from "@tutao/tutanota-utils"
-import {assertNotNull} from "@tutao/tutanota-utils"
+import m, { Children, Component, Vnode } from "mithril"
+import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import { addFlash, removeFlash } from "./Flash"
+import { Icon } from "./Icon"
+import { Icons } from "./icons/Icons"
+import { BootIcons } from "./icons/BootIcons"
+import { theme } from "../theme"
+import { px } from "../size"
+import { DefaultAnimationTime } from "../animation/Animations"
+import type { lazy } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 export type ExpanderAttrs = {
 	label: TranslationKey | lazy<string>
@@ -36,18 +36,18 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 						a.onExpandedChange(!a.expanded)
 						event.stopPropagation()
 					},
-					oncreate: vnode => addFlash(vnode.dom),
-					onremove: vnode => removeFlash(vnode.dom),
+					oncreate: (vnode) => addFlash(vnode.dom),
+					onremove: (vnode) => removeFlash(vnode.dom),
 					"aria-expanded": String(a.expanded),
 				},
 				[
 					a.showWarning
 						? m(Icon, {
-							icon: Icons.Warning,
-							style: {
-								fill: a.color ? a.color : theme.content_button,
-							},
-						})
+								icon: Icons.Warning,
+								style: {
+									fill: a.color ? a.color : theme.content_button,
+								},
+						  })
 						: null,
 					m(
 						"small.b.text-ellipsis",
@@ -93,7 +93,7 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 
 	oninit(vnode: Vnode<ExpanderPanelAttrs>) {
 		this.childrenInDom = vnode.attrs.expanded
-		this.observer = new MutationObserver(mutations => {
+		this.observer = new MutationObserver((mutations) => {
 			// redraw if a child has been added that won't be getting displayed
 			if (this.childDiv && this.childDiv.getBoundingClientRect().height !== this.lastCalculatedHeight) {
 				m.redraw()
@@ -116,12 +116,15 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 		const expanded = vnode.attrs.expanded
 		// getBoundingClientRect() gives us the correct size, with a fraction
 		this.lastCalculatedHeight = this.childDiv?.getBoundingClientRect().height ?? 0
-		return m(".expander-panel",
+		return m(
+			".expander-panel",
 			// it's conceivable that the content could overflow or influence the
 			// panel's size, but we did not observe this. overflow: hidden would
 			// solve that in case it becomes a problem, but majorly complicate
 			// putting dropdowns and similar elements inside the panel.
-			m("div", {
+			m(
+				"div",
+				{
 					style: {
 						opacity: expanded ? "1" : "0",
 						height: expanded ? `${this.lastCalculatedHeight}px` : "0px",
@@ -130,7 +133,9 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 				},
 				// we use this wrapper to measure the child reliably
 				// just a marker class
-				m(".expander-child-wrapper", {
+				m(
+					".expander-child-wrapper",
+					{
 						style: {
 							// one way to deal with collapsible margins.
 							// CSS is fun in the way that it likes to collapse some vertical margins in some cases.
@@ -141,9 +146,9 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 							// There are few ways to prevent this, one of them is `display: flow-root`. It should have no side effects except for some
 							// `display: float` items but if you are using `float` still you have no one to blame but yourself.
 							// we could set `overflow: hidden` here instead but we do measure this element so we probably shouldn't
-							"display": "flow-root",
+							display: "flow-root",
 						},
-						oncreate: vnode => {
+						oncreate: (vnode) => {
 							this.childDiv = vnode.dom as HTMLElement
 							assertNotNull(this.observer).observe(this.childDiv, {
 								childList: true,

@@ -1,15 +1,15 @@
-import m, {Children, ClassComponent, CVnode} from "mithril"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import {addFlash, removeFlash} from "./Flash"
-import type {lazyIcon} from "./Icon"
-import {Icon} from "./Icon"
-import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuIcon, theme} from "../theme"
-import type {lazy} from "@tutao/tutanota-utils"
-import {assertNotNull} from "@tutao/tutanota-utils"
-import type {clickHandler} from "./GuiUtils"
-import {assertMainOrNode} from "../../api/common/Env"
-import {px, size} from "../size.js"
+import m, { Children, ClassComponent, CVnode } from "mithril"
+import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import { addFlash, removeFlash } from "./Flash"
+import type { lazyIcon } from "./Icon"
+import { Icon } from "./Icon"
+import { getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuIcon, theme } from "../theme"
+import type { lazy } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/tutanota-utils"
+import type { clickHandler } from "./GuiUtils"
+import { assertMainOrNode } from "../../api/common/Env"
+import { px, size } from "../size.js"
 
 assertMainOrNode()
 
@@ -32,9 +32,7 @@ export const enum ButtonColor {
 	DrawerNav = "drawernav",
 }
 
-export function getColors(
-	buttonColors: ButtonColor | null | undefined,
-): {
+export function getColors(buttonColors: ButtonColor | null | undefined): {
 	border: string
 	button: string
 	button_icon_bg: string
@@ -105,7 +103,7 @@ export interface ButtonAttrs {
 	colors?: ButtonColor
 	isSelected?: lazy<boolean>
 	noBubble?: boolean
-	staticRightText?: string,
+	staticRightText?: string
 }
 
 /**
@@ -124,14 +122,11 @@ export class Button implements ClassComponent<ButtonAttrs> {
 				class: this.getButtonClasses(a).join(" "),
 				style: this._getStyle(a),
 				onclick: (event: MouseEvent) => this.click(event, a, assertNotNull(this._domButton)),
-				title:
-					type === ButtonType.Action || type === ButtonType.Login
-						? lang.getMaybeLazy(a.label)
-						: title,
-				oncreate: vnode => {
+				title: type === ButtonType.Action || type === ButtonType.Login ? lang.getMaybeLazy(a.label) : title,
+				oncreate: (vnode) => {
 					this._domButton = vnode.dom as HTMLButtonElement
 				},
-				onremove: vnode => removeFlash(vnode.dom),
+				onremove: (vnode) => removeFlash(vnode.dom),
 			},
 			m(
 				"",
@@ -141,20 +136,20 @@ export class Button implements ClassComponent<ButtonAttrs> {
 					style: {
 						borderColor: getColors(a.colors).border,
 					},
-					oncreate: vnode => addFlash(vnode.dom),
-					onremove: vnode => removeFlash(vnode.dom),
+					oncreate: (vnode) => addFlash(vnode.dom),
+					onremove: (vnode) => removeFlash(vnode.dom),
 				},
 				[
 					this.getIcon(a),
 					this._getLabelElement(a),
 					a.staticRightText
 						? m(
-							".pl-s",
-							{
-								style: this._getLabelStyle(a),
-							},
-							a.staticRightText,
-						)
+								".pl-s",
+								{
+									style: this._getLabelStyle(a),
+								},
+								a.staticRightText,
+						  )
 						: null,
 				],
 			),
@@ -164,9 +159,9 @@ export class Button implements ClassComponent<ButtonAttrs> {
 	_getStyle(a: ButtonAttrs): {} {
 		return a.type === ButtonType.Login
 			? {
-				"border-radius": px(size.border_radius_small),
-				"background-color": theme.content_accent,
-			}
+					"border-radius": px(size.border_radius_small),
+					"background-color": theme.content_accent,
+			  }
 			: {}
 	}
 
@@ -182,13 +177,13 @@ export class Button implements ClassComponent<ButtonAttrs> {
 		const icon = a.icon?.()
 		return icon
 			? m(Icon, {
-				icon,
-				class: this.getIconClass(a),
-				style: {
-					fill: this.getIconColor(a),
-					"background-color": this.getIconBackgroundColor(a),
-				},
-			})
+					icon,
+					class: this.getIconClass(a),
+					style: {
+						fill: this.getIconColor(a),
+						"background-color": this.getIconBackgroundColor(a),
+					},
+			  })
 			: null
 	}
 
@@ -266,7 +261,6 @@ export class Button implements ClassComponent<ButtonAttrs> {
 		if (![ButtonType.TextBubble].includes(type)) {
 			wrapperClasses.push("plr-button")
 		}
-
 
 		wrapperClasses.push("justify-center")
 

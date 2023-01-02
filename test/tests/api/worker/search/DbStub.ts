@@ -1,24 +1,24 @@
-import type {DbKey, ObjectStoreName} from "../../../../../src/api/worker/search/DbFacade.js"
-import {DbTransaction, osName} from "../../../../../src/api/worker/search/DbFacade.js"
-import {downcast, neverNull} from "@tutao/tutanota-utils"
-import type {IndexName} from "../../../../../src/api/worker/search/Indexer.js";
+import type { DbKey, ObjectStoreName } from "../../../../../src/api/worker/search/DbFacade.js"
+import { DbTransaction, osName } from "../../../../../src/api/worker/search/DbFacade.js"
+import { downcast, neverNull } from "@tutao/tutanota-utils"
+import type { IndexName } from "../../../../../src/api/worker/search/Indexer.js"
 import {
 	ElementDataOS,
 	GroupDataOS,
 	indexName,
 	SearchIndexMetaDataOS,
 	SearchIndexOS,
-	SearchIndexWordsIndex
-} from "../../../../../src/api/worker/search/Indexer.js";
+	SearchIndexWordsIndex,
+} from "../../../../../src/api/worker/search/Indexer.js"
 
 export type Index = { [indexName: string]: string }
 
 export type TableStub = {
 	// @ts-ignore[TS2538]
-	content: Record<DbKey, any>,
-	autoIncrement: boolean,
-	indexes: Index,
-	keyPath?: string | null,
+	content: Record<DbKey, any>
+	autoIncrement: boolean
+	indexes: Index
+	keyPath?: string | null
 	lastId?: number | null
 }
 
@@ -37,7 +37,7 @@ export class DbStub {
 			autoIncrement,
 			indexes: index || {},
 			keyPath,
-			lastId: null
+			lastId: null,
 		}
 	}
 
@@ -53,12 +53,11 @@ export class DbStub {
 export function createSearchIndexDbStub(): DbStub {
 	const dbStub = new DbStub()
 	dbStub.addObjectStore(SearchIndexOS, true)
-	dbStub.addObjectStore(SearchIndexMetaDataOS, true, "id", {[indexName(SearchIndexWordsIndex)]: "word"})
+	dbStub.addObjectStore(SearchIndexMetaDataOS, true, "id", { [indexName(SearchIndexWordsIndex)]: "word" })
 	dbStub.addObjectStore(ElementDataOS, false)
 	dbStub.addObjectStore(GroupDataOS, false)
 	return dbStub
 }
-
 
 export class DbStubTransaction implements DbTransaction {
 	_dbStub: DbStub
@@ -69,11 +68,10 @@ export class DbStubTransaction implements DbTransaction {
 		this.aborted = false
 	}
 
-	getAll(objectStore: ObjectStoreName): Promise<{ key: DbKey, value: any }[]> {
-		const entries = Object.entries(this._dbStub.getObjectStore(objectStore).content)
-			.map(([key, value]) => {
-				return {key, value}
-			})
+	getAll(objectStore: ObjectStoreName): Promise<{ key: DbKey; value: any }[]> {
+		const entries = Object.entries(this._dbStub.getObjectStore(objectStore).content).map(([key, value]) => {
+			return { key, value }
+		})
 		return Promise.resolve(entries)
 	}
 
@@ -140,5 +138,3 @@ export class DbStubTransaction implements DbTransaction {
 		return Promise.resolve()
 	}
 }
-
-

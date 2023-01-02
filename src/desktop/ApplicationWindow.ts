@@ -1,23 +1,23 @@
-import type {BrowserWindow, ContextMenuParams, NativeImage, Result, Session} from "electron"
-import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
+import type { BrowserWindow, ContextMenuParams, NativeImage, Result, Session } from "electron"
+import type { WindowBounds, WindowManager } from "./DesktopWindowManager"
 import url from "url"
-import type {lazy} from "@tutao/tutanota-utils"
-import {capitalizeFirstLetter, noOp, typedEntries, typedKeys} from "@tutao/tutanota-utils"
-import {Keys} from "../api/common/TutanotaConstants"
-import type {Key} from "../misc/KeyManager"
+import type { lazy } from "@tutao/tutanota-utils"
+import { capitalizeFirstLetter, noOp, typedEntries, typedKeys } from "@tutao/tutanota-utils"
+import { Keys } from "../api/common/TutanotaConstants"
+import type { Key } from "../misc/KeyManager"
 import path from "path"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {log} from "./DesktopLog"
-import {parseUrlOrNull} from "./PathUtils"
-import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
-import {DesktopThemeFacade} from "./DesktopThemeFacade"
-import {CancelledError} from "../api/common/error/CancelledError"
-import {DesktopFacade} from "../native/common/generatedipc/DesktopFacade.js"
-import {CommonNativeFacade} from "../native/common/generatedipc/CommonNativeFacade.js"
-import {RemoteBridge} from "./ipc/RemoteBridge.js"
-import {InterWindowEventFacadeSendDispatcher} from "../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import {handleProtocols} from "./net/ProtocolProxy.js"
-import {OfflineDbManager} from "./db/PerWindowSqlCipherFacade.js"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { log } from "./DesktopLog"
+import { parseUrlOrNull } from "./PathUtils"
+import type { LocalShortcutManager } from "./electron-localshortcut/LocalShortcut"
+import { DesktopThemeFacade } from "./DesktopThemeFacade"
+import { CancelledError } from "../api/common/error/CancelledError"
+import { DesktopFacade } from "../native/common/generatedipc/DesktopFacade.js"
+import { CommonNativeFacade } from "../native/common/generatedipc/CommonNativeFacade.js"
+import { RemoteBridge } from "./ipc/RemoteBridge.js"
+import { InterWindowEventFacadeSendDispatcher } from "../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import { handleProtocols } from "./net/ProtocolProxy.js"
+import { OfflineDbManager } from "./db/PerWindowSqlCipherFacade.js"
 import HandlerDetails = Electron.HandlerDetails
 
 const MINIMUM_WINDOW_SIZE: number = 350
@@ -57,7 +57,7 @@ export class ApplicationWindow {
 	private setBoundsTimeout: ReturnType<typeof setTimeout> | null = null
 	private findingInPage: boolean = false
 	private skipNextSearchBarBlur: boolean = false
-	private lastSearchRequest: [string, {forward: boolean, matchCase: boolean}] | null = null
+	private lastSearchRequest: [string, { forward: boolean; matchCase: boolean }] | null = null
 	private lastSearchPromiseReject: (err: Error | null) => void
 	private shortcuts: Array<LocalShortcut>
 	id!: number
@@ -77,78 +77,81 @@ export class ApplicationWindow {
 	) {
 		this.lastSearchPromiseReject = noOp
 		const isMac = process.platform === "darwin"
-		this.shortcuts = ([
-			{
-				key: Keys.F,
-				meta: isMac,
-				ctrl: !isMac,
-				exec: () => this.openFindInPage(),
-				help: "searchPage_label",
-			},
-			{
-				key: Keys.P,
-				meta: isMac,
-				ctrl: !isMac,
-				exec: () => this.printMail(),
-				help: "print_action",
-			},
-			{
-				key: Keys.F12,
-				exec: () => this.toggleDevTools(),
-				help: "toggleDevTools_action",
-			},
-			{
-				key: Keys["0"],
-				meta: isMac,
-				ctrl: !isMac,
-				exec: () => {
-					wm.changeZoom(1)
-				},
-				help: "resetZoomFactor_action",
-			},
-		] as Array<LocalShortcut>).concat(isMac
-			? [
+		this.shortcuts = (
+			[
 				{
 					key: Keys.F,
-					meta: true,
-					ctrl: true,
-					exec: () => this.toggleFullScreen(),
-					help: "toggleFullScreen_action",
-				},
-			]
-			: [
-				{
-					key: Keys.F11,
-					exec: () => this.toggleFullScreen(),
-					help: "toggleFullScreen_action",
+					meta: isMac,
+					ctrl: !isMac,
+					exec: () => this.openFindInPage(),
+					help: "searchPage_label",
 				},
 				{
-					key: Keys.RIGHT,
-					alt: true,
-					exec: () => this._browserWindow.webContents.goForward(),
-					help: "pageForward_label",
+					key: Keys.P,
+					meta: isMac,
+					ctrl: !isMac,
+					exec: () => this.printMail(),
+					help: "print_action",
 				},
 				{
-					key: Keys.LEFT,
-					alt: true,
-					exec: () => this.tryGoBack(),
-					help: "pageBackward_label",
+					key: Keys.F12,
+					exec: () => this.toggleDevTools(),
+					help: "toggleDevTools_action",
 				},
 				{
-					key: Keys.H,
-					ctrl: true,
-					exec: () => wm.minimize(),
-					help: "hideWindows_action",
-				},
-				{
-					key: Keys.N,
-					ctrl: true,
+					key: Keys["0"],
+					meta: isMac,
+					ctrl: !isMac,
 					exec: () => {
-						wm.newWindow(true)
+						wm.changeZoom(1)
 					},
-					help: "openNewWindow_action",
+					help: "resetZoomFactor_action",
 				},
-			],
+			] as Array<LocalShortcut>
+		).concat(
+			isMac
+				? [
+						{
+							key: Keys.F,
+							meta: true,
+							ctrl: true,
+							exec: () => this.toggleFullScreen(),
+							help: "toggleFullScreen_action",
+						},
+				  ]
+				: [
+						{
+							key: Keys.F11,
+							exec: () => this.toggleFullScreen(),
+							help: "toggleFullScreen_action",
+						},
+						{
+							key: Keys.RIGHT,
+							alt: true,
+							exec: () => this._browserWindow.webContents.goForward(),
+							help: "pageForward_label",
+						},
+						{
+							key: Keys.LEFT,
+							alt: true,
+							exec: () => this.tryGoBack(),
+							help: "pageBackward_label",
+						},
+						{
+							key: Keys.H,
+							ctrl: true,
+							exec: () => wm.minimize(),
+							help: "hideWindows_action",
+						},
+						{
+							key: Keys.N,
+							ctrl: true,
+							exec: () => {
+								wm.newWindow(true)
+							},
+							help: "openNewWindow_action",
+						},
+				  ],
 		)
 		log.debug(TAG, "webAssetsPath: ", this.absoluteAssetsPath)
 		const preloadPath = path.join(this.electron.app.getAppPath(), "./desktop/preload.js")
@@ -257,7 +260,7 @@ export class ApplicationWindow {
 			dictUrl: string
 		},
 	) {
-		const {preloadPath, dictUrl, icon} = opts
+		const { preloadPath, dictUrl, icon } = opts
 		this._browserWindow = new this.electron.BrowserWindow({
 			icon,
 			show: false,
@@ -293,14 +296,10 @@ export class ApplicationWindow {
 
 		this.id = this._browserWindow.id
 
-		this._browserWindow.webContents.session.setPermissionRequestHandler(
-			(webContents, permission, callback: (_: boolean) => void) => callback(false),
-		)
+		this._browserWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback: (_: boolean) => void) => callback(false))
 
 		const session = this._browserWindow.webContents.session
-		session.setPermissionRequestHandler(
-			(webContents, permission, callback: (_: boolean) => void) => callback(false),
-		)
+		session.setPermissionRequestHandler((webContents, permission, callback: (_: boolean) => void) => callback(false))
 
 		handleProtocols(session, this.absoluteAssetsPath)
 
@@ -314,7 +313,7 @@ export class ApplicationWindow {
 			.on("blur", (_: FocusEvent) => this.localShortcut.disableAll(this._browserWindow))
 
 		this._browserWindow.webContents
-			.on("will-attach-webview", e => e.preventDefault())
+			.on("will-attach-webview", (e) => e.preventDefault())
 			.on("will-navigate", (e, url) => {
 				// >Emitted when a user or the page wants to start navigation. It can happen when the window.location object is changed or
 				// a user clicks a link in the page.
@@ -355,7 +354,7 @@ export class ApplicationWindow {
 					this.getInitialUrl({
 						noAutoLogin: true,
 					})
-						.then(initialUrl => {
+						.then((initialUrl) => {
 							log.debug(TAG, "redirecting to start page...", initialUrl)
 							return this._browserWindow.loadURL(initialUrl)
 						})
@@ -363,15 +362,15 @@ export class ApplicationWindow {
 				}
 			})
 			// @ts-ignore
-			.on("remote-require", e => e.preventDefault())
+			.on("remote-require", (e) => e.preventDefault())
 			// @ts-ignore
-			.on("remote-get-global", e => e.preventDefault())
+			.on("remote-get-global", (e) => e.preventDefault())
 			// @ts-ignore
-			.on("remote-get-builtin", e => e.preventDefault())
+			.on("remote-get-builtin", (e) => e.preventDefault())
 			// @ts-ignore
-			.on("remote-get-current-web-contents", e => e.preventDefault())
+			.on("remote-get-current-web-contents", (e) => e.preventDefault())
 			// @ts-ignore
-			.on("remote-get-current-window", e => e.preventDefault())
+			.on("remote-get-current-window", (e) => e.preventDefault())
 			.on("did-navigate", () => this._browserWindow.emit("did-navigate"))
 			.on("did-navigate-in-page", () => this._browserWindow.emit("did-navigate"))
 			.on("zoom-changed", (ev, direction: "in" | "out") => this._browserWindow.emit("zoom-changed", ev, direction))
@@ -379,7 +378,7 @@ export class ApplicationWindow {
 				this._desktopFacade.updateTargetUrl(url, VIRTUAL_APP_URL_BASE)
 			})
 
-		this._browserWindow.webContents.setWindowOpenHandler(details => this.onNewWindow(details))
+		this._browserWindow.webContents.setWindowOpenHandler((details) => this.onNewWindow(details))
 
 		// Shortcuts but be registered here, before "focus" or "blur" event fires, otherwise localShortcut fails
 		this.reRegisterShortcuts()
@@ -402,7 +401,7 @@ export class ApplicationWindow {
 		}
 	}
 
-	private onNewWindow(details: HandlerDetails): {action: "deny"} {
+	private onNewWindow(details: HandlerDetails): { action: "deny" } {
 		const parsedUrl = parseUrlOrNull(details.url)
 
 		if (parsedUrl == null) {
@@ -424,14 +423,14 @@ export class ApplicationWindow {
 	private reRegisterShortcuts() {
 		this.localShortcut.unregisterAll(this._browserWindow)
 
-		this.shortcuts.forEach(s => {
+		this.shortcuts.forEach((s) => {
 			// build the accelerator string localShortcut understands
 			let shortcutString = ""
 			shortcutString += s.meta ? "Command+" : ""
 			shortcutString += s.ctrl ? "Control+" : ""
 			shortcutString += s.alt ? "Alt+" : ""
 			shortcutString += s.shift ? "Shift+" : ""
-			shortcutString += capitalizeFirstLetter(typedKeys(Keys).filter(k => s.key === Keys[k])[0])
+			shortcutString += capitalizeFirstLetter(typedKeys(Keys).filter((k) => s.key === Keys[k])[0])
 
 			this.localShortcut.register(this._browserWindow, shortcutString, s.exec)
 		})
@@ -440,7 +439,7 @@ export class ApplicationWindow {
 	private sendShortcutstoRender(): void {
 		// delete exec since functions don't cross IPC anyway.
 		// it will be replaced by () => true in the renderer thread
-		const webShortcuts = this.shortcuts.map(s =>
+		const webShortcuts = this.shortcuts.map((s) =>
 			Object.assign({}, s, {
 				exec: null,
 			}),
@@ -496,7 +495,7 @@ export class ApplicationWindow {
 	}
 
 	findInPage(searchTerm: string, forward: boolean, matchCase: boolean, findNext: boolean): Promise<Result | null> {
-		const options = {forward, matchCase, findNext}
+		const options = { forward, matchCase, findNext }
 		this.findingInPage = true
 
 		if (searchTerm !== "") {
@@ -519,7 +518,7 @@ export class ApplicationWindow {
 						this.lastSearchPromiseReject = noOp
 						resolve(res)
 					})
-			}).catch(e => {
+			}).catch((e) => {
 				// findInPage might reject if requests come too quickly
 				// if it's rejecting for another reason we'll have logs
 				if (!(e instanceof CancelledError)) log.debug("findInPage reject: ", e)

@@ -2,7 +2,7 @@
 // them.
 
 import o from "ospec"
-import type {Contact} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import type { Contact } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	ContactAddressTypeRef,
 	createBirthday,
@@ -10,9 +10,9 @@ import {
 	createContactAddress,
 	createContactMailAddress,
 	createContactPhoneNumber,
-	createContactSocialId
+	createContactSocialId,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../../../src/api/common/TutanotaConstants.js"
+import { ContactAddressType, ContactPhoneNumberType, ContactSocialType } from "../../../src/api/common/TutanotaConstants.js"
 import {
 	_addressesToVCardAddresses,
 	_phoneNumbersToVCardPhoneNumbers,
@@ -20,8 +20,8 @@ import {
 	_vCardFormatArrayToString,
 	contactsToVCard,
 } from "../../../src/contacts/VCardExporter.js"
-import {neverNull} from "@tutao/tutanota-utils"
-import {vCardFileToVCards, vCardListToContacts} from "../../../src/contacts/VCardImporter.js"
+import { neverNull } from "@tutao/tutanota-utils"
+import { vCardFileToVCards, vCardListToContacts } from "../../../src/contacts/VCardImporter.js"
 
 let idCounter = 0
 o.spec("VCardExporterTest", function () {
@@ -144,24 +144,16 @@ BEGIN:VCARD\nVERSION:3.0\nFN:Phd. Bob Kev\nN:Kev;Bob;;Phd.;\nADR;TYPE=work:House
 		//Birthday
 		contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
 		contact1.birthdayIso = "2000-09-01"
-		o(contactsToVCard([contact1])).equals(
-			`BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:2000-09-01\nEND:VCARD\n\n`,
-		)
+		o(contactsToVCard([contact1])).equals(`BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:2000-09-01\nEND:VCARD\n\n`)
 		contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
 		contact1.birthdayIso = "2000-09-09"
-		o(contactsToVCard([contact1])).equals(
-			`BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:2000-09-09\nEND:VCARD\n\n`,
-		)
+		o(contactsToVCard([contact1])).equals(`BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:2000-09-09\nEND:VCARD\n\n`)
 		contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
 		contact1.birthdayIso = "1991-10-10"
-		o(contactsToVCard([contact1])).equals(
-			`BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:1991-10-10\nEND:VCARD\n\n`,
-		)
+		o(contactsToVCard([contact1])).equals(`BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:1991-10-10\nEND:VCARD\n\n`)
 		contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
 		contact1.birthdayIso = "1943-10-10"
-		o(contactsToVCard([contact1])).equals(
-			`BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:1943-10-10\nEND:VCARD\n\n`,
-		)
+		o(contactsToVCard([contact1])).equals(`BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:1943-10-10\nEND:VCARD\n\n`)
 		contact1 = createFilledContact("Ant", "", "", "", "", "", [], [], [], [])
 		contact1.birthdayIso = "1800-01-31"
 		c1String = `BEGIN:VCARD\nVERSION:3.0\nFN:Ant\nN:;Ant;;;\nBDAY:1800-01-31\nEND:VCARD\n\n`
@@ -497,7 +489,7 @@ export function createFilledContact(
 	c.lastName = lastName
 
 	if (emailAddresses) {
-		emailAddresses.forEach(m => {
+		emailAddresses.forEach((m) => {
 			let a = createContactMailAddress()
 			a.address = m
 			a.type = ContactAddressType.WORK
@@ -507,7 +499,7 @@ export function createFilledContact(
 	}
 
 	if (phoneNumbers) {
-		phoneNumbers.forEach(m => {
+		phoneNumbers.forEach((m) => {
 			let a = createContactPhoneNumber()
 			a.number = m
 			a.type = ContactAddressType.WORK
@@ -517,7 +509,7 @@ export function createFilledContact(
 	}
 
 	if (addresses) {
-		addresses.forEach(m => {
+		addresses.forEach((m) => {
 			let a = createContactAddress()
 			a.address = m
 			a.type = ContactAddressType.WORK
@@ -527,9 +519,9 @@ export function createFilledContact(
 	}
 
 	if (socialIds) {
-		socialIds.forEach(m => {
+		socialIds.forEach((m) => {
 			let a = createContactSocialId()
-			if (typeof m === 'string') {
+			if (typeof m === "string") {
 				a.socialId = m
 				a.type = ContactSocialType.OTHER
 			} else {

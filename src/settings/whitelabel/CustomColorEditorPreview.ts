@@ -1,13 +1,13 @@
-import m, {Children, Component} from "mithril"
-import {px, size} from "../../gui/size"
-import {Button, ButtonType} from "../../gui/base/Button.js"
-import {createMail} from "../../api/entities/tutanota/TypeRefs.js"
-import {createMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
-import {MailRow} from "../../mail/view/MailRow"
-import {noOp} from "@tutao/tutanota-utils"
-import {IconButton} from "../../gui/base/IconButton.js"
-import {Icons} from "../../gui/base/icons/Icons.js"
-import {ToggleButton} from "../../gui/base/ToggleButton.js"
+import m, { Children, Component } from "mithril"
+import { px, size } from "../../gui/size"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import { createMail } from "../../api/entities/tutanota/TypeRefs.js"
+import { createMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
+import { MailRow } from "../../mail/view/MailRow"
+import { noOp } from "@tutao/tutanota-utils"
+import { IconButton } from "../../gui/base/IconButton.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { ToggleButton } from "../../gui/base/ToggleButton.js"
 
 export const BUTTON_WIDTH = 270
 
@@ -65,7 +65,7 @@ export class CustomColorEditorPreview implements Component {
 						title: () => "Toggle button",
 						icon: this.toggleSelected ? Icons.Lock : Icons.Unlock,
 						toggled: this.toggleSelected,
-						onToggled: () => this.toggleSelected = !this.toggleSelected,
+						onToggled: () => (this.toggleSelected = !this.toggleSelected),
 					}),
 				]),
 				m(".pt-m", this.renderPreviewMailRow()),
@@ -112,7 +112,7 @@ export class CustomColorEditorPreview implements Component {
 				m(
 					".list-row.pl.pr-l.odd-row.pt-m.pb-m",
 					{
-						oncreate: vnode => {
+						oncreate: (vnode) => {
 							this._mailRow.domElement = vnode.dom as HTMLElement
 							requestAnimationFrame(() => this._mailRow.update(mail, false))
 						},
@@ -122,7 +122,7 @@ export class CustomColorEditorPreview implements Component {
 				m(
 					".list-row.pl.pr-l.pt-m.pb-m",
 					{
-						oncreate: vnode => {
+						oncreate: (vnode) => {
 							this._mailRow2.domElement = vnode.dom as HTMLElement
 							requestAnimationFrame(() => this._mailRow2.update(mail2, true))
 						},

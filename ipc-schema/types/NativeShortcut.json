@@ -1,12 +1,12 @@
 {
-  "name": "NativeShortcut",
-  "type": "struct",
-  "fields": {
-	"key": "NativeKey",
-	"ctrl": "boolean?",
-	"alt": "boolean?",
-	"shift": "boolean?",
-	"meta": "boolean?",
-	"help": "string"
-  }
+	"name": "NativeShortcut",
+	"type": "struct",
+	"fields": {
+		"key": "NativeKey",
+		"ctrl": "boolean?",
+		"alt": "boolean?",
+		"shift": "boolean?",
+		"meta": "boolean?",
+		"help": "string"
+	}
 }

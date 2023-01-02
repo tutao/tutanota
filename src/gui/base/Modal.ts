@@ -1,12 +1,12 @@
-import m, {Children, Component} from "mithril"
-import {alpha, AlphaEnum, animations} from "./../animation/Animations"
-import {theme} from "../theme"
-import type {Shortcut} from "../../misc/KeyManager"
-import {keyManager} from "../../misc/KeyManager"
-import {windowFacade} from "../../misc/WindowFacade"
-import {insideRect, remove} from "@tutao/tutanota-utils"
-import {LayerType} from "../../RootView"
-import {assertMainOrNodeBoot} from "../../api/common/Env"
+import m, { Children, Component } from "mithril"
+import { alpha, AlphaEnum, animations } from "./../animation/Animations"
+import { theme } from "../theme"
+import type { Shortcut } from "../../misc/KeyManager"
+import { keyManager } from "../../misc/KeyManager"
+import { windowFacade } from "../../misc/WindowFacade"
+import { insideRect, remove } from "@tutao/tutanota-utils"
+import { LayerType } from "../../RootView"
+import { assertMainOrNodeBoot } from "../../api/common/Env"
 
 assertMainOrNodeBoot()
 
@@ -52,7 +52,7 @@ class Modal implements Component {
 						".layer.fill-absolute",
 						{
 							key: wrapper.key,
-							oncreate: vnode => {
+							oncreate: (vnode) => {
 								// do not set visible=true already in display() because it leads to modal staying open in a second window in Chrome
 								// because onbeforeremove is not called in that case to set visible=false. this is probably an optimization in Chrome to reduce
 								// UI updates if the window is not visible. setting visible=true here is fine because this code is not even called then
@@ -77,7 +77,7 @@ class Modal implements Component {
 							style: {
 								zIndex: LayerType.Modal + 1 + i,
 							},
-							onbeforeremove: vnode => {
+							onbeforeremove: (vnode) => {
 								if (wrapper.needsBg) {
 									this._closingComponents.push(wrapper.component)
 
@@ -117,7 +117,7 @@ class Modal implements Component {
 			keyManager.unregisterModalShortcuts(this.components[this.components.length - 1].component.shortcuts())
 		}
 
-		const existingIndex = this.components.findIndex(shownComponent => shownComponent.component === component)
+		const existingIndex = this.components.findIndex((shownComponent) => shownComponent.component === component)
 
 		if (existingIndex !== -1) {
 			console.warn("Attempting to display the same modal component multiple times!")
@@ -150,7 +150,7 @@ class Modal implements Component {
 		}
 
 		// get the keys because we're going to modify the component stack during iteration
-		const keys = this.components.map(c => c.key)
+		const keys = this.components.map((c) => c.key)
 
 		for (let i = len - 1; i >= 0; i--) {
 			const component = this._getComponentByKey(keys[i])
@@ -185,12 +185,12 @@ class Modal implements Component {
 	}
 
 	_getComponentByKey(key: number): ModalComponent | null {
-		const entry = this.components.find(c => c.key === key)
+		const entry = this.components.find((c) => c.key === key)
 		return entry?.component ?? null
 	}
 
 	remove(component: ModalComponent): void {
-		const componentIndex = this.components.findIndex(wrapper => wrapper.component === component)
+		const componentIndex = this.components.findIndex((wrapper) => wrapper.component === component)
 
 		if (componentIndex === -1) {
 			console.log("can't remove non existing component from modal")

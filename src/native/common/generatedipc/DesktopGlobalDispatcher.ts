@@ -1,61 +1,60 @@
 /* generated file, don't edit. */
 
-
-import {CommonSystemFacade} from "./CommonSystemFacade.js"
-import {CommonSystemFacadeReceiveDispatcher} from "./CommonSystemFacadeReceiveDispatcher.js"
-import {DesktopSystemFacade} from "./DesktopSystemFacade.js"
-import {DesktopSystemFacadeReceiveDispatcher} from "./DesktopSystemFacadeReceiveDispatcher.js"
-import {ExportFacade} from "./ExportFacade.js"
-import {ExportFacadeReceiveDispatcher} from "./ExportFacadeReceiveDispatcher.js"
-import {FileFacade} from "./FileFacade.js"
-import {FileFacadeReceiveDispatcher} from "./FileFacadeReceiveDispatcher.js"
-import {InterWindowEventFacade} from "./InterWindowEventFacade.js"
-import {InterWindowEventFacadeReceiveDispatcher} from "./InterWindowEventFacadeReceiveDispatcher.js"
-import {NativeCredentialsFacade} from "./NativeCredentialsFacade.js"
-import {NativeCredentialsFacadeReceiveDispatcher} from "./NativeCredentialsFacadeReceiveDispatcher.js"
-import {NativeCryptoFacade} from "./NativeCryptoFacade.js"
-import {NativeCryptoFacadeReceiveDispatcher} from "./NativeCryptoFacadeReceiveDispatcher.js"
-import {NativePushFacade} from "./NativePushFacade.js"
-import {NativePushFacadeReceiveDispatcher} from "./NativePushFacadeReceiveDispatcher.js"
-import {SearchTextInAppFacade} from "./SearchTextInAppFacade.js"
-import {SearchTextInAppFacadeReceiveDispatcher} from "./SearchTextInAppFacadeReceiveDispatcher.js"
-import {SettingsFacade} from "./SettingsFacade.js"
-import {SettingsFacadeReceiveDispatcher} from "./SettingsFacadeReceiveDispatcher.js"
-import {SqlCipherFacade} from "./SqlCipherFacade.js"
-import {SqlCipherFacadeReceiveDispatcher} from "./SqlCipherFacadeReceiveDispatcher.js"
-import {ThemeFacade} from "./ThemeFacade.js"
-import {ThemeFacadeReceiveDispatcher} from "./ThemeFacadeReceiveDispatcher.js"
-import {WebAuthnFacade} from "./WebAuthnFacade.js"
-import {WebAuthnFacadeReceiveDispatcher} from "./WebAuthnFacadeReceiveDispatcher.js"
+import { CommonSystemFacade } from "./CommonSystemFacade.js"
+import { CommonSystemFacadeReceiveDispatcher } from "./CommonSystemFacadeReceiveDispatcher.js"
+import { DesktopSystemFacade } from "./DesktopSystemFacade.js"
+import { DesktopSystemFacadeReceiveDispatcher } from "./DesktopSystemFacadeReceiveDispatcher.js"
+import { ExportFacade } from "./ExportFacade.js"
+import { ExportFacadeReceiveDispatcher } from "./ExportFacadeReceiveDispatcher.js"
+import { FileFacade } from "./FileFacade.js"
+import { FileFacadeReceiveDispatcher } from "./FileFacadeReceiveDispatcher.js"
+import { InterWindowEventFacade } from "./InterWindowEventFacade.js"
+import { InterWindowEventFacadeReceiveDispatcher } from "./InterWindowEventFacadeReceiveDispatcher.js"
+import { NativeCredentialsFacade } from "./NativeCredentialsFacade.js"
+import { NativeCredentialsFacadeReceiveDispatcher } from "./NativeCredentialsFacadeReceiveDispatcher.js"
+import { NativeCryptoFacade } from "./NativeCryptoFacade.js"
+import { NativeCryptoFacadeReceiveDispatcher } from "./NativeCryptoFacadeReceiveDispatcher.js"
+import { NativePushFacade } from "./NativePushFacade.js"
+import { NativePushFacadeReceiveDispatcher } from "./NativePushFacadeReceiveDispatcher.js"
+import { SearchTextInAppFacade } from "./SearchTextInAppFacade.js"
+import { SearchTextInAppFacadeReceiveDispatcher } from "./SearchTextInAppFacadeReceiveDispatcher.js"
+import { SettingsFacade } from "./SettingsFacade.js"
+import { SettingsFacadeReceiveDispatcher } from "./SettingsFacadeReceiveDispatcher.js"
+import { SqlCipherFacade } from "./SqlCipherFacade.js"
+import { SqlCipherFacadeReceiveDispatcher } from "./SqlCipherFacadeReceiveDispatcher.js"
+import { ThemeFacade } from "./ThemeFacade.js"
+import { ThemeFacadeReceiveDispatcher } from "./ThemeFacadeReceiveDispatcher.js"
+import { WebAuthnFacade } from "./WebAuthnFacade.js"
+import { WebAuthnFacadeReceiveDispatcher } from "./WebAuthnFacadeReceiveDispatcher.js"
 
 export class DesktopGlobalDispatcher {
-	private readonly commonSystemFacade : CommonSystemFacadeReceiveDispatcher
-	private readonly desktopSystemFacade : DesktopSystemFacadeReceiveDispatcher
-	private readonly exportFacade : ExportFacadeReceiveDispatcher
-	private readonly fileFacade : FileFacadeReceiveDispatcher
-	private readonly interWindowEventFacade : InterWindowEventFacadeReceiveDispatcher
-	private readonly nativeCredentialsFacade : NativeCredentialsFacadeReceiveDispatcher
-	private readonly nativeCryptoFacade : NativeCryptoFacadeReceiveDispatcher
-	private readonly nativePushFacade : NativePushFacadeReceiveDispatcher
-	private readonly searchTextInAppFacade : SearchTextInAppFacadeReceiveDispatcher
-	private readonly settingsFacade : SettingsFacadeReceiveDispatcher
-	private readonly sqlCipherFacade : SqlCipherFacadeReceiveDispatcher
-	private readonly themeFacade : ThemeFacadeReceiveDispatcher
-	private readonly webAuthnFacade : WebAuthnFacadeReceiveDispatcher
+	private readonly commonSystemFacade: CommonSystemFacadeReceiveDispatcher
+	private readonly desktopSystemFacade: DesktopSystemFacadeReceiveDispatcher
+	private readonly exportFacade: ExportFacadeReceiveDispatcher
+	private readonly fileFacade: FileFacadeReceiveDispatcher
+	private readonly interWindowEventFacade: InterWindowEventFacadeReceiveDispatcher
+	private readonly nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher
+	private readonly nativeCryptoFacade: NativeCryptoFacadeReceiveDispatcher
+	private readonly nativePushFacade: NativePushFacadeReceiveDispatcher
+	private readonly searchTextInAppFacade: SearchTextInAppFacadeReceiveDispatcher
+	private readonly settingsFacade: SettingsFacadeReceiveDispatcher
+	private readonly sqlCipherFacade: SqlCipherFacadeReceiveDispatcher
+	private readonly themeFacade: ThemeFacadeReceiveDispatcher
+	private readonly webAuthnFacade: WebAuthnFacadeReceiveDispatcher
 	constructor(
-		commonSystemFacade : CommonSystemFacade,
-		desktopSystemFacade : DesktopSystemFacade,
-		exportFacade : ExportFacade,
-		fileFacade : FileFacade,
-		interWindowEventFacade : InterWindowEventFacade,
-		nativeCredentialsFacade : NativeCredentialsFacade,
-		nativeCryptoFacade : NativeCryptoFacade,
-		nativePushFacade : NativePushFacade,
-		searchTextInAppFacade : SearchTextInAppFacade,
-		settingsFacade : SettingsFacade,
-		sqlCipherFacade : SqlCipherFacade,
-		themeFacade : ThemeFacade,
-		webAuthnFacade : WebAuthnFacade,
+		commonSystemFacade: CommonSystemFacade,
+		desktopSystemFacade: DesktopSystemFacade,
+		exportFacade: ExportFacade,
+		fileFacade: FileFacade,
+		interWindowEventFacade: InterWindowEventFacade,
+		nativeCredentialsFacade: NativeCredentialsFacade,
+		nativeCryptoFacade: NativeCryptoFacade,
+		nativePushFacade: NativePushFacade,
+		searchTextInAppFacade: SearchTextInAppFacade,
+		settingsFacade: SettingsFacade,
+		sqlCipherFacade: SqlCipherFacade,
+		themeFacade: ThemeFacade,
+		webAuthnFacade: WebAuthnFacade,
 	) {
 		this.commonSystemFacade = new CommonSystemFacadeReceiveDispatcher(commonSystemFacade)
 		this.desktopSystemFacade = new DesktopSystemFacadeReceiveDispatcher(desktopSystemFacade)
@@ -71,7 +70,7 @@ export class DesktopGlobalDispatcher {
 		this.themeFacade = new ThemeFacadeReceiveDispatcher(themeFacade)
 		this.webAuthnFacade = new WebAuthnFacadeReceiveDispatcher(webAuthnFacade)
 	}
-	
+
 	async dispatch(facadeName: string, methodName: string, args: Array<any>) {
 		switch (facadeName) {
 			case "CommonSystemFacade":

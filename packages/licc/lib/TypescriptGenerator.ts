@@ -1,10 +1,9 @@
-import {Accumulator} from "./Accumulator.js"
-import {EnumDefinition, FacadeDefinition, getArgs, LangGenerator, minusculize, RenderedType, StructDefinition, TypeRefDefinition} from "./common.js"
-import {ParsedType, parseType} from "./Parser.js"
+import { Accumulator } from "./Accumulator.js"
+import { EnumDefinition, FacadeDefinition, getArgs, LangGenerator, minusculize, RenderedType, StructDefinition, TypeRefDefinition } from "./common.js"
+import { ParsedType, parseType } from "./Parser.js"
 import path from "path"
 
 export class TypescriptGenerator implements LangGenerator {
-
 	generateGlobalDispatcher(name: string, facadeNames: Array<string>): string {
 		const acc = new Accumulator()
 		for (let facadeName of facadeNames) {
@@ -50,7 +49,7 @@ export class TypescriptGenerator implements LangGenerator {
 		acc.line(`export interface ${definition.name} {`)
 		let bodyGenerator = acc.indent()
 		for (const [fieldName, fieldType] of Object.entries(definition.fields)) {
-			const {name, externals} = typeNameTypescript(fieldType)
+			const { name, externals } = typeNameTypescript(fieldType)
 			for (const external of externals) {
 				acc.addImport(`import {${external}} from "./${external}.js"`)
 			}
@@ -59,7 +58,6 @@ export class TypescriptGenerator implements LangGenerator {
 		acc.line("}")
 
 		return acc.finish()
-
 	}
 
 	private generateDocComment(acc: Accumulator, comment: string | null | undefined) {
@@ -112,7 +110,7 @@ export class TypescriptGenerator implements LangGenerator {
 			const arg = getArgs(methodName, methodDef)
 			const decodedArgs = []
 			for (let i = 0; i < arg.length; i++) {
-				const {name: argName, type} = arg[i]
+				const { name: argName, type } = arg[i]
 				const renderedArgType = renderTypeAndAddImports(type, acc)
 				decodedArgs.push([argName, renderedArgType] as const)
 			}
@@ -154,62 +152,57 @@ export class TypescriptGenerator implements LangGenerator {
 	}
 
 	generateExtraFiles(): Record<string, string> {
-		return {};
+		return {}
 	}
 
 	generateTypeRef(outDir: string, definitionPath: string, definition: TypeRefDefinition): string {
 		const acc = new Accumulator()
 		let tsPath = definition.location.typescript
 		const isRelative = tsPath.startsWith(".")
-		const actualPath = (isRelative)
-			? path.relative(
-				path.resolve(outDir),
-				path.resolve(definitionPath, tsPath)
-			)
-			: tsPath
+		const actualPath = isRelative ? path.relative(path.resolve(outDir), path.resolve(definitionPath, tsPath)) : tsPath
 		acc.line(`export {${definition.name}} from "${actualPath}"`)
 
 		return acc.finish()
 	}
 
-	generateEnum({name, values, doc}: EnumDefinition): string {
+	generateEnum({ name, values, doc }: EnumDefinition): string {
 		return new Accumulator()
-			.do(acc => this.generateDocComment(acc, doc))
+			.do((acc) => this.generateDocComment(acc, doc))
 			.line(`export const enum ${name} {`)
-			.indented(acc => acc.lines(values.map((value, index) => `${value} = ${index},`)))
+			.indented((acc) => acc.lines(values.map((value, index) => `${value} = ${index},`)))
 			.line("}")
 			.finish()
 	}
 }
 
 function renderTypescriptType(parsed: ParsedType): RenderedType {
-	const {baseName, nullable, external} = parsed
+	const { baseName, nullable, external } = parsed
 	switch (baseName) {
 		case "List":
 			const renderedListInner = renderTypescriptType(parsed.generics[0])
 			return {
 				externals: renderedListInner.externals,
-				name: maybeNullable(`ReadonlyArray<${renderedListInner.name}>`, nullable)
+				name: maybeNullable(`ReadonlyArray<${renderedListInner.name}>`, nullable),
 			}
 		case "Map":
 			const renderedKey = renderTypescriptType(parsed.generics[0])
 			const renderedValue = renderTypescriptType(parsed.generics[1])
 			return {
 				externals: [...renderedKey.externals, ...renderedValue.externals],
-				name: maybeNullable(`Record<${renderedKey.name}, ${renderedValue.name}>`, nullable)
+				name: maybeNullable(`Record<${renderedKey.name}, ${renderedValue.name}>`, nullable),
 			}
 		case "string":
-			return {externals: [], name: maybeNullable("string", nullable)}
+			return { externals: [], name: maybeNullable("string", nullable) }
 		case "boolean":
-			return {externals: [], name: maybeNullable("boolean", nullable)}
+			return { externals: [], name: maybeNullable("boolean", nullable) }
 		case "number":
-			return {externals: [], name: maybeNullable("number", nullable)}
+			return { externals: [], name: maybeNullable("number", nullable) }
 		case "bytes":
-			return {externals: [], name: maybeNullable("Uint8Array", nullable)}
+			return { externals: [], name: maybeNullable("Uint8Array", nullable) }
 		case "void":
-			return {externals: [], name: maybeNullable("void", nullable)}
+			return { externals: [], name: maybeNullable("void", nullable) }
 		default:
-			return {externals: [baseName], name: maybeNullable(baseName, nullable)}
+			return { externals: [baseName], name: maybeNullable(baseName, nullable) }
 	}
 }
 

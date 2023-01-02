@@ -1,6 +1,6 @@
-import m, {Children, Component, Vnode} from "mithril"
-import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/TypeRefs.js"
-import {px} from "../../gui/size"
+import m, { Children, Component, Vnode } from "mithril"
+import type { KnowledgeBaseEntry } from "../../api/entities/tutanota/TypeRefs.js"
+import { px } from "../../gui/size"
 
 export type KnowledgebaseListEntryAttrs = {
 	entry: KnowledgeBaseEntry
@@ -12,7 +12,7 @@ export const KNOWLEDGEBASE_LIST_ENTRY_HEIGHT = 50
  */
 export class KnowledgeBaseListEntry implements Component<KnowledgebaseListEntryAttrs> {
 	view(vnode: Vnode<KnowledgebaseListEntryAttrs>): Children {
-		const {title, keywords} = vnode.attrs.entry
+		const { title, keywords } = vnode.attrs.entry
 		return m(
 			".flex.flex-column.overflow-hidden.full-width",
 			{
@@ -23,11 +23,8 @@ export class KnowledgeBaseListEntry implements Component<KnowledgebaseListEntryA
 			[
 				m(".text-ellipsis.mb-xs.b", title),
 				m(".flex.badge-line-height.text-ellipsis", [
-					keywords.map(keyword => {
-						return m(
-							".b.small.teamLabel.pl-s.pr-s.border-radius.no-wrap.small.mr-s.min-content",
-							keyword.keyword)
-
+					keywords.map((keyword) => {
+						return m(".b.small.teamLabel.pl-s.pr-s.border-radius.no-wrap.small.mr-s.min-content", keyword.keyword)
 					}),
 				]),
 			],

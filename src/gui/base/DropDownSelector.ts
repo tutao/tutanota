@@ -1,15 +1,15 @@
-import m, {Children, ClassComponent, Vnode} from "mithril"
-import {TextField} from "./TextField.js"
-import {createDropdown} from "./Dropdown.js"
-import type {AllIcons} from "./Icon"
-import type {lazy} from "@tutao/tutanota-utils"
-import {lazyStringValue, noOp} from "@tutao/tutanota-utils"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {BootIcons} from "./icons/BootIcons"
-import type {clickHandler} from "./GuiUtils"
-import {assertMainOrNode} from "../../api/common/Env"
-import {IconButton} from "./IconButton.js"
-import {ButtonSize} from "./ButtonSize.js"
+import m, { Children, ClassComponent, Vnode } from "mithril"
+import { TextField } from "./TextField.js"
+import { createDropdown } from "./Dropdown.js"
+import type { AllIcons } from "./Icon"
+import type { lazy } from "@tutao/tutanota-utils"
+import { lazyStringValue, noOp } from "@tutao/tutanota-utils"
+import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { BootIcons } from "./icons/BootIcons"
+import type { clickHandler } from "./GuiUtils"
+import { assertMainOrNode } from "../../api/common/Env"
+import { IconButton } from "./IconButton.js"
+import { ButtonSize } from "./ButtonSize.js"
 
 assertMainOrNode()
 export type SelectorItem<T> = {
@@ -53,22 +53,26 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 			injectionsRight: () =>
 				a.disabled
 					? null
-					// This whole thing with the button is not ideal. We shouldn't have a proper button with its own state layer, we should have the whole
-					// selector be interactive. Just putting an icon here doesn't work either because the selector disappears from tabindex even if you set it
-					// explicitly (at least in FF).
-					// Ideally we should also set correct role ("option") and highlight only parts of what is not text field (without help text in the bottom.
-					// We could hack some of this in here, but we should probably redo it from scratch with the right HTML structure.
-					: m(".flex.items-center.justify-center", {
-						style: {
-							width: "30px",
-							height: "30px",
-						}
-					}, m(IconButton, {
-						icon: (a.icon ? a.icon : BootIcons.Expand),
-						title: "show_action",
-						click: noOp,
-						size: ButtonSize.Compact,
-					})),
+					: // This whole thing with the button is not ideal. We shouldn't have a proper button with its own state layer, we should have the whole
+					  // selector be interactive. Just putting an icon here doesn't work either because the selector disappears from tabindex even if you set it
+					  // explicitly (at least in FF).
+					  // Ideally we should also set correct role ("option") and highlight only parts of what is not text field (without help text in the bottom.
+					  // We could hack some of this in here, but we should probably redo it from scratch with the right HTML structure.
+					  m(
+							".flex.items-center.justify-center",
+							{
+								style: {
+									width: "30px",
+									height: "30px",
+								},
+							},
+							m(IconButton, {
+								icon: a.icon ? a.icon : BootIcons.Expand,
+								title: "show_action",
+								click: noOp,
+								size: ButtonSize.Compact,
+							}),
+					  ),
 			doShowBorder: a.doShowBorder,
 		})
 	}
@@ -77,18 +81,19 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 		return createDropdown({
 			lazyButtons: () => {
 				return a.items
-						.filter(item => item.selectable !== false)
-						.map(item => {
-							return {
-								label: () => item.name,
-								click: () => {
-									a.selectionChangedHandler?.(item.value)
-									m.redraw()
-								},
-								selected: a.selectedValue === item.value,
-							}
-						})
-			}, width: a.dropdownWidth
+					.filter((item) => item.selectable !== false)
+					.map((item) => {
+						return {
+							label: () => item.name,
+							click: () => {
+								a.selectionChangedHandler?.(item.value)
+								m.redraw()
+							},
+							selected: a.selectedValue === item.value,
+						}
+					})
+			},
+			width: a.dropdownWidth,
 		})
 	}
 
@@ -97,7 +102,7 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 			return a.selectedValueDisplay
 		}
 
-		const selectedItem = a.items.find(item => item.value === a.selectedValue)
+		const selectedItem = a.items.find((item) => item.value === a.selectedValue)
 		if (selectedItem) {
 			return selectedItem.name
 		} else {

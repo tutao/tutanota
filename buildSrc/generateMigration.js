@@ -1,25 +1,21 @@
 import fs from "fs-extra"
-import {Argument, InvalidArgumentError, program} from "commander"
+import { Argument, InvalidArgumentError, program } from "commander"
 import path from "path"
-import {fileExists} from "./buildUtils.js"
+import { fileExists } from "./buildUtils.js"
 await program
 	.addArgument(
-		new Argument("app", "Which tutanota application needs a migration")
-			.choices(["accounting", "base", "gossip", "monitor", "storage", "sys", "tutanota"])
+		new Argument("app", "Which tutanota application needs a migration").choices(["accounting", "base", "gossip", "monitor", "storage", "sys", "tutanota"]),
 	)
-	.addArgument(
-		new Argument("version", "Which version of the given app needs a migration")
-			.argParser(validateNumberArg)
-	)
+	.addArgument(new Argument("version", "Which version of the given app needs a migration").argParser(validateNumberArg))
 	.action(run)
 	.parseAsync(process.argv)
 
 function validateNumberArg(value) {
-	const parsedValue = parseInt(value, 10);
+	const parsedValue = parseInt(value, 10)
 	if (isNaN(parsedValue)) {
-		throw new InvalidArgumentError('Not a number.');
+		throw new InvalidArgumentError("Not a number.")
 	}
-	return parsedValue;
+	return parsedValue
 }
 
 async function run(app, version) {

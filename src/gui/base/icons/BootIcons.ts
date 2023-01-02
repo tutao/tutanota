@@ -1,4 +1,4 @@
-import {assertMainOrNode} from "../../../api/common/Env"
+import { assertMainOrNode } from "../../../api/common/Env"
 
 assertMainOrNode()
 

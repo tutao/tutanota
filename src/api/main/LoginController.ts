@@ -1,17 +1,17 @@
-import type {DeferredObject} from "@tutao/tutanota-utils"
-import {assertNotNull, defer} from "@tutao/tutanota-utils"
-import {assertMainOrNodeBoot} from "../common/Env"
-import type {UserController, UserControllerInitData} from "./UserController"
-import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
-import {NotFoundError} from "../common/error/RestError"
-import {client} from "../../misc/ClientDetector"
-import type {LoginFacade} from "../worker/facades/LoginFacade"
-import {ResumeSessionErrorReason} from "../worker/facades/LoginFacade"
-import type {Credentials} from "../../misc/credentials/Credentials"
-import {FeatureType} from "../common/TutanotaConstants";
-import {CredentialsAndDatabaseKey} from "../../misc/credentials/CredentialsProvider.js"
-import {SessionType} from "../common/SessionType"
-import {IMainLocator} from "./MainLocator"
+import type { DeferredObject } from "@tutao/tutanota-utils"
+import { assertNotNull, defer } from "@tutao/tutanota-utils"
+import { assertMainOrNodeBoot } from "../common/Env"
+import type { UserController, UserControllerInitData } from "./UserController"
+import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations"
+import { NotFoundError } from "../common/error/RestError"
+import { client } from "../../misc/ClientDetector"
+import type { LoginFacade } from "../worker/facades/LoginFacade"
+import { ResumeSessionErrorReason } from "../worker/facades/LoginFacade"
+import type { Credentials } from "../../misc/credentials/Credentials"
+import { FeatureType } from "../common/TutanotaConstants"
+import { CredentialsAndDatabaseKey } from "../../misc/credentials/CredentialsProvider.js"
+import { SessionType } from "../common/SessionType"
+import { IMainLocator } from "./MainLocator"
 
 assertMainOrNodeBoot()
 
@@ -28,9 +28,7 @@ export type LoggedInEvent = {
 	readonly userId: Id
 }
 
-export type ResumeSessionResult =
-	| {type: "success"}
-	| {type: "error", reason: ResumeSessionErrorReason}
+export type ResumeSessionResult = { type: "success" } | { type: "error"; reason: ResumeSessionErrorReason }
 
 export interface LoginController {
 	createSession(username: string, password: string, sessionType: SessionType, databaseKey?: Uint8Array | null): Promise<Credentials>
@@ -43,7 +41,11 @@ export interface LoginController {
 	 * @param externalUserSalt
 	 * @param offlineTimeRangeDays: the user configured time range for their offline storage, used to initialize the offline db
 	 */
-	resumeSession(credentials: CredentialsAndDatabaseKey, externalUserSalt: Uint8Array | null, offlineTimeRangeDays: number | null): Promise<ResumeSessionResult>
+	resumeSession(
+		credentials: CredentialsAndDatabaseKey,
+		externalUserSalt: Uint8Array | null,
+		offlineTimeRangeDays: number | null,
+	): Promise<ResumeSessionResult>
 
 	isUserLoggedIn(): boolean
 
@@ -90,14 +92,14 @@ export class LoginControllerImpl implements LoginController {
 			for (const action of this.postLoginActions) {
 				await action.onFullLoginSuccess({
 					sessionType: this.getUserController().sessionType,
-					userId: this.getUserController().userId
+					userId: this.getUserController().userId,
 				})
 			}
 		})
 	}
 
 	private async getMainLocator(): Promise<IMainLocator> {
-		const {locator} = await import("./MainLocator")
+		const { locator } = await import("./MainLocator")
 		await locator.initialized
 		return locator
 	}
@@ -111,7 +113,7 @@ export class LoginControllerImpl implements LoginController {
 
 	async createSession(username: string, password: string, sessionType: SessionType, databaseKey: Uint8Array | null): Promise<Credentials> {
 		const loginFacade = await this.getLoginFacade()
-		const {user, credentials, sessionId, userGroupInfo} = await loginFacade.createSession(
+		const { user, credentials, sessionId, userGroupInfo } = await loginFacade.createSession(
 			username,
 			password,
 			client.getIdentifier(),
@@ -136,7 +138,7 @@ export class LoginControllerImpl implements LoginController {
 	}
 
 	async onPartialLoginSuccess(initData: UserControllerInitData, sessionType: SessionType): Promise<void> {
-		const {initUserController} = await import("./UserController")
+		const { initUserController } = await import("./UserController")
 		this.userController = await initUserController(initData)
 
 		await this.loadCustomizations()
@@ -145,7 +147,7 @@ export class LoginControllerImpl implements LoginController {
 		for (const handler of this.postLoginActions) {
 			await handler.onPartialLoginSuccess({
 				sessionType,
-				userId: initData.user._id
+				userId: initData.user._id,
 			})
 		}
 		this.atLeastPartiallyLoggedIn = true
@@ -155,12 +157,13 @@ export class LoginControllerImpl implements LoginController {
 	async createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, sessionType: SessionType): Promise<Credentials> {
 		const loginFacade = await this.getLoginFacade()
 		const persistentSession = sessionType === SessionType.Persistent
-		const {
-			user,
-			credentials,
-			sessionId,
-			userGroupInfo
-		} = await loginFacade.createExternalSession(userId, password, salt, clientIdentifier, persistentSession)
+		const { user, credentials, sessionId, userGroupInfo } = await loginFacade.createExternalSession(
+			userId,
+			password,
+			salt,
+			clientIdentifier,
+			persistentSession,
+		)
 		await this.onPartialLoginSuccess(
 			{
 				user,
@@ -175,7 +178,7 @@ export class LoginControllerImpl implements LoginController {
 	}
 
 	async resumeSession(
-		{credentials, databaseKey}: CredentialsAndDatabaseKey,
+		{ credentials, databaseKey }: CredentialsAndDatabaseKey,
 		externalUserSalt?: Uint8Array | null,
 		offlineTimeRangeDays?: number | null,
 	): Promise<ResumeSessionResult> {
@@ -184,7 +187,7 @@ export class LoginControllerImpl implements LoginController {
 		if (resumeResult.type === "error") {
 			return resumeResult
 		} else {
-			const {user, userGroupInfo, sessionId} = resumeResult.data
+			const { user, userGroupInfo, sessionId } = resumeResult.data
 			await this.onPartialLoginSuccess(
 				{
 					user,
@@ -195,7 +198,7 @@ export class LoginControllerImpl implements LoginController {
 				},
 				SessionType.Persistent,
 			)
-			return {type: "success"}
+			return { type: "success" }
 		}
 	}
 
@@ -242,10 +245,10 @@ export class LoginControllerImpl implements LoginController {
 	loadCustomizations(): Promise<void> {
 		if (this.isInternalUserLoggedIn()) {
 			return this.getUserController()
-					   .loadCustomer()
-					   .then(customer => {
-						   this.customizations = customer.customizations.map(f => f.feature)
-					   })
+				.loadCustomer()
+				.then((customer) => {
+					this.customizations = customer.customizations.map((f) => f.feature)
+				})
 		} else {
 			return Promise.resolve()
 		}

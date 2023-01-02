@@ -1,36 +1,36 @@
 {
-  "name": "NativePushFacade",
-  "type": "facade",
-  "senders": ["web"],
-  "receivers": ["android", "desktop", "ios"],
-  "doc": "Push notifications and alarms operations",
-  "methods": {
-	"getPushIdentifier": {
-	  "arg": [],
-	  "ret": "string?"
-	},
-	"storePushIdentifierLocally": {
-	  "arg": [
-		{"identifier": "string"},
-		{"userId": "string"},
-		{"sseOrigin": "string"},
-		{"pushIdentifierId": "string"},
-		{"pushIdentifierSessionKey": "bytes"}
-	  ],
-	  "ret": "void"
-	},
-	"initPushNotifications": {
-	  "doc": "Called at some point after login to initialize push notifications.",
-	  "arg": [],
-	  "ret": "void"
-	},
-	"closePushNotifications": {
-	  "arg": [{"addressesArray": "List<string>"}],
-	  "ret": "void"
-	},
-	"scheduleAlarms": {
-	  "arg": [{"alarms": "List<EncryptedAlarmNotification>"}],
-	  "ret": "void"
+	"name": "NativePushFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["android", "desktop", "ios"],
+	"doc": "Push notifications and alarms operations",
+	"methods": {
+		"getPushIdentifier": {
+			"arg": [],
+			"ret": "string?"
+		},
+		"storePushIdentifierLocally": {
+			"arg": [
+				{ "identifier": "string" },
+				{ "userId": "string" },
+				{ "sseOrigin": "string" },
+				{ "pushIdentifierId": "string" },
+				{ "pushIdentifierSessionKey": "bytes" }
+			],
+			"ret": "void"
+		},
+		"initPushNotifications": {
+			"doc": "Called at some point after login to initialize push notifications.",
+			"arg": [],
+			"ret": "void"
+		},
+		"closePushNotifications": {
+			"arg": [{ "addressesArray": "List<string>" }],
+			"ret": "void"
+		},
+		"scheduleAlarms": {
+			"arg": [{ "alarms": "List<EncryptedAlarmNotification>" }],
+			"ret": "void"
+		}
 	}
-  }
 }

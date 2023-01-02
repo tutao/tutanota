@@ -1,9 +1,9 @@
 import m from "mithril"
-import type {RejectedSender} from "../api/entities/sys/TypeRefs.js"
-import {TextField} from "../gui/base/TextField.js"
+import type { RejectedSender } from "../api/entities/sys/TypeRefs.js"
+import { TextField } from "../gui/base/TextField.js"
 import stream from "mithril/stream"
-import {Dialog} from "../gui/base/Dialog"
-import {lang} from "../misc/LanguageViewModel"
+import { Dialog } from "../gui/base/Dialog"
+import { lang } from "../misc/LanguageViewModel"
 
 /*
 label: TranslationKey | lazy<string>,

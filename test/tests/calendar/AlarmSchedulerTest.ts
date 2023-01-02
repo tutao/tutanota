@@ -1,11 +1,11 @@
-import {AlarmScheduler, AlarmSchedulerImpl} from "../../../src/calendar/date/AlarmScheduler.js"
+import { AlarmScheduler, AlarmSchedulerImpl } from "../../../src/calendar/date/AlarmScheduler.js"
 import o from "ospec"
-import {DateTime} from "luxon"
-import {createAlarmInfo} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createRepeatRule} from "../../../src/api/entities/sys/TypeRefs.js"
-import {EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants.js"
-import {DateProvider} from "../../../src/api/common/DateProvider.js"
-import {SchedulerMock} from "../TestUtils.js"
+import { DateTime } from "luxon"
+import { createAlarmInfo } from "../../../src/api/entities/sys/TypeRefs.js"
+import { createRepeatRule } from "../../../src/api/entities/sys/TypeRefs.js"
+import { EndType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
+import { DateProvider } from "../../../src/api/common/DateProvider.js"
+import { SchedulerMock } from "../TestUtils.js"
 
 o.spec("AlarmScheduler", function () {
 	let alarmScheduler: AlarmSchedulerImpl
@@ -60,17 +60,13 @@ o.spec("AlarmScheduler", function () {
 			})
 			const notificationSender = o.spy()
 			alarmScheduler.scheduleAlarm(eventInfo, alarmInfo, repeatRule, notificationSender)
-			const expectedTimes = [
-				DateTime.fromISO("2021-04-21T19:30Z"),
-				DateTime.fromISO("2021-04-22T19:30Z"),
-				DateTime.fromISO("2021-04-23T19:30Z"),
-			]
+			const expectedTimes = [DateTime.fromISO("2021-04-21T19:30Z"), DateTime.fromISO("2021-04-22T19:30Z"), DateTime.fromISO("2021-04-23T19:30Z")]
 
 			for (const time of expectedTimes) {
 				const scheduled = scheduler.scheduledAt.get(time.toMillis())
 
 				if (scheduled == null) {
-					const got = Array.from(scheduler.scheduledAt.keys()).map(t => DateTime.fromMillis(t).toISO())
+					const got = Array.from(scheduler.scheduledAt.keys()).map((t) => DateTime.fromMillis(t).toISO())
 					throw new Error(`Did not schedule at ${time.toISO()}, but ${got.join(",")}`)
 				}
 
@@ -125,11 +121,10 @@ o.spec("AlarmScheduler", function () {
 			})
 			const notificationSender = o.spy()
 			alarmScheduler.scheduleAlarm(eventInfo, alarmInfo, repeatRule, notificationSender)
-			const scheduled = Array.from(scheduler.scheduledAt.values()).map(idThunk => idThunk.id)
+			const scheduled = Array.from(scheduler.scheduledAt.values()).map((idThunk) => idThunk.id)
 			o(scheduled.length).equals(1)
 			alarmScheduler.cancelAlarm(alarmInfo.alarmIdentifier)
 			o(Array.from(scheduler.cancelledAt)).deepEquals(scheduled)
 		})
 	})
 })
-

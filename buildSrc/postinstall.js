@@ -2,7 +2,7 @@
  * @file Script to do postinstall tasks without resorting to shell (or batch) scropts.
  */
 
-import {spawnSync} from "child_process"
+import { spawnSync } from "child_process"
 
 dumpResolvedModuleVersions()
 
@@ -15,7 +15,5 @@ function dumpResolvedModuleVersions() {
 	console.log(command)
 	// We only depend on zx as devDependency but postinstall is also run when we are installed as a dependency so we can't use zx here.
 	// We anyway do not really care if it fails or not
-	spawnSync(command, {shell: true, stdio: "inherit"})
+	spawnSync(command, { shell: true, stdio: "inherit" })
 }
-
-

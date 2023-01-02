@@ -1,19 +1,19 @@
-import {Editor} from "../../gui/editor/Editor"
-import {isKeyPressed} from "../../misc/KeyManager"
-import {downcast} from "@tutao/tutanota-utils"
-import {Keys} from "../../api/common/TutanotaConstants"
-import {TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel} from "../model/TemplatePopupModel"
-import {lang, languageByCode, LanguageViewModel} from "../../misc/LanguageViewModel"
-import {ButtonType} from "../../gui/base/Button.js"
-import {Dropdown} from "../../gui/base/Dropdown.js"
-import {modal} from "../../gui/base/Modal"
-import {showTemplatePopupInEditor} from "./TemplatePopup"
-import {getFirstOrThrow} from "@tutao/tutanota-utils"
+import { Editor } from "../../gui/editor/Editor"
+import { isKeyPressed } from "../../misc/KeyManager"
+import { downcast } from "@tutao/tutanota-utils"
+import { Keys } from "../../api/common/TutanotaConstants"
+import { TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel } from "../model/TemplatePopupModel"
+import { lang, languageByCode, LanguageViewModel } from "../../misc/LanguageViewModel"
+import { ButtonType } from "../../gui/base/Button.js"
+import { Dropdown } from "../../gui/base/Dropdown.js"
+import { modal } from "../../gui/base/Modal"
+import { showTemplatePopupInEditor } from "./TemplatePopup"
+import { getFirstOrThrow } from "@tutao/tutanota-utils"
 
 export function registerTemplateShortcutListener(editor: Editor, templateModel: TemplatePopupModel): TemplateShortcutListener {
 	const listener = new TemplateShortcutListener(editor, templateModel, lang)
-	editor.addEventListener("keydown", event => listener.handleKeyDown(event))
-	editor.addEventListener("cursor", event => listener.handleCursorChange(event))
+	editor.addEventListener("keydown", (event) => listener.handleKeyDown(event))
+	editor.addEventListener("cursor", (event) => listener.handleCursorChange(event))
 	return listener
 }
 
@@ -34,9 +34,7 @@ class TemplateShortcutListener {
 	handleKeyDown(event: Event) {
 		if (isKeyPressed(downcast(event).keyCode, Keys.TAB) && this._currentCursorPosition) {
 			const cursorEndPos = this._currentCursorPosition
-			const text = cursorEndPos.startContainer.nodeType === Node.TEXT_NODE ?
-				(cursorEndPos.startContainer.textContent ?? "")
-				: ""
+			const text = cursorEndPos.startContainer.nodeType === Node.TEXT_NODE ? cursorEndPos.startContainer.textContent ?? "" : ""
 			const templateShortcutStartIndex = text.lastIndexOf(TEMPLATE_SHORTCUT_PREFIX)
 			const lastWhiteSpaceIndex = text.search(/\s\S*$/)
 
@@ -63,7 +61,7 @@ class TemplateShortcutListener {
 					if (template.contents.length > 1) {
 						// multiple languages
 						// show dropdown to select language
-						let buttons = template.contents.map(content => {
+						let buttons = template.contents.map((content) => {
 							return {
 								label: () => this._lang.get(languageByCode[downcast(content.languageCode)].textId),
 								click: () => {

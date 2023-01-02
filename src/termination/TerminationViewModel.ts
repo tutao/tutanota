@@ -1,20 +1,20 @@
-import {SessionType} from "../api/common/SessionType.js"
-import {LoginState} from "../login/LoginViewModel.js"
-import {TranslationText} from "../misc/LanguageViewModel.js"
-import {LoginController} from "../api/main/LoginController.js"
-import {getLoginErrorStateAndMessage} from "../misc/LoginUtils.js"
-import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler.js"
-import {TerminationPeriodOptions} from "../api/common/TutanotaConstants.js"
-import {IServiceExecutor} from "../api/common/ServiceRequest.js"
-import {CustomerAccountTerminationService} from "../api/entities/sys/Services.js"
+import { SessionType } from "../api/common/SessionType.js"
+import { LoginState } from "../login/LoginViewModel.js"
+import { TranslationText } from "../misc/LanguageViewModel.js"
+import { LoginController } from "../api/main/LoginController.js"
+import { getLoginErrorStateAndMessage } from "../misc/LoginUtils.js"
+import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
+import { TerminationPeriodOptions } from "../api/common/TutanotaConstants.js"
+import { IServiceExecutor } from "../api/common/ServiceRequest.js"
+import { CustomerAccountTerminationService } from "../api/entities/sys/Services.js"
 import {
 	createCustomerAccountTerminationPostIn,
 	CustomerAccountTerminationRequest,
-	CustomerAccountTerminationRequestTypeRef
+	CustomerAccountTerminationRequestTypeRef,
 } from "../api/entities/sys/TypeRefs.js"
-import {EntityClient} from "../api/common/EntityClient.js"
-import {PreconditionFailedError} from "../api/common/error/RestError.js"
-import {incrementDate} from "@tutao/tutanota-utils"
+import { EntityClient } from "../api/common/EntityClient.js"
+import { PreconditionFailedError } from "../api/common/error/RestError.js"
+import { incrementDate } from "@tutao/tutanota-utils"
 
 export class TerminationViewModel {
 	mailAddress: string
@@ -29,7 +29,8 @@ export class TerminationViewModel {
 		private readonly loginController: LoginController,
 		private readonly secondFactorHandler: SecondFactorHandler,
 		private readonly serviceExecutor: IServiceExecutor,
-		private readonly entityClient: EntityClient) {
+		private readonly entityClient: EntityClient,
+	) {
 		this.mailAddress = ""
 		this.password = ""
 		this.date = incrementDate(new Date(), 1)
@@ -52,7 +53,7 @@ export class TerminationViewModel {
 	private async createTerminationRequest() {
 		try {
 			const inputData = createCustomerAccountTerminationPostIn({
-				terminationDate: this.getTerminationDate()
+				terminationDate: this.getTerminationDate(),
 			})
 			let serviceResponse = await this.serviceExecutor.post(CustomerAccountTerminationService, inputData)
 			this.acceptedTerminationRequest = await this.entityClient.load(CustomerAccountTerminationRequestTypeRef, serviceResponse.terminationRequest)
@@ -96,8 +97,8 @@ export class TerminationViewModel {
 
 	private getTerminationDate(): Date | null {
 		return this.terminationPeriodOption === TerminationPeriodOptions.EndOfCurrentPeriod
-			// The server will use the end of the current subscription period to cancel the account if the terminationDate is null.
-			? null
+			? // The server will use the end of the current subscription period to cancel the account if the terminationDate is null.
+			  null
 			: this.date
 	}
 
@@ -114,7 +115,7 @@ export class TerminationViewModel {
 			await this.loginController.createSession(mailAddress, password, SessionType.Temporary)
 			this.onAuthentication()
 		} catch (e) {
-			const {errorMessage, state} = getLoginErrorStateAndMessage(e)
+			const { errorMessage, state } = getLoginErrorStateAndMessage(e)
 			this.onError(errorMessage, state)
 		} finally {
 			await this.secondFactorHandler.closeWaitingForSecondFactorDialog()

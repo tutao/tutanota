@@ -1,16 +1,16 @@
-import type {EmailTemplate} from "../api/entities/tutanota/TypeRefs.js"
-import {EmailTemplateTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import {EntityClient} from "../api/common/EntityClient"
-import type {TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
-import type {KnowledgeBaseEntry} from "../api/entities/tutanota/TypeRefs.js"
-import {createKnowledgeBaseEntry} from "../api/entities/tutanota/TypeRefs.js"
-import {clone, deduplicate, LazyLoaded, localeCompare, noOp, ofClass} from "@tutao/tutanota-utils"
+import type { EmailTemplate } from "../api/entities/tutanota/TypeRefs.js"
+import { EmailTemplateTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import { EntityClient } from "../api/common/EntityClient"
+import type { TemplateGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
+import type { KnowledgeBaseEntry } from "../api/entities/tutanota/TypeRefs.js"
+import { createKnowledgeBaseEntry } from "../api/entities/tutanota/TypeRefs.js"
+import { clone, deduplicate, LazyLoaded, localeCompare, noOp, ofClass } from "@tutao/tutanota-utils"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {NotFoundError} from "../api/common/error/RestError"
-import {UserError} from "../api/main/UserError"
-import type {KnowledgeBaseEntryKeyword} from "../api/entities/tutanota/TypeRefs.js"
-import {createKnowledgeBaseEntryKeyword} from "../api/entities/tutanota/TypeRefs.js"
+import { NotFoundError } from "../api/common/error/RestError"
+import { UserError } from "../api/main/UserError"
+import type { KnowledgeBaseEntryKeyword } from "../api/entities/tutanota/TypeRefs.js"
+import { createKnowledgeBaseEntryKeyword } from "../api/entities/tutanota/TypeRefs.js"
 
 export class KnowledgeBaseEditorModel {
 	title: Stream<string>
@@ -67,13 +67,13 @@ export class KnowledgeBaseEditorModel {
  * @param keywords
  */
 function keywordsToString(keywords: Array<KnowledgeBaseEntryKeyword>): string {
-	return keywords.map(keyword => keyword.keyword).join(" ")
+	return keywords.map((keyword) => keyword.keyword).join(" ")
 }
 
 function stringToKeywords(keywords: string): Array<KnowledgeBaseEntryKeyword> {
 	return deduplicate(keywords.split(" ").filter(Boolean))
 		.sort(localeCompare)
-		.map(keyword =>
+		.map((keyword) =>
 			createKnowledgeBaseEntryKeyword({
 				keyword,
 			}),

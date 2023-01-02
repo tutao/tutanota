@@ -1,6 +1,6 @@
 import o from "ospec"
-import type {CalendarEvent} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {CalendarEventTypeRef, createCalendarEvent} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { CalendarEventTypeRef, createCalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	addDaysForEvent,
 	addDaysForLongEvent,
@@ -11,35 +11,35 @@ import {
 	getTimeZone,
 	incrementByRepeatPeriod,
 } from "../../../src/calendar/date/CalendarUtils.js"
-import {clone, downcast, getStartOfDay, neverNull, noOp} from "@tutao/tutanota-utils"
-import type {CalendarModel} from "../../../src/calendar/model/CalendarModel.js"
-import {CalendarModelImpl} from "../../../src/calendar/model/CalendarModel.js"
-import {CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants.js"
-import {DateTime} from "luxon"
-import {generateEventElementId, getAllDayDateUTC} from "../../../src/api/common/utils/CommonCalendarUtils.js"
-import type {EntityUpdateData} from "../../../src/api/main/EventController.js"
-import {EventController} from "../../../src/api/main/EventController.js"
-import {Notifications} from "../../../src/gui/Notifications.js"
-import {createCalendarEventAttendee} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createEncryptedMailAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createAlarmInfo} from "../../../src/api/entities/sys/TypeRefs.js"
-import {EntityRestClientMock} from "../api/worker/rest/EntityRestClientMock.js"
-import type {UserController} from "../../../src/api/main/UserController.js"
-import {createUser} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createUserAlarmInfoListType} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createUserAlarmInfo} from "../../../src/api/entities/sys/TypeRefs.js"
-import type {CalendarGroupRoot} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createCalendarGroupRoot} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {NotFoundError} from "../../../src/api/common/error/RestError.js"
-import type {LoginController} from "../../../src/api/main/LoginController.js"
-import {ProgressTracker} from "../../../src/api/main/ProgressTracker.js"
-import {EntityClient} from "../../../src/api/common/EntityClient.js"
-import {MailModel} from "../../../src/mail/model/MailModel.js"
-import {AlarmScheduler} from "../../../src/calendar/date/AlarmScheduler.js"
-import {CalendarFacade} from "../../../src/api/worker/facades/CalendarFacade.js"
-import {asResult, mapToObject} from "@tutao/tutanota-test-utils"
-import type {WorkerClient} from "../../../src/api/main/WorkerClient.js"
-import {FileController} from "../../../src/file/FileController.js"
+import { clone, downcast, getStartOfDay, neverNull, noOp } from "@tutao/tutanota-utils"
+import type { CalendarModel } from "../../../src/calendar/model/CalendarModel.js"
+import { CalendarModelImpl } from "../../../src/calendar/model/CalendarModel.js"
+import { CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
+import { DateTime } from "luxon"
+import { generateEventElementId, getAllDayDateUTC } from "../../../src/api/common/utils/CommonCalendarUtils.js"
+import type { EntityUpdateData } from "../../../src/api/main/EventController.js"
+import { EventController } from "../../../src/api/main/EventController.js"
+import { Notifications } from "../../../src/gui/Notifications.js"
+import { createCalendarEventAttendee } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { createEncryptedMailAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { createAlarmInfo } from "../../../src/api/entities/sys/TypeRefs.js"
+import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
+import type { UserController } from "../../../src/api/main/UserController.js"
+import { createUser } from "../../../src/api/entities/sys/TypeRefs.js"
+import { createUserAlarmInfoListType } from "../../../src/api/entities/sys/TypeRefs.js"
+import { createUserAlarmInfo } from "../../../src/api/entities/sys/TypeRefs.js"
+import type { CalendarGroupRoot } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { createCalendarGroupRoot } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { NotFoundError } from "../../../src/api/common/error/RestError.js"
+import type { LoginController } from "../../../src/api/main/LoginController.js"
+import { ProgressTracker } from "../../../src/api/main/ProgressTracker.js"
+import { EntityClient } from "../../../src/api/common/EntityClient.js"
+import { MailModel } from "../../../src/mail/model/MailModel.js"
+import { AlarmScheduler } from "../../../src/calendar/date/AlarmScheduler.js"
+import { CalendarFacade } from "../../../src/api/worker/facades/CalendarFacade.js"
+import { asResult, mapToObject } from "@tutao/tutanota-test-utils"
+import type { WorkerClient } from "../../../src/api/main/WorkerClient.js"
+import { FileController } from "../../../src/file/FileController.js"
 
 o.spec("CalendarModel", function () {
 	o.spec("addDaysForEvent", function () {
@@ -144,17 +144,13 @@ o.spec("CalendarModel", function () {
 			const event = createEvent(new Date(2019, 4, 1, 8), new Date(2019, 4, 5, 12))
 			const month = getMonth(event.startTime, zone)
 			addDaysForEvent(eventsForDays, event, month)
-			o(eventsForDays.get(new Date(2019, 4, 5).getTime())?.includes(event)).equals(true)(
-					"Original event is added",
-			)
+			o(eventsForDays.get(new Date(2019, 4, 5).getTime())?.includes(event)).equals(true)("Original event is added")
 			const shorterEvent = createEvent(new Date(2019, 4, 1, 8), new Date(2019, 4, 3, 12))
 			shorterEvent._id = event._id
 			addDaysForEvent(eventsForDays, shorterEvent, month)
 			// @ts-ignore
 			o(eventsForDays.get(new Date(2019, 4, 5).getTime())).deepEquals([])("Original event is removed")
-			o(eventsForDays.get(new Date(2019, 4, 3).getTime())?.includes(shorterEvent)).equals(true)(
-					"New event is added",
-			)
+			o(eventsForDays.get(new Date(2019, 4, 3).getTime())?.includes(shorterEvent)).equals(true)("New event is added")
 		})
 	})
 	o.spec("addDaysForRecurringEvent", function () {
@@ -168,35 +164,19 @@ o.spec("CalendarModel", function () {
 			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.WEEKLY, 1)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5), zone), zone)
 			const expectedForJune = {
-				[new Date(2019, 5, 6).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 6, 10), new Date(2019, 5, 6, 12)),
-				],
-				[new Date(2019, 5, 13).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 13, 10), new Date(2019, 5, 13, 12)),
-				],
-				[new Date(2019, 5, 20).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 20, 10), new Date(2019, 5, 20, 12)),
-				],
-				[new Date(2019, 5, 27).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 27, 10), new Date(2019, 5, 27, 12)),
-				],
+				[new Date(2019, 5, 6).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 6, 10), new Date(2019, 5, 6, 12))],
+				[new Date(2019, 5, 13).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 13, 10), new Date(2019, 5, 13, 12))],
+				[new Date(2019, 5, 20).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 20, 10), new Date(2019, 5, 20, 12))],
+				[new Date(2019, 5, 27).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 27, 10), new Date(2019, 5, 27, 12))],
 			}
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 4), zone), zone)
 			const expectedForJuneAndJuly = Object.assign({}, expectedForJune, {
 				[new Date(2019, 4, 2).getTime()]: [event],
-				[new Date(2019, 4, 9).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 9, 10), new Date(2019, 4, 9, 12)),
-				],
-				[new Date(2019, 4, 16).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 16, 10), new Date(2019, 4, 16, 12)),
-				],
-				[new Date(2019, 4, 23).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 23, 10), new Date(2019, 4, 23, 12)),
-				],
-				[new Date(2019, 4, 30).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 30, 10), new Date(2019, 4, 30, 12)),
-				],
+				[new Date(2019, 4, 9).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 9, 10), new Date(2019, 4, 9, 12))],
+				[new Date(2019, 4, 16).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 16, 10), new Date(2019, 4, 16, 12))],
+				[new Date(2019, 4, 23).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 23, 10), new Date(2019, 4, 23, 12))],
+				[new Date(2019, 4, 30).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 30, 10), new Date(2019, 4, 30, 12))],
 			})
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJuneAndJuly)
 		})
@@ -205,27 +185,13 @@ o.spec("CalendarModel", function () {
 			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.DAILY, 4)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5), zone), zone)
 			const expectedForJune = {
-				[new Date(2019, 5, 3).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 3, 10), new Date(2019, 5, 3, 12)),
-				],
-				[new Date(2019, 5, 7).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 7, 10), new Date(2019, 5, 7, 12)),
-				],
-				[new Date(2019, 5, 11).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 11, 10), new Date(2019, 5, 11, 12)),
-				],
-				[new Date(2019, 5, 15).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 15, 10), new Date(2019, 5, 15, 12)),
-				],
-				[new Date(2019, 5, 19).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 19, 10), new Date(2019, 5, 19, 12)),
-				],
-				[new Date(2019, 5, 23).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 23, 10), new Date(2019, 5, 23, 12)),
-				],
-				[new Date(2019, 5, 27).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 27, 10), new Date(2019, 5, 27, 12)),
-				],
+				[new Date(2019, 5, 3).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 3, 10), new Date(2019, 5, 3, 12))],
+				[new Date(2019, 5, 7).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 7, 10), new Date(2019, 5, 7, 12))],
+				[new Date(2019, 5, 11).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 11, 10), new Date(2019, 5, 11, 12))],
+				[new Date(2019, 5, 15).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 15, 10), new Date(2019, 5, 15, 12))],
+				[new Date(2019, 5, 19).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 19, 10), new Date(2019, 5, 19, 12))],
+				[new Date(2019, 5, 23).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 23, 10), new Date(2019, 5, 23, 12))],
+				[new Date(2019, 5, 27).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 27, 10), new Date(2019, 5, 27, 12))],
 			}
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
 		})
@@ -234,30 +200,22 @@ o.spec("CalendarModel", function () {
 			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.MONTHLY, 1)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 4), zone), zone)
 			const expectedForMay = {
-				[new Date(2019, 4, 31).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 31, 10), new Date(2019, 4, 31, 12)),
-				],
+				[new Date(2019, 4, 31).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 31, 10), new Date(2019, 4, 31, 12))],
 			}
 			o(mapToObject(eventsForDays)).deepEquals(expectedForMay)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5), zone), zone)
 			const expectedForJune = Object.assign({}, expectedForMay, {
-				[new Date(2019, 5, 30).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 30, 10), new Date(2019, 5, 30, 12)),
-				],
+				[new Date(2019, 5, 30).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 30, 10), new Date(2019, 5, 30, 12))],
 			})
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6), zone), zone)
 			const expectedForJuly = Object.assign({}, expectedForJune, {
-				[new Date(2019, 6, 31).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 6, 31, 10), new Date(2019, 6, 31, 12)),
-				],
+				[new Date(2019, 6, 31).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 6, 31, 10), new Date(2019, 6, 31, 12))],
 			})
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJuly)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2020, 1), zone), zone)
 			const expectedForFebruary = Object.assign({}, expectedForJuly, {
-				[new Date(2020, 1, 29).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2020, 1, 29, 10), new Date(2020, 1, 29, 12)),
-				],
+				[new Date(2020, 1, 29).getTime()]: [cloneEventWithNewTime(event, new Date(2020, 1, 29, 10), new Date(2020, 1, 29, 12))],
 			})
 			o(mapToObject(eventsForDays)).deepEquals(expectedForFebruary)
 		})
@@ -268,24 +226,18 @@ o.spec("CalendarModel", function () {
 			o(mapToObject(eventsForDays)).deepEquals({})
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6), zone), zone)
 			const expectedForJuly = {
-				[new Date(2019, 6, 31).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 6, 31, 10), new Date(2019, 6, 31, 12)),
-				],
+				[new Date(2019, 6, 31).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 6, 31, 10), new Date(2019, 6, 31, 12))],
 			}
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJuly)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 7), zone), zone)
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJuly)
 			const expectedForSeptember = Object.assign({}, expectedForJuly, {
-				[new Date(2019, 8, 30).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 8, 30, 10), new Date(2019, 8, 30, 12)),
-				],
+				[new Date(2019, 8, 30).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 8, 30, 10), new Date(2019, 8, 30, 12))],
 			})
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 8), zone), zone)
 			// o(mapToObject(eventsForDays)).deepEquals(expectedForSeptember)
 			const expectedForNovember = Object.assign({}, expectedForSeptember, {
-				[new Date(2019, 10, 30).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 10, 30, 10), new Date(2019, 10, 30, 12)),
-				],
+				[new Date(2019, 10, 30).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 10, 30, 10), new Date(2019, 10, 30, 12))],
 			})
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 10), zone), zone)
 			o(mapToObject(eventsForDays)).deepEquals(expectedForNovember)
@@ -295,42 +247,18 @@ o.spec("CalendarModel", function () {
 			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.WEEKLY, 1)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5), zone), zone)
 			const expectedForJune = {
-				[new Date(2019, 5, 7).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 7, 10), new Date(2019, 5, 9, 12)),
-				],
-				[new Date(2019, 5, 8).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 7, 10), new Date(2019, 5, 9, 12)),
-				],
-				[new Date(2019, 5, 9).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 7, 10), new Date(2019, 5, 9, 12)),
-				],
-				[new Date(2019, 5, 14).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 14, 10), new Date(2019, 5, 16, 12)),
-				],
-				[new Date(2019, 5, 15).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 14, 10), new Date(2019, 5, 16, 12)),
-				],
-				[new Date(2019, 5, 16).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 14, 10), new Date(2019, 5, 16, 12)),
-				],
-				[new Date(2019, 5, 21).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 21, 10), new Date(2019, 5, 23, 12)),
-				],
-				[new Date(2019, 5, 22).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 21, 10), new Date(2019, 5, 23, 12)),
-				],
-				[new Date(2019, 5, 23).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 21, 10), new Date(2019, 5, 23, 12)),
-				],
-				[new Date(2019, 5, 28).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 28, 10), new Date(2019, 5, 30, 12)),
-				],
-				[new Date(2019, 5, 29).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 28, 10), new Date(2019, 5, 30, 12)),
-				],
-				[new Date(2019, 5, 30).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 28, 10), new Date(2019, 5, 30, 12)),
-				],
+				[new Date(2019, 5, 7).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 7, 10), new Date(2019, 5, 9, 12))],
+				[new Date(2019, 5, 8).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 7, 10), new Date(2019, 5, 9, 12))],
+				[new Date(2019, 5, 9).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 7, 10), new Date(2019, 5, 9, 12))],
+				[new Date(2019, 5, 14).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 14, 10), new Date(2019, 5, 16, 12))],
+				[new Date(2019, 5, 15).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 14, 10), new Date(2019, 5, 16, 12))],
+				[new Date(2019, 5, 16).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 14, 10), new Date(2019, 5, 16, 12))],
+				[new Date(2019, 5, 21).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 21, 10), new Date(2019, 5, 23, 12))],
+				[new Date(2019, 5, 22).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 21, 10), new Date(2019, 5, 23, 12))],
+				[new Date(2019, 5, 23).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 21, 10), new Date(2019, 5, 23, 12))],
+				[new Date(2019, 5, 28).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 28, 10), new Date(2019, 5, 30, 12))],
+				[new Date(2019, 5, 29).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 28, 10), new Date(2019, 5, 30, 12))],
+				[new Date(2019, 5, 30).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 28, 10), new Date(2019, 5, 30, 12))],
 			}
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 4), zone), zone)
@@ -338,42 +266,18 @@ o.spec("CalendarModel", function () {
 				[new Date(2019, 4, 3).getTime()]: [event],
 				[new Date(2019, 4, 4).getTime()]: [event],
 				[new Date(2019, 4, 5).getTime()]: [event],
-				[new Date(2019, 4, 10).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 10, 10), new Date(2019, 4, 12, 12)),
-				],
-				[new Date(2019, 4, 11).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 10, 10), new Date(2019, 4, 12, 12)),
-				],
-				[new Date(2019, 4, 12).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 10, 10), new Date(2019, 4, 12, 12)),
-				],
-				[new Date(2019, 4, 17).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 17, 10), new Date(2019, 4, 19, 12)),
-				],
-				[new Date(2019, 4, 18).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 17, 10), new Date(2019, 4, 19, 12)),
-				],
-				[new Date(2019, 4, 19).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 17, 10), new Date(2019, 4, 19, 12)),
-				],
-				[new Date(2019, 4, 24).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 24, 10), new Date(2019, 4, 26, 12)),
-				],
-				[new Date(2019, 4, 25).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 24, 10), new Date(2019, 4, 26, 12)),
-				],
-				[new Date(2019, 4, 26).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 24, 10), new Date(2019, 4, 26, 12)),
-				],
-				[new Date(2019, 4, 31).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 31, 10), new Date(2019, 5, 2, 12)),
-				],
-				[new Date(2019, 5, 1).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 31, 10), new Date(2019, 5, 2, 12)),
-				],
-				[new Date(2019, 5, 2).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 31, 10), new Date(2019, 5, 2, 12)),
-				],
+				[new Date(2019, 4, 10).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 10, 10), new Date(2019, 4, 12, 12))],
+				[new Date(2019, 4, 11).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 10, 10), new Date(2019, 4, 12, 12))],
+				[new Date(2019, 4, 12).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 10, 10), new Date(2019, 4, 12, 12))],
+				[new Date(2019, 4, 17).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 17, 10), new Date(2019, 4, 19, 12))],
+				[new Date(2019, 4, 18).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 17, 10), new Date(2019, 4, 19, 12))],
+				[new Date(2019, 4, 19).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 17, 10), new Date(2019, 4, 19, 12))],
+				[new Date(2019, 4, 24).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 24, 10), new Date(2019, 4, 26, 12))],
+				[new Date(2019, 4, 25).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 24, 10), new Date(2019, 4, 26, 12))],
+				[new Date(2019, 4, 26).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 24, 10), new Date(2019, 4, 26, 12))],
+				[new Date(2019, 4, 31).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 31, 10), new Date(2019, 5, 2, 12))],
+				[new Date(2019, 5, 1).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 31, 10), new Date(2019, 5, 2, 12))],
+				[new Date(2019, 5, 2).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 31, 10), new Date(2019, 5, 2, 12))],
 			})
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJuneAndJuly)
 		})
@@ -385,13 +289,13 @@ o.spec("CalendarModel", function () {
 			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.WEEKLY, 1)
 			event.repeatRule.timeZone = "America/Los_angeles"
 			const month = getMonth(
-					DateTime.fromObject({
-						year: 2020,
-						month: 3,
-						day: 1,
-						zone,
-					}).toJSDate(),
+				DateTime.fromObject({
+					year: 2020,
+					month: 3,
+					day: 1,
 					zone,
+				}).toJSDate(),
+				zone,
 			)
 			addDaysForRecurringEvent(eventsForDays, event, month, zone)
 			const expectedForMarch = {
@@ -400,49 +304,25 @@ o.spec("CalendarModel", function () {
 					month: 3,
 					day: 4,
 					zone,
-				}).toMillis()]: [
-					cloneEventWithNewTime(
-							event,
-							getAllDayDateUTC(new Date(2020, 2, 4)),
-							getAllDayDateUTC(new Date(2020, 2, 5)),
-					),
-				],
+				}).toMillis()]: [cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 4)), getAllDayDateUTC(new Date(2020, 2, 5)))],
 				[DateTime.fromObject({
 					year: 2020,
 					month: 3,
 					day: 11,
 					zone,
-				}).toMillis()]: [
-					cloneEventWithNewTime(
-							event,
-							getAllDayDateUTC(new Date(2020, 2, 11)),
-							getAllDayDateUTC(new Date(2020, 2, 12)),
-					),
-				],
+				}).toMillis()]: [cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 11)), getAllDayDateUTC(new Date(2020, 2, 12)))],
 				[DateTime.fromObject({
 					year: 2020,
 					month: 3,
 					day: 18,
 					zone,
-				}).toMillis()]: [
-					cloneEventWithNewTime(
-							event,
-							getAllDayDateUTC(new Date(2020, 2, 18)),
-							getAllDayDateUTC(new Date(2020, 2, 19)),
-					),
-				],
+				}).toMillis()]: [cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 18)), getAllDayDateUTC(new Date(2020, 2, 19)))],
 				[DateTime.fromObject({
 					year: 2020,
 					month: 3,
 					day: 25,
 					zone,
-				}).toMillis()]: [
-					cloneEventWithNewTime(
-							event,
-							getAllDayDateUTC(new Date(2020, 2, 25)),
-							getAllDayDateUTC(new Date(2020, 2, 26)),
-					),
-				],
+				}).toMillis()]: [cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 25)), getAllDayDateUTC(new Date(2020, 2, 26)))],
 			}
 			o(mapToObject(eventsForDays)).deepEquals(expectedForMarch)
 		})
@@ -454,12 +334,8 @@ o.spec("CalendarModel", function () {
 			event.repeatRule = repeatRule
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5), zone), zone)
 			const expectedForJune = {
-				[new Date(2019, 5, 2).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 2, 10), new Date(2019, 5, 2, 12)),
-				],
-				[new Date(2019, 5, 9).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 9, 10), new Date(2019, 5, 9, 12)),
-				],
+				[new Date(2019, 5, 2).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 2, 10), new Date(2019, 5, 2, 12))],
+				[new Date(2019, 5, 9).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 9, 10), new Date(2019, 5, 9, 12))],
 			}
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6), zone), zone)
@@ -473,18 +349,10 @@ o.spec("CalendarModel", function () {
 			event.repeatRule = repeatRule
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5), zone), zone)
 			const expectedForJune = {
-				[new Date(2019, 5, 2).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 2, 10), new Date(2019, 5, 2, 12)),
-				],
-				[new Date(2019, 5, 9).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 9, 10), new Date(2019, 5, 9, 12)),
-				],
-				[new Date(2019, 5, 16).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 16, 10), new Date(2019, 5, 16, 12)),
-				],
-				[new Date(2019, 5, 23).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 23, 10), new Date(2019, 5, 23, 12)),
-				],
+				[new Date(2019, 5, 2).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 2, 10), new Date(2019, 5, 2, 12))],
+				[new Date(2019, 5, 9).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 9, 10), new Date(2019, 5, 9, 12))],
+				[new Date(2019, 5, 16).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 16, 10), new Date(2019, 5, 16, 12))],
+				[new Date(2019, 5, 23).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 23, 10), new Date(2019, 5, 23, 12))],
 			}
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6), zone), zone)
@@ -501,18 +369,10 @@ o.spec("CalendarModel", function () {
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5), zone), zone)
 			const expectedForJune = {
 				[new Date(2019, 5, 2).getTime()]: [
-					cloneEventWithNewTime(
-							event,
-							getAllDayDateUTC(new Date(2019, 5, 2)),
-							getAllDayDateUTC(new Date(2019, 5, 3)),
-					),
+					cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2019, 5, 2)), getAllDayDateUTC(new Date(2019, 5, 3))),
 				],
 				[new Date(2019, 5, 3).getTime()]: [
-					cloneEventWithNewTime(
-							event,
-							getAllDayDateUTC(new Date(2019, 5, 3)),
-							getAllDayDateUTC(new Date(2019, 5, 4)),
-					),
+					cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2019, 5, 3)), getAllDayDateUTC(new Date(2019, 5, 4))),
 				],
 			}
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
@@ -523,18 +383,10 @@ o.spec("CalendarModel", function () {
 			const monthDate = new Date(2019, 5)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(monthDate, zone), zone)
 			const expectedForJune = {
-				[new Date(2019, 5, 6).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 6, 10), new Date(2019, 5, 6, 12)),
-				],
-				[new Date(2019, 5, 13).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 13, 10), new Date(2019, 5, 13, 12)),
-				],
-				[new Date(2019, 5, 20).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 20, 10), new Date(2019, 5, 20, 12)),
-				],
-				[new Date(2019, 5, 27).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 5, 27, 10), new Date(2019, 5, 27, 12)),
-				],
+				[new Date(2019, 5, 6).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 6, 10), new Date(2019, 5, 6, 12))],
+				[new Date(2019, 5, 13).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 13, 10), new Date(2019, 5, 13, 12))],
+				[new Date(2019, 5, 20).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 20, 10), new Date(2019, 5, 20, 12))],
+				[new Date(2019, 5, 27).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 27, 10), new Date(2019, 5, 27, 12))],
 			}
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 4), zone), zone)
@@ -542,18 +394,10 @@ o.spec("CalendarModel", function () {
 			addDaysForRecurringEvent(eventsForDays, eventClone, getMonth(new Date(2019, 4), zone), zone)
 			const expectedForJuneAndJuly = Object.assign({}, expectedForJune, {
 				[new Date(2019, 4, 2).getTime()]: [event],
-				[new Date(2019, 4, 9).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 9, 10), new Date(2019, 4, 9, 12)),
-				],
-				[new Date(2019, 4, 16).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 16, 10), new Date(2019, 4, 16, 12)),
-				],
-				[new Date(2019, 4, 23).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 23, 10), new Date(2019, 4, 23, 12)),
-				],
-				[new Date(2019, 4, 30).getTime()]: [
-					cloneEventWithNewTime(event, new Date(2019, 4, 30, 10), new Date(2019, 4, 30, 12)),
-				],
+				[new Date(2019, 4, 9).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 9, 10), new Date(2019, 4, 9, 12))],
+				[new Date(2019, 4, 16).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 16, 10), new Date(2019, 4, 16, 12))],
+				[new Date(2019, 4, 23).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 23, 10), new Date(2019, 4, 23, 12))],
+				[new Date(2019, 4, 30).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 30, 10), new Date(2019, 4, 30, 12))],
 			})
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJuneAndJuly)
 		})
@@ -561,16 +405,16 @@ o.spec("CalendarModel", function () {
 			// Potential problem with this case is that if the end date is calculated incorrectly, event might be shortened by a few
 			// days (see #1786).
 			const eventStart = getAllDayDateUTCFromZone(
-					DateTime.fromISO("2020-03-29", {
-						zone,
-					}).toJSDate(),
+				DateTime.fromISO("2020-03-29", {
 					zone,
+				}).toJSDate(),
+				zone,
 			)
 			const eventEnd = getAllDayDateUTCFromZone(
-					DateTime.fromISO("2020-04-01", {
-						zone,
-					}).toJSDate(),
+				DateTime.fromISO("2020-04-01", {
 					zone,
+				}).toJSDate(),
+				zone,
 			)
 			const event = createEvent(eventStart, eventEnd)
 			const repeatRule = createRepeatRuleWithValues(RepeatPeriod.MONTHLY, 1)
@@ -592,19 +436,19 @@ o.spec("CalendarModel", function () {
 			o(mapToObject(eventsForDays)).deepEquals(expectedForMarch)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(DateTime.local(2020, 4).toJSDate(), zone), zone)
 			const occurrence = cloneEventWithNewTime(
-					event,
-					getAllDayDateUTCFromZone(
-							DateTime.fromISO("2020-04-29", {
-								zone,
-							}).toJSDate(),
-							zone,
-					),
-					getAllDayDateUTCFromZone(
-							DateTime.fromISO("2020-05-02", {
-								zone,
-							}).toJSDate(),
-							zone,
-					),
+				event,
+				getAllDayDateUTCFromZone(
+					DateTime.fromISO("2020-04-29", {
+						zone,
+					}).toJSDate(),
+					zone,
+				),
+				getAllDayDateUTCFromZone(
+					DateTime.fromISO("2020-05-02", {
+						zone,
+					}).toJSDate(),
+					zone,
+				),
 			)
 			const expectedForApril = Object.assign({}, expectedForMarch, {
 				[DateTime.fromISO("2020-04-29", {
@@ -623,16 +467,16 @@ o.spec("CalendarModel", function () {
 			// Potential problem with this case is that if the end date is calculated incorrectly, event might be stretched by a few
 			// days (see #1786).
 			const eventStart = getAllDayDateUTCFromZone(
-					DateTime.fromISO("2020-02-29", {
-						zone,
-					}).toJSDate(),
+				DateTime.fromISO("2020-02-29", {
 					zone,
+				}).toJSDate(),
+				zone,
 			)
 			const eventEnd = getAllDayDateUTCFromZone(
-					DateTime.fromISO("2020-03-01", {
-						zone,
-					}).toJSDate(),
+				DateTime.fromISO("2020-03-01", {
 					zone,
+				}).toJSDate(),
+				zone,
 			)
 			const event = createEvent(eventStart, eventEnd)
 			const repeatRule = createRepeatRuleWithValues(RepeatPeriod.MONTHLY, 1)
@@ -648,19 +492,19 @@ o.spec("CalendarModel", function () {
 			o(mapToObject(eventsForDays)).deepEquals(expectedForFebruary)
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(DateTime.local(2020, 3).toJSDate(), zone), zone)
 			const occurrence = cloneEventWithNewTime(
-					event,
-					getAllDayDateUTCFromZone(
-							DateTime.fromISO("2020-03-29", {
-								zone,
-							}).toJSDate(),
-							zone,
-					),
-					getAllDayDateUTCFromZone(
-							DateTime.fromISO("2020-03-30", {
-								zone,
-							}).toJSDate(),
-							zone,
-					),
+				event,
+				getAllDayDateUTCFromZone(
+					DateTime.fromISO("2020-03-29", {
+						zone,
+					}).toJSDate(),
+					zone,
+				),
+				getAllDayDateUTCFromZone(
+					DateTime.fromISO("2020-03-30", {
+						zone,
+					}).toJSDate(),
+					zone,
+				),
 			)
 			const expectedForMarch = Object.assign({}, expectedForFebruary, {
 				[DateTime.fromISO("2020-03-29", {
@@ -694,10 +538,7 @@ o.spec("CalendarModel", function () {
 			o(eventsForDays.get(new Date(2019, 4, 31).getTime())).deepEquals([event])
 		})
 		o("longer than a month all day", function () {
-			const event = createEvent(
-					getAllDayDateUTC(new Date(2019, 4, 2, 10)),
-					getAllDayDateUTC(new Date(2019, 5, 3, 12)),
-			)
+			const event = createEvent(getAllDayDateUTC(new Date(2019, 4, 2, 10)), getAllDayDateUTC(new Date(2019, 5, 3, 12)))
 			addDaysForLongEvent(eventsForDays, event, getMonth(new Date(2019, 5, 2), zone))
 			o(eventsForDays.size).equals(2)
 			// @ts-ignore
@@ -810,9 +651,7 @@ o.spec("CalendarModel", function () {
 				zone: "Europe/Moscow",
 			}).toJSDate()
 			// event timezone is subject to daylight saving but observer is not
-			o(incrementByRepeatPeriod(daylightSavingDay, RepeatPeriod.DAILY, 1, timeZone).toISOString()).equals(
-					dayAfter.toISOString(),
-			)
+			o(incrementByRepeatPeriod(daylightSavingDay, RepeatPeriod.DAILY, 1, timeZone).toISOString()).equals(dayAfter.toISOString())
 		})
 		o("event in timezone without daylight saving should not be subject to daylight saving", function () {
 			const daylightSavingDay = DateTime.fromObject({
@@ -829,9 +668,7 @@ o.spec("CalendarModel", function () {
 				hour: 10,
 				zone: "Europe/Moscow",
 			}).toJSDate()
-			o(incrementByRepeatPeriod(daylightSavingDay, RepeatPeriod.DAILY, 1, "Europe/Moscow").toISOString()).equals(
-					dayAfter.toISOString(),
-			)
+			o(incrementByRepeatPeriod(daylightSavingDay, RepeatPeriod.DAILY, 1, "Europe/Moscow").toISOString()).equals(dayAfter.toISOString())
 		})
 		o("weekly", function () {
 			const onFriday = DateTime.fromObject({
@@ -848,9 +685,7 @@ o.spec("CalendarModel", function () {
 				hour: 10,
 				zone: timeZone,
 			}).toJSDate()
-			o(incrementByRepeatPeriod(onFriday, RepeatPeriod.WEEKLY, 1, timeZone).toISOString()).equals(
-					nextFriday.toISOString(),
-			)
+			o(incrementByRepeatPeriod(onFriday, RepeatPeriod.WEEKLY, 1, timeZone).toISOString()).equals(nextFriday.toISOString())
 			const oneYearAfter = DateTime.fromObject({
 				year: 2020,
 				month: 5,
@@ -858,9 +693,7 @@ o.spec("CalendarModel", function () {
 				hour: 10,
 				zone: timeZone,
 			}).toJSDate()
-			o(incrementByRepeatPeriod(onFriday, RepeatPeriod.WEEKLY, 52, timeZone).toISOString()).equals(
-					oneYearAfter.toISOString(),
-			)
+			o(incrementByRepeatPeriod(onFriday, RepeatPeriod.WEEKLY, 52, timeZone).toISOString()).equals(oneYearAfter.toISOString())
 		})
 		o("monthly", function () {
 			const endOfMay = DateTime.fromObject({
@@ -884,12 +717,7 @@ o.spec("CalendarModel", function () {
 				zone: timeZone,
 			}).toJSDate()
 			const endOfJulyString = endOfJuly.toISOString()
-			const incrementedDateString = incrementByRepeatPeriod(
-					endOfMay,
-					RepeatPeriod.MONTHLY,
-					2,
-					timeZone,
-			).toISOString()
+			const incrementedDateString = incrementByRepeatPeriod(endOfMay, RepeatPeriod.MONTHLY, 2, timeZone).toISOString()
 			o(incrementedDateString).equals(endOfJulyString)
 		})
 		o("annually", function () {
@@ -905,27 +733,21 @@ o.spec("CalendarModel", function () {
 				day: 28,
 				zone: timeZone,
 			}).toJSDate()
-			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 1, timeZone).toISOString()).equals(
-					yearAfter.toISOString(),
-			)
+			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 1, timeZone).toISOString()).equals(yearAfter.toISOString())
 			const twoYearsAfter = DateTime.fromObject({
 				year: 2022,
 				month: 2,
 				day: 28,
 				zone: timeZone,
 			}).toJSDate()
-			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 2, timeZone).toISOString()).equals(
-					twoYearsAfter.toISOString(),
-			)
+			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 2, timeZone).toISOString()).equals(twoYearsAfter.toISOString())
 			const fourYearsAfter = DateTime.fromObject({
 				year: 2024,
 				month: 2,
 				day: 29,
 				zone: timeZone,
 			}).toJSDate()
-			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 4, timeZone).toISOString()).equals(
-					fourYearsAfter.toISOString(),
-			)
+			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 4, timeZone).toISOString()).equals(fourYearsAfter.toISOString())
 		})
 	})
 	o.spec("calendar event updates", function () {
@@ -948,11 +770,10 @@ o.spec("CalendarModel", function () {
 				uid,
 			})
 			const calendarFacade = makeCalendarFacade(
-					{
-						getEventByUid: loadUid =>
-								uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null),
-					},
-					restClientMock,
+				{
+					getEventByUid: (loadUid) => (uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null)),
+				},
+				restClientMock,
 			)
 			const workerClient = makeWorkerClient()
 			const model = init({
@@ -1003,18 +824,17 @@ o.spec("CalendarModel", function () {
 				alarmInfos: [[alarmsListId, alarm._id]],
 			})
 			restClientMock.addListInstances(
-					createUserAlarmInfo({
-						_id: [alarmsListId, alarm._id],
-						alarmInfo: alarm,
-					}),
+				createUserAlarmInfo({
+					_id: [alarmsListId, alarm._id],
+					alarmInfo: alarm,
+				}),
 			)
 			const workerClient = makeWorkerClient()
 			const calendarFacade = makeCalendarFacade(
-					{
-						getEventByUid: loadUid =>
-								uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null),
-					},
-					restClientMock,
+				{
+					getEventByUid: (loadUid) => (uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null)),
+				},
+				restClientMock,
 			)
 			const model = init({
 				workerClient,
@@ -1076,10 +896,10 @@ o.spec("CalendarModel", function () {
 			const restClientMock = new EntityRestClientMock()
 			const workerClient = makeWorkerClient()
 			const calendarFacade = makeCalendarFacade(
-					{
-						getEventByUid: loadUid => Promise.resolve(null),
-					},
-					restClientMock,
+				{
+					getEventByUid: (loadUid) => Promise.resolve(null),
+				},
+				restClientMock,
 			)
 			const model = init({
 				workerClient,
@@ -1118,10 +938,10 @@ o.spec("CalendarModel", function () {
 				_id: "alarm-id",
 			})
 			restClientMock.addListInstances(
-					createUserAlarmInfo({
-						_id: [alarmsListId, alarm._id],
-						alarmInfo: alarm,
-					}),
+				createUserAlarmInfo({
+					_id: [alarmsListId, alarm._id],
+					alarmInfo: alarm,
+				}),
 			)
 			const startTime = new Date()
 			const existingEvent = createCalendarEvent({
@@ -1138,11 +958,10 @@ o.spec("CalendarModel", function () {
 			})
 			const workerClient = makeWorkerClient()
 			const calendarFacade = makeCalendarFacade(
-					{
-						getEventByUid: loadUid =>
-								uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null),
-					},
-					restClientMock,
+				{
+					getEventByUid: (loadUid) => (uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null)),
+				},
+				restClientMock,
 			)
 			const model = init({
 				workerClient,
@@ -1181,10 +1000,10 @@ o.spec("CalendarModel", function () {
 				_id: "alarm-id",
 			})
 			restClientMock.addListInstances(
-					createUserAlarmInfo({
-						_id: [alarmsListId, alarm._id],
-						alarmInfo: alarm,
-					}),
+				createUserAlarmInfo({
+					_id: [alarmsListId, alarm._id],
+					alarmInfo: alarm,
+				}),
 			)
 			const existingEvent = createCalendarEvent({
 				_id: ["listId", "eventId"],
@@ -1205,11 +1024,10 @@ o.spec("CalendarModel", function () {
 			})
 			const workerClient = makeWorkerClient()
 			const calendarFacade = makeCalendarFacade(
-					{
-						getEventByUid: loadUid =>
-								uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null),
-					},
-					restClientMock,
+				{
+					getEventByUid: (loadUid) => (uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null)),
+				},
+				restClientMock,
 			)
 			const model = init({
 				workerClient,
@@ -1266,11 +1084,10 @@ o.spec("CalendarModel", function () {
 				restClientMock.addListInstances(existingEvent)
 				const workerClient = makeWorkerClient()
 				const calendarFacade = makeCalendarFacade(
-						{
-							getEventByUid: loadUid =>
-									uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null),
-						},
-						restClientMock,
+					{
+						getEventByUid: (loadUid) => (uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null)),
+					},
+					restClientMock,
 				)
 				const model = init({
 					workerClient,
@@ -1293,13 +1110,9 @@ o.spec("CalendarModel", function () {
 						},
 					],
 				})
-				o(
-						Object.getPrototypeOf(
-								await asResult(
-										restClientMock.load(CalendarEventTypeRef, existingEvent._id, null),
-								),
-						),
-				).equals(NotFoundError.prototype)("Calendar event was deleted")
+				o(Object.getPrototypeOf(await asResult(restClientMock.load(CalendarEventTypeRef, existingEvent._id, null)))).equals(NotFoundError.prototype)(
+					"Calendar event was deleted",
+				)
 			})
 			o("event is cancelled by someone else than organizer", async function () {
 				const uid = "uid"
@@ -1335,9 +1148,7 @@ o.spec("CalendarModel", function () {
 						},
 					],
 				})
-				o(await restClientMock.load(CalendarEventTypeRef, existingEvent._id, null)).equals(
-						existingEvent,
-				)("Calendar event was not deleted")
+				o(await restClientMock.load(CalendarEventTypeRef, existingEvent._id, null)).equals(existingEvent)("Calendar event was not deleted")
 			})
 		})
 	})
@@ -1363,7 +1174,7 @@ function makeEventController(): {
 			listeners,
 			addEntityListener: noOp,
 		}),
-		sendEvent: update => {
+		sendEvent: (update) => {
 			for (let listener of listeners) {
 				// @ts-ignore
 				listener([update])
@@ -1378,14 +1189,14 @@ function makeWorkerClient(): WorkerClient {
 
 function makeLoginController(props: Partial<UserController> = {}): LoginController {
 	const userController = downcast(
-			Object.assign(props, {
-				user: createUser({
-					_id: "user-id",
-					alarmInfoList: createUserAlarmInfoListType({
-						alarms: "alarms",
-					}),
+		Object.assign(props, {
+			user: createUser({
+				_id: "user-id",
+				alarmInfoList: createUserAlarmInfoListType({
+					alarms: "alarms",
 				}),
 			}),
+		}),
 	)
 	return downcast({
 		getUserController: () => userController,
@@ -1423,7 +1234,7 @@ function makeCalendarFacade(getEventByUid, entityRestClient: EntityRestClientMoc
 	return downcast({
 		getEventByUid: getEventByUid.getEventByUid,
 		updateCalendarEvent: o.spy(() => Promise.resolve()),
-		saveCalendarEvent: o.spy(event => {
+		saveCalendarEvent: o.spy((event) => {
 			entityRestClient.addListInstances(event)
 			return Promise.resolve()
 		}),
@@ -1435,35 +1246,35 @@ function makeFileController(): FileController {
 }
 
 function init({
-				  notifications = makeNotifications(),
-				  eventController = makeEventController().eventController,
-				  workerClient,
-				  restClientMock,
-				  loginController = makeLoginController(),
-				  progressTracker = makeProgressTracker(),
-				  entityClient = new EntityClient(restClientMock),
-				  mailModel = makeMailModel(),
-				  alarmScheduler = makeAlarmScheduler(),
-				  calendarFacade = makeCalendarFacade(
-						  {
-							  getEventByUid: () => Promise.resolve(null),
-						  },
-						  restClientMock,
-				  ),
-				  fileFacade = makeFileController(),
-			  }): CalendarModelImpl {
+	notifications = makeNotifications(),
+	eventController = makeEventController().eventController,
+	workerClient,
+	restClientMock,
+	loginController = makeLoginController(),
+	progressTracker = makeProgressTracker(),
+	entityClient = new EntityClient(restClientMock),
+	mailModel = makeMailModel(),
+	alarmScheduler = makeAlarmScheduler(),
+	calendarFacade = makeCalendarFacade(
+		{
+			getEventByUid: () => Promise.resolve(null),
+		},
+		restClientMock,
+	),
+	fileFacade = makeFileController(),
+}): CalendarModelImpl {
 	const lazyScheduler = async () => alarmScheduler
 
 	return new CalendarModelImpl(
-			notifications,
-			lazyScheduler,
-			eventController,
-			workerClient,
-			loginController,
-			progressTracker,
-			entityClient,
-			mailModel,
-			calendarFacade,
-			fileFacade,
+		notifications,
+		lazyScheduler,
+		eventController,
+		workerClient,
+		loginController,
+		progressTracker,
+		entityClient,
+		mailModel,
+		calendarFacade,
+		fileFacade,
 	)
 }

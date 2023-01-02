@@ -1,49 +1,49 @@
 {
-  "name": "DesktopFacade",
-  "type": "facade",
-  "senders": ["desktop"],
-  "receivers": ["web"],
-  "methods": {
-	"print": {
-	  "arg": [],
-	  "ret": "void"
-	},
-	"showSpellcheckDropdown": {
-	  "arg": [],
-	  "ret": "void"
-	},
-	"openFindInPage": {
-	  "doc": "open the in-page search bar",
-	  "arg": [],
-	  "ret": "void"
-	},
-	"applySearchResultToOverlay": {
-	  "doc": "set the search result to be displayed in the search bar",
-	  "arg": [{"result": "ElectronResult?"}],
-	  "ret": "void"
-	},
-	"reportError": {
-	  "doc": "report an error that was stored from the previous run of the app",
-	  "arg": [{"errorInfo": "ErrorInfo"}],
-	  "ret": "void"
-	},
-	"updateTargetUrl": {
-	  "doc": "Updates the link-reveal on hover when the main thread detects that he hovered url changed. Will _not_ update if hovering a in link app (starts with 2nd argument)",
-	  "arg": [{"url": "string"}, {"appPath": "string"}],
-	  "ret": "void"
-	},
-	"openCustomer": {
-	  "doc": "Implemented for the admin client.",
-	  "arg": [{"mailAddress": "string?"}],
-	  "ret": "void"
-	},
-	"addShortcuts": {
-	  "arg": [{"shortcuts": "List<NativeShortcut>"}],
-	  "ret": "void"
-	},
-	"appUpdateDownloaded": {
-	  "arg": [],
-	  "ret": "void"
+	"name": "DesktopFacade",
+	"type": "facade",
+	"senders": ["desktop"],
+	"receivers": ["web"],
+	"methods": {
+		"print": {
+			"arg": [],
+			"ret": "void"
+		},
+		"showSpellcheckDropdown": {
+			"arg": [],
+			"ret": "void"
+		},
+		"openFindInPage": {
+			"doc": "open the in-page search bar",
+			"arg": [],
+			"ret": "void"
+		},
+		"applySearchResultToOverlay": {
+			"doc": "set the search result to be displayed in the search bar",
+			"arg": [{ "result": "ElectronResult?" }],
+			"ret": "void"
+		},
+		"reportError": {
+			"doc": "report an error that was stored from the previous run of the app",
+			"arg": [{ "errorInfo": "ErrorInfo" }],
+			"ret": "void"
+		},
+		"updateTargetUrl": {
+			"doc": "Updates the link-reveal on hover when the main thread detects that he hovered url changed. Will _not_ update if hovering a in link app (starts with 2nd argument)",
+			"arg": [{ "url": "string" }, { "appPath": "string" }],
+			"ret": "void"
+		},
+		"openCustomer": {
+			"doc": "Implemented for the admin client.",
+			"arg": [{ "mailAddress": "string?" }],
+			"ret": "void"
+		},
+		"addShortcuts": {
+			"arg": [{ "shortcuts": "List<NativeShortcut>" }],
+			"ret": "void"
+		},
+		"appUpdateDownloaded": {
+			"arg": [],
+			"ret": "void"
+		}
 	}
-  }
 }

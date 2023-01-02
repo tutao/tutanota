@@ -1,4 +1,4 @@
-import {TypeRef} from "./TypeRef.js"
+import { TypeRef } from "./TypeRef.js"
 
 export interface ErrorInfo {
 	readonly name: string | null
@@ -31,11 +31,10 @@ export function defer<T>(): DeferredObject<T> {
 
 export function deferWithHandler<T, U>(handler: (arg0: T) => U): DeferredObjectWithHandler<T, U> {
 	const deferred = {} as DeferredObjectWithHandler<T, U>
-	deferred.promise = new Promise(
-		(resolve, reject) => {
-			deferred.resolve = resolve
-			deferred.reject = reject
-		}).then(handler)
+	deferred.promise = new Promise((resolve, reject) => {
+		deferred.resolve = resolve
+		deferred.reject = reject
+	}).then(handler)
 	return deferred
 }
 
@@ -73,14 +72,10 @@ export async function asyncFindAndMap<T, R>(
 /**
  * Calls an executor function for slices of nbrOfElementsInGroup items of the given array until the executor function returns false.
  */
-export function executeInGroups<T>(
-	array: T[],
-	nbrOfElementsInGroup: number,
-	executor: (items: T[]) => Promise<boolean>,
-): Promise<void> {
+export function executeInGroups<T>(array: T[], nbrOfElementsInGroup: number, executor: (items: T[]) => Promise<boolean>): Promise<void> {
 	if (array.length > 0) {
 		let nextSlice = Math.min(array.length, nbrOfElementsInGroup)
-		return executor(array.slice(0, nextSlice)).then(doContinue => {
+		return executor(array.slice(0, nextSlice)).then((doContinue) => {
 			if (doContinue) {
 				return executeInGroups(array.slice(nextSlice), nbrOfElementsInGroup, executor)
 			}
@@ -120,7 +115,7 @@ export function clone<T>(instance: T): T {
 	if (instance instanceof Uint8Array) {
 		return downcast<T>(instance.slice())
 	} else if (instance instanceof Array) {
-		return downcast<T>(instance.map(i => clone(i)))
+		return downcast<T>(instance.map((i) => clone(i)))
 	} else if (instance instanceof Date) {
 		return new Date(instance.getTime()) as any
 	} else if (instance instanceof TypeRef) {
@@ -169,7 +164,7 @@ export function memoized<T, R>(fn: (arg0: T) => R): (arg0: T) => R {
 	let lastArg: T
 	let lastResult: R
 	let didCache = false
-	return arg => {
+	return (arg) => {
 		if (!didCache || arg !== lastArg) {
 			lastArg = arg
 			didCache = true
@@ -190,8 +185,7 @@ export function identity<T>(t: T): T {
 /**
  * Function which does nothing.
  */
-export function noOp() {
-}
+export function noOp() {}
 
 /**
  * Return a function, which executed {@param toThrottle} only after it is not invoked for {@param timeout} ms.
@@ -338,9 +332,9 @@ const hasOwn = {}.hasOwnProperty
 export function getChangedProps(objA: any, objB: any): Array<string> {
 	if (objA == null || objB == null || objA === objB) return []
 	return Object.keys(objA)
-				 .filter(k => Object.keys(objB).includes(k))
-				 .filter(k => ![null, undefined].includes(objA[k]) || ![null, undefined].includes(objB[k]))
-				 .filter(k => !deepEqual(objA[k], objB[k]))
+		.filter((k) => Object.keys(objB).includes(k))
+		.filter((k) => ![null, undefined].includes(objA[k]) || ![null, undefined].includes(objB[k]))
+		.filter((k) => !deepEqual(objA[k], objB[k]))
 }
 
 /**
@@ -454,7 +448,6 @@ export function mapNullable<T, U>(val: T | null | undefined, action: (arg0: T) =
 
 /** Helper to take instead of `typeof setTimeout` which is hellish to reproduce */
 export type TimeoutSetter = (fn: () => unknown, arg1: number) => ReturnType<typeof setTimeout>
-
 
 export function mapObject<K extends string | number | symbol, V, R>(mapper: (arg0: V) => R, obj: Record<K, V>): Record<K, R> {
 	const newObj = {} as Record<K, R>

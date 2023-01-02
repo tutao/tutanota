@@ -1,33 +1,33 @@
-import path from 'path'
-import type {DeferredObject} from "@tutao/tutanota-utils"
-import {defer, downcast} from "@tutao/tutanota-utils"
-import type {MigrationKind} from "./migrations/DesktopConfigMigrator"
-import {DesktopConfigMigrator} from "./migrations/DesktopConfigMigrator"
+import path from "path"
+import type { DeferredObject } from "@tutao/tutanota-utils"
+import { defer, downcast } from "@tutao/tutanota-utils"
+import type { MigrationKind } from "./migrations/DesktopConfigMigrator"
+import { DesktopConfigMigrator } from "./migrations/DesktopConfigMigrator"
 import fs from "fs"
-import type {Config} from "./ConfigCommon"
-import {BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey} from "./ConfigKeys"
-import type {App} from "electron"
-import type {DesktopKeyStoreFacade} from "../KeyStoreFacadeImpl"
-import {DesktopNativeCryptoFacade} from "../DesktopNativeCryptoFacade"
-import {CryptoError} from "../../api/common/error/CryptoError"
-import {log} from "../DesktopLog"
-import {ProgrammingError} from "../../api/common/error/ProgrammingError"
-import type {ConfigFileType} from "./ConfigFile"
-import {getConfigFile} from "./ConfigFile"
+import type { Config } from "./ConfigCommon"
+import { BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey } from "./ConfigKeys"
+import type { App } from "electron"
+import type { DesktopKeyStoreFacade } from "../KeyStoreFacadeImpl"
+import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
+import { CryptoError } from "../../api/common/error/CryptoError"
+import { log } from "../DesktopLog"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError"
+import type { ConfigFileType } from "./ConfigFile"
+import { getConfigFile } from "./ConfigFile"
 
 export type AllConfigKeys = DesktopConfigKey | DesktopConfigEncKey
 
 type ConfigValue = string | number | {} | boolean | ReadonlyArray<ConfigValue>
 
-type OnValueSetListeners = { [k in AllConfigKeys]: Array<(val: ConfigValue | null) => void> };
+type OnValueSetListeners = { [k in AllConfigKeys]: Array<(val: ConfigValue | null) => void> }
 
 /**
  * manages build and user config
  */
 export class DesktopConfig {
-	_buildConfig: DeferredObject<Config>;
-	_desktopConfig: DeferredObject<Config>; // user preferences as set for this installation
-	_desktopConfigFile: ConfigFileType;
+	_buildConfig: DeferredObject<Config>
+	_desktopConfig: DeferredObject<Config> // user preferences as set for this installation
+	_desktopConfigFile: ConfigFileType
 	_keyStoreFacade: DesktopKeyStoreFacade
 	_cryptoFacade: DesktopNativeCryptoFacade
 	_app: App
@@ -39,7 +39,7 @@ export class DesktopConfig {
 		this._cryptoFacade = cryptFacade
 		this._app = app
 		this._migrator = migrator
-		this._desktopConfigFile = getConfigFile(path.join(app.getPath('userData'), 'conf.json'), fs)
+		this._desktopConfigFile = getConfigFile(path.join(app.getPath("userData"), "conf.json"), fs)
 		this._onValueSetListeners = {} as OnValueSetListeners
 		this._buildConfig = defer()
 		this._desktopConfig = defer()
@@ -47,9 +47,9 @@ export class DesktopConfig {
 
 	async init() {
 		try {
-			const packageJsonFile = getConfigFile(path.join(this._app.getAppPath(), 'package.json'), fs)
+			const packageJsonFile = getConfigFile(path.join(this._app.getAppPath(), "package.json"), fs)
 			const packageJson = downcast<Record<string, unknown>>(await packageJsonFile.readJSON())
-			this._buildConfig.resolve(downcast<Config>(packageJson['tutao-config']))
+			this._buildConfig.resolve(downcast<Config>(packageJson["tutao-config"]))
 		} catch (e) {
 			throw new Error("Could not load build config: " + e)
 		}
@@ -62,11 +62,8 @@ export class DesktopConfig {
 
 		const userConf = (await this._desktopConfigFile.readJSON()) || defaultConf
 		const populatedConfig = Object.assign({}, defaultConf, userConf)
-		const desktopConfig = await this._migrator.applyMigrations(
-			downcast<MigrationKind>(buildConfig["configMigrationFunction"]),
-			populatedConfig,
-		)
-		await fs.promises.mkdir(path.join(this._app.getPath('userData')), {recursive: true})
+		const desktopConfig = await this._migrator.applyMigrations(downcast<MigrationKind>(buildConfig["configMigrationFunction"]), populatedConfig)
+		await fs.promises.mkdir(path.join(this._app.getPath("userData")), { recursive: true })
 		await this._desktopConfigFile.writeJSON(desktopConfig)
 		this._desktopConfig.resolve(desktopConfig)
 	}

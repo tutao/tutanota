@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import {NativeKey} from "./NativeKey.js"
+import { NativeKey } from "./NativeKey.js"
 export interface NativeShortcut {
 	readonly key: NativeKey
 	readonly ctrl: boolean | null

@@ -1,25 +1,25 @@
-import m, {Children, Vnode} from "mithril"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import type {Country} from "../api/common/CountryList"
-import {CountryType} from "../api/common/CountryList"
-import type {PaymentData} from "../api/common/TutanotaConstants"
-import {PaymentMethodType} from "../api/common/TutanotaConstants"
-import {CreditCardAttrs, CreditCardInput} from "./CreditCardInput"
-import {PayPalLogo} from "../gui/base/icons/Icons"
-import {LazyLoaded, noOp, promiseMap} from "@tutao/tutanota-utils"
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import type {AccountingInfo} from "../api/entities/sys/TypeRefs.js"
-import {AccountingInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {locator} from "../api/main/MainLocator"
-import type {EntityEventsListener} from "../api/main/EventController"
-import {isUpdateForTypeRef} from "../api/main/EventController"
-import {MessageBox} from "../gui/base/MessageBox.js"
-import {px} from "../gui/size"
-import {isValidCreditCardNumber} from "../misc/FormatValidator"
-import Stream from "mithril/stream";
-import {UsageTest} from "@tutao/tutanota-usagetests"
-import {SelectedSubscriptionOptions} from "./FeatureListProvider"
+import m, { Children, Vnode } from "mithril"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
+import type { Country } from "../api/common/CountryList"
+import { CountryType } from "../api/common/CountryList"
+import type { PaymentData } from "../api/common/TutanotaConstants"
+import { PaymentMethodType } from "../api/common/TutanotaConstants"
+import { CreditCardAttrs, CreditCardInput } from "./CreditCardInput"
+import { PayPalLogo } from "../gui/base/icons/Icons"
+import { LazyLoaded, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import type { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
+import { AccountingInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { locator } from "../api/main/MainLocator"
+import type { EntityEventsListener } from "../api/main/EventController"
+import { isUpdateForTypeRef } from "../api/main/EventController"
+import { MessageBox } from "../gui/base/MessageBox.js"
+import { px } from "../gui/size"
+import { isValidCreditCardNumber } from "../misc/FormatValidator"
+import Stream from "mithril/stream"
+import { UsageTest } from "@tutao/tutanota-usagetests"
+import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -52,10 +52,10 @@ export class PaymentMethodInput {
 		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
 		this.__paymentCreditTest = locator.usageTestController.getTest("payment.credit")
 
-		this._entityEventListener = updates => {
-			return promiseMap(updates, update => {
+		this._entityEventListener = (updates) => {
+			return promiseMap(updates, (update) => {
 				if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-					return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then(accountingInfo => {
+					return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then((accountingInfo) => {
 						this.__paymentPaypalTest?.getStage(2).complete()
 						this._accountingInfo = accountingInfo
 						this._payPalAttrs.accountingInfo = accountingInfo
@@ -303,7 +303,7 @@ class PaypalInput {
 							if (attrs.payPalRequestUrl.isLoaded()) {
 								window.open(attrs.payPalRequestUrl.getLoaded())
 							} else {
-								showProgressDialog("payPalRedirect_msg", attrs.payPalRequestUrl.getAsync()).then(url => window.open(url))
+								showProgressDialog("payPalRedirect_msg", attrs.payPalRequestUrl.getAsync()).then((url) => window.open(url))
 							}
 						},
 					},
@@ -314,8 +314,8 @@ class PaypalInput {
 				".small.pt.center",
 				isPaypalAssigned(attrs.accountingInfo)
 					? lang.get("paymentDataPayPalFinished_msg", {
-						"{accountAddress}": attrs.accountingInfo.paymentMethodInfo,
-					})
+							"{accountAddress}": attrs.accountingInfo.paymentMethodInfo,
+					  })
 					: lang.get("paymentDataPayPalLogin_msg"),
 			),
 		]

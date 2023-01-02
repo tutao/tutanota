@@ -2,8 +2,8 @@
  * Utility to create the HTML landing page for the app.
  */
 import fs from "fs-extra"
-import {renderHtml} from "./LaunchHtml.js"
-import {mkdir} from "fs/promises"
+import { renderHtml } from "./LaunchHtml.js"
+import { mkdir } from "fs/promises"
 import path from "path"
 
 /**
@@ -32,7 +32,7 @@ export async function createHtml(env) {
 			htmlFileName = "index-desktop.html"
 	}
 	// We need to import bluebird early as it Promise must be replaced before any of our code is executed
-	const imports = [{src: "polyfill.js"}, {src: jsFileName}]
+	const imports = [{ src: "polyfill.js" }, { src: jsFileName }]
 	const indexTemplate = await fs.readFile("./buildSrc/index.template.js", "utf8")
 
 	const index = `window.whitelabelCustomizations = null
@@ -40,11 +40,11 @@ window.env = ${JSON.stringify(env, null, 2)}
 ${indexTemplate}`
 	return Promise.all([
 		_writeFile(`./build/dist/${jsFileName}`, index),
-		renderHtml(imports, env).then((content) => _writeFile(`./build/dist/${htmlFileName}`, content))
+		renderHtml(imports, env).then((content) => _writeFile(`./build/dist/${htmlFileName}`, content)),
 	])
 }
 
 async function _writeFile(targetFile, content) {
-	await mkdir(path.dirname(targetFile), {recursive: true})
-	await fs.writeFile(targetFile, content, 'utf-8')
+	await mkdir(path.dirname(targetFile), { recursive: true })
+	await fs.writeFile(targetFile, content, "utf-8")
 }

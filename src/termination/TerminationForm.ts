@@ -1,13 +1,13 @@
-import m, {ChildArray, Children, Component, Vnode} from "mithril"
-import {lang} from "../misc/LanguageViewModel.js"
-import {client} from "../misc/ClientDetector.js"
-import {assertNotNull} from "@tutao/tutanota-utils"
-import {Autocomplete, TextField, TextFieldType} from "../gui/base/TextField.js"
-import {Button, ButtonType} from "../gui/base/Button.js"
-import {DropDownSelector} from "../gui/base/DropDownSelector.js"
-import {TerminationPeriodOptions} from "../api/common/TutanotaConstants.js"
-import {DatePicker} from "../gui/date/DatePicker.js"
-import {liveDataAttrs} from "../gui/AriaUtils.js"
+import m, { ChildArray, Children, Component, Vnode } from "mithril"
+import { lang } from "../misc/LanguageViewModel.js"
+import { client } from "../misc/ClientDetector.js"
+import { assertNotNull } from "@tutao/tutanota-utils"
+import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
+import { Button, ButtonType } from "../gui/base/Button.js"
+import { DropDownSelector } from "../gui/base/DropDownSelector.js"
+import { TerminationPeriodOptions } from "../api/common/TutanotaConstants.js"
+import { DatePicker } from "../gui/date/DatePicker.js"
+import { liveDataAttrs } from "../gui/AriaUtils.js"
 
 export interface TerminationFormAttrs {
 	onSubmit: () => unknown
@@ -46,7 +46,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 				m(
 					"",
 					{
-						oncreate: vnode => {
+						oncreate: (vnode) => {
 							const childArray = assertNotNull(vnode.children) as ChildArray
 							const child = childArray[0] as Vnode<unknown, TextField>
 							this.mailAddressTextField = child.state
@@ -65,13 +65,13 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 							if (!client.isMobileDevice()) {
 								dom.focus() // have email address auto-focus so the user can immediately type their username (unless on mobile)
 							}
-						}
+						},
 					}),
 				),
 				m(
 					"",
 					{
-						oncreate: vnode => {
+						oncreate: (vnode) => {
 							const childArray = assertNotNull(vnode.children) as ChildArray
 							const child = childArray[0] as Vnode<unknown, TextField>
 							this.passwordTextField = child.state
@@ -93,27 +93,30 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 				m(DropDownSelector, {
 					label: "emptyString_msg",
 					class: "", // by specifying an empty class attribute we remove the padding top for the DropDownSelector
-					items: [{
-						name: lang.get("endOfCurrentSubscriptionPeriod"),
-						value: TerminationPeriodOptions.EndOfCurrentPeriod
-					}, {
-						name: lang.get("futureDate"),
-						value: TerminationPeriodOptions.FutureDate
-					}],
+					items: [
+						{
+							name: lang.get("endOfCurrentSubscriptionPeriod"),
+							value: TerminationPeriodOptions.EndOfCurrentPeriod,
+						},
+						{
+							name: lang.get("futureDate"),
+							value: TerminationPeriodOptions.FutureDate,
+						},
+					],
 					selectedValue: a.terminationPeriodOption,
 					selectionChangedHandler: a.onTerminationPeriodOptionChanged,
 					dropdownWidth: 350,
-					helpLabel: () => this.renderTerminationDateInfo(a.terminationPeriodOption)
+					helpLabel: () => this.renderTerminationDateInfo(a.terminationPeriodOption),
 				}),
 
 				a.terminationPeriodOption === TerminationPeriodOptions.FutureDate
 					? m(DatePicker, {
-						date: a.date,
-						onDateSelected: a.onDateChanged,
-						startOfTheWeekOffset: 0,
-						label: "date_label",
-						disabled: false
-					})
+							date: a.date,
+							onDateSelected: a.onDateChanged,
+							startOfTheWeekOffset: 0,
+							label: "date_label",
+							disabled: false,
+					  })
 					: null,
 
 				m(
@@ -124,9 +127,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 						type: ButtonType.Login,
 					}),
 				),
-				m(".small.center.statusTextColor.mt" + liveDataAttrs(), [
-					a.helpText
-				])
+				m(".small.center.statusTextColor.mt" + liveDataAttrs(), [a.helpText]),
 			],
 		)
 	}
@@ -147,9 +148,11 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 	}
 
 	private renderTerminationDateInfo(terminationPeriodOption: TerminationPeriodOptions): Children {
-		let infoMessage = lang.get((terminationPeriodOption === TerminationPeriodOptions.EndOfCurrentPeriod ?
-			"terminationOptionEndOfSubscriptionInfo_msg" : "terminationOptionFutureDateInfo_msg"))
+		let infoMessage = lang.get(
+			terminationPeriodOption === TerminationPeriodOptions.EndOfCurrentPeriod
+				? "terminationOptionEndOfSubscriptionInfo_msg"
+				: "terminationOptionFutureDateInfo_msg",
+		)
 		return m(".small", infoMessage + " " + lang.get("terminationUseAccountUntilTermination_msg"))
-
 	}
 }

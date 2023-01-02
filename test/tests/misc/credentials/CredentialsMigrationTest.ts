@@ -1,13 +1,13 @@
 import o from "ospec"
-import {CredentialsMigration} from "../../../../src/misc/credentials/CredentialsMigration.js"
-import {DeviceConfig} from "../../../../src/misc/DeviceConfig.js"
-import type {DeviceEncryptionFacade} from "../../../../src/api/worker/facades/DeviceEncryptionFacade.js"
+import { CredentialsMigration } from "../../../../src/misc/credentials/CredentialsMigration.js"
+import { DeviceConfig } from "../../../../src/misc/DeviceConfig.js"
+import type { DeviceEncryptionFacade } from "../../../../src/api/worker/facades/DeviceEncryptionFacade.js"
 import n from "../../nodemocker.js"
-import type {PersistentCredentials} from "../../../../src/misc/credentials/CredentialsProvider.js"
-import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
-import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {object, when} from "testdouble"
-import {NativeCredentialsFacade} from "../../../../src/native/common/generatedipc/NativeCredentialsFacade.js"
+import type { PersistentCredentials } from "../../../../src/misc/credentials/CredentialsProvider.js"
+import { CredentialEncryptionMode } from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
+import { stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { object, when } from "testdouble"
+import { NativeCredentialsFacade } from "../../../../src/native/common/generatedipc/NativeCredentialsFacade.js"
 
 o.spec("CredentialsMigrationTest", function () {
 	let encryptionKey: Uint8Array
@@ -20,31 +20,29 @@ o.spec("CredentialsMigrationTest", function () {
 	let nativeCredentialsFacade: NativeCredentialsFacade
 
 	o.beforeEach(function () {
-		deviceConfig = n.mock<DeviceConfig>("", {
-			loadAll() {
-				return storedCredentials
-			},
-			setCredentialsEncryptionKey() {
-
-			},
-			store() {
-
-			},
-			getCredentialsEncryptionKey() {
-				return storedCredentialsEncryptionKey
-			},
-			setCredentialEncryptionMode() {
-
-			}
-		}).set()
-		deviceEncryptionFacade = n.mock<DeviceEncryptionFacade>("", {
-			async generateKey(): Promise<Uint8Array> {
-				return encryptionKey
-			},
-			async encrypt(key: Uint8Array, data: Uint8Array) {
-				return data.slice().reverse()
-			},
-		}).set()
+		deviceConfig = n
+			.mock<DeviceConfig>("", {
+				loadAll() {
+					return storedCredentials
+				},
+				setCredentialsEncryptionKey() {},
+				store() {},
+				getCredentialsEncryptionKey() {
+					return storedCredentialsEncryptionKey
+				},
+				setCredentialEncryptionMode() {},
+			})
+			.set()
+		deviceEncryptionFacade = n
+			.mock<DeviceEncryptionFacade>("", {
+				async generateKey(): Promise<Uint8Array> {
+					return encryptionKey
+				},
+				async encrypt(key: Uint8Array, data: Uint8Array) {
+					return data.slice().reverse()
+				},
+			})
+			.set()
 
 		nativeCredentialsFacade = object()
 		credentialsMigration = new CredentialsMigration(deviceConfig, deviceEncryptionFacade, nativeCredentialsFacade)
@@ -72,7 +70,7 @@ o.spec("CredentialsMigrationTest", function () {
 			credentialInfo: {
 				login: "internal@example.org",
 				userId: "internalId",
-				type: "internal"
+				type: "internal",
 			},
 			accessToken: "asarashfasdfkala",
 			encryptedPassword: "jwqeopirsafldx",
@@ -81,7 +79,7 @@ o.spec("CredentialsMigrationTest", function () {
 			credentialInfo: {
 				login: "external@example.org",
 				userId: "externalId",
-				type: "external"
+				type: "external",
 			},
 			accessToken: "dGVzdFRoaXNCc09tZw==",
 			encryptedPassword: "as;elkr32jr-jfje",
@@ -89,8 +87,7 @@ o.spec("CredentialsMigrationTest", function () {
 
 		storedCredentialsEncryptionKey = null
 		encryptionKey = new Uint8Array([1, 2, 5, 8])
-		when(nativeCredentialsFacade.encryptUsingKeychain(encryptionKey, CredentialEncryptionMode.DEVICE_LOCK))
-			.thenResolve(encryptedKey)
+		when(nativeCredentialsFacade.encryptUsingKeychain(encryptionKey, CredentialEncryptionMode.DEVICE_LOCK)).thenResolve(encryptedKey)
 		storedCredentials = [internalCredentials, externalCredentials]
 
 		await credentialsMigration.migrateCredentials()

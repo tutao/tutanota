@@ -1,14 +1,14 @@
 import * as env from "../buildSrc/env.js"
 import fs from "fs-extra"
 import path from "path"
-import {renderHtml} from "../buildSrc/LaunchHtml.js"
-import {$} from "zx"
-import {build as esbuild} from "esbuild"
-import {getTutanotaAppVersion, runStep, sh, writeFile} from "../buildSrc/buildUtils.js"
-import {esbuildPluginAliasPath} from "esbuild-plugin-alias-path"
-import {keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin} from "../buildSrc/esbuildUtils.js"
+import { renderHtml } from "../buildSrc/LaunchHtml.js"
+import { $ } from "zx"
+import { build as esbuild } from "esbuild"
+import { getTutanotaAppVersion, runStep, sh, writeFile } from "../buildSrc/buildUtils.js"
+import { esbuildPluginAliasPath } from "esbuild-plugin-alias-path"
+import { keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin } from "../buildSrc/esbuildUtils.js"
 
-export async function runTestBuild({clean}) {
+export async function runTestBuild({ clean }) {
 	if (clean) {
 		await runStep("Clean", async () => {
 			await fs.emptyDir("build")
@@ -24,11 +24,11 @@ export async function runTestBuild({clean}) {
 	})
 
 	const version = getTutanotaAppVersion()
-	const localEnv = env.create({staticUrl: "http://localhost:9000", version, mode: "Test", dist: false})
+	const localEnv = env.create({ staticUrl: "http://localhost:9000", version, mode: "Test", dist: false })
 
 	await runStep("Assets", async () => {
 		const pjPath = path.join("..", "package.json")
-		await fs.mkdir(inBuildDir(), {recursive: true})
+		await fs.mkdir(inBuildDir(), { recursive: true })
 		await fs.copyFile(pjPath, inBuildDir("package.json"))
 		await createUnitTestHtml(localEnv)
 	})
@@ -45,7 +45,7 @@ export async function runTestBuild({clean}) {
 			target: "esnext",
 			define: {
 				// See Env.ts for explanation
-				"NO_THREAD_ASSERTIONS": 'true',
+				NO_THREAD_ASSERTIONS: "true",
 			},
 			external: [
 				"electron",
@@ -66,8 +66,8 @@ export async function runTestBuild({clean}) {
 				esbuildPluginAliasPath({
 					alias: {
 						// Take browser testdouble without funny require() magic
-						"testdouble": path.resolve("../node_modules/testdouble/dist/testdouble.js"),
-					}
+						testdouble: path.resolve("../node_modules/testdouble/dist/testdouble.js"),
+					},
 				}),
 				sqliteNativePlugin({
 					environment: "node",
@@ -82,13 +82,13 @@ export async function runTestBuild({clean}) {
 					dstPath: "./build/keytar.node",
 					platform: process.platform,
 				}),
-			]
+			],
 		})
 	})
 }
 
 async function createUnitTestHtml(localEnv) {
-	const imports = [{src: `./bootstrapTests.js`, type: "module"}]
+	const imports = [{ src: `./bootstrapTests.js`, type: "module" }]
 	const htmlFilePath = inBuildDir("test.html")
 
 	console.log(`Generating browser tests at "${htmlFilePath}"`)

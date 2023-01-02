@@ -1,5 +1,5 @@
-import {isMailAddress} from "../FormatValidator"
-import {PartialRecipient, Recipients} from "../../api/common/recipients/Recipient"
+import { isMailAddress } from "../FormatValidator"
+import { PartialRecipient, Recipients } from "../../api/common/recipients/Recipient"
 
 export type ParsedMailto = {
 	recipients: {
@@ -34,14 +34,14 @@ export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
 	}
 
 	const addresses = url.pathname
-						 .split(",")
-						 .map(address => {
-							 if (!address) return null
-							 const decodedAddress = decodeURIComponent(address)
-							 if (!decodedAddress) return null
-							 return createMailAddressFromString(decodedAddress)
-						 })
-						 .filter(Boolean)
+		.split(",")
+		.map((address) => {
+			if (!address) return null
+			const decodedAddress = decodeURIComponent(address)
+			if (!decodedAddress) return null
+			return createMailAddressFromString(decodedAddress)
+		})
+		.filter(Boolean)
 	const result: any = {
 		recipients: {
 			to: addresses.length > 0 ? addresses : undefined,
@@ -99,13 +99,11 @@ export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
  * @param string The string to check.
  * @return an object with the attributes "name" and "mailAddress" or null if nothing was found.
  */
-export function stringToNameAndMailAddress(
-	string: string,
-):
+export function stringToNameAndMailAddress(string: string):
 	| {
-	name: string
-	mailAddress: string
-}
+			name: string
+			mailAddress: string
+	  }
 	| null
 	| undefined {
 	string = string.trim()
@@ -188,9 +186,7 @@ export function getDomainPart(mailAddress: string): string | null {
  * @param fullName The full name to check.
  * @return Returns an object with the attributes "firstName" and "lastName".
  */
-export function fullNameToFirstAndLastName(
-	fullName: string,
-): {
+export function fullNameToFirstAndLastName(fullName: string): {
 	firstName: string
 	lastName: string
 } {
@@ -223,9 +219,7 @@ export function fullNameToFirstAndLastName(
  * @param mailAddress The email address to check.
  * @return Returns an object with the attributes "firstName" and "lastName".
  */
-export function mailAddressToFirstAndLastName(
-	mailAddress: string,
-): {
+export function mailAddressToFirstAndLastName(mailAddress: string): {
 	firstName: string
 	lastName: string
 } {

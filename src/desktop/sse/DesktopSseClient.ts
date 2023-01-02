@@ -1,24 +1,24 @@
-import type {App} from "electron"
-import type {TimeoutSetter} from "@tutao/tutanota-utils"
-import {base64ToBase64Url, filterInt, neverNull, randomIntFromInterval, remove, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import type {DesktopNotifier} from "../DesktopNotifier"
-import {NotificationResult} from "../DesktopNotifier";
-import type {WindowManager} from "../DesktopWindowManager"
-import type {DesktopConfig} from "../config/DesktopConfig"
-import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
-import type {NativeAlarmScheduler} from "./DesktopAlarmScheduler"
-import type {DesktopNetworkClient} from "../net/DesktopNetworkClient.js"
-import {DesktopNativeCryptoFacade} from "../DesktopNativeCryptoFacade"
-import {typeModels} from "../../api/entities/sys/TypeModels"
-import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
-import type {LanguageViewModelType} from "../../misc/LanguageViewModel"
-import type {NotificationInfo} from "../../api/entities/sys/TypeRefs.js"
-import {handleRestError, NotAuthenticatedError, NotAuthorizedError, ServiceUnavailableError, TooManyRequestsError} from "../../api/common/error/RestError"
-import {TutanotaError} from "../../api/common/error/TutanotaError"
-import {log} from "../DesktopLog"
-import {BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey} from "../config/ConfigKeys"
-import http from "http";
-import {EncryptedAlarmNotification} from "../../native/common/EncryptedAlarmNotification.js"
+import type { App } from "electron"
+import type { TimeoutSetter } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, filterInt, neverNull, randomIntFromInterval, remove, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import type { DesktopNotifier } from "../DesktopNotifier"
+import { NotificationResult } from "../DesktopNotifier"
+import type { WindowManager } from "../DesktopWindowManager"
+import type { DesktopConfig } from "../config/DesktopConfig"
+import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"
+import type { NativeAlarmScheduler } from "./DesktopAlarmScheduler"
+import type { DesktopNetworkClient } from "../net/DesktopNetworkClient.js"
+import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
+import { typeModels } from "../../api/entities/sys/TypeModels"
+import type { DesktopAlarmStorage } from "./DesktopAlarmStorage"
+import type { LanguageViewModelType } from "../../misc/LanguageViewModel"
+import type { NotificationInfo } from "../../api/entities/sys/TypeRefs.js"
+import { handleRestError, NotAuthenticatedError, NotAuthorizedError, ServiceUnavailableError, TooManyRequestsError } from "../../api/common/error/RestError"
+import { TutanotaError } from "../../api/common/error/TutanotaError"
+import { log } from "../DesktopLog"
+import { BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey } from "../config/ConfigKeys"
+import http from "http"
+import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
 
 export type SseInfo = {
 	identifier: string
@@ -176,26 +176,26 @@ export class DesktopSseClient {
 		const url = sseInfo.sseOrigin + "/sse?_body=" + this._requestJson(sseInfo.identifier, userId)
 
 		log.debug("starting sse connection")
-		this._connection = this._net
-							   .request(url, {
-								   headers: {
-									   "Content-Type": "application/json",
-									   Connection: "Keep-Alive",
-									   "Keep-Alive": "header",
-									   Accept: "text/event-stream",
-									   v: typeModels.MissedNotification.version,
-									   cv: this._app.getVersion(),
-								   },
-								   method: "GET",
-							   })
-		this._connection.on("socket", s => {
-			// We add this listener purely as a workaround for some problem with net module.
-			// The problem is that sometimes request gets stuck after handshake - does not process unless some event
-			// handler is called (and it works more reliably with console.log()).
-			// This makes the request magically unstuck, probably console.log does some I/O and/or socket things.
-			s.on("lookup", () => log.debug("lookup sse request"))
+		this._connection = this._net.request(url, {
+			headers: {
+				"Content-Type": "application/json",
+				Connection: "Keep-Alive",
+				"Keep-Alive": "header",
+				Accept: "text/event-stream",
+				v: typeModels.MissedNotification.version,
+				cv: this._app.getVersion(),
+			},
+			method: "GET",
 		})
-			.on("response", async res => {
+		this._connection
+			.on("socket", (s) => {
+				// We add this listener purely as a workaround for some problem with net module.
+				// The problem is that sometimes request gets stuck after handshake - does not process unless some event
+				// handler is called (and it works more reliably with console.log()).
+				// This makes the request magically unstuck, probably console.log does some I/O and/or socket things.
+				s.on("lookup", () => log.debug("lookup sse request"))
+			})
+			.on("response", async (res) => {
 				this._reconnectAttempts = 1
 				log.debug("established SSE connection with code", res.statusCode)
 
@@ -219,26 +219,26 @@ export class DesktopSseClient {
 
 				res.setEncoding("utf8")
 				let resData = ""
-				res.on("data", d => {
+				res.on("data", (d) => {
 					// add new data to the buffer
 					resData += d
 					const lines = resData.split("\n")
 					resData = lines.pop() ?? "" // put the last line back into the buffer
 
-					lines.forEach(l => this._processSseData(l, userId))
+					lines.forEach((l) => this._processSseData(l, userId))
 				})
-				   .on("close", () => {
-					   log.debug("sse response closed")
+					.on("close", () => {
+						log.debug("sse response closed")
 
-					   this._disconnect()
+						this._disconnect()
 
-					   this._reschedule(initialConnectTimeoutSeconds)
-				   })
-				   .on("error", e => console.error("sse response error:", e))
+						this._reschedule(initialConnectTimeoutSeconds)
+					})
+					.on("error", (e) => console.error("sse response error:", e))
 			})
-			.on("information", e => log.debug("sse information"))
-			.on("connect", e => log.debug("sse connect:"))
-			.on("error", e => console.error("sse error:", e.message))
+			.on("information", (e) => log.debug("sse information"))
+			.on("connect", (e) => log.debug("sse connect:"))
+			.on("error", (e) => console.error("sse error:", e.message))
 			.end()
 		return Promise.resolve()
 	}
@@ -291,7 +291,7 @@ export class DesktopSseClient {
 		if (data === "notification") {
 			this._handlePushMessage(userId)
 				.then(() => this._reschedule())
-				.catch(async e => {
+				.catch(async (e) => {
 					if (e instanceof NotAuthenticatedError || e instanceof NotAuthorizedError) {
 						log.error("Not authorized or not authenticated")
 						// Reset the queue so that the previous error will not be handled again
@@ -364,7 +364,7 @@ export class DesktopSseClient {
 	_handlePushMessage(userId: string): Promise<void> {
 		const process = () =>
 			this._downloadMissedNotification(userId)
-				.then(mn => {
+				.then((mn) => {
 					this._conf.setVar(DesktopConfigKey.lastProcessedNotificationId, mn.lastProcessedNotificationId)
 
 					this._conf.setVar(DesktopConfigKey.lastMissedNotificationCheckTime, Date.now())
@@ -376,7 +376,7 @@ export class DesktopSseClient {
 						mn.alarmNotifications.forEach((an: EncryptedAlarmNotification) => this._alarmScheduler.handleAlarmNotification(an))
 					}
 				})
-				.catch(e => {
+				.catch((e) => {
 					if (e instanceof FileNotFoundError) {
 						log.debug("MissedNotification 404:", e)
 					} else if (e instanceof ServiceUnavailableError) {
@@ -385,7 +385,7 @@ export class DesktopSseClient {
 					}
 				})
 
-		this._handlingPushMessage = this._handlingPushMessage.then(process, e => {
+		this._handlingPushMessage = this._handlingPushMessage.then(process, (e) => {
 			if (e instanceof NotAuthenticatedError) {
 				throw e
 			} else {
@@ -397,14 +397,14 @@ export class DesktopSseClient {
 	}
 
 	_handleNotificationInfo(title: string, ni: NotificationInfo): void {
-		const w = this._wm.getAll().find(w => w.getUserId() === ni.userId)
+		const w = this._wm.getAll().find((w) => w.getUserId() === ni.userId)
 
 		if (w && w.isFocused()) {
 			// no need for notification if user is looking right at the window
 			return
 		}
 
-		this._notifier.submitGroupedNotification(title, `${ni.mailAddress} (${ni.counter})`, ni.userId, res => {
+		this._notifier.submitGroupedNotification(title, `${ni.mailAddress} (${ni.counter})`, ni.userId, (res) => {
 			if (res === NotificationResult.Click) {
 				this._wm.openMailBox({
 					userId: ni.userId,
@@ -440,63 +440,63 @@ export class DesktopSseClient {
 			}
 
 			const req: http.ClientRequest = this._net
-												.request(url, {
-													method: "GET",
-													headers,
-													// this defines the timeout for the connection attempt, not for waiting for the servers response after a connection was made
-													timeout: 20000,
-												})
-												.on("timeout", () => {
-													log.debug("Missed notification download timeout")
-													req.abort()
-												})
-												.on("socket", s => {
-													// We add this listener purely as a workaround for some problem with net module.
-													// The problem is that sometimes request gets stuck after handshake - does not process unless some event
-													// handler is called (and it works more reliably with console.log()).
-													// This makes the request magically unstuck, probably console.log does some I/O and/or socket things.
-													s.on("lookup", () => log.debug("lookup"))
-												})
-												.on("response", res => {
-													log.debug("missed notification response", res.statusCode)
+				.request(url, {
+					method: "GET",
+					headers,
+					// this defines the timeout for the connection attempt, not for waiting for the servers response after a connection was made
+					timeout: 20000,
+				})
+				.on("timeout", () => {
+					log.debug("Missed notification download timeout")
+					req.abort()
+				})
+				.on("socket", (s) => {
+					// We add this listener purely as a workaround for some problem with net module.
+					// The problem is that sometimes request gets stuck after handshake - does not process unless some event
+					// handler is called (and it works more reliably with console.log()).
+					// This makes the request magically unstuck, probably console.log does some I/O and/or socket things.
+					s.on("lookup", () => log.debug("lookup"))
+				})
+				.on("response", (res) => {
+					log.debug("missed notification response", res.statusCode)
 
-													if (
-														(res.statusCode === ServiceUnavailableError.CODE || TooManyRequestsError.CODE) &&
-														(res.headers["retry-after"] || res.headers["suspension-time"])
-													) {
-														// headers are lowercased, see https://nodejs.org/api/http.html#http_message_headers
-														const time = filterInt((res.headers["retry-after"] ?? res.headers["suspension-time"]) as string)
-														log.debug(`ServiceUnavailable when downloading missed notification, waiting ${time}s`)
-														res.destroy()
-														req.abort()
+					if (
+						(res.statusCode === ServiceUnavailableError.CODE || TooManyRequestsError.CODE) &&
+						(res.headers["retry-after"] || res.headers["suspension-time"])
+					) {
+						// headers are lowercased, see https://nodejs.org/api/http.html#http_message_headers
+						const time = filterInt((res.headers["retry-after"] ?? res.headers["suspension-time"]) as string)
+						log.debug(`ServiceUnavailable when downloading missed notification, waiting ${time}s`)
+						res.destroy()
+						req.abort()
 
-														this._delayHandler(() => {
-															this._downloadMissedNotification(userId).then(resolve, reject)
-														}, time * 1000)
+						this._delayHandler(() => {
+							this._downloadMissedNotification(userId).then(resolve, reject)
+						}, time * 1000)
 
-														return
-													} else if (res.statusCode !== 200) {
-														const tutanotaError = handleRestError(neverNull(res.statusCode), url, res.headers["Error-Id"] as string, null)
-														fail(req, res, tutanotaError)
-														return
-													}
+						return
+					} else if (res.statusCode !== 200) {
+						const tutanotaError = handleRestError(neverNull(res.statusCode), url, res.headers["Error-Id"] as string, null)
+						fail(req, res, tutanotaError)
+						return
+					}
 
-													res.setEncoding("utf8")
-													let resData = ""
-													res.on("data", chunk => {
-														resData += chunk
-													})
-													   .on("end", () => {
-														   try {
-															   resolve(JSON.parse(resData))
-														   } catch (e) {
-															   fail(req, res, e)
-														   }
-													   })
-													   .on("close", () => log.debug("dl missed notification response closed"))
-													   .on("error", e => fail(req, res, e))
-												})
-												.on("error", e => fail(req, null, e))
+					res.setEncoding("utf8")
+					let resData = ""
+					res.on("data", (chunk) => {
+						resData += chunk
+					})
+						.on("end", () => {
+							try {
+								resolve(JSON.parse(resData))
+							} catch (e) {
+								fail(req, res, e)
+							}
+						})
+						.on("close", () => log.debug("dl missed notification response closed"))
+						.on("error", (e) => fail(req, res, e))
+				})
+				.on("error", (e) => fail(req, null, e))
 			req.end()
 		})
 	}

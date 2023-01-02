@@ -1,9 +1,9 @@
 import o from "ospec"
-import {DeviceConfig, migrateConfig, migrateConfigV2to3} from "../../../src/misc/DeviceConfig.js"
-import {PersistentCredentials} from "../../../src/misc/credentials/CredentialsProvider.js"
-import {matchers, object, when} from "testdouble"
-import {verify} from "@tutao/tutanota-test-utils"
-import {CredentialEncryptionMode} from "../../../src/misc/credentials/CredentialEncryptionMode.js"
+import { DeviceConfig, migrateConfig, migrateConfigV2to3 } from "../../../src/misc/DeviceConfig.js"
+import { PersistentCredentials } from "../../../src/misc/credentials/CredentialsProvider.js"
+import { matchers, object, when } from "testdouble"
+import { verify } from "@tutao/tutanota-test-utils"
+import { CredentialEncryptionMode } from "../../../src/misc/credentials/CredentialEncryptionMode.js"
 
 o.spec("DeviceConfig", function () {
 	o.spec("migrateConfig", function () {
@@ -33,10 +33,10 @@ o.spec("DeviceConfig", function () {
 					credentialInfo: {
 						login: "internal@example.com",
 						userId: "internalUserId",
-						type: "internal"
+						type: "internal",
 					},
 					accessToken: "internalAccessToken",
-					encryptedPassword: "internalEncPassword"
+					encryptedPassword: "internalEncPassword",
 				},
 				externalUserId: {
 					credentialInfo: {
@@ -46,7 +46,7 @@ o.spec("DeviceConfig", function () {
 					},
 					accessToken: "externalAccessToken",
 					encryptedPassword: "externalEncPassword",
-				}
+				},
 			}
 
 			o(oldConfig._credentials).deepEquals(expectedCredentialsAfterMigration)
@@ -61,18 +61,19 @@ o.spec("DeviceConfig", function () {
 		})
 
 		o("Won't write anything to localStorage when signupToken exists and the config version is the same", function () {
-			when(localStorageMock.getItem(DeviceConfig.LocalStorageKey)).thenReturn(JSON.stringify({
-				_version: DeviceConfig.Version,
-				_signupToken: "somebase64value"
-			}))
+			when(localStorageMock.getItem(DeviceConfig.LocalStorageKey)).thenReturn(
+				JSON.stringify({
+					_version: DeviceConfig.Version,
+					_signupToken: "somebase64value",
+				}),
+			)
 
 			new DeviceConfig(DeviceConfig.Version, localStorageMock)
 
-			verify(localStorageMock.setItem(DeviceConfig.LocalStorageKey, matchers.anything()), {times: 0})
+			verify(localStorageMock.setItem(DeviceConfig.LocalStorageKey, matchers.anything()), { times: 0 })
 		})
 
 		o("When loading, migrations will not lose any config fields", function () {
-
 			const storedInLocalStorage = {
 				_version: 2,
 				_credentials: [
@@ -94,7 +95,7 @@ o.spec("DeviceConfig", function () {
 				_testDeviceId: "testId",
 				_testAssignments: null,
 				_signupToken: "signupToken",
-				offlineTimeRangeDaysByUser: { "userId1": 42},
+				offlineTimeRangeDaysByUser: { userId1: 42 },
 			}
 
 			when(localStorageMock.getItem(DeviceConfig.LocalStorageKey)).thenReturn(JSON.stringify(storedInLocalStorage))
@@ -109,16 +110,16 @@ o.spec("DeviceConfig", function () {
 			const migratedConfig = Object.assign({}, storedInLocalStorage, {
 				_version: DeviceConfig.Version,
 				_credentials: {
-					"internalUserId": {
+					internalUserId: {
 						credentialInfo: {
 							login: "internal@example.com",
 							userId: "internalUserId",
-							type: "internal"
+							type: "internal",
 						},
 						accessToken: "internalAccessToken",
-						encryptedPassword: "internalEncPassword"
+						encryptedPassword: "internalEncPassword",
 					},
-				}
+				},
 			})
 
 			// We can't just call verify on localStorageMock.setItem because the JSON string may not match perfectly

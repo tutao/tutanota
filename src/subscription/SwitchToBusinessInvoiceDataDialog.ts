@@ -1,20 +1,20 @@
 import m from "mithril"
-import {Dialog} from "../gui/base/Dialog"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import {InvoiceDataInput, InvoiceDataInputLocation} from "./InvoiceDataInput"
-import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
-import {BadRequestError} from "../api/common/error/RestError"
-import type {AccountingInfo, Customer} from "../api/entities/sys/TypeRefs.js"
-import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {showBusinessBuyDialog} from "./BuyDialog"
-import {locator} from "../api/main/MainLocator"
-import type {EntityUpdateData} from "../api/main/EventController"
-import {isUpdateForTypeRef} from "../api/main/EventController"
-import {defer, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import type {InvoiceData} from "../api/common/TutanotaConstants"
-import {asPaymentInterval} from "./PriceUtils.js"
+import { Dialog } from "../gui/base/Dialog"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
+import { InvoiceDataInput, InvoiceDataInputLocation } from "./InvoiceDataInput"
+import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
+import { BadRequestError } from "../api/common/error/RestError"
+import type { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
+import { CustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { showBusinessBuyDialog } from "./BuyDialog"
+import { locator } from "../api/main/MainLocator"
+import type { EntityUpdateData } from "../api/main/EventController"
+import { isUpdateForTypeRef } from "../api/main/EventController"
+import { defer, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import type { InvoiceData } from "../api/common/TutanotaConstants"
+import { asPaymentInterval } from "./PriceUtils.js"
 
 /**
  * Shows a dialog to update the invoice data for business use. Switches the account to business use before actually saving the new invoice data
@@ -32,9 +32,9 @@ export function show(
 	const entityEventUpdateForCustomer = defer() // required if business is booked because the customer is then changed
 
 	const entityEventListener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> => {
-		return promiseMap(updates, update => {
+		return promiseMap(updates, (update) => {
 			if (isUpdateForTypeRef(CustomerTypeRef, update)) {
-				return locator.entityClient.load(CustomerTypeRef, customer._id).then(updatedCustomer => {
+				return locator.entityClient.load(CustomerTypeRef, customer._id).then((updatedCustomer) => {
 					customer = updatedCustomer
 					entityEventUpdateForCustomer.resolve(null)
 				})
@@ -58,7 +58,7 @@ export function show(
 				entityEventUpdateForCustomer.resolve(null)
 			}
 
-			p.then(failed => {
+			p.then((failed) => {
 				if (failed) {
 					return
 				}
@@ -66,33 +66,33 @@ export function show(
 				showProgressDialog(
 					"pleaseWait_msg",
 					entityEventUpdateForCustomer.promise
-												.then(() => {
-													customer.businessUse = true
-												})
-												.then(() => {
-													locator.entityClient.update(customer).then(() => {
-														updatePaymentData(
-															asPaymentInterval(accountingInfo.paymentInterval),
-															invoiceDataInput.getInvoiceData(),
-															null,
-															null,
-															false,
-															"0",
-															accountingInfo,
-														)
-															.then(success => {
-																if (success) {
-																	locator.eventController.removeEntityListener(entityEventListener)
-																	dialog.close()
-																}
-															})
-															.catch(
-																ofClass(BadRequestError, e => {
-																	Dialog.message("paymentMethodNotAvailable_msg")
-																}),
-															)
-													})
-												}),
+						.then(() => {
+							customer.businessUse = true
+						})
+						.then(() => {
+							locator.entityClient.update(customer).then(() => {
+								updatePaymentData(
+									asPaymentInterval(accountingInfo.paymentInterval),
+									invoiceDataInput.getInvoiceData(),
+									null,
+									null,
+									false,
+									"0",
+									accountingInfo,
+								)
+									.then((success) => {
+										if (success) {
+											locator.eventController.removeEntityListener(entityEventListener)
+											dialog.close()
+										}
+									})
+									.catch(
+										ofClass(BadRequestError, (e) => {
+											Dialog.message("paymentMethodNotAvailable_msg")
+										}),
+									)
+							})
+						}),
 				)
 			})
 		}

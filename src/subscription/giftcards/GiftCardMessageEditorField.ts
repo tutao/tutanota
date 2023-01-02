@@ -1,11 +1,11 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {lang} from "../../misc/LanguageViewModel"
-import {assertNotNull} from "@tutao/tutanota-utils"
+import m, { Children, Component, Vnode } from "mithril"
+import { lang } from "../../misc/LanguageViewModel"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 const GIFT_CARD_MESSAGE_COLS = 26
 const GIFT_CARD_MESSAGE_HEIGHT = 5
 type GiftCardMessageEditorFieldAttrs = {
-	message: string,
+	message: string
 	onMessageChanged: (message: string) => void
 	cols?: number
 	rows?: number
@@ -26,7 +26,7 @@ export class GiftCardMessageEditorField implements Component<GiftCardMessageEdit
 				wrap: "hard",
 				cols: a.cols || GIFT_CARD_MESSAGE_COLS,
 				rows: a.rows || GIFT_CARD_MESSAGE_HEIGHT,
-				oncreate: vnode => {
+				oncreate: (vnode) => {
 					this.textAreaDom = vnode.dom as HTMLTextAreaElement
 					this.textAreaDom.value = a.message
 				},

@@ -1,10 +1,10 @@
-import type {SecretStorage} from "./sse/SecretStorage"
-import {DesktopNativeCryptoFacade} from "./DesktopNativeCryptoFacade"
-import {log} from "./DesktopLog"
-import {Base64, base64ToUint8Array, getFromMap, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {base64ToKey, keyToBase64,} from "@tutao/tutanota-crypto"
-import {DeviceStorageUnavailableError} from "../api/common/error/DeviceStorageUnavailableError.js"
-import {CancelledError} from "../api/common/error/CancelledError"
+import type { SecretStorage } from "./sse/SecretStorage"
+import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
+import { log } from "./DesktopLog"
+import { Base64, base64ToUint8Array, getFromMap, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { base64ToKey, keyToBase64 } from "@tutao/tutanota-crypto"
+import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError.js"
+import { CancelledError } from "../api/common/error/CancelledError"
 
 interface NativeKeySpec {
 	/**
@@ -29,7 +29,7 @@ export const CredentialsKeySpec: NativeKeySpec = Object.freeze({
 	accountName: "tutanota-credentials",
 	// Credentials key should not be cached, we should ask it every time we operate on credentials (there's already intermediate in web to avoid asking
 	// too many times)
-	cached: false
+	cached: false,
 })
 
 /** Interface for accessing/generating/caching keys. */
@@ -48,11 +48,7 @@ export interface DesktopKeyStoreFacade {
 export class KeyStoreFacadeImpl implements DesktopKeyStoreFacade {
 	private readonly resolvedKeys: Map<NativeKeySpec, Promise<Aes256Key>> = new Map()
 
-	constructor(
-		private readonly secretStorage: SecretStorage,
-		private readonly crypto: DesktopNativeCryptoFacade,
-	) {
-	}
+	constructor(private readonly secretStorage: SecretStorage, private readonly crypto: DesktopNativeCryptoFacade) {}
 
 	/** @inheritDoc */
 	async getDeviceKey(): Promise<Aes256Key> {

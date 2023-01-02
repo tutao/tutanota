@@ -1,9 +1,9 @@
 /**
  * @file color/theme definitions for default themes.
  */
-import {getLogoSvg} from "./base/Logo"
-import type {Theme, ThemeId} from "./theme"
-import {assertMainOrNodeBoot} from "../api/common/Env"
+import { getLogoSvg } from "./base/Logo"
+import type { Theme, ThemeId } from "./theme"
+import { assertMainOrNodeBoot } from "../api/common/Env"
 
 assertMainOrNodeBoot()
 

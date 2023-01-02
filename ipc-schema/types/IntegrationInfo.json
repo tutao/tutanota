@@ -1,11 +1,11 @@
 {
-  "name": "IntegrationInfo",
-  "type": "struct",
-  "doc": "Status of desktop integration.",
-  "fields": {
-	"isMailtoHandler": "boolean",
-	"isAutoLaunchEnabled": "boolean",
-	"isIntegrated": "boolean",
-	"isUpdateAvailable": "boolean"
-  }
+	"name": "IntegrationInfo",
+	"type": "struct",
+	"doc": "Status of desktop integration.",
+	"fields": {
+		"isMailtoHandler": "boolean",
+		"isAutoLaunchEnabled": "boolean",
+		"isIntegrated": "boolean",
+		"isUpdateAvailable": "boolean"
+	}
 }

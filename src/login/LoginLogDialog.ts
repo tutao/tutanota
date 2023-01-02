@@ -1,9 +1,9 @@
-import {locator} from "../api/main/MainLocator.js"
-import {isApp, isDesktop} from "../api/common/Env.js"
-import {clientInfoString} from "../misc/ErrorReporter.js"
-import {Dialog} from "../gui/base/Dialog.js"
-import {ButtonType} from "../gui/base/Button.js"
-import {copyToClipboard} from "../misc/ClipboardUtils.js"
+import { locator } from "../api/main/MainLocator.js"
+import { isApp, isDesktop } from "../api/common/Env.js"
+import { clientInfoString } from "../misc/ErrorReporter.js"
+import { Dialog } from "../gui/base/Dialog.js"
+import { ButtonType } from "../gui/base/Button.js"
+import { copyToClipboard } from "../misc/ClipboardUtils.js"
 import m from "mithril"
 
 /**
@@ -25,8 +25,8 @@ export async function showLogsDialog() {
 					type: ButtonType.Primary,
 					label: "ok_action",
 					click: () => dialog.close(),
-				}
-			]
+				},
+			],
 		},
 		class {
 			view() {
@@ -57,7 +57,7 @@ ${workerLog.join("\n")}
 ${await locator.commonSystemFacade.getLog()}
 `)
 	}
-	let {message, type, client} = clientInfoString(new Date(), false)
+	let { message, type, client } = clientInfoString(new Date(), false)
 	return `v${env.versionNumber} - ${client}
 ${message}
 

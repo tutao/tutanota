@@ -1,4 +1,4 @@
-import type {GroupInfo, MailAddressAliasServiceReturn, MailAddressAvailability} from "../../entities/sys/TypeRefs.js"
+import type { GroupInfo, MailAddressAliasServiceReturn, MailAddressAvailability } from "../../entities/sys/TypeRefs.js"
 import {
 	createDomainMailAddressAvailabilityData,
 	createMailAddressAliasServiceData,
@@ -7,26 +7,26 @@ import {
 	createStringWrapper,
 	GroupInfoTypeRef,
 	GroupTypeRef,
-	UserTypeRef
+	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
-import {DomainMailAddressAvailabilityService, MailAddressAliasService, MultipleMailAddressAvailabilityService} from "../../entities/sys/Services.js"
-import {assertWorkerOrNode} from "../../common/Env"
-import {IServiceExecutor} from "../../common/ServiceRequest"
-import {UserFacade} from "./UserFacade"
-import {EntityClient} from "../../common/EntityClient.js"
+import { DomainMailAddressAvailabilityService, MailAddressAliasService, MultipleMailAddressAvailabilityService } from "../../entities/sys/Services.js"
+import { assertWorkerOrNode } from "../../common/Env"
+import { IServiceExecutor } from "../../common/ServiceRequest"
+import { UserFacade } from "./UserFacade"
+import { EntityClient } from "../../common/EntityClient.js"
 import {
 	createMailAddressProperties,
 	createMailboxProperties,
 	MailboxGroupRoot,
 	MailboxGroupRootTypeRef,
 	MailboxProperties,
-	MailboxPropertiesTypeRef
+	MailboxPropertiesTypeRef,
 } from "../../entities/tutanota/TypeRefs.js"
-import {assertNotNull, findAndRemove, getFirstOrThrow, ofClass} from "@tutao/tutanota-utils"
-import {getEnabledMailAddressesForGroupInfo} from "../../common/utils/GroupUtils.js"
-import {PreconditionFailedError} from "../../common/error/RestError.js"
-import {ProgrammingError} from "../../common/error/ProgrammingError.js"
-import {GroupManagementFacade} from "./GroupManagementFacade.js"
+import { assertNotNull, findAndRemove, getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
+import { getEnabledMailAddressesForGroupInfo } from "../../common/utils/GroupUtils.js"
+import { PreconditionFailedError } from "../../common/error/RestError.js"
+import { ProgrammingError } from "../../common/error/ProgrammingError.js"
+import { GroupManagementFacade } from "./GroupManagementFacade.js"
 
 assertWorkerOrNode()
 
@@ -36,8 +36,7 @@ export class MailAddressFacade {
 		private readonly groupManagement: GroupManagementFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly nonCachingEntityClient: EntityClient,
-	) {
-	}
+	) {}
 
 	getAliasCounters(): Promise<MailAddressAliasServiceReturn> {
 		return this.serviceExecutor.get(MailAddressAliasService, null)
@@ -45,18 +44,16 @@ export class MailAddressFacade {
 
 	isMailAddressAvailable(mailAddress: string): Promise<boolean> {
 		if (this.userFacade.isFullyLoggedIn()) {
-			const data = createDomainMailAddressAvailabilityData({mailAddress})
-			return this.serviceExecutor.get(DomainMailAddressAvailabilityService, data)
-					   .then(result => result.available)
+			const data = createDomainMailAddressAvailabilityData({ mailAddress })
+			return this.serviceExecutor.get(DomainMailAddressAvailabilityService, data).then((result) => result.available)
 		} else {
-			return this.areMailAddressesAvailable([mailAddress])
-					   .then(result => getFirstOrThrow(result).available)
+			return this.areMailAddressesAvailable([mailAddress]).then((result) => getFirstOrThrow(result).available)
 		}
 	}
 
 	async areMailAddressesAvailable(mailAddresses: string[]): Promise<MailAddressAvailability[]> {
 		const data = createMultipleMailAddressAvailabilityData({
-			mailAddresses: mailAddresses.map(mailAddress => createStringWrapper({value: mailAddress}))
+			mailAddresses: mailAddresses.map((mailAddress) => createStringWrapper({ value: mailAddress })),
 		})
 		const result = await this.serviceExecutor.get(MultipleMailAddressAvailabilityService, data)
 		return result.availabilities
@@ -106,11 +103,11 @@ export class MailAddressFacade {
 	 * Set mailAddress to senderName mapping for mail group that the specified user is a member of.
 	 * if no user is specified, the operation will be attempted as an admin of the given group.
 	 * */
-	async setSenderName(mailGroupId: Id, mailAddress: string, senderName: string, viaUser?: Id,): Promise<Map<string, string>> {
+	async setSenderName(mailGroupId: Id, mailAddress: string, senderName: string, viaUser?: Id): Promise<Map<string, string>> {
 		const mailboxProperties = await this.getOrCreateMailboxProperties(mailGroupId, viaUser)
 		let mailAddressProperty = mailboxProperties.mailAddressProperties.find((p) => p.mailAddress === mailAddress)
 		if (mailAddressProperty == null) {
-			mailAddressProperty = createMailAddressProperties({mailAddress})
+			mailAddressProperty = createMailAddressProperties({ mailAddress })
 			mailboxProperties.mailAddressProperties.push(mailAddressProperty)
 		}
 		mailAddressProperty.senderName = senderName
@@ -129,7 +126,6 @@ export class MailAddressFacade {
 		return this.collectSenderNames(updatedProperties)
 	}
 
-
 	private async getOrCreateMailboxProperties(mailGroupId: Id, viaUser?: Id): Promise<MailboxProperties> {
 		const groupKey = viaUser
 			? await this.groupManagement.getGroupKeyViaUser(mailGroupId, viaUser)
@@ -144,12 +140,10 @@ export class MailAddressFacade {
 			mailboxGroupRoot.mailboxProperties,
 			undefined,
 			undefined,
-			groupKey
+			groupKey,
 		)
 
-		return mailboxProperties.mailAddressProperties.length === 0
-			? this.mailboxPropertiesWithLegacySenderName(mailboxProperties, viaUser)
-			: mailboxProperties
+		return mailboxProperties.mailAddressProperties.length === 0 ? this.mailboxPropertiesWithLegacySenderName(mailboxProperties, viaUser) : mailboxProperties
 	}
 
 	/**
@@ -157,16 +151,16 @@ export class MailAddressFacade {
 	 * if no user is given, the operation will be attempted as an admin of the group of the given mailboxProperties.
 	 * */
 	private async mailboxPropertiesWithLegacySenderName(mailboxProperties: MailboxProperties, viaUser?: Id): Promise<MailboxProperties> {
-		const groupInfo = viaUser
-			? await this.loadUserGroupInfo(viaUser)
-			: await this.loadMailGroupInfo(mailboxProperties._ownerGroup!)
+		const groupInfo = viaUser ? await this.loadUserGroupInfo(viaUser) : await this.loadMailGroupInfo(mailboxProperties._ownerGroup!)
 		const legacySenderName = groupInfo.name
 		const mailAddresses = getEnabledMailAddressesForGroupInfo(groupInfo)
 		for (const mailAddress of mailAddresses) {
-			mailboxProperties.mailAddressProperties.push(createMailAddressProperties({
-				mailAddress,
-				senderName: legacySenderName,
-			}))
+			mailboxProperties.mailAddressProperties.push(
+				createMailAddressProperties({
+					mailAddress,
+					senderName: legacySenderName,
+				}),
+			)
 		}
 		return this.updateMailboxProperties(mailboxProperties, viaUser)
 	}
@@ -188,17 +182,18 @@ export class MailAddressFacade {
 			reportMovedMails: "",
 			mailAddressProperties: [],
 		})
-		return this.nonCachingEntityClient.setup(null, mailboxProperties, undefined, {ownerKey: groupKey})
-				   .catch(ofClass(PreconditionFailedError, (e) => {
-					   // in admin case it is much harder to run into it because we use non-caching entityClient but it is still possible
-					   if (e.data && e.data.startsWith("exists:")) {
-						   const existingId = e.data.substring("exists:".length)
-						   console.log("mailboxProperties already exists", existingId)
-						   return existingId
-					   } else {
-						   throw new ProgrammingError(`Could not create mailboxProperties, precondition: ${e.data}`)
-					   }
-				   }))
+		return this.nonCachingEntityClient.setup(null, mailboxProperties, undefined, { ownerKey: groupKey }).catch(
+			ofClass(PreconditionFailedError, (e) => {
+				// in admin case it is much harder to run into it because we use non-caching entityClient but it is still possible
+				if (e.data && e.data.startsWith("exists:")) {
+					const existingId = e.data.substring("exists:".length)
+					console.log("mailboxProperties already exists", existingId)
+					return existingId
+				} else {
+					throw new ProgrammingError(`Could not create mailboxProperties, precondition: ${e.data}`)
+				}
+			}),
+		)
 	}
 
 	private async updateMailboxProperties(mailboxProperties: MailboxProperties, viaUser?: Id): Promise<MailboxProperties> {

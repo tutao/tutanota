@@ -1,12 +1,12 @@
-import {DAY_IN_MILLIS, downcast, filterInt, neverNull} from "@tutao/tutanota-utils"
-import {DateTime, IANAZone} from "luxon"
-import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
-import {createCalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
-import type {RepeatRule} from "../../api/entities/sys/TypeRefs.js"
-import {createRepeatRule} from "../../api/entities/sys/TypeRefs.js"
-import type {AlarmInfo} from "../../api/entities/sys/TypeRefs.js"
-import {createAlarmInfo} from "../../api/entities/sys/TypeRefs.js"
-import type {Parser} from "../../misc/parsing/ParserCombinator"
+import { DAY_IN_MILLIS, downcast, filterInt, neverNull } from "@tutao/tutanota-utils"
+import { DateTime, IANAZone } from "luxon"
+import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
+import { createCalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
+import type { RepeatRule } from "../../api/entities/sys/TypeRefs.js"
+import { createRepeatRule } from "../../api/entities/sys/TypeRefs.js"
+import type { AlarmInfo } from "../../api/entities/sys/TypeRefs.js"
+import { createAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
+import type { Parser } from "../../misc/parsing/ParserCombinator"
 import {
 	combineParsers,
 	makeCharacterParser,
@@ -19,15 +19,13 @@ import {
 	StringIterator,
 } from "../../misc/parsing/ParserCombinator"
 import WindowsZones from "./WindowsZones"
-import type {ParsedCalendarData} from "./CalendarImporter"
-import {CalendarEventAttendee, createCalendarEventAttendee} from "../../api/entities/tutanota/TypeRefs.js"
-import {createEncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
-import {isMailAddress} from "../../misc/FormatValidator"
-import {AlarmInterval, CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, reverse} from "../../api/common/TutanotaConstants"
+import type { ParsedCalendarData } from "./CalendarImporter"
+import { CalendarEventAttendee, createCalendarEventAttendee } from "../../api/entities/tutanota/TypeRefs.js"
+import { createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
+import { isMailAddress } from "../../misc/FormatValidator"
+import { AlarmInterval, CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, reverse } from "../../api/common/TutanotaConstants"
 
-function parseDateString(
-	dateString: string,
-): {
+function parseDateString(dateString: string): {
 	year: number
 	month: number
 	day: number
@@ -55,7 +53,7 @@ type ICalObject = {
 }
 
 function getProp(obj: ICalObject, tag: string): Property {
-	const prop = obj.properties.find(p => p.name === tag)
+	const prop = obj.properties.find((p) => p.name === tag)
 	if (prop == null) throw new ParserError(`Missing prop ${tag}`)
 	return prop
 }
@@ -67,7 +65,7 @@ function getPropStringValue(obj: ICalObject, tag: string): string {
 }
 
 // Left side of the semicolon
-const parameterStringValueParser: Parser<string> = iterator => {
+const parameterStringValueParser: Parser<string> = (iterator) => {
 	let value = ""
 
 	while (iterator.peek() && /[:;,]/.test(iterator.peek()) === false) {
@@ -78,17 +76,17 @@ const parameterStringValueParser: Parser<string> = iterator => {
 }
 
 const escapedStringValueParser: Parser<string> = (iterator: StringIterator) => {
-	if (iterator.next().value !== "\"") {
+	if (iterator.next().value !== '"') {
 		throw new ParserError("Not a quoted value")
 	}
 
 	let value = ""
 
-	while (iterator.peek() && iterator.peek() !== "\"") {
+	while (iterator.peek() && iterator.peek() !== '"') {
 		value += neverNull(iterator.next().value)
 	}
 
-	if (!(iterator.peek() === "\"")) {
+	if (!(iterator.peek() === '"')) {
 		throw new Error("Not a quoted value, does not end with quote: " + value)
 	}
 
@@ -104,10 +102,7 @@ const propertyParametersKeyValueParser: Parser<[string, string, string]> = combi
 
 const parsePropertyParameters = combineParsers(
 	makeCharacterParser(";"),
-	makeSeparatedByParser(
-		/*separator*/makeCharacterParser(";"),
-		/*value*/propertyParametersKeyValueParser
-	)
+	makeSeparatedByParser(/*separator*/ makeCharacterParser(";"), /*value*/ propertyParametersKeyValueParser),
 )
 
 export const iCalReplacements = {
@@ -121,7 +116,7 @@ export const iCalReplacements = {
 /**
  * Parses everything until the end of the string and unescapes what it should
  */
-const anyStringUnescapeParser: Parser<string> = iterator => {
+const anyStringUnescapeParser: Parser<string> = (iterator) => {
 	let value = ""
 	let lastCharacter: string | null = null
 
@@ -147,7 +142,7 @@ const anyStringUnescapeParser: Parser<string> = iterator => {
 /**
  * Parses everything until the semicolon character
  */
-const propertyStringValueParser: Parser<string> = iterator => {
+const propertyStringValueParser: Parser<string> = (iterator) => {
 	let value = ""
 
 	while (iterator.peek() && /[;]/.test(iterator.peek()) === false) {
@@ -241,7 +236,7 @@ export function parseICalendar(stringData: string): ICalObject {
 	const withFoldedLines = stringData
 		.replace(/\r?\n\s/g, "")
 		.split(/\r?\n/)
-		.filter(e => e !== "")
+		.filter((e) => e !== "")
 	const iterator = withFoldedLines.values()
 	const firstLine = iterator.next()
 
@@ -405,10 +400,10 @@ function oneDayDurationEnd(startTime: Date, allDay: boolean, tzId: string | null
 	return DateTime.fromJSDate(startTime, {
 		zone: allDay ? "UTC" : tzId || zone,
 	})
-				   .plus({
-					   day: 1,
-				   })
-				   .toJSDate()
+		.plus({
+			day: 1,
+		})
+		.toJSDate()
 }
 
 const MAILTO_PREFIX_REGEX = /^mailto:(.*)/i
@@ -429,17 +424,17 @@ export const calendarAttendeeStatusToParstat: Record<CalendarAttendeeStatus, str
 const parstatToCalendarAttendeeStatus: Record<string, CalendarAttendeeStatus> = reverse(calendarAttendeeStatusToParstat)
 
 export function parseCalendarEvents(icalObject: ICalObject, zone: string): ParsedCalendarData {
-	const methodProp = icalObject.properties.find(prop => prop.name === "METHOD")
+	const methodProp = icalObject.properties.find((prop) => prop.name === "METHOD")
 	const method = methodProp ? methodProp.value : CalendarMethod.PUBLISH
-	const eventObjects = icalObject.children.filter(obj => obj.type === "VEVENT")
+	const eventObjects = icalObject.children.filter((obj) => obj.type === "VEVENT")
 	const contents = eventObjects.map((eventObj, index) => {
 		const event = createCalendarEvent()
 		const startProp = getProp(eventObj, "DTSTART")
 		if (typeof startProp.value !== "string") throw new ParserError("DTSTART value is not a string")
 		const tzId = getTzId(startProp)
-		const {date: startTime, allDay} = parseTime(startProp.value, tzId ?? undefined)
+		const { date: startTime, allDay } = parseTime(startProp.value, tzId ?? undefined)
 		event.startTime = startTime
-		const endProp = eventObj.properties.find(p => p.name === "DTEND")
+		const endProp = eventObj.properties.find((p) => p.name === "DTEND")
 
 		if (endProp) {
 			if (typeof endProp.value !== "string") throw new ParserError("DTEND value is not a string")
@@ -452,22 +447,18 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 				if (allDay) {
 					// if the startTime indicates an all-day event, we want to preserve that.
 					// we'll assume a 1-day duration.
-					event.endTime = DateTime.fromJSDate(event.startTime)
-											.plus({day: 1})
-											.toJSDate()
+					event.endTime = DateTime.fromJSDate(event.startTime).plus({ day: 1 }).toJSDate()
 				} else {
 					// we make a best effort to deliver alarms at the set interval before startTime and set the
 					// event duration to be 1 second
 					// as of now:
 					// * this displays as ending the same minute it starts in the tutanota calendar
 					// * gets exported with a duration of 1 second
-					event.endTime = DateTime.fromJSDate(event.startTime)
-											.plus({second: 1})
-											.toJSDate()
+					event.endTime = DateTime.fromJSDate(event.startTime).plus({ second: 1 }).toJSDate()
 				}
 			}
 		} else {
-			const durationProp = eventObj.properties.find(p => p.name === "DURATION")
+			const durationProp = eventObj.properties.find((p) => p.name === "DURATION")
 
 			if (durationProp) {
 				parseEventDuration(durationProp, event)
@@ -480,33 +471,33 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 			}
 		}
 
-		const summaryProp = eventObj.properties.find(p => p.name === "SUMMARY")
+		const summaryProp = eventObj.properties.find((p) => p.name === "SUMMARY")
 
 		if (summaryProp && typeof summaryProp.value === "string") {
 			event.summary = summaryProp.value
 		}
 
-		const locationProp = eventObj.properties.find(p => p.name === "LOCATION")
+		const locationProp = eventObj.properties.find((p) => p.name === "LOCATION")
 
 		if (locationProp) {
 			if (typeof locationProp.value !== "string") throw new ParserError("LOCATION value is not a string")
 			event.location = locationProp.value
 		}
 
-		const rruleProp = eventObj.properties.find(p => p.name === "RRULE")
+		const rruleProp = eventObj.properties.find((p) => p.name === "RRULE")
 
 		if (rruleProp != null) {
 			event.repeatRule = parseRrule(rruleProp, tzId)
 		}
 
-		const descriptionProp = eventObj.properties.find(p => p.name === "DESCRIPTION")
+		const descriptionProp = eventObj.properties.find((p) => p.name === "DESCRIPTION")
 
 		if (descriptionProp) {
 			if (typeof descriptionProp.value !== "string") throw new ParserError("DESCRIPTION value is not a string")
 			event.description = descriptionProp.value
 		}
 
-		const sequenceProp = eventObj.properties.find(p => p.name === "SEQUENCE")
+		const sequenceProp = eventObj.properties.find((p) => p.name === "SEQUENCE")
 
 		if (sequenceProp) {
 			const sequenceNumber = filterInt(sequenceProp.value)
@@ -520,14 +511,14 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 		}
 
 		const alarms: AlarmInfo[] = []
-		eventObj.children.forEach(alarmChild => {
+		eventObj.children.forEach((alarmChild) => {
 			if (alarmChild.type === "VALARM") {
 				const newAlarm = parseAlarm(alarmChild, event)
 				if (newAlarm) alarms.push(newAlarm)
 			}
 		})
 		let attendees: CalendarEventAttendee[] = []
-		eventObj.properties.forEach(property => {
+		eventObj.properties.forEach((property) => {
 			if (property.name === "ATTENDEE") {
 				const attendeeAddress = parseMailtoValue(property.value)
 
@@ -556,7 +547,7 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 			}
 		})
 		event.attendees = attendees
-		const organizerProp = eventObj.properties.find(p => p.name === "ORGANIZER")
+		const organizerProp = eventObj.properties.find((p) => p.name === "ORGANIZER")
 
 		if (organizerProp) {
 			const organizerAddress = parseMailtoValue(organizerProp.value)
@@ -642,7 +633,7 @@ export function parseTimeIntoComponents(value: string): DateComponents | DateTim
 
 	if (/[0-9]{8}T[0-9]{6}Z/.test(trimmedValue)) {
 		// date with time in UTC
-		const {year, month, day} = parseDateString(trimmedValue)
+		const { year, month, day } = parseDateString(trimmedValue)
 		const hour = parseInt(trimmedValue.slice(9, 11))
 		const minute = parseInt(trimmedValue.slice(11, 13))
 		return {
@@ -655,7 +646,7 @@ export function parseTimeIntoComponents(value: string): DateComponents | DateTim
 		}
 	} else if (/[0-9]{8}T[0-9]{6}/.test(trimmedValue)) {
 		// date with time in local timezone
-		const {year, month, day} = parseDateString(trimmedValue)
+		const { year, month, day } = parseDateString(trimmedValue)
 		const hour = parseInt(trimmedValue.slice(9, 11))
 		const minute = parseInt(trimmedValue.slice(11, 13))
 		return {
@@ -711,15 +702,15 @@ export function parseTime(
 		{},
 		allDay
 			? {
-				hour: 0,
-				minute: 0,
-				second: 0,
-				millisecond: 0,
-				zone: "UTC",
-			}
+					hour: 0,
+					minute: 0,
+					second: 0,
+					millisecond: 0,
+					zone: "UTC",
+			  }
 			: {
-				zone,
-			},
+					zone,
+			  },
 		components,
 	)
 	return {
@@ -809,13 +800,13 @@ const durationTimeParser: Parser<TimeDuration> = mapParser(
 	},
 )
 const durationDayParser = combineParsers(numberParser, makeCharacterParser("D"))
-const durationWeekParser: Parser<WeekDuration> = mapParser(combineParsers(numberParser, makeCharacterParser("W")), parsed => {
+const durationWeekParser: Parser<WeekDuration> = mapParser(combineParsers(numberParser, makeCharacterParser("W")), (parsed) => {
 	return {
 		type: "week",
 		week: parsed[0],
 	}
 })
-const durationDateParser: Parser<DateDuration> = mapParser(combineParsers(durationDayParser, maybeParse(durationTimeParser)), parsed => {
+const durationDateParser: Parser<DateDuration> = mapParser(combineParsers(durationDayParser, maybeParse(durationTimeParser)), (parsed) => {
 	return {
 		type: "date",
 		day: parsed[0][0],

@@ -1,15 +1,15 @@
-import type {File as TutanotaFile} from "../entities/tutanota/TypeRefs.js"
+import type { File as TutanotaFile } from "../entities/tutanota/TypeRefs.js"
 
 /**
  * a structure containing file content and metadata
  */
 export interface DataFile {
-	readonly _type: "DataFile",
-	name: string,
-	mimeType: string,
-	data: Uint8Array,
-	size: number,
-	id?: IdTuple,
+	readonly _type: "DataFile"
+	name: string
+	mimeType: string
+	data: Uint8Array
+	size: number
+	id?: IdTuple
 	cid?: string
 }
 

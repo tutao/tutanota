@@ -1,10 +1,10 @@
-import type {TranslationKey, TranslationText} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import {GroupType} from "../api/common/TutanotaConstants"
-import {ProgrammingError} from "../api/common/error/ProgrammingError"
-import {getDefaultGroupName} from "./GroupUtils"
-import type {ReceivedGroupInvitation} from "../api/entities/sys/TypeRefs.js"
-import type {lazy} from "@tutao/tutanota-utils"
+import type { TranslationKey, TranslationText } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
+import { GroupType } from "../api/common/TutanotaConstants"
+import { ProgrammingError } from "../api/common/error/ProgrammingError"
+import { getDefaultGroupName } from "./GroupUtils"
+import type { ReceivedGroupInvitation } from "../api/entities/sys/TypeRefs.js"
+import type { lazy } from "@tutao/tutanota-utils"
 
 export type GroupSharingTexts = {
 	readonly groupNameLabel: TranslationKey
@@ -27,7 +27,7 @@ export type GroupSharingTexts = {
 
 const CALENDAR_SHARING_TEXTS: lazy<GroupSharingTexts> = () => ({
 	groupNameLabel: "calendarName_label",
-	participantsLabel: groupName =>
+	participantsLabel: (groupName) =>
 		lang.get("participants_label", {
 			"{name}": groupName,
 		}),
@@ -52,7 +52,7 @@ const CALENDAR_SHARING_TEXTS: lazy<GroupSharingTexts> = () => ({
 			"{inviter}": sender,
 			"{calendarName}": calendarName,
 		}),
-	addMemberMessage: _ => `${lang.get("shareCalendarWarning_msg")} ${lang.get("shareCalendarWarningAliases_msg")}`,
+	addMemberMessage: (_) => `${lang.get("shareCalendarWarning_msg")} ${lang.get("shareCalendarWarningAliases_msg")}`,
 	removeMemberMessage: (calendarName, invitee) =>
 		lang.get("removeCalendarParticipantConfirm_msg", {
 			"{participant}": invitee,
@@ -62,8 +62,8 @@ const CALENDAR_SHARING_TEXTS: lazy<GroupSharingTexts> = () => ({
 	sharingNotOrderedUser: lang.get("sharingFeatureNotOrderedUser_msg"),
 	alreadyGroupMemberMessage: "alreadyMember_msg",
 	receivedGroupInvitationMessage: `${lang.get("shareCalendarWarning_msg")} ${lang.get("shareCalendarWarningAliases_msg")}`,
-	sharedGroupDefaultCustomName: groupOwnerName => getDefaultGroupName(GroupType.Calendar),
-	yourCustomNameLabel: groupName =>
+	sharedGroupDefaultCustomName: (groupOwnerName) => getDefaultGroupName(GroupType.Calendar),
+	yourCustomNameLabel: (groupName) =>
 		lang.get("customName_label", {
 			"{customName}": groupName,
 		}),
@@ -71,7 +71,7 @@ const CALENDAR_SHARING_TEXTS: lazy<GroupSharingTexts> = () => ({
 
 const TEMPLATE_SHARING_TEXTS: lazy<GroupSharingTexts> = () => ({
 	groupNameLabel: "templateGroupName_label",
-	participantsLabel: groupName =>
+	participantsLabel: (groupName) =>
 		lang.get("templateGroupParticipants_label", {
 			"{groupName}": groupName,
 		}),
@@ -105,11 +105,11 @@ const TEMPLATE_SHARING_TEXTS: lazy<GroupSharingTexts> = () => ({
 	sharingNotOrderedAdmin: lang.get("templateSharingNotOrdered_msg"),
 	alreadyGroupMemberMessage: "alreadyTemplateGroupMember_msg",
 	receivedGroupInvitationMessage: `${lang.get("shareTemplateGroupWarning_msg")} ${lang.get("shareCalendarWarningAliases_msg")}`,
-	sharedGroupDefaultCustomName: invitation =>
+	sharedGroupDefaultCustomName: (invitation) =>
 		lang.get("sharedTemplateGroupDefaultName_label", {
 			"{ownerName}": invitation.inviterName || invitation.inviterMailAddress,
 		}),
-	yourCustomNameLabel: groupName =>
+	yourCustomNameLabel: (groupName) =>
 		lang.get("customTemplateListName_label", {
 			"{customName}": groupName,
 		}),

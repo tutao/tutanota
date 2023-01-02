@@ -1,5 +1,5 @@
-import {AccountType, Const, GroupType} from "../../common/TutanotaConstants"
-import type {User} from "../../entities/sys/TypeRefs.js"
+import { AccountType, Const, GroupType } from "../../common/TutanotaConstants"
+import type { User } from "../../entities/sys/TypeRefs.js"
 import {
 	createMembershipAddData,
 	createRecoverCode,
@@ -7,17 +7,17 @@ import {
 	createUpdateAdminshipData,
 	createUserDataDelete,
 	GroupTypeRef,
-	RecoverCodeTypeRef
+	RecoverCodeTypeRef,
 } from "../../entities/sys/TypeRefs.js"
-import {encryptBytes, encryptString} from "../crypto/CryptoFacade"
-import {assertNotNull, neverNull, uint8ArrayToHex} from "@tutao/tutanota-utils"
-import type {ContactFormUserData, UserAccountUserData} from "../../entities/tutanota/TypeRefs.js"
-import {createContactFormUserData, createUserAccountCreateData, createUserAccountUserData} from "../../entities/tutanota/TypeRefs.js"
-import type {GroupManagementFacade} from "./GroupManagementFacade"
-import type {RecoverData} from "./LoginFacade"
-import type {WorkerImpl} from "../WorkerImpl"
-import {CounterFacade} from "./CounterFacade"
-import {assertWorkerOrNode} from "../../common/Env"
+import { encryptBytes, encryptString } from "../crypto/CryptoFacade"
+import { assertNotNull, neverNull, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import type { ContactFormUserData, UserAccountUserData } from "../../entities/tutanota/TypeRefs.js"
+import { createContactFormUserData, createUserAccountCreateData, createUserAccountUserData } from "../../entities/tutanota/TypeRefs.js"
+import type { GroupManagementFacade } from "./GroupManagementFacade"
+import type { RecoverData } from "./LoginFacade"
+import type { WorkerImpl } from "../WorkerImpl"
+import { CounterFacade } from "./CounterFacade"
+import { assertWorkerOrNode } from "../../common/Env"
 import {
 	aes128RandomKey,
 	aes256EncryptKey,
@@ -34,17 +34,16 @@ import {
 	KeyLength,
 	random,
 } from "@tutao/tutanota-crypto"
-import type {RsaImplementation} from "../crypto/RsaImplementation"
-import {EntityClient} from "../../common/EntityClient"
-import {IServiceExecutor} from "../../common/ServiceRequest"
-import {MembershipService, ResetPasswordService, SystemKeysService, UpdateAdminshipService, UserService} from "../../entities/sys/Services"
-import {UserAccountService} from "../../entities/tutanota/Services"
-import {UserFacade} from "./UserFacade"
+import type { RsaImplementation } from "../crypto/RsaImplementation"
+import { EntityClient } from "../../common/EntityClient"
+import { IServiceExecutor } from "../../common/ServiceRequest"
+import { MembershipService, ResetPasswordService, SystemKeysService, UpdateAdminshipService, UserService } from "../../entities/sys/Services"
+import { UserAccountService } from "../../entities/tutanota/Services"
+import { UserFacade } from "./UserFacade"
 
 assertWorkerOrNode()
 
 export class UserManagementFacade {
-
 	constructor(
 		private readonly worker: WorkerImpl,
 		private readonly userFacade: UserFacade,
@@ -53,8 +52,7 @@ export class UserManagementFacade {
 		private readonly rsa: RsaImplementation,
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
-	) {
-	}
+	) {}
 
 	async changeUserPassword(user: User, newPassword: string): Promise<void> {
 		const userGroupKey = await this.groupManagement.getGroupKeyViaAdminEncGKey(user.userGroup.group)
@@ -108,7 +106,7 @@ export class UserManagementFacade {
 	 *
 	 * @private
 	 */
-	async _getAccountKeyData(): Promise<{group: Id, symEncGKey: Uint8Array}> {
+	async _getAccountKeyData(): Promise<{ group: Id; symEncGKey: Uint8Array }> {
 		const keysReturn = await this.serviceExecutor.get(SystemKeysService, null)
 		const user = this.userFacade.getLoggedInUser()
 
@@ -161,9 +159,9 @@ export class UserManagementFacade {
 	}
 
 	readUsedUserStorage(user: User): Promise<number> {
-		return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Mail)).then(mailStorage => {
-			return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Contact)).then(contactStorage => {
-				return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.File)).then(fileStorage => {
+		return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Mail)).then((mailStorage) => {
+			return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Contact)).then((contactStorage) => {
+				return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.File)).then((fileStorage) => {
 					return Number(mailStorage) + Number(contactStorage) + Number(fileStorage)
 				})
 			})
@@ -183,7 +181,7 @@ export class UserManagementFacade {
 		if (groupType === GroupType.User) {
 			return user.userGroup.group
 		} else {
-			let membership = user.memberships.find(m => m.groupType === groupType)
+			let membership = user.memberships.find((m) => m.groupType === groupType)
 
 			if (!membership) {
 				throw new Error("could not find groupType " + groupType + " for user " + user._id)
@@ -209,29 +207,29 @@ export class UserManagementFacade {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
 		return this.rsa
-				   .generateKey()
-				   .then(keyPair =>
-					   this.groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey),
-				   )
-				   .then(userGroupData => {
-					   return this.worker.sendProgress(((userIndex + 0.8) / overallNbrOfUsersToCreate) * 100).then(() => {
-						   let data = createUserAccountCreateData()
-						   data.date = Const.CURRENT_DATE
-						   data.userGroupData = userGroupData
-						   data.userData = this.generateUserAccountData(
-							   userGroupKey,
-							   userGroupInfoSessionKey,
-							   customerGroupKey,
-							   mailAddress,
-							   password,
-							   name,
-							   this.generateRecoveryCode(userGroupKey),
-						   )
-						   return this.serviceExecutor.post(UserAccountService, data).then(() => {
-							   return this.worker.sendProgress(((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
-						   })
-					   })
-				   })
+			.generateKey()
+			.then((keyPair) =>
+				this.groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey),
+			)
+			.then((userGroupData) => {
+				return this.worker.sendProgress(((userIndex + 0.8) / overallNbrOfUsersToCreate) * 100).then(() => {
+					let data = createUserAccountCreateData()
+					data.date = Const.CURRENT_DATE
+					data.userGroupData = userGroupData
+					data.userData = this.generateUserAccountData(
+						userGroupKey,
+						userGroupInfoSessionKey,
+						customerGroupKey,
+						mailAddress,
+						password,
+						name,
+						this.generateRecoveryCode(userGroupKey),
+					)
+					return this.serviceExecutor.post(UserAccountService, data).then(() => {
+						return this.worker.sendProgress(((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
+					})
+				})
+			})
 	}
 
 	generateUserAccountData(
@@ -328,7 +326,7 @@ export class UserManagementFacade {
 		const extraHeaders = {
 			authVerifier: createAuthVerifierAsBase64Url(key),
 		}
-		return this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, undefined, extraHeaders).then(result => {
+		return this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, undefined, extraHeaders).then((result) => {
 			return uint8ArrayToHex(bitArrayToUint8Array(decrypt256Key(this.userFacade.getUserGroupKey(), result.userEncRecoverCode)))
 		})
 	}
@@ -340,12 +338,7 @@ export class UserManagementFacade {
 			throw new Error("Invalid state: no user or no user.auth")
 		}
 
-		const {
-			userEncRecoverCode,
-			recoverCodeEncUserGroupKey,
-			hexCode,
-			recoveryCodeVerifier
-		} = this.generateRecoveryCode(this.userFacade.getUserGroupKey())
+		const { userEncRecoverCode, recoverCodeEncUserGroupKey, hexCode, recoveryCodeVerifier } = this.generateRecoveryCode(this.userFacade.getUserGroupKey())
 		const recoverPasswordEntity = createRecoverCode()
 		recoverPasswordEntity.userEncRecoverCode = userEncRecoverCode
 		recoverPasswordEntity.recoverCodeEncUserGroupKey = recoverCodeEncUserGroupKey
@@ -354,9 +347,9 @@ export class UserManagementFacade {
 		const pwKey = generateKeyFromPassphrase(password, neverNull(user.salt), KeyLength.b128)
 		const authVerifier = createAuthVerifierAsBase64Url(pwKey)
 		return this.entityClient
-				   .setup(null, recoverPasswordEntity, {
-					   authVerifier,
-				   })
-				   .then(() => hexCode)
+			.setup(null, recoverPasswordEntity, {
+				authVerifier,
+			})
+			.then(() => hexCode)
 	}
 }

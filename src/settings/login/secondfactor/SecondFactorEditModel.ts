@@ -1,16 +1,16 @@
-import {EntityClient} from "../../../api/common/EntityClient.js"
-import {createSecondFactor, GroupInfoTypeRef, U2fRegisteredDevice, User} from "../../../api/entities/sys/TypeRefs.js"
-import {validateWebauthnDisplayName, WebauthnClient} from "../../../misc/2fa/webauthn/WebauthnClient.js"
-import {TotpSecret} from "@tutao/tutanota-crypto"
-import {assertNotNull, LazyLoaded, neverNull} from "@tutao/tutanota-utils"
-import {isApp, isTutanotaDomain} from "../../../api/common/Env.js"
-import {htmlSanitizer} from "../../../misc/HtmlSanitizer.js"
-import {LanguageViewModel, TranslationKey} from "../../../misc/LanguageViewModel.js"
-import {SecondFactorType} from "../../../api/common/TutanotaConstants.js"
-import {ProgrammingError} from "../../../api/common/error/ProgrammingError.js"
+import { EntityClient } from "../../../api/common/EntityClient.js"
+import { createSecondFactor, GroupInfoTypeRef, U2fRegisteredDevice, User } from "../../../api/entities/sys/TypeRefs.js"
+import { validateWebauthnDisplayName, WebauthnClient } from "../../../misc/2fa/webauthn/WebauthnClient.js"
+import { TotpSecret } from "@tutao/tutanota-crypto"
+import { assertNotNull, LazyLoaded, neverNull } from "@tutao/tutanota-utils"
+import { isApp, isTutanotaDomain } from "../../../api/common/Env.js"
+import { htmlSanitizer } from "../../../misc/HtmlSanitizer.js"
+import { LanguageViewModel, TranslationKey } from "../../../misc/LanguageViewModel.js"
+import { SecondFactorType } from "../../../api/common/TutanotaConstants.js"
+import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import QRCode from "qrcode-svg"
-import {LoginFacade} from "../../../api/worker/facades/LoginFacade.js"
-import {UserError} from "../../../api/main/UserError.js"
+import { LoginFacade } from "../../../api/worker/facades/LoginFacade.js"
+import { UserError } from "../../../api/main/UserError.js"
 
 export const enum VerificationStatus {
 	Initial = "Initial",
@@ -24,7 +24,7 @@ export const DEFAULT_TOTP_NAME = "TOTP"
 
 export enum NameValidationStatus {
 	Valid,
-	Invalid
+	Invalid,
 }
 
 export const SecondFactorTypeToNameTextId: Record<SecondFactorType, TranslationKey> = Object.freeze({
@@ -54,7 +54,7 @@ export class SecondFactorEditModel {
 		private readonly webauthnSupported: boolean,
 		private readonly lang: LanguageViewModel,
 		private readonly loginFacade: LoginFacade,
-		private readonly updateViewCallback: () => void
+		private readonly updateViewCallback: () => void,
 	) {
 		this.selectedType = webauthnSupported ? SecondFactorType.webauthn : SecondFactorType.totp
 		this.setDefaultNameIfNeeded()
@@ -98,9 +98,7 @@ export class SecondFactorEditModel {
 	 * validation message for use in dialog validators
 	 */
 	validationMessage(): TranslationKey | null {
-		return this.nameValidationStatus === NameValidationStatus.Valid
-			? null
-			: "textTooLong_msg"
+		return this.nameValidationStatus === NameValidationStatus.Valid ? null : "textTooLong_msg"
 	}
 
 	/**
@@ -121,9 +119,7 @@ export class SecondFactorEditModel {
 	 */
 	onTypeSelected(newValue: SecondFactorType) {
 		this.selectedType = newValue
-		this.verificationStatus = newValue === SecondFactorType.webauthn
-			? VerificationStatus.Initial
-			: VerificationStatus.Progress
+		this.verificationStatus = newValue === SecondFactorType.webauthn ? VerificationStatus.Initial : VerificationStatus.Progress
 
 		this.setDefaultNameIfNeeded()
 		this.updateNameValidation()
@@ -194,7 +190,6 @@ export class SecondFactorEditModel {
 		}
 
 		if (this.selectedType === SecondFactorType.webauthn) {
-
 			if (this.verificationStatus !== VerificationStatus.Success) {
 				throw new UserError("unrecognizedU2fDevice_msg")
 			} else {
@@ -229,9 +224,10 @@ export class SecondFactorEditModel {
 	 * re-check if the given display name is valid for the current second factor type
 	 */
 	private updateNameValidation(): void {
-		this.nameValidationStatus = this.selectedType !== SecondFactorType.webauthn || validateWebauthnDisplayName(this.name)
-			? NameValidationStatus.Valid
-			: NameValidationStatus.Invalid
+		this.nameValidationStatus =
+			this.selectedType !== SecondFactorType.webauthn || validateWebauthnDisplayName(this.name)
+				? NameValidationStatus.Valid
+				: NameValidationStatus.Invalid
 	}
 
 	/**
@@ -273,5 +269,4 @@ export class SecondFactorEditModel {
 
 		return VerificationStatus.Failed
 	}
-
 }
