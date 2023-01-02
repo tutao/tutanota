@@ -766,7 +766,7 @@ o.spec("CalendarEventViewModel", function () {
 			updateModel.bccRecipients()[0].contact = createContact({
 				presharedPassword: "123",
 			})
-			updateModel.onMailChanged(true)
+			updateModel.onMailChanged(null)
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 			askInsecurePassword = o.spy(async () => true)
 			o(
@@ -824,7 +824,7 @@ o.spec("CalendarEventViewModel", function () {
 			updateModel.bccRecipients()[0].contact = createContact({
 				presharedPassword: "123",
 			})
-			updateModel.onMailChanged(true)
+			updateModel.onMailChanged(null)
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 			askInsecurePassword = o.spy(async () => true)
 			viewModel.isForceUpdates(true)
@@ -886,7 +886,7 @@ o.spec("CalendarEventViewModel", function () {
 			updateModel.bccRecipients()[0].contact = createContact({
 				presharedPassword: "123",
 			})
-			updateModel.onMailChanged(true)
+			updateModel.onMailChanged(null)
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 			askInsecurePassword = o.spy(async () => true)
 			viewModel.isForceUpdates(true)
@@ -948,7 +948,7 @@ o.spec("CalendarEventViewModel", function () {
 			updateModel.bccRecipients()[0].contact = createContact({
 				presharedPassword: "123",
 			})
-			updateModel.onMailChanged(true)
+			updateModel.onMailChanged(null)
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 			askInsecurePassword = o.spy(async () => true)
 			o(
@@ -1572,7 +1572,7 @@ o.spec("CalendarEventViewModel", function () {
 			updateModel.bccRecipients()[0].contact = createContact({
 				presharedPassword: "123",
 			})
-			updateModel.onMailChanged(true)
+			updateModel.onMailChanged(null)
 			viewModel.setStartDate(new Date(2020, 4, 3))
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 			askInsecurePassword = o.spy(async () => true)
