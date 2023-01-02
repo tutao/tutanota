@@ -62,7 +62,7 @@ import { FolderSubtree, FolderSystem } from "../model/FolderSystem.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
-import { CurrentView, TopLevelAttrs } from "../../TopLevelView.js"
+import { TopLevelView, TopLevelAttrs } from "../../TopLevelView.js"
 
 assertMainOrNode()
 
@@ -90,14 +90,14 @@ export interface MailViewAttrs extends TopLevelAttrs {
 /**
  * Top-level view for displaying mailboxes.
  */
-export class MailView extends BaseTopLevelView implements CurrentView<MailViewAttrs> {
+export class MailView extends BaseTopLevelView implements TopLevelView<MailViewAttrs> {
 	private readonly listColumn: ViewColumn
 	private readonly folderColumn: ViewColumn
 	private readonly mailColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
 	cache: MailViewCache
 
-	readonly onremove: CurrentView["onremove"]
+	readonly onremove: TopLevelView["onremove"]
 
 	/**
 	 * We remember the last URL used for each folder so if we switch between folders we can keep the selected mail.

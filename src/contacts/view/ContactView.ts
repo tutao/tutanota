@@ -47,7 +47,7 @@ import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
-import { CurrentView, TopLevelAttrs } from "../../TopLevelView.js"
+import { TopLevelView, TopLevelAttrs } from "../../TopLevelView.js"
 
 assertMainOrNode()
 
@@ -56,7 +56,7 @@ export interface ContactViewAttrs extends TopLevelAttrs {
 	header: BaseHeaderAttrs
 }
 
-export class ContactView extends BaseTopLevelView implements CurrentView<ContactViewAttrs> {
+export class ContactView extends BaseTopLevelView implements TopLevelView<ContactViewAttrs> {
 	listColumn: ViewColumn
 	contactColumn: ViewColumn
 	folderColumn: ViewColumn
@@ -64,7 +64,7 @@ export class ContactView extends BaseTopLevelView implements CurrentView<Contact
 	viewSlider: ViewSlider
 	_contactList: ContactListView | null = null
 	private _multiContactViewer: MultiContactViewer
-	onremove: CurrentView["onremove"]
+	onremove: TopLevelView["onremove"]
 	private _throttledSetUrl: (url: string) => void
 
 	constructor(vnode: Vnode<ContactViewAttrs>) {

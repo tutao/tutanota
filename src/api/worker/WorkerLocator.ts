@@ -57,6 +57,7 @@ import { EntropyFacade } from "./facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./crypto/OwnerEncSessionKeysUpdateQueue.js"
 import { EventBusEventCoordinator } from "./EventBusEventCoordinator.js"
+import {WorkerFacade} from "./facades/WorkerFacade.js"
 
 assertWorkerOrNode()
 
@@ -96,11 +97,13 @@ export type WorkerLocatorType = {
 	booking: BookingFacade
 	cacheStorage: CacheStorage
 	entropyFacade: EntropyFacade
+	workerFacade: WorkerFacade
 }
 export const locator: WorkerLocatorType = {} as any
 
 export async function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	locator.user = new UserFacade()
+	locator.workerFacade = new WorkerFacade()
 	const dateProvider = new NoZoneDateProvider()
 
 	const mainInterface = worker.getMainInterface()

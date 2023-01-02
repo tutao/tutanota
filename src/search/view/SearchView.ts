@@ -56,7 +56,7 @@ import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { MobileMailActionBar } from "../../mail/view/MobileMailActionBar.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
-import { CurrentView, TopLevelAttrs } from "../../TopLevelView.js"
+import { TopLevelView, TopLevelAttrs } from "../../TopLevelView.js"
 import {MailboxDetail} from "../../mail/model/MailModel.js"
 import Stream from "mithril/stream"
 
@@ -67,8 +67,8 @@ export interface SearchViewAttrs extends TopLevelAttrs {
 	header: BaseHeaderAttrs
 }
 
-export class SearchView extends BaseTopLevelView implements CurrentView<SearchViewAttrs> {
-	onremove: CurrentView["onremove"]
+export class SearchView extends BaseTopLevelView implements TopLevelView<SearchViewAttrs> {
+	onremove: TopLevelView["onremove"]
 
 	private resultListColumn: ViewColumn
 	private resultDetailsColumn: ViewColumn

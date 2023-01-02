@@ -175,7 +175,7 @@ function createUserIfMailAddressAvailable(user: UserImportDetails, index: number
 	return locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress).then((available) => {
 		if (available) {
 			// we don't use it currently
-			const operation = locator.operationProgressTracker.registerOperation()
+			const operation = locator.operationProgressTracker.startNewOperation()
 			return locator.userManagementFacade
 				.createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers, operation.id)
 				.then(() => {

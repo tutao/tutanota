@@ -7,9 +7,9 @@ export interface TopLevelAttrs {
 }
 
 /**
- * An interface that all top-levels views must comfort to.
+ * An interface that all top-levels views must conform to.
  */
-export interface CurrentView<Attrs extends TopLevelAttrs = TopLevelAttrs> extends Component<Attrs> {
+export interface TopLevelView<Attrs extends TopLevelAttrs = TopLevelAttrs> extends Component<Attrs> {
 	/** Called when URL is updated. Optional as is only needed for old-style components (the ones we instantiate manually) */
 	updateUrl?(args: Record<string, any>, requestedPath: string): void
 
