@@ -57,6 +57,8 @@ import { MobileMailActionBar } from "../../mail/view/MobileMailActionBar.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { CurrentView, TopLevelAttrs } from "../../TopLevelView.js"
+import {MailboxDetail} from "../../mail/model/MailModel.js"
+import Stream from "mithril/stream"
 
 assertMainOrNode()
 
@@ -98,37 +100,10 @@ export class SearchView extends BaseTopLevelView implements CurrentView<SearchVi
 	private availableMailFolders: Array<SelectorItem<Id | null>> = []
 	private selectedMailField: string | null = null
 	private readonly availableMailFields = SEARCH_MAIL_FIELDS.map((f) => ({ name: lang.get(f.textId), value: f.field }))
+	private mailboxSubscription: Stream<void> | null = null
 
 	constructor(vnode: Vnode<SearchViewAttrs>) {
 		super()
-		// fixme unsubscribe?
-		locator.mailModel.mailboxDetails.map((mailboxes) => {
-			this.availableMailFolders = [
-				{
-					name: lang.get("all_label"),
-					value: null,
-					indentationLevel: 0,
-				},
-			]
-
-			for (const mailbox of mailboxes) {
-				const mailboxIndex = mailboxes.indexOf(mailbox)
-				const mailFolders = mailbox.folders.getIndentedList()
-				for (const folderInfo of mailFolders) {
-					if (folderInfo.folder.folderType !== MailFolderType.SPAM) {
-						const mailboxLabel = mailboxIndex === 0 ? "" : ` (${getGroupInfoDisplayName(mailbox.mailGroupInfo)})`
-						this.availableMailFolders.push({
-							name: getIndentedFolderNameForDropdown(folderInfo) + mailboxLabel,
-							value: folderInfo.folder.mails,
-						})
-					}
-				}
-			}
-
-			if (!this.availableMailFolders.find((f) => f.value === this.selectedMailFolder)) {
-				this.selectedMailFolder = this.availableMailFolders[0].value
-			}
-		})
 		this.folderColumn = new ViewColumn(
 			{
 				view: () => {
@@ -199,7 +174,50 @@ export class SearchView extends BaseTopLevelView implements CurrentView<SearchVi
 		)
 		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn], "ContactView")
 
-		this._setupShortcuts()
+		const shortcuts = this.getShortcuts()
+
+		this.oncreate = (vnode) => {
+			super.oncreate(vnode)
+			keyManager.registerShortcuts(shortcuts)
+			neverNull(header.searchBar).setReturnListener(() => this.resultListColumn.focus())
+			locator.eventController.addEntityListener(this.entityListener)
+			this.mailboxSubscription = locator.mailModel.mailboxDetails.map((mailboxes) => this.onMailboxesChanged(mailboxes))
+		}
+
+		this.onremove = () => {
+			keyManager.unregisterShortcuts(shortcuts)
+			neverNull(header.searchBar).setReturnListener(noOp)
+			locator.eventController.removeEntityListener(this.entityListener)
+			this.mailboxSubscription?.end(true)
+		}
+	}
+
+	private onMailboxesChanged(mailboxes: MailboxDetail[]) {
+		this.availableMailFolders = [
+			{
+				name: lang.get("all_label"),
+				value: null,
+				indentationLevel: 0,
+			},
+		]
+
+		for (const mailbox of mailboxes) {
+			const mailboxIndex = mailboxes.indexOf(mailbox)
+			const mailFolders = mailbox.folders.getIndentedList()
+			for (const folderInfo of mailFolders) {
+				if (folderInfo.folder.folderType !== MailFolderType.SPAM) {
+					const mailboxLabel = mailboxIndex === 0 ? "" : ` (${getGroupInfoDisplayName(mailbox.mailGroupInfo)})`
+					this.availableMailFolders.push({
+						name: getIndentedFolderNameForDropdown(folderInfo) + mailboxLabel,
+						value: folderInfo.folder.mails,
+					})
+				}
+			}
+		}
+
+		if (!this.availableMailFolders.find((f) => f.value === this.selectedMailFolder)) {
+			this.selectedMailFolder = this.availableMailFolders[0].value
+		}
 	}
 
 	private entityListener = (updates: EntityUpdateData[]) => {
@@ -208,7 +226,7 @@ export class SearchView extends BaseTopLevelView implements CurrentView<SearchVi
 		}).then(noOp)
 	}
 
-	view({attrs}: Vnode<SearchViewAttrs>): Children {
+	view({ attrs }: Vnode<SearchViewAttrs>): Children {
 		return m(
 			"#search.main-view",
 			m(this.viewSlider, {
@@ -216,7 +234,7 @@ export class SearchView extends BaseTopLevelView implements CurrentView<SearchVi
 					headerView: this.renderHeaderView(),
 					rightView: this.renderHeaderRightView(),
 					viewSlider: this.viewSlider,
-					...attrs.header
+					...attrs.header,
 				}),
 				bottomNav:
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.resultDetailsColumn && this.viewer._viewer?.mode === "mail"
@@ -422,8 +440,8 @@ export class SearchView extends BaseTopLevelView implements CurrentView<SearchVi
 		return getSearchUrl(locator.search.lastQuery(), restriction, selectedId ?? undefined)
 	}
 
-	_setupShortcuts() {
-		let shortcuts: Array<Shortcut> = [
+	getShortcuts(): Shortcut[] {
+		return [
 			{
 				key: Keys.UP,
 				exec: () => this.searchList.selectPrevious(false),
@@ -502,19 +520,6 @@ export class SearchView extends BaseTopLevelView implements CurrentView<SearchVi
 				help: "moveToInbox_action",
 			},
 		]
-
-		this.oncreate = (vnode) => {
-			super.oncreate(vnode)
-			keyManager.registerShortcuts(shortcuts)
-			neverNull(header.searchBar).setReturnListener(() => this.resultListColumn.focus())
-			locator.eventController.addEntityListener(this.entityListener)
-		}
-
-		this.onremove = () => {
-			keyManager.unregisterShortcuts(shortcuts)
-			neverNull(header.searchBar).setReturnListener(noOp)
-			locator.eventController.removeEntityListener(this.entityListener)
-		}
 	}
 
 	elementSelected(entries: SearchResultListEntry[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
