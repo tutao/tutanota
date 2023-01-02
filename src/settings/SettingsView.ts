@@ -62,7 +62,7 @@ import { BottomNav } from "../gui/nav/BottomNav.js"
 import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
-import { CurrentView, TopLevelAttrs } from "../TopLevelView.js"
+import { TopLevelView, TopLevelAttrs } from "../TopLevelView.js"
 
 assertMainOrNode()
 
@@ -83,7 +83,7 @@ export interface SettingsViewAttrs extends TopLevelAttrs {
 	header: BaseHeaderAttrs
 }
 
-export class SettingsView extends BaseTopLevelView implements CurrentView<SettingsViewAttrs> {
+export class SettingsView extends BaseTopLevelView implements TopLevelView<SettingsViewAttrs> {
 	viewSlider: ViewSlider
 	private readonly _settingsFoldersColumn: ViewColumn
 	private readonly _settingsColumn: ViewColumn

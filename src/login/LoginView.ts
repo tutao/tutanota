@@ -22,7 +22,7 @@ import type { clickHandler } from "../gui/base/GuiUtils"
 import { IconButton } from "../gui/base/IconButton.js"
 import { showLogsDialog } from "./LoginLogDialog.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
-import { CurrentView, TopLevelAttrs } from "../TopLevelView.js"
+import { TopLevelView, TopLevelAttrs } from "../TopLevelView.js"
 
 assertMainOrNode()
 
@@ -33,7 +33,7 @@ export interface LoginViewAttrs extends TopLevelAttrs {
 	header: BaseHeaderAttrs
 }
 
-export class LoginView extends BaseTopLevelView implements CurrentView<LoginViewAttrs> {
+export class LoginView extends BaseTopLevelView implements TopLevelView<LoginViewAttrs> {
 	private readonly viewModel: LoginViewModel
 	private readonly defaultRedirect: string
 	private readonly initPromise: Promise<void>

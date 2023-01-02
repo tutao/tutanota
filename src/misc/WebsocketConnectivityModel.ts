@@ -12,25 +12,26 @@ export interface WebsocketConnectivityListener {
 
 /** A web page thread view on websocket/event bus. */
 export class WebsocketConnectivityModel implements WebsocketConnectivityListener {
-	private readonly _wsConnection = stream<WsConnectionState>(WsConnectionState.terminated)
-	private _leaderStatus: boolean = false
+	private readonly wsState = stream<WsConnectionState>(WsConnectionState.terminated)
+	private leaderStatus: boolean = false
 
 	constructor(private readonly eventBus: ExposedEventBus) {}
 
 	async updateWebSocketState(wsConnectionState: WsConnectionState): Promise<void> {
-		this._wsConnection(wsConnectionState)
+		this.wsState(wsConnectionState)
 	}
 
 	async onLeaderStatusChanged(leaderStatus: WebsocketLeaderStatus): Promise<void> {
-		this._leaderStatus = leaderStatus.leaderStatus
+		this.leaderStatus = leaderStatus.leaderStatus
 	}
 
 	isLeader(): boolean {
-		return this._leaderStatus
+		return this.leaderStatus
 	}
 
 	wsConnection(): stream<WsConnectionState> {
-		return this._wsConnection.map(identity)
+		// .map() to make a defensive copy
+		return this.wsState.map(identity)
 	}
 
 	tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean, delay: number | null = null): Promise<void> {
