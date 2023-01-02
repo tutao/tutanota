@@ -250,7 +250,7 @@ function signup(
 	campaign: string | null,
 ): Promise<NewAccountData | void> {
 	const { customerFacade } = locator
-	const operation = locator.operationProgressTracker.registerOperation()
+	const operation = locator.operationProgressTracker.startNewOperation()
 	return showProgressDialog(
 		"createAccountRunning_msg",
 		customerFacade.generateSignupKeys(operation.id).then((keyPairs) => {

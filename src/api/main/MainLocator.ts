@@ -87,7 +87,11 @@ import { OperationProgressTracker } from "./OperationProgressTracker.js"
 import { WorkerFacade } from "../worker/facades/WorkerFacade.js"
 import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
 import { OfflineIndicatorViewModel } from "../../gui/base/OfflineIndicatorViewModel.js"
-import {BaseHeaderAttrs} from "../../gui/Header.js"
+import { BaseHeaderAttrs } from "../../gui/Header.js"
+import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
+import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel.js"
+import { GroupType } from "../common/TutanotaConstants.js"
+import { getEventStart, getTimeZone } from "../../calendar/date/CalendarUtils.js"
 
 assertMainOrNode()
 
@@ -175,6 +179,28 @@ class MainLocator {
 			offlineIndicatorModel: await this.offlineIndicatorViewModel(),
 			newsModel: this.newsModel,
 		}
+	}
+
+	async calendarViewModel(): Promise<CalendarViewModel> {
+		const { ReceivedGroupInvitationsModel } = await import("../../sharing/model/ReceivedGroupInvitationsModel.js")
+		const { CalendarViewModel } = await import("../../calendar/view/CalendarViewModel.js")
+		const calendarInvitations = new ReceivedGroupInvitationsModel(GroupType.Calendar, this.eventController, this.entityClient, logins)
+		calendarInvitations.init()
+		return new CalendarViewModel(
+			logins,
+			async (event, calendarInfo) => {
+				const mailboxDetail = await this.mailModel.getUserMailboxDetails()
+				const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
+				const calendars = await calendarInfo.getAsync()
+				return this.calenderEventViewModel(getEventStart(event, getTimeZone()), calendars, mailboxDetail, mailboxProperties, event, null, false)
+			},
+			this.calendarModel,
+			this.entityClient,
+			this.eventController,
+			this.progressTracker,
+			deviceConfig,
+			calendarInvitations,
+		)
 	}
 
 	/** This ugly bit exists because CalendarEventViewModel wants a sync factory. */

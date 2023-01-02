@@ -37,7 +37,7 @@ import type { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityMo
 
 export class PostLoginActions implements IPostLoginAction {
 	constructor(
-		public readonly credentialsProvider: CredentialsProvider,
+		private readonly credentialsProvider: CredentialsProvider,
 		public secondFactorHandler: SecondFactorHandler,
 		private readonly connectivityModel: WebsocketConnectivityModel,
 	) {}

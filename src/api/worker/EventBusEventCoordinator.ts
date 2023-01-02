@@ -56,7 +56,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 	}
 
 	onCounterChanged(counter: WebsocketCounterData) {
-		this.eventController.onCountersUpdateReceied(counter)
+		this.eventController.onCountersUpdateReceived(counter)
 	}
 
 	private async entityEventsReceived(data: EntityUpdate[]): Promise<void> {

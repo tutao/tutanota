@@ -63,7 +63,7 @@ export class Header implements Component<HeaderAttrs> {
 	view({ attrs }: Vnode<HeaderAttrs>): Children {
 		// Do not return undefined if headerView is not present
 		const injectedView = attrs.headerView
-		return m(".header-nav .overflow-hidden.flex.items-end.flex-center", [
+		return m(".header-nav.overflow-hidden.flex.items-end.flex-center", [
 			isNotTemporary() ? m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }) : null,
 			injectedView
 				? // Make sure this wrapper takes up the full height like the things inside it expect
@@ -289,7 +289,6 @@ export class Header implements Component<HeaderAttrs> {
 					colors: NavButtonColor.Header,
 					href: () => m.route.get(),
 					click: () => {
-						attrs.handleBackPress
 						if (!attrs.handleBackPress?.()) {
 							viewSlider.focusPreviousColumn()
 						}

@@ -117,7 +117,7 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 		)
 	}
 
-	const operation = locator.operationProgressTracker.registerOperation()
+	const operation = locator.operationProgressTracker.startNewOperation()
 	return showProgressDialog("importCalendar_label", locator.calendarFacade.saveImportedCalendarEvents(eventsForCreation, operation.id), operation.progress)
 		.catch(
 			ofClass(ImportError, (e) =>

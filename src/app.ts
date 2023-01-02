@@ -29,8 +29,9 @@ import { MailView, MailViewAttrs, MailViewCache } from "./mail/view/MailView.js"
 import { ContactView, ContactViewAttrs } from "./contacts/view/ContactView.js"
 import { SettingsView, SettingsViewAttrs } from "./settings/SettingsView.js"
 import { SearchView, SearchViewAttrs } from "./search/view/SearchView.js"
-import { CurrentView, TopLevelAttrs } from "./TopLevelView.js"
+import { TopLevelView, TopLevelAttrs } from "./TopLevelView.js"
 import { BaseHeaderAttrs } from "./gui/Header.js"
+import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -276,16 +277,20 @@ import("./translations/en")
 					requireLogin: false,
 				},
 			),
-			calendar: makeViewResolver<CalendarViewAttrs, CalendarView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: BaseHeaderAttrs }>({
-				prepareRoute: async () => {
+			calendar: makeViewResolver<
+				CalendarViewAttrs,
+				CalendarView,
+				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: BaseHeaderAttrs; calendarViewModel: CalendarViewModel }
+			>({
+				prepareRoute: async (cache) => {
 					const { CalendarView } = await import("./calendar/view/CalendarView.js")
 					const drawerAttrsFactory = await locator.drawerAttrsFactory()
 					return {
 						component: CalendarView,
-						cache: { drawerAttrsFactory, header: await locator.baseHeaderAttrs() },
+						cache: cache ?? { drawerAttrsFactory, header: await locator.baseHeaderAttrs(), calendarViewModel: await locator.calendarViewModel() },
 					}
 				},
-				prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header }),
+				prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory }) => ({ drawerAttrs: drawerAttrsFactory(), header, calendarViewModel }),
 			}),
 
 			/**
@@ -449,7 +454,7 @@ function setupExceptionHandling() {
  * @param param.prepareAttrs called once per redraw. The result of it will be added to TopLevelAttrs to make full attributes.
  * @param param.requireLogin enforce login policy to either redirect to the login page or reload
  */
-function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType extends CurrentView<FullAttrs> = never, RouteCache = undefined>({
+function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType extends TopLevelView<FullAttrs> = never, RouteCache = undefined>({
 	prepareRoute,
 	prepareAttrs,
 	requireLogin,
@@ -514,13 +519,13 @@ function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType
 }
 
 function makeOldViewResolver(
-	makeView: (args: {}, requestedPath: string) => Promise<CurrentView>,
+	makeView: (args: {}, requestedPath: string) => Promise<TopLevelView>,
 	{ requireLogin, cacheView }: { requireLogin?: boolean; cacheView?: boolean } = {},
 ): RouteResolver {
 	requireLogin = requireLogin ?? true
 	cacheView = cacheView ?? true
 
-	const viewCache: { view: CurrentView | null } = { view: null }
+	const viewCache: { view: TopLevelView | null } = { view: null }
 	return {
 		onmatch: async (args, requestedPath) => {
 			if (requireLogin && !logins.isUserLoggedIn()) {
@@ -530,7 +535,7 @@ function makeOldViewResolver(
 				await logins.logout(false)
 				windowFacade.reload(args)
 			} else {
-				let promise: Promise<CurrentView>
+				let promise: Promise<TopLevelView>
 
 				if (viewCache.view == null) {
 					promise = makeView(args, requestedPath).then((view) => {
