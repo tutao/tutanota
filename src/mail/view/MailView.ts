@@ -110,6 +110,7 @@ export class MailView extends BaseTopLevelView implements CurrentView<MailViewAt
 
 	private multiMailViewer: MultiMailViewer
 	private expandedState: Set<Id>
+	private mailboxSubscription: Stream<void> | null = null
 
 	get mailViewerViewModel(): MailViewerViewModel | null {
 		return this.cache.mailViewerViewModel
@@ -204,14 +205,13 @@ export class MailView extends BaseTopLevelView implements CurrentView<MailViewAt
 		)
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn], "MailView")
 
-		const mailboxDetailsStream = locator.mailModel.mailboxDetails.map((mailboxDetails) => this.onUpdateMailboxDetails(mailboxDetails))
-
 		const shortcuts = this._getShortcuts()
 
 		this.oncreate = (vnode) => {
 			super.oncreate(vnode)
 			this.countersStream = locator.mailModel.mailboxCounters.map(m.redraw)
 			keyManager.registerShortcuts(shortcuts)
+			this.mailboxSubscription = locator.mailModel.mailboxDetails.map((mailboxDetails) => this.onUpdateMailboxDetails(mailboxDetails))
 		}
 
 		this.onremove = () => {
@@ -220,11 +220,11 @@ export class MailView extends BaseTopLevelView implements CurrentView<MailViewAt
 
 			keyManager.unregisterShortcuts(shortcuts)
 			// this is safe to pause because if we are recreated we will subscribe and get a new value right away
-			mailboxDetailsStream.end(true)
+			this.mailboxSubscription?.end(true)
 		}
 	}
 
-	view({attrs}: Vnode<MailViewAttrs>): Children {
+	view({ attrs }: Vnode<MailViewAttrs>): Children {
 		return m(
 			"#mail.main-view",
 			{
