@@ -181,16 +181,17 @@ export class MailFacade {
 
 	async updateMailFolder(folder: MailFolder, newParent: IdTuple | null, newName: string): Promise<void> {
 		if (newName !== folder.name) {
-			folder.name = newName;
+			folder.name = newName
 			await this.entityClient.update(folder)
 		}
-		if (folder.parentFolder != null && newParent != null && !isSameId(folder.parentFolder, newParent)
-			|| folder.parentFolder == null && newParent != null
-			|| folder.parentFolder != null && newParent == null
+		if (
+			(folder.parentFolder != null && newParent != null && !isSameId(folder.parentFolder, newParent)) ||
+			(folder.parentFolder == null && newParent != null) ||
+			(folder.parentFolder != null && newParent == null)
 		) {
 			const updateFolder = createUpdateMailFolderData({
 				folder: folder._id,
-				newParent: newParent
+				newParent: newParent,
 			})
 			await this.serviceExecutor.put(MailFolderService, updateFolder)
 		}

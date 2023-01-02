@@ -1,34 +1,30 @@
-import {MailFolder} from "../../api/entities/tutanota/TypeRefs.js"
-import {DropDownSelector, SelectorItemList} from "../../gui/base/DropDownSelector.js"
-import {MailFolderType} from "../../api/common/TutanotaConstants.js"
-import {getFolderName, getIndentedFolderNameForDropdown} from "../model/MailUtils.js"
+import { MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
+import { DropDownSelector, SelectorItemList } from "../../gui/base/DropDownSelector.js"
+import { MailFolderType } from "../../api/common/TutanotaConstants.js"
+import { getFolderName, getIndentedFolderNameForDropdown } from "../model/MailUtils.js"
 import m from "mithril"
-import {TextField} from "../../gui/base/TextField.js"
-import {Dialog} from "../../gui/base/Dialog.js"
-import {locator} from "../../api/main/MainLocator.js"
-import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
-import {LockedError} from "../../api/common/error/RestError.js"
-import {lang, TranslationKey} from "../../misc/LanguageViewModel.js"
-import {MailboxDetail} from "../model/MailModel.js"
+import { TextField } from "../../gui/base/TextField.js"
+import { Dialog } from "../../gui/base/Dialog.js"
+import { locator } from "../../api/main/MainLocator.js"
+import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
+import { LockedError } from "../../api/common/error/RestError.js"
+import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
+import { MailboxDetail } from "../model/MailModel.js"
 
-export async function showEditFolderDialog(
-	mailBoxDetail: MailboxDetail,
-	folder: MailFolder | null = null,
-	parentFolder: MailFolder | null = null,
-) {
-	const noParentFolderOption = "No Parent Folder";
+export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, folder: MailFolder | null = null, parentFolder: MailFolder | null = null) {
+	const noParentFolderOption = "No Parent Folder"
 	const mailGroupId = mailBoxDetail.mailGroup._id
 	let folderNameValue = folder?.name ?? ""
-	let targetFolders: SelectorItemList<MailFolder | null> = mailBoxDetail
-		.folders.getIndentedList(folder)
-		.filter(folderInfo => folderInfo.folder.folderType === MailFolderType.CUSTOM)
-		.map(folderInfo => {
+	let targetFolders: SelectorItemList<MailFolder | null> = mailBoxDetail.folders
+		.getIndentedList(folder)
+		.filter((folderInfo) => folderInfo.folder.folderType === MailFolderType.CUSTOM)
+		.map((folderInfo) => {
 			return {
 				name: getIndentedFolderNameForDropdown(folderInfo),
 				value: folderInfo.folder,
 			}
 		})
-	targetFolders = [{name: noParentFolderOption, value: null}, ...targetFolders]
+	targetFolders = [{ name: noParentFolderOption, value: null }, ...targetFolders]
 	let selectedParentFolder = parentFolder ? parentFolder : null
 	// @ts-ignore
 	let form = () => [
@@ -37,14 +33,14 @@ export async function showEditFolderDialog(
 			value: folderNameValue,
 			oninput: (newInput) => {
 				folderNameValue = newInput
-			}
+			},
 		}),
 		m(DropDownSelector, {
 			label: "parentFolder_label",
 			items: targetFolders,
 			selectedValue: selectedParentFolder,
 			selectedValueDisplay: selectedParentFolder ? getFolderName(selectedParentFolder) : noParentFolderOption,
-			selectionChangedHandler: (newFolder: MailFolder | null) => selectedParentFolder = newFolder,
+			selectionChangedHandler: (newFolder: MailFolder | null) => (selectedParentFolder = newFolder),
 		}),
 	]
 	const okAction = async (dialog: Dialog) => {
@@ -80,11 +76,10 @@ export async function showEditFolderDialog(
 	})
 }
 
-
 function checkFolderName(mailboxDetail: MailboxDetail, name: string, mailGroupId: Id, parentFolderId: IdTuple | null): TranslationKey | null {
 	if (name.trim() === "") {
 		return "folderNameNeutral_msg"
-	} else if (mailboxDetail.folders.getCustomFoldersOfParent(parentFolderId).some(f => f.name === name)) {
+	} else if (mailboxDetail.folders.getCustomFoldersOfParent(parentFolderId).some((f) => f.name === name)) {
 		return "folderNameInvalidExisting_msg"
 	} else {
 		return null

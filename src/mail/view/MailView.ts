@@ -48,7 +48,7 @@ import { FolderColumnView } from "../../gui/FolderColumnView.js"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { archiveMails, moveMails, moveToInbox, promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils"
-import {getElementId, isSameId} from "../../api/common/utils/EntityUtils"
+import { getElementId, isSameId } from "../../api/common/utils/EntityUtils"
 import { isNewMailActionAvailable } from "../../gui/nav/NavFunctions"
 import { SidebarSection } from "../../gui/SidebarSection"
 import { CancelledError } from "../../api/common/error/CancelledError"
@@ -61,7 +61,7 @@ import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { MobileMailActionBar } from "./MobileMailActionBar.js"
 import { FolderSubtree, FolderSystem } from "../model/FolderSystem.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
-import {showEditFolderDialog} from "./EditFolderDialog.js"
+import { showEditFolderDialog } from "./EditFolderDialog.js"
 
 assertMainOrNode()
 
@@ -467,7 +467,7 @@ export class MailView implements CurrentView {
 					SidebarSection,
 					{
 						name: "yourFolders_action",
-				button: m(IconButton, this.createFolderAddButton(mailboxDetail.mailGroup._id, null)),
+						button: m(IconButton, this.createFolderAddButton(mailboxDetail.mailGroup._id, null)),
 						key: "yourFolders", // we need to set a key because folder rows also have a key.
 					},
 					this.renderCustomFolderTree(customSystems, groupCounters, mailboxDetail),
@@ -684,18 +684,18 @@ export class MailView implements CurrentView {
 			},
 			childAttrs: () => [
 				{
-						label: "edit_action",
+					label: "edit_action",
 					icon: Icons.Edit,
 					click: () => {
-							this.showFolderAddEditDialog(mailGroupId, folder, folder.parentFolder ? folderSystem.getFolderById(folder.parentFolder) : null)
+						this.showFolderAddEditDialog(mailGroupId, folder, folder.parentFolder ? folderSystem.getFolderById(folder.parentFolder) : null)
 					},
 				},
 				{
 					label: "addFolder_action",
 					icon: Icons.Add,
 					click: () => {
-							this.showFolderAddEditDialog(mailGroupId, null, folder)
-						}
+						this.showFolderAddEditDialog(mailGroupId, null, folder)
+					},
 				},
 				{
 					label: "delete_action",
@@ -720,7 +720,6 @@ export class MailView implements CurrentView {
 			],
 		})
 	}
-
 
 	private showNewMailDialog(): Promise<Dialog> {
 		return Promise.all([this.getMailboxDetails(), import("../editor/MailEditor")])
