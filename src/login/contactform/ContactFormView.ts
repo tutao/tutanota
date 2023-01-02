@@ -17,12 +17,12 @@ import { Keys } from "../../api/common/TutanotaConstants"
 import type { ContactForm } from "../../api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../api/main/MainLocator"
 import { assertMainOrNode } from "../../api/common/Env"
-import {CurrentView} from "../../TopLevelView.js"
+import {TopLevelView} from "../../TopLevelView.js"
 
 assertMainOrNode()
 
-export class ContactFormView implements CurrentView {
-	view: CurrentView["view"]
+export class ContactFormView implements TopLevelView {
+	view: TopLevelView["view"]
 	private _contactForm: ContactForm | null
 	private _moreInformationDialog: Dialog
 	private _formId: string | null = null

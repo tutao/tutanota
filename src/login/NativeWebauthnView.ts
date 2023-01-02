@@ -7,14 +7,14 @@ import { progressIcon } from "../gui/base/Icon.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { ButtonType } from "../gui/base/Button.js"
 import { BrowserWebauthn } from "../misc/2fa/webauthn/BrowserWebauthn.js"
-import {CurrentView} from "../TopLevelView.js";
+import {TopLevelView} from "../TopLevelView.js";
 
 /**
  * This is a special view which is not used by the web client
  * directly but is loaded remotely by desktop client in a dialog.
  * See DesktopWebauthnFacade.
  */
-export class NativeWebauthnView implements CurrentView {
+export class NativeWebauthnView implements TopLevelView {
 	constructor(private readonly webauthn: BrowserWebauthn, private readonly nativeTransport: WebauthnNativeBridge) {
 		this.view = this.view.bind(this)
 		this.nativeTransport.init(this.webauthn)

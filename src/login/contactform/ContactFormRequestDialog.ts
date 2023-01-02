@@ -299,7 +299,7 @@ export class ContactFormRequestDialog {
 			const password = this.passwordModel.getNewPassword()
 
 			const doSend = async () => {
-				const operation = locator.operationProgressTracker.registerOperation()
+				const operation = locator.operationProgressTracker.startNewOperation()
 				const contactFormResult = await customerFacade.createContactFormUser(password, this._contactForm._id, operation.id)
 					.finally(() => operation.done())
 				const userEmailAddress = contactFormResult.responseMailAddress

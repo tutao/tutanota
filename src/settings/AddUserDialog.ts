@@ -73,7 +73,7 @@ export function show(): Promise<void> {
 				}),
 			).then((accepted) => {
 				if (accepted) {
-					const operation = locator.operationProgressTracker.registerOperation()
+					const operation = locator.operationProgressTracker.startNewOperation()
 					const p = locator.userManagementFacade.createUser(
 						userName.trim(),
 						assertNotNull(emailAddress),
