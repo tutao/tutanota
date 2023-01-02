@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2022-12-20T09:42:25Z",
+	"updated_at": "2022-12-23T09:49:39Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -913,6 +913,7 @@ export default {
 		"notificationSync_msg": "Synchronizujú sa oznámenia",
 		"notSigned_msg": "Nepodpísané.",
 		"noUpdateAvailable_msg": "Nenašla sa žiadna aktualizácia.",
+		"noValidMembersToAdd_msg": "Nespravuješ žiadnych používateľov, ktorí nie sú už členmi tejto skupiny.",
 		"no_label": "Nie",
 		"npoDiscount_msg": "Ponuka pre neziskovky: 50 % používateľská zľava na balík Premium a 20 aliasov zadarmo!",
 		"npoDonation_msg": "Dar pre neziskovky: až do 50 používateľov Premium a 100 aliasov zadarmo!",

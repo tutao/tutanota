@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2022-12-19T15:52:01Z",
+	"updated_at": "2022-12-22T17:28:26Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -917,6 +917,7 @@ export default {
 		"notificationSync_msg": "Notificaciones de sincronización",
 		"notSigned_msg": "Sin firmar.",
 		"noUpdateAvailable_msg": "No se ha encontrado ninguna actualización.",
+		"noValidMembersToAdd_msg": "No estás administrando ningún usuario que no sea ya miembro de este grupo.",
 		"no_label": "No",
 		"npoDiscount_msg": "Oferta para ONGs: ¡50% de descuento para los usuarios Premium y 20 alias de forma gratuita!",
 		"npoDonation_msg": "Donación para ONGs: ¡hasta 50 usuarios para usuarios Premium y 100 alias de forma gratuita!",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2022-02-03T06:52:08Z",
-	"updated_at": "2022-12-07T16:12:30Z",
+	"updated_at": "2022-12-23T18:57:43Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -53,6 +53,7 @@ export default {
 		"addEmailAlias_label": "Дадаць мянушку э-пошты",
 		"addEntry_label": "Дадаць запіс",
 		"addEnumValue_action": "Дадаць значэнне пераліку",
+		"addFolder_action": "Дадаць тэчку",
 		"addGroup_label": "Дадаць групу",
 		"addGuest_label": "Дадаць госця",
 		"addInboxRule_action": "Дадаць правіла ўваходнай пошты",
@@ -188,6 +189,7 @@ export default {
 		"cancelUserAccounts_label": "Скасаваць {1} карыстальнік(аў)",
 		"cancelWhitelabelBooking_label": "Скасаваць функцыю Whitelabel для {1} карыстальнікаў",
 		"cancel_action": "Скасаваць",
+		"cannotDeleteFoldersWithSubfolders_msg": "Не магчыма выдаліць тэчкі, што месцяць субтэчкі. Калі ласка, выдалі спачатку ўсе субтэчкі.",
 		"canNotOpenFileOnDevice_msg": "Дадзены файл ня можа быць адчынены на гэтай прыладзе.",
 		"captchaDisplay_label": "Капча",
 		"captchaEnter_msg": "Калі ласка, увядзі час у гадзінах і хвілінах.",
@@ -803,6 +805,7 @@ export default {
 		"mailAddressDelay_msg": "Зашмат запытаў, калі ласка, паспрабуй ізноў пазней.",
 		"mailAddresses_label": "Адрасы імэйлу",
 		"mailAddressInvalid_msg": "Некарэктны адрас пошты.",
+		"mailAddressNANudge_msg": "Адрас імэйлу недаступны. Паспрабуй з іншым дамэйнам са спісу.",
 		"mailAddressNA_msg": "Гэты адрас імэйл недаступны.",
 		"mailAddressNeutral_msg": "Калі ласка, увядзі адрас пошты.",
 		"mailAddress_label": "Адрас імэйл",

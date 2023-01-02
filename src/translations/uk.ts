@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2022-12-18T08:26:47Z",
+	"updated_at": "2022-12-22T16:50:48Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -803,6 +803,7 @@ export default {
 		"mailAddressDelay_msg": "Занадто багато запитів. Спробуйте пізніше, будь ласка.",
 		"mailAddresses_label": "Адреси електронної пошти",
 		"mailAddressInvalid_msg": "Поштова адреса недійсна.",
+		"mailAddressNANudge_msg": "Адреса електронної пошти недоступна. Спробуйте інший домен зі списку, що випадає.",
 		"mailAddressNA_msg": "Адреса ел. пошти відсутня.",
 		"mailAddressNeutral_msg": "Введіть поштову адресу, будь ласка.",
 		"mailAddress_label": "Адреса е-пошти",
@@ -912,6 +913,7 @@ export default {
 		"notificationSync_msg": "Синхронізація сповіщень",
 		"notSigned_msg": "Не підписано.",
 		"noUpdateAvailable_msg": "Оновлення відсутнє.",
+		"noValidMembersToAdd_msg": "Ви не адмініструєте користувачів, які ще не є членами цієї групи.",
 		"no_label": "Ні",
 		"npoDiscount_msg": "Пропозицiя для НКО: 50% знижка на Premium та 20 псевдонiмiв безкоштовно!",
 		"npoDonation_msg": "Пожертвування для НПО: до 50 користувачів для Премiум аккаунту та 100 псевдонімів безкоштовно!",

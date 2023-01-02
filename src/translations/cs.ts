@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2022-12-20T06:31:03Z",
+	"updated_at": "2022-12-22T16:50:44Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -913,6 +913,7 @@ export default {
 		"notificationSync_msg": "Synchronizace oznámení",
 		"notSigned_msg": "Nepodepsáno.",
 		"noUpdateAvailable_msg": "Není k dispozici žádná nová verze.",
+		"noValidMembersToAdd_msg": "Uživatele, kteří nejsou v této skupině, nelze spravovat.",
 		"no_label": "Ne",
 		"npoDiscount_msg": "Nabídka pro neziskové organizace: 50% uživatelská sleva na Premium a 20 aliasů zdarma!",
 		"npoDonation_msg": "Nabídka pro neziskové organizace: až 50 uživatelů  pro Premium účet a 100 aliasů zdarma!",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2022-12-19T14:20:16Z",
+	"updated_at": "2022-12-22T16:50:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -913,6 +913,7 @@ export default {
 		"notificationSync_msg": "Synkroniseringsnotiser",
 		"notSigned_msg": "Inte signerad.",
 		"noUpdateAvailable_msg": "Ingen uppdatering hittades.",
+		"noValidMembersToAdd_msg": "Du administrerar inga användare som inte redan är medlemmar i den här gruppen.",
 		"no_label": "Nej",
 		"npoDiscount_msg": "Erbjudande för Ideella Organisationer: 50% rabatt för Premium och 20 alias utan kostnad!",
 		"npoDonation_msg": "Donation för Ideella Organisationer: Upp till 50 användare för Premium och 100 alias utan kostnad!",
