@@ -98,6 +98,10 @@ export interface OfflineDbFactory {
  * into that account (as long as it's bigger than 0)
  */
 export class OfflineDbManager {
+	/**
+	 * a map from userId to an instance of an offlineDb for that user and the number of references currently held to it.
+	 * @private
+	 */
 	private readonly cache: Map<Id, CacheEntry> = new Map()
 
 	/**
@@ -131,23 +135,31 @@ export class OfflineDbManager {
 		}
 		entry.counter -= 1
 		if (entry.counter === 0) {
+			this.cache.delete(userId)
 			const db = await entry.db
 			await db.closeDb()
-			this.cache.delete(userId)
 		}
 	}
 
+	/**
+	 * deletes the offline DB file from the disk, making a best-effort attempt to let all
+	 * windows close the connection before removing it.
+	 *
+	 * should be used when:
+	 * * the offline DB is out of sync
+	 * * the credentials are deleted from the app
+	 * * the user logs in with a userId that is already stored in the app (internal and external users)
+	 * * there was an error during session creation that could cause us to have a new database but no new credentials.
+	 *
+	 * the database is not necessarily open or in the cache; it may be deleted directly from the login screen.
+	 */
 	async deleteDb(userId: string): Promise<void> {
-		const entry = this.cache.get(userId)
+		await this.disposeDb(userId)
 		const waitUntilMax = Date.now() + MAX_WAIT_FOR_DB_CLOSE_MS
-		if (entry != null) {
-			while (this.cache.has(userId) && Date.now() < waitUntilMax) {
-				log.debug(`waiting for other windows to close db before deleting it for user ${userId}`)
-				await delay(100)
-			}
-			await this.disposeDb(userId)
+		while (this.cache.has(userId) && Date.now() < waitUntilMax) {
+			log.debug(`waiting for other windows to close db before deleting it for user ${userId}`)
+			await delay(100)
 		}
-
 		await this.offlineDbFactory.delete(userId)
 	}
 
