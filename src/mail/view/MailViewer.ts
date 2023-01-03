@@ -6,7 +6,7 @@ import { FeatureType, InboxRuleType, Keys, MailFolderType, SpamRuleFieldType, Sp
 import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../misc/LanguageViewModel"
 import { assertMainOrNode, isDesktop } from "../../api/common/Env"
-import { defer, DeferredObject, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNonNull, defer, DeferredObject, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { createNewContact, getExistingRuleForType, isTutanotaTeamMail } from "../model/MailUtils"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import type { Shortcut } from "../../misc/KeyManager"
@@ -33,7 +33,6 @@ import { animations, DomMutation, scroll } from "../../gui/animation/Animations"
 import { ease } from "../../gui/animation/Easing"
 import { isNewMailActionAvailable } from "../../gui/nav/NavFunctions"
 import { CancelledError } from "../../api/common/error/CancelledError"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { MailViewerHeader } from "./MailViewerHeader.js"
 import { editDraft, showHeaderDialog } from "./MailViewerUtils.js"
 
@@ -267,7 +266,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	 * @private
 	 */
 	private renderShadowMailBody(sanitizedMailBody: DocumentFragment) {
-		assertNonNull(this.shadowDomRoot)
+		assertNonNull(this.shadowDomRoot, "shadow dom root is null!")
 		while (this.shadowDomRoot.firstChild) {
 			this.shadowDomRoot.firstChild.remove()
 		}
@@ -696,10 +695,4 @@ export type CreateMailViewerOptions = {
  * */
 function isSettingsLink(href: string, mail: Mail): boolean {
 	return (href.startsWith("/settings/") ?? false) && isTutanotaTeamMail(mail)
-}
-
-function assertNonNull<T extends {}>(value: T | null | undefined): asserts value is T {
-	if (value == null) {
-		throw new ProgrammingError("it is null")
-	}
 }
