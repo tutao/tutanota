@@ -89,12 +89,29 @@ export function neverNull<T>(object: T): NonNullable<T> {
 	return object as any
 }
 
-export function assertNotNull<T>(object: T | null | undefined, message: string = "null"): T {
-	if (object == null) {
+/**
+ * returns its argument if it is not null, throws otherwise.
+ * @param value the value to check
+ * @param message optional error message
+ */
+export function assertNotNull<T>(value: T | null | undefined, message: string = "null"): T {
+	if (value == null) {
 		throw new Error("AssertNotNull failed : " + message)
 	}
 
-	return object
+	return value
+}
+
+/**
+ * assertion function that only returns if the argument is non-null
+ * (acts as a type guard)
+ * @param value the value to check
+ * @param message optional error message
+ */
+export function assertNonNull<T>(value: T | null | undefined, message: string = "null"): asserts value is T {
+	if (value == null) {
+		throw new Error("AssertNonNull failed: " + message)
+	}
 }
 
 export function isNotNull<T>(t: T | null | undefined): t is T {

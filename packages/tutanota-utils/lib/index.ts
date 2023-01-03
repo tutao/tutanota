@@ -117,6 +117,7 @@ export {
 	executeInGroups,
 	neverNull,
 	assertNotNull,
+	assertNonNull,
 	assert,
 	isNotNull,
 	downcast,
