@@ -14,7 +14,7 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 
 	async openDb(userId: string, dbKey: Uint8Array): Promise<void> {
 		if (this.state != null) {
-			throw new ProgrammingError("Already opened database!")
+			throw new ProgrammingError(`Already opened database for user ${this.state.userId} when trying to open db for ${userId}!`)
 		}
 		this.state = {
 			userId,
@@ -71,7 +71,7 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 }
 
 interface CacheEntry {
-	readonly db: SqlCipherFacade
+	readonly db: Promise<SqlCipherFacade>
 	/** Reference counting for db in case multiple windows open it. */
 	counter: number
 }
@@ -82,6 +82,11 @@ export interface OfflineDbFactory {
 	delete(userId: string): Promise<void>
 }
 
+/**
+ * mainly for reference counting sqlcipher database connections coming from different windows.
+ * keeps one opened database for each userId, independent of the number of windows logged
+ * into that account (as long as it's bigger than 0)
+ */
 export class OfflineDbManager {
 	private readonly cache: Map<Id, CacheEntry> = new Map()
 
@@ -98,13 +103,15 @@ export class OfflineDbManager {
 		let entry: CacheEntry | undefined = this.cache.get(userId)
 		if (entry) {
 			entry.counter += 1
-			return entry.db
+			return await entry.db
 		} else {
-			const db = await this.offlineDbFactory.create(userId, dbKey)
+			const db = this.offlineDbFactory.create(userId, dbKey)
 			entry = { db, counter: 1 }
 			this.cache.set(userId, entry)
-			return entry.db
+			return await entry.db
 		}
+
+		// not returning from here makes for better stack traces.
 	}
 
 	async disposeDb(userId: Id) {
@@ -114,7 +121,8 @@ export class OfflineDbManager {
 		}
 		entry.counter -= 1
 		if (entry.counter === 0) {
-			await entry.db.closeDb()
+			const db = await entry.db
+			await db.closeDb()
 			this.cache.delete(userId)
 		}
 	}
