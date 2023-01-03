@@ -24,8 +24,18 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 
 	async closeDb(): Promise<void> {
 		if (this.state) {
-			await this.manager.disposeDb(this.state.userId)
+			// if this method is called, we certainly don't want anything
+			// to do anymore with this db connection.
+			// so set the state to null before actually calling disposeDb()
+			// otherwise, an error might prevent us from resetting the state.
+			const { userId } = this.state
 			this.state = null
+			try {
+				await this.manager.disposeDb(userId)
+			} catch (e) {
+				// we may or may not have released our reference, we'll just hope for the best.
+				log.debug(`failed to dispose offline Db for user ${userId}`, e)
+			}
 		}
 	}
 
