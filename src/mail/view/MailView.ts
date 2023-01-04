@@ -815,17 +815,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 		if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewerViewModel)) {
 			// set or update the visible mail
-
 			const viewModelParams = {
 				mail: mails[0],
 				showFolder: false,
 				delayBodyRenderingUntil: animationOverDeferred.promise,
 			}
 
-			if (this.mailViewerViewModel && isSameId(viewModelParams.mail._id, this.mailViewerViewModel.mail._id)) {
-				// FIXME: why?? it is the same email and if it was updated we update it elsewhere
-				// this.mailViewerViewModel.updateMail(viewModelParams)
-			} else {
+			// if there's no viewer or the email selection was changed
+			if (!this.mailViewerViewModel || !isSameId(viewModelParams.mail._id, this.mailViewerViewModel.mail._id)) {
 				const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(viewModelParams.mail)
 				const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 				this.mailViewerViewModel = await locator.mailViewerViewModel(viewModelParams, mailboxDetails, mailboxProperties)
