@@ -2,7 +2,7 @@ import m from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { containsEventOfType } from "../../api/common/utils/Utils"
-import { assertNotNull, groupBy, neverNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import { assertNotNull, groupBy, neverNull, noOp, ofClass, splitInChunks } from "@tutao/tutanota-utils"
 import type { Mail, MailBox, MailboxGroupRoot, MailboxProperties, MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
 import {
 	createMailAddressProperties,
@@ -107,7 +107,7 @@ export class MailModel {
 			this.entityClient.load(GroupTypeRef, membership.group),
 		])
 		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
-		const folders = await this._loadFolders(neverNull(mailbox.folders).folders, true)
+		const folders = await this._loadFolders(neverNull(mailbox.folders).folders)
 		return {
 			mailbox,
 			folders: new FolderSystem(folders),
@@ -117,20 +117,9 @@ export class MailModel {
 		}
 	}
 
-	_loadFolders(folderListId: Id, loadSubFolders: boolean): Promise<MailFolder[]> {
+	_loadFolders(folderListId: Id): Promise<MailFolder[]> {
 		return this.entityClient
 			.loadAll(MailFolderTypeRef, folderListId)
-			.then((folders) => {
-				if (loadSubFolders) {
-					return promiseMap(folders, (folder) => this._loadFolders(folder.subFolders, false), {
-						concurrency: 5,
-					}).then((subfolders) => {
-						return folders.concat(...subfolders)
-					})
-				} else {
-					return folders
-				}
-			})
 			.then((folders) => {
 				return folders.filter((f) => {
 					// We do not show spam or archive for external users
