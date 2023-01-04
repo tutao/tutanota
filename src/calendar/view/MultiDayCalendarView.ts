@@ -42,8 +42,6 @@ import type {CalendarEventBubbleClickHandler, EventsOnDays} from "./CalendarView
 import {CalendarViewType} from "./CalendarViewModel"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
-import { lastThrow } from "@tutao/tutanota-utils"
-import { ofClass } from "@tutao/tutanota-utils"
 
 export type Attrs = {
 	selectedDate: Date
