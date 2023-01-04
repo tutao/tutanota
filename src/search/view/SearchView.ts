@@ -56,8 +56,8 @@ import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { MobileMailActionBar } from "../../mail/view/MobileMailActionBar.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
-import { TopLevelView, TopLevelAttrs } from "../../TopLevelView.js"
-import {MailboxDetail} from "../../mail/model/MailModel.js"
+import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
+import { MailboxDetail } from "../../mail/model/MailModel.js"
 import Stream from "mithril/stream"
 
 assertMainOrNode()
@@ -237,8 +237,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					...attrs.header,
 				}),
 				bottomNav:
-					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.resultDetailsColumn && this.viewer._viewer?.mode === "mail"
-						? m(MobileMailActionBar, { viewModel: this.viewer._viewer.viewModel })
+					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.resultDetailsColumn && this.viewer.viewer?.mode === "mail"
+						? m(MobileMailActionBar, { viewModel: this.viewer.viewer.viewModel })
 						: m(BottomNav),
 			}),
 		)
@@ -525,7 +525,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	elementSelected(entries: SearchResultListEntry[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
 		this.viewer.elementSelected(entries, elementClicked, selectionChanged, multiSelectOperation)
 
-		if (entries.length === 1 && !multiSelectOperation && (selectionChanged || !this.viewer._viewer)) {
+		if (entries.length === 1 && !multiSelectOperation && (selectionChanged || !this.viewer.viewer)) {
 			// do not set the search url if an element is removed from this list by another view
 			if (m.route.get().startsWith("/search")) {
 				setSearchUrl(getSearchUrl(locator.search.lastQuery(), getRestriction(m.route.get()), entries[0]._id[1]))
