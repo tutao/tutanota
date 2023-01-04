@@ -171,6 +171,23 @@ export function lazyMemoized<T>(source: () => T): () => T {
 	}
 }
 
+export type Callback<T> = (arg: T) => void
+
+/**
+ * accept a function taking exactly one argument and returning nothing and return a version of it
+ * that will call the original function on the first call and ignore any further calls.
+ * @param fn a function taking one argument and returning nothing
+ */
+export function makeSingleUse<T>(fn: Callback<T>): Callback<T> {
+	let called = false
+	return (arg) => {
+		if (!called) {
+			called = true
+			fn(arg)
+		}
+	}
+}
+
 /**
  * Returns a cached version of {@param fn}.
  * Cached function checks that argument is the same (with ===) and if it is then it returns the cached result.
