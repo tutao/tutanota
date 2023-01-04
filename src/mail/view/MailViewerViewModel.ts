@@ -209,8 +209,8 @@ export class MailViewerViewModel {
 		}
 	}
 
-	async dispose() {
-		const inlineImages = await this.getLoadedInlineImages()
+	dispose() {
+		const inlineImages = this.getLoadedInlineImages()
 		revokeInlineImages(inlineImages)
 		this.eventController.removeEntityListener(this.entityListener)
 	}

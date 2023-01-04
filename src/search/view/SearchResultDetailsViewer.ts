@@ -18,22 +18,44 @@ import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 
 assertMainOrNode()
 
-type ViewMode =
-	| { mode: "mail"; viewModel: MailViewerViewModel }
-	| { mode: "contact"; viewer: ContactViewer }
-	| { mode: "multiSearch"; viewer: MultiSearchViewer }
+type Viewer = { mode: "mail"; viewModel: MailViewerViewModel } | { mode: "contact"; viewer: ContactViewer } | { mode: "multiSearch"; viewer: MultiSearchViewer }
 
 export class SearchResultDetailsViewer {
-	_viewer: ViewMode | null = null
-	_viewerEntityId: IdTuple | null = null
-	_multiSearchViewer: MultiSearchViewer
+	/** DO NOT use directly, use {@link viewer}. */
+	private _viewer: Viewer | null = null
 
-	constructor(private _listView: SearchListView) {
-		this._multiSearchViewer = new MultiSearchViewer(this._listView)
+	get viewer(): Viewer | null {
+		return this._viewer
+	}
+
+	private set viewer(viewer: Viewer | null) {
+		if (this._viewer?.mode === "mail") {
+			this._viewer.viewModel.dispose()
+		}
+		this._viewer = viewer
+	}
+
+	private get viewerEntityId(): IdTuple | null {
+		if (this.viewer == null) return null
+		switch (this.viewer.mode) {
+			case "mail":
+				return this.viewer.viewModel.mail._id
+			case "contact":
+				return this.viewer.viewer.contact._id
+			case "multiSearch":
+				return null
+		}
+	}
+
+	// we keep it around for multiselect buttons, we should refactor the whole thing
+	private multiSearchViewer: MultiSearchViewer
+
+	constructor(private listView: SearchListView) {
+		this.multiSearchViewer = new MultiSearchViewer(this.listView)
 	}
 
 	view(): Children {
-		let selected = this._listView.list ? this._listView.list.getSelectedEntities() : []
+		const selected = this.listView.list ? this.listView.list.getSelectedEntities() : []
 
 		if (selected.length === 0) {
 			return m(
@@ -41,11 +63,11 @@ export class SearchResultDetailsViewer {
 				m(ColumnEmptyMessageBox, {
 					message: "noSelection_msg",
 					color: theme.content_message_bg,
-					icon: isSameTypeRef(this._listView._lastType, MailTypeRef) ? BootIcons.Mail : BootIcons.Contacts,
+					icon: isSameTypeRef(this.listView._lastType, MailTypeRef) ? BootIcons.Mail : BootIcons.Contacts,
 				}),
 			)
 		} else {
-			const viewer = this._viewer
+			const viewer = this.viewer
 			return viewer?.mode === "mail"
 				? m(MailViewer, {
 						viewModel: viewer.viewModel,
@@ -57,7 +79,7 @@ export class SearchResultDetailsViewer {
 	}
 
 	isShownEntity(id: IdTuple): boolean {
-		return this._viewerEntityId != null && isSameId(id, this._viewerEntityId)
+		return isSameId(id, this.viewerEntityId)
 	}
 
 	async showEntity(entity: Record<string, any>, entitySelected: boolean) {
@@ -67,18 +89,14 @@ export class SearchResultDetailsViewer {
 				mail,
 				showFolder: true,
 			}
-			if (this._viewer != null && this._viewer.mode === "mail" && isSameId(this._viewer.viewModel.mail._id, mail._id)) {
-				// FIXME why
-				// this._viewer.viewModel.updateMail(viewModelParams)
-			} else {
+			if (this.viewer == null || this.viewer.mode !== "mail" || !isSameId(this.viewer.viewModel.mail._id, mail._id)) {
 				const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(viewModelParams.mail)
 				const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-				this._viewer = {
+				this.viewer = {
 					mode: "mail",
 					viewModel: await locator.mailViewerViewModel(viewModelParams, mailboxDetails, mailboxProperties),
 				}
 			}
-			this._viewerEntityId = mail._id
 
 			if (entitySelected && mail.unread && !mail._errors) {
 				mail.unread = false
@@ -89,32 +107,25 @@ export class SearchResultDetailsViewer {
 			}
 
 			m.redraw()
-		}
-
-		if (isSameTypeRef(ContactTypeRef, entity._type)) {
-			let contact = entity as any as Contact
-			this._viewer = { mode: "contact", viewer: new ContactViewer(contact) }
-			this._viewerEntityId = contact._id
+		} else if (isSameTypeRef(ContactTypeRef, entity._type)) {
+			let contact = entity as Contact
+			this.viewer = { mode: "contact", viewer: new ContactViewer(contact) }
 			m.redraw()
 		}
 	}
 
 	elementSelected(entries: SearchResultListEntry[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
-		if (entries.length === 1 && !multiSelectOperation && (selectionChanged || !this._viewer || this._viewer.mode === "multiSearch")) {
+		if (entries.length === 1 && !multiSelectOperation && (selectionChanged || !this.viewer || this.viewer.mode === "multiSearch")) {
 			// set or update the visible mail
 			this.showEntity(entries[0].entry, true)
 		} else if (selectionChanged && (entries.length === 0 || multiSelectOperation)) {
 			// remove the visible mail
 			if (entries.length == 0) {
-				this._viewer = null
-				this._viewerEntityId = null
+				this.viewer = null
 			} else {
-				this._viewer = { mode: "multiSearch", viewer: this._multiSearchViewer }
+				this.viewer = { mode: "multiSearch", viewer: this.multiSearchViewer }
 			}
 
-			//let url = `/mail/${this.mailList.listId}`
-			//this._folderToUrl[this.selectedFolder._id[1]] = url
-			//this._setUrl(url)
 			m.redraw()
 		} else if (selectionChanged) {
 			// update the multi mail viewer
@@ -123,6 +134,6 @@ export class SearchResultDetailsViewer {
 	}
 
 	multiSearchActionBarButtons(): IconButtonAttrs[] {
-		return this._multiSearchViewer.actionBarButtons()
+		return this.multiSearchViewer.actionBarButtons()
 	}
 }
