@@ -123,6 +123,7 @@ export {
 	downcast,
 	clone,
 	lazyMemoized,
+	makeSingleUse,
 	memoized,
 	identity,
 	noOp,

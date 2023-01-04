@@ -6,6 +6,8 @@ import { ProtocolRequest, ProtocolResponse, Session } from "electron"
 import { Duplex, PassThrough } from "stream"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { errorToObj } from "../../api/common/MessageDispatcher.js"
+import { makeSingleUse } from "@tutao/tutanota-utils"
+import { Callback } from "@tutao/tutanota-utils/dist/Utils.js"
 
 const TAG = "[ProtocolProxy]"
 
@@ -61,7 +63,13 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 		timeout: PROXIED_REQUEST_READ_TIMEOUT, // this is an idle timeout (empirically determined)
 	})
 
-	const handler = async ({ method, headers, url, uploadData, referrer }: ProtocolRequest, sendResponse: (resp: ProtocolResponse) => void) => {
+	const handler = async ({ method, headers, url, uploadData, referrer }: ProtocolRequest, sendResponse: Callback<ProtocolResponse>) => {
+		// we never want to call this more than once
+		// * error, then anything: something already failed, telling caller about further errors or sending a response makes little sense.
+		// * timeout, then anything: see above.
+		// * response, then anything: we're already done, don't need to tell the caller about the error or send another response.
+		// using this simplifies bookkeeping.
+		sendResponse = makeSingleUse(sendResponse)
 		const startTime: number = Date.now()
 		const handleError = (e: Error) => {
 			const parsedUrl = new URL(url)
@@ -109,11 +117,11 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 			headers["Content-Length"] = String(actualData.length)
 		}
 		const clientRequest: http.ClientRequest = net.request(url, { method, headers, agent })
-		clientRequest.on("response", (res: http.IncomingMessage) => {
+		clientRequest.once("response", (res: http.IncomingMessage) => {
 			const responseStream: Duplex = new PassThrough()
 			res.on("data", (d) => responseStream.push(d))
-			res.on("end", () => responseStream.end())
-			res.on("error", (e) => {
+			res.once("end", () => responseStream.end())
+			res.once("error", (e) => {
 				log.debug(TAG, `response error`, url)
 				responseStream.end()
 			})
@@ -121,8 +129,8 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 			const resHeaders: Record<string, string | string[]> = res.headers as unknown as Record<string, string | string[]>
 			sendResponse({ statusCode: res.statusCode, headers: resHeaders, data: responseStream })
 		})
-		clientRequest.on("error", (e) => handleError(e))
-		clientRequest.on("timeout", () => clientRequest.destroy(new ProxyError(NetErrorCode.TIMED_OUT)))
+		clientRequest.once("error", (e) => handleError(e))
+		clientRequest.once("timeout", () => clientRequest.destroy(new ProxyError(NetErrorCode.TIMED_OUT)))
 		clientRequest.end(actualData ?? undefined)
 	}
 	return session.protocol.interceptStreamProtocol(protocol, handler)
