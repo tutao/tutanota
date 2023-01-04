@@ -36,6 +36,7 @@ import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFa
 import { SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject } from "./SqlValue.js"
 import { isDetailsDraft, isLegacyMail } from "../../common/MailWrapper.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
+import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	const time = data.getTime()
@@ -129,11 +130,24 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		// We open database here, and it is closed in the native side when the window is closed or the page is reloaded
 		await this.sqlCipherFacade.openDb(userId, databaseKey)
 		await this.createTables()
-		await this.migrator.migrate(this, this.sqlCipherFacade)
+		try {
+			await this.migrator.migrate(this, this.sqlCipherFacade)
+		} catch (e) {
+			if (!(e instanceof OutOfSyncError)) {
+				throw e
+			}
+			await this.recreateDbFile(userId, databaseKey)
+		}
 		// if nothing is written here, it means it's a new database
-		const isNewOfflineDb = (await this.getLastUpdateTime()) == null
+		return (await this.getLastUpdateTime()) == null
+	}
 
-		return isNewOfflineDb
+	private async recreateDbFile(userId: string, databaseKey: Uint8Array): Promise<void> {
+		console.log(`recreating DB file for userId ${userId}`)
+		await this.sqlCipherFacade.closeDb()
+		await this.sqlCipherFacade.deleteDb(userId)
+		await this.sqlCipherFacade.openDb(userId, databaseKey)
+		await this.createTables()
 	}
 
 	/**
