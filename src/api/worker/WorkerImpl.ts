@@ -251,7 +251,6 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			get workerFacade() {
-				// just creating it inline because no one on the worker side actually needs it so no reason to keep it around
 				return locator.workerFacade
 			},
 		}
