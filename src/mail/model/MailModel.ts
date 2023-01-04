@@ -107,7 +107,7 @@ export class MailModel {
 			this.entityClient.load(GroupTypeRef, membership.group),
 		])
 		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
-		const folders = await this._loadFolders(neverNull(mailbox.folders).folders)
+		const folders = await this.loadFolders(neverNull(mailbox.folders).folders)
 		return {
 			mailbox,
 			folders: new FolderSystem(folders),
@@ -117,7 +117,7 @@ export class MailModel {
 		}
 	}
 
-	_loadFolders(folderListId: Id): Promise<MailFolder[]> {
+	private loadFolders(folderListId: Id): Promise<MailFolder[]> {
 		return this.entityClient
 			.loadAll(MailFolderTypeRef, folderListId)
 			.then((folders) => {
