@@ -1,6 +1,6 @@
 import { OfflineDbMeta, OfflineStorage, VersionMetadataBaseKey } from "./OfflineStorage.js"
 import { ModelInfos } from "../../common/EntityFunctions.js"
-import { typedKeys } from "@tutao/tutanota-utils"
+import { groupBy, typedKeys } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { sys75 } from "./migrations/sys-v75.js"
 import { sys76 } from "./migrations/sys-v76.js"
@@ -13,6 +13,7 @@ import { tutanota56 } from "./migrations/tutanota-v56.js"
 import { tutanota58 } from "./migrations/tutanota-v58.js"
 import { storage6 } from "./migrations/storage-v6.js"
 import { tutanota57 } from "./migrations/tutanota-v57.js"
+import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 
 export interface OfflineMigration {
 	readonly app: VersionMetadataBaseKey
@@ -74,6 +75,10 @@ export class OfflineStorageMigrator {
 			await this.prepopulateVersionIfNecessary("offline", 0, meta, storage)
 		}
 
+		if (!this.isNewerThanDatabase(meta)) {
+			throw new OutOfSyncError(`offline database has newer schema than client`)
+		}
+
 		// Run the migrations
 		for (const { app, version, migrate } of this.migrations) {
 			const storedVersion = meta[`${app}-version`]!
@@ -108,5 +113,34 @@ export class OfflineStorageMigrator {
 			meta[key] = version
 			await storage.setStoredModelVersion(app, version)
 		}
+	}
+
+	/**
+	 * it's possible that the user installed an older client over a newer one, and we don't have backwards migrations.
+	 * in that case, it's likely that the client can't even understand the contents of the db.
+	 * we're going to delete it and not migrate at all.
+	 * @private
+	 */
+	private isNewerThanDatabase(meta: Partial<OfflineDbMeta>): boolean {
+		const migrationsByApp = groupBy(this.migrations, (m) => m.app)
+		const maxVersionsByApp = new Map<VersionMetadataBaseKey, number>()
+		for (const [app, migrations] of migrationsByApp) {
+			if (migrations.length === 0) {
+				maxVersionsByApp.set(app, -Infinity)
+				continue
+			}
+			const versions = migrations.map((m) => m.version)
+			const maxForApp = versions.reduce((acc, curr) => (curr > acc ? curr : acc), migrations[0].version)
+			maxVersionsByApp.set(app, maxForApp)
+		}
+
+		for (const [app, maxVersion] of maxVersionsByApp) {
+			const storedVersion = meta[`${app}-version`]!
+			if (storedVersion > maxVersion) {
+				return false
+			}
+		}
+
+		return true
 	}
 }
