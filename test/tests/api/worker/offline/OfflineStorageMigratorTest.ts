@@ -7,6 +7,7 @@ import { ModelInfos } from "../../../../../src/api/common/EntityFunctions.js"
 import { typedEntries } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
 import { SqlCipherFacade } from "../../../../../src/native/common/generatedipc/SqlCipherFacade.js"
+import { OutOfSyncError } from "../../../../../src/api/common/error/OutOfSyncError.js"
 
 o.spec("OfflineStorageMigrator", async function () {
 	const modelInfos: ModelInfos = {
@@ -107,8 +108,7 @@ o.spec("OfflineStorageMigrator", async function () {
 			migrate: func() as OfflineMigration["migrate"],
 		}
 		migrations.push(migration)
-
-		await migrator.migrate(storage, sqlCipherFacade)
+		await assertThrows(OutOfSyncError, () => migrator.migrate(storage, sqlCipherFacade))
 
 		verify(migration.migrate(storage, sqlCipherFacade), { times: 0 })
 		verify(storage.setStoredModelVersion("tutanota", matchers.anything()), { times: 0 })
