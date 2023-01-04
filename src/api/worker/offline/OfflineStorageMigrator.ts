@@ -75,7 +75,7 @@ export class OfflineStorageMigrator {
 			await this.prepopulateVersionIfNecessary("offline", 0, meta, storage)
 		}
 
-		if (!this.isNewerThanDatabase(meta)) {
+		if (this.isDbNewerThanCurrentClient(meta)) {
 			throw new OutOfSyncError(`offline database has newer schema than client`)
 		}
 
@@ -120,8 +120,10 @@ export class OfflineStorageMigrator {
 	 * in that case, it's likely that the client can't even understand the contents of the db.
 	 * we're going to delete it and not migrate at all.
 	 * @private
+	 *
+	 * @returns true if the database we're supposed to migrate has any higher model versions than our highest migration for that model, false otherwise
 	 */
-	private isNewerThanDatabase(meta: Partial<OfflineDbMeta>): boolean {
+	private isDbNewerThanCurrentClient(meta: Partial<OfflineDbMeta>): boolean {
 		const migrationsByApp = groupBy(this.migrations, (m) => m.app)
 		const maxVersionsByApp = new Map<VersionMetadataBaseKey, number>()
 		for (const [app, migrations] of migrationsByApp) {
@@ -137,10 +139,10 @@ export class OfflineStorageMigrator {
 		for (const [app, maxVersion] of maxVersionsByApp) {
 			const storedVersion = meta[`${app}-version`]!
 			if (storedVersion > maxVersion) {
-				return false
+				return true
 			}
 		}
 
-		return true
+		return false
 	}
 }

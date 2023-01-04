@@ -133,10 +133,11 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		try {
 			await this.migrator.migrate(this, this.sqlCipherFacade)
 		} catch (e) {
-			if (!(e instanceof OutOfSyncError)) {
+			if (e instanceof OutOfSyncError) {
+				await this.recreateDbFile(userId, databaseKey)
+			} else {
 				throw e
 			}
-			await this.recreateDbFile(userId, databaseKey)
 		}
 		// if nothing is written here, it means it's a new database
 		return (await this.getLastUpdateTime()) == null
