@@ -91,7 +91,6 @@ import { BaseHeaderAttrs } from "../../gui/Header.js"
 import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel.js"
 import { GroupType } from "../common/TutanotaConstants.js"
-import { getEventStart, getTimeZone } from "../../calendar/date/CalendarUtils.js"
 
 assertMainOrNode()
 
@@ -184,6 +183,7 @@ class MainLocator {
 	async calendarViewModel(): Promise<CalendarViewModel> {
 		const { ReceivedGroupInvitationsModel } = await import("../../sharing/model/ReceivedGroupInvitationsModel.js")
 		const { CalendarViewModel } = await import("../../calendar/view/CalendarViewModel.js")
+		const { getEventStart, getTimeZone } = await import("../../calendar/date/CalendarUtils.js")
 		const calendarInvitations = new ReceivedGroupInvitationsModel(GroupType.Calendar, this.eventController, this.entityClient, logins)
 		calendarInvitations.init()
 		return new CalendarViewModel(
