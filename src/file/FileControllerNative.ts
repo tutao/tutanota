@@ -12,6 +12,7 @@ import { ArchiveDataType } from "../api/common/TutanotaConstants"
 import { BlobFacade } from "../api/worker/facades/BlobFacade"
 import { FileFacade } from "../api/worker/facades/FileFacade"
 import { downloadAndDecryptDataFile, FileController, handleDownloadErrors, isLegacyFile, openDataFileInBrowser, zipDataFiles } from "./FileController.js"
+import stream from "mithril/stream"
 
 assertMainOrNode()
 
@@ -24,30 +25,62 @@ export class FileControllerNative implements FileController {
 	 * Temporary files are deleted afterwards in apps.
 	 */
 	async download(file: TutanotaFile) {
-		await guiDownload(this.doDownload(file))
+		await guiDownload(
+			isAndroidApp() || isDesktop()
+				? this.doDownload(
+						new Array(file),
+						(file) => this.downloadAndDecryptInNative(file),
+						(files) => promiseMap(files, (file) => this.fileApp.putFileIntoDownloadsFolder(file.location)),
+						(files) => this.cleanUp(files),
+				  )
+				: this.doDownload(
+						new Array(file),
+						(file) => this.downloadAndDecryptInNative(file),
+						(files) => promiseMap(files, (file) => this.fileApp.open(file)),
+						(files) => this.cleanUp(files),
+				  ),
+		)
 	}
 
 	async open(file: TutanotaFile) {
 		await guiDownload(this.doOpen(file))
 	}
 
-	private async doDownload(tutanotaFile: TutanotaFile) {
-		let temporaryFile: FileReference | null = null
-		try {
-			temporaryFile = await this.downloadAndDecryptInNative(tutanotaFile)
-			if (isAndroidApp() || isDesktop()) {
-				await this.fileApp.putFileIntoDownloadsFolder(temporaryFile.location)
-			} else {
-				await this.fileApp.open(temporaryFile)
-			}
-		} finally {
-			if (temporaryFile) {
+	private async cleanUp(files: FileReference[]) {
+		if (files.length > 0) {
+			for (const file of files) {
 				try {
-					await this.fileApp.deleteFile(temporaryFile.location)
+					await this.fileApp.deleteFile(file.location)
 				} catch (e) {
-					console.log("failed to delete file", temporaryFile.location, e)
+					console.log("failed to delete file", file.location, e)
 				}
 			}
+		}
+	}
+
+	private async doDownload<T>(
+		tutanotaFiles: TutanotaFile[],
+		downloadAction: (file: TutanotaFile) => Promise<T>,
+		processDownloadedFiles: (downloadedFiles: T[]) => Promise<unknown>,
+		cleanUp: (downloadedFiles: T[]) => Promise<unknown>,
+		progress?: stream<number>,
+	) {
+		const downloadedFiles: Array<T> = []
+		try {
+			for (const file of tutanotaFiles) {
+				try {
+					const downloadedFile = await downloadAction(file)
+					downloadedFiles.push(downloadedFile)
+					if (progress != null) {
+						progress(((tutanotaFiles.indexOf(file) + 1) / tutanotaFiles.length) * 100)
+					}
+				} catch (e) {
+					await handleDownloadErrors(e, (msg) => Dialog.message(() => lang.get(msg) + " " + file.name))
+				}
+			}
+			await processDownloadedFiles(downloadedFiles)
+		} finally {
+			await cleanUp(downloadedFiles)
 		}
 	}
 
@@ -67,44 +100,65 @@ export class FileControllerNative implements FileController {
 
 	/**
 	 * Temporary files are deleted afterwards in apps.
-	 *
-	 * TODO this could probably just use this.doDownload. Temporary files are not being cleaned up on android
 	 */
 	async downloadAll(tutanotaFiles: Array<TutanotaFile>): Promise<void> {
-		const downloadAll = async <T>(downloadFile: (file: TutanotaFile) => Promise<T>, processDownloadedFiles: (downloadedFiles: T[]) => Promise<unknown>) => {
-			const downloadedFiles: Array<T> = []
-			for (const file of tutanotaFiles) {
-				try {
-					const downloadedFile = await downloadFile(file)
-					downloadedFiles.push(downloadedFile)
-				} catch (e) {
-					await handleDownloadErrors(e, (msg) => Dialog.message(() => lang.get(msg) + " " + file.name))
-				}
-			}
-			await processDownloadedFiles(downloadedFiles)
-		}
-
+		const progress = stream(0)
 		if (isAndroidApp()) {
-			await downloadAll(
-				(file) => this.downloadAndDecryptInNative(file),
-				(files) => promiseMap(files, (file) => this.fileApp.putFileIntoDownloadsFolder(file.location)),
+			await guiDownload(
+				this.doDownload(
+					tutanotaFiles,
+					(file) => this.downloadAndDecryptInNative(file),
+					(files) => promiseMap(files, (file) => this.fileApp.putFileIntoDownloadsFolder(file.location)),
+					(files) => this.cleanUp(files),
+					progress,
+				),
+				progress,
 			)
 		} else if (isIOSApp()) {
-			await downloadAll(
-				(file) => this.downloadAndDecryptInNative(file),
-				(files) =>
-					promiseMap(files, async (file) => {
-						try {
-							await this.fileApp.open(file)
-						} finally {
-							await this.fileApp.deleteFile(file.location).catch((e) => console.log("failed to delete file", file.location, e))
-						}
-					}),
+			await guiDownload(
+				this.doDownload(
+					tutanotaFiles,
+					(file) => this.downloadAndDecryptInNative(file),
+					(files) =>
+						promiseMap(files, async (file) => {
+							try {
+								await this.fileApp.open(file)
+							} finally {
+								await this.fileApp.deleteFile(file.location).catch((e) => console.log("failed to delete file", file.location, e))
+							}
+						}),
+					(files) => this.cleanUp(files),
+					progress,
+				),
+				progress,
+			)
+		} else if (isDesktop()) {
+			await guiDownload(
+				this.doDownload(
+					tutanotaFiles,
+					(file) => this.downloadAndDecryptInNative(file),
+					async (files) => {
+						const dataFiles = (await promiseMap(files, (f) => this.fileApp.readDataFile(f.location))).filter(Boolean)
+						const zipFileInTemp = await this.fileApp.writeDataFile(
+							await zipDataFiles(dataFiles as Array<DataFile>, `${sortableTimestamp()}-attachments.zip`),
+						)
+						return this.fileApp.putFileIntoDownloadsFolder(zipFileInTemp.location)
+					},
+					async () => {}, // no cleanup needed
+					progress,
+				),
+				progress,
 			)
 		} else {
-			await downloadAll(
-				(file) => this.downloadAndDecrypt(file),
-				async (files) => openDataFileInBrowser(await zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`)),
+			await guiDownload(
+				this.doDownload(
+					tutanotaFiles,
+					(file) => this.downloadAndDecrypt(file),
+					async (files) => openDataFileInBrowser(await zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`)),
+					async () => {},
+					progress,
+				),
+				progress,
 			)
 		}
 	}
@@ -153,9 +207,9 @@ export class FileControllerNative implements FileController {
 	}
 }
 
-async function guiDownload(downloadPromise: Promise<void>) {
+async function guiDownload(downloadPromise: Promise<void>, progress?: stream<number>) {
 	try {
-		await showProgressDialog("pleaseWait_msg", downloadPromise)
+		await showProgressDialog("pleaseWait_msg", downloadPromise, progress)
 	} catch (e) {
 		// handle the user cancelling the dialog
 		if (e instanceof CancelledError) {
