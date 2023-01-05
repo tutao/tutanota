@@ -1,11 +1,3 @@
-//
-//  FileChooser.swift
-//  tutanota
-//
-//  Created by Tutao GmbH on 14.10.20.
-//  Copyright © 2020 Tutao GmbH. GPL-3.0-only.
-//
-
 import Photos
 import PhotosUI
 import UIKit
@@ -45,9 +37,9 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 
     let attachmentTypeMenu = UIDocumentMenuViewController(
       documentTypes: self.supportedUTIs, in: UIDocumentPickerMode.import)
-    
+
     self.attachmentTypeMenu = attachmentTypeMenu
-    
+
     attachmentTypeMenu.delegate = self
 
     // add menu item for selecting images from photo library.
@@ -101,7 +93,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
         self?.openCamera()  // capture the weak reference to avoid reference cycle
       }
     }
-    
+
     return try await withCheckedThrowingContinuation { continuation in
       self.resultHandler = continuation.resume(with:)
       self.sourceController.present(attachmentTypeMenu, animated: true, completion: nil)
@@ -164,12 +156,12 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
     documentPicker.delegate = self
     self.sourceController.present(documentPicker, animated: true, completion: nil)
   }
-    
+
   // from UIDocumentMenuDelegate protocol
   func documentMenuWasCancelled(documentMenu: UIDocumentMenuViewController) {
     self.sendResult(filePath: nil)
   }
-    
+
   func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
     self.copyFileToLocalFolderAndSendResult(srcUrl: url, filename: url.lastPathComponent)
   }
@@ -387,14 +379,14 @@ extension TUTFileChooser: PHPickerViewControllerDelegate {
   func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
     picker.dismiss(animated: true, completion: nil)
 
-    
+
     // Each item can be of different type. We must ask the result what type we can
     // get, ask to load it and then copy the result to the local folder because URL
     // will stop being valid after the callback returns.
     // We use waitGroup to wait for all of these async callbacks.
     let waitGroup = DispatchGroup()
     var urls = [URL]()
-    
+
     func requestFileOfType(result: PHPickerResult, type: String) -> Bool {
         if result.itemProvider.hasItemConformingToTypeIdentifier(type) {
           waitGroup.enter()
