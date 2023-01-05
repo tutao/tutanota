@@ -20,7 +20,6 @@ import {
 	FeatureType,
 	GroupType,
 	MailFolderType,
-	MailReportType as mailReportType,
 	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
 	OperationType,
 	ReportMovedMailsType,
@@ -40,7 +39,6 @@ import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import {WebsocketConnectivityModel} from "../../misc/WebsocketConnectivityModel.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { UserError } from "../../api/main/UserError.js"
-import { reportMailsAutomatically } from "../view/MailReportDialog.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox
@@ -185,23 +183,10 @@ export class MailModel {
 	async spamFolderAndSubfolders(folder: MailFolder): Promise<void> {
 		const mailboxDetail = await this.getMailboxDetailsForMailListId(folder.mails)
 
-		await this.reportMailsWithDialog(folder)
 		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
 		if (!deletedFolder) {
 			return this.mailFacade.updateMailFolder(folder, mailboxDetail.folders.getSystemFolderByType(MailFolderType.SPAM)._id, folder.name)
 		}
-	}
-
-	async reportMailsWithDialog(folder: MailFolder): Promise<void> {
-		const mailboxDetail = await this.getMailboxDetailsForMailListId(folder.mails)
-		const descendants = mailboxDetail.folders.getDescendantFoldersOfParent(folder._id).sort((l, r) => r.level - l.level)
-
-		let reportableMails = await this.entityClient.loadAll(MailTypeRef, folder.mails)
-		for (const descendant of descendants) {
-			reportableMails.push(...(await this.entityClient.loadAll(MailTypeRef, descendant.folder.mails)))
-		}
-
-		await reportMailsAutomatically(mailReportType.SPAM, this, mailboxDetail, reportableMails)
 	}
 
 	async reportMails(reportType: MailReportType, mails: ReadonlyArray<Mail>): Promise<void> {
