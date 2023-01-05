@@ -15,19 +15,19 @@ import { reportMailsAutomatically } from "../view/MailReportDialog.js"
 
 /**
  * Dialog for Edit and Add folder are the same.
- * @param folder if this is null, a folder is being added, otherwise that folder is being edited
+ * @param editFolder if this is null, a folder is being added, otherwise a folder is being edited
  */
-export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, folder: MailFolder | null = null, parentFolder: MailFolder | null = null) {
+export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFolder: MailFolder | null = null, parentFolder: MailFolder | null = null) {
 	const noParentFolderOption = lang.get("comboBoxSelectionNone_msg")
 	const mailGroupId = mailBoxDetail.mailGroup._id
-	let folderNameValue = folder?.name ?? ""
+	let folderNameValue = editFolder?.name ?? ""
 	let targetFolders: SelectorItemList<MailFolder | null> = mailBoxDetail.folders
-		.getIndentedList(folder)
+		.getIndentedList(editFolder)
 		// filter: SPAM and TRASH and descendants are only shown if editing (folders can only be moved there, not created there)
 		.filter(
 			(folderInfo) =>
 				!(
-					folder === null &&
+					editFolder === null &&
 					(folderInfo.folder.folderType === MailFolderType.TRASH ||
 						folderInfo.folder.folderType === MailFolderType.SPAM ||
 						mailBoxDetail.folders.checkFolderForAncestor(
@@ -44,11 +44,11 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, folder:
 			}
 		})
 	targetFolders = [{ name: noParentFolderOption, value: null }, ...targetFolders]
-	let selectedParentFolder = parentFolder ? parentFolder : null
+	let selectedParentFolder = parentFolder
 	// @ts-ignore
 	let form = () => [
 		m(TextField, {
-			label: folder ? "rename_action" : "folderName_label",
+			label: editFolder ? "rename_action" : "folderName_label",
 			value: folderNameValue,
 			oninput: (newInput) => {
 				folderNameValue = newInput
@@ -66,37 +66,37 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, folder:
 	const okAction = async (dialog: Dialog) => {
 		try {
 			// if folder is null, create new folder
-			if (folder === null) {
+			if (editFolder === null) {
 				await locator.mailFacade.createMailFolder(folderNameValue, selectedParentFolder ? selectedParentFolder._id : null, mailGroupId)
 			} else {
 				// if it is being moved to trash (and not already in trash), ask about trashing
-				if (selectedParentFolder?.folderType === MailFolderType.TRASH && !isSameId(selectedParentFolder._id, folder.parentFolder)) {
+				if (selectedParentFolder?.folderType === MailFolderType.TRASH && !isSameId(selectedParentFolder._id, editFolder.parentFolder)) {
 					const confirmed = await Dialog.confirm(() =>
 						lang.get("confirmDeleteCustomFolder_msg", {
-							"{1}": getFolderName(folder),
+							"{1}": getFolderName(editFolder),
 						}),
 					)
 					if (!confirmed) return
-					await locator.mailModel.trashFolderAndSubfolders(folder)
-				} else if (selectedParentFolder?.folderType === MailFolderType.SPAM && !isSameId(selectedParentFolder._id, folder.parentFolder)) {
+					await locator.mailModel.trashFolderAndSubfolders(editFolder)
+				} else if (selectedParentFolder?.folderType === MailFolderType.SPAM && !isSameId(selectedParentFolder._id, editFolder.parentFolder)) {
 					// if it is being moved to spam (and not already in spam), ask about reporting containing emails
 					const confirmed = await Dialog.confirm(() =>
 						lang.get("confirmSpamCustomFolder_msg", {
-							"{1}": getFolderName(folder),
+							"{1}": getFolderName(editFolder),
 						}),
 					)
 					if (!confirmed) return
 					// get mails to report before moving to mail model
-					const descendants = mailBoxDetail.folders.getDescendantFoldersOfParent(folder._id).sort((l, r) => r.level - l.level)
+					const descendants = mailBoxDetail.folders.getDescendantFoldersOfParent(editFolder._id).sort((l, r) => r.level - l.level)
 
-					let reportableMails = await locator.entityClient.loadAll(MailTypeRef, folder.mails)
+					let reportableMails = await locator.entityClient.loadAll(MailTypeRef, editFolder.mails)
 					for (const descendant of descendants) {
 						reportableMails.push(...(await locator.entityClient.loadAll(MailTypeRef, descendant.folder.mails)))
 					}
 					await reportMailsAutomatically(MailReportType.SPAM, locator.mailModel, mailBoxDetail, reportableMails)
-					await locator.mailModel.spamFolderAndSubfolders(folder)
+					await locator.mailModel.spamFolderAndSubfolders(editFolder)
 				} else {
-					await locator.mailFacade.updateMailFolder(folder, selectedParentFolder?._id || null, folderNameValue)
+					await locator.mailFacade.updateMailFolder(editFolder, selectedParentFolder?._id || null, folderNameValue)
 				}
 			}
 			dialog.close()
@@ -116,7 +116,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, folder:
 		return checkFolderName(mailBoxDetail, name, mailGroupId, newParentFolder)
 	}
 	Dialog.showActionDialog({
-		title: folder ? lang.get("editFolder_action") : lang.get("addFolder_action"),
+		title: editFolder ? lang.get("editFolder_action") : lang.get("addFolder_action"),
 		child: form,
 		validator: () => validateFolderEdit(folderNameValue, selectedParentFolder?._id ?? null),
 		allowOkWithReturn: true,
