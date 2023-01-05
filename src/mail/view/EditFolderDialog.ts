@@ -1,4 +1,4 @@
-import { MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
+import { MailFolder, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { DropDownSelector, SelectorItemList } from "../../gui/base/DropDownSelector.js"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../model/MailUtils.js"
 import m from "mithril"
@@ -9,8 +9,9 @@ import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { LockedError } from "../../api/common/error/RestError.js"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { MailboxDetail } from "../model/MailModel.js"
-import { MailFolderType } from "../../api/common/TutanotaConstants.js"
+import { MailFolderType, MailReportType } from "../../api/common/TutanotaConstants.js"
 import { isSameId } from "../../api/common/utils/EntityUtils.js"
+import { reportMailsAutomatically } from "../view/MailReportDialog.js"
 
 /**
  * Dialog for Edit and Add folder are the same.
@@ -85,6 +86,14 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, folder:
 						}),
 					)
 					if (!confirmed) return
+					// get mails to report before moving to mail model
+					const descendants = mailBoxDetail.folders.getDescendantFoldersOfParent(folder._id).sort((l, r) => r.level - l.level)
+
+					let reportableMails = await locator.entityClient.loadAll(MailTypeRef, folder.mails)
+					for (const descendant of descendants) {
+						reportableMails.push(...(await locator.entityClient.loadAll(MailTypeRef, descendant.folder.mails)))
+					}
+					await reportMailsAutomatically(MailReportType.SPAM, locator.mailModel, mailBoxDetail, reportableMails)
 					await locator.mailModel.spamFolderAndSubfolders(folder)
 				} else {
 					await locator.mailFacade.updateMailFolder(folder, selectedParentFolder?._id || null, folderNameValue)
