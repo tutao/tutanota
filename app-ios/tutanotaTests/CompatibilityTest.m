@@ -1,11 +1,3 @@
-//
-//  CompatibilityTest.m
-//  CryptoIos
-//
-//  Created by Tutao GmbH on 20.10.16.
-//  Copyright © 2016 Tutao GmbH. All rights reserved.
-//
-
 #import <XCTest/XCTest.h>
 #import "TUTAes128Facade.h"
 #import "TUTEncodingConverter.h"
@@ -52,7 +44,7 @@ static int mock_rand_bytes(unsigned char *buf, int num)
     NSData *jsonData = [[NSData alloc] initWithContentsOfFile:path];
 	NSError *error = nil;
 	self.testData = [NSJSONSerialization JSONObjectWithData:jsonData options:NSJSONReadingAllowFragments error:&error];
-	
+
 	if (error){
 		XCTFail(@"error %@", error);
 	}
@@ -91,7 +83,7 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 		let seed = [TUTEncodingConverter hexToBytes:testCase[@"seed"]];
 
 		randValueMock = (unsigned char *)seed.bytes;
-    
+
     NSError *error;
     let encrypted = [crypto rsaEncryptWithPublicKey:publicKey data:plainText seed:seed error:&error];
     XCTAssertEqualObjects(encrypted, encResult);
@@ -107,18 +99,18 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 		NSData *key = [TUTEncodingConverter hexToBytes:td[@"hexKey"]];
 		NSData *plainTextData = [TUTEncodingConverter base64ToBytes:td[@"plainTextBase64"]];
 		NSError *error = nil;
-		
+
 		NSData *encryptedData = [TUTAes128Facade encrypt:plainTextData withKey:key withIv:iv withMac:NO error:&error];
 		XCTAssertNil(error);
         XCTAssertEqualObjects(td[@"cipherTextBase64"], [TUTEncodingConverter bytesToBase64:encryptedData]);
-		
+
 		NSData *decryptedData = [TUTAes128Facade decrypt:encryptedData withKey:key error:&error];
 		XCTAssertNil(error);
 		NSString * plainTextAsHex = [TUTEncodingConverter bytesToHex:[TUTEncodingConverter base64ToBytes:td[@"plainTextBase64"]]];
 
 		XCTAssertEqualObjects(plainTextAsHex, [TUTEncodingConverter bytesToHex:decryptedData]);
         XCTAssertEqualObjects(td[@"plainTextBase64"], [TUTEncodingConverter bytesToBase64:decryptedData]);
-	
+
     }
 }
 
@@ -157,11 +149,11 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 	NSData *data = [TUTEncodingConverter stringToBytes:@"abc"];
 	NSData* b64Data = [TUTEncodingConverter base64ToBytes:@"YWJj"];
 	NSData* hexData = [TUTEncodingConverter hexToBytes:@"616263"];
-	
+
 	XCTAssertEqualObjects(@"abc", [TUTEncodingConverter bytesToString:data]);
 	XCTAssertEqualObjects(@"abc", [TUTEncodingConverter bytesToString:b64Data]);
 	XCTAssertEqualObjects(@"abc", [TUTEncodingConverter bytesToString:hexData]);
-	
+
 	XCTAssertEqualObjects(@"YWJj", [TUTEncodingConverter bytesToBase64:data]);
 	XCTAssertEqualObjects(@"YWJj", [TUTEncodingConverter bytesToBase64:b64Data]);
 	XCTAssertEqualObjects(@"YWJj", [TUTEncodingConverter bytesToBase64:hexData]);
@@ -170,7 +162,7 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 	XCTAssertEqualObjects(@"abc", [TUTEncodingConverter bytesToString:data]);
 	XCTAssertEqualObjects(@"abc", [TUTEncodingConverter bytesToString:b64Data]);
 	XCTAssertEqualObjects(@"abc", [TUTEncodingConverter bytesToString:hexData]);
-	
+
 	XCTAssertEqualObjects(@"616263", [TUTEncodingConverter bytesToHex:data]);
 	XCTAssertEqualObjects(@"616263", [TUTEncodingConverter bytesToHex:hexData]);
 	XCTAssertEqualObjects(@"616263", [TUTEncodingConverter bytesToHex:hexData]);
@@ -181,11 +173,11 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 	NSData *data = [TUTEncodingConverter stringToBytes:@""];
 	NSData* b64Data = [TUTEncodingConverter base64ToBytes:@""];
 	NSData* hexData = [TUTEncodingConverter hexToBytes:@""];
-	
+
 	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToString:data]);
 	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToString:b64Data]);
 	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToString:hexData]);
-	
+
 	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToBase64:data]);
 	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToBase64:b64Data]);
 	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToBase64:hexData]);
@@ -194,7 +186,7 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToString:data]);
 	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToString:b64Data]);
 	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToString:hexData]);
-	
+
 	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToHex:data]);
 	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToHex:hexData]);
 	XCTAssertEqualObjects(@"", [TUTEncodingConverter bytesToHex:hexData]);
