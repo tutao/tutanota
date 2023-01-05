@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2022-12-06T08:47:56Z",
+	"updated_at": "2023-01-17T12:46:31Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1064,6 +1064,7 @@ export default {
 		"pricing.comparisonThemePro_msg": "अपने हिसाब का चिह्न एवं रंग",
 		"pricing.comparisonUsersFree_msg": "एक उपभोगता",
 		"pricing.currentPlan_label": "वर्तमान सदस्यता",
+		"pricing.extEmailProtection_label": "पासवर्ड-संरक्षित ईमेल",
 		"pricing.mailAddressAliasesShort_label": "{amount} अतिरिक्त ईमेल पते",
 		"pricing.monthly_label": "मासिक",
 		"pricing.perMonthPaidYearly_label": "प्रति माह - वार्षिक भुगतान किया गया",
@@ -1071,6 +1072,7 @@ export default {
 		"pricing.perYear_label": "प्रति वर्ष",
 		"pricing.privateUse_label": " निजी",
 		"pricing.select_action": "चुनें",
+		"pricing.servers_label": "जर्मनी में स्थित सर्वर",
 		"pricing.subscriptionPeriodInfoBusiness_msg": "मासिक भुगतान करते समय सदस्यता अवधि एक महीने और वार्षिक भुगतान करते समय एक वर्ष है | सदस्यता अवधि के अंत में सदस्यता स्वयं नवीनीकृत हो जाएगी।",
 		"pricing.subscriptionPeriodInfoPrivate_msg": "मासिक भुगतान करते समय सदस्यता अवधि एक महीने और वार्षिक भुगतान करते समय एक वर्ष है | प्रारंभिक अवधि के बाद, सदस्यता एक गैर-निश्चित अवधि के अनुबंध में बदल जाएगी और इसे किसी भी समय रद्द किया जा सकता है।",
 		"pricing.upgradeLater_msg": "टूटानोटा को फ्री में उपयोग कर बाद में सदस्यता लें। केवल निजी उपयोग। ",
