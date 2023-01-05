@@ -1,11 +1,3 @@
-//
-//  EncodingConverter.h
-//  CryptoIos
-//
-//  Created by Tutao GmbH on 20.10.16.
-//  Copyright © 2016 Tutao GmbH. All rights reserved.
-//
-
 #ifndef EncodingConverter_h
 #define EncodingConverter_h
 
