@@ -1,7 +1,6 @@
 import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
-import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { ButtonAttrs } from "../../gui/base/Button.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
@@ -29,7 +28,6 @@ import {
 	getFolderIcon,
 	getFolderName,
 	getMailboxName,
-	getPathToFolderString,
 	markMails,
 	MAX_FOLDER_INDENT_LEVEL,
 } from "../model/MailUtils"
@@ -726,7 +724,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		// remove any selection to avoid that the next mail is loaded and selected for each deleted mail event
 		this.cache.mailList?.list.selectNone()
 
-		if (await locator.mailModel.isFinalDelete(folder)) {
+		if (await locator.mailModel.isSpamTrashDescendant(folder)) {
 			const confirmed = await Dialog.confirm(() =>
 				lang.get("confirmDeleteFinallyCustomFolder_msg", {
 					"{1}": getFolderName(folder),

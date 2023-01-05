@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2022-12-20T09:42:25Z",
+	"updated_at": "2023-01-03T14:01:30Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -453,6 +453,7 @@ export default {
 		"editContactForm_label": "Upraviť kontaktný formulár",
 		"editContact_label": "Uprav kontakt",
 		"editEntry_label": "Upraviť položku",
+		"editFolder_action": "Upraviť priečinok",
 		"editInboxRule_action": "Upraviť pravidlo pre doručenú poštu",
 		"editMail_action": "Upraviť vybratý e-mail",
 		"editMessage_label": "Upraviť správu",
@@ -913,6 +914,7 @@ export default {
 		"notificationSync_msg": "Synchronizujú sa oznámenia",
 		"notSigned_msg": "Nepodpísané.",
 		"noUpdateAvailable_msg": "Nenašla sa žiadna aktualizácia.",
+		"noValidMembersToAdd_msg": "Nespravuješ žiadnych používateľov, ktorí nie sú už členmi tejto skupiny.",
 		"no_label": "Nie",
 		"npoDiscount_msg": "Ponuka pre neziskovky: 50 % používateľská zľava na balík Premium a 20 aliasov zadarmo!",
 		"npoDonation_msg": "Dar pre neziskovky: až do 50 používateľov Premium a 100 aliasov zadarmo!",
@@ -979,6 +981,7 @@ export default {
 		"pageForward_label": "Nasledujúca strana",
 		"pageTitle_label": "Názov stránky",
 		"parentConfirmation_msg": "Podľa Všeobecného nariadenia o ochrane údajov Európskej únie (GDPR) deti mladšie ako 16 rokov potrebujú na umožnenie spracovania ich osobných údajov potvrdenie od svojich rodičov. Zavolaj si preto, prosím, jedného zo svojich rodičov alebo zákonného opatrovníka, aby potvrdil nasledujúce:\n\n„Som rodič alebo zákonný opatrovník môjho dieťaťa a dovoľujem mu používať Tutanotu, čím vyjadrujem súhlas so spracovaním jeho osobných údajov.“",
+		"parentFolder_label": "Nadradený priečinok",
 		"participants_label": "Účastníci kalendára „{name}“",
 		"participant_label": "Účastník",
 		"passphraseGeneratorHelp_msg": "Toto je bezpečná a ľahko zapamätateľná prístupová fráza generovaná z veľkého slovníka.",

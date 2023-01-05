@@ -271,7 +271,7 @@ export class MailModel {
 			const sourceMailFolder = this.getMailFolder(listId)
 
 			if (sourceMailFolder) {
-				if (await this.isFinalDelete(sourceMailFolder)) {
+				if (await this.isSpamTrashDescendant(sourceMailFolder)) {
 					await this._finallyDeleteMails(mails)
 				} else {
 					await this._moveMails(mails, trashFolder)
@@ -380,7 +380,7 @@ export class MailModel {
 		return this.mailFacade.checkMailForPhishing(mail, links)
 	}
 
-	async isFinalDelete(folder: MailFolder): Promise<boolean> {
+	async isSpamTrashDescendant(folder: MailFolder): Promise<boolean> {
 		const system = (await this.getMailboxDetailsForMailListId(folder.mails)).folders
 		return (
 			folder.folderType === MailFolderType.TRASH ||

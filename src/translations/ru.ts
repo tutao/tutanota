@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2022-12-20T17:09:33Z",
+	"updated_at": "2023-01-03T18:30:11Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -457,6 +457,7 @@ export default {
 		"editContactForm_label": "Форма редактирования контакта",
 		"editContact_label": "Редактировать контакт",
 		"editEntry_label": "Редактировать запись",
+		"editFolder_action": "Редактировать папку",
 		"editInboxRule_action": "Изменить правило во Входящих",
 		"editMail_action": "Редактировать выбранное сообщение",
 		"editMessage_label": "Редактировать сообщение",
@@ -916,6 +917,7 @@ export default {
 		"notificationSync_msg": "Синхронизация уведомлений",
 		"notSigned_msg": "Не подписано.",
 		"noUpdateAvailable_msg": "Обновления не найдены.",
+		"noValidMembersToAdd_msg": "Вы не администрируете пользователей, которые еще не являются членами этой группы.",
 		"no_label": "Нет",
 		"npoDiscount_msg": "Предложение для некоммерческих организаций: скидка 50% для Премиум-пользователей и 20 псевдонимов бесплатно!",
 		"npoDonation_msg": "Поддержка для НКО: до 50 Премиум пользователей и до 100 псевдонимов электронной почты бесплатно!",
