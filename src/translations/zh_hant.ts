@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2022-12-06T08:47:56Z",
+	"updated_at": "2023-01-15T19:36:48Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -838,8 +838,8 @@ export default {
 		"switchSpam_action": "切換至垃圾郵件資料夾",
 		"switchTrash_action": "切換至垃圾筒匣",
 		"takeoverAccountInvalid_msg": "此被指定覆蓋的目標電子郵件地址並不屬於進階版管理員帳戶。",
-		"takeoverMailAddressInfo_msg": "選填：指定進階版管理員之郵件地址令您可以在目標帳戶中重複使用您的郵件地址。\n",
-		"takeoverMailAddress_label": "接管郵件地址",
+		"takeoverMailAddressInfo_msg": "選填：如需以其他帳戶重複使用您的郵件別名，請輸入目標帳號之管理員郵件地址。\n",
+		"takeoverMailAddress_label": "目標郵件地址",
 		"templateLanguageExists_msg": "您選定的語言有已存在樣板。",
 		"termsAcceptedNeutral_msg": "請同意服務條款。",
 		"termsAndConditionsLink_label": "通性服務條款",

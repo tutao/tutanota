@@ -1,6 +1,6 @@
 import { MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
 import { DropDownSelector, SelectorItemList } from "../../gui/base/DropDownSelector.js"
-import { getFolderName, getIndentedFolderNameForDropdown } from "../model/MailUtils.js"
+import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../model/MailUtils.js"
 import m from "mithril"
 import { TextField } from "../../gui/base/TextField.js"
 import { Dialog } from "../../gui/base/Dialog.js"
@@ -17,15 +17,24 @@ import { isSameId } from "../../api/common/utils/EntityUtils.js"
  * @param folder if this is null, a folder is being added, otherwise that folder is being edited
  */
 export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, folder: MailFolder | null = null, parentFolder: MailFolder | null = null) {
-	const noParentFolderOption = "No Parent Folder"
+	const noParentFolderOption = lang.get("comboBoxSelectionNone_msg")
 	const mailGroupId = mailBoxDetail.mailGroup._id
 	let folderNameValue = folder?.name ?? ""
 	let targetFolders: SelectorItemList<MailFolder | null> = mailBoxDetail.folders
 		.getIndentedList(folder)
-		// filter: SPAM and TRASH are only shown if editing (folders can only be moved there, not created there)
+		// filter: SPAM and TRASH and descendants are only shown if editing (folders can only be moved there, not created there)
 		.filter(
 			(folderInfo) =>
-				!(folder === null && (folderInfo.folder.folderType === MailFolderType.TRASH || folderInfo.folder.folderType === MailFolderType.SPAM)),
+				!(
+					folder === null &&
+					(folderInfo.folder.folderType === MailFolderType.TRASH ||
+						folderInfo.folder.folderType === MailFolderType.SPAM ||
+						mailBoxDetail.folders.checkFolderForAncestor(
+							folderInfo.folder,
+							mailBoxDetail.folders.getSystemFolderByType(MailFolderType.TRASH)._id,
+						) ||
+						mailBoxDetail.folders.checkFolderForAncestor(folderInfo.folder, mailBoxDetail.folders.getSystemFolderByType(MailFolderType.SPAM)._id))
+				),
 		)
 		.map((folderInfo) => {
 			return {
@@ -50,6 +59,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, folder:
 			selectedValue: selectedParentFolder,
 			selectedValueDisplay: selectedParentFolder ? getFolderName(selectedParentFolder) : noParentFolderOption,
 			selectionChangedHandler: (newFolder: MailFolder | null) => (selectedParentFolder = newFolder),
+			helpLabel: () => (selectedParentFolder ? getPathToFolderString(mailBoxDetail.folders, selectedParentFolder) : ""),
 		}),
 	]
 	const okAction = async (dialog: Dialog) => {
@@ -97,7 +107,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, folder:
 		return checkFolderName(mailBoxDetail, name, mailGroupId, newParentFolder)
 	}
 	Dialog.showActionDialog({
-		title: folder ? lang.get("editFolder_label") : lang.get("addFolder_label"),
+		title: folder ? lang.get("editFolder_action") : lang.get("addFolder_action"),
 		child: form,
 		validator: () => validateFolderEdit(folderNameValue, selectedParentFolder?._id ?? null),
 		allowOkWithReturn: true,

@@ -25,7 +25,7 @@ export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): 
 	let moveMails: Mail[] = []
 	for (let mail of mails) {
 		const folder = locator.mailModel.getMailFolder(mail._id[0])
-		const isFinalDelete = folder && (await locator.mailModel.isFinalDelete(folder))
+		const isFinalDelete = folder && (await locator.mailModel.isSpamTrashDescendant(folder))
 		isFinalDelete ? trashMails.push(mail) : moveMails.push(mail)
 	}
 
