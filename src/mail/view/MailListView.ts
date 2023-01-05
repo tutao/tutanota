@@ -444,7 +444,7 @@ export class MailListView implements Component {
 		if (!folder) {
 			return false
 		}
-		return locator.mailModel.isFinalDelete(folder)
+		return locator.mailModel.isSpamTrashDescendant(folder)
 	}
 
 	private showingDraftFolder(): boolean {

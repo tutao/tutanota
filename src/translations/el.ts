@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2022-12-19T17:04:21Z",
+	"updated_at": "2022-12-22T16:50:44Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -915,6 +915,7 @@ export default {
 		"notificationSync_msg": "Συγχρονισμός ειδοποιήσεων",
 		"notSigned_msg": "Δεν υπογράφηκε.",
 		"noUpdateAvailable_msg": "Δεν βρέθηκε ενημέρωση.",
+		"noValidMembersToAdd_msg": "Δεν διαχειρίζεστε χρήστες που δεν είναι ήδη μέλη αυτής της ομάδας.",
 		"no_label": "Όχι",
 		"npoDiscount_msg": "Προσφορά για ΜΚΟ: 50% έκπτωση για χρήστη Premium και 20 ψευδώνυμα δωρεάν!",
 		"npoDonation_msg": "Δωρεά για ΜΚΟ: έως 50 χρήστες Premium και 100 ψευδώνυμα δωρεάν!",

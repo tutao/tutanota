@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2022-12-20T19:34:33Z",
+	"updated_at": "2022-12-22T21:00:42Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -917,6 +917,7 @@ export default {
 		"notificationSync_msg": "مزامنة الإشعارات",
 		"notSigned_msg": "غير مُوقّع",
 		"noUpdateAvailable_msg": "لم يتم العثور على تحديث.",
+		"noValidMembersToAdd_msg": "أنت لا تدير أي مستخدمين ليسوا أعضاء بالفعل في هذه المجموعة.",
 		"no_label": "لا",
 		"npoDiscount_msg": "عرض لـ NPOs: خصم 50٪ على بريميوم و 20 اسم مستعار مجاني!",
 		"npoDonation_msg": "التبرع لـ NPOs: ما يصل إلى 50 مستخدمًا لـ بريميوم و 100 اسم مستعار مجاني!",
