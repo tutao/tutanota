@@ -45,9 +45,8 @@ export async function handleUncaughtError(e: Error) {
 		throw e
 	}
 
-	console.log("error", e, e.stack)
-
 	try {
+		console.log("error", e, e.stack)
 		const { handleUncaughtErrorImpl } = await importErrorHandler()
 		await handleUncaughtErrorImpl(e)
 	} catch (e) {
