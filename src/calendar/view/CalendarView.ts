@@ -224,6 +224,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									const lastDate = incrementDate(new Date(firstDate), 6)
 
 									if (firstDate.getMonth() !== lastDate.getMonth()) {
+										if (firstDate.getFullYear() !== lastDate.getFullYear()) {
+											return `${lang.formats.monthLong.format(firstDate)} ${lang.formats.yearNumeric.format(firstDate)} -
+											${lang.formats.monthLong.format(lastDate)} ${lang.formats.yearNumeric.format(lastDate)}`
+										}
 										return `${lang.formats.monthLong.format(firstDate)} - ${lang.formats.monthLong.format(
 											lastDate,
 										)} ${lang.formats.yearNumeric.format(firstDate)}`
