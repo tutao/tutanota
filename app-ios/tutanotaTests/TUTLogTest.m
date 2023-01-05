@@ -1,11 +1,3 @@
-//
-//  TUTLogTest.m
-//  tutanotaTests
-//
-//  Created by Tutao GmbH on 26.09.19.
-//  Copyright © 2019 Tutao GmbH. All rights reserved.
-//
-
 #import <XCTest/XCTest.h>
 #import "../tutanota/Sources/Utils/TUTLog.h"
 #import "../tutanota/Sources/Utils/Swiftier.h"

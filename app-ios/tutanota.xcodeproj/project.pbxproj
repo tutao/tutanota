@@ -2576,7 +2576,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TutanotaShareExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TutanotaShareExtension;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2022 Tutao GmbH. All rights reserved.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 Tutao GmbH. All rights reserved.";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2611,7 +2611,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TutanotaShareExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TutanotaShareExtension;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2022 Tutao GmbH. All rights reserved.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 Tutao GmbH. All rights reserved.";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
