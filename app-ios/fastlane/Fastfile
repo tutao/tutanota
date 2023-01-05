@@ -94,10 +94,10 @@ platform :ios do
 	lane :test do
 		# Create tutanota-3/build if it's not there because we try to copy it during build
 		sh "mkdir -p ../../build"
- 		sh "if xcrun simctl list | grep iphone-12-ios-16-1; then echo 'Using existing simulator'; else xcrun simctl create iphone-12-ios-16-1 com.apple.CoreSimulator.SimDeviceType.iPhone-12 com.apple.CoreSimulator.SimRuntime.iOS-16-1; fi"
+ 		sh "if xcrun simctl list | grep iphone-12-ios-16-2; then echo 'Using existing simulator'; else xcrun simctl create iphone-12-ios-16-2 com.apple.CoreSimulator.SimDeviceType.iPhone-12 com.apple.CoreSimulator.SimRuntime.iOS-16-2; fi"
 		run_tests(
 				scheme: "tutanota",
-				devices: ["iphone-12-ios-16-1"]
+				devices: ["iphone-12-ios-16-2"]
 		)
  	end
 
