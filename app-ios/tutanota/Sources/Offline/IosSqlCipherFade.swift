@@ -8,7 +8,7 @@ enum ListIdLockState {
 
 let OFFLINE_DB_CLOSED_DOMAIN = "de.tutao.tutanota.offline.OfflineDbClosedError"
 
-class IosSqlCipherFacade: SqlCipherFacade {
+actor IosSqlCipherFacade: SqlCipherFacade {
   private var db: SqlCipherDb? = nil
 
   private var concurrentListIdLocks = ConcurrentListIdLocks()
