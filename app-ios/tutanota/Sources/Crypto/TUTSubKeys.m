@@ -1,11 +1,3 @@
-//
-//  TUTSubKeys.m
-//  tutanota
-//
-//  Created by Tutao GmbH on 28.08.18.
-//  Copyright © 2018 Tutao GmbH. All rights reserved.
-//
-
 #import "TUTSubKeys.h"
 
 @implementation TUTSubKeys
