@@ -259,7 +259,7 @@ export class MultiSearchViewer implements Component {
 					// move all groups one by one because the mail list cannot be modified in parallel
 					return moveMails({ mailModel: locator.mailModel, mails: selectedMails, targetMailFolder: f.folder })
 				},
-				icon: getFolderIcon(f.folder)(),
+				icon: getFolderIcon(f.folder),
 			}))
 	}
 
