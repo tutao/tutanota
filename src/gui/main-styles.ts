@@ -1268,7 +1268,6 @@ styles.registerStyle("main", () => {
 			"margin-bottom": px(12),
 		},
 		".folder-row": {
-			"border-left": px(size.border_selection) + " solid transparent",
 			"align-items": "center",
 			position: "relative",
 		},
@@ -1278,7 +1277,6 @@ styles.registerStyle("main", () => {
 			position: "relative",
 		},
 		".counter-badge": {
-			position: "absolute",
 			"padding-left": px(4),
 			"padding-right": px(4),
 			"border-radius": px(8),
@@ -1293,10 +1291,11 @@ styles.registerStyle("main", () => {
 			"border-color": `${theme.list_accent_fg} !important`,
 			color: `${theme.list_accent_fg}`,
 		},
-		".folder-row > a": {
-			"flex-grow": 1,
-			"margin-left": px(-size.hpad_button - size.border_selection),
-		},
+		// FIXME why??
+		// ".folder-row > a": {
+		// 	"flex-grow": 1,
+		// 	"margin-left": px(-size.hpad_button - size.border_selection),
+		// },
 		".hoverable-list-item:hover": {
 			"border-color": `${theme.list_accent_fg} !important`,
 			color: `${theme.list_accent_fg}`,
@@ -1449,7 +1448,8 @@ styles.registerStyle("main", () => {
 			"padding-right": px(size.vpad),
 		},
 		"button, .nav-button": {
-			position: "relative",
+			// FIXME whyyy?
+			// position: "relative",
 			border: 0,
 			cursor: "pointer",
 			overflow: "hidden",
@@ -1461,14 +1461,14 @@ styles.registerStyle("main", () => {
 		},
 		".nav-button:hover": !isApp()
 			? {
-					"text-decoration": "underline",
-					opacity: 0.7,
+					// "text-decoration": "underline",
+					// opacity: 0.7,
 			  }
 			: {},
 		".nav-button:focus": client.isDesktopDevice()
 			? {
-					"text-decoration": "underline",
-					opacity: 0.7,
+					// "text-decoration": "underline",
+					// opacity: 0.7,
 			  }
 			: {},
 		"button:focus, button:hover": client.isDesktopDevice()

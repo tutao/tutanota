@@ -7,7 +7,7 @@ import type { PositionRect } from "./Overlay"
  */
 export type CounterBadgeAttrs = {
 	count: number
-	position: PositionRect
+	position?: PositionRect
 	color: string
 	background: string
 }
@@ -25,6 +25,7 @@ export class CounterBadge implements Component<CounterBadgeAttrs> {
 			? m(
 					".counter-badge.z2",
 					{
+						class: position ? "abs" : "",
 						onmouseenter: () => {
 							this._hovered = true
 						},
@@ -32,13 +33,13 @@ export class CounterBadge implements Component<CounterBadgeAttrs> {
 							this._hovered = false
 						},
 						style: {
-							width: position.width,
-							top: position.top,
-							bottom: position.bottom,
-							right: position.right,
-							left: position.left,
-							height: position.height,
-							"z-index": position.zIndex,
+							width: position?.width,
+							top: position?.top,
+							bottom: position?.bottom,
+							right: position?.right,
+							left: position?.left,
+							height: position?.height,
+							"z-index": position?.zIndex,
 							background,
 							color,
 						},

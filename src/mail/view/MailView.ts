@@ -4,8 +4,7 @@ import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { lang } from "../../misc/LanguageViewModel"
 import type { ButtonAttrs } from "../../gui/base/Button.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
-import type { NavButtonAttrs } from "../../gui/base/NavButton.js"
-import { isSelectedPrefix, NavButtonColor } from "../../gui/base/NavButton.js"
+import { isSelectedPrefix } from "../../gui/base/NavButton.js"
 import { MailViewer } from "./MailViewer"
 import { Dialog } from "../../gui/base/Dialog"
 import { FeatureType, Keys, MailFolderType } from "../../api/common/TutanotaConstants"
@@ -20,25 +19,16 @@ import { keyManager } from "../../misc/KeyManager"
 import { MultiMailViewer } from "./MultiMailViewer"
 import { logins } from "../../api/main/LoginController"
 import { Icons } from "../../gui/base/icons/Icons"
-import { NotFoundError, PreconditionFailedError } from "../../api/common/error/RestError"
+import { PreconditionFailedError } from "../../api/common/error/RestError"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
-import {
-	allMailsAllowedInsideFolder,
-	canDoDragAndDropExport,
-	getFolderIcon,
-	getFolderName,
-	getMailboxName,
-	markMails,
-	MAX_FOLDER_INDENT_LEVEL,
-} from "../model/MailUtils"
+import { allMailsAllowedInsideFolder, canDoDragAndDropExport, getFolderName, getMailboxName, markMails } from "../model/MailUtils"
 import type { MailboxDetail } from "../model/MailModel"
 import { locator } from "../../api/main/MainLocator"
 import { ActionBar } from "../../gui/base/ActionBar"
 import { MultiSelectionBar } from "../../gui/base/MultiSelectionBar"
+
 import { PermissionError } from "../../api/common/error/PermissionError"
 import { MAIL_PREFIX, navButtonRoutes, throttleRoute } from "../../misc/RouteChange"
-import { attachDropdown } from "../../gui/base/Dropdown.js"
-import { MailFolderRow } from "./MailFolderRow"
 import { styles } from "../../gui/styles"
 import { size } from "../../gui/size"
 import { FolderColumnView } from "../../gui/FolderColumnView.js"
@@ -52,16 +42,15 @@ import { CancelledError } from "../../api/common/error/CancelledError"
 import Stream from "mithril/stream"
 import { MailViewerViewModel } from "./MailViewerViewModel"
 import { readLocalFiles } from "../../file/FileController.js"
-import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
-import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { MobileMailActionBar } from "./MobileMailActionBar.js"
-import { FolderSubtree, FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
-import { TopLevelView, TopLevelAttrs } from "../../TopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { showEditFolderDialog } from "./EditFolderDialog.js"
+import { MailFoldersView } from "./MailFoldersView.js"
 
 assertMainOrNode()
 
@@ -95,6 +84,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private readonly mailColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
 	cache: MailViewCache
+	private editingFolderForMailGroup: Id | null = null
 
 	readonly onremove: TopLevelView["onremove"]
 
@@ -133,22 +123,39 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					const details = locator.mailModel.mailboxDetails() ?? []
 					return m(FolderColumnView, {
 						drawer: vnode.attrs.drawerAttrs,
-						button:
-							!styles.isUsingBottomNavigation() && isNewMailActionAvailable()
-								? {
-										label: "newMail_action",
-										click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
-								  }
+						button: this.editingFolderForMailGroup
+							? null
+							: !styles.isUsingBottomNavigation() && isNewMailActionAvailable()
+							? {
+									label: "newMail_action",
+									click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
+							  }
+							: null,
+						content: [
+							this.editingFolderForMailGroup
+								? m(
+										".mlr-l.mt.mb",
+										m(Button, {
+											type: ButtonType.Login,
+											label: "done_action",
+											click: () => (this.editingFolderForMailGroup = null),
+										}),
+								  )
 								: null,
-						content: details.map((mailboxDetail) => {
-							return m(
-								SidebarSection,
-								{
-									name: () => getMailboxName(logins, mailboxDetail),
-								},
-								this.createMailboxFolderItems(mailboxDetail),
-							)
-						}),
+							...details.map((mailboxDetail) => {
+								if (this.editingFolderForMailGroup && this.editingFolderForMailGroup != mailboxDetail.mailGroup._id) {
+									return null
+								} else {
+									return m(
+										SidebarSection,
+										{
+											name: () => getMailboxName(logins, mailboxDetail),
+										},
+										this.createMailboxFolderItems(mailboxDetail),
+									)
+								}
+							}),
+						],
 						ariaLabel: "folderTitle_label",
 					})
 				},
@@ -450,81 +457,32 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private createMailboxFolderItems(mailboxDetail: MailboxDetail): Children {
-		const groupCounters = locator.mailModel.mailboxCounters()[mailboxDetail.mailGroup._id] || {}
-		// Important: this array is keyed so each item must have a key and `null` cannot be in the array
-		// So instead we push or not push into array
-		const customSystems = mailboxDetail.folders.customSubtrees
-		const systemSystems = mailboxDetail.folders.systemSubtrees
-		const children: Children = []
-		const systemChildren = this.renderFolderTree(systemSystems, groupCounters, mailboxDetail)
-		if (systemChildren) {
-			children.push(...systemChildren)
-		}
-		if (logins.isInternalUserLoggedIn()) {
-			children.push(
-				m(
-					SidebarSection,
-					{
-						name: "yourFolders_action",
-						button: m(IconButton, this.createFolderAddButton(mailboxDetail.mailGroup._id, null)),
-						key: "yourFolders", // we need to set a key because folder rows also have a key.
-					},
-					this.renderFolderTree(customSystems, groupCounters, mailboxDetail),
-				),
-			)
-		}
-		return children
-	}
-
-	private renderFolderTree(
-		subSystems: readonly FolderSubtree[],
-		groupCounters: Counters,
-		mailboxDetail: MailboxDetail,
-		indentationLevel: number = 0,
-	): Children[] | null {
-		return subSystems.map((system) => {
-			const id = getElementId(system.folder)
-			const button: NavButtonAttrs = {
-				label: () => getFolderName(system.folder),
-				icon: getFolderIcon(system.folder),
-				href: () => this.folderToUrl[system.folder._id[1]],
-				isSelectedPrefix: MAIL_PREFIX + "/" + system.folder.mails,
-				colors: NavButtonColor.Nav,
-				click: () => this.viewSlider.focus(this.listColumn),
-				dropHandler: (droppedMailId) => this.handleFolderDrop(droppedMailId, system.folder),
-			}
-			const currentExpansionState = this.expandedState.has(getElementId(system.folder)) ?? false //default is false
-			const hasChildren = system.children.length > 0
-			const summedCount = !currentExpansionState && hasChildren ? this.getTotalFolderCounter(groupCounters, system) : groupCounters[system.folder.mails]
-			return m.fragment(
-				{
-					key: id,
-				},
-				[
-					m(MailFolderRow, {
-						count: summedCount,
-						button,
-						rightButton:
-							system.folder.folderType === MailFolderType.CUSTOM
-								? this.createFolderMoreButton(mailboxDetail.mailGroup._id, system.folder, mailboxDetail.folders)
-								: null,
-						expanded: hasChildren ? currentExpansionState : null,
-						indentationLevel: Math.min(indentationLevel, MAX_FOLDER_INDENT_LEVEL),
-						onExpanderClick: hasChildren ? () => this.setExpandedState(system, currentExpansionState) : noOp,
-					}),
-					hasChildren && currentExpansionState ? this.renderFolderTree(system.children, groupCounters, mailboxDetail, indentationLevel + 1) : null,
-				],
-			)
+		return m(MailFoldersView, {
+			mailboxDetail,
+			expandedFolders: this.expandedState,
+			folderToUrl: this.folderToUrl,
+			onFolderClick: () => {
+				if (!this.editingFolderForMailGroup) {
+					this.viewSlider.focus(this.listColumn)
+				}
+			},
+			onFolderExpanded: (folder, state) => this.setExpandedState(folder, state),
+			onShowFolderAddEditDialog: (...args) => this.showFolderAddEditDialog(...args),
+			onDeleteCustomMailFolder: (folder) => this.deleteCustomMailFolder(folder),
+			onFolderDrop: (mailId, folder) => this.handleFolderDrop(mailId, folder),
+			inEditMode: this.editingFolderForMailGroup === mailboxDetail.mailGroup._id,
+			onEditMailbox: () => {
+				this.editingFolderForMailGroup = mailboxDetail.mailGroup._id
+			},
+			onEditingDone: () => {
+				this.editingFolderForMailGroup = null
+			},
 		})
 	}
 
-	private setExpandedState(system: FolderSubtree, currentExpansionState: boolean) {
-		currentExpansionState ? this.expandedState.delete(getElementId(system.folder)) : this.expandedState.add(getElementId(system.folder))
+	private setExpandedState(folder: MailFolder, currentExpansionState: boolean) {
+		currentExpansionState ? this.expandedState.delete(getElementId(folder)) : this.expandedState.add(getElementId(folder))
 		deviceConfig.setExpandedFolders(logins.getUserController().userId, [...this.expandedState])
-	}
-
-	private getTotalFolderCounter(counters: Counters, system: FolderSubtree): number {
-		return (counters[system.folder.mails] ?? 0) + system.children.reduce((acc, child) => acc + this.getTotalFolderCounter(counters, child), 0)
 	}
 
 	protected onNewUrl(args: Record<string, any>, requestedPath: string) {
@@ -657,51 +615,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 
 		moveMails({ mailModel: locator.mailModel, mails: mailsToMove, targetMailFolder: folder })
-	}
-
-	private createFolderAddButton(mailGroupId: Id, parentFolder: MailFolder | null): IconButtonAttrs {
-		return {
-			title: "addFolder_action",
-			click: () => {
-				return this.showFolderAddEditDialog(mailGroupId, null, parentFolder)
-			},
-			icon: Icons.Add,
-			size: ButtonSize.Compact,
-		}
-	}
-
-	private createFolderMoreButton(mailGroupId: Id, folder: MailFolder, folderSystem: FolderSystem): IconButtonAttrs {
-		return attachDropdown({
-			mainButtonAttrs: {
-				title: "more_label",
-				icon: Icons.More,
-				colors: ButtonColor.Nav,
-				size: ButtonSize.Compact,
-			},
-			childAttrs: () => [
-				{
-					label: "edit_action",
-					icon: Icons.Edit,
-					click: () => {
-						this.showFolderAddEditDialog(mailGroupId, folder, folder.parentFolder ? folderSystem.getFolderById(folder.parentFolder) : null)
-					},
-				},
-				{
-					label: "addFolder_action",
-					icon: Icons.Add,
-					click: () => {
-						this.showFolderAddEditDialog(mailGroupId, null, folder)
-					},
-				},
-				{
-					label: "delete_action",
-					icon: Icons.Trash,
-					click: () => {
-						this.deleteCustomMailFolder(folder)
-					},
-				},
-			],
-		})
 	}
 
 	private showNewMailDialog(): Promise<Dialog> {
