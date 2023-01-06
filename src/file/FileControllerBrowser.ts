@@ -3,11 +3,10 @@ import { DataFile } from "../api/common/DataFile"
 import { assertMainOrNode } from "../api/common/Env"
 import { sortableTimestamp } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { lang } from "../misc/LanguageViewModel"
 import { File as TutanotaFile } from "../api/entities/tutanota/TypeRefs.js"
 import { BlobFacade } from "../api/worker/facades/BlobFacade"
 import { FileFacade } from "../api/worker/facades/FileFacade"
-import { downloadAndDecryptDataFile, FileController, handleDownloadErrors, openDataFileInBrowser, zipDataFiles } from "./FileController.js"
+import { doDownload, downloadAndDecryptDataFile, FileController, handleDownloadErrors, openDataFileInBrowser, zipDataFiles } from "./FileController.js"
 import stream from "mithril/stream"
 
 assertMainOrNode()
@@ -28,23 +27,16 @@ export class FileControllerBrowser implements FileController {
 	}
 
 	async downloadAll(tutanotaFiles: Array<TutanotaFile>): Promise<void> {
-		const downloadedFiles: Array<DataFile> = []
+		const progress = stream(0)
 		try {
-			const progress = stream(0)
 			await showProgressDialog(
 				"pleaseWait_msg",
-				new Promise<void>(async (resolve) => {
-					for (const file of tutanotaFiles) {
-						try {
-							const downloadedFile = await this.downloadAndDecrypt(file)
-							downloadedFiles.push(downloadedFile)
-							progress(((tutanotaFiles.indexOf(file) + 1) / tutanotaFiles.length) * 100)
-						} catch (e) {
-							await handleDownloadErrors(e, (msg) => Dialog.message(() => lang.get(msg) + " " + file.name))
-						}
-					}
-					await openDataFileInBrowser(await zipDataFiles(downloadedFiles, `${sortableTimestamp()}-attachments.zip`))
-					resolve()
+				doDownload({
+					tutanotaFiles,
+					downloadAction: (file) => this.downloadAndDecrypt(file),
+					processDownloadedFiles: async (files) => openDataFileInBrowser(await zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`)),
+					cleanUp: async () => {},
+					progress,
 				}),
 				progress,
 			)
