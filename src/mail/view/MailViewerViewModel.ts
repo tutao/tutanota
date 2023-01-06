@@ -91,7 +91,6 @@ export class MailViewerViewModel {
 	private contentBlockingStatus: ContentBlockingStatus | null = null
 	private errorOccurred: boolean = false
 	private loadedInlineImages: InlineImages | null = null
-	private suspicious: boolean = false
 
 	private folderText: string | null
 	/** @see getRelevantRecipient */
@@ -304,7 +303,7 @@ export class MailViewerViewModel {
 	}
 
 	isMailSuspicious(): boolean {
-		return this.suspicious
+		return this.mail.phishingStatus === MailPhishingStatus.SUSPICIOUS
 	}
 
 	getMailId(): IdTuple {
@@ -664,9 +663,7 @@ export class MailViewerViewModel {
 	}
 
 	private checkMailForPhishing(mail: Mail, links: Array<HTMLElement>) {
-		if (mail.phishingStatus === MailPhishingStatus.SUSPICIOUS) {
-			this.suspicious = true
-		} else if (mail.phishingStatus === MailPhishingStatus.UNKNOWN) {
+		if (mail.phishingStatus === MailPhishingStatus.UNKNOWN) {
 			const linkObjects = links.map((link) => {
 				return {
 					href: link.getAttribute("href") || "",
@@ -676,7 +673,6 @@ export class MailViewerViewModel {
 
 			this.mailModel.checkMailForPhishing(mail, linkObjects).then((isSuspicious) => {
 				if (isSuspicious) {
-					this.suspicious = true
 					mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
 
 					this.entityClient
