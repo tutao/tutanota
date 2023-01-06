@@ -147,7 +147,7 @@ export function getMailFolderIcon(mail: Mail): AllIcons {
 	let folder = locator.mailModel.getMailFolder(mail._id[0])
 
 	if (folder) {
-		return getFolderIcon(folder)()
+		return getFolderIcon(folder)
 	} else {
 		return Icons.Folder
 	}
@@ -305,7 +305,7 @@ export function showMoveMailsDropdown(model: MailModel, origin: PosRect, mails: 
 			return folders.map((f) => ({
 				label: () => getIndentedFolderNameForDropdown(f),
 				click: () => moveMails({ mailModel: locator.mailModel, mails: mails, targetMailFolder: f.folder }),
-				icon: getFolderIcon(f.folder)(),
+				icon: getFolderIcon(f.folder),
 				size: ButtonSize.Compact,
 			}))
 		}, width)
