@@ -28,7 +28,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import { Icons } from "../../gui/base/icons/Icons"
 import type { MailboxDetail } from "./MailModel"
 import { MailModel } from "./MailModel"
-import type { lazyIcon } from "../../gui/base/Icon"
+import type {AllIcons, lazyIcon} from "../../gui/base/Icon"
 import type { GroupInfo, User } from "../../api/entities/sys/TypeRefs.js"
 import { CustomerPropertiesTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import type { UserController } from "../../api/main/UserController"
@@ -172,35 +172,35 @@ export function getFolderName(folder: MailFolder): string {
 	}
 }
 
-export function getFolderIconByType(folderType: MailFolderType): lazyIcon {
+export function getFolderIconByType(folderType: MailFolderType): AllIcons {
 	switch (folderType) {
-		case "0":
-			return () => Icons.Folder
+		case MailFolderType.CUSTOM:
+			return Icons.Folder
 
-		case "1":
-			return () => Icons.Inbox
+		case MailFolderType.INBOX:
+			return Icons.Inbox
 
-		case "2":
-			return () => Icons.Send
+		case MailFolderType.SENT:
+			return Icons.Send
 
-		case "3":
-			return () => Icons.Trash
+		case MailFolderType.TRASH:
+			return Icons.TrashBin
 
-		case "4":
-			return () => Icons.Archive
+		case MailFolderType.ARCHIVE:
+			return Icons.Archive
 
-		case "5":
-			return () => Icons.Spam
+		case MailFolderType.SPAM:
+			return Icons.Spam
 
-		case "6":
-			return () => Icons.Edit
+		case MailFolderType.DRAFT:
+			return Icons.Draft
 
 		default:
-			return () => Icons.Folder
+			return Icons.Folder
 	}
 }
 
-export function getFolderIcon(folder: MailFolder): lazyIcon {
+export function getFolderIcon(folder: MailFolder): AllIcons {
 	return getFolderIconByType(getMailFolderType(folder))
 }
 
