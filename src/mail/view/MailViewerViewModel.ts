@@ -970,7 +970,7 @@ export class MailViewerViewModel {
 		} catch (e) {
 			if (e instanceof FileOpenError) {
 				console.warn("FileOpenError", e)
-				await Dialog.message("canNotOpenFileOnDevice_msg") // FIXME extra error message?
+				await Dialog.message("canNotOpenFileOnDevice_msg")
 			} else {
 				console.error("could not open file:", e.message ?? "unknown error")
 				await Dialog.message("errorDuringFileOpen_msg")

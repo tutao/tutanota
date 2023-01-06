@@ -16,6 +16,14 @@ import stream from "mithril/stream"
 
 assertMainOrNode()
 
+type DownloadArgs<T> = {
+	tutanotaFiles: TutanotaFile[]
+	downloadAction: (file: TutanotaFile) => Promise<T>
+	processDownloadedFiles: (downloadedFiles: T[]) => Promise<unknown>
+	cleanUp: (downloadedFiles: T[]) => Promise<unknown>
+	progress?: stream<number>
+}
+
 export class FileControllerNative implements FileController {
 	constructor(private readonly fileApp: NativeFileApp, private readonly blobFacade: BlobFacade, private readonly fileFacade: FileFacade) {
 		assert(isElectronClient() || isApp() || isTest(), "Don't make native file controller when not in native")
@@ -27,18 +35,18 @@ export class FileControllerNative implements FileController {
 	async download(file: TutanotaFile) {
 		await guiDownload(
 			isAndroidApp() || isDesktop()
-				? this.doDownload(
-						new Array(file),
-						(file) => this.downloadAndDecryptInNative(file),
-						(files) => promiseMap(files, (file) => this.fileApp.putFileIntoDownloadsFolder(file.location)),
-						(files) => this.cleanUp(files),
-				  )
-				: this.doDownload(
-						new Array(file),
-						(file) => this.downloadAndDecryptInNative(file),
-						(files) => promiseMap(files, (file) => this.fileApp.open(file)),
-						(files) => this.cleanUp(files),
-				  ),
+				? this.doDownload({
+						tutanotaFiles: [file],
+						downloadAction: (file) => this.downloadAndDecryptInNative(file),
+						processDownloadedFiles: (files) => promiseMap(files, (file) => this.fileApp.putFileIntoDownloadsFolder(file.location)),
+						cleanUp: (files) => this.cleanUp(files),
+				  })
+				: this.doDownload({
+						tutanotaFiles: [file],
+						downloadAction: (file) => this.downloadAndDecryptInNative(file),
+						processDownloadedFiles: (files) => promiseMap(files, (file) => this.fileApp.open(file)),
+						cleanUp: (files) => this.cleanUp(files),
+				  }),
 		)
 	}
 
@@ -58,29 +66,23 @@ export class FileControllerNative implements FileController {
 		}
 	}
 
-	private async doDownload<T>(
-		tutanotaFiles: TutanotaFile[],
-		downloadAction: (file: TutanotaFile) => Promise<T>,
-		processDownloadedFiles: (downloadedFiles: T[]) => Promise<unknown>,
-		cleanUp: (downloadedFiles: T[]) => Promise<unknown>,
-		progress?: stream<number>,
-	) {
+	private async doDownload<T>(args: DownloadArgs<T>) {
 		const downloadedFiles: Array<T> = []
 		try {
-			for (const file of tutanotaFiles) {
+			for (const file of args.tutanotaFiles) {
 				try {
-					const downloadedFile = await downloadAction(file)
+					const downloadedFile = await args.downloadAction(file)
 					downloadedFiles.push(downloadedFile)
-					if (progress != null) {
-						progress(((tutanotaFiles.indexOf(file) + 1) / tutanotaFiles.length) * 100)
+					if (args.progress != null) {
+						args.progress(((args.tutanotaFiles.indexOf(file) + 1) / args.tutanotaFiles.length) * 100)
 					}
 				} catch (e) {
 					await handleDownloadErrors(e, (msg) => Dialog.message(() => lang.get(msg) + " " + file.name))
 				}
 			}
-			await processDownloadedFiles(downloadedFiles)
+			await args.processDownloadedFiles(downloadedFiles)
 		} finally {
-			await cleanUp(downloadedFiles)
+			await args.cleanUp(downloadedFiles)
 		}
 	}
 
@@ -105,21 +107,21 @@ export class FileControllerNative implements FileController {
 		const progress = stream(0)
 		if (isAndroidApp()) {
 			await guiDownload(
-				this.doDownload(
+				this.doDownload({
 					tutanotaFiles,
-					(file) => this.downloadAndDecryptInNative(file),
-					(files) => promiseMap(files, (file) => this.fileApp.putFileIntoDownloadsFolder(file.location)),
-					(files) => this.cleanUp(files),
+					downloadAction: (file) => this.downloadAndDecryptInNative(file),
+					processDownloadedFiles: (files) => promiseMap(files, (file) => this.fileApp.putFileIntoDownloadsFolder(file.location)),
+					cleanUp: (files) => this.cleanUp(files),
 					progress,
-				),
+				}),
 				progress,
 			)
 		} else if (isIOSApp()) {
 			await guiDownload(
-				this.doDownload(
+				this.doDownload({
 					tutanotaFiles,
-					(file) => this.downloadAndDecryptInNative(file),
-					(files) =>
+					downloadAction: (file) => this.downloadAndDecryptInNative(file),
+					processDownloadedFiles: (files) =>
 						promiseMap(files, async (file) => {
 							try {
 								await this.fileApp.open(file)
@@ -127,37 +129,37 @@ export class FileControllerNative implements FileController {
 								await this.fileApp.deleteFile(file.location).catch((e) => console.log("failed to delete file", file.location, e))
 							}
 						}),
-					(files) => this.cleanUp(files),
+					cleanUp: (files) => this.cleanUp(files),
 					progress,
-				),
+				}),
 				progress,
 			)
 		} else if (isDesktop()) {
 			await guiDownload(
-				this.doDownload(
+				this.doDownload({
 					tutanotaFiles,
-					(file) => this.downloadAndDecryptInNative(file),
-					async (files) => {
+					downloadAction: (file) => this.downloadAndDecryptInNative(file),
+					processDownloadedFiles: async (files) => {
 						const dataFiles = (await promiseMap(files, (f) => this.fileApp.readDataFile(f.location))).filter(Boolean)
 						const zipFileInTemp = await this.fileApp.writeDataFile(
 							await zipDataFiles(dataFiles as Array<DataFile>, `${sortableTimestamp()}-attachments.zip`),
 						)
 						return this.fileApp.putFileIntoDownloadsFolder(zipFileInTemp.location)
 					},
-					async () => {}, // no cleanup needed
+					cleanUp: async () => {}, // no cleanup needed
 					progress,
-				),
+				}),
 				progress,
 			)
 		} else {
 			await guiDownload(
-				this.doDownload(
+				this.doDownload({
 					tutanotaFiles,
-					(file) => this.downloadAndDecrypt(file),
-					async (files) => openDataFileInBrowser(await zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`)),
-					async () => {},
+					downloadAction: (file) => this.downloadAndDecrypt(file),
+					processDownloadedFiles: async (files) => openDataFileInBrowser(await zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`)),
+					cleanUp: async () => {},
 					progress,
-				),
+				}),
 				progress,
 			)
 		}
