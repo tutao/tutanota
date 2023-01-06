@@ -3,7 +3,6 @@ import { DataFile } from "../api/common/DataFile"
 import { assertMainOrNode, isAndroidApp, isApp, isDesktop, isElectronClient, isIOSApp, isTest } from "../api/common/Env"
 import { assert, neverNull, promiseMap, sortableTimestamp } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { lang } from "../misc/LanguageViewModel"
 import { File as TutanotaFile } from "../api/entities/tutanota/TypeRefs.js"
 import { FileReference } from "../api/common/utils/FileUtils"
 import { CancelledError } from "../api/common/error/CancelledError"
@@ -11,18 +10,18 @@ import type { NativeFileApp } from "../native/common/FileApp"
 import { ArchiveDataType } from "../api/common/TutanotaConstants"
 import { BlobFacade } from "../api/worker/facades/BlobFacade"
 import { FileFacade } from "../api/worker/facades/FileFacade"
-import { downloadAndDecryptDataFile, FileController, handleDownloadErrors, isLegacyFile, openDataFileInBrowser, zipDataFiles } from "./FileController.js"
+import {
+	doDownload,
+	downloadAndDecryptDataFile,
+	FileController,
+	handleDownloadErrors,
+	isLegacyFile,
+	openDataFileInBrowser,
+	zipDataFiles,
+} from "./FileController.js"
 import stream from "mithril/stream"
 
 assertMainOrNode()
-
-type DownloadArgs<T> = {
-	tutanotaFiles: TutanotaFile[]
-	downloadAction: (file: TutanotaFile) => Promise<T>
-	processDownloadedFiles: (downloadedFiles: T[]) => Promise<unknown>
-	cleanUp: (downloadedFiles: T[]) => Promise<unknown>
-	progress?: stream<number>
-}
 
 export class FileControllerNative implements FileController {
 	constructor(private readonly fileApp: NativeFileApp, private readonly blobFacade: BlobFacade, private readonly fileFacade: FileFacade) {
@@ -35,13 +34,13 @@ export class FileControllerNative implements FileController {
 	async download(file: TutanotaFile) {
 		await guiDownload(
 			isAndroidApp() || isDesktop()
-				? this.doDownload({
+				? doDownload({
 						tutanotaFiles: [file],
 						downloadAction: (file) => this.downloadAndDecryptInNative(file),
 						processDownloadedFiles: (files) => promiseMap(files, (file) => this.fileApp.putFileIntoDownloadsFolder(file.location)),
 						cleanUp: (files) => this.cleanUp(files),
 				  })
-				: this.doDownload({
+				: doDownload({
 						tutanotaFiles: [file],
 						downloadAction: (file) => this.downloadAndDecryptInNative(file),
 						processDownloadedFiles: (files) => promiseMap(files, (file) => this.fileApp.open(file)),
@@ -66,26 +65,6 @@ export class FileControllerNative implements FileController {
 		}
 	}
 
-	private async doDownload<T>(args: DownloadArgs<T>) {
-		const downloadedFiles: Array<T> = []
-		try {
-			for (const file of args.tutanotaFiles) {
-				try {
-					const downloadedFile = await args.downloadAction(file)
-					downloadedFiles.push(downloadedFile)
-					if (args.progress != null) {
-						args.progress(((args.tutanotaFiles.indexOf(file) + 1) / args.tutanotaFiles.length) * 100)
-					}
-				} catch (e) {
-					await handleDownloadErrors(e, (msg) => Dialog.message(() => lang.get(msg) + " " + file.name))
-				}
-			}
-			await args.processDownloadedFiles(downloadedFiles)
-		} finally {
-			await args.cleanUp(downloadedFiles)
-		}
-	}
-
 	private async doOpen(tutanotaFile: TutanotaFile) {
 		let temporaryFile: FileReference | null = null
 		try {
@@ -107,7 +86,7 @@ export class FileControllerNative implements FileController {
 		const progress = stream(0)
 		if (isAndroidApp()) {
 			await guiDownload(
-				this.doDownload({
+				doDownload({
 					tutanotaFiles,
 					downloadAction: (file) => this.downloadAndDecryptInNative(file),
 					processDownloadedFiles: (files) => promiseMap(files, (file) => this.fileApp.putFileIntoDownloadsFolder(file.location)),
@@ -118,7 +97,7 @@ export class FileControllerNative implements FileController {
 			)
 		} else if (isIOSApp()) {
 			await guiDownload(
-				this.doDownload({
+				doDownload({
 					tutanotaFiles,
 					downloadAction: (file) => this.downloadAndDecryptInNative(file),
 					processDownloadedFiles: (files) =>
@@ -136,7 +115,7 @@ export class FileControllerNative implements FileController {
 			)
 		} else if (isDesktop()) {
 			await guiDownload(
-				this.doDownload({
+				doDownload({
 					tutanotaFiles,
 					downloadAction: (file) => this.downloadAndDecryptInNative(file),
 					processDownloadedFiles: async (files) => {
@@ -153,7 +132,7 @@ export class FileControllerNative implements FileController {
 			)
 		} else {
 			await guiDownload(
-				this.doDownload({
+				doDownload({
 					tutanotaFiles,
 					downloadAction: (file) => this.downloadAndDecrypt(file),
 					processDownloadedFiles: async (files) => openDataFileInBrowser(await zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`)),
