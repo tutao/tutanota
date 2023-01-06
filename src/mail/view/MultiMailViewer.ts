@@ -178,7 +178,7 @@ export class MultiMailViewer implements Component {
 							targetMailFolder: folderInfo.folder,
 						}),
 					),
-					icon: getFolderIcon(folderInfo.folder)(),
+					icon: getFolderIcon(folderInfo.folder),
 				}
 			})
 	}
