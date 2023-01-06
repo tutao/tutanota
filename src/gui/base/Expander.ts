@@ -106,7 +106,7 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 		const currentExpanded = vnode.attrs.expanded
 
 		if (oldExpanded !== currentExpanded) {
-			this._handleExpansionStateChanged(currentExpanded)
+			this.handleExpansionStateChanged(currentExpanded)
 		}
 
 		return true
@@ -118,12 +118,10 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 		this.lastCalculatedHeight = this.childDiv?.getBoundingClientRect().height ?? 0
 		return m(
 			".expander-panel",
-			// it's conceivable that the content could overflow or influence the
-			// panel's size, but we did not observe this. overflow: hidden would
-			// solve that in case it becomes a problem, but majorly complicate
-			// putting dropdowns and similar elements inside the panel.
+			// We want overflow while expanded in some specific cases like dropdowns, but generally we don't want it because we want to clip our children
+			// for animation and sizing, so we enable it only when expanded
 			m(
-				"div",
+				expanded ? "div" : ".overflow-hidden",
 				{
 					style: {
 						opacity: expanded ? "1" : "0",
@@ -165,15 +163,16 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 		)
 	}
 
-	// This was done for some obscure case on iOS 12 and it wasn't even done correctly (setTimeout() will not magically produce a redraw()) so it is probably
-	// a good candidate for removal.
-	_handleExpansionStateChanged(expanded: boolean) {
+	private handleExpansionStateChanged(expanded: boolean) {
 		clearTimeout(this.setChildrenInDomTimeout)
 
 		if (expanded) {
 			this.childrenInDom = true
 		} else {
-			this.setChildrenInDomTimeout = setTimeout(() => (this.childrenInDom = false), DefaultAnimationTime)
+			this.setChildrenInDomTimeout = setTimeout(() => {
+				this.childrenInDom = false
+				m.redraw()
+			}, DefaultAnimationTime)
 		}
 	}
 }
