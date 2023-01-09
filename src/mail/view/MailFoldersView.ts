@@ -6,11 +6,11 @@ import { SidebarSection } from "../../gui/SidebarSection.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { FolderSubtree } from "../../api/common/mail/FolderSystem.js"
 import { getElementId } from "../../api/common/utils/EntityUtils.js"
-import { NavButtonAttrs, NavButtonColor } from "../../gui/base/NavButton.js"
+import { isSelectedPrefix, NavButtonAttrs, NavButtonColor } from "../../gui/base/NavButton.js"
 import { getFolderIcon, getFolderName, MAX_FOLDER_INDENT_LEVEL } from "../model/MailUtils.js"
 import { MAIL_PREFIX } from "../../misc/RouteChange.js"
 import { MailFolderRow } from "./MailFolderRow.js"
-import { noOp } from "@tutao/tutanota-utils"
+import { last, noOp } from "@tutao/tutanota-utils"
 import { MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
 import { attachDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
@@ -45,9 +45,14 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		const customSystems = mailboxDetail.folders.customSubtrees
 		const systemSystems = mailboxDetail.folders.systemSubtrees
 		const children: Children = []
-		const systemChildren = this.renderFolderTree(systemSystems, groupCounters, mailboxDetail, attrs)
+		const selectedFolder = mailboxDetail.folders
+			.getIndentedList()
+			.map((f) => f.folder)
+			.find((f) => isSelectedPrefix(MAIL_PREFIX + "/" + f.mails))
+		const path = selectedFolder ? mailboxDetail.folders.getPathToFolder(selectedFolder._id) : []
+		const systemChildren = this.renderFolderTree(systemSystems, groupCounters, attrs, path)
 		if (systemChildren) {
-			children.push(...systemChildren)
+			children.push(...systemChildren.children)
 		}
 		if (logins.isInternalUserLoggedIn()) {
 			children.push(
@@ -58,7 +63,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						button: attrs.inEditMode ? this.renderCreateFolderAddButton(null, attrs) : this.renderEditFoldersButton(attrs),
 						key: "yourFolders", // we need to set a key because folder rows also have a key.
 					},
-					this.renderFolderTree(customSystems, groupCounters, mailboxDetail, attrs),
+					this.renderFolderTree(customSystems, groupCounters, attrs, path).children,
 				),
 			)
 		}
@@ -68,11 +73,13 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 	private renderFolderTree(
 		subSystems: readonly FolderSubtree[],
 		groupCounters: Counters,
-		mailboxDetail: MailboxDetail,
 		attrs: MailFolderViewAttrs,
+		path: MailFolder[],
 		indentationLevel: number = 0,
-	): Children[] | null {
-		return subSystems.map((system) => {
+	): { children: Children[]; numRows: number } {
+		// we need to keep track of how many rows we've drawn so far for this subtree so that we can draw hierarchy lines correctly
+		const result: { children: Children[]; numRows: number } = { children: [], numRows: 0 }
+		for (let system of subSystems) {
 			const id = getElementId(system.folder)
 			const button: NavButtonAttrs = {
 				label: () => getFolderName(system.folder),
@@ -85,7 +92,11 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			const currentExpansionState = attrs.inEditMode ? true : attrs.expandedFolders.has(getElementId(system.folder)) ?? false //default is false
 			const hasChildren = system.children.length > 0
 			const summedCount = !currentExpansionState && hasChildren ? this.getTotalFolderCounter(groupCounters, system) : groupCounters[system.folder.mails]
-			return m.fragment(
+			const childResult =
+				hasChildren && currentExpansionState
+					? this.renderFolderTree(system.children, groupCounters, attrs, path, indentationLevel + 1)
+					: { children: null, numRows: 0 }
+			const render = m.fragment(
 				{
 					key: id,
 				},
@@ -102,13 +113,17 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						indentationLevel: Math.min(indentationLevel, MAX_FOLDER_INDENT_LEVEL),
 						onExpanderClick: hasChildren ? () => attrs.onFolderExpanded(system.folder, currentExpansionState) : noOp,
 						hasChildren,
+						onSelectedPath: path.includes(system.folder),
+						numberOfPreviousRows: result.numRows,
+						isLastSibling: last(subSystems) === system,
 					}),
-					hasChildren && currentExpansionState
-						? this.renderFolderTree(system.children, groupCounters, mailboxDetail, attrs, indentationLevel + 1)
-						: null,
+					childResult.children,
 				],
 			)
-		})
+			result.numRows += childResult.numRows + 1
+			result.children.push(render)
+		}
+		return result
 	}
 
 	private getTotalFolderCounter(counters: Counters, system: FolderSubtree): number {
