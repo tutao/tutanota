@@ -3,7 +3,7 @@ import { convertToDataFile, createDataFile, DataFile } from "../api/common/DataF
 import { assertMainOrNode } from "../api/common/Env"
 import { assertNotNull, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { CryptoError } from "../api/common/error/CryptoError"
-import { lang, TranslationKey } from "../misc/LanguageViewModel"
+import { TranslationKey } from "../misc/LanguageViewModel"
 import { BrowserType } from "../misc/ClientConstants"
 import { client } from "../misc/ClientDetector"
 import { File as TutanotaFile } from "../api/entities/tutanota/TypeRefs.js"
@@ -12,8 +12,9 @@ import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
 import { FileFacade } from "../api/worker/facades/FileFacade.js"
 import { BlobFacade } from "../api/worker/facades/BlobFacade.js"
 import { ArchiveDataType } from "../api/common/TutanotaConstants.js"
-import { ConnectionError } from "../api/common/error/RestError"
 import stream from "mithril/stream"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
+import { CancelledError } from "../api/common/error/CancelledError.js"
 
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
@@ -231,43 +232,15 @@ export async function downloadAndDecryptDataFile(file: TutanotaFile, fileFacade:
 	}
 }
 
-type DownloadArgs<T> = {
-	tutanotaFiles: TutanotaFile[]
-	downloadAction: (file: TutanotaFile) => Promise<T>
-	processDownloadedFiles: (downloadedFiles: T[]) => Promise<unknown>
-	cleanUp: (downloadedFiles: T[]) => Promise<unknown>
-	progress?: stream<number>
-}
-
-export async function doDownload<T>(args: DownloadArgs<T>) {
-	const downloadedFiles: Array<T> = []
+export async function guiDownload(downloadPromise: Promise<void>, progress?: stream<number>) {
 	try {
-		let isOffline = false
-		for (const file of args.tutanotaFiles) {
-			try {
-				const downloadedFile = await args.downloadAction(file)
-				downloadedFiles.push(downloadedFile)
-				if (args.progress != null) {
-					args.progress(((args.tutanotaFiles.indexOf(file) + 1) / args.tutanotaFiles.length) * 100)
-				}
-			} catch (e) {
-				await handleDownloadErrors(e, (msg) => {
-					if (msg === "couldNotAttachFile_msg") {
-						isOffline = true
-					} else {
-						Dialog.message(() => lang.get(msg) + " " + file.name)
-					}
-				})
-				if (isOffline) break // don't try to download more files, but the previous ones (if any) will still be downloaded
-			}
+		await showProgressDialog("pleaseWait_msg", downloadPromise, progress)
+	} catch (e) {
+		// handle the user cancelling the dialog
+		if (e instanceof CancelledError) {
+			return
 		}
-		if (downloadedFiles.length > 0) {
-			await args.processDownloadedFiles(downloadedFiles)
-		}
-		if (isOffline) {
-			throw new ConnectionError("currently offline")
-		}
-	} finally {
-		await args.cleanUp(downloadedFiles)
+		console.log("downloadAndOpen error", e.message)
+		await handleDownloadErrors(e, Dialog.message)
 	}
 }
