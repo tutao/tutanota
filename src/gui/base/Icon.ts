@@ -14,6 +14,7 @@ export type IconAttrs = {
 	class?: string
 	large?: boolean
 	style?: Record<string, any>
+	hoverText?: string | null
 	container?: "span" | "div" // defaults to "span"
 }
 
@@ -29,15 +30,17 @@ export class Icon implements Component<IconAttrs> {
 	view(vnode: Vnode<IconAttrs>): Children {
 		// @ts-ignore
 		const icon = BootIconsSvg[vnode.attrs.icon] ?? IconsSvg[vnode.attrs.icon]
-		const container = vnode.attrs.container || "span"
+		const containerClasses = this.getContainerClasses(vnode.attrs)
+
 		return m(
-			container + ".icon",
+			containerClasses,
 			{
 				"aria-hidden": "true",
 				class: this.getClass(vnode.attrs),
 				style: this.getStyle(vnode.attrs.style ?? null),
 			},
 			m.trust(icon),
+			vnode.attrs.hoverText ? m("span.tooltiptext.no-wrap", vnode.attrs.hoverText) : null,
 		) // icon is typed, so we may not embed untrusted data
 	}
 
@@ -62,6 +65,15 @@ export class Icon implements Component<IconAttrs> {
 			cls += attrs.class
 		}
 		return cls
+	}
+
+	getContainerClasses(attrs: IconAttrs): string {
+		const container = attrs.container || "span"
+		let classes = container + ".icon"
+		if (attrs.hoverText) {
+			classes += ".tooltip"
+		}
+		return classes
 	}
 }
 

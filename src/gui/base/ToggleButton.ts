@@ -11,6 +11,7 @@ export interface ToggleButtonAttrs {
 	onToggled: (selected: boolean, event: MouseEvent) => unknown
 	colors?: ButtonColor
 	size?: ButtonSize
+	toggledTitle?: TranslationText
 }
 
 export class ToggleButton implements Component<ToggleButtonAttrs> {
@@ -18,7 +19,7 @@ export class ToggleButton implements Component<ToggleButtonAttrs> {
 		return m(
 			"button.toggle-button.state-bg",
 			{
-				title: lang.getMaybeLazy(attrs.title),
+				title: attrs.toggledTitle && attrs.toggled ? lang.getMaybeLazy(attrs.toggledTitle) : lang.getMaybeLazy(attrs.title),
 				onclick: (e: MouseEvent) => attrs.onToggled(!attrs.toggled, e),
 				toggled: String(attrs.toggled),
 				class: attrs.size === ButtonSize.Compact ? "compact" : "",

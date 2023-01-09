@@ -8,7 +8,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import { assertMainOrNode } from "../../api/common/Env"
 import { assertNonNull, defer, DeferredObject, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { createNewContact, getExistingRuleForType, isTutanotaTeamMail } from "../model/MailUtils"
-import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
+import { IconMessageBox } from "../../gui/base/ColumnEmptyMessageBox"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
 import { logins } from "../../api/main/LoginController"
@@ -28,18 +28,17 @@ import { getListId } from "../../api/common/utils/EntityUtils"
 import { createEmailSenderListElement } from "../../api/entities/sys/TypeRefs.js"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
-import { animations, DomMutation, scroll } from "../../gui/animation/Animations"
-import { ease } from "../../gui/animation/Easing"
 import { isNewMailActionAvailable } from "../../gui/nav/NavFunctions"
 import { CancelledError } from "../../api/common/error/CancelledError"
 import { MailViewerHeader } from "./MailViewerHeader.js"
-import { editDraft, showHeaderDialog } from "./MailViewerUtils.js"
+import { editDraft, mailViewerPadding, showHeaderDialog } from "./MailViewerUtils.js"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { ToggleButton } from "../../gui/base/ToggleButton.js"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
 export type InlineImages = Map<string, InlineImageReference>
 
-const SCROLL_FACTOR = 4 / 5
 const DOUBLE_TAP_TIME_MS = 350
 
 type MailAddressAndName = {
@@ -49,6 +48,13 @@ type MailAddressAndName = {
 
 export type MailViewerAttrs = {
 	viewModel: MailViewerViewModel
+	isPrimary: boolean
+	/**
+	 * Mail body might contain blockquotes that we want to collapse in some cases (e.g. the thread is visible in conversation anyway) or expand in other
+	 * cases (e.g. if it's a single/the first email in the conversation).
+	 *
+	 */
+	defaultQuoteBehavior: "collapse" | "expand"
 }
 
 /**
@@ -92,27 +98,33 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private lastContentBlockingStatus: ContentBlockingStatus | null = null
 
 	private loadAllListener = stream()
+	/** "none" until we render once */
+	private currentQuoteBehavior: "none" | "collapse" | "expand" = "none"
 
 	constructor(vnode: Vnode<MailViewerAttrs>) {
-		this.setViewModel(vnode.attrs.viewModel)
+		this.setViewModel(vnode.attrs.viewModel, vnode.attrs.isPrimary)
 
 		this.resizeListener = () => this.domBodyDeferred.promise.then((dom) => this.updateLineHeight(dom))
 
 		this.shortcuts = this.setupShortcuts(vnode.attrs)
 	}
 
-	oncreate() {
-		keyManager.registerShortcuts(this.shortcuts)
+	oncreate({ attrs }: Vnode<MailViewerAttrs>) {
+		if (attrs.isPrimary) {
+			keyManager.registerShortcuts(this.shortcuts)
+		}
 		windowFacade.addResizeListener(this.resizeListener)
 	}
 
-	onremove() {
+	onremove({ attrs }: Vnode<MailViewerAttrs>) {
 		windowFacade.removeResizeListener(this.resizeListener)
 		this.clearDomBody()
-		keyManager.unregisterShortcuts(this.shortcuts)
+		if (attrs.isPrimary) {
+			keyManager.unregisterShortcuts(this.shortcuts)
+		}
 	}
 
-	private setViewModel(viewModel: MailViewerViewModel) {
+	private setViewModel(viewModel: MailViewerViewModel, isPrimary: boolean) {
 		// Figuring out whether we have a new email assigned.
 		const oldViewModel = this.viewModel
 		this.viewModel = viewModel
@@ -132,8 +144,9 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			// Reset scaling status if it's a new email.
 			this.isScaling = true
 			this.lastContentBlockingStatus = null
-			this.viewModel.loadAll()
-
+			if (isPrimary) {
+				this.viewModel.expandMail()
+			}
 			this.delayProgressSpinner = true
 			setTimeout(() => {
 				this.delayProgressSpinner = false
@@ -144,21 +157,18 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 	view(vnode: Vnode<MailViewerAttrs>): Children {
 		this.handleContentBlockingOnRender()
-
-		const scrollingHeader = styles.isSingleColumnLayout()
 		return [
-			m("#mail-viewer.fill-absolute" + (scrollingHeader ? ".scroll-no-overlay.overflow-x-hidden" : ".flex.flex-column"), [
-				this.renderMailHeader(),
+			m(".mail-viewer" + ".overflow-x-hidden", [
+				this.renderMailHeader(vnode.attrs),
 				m(
-					".flex-grow.mlr-safe-inset.scroll-x.plr-l.pb-floating.pt" +
-						(scrollingHeader ? "" : ".scroll-no-overlay") +
-						(this.viewModel.isContrastFixNeeded() ? ".bg-white.content-black" : " "),
+					".flex-grow.mlr-safe-inset.scroll-x.pt.pb" + (this.viewModel.isContrastFixNeeded() ? ".bg-white.content-black" : " "),
 					{
+						class: mailViewerPadding(),
 						oncreate: (vnode) => {
 							this.scrollDom = vnode.dom as HTMLElement
 						},
 					},
-					this.renderMailBodySection(),
+					this.renderMailBodySection(vnode.attrs),
 				),
 			]),
 		]
@@ -176,26 +186,27 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		this.lastContentBlockingStatus = this.viewModel.getContentBlockingStatus()
 	}
 
-	private renderMailHeader() {
+	private renderMailHeader(attrs: MailViewerAttrs) {
 		return m(MailViewerHeader, {
 			viewModel: this.viewModel,
 			createMailAddressContextButtons: this.createMailAddressContextButtons.bind(this),
+			isPrimary: attrs.isPrimary,
 		})
 	}
 
 	onbeforeupdate(vnode: Vnode<MailViewerAttrs>): boolean | void {
 		// Setting viewModel here to have viewModel that we will use for render already and be able to make a decision
 		// about skipping rendering
-		this.setViewModel(vnode.attrs.viewModel)
+		this.setViewModel(vnode.attrs.viewModel, vnode.attrs.isPrimary)
 		// We skip rendering progress indicator when switching between emails.
 		// However if we already loaded the mail then we can just render it.
 		const shouldSkipRender = this.viewModel.isLoading() && this.delayProgressSpinner
 		return !shouldSkipRender
 	}
 
-	private renderMailBodySection(): Children {
+	private renderMailBodySection(attrs: MailViewerAttrs): Children {
 		if (this.viewModel.didErrorsOccur()) {
-			return m(ColumnEmptyMessageBox, {
+			return m(IconMessageBox, {
 				message: "corrupted_msg",
 				icon: Icons.Warning,
 				color: theme.content_message_bg,
@@ -208,7 +219,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		if (this.viewModel.shouldDelayRendering()) {
 			return null
 		} else if (sanitizedMailBody != null) {
-			return this.renderMailBody(sanitizedMailBody)
+			return this.renderMailBody(sanitizedMailBody, attrs)
 		} else if (this.viewModel.isLoading()) {
 			return this.renderLoadingIcon()
 		} else {
@@ -217,7 +228,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		}
 	}
 
-	private renderMailBody(sanitizedMailBody: DocumentFragment): Children {
+	private renderMailBody(sanitizedMailBody: DocumentFragment, attrs: MailViewerAttrs): Children {
 		return m("#mail-body", {
 			// key to avoid mithril reusing the dom element when it should switch the rendering the loading spinner
 			key: "mailBody",
@@ -226,7 +237,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				this.setDomBody(dom)
 				this.updateLineHeight(dom)
 				this.rescale(false)
-				this.renderShadowMailBody(sanitizedMailBody)
+				this.renderShadowMailBody(sanitizedMailBody, attrs)
 			},
 			onupdate: (vnode) => {
 				const dom = vnode.dom as HTMLElement
@@ -240,7 +251,14 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				}
 
 				this.rescale(false)
-				if (this.currentlyRenderedMailBody !== sanitizedMailBody) this.renderShadowMailBody(sanitizedMailBody)
+
+				if (this.currentlyRenderedMailBody !== sanitizedMailBody) this.renderShadowMailBody(sanitizedMailBody, attrs)
+				// If the quote behavior changes (e.g. after loading is finished) we should update the quotes.
+				// If we already rendered it correctly it will already be set in renderShadowMailBody() so we will avoid doing it twice.
+				if (this.currentQuoteBehavior !== attrs.defaultQuoteBehavior) {
+					this.updateCollapsedQuotes(dom, attrs)
+				}
+				this.currentQuoteBehavior = attrs.defaultQuoteBehavior
 			},
 			onbeforeremove: () => {
 				// Clear dom body in case there will be a new one, we want promise to be up-to-date
@@ -259,12 +277,21 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		})
 	}
 
+	private updateCollapsedQuotes(dom: HTMLElement, attrs: MailViewerAttrs) {
+		const quotes: NodeListOf<HTMLElement> = dom.querySelectorAll("[tuta-collapsed-quote]")
+		const display = attrs.defaultQuoteBehavior === "expand" ? "" : "none"
+		for (const q of Array.from(quotes)) {
+			q.style.display = display
+		}
+	}
+
 	/**
 	 * manually wrap and style a mail body to display correctly inside a shadow root
 	 * @param sanitizedMailBody the mail body to display
 	 * @private
 	 */
-	private renderShadowMailBody(sanitizedMailBody: DocumentFragment) {
+	private renderShadowMailBody(sanitizedMailBody: DocumentFragment, attrs: MailViewerAttrs) {
+		this.currentQuoteBehavior = attrs.defaultQuoteBehavior
 		assertNonNull(this.shadowDomRoot, "shadow dom root is null!")
 		while (this.shadowDomRoot.firstChild) {
 			this.shadowDomRoot.firstChild.remove()
@@ -274,6 +301,12 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height)
 		wrapNode.style.transformOrigin = "top left"
 		wrapNode.appendChild(sanitizedMailBody.cloneNode(true))
+
+		// query all top level block quotes
+		for (const quote of Array.from(wrapNode.querySelectorAll("blockquote:not(blockquote blockquote)")) as HTMLElement[]) {
+			this.createCollapsedBlockQuote(quote, attrs)
+		}
+
 		if (client.isMobileDevice()) {
 			wrapNode.addEventListener("touchstart", (event) => {
 				const touch = event.touches[0]
@@ -298,6 +331,49 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		this.shadowDomRoot.appendChild(styles.getStyleSheetElement("main"))
 		this.shadowDomRoot.appendChild(wrapNode)
 		this.currentlyRenderedMailBody = sanitizedMailBody
+	}
+
+	private createCollapsedBlockQuote(quote: HTMLElement, attrs: MailViewerAttrs) {
+		const quoteWrap = document.createElement("div")
+		quote.style.display = attrs.defaultQuoteBehavior === "expand" ? "" : "none"
+		// used to query quotes later
+		quote.setAttribute("tuta-collapsed-quote", "true")
+
+		quote.replaceWith(quoteWrap)
+
+		const expandButton = document.createElement("div")
+		expandButton.style.border = `1px solid ${theme.list_border}`
+		// restrict wrapper size
+		expandButton.classList.add("flex")
+		expandButton.style.maxWidth = "fit-content"
+		expandButton.style.borderRadius = "25%"
+
+		const renderIntoButton = () => {
+			m.render(
+				expandButton,
+				m(ToggleButton, {
+					icon: Icons.More,
+					size: ButtonSize.Compact,
+					toggled: quote.style.display !== "none",
+					onToggled: () => {
+						const wasCollapsed = quote.style.display === "none"
+						if (wasCollapsed) {
+							quote.style.display = ""
+						} else {
+							quote.style.display = "none"
+						}
+						renderIntoButton()
+					},
+					title: "showText_action",
+					toggledTitle: "hideText_action",
+				}),
+			)
+		}
+
+		renderIntoButton()
+
+		quoteWrap.appendChild(expandButton)
+		quoteWrap.appendChild(quote)
 	}
 
 	private clearDomBody() {
@@ -417,26 +493,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				},
 				enabled: () => !this.viewModel.isDraftMail(),
 				help: "replyAll_action",
-			},
-			{
-				key: Keys.PAGE_UP,
-				exec: () => this.scrollUp(),
-				help: "scrollUp_action",
-			},
-			{
-				key: Keys.PAGE_DOWN,
-				exec: () => this.scrollDown(),
-				help: "scrollDown_action",
-			},
-			{
-				key: Keys.HOME,
-				exec: () => this.scrollToTop(),
-				help: "scrollToTop_action",
-			},
-			{
-				key: Keys.END,
-				exec: () => this.scrollToBottom(),
-				help: "scrollToBottom_action",
 			},
 		]
 
@@ -609,51 +665,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				}),
 			)
 		})
-	}
-
-	private scrollUp(): void {
-		this.scrollIfDomBody((dom) => {
-			const current = dom.scrollTop
-			const toScroll = dom.clientHeight * SCROLL_FACTOR
-			return scroll(current, Math.max(0, current - toScroll))
-		})
-	}
-
-	private scrollDown(): void {
-		this.scrollIfDomBody((dom) => {
-			const current = dom.scrollTop
-			const toScroll = dom.clientHeight * SCROLL_FACTOR
-			return scroll(current, Math.min(dom.scrollHeight - dom.offsetHeight, dom.scrollTop + toScroll))
-		})
-	}
-
-	private scrollToTop(): void {
-		this.scrollIfDomBody((dom) => {
-			return scroll(dom.scrollTop, 0)
-		})
-	}
-
-	private scrollToBottom(): void {
-		this.scrollIfDomBody((dom) => {
-			const end = dom.scrollHeight - dom.offsetHeight
-			return scroll(dom.scrollTop, end)
-		})
-	}
-
-	private scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
-		if (this.scrollDom) {
-			const dom = this.scrollDom
-
-			if (!this.scrollAnimation) {
-				this.scrollAnimation = animations
-					.add(dom, cb(dom), {
-						easing: ease.inOut,
-					})
-					.then(() => {
-						this.scrollAnimation = null
-					})
-			}
-		}
 	}
 
 	private handleAnchorClick(event: Event, href: string | null, shouldDispatchSyntheticClick: boolean): void {

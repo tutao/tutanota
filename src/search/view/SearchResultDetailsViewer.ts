@@ -15,6 +15,7 @@ import { locator } from "../../api/main/MainLocator"
 import { isSameId } from "../../api/common/utils/EntityUtils"
 import { MailViewerViewModel } from "../../mail/view/MailViewerViewModel"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
+import { ObservableSubject } from "../../mail/view/ConversationViewer.js"
 
 assertMainOrNode()
 
@@ -69,9 +70,17 @@ export class SearchResultDetailsViewer {
 		} else {
 			const viewer = this.viewer
 			return viewer?.mode === "mail"
-				? m(MailViewer, {
-						viewModel: viewer.viewModel,
-				  })
+				? m(".flex.col", [
+						m(ObservableSubject, {
+							subject: viewer.viewModel.getSubject(),
+							cb: noOp,
+						}),
+						m(MailViewer, {
+							viewModel: viewer.viewModel,
+							isPrimary: true,
+							defaultQuoteBehavior: "expand",
+						}),
+				  ])
 				: viewer != null
 				? m(viewer.viewer)
 				: null
@@ -91,13 +100,14 @@ export class SearchResultDetailsViewer {
 			}
 			if (this.viewer == null || this.viewer.mode !== "mail" || !isSameId(this.viewer.viewModel.mail._id, mail._id)) {
 				const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(viewModelParams.mail)
+				const viewModelFactory = await locator.mailViewerViewModelFactory()
 				if (mailboxDetails == null) {
 					this.viewer = null
 				} else {
 					const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 					this.viewer = {
 						mode: "mail",
-						viewModel: await locator.mailViewerViewModel(viewModelParams, mailboxDetails, mailboxProperties),
+						viewModel: viewModelFactory(viewModelParams, mailboxDetails, mailboxProperties),
 					}
 				}
 			}

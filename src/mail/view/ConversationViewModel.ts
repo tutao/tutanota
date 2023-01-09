@@ -1,0 +1,256 @@
+import { ConversationEntry, ConversationEntryTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { MailViewerViewModel } from "./MailViewerViewModel.js"
+import { CreateMailViewerOptions } from "./MailViewer.js"
+import { elementIdPart, firstBiggerThanSecond, getElementId, haveSameId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
+import { assertNotNull, findLast, findLastIndex, groupBy } from "@tutao/tutanota-utils"
+import { EntityClient } from "../../api/common/EntityClient.js"
+import { LoadingStateTracker } from "../../offline/LoadingState.js"
+import { EntityEventsListener, EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
+import { ConversationType, OperationType } from "../../api/common/TutanotaConstants.js"
+import { NotFoundError } from "../../api/common/error/RestError.js"
+import { normalizeSubject } from "../model/MailUtils.js"
+
+export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
+
+export type MailItem = { type: "mail"; viewModel: MailViewerViewModel; entryId: IdTuple }
+export type SubjectItem = { type: "subject"; subject: string; id: string; entryId: IdTuple }
+export type DeletedItem = { type: "deleted"; entryId: IdTuple }
+export type ConversationItem = MailItem | SubjectItem | DeletedItem
+
+export class ConversationViewModel {
+	/** Primary viewModel is for the mail that was selected from the list. */
+	private readonly _primaryViewModel: MailViewerViewModel
+	private loadingState = new LoadingStateTracker()
+	private loadingPromise: Promise<void> | null = null
+	/** Is not set until {@link loadConversation is finished. Until it is finished we display primary mail and subject. */
+	private conversation: ConversationItem[] | null = null
+
+	constructor(
+		private options: CreateMailViewerOptions,
+		private readonly viewModelFactory: MailViewerViewModelFactory,
+		private readonly entityClient: EntityClient,
+		private readonly eventController: EventController,
+		private readonly onUiUpdate: () => unknown,
+	) {
+		this._primaryViewModel = viewModelFactory(options)
+	}
+
+	init() {
+		this.loadingPromise = this.loadingState.trackPromise(this.loadConversation())
+		this.eventController.addEntityListener(this.onEntityEvent)
+	}
+
+	private readonly onEntityEvent: EntityEventsListener = async (updates, eventOwnerGroupId) => {
+		// conversation entry can be created when new email arrives
+		// conversation entry can be updated when email is moved around or deleted
+		// conversation entry is deleted only when every email in the conversation is deleted (the whole conversation list will be deleted)
+		for (const update of updates) {
+			if (isUpdateForTypeRef(ConversationEntryTypeRef, update) && update.instanceListId === this.conversationListId()) {
+				switch (update.operation) {
+					case OperationType.CREATE:
+						await this.processCreateConversationEntry(update)
+						break
+					case OperationType.UPDATE:
+						await this.processUpdateConversationEntry(update)
+						break
+					// don't process DELETE because the primary email (selected from the mail list) will be deleted first anyway
+					// and we should be closed when it happens
+				}
+			}
+		}
+	}
+
+	private async processCreateConversationEntry(update: EntityUpdateData) {
+		const id: IdTuple = [update.instanceListId, update.instanceId]
+		try {
+			const entry = await this.entityClient.load(ConversationEntryTypeRef, id)
+			if (entry.mail) {
+				try {
+					// first wait that we load the conversation, otherwise we might already have the email
+					await this.loadingPromise
+				} catch (e) {
+					return
+				}
+				const conversation = assertNotNull(this.conversation)
+				if (conversation.some((item) => item.type === "mail" && isSameId(item.viewModel.mail.conversationEntry, id))) {
+					// already loaded
+					return
+				}
+				const mail = await this.entityClient.load(MailTypeRef, entry.mail)
+				const newSubject = normalizeSubject(mail.subject)
+				let index = findLastIndex(conversation, (i) => firstBiggerThanSecond(getElementId(entry), elementIdPart(i.entryId)))
+				if (index < 0) {
+					index = conversation.length
+				}
+				const lastSubject = findLast(conversation, (c) => c.type === "subject") as SubjectItem | null
+				if (newSubject !== lastSubject?.subject) {
+					conversation.splice(index + 1, 0, { type: "subject", subject: newSubject, id: getElementId(mail), entryId: entry._id })
+					index += 1
+				}
+				conversation.splice(index + 1, 0, { type: "mail", viewModel: this.viewModelFactory({ ...this.options, mail }), entryId: entry._id })
+				this.onUiUpdate()
+			}
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				// Ignore, something was already deleted
+			} else {
+				throw e
+			}
+		}
+	}
+
+	private async processUpdateConversationEntry(update: EntityUpdateData) {
+		try {
+			// first wait that we load the conversation, otherwise we might already have the email
+			await this.loadingPromise
+		} catch (e) {
+			return
+		}
+		const conversation = assertNotNull(this.conversation)
+		const ceId: IdTuple = [update.instanceListId, update.instanceId]
+		let conversationEntry: ConversationEntry
+		let mail: Mail | null
+		try {
+			conversationEntry = await this.entityClient.load(ConversationEntryTypeRef, ceId)
+			mail =
+				// ideally checking the `mail` ref should be enough but we sometimes get an update with UNKNOWN and non-existing email but still with the ref
+				conversationEntry.conversationType !== ConversationType.UNKNOWN && conversationEntry.mail
+					? await this.entityClient.load(MailTypeRef, conversationEntry.mail)
+					: null
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				// Ignore, something was already deleted
+				return
+			} else {
+				throw e
+			}
+		}
+
+		const oldItemIndex = conversation.findIndex(
+			(e) => (e.type === "mail" && isSameId(e.viewModel.mail.conversationEntry, ceId)) || (e.type === "deleted" && isSameId(e.entryId, ceId)),
+		)
+		if (oldItemIndex === -1) {
+			return
+		}
+		const oldItem = conversation[oldItemIndex]
+		if (mail && oldItem.type === "mail" && haveSameId(oldItem.viewModel.mail, mail)) {
+			console.log("Noop entry update?", oldItem.viewModel.mail)
+			// nothing to do really, why do we get this update again?
+		} else {
+			if (oldItem.type === "mail") {
+				oldItem.viewModel.dispose()
+			}
+			if (mail) {
+				conversation[oldItemIndex] = {
+					type: "mail",
+					viewModel: this.viewModelFactory({ ...this.options, mail }),
+					entryId: conversationEntry._id,
+				}
+			} else {
+				// When DELETED conversation status type is added, replace entry with deleted entry instead of splicing out
+				conversation.splice(oldItemIndex, 1)
+			}
+		}
+	}
+
+	private conversationListId() {
+		return listIdPart(this._primaryViewModel.mail.conversationEntry)
+	}
+
+	private async loadConversation() {
+		try {
+			const conversationEntries = await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(this.primaryMail.conversationEntry))
+			const allMails = await this.loadMails(conversationEntries)
+			this.conversation = this.createConversationItems(conversationEntries, allMails)
+		} finally {
+			this.onUiUpdate()
+		}
+	}
+
+	private createConversationItems(conversationEntries: ConversationEntry[], allMails: Map<Id, Mail>) {
+		const newConversation: ConversationItem[] = []
+		let previousSubject: string | null = null
+		for (const c of conversationEntries) {
+			const mail = c.mail && allMails.get(elementIdPart(c.mail))
+
+			if (mail) {
+				// Every time subject changes we show it as an item in the conversation list
+				// We normalize the subjects so that Re: and FWD: are not shown
+				const subject = normalizeSubject(mail.subject)
+				if (subject !== previousSubject) {
+					previousSubject = subject
+					newConversation.push({ type: "subject", subject: subject, id: getElementId(mail), entryId: c._id })
+				}
+
+				newConversation.push({
+					type: "mail",
+					viewModel: isSameId(mail._id, this.options.mail._id) ? this._primaryViewModel : this.viewModelFactory({ ...this.options, mail }),
+					entryId: c._id,
+				})
+			}
+			// add newConversation.push({ type: "deleted", entryId: c._id }) when we have DELETED conversation entry status
+		}
+		return newConversation
+	}
+
+	private async loadMails(conversationEntries: ConversationEntry[]) {
+		const byList = groupBy(conversationEntries, (c) => c.mail && listIdPart(c.mail))
+		const allMails: Map<Id, Mail> = new Map()
+		for (const [listId, conversations] of byList.entries()) {
+			if (!listId) continue
+			const loaded = await this.entityClient.loadMultiple(
+				MailTypeRef,
+				listId,
+				conversations.map((c) => elementIdPart(assertNotNull(c.mail))),
+			)
+			for (const mail of loaded) {
+				allMails.set(getElementId(mail), mail)
+			}
+		}
+		return allMails
+	}
+
+	conversationItems(): ReadonlyArray<ConversationItem> {
+		return (
+			this.conversation ?? [
+				{
+					type: "subject",
+					subject: normalizeSubject(this._primaryViewModel.mail.subject),
+					id: getElementId(this._primaryViewModel.mail),
+					entryId: this._primaryViewModel.mail.conversationEntry,
+				},
+				{ type: "mail", viewModel: this._primaryViewModel, entryId: this._primaryViewModel.mail.conversationEntry },
+			]
+		)
+	}
+
+	get primaryMail(): Mail {
+		return this._primaryViewModel.mail
+	}
+
+	primaryViewModel(): MailViewerViewModel {
+		return this._primaryViewModel
+	}
+
+	isFinished(): boolean {
+		return this.loadingState.isIdle()
+	}
+
+	isConnectionLost(): boolean {
+		return this.loadingState.isConnectionLost()
+	}
+
+	retry() {
+		if (this.loadingState.isConnectionLost()) {
+			this.loadingState.trackPromise(this.loadConversation())
+		}
+	}
+
+	dispose() {
+		for (const item of this.conversationItems()) {
+			if (item.type === "mail") {
+				item.viewModel.dispose()
+			}
+		}
+	}
+}

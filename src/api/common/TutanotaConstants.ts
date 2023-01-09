@@ -200,6 +200,8 @@ export const enum ConversationType {
 	NEW = "0",
 	REPLY = "1",
 	FORWARD = "2",
+	/**  a message for which no mail exists in Tutanota (unknown external mail or deleted mail) */
+	UNKNOWN = "3",
 }
 
 export const enum MailState {

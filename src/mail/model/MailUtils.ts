@@ -89,6 +89,14 @@ export function getSenderHeading(mail: Mail, preferNameOnly: boolean) {
 	}
 }
 
+export function getSenderAddressDisplay(mail: Mail): string {
+	if (isExcludedMailAddress(mail.sender.address)) {
+		return ""
+	} else {
+		return mail.sender.address
+	}
+}
+
 export function getRecipientHeading(mail: Mail, preferNameOnly: boolean) {
 	if (isLegacyMail(mail)) {
 		const allRecipients = mail.toRecipients.concat(mail.ccRecipients).concat(mail.bccRecipients)
@@ -411,4 +419,17 @@ export async function loadMailHeaders(entityClient: EntityClient, mailWrapper: M
 		const details = mailWrapper.getDetails()
 		return details.headers != null ? getMailHeaders(details.headers) : null
 	}
+}
+
+/**
+ * Extract and normalize email subject.
+ * Remove re:/fwd: prefixes.
+ * remove newlines
+ */
+export function normalizeSubject(subject: string): string {
+	subject = subject.replace(/[\n\r]/g, "")
+	// try to remove re: and fwd: in front of the subject
+	const match = subject.match(/^(?:(?:re|fwd)(?::|\s)+)*(.*)$/i)
+	// if we can't match fall back to the regular subject
+	return match ? match[1] : subject
 }

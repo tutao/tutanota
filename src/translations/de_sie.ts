@@ -1601,6 +1601,8 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"showText_action": "Text anzeigen",
+		"hideText_action": "Text verbergen"
 	}
 }

@@ -1597,6 +1597,8 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"showText_action": "Show text",
+		"hideText_action": "Hide text"
 	}
 }

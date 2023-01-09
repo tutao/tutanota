@@ -1583,3 +1583,5 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "showText_action"
+	| "hideText_action"

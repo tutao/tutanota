@@ -245,7 +245,16 @@ export class InfoIcon implements Component<InfoIconAttrs> {
 					tabindex: 0,
 				},
 				"i",
-				m("span.tooltiptext.break-word", attrs.text),
+				m(
+					"span.tooltiptext.break-word",
+					{
+						style: {
+							width: px(120),
+							marginLeft: px(-120),
+						},
+					},
+					attrs.text,
+				),
 			),
 		)
 	}
