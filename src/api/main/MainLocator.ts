@@ -91,7 +91,8 @@ import { BaseHeaderAttrs } from "../../gui/Header.js"
 import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel.js"
 import { GroupType } from "../common/TutanotaConstants.js"
-import { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
+import type { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
+import type { ConversationViewModel } from "../../mail/view/ConversationViewModel.js"
 
 assertMainOrNode()
 
@@ -261,29 +262,44 @@ class MainLocator {
 		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, isApp() ? this.systemFacade : null)
 	}
 
-	async mailViewerViewModel(
-		{ mail, showFolder, delayBodyRenderingUntil }: CreateMailViewerOptions,
+	async conversationViewModel(
+		options: CreateMailViewerOptions,
 		mailboxDetails: MailboxDetail,
 		mailboxProperties: MailboxProperties,
-	): Promise<MailViewerViewModel> {
-		const { MailViewerViewModel } = await import("../../mail/view/MailViewerViewModel.js")
-		return new MailViewerViewModel(
-			mail,
-			showFolder,
-			delayBodyRenderingUntil ?? Promise.resolve(),
+	): Promise<ConversationViewModel> {
+		const { ConversationViewModel } = await import("../../mail/view/ConversationViewModel.js")
+		const factory = await this.mailViewerViewModelFactory()
+		const m = await import("mithril")
+		return new ConversationViewModel(
+			options,
+			(options) => factory(options, mailboxDetails, mailboxProperties),
 			this.entityClient,
-			this.mailModel,
-			this.contactModel,
-			this.configFacade,
-			isDesktop() ? locator.desktopSystemFacade : null,
-			this.fileFacade,
-			this.fileController,
-			await this.loginController(),
-			() => this.sendMailModel(mailboxDetails, mailboxProperties),
 			this.eventController,
-			this.workerFacade,
-			this.search,
+			m.redraw,
 		)
+	}
+	async mailViewerViewModelFactory(): Promise<
+		(options: CreateMailViewerOptions, mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties) => MailViewerViewModel
+	> {
+		const { MailViewerViewModel } = await import("../../mail/view/MailViewerViewModel.js")
+		const logins = await this.loginController()
+		return ({ mail, showFolder, delayBodyRenderingUntil }, mailboxDetails, mailboxProperties) =>
+			new MailViewerViewModel(
+				mail,
+				showFolder,
+				delayBodyRenderingUntil ?? Promise.resolve(),
+				this.entityClient,
+				this.mailModel,
+				this.contactModel,
+				this.configFacade,
+				this.fileFacade,
+				this.fileController,
+				logins,
+				() => this.sendMailModel(mailboxDetails, mailboxProperties),
+				this.eventController,
+				this.workerFacade,
+				this.search,
+			)
 	}
 
 	async externalLoginViewModelFactory(): Promise<() => ExternalLoginViewModel> {

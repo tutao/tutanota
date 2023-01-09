@@ -168,6 +168,9 @@ styles.registerStyle("main", () => {
 		".b": {
 			"font-weight": "bold",
 		},
+		".font-weight-600": {
+			"font-weight": "600",
+		},
 		".i": {
 			"font-style": "italic",
 		},
@@ -186,6 +189,9 @@ styles.registerStyle("main", () => {
 		},
 		".overflow-x-hidden": {
 			"overflow-x": "hidden",
+		},
+		".overflow-y-hidden": {
+			"overflow-y": "hidden",
 		},
 		".overflow-y-visible": {
 			"overflow-y": "visible !important",
@@ -224,7 +230,7 @@ styles.registerStyle("main", () => {
 			margin: 0,
 			border: "none",
 			height: "1px",
-			"background-color": theme.content_border,
+			"background-color": theme.list_border,
 		},
 		".border": {
 			border: `1px solid ${theme.content_border}`,
@@ -590,6 +596,9 @@ styles.registerStyle("main", () => {
 		},
 		".content-bg": {
 			"background-color": theme.content_bg,
+		},
+		".nav-bg": {
+			"background-color": theme.navigation_bg,
 		},
 		".content-hover:hover": {
 			color: theme.content_accent,
@@ -972,6 +981,9 @@ styles.registerStyle("main", () => {
 		},
 		".border-radius-small": {
 			"border-radius": px(size.border_radius_small),
+		},
+		".border-radius-big": {
+			"border-radius": px(size.border_radius_big),
 		},
 		".editor-border": {
 			border: `1px solid ${theme.content_border}`,
@@ -1416,6 +1428,9 @@ styles.registerStyle("main", () => {
 		".mt-between-s > :not(:first-child)": {
 			"margin-top": px(size.hpad_small),
 		},
+		".mt-between-m > :not(:first-child)": {
+			"margin-top": px(size.hpad),
+		},
 		// dropdown
 		".dropdown-panel": {
 			position: "absolute",
@@ -1668,7 +1683,6 @@ styles.registerStyle("main", () => {
 		},
 		".tooltip .tooltiptext": {
 			visibility: "hidden",
-			width: px(120),
 			"background-color": theme.content_button,
 			color: theme.content_bg,
 			"text-align": "center",
@@ -1678,7 +1692,6 @@ styles.registerStyle("main", () => {
 			"z-index": 1,
 			top: "150%",
 			left: "50%",
-			"margin-left": "-120px",
 		},
 		/* we're selecting every element that's after a summary tag and is inside an opened details tag */
 		"details[open] summary ~ *": {
@@ -1703,7 +1716,7 @@ styles.registerStyle("main", () => {
 			background: theme.content_bg,
 			color: theme.content_button,
 		},
-		".info-badge:hover .tooltiptext, .info-badge[expanded=true] .tooltiptext": {
+		".tooltip:hover .tooltiptext, .tooltip[expanded=true] .tooltiptext": {
 			visibility: "visible",
 		},
 		".ribbon-vertical": {

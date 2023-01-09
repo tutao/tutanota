@@ -23,6 +23,7 @@ export const size = {
 	text_bubble_tpad: 20,
 	border_radius_small: 3,
 	border_radius: 6,
+	border_radius_big: 9,
 	border_selection: 4,
 	font_size_base: 16,
 	font_size_smaller: 14,

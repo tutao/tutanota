@@ -229,12 +229,17 @@ import("./translations/en")
 						component: MailView,
 						cache: previousCache ?? {
 							drawerAttrsFactory: await locator.drawerAttrsFactory(),
-							cache: { mailList: null, selectedFolder: null, mailViewerViewModel: null },
+							cache: { mailList: null, selectedFolder: null, conversationViewModel: null },
 							header: await locator.baseHeaderAttrs(),
 						},
 					}
 				},
-				prepareAttrs: ({ drawerAttrsFactory, cache, header }) => ({ drawerAttrs: drawerAttrsFactory(), cache, header }),
+				prepareAttrs: ({ drawerAttrsFactory, cache, header }) => ({
+					drawerAttrs: drawerAttrsFactory(),
+					cache,
+					header,
+					desktopSystemFacade: locator.desktopSystemFacade,
+				}),
 			}),
 			settings: makeViewResolver<SettingsViewAttrs, SettingsView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: BaseHeaderAttrs }>({
 				prepareRoute: async () => {

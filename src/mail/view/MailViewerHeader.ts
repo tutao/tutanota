@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
-import { getMailAddressDisplayText, getSenderHeading, isTutanotaTeamMail } from "../model/MailUtils.js"
+import { getFolderIconByType, getMailAddressDisplayText, getSenderAddressDisplay, isTutanotaTeamMail } from "../model/MailUtils.js"
 import { theme } from "../../gui/theme.js"
 import { styles } from "../../gui/styles.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
@@ -25,7 +25,7 @@ import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
 import { UserError } from "../../api/main/UserError.js"
 import { showUserError } from "../../misc/ErrorHandlerImpl.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
-import { editDraft, mailViewerMoreActions, makeAssignMailsButtons } from "./MailViewerUtils.js"
+import { editDraft, mailViewerMargin, mailViewerMoreActions, mailViewerPadding, makeAssignMailsButtons } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../gui/AriaUtils.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 
@@ -45,6 +45,7 @@ export interface MailViewerHeaderAttrs {
 	// If we want to reuse this view we should probably pass everything on its own.
 	viewModel: MailViewerViewModel
 	createMailAddressContextButtons: MailAddressDropdownCreator
+	isPrimary: boolean
 }
 
 /** The upper part of the mail viewer, everything but the mail body itself. */
@@ -57,53 +58,52 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		const dateTime = formatDateWithWeekday(viewModel.mail.receivedDate) + " • " + formatTime(viewModel.mail.receivedDate)
 		const dateTimeFull = formatDateWithWeekdayAndYear(viewModel.mail.receivedDate) + " • " + formatTime(viewModel.mail.receivedDate)
 
-		if (styles.isSingleColumnLayout()) {
-			return m(".header.mlr-safe-inset.mt", [
-				this.renderFolderText(viewModel),
-				this.renderAddressesAndDate(viewModel, attrs, dateTime, dateTimeFull),
-				m(
-					ExpanderPanel,
-					{
-						expanded: this.detailsExpanded,
-					},
-					this.renderDetails(attrs, { bubbleMenuWidth: 300 }),
-				),
-				m(".plr-l", this.renderAttachments(viewModel)),
-				this.renderConnectionLostBanner(viewModel),
-				this.renderEventBanner(viewModel),
-				this.renderBanners(attrs),
-				m("", this.renderSubject(viewModel)),
-			])
-		} else {
-			return m(".header.mlr-safe-inset", [
-				this.renderSubjectActionsLine(viewModel, attrs),
-				this.renderFolderText(viewModel),
-				this.renderAddressesAndDate(viewModel, attrs, dateTime, dateTimeFull),
-				m(
-					ExpanderPanel,
-					{
-						expanded: this.detailsExpanded,
-					},
-					this.renderDetails(attrs, { bubbleMenuWidth: 300 }),
-				),
-				m(".plr-l", this.renderAttachments(viewModel)),
-				this.renderConnectionLostBanner(viewModel),
-				this.renderEventBanner(viewModel),
-				this.renderBanners(attrs),
-			])
-		}
+		return m(".header.mlr-safe-inset", [
+			this.renderSubjectActionsLine(attrs),
+			this.renderFolderText(viewModel),
+			this.renderAddressesAndDate(viewModel, attrs, dateTime, dateTimeFull),
+			m(
+				ExpanderPanel,
+				{
+					expanded: this.detailsExpanded,
+				},
+				this.renderDetails(attrs, { bubbleMenuWidth: 300 }),
+			),
+			this.renderAttachments(viewModel),
+			this.renderConnectionLostBanner(viewModel),
+			this.renderEventBanner(viewModel),
+			this.renderBanners(attrs),
+		])
 	}
 
 	private renderFolderText(viewModel: MailViewerViewModel) {
-		return viewModel.getFolderText()
-			? m(".flex.small.plr-l.mt-xs.mb-xs.ml-between-s", [m(".b.mr-s", m("", lang.get("location_label"))), viewModel.getFolderText()])
+		const folderInfo = viewModel.getFolderInfo()
+		if (!folderInfo) return null
+		const icon = getFolderIconByType(folderInfo.folderType)
+
+		return viewModel.getFolderMailboxText()
+			? m(".flex.small.plr-l.mt-xs.mb-xs.ml-between-s", [
+					m(".b", m("", lang.get("location_label"))),
+					m(Icon, {
+						icon,
+						container: "div",
+						style: {
+							fill: theme.content_button,
+						},
+					}),
+					m(".span.mr-s", folderInfo.name),
+			  ])
 			: null
 	}
 
 	private renderAddressesAndDate(viewModel: MailViewerViewModel, attrs: MailViewerHeaderAttrs, dateTime: string, dateTimeFull: string) {
+		const folderInfo = viewModel.getFolderInfo()
+		if (!folderInfo) return null
+
 		return m(
-			".flex.plr-l.mt-xs.click.col",
+			".flex.mt-xs.click.col",
 			{
+				class: mailViewerMargin(),
 				role: "button",
 				"aria-pressed": String(this.detailsExpanded),
 				tabindex: TabIndex.Default,
@@ -118,51 +118,90 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				},
 			},
 			[
-				m(".small.flex.flex-wrap.items-start", [this.tutaoBadge(viewModel), m("span.text-break", getSenderHeading(viewModel.mail, false))]),
+				m(".small.flex.flex-wrap.items-start", [m("span.text-break", getSenderAddressDisplay(viewModel.mail))]),
 				m(".flex", [
 					this.getRecipientEmailAddress(attrs),
 					m(".flex-grow"),
-					m(
-						".flex.items-center.white-space-pre.ml-s",
-						{
-							// Orca refuses to read ut unless it's not focusable
-							tabindex: TabIndex.Default,
-							"aria-label": lang.get(viewModel.isConfidential() ? "confidential_action" : "nonConfidential_action") + ", " + dateTime,
-						},
-						[
-							viewModel.mail.state === MailState.DRAFT
-								? m(Icon, {
-										icon: Icons.Edit,
-										style: {
-											fill: theme.content_fg,
-										},
-										// flex makes svg inside centered and not randomly somewhere
-										class: "flex",
-								  })
-								: null,
-							viewModel.isConfidential()
-								? m(Icon, {
-										icon: Icons.Lock,
-										style: {
-											fill: theme.content_fg,
-										},
-										// flex makes svg inside centered and not randomly somewhere
-										class: "flex",
-								  })
-								: null,
-							m("small.date.content-fg.selectable", [
-								m("span.noprint", dateTime), // show the short date when viewing
-								m("span.noscreen", dateTimeFull), // show the date with year when printing
-							]),
-						],
-					),
+					m(".flex.items-center.white-space-pre.ml-s.ml-between-s", {
+						// Orca refuses to read ut unless it's not focusable
+						tabindex: TabIndex.Default,
+						"aria-label": lang.get(viewModel.isConfidential() ? "confidential_action" : "nonConfidential_action") + ", " + dateTime,
+					}),
+					m(".flex.ml-between-s.items-center", [
+						viewModel.mail.state === MailState.DRAFT
+							? m(Icon, {
+								icon: Icons.Edit,
+								style: {
+									fill: theme.content_fg,
+								},
+								// flex makes svg inside centered and not randomly somewhere
+								class: "flex",
+							})
+							: null,
+						viewModel.isConfidential()
+							? m(Icon, {
+									icon: Icons.Lock,
+									container: "div",
+									style: {
+										fill: theme.content_button,
+									},
+							  })
+							: null,
+
+						m(Icon, {
+							icon: getFolderIconByType(folderInfo.folderType),
+							container: "div",
+							style: {
+								fill: theme.content_button,
+							},
+							hoverText: folderInfo.name,
+						}),
+						m(".small.font-weight-600.selectable", { style: { color: theme.content_button } }, [
+							m(".noprint", dateTime), // show the short date when viewing
+							m(".noscreen", dateTimeFull), // show the date with year when printing
+						]),
+					]),
 				]),
 			],
 		)
 	}
 
-	private renderSubjectActionsLine(viewModel: MailViewerViewModel, attrs: MailViewerHeaderAttrs) {
-		return m(".flex.items-start", [this.renderSubject(viewModel), this.actionButtons(attrs)])
+	private renderSubjectActionsLine(attrs: MailViewerHeaderAttrs) {
+		const { viewModel } = attrs
+		const classes = this.makeSubjectActionsLineClasses(attrs)
+
+		return m(classes, [
+			m(
+				".flex.flex-grow.flex-wrap.items-start.mt",
+				{
+					role: "button",
+					onclick: () => {
+						attrs.isPrimary ? noOp : viewModel.collapseMail()
+					},
+					onkeydown: (e: KeyboardEvent) => {
+						if (isKeyPressed(e.keyCode, Keys.SPACE, Keys.RETURN)) {
+							attrs.isPrimary ? noOp : viewModel.collapseMail()
+						}
+					},
+				},
+				[this.tutaoBadge(viewModel), m("span.text-break" + (attrs.isPrimary ? ".font-weight-600" : ""), viewModel.mail.sender.name)],
+			),
+			this.actionButtons(attrs),
+		])
+	}
+
+	private makeSubjectActionsLineClasses(attrs: MailViewerHeaderAttrs) {
+		let classes = ".flex"
+		if (styles.isSingleColumnLayout()) {
+			classes += ".mt-xs.mlr"
+		} else {
+			classes += ".pl-l"
+		}
+		if (!attrs.isPrimary) {
+			classes += ".click"
+		}
+
+		return classes
 	}
 
 	private renderSubject(viewModel: MailViewerViewModel) {
@@ -178,10 +217,17 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private renderBanners(attrs: MailViewerHeaderAttrs): Children {
 		const { viewModel } = attrs
+		if (viewModel.isCollapsed()) return null
+		// we don't wrap it in a single element because our container might depend on us being separate children for margins
 		return [
-			this.renderPhishingWarning(viewModel) || this.renderHardAuthenticationFailWarning(viewModel) || this.renderSoftAuthenticationFailWarning(viewModel),
-			this.renderExternalContentBanner(attrs),
-			m("hr.hr.mt-xs.mlr-l"),
+			m(
+				"." + mailViewerMargin(),
+				this.renderPhishingWarning(viewModel) ||
+					this.renderHardAuthenticationFailWarning(viewModel) ||
+					this.renderSoftAuthenticationFailWarning(viewModel),
+			),
+			m("." + mailViewerMargin(), this.renderExternalContentBanner(attrs)),
+			m("hr.hr.mt-xs." + mailViewerMargin()),
 		].filter(Boolean)
 	}
 
@@ -189,16 +235,19 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		// If the mail body failed to load, then we show a message in the main column
 		// If the mail body did load but not everything else, we show the message here
 		if (viewModel.isConnectionLost()) {
-			return m(InfoBanner, {
-				message: "mailPartsNotLoaded_msg",
-				icon: Icons.Warning,
-				buttons: [
-					{
-						label: "retry_action",
-						click: () => viewModel.loadAll(),
-					},
-				],
-			})
+			return m(
+				"." + mailViewerMargin(),
+				m(InfoBanner, {
+					message: "mailPartsNotLoaded_msg",
+					icon: Icons.Warning,
+					buttons: [
+						{
+							label: "retry_action",
+							click: () => viewModel.loadAll(),
+						},
+					],
+				}),
+			)
 		} else {
 			return null
 		}
@@ -208,7 +257,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		const event = viewModel.getCalendarEventAttachment()
 		return event
 			? m(
-					".plr-l",
+					"." + mailViewerMargin(),
 					m(EventBanner, {
 						event: event.event,
 						method: event.method,
@@ -222,7 +271,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderDetails(attrs: MailViewerHeaderAttrs, { bubbleMenuWidth }: { bubbleMenuWidth: number }): Children {
 		const { viewModel, createMailAddressContextButtons } = attrs
 		const envelopeSender = viewModel.getDifferentEnvelopeSender()
-		return m(".plr-l" + liveDataAttrs(), [
+		return m("." + mailViewerPadding() + liveDataAttrs(), [
 			m(
 				".mt-s",
 				m(".small.b", lang.get("from_label")),
@@ -390,7 +439,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderAttachments(viewModel: MailViewerViewModel): Children {
 		// Show a loading symbol if we are loading attachments
 		if (viewModel.isLoadingAttachments() && !viewModel.isConnectionLost()) {
-			return m(".flex", [m(".flex-v-center.pl-button", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))])
+			return m(".flex." + mailViewerMargin(), [
+				m(".flex-v-center.pl-button", progressIcon()),
+				m(".small.flex-v-center.plr.button-height", lang.get("loading_msg")),
+			])
 		} else {
 			const attachments = viewModel.getNonInlineAttachments()
 			const attachmentCount = attachments.length
@@ -405,7 +457,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			attachments.forEach((attachment) => (totalAttachmentSize += Number(attachment.size)))
 
 			return [
-				m(".flex" + liveDataAttrs(), [
+				m(".flex" + liveDataAttrs() + "." + mailViewerMargin(), [
 					attachmentCount === 1
 						? // If we have exactly one attachment, just show the attachment
 						  this.renderAttachmentContainer(viewModel, attachments)
@@ -450,7 +502,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							{
 								expanded: this.filesExpanded,
 							},
-							m(".flex.col", [
+							m(".flex.col." + mailViewerMargin(), [
 								m(".flex.flex-wrap.column-gap", this.renderAttachmentContainer(viewModel, attachments)),
 								isIOSApp()
 									? null
@@ -623,7 +675,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private actionButtons(attrs: MailViewerHeaderAttrs): Children {
 		const { viewModel } = attrs
 		let actions: Children
-		if (viewModel.isAnnouncement()) {
+		if (styles.isSingleColumnLayout() || !attrs.isPrimary) {
+			actions = [this.moreButton(attrs)]
+		} else if (viewModel.isAnnouncement()) {
 			actions = [this.deleteButton(attrs), this.moreButton(attrs)]
 		} else if (viewModel.isDraftMail()) {
 			actions = [this.deleteButton(attrs), this.moveButton(attrs), this.editButton(attrs)]
@@ -643,7 +697,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 
 		return m(
-			".action-bar.flex-end.items-center.ml-between-s.mt-xs",
+			".flex-end.items-center.ml-between-s.mt-xs",
 			{
 				style: {
 					marginRight: "6px",
@@ -740,9 +794,50 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		})
 	}
 
-	private prepareMoreActions({ viewModel }: MailViewerHeaderAttrs) {
+	private prepareMoreActions({ viewModel, isPrimary }: MailViewerHeaderAttrs) {
 		return createDropdown({
-			lazyButtons: () => mailViewerMoreActions(viewModel),
+			lazyButtons: () => {
+				let actionButtons: DropdownButtonAttrs[] = []
+				if (!isPrimary || styles.isSingleColumnLayout()) {
+					if (viewModel.canForwardOrMove()) {
+						actionButtons.push({
+							label: "reply_action",
+							click: () => viewModel.reply(false),
+							icon: Icons.Reply,
+						})
+
+						if (viewModel.canReplyAll()) {
+							actionButtons.push({
+								label: "replyAll_action",
+								click: () => viewModel.reply(true),
+								icon: Icons.ReplyAll,
+							})
+						}
+
+						actionButtons.push({
+							label: "forward_action",
+							click: () => viewModel.forward(),
+							icon: Icons.Forward,
+						})
+						actionButtons.push({
+							label: "move_action",
+							click: (_: MouseEvent, dom: HTMLElement) =>
+								showMoveMailsDropdown(viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
+							icon: Icons.Folder,
+						})
+					}
+
+					actionButtons.push({
+						label: "delete_action",
+						click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
+						icon: Icons.Trash,
+					})
+				}
+
+				actionButtons.push(...mailViewerMoreActions(viewModel))
+
+				return actionButtons
+			},
 			width: 300,
 		})
 	}

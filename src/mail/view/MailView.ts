@@ -5,14 +5,13 @@ import { lang } from "../../misc/LanguageViewModel"
 import type { ButtonAttrs } from "../../gui/base/Button.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { isSelectedPrefix } from "../../gui/base/NavButton.js"
-import { MailViewer } from "./MailViewer"
 import { Dialog } from "../../gui/base/Dialog"
 import { FeatureType, Keys, MailFolderType } from "../../api/common/TutanotaConstants"
 import { BaseHeaderAttrs, header } from "../../gui/Header.js"
 import type { Mail, MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
 import { assertNotNull, defer, getFirstOrThrow, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
-import { assertMainOrNode, isApp } from "../../api/common/Env"
+import { assertMainOrNode, isApp, isDesktop } from "../../api/common/Env"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
 import { getMultiMailViewerActionButtonAttrs, MultiMailViewer } from "./MultiMailViewer"
@@ -36,20 +35,22 @@ import { getElementId, isSameId } from "../../api/common/utils/EntityUtils"
 import { isNewMailActionAvailable } from "../../gui/nav/NavFunctions"
 import { CancelledError } from "../../api/common/error/CancelledError"
 import Stream from "mithril/stream"
-import { MailViewerViewModel } from "./MailViewerViewModel"
 import { readLocalFiles } from "../../file/FileController.js"
 import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { MobileMailActionBar } from "./MobileMailActionBar.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
-import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { showEditFolderDialog } from "./EditFolderDialog.js"
 import { MailFoldersView } from "./MailFoldersView.js"
 import { assertSystemFolderOfType, isSpamOrTrashFolder, isSubfolderOfType } from "../../api/common/mail/CommonMailUtils.js"
 import { FolderColumnView } from "../../gui/FolderColumnView.js"
 import { SidebarSection } from "../../gui/SidebarSection.js"
 import { EditFoldersDialog } from "./EditFoldersDialog.js"
+import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
+import { ConversationViewModel } from "./ConversationViewModel.js"
+import { ConversationViewer } from "./ConversationViewer.js"
+import type { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
 
 assertMainOrNode()
 
@@ -63,13 +64,14 @@ export interface MailViewCache {
 	/** Current folder. Need to keep it around to know where to return to and remember that we are initialized. */
 	selectedFolder: MailFolder | null
 	/** Viewer for currently opened email. Need to keep it around so it receives updates and keeps any state it needs to. */
-	mailViewerViewModel: MailViewerViewModel | null
+	conversationViewModel: ConversationViewModel | null
 }
 
 export interface MailViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	cache: MailViewCache
 	header: BaseHeaderAttrs
+	desktopSystemFacade: DesktopSystemFacade | null
 }
 
 /**
@@ -80,6 +82,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private readonly folderColumn: ViewColumn
 	private readonly mailColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
+	private readonly desktopSystemFacade: DesktopSystemFacade | null
 	cache: MailViewCache
 	readonly oncreate: TopLevelView["oncreate"]
 	readonly onremove: TopLevelView["onremove"]
@@ -95,17 +98,23 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private expandedState: Set<Id>
 	private mailboxSubscription: Stream<void> | null = null
 
-	get mailViewerViewModel(): MailViewerViewModel | null {
-		return this.cache.mailViewerViewModel
+	get conversationViewModel(): ConversationViewModel | null {
+		return this.cache.conversationViewModel
 	}
 
-	set mailViewerViewModel(viewModel: MailViewerViewModel | null) {
-		this.cache.mailViewerViewModel?.dispose()
-		this.cache.mailViewerViewModel = viewModel
+	set conversationViewModel(viewModel: ConversationViewModel | null) {
+		this.cache.conversationViewModel?.dispose()
+		this.cache.conversationViewModel = viewModel
+		viewModel?.init()
+		if (viewModel && isDesktop()) {
+			// Notify the admin client about the mail being selected
+			this.desktopSystemFacade?.sendSocketMessage(viewModel.primaryMail.sender.address)
+		}
 	}
 
 	constructor(vnode: Vnode<MailViewAttrs>) {
 		super()
+		this.desktopSystemFacade = vnode.attrs.desktopSystemFacade
 		this.folderToUrl = {}
 		this.throttledRouteSet = throttleRoute()
 		this.expandedState = new Set(deviceConfig.getExpandedFolders(logins.getUserController().userId))
@@ -146,9 +155,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					}
 					return m(
 						".mail",
-						this.mailViewerViewModel != null
-							? m(MailViewer, {
-									viewModel: this.mailViewerViewModel,
+						this.conversationViewModel != null
+							? m(ConversationViewer, {
+									// Re-create the whole viewer and its vnode tree if email has changed
+									key: getElementId(this.conversationViewModel.primaryMail),
+									viewModel: this.conversationViewModel,
 							  })
 							: m(MultiMailViewer, multiMailViewerAttrs),
 					)
@@ -222,8 +233,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					...attrs.header,
 				}),
 				bottomNav:
-					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.mailColumn && this.mailViewerViewModel
-						? m(MobileMailActionBar, { viewModel: this.mailViewerViewModel })
+					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.mailColumn && this.conversationViewModel
+						? m(MobileMailActionBar, { viewModel: this.conversationViewModel.primaryViewModel() })
 						: m(BottomNav),
 			}),
 		)
@@ -590,7 +601,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			navButtonRoutes.mailUrl = this.folderToUrl[folder._id[1]]
 
 			if (!mailElementId) {
-				this.mailViewerViewModel = null
+				this.conversationViewModel = null
 			}
 
 			this.cache.mailList.list.loadInitial(mailElementId ?? undefined)
@@ -672,7 +683,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		const animationOverDeferred = defer<void>()
 		const mailList = assertNotNull(this.cache.mailList, "Element is selected but no mail list?")
 
-		if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewerViewModel)) {
+		if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.conversationViewModel)) {
 			// set or update the visible mail
 			const viewModelParams = {
 				mail: mails[0],
@@ -681,13 +692,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			}
 
 			// if there's no viewer or the email selection was changed
-			if (!this.mailViewerViewModel || !isSameId(viewModelParams.mail._id, this.mailViewerViewModel.mail._id)) {
+			if (!this.conversationViewModel || !isSameId(viewModelParams.mail._id, this.conversationViewModel.primaryMail._id)) {
 				const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(viewModelParams.mail)
 				if (mailboxDetails == null) {
-					this.mailViewerViewModel = null
+					this.conversationViewModel = null
 				} else {
 					const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-					this.mailViewerViewModel = await locator.mailViewerViewModel(viewModelParams, mailboxDetails, mailboxProperties)
+					this.conversationViewModel = await locator.conversationViewModel(viewModelParams, mailboxDetails, mailboxProperties)
 				}
 			}
 
@@ -700,9 +711,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			this.setUrl(url)
 
 			m.redraw()
-		} else if (selectionChanged && (mails.length === 0 || multiSelectOperation) && this.mailViewerViewModel) {
+		} else if (selectionChanged && (mails.length === 0 || multiSelectOperation) && this.conversationViewModel) {
 			// remove the visible mail
-			this.mailViewerViewModel = null
+			this.conversationViewModel = null
 			const url = `/mail/${mailList.listId}`
 
 			if (this.cache.selectedFolder) {
@@ -717,7 +728,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			m.redraw()
 		}
 
-		if (this.mailViewerViewModel && !multiSelectOperation) {
+		if (this.conversationViewModel && !multiSelectOperation) {
 			if (mails[0].unread) {
 				// we don't want to wait on this so we can show the viewer
 				// even if we're offline and unable to update.

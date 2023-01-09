@@ -12,6 +12,7 @@ import {
 	MailTypeRef,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import {
+	assertEnumValue,
 	CalendarMethod,
 	ConversationType,
 	ExternalImageRule,
@@ -37,6 +38,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import {
 	getDefaultSender,
 	getEnabledMailAddressesWithUser,
+	getFolderName,
 	getMailboxName,
 	getPathToFolderString,
 	isExcludedMailAddress,
@@ -47,7 +49,7 @@ import {
 import { LoginController } from "../../api/main/LoginController"
 import m from "mithril"
 import { LockedError, NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
-import { elementIdPart, haveSameId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
+import { elementIdPart, getListId, haveSameId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
 import { getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../file/FileController"
@@ -94,7 +96,8 @@ export class MailViewerViewModel {
 	private errorOccurred: boolean = false
 	private loadedInlineImages: InlineImages | null = null
 
-	private folderText: string | null
+	/** only loaded when showFolder is set to true */
+	private folderMailboxText: string | null
 	/** @see getRelevantRecipient */
 	private relevantRecipient: MailAddress | null = null
 
@@ -115,6 +118,8 @@ export class MailViewerViewModel {
 
 	private loading: Promise<void> | null = null
 
+	private collapsed: boolean = true
+
 	get mail(): Mail {
 		return this._mail
 	}
@@ -132,7 +137,6 @@ export class MailViewerViewModel {
 		public readonly mailModel: MailModel,
 		readonly contactModel: ContactModel,
 		private readonly configFacade: ConfigurationDatabase,
-		desktopSystemFacade: DesktopSystemFacade | null,
 		private readonly fileFacade: FileFacade,
 		private readonly fileController: FileController,
 		readonly logins: LoginController,
@@ -145,12 +149,8 @@ export class MailViewerViewModel {
 			this.renderIsDelayed = false
 			m.redraw()
 		})
-		if (isDesktop()) {
-			// Notify the admin client about the mail being selected
-			desktopSystemFacade?.sendSocketMessage(this.mail.sender.address)
-		}
 
-		this.folderText = null
+		this.folderMailboxText = null
 		if (showFolder) {
 			this.showFolder()
 		}
@@ -201,7 +201,7 @@ export class MailViewerViewModel {
 	}
 
 	private showFolder() {
-		this.folderText = null
+		this.folderMailboxText = null
 		const folder = this.mailModel.getMailFolder(this.mail._id[0])
 
 		if (folder) {
@@ -210,7 +210,7 @@ export class MailViewerViewModel {
 					return
 				}
 				const name = getPathToFolderString(mailboxDetails.folders, folder)
-				this.folderText = `${getMailboxName(this.logins, mailboxDetails)} / ${name}`
+				this.folderMailboxText = `${getMailboxName(this.logins, mailboxDetails)} / ${name}`
 				m.redraw()
 			})
 		}
@@ -300,8 +300,14 @@ export class MailViewerViewModel {
 		return this.loadingAttachments
 	}
 
-	getFolderText(): string | null {
-		return this.folderText
+	getFolderMailboxText(): string | null {
+		return this.folderMailboxText
+	}
+
+	getFolderInfo(): { folderType: MailFolderType; name: string } | null {
+		const folder = this.mailModel.getMailFolder(getListId(this.mail))
+		if (!folder) return null
+		return { folderType: folder.folderType as MailFolderType, name: getFolderName(folder) }
 	}
 
 	getSubject(): string {
@@ -1050,6 +1056,19 @@ export class MailViewerViewModel {
 		return this.renderIsDelayed
 	}
 
+	isCollapsed(): boolean {
+		return this.collapsed
+	}
+
+	expandMail(): void {
+		this.loadAll({ notify: true })
+		this.collapsed = false
+	}
+
+	collapseMail(): void {
+		this.collapsed = true
+	}
+
 	async getAssignmentGroupInfos(): Promise<GroupInfo[]> {
 		// remove the current mailbox/owner from the recipients list.
 		const userOrMailGroupInfos = await this.getAssignableMailRecipients()
@@ -1083,7 +1102,7 @@ export class MailViewerViewModel {
 			})
 		}
 
-		this.folderText = null
+		this.folderMailboxText = null
 		if (showFolder) {
 			this.showFolder()
 		}
