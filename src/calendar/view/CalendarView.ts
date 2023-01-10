@@ -89,6 +89,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						button: styles.isUsingBottomNavigation()
 							? null
 							: {
+									type: ButtonType.FolderColumnHeader,
 									label: "newEvent_action",
 									click: () => this._createNewEventDialog(),
 							  },
