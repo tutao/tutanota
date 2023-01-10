@@ -79,6 +79,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							styles.isUsingBottomNavigation() || !this._contactList
 								? null
 								: {
+										type: ButtonType.FolderColumnHeader,
 										label: "newContact_action",
 										click: () => this.createNewContact(),
 								  },

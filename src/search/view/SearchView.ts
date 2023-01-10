@@ -642,6 +642,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	getMainButton(typeRef: TypeRef<unknown>):
 		| {
+				type: ButtonType
 				label: TranslationKey
 				click: clickHandler
 		  }
@@ -651,6 +652,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			return null
 		} else if (isSameTypeRef(typeRef, MailTypeRef) && isNewMailActionAvailable()) {
 			return {
+				type: ButtonType.FolderColumnHeader,
 				click: () => {
 					newMailEditor()
 						.then((editor) => editor.show())
@@ -660,6 +662,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			}
 		} else if (isSameTypeRef(typeRef, ContactTypeRef)) {
 			return {
+				type: ButtonType.FolderColumnHeader,
 				click: () => {
 					locator.contactModel.contactListId().then((contactListId) => {
 						new ContactEditor(locator.entityClient, null, contactListId ?? undefined).show()
