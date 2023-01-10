@@ -7,10 +7,11 @@ import { AriaLandmarks, landmarkAttrs } from "./AriaUtils.js"
 import type { clickHandler } from "./base/GuiUtils.js"
 import type { lazy } from "@tutao/tutanota-utils"
 import { FolderColumnHeaderButton } from "./base/buttons/FolderColumnHeaderButton.js"
+import { Button, ButtonType } from "./base/Button.js"
 
 export type Attrs = {
 	/** Button to be displayed on top of the column*/
-	button: { label: TranslationKey; click: clickHandler } | null | undefined
+	button: { label: TranslationKey; click: clickHandler; type: ButtonType } | null | undefined
 	content: Children
 	ariaLabel: TranslationKey | lazy<string>
 	drawer: DrawerMenuAttrs
@@ -42,13 +43,22 @@ export class FolderColumnView implements Component<Attrs> {
 
 	private renderMainButton(attrs: Attrs): Children {
 		return attrs.button
-			? m(
-					".mlr-l.mt.mb",
-					m(FolderColumnHeaderButton, {
-						label: attrs.button.label,
-						click: attrs.button.click,
-					}),
-			  )
+			? attrs.button.type === ButtonType.FolderColumnHeader
+				? m(
+						".mlr-l.mt.mb",
+						m(FolderColumnHeaderButton, {
+							label: attrs.button.label,
+							click: attrs.button.click,
+						}),
+				  )
+				: m(
+						".mlr-l.mt.mb",
+						m(Button, {
+							type: attrs.button.type,
+							label: attrs.button.label,
+							click: attrs.button.click,
+						}),
+				  )
 			: null
 	}
 }
