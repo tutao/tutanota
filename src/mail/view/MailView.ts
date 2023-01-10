@@ -125,24 +125,19 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					return m(FolderColumnView, {
 						drawer: vnode.attrs.drawerAttrs,
 						button: this.editingFolderForMailGroup
-							? null
+							? {
+									type: ButtonType.Login,
+									label: "done_action",
+									click: () => (this.editingFolderForMailGroup = null),
+							  }
 							: !styles.isUsingBottomNavigation() && isNewMailActionAvailable()
 							? {
+									type: ButtonType.FolderColumnHeader,
 									label: "newMail_action",
 									click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
 							  }
 							: null,
 						content: [
-							this.editingFolderForMailGroup
-								? m(
-										".mlr-l.mt.mb",
-										m(Button, {
-											type: ButtonType.Login,
-											label: "done_action",
-											click: () => (this.editingFolderForMailGroup = null),
-										}),
-								  )
-								: null,
 							...details.map((mailboxDetail) => {
 								if (this.editingFolderForMailGroup && this.editingFolderForMailGroup != mailboxDetail.mailGroup._id) {
 									return null
@@ -211,6 +206,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			() => lang.get("email_label") + " " + mailColumnTitle(),
 		)
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn], "MailView")
+		this.viewSlider.focusedColumn = this.viewSlider.columns[0]
 
 		const shortcuts = this._getShortcuts()
 
