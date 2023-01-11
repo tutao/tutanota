@@ -78,7 +78,7 @@ fileprivate func load(item attachment: NSItemProvider, ident: String, andConvert
 }
 
 /// write a single file to a subdirectory in the shared storage of the app group
-func writeToSharedStorage(subdir: String, name: String, content: Data) async throws -> URL {
+func writeToSharedStorage(subdir: String, name: String, content: Data) throws -> URL {
   guard let sharedURL = try? FileUtils.ensureSharedStorage(inSubdir: subdir) else {
     TUTSLog("failed to ensure sharing directory for this request")
     throw SharingError.failedToWrite
@@ -96,20 +96,41 @@ func writeToSharedStorage(subdir: String, name: String, content: Data) async thr
 
 /// take a list of file URLs (including file:// protocol) and copy them to the app group's storage
 /// returning a new list of URLs pointing to the new locations
-/// any files that fail to be copied are ignored and omitted frmo the return value
+/// file URLs pointing to directories lead to zipped directories and are appended to the list
+/// any files or directories that fail to be copied are ignored and omitted from the return value
 func copyToSharedStorage(subdir: String, fileUrls: [URL]) async -> [URL] {
   var newLocations: [URL] = []
   for fileUrl in fileUrls {
-    guard let contentData = try? Data(contentsOf: fileUrl) else {
-      TUTSLog("could not read file at \(fileUrl) to share")
-      continue
+    let isDirectory: Bool = (try? fileUrl.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
+    if (isDirectory) {
+      var error: NSError? = nil
+      NSFileCoordinator().coordinate(readingItemAt: fileUrl, options: [.forUploading], error: &error) { (zipUrl) in
+        guard let contentData = try? Data(contentsOf: zipUrl) else {
+          TUTSLog("could not read directory at \(zipUrl) to share")
+          return
+        }
+        let fileName = zipUrl.lastPathComponent
+        guard let newLocation = try? writeToSharedStorage(subdir: subdir, name: fileName, content: contentData) else {
+          TUTSLog("could not copy directory at \(zipUrl) to share")
+          return
+        }
+        newLocations.append(newLocation)
+      }
+      if (error != nil) {
+        TUTSLog("could not read directory at \(fileUrl) to share due to \(error!)")
+      }
+    } else {
+      guard let contentData = try? Data(contentsOf: fileUrl) else {
+        TUTSLog("could not read file at \(fileUrl) to share")
+        continue
+      }
+      let fileName = fileUrl.lastPathComponent
+      guard let newLocation = try? writeToSharedStorage(subdir: subdir, name: fileName, content: contentData) else {
+        TUTSLog("could not copy file at \(fileUrl) to share")
+        continue
+      }
+      newLocations.append(newLocation)
     }
-    let fileName = fileUrl.lastPathComponent
-    guard let newLocation = try? await writeToSharedStorage(subdir: subdir, name: fileName, content: contentData) else {
-      TUTSLog("could not copy file at \(fileUrl) to share")
-      continue
-    }
-    newLocations.append(newLocation)
   }
   
   return newLocations
@@ -141,8 +162,8 @@ func readSharingInfo(infoLocation: String) -> SharingInfo? {
   do {
     return try JSONDecoder().decode(SharingInfo.self, from: data)
   } catch {
-      TUTSLog("could not decode sharingInfo from UserDefaults: \(error)")
-      return nil
+    TUTSLog("could not decode sharingInfo from UserDefaults: \(error)")
+    return nil
   }
 }
 
@@ -185,7 +206,7 @@ func codingToImage(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
     TUTSLog("could not convert coding to UIImage: \(String(describing: coding))")
     return nil
   }
-
+  
   return .image(
     ident: ident,
     content: uiImage
@@ -197,7 +218,7 @@ fileprivate  func codingToText(_ ident: String, _ coding: NSSecureCoding) -> Sha
     TUTSLog("could not convert coding \(String(describing: coding)) to String")
     return nil
   }
-
+  
   return .text(
     ident: ident,
     content: decodedText
@@ -209,7 +230,7 @@ fileprivate func codingToVCard(_ ident: String, _ coding: NSSecureCoding) -> Sha
     TUTSLog("could not convert vcard to data: \(String(describing: coding))")
     return nil
   }
-
+  
   return .contact(
     ident: ident,
     content: String(data:vcardText, encoding: .utf8)!
