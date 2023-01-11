@@ -216,7 +216,8 @@ constructor(
 	override suspend fun aesDecryptFile(key: DataWrapper, fileUri: String): String {
 		val parsedFileUri = Uri.parse(fileUri)
 		val file = getFileInfo(context, parsedFileUri)
-		val outputFile = File(tempDir.decrypt, file.name)
+		val newFileName = getNonClobberingFileName(tempDir.decrypt, file.name)
+		val outputFile = File(tempDir.decrypt, newFileName)
 		val input = context.contentResolver.openInputStream(parsedFileUri)!!
 		val out: OutputStream = FileOutputStream(outputFile)
 		aesDecrypt(key.data, input, out, file.size)
