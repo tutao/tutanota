@@ -75,7 +75,7 @@ o.spec("Bundler", function () {
 		for (const attachment of attachments) {
 			// the file is only needed to pass to the fileController and is not kept, so we mock it as a string for convenience
 			when(entityClientMock.load(FileTypeRef, [attachmentListId, attachment.name])).thenResolve(`file ${attachment.name}` as any)
-			when(fileControllerMock.downloadAndDecrypt(`file ${attachment.name}` as any)).thenResolve(attachment)
+			when(fileControllerMock.getAsDataFile(`file ${attachment.name}` as any)).thenResolve(attachment)
 		}
 
 		when(entityClientMock.load(MailBodyTypeRef, mailBodyId)).thenResolve({ text: body })
