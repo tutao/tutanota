@@ -253,7 +253,9 @@ export class DesktopDownloadManager {
 	async joinFiles(filename: string, files: Array<FileUri>): Promise<string> {
 		const downloadDirectory = await this.ensureUnencrytpedDir()
 
-		const fileUri = path.join(downloadDirectory, filename)
+		const filesInDirectory = await this.fs.promises.readdir(downloadDirectory)
+		const newFilename = nonClobberingFilename(filesInDirectory, filename)
+		const fileUri = path.join(downloadDirectory, newFilename)
 		const outStream = this.fs.createWriteStream(fileUri, { autoClose: false })
 
 		for (const infile of files) {
