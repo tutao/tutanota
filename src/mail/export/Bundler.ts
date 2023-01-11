@@ -49,7 +49,7 @@ export async function makeMailBundle(mail: Mail, entityClient: EntityClient, fil
 
 	const attachments = await promiseMap(mail.attachments, async (fileId) => {
 		const file = await entityClient.load(FileTypeRef, fileId)
-		return await fileController.downloadAndDecrypt(file)
+		return await fileController.getAsDataFile(file)
 	})
 
 	const headers = await loadMailHeaders(entityClient, mailWrapper)
