@@ -1,16 +1,16 @@
-import m, { Children , Vnode} from "mithril"
+import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { lang } from "../../misc/LanguageViewModel"
 import type { ButtonAttrs } from "../../gui/base/Button.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { isSelectedPrefix } from "../../gui/base/NavButton.js"
-import {  MailViewer } from "./MailViewer"
+import { MailViewer } from "./MailViewer"
 import { Dialog } from "../../gui/base/Dialog"
 import { FeatureType, Keys, MailFolderType } from "../../api/common/TutanotaConstants"
 import { BaseHeaderAttrs, header } from "../../gui/Header.js"
 import type { Mail, MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
-import  type { lazy } from "@tutao/tutanota-utils"
+import type { lazy } from "@tutao/tutanota-utils"
 import { assertNotNull, defer, getFirstOrThrow, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../api/common/Env"
@@ -19,7 +19,7 @@ import { keyManager } from "../../misc/KeyManager"
 import { MultiMailViewer } from "./MultiMailViewer"
 import { logins } from "../../api/main/LoginController"
 import { Icons } from "../../gui/base/icons/Icons"
-import {  PreconditionFailedError } from "../../api/common/error/RestError"
+import { PreconditionFailedError } from "../../api/common/error/RestError"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { allMailsAllowedInsideFolder, canDoDragAndDropExport, getFolderName, getMailboxName, markMails } from "../model/MailUtils"
 import type { MailboxDetail } from "../model/MailModel"
@@ -31,13 +31,11 @@ import { PermissionError } from "../../api/common/error/PermissionError"
 import { MAIL_PREFIX, navButtonRoutes, throttleRoute } from "../../misc/RouteChange"
 import { styles } from "../../gui/styles"
 import { size } from "../../gui/size"
-import { FolderColumnView } from "../../gui/FolderColumnView.js"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { archiveMails, moveMails, moveToInbox, promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils"
 import { getElementId, isSameId } from "../../api/common/utils/EntityUtils"
 import { isNewMailActionAvailable } from "../../gui/nav/NavFunctions"
-import { SidebarSection } from "../../gui/SidebarSection"
 import { CancelledError } from "../../api/common/error/CancelledError"
 import Stream from "mithril/stream"
 import { MailViewerViewModel } from "./MailViewerViewModel"
@@ -49,13 +47,14 @@ import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
-import {showEditFolderDialog } from "./EditFolderDialog.js"
+import { showEditFolderDialog } from "./EditFolderDialog.js"
 import { MailFoldersView } from "./MailFoldersView.js"
 import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
+import { FolderColumnView } from "../../gui/FolderColumnView.js"
+import { SidebarSection } from "../../gui/SidebarSection.js"
+import { EditFoldersDialog } from "./EditFoldersDialog.js"
 
 assertMainOrNode()
-
-type Counters = Record<string, number>
 
 /** State persisted between re-creations. */
 export interface MailViewCache {
@@ -117,50 +116,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		this.throttledRouteSet = throttleRoute()
 		this.expandedState = new Set(deviceConfig.getExpandedFolders(logins.getUserController().userId))
 		this.cache = vnode.attrs.cache
-
-		this.folderColumn = new ViewColumn(
-			{
-				view: () => {
-					const details = locator.mailModel.mailboxDetails() ?? []
-					return m(FolderColumnView, {
-						drawer: vnode.attrs.drawerAttrs,
-						button: this.editingFolderForMailGroup
-							? {
-									type: ButtonType.Login,
-									label: "done_action",
-									click: () => (this.editingFolderForMailGroup = null),
-							  }
-							: !styles.isUsingBottomNavigation() && isNewMailActionAvailable()
-							? {
-									type: ButtonType.FolderColumnHeader,
-									label: "newMail_action",
-									click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
-							  }
-							: null,
-						content: [
-							...details.map((mailboxDetail) => {
-								if (this.editingFolderForMailGroup && this.editingFolderForMailGroup != mailboxDetail.mailGroup._id) {
-									return null
-								} else {
-									return m(
-										SidebarSection,
-										{
-											name: () => getMailboxName(logins, mailboxDetail),
-										},
-										this.createMailboxFolderItems(mailboxDetail),
-									)
-								}
-							}),
-						],
-						ariaLabel: "folderTitle_label",
-					})
-				},
-			},
-			ColumnType.Foreground,
-			size.first_col_min_width,
-			size.first_col_max_width,
-			() => lang.get("folderTitle_label"),
-		)
+		this.folderColumn = this.createFolderColumn(null, vnode.attrs.drawerAttrs)
 		this.listColumn = new ViewColumn(
 			{
 				view: () => m(".list-column", [this.cache.mailList ? m(this.cache.mailList) : null]),
@@ -227,31 +183,31 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	view({ attrs }: Vnode<MailViewAttrs>): Children  {
-			return m(
-				"#mail.main-view",
-				{
-					ondragover: (ev: DragEvent) => {
-						// do not check the datatransfer here because it is not always filled, e.g. in Safari
-						ev.stopPropagation()
-						ev.preventDefault()
-					},
-					ondrop: (ev: DragEvent) => {
-						if (isNewMailActionAvailable() && ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
-							Promise.all([
-								this.getMailboxDetails(),
-								readLocalFiles(ev.dataTransfer.files),
-								import("../signature/Signature"),
-								import("../editor/MailEditor"),
-							])
-								.then(([mailbox, dataFiles, { appendEmailSignature }, { newMailEditorFromTemplate }]) => {
-									newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", logins.getUserController().props), dataFiles).then(
-										(dialog) => dialog.show(),
-									)
-								})
-								.catch(ofClass(PermissionError, noOp))
-								.catch(ofClass(UserError, showUserError))
-						}
+	view({ attrs }: Vnode<MailViewAttrs>): Children {
+		return m(
+			"#mail.main-view",
+			{
+				ondragover: (ev: DragEvent) => {
+					// do not check the datatransfer here because it is not always filled, e.g. in Safari
+					ev.stopPropagation()
+					ev.preventDefault()
+				},
+				ondrop: (ev: DragEvent) => {
+					if (isNewMailActionAvailable() && ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
+						Promise.all([
+							this.getMailboxDetails(),
+							readLocalFiles(ev.dataTransfer.files),
+							import("../signature/Signature"),
+							import("../editor/MailEditor"),
+						])
+							.then(([mailbox, dataFiles, { appendEmailSignature }, { newMailEditorFromTemplate }]) => {
+								newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", logins.getUserController().props), dataFiles).then(
+									(dialog) => dialog.show(),
+								)
+							})
+							.catch(ofClass(PermissionError, noOp))
+							.catch(ofClass(UserError, showUserError))
+					}
 
 					// prevent in any case because firefox tries to open
 					// dataTransfer as a URL otherwise.
@@ -453,13 +409,60 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		m.route.set(this.folderToUrl[getElementId(mailboxDetail.folders.getSystemFolderByType(folderType))])
 	}
 
-	private createMailboxFolderItems(mailboxDetail: MailboxDetail): Children {
+	private createFolderColumn(editingFolderForMailGroup: Id | null = null, drawerAttrs: DrawerMenuAttrs) {
+		return new ViewColumn(
+			{
+				view: () => {
+					return m(FolderColumnView, {
+						drawer: drawerAttrs,
+						button: editingFolderForMailGroup
+							? null
+							: !styles.isUsingBottomNavigation() && isNewMailActionAvailable()
+							? {
+									type: ButtonType.FolderColumnHeader,
+									label: "newMail_action",
+									click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
+							  }
+							: null,
+						content: this.renderFolders(editingFolderForMailGroup),
+						ariaLabel: "folderTitle_label",
+					})
+				},
+			},
+			editingFolderForMailGroup ? ColumnType.Background : ColumnType.Foreground,
+			size.first_col_min_width,
+			size.first_col_max_width,
+			() => lang.get("folderTitle_label"),
+		)
+	}
+
+	private renderFolders(editingFolderForMailGroup: Id | null) {
+		const details = locator.mailModel.mailboxDetails() ?? []
+		return [
+			...details.map((mailboxDetail) => {
+				// Only show folders for mailbox in which edit was selected
+				if (editingFolderForMailGroup && editingFolderForMailGroup != mailboxDetail.mailGroup._id) {
+					return null
+				} else {
+					return m(
+						SidebarSection,
+						{
+							name: () => getMailboxName(logins, mailboxDetail),
+						},
+						this.createMailboxFolderItems(mailboxDetail, editingFolderForMailGroup),
+					)
+				}
+			}),
+		]
+	}
+
+	private createMailboxFolderItems(mailboxDetail: MailboxDetail, editingFolderForMailGroup: Id | null = null): Children {
 		return m(MailFoldersView, {
 			mailboxDetail,
 			expandedFolders: this.expandedState,
 			folderToUrl: this.folderToUrl,
 			onFolderClick: () => {
-				if (!this.editingFolderForMailGroup) {
+				if (!editingFolderForMailGroup) {
 					this.viewSlider.focus(this.listColumn)
 				}
 			},
@@ -467,12 +470,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			onShowFolderAddEditDialog: (...args) => this.showFolderAddEditDialog(...args),
 			onDeleteCustomMailFolder: (folder) => this.deleteCustomMailFolder(mailboxDetail, folder),
 			onFolderDrop: (mailId, folder) => this.handleFolderDrop(mailId, folder),
-			inEditMode: this.editingFolderForMailGroup === mailboxDetail.mailGroup._id,
+			inEditMode: editingFolderForMailGroup === mailboxDetail.mailGroup._id,
 			onEditMailbox: () => {
-				this.editingFolderForMailGroup = mailboxDetail.mailGroup._id
+				EditFoldersDialog.showEdit(() => this.renderFolders(mailboxDetail.mailGroup._id))
 			},
 			onEditingDone: () => {
-				this.editingFolderForMailGroup = null
+				editingFolderForMailGroup = null
 			},
 		})
 	}
