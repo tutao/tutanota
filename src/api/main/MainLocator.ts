@@ -34,7 +34,7 @@ import type { MailAddressFacade } from "../worker/facades/MailAddressFacade"
 import type { FileFacade } from "../worker/facades/FileFacade.js"
 import type { ContactFormFacade } from "../worker/facades/ContactFormFacade"
 import type { DeviceEncryptionFacade } from "../worker/facades/DeviceEncryptionFacade"
-import { FileController } from "../../file/FileController"
+import {FileController, guiDownload} from "../../file/FileController"
 import type { NativeFileApp } from "../../native/common/FileApp"
 import type { NativePushServiceApp } from "../../native/main/NativePushServiceApp"
 import type { NativeInterfaceMain } from "../../native/main/NativeInterfaceMain"
@@ -547,8 +547,8 @@ class MainLocator {
 		})
 		this.fileController =
 			this.nativeInterfaces == null
-				? new FileControllerBrowser(blobFacade, fileFacade)
-				: new FileControllerNative(this.nativeInterfaces.fileApp, blobFacade, fileFacade)
+				? new FileControllerBrowser(blobFacade, fileFacade, guiDownload)
+				: new FileControllerNative(blobFacade, fileFacade, guiDownload, this.nativeInterfaces.fileApp)
 
 		this.calendarModel = new CalendarModelImpl(
 			notifications,
