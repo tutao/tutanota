@@ -279,7 +279,7 @@ export async function loadInlineImages(fileController: FileController, attachmen
 	const filesToLoad = getReferencedAttachments(attachments, referencedCids)
 	const inlineImages = new Map()
 	return promiseMap(filesToLoad, async (file) => {
-		let dataFile = await fileController.downloadAndDecrypt(file)
+		let dataFile = await fileController.getAsDataFile(file)
 		const { htmlSanitizer } = await import("../../misc/HtmlSanitizer")
 		dataFile = htmlSanitizer.sanitizeInlineAttachment(dataFile)
 		const inlineImageReference = createInlineImageReference(dataFile, neverNull(file.cid))
