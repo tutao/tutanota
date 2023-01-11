@@ -141,3 +141,11 @@ export function isDataFile(file: Attachment): file is DataFile {
 export function isFileReference(file: Attachment): file is FileReference {
 	return file._type === "FileReference"
 }
+
+export function assertOnlyFileReferences(files: Array<Attachment>): asserts files is Array<FileReference> {
+	if (files.find((f) => !isFileReference(f)) != null) throw new TypeError("not only FileReference")
+}
+
+export function assertOnlyDataFiles(files: Array<Attachment>): asserts files is Array<DataFile> {
+	if (files.find((f) => !isDataFile(f)) != null) throw new TypeError("not only DataFiles")
+}
