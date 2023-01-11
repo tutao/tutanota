@@ -1575,6 +1575,7 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"couldNotOpenLink_msg": "Unable to find application to open link\n{link}",
 	}
 }

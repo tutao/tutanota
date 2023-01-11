@@ -7,6 +7,7 @@ import { Keys } from "../api/common/TutanotaConstants"
 import type { Key } from "../misc/KeyManager"
 import path from "path"
 import type { TranslationKey } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
 import { log } from "./DesktopLog"
 import { parseUrlOrNull } from "./PathUtils"
 import type { LocalShortcutManager } from "./electron-localshortcut/LocalShortcut"
@@ -412,7 +413,16 @@ export class ApplicationWindow {
 		} else {
 			// we never open any new windows directly from the renderer
 			// except for links in mails etc. so open them in the browser
-			this.electron.shell.openExternal(parsedUrl.toString())
+			this.electron.shell.openExternal(parsedUrl.toString()).catch((e) => {
+				log.warn("failed to open external url", details.url, e)
+				this.electron.dialog.showMessageBox({
+					title: lang.get("showURL_alt"),
+					buttons: [lang.get("ok_action")],
+					defaultId: 0,
+					message: lang.get("couldNotOpenLink_msg", { "{link}": details.url }),
+					type: "error",
+				})
+			})
 		}
 
 		return {

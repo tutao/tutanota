@@ -30,9 +30,11 @@ export class DesktopErrorHandler {
 		this.wm = wm
 		process
 			.on("uncaughtException", (error) => {
+				console.log("unhandled exception")
 				this.handleUnexpectedFailure(error)
 			})
 			.on("unhandledRejection", (error: Error, p) => {
+				console.log("unhandled rejection")
 				this.handleUnexpectedFailure(error)
 			})
 

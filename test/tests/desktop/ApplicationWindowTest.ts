@@ -11,9 +11,9 @@ import { verify } from "@tutao/tutanota-test-utils"
 import { ThemeFacade } from "../../../src/native/common/generatedipc/ThemeFacade.js"
 import { DesktopThemeFacade } from "../../../src/desktop/DesktopThemeFacade.js"
 import { RemoteBridge, SendingFacades } from "../../../src/desktop/ipc/RemoteBridge.js"
+import { OfflineDbManager } from "../../../src/desktop/db/PerWindowSqlCipherFacade.js"
 import Rectangle = Electron.Rectangle
 import BrowserWindow = Electron.BrowserWindow
-import { OfflineDbManager } from "../../../src/desktop/db/PerWindowSqlCipherFacade.js"
 
 const { anything } = matchers
 
@@ -245,7 +245,7 @@ o.spec("ApplicationWindow Test", function () {
 				},
 			}),
 			shell: {
-				openExternal: () => {},
+				openExternal: () => Promise.resolve(),
 			},
 			Menu: {
 				setApplicationMenu: () => {},
