@@ -92,6 +92,7 @@ o.spec("DesktopCryptoFacadeTest", () => {
 			readFile: () => Promise.resolve(data),
 			mkdir: () => Promise.resolve(),
 			writeFile: (file, data) => (data === decryptedUint8 ? Promise.resolve() : Promise.reject("decryption failed")),
+			readdir: () => Promise.resolve([]),
 		},
 	}
 	const instanceMapper = {

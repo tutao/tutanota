@@ -12,6 +12,7 @@ import { RsaPrivateKey } from "../native/common/generatedipc/RsaPrivateKey.js"
 import { RsaPublicKey } from "../native/common/generatedipc/RsaPublicKey.js"
 import { RsaKeyPair } from "../native/common/generatedipc/RsaKeyPair"
 import { DesktopUtils } from "./DesktopUtils"
+import { nonClobberingFilename } from "./PathUtils.js"
 
 type FsExports = typeof FsModule
 
@@ -55,7 +56,9 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		const encData = await this.fs.promises.readFile(encryptedFileUri)
 		const bitKey = this.cryptoFns.bytesToKey(key)
 		const decData = await this.cryptoFns.aes128Decrypt(bitKey, encData, true)
-		const decryptedFileUri = path.join(targetDir, path.basename(encryptedFileUri))
+		const filesInDirectory = await this.fs.promises.readdir(targetDir)
+		const newFilename = nonClobberingFilename(filesInDirectory, path.basename(encryptedFileUri))
+		const decryptedFileUri = path.join(targetDir, newFilename)
 		await this.fs.promises.writeFile(decryptedFileUri, decData, {
 			encoding: "binary",
 		})
