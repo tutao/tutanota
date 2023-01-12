@@ -18,7 +18,7 @@ import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { Dialog } from "../../gui/base/Dialog"
 import { assertNotNull, AsyncResult, count, debounce, downcast, neverNull, ofClass, promiseFilter, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/MainLocator"
-import { getLetId, haveSameId, sortCompareByReverseId } from "../../api/common/utils/EntityUtils"
+import { getLetId, getListId, haveSameId, sortCompareByReverseId } from "../../api/common/utils/EntityUtils"
 import { moveMails, promptAndDeleteMails } from "./MailGuiUtils"
 import { MailRow } from "./MailRow"
 import { makeTrackedProgressMonitor } from "../../api/common/utils/ProgressMonitor"
@@ -32,6 +32,7 @@ import { findAndApplyMatchingRule, isInboxList } from "../model/InboxRuleHandler
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/main/EventController.js"
+import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
 
 assertMainOrNode()
 const className = "mail-list"
@@ -444,7 +445,8 @@ export class MailListView implements Component {
 		if (!folder) {
 			return false
 		}
-		return locator.mailModel.isSpamTrashDescendant(folder)
+		const mailboxDetail = await locator.mailModel.getMailboxDetailsForMailListId(this.listId)
+		return isSpamOrTrashFolder(mailboxDetail.folders, folder)
 	}
 
 	private showingDraftFolder(): boolean {
