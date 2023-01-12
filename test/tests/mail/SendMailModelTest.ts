@@ -51,7 +51,7 @@ import { RecipientsModel, ResolveMode } from "../../../src/api/main/RecipientsMo
 import { ResolvableRecipientMock } from "./ResolvableRecipientMock.js"
 import { NoZoneDateProvider } from "../../../src/api/common/utils/NoZoneDateProvider.js"
 import { MailWrapper } from "../../../src/api/common/MailWrapper.js"
-import { FolderSystem } from "../../../src/mail/model/FolderSystem.js"
+import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
 
 const { anything, argThat } = matchers
 

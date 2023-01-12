@@ -445,7 +445,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		if (folder) {
 			return getFolderName(folder)
 		} else {
-			return "?"
+			return lang.get("deletedFolder_label")
 		}
 	}
 

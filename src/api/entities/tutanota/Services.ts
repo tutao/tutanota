@@ -24,6 +24,7 @@ import {CreateLocalAdminGroupDataTypeRef} from "./TypeRefs.js"
 import {DeleteGroupDataTypeRef} from "./TypeRefs.js"
 import {CreateMailFolderDataTypeRef} from "./TypeRefs.js"
 import {CreateMailFolderReturnTypeRef} from "./TypeRefs.js"
+import {UpdateMailFolderDataTypeRef} from "./TypeRefs.js"
 import {DeleteMailFolderDataTypeRef} from "./TypeRefs.js"
 import {CreateMailGroupDataTypeRef} from "./TypeRefs.js"
 import {DeleteMailDataTypeRef} from "./TypeRefs.js"
@@ -141,7 +142,7 @@ export const MailFolderService = Object.freeze({
 	name: "MailFolderService",
 	get: null,
 	post: {data: CreateMailFolderDataTypeRef, return: CreateMailFolderReturnTypeRef},
-	put: null,
+	put: {data: UpdateMailFolderDataTypeRef, return: null},
 	delete: {data: DeleteMailFolderDataTypeRef, return: null},
 } as const)
 

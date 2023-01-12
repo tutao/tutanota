@@ -1,7 +1,7 @@
-import { MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
 import { assertNotNull, groupBy, partition } from "@tutao/tutanota-utils"
-import { elementIdPart, getElementId, isSameId } from "../../api/common/utils/EntityUtils.js"
-import { MailFolderType } from "../../api/common/TutanotaConstants.js"
+import { MailFolder } from "../../entities/tutanota/TypeRefs.js"
+import { MailFolderType } from "../TutanotaConstants.js"
+import { elementIdPart, getElementId, isSameId } from "../utils/EntityUtils.js"
 
 interface IndentedFolder {
 	level: number
@@ -23,8 +23,8 @@ export class FolderSystem {
 		this.customSubtrees = customFolders.sort(compareCustom).map((f) => this.makeSubtree(folderByParent, f, compareCustom))
 	}
 
-	getIndentedList(): IndentedFolder[] {
-		return [...this.getIndentedSystemList(), ...this.getIndentedCustomList(this.customSubtrees)]
+	getIndentedList(excludeFolder: MailFolder | null = null): IndentedFolder[] {
+		return [...this.getIndentedFolderList(this.systemSubtrees, excludeFolder), ...this.getIndentedFolderList(this.customSubtrees, excludeFolder)]
 	}
 
 	getSystemFolderByType(type: Omit<MailFolderType, MailFolderType.CUSTOM>): MailFolder {
@@ -48,10 +48,19 @@ export class FolderSystem {
 	 */
 	getCustomFoldersOfParent(parent: IdTuple | null): MailFolder[] {
 		if (parent) {
-			const parentFolder = this.getFolderByIdInSubtrees(this.customSubtrees, parent)
+			const parentFolder = this.getFolderByIdInSubtrees([...this.customSubtrees, ...this.systemSubtrees], parent)
 			return parentFolder ? parentFolder.children.map((child) => child.folder) : []
 		} else {
 			return this.customSubtrees.map((subtree) => subtree.folder)
+		}
+	}
+
+	getDescendantFoldersOfParent(parent: IdTuple): IndentedFolder[] {
+		const parentFolder = this.getFolderByIdInSubtrees([...this.customSubtrees, ...this.systemSubtrees], parent)
+		if (parentFolder) {
+			return this.getIndentedFolderList([parentFolder]).slice(1)
+		} else {
+			return []
 		}
 	}
 
@@ -60,11 +69,25 @@ export class FolderSystem {
 		return this.getPathToFolderInSubtrees(this.systemSubtrees, folderId) ?? this.getPathToFolderInSubtrees(this.customSubtrees, folderId) ?? []
 	}
 
-	private getIndentedCustomList(subtrees: ReadonlyArray<FolderSubtree>, currentLevel: number = 0): IndentedFolder[] {
+	checkFolderForAncestor(folder: MailFolder, potentialAncestorId: IdTuple): boolean {
+		let currentFolderPointer: MailFolder | null = folder
+		while (true) {
+			if (currentFolderPointer?.parentFolder == null) {
+				return false
+			} else if (isSameId(currentFolderPointer.parentFolder, potentialAncestorId)) {
+				return true
+			}
+			currentFolderPointer = this.getFolderById(currentFolderPointer.parentFolder)
+		}
+	}
+
+	private getIndentedFolderList(subtrees: ReadonlyArray<FolderSubtree>, excludeFolder: MailFolder | null = null, currentLevel: number = 0): IndentedFolder[] {
 		const plainList: IndentedFolder[] = []
 		for (const subtree of subtrees) {
-			plainList.push({ level: currentLevel, folder: subtree.folder })
-			plainList.push(...this.getIndentedCustomList(subtree.children, currentLevel + 1))
+			if (!excludeFolder || !isSameId(subtree.folder._id, excludeFolder._id)) {
+				plainList.push({ level: currentLevel, folder: subtree.folder })
+				plainList.push(...this.getIndentedFolderList(subtree.children, excludeFolder, currentLevel + 1))
+			}
 		}
 		return plainList
 	}
