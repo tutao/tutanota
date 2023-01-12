@@ -6,6 +6,7 @@ import { assertNotNull, clone, getFromMap, remove, TypeRef } from "@tutao/tutano
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { resolveTypeReference } from "../../common/EntityFunctions.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
+import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 
 /** Cache for a single list. */
 type ListCache = {
@@ -63,14 +64,14 @@ export class EphemeralCacheStorage implements CacheStorage {
 		const path = typeRefToPath(typeRef)
 		const typeModel = await resolveTypeReference(typeRef)
 		switch (typeModel.type) {
-			case TypeId.Element.valueOf():
+			case TypeId.Element:
 				return clone((this.entities.get(path)?.get(id) as T | undefined) ?? null)
-			case TypeId.ListElement.valueOf():
+			case TypeId.ListElement:
 				return clone((this.lists.get(path)?.get(assertNotNull(listId))?.elements.get(id) as T | undefined) ?? null)
-			case TypeId.BlobElement.valueOf():
+			case TypeId.BlobElement:
 				return clone((this.blobEntities.get(path)?.get(assertNotNull(listId))?.elements.get(id) as T | undefined) ?? null)
 			default:
-				throw new Error("must be a persistent type")
+				throw new ProgrammingError("must be a persistent type")
 		}
 	}
 
@@ -78,21 +79,21 @@ export class EphemeralCacheStorage implements CacheStorage {
 		const path = typeRefToPath(typeRef)
 		const typeModel = await resolveTypeReference(typeRef)
 		switch (typeModel.type) {
-			case TypeId.Element.valueOf():
+			case TypeId.Element:
 				this.entities.get(path)?.delete(id)
 				break
-			case TypeId.ListElement.valueOf():
+			case TypeId.ListElement:
 				const cache = this.lists.get(path)?.get(assertNotNull(listId))
 				if (cache != null) {
 					cache.elements.delete(id)
 					remove(cache.allRange, id)
 				}
 				break
-			case TypeId.BlobElement.valueOf():
+			case TypeId.BlobElement:
 				this.blobEntities.get(path)?.get(assertNotNull(listId))?.elements.delete(id)
 				break
 			default:
-				throw new Error("must be a persistent type")
+				throw new ProgrammingError("must be a persistent type")
 		}
 	}
 
@@ -110,22 +111,22 @@ export class EphemeralCacheStorage implements CacheStorage {
 		const typeRef = entity._type
 		const typeModel = await resolveTypeReference(typeRef)
 		switch (typeModel.type) {
-			case TypeId.Element.valueOf():
+			case TypeId.Element:
 				const elementEntity = entity as ElementEntity
 				this.addElementEntity(elementEntity._type, elementEntity._id, elementEntity)
 				break
-			case TypeId.ListElement.valueOf():
+			case TypeId.ListElement:
 				const listElementEntity = entity as ListElementEntity
 				const listElementTypeRef = typeRef as TypeRef<ListElementEntity>
 				await this.putListElement(listElementEntity, listElementTypeRef)
 				break
-			case TypeId.BlobElement.valueOf():
+			case TypeId.BlobElement:
 				const blobElementEntity = entity as BlobElementEntity
 				const blobTypeRef = typeRef as TypeRef<BlobElementEntity>
 				await this.putBlobElement(blobElementEntity, blobTypeRef)
 				break
 			default:
-				throw new Error("must be a persistent type")
+				throw new ProgrammingError("must be a persistent type")
 		}
 	}
 

@@ -54,7 +54,7 @@ import { assertNotNull } from "@tutao/tutanota-utils"
 import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacadeSendDispatcher } from "../../native/common/generatedipc/SqlCipherFacadeSendDispatcher.js"
 import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
-import {OwnerEncSessionKeysUpdateQueue, UPDATE_SESSION_KEYS_SERVICE_DEBOUNCE_MS} from "./crypto/OwnerEncSessionKeysUpdateQueue.js"
+import { OwnerEncSessionKeysUpdateQueue } from "./crypto/OwnerEncSessionKeysUpdateQueue.js"
 
 assertWorkerOrNode()
 
@@ -98,13 +98,14 @@ export const locator: WorkerLocatorType = {} as any
 
 export async function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	locator.user = new UserFacade()
+	const dateProvider = new NoZoneDateProvider()
 
 	const suspensionHandler = new SuspensionHandler(worker, self)
 	locator.instanceMapper = new InstanceMapper()
 	locator.rsa = await createRsaImplementation(worker)
 	locator.restClient = new RestClient(suspensionHandler)
 	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instanceMapper, () => locator.crypto)
-	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor)
+	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, dateProvider)
 	const entityRestClient = new EntityRestClient(locator.user, locator.restClient, () => locator.crypto, locator.instanceMapper, locator.blobAccessToken)
 	locator._browserData = browserData
 
@@ -116,7 +117,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			return new OfflineStorage(
 				new SqlCipherFacadeSendDispatcher(locator.native),
 				new InterWindowEventFacadeSendDispatcher(worker),
-				new NoZoneDateProvider(),
+				dateProvider,
 				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, modelInfos),
 			)
 		} else {
@@ -142,7 +143,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache as DefaultEntityRestCache)
 	const mainInterface = worker.getMainInterface()
 
-	locator.ownerEncSessionKeysUpdateQueue = new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor, UPDATE_SESSION_KEYS_SERVICE_DEBOUNCE_MS)
+	locator.ownerEncSessionKeysUpdateQueue = new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor)
 
 	locator.crypto = new CryptoFacade(
 		locator.user,
@@ -151,7 +152,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.rsa,
 		locator.serviceExecutor,
 		locator.instanceMapper,
-		locator.ownerEncSessionKeysUpdateQueue
+		locator.ownerEncSessionKeysUpdateQueue,
 	)
 	locator.login = new LoginFacade(
 		worker,
@@ -241,7 +242,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		new EntityClient(entityRestClient), // without cache
 	)
 
-	const dateProvider = new NoZoneDateProvider()
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
 
 	locator.eventBusClient = new EventBusClient(

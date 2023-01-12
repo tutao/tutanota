@@ -1,12 +1,13 @@
-import { downcast, getFromMap } from "@tutao/tutanota-utils"
+import { getFromMap } from "@tutao/tutanota-utils"
 import { ArchiveDataType } from "../../common/TutanotaConstants"
 import { assertWorkerOrNode } from "../../common/Env"
 import { BlobAccessTokenService } from "../../entities/storage/Services"
 import { Blob } from "../../entities/sys/TypeRefs.js"
-import { Instance } from "../../common/EntityTypes"
+import { SomeEntity } from "../../common/EntityTypes"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { BlobServerAccessInfo, createBlobAccessTokenPostIn, createBlobReadData, createBlobWriteData, createInstanceId } from "../../entities/storage/TypeRefs"
 import { getElementId, getEtId, getListId, isElementEntity } from "../../common/utils/EntityUtils.js"
+import { DateProvider } from "../../common/DateProvider.js"
 
 assertWorkerOrNode()
 
@@ -24,11 +25,13 @@ export class BlobAccessTokenFacade {
 	private readonly serviceExecutor: IServiceExecutor
 	private readonly readCache: Map<Id, BlobServerAccessInfo>
 	private readonly writeCache: Map<ArchiveDataType, Map<Id, BlobServerAccessInfo>>
+	private readonly dateProvider: DateProvider
 
-	constructor(serviceExecutor: IServiceExecutor) {
+	constructor(serviceExecutor: IServiceExecutor, dateProvider: DateProvider) {
 		this.serviceExecutor = serviceExecutor
 		this.readCache = new Map<Id, BlobServerAccessInfo>()
 		this.writeCache = new Map()
+		this.dateProvider = dateProvider
 	}
 
 	/**
@@ -58,17 +61,16 @@ export class BlobAccessTokenFacade {
 	 * @param blobs all blobs need to be in one archive.
 	 * @param referencingInstance the instance that references the blobs
 	 */
-	async requestReadTokenBlobs(archiveDataType: ArchiveDataType, blobs: Blob[], referencingInstance: Instance): Promise<BlobServerAccessInfo> {
+	async requestReadTokenBlobs(archiveDataType: ArchiveDataType, blobs: Blob[], referencingInstance: SomeEntity): Promise<BlobServerAccessInfo> {
 		const archiveId = this.getArchiveId(blobs)
-		const instance = downcast(referencingInstance)
 		let instanceListId: Id | null
 		let instanceId: Id
-		if (isElementEntity(instance)) {
+		if (isElementEntity(referencingInstance)) {
 			instanceListId = null
-			instanceId = getEtId(instance)
+			instanceId = getEtId(referencingInstance)
 		} else {
-			instanceListId = getListId(instance)
-			instanceId = getElementId(instance)
+			instanceListId = getListId(referencingInstance)
+			instanceId = getElementId(referencingInstance)
 		}
 		const instanceIds = [createInstanceId({ instanceId })]
 		const tokenRequest = createBlobAccessTokenPostIn({
@@ -107,10 +109,10 @@ export class BlobAccessTokenFacade {
 	}
 
 	private isValid(blobServerAccessInfo: BlobServerAccessInfo): boolean {
-		return blobServerAccessInfo.expires.getTime() > Date.now() - this.TOKEN_EXPIRATION_MARGIN_MS
+		return blobServerAccessInfo.expires.getTime() > this.dateProvider.now() - this.TOKEN_EXPIRATION_MARGIN_MS
 	}
 
-	private getValidTokenFromWriteCache(archiveDataType: ArchiveDataType, ownerGroupId: Id): BlobServerAccessInfo | undefined {
+	private getValidTokenFromWriteCache(archiveDataType: ArchiveDataType, ownerGroupId: Id): BlobServerAccessInfo | null {
 		const cacheForArchiveDataType = this.writeCache.get(archiveDataType)
 		if (cacheForArchiveDataType != null) {
 			let cachedBlobServerAccessInfo = cacheForArchiveDataType.get(ownerGroupId)
@@ -118,7 +120,7 @@ export class BlobAccessTokenFacade {
 				return cachedBlobServerAccessInfo
 			}
 		}
-		return undefined
+		return null
 	}
 
 	private putTokenIntoWriteCache(archiveDataType: ArchiveDataType, ownerGroupId: Id, blobServerAccessInfo: BlobServerAccessInfo) {

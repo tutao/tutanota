@@ -1,11 +1,11 @@
-import {debounce,} from "@tutao/tutanota-utils"
-import type {InstanceSessionKey} from "../../entities/sys/TypeRefs.js"
-import {createUpdateSessionKeysPostIn,} from "../../entities/sys/TypeRefs.js"
-import {LockedError} from "../../common/error/RestError"
-import {assertWorkerOrNode} from "../../common/Env"
-import {IServiceExecutor} from "../../common/ServiceRequest"
-import {UpdateSessionKeysService} from "../../entities/sys/Services"
-import {UserFacade} from "../facades/UserFacade"
+import { debounce } from "@tutao/tutanota-utils"
+import type { InstanceSessionKey } from "../../entities/sys/TypeRefs.js"
+import { createUpdateSessionKeysPostIn } from "../../entities/sys/TypeRefs.js"
+import { LockedError } from "../../common/error/RestError"
+import { assertWorkerOrNode } from "../../common/Env"
+import { IServiceExecutor } from "../../common/ServiceRequest"
+import { UpdateSessionKeysService } from "../../entities/sys/Services"
+import { UserFacade } from "../facades/UserFacade"
 
 assertWorkerOrNode()
 
@@ -19,15 +19,15 @@ export const UPDATE_SESSION_KEYS_SERVICE_DEBOUNCE_MS = 50
  * (The next time the instance session key is resolved using the bucket key a new update attempt will be made for those instances.)
  */
 export class OwnerEncSessionKeysUpdateQueue {
-
 	private updateInstanceSessionKeyQueue: Array<InstanceSessionKey> = []
-	private readonly invokeUpdateSessionKeyService: (() => Promise<void>)
+	private readonly invokeUpdateSessionKeyService: () => Promise<void>
 
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly serviceExecutor: IServiceExecutor,
-		// we pass the timeout for testability. see UPDATE_SESSION_KEYS_SERVICE_DEBOUNCE_MS
-		debounceTimeoutMs: number) {
+		// allow passing the timeout for testability
+		debounceTimeoutMs: number = UPDATE_SESSION_KEYS_SERVICE_DEBOUNCE_MS,
+	) {
 		this.invokeUpdateSessionKeyService = debounce(debounceTimeoutMs, () => this.sendUpdateRequest())
 	}
 
@@ -44,8 +44,9 @@ export class OwnerEncSessionKeysUpdateQueue {
 	}
 
 	private async sendUpdateRequest() {
-		const input = createUpdateSessionKeysPostIn()
-		input.ownerEncSessionKeys = this.updateInstanceSessionKeyQueue
+		const input = createUpdateSessionKeysPostIn({
+			ownerEncSessionKeys: this.updateInstanceSessionKeyQueue,
+		})
 		this.updateInstanceSessionKeyQueue = []
 		if (input.ownerEncSessionKeys.length > 0) {
 			try {
