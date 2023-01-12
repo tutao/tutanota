@@ -1,7 +1,7 @@
 import o from "ospec"
 import { createMailFolder } from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import { MailFolderType } from "../../../../src/api/common/TutanotaConstants.js"
-import { FolderSystem } from "../../../../src/mail/model/FolderSystem.js"
+import { FolderSystem } from "../../../../src/api/common/mail/FolderSystem.js"
 
 o.spec("FolderSystem", function () {
 	const listId = "listId"
@@ -94,6 +94,15 @@ o.spec("FolderSystem", function () {
 			{ level: 1, folder: customSubfolder },
 			{ level: 2, folder: customSubSubfolderAnother },
 			{ level: 2, folder: customSubSubfolder },
+		])
+	})
+
+	o("indented list will not return folder or descendants of given folder", function () {
+		const system = new FolderSystem(allFolders)
+		o(system.getIndentedList(customSubfolder)).deepEquals([
+			{ level: 0, folder: inbox },
+			{ level: 0, folder: archive },
+			{ level: 0, folder: customFolder },
 		])
 	})
 

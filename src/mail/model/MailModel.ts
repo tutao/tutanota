@@ -20,6 +20,7 @@ import {
 	FeatureType,
 	GroupType,
 	MailFolderType,
+	MailReportType as mailReportType,
 	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
 	OperationType,
 	ReportMovedMailsType,
@@ -30,14 +31,16 @@ import { lang } from "../../misc/LanguageViewModel"
 import { Notifications } from "../../gui/Notifications"
 import { findAndApplyMatchingRule } from "./InboxRuleHandler"
 import { EntityClient } from "../../api/common/EntityClient"
-import { elementIdPart, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
+import { elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
 import { NotFoundError, PreconditionFailedError } from "../../api/common/error/RestError"
 import type { MailFacade } from "../../api/worker/facades/MailFacade"
 import { LoginController } from "../../api/main/LoginController.js"
 import { getEnabledMailAddressesWithUser } from "./MailUtils.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
-import { FolderSystem } from "./FolderSystem.js"
 import {WebsocketConnectivityModel} from "../../misc/WebsocketConnectivityModel.js"
+import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
+import { UserError } from "../../api/main/UserError.js"
+import { reportMailsAutomatically } from "../view/MailReportDialog.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox
@@ -179,6 +182,28 @@ export class MailModel {
 		return null
 	}
 
+	async spamFolderAndSubfolders(folder: MailFolder): Promise<void> {
+		const mailboxDetail = await this.getMailboxDetailsForMailListId(folder.mails)
+
+		await this.reportMailsWithDialog(folder)
+		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
+		if (!deletedFolder) {
+			return this.mailFacade.updateMailFolder(folder, mailboxDetail.folders.getSystemFolderByType(MailFolderType.SPAM)._id, folder.name)
+		}
+	}
+
+	async reportMailsWithDialog(folder: MailFolder): Promise<void> {
+		const mailboxDetail = await this.getMailboxDetailsForMailListId(folder.mails)
+		const descendants = mailboxDetail.folders.getDescendantFoldersOfParent(folder._id).sort((l, r) => r.level - l.level)
+
+		let reportableMails = await this.entityClient.loadAll(MailTypeRef, folder.mails)
+		for (const descendant of descendants) {
+			reportableMails.push(...(await this.entityClient.loadAll(MailTypeRef, descendant.folder.mails)))
+		}
+
+		await reportMailsAutomatically(mailReportType.SPAM, this, mailboxDetail, reportableMails)
+	}
+
 	async reportMails(reportType: MailReportType, mails: ReadonlyArray<Mail>): Promise<void> {
 		for (const mail of mails) {
 			await this.mailFacade.reportMail(mail, reportType).catch(ofClass(NotFoundError, (e) => console.log("mail to be reported not found", e)))
@@ -246,7 +271,7 @@ export class MailModel {
 			const sourceMailFolder = this.getMailFolder(listId)
 
 			if (sourceMailFolder) {
-				if (this.isFinalDelete(sourceMailFolder)) {
+				if (await this.isFinalDelete(sourceMailFolder)) {
 					await this._finallyDeleteMails(mails)
 				} else {
 					await this._moveMails(mails, trashFolder)
@@ -355,12 +380,73 @@ export class MailModel {
 		return this.mailFacade.checkMailForPhishing(mail, links)
 	}
 
-	isFinalDelete(folder: MailFolder | null): boolean {
-		return folder != null && (folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM)
+	async isFinalDelete(folder: MailFolder): Promise<boolean> {
+		const system = (await this.getMailboxDetailsForMailListId(folder.mails)).folders
+		return (
+			folder.folderType === MailFolderType.TRASH ||
+			folder.folderType === MailFolderType.SPAM ||
+			system.checkFolderForAncestor(folder, system.getSystemFolderByType(MailFolderType.TRASH)._id) ||
+			system.checkFolderForAncestor(folder, system.getSystemFolderByType(MailFolderType.SPAM)._id)
+		)
 	}
 
-	async deleteFolder(folder: MailFolder): Promise<void> {
-		await this.mailFacade.deleteFolder(folder._id)
+	async trashFolderAndSubfolders(folder: MailFolder): Promise<void> {
+		const mailboxDetail = await this.getMailboxDetailsForMailListId(folder.mails)
+		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
+		if (!deletedFolder) {
+			return this.mailFacade.updateMailFolder(folder, mailboxDetail.folders.getSystemFolderByType(MailFolderType.TRASH)._id, folder.name)
+		}
+	}
+
+	/**
+	 * This is called when moving a folder to SPAM or TRASH, which do not allow empty folders (since only folders that contain mail are allowed)
+	 */
+	private async removeAllEmpty(mailboxDetail: MailboxDetail, folder: MailFolder): Promise<boolean> {
+		// sort descendants deepest first so that we can clean them up before checking their ancestors
+		const descendants = mailboxDetail.folders.getDescendantFoldersOfParent(folder._id).sort((l, r) => r.level - l.level)
+
+		// we completely delete empty folders
+		let someNonEmpty = false
+		// we don't update folder system quickly enough so we keep track of deleted folders here and consider them "empty" when all their children are here
+		const deleted = new Set<Id>()
+		for (const descendant of descendants) {
+			// Only load one mail, if there is even one we won't remove
+			if (
+				(await this.entityClient.loadRange(MailTypeRef, descendant.folder.mails, GENERATED_MAX_ID, 1, true)).length === 0 &&
+				mailboxDetail.folders.getCustomFoldersOfParent(descendant.folder._id).every((f) => deleted.has(getElementId(f)))
+			) {
+				deleted.add(getElementId(descendant.folder))
+				await this.finallyDeleteCustomMailFolder(descendant.folder)
+			} else {
+				someNonEmpty = true
+			}
+		}
+		// Only load one mail, if there is even one we won't remove
+		if (
+			(await this.entityClient.loadRange(MailTypeRef, folder.mails, GENERATED_MAX_ID, 1, true)).length === 0 &&
+			mailboxDetail.folders.getCustomFoldersOfParent(folder._id).every((f) => deleted.has(getElementId(f))) &&
+			!someNonEmpty
+		) {
+			await this.finallyDeleteCustomMailFolder(folder)
+			return true
+		} else {
+			return false
+		}
+	}
+
+	public async finallyDeleteCustomMailFolder(folder: MailFolder): Promise<void> {
+		if (folder.folderType !== MailFolderType.CUSTOM) {
+			throw new Error("Cannot delete non-custom folder: " + String(folder._id))
+		}
+
+		return await this.mailFacade
+			.deleteFolder(folder._id)
+			.catch(ofClass(NotFoundError, () => console.log("mail folder already deleted")))
+			.catch(
+				ofClass(PreconditionFailedError, () => {
+					throw new UserError("operationStillActive_msg")
+				}),
+			)
 	}
 
 	async fixupCounterForMailList(listId: Id, unreadMails: number) {

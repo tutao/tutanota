@@ -14,7 +14,7 @@ import { downcast } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../src/api/worker/facades/MailFacade.js"
 import { LoginController } from "../../../src/api/main/LoginController.js"
 import { object } from "testdouble"
-import { FolderSystem } from "../../../src/mail/model/FolderSystem.js"
+import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
 import { WebsocketConnectivityModel } from "../../../src/misc/WebsocketConnectivityModel.js"
 
 o.spec("MailModelTest", function () {

@@ -31,6 +31,7 @@ import type {
 	EncryptedMailAddress,
 	File as TutanotaFile,
 	Mail,
+	MailFolder,
 	PhishingMarker,
 	SendDraftData,
 } from "../../entities/tutanota/TypeRefs.js"
@@ -53,6 +54,7 @@ import {
 	createReportMailPostData,
 	createSecureExternalRecipientKeyData,
 	createSendDraftData,
+	createUpdateMailFolderData,
 	FileTypeRef,
 	MailDetailsDraftTypeRef,
 	MailTypeRef,
@@ -177,6 +179,24 @@ export class MailFacade {
 			ownerGroup: ownerGroupId,
 		})
 		await this.serviceExecutor.post(MailFolderService, newFolder, { sessionKey: sk })
+	}
+
+	async updateMailFolder(folder: MailFolder, newParent: IdTuple | null, newName: string): Promise<void> {
+		if (newName !== folder.name) {
+			folder.name = newName
+			await this.entityClient.update(folder)
+		}
+		if (
+			(folder.parentFolder != null && newParent != null && !isSameId(folder.parentFolder, newParent)) ||
+			(folder.parentFolder == null && newParent != null) ||
+			(folder.parentFolder != null && newParent == null)
+		) {
+			const updateFolder = createUpdateMailFolderData({
+				folder: folder._id,
+				newParent: newParent,
+			})
+			await this.serviceExecutor.put(MailFolderService, updateFolder)
+		}
 	}
 
 	/**

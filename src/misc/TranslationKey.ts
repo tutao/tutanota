@@ -1561,3 +1561,10 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	//FIXME
+	| "addFolder_label"
+	| "editFolder_label"
+	| "parentFolder_label"
+	| "confirmDeleteCustomFolder_msg"
+	| "deletedFolder_label"
+	| "confirmSpamCustomFolder_msg"
