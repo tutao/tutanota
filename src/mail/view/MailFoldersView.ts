@@ -17,6 +17,7 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { ButtonColor } from "../../gui/base/Button.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { MailFolderType } from "../../api/common/TutanotaConstants.js"
+import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
 
 export interface MailFolderViewAttrs {
 	mailboxDetail: MailboxDetail
@@ -37,7 +38,7 @@ type Counters = Record<string, number>
 /** Displays a tree of all folders. */
 export class MailFoldersView implements Component<MailFolderViewAttrs> {
 	view({ attrs }: Vnode<MailFolderViewAttrs>): Children {
-		const { mailboxDetail, folderToUrl } = attrs
+		const { mailboxDetail } = attrs
 		const groupCounters = locator.mailModel.mailboxCounters()[mailboxDetail.mailGroup._id] || {}
 		// Important: this array is keyed so each item must have a key and `null` cannot be in the array
 		// So instead we push or not push into array
@@ -75,7 +76,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			const id = getElementId(system.folder)
 			const button: NavButtonAttrs = {
 				label: () => getFolderName(system.folder),
-				href: () => attrs.inEditMode ? m.route.get() : attrs.folderToUrl[system.folder._id[1]],
+				href: () => (attrs.inEditMode ? m.route.get() : attrs.folderToUrl[system.folder._id[1]]),
 				isSelectedPrefix: MAIL_PREFIX + "/" + system.folder.mails,
 				colors: NavButtonColor.Nav,
 				click: () => attrs.onFolderClick(system.folder),
@@ -93,7 +94,10 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						count: attrs.inEditMode ? 0 : summedCount,
 						button,
 						icon: getFolderIcon(system.folder),
-						rightButton: attrs.inEditMode ? this.createFolderMoreButton(system.folder, attrs) : null,
+						rightButton:
+							attrs.inEditMode && !(system.folder.folderType === MailFolderType.TRASH || system.folder.folderType === MailFolderType.SPAM)
+								? this.createFolderMoreButton(system.folder, attrs)
+								: null,
 						expanded: hasChildren ? currentExpansionState : null,
 						indentationLevel: Math.min(indentationLevel, MAX_FOLDER_INDENT_LEVEL),
 						onExpanderClick: hasChildren ? () => attrs.onFolderExpanded(system.folder, currentExpansionState) : noOp,
@@ -121,7 +125,10 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			},
 			childAttrs: () => {
 				return folder.folderType === MailFolderType.CUSTOM
-					? [this.editButtonAttrs(attrs, folder), this.addButtonAttrs(attrs, folder), this.deleteButtonAttrs(attrs, folder)]
+					? // cannot add new folder to custom folder in spam or trash folder
+					  isSpamOrTrashFolder(attrs.mailboxDetail.folders, folder)
+						? [this.editButtonAttrs(attrs, folder), this.deleteButtonAttrs(attrs, folder)]
+						: [this.editButtonAttrs(attrs, folder), this.addButtonAttrs(attrs, folder), this.deleteButtonAttrs(attrs, folder)]
 					: [this.addButtonAttrs(attrs, folder)]
 			},
 		})
