@@ -104,9 +104,9 @@ import "./misc/RecipientsModelTest.js"
 import "./api/worker/facades/MailAddressFacadeTest.js"
 import "./mail/model/FolderSystemTest.js"
 import * as td from "testdouble"
-import {random} from "@tutao/tutanota-crypto"
-import {Mode} from "../../src/api/common/Env.js"
-import {assertNotNull, neverNull} from "@tutao/tutanota-utils"
+import { random } from "@tutao/tutanota-crypto"
+import { Mode } from "../../src/api/common/Env.js"
+import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 
 await setupSuite()
 
@@ -116,7 +116,7 @@ preTest()
 o.run(reportTest)
 
 async function setupSuite() {
-	const {WorkerImpl} = await import("../../src/api/worker/WorkerImpl.js")
+	const { WorkerImpl } = await import("../../src/api/worker/WorkerImpl.js")
 	globalThis.testWorker = WorkerImpl
 
 	if (typeof process != "undefined") {
@@ -131,7 +131,7 @@ async function setupSuite() {
 
 	if (typeof process != "undefined") {
 		// setup the Entropy for all testcases
-		await random.addEntropy([{data: 36, entropy: 256, source: "key"}])
+		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
 		await import("./desktop/PathUtilsTest.js")
 		await import("./desktop/DesktopUtilsTest.js")
 		await import("./desktop/config/migrations/DesktopConfigMigratorTest.js")
@@ -165,7 +165,7 @@ async function setupSuite() {
 
 	o.before(async function () {
 		// setup the Entropy for all testcases
-		await random.addEntropy([{data: 36, entropy: 256, source: "key"}])
+		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
 	})
 
 	o.afterEach(function () {

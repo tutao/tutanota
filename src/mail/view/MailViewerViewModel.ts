@@ -374,7 +374,7 @@ export class MailViewerViewModel {
 			if (mailWrapper.isLegacy()) {
 				bodyErrors = typeof mailWrapper.getBody()._errors !== "undefined"
 			} else {
-				bodyErrors = typeof downcast(mailWrapper.getDetails().body)._errors !== "undefined" // FIXME we actually write _errors on aggregates in InstanceMap but don't generate the field
+				bodyErrors = typeof downcast(mailWrapper.getDetails().body)._errors !== "undefined"
 			}
 		}
 		return this.errorOccurred || typeof this.mail._errors !== "undefined" || bodyErrors

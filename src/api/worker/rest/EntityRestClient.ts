@@ -186,30 +186,7 @@ export class EntityRestClient implements EntityRestInterface {
 			}
 			let json: string
 			if (typeModel.type === Type.BlobElement) {
-				if (listId === null) {
-					throw new Error("archiveId must be set to load BlobElementTypes")
-				}
-				const accessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(ArchiveDataType.MailDetails, listId)
-				const blobAccessToken = accessInfo.blobAccessToken
-				queryParams = Object.assign(
-					{
-						blobAccessToken,
-					},
-					headers, // prevent CORS request due to non standard header usage
-					queryParams,
-				)
-				json = await tryServers(
-					accessInfo.servers,
-					async (serverUrl) =>
-						this.restClient.request(path, HttpMethod.GET, {
-							queryParams,
-							headers: {}, // prevent CORS request due to non standard header usage
-							responseType: MediaType.Json,
-							baseUrl: serverUrl,
-							noCORS: true,
-						}),
-					`can't load instances from server `,
-				)
+				json = await this.loadMultipleBlobElements(listId, queryParams, headers, path)
 			} else {
 				json = await this.restClient.request(path, HttpMethod.GET, {
 					queryParams,
@@ -220,6 +197,33 @@ export class EntityRestClient implements EntityRestInterface {
 			return this._handleLoadMultipleResult(typeRef, JSON.parse(json))
 		})
 		return flat(loadedChunks)
+	}
+
+	private async loadMultipleBlobElements(listId: Id | null, queryParams: { ids: string }, headers: Dict | undefined, path: string): Promise<string> {
+		if (listId === null) {
+			throw new Error("archiveId must be set to load BlobElementTypes")
+		}
+		const accessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(ArchiveDataType.MailDetails, listId)
+		const blobAccessToken = accessInfo.blobAccessToken
+		queryParams = Object.assign(
+			{
+				blobAccessToken,
+			},
+			headers, // prevent CORS request due to non standard header usage
+			queryParams,
+		)
+		return tryServers(
+			accessInfo.servers,
+			async (serverUrl) =>
+				this.restClient.request(path, HttpMethod.GET, {
+					queryParams,
+					headers: {}, // prevent CORS request due to non standard header usage
+					responseType: MediaType.Json,
+					baseUrl: serverUrl,
+					noCORS: true,
+				}),
+			`can't load instances from server `,
+		)
 	}
 
 	async _handleLoadMultipleResult<T extends SomeEntity>(typeRef: TypeRef<T>, loadedEntities: Array<any>): Promise<Array<T>> {

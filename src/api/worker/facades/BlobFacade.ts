@@ -15,7 +15,7 @@ import { Aes128Key } from "@tutao/tutanota-crypto/dist/encryption/Aes"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "../../entities/sys/TypeRefs.js"
 import { FileReference } from "../../common/utils/FileUtils"
 import { handleRestError } from "../../common/error/RestError"
-import { Instance } from "../../common/EntityTypes"
+import { SomeEntity } from "../../common/EntityTypes"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { BlobGetInTypeRef, BlobPostOut, BlobPostOutTypeRef, BlobServerAccessInfo, createBlobGetIn } from "../../entities/storage/TypeRefs"
@@ -112,7 +112,7 @@ export class BlobFacade {
 	 * @param referencingInstance that directly references the blobs
 	 * @returns Uint8Array unencrypted binary data
 	 */
-	async downloadAndDecrypt(archiveDataType: ArchiveDataType, blobs: Blob[], referencingInstance: Instance): Promise<Uint8Array> {
+	async downloadAndDecrypt(archiveDataType: ArchiveDataType, blobs: Blob[], referencingInstance: SomeEntity): Promise<Uint8Array> {
 		const blobAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, blobs, referencingInstance)
 		const sessionKey = neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(referencingInstance))
 		const blobData = await promiseMap(blobs, (blob) => this.downloadAndDecryptChunk(blob, blobAccessInfo, sessionKey))
@@ -133,7 +133,7 @@ export class BlobFacade {
 	async downloadAndDecryptNative(
 		archiveDataType: ArchiveDataType,
 		blobs: Blob[],
-		referencingInstance: Instance,
+		referencingInstance: SomeEntity,
 		fileName: string,
 		mimeType: string,
 	): Promise<FileReference> {

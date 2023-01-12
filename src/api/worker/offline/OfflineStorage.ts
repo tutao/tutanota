@@ -149,13 +149,13 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		const typeModel = await resolveTypeReference(typeRef)
 		let preparedQuery
 		switch (typeModel.type) {
-			case TypeId.Element.valueOf():
+			case TypeId.Element:
 				preparedQuery = sql`DELETE FROM element_entities WHERE type = ${type} AND elementId = ${elementId}`
 				break
-			case TypeId.ListElement.valueOf():
+			case TypeId.ListElement:
 				preparedQuery = sql`DELETE FROM list_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
 				break
-			case TypeId.BlobElement.valueOf():
+			case TypeId.BlobElement:
 				preparedQuery = sql`DELETE FROM blob_element_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
 				break
 			default:
@@ -169,13 +169,13 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		const typeModel = await resolveTypeReference(typeRef)
 		let preparedQuery
 		switch (typeModel.type) {
-			case TypeId.Element.valueOf():
+			case TypeId.Element:
 				preparedQuery = sql`SELECT entity from element_entities WHERE type = ${type} AND elementId = ${elementId}`
 				break
-			case TypeId.ListElement.valueOf():
+			case TypeId.ListElement:
 				preparedQuery = sql`SELECT entity from list_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
 				break
-			case TypeId.BlobElement.valueOf():
+			case TypeId.BlobElement:
 				preparedQuery = sql`SELECT entity from blob_element_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
 				break
 			default:
@@ -241,13 +241,13 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		const typeModel = await resolveTypeReference(originalEntity._type)
 		let preparedQuery: { query: string; params: TaggedSqlValue[] }
 		switch (typeModel.type) {
-			case TypeId.Element.valueOf():
+			case TypeId.Element:
 				preparedQuery = sql`INSERT OR REPLACE INTO element_entities (type, elementId, ownerGroup, entity) VALUES (${type}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
 				break
-			case TypeId.ListElement.valueOf():
+			case TypeId.ListElement:
 				preparedQuery = sql`INSERT OR REPLACE INTO list_entities (type, listId, elementId, ownerGroup, entity) VALUES (${type}, ${listId}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
 				break
-			case TypeId.BlobElement.valueOf():
+			case TypeId.BlobElement:
 				preparedQuery = sql`INSERT OR REPLACE INTO blob_element_entities (type, listId, elementId, ownerGroup, entity) VALUES (${type}, ${listId}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
 				break
 			default:
@@ -508,15 +508,15 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		let preparedQuery: { query: string; params: TaggedSqlValue[] }
 		const typeModel = await resolveTypeReference(typeRef)
 		switch (typeModel.type) {
-			case TypeId.Element.valueOf():
+			case TypeId.Element:
 				preparedQuery = sql`DELETE FROM element_entities WHERE type =${getTypeId(typeRef)} AND elementId IN ${paramList(elementIds)}`
 				break
-			case TypeId.ListElement.valueOf():
+			case TypeId.ListElement:
 				preparedQuery = sql`DELETE FROM list_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId} AND elementId IN ${paramList(
 					elementIds,
 				)}`
 				break
-			case TypeId.BlobElement.valueOf():
+			case TypeId.BlobElement:
 				preparedQuery = sql`DELETE FROM blob_element_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId} AND elementId IN ${paramList(
 					elementIds,
 				)}`

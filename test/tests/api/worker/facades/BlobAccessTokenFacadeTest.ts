@@ -16,20 +16,23 @@ import {
 	createInstanceId,
 } from "../../../../../src/api/entities/storage/TypeRefs.js"
 import { BlobAccessTokenFacade } from "../../../../../src/api/worker/facades/BlobAccessTokenFacade.js"
+import { DateProvider } from "../../../../../src/api/common/DateProvider.js"
+import { DateProviderImpl } from "../../../../../src/calendar/date/CalendarUtils.js"
+import { NoZoneDateProvider } from "../../../../../src/api/common/utils/NoZoneDateProvider.js"
 
 const { anything, captor } = matchers
 
 o.spec("BlobAccessTokenFacade test", function () {
 	let blobAccessTokenFacade: BlobAccessTokenFacade
 	let serviceMock: ServiceExecutor
+	let archiveDataType = ArchiveDataType.Attachments
 	const archiveId = "archiveId1"
 	const blobId1 = "blobId1"
 	const blobs = [createBlob({ archiveId, blobId: blobId1 }), createBlob({ archiveId, blobId: "blobId2" }), createBlob({ archiveId })]
-	let archiveDataType = ArchiveDataType.Attachments
 
 	o.beforeEach(function () {
 		serviceMock = object<ServiceExecutor>()
-		blobAccessTokenFacade = new BlobAccessTokenFacade(serviceMock)
+		blobAccessTokenFacade = new BlobAccessTokenFacade(serviceMock, new DateProviderImpl())
 	})
 
 	o.afterEach(function () {

@@ -10,11 +10,11 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
-import {CryptoFacade} from "../../../../../src/api/worker/crypto/CryptoFacade.js"
-import {ProgrammingError} from "../../../../../src/api/common/error/ProgrammingError.js"
-import {Cardinality, ValueType} from "../../../../../src/api/common/EntityConstants.js"
-import {BucketPermissionType, PermissionType} from "../../../../../src/api/common/TutanotaConstants.js"
-import {createFile, Mail} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
+import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
+import { Cardinality, ValueType } from "../../../../../src/api/common/EntityConstants.js"
+import { BucketPermissionType, PermissionType } from "../../../../../src/api/common/TutanotaConstants.js"
+import { createFile, Mail } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import * as Contact from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	ContactTypeRef,
@@ -24,7 +24,7 @@ import {
 	FileTypeRef,
 	MailAddressTypeRef,
 	MailDetailsBlobTypeRef,
-	MailTypeRef
+	MailTypeRef,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import * as UserIdReturn from "../../../../../src/api/entities/sys/TypeRefs.js"
 import {
@@ -45,11 +45,11 @@ import {
 	GroupTypeRef,
 	PermissionTypeRef,
 	UpdatePermissionKeyData,
-	UserIdReturnTypeRef
+	UserIdReturnTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {assertThrows} from "@tutao/tutanota-test-utils"
-import {RestClient} from "../../../../../src/api/worker/rest/RestClient.js"
-import {EntityClient} from "../../../../../src/api/common/EntityClient.js"
+import { assertThrows } from "@tutao/tutanota-test-utils"
+import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
+import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
 import {
 	aes128Decrypt,
 	aes128Encrypt,
@@ -64,19 +64,19 @@ import {
 	IV_BYTE_LENGTH,
 	random,
 } from "@tutao/tutanota-crypto"
-import {RsaWeb} from "../../../../../src/api/worker/crypto/RsaImplementation.js"
-import {decryptValue, encryptValue, InstanceMapper} from "../../../../../src/api/worker/crypto/InstanceMapper.js"
-import type {ModelValue, TypeModel} from "../../../../../src/api/common/EntityTypes.js"
-import {IServiceExecutor} from "../../../../../src/api/common/ServiceRequest.js"
-import {matchers, object, verify, when} from "testdouble"
-import {UpdatePermissionKeyService} from "../../../../../src/api/entities/sys/Services.js"
-import {getListId, isSameId} from "../../../../../src/api/common/utils/EntityUtils.js"
-import {resolveTypeReference, typeModels} from "../../../../../src/api/common/EntityFunctions.js"
-import {UserFacade} from "../../../../../src/api/worker/facades/UserFacade.js"
-import {SessionKeyNotFoundError} from "../../../../../src/api/common/error/SessionKeyNotFoundError.js"
-import {OwnerEncSessionKeysUpdateQueue} from "../../../../../src/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
+import { RsaWeb } from "../../../../../src/api/worker/crypto/RsaImplementation.js"
+import { decryptValue, encryptValue, InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
+import type { ModelValue, TypeModel } from "../../../../../src/api/common/EntityTypes.js"
+import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest.js"
+import { matchers, object, verify, when } from "testdouble"
+import { UpdatePermissionKeyService } from "../../../../../src/api/entities/sys/Services.js"
+import { getListId, isSameId } from "../../../../../src/api/common/utils/EntityUtils.js"
+import { resolveTypeReference, typeModels } from "../../../../../src/api/common/EntityFunctions.js"
+import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
+import { SessionKeyNotFoundError } from "../../../../../src/api/common/error/SessionKeyNotFoundError.js"
+import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
 
-const {anything, captor} = matchers
+const { anything, captor } = matchers
 
 const rsa = new RsaWeb()
 const rsaEncrypt = rsa.encrypt
@@ -107,7 +107,7 @@ o.spec("crypto facade", function () {
 		crypto = new CryptoFacade(userFacade, entityClient, restClient, rsa, serviceExecutor, instanceMapper, ownerEncSessionKeysUpdateQueue)
 	})
 
-	function createValueType(type, encrypted, cardinality): ModelValue & {name: string; since: number} {
+	function createValueType(type, encrypted, cardinality): ModelValue & { name: string; since: number } {
 		return {
 			name: "test",
 			id: 426,
@@ -660,238 +660,239 @@ o.spec("crypto facade", function () {
 	})
 
 	o.spec("instance migrations", function () {
-			o.beforeEach(function () {
-				when(entityClient.update(matchers.anything())).thenResolve(undefined)
-			})
-			o("contact migration without birthday", async function () {
-				const contact = createContact()
+		o.beforeEach(function () {
+			when(entityClient.update(matchers.anything())).thenResolve(undefined)
+		})
+		o("contact migration without birthday", async function () {
+			const contact = createContact()
 
-				const migratedContact = await crypto.applyMigrationsForInstance(contact)
+			const migratedContact = await crypto.applyMigrationsForInstance(contact)
 
-				o(migratedContact.birthdayIso).equals(null)
-				verify(entityClient.update(matchers.anything()), {times: 0})
-			})
+			o(migratedContact.birthdayIso).equals(null)
+			verify(entityClient.update(matchers.anything()), { times: 0 })
+		})
 
-			o("contact migration without existing birthday", async function () {
-				const contact = createContact({
-					birthdayIso: "2019-05-01",
-				})
-
-				const migratedContact = await crypto.applyMigrationsForInstance(contact)
-
-				o(migratedContact.birthdayIso).equals("2019-05-01")
-				verify(entityClient.update(matchers.anything()), {times: 0})
+		o("contact migration without existing birthday", async function () {
+			const contact = createContact({
+				birthdayIso: "2019-05-01",
 			})
 
-			o("contact migration without existing birthday and oldBirthdayDate", async function () {
-				const contact = createContact({
-					_id: ["listid", "id"],
-					birthdayIso: "2019-05-01",
-					oldBirthdayDate: new Date(2000, 4, 1),
-				})
+			const migratedContact = await crypto.applyMigrationsForInstance(contact)
 
-				const migratedContact = await crypto.applyMigrationsForInstance(contact)
-				o(migratedContact.birthdayIso).equals("2019-05-01")
-				o(migratedContact.oldBirthdayAggregate).equals(null)
-				o(migratedContact.oldBirthdayDate).equals(null)
-				verify(entityClient.update(matchers.anything()), {times: 1})
+			o(migratedContact.birthdayIso).equals("2019-05-01")
+			verify(entityClient.update(matchers.anything()), { times: 0 })
+		})
+
+		o("contact migration without existing birthday and oldBirthdayDate", async function () {
+			const contact = createContact({
+				_id: ["listid", "id"],
+				birthdayIso: "2019-05-01",
+				oldBirthdayDate: new Date(2000, 4, 1),
 			})
 
-			o("contact migration with existing birthday and oldBirthdayAggregate", async function () {
-				const contact = createContact({
-					_id: ["listid", "id"],
-					birthdayIso: "2019-05-01",
-					oldBirthdayAggregate: createBirthday({
-						day: "01",
-						month: "05",
-						year: "2000",
-					}),
-				})
+			const migratedContact = await crypto.applyMigrationsForInstance(contact)
+			o(migratedContact.birthdayIso).equals("2019-05-01")
+			o(migratedContact.oldBirthdayAggregate).equals(null)
+			o(migratedContact.oldBirthdayDate).equals(null)
+			verify(entityClient.update(matchers.anything()), { times: 1 })
+		})
 
-				const migratedContact = await crypto.applyMigrationsForInstance(contact)
-
-				o(migratedContact.birthdayIso).equals("2019-05-01")
-				o(migratedContact.oldBirthdayAggregate).equals(null)
-				o(migratedContact.oldBirthdayDate).equals(null)
-				verify(entityClient.update(matchers.anything()), {times: 1})
+		o("contact migration with existing birthday and oldBirthdayAggregate", async function () {
+			const contact = createContact({
+				_id: ["listid", "id"],
+				birthdayIso: "2019-05-01",
+				oldBirthdayAggregate: createBirthday({
+					day: "01",
+					month: "05",
+					year: "2000",
+				}),
 			})
 
-			o("contact migration from oldBirthdayAggregate", async function () {
-				const contact = createContact({
-					_id: ["listid", "id"],
-					oldBirthdayDate: new Date(1800, 4, 1),
-					oldBirthdayAggregate: createBirthday({
-						day: "01",
-						month: "05",
-						year: "2000",
-					}),
-				})
+			const migratedContact = await crypto.applyMigrationsForInstance(contact)
 
-				const migratedContact = await crypto.applyMigrationsForInstance(contact)
+			o(migratedContact.birthdayIso).equals("2019-05-01")
+			o(migratedContact.oldBirthdayAggregate).equals(null)
+			o(migratedContact.oldBirthdayDate).equals(null)
+			verify(entityClient.update(matchers.anything()), { times: 1 })
+		})
 
-				o(migratedContact.birthdayIso).equals("2000-05-01")
-				o(migratedContact.oldBirthdayAggregate).equals(null)
-				o(migratedContact.oldBirthdayDate).equals(null)
-				verify(entityClient.update(matchers.anything()), {times: 1})
+		o("contact migration from oldBirthdayAggregate", async function () {
+			const contact = createContact({
+				_id: ["listid", "id"],
+				oldBirthdayDate: new Date(1800, 4, 1),
+				oldBirthdayAggregate: createBirthday({
+					day: "01",
+					month: "05",
+					year: "2000",
+				}),
 			})
 
-			o("contact migration from oldBirthdayDate", async function () {
-				const contact = createContact({
-					_id: ["listid", "id"],
-					birthdayIso: null,
-					oldBirthdayDate: new Date(1800, 4, 1),
-					oldBirthdayAggregate: null,
-				})
+			const migratedContact = await crypto.applyMigrationsForInstance(contact)
 
-				const migratedContact = await crypto.applyMigrationsForInstance(contact)
+			o(migratedContact.birthdayIso).equals("2000-05-01")
+			o(migratedContact.oldBirthdayAggregate).equals(null)
+			o(migratedContact.oldBirthdayDate).equals(null)
+			verify(entityClient.update(matchers.anything()), { times: 1 })
+		})
 
-				o(migratedContact.birthdayIso).equals("1800-05-01")
-				o(migratedContact.oldBirthdayAggregate).equals(null)
-				o(migratedContact.oldBirthdayDate).equals(null)
-				verify(entityClient.update(matchers.anything()), {times: 1})
+		o("contact migration from oldBirthdayDate", async function () {
+			const contact = createContact({
+				_id: ["listid", "id"],
+				birthdayIso: null,
+				oldBirthdayDate: new Date(1800, 4, 1),
+				oldBirthdayAggregate: null,
 			})
 
-			o("contact migration from oldBirthdayAggregate without year", async function () {
-				const contact = createContact({
-					_id: ["listid", "id"],
-					birthdayIso: null,
-					oldBirthdayDate: null,
-					oldBirthdayAggregate: createBirthday({
-						day: "01",
-						month: "05",
-						year: null,
-					}),
-				})
+			const migratedContact = await crypto.applyMigrationsForInstance(contact)
 
-				const migratedContact = await crypto.applyMigrationsForInstance(contact)
+			o(migratedContact.birthdayIso).equals("1800-05-01")
+			o(migratedContact.oldBirthdayAggregate).equals(null)
+			o(migratedContact.oldBirthdayDate).equals(null)
+			verify(entityClient.update(matchers.anything()), { times: 1 })
+		})
 
-				o(migratedContact.birthdayIso).equals("--05-01")
-				o(migratedContact.oldBirthdayAggregate).equals(null)
-				o(migratedContact.oldBirthdayDate).equals(null)
-				verify(entityClient.update(matchers.anything()), {times: 1})
+		o("contact migration from oldBirthdayAggregate without year", async function () {
+			const contact = createContact({
+				_id: ["listid", "id"],
+				birthdayIso: null,
+				oldBirthdayDate: null,
+				oldBirthdayAggregate: createBirthday({
+					day: "01",
+					month: "05",
+					year: null,
+				}),
 			})
 
-			o("resolve session key: public key decryption of mail session key using BucketKey aggregated type - Mail referencing MailBody", async function () {
+			const migratedContact = await crypto.applyMigrationsForInstance(contact)
+
+			o(migratedContact.birthdayIso).equals("--05-01")
+			o(migratedContact.oldBirthdayAggregate).equals(null)
+			o(migratedContact.oldBirthdayDate).equals(null)
+			verify(entityClient.update(matchers.anything()), { times: 1 })
+		})
+
+		o("resolve session key: public key decryption of mail session key using BucketKey aggregated type - Mail referencing MailBody", async function () {
+			o.timeout(500) // in CI or with debugging it can take a while
+			const testData = await preparePubEncBucketKeyResolveSessionKeyTest()
+			Object.assign(testData.mailLiteral, { body: "bodyId" })
+
+			const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+
+			o(sessionKey).deepEquals(testData.sk)
+			o(crypto.getSessionKeyCache()["bodyId"]).deepEquals(testData.sk)
+			o(Object.keys(crypto.getSessionKeyCache()).length).equals(1)
+		})
+
+		o("resolve session key: public key decryption of session key using BucketKey aggregated type - Mail referencing MailDetailsDraft", async function () {
+			o.timeout(500) // in CI or with debugging it can take a while
+			const testData = await preparePubEncBucketKeyResolveSessionKeyTest()
+			Object.assign(testData.mailLiteral, { mailDetailsDraft: ["draftDetailsListId", "draftDetailsId"] })
+
+			const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+
+			o(sessionKey).deepEquals(testData.sk)
+			o(crypto.getSessionKeyCache()["draftDetailsId"]).deepEquals(testData.sk)
+			o(Object.keys(crypto.getSessionKeyCache()).length).equals(1)
+		})
+
+		o(
+			"resolve session key: public key decryption of mail session key using BucketKey aggregated type - already decoded/decrypted Mail referencing MailDetailsDraft",
+			async function () {
 				o.timeout(500) // in CI or with debugging it can take a while
 				const testData = await preparePubEncBucketKeyResolveSessionKeyTest()
-				Object.assign(testData.mailLiteral, {body: "bodyId"})
+				Object.assign(testData.mailLiteral, {
+					mailDetailsDraft: ["draftDetailsListId", "draftDetailsId"],
+				})
 
-				const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+				const mailInstance = await instanceMapper.decryptAndMapToInstance<Mail>(testData.MailTypeModel, testData.mailLiteral, testData.sk)
 
-				o(sessionKey).deepEquals(testData.sk)
-				o(crypto.getSessionKeyCache()["bodyId"]).deepEquals(testData.sk)
-				o(Object.keys(crypto.getSessionKeyCache()).length).equals(1)
-			})
+				// @ts-ignore
+				instanceMapper.decryptAndMapToInstance = o.spy(instanceMapper.decryptAndMapToInstance)
+				crypto.convertBucketKeyToInstanceIfNecessary = o.spy(crypto.convertBucketKeyToInstanceIfNecessary)
 
-			o("resolve session key: public key decryption of session key using BucketKey aggregated type - Mail referencing MailDetailsDraft", async function () {
-				o.timeout(500) // in CI or with debugging it can take a while
-				const testData = await preparePubEncBucketKeyResolveSessionKeyTest()
-				Object.assign(testData.mailLiteral, {mailDetailsDraft: ["draftDetailsListId", "draftDetailsId"]})
-
-				const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+				const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, mailInstance))
+				o(instanceMapper.decryptAndMapToInstance.callCount).equals(0)
+				o(crypto.convertBucketKeyToInstanceIfNecessary.callCount).equals(1)
 
 				o(sessionKey).deepEquals(testData.sk)
 				o(crypto.getSessionKeyCache()["draftDetailsId"]).deepEquals(testData.sk)
 				o(Object.keys(crypto.getSessionKeyCache()).length).equals(1)
-			})
+			},
+		)
 
-			o(
-				"resolve session key: public key decryption of mail session key using BucketKey aggregated type - already decoded/decrypted Mail referencing MailDetailsDraft",
-				async function () {
-					o.timeout(500) // in CI or with debugging it can take a while
-					const testData = await preparePubEncBucketKeyResolveSessionKeyTest()
-					Object.assign(testData.mailLiteral, {
-						mailDetailsDraft: ["draftDetailsListId", "draftDetailsId"],
-					})
+		o("resolve session key: public key decryption of session key using BucketKey aggregated type - Mail referencing MailDetailsBlob", async function () {
+			o.timeout(500) // in CI or with debugging it can take a while
+			const testData = await preparePubEncBucketKeyResolveSessionKeyTest()
+			Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
-					const mailInstance = await instanceMapper.decryptAndMapToInstance<Mail>(testData.MailTypeModel, testData.mailLiteral, testData.sk)
+			const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
 
-					// @ts-ignore
-					instanceMapper.decryptAndMapToInstance = o.spy(instanceMapper.decryptAndMapToInstance)
-					crypto.convertBucketKeyToInstanceIfNecessary = o.spy(crypto.convertBucketKeyToInstanceIfNecessary)
+			o(sessionKey).deepEquals(testData.sk)
+			o(crypto.getSessionKeyCache()["mailDetailsId"]).deepEquals(testData.sk)
+			o(Object.keys(crypto.getSessionKeyCache()).length).equals(1)
+		})
 
-					const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, mailInstance))
-					o(instanceMapper.decryptAndMapToInstance.callCount).equals(0)
-					o(crypto.convertBucketKeyToInstanceIfNecessary.callCount).equals(1)
-
-					o(sessionKey).deepEquals(testData.sk)
-					o(crypto.getSessionKeyCache()["draftDetailsId"]).deepEquals(testData.sk)
-					o(Object.keys(crypto.getSessionKeyCache()).length).equals(1)
-				},
-			)
-
-			o("resolve session key: public key decryption of session key using BucketKey aggregated type - Mail referencing MailDetailsBlob", async function () {
+		o(
+			"resolve session key: public key decryption of session key using BucketKey aggregated type - Mail referencing MailDetailsBlob with attachments",
+			async function () {
 				o.timeout(500) // in CI or with debugging it can take a while
-				const testData = await preparePubEncBucketKeyResolveSessionKeyTest()
-				Object.assign(testData.mailLiteral, {mailDetails: ["mailDetailsArchiveId", "mailDetailsId"]})
+				const file1SessionKey = aes128RandomKey()
+				const file2SessionKey = aes128RandomKey()
+				const testData = await preparePubEncBucketKeyResolveSessionKeyTest([file1SessionKey, file2SessionKey])
+				Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
-				const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+				const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+				o(mailSessionKey).deepEquals(testData.sk)
 
-				o(sessionKey).deepEquals(testData.sk)
+				o(Object.keys(crypto.getSessionKeyCache()).length).equals(3)
 				o(crypto.getSessionKeyCache()["mailDetailsId"]).deepEquals(testData.sk)
-				o(Object.keys(crypto.getSessionKeyCache()).length).equals(1)
-			})
+				o(crypto.getSessionKeyCache()["fileId1"]).deepEquals(file1SessionKey)
+				o(crypto.getSessionKeyCache()["fileId2"]).deepEquals(file2SessionKey)
 
-			o(
-				"resolve session key: public key decryption of session key using BucketKey aggregated type - Mail referencing MailDetailsBlob with attachments",
-				async function () {
-					o.timeout(500) // in CI or with debugging it can take a while
-					const file1SessionKey = aes128RandomKey()
-					const file2SessionKey = aes128RandomKey()
-					const testData = await preparePubEncBucketKeyResolveSessionKeyTest([file1SessionKey, file2SessionKey])
-					Object.assign(testData.mailLiteral, {mailDetails: ["mailDetailsArchiveId", "mailDetailsId"]})
-
-					const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
-					o(mailSessionKey).deepEquals(testData.sk)
-
-					o(Object.keys(crypto.getSessionKeyCache()).length).equals(3)
-					o(crypto.getSessionKeyCache()["mailDetailsId"]).deepEquals(testData.sk)
-					o(crypto.getSessionKeyCache()["fileId1"]).deepEquals(file1SessionKey)
-					o(crypto.getSessionKeyCache()["fileId2"]).deepEquals(file2SessionKey)
-
-					o(testData.bucketKey.bucketEncSessionKeys.length).equals(3) //mail, file1, file2
-					const updatedInstanceSessionKeysCaptor = captor()
-					verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture()))
-					const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value
-					o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
-					testData.bucketKey.bucketEncSessionKeys.forEach(isk => {
-						isk.symEncSessionKey = encryptKey(testData.mailGroupKey, decryptKey(testData.bk, isk.symEncSessionKey))
-						o(updatedInstanceSessionKeys.some(updatedKey => updatedKey.instanceId === isk.instanceId
-							&& updatedKey.instanceList === isk.instanceList
-							&& updatedKey.typeInfo.application === isk.typeInfo.application
-							&& updatedKey.typeInfo.typeId === isk.typeInfo.typeId
-							&& arrayEquals(updatedKey.symEncSessionKey, isk.symEncSessionKey)))
-							.equals(true)
-					})
-				},
-			)
-
-			o(
-				"resolve session key: file session key is only removed if the file does have an ownerEncSessionKey",
-				async function () {
-					o.timeout(500) // in CI or with debugging it can take a while
-					const file1SessionKey = aes128RandomKey()
-					const testData = await preparePubEncBucketKeyResolveSessionKeyTest([file1SessionKey])
-					Object.assign(testData.mailLiteral, {mailDetails: ["mailDetailsArchiveId", "mailDetailsId"]})
-
-					await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral)
-
-					const FileTypeModel = await resolveTypeReference(FileTypeRef)
-
-					let fileInstanceNoOwnerEncSessionKey = createFile({_id: ["fileListId", "fileId1"], _ownerEncSessionKey: null})
-
-					let fileSessionKey = neverNull(await crypto.resolveSessionKey(FileTypeModel, fileInstanceNoOwnerEncSessionKey))
-					o(fileSessionKey).deepEquals(file1SessionKey)
-					o(crypto.getSessionKeyCache()["fileId1"]).deepEquals(file1SessionKey)
-
-					const fileInstanceWithOwnerEncSessionKey = createFile({_id: ["fileListId", "fileId1"], _ownerEncSessionKey: new Uint8Array([1,2,3])})
-
-					fileSessionKey = neverNull(await crypto.resolveSessionKey(FileTypeModel, fileInstanceWithOwnerEncSessionKey))
-					o(fileSessionKey).deepEquals(file1SessionKey)
-					o(crypto.getSessionKeyCache()["fileId1"]).equals(undefined)
+				o(testData.bucketKey.bucketEncSessionKeys.length).equals(3) //mail, file1, file2
+				const updatedInstanceSessionKeysCaptor = captor()
+				verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture()))
+				const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value
+				o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
+				testData.bucketKey.bucketEncSessionKeys.forEach((isk) => {
+					isk.symEncSessionKey = encryptKey(testData.mailGroupKey, decryptKey(testData.bk, isk.symEncSessionKey))
+					o(
+						updatedInstanceSessionKeys.some(
+							(updatedKey) =>
+								updatedKey.instanceId === isk.instanceId &&
+								updatedKey.instanceList === isk.instanceList &&
+								updatedKey.typeInfo.application === isk.typeInfo.application &&
+								updatedKey.typeInfo.typeId === isk.typeInfo.typeId &&
+								arrayEquals(updatedKey.symEncSessionKey, isk.symEncSessionKey),
+						),
+					).equals(true)
 				})
-		},
-	)
+			},
+		)
+
+		o("resolve session key: file session key is only removed if the file does have an ownerEncSessionKey", async function () {
+			o.timeout(500) // in CI or with debugging it can take a while
+			const file1SessionKey = aes128RandomKey()
+			const testData = await preparePubEncBucketKeyResolveSessionKeyTest([file1SessionKey])
+			Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
+
+			await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral)
+
+			const FileTypeModel = await resolveTypeReference(FileTypeRef)
+
+			let fileInstanceNoOwnerEncSessionKey = createFile({ _id: ["fileListId", "fileId1"], _ownerEncSessionKey: null })
+
+			let fileSessionKey = neverNull(await crypto.resolveSessionKey(FileTypeModel, fileInstanceNoOwnerEncSessionKey))
+			o(fileSessionKey).deepEquals(file1SessionKey)
+			o(crypto.getSessionKeyCache()["fileId1"]).deepEquals(file1SessionKey)
+
+			const fileInstanceWithOwnerEncSessionKey = createFile({ _id: ["fileListId", "fileId1"], _ownerEncSessionKey: new Uint8Array([1, 2, 3]) })
+
+			fileSessionKey = neverNull(await crypto.resolveSessionKey(FileTypeModel, fileInstanceWithOwnerEncSessionKey))
+			o(fileSessionKey).deepEquals(file1SessionKey)
+			o(crypto.getSessionKeyCache()["fileId1"]).equals(undefined)
+		})
+	})
 
 	o(
 		"resolve session key: external user key decryption of session key using BucketKey aggregated type - Mail referencing MailDetailsBlob with attachments",
@@ -900,7 +901,7 @@ o.spec("crypto facade", function () {
 			const file1SessionKey = aes128RandomKey()
 			const file2SessionKey = aes128RandomKey()
 			const testData = await prepareSymEncBucketKeyResolveSessionKeyTest([file1SessionKey, file2SessionKey])
-			Object.assign(testData.mailLiteral, {mailDetails: ["mailDetailsArchiveId", "mailDetailsId"]})
+			Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
 			const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
 
@@ -1023,7 +1024,7 @@ o.spec("crypto facade", function () {
 
 		const BucketKeyModel = await resolveTypeReference(BucketKeyTypeRef)
 		const bucketKeyLiteral = await instanceMapper.encryptAndMapToLiteral(BucketKeyModel, bucketKey, null)
-		Object.assign(mailLiteral, {bucketKey: bucketKeyLiteral})
+		Object.assign(mailLiteral, { bucketKey: bucketKeyLiteral })
 
 		const mem = createGroupMembership({
 			group: userGroup._id,
@@ -1118,7 +1119,7 @@ o.spec("crypto facade", function () {
 
 		const BucketKeyModel = await resolveTypeReference(BucketKeyTypeRef)
 		const bucketKeyLiteral = await instanceMapper.encryptAndMapToLiteral(BucketKeyModel, bucketKey, null)
-		Object.assign(mailLiteral, {bucketKey: bucketKeyLiteral})
+		Object.assign(mailLiteral, { bucketKey: bucketKeyLiteral })
 
 		const mem = createGroupMembership({
 			group: userGroup._id,
