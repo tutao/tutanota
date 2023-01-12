@@ -12,7 +12,7 @@ import { MailboxDetail } from "../model/MailModel.js"
 import { MailFolderType, MailReportType } from "../../api/common/TutanotaConstants.js"
 import { isSameId } from "../../api/common/utils/EntityUtils.js"
 import { reportMailsAutomatically } from "../view/MailReportDialog.js"
-import {isSpamOrTrashFolder} from "../../api/common/mail/CommonMailUtils.js"
+import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
 
 /**
  * Dialog for Edit and Add folder are the same.
@@ -52,12 +52,12 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 		}),
 	]
 	const okAction = async (dialog: Dialog) => {
-		// doing it right away to prevent duplicate actions
+		// closing right away to prevent duplicate actions
 		dialog.close()
 		try {
 			// if folder is null, create new folder
 			if (editFolder === null) {
-				await locator.mailFacade.createMailFolder(folderNameValue, selectedParentFolder ? selectedParentFolder._id : null, mailGroupId)
+				await locator.mailFacade.createMailFolder(folderNameValue, selectedParentFolder?._id ?? null, mailGroupId)
 			} else {
 				// if it is being moved to trash (and not already in trash), ask about trashing
 				if (selectedParentFolder?.folderType === MailFolderType.TRASH && !isSameId(selectedParentFolder._id, editFolder.parentFolder)) {
@@ -67,6 +67,8 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 						}),
 					)
 					if (!confirmed) return
+
+					await locator.mailFacade.updateMailFolderName(editFolder, folderNameValue)
 					await locator.mailModel.trashFolderAndSubfolders(editFolder)
 				} else if (selectedParentFolder?.folderType === MailFolderType.SPAM && !isSameId(selectedParentFolder._id, editFolder.parentFolder)) {
 					// if it is being moved to spam (and not already in spam), ask about reporting containing emails
@@ -76,17 +78,20 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 						}),
 					)
 					if (!confirmed) return
+
 					// get mails to report before moving to mail model
 					const descendants = mailBoxDetail.folders.getDescendantFoldersOfParent(editFolder._id).sort((l, r) => r.level - l.level)
-
 					let reportableMails = await locator.entityClient.loadAll(MailTypeRef, editFolder.mails)
 					for (const descendant of descendants) {
 						reportableMails.push(...(await locator.entityClient.loadAll(MailTypeRef, descendant.folder.mails)))
 					}
 					await reportMailsAutomatically(MailReportType.SPAM, locator.mailModel, mailBoxDetail, reportableMails)
+
+					await locator.mailFacade.updateMailFolderName(editFolder, folderNameValue)
 					await locator.mailModel.sendFolderToSpam(editFolder)
 				} else {
-					await locator.mailFacade.updateMailFolder(editFolder, selectedParentFolder?._id || null, folderNameValue)
+					await locator.mailFacade.updateMailFolderName(editFolder, folderNameValue)
+					await locator.mailFacade.updateMailFolderParent(editFolder, selectedParentFolder?._id || null)
 				}
 			}
 		} catch (error) {
