@@ -12,6 +12,7 @@ import { MailboxDetail } from "../model/MailModel.js"
 import { MailFolderType, MailReportType } from "../../api/common/TutanotaConstants.js"
 import { isSameId } from "../../api/common/utils/EntityUtils.js"
 import { reportMailsAutomatically } from "../view/MailReportDialog.js"
+import {isSpamOrTrashFolder} from "../../api/common/mail/CommonMailUtils.js"
 
 /**
  * Dialog for Edit and Add folder are the same.
@@ -24,19 +25,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 	let targetFolders: SelectorItemList<MailFolder | null> = mailBoxDetail.folders
 		.getIndentedList(editFolder)
 		// filter: SPAM and TRASH and descendants are only shown if editing (folders can only be moved there, not created there)
-		.filter(
-			(folderInfo) =>
-				!(
-					editFolder === null &&
-					(folderInfo.folder.folderType === MailFolderType.TRASH ||
-						folderInfo.folder.folderType === MailFolderType.SPAM ||
-						mailBoxDetail.folders.checkFolderForAncestor(
-							folderInfo.folder,
-							mailBoxDetail.folders.getSystemFolderByType(MailFolderType.TRASH)._id,
-						) ||
-						mailBoxDetail.folders.checkFolderForAncestor(folderInfo.folder, mailBoxDetail.folders.getSystemFolderByType(MailFolderType.SPAM)._id))
-				),
-		)
+		.filter((folderInfo) => !(editFolder === null && isSpamOrTrashFolder(mailBoxDetail.folders, folderInfo.folder)))
 		.map((folderInfo) => {
 			return {
 				name: getIndentedFolderNameForDropdown(folderInfo),
@@ -45,7 +34,6 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 		})
 	targetFolders = [{ name: noParentFolderOption, value: null }, ...targetFolders]
 	let selectedParentFolder = parentFolder
-	// @ts-ignore
 	let form = () => [
 		m(TextField, {
 			label: editFolder ? "rename_action" : "folderName_label",
@@ -64,6 +52,8 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 		}),
 	]
 	const okAction = async (dialog: Dialog) => {
+		// doing it right away to prevent duplicate actions
+		dialog.close()
 		try {
 			// if folder is null, create new folder
 			if (editFolder === null) {
@@ -94,31 +84,22 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editFol
 						reportableMails.push(...(await locator.entityClient.loadAll(MailTypeRef, descendant.folder.mails)))
 					}
 					await reportMailsAutomatically(MailReportType.SPAM, locator.mailModel, mailBoxDetail, reportableMails)
-					await locator.mailModel.spamFolderAndSubfolders(editFolder)
+					await locator.mailModel.sendFolderToSpam(editFolder)
 				} else {
 					await locator.mailFacade.updateMailFolder(editFolder, selectedParentFolder?._id || null, folderNameValue)
 				}
 			}
-			dialog.close()
 		} catch (error) {
-			if (isOfflineError(error)) {
-				//do not close
-				throw error
-			} else if (error instanceof LockedError) {
-				dialog.close()
-			} else {
-				dialog.close()
+			if (isOfflineError(error) || !(error instanceof LockedError)) {
 				throw error
 			}
 		}
 	}
-	const validateFolderEdit = (name: string, newParentFolder: readonly [string, string] | null) => {
-		return checkFolderName(mailBoxDetail, name, mailGroupId, newParentFolder)
-	}
+
 	Dialog.showActionDialog({
 		title: editFolder ? lang.get("editFolder_action") : lang.get("addFolder_action"),
 		child: form,
-		validator: () => validateFolderEdit(folderNameValue, selectedParentFolder?._id ?? null),
+		validator: () => checkFolderName(mailBoxDetail, folderNameValue, mailGroupId, selectedParentFolder?._id ?? null),
 		allowOkWithReturn: true,
 		okAction: okAction,
 	})

@@ -23,6 +23,8 @@ export class FolderSystem {
 		this.customSubtrees = customFolders.sort(compareCustom).map((f) => this.makeSubtree(folderByParent, f, compareCustom))
 	}
 
+
+
 	getIndentedList(excludeFolder: MailFolder | null = null): IndentedFolder[] {
 		return [...this.getIndentedFolderList(this.systemSubtrees, excludeFolder), ...this.getIndentedFolderList(this.customSubtrees, excludeFolder)]
 	}
