@@ -181,11 +181,22 @@ export class MailFacade {
 		await this.serviceExecutor.post(MailFolderService, newFolder, { sessionKey: sk })
 	}
 
-	async updateMailFolder(folder: MailFolder, newParent: IdTuple | null, newName: string): Promise<void> {
+	/**
+	 * Updates a mail folder's name, if needed
+	 * @param newName - if this is the same as the folder's current name, nothing is done
+	 */
+	async updateMailFolderName(folder: MailFolder, newName: string): Promise<void> {
 		if (newName !== folder.name) {
 			folder.name = newName
 			await this.entityClient.update(folder)
 		}
+	}
+
+	/**
+	 * Updates a mail folder's parent, if needed
+	 * @param newParent - if this is the same as the folder's current parent, nothing is done
+	 */
+	async updateMailFolderParent(folder: MailFolder, newParent: IdTuple | null): Promise<void> {
 		if (
 			(folder.parentFolder != null && newParent != null && !isSameId(folder.parentFolder, newParent)) ||
 			(folder.parentFolder == null && newParent != null) ||

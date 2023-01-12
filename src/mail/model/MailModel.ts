@@ -189,7 +189,7 @@ export class MailModel {
 
 		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
 		if (!deletedFolder) {
-			return this.mailFacade.updateMailFolder(folder, mailboxDetail.folders.getSystemFolderByType(MailFolderType.SPAM)._id, folder.name)
+			return this.mailFacade.updateMailFolderParent(folder, mailboxDetail.folders.getSystemFolderByType(MailFolderType.SPAM)._id)
 		}
 	}
 
@@ -369,11 +369,14 @@ export class MailModel {
 		return this.mailFacade.checkMailForPhishing(mail, links)
 	}
 
+	/**
+	 * Sends the given folder and all its descendants to the trash folder, removes any empty folders
+	 */
 	async trashFolderAndSubfolders(folder: MailFolder): Promise<void> {
 		const mailboxDetail = await this.getMailboxDetailsForMailListId(folder.mails)
 		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
 		if (!deletedFolder) {
-			return this.mailFacade.updateMailFolder(folder, mailboxDetail.folders.getSystemFolderByType(MailFolderType.TRASH)._id, folder.name)
+			return this.mailFacade.updateMailFolderParent(folder, mailboxDetail.folders.getSystemFolderByType(MailFolderType.TRASH)._id)
 		}
 	}
 
