@@ -29,7 +29,7 @@ pipeline {
     	stage('Check Github') {
 			steps {
 				script {
-					def util = load "jenkins-lib/util.groovy"
+					def util = load "ci/jenkins-lib/util.groovy"
 					util.checkGithub()
 				}
 			}
@@ -214,7 +214,7 @@ void doBuild(String stage, String lane, boolean publishToAppStore, String milest
 }
 
 void publishToNexus(String artifactId, String ipaFileName) {
-	def util = load "jenkins-lib/util.groovy"
+	def util = load "ci/jenkins-lib/util.groovy"
 	util.publishToNexus(groupId: "app",
 			artifactId: "${artifactId}",
 			version: "${VERSION}",

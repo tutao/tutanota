@@ -35,7 +35,7 @@ pipeline {
 		stage('Check Github') {
 			steps {
 				script {
-					def util = load "jenkins-lib/util.groovy"
+					def util = load "ci/jenkins-lib/util.groovy"
 					util.checkGithub()
 				}
 			}
@@ -209,7 +209,7 @@ pipeline {
 				} // script release notes
 
 				script { // upload to nexus
-					def util = load "jenkins-lib/util.groovy"
+					def util = load "ci/jenkins-lib/util.groovy"
 
 					util.publishToNexus(
 							groupId: "app",

@@ -32,7 +32,7 @@ pipeline {
     	stage('Check Github') {
 			steps {
 				script {
-					def util = load "jenkins-lib/util.groovy"
+					def util = load "ci/jenkins-lib/util.groovy"
 					util.checkGithub()
 				}
 			}
@@ -58,7 +58,7 @@ pipeline {
 						sh 'npm ci'
 						sh 'npm run build-packages'
 						script {
-							def util = load "jenkins-lib/util.groovy"
+							def util = load "ci/jenkins-lib/util.groovy"
 							util.downloadFromNexus(	groupId: "lib",
 													artifactId: "android-database-sqlcipher",
 													version: "4.5.0",
@@ -86,7 +86,7 @@ pipeline {
 						sh 'npm ci'
 						sh 'npm run build-packages'
 						script {
-							def util = load "jenkins-lib/util.groovy"
+							def util = load "ci/jenkins-lib/util.groovy"
 							util.downloadFromNexus(	groupId: "lib",
 													artifactId: "android-database-sqlcipher",
 													version: "4.5.0",
@@ -113,7 +113,7 @@ pipeline {
 				stage('Staging') {
 					steps {
 						script {
-							def util = load "jenkins-lib/util.groovy"
+							def util = load "ci/jenkins-lib/util.groovy"
 							unstash 'apk-staging'
 
 							util.publishToNexus(
@@ -150,7 +150,7 @@ pipeline {
 
 						script {
 							def filePath = "build/app-android/tutanota-tutao-release-${VERSION}.apk"
-							def util = load "jenkins-lib/util.groovy"
+							def util = load "ci/jenkins-lib/util.groovy"
 
 							util.publishToNexus(
 									groupId: "app",

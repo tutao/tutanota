@@ -19,7 +19,7 @@ pipeline {
     	stage('Check Github') {
 			steps {
 				script {
-					def util = load "jenkins-lib/util.groovy"
+					def util = load "ci/jenkins-lib/util.groovy"
 					util.checkGithub()
 				}
 			}

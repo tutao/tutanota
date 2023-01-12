@@ -70,7 +70,7 @@ def publish(String platform) {
 	unstash "libcrypto-${platform}"
 
 	script {
-		def util = load "jenkins-lib/util.groovy"
+		def util = load "ci/jenkins-lib/util.groovy"
 
 		util.publishToNexus(
 			groupId: "lib",

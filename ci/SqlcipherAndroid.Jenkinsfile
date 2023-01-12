@@ -13,7 +13,7 @@ pipeline {
 		stage("Build and upload it") {
 			steps {
 				script {
-					def util = load "jenkins-lib/util.groovy"
+					def util = load "ci/jenkins-lib/util.groovy"
 
 					sh "git clone https://github.com/sqlcipher/android-database-sqlcipher.git"
 					sh "git clone git://git.openssl.org/openssl.git"
