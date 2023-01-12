@@ -39,7 +39,7 @@ import type { Attachment } from "../editor/SendMailModel"
 import { elementIdPart, getListId, listIdPart } from "../../api/common/utils/EntityUtils"
 import { isDetailsDraft, isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { getLegacyMailHeaders, getMailHeaders } from "../../api/common/utils/Utils.js"
-import { FolderSystem } from "./FolderSystem.js"
+import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"

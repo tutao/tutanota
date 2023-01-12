@@ -1967,6 +1967,20 @@ export type TutanotaProperties = {
 	inboxRules: InboxRule[];
 	lastPushedMail:  null | IdTuple;
 }
+export const UpdateMailFolderDataTypeRef: TypeRef<UpdateMailFolderData> = new TypeRef("tutanota", "UpdateMailFolderData")
+
+export function createUpdateMailFolderData(values?: Partial<UpdateMailFolderData>): UpdateMailFolderData {
+	return Object.assign(create(typeModels.UpdateMailFolderData, UpdateMailFolderDataTypeRef), values)
+}
+
+export type UpdateMailFolderData = {
+	_type: TypeRef<UpdateMailFolderData>;
+
+	_format: NumberString;
+
+	folder: IdTuple;
+	newParent:  null | IdTuple;
+}
 export const UserAccountCreateDataTypeRef: TypeRef<UserAccountCreateData> = new TypeRef("tutanota", "UserAccountCreateData")
 
 export function createUserAccountCreateData(values?: Partial<UserAccountCreateData>): UserAccountCreateData {

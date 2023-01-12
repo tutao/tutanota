@@ -247,8 +247,8 @@ export default {
 		"confirmDeactivateCustomLogo_msg": "Would you really like to deactivate your custom logo?",
 		"confirmDeactivateWhitelabelDomain_msg": "Would you really like to deactivate the Tutanota login for your domain and delete the SSL certificate, custom logo and custom colors?",
 		"confirmDeleteContactForm_msg": "Would you really like to delete this contact form?",
-		"confirmDeleteFinallyCustomFolder_msg": "Do you really want to permanently delete the folder '{1}' and all of its emails? Depending on the number of emails this operation may take a long time and will be executed in the background.",
-		"confirmDeleteFinallySystemFolder_msg": "Do you really want to permanently delete all emails from the system folder '{1}'? Depending on the number of emails this operation may take a long time and will be executed in the background.",
+		"confirmDeleteFinallyCustomFolder_msg": "Do you really want to permanently delete the folder '{1}' and all of its emails? \n \n Depending on the number of emails this operation may take a long time and will be executed in the background.",
+		"confirmDeleteFinallySystemFolder_msg": "Do you really want to permanently delete all emails from the system folder '{1}'? \n \n Depending on the number of emails this operation may take a long time and will be executed in the background.",
 		"confirmDeleteSecondFactor_msg": "Would you really like to delete this second factor?",
 		"confirmDeleteTemplateGroup_msg": "Are you sure you want to delete this template list? All included templates will be lost and can't be restored.",
 		"confirmFreeAccount_label": "Free account confirmation",
@@ -1367,7 +1367,7 @@ export default {
 		"storageCapacityUsed_label": "Used storage",
 		"storageCapacity_label": "Storage capacity",
 		"storageDeletionAnnouncement_msg": "Info: Emails moved to the trash or spam folders will automatically be deleted after 30 days.",
-		"storageDeletion_msg": "Emails in this folder will automatically be deleted after 30 days.",
+		"storageDeletion_msg": "Emails and Custom Folders here will automatically be deleted after 30 days.",
 		"storageQuotaExceeded_msg": "There's not enough storage on the device to create the search index. Therefore the  search results cannot be shown completely.",
 		"storedDataTimeRangeHelpText_msg": "Stored emails that are older than what you configure here will be automatically removed from your device.",
 		"storedDataTimeRange_label": "Keep emails from the last {numDays} days",
@@ -1577,5 +1577,11 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"couldNotOpenLink_msg": "Unable to find application to open link\n{link}",
+		"addFolder_label": "Add Folder",
+		"editFolder_label": "Edit Folder",
+		"parentFolder_label": "Parent Folder",
+		"confirmDeleteCustomFolder_msg": "Do you really want to move the folder '{1}' and all of its emails to trash? \n \n Empty folders will be permanently deleted.",
+		"deletedFolder_label": "Deleted Folder",
+		"confirmSpamCustomFolder_msg": "Do you really want to move the folder '{1}' to spam? \n \n All contained emails will be reported as spam. \n \n Empty folders will be permanently deleted."
 	}
 }
