@@ -34,6 +34,7 @@ import { EntityRestClient } from "../rest/EntityRestClient.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject } from "./SqlValue.js"
+import { FolderSystem } from "../../common/mail/FolderSystem.js"
 import { isDetailsDraft, isLegacyMail } from "../../common/MailWrapper.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
@@ -434,9 +435,16 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		const timeRange = isFreeUser || timeRangeDays == null ? OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS : timeRangeDays
 		const cutoffTimestamp = this.dateProvider.now() - timeRange * DAY_IN_MILLIS
 		const cutoffId = timestampToGeneratedId(cutoffTimestamp)
+		const folders = await this.getListElementsOfType(MailFolderTypeRef)
+		const folderSystem = new FolderSystem(folders)
 
-		for (const folder of await this.getListElementsOfType(MailFolderTypeRef)) {
-			if (folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM) {
+		for (const folder of folders) {
+			if (
+				folder.folderType === MailFolderType.TRASH ||
+				folder.folderType === MailFolderType.SPAM ||
+				folderSystem.checkFolderForAncestor(folder, folderSystem.getSystemFolderByType(MailFolderType.TRASH)._id) ||
+				folderSystem.checkFolderForAncestor(folder, folderSystem.getSystemFolderByType(MailFolderType.SPAM)._id)
+			) {
 				await this.deleteMailList(folder.mails, GENERATED_MAX_ID)
 			} else {
 				await this.deleteMailList(folder.mails, cutoffId)
