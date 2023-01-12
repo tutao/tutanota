@@ -1,16 +1,16 @@
-import m, { Children, Vnode } from "mithril"
+import m, { Children , Vnode} from "mithril"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { lang } from "../../misc/LanguageViewModel"
 import type { ButtonAttrs } from "../../gui/base/Button.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { isSelectedPrefix } from "../../gui/base/NavButton.js"
-import { MailViewer } from "./MailViewer"
+import {  MailViewer } from "./MailViewer"
 import { Dialog } from "../../gui/base/Dialog"
 import { FeatureType, Keys, MailFolderType } from "../../api/common/TutanotaConstants"
 import { BaseHeaderAttrs, header } from "../../gui/Header.js"
 import type { Mail, MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
-import type { lazy } from "@tutao/tutanota-utils"
+import  type { lazy } from "@tutao/tutanota-utils"
 import { assertNotNull, defer, getFirstOrThrow, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../api/common/Env"
@@ -19,7 +19,7 @@ import { keyManager } from "../../misc/KeyManager"
 import { MultiMailViewer } from "./MultiMailViewer"
 import { logins } from "../../api/main/LoginController"
 import { Icons } from "../../gui/base/icons/Icons"
-import { PreconditionFailedError } from "../../api/common/error/RestError"
+import {  PreconditionFailedError } from "../../api/common/error/RestError"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { allMailsAllowedInsideFolder, canDoDragAndDropExport, getFolderName, getMailboxName, markMails } from "../model/MailUtils"
 import type { MailboxDetail } from "../model/MailModel"
@@ -49,8 +49,9 @@ import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
-import { showEditFolderDialog } from "./EditFolderDialog.js"
+import {showEditFolderDialog } from "./EditFolderDialog.js"
 import { MailFoldersView } from "./MailFoldersView.js"
+import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
 
 assertMainOrNode()
 
@@ -230,31 +231,31 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	view({ attrs }: Vnode<MailViewAttrs>): Children {
-		return m(
-			"#mail.main-view",
-			{
-				ondragover: (ev: DragEvent) => {
-					// do not check the datatransfer here because it is not always filled, e.g. in Safari
-					ev.stopPropagation()
-					ev.preventDefault()
-				},
-				ondrop: (ev: DragEvent) => {
-					if (isNewMailActionAvailable() && ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
-						Promise.all([
-							this.getMailboxDetails(),
-							readLocalFiles(ev.dataTransfer.files),
-							import("../signature/Signature"),
-							import("../editor/MailEditor"),
-						])
-							.then(([mailbox, dataFiles, { appendEmailSignature }, { newMailEditorFromTemplate }]) => {
-								newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", logins.getUserController().props), dataFiles).then(
-									(dialog) => dialog.show(),
-								)
-							})
-							.catch(ofClass(PermissionError, noOp))
-							.catch(ofClass(UserError, showUserError))
-					}
+	view({ attrs }: Vnode<MailViewAttrs>): Children  {
+			return m(
+				"#mail.main-view",
+				{
+					ondragover: (ev: DragEvent) => {
+						// do not check the datatransfer here because it is not always filled, e.g. in Safari
+						ev.stopPropagation()
+						ev.preventDefault()
+					},
+					ondrop: (ev: DragEvent) => {
+						if (isNewMailActionAvailable() && ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
+							Promise.all([
+								this.getMailboxDetails(),
+								readLocalFiles(ev.dataTransfer.files),
+								import("../signature/Signature"),
+								import("../editor/MailEditor"),
+							])
+								.then(([mailbox, dataFiles, { appendEmailSignature }, { newMailEditorFromTemplate }]) => {
+									newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", logins.getUserController().props), dataFiles).then(
+										(dialog) => dialog.show(),
+									)
+								})
+								.catch(ofClass(PermissionError, noOp))
+								.catch(ofClass(UserError, showUserError))
+						}
 
 					// prevent in any case because firefox tries to open
 					// dataTransfer as a URL otherwise.
@@ -468,7 +469,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			},
 			onFolderExpanded: (folder, state) => this.setExpandedState(folder, state),
 			onShowFolderAddEditDialog: (...args) => this.showFolderAddEditDialog(...args),
-			onDeleteCustomMailFolder: (folder) => this.deleteCustomMailFolder(folder),
+			onDeleteCustomMailFolder: (folder) => this.deleteCustomMailFolder(mailboxDetail, folder),
 			onFolderDrop: (mailId, folder) => this.handleFolderDrop(mailId, folder),
 			inEditMode: this.editingFolderForMailGroup === mailboxDetail.mailGroup._id,
 			onEditMailbox: () => {
@@ -629,7 +630,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			: locator.mailModel.getUserMailboxDetails()
 	}
 
-	private async deleteCustomMailFolder(folder: MailFolder): Promise<void> {
+	private async deleteCustomMailFolder(mailboxDetail: MailboxDetail, folder: MailFolder): Promise<void> {
 		if (folder.folderType !== MailFolderType.CUSTOM) {
 			throw new Error("Cannot delete non-custom folder: " + String(folder._id))
 		}
@@ -637,7 +638,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		// remove any selection to avoid that the next mail is loaded and selected for each deleted mail event
 		this.cache.mailList?.list.selectNone()
 
-		if (await locator.mailModel.isSpamTrashDescendant(folder)) {
+		if (isSpamOrTrashFolder(mailboxDetail.folders, folder)) {
 			const confirmed = await Dialog.confirm(() =>
 				lang.get("confirmDeleteFinallyCustomFolder_msg", {
 					"{1}": getFolderName(folder),

@@ -38,6 +38,7 @@ import { FolderSystem } from "../../common/mail/FolderSystem.js"
 import { isDetailsDraft, isLegacyMail } from "../../common/MailWrapper.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
+import { isSpamOrTrashFolder } from "../../common/mail/CommonMailUtils.js"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	const time = data.getTime()
@@ -439,12 +440,7 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		const folderSystem = new FolderSystem(folders)
 
 		for (const folder of folders) {
-			if (
-				folder.folderType === MailFolderType.TRASH ||
-				folder.folderType === MailFolderType.SPAM ||
-				folderSystem.checkFolderForAncestor(folder, folderSystem.getSystemFolderByType(MailFolderType.TRASH)._id) ||
-				folderSystem.checkFolderForAncestor(folder, folderSystem.getSystemFolderByType(MailFolderType.SPAM)._id)
-			) {
+			if (isSpamOrTrashFolder(folderSystem, folder)) {
 				await this.deleteMailList(folder.mails, GENERATED_MAX_ID)
 			} else {
 				await this.deleteMailList(folder.mails, cutoffId)
