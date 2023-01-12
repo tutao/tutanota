@@ -121,7 +121,7 @@ export function isSameId(id1: (Id | IdTuple) | null, id2: (Id | IdTuple) | null)
 	} else if (id1 instanceof Array && id2 instanceof Array) {
 		return id1[0] === id2[0] && id1[1] === id2[1]
 	} else {
-		return (id1 as any) === (id2 as any)
+		return id1 === id2
 	}
 }
 

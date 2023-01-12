@@ -30,7 +30,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { WsConnectionState } from "../../api/main/WorkerClient"
 import { findAndApplyMatchingRule, isInboxList } from "../model/InboxRuleHandler.js"
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
-import { FolderSystem } from "../model/FolderSystem.js"
+import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/main/EventController.js"
 
 assertMainOrNode()
@@ -53,12 +53,17 @@ export class MailListView implements Component {
 	>
 	// Used for modifying the cursor during drag and drop
 	_listDom: HTMLElement | null
+	showingSpamOrTrash: boolean = false
 
 	constructor(mailListId: Id, mailView: MailView) {
 		this.listId = mailListId
 		this.mailView = mailView
 		this.exportedMails = new Map()
 		this._listDom = null
+		this.showingTrashOrSpamFolder().then((result) => {
+			this.showingSpamOrTrash = result
+			m.redraw()
+		})
 		this.list = new List({
 			rowHeight: size.list_row_height,
 			fetch: async (start, count) => {
@@ -98,7 +103,7 @@ export class MailListView implements Component {
 								}),
 								m(
 									".pl-s",
-									this.showingTrashOrSpamFolder()
+									this.showingSpamOrTrash
 										? lang.get("recover_label") // show "recover" if this is the trash/spam folder
 										: this.targetInbox() // otherwise show "inbox" or "archive" depending on the folder
 										? lang.get("received_action")
@@ -119,7 +124,7 @@ export class MailListView implements Component {
 						// just cancel selection if in drafts
 						this.list.selectNone()
 						return Promise.resolve(false)
-					} else if (this.showingTrashOrSpamFolder()) {
+					} else if (this.showingSpamOrTrash) {
 						// recover email from trash/spam
 						this.list.selectNone()
 						return locator.mailModel.getMailboxFolders(listElement).then((folders) =>
@@ -408,7 +413,7 @@ export class MailListView implements Component {
 					}
 				},
 			},
-			this.showingTrashOrSpamFolder()
+			this.showingSpamOrTrash
 				? m(
 						ListColumnWrapper,
 						{
@@ -434,14 +439,12 @@ export class MailListView implements Component {
 		}
 	}
 
-	private showingTrashOrSpamFolder(): boolean {
-		if (this.mailView.cache.selectedFolder) {
-			return (
-				this.mailView.cache.selectedFolder.folderType === MailFolderType.SPAM || this.mailView.cache.selectedFolder.folderType === MailFolderType.TRASH
-			)
-		} else {
+	private async showingTrashOrSpamFolder(): Promise<boolean> {
+		const folder = await locator.mailModel.getMailFolder(this.listId)
+		if (!folder) {
 			return false
 		}
+		return locator.mailModel.isFinalDelete(folder)
 	}
 
 	private showingDraftFolder(): boolean {

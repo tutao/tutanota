@@ -20,21 +20,19 @@ import { DomRectReadOnlyPolyfilled, Dropdown, PosRect } from "../../gui/base/Dro
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { modal } from "../../gui/base/Modal.js"
 
-export function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
-	let groupedMails = mails.reduce(
-		(all, mail) => {
-			locator.mailModel.isFinalDelete(locator.mailModel.getMailFolder(mail._id[0])) ? all.trash.push(mail) : all.move.push(mail)
-			return all
-		},
-		{
-			trash: [] as Mail[],
-			move: [] as Mail[],
-		},
-	)
+export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
+	let trashMails: Mail[] = []
+	let moveMails: Mail[] = []
+	for (let mail of mails) {
+		const folder = locator.mailModel.getMailFolder(mail._id[0])
+		const isFinalDelete = folder && (await locator.mailModel.isFinalDelete(folder))
+		isFinalDelete ? trashMails.push(mail) : moveMails.push(mail)
+	}
+
 	let confirmationTextId: TranslationKey | null = null
 
-	if (groupedMails.trash.length > 0) {
-		if (groupedMails.move.length > 0) {
+	if (trashMails.length > 0) {
+		if (moveMails.length > 0) {
 			confirmationTextId = "finallyDeleteSelectedEmails_msg"
 		} else {
 			confirmationTextId = "finallyDeleteEmails_msg"
@@ -83,11 +81,16 @@ interface MoveMailsParams {
  * Moves the mails and reports them as spam if the user or settings allow it.
  * @return whether mails were actually moved
  */
-export function moveMails({ mailModel, mails, targetMailFolder, isReportable = true }: MoveMailsParams): Promise<boolean> {
+export async function moveMails({ mailModel, mails, targetMailFolder, isReportable = true }: MoveMailsParams): Promise<boolean> {
+	const system = (await mailModel.getMailboxDetailsForMailListId(targetMailFolder.mails)).folders
 	return mailModel
 		.moveMails(mails, targetMailFolder)
 		.then(async () => {
-			if (targetMailFolder.folderType === MailFolderType.SPAM && isReportable) {
+			if (
+				(targetMailFolder.folderType === MailFolderType.SPAM ||
+					system.checkFolderForAncestor(targetMailFolder, system.getSystemFolderByType(MailFolderType.SPAM)._id)) &&
+				isReportable
+			) {
 				const reportableMails = mails.map((mail) => {
 					// mails have just been moved
 					const reportableMail = createMail(mail)

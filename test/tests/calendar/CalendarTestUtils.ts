@@ -22,8 +22,7 @@ import type { CalendarUpdateDistributor } from "../../../src/calendar/date/Calen
 import o from "ospec"
 import type { CalendarInfo } from "../../../src/calendar/model/CalendarModel"
 import { CalendarModel } from "../../../src/calendar/model/CalendarModel"
-import type { IProgressMonitor } from "../../../src/api/common/utils/ProgressMonitor"
-import { FolderSystem } from "../../../src/mail/model/FolderSystem.js"
+import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
 
 export const accountMailAddress = "address@tutanota.com" as const
 export const userId = "12356" as const
