@@ -12,14 +12,12 @@ import {
 	createMailBody,
 	createMailDetails,
 	createMailDetailsBlob,
-	createMailDetailsDraft,
 	createMailFolder,
 	FileTypeRef,
 	Mail,
 	MailBody,
 	MailBodyTypeRef,
 	MailDetailsBlobTypeRef,
-	MailDetailsDraftTypeRef,
 	MailDetailsTypeRef,
 	MailFolderTypeRef,
 	MailTypeRef,
@@ -273,7 +271,7 @@ o.spec("OfflineStorage", function () {
 				o(allMailIds).deepEquals([getElementId(mail)])
 			})
 
-			o("legacy trash and spam is cleared", async function () {
+			o("legacy trash and spam are cleared", async function () {
 				const spamMailBodyId = "spamMailBodyId"
 				const trashMailBodyId = "trashMailBodyId"
 
@@ -299,11 +297,7 @@ o.spec("OfflineStorage", function () {
 			})
 
 			o("trash and spam descendants are cleared", async function () {
-				const spamFolderId = "spamFolder"
-				const trashFolderId = "trashFolder"
 				const trashSubfolderId = "trashSubfolderId"
-				const spamListId = "spamList"
-				const trashListId = "trashList"
 				const trashSubfolderListId = "trashSubfolderListId"
 				const spamMailBodyId = "spamMailBodyId"
 				const trashMailBodyId = "trashMailBodyId"
@@ -342,11 +336,7 @@ o.spec("OfflineStorage", function () {
 				o(await getAllIdsForType(MailBodyTypeRef)).deepEquals([])
 			})
 
-			o("trash and spam is cleared", async function () {
-				const spamFolderId = "spamFolder"
-				const trashFolderId = "trashFolder"
-				const spamListId = "spamList"
-				const trashListId = "trashList"
+			o("trash and spam are cleared", async function () {
 				const spamDetailsId: IdTuple = ["detailsListId", "spamDetailsId"]
 				const trashDetailsId: IdTuple = ["detailsListId", "trashDetailsId"]
 
@@ -357,8 +347,6 @@ o.spec("OfflineStorage", function () {
 
 				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
-				await insertEntity(createMailFolder({ _id: ["mailFolderList", spamFolderId], mails: spamListId, folderType: MailFolderType.SPAM }))
-				await insertEntity(createMailFolder({ _id: ["mailFolderList", trashFolderId], mails: trashListId, folderType: MailFolderType.TRASH }))
 				await insertEntity(spamMail)
 				await insertEntity(trashMail)
 				await insertEntity(createMailDetailsBlob({ _id: spamDetailsId, details: createMailDetails() }))
