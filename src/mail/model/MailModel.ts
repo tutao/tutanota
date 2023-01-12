@@ -39,6 +39,7 @@ import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import {WebsocketConnectivityModel} from "../../misc/WebsocketConnectivityModel.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { UserError } from "../../api/main/UserError.js"
+import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox
@@ -180,7 +181,10 @@ export class MailModel {
 		return null
 	}
 
-	async spamFolderAndSubfolders(folder: MailFolder): Promise<void> {
+	/**
+	 * Sends the given folder and all its descendants to the spam folder, reporting mails (if applicable) and removes any empty folders
+	 */
+	async sendFolderToSpam(folder: MailFolder): Promise<void> {
 		const mailboxDetail = await this.getMailboxDetailsForMailListId(folder.mails)
 
 		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
@@ -256,7 +260,7 @@ export class MailModel {
 			const sourceMailFolder = this.getMailFolder(listId)
 
 			if (sourceMailFolder) {
-				if (await this.isSpamTrashDescendant(sourceMailFolder)) {
+				if (isSpamOrTrashFolder(folders, sourceMailFolder)) {
 					await this._finallyDeleteMails(mails)
 				} else {
 					await this._moveMails(mails, trashFolder)
@@ -365,16 +369,6 @@ export class MailModel {
 		return this.mailFacade.checkMailForPhishing(mail, links)
 	}
 
-	async isSpamTrashDescendant(folder: MailFolder): Promise<boolean> {
-		const system = (await this.getMailboxDetailsForMailListId(folder.mails)).folders
-		return (
-			folder.folderType === MailFolderType.TRASH ||
-			folder.folderType === MailFolderType.SPAM ||
-			system.checkFolderForAncestor(folder, system.getSystemFolderByType(MailFolderType.TRASH)._id) ||
-			system.checkFolderForAncestor(folder, system.getSystemFolderByType(MailFolderType.SPAM)._id)
-		)
-	}
-
 	async trashFolderAndSubfolders(folder: MailFolder): Promise<void> {
 		const mailboxDetail = await this.getMailboxDetailsForMailListId(folder.mails)
 		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
@@ -421,7 +415,7 @@ export class MailModel {
 
 	public async finallyDeleteCustomMailFolder(folder: MailFolder): Promise<void> {
 		if (folder.folderType !== MailFolderType.CUSTOM) {
-			throw new Error("Cannot delete non-custom folder: " + String(folder._id))
+			throw new ProgrammingError("Cannot delete non-custom folder: " + String(folder._id))
 		}
 
 		return await this.mailFacade
