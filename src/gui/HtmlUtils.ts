@@ -36,11 +36,6 @@ export function getSafeAreaInsetBottom(): number {
 	return bottomInsetString ? parseInt(bottomInsetString.slice(0, -2)) : 0
 }
 
-export function newMouseEvent(): MouseEvent {
-	// We cannot use constructor because of IE11
-	return downcast(document.createEvent("MouseEvent"))
-}
-
 export function stringifyFragment(fragment: DocumentFragment): string {
 	let div = document.createElement("div")
 	div.appendChild(fragment)

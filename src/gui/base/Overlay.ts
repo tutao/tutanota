@@ -71,7 +71,7 @@ export const overlay: Component = {
 			"#overlay.fill-absolute",
 			{
 				style: {
-					display: overlays.length > 0 ? "" : "none", // display: null not working for IE11
+					display: overlays.length > 0 ? "" : "none",
 					"margin-top": "env(safe-area-inset-top)", // insets for iPhone X
 					// we would need to change this if we wanted something to appear from the side
 					"margin-left": "env(safe-area-inset-left)",
