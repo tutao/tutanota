@@ -233,7 +233,8 @@ styles.registerStyle("main", () => {
 		},
 		"#mail-body.break-pre pre": {
 			"white-space": "pre-wrap",
-			"word-break": "break-word",
+			"word-break": "normal",
+			"overflow-wrap": "anywhere",
 		},
 		".white-space-pre": {
 			"white-space": "pre",
@@ -502,7 +503,8 @@ styles.registerStyle("main", () => {
 		// used to enable text ellipsis in flex child elements see https://css-tricks.com/flexbox-truncated-text/
 		".text-break": {
 			overflow: "hidden",
-			"word-break": "break-word",
+			"word-break": "normal",
+			"overflow-wrap": "anywhere",
 		},
 		".break-word": {
 			"word-break": "normal",
@@ -2105,7 +2107,8 @@ styles.registerStyle("main", () => {
 				display: "none",
 			},
 			pre: {
-				"word-break": "break-word",
+				"word-break": "normal",
+				"overflow-wrap": "anywhere",
 				"white-space": "break-spaces",
 			},
 		},
