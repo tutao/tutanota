@@ -26,8 +26,7 @@ export type ExpanderPanelAttrs = {
 export class ExpanderButton implements Component<ExpanderAttrs> {
 	view(vnode: Vnode<ExpanderAttrs>): Children {
 		const a = vnode.attrs
-		return m(".flex.limit-width", [
-			// .limit-width does not work without .flex in IE11
+		return m(".limit-width", [
 			m(
 				"button.expander.bg-transparent.pt-s.hover-ul.limit-width.flex.items-center",
 				{

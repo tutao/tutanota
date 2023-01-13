@@ -1176,7 +1176,6 @@ styles.registerStyle("main", () => {
 			"background-repeat": "no-repeat",
 			"background-size": "auto 100%",
 		},
-		// fix for IE11: use position absolute to fill header parts and center child elements using flex box
 		".header-left": {
 			position: "absolute",
 			left: "0",
