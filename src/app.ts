@@ -156,28 +156,6 @@ import("./translations/en")
 		styles.init()
 		const { usingKeychainAuthentication } = await import("./misc/credentials/CredentialsProviderFactory")
 
-		/**
-		 * Migrate credentials on supported devices to be encrypted using an intermediate key secured by the device keychain (biometrics).
-		 * This code can (and will) be removed once all users have migrated.
-		 */
-		if (usingKeychainAuthentication()) {
-			// We can only determine platform after we establish native bridge
-			const hasAlreadyMigrated = deviceConfig.getCredentialsEncryptionKey() != null
-			const hasCredentials = deviceConfig.loadAll().length > 0
-
-			if (!hasAlreadyMigrated && hasCredentials) {
-				const migrationModule = await import("./misc/credentials/CredentialsMigration")
-				const { NativeCredentialsFacadeSendDispatcher } = await import("./native/common/generatedipc/NativeCredentialsFacadeSendDispatcher.js")
-				await locator.native.init()
-				const nativeCredentials = new NativeCredentialsFacadeSendDispatcher(locator.native)
-				const migration = new migrationModule.CredentialsMigration(deviceConfig, locator.deviceEncryptionFacade, nativeCredentials)
-				await migration.migrateCredentials()
-				// Reload the app just to make sure we are in the right state and don't init nativeApp twice
-				windowFacade.reload({})
-				return
-			}
-		}
-
 		const paths = applicationPaths({
 			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel; header: BaseHeaderAttrs }>({
 				prepareRoute: async () => {
