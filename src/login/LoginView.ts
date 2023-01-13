@@ -84,10 +84,6 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 							oncreate: (vnode) => {
 								;(vnode.dom as HTMLElement).focus()
 							},
-							style: {
-								// width: workaround for IE11 which does not center the area, otherwise
-								width: client.isDesktopDevice() ? "360px" : null,
-							},
 						},
 						[
 							this.viewModel.displayMode === DisplayMode.Credentials || this.viewModel.displayMode === DisplayMode.DeleteCredentials

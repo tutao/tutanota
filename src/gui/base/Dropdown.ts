@@ -8,7 +8,7 @@ import { focusNext, focusPrevious } from "../../misc/KeyManager"
 import type { ButtonAttrs } from "./Button.js"
 import { lang, TranslationText } from "../../misc/LanguageViewModel"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
-import { getSafeAreaInsetBottom, getSafeAreaInsetTop, newMouseEvent } from "../HtmlUtils"
+import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../HtmlUtils"
 import type { $Promisable, lazy, lazyAsync } from "@tutao/tutanota-utils"
 import { assertNotNull, delay, downcast, filterNull, neverNull } from "@tutao/tutanota-utils"
 import { client } from "../../misc/ClientDetector"
@@ -300,8 +300,7 @@ export class Dropdown implements ModalComponent {
 			visibleElements.length === 1 ? visibleElements[0] : visibleElements.find((b) => lang.getMaybeLazy(b.label).toLowerCase() === filterString)
 
 		if (this._domInput && document.activeElement === this._domInput && matchingButton && matchingButton.click) {
-			const click = matchingButton.click
-			click(newMouseEvent(), this._domInput)
+			matchingButton.click(new MouseEvent("click"), this._domInput)
 			return false
 		}
 
