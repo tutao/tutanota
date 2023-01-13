@@ -44,7 +44,7 @@ class Modal implements Component {
 					},
 					style: {
 						"z-index": LayerType.Modal,
-						display: this.visible ? "" : "none", // display: null not working for IE11
+						display: this.visible ? "" : "none",
 					},
 				},
 				this.components.map((wrapper, i, array) => {
