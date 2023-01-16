@@ -173,79 +173,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
 
 
     Task { @MainActor in
-      let location = UserDefaults.standard.string(forKey: "webConfigLocation")
-      if location != "assetOrigin" {
-        await self.migrateCredentialsFromOldOrigin()
-      }
-
       self._loadMainPage(params: [:])
-    }
-  }
-
-  private func migrateCredentialsFromOldOrigin() async {
-    defer {
-      UserDefaults.standard.set("assetOrigin", forKey: "webConfigLocation")
-    }
-    TUTSLog("Migrating webView data")
-    do {
-      let oldConfig = try await self.executeJavascriptForResult(
-        js: "localStorage.getItem('tutanotaConfig') ? btoa(localStorage.getItem('tutanotaConfig')) : 'null'",
-        withUrl: "file:///dummy.html"
-      )
-      if oldConfig == "null" {
-        TUTSLog("Nothing to migrate")
-        return
-      }
-
-      TUTSLog("Deleting old webView data")
-      let dataRecords = await WKWebsiteDataStore.default().dataRecords(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes())
-      await WKWebsiteDataStore.default().removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), for: dataRecords)
-
-      TUTSLog("Setting new webView config")
-
-      let _ = try await self.executeJavascriptForResult(
-        // Must return something otherwise webkit gets sad
-        js: "localStorage.setItem('tutanotaConfig', atob('\(oldConfig)')); '42'",
-        withUrl: "asset://app/polyfill.js"
-      )
-      TUTSLog("WebView config migrated")
-    } catch {
-      TUTSLog("Error during webView data migration \(error)")
-    }
-  }
-
-  private func executeJavascriptForResult(js: String, withUrl url: String) async throws -> String {
-    return try await withCheckedThrowingContinuation { cont in
-      let webViewConfig = WKWebViewConfiguration()
-      webViewConfig.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
-      let folderPath: String = (self.appUrl() as NSURL).deletingLastPathComponent!.path
-      webViewConfig.setURLSchemeHandler(AssetSchemeHandler(folderPath: folderPath), forURLScheme: "asset")
-
-      let migrationWebView = WKWebView(frame: CGRect.zero, configuration: webViewConfig)
-
-      let littleDelegate = LittleNavigationDelegate()
-      littleDelegate.action = {
-        Task {
-          defer {
-            littleDelegate.action = nil
-          }
-
-          let result: Any
-          do {
-            result = try await migrationWebView.evaluateJavaScript(js)
-          } catch {
-            cont.resume(throwing: error)
-            return
-          }
-          if let result = result as? String {
-            cont.resume(returning: result)
-          } else {
-            cont.resume(throwing: TUTErrorFactory.createError("Could not execute JS"))
-          }
-        }
-      }
-      migrationWebView.navigationDelegate = littleDelegate
-      migrationWebView.loadHTMLString("", baseURL: URL(string: url))
     }
   }
 
