@@ -13,5 +13,5 @@ export interface NewsListItem {
 	/**
 	 * Return true iff the news should be shown to the logged-in user.
 	 */
-	isShown(): boolean
+	isShown(newsId: NewsId): boolean
 }

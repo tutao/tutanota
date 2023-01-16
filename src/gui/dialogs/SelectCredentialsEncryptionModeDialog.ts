@@ -74,6 +74,10 @@ class CredentialEncryptionMethodDialog {
 				])
 			},
 		})
+		this._dialog.setCloseHandler(() => {
+			this._finished.resolve()
+			this._dialog.close()
+		})
 	}
 
 	static async showAndWaitForSelection(credentialsProvider: CredentialsProvider) {

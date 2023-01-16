@@ -30,6 +30,8 @@ interface ConfigObject {
 	_signupToken: string
 	_credentialEncryptionMode: CredentialEncryptionMode | null
 	_encryptedCredentialsKey: Base64 | null
+	/** list of acknowledged news item ids for this device */
+	acknowledgedNewsItems: Id[]
 	_testDeviceId: string | null
 	_testAssignments: PersistedAssignmentData | null
 	offlineTimeRangeDaysByUser: Record<Id, number>
@@ -73,6 +75,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage {
 			_credentials: loadedConfig._credentials ? new Map(typedEntries(loadedConfig._credentials)) : new Map(),
 			_credentialEncryptionMode: loadedConfig._credentialEncryptionMode ?? null,
 			_encryptedCredentialsKey: loadedConfig._encryptedCredentialsKey ?? null,
+			acknowledgedNewsItems: loadedConfig.acknowledgedNewsItems ?? [],
 			_themeId: loadedConfig._themeId ?? defaultThemeId,
 			_scheduledAlarmUsers: loadedConfig._scheduledAlarmUsers ?? [],
 			_language: loadedConfig._language ?? null,
@@ -237,6 +240,17 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage {
 		if (this.config.expandedMailFolders[user] !== folders) {
 			this.config.expandedMailFolders[user] = folders
 
+			this.writeToStorage()
+		}
+	}
+
+	hasAcknowledgedNewsItemForDevice(newsItemId: Id): boolean {
+		return this.config.acknowledgedNewsItems.includes(newsItemId)
+	}
+
+	acknowledgeNewsItemForDevice(newsItemId: Id) {
+		if (!this.config.acknowledgedNewsItems.includes(newsItemId)) {
+			this.config.acknowledgedNewsItems.push(newsItemId)
 			this.writeToStorage()
 		}
 	}
