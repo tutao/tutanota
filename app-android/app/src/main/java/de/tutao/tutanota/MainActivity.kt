@@ -242,9 +242,6 @@ class MainActivity : FragmentActivity() {
 		setContentView(webView)
 
 		lifecycleScope.launch {
-			// handle intent can be called like anywhere because it waits for web init
-			migrateCredentialsFromOldOrigin()
-
 			val queryParameters = mutableMapOf<String, String>()
 			// If opened from notifications, tell Web app to not login automatically, we will pass
 			// mailbox later when loaded (in handleIntent())
@@ -327,33 +324,6 @@ class MainActivity : FragmentActivity() {
 			"html" -> "text/html"
 			"ttf" -> "font/ttf"
 			else -> error("Unknown extension $ext for url $url")
-		}
-	}
-
-	@Suppress("DEPRECATION")
-	private suspend fun migrateCredentialsFromOldOrigin() {
-		val preferences = android.preference.PreferenceManager.getDefaultSharedPreferences(this)
-		if (preferences.getString(MIGRATED_OLD_LOCAL_STORAGE_PREF, "") == "assetOrigin") {
-			return
-		} else {
-			try {
-				Log.d(TAG, "migrating credentials")
-				val oldTutanotaConfig = evalJavaScriptForResult(
-						"let s = localStorage.getItem('tutanotaConfig'); s ? btoa(s) : null",
-						"file:///dummy.html"
-				)
-				WebStorage.getInstance().deleteAllData()
-				if (oldTutanotaConfig == "null") {
-					Log.d(TAG, "no credentials to migrate")
-				} else {
-					evalJavaScriptForResult(
-							"localStorage.setItem('tutanotaConfig', atob($oldTutanotaConfig))",
-							"https://assets.tutanota.com/dummy.html"
-					)
-				}
-			} finally {
-				preferences.edit().putString(MIGRATED_OLD_LOCAL_STORAGE_PREF, "assetOrigin").apply()
-			}
 		}
 	}
 
@@ -753,46 +723,4 @@ class MainActivity : FragmentActivity() {
 			return requestId
 		}
 	}
-
-	@SuppressLint("SetJavascriptEnabled")
-	private suspend fun evalJavaScriptForResult(javaScript: String, origin: String): String =
-			withContext(Dispatchers.Main) {
-				val webView = WebView(this@MainActivity)
-				Log.d(TAG, "Created webview for evaluation!")
-
-				webView.settings.apply {
-					javaScriptEnabled = true
-					domStorageEnabled = true
-					javaScriptCanOpenWindowsAutomatically = false
-					allowFileAccess = true
-					allowContentAccess = false
-					cacheMode = WebSettings.LOAD_NO_CACHE
-					mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
-				}
-
-				suspendCoroutine { cb ->
-					webView.webViewClient = object : WebViewClient() {
-						override fun onPageFinished(view: WebView?, url: String?) {
-							super.onPageFinished(view, url)
-							Log.d(TAG, "finished page: $url")
-							webView.evaluateJavascript(javaScript) { res ->
-								Log.d(TAG, "got a response for $origin")
-								webView.destroy()
-								cb.resume(res)
-							}
-						}
-
-						override fun onReceivedError(
-								view: WebView?,
-								request: WebResourceRequest?,
-								error: WebResourceError?
-						) {
-							Log.d(TAG, "received error: ${error?.description}")
-							super.onReceivedError(view, request, error)
-						}
-					}
-
-					webView.loadDataWithBaseURL(origin, " ", "text/plain", null, null)
-				}
-			}
 }
