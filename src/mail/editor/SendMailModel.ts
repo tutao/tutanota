@@ -1,4 +1,4 @@
-import {ApprovalStatus, ConversationType, MailFolderType, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../../api/common/TutanotaConstants"
+import { ApprovalStatus, ConversationType, MailFolderType, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType } from "../../api/common/TutanotaConstants"
 import {
 	AccessBlockedError,
 	LockedError,
@@ -8,8 +8,8 @@ import {
 	PreconditionFailedError,
 	TooManyRequestsError,
 } from "../../api/common/error/RestError"
-import {UserError} from "../../api/main/UserError"
-import {getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../../misc/passwords/PasswordUtils"
+import { UserError } from "../../api/main/UserError"
+import { getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE } from "../../misc/passwords/PasswordUtils"
 import {
 	assertNotNull,
 	cleanMatch,
@@ -24,41 +24,41 @@ import {
 	remove,
 	typedValues,
 } from "@tutao/tutanota-utils"
-import {checkAttachmentSize, getDefaultSender, getTemplateLanguages} from "../model/MailUtils"
+import { checkAttachmentSize, getDefaultSender, getTemplateLanguages } from "../model/MailUtils"
 import type { EncryptedMailAddress, File as TutanotaFile, Mail, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef, ConversationEntryTypeRef, File, FileTypeRef, MailboxPropertiesTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
-import type {LoginController} from "../../api/main/LoginController"
-import type {MailboxDetail, MailModel} from "../model/MailModel"
-import {RecipientNotResolvedError} from "../../api/common/error/RecipientNotResolvedError"
+import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"
+import type { LoginController } from "../../api/main/LoginController"
+import type { MailboxDetail, MailModel } from "../model/MailModel"
+import { RecipientNotResolvedError } from "../../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type {EntityUpdateData} from "../../api/main/EventController"
-import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"
-import {isMailAddress} from "../../misc/FormatValidator"
-import type {ContactModel} from "../../contacts/model/ContactModel"
-import type {Language, TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
-import {getAvailableLanguageCode, getSubstitutedLanguageCode, lang, languages} from "../../misc/LanguageViewModel"
-import type {UserController} from "../../api/main/UserController"
-import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFoundError"
-import {checkApprovalStatus} from "../../misc/LoginUtils"
-import {EntityClient} from "../../api/common/EntityClient"
-import {getContactDisplayName} from "../../contacts/model/ContactUtils"
-import {getListId, isSameId, stringToCustomId} from "../../api/common/utils/EntityUtils"
-import {CustomerPropertiesTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import type {InlineImages} from "../view/MailViewer"
-import {cloneInlineImages, revokeInlineImages} from "../view/MailGuiUtils"
-import {MailBodyTooLargeError} from "../../api/common/error/MailBodyTooLargeError"
-import type {MailFacade} from "../../api/worker/facades/MailFacade"
-import {assertMainOrNode} from "../../api/common/Env"
-import {DataFile} from "../../api/common/DataFile"
-import {FileReference} from "../../api/common/utils/FileUtils"
-import {PartialRecipient, Recipient, RecipientList, Recipients, RecipientType} from "../../api/common/recipients/Recipient"
-import {RecipientsModel, ResolvableRecipient, ResolveMode} from "../../api/main/RecipientsModel"
-import {createApprovalMail} from "../../api/entities/monitor/TypeRefs"
-import {DateProvider} from "../../api/common/DateProvider.js"
-import {RecipientField} from "../model/MailUtils.js"
-import {getSenderName} from "../../misc/MailboxPropertiesUtils.js"
+import type { EntityUpdateData } from "../../api/main/EventController"
+import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
+import { isMailAddress } from "../../misc/FormatValidator"
+import type { ContactModel } from "../../contacts/model/ContactModel"
+import type { Language, TranslationKey, TranslationText } from "../../misc/LanguageViewModel"
+import { getAvailableLanguageCode, getSubstitutedLanguageCode, lang, languages } from "../../misc/LanguageViewModel"
+import type { UserController } from "../../api/main/UserController"
+import { RecipientsNotFoundError } from "../../api/common/error/RecipientsNotFoundError"
+import { checkApprovalStatus } from "../../misc/LoginUtils"
+import { EntityClient } from "../../api/common/EntityClient"
+import { getContactDisplayName } from "../../contacts/model/ContactUtils"
+import { getListId, isSameId, stringToCustomId } from "../../api/common/utils/EntityUtils"
+import { CustomerPropertiesTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import type { InlineImages } from "../view/MailViewer"
+import { cloneInlineImages, revokeInlineImages } from "../view/MailGuiUtils"
+import { MailBodyTooLargeError } from "../../api/common/error/MailBodyTooLargeError"
+import type { MailFacade } from "../../api/worker/facades/MailFacade"
+import { assertMainOrNode } from "../../api/common/Env"
+import { DataFile } from "../../api/common/DataFile"
+import { FileReference } from "../../api/common/utils/FileUtils"
+import { PartialRecipient, Recipient, RecipientList, Recipients, RecipientType } from "../../api/common/recipients/Recipient"
+import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../../api/main/RecipientsModel"
+import { createApprovalMail } from "../../api/entities/monitor/TypeRefs"
+import { DateProvider } from "../../api/common/DateProvider.js"
+import { RecipientField } from "../model/MailUtils.js"
+import { getSenderName } from "../../misc/MailboxPropertiesUtils.js"
 import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 
 assertMainOrNode()
@@ -98,7 +98,7 @@ type InitArgs = {
  */
 export class SendMailModel {
 	onMailChanged: Stream<null> = stream(null)
-	onRecipientDeleted: Stream<{field: RecipientField; recipient: Recipient} | null> = stream(null)
+	onRecipientDeleted: Stream<{ field: RecipientField; recipient: Recipient } | null> = stream(null)
 	onBeforeSend: () => void = noOp
 	loadedInlineImages: InlineImages = new Map()
 
@@ -284,18 +284,18 @@ export class SendMailModel {
 	}
 
 	async initAsResponse(args: InitAsResponseArgs, inlineImages: InlineImages): Promise<SendMailModel> {
-		const {previousMail, conversationType, senderMailAddress, recipients, attachments, subject, bodyText, replyTos} = args
+		const { previousMail, conversationType, senderMailAddress, recipients, attachments, subject, bodyText, replyTos } = args
 		let previousMessageId: string | null = null
 		await this.entity
-				  .load(ConversationEntryTypeRef, previousMail.conversationEntry)
-				  .then((ce) => {
-					  previousMessageId = ce.messageId
-				  })
-				  .catch(
-					  ofClass(NotFoundError, (e) => {
-						  console.log("could not load conversation entry", e)
-					  }),
-				  )
+			.load(ConversationEntryTypeRef, previousMail.conversationEntry)
+			.then((ce) => {
+				previousMessageId = ce.messageId
+			})
+			.catch(
+				ofClass(NotFoundError, (e) => {
+					console.log("could not load conversation entry", e)
+				}),
+			)
 		// if we reuse the same image references, changing the displayed mail in mail view will cause the minimized draft to lose
 		// that reference, because it will be revoked
 		this.loadedInlineImages = cloneInlineImages(inlineImages)
@@ -379,19 +379,19 @@ export class SendMailModel {
 	}
 
 	private async init({
-						   conversationType,
-						   subject,
-						   bodyText,
-						   draft,
-						   recipients,
-						   senderMailAddress,
-						   confidential,
-						   attachments,
-						   replyTos,
-						   previousMail,
-						   previousMessageId,
-						   initialChangedState,
-					   }: InitArgs): Promise<SendMailModel> {
+		conversationType,
+		subject,
+		bodyText,
+		draft,
+		recipients,
+		senderMailAddress,
+		confidential,
+		attachments,
+		replyTos,
+		previousMail,
+		previousMessageId,
+		initialChangedState,
+	}: InitArgs): Promise<SendMailModel> {
 		this.conversationType = conversationType
 		this.subject = subject
 		this.body = bodyText
@@ -483,7 +483,6 @@ export class SendMailModel {
 		return Promise.all(this.replyTos.map((r) => r.resolved()))
 	}
 
-
 	/**
 	 * add a recipient to the recipient list without updating the saved state of the draft.
 	 * if the recipient is already inserted, it will wait for it to resolve before returning.
@@ -492,7 +491,7 @@ export class SendMailModel {
 	 */
 	private async insertRecipient(
 		fieldType: RecipientField,
-		{address, name, type, contact}: PartialRecipient,
+		{ address, name, type, contact }: PartialRecipient,
 		resolveMode: ResolveMode = ResolveMode.Eager,
 	): Promise<boolean> {
 		let recipient = this.getRecipientList(fieldType).find((recipient) => recipient.address === address)
@@ -510,7 +509,7 @@ export class SendMailModel {
 
 			this.getRecipientList(fieldType).push(recipient)
 
-			recipient.resolved().then(({address, contact}) => {
+			recipient.resolved().then(({ address, contact }) => {
 				if (!this.passwords.has(address) && contact != null) {
 					this.setPassword(address, contact.presharedPassword ?? "")
 				} else {
@@ -529,16 +528,8 @@ export class SendMailModel {
 	 * Add a new recipient, this method resolves when the recipient resolves.
 	 * will notify of a changed draft state after the recipient was inserted
 	 */
-	async addRecipient(
-		fieldType: RecipientField,
-		partialRecipient: PartialRecipient,
-		resolveMode: ResolveMode = ResolveMode.Eager,
-	): Promise<void> {
-		const wasAdded = await this.insertRecipient(
-			fieldType,
-			partialRecipient,
-			resolveMode,
-		)
+	async addRecipient(fieldType: RecipientField, partialRecipient: PartialRecipient, resolveMode: ResolveMode = ResolveMode.Eager): Promise<void> {
+		const wasAdded = await this.insertRecipient(fieldType, partialRecipient, resolveMode)
 		this.markAsChangedIfNecessary(wasAdded)
 	}
 
@@ -613,30 +604,30 @@ export class SendMailModel {
 
 	private async updateDraft(body: string, attachments: ReadonlyArray<Attachment> | null, draft: Mail): Promise<Mail> {
 		return this.mailFacade
-				   .updateDraft({
-					   subject: this.getSubject(),
-					   body: body,
-					   senderMailAddress: this.senderAddress,
-					   senderName: this.getSenderName(),
-					   toRecipients: await this.toRecipientsResolved(),
-					   ccRecipients: await this.ccRecipientsResolved(),
-					   bccRecipients: await this.bccRecipientsResolved(),
-					   attachments: attachments,
-					   confidential: this.isConfidential(),
-					   draft: draft,
-				   })
-				   .catch(
-					   ofClass(LockedError, (e) => {
-						   console.log("updateDraft: operation is still active", e)
-						   throw new UserError("operationStillActive_msg")
-					   }),
-				   )
-				   .catch(
-					   ofClass(NotFoundError, (e) => {
-						   console.log("draft has been deleted, creating new one")
-						   return this.createDraft(body, attachments, downcast(draft.method))
-					   }),
-				   )
+			.updateDraft({
+				subject: this.getSubject(),
+				body: body,
+				senderMailAddress: this.senderAddress,
+				senderName: this.getSenderName(),
+				toRecipients: await this.toRecipientsResolved(),
+				ccRecipients: await this.ccRecipientsResolved(),
+				bccRecipients: await this.bccRecipientsResolved(),
+				attachments: attachments,
+				confidential: this.isConfidential(),
+				draft: draft,
+			})
+			.catch(
+				ofClass(LockedError, (e) => {
+					console.log("updateDraft: operation is still active", e)
+					throw new UserError("operationStillActive_msg")
+				}),
+			)
+			.catch(
+				ofClass(NotFoundError, (e) => {
+					console.log("draft has been deleted, creating new one")
+					return this.createDraft(body, attachments, downcast(draft.method))
+				}),
+			)
 	}
 
 	private async createDraft(body: string, attachments: ReadonlyArray<Attachment> | null, mailMethod: MailMethod): Promise<Mail> {
@@ -803,8 +794,8 @@ export class SendMailModel {
 	 */
 	hasInsecurePasswords(): boolean {
 		const minimalPasswordStrength = this.allRecipients()
-											.filter((r) => this.getPassword(r.address) !== "")
-											.reduce((min, recipient) => Math.min(min, this.getPasswordStrength(recipient)), PASSWORD_MIN_SECURE_VALUE)
+			.filter((r) => this.getPassword(r.address) !== "")
+			.reduce((min, recipient) => Math.min(min, this.getPasswordStrength(recipient)), PASSWORD_MIN_SECURE_VALUE)
 		return !isSecurePassword(minimalPasswordStrength)
 	}
 
@@ -937,7 +928,7 @@ export class SendMailModel {
 	 * If contacts have had their passwords changed, we update them before sending
 	 */
 	private async updateContacts(resolvedRecipients: Recipient[]): Promise<any> {
-		for (const {address, contact, type} of resolvedRecipients) {
+		for (const { address, contact, type } of resolvedRecipients) {
 			if (contact == null) {
 				continue
 			}
@@ -975,7 +966,7 @@ export class SendMailModel {
 	}
 
 	async handleEntityEvent(update: EntityUpdateData): Promise<void> {
-		const {operation, instanceId, instanceListId} = update
+		const { operation, instanceId, instanceListId } = update
 		let contactId: IdTuple = [neverNull(instanceListId), instanceId]
 		let changed = false
 

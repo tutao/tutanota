@@ -3,7 +3,7 @@ import { show as showNotificationOverlay } from "./base/NotificationOverlay"
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import { assertMainOrNode } from "../api/common/Env"
 import { SearchModel } from "../search/model/SearchModel.js"
-import {SearchIndexStateInfo} from "../api/worker/search/SearchTypes.js"
+import { SearchIndexStateInfo } from "../api/worker/search/SearchTypes.js"
 
 assertMainOrNode()
 

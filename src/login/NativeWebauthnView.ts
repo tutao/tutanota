@@ -7,7 +7,7 @@ import { progressIcon } from "../gui/base/Icon.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { ButtonType } from "../gui/base/Button.js"
 import { BrowserWebauthn } from "../misc/2fa/webauthn/BrowserWebauthn.js"
-import {TopLevelView} from "../TopLevelView.js";
+import { TopLevelView } from "../TopLevelView.js"
 
 /**
  * This is a special view which is not used by the web client

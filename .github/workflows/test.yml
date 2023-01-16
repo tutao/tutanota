@@ -18,6 +18,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: install npm
         run: npm i -g npm@8.11.0
+      - name: lint, formatting
+        run: |
+          npm ci
+          npm run check
       - name: npm install, npm test
         run: |
           npm ci

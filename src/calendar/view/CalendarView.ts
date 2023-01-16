@@ -675,9 +675,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					}),
 			).then((confirmed) => {
 				if (confirmed) {
-					this.viewModel
-						.deleteCalendar(calendarInfo)
-						.catch(ofClass(NotFoundError, () => console.log("Calendar to be deleted was not found.")))
+					this.viewModel.deleteCalendar(calendarInfo).catch(ofClass(NotFoundError, () => console.log("Calendar to be deleted was not found.")))
 				}
 			})
 		})

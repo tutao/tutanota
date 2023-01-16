@@ -1,6 +1,6 @@
-import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
-import {getStartOfDay, incrementDate, isSameDay, lastThrow, neverNull, ofClass} from "@tutao/tutanota-utils"
-import {formatTime} from "../../misc/Formatter"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import { getStartOfDay, incrementDate, isSameDay, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { formatTime } from "../../misc/Formatter"
 import {
 	CALENDAR_EVENT_HEIGHT,
 	combineDateWithTime,
@@ -21,27 +21,27 @@ import {
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
 } from "../date/CalendarUtils"
-import {CalendarDayEventsView, calendarDayTimes} from "./CalendarDayEventsView"
-import {theme} from "../../gui/theme"
-import {px, size} from "../../gui/size"
-import {EventTextTimeOption, WeekStart} from "../../api/common/TutanotaConstants"
-import {lang} from "../../misc/LanguageViewModel"
-import {PageView} from "../../gui/base/PageView"
-import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
-import {logins} from "../../api/main/LoginController"
-import type {GroupColors} from "./CalendarView"
-import {SELECTED_DATE_INDICATOR_THICKNESS} from "./CalendarView"
-import type {EventDragHandlerCallbacks, MousePos} from "./EventDragHandler"
-import {EventDragHandler} from "./EventDragHandler"
-import {getPosAndBoundsFromMouseEvent} from "../../gui/base/GuiUtils"
-import {UserError} from "../../api/main/UserError"
-import {showUserError} from "../../misc/ErrorHandlerImpl"
-import {styles} from "../../gui/styles"
-import {renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton} from "./CalendarGuiUtils"
-import type {CalendarEventBubbleClickHandler, EventsOnDays} from "./CalendarViewModel"
-import {CalendarViewType} from "./CalendarViewModel"
-import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
-import {isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
+import { CalendarDayEventsView, calendarDayTimes } from "./CalendarDayEventsView"
+import { theme } from "../../gui/theme"
+import { px, size } from "../../gui/size"
+import { EventTextTimeOption, WeekStart } from "../../api/common/TutanotaConstants"
+import { lang } from "../../misc/LanguageViewModel"
+import { PageView } from "../../gui/base/PageView"
+import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
+import { logins } from "../../api/main/LoginController"
+import type { GroupColors } from "./CalendarView"
+import { SELECTED_DATE_INDICATOR_THICKNESS } from "./CalendarView"
+import type { EventDragHandlerCallbacks, MousePos } from "./EventDragHandler"
+import { EventDragHandler } from "./EventDragHandler"
+import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
+import { UserError } from "../../api/main/UserError"
+import { showUserError } from "../../misc/ErrorHandlerImpl"
+import { styles } from "../../gui/styles"
+import { renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton } from "./CalendarGuiUtils"
+import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarViewModel"
+import { CalendarViewType } from "./CalendarViewModel"
+import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
+import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 
 export type Attrs = {
 	selectedDate: Date
@@ -303,15 +303,12 @@ export class MultiDayCalendarView implements Component<Attrs> {
 			// Only display navigation buttons if it is the visible page
 			thisPageEvents === mainPageEvents
 				? m(".pr-l.flex.row.items-center", [
-					renderCalendarSwitchLeftButton("prevWeek_label", () => onChangeViewPeriod(false)),
-					renderCalendarSwitchRightButton("nextWeek_label", () => onChangeViewPeriod(true)),
-					m("h1", renderHeaderText(selectedDate)),
-					this.renderWeekNumberLabel(firstDate, startOfTheWeek),
-				])
-				: m(".pr-l.flex.row.items-center", [
-					m("h1", renderHeaderText(selectedDate)),
-					this.renderWeekNumberLabel(firstDate, startOfTheWeek),
-				]),
+						renderCalendarSwitchLeftButton("prevWeek_label", () => onChangeViewPeriod(false)),
+						renderCalendarSwitchRightButton("nextWeek_label", () => onChangeViewPeriod(true)),
+						m("h1", renderHeaderText(selectedDate)),
+						this.renderWeekNumberLabel(firstDate, startOfTheWeek),
+				  ])
+				: m(".pr-l.flex.row.items-center", [m("h1", renderHeaderText(selectedDate)), this.renderWeekNumberLabel(firstDate, startOfTheWeek)]),
 			m(
 				".calendar-hour-margin",
 				{

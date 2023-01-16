@@ -22,7 +22,7 @@ export const enum ButtonType {
 	Login = "login",
 	Bubble = "bubble",
 	TextBubble = "textBubble",
-	FolderColumnHeader = "folderColumnHeader"
+	FolderColumnHeader = "folderColumnHeader",
 }
 
 export const enum ButtonColor {

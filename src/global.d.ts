@@ -11,7 +11,7 @@ import { LoginController } from "./api/main/LoginController"
 import { IMainLocator } from "./api/main/MainLocator"
 import { WhitelabelCustomizations } from "./misc/WhitelabelCustomizations"
 import { WorkerLocatorType } from "./api/worker/WorkerLocator"
-import {TopLevelView} from "./TopLevelView.js"
+import { TopLevelView } from "./TopLevelView.js"
 
 interface NativeApp {
 	// In desktop we can pass whole objects

@@ -267,10 +267,11 @@ function signup(
 			})
 		}),
 		operation.progress,
-	).catch(
-		ofClass(InvalidDataError, () => {
-			Dialog.message("invalidRegistrationCode_msg")
-		}),
 	)
-		.finally(() =>  operation.done())
+		.catch(
+			ofClass(InvalidDataError, () => {
+				Dialog.message("invalidRegistrationCode_msg")
+			}),
+		)
+		.finally(() => operation.done())
 }
