@@ -6,7 +6,7 @@ import { LoginListener } from "../../api/main/LoginListener.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { OfflineIndicatorAttrs, OfflineIndicatorState } from "./OfflineIndicator.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
-import {ProgressTracker} from "../../api/main/ProgressTracker.js"
+import { ProgressTracker } from "../../api/main/ProgressTracker.js"
 
 /**
  * the offline indicator must take into account information
@@ -33,14 +33,13 @@ export class OfflineIndicatorViewModel {
 	 **/
 	private wsWasConnectedBefore: boolean = false
 
-
 	constructor(
 		private readonly cacheStorage: ExposedCacheStorage,
 		private readonly loginListener: LoginListener,
 		private readonly connectivityModel: WebsocketConnectivityModel,
 		private readonly logins: LoginController,
 		progressTracker: ProgressTracker,
-		private readonly cb: () => void
+		private readonly cb: () => void,
 	) {
 		logins.waitForFullLogin().then(() => this.cb())
 		this.setProgressUpdateStream(progressTracker.onProgressUpdate)

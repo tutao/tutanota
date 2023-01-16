@@ -1,7 +1,7 @@
 import o from "ospec"
 import { ConnectMode, EventBusClient, EventBusListener } from "../../../../src/api/worker/EventBusClient.js"
-import {GroupType, OperationType} from "../../../../src/api/common/TutanotaConstants.js"
-import type {EntityUpdate} from "../../../../src/api/entities/sys/TypeRefs.js"
+import { GroupType, OperationType } from "../../../../src/api/common/TutanotaConstants.js"
+import type { EntityUpdate } from "../../../../src/api/entities/sys/TypeRefs.js"
 import {
 	createEntityEventBatch,
 	createEntityUpdate,
@@ -15,18 +15,18 @@ import {
 	WebsocketCounterData,
 	WebsocketEntityData,
 } from "../../../../src/api/entities/sys/TypeRefs.js"
-import {EntityRestClientMock} from "./rest/EntityRestClientMock.js"
-import {EntityClient} from "../../../../src/api/common/EntityClient.js"
-import {defer, noOp} from "@tutao/tutanota-utils"
-import {InstanceMapper} from "../../../../src/api/worker/crypto/InstanceMapper.js"
-import {DefaultEntityRestCache} from "../../../../src/api/worker/rest/DefaultEntityRestCache.js"
-import {QueuedBatch} from "../../../../src/api/worker/search/EventQueue.js"
-import {OutOfSyncError} from "../../../../src/api/common/error/OutOfSyncError.js"
-import {matchers, object, verify, when} from "testdouble"
-import {getElementId} from "../../../../src/api/common/utils/EntityUtils.js"
-import {SleepDetector} from "../../../../src/api/worker/utils/SleepDetector.js"
-import {WsConnectionState} from "../../../../src/api/main/WorkerClient.js"
-import {UserFacade} from "../../../../src/api/worker/facades/UserFacade"
+import { EntityRestClientMock } from "./rest/EntityRestClientMock.js"
+import { EntityClient } from "../../../../src/api/common/EntityClient.js"
+import { defer, noOp } from "@tutao/tutanota-utils"
+import { InstanceMapper } from "../../../../src/api/worker/crypto/InstanceMapper.js"
+import { DefaultEntityRestCache } from "../../../../src/api/worker/rest/DefaultEntityRestCache.js"
+import { QueuedBatch } from "../../../../src/api/worker/search/EventQueue.js"
+import { OutOfSyncError } from "../../../../src/api/common/error/OutOfSyncError.js"
+import { matchers, object, verify, when } from "testdouble"
+import { getElementId } from "../../../../src/api/common/utils/EntityUtils.js"
+import { SleepDetector } from "../../../../src/api/worker/utils/SleepDetector.js"
+import { WsConnectionState } from "../../../../src/api/main/WorkerClient.js"
+import { UserFacade } from "../../../../src/api/worker/facades/UserFacade"
 import { ExposedProgressTracker } from "../../../../src/api/main/ProgressTracker.js"
 
 o.spec("EventBusClient test", function () {
