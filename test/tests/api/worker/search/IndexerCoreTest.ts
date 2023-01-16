@@ -499,7 +499,7 @@ o.spec("IndexerCore test", () => {
 				},
 			])
 			await core._insertNewIndexEntries(indexUpdate, transaction)
-			o(Array.from(transaction.getSync(SearchIndexOS, 1))).deepEquals(Array.from(appendBinaryBlocks([entry])))
+			o(Array.from(transaction.getSync<Uint8Array>(SearchIndexOS, 1))).deepEquals(Array.from(appendBinaryBlocks([entry])))
 			const decodedInsertedMeta = decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, 1))
 			o(decodedInsertedMeta).deepEquals({
 				id: 1,
@@ -545,7 +545,7 @@ o.spec("IndexerCore test", () => {
 			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(core.db.key, searchIndexMeta))
 			transaction.put(SearchIndexOS, searchIndexKey, existingBlock)
 			await core._insertNewIndexEntries(indexUpdate, transaction)
-			o(Array.from(transaction.getSync(SearchIndexOS, searchIndexKey))).deepEquals(Array.from(appendBinaryBlocks([newEntry], existingBlock)))
+			o(Array.from(transaction.getSync<Uint8Array>(SearchIndexOS, searchIndexKey))).deepEquals(Array.from(appendBinaryBlocks([newEntry], existingBlock)))
 			const expectedMeta = Object.assign({}, searchIndexMeta, {
 				rows: [
 					{
@@ -591,7 +591,7 @@ o.spec("IndexerCore test", () => {
 			await core._insertNewIndexEntries(indexUpdate, transaction)
 			const searchIndexContent = dbStub.getObjectStore(SearchIndexOS).content[newKey]
 			o(Array.from(searchIndexContent)).deepEquals(Array.from(appendBinaryBlocks(newEntries.slice(0, 150).map((e) => e.entry))))
-			o(Array.from(transaction.getSync(SearchIndexOS, 1))).deepEquals(
+			o(Array.from(transaction.getSync<Uint8Array>(SearchIndexOS, 1))).deepEquals(
 				Array.from(
 					appendBinaryBlocks(
 						newEntries.slice(150).map((e) => e.entry),
@@ -639,7 +639,7 @@ o.spec("IndexerCore test", () => {
 			transaction.put(SearchIndexOS, 1, existingRow)
 			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(core.db.key, searchIndexMeta))
 			await core._insertNewIndexEntries(indexUpdate, transaction)
-			o(Array.from(transaction.getSync(SearchIndexOS, 1))).deepEquals(
+			o(Array.from(transaction.getSync<Uint8Array>(SearchIndexOS, 1))).deepEquals(
 				Array.from(
 					appendBinaryBlocks(
 						newEntries.map((e) => e.entry),
@@ -677,7 +677,7 @@ o.spec("IndexerCore test", () => {
 			transaction.put(SearchIndexOS, 1, existingRow)
 			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(core.db.key, searchIndexMeta))
 			await core._insertNewIndexEntries(indexUpdate, transaction)
-			o(Array.from(transaction.getSync(SearchIndexOS, 1))).deepEquals(
+			o(Array.from(transaction.getSync<Uint8Array>(SearchIndexOS, 1))).deepEquals(
 				Array.from(
 					appendBinaryBlocks(
 						newEntries.map((e) => e.entry),

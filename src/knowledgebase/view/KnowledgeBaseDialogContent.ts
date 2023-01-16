@@ -1,18 +1,16 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { KnowledgeBaseModel } from "../model/KnowledgeBaseModel"
-import type { KnowledgeBaseEntry } from "../../api/entities/tutanota/TypeRefs.js"
+import type { EmailTemplate, KnowledgeBaseEntry } from "../../api/entities/tutanota/TypeRefs.js"
 import { KNOWLEDGEBASE_LIST_ENTRY_HEIGHT, KnowledgeBaseListEntry } from "./KnowledgeBaseListEntry"
 import { lang } from "../../misc/LanguageViewModel"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import { KnowledgeBaseEntryView } from "./KnowledgeBaseEntryView"
-import type { EmailTemplate } from "../../api/entities/tutanota/TypeRefs.js"
 import { NotFoundError } from "../../api/common/error/RestError"
 import { Dialog } from "../../gui/base/Dialog"
-import type { TextFieldAttrs } from "../../gui/base/TextField.js"
 import { TextField } from "../../gui/base/TextField.js"
 import { makeListSelectionChangedScrollHandler } from "../../gui/base/GuiUtils"
 import { ofClass } from "@tutao/tutanota-utils"
-import Stream from "mithril/stream"
 
 export type KnowledgebaseDialogContentAttrs = {
 	readonly onTemplateSelect: (arg0: EmailTemplate) => void
