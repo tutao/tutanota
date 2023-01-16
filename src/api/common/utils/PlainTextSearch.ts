@@ -17,7 +17,12 @@ type SearchMatch<T> = {
  * @param markHits If set to true the hits will be marked with html tag <mark>
  * @returns a list of entries, sorted by priority, that match the query string
  */
-export function search<T>(queryString: string, entries: ReadonlyArray<T>, attributeNames: string[], markHits: boolean = false): ReadonlyArray<T> {
+export function search<T extends Record<string, any>>(
+	queryString: string,
+	entries: ReadonlyArray<T>,
+	attributeNames: string[],
+	markHits: boolean = false,
+): ReadonlyArray<T> {
 	entries = entries.map((e) => Object.assign({}, e)) // create a copy in order to not override the original values
 
 	if (queryString) {
@@ -87,7 +92,12 @@ function _findMatchInEntry<T>(
 }
 
 //export only for testing
-export function _search<T>(queryString: string, entries: ReadonlyArray<T>, attributeNames: string[], markHits: boolean): SearchMatch<T>[] {
+export function _search<T extends Record<string, any>>(
+	queryString: string,
+	entries: ReadonlyArray<T>,
+	attributeNames: string[],
+	markHits: boolean,
+): SearchMatch<T>[] {
 	let queryWords = queryString
 		.toLocaleLowerCase()
 		.split(" ")

@@ -90,7 +90,7 @@
 		"rollup-plugin-terser": "7.0.2",
 		"rollup-plugin-visualizer": "5.5.2",
 		"testdouble": "3.16.4",
-		"typescript": "4.7.2",
+		"typescript": "4.9.4",
 		"xhr2": "0.2.1",
 		"zx": "7.0.7",
 		"express": "4.17.0"
