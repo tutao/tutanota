@@ -57,7 +57,7 @@ import { EntropyFacade } from "./facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./crypto/OwnerEncSessionKeysUpdateQueue.js"
 import { EventBusEventCoordinator } from "./EventBusEventCoordinator.js"
-import {WorkerFacade} from "./facades/WorkerFacade.js"
+import { WorkerFacade } from "./facades/WorkerFacade.js"
 
 assertWorkerOrNode()
 

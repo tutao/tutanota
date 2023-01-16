@@ -1,6 +1,5 @@
 import m from "mithril"
 import { assertMainOrNode } from "../../api/common/Env"
-import { header } from "../../gui/Header.js"
 import { modal } from "../../gui/base/Modal"
 import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX, SETTINGS_PREFIX } from "../../misc/RouteChange"
 import { last } from "@tutao/tutanota-utils"
@@ -9,7 +8,7 @@ import { MobileFacade } from "../common/generatedipc/MobileFacade.js"
 import { styles } from "../../gui/styles"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { MailModel } from "../../mail/model/MailModel.js"
-import {TopLevelView} from "../../TopLevelView.js"
+import { TopLevelView } from "../../TopLevelView.js"
 
 assertMainOrNode()
 

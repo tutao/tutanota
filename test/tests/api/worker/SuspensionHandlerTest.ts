@@ -3,9 +3,9 @@ import { SuspensionHandler } from "../../../../src/api/worker/SuspensionHandler.
 import { deferWithHandler, downcast } from "@tutao/tutanota-utils"
 import type { WorkerImpl } from "../../../../src/api/worker/WorkerImpl.js"
 import type { SystemTimeout } from "../../../../src/api/common/utils/Scheduler.js"
-import {InfoMessageHandler} from "../../../../src/gui/InfoMessageHandler.js"
-import {matchers, object} from "testdouble"
-import {verify} from "@tutao/tutanota-test-utils"
+import { InfoMessageHandler } from "../../../../src/gui/InfoMessageHandler.js"
+import { matchers, object } from "testdouble"
+import { verify } from "@tutao/tutanota-test-utils"
 
 o.spec("SuspensionHandler test", () => {
 	let suspensionHandler
@@ -43,7 +43,7 @@ o.spec("SuspensionHandler test", () => {
 				suspensionHandler.activateSuspensionIfInactive(100)
 				o(systemTimeout.setTimeout.callCount).equals(0)
 				o(suspensionHandler.isSuspended()).equals(true)
-				verify(messageHandlerMock.onInfoMessage(matchers.anything()), {times: 0})
+				verify(messageHandlerMock.onInfoMessage(matchers.anything()), { times: 0 })
 			}),
 		)
 		o(
@@ -61,7 +61,7 @@ o.spec("SuspensionHandler test", () => {
 				suspensionHandler._isSuspended = false
 				suspensionHandler._hasSentInfoMessage = false
 				suspensionHandler.activateSuspensionIfInactive(100)
-				verify(messageHandlerMock.onInfoMessage(matchers.anything()), {times: 1})
+				verify(messageHandlerMock.onInfoMessage(matchers.anything()), { times: 1 })
 			}),
 		)
 		o(
@@ -70,7 +70,7 @@ o.spec("SuspensionHandler test", () => {
 				suspensionHandler._isSuspended = false
 				suspensionHandler._hasSentInfoMessage = true
 				suspensionHandler.activateSuspensionIfInactive(100)
-				verify(messageHandlerMock.onInfoMessage(matchers.anything()), {times: 0})
+				verify(messageHandlerMock.onInfoMessage(matchers.anything()), { times: 0 })
 			}),
 		)
 	})

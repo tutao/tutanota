@@ -1,4 +1,4 @@
-import {BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity, TypeModel} from "../../common/EntityTypes.js"
+import { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
 import { EntityRestClient, typeRefToPath } from "./EntityRestClient.js"
 import { firstBiggerThanSecond, getElementId, getListId } from "../../common/utils/EntityUtils.js"
 import { CacheStorage, LastUpdateTime } from "./DefaultEntityRestCache.js"
