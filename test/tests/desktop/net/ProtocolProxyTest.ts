@@ -141,7 +141,7 @@ o.spec("ProtocolProxy", function () {
 				uploadData: null,
 				referrer: "",
 			}
-			const proxiedClientRequest: any = object(["request", "on", "end", "destroy"])
+			const proxiedClientRequest: any = object(["request", "once", "end", "destroy"])
 			replace(httpModule, "Agent", agent)
 			replace(httpsModule, "Agent", agent)
 			when(httpModule.request("http://no/where", { method: request.method, headers: request.headers, agent: matchers.anything() })).thenReturn(
