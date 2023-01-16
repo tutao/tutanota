@@ -11,7 +11,7 @@ import type { InlineImages } from "./MailViewer"
 import { isApp, isDesktop } from "../../api/common/Env"
 import { assertNotNull, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { MailFolderType, MailReportType } from "../../api/common/TutanotaConstants"
-import {getElementId, getListId} from "../../api/common/utils/EntityUtils"
+import { getElementId, getListId } from "../../api/common/utils/EntityUtils"
 import { reportMailsAutomatically } from "./MailReportDialog"
 import { DataFile } from "../../api/common/DataFile"
 import { TranslationKey } from "../../misc/LanguageViewModel"
@@ -19,7 +19,7 @@ import { FileController } from "../../file/FileController"
 import { DomRectReadOnlyPolyfilled, Dropdown, PosRect } from "../../gui/base/Dropdown.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { modal } from "../../gui/base/Modal.js"
-import {isSpamOrTrashFolder} from "../../api/common/mail/CommonMailUtils.js"
+import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
 
 export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
 	let trashMails: Mail[] = []

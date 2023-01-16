@@ -1,5 +1,5 @@
 import { Vnode } from "mithril"
-import {TopLevelAttrs} from "../TopLevelView.js"
+import { TopLevelAttrs } from "../TopLevelView.js"
 
 /**
  * Base (utility) class for top-level components. Will handle URL updates for you automatically and will only call {@link onNewUrl} when necessary.

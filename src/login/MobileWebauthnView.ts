@@ -9,7 +9,7 @@ import { BrowserWebauthn } from "../misc/2fa/webauthn/BrowserWebauthn.js"
 import { WebAuthnSignChallenge } from "../native/common/generatedipc/WebAuthnSignChallenge.js"
 import { stringToBase64 } from "@tutao/tutanota-utils"
 import { WebAuthnRegistrationChallenge } from "../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
-import {TopLevelView, TopLevelAttrs} from "../TopLevelView.js";
+import { TopLevelView, TopLevelAttrs } from "../TopLevelView.js"
 
 export interface MobileWebauthnAttrs extends TopLevelAttrs {
 	browserWebauthn: BrowserWebauthn

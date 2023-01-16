@@ -23,7 +23,7 @@ import { assertMainOrNode } from "../api/common/Env"
 import type { Credentials } from "../misc/credentials/Credentials"
 import { SessionType } from "../api/common/SessionType.js"
 import { ResumeSessionErrorReason } from "../api/worker/facades/LoginFacade"
-import {TopLevelView} from "../TopLevelView.js"
+import { TopLevelView } from "../TopLevelView.js"
 
 assertMainOrNode()
 

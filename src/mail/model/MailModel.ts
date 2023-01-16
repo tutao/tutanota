@@ -36,7 +36,7 @@ import type { MailFacade } from "../../api/worker/facades/MailFacade"
 import { LoginController } from "../../api/main/LoginController.js"
 import { getEnabledMailAddressesWithUser } from "./MailUtils.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
-import {WebsocketConnectivityModel} from "../../misc/WebsocketConnectivityModel.js"
+import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { UserError } from "../../api/main/UserError.js"
 import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
@@ -117,20 +117,18 @@ export class MailModel {
 	}
 
 	private loadFolders(folderListId: Id): Promise<MailFolder[]> {
-		return this.entityClient
-			.loadAll(MailFolderTypeRef, folderListId)
-			.then((folders) => {
-				return folders.filter((f) => {
-					// We do not show spam or archive for external users
-					if (!this.logins.isInternalUserLoggedIn() && (f.folderType === MailFolderType.SPAM || f.folderType === MailFolderType.ARCHIVE)) {
-						return false
-					} else if (this.logins.isEnabled(FeatureType.InternalCommunication) && f.folderType === MailFolderType.SPAM) {
-						return false
-					} else {
-						return true
-					}
-				})
+		return this.entityClient.loadAll(MailFolderTypeRef, folderListId).then((folders) => {
+			return folders.filter((f) => {
+				// We do not show spam or archive for external users
+				if (!this.logins.isInternalUserLoggedIn() && (f.folderType === MailFolderType.SPAM || f.folderType === MailFolderType.ARCHIVE)) {
+					return false
+				} else if (this.logins.isEnabled(FeatureType.InternalCommunication) && f.folderType === MailFolderType.SPAM) {
+					return false
+				} else {
+					return true
+				}
 			})
+		})
 	}
 
 	/**

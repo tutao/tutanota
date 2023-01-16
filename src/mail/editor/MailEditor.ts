@@ -1,12 +1,12 @@
-import m, {Children, Component, Vnode} from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {Editor} from "../../gui/editor/Editor"
-import type {Attachment, InitAsResponseArgs, SendMailModel} from "./SendMailModel"
-import {Dialog} from "../../gui/base/Dialog"
-import {InfoLink, lang} from "../../misc/LanguageViewModel"
-import type {MailboxDetail} from "../model/MailModel"
-import {checkApprovalStatus} from "../../misc/LoginUtils"
+import { Editor } from "../../gui/editor/Editor"
+import type { Attachment, InitAsResponseArgs, SendMailModel } from "./SendMailModel"
+import { Dialog } from "../../gui/base/Dialog"
+import { InfoLink, lang } from "../../misc/LanguageViewModel"
+import type { MailboxDetail } from "../model/MailModel"
+import { checkApprovalStatus } from "../../misc/LoginUtils"
 import {
 	checkAttachmentSize,
 	conversationTypeString,
@@ -16,66 +16,66 @@ import {
 	LINE_BREAK,
 	RecipientField,
 } from "../model/MailUtils"
-import {PermissionError} from "../../api/common/error/PermissionError"
-import {locator} from "../../api/main/MainLocator"
-import {logins} from "../../api/main/LoginController"
-import {ALLOWED_IMAGE_FORMATS, ConversationType, FeatureType, Keys, MailMethod} from "../../api/common/TutanotaConstants"
-import {TooManyRequestsError} from "../../api/common/error/RestError"
-import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
-import {Button, ButtonType} from "../../gui/base/Button.js"
-import {attachDropdown, createDropdown, DropdownChildAttrs} from "../../gui/base/Dropdown.js"
-import {isApp, isBrowser, isDesktop} from "../../api/common/Env"
-import {Icons} from "../../gui/base/icons/Icons"
-import {AnimationPromise, animations, height, opacity} from "../../gui/animation/Animations"
-import type {TextFieldAttrs} from "../../gui/base/TextField.js"
-import {Autocomplete, TextField, TextFieldType} from "../../gui/base/TextField.js"
-import {chooseAndAttachFile, cleanupInlineAttachments, createAttachmentButtonAttrs, getConfidentialStateMessage} from "./MailEditorViewModel"
-import {ExpanderPanel} from "../../gui/base/Expander"
-import {windowFacade} from "../../misc/WindowFacade"
-import {UserError} from "../../api/main/UserError"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {htmlSanitizer} from "../../misc/HtmlSanitizer"
-import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
+import { PermissionError } from "../../api/common/error/PermissionError"
+import { locator } from "../../api/main/MainLocator"
+import { logins } from "../../api/main/LoginController"
+import { ALLOWED_IMAGE_FORMATS, ConversationType, FeatureType, Keys, MailMethod } from "../../api/common/TutanotaConstants"
+import { TooManyRequestsError } from "../../api/common/error/RestError"
+import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../gui/base/Dropdown.js"
+import { isApp, isBrowser, isDesktop } from "../../api/common/Env"
+import { Icons } from "../../gui/base/icons/Icons"
+import { AnimationPromise, animations, height, opacity } from "../../gui/animation/Animations"
+import type { TextFieldAttrs } from "../../gui/base/TextField.js"
+import { Autocomplete, TextField, TextFieldType } from "../../gui/base/TextField.js"
+import { chooseAndAttachFile, cleanupInlineAttachments, createAttachmentButtonAttrs, getConfidentialStateMessage } from "./MailEditorViewModel"
+import { ExpanderPanel } from "../../gui/base/Expander"
+import { windowFacade } from "../../misc/WindowFacade"
+import { UserError } from "../../api/main/UserError"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import { htmlSanitizer } from "../../misc/HtmlSanitizer"
+import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import type { File as TutanotaFile, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import type {InlineImages} from "../view/MailViewer"
-import {FileOpenError} from "../../api/common/error/FileOpenError"
-import type {lazy} from "@tutao/tutanota-utils"
-import {cleanMatch, downcast, isNotNull, noOp, ofClass, typedValues} from "@tutao/tutanota-utils"
-import {isCustomizationEnabledForCustomer} from "../../api/common/utils/Utils"
-import {createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids} from "../view/MailGuiUtils"
-import {client} from "../../misc/ClientDetector"
-import {appendEmailSignature} from "../signature/Signature"
-import {showTemplatePopupInEditor} from "../../templates/view/TemplatePopup"
-import {registerTemplateShortcutListener} from "../../templates/view/TemplateShortcutListener"
-import {TemplatePopupModel} from "../../templates/model/TemplatePopupModel"
-import {createKnowledgeBaseDialogInjection} from "../../knowledgebase/view/KnowledgeBaseDialog"
-import {KnowledgeBaseModel} from "../../knowledgebase/model/KnowledgeBaseModel"
-import {styles} from "../../gui/styles"
-import {showMinimizedMailEditor} from "../view/MinimizedMailEditorOverlay"
-import {SaveErrorReason, SaveStatus, SaveStatusEnum} from "../model/MinimizedMailEditorViewModel"
-import {isDataFile, isTutanotaFile} from "../../api/common/utils/FileUtils"
-import {parseMailtoUrl} from "../../misc/parsing/MailAddressParser"
-import {CancelledError} from "../../api/common/error/CancelledError"
-import {Shortcut} from "../../misc/KeyManager"
-import {DataFile} from "../../api/common/DataFile"
-import {Recipients, RecipientType} from "../../api/common/recipients/Recipient"
-import {CompletenessIndicator} from "../../gui/CompletenessIndicator.js"
-import {showUserError} from "../../misc/ErrorHandlerImpl"
-import {MailRecipientsTextField} from "../../gui/MailRecipientsTextField.js"
-import {getContactDisplayName} from "../../contacts/model/ContactUtils"
-import {ResolvableRecipient} from "../../api/main/RecipientsModel"
-import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
-import {animateToolbar, RichTextToolbar} from "../../gui/base/RichTextToolbar.js"
-import {readLocalFiles} from "../../file/FileController"
-import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
-import {ToggleButton, ToggleButtonAttrs} from "../../gui/base/ToggleButton.js"
-import {BootIcons} from "../../gui/base/icons/BootIcons.js"
-import {ButtonSize} from "../../gui/base/ButtonSize.js"
-import {DialogInjectionRightAttrs} from "../../gui/base/DialogInjectionRight.js"
-import {KnowledgebaseDialogContentAttrs} from "../../knowledgebase/view/KnowledgeBaseDialogContent.js"
+import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import type { InlineImages } from "../view/MailViewer"
+import { FileOpenError } from "../../api/common/error/FileOpenError"
+import type { lazy } from "@tutao/tutanota-utils"
+import { cleanMatch, downcast, isNotNull, noOp, ofClass, typedValues } from "@tutao/tutanota-utils"
+import { isCustomizationEnabledForCustomer } from "../../api/common/utils/Utils"
+import { createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids } from "../view/MailGuiUtils"
+import { client } from "../../misc/ClientDetector"
+import { appendEmailSignature } from "../signature/Signature"
+import { showTemplatePopupInEditor } from "../../templates/view/TemplatePopup"
+import { registerTemplateShortcutListener } from "../../templates/view/TemplateShortcutListener"
+import { TemplatePopupModel } from "../../templates/model/TemplatePopupModel"
+import { createKnowledgeBaseDialogInjection } from "../../knowledgebase/view/KnowledgeBaseDialog"
+import { KnowledgeBaseModel } from "../../knowledgebase/model/KnowledgeBaseModel"
+import { styles } from "../../gui/styles"
+import { showMinimizedMailEditor } from "../view/MinimizedMailEditorOverlay"
+import { SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
+import { isDataFile, isTutanotaFile } from "../../api/common/utils/FileUtils"
+import { parseMailtoUrl } from "../../misc/parsing/MailAddressParser"
+import { CancelledError } from "../../api/common/error/CancelledError"
+import { Shortcut } from "../../misc/KeyManager"
+import { DataFile } from "../../api/common/DataFile"
+import { Recipients, RecipientType } from "../../api/common/recipients/Recipient"
+import { CompletenessIndicator } from "../../gui/CompletenessIndicator.js"
+import { showUserError } from "../../misc/ErrorHandlerImpl"
+import { MailRecipientsTextField } from "../../gui/MailRecipientsTextField.js"
+import { getContactDisplayName } from "../../contacts/model/ContactUtils"
+import { ResolvableRecipient } from "../../api/main/RecipientsModel"
+import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
+import { animateToolbar, RichTextToolbar } from "../../gui/base/RichTextToolbar.js"
+import { readLocalFiles } from "../../file/FileController"
+import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
+import { ToggleButton, ToggleButtonAttrs } from "../../gui/base/ToggleButton.js"
+import { BootIcons } from "../../gui/base/icons/BootIcons.js"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { DialogInjectionRightAttrs } from "../../gui/base/DialogInjectionRight.js"
+import { KnowledgebaseDialogContentAttrs } from "../../knowledgebase/view/KnowledgeBaseDialogContent.js"
 import { MailWrapper } from "../../api/common/MailWrapper.js"
-import {RecipientsSearchModel} from "../../misc/RecipientsSearchModel.js"
+import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -258,7 +258,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	view(vnode: Vnode<MailEditorAttrs>): Children {
 		const a = vnode.attrs
 		this.attrs = a
-		const {model} = a
+		const { model } = a
 		this.sendMailModel = model
 
 		const showConfidentialButton = model.containsExternalRecipients()
@@ -285,17 +285,17 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const toolbarButton = () =>
 			!plaintextFormatting
 				? m(ToggleButton, {
-					title: "showRichTextToolbar_action",
-					icon: Icons.FontSize,
-					size: ButtonSize.Compact,
-					toggled: a.doShowToolbar(),
-					onToggled: (_, e) => {
-						a.doShowToolbar(!a.doShowToolbar())
-						// Stop the subject bar from being focused
-						e.stopPropagation()
-						this.editor.focus()
-					},
-				})
+						title: "showRichTextToolbar_action",
+						icon: Icons.FontSize,
+						size: ButtonSize.Compact,
+						toggled: a.doShowToolbar(),
+						onToggled: (_, e) => {
+							a.doShowToolbar(!a.doShowToolbar())
+							// Stop the subject bar from being focused
+							e.stopPropagation()
+							this.editor.focus()
+						},
+				  })
 				: null
 
 		const subjectFieldAttrs: TextFieldAttrs = {
@@ -327,7 +327,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					{
 						label: "add_action",
 						click: () => {
-							import("../../settings/EditNotificationEmailDialog").then(({showAddOrEditNotificationEmailDialog}) =>
+							import("../../settings/EditNotificationEmailDialog").then(({ showAddOrEditNotificationEmailDialog }) =>
 								showAddOrEditNotificationEmailDialog(logins.getUserController()),
 							)
 						},
@@ -335,7 +335,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					{
 						label: "edit_action",
 						click: () => {
-							import("../../settings/EditNotificationEmailDialog").then(({showAddOrEditNotificationEmailDialog}) =>
+							import("../../settings/EditNotificationEmailDialog").then(({ showAddOrEditNotificationEmailDialog }) =>
 								showAddOrEditNotificationEmailDialog(logins.getUserController(), model.getSelectedNotificationLanguageCode()),
 							)
 						},
@@ -412,43 +412,43 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					),
 					isConfidential
 						? m(
-							".flex",
-							{
-								style: {
-									"min-width": "250px",
+								".flex",
+								{
+									style: {
+										"min-width": "250px",
+									},
+									oncreate: (vnode) => {
+										const htmlDom = vnode.dom as HTMLElement
+										htmlDom.style.opacity = "0"
+										return animations.add(htmlDom, opacity(0, 1, true))
+									},
+									onbeforeremove: (vnode) => {
+										const htmlDom = vnode.dom as HTMLElement
+										htmlDom.style.opacity = "1"
+										return animations.add(htmlDom, opacity(1, 0, true))
+									},
 								},
-								oncreate: (vnode) => {
-									const htmlDom = vnode.dom as HTMLElement
-									htmlDom.style.opacity = "0"
-									return animations.add(htmlDom, opacity(0, 1, true))
-								},
-								onbeforeremove: (vnode) => {
-									const htmlDom = vnode.dom as HTMLElement
-									htmlDom.style.opacity = "1"
-									return animations.add(htmlDom, opacity(1, 0, true))
-								},
-							},
-							[
-								m(
-									".flex-grow",
-									m(DropDownSelector, {
-										label: "notificationMailLanguage_label",
-										items: model.getAvailableNotificationTemplateLanguages().map((language) => {
-											return {
-												name: lang.get(language.textId),
-												value: language.code,
-											}
+								[
+									m(
+										".flex-grow",
+										m(DropDownSelector, {
+											label: "notificationMailLanguage_label",
+											items: model.getAvailableNotificationTemplateLanguages().map((language) => {
+												return {
+													name: lang.get(language.textId),
+													value: language.code,
+												}
+											}),
+											selectedValue: model.getSelectedNotificationLanguageCode(),
+											selectionChangedHandler: (v: string) => model.setSelectedNotificationLanguageCode(v),
+											dropdownWidth: 250,
 										}),
-										selectedValue: model.getSelectedNotificationLanguageCode(),
-										selectionChangedHandler: (v: string) => model.setSelectedNotificationLanguageCode(v),
-										dropdownWidth: 250,
-									}),
-								),
-								editCustomNotificationMailAttrs
-									? m(".pt.flex-no-grow.flex-end.border-bottom.flex.items-center", m(IconButton, editCustomNotificationMailAttrs))
-									: null,
-							],
-						)
+									),
+									editCustomNotificationMailAttrs
+										? m(".pt.flex-no-grow.flex-end.border-bottom.flex.items-center", m(IconButton, editCustomNotificationMailAttrs))
+										: null,
+								],
+						  )
 						: null,
 				]),
 				isConfidential ? this.renderPasswordFields() : null,
@@ -494,7 +494,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		// m.fragment() gives us a vnode without actual DOM element so that we can run callback on removal
 		return m.fragment(
 			{
-				onbeforeremove: ({dom}) => animateToolbar(dom.children[0] as HTMLElement, false),
+				onbeforeremove: ({ dom }) => animateToolbar(dom.children[0] as HTMLElement, false),
 			},
 			[
 				m(RichTextToolbar, {
@@ -502,34 +502,34 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					imageButtonClickHandler: isApp()
 						? null
 						: (event: Event) =>
-							chooseAndAttachFile(model, (event.target as HTMLElement).getBoundingClientRect(), ALLOWED_IMAGE_FORMATS).then((files) => {
-								files &&
-								files.forEach((file) => {
-									// Let's assume it's DataFile for now... Editor bar is available for apps but image button is not
-									if (isDataFile(file)) {
-										const img = createInlineImage(file as DataFile)
-										model.loadedInlineImages.set(img.cid, img)
-										this.inlineImageElements.push(
-											this.editor.insertImage(img.objectUrl, {
-												cid: img.cid,
-												style: "max-width: 100%",
-											}),
-										)
-									}
-								})
-								m.redraw()
-							}),
+								chooseAndAttachFile(model, (event.target as HTMLElement).getBoundingClientRect(), ALLOWED_IMAGE_FORMATS).then((files) => {
+									files &&
+										files.forEach((file) => {
+											// Let's assume it's DataFile for now... Editor bar is available for apps but image button is not
+											if (isDataFile(file)) {
+												const img = createInlineImage(file as DataFile)
+												model.loadedInlineImages.set(img.cid, img)
+												this.inlineImageElements.push(
+													this.editor.insertImage(img.objectUrl, {
+														cid: img.cid,
+														style: "max-width: 100%",
+													}),
+												)
+											}
+										})
+									m.redraw()
+								}),
 					customButtonAttrs: this.templateModel
 						? [
-							{
-								title: "openTemplatePopup_msg",
-								click: () => {
-									this.openTemplates()
+								{
+									title: "openTemplatePopup_msg",
+									click: () => {
+										this.openTemplates()
+									},
+									icon: Icons.ListAlt,
+									size: ButtonSize.Compact,
 								},
-								icon: Icons.ListAlt,
-								size: ButtonSize.Compact,
-							},
-						]
+						  ]
 						: [],
 				}),
 				m("hr.hr"),
@@ -553,10 +553,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					return m(TextField, {
 						oncreate: (vnode) => this.animateHeight(vnode.dom as HTMLElement, true),
 						onbeforeremove: (vnode) => this.animateHeight(vnode.dom as HTMLElement, false),
-						label: () => lang.get("passwordFor_label", {"{1}": recipient.address}),
+						label: () => lang.get("passwordFor_label", { "{1}": recipient.address }),
 						helpLabel: () =>
 							m(".mt-xs.flex.items-center", [
-								m(CompletenessIndicator, {percentageCompleted: this.sendMailModel.getPasswordStrength(recipient)}),
+								m(CompletenessIndicator, { percentageCompleted: this.sendMailModel.getPasswordStrength(recipient) }),
 								// hack! We want to reserve enough space from the text field to be like "real" password field but we don't have any text and
 								// CSS unit "lh" is not supported. We could query it programmatically but instead we insert one text node (this is nbsp character)
 								// which will take line-height and size the line properly.
@@ -588,7 +588,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			recipients: this.sendMailModel.getRecipientList(field),
 			onRecipientAdded: async (address, name) => {
 				try {
-					await this.sendMailModel.addRecipient(field, {address, name})
+					await this.sendMailModel.addRecipient(field, { address, name })
 				} catch (e) {
 					if (isOfflineError(e)) {
 						// we are offline but we want to show the error dialog only when we click on send.
@@ -608,18 +608,18 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			injectionsRight:
 				field === RecipientField.TO && this.sendMailModel.logins.isInternalUserLoggedIn()
 					? m(
-						"",
-						m(ToggleButton, {
-							title: "show_action",
-							icon: BootIcons.Expand,
-							size: ButtonSize.Compact,
-							toggled: this.areDetailsExpanded,
-							onToggled: (_, e) => {
-								e.stopPropagation()
-								this.areDetailsExpanded = !this.areDetailsExpanded
-							},
-						}),
-					)
+							"",
+							m(ToggleButton, {
+								title: "show_action",
+								icon: BootIcons.Expand,
+								size: ButtonSize.Compact,
+								toggled: this.areDetailsExpanded,
+								onToggled: (_, e) => {
+									e.stopPropagation()
+									this.areDetailsExpanded = !this.areDetailsExpanded
+								},
+							}),
+					  )
 					: null,
 			search,
 		})
@@ -639,7 +639,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private async getRecipientClickedContextButtons(recipient: ResolvableRecipient, field: RecipientField): Promise<DropdownChildAttrs[]> {
-		const {logins, entity, contactModel} = this.sendMailModel
+		const { logins, entity, contactModel } = this.sendMailModel
 
 		const canEditBubbleRecipient = logins.getUserController().isInternalUser() && !logins.isEnabled(FeatureType.DisableContacts)
 
@@ -673,7 +673,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				contextButtons.push({
 					label: () => lang.get("editContact_label"),
 					click: () => {
-						import("../../contacts/ContactEditor").then(({ContactEditor}) => new ContactEditor(entity, recipient.contact).show())
+						import("../../contacts/ContactEditor").then(({ ContactEditor }) => new ContactEditor(entity, recipient.contact).show())
 					},
 				})
 			} else {
@@ -683,7 +683,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						// contact list
 						contactModel.contactListId().then((contactListId) => {
 							const newContact = createNewContact(logins.getUserController().user, recipient.address, recipient.name)
-							import("../../contacts/ContactEditor").then(({ContactEditor}) => {
+							import("../../contacts/ContactEditor").then(({ ContactEditor }) => {
 								new ContactEditor(entity, newContact, contactListId ?? undefined, createdContactReceiver).show()
 							})
 						})
@@ -769,14 +769,14 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 	}
 
 	const minimize = () => {
-		let saveStatus = stream<SaveStatus>({status: SaveStatusEnum.Saving})
+		let saveStatus = stream<SaveStatus>({ status: SaveStatusEnum.Saving })
 		if (model.hasMailChanged()) {
 			save(false)
-				.then(() => saveStatus({status: SaveStatusEnum.Saved}))
+				.then(() => saveStatus({ status: SaveStatusEnum.Saved }))
 				.catch((e) => {
 					const reason = isOfflineError(e) ? SaveErrorReason.ConnectionLost : SaveErrorReason.Unknown
 
-					saveStatus({status: SaveStatusEnum.NotSaved, reason})
+					saveStatus({ status: SaveStatusEnum.NotSaved, reason })
 
 					// If we don't show the error in the minimized error dialog,
 					// Then we need to communicate it in a dialog or as an unhandled error
@@ -800,8 +800,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		showMinimizedMailEditor(dialog, model, locator.minimizedMailModel, locator.eventController, dispose, saveStatus)
 	}
 
-	let windowCloseUnsubscribe = () => {
-	}
+	let windowCloseUnsubscribe = () => {}
 
 	const headerBarAttrs: DialogHeaderBarAttrs = {
 		left: [
@@ -824,8 +823,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		create: () => {
 			if (isBrowser()) {
 				// Have a simple listener on browser, so their browser will make the user ask if they are sure they want to close when closing the tab/window
-				windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {
-				})
+				windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {})
 			} else if (isDesktop()) {
 				// Simulate clicking the Close button when on the desktop so they can see they can save a draft rather than completely closing it
 				windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {
@@ -843,27 +841,27 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 	const createKnowledgebaseButtonAttrs = (editor: Editor) => {
 		return logins.isInternalUserLoggedIn()
 			? logins
-				.getUserController()
-				.loadCustomer()
-				.then((customer) => {
-					// only create knowledgebase button for internal users with valid template group and enabled KnowledgebaseFeature
-					if (
-						styles.isDesktopLayout() &&
-						templatePopupModel &&
-						logins.getUserController().getTemplateMemberships().length > 0 &&
-						isCustomizationEnabledForCustomer(customer, FeatureType.KnowledgeBase)
-					) {
-						return new KnowledgeBaseModel(locator.eventController, locator.entityClient, logins.getUserController())
-							.init()
-							.then((knowledgebaseModel) => {
-								const knowledgebaseInjection = createKnowledgeBaseDialogInjection(knowledgebaseModel, templatePopupModel, editor)
-								dialog.setInjectionRight(knowledgebaseInjection)
-								return knowledgebaseInjection
-							})
-					} else {
-						return null
-					}
-				})
+					.getUserController()
+					.loadCustomer()
+					.then((customer) => {
+						// only create knowledgebase button for internal users with valid template group and enabled KnowledgebaseFeature
+						if (
+							styles.isDesktopLayout() &&
+							templatePopupModel &&
+							logins.getUserController().getTemplateMemberships().length > 0 &&
+							isCustomizationEnabledForCustomer(customer, FeatureType.KnowledgeBase)
+						) {
+							return new KnowledgeBaseModel(locator.eventController, locator.entityClient, logins.getUserController())
+								.init()
+								.then((knowledgebaseModel) => {
+									const knowledgebaseInjection = createKnowledgeBaseDialogInjection(knowledgebaseModel, templatePopupModel, editor)
+									dialog.setInjectionRight(knowledgebaseInjection)
+									return knowledgebaseInjection
+								})
+						} else {
+							return null
+						}
+					})
 			: Promise.resolve(null)
 	}
 
@@ -931,7 +929,7 @@ export async function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dial
 	// We check approval status so as to get a dialog informing the user that they cannot send mails
 	// but we still want to open the mail editor because they should still be able to contact sales@tutao.de
 	await checkApprovalStatus(logins, false)
-	const {appendEmailSignature} = await import("../signature/Signature")
+	const { appendEmailSignature } = await import("../signature/Signature")
 	const signature = appendEmailSignature("", logins.getUserController().props)
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	return newMailEditorFromTemplate(detailsProperties.mailboxDetails, {}, "", signature)
@@ -1034,7 +1032,7 @@ export async function newMailEditorFromTemplate(
 }
 
 export function getSupportMailSignature(): Promise<string> {
-	return import("../../calendar/date/CalendarUtils").then(({getTimeZone}) => {
+	return import("../../calendar/date/CalendarUtils").then(({ getTimeZone }) => {
 		return (
 			LINE_BREAK +
 			LINE_BREAK +
@@ -1070,7 +1068,7 @@ export async function writeSupportMail(subject: string = "", mailboxDetails?: Ma
 		dialog.show()
 	} else {
 		import("../../subscription/PriceUtils")
-			.then(({formatPrice}) => {
+			.then(({ formatPrice }) => {
 				const message = lang.get("premiumOffer_msg", {
 					"{1}": formatPrice(1, true),
 				})
@@ -1128,8 +1126,8 @@ export async function writeGiftCardMail(link: string, svg: SVGElement, mailboxDe
 
 async function getMailboxDetailsAndProperties(
 	mailboxDetails: MailboxDetail | null | undefined,
-): Promise<{mailboxDetails: MailboxDetail; mailboxProperties: MailboxProperties}> {
+): Promise<{ mailboxDetails: MailboxDetail; mailboxProperties: MailboxProperties }> {
 	mailboxDetails = mailboxDetails ?? (await locator.mailModel.getUserMailboxDetails())
 	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-	return {mailboxDetails, mailboxProperties}
+	return { mailboxDetails, mailboxProperties }
 }

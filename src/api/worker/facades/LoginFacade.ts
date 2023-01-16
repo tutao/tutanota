@@ -97,7 +97,7 @@ import { CacheStorageLateInitializer } from "../rest/CacheStorageProxy"
 import { AuthDataProvider, UserFacade } from "./UserFacade"
 import { LoginFailReason, LoginListener } from "../../main/LoginListener"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
-import {EntropyFacade} from "./EntropyFacade.js"
+import { EntropyFacade } from "./EntropyFacade.js"
 import { BlobAccessTokenFacade } from "./BlobAccessTokenFacade.js"
 
 assertWorkerOrNode()

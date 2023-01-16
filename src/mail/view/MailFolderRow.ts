@@ -76,10 +76,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 		])
 	}
 
-	private renderHierarchyLine(
-		{ indentationLevel, numberOfPreviousRows, isLastSibling, onSelectedPath }: MailFolderRowAttrs,
-		indentationMargin: number,
-	) {
+	private renderHierarchyLine({ indentationLevel, numberOfPreviousRows, isLastSibling, onSelectedPath }: MailFolderRowAttrs, indentationMargin: number) {
 		const lineSize = 2
 		const border = `${lineSize}px solid ${onSelectedPath ? theme.content_accent : theme.content_border}`
 		const verticalOffsetInsideRow = size.button_height / 2 + 1
@@ -88,8 +85,8 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 		return indentationLevel !== 0
 			? [
 					isLastSibling || onSelectedPath
-						// draw both vertical and horizontal lines
-						? m(".abs", {
+						? // draw both vertical and horizontal lines
+						  m(".abs", {
 								style: {
 									width: px(lengthOfHorizontalLine),
 									borderBottomLeftRadius: "3px",
@@ -104,8 +101,8 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 									zIndex: onSelectedPath ? 1 : "",
 								},
 						  })
-						// draw only the horizontal line
-						: m(".abs", {
+						: // draw only the horizontal line
+						  m(".abs", {
 								style: {
 									height: px(lineSize),
 									top: px(verticalOffsetInsideRow),
