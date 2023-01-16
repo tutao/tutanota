@@ -883,7 +883,7 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
-	static largeDialogN<T>(headerBarAttrs: DialogHeaderBarAttrs, child: Class<Component<T>>, childAttrs: T): Dialog {
+	static largeDialogN<T extends {}>(headerBarAttrs: DialogHeaderBarAttrs, child: Class<Component<T>>, childAttrs: T): Dialog {
 		return new Dialog(DialogType.EditLarge, {
 			view: () => {
 				return m("", [
