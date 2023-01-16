@@ -3,7 +3,7 @@ import stream from "mithril/stream"
 import { identity } from "@tutao/tutanota-utils"
 import { CloseEventBusOption } from "../api/common/TutanotaConstants.js"
 import { ExposedEventBus } from "../api/worker/WorkerImpl.js"
-import {WebsocketLeaderStatus} from "../api/entities/sys/TypeRefs.js"
+import { WebsocketLeaderStatus } from "../api/entities/sys/TypeRefs.js"
 
 export interface WebsocketConnectivityListener {
 	updateWebSocketState(wsConnectionState: WsConnectionState): Promise<void>

@@ -147,14 +147,13 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			keyManager.unregisterShortcuts(shortcuts)
 			locator.eventController.removeEntityListener(this.entityListener)
 		}
-
 	}
 
 	private entityListener = (updates: EntityUpdateData[]) => {
 		return promiseMap(updates, (update) => this._processEntityUpdate(update)).then(noOp)
 	}
 
-	view({attrs}: Vnode<ContactViewAttrs>): Children {
+	view({ attrs }: Vnode<ContactViewAttrs>): Children {
 		return m(
 			"#contact.main-view",
 			m(this.viewSlider, {
@@ -162,7 +161,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					headerView: this.renderHeaderView(),
 					rightView: this.renderHeaderRightView(),
 					viewSlider: this.viewSlider,
-					...attrs.header
+					...attrs.header,
 				}),
 				bottomNav: m(BottomNav),
 			}),

@@ -9,7 +9,7 @@ import type { NativeFileApp } from "../native/common/FileApp"
 import { ArchiveDataType } from "../api/common/TutanotaConstants"
 import { BlobFacade } from "../api/worker/facades/BlobFacade"
 import { FileFacade } from "../api/worker/facades/FileFacade"
-import {ProgressObserver, FileController, isLegacyFile, zipDataFiles} from "./FileController.js"
+import { ProgressObserver, FileController, isLegacyFile, zipDataFiles } from "./FileController.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()

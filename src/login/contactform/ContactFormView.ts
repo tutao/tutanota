@@ -11,13 +11,13 @@ import { getDefaultContactFormLanguage } from "../../settings/contactform/Contac
 import { htmlSanitizer } from "../../misc/HtmlSanitizer"
 import { renderInfoLinks } from "../LoginView"
 import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
-import {BaseHeaderAttrs, header} from "../../gui/Header.js"
+import { BaseHeaderAttrs, header } from "../../gui/Header.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { Keys } from "../../api/common/TutanotaConstants"
 import type { ContactForm } from "../../api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../api/main/MainLocator"
 import { assertMainOrNode } from "../../api/common/Env"
-import {TopLevelView} from "../../TopLevelView.js"
+import { TopLevelView } from "../../TopLevelView.js"
 
 assertMainOrNode()
 
@@ -31,9 +31,7 @@ export class ContactFormView implements TopLevelView {
 	private _headerHtml: string | null
 	private _footerHtml: string | null
 
-	constructor(
-		private readonly headerAttrs: BaseHeaderAttrs,
-	) {
+	constructor(private readonly headerAttrs: BaseHeaderAttrs) {
 		this._contactForm = null
 		this._helpHtml = null
 		this._headerHtml = null
@@ -166,4 +164,3 @@ export class ContactFormView implements TopLevelView {
 		}
 	}
 }
-

@@ -1,12 +1,11 @@
 import m, { Params } from "mithril"
 import { assertMainOrNodeBoot, isApp, isElectronClient, isIOSApp, Mode } from "../api/common/Env"
 import { lang } from "./LanguageViewModel"
-import type { WorkerClient } from "../api/main/WorkerClient"
 import { client } from "./ClientDetector"
 import { logins } from "../api/main/LoginController"
 import type { Indexer } from "../api/worker/search/Indexer"
 import { remove } from "@tutao/tutanota-utils"
-import {WebsocketConnectivityModel} from "./WebsocketConnectivityModel.js"
+import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
 
 assertMainOrNodeBoot()
 export type KeyboardSizeListener = (keyboardSize: number) => unknown

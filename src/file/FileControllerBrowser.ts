@@ -1,12 +1,12 @@
 import { DataFile } from "../api/common/DataFile"
 import { assertMainOrNode } from "../api/common/Env"
 import { File as TutanotaFile } from "../api/entities/tutanota/TypeRefs.js"
-import {ProgressObserver, FileController, openDataFileInBrowser, zipDataFiles} from "./FileController.js"
+import { ProgressObserver, FileController, openDataFileInBrowser, zipDataFiles } from "./FileController.js"
 import { sortableTimestamp } from "@tutao/tutanota-utils"
 import { BlobFacade } from "../api/worker/facades/BlobFacade.js"
 import { FileFacade } from "../api/worker/facades/FileFacade.js"
 import { assertOnlyDataFiles, FileReference } from "../api/common/utils/FileUtils.js"
-import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
 

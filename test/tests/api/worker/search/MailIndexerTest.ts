@@ -38,8 +38,8 @@ import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
 import { MailWrapper } from "../../../../../src/api/common/MailWrapper.js"
-import {object} from "testdouble"
-import {InfoMessageHandler} from "../../../../../src/gui/InfoMessageHandler.js"
+import { object } from "testdouble"
+import { InfoMessageHandler } from "../../../../../src/gui/InfoMessageHandler.js"
 
 class FixedDateProvider implements DateProvider {
 	now: number

@@ -151,16 +151,14 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		const today = getStartOfDayWithZone(new Date(), getTimeZone())
 		return m(".fill-absolute.flex.col.mlr-safe-inset", [
 			styles.isDesktopLayout()
-				// Only display navigation buttons if it is the visible page
-				? month === currentlyVisibleMonth
+				? // Only display navigation buttons if it is the visible page
+				  month === currentlyVisibleMonth
 					? m(".mt-s.pr-l.flex.row.items-center", [
-						renderCalendarSwitchLeftButton("prevMonth_label", () => attrs.onChangeMonth(false)),
-						renderCalendarSwitchRightButton("nextMonth_label", () => attrs.onChangeMonth(true)),
-						m("h1", formatMonthWithFullYear(firstDay)),
-					])
-					: m(".mt-s.pr-l.flex.row.items-center", [
-						m("h1", formatMonthWithFullYear(firstDay)),
-					])
+							renderCalendarSwitchLeftButton("prevMonth_label", () => attrs.onChangeMonth(false)),
+							renderCalendarSwitchRightButton("nextMonth_label", () => attrs.onChangeMonth(true)),
+							m("h1", formatMonthWithFullYear(firstDay)),
+					  ])
+					: m(".mt-s.pr-l.flex.row.items-center", [m("h1", formatMonthWithFullYear(firstDay))])
 				: m(".pt-s"),
 			m(
 				".flex.mb-s",
