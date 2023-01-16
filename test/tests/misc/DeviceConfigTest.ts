@@ -86,6 +86,7 @@ o.spec("DeviceConfig", function () {
 				],
 				_credentialEncryptionMode: CredentialEncryptionMode.DEVICE_LOCK,
 				_encryptedCredentialsKey: "somekey",
+				acknowledgedNewsItems: [],
 				_themeId: "mytheme",
 				_scheduledAlarmUsers: ["userId"],
 				_language: "en",

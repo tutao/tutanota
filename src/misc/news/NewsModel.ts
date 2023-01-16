@@ -3,6 +3,7 @@ import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
 import { NewsService } from "../../api/entities/tutanota/Services.js"
 import { NotFoundError } from "../../api/common/error/RestError.js"
 import { NewsListItem } from "./NewsListItem.js"
+import { DeviceConfig } from "../DeviceConfig.js"
 
 /**
  * Makes calls to the NewsService in order to load the user's unacknowledged NewsItems and stores them.
@@ -11,7 +12,11 @@ export class NewsModel {
 	liveNewsIds: NewsId[] = []
 	liveNewsListItems: Record<string, NewsListItem> = {}
 
-	constructor(private readonly serviceExecutor: IServiceExecutor, private readonly newsListItemFactory: (name: string) => Promise<NewsListItem | null>) {}
+	constructor(
+		private readonly serviceExecutor: IServiceExecutor,
+		private readonly deviceConfig: DeviceConfig,
+		private readonly newsListItemFactory: (name: string) => Promise<NewsListItem | null>,
+	) {}
 
 	/**
 	 * Loads the user's unacknowledged NewsItems.
@@ -26,7 +31,7 @@ export class NewsModel {
 			const newsItemName = newsItemId.newsItemName
 			const newsListItem = await this.newsListItemFactory(newsItemName)
 
-			if (!!newsListItem && newsListItem.isShown()) {
+			if (!!newsListItem && newsListItem.isShown(newsItemId)) {
 				this.liveNewsIds.push(newsItemId)
 				this.liveNewsListItems[newsItemName] = newsListItem
 			}
@@ -38,7 +43,7 @@ export class NewsModel {
 	/**
 	 * Acknowledges the NewsItem with the given ID.
 	 */
-	async acknowledgeNews(newsItemId: string): Promise<boolean> {
+	async acknowledgeNews(newsItemId: Id): Promise<boolean> {
 		const data = createNewsIn({ newsItemId })
 
 		try {
@@ -55,5 +60,13 @@ export class NewsModel {
 		} finally {
 			await this.loadNewsIds()
 		}
+	}
+
+	acknowledgeNewsForDevice(newsItemId: Id) {
+		return this.deviceConfig.acknowledgeNewsItemForDevice(newsItemId)
+	}
+
+	hasAcknowledgedNewsForDevice(newsItemId: Id): boolean {
+		return this.deviceConfig.hasAcknowledgedNewsItemForDevice(newsItemId)
 	}
 }

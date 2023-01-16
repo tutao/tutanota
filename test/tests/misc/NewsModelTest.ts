@@ -6,10 +6,12 @@ import { NewsService } from "../../../src/api/entities/tutanota/Services.js"
 import { createNewsId, createNewsIn, createNewsOut, NewsId } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { NewsListItem } from "../../../src/misc/news/NewsListItem.js"
 import { Children } from "mithril"
+import { DeviceConfig } from "../../../src/misc/DeviceConfig.js"
 
 o.spec("NewsModel", function () {
 	let newsModel: NewsModel
 	let serviceExecutor: IServiceExecutor
+	let deviceConfig: DeviceConfig
 	let newsIds: NewsId[]
 
 	const DummyNews = class implements NewsListItem {
@@ -24,8 +26,9 @@ o.spec("NewsModel", function () {
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
+		deviceConfig = object()
 
-		newsModel = new NewsModel(serviceExecutor, async () => new DummyNews())
+		newsModel = new NewsModel(serviceExecutor, deviceConfig, async () => new DummyNews())
 
 		newsIds = [
 			createNewsId({

@@ -525,7 +525,9 @@ class MainLocator {
 			() => this.usageTestController,
 		)
 
-		this.newsModel = new NewsModel(this.serviceExecutor, async (name: string) => {
+		this.newsModel = new NewsModel(this.serviceExecutor,
+			deviceConfig,
+			async (name: string) => {
 			switch (name) {
 				case "usageOptIn":
 					const { UsageOptInNews } = await import("../../misc/news/items/UsageOptInNews.js")
@@ -538,6 +540,13 @@ class MainLocator {
 						this.usageTestModel,
 						this.usageTestController,
 						this.userManagementFacade,
+					)
+				case "pinBiometrics":
+					const { PinBiometricsNews} = await import("../../misc/news/items/PinBiometricsNews.js")
+					return new PinBiometricsNews(
+						this.newsModel,
+						this.credentialsProvider,
+						logins.getUserController().userId
 					)
 				default:
 					console.log(`No implementation for news named '${name}'`)
