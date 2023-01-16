@@ -76,24 +76,24 @@ export class ServiceWorker {
 		return this._caches.open(this._cacheName).then((cache) =>
 			this._addAllToCache(cache, this._urlsToCache)
 				.then(() => cache.match("index.html"))
-				.then((r) => {
+				.then((r: Response) => {
 					if (!r) {
 						return
 					}
 
 					// Reconstructing response to 1. Save it under different url 2. Get rid of redirect in response<<
-					const clonedResponse = r.clone()
-					const bodyPromise = "body" in clonedResponse ? Promise.resolve(clonedResponse.body) : clonedResponse.blob()
+					const clonedResponse: Response = r.clone()
+					const bodyPromise = clonedResponse.body != null ? Promise.resolve(clonedResponse.body) : clonedResponse.blob()
 					return bodyPromise
 						.then(
-							(body) =>
+							(body: ReadableStream | Blob) =>
 								new Response(body, {
 									headers: clonedResponse.headers,
 									status: clonedResponse.status,
 									statusText: clonedResponse.statusText,
 								}),
 						)
-						.then((r) => cache.put(this._selfLocation, r))
+						.then((r: Response) => cache.put(this._selfLocation, r))
 						.then(() => cache.delete("index.html"))
 				}),
 		)
