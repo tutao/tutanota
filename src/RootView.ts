@@ -38,6 +38,7 @@ let currentNavigationType: PrimaryNavigationType = isApp() ? PrimaryNavigationTy
  * It has overlay, modal and the main layers. It also defines some global handlers for better visual indication depending on the interaction.
  */
 export class RootView implements ClassComponent {
+	private dom: HTMLElement | null = null
 	constructor() {
 		// still "old-style" component, we don't want to lose "this" reference
 		this.view = this.view.bind(this)
@@ -47,20 +48,25 @@ export class RootView implements ClassComponent {
 		return m(
 			"#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""),
 			{
+				oncreate: (vnode) => {
+					this.dom = vnode.dom as HTMLElement
+				},
 				// use pointer events instead of mousedown/touchdown because mouse events are still fired for touch on mobile
-				onpointerup: (e: PointerEvent) => {
+				onpointerup: (e: EventRedraw<PointerEvent>) => {
 					if (e.pointerType === "mouse") {
-						currentNavigationType = PrimaryNavigationType.Mouse
+						this.switchNavType(PrimaryNavigationType.Mouse)
 					} else {
 						// can be "touch" or "pen", treat them the same for now
-						currentNavigationType = PrimaryNavigationType.Touch
+						this.switchNavType(PrimaryNavigationType.Touch)
 					}
+					e.redraw = false
 				},
-				onkeyup: (e: KeyboardEvent) => {
+				onkeyup: (e: EventRedraw<KeyboardEvent>) => {
 					// tab key can be pressed in some other situations e.g. editor but it would be switched back quickly again if needed.
 					if (isKeyPressed(e.keyCode, Keys.TAB)) {
-						currentNavigationType = PrimaryNavigationType.Keyboard
+						this.switchNavType(PrimaryNavigationType.Keyboard)
 					}
+					e.redraw = false
 				},
 				// See styles for usages of these classes.
 				// We basically use them in css combinators as a query for when to show certain interaction indicators.
@@ -71,6 +77,15 @@ export class RootView implements ClassComponent {
 			},
 			[m(overlay), m(modal), vnode.children],
 		)
+	}
+
+	private switchNavType(newType: PrimaryNavigationType) {
+		if (currentNavigationType === newType) {
+			return
+		}
+		this.dom?.classList.remove(this.classForType())
+		currentNavigationType = newType
+		this.dom?.classList.add(this.classForType())
 	}
 
 	private classForType() {
