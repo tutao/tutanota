@@ -14,14 +14,15 @@ import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.
 import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
 import { Cardinality, ValueType } from "../../../../../src/api/common/EntityConstants.js"
 import { BucketPermissionType, PermissionType } from "../../../../../src/api/common/TutanotaConstants.js"
-import { createFile, Mail } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import * as Contact from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	ContactTypeRef,
 	createBirthday,
 	createContact,
 	createContactAddress,
+	createFile,
 	FileTypeRef,
+	Mail,
 	MailAddressTypeRef,
 	MailDetailsBlobTypeRef,
 	MailTypeRef,
@@ -924,7 +925,7 @@ o.spec("crypto facade", function () {
 
 		const mailDetailsBlobSessionKey = neverNull(await crypto.resolveSessionKey(MailDetailsBlobTypeModel, mailDetailsBlobLiteral))
 		o(mailDetailsBlobSessionKey).deepEquals(sk)
-		o(Object.keys(crypto.getSessionKeyCache()).length).equals(0)
+		o(Object.keys(crypto.getSessionKeyCache()).length).equals(1)
 	})
 
 	o("resolve session key from cache: MailDetailsBlob - session key not found", async function () {
