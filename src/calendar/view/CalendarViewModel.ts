@@ -1,4 +1,5 @@
 import {
+	$Promisable,
 	clone,
 	DAY_IN_MILLIS,
 	findAllAndRemove,
@@ -15,14 +16,16 @@ import {
 	symmetricDifference,
 } from "@tutao/tutanota-utils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
-import { CalendarEventTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import { OperationType, reverse } from "../../api/common/TutanotaConstants"
+import { CalendarEventTypeRef, UserSettingsGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { GroupType, OperationType, reverse } from "../../api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
 import { getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
 import { LoginController, logins } from "../../api/main/LoginController"
 import { IProgressMonitor, NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor"
-import { GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef, UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import type { CalendarMonthTimeRange } from "../date/CalendarUtils"
 import {
 	addDaysForEvent,
@@ -44,15 +47,10 @@ import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroup
 import type { CalendarInfo, CalendarModel } from "../model/CalendarModel"
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
-import { UserSettingsGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import { UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { EntityClient } from "../../api/common/EntityClient"
 import { ProgressTracker } from "../../api/main/ProgressTracker"
 import { DeviceConfig } from "../../misc/DeviceConfig"
-import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
-import Stream from "mithril/stream"
-import { $Promisable } from "@tutao/tutanota-utils"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -70,6 +68,7 @@ export enum CalendarViewType {
 	MONTH = "month",
 	AGENDA = "agenda",
 }
+
 export const CalendarViewTypeByValue = reverse(CalendarViewType)
 
 export type MouseOrPointerEvent = MouseEvent | PointerEvent
@@ -444,13 +443,15 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 					}
 				} else if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
 					this._calendarInfos.getAsync().then((calendarInfos) => {
-						const calendarInfo = calendarInfos.get(eventOwnerGroupId) // ensure that it is a GroupInfo update for a calendar group.
+						const calendarInfo = calendarInfos.get(eventOwnerGroupId)
 
 						if (calendarInfo) {
 							return this._entityClient.load(GroupInfoTypeRef, [update.instanceListId, update.instanceId]).then((groupInfo) => {
-								calendarInfo.groupInfo = groupInfo
-
-								this._redraw()
+								//only process the GroupInfo update if it is a GroupInfo update for a calendar group.
+								if (groupInfo.groupType === GroupType.Calendar) {
+									calendarInfo.groupInfo = groupInfo
+									this._redraw()
+								}
 							})
 						}
 					})
