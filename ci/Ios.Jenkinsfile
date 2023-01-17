@@ -14,14 +14,14 @@ pipeline {
 		booleanParam(
 			name: 'RELEASE',
 			defaultValue: false,
-			description: "Build staging and production version, and upload them to nexus/testflight/appstore. " +
+			description: "Build testing and production version, and upload them to nexus/testflight/appstore. " +
 				"The production version will need to be released manually from appstoreconnect.apple.com"
 		)
-		string(
-			name: 'MILESTONE',
-			defaultValue: '',
-			description: 'Which github milestone to reference for generating release notes. Defaults to the version number'
-		)
+		persistentText(
+			name: "releaseNotes",
+			defaultValue: "",
+			description: "release notes for this build"
+		 )
 	}
 
 	stages {
@@ -61,12 +61,12 @@ pipeline {
 				label 'mac'
 			}
 			stages {
-				stage('Staging') {
+				stage('Testing') {
 					steps {
 						script {
 							script {
-								doBuild('test', 'adhoctest', false, params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE)
-								stash includes: "app-ios/releases/tutanota-${VERSION}-test.ipa", name: 'ipa-staging'
+								doBuild('test', 'adhoctest', false)
+								stash includes: "app-ios/releases/tutanota-${VERSION}-test.ipa", name: 'ipa-testing'
 							}
 						}
 					}
@@ -74,7 +74,7 @@ pipeline {
 				stage('Production') {
 					steps {
 						script {
-							doBuild('prod', 'adhoc', params.RELEASE, params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE)
+							doBuild('prod', 'adhoc', params.RELEASE)
 							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc.ipa", name: 'ipa-production'
 
 						}
@@ -96,7 +96,7 @@ pipeline {
 			steps {
 				script {
 
-					unstash 'ipa-staging'
+					unstash 'ipa-testing'
 					unstash 'ipa-production'
 
 					script {
@@ -122,25 +122,26 @@ pipeline {
 			steps {
 				script {
 
-					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
+					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page for ios') {
 						def tag = "tutanota-ios-release-${VERSION}"
-						def milestone =  params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE
 						// need to run npm ci to install dependencies of releaseNotes.js
 						sh "npm ci"
+
+						writeFile file: "notes.txt", text: params.releaseNotes
 						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-							sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (iOS)' \
-																		   --milestone '${milestone}' \
-																		   --tag '${tag}' \
-																		   --platform ios"""
-						}
-					}
+							sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (iOS)' \
+																		   --tag 'tutanota-ios-release-${VERSION}' \
+																		   --notes notes.txt"""
+						} // withCredentials
+						sh "rm notes.txt"
+					} // catchError
 				}
 			}
 		}
 	}
 }
 
-void doBuild(String stage, String lane, boolean publishToAppStore, String milestone) {
+void doBuild(String stage, String lane, boolean publishToAppStore) {
 
 	// Prepare the fastlane Appfile which defines the required ids for the ios app build.
 	script {
@@ -161,26 +162,20 @@ void doBuild(String stage, String lane, boolean publishToAppStore, String milest
 	}
 
 	script {
-		catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release notes') {
-			def tag = "tutanota-ios-release-${VERSION}"
+		catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release notes for ios') {
 			// need to run npm ci to install dependencies of releaseNotes.js
 			sh "npm ci"
 			withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-				sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (IOS)' \
-																   --milestone '${milestone}' \
-																   --tag '${tag}' \
-																   --platform ios \
-																   --format ios \
+				sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (iOS)' \
+																   --tag 'tutanota-ios-release-${VERSION}'\
+																   --notes notes.txt \
 																   --toFile ${RELEASE_NOTES_PATH}"""
 			}
-
 		}
 	}
 
 	sh "echo Created release notes for fastlane ${RELEASE_NOTES_PATH}"
 	sh "pwd"
-
-	stash includes: "${RELEASE_NOTES_PATH}", name: 'release_notes'
 
 	sh "echo $PATH"
 	sh "npm ci"

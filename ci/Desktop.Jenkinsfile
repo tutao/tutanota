@@ -19,11 +19,11 @@ pipeline {
             defaultValue: false,
             description: 'pull the spellcheck dictionaries from github when producing .debs'
         )
-		string(
-				name: 'MILESTONE',
-				defaultValue: '',
-				description: 'Which github milestone to reference for generating release notes. Defaults to the version number'
-		)
+		persistentText(
+			name: "releaseNotes",
+			defaultValue: "",
+			description: "release notes for this build"
+		 )
     }
 
     agent {
@@ -189,23 +189,24 @@ pipeline {
 
 				sh 'node buildSrc/publish.js desktop'
 
-				script { // create release notes
+				script { // create release draft
 					def desktopLinux = "build/desktop/tutanota-desktop-linux.AppImage"
 					def desktopWin = "build/desktop/tutanota-desktop-win.exe"
 					def desktopMac = "build/desktop/tutanota-desktop-mac.dmg"
-					def milestone = params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE
-					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
+
+					writeFile file: "notes.txt", text: params.releaseNotes
+					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page for desktop') {
 						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-							sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (Desktop)' \
-																   --milestone '${milestone}' \
-																   --tag '${TAG}' \
+							sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (Desktop)' \
+																   --tag 'tutanota-desktop-release-${VERSION}' \
 																   --uploadFile '${WORKSPACE}/${desktopLinux}' \
 																   --uploadFile '${WORKSPACE}/${desktopWin}' \
-																   --uploadFile '${WORKSPACE}/${desktopMac}' \
-																   --platform desktop"""
+																   --uploadFile '${WORKSPACE}/${desktopMac}'
+																   --notes notes.txt"""
 						} // withCredentials
 					} // catchError
-				} // script release notes
+					sh "rm notes.txt"
+				} // script release draft
 
 				script { // upload to nexus
 					def util = load "ci/jenkins-lib/util.groovy"

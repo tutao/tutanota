@@ -11,6 +11,11 @@ pipeline {
 			defaultValue: false,
 			description: "Prepare a release version (doesn't publish to production, this is done manually). Also publishes NPM modules"
 		)
+		persistentText(
+			name: "releaseNotes",
+			defaultValue: "",
+			description: "release notes for this build"
+		 )
     }
     agent {
         label 'master'
@@ -75,13 +80,11 @@ pipeline {
 
 				unstash 'webapp_built'
 				sh 'node buildSrc/publish.js webapp'
+				writeFile file: "notes.txt", text: params.releaseNotes
 
-				catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
+				catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release for webapp') {
 					withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-						sh '''node buildSrc/releaseNotes.js --releaseName ${VERSION} \
-																	--milestone ${VERSION} \
-																	--tag tutanota-release-${VERSION} \
-																	--platform web'''
+						sh '''node buildSrc/createReleaseDraft.js --name ${VERSION} --tag tutanota-release-${VERSION} --notes notes.txt'''
 					}
 				}
             }

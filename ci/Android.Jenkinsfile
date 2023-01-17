@@ -15,16 +15,16 @@ pipeline {
 
 	parameters {
 		booleanParam(
-				name: 'RELEASE', defaultValue: false,
-				description: "Build a test and release version of the app. " +
-						"Uploads both to Nexus and creates a new release on google play, " +
-						"which must be manually published from play.google.com/console"
+			name: 'RELEASE', defaultValue: false,
+			description: "Build a test and release version of the app. " +
+					"Uploads both to Nexus and creates a new release on google play, " +
+					"which must be manually published from play.google.com/console"
 		)
-		string(
-				name: 'MILESTONE',
-				defaultValue: '',
-				description: 'Which github milestone to reference for generating release notes. Defaults to the version number'
-		)
+		persistentText(
+			name: "releaseNotes",
+			defaultValue: "",
+			description: "release notes for this build"
+		 )
 	}
 
 	stages {
@@ -36,7 +36,7 @@ pipeline {
 				}
 			}
     	}
-		stage('Test') {
+		stage('Run Tests') {
 			steps {
 				dir("${WORKSPACE}/app-android/") {
 					sh "./gradlew test"
@@ -46,7 +46,7 @@ pipeline {
 
 		stage('Build') {
 			stages {
-				stage('Staging') {
+				stage('Testing') {
 					environment {
 						APK_SIGN_ALIAS = "test.tutao.de"
 					}
@@ -72,7 +72,7 @@ pipeline {
 						}
 						stash includes: "build/app-android/tutanota-tutao-releaseTest-${VERSION}.apk", name: 'apk-staging'
 					}
-				}
+				} // stage testing
 				stage('Production') {
 					when {
 						expression { params.RELEASE }
@@ -100,7 +100,7 @@ pipeline {
 						}
 						stash includes: "build/app-android/tutanota-tutao-release-${VERSION}.apk", name: 'apk-production'
 					}
-				}
+				} // stage production
 			}
 		}
 
@@ -109,11 +109,11 @@ pipeline {
 				expression { params.RELEASE }
 			}
 			stages {
-				stage('Staging') {
+				stage('Testing') {
 					steps {
 						script {
 							def util = load "ci/jenkins-lib/util.groovy"
-							unstash 'apk-staging'
+							unstash 'apk-testing'
 
 							util.publishToNexus(
 									groupId: "app",
@@ -124,7 +124,7 @@ pipeline {
 							)
 
 							// This doesn't publish to the main app on play store,
-							// instead it get's published to the hidden "tutanota-test" app
+							// instead it gets published to the hidden "tutanota-test" app
 							// this happens because the AppId is set to de.tutao.tutanota.test by the android build
 							// and play store knows which app to publish just based on the id
 							androidApkUpload(
@@ -141,7 +141,7 @@ pipeline {
 							)
 						}
 					}
-				}
+				} // stage testing
 				stage('Production') {
 					steps {
 						sh 'npm ci'
@@ -175,7 +175,7 @@ pipeline {
 							)
 						}
 					}
-				}
+				} // stage production
 			}
 		}
 		stage('Tag and publish release page') {
@@ -188,17 +188,18 @@ pipeline {
 
 				script {
 					def filePath = "build/app-android/tutanota-tutao-release-${VERSION}.apk"
-					def milestone = params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE
-					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
+
+					writeFile file: "notes.txt", text: params.releaseNotes
+					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page for android') {
 						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-							sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (Android)' \
-																   --milestone '${milestone}' \
-																   --tag '${tag}' \
+							sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (Android)' \
+																   --tag 'tutanota-android-release-${VERSION}' \
 																   --uploadFile '${WORKSPACE}/${filePath}' \
-																   --platform android"""
-						}
-					}
-				}
+																   --notes notes.txt"""
+						} // withCredentials
+					} // catchError
+					sh "rm notes.txt"
+				} // script
 			}
 		}
 	}
