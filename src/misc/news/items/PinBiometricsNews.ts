@@ -27,7 +27,7 @@ export class PinBiometricsNews implements NewsListItem {
 		const displayedLink = isAndroidApp() ? playstoreLink : appstoreLink
 		return m(".full-width", [
 			m(".h4", { style: { "text-transform": "capitalize" } }, lang.get("pinBiometrics_action")),
-			m("p", lang.get("pinBiometrics_msg1", { "{secureNowAction}": lang.get("secureNow_action")})),
+			m("p", lang.get("pinBiometrics_msg1", { "{secureNowAction}": lang.get("secureNow_action") })),
 			m("p", lang.get("pinBiometrics_msg2")),
 			m("p", [m(".text-break", [m("a", { href: displayedLink, target: "_blank" }, displayedLink)])]),
 			m("p", lang.get("pinBiometrics_msg3")),
