@@ -68,6 +68,7 @@ export interface SearchViewAttrs extends TopLevelAttrs {
 }
 
 export class SearchView extends BaseTopLevelView implements TopLevelView<SearchViewAttrs> {
+	oncreate: TopLevelView["oncreate"]
 	onremove: TopLevelView["onremove"]
 
 	private resultListColumn: ViewColumn
@@ -177,7 +178,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const shortcuts = this.getShortcuts()
 
 		this.oncreate = (vnode) => {
-			super.oncreate(vnode)
 			keyManager.registerShortcuts(shortcuts)
 			neverNull(header.searchBar).setReturnListener(() => this.resultListColumn.focus())
 			locator.eventController.addEntityListener(this.entityListener)

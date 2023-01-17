@@ -64,6 +64,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	viewSlider: ViewSlider
 	_contactList: ContactListView | null = null
 	private _multiContactViewer: MultiContactViewer
+	oncreate: TopLevelView["oncreate"]
 	onremove: TopLevelView["onremove"]
 	private _throttledSetUrl: (url: string) => void
 
@@ -138,7 +139,6 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 		const shortcuts = this.getShortcuts()
 		this.oncreate = (vnode) => {
-			super.oncreate(vnode)
 			keyManager.registerShortcuts(shortcuts)
 			locator.eventController.addEntityListener(this.entityListener)
 		}
