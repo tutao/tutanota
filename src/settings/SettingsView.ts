@@ -375,7 +375,6 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	oncreate(vnode: Vnode<SettingsViewAttrs>) {
-		super.oncreate(vnode)
 		locator.eventController.addEntityListener(this.entityListener)
 	}
 

@@ -84,8 +84,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private readonly mailColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
 	cache: MailViewCache
-	private editingFolderForMailGroup: Id | null = null
-
+	readonly oncreate: TopLevelView["oncreate"]
 	readonly onremove: TopLevelView["onremove"]
 
 	/**
@@ -167,7 +166,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		const shortcuts = this._getShortcuts()
 
 		this.oncreate = (vnode) => {
-			super.oncreate(vnode)
 			this.countersStream = locator.mailModel.mailboxCounters.map(m.redraw)
 			keyManager.registerShortcuts(shortcuts)
 			this.mailboxSubscription = locator.mailModel.mailboxDetails.map((mailboxDetails) => this.onUpdateMailboxDetails(mailboxDetails))

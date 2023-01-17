@@ -7,12 +7,12 @@ import { TopLevelAttrs } from "../TopLevelView.js"
 export abstract class BaseTopLevelView {
 	private lastPath: string = ""
 
-	oncreate({ attrs }: Vnode<TopLevelAttrs>) {
+	oninit({ attrs }: Vnode<TopLevelAttrs>) {
 		this.lastPath = attrs.requestedPath
 		this.onNewUrl(attrs.args, attrs.requestedPath)
 	}
 
-	onupdate({ attrs }: Vnode<TopLevelAttrs>) {
+	onbeforeupdate({ attrs }: Vnode<TopLevelAttrs>) {
 		// onupdate() is called on every re-render but we don't want to call onNewUrl all the time
 		if (this.lastPath !== attrs.requestedPath) {
 			this.lastPath = attrs.requestedPath
