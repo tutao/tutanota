@@ -71,6 +71,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	private readonly viewModel: CalendarViewModel
 	// For sanitizing event descriptions, which get rendered as html in the CalendarEventPopup
 	private readonly htmlSanitizer: Promise<HtmlSanitizer>
+	oncreate: Component["oncreate"]
 	onremove: Component["onremove"]
 
 	constructor(vnode: Vnode<CalendarViewAttrs>) {
@@ -301,7 +302,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		const streamListeners: Stream<void>[] = []
 
 		this.oncreate = (vnode) => {
-			super.oncreate(vnode)
 			keyManager.registerShortcuts(shortcuts)
 			streamListeners.push(
 				this.viewModel.calendarInvitations.map(() => {
