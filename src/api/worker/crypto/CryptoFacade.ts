@@ -31,7 +31,6 @@ import {
 	ContactTypeRef,
 	createEncryptTutanotaPropertiesData,
 	createInternalRecipientKeyData,
-	FileTypeRef,
 	MailTypeRef,
 	TutanotaPropertiesTypeRef,
 } from "../../entities/tutanota/TypeRefs.js"
@@ -41,7 +40,6 @@ import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundEr
 import { CryptoError } from "../../common/error/CryptoError"
 import { birthdayToIsoDate, oldBirthdayToBirthday } from "../../common/utils/BirthdayUtils"
 import type { Entity, SomeEntity, TypeModel } from "../../common/EntityTypes"
-import { Instance } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
@@ -201,11 +199,13 @@ export class CryptoFacade {
 				const elementId = this.getElementIdFromInstance(instance)
 				const sessionKey = this.sessionKeyCache[elementId]
 				if (sessionKey) {
-					// When we decrypt the instance we don't need to resolve the session key again as the instance is cached, so we can remove the session key from the cache.
-					// Except for the case were we have File instances, then we need to resolve the session key again for downloading the actual FileData or Blob.
-					// We can remove the session key from the cache for files when the ownerEncSessionKey is present
-					// (so that the file can decrypt itself without the bucketKey from the mail instance)
-					if (!isSameTypeRefByAttr(FileTypeRef, typeModel.app, typeModel.name) || instance._ownerEncSessionKey != null) {
+					// Reasons for the session key cache:
+					// 1. Optimize resolving of session key for MailBody instances. Mail and MailBody share the same session key and we just want to laod the permission once.
+					// 2. MailDetails entities cannot resolve the session key on their own. We always need to load the mail first and then put the mail session key into the cache as they share the same session key.
+					// 3. With simplified permission system (BucketKey as AT on Mail) File instances cannot resolve the session key on their own, all session keys
+					// are stored in the BucketKey of the mail. We do write ownerEncSessionKeys for Files but we might need file session keys before the update owner enc session key round trip is finished.
+					// When we have ownerEncSessionKey we can remove the key from cache, but we need to keep it for MailDetails as we don't write ownerEncSessionKey for blob entities.
+					if (instance._ownerEncSessionKey != null) {
 						delete this.sessionKeyCache[elementId]
 					}
 					return sessionKey
