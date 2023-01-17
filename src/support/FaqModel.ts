@@ -9,8 +9,11 @@ export type FaqEntry = {
 	id: string
 	title: string
 	text: string
-	tags: string
+	tags: string[]
 }
+
+type SearchableFaqEntry = Omit<FaqEntry, "tags"> & { tags: string }
+
 type Translation = {
 	code: string
 	keys: Record<string, string>
@@ -64,8 +67,15 @@ export class FaqModel {
 		if (cleanQuery === "") {
 			return []
 		} else {
+			const searchableList: readonly SearchableFaqEntry[] = this.getList().map((item) => {
+				return {
+					...item,
+					// join tags to search with plaintext search
+					tags: item.tags.join(", "),
+				}
+			})
 			// we could probably convert this to an AsyncGenerator to spread the load of searching the entries as well, but it's pretty snappy atm.
-			const markedResults: ReadonlyArray<FaqEntry> = search(cleanQuery, this.getList(), ["tags", "title", "text"], true)
+			const markedResults: ReadonlyArray<SearchableFaqEntry> = search(cleanQuery, searchableList, ["tags", "title", "text"], true)
 			for (const result of markedResults) {
 				// this delay is needed to make the next iteration be scheduled on the next macro task.
 				// just yielding/awaiting creates a micro task that doesn't let the event loop run.
@@ -75,11 +85,11 @@ export class FaqModel {
 		}
 	}
 
-	private sanitizeEntry(result: FaqEntry): FaqEntry {
+	private sanitizeEntry(result: SearchableFaqEntry): FaqEntry {
 		return {
 			id: result.id,
 			title: htmlSanitizer.sanitizeHTML(result.title).html,
-			tags: htmlSanitizer.sanitizeHTML(result.tags).html,
+			tags: result.tags.split(", ").map((tag) => htmlSanitizer.sanitizeHTML(tag).html),
 			text: htmlSanitizer.sanitizeHTML(result.text, { blockExternalContent: false }).html,
 		}
 	}
@@ -132,7 +142,7 @@ export class FaqModel {
 			id: id,
 			title: this.faqLang.get(downcast(`faq.${id}_title`)),
 			text: this.faqLang.get(downcast(`faq.${id}_markdown`)),
-			tags: this.getTags(`faq.${id}_tags`),
+			tags: this.getTags(`faq.${id}_tags`).split(", "),
 		}
 	}
 
