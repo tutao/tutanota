@@ -76,7 +76,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 			this.renderStyleToggleButton("b", lang.get("formatTextBold_msg") + " (Ctrl + B)", Icons.Bold, editor),
 			this.renderStyleToggleButton("i", lang.get("formatTextItalic_msg") + " (Ctrl + I)", Icons.Italic, editor),
 			this.renderStyleToggleButton("u", lang.get("formatTextUnderline_msg") + " (Ctrl + U)", Icons.Underline, editor),
-			this.renderStyleToggleButton("c", "formatTextMonospace_msg", Icons.Code, editor),
+			this.renderStyleToggleButton("c", lang.get("formatTextMonospace_msg"), Icons.Code, editor),
 			this.renderStyleToggleButton("a", editor.hasStyle("a") ? lang.get("breakLink_action") : lang.get("makeLink_action"), Icons.Link, editor),
 			this.renderListToggleButton("ol", lang.get("formatTextOl_msg") + " (Ctrl + Shift + 9)", Icons.ListOrdered, editor),
 			this.renderListToggleButton("ul", lang.get("formatTextUl_msg") + " (Ctrl + Shift + 8)", Icons.ListUnordered, editor),
