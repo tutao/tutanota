@@ -81,10 +81,7 @@ export function showSupportDialog() {
 							m(".b", m.trust(value.title)),
 							m(
 								".flex-start.flex-wrap",
-								value.tags
-									.split(",")
-									.filter((tag) => tag !== "")
-									.map((tag) => m(".keyword-bubble.plr-button", m.trust(tag.trim()))),
+								value.tags.filter((tag) => tag !== "").map((tag) => m(".keyword-bubble.plr-button", m.trust(tag.trim()))),
 							),
 							m(".list-border-bottom.pb", m.trust(value.text)),
 						])
