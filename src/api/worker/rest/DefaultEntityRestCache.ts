@@ -2,7 +2,7 @@ import type { EntityRestInterface } from "./EntityRestClient"
 import { EntityRestClient, EntityRestClientSetupOptions } from "./EntityRestClient"
 import { resolveTypeReference } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, difference, getFirstOrThrow, flat, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, difference, flat, getFirstOrThrow, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import { containsEventOfType, getEventOfType } from "../../common/utils/Utils"
 import type { EntityUpdate, User } from "../../entities/sys/TypeRefs.js"
 import {

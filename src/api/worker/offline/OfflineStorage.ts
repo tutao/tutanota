@@ -1,4 +1,4 @@
-import { ElementEntity, ListElementEntity, SomeEntity } from "../../common/EntityTypes.js"
+import { ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
 import {
 	elementIdPart,
 	firstBiggerThanSecond,
@@ -146,7 +146,14 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	async deleteIfExists(typeRef: TypeRef<SomeEntity>, listId: Id | null, elementId: Id): Promise<void> {
 		const type = getTypeId(typeRef)
-		const typeModel = await resolveTypeReference(typeRef)
+		let typeModel: TypeModel
+		try {
+			typeModel = await resolveTypeReference(typeRef)
+		} catch (e) {
+			// prevent failed lookup for BlobToFileMapping - this catch block can be removed after May 2023
+			console.log("couldn't resolve typeRef ", typeRef)
+			return
+		}
 		let preparedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:

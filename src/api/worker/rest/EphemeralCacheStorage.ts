@@ -1,4 +1,4 @@
-import { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "../../common/EntityTypes.js"
+import {BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity, TypeModel} from "../../common/EntityTypes.js"
 import { EntityRestClient, typeRefToPath } from "./EntityRestClient.js"
 import { firstBiggerThanSecond, getElementId, getListId } from "../../common/utils/EntityUtils.js"
 import { CacheStorage, LastUpdateTime } from "./DefaultEntityRestCache.js"
@@ -77,7 +77,14 @@ export class EphemeralCacheStorage implements CacheStorage {
 
 	async deleteIfExists<T>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void> {
 		const path = typeRefToPath(typeRef)
-		const typeModel = await resolveTypeReference(typeRef)
+		let typeModel: TypeModel
+		try {
+			typeModel = await resolveTypeReference(typeRef)
+		} catch (e) {
+			// prevent failed lookup for BlobToFileMapping - this catch block can be removed after May 2023
+			console.log("couldn't resolve typeRef ", typeRef)
+			return
+		}
 		switch (typeModel.type) {
 			case TypeId.Element:
 				this.entities.get(path)?.delete(id)
