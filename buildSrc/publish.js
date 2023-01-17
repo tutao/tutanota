@@ -18,9 +18,6 @@ import "zx/globals"
 			fpmAfterInstallScript: "./resources/scripts/after-install.sh",
 			destinationDir: `/opt/repository/tutanota`,
 		})
-		await tagRelease({
-			tagName: `tutanota-release-${tutanotaVersion}`,
-		})
 	} else if (process.argv[2] === "desktop") {
 		await compress()
 		const tutanotaVersion = getTutanotaAppVersion()
@@ -35,10 +32,6 @@ import "zx/globals"
 			name: "tutanota-desktop-test",
 			fpmRootMapping: `./build/desktop-test/=/opt/tutanota-desktop`,
 			destinationDir: `/opt/repository/tutanota-desktop-test`,
-		})
-
-		await tagRelease({
-			tagName: `tutanota-desktop-release-${tutanotaVersion}`,
 		})
 
 		// copy appimage for dev_clients
@@ -83,9 +76,4 @@ async function packageAndPublishDeb({ version, fpmRootMapping, name, fpmAfterIns
 
 	// user puppet needs to read the deb file from jetty
 	await $`/bin/chmod o+r ${destination}`
-}
-
-async function tagRelease({ tagName }) {
-	await $`/usr/bin/git tag -a ${tagName} -m ''`
-	await $`/usr/bin/git push origin ${tagName}`
 }

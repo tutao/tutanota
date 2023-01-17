@@ -7,7 +7,6 @@ pipeline {
 		ANDROID_SDK_ROOT = "/opt/android-sdk-linux"
 		ANDROID_HOME = "/opt/android-sdk-linux"
 		GITHUB_RELEASE_PAGE = "https://github.com/tutao/tutanota/releases/tag/tutanota-android-release-${VERSION}"
-		TAG = "tutanota-android-release-${VERSION}"
 	}
 
 	agent {
@@ -186,9 +185,6 @@ pipeline {
 			steps {
 				// Needed to upload it
 				unstash 'apk-production'
-
-				sh "git tag ${TAG}"
-				sh "git push --tags"
 
 				script {
 					def filePath = "build/app-android/tutanota-tutao-release-${VERSION}.apk"

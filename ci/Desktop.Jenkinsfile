@@ -3,7 +3,6 @@ pipeline {
         NODE_PATH = '/opt/node-v16.3.0-linux-x64/bin'
         NODE_MAC_PATH = '/usr/local/opt/node@16/bin/'
         VERSION = sh(returnStdout: true, script: "${NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
-		TAG = "tutanota-desktop-release-${VERSION}"
     }
     options {
         preserveStashes()

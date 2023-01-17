@@ -3,7 +3,6 @@ pipeline {
 		NODE_PATH = "/opt/node-v16.3.0-linux-x64/bin"
 		NODE_MAC_PATH = "/usr/local/opt/node@16/bin/"
 		VERSION = sh(returnStdout: true, script: "${NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
-		TAG = "tutanota-ios-release-${VERSION}"
 		RELEASE_NOTES_PATH = "app-ios/fastlane/metadata/default/release_notes.txt"
 	}
 
@@ -121,10 +120,6 @@ pipeline {
 				label 'linux'
 			}
 			steps {
-
-				sh "git tag ${TAG}"
-				sh "git push --tags"
-
 				script {
 
 					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
@@ -133,7 +128,7 @@ pipeline {
 						// need to run npm ci to install dependencies of releaseNotes.js
 						sh "npm ci"
 						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-							sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (IOS)' \
+							sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (iOS)' \
 																		   --milestone '${milestone}' \
 																		   --tag '${tag}' \
 																		   --platform ios"""
