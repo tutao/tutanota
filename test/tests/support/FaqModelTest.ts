@@ -74,7 +74,7 @@ o.spec("FaqModelTest", function () {
 		o(faqEntry.title).equals("Heading")
 		//use current language for missing title
 		o(faqEntry.text).equals("Inhalt")
-		o(faqEntry.tags).equals("a, b, c")
+		o(faqEntry.tags).deepEquals(["a", "b", "c"])
 		// do not invoke fetch faq entries twice
 		await faqModel.init()
 		o(fetchFaqSpy.callCount).equals(2)
@@ -95,7 +95,7 @@ o.spec("FaqModelTest", function () {
 		const faqEntry = list[0]
 		o(faqEntry.title).equals("Heading")
 		o(faqEntry.text).equals("Content")
-		o(faqEntry.tags).equals("a, b, c")
+		o(faqEntry.tags).deepEquals(["a", "b", "c"])
 	})
 	o("init and search with failing fetch faq entries", async function () {
 		fetchFaqSpy = o.spy((language) => {
@@ -128,7 +128,7 @@ o.spec("FaqModelTest", function () {
 				id: "entry",
 				title: "<mark>Heading</mark>",
 				text: "Inhalt",
-				tags: "a, b, c",
+				tags: ["a", "b", "c"],
 			},
 		])
 	})
@@ -139,7 +139,7 @@ o.spec("FaqModelTest", function () {
 				id: "otherEntry",
 				title: "Eine Überschrift",
 				text: "Ganz langer Inhalt",
-				tags: "<mark>tag</mark>",
+				tags: ["<mark>tag</mark>"],
 			},
 		])
 	})
@@ -150,13 +150,13 @@ o.spec("FaqModelTest", function () {
 				id: "entry",
 				title: "Heading",
 				text: "<mark>Inhalt</mark>",
-				tags: "a, b, c",
+				tags: ["a", "b", "c"],
 			},
 			{
 				id: "otherEntry",
 				title: "Eine Überschrift",
 				text: "Ganz langer <mark>Inhalt</mark>",
-				tags: "tag",
+				tags: ["tag"],
 			},
 		])
 	})

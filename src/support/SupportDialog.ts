@@ -82,7 +82,6 @@ export function showSupportDialog() {
 							m(
 								".flex-start.flex-wrap",
 								value.tags
-									.split(",")
 									.filter((tag) => tag !== "")
 									.map((tag) => m(".keyword-bubble.plr-button", m.trust(tag.trim()))),
 							),
