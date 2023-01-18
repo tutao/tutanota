@@ -3,7 +3,15 @@ import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
 import { NewsService } from "../../api/entities/tutanota/Services.js"
 import { NotFoundError } from "../../api/common/error/RestError.js"
 import { NewsListItem } from "./NewsListItem.js"
-import { DeviceConfig } from "../DeviceConfig.js"
+
+/**
+ * Interface for storing information about displayed news items on the device.
+ */
+export interface NewsItemStorage {
+	acknowledgeNewsItemForDevice(newsId: Id): void
+
+	hasAcknowledgedNewsItemForDevice(newsId: Id): boolean
+}
 
 /**
  * Makes calls to the NewsService in order to load the user's unacknowledged NewsItems and stores them.
@@ -14,7 +22,7 @@ export class NewsModel {
 
 	constructor(
 		private readonly serviceExecutor: IServiceExecutor,
-		private readonly deviceConfig: DeviceConfig,
+		private readonly storage: NewsItemStorage,
 		private readonly newsListItemFactory: (name: string) => Promise<NewsListItem | null>,
 	) {}
 
@@ -63,10 +71,10 @@ export class NewsModel {
 	}
 
 	acknowledgeNewsForDevice(newsItemId: Id) {
-		return this.deviceConfig.acknowledgeNewsItemForDevice(newsItemId)
+		return this.storage.acknowledgeNewsItemForDevice(newsItemId)
 	}
 
 	hasAcknowledgedNewsForDevice(newsItemId: Id): boolean {
-		return this.deviceConfig.hasAcknowledgedNewsItemForDevice(newsItemId)
+		return this.storage.hasAcknowledgedNewsItemForDevice(newsItemId)
 	}
 }
