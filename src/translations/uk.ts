@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2023-01-17T12:46:31Z",
+	"updated_at": "2023-01-20T15:24:52Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -189,7 +189,6 @@ export default {
 		"cancelUserAccounts_label": "Скасувати {1} користувача(-ів)\n\n",
 		"cancelWhitelabelBooking_label": "Скасувати функцію whitelabel для {1} користувачів\n\n",
 		"cancel_action": "Скасувати",
-		"cannotDeleteFoldersWithSubfolders_msg": "Неможливо видалити папки, які містять вкладені папки. Спочатку видаліть усі вкладені папки.",
 		"canNotOpenFileOnDevice_msg": "Цей файл неможливо відкрити на даному пристрої.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Введіть час, будь ласка, у годинах і хвилинах.",
@@ -441,7 +440,6 @@ export default {
 		"done_action": "Виконано",
 		"doNotAskAgain_label": "Не вимагайте знову цього файлу",
 		"downgradeToPremium_msg": "Ваш обліковий запис буде понижено до категорії Premium з 5 псевдонімами, сховищем об'ємом в 1 Гб і без функцій спільного доступу та whitelabel.",
-		"pricing.downgradeToPrivateNotAllowed_msg": "Неможливо змінити використання облікового запису з корпоративного на приватний.",
 		"downgradeToTeams_msg": "Ваш обліковий запис  буде понижено до облікового запису Робочих груп з 5 псевдонімами, 10 ГБ пам’яті та без функцій whitelabel.",
 		"downloadCompleted_msg": "Завантаження завершено",
 		"download_action": "Завантажити",
@@ -1104,6 +1102,7 @@ export default {
 		"pricing.comparisonThemePro_tooltip": "Застосуйте функцію Whitelabel Tutanota стосовно вашого власного бренду, визначаючи логотипи та кольори веб-, мобільних та настільних клієнтів сервісу Tutanota",
 		"pricing.comparisonUsersFree_msg": "Один користувач",
 		"pricing.currentPlan_label": "Поточна підписка",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Неможливо змінити використання облікового запису з корпоративного на приватний.",
 		"pricing.encryptedCalendar_label": "Повністю зашифрований календар",
 		"pricing.encryptedCalendar_tooltip": "Всі дані в календарях Tutanota зашифровані, навіть сповіщення надсилаються на ваш пристрій у зашифрованому вигляді.",
 		"pricing.encryptedContacts_label": "Зашифрована адресна книга",

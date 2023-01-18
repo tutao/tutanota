@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2023-01-19T10:37:27Z",
+	"updated_at": "2023-02-03T15:19:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -187,7 +187,6 @@ export default {
 		"cancelUserAccounts_label": "Cancel {1} user(s)",
 		"cancelWhitelabelBooking_label": "Cancel whitelabel feature for {1} users",
 		"cancel_action": "Cancel",
-		"cannotDeleteFoldersWithSubfolders_msg": "It is not possible to delete folders that contain subfolders. Please delete all subfolders first.",
 		"canNotOpenFileOnDevice_msg": "This file can not be opened on this device.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Please enter the time in hours and minutes.",
@@ -443,7 +442,6 @@ export default {
 		"done_action": "Done",
 		"doNotAskAgain_label": "Don't ask again for this file",
 		"downgradeToPremium_msg": "Your account will be downgraded to a Premium account with 5 aliases, 1 GB of storage and without sharing or whitelabel functions.",
-		"pricing.downgradeToPrivateNotAllowed_msg": "It is not possible to change the account usage from Business to Private.",
 		"downgradeToTeams_msg": "Your account will be downgraded to a Teams account with 5 aliases, 10 GB of storage and without whitelabel functions.",
 		"downloadCompleted_msg": "Download completed",
 		"download_action": "Download",
@@ -1112,6 +1110,7 @@ export default {
 		"pricing.comparisonThemePro_tooltip": "Whitelabel Tutanota with your own branding by defining the logos and colors of the Tutanota web, mobile and desktop clients",
 		"pricing.comparisonUsersFree_msg": "One user",
 		"pricing.currentPlan_label": "Current subscription",
+		"pricing.downgradeToPrivateNotAllowed_msg": "It is not possible to change the account usage from Business to Private.",
 		"pricing.encryptedCalendar_label": "Fully encrypted calendar",
 		"pricing.encryptedCalendar_tooltip": "All data in your Tutanota calendars is encrypted, even notifications are sent encrypted to your device.",
 		"pricing.encryptedContacts_label": "Encrypted address book",
@@ -1231,6 +1230,7 @@ export default {
 		"reportPhishing_action": "Report phishing",
 		"reportSpam_action": "Report spam",
 		"requestApproval_msg": "Sorry, you are currently not allowed to send or receive emails (except to Tutanota support) because your account was marked for approval to avoid abuse like spam emails. Please contact us at approval@tutao.de directly from your Tutanota account and describe what you would like to use this email account for. Please write in English or German, so we can understand you. Thanks!",
+		"requestTimeout_msg": "An operation took too long due to a slow internet connection. Please try again at a later time.",
 		"requestTooLarge_msg": "The amount of data is too large. Please shorten the text.",
 		"requiresNewWindow_msg": "Will take effect in any new window.",
 		"resetZoomFactor_action": "Reset Zoom Factor",
@@ -1297,6 +1297,8 @@ export default {
 		"sendingSms_msg": "Sending SMS ...",
 		"sendingUnencrypted_msg": "Your message is being sent.",
 		"sending_msg": "Your message is being encrypted and sent.",
+		"sendLogsInfo_msg": "Attach the log files to the error report. Click below to display the contents.",
+		"sendLogs_action": "Send Logs",
 		"sendMail_alt": "Send email to this address",
 		"sendUpdates_label": "Send updates to invitees",
 		"sendUpdates_msg": "Send update notification to invitees?",
@@ -1589,9 +1591,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"requestTimeout_msg": "An operation took too long due to a slow internet connection. Please try again at a later time.",
-		"sendLogs_action": "Send Logs",
-		"sendLogsInfo_msg": "Attach the log files to the error report. Click below to display the contents."
+		"you_label": "You"
 	}
 }

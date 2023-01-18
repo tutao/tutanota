@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2023-01-17T12:46:31Z",
+	"updated_at": "2023-01-20T15:24:52Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -191,7 +191,6 @@ export default {
 		"cancelUserAccounts_label": "Ακύρωσε {1} χρήστη/χρήστες ",
 		"cancelWhitelabelBooking_label": "Ακύρωση δυνατότητας whitelabel για {1} χρήστες",
 		"cancel_action": "Άκυρο",
-		"cannotDeleteFoldersWithSubfolders_msg": "Δεν είναι δυνατή η διαγραφή φακέλων που περιέχουν υποφακέλους. Διαγράψτε πρώτα όλους τους υποφακέλους.",
 		"canNotOpenFileOnDevice_msg": "Αυτό το αρχείο δεν ανοίγει σε αυτή τη συσκευή. ",
 		"captchaDisplay_label": "Αυτόματο τέστ συνδυασμών",
 		"captchaEnter_msg": "Συμπληρώστε την ώρα σε ώρες και λεπτά.",
@@ -443,7 +442,6 @@ export default {
 		"done_action": "Έγινε",
 		"doNotAskAgain_label": "Να μην ερωτηθώ ξανά για αυτό το αρχείο",
 		"downgradeToPremium_msg": "Ο λογαριασμός σας θα υποβαθμιστεί σε premium λογαριασμό με 5 ψευδώνυμα, 1 GB χώρου αποθήκευσης και χωρίς λειτουργίες κοινής χρήσης ή whitelabel.",
-		"pricing.downgradeToPrivateNotAllowed_msg": "Δεν είναι δυνατόν να αλλάξετε τη χρήση του λογαριασμού από επαγγελματική σε ιδιωτική.",
 		"downgradeToTeams_msg": "Ο λογαριασμός σας θα υποβαθμιστεί σε λογαριασμό Teams με 5 ψευδώνυμα, 10 GB χώρου αποθήκευσης και χωρίς λειτουργίες whitelabel.",
 		"downloadCompleted_msg": "Η λήψη ολοκληρώθηκε",
 		"download_action": "Λήψη",
@@ -1105,6 +1103,7 @@ export default {
 		"pricing.comparisonThemePro_tooltip": "Κάντε whitelabel την  Tutanota με την δική σας επωνυμία, ορίζοντας τα λογότυπα και τα χρώματα εφαρμογών ιστού, κινητών και υπολογιστών της Tutanota. ",
 		"pricing.comparisonUsersFree_msg": "Ένας χρήστης",
 		"pricing.currentPlan_label": "Τρέχουσα συνδρομή",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Δεν είναι δυνατόν να αλλάξετε τη χρήση του λογαριασμού από επαγγελματική σε ιδιωτική.",
 		"pricing.encryptedCalendar_label": "Πλήρως κρυπτογραφημένο ημερολόγιο",
 		"pricing.encryptedCalendar_tooltip": "Όλα τα δεδομένα στα ημερολόγια Tutanota είναι κρυπτογραφημένα, ακόμα και οι ειδοποιήσεις στέλνονται κρυπτογραφημένες στην συσκευή σας.",
 		"pricing.encryptedContacts_label": "Κρυπτογραφημένο βιβλίο επαφών",

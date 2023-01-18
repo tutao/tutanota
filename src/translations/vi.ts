@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2023-01-17T12:46:31Z",
+	"updated_at": "2023-01-20T15:24:53Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -186,7 +186,6 @@ export default {
 		"cancelUserAccounts_label": "Huỷ {1} người dùng",
 		"cancelWhitelabelBooking_label": "Hủy bỏ tính năng nhãn trắng cho {1} người dùng",
 		"cancel_action": "Huỷ",
-		"cannotDeleteFoldersWithSubfolders_msg": "Không thể xoá các thư mục có chứa thư mục con. Vui lòng xoá hết các thư mục con trước.",
 		"canNotOpenFileOnDevice_msg": "Không thể mở tệp này trên thiết bị này.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Vui lòng nhập thời gian theo giờ và phút.",
@@ -438,7 +437,6 @@ export default {
 		"done_action": "Xong",
 		"doNotAskAgain_label": "Không hỏi lại cho tệp này",
 		"downgradeToPremium_msg": "Danh khoản của bạn sẽ bị hạ cấp thành một danh khoản Premium với 5 biệt danh, 1 GB lưu trữ và không có các chức năng nhãn trắng (whitelabel) hay chia sẻ.",
-		"pricing.downgradeToPrivateNotAllowed_msg": "Không thể đổi mục đích sử dụng danh khoản từ Doanh nghiệp sang Cá nhân.",
 		"downgradeToTeams_msg": "Danh khoản của bạn sẽ bị hạ cấp thành một danh khoản Teams với 5 biệt danh, 10 GB lưu trữ và không có các chức năng nhãn trắng (whitelabel).",
 		"downloadCompleted_msg": "Tải về xong",
 		"download_action": "Tải về",
@@ -1101,6 +1099,7 @@ export default {
 		"pricing.comparisonThemePro_tooltip": "Đặt nhãn trắng Tutanota với nhãn hiệu của riêng bạn bằng cách chỉ định biểu trưng và màu của các trình khách Tutanota trên web, điện thoại và máy tính",
 		"pricing.comparisonUsersFree_msg": "Một người dùng",
 		"pricing.currentPlan_label": "Thuê bao hiện tại",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Không thể đổi mục đích sử dụng danh khoản từ Doanh nghiệp sang Cá nhân.",
 		"pricing.encryptedCalendar_label": "Lịch mật mã hoá toàn diện",
 		"pricing.encryptedCalendar_tooltip": "Tất cả dữ liệu trong các lịch Tutanota của bạn đều được mật mã hoá, kể cả các thông báo cũng được gửi mật mã hoá đến thiết bị của bạn.",
 		"pricing.encryptedContacts_label": "Danh bạ mật mã hoá",
