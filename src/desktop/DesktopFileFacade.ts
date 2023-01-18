@@ -6,13 +6,11 @@ import { ElectronExports } from "./ElectronExportTypes.js"
 import { UploadTaskResponse } from "../native/common/generatedipc/UploadTaskResponse.js"
 import { DataFile } from "../api/common/DataFile.js"
 import { FileUri } from "../native/common/FileApp.js"
-
-function Unimplemented() {
-	return new Error("not implemented for this platform")
-}
+import path from "node:path"
+import { ApplicationWindow } from "./ApplicationWindow.js"
 
 export class DesktopFileFacade implements FileFacade {
-	constructor(private readonly dl: DesktopDownloadManager, private readonly electron: ElectronExports) {}
+	constructor(private readonly win: ApplicationWindow, private readonly dl: DesktopDownloadManager, private readonly electron: ElectronExports) {}
 
 	clearFileData(): Promise<void> {
 		this.dl.deleteTutanotaTempDirectory()
@@ -27,12 +25,16 @@ export class DesktopFileFacade implements FileFacade {
 		return this.dl.downloadNative(sourceUrl, filename, headers)
 	}
 
-	getMimeType(file: string): Promise<string> {
-		throw Unimplemented()
+	async getMimeType(file: string): Promise<string> {
+		const ext = path.extname(file).slice(1)
+		const { mimes } = await import("./flat-mimes.js")
+		const candidates = mimes[ext]
+		// sometimes there are multiple options, but we'll take the first and reorder if issues arise.
+		return candidates != null ? candidates[0] : "application/octet-stream"
 	}
 
-	getName(file: string): Promise<string> {
-		throw Unimplemented()
+	async getName(file: string): Promise<string> {
+		return path.basename(file)
 	}
 
 	getSize(file: string): Promise<number> {
@@ -51,14 +53,15 @@ export class DesktopFileFacade implements FileFacade {
 		return this.dl.open(location)
 	}
 
-	openFileChooser(boundingRect: IpcClientRect): Promise<Array<string>> {
-		throw Unimplemented()
+	async openFileChooser(boundingRect: IpcClientRect): Promise<Array<string>> {
+		const { filePaths } = await this.electron.dialog.showOpenDialog(this.win._browserWindow, { properties: ["openFile", "multiSelections"] })
+		return filePaths
 	}
 
 	openFolderChooser(): Promise<string | null> {
 		// open folder dialog
 		return this.electron.dialog
-			.showOpenDialog({
+			.showOpenDialog(this.win._browserWindow, {
 				properties: ["openDirectory"],
 			})
 			.then(({ filePaths }) => filePaths[0] ?? null)

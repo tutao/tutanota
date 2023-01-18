@@ -200,7 +200,6 @@ async function createComponents(): Promise<Components> {
 	}
 	const pushFacade = new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage)
 	const settingsFacade = new DesktopSettingsFacade(conf, desktopUtils, integrator, updater, lang)
-	const fileFacade = new DesktopFileFacade(dl, electron)
 
 	const dispatcherFactory = (window: ApplicationWindow) => {
 		// @ts-ignore
@@ -210,7 +209,7 @@ async function createComponents(): Promise<Components> {
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
 			new DesktopExportFacade(desktopUtils, conf, window, dragIcons),
-			fileFacade,
+			new DesktopFileFacade(window, dl, electron),
 			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,
 			desktopCrypto,
