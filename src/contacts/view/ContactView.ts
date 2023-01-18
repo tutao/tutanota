@@ -47,7 +47,7 @@ import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
-import { TopLevelView, TopLevelAttrs } from "../../TopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 
 assertMainOrNode()
 
@@ -147,14 +147,13 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			keyManager.unregisterShortcuts(shortcuts)
 			locator.eventController.removeEntityListener(this.entityListener)
 		}
-
 	}
 
 	private entityListener = (updates: EntityUpdateData[]) => {
 		return promiseMap(updates, (update) => this._processEntityUpdate(update)).then(noOp)
 	}
 
-	view({attrs}: Vnode<ContactViewAttrs>): Children {
+	view({ attrs }: Vnode<ContactViewAttrs>): Children {
 		return m(
 			"#contact.main-view",
 			m(this.viewSlider, {
@@ -162,7 +161,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					headerView: this.renderHeaderView(),
 					rightView: this.renderHeaderRightView(),
 					viewSlider: this.viewSlider,
-					...attrs.header
+					...attrs.header,
 				}),
 				bottomNav: m(BottomNav),
 			}),
@@ -267,7 +266,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 	createContactFoldersExpanderChildren(): Children {
 		return m(".folders", [
-			m(".folder-row.flex-space-between.plr-l.row-selected", [
+			m(".folder-row.flex-space-between.plr-button.row-selected", [
 				m(NavButton, {
 					label: "all_contacts_label",
 					icon: () => BootIcons.Contacts,

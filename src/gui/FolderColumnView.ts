@@ -45,14 +45,14 @@ export class FolderColumnView implements Component<Attrs> {
 		return attrs.button
 			? attrs.button.type === ButtonType.FolderColumnHeader
 				? m(
-						".mlr-l.mt.mb",
+						".plr-button-double.mt.mb",
 						m(FolderColumnHeaderButton, {
 							label: attrs.button.label,
 							click: attrs.button.click,
 						}),
 				  )
 				: m(
-						".mlr-l.mt.mb",
+						".plr-button-double.mt.mb",
 						m(Button, {
 							type: attrs.button.type,
 							label: attrs.button.label,
