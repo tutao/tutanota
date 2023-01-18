@@ -1,17 +1,16 @@
 import o from "ospec"
 import { IServiceExecutor } from "../../../src/api/common/ServiceRequest.js"
 import { object, verify, when } from "testdouble"
-import { NewsModel } from "../../../src/misc/news/NewsModel.js"
+import { NewsItemStorage, NewsModel } from "../../../src/misc/news/NewsModel.js"
 import { NewsService } from "../../../src/api/entities/tutanota/Services.js"
 import { createNewsId, createNewsIn, createNewsOut, NewsId } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { NewsListItem } from "../../../src/misc/news/NewsListItem.js"
 import { Children } from "mithril"
-import { DeviceConfig } from "../../../src/misc/DeviceConfig.js"
 
 o.spec("NewsModel", function () {
 	let newsModel: NewsModel
 	let serviceExecutor: IServiceExecutor
-	let deviceConfig: DeviceConfig
+	let storage: NewsItemStorage
 	let newsIds: NewsId[]
 
 	const DummyNews = class implements NewsListItem {
@@ -26,9 +25,9 @@ o.spec("NewsModel", function () {
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
-		deviceConfig = object()
+		storage = object()
 
-		newsModel = new NewsModel(serviceExecutor, deviceConfig, async () => new DummyNews())
+		newsModel = new NewsModel(serviceExecutor, storage, async () => new DummyNews())
 
 		newsIds = [
 			createNewsId({

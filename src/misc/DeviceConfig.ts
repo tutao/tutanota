@@ -9,6 +9,7 @@ import type { CredentialEncryptionMode } from "./credentials/CredentialEncryptio
 import { assertMainOrNodeBoot } from "../api/common/Env"
 import { PersistedAssignmentData, UsageTestStorage } from "./UsageTestModel"
 import { client } from "./ClientDetector"
+import { NewsItemStorage } from "./news/NewsModel.js"
 
 assertMainOrNodeBoot()
 export const defaultThemeId: ThemeId = "light"
@@ -40,7 +41,7 @@ interface ConfigObject {
 /**
  * Device config for internal user auto login. Only one config per device is stored.
  */
-export class DeviceConfig implements CredentialsStorage, UsageTestStorage {
+export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsItemStorage {
 	public static Version = 3
 	public static LocalStorageKey = "tutanotaConfig"
 
