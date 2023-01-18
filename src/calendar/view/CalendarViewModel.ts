@@ -17,7 +17,7 @@ import {
 } from "@tutao/tutanota-utils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTypeRef, UserSettingsGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import { GroupType, OperationType, reverse } from "../../api/common/TutanotaConstants"
+import { OperationType, reverse } from "../../api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
 import { getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
 import { LoginController, logins } from "../../api/main/LoginController"
@@ -445,13 +445,11 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 					this._calendarInfos.getAsync().then((calendarInfos) => {
 						const calendarInfo = calendarInfos.get(eventOwnerGroupId)
 
-						if (calendarInfo) {
+						//only process the GroupInfo update if the id is the same as calendarInfo.groupInfo._id
+						if (calendarInfo && isSameId(calendarInfo.groupInfo._id, [update.instanceListId, update.instanceId])) {
 							return this._entityClient.load(GroupInfoTypeRef, [update.instanceListId, update.instanceId]).then((groupInfo) => {
-								//only process the GroupInfo update if it is a GroupInfo update for a calendar group.
-								if (groupInfo.groupType === GroupType.Calendar) {
-									calendarInfo.groupInfo = groupInfo
-									this._redraw()
-								}
+								calendarInfo.groupInfo = groupInfo
+								this._redraw()
 							})
 						}
 					})
