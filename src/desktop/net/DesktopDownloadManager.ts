@@ -266,10 +266,7 @@ export class DesktopDownloadManager {
 				readStream.pipe(outStream, { end: false })
 			})
 		}
-		// Wait for the write stream to finish
-		await new Promise((resolve) => {
-			outStream.end(resolve)
-		})
+		await closeFileStream(outStream)
 		return fileUri
 	}
 

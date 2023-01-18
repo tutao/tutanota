@@ -619,7 +619,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 			const rs = ReadStream.mockedInstances[0]
 			o(rs.pipe.callCount).equals(1)("stream was piped")
 			o(rs.pipe.args).deepEquals([ws, { end: false }])
-			o(ws.end.callCount).equals(1)
+			o(ws.close.callCount).equals(1)
 
 			o(joinedFile).equals("/tutanota/tmp/path/download/fileName.pdf")
 		})
