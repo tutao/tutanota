@@ -11,4 +11,4 @@ TutaoCancelAction = "Скасаваць";
 TutaoSettingsAction = "Налады";
 TutaoCalendarAlarmTitle = "Напамін";
 TutaoScheduleAlarmError = "Не атрымалася паставіць напамін. Калі ласка, абнаві праграму.";
-TutaoUnlockCredentialsAction = "Разблакаваць даныя ўваходу";
+TutaoUnlockCredentialsAction = "Разамкнуць даныя ўваходу";

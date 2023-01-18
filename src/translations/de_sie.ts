@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2023-01-19T10:41:55Z",
+	"updated_at": "2023-02-03T15:19:41Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -191,7 +191,6 @@ export default {
 		"cancelUserAccounts_label": "Abbestellung von {1} Benutzer",
 		"cancelWhitelabelBooking_label": "Abbestellung von Whitelabel-Upgrade für {1} Benutzer",
 		"cancel_action": "Abbrechen",
-		"cannotDeleteFoldersWithSubfolders_msg": "Es ist nicht möglich, Ordner mit Unterordnern zu löschen. Bitte löschen Sie zunächst alle Unterordner.",
 		"canNotOpenFileOnDevice_msg": "Diese Datei kann auf diesem Gerät nicht geöffnet werden.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Bitte tragen Sie die Uhrzeit in Stunden und Minuten ein.",
@@ -447,7 +446,6 @@ export default {
 		"done_action": "Fertig",
 		"doNotAskAgain_label": "Nicht noch einmal fragen",
 		"downgradeToPremium_msg": "Der Account wird zu einem Premium-Account mit 5 Alias-Adressen und 1 GB Speicher ohne die Freigeben-Funktion oder Whitelabel-Optionen gewechselt.",
-		"pricing.downgradeToPrivateNotAllowed_msg": "Es ist nicht möglich einen Geschäftkunden-Account in einen Privat-Account umzuwandeln.",
 		"downgradeToTeams_msg": "Ihr Account wird zu einem Teams-Account mit 5 Alias-Adressen und 10 GB Speicher ohne Whitelabel-Funktion gewechselt.",
 		"downloadCompleted_msg": "Download abgeschlossen",
 		"download_action": "Herunterladen",
@@ -1116,6 +1114,7 @@ export default {
 		"pricing.comparisonThemePro_tooltip": "Whitelabel Tutanota mit Ihrem eigenen Branding, indem Sie die Logos und Farben der Tutanota Web-, Mobile- und Desktop-Clients anpassen.",
 		"pricing.comparisonUsersFree_msg": "Ein Benutzer",
 		"pricing.currentPlan_label": "Aktuelles Abo",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Es ist nicht möglich einen Geschäftkunden-Account in einen Privat-Account umzuwandeln.",
 		"pricing.encryptedCalendar_label": "Verschlüsselter Kalender",
 		"pricing.encryptedCalendar_tooltip": "Alle Daten in den Tutanota-Kalendern sind verschlüsselt, selbst Benachrichtigungen werden verschlüsselt gesendet.",
 		"pricing.encryptedContacts_label": "Verschlüsseltes Adressbuch",
@@ -1235,6 +1234,7 @@ export default {
 		"reportPhishing_action": "Als Phishing melden",
 		"reportSpam_action": "Als Spam melden",
 		"requestApproval_msg": "Sie dürfen leider gerade keine E-Mails senden oder empfangen (außer an den Tutanota-Support), da Ihr Account erst freigegeben werden muss, um Missbrauch wie Spam zu verhindern. Bitte schreiben Sie uns an approval@tutao.de direkt von Ihrem Tutanota-Account und beschreiben Sie, wozu Sie diesen E-Mail-Account verwenden möchten.",
+		"requestTimeout_msg": "Eine Operation hat wegen einer langsamen Internet-Verbindung zu lange gedauert. Bitte versuchen Sie es später noch einmal.",
 		"requestTooLarge_msg": "Die Datenmenge ist zu groß. Bitte kürzen Sie den Text.",
 		"requiresNewWindow_msg": "Änderung wird in neuen Fenstern aktiv.",
 		"resetZoomFactor_action": "Zoomfaktor zurücksetzen",
@@ -1301,6 +1301,8 @@ export default {
 		"sendingSms_msg": "SMS wird gesendet ...",
 		"sendingUnencrypted_msg": "Ihre Nachricht wird gesendet.",
 		"sending_msg": "Ihre Nachricht wird verschlüsselt und gesendet.",
+		"sendLogsInfo_msg": "Die Logdateien an den Fehlerbericht anhängen. Klicken Sie auf eine Logdatei, um den Inhalt zu sehen.",
+		"sendLogs_action": "Logs senden",
 		"sendMail_alt": "E-Mail an diese Adresse senden",
 		"sendUpdates_label": "Aktualisierung an Eingeladene senden",
 		"sendUpdates_msg": "Aktualisierung an Eingeladene senden?",
@@ -1593,9 +1595,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		"requestTimeout_msg": "Eine Operation hat wegen einer langsamen Internet-Verbindung zu lange gedauert. Bitte versuchen Sie es später noch einmal.",
-		"sendLogs_action": "Logs Senden",
-		"sendLogsInfo_msg": "Die Logdateien an den Fehlerbericht anhängen. Klicken Sie auf eine Logdatei, um den Inhalt zu sehen."
+		"you_label": "Sie"
 	}
 }

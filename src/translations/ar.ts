@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2023-01-18T21:36:17Z",
+	"updated_at": "2023-01-20T15:24:53Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -194,7 +194,6 @@ export default {
 		"cancelUserAccounts_label": "إلغاء {1} حساب مستخدم (مستخدمين)",
 		"cancelWhitelabelBooking_label": "إلغاء ميزة وايت لابل لِـ {1} من المستخدمين",
 		"cancel_action": "إلغاء",
-		"cannotDeleteFoldersWithSubfolders_msg": "لا يمكن حذف المجلدات التي تحتوي على مجلدات فرعية. الرجاء حذف جميع المجلدات الفرعية أولا.",
 		"canNotOpenFileOnDevice_msg": "لا يمكن فتح هذا الملف على هذا الجهاز.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "الرجاء إدخال الوقت بالساعات والدقائق.",
@@ -447,7 +446,6 @@ export default {
 		"done_action": "تم",
 		"doNotAskAgain_label": "لا تسأل مرة أخرى عن هذا الملف",
 		"downgradeToPremium_msg": "سيتم إرجاع حسابك إلى حساب بريميوم يضم 5 أسماء مستعارة و 1 جيجا بايت من السعة التخزينية  وبدون مشاركة أو وظائف القائمة البيضاء (whitelabel ).",
-		"pricing.downgradeToPrivateNotAllowed_msg": "لا يمكن تغيير استخدام الحساب من حساب تجاري (Business) إلى حساب خاص (Private).",
 		"downgradeToTeams_msg": "سيتم إرجاع حسابك إلى حساب Teams مع 5 أسماء مستعارة و 10 غيغابايت من التخزين وبدون وظائف whitelabel.",
 		"downloadCompleted_msg": "اكتملت عملية التنزيل",
 		"download_action": "تحميل",
@@ -1115,6 +1113,7 @@ export default {
 		"pricing.comparisonThemePro_tooltip": "العلامة البيضاء توتانوتا مع العلامة التجارية الخاصة بك بواسطة تحديد الشعارات والألوان لـتوتانوتا عملاء الويب والمحمول وسطح المكتب",
 		"pricing.comparisonUsersFree_msg": "مستخدم واحد",
 		"pricing.currentPlan_label": "الاشتراك الحالي",
+		"pricing.downgradeToPrivateNotAllowed_msg": "لا يمكن تغيير استخدام الحساب من حساب تجاري (Business) إلى حساب خاص (Private).",
 		"pricing.encryptedCalendar_label": "تقويم مشفر بالكامل",
 		"pricing.encryptedCalendar_tooltip": "يتم تشفير جميع البيانات في تقويمات توتانوتا الخاصة بك، حتى  الإشعارات يتم إرسالها مشفرة إلى جهازك.",
 		"pricing.encryptedContacts_label": "دفتر العناوين المشفر",

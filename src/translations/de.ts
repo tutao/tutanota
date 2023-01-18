@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2023-01-19T10:41:47Z",
+	"updated_at": "2023-02-03T15:19:52Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -191,7 +191,6 @@ export default {
 		"cancelUserAccounts_label": "Abbestellung von {1} Benutzer",
 		"cancelWhitelabelBooking_label": "Abbestellung von Whitelabel-Feature für {1} Benutzer",
 		"cancel_action": "Abbrechen",
-		"cannotDeleteFoldersWithSubfolders_msg": "Es ist nicht möglich, Ordner mit Unterordnern zu löschen. Bitte lösche zunächst alle Unterordner.",
 		"canNotOpenFileOnDevice_msg": "Diese Datei kann auf diesem Gerät nicht geöffnet werden.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Bitte trage die Uhrzeit in Stunden und Minuten ein.",
@@ -447,7 +446,6 @@ export default {
 		"done_action": "Fertig",
 		"doNotAskAgain_label": "Nicht noch einmal fragen",
 		"downgradeToPremium_msg": "Der Account wird zu einem Premium-Account mit 5 Alias-Adressen und 1 GB Speicher ohne die Freigeben-Funktion oder das Whitelabel-Feature gewechselt.",
-		"pricing.downgradeToPrivateNotAllowed_msg": "Es ist nicht möglich einen Geschäftkunden-Account in einen Privat-Account umzuwandeln.",
 		"downgradeToTeams_msg": "Dein Account wird zu einem Teams-Account mit 5 Alias-Adressen und 10 GB Speicher ohne Whitelabel-Funktion gewechselt.",
 		"downloadCompleted_msg": "Download abgeschlossen",
 		"download_action": "Herunterladen",
@@ -1116,6 +1114,7 @@ export default {
 		"pricing.comparisonThemePro_tooltip": "Whitelabel Tutanota mit deinem eigenen Branding, indem du die Logos und Farben der Tutanota Web-, Mobile- und Desktop-Clients anpasst.",
 		"pricing.comparisonUsersFree_msg": "Ein Benutzer",
 		"pricing.currentPlan_label": "Aktuelles Abo",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Es ist nicht möglich einen Geschäftkunden-Account in einen Privat-Account umzuwandeln.",
 		"pricing.encryptedCalendar_label": "Verschlüsselter Kalender",
 		"pricing.encryptedCalendar_tooltip": "Alle Daten in den Tutanota-Kalendern sind verschlüsselt, selbst Benachrichtigungen werden verschlüsselt gesendet.",
 		"pricing.encryptedContacts_label": "Verschlüsseltes Adressbuch",
@@ -1235,6 +1234,7 @@ export default {
 		"reportPhishing_action": "Als Phishing melden",
 		"reportSpam_action": "Als Spam melden",
 		"requestApproval_msg": "Du darfst leider gerade keine E-Mails senden oder empfangen (außer an den Tutanota-Support), da dein Account erst freigegeben werden muss, um Missbrauch wie Spam zu verhindern. Bitte schreibe uns an approval@tutao.de direkt von deinem Tutanota-Account und beschreibe, wozu du diesen E-Mail-Account verwenden möchtest.",
+		"requestTimeout_msg": "Eine Operation hat wegen einer langsamen Internet-Verbindung zu lange gedauert. Bitte versuche es später noch einmal.",
 		"requestTooLarge_msg": "Die Datenmenge ist zu groß. Bitte kürze den Text.",
 		"requiresNewWindow_msg": "Änderung wird in neuen Fenstern aktiv.",
 		"resetZoomFactor_action": "Zoomfaktor zurücksetzen",
@@ -1301,6 +1301,8 @@ export default {
 		"sendingSms_msg": "SMS wird gesendet ...",
 		"sendingUnencrypted_msg": "Deine Nachricht wird gesendet.",
 		"sending_msg": "Deine Nachricht wird verschlüsselt und gesendet.",
+		"sendLogsInfo_msg": "Die Logdateien an den Fehlerbericht anhängen. Klicke auf eine Logdatei, um den Inhalt zu sehen.",
+		"sendLogs_action": "Logs senden",
 		"sendMail_alt": "E-Mail an diese Adresse senden",
 		"sendUpdates_label": "Aktualisierung an Eingeladene senden",
 		"sendUpdates_msg": "Aktualisierung an Eingeladene senden?",
@@ -1593,9 +1595,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du",
-		"requestTimeout_msg": "Eine Operation hat wegen einer langsamen Internet-Verbindung zu lange gedauert. Bitte versuche es später noch einmal.",
-		"sendLogs_action": "Logs Senden",
-		"sendLogsInfo_msg": "Die Logdateien an den Fehlerbericht anhängen. Klicke auf eine Logdatei, um den Inhalt zu sehen."
+		"you_label": "Du"
 	}
 }
