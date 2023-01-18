@@ -12,7 +12,7 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
-import { Cardinality, Type, ValueType } from "../EntityConstants"
+import { Cardinality, ValueType } from "../EntityConstants"
 import type { ModelValue, SomeEntity, TypeModel } from "../EntityTypes"
 import { ElementEntity } from "../EntityTypes"
 
@@ -194,10 +194,6 @@ export function customIdToString(customId: string): string {
 export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>): T {
 	let i: Record<string, any> = {
 		_type: typeRef,
-	}
-
-	if (typeModel.type === Type.Element || typeModel.type === Type.ListElement) {
-		;(i as any)._errors = {}
 	}
 
 	for (let valueName of Object.keys(typeModel.values)) {
