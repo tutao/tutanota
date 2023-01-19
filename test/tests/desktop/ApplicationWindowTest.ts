@@ -425,6 +425,7 @@ o.spec("ApplicationWindow Test", function () {
 			"Control+P",
 			"F12",
 			"Control+0",
+			"Control+Shift+Q",
 			"F11",
 			"Alt+Right",
 			"Alt+Left",
@@ -442,6 +443,7 @@ o.spec("ApplicationWindow Test", function () {
 			"Control+P",
 			"F12",
 			"Control+0",
+			"Control+Shift+Q",
 			"F11",
 			"Alt+Right",
 			"Alt+Left",
@@ -455,7 +457,7 @@ o.spec("ApplicationWindow Test", function () {
 
 		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, remoteBridge, dictUrl)
 		downcast(w._browserWindow.webContents).callbacks["did-finish-load"]()
-		o(Object.keys(electronLocalshortcutMock.callbacks)).deepEquals(["Command+F", "Command+P", "F12", "Command+0", "Command+Control+F"])
+		o(Object.keys(electronLocalshortcutMock.callbacks)).deepEquals(["Command+F", "Command+P", "F12", "Command+0", "Command+Q", "Command+Control+F"])
 	})
 
 	function testShortcut(shortcuts: Array<string>, assertion: (sm: ReturnType<typeof standardMocks>) => void) {
