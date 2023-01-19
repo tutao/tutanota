@@ -32,6 +32,7 @@ export type TextFieldAttrs = {
 	onclick?: clickHandler
 	doShowBorder?: boolean | null
 	fontSize?: string
+	sidePadding?: boolean
 }
 
 export const enum TextFieldType {
@@ -86,7 +87,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		const borderWidth = this.active ? "2px" : "1px"
 		const borderColor = this.active ? theme.content_accent : theme.content_border
 		return m(
-			".text-field.rel.overflow-hidden",
+			".text-field.rel.overflow-hidden" + vnode.attrs.sidePadding ? ".plr-button" : "",
 			{
 				id: vnode.attrs.id,
 				oncreate: (vnode) => (this._domWrapper = vnode.dom as HTMLElement),

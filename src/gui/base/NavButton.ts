@@ -1,7 +1,6 @@
 import m, { Children, Component, RouteLinkAttrs, Vnode } from "mithril"
 import { handleUncaughtError } from "../../misc/ErrorHandler"
 import { px, size } from "../size"
-import { addFlash, removeFlash } from "./Flash"
 import type { lazy } from "@tutao/tutanota-utils"
 import { lazyStringValue, neverNull } from "@tutao/tutanota-utils"
 import type { lazyIcon } from "./Icon"
@@ -30,12 +29,16 @@ export type NavButtonAttrs = {
 	small?: boolean
 	centred?: boolean
 	leftInjection?: () => Children
+	disableHoverBackground?: boolean
+	disabled?: boolean
 }
 
-const navButtonSelector = (vertical: boolean | undefined, centred?: boolean) =>
-	"a.nav-button.noselect.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height.state-bg.border-radius" +
+const navButtonSelector = (vertical: boolean | undefined, noHoverBackground: boolean | undefined, disabled: boolean | undefined, centred?: boolean) =>
+	"a.nav-button.noselect.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height.border-radius" +
 	(vertical ? ".col" : "") +
-	(!centred ? ".flex-start" : ".flex-center")
+	(!centred ? ".flex-start" : ".flex-center") +
+	(noHoverBackground ? "" : ".state-bg") +
+	(disabled ? ".no-hover" : "")
 
 export class NavButton implements Component<NavButtonAttrs> {
 	private _domButton!: HTMLElement
@@ -68,7 +71,11 @@ export class NavButton implements Component<NavButtonAttrs> {
 
 		// allow nav button without label for registration button on mobile devices
 		if (this._isExternalUrl(a.href)) {
-			return m(navButtonSelector(vnode.attrs.vertical, vnode.attrs.centred === true), linkAttrs, children)
+			return m(
+				navButtonSelector(vnode.attrs.vertical, vnode.attrs.disableHoverBackground, vnode.attrs.disabled, vnode.attrs.centred === true),
+				linkAttrs,
+				children,
+			)
 		} else {
 			return m(m.route.Link, linkAttrs, children)
 		}
@@ -108,6 +115,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 			style: {
 				color: isNavButtonSelected(a) || this._draggedOver ? getColors(a.colors).button_selected : getColors(a.colors).button,
 				"font-size": a.fontSize ? px(a.fontSize) : "",
+				background: isNavButtonSelected(a) || this._draggedOver ? theme.navigation_menu_bg : "",
 			},
 			title: this.getLabel(a.label),
 			target: this._isExternalUrl(a.href) ? "_blank" : undefined,
@@ -118,7 +126,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 			// onremove: (vnode) => {
 			// 	removeFlash(vnode.dom)
 			// },
-			selector: navButtonSelector(a.vertical),
+			selector: navButtonSelector(a.vertical, a.disableHoverBackground, a.disabled),
 			onclick: (e: MouseEvent) => this.click(e, a),
 			onkeyup: (e: KeyboardEvent) => {
 				if (isKeyPressed(e.keyCode, Keys.SPACE)) {
