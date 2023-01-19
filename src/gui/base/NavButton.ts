@@ -33,13 +33,6 @@ export type NavButtonAttrs = {
 	disabled?: boolean
 }
 
-const navButtonSelector = (vertical: boolean | undefined, noHoverBackground: boolean | undefined, disabled: boolean | undefined, centred?: boolean) =>
-	"a.nav-button.noselect.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height.border-radius" +
-	(vertical ? ".col" : "") +
-	(!centred ? ".flex-start" : ".flex-center") +
-	(noHoverBackground ? "" : ".state-bg") +
-	(disabled ? ".no-hover" : "")
-
 export class NavButton implements Component<NavButtonAttrs> {
 	private _domButton!: HTMLElement
 	private _draggedOver: boolean
@@ -71,11 +64,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 
 		// allow nav button without label for registration button on mobile devices
 		if (this._isExternalUrl(a.href)) {
-			return m(
-				navButtonSelector(vnode.attrs.vertical, vnode.attrs.disableHoverBackground, vnode.attrs.disabled, vnode.attrs.centred === true),
-				linkAttrs,
-				children,
-			)
+			return m(this._getNavButtonClass(vnode.attrs), linkAttrs, children)
 		} else {
 			return m(m.route.Link, linkAttrs, children)
 		}
@@ -87,6 +76,16 @@ export class NavButton implements Component<NavButtonAttrs> {
 
 	_getUrl(href: string | lazy<string>): string {
 		return lazyStringValue(href)
+	}
+
+	_getNavButtonClass(a: NavButtonAttrs): string {
+		return (
+			"a.nav-button.noselect.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height.border-radius" +
+			(a.vertical ? ".col" : "") +
+			(!a.centred ? ".flex-start" : ".flex-center") +
+			(a.disableHoverBackground ? "" : ".state-bg") +
+			(a.disabled ? ".no-hover" : "")
+		)
 	}
 
 	_getIconClass(a: NavButtonAttrs): string {
@@ -119,14 +118,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 			},
 			title: this.getLabel(a.label),
 			target: this._isExternalUrl(a.href) ? "_blank" : undefined,
-			// oncreate: (vnode) => {
-			// 	this._domButton = vnode.dom as HTMLElement
-			// 	addFlash(vnode.dom)
-			// },
-			// onremove: (vnode) => {
-			// 	removeFlash(vnode.dom)
-			// },
-			selector: navButtonSelector(a.vertical, a.disableHoverBackground, a.disabled),
+			selector: this._getNavButtonClass(a),
 			onclick: (e: MouseEvent) => this.click(e, a),
 			onkeyup: (e: KeyboardEvent) => {
 				if (isKeyPressed(e.keyCode, Keys.SPACE)) {
