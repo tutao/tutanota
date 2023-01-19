@@ -25,6 +25,8 @@ import { logins } from "../api/main/LoginController.js"
 import { runCaptchaFlow } from "./Captcha.js"
 import { SelectMailAddressFormWithSuggestions } from "../settings/SelectMailAddressFormWithSuggestions.js"
 
+const faqCustomDomainLink = "https://tutanota.com/faq#custom-domain"
+
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
 	newSignupHandler: (arg0: NewAccountData | null) => void
@@ -182,6 +184,11 @@ export class SignupForm implements Component<SignupFormAttrs> {
 										maxSuggestionsToShow: 3,
 									}), // New UI with suggestions, do not show unavailable emails
 							}),
+							a.isPaidSubscription()
+								? m(".small.mt-s", lang.get("configureCustomDomainAfterSignup_msg"), [
+										m("a", { href: faqCustomDomainLink, target: "_blank" }, faqCustomDomainLink),
+								  ])
+								: null,
 							m(PasswordForm, {
 								model: this.passwordModel,
 								passwordInfoKey: "passwordImportance_msg",
