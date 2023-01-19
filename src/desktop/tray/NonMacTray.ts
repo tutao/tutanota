@@ -24,7 +24,7 @@ export class NonMacTray implements PlatformTray {
 			}),
 			new MenuItem({
 				label: lang.get("quit_action"),
-				accelerator: "CmdOrCtrl+Q",
+				accelerator: "CmdOrCtrl+Shift+Q",
 				click: () => app.quit(),
 			}),
 		]

@@ -108,6 +108,14 @@ export class ApplicationWindow {
 					},
 					help: "resetZoomFactor_action",
 				},
+				{
+					key: Keys["Q"],
+					ctrl: !isMac,
+					meta: isMac,
+					shift: !isMac,
+					exec: () => this.electron.app.quit(),
+					help: "quit_action",
+				},
 			] as Array<LocalShortcut>
 		).concat(
 			isMac
