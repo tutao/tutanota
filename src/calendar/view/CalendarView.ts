@@ -26,7 +26,7 @@ import { styles } from "../../gui/styles"
 import { MultiDayCalendarView } from "./MultiDayCalendarView"
 import { Dialog } from "../../gui/base/Dialog"
 import { isApp } from "../../api/common/Env"
-import { size } from "../../gui/size"
+import { px, size } from "../../gui/size"
 import { FolderColumnView } from "../../gui/FolderColumnView.js"
 import { deviceConfig } from "../../misc/DeviceConfig"
 import { exportCalendar, showCalendarImportDialog } from "../export/CalendarImporterDialog"
@@ -52,7 +52,7 @@ import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
-import { TopLevelView, TopLevelAttrs } from "../../TopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 export type GroupColors = Map<Id, string>
@@ -472,9 +472,16 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 		return calendarViewValues.map((viewType) =>
 			m(
-				".folder-row.flex-start.plr-l", // undo the padding of NavButton and prevent .folder-row > a from selecting NavButton
+				".folder-row.flex.flex-row", // undo the padding of NavButton and prevent .folder-row > a from selecting NavButton
 				m(
 					".flex-grow.ml-negative-s",
+					{
+						// I would use mlr-button for this style, but it won't work on this element
+						style: {
+							marginLeft: px(size.hpad_button),
+							marginRight: px(size.hpad_button),
+						},
+					},
 					m(NavButton, {
 						label: () => viewType.name,
 						icon: () => viewType.icon,
@@ -555,7 +562,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? null
 						const colorValue = "#" + (existingGroupSettings ? existingGroupSettings.color : defaultCalendarColor)
 						const groupRootId = calendarInfo.groupRoot._id
-						return m(".folder-row.flex-start.plr-l", [
+						return m(".folder-row.flex-start.plr-button", [
 							m(".flex.flex-grow.center-vertically.button-height", [
 								m(".calendar-checkbox", {
 									onclick: () => {
@@ -571,6 +578,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 										background: this.viewModel.hiddenCalendars.has(groupRootId) ? "" : colorValue,
 										transition: "all 0.3s",
 										cursor: "pointer",
+										marginLeft: px(size.hpad_button),
 									},
 								}),
 								m(

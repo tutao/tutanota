@@ -120,14 +120,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								},
 								[
 									m(
-										".folder-row.flex-start.plr-l",
+										".folder-row.flex-start.plr-button",
 										{
 											class: isNavButtonSelected(this.mailFolder) ? "row-selected" : "",
 										},
 										m(NavButton, this.mailFolder),
 									),
 									m(
-										".folder-row.flex-start.plr-l",
+										".folder-row.flex-start.plr-button",
 										{
 											class: isNavButtonSelected(this.contactFolder) ? "row-selected" : "",
 										},
@@ -283,7 +283,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						dropdownWidth: 250,
 				  })
 				: null,
-		].map((row) => m(".folder-row.plr-l.content-fg", row))
+		].map((row) => m(".folder-row.plr-button.content-fg", row))
 	}
 
 	getViewSlider(): ViewSlider | null {
@@ -372,6 +372,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			label: "periodOfTime_label",
 			value: timeDisplayValue,
 			disabled: true,
+			sidePadding: true,
 			injectionsRight: () =>
 				m(IconButton, {
 					title: "selectPeriodOfTime_label",
