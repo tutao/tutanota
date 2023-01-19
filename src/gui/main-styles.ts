@@ -290,6 +290,10 @@ styles.registerStyle("main", () => {
 			"margin-left": px(size.hpad),
 			"margin-right": px(size.hpad),
 		},
+		".mlr-button": {
+			"marign-left": px(size.hpad_button),
+			"margin-right": px(size.hpad_button),
+		},
 		".mlr-l": {
 			"margin-left": px(size.hpad_large),
 			"margin-right": px(size.hpad_large),
@@ -440,6 +444,10 @@ styles.registerStyle("main", () => {
 			"padding-left": px(size.hpad_button),
 			"padding-right": px(size.hpad_button),
 		},
+		".plr-button-double": {
+			"padding-left": px(size.hpad_button * 2),
+			"padding-right": px(size.hpad_button * 2),
+		},
 		".plr-nav-button": {
 			"padding-left": px(size.hpad_nav_button),
 			"padding-right": px(size.hpad_nav_button),
@@ -584,6 +592,9 @@ styles.registerStyle("main", () => {
 		},
 		".content-hover:hover": {
 			color: theme.content_accent,
+		},
+		".no-hover": {
+			"pointer-events": "none",
 		},
 		".content-message-bg": {
 			"background-color": theme.content_message_bg,
@@ -1077,17 +1088,17 @@ styles.registerStyle("main", () => {
 		// Use :where() to not count towards specificity, otherwise this is more specific
 		// than :active (which is unconditional
 		":where(.mouse-nav) .state-bg:hover, :where(.keyboard-nav) .state-bg:hover": {
-			background: "rgba(139,139,139,0.22)",
+			background: theme.navigation_menu_bg,
 			"transition-duration": ".3s",
 		},
 		":where(.keyboard-nav) .state-bg:focus": {
-			background: "rgba(139,139,139,0.29)",
+			background: theme.navigation_border,
 			"transition-duration": ".3s",
 			// disable default focus indicator because we have our own for this element
 			outline: "none",
 		},
 		".state-bg:active, .state-bg[toggled=true]": {
-			background: "rgba(139,139,139,0.38)",
+			background: theme.content_border,
 			"transition-duration": ".3s",
 		},
 		".translucent": {

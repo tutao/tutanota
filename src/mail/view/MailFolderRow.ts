@@ -20,68 +20,90 @@ export type MailFolderRowAttrs = {
 	onSelectedPath: boolean
 	numberOfPreviousRows: number
 	isLastSibling: boolean
+	editMode: boolean
 }
 
 export class MailFolderRow implements Component<MailFolderRowAttrs> {
 	view(vnode: Vnode<MailFolderRowAttrs>): Children {
-		const { count, button, rightButton, expanded, indentationLevel, icon, hasChildren } = vnode.attrs
-		const indentationMargin = indentationLevel * size.hpad
+		const { count, button, rightButton, expanded, indentationLevel, icon, hasChildren, editMode } = vnode.attrs
 
-		return m(".folder-row.pr-l.flex.flex-row", [
-			hasChildren && !expanded
-				? m(Icon, {
-						style: {
-							position: "absolute",
-							bottom: px(10),
-							left: px(5 + indentationMargin + size.hpad + size.font_size_base),
-							fill: isNavButtonSelected(button) ? theme.navigation_button_selected : theme.navigation_button,
-						},
-						icon: Icons.Add,
-						class: "icon-small",
-				  })
-				: null,
-			m("", {
+		const indentationMargin = indentationLevel * size.hpad
+		const paddingNeeded = size.hpad_button
+		const buttonWidth = size.icon_size_large + paddingNeeded * 2
+
+		return m(
+			".folder-row.flex.flex-row" + (editMode ? "" : ".state-bg"),
+			{
 				style: {
-					marginLeft: px(indentationMargin),
+					marginLeft: px(size.hpad_button),
+					marginRight: px(size.hpad_button),
+					borderRadius: px(size.border_radius_small),
+					background: isNavButtonSelected(button) ? theme.navigation_menu_bg : "",
 				},
-			}),
-			this.renderHierarchyLine(vnode.attrs, indentationMargin),
-			m(
-				"button.flex.items-center.justify-end",
-				{
+			},
+			[
+				hasChildren && !expanded
+					? m(Icon, {
+							style: {
+								position: "absolute",
+								bottom: px(9),
+								left: px(5 + indentationMargin + buttonWidth / 2),
+								fill: isNavButtonSelected(button) ? theme.navigation_button_selected : theme.navigation_button,
+							},
+							icon: Icons.Add,
+							class: "icon-small",
+					  })
+					: null,
+				m("", {
 					style: {
-						left: px(indentationMargin),
-						width: px(size.icon_size_medium + size.hpad_large),
-						height: px(size.button_height),
-					},
-					onclick: vnode.attrs.onExpanderClick,
-				},
-				m(Icon, {
-					icon,
-					style: {
-						fill: isNavButtonSelected(button) ? theme.navigation_button_selected : theme.navigation_button,
+						marginLeft: px(indentationMargin),
 					},
 				}),
-			),
-			m(NavButton, button),
-			rightButton
-				? m(IconButton, {
-						...rightButton,
-				  })
-				: m(CounterBadge, {
-						count,
-						color: theme.navigation_button_icon,
-						background: getNavButtonIconBackground(),
-				  }),
-		])
+				this.renderHierarchyLine(vnode.attrs, indentationMargin),
+				m(
+					"button.flex.items-center.justify-end" + (editMode || !hasChildren ? ".no-hover" : ""),
+					{
+						style: {
+							left: px(indentationMargin),
+							width: px(buttonWidth),
+							height: px(size.button_height),
+							paddingLeft: px(paddingNeeded),
+							paddingRight: px(paddingNeeded),
+							// the zIndex is so the hierarchy lines never get drawn over the icon
+							zIndex: 3,
+						},
+						onclick: vnode.attrs.onExpanderClick,
+					},
+					m(Icon, {
+						icon,
+						large: true,
+						style: {
+							fill: isNavButtonSelected(button) ? theme.navigation_button_selected : theme.navigation_button,
+						},
+					}),
+				),
+				m(NavButton, button),
+				rightButton
+					? m(IconButton, {
+							...rightButton,
+					  })
+					: m(CounterBadge, {
+							count,
+							color: theme.navigation_button_icon,
+							background: getNavButtonIconBackground(),
+					  }),
+			],
+		)
 	}
 
 	private renderHierarchyLine({ indentationLevel, numberOfPreviousRows, isLastSibling, onSelectedPath }: MailFolderRowAttrs, indentationMargin: number) {
 		const lineSize = 2
-		const border = `${lineSize}px solid ${onSelectedPath ? theme.content_accent : theme.content_border}`
+		const border = `${lineSize}px solid ${theme.content_border}`
 		const verticalOffsetInsideRow = size.button_height / 2 + 1
-		const verticalOffsetForParent = size.button_height / 4
+		const verticalOffsetForParent = (size.button_height - size.icon_size_large) / 2
 		const lengthOfHorizontalLine = size.hpad - 2
+		const leftOffset = indentationMargin
+
 		return indentationLevel !== 0
 			? [
 					isLastSibling || onSelectedPath
@@ -90,15 +112,15 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 								style: {
 									width: px(lengthOfHorizontalLine),
 									borderBottomLeftRadius: "3px",
-									// there's some subtle difference between border we use here and the height for the other element and this +1 is to
+									// there's some subtle difference between border we use here and the top for the other element and this +1 is to
 									// accommodate it
 									height: px(1 + verticalOffsetInsideRow + verticalOffsetForParent + numberOfPreviousRows * size.button_height),
 									top: px(-verticalOffsetForParent - numberOfPreviousRows * size.button_height),
-									left: px(indentationMargin + size.hpad),
+									left: px(leftOffset),
 									borderLeft: border,
 									borderBottom: border,
 									// we need to draw selected lines over everything else, even things that are drawn later
-									zIndex: onSelectedPath ? 1 : "",
+									zIndex: onSelectedPath ? 2 : 1,
 								},
 						  })
 						: // draw only the horizontal line
@@ -106,9 +128,9 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 								style: {
 									height: px(lineSize),
 									top: px(verticalOffsetInsideRow),
-									left: px(indentationMargin + size.hpad),
+									left: px(leftOffset),
 									width: px(lengthOfHorizontalLine),
-									backgroundColor: onSelectedPath ? theme.content_accent : theme.content_border,
+									backgroundColor: theme.content_border,
 								},
 						  }),
 			  ]

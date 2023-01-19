@@ -84,10 +84,12 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			const button: NavButtonAttrs = {
 				label: () => getFolderName(system.folder),
 				href: () => (attrs.inEditMode ? m.route.get() : attrs.folderToUrl[system.folder._id[1]]),
-				isSelectedPrefix: MAIL_PREFIX + "/" + system.folder.mails,
+				isSelectedPrefix: attrs.inEditMode ? false : MAIL_PREFIX + "/" + system.folder.mails,
 				colors: NavButtonColor.Nav,
 				click: () => attrs.onFolderClick(system.folder),
 				dropHandler: (droppedMailId) => attrs.onFolderDrop(droppedMailId, system.folder),
+				disableHoverBackground: true,
+				disabled: attrs.inEditMode,
 			}
 			const currentExpansionState = attrs.inEditMode ? true : attrs.expandedFolders.has(getElementId(system.folder)) ?? false //default is false
 			const hasChildren = system.children.length > 0
@@ -116,6 +118,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						onSelectedPath: path.includes(system.folder),
 						numberOfPreviousRows: result.numRows,
 						isLastSibling: last(subSystems) === system,
+						editMode: attrs.inEditMode,
 					}),
 					childResult.children,
 				],

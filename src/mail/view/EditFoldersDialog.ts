@@ -104,7 +104,7 @@ export class EditFoldersDialog implements ModalComponent {
 			},
 			[
 				m(
-					".mlr-l.mt.mb",
+					".plr-button.mt.mb",
 					m(Button, {
 						type: ButtonType.Login,
 						label: "done_action",
