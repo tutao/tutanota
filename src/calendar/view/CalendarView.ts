@@ -6,7 +6,7 @@ import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
 import { Icons } from "../../gui/base/icons/Icons"
-import { downcast, incrementDate, LazyLoaded, memoized, ofClass } from "@tutao/tutanota-utils"
+import { downcast, getStartOfDay, incrementDate, LazyLoaded, memoized, ofClass } from "@tutao/tutanota-utils"
 import type { CalendarEvent, GroupSettings, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTypeRef, createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import { logins } from "../../api/main/LoginController"
@@ -365,7 +365,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	_createNewEventDialog(date?: Date | null) {
-		const dateToUse = date ?? this.viewModel.selectedDate()
+		// in agenda view, we always show today as the current date, so new event should be created today instead of the (invisibly) selected date in the model.
+		const dateToUse = date ?? this.currentViewType !== CalendarViewType.AGENDA ? this.viewModel.selectedDate() : getStartOfDay(new Date())
 
 		// Disallow creation of events when there is no existing calendar
 		let calendarInfos = this.viewModel.getCalendarInfosCreateIfNeeded()
