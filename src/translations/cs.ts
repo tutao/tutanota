@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2023-01-18T11:52:41Z",
+	"updated_at": "2023-01-20T07:09:29Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -241,6 +241,7 @@ export default {
 		"concealPassword_action": "Skrýt heslo",
 		"confidentialStatus_msg": "Tato zpráva bude odeslána koncově šifrovaná.",
 		"confidential_action": "Důvěrné",
+		"configureCustomDomainAfterSignup_msg": "Vlastní domény lze nastavit po vytvoření účtu:",
 		"confirmCountry_msg": "Pro výpočet daně z přidané hodnoty musíte potvrdit svou zemi: {1}.",
 		"confirmCustomDomainDeletion_msg": "Opravdu chcete odstranit vaší vlastní e-mailovou doménu \"{domain}\"?",
 		"confirmDeactivateCustomColors_msg": "Chcete opravdu deaktivovat své vlastní barvy?",
@@ -871,6 +872,7 @@ export default {
 		"nbrOfContactsSelected_msg": "Vybráno {1} kontaktů.",
 		"nbrOfInboxRules_msg": "Nastavili jste {1} pravidel pro doručenou poštu.",
 		"nbrOfMailsSelected_msg": "Vybráno {1} emailů.",
+		"needSavedCredentials_msg": "Při přihlašování je třeba uložit přihlašovací údaje zaškrtnutím políčka \"{storePasswordAction}\".",
 		"net_label": "bez daně",
 		"neverReport_action": "Nikdy nehlásit",
 		"newContact_action": "Nový kontakt",

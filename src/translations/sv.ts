@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2023-01-17T20:14:13Z",
+	"updated_at": "2023-01-19T19:25:40Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -241,6 +241,7 @@ export default {
 		"concealPassword_action": "Dölj lösenordet",
 		"confidentialStatus_msg": "Meddelande är skickat som end-to-end krypterat.",
 		"confidential_action": "Konfidentiellt",
+		"configureCustomDomainAfterSignup_msg": "Anpassade domäner kan konfigureras när kontot har skapats:",
 		"confirmCountry_msg": "För att beräkna den mervärdesskatt behöver vi dig att bekräfta ditt land: {1}.",
 		"confirmCustomDomainDeletion_msg": "Vill du ta bort den anpassade e-postdomänen \"{domain}\"?",
 		"confirmDeactivateCustomColors_msg": "Vill du verkligen avaktivera dina anpassade färger?",
