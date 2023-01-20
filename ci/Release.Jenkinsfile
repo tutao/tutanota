@@ -73,7 +73,7 @@ pipeline {
 			when { expression { params.web } }
 			agent { label 'master'}
 			steps {
-				build job: 'tutanota-3-webapp-new', parameters: params.generateReleaseNotes ? [
+				build job: 'tutanota-3-webapp', parameters: params.generateReleaseNotes ? [
 					booleanParam(name: 'RELEASE', value: !params.dryRun),
 					text(name: "releaseNotes", value: releaseNotes.web),
 				] : [ booleanParam(name: "RELEASE", value: !params.dryRun) ]
@@ -85,7 +85,7 @@ pipeline {
 					when { expression { params.desktop } }
 					steps {
 						script {
-							build job: 'tutanota-3-desktop-new', parameters: params.generateReleaseNotes ? [
+							build job: 'tutanota-3-desktop', parameters: params.generateReleaseNotes ? [
 								booleanParam(name: "RELEASE", value: !params.dryRun),
 								text(name: "releaseNotes", value: releaseNotes.desktop),
 								booleanParam(name: "UPDATE_DICTIONARIES", value: false),
@@ -100,7 +100,7 @@ pipeline {
 					when { expression { params.ios } }
 					steps {
 						script {
-							build job: 'tutanota-3-ios-new', parameters: params.generateReleaseNotes ? [
+							build job: 'tutanota-3-ios', parameters: params.generateReleaseNotes ? [
 								booleanParam(name: "RELEASE", value: !params.dryRun),
 								text(name: "releaseNotes", value: releaseNotes.ios),
 							] : [
@@ -113,7 +113,7 @@ pipeline {
 					when { expression { params.android } }
 					steps {
 						script {
-							build job: 'tutanota-3-android-client-new', parameters: params.generateReleaseNotes	? [
+							build job: 'tutanota-3-android-client', parameters: params.generateReleaseNotes	? [
 								booleanParam(name: "RELEASE", value: !params.dryRun),
 								text(name: "releaseNotes", value: releaseNotes.android),
 							] : [
