@@ -12,10 +12,8 @@ import {
 } from "../../entities/tutanota/Services.js"
 import type { ConversationType } from "../../common/TutanotaConstants"
 import {
-	AccountType,
 	ArchiveDataType,
 	CounterType_UnreadMails,
-	FeatureType,
 	GroupType,
 	MailAuthenticationStatus as MailAuthStatus,
 	MailMethod,
@@ -66,7 +64,6 @@ import type { EntityUpdate, PublicKeyReturn, User } from "../../entities/sys/Typ
 import {
 	BlobReferenceTokenWrapper,
 	createPublicKeyData,
-	CustomerTypeRef,
 	ExternalUserReferenceTypeRef,
 	GroupInfoTypeRef,
 	GroupRootTypeRef,
@@ -260,7 +257,7 @@ export class MailFacade {
 			ccRecipients: ccRecipients.map(recipientToDraftRecipient),
 			bccRecipients: bccRecipients.map(recipientToDraftRecipient),
 			replyTos: replyTos.map(recipientToEncryptedMailAddress),
-			addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey, await this.usingBlobs()),
+			addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey),
 		})
 		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, { sessionKey: sk })
 		return this.entityClient.load(MailTypeRef, createDraftReturn.draft)
@@ -317,7 +314,7 @@ export class MailFacade {
 			bccRecipients: bccRecipients.map(recipientToDraftRecipient),
 			replyTos: replyTos,
 			removedAttachments: this._getRemovedAttachments(attachments, currentAttachments),
-			addedAttachments: await this._createAddedAttachments(attachments, currentAttachments, senderMailGroupId, mailGroupKey, await this.usingBlobs()),
+			addedAttachments: await this._createAddedAttachments(attachments, currentAttachments, senderMailGroupId, mailGroupKey),
 		})
 		this.deferredDraftId = draft._id
 		// we have to wait for the updated mail because sendMail() might be called right after this update
@@ -381,7 +378,6 @@ export class MailFacade {
 		existingFileIds: ReadonlyArray<IdTuple>,
 		senderMailGroupId: Id,
 		mailGroupKey: Aes128Key,
-		useBlobs: boolean,
 	): Promise<DraftAttachment[]> {
 		if (providedFiles == null || providedFiles.length === 0) return []
 
@@ -390,39 +386,24 @@ export class MailFacade {
 			if (isDataFile(providedFile)) {
 				// user added attachment
 				const fileSessionKey = aes128RandomKey()
-				if (useBlobs) {
-					let referenceTokens: Array<BlobReferenceTokenWrapper>
-					if (isApp() || isDesktop()) {
-						const { location } = await this.fileApp.writeDataFile(providedFile)
-						referenceTokens = await this.blobFacade.encryptAndUploadNative(ArchiveDataType.Attachments, location, senderMailGroupId, fileSessionKey)
-						await this.fileApp.deleteFile(location)
-					} else {
-						referenceTokens = await this.blobFacade.encryptAndUpload(
-							ArchiveDataType.Attachments,
-							providedFile.data,
-							senderMailGroupId,
-							fileSessionKey,
-						)
-					}
-					return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, providedFile, mailGroupKey)
+				let referenceTokens: Array<BlobReferenceTokenWrapper>
+				if (isApp() || isDesktop()) {
+					const { location } = await this.fileApp.writeDataFile(providedFile)
+					referenceTokens = await this.blobFacade.encryptAndUploadNative(ArchiveDataType.Attachments, location, senderMailGroupId, fileSessionKey)
+					await this.fileApp.deleteFile(location)
 				} else {
-					const fileDataId = await this.fileFacade.uploadFileData(providedFile, fileSessionKey)
-					return this.createAndEncryptLegacyDraftAttachment(fileDataId, fileSessionKey, providedFile, mailGroupKey)
+					referenceTokens = await this.blobFacade.encryptAndUpload(ArchiveDataType.Attachments, providedFile.data, senderMailGroupId, fileSessionKey)
 				}
+				return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, providedFile, mailGroupKey)
 			} else if (isFileReference(providedFile)) {
 				const fileSessionKey = aes128RandomKey()
-				if (useBlobs) {
-					const referenceTokens = await this.blobFacade.encryptAndUploadNative(
-						ArchiveDataType.Attachments,
-						providedFile.location,
-						senderMailGroupId,
-						fileSessionKey,
-					)
-					return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, providedFile, mailGroupKey)
-				} else {
-					const fileDataId = await this.fileFacade.uploadFileDataNative(providedFile, fileSessionKey)
-					return this.createAndEncryptLegacyDraftAttachment(fileDataId, fileSessionKey, providedFile, mailGroupKey)
-				}
+				const referenceTokens = await this.blobFacade.encryptAndUploadNative(
+					ArchiveDataType.Attachments,
+					providedFile.location,
+					senderMailGroupId,
+					fileSessionKey,
+				)
+				return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, providedFile, mailGroupKey)
 			} else if (!containsId(existingFileIds, getLetId(providedFile))) {
 				// forwarded attachment which was not in the draft before
 				return this.crypto.resolveSessionKeyForInstance(providedFile).then((fileSessionKey) => {
@@ -444,24 +425,6 @@ export class MailFacade {
 
 				return it
 			})
-	}
-
-	createAndEncryptLegacyDraftAttachment(
-		fileDataId: Id,
-		fileSessionKey: Aes128Key,
-		providedFile: DataFile | FileReference,
-		mailGroupKey: Aes128Key,
-	): DraftAttachment {
-		let attachment = createDraftAttachment()
-		let newAttachmentData = createNewDraftAttachment()
-		newAttachmentData.encFileName = encryptString(fileSessionKey, providedFile.name)
-		newAttachmentData.encMimeType = encryptString(fileSessionKey, providedFile.mimeType)
-		newAttachmentData.fileData = fileDataId
-		newAttachmentData.referenceTokens = []
-		newAttachmentData.encCid = providedFile.cid == null ? null : encryptString(fileSessionKey, providedFile.cid)
-		attachment.newFile = newAttachmentData
-		attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, fileSessionKey)
-		return attachment
 	}
 
 	private createAndEncryptDraftAttachment(
@@ -840,15 +803,6 @@ export class MailFacade {
 			headers: headers.join("\n"),
 		})
 		await this.serviceExecutor.post(ListUnsubscribeService, postData)
-	}
-
-	private async usingBlobs(): Promise<boolean> {
-		const user = this.userFacade.getUser()
-		if (!user || user.accountType === AccountType.EXTERNAL) {
-			return false // externals and contact form users can't load the customer (missing permission) so we do not enable blob storage for them yet
-		}
-		const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(user.customer))
-		return customer.customizations.some((f) => f.feature === FeatureType.Blobs)
 	}
 }
 
