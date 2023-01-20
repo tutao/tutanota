@@ -263,6 +263,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					}
 				},
 				dropdownWidth: 250,
+				sidePadding: true,
 			}),
 			this.availableMailFolders.length > 0
 				? m(DropDownSelector, {
@@ -281,6 +282,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							}
 						},
 						dropdownWidth: 250,
+						sidePadding: true,
 				  })
 				: null,
 		].map((row) => m(".folder-row.plr-button.content-fg", row))

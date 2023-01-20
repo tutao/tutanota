@@ -87,12 +87,11 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		const borderWidth = this.active ? "2px" : "1px"
 		const borderColor = this.active ? theme.content_accent : theme.content_border
 		return m(
-			".text-field.rel.overflow-hidden" + vnode.attrs.sidePadding ? ".plr-button" : "",
+			this._getClass(a),
 			{
 				id: vnode.attrs.id,
 				oncreate: (vnode) => (this._domWrapper = vnode.dom as HTMLElement),
 				onclick: (e: MouseEvent) => (a.onclick ? a.onclick(e, this._domInputWrapper) : this.focus(e, a)),
-				class: a.class != null ? a.class : "text pt",
 				style: maxWidth
 					? {
 							maxWidth: px(maxWidth),
@@ -167,6 +166,10 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 					: [],
 			],
 		)
+	}
+
+	_getClass(a: TextFieldAttrs): string {
+		return ".text-field.rel.overflow-hidden" + (a.sidePadding ? ".plr-button" : "") + (a.class ? "." + a.class : ".text.pt")
 	}
 
 	_getInputField(a: TextFieldAttrs): Children {
