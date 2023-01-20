@@ -51,7 +51,6 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 			disabled: true,
 			onclick: a.disabled ? noOp : this.createDropdown(a),
 			class: "click " + (a.class == null ? "mt" : a.class),
-			sidePadding: a.sidePadding,
 			injectionsRight: () =>
 				a.disabled
 					? null

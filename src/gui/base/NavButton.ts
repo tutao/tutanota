@@ -114,7 +114,6 @@ export class NavButton implements Component<NavButtonAttrs> {
 			style: {
 				color: isNavButtonSelected(a) || this._draggedOver ? getColors(a.colors).button_selected : getColors(a.colors).button,
 				"font-size": a.fontSize ? px(a.fontSize) : "",
-				background: isNavButtonSelected(a) || this._draggedOver ? theme.navigation_menu_bg : "",
 			},
 			title: this.getLabel(a.label),
 			target: this._isExternalUrl(a.href) ? "_blank" : undefined,

@@ -43,6 +43,12 @@ const dark = "#222222"
 const dark_darker_0 = "#111111"
 const green = "#00d2a7"
 export const logo_text_bright_grey = "#c5c7c7"
+
+// These are constants that have been chosen because they work across themes
+export const stateBgHover = "rgba(139,139,139,0.22)"
+export const stateBgFocus = "rgba(139,139,139,0.29)"
+export const stateBgActive = "rgba(139,139,139,0.38)"
+
 type Themes = Record<ThemeId, Theme>
 export const themes: Themes = {
 	light: Object.freeze({
