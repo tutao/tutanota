@@ -21,7 +21,7 @@
 		"types": "tsc --incremental true --noEmit true",
 		"prebuild": "node buildSrc/prebuild.js",
 		"postinstall": "node buildSrc/postinstall.js",
-		"bump-version": "node buildSrc/bump-version.js",
+		"bump-version": "node buildSrc/bump-version.js && npm run style:fix",
 		"generate-ipc": "npm run build -w @tutao/licc && licc ./ipc-schema",
 		"style:check": "prettier -c \"**/*.(ts|js|json|json5)\"",
 		"style:fix": "prettier -w \"**/*.(ts|js|json|json5)\"",
