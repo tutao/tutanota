@@ -70,7 +70,7 @@ pipeline {
 						]) {
 							sh 'node android.js -b releaseTest test'
 						}
-						stash includes: "build/app-android/tutanota-tutao-releaseTest-${VERSION}.apk", name: 'apk-staging'
+						stash includes: "build/app-android/tutanota-tutao-releaseTest-${VERSION}.apk", name: 'apk-testing'
 					}
 				} // stage testing
 				stage('Production') {

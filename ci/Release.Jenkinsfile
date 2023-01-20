@@ -113,7 +113,7 @@ pipeline {
 					when { expression { params.android } }
 					steps {
 						script {
-							build job: 'tutanota-3-android-client', parameters: params.generateReleaseNotes	? [
+							build job: 'tutanota-3-android', parameters: params.generateReleaseNotes	? [
 								booleanParam(name: "RELEASE", value: !params.dryRun),
 								text(name: "releaseNotes", value: releaseNotes.android),
 							] : [
