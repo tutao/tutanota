@@ -7,6 +7,7 @@ import { px, size } from "../../gui/size"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { AllIcons, Icon } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
+import { stateBgHover } from "../../gui/builtinThemes.js"
 
 export type MailFolderRowAttrs = {
 	count: number
@@ -32,13 +33,10 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 		const buttonWidth = size.icon_size_large + paddingNeeded * 2
 
 		return m(
-			".folder-row.flex.flex-row" + (editMode ? "" : ".state-bg"),
+			".folder-row.flex.flex-row.mlr-button.border-radius-small" + (editMode ? "" : ".state-bg"),
 			{
 				style: {
-					marginLeft: px(size.hpad_button),
-					marginRight: px(size.hpad_button),
-					borderRadius: px(size.border_radius_small),
-					background: isNavButtonSelected(button) ? theme.navigation_menu_bg : "",
+					background: isNavButtonSelected(button) ? stateBgHover : "",
 				},
 			},
 			[

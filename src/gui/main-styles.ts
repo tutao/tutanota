@@ -6,6 +6,7 @@ import { noselect, position_absolute, positionValue } from "./mixins"
 import { assertMainOrNodeBoot, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
 import { getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
 import { BrowserType } from "../misc/ClientConstants"
+import { stateBgActive, stateBgFocus, stateBgHover } from "./builtinThemes.js"
 
 assertMainOrNodeBoot()
 
@@ -291,7 +292,7 @@ styles.registerStyle("main", () => {
 			"margin-right": px(size.hpad),
 		},
 		".mlr-button": {
-			"marign-left": px(size.hpad_button),
+			"margin-left": px(size.hpad_button),
 			"margin-right": px(size.hpad_button),
 		},
 		".mlr-l": {
@@ -1088,17 +1089,17 @@ styles.registerStyle("main", () => {
 		// Use :where() to not count towards specificity, otherwise this is more specific
 		// than :active (which is unconditional
 		":where(.mouse-nav) .state-bg:hover, :where(.keyboard-nav) .state-bg:hover": {
-			background: theme.navigation_menu_bg,
+			background: stateBgHover,
 			"transition-duration": ".3s",
 		},
 		":where(.keyboard-nav) .state-bg:focus": {
-			background: theme.navigation_border,
+			background: stateBgFocus,
 			"transition-duration": ".3s",
 			// disable default focus indicator because we have our own for this element
 			outline: "none",
 		},
 		".state-bg:active, .state-bg[toggled=true]": {
-			background: theme.content_border,
+			background: stateBgActive,
 			"transition-duration": ".3s",
 		},
 		".translucent": {

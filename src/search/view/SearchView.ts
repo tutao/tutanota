@@ -247,44 +247,44 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	_renderSearchFilters(): Children {
 		return [
 			this._getUpdatedTimeField(),
-			m(DropDownSelector, {
-				label: "field_label",
-				items: this.availableMailFields,
-				selectedValue: this.selectedMailField,
-				selectionChangedHandler: (newValue: string | null) => {
-					this.selectedMailField = newValue
-					if (logins.getUserController().isFreeAccount()) {
-						if (newValue != null) {
-							this.selectedMailField = null
-							showNotAvailableForFreeDialog(true)
-						}
-					} else {
-						this._searchAgain()
-					}
-				},
-				dropdownWidth: 250,
-				sidePadding: true,
-			}),
-			this.availableMailFolders.length > 0
-				? m(DropDownSelector, {
-						label: "mailFolder_label",
-						items: this.availableMailFolders,
-						selectedValue: this.selectedMailFolder,
-						selectionChangedHandler: (newValue: string | null) => {
-							this.selectedMailFolder = newValue
-							if (logins.getUserController().isFreeAccount()) {
-								if (newValue != null) {
-									this.selectedMailFolder = null
-									showNotAvailableForFreeDialog(true)
-								}
-							} else {
-								this._searchAgain()
+			m("div.mlr-button", [
+				m(DropDownSelector, {
+					label: "field_label",
+					items: this.availableMailFields,
+					selectedValue: this.selectedMailField,
+					selectionChangedHandler: (newValue: string | null) => {
+						this.selectedMailField = newValue
+						if (logins.getUserController().isFreeAccount()) {
+							if (newValue != null) {
+								this.selectedMailField = null
+								showNotAvailableForFreeDialog(true)
 							}
-						},
-						dropdownWidth: 250,
-						sidePadding: true,
-				  })
-				: null,
+						} else {
+							this._searchAgain()
+						}
+					},
+					dropdownWidth: 250,
+				}),
+				this.availableMailFolders.length > 0
+					? m(DropDownSelector, {
+							label: "mailFolder_label",
+							items: this.availableMailFolders,
+							selectedValue: this.selectedMailFolder,
+							selectionChangedHandler: (newValue: string | null) => {
+								this.selectedMailFolder = newValue
+								if (logins.getUserController().isFreeAccount()) {
+									if (newValue != null) {
+										this.selectedMailFolder = null
+										showNotAvailableForFreeDialog(true)
+									}
+								} else {
+									this._searchAgain()
+								}
+							},
+							dropdownWidth: 250,
+					  })
+					: null,
+			]),
 		].map((row) => m(".folder-row.plr-button.content-fg", row))
 	}
 
@@ -374,7 +374,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			label: "periodOfTime_label",
 			value: timeDisplayValue,
 			disabled: true,
-			sidePadding: true,
+			class: "plr-button",
 			injectionsRight: () =>
 				m(IconButton, {
 					title: "selectPeriodOfTime_label",

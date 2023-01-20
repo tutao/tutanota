@@ -30,7 +30,7 @@ import { MultiSelectionBar } from "../../gui/base/MultiSelectionBar"
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { isUpdateForTypeRef } from "../../api/main/EventController"
 import { navButtonRoutes, throttleRoute } from "../../misc/RouteChange"
-import { NavButton } from "../../gui/base/NavButton.js"
+import { isNavButtonSelected, NavButton, NavButtonAttrs } from "../../gui/base/NavButton.js"
 import { styles } from "../../gui/styles"
 import { size } from "../../gui/size"
 import { FolderColumnView } from "../../gui/FolderColumnView.js"
@@ -48,6 +48,7 @@ import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
+import { stateBgHover } from "../../gui/builtinThemes.js"
 
 assertMainOrNode()
 
@@ -265,15 +266,14 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 
 	createContactFoldersExpanderChildren(): Children {
-		return m(".folders", [
-			m(".folder-row.flex-space-between.plr-button.row-selected", [
-				m(NavButton, {
-					label: "all_contacts_label",
-					icon: () => BootIcons.Contacts,
-					href: () => m.route.get(),
-				}),
-				this.renderFolderMoreButton(),
-			]),
+		const button: NavButtonAttrs = {
+			label: "all_contacts_label",
+			icon: () => BootIcons.Contacts,
+			href: () => m.route.get(),
+			disableHoverBackground: true,
+		}
+		return m(".folders.mlr-button.border-radius-small", { style: { background: isNavButtonSelected(button) ? stateBgHover : "" } }, [
+			m(".folder-row.flex-space-between.plr-button.row-selected", [m(NavButton, button), this.renderFolderMoreButton()]),
 		])
 	}
 
