@@ -522,6 +522,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				exec: () => this.searchList.moveSelectedToInbox(),
 				help: "moveToInbox_action",
 			},
+			{
+				key: Keys.U,
+				exec: () => this.searchList.toggleUnreadStatus(),
+				help: "toggleUnread_action",
+			},
 		]
 	}
 

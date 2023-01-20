@@ -1,13 +1,11 @@
 import m, { Children, Component } from "mithril"
-import { ListFetchResult, List } from "../../gui/base/List"
+import { List, ListFetchResult } from "../../gui/base/List"
 import { assertMainOrNode } from "../../api/common/Env"
 import { lang } from "../../misc/LanguageViewModel"
 import { size } from "../../gui/size"
-import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
-import { MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import type { Contact, Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { ContactTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactRow } from "../../contacts/view/ContactListView"
-import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
-import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import type { SearchView } from "./SearchView"
 import { NotFoundError } from "../../api/common/error/RestError"
 import { locator } from "../../api/main/MainLocator"
@@ -24,6 +22,7 @@ import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import type { SearchResult } from "../../api/worker/search/SearchTypes"
 import type { ListElementEntity } from "../../api/common/EntityTypes"
 import Stream from "mithril/stream"
+import { markMails } from "../../mail/model/MailUtils.js"
 
 assertMainOrNode()
 
@@ -395,6 +394,23 @@ export class SearchListView implements Component {
 				}
 
 				moveToInbox(selectedMails)
+			}
+		}
+	}
+
+	toggleUnreadStatus(): void {
+		let selected = this.getSelectedEntities()
+
+		if (selected.length > 0) {
+			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
+				let selectedMails = selected.map((m) => m.entry as any as Mail)
+
+				if (selected.length > 1) {
+					// is needed for correct selection behavior on mobile
+					this.selectNone()
+				}
+
+				markMails(locator.entityClient, selectedMails, !selectedMails[0].unread)
 			}
 		}
 	}
