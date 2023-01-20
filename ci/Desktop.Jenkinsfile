@@ -201,7 +201,7 @@ pipeline {
 																   --tag 'tutanota-desktop-release-${VERSION}' \
 																   --uploadFile '${WORKSPACE}/${desktopLinux}' \
 																   --uploadFile '${WORKSPACE}/${desktopWin}' \
-																   --uploadFile '${WORKSPACE}/${desktopMac}'
+																   --uploadFile '${WORKSPACE}/${desktopMac}' \
 																   --notes notes.txt"""
 						} // withCredentials
 					} // catchError

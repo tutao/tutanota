@@ -45,9 +45,7 @@ async function run({ name, tag, notes, uploadFile, dryRun, toFile }) {
 	if (toFile) {
 		console.log(`writing release notes to ${toFile}`)
 		await fs.promises.writeFile(toFile, notes, "utf-8")
-	}
-
-	if (dryRun) {
+	} else if (dryRun) {
 		console.log(`dry run, so not creating draft with release notes\n\n${notes}\nand name ${name}, tag ${tag} \n ${uploadFile}`)
 	} else {
 		const draftResponse = await createReleaseDraft(octokit, name, tag, notes)
