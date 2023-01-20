@@ -446,7 +446,7 @@ export default {
 		"done_action": "Gata",
 		"doNotAskAgain_label": "Nu mai întreba pentru acest fișier",
 		"downgradeToPremium_msg": "Contul tău va fi retrogradat la un cont Premium cu 5 alias, 1 GB de stocare și fără opțiunile de partajare și Personalizare.",
-		"downgradeToPrivateNotAllowed_msg": "Nu poate fi schimbată încadrarea contului de la Afaceri la Privat.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Nu poate fi schimbată încadrarea contului de la Afaceri la Privat.",
 		"downgradeToTeams_msg": "Contul tău va fi retrogradat la un cont Echipă cu 5 alias, 10 GB de stocare și fără opțiunea Personalizare.",
 		"downloadCompleted_msg": "Descărcare completă",
 		"download_action": "Descarcă",

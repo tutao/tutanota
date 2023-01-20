@@ -434,7 +434,7 @@ export default {
 		"domain_label": "Domena",
 		"doNotAskAgain_label": "Ne sprašuj več za to datoteko",
 		"downgradeToPremium_msg": "Vaš račun bo znižan na račun Premium s 5. vzdevki, 1 GB prostora za shranjevanje in brez skupne rabe ali lastne blagovne znamke.",
-		"downgradeToPrivateNotAllowed_msg": "Računa ni možno spremeniti iz poslovnega v zasebnega.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Računa ni možno spremeniti iz poslovnega v zasebnega.",
 		"downgradeToTeams_msg": "Vaš račun bo znižan na račun Skupine s 5. vzdevki, 10 GB prostora za shranjevanje in brez lastne blagovne znamke.",
 		"downloadCompleted_msg": "Prenos končan",
 		"download_action": "Prenos",

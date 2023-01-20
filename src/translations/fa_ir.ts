@@ -425,7 +425,7 @@ export default {
 		"domain_label": "دامنه",
 		"doNotAskAgain_label": "این پرونده را دوباره سؤال نکنید",
 		"downgradeToPremium_msg": "حساب‌کاربری شما به یک حساب حرفه‌ای با ۵ نام مستعار، ۱ گیگابایت فضای ذخیره‌سازی و بدون قابلیت‌های  whitelabel یا اشتراکی تنزل خواهد یافت.",
-		"downgradeToPrivateNotAllowed_msg": "امکان تغییر کاربری حساب از تجاری به شخصی وجود ندارد.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "امکان تغییر کاربری حساب از تجاری به شخصی وجود ندارد.",
 		"downgradeToTeams_msg": "حساب‌کاربری شما به یک حساب حرفه‌ای با ۵ نام مستعار، ۱ گیگابایت فضای ذخیره‌سازی و بدون قابلیت‌های  whitelabel یا اشتراکی تنزل خواهد یافت.",
 		"downloadCompleted_msg": "دریافت اطلاعات کامل شد",
 		"download_action": "دانلود",

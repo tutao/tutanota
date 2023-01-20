@@ -345,7 +345,7 @@ export default {
 		"domain_label": "Domini",
 		"doNotAskAgain_label": "No torneu a preguntar per aquest fitxer",
 		"downgradeToPremium_msg": "El compte es canviarà a un compte Premium amb 5 àlies, 1 GB d'emmagatzematge i sense funcions compartir o d'Etiqueta Blanca",
-		"downgradeToPrivateNotAllowed_msg": "No és possible canviar l'ús del compte d'empresa a privat.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "No és possible canviar l'ús del compte d'empresa a privat.",
 		"downgradeToTeams_msg": "El compte passarà a un compte d'equips amb 5 àlies, 10 GB d'emmagatzematge i sense funcions d'Etiqueta Blanca.",
 		"download_action": "Descarregar",
 		"draft_action": "Esborranys",

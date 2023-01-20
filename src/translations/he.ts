@@ -364,7 +364,7 @@ export default {
 		"domain_label": "דומיין",
 		"doNotAskAgain_label": "לא לשאול שוב",
 		"downgradeToPremium_msg": "החשבון שלכם ישודרג מטה לחשבון Premium עם 5 כינויים, 1GB שטח אחסון ובלי פעולות שיתוף או מותג מדבקה.",
-		"downgradeToPrivateNotAllowed_msg": "החלפה בין משתמש עיסקי ופרטי אינה אפשרית",
+		"pricing.downgradeToPrivateNotAllowed_msg": "החלפה בין משתמש עיסקי ופרטי אינה אפשרית",
 		"downgradeToTeams_msg": "החשבון שלכם ישודרג מטה לחשבון קבוצות עם 5 כינויים, 10GB שטח אחסון ובלי פעולות מותג מדבקה.",
 		"downloadCompleted_msg": "הורדה הושלמה",
 		"download_action": "הורדה",

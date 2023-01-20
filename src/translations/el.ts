@@ -443,7 +443,7 @@ export default {
 		"done_action": "Έγινε",
 		"doNotAskAgain_label": "Να μην ερωτηθώ ξανά για αυτό το αρχείο",
 		"downgradeToPremium_msg": "Ο λογαριασμός σας θα υποβαθμιστεί σε premium λογαριασμό με 5 ψευδώνυμα, 1 GB χώρου αποθήκευσης και χωρίς λειτουργίες κοινής χρήσης ή whitelabel.",
-		"downgradeToPrivateNotAllowed_msg": "Δεν είναι δυνατόν να αλλάξετε τη χρήση του λογαριασμού από επαγγελματική σε ιδιωτική.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Δεν είναι δυνατόν να αλλάξετε τη χρήση του λογαριασμού από επαγγελματική σε ιδιωτική.",
 		"downgradeToTeams_msg": "Ο λογαριασμός σας θα υποβαθμιστεί σε λογαριασμό Teams με 5 ψευδώνυμα, 10 GB χώρου αποθήκευσης και χωρίς λειτουργίες whitelabel.",
 		"downloadCompleted_msg": "Η λήψη ολοκληρώθηκε",
 		"download_action": "Λήψη",

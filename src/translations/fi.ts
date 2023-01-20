@@ -424,7 +424,7 @@ export default {
 		"domain_label": "Verkkotunnus",
 		"doNotAskAgain_label": "Älä kysy uudestaan tämän tiedoston kohdalla",
 		"downgradeToPremium_msg": "Tilisi muutetaan Premium-tiliksi, jossa käytössäsi on 5 alias-osoitetta ja 1 Gt tallennustilaa ilman jako- ja brändäysominaisuuksia.",
-		"downgradeToPrivateNotAllowed_msg": "Tiliä ei voida vaihtaa yritystilistä yksityistiliksi.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Tiliä ei voida vaihtaa yritystilistä yksityistiliksi.",
 		"downgradeToTeams_msg": "Tilisi muutetaan Teams-tiliksi. Saat 5 aliasta ja 10 Gt:n tallennustilan ilman White label -toimintoja.",
 		"downloadCompleted_msg": "Lataus valmis",
 		"download_action": "Lataa",

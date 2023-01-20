@@ -440,7 +440,7 @@ export default {
 		"done_action": "Végrehajtva",
 		"doNotAskAgain_label": "Ne kérdezze újra ennél a fájlnál.",
 		"downgradeToPremium_msg": "A fiókja Prémium fiókká lesz visszaminősítve, 5 álnévvel, 1 GB tárhellyel és megosztási, valamint átcímkézési funkciók nélkül.",
-		"downgradeToPrivateNotAllowed_msg": "Nem lehetséges Üzleti előfizetését Privát előfizetésre változtatni.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Nem lehetséges Üzleti előfizetését Privát előfizetésre változtatni.",
 		"downgradeToTeams_msg": "A fiókja egy Csapat fiókká lesz visszaminősítve 5 álnévvel, 10GB tárhellyel, átcímkézési funkció nélkül.",
 		"downloadCompleted_msg": "A letöltés befejeződött.",
 		"download_action": "Letöltés",

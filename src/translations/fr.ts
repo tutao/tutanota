@@ -402,7 +402,7 @@ export default {
 		"domain_label": "Domaine",
 		"doNotAskAgain_label": "Ne plus demander pour ce fichier",
 		"downgradeToPremium_msg": "Votre compte sera réduit à un compte premium avec 5 alias, 1 Go de stockage et sans les fonctions de marque blanche ou de partage.",
-		"downgradeToPrivateNotAllowed_msg": "Il n'est pas possible de changer l'usage du compte de Business vers Privé.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Il n'est pas possible de changer l'usage du compte de Business vers Privé.",
 		"downgradeToTeams_msg": "Votre compte sera réduit à un compte d'équipe avec 5 alias, 10 Go de stockage et sans fonctions de marque blanche.",
 		"download_action": "Télécharger",
 		"draftNotSavedConnectionLost_msg": "Brouillon non sauvegardé (hors ligne).",

@@ -373,7 +373,7 @@ export default {
 		"domain_label": "Domena",
 		"doNotAskAgain_label": "Ne pitaj ponovo za ovu datoteku",
 		"downgradeToPremium_msg": "Vaš račun će biti degradiran na Premium račun sa 5 pseudonima, 1 GB memorije i bez dijeljenja ili Whitelabel funkcija.",
-		"downgradeToPrivateNotAllowed_msg": "Nije moguće promijeniti upotrebu računa iz poslovnog u privatni.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Nije moguće promijeniti upotrebu računa iz poslovnog u privatni.",
 		"downgradeToTeams_msg": "Vaš će račun biti degradiran na račun Tima s 5 aliasa, 10 GB prostora za pohranu i bez funkcija s Whitelabel oznaka.",
 		"downloadCompleted_msg": "Preuzimanje završeno",
 		"download_action": "Preuzmi",

@@ -443,7 +443,7 @@ export default {
 		"done_action": "Fatto",
 		"doNotAskAgain_label": "Non chiedere più per questo file",
 		"downgradeToPremium_msg": "Il tuo account verrà convertito in un account Premium con 5 alias, 1 GB di spazio di archiviazione e senza funzioni di condivisione o whitelabel.",
-		"downgradeToPrivateNotAllowed_msg": "Non è possibile modificare l'utilizzo dell'account da Business a Privato.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Non è possibile modificare l'utilizzo dell'account da Business a Privato.",
 		"downgradeToTeams_msg": "Il tuo account verrà convertito in un account Teams con 5 alias, 10 GB di spazio di archiviazione e senza funzioni whitelabel.",
 		"downloadCompleted_msg": "Download completato",
 		"download_action": "Scarica",

@@ -438,7 +438,7 @@ export default {
 		"done_action": "Xong",
 		"doNotAskAgain_label": "Không hỏi lại cho tệp này",
 		"downgradeToPremium_msg": "Danh khoản của bạn sẽ bị hạ cấp thành một danh khoản Premium với 5 biệt danh, 1 GB lưu trữ và không có các chức năng nhãn trắng (whitelabel) hay chia sẻ.",
-		"downgradeToPrivateNotAllowed_msg": "Không thể đổi mục đích sử dụng danh khoản từ Doanh nghiệp sang Cá nhân.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Không thể đổi mục đích sử dụng danh khoản từ Doanh nghiệp sang Cá nhân.",
 		"downgradeToTeams_msg": "Danh khoản của bạn sẽ bị hạ cấp thành một danh khoản Teams với 5 biệt danh, 10 GB lưu trữ và không có các chức năng nhãn trắng (whitelabel).",
 		"downloadCompleted_msg": "Tải về xong",
 		"download_action": "Tải về",

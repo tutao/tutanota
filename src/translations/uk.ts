@@ -441,7 +441,7 @@ export default {
 		"done_action": "Виконано",
 		"doNotAskAgain_label": "Не вимагайте знову цього файлу",
 		"downgradeToPremium_msg": "Ваш обліковий запис буде понижено до категорії Premium з 5 псевдонімами, сховищем об'ємом в 1 Гб і без функцій спільного доступу та whitelabel.",
-		"downgradeToPrivateNotAllowed_msg": "Неможливо змінити використання облікового запису з корпоративного на приватний.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Неможливо змінити використання облікового запису з корпоративного на приватний.",
 		"downgradeToTeams_msg": "Ваш обліковий запис  буде понижено до облікового запису Робочих груп з 5 псевдонімами, 10 ГБ пам’яті та без функцій whitelabel.",
 		"downloadCompleted_msg": "Завантаження завершено",
 		"download_action": "Завантажити",

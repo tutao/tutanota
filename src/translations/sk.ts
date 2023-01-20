@@ -441,7 +441,7 @@ export default {
 		"done_action": "Hotovo",
 		"doNotAskAgain_label": "Nepýtať sa znova pri tomto súbore",
 		"downgradeToPremium_msg": "Tvoj účet sa downgraduje na účet Premium s 5 aliasmi, 1 GB úložiskom a bez funkcií zdieľania či whitelabel.",
-		"downgradeToPrivateNotAllowed_msg": "Nie je možné zmeniť použitie účtu z Firemného na Súkromné.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Nie je možné zmeniť použitie účtu z Firemného na Súkromné.",
 		"downgradeToTeams_msg": "Tvoj účet sa downgraduje na účet Tímy s 5 aliasmi, 10 GB úložiskom a bez funkcií whitelabel.",
 		"downloadCompleted_msg": "Sťahovanie dokončené",
 		"download_action": "Stiahnuť",

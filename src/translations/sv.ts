@@ -443,7 +443,7 @@ export default {
 		"done_action": "Klart",
 		"doNotAskAgain_label": "Fråga inte igen efter den här filen",
 		"downgradeToPremium_msg": "Ditt konto kommer att nedgraderas till ett Premium konto med 5 alias, 1 GB lagring och utan delning och whitelabel funktioner.",
-		"downgradeToPrivateNotAllowed_msg": "Det är inte möjligt att nedgradera från Business till Privat.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Det är inte möjligt att nedgradera från Business till Privat.",
 		"downgradeToTeams_msg": "Ditt konto nedgraderas till ett Teams konto med 5 alias, 10 GB lagringsutrymme och utan whitelabel-funktioner.",
 		"downloadCompleted_msg": "Nedladdningen slutförd",
 		"download_action": "Ladda ner",

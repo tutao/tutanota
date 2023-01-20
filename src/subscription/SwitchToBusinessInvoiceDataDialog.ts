@@ -109,7 +109,7 @@ export function show(
 				m("#changeInvoiceDataDialog", [
 					infoMessageId ? m(".pt", lang.get(infoMessageId)) : null,
 					m(invoiceDataInput),
-					m(".pt.small", lang.get("downgradeToPrivateNotAllowed_msg")),
+					m(".pt.small", lang.get("pricing.downgradeToPrivateNotAllowed_msg")),
 					!currentlyBusinessOrdered ? m(".pt-s.small", lang.get("businessCustomerAutoBusinessFeature_msg")) : null,
 				]),
 		},

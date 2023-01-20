@@ -420,7 +420,7 @@ export default {
 		"done_action": "Selesai",
 		"doNotAskAgain_label": "Jangan bertanya lagi mengenai file ini",
 		"downgradeToPremium_msg": "Akun Anda akan diturunkan ke akun Premium dengan 5 alias, penyimpanan 1 GB, dan tanpa fungsi berbagi atau penjenamaan ulang.",
-		"downgradeToPrivateNotAllowed_msg": "Tidak memungkinkan untuk mengubah penggunaan akun dari Bisnis ke Pribadi.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Tidak memungkinkan untuk mengubah penggunaan akun dari Bisnis ke Pribadi.",
 		"downgradeToTeams_msg": "Akun Anda akan diturunkan menjadi akun Teams dengan 5 alias, 10 GB penyimpanan, dan tanpa fungsi whitelabel.",
 		"downloadCompleted_msg": "Unduhan selesai",
 		"download_action": "Unduh",

@@ -388,7 +388,7 @@ export default {
 		"domain_label": "Domæne",
 		"doNotAskAgain_label": "Spørg ikke igen for denne fil.",
 		"downgradeToPremium_msg": "Din konto vil blive nedgraderet til en Premium konto med 5 aliasser, 1 GB plads og uden deling og tilpasset domænetema.",
-		"downgradeToPrivateNotAllowed_msg": "Det er ikke muligt at ændre anvendelse af kontoen fra Virksomhed til Privat.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Det er ikke muligt at ændre anvendelse af kontoen fra Virksomhed til Privat.",
 		"downgradeToTeams_msg": "Din konto vil blive nedgraderet til en Teams konto med 5 aliasser, 10 GB plads og uden tilpasset domænetema.",
 		"downloadCompleted_msg": "Download afsluttet",
 		"download_action": "Download",

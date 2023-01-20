@@ -433,7 +433,7 @@ export default {
 		"domain_label": "Alan adı",
 		"doNotAskAgain_label": "Bu dosya için bir daha sorma",
 		"downgradeToPremium_msg": "Hesabınız 5 takma adı, 1 GB depolama alanı ve paylaşım veya beyazetiket özelliği olmayan bir Premium hesaba indirilecektir.",
-		"downgradeToPrivateNotAllowed_msg": "Hesabın İş kullanımından Özel kullanıma değiştirilmesi mümkün değildir.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Hesabın İş kullanımından Özel kullanıma değiştirilmesi mümkün değildir.",
 		"downgradeToTeams_msg": "Hesabınız 5 takma ad, 10 GB depolama alanı ve beyaz etiket özelliği olmayan bir 'Teams' hesabına indirilecek.",
 		"downloadCompleted_msg": "İndirme tamamlandı",
 		"download_action": "İndir",

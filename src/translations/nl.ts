@@ -443,7 +443,7 @@ export default {
 		"done_action": "Voltooid",
 		"doNotAskAgain_label": "Vraag niet opnieuw om dit bestand",
 		"downgradeToPremium_msg": "Uw account zal worden gedowngraded naar een Premium account met 5 aliassen, 1 GB opslag en zonder deel of Whitelabel functies. ",
-		"downgradeToPrivateNotAllowed_msg": "Het is niet mogelijk om een ​​zakelijk klantaccount om te zetten naar een privéaccount.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Het is niet mogelijk om een ​​zakelijk klantaccount om te zetten naar een privéaccount.",
 		"downgradeToTeams_msg": "Uw account zal worden gedowngraded naar een Teams account met 5 aliassen, 10 GB opslag en zonder Whitelabel functies.",
 		"downloadCompleted_msg": "Download voltooid",
 		"download_action": "Downloaden",

@@ -440,7 +440,7 @@ export default {
 		"done_action": "Ferdig",
 		"doNotAskAgain_label": "Ikke etterspør denne filen igjen",
 		"downgradeToPremium_msg": "Din konto vil bli nedgradert til en Premium-konto med 5 alias, 1 GB lagringsplass, og uten delings- og whitelabel-funksjoner.",
-		"downgradeToPrivateNotAllowed_msg": "Det er ikke mulig å endre kontobruken fra \"bedrift\" til \"privat\".",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Det er ikke mulig å endre kontobruken fra \"bedrift\" til \"privat\".",
 		"downgradeToTeams_msg": "Kontoen din blir nedgradert til en Teams-konto med 5 aliaser, 10 GB lagringsplass og uten whitelabel-funksjoner.",
 		"downloadCompleted_msg": "Nedlastingen er fullført",
 		"download_action": "Last ned",

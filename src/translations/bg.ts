@@ -356,7 +356,7 @@ export default {
 		"domain_label": "Домейн",
 		"doNotAskAgain_label": "Не питай за този файл отново",
 		"downgradeToPremium_msg": "Акаунта Ви ще бъде намален на Премиум акаунт с 5 псевдонима, 1 GB памет, без споделяне и без функции бял етикет.",
-		"downgradeToPrivateNotAllowed_msg": "Не е възможно употребата на акаунта да се смени от Бизнес към Личен.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Не е възможно употребата на акаунта да се смени от Бизнес към Личен.",
 		"downgradeToTeams_msg": "Акаунта Ви ще бъде намален на Отбори акаунт с 5 псевдонима, 10 GB памет и без функции бял етикет.",
 		"downloadCompleted_msg": "Изтеглянето е завършено",
 		"download_action": "Свали",

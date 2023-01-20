@@ -424,7 +424,7 @@ export default {
 		"domain_label": "වසම",
 		"done_action": "අහවරයි",
 		"doNotAskAgain_label": "මෙම ගොනුව සඳහා යළි අසන්න එපා",
-		"downgradeToPrivateNotAllowed_msg": "ගිණුමේ භාවිතය ව්‍යාපාරික සිට පෞද්ගලික වෙත වෙනස් කළ නොහැකිය.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "ගිණුමේ භාවිතය ව්‍යාපාරික සිට පෞද්ගලික වෙත වෙනස් කළ නොහැකිය.",
 		"downloadCompleted_msg": "බාගැනීම සම්පූර්ණයි",
 		"download_action": "බාගන්න",
 		"draftNotSavedConnectionLost_msg": "කටුපිටපත නොසුරැකිණි (මාර්ගඅපගතයි).",

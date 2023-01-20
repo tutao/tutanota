@@ -443,7 +443,7 @@ export default {
 		"done_action": "Зроблена",
 		"doNotAskAgain_label": "Больш не пытацца пра гэты файл",
 		"downgradeToPremium_msg": "Твой акаўнт будзе паніжаны да Premium з 5 мянушкамі, 1 ҐБ сховішча і бяз функцый абагульвання і Whitelabel.",
-		"downgradeToPrivateNotAllowed_msg": "Не магчыма з бізнэс-акаўнта зрабіць прыватны акаўнт.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Не магчыма з бізнэс-акаўнта зрабіць прыватны акаўнт.",
 		"downgradeToTeams_msg": "Твой акаўнт будзе паніжаны да Teams з 5 мянушкамі, 10 ҐБ сховішча і бяз функцыі Whitelabel.",
 		"downloadCompleted_msg": "Спампаванне скончана",
 		"download_action": "Спампаваць",

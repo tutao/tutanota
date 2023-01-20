@@ -445,7 +445,7 @@ export default {
 		"done_action": "Hecho",
 		"doNotAskAgain_label": "No preguntar de nuevo para este archivo",
 		"downgradeToPremium_msg": "Tu cuenta será rebajada a categoría Premium con 5 alias, 1 Gb de almacenamiento y sin compartición ni funciones de Etiqueta Blanca.",
-		"downgradeToPrivateNotAllowed_msg": "No es posible cambiar el uso de la cuenta de Negocios a Privada",
+		"pricing.downgradeToPrivateNotAllowed_msg": "No es posible cambiar el uso de la cuenta de Negocios a Privada",
 		"downgradeToTeams_msg": "Tu cuenta será degradará a una cuenta Teams con 5 alias, 10 GB de almacenamiento y sin funciones de Etiqueta Blanca.",
 		"downloadCompleted_msg": "Descarga completada",
 		"download_action": "Descargar",

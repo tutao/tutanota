@@ -409,7 +409,7 @@ export default {
 		"domain_label": "Domínio",
 		"doNotAskAgain_label": "Não pedir novamente por este ficheiro",
 		"downgradeToPremium_msg": "A sua conta irá ser reduzida para Premium com 5 aliases, 1 GB de armazenamento e sem partilha ou funções whitelabel.",
-		"downgradeToPrivateNotAllowed_msg": "Não é possível alterar a utilização da conta de Profissional para Privado.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Não é possível alterar a utilização da conta de Profissional para Privado.",
 		"downgradeToTeams_msg": "A sua conta irá sofrer um downgrade para a conta Teams com 5 aliases, 10 Gb de espaço de armazenamento e sem funções de whitelabel.",
 		"downloadCompleted_msg": "Transferência completa",
 		"download_action": "Transferir",

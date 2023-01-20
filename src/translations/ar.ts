@@ -447,7 +447,7 @@ export default {
 		"done_action": "تم",
 		"doNotAskAgain_label": "لا تسأل مرة أخرى عن هذا الملف",
 		"downgradeToPremium_msg": "سيتم إرجاع حسابك إلى حساب بريميوم يضم 5 أسماء مستعارة و 1 جيجا بايت من السعة التخزينية  وبدون مشاركة أو وظائف القائمة البيضاء (whitelabel ).",
-		"downgradeToPrivateNotAllowed_msg": "لا يمكن تغيير استخدام الحساب من حساب تجاري (Business) إلى حساب خاص (Private).",
+		"pricing.downgradeToPrivateNotAllowed_msg": "لا يمكن تغيير استخدام الحساب من حساب تجاري (Business) إلى حساب خاص (Private).",
 		"downgradeToTeams_msg": "سيتم إرجاع حسابك إلى حساب Teams مع 5 أسماء مستعارة و 10 غيغابايت من التخزين وبدون وظائف whitelabel.",
 		"downloadCompleted_msg": "اكتملت عملية التنزيل",
 		"download_action": "تحميل",

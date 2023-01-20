@@ -447,7 +447,7 @@ export default {
 		"done_action": "Gotowe",
 		"doNotAskAgain_label": "Nie pytaj ponownie dla tego pliku",
 		"downgradeToPremium_msg": "Konto zostanie obniżone do konta Premium z 5 aliasami i 1 GB pojemności,  bez usług udostępniania  lub Whitelabel.",
-		"downgradeToPrivateNotAllowed_msg": "Nie ma możliwości zmiany sposobu użytkowania konta z firmowego na prywatne.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Nie ma możliwości zmiany sposobu użytkowania konta z firmowego na prywatne.",
 		"downgradeToTeams_msg": "Twoje konto zostanie obniżone do konta Teams z 5-cioma aliasami, 10 GB pojemności, bez usług Whitelabel.",
 		"downloadCompleted_msg": "Pobieranie zakończone",
 		"download_action": "Pobierz",

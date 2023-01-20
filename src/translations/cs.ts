@@ -443,7 +443,7 @@ export default {
 		"done_action": "Hotovo",
 		"doNotAskAgain_label": "Pro tento soubor se už neptej.",
 		"downgradeToPremium_msg": "Váš účet bude změněn na účet Premium s 5 aliasy, 1 GB úložištěm a bez funkcí sdílení a  whitelabel.",
-		"downgradeToPrivateNotAllowed_msg": "Není možné převést firemní účet na soukromý.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Není možné převést firemní účet na soukromý.",
 		"downgradeToTeams_msg": "Váš účet bude změněn na Teams s 5 aliasy, 10 GB uložištěm a bez funkce whitelabel.",
 		"downloadCompleted_msg": "Úspěšně staženo",
 		"download_action": "Stáhnout",

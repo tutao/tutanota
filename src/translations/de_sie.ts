@@ -447,7 +447,7 @@ export default {
 		"done_action": "Fertig",
 		"doNotAskAgain_label": "Nicht noch einmal fragen",
 		"downgradeToPremium_msg": "Der Account wird zu einem Premium-Account mit 5 Alias-Adressen und 1 GB Speicher ohne die Freigeben-Funktion oder Whitelabel-Optionen gewechselt.",
-		"downgradeToPrivateNotAllowed_msg": "Es ist nicht möglich einen Geschäftkunden-Account in einen Privat-Account umzuwandeln.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Es ist nicht möglich einen Geschäftkunden-Account in einen Privat-Account umzuwandeln.",
 		"downgradeToTeams_msg": "Ihr Account wird zu einem Teams-Account mit 5 Alias-Adressen und 10 GB Speicher ohne Whitelabel-Funktion gewechselt.",
 		"downloadCompleted_msg": "Download abgeschlossen",
 		"download_action": "Herunterladen",

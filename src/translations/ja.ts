@@ -427,7 +427,7 @@ export default {
 		"domain_label": "ドメイン",
 		"doNotAskAgain_label": "このファイルを再度要求しないでください",
 		"downgradeToPremium_msg": "あなたのアカウントは、5つのエイリアス、1GBのストレージ容量、共有機能とホワイトラベルの機能を含まないプレミアムアカウントにダウングレードされます。",
-		"downgradeToPrivateNotAllowed_msg": "アカウントの利用をビジネスからプライベートに変更することはできません。",
+		"pricing.downgradeToPrivateNotAllowed_msg": "アカウントの利用をビジネスからプライベートに変更することはできません。",
 		"downgradeToTeams_msg": "あなたのアカウントは、5 つのエイリアス、10 GB のストレージ、ホワイトラベル機能なしの Teams アカウントにダウングレードされます。",
 		"downloadCompleted_msg": "ダウンロード完了",
 		"download_action": "ダウンロード",

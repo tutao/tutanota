@@ -432,7 +432,7 @@ export default {
 		"done_action": "Feito",
 		"doNotAskAgain_label": "Non preguntar de novo para este ficheiro",
 		"downgradeToPremium_msg": "A túa conta será degradada a conta Premium con 5 alias, 1 GB de almacenamento e sen opción Compartir nen opcións de Personalización.",
-		"downgradeToPrivateNotAllowed_msg": "Non é posible cambiar a utilización da conta de Empresa a Privada.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Non é posible cambiar a utilización da conta de Empresa a Privada.",
 		"downgradeToTeams_msg": "A conta vaise degradar a tipo Teams, con 5 alias, 10GB de almacenaxe e sen funcións de Personalización.",
 		"downloadCompleted_msg": "Descarga completa",
 		"download_action": "Descargar",

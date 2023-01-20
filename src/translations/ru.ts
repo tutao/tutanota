@@ -447,7 +447,7 @@ export default {
 		"done_action": "Готово",
 		"doNotAskAgain_label": "Больше не спрашивать для этого файла",
 		"downgradeToPremium_msg": "Ваш аккаунт будет понижен до Premium c 5 псевдонимами, 1 ГБ дискового пространства, без функций whitelabel и общего доступа.",
-		"downgradeToPrivateNotAllowed_msg": "Невозможно переключить учётную запись из режима бизнес в частный.",
+		"pricing.downgradeToPrivateNotAllowed_msg": "Невозможно переключить учётную запись из режима бизнес в частный.",
 		"downgradeToTeams_msg": "Возможности Вашей учётной записи будут снижены до командной учётной записи с пятью псевдонимами, 10Гб хранилищем и без возможности свободного ярлыка.",
 		"downloadCompleted_msg": "Загрузка завершена",
 		"download_action": "Скачать",
