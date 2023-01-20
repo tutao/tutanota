@@ -165,12 +165,14 @@ void doBuild(String stage, String lane, boolean publishToAppStore) {
 		catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release notes for ios') {
 			// need to run npm ci to install dependencies of releaseNotes.js
 			sh "npm ci"
+			writeFile file: "notes.txt", text: params.releaseNotes
 			withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
 				sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (iOS)' \
 																   --tag 'tutanota-ios-release-${VERSION}'\
 																   --notes notes.txt \
 																   --toFile ${RELEASE_NOTES_PATH}"""
 			}
+			sh "rm notes.txt"
 		}
 	}
 
