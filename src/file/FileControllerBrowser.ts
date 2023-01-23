@@ -36,7 +36,8 @@ export class FileControllerBrowser extends FileController {
 		// there is nothing to do since nothing gets saved until the browser puts it into the final location
 	}
 
-	protected openDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void> {
-		throw new ProgrammingError("can't open files in webapp")
+	protected async openDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void> {
+		// opening and downloading a file is the same thing in browser environment
+		return await this.writeDownloadedFiles(downloadedFiles)
 	}
 }
