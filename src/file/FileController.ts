@@ -197,7 +197,10 @@ export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Arra
 
 	const newFileInput = document.createElement("input")
 	newFileInput.setAttribute("type", "file")
-	newFileInput.setAttribute("multiple", String(allowMultiple))
+
+	if (allowMultiple) {
+		newFileInput.setAttribute("multiple", "multiple")
+	}
 
 	newFileInput.setAttribute("id", "hiddenFileChooser")
 
