@@ -109,7 +109,7 @@ export class ApplicationWindow {
 					help: "resetZoomFactor_action",
 				},
 				{
-					key: Keys["Q"],
+					key: Keys.Q,
 					ctrl: !isMac,
 					meta: isMac,
 					shift: !isMac,
@@ -315,7 +315,7 @@ export class ApplicationWindow {
 		this.manageDownloadsForSession(session, dictUrl)
 
 		this._browserWindow
-			.on("close", async () => {
+			.on("closed", async () => {
 				await this.closeDb()
 			})
 			.on("focus", () => this.localShortcut.enableAll(this._browserWindow))
