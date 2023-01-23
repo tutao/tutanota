@@ -9,6 +9,7 @@ import { styles } from "../../gui/styles"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { MailModel } from "../../mail/model/MailModel.js"
 import { TopLevelView } from "../../TopLevelView.js"
+import { assertSystemFolderOfType } from "../../api/common/mail/CommonMailUtils.js"
 
 assertMainOrNode()
 
@@ -22,73 +23,71 @@ export class WebMobileFacade implements MobileFacade {
 	constructor(private readonly connectivityModel: WebsocketConnectivityModel, private readonly mailModel: MailModel) {}
 
 	async handleBackPress(): Promise<boolean> {
-		return Promise.resolve().then(() => {
-			const lastModalComponent = last(modal.components)
+		await Promise.resolve()
+		const lastModalComponent = last(modal.components)
 
-			if (lastModalComponent) {
-				// first check if any modal dialog is visible
-				lastModalComponent.component.onClose()
+		if (lastModalComponent) {
+			// first check if any modal dialog is visible
+			lastModalComponent.component.onClose()
+			return true
+		} else {
+			// otherwise try to navigate back in the current view
+			const viewSlider = window.tutao.currentView?.getViewSlider?.()
+
+			const currentRoute = m.route.get()
+
+			// If the sidebar is opened, close it
+			if (viewSlider && viewSlider.isForegroundColumnFocused()) {
+				viewSlider.focusNextColumn()
 				return true
-			} else {
-				// otherwise try to navigate back in the current view
-				const viewSlider = window.tutao.currentView?.getViewSlider?.()
+			} else if (this.handlesBackButtonViaCurrentView()) {
+				return true
+			} else if (
+				viewSlider &&
+				viewSlider.focusedColumn !== viewSlider.getMainColumn() &&
+				styles.isSingleColumnLayout() &&
+				viewSlider.isFocusPreviousPossible()
+			) {
+				// current view can navigate back, a region column is focused (not main) and is in singleColumnLayout
+				viewSlider.focusPreviousColumn()
+				return true
+			} else if (
+				currentRoute.startsWith(CONTACTS_PREFIX) ||
+				currentRoute.startsWith(SETTINGS_PREFIX) ||
+				currentRoute.startsWith(SEARCH_PREFIX) ||
+				currentRoute.startsWith(CALENDAR_PREFIX)
+			) {
+				// go back to mail from other paths
+				m.route.set(navButtonRoutes.mailUrl)
+				return true
+			} else if (viewSlider && viewSlider.isFirstBackgroundColumnFocused()) {
+				// If the first background column is focused in mail view (showing a folder), move to inbox.
+				// If in inbox already, quit
+				if (m.route.get().startsWith(MAIL_PREFIX)) {
+					const parts = m.route
+						.get()
+						.split("/")
+						.filter((part) => part !== "")
 
-				const currentRoute = m.route.get()
+					if (parts.length > 1) {
+						const selectedMailListId = parts[1]
+						const [mailboxDetail] = await this.mailModel.getMailboxDetails()
+						const inboxMailListId = assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.INBOX).mails
 
-				// If the sidebar is opened, close it
-				if (viewSlider && viewSlider.isForegroundColumnFocused()) {
-					viewSlider.focusNextColumn()
-					return true
-				} else if (this.handlesBackButtonViaCurrentView()) {
-					return true
-				} else if (
-					viewSlider &&
-					viewSlider.focusedColumn !== viewSlider.getMainColumn() &&
-					styles.isSingleColumnLayout() &&
-					viewSlider.isFocusPreviousPossible()
-				) {
-					// current view can navigate back, a region column is focused (not main) and is in singleColumnLayout
-					viewSlider.focusPreviousColumn()
-					return true
-				} else if (
-					currentRoute.startsWith(CONTACTS_PREFIX) ||
-					currentRoute.startsWith(SETTINGS_PREFIX) ||
-					currentRoute.startsWith(SEARCH_PREFIX) ||
-					currentRoute.startsWith(CALENDAR_PREFIX)
-				) {
-					// go back to mail from other paths
-					m.route.set(navButtonRoutes.mailUrl)
-					return true
-				} else if (viewSlider && viewSlider.isFirstBackgroundColumnFocused()) {
-					// If the first background column is focused in mail view (showing a folder), move to inbox.
-					// If in inbox already, quit
-					if (m.route.get().startsWith(MAIL_PREFIX)) {
-						const parts = m.route
-							.get()
-							.split("/")
-							.filter((part) => part !== "")
-
-						if (parts.length > 1) {
-							const selectedMailListId = parts[1]
-							return this.mailModel.getMailboxDetails().then((mailboxDetails) => {
-								const inboxMailListId = mailboxDetails[0].folders.getSystemFolderByType(MailFolderType.INBOX).mails
-
-								if (inboxMailListId !== selectedMailListId) {
-									m.route.set(MAIL_PREFIX + "/" + inboxMailListId)
-									return true
-								} else {
-									return false
-								}
-							})
+						if (inboxMailListId !== selectedMailListId) {
+							m.route.set(MAIL_PREFIX + "/" + inboxMailListId)
+							return true
+						} else {
+							return false
 						}
 					}
-
-					return false
-				} else {
-					return false
 				}
+
+				return false
+			} else {
+				return false
 			}
-		})
+		}
 	}
 
 	private handlesBackButtonViaCurrentView(): boolean {

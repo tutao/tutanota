@@ -27,8 +27,9 @@ export class FolderSystem {
 		return [...this.getIndentedFolderList(this.systemSubtrees, excludeFolder), ...this.getIndentedFolderList(this.customSubtrees, excludeFolder)]
 	}
 
-	getSystemFolderByType(type: Omit<MailFolderType, MailFolderType.CUSTOM>): MailFolder {
-		return assertNotNull(this.systemSubtrees.find((f) => f.folder.folderType === type)).folder
+	/** Search for a specific folder type. Some mailboxes might not have some system folders! */
+	getSystemFolderByType(type: Omit<MailFolderType, MailFolderType.CUSTOM>): MailFolder | null {
+		return this.systemSubtrees.find((f) => f.folder.folderType === type)?.folder ?? null
 	}
 
 	getFolderById(folderId: IdTuple): MailFolder | null {

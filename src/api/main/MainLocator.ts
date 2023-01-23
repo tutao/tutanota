@@ -91,6 +91,7 @@ import { BaseHeaderAttrs } from "../../gui/Header.js"
 import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel.js"
 import { GroupType } from "../common/TutanotaConstants.js"
+import { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
 
 assertMainOrNode()
 
@@ -283,6 +284,11 @@ class MainLocator {
 			this.workerFacade,
 			this.search,
 		)
+	}
+
+	async externalLoginViewModelFactory(): Promise<() => ExternalLoginViewModel> {
+		const { ExternalLoginViewModel } = await import("../../login/ExternalLoginView.js")
+		return () => new ExternalLoginViewModel(this.credentialsProvider)
 	}
 
 	get native(): NativeInterfaceMain {

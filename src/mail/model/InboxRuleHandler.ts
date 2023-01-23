@@ -14,6 +14,7 @@ import { elementIdPart, getElementId, getListId, isSameId, listIdPart } from "..
 import { assertMainOrNode } from "../../api/common/Env"
 import { MailFacade } from "../../api/worker/facades/MailFacade"
 import { isLegacyMail } from "../../api/common/MailWrapper.js"
+import { assertSystemFolderOfType } from "../../api/common/mail/CommonMailUtils.js"
 
 assertMainOrNode()
 const moveMailDataPerFolder: MoveMailData[] = []
@@ -262,5 +263,5 @@ function _checkEmailAddresses(mailAddresses: string[], inboxRule: InboxRule): bo
 }
 
 export function isInboxList(mailboxDetail: MailboxDetail, listId: Id): boolean {
-	return isSameId(listId, mailboxDetail.folders.getSystemFolderByType(MailFolderType.INBOX).mails)
+	return isSameId(listId, assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.INBOX).mails)
 }
