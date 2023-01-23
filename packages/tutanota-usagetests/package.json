@@ -20,7 +20,8 @@
 	"files": [
 		"dist/*",
 		"README.md",
-		"LICENSE.txt"
+		"LICENSE.txt",
+		"tsconfig.json"
 	],
 	"devDependencies": {
 		"@types/node-forge": "1.0.0",
