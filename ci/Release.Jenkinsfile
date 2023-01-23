@@ -17,7 +17,7 @@ pipeline {
         )
         booleanParam(
             name: 'generateReleaseNotes',
-            defaultValue: true,
+            defaultValue: false,
             description: "check if the release notes should be updated in the downstream jobs, uncheck if last runs release notes should be reused."
         )
 		persistentString(
