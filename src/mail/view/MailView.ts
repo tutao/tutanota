@@ -118,7 +118,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		this.folderColumn = this.createFolderColumn(null, vnode.attrs.drawerAttrs)
 		this.listColumn = new ViewColumn(
 			{
-				view: () => m(".list-column", [this.cache.mailList ? m(this.cache.mailList) : null]),
+				view: () => m(".list-column", [this.cache.mailList ? m(this.cache.mailList, { mailView: this }) : null]),
 			},
 			ColumnType.Background,
 			size.second_col_min_width,
@@ -572,7 +572,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	 */
 	private showList(mailListId: Id, mailElementId: Id | null): boolean {
 		this.cache.mailList?.dispose()
-		this.cache.mailList = new MailListView(mailListId, this)
+		this.cache.mailList = new MailListView(mailListId)
 		let folder = locator.mailModel.getMailFolder(mailListId)
 
 		if (folder) {

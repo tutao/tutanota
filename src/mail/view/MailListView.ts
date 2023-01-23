@@ -1,9 +1,8 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { lang } from "../../misc/LanguageViewModel"
 import type { ListFetchResult, VirtualRow } from "../../gui/base/List"
 import { List } from "../../gui/base/List"
 import { MailFolderType, MailState } from "../../api/common/TutanotaConstants"
-import type { MailView } from "./MailView"
 import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { canDoDragAndDropExport, getFolderName } from "../model/MailUtils"
@@ -18,7 +17,7 @@ import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { Dialog } from "../../gui/base/Dialog"
 import { assertNotNull, AsyncResult, count, debounce, downcast, neverNull, ofClass, promiseFilter, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/MainLocator"
-import { getLetId, getListId, haveSameId, sortCompareByReverseId } from "../../api/common/utils/EntityUtils"
+import { getLetId, haveSameId, sortCompareByReverseId } from "../../api/common/utils/EntityUtils"
 import { moveMails, promptAndDeleteMails } from "./MailGuiUtils"
 import { MailRow } from "./MailRow"
 import { makeTrackedProgressMonitor } from "../../api/common/utils/ProgressMonitor"
@@ -33,13 +32,20 @@ import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/main/EventController.js"
 import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
+import { MailView } from "./MailView.js"
 
 assertMainOrNode()
 const className = "mail-list"
 
-export class MailListView implements Component {
-	listId: Id
+export interface MailListViewAttrs {
+	// We would like to not get and hold to the whole MailView eventually
+	// but for that we need to rewrite the List
 	mailView: MailView
+}
+
+export class MailListView implements Component<MailListViewAttrs> {
+	listId: Id
+	mailView: MailView | null = null
 	list: List<Mail, MailRow>
 	// Mails that are currently being or have already been downloaded/bundled/saved
 	// Map of (Mail._id ++ MailExportMode) -> Promise<Filepath>
@@ -56,9 +62,8 @@ export class MailListView implements Component {
 	_listDom: HTMLElement | null
 	showingSpamOrTrash: boolean = false
 
-	constructor(mailListId: Id, mailView: MailView) {
+	constructor(mailListId: Id) {
 		this.listId = mailListId
-		this.mailView = mailView
 		this.exportedMails = new Map()
 		this._listDom = null
 		this.showingTrashOrSpamFolder().then((result) => {
@@ -84,7 +89,7 @@ export class MailListView implements Component {
 			},
 			sortCompare: sortCompareByReverseId,
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
-				mailView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
+				this.mailView?.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
 			createVirtualRow: () => new MailRow(false),
 			className: className,
 			swipe: {
@@ -365,9 +370,11 @@ export class MailListView implements Component {
 		},
 	)
 
-	view(vnode: Vnode): Children {
+	view(vnode: Vnode<MailListViewAttrs>): Children {
+		this.mailView = vnode.attrs.mailView
+
 		// Save the folder before showing the dialog so that there's no chance that it will change
-		const folder = this.mailView.cache.selectedFolder
+		const folder = vnode.attrs.mailView.cache.selectedFolder
 		const purgeButtonAttrs: ButtonAttrs = {
 			label: "clearFolder_action",
 			type: ButtonType.Primary,
@@ -379,7 +386,7 @@ export class MailListView implements Component {
 				}
 				const confirmed = await Dialog.confirm(() => lang.get("confirmDeleteFinallySystemFolder_msg", { "{1}": getFolderName(folder) }))
 				if (confirmed) {
-					this.mailView.finallyDeleteAllMailsInSelectedFolder(folder)
+					vnode.attrs.mailView.finallyDeleteAllMailsInSelectedFolder(folder)
 				}
 			},
 		}
@@ -429,8 +436,17 @@ export class MailListView implements Component {
 		)
 	}
 
+	oncreate(vnode: VnodeDOM<MailListViewAttrs>) {
+		this.mailView = vnode.attrs.mailView
+	}
+
+	onremove(vnode: VnodeDOM<MailListViewAttrs>) {
+		// don't hold to the banana and gorilla and the whole jungle (we are being cached, unfortunately, but the MailView isn't)
+		this.mailView = null
+	}
+
 	private targetInbox(): boolean {
-		if (this.mailView.cache.selectedFolder) {
+		if (this.mailView && this.mailView.cache.selectedFolder) {
 			return (
 				this.mailView.cache.selectedFolder.folderType === MailFolderType.ARCHIVE ||
 				this.mailView.cache.selectedFolder.folderType === MailFolderType.TRASH
@@ -450,7 +466,7 @@ export class MailListView implements Component {
 	}
 
 	private showingDraftFolder(): boolean {
-		if (this.mailView.cache.selectedFolder) {
+		if (this.mailView && this.mailView.cache.selectedFolder) {
 			return this.mailView.cache.selectedFolder.folderType === MailFolderType.DRAFT
 		} else {
 			return false
