@@ -53,7 +53,7 @@ export class TemplatePopupModel {
 		this._eventController = eventController
 		this._logins = logins
 		this._entityClient = entityClient
-		this._allTemplates = new SortedArray(compareTemplatesForSort)
+		this._allTemplates = SortedArray.empty(compareTemplatesForSort)
 		this.searchResults = stream<ReadonlyArray<EmailTemplate>>([])
 		this.selectedTemplate = stream<EmailTemplate | null>(null)
 		this._selectedContentLanguage = lang.code
