@@ -45,7 +45,7 @@ export class KnowledgeBaseModel {
 		this._eventController = eventController
 		this._entityClient = entityClient
 		this._userController = userController
-		this._allEntries = new SortedArray(compareKnowledgeBaseEntriesForSort)
+		this._allEntries = SortedArray.empty(compareKnowledgeBaseEntriesForSort)
 		this._allKeywords = []
 		this._matchedKeywordsInContent = []
 		this.filteredEntries = stream(this._allEntries.array)

@@ -1,14 +1,11 @@
 import { findAndRemove, insertIntoSortedArray } from "./ArrayUtils.js"
+
 export type CompareFn<T> = (arg0: T, arg1: T) => number
 
 /**
  * Compared based on the type's natural ordering
- * @param a
- * @param b
- * @returns {number}
  */
-// It should be fine for 99% of use cases? worst case it just returns 0 always
-function defaultCompare<T extends Record<string, any>>(a: T, b: T): number {
+function numberCompare(a: number, b: number): number {
 	return a < b ? -1 : a > b ? 1 : 0
 }
 
@@ -16,43 +13,45 @@ function defaultCompare<T extends Record<string, any>>(a: T, b: T): number {
  * An array that keeps itself sorted
  */
 export class SortedArray<T> {
-	readonly _contents: Array<T>
-	readonly _compareFn: CompareFn<T>
+	private constructor(private contents: T[], private compareFn: CompareFn<T>) {}
 
-	constructor(compareFn: CompareFn<T> = defaultCompare) {
-		this._contents = []
-		this._compareFn = compareFn
+	static fromNumbers(array: ReadonlyArray<number>): SortedArray<number> {
+		return SortedArray.from(array, numberCompare)
 	}
 
-	static from<U>(array: ReadonlyArray<U>, compareFn?: CompareFn<U>): SortedArray<U> {
-		const list = new SortedArray<U>(compareFn)
+	static empty<U>(compareFn: CompareFn<U>): SortedArray<U> {
+		return new SortedArray<U>([], compareFn)
+	}
+
+	static from<U>(array: ReadonlyArray<U>, compareFn: CompareFn<U>): SortedArray<U> {
+		const list = new SortedArray<U>([], compareFn)
 		list.insertAll(array)
 		return list
 	}
 
 	get length(): number {
-		return this._contents.length
+		return this.contents.length
 	}
 
 	get array(): ReadonlyArray<T> {
-		return this._contents
+		return this.contents
 	}
 
 	get(index: number): T {
-		return this._contents[index]
+		return this.contents[index]
 	}
 
 	insertAll(array: ReadonlyArray<T>) {
-		this._contents.push(...array)
+		this.contents.push(...array)
 
-		this._contents.sort(this._compareFn)
+		this.contents.sort(this.compareFn)
 	}
 
 	insert(item: T): void {
-		insertIntoSortedArray(item, this._contents, this._compareFn)
+		insertIntoSortedArray(item, this.contents, this.compareFn)
 	}
 
 	removeFirst(finder: (arg0: T) => boolean): boolean {
-		return findAndRemove(this._contents, finder)
+		return findAndRemove(this.contents, finder)
 	}
 }
