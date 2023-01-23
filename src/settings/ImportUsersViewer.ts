@@ -8,7 +8,7 @@ import { PreconditionFailedError } from "../api/common/error/RestError"
 import { showBuyDialog } from "../subscription/BuyDialog"
 import { locator } from "../api/main/MainLocator"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
-import stream from "mithril/stream"
+import { OperationId } from "../api/main/OperationProgressTracker.js"
 
 const delayTime = 900
 type UserImportDetails = {
@@ -120,69 +120,62 @@ function checkAndGetErrorMessage(userData: UserImportDetails[], availableDomains
 	}
 }
 
-function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
+async function showBookingDialog(userDetailsArray: UserImportDetails[]) {
+	// We send index to worker and then worker calculates the progress based on the index of the user
+	const accepted = await showBuyDialog({ featureType: BookingItemFeatureType.Users, count: userDetailsArray.length, freeAmount: 0, reactivate: false })
+	if (!accepted) {
+		return
+	}
 	let nbrOfCreatedUsers = 0
 	let notAvailableUsers: UserImportDetails[] = []
-	// There's a hacky progress solution where we send index to worker and then worker just simulates calculating progress based on the
-	// index
-	showBuyDialog({ featureType: BookingItemFeatureType.Users, count: userDetailsArray.length, freeAmount: 0, reactivate: false }).then((accepted) => {
-		if (accepted) {
-			const progress = stream(0)
-			return showProgressDialog(
-				() =>
-					lang.get("createActionStatus_msg", {
-						"{index}": nbrOfCreatedUsers,
-						"{count}": userDetailsArray.length,
-					}),
-				promiseMap(userDetailsArray, (user, userIndex) => {
-					return createUserIfMailAddressAvailable(user, userIndex, userDetailsArray.length).then((created) => {
-						if (created) {
-							nbrOfCreatedUsers++
-							m.redraw()
-						} else {
-							notAvailableUsers.push(user)
-						}
-						progress((nbrOfCreatedUsers + notAvailableUsers.length) / userDetailsArray.length)
-					})
-				}),
-				progress,
-			)
-				.catch(ofClass(PreconditionFailedError, () => Dialog.message("createUserFailed_msg")))
-				.then(() => {
-					let p = Promise.resolve()
+	const operation = locator.operationProgressTracker.startNewOperation()
+	await showProgressDialog(
+		() =>
+			lang.get("createActionStatus_msg", {
+				"{index}": nbrOfCreatedUsers,
+				"{count}": userDetailsArray.length,
+			}),
+		promiseMap(userDetailsArray, (user, userIndex) => {
+			return createUserIfMailAddressAvailable(user, userIndex, userDetailsArray.length, operation.id).then((created) => {
+				if (created) {
+					nbrOfCreatedUsers++
+					m.redraw()
+				} else {
+					notAvailableUsers.push(user)
+				}
+			})
+		}),
+		operation.progress,
+	)
+		.catch(ofClass(PreconditionFailedError, () => Dialog.message("createUserFailed_msg")))
+		.finally(() => operation.done)
 
-					if (notAvailableUsers.length > 0) {
-						p = Dialog.message(() => lang.get("addressesAlreadyInUse_msg") + " " + notAvailableUsers.map((u) => u.mailAddress).join(", "))
-					}
+	if (notAvailableUsers.length > 0) {
+		await Dialog.message(() => lang.get("addressesAlreadyInUse_msg") + " " + notAvailableUsers.map((u) => u.mailAddress).join(", "))
+	}
 
-					p.then(() => {
-						Dialog.message(() =>
-							lang.get("createdUsersCount_msg", {
-								"{1}": nbrOfCreatedUsers,
-							}),
-						)
-					})
-				})
-		}
-	})
+	await Dialog.message(() =>
+		lang.get("createdUsersCount_msg", {
+			"{1}": nbrOfCreatedUsers,
+		}),
+	)
 }
 
 /**
  * @returns True if the user was created, false if the email address is not available.
  */
-function createUserIfMailAddressAvailable(user: UserImportDetails, index: number, overallNumberOfUsers: number): Promise<boolean> {
+function createUserIfMailAddressAvailable(user: UserImportDetails, index: number, overallNumberOfUsers: number, operationId: OperationId): Promise<boolean> {
 	let cleanMailAddress = user.mailAddress.trim().toLowerCase()
 	return locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress).then((available) => {
 		if (available) {
 			// we don't use it currently
-			const operation = locator.operationProgressTracker.startNewOperation()
+
 			return locator.userManagementFacade
-				.createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers, operation.id)
+				.createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers, operationId)
 				.then(() => {
 					// delay is needed so that there are not too many requests from isMailAddressAvailable service if users ar not available (are not created)
 					return delay(delayTime).then(() => true)
 				})
-				.finally(() => operation.done())
 		} else {
 			return delay(delayTime).then(() => false)
 		}
