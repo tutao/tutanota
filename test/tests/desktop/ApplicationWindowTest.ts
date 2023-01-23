@@ -943,7 +943,7 @@ o.spec("ApplicationWindow Test", function () {
 		const userId = "123"
 		w.setUserId(userId)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
-		;(bwInstance as any).callbacks["close"]()
+		;(bwInstance as any).callbacks["closed"]()
 
 		verify(offlineDbFacade.disposeDb(userId))
 	})
