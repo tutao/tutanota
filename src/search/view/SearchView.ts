@@ -84,6 +84,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		href: () => this._getCurrentSearchUrl("mail", null),
 		isSelectedPrefix: "/search/mail",
 		colors: NavButtonColor.Nav,
+		persistentBackground: true,
 	}
 
 	private readonly contactFolder: NavButtonAttrs = {
@@ -91,6 +92,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		icon: () => BootIcons.Contacts,
 		href: "/search/contact",
 		colors: NavButtonColor.Nav,
+		persistentBackground: true,
 	}
 
 	private endDate: Date | null = null // null = today
@@ -119,20 +121,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 									name: "search_label",
 								},
 								[
-									m(
-										".folder-row.flex-start.plr-button",
-										{
-											class: isNavButtonSelected(this.mailFolder) ? "row-selected" : "",
-										},
-										m(NavButton, this.mailFolder),
-									),
-									m(
-										".folder-row.flex-start.plr-button",
-										{
-											class: isNavButtonSelected(this.contactFolder) ? "row-selected" : "",
-										},
-										m(NavButton, this.contactFolder),
-									),
+									m(".folder-row.flex-start.mlr-button", m(NavButton, this.mailFolder)),
+									m(".folder-row.flex-start.mlr-button", m(NavButton, this.contactFolder)),
 								],
 							),
 							isNavButtonSelected(this.mailFolder)

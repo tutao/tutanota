@@ -272,7 +272,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			href: () => m.route.get(),
 			disableHoverBackground: true,
 		}
-		return m(".folders.mlr-button.border-radius-small", { style: { background: isNavButtonSelected(button) ? stateBgHover : "" } }, [
+		return m(".folders.mlr-button.border-radius-small.state-bg", { style: { background: isNavButtonSelected(button) ? stateBgHover : "" } }, [
 			m(".folder-row.flex-space-between.plr-button.row-selected", [m(NavButton, button), this.renderFolderMoreButton()]),
 		])
 	}

@@ -38,7 +38,6 @@ export interface DropDownSelectorAttrs<T> {
 	disabled?: boolean
 	class?: string
 	doShowBorder?: boolean | null
-	sidePadding?: boolean
 }
 
 export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs<T>> {

@@ -15,7 +15,7 @@ import { locator } from "../../api/main/MainLocator"
 import { getEventStart, getStartOfTheWeekOffset, getStartOfWeek, getTimeZone, shouldDefaultToAmPmTimeFormat } from "../date/CalendarUtils"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYearLong, formatMonthWithFullYear } from "../../misc/Formatter"
-import { isNavButtonSelected, NavButton, NavButtonColor } from "../../gui/base/NavButton.js"
+import { NavButton, NavButtonColor } from "../../gui/base/NavButton.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
 import { NotFoundError } from "../../api/common/error/RestError"
@@ -53,7 +53,6 @@ import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
-import { stateBgHover } from "../../gui/builtinThemes.js"
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 export type GroupColors = Map<Id, string>
@@ -471,40 +470,28 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			})
 		}
 
-		return calendarViewValues.map((viewType) => {
-			const buttonAttrs = {
-				label: () => viewType.name,
-				icon: () => viewType.icon,
-				href: m.route.get(),
-				isSelectedPrefix: viewType.href,
-				colors: NavButtonColor.Nav,
-				// Close side menu
-				click: () => {
-					this._setUrl(viewType.value, this.viewModel.selectedDate())
-
-					this.viewSlider.focus(this.contentColumn)
-				},
-				disableHoverBackground: true,
-			}
-			return m(
+		return calendarViewValues.map((viewType) =>
+			m(
 				".folder-row.flex.flex-row", // undo the padding of NavButton and prevent .folder-row > a from selecting NavButton
 				m(
-					".flex-grow.ml-negative-s",
-					{
-						// I would use mlr-button for this style, but it won't work on this element
-						style: {
-							marginLeft: px(size.hpad_button),
-							marginRight: px(size.hpad_button),
+					".flex-grow.mlr-button",
+					m(NavButton, {
+						label: () => viewType.name,
+						icon: () => viewType.icon,
+						href: m.route.get(),
+						isSelectedPrefix: viewType.href,
+						colors: NavButtonColor.Nav,
+						// Close side menu
+						click: () => {
+							this._setUrl(viewType.value, this.viewModel.selectedDate())
+
+							this.viewSlider.focus(this.contentColumn)
 						},
-					},
-					m(
-						".folders.mlr-button.border-radius-small",
-						{ style: { background: isNavButtonSelected(buttonAttrs) ? stateBgHover : "" } },
-						m(NavButton, buttonAttrs),
-					),
+						persistentBackground: true,
+					}),
 				),
-			)
-		})
+			),
+		)
 	}
 
 	private renderHeaderRightView(): Children {

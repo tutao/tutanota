@@ -62,7 +62,7 @@ import { BottomNav } from "../gui/nav/BottomNav.js"
 import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
-import { TopLevelView, TopLevelAttrs } from "../TopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 
 assertMainOrNode()
 
@@ -406,6 +406,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			href: folder.url,
 			colors: NavButtonColor.Nav,
 			click: () => this.viewSlider.focus(this._settingsColumn),
+			persistentBackground: true,
 		}
 	}
 

@@ -13,6 +13,7 @@ import { Keys } from "../../api/common/TutanotaConstants"
 import { isKeyPressed } from "../../misc/KeyManager"
 import type { dropHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
+import { stateBgHover } from "../builtinThemes.js"
 
 assertMainOrNode()
 export type NavButtonAttrs = {
@@ -31,6 +32,7 @@ export type NavButtonAttrs = {
 	leftInjection?: () => Children
 	disableHoverBackground?: boolean
 	disabled?: boolean
+	persistentBackground?: boolean
 }
 
 export class NavButton implements Component<NavButtonAttrs> {
@@ -55,7 +57,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 						icon,
 						class: this._getIconClass(a),
 						style: {
-							fill: isNavButtonSelected(vnode.attrs) || this._draggedOver ? getColors(a.colors).button_selected : getColors(a.colors).button,
+							fill: isNavButtonSelected(a) || this._draggedOver ? getColors(a.colors).button_selected : getColors(a.colors).button,
 						},
 				  })
 				: null,
@@ -64,7 +66,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 
 		// allow nav button without label for registration button on mobile devices
 		if (this._isExternalUrl(a.href)) {
-			return m(this._getNavButtonClass(vnode.attrs), linkAttrs, children)
+			return m(this._getNavButtonClass(a), linkAttrs, children)
 		} else {
 			return m(m.route.Link, linkAttrs, children)
 		}
@@ -114,6 +116,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 			style: {
 				color: isNavButtonSelected(a) || this._draggedOver ? getColors(a.colors).button_selected : getColors(a.colors).button,
 				"font-size": a.fontSize ? px(a.fontSize) : "",
+				background: (isNavButtonSelected(a) && a.persistentBackground) || this._draggedOver ? stateBgHover : "",
 			},
 			title: this.getLabel(a.label),
 			target: this._isExternalUrl(a.href) ? "_blank" : undefined,
