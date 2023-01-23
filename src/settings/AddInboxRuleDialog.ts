@@ -25,6 +25,7 @@ import { isSameId } from "../api/common/utils/EntityUtils"
 import { assertMainOrNode } from "../api/common/Env"
 import { locator } from "../api/main/MainLocator"
 import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
+import { assertSystemFolderOfType } from "../api/common/mail/CommonMailUtils.js"
 
 assertMainOrNode()
 
@@ -44,7 +45,7 @@ export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRule) {
 		const inboxRuleType = stream(ruleOrTemplate.type)
 		const inboxRuleValue = stream(ruleOrTemplate.value)
 		const selectedFolder = mailBoxDetail.folders.getFolderById(ruleOrTemplate.targetFolder)
-		const inboxRuleTarget = stream(selectedFolder ?? mailBoxDetail.folders.getSystemFolderByType(MailFolderType.ARCHIVE))
+		const inboxRuleTarget = stream(selectedFolder ?? assertSystemFolderOfType(mailBoxDetail.folders, MailFolderType.ARCHIVE))
 
 		let form = () => [
 			m(DropDownSelector, {

@@ -69,6 +69,7 @@ import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
 import { WorkerFacade } from "../../api/worker/facades/WorkerFacade.js"
 import { SearchModel } from "../../search/model/SearchModel.js"
+import { assertSystemFolderOfType } from "../../api/common/mail/CommonMailUtils.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -486,7 +487,7 @@ export class MailViewerViewModel {
 				await this.entityClient.update(this.mail)
 			}
 			const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(this.mail)
-			const spamFolder = mailboxDetail.folders.getSystemFolderByType(MailFolderType.SPAM)
+			const spamFolder = assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.SPAM)
 			// do not report moved mails again
 			await moveMails({ mailModel: this.mailModel, mails: [this.mail], targetMailFolder: spamFolder, isReportable: false })
 		} catch (e) {
@@ -951,7 +952,8 @@ export class MailViewerViewModel {
 		await model.initAsResponse(args, this.getLoadedInlineImages())
 		await model.send(MailMethod.NONE)
 		const folders = await this.mailModel.getMailboxFolders(this.mail)
-		return moveMails({ mailModel: this.mailModel, mails: [this.mail], targetMailFolder: folders.getSystemFolderByType(MailFolderType.ARCHIVE) })
+		const archive = assertSystemFolderOfType(folders, MailFolderType.ARCHIVE)
+		return moveMails({ mailModel: this.mailModel, mails: [this.mail], targetMailFolder: archive })
 	}
 
 	getNonInlineAttachments(): TutanotaFile[] {

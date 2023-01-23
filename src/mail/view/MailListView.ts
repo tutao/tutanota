@@ -3,7 +3,8 @@ import { lang } from "../../misc/LanguageViewModel"
 import type { ListFetchResult, VirtualRow } from "../../gui/base/List"
 import { List } from "../../gui/base/List"
 import { MailFolderType, MailState } from "../../api/common/TutanotaConstants"
-import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import type { MailView } from "./MailView"
+import type { Mail, MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
 import { MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { canDoDragAndDropExport, getFolderName } from "../model/MailUtils"
 import { NotFoundError } from "../../api/common/error/RestError"
@@ -31,8 +32,7 @@ import { findAndApplyMatchingRule, isInboxList } from "../model/InboxRuleHandler
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/main/EventController.js"
-import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
-import { MailView } from "./MailView.js"
+import { assertSystemFolderOfType, isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
 
 assertMainOrNode()
 const className = "mail-list"
@@ -146,7 +146,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 							moveMails({
 								mailModel: locator.mailModel,
 								mails: [listElement],
-								targetMailFolder: folders.getSystemFolderByType(MailFolderType.ARCHIVE),
+								targetMailFolder: assertNotNull(folders.getSystemFolderByType(MailFolderType.ARCHIVE)),
 							}),
 						)
 					}
@@ -180,11 +180,11 @@ export class MailListView implements Component<MailListViewAttrs> {
 		}
 	}
 
-	private getRecoverFolder(mail: Mail, folders: FolderSystem) {
+	private getRecoverFolder(mail: Mail, folders: FolderSystem): MailFolder {
 		if (mail.state === MailState.DRAFT) {
-			return folders.getSystemFolderByType(MailFolderType.DRAFT)
+			return assertSystemFolderOfType(folders, MailFolderType.DRAFT)
 		} else {
-			return folders.getSystemFolderByType(MailFolderType.INBOX)
+			return assertSystemFolderOfType(folders, MailFolderType.INBOX)
 		}
 	}
 

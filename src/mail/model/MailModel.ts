@@ -39,7 +39,7 @@ import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { UserError } from "../../api/main/UserError.js"
-import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
+import { assertSystemFolderOfType, isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox
@@ -187,7 +187,7 @@ export class MailModel {
 
 		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
 		if (!deletedFolder) {
-			return this.mailFacade.updateMailFolderParent(folder, mailboxDetail.folders.getSystemFolderByType(MailFolderType.SPAM)._id)
+			return this.mailFacade.updateMailFolderParent(folder, assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.SPAM)._id)
 		}
 	}
 
@@ -252,7 +252,7 @@ export class MailModel {
 			return
 		}
 		const folders = await this.getMailboxFolders(mails[0])
-		const trashFolder = folders.getSystemFolderByType(MailFolderType.TRASH)
+		const trashFolder = assertNotNull(folders.getSystemFolderByType(MailFolderType.TRASH))
 
 		for (const [listId, mails] of mailsPerFolder) {
 			const sourceMailFolder = this.getMailFolder(listId)
@@ -374,7 +374,8 @@ export class MailModel {
 		const mailboxDetail = await this.getMailboxDetailsForMailListId(folder.mails)
 		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
 		if (!deletedFolder) {
-			return this.mailFacade.updateMailFolderParent(folder, mailboxDetail.folders.getSystemFolderByType(MailFolderType.TRASH)._id)
+			const trash = assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.TRASH)
+			return this.mailFacade.updateMailFolderParent(folder, trash._id)
 		}
 	}
 

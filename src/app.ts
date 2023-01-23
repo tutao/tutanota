@@ -32,6 +32,7 @@ import { SearchView, SearchViewAttrs } from "./search/view/SearchView.js"
 import { TopLevelView, TopLevelAttrs } from "./TopLevelView.js"
 import { BaseHeaderAttrs } from "./gui/Header.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
+import { ExternalLoginView, ExternalLoginViewAttrs, ExternalLoginViewModel } from "./login/ExternalLoginView.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -206,7 +207,20 @@ import("./translations/en")
 				},
 				prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header }),
 			}),
-			externalLogin: makeOldViewResolver(() => import("./login/ExternalLoginView.js").then((module) => new module.ExternalLoginView()), {
+			externalLogin: makeViewResolver<
+				ExternalLoginViewAttrs,
+				ExternalLoginView,
+				{ header: BaseHeaderAttrs; makeViewModel: () => ExternalLoginViewModel }
+			>({
+				prepareRoute: async () => {
+					const { ExternalLoginView } = await import("./login/ExternalLoginView.js")
+					const makeViewModel = await locator.externalLoginViewModelFactory()
+					return {
+						component: ExternalLoginView,
+						cache: { header: await locator.baseHeaderAttrs(), makeViewModel },
+					}
+				},
+				prepareAttrs: ({ header, makeViewModel }) => ({ header, viewModelFactory: makeViewModel }),
 				requireLogin: false,
 			}),
 			mail: makeViewResolver<MailViewAttrs, MailView, { drawerAttrsFactory: () => DrawerMenuAttrs; cache: MailViewCache; header: BaseHeaderAttrs }>({

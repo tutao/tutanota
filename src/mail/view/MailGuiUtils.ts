@@ -19,7 +19,7 @@ import { FileController } from "../../file/FileController"
 import { DomRectReadOnlyPolyfilled, Dropdown, PosRect } from "../../gui/base/Dropdown.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { modal } from "../../gui/base/Modal.js"
-import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
+import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
 
 export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
 	let trashMails: Mail[] = []
@@ -88,11 +88,7 @@ export async function moveMails({ mailModel, mails, targetMailFolder, isReportab
 	return mailModel
 		.moveMails(mails, targetMailFolder)
 		.then(async () => {
-			if (
-				(targetMailFolder.folderType === MailFolderType.SPAM ||
-					system.checkFolderForAncestor(targetMailFolder, system.getSystemFolderByType(MailFolderType.SPAM)._id)) &&
-				isReportable
-			) {
+			if (isOfTypeOrSubfolderOf(system, targetMailFolder, MailFolderType.SPAM) && isReportable) {
 				const reportableMails = mails.map((mail) => {
 					// mails have just been moved
 					const reportableMail = createMail(mail)
@@ -122,7 +118,7 @@ export function archiveMails(mails: Mail[]): Promise<any> {
 			moveMails({
 				mailModel: locator.mailModel,
 				mails: mails,
-				targetMailFolder: folders.getSystemFolderByType(MailFolderType.ARCHIVE),
+				targetMailFolder: assertSystemFolderOfType(folders, MailFolderType.ARCHIVE),
 			}),
 		)
 	} else {
@@ -137,7 +133,7 @@ export function moveToInbox(mails: Mail[]): Promise<any> {
 			moveMails({
 				mailModel: locator.mailModel,
 				mails: mails,
-				targetMailFolder: folders.getSystemFolderByType(MailFolderType.INBOX),
+				targetMailFolder: assertSystemFolderOfType(folders, MailFolderType.INBOX),
 			}),
 		)
 	} else {

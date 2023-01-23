@@ -49,7 +49,7 @@ import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { showEditFolderDialog } from "./EditFolderDialog.js"
 import { MailFoldersView } from "./MailFoldersView.js"
-import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
+import { assertSystemFolderOfType, isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
 import { FolderColumnView } from "../../gui/FolderColumnView.js"
 import { SidebarSection } from "../../gui/SidebarSection.js"
 import { EditFoldersDialog } from "./EditFoldersDialog.js"
@@ -242,7 +242,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			if (currentlySelectedFolder) {
 				this.cache.selectedFolder = currentlySelectedFolder
 			} else {
-				const inboxFolder = mailboxDetails[0].folders.getSystemFolderByType(MailFolderType.INBOX)
+				const inboxFolder = assertSystemFolderOfType(mailboxDetails[0].folders, MailFolderType.INBOX)
 				const url = this.folderToUrl[getElementId(inboxFolder)]
 
 				if (isSelectedPrefix(MAIL_PREFIX)) {
@@ -404,7 +404,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private async switchToFolder(folderType: Omit<MailFolderType, MailFolderType.CUSTOM>): Promise<void> {
 		const mailboxDetail = await this.getMailboxDetails()
-		m.route.set(this.folderToUrl[getElementId(mailboxDetail.folders.getSystemFolderByType(folderType))])
+		m.route.set(this.folderToUrl[getElementId(assertSystemFolderOfType(mailboxDetail.folders, folderType))])
 	}
 
 	private createFolderColumn(editingFolderForMailGroup: Id | null = null, drawerAttrs: DrawerMenuAttrs) {
@@ -535,12 +535,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			locator.mailModel.getMailboxDetails().then((mailboxDetails) => {
 				const mailboxDetail = getFirstOrThrow(mailboxDetails)
 				if (typeof args.listId === "undefined") {
-					const inboxFolder = mailboxDetail.folders.getSystemFolderByType(MailFolderType.INBOX)
+					const inboxFolder = assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.INBOX)
 					const inboxFolderId = getElementId(inboxFolder)
 					this.setUrl(this.folderToUrl[inboxFolderId])
 				} else {
 					if (!this.showList(args.listId, args.mailId)) {
-						const inboxFolder = mailboxDetail.folders.getSystemFolderByType(MailFolderType.INBOX)
+						const inboxFolder = assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.INBOX)
 						const inboxFolderId = getElementId(inboxFolder)
 						this.setUrl(this.folderToUrl[inboxFolderId])
 					}

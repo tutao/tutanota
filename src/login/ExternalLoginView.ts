@@ -1,4 +1,4 @@
-import m, { Children } from "mithril"
+import m, { Children, Vnode } from "mithril"
 import { AccessExpiredError } from "../api/common/error/RestError"
 import { assertNotNull, base64ToUint8Array, base64UrlToBase64, noOp } from "@tutao/tutanota-utils"
 import type { TranslationText } from "../misc/LanguageViewModel"
@@ -14,7 +14,7 @@ import { Checkbox } from "../gui/base/Checkbox.js"
 import { logins } from "../api/main/LoginController"
 import { MessageBox } from "../gui/base/MessageBox.js"
 import { renderInfoLinks } from "./LoginView"
-import { header } from "../gui/Header.js"
+import { BaseHeaderAttrs, header } from "../gui/Header.js"
 import { GENERATED_MIN_ID } from "../api/common/utils/EntityUtils"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../misc/LoginUtils"
 import { locator } from "../api/main/MainLocator"
@@ -23,11 +23,12 @@ import { assertMainOrNode } from "../api/common/Env"
 import type { Credentials } from "../misc/credentials/Credentials"
 import { SessionType } from "../api/common/SessionType.js"
 import { ResumeSessionErrorReason } from "../api/worker/facades/LoginFacade"
-import { TopLevelView } from "../TopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
+import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 
 assertMainOrNode()
 
-class ExternalLoginViewModel {
+export class ExternalLoginViewModel {
 	password: string = ""
 	doSavePassword: boolean = false
 	helpText: TranslationText = "emptyString_msg"
@@ -155,10 +156,20 @@ class ExternalLoginViewModel {
 			m.redraw()
 		}
 	}
+
+	dispose() {
+		this.password = ""
+	}
 }
 
-export class ExternalLoginView implements TopLevelView {
-	private readonly viewModel = new ExternalLoginViewModel(locator.credentialsProvider)
+export interface ExternalLoginViewAttrs extends TopLevelAttrs {
+	viewModelFactory: () => ExternalLoginViewModel
+	header: BaseHeaderAttrs
+}
+
+/** Login view for external mailboxes: recipients from other mail servers when the email is password-protected. */
+export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<ExternalLoginViewAttrs> {
+	private readonly viewModel: ExternalLoginViewModel
 	private readonly shortcuts: Array<Shortcut> = [
 		{
 			key: Keys.RETURN,
@@ -169,10 +180,9 @@ export class ExternalLoginView implements TopLevelView {
 		},
 	]
 
-	constructor() {
-		this.view = this.view.bind(this)
-		this.oncreate = this.oncreate.bind(this)
-		this.onremove = this.onremove.bind(this)
+	constructor(vnode: Vnode<ExternalLoginViewAttrs>) {
+		super()
+		this.viewModel = vnode.attrs.viewModelFactory()
 	}
 
 	oncreate() {
@@ -181,11 +191,18 @@ export class ExternalLoginView implements TopLevelView {
 
 	onremove() {
 		this.viewModel.password = ""
+		this.viewModel.dispose()
 		keyManager.unregisterShortcuts(this.shortcuts)
 	}
 
-	view(): Children {
-		return m(".main-view", [m(header), m(".flex-center.scroll.pt-responsive", m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", this.renderContent()))])
+	view({ attrs }: Vnode<ExternalLoginViewAttrs>): Children {
+		return m(".main-view", [
+			m(header, {
+				viewSlider: null,
+				...attrs.header,
+			}),
+			m(".flex-center.scroll.pt-responsive", m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", this.renderContent())),
+		])
 	}
 
 	private renderContent(): Children {
@@ -240,7 +257,7 @@ export class ExternalLoginView implements TopLevelView {
 		]
 	}
 
-	updateUrl(args: Record<string, any>) {
+	onNewUrl(args: Record<string, any>) {
 		this.viewModel.updateUrl(args)
 	}
 }
