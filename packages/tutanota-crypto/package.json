@@ -21,7 +21,7 @@
 		"tsconfig.json"
 	],
 	"devDependencies": {
-		"typescript": "4.5.4",
+		"typescript": "4.9.4",
 		"@tutao/tutanota-utils": "3.108.3",
 		"ospec": "https://github.com/tutao/ospec.git#0472107629ede33be4c4d19e89f237a6d7b0cb11"
 	}
