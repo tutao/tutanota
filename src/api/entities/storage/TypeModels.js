@@ -30,7 +30,7 @@ export const typeModels = {
                 "id": 180,
                 "since": 4,
                 "type": "Number",
-                "cardinality": "One",
+                "cardinality": "ZeroOrOne",
                 "encrypted": false
             }
         },
@@ -57,7 +57,7 @@ export const typeModels = {
             }
         },
         "app": "storage",
-        "version": "6"
+        "version": "7"
     },
     "BlobAccessTokenPostOut": {
         "name": "BlobAccessTokenPostOut",
@@ -91,7 +91,7 @@ export const typeModels = {
             }
         },
         "app": "storage",
-        "version": "6"
+        "version": "7"
     },
     "BlobArchiveRef": {
         "name": "BlobArchiveRef",
@@ -152,7 +152,7 @@ export const typeModels = {
             }
         },
         "app": "storage",
-        "version": "6"
+        "version": "7"
     },
     "BlobGetIn": {
         "name": "BlobGetIn",
@@ -193,7 +193,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "storage",
-        "version": "6"
+        "version": "7"
     },
     "BlobId": {
         "name": "BlobId",
@@ -225,7 +225,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "storage",
-        "version": "6"
+        "version": "7"
     },
     "BlobPostOut": {
         "name": "BlobPostOut",
@@ -257,7 +257,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "storage",
-        "version": "6"
+        "version": "7"
     },
     "BlobReadData": {
         "name": "BlobReadData",
@@ -309,7 +309,7 @@ export const typeModels = {
             }
         },
         "app": "storage",
-        "version": "6"
+        "version": "7"
     },
     "BlobReferenceDeleteIn": {
         "name": "BlobReferenceDeleteIn",
@@ -370,7 +370,7 @@ export const typeModels = {
             }
         },
         "app": "storage",
-        "version": "6"
+        "version": "7"
     },
     "BlobReferencePutIn": {
         "name": "BlobReferencePutIn",
@@ -431,7 +431,7 @@ export const typeModels = {
             }
         },
         "app": "storage",
-        "version": "6"
+        "version": "7"
     },
     "BlobServerAccessInfo": {
         "name": "BlobServerAccessInfo",
@@ -483,7 +483,7 @@ export const typeModels = {
             }
         },
         "app": "storage",
-        "version": "6"
+        "version": "7"
     },
     "BlobServerUrl": {
         "name": "BlobServerUrl",
@@ -515,7 +515,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "storage",
-        "version": "6"
+        "version": "7"
     },
     "BlobWriteData": {
         "name": "BlobWriteData",
@@ -547,7 +547,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "storage",
-        "version": "6"
+        "version": "7"
     },
     "InstanceId": {
         "name": "InstanceId",
@@ -579,6 +579,6 @@ export const typeModels = {
         },
         "associations": {},
         "app": "storage",
-        "version": "6"
+        "version": "7"
     }
 }
