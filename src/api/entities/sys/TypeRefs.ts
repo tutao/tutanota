@@ -681,26 +681,28 @@ export type CreditCard = {
 	expirationYear: string;
 	number: string;
 }
-export const CustomDomainCheckDataTypeRef: TypeRef<CustomDomainCheckData> = new TypeRef("sys", "CustomDomainCheckData")
+export const CustomDomainCheckGetInTypeRef: TypeRef<CustomDomainCheckGetIn> = new TypeRef("sys", "CustomDomainCheckGetIn")
 
-export function createCustomDomainCheckData(values?: Partial<CustomDomainCheckData>): CustomDomainCheckData {
-	return Object.assign(create(typeModels.CustomDomainCheckData, CustomDomainCheckDataTypeRef), values)
+export function createCustomDomainCheckGetIn(values?: Partial<CustomDomainCheckGetIn>): CustomDomainCheckGetIn {
+	return Object.assign(create(typeModels.CustomDomainCheckGetIn, CustomDomainCheckGetInTypeRef), values)
 }
 
-export type CustomDomainCheckData = {
-	_type: TypeRef<CustomDomainCheckData>;
+export type CustomDomainCheckGetIn = {
+	_type: TypeRef<CustomDomainCheckGetIn>;
 
 	_format: NumberString;
 	domain: string;
-}
-export const CustomDomainCheckReturnTypeRef: TypeRef<CustomDomainCheckReturn> = new TypeRef("sys", "CustomDomainCheckReturn")
 
-export function createCustomDomainCheckReturn(values?: Partial<CustomDomainCheckReturn>): CustomDomainCheckReturn {
-	return Object.assign(create(typeModels.CustomDomainCheckReturn, CustomDomainCheckReturnTypeRef), values)
+	customer:  null | Id;
+}
+export const CustomDomainCheckGetOutTypeRef: TypeRef<CustomDomainCheckGetOut> = new TypeRef("sys", "CustomDomainCheckGetOut")
+
+export function createCustomDomainCheckGetOut(values?: Partial<CustomDomainCheckGetOut>): CustomDomainCheckGetOut {
+	return Object.assign(create(typeModels.CustomDomainCheckGetOut, CustomDomainCheckGetOutTypeRef), values)
 }
 
-export type CustomDomainCheckReturn = {
-	_type: TypeRef<CustomDomainCheckReturn>;
+export type CustomDomainCheckGetOut = {
+	_type: TypeRef<CustomDomainCheckGetOut>;
 
 	_format: NumberString;
 	checkResult: NumberString;

@@ -2579,8 +2579,8 @@ export const typeModels = {
         "app": "sys",
         "version": "83"
     },
-    "CustomDomainCheckData": {
-        "name": "CustomDomainCheckData",
+    "CustomDomainCheckGetIn": {
+        "name": "CustomDomainCheckGetIn",
         "since": 49,
         "type": "DATA_TRANSFER_TYPE",
         "id": 1586,
@@ -2607,12 +2607,23 @@ export const typeModels = {
                 "encrypted": false
             }
         },
-        "associations": {},
+        "associations": {
+            "customer": {
+                "final": false,
+                "name": "customer",
+                "id": 2053,
+                "since": 83,
+                "type": "ELEMENT_ASSOCIATION",
+                "cardinality": "ZeroOrOne",
+                "refType": "Customer",
+                "dependency": null
+            }
+        },
         "app": "sys",
         "version": "83"
     },
-    "CustomDomainCheckReturn": {
-        "name": "CustomDomainCheckReturn",
+    "CustomDomainCheckGetOut": {
+        "name": "CustomDomainCheckGetOut",
         "since": 49,
         "type": "DATA_TRANSFER_TYPE",
         "id": 1589,

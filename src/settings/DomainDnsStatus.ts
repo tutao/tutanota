@@ -1,5 +1,5 @@
-import { createCustomDomainCheckData } from "../api/entities/sys/TypeRefs.js"
-import type { CustomDomainCheckReturn } from "../api/entities/sys/TypeRefs.js"
+import { createCustomDomainCheckGetIn } from "../api/entities/sys/TypeRefs.js"
+import type { CustomDomainCheckGetOut } from "../api/entities/sys/TypeRefs.js"
 import { CustomDomainCheckResult, DnsRecordType, DnsRecordValidation } from "../api/common/TutanotaConstants"
 import { LazyLoaded, noOp } from "@tutao/tutanota-utils"
 import { lang } from "../misc/LanguageViewModel"
@@ -10,19 +10,20 @@ import { CustomDomainCheckService } from "../api/entities/sys/Services"
 assertMainOrNode()
 
 export class DomainDnsStatus {
-	status: LazyLoaded<CustomDomainCheckReturn>
+	status: LazyLoaded<CustomDomainCheckGetOut>
 	domain: string
 
-	constructor(cleanDomainName: string) {
+	constructor(cleanDomainName: string, customerId?: Id) {
 		this.domain = cleanDomainName
 		this.status = new LazyLoaded(() => {
-			let data = createCustomDomainCheckData()
+			let data = createCustomDomainCheckGetIn()
 			data.domain = cleanDomainName
+			data.customer = customerId ?? null
 			return locator.serviceExecutor.get(CustomDomainCheckService, data)
 		})
 	}
 
-	getLoadedCustomDomainCheckReturn(): CustomDomainCheckReturn {
+	getLoadedCustomDomainCheckGetOut(): CustomDomainCheckGetOut {
 		return this.status.getLoaded()
 	}
 

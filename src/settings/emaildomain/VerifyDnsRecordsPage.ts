@@ -108,7 +108,7 @@ function _getDisplayableRecordValue(record: DnsRecord): string {
 }
 
 export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButton: boolean = false): Children {
-	const checkReturn = domainStatus.getLoadedCustomDomainCheckReturn()
+	const checkReturn = domainStatus.getLoadedCustomDomainCheckGetOut()
 	const { requiredRecords, missingRecords, invalidRecords } = checkReturn
 	const checkResult = assertEnumValue(CustomDomainCheckResult, checkReturn.checkResult)
 
