@@ -11,8 +11,8 @@ import {ChangePasswordDataTypeRef} from "./TypeRefs.js"
 import {CloseSessionServicePostTypeRef} from "./TypeRefs.js"
 import {CreateCustomerServerPropertiesDataTypeRef} from "./TypeRefs.js"
 import {CreateCustomerServerPropertiesReturnTypeRef} from "./TypeRefs.js"
-import {CustomDomainCheckDataTypeRef} from "./TypeRefs.js"
-import {CustomDomainCheckReturnTypeRef} from "./TypeRefs.js"
+import {CustomDomainCheckGetInTypeRef} from "./TypeRefs.js"
+import {CustomDomainCheckGetOutTypeRef} from "./TypeRefs.js"
 import {CustomDomainDataTypeRef} from "./TypeRefs.js"
 import {CustomDomainReturnTypeRef} from "./TypeRefs.js"
 import {CustomerAccountTerminationPostInTypeRef} from "./TypeRefs.js"
@@ -151,7 +151,7 @@ export const CreateCustomerServerProperties = Object.freeze({
 export const CustomDomainCheckService = Object.freeze({
 	app: "sys",
 	name: "CustomDomainCheckService",
-	get: {data: CustomDomainCheckDataTypeRef, return: CustomDomainCheckReturnTypeRef},
+	get: {data: CustomDomainCheckGetInTypeRef, return: CustomDomainCheckGetOutTypeRef},
 	post: null,
 	put: null,
 	delete: null,
