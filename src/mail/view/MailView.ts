@@ -10,13 +10,12 @@ import { Dialog } from "../../gui/base/Dialog"
 import { FeatureType, Keys, MailFolderType } from "../../api/common/TutanotaConstants"
 import { BaseHeaderAttrs, header } from "../../gui/Header.js"
 import type { Mail, MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
-import type { lazy } from "@tutao/tutanota-utils"
 import { assertNotNull, defer, getFirstOrThrow, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../api/common/Env"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
-import { MultiMailViewer } from "./MultiMailViewer"
+import { getMultiMailViewerActionButtonAttrs, MultiMailViewer } from "./MultiMailViewer"
 import { logins } from "../../api/main/LoginController"
 import { Icons } from "../../gui/base/icons/Icons"
 import { PreconditionFailedError } from "../../api/common/error/RestError"
@@ -39,7 +38,6 @@ import { CancelledError } from "../../api/common/error/CancelledError"
 import Stream from "mithril/stream"
 import { MailViewerViewModel } from "./MailViewerViewModel"
 import { readLocalFiles } from "../../file/FileController.js"
-import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { MobileMailActionBar } from "./MobileMailActionBar.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
@@ -91,11 +89,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	 * There's a similar (but different) hacky mechanism where we store last URL but per each top-level view: navButtonRoutes. This one is per folder.
 	 */
 	private readonly folderToUrl: Record<Id, string>
-	private readonly actionBarButtons: lazy<IconButtonAttrs[]>
 	private readonly throttledRouteSet: (newRoute: string) => void
 	private countersStream: Stream<unknown> | null = null
 
-	private multiMailViewer: MultiMailViewer
 	private expandedState: Set<Id>
 	private mailboxSubscription: Stream<void> | null = null
 
@@ -126,8 +122,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				return this.cache.selectedFolder ? getFolderName(this.cache.selectedFolder) : ""
 			},
 		)
-		this.multiMailViewer = new MultiMailViewer(this)
-		this.actionBarButtons = () => this.multiMailViewer.getActionBarButtons()
 
 		const mailColumnTitle = () => {
 			const selectedEntities = this.cache.mailList ? this.cache.mailList.list.getSelectedEntities() : []
@@ -143,15 +137,22 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 		this.mailColumn = new ViewColumn(
 			{
-				view: () =>
-					m(
+				view: () => {
+					const multiMailViewerAttrs = {
+						selectedEntities: this.cache.mailList?.list.getSelectedEntities() ?? [],
+						selectNone: () => {
+							this.cache.mailList?.list.selectNone()
+						},
+					}
+					return m(
 						".mail",
 						this.mailViewerViewModel != null
 							? m(MailViewer, {
 									viewModel: this.mailViewerViewModel,
 							  })
-							: m(this.multiMailViewer),
-					),
+							: m(MultiMailViewer, multiMailViewerAttrs),
+					)
+				},
 			},
 			ColumnType.Background,
 			size.third_col_min_width,
@@ -762,14 +763,17 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	 * @returns {Children} Mithril children or null
 	 */
 	private renderHeaderView(): Children {
+		const selectedEntities = this.cache.mailList?.list.getSelectedEntities() ?? []
+		const selectNone = () => this.cache.mailList?.list.selectNone ?? noOp
+
 		return this.viewSlider.getVisibleBackgroundColumns().length === 1 && this.cache.mailList?.list.isMobileMultiSelectionActionActive()
 			? m(
 					MultiSelectionBar,
 					{
 						selectNoneHandler: () => this.cache.mailList?.list.selectNone(),
-						text: String(this.cache.mailList.list.getSelectedEntities().length),
+						text: String(selectedEntities.length),
 					},
-					m(ActionBar, { buttons: this.actionBarButtons() }),
+					m(ActionBar, { buttons: getMultiMailViewerActionButtonAttrs(selectedEntities, selectNone, false) }),
 			  )
 			: null
 	}

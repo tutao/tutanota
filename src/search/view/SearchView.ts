@@ -506,11 +506,19 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				key: Keys.A,
 				exec: () => this.searchList.archiveSelected(),
 				help: "archive_action",
+				enabled: () => isSameTypeRef(this.searchList._lastType, MailTypeRef),
 			},
 			{
 				key: Keys.I,
 				exec: () => this.searchList.moveSelectedToInbox(),
 				help: "moveToInbox_action",
+				enabled: () => isSameTypeRef(this.searchList._lastType, MailTypeRef),
+			},
+			{
+				key: Keys.V,
+				exec: () => this.searchList.move(),
+				help: "move_action",
+				enabled: () => isSameTypeRef(this.searchList._lastType, MailTypeRef),
 			},
 		]
 	}

@@ -6,6 +6,7 @@ import {
 	base64ToUint8Array,
 	base64UrlToBase64,
 	hexToBase64,
+	isSameTypeRef,
 	pad,
 	stringToUtf8Uint8Array,
 	TypeRef,
@@ -15,6 +16,7 @@ import {
 import { Cardinality, ValueType } from "../EntityConstants"
 import type { ModelValue, SomeEntity, TypeModel } from "../EntityTypes"
 import { ElementEntity } from "../EntityTypes"
+import { ProgrammingError } from "../error/ProgrammingError.js"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -316,4 +318,16 @@ export function isValidGeneratedId(id: Id | IdTuple): boolean {
 
 export function isElementEntity(e: SomeEntity): e is ElementEntity {
 	return typeof e._id === "string"
+}
+
+export function assertIsEntity<T extends SomeEntity>(entity: SomeEntity, type: TypeRef<T>): entity is T {
+	if (isSameTypeRef(entity._type, type)) {
+		return true
+	} else {
+		throw new ProgrammingError(`Entity is not of correct type ${type}`)
+	}
+}
+
+export function assertIsEntity2<T extends SomeEntity>(type: TypeRef<T>): (entity: SomeEntity) => entity is T {
+	return (e): e is T => assertIsEntity(e, type)
 }
