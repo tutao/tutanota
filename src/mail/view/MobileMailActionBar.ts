@@ -60,7 +60,11 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 	private moveButton({ viewModel }: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "move_action",
-			click: (e, dom) => showMoveMailsDropdown(viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail], this.dropdownWidth(), true),
+			click: (e, dom) =>
+				showMoveMailsDropdown(viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail], {
+					width: this.dropdownWidth(),
+					withBackground: true,
+				}),
 			icon: Icons.Folder,
 		})
 	}

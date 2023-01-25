@@ -1,13 +1,11 @@
 import m, { Children, Component } from "mithril"
-import { ListFetchResult, List } from "../../gui/base/List"
+import { List, ListFetchResult } from "../../gui/base/List"
 import { assertMainOrNode } from "../../api/common/Env"
 import { lang } from "../../misc/LanguageViewModel"
 import { size } from "../../gui/size"
-import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
-import { MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import type { Contact, Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { ContactTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactRow } from "../../contacts/view/ContactListView"
-import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
-import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import type { SearchView } from "./SearchView"
 import { NotFoundError } from "../../api/common/error/RestError"
 import { locator } from "../../api/main/MainLocator"
@@ -17,8 +15,8 @@ import type { OperationType } from "../../api/common/TutanotaConstants"
 import { logins } from "../../api/main/LoginController"
 import { hasMoreResults } from "../model/SearchModel"
 import { Dialog } from "../../gui/base/Dialog"
-import { elementIdPart, GENERATED_MAX_ID, isSameId, listIdPart, sortCompareByReverseId } from "../../api/common/utils/EntityUtils"
-import { archiveMails, moveToInbox, showDeleteConfirmationDialog } from "../../mail/view/MailGuiUtils"
+import { assertIsEntity2, elementIdPart, GENERATED_MAX_ID, isSameId, listIdPart, sortCompareByReverseId } from "../../api/common/utils/EntityUtils"
+import { archiveMails, moveToInbox, showDeleteConfirmationDialog, showMoveMailsDropdown } from "../../mail/view/MailGuiUtils"
 import { MailRow } from "../../mail/view/MailRow"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import type { SearchResult } from "../../api/worker/search/SearchTypes"
@@ -27,11 +25,13 @@ import Stream from "mithril/stream"
 
 assertMainOrNode()
 
+type SearchableTypes = Mail | Contact
+
 export class SearchResultListEntry {
 	_id: IdTuple
-	entry: Mail | Contact
+	entry: SearchableTypes
 
-	constructor(entry: Mail | Contact) {
+	constructor(entry: SearchableTypes) {
 		this._id = entry._id
 		this.entry = entry
 	}
@@ -212,7 +212,7 @@ export class SearchListView implements Component {
 		})
 	}
 
-	private async loadSearchResults<T extends Mail | Contact>(
+	private async loadSearchResults<T extends SearchableTypes>(
 		currentResult: SearchResult,
 		getMoreFromSearch: boolean,
 		startId: Id,
@@ -366,71 +366,80 @@ export class SearchListView implements Component {
 	}
 
 	archiveSelected(): void {
-		let selected = this.getSelectedEntities()
+		const selectedMails = this.getSelectedEntities()
+			.map((e) => e.entry)
+			.filter(assertIsEntity2(MailTypeRef))
 
-		if (selected.length > 0) {
-			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
-				let selectedMails = selected.map((m) => m.entry as any as Mail)
-
-				if (selected.length > 1) {
-					// is needed for correct selection behavior on mobile
-					this.selectNone()
-				}
-
-				archiveMails(selectedMails)
+		if (selectedMails.length > 0) {
+			if (selectedMails.length > 1) {
+				this.selectNone()
 			}
+
+			archiveMails(selectedMails)
 		}
 	}
 
 	moveSelectedToInbox(): void {
-		let selected = this.getSelectedEntities()
+		const selectedMails = this.getSelectedEntities()
+			.map((e) => e.entry)
+			.filter(assertIsEntity2(MailTypeRef))
 
-		if (selected.length > 0) {
-			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
-				let selectedMails = selected.map((m) => m.entry as any as Mail)
-
-				if (selected.length > 1) {
-					// is needed for correct selection behavior on mobile
-					this.selectNone()
-				}
-
-				moveToInbox(selectedMails)
+		if (selectedMails.length > 0) {
+			if (selectedMails.length > 1) {
+				this.selectNone()
 			}
+
+			moveToInbox(selectedMails)
+		}
+	}
+
+	move() {
+		const selectedMails = this.getSelectedEntities()
+			.map((e) => e.entry)
+			.filter(assertIsEntity2(MailTypeRef))
+
+		if (this.list && selectedMails.length > 0) {
+			showMoveMailsDropdown(locator.mailModel, this.list.getSelectionBounds(), selectedMails, {
+				onSelected: () => {
+					if (selectedMails.length > 1) {
+						this.selectNone()
+					}
+				},
+			})
 		}
 	}
 
 	deleteSelected(): void {
-		let selected = this.getSelectedEntities()
-
-		if (selected.length > 0) {
-			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
-				let selectedMails = selected.map((m) => m.entry as any as Mail)
-				showDeleteConfirmationDialog(selectedMails).then((confirmed) => {
+		const selectedEntries = this.getSelectedEntities()
+		if (selectedEntries.length > 0) {
+			if (isSameTypeRef(this._lastType, MailTypeRef)) {
+				const selected = selectedEntries.map((e) => e.entry).filter(assertIsEntity2(MailTypeRef))
+				showDeleteConfirmationDialog(selected).then((confirmed) => {
 					if (confirmed) {
 						if (selected.length > 1) {
 							// is needed for correct selection behavior on mobile
 							this.selectNone()
 						}
 
-						locator.mailModel.deleteMails(selectedMails)
+						locator.mailModel.deleteMails(selected)
 					}
 				})
-			} else if (isSameTypeRef(selected[0].entry._type, ContactTypeRef)) {
-				let selectedContacts = selected.map((m) => m.entry as any as Contact)
+			} else if (isSameTypeRef(this._lastType, ContactTypeRef)) {
 				Dialog.confirm("deleteContacts_msg").then((confirmed) => {
 					if (confirmed) {
-						if (selected.length > 1) {
+						if (selectedEntries.length > 1) {
 							// is needed for correct selection behavior on mobile
 							this.selectNone()
 						}
+						const selected = selectedEntries.map((e) => e.entry).filter(assertIsEntity2(ContactTypeRef))
 
-						selectedContacts.forEach((c) =>
-							locator.entityClient.erase(c).catch(
+						for (const contact of selected) {
+							locator.entityClient.erase(contact).catch(
 								ofClass(NotFoundError, (e) => {
 									// ignore because the delete key shortcut may be executed again while the contact is already deleted
 								}),
-							),
-						)
+							)
+						}
 					}
 				})
 			}

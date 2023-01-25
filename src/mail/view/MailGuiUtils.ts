@@ -4,12 +4,12 @@ import { createMail } from "../../api/entities/tutanota/TypeRefs.js"
 import { LockedError, PreconditionFailedError } from "../../api/common/error/RestError"
 import { Dialog } from "../../gui/base/Dialog"
 import { locator } from "../../api/main/MainLocator"
-import { emptyOrContainsDraftsAndNonDrafts, getFolderIcon, getIndentedFolderNameForDropdown, getMoveTargetFolderSystems } from "../model/MailUtils"
+import { getFolderIcon, getIndentedFolderNameForDropdown, getMoveTargetFolderSystems } from "../model/MailUtils"
 import { AllIcons } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
 import type { InlineImages } from "./MailViewer"
 import { isApp, isDesktop } from "../../api/common/Env"
-import { assertNotNull, neverNull, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import { MailFolderType, MailReportType } from "../../api/common/TutanotaConstants"
 import { getElementId, getListId } from "../../api/common/utils/EntityUtils"
 import { reportMailsAutomatically } from "./MailReportDialog"
@@ -292,23 +292,27 @@ export function getReferencedAttachments(attachments: Array<TutanotaFile>, refer
 	return attachments.filter((file) => referencedCids.find((rcid) => file.cid === rcid))
 }
 
-export function showMoveMailsDropdown(model: MailModel, origin: PosRect, mails: Mail[], width: number = 300, withBackground: boolean = false) {
-	if (emptyOrContainsDraftsAndNonDrafts(mails)) {
-		// do not move mails if no mails or mails cannot be moved together
-		return
-	}
+export async function showMoveMailsDropdown(
+	model: MailModel,
+	origin: PosRect,
+	mails: Mail[],
+	opts?: { width?: number; withBackground?: boolean; onSelected?: () => unknown },
+): Promise<void> {
+	const { width = 300, withBackground = false, onSelected = noOp } = opts ?? {}
+	const folders = await getMoveTargetFolderSystems(model, mails)
+	if (folders.length === 0) return
+	const folderButtons = folders.map((f) => ({
+		label: () => getIndentedFolderNameForDropdown(f),
+		click: () => {
+			onSelected()
+			moveMails({ mailModel: model, mails: mails, targetMailFolder: f.folder })
+		},
+		icon: getFolderIcon(f.folder),
+		size: ButtonSize.Compact,
+	}))
 
-	getMoveTargetFolderSystems(locator.mailModel, mails).then((folders) => {
-		const dropdown = new Dropdown(() => {
-			return folders.map((f) => ({
-				label: () => getIndentedFolderNameForDropdown(f),
-				click: () => moveMails({ mailModel: locator.mailModel, mails: mails, targetMailFolder: f.folder }),
-				icon: getFolderIcon(f.folder),
-				size: ButtonSize.Compact,
-			}))
-		}, width)
+	const dropdown = new Dropdown(() => folderButtons, width)
 
-		dropdown.setOrigin(new DomRectReadOnlyPolyfilled(origin.left, origin.top, origin.width, 0))
-		modal.displayUnique(dropdown, withBackground)
-	})
+	dropdown.setOrigin(new DomRectReadOnlyPolyfilled(origin.left, origin.top, origin.width, 0))
+	modal.displayUnique(dropdown, withBackground)
 }

@@ -361,7 +361,9 @@ export enum RecipientField {
 	BCC = "bcc",
 }
 
-export async function getMoveTargetFolderSystems(model: MailModel, mails: Mail[]): Promise<{ level: number; folder: MailFolder }[]> {
+export type FolderInfo = {level: number, folder: MailFolder}
+
+export async function getMoveTargetFolderSystems(model: MailModel, mails: Mail[]): Promise<Array<FolderInfo>> {
 	const firstMail = first(mails)
 	if (firstMail == null) return []
 
@@ -371,7 +373,7 @@ export async function getMoveTargetFolderSystems(model: MailModel, mails: Mail[]
 
 export const MAX_FOLDER_INDENT_LEVEL = 10
 
-export function getIndentedFolderNameForDropdown(folderInfo: { level: number; folder: MailFolder }) {
+export function getIndentedFolderNameForDropdown(folderInfo: FolderInfo) {
 	const indentLevel = Math.min(folderInfo.level, MAX_FOLDER_INDENT_LEVEL)
 	return ". ".repeat(indentLevel) + getFolderName(folderInfo.folder)
 }
