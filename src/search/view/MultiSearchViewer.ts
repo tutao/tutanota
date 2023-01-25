@@ -15,7 +15,7 @@ import { mergeContacts } from "../../contacts/ContactMergeUtils"
 import { logins } from "../../api/main/LoginController"
 import { FeatureType } from "../../api/common/TutanotaConstants"
 import { exportContacts } from "../../contacts/VCardExporter"
-import { downcast, isNotNull, isSameTypeRef, lazyMemoized, NBSP, noOp, ofClass } from "@tutao/tutanota-utils"
+import { downcast, isNotNull, isSameTypeRef, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
 import { theme } from "../../gui/theme"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { locator } from "../../api/main/MainLocator"
@@ -58,14 +58,6 @@ export class MultiSearchViewer implements Component {
 					this._searchListView.list && this._searchListView.list.getSelectedEntities().length > 0
 						? this._viewingMails()
 							? [
-									// Add spacing so the buttons are where the mail view are
-									m(
-										".flex-space-between.button-min-height",
-										m(".flex.flex-column-reverse", [
-											m(".small.flex.text-break.selectable.badge-line-height.flex-wrap pt-s", NBSP),
-											m("small.b.flex.pt", NBSP),
-										]),
-									),
 									m(".flex-space-between.mr-negative-s", [
 										m(".flex.items-center", this._getSearchSelectionMessage(this._searchListView)),
 										m(ActionBar, {
@@ -74,22 +66,12 @@ export class MultiSearchViewer implements Component {
 									]),
 							  ]
 							: [
-									// Add spacing so buttons for contacts also align with the regular client view's buttons
-									m(
-										".header.pt-ml.flex-space-between",
-										m(".left.flex-grow", [
-											m(".contact-actions.flex-wrap.flex-grow-shrink", [
-												m(".h2", NBSP),
-												m(".flex-space-between", m(".flex-wrap.items-center", this._getSearchSelectionMessage(this._searchListView))),
-											]),
-										]),
-										m(
-											".action-bar.align-self-end",
-											m(ActionBar, {
-												buttons: contactActionBarButtons,
-											}),
-										),
-									),
+									m(".flex-space-between.mr-negative-s", [
+										m(".flex.items-center", this._getSearchSelectionMessage(this._searchListView)),
+										m(ActionBar, {
+											buttons: contactActionBarButtons,
+										}),
+									]),
 							  ]
 						: m(ColumnEmptyMessageBox, {
 								message: () => this._getSearchSelectionMessage(this._searchListView),
