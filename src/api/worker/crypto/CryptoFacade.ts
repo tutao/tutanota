@@ -300,12 +300,21 @@ export class CryptoFacade {
 		const instanceElementId = this.getElementIdFromInstance(instance)
 
 		let decBucketKey: Aes128Key
-		if (bucketKey.pubKeyGroup && bucketKey.pubEncBucketKey) {
+		if (bucketKey.keyGroup && bucketKey.pubEncBucketKey) {
 			// bucket key is encrypted with public key for internal recipient
-			decBucketKey = await this.decryptBucketKeyWithKeyPairOfGroup(bucketKey.pubKeyGroup, bucketKey.pubEncBucketKey)
-		} else if (bucketKey.ownerEncBucketKey) {
+			decBucketKey = await this.decryptBucketKeyWithKeyPairOfGroup(bucketKey.keyGroup, bucketKey.pubEncBucketKey)
+		} else if (bucketKey.groupEncBucketKey) {
 			// secure external recipient
-			decBucketKey = decryptKey(this.userFacade.getGroupKey(neverNull(instance._ownerGroup)), bucketKey.ownerEncBucketKey)
+			let keyGroup
+			if (bucketKey.keyGroup) {
+				// legacy code path for old external clients that used to encrypt bucket keys with user group keys.
+				// should be dropped once all old external mailboxes are cleared
+				keyGroup = bucketKey.keyGroup
+			} else {
+				// by default, we try to decrypt the bucket key with the ownerGroupKey
+				keyGroup = neverNull(instance._ownerGroup)
+			}
+			decBucketKey = decryptKey(this.userFacade.getGroupKey(keyGroup), bucketKey.groupEncBucketKey)
 		} else {
 			throw new SessionKeyNotFoundError(`encrypted bucket key not set on instance ${typeModel.name}`)
 		}

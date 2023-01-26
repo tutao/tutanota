@@ -456,11 +456,11 @@ export type BucketKey = {
 	_type: TypeRef<BucketKey>;
 
 	_id: Id;
-	ownerEncBucketKey: null | Uint8Array;
+	groupEncBucketKey: null | Uint8Array;
 	pubEncBucketKey: null | Uint8Array;
 
 	bucketEncSessionKeys: InstanceSessionKey[];
-	pubKeyGroup:  null | Id;
+	keyGroup:  null | Id;
 }
 export const BucketPermissionTypeRef: TypeRef<BucketPermission> = new TypeRef("sys", "BucketPermission")
 

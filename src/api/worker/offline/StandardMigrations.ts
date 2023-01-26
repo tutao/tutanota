@@ -27,7 +27,7 @@ export async function migrateAllElements<T extends ElementEntity>(typeRef: TypeR
 	}
 }
 
-type Migration<T extends SomeEntity> = (entity: any) => T
+export type Migration<T extends SomeEntity> = (entity: any) => T
 
 export function renameAttribute<T extends SomeEntity>(oldName: string, newName: keyof T): Migration<T> {
 	return function (entity) {

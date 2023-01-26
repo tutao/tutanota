@@ -50,6 +50,21 @@
 					"info": "AddValue CustomerProperties/usageDataOptedOut/2025."
 				}
 			]
+		},
+		{
+			"version": 83,
+			"changes": [
+				{
+					"name": "RenameAttribute",
+					"sourceType": "BucketKey",
+					"info": "RenameAttribute BucketKey: pubKeyGroup -> keyGroup."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "BucketKey",
+					"info": "RenameAttribute BucketKey: ownerEncBucketKey -> groupEncBucketKey."
+				}
+			]
 		}
 	]
 }
