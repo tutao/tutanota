@@ -896,12 +896,31 @@ o.spec("crypto facade", function () {
 	})
 
 	o(
-		"resolve session key: external user key decryption of session key using BucketKey aggregated type - Mail referencing MailDetailsBlob with attachments",
+		"resolve session key: external user key decryption of session key using BucketKey aggregated type encrypted with MailGroupKey - Mail referencing MailDetailsBlob with attachments",
 		async function () {
 			o.timeout(500) // in CI or with debugging it can take a while
 			const file1SessionKey = aes128RandomKey()
 			const file2SessionKey = aes128RandomKey()
 			const testData = await prepareSymEncBucketKeyResolveSessionKeyTest([file1SessionKey, file2SessionKey])
+			Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
+
+			const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+
+			o(mailSessionKey).deepEquals(testData.sk)
+			o(Object.keys(crypto.getSessionKeyCache()).length).equals(3)
+			o(crypto.getSessionKeyCache()["mailDetailsId"]).deepEquals(testData.sk)
+			o(crypto.getSessionKeyCache()["fileId1"]).deepEquals(file1SessionKey)
+			o(crypto.getSessionKeyCache()["fileId2"]).deepEquals(file2SessionKey)
+		},
+	)
+
+	o(
+		"resolve session key: external user key decryption of session key using BucketKey aggregated type encrypted with UserGroupKey - Mail referencing MailDetailsBlob with attachments",
+		async function () {
+			o.timeout(500) // in CI or with debugging it can take a while
+			const file1SessionKey = aes128RandomKey()
+			const file2SessionKey = aes128RandomKey()
+			const testData = await prepareSymEncBucketKeyResolveSessionKeyTest([file1SessionKey, file2SessionKey], true)
 			Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
 			const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
@@ -1019,7 +1038,7 @@ o.spec("crypto facade", function () {
 
 		const bucketKey = createBucketKey({
 			pubEncBucketKey: pubEncBucketKey,
-			pubKeyGroup: userGroup._id,
+			keyGroup: userGroup._id,
 			bucketEncSessionKeys: bucketEncSessionKeys,
 		})
 
@@ -1060,7 +1079,10 @@ o.spec("crypto facade", function () {
 	 *
 	 * @param fileSessionKeys List of session keys for the attachments. When the list is empty there are no attachments
 	 */
-	async function prepareSymEncBucketKeyResolveSessionKeyTest(fileSessionKeys: Array<Aes128Key> = []): Promise<{
+	async function prepareSymEncBucketKeyResolveSessionKeyTest(
+		fileSessionKeys: Array<Aes128Key> = [],
+		externalUserGroupEncBucketKey = false,
+	): Promise<{
 		mailLiteral: Record<string, any>
 		sk: Aes128Key
 		bk: Aes128Key
@@ -1073,6 +1095,7 @@ o.spec("crypto facade", function () {
 		let gk = aes128RandomKey()
 		let sk = aes128RandomKey()
 		let bk = aes128RandomKey()
+		const ugk = aes128RandomKey()
 
 		const userGroup = createGroup({
 			_id: "userGroupId",
@@ -1080,9 +1103,11 @@ o.spec("crypto facade", function () {
 		})
 		const mailLiteral = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
 		// @ts-ignore
-		mailLiteral._ownerEncSessionKey = null
 
-		const ownerEncBucketKey = encryptKey(gk, bk)
+		mailLiteral._ownerEncSessionKey = null
+		const groupKeyToEncryptBucketKey = externalUserGroupEncBucketKey ? ugk : gk
+
+		const groupEncBucketKey = encryptKey(groupKeyToEncryptBucketKey, bk)
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
 
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
@@ -1113,8 +1138,8 @@ o.spec("crypto facade", function () {
 
 		const bucketKey = createBucketKey({
 			pubEncBucketKey: null,
-			pubKeyGroup: null,
-			ownerEncBucketKey: ownerEncBucketKey,
+			keyGroup: externalUserGroupEncBucketKey ? userGroup._id : null,
+			groupEncBucketKey: groupEncBucketKey,
 			bucketEncSessionKeys: bucketEncSessionKeys,
 		})
 
@@ -1132,6 +1157,7 @@ o.spec("crypto facade", function () {
 
 		when(userFacade.getLoggedInUser()).thenReturn(user)
 		when(userFacade.getGroupKey("mailGroupId")).thenReturn(gk)
+		when(userFacade.getGroupKey(userGroup._id)).thenReturn(ugk)
 		when(userFacade.isLeader()).thenReturn(true)
 
 		when(entityClient.load(GroupTypeRef, userGroup._id)).thenResolve(userGroup)
