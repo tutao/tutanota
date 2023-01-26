@@ -1593,6 +1593,8 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"sendLogs_action": "Logs Senden",
+		"sendLogsInfo_msg": "Die Logdateien an den Fehlerbericht anhängen. Klicke auf eine Logdatei, um den Inhalt zu sehen."
 	}
 }
