@@ -8,6 +8,8 @@ export type ExposedOperationProgressTracker = Pick<OperationProgressTracker, "on
 /**
  * This is a multiplexer for tracking individual remote async operations.
  * Unlike {@link ProgressTracker} does not accumulate the progress and doesn't compute the percentage from units of work.
+ *
+ * progress is tracked with numbers between 0 and 100
  */
 export class OperationProgressTracker {
 	private readonly progressPerOp: Map<OperationId, Stream<number>> = new Map()
