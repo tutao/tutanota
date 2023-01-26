@@ -1,16 +1,12 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { getColouredTutanotaLogo } from "../gui/theme"
-import { isApp, isDesktop } from "../api/common/Env"
-import { createLogFile } from "../api/common/Logger"
-import { downcast } from "@tutao/tutanota-utils"
 import { showUserError } from "../misc/ErrorHandlerImpl"
 import { locator } from "../api/main/MainLocator"
-import { InfoLink } from "../misc/LanguageViewModel"
+import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { newMailEditorFromTemplate } from "../mail/editor/MailEditor"
 import { UserError } from "../api/main/UserError"
-import { Attachment } from "../mail/editor/SendMailModel"
-import { clientInfoString } from "../misc/ErrorReporter"
+import { clientInfoString, getLogAttachments } from "../misc/ErrorReporter"
 
 export class AboutDialog implements Component {
 	view(vnode: Vnode): Children {
@@ -30,7 +26,7 @@ export class AboutDialog implements Component {
 		return m(
 			".mt.right",
 			m(Button, {
-				label: () => "Send Logs",
+				label: () => lang.get("sendLogs_action"),
 				click: () => this._sendDeviceLogs(),
 				type: ButtonType.Primary,
 			}),
@@ -49,25 +45,8 @@ export class AboutDialog implements Component {
 	}
 
 	async _sendDeviceLogs(): Promise<void> {
-		const attachments: Array<Attachment> = []
 		const timestamp = new Date()
-		const global = downcast<Window>(window)
-
-		if (global.logger) {
-			const mainEntries = global.logger.getEntries()
-			const mainLogFile = createLogFile(timestamp.getTime(), mainEntries.join("\n"), "main")
-			attachments.push(mainLogFile)
-			const workerLogEntries = await locator.workerFacade.getLog()
-			const workerLogFile = await createLogFile(timestamp.getTime(), workerLogEntries.join("\n"), "worker")
-			attachments.push(workerLogFile)
-		}
-
-		if (isDesktop() || isApp()) {
-			const nativeLog = await locator.commonSystemFacade.getLog()
-			const nativeLogFile = createLogFile(timestamp.getTime(), nativeLog, isDesktop() ? "desktop" : "device")
-			attachments.push(nativeLogFile)
-		}
-
+		const attachments = await getLogAttachments(timestamp)
 		const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
 		let { message, type, client } = clientInfoString(timestamp, true)
 		message = message

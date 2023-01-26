@@ -66,11 +66,12 @@ export class Logger {
 	}
 }
 
-export function createLogFile(timestamp: number, content: string, scope: string): DataFile {
+export function createLogFile(content: string, scope: string, timestamp?: number): DataFile {
 	const data = stringToUtf8Uint8Array(content)
+	const timestampString = timestamp ? timestamp + "_" : ""
 	return {
 		_type: "DataFile",
-		name: timestamp + "_" + scope + "_tutanota.log",
+		name: timestampString + scope + "_tutanota.log",
 		mimeType: "text/plain",
 		data,
 		size: data.byteLength,

@@ -8,23 +8,28 @@ import m from "mithril"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
-import { errorToString, neverNull, typedKeys } from "@tutao/tutanota-utils"
+import { downcast, ErrorInfo, errorToString, neverNull, typedKeys, uint8ArrayToString } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator"
-import { AccountType, ConversationType, MailMethod } from "../api/common/TutanotaConstants"
+import { AccountType, ConversationType, Keys, MailMethod } from "../api/common/TutanotaConstants"
 import { copyToClipboard } from "./ClipboardUtils"
 import { px } from "../gui/size"
-import { Mode } from "../api/common/Env"
+import { isApp, isDesktop, Mode } from "../api/common/Env"
 import { RecipientType } from "../api/common/recipients/Recipient.js"
-import { ErrorInfo } from "@tutao/tutanota-utils"
+import { Attachment } from "../mail/editor/SendMailModel.js"
+import { createLogFile } from "../api/common/Logger.js"
+import { DataFile } from "../api/common/DataFile.js"
 
 type FeedbackContent = {
 	message: string
 	subject: string
+	logs: Array<Attachment>
 }
 
-export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ ignored: boolean }> {
+export async function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ ignored: boolean }> {
 	const loggedIn = logins.isUserLoggedIn()
 	let ignoreChecked = false
+	let sendLogs = true
+	const logs = await getLogAttachments()
 
 	return new Promise((resolve) => {
 		const preparedContent = prepareFeedbackContent(e, loggedIn)
@@ -44,24 +49,18 @@ export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ ignored: boole
 						m(Checkbox, {
 							label: () => "Ignore the error for this session",
 							checked: ignoreChecked,
-							onChecked: (checked) => {
-								ignoreChecked = checked
-							},
+							onChecked: (checked) => (ignoreChecked = checked),
 						}),
 					]),
 			},
 			{
 				label: "close_alt",
-				click: () => {
-					resolve(null)
-				},
+				click: () => resolve(null),
 			},
 			[
 				{
 					label: () => "Send report",
-					click: () => {
-						showReportDialog()
-					},
+					click: () => showReportDialog(),
 					type: ButtonType.Secondary,
 				},
 			],
@@ -69,6 +68,7 @@ export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ ignored: boole
 
 		function showReportDialog() {
 			Dialog.showActionDialog({
+				okActionTextId: "send_action",
 				title: lang.get("sendErrorReport_action"),
 				type: DialogType.EditMedium,
 				child: {
@@ -79,10 +79,24 @@ export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ ignored: boole
 								helpLabel: () => lang.get("feedbackOnErrorInfo_msg"),
 								value: userMessage,
 								type: TextFieldType.Area,
-								oninput: (value) => {
-									userMessage = value
-								},
+								oninput: (value) => (userMessage = value),
 							}),
+							m(Checkbox, {
+								label: () => lang.get("sendLogs_action"),
+								helpLabel: () => lang.get("sendLogsInfo_msg"),
+								checked: sendLogs,
+								onChecked: (checked) => (sendLogs = checked),
+							}),
+							m(
+								".flex.flex-column.space-around.items-center",
+								logs.map((l) =>
+									m(Button, {
+										label: () => l.name,
+										type: ButtonType.Bubble,
+										click: () => showLogDialog(l.name, uint8ArrayToString("utf-8", (l as DataFile).data)),
+									}),
+								),
+							),
 							m(
 								".flex-end",
 								m(
@@ -108,20 +122,53 @@ export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ ignored: boole
 					},
 				},
 				okAction: errorOkAction,
-				cancelAction: () => {
-					resolve(null)
-				},
+				cancelAction: () => resolve(null),
 			})
 		}
-	}).then((content) => {
-		if (content) {
-			sendFeedbackMail(content as FeedbackContent)
-		}
-		return { ignored: ignoreChecked }
+	}).then((content: FeedbackContent) => {
+		const ret = { ignored: ignoreChecked }
+		if (!content) return ret
+		if (sendLogs) content.logs = logs
+		else content.logs = []
+		sendFeedbackMail(content)
+		return ret
 	})
 }
 
-export function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
+/**
+ * show the contents of a log file in a large dialog.
+ * @param heading the title of the dialog
+ * @param text the text to display
+ */
+async function showLogDialog(heading: string, text: string) {
+	let logDialog: Dialog
+	const closeLogDialog = () => logDialog?.close()
+
+	logDialog = Dialog.largeDialog(
+		{
+			right: [
+				{
+					label: "ok_action",
+					click: closeLogDialog,
+					type: ButtonType.Secondary,
+				},
+			],
+			middle: () => heading,
+		},
+		{
+			view: () => m(".white-space-pre.pt.pb.selectable", text),
+		},
+	)
+		.addShortcut({
+			key: Keys.ESC,
+			exec: closeLogDialog,
+			help: "close_alt",
+		})
+		.setCloseHandler(closeLogDialog)
+		.show()
+}
+
+export async function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
 	const content = prepareFeedbackContent(e, false)
 	const expanded = stream(false)
 	const message = content.subject + "\n\n" + content.message
@@ -195,7 +242,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 		bccRecipients: [],
 		conversationType: ConversationType.NEW,
 		previousMessageId: null,
-		attachments: [],
+		attachments: content.logs,
 		confidential: true,
 		replyTos: [],
 		method: MailMethod.NONE,
@@ -226,6 +273,7 @@ function prepareFeedbackContent(error: ErrorInfo, loggedIn: boolean): FeedbackCo
 	return {
 		message,
 		subject,
+		logs: [],
 	}
 }
 
@@ -261,4 +309,26 @@ export function clientInfoString(
 		client,
 		type,
 	}
+}
+
+export async function getLogAttachments(timestamp?: Date): Promise<Array<Attachment>> {
+	const logs: Array<Attachment> = []
+	const global = downcast<Window>(window)
+
+	if (global.logger) {
+		const mainEntries = global.logger.getEntries()
+		const mainLogFile = createLogFile(mainEntries.join("\n"), "main", timestamp?.getTime())
+		logs.push(mainLogFile)
+		const workerLogEntries = await locator.workerFacade.getLog()
+		const workerLogFile = await createLogFile(workerLogEntries.join("\n"), "worker", timestamp?.getTime())
+		logs.push(workerLogFile)
+	}
+
+	if (isDesktop() || isApp()) {
+		const nativeLog = await locator.commonSystemFacade.getLog()
+		const nativeLogFile = createLogFile(nativeLog, isDesktop() ? "desktop" : "device", timestamp?.getTime())
+		logs.push(nativeLogFile)
+	}
+
+	return logs
 }

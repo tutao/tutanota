@@ -1589,6 +1589,8 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"sendLogs_action": "Send Logs",
+		"sendLogsInfo_msg": "Attach the log files to the error report. Click below to display the contents."
 	}
 }
