@@ -22,6 +22,7 @@ import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import type { SearchResult } from "../../api/worker/search/SearchTypes"
 import type { ListElementEntity } from "../../api/common/EntityTypes"
 import Stream from "mithril/stream"
+import { markMails } from "../../mail/model/MailUtils.js"
 
 assertMainOrNode()
 
@@ -406,6 +407,16 @@ export class SearchListView implements Component {
 					}
 				},
 			})
+		}
+	}
+
+	toggleUnreadStatus(): void {
+		let selectedMails = this.getSelectedEntities()
+			.map((e) => e.entry)
+			.filter(assertIsEntity2(MailTypeRef))
+
+		if (selectedMails.length > 0) {
+			markMails(locator.entityClient, selectedMails, !selectedMails[0].unread)
 		}
 	}
 

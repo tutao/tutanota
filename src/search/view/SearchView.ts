@@ -520,6 +520,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				help: "move_action",
 				enabled: () => isSameTypeRef(this.searchList._lastType, MailTypeRef),
 			},
+			{
+				key: Keys.U,
+				exec: () => this.searchList.toggleUnreadStatus(),
+				help: "toggleUnread_action",
+				enabled: () => isSameTypeRef(this.searchList._lastType, MailTypeRef),
+			},
 		]
 	}
 
