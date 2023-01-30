@@ -68,7 +68,7 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 			},
 		},
 		dependencies: {
-			"electron-updater": linux ? "5.3.0" : "6.0.0-alpha.8", //6.0.0-alpha.8 specifically doesn't work on linux, but 4.3.0 was fine there anyway.
+			"electron-updater": linux ? "5.3.0" : "6.0.0-alpha.6", //6.0.0-alpha.8 specifically doesn't work on linux, but 4.3.0 was fine there anyway.
 		},
 		build: {
 			electronVersion: await getElectronVersion(log),
