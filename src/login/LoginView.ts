@@ -22,7 +22,7 @@ import type { clickHandler } from "../gui/base/GuiUtils"
 import { IconButton } from "../gui/base/IconButton.js"
 import { showLogsDialog } from "./LoginLogDialog.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
-import { TopLevelView, TopLevelAttrs } from "../TopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 
 assertMainOrNode()
 
@@ -243,6 +243,13 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				},
 			},
 			m(LoginForm, {
+				oninit: () => {
+					// we need to re-resolve this promise sometimes and for that we
+					// need a new promise. otherwise, callbacks that are registered after
+					// this point never get called because they have been registered after
+					// it was resolved the first time.
+					this.loginForm = defer()
+				},
 				onSubmit: () => this._loginWithProgressDialog(),
 				mailAddress: this.viewModel.mailAddress,
 				password: this.viewModel.password,
@@ -366,7 +373,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 		// We want to focus password field if login field is already filled in
 		if (args.loginWith) {
 			this.loginForm.promise.then((loginForm: LoginForm) => {
-				loginForm.passwordTextField.domInput.focus()
+				loginForm.passwordTextField.focus()
 			})
 		}
 
