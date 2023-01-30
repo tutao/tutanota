@@ -1,6 +1,6 @@
 import path from "path"
 import { readFileSync } from "fs"
-import { getElectronVersion, getInstalledModuleVersion } from "./buildUtils.js"
+import { getElectronVersion } from "./buildUtils.js"
 
 /**
  * This is used for launching electron:
@@ -8,7 +8,7 @@ import { getElectronVersion, getInstalledModuleVersion } from "./buildUtils.js"
  * 2. copied to app-desktop/build/dist from dist.js (DesktopBuilder)
  */
 
-export default async function generateTemplate({ nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked }) {
+export default async function generateTemplate({ nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked, linux }) {
 	const appName = "tutanota-desktop" + nameSuffix
 	const appId = "de.tutao.tutanota" + nameSuffix
 	if (process.env.JENKINS_HOME && process.env.DEBUG_SIGN) throw new Error("Tried to DEBUG_SIGN in CI!")
@@ -68,7 +68,7 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 			},
 		},
 		dependencies: {
-			"electron-updater": await getInstalledModuleVersion("electron-updater", log),
+			"electron-updater": linux ? "5.3.0" : "6.0.0-alpha.8", //6.0.0-alpha.8 specifically doesn't work on linux, but 4.3.0 was fine there anyway.
 		},
 		build: {
 			electronVersion: await getElectronVersion(log),
