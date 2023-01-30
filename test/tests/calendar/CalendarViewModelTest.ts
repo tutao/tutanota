@@ -403,20 +403,24 @@ function makeTestEvent(): CalendarEvent {
 	const encMailAddress = wrapEncIntoMailAddress(accountMailAddress)
 	return createCalendarEvent({
 		summary: "test event",
-		startTime: DateTime.fromObject({
-			year: 2020,
-			month: 5,
-			day: 26,
-			hour: 12,
-			zone,
-		}).toJSDate(),
-		endTime: DateTime.fromObject({
-			year: 2020,
-			month: 5,
-			day: 26,
-			hour: 13,
-			zone,
-		}).toJSDate(),
+		startTime: DateTime.fromObject(
+			{
+				year: 2020,
+				month: 5,
+				day: 26,
+				hour: 12,
+			},
+			{ zone },
+		).toJSDate(),
+		endTime: DateTime.fromObject(
+			{
+				year: 2020,
+				month: 5,
+				day: 26,
+				hour: 13,
+			},
+			{ zone },
+		).toJSDate(),
 		description: "note",
 		location: "location",
 		_ownerGroup: calendarGroupId,

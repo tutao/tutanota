@@ -1,6 +1,12 @@
 import o from "ospec"
-import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { CalendarEventTypeRef, createCalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import type { CalendarEvent, CalendarGroupRoot } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	CalendarEventTypeRef,
+	createCalendarEvent,
+	createCalendarEventAttendee,
+	createCalendarGroupRoot,
+	createEncryptedMailAddress,
+} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	addDaysForEvent,
 	addDaysForLongEvent,
@@ -20,16 +26,9 @@ import { generateEventElementId, getAllDayDateUTC } from "../../../src/api/commo
 import type { EntityUpdateData } from "../../../src/api/main/EventController.js"
 import { EventController } from "../../../src/api/main/EventController.js"
 import { Notifications } from "../../../src/gui/Notifications.js"
-import { createCalendarEventAttendee } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { createEncryptedMailAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { createAlarmInfo } from "../../../src/api/entities/sys/TypeRefs.js"
+import { createAlarmInfo, createUser, createUserAlarmInfo, createUserAlarmInfoListType } from "../../../src/api/entities/sys/TypeRefs.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import type { UserController } from "../../../src/api/main/UserController.js"
-import { createUser } from "../../../src/api/entities/sys/TypeRefs.js"
-import { createUserAlarmInfoListType } from "../../../src/api/entities/sys/TypeRefs.js"
-import { createUserAlarmInfo } from "../../../src/api/entities/sys/TypeRefs.js"
-import type { CalendarGroupRoot } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { createCalendarGroupRoot } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { NotFoundError } from "../../../src/api/common/error/RestError.js"
 import type { LoginController } from "../../../src/api/main/LoginController.js"
 import { ProgressTracker } from "../../../src/api/main/ProgressTracker.js"
@@ -289,40 +288,50 @@ o.spec("CalendarModel", function () {
 			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.WEEKLY, 1)
 			event.repeatRule.timeZone = "America/Los_angeles"
 			const month = getMonth(
-				DateTime.fromObject({
-					year: 2020,
-					month: 3,
-					day: 1,
-					zone,
-				}).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2020,
+						month: 3,
+						day: 1,
+					},
+					{ zone },
+				).toJSDate(),
 				zone,
 			)
 			addDaysForRecurringEvent(eventsForDays, event, month, zone)
 			const expectedForMarch = {
-				[DateTime.fromObject({
-					year: 2020,
-					month: 3,
-					day: 4,
-					zone,
-				}).toMillis()]: [cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 4)), getAllDayDateUTC(new Date(2020, 2, 5)))],
-				[DateTime.fromObject({
-					year: 2020,
-					month: 3,
-					day: 11,
-					zone,
-				}).toMillis()]: [cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 11)), getAllDayDateUTC(new Date(2020, 2, 12)))],
-				[DateTime.fromObject({
-					year: 2020,
-					month: 3,
-					day: 18,
-					zone,
-				}).toMillis()]: [cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 18)), getAllDayDateUTC(new Date(2020, 2, 19)))],
-				[DateTime.fromObject({
-					year: 2020,
-					month: 3,
-					day: 25,
-					zone,
-				}).toMillis()]: [cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 25)), getAllDayDateUTC(new Date(2020, 2, 26)))],
+				[DateTime.fromObject(
+					{
+						year: 2020,
+						month: 3,
+						day: 4,
+					},
+					{ zone },
+				).toMillis()]: [cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 4)), getAllDayDateUTC(new Date(2020, 2, 5)))],
+				[DateTime.fromObject(
+					{
+						year: 2020,
+						month: 3,
+						day: 11,
+					},
+					{ zone },
+				).toMillis()]: [cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 11)), getAllDayDateUTC(new Date(2020, 2, 12)))],
+				[DateTime.fromObject(
+					{
+						year: 2020,
+						month: 3,
+						day: 18,
+					},
+					{ zone },
+				).toMillis()]: [cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 18)), getAllDayDateUTC(new Date(2020, 2, 19)))],
+				[DateTime.fromObject(
+					{
+						year: 2020,
+						month: 3,
+						day: 25,
+					},
+					{ zone },
+				).toMillis()]: [cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 25)), getAllDayDateUTC(new Date(2020, 2, 26)))],
 			}
 			o(mapToObject(eventsForDays)).deepEquals(expectedForMarch)
 		})
@@ -636,117 +645,145 @@ o.spec("CalendarModel", function () {
 	o.spec("incrementByRepeatPeriod", function () {
 		const timeZone = "Europe/Berlin"
 		o("with daylight saving", function () {
-			const daylightSavingDay = DateTime.fromObject({
-				year: 2019,
-				month: 10,
-				day: 26,
-				hour: 10,
-				zone: "Europe/Moscow",
-			}).toJSDate()
-			const dayAfter = DateTime.fromObject({
-				year: 2019,
-				month: 10,
-				day: 27,
-				hour: 11,
-				zone: "Europe/Moscow",
-			}).toJSDate()
+			const daylightSavingDay = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 10,
+					day: 26,
+					hour: 10,
+				},
+				{ zone: "Europe/Moscow" },
+			).toJSDate()
+			const dayAfter = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 10,
+					day: 27,
+					hour: 11,
+				},
+				{ zone: "Europe/Moscow" },
+			).toJSDate()
 			// event timezone is subject to daylight saving but observer is not
 			o(incrementByRepeatPeriod(daylightSavingDay, RepeatPeriod.DAILY, 1, timeZone).toISOString()).equals(dayAfter.toISOString())
 		})
 		o("event in timezone without daylight saving should not be subject to daylight saving", function () {
-			const daylightSavingDay = DateTime.fromObject({
-				year: 2019,
-				month: 10,
-				day: 26,
-				hour: 10,
-				zone: "Europe/Moscow",
-			}).toJSDate()
-			const dayAfter = DateTime.fromObject({
-				year: 2019,
-				month: 10,
-				day: 27,
-				hour: 10,
-				zone: "Europe/Moscow",
-			}).toJSDate()
+			const daylightSavingDay = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 10,
+					day: 26,
+					hour: 10,
+				},
+				{ zone: "Europe/Moscow" },
+			).toJSDate()
+			const dayAfter = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 10,
+					day: 27,
+					hour: 10,
+				},
+				{ zone: "Europe/Moscow" },
+			).toJSDate()
 			o(incrementByRepeatPeriod(daylightSavingDay, RepeatPeriod.DAILY, 1, "Europe/Moscow").toISOString()).equals(dayAfter.toISOString())
 		})
 		o("weekly", function () {
-			const onFriday = DateTime.fromObject({
-				year: 2019,
-				month: 5,
-				day: 31,
-				hour: 10,
-				zone: timeZone,
-			}).toJSDate()
-			const nextFriday = DateTime.fromObject({
-				year: 2019,
-				month: 6,
-				day: 7,
-				hour: 10,
-				zone: timeZone,
-			}).toJSDate()
+			const onFriday = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 5,
+					day: 31,
+					hour: 10,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const nextFriday = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 6,
+					day: 7,
+					hour: 10,
+				},
+				{ zone: timeZone },
+			).toJSDate()
 			o(incrementByRepeatPeriod(onFriday, RepeatPeriod.WEEKLY, 1, timeZone).toISOString()).equals(nextFriday.toISOString())
-			const oneYearAfter = DateTime.fromObject({
-				year: 2020,
-				month: 5,
-				day: 29,
-				hour: 10,
-				zone: timeZone,
-			}).toJSDate()
+			const oneYearAfter = DateTime.fromObject(
+				{
+					year: 2020,
+					month: 5,
+					day: 29,
+					hour: 10,
+				},
+				{ zone: timeZone },
+			).toJSDate()
 			o(incrementByRepeatPeriod(onFriday, RepeatPeriod.WEEKLY, 52, timeZone).toISOString()).equals(oneYearAfter.toISOString())
 		})
 		o("monthly", function () {
-			const endOfMay = DateTime.fromObject({
-				year: 2019,
-				month: 5,
-				day: 31,
-				zone: timeZone,
-			}).toJSDate()
-			const endOfJune = DateTime.fromObject({
-				year: 2019,
-				month: 6,
-				day: 30,
-				zone: timeZone,
-			}).toJSDate()
+			const endOfMay = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 5,
+					day: 31,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const endOfJune = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 6,
+					day: 30,
+				},
+				{ zone: timeZone },
+			).toJSDate()
 			const calculatedEndOfJune = incrementByRepeatPeriod(endOfMay, RepeatPeriod.MONTHLY, 1, timeZone)
 			o(calculatedEndOfJune.toISOString()).equals(endOfJune.toISOString())
-			const endOfJuly = DateTime.fromObject({
-				year: 2019,
-				month: 7,
-				day: 31,
-				zone: timeZone,
-			}).toJSDate()
+			const endOfJuly = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 7,
+					day: 31,
+				},
+				{ zone: timeZone },
+			).toJSDate()
 			const endOfJulyString = endOfJuly.toISOString()
 			const incrementedDateString = incrementByRepeatPeriod(endOfMay, RepeatPeriod.MONTHLY, 2, timeZone).toISOString()
 			o(incrementedDateString).equals(endOfJulyString)
 		})
 		o("annually", function () {
-			const leapYear = DateTime.fromObject({
-				year: 2020,
-				month: 2,
-				day: 29,
-				zone: timeZone,
-			}).toJSDate()
-			const yearAfter = DateTime.fromObject({
-				year: 2021,
-				month: 2,
-				day: 28,
-				zone: timeZone,
-			}).toJSDate()
+			const leapYear = DateTime.fromObject(
+				{
+					year: 2020,
+					month: 2,
+					day: 29,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const yearAfter = DateTime.fromObject(
+				{
+					year: 2021,
+					month: 2,
+					day: 28,
+				},
+				{ zone: timeZone },
+			).toJSDate()
 			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 1, timeZone).toISOString()).equals(yearAfter.toISOString())
-			const twoYearsAfter = DateTime.fromObject({
-				year: 2022,
-				month: 2,
-				day: 28,
-				zone: timeZone,
-			}).toJSDate()
+			const twoYearsAfter = DateTime.fromObject(
+				{
+					year: 2022,
+					month: 2,
+					day: 28,
+				},
+				{ zone: timeZone },
+			).toJSDate()
 			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 2, timeZone).toISOString()).equals(twoYearsAfter.toISOString())
-			const fourYearsAfter = DateTime.fromObject({
-				year: 2024,
-				month: 2,
-				day: 29,
-				zone: timeZone,
-			}).toJSDate()
+			const fourYearsAfter = DateTime.fromObject(
+				{
+					year: 2024,
+					month: 2,
+					day: 29,
+				},
+				{ zone: timeZone },
+			).toJSDate()
 			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 4, timeZone).toISOString()).equals(fourYearsAfter.toISOString())
 		})
 	})
@@ -1014,12 +1051,14 @@ o.spec("CalendarModel", function () {
 				organizer: createEncryptedMailAddress({
 					address: sender,
 				}),
-				startTime: DateTime.fromObject({
-					year: 2020,
-					month: 5,
-					day: 10,
-					zone: "UTC",
-				}).toJSDate(),
+				startTime: DateTime.fromObject(
+					{
+						year: 2020,
+						month: 5,
+						day: 10,
+					},
+					{ zone: "UTC" },
+				).toJSDate(),
 				alarmInfos: [[alarmsListId, alarm._id]],
 			})
 			const workerClient = makeWorkerClient()
@@ -1038,12 +1077,14 @@ o.spec("CalendarModel", function () {
 				summary: "v2",
 				uid,
 				sequence: "2",
-				startTime: DateTime.fromObject({
-					year: 2020,
-					month: 5,
-					day: 11,
-					zone: "UTC",
-				}).toJSDate(),
+				startTime: DateTime.fromObject(
+					{
+						year: 2020,
+						month: 5,
+						day: 11,
+					},
+					{ zone: "UTC" },
+				).toJSDate(),
 				organizer: createEncryptedMailAddress({
 					address: sender,
 				}),

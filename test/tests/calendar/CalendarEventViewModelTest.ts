@@ -240,20 +240,24 @@ o.spec("CalendarEventViewModel", function () {
 	o("init with existing event", async function () {
 		const existingEvent = createCalendarEvent({
 			summary: "existing event",
-			startTime: DateTime.fromObject({
-				year: 2020,
-				month: 5,
-				day: 26,
-				hour: 12,
-				zone,
-			}).toJSDate(),
-			endTime: DateTime.fromObject({
-				year: 2020,
-				month: 5,
-				day: 26,
-				hour: 13,
-				zone,
-			}).toJSDate(),
+			startTime: DateTime.fromObject(
+				{
+					year: 2020,
+					month: 5,
+					day: 26,
+					hour: 12,
+				},
+				{ zone },
+			).toJSDate(),
+			endTime: DateTime.fromObject(
+				{
+					year: 2020,
+					month: 5,
+					day: 26,
+					hour: 13,
+				},
+				{ zone },
+			).toJSDate(),
 			description: "note",
 			location: "location",
 			_ownerGroup: calendarGroupId,
@@ -265,22 +269,26 @@ o.spec("CalendarEventViewModel", function () {
 		})
 		o(viewModel.summary()).equals(existingEvent.summary)
 		o(viewModel.startDate.toISOString()).equals(
-			DateTime.fromObject({
-				year: 2020,
-				month: 5,
-				day: 26,
-				zone,
-			})
+			DateTime.fromObject(
+				{
+					year: 2020,
+					month: 5,
+					day: 26,
+				},
+				{ zone },
+			)
 				.toJSDate()
 				.toISOString(),
 		)
 		o(viewModel.endDate.toISOString()).equals(
-			DateTime.fromObject({
-				year: 2020,
-				month: 5,
-				day: 26,
-				zone,
-			})
+			DateTime.fromObject(
+				{
+					year: 2020,
+					month: 5,
+					day: 26,
+				},
+				{ zone },
+			)
 				.toJSDate()
 				.toISOString(),
 		)
@@ -307,21 +315,25 @@ o.spec("CalendarEventViewModel", function () {
 		const existingEvent = createCalendarEvent({
 			summary: "existing event",
 			startTime: getAllDayDateUTCFromZone(
-				DateTime.fromObject({
-					year: 2020,
-					month: 5,
-					day: 26,
-					zone,
-				}).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2020,
+						month: 5,
+						day: 26,
+					},
+					{ zone },
+				).toJSDate(),
 				zone,
 			),
 			endTime: getAllDayDateUTCFromZone(
-				DateTime.fromObject({
-					year: 2020,
-					month: 5,
-					day: 27,
-					zone,
-				}).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2020,
+						month: 5,
+						day: 27,
+					},
+					{ zone },
+				).toJSDate(),
 				zone,
 			),
 			description: "note",
@@ -334,22 +346,26 @@ o.spec("CalendarEventViewModel", function () {
 		})
 		o(viewModel.summary()).equals(existingEvent.summary)
 		o(viewModel.startDate.toISOString()).equals(
-			DateTime.fromObject({
-				year: 2020,
-				month: 5,
-				day: 26,
-				zone,
-			})
+			DateTime.fromObject(
+				{
+					year: 2020,
+					month: 5,
+					day: 26,
+				},
+				{ zone },
+			)
 				.toJSDate()
 				.toISOString(),
 		)
 		o(viewModel.endDate.toISOString()).equals(
-			DateTime.fromObject({
-				year: 2020,
-				month: 5,
-				day: 26,
-				zone,
-			})
+			DateTime.fromObject(
+				{
+					year: 2020,
+					month: 5,
+					day: 26,
+				},
+				{ zone },
+			)
 				.toJSDate()
 				.toISOString(),
 		)
@@ -1877,20 +1893,24 @@ o.spec("CalendarEventViewModel", function () {
 		o("existing event times preserved", async function () {
 			const calendars = makeCalendars("own")
 			const calendarModel = makeCalendarModel()
-			const startTime = DateTime.fromObject({
-				year: 2020,
-				month: 6,
-				day: 4,
-				hour: 12,
-				zone,
-			}).toJSDate()
-			const endTime = DateTime.fromObject({
-				year: 2020,
-				month: 6,
-				day: 4,
-				hour: 13,
-				zone,
-			}).toJSDate()
+			const startTime = DateTime.fromObject(
+				{
+					year: 2020,
+					month: 6,
+					day: 4,
+					hour: 12,
+				},
+				{ zone },
+			).toJSDate()
+			const endTime = DateTime.fromObject(
+				{
+					year: 2020,
+					month: 6,
+					day: 4,
+					hour: 13,
+				},
+				{ zone },
+			).toJSDate()
 			const existingEvent = createCalendarEvent({
 				_id: ["listId", "eventId"],
 				startTime,
@@ -2320,41 +2340,49 @@ o.spec("CalendarEventViewModel", function () {
 		o("date adjusted forward", async function () {
 			const calendars = makeCalendars("own")
 			const existingEvent = createCalendarEvent({
-				startTime: DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 8,
-					hour: 13,
-					zone,
-				}).toJSDate(),
-				endTime: DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 9,
-					hour: 15,
-					zone,
-				}).toJSDate(),
+				startTime: DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 8,
+						hour: 13,
+					},
+					{ zone },
+				).toJSDate(),
+				endTime: DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 9,
+						hour: 15,
+					},
+					{ zone },
+				).toJSDate(),
 			})
 			const viewModel = await init({
 				calendars,
 				existingEvent,
 			})
 			viewModel.setStartDate(
-				DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 10,
-					zone,
-				}).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 10,
+					},
+					{ zone },
+				).toJSDate(),
 			)
 			// No hours because it's a "date", not "time" field.
 			o(viewModel.endDate.toISOString()).equals(
-				DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 11,
-					zone,
-				})
+				DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 11,
+					},
+					{ zone },
+				)
 					.toJSDate()
 					.toISOString(),
 			)
@@ -2367,41 +2395,49 @@ o.spec("CalendarEventViewModel", function () {
 		o("date adjusted backwards", async function () {
 			const calendars = makeCalendars("own")
 			const existingEvent = createCalendarEvent({
-				startTime: DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 8,
-					hour: 13,
-					zone,
-				}).toJSDate(),
-				endTime: DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 9,
-					hour: 15,
-					zone,
-				}).toJSDate(),
+				startTime: DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 8,
+						hour: 13,
+					},
+					{ zone },
+				).toJSDate(),
+				endTime: DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 9,
+						hour: 15,
+					},
+					{ zone },
+				).toJSDate(),
 			})
 			const viewModel = await init({
 				calendars,
 				existingEvent,
 			})
 			viewModel.setStartDate(
-				DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 6,
-					zone,
-				}).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 6,
+					},
+					{ zone },
+				).toJSDate(),
 			)
 			// No hours because it's a "date", not "time" field.
 			o(viewModel.endDate.toISOString()).equals(
-				DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 7,
-					zone,
-				})
+				DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 7,
+					},
+					{ zone },
+				)
 					.toJSDate()
 					.toISOString(),
 			)
@@ -2416,20 +2452,24 @@ o.spec("CalendarEventViewModel", function () {
 		o("time adjusted forward", async function () {
 			const calendars = makeCalendars("own")
 			const existingEvent = createCalendarEvent({
-				startTime: DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 8,
-					hour: 13,
-					zone,
-				}).toJSDate(),
-				endTime: DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 8,
-					hour: 15,
-					zone,
-				}).toJSDate(),
+				startTime: DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 8,
+						hour: 13,
+					},
+					{ zone },
+				).toJSDate(),
+				endTime: DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 8,
+						hour: 15,
+					},
+					{ zone },
+				).toJSDate(),
 			})
 			const viewModel = await init({
 				calendars,
@@ -2438,12 +2478,14 @@ o.spec("CalendarEventViewModel", function () {
 			viewModel.setStartTime(new Time(14, 0))
 			// No hours because it's a "date", not "time" field.
 			o(viewModel.endDate.toISOString()).equals(
-				DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 8,
-					zone,
-				})
+				DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 8,
+					},
+					{ zone },
+				)
 					.toJSDate()
 					.toISOString(),
 			)
@@ -2453,20 +2495,24 @@ o.spec("CalendarEventViewModel", function () {
 		o("time adjusted backward", async function () {
 			const calendars = makeCalendars("own")
 			const existingEvent = createCalendarEvent({
-				startTime: DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 8,
-					hour: 13,
-					zone,
-				}).toJSDate(),
-				endTime: DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 8,
-					hour: 15,
-					zone,
-				}).toJSDate(),
+				startTime: DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 8,
+						hour: 13,
+					},
+					{ zone },
+				).toJSDate(),
+				endTime: DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 8,
+						hour: 15,
+					},
+					{ zone },
+				).toJSDate(),
 			})
 			const viewModel = await init({
 				calendars,
@@ -2475,12 +2521,14 @@ o.spec("CalendarEventViewModel", function () {
 			viewModel.setStartTime(new Time(12, 0))
 			// No hours because it's a "date", not "time" field.
 			o(viewModel.endDate.toISOString()).equals(
-				DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 8,
-					zone,
-				})
+				DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 8,
+					},
+					{ zone },
+				)
 					.toJSDate()
 					.toISOString(),
 			)
@@ -2493,20 +2541,24 @@ o.spec("CalendarEventViewModel", function () {
 		o("time not adjust when different day", async function () {
 			const calendars = makeCalendars("own")
 			const existingEvent = createCalendarEvent({
-				startTime: DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 8,
-					hour: 13,
-					zone,
-				}).toJSDate(),
-				endTime: DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 9,
-					hour: 15,
-					zone,
-				}).toJSDate(),
+				startTime: DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 8,
+						hour: 13,
+					},
+					{ zone },
+				).toJSDate(),
+				endTime: DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 9,
+						hour: 15,
+					},
+					{ zone },
+				).toJSDate(),
 			})
 			const viewModel = await init({
 				calendars,
@@ -2515,12 +2567,14 @@ o.spec("CalendarEventViewModel", function () {
 			viewModel.setStartTime(new Time(12, 0))
 			// No hours because it's a "date", not "time" field.
 			o(viewModel.endDate.toISOString()).equals(
-				DateTime.fromObject({
-					year: 2020,
-					month: 6,
-					day: 9,
-					zone,
-				})
+				DateTime.fromObject(
+					{
+						year: 2020,
+						month: 6,
+						day: 9,
+					},
+					{ zone },
+				)
 					.toJSDate()
 					.toISOString(),
 			)

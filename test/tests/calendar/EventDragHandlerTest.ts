@@ -7,6 +7,7 @@ import { getAllDayDateUTCFromZone, getStartOfDayWithZone, getStartOfNextDayWithZ
 import { isAllDayEvent } from "../../../src/api/common/utils/CommonCalendarUtils.js"
 import { DateTime } from "luxon"
 import { DAY_IN_MILLIS } from "@tutao/tutanota-utils"
+
 const INIT_MOUSE_POS = {
 	x: 0,
 	y: 0,
@@ -101,20 +102,24 @@ o.spec("Event Drag Handler", function () {
 			await endDragPromise
 		})
 		o("A good drag and drop run from summer to winter time", async function () {
-			let originalStartDate = DateTime.fromObject({
-				year: 2021,
-				month: 10,
-				day: 30,
-				hour: 13,
-				zone,
-			}).toJSDate()
-			let newStartDate = DateTime.fromObject({
-				year: 2021,
-				month: 10,
-				day: 31,
-				hour: 13,
-				zone,
-			}).toJSDate()
+			let originalStartDate = DateTime.fromObject(
+				{
+					year: 2021,
+					month: 10,
+					day: 30,
+					hour: 13,
+				},
+				{ zone },
+			).toJSDate()
+			let newStartDate = DateTime.fromObject(
+				{
+					year: 2021,
+					month: 10,
+					day: 31,
+					hour: 13,
+				},
+				{ zone },
+			).toJSDate()
 			const shortEvent = makeEvent("shortEvent", originalStartDate, new Date(2021, 9, 30, 13))
 			//short event
 			handler.prepareDrag(shortEvent, originalStartDate, INIT_MOUSE_POS, false)
@@ -128,20 +133,24 @@ o.spec("Event Drag Handler", function () {
 			o(handler.isDragging).equals(false)
 		})
 		o("A good drag and drop run from summer to winter time with all day event", async function () {
-			let originalStartDate = DateTime.fromObject({
-				year: 2021,
-				month: 10,
-				day: 30,
-				hour: 13,
-				zone,
-			}).toJSDate()
-			let newStartDate = DateTime.fromObject({
-				year: 2021,
-				month: 10,
-				day: 31,
-				hour: 13,
-				zone,
-			}).toJSDate()
+			let originalStartDate = DateTime.fromObject(
+				{
+					year: 2021,
+					month: 10,
+					day: 30,
+					hour: 13,
+				},
+				{ zone },
+			).toJSDate()
+			let newStartDate = DateTime.fromObject(
+				{
+					year: 2021,
+					month: 10,
+					day: 31,
+					hour: 13,
+				},
+				{ zone },
+			).toJSDate()
 			originalStartDate = getStartOfDayWithZone(originalStartDate, zone)
 			newStartDate = getStartOfDayWithZone(newStartDate, zone)
 			const alldayEvent = makeEvent(

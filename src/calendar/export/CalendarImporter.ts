@@ -82,7 +82,7 @@ export function serializeCalendar(
 	return wrapIntoCalendar(versionNumber, "PUBLISH", flat(events.map(({ event, alarms }) => serializeEvent(event, alarms, now, zone))))
 }
 
-function serializeRepeatRule(repeatRule: RepeatRule | null, isAllDayEvent: boolean, localTimeZone: string) {
+export function serializeRepeatRule(repeatRule: RepeatRule | null, isAllDayEvent: boolean, localTimeZone: string) {
 	if (repeatRule) {
 		let endType = ""
 

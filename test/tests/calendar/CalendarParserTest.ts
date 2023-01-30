@@ -6,9 +6,11 @@ import {
 	parseProperty,
 	parsePropertyKeyValue,
 	parseTime,
+	parseUntilRruleTime,
 	propertySequenceParser,
 } from "../../../src/calendar/export/CalendarParser.js"
 import { ParserError, StringIterator } from "../../../src/misc/parsing/ParserCombinator.js"
+import { DateTime } from "luxon"
 
 o.spec("CalendarParser", function () {
 	o.spec("propertySequenceParser", function () {
@@ -181,6 +183,15 @@ o.spec("CalendarParser", function () {
 		})
 		o("endTime flipped", function () {
 			testParseIllegalCalendarEvents({ start: "20220315T225900Z", end: "20220315T225800Z", expect: new Date("2022-03-15T22:59:01.000Z").getTime() })
+		})
+	})
+
+	o.spec("parseUntilRruleTime", function () {
+		o("when given full UTC date it gives the beginning of the next day", function () {
+			// will take start of the next date because that's how we do it internally: end range is "exclusive" while it's questionable how it for ical but
+			// mostly "inclusive"
+			const zone = "Asia/Krasnoyarsk"
+			o(parseUntilRruleTime("20190919T235959Z", zone)).deepEquals(DateTime.fromObject({ year: 2019, month: 9, day: 20 }, { zone: zone }).toJSDate())
 		})
 	})
 })
