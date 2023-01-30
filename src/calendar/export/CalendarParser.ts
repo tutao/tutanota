@@ -1,11 +1,9 @@
 import { DAY_IN_MILLIS, downcast, filterInt, neverNull } from "@tutao/tutanota-utils"
 import { DateTime, IANAZone } from "luxon"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
-import { createCalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
-import type { RepeatRule } from "../../api/entities/sys/TypeRefs.js"
-import { createRepeatRule } from "../../api/entities/sys/TypeRefs.js"
-import type { AlarmInfo } from "../../api/entities/sys/TypeRefs.js"
-import { createAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
+import { CalendarEventAttendee, createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
+import type { AlarmInfo, RepeatRule } from "../../api/entities/sys/TypeRefs.js"
+import { createAlarmInfo, createRepeatRule } from "../../api/entities/sys/TypeRefs.js"
 import type { Parser } from "../../misc/parsing/ParserCombinator"
 import {
 	combineParsers,
@@ -20,8 +18,6 @@ import {
 } from "../../misc/parsing/ParserCombinator"
 import WindowsZones from "./WindowsZones"
 import type { ParsedCalendarData } from "./CalendarImporter"
-import { CalendarEventAttendee, createCalendarEventAttendee } from "../../api/entities/tutanota/TypeRefs.js"
-import { createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
 import { isMailAddress } from "../../misc/FormatValidator"
 import { AlarmInterval, CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, reverse } from "../../api/common/TutanotaConstants"
 
@@ -326,7 +322,7 @@ function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): AlarmInfo | 
 	})
 }
 
-function parseRrule(rruleProp: Property, tzId: string | null): RepeatRule {
+export function parseRrule(rruleProp: Property, tzId: string | null): RepeatRule {
 	let rruleValue
 
 	try {
@@ -667,20 +663,20 @@ export function parseTimeIntoComponents(value: string): DateComponents | DateTim
 export function parseUntilRruleTime(value: string, zone: string | null): Date {
 	const components = parseTimeIntoComponents(value)
 	// rrule until is inclusive in ical but exclusive in Tutanota
-	const filledComponents = Object.assign(
-		{},
-		components,
-		{
-			zone: "minute" in components ? zone : "UTC",
-		}, // if minute is not provided it is an all day date YYYYMMDD
-	)
-	const luxonDate = DateTime.fromObject(filledComponents)
+	const filledComponents = components
+	// if minute is not provided it is an all day date YYYYMMDD
+	const allDay = !("minute" in components)
+	// We don't use the zone from the components (RRULE) but the one from start time if it was given.
+	// Don't ask me why but that's how it is.
+	const effectiveZone = allDay ? "UTC" : zone ?? undefined
+	delete filledComponents["zone"]
+	const luxonDate = DateTime.fromObject(filledComponents, { zone: effectiveZone })
 	const startOfNextDay = luxonDate
 		.plus({
 			day: 1,
 		})
 		.startOf("day")
-	return toValidJSDate(startOfNextDay, value, components.zone ?? null)
+	return toValidJSDate(startOfNextDay, value, zone)
 }
 
 /**
@@ -697,7 +693,10 @@ export function parseTime(
 	allDay: boolean
 } {
 	const components = parseTimeIntoComponents(value)
+	// if minute is not provided it is an all day date YYYYMMDD
 	const allDay = !("minute" in components)
+	const effectiveZone = allDay ? "UTC" : components.zone ?? zone
+	delete components["zone"]
 	const filledComponents = Object.assign(
 		{},
 		allDay
@@ -706,15 +705,12 @@ export function parseTime(
 					minute: 0,
 					second: 0,
 					millisecond: 0,
-					zone: "UTC",
 			  }
-			: {
-					zone,
-			  },
+			: {},
 		components,
 	)
 	return {
-		date: toValidJSDate(DateTime.fromObject(filledComponents), value, zone ?? null),
+		date: toValidJSDate(DateTime.fromObject(filledComponents, { zone: effectiveZone }), value, zone ?? null),
 		allDay,
 	}
 }

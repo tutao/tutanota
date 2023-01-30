@@ -6,9 +6,12 @@ import {
 	eventEndsBefore,
 	eventStartsAfter,
 	findNextAlarmOccurrence,
+	getAllDayDateForTimezone,
+	getAllDayDateUTCFromZone,
 	getCalendarMonth,
 	getDiffInDays,
 	getDiffInHours,
+	getStartOfDayWithZone,
 	getStartOfWeek,
 	getTimeZone,
 	getWeekNumber,
@@ -25,9 +28,55 @@ import { hasCapabilityOnGroup } from "../../../src/sharing/GroupUtils.js"
 import { parseTime } from "../../../src/misc/parsing/TimeParser.js"
 import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { createCalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { neverNull } from "@tutao/tutanota-utils"
+import { lastThrow, neverNull } from "@tutao/tutanota-utils"
 
 o.spec("calendar utils tests", function () {
+	function iso(strings: TemplateStringsArray, ...dates: number[]) {
+		let result = ""
+
+		dates.forEach((d, i) => {
+			const s = strings[i]
+			result += s
+			result += `(${d}) ${DateTime.fromMillis(d).toISO({ format: "extended", includeOffset: true })}`
+		})
+		result += lastThrow(strings)
+		return result
+	}
+
+	o.spec("getAllDayDateUTCFromZone", function () {
+		o("it produces a date with the same day in UTC", function () {
+			// DateTime.fromObject({year: 2023, month: 1, day: 30}, {zone: "Asia/Krasnoyarsk"}).toMillis()
+			const date = new Date(1675011600000)
+			// DateTime.fromObject({year: 2023, month: 1, day: 30}, {zone:"UTC"}).toMillis()
+			const expected = 1675036800000
+			const result = getAllDayDateUTCFromZone(date, "Asia/Krasnoyarsk").getTime()
+			o(result).equals(expected)(iso`${result} vs. ${expected}`)
+		})
+	})
+
+	o.spec("getStartOfDayWithZone", function () {
+		//FIXME
+		o("it produces a date at the start of the day according to the time zone", function () {
+			// DateTime.fromObject({year: 2023, month: 1, day: 30, hour: 5, minute: 30}, {zone: "Asia/Krasnoyarsk"}).toMillis()
+			const date = new Date(1675031400000)
+			// DateTime.fromObject({year: 2023, month: 1, day: 30}, {zone: "Asia/Krasnoyarsk"}).toMillis()
+			const expected = 1675011600000
+			const result = getStartOfDayWithZone(date, "Asia/Krasnoyarsk")
+			o(result.getTime()).equals(expected)(iso`${result.getTime()} vs ${expected}`)
+		})
+	})
+
+	o.spec("getAllDayDateForTimezone", function () {
+		o("converts UTC all-day date into a local one", function () {
+			// DateTime.fromObject({year: 2023, month: 1, day: 30}, {zone: "UTC"}).toMillis()
+			const date = new Date(1675036800000)
+			// DateTime.fromObject({year: 2023, month: 1, day: 30}, {zone: "Asia/Krasnoyarsk"}).toMillis()
+			const expected = 1675011600000
+			const result = getAllDayDateForTimezone(date, "Asia/Krasnoyarsk")
+			o(result.getTime()).equals(expected)(iso`${result.getTime()} vs ${expected}`)
+		})
+	})
+
 	o.spec("getCalendarMonth", function () {
 		o.before(function () {
 			lang.init({})
@@ -435,26 +484,32 @@ o.spec("calendar utils tests", function () {
 	o.spec("findNextAlarmOccurrence", function () {
 		const timeZone = "Europe/Berlin"
 		o("weekly never ends", function () {
-			const now = DateTime.fromObject({
-				year: 2019,
-				month: 5,
-				day: 2,
-				zone: timeZone,
-			}).toJSDate()
-			const eventStart = DateTime.fromObject({
-				year: 2019,
-				month: 5,
-				day: 2,
-				hour: 12,
-				zone: timeZone,
-			}).toJSDate()
-			const eventEnd = DateTime.fromObject({
-				year: 2019,
-				month: 5,
-				day: 2,
-				hour: 14,
-				zone: timeZone,
-			}).toJSDate()
+			const now = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 5,
+					day: 2,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const eventStart = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 5,
+					day: 2,
+					hour: 12,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const eventEnd = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 5,
+					day: 2,
+					hour: 14,
+				},
+				{ zone: timeZone },
+			).toJSDate()
 			const occurrences = iterateAlarmOccurrences(
 				now,
 				timeZone,
@@ -469,45 +524,55 @@ o.spec("calendar utils tests", function () {
 				10,
 			)
 			o(occurrences.slice(0, 4)).deepEquals([
-				DateTime.fromObject({
-					year: 2019,
-					month: 5,
-					day: 2,
-					hour: 11,
-					zone: timeZone,
-				}).toJSDate(),
-				DateTime.fromObject({
-					year: 2019,
-					month: 5,
-					day: 9,
-					hour: 11,
-					zone: timeZone,
-				}).toJSDate(),
-				DateTime.fromObject({
-					year: 2019,
-					month: 5,
-					day: 16,
-					hour: 11,
-					zone: timeZone,
-				}).toJSDate(),
-				DateTime.fromObject({
-					year: 2019,
-					month: 5,
-					day: 23,
-					hour: 11,
-					zone: timeZone,
-				}).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2019,
+						month: 5,
+						day: 2,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2019,
+						month: 5,
+						day: 9,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2019,
+						month: 5,
+						day: 16,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2019,
+						month: 5,
+						day: 23,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
 			])
 		})
 		o("ends for all-day event correctly", function () {
 			const repeatRuleTimeZone = "Asia/Anadyr" // +12
 
-			const now = DateTime.fromObject({
-				year: 2019,
-				month: 5,
-				day: 1,
-				zone: timeZone,
-			}).toJSDate()
+			const now = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 5,
+					day: 1,
+				},
+				{ zone: timeZone },
+			).toJSDate()
 			// UTC date just encodes the date, whatever you pass to it. You just have to extract consistently
 			const eventStart = getAllDayDateUTC(
 				DateTime.fromObject({
@@ -544,20 +609,24 @@ o.spec("calendar utils tests", function () {
 				10,
 			)
 			o(occurrences).deepEquals([
-				DateTime.fromObject({
-					year: 2019,
-					month: 5,
-					day: 1,
-					hour: 0,
-					zone: timeZone,
-				}).toJSDate(),
-				DateTime.fromObject({
-					year: 2019,
-					month: 5,
-					day: 2,
-					hour: 0,
-					zone: timeZone,
-				}).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2019,
+						month: 5,
+						day: 1,
+						hour: 0,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2019,
+						month: 5,
+						day: 2,
+						hour: 0,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
 			])
 		})
 	})

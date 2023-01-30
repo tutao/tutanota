@@ -1,5 +1,5 @@
 import o from "ospec"
-import { parseCalendarStringData, serializeCalendar, serializeEvent } from "../../../src/calendar/export/CalendarImporter.js"
+import { parseCalendarStringData, serializeCalendar, serializeEvent, serializeRepeatRule } from "../../../src/calendar/export/CalendarImporter.js"
 import { createCalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { DateTime } from "luxon"
 import { createAlarmInfo } from "../../../src/api/entities/sys/TypeRefs.js"
@@ -10,6 +10,7 @@ import { getAllDayDateUTC } from "../../../src/api/common/utils/CommonCalendarUt
 import { getAllDayDateUTCFromZone } from "../../../src/calendar/date/CalendarUtils.js"
 import { createCalendarEventAttendee } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { createEncryptedMailAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
+
 const zone = "Europe/Berlin"
 const now = new Date(1565704860630)
 o.spec("CalendarImporterTest", function () {
@@ -21,22 +22,26 @@ o.spec("CalendarImporterTest", function () {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
-						startTime: DateTime.fromObject({
-							year: 2019,
-							month: 8,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
-						endTime: DateTime.fromObject({
-							year: 2019,
-							month: 9,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
+						startTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 8,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
+						endTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 9,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
 						description: "Descr \\ ; \n",
 						uid: "test@tutanota.com",
 						location: "Some location",
@@ -66,18 +71,22 @@ o.spec("CalendarImporterTest", function () {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
-						startTime: DateTime.fromObject({
-							year: 2019,
-							month: 8,
-							day: 13,
-							zone,
-						}).toJSDate(),
-						endTime: DateTime.fromObject({
-							year: 2019,
-							month: 9,
-							day: 14,
-							zone,
-						}).toJSDate(),
+						startTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 8,
+								day: 13,
+							},
+							{ zone },
+						).toJSDate(),
+						endTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 9,
+								day: 14,
+							},
+							{ zone },
+						).toJSDate(),
 						description: "Descr \\ ; \n",
 					}),
 					[],
@@ -157,22 +166,26 @@ o.spec("CalendarImporterTest", function () {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
-						startTime: DateTime.fromObject({
-							year: 2019,
-							month: 8,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
-						endTime: DateTime.fromObject({
-							year: 2019,
-							month: 9,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
+						startTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 8,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
+						endTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 9,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
 						description: "Descr \\ ; \n",
 					}),
 					[alarmOne, alarmTwo],
@@ -209,22 +222,26 @@ o.spec("CalendarImporterTest", function () {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
-						startTime: DateTime.fromObject({
-							year: 2019,
-							month: 8,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
-						endTime: DateTime.fromObject({
-							year: 2019,
-							month: 9,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
+						startTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 8,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
+						endTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 9,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
 						repeatRule: createRepeatRule({
 							endType: EndType.Never,
 							interval: "3",
@@ -256,22 +273,26 @@ o.spec("CalendarImporterTest", function () {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
-						startTime: DateTime.fromObject({
-							year: 2019,
-							month: 8,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
-						endTime: DateTime.fromObject({
-							year: 2019,
-							month: 9,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
+						startTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 8,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
+						endTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 9,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
 						repeatRule: createRepeatRule({
 							endType: EndType.Count,
 							interval: "3",
@@ -303,33 +324,39 @@ o.spec("CalendarImporterTest", function () {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
-						startTime: DateTime.fromObject({
-							year: 2019,
-							month: 8,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
-						endTime: DateTime.fromObject({
-							year: 2019,
-							month: 9,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
+						startTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 8,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
+						endTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 9,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
 						repeatRule: createRepeatRule({
 							endType: EndType.UntilDate,
 							interval: "3",
 							frequency: RepeatPeriod.MONTHLY,
 							endValue: String(
-								DateTime.fromObject({
-									year: 2019,
-									month: 9,
-									day: 20,
-									zone,
-								}).toMillis(),
+								DateTime.fromObject(
+									{
+										year: 2019,
+										month: 9,
+										day: 20,
+									},
+									{ zone },
+								).toMillis(),
 							),
 							timeZone: zone,
 						}),
@@ -434,22 +461,26 @@ o.spec("CalendarImporterTest", function () {
 					{
 						event: createCalendarEvent({
 							summary: "Word \\ ; \n",
-							startTime: DateTime.fromObject({
-								year: 2019,
-								month: 8,
-								day: 13,
-								hour: 5,
-								minute: 6,
-								zone,
-							}).toJSDate(),
-							endTime: DateTime.fromObject({
-								year: 2019,
-								month: 9,
-								day: 13,
-								hour: 5,
-								minute: 6,
-								zone,
-							}).toJSDate(),
+							startTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 8,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							endTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 9,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
 							uid: "test@tutanota.com",
 							repeatRule: createRepeatRule({
 								endType: EndType.Never,
@@ -491,22 +522,26 @@ o.spec("CalendarImporterTest", function () {
 					{
 						event: createCalendarEvent({
 							summary: "s",
-							startTime: DateTime.fromObject({
-								year: 2019,
-								month: 8,
-								day: 13,
-								hour: 5,
-								minute: 6,
-								zone,
-							}).toJSDate(),
-							endTime: DateTime.fromObject({
-								year: 2019,
-								month: 9,
-								day: 13,
-								hour: 5,
-								minute: 6,
-								zone,
-							}).toJSDate(),
+							startTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 8,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							endTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 9,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
 							uid: "test@tutanota.com",
 							organizer: createEncryptedMailAddress({
 								name: "",
@@ -556,22 +591,26 @@ o.spec("CalendarImporterTest", function () {
 					{
 						event: createCalendarEvent({
 							summary: "s",
-							startTime: DateTime.fromObject({
-								year: 2019,
-								month: 8,
-								day: 13,
-								hour: 5,
-								minute: 6,
-								zone,
-							}).toJSDate(),
-							endTime: DateTime.fromObject({
-								year: 2019,
-								month: 9,
-								day: 13,
-								hour: 5,
-								minute: 6,
-								zone,
-							}).toJSDate(),
+							startTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 8,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							endTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 9,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
 							uid: "test@tutanota.com",
 							organizer: createEncryptedMailAddress({
 								name: "",
@@ -623,22 +662,26 @@ o.spec("CalendarImporterTest", function () {
 					{
 						event: createCalendarEvent({
 							summary: "s",
-							startTime: DateTime.fromObject({
-								year: 2019,
-								month: 8,
-								day: 13,
-								hour: 5,
-								minute: 6,
-								zone,
-							}).toJSDate(),
-							endTime: DateTime.fromObject({
-								year: 2019,
-								month: 9,
-								day: 13,
-								hour: 5,
-								minute: 6,
-								zone,
-							}).toJSDate(),
+							startTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 8,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							endTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 9,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
 							uid: "test@tutanota.com",
 							organizer: createEncryptedMailAddress({
 								name: "",
@@ -688,21 +731,25 @@ o.spec("CalendarImporterTest", function () {
 				event: createCalendarEvent({
 					summary: "Labor Day / May Day",
 					startTime: getAllDayDateUTCFromZone(
-						DateTime.fromObject({
-							year: 2020,
-							month: 5,
-							day: 1,
-							zone,
-						}).toJSDate(),
+						DateTime.fromObject(
+							{
+								year: 2020,
+								month: 5,
+								day: 1,
+							},
+							{ zone },
+						).toJSDate(),
 						zone,
 					),
 					endTime: getAllDayDateUTCFromZone(
-						DateTime.fromObject({
-							year: 2020,
-							month: 5,
-							day: 2,
-							zone,
-						}).toJSDate(),
+						DateTime.fromObject(
+							{
+								year: 2020,
+								month: 5,
+								day: 2,
+							},
+							{ zone },
+						).toJSDate(),
 						zone,
 					),
 					uid: "5e528f277e20e1582468903@calendarlabs.com",
@@ -741,21 +788,25 @@ o.spec("CalendarImporterTest", function () {
 				event: createCalendarEvent({
 					summary: "Labor Day / May Day",
 					startTime: getAllDayDateUTCFromZone(
-						DateTime.fromObject({
-							year: 2020,
-							month: 5,
-							day: 1,
-							zone,
-						}).toJSDate(),
+						DateTime.fromObject(
+							{
+								year: 2020,
+								month: 5,
+								day: 1,
+							},
+							{ zone },
+						).toJSDate(),
 						zone,
 					),
 					endTime: getAllDayDateUTCFromZone(
-						DateTime.fromObject({
-							year: 2020,
-							month: 5,
-							day: 2,
-							zone,
-						}).toJSDate(),
+						DateTime.fromObject(
+							{
+								year: 2020,
+								month: 5,
+								day: 2,
+							},
+							{ zone },
+						).toJSDate(),
 						zone,
 					),
 					uid: "5e528f277e20e1582468903@calendarlabs.com",
@@ -795,22 +846,26 @@ o.spec("CalendarImporterTest", function () {
 					{
 						event: createCalendarEvent({
 							summary: "Word \\ ; \n",
-							startTime: DateTime.fromObject({
-								year: 2019,
-								month: 8,
-								day: 13,
-								hour: 5,
-								minute: 6,
-								zone,
-							}).toJSDate(),
-							endTime: DateTime.fromObject({
-								year: 2019,
-								month: 9,
-								day: 13,
-								hour: 5,
-								minute: 6,
-								zone,
-							}).toJSDate(),
+							startTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 8,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
+							endTime: DateTime.fromObject(
+								{
+									year: 2019,
+									month: 9,
+									day: 13,
+									hour: 5,
+									minute: 6,
+								},
+								{ zone },
+							).toJSDate(),
 							uid: "test@tutanota.com",
 							repeatRule: null,
 						}),
@@ -835,22 +890,26 @@ o.spec("CalendarImporterTest", function () {
 					event: createCalendarEvent({
 						_id: ["123", "456"],
 						summary: "Word \\ ; \n simple",
-						startTime: DateTime.fromObject({
-							year: 2019,
-							month: 1,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
-						endTime: DateTime.fromObject({
-							year: 2019,
-							month: 9,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
+						startTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 1,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
+						endTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 9,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
 						description: "Descr \\ ; \n",
 						uid: "test@tutanota.com",
 						sequence: "1",
@@ -862,22 +921,26 @@ o.spec("CalendarImporterTest", function () {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n alarms",
-						startTime: DateTime.fromObject({
-							year: 2019,
-							month: 8,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
-						endTime: DateTime.fromObject({
-							year: 2019,
-							month: 9,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
+						startTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 8,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
+						endTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 9,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
 						sequence: "2",
 					}),
 					alarms: [alarmOne, alarmTwo],
@@ -887,33 +950,39 @@ o.spec("CalendarImporterTest", function () {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
-						startTime: DateTime.fromObject({
-							year: 2019,
-							month: 8,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
-						endTime: DateTime.fromObject({
-							year: 2019,
-							month: 9,
-							day: 13,
-							hour: 5,
-							minute: 6,
-							zone,
-						}).toJSDate(),
+						startTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 8,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
+						endTime: DateTime.fromObject(
+							{
+								year: 2019,
+								month: 9,
+								day: 13,
+								hour: 5,
+								minute: 6,
+							},
+							{ zone },
+						).toJSDate(),
 						repeatRule: createRepeatRule({
 							endType: EndType.UntilDate,
 							interval: "3",
 							frequency: RepeatPeriod.MONTHLY,
 							endValue: String(
-								DateTime.fromObject({
-									year: 2019,
-									month: 9,
-									day: 20,
-									zone,
-								}).toMillis(),
+								DateTime.fromObject(
+									{
+										year: 2019,
+										month: 9,
+										day: 20,
+									},
+									{ zone },
+								).toMillis(),
 							),
 							timeZone: zone,
 						}),
@@ -947,12 +1016,14 @@ o.spec("CalendarImporterTest", function () {
 							// Beginning of 20th will be displayed to the user as 19th
 							endValue: String(
 								getAllDayDateUTC(
-									DateTime.fromObject({
-										year: 2019,
-										month: 9,
-										day: 20,
-										zone,
-									}).toJSDate(),
+									DateTime.fromObject(
+										{
+											year: 2019,
+											month: 9,
+											day: 20,
+										},
+										{ zone },
+									).toJSDate(),
 								).getTime(),
 							),
 						}),
@@ -1053,6 +1124,18 @@ END:VCALENDAR`
 				zone,
 			)
 			o(serialized).equals(text)
+		})
+	})
+
+	o.spec("serializeRepeatRule", function () {
+		o("when RRULE is UNTIL and not all date the timestamp of the end of last day is written", function () {
+			const repeatRule = createRepeatRule({
+				endType: EndType.UntilDate,
+				endValue: String(DateTime.fromObject({ year: 2019, month: 9, day: 20 }, { zone: "UTC" }).toMillis()),
+				frequency: RepeatPeriod.MONTHLY,
+				interval: "3",
+			})
+			o(serializeRepeatRule(repeatRule, false, "Asia/Krasnoyarsk")).deepEquals(["RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919T235959Z"])
 		})
 	})
 })

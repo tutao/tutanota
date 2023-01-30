@@ -26,7 +26,7 @@ const clientDependencies = [
 	"../node_modules/dompurify/dist/purify.js",
 	{ src: "../node_modules/linkifyjs/dist/linkify.module.js", target: "linkify.js" },
 	{ src: "../node_modules/linkifyjs/dist/linkify-html.module.js", target: "linkify-html.js" },
-	"../node_modules/luxon/build/cjs-browser/luxon.js",
+	"../node_modules/luxon/build/es6/luxon.js",
 	{ src: "../node_modules/cborg/esm/cborg.js", target: "cborg.js", rollup: true },
 ]
 

@@ -208,13 +208,16 @@ export function calculateAlarmTime(date: Date, interval: AlarmInterval, ianaTime
 		.toJSDate()
 }
 
+/** takes a date which encodes the day in UTC and produces a date that encodes the same date but in local time zone. All times must be 0. */
 export function getAllDayDateForTimezone(utcDate: Date, timeZone: string): Date {
-	return DateTime.fromObject({
-		year: utcDate.getUTCFullYear(),
-		month: utcDate.getUTCMonth() + 1,
-		day: utcDate.getUTCDate(),
-		zone: timeZone,
-	}).toJSDate()
+	return DateTime.fromObject(
+		{
+			year: utcDate.getUTCFullYear(),
+			month: utcDate.getUTCMonth() + 1,
+			day: utcDate.getUTCDate(),
+		},
+		{ zone: timeZone },
+	).toJSDate()
 }
 
 export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriod, interval: number, ianaTimeZone: string): Date {
