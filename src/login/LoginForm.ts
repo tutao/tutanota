@@ -1,4 +1,4 @@
-import m, { ChildArray, Children, Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { BootstrapFeatureType } from "../api/common/TutanotaConstants"
@@ -9,7 +9,6 @@ import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { client } from "../misc/ClientDetector"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
-import { assertNotNull } from "@tutao/tutanota-utils"
 import { isOfflineStorageAvailable } from "../api/common/Env"
 
 export type LoginFormAttrs = {
@@ -24,8 +23,8 @@ export type LoginFormAttrs = {
 }
 
 export class LoginForm implements Component<LoginFormAttrs> {
-	mailAddressTextField!: TextField
-	passwordTextField!: TextField
+	mailAddressTextField!: HTMLInputElement
+	passwordTextField!: HTMLInputElement
 	// When iOS does auto-filling (always in WebView as of iOS 12.2 and in older Safari)
 	// it only sends one input/change event for all fields so we didn't know if fields
 	// were updated. So we kindly ask our fields to update themselves with real DOM values.
@@ -36,9 +35,9 @@ export class LoginForm implements Component<LoginFormAttrs> {
 		this.autofillUpdateHandler = stream.combine(() => {
 			requestAnimationFrame(() => {
 				const oldAddress = a.mailAddress()
-				const newAddress = this.mailAddressTextField.domInput.value
+				const newAddress = this.mailAddressTextField.value
 				const oldPassword = a.password()
-				const newPassword = this.passwordTextField.domInput.value
+				const newPassword = this.passwordTextField.value
 				// only update values when they are different or we get stuck in an infinite loop
 				if (oldAddress !== newAddress && newAddress != "") a.mailAddress(newAddress)
 				if (oldPassword !== newPassword) a.password(newPassword)
@@ -49,7 +48,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 	onremove(vnode: Vnode<LoginFormAttrs>) {
 		vnode.attrs.password("")
 		this.autofillUpdateHandler.end(true)
-		this.passwordTextField.domInput.value = ""
+		this.passwordTextField.value = ""
 	}
 
 	_passwordDisabled(): boolean {
@@ -71,13 +70,6 @@ export class LoginForm implements Component<LoginFormAttrs> {
 			[
 				m(
 					"",
-					{
-						oncreate: (vnode) => {
-							const childArray = assertNotNull(vnode.children) as ChildArray
-							const child = childArray[0] as Vnode<unknown, TextField>
-							this.mailAddressTextField = child.state
-						},
-					},
 					m(TextField, {
 						label: "mailAddress_label" as TranslationKey,
 						value: a.mailAddress(),
@@ -85,6 +77,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 						type: TextFieldType.Email,
 						autocompleteAs: Autocomplete.email,
 						onDomInputCreated: (dom) => {
+							this.mailAddressTextField = dom
 							if (!client.isMobileDevice()) {
 								dom.focus() // have email address auto-focus so the user can immediately type their username (unless on mobile)
 							}
@@ -93,19 +86,13 @@ export class LoginForm implements Component<LoginFormAttrs> {
 				),
 				m(
 					"",
-					{
-						oncreate: (vnode) => {
-							const childArray = assertNotNull(vnode.children) as ChildArray
-							const child = childArray[0] as Vnode<unknown, TextField>
-							this.passwordTextField = child.state
-						},
-					},
 					m(TextField, {
 						label: "password_label",
 						value: a.password(),
 						oninput: a.password,
 						type: TextFieldType.Password,
 						autocompleteAs: Autocomplete.currentPassword,
+						onDomInputCreated: (dom) => (this.passwordTextField = dom),
 					}),
 				),
 				a.savePassword && !this._passwordDisabled()

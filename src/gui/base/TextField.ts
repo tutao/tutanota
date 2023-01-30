@@ -341,17 +341,9 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 	}
 
 	blur(e: Event, a: TextFieldAttrs) {
-		/*if (this.skipNextBlur) {
-	 this.domInput.focus()
-	 } else {
-	 */
 		this._domWrapper.classList.remove("active")
-
 		this.active = false
 		if (a.onblur instanceof Function) a.onblur(e)
-		/*}
-	 this.skipNextBlur = false
-	 */
 	}
 
 	isEmpty(value: string): boolean {
