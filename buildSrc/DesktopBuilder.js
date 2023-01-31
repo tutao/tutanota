@@ -57,6 +57,7 @@ export async function buildDesktop({ dirname, version, platform, updateUrl, name
 		notarize,
 		unpacked,
 		sign: (process.env.DEBUG_SIGN && updateUrl !== "") || !!process.env.JENKINS_HOME,
+		linux: platform === "linux",
 	})
 	console.log("updateUrl is", updateUrl)
 	await fs.promises.writeFile("./build/dist/package.json", JSON.stringify(content), "utf-8")
@@ -115,7 +116,7 @@ async function rollupDesktop(dirname, outDir, version, platform, disableMinify) 
 		input: path.join(dirname, "src/desktop/DesktopMain.ts"),
 		// some transitive dep of a transitive dev-dep requires https://www.npmjs.com/package/url
 		// which rollup for some reason won't distinguish from the node builtin.
-		external: ["url", "util", "path", "fs", "os", "http", "https", "crypto", "child_process"],
+		external: ["url", "util", "path", "fs", "os", "http", "https", "crypto", "child_process", "electron-updater"],
 		preserveEntrySignatures: false,
 		plugins: [
 			typescript({

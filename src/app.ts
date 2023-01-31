@@ -29,7 +29,7 @@ import { MailView, MailViewAttrs, MailViewCache } from "./mail/view/MailView.js"
 import { ContactView, ContactViewAttrs } from "./contacts/view/ContactView.js"
 import { SettingsView, SettingsViewAttrs } from "./settings/SettingsView.js"
 import { SearchView, SearchViewAttrs } from "./search/view/SearchView.js"
-import { TopLevelView, TopLevelAttrs } from "./TopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "./TopLevelView.js"
 import { BaseHeaderAttrs } from "./gui/Header.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { ExternalLoginView, ExternalLoginViewAttrs, ExternalLoginViewModel } from "./login/ExternalLoginView.js"
@@ -155,7 +155,6 @@ import("./translations/en")
 		}
 
 		styles.init()
-		const { usingKeychainAuthentication } = await import("./misc/credentials/CredentialsProviderFactory")
 
 		const paths = applicationPaths({
 			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel; header: BaseHeaderAttrs }>({

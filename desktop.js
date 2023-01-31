@@ -74,6 +74,7 @@ async function doBuild(opts) {
 
 		const now = new Date(Date.now()).toTimeString().substr(0, 5)
 		console.log(`\nBuild time: ${measure()}s (${now})`)
+		process.exit(0)
 	} catch (e) {
 		console.error("\nBuild error:", e)
 		process.exit(1)

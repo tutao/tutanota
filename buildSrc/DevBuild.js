@@ -120,6 +120,7 @@ async function buildDesktopPart({ version }) {
 			updateUrl: "http://localhost:9000/client/build",
 			iconPath: path.join(desktopIconsPath, "logo-solo-red.png"),
 			sign: false,
+			linux: process.platform === "linux",
 		})
 		const content = JSON.stringify(packageJSON, null, 2)
 
