@@ -111,6 +111,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 					this._invoiceDataInput.selectedCountry,
 					neverNull(data.accountingInfo),
 					payPalRequestUrl,
+					locator.usageTestController.getTest("payment.credit2"),
 				)
 				this._availablePaymentMethods = this._paymentMethodInput.getVisiblePaymentMethods()
 

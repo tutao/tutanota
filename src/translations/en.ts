@@ -1591,6 +1591,12 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"creditCardExpired_msg": "This credit card is expired",
+		"creditCardCvvHint_msg": "{currentDigits}/{totalDigits} digits",
+		"creditCardHintWithError_msg": "{hint} - {errorText}",
+		"creditCardExpirationDateWithFormat_label": "Expiration date (MM/YY or MM/YYYY)",
+		"creditCardCvvLabelLong_label": "Card security code ({cvvName})",
+		"creditCardNumberHint_msg": "{cardName} ({currentDigits}/{totalDigits} digits)",
 	}
 }
