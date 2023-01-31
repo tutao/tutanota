@@ -5,7 +5,6 @@ import type { Country } from "../api/common/CountryList"
 import { CountryType } from "../api/common/CountryList"
 import type { PaymentData } from "../api/common/TutanotaConstants"
 import { PaymentMethodType } from "../api/common/TutanotaConstants"
-import { CreditCardAttrs, CreditCardInput } from "./CreditCardInput"
 import { PayPalLogo } from "../gui/base/icons/Icons"
 import { LazyLoaded, noOp, promiseMap } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -16,16 +15,18 @@ import type { EntityEventsListener } from "../api/main/EventController"
 import { isUpdateForTypeRef } from "../api/main/EventController"
 import { MessageBox } from "../gui/base/MessageBox.js"
 import { px } from "../gui/size"
-import { isValidCreditCardNumber } from "../misc/FormatValidator"
 import Stream from "mithril/stream"
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { SelectedSubscriptionOptions } from "./FeatureListProvider"
+import { CCViewModel, SimplifiedCreditCardInput } from "./SimplifiedCreditCardInput.js"
+import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.js"
+import { CreditCardInput, OldCreditCardViewModel } from "./CreditCardInput.js"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
  */
 export class PaymentMethodInput {
-	_creditCardAttrs: CreditCardAttrs
+	private readonly ccViewModel: CCViewModel
 	_payPalAttrs: PaypalAttrs
 	_selectedCountry: Stream<Country | null>
 	_selectedPaymentMethod: PaymentMethodType
@@ -40,10 +41,15 @@ export class PaymentMethodInput {
 		selectedCountry: Stream<Country | null>,
 		accountingInfo: AccountingInfo,
 		payPalRequestUrl: LazyLoaded<string>,
+		private readonly ccFormTest: UsageTest,
 	) {
 		this._selectedCountry = selectedCountry
 		this._subscriptionOptions = subscriptionOptions
-		this._creditCardAttrs = new CreditCardAttrs()
+		this.ccViewModel = this.ccFormTest.renderVariant<CCViewModel>({
+			[0]: () => new OldCreditCardViewModel(), // no participation
+			[1]: () => new OldCreditCardViewModel(),
+			[2]: () => new SimplifiedCreditCardViewModel(lang),
+		})
 		this._accountingInfo = accountingInfo
 		this._payPalAttrs = {
 			payPalRequestUrl,
@@ -108,7 +114,11 @@ export class PaymentMethodInput {
 		} else if (this._selectedPaymentMethod === PaymentMethodType.Paypal) {
 			return m(PaypalInput, this._payPalAttrs)
 		} else {
-			return m(CreditCardInput, this._creditCardAttrs)
+			return this.ccFormTest.renderVariant<Vnode<{ viewModel: CCViewModel }>>({
+				[0]: () => m(CreditCardInput, { viewModel: this.ccViewModel as OldCreditCardViewModel }),
+				[1]: () => m(CreditCardInput, { viewModel: this.ccViewModel as OldCreditCardViewModel }),
+				[2]: () => m(SimplifiedCreditCardInput, { viewModel: this.ccViewModel as SimplifiedCreditCardViewModel }),
+			})
 		}
 	}
 
@@ -142,58 +152,7 @@ export class PaymentMethodInput {
 		} else if (this._selectedPaymentMethod === PaymentMethodType.Paypal) {
 			return isPaypalAssigned(this._accountingInfo) ? null : "paymentDataPayPalLogin_msg"
 		} else if (this._selectedPaymentMethod === PaymentMethodType.CreditCard) {
-			let cc = this._creditCardAttrs.getCreditCardData()
-			const stage = this.__paymentCreditTest?.getStage(1)
-
-			if (cc.number === "") {
-				stage?.setMetric({
-					name: "validationFailure",
-					value: "ccNumberMissing",
-				})
-				stage?.complete()
-				return "creditCardNumberFormat_msg"
-			} else if (!isValidCreditCardNumber(cc.number)) {
-				stage?.setMetric({
-					name: "validationFailure",
-					value: "ccNumberFormat",
-				})
-				stage?.complete()
-				return "creditCardNumberInvalid_msg"
-			} else if (cc.cardHolderName === "") {
-				stage?.setMetric({
-					name: "validationFailure",
-					value: "ccHolderMissing",
-				})
-				stage?.complete()
-				return "creditCardCardHolderName_msg"
-			} else if (cc.cvv === "" || cc.cvv.length < 3 || cc.cvv.length > 4) {
-				// CVV2 is 3- or 4-digit
-				stage?.setMetric({
-					name: "validationFailure",
-					value: "cvvFormat",
-				})
-				stage?.complete()
-				return "creditCardCVVFormat_label"
-			} else if (
-				cc.expirationMonth.length !== 2 ||
-				(cc.expirationYear.length !== 4 && cc.expirationYear.length !== 2) ||
-				parseInt(cc.expirationMonth) < 1 ||
-				parseInt(cc.expirationMonth) > 12
-			) {
-				stage?.setMetric({
-					name: "validationFailure",
-					value: "expirationDateFormat",
-				})
-				stage?.complete()
-				return "creditCardExprationDateInvalid_msg"
-			} else {
-				stage?.setMetric({
-					name: "validationFailure",
-					value: "none",
-				})
-				stage?.complete()
-				return null
-			}
+			return this.ccViewModel.validateCreditCardPaymentData(this.__paymentCreditTest?.getStage(1))
 		} else {
 			return null
 		}
@@ -204,7 +163,7 @@ export class PaymentMethodInput {
 
 		if (value === PaymentMethodType.CreditCard) {
 			if (paymentData) {
-				this._creditCardAttrs.setCreditCardData(paymentData.creditCardData)
+				this.ccViewModel.setCreditCardData(paymentData.creditCardData)
 			}
 
 			if (this.__paymentPaypalTest && this.__paymentCreditTest) {
@@ -230,7 +189,7 @@ export class PaymentMethodInput {
 	getPaymentData(): PaymentData {
 		return {
 			paymentMethod: this._selectedPaymentMethod,
-			creditCardData: this._selectedPaymentMethod === PaymentMethodType.CreditCard ? this._creditCardAttrs.getCreditCardData() : null,
+			creditCardData: this._selectedPaymentMethod === PaymentMethodType.CreditCard ? this.ccViewModel.getCreditCardData() : null,
 		}
 	}
 

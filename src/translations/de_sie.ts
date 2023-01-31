@@ -325,10 +325,10 @@ export default {
 		"creditCardCardHolderName_msg": "Bitte geben Sie den Namen des Kreditkarteninhabers ein.",
 		"creditCardCVVFormat_label": "Bitte geben Sie hier den drei- oder vierstelligen Sicherheitscode (CVV) ein.",
 		"creditCardCVVInvalid_msg": "Der Sicherheitscode (CVV) ist ungültig.",
-		"creditCardCVV_label": "Sicherheitscode (CVV)",
+		"creditCardCVV_label": "Sicherheitscode ({cvv})",
 		"creditCardDeclined_msg": "Leider wurde Ihre Kreditkarte abgelehnt. Bitte prüfen Sie, dass alle eingegebenen Informationen korrekt sind, kontaktieren Sie Ihre Bank oder wählen Sie eine andere Zahlungsmethode.",
 		"creditCardExpirationDateFormat_msg": "Format: MM/YYYY",
-		"creditCardExpirationDate_label": "Ablaufdatum",
+		"creditCardExpirationDate_label": "Ablaufdatum (MM/YY oder MM/YYYY)",
 		"creditCardExprationDateInvalid_msg": "Das Datumsformat ist ungültig.",
 		"creditCardNumberFormat_msg": "Bitte geben Sie hier Ihre Kreditkartennummer ein.",
 		"creditCardNumberInvalid_msg": "Die Kreditkartennummer ist ungültig.",
@@ -1595,6 +1595,12 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"creditCardExpired_msg": "Diese Kreditkarte ist abgelaufen",
+		"creditCardCvvHint_msg": "{currentDigits}/{totalDigits} Ziffern",
+		"creditCardHintWithError_msg": "{hint} - {errorText}",
+		"creditCardExpirationDateWithFormat_label": "Ablaufdatum (MM/YY oder MM/YYYY)",
+		"creditCardCvvLabelLong_label": "Sicherheitscode ({cvvName})",
+		"creditCardNumberHint_msg": "{cardName} ({currentDigits}/{totalDigits} Ziffern)",
 	}
 }
