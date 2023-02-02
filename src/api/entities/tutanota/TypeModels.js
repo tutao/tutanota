@@ -5237,6 +5237,16 @@ export const typeModels = {
                 "refType": "MailFolderRef",
                 "dependency": null
             },
+            "mailDetailsDrafts": {
+                "final": false,
+                "name": "mailDetailsDrafts",
+                "id": 1318,
+                "since": 60,
+                "type": "AGGREGATION",
+                "cardinality": "ZeroOrOne",
+                "refType": "MailDetailsDraftsRef",
+                "dependency": null
+            },
             "mails": {
                 "final": true,
                 "name": "mails",
@@ -5497,6 +5507,40 @@ export const typeModels = {
                 "type": "AGGREGATION",
                 "cardinality": "One",
                 "refType": "MailDetails",
+                "dependency": null
+            }
+        },
+        "app": "tutanota",
+        "version": "60"
+    },
+    "MailDetailsDraftsRef": {
+        "name": "MailDetailsDraftsRef",
+        "since": 60,
+        "type": "AGGREGATED_TYPE",
+        "id": 1315,
+        "rootId": "CHR1dGFub3RhAAUj",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 1316,
+                "since": 60,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "list": {
+                "final": true,
+                "name": "list",
+                "id": 1317,
+                "since": 60,
+                "type": "LIST_ASSOCIATION",
+                "cardinality": "One",
+                "refType": "MailDetailsDraft",
                 "dependency": null
             }
         },
