@@ -4,11 +4,9 @@ import { DefaultAnimationTime, transform, TransformEnum } from "../animation/Ani
 import { displayOverlay } from "./Overlay"
 import type { ButtonAttrs } from "./Button.js"
 import { Button, ButtonType } from "./Button.js"
-import type { TranslationKey } from "../../misc/LanguageViewModel"
-import { lang } from "../../misc/LanguageViewModel"
+import { lang, TranslationText } from "../../misc/LanguageViewModel"
 import { styles } from "../styles"
 import { LayerType } from "../../RootView"
-import type { lazy } from "@tutao/tutanota-utils"
 import type { clickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { getSafeAreaInsetBottom } from "../HtmlUtils"
@@ -17,11 +15,11 @@ assertMainOrNode()
 export const SNACKBAR_SHOW_TIME = 6000
 const MAX_SNACKBAR_WIDTH = 400
 export type SnackBarButtonAttrs = {
-	label: TranslationKey | lazy<string>
+	label: TranslationText
 	click: clickHandler
 }
 type SnackBarAttrs = {
-	message: TranslationKey | lazy<string>
+	message: TranslationText
 	button: ButtonAttrs | null
 }
 type QueueItem = SnackBarAttrs & { onClose: (() => void) | null }
@@ -52,7 +50,7 @@ function makeButtonAttrsForSnackBar(button: SnackBarButtonAttrs): ButtonAttrs {
  * @param snackBarButton will close the snackbar if it is clicked (onClose() will be called)
  * @param onClose called when the snackbar is closed (either by timeout or button click)
  */
-export function showSnackBar(args: { message: TranslationKey; button: SnackBarButtonAttrs; onClose?: () => void }) {
+export function showSnackBar(args: { message: TranslationText; button: SnackBarButtonAttrs; onClose?: () => void }) {
 	const button = makeButtonAttrsForSnackBar(args.button)
 	notificationQueue.push({
 		message: args.message,

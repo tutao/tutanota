@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2022-02-03T06:52:08Z",
-	"updated_at": "2023-03-07T21:30:50Z",
+	"updated_at": "2023-03-09T23:48:07Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -156,6 +156,7 @@ export default {
 		"buyStorageCapacityInfo_msg": "Калі ласка, абяры адзін з пакетаў сховішча, каб змяніць даступны аб'ём памяці. Замоўленае сховішча распаўсюджваецца сярод усіх карыстальнікаў.",
 		"buy_action": "Купіць",
 		"by_label": "ад",
+		"calendarAlarmsTooBigError_msg": "Не ўдалося наладзіць новыя напаміны. Хутчэй за ўсё гэта звязана з тым, што зашмат прылад маюць гэтую функцыю ўключанай. Калі ласка, пайдзі ў Налады -> Пошта -> Абвесткі, каб выдаліць старыя прылады са спісу абвестак.",
 		"calendarInvitationProgress_msg": "Дасыланне запрашэння.",
 		"calendarInvitations_label": "Запрашэнні да календароў",
 		"calendarName_label": "Назва календара",

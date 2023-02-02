@@ -52,6 +52,9 @@ import {PremiumFeatureReturnTypeRef} from "./TypeRefs.js"
 import {PriceServiceDataTypeRef} from "./TypeRefs.js"
 import {PriceServiceReturnTypeRef} from "./TypeRefs.js"
 import {PublicKeyDataTypeRef} from "./TypeRefs.js"
+import {ReferralCodeGetInTypeRef} from "./TypeRefs.js"
+import {ReferralCodePostInTypeRef} from "./TypeRefs.js"
+import {ReferralCodePostOutTypeRef} from "./TypeRefs.js"
 import {RegistrationCaptchaServiceGetDataTypeRef} from "./TypeRefs.js"
 import {RegistrationCaptchaServiceReturnTypeRef} from "./TypeRefs.js"
 import {RegistrationCaptchaServiceDataTypeRef} from "./TypeRefs.js"
@@ -69,7 +72,7 @@ import {SecondFactorAuthDeleteDataTypeRef} from "./TypeRefs.js"
 import {CreateSessionDataTypeRef} from "./TypeRefs.js"
 import {CreateSessionReturnTypeRef} from "./TypeRefs.js"
 import {SignOrderProcessingAgreementDataTypeRef} from "./TypeRefs.js"
-import {SwitchAccountTypeDataTypeRef} from "./TypeRefs.js"
+import {SwitchAccountTypePostInTypeRef} from "./TypeRefs.js"
 import {SystemKeysReturnTypeRef} from "./TypeRefs.js"
 import {TakeOverDeletedAddressDataTypeRef} from "./TypeRefs.js"
 import {UpdateAdminshipDataTypeRef} from "./TypeRefs.js"
@@ -328,6 +331,15 @@ export const PublicKeyService = Object.freeze({
 	delete: null,
 } as const)
 
+export const ReferralCodeService = Object.freeze({
+	app: "sys",
+	name: "ReferralCodeService",
+	get: {data: ReferralCodeGetInTypeRef, return: null},
+	post: {data: ReferralCodePostInTypeRef, return: ReferralCodePostOutTypeRef},
+	put: null,
+	delete: null,
+} as const)
+
 export const RegistrationCaptchaService = Object.freeze({
 	app: "sys",
 	name: "RegistrationCaptchaService",
@@ -413,7 +425,7 @@ export const SwitchAccountTypeService = Object.freeze({
 	app: "sys",
 	name: "SwitchAccountTypeService",
 	get: null,
-	post: {data: SwitchAccountTypeDataTypeRef, return: null},
+	post: {data: SwitchAccountTypePostInTypeRef, return: null},
 	put: null,
 	delete: null,
 } as const)

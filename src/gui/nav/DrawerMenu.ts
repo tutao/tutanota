@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { Button, ButtonColor, ButtonType } from "../base/Button.js"
 import { BootIcons } from "../base/icons/BootIcons"
 import { LogoutUrl } from "../Header.js"
-import { isNewMailActionAvailable, showSupportDialog, showUpgradeDialog, writeInviteMail } from "./NavFunctions"
+import { showSupportDialog, showUpgradeDialog } from "./NavFunctions"
 import { isIOSApp } from "../../api/common/Env"
 import { navButtonRoutes } from "../../misc/RouteChange"
 import { getSafeAreaInsetLeft } from "../HtmlUtils"
@@ -120,15 +120,6 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					noBubble: true,
 					colors: ButtonColor.DrawerNav,
 				}),
-				isNewMailActionAvailable() && logins.getUserController().isGlobalAdmin()
-					? m(Button, {
-							icon: () => BootIcons.Share,
-							label: "invite_alt",
-							click: () => writeInviteMail(),
-							type: ButtonType.ActionLarge,
-							colors: ButtonColor.DrawerNav,
-					  })
-					: null,
 				logins.isInternalUserLoggedIn()
 					? m(Button, {
 							icon: () => BootIcons.Settings,

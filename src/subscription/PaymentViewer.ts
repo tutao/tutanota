@@ -257,7 +257,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				},
 			],
 			actionButtonAttrs:
-				posting.type === PostingType.UsageFee || posting.type === PostingType.Credit
+				posting.type === PostingType.UsageFee || posting.type === PostingType.Credit || posting.type === PostingType.SalesCommission
 					? {
 							title: "download_action",
 							icon: Icons.Download,
@@ -476,6 +476,9 @@ function getPostingTypeText(posting: CustomerAccountPosting): string {
 
 		case PostingType.GiftCard:
 			return Number(posting.amount) < 0 ? lang.get("boughtGiftCardPosting_label") : lang.get("redeemedGiftCardPosting_label")
+
+		case PostingType.SalesCommission:
+			return Number(posting.amount) < 0 ? lang.get("cancelledReferralCreditPosting_label") : lang.get("referralCreditPosting_label")
 
 		default:
 			return ""

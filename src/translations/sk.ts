@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2023-03-07T13:48:56Z",
+	"updated_at": "2023-03-11T16:11:51Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -156,6 +156,7 @@ export default {
 		"buyStorageCapacityInfo_msg": "Pre zmenu dostupnej kapacity úložiska zvoľ, prosím, jeden z úložiskových balíkov. Objednané úložisko zdieľajú všetci používatelia.",
 		"buy_action": "Kúpiť",
 		"by_label": "od",
+		"calendarAlarmsTooBigError_msg": "Nové pripomienky sa nepodarilo nastaviť. Najčastejšou príčinou býva priveľa zariadení so zapnutými oznámeniami. Prejdi na Nastavenia -> E-mail -> Oznámenia a odstráň zo zoznamu staré zariadenia.",
 		"calendarInvitationProgress_msg": "Pozvánka sa odosiela.",
 		"calendarInvitations_label": "Pozvánky kalendára",
 		"calendarName_label": "Názov kalendára",

@@ -1090,16 +1090,15 @@ export async function writeSupportMail(subject: string = "", mailboxDetails?: Ma
 
 /**
  * Create and show a new mail editor with an invite message
- * @param mailboxDetails
+ * @param mailboxDetails?
  * @returns {*}
  */
-export async function writeInviteMail(mailboxDetails?: MailboxDetail) {
-	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
+export async function writeInviteMail(referralLink: string) {
+	const detailsProperties = await getMailboxDetailsAndProperties(null)
 	const username = logins.getUserController().userGroupInfo.name
 	const body = lang.get("invitationMailBody_msg", {
-		"{registrationLink}": "https://mail.tutanota.com/signup",
+		"{registrationLink}": referralLink,
 		"{username}": username,
-		"{githubLink}": "https://github.com/tutao/tutanota",
 	})
 	const dialog = await newMailEditorFromTemplate(detailsProperties.mailboxDetails, {}, lang.get("invitationMailSubject_msg"), body, [], false)
 	dialog.show()

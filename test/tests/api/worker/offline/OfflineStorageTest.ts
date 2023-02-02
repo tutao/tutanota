@@ -33,6 +33,7 @@ import { resolveTypeReference } from "../../../../../src/api/common/EntityFuncti
 import { Type as TypeId } from "../../../../../src/api/common/EntityConstants.js"
 import { expandId } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import { WorkerImpl } from "../../../../../src/api/worker/WorkerImpl.js"
+import { createUser, UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)
@@ -145,6 +146,51 @@ o.spec("OfflineStorage", function () {
 		})
 
 		o.spec("Offline storage round trip", function () {
+			o.spec("ElementType", function () {
+				o("deleteAllOfType", async function () {
+					const userId = "id1"
+					const storableUser = createUser({ _id: userId })
+
+					await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+
+					let user = await storage.get(UserTypeRef, null, userId)
+					o(user).equals(null)
+
+					await storage.put(storableUser)
+
+					user = await storage.get(UserTypeRef, null, userId)
+					o(user!._id).equals(storableUser._id)
+
+					await storage.deleteAllOfType(UserTypeRef)
+
+					user = await storage.get(UserTypeRef, null, userId)
+					o(user).equals(null)
+				})
+			})
+
+			o.spec("ListElementType", function () {
+				o("deleteAllOfType", async function () {
+					const listId = "listId1"
+					const elementId = "id1"
+					const storableMail = createMail({ _id: [listId, elementId] })
+
+					await storage.init({ userId: elementId, databaseKey, timeRangeDays, forceNewDatabase: false })
+
+					let mail = await storage.get(MailTypeRef, listId, elementId)
+					o(mail).equals(null)
+
+					await storage.put(storableMail)
+
+					mail = await storage.get(MailTypeRef, listId, elementId)
+					o(mail!._id).deepEquals(storableMail._id)
+
+					await storage.deleteAllOfType(MailTypeRef)
+
+					mail = await storage.get(MailTypeRef, listId, elementId)
+					o(mail).equals(null)
+				})
+			})
+
 			o.spec("BlobElementType", function () {
 				o("put, get and delete", async function () {
 					const archiveId = "archiveId"

@@ -298,8 +298,8 @@ import("./translations/en")
 				async onmatch() {
 					const { showSignupDialog } = await import("./misc/LoginUtils")
 					// We have to manually parse it because mithril does not put hash into args of onmatch
-					const hashParams = m.parseQueryString(location.hash.substring(1))
-					showSignupDialog(hashParams)
+					const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
+					showSignupDialog(urlParams)
 					// when the user presses the browser back button, we would get a /login route without arguments
 					// in the popstate event, logging us out and reloading the page before we have a chance to (asynchronously) ask for confirmation
 					// onmatch of the login view is called after the popstate handler, but before any asynchronous operations went ahead.

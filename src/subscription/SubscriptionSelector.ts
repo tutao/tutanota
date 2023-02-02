@@ -54,6 +54,7 @@ export type SubscriptionSelectorAttr = {
 	isInitialUpgrade: boolean
 	featureListProvider: FeatureListProvider
 	priceAndConfigProvider: PriceAndConfigProvider
+	referralCodeMsg: TranslationKey | null
 }
 
 export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: SubscriptionType): lazy<ButtonAttrs> {
@@ -137,6 +138,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				  })
 				: null,
 			vnode.attrs.campaignInfoTextId && lang.exists(vnode.attrs.campaignInfoTextId) ? m(".b.center.mt", lang.get(vnode.attrs.campaignInfoTextId)) : null,
+			vnode.attrs.referralCodeMsg ? m(".b.center.mt", lang.get(vnode.attrs.referralCodeMsg)) : null,
 			currentPlanInfo ? m(".smaller.center.mt", currentPlanInfo) : null,
 			m(
 				".flex.center-horizontally.wrap",

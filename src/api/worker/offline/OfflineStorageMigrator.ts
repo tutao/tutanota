@@ -16,6 +16,7 @@ import { tutanota57 } from "./migrations/tutanota-v57.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sys83 } from "./migrations/sys-v83.js"
 import { tutanota60 } from "./migrations/tutanota-v60.js"
+import { sys84 } from "./migrations/sys-v84.js"
 import { accounting5 } from "./migrations/accounting-v5.js"
 
 export interface OfflineMigration {
@@ -45,6 +46,7 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	storage6,
 	sys83,
 	accounting5,
+	sys84,
 ]
 
 const CURRENT_OFFLINE_VERSION = 1

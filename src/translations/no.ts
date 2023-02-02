@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2023-03-06T14:24:24Z",
+	"updated_at": "2023-03-11T08:31:24Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -154,6 +154,7 @@ export default {
 		"buyStorageCapacityInfo_msg": "Velg en av de tilgjengelig lagringspakkene for å endre tilgjengelig lagringskapasitet. Bestilt lagringsplass er delt mellom alle brukerne.",
 		"buy_action": "Kjøp",
 		"by_label": "av",
+		"calendarAlarmsTooBigError_msg": "Nye påminnelser kunne ikke bli lagt til. Dette skyldes antageligvis at for mange enheter har notifikasjoner på. Vennligst gå til Innstillinger -> Epost -> Påminnelser for å slette eldre enheter fra notifikasjons-listen.",
 		"calendarInvitationProgress_msg": "Sender invitasjon.",
 		"calendarInvitations_label": "Kalenderinvitasjoner",
 		"calendarName_label": "Kalendernavn",

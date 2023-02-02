@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2023-02-23T17:28:47Z",
+	"updated_at": "2023-03-12T12:00:43Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1506,7 +1506,7 @@ export default {
 		"weeks_label": "週",
 		"week_label": "週",
 		"welcomeMailBodyTweetText_msg": "ちょうどTutanota メールボックスを設定したところです。メールの盗み見から守られています!あなたも参加できますよ:",
-		"welcomeMailBody_markdown": "強固に暗号化され、安全で広告のないTutanotaメールボックスへようこそ。Tutanotaは他のメールサービスからの移行が容易にできます。直感的なWebクライアント、AndroidとiOSアプリ、Windows、macOS、Linuxのデスクトップアプリで、どのデバイスからでも安全なメールボックスにアクセスできます。\n\nメールはエンドツーエンド暗号化されており、あなたが企業ユーザーであれば、ドイツにあるTutanotaのセキュアサーバーですべてのビジネスメールを管理することで費用と時間を節約できます。ホワイトラベルTutanotaを使えば、ご自身のWebサイトからログインが可能で、顧客が簡単かつ安全に利用できるような暗号化された問合せフォームも設置できます。[Tutanotaのビジネス機能の詳細]({businessLink})\n\n**プライバシーのためにTutanotaは4つの原則を守ります** \n\n1.  Tutanotaはあなたを追跡しません。\n2.  Tutanotaはあなたのデータを読み取れません。\n3.  Tutanotaはすべてのメール、連絡先、カレンダーを暗号化します。\n4.  Tutanotaは「Privacy by Design」のアプローチに基づいて作られています。\n\n[あなたとあなたのプライバシーを尊重するオープンソースのメールサービス]({blogOpenSourceLink})、Tutanotaを友人・知人に紹介してください。\n\n私たちは、誰でも無料かつ秘密が守られるメールボックスを持つ権利があると考えています。ソーシャルメディアチャンネルで私たちをフォローし、投稿を友人や同僚と共有することでTutanotaを応援できます。私たちと共にインターネット環境をよりよい方向へ変えていきましょう：\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n\nどうぞよろしくお願いします。\nTutanotaチーム一同\n\nTutanotaはオープンソースです。 [ここでコードを確認し検証できます]({githubLink})。\n",
+		"welcomeMailBody_markdown": "**強固に暗号化され、安全で広告のないTutanotaメールボックスへようこそ。**\n\n\nTutanotaは他のメールサービスからの移行が容易にできます。直感的なWebクライアント、AndroidとiOSアプリ、Windows、macOS、Linuxのデスクトップアプリで、どのデバイスからでも安全なメールボックスにアクセスできます。\n\nメールはエンドツーエンド暗号化されており、あなたが企業ユーザーであれば、ドイツにあるTutanotaのセキュアサーバーですべてのビジネスメールを管理することで費用と時間を節約できます。ホワイトラベルTutanotaを使えば、ご自身のWebサイトからログインが可能で、顧客が簡単かつ安全に利用できるような暗号化された問合せフォームも設置できます。[Tutanotaのビジネス機能の詳細]({businessLink})\n\n**プライバシーのためにTutanotaは4つの原則を守ります** \n\n1.  Tutanotaはあなたを追跡しません。\n2.  Tutanotaはあなたのデータを読み取れません。\n3.  Tutanotaはすべてのメール、連絡先、カレンダーを暗号化します。\n4.  Tutanotaは「Privacy by Design」のアプローチに基づいて作られています。\n\n[あなたとあなたのプライバシーを尊重するオープンソースのメールサービス]({blogOpenSourceLink})、Tutanotaを友人・知人に紹介してください。\n\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\n\nどうぞよろしくお願いします。\nTutanotaチーム一同\n\nTutanotaはオープンソースです。 [ここでコードを確認し検証できます]({githubLink})。\nTutanota",
 		"welcomeMailSubject_msg": "ごゆっくり。 あなたの個人情報は安全です。",
 		"whatIsPhishing_msg": "フィッシングとは何ですか？",
 		"when_label": "いつ",
