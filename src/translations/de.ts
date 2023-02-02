@@ -1594,6 +1594,7 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
+		"requestTimeout_msg": "Eine Operation hat wegen einer langsamen Internet-Verbindung zu lange gedauert. Bitte versuche es später noch einmal.",
 		"sendLogs_action": "Logs Senden",
 		"sendLogsInfo_msg": "Die Logdateien an den Fehlerbericht anhängen. Klicke auf eine Logdatei, um den Inhalt zu sehen."
 	}

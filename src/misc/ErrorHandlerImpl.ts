@@ -6,6 +6,7 @@ import {
 	InsufficientStorageError,
 	InvalidSoftwareVersionError,
 	NotAuthenticatedError,
+	RequestTimeoutError,
 	ServiceUnavailableError,
 	SessionExpiredError,
 } from "../api/common/error/RestError"
@@ -39,6 +40,7 @@ let invalidSoftwareVersionActive = false
 let loginDialogActive = false
 let isLoggingOut = false
 let serviceUnavailableDialogActive = false
+let requestTimeoutDialogActive = false
 let shownQuotaError = false
 let showingImportError = false
 const ignoredMessages = ["webkitExitFullScreen", "googletag", "avast_submit"]
@@ -106,6 +108,13 @@ export async function handleUncaughtErrorImpl(e: Error) {
 			serviceUnavailableDialogActive = true
 			Dialog.message("serviceUnavailable_msg").then(() => {
 				serviceUnavailableDialogActive = false
+			})
+		}
+	} else if (e instanceof RequestTimeoutError) {
+		if (!requestTimeoutDialogActive) {
+			requestTimeoutDialogActive = true
+			Dialog.message("requestTimeout_msg").then(() => {
+				requestTimeoutDialogActive = false
 			})
 		}
 	} else if (e instanceof IndexingNotSupportedError) {

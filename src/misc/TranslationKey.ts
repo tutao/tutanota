@@ -1575,5 +1575,6 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "requestTimeout_msg"
 	| "sendLogs_action"
 	| "sendLogsInfo_msg"

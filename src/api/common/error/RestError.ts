@@ -50,6 +50,14 @@ export class MethodNotAllowedError extends TutanotaError {
 	}
 }
 
+export class RequestTimeoutError extends TutanotaError {
+	static CODE: number = 408
+
+	constructor(msg: string) {
+		super("RequestTimeoutError", msg)
+	}
+}
+
 export class PreconditionFailedError extends TutanotaError {
 	static CODE: number = 412
 	// data field is respected by the WorkerProtocol. Other fields might not be passed
@@ -249,6 +257,9 @@ export function handleRestError(errorCode: number, path?: string, errorId?: stri
 
 		case PayloadTooLargeError.CODE:
 			return new PayloadTooLargeError(message)
+
+		case RequestTimeoutError.CODE:
+			return new RequestTimeoutError(message)
 
 		default:
 			return new ResourceError(message)
