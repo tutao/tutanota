@@ -128,7 +128,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 
 			// only logged in users can report errors because we send mail for that.
 			if (logins.isUserLoggedIn()) {
-				const ignored = await promptForFeedbackAndSend(e)
+				const { ignored } = await promptForFeedbackAndSend(e)
 				unknownErrorDialogActive = false
 				if (ignored) {
 					ignoredMessages.push(e.message)
