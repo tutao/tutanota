@@ -1314,6 +1314,7 @@ export type MailBox = {
 	symEncShareBucketKey: null | Uint8Array;
 
 	folders:  null | MailFolderRef;
+	mailDetailsDrafts:  null | MailDetailsDraftsRef;
 	mails: Id;
 	receivedAttachments: Id;
 	sentAttachments: Id;
@@ -1372,6 +1373,19 @@ export type MailDetailsDraft = {
 	_permissions: Id;
 
 	details: MailDetails;
+}
+export const MailDetailsDraftsRefTypeRef: TypeRef<MailDetailsDraftsRef> = new TypeRef("tutanota", "MailDetailsDraftsRef")
+
+export function createMailDetailsDraftsRef(values?: Partial<MailDetailsDraftsRef>): MailDetailsDraftsRef {
+	return Object.assign(create(typeModels.MailDetailsDraftsRef, MailDetailsDraftsRefTypeRef), values)
+}
+
+export type MailDetailsDraftsRef = {
+	_type: TypeRef<MailDetailsDraftsRef>;
+
+	_id: Id;
+
+	list: Id;
 }
 export const MailFolderTypeRef: TypeRef<MailFolder> = new TypeRef("tutanota", "MailFolder")
 
