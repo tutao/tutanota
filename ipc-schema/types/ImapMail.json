@@ -1,0 +1,7 @@
+{
+	"name": "ImapMail",
+	"type": "typeref",
+	"location": {
+		"typescript": "../src/common/api/common/utils/imapImportUtils/ImapMail.js"
+	}
+}

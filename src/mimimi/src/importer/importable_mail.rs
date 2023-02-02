@@ -632,6 +632,8 @@ impl ImportableMail {
 			references,
 			importedAttachments: vec![],
 			_errors: Default::default(),
+			imapModSeq: None,
+			imapUid: None,
 		}
 	}
 }

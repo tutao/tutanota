@@ -81,6 +81,7 @@ import { makeSuspensionAwareFetch } from "./net/SuspensionAwareFetch"
 import { restSuspension } from "@tutao/rest-client"
 import { DesktopErrorHandler } from "./DesktopErrorHandler"
 import { CommonNativeFacade } from "../native/common/generatedipc/CommonNativeFacade"
+import { DesktopImapImportSystemFacade } from "./imapimport/DesktopImapImportSystemFacade"
 
 mp()
 
@@ -344,6 +345,7 @@ async function createComponents(): Promise<Components> {
 			new DesktopExportFacade(tfs, electron, conf, window, dragIcons, mailboxExportPersistence, fs, dateProvider, desktopExportLock),
 			new DesktopExternalCalendarFacade(electron.app.userAgentFallback),
 			new DesktopFileFacade(window, conf, dateProvider, customFetch, electron, tfs, fs, path, commandExecutor, process, progressTracker),
+			new DesktopImapImportSystemFacade(window),
 			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,
 			desktopCrypto,

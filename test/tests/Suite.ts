@@ -289,6 +289,8 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/db/OfflineDbFacadeTest.js")
 		await import("./desktop/export/DesktopExportFacadeTest.js")
 		await import("./desktop/files/DesktopFileFacadeTest.js")
+		await import("./desktop/imapimport/adsync/imapmail/ImapMailRFC822ParserTest.js")
+		await import("./desktop/imapimport/adsync/imapmail/ImapImportUtilsTest.js")
 		await import("./desktop/files/TempFsTest.js")
 		await import("./desktop/files/TempFsTest.js")
 		await import("./desktop/integration/DesktopIntegratorTest.js")

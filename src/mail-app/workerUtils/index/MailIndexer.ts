@@ -550,12 +550,12 @@ export class MailIndexer {
 	}
 
 	private async loadImportedMailIdsInIndexDateRange(importStateId: IdTuple): Promise<IdTuple[]> {
-		const importMailState = await this.entityClient.load(tutanotaTypeRefs.ImportMailStateTypeRef, importStateId)
+		const importMailState = await this.entityClient.load(tutanotaTypeRefs.ImportFileMailStateTypeRef, importStateId)
 		const status = parseInt(importMailState.status) as ImportStatus
 		if (status !== ImportStatus.Finished && status !== ImportStatus.Canceled) {
 			return []
 		}
-		const importedMailEntries = await this.entityClient.loadAll(tutanotaTypeRefs.ImportedMailTypeRef, importMailState.importedMails)
+		const importedMailEntries = await this.entityClient.loadAll(tutanotaTypeRefs.ImportedFileMailTypeRef, importMailState.importedMails)
 
 		if (isEmpty(importedMailEntries)) {
 			return []
@@ -584,7 +584,7 @@ export class MailIndexer {
 		if (!this._mailIndexingEnabled) return
 
 		for (const event of events) {
-			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ImportMailStateTypeRef, event)) {
+			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ImportFileMailStateTypeRef, event)) {
 				await this.processImportStateEntityEvents(event.operation, [event.instanceListId, event.instanceId])
 			}
 		}

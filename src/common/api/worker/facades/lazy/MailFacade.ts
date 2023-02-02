@@ -154,7 +154,7 @@ export class MailFacade {
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
 	) {}
 
-	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
+	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<IdTuple> {
 		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId)
 
 		const sk = aes256RandomKey()
@@ -166,7 +166,8 @@ export class MailFacade {
 			ownerGroup: ownerGroupId,
 			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 		})
-		await this.serviceExecutor.post(tutanotaServices.MailFolderService, newFolder, { sessionKey: sk })
+		const postReturn = await this.serviceExecutor.post(tutanotaServices.MailFolderService, newFolder, { sessionKey: sk })
+		return postReturn.newFolder
 	}
 
 	/**
@@ -507,7 +508,7 @@ export class MailFacade {
 			})
 	}
 
-	private createAndEncryptDraftAttachment(
+	public createAndEncryptDraftAttachment(
 		referenceTokens: sysTypeRefs.BlobReferenceTokenWrapper[],
 		fileSessionKey: AesKey,
 		providedFile: DataFile | FileReference,

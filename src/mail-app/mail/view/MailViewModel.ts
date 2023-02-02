@@ -698,7 +698,7 @@ export class MailViewModel {
 		}
 
 		for (const update of updates) {
-			if (update.operation === OperationType.CREATE && entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ImportMailStateTypeRef, update)) {
+			if (update.operation === OperationType.CREATE && entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ImportFileMailStateTypeRef, update)) {
 				await this.deleteMailSetEntryRangeForImportTargetFolder(update)
 			} else if (update.operation === OperationType.UPDATE) {
 				if (
@@ -711,7 +711,7 @@ export class MailViewModel {
 					if (folderForMail && !this.didStickyMailChange(mailId, "after loading mail from cache on entity update")) {
 						this.setListId(folderForMail)
 					}
-				} else if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ImportMailStateTypeRef, update)) {
+				} else if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ImportFileMailStateTypeRef, update)) {
 					await this.deleteMailSetEntryRangeForImportTargetFolder(update)
 				}
 			}
@@ -739,7 +739,7 @@ export class MailViewModel {
 		// This makes sure, that we keep already downloaded MailSetEntries in cache, but still show all mails inside the targetFolder correctly.
 		// The MailIndexer is downloading the MailSetEntries and Mails corresponding to this import in background
 		// and ensures that all imported mails are searchable immediately.
-		const importMailState = await this.entityClient.load(tutanotaTypeRefs.ImportMailStateTypeRef, [update.instanceListId!, update.instanceId])
+		const importMailState = await this.entityClient.load(tutanotaTypeRefs.ImportFileMailStateTypeRef, [update.instanceListId!, update.instanceId])
 		const targetFolder = await this.mailModel.getMailSetById(elementIdPart(importMailState.targetFolder))
 		if (targetFolder) {
 			const targetFolderEntriesListId = targetFolder.entries

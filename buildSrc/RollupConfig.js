@@ -22,6 +22,8 @@ export const dependencyMap = {
 	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),
 	"@fingerprintjs/botd": path.normalize("./libs/botd.mjs"),
 	"./tensorflow-custom": path.normalize("./libs/tensorflow.js"),
+	imapflow: path.normalize("./libs/imapflow.js"),
+	mailparser: path.normalize("./libs/mailparser.js"),
 }
 
 export let tsImportAliases = {
@@ -286,7 +288,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/common/native/worker") ||
 		isIn("src/mail-app/workerUtils/worker") ||
 		isIn("src/calendar-app/worker") ||
-		isIn("src/mail-app/workerUtils/offline")
+		isIn("src/mail-app/workerUtils/offline") ||
+		isIn("src/mail-app/workerUtils/imapimport")
 	) {
 		return "worker"
 	} else if (moduleId.includes("pow-worker") || moduleId.includes("ProofOfWorkCaptchaUtils")) {

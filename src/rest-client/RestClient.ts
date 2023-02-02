@@ -10,10 +10,12 @@ const TAG = "[RestClient]"
 // visible for testing
 export const MAX_BLOB_SIZE_BYTES = 1024 * 1024 * 10
 export const REQUEST_SIZE_LIMIT_DEFAULT = 1024 * 1024
+export const IMPORT_MAIL_SERVICE_SIZE_LIMIT = 1024 * 1024 * 8
 export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
 	["/rest/storage/blobservice", MAX_BLOB_SIZE_BYTES + 100], // overhead for encryption
 	["/rest/tutanota/filedataservice", 1024 * 1024 * 25],
 	["/rest/tutanota/draftservice", 1024 * 1024], // should be large enough
+	["/rest/tutanota/importmailservice", IMPORT_MAIL_SERVICE_SIZE_LIMIT],
 ])
 const BLOB_REQUEST_TIMEOUT_MS = 5 * 60 * 1000 + 1000
 

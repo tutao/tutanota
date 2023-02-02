@@ -117,7 +117,6 @@ const assertionsEnabled = typeof LOAD_ASSERTIONS === "undefined" || LOAD_ASSERTI
 
 export function assertMainOrNode() {
 	if (!assertionsEnabled) return
-
 	if (!isMainOrNode()) {
 		throw new Error("this code must not run in the worker thread")
 	}
@@ -129,7 +128,6 @@ export function assertMainOrNode() {
 
 export function assertMainOrNodeBoot() {
 	if (!assertionsEnabled) return
-
 	if (!isMainOrNode()) {
 		throw new Error("this code must not run in the worker thread")
 	}
@@ -137,7 +135,6 @@ export function assertMainOrNodeBoot() {
 
 export function assertWorkerOrNode() {
 	if (!assertionsEnabled) return
-
 	if (!isWorkerOrNode()) {
 		throw new Error("this code must not run in the gui thread")
 	}

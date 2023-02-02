@@ -111,6 +111,10 @@ import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/
 import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
 import { InstanceSessionKeysCache } from "../../../common/api/worker/facades/InstanceSessionKeysCache"
 import type { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
+import { ImapImporter } from "../imapimport/ImapImporter"
+import type { ImportImapFacade } from "../../../common/api/worker/facades/lazy/ImportImapFacade"
+import type { ImportMailFacade } from "../../../common/api/worker/facades/lazy/ImportMailFacade"
+import { ImapImportSystemFacadeSendDispatcher } from "../../../common/native/common/generatedipc/ImapImportSystemFacadeSendDispatcher"
 import {
 	IndexedDbLastProcessedEventBatchStorageFacade,
 	LastProcessedEventBatchStorageFacade,
@@ -208,6 +212,9 @@ export type WorkerLocatorType = {
 	driveFacade: lazyAsync<DriveFacade>
 
 	lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchStorageFacade>
+
+	// IMAP mail import
+	imapImporter: lazyAsync<ImapImporter>
 }
 export const locator: WorkerLocatorType = {} as any
 
@@ -923,6 +930,27 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.crypto,
 			locator.cryptoWrapper,
 		)
+	})
+	locator.imapImporter = lazyMemoized(async () => {
+		const { ImportMailFacade } = await import("../../../common/api/worker/facades/lazy/ImportMailFacade.js")
+		const { ImportImapFacade } = await import("../../../common/api/worker/facades/lazy/ImportImapFacade.js")
+		const mailFacade = await locator.mail()
+		const blobFacade = await locator.blob()
+		const importMailFacade = new ImportMailFacade(
+			locator.user,
+			mailFacade,
+			locator.serviceExecutor,
+			locator.cachingEntityClient,
+			blobFacade,
+			fileApp,
+			locator.crypto,
+			locator.keyLoader,
+			locator.instancePipeline,
+			locator.cryptoWrapper,
+		)
+		const importImapFacade = new ImportImapFacade(locator.user, mailFacade, locator.serviceExecutor, locator.cachingEntityClient, locator.keyLoader)
+
+		return new ImapImporter(new ImapImportSystemFacadeSendDispatcher(worker), importImapFacade, importMailFacade)
 	})
 }
 

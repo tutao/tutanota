@@ -299,6 +299,7 @@ function _getDefaultValue(valueName: string, value: ModelValue): any {
 				return "0"
 
 			case ValueType.String:
+			case ValueType.CompressedString:
 				return ""
 
 			case ValueType.Boolean:

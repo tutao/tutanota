@@ -1,5 +1,5 @@
 use super::importer::{
-	ImportLoopResult, ImportMailStateId, ImportProgressAction, ImportStatus, Importer,
+	ImportFileMailStateId, ImportLoopResult, ImportProgressAction, ImportStatus, Importer,
 };
 use crate::importer::file_reader::FileImport;
 use crate::importer::messages::{MailImportMessage, PreparationError, ProgressActionError};
@@ -82,7 +82,7 @@ impl ImporterApi {
 
 	/// get the id of the remote import state entity that is stored on disk for this import
 	#[napi]
-	pub fn get_import_state_id(&self) -> napi::Result<ImportMailStateId> {
+	pub fn get_import_state_id(&self) -> napi::Result<ImportFileMailStateId> {
 		Ok(self.importer.essentials.remote_state_id.clone().into())
 	}
 

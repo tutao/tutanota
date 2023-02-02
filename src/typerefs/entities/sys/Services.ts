@@ -1,17 +1,118 @@
-import * as sysTypeRefs from "./TypeRefs.js"
+import { AdminGroupKeyRotationGetOutTypeRef } from "./TypeRefs.js"
+import { AdminGroupKeyRotationPostInTypeRef } from "./TypeRefs.js"
+import { AdminGroupKeyRotationPutInTypeRef } from "./TypeRefs.js"
+import { AffiliatePartnerKpiServiceGetOutTypeRef } from "./TypeRefs.js"
+import { AlarmServicePostTypeRef } from "./TypeRefs.js"
+import { AppStoreSubscriptionGetInTypeRef } from "./TypeRefs.js"
+import { AppStoreSubscriptionGetOutTypeRef } from "./TypeRefs.js"
+import { AutoLoginDataGetTypeRef } from "./TypeRefs.js"
+import { AutoLoginDataReturnTypeRef } from "./TypeRefs.js"
+import { AutoLoginPostReturnTypeRef } from "./TypeRefs.js"
+import { AutoLoginDataDeleteTypeRef } from "./TypeRefs.js"
+import { BrandingDomainGetReturnTypeRef } from "./TypeRefs.js"
+import { BrandingDomainDataTypeRef } from "./TypeRefs.js"
+import { BrandingDomainDeleteDataTypeRef } from "./TypeRefs.js"
+import { ChangeKdfPostInTypeRef } from "./TypeRefs.js"
+import { ChangePasswordPostInTypeRef } from "./TypeRefs.js"
+import { CloseSessionServicePostTypeRef } from "./TypeRefs.js"
+import { CreateCustomerServerPropertiesDataTypeRef } from "./TypeRefs.js"
+import { CreateCustomerServerPropertiesReturnTypeRef } from "./TypeRefs.js"
+import { CustomDomainCheckGetInTypeRef } from "./TypeRefs.js"
+import { CustomDomainCheckGetOutTypeRef } from "./TypeRefs.js"
+import { CustomDomainDataTypeRef } from "./TypeRefs.js"
+import { CustomDomainReturnTypeRef } from "./TypeRefs.js"
+import { CustomerAccountTerminationPostInTypeRef } from "./TypeRefs.js"
+import { CustomerAccountTerminationPostOutTypeRef } from "./TypeRefs.js"
+import { PublicKeyGetOutTypeRef } from "./TypeRefs.js"
+import { DeleteCustomerDataTypeRef } from "./TypeRefs.js"
+import { DebitServicePutDataTypeRef } from "./TypeRefs.js"
+import { DomainMailAddressAvailabilityDataTypeRef } from "./TypeRefs.js"
+import { DomainMailAddressAvailabilityReturnTypeRef } from "./TypeRefs.js"
+import { ExternalPropertiesReturnTypeRef } from "./TypeRefs.js"
+import { GiftCardRedeemDataTypeRef } from "./TypeRefs.js"
+import { GiftCardRedeemGetReturnTypeRef } from "./TypeRefs.js"
+import { GiftCardGetReturnTypeRef } from "./TypeRefs.js"
+import { GiftCardCreateDataTypeRef } from "./TypeRefs.js"
+import { GiftCardCreateReturnTypeRef } from "./TypeRefs.js"
+import { GiftCardDeleteDataTypeRef } from "./TypeRefs.js"
+import { GroupKeyRotationInfoGetOutTypeRef } from "./TypeRefs.js"
+import { GroupKeyRotationPostInTypeRef } from "./TypeRefs.js"
+import { IdentityKeyGetInTypeRef } from "./TypeRefs.js"
+import { IdentityKeyGetOutTypeRef } from "./TypeRefs.js"
+import { IdentityKeyPostInTypeRef } from "./TypeRefs.js"
+import { InvoiceDataGetInTypeRef } from "./TypeRefs.js"
+import { InvoiceDataGetOutTypeRef } from "./TypeRefs.js"
+import { LocationServiceGetReturnTypeRef } from "./TypeRefs.js"
+import { MailAddressAliasGetInTypeRef } from "./TypeRefs.js"
+import { MailAddressAliasServiceReturnTypeRef } from "./TypeRefs.js"
+import { MailAddressAliasServiceDataTypeRef } from "./TypeRefs.js"
+import { MailAddressAliasServiceDataDeleteTypeRef } from "./TypeRefs.js"
+import { MembershipAddDataTypeRef } from "./TypeRefs.js"
+import { MembershipPutInTypeRef } from "./TypeRefs.js"
+import { MembershipRemoveDataTypeRef } from "./TypeRefs.js"
+import { MultipleMailAddressAvailabilityDataTypeRef } from "./TypeRefs.js"
+import { MultipleMailAddressAvailabilityReturnTypeRef } from "./TypeRefs.js"
+import { PaymentDataServiceGetDataTypeRef } from "./TypeRefs.js"
+import { PaymentDataServiceGetReturnTypeRef } from "./TypeRefs.js"
+import { PaymentDataServicePostDataTypeRef } from "./TypeRefs.js"
+import { PaymentDataServicePutDataTypeRef } from "./TypeRefs.js"
+import { PaymentDataServicePutReturnTypeRef } from "./TypeRefs.js"
+import { PlanServiceGetOutTypeRef } from "./TypeRefs.js"
+import { PriceServiceDataTypeRef } from "./TypeRefs.js"
+import { PriceServiceReturnTypeRef } from "./TypeRefs.js"
+import { PublicKeyGetInTypeRef } from "./TypeRefs.js"
+import { PublicKeyPutInTypeRef } from "./TypeRefs.js"
+import { ReferralCodeGetInTypeRef } from "./TypeRefs.js"
+import { ReferralCodePostInTypeRef } from "./TypeRefs.js"
+import { ReferralCodePostOutTypeRef } from "./TypeRefs.js"
+import { RegistrationCaptchaServiceGetDataTypeRef } from "./TypeRefs.js"
+import { RegistrationCaptchaServiceReturnTypeRef } from "./TypeRefs.js"
+import { RegistrationCaptchaServiceDataTypeRef } from "./TypeRefs.js"
+import { RegistrationServiceDataTypeRef } from "./TypeRefs.js"
+import { RegistrationReturnTypeRef } from "./TypeRefs.js"
+import { ResetFactorsDeleteDataTypeRef } from "./TypeRefs.js"
+import { ResetPasswordPostInTypeRef } from "./TypeRefs.js"
+import { RolloutGetOutTypeRef } from "./TypeRefs.js"
+import { SaltDataTypeRef } from "./TypeRefs.js"
+import { SaltReturnTypeRef } from "./TypeRefs.js"
+import { SecondFactorAuthAllowedReturnTypeRef } from "./TypeRefs.js"
+import { SecondFactorAuthGetDataTypeRef } from "./TypeRefs.js"
+import { SecondFactorAuthGetReturnTypeRef } from "./TypeRefs.js"
+import { SecondFactorAuthDataTypeRef } from "./TypeRefs.js"
+import { SecondFactorAuthDeleteDataTypeRef } from "./TypeRefs.js"
+import { CreateSessionDataTypeRef } from "./TypeRefs.js"
+import { CreateSessionReturnTypeRef } from "./TypeRefs.js"
+import { SignOrderProcessingAgreementDataTypeRef } from "./TypeRefs.js"
+import { SurveyDataPostInTypeRef } from "./TypeRefs.js"
+import { SwitchAccountTypePostInTypeRef } from "./TypeRefs.js"
+import { SystemKeysReturnTypeRef } from "./TypeRefs.js"
+import { TakeOverDeletedAddressDataTypeRef } from "./TypeRefs.js"
+import { TimelockCaptchaGetInTypeRef } from "./TypeRefs.js"
+import { TimelockCaptchaGetOutTypeRef } from "./TypeRefs.js"
+import { UpdatePermissionKeyDataTypeRef } from "./TypeRefs.js"
+import { UpdateSessionKeysPostInTypeRef } from "./TypeRefs.js"
+import { UpgradePriceServiceDataTypeRef } from "./TypeRefs.js"
+import { UpgradePriceServiceReturnTypeRef } from "./TypeRefs.js"
+import { UserGroupKeyRotationPostInTypeRef } from "./TypeRefs.js"
+import { UserDataDeleteTypeRef } from "./TypeRefs.js"
+import { VerifierTokenServiceInTypeRef } from "./TypeRefs.js"
+import { VerifierTokenServiceOutTypeRef } from "./TypeRefs.js"
+import { VersionDataTypeRef } from "./TypeRefs.js"
+import { VersionReturnTypeRef } from "./TypeRefs.js"
+
 export const AdminGroupKeyRotationService = Object.freeze({
 	app: "sys",
 	name: "AdminGroupKeyRotationService",
-	get: { data: null, return: sysTypeRefs.AdminGroupKeyRotationGetOutTypeRef },
-	post: { data: sysTypeRefs.AdminGroupKeyRotationPostInTypeRef, return: null },
-	put: { data: sysTypeRefs.AdminGroupKeyRotationPutInTypeRef, return: null },
+	get: { data: null, return: AdminGroupKeyRotationGetOutTypeRef },
+	post: { data: AdminGroupKeyRotationPostInTypeRef, return: null },
+	put: { data: AdminGroupKeyRotationPutInTypeRef, return: null },
 	delete: null,
 } as const)
 
 export const AffiliatePartnerKpiService = Object.freeze({
 	app: "sys",
 	name: "AffiliatePartnerKpiService",
-	get: { data: null, return: sysTypeRefs.AffiliatePartnerKpiServiceGetOutTypeRef },
+	get: { data: null, return: AffiliatePartnerKpiServiceGetOutTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -21,7 +122,7 @@ export const AlarmService = Object.freeze({
 	app: "sys",
 	name: "AlarmService",
 	get: null,
-	post: { data: sysTypeRefs.AlarmServicePostTypeRef, return: null },
+	post: { data: AlarmServicePostTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -29,7 +130,7 @@ export const AlarmService = Object.freeze({
 export const AppStoreSubscriptionService = Object.freeze({
 	app: "sys",
 	name: "AppStoreSubscriptionService",
-	get: { data: sysTypeRefs.AppStoreSubscriptionGetInTypeRef, return: sysTypeRefs.AppStoreSubscriptionGetOutTypeRef },
+	get: { data: AppStoreSubscriptionGetInTypeRef, return: AppStoreSubscriptionGetOutTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -38,26 +139,26 @@ export const AppStoreSubscriptionService = Object.freeze({
 export const AutoLoginService = Object.freeze({
 	app: "sys",
 	name: "AutoLoginService",
-	get: { data: sysTypeRefs.AutoLoginDataGetTypeRef, return: sysTypeRefs.AutoLoginDataReturnTypeRef },
-	post: { data: sysTypeRefs.AutoLoginDataReturnTypeRef, return: sysTypeRefs.AutoLoginPostReturnTypeRef },
+	get: { data: AutoLoginDataGetTypeRef, return: AutoLoginDataReturnTypeRef },
+	post: { data: AutoLoginDataReturnTypeRef, return: AutoLoginPostReturnTypeRef },
 	put: null,
-	delete: { data: sysTypeRefs.AutoLoginDataDeleteTypeRef, return: null },
+	delete: { data: AutoLoginDataDeleteTypeRef, return: null },
 } as const)
 
 export const BrandingDomainService = Object.freeze({
 	app: "sys",
 	name: "BrandingDomainService",
-	get: { data: null, return: sysTypeRefs.BrandingDomainGetReturnTypeRef },
-	post: { data: sysTypeRefs.BrandingDomainDataTypeRef, return: null },
-	put: { data: sysTypeRefs.BrandingDomainDataTypeRef, return: null },
-	delete: { data: sysTypeRefs.BrandingDomainDeleteDataTypeRef, return: null },
+	get: { data: null, return: BrandingDomainGetReturnTypeRef },
+	post: { data: BrandingDomainDataTypeRef, return: null },
+	put: { data: BrandingDomainDataTypeRef, return: null },
+	delete: { data: BrandingDomainDeleteDataTypeRef, return: null },
 } as const)
 
 export const ChangeKdfService = Object.freeze({
 	app: "sys",
 	name: "ChangeKdfService",
 	get: null,
-	post: { data: sysTypeRefs.ChangeKdfPostInTypeRef, return: null },
+	post: { data: ChangeKdfPostInTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -66,7 +167,7 @@ export const ChangePasswordService = Object.freeze({
 	app: "sys",
 	name: "ChangePasswordService",
 	get: null,
-	post: { data: sysTypeRefs.ChangePasswordPostInTypeRef, return: null },
+	post: { data: ChangePasswordPostInTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -75,7 +176,7 @@ export const CloseSessionService = Object.freeze({
 	app: "sys",
 	name: "CloseSessionService",
 	get: null,
-	post: { data: sysTypeRefs.CloseSessionServicePostTypeRef, return: null },
+	post: { data: CloseSessionServicePostTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -84,7 +185,7 @@ export const CreateCustomerServerProperties = Object.freeze({
 	app: "sys",
 	name: "CreateCustomerServerProperties",
 	get: null,
-	post: { data: sysTypeRefs.CreateCustomerServerPropertiesDataTypeRef, return: sysTypeRefs.CreateCustomerServerPropertiesReturnTypeRef },
+	post: { data: CreateCustomerServerPropertiesDataTypeRef, return: CreateCustomerServerPropertiesReturnTypeRef },
 	put: null,
 	delete: null,
 } as const)
@@ -92,7 +193,7 @@ export const CreateCustomerServerProperties = Object.freeze({
 export const CustomDomainCheckService = Object.freeze({
 	app: "sys",
 	name: "CustomDomainCheckService",
-	get: { data: sysTypeRefs.CustomDomainCheckGetInTypeRef, return: sysTypeRefs.CustomDomainCheckGetOutTypeRef },
+	get: { data: CustomDomainCheckGetInTypeRef, return: CustomDomainCheckGetOutTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -102,16 +203,16 @@ export const CustomDomainService = Object.freeze({
 	app: "sys",
 	name: "CustomDomainService",
 	get: null,
-	post: { data: sysTypeRefs.CustomDomainDataTypeRef, return: sysTypeRefs.CustomDomainReturnTypeRef },
-	put: { data: sysTypeRefs.CustomDomainDataTypeRef, return: null },
-	delete: { data: sysTypeRefs.CustomDomainDataTypeRef, return: null },
+	post: { data: CustomDomainDataTypeRef, return: CustomDomainReturnTypeRef },
+	put: { data: CustomDomainDataTypeRef, return: null },
+	delete: { data: CustomDomainDataTypeRef, return: null },
 } as const)
 
 export const CustomerAccountTerminationService = Object.freeze({
 	app: "sys",
 	name: "CustomerAccountTerminationService",
 	get: null,
-	post: { data: sysTypeRefs.CustomerAccountTerminationPostInTypeRef, return: sysTypeRefs.CustomerAccountTerminationPostOutTypeRef },
+	post: { data: CustomerAccountTerminationPostInTypeRef, return: CustomerAccountTerminationPostOutTypeRef },
 	put: null,
 	delete: null,
 } as const)
@@ -119,7 +220,7 @@ export const CustomerAccountTerminationService = Object.freeze({
 export const CustomerPublicKeyService = Object.freeze({
 	app: "sys",
 	name: "CustomerPublicKeyService",
-	get: { data: null, return: sysTypeRefs.PublicKeyGetOutTypeRef },
+	get: { data: null, return: PublicKeyGetOutTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -131,7 +232,7 @@ export const CustomerService = Object.freeze({
 	get: null,
 	post: null,
 	put: null,
-	delete: { data: sysTypeRefs.DeleteCustomerDataTypeRef, return: null },
+	delete: { data: DeleteCustomerDataTypeRef, return: null },
 } as const)
 
 export const DebitService = Object.freeze({
@@ -139,14 +240,14 @@ export const DebitService = Object.freeze({
 	name: "DebitService",
 	get: null,
 	post: null,
-	put: { data: sysTypeRefs.DebitServicePutDataTypeRef, return: null },
+	put: { data: DebitServicePutDataTypeRef, return: null },
 	delete: null,
 } as const)
 
 export const DomainMailAddressAvailabilityService = Object.freeze({
 	app: "sys",
 	name: "DomainMailAddressAvailabilityService",
-	get: { data: sysTypeRefs.DomainMailAddressAvailabilityDataTypeRef, return: sysTypeRefs.DomainMailAddressAvailabilityReturnTypeRef },
+	get: { data: DomainMailAddressAvailabilityDataTypeRef, return: DomainMailAddressAvailabilityReturnTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -155,7 +256,7 @@ export const DomainMailAddressAvailabilityService = Object.freeze({
 export const ExternalPropertiesService = Object.freeze({
 	app: "sys",
 	name: "ExternalPropertiesService",
-	get: { data: null, return: sysTypeRefs.ExternalPropertiesReturnTypeRef },
+	get: { data: null, return: ExternalPropertiesReturnTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -164,8 +265,8 @@ export const ExternalPropertiesService = Object.freeze({
 export const GiftCardRedeemService = Object.freeze({
 	app: "sys",
 	name: "GiftCardRedeemService",
-	get: { data: sysTypeRefs.GiftCardRedeemDataTypeRef, return: sysTypeRefs.GiftCardRedeemGetReturnTypeRef },
-	post: { data: sysTypeRefs.GiftCardRedeemDataTypeRef, return: null },
+	get: { data: GiftCardRedeemDataTypeRef, return: GiftCardRedeemGetReturnTypeRef },
+	post: { data: GiftCardRedeemDataTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -173,16 +274,16 @@ export const GiftCardRedeemService = Object.freeze({
 export const GiftCardService = Object.freeze({
 	app: "sys",
 	name: "GiftCardService",
-	get: { data: null, return: sysTypeRefs.GiftCardGetReturnTypeRef },
-	post: { data: sysTypeRefs.GiftCardCreateDataTypeRef, return: sysTypeRefs.GiftCardCreateReturnTypeRef },
+	get: { data: null, return: GiftCardGetReturnTypeRef },
+	post: { data: GiftCardCreateDataTypeRef, return: GiftCardCreateReturnTypeRef },
 	put: null,
-	delete: { data: sysTypeRefs.GiftCardDeleteDataTypeRef, return: null },
+	delete: { data: GiftCardDeleteDataTypeRef, return: null },
 } as const)
 
 export const GroupKeyRotationInfoService = Object.freeze({
 	app: "sys",
 	name: "GroupKeyRotationInfoService",
-	get: { data: null, return: sysTypeRefs.GroupKeyRotationInfoGetOutTypeRef },
+	get: { data: null, return: GroupKeyRotationInfoGetOutTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -192,7 +293,7 @@ export const GroupKeyRotationService = Object.freeze({
 	app: "sys",
 	name: "GroupKeyRotationService",
 	get: null,
-	post: { data: sysTypeRefs.GroupKeyRotationPostInTypeRef, return: null },
+	post: { data: GroupKeyRotationPostInTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -200,8 +301,8 @@ export const GroupKeyRotationService = Object.freeze({
 export const IdentityKeyService = Object.freeze({
 	app: "sys",
 	name: "IdentityKeyService",
-	get: { data: sysTypeRefs.IdentityKeyGetInTypeRef, return: sysTypeRefs.IdentityKeyGetOutTypeRef },
-	post: { data: sysTypeRefs.IdentityKeyPostInTypeRef, return: null },
+	get: { data: IdentityKeyGetInTypeRef, return: IdentityKeyGetOutTypeRef },
+	post: { data: IdentityKeyPostInTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -209,7 +310,7 @@ export const IdentityKeyService = Object.freeze({
 export const InvoiceDataService = Object.freeze({
 	app: "sys",
 	name: "InvoiceDataService",
-	get: { data: sysTypeRefs.InvoiceDataGetInTypeRef, return: sysTypeRefs.InvoiceDataGetOutTypeRef },
+	get: { data: InvoiceDataGetInTypeRef, return: InvoiceDataGetOutTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -218,7 +319,7 @@ export const InvoiceDataService = Object.freeze({
 export const LocationService = Object.freeze({
 	app: "sys",
 	name: "LocationService",
-	get: { data: null, return: sysTypeRefs.LocationServiceGetReturnTypeRef },
+	get: { data: null, return: LocationServiceGetReturnTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -227,25 +328,25 @@ export const LocationService = Object.freeze({
 export const MailAddressAliasService = Object.freeze({
 	app: "sys",
 	name: "MailAddressAliasService",
-	get: { data: sysTypeRefs.MailAddressAliasGetInTypeRef, return: sysTypeRefs.MailAddressAliasServiceReturnTypeRef },
-	post: { data: sysTypeRefs.MailAddressAliasServiceDataTypeRef, return: null },
+	get: { data: MailAddressAliasGetInTypeRef, return: MailAddressAliasServiceReturnTypeRef },
+	post: { data: MailAddressAliasServiceDataTypeRef, return: null },
 	put: null,
-	delete: { data: sysTypeRefs.MailAddressAliasServiceDataDeleteTypeRef, return: null },
+	delete: { data: MailAddressAliasServiceDataDeleteTypeRef, return: null },
 } as const)
 
 export const MembershipService = Object.freeze({
 	app: "sys",
 	name: "MembershipService",
 	get: null,
-	post: { data: sysTypeRefs.MembershipAddDataTypeRef, return: null },
-	put: { data: sysTypeRefs.MembershipPutInTypeRef, return: null },
-	delete: { data: sysTypeRefs.MembershipRemoveDataTypeRef, return: null },
+	post: { data: MembershipAddDataTypeRef, return: null },
+	put: { data: MembershipPutInTypeRef, return: null },
+	delete: { data: MembershipRemoveDataTypeRef, return: null },
 } as const)
 
 export const MultipleMailAddressAvailabilityService = Object.freeze({
 	app: "sys",
 	name: "MultipleMailAddressAvailabilityService",
-	get: { data: sysTypeRefs.MultipleMailAddressAvailabilityDataTypeRef, return: sysTypeRefs.MultipleMailAddressAvailabilityReturnTypeRef },
+	get: { data: MultipleMailAddressAvailabilityDataTypeRef, return: MultipleMailAddressAvailabilityReturnTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -254,16 +355,16 @@ export const MultipleMailAddressAvailabilityService = Object.freeze({
 export const PaymentDataService = Object.freeze({
 	app: "sys",
 	name: "PaymentDataService",
-	get: { data: sysTypeRefs.PaymentDataServiceGetDataTypeRef, return: sysTypeRefs.PaymentDataServiceGetReturnTypeRef },
-	post: { data: sysTypeRefs.PaymentDataServicePostDataTypeRef, return: null },
-	put: { data: sysTypeRefs.PaymentDataServicePutDataTypeRef, return: sysTypeRefs.PaymentDataServicePutReturnTypeRef },
+	get: { data: PaymentDataServiceGetDataTypeRef, return: PaymentDataServiceGetReturnTypeRef },
+	post: { data: PaymentDataServicePostDataTypeRef, return: null },
+	put: { data: PaymentDataServicePutDataTypeRef, return: PaymentDataServicePutReturnTypeRef },
 	delete: null,
 } as const)
 
 export const PlanService = Object.freeze({
 	app: "sys",
 	name: "PlanService",
-	get: { data: null, return: sysTypeRefs.PlanServiceGetOutTypeRef },
+	get: { data: null, return: PlanServiceGetOutTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -272,7 +373,7 @@ export const PlanService = Object.freeze({
 export const PriceService = Object.freeze({
 	app: "sys",
 	name: "PriceService",
-	get: { data: sysTypeRefs.PriceServiceDataTypeRef, return: sysTypeRefs.PriceServiceReturnTypeRef },
+	get: { data: PriceServiceDataTypeRef, return: PriceServiceReturnTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -281,17 +382,17 @@ export const PriceService = Object.freeze({
 export const PublicKeyService = Object.freeze({
 	app: "sys",
 	name: "PublicKeyService",
-	get: { data: sysTypeRefs.PublicKeyGetInTypeRef, return: sysTypeRefs.PublicKeyGetOutTypeRef },
+	get: { data: PublicKeyGetInTypeRef, return: PublicKeyGetOutTypeRef },
 	post: null,
-	put: { data: sysTypeRefs.PublicKeyPutInTypeRef, return: null },
+	put: { data: PublicKeyPutInTypeRef, return: null },
 	delete: null,
 } as const)
 
 export const ReferralCodeService = Object.freeze({
 	app: "sys",
 	name: "ReferralCodeService",
-	get: { data: sysTypeRefs.ReferralCodeGetInTypeRef, return: null },
-	post: { data: sysTypeRefs.ReferralCodePostInTypeRef, return: sysTypeRefs.ReferralCodePostOutTypeRef },
+	get: { data: ReferralCodeGetInTypeRef, return: null },
+	post: { data: ReferralCodePostInTypeRef, return: ReferralCodePostOutTypeRef },
 	put: null,
 	delete: null,
 } as const)
@@ -299,8 +400,8 @@ export const ReferralCodeService = Object.freeze({
 export const RegistrationCaptchaService = Object.freeze({
 	app: "sys",
 	name: "RegistrationCaptchaService",
-	get: { data: sysTypeRefs.RegistrationCaptchaServiceGetDataTypeRef, return: sysTypeRefs.RegistrationCaptchaServiceReturnTypeRef },
-	post: { data: sysTypeRefs.RegistrationCaptchaServiceDataTypeRef, return: null },
+	get: { data: RegistrationCaptchaServiceGetDataTypeRef, return: RegistrationCaptchaServiceReturnTypeRef },
+	post: { data: RegistrationCaptchaServiceDataTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -308,8 +409,8 @@ export const RegistrationCaptchaService = Object.freeze({
 export const RegistrationService = Object.freeze({
 	app: "sys",
 	name: "RegistrationService",
-	get: { data: null, return: sysTypeRefs.RegistrationServiceDataTypeRef },
-	post: { data: sysTypeRefs.RegistrationServiceDataTypeRef, return: sysTypeRefs.RegistrationReturnTypeRef },
+	get: { data: null, return: RegistrationServiceDataTypeRef },
+	post: { data: RegistrationServiceDataTypeRef, return: RegistrationReturnTypeRef },
 	put: null,
 	delete: null,
 } as const)
@@ -320,14 +421,14 @@ export const ResetFactorsService = Object.freeze({
 	get: null,
 	post: null,
 	put: null,
-	delete: { data: sysTypeRefs.ResetFactorsDeleteDataTypeRef, return: null },
+	delete: { data: ResetFactorsDeleteDataTypeRef, return: null },
 } as const)
 
 export const ResetPasswordService = Object.freeze({
 	app: "sys",
 	name: "ResetPasswordService",
 	get: null,
-	post: { data: sysTypeRefs.ResetPasswordPostInTypeRef, return: null },
+	post: { data: ResetPasswordPostInTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -335,7 +436,7 @@ export const ResetPasswordService = Object.freeze({
 export const RolloutService = Object.freeze({
 	app: "sys",
 	name: "RolloutService",
-	get: { data: null, return: sysTypeRefs.RolloutGetOutTypeRef },
+	get: { data: null, return: RolloutGetOutTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -344,7 +445,7 @@ export const RolloutService = Object.freeze({
 export const SaltService = Object.freeze({
 	app: "sys",
 	name: "SaltService",
-	get: { data: sysTypeRefs.SaltDataTypeRef, return: sysTypeRefs.SaltReturnTypeRef },
+	get: { data: SaltDataTypeRef, return: SaltReturnTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -353,7 +454,7 @@ export const SaltService = Object.freeze({
 export const SecondFactorAuthAllowedService = Object.freeze({
 	app: "sys",
 	name: "SecondFactorAuthAllowedService",
-	get: { data: null, return: sysTypeRefs.SecondFactorAuthAllowedReturnTypeRef },
+	get: { data: null, return: SecondFactorAuthAllowedReturnTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -362,17 +463,17 @@ export const SecondFactorAuthAllowedService = Object.freeze({
 export const SecondFactorAuthService = Object.freeze({
 	app: "sys",
 	name: "SecondFactorAuthService",
-	get: { data: sysTypeRefs.SecondFactorAuthGetDataTypeRef, return: sysTypeRefs.SecondFactorAuthGetReturnTypeRef },
-	post: { data: sysTypeRefs.SecondFactorAuthDataTypeRef, return: null },
+	get: { data: SecondFactorAuthGetDataTypeRef, return: SecondFactorAuthGetReturnTypeRef },
+	post: { data: SecondFactorAuthDataTypeRef, return: null },
 	put: null,
-	delete: { data: sysTypeRefs.SecondFactorAuthDeleteDataTypeRef, return: null },
+	delete: { data: SecondFactorAuthDeleteDataTypeRef, return: null },
 } as const)
 
 export const SessionService = Object.freeze({
 	app: "sys",
 	name: "SessionService",
 	get: null,
-	post: { data: sysTypeRefs.CreateSessionDataTypeRef, return: sysTypeRefs.CreateSessionReturnTypeRef },
+	post: { data: CreateSessionDataTypeRef, return: CreateSessionReturnTypeRef },
 	put: null,
 	delete: null,
 } as const)
@@ -381,7 +482,7 @@ export const SignOrderProcessingAgreementService = Object.freeze({
 	app: "sys",
 	name: "SignOrderProcessingAgreementService",
 	get: null,
-	post: { data: sysTypeRefs.SignOrderProcessingAgreementDataTypeRef, return: null },
+	post: { data: SignOrderProcessingAgreementDataTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -390,7 +491,7 @@ export const SurveyService = Object.freeze({
 	app: "sys",
 	name: "SurveyService",
 	get: null,
-	post: { data: sysTypeRefs.SurveyDataPostInTypeRef, return: null },
+	post: { data: SurveyDataPostInTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -399,7 +500,7 @@ export const SwitchAccountTypeService = Object.freeze({
 	app: "sys",
 	name: "SwitchAccountTypeService",
 	get: null,
-	post: { data: sysTypeRefs.SwitchAccountTypePostInTypeRef, return: null },
+	post: { data: SwitchAccountTypePostInTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -407,7 +508,7 @@ export const SwitchAccountTypeService = Object.freeze({
 export const SystemKeysService = Object.freeze({
 	app: "sys",
 	name: "SystemKeysService",
-	get: { data: null, return: sysTypeRefs.SystemKeysReturnTypeRef },
+	get: { data: null, return: SystemKeysReturnTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -417,7 +518,7 @@ export const TakeOverDeletedAddressService = Object.freeze({
 	app: "sys",
 	name: "TakeOverDeletedAddressService",
 	get: null,
-	post: { data: sysTypeRefs.TakeOverDeletedAddressDataTypeRef, return: null },
+	post: { data: TakeOverDeletedAddressDataTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -425,7 +526,7 @@ export const TakeOverDeletedAddressService = Object.freeze({
 export const TimelockCaptchaService = Object.freeze({
 	app: "sys",
 	name: "TimelockCaptchaService",
-	get: { data: sysTypeRefs.TimelockCaptchaGetInTypeRef, return: sysTypeRefs.TimelockCaptchaGetOutTypeRef },
+	get: { data: TimelockCaptchaGetInTypeRef, return: TimelockCaptchaGetOutTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -435,7 +536,7 @@ export const UpdatePermissionKeyService = Object.freeze({
 	app: "sys",
 	name: "UpdatePermissionKeyService",
 	get: null,
-	post: { data: sysTypeRefs.UpdatePermissionKeyDataTypeRef, return: null },
+	post: { data: UpdatePermissionKeyDataTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -444,7 +545,7 @@ export const UpdateSessionKeysService = Object.freeze({
 	app: "sys",
 	name: "UpdateSessionKeysService",
 	get: null,
-	post: { data: sysTypeRefs.UpdateSessionKeysPostInTypeRef, return: null },
+	post: { data: UpdateSessionKeysPostInTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -452,7 +553,7 @@ export const UpdateSessionKeysService = Object.freeze({
 export const UpgradePriceService = Object.freeze({
 	app: "sys",
 	name: "UpgradePriceService",
-	get: { data: sysTypeRefs.UpgradePriceServiceDataTypeRef, return: sysTypeRefs.UpgradePriceServiceReturnTypeRef },
+	get: { data: UpgradePriceServiceDataTypeRef, return: UpgradePriceServiceReturnTypeRef },
 	post: null,
 	put: null,
 	delete: null,
@@ -462,7 +563,7 @@ export const UserGroupKeyRotationService = Object.freeze({
 	app: "sys",
 	name: "UserGroupKeyRotationService",
 	get: null,
-	post: { data: sysTypeRefs.UserGroupKeyRotationPostInTypeRef, return: null },
+	post: { data: UserGroupKeyRotationPostInTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)
@@ -473,14 +574,14 @@ export const UserService = Object.freeze({
 	get: null,
 	post: null,
 	put: null,
-	delete: { data: sysTypeRefs.UserDataDeleteTypeRef, return: null },
+	delete: { data: UserDataDeleteTypeRef, return: null },
 } as const)
 
 export const VerifierTokenService = Object.freeze({
 	app: "sys",
 	name: "VerifierTokenService",
 	get: null,
-	post: { data: sysTypeRefs.VerifierTokenServiceInTypeRef, return: sysTypeRefs.VerifierTokenServiceOutTypeRef },
+	post: { data: VerifierTokenServiceInTypeRef, return: VerifierTokenServiceOutTypeRef },
 	put: null,
 	delete: null,
 } as const)
@@ -488,7 +589,7 @@ export const VerifierTokenService = Object.freeze({
 export const VersionService = Object.freeze({
 	app: "sys",
 	name: "VersionService",
-	get: { data: sysTypeRefs.VersionDataTypeRef, return: sysTypeRefs.VersionReturnTypeRef },
+	get: { data: VersionDataTypeRef, return: VersionReturnTypeRef },
 	post: null,
 	put: null,
 	delete: null,

@@ -471,13 +471,17 @@ pub struct MailBox {
 	#[serde(rename = "1512")]
 	pub importedAttachments: GeneratedId,
 	#[serde(rename = "1585")]
-	pub mailImportStates: GeneratedId,
+	pub importFileMailStates: GeneratedId,
 	#[serde(rename = "1710")]
 	pub extractedFeatures: GeneratedId,
 	#[serde(rename = "1754")]
 	pub clientSpamTrainingData: GeneratedId,
 	#[serde(rename = "1755")]
 	pub modifiedClientSpamTrainingDataIndex: GeneratedId,
+	#[serde(rename = "1942")]
+	pub imapAccountSyncStates: Option<GeneratedId>,
+	#[serde(rename = "1943")]
+	pub deduplicatedImportedAttachments: Option<GeneratedId>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -3616,6 +3620,10 @@ pub struct ImportMailData {
 	pub phishingStatus: i64,
 	#[serde(rename = "1546")]
 	pub compressedHeaders: String,
+	#[serde(rename = "1945")]
+	pub imapModSeq: Option<i64>,
+	#[serde(rename = "1946")]
+	pub imapUid: Option<i64>,
 	#[serde(rename = "1547")]
 	pub references: Vec<ImportMailDataMailReference>,
 	#[serde(rename = "1548")]
@@ -3642,7 +3650,7 @@ impl Entity for ImportMailData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct ImportedMail {
+pub struct ImportedFileMail {
 	#[serde(rename = "1554")]
 	pub _id: Option<IdTupleGenerated>,
 	#[serde(rename = "1555")]
@@ -3655,7 +3663,7 @@ pub struct ImportedMail {
 	pub mailSetEntry: IdTupleCustom,
 }
 
-impl Entity for ImportedMail {
+impl Entity for ImportedFileMail {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
@@ -3666,7 +3674,7 @@ impl Entity for ImportedMail {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct ImportMailState {
+pub struct ImportFileMailState {
 	#[serde(rename = "1561")]
 	pub _id: Option<IdTupleGenerated>,
 	#[serde(rename = "1562")]
@@ -3689,7 +3697,7 @@ pub struct ImportMailState {
 	pub targetFolder: IdTupleGenerated,
 }
 
-impl Entity for ImportMailState {
+impl Entity for ImportFileMailState {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
@@ -3704,9 +3712,11 @@ pub struct ImportMailPostIn {
 	#[serde(rename = "1571")]
 	pub _format: i64,
 	#[serde(rename = "1577")]
-	pub mailState: IdTupleGenerated,
+	pub importFileMailState: Option<IdTupleGenerated>,
 	#[serde(rename = "1578")]
 	pub encImports: Vec<super::sys::StringWrapper>,
+	#[serde(rename = "1944")]
+	pub imapFolderSyncState: Option<IdTupleGenerated>,
 }
 
 impl Entity for ImportMailPostIn {
@@ -3795,7 +3805,7 @@ pub struct ImportMailGetOut {
 	#[serde(rename = "1592")]
 	pub _format: i64,
 	#[serde(rename = "1593")]
-	pub mailState: IdTupleGenerated,
+	pub importFileMailState: IdTupleGenerated,
 }
 
 impl Entity for ImportMailGetOut {
@@ -4351,6 +4361,335 @@ impl Entity for SendDraftParameters {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(1788),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImportImapAccount {
+	#[serde(rename = "1853")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1854")]
+	pub host: String,
+	#[serde(rename = "1855")]
+	pub port: i64,
+	#[serde(rename = "1856")]
+	pub userName: String,
+	#[serde(rename = "1857")]
+	pub password: Option<String>,
+	#[serde(rename = "1858")]
+	pub accessToken: Option<String>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for ImportImapAccount {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1852),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImportedImapMail {
+	#[serde(rename = "1861")]
+	pub _id: Option<IdTupleCustom>,
+	#[serde(rename = "1862")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "1863")]
+	pub _format: i64,
+	#[serde(rename = "1864")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "1865")]
+	pub imapUid: i64,
+	#[serde(rename = "1866")]
+	pub imapModSeq: Option<i64>,
+	#[serde(rename = "1867")]
+	pub messageId: String,
+	#[serde(rename = "1868")]
+	pub mailSetEntry: IdTupleCustom,
+}
+
+impl Entity for ImportedImapMail {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1859),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DeduplicatedImportedAttachment {
+	#[serde(rename = "1871")]
+	pub _id: Option<IdTupleGenerated>,
+	#[serde(rename = "1872")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "1873")]
+	pub _format: i64,
+	#[serde(rename = "1874")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "1875")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "1876")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "1877")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "1878")]
+	pub attachmentHash: String,
+	#[serde(rename = "1879")]
+	pub attachment: IdTupleGenerated,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for DeduplicatedImportedAttachment {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1869),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImportImapFolderSyncState {
+	#[serde(rename = "1882")]
+	pub _id: Option<IdTupleGenerated>,
+	#[serde(rename = "1883")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "1884")]
+	pub _format: i64,
+	#[serde(rename = "1885")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "1886")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "1887")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "1888")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "1889")]
+	pub path: String,
+	#[serde(rename = "1890")]
+	pub uidvalidity: Option<i64>,
+	#[serde(rename = "1891")]
+	pub uidnext: Option<i64>,
+	#[serde(rename = "1892")]
+	pub highestmodseq: Option<i64>,
+	#[serde(rename = "1893")]
+	pub status: i64,
+	#[serde(rename = "1894")]
+	pub importedMails: GeneratedId,
+	#[serde(rename = "1895")]
+	pub mailFolder: IdTupleGenerated,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for ImportImapFolderSyncState {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1880),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImportImapAccountSyncState {
+	#[serde(rename = "1898")]
+	pub _id: Option<IdTupleGenerated>,
+	#[serde(rename = "1899")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "1900")]
+	pub _format: i64,
+	#[serde(rename = "1901")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "1902")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "1903")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "1904")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "1905")]
+	pub maxQuota: i64,
+	#[serde(rename = "1906")]
+	pub postponedUntil: i64,
+	#[serde(rename = "1907")]
+	pub imapFolderSyncStateList: GeneratedId,
+	#[serde(rename = "1908")]
+	pub imapAccount: ImportImapAccount,
+	#[serde(rename = "1909")]
+	pub rootImportMailFolder: Option<IdTupleGenerated>,
+	#[serde(rename = "1910")]
+	pub imapSyncLabel: IdTupleGenerated,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for ImportImapAccountSyncState {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1896),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImportImapFolderPostIn {
+	#[serde(rename = "1912")]
+	pub _format: i64,
+	#[serde(rename = "1913")]
+	#[serde(with = "serde_bytes")]
+	pub ownerEncSessionKey: Vec<u8>,
+	#[serde(rename = "1914")]
+	pub ownerKeyVersion: i64,
+	#[serde(rename = "1915")]
+	pub ownerGroup: GeneratedId,
+	#[serde(rename = "1916")]
+	pub path: String,
+	#[serde(rename = "1917")]
+	pub imapAccountSyncState: IdTupleGenerated,
+	#[serde(rename = "1918")]
+	pub mailFolder: IdTupleGenerated,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for ImportImapFolderPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1911),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImportImapFolderPostOut {
+	#[serde(rename = "1920")]
+	pub _format: i64,
+	#[serde(rename = "1921")]
+	pub imapFolderSyncState: IdTupleGenerated,
+}
+
+impl Entity for ImportImapFolderPostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1919),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImportImapFolderDeleteIn {
+	#[serde(rename = "1923")]
+	pub _format: i64,
+	#[serde(rename = "1924")]
+	pub imapFolderSyncState: IdTupleGenerated,
+}
+
+impl Entity for ImportImapFolderDeleteIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1922),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImportImapPostIn {
+	#[serde(rename = "1927")]
+	pub _format: i64,
+	#[serde(rename = "1928")]
+	#[serde(with = "serde_bytes")]
+	pub ownerEncSessionKey: Vec<u8>,
+	#[serde(rename = "1929")]
+	pub ownerKeyVersion: i64,
+	#[serde(rename = "1930")]
+	pub ownerGroup: GeneratedId,
+	#[serde(rename = "1931")]
+	pub maxQuota: i64,
+	#[serde(rename = "1932")]
+	pub postponedUntil: i64,
+	#[serde(rename = "1933")]
+	pub imapAccount: ImportImapAccount,
+	#[serde(rename = "1934")]
+	pub rootImportMailFolder: Option<IdTupleGenerated>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for ImportImapPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1926),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImportImapPostOut {
+	#[serde(rename = "1936")]
+	pub _format: i64,
+	#[serde(rename = "1937")]
+	pub imapAccountSyncState: IdTupleGenerated,
+}
+
+impl Entity for ImportImapPostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1935),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImportImapDeleteIn {
+	#[serde(rename = "1939")]
+	pub _format: i64,
+	#[serde(rename = "1940")]
+	pub imapAccountSyncState: IdTupleGenerated,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for ImportImapDeleteIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1938),
 		}
 	}
 }

@@ -80,6 +80,7 @@ import { LoginViewModel } from "../../login/LoginViewModel"
 import { DriveFacade } from "../worker/facades/lazy/DriveFacade.js"
 import { TransferProgressDispatcher } from "./TransferProgressDispatcher"
 import { CalendarEventUpdateCoordinator } from "../../../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
+import { ImapImportFacade } from "../../native/common/generatedipc/ImapImportFacade"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -126,6 +127,7 @@ export interface CommonLocator {
 	connectivityModel: WebsocketConnectivityModel
 	identityKeyCreator: IdentityKeyCreator
 	driveFacade: DriveFacade
+	imapImporter: ImapImportFacade
 
 	mailboxModel: MailboxModel
 

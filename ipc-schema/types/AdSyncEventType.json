@@ -1,0 +1,7 @@
+{
+	"name": "AdSyncEventType",
+	"type": "typeref",
+	"location": {
+		"typescript": "../src/common/desktop/imapimport/adsync/AdSyncEventListener.js"
+	}
+}
