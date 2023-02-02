@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2023-03-01T04:42:46Z",
+	"updated_at": "2023-03-10T00:09:33Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -156,6 +156,7 @@ export default {
 		"buyStorageCapacityInfo_msg": "Prosimo, izberite enega od paketov shrambe, da spremenite razpoložljivo kapaciteto shrambe. Rezervirana shramba je skupna vsem uporabnikom.",
 		"buy_action": "Kupi",
 		"by_label": "od",
+		"calendarAlarmsTooBigError_msg": "Novih opomnikov ni bilo mogoče nastaviti. To je najverjetneje posledica prevelikega števila naprav z omogočenimi obvestili. Pojdite v Nastavitve -> E-pošta -> Obvestila in s seznama obvestil odstranite stare naprave.",
 		"calendarInvitationProgress_msg": "Pošiljanje povabil.",
 		"calendarInvitations_label": "Povabila za koledarje",
 		"calendarName_label": "Ime koledarja",

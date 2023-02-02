@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2023-02-27T08:48:08Z",
+	"updated_at": "2023-03-13T10:38:36Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -156,6 +156,7 @@ export default {
 		"buyStorageCapacityInfo_msg": "Zvolte jeden z balíčků pro změnu dostupné kapacity úložiště. Objednané úložiště sdílí všichni uživatelé.",
 		"buy_action": "Zakoupit",
 		"by_label": "od",
+		"calendarAlarmsTooBigError_msg": "Nové upozornění nebylo možné nastavit. Je to pravděpodobně způsobeno příliš velkým množstvím zařízení s povolenými upozorněními. Přejděte prosím do části Nastavení -> E-mail -> Upozornění a odstraňte stará zařízení ze seznamu.",
 		"calendarInvitationProgress_msg": "Pozvánka se odesílá.",
 		"calendarInvitations_label": "Pozvánky kalendáře",
 		"calendarName_label": "Název kalendáře",

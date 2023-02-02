@@ -177,11 +177,20 @@ export function scrollListDom(scrollDom: HTMLElement, entryHeight: number, selec
  * @returns {Children|null}
  */
 export function ifAllowedTutanotaLinks(linkId: InfoLink, render: (arg0: string) => Children): Children | null {
-	if (logins.getUserController().isGlobalAdmin() || !logins.isWhitelabel()) {
+	if (canSeeTutanotaLinks()) {
 		return render(linkId)
 	}
-
 	return null
+}
+
+/**
+ * Check if the user is allowed to see `tutanota.com` links or other major references to Tutanota.
+ *
+ * If the user is on whitelabel and they are not global admin, information like this should not be shown.
+ * @returns true if the user should see tutanota links or false if they should not
+ */
+export function canSeeTutanotaLinks(): boolean {
+	return !logins.isWhitelabel() || logins.getUserController().isGlobalAdmin()
 }
 
 export type MousePosAndBounds = {

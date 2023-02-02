@@ -57,6 +57,10 @@ export async function clearDatabase(storage: OfflineStorage) {
 	await writeModelVersions(storage)
 }
 
+export function deleteInstancesOfType<T extends SomeEntity>(storage: OfflineStorage, type: TypeRef<T>): Promise<void> {
+	return storage.deleteAllOfType(type)
+}
+
 async function writeModelVersions(storage: OfflineStorage) {
 	for (const app of typedKeys(modelInfos)) {
 		const key = `${app}-version` as const

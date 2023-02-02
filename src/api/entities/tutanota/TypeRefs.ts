@@ -1,7 +1,9 @@
 import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef} from "@tutao/tutanota-utils"
 import {typeModels} from "./TypeModels.js"
-import {Blob, BlobReferenceTokenWrapper, BucketKey} from '../sys/TypeRefs.js'
+import {Blob} from '../sys/TypeRefs.js'
+import {BucketKey} from '../sys/TypeRefs.js'
+import {BlobReferenceTokenWrapper} from '../sys/TypeRefs.js'
 
 export const AttachmentKeyDataTypeRef: TypeRef<AttachmentKeyData> = new TypeRef("tutanota", "AttachmentKeyData")
 
@@ -85,8 +87,8 @@ export type CalendarEvent = {
 
 	alarmInfos: IdTuple[];
 	attendees: CalendarEventAttendee[];
-	organizer: null | EncryptedMailAddress;
-	repeatRule: null | CalendarRepeatRule;
+	organizer:  null | EncryptedMailAddress;
+	repeatRule:  null | CalendarRepeatRule;
 }
 export const CalendarEventAttendeeTypeRef: TypeRef<CalendarEventAttendee> = new TypeRef("tutanota", "CalendarEventAttendee")
 
@@ -179,7 +181,7 @@ export type CalendarGroupRoot = {
 	_ownerGroup: null | Id;
 	_permissions: Id;
 
-	index: null | CalendarEventIndexRef;
+	index:  null | CalendarEventIndexRef;
 	longEvents: Id;
 	shortEvents: Id;
 }
@@ -230,9 +232,9 @@ export type Contact = {
 
 	addresses: ContactAddress[];
 	mailAddresses: ContactMailAddress[];
-	oldBirthdayAggregate: null | Birthday;
+	oldBirthdayAggregate:  null | Birthday;
 	phoneNumbers: ContactPhoneNumber[];
-	photo: null | IdTuple;
+	photo:  null | IdTuple;
 	socialIds: ContactSocialId[];
 }
 export const ContactAddressTypeRef: TypeRef<ContactAddress> = new TypeRef("tutanota", "ContactAddress")
@@ -268,7 +270,7 @@ export type ContactForm = {
 	languages: ContactFormLanguage[];
 	participantGroupInfos: IdTuple[];
 	targetGroup: Id;
-	targetGroupInfo: null | IdTuple;
+	targetGroupInfo:  null | IdTuple;
 }
 export const ContactFormAccountDataTypeRef: TypeRef<ContactFormAccountData> = new TypeRef("tutanota", "ContactFormAccountData")
 
@@ -351,7 +353,7 @@ export type ContactList = {
 	_permissions: Id;
 
 	contacts: Id;
-	photos: null | PhotosRef;
+	photos:  null | PhotosRef;
 }
 export const ContactMailAddressTypeRef: TypeRef<ContactMailAddress> = new TypeRef("tutanota", "ContactMailAddress")
 
@@ -411,8 +413,8 @@ export type ConversationEntry = {
 	conversationType: NumberString;
 	messageId: string;
 
-	mail: null | IdTuple;
-	previous: null | IdTuple;
+	mail:  null | IdTuple;
+	previous:  null | IdTuple;
 }
 export const CreateExternalUserGroupDataTypeRef: TypeRef<CreateExternalUserGroupData> = new TypeRef("tutanota", "CreateExternalUserGroupData")
 
@@ -445,7 +447,7 @@ export type CreateFileData = {
 	ownerEncSessionKey: Uint8Array;
 
 	fileData: Id;
-	parentFolder: null | IdTuple;
+	parentFolder:  null | IdTuple;
 }
 export const CreateGroupPostReturnTypeRef: TypeRef<CreateGroupPostReturn> = new TypeRef("tutanota", "CreateGroupPostReturn")
 
@@ -490,7 +492,7 @@ export type CreateMailFolderData = {
 	ownerEncSessionKey: Uint8Array;
 	ownerGroup: null | Id;
 
-	parentFolder: null | IdTuple;
+	parentFolder:  null | IdTuple;
 }
 export const CreateMailFolderReturnTypeRef: TypeRef<CreateMailFolderReturn> = new TypeRef("tutanota", "CreateMailFolderReturn")
 
@@ -561,7 +563,7 @@ export type CustomerContactFormGroupRoot = {
 	_ownerGroup: null | Id;
 	_permissions: Id;
 
-	contactFormConversations: null | DeleteContactFormConversationIndex;
+	contactFormConversations:  null | DeleteContactFormConversationIndex;
 	contactForms: Id;
 }
 export const DataBlockTypeRef: TypeRef<DataBlock> = new TypeRef("tutanota", "DataBlock")
@@ -629,7 +631,7 @@ export type DeleteMailData = {
 
 	_format: NumberString;
 
-	folder: null | IdTuple;
+	folder:  null | IdTuple;
 	mails: IdTuple[];
 }
 export const DeleteMailFolderDataTypeRef: TypeRef<DeleteMailFolderData> = new TypeRef("tutanota", "DeleteMailFolderData")
@@ -658,8 +660,8 @@ export type DraftAttachment = {
 	_id: Id;
 	ownerEncFileSessionKey: Uint8Array;
 
-	existingFile: null | IdTuple;
-	newFile: null | NewDraftAttachment;
+	existingFile:  null | IdTuple;
+	newFile:  null | NewDraftAttachment;
 }
 export const DraftCreateDataTypeRef: TypeRef<DraftCreateData> = new TypeRef("tutanota", "DraftCreateData")
 
@@ -877,9 +879,9 @@ export type File = {
 	size: NumberString;
 
 	blobs: Blob[];
-	data: null | Id;
-	parent: null | IdTuple;
-	subFiles: null | Subfiles;
+	data:  null | Id;
+	parent:  null | IdTuple;
+	subFiles:  null | Subfiles;
 }
 export const FileDataTypeRef: TypeRef<FileData> = new TypeRef("tutanota", "FileData")
 
@@ -1089,7 +1091,7 @@ export type ImapSyncConfiguration = {
 	port: NumberString;
 	user: string;
 
-	imapSyncState: null | Id;
+	imapSyncState:  null | Id;
 }
 export const ImapSyncStateTypeRef: TypeRef<ImapSyncState> = new TypeRef("tutanota", "ImapSyncState")
 
@@ -1137,7 +1139,7 @@ export type InternalGroupData = {
 	ownerEncGroupInfoSessionKey: Uint8Array;
 	publicKey: Uint8Array;
 
-	adminGroup: null | Id;
+	adminGroup:  null | Id;
 }
 export const InternalRecipientKeyDataTypeRef: TypeRef<InternalRecipientKeyData> = new TypeRef("tutanota", "InternalRecipientKeyData")
 
@@ -1232,16 +1234,16 @@ export type Mail = {
 
 	attachments: IdTuple[];
 	bccRecipients: MailAddress[];
-	body: null | Id;
-	bucketKey: null | BucketKey;
+	body:  null | Id;
+	bucketKey:  null | BucketKey;
 	ccRecipients: MailAddress[];
 	conversationEntry: IdTuple;
-	firstRecipient: null | MailAddress;
-	headers: null | Id;
-	mailDetails: null | IdTuple;
-	mailDetailsDraft: null | IdTuple;
+	firstRecipient:  null | MailAddress;
+	headers:  null | Id;
+	mailDetails:  null | IdTuple;
+	mailDetailsDraft:  null | IdTuple;
 	replyTos: EncryptedMailAddress[];
-	restrictions: null | MailRestriction;
+	restrictions:  null | MailRestriction;
 	sender: MailAddress;
 	toRecipients: MailAddress[];
 }
@@ -1258,7 +1260,7 @@ export type MailAddress = {
 	address: string;
 	name: string;
 
-	contact: null | IdTuple;
+	contact:  null | IdTuple;
 }
 export const MailAddressPropertiesTypeRef: TypeRef<MailAddressProperties> = new TypeRef("tutanota", "MailAddressProperties")
 
@@ -1311,12 +1313,12 @@ export type MailBox = {
 	lastInfoDate: Date;
 	symEncShareBucketKey: null | Uint8Array;
 
-	folders: null | MailFolderRef;
-	mailDetailsDrafts: null | MailDetailsDraftsRef;
+	folders:  null | MailFolderRef;
+	mailDetailsDrafts:  null | MailDetailsDraftsRef;
 	mails: Id;
 	receivedAttachments: Id;
 	sentAttachments: Id;
-	spamResults: null | SpamResults;
+	spamResults:  null | SpamResults;
 }
 export const MailDetailsTypeRef: TypeRef<MailDetails> = new TypeRef("tutanota", "MailDetails")
 
@@ -1332,7 +1334,7 @@ export type MailDetails = {
 	sentDate: Date;
 
 	body: Body;
-	headers: null | Header;
+	headers:  null | Header;
 	recipients: Recipients;
 	replyTos: EncryptedMailAddress[];
 }
@@ -1404,7 +1406,7 @@ export type MailFolder = {
 	name: string;
 
 	mails: Id;
-	parentFolder: null | IdTuple;
+	parentFolder:  null | IdTuple;
 	subFolders: Id;
 }
 export const MailFolderRefTypeRef: TypeRef<MailFolderRef> = new TypeRef("tutanota", "MailFolderRef")
@@ -1466,15 +1468,15 @@ export type MailboxGroupRoot = {
 	_ownerGroup: null | Id;
 	_permissions: Id;
 
-	calendarEventUpdates: null | CalendarEventUpdateList;
-	contactFormUserContactForm: null | IdTuple;
+	calendarEventUpdates:  null | CalendarEventUpdateList;
+	contactFormUserContactForm:  null | IdTuple;
 	mailbox: Id;
-	mailboxProperties: null | Id;
-	outOfOfficeNotification: null | Id;
-	outOfOfficeNotificationRecipientList: null | OutOfOfficeNotificationRecipientList;
+	mailboxProperties:  null | Id;
+	outOfOfficeNotification:  null | Id;
+	outOfOfficeNotificationRecipientList:  null | OutOfOfficeNotificationRecipientList;
 	participatingContactForms: IdTuple[];
 	serverProperties: Id;
-	targetMailGroupContactForm: null | IdTuple;
+	targetMailGroupContactForm:  null | IdTuple;
 	whitelistRequests: Id;
 }
 export const MailboxPropertiesTypeRef: TypeRef<MailboxProperties> = new TypeRef("tutanota", "MailboxProperties")
@@ -1539,7 +1541,7 @@ export type NewDraftAttachment = {
 	encFileName: Uint8Array;
 	encMimeType: Uint8Array;
 
-	fileData: null | Id;
+	fileData:  null | Id;
 	referenceTokens: BlobReferenceTokenWrapper[];
 }
 export const NewsIdTypeRef: TypeRef<NewsId> = new TypeRef("tutanota", "NewsId")
@@ -1977,7 +1979,7 @@ export type TutanotaProperties = {
 
 	imapSyncConfig: ImapSyncConfiguration[];
 	inboxRules: InboxRule[];
-	lastPushedMail: null | IdTuple;
+	lastPushedMail:  null | IdTuple;
 }
 export const UpdateMailFolderDataTypeRef: TypeRef<UpdateMailFolderData> = new TypeRef("tutanota", "UpdateMailFolderData")
 
@@ -1991,7 +1993,7 @@ export type UpdateMailFolderData = {
 	_format: NumberString;
 
 	folder: IdTuple;
-	newParent: null | IdTuple;
+	newParent:  null | IdTuple;
 }
 export const UserAccountCreateDataTypeRef: TypeRef<UserAccountCreateData> = new TypeRef("tutanota", "UserAccountCreateData")
 
@@ -2056,7 +2058,7 @@ export type UserAreaGroupData = {
 	groupInfoEncName: Uint8Array;
 	userEncGroupKey: Uint8Array;
 
-	adminGroup: null | Id;
+	adminGroup:  null | Id;
 }
 export const UserAreaGroupDeleteDataTypeRef: TypeRef<UserAreaGroupDeleteData> = new TypeRef("tutanota", "UserAreaGroupDeleteData")
 

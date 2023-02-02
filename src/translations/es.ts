@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2023-02-28T13:06:09Z",
+	"updated_at": "2023-03-09T15:27:03Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -158,6 +158,7 @@ export default {
 		"buyStorageCapacityInfo_msg": "Por favor elige uno de los paquetes disponibles para cambiar la capacidad de almacenamiento. El espacio disponible es compartido por todos los usuarios.",
 		"buy_action": "Comprar",
 		"by_label": "por",
+		"calendarAlarmsTooBigError_msg": "No se han podido configurar los nuevos recordatorios. La causa más probable es que haya demasiados dispositivos con notificaciones activadas. Ve a Ajustes -> Correo electrónico -> Notificaciones para eliminar los dispositivos antiguos de la lista de notificaciones.",
 		"calendarInvitationProgress_msg": "Enviando invitación.",
 		"calendarInvitations_label": "Invitaciones de calendario",
 		"calendarName_label": "Nombre del calendario",

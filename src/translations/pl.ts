@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2023-02-27T20:31:33Z",
+	"updated_at": "2023-03-09T16:24:48Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -160,6 +160,7 @@ export default {
 		"buyStorageCapacityInfo_msg": "Wybierz jeden z pakietów pamięci, aby zmienić pojemność skrzynki. Zarezerwowane miejsce może być współdzielone przez wszystkich użytkowników.",
 		"buy_action": "Kup",
 		"by_label": "od",
+		"calendarAlarmsTooBigError_msg": "Nie udało się skonfigurować nowych przypomnień. Jest to najprawdopodobniej spowodowane posiadaniem zbyt wielu urządzeń z włączonymi powiadomieniami. Przejdź do sekcji: Ustawienia -> Wiadomość e-mail -> Powiadomienia, aby usunąć stare urządzenia z listy powiadomień.",
 		"calendarInvitationProgress_msg": "Wysyłanie zaproszenia",
 		"calendarInvitations_label": "Zaproszenie w kalendarzu",
 		"calendarName_label": "Nazwa kalendarza",

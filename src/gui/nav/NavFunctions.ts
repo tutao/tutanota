@@ -9,10 +9,6 @@ export function showSupportDialog() {
 	import("../../support/SupportDialog.js").then((supportModule) => supportModule.showSupportDialog())
 }
 
-export function writeInviteMail() {
-	import("../../mail/editor/MailEditor.js").then((mailEditorModule) => mailEditorModule.writeInviteMail())
-}
-
 export function isNewMailActionAvailable(): boolean {
 	return logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.ReplyOnly)
 }

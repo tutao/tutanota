@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2023-02-27T13:26:38Z",
+	"updated_at": "2023-03-09T15:06:26Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -154,6 +154,7 @@ export default {
 		"buyStorageCapacityInfo_msg": "Välj ett av paketen med lagringsutrymme för att ändra den tillgängliga lagringskapaciteten. Det bokade lagringsutrymmet delas av alla användare.",
 		"buy_action": "Köp",
 		"by_label": "av",
+		"calendarAlarmsTooBigError_msg": "De nya påminnelserna gick inte att ställa in. Det beror troligen på att det finns för många enheter med aviseringar aktiverade. Gå till Inställningar -> E-post -> Aviseringar för att ta bort gamla enheter från meddelandelistan.",
 		"calendarInvitationProgress_msg": "Skicka inbjudan.",
 		"calendarInvitations_label": "Kalenderinbjudningar",
 		"calendarName_label": "Kalender namn",

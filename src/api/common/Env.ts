@@ -38,16 +38,18 @@ export function getApiOrigin(): string {
 }
 
 /**
- * root used for gift cards and as the webauthn registered domain
+ * root used for gift cards, referral links, and as the webauthn registered domain
  */
 export function getWebRoot(): string {
-	let origin: string
-	if (env.staticUrl) {
-		origin = env.staticUrl
-	} else {
+	if (!env.staticUrl) {
 		return location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")
 	}
-	return origin + (origin.includes("http://") || origin.includes("localhost") || origin.includes("local.tutanota.com") ? "/client/build" : "")
+
+	let origin = env.staticUrl
+	if (origin.startsWith("http://localhost:") || origin.startsWith("https://local.tutanota.com:")) {
+		origin += "/client/build"
+	}
+	return origin
 }
 
 export function getPaymentWebRoot(): string {

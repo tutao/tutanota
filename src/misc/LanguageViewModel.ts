@@ -158,6 +158,7 @@ export const enum InfoLink {
 	Usage = "https://tutanota.com/faq#usage",
 	//blog
 	PremiumProBusiness = "https://tutanota.com/blog/posts/premium-pro-business",
+	ReferralLink = "https://tutanota.com/faq#refer-a-friend",
 }
 
 /**

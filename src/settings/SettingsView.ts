@@ -63,6 +63,7 @@ import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
+import { ReferralSettingsViewer } from "./ReferralSettingsViewer.js"
 
 assertMainOrNode()
 
@@ -233,7 +234,17 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						"invoice",
 						() => new PaymentViewer(),
 						undefined,
-					).setIsVisibleHandler(() => !logins.getUserController().isFreeAccount()),
+					),
+				)
+
+				this._adminFolders.push(
+					new SettingsFolder(
+						"referralSettings_label",
+						() => BootIcons.Share,
+						"referral",
+						() => new ReferralSettingsViewer(),
+						undefined,
+					),
 				)
 			}
 		}

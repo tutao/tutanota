@@ -171,14 +171,22 @@ export function getLoginErrorStateAndMessage(error: Error): { errorMessage: Tran
 	}
 }
 
-export async function showSignupDialog(hashParams: Params) {
-	const subscriptionParams = getSubscriptionParameters(hashParams)
-	const registrationDataId = getRegistrationDataIdFromParams(hashParams)
+export async function showSignupDialog(urlParams: Params) {
+	const subscriptionParams = getSubscriptionParameters(urlParams)
+	const registrationDataId = getRegistrationDataIdFromParams(urlParams)
+	const referralCode = getReferralCodeFromParams(urlParams)
 	await showProgressDialog(
 		"loading_msg",
 		locator.worker.initialized.then(async () => {
 			const { loadSignupWizard } = await import("../subscription/UpgradeSubscriptionWizard")
-			await loadSignupWizard(subscriptionParams, registrationDataId)
+			await loadSignupWizard(subscriptionParams, registrationDataId, referralCode)
+		}),
+	).catch(
+		ofClass(UserError, async (e) => {
+			const m = await import("mithril")
+			await showUserError(e)
+			// redirects if there were invalid parameters, e.g. for referral codes and campaignIds
+			m.route.set("/signup")
 		}),
 	)
 }
@@ -196,11 +204,17 @@ function getSubscriptionParameters(hashParams: Params): SubscriptionParameters |
 	}
 }
 
+export function getReferralCodeFromParams(urlParams: Params): string | null {
+	if (typeof urlParams.ref === "string") {
+		return urlParams.ref
+	}
+	return null
+}
+
 export function getRegistrationDataIdFromParams(hashParams: Params): string | null {
 	if (typeof hashParams.token === "string") {
 		return hashParams.token
 	}
-
 	return null
 }
 

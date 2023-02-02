@@ -2,8 +2,7 @@ import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang } from "../misc/LanguageViewModel"
 import { ButtonAttrs, ButtonType } from "../gui/base/Button.js"
-import type { AccountingInfo, Booking, Customer, CustomerInfo, SwitchAccountTypeData } from "../api/entities/sys/TypeRefs.js"
-import { createSwitchAccountTypeData } from "../api/entities/sys/TypeRefs.js"
+import type { AccountingInfo, Booking, Customer, CustomerInfo, SwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
 import { AccountType, BookingItemFeatureByCode, BookingItemFeatureType, Const, Keys, UnsubscribeFailureReason } from "../api/common/TutanotaConstants"
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
 import stream from "mithril/stream"
@@ -30,6 +29,7 @@ import { BadRequestError, InvalidDataError, PreconditionFailedError } from "../a
 import { FeatureListProvider, getDisplayNameOfSubscriptionType, SubscriptionType } from "./FeatureListProvider"
 import { isSubscriptionDowngrade, PriceAndConfigProvider } from "./PriceUtils"
 import { lazy } from "@tutao/tutanota-utils"
+import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -65,6 +65,7 @@ export async function showSwitchDialog(customer: Customer, customerInfo: Custome
 						paymentInterval: stream(currentSubscriptionInfo.paymentInterval),
 					},
 					campaignInfoTextId: null,
+					referralCodeMsg: null,
 					boxWidth: 230,
 					boxHeight: 270,
 					currentSubscriptionType: currentSubscriptionInfo.subscriptionType,
@@ -165,7 +166,7 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 	}
 }
 
-async function tryDowngradePremiumToFree(switchAccountTypeData: SwitchAccountTypeData, currentSubscriptionInfo: CurrentSubscriptionInfo): Promise<void> {
+async function tryDowngradePremiumToFree(switchAccountTypeData: SwitchAccountTypePostIn, currentSubscriptionInfo: CurrentSubscriptionInfo): Promise<void> {
 	const failed = await cancelAllAdditionalFeatures(SubscriptionType.Free, currentSubscriptionInfo)
 	if (failed) {
 		return
@@ -189,7 +190,7 @@ async function cancelSubscription(dialog: Dialog, currentSubscriptionInfo: Curre
 	if (!(await Dialog.confirm("unsubscribeConfirm_msg"))) {
 		return
 	}
-	const switchAccountTypeData = createSwitchAccountTypeData()
+	const switchAccountTypeData = createSwitchAccountTypePostIn()
 	switchAccountTypeData.accountType = AccountType.FREE
 	switchAccountTypeData.date = Const.CURRENT_DATE
 	try {

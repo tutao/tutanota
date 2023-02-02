@@ -2,7 +2,7 @@ import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang } from "../misc/LanguageViewModel"
 import { formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./PriceUtils"
-import { createSwitchAccountTypeData } from "../api/entities/sys/TypeRefs.js"
+import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
 import { AccountType, Const, PaidSubscriptionType, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
@@ -36,10 +36,11 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 	}
 
 	private upgrade(data: UpgradeSubscriptionData) {
-		const serviceData = createSwitchAccountTypeData({
+		const serviceData = createSwitchAccountTypePostIn({
 			accountType: AccountType.PREMIUM,
 			subscriptionType: this.subscriptionTypeToPaidSubscriptionType(data.type),
 			date: Const.CURRENT_DATE,
+			referralCode: data.referralCode,
 		})
 		showProgressDialog(
 			"pleaseWait_msg",

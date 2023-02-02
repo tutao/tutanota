@@ -190,6 +190,33 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		await this.sqlCipherFacade.run(preparedQuery.query, preparedQuery.params)
 	}
 
+	async deleteAllOfType(typeRef: TypeRef<SomeEntity>): Promise<void> {
+		const type = getTypeId(typeRef)
+		let typeModel: TypeModel
+		try {
+			typeModel = await resolveTypeReference(typeRef)
+		} catch (e) {
+			// prevent failed lookup for BlobToFileMapping - this catch block can be removed after May 2023
+			console.log("couldn't resolve typeRef ", typeRef)
+			return
+		}
+		let preparedQuery
+		switch (typeModel.type) {
+			case TypeId.Element:
+				preparedQuery = sql`DELETE FROM element_entities WHERE type = ${type}`
+				break
+			case TypeId.ListElement:
+				preparedQuery = sql`DELETE FROM list_entities WHERE type = ${type}`
+				break
+			case TypeId.BlobElement:
+				preparedQuery = sql`DELETE FROM blob_element_entities WHERE type = ${type}`
+				break
+			default:
+				throw new Error("must be a persistent type")
+		}
+		await this.sqlCipherFacade.run(preparedQuery.query, preparedQuery.params)
+	}
+
 	async get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<T | null> {
 		const type = getTypeId(typeRef)
 		const typeModel = await resolveTypeReference(typeRef)
