@@ -60,7 +60,7 @@ export class OfflineStorageMigrator {
 	constructor(private readonly migrations: ReadonlyArray<OfflineMigration>, private readonly modelInfos: ModelInfos) {}
 
 	async migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
-		let meta = await storage.dumpMetadata()
+		const meta = await storage.dumpMetadata()
 
 		// We did not write down the "offline" version from the beginning, so we need to figure out if we need to run the migration for the db structure or
 		// not. Previously we've been checking that there's something in the meta table which is a pretty decent check. Unfortunately we had multiple bugs
@@ -74,25 +74,19 @@ export class OfflineStorageMigrator {
 			throw new OutOfSyncError("Invalid DB state, missing model versions")
 		}
 
-		meta = await this.populateModelVersions(meta, storage)
+		const populatedMeta = await this.populateModelVersions(meta, storage)
 
-		if (this.isDbNewerThanCurrentClient(meta)) {
+		if (this.isDbNewerThanCurrentClient(populatedMeta)) {
 			throw new OutOfSyncError(`offline database has newer schema than client`)
 		}
 
-		// Run the migrations
-		for (const { app, version, migrate } of this.migrations) {
-			const storedVersion = meta[`${app}-version`]!
-			if (storedVersion < version) {
-				console.log(`running offline db migration for ${app} from ${storedVersion} to ${version}`)
-				await migrate(storage, sqlCipherFacade)
-				console.log("migration finished")
-				await storage.setStoredModelVersion(app, version)
-			}
-		}
+		await this.runMigrations(meta, storage, sqlCipherFacade)
+		await this.checkStateAfterMigrations(storage)
+	}
 
+	private async checkStateAfterMigrations(storage: OfflineStorage) {
 		// Check that all the necessary migrations have been run, at least to the point where we are compatible.
-		meta = await storage.dumpMetadata()
+		const meta = await storage.dumpMetadata()
 		for (const app of typedKeys(this.modelInfos)) {
 			const compatibleSince = this.modelInfos[app].compatibleSince
 			let metaVersion = meta[`${app}-version`]!
@@ -100,6 +94,18 @@ export class OfflineStorageMigrator {
 				throw new ProgrammingError(
 					`You forgot to migrate your databases! ${app}.version should be >= ${this.modelInfos[app].compatibleSince} but in db it is ${metaVersion}`,
 				)
+			}
+		}
+	}
+
+	private async runMigrations(meta: Partial<OfflineDbMeta>, storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
+		for (const { app, version, migrate } of this.migrations) {
+			const storedVersion = meta[`${app}-version`]!
+			if (storedVersion < version) {
+				console.log(`running offline db migration for ${app} from ${storedVersion} to ${version}`)
+				await migrate(storage, sqlCipherFacade)
+				console.log("migration finished")
+				await storage.setStoredModelVersion(app, version)
 			}
 		}
 	}
