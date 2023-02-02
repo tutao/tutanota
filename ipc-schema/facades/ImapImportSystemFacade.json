@@ -1,0 +1,23 @@
+{
+	"name": "ImapImportSystemFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["desktop"],
+	"doc": "Facade implemented by the native desktop client starting and stopping an IMAP import.",
+	"methods": {
+		"startImport": {
+			"doc": "Start the IMAP import.",
+			"arg": [
+				{
+					"imapSyncState": "ImapSyncState"
+				}
+			],
+			"ret": "void"
+		},
+		"stopImport": {
+			"doc": "Stop a running IMAP import.",
+			"arg": [],
+			"ret": "void"
+		}
+	}
+}

@@ -8,11 +8,14 @@ import { DesktopFacadeSendDispatcher } from "../../native/common/generatedipc/De
 import { CommonNativeFacadeSendDispatcher } from "../../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
 import { DesktopCommonSystemFacade } from "../DesktopCommonSystemFacade.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import { ImapImportFacade } from "../../native/common/generatedipc/ImapImportFacade.js"
+import { ImapImportFacadeSendDispatcher } from "../../native/common/generatedipc/ImapImportFacadeSendDispatcher.js"
 
 export interface SendingFacades {
 	desktopFacade: DesktopFacade
 	commonNativeFacade: CommonNativeFacade
 	interWindowEventSender: InterWindowEventFacadeSendDispatcher
+	imapImportFacade: ImapImportFacade
 }
 
 const primaryIpcConfig: IpcConfig<"to-main", "to-renderer"> = {
@@ -50,6 +53,7 @@ export class RemoteBridge {
 			desktopFacade: new DesktopFacadeSendDispatcher(nativeInterface),
 			commonNativeFacade: new CommonNativeFacadeSendDispatcher(nativeInterface),
 			interWindowEventSender: new InterWindowEventFacadeSendDispatcher(nativeInterface),
+			imapImportFacade: new ImapImportFacadeSendDispatcher(nativeInterface),
 		}
 	}
 

@@ -62,6 +62,10 @@ import { Challenge } from "../entities/sys/TypeRefs.js"
 import { LoginFailReason } from "../main/PageContextLoginListener.js"
 import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
 import { SessionType } from "../common/SessionType.js"
+import { ImportImapFacade } from "./facades/lazy/ImportImapFacade.js"
+import { ImportMailFacade } from "./facades/lazy/ImportMailFacade.js"
+import { ImapImporter } from "./imapimport/ImapImporter.js"
+import { ImapImportSystemFacadeSendDispatcher } from "../../native/common/generatedipc/ImapImportSystemFacadeSendDispatcher.js"
 
 assertWorkerOrNode()
 
@@ -90,6 +94,11 @@ export type WorkerLocatorType = {
 	calendar: lazyAsync<CalendarFacade>
 	counters: lazyAsync<CounterFacade>
 	Const: Record<string, any>
+
+	// IMAP mail import
+	imapImporter: lazyAsync<ImapImporter>
+	importImap: lazyAsync<ImportImapFacade>
+	importMail: lazyAsync<ImportMailFacade>
 
 	// search & indexing
 	indexer: lazyAsync<Indexer>
@@ -322,6 +331,28 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.crypto,
 			mainInterface.infoMessageHandler,
 		)
+	})
+
+	// IMAP mail import
+	locator.importImap = lazyMemoized(async () => {
+		const { ImportImapFacade } = await import("./facades/lazy/ImportImapFacade.js")
+		return new ImportImapFacade(locator.user, await locator.mail(), locator.serviceExecutor, locator.cachingEntityClient)
+	})
+	locator.importMail = lazyMemoized(async () => {
+		const { ImportMailFacade } = await import("./facades/lazy/ImportMailFacade.js")
+		return new ImportMailFacade(
+			locator.user,
+			await locator.mail(),
+			locator.serviceExecutor,
+			locator.cachingEntityClient,
+			await locator.blob(),
+			fileApp,
+			locator.crypto,
+		)
+	})
+	locator.imapImporter = lazyMemoized(async () => {
+		const { ImapImporter } = await import("./imapimport/ImapImporter.js")
+		return new ImapImporter(new ImapImportSystemFacadeSendDispatcher(locator.native), await locator.importImap(), await locator.importMail())
 	})
 
 	locator.mailAddress = lazyMemoized(async () => {

@@ -19,6 +19,7 @@ import { RemoteBridge } from "./ipc/RemoteBridge.js"
 import { InterWindowEventFacadeSendDispatcher } from "../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { handleProtocols } from "./net/ProtocolProxy.js"
 import { OfflineDbManager } from "./db/PerWindowSqlCipherFacade.js"
+import { ImapImportFacade } from "../native/common/generatedipc/ImapImportFacade.js"
 import HandlerDetails = Electron.HandlerDetails
 
 const MINIMUM_WINDOW_SIZE: number = 350
@@ -50,6 +51,7 @@ export class ApplicationWindow {
 	private _desktopFacade!: DesktopFacade
 	private _commonNativeFacade!: CommonNativeFacade
 	private _interWindowEventSender!: InterWindowEventFacadeSendDispatcher
+	private _imapImportFacade!: ImapImportFacade
 
 	_browserWindow!: BrowserWindow
 
@@ -189,11 +191,16 @@ export class ApplicationWindow {
 		return this._interWindowEventSender
 	}
 
+	get imapImportFacade(): ImapImportFacade {
+		return this._imapImportFacade
+	}
+
 	private initFacades() {
 		const sendingFacades = this.remoteBridge.createBridge(this)
 		this._desktopFacade = sendingFacades.desktopFacade
 		this._commonNativeFacade = sendingFacades.commonNativeFacade
 		this._interWindowEventSender = sendingFacades.interWindowEventSender
+		this._imapImportFacade = sendingFacades.imapImportFacade
 	}
 
 	private async loadInitialUrl(noAutoLogin: boolean) {

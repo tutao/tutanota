@@ -68,6 +68,7 @@ import { BackgroundColumnLayout } from "../gui/BackgroundColumnLayout.js"
 import { styles } from "../gui/styles.js"
 import { MobileHeader } from "../gui/MobileHeader.js"
 import { LazySearchBar } from "../misc/LazySearchBar.js"
+import { ImapImportSettingsViewer } from "./imapimport/ImapImportSettingsViewer.js"
 
 assertMainOrNode()
 
@@ -148,6 +149,15 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						})
 						return desktopSettingsViewer
 					},
+					undefined,
+				),
+			)
+			this._userFolders.push(
+				new SettingsFolder(
+					"imapImport_label",
+					() => Icons.Import,
+					"imapImport",
+					() => new ImapImportSettingsViewer(),
 					undefined,
 				),
 			)

@@ -3,7 +3,9 @@
 import { TutanotaError } from "./TutanotaError.js"
 
 export class SuspensionError extends TutanotaError {
-	constructor(message: string) {
+	suspensionTime?: string | null
+
+	constructor(message: string, suspensionTime?: string | null) {
 		super("SuspensionError", message)
 	}
 }

@@ -8,6 +8,8 @@ import { ExportFacade } from "./ExportFacade.js"
 import { ExportFacadeReceiveDispatcher } from "./ExportFacadeReceiveDispatcher.js"
 import { FileFacade } from "./FileFacade.js"
 import { FileFacadeReceiveDispatcher } from "./FileFacadeReceiveDispatcher.js"
+import { ImapImportSystemFacade } from "./ImapImportSystemFacade.js"
+import { ImapImportSystemFacadeReceiveDispatcher } from "./ImapImportSystemFacadeReceiveDispatcher.js"
 import { InterWindowEventFacade } from "./InterWindowEventFacade.js"
 import { InterWindowEventFacadeReceiveDispatcher } from "./InterWindowEventFacadeReceiveDispatcher.js"
 import { NativeCredentialsFacade } from "./NativeCredentialsFacade.js"
@@ -32,6 +34,7 @@ export class DesktopGlobalDispatcher {
 	private readonly desktopSystemFacade: DesktopSystemFacadeReceiveDispatcher
 	private readonly exportFacade: ExportFacadeReceiveDispatcher
 	private readonly fileFacade: FileFacadeReceiveDispatcher
+	private readonly imapImportSystemFacade: ImapImportSystemFacadeReceiveDispatcher
 	private readonly interWindowEventFacade: InterWindowEventFacadeReceiveDispatcher
 	private readonly nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher
 	private readonly nativeCryptoFacade: NativeCryptoFacadeReceiveDispatcher
@@ -46,6 +49,7 @@ export class DesktopGlobalDispatcher {
 		desktopSystemFacade: DesktopSystemFacade,
 		exportFacade: ExportFacade,
 		fileFacade: FileFacade,
+		imapImportSystemFacade: ImapImportSystemFacade,
 		interWindowEventFacade: InterWindowEventFacade,
 		nativeCredentialsFacade: NativeCredentialsFacade,
 		nativeCryptoFacade: NativeCryptoFacade,
@@ -60,6 +64,7 @@ export class DesktopGlobalDispatcher {
 		this.desktopSystemFacade = new DesktopSystemFacadeReceiveDispatcher(desktopSystemFacade)
 		this.exportFacade = new ExportFacadeReceiveDispatcher(exportFacade)
 		this.fileFacade = new FileFacadeReceiveDispatcher(fileFacade)
+		this.imapImportSystemFacade = new ImapImportSystemFacadeReceiveDispatcher(imapImportSystemFacade)
 		this.interWindowEventFacade = new InterWindowEventFacadeReceiveDispatcher(interWindowEventFacade)
 		this.nativeCredentialsFacade = new NativeCredentialsFacadeReceiveDispatcher(nativeCredentialsFacade)
 		this.nativeCryptoFacade = new NativeCryptoFacadeReceiveDispatcher(nativeCryptoFacade)
@@ -81,6 +86,8 @@ export class DesktopGlobalDispatcher {
 				return this.exportFacade.dispatch(methodName, args)
 			case "FileFacade":
 				return this.fileFacade.dispatch(methodName, args)
+			case "ImapImportSystemFacade":
+				return this.imapImportSystemFacade.dispatch(methodName, args)
 			case "InterWindowEventFacade":
 				return this.interWindowEventFacade.dispatch(methodName, args)
 			case "NativeCredentialsFacade":

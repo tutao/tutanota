@@ -58,6 +58,7 @@ import { OfflineDbFactory, OfflineDbManager, PerWindowSqlCipherFacade } from "./
 import { SqlCipherFacade } from "../native/common/generatedipc/SqlCipherFacade.js"
 import { DesktopSqlCipher } from "./DesktopSqlCipher.js"
 import { lazyMemoized } from "@tutao/tutanota-utils"
+import { DesktopImapImportSystemFacade } from "./imapimport/DesktopImapImportSystemFacade.js"
 import dns from "node:dns"
 import { getConfigFile } from "./config/ConfigFile.js"
 
@@ -215,6 +216,7 @@ async function createComponents(): Promise<Components> {
 			new DesktopDesktopSystemFacade(wm, window, sock),
 			new DesktopExportFacade(desktopUtils, conf, window, dragIcons),
 			new DesktopFileFacade(window, dl, electron),
+			new DesktopImapImportSystemFacade(window),
 			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,
 			desktopCrypto,

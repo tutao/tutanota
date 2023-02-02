@@ -125,6 +125,16 @@
 					"info": "AddAssociation CalendarRepeatRule/excludedDates/AGGREGATION/1319."
 				}
 			]
+		},
+		{
+			"version": 62,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "MailboxGroupRoot",
+					"info": "AddAssociation MailboxGroupRoot/imapAccountSyncState/ELEMENT_ASSOCIATION/1454."
+				}
+			]
 		}
 	]
 }

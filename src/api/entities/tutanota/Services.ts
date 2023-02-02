@@ -19,6 +19,14 @@ import {GroupInvitationPostDataTypeRef} from "./TypeRefs.js"
 import {GroupInvitationPostReturnTypeRef} from "./TypeRefs.js"
 import {GroupInvitationPutDataTypeRef} from "./TypeRefs.js"
 import {GroupInvitationDeleteDataTypeRef} from "./TypeRefs.js"
+import {ImportImapFolderPostInTypeRef} from "./TypeRefs.js"
+import {ImportImapFolderPostOutTypeRef} from "./TypeRefs.js"
+import {ImportImapFolderDeleteInTypeRef} from "./TypeRefs.js"
+import {ImportImapPostInTypeRef} from "./TypeRefs.js"
+import {ImportImapPostOutTypeRef} from "./TypeRefs.js"
+import {ImportImapDeleteInTypeRef} from "./TypeRefs.js"
+import {ImportMailPostInTypeRef} from "./TypeRefs.js"
+import {ImportMailPostOutTypeRef} from "./TypeRefs.js"
 import {ListUnsubscribeDataTypeRef} from "./TypeRefs.js"
 import {CreateLocalAdminGroupDataTypeRef} from "./TypeRefs.js"
 import {DeleteGroupDataTypeRef} from "./TypeRefs.js"
@@ -117,6 +125,33 @@ export const GroupInvitationService = Object.freeze({
 	post: {data: GroupInvitationPostDataTypeRef, return: GroupInvitationPostReturnTypeRef},
 	put: {data: GroupInvitationPutDataTypeRef, return: null},
 	delete: {data: GroupInvitationDeleteDataTypeRef, return: null},
+} as const)
+
+export const ImportImapFolderService = Object.freeze({
+	app: "tutanota",
+	name: "ImportImapFolderService",
+	get: null,
+	post: {data: ImportImapFolderPostInTypeRef, return: ImportImapFolderPostOutTypeRef},
+	put: null,
+	delete: {data: ImportImapFolderDeleteInTypeRef, return: null},
+} as const)
+
+export const ImportImapService = Object.freeze({
+	app: "tutanota",
+	name: "ImportImapService",
+	get: null,
+	post: {data: ImportImapPostInTypeRef, return: ImportImapPostOutTypeRef},
+	put: null,
+	delete: {data: ImportImapDeleteInTypeRef, return: null},
+} as const)
+
+export const ImportMailService = Object.freeze({
+	app: "tutanota",
+	name: "ImportMailService",
+	get: null,
+	post: {data: ImportMailPostInTypeRef, return: ImportMailPostOutTypeRef},
+	put: null,
+	delete: null,
 } as const)
 
 export const ListUnsubscribeService = Object.freeze({

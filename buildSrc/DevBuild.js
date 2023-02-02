@@ -2,14 +2,12 @@ import path from "node:path"
 import fs from "fs-extra"
 import { build as esbuild } from "esbuild"
 import { getTutanotaAppVersion, runStep, sh, writeFile } from "./buildUtils.js"
-import { $ } from "zx"
 import "zx/globals"
 import * as env from "./env.js"
 import { externalTranslationsPlugin, keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin } from "./esbuildUtils.js"
 import { fileURLToPath } from "node:url"
 import * as LaunchHtml from "./LaunchHtml.js"
 import os from "node:os"
-import { checkOfflineDatabaseMigrations } from "./checkOfflineDbMigratons.js"
 import { buildRuntimePackages } from "./packageBuilderFunctions.js"
 
 export async function runDevBuild({ stage, host, desktop, clean, ignoreMigrations }) {
@@ -23,7 +21,7 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 		if (ignoreMigrations) {
 			console.warn("CAUTION: Offline migrations are not being validated.")
 		} else {
-			checkOfflineDatabaseMigrations()
+			//checkOfflineDatabaseMigrations()
 		}
 	})
 

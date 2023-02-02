@@ -289,6 +289,7 @@ o.spec("ApplicationWindow Test", function () {
 			interWindowEventSender: object(),
 			desktopFacade: object(),
 			commonNativeFacade: object(),
+			imapImportFacade: object(),
 		}
 		when(remoteBridge.createBridge(anything())).thenReturn(sendingFacades)
 		return {

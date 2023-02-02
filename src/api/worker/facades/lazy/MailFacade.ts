@@ -55,6 +55,7 @@ import {
 	createUpdateMailFolderData,
 	FileTypeRef,
 	MailDetailsDraftTypeRef,
+	MailFolderTypeRef,
 	MailTypeRef,
 	TutanotaPropertiesTypeRef,
 } from "../../../entities/tutanota/TypeRefs.js"
@@ -165,7 +166,7 @@ export class MailFacade {
 		private readonly fileApp: NativeFileApp,
 	) {}
 
-	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
+	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<MailFolder> {
 		const mailGroupKey = this.userFacade.getGroupKey(ownerGroupId)
 
 		const sk = aes128RandomKey()
@@ -175,7 +176,8 @@ export class MailFacade {
 			ownerEncSessionKey: encryptKey(mailGroupKey, sk),
 			ownerGroup: ownerGroupId,
 		})
-		await this.serviceExecutor.post(MailFolderService, newFolder, { sessionKey: sk })
+		const createMailFolderReturn = await this.serviceExecutor.post(MailFolderService, newFolder, { sessionKey: sk })
+		return this.entityClient.load(MailFolderTypeRef, createMailFolderReturn.newFolder)
 	}
 
 	/**
@@ -373,7 +375,7 @@ export class MailFacade {
 	/**
 	 * Uploads the given data files or sets the file if it is already existing files (e.g. forwarded files) and returns all DraftAttachments
 	 */
-	async _createAddedAttachments(
+	private async _createAddedAttachments(
 		providedFiles: Attachments | null,
 		existingFileIds: ReadonlyArray<IdTuple>,
 		senderMailGroupId: Id,
@@ -427,7 +429,7 @@ export class MailFacade {
 			})
 	}
 
-	private createAndEncryptDraftAttachment(
+	createAndEncryptDraftAttachment(
 		referenceTokens: BlobReferenceTokenWrapper[],
 		fileSessionKey: Aes128Key,
 		providedFile: DataFile | FileReference,
@@ -823,14 +825,14 @@ function getUrlDomain(link: string): string | null {
 	return url && url.hostname
 }
 
-function recipientToDraftRecipient(recipient: PartialRecipient): DraftRecipient {
+export function recipientToDraftRecipient(recipient: PartialRecipient): DraftRecipient {
 	return createDraftRecipient({
 		name: recipient.name ?? "",
 		mailAddress: recipient.address,
 	})
 }
 
-function recipientToEncryptedMailAddress(recipient: PartialRecipient): EncryptedMailAddress {
+export function recipientToEncryptedMailAddress(recipient: PartialRecipient): EncryptedMailAddress {
 	return createEncryptedMailAddress({
 		name: recipient.name ?? "",
 		address: recipient.address,

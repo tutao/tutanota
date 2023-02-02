@@ -934,6 +934,29 @@ export function mailMethodToCalendarMethod(mailMethod: MailMethod): CalendarMeth
 	}
 }
 
+export function calendarMethodToMailMethod(calendarMethod: CalendarMethod): MailMethod {
+	switch (calendarMethod) {
+		case CalendarMethod.PUBLISH:
+			return MailMethod.ICAL_PUBLISH
+		case CalendarMethod.REQUEST:
+			return MailMethod.ICAL_REQUEST
+		case CalendarMethod.REPLY:
+			return MailMethod.ICAL_REPLY
+		case CalendarMethod.ADD:
+			return MailMethod.ICAL_ADD
+		case CalendarMethod.CANCEL:
+			return MailMethod.ICAL_CANCEL
+		case CalendarMethod.REFRESH:
+			return MailMethod.ICAL_REFRESH
+		case CalendarMethod.COUNTER:
+			return MailMethod.ICAL_COUNTER
+		case CalendarMethod.DECLINECOUNTER:
+			return MailMethod.ICAL_DECLINECOUNTER
+		default:
+			return MailMethod.NONE
+	}
+}
+
 export function getAsEnumValue<K extends keyof any, V>(enumValues: Record<K, V>, value: string): V | null {
 	for (const key of Object.getOwnPropertyNames(enumValues)) {
 		// @ts-ignore

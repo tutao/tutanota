@@ -41,6 +41,7 @@ import { ExposedEventController } from "../main/EventController.js"
 import { ExposedOperationProgressTracker } from "../main/OperationProgressTracker.js"
 import { WorkerFacade } from "./facades/WorkerFacade.js"
 import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
+import { ImapImporter } from "./imapimport/ImapImporter.js"
 
 assertWorkerOrNode()
 
@@ -64,6 +65,8 @@ export interface WorkerInterface {
 	readonly mailFacade: MailFacade
 	readonly shareFacade: ShareFacade
 	readonly counterFacade: CounterFacade
+
+	readonly imapImporterFacade: ImapImporter
 	readonly indexerFacade: Indexer
 	readonly searchFacade: SearchFacade
 	readonly bookingFacade: BookingFacade
@@ -175,6 +178,10 @@ export class WorkerImpl implements NativeInterface {
 
 			async counterFacade() {
 				return locator.counters()
+			},
+
+			async imapImporterFacade() {
+				return locator.imapImporter()
 			},
 
 			async indexerFacade() {

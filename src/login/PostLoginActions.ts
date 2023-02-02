@@ -140,6 +140,9 @@ export class PostLoginActions implements IPostLoginAction {
 		// Needs to be called after UsageTestModel.init() if the UsageOptInNews is live! (its isShown() requires an initialized UsageTestModel)
 		await locator.newsModel.loadNewsIds()
 
+		// continue IMAP import
+		await locator.imapImporterFacade.continueImport()
+
 		// Redraw to render usage tests and news, among other things that may have changed.
 		m.redraw()
 	}

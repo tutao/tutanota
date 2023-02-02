@@ -1,0 +1,7 @@
+{
+	"name": "ImapMailboxStatus",
+	"type": "typeref",
+	"location": {
+		"typescript": "../src/desktop/imapimport/adsync/imapmail/ImapMailbox.js"
+	}
+}
