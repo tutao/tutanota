@@ -136,7 +136,9 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 			await this.migrator.migrate(this, this.sqlCipherFacade)
 		} catch (e) {
 			if (e instanceof OutOfSyncError) {
+				console.warn("Offline db is out of sync!", e)
 				await this.recreateDbFile(userId, databaseKey)
+				await this.migrator.migrate(this, this.sqlCipherFacade)
 			} else {
 				throw e
 			}

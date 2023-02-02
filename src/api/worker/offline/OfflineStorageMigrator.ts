@@ -1,6 +1,6 @@
 import { OfflineDbMeta, OfflineStorage, VersionMetadataBaseKey } from "./OfflineStorage.js"
-import { ModelInfos } from "../../common/EntityFunctions.js"
-import { groupBy, typedKeys } from "@tutao/tutanota-utils"
+import { modelInfos, ModelInfos } from "../../common/EntityFunctions.js"
+import { assertNotNull, typedEntries, typedKeys } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { sys75 } from "./migrations/sys-v75.js"
 import { sys76 } from "./migrations/sys-v76.js"
@@ -41,6 +41,8 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	storage6,
 ]
 
+const CURRENT_OFFLINE_VERSION = 1
+
 /**
  * Migrator for the offline storage between different versions of model. It is tightly couples to the versions of API entities: every time we make an
  * "incompatible" change to the API model we need to update offline database somehow.
@@ -59,21 +61,20 @@ export class OfflineStorageMigrator {
 
 	async migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
 		let meta = await storage.dumpMetadata()
-		const isNewDb = Object.keys(meta).length === 0
 
-		// Populate model versions if they haven't been written already
-		for (const app of typedKeys(this.modelInfos)) {
-			await this.prepopulateVersionIfNecessary(app, this.modelInfos[app].version, meta, storage)
+		// We did not write down the "offline" version from the beginning, so we need to figure out if we need to run the migration for the db structure or
+		// not. Previously we've been checking that there's something in the meta table which is a pretty decent check. Unfortunately we had multiple bugs
+		// which resulted in a state where we would re-create the offline db but not populate the meta table with the versions, the only thing that would be
+		// written is lastUpdateTime.
+		// {}                                                               -> new db, do not migrate offline
+		// {"base-version": 1, "lastUpdateTime": 123, "offline-version": 1} -> up-to-date db, do not migrate offline
+		// {"lastUpdateTime": 123}                                          -> broken state after the buggy recreation of db, delete the db
+		// {"base-version": 1, "lastUpdateTime": 123}                       -> some very old state where we would actually have to migrate offline
+		if (Object.keys(meta).length === 1 && meta.lastUpdateTime != null) {
+			throw new OutOfSyncError("Invalid DB state, missing model versions")
 		}
 
-		if (isNewDb) {
-			console.log(`new db, setting "offline" version to 1`)
-			// this migration is not necessary for new databases and we want our canonical table definitions to represent the current state
-			await this.prepopulateVersionIfNecessary("offline", 1, meta, storage)
-		} else {
-			// we need to put 0 in because we expect all versions to be popylated
-			await this.prepopulateVersionIfNecessary("offline", 0, meta, storage)
-		}
+		meta = await this.populateModelVersions(meta, storage)
 
 		if (this.isDbNewerThanCurrentClient(meta)) {
 			throw new OutOfSyncError(`offline database has newer schema than client`)
@@ -103,8 +104,33 @@ export class OfflineStorageMigrator {
 		}
 	}
 
+	private async populateModelVersions(meta: Readonly<Partial<OfflineDbMeta>>, storage: OfflineStorage): Promise<Partial<OfflineDbMeta>> {
+		// We did not write down the "offline" version from the beginning, so we need to figure out if we need to run the migration for the db structure or
+		// not. New DB will have up-to-date table definition but no metadata keys.
+		const isNewDb = Object.keys(meta).length === 0
+
+		// copy metadata because it's going to be mutated
+		const newMeta = { ...meta }
+		// Populate model versions if they haven't been written already
+		for (const app of typedKeys(this.modelInfos)) {
+			await this.prepopulateVersionIfNecessary(app, this.modelInfos[app].version, newMeta, storage)
+		}
+
+		if (isNewDb) {
+			console.log(`new db, setting "offline" version to ${CURRENT_OFFLINE_VERSION}`)
+			// this migration is not necessary for new databases and we want our canonical table definitions to represent the current state
+			await this.prepopulateVersionIfNecessary("offline", CURRENT_OFFLINE_VERSION, newMeta, storage)
+		} else {
+			// we need to put 0 in because we expect all versions to be populated
+			await this.prepopulateVersionIfNecessary("offline", 0, newMeta, storage)
+		}
+		return newMeta
+	}
+
 	/**
 	 * update the metadata table to initialize the row of the app with the given model version
+	 *
+	 * NB: mutates meta
 	 */
 	private async prepopulateVersionIfNecessary(app: VersionMetadataBaseKey, version: number, meta: Partial<OfflineDbMeta>, storage: OfflineStorage) {
 		const key = `${app}-version` as const
@@ -124,25 +150,13 @@ export class OfflineStorageMigrator {
 	 * @returns true if the database we're supposed to migrate has any higher model versions than our highest migration for that model, false otherwise
 	 */
 	private isDbNewerThanCurrentClient(meta: Partial<OfflineDbMeta>): boolean {
-		const migrationsByApp = groupBy(this.migrations, (m) => m.app)
-		const maxVersionsByApp = new Map<VersionMetadataBaseKey, number>()
-		for (const [app, migrations] of migrationsByApp) {
-			if (migrations.length === 0) {
-				maxVersionsByApp.set(app, -Infinity)
-				continue
-			}
-			const versions = migrations.map((m) => m.version)
-			const maxForApp = versions.reduce((acc, curr) => (curr > acc ? curr : acc), migrations[0].version)
-			maxVersionsByApp.set(app, maxForApp)
-		}
-
-		for (const [app, maxVersion] of maxVersionsByApp) {
+		for (const [app, { version }] of typedEntries(this.modelInfos)) {
 			const storedVersion = meta[`${app}-version`]!
-			if (storedVersion > maxVersion) {
+			if (storedVersion > version) {
 				return true
 			}
 		}
 
-		return false
+		return assertNotNull(meta[`offline-version`]) > CURRENT_OFFLINE_VERSION
 	}
 }

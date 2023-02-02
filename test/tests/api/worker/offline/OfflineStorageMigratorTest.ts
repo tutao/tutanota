@@ -99,12 +99,13 @@ o.spec("OfflineStorageMigrator", async function () {
 		verify(storage.setStoredModelVersion("tutanota", matchers.anything()), { times: 0 })
 	})
 
-	o("when migration exists and it the version is compatible the migration is not run", async function () {
-		// stored is older than current so we actually "migrate" something
-		when(storage.dumpMetadata()).thenResolve({ "tutanota-version": 41 })
+	o("when the stored version is newer than the runtime version throw OutOfSyncError", async function () {
+		// stored is new than the current
+		const currentModelVersion = modelInfos.tutanota.version
+		when(storage.dumpMetadata()).thenResolve({ "tutanota-version": currentModelVersion + 1 })
 		const migration: OfflineMigration = {
 			app: "tutanota",
-			version: 40,
+			version: modelInfos.tutanota.compatibleSince,
 			migrate: func() as OfflineMigration["migrate"],
 		}
 		migrations.push(migration)
