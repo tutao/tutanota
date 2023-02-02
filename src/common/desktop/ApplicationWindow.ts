@@ -19,6 +19,7 @@ import { InterWindowEventFacadeSendDispatcher } from "../native/common/generated
 import { handleProtocols } from "./net/ProtocolProxy.js"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade"
 import { CalendarOpenAction } from "../native/common/generatedipc/CalendarOpenAction.js"
+import { ImapImportFacade } from "../native/common/generatedipc/ImapImportFacade.js"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 export type UserInfo = {
@@ -52,6 +53,7 @@ export class ApplicationWindow {
 	private _interWindowEventSender!: InterWindowEventFacadeSendDispatcher
 	private _desktopMailImportFacade!: DesktopMailImportFacade
 	private windowCleanup!: WindowCleanup
+	private _imapImportFacade!: ImapImportFacade
 
 	_browserWindow!: BrowserWindow
 
@@ -244,12 +246,17 @@ export class ApplicationWindow {
 		})
 	}
 
+	get imapImportFacade(): ImapImportFacade {
+		return this._imapImportFacade
+	}
+
 	private initFacades() {
 		const sendingFacades = this.remoteBridge.createBridge(this)
 		this._desktopFacade = sendingFacades.desktopFacade
 		this._commonNativeFacade = sendingFacades.commonNativeFacade
 		this._interWindowEventSender = sendingFacades.interWindowEventSender
 		this.windowCleanup = sendingFacades.windowCleanup
+		this._imapImportFacade = sendingFacades.imapImportFacade
 	}
 
 	private async loadInitialUrl(noAutoLogin: boolean) {

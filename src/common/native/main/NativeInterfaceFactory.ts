@@ -41,6 +41,7 @@ import { ExternalCalendarFacadeSendDispatcher } from "../common/generatedipc/Ext
 import { NativeMailImportFacadeSendDispatcher } from "../common/generatedipc/NativeMailImportFacadeSendDispatcher"
 import { NativeMailImportFacade } from "../common/generatedipc/NativeMailImportFacade"
 import { ExportFacade } from "../common/generatedipc/ExportFacade.js"
+import { ImapImportFacade } from "../common/generatedipc/ImapImportFacade.js"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -71,6 +72,7 @@ export type DesktopInterfaces = {
 export function createNativeInterfaces(
 	mobileFacade: WebMobileFacade,
 	desktopFacade: DesktopFacade,
+	imapImportFacade: ImapImportFacade,
 	interWindowEventFacade: InterWindowEventFacade,
 	commonNativeFacade: CommonNativeFacade,
 	cryptoFacade: CryptoFacade,
@@ -83,7 +85,7 @@ export function createNativeInterfaces(
 		throw new ProgrammingError("Tried to make native interfaces in non-native")
 	}
 
-	const dispatcher = new WebGlobalDispatcher(commonNativeFacade, desktopFacade, interWindowEventFacade, mobileFacade)
+	const dispatcher = new WebGlobalDispatcher(commonNativeFacade, desktopFacade, imapImportFacade, interWindowEventFacade, mobileFacade)
 	const native = new NativeInterfaceMain(dispatcher)
 	const nativePushFacadeSendDispatcher = new NativePushFacadeSendDispatcher(native)
 	const pushService = new NativePushServiceApp(nativePushFacadeSendDispatcher, logins, cryptoFacade, entityClient, deviceConfig, calendarFacade, app)

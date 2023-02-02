@@ -1,0 +1,69 @@
+{
+	"name": "ImapImportFacade",
+	"type": "facade",
+	"senders": ["desktop"],
+	"receivers": ["web"],
+	"doc": "Facade implemented by the web worker, receiving IMAP import events.",
+	"methods": {
+		"onMailbox": {
+			"doc": "onMailbox IMAP import event.",
+			"arg": [
+				{
+					"imapMailbox": "ImapMailbox"
+				},
+				{
+					"eventType": "AdSyncEventType"
+				}
+			],
+			"ret": "void"
+		},
+		"onMailboxStatus": {
+			"doc": "onMailboxStatus IMAP import event.",
+			"arg": [
+				{
+					"imapMailboxStatus": "ImapMailboxStatus"
+				}
+			],
+			"ret": "void"
+		},
+		"onMail": {
+			"doc": "onMail IMAP import event.",
+			"arg": [
+				{
+					"imapMail": "ImapMail"
+				},
+				{
+					"eventType": "AdSyncEventType"
+				}
+			],
+			"ret": "void"
+		},
+		"onPostpone": {
+			"doc": "onPostpone IMAP import event.",
+			"arg": [
+				{
+					"postponedUntil": "Date"
+				}
+			],
+			"ret": "void"
+		},
+		"onFinish": {
+			"doc": "onFinish IMAP import event.",
+			"arg": [
+				{
+					"downloadedQuota": "number"
+				}
+			],
+			"ret": "void"
+		},
+		"onError": {
+			"doc": "onError IMAP import event.",
+			"arg": [
+				{
+					"imapError": "ImapError"
+				}
+			],
+			"ret": "void"
+		}
+	}
+}

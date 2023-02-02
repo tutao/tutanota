@@ -1,0 +1,7 @@
+{
+	"name": "ImapError",
+	"type": "typeref",
+	"location": {
+		"typescript": "../src/desktop/imapimport/adsync/imapmail/ImapError.js"
+	}
+}

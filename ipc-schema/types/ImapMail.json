@@ -1,0 +1,7 @@
+{
+	"name": "ImapMail",
+	"type": "typeref",
+	"location": {
+		"typescript": "../src/desktop/imapimport/adsync/imapmail/ImapMail.js"
+	}
+}
