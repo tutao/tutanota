@@ -1590,6 +1590,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
+		"requestTimeout_msg": "An operation took too long due to a slow internet connection. Please try again at a later time.",
 		"sendLogs_action": "Send Logs",
 		"sendLogsInfo_msg": "Attach the log files to the error report. Click below to display the contents."
 	}
