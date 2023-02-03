@@ -1703,7 +1703,7 @@ export const typeModels = {
         },
         "associations": {
             "bucketEncSessionKeys": {
-                "final": false,
+                "final": true,
                 "name": "bucketEncSessionKeys",
                 "id": 2048,
                 "since": 82,

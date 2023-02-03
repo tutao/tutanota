@@ -55,6 +55,11 @@
 			"version": 83,
 			"changes": [
 				{
+					"name": "ChangeAttributeFinalFlag",
+					"sourceType": "BucketKey",
+					"info": "ChangeAttributeFinalTag BucketKey/bucketEncSessionKeys/true."
+				},
+				{
 					"name": "RenameAttribute",
 					"sourceType": "BucketKey",
 					"info": "RenameAttribute BucketKey: pubKeyGroup -> keyGroup."

@@ -105,6 +105,11 @@
 			"version": 60,
 			"changes": [
 				{
+					"name": "ChangeAttributeFinalFlag",
+					"sourceType": "Mail",
+					"info": "ChangeAttributeFinalTag Mail/bucketKey/true."
+				},
+				{
 					"name": "AddAssociation",
 					"sourceType": "MailBox",
 					"info": "AddAssociation MailBox/mailDetailsDrafts/AGGREGATION/1318."
