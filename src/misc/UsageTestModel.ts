@@ -194,6 +194,15 @@ export class UsageTestModel implements PingAdapter {
 		}
 	}
 
+	/**
+	 * only for usage from the console. may have unintended consequences when used too early or too late.
+	 * @param test the name of the test to change the variant on
+	 * @param variant the number of the variant to use from here on
+	 */
+	private setVariant(test: string, variant: number) {
+		this.usageTestController().getTest(test).variant = variant
+	}
+
 	private async updateCustomerProperties() {
 		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(this.loginController.getUserController().user.customer))
 		this.customerProperties = await this.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))
