@@ -19,7 +19,7 @@ export class FolderSystem {
 
 		const [systemFolders, customFolders] = partition(topLevelFolders, (f) => f.folderType !== MailFolderType.CUSTOM)
 
-		this.systemSubtrees = systemFolders.sort(compareSystem).map((f) => this.makeSubtree(folderByParent, f, compareSystem))
+		this.systemSubtrees = systemFolders.sort(compareSystem).map((f) => this.makeSubtree(folderByParent, f, compareCustom))
 		this.customSubtrees = customFolders.sort(compareCustom).map((f) => this.makeSubtree(folderByParent, f, compareCustom))
 	}
 
