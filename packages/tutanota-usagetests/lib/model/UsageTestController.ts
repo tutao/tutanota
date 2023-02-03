@@ -48,4 +48,12 @@ export class UsageTestController {
 		console.log(`Test '${testIdOrName}' not found, using obsolete...`)
 		return this.obsoleteUsageTest
 	}
+
+	/**
+	 * some components are used in multiple places, but only want to do a test in one of them.
+	 * use this to get a test that always renders variant 0 and doesn't send pings.
+	 */
+	getObsoleteTest(): UsageTest {
+		return this.obsoleteUsageTest
+	}
 }

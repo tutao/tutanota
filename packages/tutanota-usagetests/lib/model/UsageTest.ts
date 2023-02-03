@@ -25,7 +25,7 @@ export class UsageTest {
 	public recordTime = false
 	private lastPingDate?: Date
 
-	constructor(readonly testId: string, readonly testName: string, readonly variant: number, public active: boolean) {}
+	constructor(readonly testId: string, readonly testName: string, public variant: number, public active: boolean) {}
 
 	/**
 	Tries to restart the test (by sending stage 0) regardless of the allowEarlyRestarts setting
