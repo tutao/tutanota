@@ -11,6 +11,7 @@ import { isValidCreditCardNumber } from "../misc/FormatValidator.js"
 
 export type OldCreditCardAttrs = {
 	viewModel: OldCreditCardViewModel
+	startTest: () => void
 }
 
 export class OldCreditCardViewModel implements CCViewModel {
@@ -146,28 +147,33 @@ export class OldCreditCardViewModel implements CCViewModel {
 
 export class CreditCardInput implements Component<OldCreditCardAttrs> {
 	view(vnode: Vnode<OldCreditCardAttrs>): Children {
-		let { viewModel } = vnode.attrs
+		let { viewModel, startTest } = vnode.attrs
+
 		return [
 			m(TextField, {
 				label: "creditCardNumber_label",
 				value: viewModel.creditCardNumber(),
 				oninput: viewModel.creditCardNumber,
+				onfocus: () => startTest(),
 			}),
 			m(TextField, {
 				label: "creditCardCardHolderName_label",
 				value: viewModel.cardHolderName(),
 				oninput: viewModel.cardHolderName,
+				onfocus: () => startTest(),
 			}),
 			m(TextField, {
 				label: "creditCardCVV_label",
 				value: viewModel.cvv(),
 				oninput: viewModel.cvv,
+				onfocus: () => startTest(),
 			}),
 			m(TextField, {
 				label: "creditCardExpirationDate_label",
 				helpLabel: () => lang.get("creditCardExpirationDateFormat_msg"),
 				value: viewModel.expirationDate(),
 				oninput: viewModel.expirationDate,
+				onfocus: () => startTest(),
 			}),
 		]
 	}

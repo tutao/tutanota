@@ -13,6 +13,8 @@ export class UsageTest {
 	private readonly stages: Map<number, Stage> = new Map<number, Stage>()
 	pingAdapter?: PingAdapter
 	public lastCompletedStage = 0
+	// storage for data that is aggregated across stages and sent at some point
+	public meta: Record<string, any> = {}
 
 	/**
 	 * Enabling this makes it possible to restart a test even if the last stage has not been sent.
@@ -85,6 +87,8 @@ export class UsageTest {
 			console.log(`Not sending ping for stage (${stage.number}) of test '${this.testId}' because maxPings=${stage.maxPings} has been reached`)
 			return false
 		} else if (!forceRestart && !this.allowEarlyRestarts && this.isStarted() && stage.number === 0 && this.lastCompletedStage !== this.stages.size - 1) {
+			// we were not configured to restart and got a complete() for the first stage and have not finished the test yet
+			// -> this would be a restart in the middle of the test
 			console.log(`Cannot restart test '${this.testName}' because allowEarlyRestarts=false and the final stage has not been reached`)
 			return false
 		} else if (stage.number < this.lastCompletedStage && stage.number !== 0) {

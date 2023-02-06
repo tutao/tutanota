@@ -7,6 +7,7 @@ import { CreditCard } from "../api/entities/sys/TypeRefs.js"
 
 export type SimplifiedCreditCardAttrs = {
 	viewModel: SimplifiedCreditCardViewModel
+	startTest: () => void
 }
 
 export interface CCViewModel {
@@ -37,7 +38,8 @@ export class SimplifiedCreditCardInput implements Component<SimplifiedCreditCard
 	expDateDom: HTMLInputElement | null = null
 
 	view(vnode: Vnode<SimplifiedCreditCardAttrs>): Children {
-		let { viewModel } = vnode.attrs
+		let { viewModel, startTest } = vnode.attrs
+
 		return [
 			m(TextField, {
 				label: "creditCardNumber_label",
@@ -47,6 +49,7 @@ export class SimplifiedCreditCardInput implements Component<SimplifiedCreditCard
 					viewModel.creditCardNumber = newValue
 					restoreSelection(this.ccNumberDom!)
 				},
+				onfocus: () => startTest(),
 				onblur: () => (this.numberFieldLeft = true),
 				autocompleteAs: Autocomplete.ccNumber,
 				onDomInputCreated: (dom) => (this.ccNumberDom = dom),
@@ -57,6 +60,7 @@ export class SimplifiedCreditCardInput implements Component<SimplifiedCreditCard
 				// we only show the hint if the field is not empty and not selected to avoid showing errors while the user is typing.
 				helpLabel: () => (this.dateFieldLeft ? lang.get(viewModel.getExpirationDateErrorHint() ?? "emptyString_msg") : lang.get("emptyString_msg")),
 				onblur: () => (this.dateFieldLeft = true),
+				onfocus: () => startTest(),
 				oninput: (newValue) => {
 					viewModel.expirationDate = newValue
 					restoreSelection(this.expDateDom!)
@@ -70,6 +74,7 @@ export class SimplifiedCreditCardInput implements Component<SimplifiedCreditCard
 				helpLabel: () => this.renderCvvNumberHelpLabel(viewModel),
 				oninput: (newValue) => (viewModel.cvv = newValue),
 				onblur: () => (this.cvvFieldLeft = true),
+				onfocus: () => startTest(),
 				autocompleteAs: Autocomplete.ccCsc,
 			}),
 		]

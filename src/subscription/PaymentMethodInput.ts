@@ -34,7 +34,6 @@ export class PaymentMethodInput {
 	_accountingInfo: AccountingInfo
 	_entityEventListener: EntityEventsListener
 	private __paymentPaypalTest?: UsageTest
-	private __paymentCreditTest?: UsageTest
 
 	constructor(
 		subscriptionOptions: SelectedSubscriptionOptions,
@@ -56,7 +55,6 @@ export class PaymentMethodInput {
 			accountingInfo: this._accountingInfo,
 		}
 		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
-		this.__paymentCreditTest = locator.usageTestController.getTest("payment.credit")
 
 		this._entityEventListener = (updates) => {
 			return promiseMap(updates, (update) => {
@@ -115,11 +113,17 @@ export class PaymentMethodInput {
 			return m(PaypalInput, this._payPalAttrs)
 		} else {
 			return this.ccFormTest.renderVariant<Vnode<{ viewModel: CCViewModel }>>({
-				[0]: () => m(CreditCardInput, { viewModel: this.ccViewModel as OldCreditCardViewModel }),
-				[1]: () => m(CreditCardInput, { viewModel: this.ccViewModel as OldCreditCardViewModel }),
-				[2]: () => m(SimplifiedCreditCardInput, { viewModel: this.ccViewModel as SimplifiedCreditCardViewModel }),
+				[0]: () => m(CreditCardInput, { viewModel: this.ccViewModel as OldCreditCardViewModel, startTest: () => this.startCCTest() }),
+				[1]: () => m(CreditCardInput, { viewModel: this.ccViewModel as OldCreditCardViewModel, startTest: () => this.startCCTest() }),
+				[2]: () => m(SimplifiedCreditCardInput, { viewModel: this.ccViewModel as SimplifiedCreditCardViewModel, startTest: () => this.startCCTest() }),
 			})
 		}
+	}
+
+	private startCCTest() {
+		if (this.ccFormTest.lastCompletedStage > 0) return
+		this.ccFormTest.getStage(1).complete()
+		this.ccFormTest.meta["ccTestStartTime"] = Date.now() / 1000
 	}
 
 	isOnAccountAllowed(): boolean {
@@ -152,7 +156,10 @@ export class PaymentMethodInput {
 		} else if (this._selectedPaymentMethod === PaymentMethodType.Paypal) {
 			return isPaypalAssigned(this._accountingInfo) ? null : "paymentDataPayPalLogin_msg"
 		} else if (this._selectedPaymentMethod === PaymentMethodType.CreditCard) {
-			return this.ccViewModel.validateCreditCardPaymentData(this.__paymentCreditTest?.getStage(1))
+			// with the new test it's possible to evade stage1.complete by not selecting any input field
+			// and immediately trying to validate an empty form.
+			this.startCCTest()
+			return this.ccViewModel.validateCreditCardPaymentData(this.ccFormTest?.getStage(2))
 		} else {
 			return null
 		}
@@ -166,18 +173,19 @@ export class PaymentMethodInput {
 				this.ccViewModel.setCreditCardData(paymentData.creditCardData)
 			}
 
-			if (this.__paymentPaypalTest && this.__paymentCreditTest) {
+			if (this.__paymentPaypalTest && this.ccFormTest) {
 				this.__paymentPaypalTest.active = false
-				this.__paymentCreditTest.active = true
+				this.ccFormTest.active = true
 			}
 
-			this.__paymentCreditTest?.getStage(0).complete()
+			// this is a dummy stage to circumvent the restart test that's attached to stage 0
+			this.ccFormTest?.getStage(0).complete()
 		} else if (value === PaymentMethodType.Paypal) {
 			this._payPalAttrs.payPalRequestUrl.getAsync().then(() => m.redraw())
 
-			if (this.__paymentPaypalTest && this.__paymentCreditTest) {
+			if (this.__paymentPaypalTest && this.ccFormTest) {
 				this.__paymentPaypalTest.active = true
-				this.__paymentCreditTest.active = false
+				this.ccFormTest.active = false
 			}
 
 			this.__paymentPaypalTest?.getStage(0).complete()

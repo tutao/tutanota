@@ -42,12 +42,12 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 	private dom!: HTMLElement
 	private __signupPaidTest?: UsageTest
 	private __paymentPaypalTest?: UsageTest
-	private __paymentCreditTest?: UsageTest
+	private __paymentCreditTest: UsageTest
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
 		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
-		this.__paymentCreditTest = locator.usageTestController.getTest("payment.credit")
+		this.__paymentCreditTest = locator.usageTestController.getTest("payment.credit2")
 		this.__paymentCreditTest.recordTime = true
 
 		this._upgradeData = upgradeData
@@ -111,7 +111,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 					this._invoiceDataInput.selectedCountry,
 					neverNull(data.accountingInfo),
 					payPalRequestUrl,
-					locator.usageTestController.getTest("payment.credit2"),
+					this.__paymentCreditTest,
 				)
 				this._availablePaymentMethods = this._paymentMethodInput.getVisiblePaymentMethods()
 
@@ -132,6 +132,15 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 			if (error) {
 				return Dialog.message(error).then(() => null)
 			} else {
+				const elapsedSeconds = (Date.now() / 1000 - this.__paymentCreditTest.meta["ccTestStartTime"]) as number
+				this.__paymentCreditTest.getStage(3).setMetric({
+					name: "secondsPassedSinceStart",
+					value: elapsedSeconds.toString(),
+				})
+				this.__paymentCreditTest
+					.getStage(3)
+					.complete()
+					.catch((e) => console.log("failed to send ping, ignoring.", e))
 				a.data.invoiceData = invoiceDataInput.getInvoiceData()
 				a.data.paymentData = paymentMethodInput.getPaymentData()
 				showProgressDialog(
@@ -362,20 +371,20 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 				exec: closeAction,
 				help: "close_alt",
 			})
-		const test = locator.usageTestController.getTest("payment.credit")
+		const test = locator.usageTestController.getTest("payment.credit2")
 		let entityEventListener: EntityEventsListener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => {
 			return promiseMap(updates, (update) => {
 				if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
 					return locator.entityClient.load(InvoiceInfoTypeRef, update.instanceId).then((invoiceInfo) => {
 						invoiceInfoWrapper.invoiceInfo = invoiceInfo
-						const stage = test.getStage(3)
+						const stage = test.getStage(4)
 						if (!invoiceInfo.paymentErrorInfo) {
 							// user successfully verified the card
 							stage.setMetric({
 								name: "validationFailure",
 								value: "none",
 							})
-							stage.complete().then(() => test.getStage(4).complete())
+							stage.complete().then(() => test.getStage(5).complete())
 							progressDialog.close()
 							resolve(true)
 						} else if (invoiceInfo.paymentErrorInfo && invoiceInfo.paymentErrorInfo.errorCode === "card.3ds2_pending") {
