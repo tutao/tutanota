@@ -366,13 +366,13 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 			this.viewModel.showLoginForm()
 		}
 
-		this.viewModel.mailAddress(args.loginWith ?? "")
-
-		this.viewModel.password("")
-
 		// We want to focus password field if login field is already filled in
 		if (args.loginWith) {
 			this.loginForm.promise.then((loginForm: LoginForm) => {
+				loginForm.mailAddressTextField.value = ""
+				loginForm.passwordTextField.value = ""
+				this.viewModel.mailAddress(args.loginWith ?? "")
+				this.viewModel.password("")
 				loginForm.passwordTextField.focus()
 			})
 		}
