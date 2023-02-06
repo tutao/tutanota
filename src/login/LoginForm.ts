@@ -40,7 +40,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 				const newPassword = this.passwordTextField.value
 				// only update values when they are different or we get stuck in an infinite loop
 				if (oldAddress !== newAddress && newAddress != "") a.mailAddress(newAddress)
-				if (oldPassword !== newPassword) a.password(newPassword)
+				if (oldPassword !== newPassword && newPassword != "") a.password(newPassword)
 			})
 		}, [a.mailAddress, a.password])
 	}
