@@ -15,7 +15,7 @@ import { storage6 } from "./migrations/storage-v6.js"
 import { tutanota57 } from "./migrations/tutanota-v57.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sys83 } from "./migrations/sys-v83.js"
-import {tutanota60} from "./migrations/tutanota-v60.js"
+import { tutanota60 } from "./migrations/tutanota-v60.js"
 
 export interface OfflineMigration {
 	readonly app: VersionMetadataBaseKey
