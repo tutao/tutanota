@@ -8,6 +8,8 @@ import { SuspensionError } from "../../common/error/SuspensionError.js"
 
 assertWorkerOrNode()
 
+const TAG = "[RestClient]"
+
 interface ProgressListener {
 	upload(percent: number): void
 
@@ -88,7 +90,7 @@ export class RestClient {
 						timeoutId: 0 as TimeoutID,
 						abortFunction: () => {
 							if (this.usingTimeoutAbort()) {
-								console.log(`${this.id}: ${String(new Date())} aborting ` + String(res.timeoutId))
+								console.log(TAG, `${this.id}: ${String(new Date())} aborting ` + String(res.timeoutId))
 								xhr.abort()
 							}
 						},
@@ -101,13 +103,13 @@ export class RestClient {
 				t.timeoutId = timeout
 
 				if (verbose) {
-					console.log(`${this.id}: set initial timeout ${String(timeout)} of ${env.timeout}`)
+					console.log(TAG, `${this.id}: set initial timeout ${String(timeout)} of ${env.timeout}`)
 				}
 
 				xhr.onload = () => {
 					// XMLHttpRequestProgressEvent, but not needed
 					if (verbose) {
-						console.log(`${this.id}: ${String(new Date())} finished request. Clearing Timeout ${String(timeout)}.`)
+						console.log(TAG, `${this.id}: ${String(new Date())} finished request. Clearing Timeout ${String(timeout)}.`)
 					}
 
 					clearTimeout(timeout)
@@ -132,7 +134,7 @@ export class RestClient {
 
 							resolve(this.suspensionHandler.deferRequest(() => this.request(path, method, options)))
 						} else {
-							console.log("failed request", method, url.toString(), xhr.status, xhr.statusText, options.headers, options.body)
+							logFailedRequest(method, url, xhr, options)
 							reject(handleRestError(xhr.status, `| ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
 						}
 					}
@@ -140,7 +142,7 @@ export class RestClient {
 
 				xhr.onerror = function () {
 					clearTimeout(timeout)
-					console.log("failed to request", method, url, options.headers, options.body)
+					logFailedRequest(method, url, xhr, options)
 					reject(handleRestError(xhr.status, ` | ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
 				}
 
@@ -148,7 +150,7 @@ export class RestClient {
 				if (!options.noCORS) {
 					xhr.upload.onprogress = (pe: ProgressEvent) => {
 						if (verbose) {
-							console.log(`${this.id}: ${String(new Date())} upload progress. Clearing Timeout ${String(timeout)}`, pe)
+							console.log(TAG, `${this.id}: ${String(new Date())} upload progress. Clearing Timeout ${String(timeout)}`, pe)
 						}
 
 						clearTimeout(timeout)
@@ -157,7 +159,7 @@ export class RestClient {
 						t.timeoutId = timeout
 
 						if (verbose) {
-							console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
+							console.log(TAG, `${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
 						}
 
 						if (options.progressListener != null && pe.lengthComputable) {
@@ -168,21 +170,21 @@ export class RestClient {
 
 					xhr.upload.ontimeout = (e) => {
 						if (verbose) {
-							console.log(`${this.id}: ${String(new Date())} upload timeout. calling error handler.`, e)
+							console.log(TAG, `${this.id}: ${String(new Date())} upload timeout. calling error handler.`, e)
 						}
 						xhr.onerror?.(e)
 					}
 
 					xhr.upload.onerror = (e) => {
 						if (verbose) {
-							console.log(`${this.id}: ${String(new Date())} upload error. calling error handler.`, e)
+							console.log(TAG, `${this.id}: ${String(new Date())} upload error. calling error handler.`, e)
 						}
 						xhr.onerror?.(e)
 					}
 
 					xhr.upload.onabort = (e) => {
 						if (verbose) {
-							console.log(`${this.id}: ${String(new Date())} upload aborted. calling error handler.`, e)
+							console.log(TAG, `${this.id}: ${String(new Date())} upload aborted. calling error handler.`, e)
 						}
 						xhr.onerror?.(e)
 					}
@@ -190,7 +192,7 @@ export class RestClient {
 
 				xhr.onprogress = (pe: ProgressEvent) => {
 					if (verbose) {
-						console.log(`${this.id}: ${String(new Date())} download progress. Clearing Timeout ${String(timeout)}`, pe)
+						console.log(TAG, `${this.id}: ${String(new Date())} download progress. Clearing Timeout ${String(timeout)}`, pe)
 					}
 
 					clearTimeout(timeout)
@@ -199,7 +201,7 @@ export class RestClient {
 					t.timeoutId = timeout
 
 					if (verbose) {
-						console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
+						console.log(TAG, `${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
 					}
 
 					if (options.progressListener != null && pe.lengthComputable) {
@@ -315,4 +317,18 @@ export function addParamsToUrl(url: URL, urlParams: Dict): URL {
 
 export function isSuspensionResponse(statusCode: number, suspensionTimeNumberString: string | null): boolean {
 	return Number(suspensionTimeNumberString) > 0 && (statusCode === TooManyRequestsError.CODE || statusCode === ServiceUnavailableError.CODE)
+}
+
+function logFailedRequest(method: HttpMethod, url: URL, xhr: XMLHttpRequest, options: RestClientOptions): void {
+	const args: Array<unknown> = [TAG, "failed request", method, url.toString(), xhr.status, xhr.statusText]
+	if (options.headers != null) {
+		args.push(Object.keys(options.headers))
+	}
+	if (options.body != null) {
+		const logBody = "string" === typeof options.body ? `[${options.body.length} characters]` : `[${options.body.length} bytes]`
+		args.push(logBody)
+	} else {
+		args.push("no body")
+	}
+	console.log(...args)
 }
