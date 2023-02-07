@@ -421,18 +421,22 @@ export class MailListView implements Component<MailListViewAttrs> {
 					}
 				},
 			},
-			this.showingSpamOrTrash
-				? m(
-						ListColumnWrapper,
-						{
-							headerContent: m(".flex.flex-column.plr-l", [
-								m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
-								m(".mr-negative-s.align-self-end", m(Button, purgeButtonAttrs)),
-							]),
-						},
-						m(this.list),
-				  )
-				: m(this.list),
+			// always render the wrapper so that the list is not re-created from scratch when
+			// showingSpamOrTrash changes.
+			m(
+				ListColumnWrapper,
+				{
+					headerContent: this.showingSpamOrTrash
+						? [
+								m(".flex.flex-column.plr-l", [
+									m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
+									m(".mr-negative-s.align-self-end", m(Button, purgeButtonAttrs)),
+								]),
+						  ]
+						: null,
+				},
+				m(this.list),
+			),
 		)
 	}
 
