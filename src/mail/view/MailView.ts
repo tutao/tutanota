@@ -590,7 +590,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private handleFolderDrop(droppedMailId: string, folder: MailFolder) {
+	private async handleFolderDrop(droppedMailId: string, folder: MailFolder) {
 		if (!this.cache.mailList) {
 			return
 		}
@@ -608,7 +608,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 
 		// do not allow moving folders to unallowed locations
-		if (!allMailsAllowedInsideFolder(mailsToMove, folder)) {
+		const mailBoxDetails = await this.getMailboxDetails()
+		if (!allMailsAllowedInsideFolder(mailsToMove, folder, mailBoxDetails.folders)) {
 			return
 		}
 

@@ -15,7 +15,7 @@ import { mergeContacts } from "../../contacts/ContactMergeUtils"
 import { logins } from "../../api/main/LoginController"
 import { FeatureType } from "../../api/common/TutanotaConstants"
 import { exportContacts } from "../../contacts/VCardExporter"
-import { downcast, isNotNull, isSameTypeRef, lazyMemoized, NBSP, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, isNotNull, isSameTypeRef, lazyMemoized, NBSP, noOp, ofClass } from "@tutao/tutanota-utils"
 import { theme } from "../../gui/theme"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { locator } from "../../api/main/MainLocator"
@@ -246,21 +246,24 @@ export class MultiSearchViewer implements Component {
 			selectedMailbox = mailbox
 		}
 
-		if (selectedMailbox == null) return []
-		return selectedMailbox.folders
-			.getIndentedList()
-			.filter((folder) => allMailsAllowedInsideFolder(selectedMails, folder.folder))
-			.map((f) => ({
-				label: () => getIndentedFolderNameForDropdown(f),
-				click: () => {
-					//is needed for correct selection behavior on mobile
-					this._searchListView.selectNone()
+		if (selectedMailbox === null) {
+			return []
+		} else {
+			return selectedMailbox.folders
+				.getIndentedList()
+				.filter((folder) => allMailsAllowedInsideFolder(selectedMails, folder.folder, assertNotNull(selectedMailbox).folders))
+				.map((f) => ({
+					label: () => getIndentedFolderNameForDropdown(f),
+					click: () => {
+						//is needed for correct selection behavior on mobile
+						this._searchListView.selectNone()
 
-					// move all groups one by one because the mail list cannot be modified in parallel
-					return moveMails({ mailModel: locator.mailModel, mails: selectedMails, targetMailFolder: f.folder })
-				},
-				icon: getFolderIcon(f.folder),
-			}))
+						// move all groups one by one because the mail list cannot be modified in parallel
+						return moveMails({ mailModel: locator.mailModel, mails: selectedMails, targetMailFolder: f.folder })
+					},
+					icon: getFolderIcon(f.folder),
+				}))
+		}
 	}
 
 	mergeSelected(): Promise<void> {

@@ -35,7 +35,7 @@ export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRule) {
 	} else if (mailBoxDetail) {
 		let targetFolders = mailBoxDetail.folders
 			.getIndentedList()
-			.filter((folderInfo) => mailStateAllowedInsideFolderType(MailState.RECEIVED, folderInfo.folder.folderType))
+			.filter((folderInfo) => mailStateAllowedInsideFolderType(MailState.RECEIVED, folderInfo.folder, mailBoxDetail.folders))
 			.map((folderInfo) => {
 				return {
 					name: getIndentedFolderNameForDropdown(folderInfo),

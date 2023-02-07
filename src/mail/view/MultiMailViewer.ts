@@ -19,6 +19,7 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { MailboxDetail } from "../model/MailModel.js"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { haveSameId } from "../../api/common/utils/EntityUtils.js"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -165,7 +166,7 @@ export class MultiMailViewer implements Component {
 			.getIndentedList()
 			.filter(
 				(folderInfo) =>
-					allMailsAllowedInsideFolder(selectedEntities, folderInfo.folder) &&
+					allMailsAllowedInsideFolder(selectedEntities, folderInfo.folder, assertNotNull(selectedMailbox).folders) &&
 					(this._mailView.cache.selectedFolder == null || !haveSameId(folderInfo.folder, this._mailView.cache.selectedFolder)),
 			)
 			.map((folderInfo) => {
