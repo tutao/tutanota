@@ -32,7 +32,7 @@ import { findAndApplyMatchingRule, isInboxList } from "../model/InboxRuleHandler
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/main/EventController.js"
-import { assertSystemFolderOfType, isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
+import { assertSystemFolderOfType, isSpamOrTrashFolder, isSubfolderOfType } from "../../api/common/mail/CommonMailUtils.js"
 
 assertMainOrNode()
 const className = "mail-list"
@@ -61,6 +61,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 	// Used for modifying the cursor during drag and drop
 	_listDom: HTMLElement | null
 	showingSpamOrTrash: boolean = false
+	showingDraft: boolean = false
 
 	constructor(mailListId: Id) {
 		this.listId = mailListId
@@ -68,6 +69,10 @@ export class MailListView implements Component<MailListViewAttrs> {
 		this._listDom = null
 		this.showingTrashOrSpamFolder().then((result) => {
 			this.showingSpamOrTrash = result
+			m.redraw()
+		})
+		this.showingDraftFolder().then((result) => {
+			this.showingDraft = result
 			m.redraw()
 		})
 		this.list = new List({
@@ -96,7 +101,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 				renderLeftSpacer: () =>
 					!logins.isInternalUserLoggedIn()
 						? []
-						: this.showingDraftFolder()
+						: this.showingDraft
 						? [
 								m(Icon, {
 									icon: Icons.Cancel,
@@ -126,7 +131,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 				swipeRight: (listElement: Mail) => {
 					if (!logins.isInternalUserLoggedIn()) {
 						return Promise.resolve(false) // externals don't have an archive folder
-					} else if (this.showingDraftFolder()) {
+					} else if (this.showingDraft) {
 						// just cancel selection if in drafts
 						this.list.selectNone()
 						return Promise.resolve(false)
@@ -469,9 +474,16 @@ export class MailListView implements Component<MailListViewAttrs> {
 		return isSpamOrTrashFolder(mailboxDetail.folders, folder)
 	}
 
-	private showingDraftFolder(): boolean {
+	private async showingDraftFolder(): Promise<boolean> {
+		const folder = await locator.mailModel.getMailFolder(this.listId)
+		if (!folder) {
+			return false
+		}
+		const mailboxDetail = await locator.mailModel.getMailboxDetailsForMailListId(this.listId)
 		if (this.mailView && this.mailView.cache.selectedFolder) {
-			return this.mailView.cache.selectedFolder.folderType === MailFolderType.DRAFT
+			return (
+				this.mailView.cache.selectedFolder.folderType === MailFolderType.DRAFT || isSubfolderOfType(mailboxDetail.folders, folder, MailFolderType.DRAFT)
+			)
 		} else {
 			return false
 		}
