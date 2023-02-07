@@ -60,7 +60,7 @@ export class EditFoldersDialog implements ModalComponent {
 			this.close()
 		}
 		this.usedBottomNavBefore = styles.isUsingBottomNavigation()
-		const marginTop = this.usedBottomNavBefore ? "0px" : px(size.navbar_height)
+		const marginTop = this.usedBottomNavBefore ? "env(safe-area-inset-top)" : px(size.navbar_height)
 		return m(
 			".flex.col",
 			{
