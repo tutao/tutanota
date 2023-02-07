@@ -14,7 +14,7 @@ import { EncodeOptions, Token, Type } from "cborg"
 import { assert, assertNotNull, DAY_IN_MILLIS, getTypeId, groupByAndMap, groupByAndMapUniquely, mapNullable, TypeRef } from "@tutao/tutanota-utils"
 import { isDesktop, isOfflineStorageAvailable, isTest } from "../../common/Env.js"
 import { modelInfos, resolveTypeReference } from "../../common/EntityFunctions.js"
-import { AccountType, MailFolderType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../common/TutanotaConstants.js"
+import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../common/TutanotaConstants.js"
 import { DateProvider } from "../../common/DateProvider.js"
 import { TokenOrNestedTokens } from "cborg/types/interface"
 import {
@@ -414,7 +414,14 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 	}
 
 	private async putMetadata<K extends keyof OfflineDbMeta>(key: K, value: OfflineDbMeta[K]): Promise<void> {
-		const { query, params } = sql`INSERT OR REPLACE INTO metadata VALUES (${key}, ${cborg.encode(value)})`
+		let encodedValue
+		try {
+			encodedValue = cborg.encode(value)
+		} catch (e) {
+			console.log("[OfflineStorage] failed to encode metadata for key", key, "with value", value)
+			throw e
+		}
+		const { query, params } = sql`INSERT OR REPLACE INTO metadata VALUES (${key}, ${encodedValue})`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
@@ -606,7 +613,12 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 	}
 
 	private serialize(originalEntity: SomeEntity): Uint8Array {
-		return cborg.encode(originalEntity, { typeEncoders: customTypeEncoders })
+		try {
+			return cborg.encode(originalEntity, { typeEncoders: customTypeEncoders })
+		} catch (e) {
+			console.log("[OfflineStorage] failed to encode entity of type", originalEntity._type, "with id", originalEntity._id)
+			throw e
+		}
 	}
 
 	private deserialize<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Uint8Array): T {
