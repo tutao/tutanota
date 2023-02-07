@@ -17,7 +17,7 @@ import {
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import { MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { MailDetailsBlobTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId } from "../../common/utils/EntityUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
@@ -637,6 +637,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 						containsEventOfType(updatesArray as Readonly<EntityUpdateData[]>, OperationType.CREATE, instanceId)
 					) {
 						// move for mail is handled in create event.
+					} else if (isSameTypeRef(MailTypeRef, typeRef)) {
+						// delete mailDetails if they are available (as we don't send an event for this type)
+						const mail = await this.storage.get(MailTypeRef, instanceListId, instanceId)
+						await this.storage.deleteIfExists(typeRef, instanceListId, instanceId)
+						if (mail?.mailDetails != null) {
+							await this.storage.deleteIfExists(MailDetailsBlobTypeRef, mail.mailDetails[0], mail.mailDetails[1])
+						}
 					} else {
 						await this.storage.deleteIfExists(typeRef, instanceListId, instanceId)
 					}

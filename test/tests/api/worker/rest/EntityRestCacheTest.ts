@@ -35,9 +35,11 @@ import {
 	createContact,
 	createMail,
 	createMailBody,
+	createMailDetailsBlob,
 	Mail,
 	MailBody,
 	MailBodyTypeRef,
+	MailDetailsBlobTypeRef,
 	MailTypeRef,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { OfflineStorage } from "../../../../../src/api/worker/offline/OfflineStorage.js"
@@ -51,7 +53,6 @@ import { OfflineStorageMigrator } from "../../../../../src/api/worker/offline/Of
 import { createEventElementId } from "../../../../../src/api/common/utils/CommonCalendarUtils.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { func, instance, matchers, object, when } from "testdouble"
-import { WorkerImpl } from "../../../../../src/api/worker/WorkerImpl.js"
 
 const { anything } = matchers
 
@@ -673,6 +674,20 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				//load was called when we tried to load the moved mail when we tried to load the moved mail
 				o(load.callCount).equals(1)
 				unmockAttribute(loadMock)
+			})
+
+			o("delete Mail deletes MailDetailsBlob", async function () {
+				const mailDetailsBlob = createMailDetailsBlob({ _id: ["archiveId", "blobId"] })
+				const mail = createMailInstance("listId1", "id1", "mail 1")
+				mail.mailDetails = mailDetailsBlob._id
+
+				await storage.put(mail)
+				await storage.put(mailDetailsBlob)
+
+				await cache.entityEventsReceived(makeBatch([createUpdate(MailTypeRef, mail._id[0], mail._id[1], OperationType.DELETE)]))
+
+				o(await storage.get(MailTypeRef, mail._id[0], mail._id[1])).equals(null)
+				o(await storage.get(MailDetailsBlobTypeRef, mailDetailsBlob._id[0], mailDetailsBlob._id[1])).equals(null)
 			})
 
 			// list element notifications
