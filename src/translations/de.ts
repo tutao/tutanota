@@ -403,7 +403,7 @@ export default {
 		"defaultGiftCardMessage_msg": "Ich hoffe dir gefällt die Sicherheit und Privatsphäre bei Tutanota!",
 		"defaultMailHandler_label": "Standardprogramm für E-Mail",
 		"defaultMailHandler_msg": "Registriere Tutanota Desktop als das Standard-E-Mail-Programm, z.B. um E-Mail-Adress-Links zu öffnen. Diese Aktion könnte Administratorrechte erfordern.",
-		"defaultSenderMailAddressInfo_msg": "Die voreingestellte Absendeadresse für neue E-Mails.",
+		"defaultSenderMailAddressInfo_msg": "Die voreingestellte Absendeadresse und -name für neue E-Mails. Du kannst deinen Absendernamen unten in der E-Mail-Adresstabelle konfigurieren.",
 		"defaultSenderMailAddress_label": "Standard-Absendeadresse",
 		"defaultShareGiftCardBody_msg": "Hallo,\n\nich habe dir einen Gutschein für Tutanota gekauft, benutze diesen Link, um ihn einzulösen!\n\n{link}\n\nFalls du noch keinen Account bei Tutanota hast, kannst du deine sichere Mailbox über den Link registrieren.\n\nSchöne Feiertage\n{username}",
 		"defaultShareGiftCardSubject_msg": "Du hast einen Gutschein für Tutanota erhalten!",

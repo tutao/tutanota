@@ -399,7 +399,7 @@ export default {
 		"defaultGiftCardMessage_msg": "I hope you enjoy the security & privacy you get with Tutanota!",
 		"defaultMailHandler_label": "Default email handler",
 		"defaultMailHandler_msg": "Register Tutanota Desktop as the default email handler, e.g. to open email address links. This operation may require administrator permissions.",
-		"defaultSenderMailAddressInfo_msg": "The default sender mail address for new emails.",
+		"defaultSenderMailAddressInfo_msg": "The default sender mail address and name for new emails. You can set the sender name in the mail address table below.",
 		"defaultSenderMailAddress_label": "Default sender",
 		"defaultShareGiftCardBody_msg": "Hi,\n\nI bought you a gift card for Tutanota, use this link to redeem it!\n\n{link}\n\nIf you do not have an account yet, you can use the link to sign up and reclaim your privacy.\n\nHappy Holidays,\n{username}",
 		"defaultShareGiftCardSubject_msg": "You have received a Tutanota gift card!",
