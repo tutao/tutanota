@@ -1,6 +1,6 @@
 import o from "ospec"
 import { object } from "testdouble"
-import { inferExpirationDate, SimplifiedCreditCardViewModel } from "../../../src/subscription/SimplifiedCreditCardInputModel.js"
+import { CardType, getCardTypeRange, inferExpirationDate, SimplifiedCreditCardViewModel } from "../../../src/subscription/SimplifiedCreditCardInputModel.js"
 
 o.spec("inferExpirationDate month", function () {
 	o("starting with invalid character returns empty string", function () {
@@ -211,6 +211,87 @@ o.spec("inferExpirationDate integration", function () {
 	})
 })
 
+o.spec("detectCreditCardIssuer", function () {
+	o("amex", function () {
+		o(getCardTypeRange("34")).equals(CardType.Amex)
+		o(getCardTypeRange("37")).equals(CardType.Amex)
+		o(getCardTypeRange("340")).equals(CardType.Amex)
+		o(getCardTypeRange("371")).equals(CardType.Amex)
+		o(getCardTypeRange("35")).notEquals(CardType.Amex)
+		o(getCardTypeRange("374283089890073")).equals(CardType.Amex)
+		o(getCardTypeRange("347562087582806")).equals(CardType.Amex)
+		o(getCardTypeRange("377118013765255")).equals(CardType.Amex)
+		o(getCardTypeRange("377188176009494")).equals(CardType.Amex)
+	})
+	o("visa", function () {
+		o(getCardTypeRange("4")).equals(CardType.Visa)
+		o(getCardTypeRange("40")).equals(CardType.Visa)
+		o(getCardTypeRange("48")).equals(CardType.Visa)
+		o(getCardTypeRange("04")).notEquals(CardType.Visa)
+		o(getCardTypeRange("4219430910018892")).equals(CardType.Visa)
+		o(getCardTypeRange("4020964956067842")).equals(CardType.Visa)
+		o(getCardTypeRange("4522131094541")).equals(CardType.Visa)
+		o(getCardTypeRange("4398342951138")).equals(CardType.Visa)
+		o(getCardTypeRange("4111621867312903")).equals(CardType.Visa)
+	})
+	o("mastercard", function () {
+		o(getCardTypeRange("51")).equals(CardType.Mastercard)
+		o(getCardTypeRange("55")).equals(CardType.Mastercard)
+		o(getCardTypeRange("52")).equals(CardType.Mastercard)
+		o(getCardTypeRange("50")).notEquals(CardType.Mastercard)
+		o(getCardTypeRange("2221")).equals(CardType.Mastercard)
+		o(getCardTypeRange("2720")).equals(CardType.Mastercard)
+		o(getCardTypeRange("2504")).equals(CardType.Mastercard)
+		o(getCardTypeRange("23")).equals(CardType.Mastercard)
+		o(getCardTypeRange("2220")).notEquals(CardType.Mastercard)
+		o(getCardTypeRange("5392341340810814")).equals(CardType.Mastercard)
+		o(getCardTypeRange("5571772194621274")).equals(CardType.Mastercard)
+		o(getCardTypeRange("5155544629392217")).equals(CardType.Mastercard)
+		o(getCardTypeRange("5464942746631846")).equals(CardType.Mastercard)
+		o(getCardTypeRange("5183606138506219")).equals(CardType.Mastercard)
+	})
+	o("maestro", function () {
+		o(getCardTypeRange("6759")).equals(CardType.Maestro)
+		o(getCardTypeRange("676770")).equals(CardType.Maestro)
+		o(getCardTypeRange("67677")).notEquals(CardType.Maestro)
+		o(getCardTypeRange("5")).notEquals(CardType.Maestro)
+		o(getCardTypeRange("5018")).equals(CardType.Maestro)
+		o(getCardTypeRange("6762")).equals(CardType.Maestro)
+		o(getCardTypeRange("67631")).equals(CardType.Maestro)
+		o(getCardTypeRange("67630")).equals(CardType.Maestro)
+		o(getCardTypeRange("67644")).notEquals(CardType.Maestro)
+		o(getCardTypeRange("676")).notEquals(CardType.Maestro)
+		o(getCardTypeRange("503896955559")).equals(CardType.Maestro)
+		o(getCardTypeRange("6763964146952")).equals(CardType.Maestro)
+		o(getCardTypeRange("63049263291396")).equals(CardType.Maestro)
+		o(getCardTypeRange("675990328450529")).equals(CardType.Maestro)
+		o(getCardTypeRange("6761384679616833")).equals(CardType.Maestro)
+		o(getCardTypeRange("50185787002582074")).equals(CardType.Maestro)
+		o(getCardTypeRange("630468508293435054")).equals(CardType.Maestro)
+		o(getCardTypeRange("6759033525570348799")).equals(CardType.Maestro)
+	})
+	o("discover", function () {
+		o(getCardTypeRange("6011")).equals(CardType.Discover)
+		o(getCardTypeRange("645")).equals(CardType.Discover)
+		o(getCardTypeRange("66")).notEquals(CardType.Discover)
+		o(getCardTypeRange("64")).notEquals(CardType.Discover)
+		o(getCardTypeRange("65")).equals(CardType.Discover)
+		o(getCardTypeRange("622126")).equals(CardType.Discover)
+		o(getCardTypeRange("6228")).equals(CardType.Discover)
+		o(getCardTypeRange("6221299974430470")).equals(CardType.Discover)
+		o(getCardTypeRange("6497238438147624")).equals(CardType.Discover)
+		o(getCardTypeRange("6457995163050848")).equals(CardType.Discover)
+		o(getCardTypeRange("6225765854038001")).equals(CardType.Discover)
+	})
+	o("other", function () {
+		o(getCardTypeRange("")).equals(CardType.Other)
+		o(getCardTypeRange(" ")).equals(CardType.Other)
+		o(getCardTypeRange("0")).equals(CardType.Other)
+		o(getCardTypeRange("00")).equals(CardType.Other)
+		o(getCardTypeRange("02")).equals(CardType.Other)
+	})
+})
+
 o.spec("inferCreditCardNumber", function () {
 	o("non-digits are stripped and the remaining input is reduced to at most 20 digits", function () {
 		const model = new SimplifiedCreditCardViewModel(object())
@@ -261,6 +342,28 @@ o.spec("inferCreditCardNumber integration", function () {
 		const model = new SimplifiedCreditCardViewModel(object())
 		const numberAsTyped = "1234567890123456"
 		const numberAsShown = "1234 5678 9012 3456"
+		model.creditCardNumber = ""
+		for (const c of numberAsTyped) {
+			model.creditCardNumber = model.creditCardNumber + c
+		}
+		o(model.creditCardNumber).equals(numberAsShown)
+	})
+
+	o("it's possible to type an amex credit card number", function () {
+		const model = new SimplifiedCreditCardViewModel(object())
+		const numberAsTyped = "345678901234567"
+		const numberAsShown = "3456 789012 34567"
+		model.creditCardNumber = ""
+		for (const c of numberAsTyped) {
+			model.creditCardNumber = model.creditCardNumber + c
+		}
+		o(model.creditCardNumber).equals(numberAsShown)
+	})
+
+	o("it's possible to type an overlong credit card number", function () {
+		const model = new SimplifiedCreditCardViewModel(object())
+		const numberAsTyped = "345678901234567890890"
+		const numberAsShown = "3456 789012 34567 89089"
 		model.creditCardNumber = ""
 		for (const c of numberAsTyped) {
 			model.creditCardNumber = model.creditCardNumber + c
