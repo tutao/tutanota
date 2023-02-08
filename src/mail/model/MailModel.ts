@@ -2,7 +2,7 @@ import m from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { containsEventOfType } from "../../api/common/utils/Utils"
-import { assertNotNull, groupBy, neverNull, noOp, ofClass, splitInChunks } from "@tutao/tutanota-utils"
+import { assertNotNull, groupBy, lazyMemoized, neverNull, noOp, ofClass, splitInChunks } from "@tutao/tutanota-utils"
 import type { Mail, MailBox, MailboxGroupRoot, MailboxProperties, MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
 import {
 	createMailAddressProperties,
@@ -48,13 +48,14 @@ export type MailboxDetail = {
 	mailGroup: Group
 	mailboxGroupRoot: MailboxGroupRoot
 }
+
 export type MailboxCounters = Record<Id, Record<string, number>>
 
 export class MailModel {
 	/** Empty stream until init() is finished, exposed mostly for map()-ing, use getMailboxDetails to get a promise */
-	mailboxDetails: Stream<MailboxDetail[]>
-	mailboxCounters: Stream<MailboxCounters>
-	private initialization: Promise<any> | null
+	readonly mailboxDetails: Stream<MailboxDetail[]> = stream()
+	readonly mailboxCounters: Stream<MailboxCounters> = stream({})
+	private initialization: Promise<void> | null = null
 	/**
 	 * Map from MailboxGroupRoot id to MailboxProperties
 	 * A way to avoid race conditions in case we try to create mailbox properties from multiple places.
@@ -69,22 +70,23 @@ export class MailModel {
 		private readonly mailFacade: MailFacade,
 		private readonly entityClient: EntityClient,
 		private readonly logins: LoginController,
-	) {
-		this.mailboxDetails = stream()
-		this.mailboxCounters = stream({})
-		this.initialization = null
-	}
+	) {}
 
-	init(): Promise<void> {
-		if (this.initialization) {
-			return this.initialization
-		}
-
+	// only init listeners once
+	private readonly initListeners = lazyMemoized(() => {
 		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
 
 		this.eventController.getCountersStream().map((update) => {
 			this._mailboxCountersUpdates(update)
 		})
+	})
+
+	init(): Promise<void> {
+		// if we are in the process of loading do not start another one in parallel
+		if (this.initialization) {
+			return this.initialization
+		}
+		this.initListeners()
 
 		return this._init()
 	}
@@ -92,8 +94,14 @@ export class MailModel {
 	private _init(): Promise<void> {
 		const mailGroupMemberships = this.logins.getUserController().getMailGroupMemberships()
 		const mailBoxDetailsPromises = mailGroupMemberships.map((m) => this.mailboxDetailsFromMembership(m))
-		this.initialization = Promise.all(mailBoxDetailsPromises).then((details) => this.mailboxDetails(details))
-		return this.initialization
+		this.initialization = Promise.all(mailBoxDetailsPromises).then((details) => {
+			this.mailboxDetails(details)
+		})
+		return this.initialization.catch((e) => {
+			console.warn("mail model initialization failed!", e)
+			this.initialization = null
+			throw e
+		})
 	}
 
 	/**
@@ -132,11 +140,25 @@ export class MailModel {
 	}
 
 	/**
-	 * get the list of MailboxDetails that this user has access to from their memberships
+	 * Get the list of MailboxDetails that this user has access to from their memberships.
+	 *
+	 * Will wait for successful initialization.
 	 */
 	async getMailboxDetails(): Promise<Array<MailboxDetail>> {
-		await this.init()
-		return this.mailboxDetails()
+		// If details are there, use them
+		if (this.mailboxDetails()) {
+			return this.mailboxDetails()
+		} else {
+			// If they are not there, trigger loading again (just in case) but do not fail and wait until we actually have the details.
+			// This is so that the rest of the app is not in the broken state if details fail to load but is just waiting until the success.
+			return new Promise((resolve) => {
+				this.init()
+				const end = this.mailboxDetails.map((details) => {
+					resolve(details)
+					end.end(true)
+				})
+			})
+		}
 	}
 
 	getMailboxDetailsForMail(mail: Mail): Promise<MailboxDetail> {
