@@ -96,7 +96,7 @@ styles.registerStyle("main", () => {
 		},
 		"@font-face": {
 			"font-family": "'Ionicons'",
-			src: `url('${window.tutao.appState.prefixWithoutFile}/images/ionicons.ttf') format('truetype')`,
+			src: `url('${window.tutao.appState.prefixWithoutFile}/images/font.ttf') format('truetype')`,
 			"font-weight": "normal",
 			"font-style": "normal",
 		},

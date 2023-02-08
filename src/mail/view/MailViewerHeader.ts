@@ -10,7 +10,7 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { EventBanner } from "./EventBanner.js"
 import { RecipientButton } from "../../gui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DomRectReadOnlyPolyfilled, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
-import { InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../api/common/TutanotaConstants.js"
+import { InboxRuleType, Keys, MailAuthenticationStatus, MailState, TabIndex } from "../../api/common/TutanotaConstants.js"
 import { Icon, progressIcon } from "../../gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../misc/Formatter.js"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env.js"
@@ -130,6 +130,16 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							"aria-label": lang.get(viewModel.isConfidential() ? "confidential_action" : "nonConfidential_action") + ", " + dateTime,
 						},
 						[
+							viewModel.mail.state === MailState.DRAFT
+								? m(Icon, {
+										icon: Icons.Edit,
+										style: {
+											fill: theme.content_fg,
+										},
+										// flex makes svg inside centered and not randomly somewhere
+										class: "flex",
+								  })
+								: null,
 							viewModel.isConfidential()
 								? m(Icon, {
 										icon: Icons.Lock,

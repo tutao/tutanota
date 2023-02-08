@@ -26,7 +26,7 @@ export async function prepareMobileBuild(buildType) {
 	}
 
 	const imagesPath = prefix + "images"
-	const imagesToKeep = ["ionicons.ttf", "logo-solo-red.png"]
+	const imagesToKeep = ["font.ttf", "logo-solo-red.png"]
 	if (fs.existsSync(imagesPath)) {
 		const imageFiles = await globby(prefix + "images/*")
 		for (let file of imageFiles) {
