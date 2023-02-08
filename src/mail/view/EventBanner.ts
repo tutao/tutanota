@@ -6,9 +6,8 @@ import { CalendarAttendeeStatus, CalendarMethod } from "../../api/common/Tutanot
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { theme } from "../../gui/theme"
-import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import type { CalendarEvent, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { Dialog } from "../../gui/base/Dialog"
-import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import type { lazy } from "@tutao/tutanota-utils"
 import { isRepliedTo } from "../model/MailUtils"
@@ -22,7 +21,8 @@ export type Attrs = {
 
 export class EventBanner implements Component<Attrs> {
 	view({ attrs: { event, mail, recipient, method } }: Vnode<Attrs>): Children {
-		const ownAttendee = event.attendees.find((a) => a.address.address === recipient)
+		const lowerCaseRecipient = recipient.toLowerCase()
+		const ownAttendee = event.attendees.find((a) => a.address.address.toLowerCase() === lowerCaseRecipient)
 		return m(
 			MessageBox,
 			{
