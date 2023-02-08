@@ -1,19 +1,13 @@
 import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
-import { InboxRuleType, MailFolderType, MailState } from "../api/common/TutanotaConstants"
+import { InboxRuleType, MailFolderType } from "../api/common/TutanotaConstants"
 import { isDomainName, isMailAddress, isRegularExpression } from "../misc/FormatValidator"
 import { getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
 import type { InboxRule } from "../api/entities/tutanota/TypeRefs.js"
 import { createInboxRule } from "../api/entities/tutanota/TypeRefs.js"
 import { logins } from "../api/main/LoginController"
-import {
-	getExistingRuleForType,
-	getFolderName,
-	getIndentedFolderNameForDropdown,
-	getPathToFolderString,
-	mailStateAllowedInsideFolderType,
-} from "../mail/model/MailUtils"
+import { getExistingRuleForType, getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../mail/model/MailUtils"
 import type { MailboxDetail } from "../mail/model/MailModel"
 import stream from "mithril/stream"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
@@ -33,15 +27,12 @@ export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRule) {
 	if (logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog(true)
 	} else if (mailBoxDetail) {
-		let targetFolders = mailBoxDetail.folders
-			.getIndentedList()
-			.filter((folderInfo) => mailStateAllowedInsideFolderType(MailState.RECEIVED, folderInfo.folder, mailBoxDetail.folders))
-			.map((folderInfo) => {
-				return {
-					name: getIndentedFolderNameForDropdown(folderInfo),
-					value: folderInfo.folder,
-				}
-			})
+		let targetFolders = mailBoxDetail.folders.getIndentedList().map((folderInfo) => {
+			return {
+				name: getIndentedFolderNameForDropdown(folderInfo),
+				value: folderInfo.folder,
+			}
+		})
 		const inboxRuleType = stream(ruleOrTemplate.type)
 		const inboxRuleValue = stream(ruleOrTemplate.value)
 		const selectedFolder = mailBoxDetail.folders.getFolderById(ruleOrTemplate.targetFolder)

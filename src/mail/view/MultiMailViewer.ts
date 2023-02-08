@@ -5,7 +5,7 @@ import { ActionBar } from "../../gui/base/ActionBar"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import { lang } from "../../misc/LanguageViewModel"
 import { Icons } from "../../gui/base/icons/Icons"
-import { allMailsAllowedInsideFolder, emptyOrContainsDraftsAndNonDrafts, getFolderIcon, getIndentedFolderNameForDropdown, markMails } from "../model/MailUtils"
+import { emptyOrContainsDraftsAndNonDrafts, getFolderIcon, getIndentedFolderNameForDropdown, markMails } from "../model/MailUtils"
 import { logins } from "../../api/main/LoginController"
 import { FeatureType } from "../../api/common/TutanotaConstants"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
@@ -166,7 +166,6 @@ export class MultiMailViewer implements Component {
 			.getIndentedList()
 			.filter(
 				(folderInfo) =>
-					allMailsAllowedInsideFolder(selectedEntities, folderInfo.folder, assertNotNull(selectedMailbox).folders) &&
 					(this._mailView.cache.selectedFolder == null || !haveSameId(folderInfo.folder, this._mailView.cache.selectedFolder)),
 			)
 			.map((folderInfo) => {

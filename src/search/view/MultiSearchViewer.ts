@@ -9,13 +9,13 @@ import { NotFoundError } from "../../api/common/error/RestError"
 import type { Contact, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { Dialog } from "../../gui/base/Dialog"
-import { allMailsAllowedInsideFolder, getFolderIcon, getIndentedFolderNameForDropdown, markMails } from "../../mail/model/MailUtils"
+import { getFolderIcon, getIndentedFolderNameForDropdown, markMails } from "../../mail/model/MailUtils"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { mergeContacts } from "../../contacts/ContactMergeUtils"
 import { logins } from "../../api/main/LoginController"
 import { FeatureType } from "../../api/common/TutanotaConstants"
 import { exportContacts } from "../../contacts/VCardExporter"
-import { assertNotNull, downcast, isNotNull, isSameTypeRef, lazyMemoized, NBSP, noOp, ofClass } from "@tutao/tutanota-utils"
+import { downcast, isNotNull, isSameTypeRef, lazyMemoized, NBSP, noOp, ofClass } from "@tutao/tutanota-utils"
 import { theme } from "../../gui/theme"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { locator } from "../../api/main/MainLocator"
@@ -249,20 +249,17 @@ export class MultiSearchViewer implements Component {
 		if (selectedMailbox === null) {
 			return []
 		} else {
-			return selectedMailbox.folders
-				.getIndentedList()
-				.filter((folder) => allMailsAllowedInsideFolder(selectedMails, folder.folder, assertNotNull(selectedMailbox).folders))
-				.map((f) => ({
-					label: () => getIndentedFolderNameForDropdown(f),
-					click: () => {
-						//is needed for correct selection behavior on mobile
-						this._searchListView.selectNone()
+			return selectedMailbox.folders.getIndentedList().map((f) => ({
+				label: () => getIndentedFolderNameForDropdown(f),
+				click: () => {
+					//is needed for correct selection behavior on mobile
+					this._searchListView.selectNone()
 
-						// move all groups one by one because the mail list cannot be modified in parallel
-						return moveMails({ mailModel: locator.mailModel, mails: selectedMails, targetMailFolder: f.folder })
-					},
-					icon: getFolderIcon(f.folder),
-				}))
+					// move all groups one by one because the mail list cannot be modified in parallel
+					return moveMails({ mailModel: locator.mailModel, mails: selectedMails, targetMailFolder: f.folder })
+				},
+				icon: getFolderIcon(f.folder),
+			}))
 		}
 	}
 
