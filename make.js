@@ -36,10 +36,12 @@ await program
 			})
 
 			if (desktop) {
+				const env = Object.assign({}, process.env, { ELECTRON_ENABLE_SECURITY_WARNINGS: "TRUE" })
 				// we don't want to quit here because we want to keep piping output to our stdout.
-				spawn("./start-desktop.sh", {
+				spawn("npx", ["electron --inspect=5858 ./build/"], {
+					shell: true,
 					stdio: "inherit",
-					env: options.verbose ? Object.assign({}, process.env, { ELECTRON_ENABLE_LOGGING: 1 }) : process.env,
+					env: options.verbose ? Object.assign({}, env, { ELECTRON_ENABLE_LOGGING: 1 }) : env,
 				})
 			} else if (!watch) {
 				// Don't wait for spawned child processes to exit (because they never will)
