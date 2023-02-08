@@ -87,9 +87,6 @@ export class PostLoginActions implements IPostLoginAction {
 			hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot),
 		})
 
-		if (!isAdminClient() && loggedInEvent.sessionType !== SessionType.Temporary) {
-			await locator.mailModel.init()
-		}
 		if (isApp() || isDesktop()) {
 			// don't wait for it, just invoke
 			locator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
@@ -113,6 +110,8 @@ export class PostLoginActions implements IPostLoginAction {
 		this.secondFactorHandler.setupAcceptOtherClientLoginListener()
 
 		if (!isAdminClient()) {
+			// If it failed during the partial login due to missing cache entries we will give it another spin here. If it didn't fail then it's just a noop
+			await locator.mailModel.init()
 			await locator.calendarModel.init()
 			await this.remindActiveOutOfOfficeNotification()
 		}

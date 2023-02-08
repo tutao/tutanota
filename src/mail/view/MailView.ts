@@ -231,7 +231,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		for (const detail of mailboxDetails) {
 			for (const { folder } of detail.folders.getIndentedList()) {
 				const folderElementId = getElementId(folder)
-				this.folderToUrl[folderElementId] = this.folderToUrl[folderElementId] ?? `/mail/${folder.mails}`
+				this.folderToUrl[folderElementId] = this.folderToUrl[folderElementId] ?? this.defaultUrlForFolder(folder)
 			}
 		}
 		if (this.cache.selectedFolder) {
@@ -247,10 +247,17 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				if (isSelectedPrefix(MAIL_PREFIX)) {
 					this.setUrl(url)
 				} else {
+					if (typeof url === "undefined") {
+						throw new Error("undefined mail url!")
+					}
 					navButtonRoutes.mailUrl = url
 				}
 			}
 		}
+	}
+
+	private defaultUrlForFolder(folder: MailFolder) {
+		return `/mail/${folder.mails}`
 	}
 
 	getViewSlider(): ViewSlider | null {
@@ -536,12 +543,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				if (typeof args.listId === "undefined") {
 					const inboxFolder = assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.INBOX)
 					const inboxFolderId = getElementId(inboxFolder)
-					this.setUrl(this.folderToUrl[inboxFolderId])
+					// fall back to the default url if folderToUrl is not populated yet
+					this.setUrl(this.folderToUrl[inboxFolderId] ?? this.defaultUrlForFolder(inboxFolder))
 				} else {
 					if (!this.showList(args.listId, args.mailId)) {
 						const inboxFolder = assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.INBOX)
 						const inboxFolderId = getElementId(inboxFolder)
-						this.setUrl(this.folderToUrl[inboxFolderId])
+						// fall back to the default url if folderToUrl is not populated yet
+						this.setUrl(this.folderToUrl[inboxFolderId] ?? this.defaultUrlForFolder(inboxFolder))
 					}
 				}
 
@@ -555,6 +564,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private setUrl(url: string) {
+		if (typeof url === "undefined") {
+			throw new Error("undefined mail url!")
+		}
 		navButtonRoutes.mailUrl = url
 
 		// do not change the url if the search view is active

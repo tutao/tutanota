@@ -10,9 +10,7 @@ import {
 	defer,
 	delay,
 	hexToUint8Array,
-	isSameTypeRefByAttr,
 	neverNull,
-	noOp,
 	ofClass,
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
@@ -27,7 +25,7 @@ import {
 	SessionService,
 	TakeOverDeletedAddressService,
 } from "../../entities/sys/Services"
-import { AccountType, CloseEventBusOption, OperationType } from "../../common/TutanotaConstants"
+import { AccountType, CloseEventBusOption } from "../../common/TutanotaConstants"
 import { CryptoError } from "../../common/error/CryptoError"
 import type { GroupInfo, SaltReturn, SecondFactorAuthData, User } from "../../entities/sys/TypeRefs.js"
 import {
@@ -41,13 +39,12 @@ import {
 	createSecondFactorAuthGetData,
 	CreateSessionReturn,
 	createTakeOverDeletedAddressData,
-	EntityUpdate,
 	GroupInfoTypeRef,
 	RecoverCodeTypeRef,
 	SessionTypeRef,
 	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
-import { createEntropyData, TutanotaPropertiesTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { TutanotaPropertiesTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
 import { assertWorkerOrNode, isAdminClient, isTest } from "../../common/Env"
 import { ConnectMode, EventBusClient } from "../EventBusClient"
@@ -55,7 +52,6 @@ import { EntityRestClient, typeRefToPath } from "../rest/EntityRestClient"
 import {
 	AccessExpiredError,
 	ConnectionError,
-	LockedError,
 	NotAuthenticatedError,
 	NotFoundError,
 	ServiceUnavailableError,
@@ -87,10 +83,9 @@ import {
 	uint8ArrayToBitArray,
 	uint8ArrayToKey,
 } from "@tutao/tutanota-crypto"
-import { CryptoFacade, encryptBytes, encryptString } from "../crypto/CryptoFacade"
+import { CryptoFacade, encryptString } from "../crypto/CryptoFacade"
 import { InstanceMapper } from "../crypto/InstanceMapper"
 import { Aes128Key } from "@tutao/tutanota-crypto/dist/encryption/Aes"
-import { EntropyService } from "../../entities/tutanota/Services"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { SessionType } from "../../common/SessionType"
 import { CacheStorageLateInitializer } from "../rest/CacheStorageProxy"
@@ -99,6 +94,7 @@ import { LoginFailReason, LoginListener } from "../../main/LoginListener"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 import { EntropyFacade } from "./EntropyFacade.js"
 import { BlobAccessTokenFacade } from "./BlobAccessTokenFacade.js"
+import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 
 assertWorkerOrNode()
 const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
@@ -394,6 +390,14 @@ export class LoginFacade {
 		databaseKey: Uint8Array | null,
 		timeRangeDays: number | null,
 	): Promise<ResumeSessionResult> {
+		if (this.userFacade.getUser() != null) {
+			throw new ProgrammingError(
+				`Trying to resume the session for user ${credentials.userId} while already logged in for ${this.userFacade.getUser()?._id}`,
+			)
+		}
+		if (this.asyncLoginState.state !== "idle") {
+			throw new ProgrammingError(`Trying to resume the session for user ${credentials.userId} while the asyncLoginState is ${this.asyncLoginState.state}`)
+		}
 		this.userFacade.setAccessToken(credentials.accessToken)
 		const cacheInfo = await this.initCache({
 			userId: credentials.userId,
