@@ -3,42 +3,88 @@ import { LanguageViewModel, TranslationKey } from "../misc/LanguageViewModel.js"
 import { Stage } from "@tutao/tutanota-usagetests"
 import { CCViewModel } from "./SimplifiedCreditCardInput.js"
 import { isValidCreditCardNumber } from "../misc/FormatValidator.js"
+import { typedValues } from "@tutao/tutanota-utils"
 
-enum CardType {
-	Amex,
-	Visa,
-	Mastercard,
-	Discover,
-	Other,
+// we're using string values to make it easy to iterate all card types
+export enum CardType {
+	Amex = "Amex",
+	Visa = "Visa",
+	Mastercard = "Mastercard",
+	Maestro = "Maestro",
+	Discover = "Discover",
+	Other = "Other",
 }
 
-function getCardType(cc: string): CardType {
-	if (cc.startsWith("4")) {
-		return CardType.Visa
-	} else if (cc.startsWith("5")) {
-		return CardType.Mastercard
-	} else if (cc.startsWith("6")) {
-		return CardType.Discover
-	} else if (cc.startsWith("3")) {
-		if (cc.length > 1 && (cc[1] === "4" || cc[1] === "7")) {
-			return CardType.Amex
-		} else {
-			return CardType.Other
+// input MUST be sanitized to only contain numerical digits
+export function getCardTypeRange(cc: string): CardType {
+	if (cc.length === 0 || cc[0] === "0") return CardType.Other
+	for (let cardType of typedValues(CardType)) {
+		if (cardType === CardType.Other) continue
+		for (let range of CardPrefixRanges[cardType]) {
+			const prefixLength = range[0].toString().length
+			const offset = prefixLength - cc.length
+			if (offset > 0) {
+				// needed for e.g. range[0] = 22, range[1] = 34, cc = 3
+				const correctedRange0 = (range[0] / Math.pow(10, offset)) | 0 // converts to int
+				const correctedRange1 = (range[1] / Math.pow(10, offset)) | 0
+				if (correctedRange0 < Number(cc) && Number(cc) < correctedRange1) {
+					// must be different (e.g. range[0] = 22 and cc = 2)
+					return cardType
+				}
+			} else {
+				// Number() doesn't convert to octal with leading zeros (which we checked for anyway)
+				const inputPrefix = Number(cc.slice(0, prefixLength))
+				if (range[0] <= inputPrefix && inputPrefix <= range[1]) {
+					return cardType
+				}
+			}
 		}
-	} else {
-		return CardType.Other
 	}
+	return CardType.Other
 }
 
-type CardSpec = { cvvLength: number | null; cvvName: string; name: string | null; ccNumberLength: number | null }
+type CardSpec = { cvvLength: number | null; cvvName: string; name: string | null }
 
 // we can't have enums with
 const CardSpecs: Record<CardType, CardSpec> = Object.freeze({
-	[CardType.Visa]: { cvvLength: 3, cvvName: "CVV", name: "Visa", ccNumberLength: null },
-	[CardType.Mastercard]: { cvvLength: 3, cvvName: "CVC", name: "Mastercard", ccNumberLength: 16 },
-	[CardType.Amex]: { cvvLength: 4, cvvName: "CSC", name: "American Express", ccNumberLength: 15 },
-	[CardType.Discover]: { cvvLength: 3, cvvName: "CVD", name: "Discover", ccNumberLength: null },
-	[CardType.Other]: { cvvLength: null, cvvName: "CVV", name: null, ccNumberLength: null },
+	[CardType.Visa]: { cvvLength: 3, cvvName: "CVV", name: "Visa" },
+	[CardType.Mastercard]: { cvvLength: 3, cvvName: "CVC", name: "Mastercard" },
+	[CardType.Maestro]: { cvvLength: 3, cvvName: "CVV", name: "Maestro" },
+	[CardType.Amex]: { cvvLength: 4, cvvName: "CSC", name: "American Express" },
+	[CardType.Discover]: { cvvLength: 3, cvvName: "CVD", name: "Discover" },
+	[CardType.Other]: { cvvLength: null, cvvName: "CVV", name: null },
+})
+
+// https://en.wikipedia.org/wiki/Payment_card_number
+const CardPrefixRanges: Record<CardType, number[][]> = Object.freeze({
+	[CardType.Visa]: [[4, 4]],
+	[CardType.Mastercard]: [
+		[51, 55],
+		[2221, 2720],
+	],
+	[CardType.Maestro]: [
+		[6759, 6759],
+		[676770, 676770],
+		[676774, 676774],
+		[5018, 5018],
+		[5020, 5020],
+		[5038, 5038],
+		[5893, 5893],
+		[6304, 6304],
+		[6759, 6759],
+		[6761, 6763],
+	],
+	[CardType.Amex]: [
+		[34, 34],
+		[37, 37],
+	],
+	[CardType.Discover]: [
+		[6011, 6011],
+		[644, 649],
+		[65, 65],
+		[622126, 622925],
+	],
+	[CardType.Other]: [[]],
 })
 type StringInputCorrecter = (value: string, oldValue?: string) => string
 
@@ -282,8 +328,7 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 
 	set cvv(value: string) {
 		const correctedCvv = stripWhitespace(stripNonDigits(value))
-		const spec = CardSpecs[this.creditCardType]
-		this._cvv = spec.cvvLength ? correctedCvv.slice(0, spec.cvvLength) : correctedCvv
+		this._cvv = correctedCvv.slice(0, 4)
 	}
 
 	get creditCardNumber(): string {
@@ -292,12 +337,10 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 
 	set creditCardNumber(value: string) {
 		let cleanedNumber = stripNonDigits(stripWhitespace(value))
-		this.creditCardType = getCardType(cleanedNumber)
+		this.creditCardType = getCardTypeRange(cleanedNumber)
 		const spec = CardSpecs[this.creditCardType]
-		if (spec.ccNumberLength) {
-			cleanedNumber = cleanedNumber.slice(0, spec.ccNumberLength)
-		}
-		this._creditCardNumber = this.creditCardType === CardType.Amex ? groupCreditCardNumber(cleanedNumber, [4, 6, 5]) : groupCreditCardNumber(cleanedNumber)
+		this._creditCardNumber =
+			this.creditCardType === CardType.Amex ? groupCreditCardNumber(cleanedNumber, [4, 6, 5, 5]) : groupCreditCardNumber(cleanedNumber)
 	}
 
 	get cardHolderName(): string {
@@ -350,7 +393,7 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 			})
 			stage?.complete()
 			return "creditCardNumberFormat_msg"
-		} else if ((spec.ccNumberLength && stripWhitespace(this._creditCardNumber).length !== spec.ccNumberLength) || !isValidCreditCardNumber(number)) {
+		} else if (!isValidCreditCardNumber(number)) {
 			stage?.setMetric({
 				name: "validationFailure",
 				value: "ccNumberFormat",
@@ -363,7 +406,7 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 
 	validateCVV(cvv: string): TranslationKey | null {
 		const spec = CardSpecs[this.creditCardType]
-		if (cvv.length < 3 || cvv.length > 4 || (spec.cvvLength && this.cvv.length !== spec.cvvLength)) {
+		if (cvv.length < 3 || cvv.length > 4) {
 			return "creditCardCVVFormat_label"
 		}
 		return null
@@ -374,13 +417,7 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 		if (this.creditCardType === CardType.Other) {
 			return null
 		}
-		return spec.ccNumberLength
-			? this.lang.get("creditCardNumberHint_msg", {
-					"{cardName}": spec.name,
-					"{currentDigits}": stripWhitespace(this._creditCardNumber).length,
-					"{totalDigits}": spec.ccNumberLength,
-			  })
-			: spec.name
+		return spec.name
 	}
 
 	getCreditCardNumberErrorHint(): string | null {
@@ -406,9 +443,9 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 		return "creditCardExpired_msg"
 	}
 
-	getCvvHint(): string {
+	getCvvHint(): string | null {
 		if (this.creditCardType === CardType.Other) {
-			return this.lang.get("emptyString_msg")
+			return null
 		} else {
 			const spec = CardSpecs[this.creditCardType]
 			return this.lang.get("creditCardCvvHint_msg", { "{currentDigits}": this.cvv.length, "{totalDigits}": spec.cvvLength })
@@ -416,12 +453,13 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 	}
 
 	getCvvErrorHint(): string | null {
-		return this.validateCVV(this.cvv) ? this.lang.get("creditCardCVVInvalid_msg") : null
+		const spec = CardSpecs[this.creditCardType]
+		return this.validateCVV(this.cvv) ? this.lang.get("creditCardSpecificCVVInvalid_msg", { "{securityCode}": spec.cvvName }) : null
 	}
 
 	getCvvLabel(): string {
 		if (this.creditCardType === CardType.Other) {
-			return this.lang.get("creditCardCVV_label", {})
+			return this.lang.get("creditCardCvvLabelLong_label", { "{cvvName}": CardSpecs[CardType.Other].cvvName })
 		} else {
 			const spec = CardSpecs[this.creditCardType]
 			return this.lang.get("creditCardCvvLabelLong_label", { "{cvvName}": spec.cvvName })

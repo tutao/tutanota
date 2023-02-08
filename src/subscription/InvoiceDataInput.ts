@@ -81,9 +81,16 @@ export class InvoiceDataInput implements Component {
 		})
 	}
 
+	private startCCTest() {
+		if (!this.__paymentCreditTest || this.__paymentCreditTest.lastCompletedStage > 0) return
+		this.__paymentCreditTest.getStage(1).complete()
+		this.__paymentCreditTest.meta["ccTestStartTime"] = Date.now() / 1000
+	}
+
 	validateInvoiceData(): TranslationKey | null {
 		const address = this.getAddress()
 		const countrySelected = this.selectedCountry() != null
+		this.startCCTest()
 		const stage = this.__paymentCreditTest?.getStage(2)
 		stage?.setMetric({
 			name: "validationFailure",
