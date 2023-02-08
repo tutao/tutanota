@@ -151,7 +151,7 @@ async function bundleServiceWorker(bundles, version, minify) {
 					(!it.startsWith("translation") && !it.startsWith("native-main") && !it.startsWith("SearchInPageOverlay")),
 			),
 		)
-		.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/ionicons.ttf"])
+		.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/font.ttf"])
 	const swBundle = await rollup({
 		input: ["src/serviceworker/sw.ts"],
 		plugins: [

@@ -1,4 +1,4 @@
-import { getMailFolderType, MailFolderType, ReplyType } from "../../api/common/TutanotaConstants"
+import { getMailFolderType, MailFolderType, MailState, ReplyType } from "../../api/common/TutanotaConstants"
 import { FontIcons } from "../../gui/base/icons/FontIcons"
 import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { formatDateTimeFromYesterdayOn } from "../../misc/Formatter"
@@ -16,7 +16,7 @@ const iconMap: Record<MailFolderType, string> = {
 	[MailFolderType.TRASH]: FontIcons.Trash,
 	[MailFolderType.ARCHIVE]: FontIcons.Archive,
 	[MailFolderType.SPAM]: FontIcons.Spam,
-	[MailFolderType.DRAFT]: FontIcons.Edit,
+	[MailFolderType.DRAFT]: FontIcons.Draft,
 }
 
 export class MailRow implements VirtualRow<Mail> {
@@ -86,6 +86,10 @@ export class MailRow implements VirtualRow<Mail> {
 		}
 
 		iconText += mail._errors ? FontIcons.Warning : ""
+
+		if (mail.state === MailState.DRAFT) {
+			iconText += FontIcons.Edit
+		}
 
 		switch (mail.replyType) {
 			case ReplyType.REPLY:
