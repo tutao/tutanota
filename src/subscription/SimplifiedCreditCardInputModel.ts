@@ -15,28 +15,22 @@ export enum CardType {
 	Other = "Other",
 }
 
-// input MUST be sanitized to only contain numerical digits
+/**
+ * Tries to find the credit card issuer by credit card number.
+ * Therefore, it is checked whether the typed in number is in a known range.
+ * Input MUST be sanitized to only contain numerical digits
+ * @param cc the credit card number typed in by the user
+ */
 export function getCardTypeRange(cc: string): CardType {
-	if (cc.length === 0 || cc[0] === "0") return CardType.Other
 	for (let cardType of typedValues(CardType)) {
 		if (cardType === CardType.Other) continue
 		for (let range of CardPrefixRanges[cardType]) {
-			const prefixLength = range[0].toString().length
-			const offset = prefixLength - cc.length
-			if (offset > 0) {
-				// needed for e.g. range[0] = 22, range[1] = 34, cc = 3
-				const correctedRange0 = (range[0] / Math.pow(10, offset)) | 0 // converts to int
-				const correctedRange1 = (range[1] / Math.pow(10, offset)) | 0
-				if (correctedRange0 < Number(cc) && Number(cc) < correctedRange1) {
-					// must be different (e.g. range[0] = 22 and cc = 2)
-					return cardType
-				}
-			} else {
-				// Number() doesn't convert to octal with leading zeros (which we checked for anyway)
-				const inputPrefix = Number(cc.slice(0, prefixLength))
-				if (range[0] <= inputPrefix && inputPrefix <= range[1]) {
-					return cardType
-				}
+			const lowestRange = range[0].padEnd(8, "0")
+			const highestRange = range[1].padEnd(8, "9")
+			const lowestCC = cc.slice(0, 8).padEnd(8, "0")
+			const highestCC = cc.slice(0, 8).padEnd(8, "9")
+			if (lowestRange <= lowestCC && highestCC <= highestRange) {
+				return cardType
 			}
 		}
 	}
@@ -56,33 +50,33 @@ const CardSpecs: Record<CardType, CardSpec> = Object.freeze({
 })
 
 // https://en.wikipedia.org/wiki/Payment_card_number
-const CardPrefixRanges: Record<CardType, number[][]> = Object.freeze({
-	[CardType.Visa]: [[4, 4]],
+const CardPrefixRanges: Record<CardType, NumberString[][]> = Object.freeze({
+	[CardType.Visa]: [["4", "4"]],
 	[CardType.Mastercard]: [
-		[51, 55],
-		[2221, 2720],
+		["51", "55"],
+		["2221", "2720"],
 	],
 	[CardType.Maestro]: [
-		[6759, 6759],
-		[676770, 676770],
-		[676774, 676774],
-		[5018, 5018],
-		[5020, 5020],
-		[5038, 5038],
-		[5893, 5893],
-		[6304, 6304],
-		[6759, 6759],
-		[6761, 6763],
+		["6759", "6759"],
+		["676770", "676770"],
+		["676774", "676774"],
+		["5018", "5018"],
+		["5020", "5020"],
+		["5038", "5038"],
+		["5893", "5893"],
+		["6304", "6304"],
+		["6759", "6759"],
+		["6761", "6763"],
 	],
 	[CardType.Amex]: [
-		[34, 34],
-		[37, 37],
+		["34", "34"],
+		["37", "37"],
 	],
 	[CardType.Discover]: [
-		[6011, 6011],
-		[644, 649],
-		[65, 65],
-		[622126, 622925],
+		["6011", "6011"],
+		["644", "649"],
+		["65", "65"],
+		["622126", "622925"],
 	],
 	[CardType.Other]: [[]],
 })
