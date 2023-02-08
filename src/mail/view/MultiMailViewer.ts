@@ -164,10 +164,7 @@ export class MultiMailViewer implements Component {
 		if (selectedMailbox == null) return []
 		return selectedMailbox.folders
 			.getIndentedList()
-			.filter(
-				(folderInfo) =>
-					(this._mailView.cache.selectedFolder == null || !haveSameId(folderInfo.folder, this._mailView.cache.selectedFolder)),
-			)
+			.filter((folderInfo) => this._mailView.cache.selectedFolder == null || !haveSameId(folderInfo.folder, this._mailView.cache.selectedFolder))
 			.map((folderInfo) => {
 				return {
 					label: () => getIndentedFolderNameForDropdown(folderInfo),
