@@ -9,7 +9,7 @@ import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import { MailAddressTable } from "./mailaddress/MailAddressTable.js"
 import { Dialog } from "../gui/base/Dialog"
 import { logins } from "../api/main/LoginController"
-import { getDefaultSenderFromUser, getFolderName } from "../mail/model/MailUtils"
+import { getDefaultSenderFromUser, getFolderName, getMailAddressDisplayText } from "../mail/model/MailUtils"
 import { Icons } from "../gui/base/icons/Icons"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { MailboxDetail } from "../mail/model/MailModel"
@@ -30,7 +30,6 @@ import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
 import { IdentifierListViewer } from "./IdentifierListViewer"
 import { IndexingNotSupportedError } from "../api/common/error/IndexingNotSupportedError"
 import { LockedError } from "../api/common/error/RestError"
-import { getEnabledMailAddressesForGroupInfo } from "../api/common/utils/GroupUtils"
 import { showEditOutOfOfficeNotificationDialog } from "./EditOutOfOfficeNotificationDialog"
 import { formatActivateState, loadOutOfOfficeNotification } from "../misc/OutOfOfficeNotificationUtils"
 import { getSignatureType, show as showEditSignatureDialog } from "./EditSignatureDialog"
@@ -42,6 +41,7 @@ import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { getReportMovedMailsType } from "../misc/MailboxPropertiesUtils.js"
 import { MailAddressTableModel } from "./mailaddress/MailAddressTableModel.js"
+import { getEnabledMailAddressesForGroupInfo } from "../api/common/utils/GroupUtils.js"
 
 assertMainOrNode()
 
@@ -49,7 +49,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_signature: Stream<string>
 	_mailboxProperties: LazyLoaded<MailboxProperties>
 	_reportMovedMails: ReportMovedMailsType
-	_defaultSender: string | null
+	_defaultSender: string
 	_defaultUnconfidential: boolean | null
 	_sendPlaintext: boolean | null
 	_noAutomaticContacts: boolean | null
@@ -81,7 +81,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		// normally we would maybe like to get it as an argument but these viewers are created in an odd way
 		locator.mailAddressTableModelForOwnMailbox().then((model) => {
 			this.mailAddressTableModel = model
-			m.redraw()
+			model.init().then(m.redraw)
 		})
 		m.redraw()
 
@@ -112,15 +112,18 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			label: "defaultSenderMailAddress_label",
 			items: getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo)
 				.sort()
-				.map((a) => {
-					return {
-						name: a,
-						value: a,
-					}
-				}),
+				.map((a) => ({
+					name: a,
+					value: a,
+				})),
 			selectedValue: this._defaultSender,
-			selectionChangedHandler: (v) => {
-				logins.getUserController().props.defaultSender = v
+			selectedValueDisplay: getMailAddressDisplayText(
+				this.mailAddressTableModel?.addresses().find(({ address }) => address === this._defaultSender)?.name ?? "",
+				this._defaultSender,
+				false,
+			),
+			selectionChangedHandler: (defaultSenderAddress) => {
+				logins.getUserController().props.defaultSender = defaultSenderAddress
 				locator.entityClient.update(logins.getUserController().props)
 			},
 			helpLabel: () => lang.get("defaultSenderMailAddressInfo_msg"),
@@ -281,7 +284,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				[
 					m(".h4.mt-l", lang.get("emailSending_label")),
 					m(DropDownSelector, defaultSenderAttrs),
-					this.renderName(),
 					m(TextField, signatureAttrs),
 					logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, defaultUnconfidentialAttrs),
 					logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, sendPlaintextAttrs),
@@ -320,31 +322,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				],
 			),
 		]
-	}
-
-	private renderName(): Children {
-		const name = logins.getUserController().userGroupInfo.name
-		return m(TextField, {
-			label: "name_label",
-			value: name,
-			disabled: true,
-			injectionsRight: () =>
-				logins.getUserController().isGlobalAdmin()
-					? m(IconButton, {
-							title: "name_label",
-							click: () => this.onChangeName(name),
-							icon: Icons.Edit,
-							size: ButtonSize.Compact,
-					  })
-					: null,
-		})
-	}
-
-	private onChangeName(name: string) {
-		Dialog.showProcessTextInputDialog("edit_action", "name_label", null, name, (newName) => {
-			logins.getUserController().userGroupInfo.name = newName
-			return locator.entityClient.update(logins.getUserController().userGroupInfo)
-		})
 	}
 
 	private renderLocalDataSection(): Children {
@@ -451,7 +428,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			const { instanceListId, instanceId, operation } = update
+			const { operation } = update
 			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
 				const props = await locator.entityClient.load(TutanotaPropertiesTypeRef, logins.getUserController().props._id)
 				this._updateTutanotaPropertiesSettings(props)
