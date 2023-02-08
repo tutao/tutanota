@@ -3,7 +3,6 @@ import https from "https"
 import path from "path"
 import { log } from "../DesktopLog.js"
 import { ProtocolRequest, ProtocolResponse, Session } from "electron"
-import { Duplex, PassThrough } from "stream"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { errorToObj } from "../../api/common/MessageDispatcher.js"
 import { makeSingleUse } from "@tutao/tutanota-utils"
@@ -110,6 +109,7 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 			if (firstData.blobUUID) {
 				actualData = await session.getBlobData(firstData.blobUUID)
 			} else if (firstData.file) {
+				log.error(TAG, "Uploading files by path is not implemented")
 				throw new ProgrammingError("Uploading files by path is not implemented")
 			} else {
 				actualData = firstData.bytes
@@ -118,16 +118,14 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 		}
 		const clientRequest: http.ClientRequest = net.request(url, { method, headers, agent })
 		clientRequest.once("response", (res: http.IncomingMessage) => {
-			const responseStream: Duplex = new PassThrough()
-			res.on("data", (d) => responseStream.push(d))
-			res.once("end", () => responseStream.end())
-			res.once("error", (e) => {
-				log.debug(TAG, `response error`, url)
-				responseStream.end()
+			res.on("error", (e) => {
+				// we don't need to do anything else because whatever is on the other side of
+				// sendResponse will handle errors as it sees fit.
+				log.debug(TAG, "response error", url)
 			})
 			// casting because typescript doesn't accept http.IncomingHttpHeaders as a Record even though it's just an object.
 			const resHeaders: Record<string, string | string[]> = res.headers as unknown as Record<string, string | string[]>
-			sendResponse({ statusCode: res.statusCode, headers: resHeaders, data: responseStream })
+			sendResponse({ statusCode: res.statusCode, headers: resHeaders, data: res })
 		})
 		clientRequest.once("error", (e) => handleError(e))
 		clientRequest.once("timeout", () => clientRequest.destroy(new ProxyError(NetErrorCode.TIMED_OUT)))
