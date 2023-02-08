@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2023-02-02T16:19:34Z",
+	"updated_at": "2023-02-08T14:13:45Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1297,6 +1297,8 @@ export default {
 		"sendingSms_msg": "Skickar SMS...",
 		"sendingUnencrypted_msg": "Ditt meddelande skickas.",
 		"sending_msg": "Ditt meddelande krypteras och skickas.",
+		"sendLogsInfo_msg": "Bifoga loggfilerna till felrapporten. Klicka nedan för att visa innehållet.",
+		"sendLogs_action": "Skicka loggar",
 		"sendMail_alt": "Skicka e-post till denna adress",
 		"sendUpdates_label": "Skicka uppdateringar till inbjudna",
 		"sendUpdates_msg": "Skicka uppdateringsnotiser till inbjudna?",

@@ -1,12 +1,12 @@
-NSCameraUsageDescription = "첨부할 사진 또는 비디오를 촬영하세요.";
-NSPhotoLibraryUsageDescription = "라이브러리에서 사진을 첨부하세요.";
-NSMicrophoneUsageDescription = "첨부할 비디오를 녹화할 때 사용됩니다.";
-NSContactsUsageDescription = "연락처에서 수신 이메일 주소를 찾으세요.";
+NSCameraUsageDescription = "사진이나 동영상을 찍어 첨부 파일로 추가합니다.";
+NSPhotoLibraryUsageDescription = "라이브러리에서 사진을 첨부 파일로 추가합니다.";
+NSMicrophoneUsageDescription = "동영상을 첨부 파일로 녹화할 때 사용합니다.";
+NSContactsUsageDescription = "연락처에서 수신자의 이메일 주소를 찾습니다.";
 NSRemindersUsageDescription = "새 이메일이 도착할 때 알림을 표시합니다.";
 TutaoShowCameraAction = "카메라";
 TutaoChoosePhotosAction = "사진";
 TutaoNoPermissionTitle = "권한 없음";
-TutaoChangePermissionMsg = "권한을 얻으려면 이 기기에 대한 권한을 수정해야 합니다.";
+TutaoChangePermissionMsg = "액세스 권한을 부여하려면 이 디바이스에 대한 권한을 수정해야 합니다.";
 TutaoCancelAction = "취소";
 TutaoSettingsAction = "설정";
 TutaoCalendarAlarmTitle = "다시 알림";
