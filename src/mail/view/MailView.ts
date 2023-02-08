@@ -21,7 +21,7 @@ import { logins } from "../../api/main/LoginController"
 import { Icons } from "../../gui/base/icons/Icons"
 import { PreconditionFailedError } from "../../api/common/error/RestError"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
-import { allMailsAllowedInsideFolder, canDoDragAndDropExport, getFolderName, getMailboxName, markMails } from "../model/MailUtils"
+import { canDoDragAndDropExport, getFolderName, getMailboxName, markMails } from "../model/MailUtils"
 import type { MailboxDetail } from "../model/MailModel"
 import { locator } from "../../api/main/MainLocator"
 import { ActionBar } from "../../gui/base/ActionBar"
@@ -612,12 +612,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			if (entity) {
 				mailsToMove.push(entity)
 			}
-		}
-
-		// do not allow moving folders to unallowed locations
-		const mailBoxDetails = await this.getMailboxDetails()
-		if (!allMailsAllowedInsideFolder(mailsToMove, folder, mailBoxDetails.folders)) {
-			return
 		}
 
 		moveMails({ mailModel: locator.mailModel, mails: mailsToMove, targetMailFolder: folder })
