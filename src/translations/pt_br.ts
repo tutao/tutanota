@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2023-02-02T15:16:06Z",
+	"updated_at": "2023-02-08T14:13:45Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -1297,6 +1297,8 @@ export default {
 		"sendingSms_msg": "Enviando SMS...",
 		"sendingUnencrypted_msg": "Enviando sua mensagem.",
 		"sending_msg": "Sua mensagem está sendo criptografada e enviada.",
+		"sendLogsInfo_msg": "Anexar os arquivos de registro ao relatório de erro. Clicar abaixo para exibir o conteúdo.\n",
+		"sendLogs_action": "Enviar registros",
 		"sendMail_alt": "Enviar email para este endereço",
 		"sendUpdates_label": "Enviar atualizações para os convidados",
 		"sendUpdates_msg": "Enviar notificação de atualização para os convidados?",

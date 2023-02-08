@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2023-02-02T15:36:03Z",
+	"updated_at": "2023-02-08T14:13:45Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1294,6 +1294,8 @@ export default {
 		"sendingSms_msg": "Sender SMS ...",
 		"sendingUnencrypted_msg": "Din melding har blitt sendt.",
 		"sending_msg": "Meldingen din blir kryptert og sendt.",
+		"sendLogsInfo_msg": "Legg ved loggfilene til feilrapporten. Klikk under for å vise innholdet.",
+		"sendLogs_action": "Send loggene",
 		"sendMail_alt": "Send e-post til denne adressen",
 		"sendUpdates_label": "Send oppdatering til inviterte",
 		"sendUpdates_msg": "Vil du sende oppdateringsvarsel til inviterte?",

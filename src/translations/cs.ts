@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2023-02-03T11:36:01Z",
+	"updated_at": "2023-02-08T14:13:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1296,6 +1296,8 @@ export default {
 		"sendingSms_msg": "Odesílání SMS zprávy...",
 		"sendingUnencrypted_msg": "Vaše zpráva se odesílá.",
 		"sending_msg": "Vaše zpráva se šifruje a odesílá.",
+		"sendLogsInfo_msg": "K chybovému hlášení připojte soubor s protokolem.  Kliknutím níže zobrazíte jeho obsah.",
+		"sendLogs_action": "Odeslat protokol",
 		"sendMail_alt": "Odeslat zprávu na tuto adresu",
 		"sendUpdates_label": "Poslat aktualizaci pozvaným osobám",
 		"sendUpdates_msg": "Odeslat oznámení o aktualizaci pozvaným?",

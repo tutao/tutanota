@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2023-01-25T07:54:46Z",
+	"updated_at": "2023-02-08T14:13:45Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1229,6 +1229,7 @@ export default {
 		"reportPhishing_action": "Adathalászat jelentése",
 		"reportSpam_action": "Levélszemét jelentése",
 		"requestApproval_msg": "Sajnos jelenleg nincs lehetősége e-maileket küldeni és fogadni (kivéve a Tutanota ügyfélszolgálatát), mert fiókja további jóváhagyást igényel a visszaélések, pl. spam, elkerülése érdekében. Kérjük, vegye fel velünk a kapcsolatot közvetlenül Tutanota fiókján keresztül az approval@tutao.de címen, és írja le, mire szeretné használni ezt az e-mail-címet!",
+		"requestTimeout_msg": "A művelet túl sokáig tartott a lassú internetkapcsolat miatt. Kérjük, próbálja meg később újra!",
 		"requestTooLarge_msg": "Túl nagy érték. Kérjük, rövidítse a szöveget!",
 		"requiresNewWindow_msg": "Hatással lesz több új ablakban",
 		"resetZoomFactor_action": "Zoom Faktor Helyreállítása",
@@ -1295,6 +1296,8 @@ export default {
 		"sendingSms_msg": "SMS küldése ...",
 		"sendingUnencrypted_msg": "Az Ön üzenete küldésfolyamatban van.",
 		"sending_msg": "Az üzenete titkosításra, majd elküldésre került.",
+		"sendLogsInfo_msg": "Csatolja a naplófájlokat a hibajelentéshez. Kattintson az alábbi gombra a tartalom megjelenítéséhez.",
+		"sendLogs_action": "Naplók küldése",
 		"sendMail_alt": "Levél küldése erre a címre",
 		"sendUpdates_label": "Frissítések küldése a meghívottaknak.",
 		"sendUpdates_msg": "Küld frissítési értesítést a meghívottaknak?",

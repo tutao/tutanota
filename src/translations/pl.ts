@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2023-02-02T19:55:19Z",
+	"updated_at": "2023-02-08T14:13:45Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1299,6 +1299,8 @@ export default {
 		"sendingSms_msg": "Wysyłanie wiadomości SMS w toku...",
 		"sendingUnencrypted_msg": "Wiadomość jest wysyłana.",
 		"sending_msg": "Twoja wiadomość jest szyfrowana i wysyłana.",
+		"sendLogsInfo_msg": "Dołącz pliki dziennika do raportu o błędzie. Kliknij poniżej, aby wyświetlić ich zawartość.",
+		"sendLogs_action": "Wyślij dziennik",
 		"sendMail_alt": "Wyślij wiadomość na adres",
 		"sendUpdates_label": "Wyślij zmiany do zaproszonych",
 		"sendUpdates_msg": "Czy wysłać powiadomienie zaproszonym osobom?",

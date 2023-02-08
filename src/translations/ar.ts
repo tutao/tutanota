@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2023-01-20T15:24:53Z",
+	"updated_at": "2023-02-08T14:13:45Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -245,6 +245,7 @@ export default {
 		"concealPassword_action": "إخفاء كلمة السرّ ",
 		"confidentialStatus_msg": "سيتم إرسال الرسالة مشفرة من الطرف إلى نهاية الطرف.",
 		"confidential_action": "سري",
+		"configureCustomDomainAfterSignup_msg": "يمكن تكوين المجالات المخصصة بمجرد إنشاء الحساب:",
 		"confirmCountry_msg": "لحساب ضريبة القيمة المضافة، نحتاج منك تأكيد بلدك: {1}.",
 		"confirmCustomDomainDeletion_msg": "هل تريد بالتأكيد إزالة مجال البريد الإلكتروني المخصص '{domain}'؟",
 		"confirmDeactivateCustomColors_msg": "هل تريد حقا إلغاء تفعيل الألوان المخصصة الخاصة بك؟",
@@ -1232,6 +1233,7 @@ export default {
 		"reportPhishing_action": "تقرير التصيد",
 		"reportSpam_action": "الإعلان كبريد عشوائي",
 		"requestApproval_msg": "عذرًا، لا يُسمح حاليًا بإرسال أو تلقي رسائل البريد الإلكتروني (باستثناء إلى دعم توتانوتا ) لأنه تم وضع علامة 'للموافقة' على حسابك، وهذا لتجنب إساءة الاستخدام، مثل رسائل البريد الإلكتروني غير المرغوب فيها. يرجى الاتصال بنا مباشرة من حسابك في توتانوتا على approval@tutao.de ووصف غرض استخدام هذا الحساب. يرجى الكتابة باللغة الإنجليزية أو الألمانية، حتى نتمكن من فهمكم. شكر!",
+		"requestTimeout_msg": "استغرقت العملية وقتا طويلا بسبب بطء الاتصال بالإنترنت. يرجى المحاولة مرة أخرى في وقت لاحق.",
 		"requestTooLarge_msg": "كمية البيانات كبيرة جدًا. الرجاء تقصير النص.",
 		"requiresNewWindow_msg": "ستدخل حيز التنفيذ في أي نافذة جديدة.",
 		"resetZoomFactor_action": "إعادة تعيين عامل التكبير",
@@ -1298,6 +1300,8 @@ export default {
 		"sendingSms_msg": "جارى إرسال الرسالة القصيرة...",
 		"sendingUnencrypted_msg": "يتم إرسال رسالتك.",
 		"sending_msg": "رسالتكم ستشفر ثم يتم إرسالها.",
+		"sendLogsInfo_msg": "إرفاق ملفات السجل(log files) بتقرير الخطأ(error report). انقر أدناه لعرض المحتويات.",
+		"sendLogs_action": "إرسال السجلات",
 		"sendMail_alt": "أرسل رسالة إلى هذا العنوان",
 		"sendUpdates_label": "إرسال تحديثات إلى المدعوين",
 		"sendUpdates_msg": "إرسال إعلام بالتحديث إلى المدعوين؟",
