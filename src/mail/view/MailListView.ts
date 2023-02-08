@@ -32,7 +32,7 @@ import { findAndApplyMatchingRule, isInboxList } from "../model/InboxRuleHandler
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/main/EventController.js"
-import { assertSystemFolderOfType, isSpamOrTrashFolder, isSubfolderOfType } from "../../api/common/mail/CommonMailUtils.js"
+import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
 
 assertMainOrNode()
 const className = "mail-list"
@@ -475,15 +475,9 @@ export class MailListView implements Component<MailListViewAttrs> {
 	}
 
 	private async showingDraftFolder(): Promise<boolean> {
-		const folder = await locator.mailModel.getMailFolder(this.listId)
-		if (!folder) {
-			return false
-		}
 		const mailboxDetail = await locator.mailModel.getMailboxDetailsForMailListId(this.listId)
 		if (this.mailView && this.mailView.cache.selectedFolder) {
-			return (
-				this.mailView.cache.selectedFolder.folderType === MailFolderType.DRAFT || isSubfolderOfType(mailboxDetail.folders, folder, MailFolderType.DRAFT)
-			)
+			return isOfTypeOrSubfolderOf(mailboxDetail.folders, this.mailView.cache.selectedFolder, MailFolderType.DRAFT)
 		} else {
 			return false
 		}

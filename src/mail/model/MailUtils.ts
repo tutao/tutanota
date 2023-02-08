@@ -40,7 +40,7 @@ import { elementIdPart, getListId, listIdPart } from "../../api/common/utils/Ent
 import { isDetailsDraft, isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { getLegacyMailHeaders, getMailHeaders } from "../../api/common/utils/Utils.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
-import { isSubfolderOfType } from "../../api/common/mail/CommonMailUtils.js"
+import { isOfTypeOrSubfolderOf } from "../../api/common/mail/CommonMailUtils.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -293,14 +293,9 @@ export function allMailsAllowedInsideFolder(mails: ReadonlyArray<Mail>, folder: 
  */
 export function mailStateAllowedInsideFolderType(mailState: string, folder: MailFolder, folderSystem: FolderSystem) {
 	if (mailState === MailState.DRAFT) {
-		return (
-			folder.folderType === MailFolderType.DRAFT ||
-			isSubfolderOfType(folderSystem, folder, MailFolderType.DRAFT) ||
-			folder.folderType === MailFolderType.TRASH ||
-			isSubfolderOfType(folderSystem, folder, MailFolderType.TRASH)
-		)
+		return isOfTypeOrSubfolderOf(folderSystem, folder, MailFolderType.DRAFT) || isOfTypeOrSubfolderOf(folderSystem, folder, MailFolderType.TRASH)
 	} else {
-		return folder.folderType !== MailFolderType.DRAFT && !isSubfolderOfType(folderSystem, folder, MailFolderType.DRAFT)
+		return !isOfTypeOrSubfolderOf(folderSystem, folder, MailFolderType.DRAFT)
 	}
 }
 
