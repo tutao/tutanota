@@ -79,6 +79,21 @@ export function hasAllFeaturesInPlan(currentSubscription: SubscriptionConfig, pl
 	)
 }
 
+export type PaymentErrorCode =
+	| "paypal.change"
+	| "paypal.confirm_again"
+	| "paypal.other_source"
+	| "card.contact_bank"
+	| "card.insufficient_funds"
+	| "card.expired_card"
+	| "card.change"
+	| "card.3ds2_needed"
+	| "card.3ds2_pending"
+	| "card.3ds2_failed"
+	| "card.cvv_invalid"
+	| "card.number_invalid"
+	| "card.date_invalid"
+
 export function getPreconditionFailedPaymentMsg(data: string | null): TranslationKey {
 	switch (data) {
 		case "paypal.change":

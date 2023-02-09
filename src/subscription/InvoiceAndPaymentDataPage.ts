@@ -14,7 +14,7 @@ import { logins } from "../api/main/LoginController"
 import type { AccountingInfo, Braintree3ds2Request } from "../api/entities/sys/TypeRefs.js"
 import { AccountingInfoTypeRef, CustomerInfoTypeRef, CustomerTypeRef, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { assertNotNull, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
-import { getPreconditionFailedPaymentMsg, UpgradeType } from "./SubscriptionUtils"
+import { getPreconditionFailedPaymentMsg, PaymentErrorCode, UpgradeType } from "./SubscriptionUtils"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import type { SegmentControlItem } from "../gui/base/SegmentControl"
 import { SegmentControl } from "../gui/base/SegmentControl"
@@ -143,7 +143,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 					.catch((e) => console.log("failed to send ping, ignoring.", e))
 				a.data.invoiceData = invoiceDataInput.getInvoiceData()
 				a.data.paymentData = paymentMethodInput.getPaymentData()
-				showProgressDialog(
+				return showProgressDialog(
 					"updatePaymentDataBusy_msg",
 					Promise.resolve()
 						.then(() => {
@@ -393,23 +393,24 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 							// verification error during 3ds verification
 							let error = "3dsFailedOther"
 
-							switch (invoiceInfo.paymentErrorInfo.errorCode) {
-								case "creditCardCVVInvalid_msg":
+							switch (invoiceInfo.paymentErrorInfo.errorCode as PaymentErrorCode) {
+								case "card.cvv_invalid":
 									error = "cvvInvalid"
 									break
-								case "creditCardNumberInvalid_msg":
+								case "card.number_invalid":
 									error = "ccNumberInvalid"
 									break
-								case "creditCardExprationDateInvalid_msg":
-									error = "expirationDate"
+
+								case "card.date_invalid":
+									error = "expirationDateFormat"
 									break
-								case "payCardInsufficientFundsError_msg":
+								case "card.insufficient_funds":
 									error = "insufficientFunds"
 									break
-								case "payCardExpiredError_msg":
+								case "card.expired_card":
 									error = "cardExpired"
 									break
-								case "creditCardVerificationFailed_msg":
+								case "card.3ds2_failed":
 									error = "3dsFailed"
 									break
 							}
