@@ -95,7 +95,8 @@ export type PaymentErrorCode =
 	| "card.date_invalid"
 
 export function getPreconditionFailedPaymentMsg(data: string | null): TranslationKey {
-	switch (data) {
+	// the type is mostly there to keep multiple locations that switch over these in sync
+	switch (data as PaymentErrorCode) {
 		case "paypal.change":
 			return "payChangeError_msg"
 
