@@ -132,15 +132,6 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 			if (error) {
 				return Dialog.message(error).then(() => null)
 			} else {
-				const elapsedSeconds = (Date.now() / 1000 - this.__paymentCreditTest.meta["ccTestStartTime"]) as number
-				this.__paymentCreditTest.getStage(3).setMetric({
-					name: "secondsPassedSinceStart",
-					value: elapsedSeconds.toString(),
-				})
-				this.__paymentCreditTest
-					.getStage(3)
-					.complete()
-					.catch((e) => console.log("failed to send ping, ignoring.", e))
 				a.data.invoiceData = invoiceDataInput.getInvoiceData()
 				a.data.paymentData = paymentMethodInput.getPaymentData()
 				return showProgressDialog(
@@ -402,7 +393,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 									break
 
 								case "card.date_invalid":
-									error = "expirationDateFormat"
+									error = "expirationDate"
 									break
 								case "card.insufficient_funds":
 									error = "insufficientFunds"
@@ -440,7 +431,14 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 			braintree3ds.bin,
 		)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${getClientType()}`
 		Dialog.message("creditCardVerificationNeededPopup_msg").then(() => {
-			test.getStage(2).complete()
+			const elapsedSeconds = (Date.now() / 1000 - test.meta["ccTestStartTime"]) as number
+			test.getStage(3).setMetric({
+				name: "secondsPassedSinceStart",
+				value: elapsedSeconds.toString(),
+			})
+			test.getStage(3)
+				.complete()
+				.catch((e) => console.log("failed to send ping, ignoring.", e))
 			window.open(`${getPaymentWebRoot()}/braintree.html#${params}`)
 			progressDialog.show()
 		})
