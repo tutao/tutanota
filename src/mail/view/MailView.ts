@@ -26,7 +26,6 @@ import type { MailboxDetail } from "../model/MailModel"
 import { locator } from "../../api/main/MainLocator"
 import { ActionBar } from "../../gui/base/ActionBar"
 import { MultiSelectionBar } from "../../gui/base/MultiSelectionBar"
-
 import { PermissionError } from "../../api/common/error/PermissionError"
 import { MAIL_PREFIX, navButtonRoutes, throttleRoute } from "../../misc/RouteChange"
 import { styles } from "../../gui/styles"
@@ -49,7 +48,7 @@ import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { showEditFolderDialog } from "./EditFolderDialog.js"
 import { MailFoldersView } from "./MailFoldersView.js"
-import { assertSystemFolderOfType, isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
+import { assertSystemFolderOfType, isSpamOrTrashFolder, isSubfolderOfType } from "../../api/common/mail/CommonMailUtils.js"
 import { FolderColumnView } from "../../gui/FolderColumnView.js"
 import { SidebarSection } from "../../gui/SidebarSection.js"
 import { EditFoldersDialog } from "./EditFoldersDialog.js"
@@ -730,18 +729,29 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return promptAndDeleteMails(locator.mailModel, mails, noOp)
 	}
 
-	finallyDeleteAllMailsInSelectedFolder(folder: MailFolder): Promise<void> {
-		if (folder.folderType !== MailFolderType.TRASH && folder.folderType !== MailFolderType.SPAM) {
-			throw new Error(`Cannot delete mails in folder ${String(folder._id)} with type ${folder.folderType}`)
-		}
-
+	async finallyDeleteAllMailsInSelectedFolder(folder: MailFolder): Promise<void> {
 		// remove any selection to avoid that the next mail is loaded and selected for each deleted mail event
 		this.cache.mailList?.list.selectNone()
 
-		// The request will be handled async by server
-		return showProgressDialog("progressDeleting_msg", locator.mailModel.clearFolder(folder)).catch(
-			ofClass(PreconditionFailedError, () => Dialog.message("operationStillActive_msg")),
-		)
+		const mailboxDetail = await this.getMailboxDetails()
+
+		// the request is handled a little differently if it is the system folder vs a subfolder
+		if (folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM) {
+			// The request will be handled async by server
+			return showProgressDialog("progressDeleting_msg", locator.mailModel.clearFolder(folder)).catch(
+				ofClass(PreconditionFailedError, () => Dialog.message("operationStillActive_msg")),
+			)
+		} else if (
+			isSubfolderOfType(mailboxDetail.folders, folder, MailFolderType.TRASH) ||
+			isSubfolderOfType(mailboxDetail.folders, folder, MailFolderType.SPAM)
+		) {
+			// The request will be handled async by server
+			return showProgressDialog("progressDeleting_msg", locator.mailModel.finallyDeleteCustomMailFolder(folder)).catch(
+				ofClass(PreconditionFailedError, () => Dialog.message("operationStillActive_msg")),
+			)
+		} else {
+			throw new Error(`Cannot delete mails in folder ${String(folder._id)} with type ${folder.folderType}`)
+		}
 	}
 
 	/**
