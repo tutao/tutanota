@@ -77,7 +77,7 @@ async function getIssuesForMilestone(octokit, milestone) {
 function filterIssues(issues, platform) {
 	const allPlatforms = new Set(["android", "ios", "desktop"])
 	// issues that have any of these labels will not be included in any release notes
-	const excludedLabels = new Set(["dev bug", "usage test"])
+	const excludedLabels = new Set(["dev bug", "topic:usage test", "no-release-notes"])
 	issues = issues.filter((issue) => !issue.labels.some((label) => excludedLabels.has(label.name)))
 
 	if (platform === "web") {
