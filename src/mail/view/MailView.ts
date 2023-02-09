@@ -247,9 +247,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				if (isSelectedPrefix(MAIL_PREFIX)) {
 					this.setUrl(url)
 				} else {
-					if (typeof url === "undefined") {
-						throw new Error("undefined mail url!")
-					}
+					assertNotNull(url, "undefined mail url!")
 					navButtonRoutes.mailUrl = url
 				}
 			}
@@ -564,9 +562,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private setUrl(url: string) {
-		if (typeof url === "undefined") {
-			throw new Error("undefined mail url!")
-		}
+		assertNotNull(url, "undefined mail url!")
 		navButtonRoutes.mailUrl = url
 
 		// do not change the url if the search view is active
