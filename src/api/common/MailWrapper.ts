@@ -108,9 +108,9 @@ function isLegacy(details: LegacyDetails | NewDetails): details is LegacyDetails
 }
 
 export function isLegacyMail(mail: Mail): boolean {
-	return mail.mailDetails === null && mail.mailDetailsDraft === null
+	return mail.mailDetails == null && mail.mailDetailsDraft == null
 }
 
 export function isDetailsDraft(mail: Mail): boolean {
-	return mail.mailDetailsDraft !== null
+	return mail.mailDetailsDraft != null
 }
