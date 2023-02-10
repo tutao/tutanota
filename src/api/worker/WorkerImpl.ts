@@ -23,7 +23,7 @@ import { SearchFacade } from "./search/SearchFacade"
 import { MailAddressFacade } from "./facades/MailAddressFacade"
 import { FileFacade } from "./facades/FileFacade.js"
 import { UserManagementFacade } from "./facades/UserManagementFacade"
-import { exposeLocal, exposeRemote } from "../common/WorkerProxy"
+import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../common/WorkerProxy"
 import type { DeviceEncryptionFacade } from "./facades/DeviceEncryptionFacade"
 import { random } from "@tutao/tutanota-crypto"
 import type { NativeInterface } from "../../native/common/NativeInterface"
@@ -140,101 +140,101 @@ export class WorkerImpl implements NativeInterface {
 		}
 	}
 
-	get exposedInterface(): WorkerInterface {
+	get exposedInterface(): DelayedImpls<WorkerInterface> {
 		return {
-			get loginFacade() {
+			async loginFacade() {
 				return locator.login
 			},
 
-			get customerFacade() {
+			async customerFacade() {
 				return locator.customer
 			},
 
-			get giftCardFacade() {
+			async giftCardFacade() {
 				return locator.giftCards
 			},
 
-			get groupManagementFacade() {
+			async groupManagementFacade() {
 				return locator.groupManagement
 			},
 
-			get configFacade() {
+			async configFacade() {
 				return locator.configFacade
 			},
 
-			get calendarFacade() {
+			async calendarFacade() {
 				return locator.calendar
 			},
 
-			get mailFacade() {
+			async mailFacade() {
 				return locator.mail
 			},
 
-			get shareFacade() {
+			async shareFacade() {
 				return locator.share
 			},
 
-			get counterFacade() {
+			async counterFacade() {
 				return locator.counters
 			},
 
-			get indexerFacade() {
+			async indexerFacade() {
 				return locator.indexer
 			},
 
-			get searchFacade() {
+			async searchFacade() {
 				return locator.search
 			},
 
-			get bookingFacade() {
+			async bookingFacade() {
 				return locator.booking
 			},
 
-			get mailAddressFacade() {
+			async mailAddressFacade() {
 				return locator.mailAddress
 			},
 
-			get fileFacade() {
+			async fileFacade() {
 				return locator.file
 			},
 
-			get blobAccessTokenFacade() {
+			async blobAccessTokenFacade() {
 				return locator.blobAccessToken
 			},
 
-			get blobFacade() {
+			async blobFacade() {
 				return locator.blob
 			},
 
-			get userManagementFacade() {
+			async userManagementFacade() {
 				return locator.userManagement
 			},
 
-			get contactFormFacade() {
+			async contactFormFacade() {
 				return locator.contactFormFacade
 			},
 
-			get deviceEncryptionFacade() {
+			async deviceEncryptionFacade() {
 				return locator.deviceEncryptionFacade
 			},
 
-			get restInterface() {
+			async restInterface() {
 				return locator.cache
 			},
 
-			get serviceExecutor() {
+			async serviceExecutor() {
 				return locator.serviceExecutor
 			},
 
-			get cryptoFacade() {
+			async cryptoFacade() {
 				return locator.crypto
 			},
 
-			get cacheStorage() {
+			async cacheStorage() {
 				return locator.cacheStorage
 			},
 
-			get random() {
+			async random() {
 				return {
 					async generateRandomNumber(nbrOfBytes: number) {
 						return random.generateRandomNumber(nbrOfBytes)
@@ -242,21 +242,21 @@ export class WorkerImpl implements NativeInterface {
 				}
 			},
 
-			get eventBus() {
+			async eventBus() {
 				return locator.eventBusClient
 			},
 
-			get entropyFacade() {
+			async entropyFacade() {
 				return locator.entropyFacade
 			},
 
-			get workerFacade() {
+			async workerFacade() {
 				return locator.workerFacade
 			},
 		}
 	}
 
-	queueCommands(exposedWorker: WorkerInterface): Commands<WorkerRequestType> {
+	queueCommands(exposedWorker: DelayedImpls<WorkerInterface>): Commands<WorkerRequestType> {
 		return {
 			setup: async (message) => {
 				console.error("WorkerImpl: setup was called after bootstrap! message: ", message)
@@ -287,7 +287,7 @@ export class WorkerImpl implements NativeInterface {
 				return locator.restClient.request(path, method, options)
 			},
 
-			facade: exposeLocal(exposedWorker),
+			facade: exposeLocalDelayed<DelayedImpls<WorkerInterface>, WorkerRequestType>(exposedWorker),
 		}
 	}
 
