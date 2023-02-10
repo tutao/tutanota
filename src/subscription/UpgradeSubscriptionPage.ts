@@ -2,7 +2,6 @@ import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
 import { lang } from "../misc/LanguageViewModel"
 import type { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
-import { SubscriptionTypeParameter } from "./UpgradeSubscriptionWizard"
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
 import { isApp, isTutanotaDomain } from "../api/common/Env"
 import { client } from "../misc/ClientDetector"
@@ -19,6 +18,14 @@ import { UsageTest } from "@tutao/tutanota-usagetests"
 import { SubscriptionType, UpgradePriceType } from "./FeatureListProvider"
 import { asPaymentInterval, PaymentInterval } from "./PriceUtils.js"
 import { lazy } from "@tutao/tutanota-utils"
+
+/** Subscription type passed from the website */
+export const SubscriptionTypeParameter = Object.freeze({
+	FREE: "free",
+	PREMIUM: "premium",
+	TEAMS: "teams",
+	PRO: "pro",
+})
 
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private _dom: HTMLElement | null = null

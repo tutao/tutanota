@@ -19,9 +19,9 @@ import { createEntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs
 import { makeCore } from "../../../TestUtils.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { isSameId } from "../../../../../src/api/common/utils/EntityUtils.js"
-import { GroupDataOS } from "../../../../../src/api/worker/search/Indexer.js"
 import { fixedIv } from "@tutao/tutanota-crypto"
 import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
+import { GroupDataOS } from "../../../../../src/api/worker/search/IndexTables.js"
 
 const dbMock: any = { iv: fixedIv }
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)

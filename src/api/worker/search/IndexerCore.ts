@@ -61,10 +61,8 @@ import {
 	removeBinaryBlockRanges,
 } from "./SearchIndexEncoding"
 import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
-import { ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "./Indexer"
-import type { TypeModel } from "../../common/EntityTypes"
-import { aes256Encrypt } from "@tutao/tutanota-crypto"
-import { aes256Decrypt, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "./IndexTables.js"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 

@@ -4,9 +4,10 @@
 import o from "ospec"
 import { ContactTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { SuggestionFacade } from "../../../../../src/api/worker/search/SuggestionFacade.js"
-import { SearchTermSuggestionsOS } from "../../../../../src/api/worker/search/Indexer.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
+import { SearchTermSuggestionsOS } from "../../../../../src/api/worker/search/IndexTables.js"
+
 o.spec("SuggestionFacade test", () => {
 	let db
 	let facade

@@ -1,13 +1,12 @@
 import type { TranslationKey } from "../misc/LanguageViewModel"
-import { AccountType, BookingItemFeatureType, Const } from "../api/common/TutanotaConstants"
-import { getCurrentCount } from "./PriceUtils"
+import { AccountType, BookingItemFeatureType, Const, getClientType } from "../api/common/TutanotaConstants"
 import { PreconditionFailedError } from "../api/common/error/RestError"
-import type { Booking, Customer, CustomerInfo } from "../api/entities/sys/TypeRefs.js"
-import { createBookingServiceData } from "../api/entities/sys/TypeRefs.js"
+import type { Customer, CustomerInfo } from "../api/entities/sys/TypeRefs.js"
+import { Booking, createBookingServiceData, createPaymentDataServiceGetData } from "../api/entities/sys/TypeRefs.js"
 import { Dialog } from "../gui/base/Dialog"
-import { ofClass } from "@tutao/tutanota-utils"
+import { LazyLoaded, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator"
-import { BookingService } from "../api/entities/sys/Services"
+import { BookingService, PaymentDataService } from "../api/entities/sys/Services"
 import { SubscriptionConfig } from "./FeatureListProvider"
 
 export const enum UpgradeType {
@@ -16,6 +15,15 @@ export const enum UpgradeType {
 	Initial = "Initial",
 	// when logged into Free account
 	Switch = "Switch", // switching in paid account
+}
+
+export function getCurrentCount(featureType: BookingItemFeatureType, booking: Booking | null): number {
+	if (booking) {
+		let bookingItem = booking.items.find((item) => item.featureType === featureType)
+		return bookingItem ? Number(bookingItem.currentCount) : 0
+	} else {
+		return 0
+	}
 }
 
 /**
@@ -233,4 +241,20 @@ function getBookingItemErrorMsg(feature: BookingItemFeatureType): TranslationKey
 		default:
 			return "unknownError_msg"
 	}
+}
+
+export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
+	return new LazyLoaded(() => {
+		const clientType = getClientType()
+		return locator.serviceExecutor
+			.get(
+				PaymentDataService,
+				createPaymentDataServiceGetData({
+					clientType,
+				}),
+			)
+			.then((result) => {
+				return result.loginUrl
+			})
+	})
 }

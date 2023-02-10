@@ -4,24 +4,21 @@ import { BookingItemFeatureType } from "../../api/common/TutanotaConstants"
 import { ActionBar } from "../../gui/base/ActionBar"
 import * as ContactFormEditor from "./ContactFormEditor"
 import type { ContactForm } from "../../api/entities/tutanota/TypeRefs.js"
-import { createContactForm } from "../../api/entities/tutanota/TypeRefs.js"
+import { ContactFormLanguage, createContactForm } from "../../api/entities/tutanota/TypeRefs.js"
 import { loadGroupInfos } from "../LoadingUtils"
 import { Icons } from "../../gui/base/icons/Icons"
 import { Dialog } from "../../gui/base/Dialog"
 import { isNotNull, neverNull } from "@tutao/tutanota-utils"
 import { GroupInfo, GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { getDefaultContactFormLanguage } from "./ContactFormUtils.js"
+import { getContactFormUrl, getDefaultContactFormLanguage } from "./ContactFormUtils.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { getGroupInfoDisplayName } from "../../api/common/utils/GroupUtils"
 import { showBuyDialog } from "../../subscription/BuyDialog"
-import stream from "mithril/stream"
 import { TextField } from "../../gui/base/TextField.js"
 import { UpdatableSettingsDetailsViewer } from "../SettingsView"
 import { assertMainOrNode } from "../../api/common/Env"
 import { locator } from "../../api/main/MainLocator"
-import { ContactFormLanguage } from "../../api/entities/tutanota/TypeRefs.js"
-import { ButtonAttrs } from "../../gui/base/Button.js"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 
 assertMainOrNode()
@@ -146,17 +143,4 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 		// the contact form list view creates a new viewer if my contact form is updated
 		return Promise.resolve()
 	}
-}
-
-export function getContactFormUrl(domain: string | null, path: string): string {
-	let pathPrefix = ""
-
-	if (location.pathname.indexOf("client/build") !== -1) {
-		// local
-		pathPrefix = ":9000/client/build"
-	}
-
-	// In case whitelabel domain was deleted but contact form is there we display a placeholder.
-	const displayDomain = domain ?? "[no domain]"
-	return "https://" + displayDomain + pathPrefix + "/contactform/" + path
 }

@@ -21,7 +21,6 @@ import type { Db, GroupData, IndexUpdate, SearchIndexEntry } from "./SearchTypes
 import { IndexingErrorReason } from "./SearchTypes"
 import { CancelledError } from "../../common/error/CancelledError"
 import { IndexerCore } from "./IndexerCore"
-import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "./Indexer"
 import { DbError } from "../../common/error/DbError"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import type { DateProvider } from "../DateProvider"
@@ -34,6 +33,7 @@ import { isDetailsDraft, isLegacyMail, MailWrapper } from "../../common/MailWrap
 import { EntityUpdateData } from "../../main/EventController"
 import { EphemeralCacheStorage } from "../rest/EphemeralCacheStorage"
 import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"
+import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "./IndexTables.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20

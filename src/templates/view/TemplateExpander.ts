@@ -1,10 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { TEMPLATE_POPUP_HEIGHT } from "./TemplatePopup"
 import { px, size } from "../../gui/size"
 import { Keys } from "../../api/common/TutanotaConstants"
 import { TemplatePopupModel } from "../model/TemplatePopupModel"
 import { isKeyPressed } from "../../misc/KeyManager"
 import type { EmailTemplate } from "../../api/entities/tutanota/TypeRefs.js"
+import { TEMPLATE_POPUP_HEIGHT } from "./TemplateConstants.js"
 
 /**
  * TemplateExpander is the right side that is rendered within the Popup. Consists of Dropdown, Content and Button.

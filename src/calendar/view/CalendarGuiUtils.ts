@@ -1,12 +1,11 @@
 import m, { Child } from "mithril"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
-import { ButtonColor, Button, ButtonType } from "../../gui/base/Button.js"
+import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { Icons } from "../../gui/base/icons/Icons"
 import { Dialog } from "../../gui/base/Dialog"
 import type { MousePosAndBounds } from "../../gui/base/GuiUtils"
 import { Time } from "../../api/common/utils/Time"
-import { assert } from "@tutao/tutanota-utils"
-import { clamp } from "@tutao/tutanota-utils"
+import { assert, clamp } from "@tutao/tutanota-utils"
 
 export function renderCalendarSwitchLeftButton(label: TranslationKey, switcher: (...args: Array<any>) => any): Child {
 	return m(Button, {
@@ -91,3 +90,5 @@ export function getTimeFromMousePos({ y, targetHeight }: MousePosAndBounds, hour
 	const minute = Math.floor((hour - hourRounded) * hourDivision) * minutesInc
 	return new Time(hourRounded, minute)
 }
+
+export const SELECTED_DATE_INDICATOR_THICKNESS = 4

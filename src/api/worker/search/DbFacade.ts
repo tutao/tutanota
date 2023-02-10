@@ -4,10 +4,9 @@ import { IndexingNotSupportedError } from "../../common/error/IndexingNotSupport
 import { QuotaExceededError } from "../../common/error/QuotaExceededError"
 import type { User } from "../../entities/sys/TypeRefs.js"
 import { getEtId } from "../../common/utils/EntityUtils"
-import type { IndexName } from "./Indexer"
 import { sha256Hash } from "@tutao/tutanota-crypto"
+import { IndexName, ObjectStoreName } from "./IndexTables.js"
 
-export type ObjectStoreName = string
 export const osName = (objectStoreName: ObjectStoreName): string => objectStoreName
 export type DbKey = string | number | Uint8Array
 export type DatabaseEntry = {

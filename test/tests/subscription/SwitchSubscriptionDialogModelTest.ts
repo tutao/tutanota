@@ -14,11 +14,12 @@ import {
 import { AccountType, BookingItemFeatureType } from "../../../src/api/common/TutanotaConstants.js"
 import { SwitchSubscriptionDialogModel } from "../../../src/subscription/SwitchSubscriptionDialogModel.js"
 import { downcast, neverNull } from "@tutao/tutanota-utils"
-import { getCurrentCount, PriceAndConfigProvider } from "../../../src/subscription/PriceUtils.js"
+import { PriceAndConfigProvider } from "../../../src/subscription/PriceUtils.js"
 import { BookingFacade } from "../../../src/api/worker/facades/BookingFacade.js"
 import { matchers, object, when } from "testdouble"
 import { SubscriptionConfig, SubscriptionType } from "../../../src/subscription/FeatureListProvider"
 import { createPriceMock } from "./PriceUtilsTest"
+import { getCurrentCount } from "../../../src/subscription/SubscriptionUtils.js"
 
 const SUBSCRIPTION_CONFIG = {
 	Free: {

@@ -54,7 +54,6 @@ import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 
-export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 export type GroupColors = Map<Id, string>
 
 export interface CalendarViewAttrs extends TopLevelAttrs {

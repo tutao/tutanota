@@ -2,7 +2,7 @@ import { ENTITY_EVENT_BATCH_TTL_DAYS, getMembershipGroupType, GroupType, NOTHING
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
 import type { EntityUpdate, GroupMembership, User } from "../../entities/sys/TypeRefs.js"
 import { EntityEventBatch, EntityEventBatchTypeRef, GroupInfoTypeRef, UserTypeRef, WhitelabelChildTypeRef } from "../../entities/sys/TypeRefs.js"
-import type { DatabaseEntry, DbKey, DbTransaction, ObjectStoreName } from "./DbFacade"
+import type { DatabaseEntry, DbKey, DbTransaction } from "./DbFacade"
 import { b64UserIdHash, DbFacade } from "./DbFacade"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import {
@@ -48,29 +48,22 @@ import { aes256Decrypt, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt25
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CacheInfo } from "../facades/LoginFacade.js"
 import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"
+import {
+	ElementDataOS,
+	GroupDataOS,
+	Metadata,
+	MetaDataOS,
+	SearchIndexMetaDataOS,
+	SearchIndexOS,
+	SearchIndexWordsIndex,
+	SearchTermSuggestionsOS,
+} from "./IndexTables.js"
 
-export const Metadata = {
-	userEncDbKey: "userEncDbKey",
-	mailIndexingEnabled: "mailIndexingEnabled",
-	excludedListIds: "excludedListIds",
-	// stored in the database, so the mailbox does not need to be loaded when starting to index mails except spam folder after login
-	encDbIv: "encDbIv",
-	// server timestamp of the last time we indexed on this client, in millis
-	lastEventIndexTimeMs: "lastEventIndexTimeMs",
-}
 export type InitParams = {
 	user: User
 	groupKey: Aes128Key
 }
-export type IndexName = string
-export const indexName = (indexName: IndexName): string => indexName
-export const SearchIndexOS: ObjectStoreName = "SearchIndex"
-export const SearchIndexMetaDataOS: ObjectStoreName = "SearchIndexMeta"
-export const ElementDataOS: ObjectStoreName = "ElementData"
-export const MetaDataOS: ObjectStoreName = "MetaData"
-export const GroupDataOS: ObjectStoreName = "GroupMetaData"
-export const SearchTermSuggestionsOS: ObjectStoreName = "SearchTermSuggestions"
-export const SearchIndexWordsIndex: IndexName = "SearchIndexWords"
+
 const DB_VERSION: number = 3
 
 interface IndexerInitParams {

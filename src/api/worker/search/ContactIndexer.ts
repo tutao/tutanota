@@ -11,7 +11,7 @@ import { SuggestionFacade } from "./SuggestionFacade"
 import { tokenize } from "./Tokenizer"
 import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
 import { EntityClient } from "../../common/EntityClient"
-import { GroupDataOS, MetaDataOS } from "./Indexer"
+import { GroupDataOS, MetaDataOS } from "./IndexTables.js"
 
 export class ContactIndexer {
 	_core: IndexerCore

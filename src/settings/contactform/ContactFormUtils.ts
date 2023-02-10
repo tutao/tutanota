@@ -1,12 +1,10 @@
 import { lang } from "../../misc/LanguageViewModel"
 import { logins } from "../../api/main/LoginController"
-import { AdministratedGroupTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { GroupTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { createContactFormLanguage } from "../../api/entities/tutanota/TypeRefs.js"
+import { AdministratedGroupTypeRef, GroupTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import type { ContactFormLanguage } from "../../api/entities/tutanota/TypeRefs.js"
+import { createContactFormLanguage } from "../../api/entities/tutanota/TypeRefs.js"
 import { getElementId } from "../../api/common/utils/EntityUtils"
-import { flat } from "@tutao/tutanota-utils"
-import { promiseMap } from "@tutao/tutanota-utils"
+import { flat, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/MainLocator"
 
 export function getDefaultContactFormLanguage(supportedLanguages: ContactFormLanguage[]): ContactFormLanguage {
@@ -42,4 +40,17 @@ export async function getAdministratedGroupIds(): Promise<Id[]> {
 		}
 	})
 	return flat(administratedGroupIds)
+}
+
+export function getContactFormUrl(domain: string | null, path: string): string {
+	let pathPrefix = ""
+
+	if (location.pathname.indexOf("client/build") !== -1) {
+		// local
+		pathPrefix = ":9000/client/build"
+	}
+
+	// In case whitelabel domain was deleted but contact form is there we display a placeholder.
+	const displayDomain = domain ?? "[no domain]"
+	return "https://" + displayDomain + pathPrefix + "/contactform/" + path
 }

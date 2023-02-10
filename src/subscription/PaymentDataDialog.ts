@@ -8,14 +8,13 @@ import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { px } from "../gui/size"
 import { formatNameAndAddress } from "../misc/Formatter"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { getClientType, PaymentMethodType } from "../api/common/TutanotaConstants"
-import { assertNotNull, LazyLoaded, neverNull } from "@tutao/tutanota-utils"
+import { PaymentMethodType } from "../api/common/TutanotaConstants"
+import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import type { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
-import { createPaymentDataServiceGetData } from "../api/entities/sys/TypeRefs.js"
-import { locator } from "../api/main/MainLocator"
-import { PaymentDataService } from "../api/entities/sys/Services"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { asPaymentInterval } from "./PriceUtils.js"
+import { getLazyLoadedPayPalUrl } from "./SubscriptionUtils.js"
+import { locator } from "../api/main/MainLocator.js"
 
 /**
  * @returns {boolean} true if the payment data update was successful
@@ -115,21 +114,5 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 			okActionTextId: () => (didLinkPaypal() ? "close_alt" : "save_action"),
 			cancelAction: () => resolve(false),
 		})
-	})
-}
-
-export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
-	return new LazyLoaded(() => {
-		const clientType = getClientType()
-		return locator.serviceExecutor
-			.get(
-				PaymentDataService,
-				createPaymentDataServiceGetData({
-					clientType,
-				}),
-			)
-			.then((result) => {
-				return result.loginUrl
-			})
 	})
 }

@@ -1,6 +1,6 @@
 import o from "ospec"
 import { SearchFacade } from "../../../../../src/api/worker/search/SearchFacade.js"
-import { MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { ContactTypeRef, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { createUser } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import type { TypeInfo } from "../../../../../src/api/worker/search/IndexUtils.js"
 import {
@@ -11,7 +11,6 @@ import {
 	typeRefToTypeInfo,
 } from "../../../../../src/api/worker/search/IndexUtils.js"
 import type { ElementDataDbRow, SearchIndexEntry, SearchIndexMetaDataRow, SearchRestriction } from "../../../../../src/api/worker/search/SearchTypes.js"
-import { ContactTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	compareOldestFirst,
 	elementIdPart,
@@ -20,14 +19,15 @@ import {
 	listIdPart,
 	timestampToGeneratedId,
 } from "../../../../../src/api/common/utils/EntityUtils.js"
+import type { Base64 } from "@tutao/tutanota-utils"
 import { downcast, groupBy, numberRange, splitInChunks } from "@tutao/tutanota-utils"
 import { appendBinaryBlocks } from "../../../../../src/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import type { BrowserData } from "../../../../../src/misc/ClientConstants.js"
 import { browserDataStub } from "../../../TestUtils.js"
-import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/api/worker/search/Indexer.js"
-import type { Base64 } from "@tutao/tutanota-utils"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
+import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/api/worker/search/IndexTables.js"
+
 type SearchIndexEntryWithType = SearchIndexEntry & {
 	typeInfo: TypeInfo
 }

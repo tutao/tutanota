@@ -7,7 +7,6 @@ import {
 	arrayHash,
 	asyncFind,
 	contains,
-	defer,
 	downcast,
 	flat,
 	getDayShifted,
@@ -56,10 +55,10 @@ import { AssociationType, Cardinality, ValueType } from "../../common/EntityCons
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
 import { iterateBinaryBlocks } from "./SearchIndexEncoding"
 import type { BrowserData } from "../../../misc/ClientConstants"
-import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "./Indexer"
 import type { TypeModel } from "../../common/EntityTypes"
 import { EntityClient } from "../../common/EntityClient"
 import { UserFacade } from "../facades/UserFacade"
+import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "./IndexTables.js"
 
 type RowsToReadForIndexKey = {
 	indexKey: string

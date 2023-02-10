@@ -12,7 +12,7 @@ import { WebauthnClient } from "./webauthn/WebauthnClient.js"
 import type { LoginFacade } from "../../api/worker/facades/LoginFacade.js"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { WebauthnError } from "../../api/common/error/WebauthnError.js"
-import { appIdToLoginDomain } from "./SecondFactorHandler"
+import { appIdToLoginDomain } from "./SecondFactorUtils.js"
 
 type AuthData = {
 	readonly sessionId: IdTuple
