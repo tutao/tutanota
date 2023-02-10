@@ -122,15 +122,6 @@ export function getPriceFromPriceData(priceData: PriceData | null, featureType: 
 	}
 }
 
-export function getCurrentCount(featureType: BookingItemFeatureType, booking: Booking | null): number {
-	if (booking) {
-		let bookingItem = booking.items.find((item) => item.featureType === featureType)
-		return bookingItem ? Number(bookingItem.currentCount) : 0
-	} else {
-		return 0
-	}
-}
-
 const SUBSCRIPTION_CONFIG_RESOURCE_URL = "https://tutanota.com/resources/data/subscriptions.json"
 
 export class PriceAndConfigProvider {

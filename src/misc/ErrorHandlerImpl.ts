@@ -196,6 +196,7 @@ export async function reloginForExpiredSession() {
 						e instanceof AccessDeactivatedError ||
 						e instanceof ConnectionError
 					) {
+						const { getLoginErrorMessage } = await import("../misc/LoginUtils.js")
 						return lang.getMaybeLazy(getLoginErrorMessage(e, false))
 					} else {
 						throw e

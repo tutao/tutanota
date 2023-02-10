@@ -1,25 +1,20 @@
 import type { LanguageCode } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
-import { searchInTemplates } from "./TemplateSearchFilter"
-import type { EmailTemplate } from "../../api/entities/tutanota/TypeRefs.js"
-import { EmailTemplateTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import type { EmailTemplateContent } from "../../api/entities/tutanota/TypeRefs.js"
+import { EmailTemplate, EmailTemplateTypeRef, TemplateGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import type { EntityEventsListener, EntityUpdateData } from "../../api/main/EventController"
 import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
 import { OperationType } from "../../api/common/TutanotaConstants"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import type { EntityClient } from "../../api/common/EntityClient"
 import type { LoginController } from "../../api/main/LoginController"
-import { logins } from "../../api/main/LoginController"
 import { getElementId, getEtId, isSameId } from "../../api/common/utils/EntityUtils"
-import type { EmailTemplateContent } from "../../api/entities/tutanota/TypeRefs.js"
 import type { GroupMembership } from "../../api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { flat, LazyLoaded, promiseMap, SortedArray } from "@tutao/tutanota-utils"
-import { GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { TemplateGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import type { TemplateGroupInstance } from "./TemplateGroupModel"
-import { GroupTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import Stream from "mithril/stream"
+import { search } from "../../api/common/utils/PlainTextSearch.js"
 
 /**
  *   Model that holds main logic for the Template Feature.
@@ -201,9 +196,9 @@ export class TemplatePopupModel {
 
 					this._rerunSearch()
 				}
-			} else if (isUpdateForTypeRef(UserTypeRef, update) && isSameId(update.instanceId, logins.getUserController().user._id)) {
+			} else if (isUpdateForTypeRef(UserTypeRef, update) && isSameId(update.instanceId, this._logins.getUserController().user._id)) {
 				// template group memberships may have changed
-				if (this._groupInstances.length !== logins.getUserController().getTemplateMemberships().length) {
+				if (this._groupInstances.length !== this._logins.getUserController().getTemplateMemberships().length) {
 					this.initialized.reset()
 					return this.initialized.getAsync().then(() => this._rerunSearch())
 				}
@@ -248,6 +243,16 @@ function loadTemplates(templateGroups: Array<TemplateGroupInstance>, entityClien
 	return promiseMap(templateGroups, (group) => entityClient.loadAll(EmailTemplateTypeRef, group.groupRoot.templates)).then((groupedTemplates) =>
 		flat(groupedTemplates),
 	)
+}
+
+export function searchInTemplates(input: string, allTemplates: ReadonlyArray<EmailTemplate>): ReadonlyArray<EmailTemplate> {
+	if (input.startsWith(TEMPLATE_SHORTCUT_PREFIX)) {
+		// search in tag only
+		const newQueryString = input.substring(TEMPLATE_SHORTCUT_PREFIX.length)
+		return search(newQueryString, allTemplates, ["tag"], false)
+	} else {
+		return search(input, allTemplates, ["tag", "title", "contents.text"], false)
+	}
 }
 
 class TemplateSearchFilter {

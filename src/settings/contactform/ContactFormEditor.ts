@@ -18,7 +18,6 @@ import {
 	CustomerContactFormGroupRootTypeRef,
 	MailboxGroupRootTypeRef,
 } from "../../api/entities/tutanota/TypeRefs.js"
-import { getContactFormUrl } from "./ContactFormViewer"
 import { HtmlEditor } from "../../gui/editor/HtmlEditor"
 import { Icons } from "../../gui/base/icons/Icons"
 import { NotFoundError } from "../../api/common/error/RestError"
@@ -26,7 +25,7 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { DefaultAnimationTime } from "../../gui/animation/Animations"
-import { getDefaultContactFormLanguage } from "./ContactFormUtils"
+import { getContactFormUrl, getDefaultContactFormLanguage } from "./ContactFormUtils"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
 import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
 import { windowFacade } from "../../misc/WindowFacade"

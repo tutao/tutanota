@@ -17,10 +17,10 @@ import { windowFacade } from "../../misc/WindowFacade"
 import type { EmailTemplate, TemplateGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import { TemplateGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import type { ButtonAttrs } from "../../gui/base/Button.js"
-import { ButtonColor, Button, ButtonType } from "../../gui/base/Button.js"
+import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { SELECT_NEXT_TEMPLATE, SELECT_PREV_TEMPLATE, TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel } from "../model/TemplatePopupModel"
 import { attachDropdown, DomRectReadOnlyPolyfilled, PosRect } from "../../gui/base/Dropdown.js"
-import { debounce, downcast, neverNull, noOp } from "@tutao/tutanota-utils"
+import { debounce, downcast, neverNull } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/MainLocator"
 import { TemplateSearchBar } from "./TemplateSearchBar"
 import { Editor } from "../../gui/editor/Editor"
@@ -30,11 +30,7 @@ import { createInitialTemplateListIfAllowed } from "../TemplateGroupUtils"
 import { getConfirmation } from "../../gui/base/GuiUtils"
 import { ScrollSelectList } from "../../gui/ScrollSelectList"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
-
-export const TEMPLATE_POPUP_HEIGHT = 340
-export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600
-export const TEMPLATE_LIST_ENTRY_HEIGHT = 47
-export const TEMPLATE_LIST_ENTRY_WIDTH = 354
+import { TEMPLATE_LIST_ENTRY_WIDTH, TEMPLATE_POPUP_HEIGHT, TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH } from "./TemplateConstants.js"
 
 /**
  *	Creates a Modal/Popup that allows user to paste templates directly into the MailEditor.

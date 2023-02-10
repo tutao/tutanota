@@ -1,16 +1,13 @@
 import m from "mithril"
-import type { Session } from "../../api/entities/sys/TypeRefs.js"
-import { SessionTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import type { Challenge, Session } from "../../api/entities/sys/TypeRefs.js"
+import { createSecondFactorAuthData, SessionTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { Dialog } from "../../gui/base/Dialog"
-import { createSecondFactorAuthData } from "../../api/entities/sys/TypeRefs.js"
 import { OperationType, SessionState } from "../../api/common/TutanotaConstants"
 import { lang } from "../LanguageViewModel"
 import { neverNull } from "@tutao/tutanota-utils"
 import { NotFoundError } from "../../api/common/error/RestError"
-import { locator } from "../../api/main/MainLocator"
 import type { EntityUpdateData, EventController } from "../../api/main/EventController"
 import { isUpdateForTypeRef } from "../../api/main/EventController"
-import type { Challenge } from "../../api/entities/sys/TypeRefs.js"
 import { isSameId } from "../../api/common/utils/EntityUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import type { EntityClient } from "../../api/common/EntityClient"
@@ -53,7 +50,7 @@ export class SecondFactorHandler {
 		}
 
 		this._otherLoginListenerInitialized = true
-		locator.eventController.addEntityListener((updates) => this._entityEventsReceived(updates))
+		this._eventController.addEntityListener((updates) => this._entityEventsReceived(updates))
 	}
 
 	async _entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
@@ -195,10 +192,4 @@ export class SecondFactorHandler {
 			},
 		)
 	}
-}
-
-export function appIdToLoginDomain(appId: string): string {
-	// If it's legacy U2F key, get domain from before the path part. Otherwise it's just a domain.
-	const domain = appId.endsWith(".json") ? appId.split("/")[2] : appId
-	return domain === "tutanota.com" ? "mail.tutanota.com" : domain
 }

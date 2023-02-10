@@ -2,8 +2,7 @@ import { DomainDnsStatus } from "../DomainDnsStatus"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { assertEnumValue, CustomDomainCheckResult, DnsRecordType, DnsRecordValidation } from "../../api/common/TutanotaConstants"
 import { InfoLink, lang, TranslationKey } from "../../misc/LanguageViewModel"
-import type { AddDomainData } from "./AddDomainWizard"
-import { createDnsRecordTableN } from "./AddDomainWizard"
+import type { AddDomainData, ValidatedDnSRecord } from "./AddDomainWizard"
 import { Dialog } from "../../gui/base/Dialog"
 import type { WizardPageAttrs } from "../../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType, WizardPageN } from "../../gui/base/WizardDialog.js"
@@ -13,6 +12,9 @@ import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { assertMainOrNode } from "../../api/common/Env"
 import { downcast } from "@tutao/tutanota-utils"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { IconButtonAttrs } from "../../gui/base/IconButton.js"
+import { ColumnWidth, Table } from "../../gui/base/Table.js"
+import { DnsRecordTable } from "./DnsRecordTable.js"
 
 assertMainOrNode()
 
@@ -105,6 +107,31 @@ function _getDisplayableRecordValue(record: DnsRecord): string {
 	}
 
 	return record.value
+}
+
+export function createDnsRecordTableN(records: ValidatedDnSRecord[], refreshButtonAttrs: IconButtonAttrs | null): Children {
+	return m(Table, {
+		columnHeading: ["type_label", "dnsRecordHostOrName_label", "dnsRecordValueOrPointsTo_label"],
+		addButtonAttrs: refreshButtonAttrs,
+		columnWidths: [ColumnWidth.Small, ColumnWidth.Small, ColumnWidth.Largest],
+		showActionButtonColumn: true,
+		lines: records.map((r) => {
+			return {
+				cells: () => [
+					{
+						main: DnsRecordTable[r.record.type as DnsRecordType],
+					},
+					{
+						main: r.record.subdomain ? r.record.subdomain : "@",
+					},
+					{
+						main: r.record.value,
+						info: r.helpInfo,
+					},
+				],
+			}
+		}),
+	})
 }
 
 export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButton: boolean = false): Children {

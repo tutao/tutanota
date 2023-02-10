@@ -8,7 +8,6 @@ import { Dialog } from "../../../gui/base/Dialog.js"
 import { InfoLink, lang } from "../../../misc/LanguageViewModel.js"
 import { assertEnumValue, SecondFactorType } from "../../../api/common/TutanotaConstants.js"
 import { logins } from "../../../api/main/LoginController.js"
-import { appIdToLoginDomain } from "../../../misc/2fa/SecondFactorHandler.js"
 import { showProgressDialog } from "../../../gui/dialogs/ProgressDialog.js"
 import type { TableAttrs, TableLineAttrs } from "../../../gui/base/Table.js"
 import { ColumnWidth, Table } from "../../../gui/base/Table.js"
@@ -21,6 +20,7 @@ import { SecondFactorEditDialog } from "./SecondFactorEditDialog.js"
 import { SecondFactorTypeToNameTextId } from "./SecondFactorEditModel.js"
 import { IconButtonAttrs } from "../../../gui/base/IconButton.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
+import { appIdToLoginDomain } from "../../../misc/2fa/SecondFactorUtils.js"
 
 assertMainOrNode()
 

@@ -1,8 +1,8 @@
 import o from "ospec"
-import { searchInTemplates } from "../../../src/templates/model/TemplateSearchFilter.js"
 import type { EmailTemplate } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { createEmailTemplate } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { createEmailTemplateContent } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { createEmailTemplate, createEmailTemplateContent } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { searchInTemplates } from "../../../src/templates/model/TemplatePopupModel.js"
+
 o.spec("TemplateSearchFilter", function () {
 	const abcTemplate = createEmailTemplate({
 		tag: "aBc_tag",

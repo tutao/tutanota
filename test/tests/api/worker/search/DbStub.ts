@@ -1,15 +1,15 @@
-import type { DbKey, ObjectStoreName } from "../../../../../src/api/worker/search/DbFacade.js"
+import type { DbKey } from "../../../../../src/api/worker/search/DbFacade.js"
 import { DbTransaction, osName } from "../../../../../src/api/worker/search/DbFacade.js"
 import { downcast, neverNull } from "@tutao/tutanota-utils"
-import type { IndexName } from "../../../../../src/api/worker/search/Indexer.js"
 import {
 	ElementDataOS,
 	GroupDataOS,
-	indexName,
+	IndexName,
+	ObjectStoreName,
 	SearchIndexMetaDataOS,
 	SearchIndexOS,
 	SearchIndexWordsIndex,
-} from "../../../../../src/api/worker/search/Indexer.js"
+} from "../../../../../src/api/worker/search/IndexTables.js"
 
 export type Index = { [indexName: string]: string }
 
@@ -53,7 +53,7 @@ export class DbStub {
 export function createSearchIndexDbStub(): DbStub {
 	const dbStub = new DbStub()
 	dbStub.addObjectStore(SearchIndexOS, true)
-	dbStub.addObjectStore(SearchIndexMetaDataOS, true, "id", { [indexName(SearchIndexWordsIndex)]: "word" })
+	dbStub.addObjectStore(SearchIndexMetaDataOS, true, "id", { [SearchIndexWordsIndex]: "word" })
 	dbStub.addObjectStore(ElementDataOS, false)
 	dbStub.addObjectStore(GroupDataOS, false)
 	return dbStub

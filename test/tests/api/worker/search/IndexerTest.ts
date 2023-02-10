@@ -16,7 +16,7 @@ import {
 	NOTHING_INDEXED_TIMESTAMP,
 	OperationType,
 } from "../../../../../src/api/common/TutanotaConstants.js"
-import { GroupDataOS, Indexer, Metadata, MetaDataOS } from "../../../../../src/api/worker/search/Indexer.js"
+import { Indexer } from "../../../../../src/api/worker/search/Indexer.js"
 import { NotAuthorizedError } from "../../../../../src/api/common/error/RestError.js"
 import { ContactListTypeRef, ContactTypeRef, createContactList, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { OutOfSyncError } from "../../../../../src/api/common/error/OutOfSyncError.js"
@@ -36,6 +36,7 @@ import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
 import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
 import { ContactIndexer } from "../../../../../src/api/worker/search/ContactIndexer.js"
 import { InfoMessageHandler } from "../../../../../src/gui/InfoMessageHandler.js"
+import { GroupDataOS, Metadata, MetaDataOS } from "../../../../../src/api/worker/search/IndexTables.js"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 let contactList = createContactList()

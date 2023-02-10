@@ -3,8 +3,6 @@ import Stream from "mithril/stream"
 import type { CustomerInfo, DnsRecord } from "../../api/entities/sys/TypeRefs.js"
 import { createDnsRecord } from "../../api/entities/sys/TypeRefs.js"
 import { DnsRecordType } from "../../api/common/TutanotaConstants"
-import m, { Children } from "mithril"
-import { ColumnWidth, Table } from "../../gui/base/Table.js"
 import type { MailAddressTableAttrs } from "../mailaddress/MailAddressTable.js"
 import { AddEmailAddressesPage, AddEmailAddressesPageAttrs } from "./AddEmailAddressesPage"
 import { DomainDnsStatus } from "../DomainDnsStatus"
@@ -13,7 +11,6 @@ import { VerifyDnsRecordsPage, VerifyDnsRecordsPageAttrs } from "./VerifyDnsReco
 import { EnterDomainPage, EnterDomainPageAttrs } from "./EnterDomainPage"
 import { createWizardDialog, wizardPageWrapper } from "../../gui/base/WizardDialog.js"
 import { assertMainOrNode } from "../../api/common/Env"
-import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { MailAddressTableModel } from "../mailaddress/MailAddressTableModel.js"
 
 assertMainOrNode()
@@ -73,55 +70,4 @@ export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo, 
 export type ValidatedDnSRecord = {
 	record: DnsRecord
 	helpInfo: string[]
-}
-
-const enum ActualDnsRecordType {
-	MX = "MX",
-	TXT = "TXT",
-	CNAME = "CNAME",
-}
-
-export const DnsRecordTypeToDnsType: Record<DnsRecordType, ActualDnsRecordType> = Object.freeze({
-	[DnsRecordType.DNS_RECORD_TYPE_MX]: ActualDnsRecordType.MX,
-	[DnsRecordType.DNS_RECORD_TYPE_TXT_SPF]: ActualDnsRecordType.TXT,
-	[DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM]: ActualDnsRecordType.CNAME,
-	[DnsRecordType.DNS_RECORD_TYPE_TXT_DMARC]: ActualDnsRecordType.TXT,
-	[DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS]: ActualDnsRecordType.CNAME,
-	[DnsRecordType.DNS_RECORD_TYPE_TXT_VERIFY]: ActualDnsRecordType.TXT,
-})
-
-export function createDnsRecordTableN(records: ValidatedDnSRecord[], refreshButtonAttrs: IconButtonAttrs | null): Children {
-	return m(Table, {
-		columnHeading: ["type_label", "dnsRecordHostOrName_label", "dnsRecordValueOrPointsTo_label"],
-		addButtonAttrs: refreshButtonAttrs,
-		columnWidths: [ColumnWidth.Small, ColumnWidth.Small, ColumnWidth.Largest],
-		showActionButtonColumn: true,
-		lines: records.map((r) => {
-			return {
-				cells: () => [
-					{
-						main: DnsRecordTypeToDnsType[r.record.type as DnsRecordType],
-					},
-					{
-						main: r.record.subdomain ? r.record.subdomain : "@",
-					},
-					{
-						main: r.record.value,
-						info: r.helpInfo,
-					},
-				],
-			}
-		}),
-	})
-}
-
-export function createDnsRecordTable(records: DnsRecord[]): Children {
-	return m(Table, {
-		columnHeading: ["type_label", "dnsRecordHostOrName_label", "dnsRecordValueOrPointsTo_label"],
-		columnWidths: [ColumnWidth.Small, ColumnWidth.Small, ColumnWidth.Largest],
-		showActionButtonColumn: false,
-		lines: records.map((r) => ({
-			cells: [DnsRecordTypeToDnsType[r.type as DnsRecordType], r.subdomain ? r.subdomain : "@", r.value],
-		})),
-	})
 }

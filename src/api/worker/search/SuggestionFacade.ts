@@ -1,8 +1,7 @@
 import type { Db } from "./SearchTypes"
-import { utf8Uint8ArrayToString, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { TypeRef } from "@tutao/tutanota-utils"
-import { SearchTermSuggestionsOS } from "./Indexer"
+import { stringToUtf8Uint8Array, TypeRef, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { SearchTermSuggestionsOS } from "./IndexTables.js"
 
 export type SuggestionsType = Record<string, string[]>
 

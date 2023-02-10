@@ -1,7 +1,6 @@
 import { assertEnumValue, CustomDomainValidationResult } from "../../api/common/TutanotaConstants"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import type { AddDomainData } from "./AddDomainWizard"
-import { createDnsRecordTable } from "./AddDomainWizard"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { Dialog } from "../../gui/base/Dialog"
@@ -9,11 +8,12 @@ import { getCustomMailDomains } from "../../api/common/utils/Utils"
 import type { WizardPageAttrs, WizardPageN } from "../../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../gui/base/WizardDialog.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
-import { PreconditionFailedError } from "../../api/common/error/RestError"
-import { showBusinessFeatureRequiredDialog } from "../../misc/SubscriptionDialogs"
+import { PreconditionFailedError } from "../../api/common/error/RestError.js"
+import { showBusinessFeatureRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/MainLocator"
 import { assertMainOrNode } from "../../api/common/Env"
+import { createDnsRecordTable } from "./DnsRecordTable.js"
 
 assertMainOrNode()
 

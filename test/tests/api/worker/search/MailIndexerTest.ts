@@ -23,13 +23,11 @@ import {
 	createRecipients,
 	MailTypeRef,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { ElementDataOS, GroupDataOS, Metadata as MetaData, MetaDataOS } from "../../../../../src/api/worker/search/Indexer.js"
 import { mock, spy } from "@tutao/tutanota-test-utils"
 import { browserDataStub, makeCore } from "../../../TestUtils.js"
 import { downcast, getDayShifted, getStartOfDay, neverNull } from "@tutao/tutanota-utils"
 import { EventQueue } from "../../../../../src/api/worker/search/EventQueue.js"
 import { createSearchIndexDbStub } from "./DbStub.js"
-import { WorkerImpl } from "../../../../../src/api/worker/WorkerImpl.js"
 import { getElementId, getListId, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import type { DateProvider } from "../../../../../src/api/worker/DateProvider.js"
@@ -40,6 +38,7 @@ import { resolveTypeReference } from "../../../../../src/api/common/EntityFuncti
 import { MailWrapper } from "../../../../../src/api/common/MailWrapper.js"
 import { object } from "testdouble"
 import { InfoMessageHandler } from "../../../../../src/gui/InfoMessageHandler.js"
+import { ElementDataOS, GroupDataOS, Metadata as MetaData, MetaDataOS } from "../../../../../src/api/worker/search/IndexTables.js"
 
 class FixedDateProvider implements DateProvider {
 	now: number

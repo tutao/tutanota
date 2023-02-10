@@ -1,22 +1,26 @@
 import o from "ospec"
-import { createGroupInfo, GroupInfoTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import type { EntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import {
+	createCustomer,
+	createEntityUpdate,
+	createGroupInfo,
+	createGroupMembership,
+	createMailAddressAlias,
+	createUser,
+	CustomerTypeRef,
+	GroupInfoTypeRef,
+} from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { NotFoundError } from "../../../../../src/api/common/error/RestError.js"
 import type { Db } from "../../../../../src/api/worker/search/SearchTypes.js"
 import { FULL_INDEXED_TIMESTAMP, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../../../src/api/common/TutanotaConstants.js"
 import { IndexerCore } from "../../../../../src/api/worker/search/IndexerCore.js"
 import { _createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo } from "../../../../../src/api/worker/search/IndexUtils.js"
 import { GroupInfoIndexer } from "../../../../../src/api/worker/search/GroupInfoIndexer.js"
-import { createMailAddressAlias } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { createUser } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { createCustomer, CustomerTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { createGroupMembership } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import type { EntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { createEntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { browserDataStub } from "../../../TestUtils.js"
 import { isSameId } from "../../../../../src/api/common/utils/EntityUtils.js"
-import { GroupDataOS } from "../../../../../src/api/worker/search/Indexer.js"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
+import { GroupDataOS } from "../../../../../src/api/worker/search/IndexTables.js"
 
 const dbMock: any = {
 	iv: fixedIv,
