@@ -1,5 +1,4 @@
 import { aes256RandomKey, keyToBase64 } from "@tutao/tutanota-crypto"
-import { urlify } from "../Urlifier.js"
 import { Logger } from "../../common/Logger.js"
 
 /**
@@ -23,6 +22,7 @@ export class WorkerFacade {
 	}
 
 	async urlify(html: string): Promise<string> {
+		const { urlify } = await import("../Urlifier.js")
 		return urlify(html)
 	}
 }
