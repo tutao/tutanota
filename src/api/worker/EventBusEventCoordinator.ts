@@ -6,7 +6,7 @@ import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityM
 import { WorkerImpl } from "./WorkerImpl.js"
 import { isAdminClient, isTest } from "../common/Env.js"
 import { MailFacade } from "./facades/MailFacade.js"
-import { Indexer } from "./search/Indexer.js"
+import type { Indexer } from "./search/Indexer.js"
 import { UserFacade } from "./facades/UserFacade.js"
 import { EntityClient } from "../common/EntityClient.js"
 import { OperationType } from "../common/TutanotaConstants.js"
@@ -20,7 +20,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		private readonly worker: WorkerImpl,
 		private readonly connectivityListener: WebsocketConnectivityListener,
 		private readonly mailFacade: MailFacade,
-		private readonly indexer: Indexer,
+		private readonly indexer: () => Promise<Indexer>,
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: ExposedEventController,
@@ -38,8 +38,9 @@ export class EventBusEventCoordinator implements EventBusListener {
 		// shall not receive the event twice.
 		if (!isTest() && !isAdminClient()) {
 			const queuedBatch = { groupId, batchId, events }
-			this.indexer.addBatchesToQueue([queuedBatch])
-			this.indexer.startProcessing()
+			const indexer = await this.indexer()
+			indexer.addBatchesToQueue([queuedBatch])
+			indexer.startProcessing()
 		}
 	}
 
