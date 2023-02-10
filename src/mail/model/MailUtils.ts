@@ -361,7 +361,7 @@ export enum RecipientField {
 	BCC = "bcc",
 }
 
-export type FolderInfo = {level: number, folder: MailFolder}
+export type FolderInfo = { level: number; folder: MailFolder }
 
 export async function getMoveTargetFolderSystems(model: MailModel, mails: Mail[]): Promise<Array<FolderInfo>> {
 	const firstMail = first(mails)
