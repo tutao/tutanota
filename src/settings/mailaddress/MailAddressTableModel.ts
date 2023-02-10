@@ -1,6 +1,6 @@
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { MailboxPropertiesTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import { MailAddressFacade } from "../../api/worker/facades/MailAddressFacade.js"
+import { MailAddressFacade } from "../../api/worker/facades/lazy/MailAddressFacade.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import stream from "mithril/stream"
 import { EntityUpdateData, EventController, isUpdateFor, isUpdateForTypeRef } from "../../api/main/EventController.js"

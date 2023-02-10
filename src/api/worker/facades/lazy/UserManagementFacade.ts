@@ -1,5 +1,5 @@
-import { AccountType, Const, GroupType } from "../../common/TutanotaConstants"
-import type { User } from "../../entities/sys/TypeRefs.js"
+import { AccountType, Const, GroupType } from "../../../common/TutanotaConstants.js"
+import type { User } from "../../../entities/sys/TypeRefs.js"
 import {
 	createMembershipAddData,
 	createRecoverCode,
@@ -8,16 +8,16 @@ import {
 	createUserDataDelete,
 	GroupTypeRef,
 	RecoverCodeTypeRef,
-} from "../../entities/sys/TypeRefs.js"
-import { encryptBytes, encryptString } from "../crypto/CryptoFacade"
+} from "../../../entities/sys/TypeRefs.js"
+import { encryptBytes, encryptString } from "../../crypto/CryptoFacade.js"
 import { assertNotNull, neverNull, uint8ArrayToHex } from "@tutao/tutanota-utils"
-import type { ContactFormUserData, UserAccountUserData } from "../../entities/tutanota/TypeRefs.js"
-import { createContactFormUserData, createUserAccountCreateData, createUserAccountUserData } from "../../entities/tutanota/TypeRefs.js"
-import type { GroupManagementFacade } from "./GroupManagementFacade"
-import type { RecoverData } from "./LoginFacade"
-import type { WorkerImpl } from "../WorkerImpl"
-import { CounterFacade } from "./CounterFacade"
-import { assertWorkerOrNode } from "../../common/Env"
+import type { ContactFormUserData, UserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
+import { createContactFormUserData, createUserAccountCreateData, createUserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
+import type { GroupManagementFacade } from "./GroupManagementFacade.js"
+import type { RecoverData } from "../LoginFacade.js"
+import type { WorkerImpl } from "../../WorkerImpl.js"
+import { CounterFacade } from "./CounterFacade.js"
+import { assertWorkerOrNode } from "../../../common/Env.js"
 import {
 	aes128RandomKey,
 	aes256EncryptKey,
@@ -34,13 +34,13 @@ import {
 	KeyLength,
 	random,
 } from "@tutao/tutanota-crypto"
-import type { RsaImplementation } from "../crypto/RsaImplementation"
-import { EntityClient } from "../../common/EntityClient"
-import { IServiceExecutor } from "../../common/ServiceRequest"
-import { MembershipService, ResetPasswordService, SystemKeysService, UpdateAdminshipService, UserService } from "../../entities/sys/Services"
-import { UserAccountService } from "../../entities/tutanota/Services"
-import { UserFacade } from "./UserFacade"
-import { ExposedOperationProgressTracker, OperationId } from "../../main/OperationProgressTracker.js"
+import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
+import { EntityClient } from "../../../common/EntityClient.js"
+import { IServiceExecutor } from "../../../common/ServiceRequest.js"
+import { MembershipService, ResetPasswordService, SystemKeysService, UpdateAdminshipService, UserService } from "../../../entities/sys/Services.js"
+import { UserAccountService } from "../../../entities/tutanota/Services.js"
+import { UserFacade } from "../UserFacade.js"
+import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 
 assertWorkerOrNode()
 

@@ -5,12 +5,12 @@ import { PhishingMarker } from "../entities/tutanota/TypeRefs.js"
 import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel.js"
 import { WorkerImpl } from "./WorkerImpl.js"
 import { isAdminClient, isTest } from "../common/Env.js"
-import { MailFacade } from "./facades/MailFacade.js"
+import { MailFacade } from "./facades/lazy/MailFacade.js"
 import type { Indexer } from "./search/Indexer.js"
 import { UserFacade } from "./facades/UserFacade.js"
 import { EntityClient } from "../common/EntityClient.js"
 import { OperationType } from "../common/TutanotaConstants.js"
-import { isSameTypeRefByAttr } from "@tutao/tutanota-utils"
+import { isSameTypeRefByAttr, lazyAsync } from "@tutao/tutanota-utils"
 import { isSameId } from "../common/utils/EntityUtils.js"
 import { ExposedEventController } from "../main/EventController.js"
 
@@ -19,8 +19,8 @@ export class EventBusEventCoordinator implements EventBusListener {
 	constructor(
 		private readonly worker: WorkerImpl,
 		private readonly connectivityListener: WebsocketConnectivityListener,
-		private readonly mailFacade: MailFacade,
-		private readonly indexer: () => Promise<Indexer>,
+		private readonly mailFacade: lazyAsync<MailFacade>,
+		private readonly indexer: lazyAsync<Indexer>,
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: ExposedEventController,
@@ -32,7 +32,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 
 	async onEntityEventsReceived(events: EntityUpdate[], batchId: Id, groupId: Id): Promise<void> {
 		await this.entityEventsReceived(events)
-		await this.mailFacade.entityEventsReceived(events)
+		await (await this.mailFacade()).entityEventsReceived(events)
 		await this.eventController.onEntityUpdateReceived(events, groupId)
 		// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 		// shall not receive the event twice.
@@ -44,8 +44,8 @@ export class EventBusEventCoordinator implements EventBusListener {
 		}
 	}
 
-	onPhishingMarkersReceived(markers: PhishingMarker[]) {
-		this.mailFacade.phishingMarkersUpdateReceived(markers)
+	async onPhishingMarkersReceived(markers: PhishingMarker[]) {
+		;(await this.mailFacade()).phishingMarkersUpdateReceived(markers)
 	}
 
 	onError(tutanotaError: Error) {

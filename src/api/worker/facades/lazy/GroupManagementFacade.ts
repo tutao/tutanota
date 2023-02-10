@@ -1,5 +1,5 @@
-import { Const, GroupType } from "../../common/TutanotaConstants"
-import type { InternalGroupData, UserAreaGroupData } from "../../entities/tutanota/TypeRefs.js"
+import { Const, GroupType } from "../../../common/TutanotaConstants.js"
+import type { InternalGroupData, UserAreaGroupData } from "../../../entities/tutanota/TypeRefs.js"
 import {
 	createCreateLocalAdminGroupData,
 	createCreateMailGroupData,
@@ -7,21 +7,21 @@ import {
 	createInternalGroupData,
 	createUserAreaGroupData,
 	createUserAreaGroupPostData,
-} from "../../entities/tutanota/TypeRefs.js"
+} from "../../../entities/tutanota/TypeRefs.js"
 import { assertNotNull, hexToUint8Array, neverNull } from "@tutao/tutanota-utils"
-import type { Group, User } from "../../entities/sys/TypeRefs.js"
-import { createMembershipAddData, createMembershipRemoveData, GroupTypeRef, UserTypeRef } from "../../entities/sys/TypeRefs.js"
-import { CounterFacade } from "./CounterFacade"
-import { EntityClient } from "../../common/EntityClient"
-import { assertWorkerOrNode } from "../../common/Env"
-import { encryptString } from "../crypto/CryptoFacade"
-import type { RsaImplementation } from "../crypto/RsaImplementation"
+import type { Group, User } from "../../../entities/sys/TypeRefs.js"
+import { createMembershipAddData, createMembershipRemoveData, GroupTypeRef, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
+import { CounterFacade } from "./CounterFacade.js"
+import { EntityClient } from "../../../common/EntityClient.js"
+import { assertWorkerOrNode } from "../../../common/Env.js"
+import { encryptString } from "../../crypto/CryptoFacade.js"
+import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { aes128RandomKey, decryptKey, encryptKey, encryptRsaKey, publicKeyToHex, RsaKeyPair } from "@tutao/tutanota-crypto"
-import { IServiceExecutor } from "../../common/ServiceRequest"
-import { LocalAdminGroupService, MailGroupService, TemplateGroupService } from "../../entities/tutanota/Services"
-import { MembershipService } from "../../entities/sys/Services"
-import { UserFacade } from "./UserFacade"
-import { ProgrammingError } from "../../common/error/ProgrammingError.js"
+import { IServiceExecutor } from "../../../common/ServiceRequest.js"
+import { LocalAdminGroupService, MailGroupService, TemplateGroupService } from "../../../entities/tutanota/Services.js"
+import { MembershipService } from "../../../entities/sys/Services.js"
+import { UserFacade } from "../UserFacade.js"
+import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 
 assertWorkerOrNode()
 

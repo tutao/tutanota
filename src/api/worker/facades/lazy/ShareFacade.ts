@@ -1,23 +1,23 @@
-import type { CryptoFacade } from "../crypto/CryptoFacade"
-import { encryptBytes, encryptString } from "../crypto/CryptoFacade"
-import { GroupInfoTypeRef } from "../../entities/sys/TypeRefs.js"
-import type { GroupInfo, ReceivedGroupInvitation } from "../../entities/sys/TypeRefs.js"
-import type { ShareCapability } from "../../common/TutanotaConstants"
-import type { GroupInvitationPostReturn } from "../../entities/tutanota/TypeRefs.js"
+import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
+import { encryptBytes, encryptString } from "../../crypto/CryptoFacade.js"
+import { GroupInfoTypeRef } from "../../../entities/sys/TypeRefs.js"
+import type { GroupInfo, ReceivedGroupInvitation } from "../../../entities/sys/TypeRefs.js"
+import type { ShareCapability } from "../../../common/TutanotaConstants.js"
+import type { GroupInvitationPostReturn } from "../../../entities/tutanota/TypeRefs.js"
 import {
 	createGroupInvitationDeleteData,
 	createGroupInvitationPostData,
 	createGroupInvitationPutData,
 	createSharedGroupData,
-} from "../../entities/tutanota/TypeRefs.js"
+} from "../../../entities/tutanota/TypeRefs.js"
 import { neverNull } from "@tutao/tutanota-utils"
-import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError"
-import { assertWorkerOrNode } from "../../common/Env"
+import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
+import { assertWorkerOrNode } from "../../../common/Env.js"
 import { aes128RandomKey, bitArrayToUint8Array, encryptKey, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
-import { IServiceExecutor } from "../../common/ServiceRequest"
-import { GroupInvitationService } from "../../entities/tutanota/Services.js"
-import { UserFacade } from "./UserFacade"
-import { EntityClient } from "../../common/EntityClient"
+import { IServiceExecutor } from "../../../common/ServiceRequest.js"
+import { GroupInvitationService } from "../../../entities/tutanota/Services.js"
+import { UserFacade } from "../UserFacade.js"
+import { EntityClient } from "../../../common/EntityClient.js"
 
 assertWorkerOrNode()
 

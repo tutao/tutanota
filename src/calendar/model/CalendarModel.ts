@@ -30,7 +30,7 @@ import { elementIdPart, getElementId, isSameId, listIdPart } from "../../api/com
 import type { AlarmScheduler } from "../date/AlarmScheduler"
 import type { Notifications } from "../../gui/Notifications"
 import m from "mithril"
-import type { CalendarFacade } from "../../api/worker/facades/CalendarFacade"
+import type { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { DataFile } from "../../api/common/DataFile"
 import { IServiceExecutor } from "../../api/common/ServiceRequest"
 import { MembershipService } from "../../api/entities/sys/Services"

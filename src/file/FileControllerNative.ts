@@ -7,8 +7,8 @@ import { assertOnlyFileReferences, FileReference } from "../api/common/utils/Fil
 import { CancelledError } from "../api/common/error/CancelledError"
 import type { NativeFileApp } from "../native/common/FileApp"
 import { ArchiveDataType } from "../api/common/TutanotaConstants"
-import { BlobFacade } from "../api/worker/facades/BlobFacade"
-import { FileFacade } from "../api/worker/facades/FileFacade"
+import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
+import { FileFacade } from "../api/worker/facades/lazy/FileFacade.js"
 import { ProgressObserver, FileController, isLegacyFile, zipDataFiles } from "./FileController.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 

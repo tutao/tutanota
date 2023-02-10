@@ -1,10 +1,10 @@
-import { HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
-import { typeRefToPath } from "../rest/EntityRestClient"
-import type { ContactForm } from "../../entities/tutanota/TypeRefs.js"
-import { ContactFormTypeRef } from "../../entities/tutanota/TypeRefs.js"
-import { RestClient } from "../rest/RestClient"
-import { assertWorkerOrNode } from "../../common/Env"
-import { InstanceMapper } from "../crypto/InstanceMapper"
+import { HttpMethod, MediaType, resolveTypeReference } from "../../../common/EntityFunctions.js"
+import { typeRefToPath } from "../../rest/EntityRestClient.js"
+import type { ContactForm } from "../../../entities/tutanota/TypeRefs.js"
+import { ContactFormTypeRef } from "../../../entities/tutanota/TypeRefs.js"
+import { RestClient } from "../../rest/RestClient.js"
+import { assertWorkerOrNode } from "../../../common/Env.js"
+import { InstanceMapper } from "../../crypto/InstanceMapper.js"
 
 assertWorkerOrNode()
 

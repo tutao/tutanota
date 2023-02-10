@@ -1,11 +1,11 @@
-import type { BookingItemFeatureType } from "../../common/TutanotaConstants"
-import { Const } from "../../common/TutanotaConstants"
-import type { PriceData, PriceItemData, PriceServiceReturn } from "../../entities/sys/TypeRefs.js"
-import { createPriceRequestData, createPriceServiceData } from "../../entities/sys/TypeRefs.js"
+import type { BookingItemFeatureType } from "../../../common/TutanotaConstants.js"
+import { Const } from "../../../common/TutanotaConstants.js"
+import type { PriceData, PriceItemData, PriceServiceReturn } from "../../../entities/sys/TypeRefs.js"
+import { createPriceRequestData, createPriceServiceData } from "../../../entities/sys/TypeRefs.js"
 import { neverNull } from "@tutao/tutanota-utils"
-import { assertWorkerOrNode } from "../../common/Env"
-import { IServiceExecutor } from "../../common/ServiceRequest"
-import { PriceService } from "../../entities/sys/Services"
+import { assertWorkerOrNode } from "../../../common/Env.js"
+import { IServiceExecutor } from "../../../common/ServiceRequest.js"
+import { PriceService } from "../../../entities/sys/Services.js"
 
 assertWorkerOrNode()
 

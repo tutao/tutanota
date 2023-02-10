@@ -34,7 +34,7 @@ import type { LoginController } from "../../../src/api/main/LoginController"
 import { EventController } from "../../../src/api/main/EventController"
 import { EntityClient } from "../../../src/api/common/EntityClient"
 import { BusinessFeatureRequiredError } from "../../../src/api/main/BusinessFeatureRequiredError"
-import { MailFacade } from "../../../src/api/worker/facades/MailFacade"
+import { MailFacade } from "../../../src/api/worker/facades/lazy/MailFacade.js"
 import { Time } from "../../../src/api/common/utils/Time"
 import {
 	accountMailAddress,

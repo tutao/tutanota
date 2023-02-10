@@ -1,5 +1,5 @@
-import { assertWorkerOrNode } from "../../common/Env"
-import type { AlarmInfo, AlarmNotification, Group, PushIdentifier, RepeatRule, User, UserAlarmInfo } from "../../entities/sys/TypeRefs.js"
+import { assertWorkerOrNode } from "../../../common/Env.js"
+import type { AlarmInfo, AlarmNotification, Group, PushIdentifier, RepeatRule, User, UserAlarmInfo } from "../../../entities/sys/TypeRefs.js"
 import {
 	AlarmServicePostTypeRef,
 	createAlarmInfo,
@@ -13,7 +13,7 @@ import {
 	PushIdentifierTypeRef,
 	UserAlarmInfoTypeRef,
 	UserTypeRef,
-} from "../../entities/sys/TypeRefs.js"
+} from "../../../entities/sys/TypeRefs.js"
 import {
 	asyncFindAndMap,
 	downcast,
@@ -29,35 +29,35 @@ import {
 	promiseMap,
 	stringToUtf8Uint8Array,
 } from "@tutao/tutanota-utils"
-import { CryptoFacade } from "../crypto/CryptoFacade"
-import { GroupType, OperationType } from "../../common/TutanotaConstants"
-import type { CalendarEvent, CalendarEventUidIndex, CalendarRepeatRule } from "../../entities/tutanota/TypeRefs.js"
+import { CryptoFacade } from "../../crypto/CryptoFacade.js"
+import { GroupType, OperationType } from "../../../common/TutanotaConstants.js"
+import type { CalendarEvent, CalendarEventUidIndex, CalendarRepeatRule } from "../../../entities/tutanota/TypeRefs.js"
 import {
 	CalendarEventTypeRef,
 	CalendarEventUidIndexTypeRef,
 	CalendarGroupRootTypeRef,
 	createCalendarDeleteData,
 	createUserAreaGroupPostData,
-} from "../../entities/tutanota/TypeRefs.js"
-import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
-import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import { EntityClient } from "../../common/EntityClient"
-import { elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId } from "../../common/utils/EntityUtils"
-import { GroupManagementFacade } from "./GroupManagementFacade"
-import { SetupMultipleError } from "../../common/error/SetupMultipleError"
-import { ImportError } from "../../common/error/ImportError"
+} from "../../../entities/tutanota/TypeRefs.js"
+import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
+import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/error/RestError.js"
+import { EntityClient } from "../../../common/EntityClient.js"
+import { elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId } from "../../../common/utils/EntityUtils.js"
+import { GroupManagementFacade } from "./GroupManagementFacade.js"
+import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
+import { ImportError } from "../../../common/error/ImportError.js"
 import { aes128RandomKey, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
-import { InstanceMapper } from "../crypto/InstanceMapper"
-import { TutanotaError } from "../../common/error/TutanotaError"
-import { IServiceExecutor } from "../../common/ServiceRequest"
-import { AlarmService } from "../../entities/sys/Services"
-import { CalendarService } from "../../entities/tutanota/Services"
-import { resolveTypeReference } from "../../common/EntityFunctions"
-import { UserFacade } from "./UserFacade"
-import { isOfflineError } from "../../common/utils/ErrorCheckUtils.js"
-import { EncryptedAlarmNotification } from "../../../native/common/EncryptedAlarmNotification.js"
-import { NativePushFacade } from "../../../native/common/generatedipc/NativePushFacade.js"
-import { ExposedOperationProgressTracker, OperationId } from "../../main/OperationProgressTracker.js"
+import { InstanceMapper } from "../../crypto/InstanceMapper.js"
+import { TutanotaError } from "../../../common/error/TutanotaError.js"
+import { IServiceExecutor } from "../../../common/ServiceRequest.js"
+import { AlarmService } from "../../../entities/sys/Services.js"
+import { CalendarService } from "../../../entities/tutanota/Services.js"
+import { resolveTypeReference } from "../../../common/EntityFunctions.js"
+import { UserFacade } from "../UserFacade.js"
+import { isOfflineError } from "../../../common/utils/ErrorCheckUtils.js"
+import { EncryptedAlarmNotification } from "../../../../native/common/EncryptedAlarmNotification.js"
+import { NativePushFacade } from "../../../../native/common/generatedipc/NativePushFacade.js"
+import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 
 assertWorkerOrNode()
 

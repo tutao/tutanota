@@ -30,7 +30,7 @@ import type { CredentialsInfo } from "../../misc/credentials/CredentialsProvider
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../../api/common/SessionType.js"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
-import { GiftCardFacade } from "../../api/worker/facades/GiftCardFacade.js"
+import { GiftCardFacade } from "../../api/worker/facades/lazy/GiftCardFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { Country, getByAbbreviation } from "../../api/common/CountryList.js"
 import { renderCountryDropdown } from "../../gui/base/GuiUtils.js"

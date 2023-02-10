@@ -9,7 +9,7 @@ import type { ButtonAttrs } from "../gui/base/Button.js"
 import { Button } from "../gui/base/Button.js"
 import type { BookingItemFeatureType } from "../api/common/TutanotaConstants"
 import { asPaymentInterval, formatMonthlyPrice, getCountFromPriceData, getPriceFromPriceData, PaymentInterval } from "./PriceUtils"
-import type { BookingFacade } from "../api/worker/facades/BookingFacade"
+import type { BookingFacade } from "../api/worker/facades/lazy/BookingFacade.js"
 import Stream from "mithril/stream"
 import { Icons } from "../gui/base/icons/Icons"
 
