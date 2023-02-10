@@ -18,7 +18,7 @@ import { CalendarFacade } from "./facades/CalendarFacade"
 import { MailFacade } from "./facades/MailFacade"
 import { ShareFacade } from "./facades/ShareFacade"
 import { CounterFacade } from "./facades/CounterFacade"
-import { Indexer } from "./search/Indexer"
+import type { Indexer } from "./search/Indexer"
 import { SearchFacade } from "./search/SearchFacade"
 import { MailAddressFacade } from "./facades/MailAddressFacade"
 import { FileFacade } from "./facades/FileFacade.js"
@@ -178,7 +178,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			async indexerFacade() {
-				return locator.indexer
+				return locator.indexer()
 			},
 
 			async searchFacade() {
