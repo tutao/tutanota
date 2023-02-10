@@ -1,4 +1,4 @@
-import { LoginFacade } from "./facades/LoginFacade"
+import { CacheInfo, LoginFacade, LoginListener } from "./facades/LoginFacade"
 import type { WorkerImpl } from "./WorkerImpl"
 import { Indexer } from "./search/Indexer"
 import type { EntityRestInterface } from "./rest/EntityRestClient"
@@ -9,11 +9,10 @@ import { GroupManagementFacade } from "./facades/GroupManagementFacade"
 import { MailFacade } from "./facades/MailFacade"
 import { MailAddressFacade } from "./facades/MailAddressFacade"
 import { FileFacade } from "./facades/FileFacade"
-import { SearchFacade } from "./search/SearchFacade"
 import { CustomerFacade } from "./facades/CustomerFacade"
 import { CounterFacade } from "./facades/CounterFacade"
 import { EventBusClient } from "./EventBusClient"
-import { assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isOfflineStorageAvailable } from "../common/Env"
+import { assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isOfflineStorageAvailable, isTest } from "../common/Env"
 import { Const } from "../common/TutanotaConstants"
 import type { BrowserData } from "../../misc/ClientConstants"
 import { CalendarFacade } from "./facades/CalendarFacade"
@@ -50,7 +49,7 @@ import { NativePushFacadeSendDispatcher } from "../../native/common/generatedipc
 import { NativeCryptoFacadeSendDispatcher } from "../../native/common/generatedipc/NativeCryptoFacadeSendDispatcher"
 import { random } from "@tutao/tutanota-crypto"
 import { ExportFacadeSendDispatcher } from "../../native/common/generatedipc/ExportFacadeSendDispatcher.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, lazyMemoized, ofClass } from "@tutao/tutanota-utils"
 import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacadeSendDispatcher } from "../../native/common/generatedipc/SqlCipherFacadeSendDispatcher.js"
 import { EntropyFacade } from "./facades/EntropyFacade.js"
@@ -58,6 +57,11 @@ import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./crypto/OwnerEncSessionKeysUpdateQueue.js"
 import { EventBusEventCoordinator } from "./EventBusEventCoordinator.js"
 import { WorkerFacade } from "./facades/WorkerFacade.js"
+import type { SearchFacade } from "./search/SearchFacade.js"
+import { Challenge } from "../entities/sys/TypeRefs.js"
+import { LoginFailReason } from "../main/PageContextLoginListener.js"
+import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
+import { SessionType } from "../common/SessionType.js"
 
 assertWorkerOrNode()
 
@@ -68,7 +72,7 @@ export type WorkerLocatorType = {
 	indexer: Indexer
 	cache: EntityRestInterface
 	cachingEntityClient: EntityClient
-	search: SearchFacade
+	search: () => Promise<SearchFacade>
 	groupManagement: GroupManagementFacade
 	userManagement: UserManagementFacade
 	customer: CustomerFacade
@@ -162,6 +166,32 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.instanceMapper,
 		locator.ownerEncSessionKeysUpdateQueue,
 	)
+
+	const loginListener: LoginListener = {
+		onPartialLoginSuccess(): Promise<void> {
+			return mainInterface.loginListener.onPartialLoginSuccess()
+		},
+
+		onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo): Promise<void> {
+			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
+				// index new items in background
+				console.log("initIndexer after log in")
+
+				initIndexer(worker, cacheInfo)
+			}
+
+			return mainInterface.loginListener.onFullLoginSuccess(sessionType, cacheInfo)
+		},
+
+		onLoginFailure(reason: LoginFailReason): Promise<void> {
+			return mainInterface.loginListener.onLoginFailure(reason)
+		},
+
+		onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void> {
+			return mainInterface.loginListener.onSecondFactorChallenge(sessionId, challenges, mailAddress)
+		},
+	}
+
 	locator.login = new LoginFacade(
 		worker,
 		locator.restClient,
@@ -169,7 +199,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		 * we don't want to try to use the cache in the login facade, because it may not be available (when no user is logged in)
 		 */
 		new EntityClient(locator.cache),
-		mainInterface.loginListener,
+		loginListener,
 		locator.instanceMapper,
 		locator.crypto,
 		maybeUninitializedStorage,
@@ -183,7 +213,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.indexer._groupInfo.suggestionFacade,
 		locator.indexer._whitelabelChildIndexer.suggestionFacade,
 	]
-	locator.search = new SearchFacade(locator.user, locator.indexer.db, locator.indexer._mail, suggestionFacades, browserData, locator.cachingEntityClient)
+	locator.search = lazyMemoized(async () => {
+		const { SearchFacade } = await import("./search/SearchFacade.js")
+		return new SearchFacade(locator.user, locator.indexer.db, locator.indexer._mail, suggestionFacades, browserData, locator.cachingEntityClient)
+	})
 	locator.counters = new CounterFacade(locator.serviceExecutor)
 	locator.groupManagement = new GroupManagementFacade(locator.user, locator.counters, locator.cachingEntityClient, locator.rsa, locator.serviceExecutor)
 	locator.userManagement = new UserManagementFacade(
@@ -273,13 +306,45 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		new SleepDetector(scheduler, dateProvider),
 		mainInterface.progressTracker,
 	)
-	locator.login.init(locator.indexer, locator.eventBusClient)
+	locator.login.init(locator.eventBusClient)
 	locator.Const = Const
 	locator.share = new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient)
 	locator.giftCards = new GiftCardFacade(locator.user, locator.customer, locator.serviceExecutor, locator.crypto)
 	locator.configFacade = new ConfigurationDatabase(locator.user)
 	locator.contactFormFacade = new ContactFormFacade(locator.restClient, locator.instanceMapper)
 	locator.deviceEncryptionFacade = new DeviceEncryptionFacade()
+}
+
+const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
+
+function initIndexer(worker: WorkerImpl, cacheInfo: CacheInfo): Promise<void> {
+	return locator.indexer
+		.init({
+			user: assertNotNull(locator.user.getUser()),
+			userGroupKey: locator.user.getUserGroupKey(),
+			cacheInfo,
+		})
+		.catch(
+			ofClass(ServiceUnavailableError, () => {
+				console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
+				return delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
+					console.log("_initIndexer after ServiceUnavailableError")
+					return initIndexer(worker, cacheInfo)
+				})
+			}),
+		)
+		.catch(
+			ofClass(ConnectionError, () => {
+				console.log("Retry init indexer in 30 seconds after ConnectionError")
+				return delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
+					console.log("_initIndexer after ConnectionError")
+					return initIndexer(worker, cacheInfo)
+				})
+			}),
+		)
+		.catch((e) => {
+			worker.sendError(e)
+		})
 }
 
 export async function resetLocator(): Promise<void> {

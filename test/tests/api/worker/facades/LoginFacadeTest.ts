@@ -12,7 +12,7 @@ import {
 	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs"
 import { createAuthVerifier, encryptKey, generateKeyFromPassphrase, KeyLength, keyToBase64, sha256Hash } from "@tutao/tutanota-crypto"
-import { LoginFacade, ResumeSessionErrorReason } from "../../../../../src/api/worker/facades/LoginFacade"
+import { LoginFacade, LoginListener, ResumeSessionErrorReason } from "../../../../../src/api/worker/facades/LoginFacade"
 import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest"
 import { EntityClient } from "../../../../../src/api/common/EntityClient"
 import { RestClient } from "../../../../../src/api/worker/rest/RestClient"
@@ -22,7 +22,6 @@ import { CryptoFacade, encryptString } from "../../../../../src/api/worker/crypt
 import { CacheStorageLateInitializer } from "../../../../../src/api/worker/rest/CacheStorageProxy"
 import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade"
 import { SaltService, SessionService } from "../../../../../src/api/entities/sys/Services"
-import { LoginListener } from "../../../../../src/api/main/LoginListener"
 import { Credentials } from "../../../../../src/misc/credentials/Credentials"
 import { defer, DeferredObject, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { AccountType } from "../../../../../src/api/common/TutanotaConstants"
@@ -31,7 +30,6 @@ import { assertThrows, verify } from "@tutao/tutanota-test-utils"
 import { SessionType } from "../../../../../src/api/common/SessionType"
 import { HttpMethod } from "../../../../../src/api/common/EntityFunctions"
 import { ConnectMode, EventBusClient } from "../../../../../src/api/worker/EventBusClient"
-import { Indexer } from "../../../../../src/api/worker/search/Indexer"
 import { createTutanotaProperties, TutanotaPropertiesTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs"
 import { BlobAccessTokenFacade } from "../../../../../src/api/worker/facades/BlobAccessTokenFacade.js"
 import { EntropyFacade } from "../../../../../src/api/worker/facades/EntropyFacade.js"
@@ -66,7 +64,6 @@ o.spec("LoginFacadeTest", function () {
 	let instanceMapperMock: InstanceMapper
 	let cryptoFacadeMock: CryptoFacade
 	let cacheStorageInitializerMock: CacheStorageLateInitializer
-	let indexerMock: Indexer
 	let eventBusClientMock: EventBusClient
 	let usingOfflineStorage: boolean
 	let userFacade: UserFacade
@@ -124,10 +121,9 @@ o.spec("LoginFacadeTest", function () {
 			entropyFacade,
 		)
 
-		indexerMock = instance(Indexer)
 		eventBusClientMock = instance(EventBusClient)
 
-		facade.init(indexerMock, eventBusClientMock)
+		facade.init(eventBusClientMock)
 	})
 
 	o.spec("Creating new sessions", function () {
@@ -305,7 +301,7 @@ o.spec("LoginFacadeTest", function () {
 				when(userFacade.isPartiallyLoggedIn()).thenDo(() => calls.includes("setUser"))
 
 				fullLoginDeferred = defer()
-				when(loginListener.onFullLoginSuccess()).thenDo(() => fullLoginDeferred.resolve())
+				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
 			})
 
 			o("When using offline as a free user and with stable connection, login sync", async function () {
@@ -339,7 +335,7 @@ o.spec("LoginFacadeTest", function () {
 				})
 
 				const deferred = defer()
-				when(loginListener.onFullLoginSuccess()).thenDo(() => deferred.resolve(null))
+				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything())).thenDo(() => deferred.resolve(null))
 
 				const result = await facade.resumeSession(credentials, user.salt, dbKey, timeRangeDays)
 
@@ -470,7 +466,7 @@ o.spec("LoginFacadeTest", function () {
 				when(userFacade.isPartiallyLoggedIn()).thenDo(() => calls.includes("setUser"))
 
 				fullLoginDeferred = defer()
-				when(loginListener.onFullLoginSuccess()).thenDo(() => fullLoginDeferred.resolve())
+				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
 			})
 
 			o("When successfully logged in, userFacade is initialised", async function () {

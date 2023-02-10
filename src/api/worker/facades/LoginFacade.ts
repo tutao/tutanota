@@ -8,7 +8,6 @@ import {
 	base64ToUint8Array,
 	base64UrlToBase64,
 	defer,
-	delay,
 	hexToUint8Array,
 	neverNull,
 	ofClass,
@@ -29,6 +28,7 @@ import { AccountType, CloseEventBusOption } from "../../common/TutanotaConstants
 import { CryptoError } from "../../common/error/CryptoError"
 import type { GroupInfo, SaltReturn, SecondFactorAuthData, User } from "../../entities/sys/TypeRefs.js"
 import {
+	Challenge,
 	createAutoLoginDataGet,
 	createChangePasswordData,
 	createCreateSessionData,
@@ -46,19 +46,11 @@ import {
 } from "../../entities/sys/TypeRefs.js"
 import { TutanotaPropertiesTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
-import { assertWorkerOrNode, isAdminClient, isTest } from "../../common/Env"
+import { assertWorkerOrNode } from "../../common/Env"
 import { ConnectMode, EventBusClient } from "../EventBusClient"
 import { EntityRestClient, typeRefToPath } from "../rest/EntityRestClient"
-import {
-	AccessExpiredError,
-	ConnectionError,
-	NotAuthenticatedError,
-	NotFoundError,
-	ServiceUnavailableError,
-	SessionExpiredError,
-} from "../../common/error/RestError"
+import { AccessExpiredError, ConnectionError, NotAuthenticatedError, NotFoundError, SessionExpiredError } from "../../common/error/RestError"
 import type { WorkerImpl } from "../WorkerImpl"
-import type { Indexer } from "../search/Indexer"
 import { CancelledError } from "../../common/error/CancelledError"
 import { RestClient } from "../rest/RestClient"
 import { EntityClient } from "../../common/EntityClient"
@@ -90,14 +82,14 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { SessionType } from "../../common/SessionType"
 import { CacheStorageLateInitializer } from "../rest/CacheStorageProxy"
 import { AuthDataProvider, UserFacade } from "./UserFacade"
-import { LoginFailReason, LoginListener } from "../../main/LoginListener"
+import { LoginFailReason } from "../../main/PageContextLoginListener.js"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 import { EntropyFacade } from "./EntropyFacade.js"
 import { BlobAccessTokenFacade } from "./BlobAccessTokenFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 
 assertWorkerOrNode()
-const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
+
 export type NewSessionData = {
 	user: User
 	userGroupInfo: GroupInfo
@@ -133,9 +125,30 @@ type ResumeSessionResult = ResumeSessionSuccess | ResumeSessionFailure
 
 type AsyncLoginState = { state: "idle" } | { state: "running" } | { state: "failed"; credentials: Credentials; cacheInfo: CacheInfo }
 
+export interface LoginListener {
+	/**
+	 * Partial login reached: cached entities and user are available.
+	 */
+	onPartialLoginSuccess(): Promise<void>
+
+	/**
+	 * Full login reached: any network requests can be made
+	 */
+	onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo): Promise<void>
+
+	/**
+	 * call when the login fails for invalid session or other reasons
+	 */
+	onLoginFailure(reason: LoginFailReason): Promise<void>
+
+	/**
+	 * Shows a dialog with possibility to use second factor and with a message that the login can be approved from another client.
+	 */
+	onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void>
+}
+
 export class LoginFacade {
 	private eventBusClient!: EventBusClient
-	private indexer!: Indexer
 	/**
 	 * Used for cancelling second factor and to not mix different attempts
 	 */
@@ -168,8 +181,7 @@ export class LoginFacade {
 		private readonly entropyFacade: EntropyFacade,
 	) {}
 
-	init(indexer: Indexer, eventBusClient: EventBusClient) {
-		this.indexer = indexer
+	init(eventBusClient: EventBusClient) {
 		this.eventBusClient = eventBusClient
 	}
 
@@ -566,13 +578,6 @@ export class LoginFacade {
 			this.userFacade.unlockUserGroupKey(userPassphraseKey)
 			const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
 
-			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
-				// index new items in background
-				console.log("_initIndexer after log in")
-
-				this.initIndexer(cacheInfo)
-			}
-
 			await this.loadEntropy()
 
 			// If we have been fully logged in at least once already (probably expired ephemeral session)
@@ -585,7 +590,7 @@ export class LoginFacade {
 			}
 
 			await this.entropyFacade.storeEntropy()
-			this.loginListener.onFullLoginSuccess()
+			this.loginListener.onFullLoginSuccess(sessionType, cacheInfo)
 			return { user, accessToken, userGroupInfo }
 		} catch (e) {
 			this.resetSession()
@@ -634,36 +639,6 @@ export class LoginFacade {
 			await this.resetSession()
 			throw new NotAuthenticatedError("External password has changed")
 		}
-	}
-
-	private initIndexer(cacheInfo: CacheInfo): Promise<void> {
-		return this.indexer
-			.init({
-				user: assertNotNull(this.userFacade.getUser()),
-				userGroupKey: this.userFacade.getUserGroupKey(),
-				cacheInfo,
-			})
-			.catch(
-				ofClass(ServiceUnavailableError, (e) => {
-					console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
-					return delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
-						console.log("_initIndexer after ServiceUnavailableError")
-						return this.initIndexer(cacheInfo)
-					})
-				}),
-			)
-			.catch(
-				ofClass(ConnectionError, (e) => {
-					console.log("Retry init indexer in 30 seconds after ConnectionError")
-					return delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
-						console.log("_initIndexer after ConnectionError")
-						return this.initIndexer(cacheInfo)
-					})
-				}),
-			)
-			.catch((e) => {
-				this.worker.sendError(e)
-			})
 	}
 
 	private loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<Aes128Key> {
