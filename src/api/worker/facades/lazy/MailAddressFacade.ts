@@ -1,4 +1,4 @@
-import type { GroupInfo, MailAddressAliasServiceReturn, MailAddressAvailability } from "../../entities/sys/TypeRefs.js"
+import type { GroupInfo, MailAddressAliasServiceReturn, MailAddressAvailability } from "../../../entities/sys/TypeRefs.js"
 import {
 	createDomainMailAddressAvailabilityData,
 	createMailAddressAliasServiceData,
@@ -8,12 +8,12 @@ import {
 	GroupInfoTypeRef,
 	GroupTypeRef,
 	UserTypeRef,
-} from "../../entities/sys/TypeRefs.js"
-import { DomainMailAddressAvailabilityService, MailAddressAliasService, MultipleMailAddressAvailabilityService } from "../../entities/sys/Services.js"
-import { assertWorkerOrNode } from "../../common/Env"
-import { IServiceExecutor } from "../../common/ServiceRequest"
-import { UserFacade } from "./UserFacade"
-import { EntityClient } from "../../common/EntityClient.js"
+} from "../../../entities/sys/TypeRefs.js"
+import { DomainMailAddressAvailabilityService, MailAddressAliasService, MultipleMailAddressAvailabilityService } from "../../../entities/sys/Services.js"
+import { assertWorkerOrNode } from "../../../common/Env.js"
+import { IServiceExecutor } from "../../../common/ServiceRequest.js"
+import { UserFacade } from "../UserFacade.js"
+import { EntityClient } from "../../../common/EntityClient.js"
 import {
 	createMailAddressProperties,
 	createMailboxProperties,
@@ -21,11 +21,11 @@ import {
 	MailboxGroupRootTypeRef,
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
-} from "../../entities/tutanota/TypeRefs.js"
+} from "../../../entities/tutanota/TypeRefs.js"
 import { assertNotNull, findAndRemove, getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
-import { getEnabledMailAddressesForGroupInfo } from "../../common/utils/GroupUtils.js"
-import { PreconditionFailedError } from "../../common/error/RestError.js"
-import { ProgrammingError } from "../../common/error/ProgrammingError.js"
+import { getEnabledMailAddressesForGroupInfo } from "../../../common/utils/GroupUtils.js"
+import { PreconditionFailedError } from "../../../common/error/RestError.js"
+import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
 
 assertWorkerOrNode()

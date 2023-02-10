@@ -13,7 +13,7 @@ import { DeviceStorageUnavailableError } from "../../api/common/error/DeviceStor
 import { NativePushFacade } from "../common/generatedipc/NativePushFacade.js"
 import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
-import { CalendarFacade } from "../../api/worker/facades/CalendarFacade.js"
+import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 
 export class NativePushServiceApp {
 	private _currentIdentifier: string | null = null

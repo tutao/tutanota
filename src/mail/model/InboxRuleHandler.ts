@@ -12,7 +12,7 @@ import type { SelectorItemList } from "../../gui/base/DropDownSelector.js"
 import { EntityClient } from "../../api/common/EntityClient"
 import { elementIdPart, getElementId, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
 import { assertMainOrNode } from "../../api/common/Env"
-import { MailFacade } from "../../api/worker/facades/MailFacade"
+import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 import { isLegacyMail } from "../../api/common/MailWrapper.js"
 import { assertSystemFolderOfType } from "../../api/common/mail/CommonMailUtils.js"
 

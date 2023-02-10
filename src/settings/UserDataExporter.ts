@@ -1,7 +1,7 @@
 import { LoginController } from "../api/main/LoginController.js"
 import { CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { assertNotNull, mapNullable, pad, promiseMap, renderCsv, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { UserManagementFacade } from "../api/worker/facades/UserManagementFacade.js"
+import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { FileController } from "../file/FileController.js"
 import { createDataFile } from "../api/common/DataFile.js"

@@ -1,5 +1,5 @@
-import type { CryptoFacade } from "../crypto/CryptoFacade"
-import { encryptBytes, encryptString } from "../crypto/CryptoFacade"
+import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
+import { encryptBytes, encryptString } from "../../crypto/CryptoFacade.js"
 import {
 	DraftService,
 	ExternalUserService,
@@ -9,8 +9,8 @@ import {
 	MoveMailService,
 	ReportMailService,
 	SendDraftService,
-} from "../../entities/tutanota/Services.js"
-import type { ConversationType } from "../../common/TutanotaConstants"
+} from "../../../entities/tutanota/Services.js"
+import type { ConversationType } from "../../../common/TutanotaConstants.js"
 import {
 	ArchiveDataType,
 	CounterType_UnreadMails,
@@ -21,7 +21,7 @@ import {
 	OperationType,
 	PhishingMarkerStatus,
 	ReportedMailFieldType,
-} from "../../common/TutanotaConstants"
+} from "../../../common/TutanotaConstants.js"
 import type {
 	Contact,
 	DraftAttachment,
@@ -32,7 +32,7 @@ import type {
 	MailFolder,
 	PhishingMarker,
 	SendDraftData,
-} from "../../entities/tutanota/TypeRefs.js"
+} from "../../../entities/tutanota/TypeRefs.js"
 import {
 	createAttachmentKeyData,
 	createCreateExternalUserGroupData,
@@ -57,10 +57,10 @@ import {
 	MailDetailsDraftTypeRef,
 	MailTypeRef,
 	TutanotaPropertiesTypeRef,
-} from "../../entities/tutanota/TypeRefs.js"
-import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError"
-import { NotFoundError } from "../../common/error/RestError"
-import type { EntityUpdate, PublicKeyReturn, User } from "../../entities/sys/TypeRefs.js"
+} from "../../../entities/tutanota/TypeRefs.js"
+import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
+import { NotFoundError } from "../../../common/error/RestError.js"
+import type { EntityUpdate, PublicKeyReturn, User } from "../../../entities/sys/TypeRefs.js"
 import {
 	BlobReferenceTokenWrapper,
 	createPublicKeyData,
@@ -69,7 +69,7 @@ import {
 	GroupRootTypeRef,
 	GroupTypeRef,
 	UserTypeRef,
-} from "../../entities/sys/TypeRefs.js"
+} from "../../../entities/sys/TypeRefs.js"
 import {
 	addressDomain,
 	assertNotNull,
@@ -84,15 +84,15 @@ import {
 	promiseFilter,
 	promiseMap,
 } from "@tutao/tutanota-utils"
-import { BlobFacade } from "./BlobFacade"
-import { FileFacade } from "./FileFacade"
-import { assertWorkerOrNode, isApp, isDesktop } from "../../common/Env"
-import { EntityClient } from "../../common/EntityClient"
-import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships } from "../../common/utils/GroupUtils"
-import { containsId, getLetId, isSameId, stringToCustomId } from "../../common/utils/EntityUtils"
-import { htmlToText } from "../search/IndexUtils"
-import { MailBodyTooLargeError } from "../../common/error/MailBodyTooLargeError"
-import { UNCOMPRESSED_MAX_SIZE } from "../Compression"
+import { BlobFacade } from "./BlobFacade.js"
+import { FileFacade } from "./FileFacade.js"
+import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
+import { EntityClient } from "../../../common/EntityClient.js"
+import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships } from "../../../common/utils/GroupUtils.js"
+import { containsId, getLetId, isSameId, stringToCustomId } from "../../../common/utils/EntityUtils.js"
+import { htmlToText } from "../../search/IndexUtils.js"
+import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
+import { UNCOMPRESSED_MAX_SIZE } from "../../Compression.js"
 import {
 	aes128RandomKey,
 	bitArrayToUint8Array,
@@ -107,16 +107,16 @@ import {
 	random,
 	sha256Hash,
 } from "@tutao/tutanota-crypto"
-import { DataFile } from "../../common/DataFile"
-import { FileReference, isDataFile, isFileReference } from "../../common/utils/FileUtils"
-import { CounterService } from "../../entities/monitor/Services"
-import { PublicKeyService } from "../../entities/sys/Services.js"
-import { IServiceExecutor } from "../../common/ServiceRequest"
-import { createWriteCounterData } from "../../entities/monitor/TypeRefs"
-import { UserFacade } from "./UserFacade"
-import { PartialRecipient, Recipient, RecipientList, RecipientType } from "../../common/recipients/Recipient"
-import { NativeFileApp } from "../../../native/common/FileApp"
-import { isLegacyMail } from "../../common/MailWrapper.js"
+import { DataFile } from "../../../common/DataFile.js"
+import { FileReference, isDataFile, isFileReference } from "../../../common/utils/FileUtils.js"
+import { CounterService } from "../../../entities/monitor/Services.js"
+import { PublicKeyService } from "../../../entities/sys/Services.js"
+import { IServiceExecutor } from "../../../common/ServiceRequest.js"
+import { createWriteCounterData } from "../../../entities/monitor/TypeRefs.js"
+import { UserFacade } from "../UserFacade.js"
+import { PartialRecipient, Recipient, RecipientList, RecipientType } from "../../../common/recipients/Recipient.js"
+import { NativeFileApp } from "../../../../native/common/FileApp.js"
+import { isLegacyMail } from "../../../common/MailWrapper.js"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>

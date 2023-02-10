@@ -1,6 +1,6 @@
 import type { ContactModel } from "../../contacts/model/ContactModel.js"
 import type { LoginController } from "./LoginController.js"
-import type { MailFacade } from "../worker/facades/MailFacade.js"
+import type { MailFacade } from "../worker/facades/lazy/MailFacade.js"
 import type { EntityClient } from "../common/EntityClient.js"
 import { createNewContact, isTutanotaMailAddress } from "../../mail/model/MailUtils.js"
 import { getContactDisplayName } from "../../contacts/model/ContactUtils.js"

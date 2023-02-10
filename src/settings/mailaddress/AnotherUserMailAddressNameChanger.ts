@@ -1,5 +1,5 @@
 import { AddressToName, MailAddressNameChanger } from "./MailAddressTableModel.js"
-import { MailAddressFacade } from "../../api/worker/facades/MailAddressFacade.js"
+import { MailAddressFacade } from "../../api/worker/facades/lazy/MailAddressFacade.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 
 /**

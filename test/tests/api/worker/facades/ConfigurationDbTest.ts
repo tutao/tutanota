@@ -1,5 +1,5 @@
 import o from "ospec"
-import { ConfigurationDatabase, encryptItem } from "../../../../../src/api/worker/facades/ConfigurationDatabase.js"
+import { ConfigurationDatabase, encryptItem } from "../../../../../src/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { DbStub } from "../search/DbStub.js"
 import { ExternalImageRule } from "../../../../../src/api/common/TutanotaConstants.js"

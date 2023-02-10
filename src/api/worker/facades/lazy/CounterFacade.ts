@@ -1,7 +1,7 @@
-import { createReadCounterData } from "../../entities/monitor/TypeRefs"
-import { assertWorkerOrNode } from "../../common/Env"
-import { IServiceExecutor } from "../../common/ServiceRequest"
-import { CounterService } from "../../entities/monitor/Services"
+import { createReadCounterData } from "../../../entities/monitor/TypeRefs.js"
+import { assertWorkerOrNode } from "../../../common/Env.js"
+import { IServiceExecutor } from "../../../common/ServiceRequest.js"
+import { CounterService } from "../../../entities/monitor/Services.js"
 
 assertWorkerOrNode()
 

@@ -15,7 +15,7 @@ import { TemplateGroupPreconditionFailedReason } from "../../sharing/GroupUtils.
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import { TextField } from "../../gui/base/TextField.js"
 import { getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
-import type { GroupManagementFacade } from "../../api/worker/facades/GroupManagementFacade.js"
+import type { GroupManagementFacade } from "../../api/worker/facades/lazy/GroupManagementFacade.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 import { getAvailableDomains } from "../mailaddress/MailAddressesUtils.js"

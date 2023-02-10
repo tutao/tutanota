@@ -1,8 +1,8 @@
 import o from "ospec"
 import { WorkerImpl } from "../../../../../src/api/worker/WorkerImpl.js"
 import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
-import { GroupManagementFacade } from "../../../../../src/api/worker/facades/GroupManagementFacade.js"
-import { CounterFacade } from "../../../../../src/api/worker/facades/CounterFacade.js"
+import { GroupManagementFacade } from "../../../../../src/api/worker/facades/lazy/GroupManagementFacade.js"
+import { CounterFacade } from "../../../../../src/api/worker/facades/lazy/CounterFacade.js"
 import { RsaImplementation } from "../../../../../src/api/worker/crypto/RsaImplementation.js"
 import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
 import { ServiceExecutor } from "../../../../../src/api/worker/rest/ServiceExecutor.js"
@@ -23,7 +23,7 @@ import {
 	GroupInfoTypeRef,
 	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { MailAddressFacade } from "../../../../../src/api/worker/facades/MailAddressFacade.js"
+import { MailAddressFacade } from "../../../../../src/api/worker/facades/lazy/MailAddressFacade.js"
 
 o.spec("MailAddressFacadeTest", function () {
 	let worker: WorkerImpl

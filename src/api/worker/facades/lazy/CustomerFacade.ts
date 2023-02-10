@@ -1,12 +1,12 @@
-import type { InvoiceData, PaymentData, SpamRuleFieldType, SpamRuleType } from "../../common/TutanotaConstants"
-import { AccountType, BookingItemFeatureType, Const, GroupType } from "../../common/TutanotaConstants"
+import type { InvoiceData, PaymentData, SpamRuleFieldType, SpamRuleType } from "../../../common/TutanotaConstants.js"
+import { AccountType, BookingItemFeatureType, Const, GroupType } from "../../../common/TutanotaConstants.js"
 import type {
 	AccountingInfo,
 	CustomDomainReturn,
 	CustomerServerProperties,
 	EmailSenderListElement,
 	PaymentDataServicePutReturn,
-} from "../../entities/sys/TypeRefs.js"
+} from "../../../entities/sys/TypeRefs.js"
 import {
 	AccountingInfoTypeRef,
 	createBrandingDomainData,
@@ -21,12 +21,12 @@ import {
 	CustomerInfoTypeRef,
 	CustomerServerPropertiesTypeRef,
 	CustomerTypeRef,
-} from "../../entities/sys/TypeRefs.js"
-import { assertWorkerOrNode } from "../../common/Env"
+} from "../../../entities/sys/TypeRefs.js"
+import { assertWorkerOrNode } from "../../../common/Env.js"
 import type { Hex } from "@tutao/tutanota-utils"
 import { assertNotNull, downcast, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
-import { getWhitelabelDomain } from "../../common/utils/Utils"
-import { CryptoFacade } from "../crypto/CryptoFacade"
+import { getWhitelabelDomain } from "../../../common/utils/Utils.js"
+import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	BrandingDomainService,
 	CreateCustomerServerProperties,
@@ -35,25 +35,25 @@ import {
 	PaymentDataService,
 	PdfInvoiceService,
 	SystemKeysService,
-} from "../../entities/sys/Services.js"
-import type { ContactFormAccountReturn, InternalGroupData } from "../../entities/tutanota/TypeRefs.js"
-import { createContactFormAccountData, createCustomerAccountCreateData } from "../../entities/tutanota/TypeRefs.js"
-import type { UserManagementFacade } from "./UserManagementFacade"
-import type { GroupManagementFacade } from "./GroupManagementFacade"
-import { CounterFacade } from "./CounterFacade"
-import type { Country } from "../../common/CountryList"
-import { LockedError } from "../../common/error/RestError"
+} from "../../../entities/sys/Services.js"
+import type { ContactFormAccountReturn, InternalGroupData } from "../../../entities/tutanota/TypeRefs.js"
+import { createContactFormAccountData, createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
+import type { UserManagementFacade } from "./UserManagementFacade.js"
+import type { GroupManagementFacade } from "./GroupManagementFacade.js"
+import { CounterFacade } from "./CounterFacade.js"
+import type { Country } from "../../../common/CountryList.js"
+import { LockedError } from "../../../common/error/RestError.js"
 import type { RsaKeyPair } from "@tutao/tutanota-crypto"
 import { aes128RandomKey, bitArrayToUint8Array, encryptKey, hexToPublicKey, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
-import type { RsaImplementation } from "../crypto/RsaImplementation"
-import { EntityClient } from "../../common/EntityClient"
-import { DataFile } from "../../common/DataFile"
-import { IServiceExecutor } from "../../common/ServiceRequest"
-import { ContactFormAccountService, CustomerAccountService } from "../../entities/tutanota/Services"
-import { BookingFacade } from "./BookingFacade"
-import { UserFacade } from "./UserFacade"
-import { PaymentInterval } from "../../../subscription/PriceUtils.js"
-import { ExposedOperationProgressTracker, OperationId } from "../../main/OperationProgressTracker.js"
+import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
+import { EntityClient } from "../../../common/EntityClient.js"
+import { DataFile } from "../../../common/DataFile.js"
+import { IServiceExecutor } from "../../../common/ServiceRequest.js"
+import { ContactFormAccountService, CustomerAccountService } from "../../../entities/tutanota/Services.js"
+import { BookingFacade } from "./BookingFacade.js"
+import { UserFacade } from "../UserFacade.js"
+import { PaymentInterval } from "../../../../subscription/PriceUtils.js"
+import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 
 assertWorkerOrNode()
 

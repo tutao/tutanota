@@ -13,7 +13,7 @@ import { UsageTestModel } from "../../UsageTestModel.js"
 import { UsageTestController } from "@tutao/tutanota-usagetests"
 import { UserController } from "../../../api/main/UserController.js"
 import { progressIcon } from "../../../gui/base/Icon.js"
-import { UserManagementFacade } from "../../../api/worker/facades/UserManagementFacade.js"
+import { UserManagementFacade } from "../../../api/worker/facades/lazy/UserManagementFacade.js"
 import { isApp } from "../../../api/common/Env.js"
 
 /** Actions that may be sent in stage 2 of the recoveryCodeDialog usage test. */

@@ -1,28 +1,28 @@
 import type { Commands } from "../common/MessageDispatcher"
 import { errorToObj, MessageDispatcher, Request, WorkerTransport } from "../common/MessageDispatcher"
 import { CryptoError } from "../common/error/CryptoError"
-import { BookingFacade } from "./facades/BookingFacade"
+import { BookingFacade } from "./facades/lazy/BookingFacade.js"
 import { NotAuthenticatedError } from "../common/error/RestError"
 import { ProgrammingError } from "../common/error/ProgrammingError"
 import { initLocator, locator, resetLocator } from "./WorkerLocator"
 import { assertWorkerOrNode, isMainOrNode } from "../common/Env"
-import type { ContactFormFacade } from "./facades/ContactFormFacade"
+import type { ContactFormFacade } from "./facades/lazy/ContactFormFacade.js"
 import type { BrowserData } from "../../misc/ClientConstants"
 import { CryptoFacade } from "./crypto/CryptoFacade"
-import type { GiftCardFacade } from "./facades/GiftCardFacade"
+import type { GiftCardFacade } from "./facades/lazy/GiftCardFacade.js"
 import type { LoginFacade, LoginListener } from "./facades/LoginFacade"
-import type { CustomerFacade } from "./facades/CustomerFacade"
-import type { GroupManagementFacade } from "./facades/GroupManagementFacade"
-import { ConfigurationDatabase } from "./facades/ConfigurationDatabase"
-import { CalendarFacade } from "./facades/CalendarFacade"
-import { MailFacade } from "./facades/MailFacade"
-import { ShareFacade } from "./facades/ShareFacade"
-import { CounterFacade } from "./facades/CounterFacade"
+import type { CustomerFacade } from "./facades/lazy/CustomerFacade.js"
+import type { GroupManagementFacade } from "./facades/lazy/GroupManagementFacade.js"
+import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
+import { CalendarFacade } from "./facades/lazy/CalendarFacade.js"
+import { MailFacade } from "./facades/lazy/MailFacade.js"
+import { ShareFacade } from "./facades/lazy/ShareFacade.js"
+import { CounterFacade } from "./facades/lazy/CounterFacade.js"
 import type { Indexer } from "./search/Indexer"
 import { SearchFacade } from "./search/SearchFacade"
-import { MailAddressFacade } from "./facades/MailAddressFacade"
-import { FileFacade } from "./facades/FileFacade.js"
-import { UserManagementFacade } from "./facades/UserManagementFacade"
+import { MailAddressFacade } from "./facades/lazy/MailAddressFacade.js"
+import { FileFacade } from "./facades/lazy/FileFacade.js"
+import { UserManagementFacade } from "./facades/lazy/UserManagementFacade.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../common/WorkerProxy"
 import type { DeviceEncryptionFacade } from "./facades/DeviceEncryptionFacade"
 import { random } from "@tutao/tutanota-crypto"
@@ -30,7 +30,7 @@ import type { NativeInterface } from "../../native/common/NativeInterface"
 import type { EntityRestInterface } from "./rest/EntityRestClient"
 import { RestClient } from "./rest/RestClient"
 import { IServiceExecutor } from "../common/ServiceRequest.js"
-import { BlobFacade } from "./facades/BlobFacade"
+import { BlobFacade } from "./facades/lazy/BlobFacade.js"
 import { ExposedCacheStorage } from "./rest/DefaultEntityRestCache.js"
 import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
 import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel.js"
@@ -158,7 +158,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			async configFacade() {
-				return locator.configFacade
+				return locator.configFacade()
 			},
 
 			async calendarFacade() {
@@ -166,7 +166,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			async mailFacade() {
-				return locator.mail
+				return locator.mail()
 			},
 
 			async shareFacade() {
@@ -174,7 +174,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			async counterFacade() {
-				return locator.counters
+				return locator.counters()
 			},
 
 			async indexerFacade() {
@@ -194,7 +194,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			async fileFacade() {
-				return locator.file
+				return locator.file()
 			},
 
 			async blobAccessTokenFacade() {
@@ -202,7 +202,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			async blobFacade() {
-				return locator.blob
+				return locator.blob()
 			},
 
 			async userManagementFacade() {

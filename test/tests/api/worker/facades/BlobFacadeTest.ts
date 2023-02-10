@@ -1,5 +1,5 @@
 import o from "ospec"
-import { BLOB_SERVICE_REST_PATH, BlobFacade } from "../../../../../src/api/worker/facades/BlobFacade.js"
+import { BLOB_SERVICE_REST_PATH, BlobFacade } from "../../../../../src/api/worker/facades/lazy/BlobFacade.js"
 import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
 import { SuspensionHandler } from "../../../../../src/api/worker/SuspensionHandler.js"
 import { NativeFileApp } from "../../../../../src/native/common/FileApp.js"

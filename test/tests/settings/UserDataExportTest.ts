@@ -1,7 +1,7 @@
 import o from "ospec"
 import { loadUserExportData } from "../../../src/settings/UserDataExporter.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
-import { UserManagementFacade } from "../../../src/api/worker/facades/UserManagementFacade.js"
+import { UserManagementFacade } from "../../../src/api/worker/facades/lazy/UserManagementFacade.js"
 import { LoginController } from "../../../src/api/main/LoginController.js"
 import { FileController } from "../../../src/file/FileController.js"
 import { object, when } from "testdouble"

@@ -1,4 +1,4 @@
-import { GroupType } from "../../common/TutanotaConstants"
+import { GroupType } from "../../../common/TutanotaConstants.js"
 import {
 	assertNotNull,
 	Base64,
@@ -9,15 +9,15 @@ import {
 	getFirstOrThrow,
 	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
-import type { GiftCardRedeemGetReturn } from "../../entities/sys/TypeRefs.js"
-import { createGiftCardCreateData, createGiftCardRedeemData, GiftCard } from "../../entities/sys/TypeRefs.js"
+import type { GiftCardRedeemGetReturn } from "../../../entities/sys/TypeRefs.js"
+import { createGiftCardCreateData, createGiftCardRedeemData, GiftCard } from "../../../entities/sys/TypeRefs.js"
 import { aes128RandomKey, base64ToKey, bitArrayToUint8Array, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
-import { IServiceExecutor } from "../../common/ServiceRequest"
-import { GiftCardRedeemService, GiftCardService } from "../../entities/sys/Services"
-import { elementIdPart, GENERATED_MAX_ID } from "../../common/utils/EntityUtils"
-import { CryptoFacade } from "../crypto/CryptoFacade"
-import { UserFacade } from "./UserFacade"
-import { ProgrammingError } from "../../common/error/ProgrammingError.js"
+import { IServiceExecutor } from "../../../common/ServiceRequest.js"
+import { GiftCardRedeemService, GiftCardService } from "../../../entities/sys/Services.js"
+import { elementIdPart, GENERATED_MAX_ID } from "../../../common/utils/EntityUtils.js"
+import { CryptoFacade } from "../../crypto/CryptoFacade.js"
+import { UserFacade } from "../UserFacade.js"
+import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { CustomerFacade } from "./CustomerFacade.js"
 
 const ID_LENGTH = GENERATED_MAX_ID.length

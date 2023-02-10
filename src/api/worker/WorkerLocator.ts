@@ -3,26 +3,26 @@ import type { WorkerImpl } from "./WorkerImpl"
 import type { Indexer } from "./search/Indexer"
 import type { EntityRestInterface } from "./rest/EntityRestClient"
 import { EntityRestClient } from "./rest/EntityRestClient"
-import { UserManagementFacade } from "./facades/UserManagementFacade"
+import type { UserManagementFacade } from "./facades/lazy/UserManagementFacade.js"
 import { CacheStorage, DefaultEntityRestCache } from "./rest/DefaultEntityRestCache.js"
-import { GroupManagementFacade } from "./facades/GroupManagementFacade"
-import { MailFacade } from "./facades/MailFacade"
-import { MailAddressFacade } from "./facades/MailAddressFacade"
-import { FileFacade } from "./facades/FileFacade"
-import { CustomerFacade } from "./facades/CustomerFacade"
-import { CounterFacade } from "./facades/CounterFacade"
+import type { GroupManagementFacade } from "./facades/lazy/GroupManagementFacade.js"
+import type { MailFacade } from "./facades/lazy/MailFacade.js"
+import type { MailAddressFacade } from "./facades/lazy/MailAddressFacade.js"
+import type { FileFacade } from "./facades/lazy/FileFacade.js"
+import type { CustomerFacade } from "./facades/lazy/CustomerFacade.js"
+import type { CounterFacade } from "./facades/lazy/CounterFacade.js"
 import { EventBusClient } from "./EventBusClient"
 import { assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isOfflineStorageAvailable, isTest } from "../common/Env"
 import { Const } from "../common/TutanotaConstants"
 import type { BrowserData } from "../../misc/ClientConstants"
-import { CalendarFacade } from "./facades/CalendarFacade"
-import { ShareFacade } from "./facades/ShareFacade"
+import type { CalendarFacade } from "./facades/lazy/CalendarFacade.js"
+import type { ShareFacade } from "./facades/lazy/ShareFacade.js"
 import { RestClient } from "./rest/RestClient"
 import { SuspensionHandler } from "./SuspensionHandler"
 import { EntityClient } from "../common/EntityClient"
-import { GiftCardFacade } from "./facades/GiftCardFacade"
-import { ConfigurationDatabase } from "./facades/ConfigurationDatabase"
-import { ContactFormFacade } from "./facades/ContactFormFacade"
+import type { GiftCardFacade } from "./facades/lazy/GiftCardFacade.js"
+import type { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
+import type { ContactFormFacade } from "./facades/lazy/ContactFormFacade.js"
 import { DeviceEncryptionFacade } from "./facades/DeviceEncryptionFacade"
 import type { NativeInterface } from "../../native/common/NativeInterface"
 import { NativeFileApp } from "../../native/common/FileApp"
@@ -38,8 +38,8 @@ import { NoZoneDateProvider } from "../common/utils/NoZoneDateProvider.js"
 import { LateInitializedCacheStorageImpl } from "./rest/CacheStorageProxy"
 import { IServiceExecutor } from "../common/ServiceRequest"
 import { ServiceExecutor } from "./rest/ServiceExecutor"
-import { BookingFacade } from "./facades/BookingFacade"
-import { BlobFacade } from "./facades/BlobFacade"
+import type { BookingFacade } from "./facades/lazy/BookingFacade.js"
+import type { BlobFacade } from "./facades/lazy/BlobFacade.js"
 import { UserFacade } from "./facades/UserFacade"
 import { OfflineStorage } from "./offline/OfflineStorage.js"
 import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "./offline/OfflineStorageMigrator.js"
@@ -77,18 +77,18 @@ export type WorkerLocatorType = {
 	eventBusClient: EventBusClient
 	rsa: RsaImplementation
 	entropyFacade: EntropyFacade
+	blobAccessToken: BlobAccessTokenFacade
 
 	// login
 	user: UserFacade
 	login: LoginFacade
 
 	// domains
-	file: FileFacade
-	blobAccessToken: BlobAccessTokenFacade
-	blob: BlobFacade
-	mail: MailFacade
+	file: lazyAsync<FileFacade>
+	blob: lazyAsync<BlobFacade>
+	mail: lazyAsync<MailFacade>
 	calendar: lazyAsync<CalendarFacade>
-	counters: CounterFacade
+	counters: lazyAsync<CounterFacade>
 	Const: Record<string, any>
 
 	// search & indexing
@@ -106,7 +106,7 @@ export type WorkerLocatorType = {
 	share: lazyAsync<ShareFacade>
 
 	// misc & native
-	configFacade: ConfigurationDatabase
+	configFacade: lazyAsync<ConfigurationDatabase>
 	deviceEncryptionFacade: DeviceEncryptionFacade
 	native: NativeInterface
 	workerFacade: WorkerFacade
@@ -135,7 +135,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.native = worker
 	locator.booking = lazyMemoized(async () => {
-		const { BookingFacade } = await import("./facades/BookingFacade.js")
+		const { BookingFacade } = await import("./facades/lazy/BookingFacade.js")
 		return new BookingFacade(locator.serviceExecutor)
 	})
 
@@ -230,17 +230,20 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const suggestionFacades = [indexer._contact.suggestionFacade, indexer._groupInfo.suggestionFacade, indexer._whitelabelChildIndexer.suggestionFacade]
 		return new SearchFacade(locator.user, indexer.db, indexer._mail, suggestionFacades, browserData, locator.cachingEntityClient)
 	})
-	locator.counters = new CounterFacade(locator.serviceExecutor)
+	locator.counters = lazyMemoized(async () => {
+		const { CounterFacade } = await import("./facades/lazy/CounterFacade.js")
+		return new CounterFacade(locator.serviceExecutor)
+	})
 	locator.groupManagement = lazyMemoized(async () => {
-		const { GroupManagementFacade } = await import("./facades/GroupManagementFacade.js")
-		return new GroupManagementFacade(locator.user, locator.counters, locator.cachingEntityClient, locator.rsa, locator.serviceExecutor)
+		const { GroupManagementFacade } = await import("./facades/lazy/GroupManagementFacade.js")
+		return new GroupManagementFacade(locator.user, await locator.counters(), locator.cachingEntityClient, locator.rsa, locator.serviceExecutor)
 	})
 	locator.userManagement = lazyMemoized(async () => {
-		const { UserManagementFacade } = await import("./facades/UserManagementFacade.js")
+		const { UserManagementFacade } = await import("./facades/lazy/UserManagementFacade.js")
 		return new UserManagementFacade(
 			locator.user,
 			await locator.groupManagement(),
-			locator.counters,
+			await locator.counters(),
 			locator.rsa,
 			locator.cachingEntityClient,
 			locator.serviceExecutor,
@@ -248,12 +251,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		)
 	})
 	locator.customer = lazyMemoized(async () => {
-		const { CustomerFacade } = await import("./facades/CustomerFacade.js")
+		const { CustomerFacade } = await import("./facades/lazy/CustomerFacade.js")
 		return new CustomerFacade(
 			locator.user,
 			await locator.groupManagement(),
 			await locator.userManagement(),
-			locator.counters,
+			await locator.counters(),
 			locator.rsa,
 			locator.cachingEntityClient,
 			locator.serviceExecutor,
@@ -263,31 +266,48 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
-	locator.blob = new BlobFacade(
-		locator.user,
-		locator.serviceExecutor,
-		locator.restClient,
-		suspensionHandler,
-		fileApp,
-		aesApp,
-		locator.instanceMapper,
-		locator.crypto,
-		locator.blobAccessToken,
-	)
-	locator.file = new FileFacade(
-		locator.user,
-		locator.restClient,
-		suspensionHandler,
-		fileApp,
-		aesApp,
-		locator.instanceMapper,
-		locator.serviceExecutor,
-		locator.crypto,
-	)
-	locator.mail = new MailFacade(locator.user, locator.file, locator.cachingEntityClient, locator.crypto, locator.serviceExecutor, locator.blob, fileApp)
+	locator.blob = lazyMemoized(async () => {
+		const { BlobFacade } = await import("./facades/lazy/BlobFacade.js")
+		return new BlobFacade(
+			locator.user,
+			locator.serviceExecutor,
+			locator.restClient,
+			suspensionHandler,
+			fileApp,
+			aesApp,
+			locator.instanceMapper,
+			locator.crypto,
+			locator.blobAccessToken,
+		)
+	})
+	locator.file = lazyMemoized(async () => {
+		const { FileFacade } = await import("./facades/lazy/FileFacade.js")
+		return new FileFacade(
+			locator.user,
+			locator.restClient,
+			suspensionHandler,
+			fileApp,
+			aesApp,
+			locator.instanceMapper,
+			locator.serviceExecutor,
+			locator.crypto,
+		)
+	})
+	locator.mail = lazyMemoized(async () => {
+		const { MailFacade } = await import("./facades/lazy/MailFacade.js")
+		return new MailFacade(
+			locator.user,
+			await locator.file(),
+			locator.cachingEntityClient,
+			locator.crypto,
+			locator.serviceExecutor,
+			await locator.blob(),
+			fileApp,
+		)
+	})
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
 	locator.calendar = lazyMemoized(async () => {
-		const { CalendarFacade } = await import("./facades/CalendarFacade.js")
+		const { CalendarFacade } = await import("./facades/lazy/CalendarFacade.js")
 		return new CalendarFacade(
 			locator.user,
 			await locator.groupManagement(),
@@ -301,6 +321,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	})
 
 	locator.mailAddress = lazyMemoized(async () => {
+		const { MailAddressFacade } = await import("./facades/lazy/MailAddressFacade.js")
 		return new MailAddressFacade(
 			locator.user,
 			await locator.groupManagement(),
@@ -333,16 +354,19 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.login.init(locator.eventBusClient)
 	locator.Const = Const
 	locator.share = lazyMemoized(async () => {
-		const { ShareFacade } = await import("./facades/ShareFacade.js")
+		const { ShareFacade } = await import("./facades/lazy/ShareFacade.js")
 		return new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient)
 	})
 	locator.giftCards = lazyMemoized(async () => {
-		const { GiftCardFacade } = await import("./facades/GiftCardFacade.js")
+		const { GiftCardFacade } = await import("./facades/lazy/GiftCardFacade.js")
 		return new GiftCardFacade(locator.user, await locator.customer(), locator.serviceExecutor, locator.crypto)
 	})
-	locator.configFacade = new ConfigurationDatabase(locator.user)
+	locator.configFacade = lazyMemoized(async () => {
+		const { ConfigurationDatabase } = await import("./facades/lazy/ConfigurationDatabase.js")
+		return new ConfigurationDatabase(locator.user)
+	})
 	locator.contactFormFacade = lazyMemoized(async () => {
-		const { ContactFormFacade } = await import("./facades/ContactFormFacade.js")
+		const { ContactFormFacade } = await import("./facades/lazy/ContactFormFacade.js")
 		return new ContactFormFacade(locator.restClient, locator.instanceMapper)
 	})
 	locator.deviceEncryptionFacade = new DeviceEncryptionFacade()

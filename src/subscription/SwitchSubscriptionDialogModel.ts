@@ -14,7 +14,7 @@ import { assertNotNull, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import type { AccountingInfo, Booking, Customer, CustomerInfo, PlanPrices, PriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
 import { createPlanPrices } from "../api/entities/sys/TypeRefs.js"
 import { asPaymentInterval, getPriceFromPriceData, getPriceItem, isSubscriptionDowngrade, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
-import type { BookingFacade } from "../api/worker/facades/BookingFacade"
+import type { BookingFacade } from "../api/worker/facades/lazy/BookingFacade.js"
 import { SubscriptionConfig, SubscriptionPlanPrices, SubscriptionType } from "./FeatureListProvider"
 
 type PlanPriceCalc = {

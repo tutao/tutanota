@@ -15,7 +15,7 @@ import { AccountType, BookingItemFeatureType } from "../../../src/api/common/Tut
 import { SwitchSubscriptionDialogModel } from "../../../src/subscription/SwitchSubscriptionDialogModel.js"
 import { downcast, neverNull } from "@tutao/tutanota-utils"
 import { PriceAndConfigProvider } from "../../../src/subscription/PriceUtils.js"
-import { BookingFacade } from "../../../src/api/worker/facades/BookingFacade.js"
+import { BookingFacade } from "../../../src/api/worker/facades/lazy/BookingFacade.js"
 import { matchers, object, when } from "testdouble"
 import { SubscriptionConfig, SubscriptionType } from "../../../src/subscription/FeatureListProvider"
 import { createPriceMock } from "./PriceUtilsTest"
