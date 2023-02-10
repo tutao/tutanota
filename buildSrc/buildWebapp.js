@@ -201,7 +201,7 @@ function analyzer(projectDir) {
 						continue
 					}
 					const moduleName = module.startsWith(prefix) ? module.substring(prefix.length) : module
-					console.log("" + moduleName)
+					console.log("\t" + moduleName)
 				}
 			}
 
