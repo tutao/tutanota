@@ -170,7 +170,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			async shareFacade() {
-				return locator.share
+				return locator.share()
 			},
 
 			async counterFacade() {
@@ -186,7 +186,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			async bookingFacade() {
-				return locator.booking
+				return locator.booking()
 			},
 
 			async mailAddressFacade() {
@@ -210,7 +210,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			async contactFormFacade() {
-				return locator.contactFormFacade
+				return locator.contactFormFacade()
 			},
 
 			async deviceEncryptionFacade() {
