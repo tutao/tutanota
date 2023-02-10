@@ -22,7 +22,7 @@ import { ContactListTypeRef, ContactTypeRef, createContactList, MailTypeRef } fr
 import { OutOfSyncError } from "../../../../../src/api/common/error/OutOfSyncError.js"
 import { assertThrows, mock, spy } from "@tutao/tutanota-test-utils"
 import { browserDataStub } from "../../../TestUtils.js"
-import type { QueuedBatch } from "../../../../../src/api/worker/search/EventQueue.js"
+import type { QueuedBatch } from "../../../../../src/api/worker/EventQueue.js"
 import { EntityRestClient } from "../../../../../src/api/worker/rest/EntityRestClient.js"
 import { MembershipRemovedError } from "../../../../../src/api/common/error/MembershipRemovedError.js"
 import { GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"

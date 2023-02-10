@@ -1,6 +1,6 @@
 import o from "ospec"
-import type { QueuedBatch } from "../../../../../src/api/worker/search/EventQueue.js"
-import { EventQueue } from "../../../../../src/api/worker/search/EventQueue.js"
+import type { QueuedBatch } from "../../../../../src/api/worker/EventQueue.js"
+import { EventQueue } from "../../../../../src/api/worker/EventQueue.js"
 import type { EntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { createEntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { OperationType } from "../../../../../src/api/common/TutanotaConstants.js"

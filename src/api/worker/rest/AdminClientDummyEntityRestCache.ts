@@ -1,4 +1,4 @@
-import { QueuedBatch } from "../search/EventQueue"
+import { QueuedBatch } from "../EventQueue.js"
 import { EntityUpdate } from "../../entities/sys/TypeRefs.js"
 import { ListElementEntity, SomeEntity } from "../../common/EntityTypes"
 import { ProgrammingError } from "../../common/error/ProgrammingError"

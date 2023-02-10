@@ -27,7 +27,7 @@ import { ContactTypeRef, createContact, MailTypeRef } from "../../../../../src/a
 import { DbTransaction } from "../../../../../src/api/worker/search/DbFacade.js"
 import { appendBinaryBlocks } from "../../../../../src/api/worker/search/SearchIndexEncoding.js"
 import { createEntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { EventQueue } from "../../../../../src/api/worker/search/EventQueue.js"
+import { EventQueue } from "../../../../../src/api/worker/EventQueue.js"
 import { CancelledError } from "../../../../../src/api/common/error/CancelledError.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import { IndexerCore } from "../../../../../src/api/worker/search/IndexerCore.js"

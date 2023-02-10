@@ -26,7 +26,7 @@ import {
 import { mock, spy } from "@tutao/tutanota-test-utils"
 import { browserDataStub, makeCore } from "../../../TestUtils.js"
 import { downcast, getDayShifted, getStartOfDay, neverNull } from "@tutao/tutanota-utils"
-import { EventQueue } from "../../../../../src/api/worker/search/EventQueue.js"
+import { EventQueue } from "../../../../../src/api/worker/EventQueue.js"
 import { createSearchIndexDbStub } from "./DbStub.js"
 import { getElementId, getListId, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"

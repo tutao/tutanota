@@ -46,8 +46,8 @@ import type {
 	SearchIndexMetadataEntry,
 	SearchIndexMetaDataRow,
 } from "./SearchTypes"
-import type { QueuedBatch } from "./EventQueue"
-import { EventQueue } from "./EventQueue"
+import type { QueuedBatch } from "../EventQueue.js"
+import { EventQueue } from "../EventQueue.js"
 import { CancelledError } from "../../common/error/CancelledError"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import type { BrowserData } from "../../../misc/ClientConstants"

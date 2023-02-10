@@ -26,7 +26,7 @@ import {
 	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { EntityRestClient, typeRefToPath } from "../../../../../src/api/worker/rest/EntityRestClient.js"
-import { QueuedBatch } from "../../../../../src/api/worker/search/EventQueue.js"
+import { QueuedBatch } from "../../../../../src/api/worker/EventQueue.js"
 import { CacheStorage, DefaultEntityRestCache, expandId, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import {
 	CalendarEventTypeRef,
