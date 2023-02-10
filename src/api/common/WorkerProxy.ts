@@ -31,13 +31,46 @@ export function exposeRemote<T>(requestSender: RequestSender<"facade">): T {
  * Attention! Make sure that the *only* fields on T are facades. Every facade method must return promise or Bad Things will happen.
  * You should specify T explicitly to avoid mistakes.
  */
-export function exposeLocal<T, IncomingRequestType>(impls: T): (message: Request<IncomingRequestType>) => Promise<any> {
+export function exposeLocal<T extends object, IncomingRequestType>(impls: T): (message: Request<IncomingRequestType>) => Promise<any> {
 	return (message: Request<IncomingRequestType>) => {
 		const [facade, fn, args] = message.args
 		const impl = downcast(impls)[facade]
 
 		if (impl == null) {
 			throw new ProgrammingError(`Facade is not exposed: ${facade}.${fn} (exposeLocal)`)
+		}
+
+		return downcast(impl)[fn](...args)
+	}
+}
+
+export type FacadeImpls = {
+	[facade: string]: any
+}
+
+export type DelayedImpls<IMPLS extends FacadeImpls> = {
+	[Property in keyof IMPLS]: () => Promise<IMPLS[Property]>
+}
+
+/**
+ * Generate a handler which will delegate to {@param impls}.
+ * Attention! Make sure that the *only* fields on T are functions that resolve to facades. Every facade method must return promise or Bad Things will happen.
+ * You should specify T explicitly to avoid mistakes.
+ */
+export function exposeLocalDelayed<T extends DelayedImpls<FacadeImpls>, IncomingRequestType>(
+	impls: T,
+): (message: Request<IncomingRequestType>) => Promise<any> {
+	return async (message: Request<IncomingRequestType>) => {
+		const [facade, fn, args] = message.args
+		const init = downcast(impls)[facade]
+
+		if (init == null) {
+			throw new ProgrammingError(`Facade is not exposed: ${facade}.${fn} (exposeLocal)`)
+		}
+
+		const impl = await init()
+		if (impl == null) {
+			throw new ProgrammingError(`Facade is not lazy: ${facade}.${fn} (exposeLocalDelayed)`)
 		}
 
 		return downcast(impl)[fn](...args)

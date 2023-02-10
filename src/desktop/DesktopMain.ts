@@ -49,7 +49,7 @@ import { DesktopDesktopSystemFacade } from "./DesktopDesktopSystemFacade.js"
 import { DesktopExportFacade } from "./DesktopExportFacade.js"
 import { DesktopFileFacade } from "./DesktopFileFacade.js"
 import { DesktopSearchTextInAppFacade } from "./DesktopSearchTextInAppFacade.js"
-import { exposeLocal } from "../api/common/WorkerProxy.js"
+import { DelayedImpls, exposeLocalDelayed } from "../api/common/WorkerProxy.js"
 import { ExposedNativeInterface } from "../native/common/NativeInterface.js"
 import { DesktopWebauthnFacade } from "./2fa/DesktopWebauthnFacade.js"
 import { DesktopPostLoginActions } from "./DesktopPostLoginActions.js"
@@ -57,6 +57,7 @@ import { DesktopInterWindowEventFacade } from "./ipc/DesktopInterWindowEventFaca
 import { OfflineDbFactory, OfflineDbManager, PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
 import { SqlCipherFacade } from "../native/common/generatedipc/SqlCipherFacade.js"
 import { DesktopSqlCipher } from "./DesktopSqlCipher.js"
+import { lazyMemoized } from "@tutao/tutanota-utils"
 
 /**
  * Should be injected during build time.
@@ -224,8 +225,8 @@ async function createComponents(): Promise<Components> {
 	}
 
 	const facadeHandlerFactory = (window: ApplicationWindow): FacadeHandler => {
-		return exposeLocal<ExposedNativeInterface, "facade">({
-			postLoginActions: new DesktopPostLoginActions(wm, err, notifier, window.id),
+		return exposeLocalDelayed<DelayedImpls<ExposedNativeInterface>, "facade">({
+			postLoginActions: lazyMemoized(async () => new DesktopPostLoginActions(wm, err, notifier, window.id)),
 		})
 	}
 

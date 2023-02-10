@@ -9,7 +9,7 @@ import { defer, downcast } from "@tutao/tutanota-utils"
 import { objToError } from "../common/utils/Utils"
 import { handleUncaughtError } from "../../misc/ErrorHandler"
 import type { MainInterface, WorkerInterface } from "../worker/WorkerImpl"
-import { exposeLocal, exposeRemote } from "../common/WorkerProxy"
+import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../common/WorkerProxy"
 import type { RestClient } from "../worker/rest/RestClient"
 import { EntropyDataChunk } from "../worker/facades/EntropyFacade.js"
 
@@ -85,23 +85,23 @@ export class WorkerClient {
 				handleUncaughtError(objToError(message.args[0]))
 				return Promise.resolve()
 			},
-			facade: exposeLocal<MainInterface, MainRequestType>({
-				get loginListener() {
+			facade: exposeLocalDelayed<DelayedImpls<MainInterface>, MainRequestType>({
+				async loginListener() {
 					return locator.loginListener
 				},
-				get wsConnectivityListener() {
+				async wsConnectivityListener() {
 					return locator.connectivityModel
 				},
-				get progressTracker() {
+				async progressTracker() {
 					return locator.progressTracker
 				},
-				get eventController() {
+				async eventController() {
 					return locator.eventController
 				},
-				get operationProgressTracker() {
+				async operationProgressTracker() {
 					return locator.operationProgressTracker
 				},
-				get infoMessageHandler() {
+				async infoMessageHandler() {
 					return locator.infoMessageHandler
 				},
 			}),
