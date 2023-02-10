@@ -146,15 +146,15 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			async customerFacade() {
-				return locator.customer
+				return locator.customer()
 			},
 
 			async giftCardFacade() {
-				return locator.giftCards
+				return locator.giftCards()
 			},
 
 			async groupManagementFacade() {
-				return locator.groupManagement
+				return locator.groupManagement()
 			},
 
 			async configFacade() {
@@ -162,7 +162,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			async calendarFacade() {
-				return locator.calendar
+				return locator.calendar()
 			},
 
 			async mailFacade() {
@@ -190,7 +190,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			async mailAddressFacade() {
-				return locator.mailAddress
+				return locator.mailAddress()
 			},
 
 			async fileFacade() {
@@ -206,7 +206,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			async userManagementFacade() {
-				return locator.userManagement
+				return locator.userManagement()
 			},
 
 			async contactFormFacade() {

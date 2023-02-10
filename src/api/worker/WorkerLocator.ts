@@ -73,15 +73,11 @@ export type WorkerLocatorType = {
 	search: lazyAsync<SearchFacade>
 	cache: EntityRestInterface
 	cachingEntityClient: EntityClient
-	groupManagement: GroupManagementFacade
-	userManagement: UserManagementFacade
-	customer: CustomerFacade
 	file: FileFacade
 	blobAccessToken: BlobAccessTokenFacade
 	blob: BlobFacade
 	mail: MailFacade
-	calendar: CalendarFacade
-	mailAddress: MailAddressFacade
+	calendar: lazyAsync<CalendarFacade>
 	counters: CounterFacade
 	eventBusClient: EventBusClient
 	_indexedDbSupported: boolean
@@ -89,7 +85,11 @@ export type WorkerLocatorType = {
 	Const: Record<string, any>
 	share: ShareFacade
 	restClient: RestClient
-	giftCards: GiftCardFacade
+	groupManagement: lazyAsync<GroupManagementFacade>
+	userManagement: lazyAsync<UserManagementFacade>
+	customer: lazyAsync<CustomerFacade>
+	giftCards: lazyAsync<GiftCardFacade>
+	mailAddress: lazyAsync<MailAddressFacade>
 	configFacade: ConfigurationDatabase
 	contactFormFacade: ContactFormFacade
 	deviceEncryptionFacade: DeviceEncryptionFacade
@@ -219,28 +219,37 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new SearchFacade(locator.user, indexer.db, indexer._mail, suggestionFacades, browserData, locator.cachingEntityClient)
 	})
 	locator.counters = new CounterFacade(locator.serviceExecutor)
-	locator.groupManagement = new GroupManagementFacade(locator.user, locator.counters, locator.cachingEntityClient, locator.rsa, locator.serviceExecutor)
-	locator.userManagement = new UserManagementFacade(
-		locator.user,
-		locator.groupManagement,
-		locator.counters,
-		locator.rsa,
-		locator.cachingEntityClient,
-		locator.serviceExecutor,
-		mainInterface.operationProgressTracker,
-	)
-	locator.customer = new CustomerFacade(
-		locator.user,
-		locator.groupManagement,
-		locator.userManagement,
-		locator.counters,
-		locator.rsa,
-		locator.cachingEntityClient,
-		locator.serviceExecutor,
-		locator.booking,
-		locator.crypto,
-		mainInterface.operationProgressTracker,
-	)
+	locator.groupManagement = lazyMemoized(async () => {
+		const { GroupManagementFacade } = await import("./facades/GroupManagementFacade.js")
+		return new GroupManagementFacade(locator.user, locator.counters, locator.cachingEntityClient, locator.rsa, locator.serviceExecutor)
+	})
+	locator.userManagement = lazyMemoized(async () => {
+		const { UserManagementFacade } = await import("./facades/UserManagementFacade.js")
+		return new UserManagementFacade(
+			locator.user,
+			await locator.groupManagement(),
+			locator.counters,
+			locator.rsa,
+			locator.cachingEntityClient,
+			locator.serviceExecutor,
+			mainInterface.operationProgressTracker,
+		)
+	})
+	locator.customer = lazyMemoized(async () => {
+		const { CustomerFacade } = await import("./facades/CustomerFacade.js")
+		return new CustomerFacade(
+			locator.user,
+			await locator.groupManagement(),
+			await locator.userManagement(),
+			locator.counters,
+			locator.rsa,
+			locator.cachingEntityClient,
+			locator.serviceExecutor,
+			locator.booking,
+			locator.crypto,
+			mainInterface.operationProgressTracker,
+		)
+	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
 	locator.blob = new BlobFacade(
 		locator.user,
@@ -265,11 +274,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	)
 	locator.mail = new MailFacade(locator.user, locator.file, locator.cachingEntityClient, locator.crypto, locator.serviceExecutor, locator.blob, fileApp)
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
-	// not needed for admin client
-	if (!isAdminClient()) {
-		locator.calendar = new CalendarFacade(
+	locator.calendar = lazyMemoized(async () => {
+		const { CalendarFacade } = await import("./facades/CalendarFacade.js")
+		return new CalendarFacade(
 			locator.user,
-			locator.groupManagement,
+			await locator.groupManagement(),
 			assertNotNull(cache),
 			nativePushFacade,
 			mainInterface.operationProgressTracker,
@@ -277,14 +286,16 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.serviceExecutor,
 			locator.crypto,
 		)
-	}
-	locator.mailAddress = new MailAddressFacade(
-		locator.user,
-		locator.groupManagement,
-		locator.serviceExecutor,
-		new EntityClient(entityRestClient), // without cache
-	)
+	})
 
+	locator.mailAddress = lazyMemoized(async () => {
+		return new MailAddressFacade(
+			locator.user,
+			await locator.groupManagement(),
+			locator.serviceExecutor,
+			new EntityClient(entityRestClient), // without cache
+		)
+	})
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
 
 	const eventBusCoordinator = new EventBusEventCoordinator(
@@ -310,7 +321,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.login.init(locator.eventBusClient)
 	locator.Const = Const
 	locator.share = new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient)
-	locator.giftCards = new GiftCardFacade(locator.user, locator.customer, locator.serviceExecutor, locator.crypto)
+	locator.giftCards = lazyMemoized(async () => {
+		const { GiftCardFacade } = await import("./facades/GiftCardFacade.js")
+		return new GiftCardFacade(locator.user, await locator.customer(), locator.serviceExecutor, locator.crypto)
+	})
 	locator.configFacade = new ConfigurationDatabase(locator.user)
 	locator.contactFormFacade = new ContactFormFacade(locator.restClient, locator.instanceMapper)
 	locator.deviceEncryptionFacade = new DeviceEncryptionFacade()
