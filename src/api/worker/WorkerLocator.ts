@@ -66,42 +66,53 @@ import { SessionType } from "../common/SessionType.js"
 assertWorkerOrNode()
 
 export type WorkerLocatorType = {
+	// network & encryption
+	restClient: RestClient
 	serviceExecutor: IServiceExecutor
-	login: LoginFacade
-	user: UserFacade
-	indexer: lazyAsync<Indexer>
-	search: lazyAsync<SearchFacade>
+	crypto: CryptoFacade
+	instanceMapper: InstanceMapper
+	cacheStorage: CacheStorage
 	cache: EntityRestInterface
 	cachingEntityClient: EntityClient
+	eventBusClient: EventBusClient
+	rsa: RsaImplementation
+	entropyFacade: EntropyFacade
+
+	// login
+	user: UserFacade
+	login: LoginFacade
+
+	// domains
 	file: FileFacade
 	blobAccessToken: BlobAccessTokenFacade
 	blob: BlobFacade
 	mail: MailFacade
 	calendar: lazyAsync<CalendarFacade>
 	counters: CounterFacade
-	eventBusClient: EventBusClient
-	_indexedDbSupported: boolean
-	_browserData: BrowserData
 	Const: Record<string, any>
-	share: ShareFacade
-	restClient: RestClient
+
+	// search & indexing
+	indexer: lazyAsync<Indexer>
+	search: lazyAsync<SearchFacade>
+
+	// management facades
 	groupManagement: lazyAsync<GroupManagementFacade>
 	userManagement: lazyAsync<UserManagementFacade>
 	customer: lazyAsync<CustomerFacade>
 	giftCards: lazyAsync<GiftCardFacade>
 	mailAddress: lazyAsync<MailAddressFacade>
+	contactFormFacade: lazyAsync<ContactFormFacade>
+	booking: lazyAsync<BookingFacade>
+	share: lazyAsync<ShareFacade>
+
+	// misc & native
 	configFacade: ConfigurationDatabase
-	contactFormFacade: ContactFormFacade
 	deviceEncryptionFacade: DeviceEncryptionFacade
 	native: NativeInterface
-	rsa: RsaImplementation
-	ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue
-	crypto: CryptoFacade
-	instanceMapper: InstanceMapper
-	booking: BookingFacade
-	cacheStorage: CacheStorage
-	entropyFacade: EntropyFacade
 	workerFacade: WorkerFacade
+
+	// used to cache between resets
+	_browserData: BrowserData
 }
 export const locator: WorkerLocatorType = {} as any
 
@@ -123,7 +134,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator._browserData = browserData
 
 	locator.native = worker
-	locator.booking = new BookingFacade(locator.serviceExecutor)
+	locator.booking = lazyMemoized(async () => {
+		const { BookingFacade } = await import("./facades/BookingFacade.js")
+		return new BookingFacade(locator.serviceExecutor)
+	})
 
 	const offlineStorageProvider = async () => {
 		if (isOfflineStorageAvailable() && !isAdminClient()) {
@@ -158,8 +172,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new Indexer(entityRestClient, mainInterface.infoMessageHandler, browserData, locator.cache as DefaultEntityRestCache)
 	})
 
-	locator.ownerEncSessionKeysUpdateQueue = new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor)
-
 	locator.crypto = new CryptoFacade(
 		locator.user,
 		locator.cachingEntityClient,
@@ -167,7 +179,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.rsa,
 		locator.serviceExecutor,
 		locator.instanceMapper,
-		locator.ownerEncSessionKeysUpdateQueue,
+		new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor),
 	)
 
 	const loginListener: LoginListener = {
@@ -245,7 +257,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.rsa,
 			locator.cachingEntityClient,
 			locator.serviceExecutor,
-			locator.booking,
+			await locator.booking(),
 			locator.crypto,
 			mainInterface.operationProgressTracker,
 		)
@@ -320,13 +332,19 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	)
 	locator.login.init(locator.eventBusClient)
 	locator.Const = Const
-	locator.share = new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient)
+	locator.share = lazyMemoized(async () => {
+		const { ShareFacade } = await import("./facades/ShareFacade.js")
+		return new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient)
+	})
 	locator.giftCards = lazyMemoized(async () => {
 		const { GiftCardFacade } = await import("./facades/GiftCardFacade.js")
 		return new GiftCardFacade(locator.user, await locator.customer(), locator.serviceExecutor, locator.crypto)
 	})
 	locator.configFacade = new ConfigurationDatabase(locator.user)
-	locator.contactFormFacade = new ContactFormFacade(locator.restClient, locator.instanceMapper)
+	locator.contactFormFacade = lazyMemoized(async () => {
+		const { ContactFormFacade } = await import("./facades/ContactFormFacade.js")
+		return new ContactFormFacade(locator.restClient, locator.instanceMapper)
+	})
 	locator.deviceEncryptionFacade = new DeviceEncryptionFacade()
 }
 
