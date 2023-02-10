@@ -56,7 +56,7 @@ import { BlobFacade } from "../worker/facades/BlobFacade"
 import { CryptoFacade } from "../worker/crypto/CryptoFacade"
 import { RecipientsModel } from "./RecipientsModel"
 import { ExposedCacheStorage } from "../worker/rest/DefaultEntityRestCache.js"
-import { LoginListener } from "./LoginListener"
+import { PageContextLoginListener } from "./PageContextLoginListener.js"
 import { SearchTextInAppFacade } from "../../native/common/generatedipc/SearchTextInAppFacade.js"
 import { SettingsFacade } from "../../native/common/generatedipc/SettingsFacade.js"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
@@ -138,7 +138,7 @@ class MainLocator {
 	interWindowEventSender!: InterWindowEventFacadeSendDispatcher
 	cacheStorage!: ExposedCacheStorage
 	workerFacade!: WorkerFacade
-	loginListener!: LoginListener
+	loginListener!: PageContextLoginListener
 	random!: WorkerRandomizer
 	sqlCipherFacade!: SqlCipherFacade
 	connectivityModel!: WebsocketConnectivityModel
@@ -497,7 +497,7 @@ class MainLocator {
 			this.webAuthn = new WebauthnClient(new BrowserWebauthn(navigator.credentials, window.location.hostname), getWebRoot())
 		}
 		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webAuthn, this.loginFacade)
-		this.loginListener = new LoginListener(this.secondFactorHandler)
+		this.loginListener = new PageContextLoginListener(this.secondFactorHandler)
 		this.credentialsProvider = await createCredentialsProvider(
 			deviceEncryptionFacade,
 			this.nativeInterfaces?.native ?? null,

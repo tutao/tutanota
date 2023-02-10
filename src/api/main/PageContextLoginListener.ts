@@ -1,6 +1,7 @@
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
 import { defer, DeferredObject } from "@tutao/tutanota-utils"
 import { Challenge } from "../entities/sys/TypeRefs.js"
+import { LoginListener } from "../worker/facades/LoginFacade.js"
 
 export const enum LoginFailReason {
 	SessionExpired,
@@ -8,7 +9,7 @@ export const enum LoginFailReason {
 }
 
 /** Listener for the login events from the worker side. */
-export class LoginListener {
+export class PageContextLoginListener implements LoginListener {
 	private loginPromise: DeferredObject<void> = defer()
 	private fullLoginFailed: boolean = false
 

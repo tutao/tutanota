@@ -2,7 +2,7 @@ import { PROGRESS_DONE } from "./ProgressBar.js"
 import Stream from "mithril/stream"
 import { WsConnectionState } from "../../api/main/WorkerClient.js"
 import { ExposedCacheStorage } from "../../api/worker/rest/DefaultEntityRestCache.js"
-import { LoginListener } from "../../api/main/LoginListener.js"
+import { PageContextLoginListener } from "../../api/main/PageContextLoginListener.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { OfflineIndicatorAttrs, OfflineIndicatorState } from "./OfflineIndicator.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
@@ -35,7 +35,7 @@ export class OfflineIndicatorViewModel {
 
 	constructor(
 		private readonly cacheStorage: ExposedCacheStorage,
-		private readonly loginListener: LoginListener,
+		private readonly loginListener: PageContextLoginListener,
 		private readonly connectivityModel: WebsocketConnectivityModel,
 		private readonly logins: LoginController,
 		progressTracker: ProgressTracker,

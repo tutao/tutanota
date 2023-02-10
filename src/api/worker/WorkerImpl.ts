@@ -10,7 +10,7 @@ import type { ContactFormFacade } from "./facades/ContactFormFacade"
 import type { BrowserData } from "../../misc/ClientConstants"
 import { CryptoFacade } from "./crypto/CryptoFacade"
 import type { GiftCardFacade } from "./facades/GiftCardFacade"
-import type { LoginFacade } from "./facades/LoginFacade"
+import type { LoginFacade, LoginListener } from "./facades/LoginFacade"
 import type { CustomerFacade } from "./facades/CustomerFacade"
 import type { GroupManagementFacade } from "./facades/GroupManagementFacade"
 import { ConfigurationDatabase } from "./facades/ConfigurationDatabase"
@@ -32,7 +32,6 @@ import { RestClient } from "./rest/RestClient"
 import { IServiceExecutor } from "../common/ServiceRequest.js"
 import { BlobFacade } from "./facades/BlobFacade"
 import { ExposedCacheStorage } from "./rest/DefaultEntityRestCache.js"
-import { LoginListener } from "../main/LoginListener"
 import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
 import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel.js"
 import { EventBusClient } from "./EventBusClient.js"
@@ -183,7 +182,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			async searchFacade() {
-				return locator.search
+				return locator.search()
 			},
 
 			async bookingFacade() {
