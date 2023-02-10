@@ -49,7 +49,7 @@ import { NativePushFacadeSendDispatcher } from "../../native/common/generatedipc
 import { NativeCryptoFacadeSendDispatcher } from "../../native/common/generatedipc/NativeCryptoFacadeSendDispatcher"
 import { random } from "@tutao/tutanota-crypto"
 import { ExportFacadeSendDispatcher } from "../../native/common/generatedipc/ExportFacadeSendDispatcher.js"
-import { assertNotNull, delay, lazyMemoized, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, lazyAsync, lazyMemoized, ofClass } from "@tutao/tutanota-utils"
 import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacadeSendDispatcher } from "../../native/common/generatedipc/SqlCipherFacadeSendDispatcher.js"
 import { EntropyFacade } from "./facades/EntropyFacade.js"
@@ -69,10 +69,10 @@ export type WorkerLocatorType = {
 	serviceExecutor: IServiceExecutor
 	login: LoginFacade
 	user: UserFacade
-	indexer: () => Promise<Indexer>
+	indexer: lazyAsync<Indexer>
+	search: lazyAsync<SearchFacade>
 	cache: EntityRestInterface
 	cachingEntityClient: EntityClient
-	search: () => Promise<SearchFacade>
 	groupManagement: GroupManagementFacade
 	userManagement: UserManagementFacade
 	customer: CustomerFacade

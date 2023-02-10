@@ -1,7 +1,7 @@
 import type { BrowserData } from "../../src/misc/ClientConstants.js"
 import type { Db } from "../../src/api/worker/search/SearchTypes.js"
 import { IndexerCore } from "../../src/api/worker/search/IndexerCore.js"
-import { EventQueue } from "../../src/api/worker/search/EventQueue.js"
+import { EventQueue } from "../../src/api/worker/EventQueue.js"
 import { DbFacade, DbTransaction } from "../../src/api/worker/search/DbFacade.js"
 import { Thunk } from "@tutao/tutanota-utils"
 import type { DesktopKeyStoreFacade } from "../../src/desktop/KeyStoreFacadeImpl.js"

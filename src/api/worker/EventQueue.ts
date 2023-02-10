@@ -1,13 +1,13 @@
-import { OperationType } from "../../common/TutanotaConstants"
-import { containsEventOfType, getEventOfType } from "../../common/utils/Utils"
+import { OperationType } from "../common/TutanotaConstants.js"
+import { containsEventOfType, getEventOfType } from "../common/utils/Utils.js"
 import { assertNotNull, findAllAndRemove, isSameTypeRefByAttr, remove } from "@tutao/tutanota-utils"
-import { ConnectionError, ServiceUnavailableError } from "../../common/error/RestError"
-import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
-import { ProgrammingError } from "../../common/error/ProgrammingError"
-import { MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
-import { isSameId } from "../../common/utils/EntityUtils"
-import { CustomerInfoTypeRef } from "../../entities/sys/TypeRefs.js"
-import { EntityUpdateData } from "../../main/EventController"
+import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
+import type { EntityUpdate } from "../entities/sys/TypeRefs.js"
+import { ProgrammingError } from "../common/error/ProgrammingError.js"
+import { MailTypeRef } from "../entities/tutanota/TypeRefs.js"
+import { isSameId } from "../common/utils/EntityUtils.js"
+import { CustomerInfoTypeRef } from "../entities/sys/TypeRefs.js"
+import { EntityUpdateData } from "../main/EventController.js"
 
 export type QueuedBatch = {
 	events: EntityUpdate[]
