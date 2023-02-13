@@ -550,13 +550,7 @@ class MainLocator {
 					return new UsageOptInNews(this.newsModel, this.usageTestModel)
 				case "recoveryCode":
 					const { RecoveryCodeNews } = await import("../../misc/news/items/RecoveryCodeNews.js")
-					return new RecoveryCodeNews(
-						this.newsModel,
-						logins.getUserController(),
-						this.usageTestModel,
-						this.usageTestController,
-						this.userManagementFacade,
-					)
+					return new RecoveryCodeNews(this.newsModel, logins.getUserController(), this.userManagementFacade)
 				case "pinBiometrics":
 					const { PinBiometricsNews } = await import("../../misc/news/items/PinBiometricsNews.js")
 					return new PinBiometricsNews(this.newsModel, this.credentialsProvider, logins.getUserController().userId)
