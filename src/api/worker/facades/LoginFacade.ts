@@ -426,7 +426,8 @@ export class LoginFacade {
 					// if account is free do not start offline login/async login workflow.
 					// await before return to catch errors here instead of up the stack
 					return await this.finishResumeSession(credentials, externalUserSalt, cacheInfo).catch(
-						ofClass(ConnectionError, (e) => {
+						ofClass(ConnectionError, async () => {
+							await this.resetSession()
 							return { type: "error", reason: ResumeSessionErrorReason.OfflineNotAvailableForFree }
 						}),
 					)
