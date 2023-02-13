@@ -127,7 +127,9 @@ export type InitCacheOptions = {
 	forceNewDatabase: boolean
 }
 
-type ResumeSessionResult = { type: "success"; data: ResumeSessionResultData } | { type: "error"; reason: ResumeSessionErrorReason }
+type ResumeSessionSuccess = { type: "success"; data: ResumeSessionResultData }
+type ResumeSessionFailure = { type: "error"; reason: ResumeSessionErrorReason }
+type ResumeSessionResult = ResumeSessionSuccess | ResumeSessionFailure
 
 type AsyncLoginState = { state: "idle" } | { state: "running" } | { state: "failed"; credentials: Credentials; cacheInfo: CacheInfo }
 
@@ -399,6 +401,7 @@ export class LoginFacade {
 			throw new ProgrammingError(`Trying to resume the session for user ${credentials.userId} while the asyncLoginState is ${this.asyncLoginState.state}`)
 		}
 		this.userFacade.setAccessToken(credentials.accessToken)
+		// important: any exit point from here on should deinit the cache if the login hasn't succeeded
 		const cacheInfo = await this.initCache({
 			userId: credentials.userId,
 			databaseKey,
@@ -424,7 +427,7 @@ export class LoginFacade {
 				const user = await this.entityClient.load(UserTypeRef, credentials.userId)
 				if (user.accountType !== AccountType.PREMIUM) {
 					// if account is free do not start offline login/async login workflow.
-					// await before return to catch errors here instead of up the stack
+					// await before return to catch errors here
 					return await this.finishResumeSession(credentials, externalUserSalt, cacheInfo).catch(
 						ofClass(ConnectionError, async () => {
 							await this.resetSession()
@@ -445,9 +448,10 @@ export class LoginFacade {
 				} catch (e) {
 					console.log("Could not do start login, groupInfo is not cached, falling back to sync login")
 					if (e instanceof LoginIncompleteError) {
-						// await before return to catch errors here instead of up the stack
+						// await before return to catch the errors here
 						return await this.finishResumeSession(credentials, externalUserSalt, cacheInfo)
 					} else {
+						// noinspection ExceptionCaughtLocallyJS: we want to make sure we go throw the same exit point
 						throw e
 					}
 				}
@@ -461,7 +465,7 @@ export class LoginFacade {
 				}
 				return { type: "success", data }
 			} else {
-				// await before return to catch errors here instead of up the stack
+				// await before return to catch errors here
 				return await this.finishResumeSession(credentials, externalUserSalt, cacheInfo)
 			}
 		} catch (e) {
@@ -498,7 +502,7 @@ export class LoginFacade {
 		}
 	}
 
-	private async finishResumeSession(credentials: Credentials, externalUserSalt: Uint8Array | null, cacheInfo: CacheInfo): Promise<ResumeSessionResult> {
+	private async finishResumeSession(credentials: Credentials, externalUserSalt: Uint8Array | null, cacheInfo: CacheInfo): Promise<ResumeSessionSuccess> {
 		const sessionId = this.getSessionId(credentials)
 		const sessionData = await this.loadSessionData(credentials.accessToken)
 		const passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, base64ToUint8Array(neverNull(credentials.encryptedPassword))))
