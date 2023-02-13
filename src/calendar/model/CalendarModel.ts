@@ -5,11 +5,14 @@ import type { EntityUpdateData } from "../../api/main/EventController"
 import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
 import type { AlarmInfo, Group, GroupInfo, User, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
 import { createMembershipRemoveData, GroupInfoTypeRef, GroupMembership, GroupTypeRef, UserAlarmInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import type { CalendarEvent, CalendarEventUpdate, CalendarGroupRoot, CalendarRepeatRule } from "../../api/entities/tutanota/TypeRefs.js"
 import {
+	CalendarEvent,
 	CalendarEventTypeRef,
+	CalendarEventUpdate,
 	CalendarEventUpdateTypeRef,
+	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
+	CalendarRepeatRule,
 	createGroupSettings,
 	FileTypeRef,
 } from "../../api/entities/tutanota/TypeRefs.js"

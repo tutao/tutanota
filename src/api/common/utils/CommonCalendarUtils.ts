@@ -1,5 +1,6 @@
 import { DAY_IN_MILLIS } from "@tutao/tutanota-utils"
 import type { CalendarEvent } from "../../entities/tutanota/TypeRefs.js"
+import { EncryptedMailAddress } from "../../entities/tutanota/TypeRefs.js"
 import { stringToCustomId } from "./EntityUtils"
 
 /**
@@ -87,4 +88,12 @@ export function geEventElementMaxId(timestamp: number): string {
  */
 export function getEventElementMinId(timestamp: number): string {
 	return createEventElementId(timestamp, -DAYS_SHIFTED_MS)
+}
+
+/**
+ * get the first attendee from the list of attendees/guests that corresponds to one of the given recipient addresses, if there is one
+ */
+export function findAttendeeInAddresses<T extends { address: EncryptedMailAddress }>(attendees: ReadonlyArray<T>, addresses: ReadonlyArray<string>): T | null {
+	const lowerCaseAddresses = addresses.map((r) => r.toLowerCase())
+	return attendees.find((a) => lowerCaseAddresses.includes(a.address.address.toLowerCase())) ?? null
 }

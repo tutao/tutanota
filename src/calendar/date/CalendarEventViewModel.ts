@@ -16,7 +16,7 @@ import { createAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
 import type { MailboxDetail } from "../../mail/model/MailModel"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { copyMailAddress, getDefaultSenderFromUser, getEnabledMailAddressesWithUser, getSenderNameForUser, RecipientField } from "../../mail/model/MailUtils"
+import { copyMailAddress, getDefaultSenderFromUser, getEnabledMailAddressesWithUser, RecipientField } from "../../mail/model/MailUtils"
 import {
 	CalendarEventValidity,
 	checkEventValidity,
@@ -30,7 +30,6 @@ import {
 	getRepeatEndTime,
 	getStartOfDayWithZone,
 	getStartOfNextDayWithZone,
-	getTimeZone,
 	incrementByRepeatPeriod,
 	incrementSequence,
 	prepareCalendarDescription,
@@ -48,18 +47,15 @@ import {
 	noOp,
 	ofClass,
 } from "@tutao/tutanota-utils"
-import { generateEventElementId, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
+import { findAttendeeInAddresses, generateEventElementId, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import type { CalendarInfo } from "../model/CalendarModel"
 import { CalendarModel } from "../model/CalendarModel"
 import { DateTime } from "luxon"
 import { NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "../../api/common/error/RestError"
 import type { CalendarUpdateDistributor } from "./CalendarUpdateDistributor"
-import { calendarUpdateDistributor } from "./CalendarUpdateDistributor"
 import type { UserController } from "../../api/main/UserController"
 import type { SendMailModel } from "../../mail/editor/SendMailModel"
 import { UserError } from "../../api/main/UserError"
-import { logins } from "../../api/main/LoginController"
-import { locator } from "../../api/main/MainLocator"
 import { EntityClient } from "../../api/common/EntityClient"
 import { BusinessFeatureRequiredError } from "../../api/main/BusinessFeatureRequiredError"
 import { hasCapabilityOnGroup } from "../../sharing/GroupUtils"
@@ -479,7 +475,7 @@ export class CalendarEventViewModel {
 	}
 
 	findOwnAttendee(): Guest | null {
-		return this.attendees().find((a) => this._ownMailAddresses.includes(a.address.address)) ?? null
+		return findAttendeeInAddresses(this.attendees(), this._ownMailAddresses)
 	}
 
 	setStartTime(value: Time | null) {
