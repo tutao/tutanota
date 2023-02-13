@@ -112,7 +112,7 @@ export class MailViewerViewModel {
 	readonly loadCompleteNotification = stream<null>()
 	private renderedMail: Mail | null = null
 
-	private loading: Promise<void> = Promise.resolve()
+	private loading: Promise<void> | null = null
 
 	get mail(): Mail {
 		return this._mail
@@ -234,6 +234,8 @@ export class MailViewerViewModel {
 
 			if (notify) this.loadCompleteNotification(null)
 		} catch (e) {
+			this.loading = null
+
 			if (!isOfflineError(e)) {
 				throw e
 			}
