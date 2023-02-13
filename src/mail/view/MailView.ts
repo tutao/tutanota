@@ -764,8 +764,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	 */
 	private renderHeaderView(): Children {
 		const selectedEntities = this.cache.mailList?.list.getSelectedEntities() ?? []
-		const selectNone = () => this.cache.mailList?.list.selectNone ?? noOp
-
 		return this.viewSlider.getVisibleBackgroundColumns().length === 1 && this.cache.mailList?.list.isMobileMultiSelectionActionActive()
 			? m(
 					MultiSelectionBar,
@@ -773,7 +771,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 						selectNoneHandler: () => this.cache.mailList?.list.selectNone(),
 						text: String(selectedEntities.length),
 					},
-					m(ActionBar, { buttons: getMultiMailViewerActionButtonAttrs(selectedEntities, selectNone, false) }),
+					m(ActionBar, { buttons: getMultiMailViewerActionButtonAttrs(selectedEntities, () => this.cache.mailList?.list.selectNone(), false) }),
 			  )
 			: null
 	}

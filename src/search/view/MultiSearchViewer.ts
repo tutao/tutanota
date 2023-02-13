@@ -42,7 +42,6 @@ export class MultiSearchViewer implements Component {
 			}
 
 			const selectedEntities = (this.searchListView.list && this.searchListView.list.getSelectedEntities()) ?? []
-			const selectNone = this.searchListView.list?.selectNone ?? noOp
 			return [
 				m(
 					".fill-absolute.mt-xs.plr-l",
@@ -54,7 +53,7 @@ export class MultiSearchViewer implements Component {
 										m(ActionBar, {
 											buttons: getMultiMailViewerActionButtonAttrs(
 												selectedEntities.map(({ entry }) => entry).filter(assertIsEntity2(MailTypeRef)),
-												selectNone,
+												() => this.searchListView.list?.selectNone(),
 												true,
 											),
 										}),
