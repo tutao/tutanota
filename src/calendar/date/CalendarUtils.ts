@@ -24,8 +24,7 @@ import {
 	WeekStart,
 } from "../../api/common/TutanotaConstants"
 import { DateTime, FixedOffsetZone, IANAZone } from "luxon"
-import type { CalendarEvent, CalendarGroupRoot, CalendarRepeatRule, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
-import { createCalendarRepeatRule } from "../../api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarGroupRoot, CalendarRepeatRule, createCalendarRepeatRule, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import { DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
 import { lang } from "../../misc/LanguageViewModel"
 import { formatDateTime, formatDateWithMonth, formatTime, timeStringFromParts } from "../../misc/Formatter"

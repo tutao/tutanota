@@ -11,6 +11,7 @@ import { Dialog } from "../../gui/base/Dialog"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import type { lazy } from "@tutao/tutanota-utils"
 import { isRepliedTo } from "../model/MailUtils"
+import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUtils.js"
 
 export type Attrs = {
 	event: CalendarEvent
@@ -21,8 +22,7 @@ export type Attrs = {
 
 export class EventBanner implements Component<Attrs> {
 	view({ attrs: { event, mail, recipient, method } }: Vnode<Attrs>): Children {
-		const lowerCaseRecipient = recipient.toLowerCase()
-		const ownAttendee = event.attendees.find((a) => a.address.address.toLowerCase() === lowerCaseRecipient)
+		const ownAttendee = findAttendeeInAddresses(event.attendees, [recipient])
 		return m(
 			MessageBox,
 			{
@@ -123,7 +123,7 @@ function sendResponse(event: CalendarEvent, recipient: string, status: CalendarA
 		"pleaseWait_msg",
 		import("../../calendar/date/CalendarInvites").then(({ getLatestEvent, replyToEventInvitation }) => {
 			return getLatestEvent(event).then((latestEvent) => {
-				const ownAttendee = latestEvent.attendees.find((a) => a.address.address === recipient)
+				const ownAttendee = findAttendeeInAddresses(latestEvent.attendees, [recipient])
 
 				if (ownAttendee == null) {
 					Dialog.message("attendeeNotFound_msg")
