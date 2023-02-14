@@ -16,7 +16,7 @@ import {
 	createContactPhoneNumber,
 	createContactSocialId,
 } from "../api/entities/tutanota/TypeRefs.js"
-import { clone, downcast, findAndRemove, lastIndex, lastThrow, neverNull, noOp, ofClass, typedEntries } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, noOp, ofClass, typedEntries } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../api/common/Env"
 import { windowFacade } from "../misc/WindowFacade"
 import { logins } from "../api/main/LoginController"
@@ -34,33 +34,34 @@ import {
 } from "./view/ContactGuiUtils"
 import { parseBirthday } from "../misc/DateParser"
 import type { TextFieldAttrs } from "../gui/base/TextField.js"
-import { TextField, TextFieldType } from "../gui/base/TextField.js"
+import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
 import { EntityClient } from "../api/common/EntityClient"
 import { timestampToGeneratedId } from "../api/common/utils/EntityUtils"
-import type { AggregateEditorAttrs } from "./ContactAggregateEditor"
 import { ContactAggregateEditor } from "./ContactAggregateEditor"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
 import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
-import { ElementEntity } from "../api/common/EntityTypes"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { ToggleButton } from "../gui/base/ToggleButton.js"
+import { Icons } from "../gui/base/icons/Icons.js"
+import { ButtonSize } from "../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
 export class ContactEditor {
-	contact: Contact
-	listId: Id
-	entityClient: EntityClient
-	firstName: Stream<string>
-	lastName: Stream<string>
-	dialog: Dialog
-	invalidBirthday: boolean
-	mailAddresses: Array<[ContactMailAddress, Id]>
-	phoneNumbers: Array<[ContactPhoneNumber, Id]>
-	addresses: Array<[ContactAddress, Id]>
-	socialIds: Array<[ContactSocialId, Id]>
-	birthday: Stream<string>
-	_newContactIdReceiver: ((contactId: Id) => unknown) | null
+	private firstName: Stream<string>
+	private lastName: Stream<string>
+	private readonly dialog: Dialog
+	private invalidBirthday: boolean
+	private mailAddresses: Array<[ContactMailAddress, Id]>
+	private phoneNumbers: Array<[ContactPhoneNumber, Id]>
+	private addresses: Array<[ContactAddress, Id]>
+	private socialIds: Array<[ContactSocialId, Id]>
+	private birthday: Stream<string>
+	private isPasswordRevealed: boolean = false
 	windowCloseUnsubscribe: () => unknown
-	_isNewContact: boolean
+	private isNewContact: boolean
+	private readonly contact: Contact
+	private readonly listId: Id
 
 	/**
 	 * The contact that should be update or the contact list that the new contact should be written to must be provided
@@ -69,33 +70,36 @@ export class ContactEditor {
 	 * @param listId The list id of the new contact.
 	 * @param newContactIdReceiver. Is called receiving the contact id as soon as the new contact was saved.
 	 */
-	constructor(entityClient: EntityClient, contact: Contact | null, listId?: Id, newContactIdReceiver?: (contactId: Id) => unknown) {
-		this.entityClient = entityClient
+	constructor(
+		private readonly entityClient: EntityClient,
+		contact: Contact | null,
+		listId?: Id,
+		private readonly newContactIdReceiver: ((contactId: Id) => unknown) | null = null,
+	) {
 		this.contact = contact ? clone(contact) : createContact()
-		this._isNewContact = contact == null
-		this._newContactIdReceiver = newContactIdReceiver ?? null
+		this.isNewContact = contact == null
 
 		if (contact == null && listId == null) {
-			throw new Error("must provide contact to edit or listId for the new contact")
+			throw new ProgrammingError("must provide contact to edit or listId for the new contact")
 		} else {
-			this.listId = listId ? listId : neverNull(contact)._id[0]
+			this.listId = listId ? listId : assertNotNull(contact, "got an existing contact without id")._id[0]
 		}
 
-		const id = (entity: { _id: Id }) => entity._id || this._newId()
+		const id = (entity: { _id: Id }) => entity._id || this.newId()
 
 		this.mailAddresses = this.contact.mailAddresses.map((address) => [address, id(address)])
-		this.mailAddresses.push(this._newMailAddress())
+		this.mailAddresses.push(this.newMailAddress())
 		this.phoneNumbers = this.contact.phoneNumbers.map((phoneNumber) => [phoneNumber, id(phoneNumber)])
-		this.phoneNumbers.push(this._newPhoneNumber())
+		this.phoneNumbers.push(this.newPhoneNumber())
 		this.addresses = this.contact.addresses.map((address) => [address, id(address)])
-		this.addresses.push(this._newAddress())
+		this.addresses.push(this.newAddress())
 		this.socialIds = this.contact.socialIds.map((socialId) => [socialId, id(socialId)])
-		this.socialIds.push(this._newSocialId())
+		this.socialIds.push(this.newSocialId())
 		this.firstName = stream(this.contact.firstName)
 		this.lastName = stream(this.contact.lastName)
 		this.invalidBirthday = false
 		this.birthday = stream(formatBirthdayOfContact(this.contact) || "")
-		this.dialog = this._createDialog()
+		this.dialog = this.createDialog()
 		this.windowCloseUnsubscribe = noOp
 	}
 
@@ -108,24 +112,17 @@ export class ContactEditor {
 	}
 
 	view(): Children {
-		const presharedPasswordAttrs = this._createPresharedPasswordAttrs()
-
 		return m("#contact-editor", [
-			m(".wrapping-row", [m(StandaloneField, this._createFirstNameAttrs()), m(StandaloneField, this._createLastNameAttrs())]),
-			m(".wrapping-row", [m(StandaloneField, this._createTitleAttrs()), m(StandaloneField, this._createBirthdayAttrs())]),
-			m(".wrapping-row", [
-				m(StandaloneField, this._createRoleAttrs()),
-				m(StandaloneField, this._createCompanyAttrs()),
-				m(StandaloneField, this._createNickNameAttrs()),
-				m(StandaloneField, this._createCommentAttrs()),
-			]),
+			m(".wrapping-row", [this.renderFirstNameField(), this.renderLastNameField()]),
+			m(".wrapping-row", [this.renderTitleField(), this.renderBirthdayField()]),
+			m(".wrapping-row", [this.renderRoleField(), this.renderCompanyField(), this.renderNickNameField(), this.renderCommentField()]),
 			m(".wrapping-row", [
 				m(".mail.mt-xl", [
 					m(".h4", lang.get("email_label")),
 					m(".aggregateEditors", [
 						this.mailAddresses.map(([address, id], index) => {
 							const lastEditor = index === lastIndex(this.mailAddresses)
-							return m(ContactAggregateEditor, this._createMailAddressEditor(id, !lastEditor, address))
+							return this.renderMailAddressesEditor(id, !lastEditor, address)
 						}),
 					]),
 				]),
@@ -134,7 +131,7 @@ export class ContactEditor {
 					m(".aggregateEditors", [
 						this.phoneNumbers.map(([phoneNumber, id], index) => {
 							const lastEditor = index === lastIndex(this.phoneNumbers)
-							return m(ContactAggregateEditor, this._createPhoneEditor(id, !lastEditor, phoneNumber))
+							return this.renderPhonesEditor(id, !lastEditor, phoneNumber)
 						}),
 					]),
 				]),
@@ -145,7 +142,7 @@ export class ContactEditor {
 					m(".aggregateEditors", [
 						this.addresses.map(([address, id], index) => {
 							const lastEditor = index === lastIndex(this.addresses)
-							return m(ContactAggregateEditor, this._createAddressEditor(id, !lastEditor, address))
+							return this.renderAddressesEditor(id, !lastEditor, address)
 						}),
 					]),
 				]),
@@ -154,17 +151,12 @@ export class ContactEditor {
 					m(".aggregateEditors", [
 						this.socialIds.map(([socialId, id], index) => {
 							const lastEditor = index === lastIndex(this.socialIds)
-							return m(ContactAggregateEditor, this._createSocialEditor(id, !lastEditor, socialId))
+							return this.renderSocialsEditor(id, !lastEditor, socialId)
 						}),
 					]),
 				]),
 			]),
-			presharedPasswordAttrs
-				? m(".wrapping-row", [
-						m(".passwords.mt-xl", [m(".h4", lang.get("presharedPassword_label")), m(TextField, presharedPasswordAttrs)]),
-						m(".spacer"),
-				  ])
-				: null,
+			this.renderPresharedPasswordField(),
 			m(".pb"),
 		])
 	}
@@ -173,11 +165,11 @@ export class ContactEditor {
 		this.dialog.show()
 	}
 
-	_close() {
+	private close() {
 		this.dialog.close()
 	}
 
-	save() {
+	private save() {
 		if (this.invalidBirthday) {
 			Dialog.message("invalidBirthday_msg")
 			return
@@ -197,16 +189,19 @@ export class ContactEditor {
 			this.contact.autoTransmitPassword = "" // legacy
 
 			this.contact._owner = logins.getUserController().user._id
-			this.contact._ownerGroup = neverNull(logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact)).group
+			this.contact._ownerGroup = assertNotNull(
+				logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact),
+				"did not find contact group membership",
+			).group
 			promise = this.entityClient.setup(this.listId, this.contact).then((contactId) => {
-				if (this._newContactIdReceiver) {
-					this._newContactIdReceiver(contactId)
+				if (this.newContactIdReceiver) {
+					this.newContactIdReceiver(contactId)
 				}
 			})
 		}
 
 		promise
-			.then(() => this._close())
+			.then(() => this.close())
 			.catch(
 				ofClass(PayloadTooLargeError, () => {
 					Dialog.message("requestTooLarge_msg")
@@ -214,7 +209,7 @@ export class ContactEditor {
 			)
 	}
 
-	_createMailAddressEditor(id: Id, allowCancel: boolean, mailAddress: ContactMailAddress): AggregateEditorAttrs<any> {
+	private renderMailAddressesEditor(id: Id, allowCancel: boolean, mailAddress: ContactMailAddress): Children {
 		let helpLabel: TranslationKey
 
 		if (mailAddress.address.trim().length > 0 && !isMailAddress(mailAddress.address.trim(), false)) {
@@ -224,7 +219,7 @@ export class ContactEditor {
 		}
 
 		const typeLabels: Array<[ContactAddressType, TranslationKey]> = typedEntries(ContactMailAddressTypeToLabel)
-		return {
+		return m(ContactAggregateEditor, {
 			value: mailAddress.address,
 			fieldType: TextFieldType.Text,
 			label: getContactAddressTypeLabel(downcast(mailAddress.type), mailAddress.customTypeName),
@@ -234,19 +229,19 @@ export class ContactEditor {
 			},
 			onUpdate: (value) => {
 				mailAddress.address = value
-				if (mailAddress === lastThrow(this.mailAddresses)[0]) this.mailAddresses.push(this._newAddress())
+				if (mailAddress === lastThrow(this.mailAddresses)[0]) this.mailAddresses.push(this.newAddress())
 			},
 			animateCreate: !mailAddress.address,
 			allowCancel,
 			key: id,
 			typeLabels,
-			onTypeSelected: (type) => this._onTypeSelected(type === ContactAddressType.CUSTOM, type, mailAddress),
-		}
+			onTypeSelected: (type) => this.onTypeSelected(type === ContactAddressType.CUSTOM, type, mailAddress),
+		})
 	}
 
-	_createPhoneEditor(id: Id, allowCancel: boolean, phoneNumber: ContactPhoneNumber): AggregateEditorAttrs<any> {
+	private renderPhonesEditor(id: Id, allowCancel: boolean, phoneNumber: ContactPhoneNumber): Children {
 		const typeLabels = typedEntries(ContactPhoneNumberTypeToLabel)
-		return {
+		return m(ContactAggregateEditor, {
 			value: phoneNumber.number,
 			fieldType: TextFieldType.Text,
 			label: getContactPhoneNumberTypeLabel(downcast(phoneNumber.type), phoneNumber.customTypeName),
@@ -256,19 +251,19 @@ export class ContactEditor {
 			},
 			onUpdate: (value) => {
 				phoneNumber.number = value
-				if (phoneNumber === lastThrow(this.phoneNumbers)[0]) this.phoneNumbers.push(this._newPhoneNumber())
+				if (phoneNumber === lastThrow(this.phoneNumbers)[0]) this.phoneNumbers.push(this.newPhoneNumber())
 			},
 			animateCreate: !phoneNumber.number,
 			allowCancel,
 			key: id,
 			typeLabels,
-			onTypeSelected: (type) => this._onTypeSelected(type === ContactPhoneNumberType.CUSTOM, type, phoneNumber),
-		}
+			onTypeSelected: (type) => this.onTypeSelected(type === ContactPhoneNumberType.CUSTOM, type, phoneNumber),
+		})
 	}
 
-	_createAddressEditor(id: Id, allowCancel: boolean, address: ContactAddress): AggregateEditorAttrs<any> {
+	private renderAddressesEditor(id: Id, allowCancel: boolean, address: ContactAddress): Children {
 		const typeLabels = typedEntries(ContactMailAddressTypeToLabel)
-		return {
+		return m(ContactAggregateEditor, {
 			value: address.address,
 			fieldType: TextFieldType.Area,
 			label: getContactAddressTypeLabel(downcast(address.type), address.customTypeName),
@@ -278,19 +273,19 @@ export class ContactEditor {
 			},
 			onUpdate: (value) => {
 				address.address = value
-				if (address === lastThrow(this.addresses)[0]) this.addresses.push(this._newAddress())
+				if (address === lastThrow(this.addresses)[0]) this.addresses.push(this.newAddress())
 			},
 			animateCreate: !address.address,
 			allowCancel,
 			key: id,
 			typeLabels,
-			onTypeSelected: (type) => this._onTypeSelected(type === ContactAddressType.CUSTOM, type, address),
-		}
+			onTypeSelected: (type) => this.onTypeSelected(type === ContactAddressType.CUSTOM, type, address),
+		})
 	}
 
-	_createSocialEditor(id: Id, allowCancel: boolean, socialId: ContactSocialId): AggregateEditorAttrs<any> {
+	private renderSocialsEditor(id: Id, allowCancel: boolean, socialId: ContactSocialId): Children {
 		const typeLabels = typedEntries(ContactSocialTypeToLabel)
-		return {
+		return m(ContactAggregateEditor, {
 			value: socialId.socialId,
 			fieldType: TextFieldType.Text,
 			label: getContactSocialTypeLabel(downcast<ContactSocialType>(socialId.type), socialId.customTypeName),
@@ -300,56 +295,56 @@ export class ContactEditor {
 			},
 			onUpdate: (value) => {
 				socialId.socialId = value
-				if (socialId === lastThrow(this.socialIds)[0]) this.socialIds.push(this._newSocialId())
+				if (socialId === lastThrow(this.socialIds)[0]) this.socialIds.push(this.newSocialId())
 			},
 			animateCreate: !socialId.socialId,
 			allowCancel,
 			key: id,
 			typeLabels,
-			onTypeSelected: (type) => this._onTypeSelected(type === ContactSocialType.CUSTOM, type, socialId),
-		}
+			onTypeSelected: (type) => this.onTypeSelected(type === ContactSocialType.CUSTOM, type, socialId),
+		})
 	}
 
-	_createCommentAttrs(): TextFieldAttrs {
-		return {
+	private renderCommentField(): Children {
+		return m(StandaloneField, {
 			label: "comment_label",
 			value: this.contact.comment,
 			oninput: (value) => (this.contact.comment = value),
 			type: TextFieldType.Area,
-		}
+		})
 	}
 
-	_createFirstNameAttrs(): TextFieldAttrs {
-		return {
+	private renderFirstNameField(): Children {
+		return m(StandaloneField, {
 			label: "firstName_placeholder",
 			value: this.firstName(),
 			oninput: (value) => {
 				this.firstName(value)
 				this.contact.firstName = value
 			},
-		}
+		})
 	}
 
-	_createNickNameAttrs(): TextFieldAttrs {
-		return {
+	private renderNickNameField(): Children {
+		return m(StandaloneField, {
 			label: "nickname_placeholder",
 			value: this.contact.nickname ?? "",
 			oninput: (value) => (this.contact.nickname = value),
-		}
+		})
 	}
 
-	_createLastNameAttrs(): TextFieldAttrs {
-		return {
+	private renderLastNameField(): Children {
+		return m(StandaloneField, {
 			label: "lastName_placeholder",
 			value: this.lastName(),
 			oninput: (value) => {
 				this.lastName(value)
 				this.contact.lastName = value
 			},
-		}
+		})
 	}
 
-	_createBirthdayAttrs(): TextFieldAttrs {
+	private renderBirthdayField(): Children {
 		let birthdayHelpText = () => {
 			let bday = createBirthday()
 			bday.day = "22"
@@ -362,7 +357,7 @@ export class ContactEditor {
 				: ""
 		}
 
-		return {
+		return m(StandaloneField, {
 			label: "birthday_alt",
 			value: this.birthday(),
 			helpLabel: birthdayHelpText,
@@ -386,100 +381,103 @@ export class ContactEditor {
 					}
 				}
 			},
-		}
+		})
 	}
 
-	_createCompanyAttrs(): TextFieldAttrs {
-		return {
+	private renderCompanyField(): Children {
+		return m(StandaloneField, {
 			label: "company_label",
 			value: this.contact.company,
 			oninput: (value) => (this.contact.company = value),
-		}
+		})
 	}
 
-	_createRoleAttrs(): TextFieldAttrs {
-		return {
+	private renderRoleField(): Children {
+		return m(StandaloneField, {
 			label: "role_placeholder",
 			value: this.contact.role,
 			oninput: (value) => (this.contact.role = value),
-		}
+		})
 	}
 
-	_createTitleAttrs(): TextFieldAttrs {
-		return {
+	private renderTitleField(): Children {
+		return m(StandaloneField, {
 			label: "title_placeholder",
 			value: this.contact.title || "",
 			oninput: (value) => (this.contact.title = value),
-		}
+		})
 	}
 
-	_createPresharedPasswordAttrs(): TextFieldAttrs | null {
-		if (!this._isNewContact && !this.contact.presharedPassword) {
+	private renderPresharedPasswordField(): Children {
+		if (!this.isNewContact && !this.contact.presharedPassword) {
 			return null
 		}
 
-		return {
-			label: "password_label",
-			value: this.contact.presharedPassword ?? "",
-			oninput: (value) => (this.contact.presharedPassword = value),
-		}
+		return m(".wrapping-row", [
+			m(".passwords.mt-xl", [
+				m(".h4", lang.get("presharedPassword_label")),
+				m(TextField, {
+					type: this.isPasswordRevealed ? TextFieldType.Text : TextFieldType.Password,
+					label: "password_label",
+					value: this.contact.presharedPassword ?? "",
+					autocompleteAs: Autocomplete.newPassword,
+					oninput: (value) => (this.contact.presharedPassword = value),
+					injectionsRight: () => this.renderRevealIcon(),
+				}),
+			]),
+			m(".spacer"),
+		])
 	}
 
-	_createCloseButtonAttrs(): ButtonAttrs {
+	private createCloseButtonAttrs(): ButtonAttrs {
 		return {
 			label: "close_alt",
-			click: (e, dom) => this._close(),
+			click: (e, dom) => this.close(),
 			type: ButtonType.Secondary,
 		}
 	}
 
-	_newPhoneNumber(): [ContactPhoneNumber, Id] {
+	private newPhoneNumber(): [ContactPhoneNumber, Id] {
 		const phoneNumber = createContactPhoneNumber({
 			type: ContactPhoneNumberType.MOBILE,
 			customTypeName: "",
 			number: "",
 		})
-		return [phoneNumber, this._newId()]
+		return [phoneNumber, this.newId()]
 	}
 
-	_newMailAddress(): [ContactMailAddress, Id] {
+	private newMailAddress(): [ContactMailAddress, Id] {
 		const mailAddress = createContactMailAddress({
 			type: ContactAddressType.WORK,
 			customTypeName: "",
 			address: "",
 		})
-		return [mailAddress, this._newId()]
+		return [mailAddress, this.newId()]
 	}
 
-	_newAddress(): [ContactAddress, Id] {
+	private newAddress(): [ContactAddress, Id] {
 		const address = createContactAddress({
 			type: ContactAddressType.WORK,
 			customTypeName: "",
 			address: "",
 		})
-		return [address, this._newId()]
+		return [address, this.newId()]
 	}
 
-	_newSocialId(): [ContactSocialId, Id] {
+	private newSocialId(): [ContactSocialId, Id] {
 		const socialId = createContactSocialId({
 			type: ContactSocialType.TWITTER,
 			customTypeName: "",
 			socialId: "",
 		})
-		return [socialId, this._newId()]
+		return [socialId, this.newId()]
 	}
 
-	_newId(): Id {
+	private newId(): Id {
 		return timestampToGeneratedId(Date.now())
 	}
 
-	_onTypeSelected<
-		K,
-		T extends {
-			type: K
-			customTypeName: string
-		},
-	>(isCustom: boolean, key: K, aggregate: T): void {
+	private onTypeSelected<K, T extends { type: K; customTypeName: string }>(isCustom: boolean, key: K, aggregate: T): void {
 		if (isCustom) {
 			setTimeout(() => {
 				Dialog.showTextInputDialog("customLabel_label", "customLabel_label", null, aggregate.customTypeName).then((name) => {
@@ -492,10 +490,23 @@ export class ContactEditor {
 		}
 	}
 
-	_createDialog(): Dialog {
+	private renderRevealIcon(): Children {
+		return m(ToggleButton, {
+			title: this.isPasswordRevealed ? "concealPassword_action" : "revealPassword_action",
+			toggled: this.isPasswordRevealed,
+			onToggled: (_, e) => {
+				this.isPasswordRevealed = !this.isPasswordRevealed
+				e.stopPropagation()
+			},
+			icon: this.isPasswordRevealed ? Icons.NoEye : Icons.Eye,
+			size: ButtonSize.Compact,
+		})
+	}
+
+	private createDialog(): Dialog {
 		const name: Stream<string> = stream.merge([this.firstName, this.lastName]).map((names) => names.join(" "))
 		const headerBarAttrs: DialogHeaderBarAttrs = {
-			left: [this._createCloseButtonAttrs()],
+			left: [this.createCloseButtonAttrs()],
 			middle: name,
 			right: [
 				{
@@ -508,7 +519,7 @@ export class ContactEditor {
 		return Dialog.largeDialog(headerBarAttrs, this)
 			.addShortcut({
 				key: Keys.ESC,
-				exec: () => this._close(),
+				exec: () => this.close(),
 				help: "close_alt",
 			})
 			.addShortcut({
@@ -517,7 +528,7 @@ export class ContactEditor {
 				exec: () => this.save(),
 				help: "save_action",
 			})
-			.setCloseHandler(() => this._close())
+			.setCloseHandler(() => this.close())
 	}
 }
 
