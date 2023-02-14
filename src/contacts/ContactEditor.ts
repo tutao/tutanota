@@ -16,7 +16,7 @@ import {
 	createContactPhoneNumber,
 	createContactSocialId,
 } from "../api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, noOp, ofClass, typedEntries } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../api/common/Env"
 import { windowFacade } from "../misc/WindowFacade"
 import { logins } from "../api/main/LoginController"
@@ -48,20 +48,22 @@ import { ButtonSize } from "../gui/base/ButtonSize.js"
 assertMainOrNode()
 
 export class ContactEditor {
-	private firstName: Stream<string>
-	private lastName: Stream<string>
+	private readonly firstName: Stream<string>
+	private readonly lastName: Stream<string>
 	private readonly dialog: Dialog
 	private invalidBirthday: boolean
-	private mailAddresses: Array<[ContactMailAddress, Id]>
-	private phoneNumbers: Array<[ContactPhoneNumber, Id]>
-	private addresses: Array<[ContactAddress, Id]>
-	private socialIds: Array<[ContactSocialId, Id]>
-	private birthday: Stream<string>
+	private readonly mailAddresses: Array<[ContactMailAddress, Id]>
+	private readonly phoneNumbers: Array<[ContactPhoneNumber, Id]>
+	private readonly addresses: Array<[ContactAddress, Id]>
+	private readonly socialIds: Array<[ContactSocialId, Id]>
+	private readonly birthday: Stream<string>
 	private isPasswordRevealed: boolean = false
 	windowCloseUnsubscribe: () => unknown
-	private isNewContact: boolean
+	private readonly isNewContact: boolean
 	private readonly contact: Contact
 	private readonly listId: Id
+
+	private saving: boolean = false
 
 	/**
 	 * The contact that should be update or the contact list that the new contact should be written to must be provided
@@ -169,44 +171,58 @@ export class ContactEditor {
 		this.dialog.close()
 	}
 
-	private save() {
+	private async validateAndSave(): Promise<void> {
 		if (this.invalidBirthday) {
-			Dialog.message("invalidBirthday_msg")
-			return
+			return Dialog.message("invalidBirthday_msg")
 		}
+
+		if (this.saving) {
+			return Dialog.message("operationStillActive_msg")
+		}
+		this.saving = true
 
 		this.contact.mailAddresses = this.mailAddresses.map((e) => e[0]).filter((e) => e.address.trim().length > 0)
 		this.contact.phoneNumbers = this.phoneNumbers.map((e) => e[0]).filter((e) => e.number.trim().length > 0)
 		this.contact.addresses = this.addresses.map((e) => e[0]).filter((e) => e.address.trim().length > 0)
 		this.contact.socialIds = this.socialIds.map((e) => e[0]).filter((e) => e.socialId.trim().length > 0)
-		let promise
-
-		if (this.contact._id) {
-			promise = this.entityClient.update(this.contact).catch(ofClass(NotFoundError, noOp))
-		} else {
-			this.contact._area = "0" // legacy
-
-			this.contact.autoTransmitPassword = "" // legacy
-
-			this.contact._owner = logins.getUserController().user._id
-			this.contact._ownerGroup = assertNotNull(
-				logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact),
-				"did not find contact group membership",
-			).group
-			promise = this.entityClient.setup(this.listId, this.contact).then((contactId) => {
-				if (this.newContactIdReceiver) {
-					this.newContactIdReceiver(contactId)
-				}
-			})
+		try {
+			if (this.isNewContact) {
+				await this.saveNewContact()
+			} else {
+				await this.updateExistingContact()
+			}
+			this.close()
+		} catch (e) {
+			if (e instanceof PayloadTooLargeError) {
+				return Dialog.message("requestTooLarge_msg")
+			}
+		} finally {
+			this.saving = false
 		}
+	}
 
-		promise
-			.then(() => this.close())
-			.catch(
-				ofClass(PayloadTooLargeError, () => {
-					Dialog.message("requestTooLarge_msg")
-				}),
-			)
+	private async updateExistingContact(): Promise<void> {
+		try {
+			await this.entityClient.update(this.contact)
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				console.log(`could not update contact ${this.contact._id}: not found`)
+			}
+		}
+	}
+
+	private async saveNewContact(): Promise<void> {
+		this.contact._area = "0" // legacy
+		this.contact.autoTransmitPassword = "" // legacy
+		this.contact._owner = logins.getUserController().user._id
+		this.contact._ownerGroup = assertNotNull(
+			logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact),
+			"did not find contact group membership",
+		).group
+		const contactId = await this.entityClient.setup(this.listId, this.contact)
+		if (this.newContactIdReceiver) {
+			this.newContactIdReceiver(contactId)
+		}
 	}
 
 	private renderMailAddressesEditor(id: Id, allowCancel: boolean, mailAddress: ContactMailAddress): Children {
@@ -511,7 +527,7 @@ export class ContactEditor {
 			right: [
 				{
 					label: "save_action",
-					click: () => this.save(),
+					click: () => this.validateAndSave(),
 					type: ButtonType.Primary,
 				},
 			],
@@ -525,7 +541,10 @@ export class ContactEditor {
 			.addShortcut({
 				key: Keys.S,
 				ctrl: true,
-				exec: () => this.save(),
+				exec: () => {
+					// noinspection JSIgnoredPromiseFromCall
+					this.validateAndSave()
+				},
 				help: "save_action",
 			})
 			.setCloseHandler(() => this.close())
