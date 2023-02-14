@@ -132,6 +132,7 @@ export class CalendarFacade {
 					//In this case the user will not be informed about the number of failed alarms. We considered this is okay because it is not actionable anyways.
 					throw new ConnectionError("Connection lost while saving alarms")
 				} else {
+					console.log("Saving alarms failed.", e)
 					throw new ImportError("Could not save alarms.", numEvents)
 				}
 			}),
@@ -179,6 +180,7 @@ export class CalendarFacade {
 				//In this case the user will not be informed about the number of failed events. We considered this is okay because it is not actionable anyways.
 				throw new ConnectionError("Connection lost while saving events")
 			} else {
+				console.log("Could not save events. Number of failed imports: ", failed)
 				throw new ImportError("Could not save events.", failed)
 			}
 		}
