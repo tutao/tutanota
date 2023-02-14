@@ -219,7 +219,13 @@ export class SendMailModel {
 		this.body = body
 	}
 
+	/**
+	 * set the mail address used to send the mail.
+	 * @param senderAddress the mail address that will show up lowercased in the sender field of the sent mail.
+	 */
 	setSender(senderAddress: string) {
+		// we can (and should) do this because we lowercase all addresses on signup and when creating aliases.
+		senderAddress = senderAddress.toLowerCase()
 		this.markAsChangedIfNecessary(this.senderAddress !== senderAddress)
 		this.senderAddress = senderAddress
 	}
@@ -423,7 +429,8 @@ export class SendMailModel {
 			promiseMap(recipientsFilter(bcc), async (r) => this.insertRecipient(RecipientField.BCC, r)),
 		])
 
-		this.senderAddress = senderMailAddress || this.getDefaultSender()
+		// .toLowerCase because all our aliases and accounts are lowercased on creation
+		this.senderAddress = senderMailAddress?.toLowerCase() || this.getDefaultSender()
 		this.confidential = confidential ?? !this.user().props.defaultUnconfidential
 		this.attachments = []
 
