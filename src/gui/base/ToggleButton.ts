@@ -12,6 +12,7 @@ export interface ToggleButtonAttrs {
 	colors?: ButtonColor
 	size?: ButtonSize
 	toggledTitle?: TranslationText
+	style?: Record<string, any>
 }
 
 export class ToggleButton implements Component<ToggleButtonAttrs> {
@@ -24,6 +25,7 @@ export class ToggleButton implements Component<ToggleButtonAttrs> {
 				toggled: String(attrs.toggled),
 				class: attrs.size === ButtonSize.Compact ? "compact" : "",
 				"aria-pressed": String(attrs.toggled),
+				style: attrs.style,
 			},
 			m(Icon, {
 				icon: attrs.icon,

@@ -263,11 +263,11 @@ styles.registerStyle("main", () => {
 		".mt-s": {
 			"margin-top": px(size.vpad_small),
 		},
-		".mt-l": {
-			"margin-top": px(size.vpad_large),
-		},
 		".mt-m": {
 			"margin-top": px(size.hpad),
+		},
+		".mt-l": {
+			"margin-top": px(size.vpad_large),
 		},
 		".mt-xl": {
 			"margin-top": px(size.vpad_xl),
