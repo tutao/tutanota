@@ -2,7 +2,6 @@ import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang } from "../misc/LanguageViewModel"
 import { formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./PriceUtils"
-import { VisSignupImage } from "../gui/base/icons/Icons"
 import { createSwitchAccountTypeData } from "../api/entities/sys/TypeRefs.js"
 import { AccountType, Const, PaidSubscriptionType, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -20,7 +19,7 @@ import { SwitchAccountTypeService } from "../api/entities/sys/Services"
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { getDisplayNameOfSubscriptionType, SelectedSubscriptionOptions, SubscriptionType } from "./FeatureListProvider"
 
-export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {
+export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
 	private __signupPaidTest?: UsageTest
 	private __signupFreeTest?: UsageTest
@@ -33,7 +32,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 	}
 
 	view({ attrs }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
-		return [attrs.data.type === SubscriptionType.Free ? this.renderFree(attrs) : this.renderPaid(attrs)]
+		return this.renderConfirmSubscription(attrs)
 	}
 
 	private upgrade(data: UpgradeSubscriptionData) {
@@ -83,45 +82,34 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 			)
 	}
 
-	private renderPaid(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {
+	private renderConfirmSubscription(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {
 		const isYearly = attrs.data.options.paymentInterval() === PaymentInterval.Yearly
 		const subscription = isYearly ? lang.get("pricing.yearly_label") : lang.get("pricing.monthly_label")
 
 		return [
 			m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
-			m(".flex-space-around.flex-wrap", [
-				m(".flex-grow-shrink-half.plr-l", [
-					m(TextField, {
-						label: "subscription_label",
-						value: getDisplayNameOfSubscriptionType(attrs.data.type),
-						disabled: true,
-					}),
-					m(TextField, {
-						label: "paymentInterval_label",
-						value: subscription,
-						disabled: true,
-					}),
-					m(TextField, {
-						label: isYearly ? "priceFirstYear_label" : "price_label",
-						value: buildPriceString(attrs.data.price, attrs.data.options),
-						disabled: true,
-					}),
-					this.renderPriceNextYear(attrs),
-					m(TextField, {
-						label: "paymentMethod_label",
-						value: getPaymentMethodName(attrs.data.paymentData.paymentMethod),
-						disabled: true,
-					}),
-				]),
-				m(
-					".flex-grow-shrink-half.plr-l.flex-center.items-end",
-					m("img.pt.bg-white.border-radius", {
-						src: VisSignupImage,
-						style: {
-							width: "200px",
-						},
-					}),
-				),
+			m(".pt.pb.plr-l", [
+				m(TextField, {
+					label: "subscription_label",
+					value: getDisplayNameOfSubscriptionType(attrs.data.type),
+					disabled: true,
+				}),
+				m(TextField, {
+					label: "paymentInterval_label",
+					value: subscription,
+					disabled: true,
+				}),
+				m(TextField, {
+					label: isYearly ? "priceFirstYear_label" : "price_label",
+					value: buildPriceString(attrs.data.price, attrs.data.options),
+					disabled: true,
+				}),
+				this.renderPriceNextYear(attrs),
+				m(TextField, {
+					label: "paymentMethod_label",
+					value: getPaymentMethodName(attrs.data.paymentData.paymentMethod),
+					disabled: true,
+				}),
 			]),
 			m(
 				".smaller.center.pt-l",
@@ -158,48 +146,6 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 			: null
 	}
 
-	private renderFree(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {
-		return [
-			m(".center.h4.pt", lang.get("accountCreationCongratulation_msg")),
-			m(".flex-space-around.flex-wrap", [
-				m(
-					".flex-grow-shrink-half.plr-l.flex-center.items-end",
-					m("img.pt.bg-white.border-radius", {
-						src: VisSignupImage,
-						style: {
-							width: "200px",
-						},
-					}),
-				),
-			]),
-			m(
-				".flex-center.full-width.pt-l",
-				m(
-					"",
-					{
-						style: {
-							width: "260px",
-						},
-					},
-					m(Button, {
-						label: "ok_action",
-						click: () => {
-							const recoveryConfirmationStageFree = this.__signupFreeTest?.getStage(5)
-							recoveryConfirmationStageFree?.setMetric({
-								name: "switchedFromPaid",
-								value: (this.__signupPaidTest?.isStarted() ?? false).toString(),
-							})
-							recoveryConfirmationStageFree?.complete()
-
-							this.close(attrs.data, this.dom)
-						},
-						type: ButtonType.Login,
-					}),
-				),
-			),
-		]
-	}
-
 	private subscriptionTypeToPaidSubscriptionType(subscriptionType: SubscriptionType): PaidSubscriptionType {
 		switch (subscriptionType) {
 			case SubscriptionType.Premium:
@@ -232,29 +178,4 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 
 function buildPriceString(price: NumberString, options: SelectedSubscriptionOptions): string {
 	return formatPriceWithInfo(Number(price), options.paymentInterval(), !options.businessUse())
-}
-
-export class UpgradeConfirmPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
-	data: UpgradeSubscriptionData
-
-	constructor(upgradeData: UpgradeSubscriptionData) {
-		this.data = upgradeData
-	}
-
-	headerTitle(): string {
-		return lang.get("summary_label")
-	}
-
-	nextAction(showDialogs: boolean): Promise<boolean> {
-		// next action not available for this page
-		return Promise.resolve(true)
-	}
-
-	isSkipAvailable(): boolean {
-		return false
-	}
-
-	isEnabled(): boolean {
-		return true
-	}
 }
