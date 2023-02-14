@@ -205,6 +205,8 @@ export class WindowFacade {
 
 		if (!this._historyStateEventListeners[len - 1](e)) {
 			this._ignoreNextPopstate = true
+			// go 1 page forward in the history
+			// this reverts the state change (if the event was triggered by a back-button press)
 			history.go(1)
 		}
 	}

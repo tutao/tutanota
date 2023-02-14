@@ -300,8 +300,17 @@ import("./translations/en")
 					// We have to manually parse it because mithril does not put hash into args of onmatch
 					const hashParams = m.parseQueryString(location.hash.substring(1))
 					showSignupDialog(hashParams)
+					// when the user presses the browser back button, we would get a /login route without arguments
+					// in the popstate event, logging us out and reloading the page before we have a chance to (asynchronously) ask for confirmation
+					// onmatch of the login view is called after the popstate handler, but before any asynchronous operations went ahead.
+					// duplicating the history entry allows us to keep the arguments for a single back button press and run our own code to handle it
 					m.route.set("/login", {
 						noAutoLogin: true,
+						keepSession: true,
+					})
+					m.route.set("/login", {
+						noAutoLogin: true,
+						keepSession: true,
 					})
 					return null
 				},
@@ -312,6 +321,7 @@ import("./translations/en")
 					showGiftCardDialog(location.hash)
 					m.route.set("/login", {
 						noAutoLogin: true,
+						keepSession: true,
 					})
 					return null
 				},
@@ -467,15 +477,22 @@ function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType
 	//  - view shall not be created manually, we do not want to hold on to the instance
 	//  - we want to pass additional parameters to the view
 	//  - view should not be created twice and neither its dependencies
-	//  - we either need to call updateUrl or pass requestedPath and args as attrbiutes
+	//  - we either need to call updateUrl or pass requestedPath and args as attributes
 	return {
 		// onmatch() is called for every URL change
-		async onmatch(args: {}, requestedPath: string, route: string): Promise<Class<ComponentType> | null> {
-			// enforce valid login state first
+		async onmatch(args: Record<string, Dict>, requestedPath: string, route: string): Promise<Class<ComponentType> | null> {
+			// enforce valid login state first.
+			// we have views with requireLogin: true and views with requireLogin: false, each of which enforce being logged in or being logged out respectively.
+			// in the logout case (where requireLogin: false) this will force a reload.
+			// the login view is special in that it has requirelogin: false, but can be logged in after account creation during signup.
+			// to handle back button presses where the user decides to stay on the page after all (we show a confirmation)
+			// we need to prevent the logout/reload. this is the purpose of the keepSession argument.
+			// the signup wizard that sets it handles the session itself.
+			console.log("onmatch", document.URL)
 			if (requireLogin && !logins.isUserLoggedIn()) {
 				forceLogin(args, requestedPath)
 				return null
-			} else if (!requireLogin && logins.isUserLoggedIn()) {
+			} else if (!requireLogin && logins.isUserLoggedIn() && !args.keepSession) {
 				await disableErrorHandlingDuringLogout()
 				await logins.logout(false)
 				windowFacade.reload(args)

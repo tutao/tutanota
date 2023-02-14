@@ -7,9 +7,10 @@ import { Icon } from "./Icon"
 import { getContentButtonIconBackground, theme } from "../theme"
 import { lang } from "../../misc/LanguageViewModel"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
-import { Keys } from "../../api/common/TutanotaConstants"
+import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { assertMainOrNode } from "../../api/common/Env"
 import { $Promisable } from "@tutao/tutanota-utils"
+import { windowFacade } from "../../misc/WindowFacade.js"
 
 assertMainOrNode()
 
@@ -36,6 +37,16 @@ export interface WizardPageAttrs<T> {
 	 * The actual data, which is the same for the entire wizard needs to be also accessible to each page
 	 */
 	readonly data: T
+
+	/**
+	 * Indicates that it should not be possible to select any earlier stage than this one, once reached. If not set or false, it is possible to go back
+	 */
+	readonly preventGoBack?: boolean
+
+	/**
+	 * if this is true the paging button (button with the number) is hidden for this specific wizard page
+	 */
+	readonly hidePagingButton?: boolean
 }
 
 export type WizardPageN<T> = Component<WizardPageAttrs<T>>
@@ -91,6 +102,7 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 
 	view(vnode: Vnode<WizardDialogAttrs<T>>) {
 		const a = vnode.attrs
+		const selectedIndex = a.currentPage ? a._getEnabledPages().indexOf(a.currentPage) : -1
 		return m("#wizardDialogContent.pt", [
 			m(
 				"#wizard-paging.flex-space-around.border-top",
@@ -100,13 +112,17 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 						marginTop: "22px",
 					},
 				},
-				a._getEnabledPages().map((p, index) =>
-					m(WizardPagingButton, {
-						pageIndex: index,
-						getSelectedPageIndex: () => (a.currentPage ? a._getEnabledPages().indexOf(a.currentPage) : -1),
-						navigateBackHandler: (index) => a._goToPageAction(index),
-					}),
-				),
+				a
+					._getEnabledPages()
+					.filter((page) => !page.attrs.hidePagingButton)
+					.map((p, index) =>
+						m(WizardPagingButton, {
+							pageIndex: index,
+							getSelectedPageIndex: () => selectedIndex,
+							isClickable: () => a.allowedToVisitPage(index, selectedIndex),
+							navigateBackHandler: (index) => a._goToPageAction(index),
+						}),
+					),
 			),
 			a.currentPage ? a.currentPage.view() : null,
 		])
@@ -152,10 +168,12 @@ class WizardDialogAttrs<T> {
 	}
 
 	goToPreviousPageOrClose(): void {
-		let pageIndex = this.currentPage ? this._getEnabledPages().indexOf(this.currentPage) : -1
+		let currentPageIndex = this.currentPage ? this._getEnabledPages().indexOf(this.currentPage) : -1
 
-		if (pageIndex > 0) {
-			this._goToPageAction(pageIndex - 1)
+		if (!this.allowedToVisitPage(currentPageIndex - 1, currentPageIndex)) return
+
+		if (currentPageIndex > 0) {
+			this._goToPageAction(currentPageIndex - 1)
 
 			m.redraw()
 		} else {
@@ -164,8 +182,10 @@ class WizardDialogAttrs<T> {
 	}
 
 	getHeaderBarAttrs<T>(): DialogHeaderBarAttrs {
+		let currentPageIndex = this.currentPage ? this._getEnabledPages().indexOf(this.currentPage) : -1
+
 		const backButtonAttrs: ButtonAttrs = {
-			label: () => (this.currentPage && this._getEnabledPages().includes(this.currentPage) ? lang.get("cancel_action") : lang.get("back_action")),
+			label: () => lang.get("back_action"),
 			click: () => this.goToPreviousPageOrClose(),
 			type: ButtonType.Secondary,
 		}
@@ -175,7 +195,7 @@ class WizardDialogAttrs<T> {
 			type: ButtonType.Secondary,
 		}
 		return {
-			left: [backButtonAttrs],
+			left: currentPageIndex >= 0 && this.allowedToVisitPage(currentPageIndex - 1, currentPageIndex) ? [backButtonAttrs] : [],
 			right: () =>
 				this.currentPage &&
 				this.currentPage.attrs.isSkipAvailable() &&
@@ -194,6 +214,7 @@ class WizardDialogAttrs<T> {
 		const pages = this._getEnabledPages()
 
 		this.currentPage = pages[targetIndex]
+		renderHeader(this.getHeaderBarAttrs())
 	}
 
 	goToNextPageOrCloseWizard() {
@@ -206,14 +227,32 @@ class WizardDialogAttrs<T> {
 		if (finalAction) {
 			this.closeAction()
 		} else {
-			this.currentPage = currentIndex < lastIndex ? pages[currentIndex + 1] : pages[lastIndex]
+			this._goToPageAction(currentIndex < lastIndex ? currentIndex + 1 : lastIndex)
 		}
+	}
+
+	/** returns whether it is allowed to visit the page specified by pageIndex depending on selectedPageIndex */
+	allowedToVisitPage(pageIndex: number, selectedPageIndex: number): boolean {
+		if (pageIndex < 0 || selectedPageIndex < 0) {
+			return true // invalid values -> should not restrict here
+		}
+		const enabledPages = this._getEnabledPages()
+		// page is only allowed to be visited if it was already visited and there is no later page that was already visited and does not allow to go back
+		return (
+			pageIndex < selectedPageIndex &&
+			!enabledPages
+				.filter((page) => {
+					return enabledPages.indexOf(page) > pageIndex && enabledPages.indexOf(page) <= selectedPageIndex
+				})
+				.some((page) => page.attrs.preventGoBack)
+		)
 	}
 }
 
 type WizardPagingButtonAttrs = {
 	pageIndex: number
 	getSelectedPageIndex: () => number
+	isClickable: () => boolean
 	navigateBackHandler: (pageIndex: number) => void
 }
 
@@ -223,26 +262,29 @@ export class WizardPagingButton {
 		const selectedPageIndex = vnode.attrs.getSelectedPageIndex()
 		const pageIndex = vnode.attrs.pageIndex
 		const filledBg = getContentButtonIconBackground()
+		const isClickable = vnode.attrs.isClickable()
 		return m(
 			".button-content.flex-center.items-center",
 			{
 				style: {
 					marginTop: "-22px",
-					cursor: pageIndex < selectedPageIndex ? "pointer" : "auto",
+					cursor: isClickable ? "pointer" : "auto",
 				},
 				onclick: () => {
-					if (pageIndex < selectedPageIndex) {
+					if (isClickable) {
 						vnode.attrs.navigateBackHandler(pageIndex)
 					}
 				},
 			},
 			m(
-				".button-icon.flex-center.items-center",
+				"button.button-icon.flex-center.items-center.no-hover",
 				{
+					tabIndex: isClickable ? TabIndex.Default : TabIndex.Programmatic,
 					style: {
 						border: selectedPageIndex === pageIndex ? `2px solid ${theme.content_accent}` : `1px solid ${filledBg}`,
 						color: selectedPageIndex === pageIndex ? theme.content_accent : "inherit",
 						"background-color": pageIndex < selectedPageIndex ? filledBg : theme.content_bg,
+						cursor: isClickable ? "pointer" : "auto",
 					},
 				},
 				pageIndex < selectedPageIndex
@@ -264,42 +306,63 @@ export type WizardDialogAttrsBuilder<T> = {
 	attrs: WizardDialogAttrs<T>
 }
 
+const headerBarAttrs: DialogHeaderBarAttrs = {}
+
 // Use to generate a new wizard
 export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWrapper<T>>, closeAction?: () => $Promisable<void>): WizardDialogAttrsBuilder<T> {
 	// We need the close action of the dialog before we can create the proper attributes
-	const headerBarAttrs: DialogHeaderBarAttrs = {}
 
 	let view: () => Children = () => null
 
 	const child: Component = {
 		view: () => view(),
 	}
+	const unregisterCloseListener = windowFacade.addWindowCloseListener(() => {})
 	const wizardDialog = Dialog.largeDialog(headerBarAttrs, child)
-	const wizardDialogAttrs = new WizardDialogAttrs(
-		data,
-		pages,
-		closeAction ? () => Promise.resolve(closeAction()).then(() => wizardDialog.close()) : async () => wizardDialog.close(),
-	)
-	// We replace the dummy values from dialog creation
-	const wizardDialogHeaderBarAttrs: DialogHeaderBarAttrs = wizardDialogAttrs.getHeaderBarAttrs()
-	Object.entries(wizardDialogHeaderBarAttrs).forEach(([key, value]) => {
-		// @ts-ignore
-		headerBarAttrs[key] = value
-	})
+	const closeActionWrapper = async () => {
+		if (closeAction) {
+			await closeAction()
+		}
+		wizardDialog.close()
+		unregisterCloseListener()
+	}
+	const wizardDialogAttrs = new WizardDialogAttrs(data, pages, closeActionWrapper)
+	renderHeader(wizardDialogAttrs.getHeaderBarAttrs())
 
 	view = () => m(WizardDialog, wizardDialogAttrs)
-
 	wizardDialog
 		.addShortcut({
 			key: Keys.ESC,
 			exec: () => {
-				wizardDialogAttrs.closeAction()
+				confirmThenCleanup(() => wizardDialogAttrs.closeAction())
 			},
 			help: "close_alt",
 		})
-		.setCloseHandler(() => wizardDialogAttrs.goToPreviousPageOrClose())
+		.setCloseHandler(() => {
+			// the dialogs popState handler will return false which prevents the wizard from being closed
+			// we then close the wizard manually if the user confirms
+			confirmThenCleanup(() => wizardDialogAttrs.closeAction())
+		})
+
 	return {
 		dialog: wizardDialog,
 		attrs: wizardDialogAttrs,
 	}
+
+	async function confirmThenCleanup(closeAction: () => Promise<void>) {
+		const confirmed = await Dialog.confirm(() => lang.get("closeWindowConfirmation_msg"))
+		if (confirmed) {
+			unregisterCloseListener()
+			closeAction()
+		}
+	}
+}
+
+/** some pages may render the header in a different way, e.g. not showing the top left button */
+function renderHeader(newHeaderBarAttrs: DialogHeaderBarAttrs) {
+	// We replace the dummy values from dialog creation
+	Object.entries(newHeaderBarAttrs).forEach(([key, value]) => {
+		// @ts-ignore
+		headerBarAttrs[key] = value
+	})
 }
