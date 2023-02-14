@@ -6,7 +6,7 @@ import { SearchModel } from "../../search/model/SearchModel"
 import { MailboxDetail, MailModel } from "../../mail/model/MailModel"
 import { assertMainOrNode, getWebRoot, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp, isOfflineStorageAvailable } from "../common/Env"
 import { notifications } from "../../gui/Notifications"
-import { LoginController, logins } from "./LoginController"
+import { LoginController } from "./LoginController"
 import type { ContactModel } from "../../contacts/model/ContactModel"
 import { ContactModelImpl } from "../../contacts/model/ContactModel"
 import { EntityClient } from "../common/EntityClient"
@@ -171,6 +171,7 @@ class MainLocator {
 	offlineIndicatorViewModel = lazyMemoized(async () => {
 		// just to make sure that some random place that imports locator doesn't import mithril too
 		const m = await import("mithril")
+		const logins = await this.loginController()
 		return new OfflineIndicatorViewModel(this.cacheStorage, this.loginListener, this.connectivityModel, logins, this.progressTracker, m.redraw)
 	})
 
@@ -185,6 +186,7 @@ class MainLocator {
 		const { ReceivedGroupInvitationsModel } = await import("../../sharing/model/ReceivedGroupInvitationsModel.js")
 		const { CalendarViewModel } = await import("../../calendar/view/CalendarViewModel.js")
 		const { getEventStart, getTimeZone } = await import("../../calendar/date/CalendarUtils.js")
+		const logins = await this.loginController()
 		const calendarInvitations = new ReceivedGroupInvitationsModel(GroupType.Calendar, this.eventController, this.entityClient, logins)
 		calendarInvitations.init()
 		return new CalendarViewModel(
@@ -335,6 +337,7 @@ class MainLocator {
 	async mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel> {
 		const { MailAddressTableModel } = await import("../../settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.ownMailAddressNameChanger()
+		const logins = await this.loginController()
 		return new MailAddressTableModel(
 			this.entityClient,
 			this.mailAddressFacade,
@@ -348,6 +351,7 @@ class MainLocator {
 	async mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userGroupInfo: GroupInfo): Promise<MailAddressTableModel> {
 		const { MailAddressTableModel } = await import("../../settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.adminNameChanger(mailGroupId, userId)
+		const logins = await this.loginController()
 		return new MailAddressTableModel(this.entityClient, this.mailAddressFacade, logins, this.eventController, userGroupInfo, nameChanger)
 	}
 
@@ -463,6 +467,7 @@ class MainLocator {
 		this.contactFormFacade = contactFormFacade
 		this.deviceEncryptionFacade = deviceEncryptionFacade
 		this.serviceExecutor = serviceExecutor
+		const logins = await this.loginController()
 		this.eventController = new EventController(logins)
 		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(this.searchFacade)
