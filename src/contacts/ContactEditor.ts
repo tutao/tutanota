@@ -1,6 +1,4 @@
 import m, { Children, Component, Vnode } from "mithril"
-import stream from "mithril/stream"
-import Stream from "mithril/stream"
 import { Dialog } from "../gui/base/Dialog"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
@@ -47,16 +45,16 @@ import { ButtonSize } from "../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
+const TAG = "[ContactEditor]"
+
 export class ContactEditor {
-	private readonly firstName: Stream<string>
-	private readonly lastName: Stream<string>
 	private readonly dialog: Dialog
-	private invalidBirthday: boolean
+	private hasInvalidBirthday: boolean
 	private readonly mailAddresses: Array<[ContactMailAddress, Id]>
 	private readonly phoneNumbers: Array<[ContactPhoneNumber, Id]>
 	private readonly addresses: Array<[ContactAddress, Id]>
 	private readonly socialIds: Array<[ContactSocialId, Id]>
-	private readonly birthday: Stream<string>
+	private birthday: string
 	private isPasswordRevealed: boolean = false
 	windowCloseUnsubscribe: () => unknown
 	private readonly isNewContact: boolean
@@ -65,7 +63,7 @@ export class ContactEditor {
 
 	private saving: boolean = false
 
-	/**
+	/*
 	 * The contact that should be update or the contact list that the new contact should be written to must be provided
 	 * @param entityClient
 	 * @param contact An existing or new contact. If null a new contact is created.
@@ -97,10 +95,8 @@ export class ContactEditor {
 		this.addresses.push(this.newAddress())
 		this.socialIds = this.contact.socialIds.map((socialId) => [socialId, id(socialId)])
 		this.socialIds.push(this.newSocialId())
-		this.firstName = stream(this.contact.firstName)
-		this.lastName = stream(this.contact.lastName)
-		this.invalidBirthday = false
-		this.birthday = stream(formatBirthdayOfContact(this.contact) || "")
+		this.hasInvalidBirthday = false
+		this.birthday = formatBirthdayOfContact(this.contact) || ""
 		this.dialog = this.createDialog()
 		this.windowCloseUnsubscribe = noOp
 	}
@@ -172,7 +168,7 @@ export class ContactEditor {
 	}
 
 	private async validateAndSave(): Promise<void> {
-		if (this.invalidBirthday) {
+		if (this.hasInvalidBirthday) {
 			return Dialog.message("invalidBirthday_msg")
 		}
 
@@ -206,7 +202,7 @@ export class ContactEditor {
 			await this.entityClient.update(this.contact)
 		} catch (e) {
 			if (e instanceof NotFoundError) {
-				console.log(`could not update contact ${this.contact._id}: not found`)
+				console.log(TAG, `could not update contact ${this.contact._id}: not found`)
 			}
 		}
 	}
@@ -333,11 +329,8 @@ export class ContactEditor {
 	private renderFirstNameField(): Children {
 		return m(StandaloneField, {
 			label: "firstName_placeholder",
-			value: this.firstName(),
-			oninput: (value) => {
-				this.firstName(value)
-				this.contact.firstName = value
-			},
+			value: this.contact.firstName,
+			oninput: (value) => (this.contact.firstName = value),
 		})
 	}
 
@@ -352,11 +345,8 @@ export class ContactEditor {
 	private renderLastNameField(): Children {
 		return m(StandaloneField, {
 			label: "lastName_placeholder",
-			value: this.lastName(),
-			oninput: (value) => {
-				this.lastName(value)
-				this.contact.lastName = value
-			},
+			value: this.contact.lastName,
+			oninput: (value) => (this.contact.lastName = value),
 		})
 	}
 
@@ -366,7 +356,7 @@ export class ContactEditor {
 			bday.day = "22"
 			bday.month = "9"
 			bday.year = "2000"
-			return this.invalidBirthday
+			return this.hasInvalidBirthday
 				? lang.get("invalidDateFormat_msg", {
 						"{1}": formatBirthdayNumeric(bday),
 				  })
@@ -375,25 +365,25 @@ export class ContactEditor {
 
 		return m(StandaloneField, {
 			label: "birthday_alt",
-			value: this.birthday(),
+			value: this.birthday,
 			helpLabel: birthdayHelpText,
 			oninput: (value) => {
-				this.birthday(value)
+				this.birthday = value
 				if (value.trim().length === 0) {
 					this.contact.birthdayIso = null
-					this.invalidBirthday = false
+					this.hasInvalidBirthday = false
 				} else {
 					let birthday = parseBirthday(value)
 
 					if (birthday) {
 						try {
 							this.contact.birthdayIso = birthdayToIsoDate(birthday)
-							this.invalidBirthday = false
+							this.hasInvalidBirthday = false
 						} catch (e) {
-							this.invalidBirthday = true
+							this.hasInvalidBirthday = true
 						}
 					} else {
-						this.invalidBirthday = true
+						this.hasInvalidBirthday = true
 					}
 				}
 			},
@@ -520,10 +510,9 @@ export class ContactEditor {
 	}
 
 	private createDialog(): Dialog {
-		const name: Stream<string> = stream.merge([this.firstName, this.lastName]).map((names) => names.join(" "))
 		const headerBarAttrs: DialogHeaderBarAttrs = {
 			left: [this.createCloseButtonAttrs()],
-			middle: name,
+			middle: () => this.contact.firstName + " " + this.contact.lastName,
 			right: [
 				{
 					label: "save_action",
