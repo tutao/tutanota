@@ -20,7 +20,7 @@ assertWorkerOrNode()
  */
 export class BlobAccessTokenFacade {
 	// We avoid sending tokens that are just about to expire.
-	private readonly TOKEN_EXPIRATION_MARGIN_MS = 1000
+	private readonly TOKEN_EXPIRATION_MARGIN_MS = 30000
 
 	private readonly serviceExecutor: IServiceExecutor
 	private readonly readCache: Map<Id, BlobServerAccessInfo>
@@ -109,7 +109,7 @@ export class BlobAccessTokenFacade {
 	}
 
 	private isValid(blobServerAccessInfo: BlobServerAccessInfo): boolean {
-		return blobServerAccessInfo.expires.getTime() > this.dateProvider.now() - this.TOKEN_EXPIRATION_MARGIN_MS
+		return blobServerAccessInfo.expires.getTime() > this.dateProvider.now() + this.TOKEN_EXPIRATION_MARGIN_MS
 	}
 
 	private getValidTokenFromWriteCache(archiveDataType: ArchiveDataType, ownerGroupId: Id): BlobServerAccessInfo | null {

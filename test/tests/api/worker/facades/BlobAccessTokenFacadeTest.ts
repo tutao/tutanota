@@ -16,7 +16,7 @@ import {
 	createInstanceId,
 } from "../../../../../src/api/entities/storage/TypeRefs.js"
 import { BlobAccessTokenFacade } from "../../../../../src/api/worker/facades/BlobAccessTokenFacade.js"
-import { DateProviderImpl } from "../../../../../src/calendar/date/CalendarUtils.js"
+import { DateTime } from "luxon"
 
 const { anything, captor } = matchers
 
@@ -27,10 +27,16 @@ o.spec("BlobAccessTokenFacade test", function () {
 	const archiveId = "archiveId1"
 	const blobId1 = "blobId1"
 	const blobs = [createBlob({ archiveId, blobId: blobId1 }), createBlob({ archiveId, blobId: "blobId2" }), createBlob({ archiveId })]
+	let now: DateTime
 
 	o.beforeEach(function () {
+		now = DateTime.fromISO("2022-11-17T00:00:00")
+		const dateProvider = {
+			now: () => now.toMillis(),
+			timeZone: () => "Europe/Berlin",
+		}
 		serviceMock = object<ServiceExecutor>()
-		blobAccessTokenFacade = new BlobAccessTokenFacade(serviceMock, new DateProviderImpl())
+		blobAccessTokenFacade = new BlobAccessTokenFacade(serviceMock, dateProvider)
 	})
 
 	o.afterEach(function () {
@@ -123,7 +129,7 @@ o.spec("BlobAccessTokenFacade test", function () {
 		})
 
 		o("cache read token archive expired", async function () {
-			let expires = new Date(2022, 11, 17) // date in the past, so the token is expired
+			let expires = new Date(now.toMillis() - 1) // date in the past, so the token is expired
 			let blobAccessInfo = createBlobServerAccessInfo({ blobAccessToken: "123", expires })
 			let expectedToken = createBlobAccessTokenPostOut({ blobAccessInfo })
 			when(serviceMock.post(BlobAccessTokenService, anything())).thenResolve(expectedToken)
@@ -178,7 +184,7 @@ o.spec("BlobAccessTokenFacade test", function () {
 		})
 
 		o("cache write token expired", async function () {
-			let expires = new Date(2022, 11, 17) // date in the past, so the token is expired
+			let expires = new Date(now.toMillis() - 1) // date in the past, so the token is expired
 			const ownerGroup = "ownerId"
 			let expectedToken = createBlobAccessTokenPostOut({ blobAccessInfo: createBlobServerAccessInfo({ blobAccessToken: "123", expires }) })
 			when(serviceMock.post(BlobAccessTokenService, anything())).thenResolve(expectedToken)
