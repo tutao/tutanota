@@ -18,7 +18,7 @@ import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, no
 import { assertMainOrNode } from "../api/common/Env"
 import { windowFacade } from "../misc/WindowFacade"
 import { logins } from "../api/main/LoginController"
-import { NotFoundError, PayloadTooLargeError } from "../api/common/error/RestError"
+import { LockedError, NotFoundError, PayloadTooLargeError } from "../api/common/error/RestError"
 import type { ButtonAttrs } from "../gui/base/Button.js"
 import { ButtonType } from "../gui/base/Button.js"
 import { birthdayToIsoDate } from "../api/common/utils/BirthdayUtils"
@@ -167,6 +167,14 @@ export class ContactEditor {
 		this.dialog.close()
 	}
 
+	/**
+	 * * validate the input data
+	 * * create or update the contact, depending on status
+	 * * if successful, close the dialog.
+	 *
+	 * will not call the save function again if the operation is already running
+	 * @private
+	 */
 	private async validateAndSave(): Promise<void> {
 		if (this.hasInvalidBirthday) {
 			return Dialog.message("invalidBirthday_msg")
@@ -191,6 +199,9 @@ export class ContactEditor {
 		} catch (e) {
 			if (e instanceof PayloadTooLargeError) {
 				return Dialog.message("requestTooLarge_msg")
+			}
+			if (e instanceof LockedError) {
+				return Dialog.message("operationStillActive_msg")
 			}
 		} finally {
 			this.saving = false
