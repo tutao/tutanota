@@ -1,4 +1,4 @@
-import { size } from "../../gui/size"
+import { px, size } from "../../gui/size"
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import { windowFacade, windowSizeListener } from "../../misc/WindowFacade"
@@ -6,13 +6,13 @@ import { FeatureType, InboxRuleType, Keys, MailFolderType, SpamRuleFieldType, Sp
 import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../misc/LanguageViewModel"
 import { assertMainOrNode } from "../../api/common/Env"
-import { assertNonNull, defer, DeferredObject, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNonNull, assertNotNull, defer, DeferredObject, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { createNewContact, getExistingRuleForType, isTutanotaTeamMail } from "../model/MailUtils"
 import { IconMessageBox } from "../../gui/base/ColumnEmptyMessageBox"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
 import { logins } from "../../api/main/LoginController"
-import { progressIcon } from "../../gui/base/Icon"
+import { Icon, progressIcon } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
 import { theme } from "../../gui/theme"
 import { client } from "../../misc/ClientDetector"
@@ -32,7 +32,7 @@ import { isNewMailActionAvailable } from "../../gui/nav/NavFunctions"
 import { CancelledError } from "../../api/common/error/CancelledError"
 import { MailViewerHeader } from "./MailViewerHeader.js"
 import { editDraft, mailViewerPadding, showHeaderDialog } from "./MailViewerUtils.js"
-import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { grey, grey_lighter_1 } from "../../gui/builtinThemes.js"
 import { ToggleButton } from "../../gui/base/ToggleButton.js"
 
 assertMainOrNode()
@@ -98,8 +98,11 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private lastContentBlockingStatus: ContentBlockingStatus | null = null
 
 	private loadAllListener = stream()
-	/** "none" until we render once */
+	/** for block quotes in mail bodies, whether to display quote before user interaction
+	 * is "none" until we render once */
 	private currentQuoteBehavior: "none" | "collapse" | "expand" = "none"
+	/** for block quotes in mail bodies, whether to display placeholder or original quote */
+	private quoteState: "noquotes" | "unset" | "collapsed" | "expanded" = "unset"
 
 	constructor(vnode: Vnode<MailViewerAttrs>) {
 		this.setViewModel(vnode.attrs.viewModel, vnode.attrs.isPrimary)
@@ -161,7 +164,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			m(".mail-viewer" + ".overflow-x-hidden", [
 				this.renderMailHeader(vnode.attrs),
 				m(
-					".flex-grow.mlr-safe-inset.scroll-x.pt.pb" + (this.viewModel.isContrastFixNeeded() ? ".bg-white.content-black" : " "),
+					".flex-grow.mlr-safe-inset.scroll-x.pt.pb.border-radius-big" + (this.viewModel.isContrastFixNeeded() ? ".bg-white.content-black" : " "),
 					{
 						class: mailViewerPadding(),
 						oncreate: (vnode) => {
@@ -170,8 +173,58 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					},
 					this.renderMailBodySection(vnode.attrs),
 				),
+				this.renderQuoteExpanderButton(),
 			]),
 		]
+	}
+
+	/**
+	 * important: must be called after rendering the mail body part so that {@link quoteState} is set correctly.
+	 * The logic here relies on the fact that lifecycle methods will be called after body section lifecycle methods.
+	 */
+	private renderQuoteExpanderButton() {
+		const buttonHeight = 24
+		return m(
+			".abs.flex.justify-center.full-width",
+			{
+				style: {
+					// +1 for the border
+					bottom: px(-(buttonHeight / 2 + 1)),
+					display: "hidden",
+				},
+				oncreate: ({ dom }) => {
+					;(dom as HTMLElement).style.display = this.quoteState === "noquotes" ? "none" : ""
+				},
+				onupdate: ({ dom }) => {
+					;(dom as HTMLElement).style.display = this.quoteState === "noquotes" ? "none" : ""
+				},
+			},
+			m(
+				// needs flex for correct height
+				".flex",
+				{
+					style: {
+						borderRadius: "25%",
+						border: `1px solid ${theme.list_border}`,
+						backgroundColor: theme.content_bg,
+					},
+				},
+				m(ToggleButton, {
+					icon: Icons.More,
+					title: "showText_action",
+					toggledTitle: "hideText_action",
+					toggled: this.shouldDisplayCollapsedQuotes(),
+					onToggled: () => {
+						this.quoteState = this.shouldDisplayCollapsedQuotes() ? "collapsed" : "expanded"
+						this.shadowDomRoot && this.updateCollapsedQuotes(this.shadowDomRoot, this.shouldDisplayCollapsedQuotes())
+					},
+					style: {
+						height: "24px",
+						width: px(size.button_height_compact),
+					},
+				}),
+			),
+		)
 	}
 
 	private handleContentBlockingOnRender() {
@@ -256,7 +309,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				// If the quote behavior changes (e.g. after loading is finished) we should update the quotes.
 				// If we already rendered it correctly it will already be set in renderShadowMailBody() so we will avoid doing it twice.
 				if (this.currentQuoteBehavior !== attrs.defaultQuoteBehavior) {
-					this.updateCollapsedQuotes(dom, attrs)
+					this.updateCollapsedQuotes(assertNotNull(this.shadowDomRoot), attrs.defaultQuoteBehavior === "expand")
 				}
 				this.currentQuoteBehavior = attrs.defaultQuoteBehavior
 			},
@@ -277,12 +330,19 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		})
 	}
 
-	private updateCollapsedQuotes(dom: HTMLElement, attrs: MailViewerAttrs) {
+	private updateCollapsedQuotes(dom: ParentNode, showQuote: boolean) {
 		const quotes: NodeListOf<HTMLElement> = dom.querySelectorAll("[tuta-collapsed-quote]")
-		const display = attrs.defaultQuoteBehavior === "expand" ? "" : "none"
-		for (const q of Array.from(quotes)) {
-			q.style.display = display
+		for (const quoteWrap of Array.from(quotes)) {
+			const quote = quoteWrap.children[0] as HTMLElement
+			quote.style.display = showQuote ? "" : "none"
+			const quoteIndicator = quoteWrap.children[1] as HTMLElement
+			quoteIndicator.style.display = showQuote ? "none" : ""
 		}
+	}
+
+	private shouldDisplayCollapsedQuotes(): boolean {
+		// if the user didn't do anything yet take the behavior passed from the outside, otherwise whatever user has selected
+		return this.quoteState === "unset" ? this.currentQuoteBehavior === "expand" : this.quoteState === "expanded"
 	}
 
 	/**
@@ -303,8 +363,12 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		wrapNode.appendChild(sanitizedMailBody.cloneNode(true))
 
 		// query all top level block quotes
-		for (const quote of Array.from(wrapNode.querySelectorAll("blockquote:not(blockquote blockquote)")) as HTMLElement[]) {
-			this.createCollapsedBlockQuote(quote, attrs)
+		const quoteElements = Array.from(wrapNode.querySelectorAll("blockquote:not(blockquote blockquote)")) as HTMLElement[]
+		if (quoteElements.length === 0) {
+			this.quoteState = "noquotes"
+		}
+		for (const quote of quoteElements) {
+			this.createCollapsedBlockQuote(quote, this.shouldDisplayCollapsedQuotes())
 		}
 
 		if (client.isMobileDevice()) {
@@ -333,47 +397,33 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		this.currentlyRenderedMailBody = sanitizedMailBody
 	}
 
-	private createCollapsedBlockQuote(quote: HTMLElement, attrs: MailViewerAttrs) {
+	private createCollapsedBlockQuote(quote: HTMLElement, expanded: boolean) {
 		const quoteWrap = document.createElement("div")
-		quote.style.display = attrs.defaultQuoteBehavior === "expand" ? "" : "none"
 		// used to query quotes later
-		quote.setAttribute("tuta-collapsed-quote", "true")
+		quoteWrap.setAttribute("tuta-collapsed-quote", "true")
 
 		quote.replaceWith(quoteWrap)
+		quote.style.display = expanded ? "" : "none"
 
-		const expandButton = document.createElement("div")
-		expandButton.style.border = `1px solid ${theme.list_border}`
-		// restrict wrapper size
-		expandButton.classList.add("flex")
-		expandButton.style.maxWidth = "fit-content"
-		expandButton.style.borderRadius = "25%"
+		const quoteIndicator = document.createElement("div")
+		quoteIndicator.classList.add("flex")
+		quoteIndicator.style.borderLeft = `2px solid ${grey_lighter_1}`
+		quoteIndicator.style.display = expanded ? "none" : ""
 
-		const renderIntoButton = () => {
-			m.render(
-				expandButton,
-				m(ToggleButton, {
-					icon: Icons.More,
-					size: ButtonSize.Compact,
-					toggled: quote.style.display !== "none",
-					onToggled: () => {
-						const wasCollapsed = quote.style.display === "none"
-						if (wasCollapsed) {
-							quote.style.display = ""
-						} else {
-							quote.style.display = "none"
-						}
-						renderIntoButton()
-					},
-					title: "showText_action",
-					toggledTitle: "hideText_action",
-				}),
-			)
-		}
+		m.render(
+			quoteIndicator,
+			m(Icon, {
+				icon: Icons.More,
+				class: "icon-xl mlr",
+				container: "div",
+				style: {
+					fill: grey,
+				},
+			}),
+		)
 
-		renderIntoButton()
-
-		quoteWrap.appendChild(expandButton)
 		quoteWrap.appendChild(quote)
+		quoteWrap.appendChild(quoteIndicator)
 	}
 
 	private clearDomBody() {

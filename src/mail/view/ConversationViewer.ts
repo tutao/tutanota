@@ -20,6 +20,8 @@ export interface ConversationViewerAttrs {
 
 const SCROLL_FACTOR = 4 / 5
 
+const conversationCardMarginTop = "18px"
+
 /**
  * Displays mails in a conversation
  */
@@ -163,8 +165,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 
 	private renderViewer(mailViewModel: MailViewerViewModel, isPrimary: boolean, position: number | null): Children {
 		return m(
-			// We want to clip mail bodies with our border radius but we don't want to clip tooltips on folder icons
-			".border-radius-big.mt-m" + (mailViewModel.isCollapsed() ? "" : ".overflow-y-hidden"),
+			".border-radius-big.rel",
 			{
 				class: mailViewerMargin(),
 				key: elementIdPart(mailViewModel.mail.conversationEntry),
@@ -176,6 +177,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				style: {
 					border: `1px solid ${theme.list_border}`,
 					backgroundColor: theme.content_bg,
+					marginTop: conversationCardMarginTop,
 				},
 			},
 			// probably should trigger the load from somewhere here but currently we need to render mail viewer for that to happen
@@ -299,11 +301,11 @@ export class ObservableSubject implements Component<ObservableSubjectAttrs> {
 	view(vnode: Vnode<ObservableSubjectAttrs>): Children {
 		this.lastAttrs = vnode.attrs
 		return m(
-			".h5.subject.text-break.selectable.b.flex-grow.mt-m",
+			".h5.subject.text-break.selectable.b.flex-grow",
 			{
 				class: mailViewerMargin(),
 				"aria-label": lang.get("subject_label") + ", " + (this.lastAttrs.subject || ""),
-				style: { marginTop: "12px" },
+				style: { marginTop: conversationCardMarginTop },
 				oncreate: (vnode) => {
 					this.observer = new IntersectionObserver(
 						(entries) => {
@@ -331,12 +333,13 @@ export class ObservableSubject implements Component<ObservableSubjectAttrs> {
 class DeletedMailView implements Component {
 	view() {
 		return m(
-			".center.pt-s.pb-s.font-weight-600.border-radius-big.mt-m",
+			".center.pt-s.pb-s.font-weight-600.border-radius-big",
 			{
 				class: mailViewerMargin(),
 				style: {
 					border: `1px solid ${theme.list_border}`,
 					color: theme.content_button,
+					marginTop: conversationCardMarginTop,
 				},
 			},
 			"Deleted Email",
