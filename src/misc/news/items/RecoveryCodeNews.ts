@@ -7,7 +7,7 @@ import { NewsModel } from "../NewsModel.js"
 import type { RecoverCodeField } from "../../../settings/login/RecoverCodeDialog.js"
 import { Dialog, DialogType } from "../../../gui/base/Dialog.js"
 import { AccessBlockedError, NotAuthenticatedError } from "../../../api/common/error/RestError.js"
-import { LazyLoaded, noOp, ofClass } from "@tutao/tutanota-utils"
+import { daysToMillis, LazyLoaded, noOp, ofClass } from "@tutao/tutanota-utils"
 import { copyToClipboard } from "../../ClipboardUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
 import { progressIcon } from "../../../gui/base/Icon.js"
@@ -31,8 +31,9 @@ export class RecoveryCodeNews implements NewsListItem {
 		private readonly userManagementFacade: UserManagementFacade,
 	) {}
 
-	isShown(): boolean {
-		return this.userController.isGlobalAdmin()
+	isShown(newsId: NewsId): boolean {
+		const customerCreationTime = this.userController.userGroupInfo.created.getTime()
+		return this.userController.isGlobalAdmin() && Date.now() - customerCreationTime > daysToMillis(14)
 	}
 
 	render(newsId: NewsId): Children {
@@ -54,7 +55,7 @@ export class RecoveryCodeNews implements NewsListItem {
 				},
 				lang.get("recoveryCode_label"),
 			),
-			m("", lang.get("recoveryCode_msg")),
+			m("", lang.get("recoveryCodeReminder_msg")),
 			recoveryCode
 				? RecoverCodeField
 					? m(RecoverCodeField, {

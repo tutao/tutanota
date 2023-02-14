@@ -84,21 +84,41 @@ export type RecoverCodeFieldAttrs = {
 	showMessage: boolean
 	recoverCode: Hex
 	showButtons?: boolean
+	showImage?: string
 }
 
 export class RecoverCodeField {
 	view(vnode: Vnode<RecoverCodeFieldAttrs>): Children {
 		const lnk = InfoLink.RecoverCode
 
-		let { recoverCode, showButtons, showMessage } = vnode.attrs
+		let { recoverCode, showButtons, showMessage, showImage } = vnode.attrs
 		showButtons = showButtons ?? true
 
 		return [
 			showMessage
-				? m(".pt.pb", [
-						lang.get("recoveryCode_msg"),
-						m("", [m("small", lang.get("moreInfo_msg") + " "), m("small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])]),
-				  ])
+				? showImage
+					? m(".flex-space-around.flex-wrap", [
+							m(
+								".flex-grow-shrink-half.plr-l.flex-center.align-self-center",
+								m(".pt.pb", [
+									lang.get("recoveryCode_msg"),
+									m("", [m("small", lang.get("moreInfo_msg") + " "), m("small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])]),
+								]),
+							),
+							m(
+								".flex-grow-shrink-half.plr-l.flex-center.align-self-center",
+								m("img.pt.bg-white.pt.pb", {
+									src: showImage,
+									style: {
+										width: "200px",
+									},
+								}),
+							),
+					  ])
+					: m(".pt.pb", [
+							lang.get("recoveryCode_msg"),
+							m("", [m("small", lang.get("moreInfo_msg") + " "), m("small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])]),
+					  ])
 				: m("", lang.get("emptyString_msg")),
 			m(
 				".text-break.monospace.selectable.flex.flex-wrap.border.pt.pb.plr",

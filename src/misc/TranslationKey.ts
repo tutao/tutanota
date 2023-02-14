@@ -1583,7 +1583,8 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
-	// FIXME add to Phrase
+	| "recoveryCodeReminder_msg"
+	| "accountCongratulations_msg"
 	| "showText_action"
 	| "hideText_action"
 	| "conversationViewPref_label"

@@ -14,7 +14,7 @@ import type { TranslationKey } from "../misc/LanguageViewModel"
 import { assertTranslation } from "../misc/LanguageViewModel"
 import { createWizardDialog, wizardPageWrapper } from "../gui/base/WizardDialog.js"
 import { InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs } from "./InvoiceAndPaymentDataPage"
-import { UpgradeConfirmPage, UpgradeConfirmPageAttrs } from "./UpgradeConfirmPage"
+import { UpgradeCongratulationsPage, UpgradeCongratulationsPageAttrs } from "./UpgradeCongratulationsPage.js"
 import { SignupPage, SignupPageAttrs } from "./SignupPage"
 import { assertMainOrNode } from "../api/common/Env"
 import { locator } from "../api/main/MainLocator"
@@ -23,6 +23,7 @@ import { UpgradePriceService } from "../api/entities/sys/Services.js"
 import { FeatureListProvider, SelectedSubscriptionOptions, SubscriptionType } from "./FeatureListProvider"
 import { UpgradeType } from "./SubscriptionUtils"
 import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
+import { UpgradeConfirmSubscriptionPage } from "./UpgradeConfirmSubscriptionPage.js"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -120,7 +121,7 @@ export async function showUpgradeWizard(): Promise<void> {
 	const wizardPages = [
 		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(upgradeData)),
 		wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
-		wizardPageWrapper(UpgradeConfirmPage, new UpgradeConfirmPageAttrs(upgradeData)),
+		wizardPageWrapper(UpgradeConfirmSubscriptionPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
 	]
 	const wizardBuilder = createWizardDialog(upgradeData, wizardPages)
 	wizardBuilder.dialog.show()
@@ -169,7 +170,8 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(signupData)),
 		wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
 		wizardPageWrapper(InvoiceAndPaymentDataPage, invoiceAttrs),
-		wizardPageWrapper(UpgradeConfirmPage, new UpgradeConfirmPageAttrs(signupData)),
+		wizardPageWrapper(UpgradeConfirmSubscriptionPage, invoiceAttrs),
+		wizardPageWrapper(UpgradeCongratulationsPage, new UpgradeCongratulationsPageAttrs(signupData)),
 	]
 	const wizardBuilder = createWizardDialog(signupData, wizardPages, async () => {
 		if (logins.isUserLoggedIn()) {
@@ -188,7 +190,7 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 		}
 	})
 
-	// for signup specifically, we only want the invoice and payment page to show up if signing up for a paid account (and the user did not go back to the first page!)
+	// for signup specifically, we only want the invoice and payment page as well as the confirmation page to show up if signing up for a paid account (and the user did not go back to the first page!)
 	invoiceAttrs.setEnabledFunction(() => signupData.type !== SubscriptionType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
 
 	wizardBuilder.dialog.show()
