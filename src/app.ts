@@ -229,7 +229,7 @@ import("./translations/en")
 						component: MailView,
 						cache: previousCache ?? {
 							drawerAttrsFactory: await locator.drawerAttrsFactory(),
-							cache: { mailList: null, selectedFolder: null, conversationViewModel: null },
+							cache: { mailList: null, selectedFolder: null, conversationViewModel: null, conversationViewPreference: null },
 							header: await locator.baseHeaderAttrs(),
 						},
 					}

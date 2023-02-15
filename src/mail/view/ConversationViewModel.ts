@@ -17,6 +17,10 @@ export type SubjectItem = { type: "subject"; subject: string; id: string; entryI
 export type DeletedItem = { type: "deleted"; entryId: IdTuple }
 export type ConversationItem = MailItem | SubjectItem | DeletedItem
 
+interface ConversationPrefProvider {
+	getConversationViewShowOnlySelectedMail(): boolean
+}
+
 export class ConversationViewModel {
 	/** Primary viewModel is for the mail that was selected from the list. */
 	private readonly _primaryViewModel: MailViewerViewModel
@@ -30,6 +34,7 @@ export class ConversationViewModel {
 		private readonly viewModelFactory: MailViewerViewModelFactory,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
+		private readonly conversationPrefProvider: ConversationPrefProvider,
 		private readonly onUiUpdate: () => unknown,
 	) {
 		this._primaryViewModel = viewModelFactory(options)
@@ -46,6 +51,12 @@ export class ConversationViewModel {
 		// conversation entry is deleted only when every email in the conversation is deleted (the whole conversation list will be deleted)
 		for (const update of updates) {
 			if (isUpdateForTypeRef(ConversationEntryTypeRef, update) && update.instanceListId === this.conversationListId()) {
+				if (this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()) {
+					// no need to handle CREATE because we only show a single item and we don't want to add new ones
+					// no need to handle UPDATE because the only update that can happen is when email gets deleted and then we should be closed from the
+					// outside anyway
+					continue
+				}
 				switch (update.operation) {
 					case OperationType.CREATE:
 						await this.processCreateConversationEntry(update)
@@ -159,9 +170,13 @@ export class ConversationViewModel {
 
 	private async loadConversation() {
 		try {
-			const conversationEntries = await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(this.primaryMail.conversationEntry))
-			const allMails = await this.loadMails(conversationEntries)
-			this.conversation = this.createConversationItems(conversationEntries, allMails)
+			if (this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()) {
+				this.conversation = this.conversationItemsForSelectedMailOnly()
+			} else {
+				const conversationEntries = await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(this.primaryMail.conversationEntry))
+				const allMails = await this.loadMails(conversationEntries)
+				this.conversation = this.createConversationItems(conversationEntries, allMails)
+			}
 		} finally {
 			this.onUiUpdate()
 		}
@@ -211,17 +226,19 @@ export class ConversationViewModel {
 	}
 
 	conversationItems(): ReadonlyArray<ConversationItem> {
-		return (
-			this.conversation ?? [
-				{
-					type: "subject",
-					subject: normalizeSubject(this._primaryViewModel.mail.subject),
-					id: getElementId(this._primaryViewModel.mail),
-					entryId: this._primaryViewModel.mail.conversationEntry,
-				},
-				{ type: "mail", viewModel: this._primaryViewModel, entryId: this._primaryViewModel.mail.conversationEntry },
-			]
-		)
+		return this.conversation ?? this.conversationItemsForSelectedMailOnly()
+	}
+
+	private conversationItemsForSelectedMailOnly(): ConversationItem[] {
+		return [
+			{
+				type: "subject",
+				subject: normalizeSubject(this._primaryViewModel.mail.subject),
+				id: getElementId(this._primaryViewModel.mail),
+				entryId: this._primaryViewModel.mail.conversationEntry,
+			},
+			{ type: "mail", viewModel: this._primaryViewModel, entryId: this._primaryViewModel.mail.conversationEntry },
+		]
 	}
 
 	get primaryMail(): Mail {

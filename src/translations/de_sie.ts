@@ -1603,6 +1603,7 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"showText_action": "Text anzeigen",
-		"hideText_action": "Text verbergen"
+		"hideText_action": "Text verbergen",
+		"conversationViewPref_label": "Alle E-Mails zur Diskussion im Thema anzeigen",
 	}
 }

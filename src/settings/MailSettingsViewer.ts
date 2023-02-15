@@ -260,6 +260,19 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			addButtonAttrs: addInboxRuleButtonAttrs,
 			lines: this._inboxRulesTableLines(),
 		}
+		const conversationViewDropdownAttrs: DropDownSelectorAttrs<boolean> = {
+			label: "conversationViewPref_label",
+			// yes, activated means "false" because the pref is to "disable" it but
+			// we disabled it as "enabled"
+			items: [
+				{ name: lang.get("activated_label"), value: false },
+				{ name: lang.get("deactivated_label"), value: true },
+			],
+			selectedValue: deviceConfig.getConversationViewShowOnlySelectedMail(),
+			selectionChangedHandler: (arg: boolean) => {
+				deviceConfig.setConversationViewShowOnlySelectedMail(arg)
+			},
+		}
 		return [
 			m(
 				"#user-settings.fill-absolute.scroll.plr-l.pb-xl",
@@ -289,6 +302,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(DropDownSelector, enableMailIndexingAttrs),
 					m(DropDownSelector, reportMovedMailsAttrs),
 					m(TextField, outOfOfficeAttrs),
+					m(DropDownSelector, conversationViewDropdownAttrs),
 					this.renderLocalDataSection(),
 					this.mailAddressTableModel ? m(MailAddressTable, { model: this.mailAddressTableModel }) : null,
 					logins.isEnabled(FeatureType.InternalCommunication)
