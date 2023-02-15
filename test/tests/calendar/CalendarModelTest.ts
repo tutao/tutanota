@@ -18,8 +18,7 @@ import {
 	incrementByRepeatPeriod,
 } from "../../../src/calendar/date/CalendarUtils.js"
 import { clone, downcast, getStartOfDay, neverNull, noOp } from "@tutao/tutanota-utils"
-import type { CalendarModel } from "../../../src/calendar/model/CalendarModel.js"
-import { CalendarModelImpl } from "../../../src/calendar/model/CalendarModel.js"
+import { CalendarModel } from "../../../src/calendar/model/CalendarModel.js"
 import { CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
 import { DateTime } from "luxon"
 import { generateEventElementId, getAllDayDateUTC } from "../../../src/api/common/utils/CommonCalendarUtils.js"
@@ -1303,10 +1302,10 @@ function init({
 		restClientMock,
 	),
 	fileFacade = makeFileController(),
-}): CalendarModelImpl {
+}): CalendarModel {
 	const lazyScheduler = async () => alarmScheduler
 
-	return new CalendarModelImpl(
+	return new CalendarModel(
 		notifications,
 		lazyScheduler,
 		eventController,

@@ -10,8 +10,7 @@ import { LoginController, logins } from "./LoginController"
 import type { ContactModel } from "../../contacts/model/ContactModel"
 import { ContactModelImpl } from "../../contacts/model/ContactModel"
 import { EntityClient } from "../common/EntityClient"
-import type { CalendarModel } from "../../calendar/model/CalendarModel"
-import { CalendarInfo, CalendarModelImpl } from "../../calendar/model/CalendarModel"
+import { CalendarInfo, CalendarModel } from "../../calendar/model/CalendarModel"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer, lazyMemoized } from "@tutao/tutanota-utils"
 import { ProgressTracker } from "./ProgressTracker"
@@ -578,7 +577,7 @@ class MainLocator {
 				? new FileControllerBrowser(blobFacade, fileFacade, guiDownload)
 				: new FileControllerNative(blobFacade, fileFacade, guiDownload, this.nativeInterfaces.fileApp)
 
-		this.calendarModel = new CalendarModelImpl(
+		this.calendarModel = new CalendarModel(
 			notifications,
 			lazyScheduler,
 			this.eventController,
