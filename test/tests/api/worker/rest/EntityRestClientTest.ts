@@ -1,10 +1,16 @@
 import o from "ospec"
-import { BadRequestError, ConnectionError, InternalServerError, PayloadTooLargeError } from "../../../../../src/api/common/error/RestError.js"
+import {
+	BadRequestError,
+	ConnectionError,
+	InternalServerError,
+	NotAuthorizedError,
+	PayloadTooLargeError,
+} from "../../../../../src/api/common/error/RestError.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { SetupMultipleError } from "../../../../../src/api/common/error/SetupMultipleError.js"
 import { HttpMethod, MediaType, resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
 import { createCustomer, CustomerTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { EntityRestClient, tryServers, typeRefToPath } from "../../../../../src/api/worker/rest/EntityRestClient.js"
+import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeRefToPath } from "../../../../../src/api/worker/rest/EntityRestClient.js"
 import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
 import type { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
 import { InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
@@ -14,7 +20,7 @@ import sysModelInfo from "../../../../../src/api/entities/sys/ModelInfo.js"
 import { AuthDataProvider } from "../../../../../src/api/worker/facades/UserFacade.js"
 import { LoginIncompleteError } from "../../../../../src/api/common/error/LoginIncompleteError.js"
 import { createBlobServerAccessInfo, createBlobServerUrl } from "../../../../../src/api/entities/storage/TypeRefs.js"
-import { Mapper } from "@tutao/tutanota-utils"
+import { Mapper, ofClass } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
 import { BlobAccessTokenFacade } from "../../../../../src/api/worker/facades/BlobAccessTokenFacade.js"
 import {
@@ -26,6 +32,8 @@ import {
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { DateProvider } from "../../../../../src/api/common/DateProvider.js"
+import { DateProviderImpl } from "../../../../../src/calendar/date/CalendarUtils.js"
 
 const { anything, argThat } = matchers
 
@@ -61,6 +69,7 @@ o.spec("EntityRestClient", async function () {
 	let cryptoFacadeMock: CryptoFacade
 	let fullyLoggedIn: boolean
 	let blobAccessTokenFacade: BlobAccessTokenFacade
+	let dateProvider: DateProvider
 
 	o.beforeEach(function () {
 		cryptoFacadeMock = object()
@@ -96,6 +105,8 @@ o.spec("EntityRestClient", async function () {
 				return fullyLoggedIn
 			},
 		}
+
+		dateProvider = instance(DateProviderImpl)
 		entityRestClient = new EntityRestClient(authDataProvider, restClient, () => cryptoFacadeMock, instanceMapperMock, blobAccessTokenFacade)
 	})
 
@@ -328,25 +339,45 @@ o.spec("EntityRestClient", async function () {
 			const firstServer = "firstServer"
 
 			const blobAccessToken = "123"
-			when(blobAccessTokenFacade.requestReadTokenArchive(anything(), archiveId)).thenResolve(
-				createBlobServerAccessInfo({
-					blobAccessToken,
-					servers: [createBlobServerUrl({ url: firstServer }), createBlobServerUrl({ url: "otherServer" })],
-				}),
-			)
+			let blobServerAccessInfo = createBlobServerAccessInfo({
+				blobAccessToken,
+				servers: [createBlobServerUrl({ url: firstServer }), createBlobServerUrl({ url: "otherServer" })],
+			})
+			when(blobAccessTokenFacade.requestReadTokenArchive(archiveId)).thenResolve(blobServerAccessInfo)
+
+			when(blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, anything(), anything())).thenDo((blobServerAccessInfo, authHeaders) => {
+				return Object.assign({ blobAccessToken: blobServerAccessInfo.blobAccessToken }, authHeaders)
+			})
 
 			when(restClient.request(anything(), HttpMethod.GET, anything())).thenResolve(JSON.stringify([{ instance: 1 }, { instance: 2 }]))
 
 			const result = await entityRestClient.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
 
+			let expectedOptions = {
+				headers: {},
+				queryParams: { ids: "0,1,2,3,4", ...authHeader, blobAccessToken, v: String(tutanotaModelInfo.version) },
+				responseType: MediaType.Json,
+				noCORS: true,
+				baseUrl: firstServer,
+			}
 			verify(
-				restClient.request(`${typeRefToPath(MailDetailsBlobTypeRef)}/${archiveId}`, HttpMethod.GET, {
-					headers: {},
-					queryParams: { ids: "0,1,2,3,4", ...authHeader, blobAccessToken, v: String(tutanotaModelInfo.version) },
-					responseType: MediaType.Json,
-					noCORS: true,
-					baseUrl: firstServer,
-				}),
+				restClient.request(
+					`${typeRefToPath(MailDetailsBlobTypeRef)}/${archiveId}`,
+					HttpMethod.GET,
+					argThat((optionsArg) => {
+						o(optionsArg.headers).deepEquals(expectedOptions.headers)("headers")
+						o(optionsArg.responseType).equals(expectedOptions.responseType)("responseType")
+						o(optionsArg.baseUrl).equals(expectedOptions.baseUrl)("baseUrl")
+						o(optionsArg.noCORS).equals(expectedOptions.noCORS)("noCORS")
+						o(optionsArg.queryParams).deepEquals({
+							blobAccessToken: "123",
+							...authHeader,
+							ids: "0,1,2,3,4",
+							v: String(tutanotaModelInfo.version),
+						})
+						return true
+					}),
+				),
 			)
 
 			// There's some weird optimization for list requests where the types to migrate
@@ -364,12 +395,15 @@ o.spec("EntityRestClient", async function () {
 
 			const blobAccessToken = "123"
 			const otherServer = "otherServer"
-			when(blobAccessTokenFacade.requestReadTokenArchive(anything(), archiveId)).thenResolve(
-				createBlobServerAccessInfo({
-					blobAccessToken,
-					servers: [createBlobServerUrl({ url: firstServer }), createBlobServerUrl({ url: otherServer })],
-				}),
-			)
+			const blobServerAccessInfo = createBlobServerAccessInfo({
+				blobAccessToken,
+				servers: [createBlobServerUrl({ url: firstServer }), createBlobServerUrl({ url: otherServer })],
+			})
+			when(blobAccessTokenFacade.requestReadTokenArchive(archiveId)).thenResolve(blobServerAccessInfo)
+
+			when(blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, anything(), anything())).thenDo((blobServerAccessInfo, authHeaders) => {
+				return Object.assign({ blobAccessToken: blobServerAccessInfo.blobAccessToken }, authHeaders)
+			})
 
 			when(
 				restClient.request(anything(), HttpMethod.GET, {
@@ -415,7 +449,7 @@ o.spec("EntityRestClient", async function () {
 			}
 
 			verify(restClient.request(anything(), anything(), anything()), { times: 0 })
-			verify(blobAccessTokenFacade.requestReadTokenArchive(anything(), anything()), { times: 0 })
+			verify(blobAccessTokenFacade.requestReadTokenArchive(anything()), { times: 0 })
 
 			o(result).equals(null)
 		})
@@ -855,6 +889,47 @@ o.spec("EntityRestClient", async function () {
 			const e = await assertThrows(ConnectionError, () => tryServers(servers, mapperMock, "error log msg"))
 			o(e.message).equals("test")
 			verify(mapperMock(anything(), anything()), { times: 2 })
+		})
+	})
+
+	o.spec("doBlobRequestWithRetry", function () {
+		o("retry once after NotAuthorizedError, then fails", async function () {
+			let blobRequestCallCount = 0
+			let evictCacheCallCount = 0
+			let errorThrown = 0
+			const doBlobRequest = async () => {
+				blobRequestCallCount += 1
+				throw new NotAuthorizedError("test error")
+			}
+			const evictCache = () => {
+				evictCacheCallCount += 1
+			}
+			await doBlobRequestWithRetry(doBlobRequest, evictCache).catch(
+				ofClass(NotAuthorizedError, (e) => {
+					errorThrown += 1 // must be thrown
+				}),
+			)
+			o(errorThrown).equals(1)
+			o(blobRequestCallCount).equals(2)
+			o(evictCacheCallCount).equals(1)
+		})
+
+		o("retry once after NotAuthorizedError, then succeeds", async function () {
+			let blobRequestCallCount = 0
+			let evictCacheCallCount = 0
+			const doBlobRequest = async () => {
+				//only throw on first call
+				if (blobRequestCallCount === 0) {
+					blobRequestCallCount += 1
+					throw new NotAuthorizedError("test error")
+				}
+			}
+			const evictCache = () => {
+				evictCacheCallCount += 1
+			}
+			await doBlobRequestWithRetry(doBlobRequest, evictCache)
+			o(blobRequestCallCount).equals(1)
+			o(evictCacheCallCount).equals(1)
 		})
 	})
 })

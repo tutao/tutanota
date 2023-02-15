@@ -62,22 +62,21 @@ export class RestClient {
 		if (this.suspensionHandler.isSuspended()) {
 			return this.suspensionHandler.deferRequest(() => this.request(path, method, options))
 		} else {
-			return new Promise((resolve, reject) => {
+			return new Promise(async (resolve, reject) => {
 				this.id++
-				if (!options.queryParams) {
-					options.queryParams = {}
-				}
+
+				const queryParams: Dict = options.queryParams ?? {}
 
 				if (method === HttpMethod.GET && typeof options.body === "string") {
-					options.queryParams["_body"] = options.body // get requests are not allowed to send a body. Therefore, we convert our body to a paramater
+					queryParams["_body"] = options.body // get requests are not allowed to send a body. Therefore, we convert our body to a paramater
 				}
 
 				if (options.noCORS) {
-					options.queryParams["cv"] = env.versionNumber
+					queryParams["cv"] = env.versionNumber
 				}
 
 				const origin = options.baseUrl ?? getApiOrigin()
-				const url = addParamsToUrl(new URL(origin + path), options.queryParams)
+				const url = addParamsToUrl(new URL(origin + path), queryParams)
 				const xhr = new XMLHttpRequest()
 				xhr.open(method, url.toString())
 
@@ -296,7 +295,6 @@ export class RestClient {
 		if (responseType) {
 			headers["Accept"] = responseType
 		}
-
 		for (const i in headers) {
 			xhr.setRequestHeader(i, headers[i])
 		}
