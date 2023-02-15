@@ -21,6 +21,7 @@ import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { CCViewModel, SimplifiedCreditCardInput } from "./SimplifiedCreditCardInput.js"
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.js"
 import { CreditCardInput, OldCreditCardViewModel } from "./CreditCardInput.js"
+import { PaymentCredit2Stages } from "./PaymentCredit2Stages.js"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -122,7 +123,7 @@ export class PaymentMethodInput {
 
 	private startCCTest() {
 		if (this.ccFormTest.lastCompletedStage > 0) return
-		this.ccFormTest.getStage(1).complete()
+		this.ccFormTest.getStage(PaymentCredit2Stages.FocusedInput).complete()
 		this.ccFormTest.meta["ccTestStartTime"] = Date.now() / 1000
 	}
 
@@ -159,7 +160,7 @@ export class PaymentMethodInput {
 			// with the new test it's possible to evade stage1.complete by not selecting any input field
 			// and immediately trying to validate an empty form.
 			this.startCCTest()
-			return this.ccViewModel.validateCreditCardPaymentData(this.ccFormTest?.getStage(2))
+			return this.ccViewModel.validateCreditCardPaymentData(this.ccFormTest?.getStage(PaymentCredit2Stages.TriedClientValidation))
 		} else {
 			return null
 		}
@@ -179,7 +180,7 @@ export class PaymentMethodInput {
 			}
 
 			// this is a dummy stage to circumvent the restart test that's attached to stage 0
-			this.ccFormTest?.getStage(0).complete()
+			this.ccFormTest?.getStage(PaymentCredit2Stages.Entered).complete()
 		} else if (value === PaymentMethodType.Paypal) {
 			this._payPalAttrs.payPalRequestUrl.getAsync().then(() => m.redraw())
 
