@@ -13,6 +13,7 @@ import { locator } from "../api/main/MainLocator"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { UsageTest } from "@tutao/tutanota-usagetests"
+import { PaymentCredit2Stages } from "./PaymentCredit2Stages.js"
 
 export enum InvoiceDataInputLocation {
 	InWizard = 0,
@@ -83,7 +84,7 @@ export class InvoiceDataInput implements Component {
 
 	private startCCTest() {
 		if (!this.__paymentCreditTest || this.__paymentCreditTest.lastCompletedStage > 0) return
-		this.__paymentCreditTest.getStage(1).complete()
+		this.__paymentCreditTest.getStage(PaymentCredit2Stages.FocusedInput).complete()
 		this.__paymentCreditTest.meta["ccTestStartTime"] = Date.now() / 1000
 	}
 
@@ -91,7 +92,7 @@ export class InvoiceDataInput implements Component {
 		const address = this.getAddress()
 		const countrySelected = this.selectedCountry() != null
 		this.startCCTest()
-		const stage = this.__paymentCreditTest?.getStage(2)
+		const stage = this.__paymentCreditTest?.getStage(PaymentCredit2Stages.TriedClientValidation)
 		stage?.setMetric({
 			name: "validationFailure",
 			value: "invoiceDataMissing",
