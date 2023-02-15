@@ -29,7 +29,9 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 				onclick: () => viewModel.expandMail(),
 			},
 			[
-				m(".font-weight-600", getMailAddressDisplayText(mail.sender.name, mail.sender.address, true)),
+				viewModel.isUnread() ? this.renderUnreadDot() : null,
+				viewModel.isDraftMail() ? m(".mr-xs", this.renderIcon(Icons.Edit)) : null,
+				m(viewModel.isUnread() ? ".font-weight-600" : "", getMailAddressDisplayText(mail.sender.name, mail.sender.address, true)),
 				m(".flex-grow"),
 				m(".flex.ml-between-s.items-center", [
 					mail.attachments.length > 0 ? this.renderIcon(Icons.Attachment) : null,
@@ -38,6 +40,17 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 					m(".small.font-weight-600", dateTime),
 				]),
 			],
+		)
+	}
+
+	private renderUnreadDot(): Children {
+		return m(
+			".flex.flex-no-grow.no-shrink.pr-s",
+			m(".dot.bg-accent-fg", {
+				style: {
+					marginTop: 0,
+				},
+			}),
 		)
 	}
 

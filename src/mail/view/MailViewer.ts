@@ -32,7 +32,6 @@ import { isNewMailActionAvailable } from "../../gui/nav/NavFunctions"
 import { CancelledError } from "../../api/common/error/CancelledError"
 import { MailViewerHeader } from "./MailViewerHeader.js"
 import { editDraft, mailViewerPadding, showHeaderDialog } from "./MailViewerUtils.js"
-import { grey, grey_lighter_1 } from "../../gui/builtinThemes.js"
 import { ToggleButton } from "../../gui/base/ToggleButton.js"
 
 assertMainOrNode()
@@ -407,7 +406,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 		const quoteIndicator = document.createElement("div")
 		quoteIndicator.classList.add("flex")
-		quoteIndicator.style.borderLeft = `2px solid ${grey_lighter_1}`
+		quoteIndicator.style.borderLeft = `2px solid ${theme.content_border}`
 		quoteIndicator.style.display = expanded ? "none" : ""
 
 		m.render(
@@ -417,7 +416,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				class: "icon-xl mlr",
 				container: "div",
 				style: {
-					fill: grey,
+					fill: theme.navigation_menu_icon,
 				},
 			}),
 		)
