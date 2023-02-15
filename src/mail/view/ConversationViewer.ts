@@ -10,9 +10,10 @@ import { CollapsedMailView } from "./CollapsedMailView.js"
 import { mailViewerMargin } from "./MailViewerUtils.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { max } from "@tutao/tutanota-utils/dist/CollectionUtils.js"
-import { px } from "../../gui/size.js"
+import { px, size } from "../../gui/size.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
 import { keyManager, Shortcut } from "../../misc/KeyManager.js"
+import { styles } from "../../gui/styles.js"
 
 export interface ConversationViewerAttrs {
 	viewModel: ConversationViewModel
@@ -20,7 +21,7 @@ export interface ConversationViewerAttrs {
 
 const SCROLL_FACTOR = 4 / 5
 
-const conversationCardMarginTop = "18px"
+const conversationCardMargin = 18
 
 /**
  * Displays mails in a conversation
@@ -84,15 +85,22 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				},
 				this.renderItems(viewModel, this.lastItems),
 				this.renderLoadingState(viewModel),
-				m(".mt-l", {
-					style: {
-						// Having more room at the bottom allows the last email to be scrolled up more, which is nice
-						height: "400px",
-					},
-				}),
+				this.renderFooter(),
 			),
 			this.renderFloatingSubject(),
 		])
+	}
+
+	private renderFooter() {
+		// Having more room at the bottom allows the last email so it is (almost) always in the same place on the screen.
+		// We reduce space by 100 for the header of the viewer and a bit more
+		const height =
+			document.body.offsetHeight - (styles.isUsingBottomNavigation() ? size.navbar_height_mobile + size.bottom_nav_bar : size.navbar_height) - 100
+		return m(".mt-l", {
+			style: {
+				height: px(height),
+			},
+		})
 	}
 
 	private renderItems(viewModel: ConversationViewModel, entries: readonly ConversationItem[]): Children {
@@ -146,16 +154,18 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 					top: 0,
 					left: 0,
 					right: 0,
-					borderBottom: `1px solid ${theme.list_border}`,
-					transition: `200ms ease-in-out`,
 					transform: "translateY(-100%)",
 				},
 			},
 			m(
-				".b.subject.text-break.pt-s.pb-s.text-ellipsis",
+				".b.h5.subject.text-break.text-ellipsis",
 				{
 					oncreate: ({ dom }) => {
 						this.floatingSubjectDom = dom as HTMLElement
+					},
+					style: {
+						marginTop: px(conversationCardMargin),
+						marginBottom: px(conversationCardMargin),
 					},
 				},
 				"",
@@ -177,7 +187,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				style: {
 					border: `1px solid ${theme.list_border}`,
 					backgroundColor: theme.content_bg,
-					marginTop: conversationCardMarginTop,
+					marginTop: px(conversationCardMargin),
 				},
 			},
 			// probably should trigger the load from somewhere here but currently we need to render mail viewer for that to happen
@@ -218,7 +228,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 		if (this.floatingSubjectDom) {
 			if (this.subjectsAboveViewport.size === 0) {
 				// all subjects above us are visible, hide the sticky subject
-				this.floatingSubjectDom.parentElement!.style.transform = `translateY(${px(-this.floatingSubjectDom.offsetHeight)})`
+				this.floatingSubjectDom.parentElement!.style.transform = "translateY(-100%)"
 			} else {
 				this.floatingSubjectDom.parentElement!.style.transform = ""
 				this.floatingSubjectDom.innerText = this.subjectForFloatingHeader() ?? ""
@@ -243,15 +253,14 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 
 			this.didScroll = true
 			requestAnimationFrame(() => {
-				// Find the index of the primary entry or of a subject before it
-				// there's a chance that item are not in sync with dom but it's very unlikely, this is the next frame after the last render we used the items
+				// There's a chance that item are not in sync with dom but it's very unlikely, this is the next frame after the last render we used the items
 				// and viewModel is finished.
-				const itemIndex = items.findIndex((e) => isSameId(e.entryId, conversationId))
+				const itemIndex = items.findIndex((e) => e.type === "mail" && isSameId(e.entryId, conversationId))
 				// Don't scroll if it's already the first (or if we didn't find it but that would be weird)
-				if (itemIndex > 0) {
+				if (itemIndex > 1) {
 					const top = (containerDom.childNodes[itemIndex] as HTMLElement).offsetTop
-					// 46 for the floating header
-					containerDom.scrollTo({ top: top - 46 })
+					// The extra 2 is to ensure that the view is scrolled enough so that the floating subject picks up on the right subject
+					containerDom.scrollTo({ top: top - calculateSubjectHeaderHeight() - 2 })
 				}
 			})
 		}
@@ -305,7 +314,7 @@ export class ObservableSubject implements Component<ObservableSubjectAttrs> {
 			{
 				class: mailViewerMargin(),
 				"aria-label": lang.get("subject_label") + ", " + (this.lastAttrs.subject || ""),
-				style: { marginTop: conversationCardMarginTop },
+				style: { marginTop: px(conversationCardMargin) },
 				oncreate: (vnode) => {
 					this.observer = new IntersectionObserver(
 						(entries) => {
@@ -317,7 +326,7 @@ export class ObservableSubject implements Component<ObservableSubjectAttrs> {
 								: "below"
 							this.lastAttrs.cb(visibility)
 						},
-						{ root: vnode.dom.parentElement },
+						{ root: vnode.dom.parentElement, rootMargin: px(-calculateSubjectHeaderHeight()) },
 					)
 					this.observer.observe(vnode.dom)
 				},
@@ -339,10 +348,15 @@ class DeletedMailView implements Component {
 				style: {
 					border: `1px solid ${theme.list_border}`,
 					color: theme.content_button,
-					marginTop: conversationCardMarginTop,
+					marginTop: px(conversationCardMargin),
 				},
 			},
 			"Deleted Email",
 		)
 	}
+}
+
+function calculateSubjectHeaderHeight(): number {
+	// size.font_size_base * 1.2 = font size of h5
+	return conversationCardMargin * 2 + size.line_height * size.font_size_base * 1.2
 }

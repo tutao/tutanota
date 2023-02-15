@@ -10,7 +10,7 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { EventBanner } from "./EventBanner.js"
 import { RecipientButton } from "../../gui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DomRectReadOnlyPolyfilled, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
-import { InboxRuleType, Keys, MailAuthenticationStatus, MailState, TabIndex } from "../../api/common/TutanotaConstants.js"
+import { InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../api/common/TutanotaConstants.js"
 import { Icon, progressIcon } from "../../gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../misc/Formatter.js"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env.js"
@@ -128,16 +128,6 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						"aria-label": lang.get(viewModel.isConfidential() ? "confidential_action" : "nonConfidential_action") + ", " + dateTime,
 					}),
 					m(".flex.ml-between-s.items-center", [
-						viewModel.mail.state === MailState.DRAFT
-							? m(Icon, {
-									icon: Icons.Edit,
-									style: {
-										fill: theme.content_fg,
-									},
-									// flex makes svg inside centered and not randomly somewhere
-									class: "flex",
-							  })
-							: null,
 						viewModel.isConfidential()
 							? m(Icon, {
 									icon: Icons.Lock,
@@ -172,7 +162,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		return m(classes, [
 			m(
-				".flex.flex-grow.flex-wrap.items-start.mt",
+				".flex.flex-grow.align-self-start.items-start.mt",
 				{
 					role: "button",
 					onclick: () => {
@@ -184,10 +174,38 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						}
 					},
 				},
-				[this.tutaoBadge(viewModel), m("span.text-break" + (attrs.isPrimary ? ".font-weight-600" : ""), viewModel.mail.sender.name)],
+				[
+					viewModel.isUnread() ? this.renderUnreadDot() : null,
+					viewModel.isDraftMail()
+						? m(
+								".mr-xs.align-self-center",
+								m(Icon, {
+									icon: Icons.Edit,
+									container: "div",
+									style: {
+										fill: theme.content_button,
+									},
+								}),
+						  )
+						: null,
+					this.tutaoBadge(viewModel),
+					m("span.text-break" + (viewModel.isUnread() ? ".font-weight-600" : ""), viewModel.mail.sender.name),
+				],
 			),
 			this.actionButtons(attrs),
 		])
+	}
+
+	private renderUnreadDot(): Children {
+		return m(
+			".flex.flex-no-grow.no-shrink.pr-s",
+			{
+				style: {
+					paddingTop: "2px",
+				},
+			},
+			m(".dot.bg-accent-fg"),
+		)
 	}
 
 	private makeSubjectActionsLineClasses(attrs: MailViewerHeaderAttrs) {

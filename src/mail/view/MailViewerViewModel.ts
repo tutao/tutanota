@@ -1061,6 +1061,9 @@ export class MailViewerViewModel {
 
 	expandMail(): void {
 		this.loadAll({ notify: true })
+		if (this.isUnread()) {
+			this.setUnread(false)
+		}
 		this.collapsed = false
 	}
 
