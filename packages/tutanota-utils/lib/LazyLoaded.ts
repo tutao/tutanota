@@ -80,7 +80,7 @@ export class LazyLoaded<T> {
 	/**
 	 * Loads the object again and replaces the current one
 	 */
-	reload(): Promise<T> {
+	async reload(): Promise<T> {
 		return this._loadFunction().then((result) => {
 			this._isLoaded = true
 			this._loadedObject = result

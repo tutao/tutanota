@@ -9,7 +9,7 @@ import type { NativeFileApp } from "../native/common/FileApp"
 import { ArchiveDataType } from "../api/common/TutanotaConstants"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { FileFacade } from "../api/worker/facades/lazy/FileFacade.js"
-import { ProgressObserver, FileController, isLegacyFile, zipDataFiles } from "./FileController.js"
+import { createReferencingInstance, FileController, isLegacyFile, ProgressObserver, zipDataFiles } from "./FileController.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
@@ -67,8 +67,7 @@ export class FileControllerNative extends FileController {
 		} else {
 			return await this.blobFacade.downloadAndDecryptNative(
 				ArchiveDataType.Attachments,
-				tutanotaFile.blobs,
-				tutanotaFile,
+				createReferencingInstance(tutanotaFile),
 				tutanotaFile.name,
 				assertNotNull(tutanotaFile.mimeType, "tried to call blobfacade.downloadAndDecryptNative with null mimeType"),
 			)

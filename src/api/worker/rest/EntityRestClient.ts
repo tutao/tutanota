@@ -4,7 +4,14 @@ import { _verifyType, HttpMethod, MediaType, resolveTypeReference } from "../../
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
 import { PushIdentifierTypeRef } from "../../entities/sys/TypeRefs.js"
-import { ConnectionError, InternalServerError, NotAuthenticatedError, NotFoundError, PayloadTooLargeError } from "../../common/error/RestError"
+import {
+	ConnectionError,
+	InternalServerError,
+	NotAuthenticatedError,
+	NotAuthorizedError,
+	NotFoundError,
+	PayloadTooLargeError,
+} from "../../common/error/RestError"
 import type { lazy } from "@tutao/tutanota-utils"
 import { flat, isSameTypeRef, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
@@ -17,7 +24,6 @@ import { InstanceMapper } from "../crypto/InstanceMapper"
 import { QueuedBatch } from "../EventQueue.js"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
-import { ArchiveDataType } from "../../common/TutanotaConstants.js"
 import { BlobServerUrl } from "../../entities/storage/TypeRefs.js"
 import { BlobAccessTokenFacade } from "../facades/BlobAccessTokenFacade.js"
 
@@ -92,30 +98,17 @@ export interface EntityRestInterface {
  *
  */
 export class EntityRestClient implements EntityRestInterface {
-	authDataProvider: AuthDataProvider
-	private readonly restClient: RestClient
-	private readonly instanceMapper: InstanceMapper
-	// Crypto Facade is lazy due to circular dependency between EntityRestClient and CryptoFacade
-	private readonly lazyCrypto: lazy<CryptoFacade>
-	private readonly blobAccessTokenFacade: BlobAccessTokenFacade
-
 	get _crypto(): CryptoFacade {
 		return this.lazyCrypto()
 	}
 
 	constructor(
-		authDataProvider: AuthDataProvider,
-		restClient: RestClient,
-		crypto: lazy<CryptoFacade>,
-		instanceMapper: InstanceMapper,
-		blobAccessTokenFacade: BlobAccessTokenFacade,
-	) {
-		this.authDataProvider = authDataProvider
-		this.restClient = restClient
-		this.lazyCrypto = crypto
-		this.instanceMapper = instanceMapper
-		this.blobAccessTokenFacade = blobAccessTokenFacade
-	}
+		private readonly authDataProvider: AuthDataProvider,
+		private readonly restClient: RestClient,
+		private readonly lazyCrypto: lazy<CryptoFacade>,
+		private readonly instanceMapper: InstanceMapper,
+		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
+	) {}
 
 	async load<T extends SomeEntity>(
 		typeRef: TypeRef<T>,
@@ -180,13 +173,14 @@ export class EntityRestClient implements EntityRestInterface {
 		const { path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, undefined, undefined)
 		const idChunks = splitInChunks(LOAD_MULTIPLE_LIMIT, elementIds)
 		const typeModel = await resolveTypeReference(typeRef)
+
 		const loadedChunks = await promiseMap(idChunks, async (idChunk) => {
 			let queryParams = {
 				ids: idChunk.join(","),
 			}
 			let json: string
 			if (typeModel.type === Type.BlobElement) {
-				json = await this.loadMultipleBlobElements(listId, queryParams, headers, path)
+				json = await this.loadMultipleBlobElements(listId, queryParams, headers, path, typeRef)
 			} else {
 				json = await this.restClient.request(path, HttpMethod.GET, {
 					queryParams,
@@ -199,31 +193,40 @@ export class EntityRestClient implements EntityRestInterface {
 		return flat(loadedChunks)
 	}
 
-	private async loadMultipleBlobElements(listId: Id | null, queryParams: { ids: string }, headers: Dict | undefined, path: string): Promise<string> {
-		if (listId === null) {
+	private async loadMultipleBlobElements(
+		archiveId: Id | null,
+		queryParams: { ids: string },
+		headers: Dict | undefined,
+		path: string,
+		typeRef: TypeRef<any>,
+	): Promise<string> {
+		if (archiveId == null) {
 			throw new Error("archiveId must be set to load BlobElementTypes")
 		}
-		const accessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(null, listId)
-		const blobAccessToken = accessInfo.blobAccessToken
-		queryParams = Object.assign(
-			{
-				blobAccessToken,
-			},
-			headers, // prevent CORS request due to non standard header usage
-			queryParams,
-		)
-		return tryServers(
-			accessInfo.servers,
-			async (serverUrl) =>
-				this.restClient.request(path, HttpMethod.GET, {
-					queryParams,
-					headers: {}, // prevent CORS request due to non standard header usage
-					responseType: MediaType.Json,
-					baseUrl: serverUrl,
-					noCORS: true,
-				}),
-			`can't load instances from server `,
-		)
+		const doBlobRequest = async () => {
+			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(archiveId)
+			const additionalRequestParams = Object.assign(
+				{},
+				headers, // prevent CORS request due to non standard header usage
+				queryParams,
+			)
+			const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, additionalRequestParams, typeRef)
+			return tryServers(
+				blobServerAccessInfo.servers,
+				async (serverUrl) =>
+					this.restClient.request(path, HttpMethod.GET, {
+						queryParams: allParams,
+						headers: {}, // prevent CORS request due to non standard header usage
+						responseType: MediaType.Json,
+						baseUrl: serverUrl,
+						noCORS: true,
+					}),
+				`can't load instances from server `,
+			)
+		}
+		const doEvictToken = () => this.blobAccessTokenFacade.evictArchiveToken(archiveId)
+
+		return doBlobRequestWithRetry(doBlobRequest, doEvictToken)
 	}
 
 	async _handleLoadMultipleResult<T extends SomeEntity>(typeRef: TypeRef<T>, loadedEntities: Array<any>): Promise<Array<T>> {
@@ -470,6 +473,24 @@ export async function tryServers<T>(servers: BlobServerUrl[], mapper: Mapper<str
 		index++
 	}
 	throw error
+}
+
+/**
+ * Do a blob request and retry it in case of a NotAuthorizedError, performing some cleanup before retrying.
+ *
+ * This is useful for blob requests to handle expired tokens, which cah occur if the requests take a long time, the client gets suspended or paused by the OS.
+ * @param doBlobRequest
+ * @param doEvictTokenBeforeRetry
+ */
+export async function doBlobRequestWithRetry<T>(doBlobRequest: () => Promise<T>, doEvictTokenBeforeRetry: () => void): Promise<T> {
+	return doBlobRequest().catch(
+		// in case one of the chunks could not be uploaded because of an invalid/expired token we upload all chunks again in order to guarantee that they are uploaded to the same archive.
+		// we don't have to take care of already uploaded chunks, as they are unreferenced and will be cleaned up by the server automatically.
+		ofClass(NotAuthorizedError, (e) => {
+			doEvictTokenBeforeRetry()
+			return doBlobRequest()
+		}),
+	)
 }
 
 export function getIds(
