@@ -1583,5 +1583,7 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	// FIXME add to Phrase
 	| "showText_action"
 	| "hideText_action"
+	| "conversationViewPref_label"

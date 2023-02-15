@@ -51,6 +51,7 @@ import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { ConversationViewModel } from "./ConversationViewModel.js"
 import { ConversationViewer } from "./ConversationViewer.js"
 import type { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
+import { CreateMailViewerOptions } from "./MailViewer.js"
 
 assertMainOrNode()
 
@@ -65,6 +66,8 @@ export interface MailViewCache {
 	selectedFolder: MailFolder | null
 	/** Viewer for currently opened email. Need to keep it around so it receives updates and keeps any state it needs to. */
 	conversationViewModel: ConversationViewModel | null
+	/** The preference for if conversation view was used, so we can reset if it was changed */
+	conversationViewPreference: boolean | null
 }
 
 export interface MailViewAttrs extends TopLevelAttrs {
@@ -180,6 +183,21 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			this.countersStream = locator.mailModel.mailboxCounters.map(m.redraw)
 			keyManager.registerShortcuts(shortcuts)
 			this.mailboxSubscription = locator.mailModel.mailboxDetails.map((mailboxDetails) => this.onUpdateMailboxDetails(mailboxDetails))
+
+			// If conversationView selection was changed, recreate the view model with the new preference
+			if (
+				this.conversationViewModel &&
+				this.cache.conversationViewPreference != null &&
+				this.cache.conversationViewPreference != deviceConfig.getConversationViewShowOnlySelectedMail()
+			) {
+				const viewModelParams = {
+					mail: this.conversationViewModel.primaryMail,
+					showFolder: false,
+					delayBodyRenderingUntil: Promise.resolve(),
+				}
+				this.createConversationViewModel(viewModelParams).then(m.redraw)
+			}
+			this.cache.conversationViewPreference = deviceConfig.getConversationViewShowOnlySelectedMail()
 		}
 
 		this.onremove = () => {
@@ -697,8 +715,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				if (mailboxDetails == null) {
 					this.conversationViewModel = null
 				} else {
-					const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-					this.conversationViewModel = await locator.conversationViewModel(viewModelParams, mailboxDetails, mailboxProperties)
+					await this.createConversationViewModel(viewModelParams)
 				}
 			}
 
@@ -740,6 +757,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			}
 		}
 		animationOverDeferred.resolve()
+	}
+
+	private async createConversationViewModel(viewModelParams: CreateMailViewerOptions) {
+		const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(viewModelParams.mail)
+		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		this.conversationViewModel = await locator.conversationViewModel(viewModelParams, mailboxDetails, mailboxProperties)
 	}
 
 	private async toggleUnreadMails(mails: Mail[]): Promise<void> {

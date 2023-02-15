@@ -130,13 +130,13 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					m(".flex.ml-between-s.items-center", [
 						viewModel.mail.state === MailState.DRAFT
 							? m(Icon, {
-								icon: Icons.Edit,
-								style: {
-									fill: theme.content_fg,
-								},
-								// flex makes svg inside centered and not randomly somewhere
-								class: "flex",
-							})
+									icon: Icons.Edit,
+									style: {
+										fill: theme.content_fg,
+									},
+									// flex makes svg inside centered and not randomly somewhere
+									class: "flex",
+							  })
 							: null,
 						viewModel.isConfidential()
 							? m(Icon, {

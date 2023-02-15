@@ -1598,7 +1598,9 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
+		// FIXME add to Phrase
 		"showText_action": "Show text",
-		"hideText_action": "Hide text"
+		"hideText_action": "Hide text",
+		"conversationViewPref_label": "Show all emails for discussion in thread",
 	}
 }

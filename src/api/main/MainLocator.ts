@@ -275,9 +275,11 @@ class MainLocator {
 			(options) => factory(options, mailboxDetails, mailboxProperties),
 			this.entityClient,
 			this.eventController,
+			deviceConfig,
 			m.redraw,
 		)
 	}
+
 	async mailViewerViewModelFactory(): Promise<
 		(options: CreateMailViewerOptions, mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties) => MailViewerViewModel
 	> {

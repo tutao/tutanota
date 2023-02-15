@@ -36,6 +36,7 @@ interface ConfigObject {
 	_testDeviceId: string | null
 	_testAssignments: PersistedAssignmentData | null
 	offlineTimeRangeDaysByUser: Record<Id, number>
+	conversationViewShowOnlySelectedMail: boolean
 }
 
 /**
@@ -87,6 +88,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 			_testAssignments: loadedConfig._testAssignments ?? null,
 			_signupToken: signupToken,
 			offlineTimeRangeDaysByUser: loadedConfig.offlineTimeRangeDaysByUser ?? {},
+			conversationViewShowOnlySelectedMail: loadedConfig.conversationViewShowOnlySelectedMail ?? false,
 		}
 
 		// We need to write the config if there was a migration and if we generate the signup token and if.
@@ -304,6 +306,15 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 
 	setOfflineTimeRangeDays(userId: Id, days: number) {
 		this.config.offlineTimeRangeDaysByUser[userId] = days
+		this.writeToStorage()
+	}
+
+	getConversationViewShowOnlySelectedMail(): boolean {
+		return this.config.conversationViewShowOnlySelectedMail
+	}
+
+	setConversationViewShowOnlySelectedMail(setting: boolean) {
+		this.config.conversationViewShowOnlySelectedMail = setting
 		this.writeToStorage()
 	}
 }
