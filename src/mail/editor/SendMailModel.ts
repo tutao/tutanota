@@ -24,7 +24,7 @@ import {
 	remove,
 	typedValues,
 } from "@tutao/tutanota-utils"
-import { checkAttachmentSize, getDefaultSender, getTemplateLanguages } from "../model/MailUtils"
+import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, RecipientField } from "../model/MailUtils"
 import type { EncryptedMailAddress, File as TutanotaFile, Mail, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef, ConversationEntryTypeRef, File, FileTypeRef, MailboxPropertiesTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"
@@ -57,7 +57,6 @@ import { PartialRecipient, Recipient, RecipientList, Recipients, RecipientType }
 import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../../api/main/RecipientsModel"
 import { createApprovalMail } from "../../api/entities/monitor/TypeRefs"
 import { DateProvider } from "../../api/common/DateProvider.js"
-import { RecipientField } from "../model/MailUtils.js"
 import { getSenderName } from "../../misc/MailboxPropertiesUtils.js"
 import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
@@ -429,14 +428,18 @@ export class SendMailModel {
 				(a, b) => a.address === b.address,
 			)
 
+		// We deliberately use .map() and not promiseMap() here because we want to insert all
+		// the recipients right away, we count on it in some checks in send() and we also want all of them
+		// to show up immediately.
+		// If we want to limit recipient resolution at some point we need to build a queue in some other place.
 		// Making it LazyLoaded() will allow us to retry it in case it fails.
 		// It is very important that we insert the recipients here synchronously. Even though it is inside the async function it will call insertRecipient()
 		// right away when we call getAsync() below
 		this.recipientsResolved = new LazyLoaded(async () => {
 			await Promise.all([
-				promiseMap(recipientsFilter(to), async (r) => this.insertRecipient(RecipientField.TO, r)),
-				promiseMap(recipientsFilter(cc), async (r) => this.insertRecipient(RecipientField.CC, r)),
-				promiseMap(recipientsFilter(bcc), async (r) => this.insertRecipient(RecipientField.BCC, r)),
+				recipientsFilter(to).map((r) => this.insertRecipient(RecipientField.TO, r)),
+				recipientsFilter(cc).map((r) => this.insertRecipient(RecipientField.CC, r)),
+				recipientsFilter(bcc).map((r) => this.insertRecipient(RecipientField.BCC, r)),
 			])
 		})
 		// noinspection ES6MissingAwait
@@ -710,7 +713,11 @@ export class SendMailModel {
 		waitHandler: (arg0: TranslationText, arg1: Promise<any>) => Promise<any> = (_, p) => p,
 		tooManyRequestsError: TranslationKey = "tooManyMails_msg",
 	): Promise<boolean> {
-		await this.recipientsResolved.getAsync()
+		// To avoid parallel invocations do not do anything async here that would later execute the sending.
+		// It is fine to wait for getConfirmation() because it is modal and will prevent the user from triggering multiple sends.
+		// If you need to do something async here put it into `asyncSend`
+		//
+		// You can't rely on resolved recipients here, only after waitForResolvedRecipients() inside asyncSend()!
 		this.onBeforeSend()
 
 		if (this.allRecipients().length === 1 && this.allRecipients()[0].address.toLowerCase().trim() === "approval@tutao.de") {
@@ -734,21 +741,21 @@ export class SendMailModel {
 			return false
 		}
 
-		// The next check depends on contacts being available
-		// So we need to wait for our recipients here
-		const recipients = await this.waitForResolvedRecipients()
+		const asyncSend = async () => {
+			// The next check depends on contacts being available
+			// So we need to wait for our recipients here
+			const recipients = await this.waitForResolvedRecipients()
 
-		// No password in external confidential mail is an error
-		if (this.isConfidentialExternal() && this.getExternalRecipients().some((r) => !this.getPassword(r.address))) {
-			throw new UserError("noPreSharedPassword_msg")
-		}
+			// No password in external confidential mail is an error
+			if (this.isConfidentialExternal() && this.getExternalRecipients().some((r) => !this.getPassword(r.address))) {
+				throw new UserError("noPreSharedPassword_msg")
+			}
 
-		// Weak password is a warning
-		if (this.isConfidentialExternal() && this.hasInsecurePasswords() && !(await getConfirmation("presharedPasswordNotStrongEnough_msg"))) {
-			return false
-		}
+			// Weak password is a warning
+			if (this.isConfidentialExternal() && this.hasInsecurePasswords() && !(await getConfirmation("presharedPasswordNotStrongEnough_msg"))) {
+				return false
+			}
 
-		const doSend = async () => {
 			await this.saveDraft(true, mailMethod)
 			await this.updateContacts(recipients)
 			await this.mailFacade.sendDraft(neverNull(this.draft), recipients, this.selectedNotificationLanguage)
@@ -757,7 +764,7 @@ export class SendMailModel {
 			return true
 		}
 
-		return waitHandler(this.isConfidential() ? "sending_msg" : "sendingUnencrypted_msg", doSend())
+		return waitHandler(this.isConfidential() ? "sending_msg" : "sendingUnencrypted_msg", asyncSend())
 			.catch(
 				ofClass(LockedError, () => {
 					throw new UserError("operationStillActive_msg")
