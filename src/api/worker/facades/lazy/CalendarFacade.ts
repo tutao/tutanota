@@ -133,7 +133,7 @@ export class CalendarFacade {
 					throw new ConnectionError("Connection lost while saving alarms")
 				} else {
 					console.log("Saving alarms failed.", e)
-					throw new ImportError("Could not save alarms.", numEvents)
+					throw new ImportError(e.errors[0], "Could not save alarms.", numEvents)
 				}
 			}),
 		)
@@ -158,6 +158,7 @@ export class CalendarFacade {
 					ofClass(SetupMultipleError, (e) => {
 						failed += e.failedInstances.length
 						errors = errors.concat(e.errors)
+						console.log(e.errors)
 						successfulEvents = eventsWithAlarmsOfOneList.filter(({ event }) => !e.failedInstances.includes(event))
 					}),
 				)
@@ -181,7 +182,7 @@ export class CalendarFacade {
 				throw new ConnectionError("Connection lost while saving events")
 			} else {
 				console.log("Could not save events. Number of failed imports: ", failed)
-				throw new ImportError("Could not save events.", failed)
+				throw new ImportError(errors[0], "Could not save events.", failed)
 			}
 		}
 	}
