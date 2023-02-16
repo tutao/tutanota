@@ -1,5 +1,5 @@
 import { isMailAddress } from "../FormatValidator"
-import { PartialRecipient, Recipients } from "../../api/common/recipients/Recipient"
+import { PartialRecipient } from "../../api/common/recipients/Recipient"
 
 export type ParsedMailto = {
 	recipients: {

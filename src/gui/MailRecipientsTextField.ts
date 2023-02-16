@@ -12,6 +12,7 @@ import { RecipientsSearchModel } from "../misc/RecipientsSearchModel.js"
 import { getFirstOrThrow } from "@tutao/tutanota-utils"
 import { Dialog } from "./base/Dialog.js"
 import { SearchDropDown } from "./SearchDropDown.js"
+import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey
@@ -68,7 +69,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 			},
 			items: attrs.recipients.map((recipient) => recipient.address),
 			renderBubbleText: (address: string) => {
-				const name = attrs.recipients.find((recipient) => recipient.address === address)?.name ?? null
+				const name = findRecipientWithAddress(attrs.recipients, address)?.name ?? null
 				return getMailAddressDisplayText(name, address, false)
 			},
 			getBubbleDropdownAttrs: async (address) => (await attrs.getRecipientClickedDropdownAttrs?.(address)) ?? [],

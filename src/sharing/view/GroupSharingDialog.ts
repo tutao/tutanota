@@ -26,6 +26,7 @@ import type { GroupSharingTexts } from "../GroupGuiUtils"
 import { getTextsForGroupType } from "../GroupGuiUtils"
 import { ResolvableRecipient, ResolveMode } from "../../api/main/RecipientsModel"
 import { MailRecipientsTextField } from "../../gui/MailRecipientsTextField.js"
+import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 
 export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {
 	const groupType = downcast(assertNotNull(groupInfo.groupType))
@@ -176,7 +177,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 							label: "remove_action",
 							type: ButtonType.Secondary,
 							click: () => {
-								const bubbleToRemove = recipients.find((recipient) => recipient.address === address)
+								const bubbleToRemove = findRecipientWithAddress(recipients, address)
 								if (bubbleToRemove) {
 									remove(recipients, bubbleToRemove)
 								}
@@ -185,7 +186,8 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 					],
 					onRecipientAdded: (address, name, contact) =>
 						recipients.push(recipientsModel.resolve({ address, name, contact }, ResolveMode.Eager).whenResolved(() => m.redraw())),
-					onRecipientRemoved: (address) => findAndRemove(recipients, (recipient) => recipient.address === address),
+					onRecipientRemoved: (address) =>
+						findAndRemove(recipients, (recipient) => cleanMailAddress(recipient.address) === cleanMailAddress(address)),
 					onTextChanged: recipientsText,
 					search,
 					maxSuggestionsToShow: 3,

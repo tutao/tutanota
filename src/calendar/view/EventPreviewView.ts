@@ -11,7 +11,7 @@ import { downcast, memoized } from "@tutao/tutanota-utils"
 import type { CalendarEventAttendee } from "../../api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../misc/LanguageViewModel"
 import type { RepeatRule } from "../../api/entities/sys/TypeRefs.js"
-import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
+import { findAttendeeInAddresses, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { formatDateWithMonth } from "../../misc/Formatter"
 import { hasError } from "../../api/common/utils/ErrorCheckUtils"
 import { createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
@@ -39,7 +39,7 @@ export class EventPreviewView implements Component<Attrs> {
 		const attendees = event.attendees.slice()
 		const organizer = event.organizer
 
-		if (organizer != null && attendees.length > 0 && !attendees.some((attendee) => attendee.address.address === organizer.address)) {
+		if (organizer != null && attendees.length > 0 && !findAttendeeInAddresses(attendees, [organizer.address])) {
 			attendees.unshift(
 				createCalendarEventAttendee({
 					address: createEncryptedMailAddress({

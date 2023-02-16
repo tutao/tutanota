@@ -1,10 +1,10 @@
 import { lang } from "./LanguageViewModel"
 import { getByAbbreviation } from "../api/common/CountryList"
-import { neverNull } from "@tutao/tutanota-utils"
+import { neverNull, pad } from "@tutao/tutanota-utils"
 import type { UserSettingsGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
 import { TimeFormat } from "../api/common/TutanotaConstants"
-import { pad } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../api/common/Env"
+import { cleanMailAddress } from "../api/common/utils/CommonCalendarUtils.js"
 
 assertMainOrNode()
 
@@ -170,5 +170,5 @@ export function timeStringFromParts(hours: number, minutes: number, amPm: boolea
 }
 
 export function formatMailAddressFromParts(name: string, domain: string): string {
-	return `${name}@${domain}`.trim().toLowerCase()
+	return cleanMailAddress(`${name}@${domain}`)
 }

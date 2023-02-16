@@ -33,6 +33,7 @@ import type { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacad
 import { IServiceExecutor } from "../../api/common/ServiceRequest"
 import { MembershipService } from "../../api/entities/sys/Services"
 import { FileController } from "../../file/FileController"
+import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUtils.js"
 
 const TAG = "[CalendarModel]"
 
@@ -271,7 +272,7 @@ export class CalendarModel {
 
 		if (calendarData.method === CalendarMethod.REPLY) {
 			// first check if the sender of the email is in the attendee list
-			const replyAttendee = event.attendees.find((a) => a.address.address === sender)
+			const replyAttendee = findAttendeeInAddresses(event.attendees, [sender])
 
 			if (replyAttendee == null) {
 				console.log(TAG, "Sender is not among attendees, ignoring", replyAttendee)
@@ -280,7 +281,7 @@ export class CalendarModel {
 
 			const newEvent = clone(dbEvent)
 			// check if the attendee is still in the attendee list of the latest event
-			const dbAttendee = newEvent.attendees.find((a) => replyAttendee.address.address === a.address.address)
+			const dbAttendee = findAttendeeInAddresses(newEvent.attendees, [replyAttendee.address.address])
 
 			if (dbAttendee == null) {
 				console.log(TAG, "Attendee was not found", dbEvent._id, replyAttendee)
