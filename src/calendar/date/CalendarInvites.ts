@@ -11,6 +11,7 @@ import { UserError } from "../../api/main/UserError"
 import { NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor"
 import { CalendarEventViewModel } from "./CalendarEventViewModel"
 import { DataFile } from "../../api/common/DataFile"
+import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUtils.js"
 
 function getParsedEvent(fileData: DataFile):
 	| {
@@ -116,7 +117,7 @@ export async function replyToEventInvitation(
 	previousMail: Mail,
 ): Promise<void> {
 	const eventClone = clone(event)
-	const foundAttendee = assertNotNull(eventClone.attendees.find((a) => a.address.address === attendee.address.address))
+	const foundAttendee = assertNotNull(findAttendeeInAddresses(eventClone.attendees, [attendee.address.address]), "attendee was not found in event clone")
 	foundAttendee.status = decision
 	return Promise.all([
 		locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()).then(findPrivateCalendar),

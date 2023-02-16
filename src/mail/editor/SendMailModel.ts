@@ -47,6 +47,7 @@ import { DateProvider } from "../../api/common/DateProvider.js"
 import { RecipientField } from "../model/MailUtils.js"
 import { getSenderName } from "../../misc/MailboxPropertiesUtils.js"
 import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
+import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 
 assertMainOrNode()
 
@@ -407,7 +408,7 @@ export class SendMailModel {
 		const recipientsFilter = (recipientList: Array<PartialRecipient>) =>
 			deduplicate(
 				recipientList.filter((r) => isMailAddress(r.address, false)),
-				(a, b) => a.address === b.address,
+				(a, b) => cleanMailAddress(a.address) === cleanMailAddress(b.address),
 			)
 
 		this.recipientsResolved = Promise.all([
@@ -488,7 +489,7 @@ export class SendMailModel {
 		{ address, name, type, contact }: PartialRecipient,
 		resolveMode: ResolveMode = ResolveMode.Eager,
 	): Promise<boolean> {
-		let recipient = this.getRecipientList(fieldType).find((recipient) => recipient.address === address)
+		let recipient = findRecipientWithAddress(this.getRecipientList(fieldType), address)
 		// Only add a recipient if it doesn't exist
 		if (!recipient) {
 			recipient = this.recipientsModel.resolve(
@@ -528,11 +529,11 @@ export class SendMailModel {
 	}
 
 	getRecipient(type: RecipientField, address: string): ResolvableRecipient | null {
-		return this.getRecipientList(type).find((recipient) => recipient.address === address) ?? null
+		return findRecipientWithAddress(this.getRecipientList(type), address)
 	}
 
 	removeRecipientByAddress(address: string, type: RecipientField, notify: boolean = true) {
-		const recipient = this.getRecipientList(type).find((recipient) => recipient.address === address)
+		const recipient = findRecipientWithAddress(this.getRecipientList(type), address)
 		if (recipient) {
 			this.removeRecipient(recipient, type, notify)
 		}
@@ -544,7 +545,7 @@ export class SendMailModel {
 	 */
 	removeRecipient(recipient: Recipient, type: RecipientField, notify: boolean = true): boolean {
 		const recipients = this.recipients.get(type) ?? []
-		const didRemove = findAndRemove(recipients, (r) => r.address === recipient.address)
+		const didRemove = findAndRemove(recipients, (r) => cleanMailAddress(r.address) === cleanMailAddress(recipient.address))
 		this.markAsChangedIfNecessary(didRemove)
 
 		if (didRemove && notify) {

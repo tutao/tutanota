@@ -91,9 +91,26 @@ export function getEventElementMinId(timestamp: number): string {
 }
 
 /**
+ * return a cleaned and comparable version of a mail address without leading/trailing whitespace or uppercase characters.
+ */
+export function cleanMailAddress(address: string): string {
+	return address.trim().toLowerCase()
+}
+
+/**
  * get the first attendee from the list of attendees/guests that corresponds to one of the given recipient addresses, if there is one
  */
 export function findAttendeeInAddresses<T extends { address: EncryptedMailAddress }>(attendees: ReadonlyArray<T>, addresses: ReadonlyArray<string>): T | null {
-	const lowerCaseAddresses = addresses.map((r) => r.toLowerCase())
-	return attendees.find((a) => lowerCaseAddresses.includes(a.address.address.toLowerCase())) ?? null
+	// the filters are necessary because of #5147
+	// we may get passed addresses and attendees that could not be decrypted and don't have addresses.
+	const lowerCaseAddresses = addresses.filter(Boolean).map(cleanMailAddress)
+	return attendees.filter((a) => a.address.address != null).find((a) => lowerCaseAddresses.includes(cleanMailAddress(a.address.address))) ?? null
+}
+
+/**
+ * find the first of a list of recipients that have the given address assigned
+ */
+export function findRecipientWithAddress<T extends { address: string }>(recipients: ReadonlyArray<T>, address: string): T | null {
+	const cleanAddress = cleanMailAddress(address)
+	return recipients.find((r) => cleanMailAddress(r.address) === cleanAddress) ?? null
 }

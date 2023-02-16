@@ -10,6 +10,7 @@ import { Mode } from "../api/common/Env.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
 import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
 import { MobileSystemFacade } from "../native/common/generatedipc/MobileSystemFacade.js"
+import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
 
 const MaxNativeSuggestions = 10
 
@@ -108,7 +109,7 @@ export class RecipientsSearchModel {
 			const nativeContacts = await this.findNativeContacts(query)
 
 			const contactSuggestions = nativeContacts
-				.filter((contact) => isMailAddress(contact.address, false) && !suggestions.some((s) => s.address === contact.address))
+				.filter((contact) => isMailAddress(contact.address, false) && !findRecipientWithAddress(suggestions, contact.address))
 				.slice(0, MaxNativeSuggestions)
 				.map((recipient) => this.recipientsModel.resolve(recipient, ResolveMode.Lazy))
 

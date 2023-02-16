@@ -11,12 +11,12 @@ import {
 import { calendarAttendeeStatusSymbol, formatEventDuration, getTimeZone } from "./CalendarUtils"
 import type { CalendarEvent, CalendarEventAttendee, EncryptedMailAddress, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { createCalendarEventAttendee } from "../../api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import type { SendMailModel } from "../../mail/editor/SendMailModel"
 import { windowFacade } from "../../misc/WindowFacade"
-import { themeController } from "../../gui/theme"
 import { RecipientsNotFoundError } from "../../api/common/error/RecipientsNotFoundError"
-import { isTutanotaMailAddress, RecipientField } from "../../mail/model/MailUtils"
+import { RecipientField } from "../../mail/model/MailUtils"
+import { cleanMailAddress, findAttendeeInAddresses, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 
 export interface CalendarUpdateDistributor {
 	sendInvite(existingEvent: CalendarEvent, sendMailModel: SendMailModel): Promise<void>
@@ -85,7 +85,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 				const invalidRecipients = e.message.split("\n")
 				let hasRemovedRecipient = false
 				invalidRecipients.forEach((invalidRecipient) => {
-					const recipientInfo = sendMailModel.bccRecipients().find((r) => r.address === invalidRecipient)
+					const recipientInfo = findRecipientWithAddress(sendMailModel.bccRecipients(), invalidRecipient)
 
 					if (recipientInfo) {
 						hasRemovedRecipient = sendMailModel.removeRecipient(recipientInfo, RecipientField.BCC, false) || hasRemovedRecipient
@@ -219,7 +219,7 @@ function whenLine(event: CalendarEvent): string {
 }
 
 function organizerLabel(organizer: EncryptedMailAddress, a: CalendarEventAttendee) {
-	return organizer.address === a.address.address ? `(${lang.get("organizer_label")})` : ""
+	return cleanMailAddress(organizer.address) === cleanMailAddress(a.address.address) ? `(${lang.get("organizer_label")})` : ""
 }
 
 function newLine(label: string, content: string): string {
@@ -231,7 +231,7 @@ function attendeesLine(event: CalendarEvent): string {
 	var attendees = ""
 
 	// If organizer is already in the attendees, we don't have to add them separately.
-	if (organizer && !event.attendees.find((a) => a.address.address === organizer.address)) {
+	if (organizer && !findAttendeeInAddresses(event.attendees, [organizer.address])) {
 		attendees = makeAttendee(
 			organizer,
 			createCalendarEventAttendee({

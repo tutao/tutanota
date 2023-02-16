@@ -47,7 +47,13 @@ import {
 	noOp,
 	ofClass,
 } from "@tutao/tutanota-utils"
-import { findAttendeeInAddresses, generateEventElementId, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
+import {
+	cleanMailAddress,
+	findAttendeeInAddresses,
+	findRecipientWithAddress,
+	generateEventElementId,
+	isAllDayEvent,
+} from "../../api/common/utils/CommonCalendarUtils"
 import type { CalendarInfo } from "../model/CalendarModel"
 import { CalendarModel } from "../model/CalendarModel"
 import { DateTime } from "luxon"
@@ -398,7 +404,7 @@ export class CalendarEventViewModel {
 			existingEvent.attendees
 				.filter((attendee) => !hasError(attendee.address))
 				.forEach((attendee) => {
-					if (this._ownMailAddresses.includes(attendee.address.address)) {
+					if (findAttendeeInAddresses([attendee], this._ownMailAddresses) != null) {
 						this._ownAttendee(copyMailAddress(attendee.address))
 					} else {
 						this._updateModel.addRecipient(
@@ -499,7 +505,7 @@ export class CalendarEventViewModel {
 		// 5: add organizer if you are not already in the list
 		// We don't add a guest if they are already an attendee
 		// even though the SendMailModel handles deduplication, we need to check here because recipients shouldn't be duplicated across the 3 models either
-		if (this.attendees().some((a) => a.address.address === mailAddress)) {
+		if (findAttendeeInAddresses(this.attendees(), [mailAddress]) != null) {
 			return
 		}
 
@@ -532,7 +538,7 @@ export class CalendarEventViewModel {
 
 		// this duplicated condition check may or may not be redundant to do here
 		if (isOwnAttendee) {
-			const newOrganizer = this.possibleOrganizers.find((o) => o.address === mailAddress)
+			const newOrganizer = findRecipientWithAddress(this.possibleOrganizers, mailAddress)
 			if (newOrganizer) this.setOrganizer(newOrganizer)
 		}
 
@@ -709,10 +715,10 @@ export class CalendarEventViewModel {
 	}
 
 	removeAttendee(guest: Guest) {
-		const existingRecipient = this.existingEvent && this.existingEvent.attendees.find((a) => a.address.address === guest.address.address)
+		const existingRecipient = this.existingEvent && findAttendeeInAddresses(this.existingEvent.attendees, [guest.address.address])
 
 		for (const model of [this._inviteModel, this._updateModel, this._cancelModel]) {
-			const recipientInfo = model.bccRecipients().find((r) => r.address === guest.address.address)
+			const recipientInfo = findRecipientWithAddress(model.bccRecipients(), guest.address.address)
 
 			if (recipientInfo) {
 				model.removeRecipient(recipientInfo, RecipientField.BCC)
@@ -745,7 +751,7 @@ export class CalendarEventViewModel {
 		return (
 			this.existingEvent &&
 			this.existingEvent.attendees.length > 0 &&
-			!(this.existingEvent.attendees.length === 1 && this._ownMailAddresses.includes(this.existingEvent.attendees[0].address.address))
+			!(this.existingEvent.attendees.length === 1 && findAttendeeInAddresses([this.existingEvent.attendees[0]], this._ownMailAddresses) != null)
 		)
 	}
 
@@ -849,7 +855,7 @@ export class CalendarEventViewModel {
 
 		// This is guaranteed to be our own event.
 		updatedEvent.sequence = incrementSequence(updatedEvent.sequence, true)
-		const cancelAddresses = event.attendees.filter((a) => !this._ownMailAddresses.includes(a.address.address)).map((a) => a.address)
+		const cancelAddresses = event.attendees.filter((a) => findAttendeeInAddresses([a], this._ownMailAddresses) == null).map((a) => a.address)
 
 		try {
 			for (const address of cancelAddresses) {
@@ -972,7 +978,7 @@ export class CalendarEventViewModel {
 		newAlarms: Array<AlarmInfo>,
 	): Promise<boolean> {
 		// We are not using this._findAttendee() because we want to search it on the event, before our modifications
-		const ownAttendee = existingEvent.attendees.find((a) => this._ownMailAddresses.includes(a.address.address))
+		const ownAttendee = findAttendeeInAddresses(existingEvent.attendees, this._ownMailAddresses)
 
 		const selectedOwnAttendeeStatus = ownAttendee && this._guestStatuses().get(ownAttendee.address.address)
 
@@ -1062,19 +1068,20 @@ export class CalendarEventViewModel {
 	}
 
 	updatePassword(guest: Guest, password: string) {
-		const inInvite = this._inviteModel.bccRecipients().find((r) => r.address === guest.address.address)
+		const guestAddress = guest.address.address
+		const inInvite = findRecipientWithAddress(this._inviteModel.bccRecipients(), guestAddress)
 
 		if (inInvite) {
 			this._inviteModel.setPassword(inInvite.address, password)
 		}
 
-		const inUpdate = this._updateModel.bccRecipients().find((r) => r.address === guest.address.address)
+		const inUpdate = findRecipientWithAddress(this._updateModel.bccRecipients(), guestAddress)
 
 		if (inUpdate) {
 			this._updateModel.setPassword(inUpdate.address, password)
 		}
 
-		const inCancel = this._cancelModel.bccRecipients().find((r) => r.address === guest.address.address)
+		const inCancel = findRecipientWithAddress(this._cancelModel.bccRecipients(), guestAddress)
 
 		if (inCancel) {
 			this._updateModel.setPassword(inCancel.address, password)
@@ -1089,7 +1096,7 @@ export class CalendarEventViewModel {
 		const address = guest.address.address
 
 		const getStrength = (model: SendMailModel) => {
-			const recipient = model.allRecipients().find((r) => address === r.address)
+			const recipient = findRecipientWithAddress(model.allRecipients(), address)
 			return recipient ? model.getPasswordStrength(recipient) : null
 		}
 
@@ -1250,7 +1257,7 @@ export class CalendarEventViewModel {
 			!arrayEqualsWithPredicate(
 				newEvent.attendees,
 				existingEvent.attendees,
-				(a1, a2) => a1.status === a2.status && a1.address.address === a2.address.address,
+				(a1, a2) => a1.status === a2.status && cleanMailAddress(a1.address.address) === cleanMailAddress(a2.address.address),
 			) || // we ignore the names
 			(newEvent.organizer !== existingEvent.organizer && newEvent.organizer?.address !== existingEvent.organizer?.address)
 		) // we ignore the names

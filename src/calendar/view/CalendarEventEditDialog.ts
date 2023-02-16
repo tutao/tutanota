@@ -44,6 +44,7 @@ import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { ToggleButton } from "../../gui/base/ToggleButton.js"
 import { locator } from "../../api/main/MainLocator.js"
+import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUtils.js"
 
 export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -226,7 +227,7 @@ export async function showCalendarEventDialog(
 
 		const organizer = viewModel.organizer
 
-		if (organizer != null && guests.length > 0 && !guests.some((guest) => guest.address.address === organizer.address)) {
+		if (organizer != null && guests.length > 0 && !findAttendeeInAddresses(guests, [organizer.address])) {
 			guests.unshift({
 				address: createEncryptedMailAddress({
 					name: organizer.name,
@@ -676,7 +677,7 @@ function showOrganizerDropdown(viewModel: CalendarEventViewModel, e: MouseEvent)
 
 function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewModel, ownAttendee: Guest | null): Children {
 	const { organizer } = viewModel
-	const isOrganizer = organizer && guest.address.address === organizer.address
+	const isOrganizer = organizer && findAttendeeInAddresses([guest], [organizer.address])
 	const editableOrganizer = isOrganizer && viewModel.canModifyOrganizer()
 	const attendingItems = [
 		{
