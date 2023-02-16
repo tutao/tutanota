@@ -7,8 +7,12 @@ export class ImportError extends TutanotaError {
 		numFailed: number
 	}
 
-	constructor(message: string, numFailed: number) {
-		super("ImportError", message + "\nNumber of failed imports: " + numFailed)
+	constructor(error: Error, message: string, numFailed: number) {
+		super(
+			"ImportError",
+			`${message}
+Number of failed imports: ${numFailed} First error: ${error}`,
+		)
 		this.data = {
 			numFailed,
 		}
