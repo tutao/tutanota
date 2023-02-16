@@ -38,7 +38,7 @@ import {
 	UserTypeRef,
 } from "../../../src/api/entities/sys/TypeRefs.js"
 import { ConversationType, GroupType, MailMethod, OperationType } from "../../../src/api/common/TutanotaConstants.js"
-import { lang } from "../../../src/misc/LanguageViewModel.js"
+import { lang, TranslationKey } from "../../../src/misc/LanguageViewModel.js"
 import { EventController } from "../../../src/api/main/EventController.js"
 import { UserError } from "../../../src/api/main/UserError.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
@@ -695,11 +695,12 @@ o.spec("SendMailModel", function () {
 			const subject = "subyekt"
 			const body = "bodie"
 
-			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
+			const getConfirmation = func<(key: TranslationKey) => Promise<boolean>>()
 			when(getConfirmation("manyRecipients_msg")).thenResolve(false)
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
 			o(await model.send(MailMethod.NONE, getConfirmation)).equals(false)
+			verify(getConfirmation("manyRecipients_msg"), { times: 1 })
 		})
 		o("too many to recipients confirm", async function () {
 			const recipients = {
@@ -716,12 +717,13 @@ o.spec("SendMailModel", function () {
 			const subject = "subyekt"
 			const body = "bodie"
 
-			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
+			const getConfirmation = func<(key: TranslationKey) => Promise<boolean>>()
 			when(getConfirmation("manyRecipients_msg")).thenResolve(true)
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
 
 			o(await model.send(MailMethod.NONE, getConfirmation)).equals(true)
+			verify(getConfirmation("manyRecipients_msg"), { times: 1 })
 		})
 		o("too many cc recipients dont confirm", async function () {
 			const recipients = {
@@ -738,11 +740,12 @@ o.spec("SendMailModel", function () {
 			const subject = "subyekt"
 			const body = "bodie"
 
-			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
+			const getConfirmation = func<(key: TranslationKey) => Promise<boolean>>()
 			when(getConfirmation("manyRecipients_msg")).thenResolve(false)
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
 			o(await model.send(MailMethod.NONE, getConfirmation)).equals(false)
+			verify(getConfirmation("manyRecipients_msg"), { times: 1 })
 		})
 		o("too many cc recipients confirm", async function () {
 			const recipients = {
@@ -759,11 +762,12 @@ o.spec("SendMailModel", function () {
 			const subject = "subyekt"
 			const body = "bodie"
 
-			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
+			const getConfirmation = func<(key: TranslationKey) => Promise<boolean>>()
 			when(getConfirmation("manyRecipients_msg")).thenResolve(true)
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
 			o(await model.send(MailMethod.NONE, getConfirmation)).equals(true)
+			verify(getConfirmation("manyRecipients_msg"), { times: 1 })
 		})
 	})
 })
