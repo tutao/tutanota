@@ -212,31 +212,37 @@ export class CalendarModel {
 		}
 	}
 
+	private async getCalendarDataForUpdate(fileId: IdTuple): Promise<ParsedCalendarData | null> {
+		try {
+			const file = await this.entityClient.load(FileTypeRef, fileId)
+			const dataFile = await this.fileController.getAsDataFile(file)
+			const { parseCalendarFile } = await import("../export/CalendarImporter")
+			return parseCalendarFile(dataFile)
+		} catch (e) {
+			if (e instanceof ParserError || e instanceof NotFoundError) {
+				console.warn(TAG, "could not get calendar update data", e)
+				return null
+			}
+			throw e
+		}
+	}
+
 	private async handleCalendarEventUpdate(update: CalendarEventUpdate): Promise<void> {
 		try {
-			try {
-				const file = await this.entityClient.load(FileTypeRef, update.file)
-				const dataFile = await this.fileController.getAsDataFile(file)
-				const { parseCalendarFile } = await import("../export/CalendarImporter")
-				const parsedCalendarData = parseCalendarFile(dataFile)
+			const parsedCalendarData = await this.getCalendarDataForUpdate(update.file)
+			if (parsedCalendarData != null) {
 				await this.processCalendarUpdate(update.sender, parsedCalendarData)
-			} catch (e) {
-				if (e instanceof ParserError || e instanceof NotFoundError) {
-					console.warn(TAG, "Error while parsing calendar update", e)
-				} else {
-					// noinspection ExceptionCaughtLocallyJS
-					throw e
-				}
 			}
-
 			await this.entityClient.erase(update)
 		} catch (e) {
 			if (e instanceof NotAuthorizedError) {
-				console.warn(TAG, "Error during processing of calendar update", e)
+				console.warn(TAG, "could not process calendar update: not authorized", e)
 			} else if (e instanceof PreconditionFailedError) {
-				console.warn(TAG, "Precondition error when processing calendar update", e)
+				console.warn(TAG, "could not process calendar update: precondition failed", e)
 			} else if (e instanceof LockedError) {
 				console.warn(TAG, "could not process calendar update: locked", e)
+			} else if (e instanceof NotFoundError) {
+				console.warn(TAG, "could not process calendar update: not found", e)
 			} else {
 				throw e
 			}
