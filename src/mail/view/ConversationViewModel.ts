@@ -1,14 +1,15 @@
 import { ConversationEntry, ConversationEntryTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
-import { elementIdPart, firstBiggerThanSecond, getElementId, haveSameId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
+import { elementIdPart, firstBiggerThanSecond, getElementId, getListId, haveSameId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
 import { assertNotNull, findLast, findLastIndex, groupBy } from "@tutao/tutanota-utils"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { LoadingStateTracker } from "../../offline/LoadingState.js"
 import { EntityEventsListener, EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
-import { ConversationType, OperationType } from "../../api/common/TutanotaConstants.js"
+import { ConversationType, MailFolderType, MailState, OperationType } from "../../api/common/TutanotaConstants.js"
 import { NotFoundError } from "../../api/common/error/RestError.js"
 import { normalizeSubject } from "../model/MailUtils.js"
+import { isOfTypeOrSubfolderOf } from "../../api/common/mail/CommonMailUtils.js"
 
 export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
 
@@ -151,11 +152,17 @@ export class ConversationViewModel {
 			if (oldItem.type === "mail") {
 				oldItem.viewModel.dispose()
 			}
+
 			if (mail) {
-				conversation[oldItemIndex] = {
-					type: "mail",
-					viewModel: this.viewModelFactory({ ...this.options, mail }),
-					entryId: conversationEntry._id,
+				// We do not show trashed drafts
+				if (mail.state === MailState.DRAFT && (await this.isInTrash(mail))) {
+					conversation.splice(oldItemIndex, 1)
+				} else {
+					conversation[oldItemIndex] = {
+						type: "mail",
+						viewModel: this.viewModelFactory({ ...this.options, mail }),
+						entryId: conversationEntry._id,
+					}
 				}
 			} else {
 				// When DELETED conversation status type is added, replace entry with deleted entry instead of splicing out
@@ -218,11 +225,22 @@ export class ConversationViewModel {
 				listId,
 				conversations.map((c) => elementIdPart(assertNotNull(c.mail))),
 			)
+
 			for (const mail of loaded) {
-				allMails.set(getElementId(mail), mail)
+				// If the mail is a draft and is the primary mail, we will show it no matter what
+				// otherwise, if a draft is in trash we will not show it
+				if (isSameId(mail._id, this.primaryMail._id) || mail.state !== MailState.DRAFT || !(await this.isInTrash(mail))) {
+					allMails.set(getElementId(mail), mail)
+				}
 			}
 		}
 		return allMails
+	}
+
+	private async isInTrash(mail: Mail) {
+		const mailboxDetail = await this._primaryViewModel.mailModel.getMailboxDetailsForMail(mail)
+		const mailFolder = this._primaryViewModel.mailModel.getMailFolder(getListId(mail))
+		return mailFolder && mailboxDetail && isOfTypeOrSubfolderOf(mailboxDetail.folders, mailFolder, MailFolderType.TRASH)
 	}
 
 	conversationItems(): ReadonlyArray<ConversationItem> {
