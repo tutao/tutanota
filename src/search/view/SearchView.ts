@@ -228,7 +228,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				}),
 				bottomNav:
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.resultDetailsColumn && this.viewer.viewer?.mode === "mail"
-						? m(MobileMailActionBar, { viewModel: this.viewer.viewer.viewModel })
+						? m(MobileMailActionBar, { viewModel: this.viewer.viewer.viewModel.primaryViewModel() })
 						: m(BottomNav),
 			}),
 		)
