@@ -7,7 +7,7 @@ import { assertMainOrNodeBoot } from "../api/common/Env"
 import { mod } from "@tutao/tutanota-utils"
 
 assertMainOrNodeBoot()
-export const TABBABLE = "button, input, textarea, div[contenteditable='true']"
+export const TABBABLE = "button, input, textarea, div[contenteditable='true'], [tabindex='0']"
 export type KeyPress = {
 	keyCode: number
 	key: string
