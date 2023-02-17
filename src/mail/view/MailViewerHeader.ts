@@ -816,43 +816,61 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return createDropdown({
 			lazyButtons: () => {
 				let actionButtons: DropdownButtonAttrs[] = []
-				if (!isPrimary || styles.isSingleColumnLayout()) {
-					if (viewModel.canForwardOrMove()) {
-						actionButtons.push({
-							label: "reply_action",
-							click: () => viewModel.reply(false),
-							icon: Icons.Reply,
-						})
-
-						if (viewModel.canReplyAll()) {
-							actionButtons.push({
-								label: "replyAll_action",
-								click: () => viewModel.reply(true),
-								icon: Icons.ReplyAll,
-							})
-						}
-
-						actionButtons.push({
-							label: "forward_action",
-							click: () => viewModel.forward(),
-							icon: Icons.Forward,
-						})
-						actionButtons.push({
-							label: "move_action",
-							click: (_: MouseEvent, dom: HTMLElement) =>
-								showMoveMailsDropdown(viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
-							icon: Icons.Folder,
-						})
-					}
-
+				if (viewModel.isDraftMail()) {
+					actionButtons.push({
+						label: "edit_action",
+						click: () => editDraft(viewModel),
+						icon: Icons.Edit,
+					})
+					actionButtons.push({
+						label: "move_action",
+						click: (_: MouseEvent, dom: HTMLElement) => showMoveMailsDropdown(viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
+						icon: Icons.Folder,
+					})
 					actionButtons.push({
 						label: "delete_action",
 						click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
 						icon: Icons.Trash,
 					})
-				}
+				} else {
+					if (!isPrimary || styles.isSingleColumnLayout()) {
+						if (viewModel.canForwardOrMove()) {
+							actionButtons.push({
+								label: "reply_action",
+								click: () => viewModel.reply(false),
+								icon: Icons.Reply,
+							})
 
-				actionButtons.push(...mailViewerMoreActions(viewModel))
+							if (viewModel.canReplyAll()) {
+								actionButtons.push({
+									label: "replyAll_action",
+									click: () => viewModel.reply(true),
+									icon: Icons.ReplyAll,
+								})
+							}
+
+							actionButtons.push({
+								label: "forward_action",
+								click: () => viewModel.forward(),
+								icon: Icons.Forward,
+							})
+							actionButtons.push({
+								label: "move_action",
+								click: (_: MouseEvent, dom: HTMLElement) =>
+									showMoveMailsDropdown(viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
+								icon: Icons.Folder,
+							})
+						}
+
+						actionButtons.push({
+							label: "delete_action",
+							click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
+							icon: Icons.Trash,
+						})
+					}
+
+					actionButtons.push(...mailViewerMoreActions(viewModel))
+				}
 
 				return actionButtons
 			},

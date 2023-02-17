@@ -761,8 +761,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private async createConversationViewModel(viewModelParams: CreateMailViewerOptions) {
 		const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(viewModelParams.mail)
-		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-		this.conversationViewModel = await locator.conversationViewModel(viewModelParams, mailboxDetails, mailboxProperties)
+		if (mailboxDetails == null) {
+			this.conversationViewModel = null
+		} else {
+			const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+			this.conversationViewModel = await locator.conversationViewModel(viewModelParams, mailboxDetails, mailboxProperties)
+		}
 	}
 
 	private async toggleUnreadMails(mails: Mail[]): Promise<void> {
