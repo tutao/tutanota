@@ -31,7 +31,7 @@ import { ConfigurationDatabase } from "../../api/worker/facades/ConfigurationDat
 import { InlineImages } from "./MailViewer"
 import { isDesktop } from "../../api/common/Env"
 import stream from "mithril/stream"
-import { addAll, contains, downcast, filterInt, first, neverNull, noOp, ofClass, startsWith } from "@tutao/tutanota-utils"
+import { addAll, assertNonNull, contains, downcast, filterInt, first, neverNull, noOp, ofClass, startsWith } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 import {
 	getDefaultSender,
@@ -180,6 +180,9 @@ export class MailViewerViewModel {
 		// The idea is that if there are multiple recipients then we should display the one which belongs to one of our mailboxes and then fall back to any
 		// other one
 		const mailboxDetails = await this.mailModel.getMailboxDetailsForMail(this.mail)
+		if (mailboxDetails == null) {
+			return
+		}
 		const enabledMailAddresses = new Set(getEnabledMailAddressesWithUser(mailboxDetails, this.logins.getUserController().userGroupInfo))
 		const mailWrapper = this.mailWrapper
 		if (mailWrapper == null) {
@@ -202,6 +205,9 @@ export class MailViewerViewModel {
 
 		if (folder) {
 			this.mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+				if (mailboxDetails == null) {
+					return
+				}
 				const name = getPathToFolderString(mailboxDetails.folders, folder)
 				this.folderText = `${getMailboxName(this.logins, mailboxDetails)} / ${name}`
 				m.redraw()
@@ -489,6 +495,9 @@ export class MailViewerViewModel {
 				await this.entityClient.update(this.mail)
 			}
 			const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(this.mail)
+			if (mailboxDetail == null) {
+				return
+			}
 			const spamFolder = assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.SPAM)
 			// do not report moved mails again
 			await moveMails({ mailModel: this.mailModel, mails: [this.mail], targetMailFolder: spamFolder, isReportable: false })
@@ -575,7 +584,7 @@ export class MailViewerViewModel {
 		}
 	}
 
-	private getMailboxDetails(): Promise<MailboxDetail> {
+	private getMailboxDetails(): Promise<MailboxDetail | null> {
 		return this.mailModel.getMailboxDetailsForMail(this.mail)
 	}
 
@@ -713,6 +722,7 @@ export class MailViewerViewModel {
 
 	private getSenderOfResponseMail(): Promise<string> {
 		return this.mailModel.getMailboxDetailsForMail(this.mail).then(async (mailboxDetails) => {
+			assertNonNull(mailboxDetails, "Mail list does not exist anymore")
 			const myMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, this.logins.getUserController().userGroupInfo)
 			const addressesInMail: MailAddress[] = []
 			const mailWrapper = await this.loadMailWrapper()
@@ -735,6 +745,9 @@ export class MailViewerViewModel {
 		if (sendAllowed) {
 			const args = await this.createResponseMailArgsForForwarding([], [], true)
 			const [mailboxDetails, { newMailEditorAsResponse }] = await Promise.all([this.getMailboxDetails(), import("../editor/MailEditor")])
+			if (mailboxDetails == null) {
+				return
+			}
 			// Call this again to make sure everything is loaded, including inline images because this can be called earlier than all the parts are loaded.
 			await this.loadAll({ notify: false })
 			const editor = await newMailEditorAsResponse(args, this.isBlockingExternalImages(), this.getLoadedInlineImages(), mailboxDetails)
@@ -796,6 +809,9 @@ export class MailViewerViewModel {
 
 		if (sendAllowed) {
 			const mailboxDetails = await this.mailModel.getMailboxDetailsForMail(this.mail)
+			if (mailboxDetails == null) {
+				return
+			}
 			let prefix = "Re: "
 			const mailSubject = this.getSubject()
 			let subject = mailSubject ? (startsWith(mailSubject.toUpperCase(), prefix.toUpperCase()) ? mailSubject : prefix + mailSubject) : ""
@@ -948,12 +964,18 @@ export class MailViewerViewModel {
 
 		const args = await this.createResponseMailArgsForForwarding([recipient], newReplyTos, false)
 		const mailboxDetails = await this.getMailboxDetails()
+		if (mailboxDetails == null) {
+			return false
+		}
 		// Make sure inline images are loaded
 		await this.loadAll({ notify: false })
 		const model = await this.sendMailModelFactory(mailboxDetails)
 		await model.initAsResponse(args, this.getLoadedInlineImages())
 		await model.send(MailMethod.NONE)
 		const folders = await this.mailModel.getMailboxFolders(this.mail)
+		if (folders == null) {
+			return false
+		}
 		const archive = assertSystemFolderOfType(folders, MailFolderType.ARCHIVE)
 		return moveMails({ mailModel: this.mailModel, mails: [this.mail], targetMailFolder: archive })
 	}

@@ -27,6 +27,9 @@ export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): 
 	for (let mail of mails) {
 		const folder = locator.mailModel.getMailFolder(mail._id[0])
 		const mailboxDetail = await locator.mailModel.getMailboxDetailsForMailListId(getListId(mail))
+		if (mailboxDetail == null) {
+			continue
+		}
 		const isFinalDelete = folder && isSpamOrTrashFolder(mailboxDetail.folders, folder)
 		isFinalDelete ? trashMails.push(mail) : moveMails.push(mail)
 	}
@@ -84,7 +87,11 @@ interface MoveMailsParams {
  * @return whether mails were actually moved
  */
 export async function moveMails({ mailModel, mails, targetMailFolder, isReportable = true }: MoveMailsParams): Promise<boolean> {
-	const system = (await mailModel.getMailboxDetailsForMailListId(targetMailFolder.mails)).folders
+	const details = await mailModel.getMailboxDetailsForMailListId(targetMailFolder.mails)
+	if (details == null) {
+		return false
+	}
+	const system = details.folders
 	return mailModel
 		.moveMails(mails, targetMailFolder)
 		.then(async () => {
@@ -111,16 +118,17 @@ export async function moveMails({ mailModel, mails, targetMailFolder, isReportab
 		})
 }
 
-export function archiveMails(mails: Mail[]): Promise<any> {
+export function archiveMails(mails: Mail[]): Promise<void> {
 	if (mails.length > 0) {
 		// assume all mails in the array belong to the same Mailbox
-		return locator.mailModel.getMailboxFolders(mails[0]).then((folders) =>
-			moveMails({
-				mailModel: locator.mailModel,
-				mails: mails,
-				targetMailFolder: assertSystemFolderOfType(folders, MailFolderType.ARCHIVE),
-			}),
-		)
+		return locator.mailModel.getMailboxFolders(mails[0]).then((folders) => {
+			folders &&
+				moveMails({
+					mailModel: locator.mailModel,
+					mails: mails,
+					targetMailFolder: assertSystemFolderOfType(folders, MailFolderType.ARCHIVE),
+				})
+		})
 	} else {
 		return Promise.resolve()
 	}
@@ -129,13 +137,14 @@ export function archiveMails(mails: Mail[]): Promise<any> {
 export function moveToInbox(mails: Mail[]): Promise<any> {
 	if (mails.length > 0) {
 		// assume all mails in the array belong to the same Mailbox
-		return locator.mailModel.getMailboxFolders(mails[0]).then((folders) =>
-			moveMails({
-				mailModel: locator.mailModel,
-				mails: mails,
-				targetMailFolder: assertSystemFolderOfType(folders, MailFolderType.INBOX),
-			}),
-		)
+		return locator.mailModel.getMailboxFolders(mails[0]).then((folders) => {
+			folders &&
+				moveMails({
+					mailModel: locator.mailModel,
+					mails: mails,
+					targetMailFolder: assertSystemFolderOfType(folders, MailFolderType.INBOX),
+				})
+		})
 	} else {
 		return Promise.resolve()
 	}

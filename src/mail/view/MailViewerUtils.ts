@@ -104,6 +104,9 @@ export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
 					viewModel.mailModel.getMailboxDetailsForMail(viewModel.mail),
 					import("../editor/MailEditor"),
 				])
+				if (mailboxDetails == null) {
+					return
+				}
 				const editorDialog = await newMailEditorFromDraft(
 					viewModel.getAttachments(),
 					await loadMailDetails(locator.entityClient, viewModel.mail),

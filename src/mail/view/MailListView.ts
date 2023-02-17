@@ -138,21 +138,25 @@ export class MailListView implements Component<MailListViewAttrs> {
 					} else if (this.showingSpamOrTrash) {
 						// recover email from trash/spam
 						this.list.selectNone()
-						return locator.mailModel.getMailboxFolders(listElement).then((folders) =>
-							moveMails({
-								mailModel: locator.mailModel,
-								mails: [listElement],
-								targetMailFolder: this.getRecoverFolder(listElement, folders),
-							}),
+						return locator.mailModel.getMailboxFolders(listElement).then(
+							(folders) =>
+								!!folders &&
+								moveMails({
+									mailModel: locator.mailModel,
+									mails: [listElement],
+									targetMailFolder: this.getRecoverFolder(listElement, folders),
+								}),
 						)
 					} else {
 						this.list.selectNone()
-						return locator.mailModel.getMailboxFolders(listElement).then((folders) =>
-							moveMails({
-								mailModel: locator.mailModel,
-								mails: [listElement],
-								targetMailFolder: assertNotNull(folders.getSystemFolderByType(MailFolderType.ARCHIVE)),
-							}),
+						return locator.mailModel.getMailboxFolders(listElement).then(
+							(folders) =>
+								!!folders &&
+								moveMails({
+									mailModel: locator.mailModel,
+									mails: [listElement],
+									targetMailFolder: assertNotNull(folders.getSystemFolderByType(MailFolderType.ARCHIVE)),
+								}),
 						)
 					}
 				},
@@ -471,12 +475,12 @@ export class MailListView implements Component<MailListViewAttrs> {
 			return false
 		}
 		const mailboxDetail = await locator.mailModel.getMailboxDetailsForMailListId(this.listId)
-		return isSpamOrTrashFolder(mailboxDetail.folders, folder)
+		return mailboxDetail != null && isSpamOrTrashFolder(mailboxDetail.folders, folder)
 	}
 
 	private async showingDraftFolder(): Promise<boolean> {
 		const mailboxDetail = await locator.mailModel.getMailboxDetailsForMailListId(this.listId)
-		if (this.mailView && this.mailView.cache.selectedFolder) {
+		if (this.mailView && this.mailView.cache.selectedFolder && mailboxDetail) {
 			return isOfTypeOrSubfolderOf(mailboxDetail.folders, this.mailView.cache.selectedFolder, MailFolderType.DRAFT)
 		} else {
 			return false
@@ -490,7 +494,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			// For inbox rules there are two points where we might want to apply them. The first one is MailModel which applied inbox rules as they are received
 			// in real time. The second one is here, when we load emails in inbox. If they are unread we want to apply inbox rules to them. If inbox rule is
 			// applies the email is moved out of inbox and we don't return it here.
-			if (isInboxList(mailboxDetail, this.listId)) {
+			if (mailboxDetail && isInboxList(mailboxDetail, this.listId)) {
 				const mailsToKeepInInbox = await promiseFilter(items, async (mail) => {
 					const wasMatched = (await findAndApplyMatchingRule(locator.mailFacade, locator.entityClient, mailboxDetail, mail, true)) != null
 					return !wasMatched

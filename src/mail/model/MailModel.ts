@@ -161,13 +161,17 @@ export class MailModel {
 		}
 	}
 
-	getMailboxDetailsForMail(mail: Mail): Promise<MailboxDetail> {
+	getMailboxDetailsForMail(mail: Mail): Promise<MailboxDetail | null> {
 		return this.getMailboxDetailsForMailListId(mail._id[0])
 	}
 
-	async getMailboxDetailsForMailListId(mailListId: Id): Promise<MailboxDetail> {
+	async getMailboxDetailsForMailListId(mailListId: Id): Promise<MailboxDetail | null> {
 		const mailboxDetails = await this.getMailboxDetails()
-		return assertNotNull(mailboxDetails.find((md) => md.folders.getFolderByMailListId(mailListId)))
+		const detail = mailboxDetails.find((md) => md.folders.getFolderByMailListId(mailListId)) ?? null
+		if (detail == null) {
+			console.warn("Mailbox detail for mail list does not exist", mailListId)
+		}
+		return detail
 	}
 
 	async getMailboxDetailsForMailGroup(mailGroupId: Id): Promise<MailboxDetail> {
@@ -184,8 +188,8 @@ export class MailModel {
 		return assertNotNull(mailboxDetails.find((md) => md.mailGroup._id === userMailGroupMembership.group))
 	}
 
-	getMailboxFolders(mail: Mail): Promise<FolderSystem> {
-		return this.getMailboxDetailsForMail(mail).then((md) => md.folders)
+	getMailboxFolders(mail: Mail): Promise<FolderSystem | null> {
+		return this.getMailboxDetailsForMail(mail).then((md) => md && md.folders)
 	}
 
 	getMailFolder(mailListId: Id): MailFolder | null {
@@ -206,6 +210,9 @@ export class MailModel {
 	 */
 	async sendFolderToSpam(folder: MailFolder): Promise<void> {
 		const mailboxDetail = await this.getMailboxDetailsForMailListId(folder.mails)
+		if (mailboxDetail == null) {
+			return
+		}
 
 		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
 		if (!deletedFolder) {
@@ -274,6 +281,9 @@ export class MailModel {
 			return
 		}
 		const folders = await this.getMailboxFolders(mails[0])
+		if (folders == null) {
+			return
+		}
 		const trashFolder = assertNotNull(folders.getSystemFolderByType(MailFolderType.TRASH))
 
 		for (const [listId, mails] of mailsPerFolder) {
@@ -337,7 +347,10 @@ export class MailModel {
 					await this.getMailboxDetailsForMailListId(update.instanceListId)
 						.then((mailboxDetail) => {
 							// We only apply rules on server if we are the leader in case of incoming messages
-							return findAndApplyMatchingRule(this.mailFacade, this.entityClient, mailboxDetail, mail, this.connectivityModel.isLeader())
+							return (
+								mailboxDetail &&
+								findAndApplyMatchingRule(this.mailFacade, this.entityClient, mailboxDetail, mail, this.connectivityModel.isLeader())
+							)
 						})
 						.then((newId) => this._showNotification(newId || mailId))
 						.catch(noOp)
@@ -372,9 +385,13 @@ export class MailModel {
 	getCounterValue(listId: Id): Promise<number | null> {
 		return this.getMailboxDetailsForMailListId(listId)
 			.then((mailboxDetails) => {
-				const counters = this.mailboxCounters()
-				const mailGroupCounter = counters[mailboxDetails.mailGroup._id]
-				return mailGroupCounter && mailGroupCounter[listId]
+				if (mailboxDetails == null) {
+					return null
+				} else {
+					const counters = this.mailboxCounters()
+					const mailGroupCounter = counters[mailboxDetails.mailGroup._id]
+					return mailGroupCounter && mailGroupCounter[listId]
+				}
 			})
 			.catch(() => null)
 	}
@@ -394,6 +411,9 @@ export class MailModel {
 	 */
 	async trashFolderAndSubfolders(folder: MailFolder): Promise<void> {
 		const mailboxDetail = await this.getMailboxDetailsForMailListId(folder.mails)
+		if (mailboxDetail == null) {
+			return
+		}
 		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
 		if (!deletedFolder) {
 			const trash = assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.TRASH)
@@ -454,7 +474,7 @@ export class MailModel {
 
 	async fixupCounterForMailList(listId: Id, unreadMails: number) {
 		const mailboxDetails = await this.getMailboxDetailsForMailListId(listId)
-		await this.mailFacade.fixupCounterForMailList(mailboxDetails.mailGroup._id, listId, unreadMails)
+		mailboxDetails && (await this.mailFacade.fixupCounterForMailList(mailboxDetails.mailGroup._id, listId, unreadMails))
 	}
 
 	async clearFolder(folder: MailFolder): Promise<void> {

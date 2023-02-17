@@ -199,9 +199,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 							import("../editor/MailEditor"),
 						])
 							.then(([mailbox, dataFiles, { appendEmailSignature }, { newMailEditorFromTemplate }]) => {
-								newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", logins.getUserController().props), dataFiles).then(
-									(dialog) => dialog.show(),
-								)
+								mailbox &&
+									newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", logins.getUserController().props), dataFiles).then(
+										(dialog) => dialog.show(),
+									)
 							})
 							.catch(ofClass(PermissionError, noOp))
 							.catch(ofClass(UserError, showUserError))
@@ -384,7 +385,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				exec: () => {
 					new Promise(async (resolve) => {
 						const { openPressReleaseEditor } = await import("../press/PressReleaseEditor")
-						openPressReleaseEditor(await this.getMailboxDetails())
+						const mailboxDetails = await this.getMailboxDetails()
+						mailboxDetails && openPressReleaseEditor(mailboxDetails)
 						resolve(null)
 					})
 					return true
@@ -408,7 +410,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private async switchToFolder(folderType: Omit<MailFolderType, MailFolderType.CUSTOM>): Promise<void> {
-		const mailboxDetail = await this.getMailboxDetails()
+		const mailboxDetail = assertNotNull(await this.getMailboxDetails())
 		m.route.set(this.folderToUrl[getElementId(assertSystemFolderOfType(mailboxDetail.folders, folderType))])
 	}
 
@@ -618,13 +620,17 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		moveMails({ mailModel: locator.mailModel, mails: mailsToMove, targetMailFolder: folder })
 	}
 
-	private showNewMailDialog(): Promise<Dialog> {
-		return Promise.all([this.getMailboxDetails(), import("../editor/MailEditor")])
-			.then(([mailboxDetails, { newMailEditor }]) => newMailEditor(mailboxDetails))
-			.then((dialog) => dialog.show())
+	private async showNewMailDialog(): Promise<void> {
+		const mailboxDetails = await this.getMailboxDetails()
+		if (mailboxDetails == null) {
+			return
+		}
+		const { newMailEditor } = await import("../editor/MailEditor")
+		const dialog = await newMailEditor(mailboxDetails)
+		dialog.show()
 	}
 
-	private getMailboxDetails(): Promise<MailboxDetail> {
+	private getMailboxDetails(): Promise<MailboxDetail | null> {
 		return this.cache.selectedFolder
 			? locator.mailModel.getMailboxDetailsForMailListId(this.cache.selectedFolder.mails)
 			: locator.mailModel.getUserMailboxDetails()
@@ -677,8 +683,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			// if there's no viewer or the email selection was changed
 			if (!this.mailViewerViewModel || !isSameId(viewModelParams.mail._id, this.mailViewerViewModel.mail._id)) {
 				const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(viewModelParams.mail)
-				const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-				this.mailViewerViewModel = await locator.mailViewerViewModel(viewModelParams, mailboxDetails, mailboxProperties)
+				if (mailboxDetails == null) {
+					this.mailViewerViewModel = null
+				} else {
+					const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+					this.mailViewerViewModel = await locator.mailViewerViewModel(viewModelParams, mailboxDetails, mailboxProperties)
+				}
 			}
 
 			const url = `/mail/${mails[0]._id.join("/")}`
@@ -738,6 +748,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		this.cache.mailList?.list.selectNone()
 
 		const mailboxDetail = await this.getMailboxDetails()
+		if (mailboxDetail == null) {
+			return
+		}
 
 		// the request is handled a little differently if it is the system folder vs a subfolder
 		if (folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM) {
