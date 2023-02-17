@@ -5,7 +5,7 @@ import { windowFacade, windowSizeListener } from "../../misc/WindowFacade"
 import { FeatureType, InboxRuleType, Keys, MailFolderType, SpamRuleFieldType, SpamRuleType } from "../../api/common/TutanotaConstants"
 import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../misc/LanguageViewModel"
-import { assertMainOrNode, isDesktop } from "../../api/common/Env"
+import { assertMainOrNode } from "../../api/common/Env"
 import { assertNonNull, defer, DeferredObject, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { createNewContact, getExistingRuleForType, isTutanotaTeamMail } from "../model/MailUtils"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
@@ -21,7 +21,6 @@ import { DropdownButtonAttrs, showDropdownAtPosition } from "../../gui/base/Drop
 import { navButtonRoutes } from "../../misc/RouteChange"
 import type { InlineImageReference } from "./MailGuiUtils"
 import { replaceCidsWithInlineImages } from "./MailGuiUtils"
-import { locator } from "../../api/main/MainLocator"
 import { getCoordsOfMouseOrTouchEvent } from "../../gui/base/GuiUtils"
 import { copyToClipboard } from "../../misc/ClipboardUtils"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel"
@@ -517,8 +516,12 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					label: rule ? "editInboxRule_action" : "addInboxRule_action",
 					click: async () => {
 						const mailboxDetails = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
+						if (mailboxDetails == null) {
+							return
+						}
 						const { show, createInboxRuleTemplate } = await import("../../settings/AddInboxRuleDialog")
 						const newRule = rule ?? createInboxRuleTemplate(defaultInboxRuleField, mailAddress.address.trim().toLowerCase())
+
 						show(mailboxDetails, newRule)
 					},
 				})

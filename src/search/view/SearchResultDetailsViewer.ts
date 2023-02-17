@@ -91,10 +91,14 @@ export class SearchResultDetailsViewer {
 			}
 			if (this.viewer == null || this.viewer.mode !== "mail" || !isSameId(this.viewer.viewModel.mail._id, mail._id)) {
 				const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(viewModelParams.mail)
-				const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-				this.viewer = {
-					mode: "mail",
-					viewModel: await locator.mailViewerViewModel(viewModelParams, mailboxDetails, mailboxProperties),
+				if (mailboxDetails == null) {
+					this.viewer = null
+				} else {
+					const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+					this.viewer = {
+						mode: "mail",
+						viewModel: await locator.mailViewerViewModel(viewModelParams, mailboxDetails, mailboxProperties),
+					}
 				}
 			}
 

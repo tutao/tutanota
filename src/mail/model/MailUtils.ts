@@ -367,7 +367,11 @@ export async function getMoveTargetFolderSystems(model: MailModel, mails: Mail[]
 	const firstMail = first(mails)
 	if (firstMail == null) return []
 
-	const folderSystem = (await model.getMailboxDetailsForMail(firstMail)).folders
+	const mailboxDetails = await model.getMailboxDetailsForMail(firstMail)
+	if (mailboxDetails == null) {
+		return []
+	}
+	const folderSystem = mailboxDetails.folders
 	return folderSystem.getIndentedList().filter((f) => f.folder.mails !== getListId(firstMail))
 }
 
