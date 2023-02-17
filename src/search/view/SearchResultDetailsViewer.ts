@@ -3,7 +3,6 @@ import { SearchListView, SearchResultListEntry } from "./SearchListView"
 import type { Contact, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { LockedError, NotFoundError } from "../../api/common/error/RestError"
-import { MailViewer } from "../../mail/view/MailViewer"
 import { ContactViewer } from "../../contacts/view/ContactViewer"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import { assertMainOrNode } from "../../api/common/Env"
@@ -13,13 +12,16 @@ import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { isSameTypeRef, noOp, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/MainLocator"
 import { isSameId } from "../../api/common/utils/EntityUtils"
-import { MailViewerViewModel } from "../../mail/view/MailViewerViewModel"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
-import { ObservableSubject } from "../../mail/view/ConversationViewer.js"
+import { ConversationViewer } from "../../mail/view/ConversationViewer.js"
+import { ConversationViewModel } from "../../mail/view/ConversationViewModel.js"
 
 assertMainOrNode()
 
-type Viewer = { mode: "mail"; viewModel: MailViewerViewModel } | { mode: "contact"; viewer: ContactViewer } | { mode: "multiSearch"; viewer: MultiSearchViewer }
+type Viewer =
+	| { mode: "mail"; viewModel: ConversationViewModel }
+	| { mode: "contact"; viewer: ContactViewer }
+	| { mode: "multiSearch"; viewer: MultiSearchViewer }
 
 export class SearchResultDetailsViewer {
 	/** DO NOT use directly, use {@link viewer}. */
@@ -34,13 +36,17 @@ export class SearchResultDetailsViewer {
 			this._viewer.viewModel.dispose()
 		}
 		this._viewer = viewer
+		// Unlike in MailView we do not reset here based on conversation preference because the viewModel would be re-created again before viewing anyway
+		if (viewer?.mode === "mail") {
+			viewer.viewModel.init()
+		}
 	}
 
 	private get viewerEntityId(): IdTuple | null {
 		if (this.viewer == null) return null
 		switch (this.viewer.mode) {
 			case "mail":
-				return this.viewer.viewModel.mail._id
+				return this.viewer.viewModel.primaryMail._id
 			case "contact":
 				return this.viewer.viewer.contact._id
 			case "multiSearch":
@@ -70,17 +76,9 @@ export class SearchResultDetailsViewer {
 		} else {
 			const viewer = this.viewer
 			return viewer?.mode === "mail"
-				? m(".flex.col", [
-						m(ObservableSubject, {
-							subject: viewer.viewModel.getSubject(),
-							cb: noOp,
-						}),
-						m(MailViewer, {
-							viewModel: viewer.viewModel,
-							isPrimary: true,
-							defaultQuoteBehavior: "expand",
-						}),
-				  ])
+				? m(ConversationViewer, {
+						viewModel: viewer.viewModel,
+				  })
 				: viewer != null
 				? m(viewer.viewer)
 				: null
@@ -98,16 +96,16 @@ export class SearchResultDetailsViewer {
 				mail,
 				showFolder: true,
 			}
-			if (this.viewer == null || this.viewer.mode !== "mail" || !isSameId(this.viewer.viewModel.mail._id, mail._id)) {
+			if (this.viewer == null || this.viewer.mode !== "mail" || !isSameId(this.viewer.viewModel.primaryMail._id, mail._id)) {
 				const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(viewModelParams.mail)
-				const viewModelFactory = await locator.mailViewerViewModelFactory()
 				if (mailboxDetails == null) {
 					this.viewer = null
 				} else {
 					const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+					const viewModel = await locator.conversationViewModel({ mail, showFolder: true }, mailboxDetails, mailboxProperties)
 					this.viewer = {
 						mode: "mail",
-						viewModel: viewModelFactory(viewModelParams, mailboxDetails, mailboxProperties),
+						viewModel,
 					}
 				}
 			}
