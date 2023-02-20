@@ -44,6 +44,7 @@ export class ConversationViewModel {
 	init() {
 		this.loadingPromise = this.loadingState.trackPromise(this.loadConversation())
 		this.eventController.addEntityListener(this.onEntityEvent)
+		this._primaryViewModel.expandMail()
 	}
 
 	private readonly onEntityEvent: EntityEventsListener = async (updates, eventOwnerGroupId) => {

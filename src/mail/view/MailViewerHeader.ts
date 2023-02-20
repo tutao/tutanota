@@ -162,15 +162,15 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		return m(classes, [
 			m(
-				".flex.flex-grow.align-self-start.items-start.mt",
+				".flex.flex-grow.align-self-start.items-start.mt.click",
 				{
 					role: "button",
 					onclick: () => {
-						attrs.isPrimary ? noOp : viewModel.collapseMail()
+						viewModel.collapseMail()
 					},
 					onkeydown: (e: KeyboardEvent) => {
 						if (isKeyPressed(e.keyCode, Keys.SPACE, Keys.RETURN)) {
-							attrs.isPrimary ? noOp : viewModel.collapseMail()
+							viewModel.collapseMail()
 						}
 					},
 				},

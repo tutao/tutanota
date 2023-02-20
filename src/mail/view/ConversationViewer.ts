@@ -190,8 +190,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 					marginTop: px(conversationCardMargin),
 				},
 			},
-			// probably should trigger the load from somewhere here but currently we need to render mail viewer for that to happen
-			!isPrimary && mailViewModel.isCollapsed()
+			mailViewModel.isCollapsed()
 				? m(CollapsedMailView, {
 						viewModel: mailViewModel,
 				  })
