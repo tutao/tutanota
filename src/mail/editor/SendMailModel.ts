@@ -420,8 +420,13 @@ export class SendMailModel {
 
 		const recipientsFilter = (recipientList: Array<PartialRecipient>) =>
 			deduplicate(
-				recipientList.filter((r) => isMailAddress(r.address, false)),
-				(a, b) => cleanMailAddress(a.address) === cleanMailAddress(b.address),
+				recipientList
+					.filter((r) => isMailAddress(r.address, false))
+					.map((a) => {
+						a.address = cleanMailAddress(a.address)
+						return a
+					}),
+				(a, b) => a.address === b.address,
 			)
 
 		// Making it LazyLoaded() will allow us to retry it in case it fails.
@@ -565,7 +570,8 @@ export class SendMailModel {
 	 */
 	removeRecipient(recipient: Recipient, type: RecipientField, notify: boolean = true): boolean {
 		const recipients = this.recipients.get(type) ?? []
-		const didRemove = findAndRemove(recipients, (r) => cleanMailAddress(r.address) === cleanMailAddress(recipient.address))
+		const cleanRecipientAddress = cleanMailAddress(recipient.address)
+		const didRemove = findAndRemove(recipients, (r) => cleanMailAddress(r.address) === cleanRecipientAddress)
 		this.markAsChangedIfNecessary(didRemove)
 
 		if (didRemove && notify) {

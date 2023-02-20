@@ -104,7 +104,7 @@ export function findAttendeeInAddresses<T extends { address: EncryptedMailAddres
 	// the filters are necessary because of #5147
 	// we may get passed addresses and attendees that could not be decrypted and don't have addresses.
 	const lowerCaseAddresses = addresses.filter(Boolean).map(cleanMailAddress)
-	return attendees.filter((a) => a.address.address != null).find((a) => lowerCaseAddresses.includes(cleanMailAddress(a.address.address))) ?? null
+	return attendees.find((a) => a.address.address != null && lowerCaseAddresses.includes(cleanMailAddress(a.address.address))) ?? null
 }
 
 /**
