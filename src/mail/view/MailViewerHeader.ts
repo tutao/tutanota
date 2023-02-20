@@ -164,12 +164,16 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			classes,
 			{
 				role: "button",
-				onclick: () => {
+				"mail-expander": "true",
+				tabindex: TabIndex.Default,
+				onclick: (e: MouseEvent) => {
 					viewModel.collapseMail()
+					e.stopPropagation()
 				},
 				onkeydown: (e: KeyboardEvent) => {
-					if (isKeyPressed(e.keyCode, Keys.SPACE, Keys.RETURN)) {
+					if (isKeyPressed(e.keyCode, Keys.SPACE, Keys.RETURN) && (e.target as HTMLElement).hasAttribute("mail-expander")) {
 						viewModel.collapseMail()
+						e.preventDefault()
 					}
 				},
 			},
@@ -217,17 +221,6 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 
 		return classes
-	}
-
-	private renderSubject(viewModel: MailViewerViewModel) {
-		return m(
-			".h5.subject.text-break.selectable.b.flex-grow.pl-l.pr",
-			{
-				"aria-label": lang.get("subject_label") + ", " + (viewModel.getSubject() || ""),
-				style: { marginTop: "12px" },
-			},
-			viewModel.getSubject() || "",
-		)
 	}
 
 	private renderBanners(attrs: MailViewerHeaderAttrs): Children {

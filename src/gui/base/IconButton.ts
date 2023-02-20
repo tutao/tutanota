@@ -29,7 +29,11 @@ export class IconButton implements Component<IconButtonAttrs> {
 				oncreate: ({ dom }) => {
 					this.dom = dom as HTMLElement
 				},
-				onclick: (e: MouseEvent) => attrs.click(e, assertNotNull(this.dom)),
+				onclick: (e: MouseEvent) => {
+					attrs.click(e, assertNotNull(this.dom))
+					// It doesn't make sense to propagate click events if we are the button
+					e.stopPropagation()
+				},
 				title: lang.getMaybeLazy(attrs.title),
 				class: attrs.size === ButtonSize.Compact ? "compact" : "",
 			},
