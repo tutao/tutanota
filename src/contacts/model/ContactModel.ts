@@ -10,6 +10,7 @@ import { compareOldestFirst, elementIdPart, listIdPart } from "../../api/common/
 import type { SearchFacade } from "../../api/worker/search/SearchFacade"
 import { assertMainOrNode } from "../../api/common/Env"
 import { LoginIncompleteError } from "../../api/common/error/LoginIncompleteError"
+import { cleanMailAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 
 assertMainOrNode()
 
@@ -47,10 +48,10 @@ export class ContactModelImpl implements ContactModel {
 		if (!this.loginController.isFullyLoggedIn()) {
 			throw new LoginIncompleteError("cannot search for contacts as online login is not completed")
 		}
-		const cleanMailAddress = mailAddress.trim().toLowerCase()
+		const cleanedMailAddress = cleanMailAddress(mailAddress)
 		let result
 		try {
-			result = await this._searchFacade.search('"' + cleanMailAddress + '"', createRestriction("contact", null, null, "mailAddress", null), 0)
+			result = await this._searchFacade.search('"' + cleanedMailAddress + '"', createRestriction("contact", null, null, "mailAddress", null), 0)
 		} catch (e) {
 			// If IndexedDB is not supported or isn't working for some reason we load contacts from the server and
 			// search manually.
@@ -59,7 +60,7 @@ export class ContactModelImpl implements ContactModel {
 
 				if (listId) {
 					const contacts = await this._entityClient.loadAll(ContactTypeRef, listId)
-					return contacts.find((contact) => contact.mailAddresses.some((a) => a.address.trim().toLowerCase() === cleanMailAddress)) ?? null
+					return contacts.find((contact) => contact.mailAddresses.some((a) => cleanMailAddress(a.address) === cleanedMailAddress)) ?? null
 				} else {
 					return null
 				}
@@ -73,7 +74,7 @@ export class ContactModelImpl implements ContactModel {
 		for (const contactId of result.results) {
 			try {
 				const contact = await this._entityClient.load(ContactTypeRef, contactId)
-				if (contact.mailAddresses.some((a) => a.address.trim().toLowerCase() === cleanMailAddress)) {
+				if (contact.mailAddresses.some((a) => cleanMailAddress(a.address) === cleanedMailAddress)) {
 					return contact
 				}
 			} catch (e) {
