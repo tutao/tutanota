@@ -158,23 +158,23 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private renderSubjectActionsLine(attrs: MailViewerHeaderAttrs) {
 		const { viewModel } = attrs
-		const classes = this.makeSubjectActionsLineClasses(attrs)
+		const classes = this.makeSubjectActionsLineClasses()
 
-		return m(classes, [
-			m(
-				".flex.flex-grow.align-self-start.items-start.mt.click",
-				{
-					role: "button",
-					onclick: () => {
-						viewModel.collapseMail()
-					},
-					onkeydown: (e: KeyboardEvent) => {
-						if (isKeyPressed(e.keyCode, Keys.SPACE, Keys.RETURN)) {
-							viewModel.collapseMail()
-						}
-					},
+		return m(
+			classes,
+			{
+				role: "button",
+				onclick: () => {
+					viewModel.collapseMail()
 				},
-				[
+				onkeydown: (e: KeyboardEvent) => {
+					if (isKeyPressed(e.keyCode, Keys.SPACE, Keys.RETURN)) {
+						viewModel.collapseMail()
+					}
+				},
+			},
+			[
+				m(".flex.flex-grow.align-self-start.items-start.mt", [
 					viewModel.isUnread() ? this.renderUnreadDot() : null,
 					viewModel.isDraftMail()
 						? m(
@@ -190,10 +190,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						: null,
 					this.tutaoBadge(viewModel),
 					m("span.text-break" + (viewModel.isUnread() ? ".font-weight-600" : ""), viewModel.mail.sender.name),
-				],
-			),
-			this.actionButtons(attrs),
-		])
+				]),
+				this.actionButtons(attrs),
+			],
+		)
 	}
 
 	private renderUnreadDot(): Children {
@@ -208,15 +208,12 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		)
 	}
 
-	private makeSubjectActionsLineClasses(attrs: MailViewerHeaderAttrs) {
-		let classes = ".flex"
+	private makeSubjectActionsLineClasses() {
+		let classes = ".flex.click"
 		if (styles.isSingleColumnLayout()) {
 			classes += ".mt-xs.mlr"
 		} else {
 			classes += ".pl-l"
-		}
-		if (!attrs.isPrimary) {
-			classes += ".click"
 		}
 
 		return classes
