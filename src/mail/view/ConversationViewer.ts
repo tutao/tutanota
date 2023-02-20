@@ -27,7 +27,6 @@ const conversationCardMargin = 18
  * Displays mails in a conversation
  */
 export class ConversationViewer implements Component<ConversationViewerAttrs> {
-	private primaryDom: HTMLElement | null = null
 	private containerDom: HTMLElement | null = null
 	private floatingSubjectDom: HTMLElement | null = null
 	private didScroll = false
@@ -179,11 +178,6 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 			{
 				class: mailViewerMargin(),
 				key: elementIdPart(mailViewModel.mail.conversationEntry),
-				oncreate: (vnode: VnodeDOM) => {
-					if (isPrimary) {
-						this.primaryDom = vnode.dom as HTMLElement
-					}
-				},
 				style: {
 					border: `1px solid ${theme.list_border}`,
 					backgroundColor: theme.content_bg,
@@ -245,21 +239,23 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 	}
 
 	private doScroll(viewModel: ConversationViewModel, items: readonly ConversationItem[]) {
-		const primaryDom = this.primaryDom
 		const containerDom = this.containerDom
-		if (!this.didScroll && primaryDom && containerDom && viewModel.isFinished()) {
+		if (!this.didScroll && containerDom && viewModel.isFinished()) {
 			const conversationId = viewModel.primaryMail.conversationEntry
 
 			this.didScroll = true
-			requestAnimationFrame(() => {
-				// There's a chance that item are not in sync with dom but it's very unlikely, this is the next frame after the last render we used the items
+			// We need to do this at the end of the frame when every change is already applied.
+			// Promise.resolve() schedules a microtask exactly where we need it.
+			// RAF is too long and would flash the wrong frame
+			Promise.resolve().then(() => {
+				// There's a chance that item are not in sync with dom but it's very unlikely, this is the same frame after the last render we used the items
 				// and viewModel is finished.
 				const itemIndex = items.findIndex((e) => e.type === "mail" && isSameId(e.entryId, conversationId))
 				// Don't scroll if it's already the first (or if we didn't find it but that would be weird)
 				if (itemIndex > 1) {
 					const top = (containerDom.childNodes[itemIndex] as HTMLElement).offsetTop
-					// The extra 2 is to ensure that the view is scrolled enough so that the floating subject picks up on the right subject
-					containerDom.scrollTo({ top: top - calculateSubjectHeaderHeight() - 2 })
+					// The single pixel seems to make the difference between jittering or not. Inferred empiraically.
+					containerDom.scrollTo({ top: top - calculateSubjectHeaderHeight() + 1 })
 				}
 			})
 		}
