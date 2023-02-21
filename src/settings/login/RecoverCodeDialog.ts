@@ -2,7 +2,7 @@ import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog.js"
 import type { Hex } from "@tutao/tutanota-utils"
 import { neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
-import m, { Children, Vnode } from "mithril"
+import m, { Child, Children, Vnode } from "mithril"
 import { assertMainOrNode, isApp } from "../../api/common/Env.js"
 import { copyToClipboard } from "../../misc/ClipboardUtils.js"
 import { Button } from "../../gui/base/Button.js"
@@ -89,8 +89,6 @@ export type RecoverCodeFieldAttrs = {
 
 export class RecoverCodeField {
 	view(vnode: Vnode<RecoverCodeFieldAttrs>): Children {
-		const lnk = InfoLink.RecoverCode
-
 		let { recoverCode, showButtons, showMessage, showImage } = vnode.attrs
 		showButtons = showButtons ?? true
 
@@ -98,13 +96,7 @@ export class RecoverCodeField {
 			showMessage
 				? showImage
 					? m(".flex-space-around.flex-wrap", [
-							m(
-								".flex-grow-shrink-half.plr-l.flex-center.align-self-center",
-								m(".pt.pb", [
-									lang.get("recoveryCode_msg"),
-									m("", [m("small", lang.get("moreInfo_msg") + " "), m("small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])]),
-								]),
-							),
+							m(".flex-grow-shrink-half.plr-l.flex-center.align-self-center", this.renderRecoveryText()),
 							m(
 								".flex-grow-shrink-half.plr-l.flex-center.align-self-center",
 								m("img.pt.bg-white.pt.pb", {
@@ -115,10 +107,7 @@ export class RecoverCodeField {
 								}),
 							),
 					  ])
-					: m(".pt.pb", [
-							lang.get("recoveryCode_msg"),
-							m("", [m("small", lang.get("moreInfo_msg") + " "), m("small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])]),
-					  ])
+					: this.renderRecoveryText()
 				: m("", lang.get("emptyString_msg")),
 			m(
 				".text-break.monospace.selectable.flex.flex-wrap.border.pt.pb.plr",
@@ -141,5 +130,13 @@ export class RecoverCodeField {
 				  ])
 				: null,
 		]
+	}
+
+	private renderRecoveryText(): Child {
+		const link = InfoLink.RecoverCode
+		return m(".pt.pb", [
+			lang.get("recoveryCode_msg"),
+			m("", [m("small", lang.get("moreInfo_msg") + " "), m("small.text-break", [m(`a[href=${link}][target=_blank]`, link)])]),
+		])
 	}
 }
