@@ -1,4 +1,15 @@
 {
 	"app": "accounting",
-	"versions": []
+	"versions": [
+		{
+			"version": 5,
+			"changes": [
+				{
+					"name": "RemoveValue",
+					"sourceType": "CustomerAccountPosting",
+					"info": "RemoveValue CustomerAccountPosting/balance/85."
+				}
+			]
+		}
+	]
 }

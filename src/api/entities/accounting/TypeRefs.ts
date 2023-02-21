@@ -14,7 +14,6 @@ export type CustomerAccountPosting = {
 
 	_id: Id;
 	amount: NumberString;
-	balance: NumberString;
 	invoiceNumber: null | string;
 	type: NumberString;
 	valueDate: Date;
@@ -32,6 +31,7 @@ export type CustomerAccountReturn = {
 	_format: NumberString;
 	_ownerGroup: null | Id;
 	_ownerPublicEncSessionKey: null | Uint8Array;
+	balance: NumberString;
 	outstandingBookingsPrice: NumberString;
 
 	postings: CustomerAccountPosting[];
