@@ -7,7 +7,7 @@ import { EntityUpdateData, EventController, isUpdateFor, isUpdateForTypeRef } fr
 import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { getAvailableDomains } from "./MailAddressesUtils.js"
 import { CustomerInfoTypeRef, GroupInfo, GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull, lazyMemoized } from "@tutao/tutanota-utils"
 import { isTutanotaMailAddress } from "../../mail/model/MailUtils.js"
 
 export interface AliasCount {
@@ -45,6 +45,13 @@ export class MailAddressTableModel {
 	private _aliasCount: AliasCount | null = null
 	private nameMappings: AddressToName | null = null
 
+	init: () => Promise<void> = lazyMemoized(async () => {
+		this.eventController.addEntityListener(this.entityEventsReceived)
+		await this.updateAliasCount()
+		await this.loadNames()
+		this.redraw()
+	})
+
 	constructor(
 		private readonly entityClient: EntityClient,
 		private readonly mailAddressFacade: MailAddressFacade,
@@ -53,13 +60,6 @@ export class MailAddressTableModel {
 		private userGroupInfo: GroupInfo,
 		private readonly nameChanger: MailAddressNameChanger,
 	) {}
-
-	async init() {
-		this.eventController.addEntityListener(this.entityEventsReceived)
-		await this.updateAliasCount()
-		await this.loadNames()
-		this.redraw()
-	}
 
 	dispose() {
 		this.eventController.removeEntityListener(this.entityEventsReceived)
