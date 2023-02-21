@@ -1,7 +1,7 @@
 import type { CredentialsAndDatabaseKey, CredentialsEncryption, PersistentCredentials } from "./CredentialsProvider.js"
 import { CredentialsProvider } from "./CredentialsProvider.js"
 import { deviceConfig } from "../DeviceConfig"
-import { isApp, isDesktop, isOfflineStorageAvailable } from "../../api/common/Env"
+import { isApp, isDesktop } from "../../api/common/Env"
 import type { DeviceEncryptionFacade } from "../../api/worker/facades/DeviceEncryptionFacade"
 import { CredentialsKeyProvider } from "./CredentialsKeyProvider"
 import { NativeCredentialsEncryption } from "./NativeCredentialsEncryption"
@@ -10,6 +10,7 @@ import { assertNotNull } from "@tutao/tutanota-utils"
 import { DatabaseKeyFactory } from "./DatabaseKeyFactory"
 import { DefaultCredentialsKeyMigrator, StubCredentialsKeyMigrator } from "./CredentialsKeyMigrator.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 
 export function usingKeychainAuthentication(): boolean {
 	return isApp() || isDesktop()
@@ -23,11 +24,13 @@ export function hasKeychainAuthenticationOptions(): boolean {
  * Factory method for credentials provider that will return an instance injected with the implementations appropriate for the platform.
  * @param deviceEncryptionFacade
  * @param nativeApp: If {@code usingKeychainAuthentication} would return true, this _must not_ be null
+ * @param sqlCipherFacade
  * @param interWindowEventSender
  */
 export async function createCredentialsProvider(
 	deviceEncryptionFacade: DeviceEncryptionFacade,
 	nativeApp: NativeInterface | null,
+	sqlCipherFacade: SqlCipherFacade | null,
 	interWindowEventSender: InterWindowEventFacadeSendDispatcher | null,
 ): Promise<CredentialsProvider> {
 	if (usingKeychainAuthentication()) {
@@ -37,13 +40,12 @@ export async function createCredentialsProvider(
 		const credentialsKeyProvider = new CredentialsKeyProvider(nativeCredentials, deviceConfig, deviceEncryptionFacade)
 		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nativeCredentials)
 		const credentialsKeyMigrator = new DefaultCredentialsKeyMigrator(nativeCredentials)
-		const sqlcipherFacade = nativeApp && isOfflineStorageAvailable() ? new SqlCipherFacadeSendDispatcher(nativeApp) : null
 		return new CredentialsProvider(
 			credentialsEncryption,
 			deviceConfig,
 			credentialsKeyMigrator,
 			new DatabaseKeyFactory(deviceEncryptionFacade),
-			sqlcipherFacade,
+			sqlCipherFacade,
 			isDesktop() ? interWindowEventSender : null,
 		)
 	} else {
