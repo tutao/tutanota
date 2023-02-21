@@ -33,15 +33,6 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": true
             },
-            "balance": {
-                "final": true,
-                "name": "balance",
-                "id": 85,
-                "since": 3,
-                "type": "Number",
-                "cardinality": "One",
-                "encrypted": true
-            },
             "invoiceNumber": {
                 "final": true,
                 "name": "invoiceNumber",
@@ -72,7 +63,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "accounting",
-        "version": "4"
+        "version": "5"
     },
     "CustomerAccountReturn": {
         "name": "CustomerAccountReturn",
@@ -110,6 +101,15 @@ export const typeModels = {
                 "cardinality": "ZeroOrOne",
                 "encrypted": false
             },
+            "balance": {
+                "final": true,
+                "name": "balance",
+                "id": 94,
+                "since": 5,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": true
+            },
             "outstandingBookingsPrice": {
                 "final": false,
                 "name": "outstandingBookingsPrice",
@@ -133,6 +133,6 @@ export const typeModels = {
             }
         },
         "app": "accounting",
-        "version": "4"
+        "version": "5"
     }
 }

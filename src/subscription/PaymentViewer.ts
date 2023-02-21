@@ -53,6 +53,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	private _accountingInfo: AccountingInfo | null = null
 	private _postings: CustomerAccountPosting[]
 	private _outstandingBookingsPrice: number | null = null
+	private _balance: number
 	private _lastBooking: Booking | null
 	private _paymentBusy: boolean
 	private _invoiceInfo: InvoiceInfo | null = null
@@ -67,6 +68,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			.setEnabled(false)
 			.setPlaceholderId("invoiceAddress_label")
 		this._postings = []
+		this._outstandingBookingsPrice = null
+		this._balance = 0
 		this._lastBooking = null
 		this._paymentBusy = false
 		const postingExpanded = stream(false)
@@ -151,7 +154,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 	private changePaymentMethod() {
 		if (this._accountingInfo) {
-			let nextPayment = this._postings.length ? Number(this._postings[0].balance) * -1 : 0
+			let nextPayment = this._amountOwed() * -1
 			showProgressDialog(
 				"pleaseWait_msg",
 				locator.bookingFacade.getCurrentPrice().then((priceServiceReturn) => {
@@ -177,7 +180,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		if (!this._postings || this._postings.length === 0) {
 			return null
 		} else {
-			const balance = Number.parseFloat(this._postings[0].balance)
+			const balance = this._balance
 			return [
 				m(".h4.mt-l", lang.get("currentBalance_label")),
 				m(".flex.center-horizontally.center-vertically.col", [
@@ -280,13 +283,12 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	_accountBalance(): number {
-		const balance = this._postings && this._postings.length > 0 ? Number(this._postings[0].balance) : 0
-		return balance - assertNotNull(this._outstandingBookingsPrice)
+		return this._balance - assertNotNull(this._outstandingBookingsPrice)
 	}
 
 	_amountOwed(): number {
-		if (this._postings != null && this._postings.length > 0) {
-			let balance = Number(this._postings[0].balance)
+		if (this._balance != null) {
+			let balance = this._balance
 
 			if (balance < 0) {
 				return balance
@@ -316,6 +318,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		return locator.serviceExecutor.get(CustomerAccountService, null).then((result) => {
 			this._postings = result.postings
 			this._outstandingBookingsPrice = Number(result.outstandingBookingsPrice)
+			this._balance = Number(result.balance)
 			m.redraw()
 		})
 	}
@@ -362,20 +365,6 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						"pleaseWait_msg",
 						locator.serviceExecutor
 							.put(DebitService, createDebitServicePutData())
-							.then(() => {
-								// accounting is updated async but we know that the balance will be 0 when the payment was successful.
-								let mostCurrentPosting = this._postings[0]
-								let newPosting = createCustomerAccountPosting({
-									valueDate: new Date(),
-									amount: String(-Number.parseFloat(mostCurrentPosting.balance)),
-									balance: "0",
-									type: PostingType.Payment,
-								})
-
-								this._postings.unshift(newPosting)
-
-								m.redraw()
-							})
 							.catch(ofClass(LockedError, () => "operationStillActive_msg" as TranslationKey))
 							.catch(
 								ofClass(PreconditionFailedError, (error) => {
@@ -390,6 +379,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			.then((errorId: TranslationKeyType | void) => {
 				if (errorId) {
 					return Dialog.message(errorId)
+				} else {
+					return this._loadPostings()
 				}
 			})
 			.finally(() => (this._paymentBusy = false))
