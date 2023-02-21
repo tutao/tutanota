@@ -5,7 +5,7 @@ struct EncryptedAlarmInfo : Codable {
   let trigger: Base64
 }
 
-struct AlarmInfo {
+struct AlarmInfo : Equatable {
   let alarmIdentifer: String
   let trigger: String
 }

@@ -13,7 +13,7 @@ enum EndType: Int, SimpleStringDecodable {
   case untilDate
 }
 
-enum RepeatEndCondition {
+enum RepeatEndCondition : Equatable {
   case never
   case count(times: Int64)
   case untilDate(date: Date)
@@ -39,7 +39,7 @@ struct EncryptedRepeatRule : Codable, Hashable {
   let endValue: Base64?
 }
 
-struct RepeatRule {
+struct RepeatRule : Equatable {
   let frequency: RepeatPeriod
   let interval: Int
   let timeZone: String
