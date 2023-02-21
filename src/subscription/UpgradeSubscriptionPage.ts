@@ -255,6 +255,7 @@ function confirmFreeSubscription(): Promise<boolean> {
 export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
 	data: UpgradeSubscriptionData
 	subscriptionType: string | null = null
+	hideAllPagingButtons = true
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
 		this.data = upgradeData

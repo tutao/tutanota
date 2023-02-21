@@ -44,9 +44,14 @@ export interface WizardPageAttrs<T> {
 	readonly preventGoBack?: boolean
 
 	/**
+	 * if set to true, all paging buttons will be hidden for this page
+	 */
+	readonly hideAllPagingButtons?: boolean
+
+	/**
 	 * if this is true the paging button (button with the number) is hidden for this specific wizard page
 	 */
-	readonly hidePagingButton?: boolean
+	readonly hidePagingButtonForPage?: boolean
 }
 
 export type WizardPageN<T> = Component<WizardPageAttrs<T>>
@@ -104,26 +109,28 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 		const a = vnode.attrs
 		const selectedIndex = a.currentPage ? a._getEnabledPages().indexOf(a.currentPage) : -1
 		return m("#wizardDialogContent.pt", [
-			m(
-				"#wizard-paging.flex-space-around.border-top",
-				{
-					style: {
-						height: "22px",
-						marginTop: "22px",
-					},
-				},
-				a
-					._getEnabledPages()
-					.filter((page) => !page.attrs.hidePagingButton)
-					.map((p, index) =>
-						m(WizardPagingButton, {
-							pageIndex: index,
-							getSelectedPageIndex: () => selectedIndex,
-							isClickable: () => a.allowedToVisitPage(index, selectedIndex),
-							navigateBackHandler: (index) => a._goToPageAction(index),
-						}),
-					),
-			),
+			a.currentPage && a.currentPage.attrs.hideAllPagingButtons
+				? null
+				: m(
+						"#wizard-paging.flex-space-around.border-top",
+						{
+							style: {
+								height: "22px",
+								marginTop: "22px",
+							},
+						},
+						a
+							._getEnabledPages()
+							.filter((page) => !page.attrs.hidePagingButtonForPage)
+							.map((p, index) =>
+								m(WizardPagingButton, {
+									pageIndex: index,
+									getSelectedPageIndex: () => selectedIndex,
+									isClickable: () => a.allowedToVisitPage(index, selectedIndex),
+									navigateBackHandler: (index) => a._goToPageAction(index),
+								}),
+							),
+				  ),
 			a.currentPage ? a.currentPage.view() : null,
 		])
 	}
@@ -155,6 +162,11 @@ class WizardDialogAttrs<T> {
 	pages: ReadonlyArray<WizardPageWrapper<T>>
 	currentPage: WizardPageWrapper<T> | null
 	closeAction: () => Promise<void>
+	private _headerBarAttrs: DialogHeaderBarAttrs = {}
+
+	get headerBarAttrs(): DialogHeaderBarAttrs {
+		return this._headerBarAttrs
+	}
 
 	constructor(data: T, pages: ReadonlyArray<WizardPageWrapper<T>>, closeAction?: () => Promise<void>) {
 		this.data = data
@@ -165,6 +177,7 @@ class WizardDialogAttrs<T> {
 			: () => {
 					return Promise.resolve()
 			  }
+		this.updateHeaderBarAttrs()
 	}
 
 	goToPreviousPageOrClose(): void {
@@ -181,11 +194,11 @@ class WizardDialogAttrs<T> {
 		}
 	}
 
-	getHeaderBarAttrs<T>(): DialogHeaderBarAttrs {
+	updateHeaderBarAttrs<T>(): void {
 		let currentPageIndex = this.currentPage ? this._getEnabledPages().indexOf(this.currentPage) : -1
 
 		const backButtonAttrs: ButtonAttrs = {
-			label: () => lang.get("back_action"),
+			label: () => (currentPageIndex === 0 ? lang.get("cancel_action") : lang.get("back_action")),
 			click: () => this.goToPreviousPageOrClose(),
 			type: ButtonType.Secondary,
 		}
@@ -194,7 +207,9 @@ class WizardDialogAttrs<T> {
 			click: () => this.goToNextPageOrCloseWizard(),
 			type: ButtonType.Secondary,
 		}
-		return {
+
+		// the wizard dialog has a reference to this._headerBarAttrs -> changing this object changes the dialog
+		Object.assign(this._headerBarAttrs, {
 			left: currentPageIndex >= 0 && this.allowedToVisitPage(currentPageIndex - 1, currentPageIndex) ? [backButtonAttrs] : [],
 			right: () =>
 				this.currentPage &&
@@ -203,7 +218,7 @@ class WizardDialogAttrs<T> {
 					? [skipButtonAttrs]
 					: [],
 			middle: () => (this.currentPage ? this.currentPage.attrs.headerTitle() : ""),
-		}
+		})
 	}
 
 	_getEnabledPages(): Array<WizardPageWrapper<T>> {
@@ -214,7 +229,7 @@ class WizardDialogAttrs<T> {
 		const pages = this._getEnabledPages()
 
 		this.currentPage = pages[targetIndex]
-		renderHeader(this.getHeaderBarAttrs())
+		this.updateHeaderBarAttrs()
 	}
 
 	goToNextPageOrCloseWizard() {
@@ -241,8 +256,8 @@ class WizardDialogAttrs<T> {
 		return (
 			pageIndex < selectedPageIndex &&
 			!enabledPages
-				.filter((page) => {
-					return enabledPages.indexOf(page) > pageIndex && enabledPages.indexOf(page) <= selectedPageIndex
+				.filter((page, index) => {
+					return index > pageIndex && index <= selectedPageIndex
 				})
 				.some((page) => page.attrs.preventGoBack)
 		)
@@ -306,8 +321,6 @@ export type WizardDialogAttrsBuilder<T> = {
 	attrs: WizardDialogAttrs<T>
 }
 
-const headerBarAttrs: DialogHeaderBarAttrs = {}
-
 // Use to generate a new wizard
 export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWrapper<T>>, closeAction?: () => $Promisable<void>): WizardDialogAttrsBuilder<T> {
 	// We need the close action of the dialog before we can create the proper attributes
@@ -318,7 +331,6 @@ export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWr
 		view: () => view(),
 	}
 	const unregisterCloseListener = windowFacade.addWindowCloseListener(() => {})
-	const wizardDialog = Dialog.largeDialog(headerBarAttrs, child)
 	const closeActionWrapper = async () => {
 		if (closeAction) {
 			await closeAction()
@@ -327,7 +339,7 @@ export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWr
 		unregisterCloseListener()
 	}
 	const wizardDialogAttrs = new WizardDialogAttrs(data, pages, closeActionWrapper)
-	renderHeader(wizardDialogAttrs.getHeaderBarAttrs())
+	const wizardDialog = Dialog.largeDialog(wizardDialogAttrs.headerBarAttrs, child)
 
 	view = () => m(WizardDialog, wizardDialogAttrs)
 	wizardDialog
@@ -348,21 +360,11 @@ export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWr
 		dialog: wizardDialog,
 		attrs: wizardDialogAttrs,
 	}
-
-	async function confirmThenCleanup(closeAction: () => Promise<void>) {
-		const confirmed = await Dialog.confirm(() => lang.get("closeWindowConfirmation_msg"))
-		if (confirmed) {
-			unregisterCloseListener()
-			closeAction()
-		}
-	}
 }
 
-/** some pages may render the header in a different way, e.g. not showing the top left button */
-function renderHeader(newHeaderBarAttrs: DialogHeaderBarAttrs) {
-	// We replace the dummy values from dialog creation
-	Object.entries(newHeaderBarAttrs).forEach(([key, value]) => {
-		// @ts-ignore
-		headerBarAttrs[key] = value
-	})
+async function confirmThenCleanup(closeAction: () => Promise<void>) {
+	const confirmed = await Dialog.confirm(() => lang.get("closeWindowConfirmation_msg"))
+	if (confirmed) {
+		closeAction()
+	}
 }

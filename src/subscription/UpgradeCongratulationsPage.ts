@@ -84,7 +84,7 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 export class UpgradeCongratulationsPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
 	data: UpgradeSubscriptionData
 	preventGoBack = true
-	hidePagingButtonForStep = true
+	hidePagingButtonForPage = true
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
 		this.data = upgradeData
