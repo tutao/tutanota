@@ -8,6 +8,7 @@ import AuthenticationServices
 class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
   private let themeManager: ThemeManager
   private let alarmManager: AlarmManager
+  private let notificaionsHandler: NotificationsHandler
   private var bridge: RemoteBridge!
   private var webView: WKWebView!
   private var sqlCipherFacade: IosSqlCipherFacade
@@ -21,11 +22,13 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     keychainManager: KeychainManager,
     userPreferences: UserPreferenceFacade,
     alarmManager: AlarmManager,
+    notificaionsHandler: NotificationsHandler,
     credentialsEncryption: IosNativeCredentialsFacade,
     blobUtils:BlobUtil
   ) {
     self.themeManager = themeManager
     self.alarmManager = alarmManager
+    self.notificaionsHandler = notificaionsHandler
     self.bridge = nil
     self.sqlCipherFacade = IosSqlCipherFacade()
 
@@ -169,7 +172,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
 
     let theme = self.themeManager.currentThemeWithFallback
     self.applyTheme(theme)
-    self.alarmManager.initialize()
+    self.notificaionsHandler.initialize()
 
 
     Task { @MainActor in

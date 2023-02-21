@@ -25,7 +25,7 @@ extension EncryptedAlarmNotification: Hashable {
   }
 }
 
-struct AlarmNotification {
+struct AlarmNotification : Equatable {
   let operation: Operation
   let summary: String
   let eventStart: Date
@@ -36,6 +36,12 @@ struct AlarmNotification {
 }
 
 extension AlarmNotification {
+  var identifier: String {
+    get {
+      alarmInfo.alarmIdentifer
+    }
+  }
+  
   init(encrypted: EncryptedAlarmNotification, sessionKey: Key) throws {
     let repeatRule: RepeatRule?
     if let encRepeatRule = encrypted.repeatRule {

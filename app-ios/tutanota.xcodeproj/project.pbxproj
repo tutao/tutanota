@@ -46,6 +46,11 @@
 		3D3B5169293797DC00C1B7DA /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 3D3B5168293797DC00C1B7DA /* Atomics */; };
 		3D448A8B292BB1D00030DB2F /* SharingStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D448A8A292BB1D00030DB2F /* SharingStorage.swift */; };
 		3D448A8C292BB1D00030DB2F /* SharingStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D448A8A292BB1D00030DB2F /* SharingStorage.swift */; };
+		3D4A426129B638D700B10451 /* AlarmManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A426029B638D700B10451 /* AlarmManagerTest.swift */; };
+		3D4A426329B63C0E00B10451 /* AlarmCryptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A426229B63C0E00B10451 /* AlarmCryptor.swift */; };
+		3D4A426529B63E1E00B10451 /* AlarmPersistor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A426429B63E1E00B10451 /* AlarmPersistor.swift */; };
+		3D4A426729B6453700B10451 /* AlarmScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A426629B6453700B10451 /* AlarmScheduler.swift */; };
+		3D4A426929B6513900B10451 /* DateProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A426829B6513900B10451 /* DateProvider.swift */; };
 		3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */; };
 		3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9D28EC5B31001FA9D1 /* Security.framework */; };
 		3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */; };
@@ -157,6 +162,7 @@
 		3D9B12B42721A1E2002B46A1 /* TUTErrorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D9B12B22721A1E2002B46A1 /* TUTErrorFactory.m */; };
 		3DA047BF212C1BBE0062C36C /* CompatibilityTestData.json in Resources */ = {isa = PBXBuildFile; fileRef = 3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */; };
 		3DAA23A9267A208200219051 /* UIColorExtensionsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAA23A8267A208200219051 /* UIColorExtensionsTest.swift */; };
+		3DAED2AF29A6267D00806DEA /* NotificatoinsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAED2AE29A6267D00806DEA /* NotificatoinsHandler.swift */; };
 		3DB07C7B27303F0600BFBB4D /* Keys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DB07C7A27303F0600BFBB4D /* Keys.swift */; };
 		3DBA56C72850AAA6004416BE /* FileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56B72850AAA6004416BE /* FileFacade.swift */; };
 		3DBA56C82850AAA6004416BE /* MobileFacadeSendDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56B82850AAA6004416BE /* MobileFacadeSendDispatcher.swift */; };
@@ -272,6 +278,11 @@
 		3D3B516529376E9E00C1B7DA /* ShareUtilsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareUtilsTest.swift; sourceTree = "<group>"; };
 		3D448A88292BB0B70030DB2F /* TutanotaShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TutanotaShareExtension.entitlements; sourceTree = "<group>"; };
 		3D448A8A292BB1D00030DB2F /* SharingStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharingStorage.swift; sourceTree = "<group>"; };
+		3D4A426029B638D700B10451 /* AlarmManagerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmManagerTest.swift; sourceTree = "<group>"; };
+		3D4A426229B63C0E00B10451 /* AlarmCryptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmCryptor.swift; sourceTree = "<group>"; };
+		3D4A426429B63E1E00B10451 /* AlarmPersistor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmPersistor.swift; sourceTree = "<group>"; };
+		3D4A426629B6453700B10451 /* AlarmScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmScheduler.swift; sourceTree = "<group>"; };
+		3D4A426829B6513900B10451 /* DateProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateProvider.swift; sourceTree = "<group>"; };
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
 		3D4D3205210747240081813A /* Swiftier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swiftier.h; sourceTree = "<group>"; };
 		3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncCompletion.swift; sourceTree = "<group>"; };
@@ -392,6 +403,7 @@
 		3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = CompatibilityTestData.json; sourceTree = "<group>"; };
 		3DAA23A5267A202000219051 /* tutanotaTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "tutanotaTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		3DAA23A8267A208200219051 /* UIColorExtensionsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorExtensionsTest.swift; sourceTree = "<group>"; };
+		3DAED2AE29A6267D00806DEA /* NotificatoinsHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificatoinsHandler.swift; sourceTree = "<group>"; };
 		3DB07C7A27303F0600BFBB4D /* Keys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keys.swift; sourceTree = "<group>"; };
 		3DBA56B72850AAA6004416BE /* FileFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileFacade.swift; sourceTree = "<group>"; };
 		3DBA56B82850AAA6004416BE /* MobileFacadeSendDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileFacadeSendDispatcher.swift; sourceTree = "<group>"; };
@@ -512,6 +524,9 @@
 				3D84F56A2721B92C00858A58 /* MissedNotification.swift */,
 				3D73DA3327319A91008E7A8A /* Operation.swift */,
 				3DC5DECC2858C1F5007364FF /* IosNativePushFacade.swift */,
+				3D4A426229B63C0E00B10451 /* AlarmCryptor.swift */,
+				3D4A426429B63E1E00B10451 /* AlarmPersistor.swift */,
+				3D4A426629B6453700B10451 /* AlarmScheduler.swift */,
 			);
 			path = Alarms;
 			sourceTree = "<group>";
@@ -540,6 +555,7 @@
 		3D74536121089D2200B16F2E /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				3DAED2AD29A6266800806DEA /* Push */,
 				3D448A89292BB17B0030DB2F /* Sharing */,
 				3D220203293F75B000366FD2 /* Webauthn */,
 				3D378ED22536F3A80001F1F3 /* tutanota-Bridging-Header.h */,
@@ -621,6 +637,7 @@
 				3D92867B273A7D18006B8FB2 /* TutanotaError.swift */,
 				3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */,
 				3D7A107F29472A6000311B6B /* CancelledError.swift */,
+				3D4A426829B6513900B10451 /* DateProvider.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -1142,6 +1159,14 @@
 			path = Base.lproj;
 			sourceTree = "<group>";
 		};
+		3DAED2AD29A6266800806DEA /* Push */ = {
+			isa = PBXGroup;
+			children = (
+				3DAED2AE29A6267D00806DEA /* NotificatoinsHandler.swift */,
+			);
+			path = Push;
+			sourceTree = "<group>";
+		};
 		3DBA56B62850AAA6004416BE /* GeneratedIpc */ = {
 			isa = PBXGroup;
 			children = (
@@ -1301,6 +1326,7 @@
 				3DAA23A5267A202000219051 /* tutanotaTests-Bridging-Header.h */,
 				3D84F58427268EDE00858A58 /* AlarmModelTest.swift */,
 				3D3B516529376E9E00C1B7DA /* ShareUtilsTest.swift */,
+				3D4A426029B638D700B10451 /* AlarmManagerTest.swift */,
 			);
 			path = tutanotaTests;
 			sourceTree = "<group>";
@@ -1668,12 +1694,14 @@
 				3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */,
 				3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */,
 				3DC5DED52858CB58007364FF /* NativeCryptoFacade.swift in Sources */,
+				3DAED2AF29A6267D00806DEA /* NotificatoinsHandler.swift in Sources */,
 				3DC5DEC728576621007364FF /* NativeInterface.swift in Sources */,
 				3D220202293F752D00366FD2 /* WebauthnKeyDescriptor.swift in Sources */,
 				3DCE7AAC27200E0A0085E40D /* WebviewHacks.m in Sources */,
 				3DCE7AA22719D04B0085E40D /* UserPreferenceFacade.swift in Sources */,
 				3D0EB1F626F489AD002E5102 /* KeychainManager.swift in Sources */,
 				3DBA56D22850AAA6004416BE /* ErrorInfo.swift in Sources */,
+				3D4A426929B6513900B10451 /* DateProvider.swift in Sources */,
 				3D92867C273A7D19006B8FB2 /* TutanotaError.swift in Sources */,
 				3D3AFAE2285B0C350077F302 /* NativeContact.swift in Sources */,
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
@@ -1709,6 +1737,7 @@
 				3D84F57C27231F1F00858A58 /* Serialization.swift in Sources */,
 				3D2DB91B2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift in Sources */,
 				3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */,
+				3D4A426529B63E1E00B10451 /* AlarmPersistor.swift in Sources */,
 				3D4E3CA828EC63A6001FA9D1 /* sqlite3.c in Sources */,
 				3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */,
 				3D2201F8293F750D00366FD2 /* WebAuthnFacade.swift in Sources */,
@@ -1717,7 +1746,9 @@
 				3D73DA3427319A91008E7A8A /* Operation.swift in Sources */,
 				3DC5DED82858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift in Sources */,
 				3DE46D2B2848EBDA00DC9D43 /* IosFileFacade.swift in Sources */,
+				3D4A426729B6453700B10451 /* AlarmScheduler.swift in Sources */,
 				3DBA56D52850AAA6004416BE /* NativeKey.swift in Sources */,
+				3D4A426329B63C0E00B10451 /* AlarmCryptor.swift in Sources */,
 				3DDE413B28F4665700837BE6 /* SqlCipherDb.swift in Sources */,
 				3DCB9B8528F710CC0042A6BB /* TaggedSqlValue.swift in Sources */,
 				3D220201293F752D00366FD2 /* WebAuthnSignChallenge.swift in Sources */,
@@ -1754,6 +1785,7 @@
 				3D3B516629376E9E00C1B7DA /* ShareUtilsTest.swift in Sources */,
 				3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */,
 				3D63A0E5233D0C1400D05259 /* TUTLogTest.m in Sources */,
+				3D4A426129B638D700B10451 /* AlarmManagerTest.swift in Sources */,
 				3D4F1BFB26EBADE500E87BF5 /* TUTBigNum.m in Sources */,
 				3DAA23A9267A208200219051 /* UIColorExtensionsTest.swift in Sources */,
 				3D84F58527268EDE00858A58 /* AlarmModelTest.swift in Sources */,
