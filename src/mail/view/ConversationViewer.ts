@@ -1,10 +1,10 @@
-import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { ConversationItem, ConversationViewModel, SubjectItem } from "./ConversationViewModel.js"
 import { MailViewer } from "./MailViewer.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { theme } from "../../gui/theme.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull, NBSP } from "@tutao/tutanota-utils"
 import { elementIdPart, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { CollapsedMailView } from "./CollapsedMailView.js"
 import { mailViewerMargin } from "./MailViewerUtils.js"
@@ -202,7 +202,10 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 		return m(ObservableSubject, {
 			subject: normalizedSubject,
 			cb: (visiblity) => this.onSubjectVisible(id, visiblity),
-			key: "item-subject" + normalizedSubject,
+			// we use id as the key:
+			// It is unique: each email appears only once (when sending to self,sent and received emails are independent). The subject text however can appear multiple times.
+			// It is more predicatable (regarding visiblity) if the element gets destroyed and created again.
+			key: "item-subject-" + id,
 		})
 	}
 
@@ -224,7 +227,8 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				this.floatingSubjectDom.parentElement!.style.transform = "translateY(-100%)"
 			} else {
 				this.floatingSubjectDom.parentElement!.style.transform = ""
-				this.floatingSubjectDom.innerText = this.subjectForFloatingHeader() ?? ""
+				// use NBSP to keep the height
+				this.floatingSubjectDom.innerText = this.subjectForFloatingHeader() ?? NBSP
 			}
 		}
 	}
@@ -234,7 +238,10 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 		if (!entries) return null
 		// knowingly N^2
 		const lastInvisibleSubject = max(Array.from(this.subjectsAboveViewport).map((id) => entries.findIndex((e) => e.type === "subject" && e.id === id)))
-		if (lastInvisibleSubject == null) return null
+		// We might not find anything if nothing is above the viewport. Another case is when the subject item has changed e.g. it was from the primary email but then we loaded
+		// the conversation and now we have this subject from another email earlier in the chain and we can't find
+		// the subject temporarily.
+		if (lastInvisibleSubject == null || lastInvisibleSubject === -1) return null
 		return (entries[lastInvisibleSubject] as SubjectItem).subject
 	}
 
