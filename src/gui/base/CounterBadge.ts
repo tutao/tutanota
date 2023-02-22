@@ -40,7 +40,6 @@ export class CounterBadge implements Component<CounterBadgeAttrs> {
 							right: position?.right,
 							left: position?.left,
 							height: position?.height,
-							marginRight: px(size.hpad_button),
 							"z-index": position?.zIndex,
 							background,
 							color,
