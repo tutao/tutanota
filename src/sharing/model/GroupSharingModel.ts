@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type { EntityUpdateData } from "../../api/main/EventController"
+import type { EntityEventsListener, EntityUpdateData } from "../../api/main/EventController"
 import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
 import { EntityClient } from "../../api/common/EntityClient"
 import { getElementId, getEtId, isSameId } from "../../api/common/utils/EntityUtils"
@@ -66,8 +66,10 @@ export class GroupSharingModel {
 		this._shareFacade = shareFacade
 		this._groupManagementFacade = groupManagementFacade
 		this.onEntityUpdate = stream()
-		this.eventController.addEntityListener((events, id) => this.entityEventsReceived(events, id))
+		this.eventController.addEntityListener(this.onEntityEvents)
 	}
+
+	private readonly onEntityEvents: EntityEventsListener = (events, id) => this.entityEventsReceived(events, id)
 
 	static newAsync(
 		info: GroupInfo,
@@ -102,7 +104,7 @@ export class GroupSharingModel {
 	}
 
 	dispose() {
-		this.eventController.removeEntityListener((events, id) => this.entityEventsReceived(events, id))
+		this.eventController.removeEntityListener(this.onEntityEvents)
 	}
 
 	/**
