@@ -288,5 +288,6 @@ export class ConversationViewModel {
 				item.viewModel.dispose()
 			}
 		}
+		this.eventController.removeEntityListener(this.onEntityEvent)
 	}
 }

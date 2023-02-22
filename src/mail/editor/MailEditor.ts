@@ -763,9 +763,15 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		}
 	}
 
+	// keep track of things we need to dispose of when the editor is completely closed
+	const disposables: { dispose: () => unknown }[] = []
+
 	const dispose = () => {
 		model.dispose()
 		if (templatePopupModel) templatePopupModel.dispose()
+		for (const disposable of disposables) {
+			disposable.dispose()
+		}
 	}
 
 	const minimize = () => {
@@ -838,31 +844,31 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 	const templatePopupModel =
 		logins.isInternalUserLoggedIn() && client.isDesktopDevice() ? new TemplatePopupModel(locator.eventController, logins, locator.entityClient) : null
 
-	const createKnowledgebaseButtonAttrs = (editor: Editor) => {
-		return logins.isInternalUserLoggedIn()
-			? logins
-					.getUserController()
-					.loadCustomer()
-					.then((customer) => {
-						// only create knowledgebase button for internal users with valid template group and enabled KnowledgebaseFeature
-						if (
-							styles.isDesktopLayout() &&
-							templatePopupModel &&
-							logins.getUserController().getTemplateMemberships().length > 0 &&
-							isCustomizationEnabledForCustomer(customer, FeatureType.KnowledgeBase)
-						) {
-							return new KnowledgeBaseModel(locator.eventController, locator.entityClient, logins.getUserController())
-								.init()
-								.then((knowledgebaseModel) => {
-									const knowledgebaseInjection = createKnowledgeBaseDialogInjection(knowledgebaseModel, templatePopupModel, editor)
-									dialog.setInjectionRight(knowledgebaseInjection)
-									return knowledgebaseInjection
-								})
-						} else {
-							return null
-						}
-					})
-			: Promise.resolve(null)
+	const createKnowledgebaseButtonAttrs = async (editor: Editor) => {
+		if (logins.isInternalUserLoggedIn()) {
+			const customer = await logins.getUserController().loadCustomer()
+			// only create knowledgebase button for internal users with valid template group and enabled KnowledgebaseFeature
+			if (
+				styles.isDesktopLayout() &&
+				templatePopupModel &&
+				logins.getUserController().getTemplateMemberships().length > 0 &&
+				isCustomizationEnabledForCustomer(customer, FeatureType.KnowledgeBase)
+			) {
+				const knowledgebaseModel = new KnowledgeBaseModel(locator.eventController, locator.entityClient, logins.getUserController())
+				await knowledgebaseModel.init()
+
+				// make sure we dispose knowledbaseModel once the editor is closed
+				disposables.push(knowledgebaseModel)
+
+				const knowledgebaseInjection = createKnowledgeBaseDialogInjection(knowledgebaseModel, templatePopupModel, editor)
+				dialog.setInjectionRight(knowledgebaseInjection)
+				return knowledgebaseInjection
+			} else {
+				return null
+			}
+		} else {
+			return null
+		}
 	}
 
 	mailEditorAttrs = createMailEditorAttrs(

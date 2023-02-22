@@ -142,11 +142,11 @@ export class SendMailModel {
 		this.selectedNotificationLanguage = getAvailableLanguageCode(userProps.notificationMailLanguage || lang.code)
 		this.updateAvailableNotificationTemplateLanguages()
 
-		this.eventController.addEntityListener((updates) => this.entityEventReceived(updates))
+		this.eventController.addEntityListener(this.entityEventReceived)
 	}
 
-	private async entityEventReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		for (let update of updates) {
+	private readonly entityEventReceived = async (updates: ReadonlyArray<EntityUpdateData>) => {
+		for (const update of updates) {
 			await this.handleEntityEvent(update)
 		}
 	}

@@ -39,7 +39,10 @@ export class EventController {
 	}
 
 	removeEntityListener(listener: EntityEventsListener) {
-		remove(this.entityListeners, listener)
+		const wasRemoved = remove(this.entityListeners, listener)
+		if (!wasRemoved) {
+			console.warn("Could not remove listener, possible leak?", listener)
+		}
 	}
 
 	getCountersStream(): Stream<WebsocketCounterData> {

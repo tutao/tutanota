@@ -28,17 +28,17 @@ export class ReceivedGroupInvitationsModel {
 	}
 
 	init() {
-		this.eventController.addEntityListener(this.entityEventsReceived.bind(this))
+		this.eventController.addEntityListener(this.entityEventsReceived)
 		loadReceivedGroupInvitations(this.logins.getUserController(), this.entityClient, this.groupType).then((invitations) =>
 			this.invitations(invitations.filter((invitation) => this.hasCorrectGroupType(invitation))),
 		)
 	}
 
 	dispose() {
-		this.eventController.removeEntityListener(this.entityEventsReceived.bind(this))
+		this.eventController.removeEntityListener(this.entityEventsReceived)
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<any> {
+	private readonly entityEventsReceived = (updates: ReadonlyArray<EntityUpdateData>) => {
 		return promiseMap(updates, (update) => {
 			if (isUpdateForTypeRef(ReceivedGroupInvitationTypeRef, update)) {
 				const updateId = [update.instanceListId, update.instanceId] as const
