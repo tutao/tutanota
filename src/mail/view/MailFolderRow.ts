@@ -85,11 +85,13 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 					? m(IconButton, {
 							...rightButton,
 					  })
-					: m(CounterBadge, {
-							count,
-							color: theme.navigation_button_icon,
-							background: getNavButtonIconBackground(),
-					  }),
+					: m("", { style: { marginRight: px(size.hpad_button) } }, [
+							m(CounterBadge, {
+								count,
+								color: theme.navigation_button_icon,
+								background: getNavButtonIconBackground(),
+							}),
+					  ]),
 			],
 		)
 	}
