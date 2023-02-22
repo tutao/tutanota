@@ -10,7 +10,20 @@ import {
 } from "../../api/common/error/RestError"
 import { UserError } from "../../api/main/UserError"
 import { getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE } from "../../misc/passwords/PasswordUtils"
-import { cleanMatch, deduplicate, downcast, findAndRemove, getFromMap, neverNull, noOp, ofClass, promiseMap, remove, typedValues } from "@tutao/tutanota-utils"
+import {
+	cleanMatch,
+	deduplicate,
+	downcast,
+	findAndRemove,
+	getFromMap,
+	LazyLoaded,
+	neverNull,
+	noOp,
+	ofClass,
+	promiseMap,
+	remove,
+	typedValues,
+} from "@tutao/tutanota-utils"
 import { checkAttachmentSize, getDefaultSender, getTemplateLanguages } from "../model/MailUtils"
 import type { EncryptedMailAddress, File as TutanotaFile, Mail, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef, ConversationEntryTypeRef, File, FileTypeRef, MailboxPropertiesTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
@@ -118,7 +131,7 @@ export class SendMailModel {
 
 	// If saveDraft is called while the previous call is still running, then flag to call again afterwards
 	private doSaveAgain: boolean = false
-	private recipientsResolved: Promise<unknown> = Promise.resolve()
+	private recipientsResolved = new LazyLoaded<void>(async () => {})
 
 	/**
 	 * creates a new empty draft message. calling an init method will fill in all the blank data
@@ -410,11 +423,18 @@ export class SendMailModel {
 				(a, b) => a.address === b.address,
 			)
 
-		this.recipientsResolved = Promise.all([
-			promiseMap(recipientsFilter(to), async (r) => this.insertRecipient(RecipientField.TO, r)),
-			promiseMap(recipientsFilter(cc), async (r) => this.insertRecipient(RecipientField.CC, r)),
-			promiseMap(recipientsFilter(bcc), async (r) => this.insertRecipient(RecipientField.BCC, r)),
-		])
+		// Making it LazyLoaded() will allow us to retry it in case it fails.
+		// It is very important that we insert the recipients here synchronously. Even though it is inside the async function it will call insertRecipient()
+		// right away when we call getAsync() below
+		this.recipientsResolved = new LazyLoaded(async () => {
+			await Promise.all([
+				promiseMap(recipientsFilter(to), async (r) => this.insertRecipient(RecipientField.TO, r)),
+				promiseMap(recipientsFilter(cc), async (r) => this.insertRecipient(RecipientField.CC, r)),
+				promiseMap(recipientsFilter(bcc), async (r) => this.insertRecipient(RecipientField.BCC, r)),
+			])
+		})
+		// noinspection ES6MissingAwait
+		this.recipientsResolved.getAsync()
 
 		// .toLowerCase because all our aliases and accounts are lowercased on creation
 		this.senderAddress = senderMailAddress?.toLowerCase() || this.getDefaultSender()
@@ -683,7 +703,7 @@ export class SendMailModel {
 		waitHandler: (arg0: TranslationText, arg1: Promise<any>) => Promise<any> = (_, p) => p,
 		tooManyRequestsError: TranslationKey = "tooManyMails_msg",
 	): Promise<boolean> {
-		await this.recipientsResolved
+		await this.recipientsResolved.getAsync()
 		this.onBeforeSend()
 
 		if (this.allRecipients().length === 1 && this.allRecipients()[0].address.toLowerCase().trim() === "approval@tutao.de") {
@@ -951,7 +971,7 @@ export class SendMailModel {
 	 * Makes sure the recipient type and contact are resolved.
 	 */
 	async waitForResolvedRecipients(): Promise<Recipient[]> {
-		await this.recipientsResolved
+		await this.recipientsResolved.getAsync()
 		return Promise.all(this.allRecipients().map((recipient) => recipient.resolved())).catch(
 			ofClass(TooManyRequestsError, () => {
 				throw new RecipientNotResolvedError("")
@@ -964,9 +984,9 @@ export class SendMailModel {
 		let contactId: IdTuple = [neverNull(instanceListId), instanceId]
 		let changed = false
 
-		await this.recipientsResolved
-
 		if (isUpdateForTypeRef(ContactTypeRef, update)) {
+			await this.recipientsResolved.getAsync()
+
 			if (operation === OperationType.UPDATE) {
 				this.entity.load(ContactTypeRef, contactId).then((contact) => {
 					for (const fieldType of typedValues(RecipientField)) {
