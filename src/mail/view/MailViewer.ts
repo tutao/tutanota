@@ -438,7 +438,12 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			this.shadowDomRoot = dom.attachShadow({ mode: "open" })
 
 			// Allow forms inside of mail bodies to be filled out without resulting in keystrokes being interpreted as shortcuts
-			this.shadowDomRoot.getRootNode().addEventListener("keydown", (event: Event) => event.stopPropagation())
+			this.shadowDomRoot.getRootNode().addEventListener("keydown", (event: Event) => {
+				const { target } = event
+				if (this.eventTargetWithKeyboardInput(target)) {
+					event.stopPropagation()
+				}
+			})
 		}
 
 		this.domBodyDeferred.resolve(dom)
@@ -743,6 +748,19 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				syntheticTag.dispatchEvent(newClickEvent)
 			}
 		}
+	}
+
+	/**
+	 * returns true if the passed in target is an HTMLElement that can receive some sort of keyboard input
+	 */
+	private eventTargetWithKeyboardInput(target: EventTarget | null): boolean {
+		if (target && target instanceof HTMLElement) {
+			return target.matches(
+				'input[type="text"], input[type="date"], input[type="datetime-local"], input[type="email"], input[type="month"], input[type="number"],' +
+					'input[type="password"], input[type="search"], input[type="tel"], input[type="time"], input[type="url"], input[type="week"], input[type="datetime"], textarea',
+			)
+		}
+		return false
 	}
 }
 
