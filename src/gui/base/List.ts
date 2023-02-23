@@ -8,6 +8,7 @@ import {
 	addAll,
 	arrayEquals,
 	assertNotNull,
+	clear as clearArr,
 	debounceStart,
 	defer,
 	last,
@@ -15,7 +16,6 @@ import {
 	mapLazily,
 	neverNull,
 	remove,
-	clear as clearArr,
 } from "@tutao/tutanota-utils"
 import ColumnEmptyMessageBox from "./ColumnEmptyMessageBox"
 import { progressIcon } from "./Icon"
@@ -33,7 +33,6 @@ import { firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId } from 
 import { assertMainOrNode } from "../../api/common/Env"
 import { Button, ButtonType } from "./Button.js"
 import { LoadingState, LoadingStateTracker } from "../../offline/LoadingState"
-import { lang } from "../../misc/LanguageViewModel"
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { PosRect } from "./Dropdown.js"
 
@@ -667,7 +666,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 			shiftPressed = false
 		}
 
-		if (shiftPressed && this.lastMultiSelectWasKeyUp === true && this.selectedEntities.length > 1) {
+		if (shiftPressed && this.lastMultiSelectWasKeyUp && this.selectedEntities.length > 1) {
 			// we have to remove the selection from the top
 			this.selectedEntities.splice(0, 1)
 
@@ -701,7 +700,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 			shiftPressed = false
 		}
 
-		if (shiftPressed && this.lastMultiSelectWasKeyUp === false && this.selectedEntities.length > 1) {
+		if (shiftPressed && !this.lastMultiSelectWasKeyUp && this.selectedEntities.length > 1) {
 			// we have to remove the selection from the bottom
 			this.selectedEntities.splice(-1, 1)
 

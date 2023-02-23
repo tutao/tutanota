@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, WebContents } from "electron"
+import { app, BrowserWindow, WebContents } from "electron"
 import path from "path"
 import { defer } from "@tutao/tutanota-utils"
 import { ElectronWebContentsTransport } from "./ipc/ElectronWebContentsTransport.js"
@@ -6,7 +6,6 @@ import { NativeToWebRequest, WebToNativeRequest } from "../native/main/WebauthnN
 import { MessageDispatcher } from "../api/common/MessageDispatcher.js"
 import { exposeRemote } from "../api/common/WorkerProxy.js"
 import { CancelledError } from "../api/common/error/CancelledError.js"
-import { CentralIpcHandler } from "./ipc/CentralIpcHandler.js"
 import { register } from "./electron-localshortcut/LocalShortcut.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
@@ -16,10 +15,6 @@ export const webauthnIpcConfig = Object.freeze({
 })
 
 export type WebDialogIpcConfig = typeof webauthnIpcConfig
-export type WebDialogIpcHandler = CentralIpcHandler<WebDialogIpcConfig>
-
-// Singleton
-export const webauthnIpcHandler: WebDialogIpcHandler = new CentralIpcHandler(ipcMain, webauthnIpcConfig)
 
 /** A dialog which was already loaded. Allows sending one request or closing it. */
 export class WebDialog<FacadeType extends object> {
@@ -53,8 +48,6 @@ export class WebDialog<FacadeType extends object> {
  * * returns the result of the call
  */
 export class WebDialogController {
-	constructor(private readonly ipcHandler: WebDialogIpcHandler) {}
-
 	async create<FacadeType extends object>(parentWindowId: number, urlToOpen: URL): Promise<WebDialog<FacadeType>> {
 		const bw = await this.createBrowserWindow(parentWindowId)
 		// Holding a separate reference on purpose. When BrowserWindow is destroyed and WebContents fire "destroyed" event, we can't get WebContents from
@@ -77,10 +70,6 @@ export class WebDialogController {
 		// But we need setup the listener beforehand in case the app in the webDialog loads too fast and we miss it
 		const facadePromise = this.initRemoteFacade<FacadeType>(bw.webContents)
 		await bw.loadURL(urlToOpen.toString())
-
-		webContents.on("destroyed", () => {
-			this.uninitRemoteFacade(webContents)
-		})
 
 		// We can confidently await here because we're sure that the bridge will be finished being setup in the webDialog
 		const facade = await facadePromise
@@ -146,7 +135,7 @@ export class WebDialogController {
 	 */
 	private async initRemoteFacade<FacadeType>(webContents: WebContents): Promise<FacadeType> {
 		const deferred = defer<void>()
-		const transport = new ElectronWebContentsTransport<WebDialogIpcConfig, "facade", "init">(webContents, this.ipcHandler)
+		const transport = new ElectronWebContentsTransport<WebDialogIpcConfig, "facade", "init">(webContents, webauthnIpcConfig)
 		const dispatcher = new MessageDispatcher<NativeToWebRequest, WebToNativeRequest>(transport, {
 			init: () => {
 				deferred.resolve()
@@ -156,9 +145,5 @@ export class WebDialogController {
 		const facade = exposeRemote<FacadeType>((req) => dispatcher.postRequest(req))
 		await deferred.promise
 		return facade
-	}
-
-	private async uninitRemoteFacade(webContents: WebContents) {
-		this.ipcHandler.removeHandler(webContents)
 	}
 }
