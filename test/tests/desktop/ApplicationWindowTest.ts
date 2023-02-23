@@ -570,8 +570,6 @@ o.spec("ApplicationWindow Test", function () {
 		// Reset IPC
 		const initialized = defer<void>()
 
-		remoteBridge.destroyBridge(w)
-
 		bwInstance.webContents.callbacks["did-finish-load"]()
 		// Init IPC
 		initialized.resolve()

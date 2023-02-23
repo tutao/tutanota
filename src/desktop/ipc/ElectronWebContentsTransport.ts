@@ -1,6 +1,10 @@
 import type { Message, Transport } from "../../api/common/MessageDispatcher.js"
-import type { CentralIpcHandler, IpcConfig } from "./CentralIpcHandler.js"
 import type { WebContents } from "electron"
+
+export interface IpcConfig<RenderToMainEvent extends string, MainToRenderEvent extends string> {
+	renderToMainEvent: RenderToMainEvent
+	mainToRenderEvent: MainToRenderEvent
+}
 
 /**
  * Implementation of Transport which delegates to CenterIpcHandler/WebContents.
@@ -12,13 +16,15 @@ export class ElectronWebContentsTransport<
 	IncomingRequestType extends string,
 > implements Transport<OutgoingRequestType, IncomingRequestType>
 {
-	constructor(private readonly webContents: WebContents, private readonly ipcHandler: CentralIpcHandler<IpcConfigType>) {}
+	constructor(private readonly webContents: WebContents, private readonly config: IpcConfigType) {}
 
 	postMessage(message: Message<OutgoingRequestType>): void {
-		this.ipcHandler.sendTo(this.webContents, message)
+		if (this.webContents.isDestroyed()) return
+		this.webContents.send(this.config.mainToRenderEvent, message)
 	}
 
 	setMessageHandler(handler: (message: Message<IncomingRequestType>) => unknown): void {
-		this.ipcHandler.addHandler(this.webContents, handler)
+		if (this.webContents.isDestroyed()) return
+		this.webContents.ipc.handle(this.config.renderToMainEvent, (ev, arg) => handler(arg))
 	}
 }

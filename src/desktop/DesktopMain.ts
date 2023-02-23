@@ -35,7 +35,7 @@ import { DateProviderImpl } from "../calendar/date/CalendarUtils"
 import { DesktopThemeFacade } from "./DesktopThemeFacade"
 import { BuildConfigKey, DesktopConfigKey } from "./config/ConfigKeys"
 import { DesktopNativeCredentialsFacade } from "./credentials/DesktopNativeCredentialsFacade.js"
-import { webauthnIpcHandler, WebDialogController } from "./WebDialog.js"
+import { WebDialogController } from "./WebDialog.js"
 import path from "path"
 import { DesktopContextMenu } from "./DesktopContextMenu.js"
 import { DesktopNativePushFacade } from "./sse/DesktopNativePushFacade.js"
@@ -188,7 +188,7 @@ async function createComponents(): Promise<Components> {
 		log.error("Could not reschedule alarms", e)
 		return sse.resetStoredState()
 	})
-	const webDialogController = new WebDialogController(webauthnIpcHandler)
+	const webDialogController = new WebDialogController()
 
 	tray.setWindowManager(wm)
 	const sse = new DesktopSseClient(app, conf, notifier, wm, desktopAlarmScheduler, desktopNet, desktopCrypto, alarmStorage, lang)

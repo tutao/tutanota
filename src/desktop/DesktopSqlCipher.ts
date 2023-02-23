@@ -1,4 +1,4 @@
-import { Database, default as sqlite } from "better-sqlite3"
+import { Database, default as Sqlite } from "better-sqlite3"
 import { CryptoError } from "@tutao/tutanota-crypto"
 import { mapNullable, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { SqlCipherFacade } from "../native/common/generatedipc/SqlCipherFacade.js"
@@ -17,11 +17,13 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 
 	/**
 	 * @param nativeBindingPath the path to the sqlite native module
+	 * @param dbPath the path to the database file to use
+	 * @param integrityCheck whether to check the integrity of the db file during initialization
 	 */
 	constructor(private readonly nativeBindingPath: string, private readonly dbPath: string, private readonly integrityCheck: boolean) {}
 
 	async openDb(userId: string, dbKey: Uint8Array): Promise<void> {
-		this._db = new sqlite(this.dbPath, {
+		this._db = new Sqlite(this.dbPath, {
 			// Remove ts-ignore once proper definition of Options exists, see https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/59049#
 			// @ts-ignore missing type
 			nativeBinding: this.nativeBindingPath,
@@ -136,13 +138,4 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 			throw new CryptoError(`Integrity check failed with result : ${JSON.stringify(errors)}`)
 		}
 	}
-}
-
-function boolToSqlite(bool: boolean): SqliteBool {
-	return bool ? SqliteBool.TRUE : SqliteBool.FALSE
-}
-
-enum SqliteBool {
-	TRUE = 1,
-	FALSE = 0,
 }
