@@ -12,8 +12,8 @@
 		"./buildSrc/*": "./buildSrc/*"
 	},
 	"scripts": {
-		"build-packages": "npm run build -ws",
-		"build-runtime-packages": "npm run build -w @tutao/tutanota-utils && npm run build -w @tutao/tutanota-crypto && npm run build -w @tutao/tutanota-usagetests",
+		"build-packages": "node buildSrc/buildPackages.js all",
+		"build-runtime-packages": "node buildSrc/buildPackages.js runtime",
 		"start": "./start-desktop.sh",
 		"test": "npm run --if-present test -ws && cd test && node test",
 		"test:app": "cd test && node test",
