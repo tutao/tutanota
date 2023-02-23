@@ -1,6 +1,6 @@
 import path from "path"
 import { readFileSync } from "fs"
-import { getElectronVersion } from "./buildUtils.js"
+import { getElectronVersion, getInstalledModuleVersion } from "./buildUtils.js"
 
 /**
  * This is used for launching electron:
@@ -68,7 +68,7 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 			},
 		},
 		dependencies: {
-			"electron-updater": linux ? "5.3.0" : "6.0.0-alpha.6", //6.0.0-alpha.8 specifically doesn't work on linux, but 4.3.0 was fine there anyway.
+			"electron-updater": await getInstalledModuleVersion("electron-updater", log),
 		},
 		build: {
 			electronVersion: await getElectronVersion(log),
