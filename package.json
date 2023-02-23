@@ -1,6 +1,6 @@
 {
 	"name": "tutanota",
-	"version": "3.109.7",
+	"version": "3.109.8",
 	"license": "GPL-3.0",
 	"repository": {
 		"type": "git",
@@ -32,9 +32,9 @@
 	},
 	"dependencies": {
 		"@tutao/oxmsg": "0.0.9-beta.0",
-		"@tutao/tutanota-crypto": "3.109.7",
-		"@tutao/tutanota-usagetests": "3.109.7",
-		"@tutao/tutanota-utils": "3.109.7",
+		"@tutao/tutanota-crypto": "3.109.8",
+		"@tutao/tutanota-usagetests": "3.109.8",
+		"@tutao/tutanota-utils": "3.109.8",
 		"@types/better-sqlite3": "7.4.2",
 		"@types/dompurify": "2.4.0",
 		"@types/linkifyjs": "2.1.4",
@@ -65,8 +65,8 @@
 		"@rollup/plugin-json": "4.1.0",
 		"@rollup/plugin-node-resolve": "13.3.0",
 		"@rollup/plugin-typescript": "8.3.0",
-		"@tutao/tutanota-test-utils": "3.109.7",
-		"@tutao/licc": "3.109.7",
+		"@tutao/tutanota-test-utils": "3.109.8",
+		"@tutao/licc": "3.109.8",
 		"@typescript-eslint/eslint-plugin": "5.15.0",
 		"@electron/notarize": "1.2.3",
 		"body-parser": "1.20.0",
