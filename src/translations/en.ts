@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2023-02-23T11:13:03Z",
+	"updated_at": "2023-02-23T17:37:17Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -282,6 +282,7 @@ export default {
 		"continueSearchMailbox_msg": "To execute this search we have to download more emails from the server which may take some time.",
 		"contractorInfo_msg": "Please fill in the contractor's name (company) and address.",
 		"contractor_label": "Contractor",
+		"conversationViewPref_label": "Show all emails in conversation",
 		"copyLinkError_msg": "Failed to copy link",
 		"copyLink_action": "Copy link address",
 		"copyToClipboard_action": "Copy to clipboard",
@@ -615,6 +616,7 @@ export default {
 		"header_label": "Header",
 		"helpPage_label": "Help page",
 		"help_label": "Help",
+		"hideText_action": "Hide text",
 		"hideWindows_action": "Hide windows",
 		"howCanWeHelp_title": "How can we help you?",
 		"howtoMailBody_markdown": "Tutanota lets you send encrypted emails to any email address in the world - automatically if the recipient uses Tutanota as well, or via a shared password if the recipient uses another service. Even emails sent or received unencrypted are stored encrypted on our own servers based in Germany.\n\nPlease browse the Tutanota FAQ and the support forum to learn everything you want to know about your new secure mailbox:\n\n* [FAQ]({faqLink})\n* [Support Forum]({redditLink})\n\n**Search on encrypted data**\n\nTutanota lets you search your encrypted mailbox locally on your device to guarantee the confidentiality of your data. Please click on the search bar at the top. Standard search goes back one month into the past. [To unlock unlimited search, unlimited offline mode and lots of other neat features]({blogPremiumProLink}), a paid subscription of Tutanota is required. You can check your subscription and update it under Settings -> Subscription.\n\nYou will find more information on how to improve your search results [here]({howtosearchLink}).\n\n**Support**\n\nAt Tutanota we enable everyone in the world to own a secure mailbox. With millions of users, we can not answer everyone’s questions via email. In case you cannot find answers to your questions in our FAQ, [please ask the community]({redditLink}). Direct support via email is available to paying users only.\n\n**Perfect for professional use.**\n\nAs a business professional, you can save time and money by hosting all your company emails with end-to-end encryption on Tutanota's secure servers, based in Germany: Use your own domain, manage users, whitelabel Tutanota for your business, and place the login on your own website. Find out more about Tutanota's comprehensive business features [on our website]({businessLink}).\n\nStay secure,\\\nYour Tutanota Team",
@@ -1369,6 +1371,7 @@ export default {
 		"showMore_action": "SHOW MORE",
 		"showRejectReason_action": "Show reject reason",
 		"showRichTextToolbar_action": "Show formatting tools",
+		"showText_action": "Show text",
 		"showURL_alt": "Open link",
 		"show_action": "Show",
 		"signedOn_msg": "Signed on {date}.",
@@ -1604,10 +1607,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		// FIXME add to Phrase
-		"showText_action": "Show text",
-		"hideText_action": "Hide text",
-		"conversationViewPref_label": "Show all emails for discussion in thread",
+		"you_label": "You"
 	}
 }

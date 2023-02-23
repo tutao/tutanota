@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2023-02-23T11:10:12Z",
+	"updated_at": "2023-02-23T17:28:46Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -27,7 +27,8 @@ export default {
 		"acceptTemplateGroupEmailBody_msg": "Hola {recipientName}, <br/>{invitee} ha aceptado tu invitación a usar su lista de plantillas «{groupName}».<br/><br/>Este es un mensaje automatizado.",
 		"acceptTemplateGroupEmailSubject_msg": "Se aceptó la invitación a la lista de plantillas",
 		"accept_action": "Aceptar",
-		"accountCreationCongratulation_msg": "Bienvenido al lado cifrado. 🔒",
+		"accountCongratulations_msg": "Enhorabuena",
+		"accountCreationCongratulation_msg": "¡Tu cuenta ha sido creada! Bienvenido al lado cifrado. 🔒",
 		"accountSwitchAdditionalPackagesActive_msg": "Antes de cambiar de suscripción, desactiva todas las extensiones y paquetes reservados, así como todos los alias de correo.",
 		"accountSwitchAliases_msg": "Elimina todos los alias de tu usuario.",
 		"accountSwitchCustomMailAddress_msg": "Desactiva todos los alias de correo de dominio personalizados.",
@@ -1194,6 +1195,7 @@ export default {
 		"recoveryCodeConfirmation_msg": "Asegúrate de haber anotado tu código de recuperación.",
 		"recoveryCodeDisplay_action": "Mostrar código de recuperación",
 		"recoveryCodeEmpty_msg": "Por favor introduce un código de recuperación",
+		"recoveryCodeReminder_msg": "¿Has anotado ya el código de recuperación? Este código de recuperación es la única opción para restablecer tu contraseña o segundo factor en caso de perder alguno de ellos.",
 		"recoveryCode_label": "Código de recuperación",
 		"recoveryCode_msg": "Por favor, tómate un minuto para anotar tu código de recuperación. Este es la única opción para restaurar el acceso a tu cuenta en caso de que pierdas tu contraseña o segundo factor.",
 		"recover_label": "Recuperar",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2023-02-23T11:10:13Z",
+	"updated_at": "2023-02-23T17:28:48Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -25,7 +25,7 @@ export default {
 		"acceptTemplateGroupEmailBody_msg": "Ahoj {recipientName}, <br/>{invitee} prijal/a pozvánku na používanie tvojho zoznamu šablón \"{groupName}\".<br/><br/>Toto je automatizovaná správa.",
 		"acceptTemplateGroupEmailSubject_msg": "Pozvánka zoznamu šablón bola prijatá",
 		"accept_action": "Prijať",
-		"accountCreationCongratulation_msg": "Vitaj na strane šifrovania. 🔒",
+		"accountCreationCongratulation_msg": "Tvoj účet bol vytvorený! Vitaj na šifrovanej strane. 🔒",
 		"accountSwitchAdditionalPackagesActive_msg": "Pred zmenou predplatného deaktivuj, prosím, všetky objednané rozšírenia a balíky a vypni všetky e-mailové aliasy.",
 		"accountSwitchAliases_msg": "Prosím, odstráň všetky aliasy tvojho používateľa.",
 		"accountSwitchCustomMailAddress_msg": "Prosím, vypni všetky e-mailové aliasy vlastných domén.",

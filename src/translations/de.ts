@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2023-02-23T11:13:33Z",
+	"updated_at": "2023-02-23T17:37:17Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -286,6 +286,7 @@ export default {
 		"continueSearchMailbox_msg": "Um diese Suche auszuführen, müssen weitere E-Mails vom Server abgerufen werden. Dies kann etwas dauern.",
 		"contractorInfo_msg": "Bitte trage Name (Firma) und Adresse des Vertragspartners ein.",
 		"contractor_label": "Vertragspartner",
+		"conversationViewPref_label": "Alle E-Mails in der Unterhaltung anzeigen",
 		"copyLinkError_msg": "Link konnte nicht kopiert werden",
 		"copyLink_action": "Link-Adresse kopieren",
 		"copyToClipboard_action": "In die Zwischenablage kopieren",
@@ -619,6 +620,7 @@ export default {
 		"header_label": "Kopfzeile",
 		"helpPage_label": "Hilfe-Seite",
 		"help_label": "Hilfe",
+		"hideText_action": "Text verbergen",
 		"hideWindows_action": "Alle Fenster verstecken",
 		"howCanWeHelp_title": "Wie können wir helfen?",
 		"howtoMailBody_markdown": "Tutanota ermöglicht dir verschlüsselte E-Mails an jede E-Mail-Adresse weltweit zu senden – automatisch, wenn die Gegenseite ebenfalls Tutanota nutzt, oder über ein ausgetauschtes Passwort, wenn ein anderer E-Mail-Service genutzt wird. Selbst unverschlüsselte E-Mails werden verschlüsselt auf unseren eigenen Servern in Deutschland gespeichert.\n\nBitte schau dir unsere FAQ und unser Support-Forum an, um alles über deine neue sichere Mailbox zu erfahren:\n\n* [FAQ]({faqLink})\n* [Support-Forum]({redditLink})\n\n**Suche in verschlüsselten Daten**\n\nTutanota lässt dich deine verschlüsselte Mailbox lokal auf deinem Gerät durchsuchen, um die Vertraulichkeit zu gewährleisten. Bitte klicke dazu auf das Suchfeld in der oberen Menüleiste. Die Standard-Suche geht bis einen Monat in die Vergangenheit zurück. [Um eine unlimitierte Suche, unlimitierte Offline-Unterstützung sowie weitere praktische Funktionen zu bekommen]({blogPremiumProLink}), ist das Abo einer bezahlten Version von Tutanota nötig. Du kannst deine gebuchte Version hier einsehen und updaten: Einstellungen -> Abonnement. \n\nWeitere Informationen, wie du deine Suchergebnisse verbessern kannst, findest du [hier]({howtosearchLink}).\n\n**Support**\n\nTutanota ermöglicht allen eine private Mailbox zu besitzen. Mit Millionen Nutzer*innen weltweit können wir leider nicht jede Frage per E-Mail beantworten. Wenn du die Antworten zu deinen Fragen nicht in unseren FAQ findest, [frage bitte die Tutanota-Community um Hilfe]({redditLink}). Direkter Support per E-Mail ist nur für zahlende Kund*innen verfügbar.\n\n**Perfekt für die geschäftliche Nutzung**.\n\nAuch bei der geschäftlichen Nutzung kannst du Zeit und Geld sparen, indem du alle deine Firmen-E-Mails mit Ende-zu-Ende-Verschlüsselung auf Tutanotas sicheren Servern in Deutschland hostest: Nutze deine eigene Domain, verwalte Benutzer*innen, whitelabel Tutanota mit deinem Branding und platziere den Login auf deiner eigenen Webseite. [Erfahre mehr]({businessLink}) über die umfangreichen Business-Funktionen von Tutanota.\n\nViele Grüße,\\\ndein Tutanota-Team",
@@ -1373,6 +1375,7 @@ export default {
 		"showMore_action": "MEHR ANZEIGEN",
 		"showRejectReason_action": "Ablehnungsgrund anzeigen",
 		"showRichTextToolbar_action": "Formatierungswerkzeuge",
+		"showText_action": "Text anzeigen",
 		"showURL_alt": "Link öffnen",
 		"show_action": "Anzeigen",
 		"signedOn_msg": "Unterschrieben am {date}.",
@@ -1608,9 +1611,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du",
-		"showText_action": "Text anzeigen",
-		"hideText_action": "Text verbergen",
-		"conversationViewPref_label": "Alle E-Mails zur Diskussion im Thema anzeigen",
+		"you_label": "Du"
 	}
 }

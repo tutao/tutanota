@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2023-02-23T11:10:12Z",
+	"updated_at": "2023-02-23T17:33:54Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -23,7 +23,7 @@ export default {
 		"acceptTemplateGroupEmailBody_msg": "Hej {recipientName}, <br/>{invitee} har accepterat din inbjudan att använda mall listan \"{groupName}\".<br/><br/> Detta är ett automatiserat meddelande.",
 		"acceptTemplateGroupEmailSubject_msg": "Inbjudan till mall lista accepterad",
 		"accept_action": "Acceptera",
-		"accountCreationCongratulation_msg": "Välkommen till den krypterade sidan. 🔒",
+		"accountCreationCongratulation_msg": "Ditt konto har skapats. Välkommen till den krypterade sidan. 🔒",
 		"accountSwitchAdditionalPackagesActive_msg": "Avaktivera alla tillägg och paket och inaktivera alla e-postalias innan du byter abonnemang.",
 		"accountSwitchAliases_msg": "Ta bort alla alias för din användare.",
 		"accountSwitchCustomMailAddress_msg": "Inaktivera alla anpassade domän epost alias.",
