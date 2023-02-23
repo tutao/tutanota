@@ -7,6 +7,7 @@ import { build as esbuild } from "esbuild"
 import { getTutanotaAppVersion, runStep, sh, writeFile } from "../buildSrc/buildUtils.js"
 import { esbuildPluginAliasPath } from "esbuild-plugin-alias-path"
 import { keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin } from "../buildSrc/esbuildUtils.js"
+import { buildPackages } from "../buildSrc/packageBuilderFunctions.js"
 
 export async function runTestBuild({ clean, fast = false }) {
 	if (clean) {
@@ -17,7 +18,7 @@ export async function runTestBuild({ clean, fast = false }) {
 
 	if (!fast) {
 		await runStep("Packages", async () => {
-			await $`npm run build-packages`
+			await buildPackages("..")
 		})
 
 		await runStep("Types", async () => {

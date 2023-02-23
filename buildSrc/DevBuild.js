@@ -10,6 +10,7 @@ import { fileURLToPath } from "url"
 import * as LaunchHtml from "./LaunchHtml.js"
 import os from "os"
 import { checkOfflineDatabaseMigrations } from "./checkOfflineDbMigratons.js"
+import { buildRuntimePackages } from "./packageBuilderFunctions.js"
 
 export async function runDevBuild({ stage, host, desktop, clean, ignoreMigrations }) {
 	if (clean) {
@@ -27,7 +28,7 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 	})
 
 	await runStep("Packages", async () => {
-		await $`npm run build-runtime-packages`
+		await buildRuntimePackages()
 	})
 
 	const version = getTutanotaAppVersion()
