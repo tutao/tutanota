@@ -28,20 +28,26 @@ export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdat
 
 export type ExposedEventController = Pick<EventController, "onEntityUpdateReceived" | "onCountersUpdateReceived">
 
+const TAG = "[EventController]"
+
 export class EventController {
 	private countersStream: Stream<WebsocketCounterData> = stream()
-	private entityListeners: Array<EntityEventsListener> = []
+	private entityListeners: Set<EntityEventsListener> = new Set()
 
 	constructor(private readonly logins: LoginController) {}
 
 	addEntityListener(listener: EntityEventsListener) {
-		this.entityListeners.push(listener)
+		if (this.entityListeners.has(listener)) {
+			console.warn(TAG, "Adding the same listener twice!")
+		} else {
+			this.entityListeners.add(listener)
+		}
 	}
 
 	removeEntityListener(listener: EntityEventsListener) {
-		const wasRemoved = remove(this.entityListeners, listener)
+		const wasRemoved = this.entityListeners.delete(listener)
 		if (!wasRemoved) {
-			console.warn("Could not remove listener, possible leak?", listener)
+			console.warn(TAG, "Could not remove listener, possible leak?", listener)
 		}
 	}
 
