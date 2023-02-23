@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2023-02-23T11:10:12Z",
+	"updated_at": "2023-02-23T17:28:47Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -28,6 +28,7 @@ export default {
 		"acceptTemplateGroupEmailBody_msg": "Bună {recipientName}, <br/>{invitee} a acceptat invitația ta de a folosi lista ta cu modele „{groupName}”.<br/><br/>Acesta este un mesaj automat.",
 		"acceptTemplateGroupEmailSubject_msg": "Invitația la lista cu modele a fost acceptată",
 		"accept_action": "Acceptă",
+		"accountCongratulations_msg": "Felicitări",
 		"accountCreationCongratulation_msg": "Bun venit în zona cifrată. 🔒",
 		"accountSwitchAdditionalPackagesActive_msg": "Te rugăm să dezactivezi toate extensiile, pachetele rezervate și alias de e-mail înainte de schimbarea abonamentului.",
 		"accountSwitchAliases_msg": "Șterge toate pseudonimele utilizatorului tău. ",
@@ -1193,6 +1194,7 @@ export default {
 		"recoveryCodeConfirmation_msg": "Asigură-te că ți-ai notat codul de recuperare. ",
 		"recoveryCodeDisplay_action": "Arată codul de recuperare",
 		"recoveryCodeEmpty_msg": "Introdu un cod pentru recuperarea datelor",
+		"recoveryCodeReminder_msg": "Ți-ai notat deja codul de recuperare? Codul de recuperare este singura opțiune de restabilire a parolei sau a celui de-al doilea factor dacă le pierzi.",
 		"recoveryCode_label": "Cod de recuperare",
 		"recoveryCode_msg": "Te rugăm să îți notezi codul de recuperare. Acest cod de recuperare este singura opțiune de restabilire a parolei sau a celui de-al doilea factor dacă le pierzi.",
 		"recover_label": "Recuperează",
