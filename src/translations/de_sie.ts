@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2023-02-23T17:37:17Z",
+	"updated_at": "2023-02-27T08:11:33Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -286,7 +286,7 @@ export default {
 		"continueSearchMailbox_msg": "Um diese Suche auszuführen, müssen weitere E-Mails vom Server abgerufen werden. Dies kann etwas dauern.",
 		"contractorInfo_msg": "Bitte tragen Sie Name (Firma) und Adresse des Vertragspartners ein.",
 		"contractor_label": "Vertragspartner",
-		"conversationViewPref_label": "Alle E-Mails in der Unterhaltung anzeigen",
+		"conversationViewPref_label": "Gesprächsverlauf",
 		"copyLinkError_msg": "Link konnte nicht kopiert werden",
 		"copyLink_action": "Link-Adresse kopieren",
 		"copyToClipboard_action": "In die Zwischenablage kopieren",
@@ -1362,6 +1362,7 @@ export default {
 		"sharing_label": "Freigaben",
 		"shortcut_label": "Shortcut",
 		"showAddress_alt": "Diese Adresse in OpenStreetMap anzeigen",
+		"showAllMailsInThread_label": "Alle E-Mails zusammen in einem Verlauf anzeigen",
 		"showAll_action": "Alle anzeigen",
 		"showBlockedContent_action": "Anzeigen",
 		"showContact_action": "Kontakt anzeigen",
@@ -1373,6 +1374,7 @@ export default {
 		"showMail_action": "Mailbox entschlüsseln",
 		"showMoreUpgrade_action": "Abonnements anzeigen",
 		"showMore_action": "MEHR ANZEIGEN",
+		"showOnlySelectedMail_label": "Nur die ausgewählte E-Mail anzeigen",
 		"showRejectReason_action": "Ablehnungsgrund anzeigen",
 		"showRichTextToolbar_action": "Formatierungswerkzeuge",
 		"showText_action": "Text anzeigen",

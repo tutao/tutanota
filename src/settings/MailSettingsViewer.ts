@@ -265,16 +265,17 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const conversationViewDropdownAttrs: DropDownSelectorAttrs<boolean> = {
 			label: "conversationViewPref_label",
-			// yes, activated means "false" because the pref is to "disable" it but
+			// show all means "false" because the pref is to "disable" it, but
 			// we disabled it as "enabled"
 			items: [
-				{ name: lang.get("activated_label"), value: false },
-				{ name: lang.get("deactivated_label"), value: true },
+				{ name: lang.get("showAllMailsInThread_label"), value: false },
+				{ name: lang.get("showOnlySelectedMail_label"), value: true },
 			],
 			selectedValue: deviceConfig.getConversationViewShowOnlySelectedMail(),
 			selectionChangedHandler: (arg: boolean) => {
 				deviceConfig.setConversationViewShowOnlySelectedMail(arg)
 			},
+			dropdownWidth: 350,
 		}
 		return [
 			m(

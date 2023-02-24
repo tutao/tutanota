@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2023-02-23T17:37:17Z",
+	"updated_at": "2023-02-27T08:11:21Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -282,7 +282,7 @@ export default {
 		"continueSearchMailbox_msg": "To execute this search we have to download more emails from the server which may take some time.",
 		"contractorInfo_msg": "Please fill in the contractor's name (company) and address.",
 		"contractor_label": "Contractor",
-		"conversationViewPref_label": "Show all emails in conversation",
+		"conversationViewPref_label": "Conversation thread",
 		"copyLinkError_msg": "Failed to copy link",
 		"copyLink_action": "Copy link address",
 		"copyToClipboard_action": "Copy to clipboard",
@@ -1358,6 +1358,7 @@ export default {
 		"sharing_label": "Sharing",
 		"shortcut_label": "Shortcut",
 		"showAddress_alt": "Show this address in OpenStreetMap",
+		"showAllMailsInThread_label": "Show all emails together in thread",
 		"showAll_action": "Show all",
 		"showBlockedContent_action": "Show",
 		"showContact_action": "Show contact",
@@ -1369,6 +1370,7 @@ export default {
 		"showMail_action": "Show encrypted mailbox",
 		"showMoreUpgrade_action": "Subscription options",
 		"showMore_action": "SHOW MORE",
+		"showOnlySelectedMail_label": "Show selected email only",
 		"showRejectReason_action": "Show reject reason",
 		"showRichTextToolbar_action": "Show formatting tools",
 		"showText_action": "Show text",
