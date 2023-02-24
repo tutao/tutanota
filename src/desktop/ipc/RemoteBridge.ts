@@ -52,4 +52,8 @@ export class RemoteBridge {
 			interWindowEventSender: new InterWindowEventFacadeSendDispatcher(nativeInterface),
 		}
 	}
+
+	unsubscribe(ipc: { removeHandler: (channel: string) => void }) {
+		ipc.removeHandler(primaryIpcConfig.renderToMainEvent)
+	}
 }

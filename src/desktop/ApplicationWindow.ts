@@ -394,6 +394,8 @@ export class ApplicationWindow {
 	}
 
 	async reload(queryParams: Record<string, string | boolean>) {
+		// do this immediately as to not get the window destroyed on us
+		this.remoteBridge.unsubscribe(this._browserWindow.webContents.ipc)
 		await this.closeDb()
 		this.userId = null
 		this.initFacades()
