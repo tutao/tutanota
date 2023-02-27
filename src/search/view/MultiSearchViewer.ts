@@ -180,7 +180,7 @@ export class MultiSearchViewer implements Component {
 
 	mobileMailActionBarButtons(): Array<IconButtonAttrs> {
 		const selectedEntities = this.searchListView.list?.getSelectedEntities() ?? []
-		const selectNone = this.searchListView.list?.selectNone || (() => {})
+		const selectNone = () => this.searchListView.list?.selectNone() || (() => {})
 		return getMultiMailViewerActionButtonAttrs(selectedEntities.map(({ entry }) => entry).filter(assertIsEntity2(MailTypeRef)), selectNone, false)
 	}
 
