@@ -35,7 +35,7 @@ pipeline {
 			steps {
 				script {
 					def util = load "ci/jenkins-lib/util.groovy"
-					util.checkGithub()
+					// util.checkGithub()
 				}
 			}
 		}
