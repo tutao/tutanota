@@ -488,7 +488,6 @@ function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType
 			// to handle back button presses where the user decides to stay on the page after all (we show a confirmation)
 			// we need to prevent the logout/reload. this is the purpose of the keepSession argument.
 			// the signup wizard that sets it handles the session itself.
-			console.log("onmatch", document.URL)
 			if (requireLogin && !logins.isUserLoggedIn()) {
 				forceLogin(args, requestedPath)
 				return null
