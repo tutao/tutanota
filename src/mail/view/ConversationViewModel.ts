@@ -169,6 +169,7 @@ export class ConversationViewModel {
 				// When DELETED conversation status type is added, replace entry with deleted entry instead of splicing out
 				conversation.splice(oldItemIndex, 1)
 			}
+			this.onUiUpdate()
 		}
 	}
 
