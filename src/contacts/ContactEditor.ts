@@ -181,7 +181,8 @@ export class ContactEditor {
 		}
 
 		if (this.saving) {
-			return Dialog.message("operationStillActive_msg")
+			// not showing a message. if the resource is locked, we'll show one when appropriate.
+			return
 		}
 		this.saving = true
 
@@ -197,15 +198,15 @@ export class ContactEditor {
 			}
 			this.close()
 		} catch (e) {
+			this.saving = false
 			if (e instanceof PayloadTooLargeError) {
 				return Dialog.message("requestTooLarge_msg")
 			}
 			if (e instanceof LockedError) {
 				return Dialog.message("operationStillActive_msg")
 			}
-		} finally {
-			this.saving = false
 		}
+		// if we got here, we're closing the dialog and don't have to reset this.saving
 	}
 
 	private async updateExistingContact(): Promise<void> {
