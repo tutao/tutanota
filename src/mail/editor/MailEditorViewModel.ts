@@ -1,7 +1,7 @@
 import m from "mithril"
 import type { Attachment } from "./SendMailModel"
 import { SendMailModel } from "./SendMailModel"
-import { debounce, findAllAndRemove, ofClass, remove } from "@tutao/tutanota-utils"
+import { debounce, findAllAndRemove, isNotNull, ofClass, remove } from "@tutao/tutanota-utils"
 import { Mode } from "../../api/common/Env"
 import { PermissionError } from "../../api/common/error/PermissionError"
 import { Dialog } from "../../gui/base/Dialog"
@@ -21,24 +21,24 @@ import { DataFile } from "../../api/common/DataFile"
 import { showFileChooser } from "../../file/FileController.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
-export function chooseAndAttachFile(
-	model: SendMailModel,
-	boundingRect: ClientRect,
-	fileTypes?: Array<string>,
-): Promise<ReadonlyArray<FileReference | DataFile> | void> {
+export async function chooseAndAttachFile(model: SendMailModel, boundingRect: ClientRect, fileTypes?: Array<string>): Promise<ReadonlyArray<DataFile> | void> {
 	boundingRect.height = Math.round(boundingRect.height)
 	boundingRect.width = Math.round(boundingRect.width)
 	boundingRect.x = Math.round(boundingRect.x)
 	boundingRect.y = Math.round(boundingRect.y)
-	return showFileChooserForAttachments(boundingRect, fileTypes)
-		.then(async (files) => {
-			if (files) {
-				model.attachFiles(files)
-			}
-
-			return files
-		})
-		.catch(ofClass(UserError, showUserError))
+	try {
+		const files = await showFileChooserForAttachments(boundingRect, fileTypes)
+		if (!files) return
+		const dataFiles: Array<DataFile> = (
+			await Promise.all(files.map(async (f) => (isFileReference(f) ? locator.fileApp.readDataFile(f.location) : f)))
+		).filter(isNotNull)
+		model.attachFiles(dataFiles)
+		return dataFiles
+	} catch (e) {
+		if (e instanceof UserError) {
+			await showUserError(e)
+		}
+	}
 }
 
 export function showFileChooserForAttachments(boundingRect: ClientRect, fileTypes?: Array<string>): Promise<ReadonlyArray<FileReference | DataFile> | void> {
