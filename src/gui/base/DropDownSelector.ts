@@ -69,7 +69,7 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 							m(IconButton, {
 								icon: a.icon ? a.icon : BootIcons.Expand,
 								title: "show_action",
-								click: noOp,
+								click: a.disabled ? noOp : this.createDropdown(a),
 								size: ButtonSize.Compact,
 							}),
 					  ),
