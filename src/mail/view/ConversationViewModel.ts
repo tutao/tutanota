@@ -284,11 +284,11 @@ export class ConversationViewModel {
 	}
 
 	dispose() {
+		this.eventController.removeEntityListener(this.onEntityEvent)
 		for (const item of this.conversationItems()) {
 			if (item.type === "mail") {
 				item.viewModel.dispose()
 			}
 		}
-		this.eventController.removeEntityListener(this.onEntityEvent)
 	}
 }

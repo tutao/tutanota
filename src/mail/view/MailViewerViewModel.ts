@@ -12,7 +12,6 @@ import {
 	MailTypeRef,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import {
-	assertEnumValue,
 	CalendarMethod,
 	ConversationType,
 	ExternalImageRule,
@@ -31,7 +30,6 @@ import { MailboxDetail, MailModel } from "../model/MailModel"
 import { ContactModel } from "../../contacts/model/ContactModel"
 import { ConfigurationDatabase } from "../../api/worker/facades/lazy/ConfigurationDatabase.js"
 import { InlineImages } from "./MailViewer"
-import { isDesktop } from "../../api/common/Env"
 import stream from "mithril/stream"
 import { addAll, assertNonNull, contains, downcast, filterInt, first, neverNull, noOp, ofClass, startsWith } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
@@ -67,7 +65,6 @@ import { LoadingStateTracker } from "../../offline/LoadingState"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import { InitAsResponseArgs, SendMailModel } from "../editor/SendMailModel"
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
-import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
 import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
 import { WorkerFacade } from "../../api/worker/facades/WorkerFacade.js"
@@ -217,9 +214,13 @@ export class MailViewerViewModel {
 	}
 
 	dispose() {
+		// currently, the conversation view disposes us twice if our mail is deleted because it's getting disposed itself
+		// (from the list selecting a different element) and because it disposes the mailViewerViewModel that got updated
+		// this silences the warning about leaking entity event listeners when the listener is removed twice.
+		this.dispose = () => console.log("disposed MailViewerViewModel a second time, ignoring")
+		this.eventController.removeEntityListener(this.entityListener)
 		const inlineImages = this.getLoadedInlineImages()
 		revokeInlineImages(inlineImages)
-		this.eventController.removeEntityListener(this.entityListener)
 	}
 
 	async loadAll(
