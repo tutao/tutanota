@@ -54,11 +54,10 @@ import { KnowledgeBaseModel } from "../../knowledgebase/model/KnowledgeBaseModel
 import { styles } from "../../gui/styles"
 import { showMinimizedMailEditor } from "../view/MinimizedMailEditorOverlay"
 import { SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
-import { isDataFile, isTutanotaFile } from "../../api/common/utils/FileUtils"
+import { isTutanotaFile } from "../../api/common/utils/FileUtils"
 import { parseMailtoUrl } from "../../misc/parsing/MailAddressParser"
 import { CancelledError } from "../../api/common/error/CancelledError"
 import { Shortcut } from "../../misc/KeyManager"
-import { DataFile } from "../../api/common/DataFile"
 import { Recipients, RecipientType } from "../../api/common/recipients/Recipient"
 import { CompletenessIndicator } from "../../gui/CompletenessIndicator.js"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
@@ -76,6 +75,7 @@ import { DialogInjectionRightAttrs } from "../../gui/base/DialogInjectionRight.j
 import { KnowledgebaseDialogContentAttrs } from "../../knowledgebase/view/KnowledgeBaseDialogContent.js"
 import { MailWrapper } from "../../api/common/MailWrapper.js"
 import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
+import { DataFile } from "../../api/common/DataFile.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -501,24 +501,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					editor: this.editor,
 					imageButtonClickHandler: isApp()
 						? null
-						: (event: Event) =>
-								chooseAndAttachFile(model, (event.target as HTMLElement).getBoundingClientRect(), ALLOWED_IMAGE_FORMATS).then((files) => {
-									files &&
-										files.forEach((file) => {
-											// Let's assume it's DataFile for now... Editor bar is available for apps but image button is not
-											if (isDataFile(file)) {
-												const img = createInlineImage(file as DataFile)
-												model.loadedInlineImages.set(img.cid, img)
-												this.inlineImageElements.push(
-													this.editor.insertImage(img.objectUrl, {
-														cid: img.cid,
-														style: "max-width: 100%",
-													}),
-												)
-											}
-										})
-									m.redraw()
-								}),
+						: (event: Event) => this.imageButtonClickHandler(model, (event.target as HTMLElement).getBoundingClientRect()),
 					customButtonAttrs: this.templateModel
 						? [
 								{
@@ -535,6 +518,22 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				m("hr.hr"),
 			],
 		)
+	}
+
+	private async imageButtonClickHandler(model: SendMailModel, rect: DOMRect): Promise<void> {
+		const files = await chooseAndAttachFile(model, rect, ALLOWED_IMAGE_FORMATS)
+		if (!files || files.length === 0) return
+		for (let file of files) {
+			const img = createInlineImage(file as DataFile)
+			model.loadedInlineImages.set(img.cid, img)
+			this.inlineImageElements.push(
+				this.editor.insertImage(img.objectUrl, {
+					cid: img.cid,
+					style: "max-width: 100%",
+				}),
+			)
+		}
+		m.redraw()
 	}
 
 	private renderPasswordFields(): Children {
