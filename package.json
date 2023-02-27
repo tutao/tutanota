@@ -47,7 +47,7 @@
 		"cborg": "1.5.4",
 		"dompurify": "2.4.3",
 		"electron": "23.1.1",
-		"electron-updater": "6.0.0-alpha.9",
+		"electron-updater": "6.0.0-alpha.6",
 		"jszip": "3.7.0",
 		"keytar": "git+https://github.com/tutao/node-keytar#12593c5809c9ed6bfc063ed3e862dd85a1506aca",
 		"linkifyjs": "3.0.5",
