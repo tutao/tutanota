@@ -523,7 +523,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	private async imageButtonClickHandler(model: SendMailModel, rect: DOMRect): Promise<void> {
 		const files = await chooseAndAttachFile(model, rect, ALLOWED_IMAGE_FORMATS)
 		if (!files || files.length === 0) return
-		for (let file of files) {
+		for (const file of files) {
 			const img = createInlineImage(file as DataFile)
 			model.loadedInlineImages.set(img.cid, img)
 			this.inlineImageElements.push(
