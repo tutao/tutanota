@@ -21,22 +21,42 @@ import { DataFile } from "../../api/common/DataFile"
 import { showFileChooser } from "../../file/FileController.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
-export async function chooseAndAttachFile(model: SendMailModel, boundingRect: ClientRect, fileTypes?: Array<string>): Promise<ReadonlyArray<DataFile> | void> {
+export async function chooseAndAttachFile(
+	model: SendMailModel,
+	boundingRect: ClientRect,
+	fileTypes?: Array<string>,
+): Promise<ReadonlyArray<DataFile | FileReference> | void> {
 	boundingRect.height = Math.round(boundingRect.height)
 	boundingRect.width = Math.round(boundingRect.width)
 	boundingRect.x = Math.round(boundingRect.x)
 	boundingRect.y = Math.round(boundingRect.y)
 	try {
 		const files = await showFileChooserForAttachments(boundingRect, fileTypes)
-		if (!files) return
-		const dataFiles: Array<DataFile> = (
-			await Promise.all(files.map(async (f) => (isFileReference(f) ? locator.fileApp.readDataFile(f.location) : f)))
-		).filter(isNotNull)
-		model.attachFiles(dataFiles)
-		return dataFiles
+		if (!files || files.length === 0) return
+		switch (env.mode) {
+			case Mode.App:
+				// we have file refs and want to keep them
+				model.attachFiles(files)
+				return files
+			case Mode.Desktop:
+				// we have file refs and want to read them.
+				// this is important for the desktop client so it can attach them as inline images.
+				const dataFiles: Array<DataFile> = (
+					await Promise.all(files.map(async (f) => (isFileReference(f) ? locator.fileApp.readDataFile(f.location) : f)))
+				).filter(isNotNull)
+				model.attachFiles(dataFiles)
+				return dataFiles
+			default:
+				// we have data files and want to keep them
+				model.attachFiles(files)
+				return files
+		}
 	} catch (e) {
 		if (e instanceof UserError) {
 			await showUserError(e)
+		} else {
+			const msg = e.message || "unknown error"
+			console.error("could not attach files:", msg)
 		}
 	}
 }
