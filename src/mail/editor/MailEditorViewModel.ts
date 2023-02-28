@@ -42,7 +42,7 @@ export async function chooseAndAttachFile(
 				// we have file refs and want to read them.
 				// this is important for the desktop client so it can attach them as inline images.
 				const dataFiles: Array<DataFile> = (
-					await Promise.all(files.map(async (f) => (isFileReference(f) ? locator.fileApp.readDataFile(f.location) : f)))
+					await Promise.all((files as Array<FileReference>).map(async (f) => locator.fileApp.readDataFile(f.location)))
 				).filter(isNotNull)
 				model.attachFiles(dataFiles)
 				return dataFiles
