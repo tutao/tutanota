@@ -182,11 +182,8 @@ export class ConversationViewModel {
 			if (this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()) {
 				this.conversation = this.conversationItemsForSelectedMailOnly()
 			} else {
-				console.log("getting entries")
 				const conversationEntries = await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(this.primaryMail.conversationEntry))
-				console.log("got entries", conversationEntries)
 				const allMails = await this.loadMails(conversationEntries)
-				console.log("got mails", allMails)
 				this.conversation = this.createConversationItems(conversationEntries, allMails)
 			}
 		} finally {
