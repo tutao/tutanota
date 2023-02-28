@@ -77,7 +77,7 @@ class AndroidFileFacade(
 		return outputFile.toUri().toString()
 	}
 
-	override suspend fun openFileChooser(boundingRect: IpcClientRect): List<String> {
+	override suspend fun openFileChooser(boundingRect: IpcClientRect, filter: List<String>?): List<String> {
 		val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
 			type = "*/*"
 			addCategory(Intent.CATEGORY_OPENABLE)

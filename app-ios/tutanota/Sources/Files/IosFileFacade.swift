@@ -35,7 +35,7 @@ class IosFileFacade : FileFacade {
     await self.viewer.openFile(path: location)
   }
   
-  func openFileChooser(_ boundingRect: IpcClientRect) async throws -> [String] {
+  func openFileChooser(_ boundingRect: IpcClientRect, _ filter: [String]?) async throws -> [String] {
     let anchor = CGRect(x: boundingRect.x, y: boundingRect.y, width: boundingRect.width, height: boundingRect.height)
     return try await self.chooser.open(withAnchorRect: anchor)
   }

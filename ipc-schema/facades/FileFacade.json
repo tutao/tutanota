@@ -6,12 +6,26 @@
 	"methods": {
 		"open": {
 			"doc": "Opens the file with the built-in viewer or external program.",
-			"arg": [{ "location": "string" }, { "mimeType": "string" }],
+			"arg": [
+				{
+					"location": "string"
+				},
+				{
+					"mimeType": "string"
+				}
+			],
 			"ret": "void"
 		},
 		"openFileChooser": {
-			"doc": "Opens OS file picker. Returns the list of URIs for the selected files.",
-			"arg": [{ "boundingRect": "IpcClientRect" }],
+			"doc": "Opens OS file picker. Returns the list of URIs for the selected files. add a list of extensions (without dot) to filter the options.",
+			"arg": [
+				{
+					"boundingRect": "IpcClientRect"
+				},
+				{
+					"filter": "List<string>?"
+				}
+			],
 			"ret": "List<string>"
 		},
 		"openFolderChooser": {
@@ -20,41 +34,83 @@
 			"ret": "string?"
 		},
 		"deleteFile": {
-			"arg": [{ "file": "string" }],
+			"arg": [
+				{
+					"file": "string"
+				}
+			],
 			"ret": "void"
 		},
 		"getName": {
-			"arg": [{ "file": "string" }],
+			"arg": [
+				{
+					"file": "string"
+				}
+			],
 			"ret": "string"
 		},
 		"getMimeType": {
-			"arg": [{ "file": "string" }],
+			"arg": [
+				{
+					"file": "string"
+				}
+			],
 			"ret": "string"
 		},
 		"getSize": {
-			"arg": [{ "file": "string" }],
+			"arg": [
+				{
+					"file": "string"
+				}
+			],
 			"ret": "number"
 		},
 		"putFileIntoDownloadsFolder": {
-			"arg": [{ "localFileUri": "string" }],
+			"arg": [
+				{
+					"localFileUri": "string"
+				}
+			],
 			"ret": "string"
 		},
 		"upload": {
 			"arg": [
-				{ "fileUrl": "string" },
-				{ "targetUrl": "string" },
-				{ "method": "string" },
-				{ "headers": "Map<string, string>" }
+				{
+					"fileUrl": "string"
+				},
+				{
+					"targetUrl": "string"
+				},
+				{
+					"method": "string"
+				},
+				{
+					"headers": "Map<string, string>"
+				}
 			],
 			"ret": "UploadTaskResponse"
 		},
 		"download": {
-			"arg": [{ "sourceUrl": "string" }, { "filename": "string" }, { "headers": "Map<string, string>" }],
+			"arg": [
+				{
+					"sourceUrl": "string"
+				},
+				{
+					"filename": "string"
+				},
+				{
+					"headers": "Map<string, string>"
+				}
+			],
 			"ret": "DownloadTaskResponse"
 		},
 		"hashFile": {
 			"doc": "Calculates specified file hash (with SHA-256). Returns first 6 bytes of it as Base64.",
-			"arg": [{ "fileUri": "string" }],
+			"arg": [
+				{
+					"fileUri": "string"
+				}
+			],
 			"ret": "string"
 		},
 		"clearFileData": {
@@ -62,19 +118,41 @@
 			"ret": "void"
 		},
 		"joinFiles": {
-			"arg": [{ "filename": "string" }, { "files": "List<string>" }],
+			"arg": [
+				{
+					"filename": "string"
+				},
+				{
+					"files": "List<string>"
+				}
+			],
 			"ret": "string"
 		},
 		"splitFile": {
-			"arg": [{ "fileUri": "string" }, { "maxChunkSizeBytes": "number" }],
+			"arg": [
+				{
+					"fileUri": "string"
+				},
+				{
+					"maxChunkSizeBytes": "number"
+				}
+			],
 			"ret": "List<string>"
 		},
 		"writeDataFile": {
-			"arg": [{ "file": "DataFile" }],
+			"arg": [
+				{
+					"file": "DataFile"
+				}
+			],
 			"ret": "string"
 		},
 		"readDataFile": {
-			"arg": [{ "filePath": "string" }],
+			"arg": [
+				{
+					"filePath": "string"
+				}
+			],
 			"ret": "DataFile?"
 		}
 	}
