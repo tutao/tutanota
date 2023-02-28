@@ -8,7 +8,6 @@ import { DataFile } from "../api/common/DataFile.js"
 import { FileUri } from "../native/common/FileApp.js"
 import path from "node:path"
 import { ApplicationWindow } from "./ApplicationWindow.js"
-import { mimes } from "./flat-mimes.js"
 
 export class DesktopFileFacade implements FileFacade {
 	constructor(private readonly win: ApplicationWindow, private readonly dl: DesktopDownloadManager, private readonly electron: ElectronExports) {}
