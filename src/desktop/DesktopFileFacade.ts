@@ -8,6 +8,7 @@ import { DataFile } from "../api/common/DataFile.js"
 import { FileUri } from "../native/common/FileApp.js"
 import path from "node:path"
 import { ApplicationWindow } from "./ApplicationWindow.js"
+import { mimes } from "./flat-mimes.js"
 
 export class DesktopFileFacade implements FileFacade {
 	constructor(private readonly win: ApplicationWindow, private readonly dl: DesktopDownloadManager, private readonly electron: ElectronExports) {}
@@ -87,7 +88,10 @@ export class DesktopFileFacade implements FileFacade {
 		return this.dl.writeDataFile(file)
 	}
 
-	readDataFile(fileUri: FileUri): Promise<DataFile | null> {
-		return this.dl.readDataFile(fileUri)
+	async readDataFile(fileUri: FileUri): Promise<DataFile | null> {
+		const [dataFile, mimeType] = await Promise.all([this.dl.readDataFile(fileUri), this.getMimeType(fileUri)])
+		if (dataFile == null) return null
+		dataFile.mimeType = mimeType
+		return dataFile
 	}
 }
