@@ -12,10 +12,11 @@ public protocol FileFacade {
 		_ mimeType: String
 	) async throws -> Void
 	/**
-	 * Opens OS file picker. Returns the list of URIs for the selected files.
+	 * Opens OS file picker. Returns the list of URIs for the selected files. add a list of extensions (without dot) to filter the options.
 	 */
 	func openFileChooser(
-		_ boundingRect: IpcClientRect
+		_ boundingRect: IpcClientRect,
+		_ filter: [String]?
 	) async throws -> [String]
 	/**
 	 * Opens OS file picker for selecting a folder. Only on desktop.

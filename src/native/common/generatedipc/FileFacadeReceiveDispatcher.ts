@@ -15,7 +15,8 @@ export class FileFacadeReceiveDispatcher {
 			}
 			case "openFileChooser": {
 				const boundingRect: IpcClientRect = arg[0]
-				return this.facade.openFileChooser(boundingRect)
+				const filter: ReadonlyArray<string> | null = arg[1]
+				return this.facade.openFileChooser(boundingRect, filter)
 			}
 			case "openFolderChooser": {
 				return this.facade.openFolderChooser()

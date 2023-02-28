@@ -1,6 +1,5 @@
 import { promiseMap } from "@tutao/tutanota-utils"
 import type { MailBundle } from "../../mail/export/Bundler"
-import type { NativeInterface } from "./NativeInterface"
 import { FileReference } from "../../api/common/utils/FileUtils"
 import { DataFile } from "../../api/common/DataFile"
 import { HttpMethod } from "../../api/common/EntityFunctions"
@@ -27,8 +26,9 @@ export class NativeFileApp {
 	/**
 	 * Opens a file chooser to select a file.
 	 * @param boundingRect The file chooser is opened next to the rectangle.
+	 * @param filter an optional list of allowed file extensions
 	 */
-	async openFileChooser(boundingRect: DOMRect): Promise<Array<FileReference>> {
+	async openFileChooser(boundingRect: DOMRect, filter?: ReadonlyArray<string>): Promise<Array<FileReference>> {
 		/* The file chooser opens next to a location specified by srcRect on larger devices (iPad).
 		 * The rectangle must be specifed using values for x, y, height and width.
 		 */
@@ -38,7 +38,7 @@ export class NativeFileApp {
 			width: Math.round(boundingRect.width),
 			height: Math.round(boundingRect.height),
 		}
-		const files = await this.fileFacade.openFileChooser(srcRect)
+		const files = await this.fileFacade.openFileChooser(srcRect, filter ?? null)
 		return promiseMap(files, this.uriToFileRef.bind(this))
 	}
 

@@ -15,10 +15,11 @@ interface FileFacade {
 		mimeType: String,
 	): Unit
 	/**
-	 * Opens OS file picker. Returns the list of URIs for the selected files.
+	 * Opens OS file picker. Returns the list of URIs for the selected files. add a list of extensions (without dot) to filter the options.
 	 */
 	 suspend fun openFileChooser(
 		boundingRect: IpcClientRect,
+		filter: List<String>?,
 	): List<String>
 	/**
 	 * Opens OS file picker for selecting a folder. Only on desktop.

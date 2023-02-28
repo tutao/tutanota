@@ -53,8 +53,12 @@ export class DesktopFileFacade implements FileFacade {
 		return this.dl.open(location)
 	}
 
-	async openFileChooser(boundingRect: IpcClientRect): Promise<Array<string>> {
-		const { filePaths } = await this.electron.dialog.showOpenDialog(this.win._browserWindow, { properties: ["openFile", "multiSelections"] })
+	async openFileChooser(boundingRect: IpcClientRect, filter: ReadonlyArray<string> | null): Promise<Array<string>> {
+		const opts: Record<string, unknown> = { properties: ["openFile", "multiSelections"] }
+		if (filter != null) {
+			opts.filters = [{ name: "Filter", extensions: filter }]
+		}
+		const { filePaths } = await this.electron.dialog.showOpenDialog(this.win._browserWindow, opts)
 		return filePaths
 	}
 
