@@ -84,7 +84,7 @@ export class ContactFormRequestDialog {
 			middle: () => lang.get("createContactRequest_action"),
 		}
 
-		this.view.bind(this)
+		this.view = this.view.bind(this)
 
 		this._dialog = Dialog.largeDialog(headerBarAttrs, this)
 			.addShortcut({
