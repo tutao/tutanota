@@ -305,8 +305,6 @@ export class ApplicationWindow {
 
 		this.id = this._browserWindow.id
 
-		this._browserWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback: (_: boolean) => void) => callback(false))
-
 		const session = this._browserWindow.webContents.session
 		session.setPermissionRequestHandler((webContents, permission, callback: (_: boolean) => void) => callback(false))
 
