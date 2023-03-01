@@ -22,7 +22,7 @@ export function show(): Promise<void> {
 		let errorMsg: TranslationText | null = "mailAddressNeutral_msg"
 		let isVerificationBusy = false
 		let userName = ""
-		const passwordModel = new PasswordModel(logins, { checkOldPassword: false, enforceStrength: false, repeatInput: false })
+		const passwordModel = new PasswordModel(logins, { checkOldPassword: false, enforceStrength: false, hideConfirmation: true })
 		let form = {
 			view: () => {
 				return [

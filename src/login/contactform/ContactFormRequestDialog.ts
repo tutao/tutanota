@@ -49,7 +49,7 @@ export class ContactFormRequestDialog {
 	_loadingAttachments: boolean
 	_contactForm: ContactForm
 	_notificationEmailAddress: string
-	private passwordModel = new PasswordModel(logins, { checkOldPassword: false, enforceStrength: false, repeatInput: false })
+	private passwordModel = new PasswordModel(logins, { checkOldPassword: false, enforceStrength: false })
 	_privacyPolicyAccepted: Stream<boolean>
 	_windowCloseUnsubscribe: () => void
 
