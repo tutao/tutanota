@@ -57,7 +57,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	constructor() {
 		this.__mailValid = stream(false)
 		this.__lastMailValidationError = stream(null)
-		this.passwordModel = new PasswordModel(logins, { checkOldPassword: false, enforceStrength: true, repeatInput: false }, this.__mailValid)
+		this.passwordModel = new PasswordModel(logins, { checkOldPassword: false, enforceStrength: true }, this.__mailValid)
 
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
