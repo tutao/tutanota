@@ -207,24 +207,26 @@ export function getAliasLineAttrs(attrs: MailAddressTableAttrs): Array<TableLine
 }
 
 async function switchAliasStatus(alias: AddressInfo, attrs: MailAddressTableAttrs) {
-	const message: TranslationKey = alias.status === AddressStatus.Alias ? "deactivateAlias_msg" : "deleteAlias_msg"
-	const confirmed = await Dialog.confirm(() =>
-		lang.get(message, {
-			"{1}": alias.address,
-		}),
-	)
-
-	if (!confirmed) {
-		return
+	const deactivateOrDeleteAlias = alias.status !== AddressStatus.DisabledAlias
+	if (deactivateOrDeleteAlias) {
+		// alias from custom domains will be deleted. Tutanota aliases will be deactivated
+		const message: TranslationKey = alias.status === AddressStatus.Custom ? "deleteAlias_msg" : "deactivateAlias_msg"
+		const confirmed = await Dialog.confirm(() =>
+			lang.get(message, {
+				"{1}": alias.address,
+			}),
+		)
+		if (!confirmed) {
+			return
+		}
 	}
 
-	const restore = alias.status === AddressStatus.DisabledAlias
-	const p = attrs.model.setAliasStatus(alias.address, restore).catch(
+	const updateModel = attrs.model.setAliasStatus(alias.address, !deactivateOrDeleteAlias).catch(
 		ofClass(LimitReachedError, () => {
 			Dialog.message("adminMaxNbrOfAliasesReached_msg")
 		}),
 	)
-	await showProgressDialog("pleaseWait_msg", p)
+	await showProgressDialog("pleaseWait_msg", updateModel)
 }
 
 function showSenderNameChangeDialog(model: MailAddressTableModel, alias: { address: string; name: string }) {
