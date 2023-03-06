@@ -277,6 +277,7 @@ class MainLocator {
 			this.entityClient,
 			this.eventController,
 			deviceConfig,
+			this.mailModel,
 			m.redraw,
 		)
 	}
