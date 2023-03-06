@@ -10,6 +10,7 @@ import { ConversationType, MailFolderType, MailState, OperationType } from "../.
 import { NotFoundError } from "../../api/common/error/RestError.js"
 import { normalizeSubject } from "../model/MailUtils.js"
 import { isOfTypeOrSubfolderOf } from "../../api/common/mail/CommonMailUtils.js"
+import { MailModel } from "../model/MailModel.js"
 
 export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
 
@@ -18,7 +19,7 @@ export type SubjectItem = { type: "subject"; subject: string; id: string; entryI
 export type DeletedItem = { type: "deleted"; entryId: IdTuple }
 export type ConversationItem = MailItem | SubjectItem | DeletedItem
 
-interface ConversationPrefProvider {
+export interface ConversationPrefProvider {
 	getConversationViewShowOnlySelectedMail(): boolean
 }
 
@@ -36,6 +37,7 @@ export class ConversationViewModel {
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
 		private readonly conversationPrefProvider: ConversationPrefProvider,
+		private readonly mailModel: MailModel,
 		private readonly onUiUpdate: () => unknown,
 	) {
 		this._primaryViewModel = viewModelFactory(options)
@@ -240,8 +242,8 @@ export class ConversationViewModel {
 	}
 
 	private async isInTrash(mail: Mail) {
-		const mailboxDetail = await this._primaryViewModel.mailModel.getMailboxDetailsForMail(mail)
-		const mailFolder = this._primaryViewModel.mailModel.getMailFolder(getListId(mail))
+		const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(mail)
+		const mailFolder = this.mailModel.getMailFolder(getListId(mail))
 		return mailFolder && mailboxDetail && isOfTypeOrSubfolderOf(mailboxDetail.folders, mailFolder, MailFolderType.TRASH)
 	}
 

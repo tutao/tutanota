@@ -155,6 +155,7 @@ async function setupSuite() {
 		await import("./api/worker/offline/OfflineStorageMigratorTest.js")
 		await import("./api/worker/offline/OfflineStorageMigrationsTest.js")
 		await import("./api/worker/offline/OfflineStorageTest.js")
+		await import("./mail/view/CoversationViewModelTest.js")
 	}
 
 	// testdouble complains about certain mocking related code smells, and also prints a warning whenever you replace a property on an object.
