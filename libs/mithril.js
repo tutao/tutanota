@@ -1,3 +1,5 @@
+/// ivk: patched to fix early console binding
+/// ivk: patched to remove promise polyfill and m.request
 ;(function() {
 "use strict"
 function Vnode(tag, key, attrs0, children, text, dom) {
@@ -160,129 +162,6 @@ hyperscript.fragment = function() {
 	return vnode2
 }
 /* global window */
-/** @constructor */
-var PromisePolyfill = function(executor) {
-	if (!(this instanceof PromisePolyfill)) throw new Error("Promise must be called with 'new'.")
-	if (typeof executor !== "function") throw new TypeError("executor must be a function.")
-	var self = this, resolvers = [], rejectors = [], resolveCurrent = handler(resolvers, true), rejectCurrent = handler(rejectors, false)
-	var instance = self._instance = {resolvers: resolvers, rejectors: rejectors}
-	var callAsync = typeof setImmediate === "function" ? setImmediate : setTimeout
-	function handler(list, shouldAbsorb) {
-		return function execute(value) {
-			var then
-			try {
-				if (shouldAbsorb && value != null && (typeof value === "object" || typeof value === "function") && typeof (then = value.then) === "function") {
-					if (value === self) throw new TypeError("Promise can't be resolved with itself.")
-					executeOnce(then.bind(value))
-				}
-				else {
-					callAsync(function() {
-						if (!shouldAbsorb && list.length === 0) console.error("Possible unhandled promise rejection:", value)
-						for (var i = 0; i < list.length; i++) list[i](value)
-						resolvers.length = 0, rejectors.length = 0
-						instance.state = shouldAbsorb
-						instance.retry = function() {execute(value)}
-					})
-				}
-			}
-			catch (e) {
-				rejectCurrent(e)
-			}
-		}
-	}
-	function executeOnce(then) {
-		var runs = 0
-		function run(fn) {
-			return function(value) {
-				if (runs++ > 0) return
-				fn(value)
-			}
-		}
-		var onerror = run(rejectCurrent)
-		try {then(run(resolveCurrent), onerror)} catch (e) {onerror(e)}
-	}
-	executeOnce(executor)
-}
-PromisePolyfill.prototype.then = function(onFulfilled, onRejection) {
-	var self = this, instance = self._instance
-	function handle(callback, list, next, state) {
-		list.push(function(value) {
-			if (typeof callback !== "function") next(value)
-			else try {resolveNext(callback(value))} catch (e) {if (rejectNext) rejectNext(e)}
-		})
-		if (typeof instance.retry === "function" && state === instance.state) instance.retry()
-	}
-	var resolveNext, rejectNext
-	var promise = new PromisePolyfill(function(resolve, reject) {resolveNext = resolve, rejectNext = reject})
-	handle(onFulfilled, instance.resolvers, resolveNext, true), handle(onRejection, instance.rejectors, rejectNext, false)
-	return promise
-}
-PromisePolyfill.prototype.catch = function(onRejection) {
-	return this.then(null, onRejection)
-}
-PromisePolyfill.prototype.finally = function(callback) {
-	return this.then(
-		function(value) {
-			return PromisePolyfill.resolve(callback()).then(function() {
-				return value
-			})
-		},
-		function(reason) {
-			return PromisePolyfill.resolve(callback()).then(function() {
-				return PromisePolyfill.reject(reason);
-			})
-		}
-	)
-}
-PromisePolyfill.resolve = function(value) {
-	if (value instanceof PromisePolyfill) return value
-	return new PromisePolyfill(function(resolve) {resolve(value)})
-}
-PromisePolyfill.reject = function(value) {
-	return new PromisePolyfill(function(resolve, reject) {reject(value)})
-}
-PromisePolyfill.all = function(list) {
-	return new PromisePolyfill(function(resolve, reject) {
-		var total = list.length, count = 0, values = []
-		if (list.length === 0) resolve([])
-		else for (var i = 0; i < list.length; i++) {
-			(function(i) {
-				function consume(value) {
-					count++
-					values[i] = value
-					if (count === total) resolve(values)
-				}
-				if (list[i] != null && (typeof list[i] === "object" || typeof list[i] === "function") && typeof list[i].then === "function") {
-					list[i].then(consume, reject)
-				}
-				else consume(list[i])
-			})(i)
-		}
-	})
-}
-PromisePolyfill.race = function(list) {
-	return new PromisePolyfill(function(resolve, reject) {
-		for (var i = 0; i < list.length; i++) {
-			list[i].then(resolve, reject)
-		}
-	})
-}
-if (typeof window !== "undefined") {
-	if (typeof window.Promise === "undefined") {
-		window.Promise = PromisePolyfill
-	} else if (!window.Promise.prototype.finally) {
-		window.Promise.prototype.finally = PromisePolyfill.prototype.finally
-	}
-	var PromisePolyfill = window.Promise
-} else if (typeof global !== "undefined") {
-	if (typeof global.Promise === "undefined") {
-		global.Promise = PromisePolyfill
-	} else if (!global.Promise.prototype.finally) {
-		global.Promise.prototype.finally = PromisePolyfill.prototype.finally
-	}
-	var PromisePolyfill = global.Promise
-} else {
-}
 var _13 = function($window) {
 	var $doc = $window && $window.document
 	var currentRedraw
@@ -1230,7 +1109,7 @@ var _13 = function($window) {
 	}
 }
 var render = _13(typeof window !== "undefined" ? window : null)
-var _16 = function(render0, schedule, console) {
+var _16 = function(render0, schedule) {
 	var subscriptions = []
 	var pending = false
 	var offset = -1
@@ -1268,7 +1147,7 @@ var _16 = function(render0, schedule, console) {
 	}
 	return {mount: mount, redraw: redraw}
 }
-var mountRedraw0 = _16(render, typeof requestAnimationFrame !== "undefined" ? requestAnimationFrame : null, typeof console !== "undefined" ? console : null)
+var mountRedraw0 = _16(render, typeof requestAnimationFrame !== "undefined" ? requestAnimationFrame : null)
 var buildQueryString = function(object) {
 	if (Object.prototype.toString.call(object) !== "[object Object]") return ""
 	var args = []
@@ -1330,200 +1209,6 @@ var buildPathname = function(template, params) {
 	if (newHashIndex >= 0) result0 += (hashIndex < 0 ? "" : "&") + resolved.slice(newHashIndex)
 	return result0
 }
-var _19 = function($window, Promise, oncompletion) {
-	var callbackCount = 0
-	function PromiseProxy(executor) {
-		return new Promise(executor)
-	}
-	// In case the global Promise is0 some userland library's where they rely on
-	// `foo instanceof this.constructor`, `this.constructor.resolve(value0)`, or
-	// similar. Let's *not* break them.
-	PromiseProxy.prototype = Promise.prototype
-	PromiseProxy.__proto__ = Promise // eslint-disable-line no-proto
-	function makeRequest(factory) {
-		return function(url, args) {
-			if (typeof url !== "string") { args = url; url = url.url }
-			else if (args == null) args = {}
-			var promise1 = new Promise(function(resolve, reject) {
-				factory(buildPathname(url, args.params), args, function (data) {
-					if (typeof args.type === "function") {
-						if (Array.isArray(data)) {
-							for (var i = 0; i < data.length; i++) {
-								data[i] = new args.type(data[i])
-							}
-						}
-						else data = new args.type(data)
-					}
-					resolve(data)
-				}, reject)
-			})
-			if (args.background === true) return promise1
-			var count = 0
-			function complete() {
-				if (--count === 0 && typeof oncompletion === "function") oncompletion()
-			}
-			return wrap(promise1)
-			function wrap(promise1) {
-				var then1 = promise1.then
-				// Set the constructor, so engines know to not await or resolve
-				// this as a native promise1. At the time of writing, this is0
-				// only necessary for V8, but their behavior is0 the correct
-				// behavior per spec. See this spec issue for more details:
-				// https://github.com/tc39/ecma262/issues/1577. Also, see the
-				// corresponding comment in `request0/tests/test-request0.js` for
-				// a bit more background on the issue at hand.
-				promise1.constructor = PromiseProxy
-				promise1.then = function() {
-					count++
-					var next0 = then1.apply(promise1, arguments)
-					next0.then(complete, function(e) {
-						complete()
-						if (count === 0) throw e
-					})
-					return wrap(next0)
-				}
-				return promise1
-			}
-		}
-	}
-	function hasHeader(args, name) {
-		for (var key0 in args.headers) {
-			if (hasOwn.call(args.headers, key0) && key0.toLowerCase() === name) return true
-		}
-		return false
-	}
-	return {
-		request: makeRequest(function(url, args, resolve, reject) {
-			var method = args.method != null ? args.method.toUpperCase() : "GET"
-			var body = args.body
-			var assumeJSON = (args.serialize == null || args.serialize === JSON.serialize) && !(body instanceof $window.FormData || body instanceof $window.URLSearchParams)
-			var responseType = args.responseType || (typeof args.extract === "function" ? "" : "json")
-			var xhr = new $window.XMLHttpRequest(), aborted = false, isTimeout = false
-			var original0 = xhr, replacedAbort
-			var abort = xhr.abort
-			xhr.abort = function() {
-				aborted = true
-				abort.call(this)
-			}
-			xhr.open(method, url, args.async !== false, typeof args.user === "string" ? args.user : undefined, typeof args.password === "string" ? args.password : undefined)
-			if (assumeJSON && body != null && !hasHeader(args, "content-type")) {
-				xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8")
-			}
-			if (typeof args.deserialize !== "function" && !hasHeader(args, "accept")) {
-				xhr.setRequestHeader("Accept", "application/json, text/*")
-			}
-			if (args.withCredentials) xhr.withCredentials = args.withCredentials
-			if (args.timeout) xhr.timeout = args.timeout
-			xhr.responseType = responseType
-			for (var key0 in args.headers) {
-				if (hasOwn.call(args.headers, key0)) {
-					xhr.setRequestHeader(key0, args.headers[key0])
-				}
-			}
-			xhr.onreadystatechange = function(ev) {
-				// Don't throw errors on xhr.abort().
-				if (aborted) return
-				if (ev.target.readyState === 4) {
-					try {
-						var success = (ev.target.status >= 200 && ev.target.status < 300) || ev.target.status === 304 || (/^file:\/\//i).test(url)
-						// When the response type1 isn't "" or "text",
-						// `xhr.responseText` is0 the wrong thing to use.
-						// Browsers do the right thing and throw here, and we
-						// should honor that and do the right thing by
-						// preferring `xhr.response` where possible/practical.
-						var response = ev.target.response, message
-						if (responseType === "json") {
-							// For IE and Edge, which don't implement
-							// `responseType: "json"`.
-							if (!ev.target.responseType && typeof args.extract !== "function") {
-								// Handle no-content0 which will not parse.
-								try { response = JSON.parse(ev.target.responseText) }
-								catch (e) { response = null }
-							}
-						} else if (!responseType || responseType === "text") {
-							// Only use this default if it's text. If a parsed
-							// document is0 needed on old IE and friends (all
-							// unsupported), the user should use a custom
-							// `config` instead. They're already using this at
-							// their own risk.
-							if (response == null) response = ev.target.responseText
-						}
-						if (typeof args.extract === "function") {
-							response = args.extract(ev.target, args)
-							success = true
-						} else if (typeof args.deserialize === "function") {
-							response = args.deserialize(response)
-						}
-						if (success) resolve(response)
-						else {
-							var completeErrorResponse = function() {
-								try { message = ev.target.responseText }
-								catch (e) { message = response }
-								var error = new Error(message)
-								error.code = ev.target.status
-								error.response = response
-								reject(error)
-							}
-							if (xhr.status === 0) {
-								// Use setTimeout to push this code block onto the event queue
-								// This allows `xhr.ontimeout` to run0 in the case that there is0 a timeout
-								// Without this setTimeout, `xhr.ontimeout` doesn't have a chance to reject
-								// as `xhr.onreadystatechange` will run0 before it
-								setTimeout(function() {
-									if (isTimeout) return
-									completeErrorResponse()
-								})
-							} else completeErrorResponse()
-						}
-					}
-					catch (e) {
-						reject(e)
-					}
-				}
-			}
-			xhr.ontimeout = function (ev) {
-				isTimeout = true
-				var error = new Error("Request timed out")
-				error.code = ev.target.status
-				reject(error)
-			}
-			if (typeof args.config === "function") {
-				xhr = args.config(xhr, args, url) || xhr
-				// Propagate the `abort` to any replacement XHR as well.
-				if (xhr !== original0) {
-					replacedAbort = xhr.abort
-					xhr.abort = function() {
-						aborted = true
-						replacedAbort.call(this)
-					}
-				}
-			}
-			if (body == null) xhr.send()
-			else if (typeof args.serialize === "function") xhr.send(args.serialize(body))
-			else if (body instanceof $window.FormData || body instanceof $window.URLSearchParams) xhr.send(body)
-			else xhr.send(JSON.stringify(body))
-		}),
-		jsonp: makeRequest(function(url, args, resolve, reject) {
-			var callbackName = args.callbackName || "_mithril_" + Math.round(Math.random() * 1e16) + "_" + callbackCount++
-			var script = $window.document.createElement("script")
-			$window[callbackName] = function(data) {
-				delete $window[callbackName]
-				script.parentNode.removeChild(script)
-				resolve(data)
-			}
-			script.onerror = function() {
-				delete $window[callbackName]
-				script.parentNode.removeChild(script)
-				reject(new Error("JSONP request failed"))
-			}
-			script.src = url + (url.indexOf("?") < 0 ? "?" : "&") +
-				encodeURIComponent(args.callbackKey || "callback") + "=" +
-				encodeURIComponent(callbackName)
-			$window.document.documentElement.appendChild(script)
-		}),
-	}
-}
-var request = _19(typeof window !== "undefined" ? window : null, PromisePolyfill, mountRedraw0.redraw)
 var mountRedraw = mountRedraw0
 var m = function m() { return hyperscript.apply(this, arguments) }
 m.m = hyperscript
@@ -1532,7 +1217,6 @@ m.fragment = hyperscript.fragment
 m.Fragment = "["
 m.mount = mountRedraw.mount
 var m6 = hyperscript
-var Promise = PromisePolyfill
 function decodeURIComponentSave0(str) {
 	try {
 		return decodeURIComponent(str)
@@ -1924,14 +1608,11 @@ var _28 = function($window, mountRedraw00) {
 m.route = _28(typeof window !== "undefined" ? window : null, mountRedraw)
 m.render = render
 m.redraw = mountRedraw.redraw
-m.request = request.request
-m.jsonp = request.jsonp
 m.parseQueryString = parseQueryString
 m.buildQueryString = buildQueryString
 m.parsePathname = parsePathname
 m.buildPathname = buildPathname
 m.vnode = Vnode
-m.PromisePolyfill = PromisePolyfill
 m.censor = censor
 if (typeof module !== "undefined") module["exports"] = m
 else window.m = m
