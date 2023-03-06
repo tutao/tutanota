@@ -1613,6 +1613,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"calendarAlarmsTooBigError_msg": "Die neuen Erinnerungen für konnten nicht erstellt werden. Es sind wahrscheinlich zu viele Geräte mit Benachrichtigungen aktiv. Bitte gehen Sie in Einstellungen -> E-mail -> Benachrichtigunen und entfernen Sie alte Einträge von der Benachrichtigungsliste."
 	}
 }

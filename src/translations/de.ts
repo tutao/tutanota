@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2023-02-27T08:11:29Z",
+	"updated_at": "2023-02-23T11:13:33Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1613,6 +1613,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"calendarAlarmsTooBigError_msg": "Die neuen Erinnerungen für konnten nicht erstellt werden. Es sind wahrscheinlich zu viele Geräte mit Benachrichtigungen aktiv. Bitte gehe in Einstellungen -> E-mail -> Benachrichtigunen und entferne alte Einträge von der Benachrichtigungsliste.",
 	}
 }

@@ -1609,6 +1609,7 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"calendarAlarmsTooBigError_msg": "The new reminders could not be set up. This is most likely caused by having too many devices with notifications enabled. Please go to Settings -> Email -> Notifications to delete old devices from the notification list."
 	}
 }
