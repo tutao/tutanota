@@ -1,5 +1,5 @@
 import o from "ospec"
-import { ConversationPrefProvider, ConversationViewModel } from "../../../../src/mail/view/ConversationViewModel.js"
+import { ConversationItem, ConversationPrefProvider, ConversationViewModel } from "../../../../src/mail/view/ConversationViewModel.js"
 import {
 	ConversationEntry,
 	createConversationEntry,
@@ -18,11 +18,12 @@ import { MailViewerViewModel } from "../../../../src/mail/view/MailViewerViewMod
 import { EntityClient } from "../../../../src/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../../api/worker/rest/EntityRestClientMock.js"
 import { EntityEventsListener, EventController } from "../../../../src/api/main/EventController.js"
-import { defer, DeferredObject, delay, downcast, noOp } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, delay, noOp } from "@tutao/tutanota-utils"
 import { matchers, object, when } from "testdouble"
 import { MailFolderType, MailState, OperationType } from "../../../../src/api/common/TutanotaConstants.js"
 import { FolderSystem } from "../../../../src/api/common/mail/FolderSystem.js"
 import { createGroup, createGroupInfo } from "../../../../src/api/entities/sys/TypeRefs.js"
+import { isSameId } from "../../../../src/api/common/utils/EntityUtils.js"
 
 o.spec("ConversationViewModel", function () {
 	let conversation: ConversationEntry[]
@@ -48,16 +49,15 @@ o.spec("ConversationViewModel", function () {
 			const viewModelObject = object<MailViewerViewModel>()
 			// @ts-ignore
 			viewModelObject.mail = mail
-			//when(viewModelObject.isCollapsed()).thenReturn(false)
 			return viewModelObject
 		}
 	}
 
 	function makeMailModel(mailBoxDetail: MailboxDetail): MailModel {
-		return downcast({
+		return {
 			getMailboxDetailsForMail: o.spy(() => Promise.resolve(mailBoxDetail)),
 			getMailFolder: o.spy(() => null),
-		})
+		} as Partial<MailModel> as MailModel
 	}
 
 	function makeMailboxDetail(): MailboxDetail {
@@ -73,7 +73,7 @@ o.spec("ConversationViewModel", function () {
 	}
 
 	async function makeViewModel(pMail: Mail): Promise<void> {
-		let factory = await viewModelFactory()
+		const factory = await viewModelFactory()
 		const mailboxProperties = createMailboxProperties()
 		const entityClient = new EntityClient(entityRestClientMock)
 
@@ -121,6 +121,15 @@ o.spec("ConversationViewModel", function () {
 		return newMail
 	}
 
+	const sameAsConversation = (mailsDisplayed: ConversationItem[]) => {
+		for (let i = 0; i < mailsDisplayed.length; i++) {
+			if (!isSameId(mailsDisplayed[i].entryId, conversation[i]._id)) {
+				return false
+			}
+		}
+		return true
+	}
+
 	o.beforeEach(async function () {
 		conversation = []
 
@@ -135,7 +144,6 @@ o.spec("ConversationViewModel", function () {
 		redraw = async () => {
 			// defer to the end of the event loop so that viewModel has correct loading state
 			await delay(1)
-			console.log("redraw", "finished", viewModel.isFinished(), "offline", viewModel.isConnectionLost())
 			if (viewModel.isFinished()) {
 				loadingDefer.resolve()
 			}
@@ -158,7 +166,7 @@ o.spec("ConversationViewModel", function () {
 			)
 		})
 
-		o("only one mail is shown when conversation view option is turned off", async function () {
+		o("when the option is off it only shows selected mail", async function () {
 			when(prefProvider.getConversationViewShowOnlySelectedMail()).thenReturn(true)
 
 			viewModel.init()
@@ -183,7 +191,7 @@ o.spec("ConversationViewModel", function () {
 			)
 		})
 
-		o("Should not be in conversation if in trash", async function () {
+		o("when draft is in trash folder, it should not be included in the conversation", async function () {
 			// add draft mail
 			const trashDraftMail = addMail("trashDraftMail")
 			trashDraftMail.state = MailState.DRAFT
@@ -191,13 +199,7 @@ o.spec("ConversationViewModel", function () {
 			const trash = createMailFolder({ _id: [listId, "trashFolder"], folderType: MailFolderType.TRASH })
 			entityRestClientMock.addListInstances(trash)
 
-			when(
-				mailModel.getMailboxDetailsForMail(
-					matchers.argThat(function (mail) {
-						return true
-					}),
-				),
-			).thenResolve(mailboxDetail)
+			when(mailModel.getMailboxDetailsForMail(matchers.anything())).thenResolve(mailboxDetail)
 			when(mailModel.getMailFolder(listId)).thenReturn(trash)
 
 			conversation.pop() // since this mail shouldn't actually be a part of the conversation
@@ -205,13 +207,13 @@ o.spec("ConversationViewModel", function () {
 			viewModel.init()
 			await loadingDefer.promise
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
-			o(numMailsDisplayed).equals(conversation.length)(
-				`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be ${conversation.length}`,
+			const mailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail")
+			o(sameAsConversation(mailsDisplayed)).equals(true)(
+				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => ci.entryId)}, should be ${conversation.map((ce) => ce._id)}`,
 			)
 		})
 
-		o("Should be in conversation if it is in trash and is the primary mail", async function () {
+		o("when draft is in trash folder but is the primary mail, it should be included in the conversation", async function () {
 			// add draft mail
 			const trashDraftMail = addMail("trashDraftMail")
 			trashDraftMail.state = MailState.DRAFT
@@ -227,15 +229,15 @@ o.spec("ConversationViewModel", function () {
 			viewModel.init()
 			await loadingDefer.promise
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
-			o(numMailsDisplayed).equals(conversation.length)(
-				`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be ${conversation.length}`,
+			const mailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail")
+			o(sameAsConversation(mailsDisplayed)).equals(true)(
+				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => ci.entryId)}, should be ${conversation.map((ce) => ce._id)}`,
 			)
 		})
 	})
 
 	o.spec("Entity Updates", function () {
-		o("new mail comes in, is added to conversation", async function () {
+		o("when a new mail comes in, it is added to conversation", async function () {
 			viewModel.init()
 			await loadingDefer.promise
 
@@ -254,13 +256,13 @@ o.spec("ConversationViewModel", function () {
 				"mailGroupId",
 			)
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
-			o(numMailsDisplayed).equals(conversation.length)(
-				`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be ${conversation.length}`,
+			const mailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail")
+			o(sameAsConversation(mailsDisplayed)).equals(true)(
+				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => ci.entryId)}, should be ${conversation.map((ce) => ce._id)}`,
 			)
 		})
 
-		o("mail gets deleted, is removed from conversation", async function () {
+		o("when a mail gets deleted, it is removed from conversation", async function () {
 			viewModel.init()
 			await loadingDefer.promise
 
@@ -290,9 +292,9 @@ o.spec("ConversationViewModel", function () {
 				"mailGroupId",
 			)
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
-			o(numMailsDisplayed).equals(conversation.length)(
-				`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be ${conversation.length}`,
+			const mailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail")
+			o(sameAsConversation(mailsDisplayed)).equals(true)(
+				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => ci.entryId)}, should be ${conversation.map((ce) => ce._id)}`,
 			)
 		})
 
@@ -321,7 +323,7 @@ o.spec("ConversationViewModel", function () {
 			o(numMailsDisplayed).equals(1)(`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be 1`)
 		})
 
-		o("draft in trash, is not in the conversation on update", async function () {
+		o("when a draft in trash, it is removed from the conversation on update", async function () {
 			// add draft mail
 			const trashDraftMail = addMail("trashDraftMail")
 			trashDraftMail.state = MailState.DRAFT
@@ -329,20 +331,16 @@ o.spec("ConversationViewModel", function () {
 			viewModel.init()
 			await loadingDefer.promise
 
+			conversation.pop()
 			const trash = createMailFolder({ _id: ["newListId", "trashFolder"], folderType: MailFolderType.TRASH })
 			entityRestClientMock.addListInstances(trash)
 			// adding new mail (is the same mail, just moved to trash)
 			const newTrashDraftMail = addMail("trashDraftMail")
 			newTrashDraftMail.state = MailState.DRAFT
 			newTrashDraftMail._id = ["newListId", trashDraftMail._id[1]]
+			conversation.pop()
 
-			when(
-				mailModel.getMailboxDetailsForMail(
-					matchers.argThat(function (mail) {
-						return true
-					}),
-				),
-			).thenResolve(mailboxDetail)
+			when(mailModel.getMailboxDetailsForMail(matchers.anything())).thenResolve(mailboxDetail)
 			when(mailModel.getMailFolder("newListId")).thenReturn(trash)
 
 			await eventCallback(
@@ -358,8 +356,10 @@ o.spec("ConversationViewModel", function () {
 				"mailGroupId",
 			)
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
-			o(numMailsDisplayed).equals(2)(`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be 2`)
+			const mailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail")
+			o(sameAsConversation(mailsDisplayed)).equals(true)(
+				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => ci.entryId)}, should be ${conversation.map((ce) => ce._id)}`,
+			)
 		})
 	})
 })
