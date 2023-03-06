@@ -103,12 +103,22 @@ export class ClientDetector {
 		)
 	}
 
+	testCss(): boolean {
+		try {
+			document.querySelector("blockquote:not(blockquote blockquote)")
+			document.querySelectorAll(":where(.mouse-nav)")
+			return true
+		} catch (e) {
+			return false
+		}
+	}
+
 	/**
 	 * Browsers which support these features are supported
 	 */
 	isSupported(): boolean {
 		this.syntaxChecks()
-		return this.isSupportedBrowserVersion() && this.testBuiltins() && this.websockets()
+		return this.isSupportedBrowserVersion() && this.testBuiltins() && this.websockets() && this.testCss()
 	}
 
 	isMobileDevice(): boolean {
