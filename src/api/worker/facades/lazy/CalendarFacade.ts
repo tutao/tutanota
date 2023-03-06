@@ -40,7 +40,7 @@ import {
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
-import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/error/RestError.js"
+import { ConnectionError, NotAuthorizedError, NotFoundError, PayloadTooLargeError } from "../../../common/error/RestError.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId } from "../../../common/utils/EntityUtils.js"
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
@@ -58,6 +58,7 @@ import { isOfflineError } from "../../../common/utils/ErrorCheckUtils.js"
 import { EncryptedAlarmNotification } from "../../../../native/common/EncryptedAlarmNotification.js"
 import { NativePushFacade } from "../../../../native/common/generatedipc/NativePushFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
+import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
 
 assertWorkerOrNode()
 
@@ -85,6 +86,7 @@ export class CalendarFacade {
 		private readonly instanceMapper: InstanceMapper,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
+		private readonly infoMessageHandler: InfoMessageHandler,
 	) {
 		this.entityClient = new EntityClient(this.entityRestCache)
 	}
@@ -239,11 +241,22 @@ export class CalendarFacade {
 
 	_sendAlarmNotifications(alarmNotifications: Array<AlarmNotification>, pushIdentifierList: Array<PushIdentifier>): Promise<void> {
 		const notificationSessionKey = aes128RandomKey()
-		return this._encryptNotificationKeyForDevices(notificationSessionKey, alarmNotifications, pushIdentifierList).then(() => {
+		return this._encryptNotificationKeyForDevices(notificationSessionKey, alarmNotifications, pushIdentifierList).then(async () => {
 			const requestEntity = createAlarmServicePost({
 				alarmNotifications,
 			})
-			return this.serviceExecutor.post(AlarmService, requestEntity, { sessionKey: notificationSessionKey })
+			try {
+				await this.serviceExecutor.post(AlarmService, requestEntity, { sessionKey: notificationSessionKey })
+			} catch (e) {
+				if (e instanceof PayloadTooLargeError) {
+					return this.infoMessageHandler.onInfoMessage({
+						translationKey: "calendarAlarmsTooBigError_msg",
+						args: {},
+					})
+				} else {
+					throw e
+				}
+			}
 		})
 	}
 

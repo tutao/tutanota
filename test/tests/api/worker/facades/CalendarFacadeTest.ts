@@ -28,6 +28,7 @@ import { object } from "testdouble"
 import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest"
 import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade"
 import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade"
+import { InfoMessageHandler } from "../../../../../src/gui/InfoMessageHandler.js"
 
 o.spec("CalendarFacadeTest", async function () {
 	let userAlarmInfoListId: Id
@@ -49,6 +50,7 @@ o.spec("CalendarFacadeTest", async function () {
 	let instanceMapper
 	let serviceExecutor: IServiceExecutor
 	let cryptoFacade: CryptoFacade
+	let infoMessageHandler: InfoMessageHandler
 
 	function sortEventsWithAlarmInfos(eventsWithAlarmInfos: Array<EventWithAlarmInfos>) {
 		const idCompare = (el1, el2) => getLetId(el1).join("").localeCompare(getLetId(el2).join(""))
@@ -116,6 +118,7 @@ o.spec("CalendarFacadeTest", async function () {
 		instanceMapper = new InstanceMapper()
 		serviceExecutor = object()
 		cryptoFacade = object()
+		infoMessageHandler = object()
 		calendarFacade = new CalendarFacade(
 			userFacade,
 			groupManagementFacade,
@@ -125,6 +128,7 @@ o.spec("CalendarFacadeTest", async function () {
 			instanceMapper,
 			serviceExecutor,
 			cryptoFacade,
+			infoMessageHandler,
 		)
 	})
 
