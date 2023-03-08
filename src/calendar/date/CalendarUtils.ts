@@ -30,6 +30,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import { formatDateTime, formatDateWithMonth, formatTime, timeStringFromParts } from "../../misc/Formatter"
 import { size } from "../../gui/size"
 import type { DateWrapper, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
+import { createDateWrapper } from "../../api/entities/sys/TypeRefs.js"
 import { isColorLight } from "../../gui/base/Color"
 import type { GroupColors } from "../view/CalendarView"
 import { isSameId } from "../../api/common/utils/EntityUtils"
@@ -40,7 +41,6 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { ChildArray, Children } from "mithril"
 import { DateProvider } from "../../api/common/DateProvider"
 import { TIMESTAMP_ZERO_YEAR } from "@tutao/tutanota-utils/dist/DateUtils"
-import { createDateWrapper } from "../../api/entities/sys/TypeRefs.js"
 
 assertMainOrNode()
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
@@ -956,11 +956,12 @@ export function findNextAlarmOccurrence(
 		if (!exclusions.some((d) => d.getTime() === occurrenceDate.getTime())) {
 			const alarmTime = calculateAlarmTime(occurrenceDate, alarmTrigger, localTimeZone)
 
-		if (alarmTime >= now) {
-			return {
-				alarmTime,
-				occurrenceNumber: occurrenceNumber,
-				eventTime: occurrenceDate,
+			if (alarmTime >= now) {
+				return {
+					alarmTime,
+					occurrenceNumber: occurrenceNumber,
+					eventTime: occurrenceDate,
+				}
 			}
 		}
 
