@@ -522,6 +522,7 @@ o.spec("calendar utils tests", function () {
 				1,
 				EndType.Never,
 				0,
+				[],
 				AlarmInterval.ONE_HOUR,
 				timeZone,
 				10,
@@ -607,6 +608,7 @@ o.spec("calendar utils tests", function () {
 				1,
 				EndType.UntilDate,
 				repeatEnd.getTime(),
+				[],
 				AlarmInterval.ONE_DAY,
 				timeZone,
 				10,
@@ -955,6 +957,7 @@ function iterateAlarmOccurrences(
 	interval: number,
 	endType: EndType,
 	endValue: number,
+	exclusions: Array<Date>,
 	alarmInterval: AlarmInterval,
 	calculationZone: string,
 	maxOccurrences: number,
@@ -963,7 +966,7 @@ function iterateAlarmOccurrences(
 
 	while (occurrences.length < maxOccurrences) {
 		const next: AlarmOccurrence = neverNull(
-			findNextAlarmOccurrence(now, timeZone, eventStart, eventEnd, repeatPeriod, interval, endType, endValue, alarmInterval, calculationZone),
+			findNextAlarmOccurrence(now, timeZone, eventStart, eventEnd, repeatPeriod, interval, endType, endValue, exclusions, alarmInterval, calculationZone),
 		)
 
 		if (next) {
