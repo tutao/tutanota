@@ -851,8 +851,7 @@ export class CalendarEventViewModel {
 			console.log("why does this event not have a calendar?")
 			return
 		}
-		// fixme: what with the alarms?
-		await this._calendarModel.updateEvent(event, [], this._zone, calendarForEvent.groupRoot, existingEvent)
+		await this._calendarModel.updateEvent(event, this.alarms.slice(), this._zone, calendarForEvent.groupRoot, existingEvent)
 	}
 
 	async waitForResolvedRecipients(): Promise<void> {
