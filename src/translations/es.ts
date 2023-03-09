@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2023-02-27T08:08:26Z",
+	"updated_at": "2023-02-28T13:06:09Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -286,7 +286,7 @@ export default {
 		"continueSearchMailbox_msg": "Para ejecutar esta búsqueda, hemos de descargar más mensajes desde el servidor, lo cual puede tardar.",
 		"contractorInfo_msg": "Por favor introduce el nombre (empresa) y la dirección del contratante.",
 		"contractor_label": "Contratante",
-		"conversationViewPref_label": "Mostrar todos los correos electrónicos en la conversación",
+		"conversationViewPref_label": "Hilo de la conversación",
 		"copyLinkError_msg": "No se pudo copiar el enlace",
 		"copyLink_action": "Copiar dirección de enlace",
 		"copyToClipboard_action": "Copiar en el portapapeles",
@@ -1362,6 +1362,7 @@ export default {
 		"sharing_label": "Compartir",
 		"shortcut_label": "Acceso directo",
 		"showAddress_alt": "Muestra esta dirección en Openstreetmap",
+		"showAllMailsInThread_label": "Mostrar todos los correos electrónicos del hilo",
 		"showAll_action": "Mostrar todo",
 		"showBlockedContent_action": "Mostrar",
 		"showContact_action": "Mostrar contacto",
@@ -1373,6 +1374,7 @@ export default {
 		"showMail_action": "Mostrar buzón cifrado",
 		"showMoreUpgrade_action": "Opciones de suscripción",
 		"showMore_action": "MOSTRAR MÁS",
+		"showOnlySelectedMail_label": "Mostrar sólo el correo electrónico seleccionado",
 		"showRejectReason_action": "Muestra las razones de rechazo",
 		"showRichTextToolbar_action": "Mostrar herramientas de formato",
 		"showText_action": "Mostrar texto",

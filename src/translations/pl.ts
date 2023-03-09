@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2023-02-27T08:08:26Z",
+	"updated_at": "2023-02-27T20:31:33Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -286,7 +286,7 @@ export default {
 		"continueSearchMailbox_msg": "Aby przeprowadzić to wyszukiwanie, musimy pobrać więcej emaili z serwera, co może chwilę potrwać.",
 		"contractorInfo_msg": "Proszę wpisać nazwę kontrahenta (firma) i adres.",
 		"contractor_label": "Kontrahent",
-		"conversationViewPref_label": "Pokaż wszystkie wiadomości e-mail w rozmowie",
+		"conversationViewPref_label": "Wątek rozmowy",
 		"copyLinkError_msg": "Nie udało się skopiować linku",
 		"copyLink_action": "Skopiuj link",
 		"copyToClipboard_action": "Skopiuj do schowka\n ",
@@ -1360,6 +1360,7 @@ export default {
 		"sharing_label": "Współdzielenie",
 		"shortcut_label": "Skrót ",
 		"showAddress_alt": "Pokaż ten adres w Openstreetmaps",
+		"showAllMailsInThread_label": "Pokaż wszystkie wiadomości e-mail w wątku",
 		"showAll_action": "Pokaż wszystko",
 		"showBlockedContent_action": "Pokaż",
 		"showContact_action": "Pokaż kontakt",
@@ -1371,6 +1372,7 @@ export default {
 		"showMail_action": "Pokaż skrzynkę odbiorczą",
 		"showMoreUpgrade_action": "Opcje subskrypcji",
 		"showMore_action": "POKAŻ WIĘCEJ",
+		"showOnlySelectedMail_label": "Pokaż tylko wybrane wiadomości e-mail",
 		"showRejectReason_action": "Pokaż powód odrzucenia",
 		"showRichTextToolbar_action": "Pokaż narzędzia formatowanie tekstu",
 		"showText_action": "Pokaż tekst",

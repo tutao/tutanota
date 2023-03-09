@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2023-02-27T08:08:26Z",
+	"updated_at": "2023-03-01T19:28:55Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -286,7 +286,7 @@ export default {
 		"continueSearchMailbox_msg": "Чтобы выполнить этот поиск, мы должны загрузить больше писем с сервера. Пожалуйста, подождите.",
 		"contractorInfo_msg": "Пожалуйста, заполните наименование подрядчика (компания) и его адрес.",
 		"contractor_label": "Контрагент",
-		"conversationViewPref_label": "Показать все электронные письма в цепочке",
+		"conversationViewPref_label": "Цепочка сообщений",
 		"copyLinkError_msg": "Не удалось скопировать ссылку",
 		"copyLink_action": "Скопировать адрес линка",
 		"copyToClipboard_action": "Копировать в буфер обмена",
@@ -1359,6 +1359,7 @@ export default {
 		"sharing_label": "Общий доступ",
 		"shortcut_label": "Клавиатурное сокращение",
 		"showAddress_alt": "Показать этот адрес в Openstreetmap",
+		"showAllMailsInThread_label": "Показать все сообщения электронной почты вместе в цепочке",
 		"showAll_action": "Показать все",
 		"showBlockedContent_action": "Показать",
 		"showContact_action": "Показать контакт",
@@ -1370,6 +1371,7 @@ export default {
 		"showMail_action": "Расшифровать содержимое ящика",
 		"showMoreUpgrade_action": "Опции подписки",
 		"showMore_action": "ПОКАЗАТЬ БОЛЬШЕ",
+		"showOnlySelectedMail_label": "Показать только выбранное сообщение электронной почты",
 		"showRejectReason_action": "Показать причину отказа",
 		"showRichTextToolbar_action": "Показать инструменты форматирования",
 		"showText_action": "Показать текст",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2023-02-27T08:11:33Z",
+	"updated_at": "2023-03-09T14:49:29Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -158,6 +158,7 @@ export default {
 		"buyStorageCapacityInfo_msg": "Bitte wählen Sie eins der Speicher-Pakete aus, um die verfügbare Speicherkapazität zu ändern. Die gebuchte Speicherkapazität kann von allen Benutzern geteilt werden.",
 		"buy_action": "Kaufen",
 		"by_label": "von",
+		"calendarAlarmsTooBigError_msg": "Die neuen Erinnerungen für konnten nicht erstellt werden. Es sind wahrscheinlich zu viele Geräte mit Benachrichtigungen aktiv. Bitte gehen Sie in Einstellungen -> E-mail -> Benachrichtigunen und entfernen Sie alte Einträge von der Benachrichtigungsliste.",
 		"calendarInvitationProgress_msg": "Einladung wird versendet.",
 		"calendarInvitations_label": "Kalender-Einladungen",
 		"calendarName_label": "Kalender-Name",
@@ -1613,7 +1614,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		"calendarAlarmsTooBigError_msg": "Die neuen Erinnerungen für konnten nicht erstellt werden. Es sind wahrscheinlich zu viele Geräte mit Benachrichtigungen aktiv. Bitte gehen Sie in Einstellungen -> E-mail -> Benachrichtigunen und entfernen Sie alte Einträge von der Benachrichtigungsliste."
+		"you_label": "Sie"
 	}
 }
