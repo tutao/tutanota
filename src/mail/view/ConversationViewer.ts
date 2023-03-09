@@ -157,7 +157,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				},
 			},
 			m(
-				".b.h5.subject.text-break.text-ellipsis",
+				".b.h5.subject.text-break.text-ellipsis.selectable",
 				{
 					oncreate: ({ dom }) => {
 						this.floatingSubjectDom = dom as HTMLElement
