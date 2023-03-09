@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2023-02-27T08:08:26Z",
+	"updated_at": "2023-03-01T04:42:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -282,7 +282,7 @@ export default {
 		"continueSearchMailbox_msg": "Za izvedbo iskanja moramo s strežnika prenesti več sporočil, kar lahko traja nekaj časa.",
 		"contractorInfo_msg": "Prosimo, vnesite ime izvajalca (podjetje) in naslov.",
 		"contractor_label": "Pogodbenik",
-		"conversationViewPref_label": "Prikaži vsa sporočila v pogovoru",
+		"conversationViewPref_label": "Prikaži v pogovoru",
 		"copyLinkError_msg": "Kopiranje povezave ni uspelo",
 		"copyLink_action": "Kopiraj povezavo",
 		"copyToClipboard_action": "Kopiraj v odložišče",
@@ -1357,6 +1357,7 @@ export default {
 		"sharing_label": "Deljenje",
 		"shortcut_label": "Bližnjica",
 		"showAddress_alt": "Pokaži ta naslov v Openstreetmap zemljevidih",
+		"showAllMailsInThread_label": "Prikaži vsa sporočila skupaj v niti",
 		"showAll_action": "Prikaži vse",
 		"showBlockedContent_action": "Pokaži",
 		"showContact_action": "Prikaži stik",
@@ -1368,6 +1369,7 @@ export default {
 		"showMail_action": "Prikaži šifriran e-poštni predal",
 		"showMoreUpgrade_action": "Možnosti naročnine",
 		"showMore_action": "PRIKAŽI VEČ",
+		"showOnlySelectedMail_label": "Prikaži samo izbrana sporočila",
 		"showRejectReason_action": "Prikaži razlog za zavrnitev",
 		"showRichTextToolbar_action": "Prikaži orodja za oblikovanje",
 		"showText_action": "Prikaži besedilo",

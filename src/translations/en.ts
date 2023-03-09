@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2023-02-27T08:11:21Z",
+	"updated_at": "2023-03-09T14:48:30Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -154,6 +154,7 @@ export default {
 		"buyStorageCapacityInfo_msg": "Please choose one of the storage packages to change the available storage capacity. The booked storage is shared by all users.",
 		"buy_action": "Buy",
 		"by_label": "by",
+		"calendarAlarmsTooBigError_msg": "The new reminders could not be set up. This is most likely caused by having too many devices with notifications enabled. Please go to Settings -> Email -> Notifications to delete old devices from the notification list.",
 		"calendarInvitationProgress_msg": "Sending invitation.",
 		"calendarInvitations_label": "Calendar invitations",
 		"calendarName_label": "Calendar name",
@@ -1609,7 +1610,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"calendarAlarmsTooBigError_msg": "The new reminders could not be set up. This is most likely caused by having too many devices with notifications enabled. Please go to Settings -> Email -> Notifications to delete old devices from the notification list."
+		"you_label": "You"
 	}
 }

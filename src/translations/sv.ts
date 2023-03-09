@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2023-02-27T08:08:26Z",
+	"updated_at": "2023-02-27T13:26:38Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -282,7 +282,7 @@ export default {
 		"continueSearchMailbox_msg": "Om du vill köra sökningen måste vi hämta mer e-post från servern vilket kan ta lite tid.",
 		"contractorInfo_msg": "Fyll i avtalsslutande part (företag) och adress.",
 		"contractor_label": "Entreprenör",
-		"conversationViewPref_label": "Visa alla mejl i konversationen",
+		"conversationViewPref_label": "Samtalstråd",
 		"copyLinkError_msg": "Det gick inte att kopiera länk",
 		"copyLink_action": "Kopiera länkadress",
 		"copyToClipboard_action": "Kopiera till urklipp",
@@ -1358,6 +1358,7 @@ export default {
 		"sharing_label": "Delning",
 		"shortcut_label": "Genväg",
 		"showAddress_alt": "Visa adressen i Openstreetmap",
+		"showAllMailsInThread_label": "Visa alla mejl tillsammans i tråd",
 		"showAll_action": "Visa alla",
 		"showBlockedContent_action": "Visa",
 		"showContact_action": "Visa kontakt",
@@ -1369,6 +1370,7 @@ export default {
 		"showMail_action": "Visa krypterad brevlåda",
 		"showMoreUpgrade_action": "Abonnemangsalternativ",
 		"showMore_action": "VISA MER",
+		"showOnlySelectedMail_label": "Visa endast markerade mejl",
 		"showRejectReason_action": "Visa orsak till avvisning",
 		"showRichTextToolbar_action": "Visa formateringsverktygen",
 		"showText_action": "Visa text",

@@ -138,6 +138,7 @@ export type TranslationKeyType =
 	| "buyStorageCapacityInfo_msg"
 	| "buy_action"
 	| "by_label"
+	| "calendarAlarmsTooBigError_msg"
 	| "calendarInvitationProgress_msg"
 	| "calendarInvitations_label"
 	| "calendarName_label"
@@ -1595,4 +1596,3 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
-	| "calendarAlarmsTooBigError_msg"
