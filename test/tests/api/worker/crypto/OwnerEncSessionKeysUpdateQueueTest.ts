@@ -54,7 +54,14 @@ o.spec("OwnerEncSessionKeysUpdateQueue", function () {
 		})
 
 		o("retry after LockedError", async function () {
-			when(serviceExecutor.post(UpdateSessionKeysService, anything())).thenReject(new LockedError("test lock"))
+			let throwError = true
+			when(serviceExecutor.post(UpdateSessionKeysService, anything())).thenDo(() => {
+				if (throwError) {
+					return Promise.reject(new LockedError("test lock"))
+				} else {
+					return undefined
+				}
+			})
 			const updatableInstanceSessionKeys = [
 				createInstanceSessionKey({
 					instanceId: "mailInstanceId",
@@ -71,6 +78,7 @@ o.spec("OwnerEncSessionKeysUpdateQueue", function () {
 			]
 			ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatableInstanceSessionKeys)
 			await delay(0)
+			throwError = false
 			when(serviceExecutor.post(UpdateSessionKeysService, anything())).thenResolve(undefined)
 			await delay(0)
 			const updatedPostCaptor = captor()

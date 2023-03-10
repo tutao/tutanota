@@ -18,8 +18,8 @@ import { PriceAndConfigProvider } from "../../../src/subscription/PriceUtils.js"
 import { BookingFacade } from "../../../src/api/worker/facades/lazy/BookingFacade.js"
 import { matchers, object, when } from "testdouble"
 import { SubscriptionConfig, SubscriptionType } from "../../../src/subscription/FeatureListProvider"
-import { createPriceMock } from "./PriceUtilsTest"
 import { getCurrentCount } from "../../../src/subscription/SubscriptionUtils.js"
+import { createPriceMock } from "./priceTestUtils.js"
 
 const SUBSCRIPTION_CONFIG = {
 	Free: {
@@ -480,7 +480,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 	})
 })
 o.spec("getSubscriptionType test", () => {
-	const originalFetch = global.fetch
+	const originalFetch = globalThis.fetch
 	let customer: Customer
 	let customerInfo: CustomerInfo
 	let lastBooking: Booking
@@ -490,10 +490,10 @@ o.spec("getSubscriptionType test", () => {
 			json: () => Promise.resolve(SUBSCRIPTION_CONFIG),
 		})
 
-		global.fetch = fakeFetch as any
+		globalThis.fetch = fakeFetch as any
 	})
 	o.after(() => {
-		global.fetch = originalFetch
+		globalThis.fetch = originalFetch
 	})
 	o.beforeEach(() => {
 		;({ customer, customerInfo, lastBooking } = createPremiumCustomerInstances())

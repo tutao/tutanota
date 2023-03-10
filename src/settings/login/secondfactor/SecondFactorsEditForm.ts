@@ -51,7 +51,7 @@ export class SecondFactorsEditForm {
 		return [
 			m(".h4.mt-l", lang.get("secondFactorAuthentication_label")),
 			m(Table, secondFactorTableAttrs),
-			isTutanotaDomain()
+			isTutanotaDomain(location.hostname)
 				? [
 						m("span.small", lang.get("moreInfo_msg") + " "),
 						ifAllowedTutanotaLinks(InfoLink.SecondFactor, (link) => m("span.small.text-break", [m(`a[href=${link}][target=_blank]`, link)])),

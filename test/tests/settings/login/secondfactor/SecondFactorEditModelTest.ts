@@ -32,6 +32,7 @@ o.spec("SecondFactorEditModel", function () {
 	when(langMock.get(matchers.anything())).thenReturn("hello there")
 	// this is too long if you convert it to bytes
 	const invalidName = "🏳️‍🌈🏳️‍🌈🏳️‍🌈🏳️‍🌈🏴‍☠️🏴‍☠️🏴‍☠️🏴‍☠️🏴‍☠️"
+	const hostname = "testhostname"
 
 	async function createSecondFactorModel(params: any): Promise<SecondFactorEditModel> {
 		const model = new SecondFactorEditModel(
@@ -43,22 +44,12 @@ o.spec("SecondFactorEditModel", function () {
 			params.webauthnSupported ?? true,
 			langMock,
 			loginFacadeMock,
+			hostname,
 			params.updateView ?? noOp,
 		)
 		await model.otpInfo.getAsync()
 		return model
 	}
-
-	let originalLocation = global.location
-	o.before(function () {
-		global.location = {
-			hostname: "testhostname",
-		} as any
-	})
-
-	o.after(function () {
-		global.location = originalLocation
-	})
 
 	o.beforeEach(function () {
 		entityClientMock = object()

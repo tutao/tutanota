@@ -180,6 +180,7 @@ export class SecondFactorEditDialog {
 			webauthnSupported,
 			lang,
 			locator.loginFacade,
+			location.hostname,
 			m.redraw,
 		)
 		return new SecondFactorEditDialog(model)

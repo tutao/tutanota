@@ -576,7 +576,7 @@ function makeOldViewResolver(
 }
 
 env.dist &&
-	isTutanotaDomain() &&
+	isTutanotaDomain(location.hostname) &&
 	setTimeout(() => {
 		console.log(`
 
