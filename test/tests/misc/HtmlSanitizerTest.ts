@@ -167,6 +167,16 @@ o.spec(
 			)
 			o(result.externalContent.length).equals(0)
 			o(result.html.includes("data:image/svg+xml;utf8,")).equals(false)
+
+			result = htmlSanitizer.sanitizeHTML(
+				"<table><tbody><tr><td style=\"background-image: -webkit-image-set(url('https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image') 1x, url('https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image') 2x);\"></td></tr></tbody></table>",
+				{
+					blockExternalContent: true,
+				},
+			)
+			o(result.externalContent[0]).equals("https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image")
+			o(result.html.includes("https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image")).equals(false)("should not have image links")
+			o(result.html.includes("data:image/svg+xml;utf8,")).equals(true)
 		})
 		o("detect background inline images", function () {
 			const backgroundUrl = "data:image/svg+xml;utf8,inline"
