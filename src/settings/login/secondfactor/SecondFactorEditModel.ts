@@ -54,6 +54,7 @@ export class SecondFactorEditModel {
 		private readonly webauthnSupported: boolean,
 		private readonly lang: LanguageViewModel,
 		private readonly loginFacade: LoginFacade,
+		private readonly hostname: string,
 		private readonly updateViewCallback: () => void,
 	) {
 		this.selectedType = webauthnSupported ? SecondFactorType.webauthn : SecondFactorType.totp
@@ -209,7 +210,7 @@ export class SecondFactorEditModel {
 	/** see https://github.com/google/google-authenticator/wiki/Key-Uri-Format */
 	private async getOtpAuthUrl(secret: string): Promise<string> {
 		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.user.userGroup.groupInfo)
-		const issuer = isTutanotaDomain() ? "Tutanota" : location.hostname
+		const issuer = isTutanotaDomain(this.hostname) ? "Tutanota" : this.hostname
 		const account = encodeURI(issuer + ":" + neverNull(userGroupInfo.mailAddress))
 		const url = new URL("otpauth://totp/" + account)
 		url.searchParams.set("issuer", issuer)

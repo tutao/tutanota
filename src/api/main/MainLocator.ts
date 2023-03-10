@@ -92,6 +92,7 @@ import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroup
 import { GroupType } from "../common/TutanotaConstants.js"
 import type { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
 import type { ConversationViewModel } from "../../mail/view/ConversationViewModel.js"
+import { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
 
 assertMainOrNode()
 
@@ -413,7 +414,7 @@ class MainLocator {
 		// worker we end up losing state on the worker side (including our session).
 		this.worker = bootstrapWorker(this)
 		await this._createInstances()
-		this._entropyCollector = new EntropyCollector(this.entropyFacade)
+		this._entropyCollector = new EntropyCollector(this.entropyFacade, await this.scheduler(), window)
 
 		this._entropyCollector.start()
 
@@ -570,12 +571,6 @@ class MainLocator {
 			}
 		})
 
-		const lazyScheduler = lazyMemoized(async () => {
-			const { AlarmSchedulerImpl } = await import("../../calendar/date/AlarmScheduler")
-			const { DateProviderImpl } = await import("../../calendar/date/CalendarUtils")
-			const dateProvider = new DateProviderImpl()
-			return new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, window, window))
-		})
 		this.fileController =
 			this.nativeInterfaces == null
 				? new FileControllerBrowser(blobFacade, fileFacade, guiDownload)
@@ -583,7 +578,7 @@ class MainLocator {
 
 		this.calendarModel = new CalendarModel(
 			notifications,
-			lazyScheduler,
+			this.alarmScheduler,
 			this.eventController,
 			this.serviceExecutor,
 			logins,
@@ -596,6 +591,18 @@ class MainLocator {
 		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, logins)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.usageTestController = new UsageTestController(this.usageTestModel)
+	}
+
+	private alarmScheduler: () => Promise<AlarmScheduler> = lazyMemoized(async () => {
+		const { AlarmSchedulerImpl } = await import("../../calendar/date/AlarmScheduler")
+		const { DateProviderImpl } = await import("../../calendar/date/CalendarUtils")
+		const dateProvider = new DateProviderImpl()
+		return new AlarmSchedulerImpl(dateProvider, await this.scheduler())
+	})
+
+	private async scheduler(): Promise<SchedulerImpl> {
+		const dateProvider = await this.noZoneDateProvider()
+		return new SchedulerImpl(dateProvider, window, window)
 	}
 }
 

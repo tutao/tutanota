@@ -276,6 +276,6 @@ export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubs
 	}
 
 	isEnabled(): boolean {
-		return isTutanotaDomain() && !(isApp() && client.isIos())
+		return isTutanotaDomain(location.hostname) && !(isApp() && client.isIos())
 	}
 }

@@ -2,21 +2,24 @@
 import { assertMainOrNode } from "../common/Env"
 import type { EntropySource } from "@tutao/tutanota-crypto"
 import type { EntropyDataChunk, EntropyFacade } from "../worker/facades/EntropyFacade.js"
+import { Scheduler } from "../common/utils/Scheduler.js"
 
 assertMainOrNode()
+
+export type EntropyCallback = (data: number, entropy: number, source: EntropySource) => unknown
 
 /**
  * Automatically collects entropy from various events and sends it to the randomizer in the worker regularly.
  */
 export class EntropyCollector {
+	// accessible from test case
+	static readonly SEND_INTERVAL: number = 5000
+
 	private stopped: boolean = true
 	// the entropy is cached and transmitted to the worker in defined intervals
 	private entropyCache: EntropyDataChunk[] = []
 
-	// accessible from test case
-	readonly SEND_INTERVAL: number = 5000
-
-	constructor(private readonly entropyFacade: EntropyFacade) {}
+	constructor(private readonly entropyFacade: EntropyFacade, private readonly scheduler: Scheduler, private readonly window: Window) {}
 
 	private mouse = (e: MouseEvent) => {
 		const value = e.clientX ^ e.clientY
@@ -38,8 +41,8 @@ export class EntropyCollector {
 
 	private accelerometer = (e: any) => {
 		// DeviceMotionEvent but it's typed in a very annoying way
-		if (window.orientation && typeof window.orientation === "number") {
-			this.addEntropy(window.orientation, 0, "accel")
+		if (this.window.orientation && typeof this.window.orientation === "number") {
+			this.addEntropy(this.window.orientation, 0, "accel")
 		}
 
 		if (e.accelerationIncludingGravity) {
@@ -62,11 +65,11 @@ export class EntropyCollector {
 			})
 		}
 
-		if (typeof window !== "undefined" && window.performance && typeof window.performance.now === "function") {
+		if (this.window.performance && typeof window.performance.now === "function") {
 			this.entropyCache.push({
 				source: "time",
 				entropy: 2,
-				data: window.performance.now(),
+				data: this.window.performance.now(),
 			})
 		} else {
 			this.entropyCache.push({
@@ -78,7 +81,21 @@ export class EntropyCollector {
 	}
 
 	start() {
-		if (window.performance && window.performance.timing) {
+		this.addPerformanceTimingValues()
+
+		this.window.addEventListener("mousemove", this.mouse)
+		this.window.addEventListener("click", this.mouse)
+		this.window.addEventListener("touchstart", this.touch)
+		this.window.addEventListener("touchmove", this.touch)
+		this.window.addEventListener("keydown", this.keyDown)
+		this.window.addEventListener("devicemotion", this.accelerometer)
+
+		this.scheduler.schedulePeriodic(() => this.sendEntropyToWorker(), EntropyCollector.SEND_INTERVAL)
+		this.stopped = false
+	}
+
+	private addPerformanceTimingValues() {
+		if (this.window.performance?.timing) {
 			// get values from window.performance.timing
 			let values: any = window.performance.timing
 			let added: number[] = []
@@ -93,23 +110,14 @@ export class EntropyCollector {
 				}
 			}
 		}
-
-		window.addEventListener("mousemove", this.mouse)
-		window.addEventListener("click", this.mouse)
-		window.addEventListener("touchstart", this.touch)
-		window.addEventListener("touchmove", this.touch)
-		window.addEventListener("keydown", this.keyDown)
-		window.addEventListener("devicemotion", this.accelerometer)
-		setInterval(() => this.sendEntropyToWorker(), this.SEND_INTERVAL)
-		this.stopped = false
 	}
 
 	/**
-	 * Add data from either secure random source or Math.random as entropy.
+	 * Add data from secure random source as entropy.
 	 */
 	private addNativeRandomValues(nbrOf32BitValues: number) {
 		let valueList = new Uint32Array(nbrOf32BitValues)
-		crypto.getRandomValues(valueList)
+		this.window.crypto.getRandomValues(valueList)
 
 		for (let i = 0; i < valueList.length; i++) {
 			// 32 because we have 32-bit values Uint32Array
@@ -129,11 +137,11 @@ export class EntropyCollector {
 
 	stop() {
 		this.stopped = true
-		window.removeEventListener("mousemove", this.mouse)
-		window.removeEventListener("mouseclick", this.mouse)
-		window.removeEventListener("touchstart", this.touch)
-		window.removeEventListener("touchmove", this.touch)
-		window.removeEventListener("keydown", this.keyDown)
-		window.removeEventListener("devicemotion", this.accelerometer)
+		this.window.removeEventListener("mousemove", this.mouse)
+		this.window.removeEventListener("mouseclick", this.mouse)
+		this.window.removeEventListener("touchstart", this.touch)
+		this.window.removeEventListener("touchmove", this.touch)
+		this.window.removeEventListener("keydown", this.keyDown)
+		this.window.removeEventListener("devicemotion", this.accelerometer)
 	}
 }

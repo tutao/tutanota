@@ -243,7 +243,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 										this._renderSidebarSectionChildren(this._knowledgeBaseFolders),
 								  )
 								: null,
-							isTutanotaDomain() ? this._aboutThisSoftwareLink() : null,
+							isTutanotaDomain(location.hostname) ? this._aboutThisSoftwareLink() : null,
 						]),
 						ariaLabel: "settings_label",
 					})

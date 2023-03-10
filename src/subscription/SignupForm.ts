@@ -75,7 +75,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	view(vnode: Vnode<SignupFormAttrs>): Children {
 		const a = vnode.attrs
 		const mailAddressFormAttrs: SelectMailAddressFormAttrs = {
-			availableDomains: isTutanotaDomain() ? TUTANOTA_MAIL_ADDRESS_DOMAINS : getWhitelabelRegistrationDomains(),
+			availableDomains: isTutanotaDomain(location.hostname) ? TUTANOTA_MAIL_ADDRESS_DOMAINS : getWhitelabelRegistrationDomains(),
 			onValidationResult: (email, validationResult) => {
 				this.__mailValid(validationResult.isValid)
 

@@ -89,7 +89,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 							this.viewModel.displayMode === DisplayMode.Credentials || this.viewModel.displayMode === DisplayMode.DeleteCredentials
 								? this._renderCredentialsSelector()
 								: this._renderLoginForm(),
-							!(isApp() || isDesktop()) && isTutanotaDomain() ? this._renderAppButtons() : null,
+							!(isApp() || isDesktop()) && isTutanotaDomain(location.hostname) ? this._renderAppButtons() : null,
 							this._anyMoreItemVisible() ? this._renderOptionsExpander() : null,
 							renderInfoLinks(),
 						],
@@ -198,7 +198,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	}
 
 	_signupLinkVisible(): boolean {
-		return this.viewModel.displayMode === DisplayMode.Form && (isTutanotaDomain() || getWhitelabelRegistrationDomains().length > 0)
+		return this.viewModel.displayMode === DisplayMode.Form && (isTutanotaDomain(location.hostname) || getWhitelabelRegistrationDomains().length > 0)
 	}
 
 	_loginAnotherLinkVisible(): boolean {
@@ -218,7 +218,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	}
 
 	_recoverLoginVisible(): boolean {
-		return isTutanotaDomain()
+		return isTutanotaDomain(location.hostname)
 	}
 
 	_anyMoreItemVisible(): boolean {

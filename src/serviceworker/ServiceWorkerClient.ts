@@ -13,7 +13,7 @@ function showUpdateOverlay(onUpdate: () => void) {
 			return m("span", [
 				lang.get("updateFound_label"),
 				" ",
-				isTutanotaDomain()
+				isTutanotaDomain(location.hostname)
 					? m(
 							"a",
 							{

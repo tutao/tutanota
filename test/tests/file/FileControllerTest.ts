@@ -38,12 +38,12 @@ o.spec("FileControllerTest", function () {
 		o.beforeEach(function () {
 			fileAppMock = object()
 			fileController = new FileControllerNative(blobFacadeMock, fileFacadeMock, guiDownload, fileAppMock)
-			oldEnv = global.env
-			global.env = { mode: Mode.App, platformId: "android" } as typeof env
+			oldEnv = globalThis.env
+			globalThis.env = { mode: Mode.App, platformId: "android" } as typeof env
 		})
 
 		o.afterEach(function () {
-			global.env = oldEnv
+			globalThis.env = oldEnv
 		})
 
 		o("should download non-legacy file file natively using the blob service", async function () {
