@@ -46,7 +46,7 @@ o.spec("FileControllerTest", function () {
 			globalThis.env = oldEnv
 		})
 
-		o("should download non-legacy file file natively using the blob service", async function () {
+		o("should download non-legacy file natively using the blob service", async function () {
 			const blobs = [createBlob()]
 			const file = createFile({ blobs: blobs, name: "test.txt", mimeType: "plain/text" })
 			const fileReference = object<FileReference>()
