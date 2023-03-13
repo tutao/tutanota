@@ -4,7 +4,14 @@ import { CalendarMethod, FeatureType, GroupType, OperationType } from "../../api
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
 import type { AlarmInfo, DateWrapper, Group, GroupInfo, User, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
-import { createMembershipRemoveData, GroupInfoTypeRef, GroupMembership, GroupTypeRef, UserAlarmInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import {
+	createDateWrapper,
+	createMembershipRemoveData,
+	GroupInfoTypeRef,
+	GroupMembership,
+	GroupTypeRef,
+	UserAlarmInfoTypeRef,
+} from "../../api/entities/sys/TypeRefs.js"
 import {
 	CalendarEvent,
 	CalendarEventTypeRef,
@@ -190,8 +197,9 @@ export class CalendarModel {
 		assignEventId(event, zone, groupRoot)
 		// Reset ownerEncSessionKey because it cannot be set for new entity, it will be assigned by the CryptoFacade
 		event._ownerEncSessionKey = null
-		// FIXME: wtf
-		event?.repeatRule?.excludedDates.forEach((dw) => (downcast(dw)._finalEncrypted_date = null))
+		if (event.repeatRule != null) {
+			event.repeatRule.excludedDates = event.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
+		}
 		// Reset permissions because server will assign them
 		downcast(event)._permissions = null
 		event._ownerGroup = groupRoot._id

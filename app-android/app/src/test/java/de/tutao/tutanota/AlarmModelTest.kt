@@ -19,7 +19,7 @@ class AlarmModelTest {
 		val now = getDate(timeZone, 2019, 4, 2, 0, 0)
 		val eventStart = getDate(timeZone, 2019, 4, 2, 12, 0)
 		iterateAlarmOccurrences(now, timeZone, eventStart, eventStart, RepeatPeriod.WEEKLY,
-				1, EndType.NEVER, 0, AlarmTrigger.ONE_HOUR, timeZone
+				1, EndType.NEVER, 0, AlarmTrigger.ONE_HOUR, timeZone, emptyList()
 		) { time: Date, _: Int, _: Date? -> occurrences.add(time) }
 		Assert.assertArrayEquals(Arrays.asList(
 				getDate(timeZone, 2019, 4, 2, 11, 0),
@@ -39,7 +39,7 @@ class AlarmModelTest {
 		val eventEnd = getAllDayDateUTC(getDate(timeZone, 2019, 4, 3, 0, 0), timeZone)
 		val repeatEnd = getAllDayDateUTC(getDate(timeZone, 2019, 4, 4, 0, 0), timeZone)
 		iterateAlarmOccurrences(now, repeatTimeZone, eventStart, eventEnd, RepeatPeriod.DAILY,
-				1, EndType.UNTIL, repeatEnd.time, AlarmTrigger.ONE_DAY, timeZone
+				1, EndType.UNTIL, repeatEnd.time, AlarmTrigger.ONE_DAY, timeZone, emptyList()
 		) { time: Date, _: Int, _: Date? -> occurrences.add(time) }
 		val expected = Arrays.asList( // Event on 2nd, alarm on 1st
 				getDate(timeZone, 2019, 4, 1, 0, 0),  // Event on 3rd, alarm on 2d
