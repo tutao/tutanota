@@ -1,19 +1,37 @@
 package de.tutao.tutanota.alarms
 
+import androidx.room.TypeConverter
+import androidx.room.TypeConverters
 import de.tutao.tutanota.AndroidNativeCryptoFacade
+import de.tutao.tutanota.decryptDate
 import de.tutao.tutanota.decryptNumber
 import de.tutao.tutanota.decryptString
 import kotlinx.serialization.Serializable
 import java.util.*
 
 @Serializable
+class EncryptedDateWrapper(
+		val date: String
+)
+
+@Serializable
+@TypeConverters(EncryptedRepeatRule.ExcludedDateWrapperConverter::class)
 class EncryptedRepeatRule(
 		val frequency: String,
 		val interval: String,
 		val timeZone: String,
 		val endType: String,
 		val endValue: String?,
-)
+		val excludedDates: List<EncryptedDateWrapper>,
+) {
+	internal class ExcludedDateWrapperConverter {
+		@TypeConverter
+		fun listToString(excludedDatesList: List<EncryptedDateWrapper>) = excludedDatesList.map { it.date }.joinToString(",")
+
+		@TypeConverter
+		fun stringToList(string: String) = if (string.isNotEmpty()) string.split(",").map { EncryptedDateWrapper(it) } else emptyList()
+	}
+}
 
 fun EncryptedRepeatRule.decrypt(crypto: AndroidNativeCryptoFacade, sessionKey: ByteArray): RepeatRule {
 	val repeatPeriodNumber = crypto.decryptNumber(frequency, sessionKey)
@@ -27,5 +45,6 @@ fun EncryptedRepeatRule.decrypt(crypto: AndroidNativeCryptoFacade, sessionKey: B
 			timeZone = TimeZone.getTimeZone(crypto.decryptString(timeZone, sessionKey)),
 			endValue = if (endValue != null) crypto.decryptNumber(endValue, sessionKey) else null,
 			endType = endType,
+			excludedDates = excludedDates.map { crypto.decryptDate(it.date, sessionKey) },
 	)
 }

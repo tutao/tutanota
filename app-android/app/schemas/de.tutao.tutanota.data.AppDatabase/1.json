@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "3fdf02a27fc9c0d4d5b94be098cfdda1",
+    "identityHash": "1fe0e3b4ee146734bb2273e9ac67f4b2",
     "entities": [
       {
         "tableName": "KeyValue",
@@ -58,7 +58,7 @@
       },
       {
         "tableName": "AlarmNotification",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`operation` INTEGER, `summary` TEXT, `eventStart` TEXT, `eventEnd` TEXT, `user` TEXT, `trigger` TEXT NOT NULL, `identifier` TEXT NOT NULL, `frequency` TEXT, `interval` TEXT, `timeZone` TEXT, `endType` TEXT, `endValue` TEXT, `keypushIdentifierSessionEncSessionKey` TEXT, `keylistId` TEXT, `keyelementId` TEXT, PRIMARY KEY(`identifier`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`operation` INTEGER, `summary` TEXT, `eventStart` TEXT, `eventEnd` TEXT, `user` TEXT, `trigger` TEXT NOT NULL, `identifier` TEXT NOT NULL, `frequency` TEXT, `interval` TEXT, `timeZone` TEXT, `endType` TEXT, `endValue` TEXT, `excludedDates` TEXT, `keypushIdentifierSessionEncSessionKey` TEXT, `keylistId` TEXT, `keyelementId` TEXT, PRIMARY KEY(`identifier`))",
         "fields": [
           {
             "fieldPath": "operation",
@@ -133,6 +133,12 @@
             "notNull": false
           },
           {
+            "fieldPath": "repeatRule.excludedDates",
+            "columnName": "excludedDates",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
             "fieldPath": "notificationSessionKey.pushIdentifierSessionEncSessionKey",
             "columnName": "keypushIdentifierSessionEncSessionKey",
             "affinity": "TEXT",
@@ -184,7 +190,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3fdf02a27fc9c0d4d5b94be098cfdda1')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1fe0e3b4ee146734bb2273e9ac67f4b2')"
     ]
   }
 }

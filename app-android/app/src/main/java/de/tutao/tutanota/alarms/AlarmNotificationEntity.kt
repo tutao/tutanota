@@ -15,6 +15,7 @@ class RepeatRule(
 		val timeZone: TimeZone,
 		val endValue: Long?,
 		val endType: EndType,
+		val excludedDates: List<Date>,
 )
 
 class AlarmInfo(
