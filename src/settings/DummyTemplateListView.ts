@@ -29,10 +29,13 @@ export class DummyTemplateListView implements Component<DummyTemplateListViewAtt
 					}),
 				),
 			},
-			m(ColumnEmptyMessageBox, {
-				color: theme.list_message_bg,
-				message: "noEntries_msg",
-			}),
+			m(
+				".fill-absolute.overflow-hidden",
+				m(ColumnEmptyMessageBox, {
+					color: theme.list_message_bg,
+					message: "noEntries_msg",
+				}),
+			),
 		)
 	}
 }
