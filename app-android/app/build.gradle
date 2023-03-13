@@ -78,6 +78,7 @@ android {
 
 	buildTypes.each {
 		it.buildConfigField 'String', 'FILE_PROVIDER_AUTHORITY', '"' + it.manifestPlaceholders['contentProviderAuthority'] + '"'
+		it.buildConfigField 'String', "SYS_MODEL_VERSION", '"85"'
 	}
 
 	compileOptions {

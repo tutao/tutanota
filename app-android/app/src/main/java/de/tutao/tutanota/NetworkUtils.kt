@@ -2,8 +2,7 @@ package de.tutao.tutanota
 
 import java.net.HttpURLConnection
 
-private const val SYS_MODEL_VERSION = 64
 fun addCommonHeaders(urlConnection: HttpURLConnection) {
-	urlConnection.setRequestProperty("v", SYS_MODEL_VERSION.toString())
+	urlConnection.setRequestProperty("v", BuildConfig.SYS_MODEL_VERSION)
 	urlConnection.setRequestProperty("cv", BuildConfig.VERSION_NAME)
 }
