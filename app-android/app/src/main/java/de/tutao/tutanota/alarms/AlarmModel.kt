@@ -17,6 +17,7 @@ object AlarmModel {
 			endValue: Long?,
 			alarmTrigger: AlarmTrigger,
 			localTimeZone: TimeZone,
+			excludedDates: List<Date>,
 			callback: AlarmIterationCallback,
 	) {
 		val isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd)
@@ -24,6 +25,12 @@ object AlarmModel {
 			getAllDayDateLocal(eventStart, localTimeZone)
 		} else {
 			eventStart
+		}
+
+		val calcExcludedDates = if (isAllDayEvent) {
+			excludedDates.map { getAllDayDateLocal(it, localTimeZone) }
+		} else {
+			excludedDates
 		}
 
 		val endDate = if (endType == EndType.UNTIL) {
@@ -48,7 +55,8 @@ object AlarmModel {
 				break
 			}
 			val alarmTime = calculateAlarmTime(calendar.time, localTimeZone, alarmTrigger)
-			if (alarmTime.after(now)) {
+			val startTimeCalendar = calculateLocalStartTime(calendar.time, localTimeZone)
+			if (alarmTime.after(now) && calcExcludedDates.none { it.time == startTimeCalendar.time.time }) {
 				callback.call(alarmTime, occurrences, calendar.time)
 				futureOccurrences++
 			}
@@ -76,12 +84,7 @@ object AlarmModel {
 			timeZone: TimeZone?,
 			alarmTrigger: AlarmTrigger,
 	): Date {
-		val calendar: Calendar = if (timeZone != null) {
-			Calendar.getInstance(timeZone)
-		} else {
-			Calendar.getInstance()
-		}
-		calendar.time = eventStart
+		val calendar: Calendar = calculateLocalStartTime(eventStart, timeZone)
 		when (alarmTrigger) {
 			AlarmTrigger.FIVE_MINUTES -> calendar.add(Calendar.MINUTE, -5)
 			AlarmTrigger.TEN_MINUTES -> calendar.add(Calendar.MINUTE, -10)
@@ -93,6 +96,20 @@ object AlarmModel {
 			AlarmTrigger.ONE_WEEK -> calendar.add(Calendar.WEEK_OF_MONTH, -1)
 		}
 		return calendar.time
+	}
+
+	@JvmStatic
+	fun calculateLocalStartTime(
+			eventStart: Date,
+			timeZone: TimeZone?,
+	): Calendar {
+		val calendar: Calendar = if (timeZone != null) {
+			Calendar.getInstance(timeZone)
+		} else {
+			Calendar.getInstance()
+		}
+		calendar.time = eventStart
+		return calendar
 	}
 
 	@JvmStatic
