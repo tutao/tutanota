@@ -20,7 +20,7 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 		if (!folderInfo) return null
 
 		return m(
-			".flex.items-center.pt.pb.click",
+			".flex.items-center.pt.pb.click.no-wrap",
 			{
 				class: mailViewerPadding(),
 				style: {
@@ -31,8 +31,7 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 			[
 				viewModel.isUnread() ? this.renderUnreadDot() : null,
 				viewModel.isDraftMail() ? m(".mr-xs", this.renderIcon(Icons.Edit)) : null,
-				m(viewModel.isUnread() ? ".font-weight-600" : "", getMailAddressDisplayText(mail.sender.name, mail.sender.address, true)),
-				m(".flex-grow"),
+				m(this.getMailAddressDisplayClasses(viewModel), getMailAddressDisplayText(mail.sender.name, mail.sender.address, true)),
 				m(".flex.ml-between-s.items-center", [
 					mail.attachments.length > 0 ? this.renderIcon(Icons.Attachment) : null,
 					viewModel.isConfidential() ? this.renderIcon(Icons.Lock) : null,
@@ -41,6 +40,14 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 				]),
 			],
 		)
+	}
+
+	private getMailAddressDisplayClasses(viewModel: MailViewerViewModel): string {
+		let classes = ".flex-grow.text-ellipsis"
+		if (viewModel.isUnread()) {
+			classes += ".font-weight-600"
+		}
+		return classes
 	}
 
 	private renderUnreadDot(): Children {
