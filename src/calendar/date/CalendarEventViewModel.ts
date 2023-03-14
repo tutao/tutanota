@@ -618,6 +618,10 @@ export class CalendarEventViewModel {
 	}
 
 	setStartDate(date: Date) {
+		if (date.getTime() === this.startDate.getTime()) {
+			return
+		}
+
 		// The custom ID for events is derived from the unix timestamp, and sorting
 		// the negative ids is a challenge we decided not to
 		// tackle because it is a rare case.
