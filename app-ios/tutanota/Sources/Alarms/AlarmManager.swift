@@ -129,7 +129,8 @@ class AlarmManager {
     let alarmIdentifier = encAlarmNotification.alarmInfo.alarmIdentifier
     let alarmNotification = try alarmCryptor.decrypt(alarm: encAlarmNotification)
     
-    let occurrenceIds = alarmCalculator.futureOccurrences(ofAlarm: alarmNotification)
+    let occurrenceIds = prefix(alarmCalculator.futureOccurrences(ofAlarm: alarmNotification), EVENTS_SCHEDULED_AHEAD)
+
       .map {
         ocurrenceIdentifier(alarmIdentifier: $0.alarm.identifier, occurrence: $0.occurrenceNumber)
       }
