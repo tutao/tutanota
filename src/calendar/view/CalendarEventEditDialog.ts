@@ -521,17 +521,17 @@ function renderRepeatRulePicker(viewModel: CalendarEventViewModel, startOfTheWee
 				  ]
 				: null,
 		),
-		viewModel.repeat && viewModel.repeat.excludedDates.length > 0
-			? // we're rendering a hidden element to make the delete exclusion text field the same size as the other elements in this section
-			  renderTwoColumnsIfFits([m(".flex-grow.pr-s", renderExclusionCount(viewModel)), m(".flex-grow.pl-s.hidden", lang.get("emptyString_msg"))], [])
-			: null,
+		renderTwoColumnsIfFits(
+			viewModel.repeat && viewModel.repeat.excludedDates.length > 0 ? [m(".flex-grow.pr-s", renderExclusionCount(viewModel))] : null,
+			null,
+		),
 	]
 }
 
 function renderExclusionCount(viewModel: CalendarEventViewModel): Children {
 	return m(TextField, {
-		label: () => "Excluded Dates", //FIXME phrase
-		value: viewModel.repeat?.excludedDates.length.toString() ?? "0",
+		label: "emptyString_msg",
+		value: lang.get("someRepetitionsDeleted_msg"),
 		injectionsRight: () => renderDeleteExclusionButton(viewModel),
 		disabled: true,
 	})
@@ -539,9 +539,9 @@ function renderExclusionCount(viewModel: CalendarEventViewModel): Children {
 
 function renderDeleteExclusionButton(viewModel: CalendarEventViewModel): Children {
 	return m(IconButton, {
-		title: () => "delete exclusions", //FIXME add to phrase
+		title: "restoreExcludedRecurrences_action",
 		click: () => viewModel.deleteExcludedDates(),
-		icon: Icons.Trash,
+		icon: Icons.Cancel,
 	})
 }
 
