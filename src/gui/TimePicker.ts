@@ -18,7 +18,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	private _values: ReadonlyArray<string>
 	private _focused: boolean
 	private _selectedIndex!: number
-	private _oldValue!: string
+	private _oldValue: string
 	private _value: string
 
 	constructor({ attrs }: Vnode<TimePickerAttrs>) {
@@ -31,7 +31,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				times.push(timeStringFromParts(hour, minute, attrs.amPmFormat))
 			}
 		}
-
+		this._oldValue = attrs.time?.toString(false) ?? "--"
 		this._values = times
 	}
 
@@ -68,8 +68,10 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			value: this._value,
 			type: TextFieldType.Time,
 			oninput: (value) => {
+				if (this._value === value) {
+					return
+				}
 				this._value = value
-
 				attrs.onTimeSelected(parseTime(value))
 			},
 			disabled: attrs.disabled,
