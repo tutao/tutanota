@@ -29,7 +29,7 @@ protocol AlarmCalculator {
 /// A helper to magically unbox any Sequence to call prefix() on it because
 /// "we cannot call a member of an existential value if the result type of that member uses any of the associated types in an invariant position."
 /// see https://forums.swift.org/t/se-0353-constrained-existential-types/56853/22
-private func prefix(_ s: some Sequence<AlarmOccurence>, _ maxLength: Int) -> any Sequence<AlarmOccurence> {
+func prefix(_ s: some Sequence<AlarmOccurence>, _ maxLength: Int) -> any Sequence<AlarmOccurence> {
   return s.prefix(maxLength)
 }
 
