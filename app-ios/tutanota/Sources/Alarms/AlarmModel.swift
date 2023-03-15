@@ -1,5 +1,6 @@
 import Foundation
 
+/// Identifier for when event will happen
 struct EventOccurrence {
   let occurrenceNumber: Int
   let occurenceDate: Date
@@ -10,6 +11,7 @@ struct AlarmOccurence : Equatable {
   let eventOccurrenceTime: Date
   let alarm: AlarmNotification
   
+  /// Calculates alarm occurence time for a given event occurnce time and trigger from alarm.
   func alarmOccurenceTime() -> Date {
     return AlarmModel.alarmTime(trigger: alarm.alarmInfo.trigger, eventTime: eventOccurrenceTime)
   }
@@ -23,6 +25,8 @@ protocol AlarmCalculator {
   /// (alternatively we could always produce arrays)
   func futureOccurrences(acrossAlarms alarms: [AlarmNotification], upToForEach: Int, upToOverall: Int) -> any BidirectionalCollection<AlarmOccurence>
   
+  /// Calculate the most recent alarm occurences for a single alarm
+  /// - Returns: lazy sequence of alarm occurences. It might be infinite if alarm repeats indefinitely!
   func futureOccurrences(ofAlarm alarm: AlarmNotification) -> any Sequence<AlarmOccurence>
 }
 
@@ -80,6 +84,7 @@ class AlarmModel : AlarmCalculator {
       localTimeZone: TimeZone.current
     )
       .lazy
+      // trying to optimize it: do not calculate alarm occurence if event occurence itself is in the past
       .filter { self.shouldScheduleAlarmAt(ocurrenceTime: $0.occurenceDate) }
       .map { occurrence in
         return AlarmOccurence(
@@ -150,7 +155,7 @@ class AlarmModel : AlarmCalculator {
   }
 }
 
-struct LazyEventSequence : Sequence, IteratorProtocol {
+private struct LazyEventSequence : Sequence, IteratorProtocol {
   let calcEventStart: Date
   let endDate: Date?
   let repeatRule: RepeatRule
@@ -182,6 +187,8 @@ struct LazyEventSequence : Sequence, IteratorProtocol {
 }
 
 
+/// Takes local date and makes a UTC date with year, month, day from it.
+/// This is how we indicate days without attachment to a time zone or time.
 func allDayUTCDate(fromLocalDate localDate: Date) -> Date {
   let calendar = Calendar.current
   var localComponents = calendar.dateComponents([.year, .month, .day], from: localDate)
@@ -190,7 +197,8 @@ func allDayUTCDate(fromLocalDate localDate: Date) -> Date {
   return calendar.date(from: localComponents)!
 }
 
-
+/// Takes UTC date and makes a local date with year, month, day from it.
+/// This is how we indicate days without attachment to a time zone or time.
 func allDayLocalDate(fromUTCDate utcDate: Date) -> Date {
   var calendar = Calendar.current
   let timeZone = TimeZone(identifier: "UTC")!
