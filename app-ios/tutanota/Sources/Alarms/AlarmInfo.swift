@@ -6,7 +6,10 @@ struct EncryptedAlarmInfo : Codable {
 }
 
 struct AlarmInfo : Equatable {
+  /// Unique identifier of the alarm
   let alarmIdentifer: String
+  /// How long before the event should alarm fire.
+  /// Contains values like in ical spec (e.g. 5M or 3D) but we only support certain subset of it
   let trigger: String
 }
 
