@@ -2,6 +2,7 @@ import Foundation
 
 private let MISSED_NOTIFICATION_TTL_SEC: Int64 = 30 * 24 * 60 * 60; // 30 days
 
+/// Downlaods notifications and dispatches them to AlarmManager
 class NotificationsHandler {
   private let alarmManager: AlarmManager
   private let userPreference: UserPreferenceFacade

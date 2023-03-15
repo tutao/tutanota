@@ -2,6 +2,8 @@ import Foundation
 
 typealias Base64 = String
 
+/// Alarm notification as received from the server. Also peristed.
+/// Contains both signaling about the event (opeartion) and the payload itself
 public struct EncryptedAlarmNotification : Codable {
   let operation: Operation
   let summary: Base64

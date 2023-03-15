@@ -54,6 +54,4 @@ class IosNativePushFacade : NativePushFacade {
   func scheduleAlarms(_ alarms: [EncryptedAlarmNotification]) async throws {
     try self.alarmManager.processNewAlarms(alarms)
   }
-
-
 }
