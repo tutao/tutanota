@@ -8,19 +8,19 @@ class AlarmManagerTest : XCTestCase {
   var scheduler: AlarmSchedulerStub!
   var alarmManager: AlarmManager!
   var alarmModel: AlarmModel!
-  
+
   var dateProvider: DateProviderStub!
-  
+
   let userID = "user"
-  
+
   override func setUp() {
     dateProvider = DateProviderStub()
-    
+
     persistor = AlarmPersistorStub()
     cryptor = AlarmCryptorStub()
     scheduler = AlarmSchedulerStub()
     alarmModel = AlarmModel(dateProvider: dateProvider)
-    
+
     alarmManager = AlarmManager(
       alarmPersistor: persistor,
       alarmCryptor: cryptor,
@@ -28,7 +28,7 @@ class AlarmManagerTest : XCTestCase {
       alarmCalculator: alarmModel
     )
   }
-  
+
   private func makeAlarm(
     at date: Date,
     trigger: String,
@@ -45,7 +45,7 @@ class AlarmManagerTest : XCTestCase {
       user: userID
     )
   }
-  
+
   private func encryptAlarm(alarm: AlarmNotification) -> EncryptedAlarmNotification {
     return EncryptedAlarmNotification(
       operation: alarm.operation,
@@ -58,13 +58,13 @@ class AlarmManagerTest : XCTestCase {
       user: alarm.user
     )
   }
-  
+
   private func add(alarm: AlarmNotification) {
     let encryptedAlarm = encryptAlarm(alarm: alarm)
     persistor.add(alarm: encryptedAlarm)
     cryptor.alarms[alarm.identifier] = alarm
   }
-  
+
   func testProcessNewAlarmsSchedulesAndSavedNewAlarm() {
     let start = dateProvider.now.advanced(by: 10, .minutes)
     let alarm = makeAlarm(at: start, trigger: "5M")
@@ -72,11 +72,11 @@ class AlarmManagerTest : XCTestCase {
     cryptor.alarms[alarm.identifier] = alarm
 
     try! alarmManager.processNewAlarms([encryptAlarm(alarm: alarm)])
-    
+
     XCTAssertEqual(persistor.alarms.count, 1)
     XCTAssertEqual(scheduler.scheduled.map { $0.identifier }, [ocurrenceIdentifier(alarmIdentifier: alarm.identifier, occurrence: 0)])
   }
-  
+
   func testProcessNewAlarmsUnschedulesAndDeletesAlarm() {
     let start = dateProvider.now.advanced(by: 10, .minutes)
     let alarm = makeAlarm(at: start, trigger: "5M")
@@ -91,24 +91,24 @@ class AlarmManagerTest : XCTestCase {
       notificationSessionKeys: [],
       user: userID
     )
-    
+
     try! alarmManager.processNewAlarms([deleteAlarm])
-    
+
     XCTAssertEqual(persistor.alarms.count, 0)
     XCTAssertEqual(scheduler.unscheduled, [ocurrenceIdentifier(alarmIdentifier: alarm.identifier, occurrence: 0)])
   }
-  
+
   func testUnscheduleAllAlarms() {
     let start = dateProvider.now.advanced(by: 10, .minutes)
     let alarm = makeAlarm(at: start, trigger: "5M")
     add(alarm: alarm)
-    
-    
+
+
     alarmManager.unscheduleAllAlarms(userId: userID)
-    
+
     XCTAssertEqual(scheduler.unscheduled, [ocurrenceIdentifier(alarmIdentifier: alarm.identifier, occurrence: 0)])
   }
-  
+
   func testRescheduleAlarmsReschedulesAlarms() {
     let start1 = dateProvider.now.advanced(by: 10, .minutes)
     let alarm1 = makeAlarm(at: start1, trigger: "5M", identifier: "alarm1")
@@ -120,15 +120,16 @@ class AlarmManagerTest : XCTestCase {
         frequency: .daily,
         interval: 1,
         timeZone: dateProvider.timeZone.identifier,
-        endCondition: .count(times: 2)
+        endCondition: .count(times: 2),
+        excludedDates: []
       ),
       identifier: "alarm2"
     )
     add(alarm: alarm1)
     add(alarm: alarm2)
-    
+
     alarmManager.rescheduleAlarms()
-    
+
     XCTAssertEqual(scheduler.scheduled, [
       ScheduledAlarmInfo(
         alarmTime: start2.advanced(by: 24, .hours).advanced(by: -10, .minutes),
@@ -159,15 +160,15 @@ class AlarmManagerTest : XCTestCase {
 
 class AlarmPersistorStub : AlarmPersistor {
   var alarms: [EncryptedAlarmNotification] = []
-  
+
   func add(alarm: EncryptedAlarmNotification) {
     self.alarms.append(alarm)
   }
-  
+
   func store(alarms: [EncryptedAlarmNotification]) {
     self.alarms = alarms
   }
-  
+
   func clear() {
     self.alarms = []
   }
@@ -175,7 +176,7 @@ class AlarmPersistorStub : AlarmPersistor {
 
 class AlarmCryptorStub : AlarmCryptor {
   var alarms: [String : AlarmNotification] = [:]
-  
+
   func decrypt(alarm: EncryptedAlarmNotification) throws -> AlarmNotification {
     if let alarm = self.alarms[alarm.alarmInfo.alarmIdentifier] {
       return alarm
@@ -188,11 +189,11 @@ class AlarmCryptorStub : AlarmCryptor {
 class AlarmSchedulerStub : AlarmScheduler {
   var scheduled: [ScheduledAlarmInfo] = []
   var unscheduled: [String] = []
-  
+
   func schedule(info: ScheduledAlarmInfo) {
     self.scheduled.append(info)
   }
-  
+
   func unscheduleAll(occurrenceIds: [String]) {
     self.unscheduled += occurrenceIds
   }
@@ -201,6 +202,6 @@ class AlarmSchedulerStub : AlarmScheduler {
 class DateProviderStub : DateProvider {
   // Mon Mar 06 2023 16:52:24 GMT+0100 (Central European Standard Time)
   var now: Date = Date(timeIntervalSince1970: 1678117944)
-  
+
   var timeZone: TimeZone = TimeZone(identifier: "Europe/Berlin")!
 }
