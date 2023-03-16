@@ -138,6 +138,7 @@ class MainActivity : FragmentActivity() {
 		installSplashScreen()
 
 		super.onCreate(savedInstanceState)
+		actionBar?.hide()
 
 		mobileFacade = MobileFacadeSendDispatcher(ipcJson, remoteBridge)
 		commonNativeFacade = CommonNativeFacadeSendDispatcher(ipcJson, remoteBridge)
