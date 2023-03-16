@@ -70,6 +70,16 @@
 					"info": "RenameAttribute BucketKey: ownerEncBucketKey -> groupEncBucketKey."
 				}
 			]
+		},
+		{
+			"version": 84,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "RepeatRule",
+					"info": "AddAssociation RepeatRule/excludedDates/AGGREGATION/2057."
+				}
+			]
 		}
 	]
 }

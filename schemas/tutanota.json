@@ -115,6 +115,16 @@
 					"info": "AddAssociation MailBox/mailDetailsDrafts/AGGREGATION/1318."
 				}
 			]
+		},
+		{
+			"version": 61,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "CalendarRepeatRule",
+					"info": "AddAssociation CalendarRepeatRule/excludedDates/AGGREGATION/1319."
+				}
+			]
 		}
 	]
 }

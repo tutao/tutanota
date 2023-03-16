@@ -1,5 +1,5 @@
 import { OfflineDbMeta, OfflineStorage, VersionMetadataBaseKey } from "./OfflineStorage.js"
-import { modelInfos, ModelInfos } from "../../common/EntityFunctions.js"
+import { ModelInfos } from "../../common/EntityFunctions.js"
 import { assertNotNull, typedEntries, typedKeys } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { sys75 } from "./migrations/sys-v75.js"
@@ -16,6 +16,8 @@ import { tutanota57 } from "./migrations/tutanota-v57.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sys83 } from "./migrations/sys-v83.js"
 import { tutanota60 } from "./migrations/tutanota-v60.js"
+import { tutanota61 } from "./migrations/tutanota-v61.js"
+import { sys84 } from "./migrations/sys-v84.js"
 import { accounting5 } from "./migrations/accounting-v5.js"
 
 export interface OfflineMigration {
@@ -45,6 +47,8 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	storage6,
 	sys83,
 	accounting5,
+	tutanota61,
+	sys84,
 ]
 
 const CURRENT_OFFLINE_VERSION = 1

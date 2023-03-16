@@ -955,6 +955,18 @@ export type CustomerServerProperties = {
 	whitelabelRegistrationDomains: StringWrapper[];
 	whitelistedDomains:  null | DomainsRef;
 }
+export const DateWrapperTypeRef: TypeRef<DateWrapper> = new TypeRef("sys", "DateWrapper")
+
+export function createDateWrapper(values?: Partial<DateWrapper>): DateWrapper {
+	return Object.assign(create(typeModels.DateWrapper, DateWrapperTypeRef), values)
+}
+
+export type DateWrapper = {
+	_type: TypeRef<DateWrapper>;
+
+	_id: Id;
+	date: Date;
+}
 export const DebitServicePutDataTypeRef: TypeRef<DebitServicePutData> = new TypeRef("sys", "DebitServicePutData")
 
 export function createDebitServicePutData(values?: Partial<DebitServicePutData>): DebitServicePutData {
@@ -2313,6 +2325,8 @@ export type RepeatRule = {
 	frequency: NumberString;
 	interval: NumberString;
 	timeZone: string;
+
+	excludedDates: DateWrapper[];
 }
 export const ResetFactorsDeleteDataTypeRef: TypeRef<ResetFactorsDeleteData> = new TypeRef("sys", "ResetFactorsDeleteData")
 
