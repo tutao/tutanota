@@ -28,7 +28,7 @@ class AlarmPreferencePersistor : AlarmPersistor {
     do {
       try keychainManager.removePushIdentifierKeys()
     } catch {
-      TUTSLog("Faied to remove pushIdentifier keys \(error)")
+      TUTSLog("Failed to remove pushIdentifier keys \(error)")
     }
   }
   
