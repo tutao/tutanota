@@ -640,7 +640,7 @@ export class MailViewerViewModel {
 				? ContentBlockingStatus.AlwaysBlock
 				: isAllowedAndAuthenticatedExternalSender
 				? ContentBlockingStatus.AlwaysShow
-				: this.sanitizeResult.externalContent.length > 0
+				: this.sanitizeResult.externalContent > 0
 				? ContentBlockingStatus.Block
 				: ContentBlockingStatus.NoExternalContent
 		m.redraw()

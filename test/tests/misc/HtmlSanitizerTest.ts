@@ -131,79 +131,182 @@ o.spec(
 			}).html
 			o(sanitized).equals("yo")
 		})
-		o("detect background images", function () {
+		o("external image replacement is correct", function () {
 			o(PREVENT_EXTERNAL_IMAGE_LOADING_ICON).equals(
-				"data:image/svg+xml;utf8,<svg version='1.1' viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'><rect width='512' height='512' fill='%23f8f8f8'/><path d='m220 212c0 12.029-9.7597 21.789-21.789 21.789-12.029 0-21.789-9.7597-21.789-21.789s9.7597-21.789 21.789-21.789c12.029 0 21.789 9.7597 21.789 21.789zm116.21 43.578v50.841h-159.79v-21.789l36.315-36.315 18.158 18.158 58.104-58.104zm10.895-79.893h-181.58c-1.9292 0-3.6315 1.7023-3.6315 3.6315v138c0 1.9292 1.7023 3.6315 3.6315 3.6315h181.58c1.9292 0 3.6315-1.7023 3.6315-3.6315v-138c0-1.9292-1.7023-3.6315-3.6315-3.6315zm18.158 3.6315v138c0 9.9867-8.1709 18.158-18.158 18.158h-181.58c-9.9867 0-18.158-8.1709-18.158-18.158v-138c0-9.9867 8.1709-18.158 18.158-18.158h181.58c9.9867 0 18.158 8.1709 18.158 18.158z' fill='%23b4b4b4' stroke-width='.11348'/></svg>",
+				"data:image/svg+xml;utf8,<svg version='1.1' viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'> <rect width='512' height='512' fill='%23f8f8f8'/> <path d='m220 212c0 12.029-9.7597 21.789-21.789 21.789-12.029 0-21.789-9.7597-21.789-21.789s9.7597-21.789 21.789-21.789c12.029 0 21.789 9.7597 21.789 21.789zm116.21 43.578v50.841h-159.79v-21.789l36.315-36.315 18.158 18.158 58.104-58.104zm10.895-79.893h-181.58c-1.9292 0-3.6315 1.7023-3.6315 3.6315v138c0 1.9292 1.7023 3.6315 3.6315 3.6315h181.58c1.9292 0 3.6315-1.7023 3.6315-3.6315v-138c0-1.9292-1.7023-3.6315-3.6315-3.6315zm18.158 3.6315v138c0 9.9867-8.1709 18.158-18.158 18.158h-181.58c-9.9867 0-18.158-8.1709-18.158-18.158v-138c0-9.9867 8.1709-18.158 18.158-18.158h181.58c9.9867 0 18.158 8.1709 18.158 18.158z' fill='%23b4b4b4' stroke-width='.11348'/></svg>",
 			)
-			let result = htmlSanitizer.sanitizeHTML(
-				'<p style="background-image: url(&quot;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&quot;)"></p>',
-				{
-					blockExternalContent: true,
-				},
-			)
-			o(result.externalContent[0]).equals("https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image")
-			o(result.html.includes("data:image/svg+xml;utf8,")).equals(true)
-			result = htmlSanitizer.sanitizeHTML(
-				'<p style="background: url(&quot;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&quot;)"></p>',
-				{
-					blockExternalContent: true,
-				},
-			)
-			o(result.externalContent[0]).equals("https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image")
-			o(result.html.includes("data:image/svg+xml;utf8,")).equals(true)
-			result = htmlSanitizer.sanitizeHTML(
-				'<p style="background: url(&#39;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&#39;)"></p>',
-				{
-					blockExternalContent: true,
-				},
-			)
-			o(result.externalContent[0]).equals("https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image")
-			o(result.html.includes("data:image/svg+xml;utf8,")).equals(true)
-			result = htmlSanitizer.sanitizeHTML(
-				'<p style="background: url(&quot;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&quot;)"></p>',
-				{
-					blockExternalContent: false,
-				},
-			)
-			o(result.externalContent.length).equals(0)
-			o(result.html.includes("data:image/svg+xml;utf8,")).equals(false)
+		})
 
-			result = htmlSanitizer.sanitizeHTML(
-				"<table><tbody><tr><td style=\"background-image: -webkit-image-set(url('https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image') 1x, url('https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image') 2x);\"></td></tr></tbody></table>",
-				{
-					blockExternalContent: true,
-				},
-			)
-			o(result.externalContent[0]).equals("https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image")
-			o(result.html.includes("https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image")).equals(false)("should not have image links")
-			o(result.html.includes("data:image/svg+xml;utf8,")).equals(true)
+		const REPLACEMENT_VALUE = `url("${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}")`
+
+		o.spec("external background images", function () {
+			o("when external content is blocked background-image url is replaced", function () {
+				const result = htmlSanitizer.sanitizeFragment(
+					'<p style="background-image: url(&quot;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&quot;)"></p>',
+					{
+						blockExternalContent: true,
+					},
+				)
+				o(result.externalContent).equals(1)
+				const p = result.fragment.querySelector("p")!
+				o(p.style.backgroundImage).equals(REPLACEMENT_VALUE)
+			})
+			o("when external content is blocked background url in quotes is replaced", function () {
+				const result = htmlSanitizer.sanitizeFragment(
+					'<p style="background: url(&quot;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&quot;)"></p>',
+					{
+						blockExternalContent: true,
+					},
+				)
+				o(result.externalContent).equals(1)
+				const p = result.fragment.querySelector("p")!
+				o(p.style.backgroundImage).equals(REPLACEMENT_VALUE)
+			})
+			o("when external content is blocked background url in html quotes is replaced", function () {
+				const result = htmlSanitizer.sanitizeFragment(
+					'<p style="background: url(&#39;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&#39;)"></p>',
+					{
+						blockExternalContent: true,
+					},
+				)
+				o(result.externalContent).equals(1)
+				const p = result.fragment.querySelector("p")!
+				o(p.style.backgroundImage).equals(REPLACEMENT_VALUE)
+			})
+			o("when external content is not blocked background url in html quotes is not replaced", function () {
+				const result = htmlSanitizer.sanitizeFragment(
+					'<p style="background: url(&quot;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&quot;)"></p>',
+					{
+						blockExternalContent: false,
+					},
+				)
+				o(result.externalContent).equals(0)
+				const p = result.fragment.querySelector("p")!
+				o(p.style.backgroundImage).equals(`url("https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image")`)
+			})
+
+			o("when external content is blocked background-image image-set is replaced", function () {
+				const cssValue = `image-set(url('https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image') 1x, url('https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image') 2x)`
+				if (!CSS.supports("background-image", cssValue)) {
+					// Bail out if browser doesn't support it.
+					// It is only relevant for older Chromium-based browsers, we should remove them once they are outdated
+					// tracking issue: https://bugs.chromium.org/p/chromium/issues/detail?id=630597
+					console.warn("HtmlSanitizerTest: Browser doesn't support image-set, skipping")
+					return
+				}
+				const dirty = `<p style="background-image: ${cssValue};"></p>`
+				const result = htmlSanitizer.sanitizeFragment(dirty, { blockExternalContent: true })
+				o(result.externalContent).equals(1)
+				const p = result.fragment.querySelector("p")!
+				o(p.style.backgroundImage).equals(REPLACEMENT_VALUE)
+			})
+
+			o("when external content is blocked background-image url -webkit-image-set is replaced", function () {
+				const cssValue = `-webkit-image-set(url('https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image') 1x, url('https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image') 2x)`
+				if (!CSS.supports("background-image", cssValue)) {
+					// Bail out if browser doesn't support it.
+					// It is only relevant for older Chromium-based browsers, we should remove them once they are outdated
+					// tracking issue: https://bugs.chromium.org/p/chromium/issues/detail?id=630597
+					console.warn("HtmlSanitizerTest: Browser doesn't support -webkit-image-set, skipping")
+					return
+				}
+				const dirty = `<p style="background-image: ${cssValue};"></p>`
+				const result = htmlSanitizer.sanitizeFragment(dirty, { blockExternalContent: true })
+				o(result.externalContent).equals(1)
+				const p = result.fragment.querySelector("p")!
+				o(p.style.backgroundImage).equals(REPLACEMENT_VALUE)
+			})
+
+			o("when external content is blocked background-image with multiple url is replaced", function () {
+				const dirty = `
+<p style="background: url('https://example.com/1.png'), url('https://exmaple.com/2.jpg');">
+</p>`
+				const result = htmlSanitizer.sanitizeFragment(dirty, { blockExternalContent: true })
+				o(result.externalContent).equals(1)
+				const p = result.fragment.querySelector("p")!
+				o(p.style.backgroundImage).equals(REPLACEMENT_VALUE)
+			})
+
+			o("when external content is blocked background-image with gradient and url is replaced", function () {
+				const dirty = `
+<p style="background: linear-gradient(blueviolet, black), url('https://exmaple.com/1.jpg')">
+</p>`
+				const result = htmlSanitizer.sanitizeFragment(dirty, { blockExternalContent: true })
+				o(result.externalContent).equals(1)
+				const p = result.fragment.querySelector("p")!
+				o(p.style.backgroundImage).equals(REPLACEMENT_VALUE)
+			})
+
+			o("when external content is blocked inline background is not replaced", function () {
+				const backgroundUrl = "data:image/svg+xml;utf8,inline"
+				const ditry = `
+	<p style="background: url('${backgroundUrl}');">
+	</p>`
+				const result = htmlSanitizer.sanitizeFragment(ditry, { blockExternalContent: true })
+				o(result.externalContent).equals(0)
+				const p = result.fragment.querySelector("p")!
+				o(p.style.backgroundImage).equals(`url("${backgroundUrl}")`)
+			})
+
+			o("when external content is blocked url border-image-source is removed", function () {
+				const dirty = `<div style="border-image-source: url('https://exmaple.com/1.jpg')">hi</div>`
+				const result = htmlSanitizer.sanitizeFragment(dirty, { blockExternalContent: true })
+				o(result.externalContent).equals(1)
+				const div = result.fragment.querySelector("div")!
+				o(div.style.borderImageSource).equals("")
+			})
+
+			o("when external content is blocked url mask-image is removed", function () {
+				const dirty = `<div style="mask-image: url('https://exmaple.com/1.jpg')">hi</div>`
+				const result = htmlSanitizer.sanitizeFragment(dirty, { blockExternalContent: true })
+				// at the moment of writing Chrome doesn't support this without prefix so we just make sure it's not there
+				// o(result.externalContent).equals(1)
+				const div = result.fragment.querySelector("div")!
+				o(div.style.maskImage == undefined || div.style.maskImage === "").equals(true)(`makImage is not set`)
+			})
+
+			o("when external content is blocked url shape-outside is removed", function () {
+				const dirty = `<div style="shape-outside: url('https://exmaple.com/1.jpg')">hi</div>`
+				const result = htmlSanitizer.sanitizeFragment(dirty, { blockExternalContent: true })
+				o(result.externalContent).equals(1)
+				const div = result.fragment.querySelector("div")!
+				o(div.style.shapeOutside).equals("")
+			})
+
+			o("when external content is blocked mask-border-source is removed", function () {
+				const dirty = `<div style="mask-border-source: url('https://exmaple.com/1.jpg')">hi</div>`
+				const result = htmlSanitizer.sanitizeFragment(dirty, { blockExternalContent: true })
+				const div = result.fragment.querySelector("div")!
+				// @ts-ignore not in all browsers
+				o(div.style.maskBorderSource == undefined || div.style.maskBorderSource === "").equals(true)("mask-border-source")
+			})
 		})
 		o("detect background inline images", function () {
 			const backgroundUrl = "data:image/svg+xml;utf8,inline"
 			let result = htmlSanitizer.sanitizeHTML(`<p style="background-image: url(${backgroundUrl})"> </p>`, {
 				blockExternalContent: true,
 			})
-			o(result.externalContent.length).equals(0)
+			o(result.externalContent).equals(0)
 			o(result.html.includes(backgroundUrl)).equals(true)
 			result = htmlSanitizer.sanitizeHTML(`<p style="background-image: url('${backgroundUrl}')"> </p>`, {
 				blockExternalContent: true,
 			})
-			o(result.externalContent.length).equals(0)
+			o(result.externalContent).equals(0)
 			o(result.html.includes(backgroundUrl)).equals(true)
 			result = htmlSanitizer.sanitizeHTML(`<p style='background-image: url("${backgroundUrl}")'> </p>`, {
 				blockExternalContent: true,
 			})
-			o(result.externalContent.length).equals(0)
+			o(result.externalContent).equals(0)
 			o(result.html.includes(backgroundUrl)).equals(true)
 			result = htmlSanitizer.sanitizeHTML(`<p style="background-image: url(&quot;${backgroundUrl}&quot;)"> </p>`, {
 				blockExternalContent: true,
 			})
-			o(result.externalContent.length).equals(0)
+			o(result.externalContent).equals(0)
 			o(result.html.includes(backgroundUrl)).equals(true)
 			result = htmlSanitizer.sanitizeHTML(`<p style="background-image: url(&#39;${backgroundUrl}&#39;)"> </p>`, {
 				blockExternalContent: true,
 			})
-			o(result.externalContent.length).equals(0)
+			o(result.externalContent).equals(0)
 			o(result.html.includes(backgroundUrl)).equals(true)
 		})
 		o("background attribute", function () {
@@ -211,7 +314,7 @@ o.spec(
 			const cleanHtml = htmlSanitizer.sanitizeHTML(plainHtml, {
 				blockExternalContent: true,
 			})
-			o(cleanHtml.externalContent.length).equals(1)
+			o(cleanHtml.externalContent).equals(1)
 			o(cleanHtml.html.includes("image.jpg")).equals(false)
 			o(
 				htmlSanitizer
@@ -227,7 +330,7 @@ o.spec(
 			const cleanHtml = htmlSanitizer.sanitizeHTML(plainHtml, {
 				blockExternalContent: true,
 			})
-			o(cleanHtml.externalContent.length).equals(2)
+			o(cleanHtml.externalContent).equals(2)
 			o(cleanHtml.html.includes("srcSet")).equals(false)
 			o(cleanHtml.html.includes("srcset")).equals(false) // srcSet attribute is removed when writing node
 
@@ -237,7 +340,7 @@ o.spec(
 			let result = htmlSanitizer.sanitizeHTML('<img src="https://emailprivacytester.com/cb/510828b5a8f43ab5">', {
 				blockExternalContent: true,
 			})
-			o(result.externalContent[0]).equals("https://emailprivacytester.com/cb/510828b5a8f43ab5")
+			o(result.externalContent).equals(1)
 			o(result.html.includes('src="data:image/svg+xml;utf8,')).equals(true)
 			o(result.html.includes('style="max-width: 100px;')).equals(true)
 		})
@@ -246,7 +349,7 @@ o.spec(
 			let result = htmlSanitizer.sanitizeHTML(inputElement, {
 				blockExternalContent: true,
 			})
-			o(result.externalContent[0]).equals("https://tutanota.com/images/favicon/favicon.ico")
+			o(result.externalContent).equals(1)
 			o(result.html.includes('src="https://tutanota.com')).equals(false)
 		})
 		o("detect video posters", function () {
@@ -256,7 +359,7 @@ o.spec(
 					blockExternalContent: true,
 				},
 			)
-			o(result.externalContent[0]).equals("https://emailprivacytester.com/cb/04e69deda1be1c37/video_poster")
+			o(result.externalContent).equals(1)
 			o(result.html.includes('poster="data:image/svg+xml;utf8,')).equals(true)
 		})
 		o("detect style list images", function () {
@@ -266,27 +369,27 @@ o.spec(
 					blockExternalContent: true,
 				},
 			)
-			o(result.externalContent[0]).equals("http://www.heise.de/icons/ho/heise_online_logo_top.gif")
+			o(result.externalContent).equals(1)
 			o(result.html.includes("list-style-image: url(&quot;data:image/svg+xml;utf8,")).equals(true)
 		})
 		o("detect style content urls", function () {
 			let result = htmlSanitizer.sanitizeHTML('<div style="content: url(http://www.heise.de/icons/ho/heise_online_logo_top.gif)"></div>', {
 				blockExternalContent: true,
 			})
-			o(result.externalContent[0]).equals("http://www.heise.de/icons/ho/heise_online_logo_top.gif")
+			o(result.externalContent).equals(1)
 			o(result.html.includes("content: url(&quot;data:image/svg+xml;utf8,")).equals(true)
 			// do not modify non url content
 			result = htmlSanitizer.sanitizeHTML('<div style="content: blabla"> </div >', {
 				blockExternalContent: true,
 			})
-			o(result.externalContent.length).equals(0)
+			o(result.externalContent).equals(0)
 			o(result.html.includes("content: blabla")).equals(true)
 		})
 		o("detect style cursor images", function () {
 			let result = htmlSanitizer.sanitizeHTML('<div style="cursor:url(https://tutanota.com/images/favicon/favicon.ico),auto;" ></div>', {
 				blockExternalContent: true,
 			})
-			o(result.externalContent.length).equals(1)
+			o(result.externalContent).equals(1)
 			o(result.html).equals('<div style=""></div>')
 			o(result.html.includes("cursor:")).equals(false)
 			result = htmlSanitizer.sanitizeHTML(
@@ -295,7 +398,7 @@ o.spec(
 					blockExternalContent: false,
 				},
 			)
-			o(result.externalContent.length).equals(0)
+			o(result.externalContent).equals(0)
 			o(result.html).equals(
 				'<div style="cursor:url(https://tutanota.com/images/favicon/favicon2.ico),url(https://tutanota.com/images/favicon/favicon.ico),auto;"></div>',
 			)
@@ -304,24 +407,24 @@ o.spec(
 			let result = htmlSanitizer.sanitizeHTML('<div style="filter:url(https://tutanota.com/images/favicon/favicon.ico);" ></div>', {
 				blockExternalContent: true,
 			})
-			o(result.externalContent.length).equals(1)
+			o(result.externalContent).equals(1)
 			o(result.html.includes("filter:")).equals(false)
 			result = htmlSanitizer.sanitizeHTML('<div style="filter:url(https://tutanota.com/images/favicon/favicon.ico);" ></div>', {
 				blockExternalContent: false,
 			})
-			o(result.externalContent.length).equals(0)
+			o(result.externalContent).equals(0)
 			o(result.html).equals('<div style="filter:url(https://tutanota.com/images/favicon/favicon.ico);"></div>')
 		})
 		o("detect style element", function () {
 			let result = htmlSanitizer.sanitizeHTML("<div><style>@import url(https://fonts.googleapis.com/css?family=Diplomata+SC);</style></div>", {
 				blockExternalContent: true,
 			})
-			o(result.externalContent.length).equals(0)
+			o(result.externalContent).equals(0)
 			o(result.html).equals("<div></div>")
 			result = htmlSanitizer.sanitizeHTML("<div><style>@import url(https://fonts.googleapis.com/css?family=Diplomata+SC);</style></div>", {
 				blockExternalContent: false,
 			})
-			o(result.externalContent.length).equals(0)
+			o(result.externalContent).equals(0)
 			o(result.html).equals("<div></div>")
 		})
 		o("replace images and links", function () {
@@ -331,7 +434,7 @@ o.spec(
 					blockExternalContent: true,
 				},
 			)
-			o(result.externalContent.length).equals(9)
+			o(result.externalContent).equals(9)
 			// do not replace links
 			o(
 				result.html.includes('<a target="_blank" rel="noopener noreferrer" href="http://localhost/index.html">') ||
@@ -343,7 +446,7 @@ o.spec(
 			const result = htmlSanitizer.sanitizeHTML(input, {
 				blockExternalContent: true,
 			})
-			o(result.externalContent.length).equals(0)
+			o(result.externalContent).equals(0)
 			o(result.inlineImageCids).deepEquals(["asbasdf-safd_d"])
 			o(result.html).equals(
 				`<img src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}" cid="asbasdf-safd_d" class="tutanota-placeholder"><img src="data:image/svg+xml;utf8,sadfsdasdf">`,
@@ -356,19 +459,19 @@ o.spec(
 					blockExternalContent: true,
 				},
 			)
-			o(result.externalContent[0]).equals("https://www.w3schools.com/tags/horse.mp3")
+			o(result.externalContent).equals(1)
 			o(result.html.includes("data:image/svg+xml;utf8,")).equals(true)
 		})
 		o("embed tag", function () {
 			let result = htmlSanitizer.sanitizeHTML('<div><embed src="https://tutanota.com/images/favicon/favicon.ico"></div>', {
 				blockExternalContent: true,
 			})
-			o(result.externalContent.length).equals(0)
+			o(result.externalContent).equals(0)
 			o(result.html).equals("<div></div>")
 			result = htmlSanitizer.sanitizeHTML('<div><embed src="https://tutanota.com/images/favicon/favicon.ico"></div>', {
 				blockExternalContent: false,
 			})
-			o(result.externalContent.length).equals(0)
+			o(result.externalContent).equals(0)
 			o(result.html).equals("<div></div>")
 		})
 		o("disallow relative links", function () {

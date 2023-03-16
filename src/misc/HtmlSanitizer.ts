@@ -4,7 +4,8 @@ import { downcast, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao
 import { DataFile } from "../api/common/DataFile"
 // the svg data string must contain ' instead of " to avoid display errors in Edge
 // '#' character is reserved in URL and FF won't display SVG otherwise
-export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string = "data:image/svg+xml;utf8," + ReplacementImage.replace(/"/g, "'").replace(/#/g, "%23")
+export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string =
+	"data:image/svg+xml;utf8," + ReplacementImage.replace(/"/g, "'").replace(/#/g, "%23").replace(/\s+/g, " ")
 const EXTERNAL_CONTENT_ATTRS = ["src", "poster", "srcset", "background"] // background attribute is deprecated but still used in common browsers
 
 type SanitizeConfigExtra = {
@@ -20,7 +21,7 @@ const DEFAULT_CONFIG_EXTRA: SanitizeConfigExtra = {
 
 export type SanitizedHTML = {
 	html: string
-	externalContent: Array<string>
+	externalContent: number
 	inlineImageCids: Array<string>
 	links: Array<HTMLElement>
 }
@@ -30,7 +31,7 @@ export type Link = HTMLElement
 
 export type SanitizedFragment = {
 	fragment: DocumentFragment
-	externalContent: Array<string>
+	externalContent: number
 	inlineImageCids: Array<string>
 	links: Array<Link>
 }
@@ -66,7 +67,7 @@ const FRAGMENT_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT: true } = {
 type BaseConfig = typeof HTML_CONFIG | typeof SVG_CONFIG | typeof FRAGMENT_CONFIG
 
 export class HtmlSanitizer {
-	private externalContent!: Array<string>
+	private externalContent!: number
 	private inlineImageCids!: Array<string>
 	private links!: Array<Link>
 	private purifier!: DOMPurifyI
@@ -166,7 +167,7 @@ export class HtmlSanitizer {
 	}
 
 	private init<T extends BaseConfig>(config: T, configExtra: Partial<SanitizeConfigExtra>): SanitizeConfigExtra & T {
-		this.externalContent = []
+		this.externalContent = 0
 		this.inlineImageCids = []
 		this.links = []
 		return Object.assign({}, config, DEFAULT_CONFIG_EXTRA, configExtra)
@@ -225,6 +226,19 @@ export class HtmlSanitizer {
 				if (htmlNode.style.filter) {
 					this.removeStyleImage(htmlNode, "filter")
 				}
+
+				if (htmlNode.style.borderImageSource) {
+					this.removeStyleImage(htmlNode, "border-image-source")
+				}
+
+				if (htmlNode.style.maskImage || htmlNode.style.webkitMaskImage) {
+					this.removeStyleImage(htmlNode, "mask-image")
+					this.removeStyleImage(htmlNode, "-webkit-mask-image")
+				}
+
+				if (htmlNode.style.shapeOutside) {
+					this.removeStyleImage(htmlNode, "shape-outside")
+				}
 			}
 
 			// Disallow position because you can do bad things with it and it also messes up layout
@@ -250,13 +264,13 @@ export class HtmlSanitizer {
 					htmlNode.setAttribute("cid", cid)
 					htmlNode.classList.add("tutanota-placeholder")
 				} else if (config.blockExternalContent && attribute.name === "srcset") {
-					this.externalContent.push(attribute.value)
+					this.externalContent++
 
 					htmlNode.removeAttribute("srcset")
 					htmlNode.setAttribute("src", PREVENT_EXTERNAL_IMAGE_LOADING_ICON)
 					htmlNode.style.maxWidth = "100px"
 				} else if (config.blockExternalContent && !attribute.value.startsWith("data:") && !attribute.value.startsWith("cid:")) {
-					this.externalContent.push(attribute.value)
+					this.externalContent++
 
 					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
 					htmlNode.attributes.setNamedItem(attribute)
@@ -266,26 +280,23 @@ export class HtmlSanitizer {
 		})
 	}
 
-	private removeStyleImage(htmlNode: HTMLElement, styleAttributeName: string) {
-		let value = (htmlNode.style as any)[styleAttributeName]
+	/** NB! {@param cssStyleAttributeName} is a *CSS* name ("border-image-source" as opposed to "borderImageSource"). */
+	private removeStyleImage(htmlNode: HTMLElement, cssStyleAttributeName: string) {
+		let value = htmlNode.style.getPropertyValue(cssStyleAttributeName)
 
 		if (value.match(/url\(/)) {
-			this.externalContent.push(value)
+			this.externalContent++
 
-			htmlNode.style.removeProperty(styleAttributeName)
+			htmlNode.style.removeProperty(cssStyleAttributeName)
 		}
 	}
 
 	private replaceStyleImage(htmlNode: HTMLElement, styleAttributeName: string, limitWidth: boolean) {
-		let value = (htmlNode.style as any)[styleAttributeName]
+		let value: string = (htmlNode.style as any)[styleAttributeName]
 
-		if (value.match(/^url\(/) && !value.match(/^url\(["']?data:/)) {
-			// remove surrounding url definition. url(<link>)
-			value = value.replace(/^url\("*/, "")
-			value = value.replace(/"*\)$/, "")
-
-			this.externalContent.push(value)
-			;(htmlNode.style as any)[styleAttributeName] = 'url("' + PREVENT_EXTERNAL_IMAGE_LOADING_ICON + '")'
+		if (value.includes("url(") && !value.match(/^url\(["']?data:/)) {
+			this.externalContent++
+			;(htmlNode.style as any)[styleAttributeName] = `url("${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}")`
 
 			if (limitWidth) {
 				htmlNode.style.maxWidth = "100px"
