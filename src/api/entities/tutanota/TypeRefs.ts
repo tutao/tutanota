@@ -1,6 +1,7 @@
 import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef} from "@tutao/tutanota-utils"
 import {typeModels} from "./TypeModels.js"
+import {DateWrapper} from '../sys/TypeRefs.js'
 import {Blob} from '../sys/TypeRefs.js'
 import {BucketKey} from '../sys/TypeRefs.js'
 import {BlobReferenceTokenWrapper} from '../sys/TypeRefs.js'
@@ -200,6 +201,8 @@ export type CalendarRepeatRule = {
 	frequency: NumberString;
 	interval: NumberString;
 	timeZone: string;
+
+	excludedDates: DateWrapper[];
 }
 export const ContactTypeRef: TypeRef<Contact> = new TypeRef("tutanota", "Contact")
 
