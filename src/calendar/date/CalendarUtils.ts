@@ -29,7 +29,8 @@ import { DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventBy
 import { lang } from "../../misc/LanguageViewModel"
 import { formatDateTime, formatDateWithMonth, formatTime, timeStringFromParts } from "../../misc/Formatter"
 import { size } from "../../gui/size"
-import type { RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
+import type { DateWrapper, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
+import { createDateWrapper } from "../../api/entities/sys/TypeRefs.js"
 import { isColorLight } from "../../gui/base/Color"
 import type { GroupColors } from "../view/CalendarView"
 import { isSameId } from "../../api/common/utils/EntityUtils"
@@ -732,10 +733,57 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 	if (repeatRule == null) {
 		throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
 	}
+	const isLong = isLongEvent(event, timeZone)
+	const allDay = isAllDayEvent(event)
+	const exclusions = allDay
+		? repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date: getAllDayDateForTimezone(date, timeZone) }))
+		: repeatRule.excludedDates
+
+	iterateOccurrencesWhileTrue(event, timeZone, (startTime: Date, endTime: Date) => {
+		if (startTime.getTime() > month.end.getTime()) return false
+
+		const calcDay = getStartOfDay(startTime)
+		if (isExcludedDate(startTime, exclusions)) {
+			const eventsOnDay = getFromMap(events, calcDay.getTime(), () => [])
+			findAllAndRemove(eventsOnDay, (e) => isSameEvent(e, event))
+		} else if (endTime.getTime() >= month.start.getTime()) {
+			const eventClone = clone(event)
+
+			if (allDay) {
+				eventClone.startTime = getAllDayDateUTCFromZone(startTime, timeZone)
+				eventClone.endTime = getAllDayDateUTCFromZone(endTime, timeZone)
+			} else {
+				eventClone.startTime = new Date(startTime)
+				eventClone.endTime = new Date(endTime)
+			}
+
+			if (isLong) {
+				addDaysForLongEvent(events, eventClone, month, timeZone)
+			} else {
+				addDaysForEvent(events, eventClone, month, timeZone)
+			}
+		}
+
+		return true
+	})
+}
+
+/**
+ * execute a callback for each occurrence of a repeating event
+ * @param event the event to iterate occurrences on. must have a repeat rule
+ * @param timeZone
+ * @param callback this is called with startTime and endTime of each occurrence until either
+ * the end condition of the repeat rule is hit or the callback returns false.
+ */
+function iterateOccurrencesWhileTrue(event: CalendarEvent, timeZone: string, callback: (startTime: Date, endTime: Date) => boolean) {
+	const { repeatRule } = event
+
+	if (repeatRule == null) {
+		throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
+	}
 
 	const frequency: RepeatPeriod = downcast(repeatRule.frequency)
 	const interval = Number(repeatRule.interval)
-	const isLong = isLongEvent(event, timeZone)
 	let eventStartTime = new Date(getEventStart(event, timeZone))
 	let eventEndTime = new Date(getEventEnd(event, timeZone))
 	// Loop by the frequency step
@@ -763,35 +811,10 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 	let calcEndTime = eventEndTime
 	let iteration = 1
 
-	while (
-		(endOccurrences == null || iteration <= endOccurrences) &&
-		(repeatEndTime == null || calcStartTime.getTime() < repeatEndTime.getTime()) &&
-		calcStartTime.getTime() < month.end.getTime()
-	) {
+	while ((endOccurrences == null || iteration <= endOccurrences) && (repeatEndTime == null || calcStartTime.getTime() < repeatEndTime.getTime())) {
 		assertDateIsValid(calcStartTime)
 		assertDateIsValid(calcEndTime)
-
-		if (iteration > MAX_EVENT_ITERATIONS) {
-			throw new Error("Run into the infinite loop, addDaysForRecurringEvent")
-		}
-
-		if (calcEndTime.getTime() >= month.start.getTime()) {
-			const eventClone = clone(event)
-
-			if (allDay) {
-				eventClone.startTime = getAllDayDateUTCFromZone(calcStartTime, timeZone)
-				eventClone.endTime = getAllDayDateUTCFromZone(calcEndTime, timeZone)
-			} else {
-				eventClone.startTime = new Date(calcStartTime)
-				eventClone.endTime = new Date(calcEndTime)
-			}
-
-			if (isLong) {
-				addDaysForLongEvent(events, eventClone, month, timeZone)
-			} else {
-				addDaysForEvent(events, eventClone, month, timeZone)
-			}
-		}
+		if (!callback(calcStartTime, calcEndTime)) break
 
 		calcStartTime = incrementByRepeatPeriod(eventStartTime, frequency, interval * iteration, repeatTimeZone)
 		calcEndTime = allDay
@@ -799,6 +822,53 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 			: DateTime.fromJSDate(calcStartTime).plus(calcDuration).toJSDate()
 		iteration++
 	}
+}
+
+/**
+ * return true if an event has more than one visible occurrence according to its repeat rule and excluded dates
+ *
+ * will compare exclusion time stamps with the exact date-time value of the occurrences startTime
+ * @param event the calendar event to check
+ */
+export function calendarEventHasMoreThanOneOccurrencesLeft(event: CalendarEvent): boolean {
+	if (event.repeatRule == null) {
+		return false
+	}
+	const { endType, endValue, excludedDates } = event.repeatRule
+	if (endType === EndType.Never) {
+		// there are infinite occurrences
+		return true
+	} else if (endType === EndType.Count && Number(endValue ?? "0") > excludedDates.length + 1) {
+		// if there are not enough exclusions to delete all but one occurrence, we can return true
+		return true
+	} else {
+		const excludedTimestamps = excludedDates.map(({ date }) => date.getTime())
+		let i = 0
+		let occurrencesFound = 0
+		iterateOccurrencesWhileTrue(event, getTimeZone(), (startTime) => {
+			const startTimestamp = startTime.getTime()
+			while (i < excludedTimestamps.length && startTimestamp > excludedTimestamps[i]) {
+				i++
+			}
+
+			if (startTimestamp !== excludedTimestamps[i]) {
+				occurrencesFound += 1
+				if (occurrencesFound > 1) return false
+			}
+			return true
+		})
+
+		return occurrencesFound > 1
+	}
+}
+
+/**
+ * find out if a given date is in a list of excluded dates
+ * @param currentDate the date to check
+ * @param excludedDates a sorted list of excluded dates, earliest to latest
+ */
+function isExcludedDate(currentDate: Date, excludedDates: ReadonlyArray<DateWrapper> = []): boolean {
+	return excludedDates.some((dw) => dw.date.getTime() === currentDate.getTime())
 }
 
 export function addDaysForLongEvent(
@@ -867,6 +937,7 @@ export function findNextAlarmOccurrence(
 	interval: number,
 	endType: EndType,
 	endValue: number,
+	exclusions: Array<Date>,
 	alarmTrigger: AlarmInterval,
 	localTimeZone: string,
 ): AlarmOccurrence | null {
@@ -878,21 +949,21 @@ export function findNextAlarmOccurrence(
 
 	while (endType !== EndType.Count || occurrenceNumber < endValue) {
 		const occurrenceDate = incrementByRepeatPeriod(calcEventStart, frequency, interval * occurrenceNumber, isAllDayEvent ? localTimeZone : timeZone)
-
 		if (endDate && occurrenceDate.getTime() >= endDate.getTime()) {
 			return null
 		}
 
-		const alarmTime = calculateAlarmTime(occurrenceDate, alarmTrigger, localTimeZone)
+		if (!exclusions.some((d) => d.getTime() === occurrenceDate.getTime())) {
+			const alarmTime = calculateAlarmTime(occurrenceDate, alarmTrigger, localTimeZone)
 
-		if (alarmTime >= now) {
-			return {
-				alarmTime,
-				occurrenceNumber: occurrenceNumber,
-				eventTime: occurrenceDate,
+			if (alarmTime >= now) {
+				return {
+					alarmTime,
+					occurrenceNumber: occurrenceNumber,
+					eventTime: occurrenceDate,
+				}
 			}
 		}
-
 		occurrenceNumber++
 	}
 	return null

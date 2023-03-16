@@ -1,6 +1,7 @@
 import o from "ospec"
 import type { AlarmOccurrence, CalendarMonth } from "../../../src/calendar/date/CalendarUtils.js"
 import {
+	calendarEventHasMoreThanOneOccurrencesLeft,
 	CalendarEventValidity,
 	checkEventValidity,
 	eventEndsBefore,
@@ -19,7 +20,7 @@ import {
 	prepareCalendarDescription,
 } from "../../../src/calendar/date/CalendarUtils.js"
 import { lang } from "../../../src/misc/LanguageViewModel.js"
-import { createGroup, createGroupMembership, createUser } from "../../../src/api/entities/sys/TypeRefs.js"
+import { createDateWrapper, createGroup, createGroupMembership, createUser } from "../../../src/api/entities/sys/TypeRefs.js"
 import { AlarmInterval, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/api/common/TutanotaConstants.js"
 import { timeStringFromParts } from "../../../src/misc/Formatter.js"
 import { DateTime } from "luxon"
@@ -27,8 +28,10 @@ import { getAllDayDateUTC } from "../../../src/api/common/utils/CommonCalendarUt
 import { hasCapabilityOnGroup } from "../../../src/sharing/GroupUtils.js"
 import { parseTime } from "../../../src/misc/parsing/TimeParser.js"
 import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { createCalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { createCalendarEvent, createCalendarRepeatRule } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { lastThrow, neverNull } from "@tutao/tutanota-utils"
+
+const zone = "Europe/Berlin"
 
 o.spec("calendar utils tests", function () {
 	function iso(strings: TemplateStringsArray, ...dates: number[]) {
@@ -789,6 +792,154 @@ o.spec("calendar utils tests", function () {
 			).equals(CalendarEventValidity.Valid)
 		})
 	})
+
+	o.spec("calendarEventHasMoreThanOneOccurrencesLeft", function () {
+		o("event without end condition has more than one occurrence", function () {
+			const repeatRule = createCalendarRepeatRule({
+				endType: EndType.Never,
+				frequency: RepeatPeriod.DAILY,
+				interval: "1",
+			})
+			const event = createCalendarEvent({ startTime: new Date(), endTime: new Date(), repeatRule })
+			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(true)
+		})
+
+		o("event without repeat rule has less than two occurrences", function () {
+			const event = createCalendarEvent({ startTime: new Date(), endTime: new Date(), repeatRule: null })
+			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(false)
+		})
+
+		o("event with higher count than exclusions+1 has more left", function () {
+			const repeatRule = createCalendarRepeatRule({
+				endType: EndType.Count,
+				frequency: RepeatPeriod.DAILY,
+				interval: "1",
+				endValue: "3",
+				excludedDates: [createDateWrapper({ date: new Date("2023-03-03T22:00:00Z") })],
+				timeZone: zone,
+			})
+			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
+			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(true)
+		})
+
+		o("event with count and enough exclusions has less than two left", function () {
+			const repeatRule = createCalendarRepeatRule({
+				endType: EndType.Count,
+				frequency: RepeatPeriod.DAILY,
+				interval: "1",
+				endValue: "3",
+				excludedDates: [createDateWrapper({ date: new Date("2023-03-03T22:00:00Z") }), createDateWrapper({ date: new Date("2023-03-04T22:00:00Z") })],
+				timeZone: zone,
+			})
+			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
+			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(false)
+		})
+
+		o("event with count and enough exclusions has less than two left, first is excluded", function () {
+			const repeatRule = createCalendarRepeatRule({
+				endType: EndType.Count,
+				frequency: RepeatPeriod.DAILY,
+				interval: "1",
+				endValue: "3",
+				excludedDates: [createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }), createDateWrapper({ date: new Date("2023-03-04T22:00:00Z") })],
+				timeZone: zone,
+			})
+			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
+			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(false)
+		})
+
+		o("event with end date and enough exclusions has less than two left, first is excluded", function () {
+			const repeatRule = createCalendarRepeatRule({
+				endType: EndType.UntilDate,
+				frequency: RepeatPeriod.DAILY,
+				interval: "1",
+				endValue: String(
+					DateTime.fromObject(
+						{
+							year: 2023,
+							month: 3,
+							day: 5,
+						},
+						{ zone },
+					).toMillis(),
+				),
+				timeZone: zone,
+				excludedDates: [createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }), createDateWrapper({ date: new Date("2023-03-04T22:00:00Z") })],
+			})
+			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
+			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(false)
+		})
+
+		o("event with end date and enough exclusions has more than two left, first is excluded", function () {
+			const repeatRule = createCalendarRepeatRule({
+				endType: EndType.UntilDate,
+				frequency: RepeatPeriod.DAILY,
+				interval: "1",
+				endValue: String(
+					DateTime.fromObject(
+						{
+							year: 2023,
+							month: 3,
+							day: 6,
+						},
+						{ zone },
+					).toMillis(),
+				),
+				timeZone: zone,
+				excludedDates: [createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }), createDateWrapper({ date: new Date("2023-03-04T22:00:00Z") })],
+			})
+			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
+			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(true)
+		})
+
+		o("event with exclusions that are not occurrences", function () {
+			const repeatRule = createCalendarRepeatRule({
+				endType: EndType.Count,
+				frequency: RepeatPeriod.DAILY,
+				interval: "2",
+				endValue: "2",
+				timeZone: zone,
+				excludedDates: [createDateWrapper({ date: new Date("2023-03-03T22:00:00Z") })],
+			})
+			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
+			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(true)
+		})
+
+		o("event with one occurrence (count), no exclusions", function () {
+			const repeatRule = createCalendarRepeatRule({
+				endType: EndType.Count,
+				frequency: RepeatPeriod.DAILY,
+				interval: "1",
+				endValue: "1",
+				timeZone: zone,
+				excludedDates: [],
+			})
+			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
+			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(false)
+		})
+
+		o("event with one occurrence (untilDate), no exclusions", function () {
+			const repeatRule = createCalendarRepeatRule({
+				endType: EndType.UntilDate,
+				frequency: RepeatPeriod.DAILY,
+				interval: "1",
+				endValue: String(
+					DateTime.fromObject(
+						{
+							year: 2023,
+							month: 3,
+							day: 3,
+						},
+						{ zone },
+					).toMillis(),
+				),
+				timeZone: zone,
+				excludedDates: [],
+			})
+			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
+			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(false)
+		})
+	})
 })
 
 function toCalendarString(calenderMonth: CalendarMonth) {
@@ -812,7 +963,7 @@ function iterateAlarmOccurrences(
 
 	while (occurrences.length < maxOccurrences) {
 		const next: AlarmOccurrence = neverNull(
-			findNextAlarmOccurrence(now, timeZone, eventStart, eventEnd, repeatPeriod, interval, endType, endValue, alarmInterval, calculationZone),
+			findNextAlarmOccurrence(now, timeZone, eventStart, eventEnd, repeatPeriod, interval, endType, endValue, [], alarmInterval, calculationZone),
 		)
 
 		if (next) {

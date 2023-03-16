@@ -70,7 +70,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 		}
 	}
 
-	new CalendarEventPopup(latestEvent, eventBubbleRect, htmlSanitizer, onEditEvent, viewModel).show()
+	new CalendarEventPopup(latestEvent, eventBubbleRect, htmlSanitizer, onEditEvent, viewModel, latestEvent).show()
 }
 
 export async function getEventFromFile(file: TutanotaFile): Promise<CalendarEvent | null> {

@@ -59,7 +59,9 @@ export type EventsOnDays = {
 	longEvents: Array<CalendarEvent>
 }
 export type DraggedEvent = {
+	/// the event instance the user grabbed with the mouse
 	originalEvent: CalendarEvent
+	/// the temporary event that's shown during the drag
 	eventClone: CalendarEvent
 }
 
@@ -204,35 +206,26 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	async onDragEnd(timeToMoveBy: number): Promise<void> {
 		//if the time of the dragged event is the same as of the original we only cancel the drag
 		if (timeToMoveBy !== 0) {
-			if (this._draggedEvent) {
-				const { originalEvent, eventClone } = this._draggedEvent
-				this._draggedEvent = null
-				updateTemporaryEventWithDiff(eventClone, originalEvent, timeToMoveBy)
+			if (this._draggedEvent == null) return
 
-				this._addTransientEvent(eventClone)
+			const { originalEvent, eventClone } = this._draggedEvent
+			this._draggedEvent = null
+			updateTemporaryEventWithDiff(eventClone, originalEvent, timeToMoveBy)
 
-				let startTime
+			this._addTransientEvent(eventClone)
 
-				if (originalEvent.repeatRule) {
-					// In case we have a repeat rule we want to move all the events relative to the drag operation.
-					// Therefore we load the first event and modify the start time of that event.
-					const firstOccurrence = await this._entityClient.load(CalendarEventTypeRef, originalEvent._id)
-					startTime = new Date(firstOccurrence.startTime.getTime() + timeToMoveBy)
-				} else {
-					startTime = eventClone.startTime
-				}
+			const firstOccurrence = originalEvent.repeatRule ? await this._entityClient.load(CalendarEventTypeRef, originalEvent._id) : originalEvent
 
-				try {
-					const didUpdate = await this._moveEvent(originalEvent, startTime)
+			try {
+				const didUpdate = await this._moveEvent(firstOccurrence, timeToMoveBy)
 
-					if (!didUpdate) {
-						this._removeTransientEvent(eventClone)
-					}
-				} catch (e) {
+				if (!didUpdate) {
 					this._removeTransientEvent(eventClone)
-
-					throw e
 				}
+			} catch (e) {
+				this._removeTransientEvent(eventClone)
+
+				throw e
 			}
 		} else {
 			this._draggedEvent = null
@@ -344,9 +337,14 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		findAndRemove(this._transientEvents, (transient) => transient.uid === event.uid)
 	}
 
-	async _moveEvent(event: CalendarEvent, newStartDate: Date): Promise<EventCreateResult> {
+	/**
+	 * move an event to a new start time
+	 * @param event the actually dragged event (may be a repeated instance)
+	 * @param diff the amount of milliseconds to shift the event by
+	 */
+	async _moveEvent(event: CalendarEvent, diff: number): Promise<EventCreateResult> {
 		const viewModel: CalendarEventViewModel = await this._createCalendarEventViewModelCallback(event, this.calendarInfos)
-		viewModel.rescheduleEvent(newStartDate)
+		viewModel.rescheduleEvent(diff)
 		// Errors are handled in the individual views
 		return viewModel.saveAndSend({
 			askForUpdates: askIfShouldSendCalendarUpdatesToAttendees,
