@@ -45,6 +45,7 @@ export function getHourOfDay(date: Date, hour: number): Date {
 	d.setHours(hour, 0, 0, 0)
 	return d
 }
+
 export function isStartOfDay(date: Date): boolean {
 	return date.getHours() === 0 && date.getMinutes() === 0
 }
@@ -78,11 +79,13 @@ export function incrementDate(date: Date, byValue: number): Date {
 	date.setDate(date.getDate() + byValue)
 	return date
 }
+
 export function incrementMonth(d: Date, byValue: number): Date {
 	const date = new Date(d)
 	date.setMonth(date.getMonth() + byValue)
 	return date
 }
+
 export function isSameDayOfDate(date1: Date | null | undefined, date2: Date | null | undefined): boolean {
 	return (
 		(!date1 && !date2) ||
@@ -119,6 +122,7 @@ export function formatSortableDateTime(date: Date): string {
 export function sortableTimestamp(): string {
 	return formatSortableDateTime(new Date())
 }
+
 export function isValidDate(date: Date): boolean {
 	return !isNaN(date.getTime())
 }
@@ -129,6 +133,7 @@ export function isValidDate(date: Date): boolean {
 export function millisToDays(millis: number): number {
 	return millis / DAY_IN_MILLIS
 }
+
 export function daysToMillis(days: number): number {
 	return days * DAY_IN_MILLIS
 }

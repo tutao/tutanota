@@ -2,6 +2,7 @@ import o from "ospec"
 import {
 	parseCalendarEvents,
 	parseDuration,
+	parseExDates,
 	parseICalendar,
 	parseProperty,
 	parsePropertyKeyValue,
@@ -11,6 +12,7 @@ import {
 } from "../../../src/calendar/export/CalendarParser.js"
 import { ParserError, StringIterator } from "../../../src/misc/parsing/ParserCombinator.js"
 import { DateTime } from "luxon"
+import { createDateWrapper } from "../../../src/api/entities/sys/TypeRefs.js"
 
 o.spec("CalendarParser", function () {
 	o.spec("propertySequenceParser", function () {
@@ -192,6 +194,66 @@ o.spec("CalendarParser", function () {
 			// mostly "inclusive"
 			const zone = "Asia/Krasnoyarsk"
 			o(parseUntilRruleTime("20190919T235959Z", zone)).deepEquals(DateTime.fromObject({ year: 2019, month: 9, day: 20 }, { zone: zone }).toJSDate())
+		})
+	})
+
+	o.spec("parseExcludedDates", function () {
+		o("are excluded dates deduplicated", function () {
+			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "20230308T230000Z,20230308T230000Z,20230309T230000Z" }])
+			o(parsedDates).deepEquals([
+				createDateWrapper({ date: new Date("2023-03-08T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
+			])
+		})
+		o("are excluded dates sorted", function () {
+			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "20230313T230000Z,20230309T230000Z" }])
+			o(parsedDates).deepEquals([
+				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-13T23:00:00Z") }),
+			])
+		})
+		o("multiple exdates in separate lines are parsed", function () {
+			const parsedDates = parseExDates([
+				{ name: "EXDATES", params: {}, value: "20230309T230000Z" },
+				{
+					name: "EXDATES",
+					params: {},
+					value: "20230203T230000Z",
+				},
+			])
+			o(parsedDates).deepEquals([
+				createDateWrapper({ date: new Date("2023-02-03T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
+			])
+		})
+		o("deduplication over multiple lines works", function () {
+			const parsedDates = parseExDates([
+				{ name: "EXDATES", params: {}, value: "20230309T230000Z,20230302T230000Z" },
+				{
+					name: "EXDATES",
+					params: {},
+					value: "20230309T230000Z,20230114T230000Z",
+				},
+			])
+			o(parsedDates).deepEquals([
+				createDateWrapper({ date: new Date("2023-01-14T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-02T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
+			])
+		})
+		o("is timezone parsed", function () {
+			const parsedDates = parseExDates([{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20230309T230000,20230302T230000" }])
+			o(parsedDates).deepEquals([
+				createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-09T22:00:00Z") }),
+			])
+		})
+		o(" deduplication over different timezones", function () {
+			const parsedDates = parseExDates([
+				{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20230309T230000" },
+				{ name: "EXDATES", params: { TZID: "Europe/Sofia" }, value: "20230310T000000" },
+			])
+			o(parsedDates).deepEquals([createDateWrapper({ date: new Date("2023-03-09T22:00:00Z") })])
 		})
 	})
 })

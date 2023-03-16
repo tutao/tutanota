@@ -2,10 +2,10 @@ import o from "ospec"
 // @ts-ignore[untyped-import]
 import en from "../../../src/translations/en.js"
 import type { Guest, SendMailPurpose } from "../../../src/calendar/date/CalendarEventViewModel.js"
-import { CalendarEventViewModel } from "../../../src/calendar/date/CalendarEventViewModel.js"
+import { areExcludedDatesEqual, CalendarEventViewModel } from "../../../src/calendar/date/CalendarEventViewModel.js"
 import { lang } from "../../../src/misc/LanguageViewModel.js"
 import { assertThrows, unmockAttribute } from "@tutao/tutanota-test-utils"
-import { addMapEntry, clone, delay, downcast, neverNull, noOp } from "@tutao/tutanota-utils"
+import { addMapEntry, clone, delay, downcast, LazyLoaded, neverNull, noOp } from "@tutao/tutanota-utils"
 import type { MailboxDetail } from "../../../src/mail/model/MailModel.js"
 import { MailModel } from "../../../src/mail/model/MailModel.js"
 import type { CalendarEvent, Mail } from "../../../src/api/entities/tutanota/TypeRefs.js"
@@ -20,9 +20,17 @@ import {
 	createMailboxProperties,
 	EncryptedMailAddress,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { AccountType, AlarmInterval, assertEnumValue, CalendarAttendeeStatus, ShareCapability } from "../../../src/api/common/TutanotaConstants.js"
+import {
+	AccountType,
+	AlarmInterval,
+	assertEnumValue,
+	CalendarAttendeeStatus,
+	EndType,
+	RepeatPeriod,
+	ShareCapability,
+} from "../../../src/api/common/TutanotaConstants.js"
 import type { User } from "../../../src/api/entities/sys/TypeRefs.js"
-import { createGroupMembership, createPublicKeyReturn, createRepeatRule } from "../../../src/api/entities/sys/TypeRefs.js"
+import { createDateWrapper, createGroupMembership, createPublicKeyReturn, createRepeatRule } from "../../../src/api/entities/sys/TypeRefs.js"
 import type { CalendarUpdateDistributor } from "../../../src/calendar/date/CalendarUpdateDistributor.js"
 import type { UserController } from "../../../src/api/main/UserController.js"
 import type { CalendarInfo } from "../../../src/calendar/model/CalendarModel.js"
@@ -662,6 +670,14 @@ o.spec("CalendarEventViewModel", function () {
 			newEvent.repeatRule = createRepeatRule()
 			o(viewModel._hasChanges(newEvent)).equals(true)
 			newEvent.repeatRule = existingEvent.repeatRule
+			o(viewModel._hasChanges(newEvent)).equals(false)
+			newEvent.repeatRule = createRepeatRule({
+				excludedDates: [createDateWrapper({ date: new Date("2023-03-06T13:56:28.658Z") })],
+			})
+			o(viewModel._hasChanges(newEvent)).equals(true)
+			existingEvent.repeatRule = createRepeatRule({
+				excludedDates: newEvent.repeatRule!.excludedDates.slice(),
+			})
 			o(viewModel._hasChanges(newEvent)).equals(false)
 		})
 		o("do not ignore confidentiality", async function () {
@@ -3052,6 +3068,142 @@ o.spec("CalendarEventViewModel", function () {
 			const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
 			o(notAvailable).equals(false)
 		})
+	})
+	o.spec("deleteExcludedDates", async function () {
+		o("clears the array", async function () {
+			const userController = makeUserController()
+			const viewModel = await init({
+				userController,
+				calendars: makeCalendars("own"),
+				existingEvent: createCalendarEvent({
+					repeatRule: createRepeatRule({
+						excludedDates: [createDateWrapper({ date: new Date("2023-03-13T00:00:00Z") })],
+					}),
+				}),
+			})
+
+			viewModel.deleteExcludedDates()
+			o(viewModel.repeat?.excludedDates).deepEquals([])
+		})
+	})
+	o.spec("excludeThisOccurence", function () {
+		o("no exclusion is added if event has no repeat rule", async function () {
+			const userController = makeUserController()
+			const viewModel = await init({
+				userController,
+				calendars: makeCalendars("own"),
+				existingEvent: createCalendarEvent({ startTime: new Date("2023-03-13T00:00:00Z") }),
+			})
+
+			await viewModel.excludeThisOccurrence()
+			o(viewModel.repeat).equals(null)
+		})
+		o("adding two exclusions in reverse order sorts them", async function () {
+			const userController = makeUserController()
+			const viewModel = await init({
+				userController,
+				calendars: makeCalendars("own"),
+				existingEvent: createCalendarEvent({
+					_id: ["listId", "elementId"],
+					_ownerGroup: "ownerGroup",
+					startTime: new Date("2023-03-12T00:00:00Z"),
+					endTime: new Date("2023-03-12T01:00:00Z"),
+					repeatRule: createRepeatRule({
+						frequency: RepeatPeriod.DAILY,
+						endType: EndType.Never,
+						excludedDates: [createDateWrapper({ date: new Date("2023-03-13T00:00:00Z") })],
+					}),
+				}),
+			})
+			// @ ts-ignore
+			const mock: EntityRestClientMock = viewModel._entityClient._target as EntityRestClientMock
+			mock.addListInstances(viewModel.existingEvent!)
+
+			const calendars = new Map()
+			calendars.set("ownerGroup", {
+				groupRoot: null,
+				longEvents: new LazyLoaded(async () => []),
+				groupInfo: null,
+				group: null,
+				shared: false,
+			})
+			viewModel.calendars = calendars
+
+			await viewModel.excludeThisOccurrence()
+			o(viewModel._calendarModel.updateEvent.calls[0].args[0]?.repeatRule.excludedDates).deepEquals([
+				createDateWrapper({ date: new Date("2023-03-12T00:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-13T00:00:00Z") }),
+			])
+		})
+		o("adding two exclusions in order sorts them", async function () {
+			const userController = makeUserController()
+			const viewModel = await init({
+				userController,
+				calendars: makeCalendars("own"),
+				existingEvent: createCalendarEvent({
+					_id: ["listId", "elementId"],
+					_ownerGroup: "ownerGroup",
+					startTime: new Date("2023-03-13T00:00:00Z"),
+					endTime: new Date("2023-03-13T01:00:00Z"),
+					repeatRule: createRepeatRule({
+						frequency: RepeatPeriod.DAILY,
+						endType: EndType.Never,
+						excludedDates: [createDateWrapper({ date: new Date("2023-03-12T00:00:00Z") })],
+					}),
+				}),
+			})
+			// @ ts-ignore
+			const mock: EntityRestClientMock = viewModel._entityClient._target as EntityRestClientMock
+			mock.addListInstances(viewModel.existingEvent!)
+
+			const calendars = new Map()
+			calendars.set("ownerGroup", {
+				groupRoot: null,
+				longEvents: new LazyLoaded(async () => []),
+				groupInfo: null,
+				group: null,
+				shared: false,
+			})
+			viewModel.calendars = calendars
+
+			await viewModel.excludeThisOccurrence()
+			o(viewModel._calendarModel.updateEvent.calls[0].args[0]?.repeatRule.excludedDates).deepEquals([
+				createDateWrapper({ date: new Date("2023-03-12T00:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-13T00:00:00Z") }),
+			])
+		})
+	})
+})
+
+o.spec("areExcludedDatesEqual", function () {
+	o("empty arrays are equal", function () {
+		o(areExcludedDatesEqual([], [])).equals(true)
+	})
+	o("a nonempty array with an empty array is unequal", function () {
+		o(areExcludedDatesEqual([], [createDateWrapper({ date: new Date("2023-03-06T13:56:28.658Z") })])).equals(false)
+		o(areExcludedDatesEqual([createDateWrapper({ date: new Date("2023-03-06T13:56:28.658Z") })], [])).equals(false)
+	})
+	o("nonequal if an array is a subsequence of the other", function () {
+		const a = [createDateWrapper({ date: new Date("2023-03-06T13:56:28.658Z") }), createDateWrapper({ date: new Date("2023-03-09T13:56:28.658Z") })]
+		o(areExcludedDatesEqual(a, a.slice(1))).equals(false)
+	})
+
+	o("nonequal if the dates are different", function () {
+		o(
+			areExcludedDatesEqual(
+				[createDateWrapper({ date: new Date("2023-03-06T13:56:28.658Z") })],
+				[createDateWrapper({ date: new Date("2023-03-09T13:56:28.658Z") })],
+			),
+		).equals(false)
+	})
+
+	o("equal if the dates are the same", function () {
+		o(
+			areExcludedDatesEqual(
+				[createDateWrapper({ date: new Date("2023-03-06T13:56:28.658Z") })],
+				[createDateWrapper({ date: new Date("2023-03-06T13:56:28.658Z") })],
+			),
+		).equals(true)
 	})
 })
 

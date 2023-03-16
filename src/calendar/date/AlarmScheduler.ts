@@ -47,6 +47,7 @@ export class AlarmSchedulerImpl implements AlarmScheduler {
 				Number(repeatRule.interval),
 				downcast(repeatRule.endType) || EndType.Never,
 				Number(repeatRule.endValue),
+				[],
 				downcast(alarmInfo.trigger),
 				calculationLocalZone,
 			)

@@ -17,7 +17,7 @@ import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { Checkbox } from "../../gui/base/Checkbox.js"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander"
 import { client } from "../../misc/ClientDetector"
-import type { Guest, RepeatData } from "../date/CalendarEventViewModel"
+import type { Guest } from "../date/CalendarEventViewModel"
 import { CalendarEventViewModel } from "../date/CalendarEventViewModel"
 import { UserError } from "../../api/main/UserError"
 import { theme } from "../../gui/theme"
@@ -116,40 +116,8 @@ export async function showCalendarEventDialog(
 		acc.set(gc.group, gc.color)
 		return acc
 	}, new Map())
-	const repeatValues: SelectorItemList<RepeatPeriod | null> = createRepeatRuleFrequencyValues()
-	const intervalValues = createIntervalValues()
-	const endTypeValues = createRepeatRuleEndTypeValues()
 	const guestShowConfidential: Map<string, boolean> = new Map()
 	let finished = false
-
-	function renderEndValue(): Children {
-		if (viewModel.repeat == null || viewModel.repeat.endType === EndType.Never) {
-			return null
-		} else if (viewModel.repeat.endType === EndType.Count) {
-			return m(DropDownSelector, {
-				label: "emptyString_msg",
-				items: intervalValues,
-				selectedValue: viewModel.repeat.endValue,
-				selectionChangedHandler: (endValue: number) => viewModel.onEndOccurencesSelected(endValue),
-				icon: BootIcons.Expand,
-			})
-		} else if (viewModel.repeat.endType === EndType.UntilDate) {
-			return m(DatePicker, {
-				date: viewModel.repeat?.endValue != null ? new Date(viewModel.repeat?.endValue) : new Date(),
-				onDateSelected: (date) => viewModel.onRepeatEndDateSelected(date),
-				startOfTheWeekOffset,
-				label: "emptyString_msg",
-				nullSelectionText: "emptyString_msg",
-				// When the guests expander is expanded and the dialog has overflow, then the scrollbar will overlap the date picker popup
-				// to fix this we could either:
-				// * reorganize the layout so it doesn't go over the right edge
-				// * change the alignment so that it goes to the left (this is what we do)
-				rightAlignDropdown: true,
-			})
-		} else {
-			return null
-		}
-	}
 
 	const descriptionEditor: HtmlEditor = new HtmlEditor("description_label")
 		.setMinHeight(400)
@@ -291,7 +259,7 @@ export async function showCalendarEventDialog(
 						disabled: viewModel.isReadOnlyEvent(),
 					}),
 				),
-				!viewModel.allDay()
+				!viewModel.allDay
 					? m(
 							".ml-s.time-field",
 							m(TimePicker, {
@@ -319,7 +287,7 @@ export async function showCalendarEventDialog(
 						disabled: viewModel.isReadOnlyEvent(),
 					}),
 				),
-				!viewModel.allDay()
+				!viewModel.allDay
 					? m(
 							".ml-s.time-field",
 							m(TimePicker, {
@@ -392,49 +360,6 @@ export async function showCalendarEventDialog(
 		)
 	}
 
-	function renderRepeatPeriod() {
-		return m(DropDownSelector, {
-			label: "calendarRepeating_label",
-			items: repeatValues,
-			selectedValue: (viewModel.repeat && viewModel.repeat.frequency) || null,
-			selectionChangedHandler: (period) => viewModel.onRepeatPeriodSelected(period),
-			icon: BootIcons.Expand,
-			disabled: viewModel.isReadOnlyEvent(),
-		} as DropDownSelectorAttrs<RepeatPeriod | null>)
-	}
-
-	function renderRepeatInterval() {
-		return m(DropDownSelector, {
-			label: "interval_title",
-			items: intervalValues,
-			selectedValue: (viewModel.repeat && viewModel.repeat.interval) || 1,
-			selectionChangedHandler: (period) => viewModel.onRepeatIntervalChanged(period),
-			icon: BootIcons.Expand,
-			disabled: viewModel.isReadOnlyEvent(),
-		} as DropDownSelectorAttrs<number>)
-	}
-
-	function renderEndType(repeat: RepeatData) {
-		return m(DropDownSelector, {
-			label: () => lang.get("calendarRepeatStopCondition_label"),
-			items: endTypeValues,
-			selectedValue: repeat.endType,
-			selectionChangedHandler: (period) => viewModel.onRepeatEndTypeChanged(period),
-			icon: BootIcons.Expand,
-			disabled: viewModel.isReadOnlyEvent(),
-		} as DropDownSelectorAttrs<EndType>)
-	}
-
-	const renderRepeatRulePicker = () =>
-		renderTwoColumnsIfFits(
-			[
-				// Repeat type == Frequency: Never, daily, annually etc
-				m(".flex-grow.pr-s", renderRepeatPeriod()), // Repeat interval: every day, every second day etc
-				m(".flex-grow.pl-s" + (viewModel.repeat ? "" : ".hidden"), renderRepeatInterval()),
-			],
-			viewModel.repeat ? [m(".flex-grow.pr-s", renderEndType(viewModel.repeat)), m(".flex-grow.pl-s", renderEndValue())] : null,
-		)
-
 	function renderChangesMessage() {
 		return viewModel.isInvite() ? m(".mt.mb-s", lang.get("eventCopy_msg")) : null
 	}
@@ -471,14 +396,14 @@ export async function showCalendarEventDialog(
 				renderDateTimePickers(),
 				m(".flex.items-center.mt-s", [
 					m(Checkbox, {
-						checked: viewModel.allDay(),
-						onChecked: viewModel.allDay,
+						checked: viewModel.allDay,
+						onChecked: (value) => viewModel.setAllDay(value),
 						disabled: viewModel.isReadOnlyEvent(),
 						label: () => lang.get("allDay_label"),
 					}),
 					m(".flex-grow"),
 				]),
-				renderRepeatRulePicker(),
+				renderRepeatRulePicker(viewModel, startOfTheWeekOffset),
 				m(".flex", [
 					renderCalendarPicker(),
 					viewModel.canModifyAlarms()
@@ -578,6 +503,109 @@ export async function showCalendarEventDialog(
 	}
 
 	dialog.show()
+}
+
+function renderRepeatRulePicker(viewModel: CalendarEventViewModel, startOfTheWeekOffset: number): Children {
+	const intervalValues = createIntervalValues()
+	const endTypeValues = createRepeatRuleEndTypeValues()
+	return [
+		renderTwoColumnsIfFits(
+			[
+				m(".flex-grow.pr-s", renderRepeatPeriod(viewModel)), // Repeat type == Frequency: Never, daily, annually etc
+				m(".flex-grow.pl-s" + (viewModel.repeat ? "" : ".hidden"), renderRepeatInterval(viewModel, intervalValues)), // Repeat interval: every day, every second day etc
+			],
+			viewModel.repeat
+				? [
+						m(".flex-grow.pr-s", renderEndType(viewModel, endTypeValues)),
+						m(".flex-grow.pl-s", renderEndValue(viewModel, intervalValues, startOfTheWeekOffset)),
+				  ]
+				: null,
+		),
+		viewModel.repeat && viewModel.repeat.excludedDates.length > 0
+			? // we're rendering a hidden element to make the delete exclusion text field the same size as the other elements in this section
+			  renderTwoColumnsIfFits([m(".flex-grow.pr-s", renderExclusionCount(viewModel)), m(".flex-grow.pl-s.hidden", lang.get("emptyString_msg"))], [])
+			: null,
+	]
+}
+
+function renderExclusionCount(viewModel: CalendarEventViewModel): Children {
+	return m(TextField, {
+		label: () => "Excluded Dates", //FIXME phrase
+		value: viewModel.repeat?.excludedDates.length.toString() ?? "0",
+		injectionsRight: () => renderDeleteExclusionButton(viewModel),
+		disabled: true,
+	})
+}
+
+function renderDeleteExclusionButton(viewModel: CalendarEventViewModel): Children {
+	return m(IconButton, {
+		title: () => "delete exclusions", //FIXME add to phrase
+		click: () => viewModel.deleteExcludedDates(),
+		icon: Icons.Trash,
+	})
+}
+
+function renderRepeatPeriod(viewModel: CalendarEventViewModel) {
+	const repeatValues: SelectorItemList<RepeatPeriod | null> = createRepeatRuleFrequencyValues()
+	return m(DropDownSelector, {
+		label: "calendarRepeating_label",
+		items: repeatValues,
+		selectedValue: (viewModel.repeat && viewModel.repeat.frequency) || null,
+		selectionChangedHandler: (period) => viewModel.onRepeatPeriodSelected(period),
+		icon: BootIcons.Expand,
+		disabled: viewModel.isReadOnlyEvent(),
+	} as DropDownSelectorAttrs<RepeatPeriod | null>)
+}
+
+function renderRepeatInterval(viewModel: CalendarEventViewModel, intervalValues: SelectorItemList<number>) {
+	return m(DropDownSelector, {
+		label: "interval_title",
+		items: intervalValues,
+		selectedValue: (viewModel.repeat && viewModel.repeat.interval) || 1,
+		selectionChangedHandler: (period: number) => viewModel.onRepeatIntervalChanged(period),
+		icon: BootIcons.Expand,
+		disabled: viewModel.isReadOnlyEvent(),
+	})
+}
+
+function renderEndType(viewModel: CalendarEventViewModel, endTypeValues: SelectorItemList<EndType>) {
+	return m(DropDownSelector, {
+		label: () => lang.get("calendarRepeatStopCondition_label"),
+		items: endTypeValues,
+		selectedValue: viewModel.repeat?.endType ?? endTypeValues[0],
+		selectionChangedHandler: (period: EndType) => viewModel.onRepeatEndTypeChanged(period),
+		icon: BootIcons.Expand,
+		disabled: viewModel.isReadOnlyEvent(),
+	})
+}
+
+function renderEndValue(viewModel: CalendarEventViewModel, intervalValues: SelectorItemList<number>, startOfTheWeekOffset: number): Children {
+	if (viewModel.repeat == null || viewModel.repeat.endType === EndType.Never) {
+		return null
+	} else if (viewModel.repeat.endType === EndType.Count) {
+		return m(DropDownSelector, {
+			label: "emptyString_msg",
+			items: intervalValues,
+			selectedValue: viewModel.repeat.endValue,
+			selectionChangedHandler: (endValue: number) => viewModel.onEndOccurencesSelected(endValue),
+			icon: BootIcons.Expand,
+		})
+	} else if (viewModel.repeat.endType === EndType.UntilDate) {
+		return m(DatePicker, {
+			date: viewModel.repeat?.endValue != null ? new Date(viewModel.repeat?.endValue) : new Date(),
+			onDateSelected: (date) => viewModel.onRepeatEndDateSelected(date),
+			startOfTheWeekOffset,
+			label: "emptyString_msg",
+			nullSelectionText: "emptyString_msg",
+			// When the guests expander is expanded and the dialog has overflow, then the scrollbar will overlap the date picker popup
+			// to fix this we could either:
+			// * reorganize the layout so it doesn't go over the right edge
+			// * change the alignment so that it goes to the left (this is what we do)
+			rightAlignDropdown: true,
+		})
+	} else {
+		return null
+	}
 }
 
 function renderStatusIcon(viewModel: CalendarEventViewModel, attendee: Guest): Children {

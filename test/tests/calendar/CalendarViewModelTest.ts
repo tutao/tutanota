@@ -99,22 +99,6 @@ o.spec("CalendarViewModel", async function () {
 		o(viewModel).notEquals(undefined)
 		o(viewModel.selectedDate()).deepEquals(getStartOfDay(new Date()))
 	})
-	o.spec("edit event", async function () {
-		o("move event", async function () {
-			const testEvent = makeTestEvent()
-			saveAndSendMock = o.spy(() => Promise.resolve(true))
-			rescheduleEventMock = o.spy(() => Promise.resolve())
-			const calendarEventViewModelCallback = o.spy(makeCalendarEventViewModel)
-			const viewModel = initCalendarViewModel(calendarEventViewModelCallback)
-			let newDate = new Date()
-			await viewModel._moveEvent(testEvent, newDate)
-			o(calendarEventViewModelCallback.callCount).equals(1)
-			o(calendarEventViewModelCallback.args[0]).equals(testEvent)
-			o(rescheduleEventMock.callCount).equals(1)
-			o(rescheduleEventMock.args[0]).equals(newDate)
-			o(saveAndSendMock.callCount).equals(1)
-		})
-	})
 	o.spec("Dragging Events", function () {
 		o("Start then drag then change mind is noop", async function () {
 			const viewModel = initCalendarViewModel(makeCalendarEventViewModel)

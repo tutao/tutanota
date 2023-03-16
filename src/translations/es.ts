@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2023-03-20T10:59:37Z",
+	"updated_at": "2023-03-22T13:29:37Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1442,7 +1442,7 @@ export default {
 		"synchronizing_label": "Sincronizando: {progress}",
 		"takeoverAccountInvalid_msg": "La dirección de correo especificada como cuenta de reemplazo no pertenece a un administrador Prémium.",
 		"takeoverMailAddressInfo_msg": "Opcional: Indica la dirección de correo del administrador de tu cuenta de empresa, para reusar tu dirección de correo en la cuenta destino.",
-		"takeoverMailAddress_label": "Correo de la cuenta de reemplazo",
+		"takeoverMailAddress_label": "Opcional: Dirección de la cuenta destino",
 		"takeoverSuccess_msg": "Ahora puedes volver a usar tu dirección antigua, en la cuenta especificada como alias de correo o usuario adicional.",
 		"takeOverUnusedAddress_msg": "Puedes hacerte cargo de la dirección de correo de tu cuenta eliminada en otra cuenta de pago y volver a usarla allí. Para ello, especifica la dirección de correo de administrador de la cuenta de pago de destino. Ten en cuenta: En caso de que hayas configurado un segundo factor para la autenticación, debes proporcionar tu código de recuperación en su lugar porque 2FA no se puede usar para una cuenta eliminada.",
 		"targetAddress_label": "Dirección de la cuenta de destino",
