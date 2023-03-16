@@ -85,6 +85,16 @@
 					"info": "AddAssociation CustomerInfo/referredBy/ELEMENT_ASSOCIATION/2072."
 				}
 			]
+		},
+		{
+			"version": 85,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "RepeatRule",
+					"info": "AddAssociation RepeatRule/excludedDates/AGGREGATION/2076."
+				}
+			]
 		}
 	]
 }
