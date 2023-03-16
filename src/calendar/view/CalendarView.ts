@@ -6,7 +6,7 @@ import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
 import { Icons } from "../../gui/base/icons/Icons"
-import { downcast, getStartOfDay, incrementDate, LazyLoaded, memoized, ofClass } from "@tutao/tutanota-utils"
+import { downcast, first, getStartOfDay, incrementDate, LazyLoaded, memoized, ofClass } from "@tutao/tutanota-utils"
 import type { CalendarEvent, GroupSettings, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTypeRef, createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import { logins } from "../../api/main/LoginController"
@@ -809,9 +809,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 		const x = domEvent.clientX
 		const y = domEvent.clientY
-		const [viewModel, htmlSanitizer] = await Promise.all([
+		const [viewModel, htmlSanitizer, firstOccurrence] = await Promise.all([
 			this._createCalendarEventViewModel(calendarEvent, this.viewModel.calendarInfos),
 			htmlSanitizerPromise,
+			calendarEvent.repeatRule ? await locator.entityClient.load(CalendarEventTypeRef, calendarEvent._id) : calendarEvent,
 		])
 		// We want the popup to show at the users mouse
 		const rect = {
@@ -822,6 +823,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			left: x,
 			right: x,
 		}
-		new CalendarEventPopup(calendarEvent, rect, htmlSanitizer, () => this._editEventDialog(calendarEvent), viewModel).show()
+		new CalendarEventPopup(calendarEvent, rect, htmlSanitizer, () => this._editEventDialog(calendarEvent), viewModel, firstOccurrence).show()
 	}
 }

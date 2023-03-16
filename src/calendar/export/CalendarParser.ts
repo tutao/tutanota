@@ -2,14 +2,16 @@ import { DAY_IN_MILLIS, downcast, filterInt, neverNull } from "@tutao/tutanota-u
 import { DateTime, IANAZone } from "luxon"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventAttendee, createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
-import type { AlarmInfo, RepeatRule } from "../../api/entities/sys/TypeRefs.js"
-import { createAlarmInfo, createRepeatRule } from "../../api/entities/sys/TypeRefs.js"
+import type { AlarmInfo, DateWrapper, RepeatRule } from "../../api/entities/sys/TypeRefs.js"
+import { createAlarmInfo, createDateWrapper, createRepeatRule } from "../../api/entities/sys/TypeRefs.js"
 import type { Parser } from "../../misc/parsing/ParserCombinator"
 import {
 	combineParsers,
 	makeCharacterParser,
 	makeEitherParser,
+	makeNotCharacterParser,
 	makeSeparatedByParser,
+	makeZeroOrMoreParser,
 	mapParser,
 	maybeParse,
 	numberParser,
@@ -64,7 +66,8 @@ function getPropStringValue(obj: ICalObject, tag: string): string {
 const parameterStringValueParser: Parser<string> = (iterator) => {
 	let value = ""
 
-	while (iterator.peek() && /[:;,]/.test(iterator.peek()) === false) {
+	let next
+	while ((next = iterator.peek()) && /[:;,]/.test(next) === false) {
 		value += neverNull(iterator.next().value)
 	}
 
@@ -120,7 +123,8 @@ const anyStringUnescapeParser: Parser<string> = (iterator) => {
 		lastCharacter = iterator.next().value
 
 		if (lastCharacter === "\\") {
-			if (iterator.peek() in iCalReplacements) {
+			const next = iterator.peek()
+			if (next != null && next in iCalReplacements) {
 				continue
 			} else if (iterator.peek() === "n") {
 				iterator.next()
@@ -141,12 +145,21 @@ const anyStringUnescapeParser: Parser<string> = (iterator) => {
 const propertyStringValueParser: Parser<string> = (iterator) => {
 	let value = ""
 
-	while (iterator.peek() && /[;]/.test(iterator.peek()) === false) {
+	let next
+	while ((next = iterator.peek()) && /[;]/.test(next) === false) {
 		value += neverNull(iterator.next().value)
 	}
 
 	return value
 }
+
+/**
+ * Parses values separated by commas
+ */
+const separatedByCommaParser: Parser<Array<string>> = makeSeparatedByParser(
+	makeCharacterParser(","),
+	mapParser(makeZeroOrMoreParser(makeNotCharacterParser(",")), (arr) => arr.join("")),
+)
 
 /**
  * Parses the whole property (both sides)
@@ -353,6 +366,20 @@ export function parseRrule(rruleProp: Property, tzId: string | null): RepeatRule
 	return repeatRule
 }
 
+export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {
+	// it's possible that we have duplicated entries since this data comes from whereever, this deduplicates it.
+	const allExDates: Map<number, DateWrapper> = new Map<number, DateWrapper>()
+	for (let excludedDatesProp of excludedDatesProps) {
+		const tzId = getTzId(excludedDatesProp)
+		const values = separatedByCommaParser(new StringIterator(excludedDatesProp.value))
+		for (let value of values) {
+			const { date: exDate } = parseTime(value, tzId ?? undefined)
+			allExDates.set(exDate.getTime(), createDateWrapper({ date: exDate }))
+		}
+	}
+	return [...allExDates.values()].sort((dateWrapper1, dateWrapper2) => dateWrapper1.date.getTime() - dateWrapper2.date.getTime())
+}
+
 function parseEventDuration(durationProp: Property, event: CalendarEvent): void {
 	if (typeof durationProp.value !== "string") throw new ParserError("DURATION value is not a string")
 	const duration = parseDuration(durationProp.value)
@@ -481,9 +508,11 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 		}
 
 		const rruleProp = eventObj.properties.find((p) => p.name === "RRULE")
+		const excludedDateProps = eventObj.properties.filter((p) => p.name === "EXDATE")
 
 		if (rruleProp != null) {
 			event.repeatRule = parseRrule(rruleProp, tzId)
+			event.repeatRule.excludedDates = parseExDates(excludedDateProps)
 		}
 
 		const descriptionProp = eventObj.properties.find((p) => p.name === "DESCRIPTION")
@@ -726,7 +755,8 @@ function toValidJSDate(dateTime: DateTime, value: string, zone: string | null): 
 function parsePropertyName(iterator: StringIterator): string {
 	let text = ""
 
-	while (iterator.peek() && /[a-zA-Z0-9-_]/.test(iterator.peek())) {
+	let next
+	while ((next = iterator.peek()) && /[a-zA-Z0-9-_]/.test(next)) {
 		text += neverNull(iterator.next().value)
 	}
 

@@ -1,7 +1,7 @@
 import type { Shortcut } from "../../misc/KeyManager"
 import m, { Children, Vnode } from "mithril"
 import { px } from "../../gui/size"
-import { ButtonColor, Button, ButtonType } from "../../gui/base/Button.js"
+import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { Icons } from "../../gui/base/icons/Icons"
 import type { ModalComponent } from "../../gui/base/Modal"
 import { modal } from "../../gui/base/Modal"
@@ -11,13 +11,13 @@ import { Dialog } from "../../gui/base/Dialog"
 import type { EventCreateResult } from "../date/CalendarEventViewModel"
 import { CalendarEventViewModel } from "../date/CalendarEventViewModel"
 import { UserError } from "../../api/main/UserError"
-import { DROPDOWN_MARGIN, PosRect, showDropdown } from "../../gui/base/Dropdown.js"
+import { attachDropdown, DROPDOWN_MARGIN, PosRect, showDropdown } from "../../gui/base/Dropdown.js"
 import { Keys } from "../../api/common/TutanotaConstants"
 import type { HtmlSanitizer } from "../../misc/HtmlSanitizer"
-import { prepareCalendarDescription } from "../date/CalendarUtils"
-import { ofClass } from "@tutao/tutanota-utils"
-import { noOp } from "@tutao/tutanota-utils"
+import { calendarEventHasMoreThanOneOccurrencesLeft, prepareCalendarDescription } from "../date/CalendarUtils"
+import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
+import { IconButton } from "../../gui/base/IconButton.js"
 
 export class CalendarEventPopup implements ModalComponent {
 	_calendarEvent: CalendarEvent
@@ -37,6 +37,7 @@ export class CalendarEventPopup implements ModalComponent {
 		htmlSanitizer: HtmlSanitizer,
 		onEditEvent: (() => unknown) | null,
 		viewModel: CalendarEventViewModel | null,
+		private readonly firstOccurrence: CalendarEvent | null,
 	) {
 		this._calendarEvent = calendarEvent
 		this._eventBubbleRect = eventBubbleRect
@@ -133,15 +134,7 @@ export class CalendarEventPopup implements ModalComponent {
 									colors: ButtonColor.DrawerNav,
 							  })
 							: null,
-						this._isDeleteAvailable()
-							? m(Button, {
-									label: "delete_action",
-									click: () => this._deleteEvent(),
-									type: ButtonType.ActionLarge,
-									icon: () => Icons.Trash,
-									colors: ButtonColor.DrawerNav,
-							  })
-							: null,
+						this.renderDeleteButton(),
 						m(Button, {
 							label: "close_alt",
 							click: () => this._close(),
@@ -150,24 +143,58 @@ export class CalendarEventPopup implements ModalComponent {
 							colors: ButtonColor.DrawerNav,
 						}),
 					]),
-					m(
-						".flex-grow.scroll.visible-scrollbar",
+					m(".flex-grow.scroll.visible-scrollbar", [
 						m(EventPreviewView, {
 							event: this._calendarEvent,
 							sanitizedDescription: this._sanitizedDescription,
 						}),
-					),
+					]),
 				],
 			)
 		}
 	}
 
 	show() {
-		modal.displayUnique(this, false)
+		if (!this._viewModel?.selectedCalendar) return
+		modal.display(this, false)
 	}
 
 	_close() {
 		modal.remove(this)
+	}
+
+	private renderDeleteButton(): Children {
+		if (!this._isDeleteAvailable()) return null
+
+		return m(
+			IconButton,
+			attachDropdown({
+				mainButtonAttrs: {
+					title: "delete_action",
+					icon: Icons.Trash,
+					colors: ButtonColor.DrawerNav,
+				},
+				childAttrs: () => [
+					{
+						label: "deleteSingleEventRecurrence_action",
+						click: () => this.addExclusion(),
+					},
+					{
+						label: "deleteAllEventRecurrence_action",
+						click: () => this._deleteEvent(),
+					},
+				],
+				showDropdown: () => {
+					if (this.firstOccurrence && calendarEventHasMoreThanOneOccurrencesLeft(this.firstOccurrence)) {
+						return true
+					} else {
+						this._deleteEvent()
+						return false
+					}
+				},
+				width: 300,
+			}),
+		)
 	}
 
 	backgroundClick(e: MouseEvent): void {
@@ -232,5 +259,13 @@ export class CalendarEventPopup implements ModalComponent {
 				this._close()
 			}
 		}
+	}
+
+	/** add an exclusion for this event instance start time on the original event */
+	private async addExclusion(): Promise<void> {
+		const viewModel = this._viewModel
+		if (viewModel == null) return
+		this._close()
+		return await viewModel.excludeThisOccurrence()
 	}
 }

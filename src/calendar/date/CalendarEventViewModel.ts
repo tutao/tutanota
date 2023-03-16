@@ -10,9 +10,8 @@ import {
 	TimeFormat,
 } from "../../api/common/TutanotaConstants"
 import type { CalendarEvent, CalendarRepeatRule, Contact, EncryptedMailAddress, Mail, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
-import { createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
-import type { AlarmInfo, RepeatRule } from "../../api/entities/sys/TypeRefs.js"
-import { createAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
+import { CalendarEventTypeRef, createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
+import { AlarmInfo, createAlarmInfo, createDateWrapper, DateWrapper, RepeatRule } from "../../api/entities/sys/TypeRefs.js"
 import type { MailboxDetail } from "../../mail/model/MailModel"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -52,6 +51,7 @@ import {
 	findAttendeeInAddresses,
 	findRecipientWithAddress,
 	generateEventElementId,
+	getAllDayDateUTC,
 	isAllDayEvent,
 } from "../../api/common/utils/CommonCalendarUtils"
 import type { CalendarInfo } from "../model/CalendarModel"
@@ -97,6 +97,7 @@ export type RepeatData = {
 	interval: number
 	endType: EndType
 	endValue: number
+	excludedDates: Array<Date>
 }
 type ShowProgressCallback = (arg0: Promise<unknown>) => unknown
 type InitEventTypeReturn = {
@@ -116,7 +117,11 @@ export class CalendarEventViewModel {
 	// Null start or end time means the user input was invalid
 	startTime: Time | null = null
 	endTime: Time | null = null
-	readonly allDay: Stream<boolean>
+	private _allDay: boolean = false
+	get allDay(): boolean {
+		return this._allDay
+	}
+
 	repeat: RepeatData | null = null
 	calendars: ReadonlyMap<Id, CalendarInfo>
 	readonly attendees: Stream<ReadonlyArray<Guest>>
@@ -191,7 +196,6 @@ export class CalendarEventViewModel {
 		this.isForceUpdates = stream<boolean>(false)
 		this.location = stream("")
 		this.note = ""
-		this.allDay = stream<boolean>(false)
 		this.amPmFormat = userController.userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
 		this.existingEvent = existingEvent ?? null
 		this._zone = zone
@@ -226,7 +230,9 @@ export class CalendarEventViewModel {
 		})
 	}
 
-	rescheduleEvent(newStartDate: Date) {
+	// reschedule this event by moving the start and end time by delta milliseconds
+	// also moves any exclusions by the same amount
+	rescheduleEvent(delta: number) {
 		const oldStartDate = new Date(this.startDate)
 		const startTime = this.startTime
 
@@ -235,6 +241,8 @@ export class CalendarEventViewModel {
 			oldStartDate.setMinutes(startTime.minutes)
 		}
 
+		const newStartDate = new Date(oldStartDate.getTime() + delta)
+
 		const oldEndDate = new Date(this.endDate)
 		const endTime = this.endTime
 
@@ -242,13 +250,12 @@ export class CalendarEventViewModel {
 			oldEndDate.setHours(endTime.hours)
 			oldEndDate.setMinutes(endTime.minutes)
 		}
-
-		const diff = newStartDate.getTime() - oldStartDate.getTime()
-		const newEndDate = new Date(oldEndDate.getTime() + diff)
+		const newEndDate = new Date(oldEndDate.getTime() + delta)
 		this.startDate = getStartOfDayWithZone(newStartDate, this._zone)
 		this.endDate = getStartOfDayWithZone(newEndDate, this._zone)
 		this.startTime = Time.fromDate(newStartDate)
 		this.endTime = Time.fromDate(newEndDate)
+		this.deleteExcludedDates()
 	}
 
 	async _applyValuesFromExistingEvent(existingEvent: CalendarEvent, calendars: ReadonlyMap<Id, CalendarInfo>): Promise<void> {
@@ -259,10 +266,10 @@ export class CalendarEventViewModel {
 			this.selectedCalendar(calendarForGroup)
 		}
 
-		this.allDay(isAllDayEvent(existingEvent))
+		this._allDay = isAllDayEvent(existingEvent)
 		this.startDate = getStartOfDayWithZone(getEventStart(existingEvent, this._zone), this._zone)
 
-		if (this.allDay()) {
+		if (this._allDay) {
 			this.endDate = incrementDate(getEventEnd(existingEvent, this._zone), -1)
 
 			// We don't care about passed time here, just use current one as default
@@ -286,10 +293,11 @@ export class CalendarEventViewModel {
 				interval: Number(existingRule.interval),
 				endType: downcast(existingRule.endType),
 				endValue: existingRule.endType === EndType.Count ? Number(existingRule.endValue) : 1,
+				excludedDates: existingRule.excludedDates.map(({ date }) => date),
 			}
 
 			if (existingRule.endType === EndType.UntilDate) {
-				repeat.endValue = getRepeatEndTime(existingRule, this.allDay(), this._zone).getTime()
+				repeat.endValue = getRepeatEndTime(existingRule, this._allDay, this._zone).getTime()
 			}
 
 			this.repeat = repeat
@@ -491,10 +499,29 @@ export class CalendarEventViewModel {
 		if (this.startDate.getTime() === this.endDate.getTime()) {
 			this._adjustEndTime()
 		}
+
+		this.deleteExcludedDates()
 	}
 
 	setEndTime(value: Time | null) {
 		this.endTime = value
+	}
+
+	setAllDay(newAllDay: boolean): void {
+		if (newAllDay === this._allDay) return
+		this._allDay = newAllDay
+		if (this.repeat == null) return
+		if (newAllDay) {
+			// we want to keep excluded dates if all we do is switching between all-day and normal event
+			this.repeat.excludedDates = this.repeat.excludedDates.map((date) => getAllDayDateUTC(date))
+		} else if (this.startTime) {
+			const startTime = this.startTime
+			this.repeat.excludedDates = this.repeat.excludedDates.map((date) => startTime.toDate(date))
+		} else {
+			// we have an invalid start time. to save, we need to change it, which means we're going to delete these anyway.
+			// no point in keeping wrong data around or having the behaviour depend on the value of the time field
+			this.deleteExcludedDates()
+		}
 	}
 
 	addGuest(mailAddress: string, contact: Contact | null) {
@@ -609,6 +636,8 @@ export class CalendarEventViewModel {
 				})
 				.toJSDate()
 			this.startDate = date
+
+			this.deleteExcludedDates()
 		}
 	}
 
@@ -627,6 +656,7 @@ export class CalendarEventViewModel {
 					endType: EndType.Never,
 					endValue: 1,
 					frequency: repeatPeriod,
+					excludedDates: [],
 				},
 				this.repeat,
 				{
@@ -783,6 +813,46 @@ export class CalendarEventViewModel {
 				}
 			}
 		}
+	}
+
+	/**
+	 * calling this adds an exclusion for the event instance contained in this viewmodel to the repeat rule of the event,
+	 * which will cause the instance to not be rendered or fire alarms.
+	 * Exclusions are the start date/time of the event.
+	 *
+	 * the list of exclusions is maintained sorted from earliest to latest.
+	 */
+	async excludeThisOccurrence(): Promise<void> {
+		const existingEvent = this.existingEvent
+		if (existingEvent == null) return
+		const selectedCalendar = this.selectedCalendar()
+		if (!selectedCalendar) return
+		// original event -> first occurrence of the series, the one that was created by the user
+		// existing event -> the event instance that's displayed in the calendar and was clicked, essentially a copy of original event but with different start time
+		const originalEvent = existingEvent.repeatRule ? await this._entityClient.load(CalendarEventTypeRef, existingEvent._id) : existingEvent
+		if (!originalEvent || originalEvent.repeatRule == null) return
+		const event = clone(originalEvent)
+		const excludedDates = event.repeatRule!.excludedDates
+		const timeToInsert = existingEvent.startTime.getTime()
+		const insertionIndex = excludedDates.findIndex(({ date }) => date.getTime() >= timeToInsert)
+		// as of now, our maximum repeat frequency is 1/day. this means that we could truncate this to the current day (no time)
+		// but then we run into problems with time zones, since we'd like to delete the n-th occurrence of an event, but detect
+		// if an event is excluded by the start of the utc day it falls on, which may depend on time zone if it's truncated to the local start of day
+		// where the exclusion is created.
+		const wrapperToInsert = createDateWrapper({ date: existingEvent.startTime })
+		if (insertionIndex < 0) {
+			excludedDates.push(wrapperToInsert)
+		} else {
+			excludedDates.splice(insertionIndex, 0, wrapperToInsert)
+		}
+
+		const calendarForEvent = this.calendars.get(assertNotNull(existingEvent._ownerGroup, "tried to add exclusion on event without ownerGroup"))
+		if (calendarForEvent == null) {
+			console.log("why does this event not have a calendar?")
+			return
+		}
+		// fixme: what with the alarms?
+		await this._calendarModel.updateEvent(event, [], this._zone, calendarForEvent.groupRoot, existingEvent)
 	}
 
 	async waitForResolvedRecipients(): Promise<void> {
@@ -1029,6 +1099,7 @@ export class CalendarEventViewModel {
 		const repeatRule = createRepeatRuleWithValues(repeat.frequency, interval)
 		const stopType = repeat.endType
 		repeatRule.endType = stopType
+		repeatRule.excludedDates = repeat.excludedDates.map((date) => createDateWrapper({ date }))
 
 		if (stopType === EndType.Count) {
 			const count = repeat.endValue
@@ -1048,7 +1119,7 @@ export class CalendarEventViewModel {
 				// dependent and one is not then we have interesting bugs in edge cases (event created in -11 could
 				// end on another date in +12). So for all day events end date is UTC-encoded all day event and for
 				// regular events it is just a timestamp.
-				repeatRule.endValue = String((this.allDay() ? getAllDayDateUTCFromZone(repeatEndDate, this._zone) : repeatEndDate).getTime())
+				repeatRule.endValue = String((this._allDay ? getAllDayDateUTCFromZone(repeatEndDate, this._zone) : repeatEndDate).getTime())
 			}
 		}
 
@@ -1168,7 +1239,7 @@ export class CalendarEventViewModel {
 		let startDate = new Date(this.startDate)
 		let endDate = new Date(this.endDate)
 
-		if (this.allDay()) {
+		if (this._allDay) {
 			startDate = getAllDayDateUTCFromZone(startDate, this._zone)
 			endDate = getAllDayDateUTCFromZone(getStartOfNextDayWithZone(endDate, this._zone), this._zone)
 		} else {
@@ -1269,6 +1340,15 @@ export class CalendarEventViewModel {
 			name: getSenderName(mailboxProperties, address) ?? "",
 		})
 	}
+
+	/**
+	 * completely delete all exclusions. will cause the event to be rendered and fire alarms on all
+	 * occurrences as dictated by its repeat rule.
+	 */
+	deleteExcludedDates(): void {
+		if (!this.repeat) return
+		this.repeat.excludedDates.length = 0
+	}
 }
 
 function areRepeatRulesEqual(r1: CalendarRepeatRule | null, r2: CalendarRepeatRule | null): boolean {
@@ -1278,8 +1358,17 @@ function areRepeatRulesEqual(r1: CalendarRepeatRule | null, r2: CalendarRepeatRu
 			r1?.endValue === r2?.endValue &&
 			r1?.frequency === r2?.frequency &&
 			r1?.interval === r2?.interval &&
-			r1?.timeZone === r2?.timeZone)
+			r1?.timeZone === r2?.timeZone &&
+			areExcludedDatesEqual(r1?.excludedDates ?? [], r2?.excludedDates ?? []))
 	)
+}
+
+/**
+ * compare two lists of dates that are sorted from earliest to latest. return true if they are equivalent.
+ */
+export function areExcludedDatesEqual(e1: ReadonlyArray<DateWrapper>, e2: ReadonlyArray<DateWrapper>): boolean {
+	if (e1.length !== e2.length) return false
+	return !e1.some(({ date }, i) => e2[i].date.getTime() !== date.getTime())
 }
 
 function createCalendarAlarm(identifier: string, trigger: string): AlarmInfo {

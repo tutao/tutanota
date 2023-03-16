@@ -1,21 +1,25 @@
 import type { CalendarAttendeeStatus, CalendarMethod } from "../../api/common/TutanotaConstants"
 import { AlarmInterval, assertEnumValue, EndType, RepeatPeriod, SECOND_MS } from "../../api/common/TutanotaConstants"
-import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	downcast,
+	flat,
+	incrementDate,
+	mapAndFilterNull,
+	neverNull,
+	pad,
+	stringToUtf8Uint8Array,
+	utf8Uint8ArrayToString,
+} from "@tutao/tutanota-utils"
 import { calendarAttendeeStatusToParstat, iCalReplacements, parseCalendarEvents, parseICalendar, repeatPeriodToIcalFrequency } from "./CalendarParser"
 import { getAllDayDateLocal, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { generateUid, getTimeZone } from "../date/CalendarUtils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { createFile } from "../../api/entities/tutanota/TypeRefs.js"
 import { convertToDataFile, DataFile } from "../../api/common/DataFile"
-import { pad } from "@tutao/tutanota-utils"
-import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
-import type { UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
+import type { AlarmInfo, DateWrapper, RepeatRule, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator"
-import { incrementDate } from "@tutao/tutanota-utils"
-import { flat, mapAndFilterNull } from "@tutao/tutanota-utils"
 import { DateTime } from "luxon"
-import type { AlarmInfo } from "../../api/entities/sys/TypeRefs.js"
-import type { RepeatRule } from "../../api/entities/sys/TypeRefs.js"
 import { CALENDAR_MIME_TYPE } from "../../file/FileController"
 import { getLetId } from "../../api/common/utils/EntityUtils"
 
@@ -117,7 +121,25 @@ export function serializeRepeatRule(repeatRule: RepeatRule | null, isAllDayEvent
 			endType = `;UNTIL=${value}`
 		}
 
-		return [`RRULE:FREQ=${repeatPeriodToIcalFrequency(assertEnumValue(RepeatPeriod, repeatRule.frequency))}` + `;INTERVAL=${repeatRule.interval}` + endType]
+		const excludedDates = serializeExcludedDates(repeatRule.excludedDates, repeatRule.timeZone)
+		return [
+			`RRULE:FREQ=${repeatPeriodToIcalFrequency(assertEnumValue(RepeatPeriod, repeatRule.frequency))}` + `;INTERVAL=${repeatRule.interval}` + endType,
+		].concat(excludedDates)
+	} else {
+		return []
+	}
+}
+
+export function serializeExcludedDates(excludedDates: DateWrapper[], timeZone: string): string[] {
+	if (excludedDates.length > 0) {
+		let dates = ""
+		for (let i = 0; i < excludedDates.length; i++) {
+			dates += formatDateTime(excludedDates[i].date, timeZone)
+			if (i < excludedDates.length - 1) {
+				dates += ","
+			}
+		}
+		return [`EXDATE;TZID=${timeZone}:${dates}`]
 	} else {
 		return []
 	}

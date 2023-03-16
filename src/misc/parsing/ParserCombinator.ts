@@ -40,7 +40,7 @@ export function makeNotCharacterParser(character: string): Parser<string> {
 	return (iterator: StringIterator) => {
 		let value = iterator.peek()
 
-		if (value !== character) {
+		if (value && value !== character) {
 			iterator.next()
 			return value
 		}
@@ -134,7 +134,7 @@ export function makeOneOfCharactersParser(allowed: Array<string>): Parser<string
 	return (iterator: StringIterator) => {
 		const value = iterator.peek()
 
-		if (allowed.includes(value)) {
+		if (value && allowed.includes(value)) {
 			iterator.next()
 			return value
 		}
@@ -187,8 +187,8 @@ export class StringIterator {
 			  }
 	}
 
-	peek(): string {
-		return this.iteratee[this.position + 1]
+	peek(): string | null {
+		return this.iteratee[this.position + 1] ?? null
 	}
 }
 
