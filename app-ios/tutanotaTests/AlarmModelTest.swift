@@ -13,7 +13,7 @@ class AlarmModelTest : XCTestCase {
     dateProvider = DateProviderStub()
     alarmModel = AlarmModel(dateProvider: dateProvider)
   }
-  
+
   /// any Sequence does not conform to Sequence so we must explicitly open it
   private func prefix(seq: some Sequence<AlarmOccurence>, _ maxLength: Int) -> [AlarmOccurence] {
     return Array(seq.prefix(maxLength))
@@ -35,7 +35,7 @@ class AlarmModelTest : XCTestCase {
       user: "user"
     )
   }
-  
+
   private func plan(alarms: [AlarmNotification]) -> [AlarmOccurence] {
     // a hack to make array initializer work by unpacking existential
     func wrapInArray(_ a: any BidirectionalCollection<AlarmOccurence>) -> [AlarmOccurence] {
@@ -44,7 +44,7 @@ class AlarmModelTest : XCTestCase {
 
     return wrapInArray(alarmModel.futureOccurrences(acrossAlarms: alarms, upToForEach: perAlarmLimit, upToOverall: overallAlarmLimit))
   }
-  
+
   func testPlanWhenSingleInRecentFutureItIsPlanned() {
     let start = dateProvider.now.advanced(by: 10, .minutes)
     let alarm = makeAlarm(at: start, trigger: "5M")
@@ -57,7 +57,7 @@ class AlarmModelTest : XCTestCase {
     )
     XCTAssertEqual(result, [expectedAlarmOccurence])
   }
-  
+
   func testPlanWhenSingleInThePastItIsNotPlanned() {
     let start = dateProvider.now.advanced(by: 2, .minutes)
     let alarm = makeAlarm(at: start, trigger: "5M")
@@ -65,13 +65,13 @@ class AlarmModelTest : XCTestCase {
     let result = plan(alarms: [alarm])
     XCTAssertEqual(result, [])
   }
-  
+
   func testPlanWhenRepeatedAlarmStartsAfterNowAllOcurrencesArePlanned() {
     let start = dateProvider.now.advanced(by: 10, .minutes)
     let alarm = makeAlarm(
       at: start,
       trigger: "5M",
-      repeatRule: RepeatRule(frequency: .daily, interval: 1, timeZone: "Europe/Berlin", endCondition: .count(times: 3))
+      repeatRule: RepeatRule(frequency: .daily, interval: 1, timeZone: "Europe/Berlin", endCondition: .count(times: 3), excludedDates: [])
     )
 
     let result = plan(alarms: [alarm])
@@ -79,13 +79,13 @@ class AlarmModelTest : XCTestCase {
     XCTAssertEqual(result.count, 3)
     XCTAssertEqual(result[2].occurrenceNumber, 2)
   }
-  
+
   func testWhenRepeatedAlarmStartsBeforeNowOnlyFutureOcurrencesArePlanned() {
     let start = dateProvider.now.advanced(by: -10, .minutes)
     let alarm = makeAlarm(
       at: start,
       trigger: "5M",
-      repeatRule: RepeatRule(frequency: .daily, interval: 1, timeZone: "Europe/Berlin", endCondition: .count(times: 3))
+      repeatRule: RepeatRule(frequency: .daily, interval: 1, timeZone: "Europe/Berlin", endCondition: .count(times: 3), excludedDates: [])
     )
 
     let result = plan(alarms: [alarm])
@@ -93,13 +93,14 @@ class AlarmModelTest : XCTestCase {
     XCTAssertEqual(result.count, 2)
     XCTAssertEqual(result[1].occurrenceNumber, 2)
   }
-  
+
   func testWhenMultipleAlarmsArePresentOnlyTheNewestOccurrencesArePlanned() {
     let repeatRule = RepeatRule(
       frequency: .daily,
       interval: 1,
       timeZone: "Europe/Berlin",
-      endCondition: .never
+      endCondition: .never,
+      excludedDates: []
     )
 
     let alarm1 = makeAlarm(
@@ -133,7 +134,7 @@ class AlarmModelTest : XCTestCase {
     ]
     XCTAssertEqual(identifiers, expectedIdentifiers)
   }
-  
+
   func testIteratedRepeatAlarm() {
     let timeZone = "Europe/Berlin"
     dateProvider.timeZone = TimeZone(identifier: timeZone)!
@@ -146,7 +147,8 @@ class AlarmModelTest : XCTestCase {
       frequency: .weekly,
       interval: 1,
       timeZone: timeZone,
-      endCondition: .never
+      endCondition: .never,
+      excludedDates: []
     )
 
     let seq = alarmModel.futureOccurrences(ofAlarm: AlarmNotification(
@@ -169,6 +171,42 @@ class AlarmModelTest : XCTestCase {
     XCTAssertEqual(occurrences, expected)
   }
 
+  func testIteratedRepeatAlarmWithExclusions() {
+    let timeZone = "Europe/Berlin"
+    dateProvider.timeZone = TimeZone(identifier: timeZone)!
+    dateProvider.now = date(2019, 6, 1, 10, timeZone)
+
+    let eventStart = date(2019, 6, 2, 12, timeZone)
+    let eventEnd = date(2019, 6, 2, 12, timeZone)
+
+    let repeatRule = RepeatRule(
+      frequency: .weekly,
+      interval: 1,
+      timeZone: timeZone,
+      endCondition: .never, /* this is excluded       this is ignored */
+      excludedDates: [date(2019, 6, 9, 12, timeZone), date(2019, 6, 10, 12, timeZone)]
+    )
+
+    let seq = alarmModel.futureOccurrences(ofAlarm: AlarmNotification(
+      operation: .Create,
+      summary: "summary",
+      eventStart: eventStart,
+      eventEnd: eventEnd,
+      alarmInfo: AlarmInfo(alarmIdentifer: "id", trigger: "5M"),
+      repeatRule: repeatRule,
+      user: "user"
+    ))
+    let occurrences = prefix(seq: seq, 4).map { $0.eventOccurrenceTime }
+
+    let expected = [
+      date(2019, 6, 2, 12, timeZone),
+      date(2019, 6, 16, 12, timeZone),
+      date(2019, 6, 23, 12, timeZone),
+      date(2019, 6, 30, 12, timeZone),
+    ]
+    XCTAssertEqual(occurrences, expected)
+  }
+
   func testIteratesAllDayEventWithEnd() {
     let timeZone = "Europe/Berlin"
     dateProvider.timeZone = TimeZone(identifier: "Europe/Berlin")!
@@ -182,7 +220,8 @@ class AlarmModelTest : XCTestCase {
       frequency: .daily,
       interval: 1,
       timeZone: repeatRuleTimeZone,
-      endCondition: .untilDate(date: repeatEnd)
+      endCondition: .untilDate(date: repeatEnd),
+      excludedDates: []
     )
 
     let seq: any Sequence<AlarmOccurence> = alarmModel.futureOccurrences(ofAlarm: AlarmNotification(
@@ -214,7 +253,7 @@ private func date(_ year: Int, _ month: Int, _ dayOfMonth: Int, _ hour: Int, _ t
   components.day = dayOfMonth
   components.hour = hour
   components.timeZone = timeZone
-  
+
   return calendar.date(from: components)!
 }
 
