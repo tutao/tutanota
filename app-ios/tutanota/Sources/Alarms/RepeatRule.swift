@@ -17,7 +17,7 @@ enum RepeatEndCondition : Equatable {
   case never
   case count(times: Int64)
   case untilDate(date: Date)
-  
+
   init(endType: EndType, endValue: Int64) {
     switch endType {
     case .never:
@@ -31,12 +31,37 @@ enum RepeatEndCondition : Equatable {
   }
 }
 
+struct EncryptedDateWrapper: Codable, Hashable {
+  let date: Base64
+}
+
 struct EncryptedRepeatRule : Codable, Hashable {
   let frequency: Base64
   let interval: Base64
   let timeZone: Base64
   let endType: Base64
   let endValue: Base64?
+  let excludedDates: [EncryptedDateWrapper]
+
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    if let excludedDates = try container.decodeIfPresent([EncryptedDateWrapper].self, forKey: .excludedDates) {
+      self.excludedDates = excludedDates
+    } else {
+      self.excludedDates = [EncryptedDateWrapper]()
+    }
+
+    self.frequency = try container.decode(Base64.self, forKey: .frequency)
+    self.interval = try container.decode(Base64.self, forKey: .interval)
+    self.timeZone = try container.decode(Base64.self, forKey: .timeZone)
+    self.endType = try container.decode(Base64.self, forKey: .endType)
+
+    if let endValue = try container.decodeIfPresent((Base64?).self, forKey: .endValue) {
+      self.endValue = endValue
+    } else {
+      self.endValue = nil
+    }
+  }
 }
 
 struct RepeatRule : Equatable {
@@ -44,6 +69,7 @@ struct RepeatRule : Equatable {
   let interval: Int
   let timeZone: String
   let endCondition: RepeatEndCondition
+  let excludedDates: [Date]
 }
 
 extension RepeatRule {
@@ -56,5 +82,7 @@ extension RepeatRule {
       return try decrypt(base64: endValue, key: sessionKey)
     }
     self.endCondition = RepeatEndCondition(endType: endType, endValue: endValue ?? 0)
+    let decryptedExclusions: [Date] = try encrypted.excludedDates.map { try decrypt(base64: $0.date, key: sessionKey) }
+    self.excludedDates  = decryptedExclusions
   }
 }
