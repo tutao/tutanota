@@ -1596,3 +1596,7 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "deleteSingleEventRecurrence_action"
+	| "deleteAllEventRecurrence_action"
+	| "restoreExcludedRecurrences_action"
+	| "someRepetitionsDeleted_msg"

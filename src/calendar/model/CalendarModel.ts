@@ -3,7 +3,7 @@ import { assertNotNull, clone, defer, downcast, filterInt, getFromMap, LazyLoade
 import { CalendarMethod, FeatureType, GroupType, OperationType } from "../../api/common/TutanotaConstants"
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
-import type { AlarmInfo, Group, GroupInfo, User, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
+import type { AlarmInfo, DateWrapper, Group, GroupInfo, User, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
 import { createMembershipRemoveData, GroupInfoTypeRef, GroupMembership, GroupTypeRef, UserAlarmInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import {
 	CalendarEvent,
@@ -190,6 +190,8 @@ export class CalendarModel {
 		assignEventId(event, zone, groupRoot)
 		// Reset ownerEncSessionKey because it cannot be set for new entity, it will be assigned by the CryptoFacade
 		event._ownerEncSessionKey = null
+		// FIXME: wtf
+		event?.repeatRule?.excludedDates.forEach((dw) => (downcast(dw)._finalEncrypted_date = null))
 		// Reset permissions because server will assign them
 		downcast(event)._permissions = null
 		event._ownerGroup = groupRoot._id
@@ -487,6 +489,22 @@ function repeatRulesEqual(repeatRule: CalendarRepeatRule | null, repeatRule2: Ca
 			repeatRule.endValue === repeatRule2.endValue &&
 			repeatRule.frequency === repeatRule2.frequency &&
 			repeatRule.interval === repeatRule2.interval &&
-			repeatRule.timeZone === repeatRule2.timeZone)
+			repeatRule.timeZone === repeatRule2.timeZone &&
+			isSameExclusions(repeatRule.excludedDates, repeatRule2.excludedDates))
 	)
+}
+
+/**
+ * compare two lists of dateWrappers
+ * @param dates sorted list of dateWrappers from earliest to latest
+ * @param dates2 sorted list of dateWrappers from earliest to latest
+ */
+function isSameExclusions(dates: ReadonlyArray<DateWrapper>, dates2: ReadonlyArray<DateWrapper>): boolean {
+	if (dates.length !== dates2.length) return false
+	for (let i = 0; i < dates.length; i++) {
+		const { date: a } = dates[i]
+		const { date: b } = dates2[i]
+		if (a.getTime() !== b.getTime()) return false
+	}
+	return true
 }
