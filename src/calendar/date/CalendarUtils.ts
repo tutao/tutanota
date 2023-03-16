@@ -739,8 +739,8 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 		? repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date: getAllDayDateForTimezone(date, timeZone) }))
 		: repeatRule.excludedDates
 
-	iterateOccurrencesWhileTrue(event, timeZone, (startTime: Date, endTime: Date) => {
-		if (startTime.getTime() > month.end.getTime()) return false
+	for (const { startTime, endTime } of generateEventOccurrences(event, timeZone)) {
+		if (startTime.getTime() > month.end.getTime()) break
 
 		const calcDay = getStartOfDay(startTime)
 		if (isExcludedDate(startTime, exclusions)) {
@@ -763,19 +763,16 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 				addDaysForEvent(events, eventClone, month, timeZone)
 			}
 		}
-
-		return true
-	})
+	}
 }
 
 /**
- * execute a callback for each occurrence of a repeating event
+ * generates all event occurrences in chronological order
  * @param event the event to iterate occurrences on. must have a repeat rule
  * @param timeZone
- * @param callback this is called with startTime and endTime of each occurrence until either
  * the end condition of the repeat rule is hit or the callback returns false.
  */
-function iterateOccurrencesWhileTrue(event: CalendarEvent, timeZone: string, callback: (startTime: Date, endTime: Date) => boolean) {
+function* generateEventOccurrences(event: CalendarEvent, timeZone: string): Generator<{ startTime: Date; endTime: Date }> {
 	const { repeatRule } = event
 
 	if (repeatRule == null) {
@@ -814,7 +811,7 @@ function iterateOccurrencesWhileTrue(event: CalendarEvent, timeZone: string, cal
 	while ((endOccurrences == null || iteration <= endOccurrences) && (repeatEndTime == null || calcStartTime.getTime() < repeatEndTime.getTime())) {
 		assertDateIsValid(calcStartTime)
 		assertDateIsValid(calcEndTime)
-		if (!callback(calcStartTime, calcEndTime)) break
+		yield { startTime: calcStartTime, endTime: calcEndTime }
 
 		calcStartTime = incrementByRepeatPeriod(eventStartTime, frequency, interval * iteration, repeatTimeZone)
 		calcEndTime = allDay
@@ -845,7 +842,8 @@ export function calendarEventHasMoreThanOneOccurrencesLeft(event: CalendarEvent)
 		const excludedTimestamps = excludedDates.map(({ date }) => date.getTime())
 		let i = 0
 		let occurrencesFound = 0
-		iterateOccurrencesWhileTrue(event, getTimeZone(), (startTime) => {
+
+		for (const { startTime } of generateEventOccurrences(event, getTimeZone())) {
 			const startTimestamp = startTime.getTime()
 			while (i < excludedTimestamps.length && startTimestamp > excludedTimestamps[i]) {
 				i++
@@ -853,12 +851,11 @@ export function calendarEventHasMoreThanOneOccurrencesLeft(event: CalendarEvent)
 
 			if (startTimestamp !== excludedTimestamps[i]) {
 				occurrencesFound += 1
-				if (occurrencesFound > 1) return false
+				if (occurrencesFound > 1) return true
 			}
-			return true
-		})
+		}
 
-		return occurrencesFound > 1
+		return false
 	}
 }
 
