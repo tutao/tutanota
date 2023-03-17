@@ -59,7 +59,7 @@ class AlarmManager {
     self.alarmPersistor.clear()
   }
   
-  /// Take the alarms from the persistor and schedule the most recent occurrences
+  /// Take the alarms from the persistor and schedule the soonest occurrences
   func rescheduleAlarms() {
     TUTSLog("Re-scheduling alarms")
     let decryptedAlarms = self.savedAlarms()
@@ -73,6 +73,8 @@ class AlarmManager {
       }
     let occurences = alarmCalculator.futureOccurrences(acrossAlarms: decryptedAlarms, upToForEach: EVENTS_SCHEDULED_AHEAD, upToOverall: SYSTEM_ALARM_LIMIT)
     
+    // Reverse in order to schedule the soonest one the last. This add reliability if we still schedule more alarms than iOS can handle because it seeems
+    // like it evicts the oldest ones from storage.
     for occurrence in occurences.reversed() {
       self.schedule(
         alarmOccurrence: occurrence,

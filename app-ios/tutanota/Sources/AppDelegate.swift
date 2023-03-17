@@ -7,7 +7,7 @@ class AppDelegate : UIResponder,
   var window: UIWindow?
 
   private var pushTokenCallback: ResponseCallback<String>?
-  private let userPreferences = UserPreferenceFacade()
+  private let notificationStorage = NotificationStorage()
   private var alarmManager: AlarmManager!
   private var notificationsHandler: NotificationsHandler!
   private var viewController: ViewController!
@@ -40,21 +40,21 @@ class AppDelegate : UIResponder,
     let alarmModel = AlarmModel(dateProvider: SystemDateProvider())
     self.alarmManager = AlarmManager(
       alarmPersistor: AlarmPreferencePersistor(
-        userPreferenceFacade: self.userPreferences,
+        notificationsStorage: self.notificationStorage,
         keychainManager: keychainManager
       ),
       alarmCryptor: KeychainAlarmCryptor(keychainManager: keychainManager),
       alarmScheduler: SystemAlarmScheduler(),
       alarmCalculator: alarmModel
     )
-    self.notificationsHandler = NotificationsHandler(alarmManager: self.alarmManager, userPreference: self.userPreferences)
+    self.notificationsHandler = NotificationsHandler(alarmManager: self.alarmManager, notificationStorage: self.notificationStorage)
     self.window = UIWindow(frame: UIScreen.main.bounds)
     let credentialsEncryption = IosNativeCredentialsFacade(keychainManager: keychainManager)
     self.viewController = ViewController(
       crypto: IosNativeCryptoFacade(),
       themeManager: ThemeManager(),
       keychainManager: keychainManager,
-      userPreferences: userPreferences,
+      notificationStorage: notificationStorage,
       alarmManager: alarmManager,
       notificaionsHandler: notificationsHandler,
       credentialsEncryption: credentialsEncryption,

@@ -11,20 +11,20 @@ protocol AlarmPersistor {
 class AlarmPreferencePersistor : AlarmPersistor {
   var alarms: [EncryptedAlarmNotification] {
     get {
-      return userPreferenceFacade.alarms
+      return notificationStorage.alarms
     }
   }
   
-  let userPreferenceFacade: UserPreferenceFacade
+  let notificationStorage: NotificationStorage
   let keychainManager: KeychainManager
   
-  init (userPreferenceFacade: UserPreferenceFacade, keychainManager: KeychainManager) {
-    self.userPreferenceFacade = userPreferenceFacade
+  init(notificationsStorage: NotificationStorage, keychainManager: KeychainManager) {
+    self.notificationStorage = notificationsStorage
     self.keychainManager = keychainManager
   }
   
   func clear() {
-    self.userPreferenceFacade.clear()
+    self.notificationStorage.clear()
     do {
       try keychainManager.removePushIdentifierKeys()
     } catch {
@@ -33,6 +33,6 @@ class AlarmPreferencePersistor : AlarmPersistor {
   }
   
   func store(alarms: [EncryptedAlarmNotification]) {
-    self.userPreferenceFacade.store(alarms: alarms)
+    self.notificationStorage.store(alarms: alarms)
   }
 }
