@@ -27,7 +27,7 @@ class RemoteBridge : NSObject, NativeInterface {
     themeFacade: ThemeFacade,
     appDelegate: AppDelegate,
     alarmManager: AlarmManager,
-    userPreferences: UserPreferenceFacade,
+    notificationStorage: NotificationStorage,
     keychainManager: KeychainManager,
     webAuthnFacade: WebAuthnFacade,
     sqlCipherFacade: IosSqlCipherFacade
@@ -46,7 +46,7 @@ class RemoteBridge : NSObject, NativeInterface {
     let nativePushFacade = IosNativePushFacade(
       appDelegate: appDelegate,
       alarmManager: alarmManager,
-      userPreferences: userPreferences,
+      notificationStorage: notificationStorage,
       keychainManager: keychainManager,
       commonNativeFacade: self.commonNativeFacade
     )
