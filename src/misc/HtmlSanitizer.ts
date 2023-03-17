@@ -2,70 +2,105 @@ import DOMPurify, { Config, DOMPurifyI, HookEvent } from "dompurify"
 import { ReplacementImage } from "../gui/base/icons/Icons"
 import { downcast, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { DataFile } from "../api/common/DataFile"
-// the svg data string must contain ' instead of " to avoid display errors in Edge
-// '#' character is reserved in URL and FF won't display SVG otherwise
+
+/** Data url for an SVG image that will be shown in place of external content. */
 export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string =
-	"data:image/svg+xml;utf8," + ReplacementImage.replace(/"/g, "'").replace(/#/g, "%23").replace(/\s+/g, " ")
-const EXTERNAL_CONTENT_ATTRS = ["src", "poster", "srcset", "background"] // background attribute is deprecated but still used in common browsers
+	"data:image/svg+xml;utf8," +
+	ReplacementImage
+		// the svg data string must contain ' instead of " to avoid display errors in Edge (probably not relevant anymore but better be safe)
+		.replace(/"/g, "'")
+		// '#' character is reserved in URL and FF won't display SVG otherwise
+		.replace(/#/g, "%23")
+		/// fold consecutive whitespace into a single one (useful for tests)
+		.replace(/\s+/g, " ")
+
+// background attribute is deprecated but still used in common browsers
+const EXTERNAL_CONTENT_ATTRS = Object.freeze(["src", "poster", "srcset", "background"])
 
 type SanitizeConfigExtra = {
 	blockExternalContent: boolean
 	allowRelativeLinks: boolean
 	usePlaceholderForInlineImages: boolean
 }
-const DEFAULT_CONFIG_EXTRA: SanitizeConfigExtra = {
+
+const DEFAULT_CONFIG_EXTRA: SanitizeConfigExtra = Object.freeze({
 	blockExternalContent: true,
 	allowRelativeLinks: false,
 	usePlaceholderForInlineImages: true,
-}
+})
 
+/** Result of sanitization operation with result in a string form */
 export type SanitizedHTML = {
+	/** Clean HTML text */
 	html: string
+	/** Number of blocked external content that was encountered */
 	externalContent: number
+	/** Collected cid: URLs, normally used for inline content */
 	inlineImageCids: Array<string>
+	/** Collected href link elements */
 	links: Array<HTMLElement>
 }
+
 type SanitizeConfig = SanitizeConfigExtra & DOMPurify.Config
 
 export type Link = HTMLElement
 
+/** Result of sanitization operation with result in a form of a DocumentFragment */
 export type SanitizedFragment = {
+	/** Clean HTML fragment */
 	fragment: DocumentFragment
+	/** Number of blocked external content that was encountered */
 	externalContent: number
+	/** Collected cid: URLs, normally used for inline content */
 	inlineImageCids: Array<string>
+	/** Collected href link elements */
 	links: Array<Link>
 }
 
-// for target = _blank, controls for audio element, cid for embedded images to allow our own cid attribute
-const ADD_ATTR = ["target", "controls", "cid"] as const
-// poster for video element.
-const ADD_URI_SAFE_ATTR = ["poster"] as const
-// prevent loading of external fonts,
-const FORBID_TAGS = ["style"] as const
+/** Allowing additional HTML attributes */
+const ADD_ATTR = Object.freeze([
+	// for target=_blank
+	"target",
+	// for audio element
+	"controls",
+	// for embedded images
+	"cid",
+] as const)
 
-const HTML_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT?: undefined; RETURN_DOM?: undefined } = {
+/** These must be safe for URI-like values */
+const ADD_URI_SAFE_ATTR = Object.freeze([
+	// for video element
+	"poster",
+] as const)
+
+/** Complete disallow some HTML tags. */
+const FORBID_TAGS = Object.freeze([
+	// prevent loading of external stylesheets and fonts by blocking the whole <style> tag
+	"style",
+] as const)
+
+const HTML_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT?: undefined; RETURN_DOM?: undefined } = Object.freeze({
 	ADD_ATTR: ADD_ATTR.slice(),
 	ADD_URI_SAFE_ATTR: ADD_URI_SAFE_ATTR.slice(),
 	FORBID_TAGS: FORBID_TAGS.slice(),
-} as const
-
-const SVG_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT?: undefined; RETURN_DOM?: undefined } = {
+} as const)
+const SVG_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT?: undefined; RETURN_DOM?: undefined } = Object.freeze({
 	ADD_ATTR: ADD_ATTR.slice(),
 	ADD_URI_SAFE_ATTR: ADD_URI_SAFE_ATTR.slice(),
 	FORBID_TAGS: FORBID_TAGS.slice(),
 	NAMESPACE: "http://www.w3.org/2000/svg",
-} as const
-
-const FRAGMENT_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT: true } = {
+} as const)
+const FRAGMENT_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT: true } = Object.freeze({
 	ADD_ATTR: ADD_ATTR.slice(),
 	ADD_URI_SAFE_ATTR: ADD_URI_SAFE_ATTR.slice(),
 	FORBID_TAGS: FORBID_TAGS.slice(),
 	RETURN_DOM_FRAGMENT: true,
 	ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|tutatemplate):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
-} as const
+} as const)
 
 type BaseConfig = typeof HTML_CONFIG | typeof SVG_CONFIG | typeof FRAGMENT_CONFIG
 
+/** Class to pre-process HTML/SVG content. */
 export class HtmlSanitizer {
 	private externalContent!: number
 	private inlineImageCids!: Array<string>
@@ -205,6 +240,7 @@ export class HtmlSanitizer {
 
 		if (htmlNode.style) {
 			if (config.blockExternalContent) {
+				// for a decent table of where <image> CSS type can occur see https://developer.mozilla.org/en-US/docs/Web/CSS/image
 				if (htmlNode.style.backgroundImage) {
 					this.replaceStyleImage(htmlNode, "backgroundImage", false)
 
@@ -291,9 +327,26 @@ export class HtmlSanitizer {
 		}
 	}
 
+	/** {@param styleAttributeName} is a JS name for the style */
 	private replaceStyleImage(htmlNode: HTMLElement, styleAttributeName: string, limitWidth: boolean) {
 		let value: string = (htmlNode.style as any)[styleAttributeName]
 
+		// if there's a `url(` anywhere in the value and if *the whole* value is not just data URL then replace the whole value with replacement URL
+		// see tests for treacherous example but also
+		//
+		// ```css
+		// background-image: linear-gradient(
+		//     to bottom,
+		//     rgba(255, 255, 0, 0.5),
+		//     rgba(0, 0, 255, 0.5)
+		//   ), url("catfront.png");
+		// ```
+		// in this case background-image can have multiple values but it's safe to just block the whole thing
+		//
+		// some examples where it can be inside a single <image> value:
+		//
+		// cross-fade(20% url(twenty.png), url(eighty.png))
+		// image-set('test.jpg' 1x, 'test-2x.jpg' 2x)
 		if (value.includes("url(") && !value.match(/^url\(["']?data:/)) {
 			this.externalContent++
 			;(htmlNode.style as any)[styleAttributeName] = `url("${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}")`
