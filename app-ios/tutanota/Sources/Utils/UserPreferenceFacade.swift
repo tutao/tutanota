@@ -6,7 +6,7 @@ fileprivate let ALARMS_KEY = "repeatingAlarmNotification"
 fileprivate let LAST_PROCESSED_NOTIFICAION_ID_KEY = "lastProcessedNotificationId"
 fileprivate let LAST_MISSED_NOTIFICATION_CHECK_TIME = "lastMissedNotificationCheckTime"
 
-class UserPreferenceFacade {
+class NotificationStorage {
   var sseInfo: SSEInfo? {
     get {
       let dict = UserDefaults.standard.object(forKey: SSE_INFO_KEY)

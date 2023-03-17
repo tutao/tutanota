@@ -4,28 +4,28 @@ class IosNativePushFacade : NativePushFacade {
 
   private let appDelegate: AppDelegate
   private let alarmManager: AlarmManager
-  private let userPreferences: UserPreferenceFacade
+  private let notificationStorage: NotificationStorage
   private let keychainManager: KeychainManager
   private let commonNativeFacade: CommonNativeFacade
 
   init(
     appDelegate: AppDelegate,
     alarmManager: AlarmManager,
-    userPreferences: UserPreferenceFacade,
+    notificationStorage: NotificationStorage,
     keychainManager: KeychainManager,
     commonNativeFacade: CommonNativeFacade
   ) {
     self.appDelegate = appDelegate
     self.alarmManager = alarmManager
-    self.userPreferences = userPreferences
+    self.notificationStorage = notificationStorage
     self.keychainManager = keychainManager
     self.commonNativeFacade = commonNativeFacade
   }
 
   func getPushIdentifier() async throws -> String? {
-    if let sseInfo = userPreferences.sseInfo, sseInfo.userIds.isEmpty {
+    if let sseInfo = notificationStorage.sseInfo, sseInfo.userIds.isEmpty {
       TUTSLog("Sending alarm invalidation")
-      self.userPreferences.clear()
+      self.notificationStorage.clear()
       try await self.commonNativeFacade.invalidateAlarms()
     }
     
@@ -33,7 +33,7 @@ class IosNativePushFacade : NativePushFacade {
   }
 
   func storePushIdentifierLocally(_ identifier: String, _ userId: String, _ sseOrigin: String, _ pushIdentifierId: String, _ pushIdentifierSessionKey: DataWrapper) async throws {
-    self.userPreferences.store(
+    self.notificationStorage.store(
       pushIdentifier: identifier,
       userId: userId,
       sseOrigin: sseOrigin

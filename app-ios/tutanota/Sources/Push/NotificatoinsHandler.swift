@@ -5,12 +5,12 @@ private let MISSED_NOTIFICATION_TTL_SEC: Int64 = 30 * 24 * 60 * 60; // 30 days
 /// Downlaods notifications and dispatches them to AlarmManager
 class NotificationsHandler {
   private let alarmManager: AlarmManager
-  private let userPreference: UserPreferenceFacade
+  private let notificationStorage: NotificationStorage
   private let fetchQueue: OperationQueue
   
-  init(alarmManager: AlarmManager, userPreference: UserPreferenceFacade) {
+  init(alarmManager: AlarmManager, notificationStorage: NotificationStorage) {
     self.alarmManager = alarmManager
-    self.userPreference = userPreference
+    self.notificationStorage = notificationStorage
     self.fetchQueue = OperationQueue()
     self.fetchQueue.maxConcurrentOperationCount = 1
   }
@@ -34,7 +34,7 @@ class NotificationsHandler {
   }
   
   private func hasNotificationTTLExpired() -> Bool {
-    guard let lastMissedNotificationCheckTime = userPreference.lastMissedNotificationCheckTime else {
+    guard let lastMissedNotificationCheckTime = notificationStorage.lastMissedNotificationCheckTime else {
       return false
     }
     let sinceNow = lastMissedNotificationCheckTime.timeIntervalSinceNow
@@ -59,7 +59,7 @@ class NotificationsHandler {
   
   /// Fetch and process missed notification, actual impl without queuing which makes it easier to just call it recursively.
   private func doFetchMissedNotifications() throws {
-    guard let sseInfo = self.userPreference.sseInfo else {
+    guard let sseInfo = self.notificationStorage.sseInfo else {
       TUTSLog("No stored SSE info")
       return
     }
@@ -75,7 +75,7 @@ class NotificationsHandler {
     
     let userId: String = sseInfo.userIds[0]
     additionalHeaders["userIds"] = userId
-    if let lastNotificationId = self.userPreference.lastProcessedNotificationId {
+    if let lastNotificationId = self.notificationStorage.lastProcessedNotificationId {
       additionalHeaders["lastProcessedNotificationId"] = lastNotificationId
     }
     let configuration = URLSessionConfiguration.ephemeral
@@ -94,7 +94,7 @@ class NotificationsHandler {
     case .notAuthenticated:
       TUTSLog("Not authenticated to download missed notification w/ user \(userId)")
       self.alarmManager.unscheduleAllAlarms(userId: userId)
-      self.userPreference.removeUser(userId)
+      self.notificationStorage.removeUser(userId)
       try self.doFetchMissedNotifications()
     case .serviceUnavailable, .tooManyRequests:
       let suspensionTime = extractSuspensionTime(from: httpResponse)
@@ -104,14 +104,14 @@ class NotificationsHandler {
     case .notFound:
       return
     case .ok:
-      self.userPreference.lastMissedNotificationCheckTime = Date()
+      self.notificationStorage.lastMissedNotificationCheckTime = Date()
       let missedNotification: MissedNotification
       do {
         missedNotification = try JSONDecoder().decode(MissedNotification.self, from: data)
       } catch {
         throw TUTErrorFactory.createError("Failed to parse response for the missed notificaiton, \(error)")
       }
-      self.userPreference.lastProcessedNotificationId = missedNotification.lastProcessedNotificationId
+      self.notificationStorage.lastProcessedNotificationId = missedNotification.lastProcessedNotificationId
       try alarmManager.processNewAlarms(missedNotification.alarmNotifications)
     default:
       let errorId = httpResponse.allHeaderFields["Error-Id"]

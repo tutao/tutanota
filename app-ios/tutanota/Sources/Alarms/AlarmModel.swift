@@ -19,13 +19,13 @@ struct AlarmOccurence : Equatable {
 
 /// Something that can calculate when alarms should happen
 protocol AlarmCalculator {
-  /// Calcuate the most recent alarm occurences up to the specified limits
+  /// Calcuate the soonest alarm occurences up to the specified limits
   /// note: return type would ideally not be required to be boxed but it's the easiest until proper upper bound inference is available at runtime
   /// see https://forums.swift.org/t/inferred-result-type-requires-explicit-coercion/59602/2
   /// (alternatively we could always produce arrays)
   func futureOccurrences(acrossAlarms alarms: [AlarmNotification], upToForEach: Int, upToOverall: Int) -> any BidirectionalCollection<AlarmOccurence>
   
-  /// Calculate the most recent alarm occurences for a single alarm
+  /// Calculate upcoming alarm occurences for a single alarm
   /// - Returns: lazy sequence of alarm occurences. It might be infinite if alarm repeats indefinitely!
   func futureOccurrences(ofAlarm alarm: AlarmNotification) -> any Sequence<AlarmOccurence>
 }
