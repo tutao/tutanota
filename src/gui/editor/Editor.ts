@@ -63,6 +63,27 @@ export class Editor implements ImageHandler, Component {
 		}
 	}
 
+	/**
+	 * @param dataTransfer Image data from the clipboard.
+	 */
+	onPasteImage(dataTransfer: any) {
+		const items = [...dataTransfer.detail.clipboardData.items]
+		const imageItems = items.filter((item) => /image/.test(item.type))
+
+		if (!imageItems.length) {
+			return false
+		}
+
+		const reader = new FileReader()
+
+		reader.onload = (loadEvent: ProgressEvent) => {
+			const target: any = loadEvent.target
+			this.insertImage(target.result)
+		}
+
+		reader.readAsDataURL(imageItems[0].getAsFile())
+	}
+
 	view(): Children {
 		return m(".hide-outline.selectable", {
 			role: "textbox",
@@ -106,17 +127,19 @@ export class Editor implements ImageHandler, Component {
 			blockAttributes: {
 				dir: "auto",
 			},
-		}).addEventListener("keyup", (e: KeyboardEvent) => {
-			if (this.createsLists && isKeyPressed(e.keyCode, Keys.SPACE)) {
-				let blocks: HTMLElement[] = []
-				squire.forEachBlock((block: HTMLElement) => {
-					blocks.push(block)
-				})
-				createList(blocks, /^1\.\s$/, true) // create an ordered list if a line is started with '1. '
-
-				createList(blocks, /^\*\s$/, false) // create an unordered list if a line is started with '* '
-			}
 		})
+			.addEventListener("keyup", (e: KeyboardEvent) => {
+				if (this.createsLists && isKeyPressed(e.keyCode, Keys.SPACE)) {
+					let blocks: HTMLElement[] = []
+					squire.forEachBlock((block: HTMLElement) => {
+						blocks.push(block)
+					})
+					createList(blocks, /^1\.\s$/, true) // create an ordered list if a line is started with '1. '
+
+					createList(blocks, /^\*\s$/, false) // create an unordered list if a line is started with '* '
+				}
+			})
+			.addEventListener("pasteImage", this.onPasteImage)
 		this.squire = squire
 
 		// Suppress paste events if pasting while disabled
