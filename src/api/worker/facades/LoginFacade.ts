@@ -531,7 +531,8 @@ export class LoginFacade {
 	private async finishResumeSession(credentials: Credentials, externalUserSalt: Uint8Array | null, cacheInfo: CacheInfo): Promise<ResumeSessionSuccess> {
 		const sessionId = this.getSessionId(credentials)
 		const sessionData = await this.loadSessionData(credentials.accessToken)
-		const passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, base64ToUint8Array(neverNull(credentials.encryptedPassword))))
+		const encryptedPassword = base64ToUint8Array(assertNotNull(credentials.encryptedPassword, "encryptedPassword was null!"))
+		const passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, encryptedPassword))
 		let userPassphraseKey: Aes128Key
 
 		if (externalUserSalt) {

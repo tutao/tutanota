@@ -11,7 +11,17 @@ import {
 import { CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
-import { assert, assertNotNull, DAY_IN_MILLIS, getTypeId, groupByAndMap, groupByAndMapUniquely, mapNullable, TypeRef } from "@tutao/tutanota-utils"
+import {
+	assert,
+	assertNotNull,
+	DAY_IN_MILLIS,
+	getTypeId,
+	groupByAndMap,
+	groupByAndMapUniquely,
+	isSameTypeRef,
+	mapNullable,
+	TypeRef,
+} from "@tutao/tutanota-utils"
 import { isDesktop, isOfflineStorageAvailable, isTest } from "../../common/Env.js"
 import { modelInfos, resolveTypeReference } from "../../common/EntityFunctions.js"
 import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../common/TutanotaConstants.js"

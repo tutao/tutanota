@@ -90,6 +90,9 @@ export type LastUpdateTime = { type: "recorded"; time: number } | { type: "never
  *
  * Separate from the rest of the cache as a narrow interface to not expose the whole storage for cases where we want to only get the cached part of the list to
  * display it even if we can't load the full page from the server or need some metadata.
+ *
+ * also exposes functions to repair an outdated cache in case we can't access the server without getting a new version of a cached entity
+ * (mainly password changes)
  */
 export interface ExposedCacheStorage {
 	/**
@@ -111,6 +114,11 @@ export interface ExposedCacheStorage {
 	getLastUpdateTime(): Promise<LastUpdateTime>
 
 	clearExcludedData(): Promise<void>
+
+	/**
+	 * remove an entity from the cache by typeRef and Id
+	 * */
+	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
 }
 
 export interface CacheStorage extends ExposedCacheStorage {
@@ -124,8 +132,6 @@ export interface CacheStorage extends ExposedCacheStorage {
 	 * customId types that don't have a custom handler don't get served from the cache
 	 */
 	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap
-
-	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
 
 	isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean>
 
@@ -704,6 +710,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// No need to try to download something that's not there anymore
 		if (cached != null) {
 			try {
+				// if the password changed we'll be logged out at this point.
+				// not catching the NotAuthorized or NotAuthenticated Error that results of this to delete the user
+				// allows us to still use the offline login with the old user
 				const newEntity = await this.entityRestClient.load(typeRef, collapseId(instanceListId, instanceId))
 				if (isSameTypeRef(typeRef, UserTypeRef)) {
 					await this.handleUpdatedUser(cached, newEntity)
