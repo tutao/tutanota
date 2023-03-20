@@ -1,7 +1,7 @@
 import type { Base64 } from "@tutao/tutanota-utils"
 import { base64ToUint8Array, typedEntries, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import type { LanguageCode } from "./LanguageViewModel"
-import type { ThemeId } from "../gui/theme"
+import type { ThemePreference } from "../gui/theme"
 import type { CredentialsStorage, PersistentCredentials } from "./credentials/CredentialsProvider.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import type { CredentialEncryptionMode } from "./credentials/CredentialEncryptionMode"
@@ -12,7 +12,7 @@ import { NewsItemStorage } from "./news/NewsModel.js"
 import { CalendarViewType } from "../calendar/view/CalendarGuiUtils.js"
 
 assertMainOrNodeBoot()
-export const defaultThemeId: ThemeId = "light"
+export const defaultThemePreference: ThemePreference = "auto:light|dark"
 
 /**
  * Definition of the config object that will be saved to local storage
@@ -21,7 +21,7 @@ interface ConfigObject {
 	_version: number
 	_credentials: Map<Id, PersistentCredentials>
 	scheduledAlarmModelVersionPerUser: Record<Id, number>
-	_themeId: ThemeId
+	_themeId: ThemePreference
 	_language: LanguageCode | null
 	_defaultCalendarView: Record<Id, CalendarViewType | null>
 	/** map from user id to a list of calendar grouproots*/
@@ -78,7 +78,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 			_credentialEncryptionMode: loadedConfig._credentialEncryptionMode ?? null,
 			_encryptedCredentialsKey: loadedConfig._encryptedCredentialsKey ?? null,
 			acknowledgedNewsItems: loadedConfig.acknowledgedNewsItems ?? [],
-			_themeId: loadedConfig._themeId ?? defaultThemeId,
+			_themeId: loadedConfig._themeId ?? defaultThemePreference,
 			scheduledAlarmModelVersionPerUser: loadedConfig.scheduledAlarmModelVersionPerUser ?? {},
 			_language: loadedConfig._language ?? null,
 			_defaultCalendarView: loadedConfig._defaultCalendarView ?? {},
@@ -190,11 +190,11 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 		}
 	}
 
-	getTheme(): ThemeId {
+	getTheme(): ThemePreference {
 		return this.config._themeId
 	}
 
-	setTheme(theme: ThemeId) {
+	setTheme(theme: ThemePreference) {
 		if (this.config._themeId !== theme) {
 			this.config._themeId = theme
 

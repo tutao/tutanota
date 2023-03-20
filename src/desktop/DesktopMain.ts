@@ -185,7 +185,7 @@ async function createComponents(): Promise<Components> {
 	const offlineDbManager = new OfflineDbManager(offlineDbFactory)
 
 	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon, offlineDbManager)
-	const themeFacade = new DesktopThemeFacade(conf, wm)
+	const themeFacade = new DesktopThemeFacade(conf, wm, electron.nativeTheme)
 	const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
 	desktopAlarmScheduler.rescheduleAll().catch((e) => {
@@ -322,6 +322,13 @@ async function onAppReady(components: Components) {
 async function main(components: Components) {
 	const { tray, notifier, sock, wm, updater, integrator } = components
 	tray.update(notifier)
+
+	electron.nativeTheme.on("updated", () => {
+		for (const window of components.wm.getAll()) {
+			window.commonNativeFacade.updateTheme()
+			window.updateBackgroundColor()
+		}
+	})
 
 	if (process.argv.indexOf("-s") !== -1) {
 		sock.startServer()

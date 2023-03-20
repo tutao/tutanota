@@ -214,14 +214,13 @@ export class PostLoginActions implements PostLoginAction {
 			// jsonTheme is stored on WhitelabelConfig as an empty json string ("{}", or whatever JSON.stringify({}) gives you)
 			// so we can't just check `!whitelabelConfig.jsonTheme`
 			if (Object.keys(customizations).length > 0) {
-				customizations.themeId = domainInfoAndConfig.domainInfo.domain
+				const themeId = (customizations.themeId = domainInfoAndConfig.domainInfo.domain)
 				const previouslySavedThemes = await themeController.getCustomThemes()
-				const newTheme = themeController.assembleTheme(customizations)
-				await themeController.updateSavedThemeDefinition(newTheme)
+				await themeController.storeCustomThemeForCustomizations(customizations)
 				const isExistingTheme = previouslySavedThemes.includes(domainInfoAndConfig.domainInfo.domain)
 
 				if (!isExistingTheme && (await Dialog.confirm("whitelabelThemeDetected_msg"))) {
-					await themeController.setThemeId(newTheme.themeId)
+					await themeController.setThemePreference(themeId)
 				} else {
 					// If the theme has changed we want to reload it, otherwise this is no-op
 					await themeController.reloadTheme()

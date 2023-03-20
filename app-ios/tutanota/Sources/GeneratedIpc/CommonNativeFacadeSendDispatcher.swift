@@ -72,4 +72,13 @@ class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
 		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
+	func updateTheme(
+	) async throws -> Void
+		{
+		let args = [String]()
+		let encodedFacadeName = toJson("CommonNativeFacade")
+		let encodedMethodName = toJson("updateTheme")
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		}
+	
 }

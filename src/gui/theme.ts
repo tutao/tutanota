@@ -1,6 +1,5 @@
 import { deviceConfig } from "../misc/DeviceConfig"
 import { assertMainOrNodeBoot, isApp, isDesktop, isTest } from "../api/common/Env"
-import { downcast } from "@tutao/tutanota-utils"
 import type { HtmlSanitizer } from "../misc/HtmlSanitizer"
 import { NativeThemeFacade, ThemeController, WebThemeFacade } from "./ThemeController"
 import { isColorLight } from "./base/Color"
@@ -16,6 +15,10 @@ assertMainOrNodeBoot()
  */
 export type ThemeId = "light" | "dark" | "blue" | string
 export type BaseThemeId = "light" | "dark"
+/**
+ * This one is not attached to any single theme but is persisted and is shown to the user as a preference.
+ */
+export type ThemePreference = ThemeId | "auto:light|dark"
 export type Theme = {
 	themeId: ThemeId
 	logo: string
@@ -53,6 +56,7 @@ export type Theme = {
 	navigation_menu_icon?: string
 }
 const selectedThemeFacade = isApp() || isDesktop() ? new NativeThemeFacade() : new WebThemeFacade(deviceConfig)
+
 // We need it because we want to run tests in node and real HTMLSanitizer does not work there.
 const sanitizerStub: Partial<HtmlSanitizer> = {
 	sanitizeHTML: () => {
@@ -70,13 +74,25 @@ const sanitizerStub: Partial<HtmlSanitizer> = {
 		throw new Error("stub!")
 	},
 }
-export const themeController: ThemeController = new ThemeController(
-	selectedThemeFacade,
-	isTest() ? () => Promise.resolve(downcast<HtmlSanitizer>(sanitizerStub)) : () => import("../misc/HtmlSanitizer").then(({ htmlSanitizer }) => htmlSanitizer),
-)
-// ThemeManager.updateTheme updates the object in place, so this will always be current
-// We keep this singleton available because it is convenient to refer to, and already everywhere in the code before the addition of ThemeManager
-export const theme = themeController._theme
+
+const themeSingleton = {}
+const lazySanitizer = isTest()
+	? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
+	: () => import("../misc/HtmlSanitizer").then(({ htmlSanitizer }) => htmlSanitizer)
+
+export const themeController: ThemeController = new ThemeController(themeSingleton, selectedThemeFacade, lazySanitizer)
+
+// For native targets WebCommonNativeFacade notifies themeController because Android and Desktop do not seem to work reliably via media queries
+if (selectedThemeFacade instanceof WebThemeFacade) {
+	selectedThemeFacade.addDarkListener(() => themeController.reloadTheme())
+}
+
+// ThemeController.updateTheme updates the object in place, so this will always be current.
+// There are few alternative ways this could have been implemented:
+//  * make each property on this singleton a getter that defers to themeController
+//  * make this singleton a proxy that does the same thing
+// We keep this singleton available because it is convenient to refer to, and already everywhere in the code before the addition of ThemeController.
+export const theme = themeSingleton as Theme
 
 export function getContentButtonIconBackground(): string {
 	return theme.content_button_icon_bg || theme.content_button // fallback for the new color content_button_icon_bg

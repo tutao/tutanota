@@ -31,7 +31,7 @@ class Styles {
 			this.bodyWidth = width
 			this.bodyHeight = height
 		})
-		themeController.themeIdChangedStream.map(() => {
+		themeController.observableThemeId.map(() => {
 			this.updateDomStyles()
 		})
 	}

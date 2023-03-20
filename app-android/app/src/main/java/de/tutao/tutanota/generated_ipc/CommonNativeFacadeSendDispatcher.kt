@@ -71,4 +71,12 @@ class CommonNativeFacadeSendDispatcher (
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	
+	override suspend fun updateTheme(
+	): Unit
+	{
+		val encodedMethod = json.encodeToString("updateTheme")
+		val args : MutableList<String> = mutableListOf()
+		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
+	}
+	
 }

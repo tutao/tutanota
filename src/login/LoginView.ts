@@ -160,22 +160,26 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 			lazyButtons: async () => {
 				const defaultButtons: ReadonlyArray<DropdownButtonAttrs> = [
 					{
+						label: "systemThemePref_label",
+						click: () => themeController.setThemePreference("auto:light|dark"),
+					},
+					{
 						label: "light_label",
-						click: () => themeController.setThemeId("light"),
+						click: () => themeController.setThemePreference("light"),
 					},
 					{
 						label: "dark_label",
-						click: () => themeController.setThemeId("dark"),
+						click: () => themeController.setThemePreference("dark"),
 					},
 					{
 						label: "blue_label",
-						click: () => themeController.setThemeId("blue"),
+						click: () => themeController.setThemePreference("blue"),
 					},
 				]
 				const customButtons = (await themeController.getCustomThemes()).map((themeId) => {
 					return {
 						label: () => themeId,
-						click: () => themeController.setThemeId(themeId),
+						click: () => themeController.setThemePreference(themeId),
 					}
 				})
 				return defaultButtons.concat(customButtons)

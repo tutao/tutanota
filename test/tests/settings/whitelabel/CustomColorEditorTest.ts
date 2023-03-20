@@ -10,7 +10,7 @@ import { themes } from "../../../../src/gui/builtinThemes.js"
 import type { LoginController } from "../../../../src/api/main/LoginController.js"
 import { spy } from "@tutao/tutanota-test-utils"
 
-o.spec("Simple Color Editor", function () {
+o.spec("SimpleColorEditor", function () {
 	let model: CustomColorsEditorViewModel
 	let themeController: ThemeController
 	let whitelabelConfig
@@ -30,12 +30,12 @@ o.spec("Simple Color Editor", function () {
 	let isWhitelabelEnabled: boolean = false
 	o.beforeEach(function () {
 		isWhitelabelEnabled = false
-		themeController = downcast({
-			updateCustomTheme: spy(),
+		themeController = {
+			applyCustomizations: spy(),
 			getDefaultTheme: () => {
 				return themes["light"]
 			},
-		})
+		} as Partial<ThemeController> as ThemeController
 		whitelabelConfig = createWhitelabelConfig()
 		whitelabelDomainInfo = createDomainInfo()
 		whitelabelDomainInfo.domain = "test.domain.com"
@@ -63,7 +63,7 @@ o.spec("Simple Color Editor", function () {
 			)
 			o(model.accentColor).equals("#840010")
 			o(model.baseThemeId).equals("light")
-			o(themeController.updateCustomTheme.callCount).equals(1)
+			o(themeController.applyCustomizations.callCount).equals(1)
 		})
 		o("open Editor with custom theme, all customizations should be applied", async function () {
 			const customizations: ThemeCustomizations = downcast({
@@ -227,8 +227,8 @@ o.spec("Simple Color Editor", function () {
 			)
 			await model.resetActiveClientTheme()
 			// Should equal 2 since we call it once upon opening and then once when closing
-			o(themeController.updateCustomTheme.callCount).equals(2)
-			o(themeController.updateCustomTheme.args[0]).deepEquals(
+			o(themeController.applyCustomizations.callCount).equals(2)
+			o(themeController.applyCustomizations.args[0]).deepEquals(
 				Object.assign({}, defaultTheme, {
 					base: null,
 				}),
@@ -279,7 +279,7 @@ o.spec("Simple Color Editor", function () {
 			)
 			await model.save()
 			// Should equal 1 here since we call updateCustomTheme once when initializing the viewModel, and then not anymore when saving
-			o(themeController.updateCustomTheme.callCount).equals(1)
+			o(themeController.applyCustomizations.callCount).equals(1)
 		})
 	})
 	o.spec("changeAccentColor", function () {
@@ -303,7 +303,7 @@ o.spec("Simple Color Editor", function () {
 				loginController,
 			)
 			model.changeAccentColor("#ff00f2")
-			o(themeController.updateCustomTheme.callCount).equals(1)
+			o(themeController.applyCustomizations.callCount).equals(1)
 			await model.save()
 			o(entityClient.update.callCount).equals(1)
 			o(JSON.parse(entityClient.update.args[0].jsonTheme)).deepEquals(
@@ -311,7 +311,7 @@ o.spec("Simple Color Editor", function () {
 					base: "light",
 				}),
 			)
-			o(themeController.updateCustomTheme.callCount).equals(2) // called twice since we a) set the preview and b) return to previous theme
+			o(themeController.applyCustomizations.callCount).equals(2) // called twice since we a) set the preview and b) return to previous theme
 		})
 	})
 	o.spec("changeBaseTheme", function () {

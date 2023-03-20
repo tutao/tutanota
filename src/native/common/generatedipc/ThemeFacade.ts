@@ -5,7 +5,9 @@ export interface ThemeFacade {
 
 	setThemes(themes: ReadonlyArray<Record<string, string>>): Promise<void>
 
-	getSelectedTheme(): Promise<string | null>
+	getThemePreference(): Promise<string | null>
 
-	setSelectedTheme(themeId: string): Promise<void>
+	setThemePreference(themePreference: string): Promise<void>
+
+	prefersDark(): Promise<boolean>
 }

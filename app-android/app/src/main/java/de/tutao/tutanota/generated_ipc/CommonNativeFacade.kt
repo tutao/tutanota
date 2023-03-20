@@ -36,4 +36,9 @@ interface CommonNativeFacade {
 	 */
 	 suspend fun invalidateAlarms(
 	): Unit
+	/**
+	 * Called when the system theme preference has changed
+	 */
+	 suspend fun updateTheme(
+	): Unit
 }

@@ -13,12 +13,15 @@ export class ThemeFacadeReceiveDispatcher {
 				const themes: ReadonlyArray<Record<string, string>> = arg[0]
 				return this.facade.setThemes(themes)
 			}
-			case "getSelectedTheme": {
-				return this.facade.getSelectedTheme()
+			case "getThemePreference": {
+				return this.facade.getThemePreference()
 			}
-			case "setSelectedTheme": {
-				const themeId: string = arg[0]
-				return this.facade.setSelectedTheme(themeId)
+			case "setThemePreference": {
+				const themePreference: string = arg[0]
+				return this.facade.setThemePreference(themePreference)
+			}
+			case "prefersDark": {
+				return this.facade.prefersDark()
 			}
 		}
 	}
