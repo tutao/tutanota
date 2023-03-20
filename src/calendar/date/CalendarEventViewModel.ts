@@ -1371,7 +1371,7 @@ function areRepeatRulesEqual(r1: CalendarRepeatRule | null, r2: CalendarRepeatRu
  */
 export function areExcludedDatesEqual(e1: ReadonlyArray<DateWrapper>, e2: ReadonlyArray<DateWrapper>): boolean {
 	if (e1.length !== e2.length) return false
-	return !e1.some(({ date }, i) => e2[i].date.getTime() !== date.getTime())
+	return e1.every(({ date }, i) => e2[i].date.getTime() === date.getTime())
 }
 
 function createCalendarAlarm(identifier: string, trigger: string): AlarmInfo {

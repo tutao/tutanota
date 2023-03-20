@@ -58,10 +58,12 @@ export type EventsOnDays = {
 	shortEvents: Array<Array<CalendarEvent>>
 	longEvents: Array<CalendarEvent>
 }
+
+/** container to for the information needed to render & handle a reschedule with drag-and-drop */
 export type DraggedEvent = {
-	/// the event instance the user grabbed with the mouse
+	/** the event instance the user grabbed with the mouse */
 	originalEvent: CalendarEvent
-	/// the temporary event that's shown during the drag
+	/** the temporary event that's shown during the drag */
 	eventClone: CalendarEvent
 }
 
