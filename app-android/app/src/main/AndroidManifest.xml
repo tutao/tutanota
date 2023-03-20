@@ -34,9 +34,10 @@
 			android:usesCleartextTraffic="true"
 			android:exported="true"
 			android:dataExtractionRules="@xml/data_extraction_rules">
+		<!-- we do not want to restart activity for most of the things. uiMode changes with dark mode. -->
 		<activity
 				android:name=".MainActivity"
-				android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale"
+				android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|uiMode"
 				android:launchMode="singleInstance"
 				android:theme="@style/SplashTheme"
 				android:exported="true">

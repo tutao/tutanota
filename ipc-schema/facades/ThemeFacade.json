@@ -9,16 +9,28 @@
 			"ret": "List<Map<string, string>>"
 		},
 		"setThemes": {
-			"arg": [{ "themes": "List<Map<string, string>>" }],
+			"arg": [
+				{
+					"themes": "List<Map<string, string>>"
+				}
+			],
 			"ret": "void"
 		},
-		"getSelectedTheme": {
+		"getThemePreference": {
 			"arg": [],
 			"ret": "string?"
 		},
-		"setSelectedTheme": {
-			"arg": [{ "themeId": "string" }],
+		"setThemePreference": {
+			"arg": [
+				{
+					"themePreference": "string"
+				}
+			],
 			"ret": "void"
+		},
+		"prefersDark": {
+			"arg": [],
+			"ret": "boolean"
 		}
 	}
 }

@@ -53,11 +53,11 @@ o.spec("ApplicationWindow Test", function () {
 		getIcon: () => icon,
 	} as const
 	const themeFacadeInstance = new (class implements ThemeFacade {
-		async getSelectedTheme(): Promise<ThemeId | null> {
+		async getThemePreference(): Promise<ThemeId | null> {
 			return "light"
 		}
 
-		async setSelectedTheme(themeId: ThemeId) {}
+		async setThemePreference(themeId: ThemeId) {}
 
 		async getThemes(): Promise<Array<Theme>> {
 			return []
@@ -67,6 +67,10 @@ o.spec("ApplicationWindow Test", function () {
 
 		async getCurrentTheme(): Promise<Theme | null> {
 			return null
+		}
+
+		async prefersDark(): Promise<boolean> {
+			return false
 		}
 
 		async getCurrentThemeWithFallback(): Promise<Theme> {

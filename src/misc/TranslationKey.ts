@@ -1536,6 +1536,7 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "systemThemePref_label"
 	| "webAssemblyNotSupported1_msg"
 	| "webAssemblyNotSupported2_msg"
 	| "lockdownModeNotSupported1_msg"

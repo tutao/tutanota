@@ -13,10 +13,13 @@ export class ThemeFacadeSendDispatcher implements ThemeFacade {
 	async setThemes(...args: Parameters<ThemeFacade["setThemes"]>) {
 		return this.transport.invokeNative("ipc", ["ThemeFacade", "setThemes", ...args])
 	}
-	async getSelectedTheme(...args: Parameters<ThemeFacade["getSelectedTheme"]>) {
-		return this.transport.invokeNative("ipc", ["ThemeFacade", "getSelectedTheme", ...args])
+	async getThemePreference(...args: Parameters<ThemeFacade["getThemePreference"]>) {
+		return this.transport.invokeNative("ipc", ["ThemeFacade", "getThemePreference", ...args])
 	}
-	async setSelectedTheme(...args: Parameters<ThemeFacade["setSelectedTheme"]>) {
-		return this.transport.invokeNative("ipc", ["ThemeFacade", "setSelectedTheme", ...args])
+	async setThemePreference(...args: Parameters<ThemeFacade["setThemePreference"]>) {
+		return this.transport.invokeNative("ipc", ["ThemeFacade", "setThemePreference", ...args])
+	}
+	async prefersDark(...args: Parameters<ThemeFacade["prefersDark"]>) {
+		return this.transport.invokeNative("ipc", ["ThemeFacade", "prefersDark", ...args])
 	}
 }

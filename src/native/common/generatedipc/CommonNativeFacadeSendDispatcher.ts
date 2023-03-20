@@ -22,4 +22,7 @@ export class CommonNativeFacadeSendDispatcher implements CommonNativeFacade {
 	async invalidateAlarms(...args: Parameters<CommonNativeFacade["invalidateAlarms"]>) {
 		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "invalidateAlarms", ...args])
 	}
+	async updateTheme(...args: Parameters<CommonNativeFacade["updateTheme"]>) {
+		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "updateTheme", ...args])
+	}
 }

@@ -12,9 +12,11 @@ interface ThemeFacade {
 	 suspend fun setThemes(
 		themes: List<Map<String, String>>,
 	): Unit
-	 suspend fun getSelectedTheme(
+	 suspend fun getThemePreference(
 	): String?
-	 suspend fun setSelectedTheme(
-		themeId: String,
+	 suspend fun setThemePreference(
+		themePreference: String,
 	): Unit
+	 suspend fun prefersDark(
+	): Boolean
 }

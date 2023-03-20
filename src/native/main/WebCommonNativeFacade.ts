@@ -5,6 +5,7 @@ import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { UserError } from "../../api/main/UserError.js"
+import { themeController } from "../../gui/theme.js"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	/**
@@ -88,6 +89,10 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	async showAlertDialog(translationKey: string): Promise<void> {
 		const { Dialog } = await import("../../gui/base/Dialog.js")
 		return Dialog.message(translationKey as TranslationKey)
+	}
+
+	async updateTheme(): Promise<void> {
+		await themeController.reloadTheme()
 	}
 
 	private static async getInitializedLocator(): Promise<IMainLocator> {

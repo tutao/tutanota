@@ -1551,6 +1551,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
+		"systemThemePref_label": "System",
 		"webAssemblyNotSupported1_msg": "Your browser does not support WebAssembly and will not be supported in future versions of Tutanota.",
 		"webAssemblyNotSupported2_msg": "Please upgrade your browser or download our app.",
 		"lockdownModeNotSupported1_msg": "Your device has Lockdown Mode enabled which will prevent future versions of Tutanota from running.",

@@ -1,11 +1,11 @@
-import { defaultThemeId, DeviceConfig } from "../misc/DeviceConfig"
+import { DeviceConfig } from "../misc/DeviceConfig"
 import type { HtmlSanitizer } from "../misc/HtmlSanitizer"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { assertMainOrNodeBoot, isApp, isDesktop } from "../api/common/Env"
 import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "@tutao/tutanota-utils"
 import m from "mithril"
-import type { BaseThemeId, Theme, ThemeId } from "./theme"
+import type { BaseThemeId, Theme, ThemeId, ThemePreference } from "./theme"
 import { logo_text_bright_grey, logo_text_dark_grey, themes } from "./builtinThemes"
 import type { ThemeCustomizations } from "../misc/WhitelabelCustomizations"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
@@ -14,20 +14,24 @@ import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
 
 assertMainOrNodeBoot()
 
-export class ThemeController {
-	_theme: Theme
-	_themeId: ThemeId
-	// Subscribe to this to get theme change events. Cannot be used to update the theme
-	themeIdChangedStream: Stream<ThemeId>
-	initialized: Promise<any>
+export const defaultThemeId: ThemeId = "light"
 
-	constructor(private readonly themeFacade: ThemeFacade, private readonly htmlSanitizer: () => Promise<HtmlSanitizer>) {
-		// this will change soon
+export class ThemeController {
+	private readonly theme: Theme
+	_themeId: ThemeId
+	private _themePreference: ThemePreference
+	// Subscribe to this to get theme change events. Cannot be used to update the theme
+	readonly observableThemeId: Stream<ThemeId>
+	readonly initialized: Promise<any>
+
+	constructor(themeSingleton: {}, private readonly themeFacade: ThemeFacade, private readonly htmlSanitizer: () => Promise<HtmlSanitizer>) {
+		// this will be overwritten quickly
 		this._themeId = defaultThemeId
-		this._theme = this.getDefaultTheme()
-		this.themeIdChangedStream = stream(this.themeId)
+		this._themePreference = defaultThemeId
+		this.theme = Object.assign(themeSingleton, this.getDefaultTheme())
+		this.observableThemeId = stream(this.themeId)
 		// We run them in parallel to initialize as soon as possible
-		this.initialized = Promise.all([this._initializeTheme(), this._updateBuiltinThemes()])
+		this.initialized = Promise.all([this._initializeTheme(), this.updateSavedBuiltinThemes()])
 	}
 
 	async _initializeTheme() {
@@ -37,7 +41,7 @@ export class ThemeController {
 
 		if (whitelabelCustomizations && whitelabelCustomizations.theme) {
 			// no need to persist anything if we are on whitelabel domain
-			await this.updateCustomTheme(whitelabelCustomizations.theme, false)
+			await this.applyCustomizations(whitelabelCustomizations.theme, false)
 		} else {
 			// It is theme info passed from native to be applied as early as possible.
 			// Important! Do not blindly apply location.search, someone could try to do prototype pollution.
@@ -46,22 +50,22 @@ export class ThemeController {
 			const themeJson = window.location.href ? new URL(window.location.href).searchParams.get("theme") : null
 
 			if ((isApp() || isDesktop()) && themeJson) {
-				const parsedTheme: ThemeCustomizations = this._parseCustomizations(themeJson)
+				const parsedTheme: ThemeCustomizations = this.parseCustomizations(themeJson)
 
 				// We also don't need to save anything in this case
-				await this.updateCustomTheme(parsedTheme, false)
+				await this.applyCustomizations(parsedTheme, false)
 			} else {
 				await this.reloadTheme()
 			}
 		}
 	}
 
-	_parseCustomizations(stringTheme: string): ThemeCustomizations {
+	private parseCustomizations(stringTheme: string): ThemeCustomizations {
 		// Filter out __proto__ to avoid prototype pollution. We use Object.assign() which is not susceptible to it but it doesn't hurt.
 		return JSON.parse(stringTheme, (k, v) => (k === "__proto__" ? undefined : v))
 	}
 
-	async _updateBuiltinThemes() {
+	private async updateSavedBuiltinThemes() {
 		// In case we change built-in themes we want to save new copy on the device.
 		for (const theme of typedValues(themes)) {
 			await this.updateSavedThemeDefinition(theme)
@@ -69,16 +73,20 @@ export class ThemeController {
 	}
 
 	async reloadTheme() {
-		const themeId = await this.themeFacade.getSelectedTheme()
+		const themeId = await this.themeFacade.getThemePreference()
 		if (!themeId) return
-		await this.setThemeId(themeId, false)
+		await this.setThemePreference(themeId, false)
 	}
 
 	get themeId(): ThemeId {
 		return this._themeId
 	}
 
-	async _getTheme(themeId: ThemeId): Promise<Theme> {
+	get themePreference(): ThemePreference {
+		return this._themePreference
+	}
+
+	private async getTheme(themeId: ThemeId): Promise<Theme> {
 		if (themes[themeId]) {
 			// Make a defensive copy so that original theme definition is not modified.
 			return Object.assign({}, themes[themeId])
@@ -87,7 +95,7 @@ export class ThemeController {
 			const customTheme = loadedThemes.find((t) => t.themeId === themeId)
 
 			if (customTheme) {
-				await this._sanitizeTheme(customTheme)
+				await this.sanitizeTheme(customTheme)
 				return customTheme
 			} else {
 				return this.getDefaultTheme()
@@ -96,55 +104,74 @@ export class ThemeController {
 	}
 
 	getCurrentTheme(): Theme {
-		return Object.assign({}, this._theme)
+		return Object.assign({}, this.theme)
 	}
 
 	/**
 	 * Set the theme, if permanent is true then the locally saved theme will be updated
 	 */
-	async setThemeId(newThemeId: ThemeId, permanent: boolean = true) {
-		const newTheme = await this._getTheme(newThemeId)
+	async setThemePreference(newThemePreference: ThemePreference, permanent: boolean = true) {
+		const themeId = await this.resolveThemePreference(newThemePreference)
+		const newTheme = await this.getTheme(themeId)
 
-		this._applyTrustedTheme(newTheme, newThemeId)
+		this.applyTrustedTheme(newTheme, themeId, newThemePreference)
 
 		if (permanent) {
-			await this.themeFacade.setSelectedTheme(newThemeId)
+			await this.themeFacade.setThemePreference(newThemePreference)
 		}
 	}
 
-	_applyTrustedTheme(newTheme: Theme, newThemeId: ThemeId) {
-		Object.keys(this._theme).forEach((key) => delete downcast(this._theme)[key])
-		// Always overwrite light theme so that optional things are not kept when switching
-		Object.assign(this._theme, this.getDefaultTheme(), newTheme)
+	private async resolveThemePreference(newThemePreference: ThemePreference): Promise<ThemeId> {
+		if (newThemePreference === "auto:light|dark") {
+			return (await this.themeFacade.prefersDark()) ? "dark" : "light"
+		} else {
+			return newThemePreference
+		}
+	}
+
+	private applyTrustedTheme(newTheme: Theme, newThemeId: ThemeId, newThemePreference: ThemePreference) {
+		// Theme object is effectively a singleton and is imported everywhere. It must be updated in place.
+		// see theme.js
+
+		// Clear all the keys first.
+		Object.keys(this.theme).forEach((key) => delete downcast(this.theme)[key])
+		// Write new keys on it later. First default theme as base (so that optional values are correctly filled in) and then the new theme.
+		Object.assign(this.theme, this.getDefaultTheme(), newTheme)
 		this._themeId = newThemeId
-		this.themeIdChangedStream(newThemeId)
+		this.observableThemeId(newThemeId)
+		this._themePreference = newThemePreference
 		m.redraw()
 	}
 
 	/**
 	 * Apply the custom theme, if permanent === true, then the new theme will be saved
 	 */
-	async updateCustomTheme(customizations: ThemeCustomizations, permanent: boolean = true): Promise<void> {
+	async applyCustomizations(customizations: ThemeCustomizations, permanent: boolean = true): Promise<void> {
 		const updatedTheme = this.assembleTheme(customizations)
 		// Set no logo until we sanitize it.
 		const filledWithoutLogo = Object.assign({}, updatedTheme, {
 			logo: "",
 		})
 
-		this._applyTrustedTheme(filledWithoutLogo, filledWithoutLogo.themeId)
+		this.applyTrustedTheme(filledWithoutLogo, filledWithoutLogo.themeId, filledWithoutLogo.themeId)
 
-		await this._sanitizeTheme(updatedTheme)
+		await this.sanitizeTheme(updatedTheme)
 
 		// Now apply with the logo
-		this._applyTrustedTheme(updatedTheme, filledWithoutLogo.themeId)
+		this.applyTrustedTheme(updatedTheme, filledWithoutLogo.themeId, filledWithoutLogo.themeId)
 
 		if (permanent) {
 			await this.updateSavedThemeDefinition(updatedTheme)
-			await this.themeFacade.setSelectedTheme(updatedTheme.themeId)
+			await this.themeFacade.setThemePreference(updatedTheme.themeId)
 		}
 	}
 
-	async _sanitizeTheme(theme: Theme) {
+	async storeCustomThemeForCustomizations(customizations: ThemeCustomizations) {
+		const newTheme = this.assembleTheme(customizations)
+		await this.updateSavedThemeDefinition(newTheme)
+	}
+
+	private async sanitizeTheme(theme: Theme) {
 		if (theme.logo) {
 			const logo = theme.logo
 			const htmlSanitizer = await this.htmlSanitizer()
@@ -155,9 +182,9 @@ export class ThemeController {
 	/**
 	 * Save theme to the storage.
 	 */
-	async updateSavedThemeDefinition(updatedTheme: Theme): Promise<Theme> {
+	private async updateSavedThemeDefinition(updatedTheme: Theme): Promise<Theme> {
 		const nonNullTheme = Object.assign({}, this.getDefaultTheme(), updatedTheme)
-		await this._sanitizeTheme(nonNullTheme)
+		await this.sanitizeTheme(nonNullTheme)
 		const oldThemes = (await this.themeFacade.getThemes()) as Array<Theme>
 		findAndRemove(oldThemes, (t) => t.themeId === updatedTheme.themeId)
 		oldThemes.push(nonNullTheme)
@@ -181,7 +208,7 @@ export class ThemeController {
 	/**
 	 * Assembles a new theme object from customizations.
 	 */
-	assembleTheme(customizations: ThemeCustomizations): Theme {
+	private assembleTheme(customizations: ThemeCustomizations): Theme {
 		if (!customizations.base) {
 			return Object.assign({}, customizations as Theme)
 		} else if (customizations.base && customizations.logo) {
@@ -201,11 +228,6 @@ export class ThemeController {
 			return !(theme.themeId in themes) ? theme.themeId : null
 		})
 	}
-
-	async removeCustomThemes() {
-		await this.themeFacade.setThemes([])
-		await this.setThemeId(defaultThemeId, true)
-	}
 }
 
 export class NativeThemeFacade implements ThemeFacade {
@@ -223,14 +245,14 @@ export class NativeThemeFacade implements ThemeFacade {
 		})
 	}
 
-	async getSelectedTheme(): Promise<ThemeId | null> {
+	async getThemePreference(): Promise<ThemeId | null> {
 		const dispatcher = await this.themeFacade.getAsync()
-		return dispatcher.getSelectedTheme()
+		return dispatcher.getThemePreference()
 	}
 
-	async setSelectedTheme(theme: ThemeId): Promise<void> {
+	async setThemePreference(theme: ThemeId): Promise<void> {
 		const dispatcher = await this.themeFacade.getAsync()
-		return dispatcher.setSelectedTheme(theme)
+		return dispatcher.setThemePreference(theme)
 	}
 
 	async getThemes(): Promise<Array<Theme>> {
@@ -242,21 +264,24 @@ export class NativeThemeFacade implements ThemeFacade {
 		const dispatcher = await this.themeFacade.getAsync()
 		return dispatcher.setThemes(themes)
 	}
+
+	async prefersDark(): Promise<boolean> {
+		const dispatcher = await this.themeFacade.getAsync()
+		return dispatcher.prefersDark()
+	}
 }
 
 export class WebThemeFacade implements ThemeFacade {
-	readonly _deviceConfig: DeviceConfig
+	private readonly mediaQuery: MediaQueryList | undefined = window.matchMedia?.("(prefers-color-scheme: dark)")
 
-	constructor(deviceConfig: DeviceConfig) {
-		this._deviceConfig = deviceConfig
+	constructor(private readonly deviceConfig: DeviceConfig) {}
+
+	async getThemePreference(): Promise<ThemeId | null> {
+		return this.deviceConfig.getTheme()
 	}
 
-	async getSelectedTheme(): Promise<ThemeId | null> {
-		return this._deviceConfig.getTheme()
-	}
-
-	async setSelectedTheme(theme: ThemeId): Promise<void> {
-		return this._deviceConfig.setTheme(theme)
+	async setThemePreference(theme: ThemeId): Promise<void> {
+		return this.deviceConfig.setTheme(theme)
 	}
 
 	async getThemes(): Promise<Array<Theme>> {
@@ -266,5 +291,13 @@ export class WebThemeFacade implements ThemeFacade {
 
 	async setThemes(themes: ReadonlyArray<Theme>) {
 		// no-op
+	}
+
+	async prefersDark(): Promise<boolean> {
+		return this.mediaQuery?.matches ?? false
+	}
+
+	addDarkListener(listener: () => unknown) {
+		this.mediaQuery?.addEventListener("change", listener)
 	}
 }

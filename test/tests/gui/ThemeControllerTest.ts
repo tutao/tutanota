@@ -6,13 +6,16 @@ import { ThemeFacade } from "../../../src/native/common/generatedipc/ThemeFacade
 import { HtmlSanitizer } from "../../../src/misc/HtmlSanitizer.js"
 import { matchers, object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
+import { Theme } from "../../../src/gui/theme.js"
 
-o.spec("Theme Controller", function () {
+o.spec("ThemeController", function () {
 	let themeManager: ThemeController
 	let themeFacadeMock: ThemeFacade
 	let htmlSanitizerMock: HtmlSanitizer
+	let theme: Partial<Theme>
 
 	o.beforeEach(async function () {
+		theme = {}
 		themeFacadeMock = object()
 		when(themeFacadeMock.getThemes()).thenResolve([])
 
@@ -24,7 +27,7 @@ o.spec("Theme Controller", function () {
 			inlineImageCids: [],
 			links: [],
 		})
-		themeManager = new ThemeController(themeFacadeMock, () => Promise.resolve(htmlSanitizerMock))
+		themeManager = new ThemeController(theme, themeFacadeMock, () => Promise.resolve(htmlSanitizerMock))
 		await themeManager.initialized
 	})
 
@@ -36,7 +39,7 @@ o.spec("Theme Controller", function () {
 			base: "light",
 		})
 
-		await themeManager.updateCustomTheme(theme)
+		await themeManager.applyCustomizations(theme)
 
 		const captor = matchers.captor()
 		verify(themeFacadeMock.setThemes(captor.capture()))
@@ -45,6 +48,39 @@ o.spec("Theme Controller", function () {
 		o(savedTheme.content_bg).equals("#fffeee")
 		o(savedTheme.logo).equals("sanitized")
 		o(savedTheme.content_fg).equals(themeManager.getDefaultTheme().content_fg)
-		o(themeManager._theme.logo).equals("sanitized")
+		o(themeManager.getCurrentTheme().logo).equals("sanitized")
+	})
+
+	o("when using automatic theme and preferring dark, dark theme is applied, and themeId is automatic", async function () {
+		when(themeFacadeMock.getThemePreference()).thenResolve("auto:light|dark")
+		when(themeFacadeMock.prefersDark()).thenResolve(true)
+
+		await themeManager.reloadTheme()
+
+		o(themeManager.getCurrentTheme().themeId).equals("dark")
+		o(themeManager.themeId).equals("dark")
+		o(themeManager.themePreference).equals("auto:light|dark")
+	})
+
+	o("when using automatic theme and preferring light, light theme is applied, and themeId is automatic", async function () {
+		when(themeFacadeMock.getThemePreference()).thenResolve("auto:light|dark")
+		when(themeFacadeMock.prefersDark()).thenResolve(false)
+
+		await themeManager.reloadTheme()
+
+		o(themeManager.getCurrentTheme().themeId).equals("light")
+		o(themeManager.themeId).equals("light")
+		o(themeManager.themePreference).equals("auto:light|dark")
+	})
+
+	o("when switching to automatic and preferring the light theme, light theme is applied, and themeId is automatic", async function () {
+		when(themeFacadeMock.getThemePreference()).thenResolve("dark")
+		await themeManager._initializeTheme()
+
+		when(themeFacadeMock.prefersDark()).thenResolve(false)
+		await themeManager.setThemePreference("automatic")
+
+		o(themeManager.getCurrentTheme().themeId).equals("light")
+		o(themeManager.themeId).equals("automatic")
 	})
 })

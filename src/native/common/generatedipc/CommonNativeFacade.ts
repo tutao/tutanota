@@ -19,4 +19,9 @@ export interface CommonNativeFacade {
 	 * All local alarms have been deleted, reschedule alarms for the current user.
 	 */
 	invalidateAlarms(): Promise<void>
+
+	/**
+	 * Called when the system theme preference has changed
+	 */
+	updateTheme(): Promise<void>
 }

@@ -20,16 +20,20 @@ public class ThemeFacadeReceiveDispatcher {
 				themes
 			)
 			return "null"
-		case "getSelectedTheme":
-			let result = try await self.facade.getSelectedTheme(
+		case "getThemePreference":
+			let result = try await self.facade.getThemePreference(
 			)
 			return toJson(result)
-		case "setSelectedTheme":
-			let themeId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
-			try await self.facade.setSelectedTheme(
-				themeId
+		case "setThemePreference":
+			let themePreference = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.setThemePreference(
+				themePreference
 			)
 			return "null"
+		case "prefersDark":
+			let result = try await self.facade.prefersDark(
+			)
+			return toJson(result)
 		default:
 			fatalError("licc messed up! \(method)")
 		}

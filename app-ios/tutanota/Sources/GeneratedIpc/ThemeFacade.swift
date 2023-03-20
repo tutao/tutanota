@@ -9,9 +9,11 @@ public protocol ThemeFacade {
 	func setThemes(
 		_ themes: [[String : String]]
 	) async throws -> Void
-	func getSelectedTheme(
+	func getThemePreference(
 	) async throws -> String?
-	func setSelectedTheme(
-		_ themeId: String
+	func setThemePreference(
+		_ themePreference: String
 	) async throws -> Void
+	func prefersDark(
+	) async throws -> Bool
 }

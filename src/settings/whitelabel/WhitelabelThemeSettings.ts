@@ -70,7 +70,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
 			if (locator.logins.isWhitelabel()) {
-				await themeController.updateCustomTheme(customTheme)
+				await themeController.applyCustomizations(customTheme)
 			}
 		}
 	}
@@ -128,7 +128,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
 			if (locator.logins.isWhitelabel()) {
-				await themeController.updateCustomTheme(customTheme)
+				await themeController.applyCustomizations(customTheme)
 			}
 		}
 	}
@@ -141,7 +141,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
 			if (locator.logins.isWhitelabel()) {
-				await themeController.updateCustomTheme(customTheme)
+				await themeController.applyCustomizations(customTheme)
 			}
 		}
 	}

@@ -33,4 +33,9 @@ public protocol CommonNativeFacade {
 	 */
 	func invalidateAlarms(
 	) async throws -> Void
+	/**
+	 * Called when the system theme preference has changed
+	 */
+	func updateTheme(
+	) async throws -> Void
 }

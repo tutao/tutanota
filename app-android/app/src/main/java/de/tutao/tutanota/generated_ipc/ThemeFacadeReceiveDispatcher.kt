@@ -26,15 +26,20 @@ class ThemeFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
-			"getSelectedTheme" -> {
-				val result: String? = this.facade.getSelectedTheme(
+			"getThemePreference" -> {
+				val result: String? = this.facade.getThemePreference(
 				)
 				return json.encodeToString(result)
 			}
-			"setSelectedTheme" -> {
-				val themeId: String = json.decodeFromString(arg[0])
-				val result: Unit = this.facade.setSelectedTheme(
-					themeId,
+			"setThemePreference" -> {
+				val themePreference: String = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.setThemePreference(
+					themePreference,
+				)
+				return json.encodeToString(result)
+			}
+			"prefersDark" -> {
+				val result: Boolean = this.facade.prefersDark(
 				)
 				return json.encodeToString(result)
 			}

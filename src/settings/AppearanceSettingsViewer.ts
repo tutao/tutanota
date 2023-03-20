@@ -11,7 +11,7 @@ import type { EntityUpdateData } from "../api/main/EventController"
 import { isUpdateForTypeRef } from "../api/main/EventController"
 import { UserSettingsGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { getHourCycle } from "../misc/Formatter"
-import type { ThemeId } from "../gui/theme"
+import type { ThemeId, ThemePreference } from "../gui/theme"
 import { themeController } from "../gui/theme"
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { isDesktop } from "../api/common/Env"
@@ -137,9 +137,13 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			}
 		})
 
-		const themeDropDownAttrs: DropDownSelectorAttrs<ThemeId> = {
+		const themeDropDownAttrs: DropDownSelectorAttrs<ThemePreference> = {
 			label: "switchColorTheme_action",
 			items: [
+				{
+					name: lang.get("systemThemePref_label"),
+					value: "auto:light|dark",
+				},
 				{
 					name: lang.get("light_label"),
 					value: "light",
@@ -153,8 +157,8 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 					value: "blue",
 				},
 			].concat(customOptions),
-			selectedValue: themeController.themeId,
-			selectionChangedHandler: (value) => themeController.setThemeId(value),
+			selectedValue: themeController.themePreference,
+			selectionChangedHandler: (value) => themeController.setThemePreference(value),
 			dropdownWidth: 300,
 		}
 		return m(DropDownSelector, themeDropDownAttrs)

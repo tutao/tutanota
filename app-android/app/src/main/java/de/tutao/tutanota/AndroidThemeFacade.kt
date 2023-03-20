@@ -2,6 +2,8 @@ package de.tutao.tutanota
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.res.Configuration.UI_MODE_NIGHT_MASK
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.graphics.drawable.ColorDrawable
 import android.preference.PreferenceManager
 import android.util.Log
@@ -13,7 +15,8 @@ import org.json.JSONObject
 import java.util.*
 
 typealias Theme = Map<String, String>
-
+typealias ThemeId = String
+typealias ThemePreference = String
 
 class AndroidThemeFacade(
 	private val context: Context,
@@ -34,7 +37,7 @@ class AndroidThemeFacade(
 	private val prefs: SharedPreferences
 		get() = PreferenceManager.getDefaultSharedPreferences(context)
 
-	private var selectedThemeId: String?
+	private var themePreference: ThemePreference?
 		get() = prefs.getString(CURRENT_THEME_KEY, null)
 		set(value) {
 			prefs.edit().putString(CURRENT_THEME_KEY, value).apply()
@@ -43,10 +46,7 @@ class AndroidThemeFacade(
 
 	private val currentTheme: Theme?
 		get() {
-			var themeId = selectedThemeId
-			if (themeId == null) {
-				themeId = "light"
-			}
+			val themeId = resolveThemePreference()
 			val themes = themes
 			for (theme in themes) {
 				if (themeId == theme["themeId"]) {
@@ -56,11 +56,22 @@ class AndroidThemeFacade(
 			return null
 		}
 
+	private fun resolveThemePreference(): ThemeId {
+		val pref = themePreference
+		return if (pref == "auto:light|dark") {
+			if (prefersDarkMode) "dark" else "light"
+		} else pref ?: "light"
+	}
+
+	override suspend fun prefersDark(): Boolean = this.prefersDarkMode
+
+	private val prefersDarkMode: Boolean
+		get() = (context.resources.configuration.uiMode and UI_MODE_NIGHT_MASK) == UI_MODE_NIGHT_YES
+
 	val currentThemeWithFallback: Theme
 		get() {
 			return currentTheme ?: LIGHT_FALLBACK_THEME
 		}
-
 
 	val themes: List<Theme>
 		get() {
@@ -147,12 +158,12 @@ class AndroidThemeFacade(
 		return
 	}
 
-	override suspend fun getSelectedTheme(): String? {
-		return this.selectedThemeId
+	override suspend fun getThemePreference(): ThemePreference? {
+		return this.themePreference
 	}
 
-	override suspend fun setSelectedTheme(themeId: String) {
-		this.selectedThemeId = themeId
+	override suspend fun setThemePreference(themePreference: ThemePreference) {
+		this.themePreference = themePreference
 		applyTheme()
 		return
 	}

@@ -31,6 +31,9 @@ export class CommonNativeFacadeReceiveDispatcher {
 			case "invalidateAlarms": {
 				return this.facade.invalidateAlarms()
 			}
+			case "updateTheme": {
+				return this.facade.updateTheme()
+			}
 		}
 	}
 }

@@ -32,6 +32,11 @@
 			"doc": "All local alarms have been deleted, reschedule alarms for the current user.",
 			"arg": [],
 			"ret": "void"
+		},
+		"updateTheme": {
+			"doc": "Called when the system theme preference has changed",
+			"arg": [],
+			"ret": "void"
 		}
 	}
 }

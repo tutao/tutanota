@@ -8,7 +8,7 @@ import { progressIcon } from "./Icon.js"
 import { Button, ButtonType } from "./Button.js"
 import { ListSwipeHandler } from "./ListSwipeHandler.js"
 import { applySafeAreaInsetMarginLR } from "../HtmlUtils.js"
-import { theme } from "../theme.js"
+import { theme, ThemeId } from "../theme.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { Coordinate2D } from "./SwipeHandler.js"
 
@@ -118,6 +118,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 	private height = 0
 	// remember the last time we needed to scroll somewhere
 	private activeIndex: number | null = null
+	private lastThemeId: ThemeId = theme.themeId
 
 	view({ attrs }: Vnode<ListAttrs<T, VH>>) {
 		const oldAttrs = this.lastAttrs
@@ -152,6 +153,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 					this.initializeDom(dom as HTMLElement, attrs)
 					this.updateDomElements(attrs)
 					this.state = attrs.state
+					this.lastThemeId = theme.themeId
 				},
 				onupdate: ({ dom }) => {
 					if (oldAttrs.renderConfig !== attrs.renderConfig) {
@@ -164,10 +166,12 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 						dom.vnodes = null
 						this.initializeDom(dom as HTMLElement, attrs)
 					}
-					if (this.state !== attrs.state) {
+					// if the state has changed or the theme has changed we need to update the DOM
+					if (this.state !== attrs.state || this.lastThemeId !== theme.themeId) {
 						this.updateDomElements(attrs)
 						this.state = attrs.state
 					}
+					this.lastThemeId = theme.themeId
 				},
 				onscroll: () => {
 					attrs.onLoadMore()
