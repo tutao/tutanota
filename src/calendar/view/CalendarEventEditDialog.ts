@@ -40,11 +40,13 @@ import { createDropdown } from "../../gui/base/Dropdown.js"
 import { CalendarEvent, createEncryptedMailAddress, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 import type { HtmlEditor } from "../../gui/editor/HtmlEditor.js"
-import { IconButton } from "../../gui/base/IconButton.js"
+import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { ToggleButton } from "../../gui/base/ToggleButton.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUtils.js"
+import { ColumnWidth, Table, TableLineAttrs } from "../../gui/base/Table.js"
+import { formatDateTime } from "../../misc/Formatter.js"
 
 export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -522,10 +524,7 @@ function renderRepeatRulePicker(viewModel: CalendarEventViewModel, startOfTheWee
 				  ]
 				: null,
 		),
-		renderTwoColumnsIfFits(
-			viewModel.repeat && viewModel.repeat.excludedDates.length > 0 ? [m(".flex-grow.pr-s", renderExclusionCount(viewModel))] : null,
-			null,
-		),
+		viewModel.repeat && viewModel.repeat.excludedDates.length > 0 ? [m(".flex-grow.pr-s.mt.mb", renderExcludedDates(viewModel))] : null,
 	]
 }
 
@@ -538,10 +537,37 @@ function renderExclusionCount(viewModel: CalendarEventViewModel): Children {
 	})
 }
 
+function renderExcludedDates(viewModal: CalendarEventViewModel): Children {
+	function getActionButtonAttrs(date: Date): IconButtonAttrs {
+		return {
+			title: "restoreExcludedRecurrences_action",
+			click: () => {
+				viewModal.restoreExcludedDate(date)
+			},
+			icon: Icons.Cancel,
+			size: ButtonSize.Compact,
+		}
+	}
+
+	function dateToTableRow(date: Date): TableLineAttrs {
+		return {
+			cells: [formatDateTime(date)],
+			actionButtonAttrs: getActionButtonAttrs(date),
+		}
+	}
+
+	return m(Table, {
+		columnHeading: ["excludedDates_label"],
+		columnWidths: [ColumnWidth.Largest],
+		showActionButtonColumn: true,
+		lines: viewModal.repeat?.excludedDates ? viewModal.repeat?.excludedDates.map(dateToTableRow) : null,
+	})
+}
+
 function renderDeleteExclusionButton(viewModel: CalendarEventViewModel): Children {
 	return m(IconButton, {
 		title: "restoreExcludedRecurrences_action",
-		click: () => viewModel.deleteExcludedDates(),
+		click: () => viewModel.restoreAllExcludedDates(),
 		icon: Icons.Cancel,
 	})
 }

@@ -3082,10 +3082,61 @@ o.spec("CalendarEventViewModel", function () {
 				}),
 			})
 
-			viewModel.deleteExcludedDates()
+			viewModel.restoreAllExcludedDates()
 			o(viewModel.repeat?.excludedDates).deepEquals([])
 		})
 	})
+
+	o.spec("restoreExcludedDate", async function () {
+		o(" restoring a date on a non-reoccuring event does nothing", async function () {
+			const userController = makeUserController()
+			const viewModel = await init({
+				userController,
+				calendars: makeCalendars("own"),
+				existingEvent: createCalendarEvent(),
+			})
+			viewModel.restoreExcludedDate(new Date("2023-03-20T10:43:34.521Z"))
+			o(viewModel.repeat).equals(null)
+		})
+
+		o("restores the right excluded event", async function () {
+			const excludedDates = ["2023-03-13T00:00:00Z", "2023-03-15T00:00:00Z", "2023-03-20T10:43:34.521Z"].map((dateStr) =>
+				createDateWrapper({ date: new Date(dateStr) }),
+			)
+			const expectedExcludedDates = excludedDates.slice(0, 2).map(({ date }) => date)
+			const userController = makeUserController()
+			const viewModel = await init({
+				userController,
+				calendars: makeCalendars("own"),
+				existingEvent: createCalendarEvent({
+					repeatRule: createRepeatRule({
+						excludedDates,
+					}),
+				}),
+			})
+			viewModel.restoreExcludedDate(new Date("2023-03-20T10:43:34.521Z"))
+			o(viewModel.repeat?.excludedDates).deepEquals(expectedExcludedDates)
+		})
+		o("doesn't change the excluded date array when the restored date isn't in the array", async function () {
+			const excludedDates = ["2023-03-13T00:00:00Z", "2023-03-15T00:00:00Z", "2023-03-20T10:43:34.521Z"].map((dateStr) =>
+				createDateWrapper({ date: new Date(dateStr) }),
+			)
+			const expectedExcludedDates = excludedDates.slice().map(({ date }) => date)
+			const userController = makeUserController()
+			const viewModel = await init({
+				userController,
+				calendars: makeCalendars("own"),
+				existingEvent: createCalendarEvent({
+					repeatRule: createRepeatRule({
+						excludedDates,
+					}),
+				}),
+			})
+			viewModel.restoreExcludedDate(new Date("2023-03-18T10:43:34.521Z"))
+			o(viewModel.repeat?.excludedDates).deepEquals(expectedExcludedDates)
+		})
+	})
+
 	o.spec("excludeThisOccurence", function () {
 		o("no exclusion is added if event has no repeat rule", async function () {
 			const userController = makeUserController()

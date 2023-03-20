@@ -1600,3 +1600,4 @@ export type TranslationKeyType =
 	| "deleteAllEventRecurrence_action"
 	| "restoreExcludedRecurrences_action"
 	| "someRepetitionsDeleted_msg"
+	| "excludedDates_label"

@@ -255,7 +255,7 @@ export class CalendarEventViewModel {
 		this.endDate = getStartOfDayWithZone(newEndDate, this._zone)
 		this.startTime = Time.fromDate(newStartDate)
 		this.endTime = Time.fromDate(newEndDate)
-		this.deleteExcludedDates()
+		this.restoreAllExcludedDates()
 	}
 
 	async _applyValuesFromExistingEvent(existingEvent: CalendarEvent, calendars: ReadonlyMap<Id, CalendarInfo>): Promise<void> {
@@ -500,7 +500,7 @@ export class CalendarEventViewModel {
 			this._adjustEndTime()
 		}
 
-		this.deleteExcludedDates()
+		this.restoreAllExcludedDates()
 	}
 
 	setEndTime(value: Time | null) {
@@ -520,7 +520,7 @@ export class CalendarEventViewModel {
 		} else {
 			// we have an invalid start time. to save, we need to change it, which means we're going to delete these anyway.
 			// no point in keeping wrong data around or having the behaviour depend on the value of the time field
-			this.deleteExcludedDates()
+			this.restoreAllExcludedDates()
 		}
 	}
 
@@ -641,7 +641,7 @@ export class CalendarEventViewModel {
 				.toJSDate()
 			this.startDate = date
 
-			this.deleteExcludedDates()
+			this.restoreAllExcludedDates()
 		}
 	}
 
@@ -1348,9 +1348,21 @@ export class CalendarEventViewModel {
 	 * completely delete all exclusions. will cause the event to be rendered and fire alarms on all
 	 * occurrences as dictated by its repeat rule.
 	 */
-	deleteExcludedDates(): void {
+	restoreAllExcludedDates(): void {
 		if (!this.repeat) return
 		this.repeat.excludedDates.length = 0
+	}
+
+	/**
+	 * remove one date from the list of exclusions on this event
+	 * @param date the date to restore
+	 */
+	restoreExcludedDate(date: Date) {
+		const excludedDates = this.repeat?.excludedDates
+		if (excludedDates == null) return
+		const indexToRemove = excludedDates.findIndex((excludedDate) => excludedDate.getTime() === date.getTime())
+		if (indexToRemove < 0) return
+		excludedDates.splice(indexToRemove, 1)
 	}
 }
 
