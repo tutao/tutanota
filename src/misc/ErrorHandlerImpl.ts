@@ -13,7 +13,7 @@ import {
 import { Dialog } from "../gui/base/Dialog"
 import { lang } from "./LanguageViewModel"
 import { assertMainOrNode, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
-import { neverNull, noOp } from "@tutao/tutanota-utils"
+import { assertNotNull, noOp } from "@tutao/tutanota-utils"
 import { OutOfSyncError } from "../api/common/error/OutOfSyncError"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { IndexingNotSupportedError } from "../api/common/error/IndexingNotSupportedError"
@@ -30,6 +30,7 @@ import { getLoginErrorMessage } from "./LoginUtils"
 import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
 import { SessionType } from "../api/common/SessionType.js"
 import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.js"
+import { UserTypeRef } from "../api/entities/sys/TypeRefs.js"
 
 assertMainOrNode()
 
@@ -174,62 +175,65 @@ function logoutIfNoPasswordPrompt() {
 }
 
 export async function reloginForExpiredSession() {
-	if (!loginDialogActive) {
-		const { logins, loginFacade, secondFactorHandler, credentialsProvider, sqlCipherFacade } = locator
-		// Make sure that partial login part is complete before we will try to make a new session.
-		// Otherwise we run into a race condition where login failure arrives before we initialize userController.
-		await logins.waitForPartialLogin()
-		console.log("RELOGIN", logins.isUserLoggedIn())
-		const oldSessionType = logins.getUserController().sessionType
-		const userId = logins.getUserController().user._id
-		const mailAddress = neverNull(logins.getUserController().userGroupInfo.mailAddress)
-		// Fetch old credentials to preserve database key if it's there
-		const oldCredentials = await credentialsProvider.getCredentialsByUserId(userId)
-		const sessionReset = loginFacade.resetSession()
-		loginDialogActive = true
-
-		const dialog = Dialog.showRequestPasswordDialog({
-			action: async (pw) => {
-				await sessionReset
-				let credentials: Credentials
-				let databaseKey: Uint8Array | null
-				try {
-					const newSessionData = await logins.createSession(mailAddress, pw, oldSessionType, oldCredentials?.databaseKey)
-					credentials = newSessionData.credentials
-					databaseKey = newSessionData.databaseKey
-				} catch (e) {
-					if (
-						e instanceof CancelledError ||
-						e instanceof AccessBlockedError ||
-						e instanceof NotAuthenticatedError ||
-						e instanceof AccessDeactivatedError ||
-						e instanceof ConnectionError
-					) {
-						const { getLoginErrorMessage } = await import("../misc/LoginUtils.js")
-						return lang.getMaybeLazy(getLoginErrorMessage(e, false))
-					} else {
-						throw e
-					}
-				} finally {
-					// Once login succeeds we need to manually close the dialog
-					secondFactorHandler.closeWaitingForSecondFactorDialog()
-				}
-				await credentialsProvider.deleteByUserId(userId, { deleteOfflineDb: false })
-				if (oldSessionType === SessionType.Persistent) {
-					await credentialsProvider.store({ credentials, databaseKey })
-				}
-				loginDialogActive = false
-				dialog.close()
-				return ""
-			},
-			cancel: {
-				textId: "logout_label",
-				action() {
-					windowFacade.reload({})
-				},
-			},
-		})
+	if (loginDialogActive) {
+		return
 	}
+	const { logins, loginFacade, secondFactorHandler, credentialsProvider, sqlCipherFacade, cacheStorage } = locator
+	// Make sure that partial login part is complete before we will try to make a new session.
+	// Otherwise we run into a race condition where login failure arrives before we initialize userController.
+	await logins.waitForPartialLogin()
+	console.log("RELOGIN", logins.isUserLoggedIn())
+	const oldSessionType = logins.getUserController().sessionType
+	const userId = logins.getUserController().user._id
+	const mailAddress = assertNotNull(logins.getUserController().userGroupInfo.mailAddress, "could not get mailAddress from userGroupInfo")
+	// Fetch old credentials to preserve database key if it's there
+	const oldCredentials = await credentialsProvider.getCredentialsByUserId(userId)
+	// we're deleting the outdated user here because before resetSession() the cache is still open and can be modified.
+	await cacheStorage?.deleteIfExists(UserTypeRef, null, userId)
+	const sessionReset = loginFacade.resetSession()
+	loginDialogActive = true
+
+	const dialog = Dialog.showRequestPasswordDialog({
+		action: async (pw) => {
+			await sessionReset
+			let credentials: Credentials
+			let databaseKey: Uint8Array | null
+			try {
+				const newSessionData = await logins.createSession(mailAddress, pw, oldSessionType, oldCredentials?.databaseKey)
+				credentials = newSessionData.credentials
+				databaseKey = newSessionData.databaseKey
+			} catch (e) {
+				if (
+					e instanceof CancelledError ||
+					e instanceof AccessBlockedError ||
+					e instanceof NotAuthenticatedError ||
+					e instanceof AccessDeactivatedError ||
+					e instanceof ConnectionError
+				) {
+					const { getLoginErrorMessage } = await import("../misc/LoginUtils.js")
+					return lang.getMaybeLazy(getLoginErrorMessage(e, false))
+				} else {
+					throw e
+				}
+			} finally {
+				// Once login succeeds we need to manually close the dialog
+				secondFactorHandler.closeWaitingForSecondFactorDialog()
+			}
+			await credentialsProvider.deleteByUserId(userId, { deleteOfflineDb: false })
+			if (oldSessionType === SessionType.Persistent) {
+				await credentialsProvider.store({ credentials, databaseKey })
+			}
+			loginDialogActive = false
+			dialog.close()
+			return ""
+		},
+		cancel: {
+			textId: "logout_label",
+			action() {
+				windowFacade.reload({})
+			},
+		},
+	})
 }
 
 function ignoredError(e: Error): boolean {
