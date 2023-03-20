@@ -742,25 +742,23 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 	for (const { startTime, endTime } of generateEventOccurrences(event, timeZone)) {
 		if (startTime.getTime() > month.end.getTime()) break
 
-		const calcDay = getStartOfDay(startTime)
-		if (isExcludedDate(startTime, exclusions)) {
-			const eventsOnDay = getFromMap(events, calcDay.getTime(), () => [])
-			findAllAndRemove(eventsOnDay, (e) => isSameEvent(e, event))
-		} else if (endTime.getTime() >= month.start.getTime()) {
-			const eventClone = clone(event)
+		if (!isExcludedDate(startTime, exclusions)) {
+			if (endTime.getTime() >= month.start.getTime()) {
+				const eventClone = clone(event)
 
-			if (allDay) {
-				eventClone.startTime = getAllDayDateUTCFromZone(startTime, timeZone)
-				eventClone.endTime = getAllDayDateUTCFromZone(endTime, timeZone)
-			} else {
-				eventClone.startTime = new Date(startTime)
-				eventClone.endTime = new Date(endTime)
-			}
+				if (allDay) {
+					eventClone.startTime = getAllDayDateUTCFromZone(startTime, timeZone)
+					eventClone.endTime = getAllDayDateUTCFromZone(endTime, timeZone)
+				} else {
+					eventClone.startTime = new Date(startTime)
+					eventClone.endTime = new Date(endTime)
+				}
 
-			if (isLong) {
-				addDaysForLongEvent(events, eventClone, month, timeZone)
-			} else {
-				addDaysForEvent(events, eventClone, month, timeZone)
+				if (isLong) {
+					addDaysForLongEvent(events, eventClone, month, timeZone)
+				} else {
+					addDaysForEvent(events, eventClone, month, timeZone)
+				}
 			}
 		}
 	}
