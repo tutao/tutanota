@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { BaseHeaderAttrs, header, HeaderAttrs } from "../../gui/Header.js"
+import { BaseHeaderAttrs, HeaderAttrs } from "../../gui/Header.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
@@ -9,7 +9,6 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { downcast, getStartOfDay, incrementDate, LazyLoaded, memoized, ofClass } from "@tutao/tutanota-utils"
 import type { CalendarEvent, GroupSettings, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTypeRef, createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
-import { logins } from "../../api/main/LoginController"
 import { defaultCalendarColor, GroupType, Keys, ShareCapability, TimeFormat } from "../../api/common/TutanotaConstants"
 import { locator } from "../../api/main/MainLocator"
 import { getEventStart, getStartOfTheWeekOffset, getStartOfWeek, getTimeZone, shouldDefaultToAmPmTimeFormat } from "../date/CalendarUtils"
@@ -75,7 +74,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 	constructor(vnode: Vnode<CalendarViewAttrs>) {
 		super()
-		const userId = logins.getUserController().user._id
+		const userId = locator.logins.getUserController().user._id
 
 		this.viewModel = vnode.attrs.calendarViewModel
 		this.currentViewType = deviceConfig.getDefaultCalendarView(userId) || CalendarViewType.MONTH
@@ -164,7 +163,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		this.contentColumn = new ViewColumn(
 			{
 				view: () => {
-					const groupColors = getGroupColors(logins.getUserController().userSettingsGroupRoot)
+					const groupColors = getGroupColors(locator.logins.getUserController().userSettingsGroupRoot)
 
 					switch (this.currentViewType) {
 						case CalendarViewType.MONTH:
@@ -181,8 +180,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									this._setUrl(calendarViewType, date)
 								},
 								onChangeMonth: (next) => this._viewPeriod(next, CalendarViewType.MONTH),
-								amPmFormat: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS,
-								startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
+								amPmFormat: locator.logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS,
+								startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 								groupColors,
 								hiddenCalendars: this.viewModel.hiddenCalendars,
 								dragHandlerCallbacks: this.viewModel,
@@ -209,7 +208,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								groupColors,
 								hiddenCalendars: this.viewModel.hiddenCalendars,
 								onChangeViewPeriod: (next) => this._viewPeriod(next, CalendarViewType.DAY),
-								startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
+								startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 								dragHandlerCallbacks: this.viewModel,
 							})
 
@@ -220,7 +219,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								daysInPeriod: 7,
 								renderHeaderText: (date) => {
 									const startOfTheWeekOffset = getStartOfTheWeekOffset(
-										downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
+										downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 									)
 									const firstDate = getStartOfWeek(date, startOfTheWeekOffset)
 									const lastDate = incrementDate(new Date(firstDate), 6)
@@ -245,7 +244,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								onDateSelected: (date, viewType) => {
 									this._setUrl(viewType ?? CalendarViewType.WEEK, date)
 								},
-								startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
+								startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 								groupColors,
 								hiddenCalendars: this.viewModel.hiddenCalendars,
 								onChangeViewPeriod: (next) => this._viewPeriod(next, CalendarViewType.WEEK),
@@ -524,7 +523,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	_onPressedAddCalendar() {
-		if (logins.getUserController().getCalendarMemberships().length === 0) {
+		if (locator.logins.getUserController().getCalendarMemberships().length === 0) {
 			this._showCreateCalendarDialog()
 		} else {
 			import("../../misc/SubscriptionDialogs")
@@ -557,7 +556,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			? Array.from(this.viewModel.calendarInfos.getLoaded().values())
 					.filter((calendarInfo) => calendarInfo.shared === shared)
 					.map((calendarInfo) => {
-						const { userSettingsGroupRoot } = logins.getUserController()
+						const { userSettingsGroupRoot } = locator.logins.getUserController()
 						const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? null
 						const colorValue = "#" + (existingGroupSettings ? existingGroupSettings.color : defaultCalendarColor)
 						const groupRootId = calendarInfo.groupRoot._id
@@ -604,7 +603,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		sharedCalendar: boolean,
 	): Children {
 		const { group, groupInfo, groupRoot } = calendarInfo
-		const user = logins.getUserController().user
+		const user = locator.logins.getUserController().user
 		return m(IconButton, {
 			title: "more_label",
 			colors: ButtonColor.Nav,
@@ -622,7 +621,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						label: "sharing_label",
 						icon: Icons.ContactImport,
 						click: () => {
-							if (logins.getUserController().isFreeAccount()) {
+							if (locator.logins.getUserController().isFreeAccount()) {
 								showNotAvailableForFreeDialog(false)
 							} else {
 								showGroupSharingDialog(groupInfo, sharedCalendar)
@@ -668,7 +667,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	_confirmDeleteCalendar(calendarInfo: CalendarInfo) {
 		const calendarName = getSharedGroupName(calendarInfo.groupInfo, false)
 		loadGroupMembers(calendarInfo.group, locator.entityClient).then((members) => {
-			const ownerMail = logins.getUserController().userGroupInfo.mailAddress
+			const ownerMail = locator.logins.getUserController().userGroupInfo.mailAddress
 			const otherMembers = members.filter((member) => member.info.mailAddress !== ownerMail)
 			Dialog.confirm(
 				() =>
@@ -732,7 +731,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return m(
 			".main-view",
 			m(this.viewSlider, {
-				header: m(header, {
+				header: m(locator.header, {
 					viewSlider: this.viewSlider,
 					overrideBackIcon: this.getHeaderBackIcon(),
 					rightView: this.renderHeaderRightView(),
@@ -772,7 +771,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				}
 			}
 
-			deviceConfig.setDefaultCalendarView(logins.getUserController().user._id, this.currentViewType)
+			deviceConfig.setDefaultCalendarView(locator.logins.getUserController().user._id, this.currentViewType)
 		}
 	}
 

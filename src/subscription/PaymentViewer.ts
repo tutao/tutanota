@@ -32,9 +32,7 @@ import { getPreconditionFailedPaymentMsg } from "./SubscriptionUtils"
 import type { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 import { DialogHeaderBar } from "../gui/base/DialogHeaderBar"
 import { TextField } from "../gui/base/TextField.js"
-import { logins } from "../api/main/LoginController"
 import type { CustomerAccountPosting } from "../api/entities/accounting/TypeRefs"
-import { createCustomerAccountPosting } from "../api/entities/accounting/TypeRefs"
 import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
 import { locator } from "../api/main/MainLocator"
 import { createNotAvailableForFreeClickHandler } from "../misc/SubscriptionDialogs"
@@ -85,7 +83,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		}
 
 		locator.entityClient
-			.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+			.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 			.then((customer) => {
 				this._customer = customer
 				return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
@@ -128,7 +126,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					click: createNotAvailableForFreeClickHandler(
 						true,
 						() => this.changePaymentMethod(),
-						() => !isIOSApp() && logins.getUserController().isPremiumAccount(),
+						() => !isIOSApp() && locator.logins.getUserController().isPremiumAccount(),
 					),
 					icon: Icons.Edit,
 					size: ButtonSize.Compact,
@@ -303,7 +301,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	_loadBookings(): Promise<void> {
-		return logins
+		return locator.logins
 			.getUserController()
 			.loadCustomer()
 			.then((customer) => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
@@ -395,7 +393,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					click: createNotAvailableForFreeClickHandler(
 						true,
 						() => this.changeInvoiceData(),
-						() => logins.getUserController().isPremiumAccount(),
+						() => locator.logins.getUserController().isPremiumAccount(),
 					),
 					icon: Icons.Edit,
 					size: ButtonSize.Compact,

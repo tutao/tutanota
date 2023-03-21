@@ -4,7 +4,6 @@ import { lang } from "../misc/LanguageViewModel"
 import { InvalidDataError, LockedError, PreconditionFailedError } from "../api/common/error/RestError"
 import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
 import { neverNull, ofClass } from "@tutao/tutanota-utils"
-import { logins } from "../api/main/LoginController"
 import { getCleanedMailAddress } from "../misc/parsing/MailAddressParser"
 import { locator } from "../api/main/MainLocator"
 import { getEtId } from "../api/common/utils/EntityUtils"
@@ -81,5 +80,5 @@ function deleteAccount(reason: string, takeover: string, password: string): Prom
 }
 
 function deleteSavedCredentials() {
-	locator.credentialsProvider.deleteByUserId(getEtId(logins.getUserController().user))
+	locator.credentialsProvider.deleteByUserId(getEtId(locator.logins.getUserController().user))
 }

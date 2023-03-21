@@ -9,7 +9,6 @@ import { showUserError } from "../../misc/ErrorHandlerImpl"
 import type { MailboxDetail } from "../model/MailModel"
 import { Keys, MailMethod, TabIndex } from "../../api/common/TutanotaConstants"
 import { getDefaultSender } from "../model/MailUtils"
-import { logins } from "../../api/main/LoginController"
 import { progressIcon } from "../../gui/base/Icon"
 import { Editor } from "../../gui/editor/Editor"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer"
@@ -70,7 +69,7 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
 
 		if (choice === "test") {
 			recipients.splice(0, recipients.length, {
-				email: getDefaultSender(logins, mailboxDetails),
+				email: getDefaultSender(locator.logins, mailboxDetails),
 				greeting: "Hi Test Recipient",
 			})
 		}

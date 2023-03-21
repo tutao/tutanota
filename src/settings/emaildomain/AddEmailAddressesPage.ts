@@ -1,5 +1,4 @@
 import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../SelectMailAddressForm"
-import { logins } from "../../api/main/LoginController"
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { getAliasLineAttrs } from "../mailaddress/MailAddressTable.js"
 import type { AddDomainData } from "./AddDomainWizard"
@@ -77,7 +76,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 			m(".mt", lang.get("addCustomDomainAliases_msg")),
 			m(SelectMailAddressForm, mailFormAttrs),
 			this.renderAliasCount(a),
-			logins.getUserController().userGroupInfo.mailAddressAliases.length ? m(Table, aliasesTableAttrs) : null,
+			locator.logins.getUserController().userGroupInfo.mailAddressAliases.length ? m(Table, aliasesTableAttrs) : null,
 			m(".h4.mt", lang.get("bookingItemUsers_label")),
 			m(".mt", [
 				lang.get("addCustomDomainUsers_msg"),
@@ -175,13 +174,15 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 
 		//Otherwise we check that there is either an alias or a user (or an alias for some other user) defined for the custom domain regardless of activation status
 		const checkMailAddresses = Promise.resolve().then(() => {
-			const hasAliases = logins.getUserController().userGroupInfo.mailAddressAliases.some((alias) => alias.mailAddress.endsWith(`@${this.data.domain()}`))
+			const hasAliases = locator.logins
+				.getUserController()
+				.userGroupInfo.mailAddressAliases.some((alias) => alias.mailAddress.endsWith(`@${this.data.domain()}`))
 
 			if (hasAliases) {
 				return true
 			} else {
 				return locator.entityClient
-					.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+					.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 					.then((customer) => locator.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups))
 					.then((allUserGroupInfos) => {
 						return allUserGroupInfos.some(

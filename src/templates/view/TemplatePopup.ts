@@ -24,7 +24,6 @@ import { debounce, downcast, neverNull } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/MainLocator"
 import { TemplateSearchBar } from "./TemplateSearchBar"
 import { Editor } from "../../gui/editor/Editor"
-import { logins } from "../../api/main/LoginController"
 import { getSharedGroupName, hasCapabilityOnGroup } from "../../sharing/GroupUtils"
 import { createInitialTemplateListIfAllowed } from "../TemplateGroupUtils"
 import { getConfirmation } from "../../gui/base/GuiUtils"
@@ -269,7 +268,7 @@ export class TemplatePopup implements ModalComponent {
 		const templateGroupInstances = this._templateModel.getTemplateGroupInstances()
 
 		const writeableGroups = templateGroupInstances.filter((instance) =>
-			hasCapabilityOnGroup(logins.getUserController().user, instance.group, ShareCapability.Write),
+			hasCapabilityOnGroup(locator.logins.getUserController().user, instance.group, ShareCapability.Write),
 		)
 
 		if (templateGroupInstances.length === 0) {
@@ -317,7 +316,7 @@ export class TemplatePopup implements ModalComponent {
 
 		const selectedGroup = this._templateModel.getSelectedTemplateGroupInstance()
 
-		const canEdit = !!selectedGroup && hasCapabilityOnGroup(logins.getUserController().user, selectedGroup.group, ShareCapability.Write)
+		const canEdit = !!selectedGroup && hasCapabilityOnGroup(locator.logins.getUserController().user, selectedGroup.group, ShareCapability.Write)
 		return [
 			m(".flex.flex-column.justify-center.mr-m", selectedContent ? m("", lang.get(languageByCode[selectedContent.languageCode].textId)) : ""),
 			m(

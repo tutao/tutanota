@@ -7,7 +7,7 @@ import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { isSelectedPrefix } from "../../gui/base/NavButton.js"
 import { Dialog } from "../../gui/base/Dialog"
 import { FeatureType, Keys, MailFolderType } from "../../api/common/TutanotaConstants"
-import { BaseHeaderAttrs, header } from "../../gui/Header.js"
+import { BaseHeaderAttrs } from "../../gui/Header.js"
 import type { Mail, MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
 import { assertNotNull, defer, getFirstOrThrow, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
@@ -15,7 +15,6 @@ import { assertMainOrNode, isApp, isDesktop } from "../../api/common/Env"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
 import { getMultiMailViewerActionButtonAttrs, MultiMailViewer } from "./MultiMailViewer"
-import { logins } from "../../api/main/LoginController"
 import { Icons } from "../../gui/base/icons/Icons"
 import { PreconditionFailedError } from "../../api/common/error/RestError"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
@@ -120,7 +119,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		this.desktopSystemFacade = vnode.attrs.desktopSystemFacade
 		this.folderToUrl = {}
 		this.throttledRouteSet = throttleRoute()
-		this.expandedState = new Set(deviceConfig.getExpandedFolders(logins.getUserController().userId))
+		this.expandedState = new Set(deviceConfig.getExpandedFolders(locator.logins.getUserController().userId))
 		this.cache = vnode.attrs.cache
 		this.folderColumn = this.createFolderColumn(null, vnode.attrs.drawerAttrs)
 		this.listColumn = new ViewColumn(
@@ -229,9 +228,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 						])
 							.then(([mailbox, dataFiles, { appendEmailSignature }, { newMailEditorFromTemplate }]) => {
 								mailbox &&
-									newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", logins.getUserController().props), dataFiles).then(
-										(dialog) => dialog.show(),
-									)
+									newMailEditorFromTemplate(
+										mailbox,
+										{},
+										"",
+										appendEmailSignature("", locator.logins.getUserController().props),
+										dataFiles,
+									).then((dialog) => dialog.show())
 							})
 							.catch(ofClass(PermissionError, noOp))
 							.catch(ofClass(UserError, showUserError))
@@ -244,7 +247,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				},
 			},
 			m(this.viewSlider, {
-				header: m(header, {
+				header: m(locator.header, {
 					headerView: this.renderHeaderView(),
 					rightView: this.renderHeaderRightView(),
 					viewSlider: this.viewSlider,
@@ -328,7 +331,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					return true
 				},
 				help: "archive_action",
-				enabled: () => logins.isInternalUserLoggedIn(),
+				enabled: () => locator.logins.isInternalUserLoggedIn(),
 			},
 			{
 				key: Keys.I,
@@ -391,7 +394,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					this.switchToFolder(MailFolderType.ARCHIVE)
 					return true
 				},
-				enabled: () => logins.isInternalUserLoggedIn(),
+				enabled: () => locator.logins.isInternalUserLoggedIn(),
 				help: "switchArchive_action",
 			},
 			{
@@ -400,7 +403,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					this.switchToFolder(MailFolderType.SPAM)
 					return true
 				},
-				enabled: () => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.InternalCommunication),
+				enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.InternalCommunication),
 				help: "switchSpam_action",
 			},
 			{
@@ -421,7 +424,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					return true
 				},
 				help: "emptyString_msg",
-				enabled: () => logins.isEnabled(FeatureType.Newsletter),
+				enabled: () => locator.logins.isEnabled(FeatureType.Newsletter),
 			},
 		]
 	}
@@ -481,7 +484,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					return m(
 						SidebarSection,
 						{
-							name: () => getMailboxName(logins, mailboxDetail),
+							name: () => getMailboxName(locator.logins, mailboxDetail),
 						},
 						this.createMailboxFolderItems(mailboxDetail, editingFolderForMailGroup),
 					)
@@ -516,7 +519,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private setExpandedState(folder: MailFolder, currentExpansionState: boolean) {
 		currentExpansionState ? this.expandedState.delete(getElementId(folder)) : this.expandedState.add(getElementId(folder))
-		deviceConfig.setExpandedFolders(logins.getUserController().userId, [...this.expandedState])
+		deviceConfig.setExpandedFolders(locator.logins.getUserController().userId, [...this.expandedState])
 	}
 
 	protected onNewUrl(args: Record<string, any>, requestedPath: string) {
@@ -533,12 +536,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					},
 				)
 			}
-		} else if (args.action === "supportMail" && logins.isGlobalAdminUserLoggedIn()) {
+		} else if (args.action === "supportMail" && locator.logins.isGlobalAdminUserLoggedIn()) {
 			import("../editor/MailEditor").then(({ writeSupportMail }) => writeSupportMail())
 		}
 
 		if (isApp()) {
-			let userGroupInfo = logins.getUserController().userGroupInfo
+			let userGroupInfo = locator.logins.getUserController().userGroupInfo
 			locator.pushService.closePushNotification(
 				userGroupInfo.mailAddressAliases.map((alias) => alias.mailAddress).concat(userGroupInfo.mailAddress || []),
 			)

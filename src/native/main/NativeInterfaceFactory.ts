@@ -6,7 +6,6 @@ import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { DesktopFacade } from "../common/generatedipc/DesktopFacade.js"
 import { MobileFacade } from "../common/generatedipc/MobileFacade.js"
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
-import { logins } from "../../api/main/LoginController.js"
 import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
@@ -30,6 +29,7 @@ import { InterWindowEventFacade } from "../common/generatedipc/InterWindowEventF
 import { InterWindowEventFacadeSendDispatcher } from "../common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../common/generatedipc/SqlCipherFacade.js"
 import { SqlCipherFacadeSendDispatcher } from "../common/generatedipc/SqlCipherFacadeSendDispatcher.js"
+import { LoginController } from "../../api/main/LoginController.js"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -60,6 +60,7 @@ export function createNativeInterfaces(
 	cryptoFacade: CryptoFacade,
 	calendarFacade: CalendarFacade,
 	entityClient: EntityClient,
+	logins: LoginController,
 ): NativeInterfaces {
 	if (isBrowser()) {
 		throw new ProgrammingError("Tried to make native interfaces in non-native")

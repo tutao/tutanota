@@ -11,7 +11,6 @@ import { progressIcon } from "../../gui/base/Icon"
 import { AccessDeactivatedError } from "../../api/common/error/RestError"
 import { client } from "../../misc/ClientDetector"
 import { createPushIdentifier } from "../../api/entities/sys/TypeRefs.js"
-import { logins } from "../../api/main/LoginController"
 import { PasswordForm, PasswordModel } from "../../settings/PasswordForm"
 import { HtmlEditor } from "../../gui/editor/HtmlEditor"
 import { Icons } from "../../gui/base/icons/Icons"
@@ -49,7 +48,7 @@ export class ContactFormRequestDialog {
 	_loadingAttachments: boolean
 	_contactForm: ContactForm
 	_notificationEmailAddress: string
-	private passwordModel = new PasswordModel(logins, { checkOldPassword: false, enforceStrength: false })
+	private passwordModel = new PasswordModel(locator.logins, { checkOldPassword: false, enforceStrength: false })
 	_privacyPolicyAccepted: Stream<boolean>
 	_windowCloseUnsubscribe: () => void
 
@@ -304,7 +303,7 @@ export class ContactFormRequestDialog {
 					.createContactFormUser(password, this._contactForm._id, operation.id)
 					.finally(() => operation.done())
 				const userEmailAddress = contactFormResult.responseMailAddress
-				await logins.createSession(userEmailAddress, password, SessionType.Temporary, null)
+				await locator.logins.createSession(userEmailAddress, password, SessionType.Temporary, null)
 
 				try {
 					if (cleanedNotificationMailAddress) {
@@ -313,12 +312,12 @@ export class ContactFormRequestDialog {
 							identifier: cleanedNotificationMailAddress,
 							language: lang.code,
 							pushServiceType: PushServiceType.EMAIL,
-							_ownerGroup: logins.getUserController().userGroupInfo.group,
-							_owner: logins.getUserController().userGroupInfo.group,
+							_ownerGroup: locator.logins.getUserController().userGroupInfo.group,
+							_owner: locator.logins.getUserController().userGroupInfo.group,
 							// legacy
 							_area: "0", // legacy
 						})
-						await locator.entityClient.setup(neverNull(logins.getUserController().user.pushIdentifierList).list, pushIdentifier)
+						await locator.entityClient.setup(neverNull(locator.logins.getUserController().user.pushIdentifierList).list, pushIdentifier)
 					}
 
 					const name = ""
@@ -340,7 +339,7 @@ export class ContactFormRequestDialog {
 					})
 					await mailFacade.sendDraft(draft, [{ name, address: mailAddress, type: RecipientType.INTERNAL, contact: null }], lang.code)
 				} finally {
-					await logins.logout(false)
+					await locator.logins.logout(false)
 				}
 
 				return {

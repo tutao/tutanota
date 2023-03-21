@@ -1,7 +1,6 @@
 import type { MailboxDetail } from "../../mail/model/MailModel"
 import { getEnabledMailAddressesWithUser, getMailboxName } from "../../mail/model/MailUtils"
 import type { LoginController } from "../../api/main/LoginController"
-import { logins as globalLogins } from "../../api/main/LoginController"
 import { assertMainOrNode } from "../../api/common/Env"
 import { PartialRecipient } from "../../api/common/recipients/Recipient"
 
@@ -92,12 +91,7 @@ export function getPasswordStrength(password: string, badStrings: string[]): num
 	return Math.min(PASSWORD_MAX_VALUE, Math.max(PASSWORD_MIN_VALUE, Math.round(strength)))
 }
 
-export function getPasswordStrengthForUser(
-	password: string,
-	recipientInfo: PartialRecipient,
-	mailboxDetails: MailboxDetail,
-	logins: LoginController = globalLogins,
-): number {
+export function getPasswordStrengthForUser(password: string, recipientInfo: PartialRecipient, mailboxDetails: MailboxDetail, logins: LoginController): number {
 	let reserved = getEnabledMailAddressesWithUser(mailboxDetails, logins.getUserController().userGroupInfo).concat(
 		getMailboxName(logins, mailboxDetails),
 		recipientInfo.address,

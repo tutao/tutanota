@@ -2,9 +2,9 @@ import m, { Children, Component, Vnode } from "mithril"
 import { NavButton } from "../base/NavButton.js"
 import { size } from "../size"
 import { CALENDAR_PREFIX, CONTACTS_PREFIX, navButtonRoutes, SEARCH_PREFIX } from "../../misc/RouteChange"
-import { logins } from "../../api/main/LoginController"
 import { FeatureType } from "../../api/common/TutanotaConstants"
 import { BootIcons } from "../base/icons/BootIcons"
+import { locator } from "../../api/main/MainLocator.js"
 
 type Attrs = void
 const fontSize = size.font_size_small
@@ -20,7 +20,7 @@ export class BottomNav implements Component<Attrs> {
 				vertical: true,
 				fontSize,
 			}),
-			logins.isInternalUserLoggedIn()
+			locator.logins.isInternalUserLoggedIn()
 				? m(NavButton, {
 						label: "search_label",
 						icon: () => BootIcons.Search,
@@ -34,7 +34,7 @@ export class BottomNav implements Component<Attrs> {
 						fontSize,
 				  })
 				: null,
-			logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)
+			locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.DisableContacts)
 				? m(NavButton, {
 						label: "contacts_label",
 						icon: () => BootIcons.Contacts,
@@ -44,7 +44,7 @@ export class BottomNav implements Component<Attrs> {
 						fontSize,
 				  })
 				: null,
-			logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar)
+			locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.DisableCalendar)
 				? m(NavButton, {
 						label: "calendar_label",
 						icon: () => BootIcons.Calendar,

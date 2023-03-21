@@ -1,16 +1,17 @@
-import { AllIcons, Icon } from "./Icon"
+import { AllIcons, Icon } from "../../gui/base/Icon.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { theme } from "../theme"
-import type { InfoLink, TranslationKey } from "../../misc/LanguageViewModel"
-import { lang } from "../../misc/LanguageViewModel"
-import type { ButtonAttrs } from "./Button.js"
-import { Button, ButtonType } from "./Button.js"
-import { NavButton } from "./NavButton.js"
+import { theme } from "../../gui/theme.js"
+import type { InfoLink, TranslationKey } from "../../misc/LanguageViewModel.js"
+import { lang } from "../../misc/LanguageViewModel.js"
+import type { ButtonAttrs } from "../../gui/base/Button.js"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import { NavButton } from "../../gui/base/NavButton.js"
 import type { lazy } from "@tutao/tutanota-utils"
 import { isNotNull, mapNullable } from "@tutao/tutanota-utils"
-import { Icons } from "./icons/Icons"
-import { ifAllowedTutanotaLinks } from "./GuiUtils"
-import { px, size } from "../size.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { ifAllowedTutanotaLinks } from "../../gui/base/GuiUtils.js"
+import { px, size } from "../../gui/size.js"
+import { locator } from "../../api/main/MainLocator.js"
 
 const WARNING_RED = "#ca0606"
 
@@ -86,7 +87,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 	}
 
 	renderHelpLink(helpLink: InfoLink): Children | null {
-		return ifAllowedTutanotaLinks(helpLink, (link) => {
+		return ifAllowedTutanotaLinks(locator.logins, helpLink, (link) => {
 			return m(
 				".button-content",
 				{

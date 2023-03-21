@@ -257,9 +257,3 @@ export class LoginController {
 		await loginFacade.retryAsyncLogin()
 	}
 }
-
-const loginController = new LoginController()
-export const logins: LoginController = loginController
-
-// Should be called elsewhere later e.g. in mainLocator
-loginController.init()

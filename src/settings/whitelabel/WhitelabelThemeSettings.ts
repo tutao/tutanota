@@ -11,7 +11,6 @@ import { CustomColorsEditorViewModel } from "./CustomColorsEditorViewModel"
 import type { DomainInfo, WhitelabelConfig } from "../../api/entities/sys/TypeRefs.js"
 import type { ThemeCustomizations } from "../../misc/WhitelabelCustomizations"
 import { locator } from "../../api/main/MainLocator"
-import { logins } from "../../api/main/LoginController"
 import { showFileChooser } from "../../file/FileController.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
@@ -70,7 +69,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			})
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
-			if (logins.isWhitelabel()) {
+			if (locator.logins.isWhitelabel()) {
 				await themeController.updateCustomTheme(customTheme)
 			}
 		}
@@ -128,7 +127,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			customTheme.logo = imageData
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
-			if (logins.isWhitelabel()) {
+			if (locator.logins.isWhitelabel()) {
 				await themeController.updateCustomTheme(customTheme)
 			}
 		}
@@ -141,7 +140,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			delete customTheme.logo
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
-			if (logins.isWhitelabel()) {
+			if (locator.logins.isWhitelabel()) {
 				await themeController.updateCustomTheme(customTheme)
 			}
 		}
@@ -156,7 +155,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			assertNotNull(whitelabelDomainInfo),
 			themeController,
 			locator.entityClient,
-			logins,
+			locator.logins,
 		)
 		EditCustomColorsDialog.show(viewModel)
 	}

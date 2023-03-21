@@ -7,7 +7,6 @@ import { Icons } from "../../../gui/base/icons/Icons.js"
 import { Dialog } from "../../../gui/base/Dialog.js"
 import { InfoLink, lang } from "../../../misc/LanguageViewModel.js"
 import { assertEnumValue, SecondFactorType } from "../../../api/common/TutanotaConstants.js"
-import { logins } from "../../../api/main/LoginController.js"
 import { showProgressDialog } from "../../../gui/dialogs/ProgressDialog.js"
 import type { TableAttrs, TableLineAttrs } from "../../../gui/base/Table.js"
 import { ColumnWidth, Table } from "../../../gui/base/Table.js"
@@ -54,7 +53,9 @@ export class SecondFactorsEditForm {
 			isTutanotaDomain(location.hostname)
 				? [
 						m("span.small", lang.get("moreInfo_msg") + " "),
-						ifAllowedTutanotaLinks(InfoLink.SecondFactor, (link) => m("span.small.text-break", [m(`a[href=${link}][target=_blank]`, link)])),
+						ifAllowedTutanotaLinks(locator.logins, InfoLink.SecondFactor, (link) =>
+							m("span.small.text-break", [m(`a[href=${link}][target=_blank]`, link)]),
+						),
 				  ]
 				: null,
 		]
@@ -90,14 +91,14 @@ export class SecondFactorsEditForm {
 			const type = assertEnumValue(SecondFactorType, f.type)
 			return {
 				cells: [f.name + domainInfo, lang.get(SecondFactorTypeToNameTextId[type])],
-				actionButtonAttrs: logins.getUserController().isGlobalOrLocalAdmin() ? removeButtonAttrs : null,
+				actionButtonAttrs: locator.logins.getUserController().isGlobalOrLocalAdmin() ? removeButtonAttrs : null,
 			}
 		})
 		m.redraw()
 	}
 
 	_showAddSecondFactorDialog() {
-		const mailAddress = assertNotNull(logins.getUserController().userGroupInfo.mailAddress)
+		const mailAddress = assertNotNull(locator.logins.getUserController().userGroupInfo.mailAddress)
 		SecondFactorEditDialog.loadAndShow(locator.entityClient, this._user, mailAddress)
 	}
 

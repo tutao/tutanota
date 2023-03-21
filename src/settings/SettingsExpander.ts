@@ -5,6 +5,7 @@ import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
 import { ifAllowedTutanotaLinks } from "../gui/base/GuiUtils"
 import type { lazy, Thunk } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
+import { locator } from "../api/main/MainLocator.js"
 
 export type SettingsExpanderAttrs = {
 	title: TranslationKey | lazy<string>
@@ -43,7 +44,9 @@ export class SettingsExpander implements Component<SettingsExpanderAttrs> {
 				vnode.children,
 			),
 			infoMsg ? m("small", lang.getMaybeLazy(infoMsg)) : null,
-			infoLinkId ? ifAllowedTutanotaLinks(infoLinkId, (link) => m("small.text-break", [m(`a[href=${link}][target=_blank]`, link)])) : null,
+			infoLinkId
+				? ifAllowedTutanotaLinks(locator.logins, infoLinkId, (link) => m("small.text-break", [m(`a[href=${link}][target=_blank]`, link)]))
+				: null,
 		]
 	}
 }

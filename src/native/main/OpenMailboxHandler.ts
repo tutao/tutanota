@@ -1,11 +1,10 @@
 import m from "mithril"
-import { logins } from "../../api/main/LoginController"
 import { locator } from "../../api/main/MainLocator"
 import { MailFolderType } from "../../api/common/TutanotaConstants.js"
 import { assertSystemFolderOfType } from "../../api/common/mail/CommonMailUtils.js"
 
 export async function openMailbox(userId: Id, mailAddress: string, requestedPath: string | null) {
-	if (logins.isUserLoggedIn() && logins.getUserController().user._id === userId) {
+	if (locator.logins.isUserLoggedIn() && locator.logins.getUserController().user._id === userId) {
 		if (!requestedPath) {
 			const [mailboxDetail] = await locator.mailModel.getMailboxDetails()
 			const inbox = assertSystemFolderOfType(mailboxDetail.folders, MailFolderType.INBOX)
@@ -23,7 +22,7 @@ export async function openMailbox(userId: Id, mailAddress: string, requestedPath
 }
 
 export function openCalendar(userId: Id) {
-	if (logins.isUserLoggedIn() && logins.getUserController().user._id === userId) {
+	if (locator.logins.isUserLoggedIn() && locator.logins.getUserController().user._id === userId) {
 		m.route.set("/calendar/agenda")
 	} else {
 		m.route.set(`/login?noAutoLogin=false&userId=${userId}&requestedPath=${encodeURIComponent("/calendar/agenda")}`)

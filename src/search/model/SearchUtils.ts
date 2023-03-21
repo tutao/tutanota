@@ -2,13 +2,13 @@ import m from "mithril"
 import type { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, WhitelabelChildTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { getDayShifted, getStartOfDay, isSameTypeRef, neverNull } from "@tutao/tutanota-utils"
-import { logins } from "../../api/main/LoginController"
 import { throttleRoute } from "../../misc/RouteChange"
 import type { SearchRestriction } from "../../api/worker/search/SearchTypes"
 import { assertMainOrNode } from "../../api/common/Env"
 import { TranslationKey } from "../../misc/LanguageViewModel"
 import { ContactTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs"
 import { typeModels } from "../../api/entities/tutanota/TypeModels.js"
+import { locator } from "../../api/main/MainLocator.js"
 
 assertMainOrNode()
 
@@ -121,7 +121,7 @@ export function createRestriction(
 	field: string | null,
 	listId: string | null,
 ): SearchRestriction {
-	if (logins.getUserController().isFreeAccount() && searchCategory === "mail") {
+	if (locator.logins.getUserController().isFreeAccount() && searchCategory === "mail") {
 		start = null
 		end = getFreeSearchStartDate().getTime()
 		field = null

@@ -2,10 +2,10 @@ import m, { Params } from "mithril"
 import { assertMainOrNodeBoot, isApp, isElectronClient, isIOSApp, Mode } from "../api/common/Env"
 import { lang } from "./LanguageViewModel"
 import { client } from "./ClientDetector"
-import { logins } from "../api/main/LoginController"
 import type { Indexer } from "../api/worker/search/Indexer"
 import { remove } from "@tutao/tutanota-utils"
 import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
+import { LoginController } from "../api/main/LoginController.js"
 
 assertMainOrNodeBoot()
 export type KeyboardSizeListener = (keyboardSize: number) => unknown
@@ -23,6 +23,7 @@ export class WindowFacade {
 	private _keyboardSizeListeners: KeyboardSizeListener[] = []
 	private _ignoreNextPopstate: boolean = false
 	private connectivityModel!: WebsocketConnectivityModel
+	private logins: LoginController | null = null
 
 	constructor() {
 		this._windowSizeListeners = []
@@ -89,7 +90,8 @@ export class WindowFacade {
 		}
 	}
 
-	init() {
+	init(logins: LoginController) {
+		this.logins = logins
 		const onresize = () => {
 			// see https://developer.mozilla.org/en-US/docs/Web/Events/resize
 			if (!this.resizeTimeout) {
@@ -159,7 +161,7 @@ export class WindowFacade {
 			e.returnValue = m
 			return m
 		} else {
-			logins.logout(true)
+			this.logins?.logout(true)
 			return null
 		}
 	}
@@ -212,8 +214,8 @@ export class WindowFacade {
 	}
 
 	_onUnload() {
-		if (this.windowCloseConfirmation) {
-			logins.logout(true)
+		if (this.windowCloseConfirmation && this.logins) {
+			this.logins.logout(true)
 		}
 	}
 

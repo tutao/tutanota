@@ -1,5 +1,4 @@
 import type { LoginController } from "../api/main/LoginController"
-import { logins } from "../api/main/LoginController"
 import { CustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
 import type { lazy } from "@tutao/tutanota-utils"
 import { neverNull } from "@tutao/tutanota-utils"
@@ -46,12 +45,12 @@ export function createNotAvailableForFreeClickHandler(includedInPremium: boolean
  * Returns whether premium is active and shows one of the showNotAvailableForFreeDialog or subscription cancelled dialogs if needed.
  */
 export function checkPremiumSubscription(included: boolean): Promise<boolean> {
-	if (logins.getUserController().isFreeAccount()) {
+	if (locator.logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog(included)
 		return Promise.resolve(false)
 	}
 
-	return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
+	return locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer)).then((customer) => {
 		if (customer.canceledPremiumAccount) {
 			return Dialog.message("subscriptionCancelledMessage_msg").then(() => false)
 		} else {
@@ -61,7 +60,7 @@ export function checkPremiumSubscription(included: boolean): Promise<boolean> {
 }
 
 export function showMoreStorageNeededOrderDialog(loginController: LoginController, messageIdOrMessageFunction: TranslationKey): Promise<void> {
-	const userController = logins.getUserController()
+	const userController = locator.logins.getUserController()
 
 	if (!userController.isGlobalAdmin()) {
 		throw new ProgrammingError("changing storage or other subscription options is only allowed for global admins")
@@ -86,11 +85,11 @@ export function showMoreStorageNeededOrderDialog(loginController: LoginControlle
  * @returns true if the business feature has been ordered
  */
 export function showBusinessFeatureRequiredDialog(reason: TranslationKey | lazy<string>): Promise<boolean> {
-	if (logins.getUserController().isFreeAccount()) {
+	if (locator.logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog(false)
 		return Promise.resolve(false)
 	} else {
-		if (logins.getUserController().isGlobalAdmin()) {
+		if (locator.logins.getUserController().isGlobalAdmin()) {
 			return Dialog.confirm(() => lang.getMaybeLazy(reason) + " " + lang.get("ordertItNow_msg")).then((confirmed) => {
 				if (confirmed) {
 					return import("../subscription/BuyDialog").then((BuyDialog) => {

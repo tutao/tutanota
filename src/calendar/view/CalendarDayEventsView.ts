@@ -17,13 +17,13 @@ import {
 } from "../date/CalendarUtils"
 import { CalendarEventBubble } from "./CalendarEventBubble"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
-import { logins } from "../../api/main/LoginController"
 import { Time } from "../../api/common/utils/Time"
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { getTimeFromMousePos } from "./CalendarGuiUtils"
 import type { CalendarEventBubbleClickHandler } from "./CalendarViewModel"
 import type { GroupColors } from "./CalendarView"
 import { styles } from "../../gui/styles"
+import { locator } from "../../api/main/MainLocator.js"
 
 export type Attrs = {
 	onEventClicked: CalendarEventBubbleClickHandler
@@ -149,7 +149,7 @@ export class CalendarDayEventsView implements Component<Attrs> {
 				color: getEventColor(ev, attrs.groupColors),
 				click: (domEvent) => attrs.onEventClicked(ev, domEvent),
 				height: height - size.calendar_day_event_padding,
-				hasAlarm: hasAlarmsForTheUser(logins.getUserController().user, ev),
+				hasAlarm: hasAlarmsForTheUser(locator.logins.getUserController().user, ev),
 				verticalPadding: size.calendar_day_event_padding,
 				fadeIn: !attrs.isTemporaryEvent(ev),
 				opacity: attrs.isTemporaryEvent(ev) ? TEMPORARY_EVENT_OPACITY : 1,

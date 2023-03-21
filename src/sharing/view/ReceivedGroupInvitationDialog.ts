@@ -1,5 +1,4 @@
 import { getMailAddressDisplayText } from "../../mail/model/MailUtils"
-import { logins } from "../../api/main/LoginController"
 import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import m, { Children } from "mithril"
 import { lang } from "../../misc/LanguageViewModel"
@@ -24,13 +23,13 @@ import { locator } from "../../api/main/MainLocator"
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)
 	const texts = getTextsForGroupType(groupType)
-	const userSettingsGroupRoot = logins.getUserController().userSettingsGroupRoot
+	const userSettingsGroupRoot = locator.logins.getUserController().userSettingsGroupRoot
 	const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === invitation.sharedGroup)
 	const color = existingGroupSettings ? existingGroupSettings.color : Math.random().toString(16).slice(-6)
 	const colorStream = stream("#" + color)
 	const isDefaultGroupName = invitation.sharedGroupName === getDefaultGroupName(downcast(invitation.groupType))
 	const nameStream = stream(isDefaultGroupName ? texts.sharedGroupDefaultCustomName(invitation) : invitation.sharedGroupName)
-	const isMember = !!logins
+	const isMember = !!locator.logins
 		.getUserController()
 		.getCalendarMemberships()
 		.find((ms) => isSameId(ms.group, invitation.sharedGroup))
@@ -110,28 +109,18 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	})
 }
 
-function checkCanAcceptInvitation(invitation: ReceivedGroupInvitation): Promise<boolean> {
-	return import("../../misc/SubscriptionDialogs")
-		.then((SubscriptionDialogUtils) => SubscriptionDialogUtils.checkPremiumSubscription(false))
-		.then((allowed) => {
-			if (!allowed) {
-				return false
-			}
-
-			return logins
-				.getUserController()
-				.loadCustomer()
-				.then((customer) => {
-					if (
-						groupRequiresBusinessFeature(getInvitationGroupType(invitation)) &&
-						!isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled)
-					) {
-						return showBusinessFeatureRequiredDialog("businessFeatureRequiredGeneral_msg")
-					} else {
-						return true
-					}
-				})
-		})
+async function checkCanAcceptInvitation(invitation: ReceivedGroupInvitation): Promise<boolean> {
+	const SubscriptionDialogUtils = await import("../../misc/SubscriptionDialogs")
+	const allowed = await SubscriptionDialogUtils.checkPremiumSubscription(false)
+	if (!allowed) {
+		return false
+	}
+	const customer = await locator.logins.getUserController().loadCustomer()
+	if (groupRequiresBusinessFeature(getInvitationGroupType(invitation)) && !isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled)) {
+		return showBusinessFeatureRequiredDialog("businessFeatureRequiredGeneral_msg")
+	} else {
+		return true
+	}
 }
 
 function renderCalendarGroupInvitationFields(invitation: ReceivedGroupInvitation, selectedColourValue: Stream<string>): Children {

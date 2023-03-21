@@ -6,7 +6,6 @@ import { isDomainName, isMailAddress, isRegularExpression } from "../misc/Format
 import { getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
 import type { InboxRule } from "../api/entities/tutanota/TypeRefs.js"
 import { createInboxRule } from "../api/entities/tutanota/TypeRefs.js"
-import { logins } from "../api/main/LoginController"
 import { getExistingRuleForType, getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../mail/model/MailUtils"
 import type { MailboxDetail } from "../mail/model/MailModel"
 import stream from "mithril/stream"
@@ -24,7 +23,7 @@ import { assertSystemFolderOfType } from "../api/common/mail/CommonMailUtils.js"
 assertMainOrNode()
 
 export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRule) {
-	if (logins.getUserController().isFreeAccount()) {
+	if (locator.logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog(true)
 	} else if (mailBoxDetail) {
 		let targetFolders = mailBoxDetail.folders.getIndentedList().map((folderInfo) => {
@@ -71,7 +70,7 @@ export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRule) {
 			rule.type = inboxRuleType()
 			rule.value = getCleanedValue(inboxRuleType(), inboxRuleValue())
 			rule.targetFolder = inboxRuleTarget()._id
-			const props = logins.getUserController().props
+			const props = locator.logins.getUserController().props
 			const inboxRules = props.inboxRules
 			props.inboxRules = isNewRule
 				? [...inboxRules, rule]
@@ -130,7 +129,7 @@ function validateInboxRuleInput(type: string, value: string, ruleId: Id): Transl
 	) {
 		return "inboxRuleInvalidEmailAddress_msg"
 	} else {
-		let existingRule = getExistingRuleForType(logins.getUserController().props, currentCleanedValue, type)
+		let existingRule = getExistingRuleForType(locator.logins.getUserController().props, currentCleanedValue, type)
 
 		if (existingRule && (!ruleId || (ruleId && !isSameId(existingRule._id, ruleId)))) {
 			return "inboxRuleAlreadyExists_msg"

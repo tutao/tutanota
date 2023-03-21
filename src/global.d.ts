@@ -29,7 +29,6 @@ type Tutao = {
 	lang: LanguageViewModel
 	client: ClientDetector
 	root: RootView
-	logins: LoginController
 	locator: IMainLocator | null
 	nativeApp? // Will either be IosNativeTransport or null
 	appState?

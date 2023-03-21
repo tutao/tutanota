@@ -1,6 +1,6 @@
 import m, { Children, Vnode } from "mithril"
 import { assertMainOrNode } from "../api/common/Env.js"
-import { BaseHeaderAttrs, header } from "../gui/Header.js"
+import { BaseHeaderAttrs } from "../gui/Header.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { AriaLandmarks, landmarkAttrs } from "../gui/AriaUtils.js"
 import { lang } from "../misc/LanguageViewModel.js"
@@ -11,6 +11,7 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { CustomerAccountTerminationRequest } from "../api/entities/sys/TypeRefs.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelView, TopLevelAttrs } from "../TopLevelView.js"
+import { locator } from "../api/main/MainLocator.js"
 
 assertMainOrNode()
 
@@ -48,7 +49,7 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 				},
 			},
 			[
-				m(header, {
+				m(locator.header, {
 					viewSlider: null,
 					...attrs.header,
 				}),

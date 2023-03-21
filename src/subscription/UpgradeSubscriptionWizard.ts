@@ -7,7 +7,6 @@ import {
 	CustomerInfoTypeRef,
 	CustomerTypeRef,
 } from "../api/entities/sys/TypeRefs.js"
-import { logins } from "../api/main/LoginController"
 import type { InvoiceData, PaymentData } from "../api/common/TutanotaConstants"
 import { Const, getPaymentMethodType, PaymentMethodType as PaymentMethod } from "../api/common/TutanotaConstants"
 import { getByAbbreviation } from "../api/common/CountryList"
@@ -80,7 +79,7 @@ function loadCustomerAndInfo(): Promise<{
 	customerInfo: CustomerInfo
 	accountingInfo: AccountingInfo
 }> {
-	return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) =>
+	return locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer)).then((customer) =>
 		locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then((customerInfo) =>
 			locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then((accountingInfo) => {
 				return {
@@ -213,8 +212,8 @@ export async function loadSignupWizard(
 		wizardPageWrapper(UpgradeCongratulationsPage, new UpgradeCongratulationsPageAttrs(signupData)),
 	]
 	const wizardBuilder = createWizardDialog(signupData, wizardPages, async () => {
-		if (logins.isUserLoggedIn()) {
-			await logins.logout(false)
+		if (locator.logins.isUserLoggedIn()) {
+			await locator.logins.logout(false)
 		}
 
 		if (signupData.newAccountData) {

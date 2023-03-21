@@ -20,7 +20,7 @@ import { CalendarEventTypeRef, UserSettingsGroupRootTypeRef } from "../../api/en
 import { OperationType, reverse } from "../../api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
 import { getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
-import { LoginController, logins } from "../../api/main/LoginController"
+import { LoginController } from "../../api/main/LoginController"
 import { IProgressMonitor, NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor"
 import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
@@ -51,6 +51,7 @@ import { EntityClient } from "../../api/common/EntityClient"
 import { ProgressTracker } from "../../api/main/ProgressTracker"
 import { DeviceConfig } from "../../misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
+import { locator } from "../../api/main/MainLocator.js"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -245,7 +246,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	setHiddenCalendars(newHiddenCalendars: Set<Id>) {
 		this._hiddenCalendars = newHiddenCalendars
 
-		this._deviceConfig.setHiddenCalendars(logins.getUserController().user._id, [...newHiddenCalendars])
+		this._deviceConfig.setHiddenCalendars(locator.logins.getUserController().user._id, [...newHiddenCalendars])
 	}
 
 	/**
@@ -404,10 +405,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 					}
 				} else if (
 					isUpdateForTypeRef(UserTypeRef, update) && // only process update event received for the user group - to not process user update from admin membership.
-					isSameId(eventOwnerGroupId, logins.getUserController().user.userGroup.group)
+					isSameId(eventOwnerGroupId, locator.logins.getUserController().user.userGroup.group)
 				) {
 					if (update.operation === OperationType.UPDATE) {
-						const calendarMemberships = logins.getUserController().getCalendarMemberships()
+						const calendarMemberships = locator.logins.getUserController().getCalendarMemberships()
 						return this._calendarInfos.getAsync().then((calendarInfos) => {
 							// Remove calendars we no longer have membership in
 							calendarInfos.forEach((ci, group) => {

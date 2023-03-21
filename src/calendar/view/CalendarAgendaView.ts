@@ -1,6 +1,6 @@
-import m, { Children, CommonAttributes, Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { CalendarEventBubble } from "./CalendarEventBubble"
-import { incrementDate } from "@tutao/tutanota-utils"
+import { incrementDate, lastThrow, neverNull } from "@tutao/tutanota-utils"
 import { styles } from "../../gui/styles"
 import { lang } from "../../misc/LanguageViewModel"
 import { formatDate, formatDateWithWeekday } from "../../misc/Formatter"
@@ -14,13 +14,11 @@ import {
 	hasAlarmsForTheUser,
 } from "../date/CalendarUtils"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
-import { neverNull } from "@tutao/tutanota-utils"
 import { px, size } from "../../gui/size"
-import { lastThrow } from "@tutao/tutanota-utils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
-import { logins } from "../../api/main/LoginController"
 import type { GroupColors } from "./CalendarView"
 import type { CalendarEventBubbleClickHandler } from "./CalendarViewModel"
+import { locator } from "../../api/main/MainLocator.js"
 
 type Attrs = {
 	/**
@@ -120,7 +118,7 @@ export class CalendarAgendaView implements Component<Attrs> {
 														text: ev.summary,
 														secondLineText: formattedEventTime + eventLocation,
 														color: getEventColor(ev, attrs.groupColors),
-														hasAlarm: !startsBefore && hasAlarmsForTheUser(logins.getUserController().user, ev),
+														hasAlarm: !startsBefore && hasAlarmsForTheUser(locator.logins.getUserController().user, ev),
 														click: (domEvent) => attrs.onEventClicked(ev, domEvent),
 														height: 38,
 														verticalPadding: 2,

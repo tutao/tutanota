@@ -5,7 +5,6 @@ import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import { lang } from "../../misc/LanguageViewModel"
 import { Icons } from "../../gui/base/icons/Icons"
 import { getFolderIcon, getIndentedFolderNameForDropdown, getMoveTargetFolderSystems, markMails } from "../model/MailUtils"
-import { logins } from "../../api/main/LoginController"
 import { FeatureType } from "../../api/common/TutanotaConstants"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { theme } from "../../gui/theme"
@@ -133,7 +132,7 @@ export function getMultiMailViewerActionButtonAttrs(selectedEntities: Array<Mail
 					click: actionBarAction(() => markMails(locator.entityClient, selectedEntities, false)),
 					icon: Icons.Eye,
 				},
-				!isApp() && !logins.isEnabled(FeatureType.DisableMailExport)
+				!isApp() && !locator.logins.isEnabled(FeatureType.DisableMailExport)
 					? {
 							label: "export_action",
 							click: actionBarAction(() =>

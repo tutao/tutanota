@@ -16,7 +16,6 @@ import { BookingItemFeatureType, GroupType, OperationType } from "../../api/comm
 import { localAdminGroupInfoModel } from "../LocalAdminGroupInfoModel.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { SelectorItemList } from "../../gui/base/DropDownSelector.js"
-import { logins } from "../../api/main/LoginController.js"
 import { stringValidator } from "../../gui/base/Dialog.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../../api/common/error/RestError.js"
@@ -212,7 +211,7 @@ export class GroupDetailsModel {
 	}
 
 	createAdministratedByInfo(): { options: SelectorItemList<Id | null>; currentVal: Id | null } | null {
-		if (!logins.getUserController().isGlobalAdmin() || !this.localAdminGroupInfo.isLoaded()) return null
+		if (!locator.logins.getUserController().isGlobalAdmin() || !this.localAdminGroupInfo.isLoaded()) return null
 
 		const filteredLocalAdminGroupInfo = this.localAdminGroupInfo.getLoaded().filter((groupInfo) => !groupInfo.deleted)
 
@@ -252,7 +251,7 @@ export class GroupDetailsModel {
 	 * whether this user can remove administrated groups.
 	 */
 	canRemoveAdminship(): boolean {
-		return logins.getUserController().isGlobalAdmin()
+		return locator.logins.getUserController().isGlobalAdmin()
 	}
 
 	async removeAdministratedGroup(groupId: Id): Promise<void> {
@@ -262,17 +261,17 @@ export class GroupDetailsModel {
 
 	private getAdminGroupId(): Id {
 		return assertNotNull(
-			logins.getUserController().user.memberships.find((gm) => gm.groupType === GroupType.Admin),
+			locator.logins.getUserController().user.memberships.find((gm) => gm.groupType === GroupType.Admin),
 			"this user is not in any admin group",
 		).group
 	}
 
 	async getPossibleMembers(): Promise<Array<{ name: string; value: Id }>> {
-		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 		const userGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
 		// remove all users that are already member
-		let globalAdmin = logins.isGlobalAdminUserLoggedIn()
-		let myLocalAdminShips = logins
+		let globalAdmin = locator.logins.isGlobalAdminUserLoggedIn()
+		let myLocalAdminShips = locator.logins
 			.getUserController()
 			.getLocalAdminGroupMemberships()
 			.map((gm) => gm.group)

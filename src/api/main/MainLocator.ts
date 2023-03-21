@@ -86,7 +86,7 @@ import { OperationProgressTracker } from "./OperationProgressTracker.js"
 import { WorkerFacade } from "../worker/facades/WorkerFacade.js"
 import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
 import { OfflineIndicatorViewModel } from "../../gui/base/OfflineIndicatorViewModel.js"
-import { BaseHeaderAttrs } from "../../gui/Header.js"
+import { BaseHeaderAttrs, Header } from "../../gui/Header.js"
 import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel.js"
 import { GroupType } from "../common/TutanotaConstants.js"
@@ -111,6 +111,8 @@ class MainLocator {
 	secondFactorHandler!: SecondFactorHandler
 	webAuthn!: WebauthnClient
 	loginFacade!: LoginFacade
+	logins!: LoginController
+	header!: Header
 	customerFacade!: CustomerFacade
 	giftCardFacade!: GiftCardFacade
 	groupManagementFacade!: GroupManagementFacade
@@ -150,14 +152,9 @@ class MainLocator {
 	private exposedNativeInterfaces: ExposedNativeInterface | null = null
 	private entropyFacade!: EntropyFacade
 
-	async loginController(): Promise<LoginController> {
-		const { logins } = await import("./LoginController.js")
-		return logins
-	}
-
 	async recipientsModel(): Promise<RecipientsModel> {
 		const { RecipientsModel } = await import("./RecipientsModel.js")
-		return new RecipientsModel(this.contactModel, await this.loginController(), this.mailFacade, this.entityClient)
+		return new RecipientsModel(this.contactModel, this.logins, this.mailFacade, this.entityClient)
 	}
 
 	async noZoneDateProvider(): Promise<NoZoneDateProvider> {
@@ -172,8 +169,7 @@ class MainLocator {
 	offlineIndicatorViewModel = lazyMemoized(async () => {
 		// just to make sure that some random place that imports locator doesn't import mithril too
 		const m = await import("mithril")
-		const logins = await this.loginController()
-		return new OfflineIndicatorViewModel(this.cacheStorage, this.loginListener, this.connectivityModel, logins, this.progressTracker, m.redraw)
+		return new OfflineIndicatorViewModel(this.cacheStorage, this.loginListener, this.connectivityModel, this.logins, this.progressTracker, m.redraw)
 	})
 
 	async baseHeaderAttrs(): Promise<BaseHeaderAttrs> {
@@ -187,11 +183,10 @@ class MainLocator {
 		const { ReceivedGroupInvitationsModel } = await import("../../sharing/model/ReceivedGroupInvitationsModel.js")
 		const { CalendarViewModel } = await import("../../calendar/view/CalendarViewModel.js")
 		const { getEventStart, getTimeZone } = await import("../../calendar/date/CalendarUtils.js")
-		const logins = await this.loginController()
-		const calendarInvitations = new ReceivedGroupInvitationsModel(GroupType.Calendar, this.eventController, this.entityClient, logins)
+		const calendarInvitations = new ReceivedGroupInvitationsModel(GroupType.Calendar, this.eventController, this.entityClient, this.logins)
 		calendarInvitations.init()
 		return new CalendarViewModel(
-			logins,
+			this.logins,
 			async (event, calendarInfo) => {
 				const mailboxDetail = await this.mailModel.getUserMailboxDetails()
 				const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
@@ -210,14 +205,13 @@ class MainLocator {
 	/** This ugly bit exists because CalendarEventViewModel wants a sync factory. */
 	private async sendMailModelSyncFactory(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): Promise<() => SendMailModel> {
 		const { SendMailModel } = await import("../../mail/editor/SendMailModel")
-		const logins = await this.loginController()
 		const recipientsModel = await this.recipientsModel()
 		const dateProvider = await this.noZoneDateProvider()
 		return () =>
 			new SendMailModel(
 				this.mailFacade,
 				this.entityClient,
-				logins,
+				this.logins,
 				this.mailModel,
 				this.contactModel,
 				this.eventController,
@@ -243,7 +237,7 @@ class MainLocator {
 		const { getTimeZone } = await import("../../calendar/date/CalendarUtils.js")
 
 		return new CalendarEventViewModel(
-			(await this.loginController()).getUserController(),
+			this.logins.getUserController(),
 			calendarUpdateDistributor,
 			this.calendarModel,
 			this.entityClient,
@@ -287,7 +281,6 @@ class MainLocator {
 		(options: CreateMailViewerOptions, mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties) => MailViewerViewModel
 	> {
 		const { MailViewerViewModel } = await import("../../mail/view/MailViewerViewModel.js")
-		const logins = await this.loginController()
 		return ({ mail, showFolder, delayBodyRenderingUntil }, mailboxDetails, mailboxProperties) =>
 			new MailViewerViewModel(
 				mail,
@@ -299,7 +292,7 @@ class MainLocator {
 				this.configFacade,
 				this.fileFacade,
 				this.fileController,
-				logins,
+				this.logins,
 				() => this.sendMailModel(mailboxDetails, mailboxProperties),
 				this.eventController,
 				this.workerFacade,
@@ -339,13 +332,12 @@ class MainLocator {
 	async mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel> {
 		const { MailAddressTableModel } = await import("../../settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.ownMailAddressNameChanger()
-		const logins = await this.loginController()
 		return new MailAddressTableModel(
 			this.entityClient,
 			this.mailAddressFacade,
-			logins,
+			this.logins,
 			this.eventController,
-			logins.getUserController().userGroupInfo,
+			this.logins.getUserController().userGroupInfo,
 			nameChanger,
 		)
 	}
@@ -353,8 +345,7 @@ class MainLocator {
 	async mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userGroupInfo: GroupInfo): Promise<MailAddressTableModel> {
 		const { MailAddressTableModel } = await import("../../settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.adminNameChanger(mailGroupId, userId)
-		const logins = await this.loginController()
-		return new MailAddressTableModel(this.entityClient, this.mailAddressFacade, logins, this.eventController, userGroupInfo, nameChanger)
+		return new MailAddressTableModel(this.entityClient, this.mailAddressFacade, this.logins, this.eventController, userGroupInfo, nameChanger)
 	}
 
 	async ownMailAddressNameChanger(): Promise<MailAddressNameChanger> {
@@ -368,9 +359,8 @@ class MainLocator {
 	}
 
 	async drawerAttrsFactory(): Promise<() => DrawerMenuAttrs> {
-		const logins = await this.loginController()
 		return () => ({
-			logins,
+			logins: this.logins,
 			newsModel: this.newsModel,
 			desktopSystemFacade: this.desktopSystemFacade,
 		})
@@ -469,8 +459,11 @@ class MainLocator {
 		this.contactFormFacade = contactFormFacade
 		this.deviceEncryptionFacade = deviceEncryptionFacade
 		this.serviceExecutor = serviceExecutor
-		const logins = await this.loginController()
-		this.eventController = new EventController(logins)
+		this.logins = new LoginController()
+		// Should be called elsewhere later e.g. in mainLocator
+		this.logins.init()
+		this.header = new Header(this.logins)
+		this.eventController = new EventController(this.logins)
 		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(this.searchFacade)
 		this.entityClient = new EntityClient(restInterface)
@@ -479,7 +472,7 @@ class MainLocator {
 		this.entropyFacade = entropyFacade
 		this.workerFacade = workerFacade
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
-		this.mailModel = new MailModel(notifications, this.eventController, this.connectivityModel, this.mailFacade, this.entityClient, logins)
+		this.mailModel = new MailModel(notifications, this.eventController, this.connectivityModel, this.mailFacade, this.entityClient, this.logins)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler(this.search)
 
@@ -493,11 +486,12 @@ class MainLocator {
 			this.nativeInterfaces = createNativeInterfaces(
 				new WebMobileFacade(this.connectivityModel, this.mailModel),
 				new WebDesktopFacade(),
-				new WebInterWindowEventFacade(logins, windowFacade),
+				new WebInterWindowEventFacade(this.logins, windowFacade),
 				new WebCommonNativeFacade(),
 				cryptoFacade,
 				calendarFacade,
 				this.entityClient,
+				this.logins,
 			)
 
 			if (isElectronClient()) {
@@ -545,7 +539,7 @@ class MainLocator {
 			},
 			this.serviceExecutor,
 			this.entityClient,
-			logins,
+			this.logins,
 			this.eventController,
 			() => this.usageTestController,
 		)
@@ -557,14 +551,14 @@ class MainLocator {
 					return new UsageOptInNews(this.newsModel, this.usageTestModel)
 				case "recoveryCode":
 					const { RecoveryCodeNews } = await import("../../misc/news/items/RecoveryCodeNews.js")
-					return new RecoveryCodeNews(this.newsModel, logins.getUserController(), this.userManagementFacade)
+					return new RecoveryCodeNews(this.newsModel, this.logins.getUserController(), this.userManagementFacade)
 				case "pinBiometrics":
 					const { PinBiometricsNews } = await import("../../misc/news/items/PinBiometricsNews.js")
-					return new PinBiometricsNews(this.newsModel, this.credentialsProvider, logins.getUserController().userId)
+					return new PinBiometricsNews(this.newsModel, this.credentialsProvider, this.logins.getUserController().userId)
 				case "referralLink":
 					const { ReferralLinkNews } = await import("../../misc/news/items/ReferralLinkNews.js")
 					const dateProvider = await this.noZoneDateProvider()
-					return new ReferralLinkNews(this.newsModel, dateProvider, logins.getUserController())
+					return new ReferralLinkNews(this.newsModel, dateProvider, this.logins.getUserController())
 				default:
 					console.log(`No implementation for news named '${name}'`)
 					return null
@@ -581,14 +575,14 @@ class MainLocator {
 			this.alarmScheduler,
 			this.eventController,
 			this.serviceExecutor,
-			logins,
+			this.logins,
 			this.progressTracker,
 			this.entityClient,
 			this.mailModel,
 			this.calendarFacade,
 			this.fileController,
 		)
-		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, logins)
+		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, this.logins)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 	}

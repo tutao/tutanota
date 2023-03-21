@@ -7,7 +7,6 @@ import { AccountType, BookingItemFeatureType, FeatureType } from "../api/common/
 import { formatDate } from "../misc/Formatter.js"
 import type { PriceData, PriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
 import { AccountingInfoTypeRef, CustomerInfoTypeRef, CustomerTypeRef, PriceItemData } from "../api/entities/sys/TypeRefs.js"
-import { logins } from "../api/main/LoginController.js"
 import { NotAuthorizedError } from "../api/common/error/RestError.js"
 import { asPaymentInterval, formatPrice, getPriceItem, PaymentInterval } from "./PriceUtils.js"
 import { bookItem } from "./SubscriptionUtils.js"
@@ -28,7 +27,7 @@ export interface BookingParams {
  * Returns true if the order is accepted by the user, false otherwise.
  */
 export async function showBuyDialog(params: BookingParams): Promise<boolean> {
-	if (logins.isEnabled(FeatureType.HideBuyDialogs)) {
+	if (locator.logins.isEnabled(FeatureType.HideBuyDialogs)) {
 		return true
 	}
 	const priceChangeModel = await showProgressDialog("pleaseWait_msg", prepareDialog(params))
@@ -42,7 +41,7 @@ export async function showBuyDialog(params: BookingParams): Promise<boolean> {
 }
 
 async function prepareDialog({ featureType, count, reactivate }: BookingParams): Promise<PriceChangeModel | null> {
-	const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+	const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 	if (customer.type === AccountType.PREMIUM && customer.canceledPremiumAccount) {
 		await Dialog.message("subscriptionCancelledMessage_msg")
 		return null

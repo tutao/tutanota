@@ -19,7 +19,6 @@ import {
 } from "../api/entities/sys/TypeRefs.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { logins } from "../api/main/LoginController"
 import { formatDateTime, formatDateTimeFromYesterdayOn } from "../misc/Formatter"
 import { Dialog } from "../gui/base/Dialog"
 import { LockedError, NotAuthorizedError, PreconditionFailedError } from "../api/common/error/RestError"
@@ -47,8 +46,6 @@ import { assertMainOrNode } from "../api/common/Env"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { SettingsExpander } from "./SettingsExpander.js"
-import { MailAddressTableModel } from "./mailaddress/MailAddressTableModel.js"
-import { OwnMailAddressNameChanger } from "./mailaddress/OwnMailAddressNameChanger.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -78,7 +75,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	private readonly usageDataExpanded = stream(false)
 	private readonly customerProperties = new LazyLoaded(() =>
 		locator.entityClient
-			.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+			.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 			.then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
 	)
 
@@ -132,7 +129,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				title: "addCustomDomain_action",
 				click: async () => {
 					const customerInfo = await this.customerInfo.getAsync()
-					if (logins.getUserController().isFreeAccount()) {
+					if (locator.logins.getUserController().isFreeAccount()) {
 						showNotAvailableForFreeDialog(getCustomMailDomains(customerInfo).length === 0)
 					} else {
 						const mailAddressTableModel = await locator.mailAddressTableModelForOwnMailbox()
@@ -200,9 +197,9 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						],
 						dropdownWidth: 250,
 					}),
-					logins.getUserController().isGlobalAdmin()
+					locator.logins.getUserController().isGlobalAdmin()
 						? m("", [
-								logins.getUserController().isPremiumAccount()
+								locator.logins.getUserController().isPremiumAccount()
 									? m(DropDownSelector, {
 											label: "enforcePasswordUpdate_title",
 											helpLabel: () => lang.get("enforcePasswordUpdate_msg"),
@@ -245,7 +242,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						  ])
 						: null,
 				]),
-				logins.getUserController().isPremiumAccount()
+				locator.logins.getUserController().isPremiumAccount()
 					? m(
 							SettingsExpander,
 							{
@@ -390,7 +387,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private updateAuditLog(): Promise<void> {
-		return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
+		return locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer)).then((customer) => {
 			this.customer = customer
 
 			return locator.entityClient.loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true).then((auditLog) => {
@@ -609,7 +606,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async loadMailboxGroupDataAndCatchAllId(domainInfo: DomainInfo): Promise<{ available: Array<GroupData>; selected: GroupData | null }> {
-		const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 		const teamMailGroups = await loadEnabledTeamMailGroups(customer)
 		const userMailGroups = await loadEnabledUserMailGroups(customer)
 		const allMailGroups = teamMailGroups.concat(userMailGroups)
@@ -667,7 +664,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 	private loadCustomerInfo(): Promise<CustomerInfo> {
 		return locator.entityClient
-			.load(CustomerTypeRef, assertNotNull(logins.getUserController().user.customer))
+			.load(CustomerTypeRef, assertNotNull(locator.logins.getUserController().user.customer))
 			.then((customer) => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 	}
 

@@ -3,7 +3,7 @@ import stream from "mithril/stream"
 import { mapNullable, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import type { WizardPageAttrs, WizardPageN } from "../../gui/base/WizardDialog.js"
 import { createWizardDialog, emitWizardEvent, WizardEventType, wizardPageWrapper } from "../../gui/base/WizardDialog.js"
-import { LoginController, logins } from "../../api/main/LoginController"
+import { LoginController } from "../../api/main/LoginController"
 import type { NewAccountData } from "../UpgradeSubscriptionWizard"
 import { Dialog } from "../../gui/base/Dialog"
 import { LoginForm } from "../../login/LoginForm"
@@ -91,7 +91,7 @@ class RedeemGiftCardModel {
 	}
 
 	async loginWithStoredCredentials(encryptedCredentials: CredentialsInfo) {
-		if (logins.isUserLoggedIn() && isSameId(logins.getUserController().user._id, encryptedCredentials.userId)) {
+		if (this.logins.isUserLoggedIn() && isSameId(this.logins.getUserController().user._id, encryptedCredentials.userId)) {
 			// If the user is logged in already (because they selected credentials and then went back) we dont have to do
 			// anything, so just move on
 			await this.postLogin()
@@ -182,7 +182,7 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 		const a = vnode.attrs
 
 		const nextPage = (method: GetCredentialsMethod) => {
-			logins.logout(false).then(() => {
+			locator.logins.logout(false).then(() => {
 				a.data.credentialsMethod = method
 				emitWizardEvent(this.dom, WizardEventType.SHOWNEXTPAGE)
 			})
@@ -376,7 +376,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 
 	view(vnode: Vnode<GiftCardRedeemAttrs>): Children {
 		const model = vnode.attrs.data
-		const isFree = logins.getUserController().isFreeAccount()
+		const isFree = locator.logins.getUserController().isFreeAccount()
 
 		return m("", [
 			mapNullable(model.newAccountData?.recoverCode, (code) =>
@@ -553,7 +553,7 @@ async function loadModel(hashFromUrl: string): Promise<RedeemGiftCardModel> {
 		},
 		locator.giftCardFacade,
 		locator.credentialsProvider,
-		logins,
+		locator.logins,
 		locator.entityClient,
 	)
 }

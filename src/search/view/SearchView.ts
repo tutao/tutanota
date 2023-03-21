@@ -29,10 +29,9 @@ import { getEndOfDay, getStartOfDay, isSameDay, isSameTypeRef, isToday, neverNul
 import { formatDateWithMonth, formatDateWithTimeIfNotEven } from "../../misc/Formatter"
 import { showDateRangeSelectionDialog } from "../../gui/date/DatePickerDialog"
 import { Icons } from "../../gui/base/icons/Icons"
-import { logins } from "../../api/main/LoginController"
 import { PageSize } from "../../gui/base/List"
 import { MultiSelectionBar } from "../../gui/base/MultiSelectionBar"
-import { BaseHeaderAttrs, header } from "../../gui/Header.js"
+import { BaseHeaderAttrs } from "../../gui/Header.js"
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { isUpdateForTypeRef } from "../../api/main/EventController"
 import { getStartOfTheWeekOffsetForUser } from "../../calendar/date/CalendarUtils"
@@ -169,14 +168,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 		this.oncreate = (vnode) => {
 			keyManager.registerShortcuts(shortcuts)
-			neverNull(header.searchBar).setReturnListener(() => this.resultListColumn.focus())
+			neverNull(locator.header.searchBar).setReturnListener(() => this.resultListColumn.focus())
 			locator.eventController.addEntityListener(this.entityListener)
 			this.mailboxSubscription = locator.mailModel.mailboxDetails.map((mailboxes) => this.onMailboxesChanged(mailboxes))
 		}
 
 		this.onremove = () => {
 			keyManager.unregisterShortcuts(shortcuts)
-			neverNull(header.searchBar).setReturnListener(noOp)
+			neverNull(locator.header.searchBar).setReturnListener(noOp)
 			locator.eventController.removeEntityListener(this.entityListener)
 			this.mailboxSubscription?.end(true)
 		}
@@ -220,7 +219,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return m(
 			"#search.main-view",
 			m(this.viewSlider, {
-				header: m(header, {
+				header: m(locator.header, {
 					headerView: this.renderHeaderView(),
 					rightView: this.renderHeaderRightView(),
 					viewSlider: this.viewSlider,
@@ -244,7 +243,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					selectedValue: this.selectedMailField,
 					selectionChangedHandler: (newValue: string | null) => {
 						this.selectedMailField = newValue
-						if (logins.getUserController().isFreeAccount()) {
+						if (locator.logins.getUserController().isFreeAccount()) {
 							if (newValue != null) {
 								this.selectedMailField = null
 								showNotAvailableForFreeDialog(true)
@@ -262,7 +261,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							selectedValue: this.selectedMailFolder,
 							selectionChangedHandler: (newValue: string | null) => {
 								this.selectedMailFolder = newValue
-								if (logins.getUserController().isFreeAccount()) {
+								if (locator.logins.getUserController().isFreeAccount()) {
 									if (newValue != null) {
 										this.selectedMailFolder = null
 										showNotAvailableForFreeDialog(true)
@@ -332,7 +331,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		let end: string
 		let start: string
 
-		if (logins.getUserController().isFreeAccount()) {
+		if (locator.logins.getUserController().isFreeAccount()) {
 			end = lang.get("today_label")
 			start = formatDateWithMonth(getFreeSearchStartDate())
 		} else {
@@ -376,10 +375,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private async selectTimePeriod() {
-		if (logins.getUserController().isFreeAccount()) {
+		if (locator.logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog(true)
 		} else {
-			const startOfWeek = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
+			const startOfWeek = getStartOfTheWeekOffsetForUser(locator.logins.getUserController().userSettingsGroupRoot)
 			const { end, start } = await showDateRangeSelectionDialog(
 				startOfWeek,
 				this.startDate ?? this._getCurrentMailIndexDate() ?? new Date(),
@@ -494,7 +493,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						})
 					}
 				},
-				enabled: () => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.ReplyOnly),
+				enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.ReplyOnly),
 				help: "newMail_action",
 			},
 			{

@@ -11,7 +11,6 @@ import { createNewContact, getExistingRuleForType, isTutanotaTeamMail } from "..
 import { IconMessageBox } from "../../gui/base/ColumnEmptyMessageBox"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
-import { logins } from "../../api/main/LoginController"
 import { Icon, progressIcon } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
 import { theme } from "../../gui/theme"
@@ -33,6 +32,7 @@ import { CancelledError } from "../../api/common/error/CancelledError"
 import { MailViewerHeader } from "./MailViewerHeader.js"
 import { editDraft, mailViewerPadding, showHeaderDialog } from "./MailViewerUtils.js"
 import { ToggleButton } from "../../gui/base/ToggleButton.js"
+import { locator } from "../../api/main/MainLocator.js"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
@@ -513,7 +513,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private setupShortcuts(attrs: MailViewerAttrs): Array<Shortcut> {
-		const userController = logins.getUserController()
+		const userController = locator.logins.getUserController()
 		const shortcuts: Shortcut[] = [
 			{
 				key: Keys.E,
@@ -593,9 +593,9 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			click: () => copyToClipboard(mailAddress.address),
 		})
 
-		if (logins.getUserController().isInternalUser()) {
+		if (locator.logins.getUserController().isInternalUser()) {
 			//searching for contacts will never resolve if the user has not logged in online
-			if (createContact && !logins.isEnabled(FeatureType.DisableContacts) && logins.isFullyLoggedIn()) {
+			if (createContact && !locator.logins.isEnabled(FeatureType.DisableContacts) && locator.logins.isFullyLoggedIn()) {
 				const contact = await this.viewModel.contactModel.searchForContact(mailAddress.address)
 				if (contact) {
 					buttons.push({
@@ -611,7 +611,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 						click: () => {
 							this.viewModel.contactModel.contactListId().then((contactListId) => {
 								import("../../contacts/ContactEditor").then(({ ContactEditor }) => {
-									const contact = createNewContact(logins.getUserController().user, mailAddress.address, mailAddress.name)
+									const contact = createNewContact(locator.logins.getUserController().user, mailAddress.address, mailAddress.name)
 									new ContactEditor(this.viewModel.entityClient, contact, contactListId ?? undefined).show()
 								})
 							})
@@ -620,8 +620,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				}
 			}
 
-			if (defaultInboxRuleField && !logins.isEnabled(FeatureType.InternalCommunication)) {
-				const rule = getExistingRuleForType(logins.getUserController().props, mailAddress.address.trim().toLowerCase(), defaultInboxRuleField)
+			if (defaultInboxRuleField && !locator.logins.isEnabled(FeatureType.InternalCommunication)) {
+				const rule = getExistingRuleForType(locator.logins.getUserController().props, mailAddress.address.trim().toLowerCase(), defaultInboxRuleField)
 				buttons.push({
 					label: rule ? "editInboxRule_action" : "addInboxRule_action",
 					click: async () => {
@@ -729,7 +729,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				if (isNewMailActionAvailable()) {
 					// disable new mails for external users.
 					import("../editor/MailEditor").then(({ newMailtoUrlMailEditor }) => {
-						newMailtoUrlMailEditor(href, !logins.getUserController().props.defaultUnconfidential)
+						newMailtoUrlMailEditor(href, !locator.logins.getUserController().props.defaultUnconfidential)
 							.then((editor) => editor.show())
 							.catch(ofClass(CancelledError, noOp))
 					})

@@ -14,7 +14,6 @@ import { ContactFormTypeRef, CustomerContactFormGroupRootTypeRef } from "../../a
 import { getWhitelabelDomain } from "../../api/common/utils/Utils"
 import type { CustomerInfo } from "../../api/entities/sys/TypeRefs.js"
 import { CustomerInfoTypeRef, CustomerTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { logins } from "../../api/main/LoginController"
 import { OperationType } from "../../api/common/TutanotaConstants"
 import { Icon } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
@@ -39,13 +38,13 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 	constructor(settingsView: SettingsView) {
 		this.settingsView = settingsView
 		this.listId = new LazyLoaded(() => {
-			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
+			return locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer)).then((customer) => {
 				return locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then((root) => root.contactForms)
 			})
 		})
 		this.customerInfo = new LazyLoaded(() => {
 			return locator.entityClient
-				.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+				.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 				.then((customer) => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 		})
 
@@ -140,7 +139,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 	}
 
 	private addButtonClicked() {
-		if (logins.getUserController().isFreeAccount()) {
+		if (locator.logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog(false)
 		} else {
 			ContactFormEditor.show(null, true, (contactFormId) => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
@@ -157,7 +156,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 		const { instanceListId, instanceId, operation } = update
 
 		if (isUpdateForTypeRef(ContactFormTypeRef, update) && this.listId.isLoaded() && instanceListId === this.listId.getLoaded()) {
-			if (!logins.getUserController().isGlobalAdmin() && update.operation !== OperationType.DELETE) {
+			if (!locator.logins.getUserController().isGlobalAdmin() && update.operation !== OperationType.DELETE) {
 				const listEntity = this.list.getEntity(instanceId)
 				const cf = await locator.entityClient.load(ContactFormTypeRef, [neverNull(instanceListId), instanceId])
 				const allAdministratedGroupIds = await getAdministratedGroupIds()
@@ -276,7 +275,7 @@ export class ContactFormRow implements VirtualRow<ContactForm> {
 }
 
 export function filterContactFormsForLocalAdmin(contactForms: ContactForm[]): Promise<ContactForm[]> {
-	if (logins.getUserController().isGlobalAdmin()) {
+	if (locator.logins.getUserController().isGlobalAdmin()) {
 		return Promise.resolve(contactForms)
 	} else {
 		return getAdministratedGroupIds().then((allAdministratedGroupIds) => {
