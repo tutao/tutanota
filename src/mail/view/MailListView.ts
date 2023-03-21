@@ -16,7 +16,7 @@ import { logins } from "../../api/main/LoginController"
 import type { ButtonAttrs } from "../../gui/base/Button.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { Dialog } from "../../gui/base/Dialog"
-import { assertNotNull, AsyncResult, count, debounce, downcast, neverNull, ofClass, promiseFilter, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, AsyncResult, count, debounce, downcast, neverNull, noOp, ofClass, promiseFilter, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/MainLocator"
 import { getLetId, haveSameId, sortCompareByReverseId } from "../../api/common/utils/EntityUtils"
 import { moveMails, promptAndDeleteMails } from "./MailGuiUtils"
@@ -33,6 +33,7 @@ import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/main/EventController.js"
 import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
+import { IconButton } from "../../gui/base/IconButton.js"
 
 assertMainOrNode()
 const className = "mail-list"
@@ -442,7 +443,24 @@ export class MailListView implements Component<MailListViewAttrs> {
 									m(".mr-negative-s.align-self-end", m(Button, purgeButtonAttrs)),
 								]),
 						  ]
-						: null,
+						// FIXME: render this independent on trash/spam but not on mobile
+						: m(".flex.justify-end.pt-xs.pb-xs", [
+							m(IconButton, {
+								icon: Icons.Trash,
+								title: "delete_action",
+								click: noOp,
+							}),
+							m(IconButton, {
+								icon: Icons.Folder,
+								title: "move_action",
+								click: noOp,
+							}),
+							m(IconButton, {
+								icon: Icons.Eye,
+								title: "markRead_action",
+								click: noOp,
+							}),
+						]),
 				},
 				m(this.list),
 			),

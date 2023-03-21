@@ -682,27 +682,29 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private actionButtons(attrs: MailViewerHeaderAttrs): Children {
 		const { viewModel } = attrs
-		let actions: Children
-		if (styles.isSingleColumnLayout() || !attrs.isPrimary) {
-			actions = [this.moreButton(attrs)]
-		} else if (viewModel.isAnnouncement()) {
-			actions = [this.deleteButton(attrs), this.moreButton(attrs)]
-		} else if (viewModel.isDraftMail()) {
-			actions = [this.deleteButton(attrs), this.moveButton(attrs), this.editButton(attrs)]
-		} else if (viewModel.canForwardOrMove()) {
-			actions = [
-				this.replyButtons(attrs),
-				this.forwardButton(attrs),
-				this.separator(),
-				this.deleteButton(attrs),
-				this.moveButton(attrs),
-				this.moreButton(attrs),
-			]
-		} else if (viewModel.canAssignMails()) {
-			actions = [this.replyButtons(attrs), this.assignButton(attrs), this.separator(), this.deleteButton(attrs), this.moreButton(attrs)]
-		} else {
-			actions = [this.replyButtons(attrs), this.separator(), this.deleteButton(attrs), this.moreButton(attrs)]
-		}
+		// FIXME clean this up
+		const actions = this.moreButton(attrs)
+		// let actions: Children
+		// if (styles.isSingleColumnLayout() || !attrs.isPrimary) {
+		// 	actions = [this.moreButton(attrs)]
+		// } else if (viewModel.isAnnouncement()) {
+		// 	actions = [this.deleteButton(attrs), this.moreButton(attrs)]
+		// } else if (viewModel.isDraftMail()) {
+		// 	actions = [this.deleteButton(attrs), this.moveButton(attrs), this.editButton(attrs)]
+		// } else if (viewModel.canForwardOrMove()) {
+		// 	actions = [
+		// 		this.replyButtons(attrs),
+		// 		this.forwardButton(attrs),
+		// 		this.separator(),
+		// 		this.deleteButton(attrs),
+		// 		this.moveButton(attrs),
+		// 		this.moreButton(attrs),
+		// 	]
+		// } else if (viewModel.canAssignMails()) {
+		// 	actions = [this.replyButtons(attrs), this.assignButton(attrs), this.separator(), this.deleteButton(attrs), this.moreButton(attrs)]
+		// } else {
+		// 	actions = [this.replyButtons(attrs), this.separator(), this.deleteButton(attrs), this.moreButton(attrs)]
+		// }
 
 		return m(
 			".flex-end.items-center.ml-between-s.mt-xs",
@@ -823,41 +825,39 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						icon: Icons.Trash,
 					})
 				} else {
-					if (!isPrimary || styles.isSingleColumnLayout()) {
-						if (viewModel.canForwardOrMove()) {
-							actionButtons.push({
-								label: "reply_action",
-								click: () => viewModel.reply(false),
-								icon: Icons.Reply,
-							})
+					if (viewModel.canForwardOrMove()) {
+						actionButtons.push({
+							label: "reply_action",
+							click: () => viewModel.reply(false),
+							icon: Icons.Reply,
+						})
 
-							if (viewModel.canReplyAll()) {
-								actionButtons.push({
-									label: "replyAll_action",
-									click: () => viewModel.reply(true),
-									icon: Icons.ReplyAll,
-								})
-							}
-
+						if (viewModel.canReplyAll()) {
 							actionButtons.push({
-								label: "forward_action",
-								click: () => viewModel.forward(),
-								icon: Icons.Forward,
-							})
-							actionButtons.push({
-								label: "move_action",
-								click: (_: MouseEvent, dom: HTMLElement) =>
-									showMoveMailsDropdown(viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
-								icon: Icons.Folder,
+								label: "replyAll_action",
+								click: () => viewModel.reply(true),
+								icon: Icons.ReplyAll,
 							})
 						}
 
 						actionButtons.push({
-							label: "delete_action",
-							click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
-							icon: Icons.Trash,
+							label: "forward_action",
+							click: () => viewModel.forward(),
+							icon: Icons.Forward,
+						})
+						actionButtons.push({
+							label: "move_action",
+							click: (_: MouseEvent, dom: HTMLElement) =>
+								showMoveMailsDropdown(viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
+							icon: Icons.Folder,
 						})
 					}
+
+					actionButtons.push({
+						label: "delete_action",
+						click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
+						icon: Icons.Trash,
+					})
 
 					actionButtons.push(...mailViewerMoreActions(viewModel))
 				}
