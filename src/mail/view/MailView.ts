@@ -138,9 +138,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			const selectedEntities = this.cache.mailList ? this.cache.mailList.list.getSelectedEntities() : []
 
 			if (selectedEntities.length > 0) {
-				const loadedEntities = this.cache.mailList?.list.getLoadedEntities() ?? []
-				let selectedIndex = loadedEntities.indexOf(selectedEntities[0]) + 1
-				return selectedIndex + "/" + loadedEntities.length
+				return selectedEntities[0].subject
 			} else {
 				return ""
 			}
