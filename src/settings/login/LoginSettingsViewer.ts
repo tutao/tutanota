@@ -3,7 +3,6 @@ import stream from "mithril/stream"
 import type { TextFieldAttrs } from "../../gui/base/TextField.js"
 import { TextField } from "../../gui/base/TextField.js"
 import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
-import { logins } from "../../api/main/LoginController.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { CustomerPropertiesTypeRef, Session, SessionTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/tutanota-utils"
@@ -36,11 +35,11 @@ import { UserSettingsGroupRootTypeRef } from "../../api/entities/tutanota/TypeRe
 assertMainOrNode()
 
 export class LoginSettingsViewer implements UpdatableSettingsViewer {
-	private readonly _mailAddress = stream(neverNull(logins.getUserController().userGroupInfo.mailAddress))
+	private readonly _mailAddress = stream(neverNull(locator.logins.getUserController().userGroupInfo.mailAddress))
 	private readonly _stars = stream("***")
 	private readonly _closedSessionsExpanded = stream(false)
 	private _sessions: Session[] = []
-	private readonly _secondFactorsForm = new SecondFactorsEditForm(new LazyLoaded(() => Promise.resolve(logins.getUserController().user)))
+	private readonly _secondFactorsForm = new SecondFactorsEditForm(new LazyLoaded(() => Promise.resolve(locator.logins.getUserController().user)))
 	private readonly credentialsEncryptionModeHelpLabel: (() => string) | null
 	private readonly _usageTestModel: UsageTestModel
 
@@ -79,14 +78,14 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				size: ButtonSize.Compact,
 			},
 			childAttrs: () => [
-				logins.getUserController().user.auth?.recoverCode
+				locator.logins.getUserController().user.auth?.recoverCode
 					? {
 							label: "show_action",
 							click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("get"),
 					  }
 					: null,
 				{
-					label: () => (neverNull(logins.getUserController().user.auth).recoverCode ? lang.get("update_action") : lang.get("setUp_action")),
+					label: () => (neverNull(locator.logins.getUserController().user.auth).recoverCode ? lang.get("update_action") : lang.get("setUp_action")),
 					click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("create"),
 				},
 			],
@@ -95,7 +94,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		const recoveryCodeFieldAttrs: TextFieldAttrs = {
 			label: "recoveryCode_label",
 			helpLabel: () => {
-				return ifAllowedTutanotaLinks(InfoLink.RecoverCode, (link) => [
+				return ifAllowedTutanotaLinks(locator.logins, InfoLink.RecoverCode, (link) => [
 					m("span", lang.get("moreInfo_msg") + " "),
 					m("span.text-break", [m(`a[href=${link}][target=_blank]`, link)]),
 				])
@@ -122,12 +121,12 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					selectable: false,
 				},
 			],
-			selectedValue: logins.getUserController().userSettingsGroupRoot.usageDataOptedIn,
+			selectedValue: locator.logins.getUserController().userSettingsGroupRoot.usageDataOptedIn,
 			selectionChangedHandler: (v) => {
 				this._usageTestModel.setOptInDecision(assertNotNull(v))
 			},
 			helpLabel: () => {
-				return ifAllowedTutanotaLinks(InfoLink.Usage, (link) => [
+				return ifAllowedTutanotaLinks(locator.logins, InfoLink.Usage, (link) => [
 					m("span", lang.get("userUsageDataOptInInfo_msg") + " " + lang.get("moreInfo_msg") + " "),
 					m("span.text-break", [
 						m(
@@ -145,8 +144,8 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		// Might be not there when we are logging out
-		if (logins.isUserLoggedIn()) {
-			const user = logins.getUserController()
+		if (locator.logins.isUserLoggedIn()) {
+			const user = locator.logins.getUserController()
 			return m("", [
 				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 					m(".h4.mt-l", lang.get("loginCredentials_label")),
@@ -208,7 +207,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	async _updateSessions(): Promise<void> {
-		const sessions = await locator.entityClient.loadAll(SessionTypeRef, neverNull(logins.getUserController().user.auth).sessions)
+		const sessions = await locator.entityClient.loadAll(SessionTypeRef, neverNull(locator.logins.getUserController().user.auth).sessions)
 		sessions.sort((s1, s2) => s2.lastAccessTime.getTime() - s1.lastAccessTime.getTime())
 		this._sessions = sessions
 		m.redraw()
@@ -222,7 +221,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			lines: this._sessions
 				.filter((session) => session.state === SessionState.SESSION_STATE_ACTIVE)
 				.map((session) => {
-					const thisSession = elementIdPart(logins.getUserController().sessionId) === getElementId(session)
+					const thisSession = elementIdPart(locator.logins.getUserController().sessionId) === getElementId(session)
 
 					return {
 						cells: [

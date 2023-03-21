@@ -1,13 +1,11 @@
 import m from "mithril"
-import { logins } from "../api/main/LoginController"
 import type { GroupInfo } from "../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { GroupType } from "../api/common/TutanotaConstants"
 import { locator } from "../api/main/MainLocator"
 import type { EntityUpdateData } from "../api/main/EventController"
 import { isUpdateForTypeRef } from "../api/main/EventController"
-import { noOp } from "@tutao/tutanota-utils"
-import { promiseMap } from "@tutao/tutanota-utils"
+import { noOp, promiseMap } from "@tutao/tutanota-utils"
 
 class LocalAdminGroupInfoModel {
 	_initialization: Promise<GroupInfo[]> | null
@@ -32,7 +30,7 @@ class LocalAdminGroupInfoModel {
 	}
 
 	_init(): Promise<GroupInfo[]> {
-		this._initialization = logins
+		this._initialization = locator.logins
 			.getUserController()
 			.loadCustomer()
 			.then(async (customer) => {

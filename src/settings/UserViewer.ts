@@ -8,7 +8,6 @@ import { CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "..
 import { asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap, remove } from "@tutao/tutanota-utils"
 import { BookingItemFeatureType, GroupType, OperationType } from "../api/common/TutanotaConstants"
 import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../api/common/error/RestError"
-import { logins } from "../api/main/LoginController"
 import type { ContactForm } from "../api/entities/tutanota/TypeRefs.js"
 import { ContactFormTypeRef, CustomerContactFormGroupRootTypeRef, MailboxGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { ColumnWidth, Table, TableAttrs } from "../gui/base/Table.js"
@@ -145,7 +144,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			m("", [
 				this.renderName(),
 				m(TextField, passwordFieldAttrs),
-				logins.getUserController().isGlobalAdmin() ? [this.renderAdminStatusSelector(), this.renderAdministratedBySelector()] : null,
+				locator.logins.getUserController().isGlobalAdmin() ? [this.renderAdminStatusSelector(), this.renderAdministratedBySelector()] : null,
 				this.renderUserStatusSelector(),
 			]),
 			m(this.secondFactorsForm),
@@ -239,7 +238,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 						"pleaseWait_msg",
 						Promise.resolve().then(() => {
 							const newAdminGroupId =
-								value ?? neverNull(logins.getUserController().user.memberships.find((gm) => gm.groupType === GroupType.Admin)).group
+								value ?? neverNull(locator.logins.getUserController().user.memberships.find((gm) => gm.groupType === GroupType.Admin)).group
 							return locator.userManagementFacade.updateAdminship(this.userGroupInfo.group, newAdminGroupId)
 						}),
 					)
@@ -273,7 +272,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private isItMe(): boolean {
-		return isSameId(logins.getUserController().userGroupInfo._id, this.userGroupInfo._id)
+		return isSameId(locator.logins.getUserController().userGroupInfo._id, this.userGroupInfo._id)
 	}
 
 	private changePassword(): void {
@@ -354,8 +353,8 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		if (this.userGroupInfo.deleted) {
 			Dialog.message("userAccountDeactivated_msg")
 		} else {
-			const globalAdmin = logins.isGlobalAdminUserLoggedIn()
-			const localAdminGroupIds = logins
+			const globalAdmin = locator.logins.isGlobalAdminUserLoggedIn()
+			const localAdminGroupIds = locator.logins
 				.getUserController()
 				.getLocalAdminGroupMemberships()
 				.map((gm) => gm.group)
@@ -512,7 +511,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private loadCustomer(): Promise<Customer> {
-		return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		return locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 	}
 
 	private loadTeamGroupInfos(): Promise<Array<GroupInfo>> {
@@ -534,7 +533,7 @@ export function showUserImportDialog(customDomains: string[]) {
 		title: lang.get("importUsers_action"),
 		child: form,
 		okAction: (csvDialog) => {
-			if (logins.getUserController().isFreeAccount()) {
+			if (locator.logins.getUserController().isFreeAccount()) {
 				showNotAvailableForFreeDialog(false)
 			} else {
 				let closeCsvDialog = checkAndImportUserData(editor.getValue(), customDomains)

@@ -2,7 +2,6 @@ import m from "mithril"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { lang } from "../misc/LanguageViewModel"
 import { EmailSignatureType, FeatureType } from "../api/common/TutanotaConstants"
-import { logins } from "../api/main/LoginController"
 import { HtmlEditor } from "../gui/editor/HtmlEditor"
 import type { TutanotaProperties } from "../api/entities/tutanota/TypeRefs.js"
 import { insertInlineImageB64ClickHandler } from "../mail/view/MailViewerUtils"
@@ -20,13 +19,13 @@ const RECOMMENDED_SIGNATURE_SIZE_LIMIT = 15 * 1024
 export function show(props: TutanotaProperties) {
 	import("../mail/signature/Signature").then(({ getDefaultSignature }) => {
 		const defaultSignature = getDefaultSignature()
-		let currentCustomSignature = logins.getUserController().props.customEmailSignature
+		let currentCustomSignature = locator.logins.getUserController().props.customEmailSignature
 
-		if (currentCustomSignature === "" && !logins.isEnabled(FeatureType.DisableDefaultSignature)) {
+		if (currentCustomSignature === "" && !locator.logins.isEnabled(FeatureType.DisableDefaultSignature)) {
 			currentCustomSignature = defaultSignature
 		}
 
-		let selectedType = logins.getUserController().props.emailSignatureType as EmailSignatureType
+		let selectedType = locator.logins.getUserController().props.emailSignatureType as EmailSignatureType
 		const editor = new HtmlEditor("preview_label")
 			.showBorders()
 			.setMinHeight(200)
@@ -62,7 +61,7 @@ export function show(props: TutanotaProperties) {
 		}
 
 		let editSignatureOkAction = (dialog: Dialog) => {
-			const props = logins.getUserController().props
+			const props = locator.logins.getUserController().props
 			const newType = selectedType
 			const newCustomValue = editor.getValue()
 			const oldType = props.emailSignatureType
@@ -140,7 +139,7 @@ export function getSignatureTypes(props: TutanotaProperties): {
 		},
 	]
 
-	if (!logins.isEnabled(FeatureType.DisableDefaultSignature) || props.emailSignatureType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_DEFAULT) {
+	if (!locator.logins.isEnabled(FeatureType.DisableDefaultSignature) || props.emailSignatureType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_DEFAULT) {
 		signatureTypes.splice(0, 0, {
 			name: lang.get("emailSignatureTypeDefault_msg"),
 			value: EmailSignatureType.EMAIL_SIGNATURE_TYPE_DEFAULT,

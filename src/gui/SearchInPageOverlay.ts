@@ -1,5 +1,4 @@
 import m, { Children, Component } from "mithril"
-import { logins } from "../api/main/LoginController"
 import type { PositionRect } from "./base/Overlay"
 import { displayOverlay } from "./base/Overlay"
 import { px, size } from "./size"
@@ -31,7 +30,7 @@ export class SearchInPageOverlay {
 	}
 
 	open() {
-		if (logins.isUserLoggedIn()) {
+		if (locator.logins.isUserLoggedIn()) {
 			if (!this._closeFunction) {
 				this._closeFunction = displayOverlay(
 					() => this._getRect(),

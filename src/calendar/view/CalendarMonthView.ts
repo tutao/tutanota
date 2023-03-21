@@ -28,7 +28,6 @@ import { isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/Comm
 import { windowFacade } from "../../misc/WindowFacade"
 import { PageView } from "../../gui/base/PageView"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
-import { logins } from "../../api/main/LoginController"
 import type { GroupColors } from "./CalendarView"
 import type { EventDragHandlerCallbacks, MousePos } from "./EventDragHandler"
 import { EventDragHandler } from "./EventDragHandler"
@@ -41,6 +40,7 @@ import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarVi
 import { CalendarViewType } from "./CalendarViewModel"
 import { Time } from "../../api/common/utils/Time"
 import { client } from "../../misc/ClientDetector"
+import { locator } from "../../api/main/MainLocator.js"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date
@@ -410,7 +410,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				endsAfter: firstDayOfNextWeek < eventEnd,
 				color: getEventColor(event, attrs.groupColors),
 				showTime: styles.isDesktopLayout() && !isAllDayEvent(event) ? EventTextTimeOption.START_TIME : null,
-				user: logins.getUserController().user,
+				user: locator.logins.getUserController().user,
 				onEventClicked: (e, domEvent) => {
 					attrs.onEventClicked(event, domEvent)
 				},

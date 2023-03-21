@@ -4,7 +4,6 @@ import { lang } from "../misc/LanguageViewModel"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { Icons } from "../gui/base/icons/Icons"
 import { isEmpty, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
-import { logins } from "../api/main/LoginController"
 import { FULL_INDEXED_TIMESTAMP } from "../api/common/TutanotaConstants"
 import { formatDate, formatDateTimeFromYesterdayOn, formatDateWithMonth } from "../misc/Formatter"
 import type { Contact, Mail } from "../api/entities/tutanota/TypeRefs.js"
@@ -169,7 +168,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 			if (showMoreAction.resultCount === 0) {
 				infoText = lang.get("searchNoResults_msg")
 
-				if (logins.getUserController().isFreeAccount()) {
+				if (locator.logins.getUserController().isFreeAccount()) {
 					indexInfo = lang.get("changeTimeFrame_msg")
 				}
 			} else if (showMoreAction.allowShowMore) {

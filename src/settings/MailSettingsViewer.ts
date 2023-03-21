@@ -8,7 +8,6 @@ import { capitalizeFirstLetter, defer, LazyLoaded, noOp, ofClass } from "@tutao/
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import { MailAddressTable } from "./mailaddress/MailAddressTable.js"
 import { Dialog } from "../gui/base/Dialog"
-import { logins } from "../api/main/LoginController"
 import { getDefaultSenderFromUser, getFolderName, getMailAddressDisplayText } from "../mail/model/MailUtils"
 import { Icons } from "../gui/base/icons/Icons"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -62,22 +61,22 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_outOfOfficeStatus: Stream<string> // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
 	private mailAddressTableModel: MailAddressTableModel | null = null
 
-	private offlineStorageSettings = new OfflineStorageSettingsModel(logins.getUserController(), deviceConfig)
+	private offlineStorageSettings = new OfflineStorageSettingsModel(locator.logins.getUserController(), deviceConfig)
 
 	constructor() {
-		this._defaultSender = getDefaultSenderFromUser(logins.getUserController())
-		this._signature = stream(getSignatureType(logins.getUserController().props).name)
+		this._defaultSender = getDefaultSenderFromUser(locator.logins.getUserController())
+		this._signature = stream(getSignatureType(locator.logins.getUserController().props).name)
 		this._reportMovedMails = getReportMovedMailsType(null) // loaded later
 
-		this._defaultUnconfidential = logins.getUserController().props.defaultUnconfidential
-		this._sendPlaintext = logins.getUserController().props.sendPlaintextOnly
-		this._noAutomaticContacts = logins.getUserController().props.noAutomaticContacts
+		this._defaultUnconfidential = locator.logins.getUserController().props.defaultUnconfidential
+		this._sendPlaintext = locator.logins.getUserController().props.sendPlaintextOnly
+		this._noAutomaticContacts = locator.logins.getUserController().props.noAutomaticContacts
 		this._enableMailIndexing = locator.search.indexState().mailIndexEnabled
 		this._inboxRulesExpanded = stream<boolean>(false)
 		this._inboxRulesTableLines = stream<Array<TableLineAttrs>>([])
 		this._outOfOfficeStatus = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
-		this._identifierListViewer = new IdentifierListViewer(logins.getUserController().user)
+		this._identifierListViewer = new IdentifierListViewer(locator.logins.getUserController().user)
 		// normally we would maybe like to get it as an argument but these viewers are created in an odd way
 		locator.mailAddressTableModelForOwnMailbox().then((model) => {
 			this.mailAddressTableModel = model
@@ -85,7 +84,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		})
 		m.redraw()
 
-		this._updateInboxRules(logins.getUserController().props)
+		this._updateInboxRules(locator.logins.getUserController().props)
 
 		this._mailboxProperties = new LazyLoaded(async () => {
 			const mailboxGroupRoot = await this.getMailboxGroupRoot()
@@ -110,7 +109,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	view(): Children {
 		const defaultSenderAttrs: DropDownSelectorAttrs<string> = {
 			label: "defaultSenderMailAddress_label",
-			items: getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo)
+			items: getEnabledMailAddressesForGroupInfo(locator.logins.getUserController().userGroupInfo)
 				.sort()
 				.map((a) => ({
 					name: a,
@@ -123,8 +122,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				false,
 			),
 			selectionChangedHandler: (defaultSenderAddress) => {
-				logins.getUserController().props.defaultSender = defaultSenderAddress
-				locator.entityClient.update(logins.getUserController().props)
+				locator.logins.getUserController().props.defaultSender = defaultSenderAddress
+				locator.entityClient.update(locator.logins.getUserController().props)
 			},
 			helpLabel: () => lang.get("defaultSenderMailAddressInfo_msg"),
 			dropdownWidth: 300,
@@ -132,7 +131,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 		const changeSignatureButtonAttrs: IconButtonAttrs = {
 			title: "userEmailSignature_label",
-			click: () => showEditSignatureDialog(logins.getUserController().props),
+			click: () => showEditSignatureDialog(locator.logins.getUserController().props),
 			icon: Icons.Edit,
 			size: ButtonSize.Compact,
 		}
@@ -175,8 +174,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			],
 			selectedValue: this._defaultUnconfidential,
 			selectionChangedHandler: (v) => {
-				logins.getUserController().props.defaultUnconfidential = v
-				locator.entityClient.update(logins.getUserController().props)
+				locator.logins.getUserController().props.defaultUnconfidential = v
+				locator.entityClient.update(locator.logins.getUserController().props)
 			},
 			helpLabel: () => lang.get("defaultExternalDeliveryInfo_msg"),
 			dropdownWidth: 250,
@@ -196,8 +195,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			],
 			selectedValue: this._sendPlaintext,
 			selectionChangedHandler: (v) => {
-				logins.getUserController().props.sendPlaintextOnly = v
-				locator.entityClient.update(logins.getUserController().props)
+				locator.logins.getUserController().props.sendPlaintextOnly = v
+				locator.entityClient.update(locator.logins.getUserController().props)
 			},
 			dropdownWidth: 250,
 		}
@@ -216,8 +215,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			],
 			selectedValue: this._noAutomaticContacts,
 			selectionChangedHandler: (v) => {
-				logins.getUserController().props.noAutomaticContacts = v
-				locator.entityClient.update(logins.getUserController().props)
+				locator.logins.getUserController().props.noAutomaticContacts = v
+				locator.entityClient.update(locator.logins.getUserController().props)
 			},
 			dropdownWidth: 250,
 		}
@@ -299,16 +298,16 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(".h4.mt-l", lang.get("emailSending_label")),
 					m(DropDownSelector, defaultSenderAttrs),
 					m(TextField, signatureAttrs),
-					logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, defaultUnconfidentialAttrs),
-					logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, sendPlaintextAttrs),
-					logins.isEnabled(FeatureType.DisableContacts) ? null : m(DropDownSelector, noAutomaticContactsAttrs),
+					locator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, defaultUnconfidentialAttrs),
+					locator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, sendPlaintextAttrs),
+					locator.logins.isEnabled(FeatureType.DisableContacts) ? null : m(DropDownSelector, noAutomaticContactsAttrs),
 					m(DropDownSelector, enableMailIndexingAttrs),
 					m(DropDownSelector, reportMovedMailsAttrs),
 					m(TextField, outOfOfficeAttrs),
 					m(DropDownSelector, conversationViewDropdownAttrs),
 					this.renderLocalDataSection(),
 					this.mailAddressTableModel ? m(MailAddressTable, { model: this.mailAddressTableModel }) : null,
-					logins.isEnabled(FeatureType.InternalCommunication)
+					locator.logins.isEnabled(FeatureType.InternalCommunication)
 						? null
 						: [
 								m(".flex-space-between.items-center.mt-l.mb-s", [
@@ -329,7 +328,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 								m(
 									".small",
 									lang.get("nbrOfInboxRules_msg", {
-										"{1}": logins.getUserController().props.inboxRules.length,
+										"{1}": locator.logins.getUserController().props.inboxRules.length,
 									}),
 								),
 						  ],
@@ -365,7 +364,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async onEditStoredDataTimeRangeClicked() {
-		if (logins.getUserController().isFreeAccount()) {
+		if (locator.logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog(true, "offlineStoragePremiumOnly_msg")
 		} else {
 			await showEditStoredDataTimeRangeDialog(this.offlineStorageSettings)
@@ -445,11 +444,11 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		for (const update of updates) {
 			const { operation } = update
 			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-				const props = await locator.entityClient.load(TutanotaPropertiesTypeRef, logins.getUserController().props._id)
+				const props = await locator.entityClient.load(TutanotaPropertiesTypeRef, locator.logins.getUserController().props._id)
 				this._updateTutanotaPropertiesSettings(props)
 				this._updateInboxRules(props)
 			} else if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
-				this._updateInboxRules(logins.getUserController().props)
+				this._updateInboxRules(locator.logins.getUserController().props)
 			} else if (isUpdateForTypeRef(OutOfOfficeNotificationTypeRef, update)) {
 				this._outOfOfficeNotification.reload().then(() => this._updateOutOfOfficeNotification())
 			} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update)) {

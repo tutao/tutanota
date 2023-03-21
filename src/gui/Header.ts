@@ -6,7 +6,6 @@ import { neverNull } from "@tutao/tutanota-utils"
 import type { Shortcut } from "../misc/KeyManager.js"
 import { keyManager } from "../misc/KeyManager.js"
 import { lang } from "../misc/LanguageViewModel.js"
-import { logins } from "../api/main/LoginController.js"
 import { theme } from "./theme.js"
 import { FeatureType, Keys } from "../api/common/TutanotaConstants.js"
 import { px, size as sizes } from "./size.js"
@@ -23,6 +22,7 @@ import { ProgressBar } from "./base/ProgressBar.js"
 import { CounterBadge } from "./base/CounterBadge.js"
 import { SessionType } from "../api/common/SessionType.js"
 import { NewsModel } from "../misc/news/NewsModel.js"
+import { LoginController } from "../api/main/LoginController.js"
 
 const LogoutPath = "/login?noAutoLogin=true"
 export const LogoutUrl: string = window.location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath
@@ -46,7 +46,7 @@ export class Header implements Component<HeaderAttrs> {
 
 	private readonly shortcuts: Shortcut[]
 
-	constructor() {
+	constructor(private readonly logins: LoginController) {
 		this.shortcuts = this.setupShortcuts()
 
 		import("../search/SearchBar.js").then(({ SearchBar }) => {
@@ -64,12 +64,16 @@ export class Header implements Component<HeaderAttrs> {
 		// Do not return undefined if headerView is not present
 		const injectedView = attrs.headerView
 		return m(".header-nav.overflow-hidden.flex.items-end.flex-center", [
-			isNotTemporary() ? m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }) : null,
+			isNotTemporary(this.logins) ? m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }) : null,
 			injectedView
 				? // Make sure this wrapper takes up the full height like the things inside it expect
 				  m(".flex-grow.height-100p", injectedView)
 				: [this.renderLeftContent(attrs), this.renderCenterContent(attrs), this.renderRightContent(attrs)],
-			styles.isUsingBottomNavigation() && logins.isAtLeastPartiallyLoggedIn() && !this.mobileSearchBarVisible() && !injectedView && isNotTemporary()
+			styles.isUsingBottomNavigation() &&
+			this.logins.isAtLeastPartiallyLoggedIn() &&
+			!this.mobileSearchBarVisible() &&
+			!injectedView &&
+			isNotTemporary(this.logins)
 				? m(OfflineIndicatorMobile, attrs.offlineIndicatorModel.getCurrentAttrs())
 				: null,
 		])
@@ -98,7 +102,7 @@ export class Header implements Component<HeaderAttrs> {
 	private renderFullNavigation(attrs: HeaderAttrs): Children {
 		return m(
 			".header-right.pr-l.mr-negative-m.flex-end.items-center",
-			logins.isAtLeastPartiallyLoggedIn()
+			this.logins.isAtLeastPartiallyLoggedIn()
 				? [
 						this.renderDesktopSearchBar(),
 						m(OfflineIndicatorDesktop, attrs.offlineIndicatorModel.getCurrentAttrs()),
@@ -124,7 +128,7 @@ export class Header implements Component<HeaderAttrs> {
 
 	private renderButtons(attrs: HeaderAttrs): Children {
 		// We assign click listeners to buttons to move focus correctly if the view is already open
-		return logins.isInternalUserLoggedIn()
+		return this.logins.isInternalUserLoggedIn()
 			? [
 					m(NavButton, {
 						label: "emails_label",
@@ -134,7 +138,7 @@ export class Header implements Component<HeaderAttrs> {
 						colors: NavButtonColor.Header,
 						click: () => m.route.get() === navButtonRoutes.mailUrl && this.focusMain(attrs),
 					}),
-					!logins.isEnabled(FeatureType.DisableContacts)
+					!this.logins.isEnabled(FeatureType.DisableContacts)
 						? m(NavButton, {
 								label: "contacts_label",
 								icon: () => BootIcons.Contacts,
@@ -144,7 +148,7 @@ export class Header implements Component<HeaderAttrs> {
 								click: () => m.route.get() === navButtonRoutes.contactsUrl && this.focusMain(attrs),
 						  })
 						: null,
-					!logins.isEnabled(FeatureType.DisableCalendar)
+					!this.logins.isEnabled(FeatureType.DisableCalendar)
 						? m(NavButton, {
 								label: "calendar_label",
 								icon: () => BootIcons.Calendar,
@@ -165,7 +169,7 @@ export class Header implements Component<HeaderAttrs> {
 			locator != null &&
 			!locator.search.indexState().initializing &&
 			styles.isUsingBottomNavigation() &&
-			logins.isInternalUserLoggedIn() &&
+			this.logins.isInternalUserLoggedIn() &&
 			route.startsWith(SEARCH_PREFIX)
 		)
 	}
@@ -174,25 +178,25 @@ export class Header implements Component<HeaderAttrs> {
 		return [
 			{
 				key: Keys.M,
-				enabled: () => logins.isUserLoggedIn(),
+				enabled: () => this.logins.isUserLoggedIn(),
 				exec: (key) => m.route.set(navButtonRoutes.mailUrl),
 				help: "mailView_action",
 			},
 			{
 				key: Keys.C,
-				enabled: () => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts),
+				enabled: () => this.logins.isInternalUserLoggedIn() && !this.logins.isEnabled(FeatureType.DisableContacts),
 				exec: (key) => m.route.set(navButtonRoutes.contactsUrl),
 				help: "contactView_action",
 			},
 			{
 				key: Keys.O,
-				enabled: () => logins.isInternalUserLoggedIn(),
+				enabled: () => this.logins.isInternalUserLoggedIn(),
 				exec: (key) => m.route.set(navButtonRoutes.calendarUrl),
 				help: "calendarView_action",
 			},
 			{
 				key: Keys.S,
-				enabled: () => logins.isInternalUserLoggedIn(),
+				enabled: () => this.logins.isInternalUserLoggedIn(),
 				exec: (key) => m.route.set(navButtonRoutes.settingsUrl),
 				help: "settingsView_action",
 			},
@@ -200,7 +204,7 @@ export class Header implements Component<HeaderAttrs> {
 				key: Keys.L,
 				shift: true,
 				ctrl: true,
-				enabled: () => logins.isUserLoggedIn(),
+				enabled: () => this.logins.isUserLoggedIn(),
 				exec: (key) => m.route.set(LogoutUrl),
 				help: "logout_label",
 			},
@@ -239,7 +243,7 @@ export class Header implements Component<HeaderAttrs> {
 	}
 
 	private renderRightContent(attrs: HeaderAttrs): Children {
-		return isNotTemporary() ? (styles.isUsingBottomNavigation() ? this.renderHeaderAction(attrs) : this.renderFullNavigation(attrs)) : null
+		return isNotTemporary(this.logins) ? (styles.isUsingBottomNavigation() ? this.renderHeaderAction(attrs) : this.renderFullNavigation(attrs)) : null
 	}
 
 	private renderMobileSearchBar(): Children {
@@ -358,7 +362,7 @@ export class Header implements Component<HeaderAttrs> {
 			locator != null &&
 			!locator.search.indexState().initializing &&
 			styles.isDesktopLayout() &&
-			logins.isInternalUserLoggedIn() &&
+			this.logins.isInternalUserLoggedIn() &&
 			(route.startsWith(SEARCH_PREFIX) ||
 				route.startsWith(MAIL_PREFIX) ||
 				route.startsWith(CONTACTS_PREFIX) ||
@@ -373,8 +377,6 @@ export class Header implements Component<HeaderAttrs> {
  * Useful to decide whether to display several elements.
  * @return true if the user is logged in with a non-temporary session, false otherwise
  */
-function isNotTemporary(): boolean {
+function isNotTemporary(logins: LoginController): boolean {
 	return logins.isUserLoggedIn() && logins.getUserController().sessionType !== SessionType.Temporary
 }
-
-export const header: Header = new Header()

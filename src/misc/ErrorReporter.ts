@@ -1,4 +1,3 @@
-import { logins } from "../api/main/LoginController"
 import stream from "mithril/stream"
 import { TextField, TextFieldType } from "../gui/base/TextField.js"
 import { lang } from "./LanguageViewModel"
@@ -26,7 +25,7 @@ type FeedbackContent = {
 }
 
 export async function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ ignored: boolean }> {
-	const loggedIn = logins.isUserLoggedIn()
+	const loggedIn = locator.logins.isUserLoggedIn()
 	let ignoreChecked = false
 	let sendLogs = true
 	const logs = await getLogAttachments()
@@ -227,6 +226,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 	const mailAddress = "reports@tutao.de"
 	// We want to treat what we have as text, not as HTML so we escape it. This is an easy way to do it.
 	const escapedBody = new Option(content.message).innerHTML
+	const logins = locator.logins
 	const draft = await locator.mailFacade.createDraft({
 		subject: content.subject,
 		bodyText: escapedBody.split("\n").join("<br>"),
@@ -286,7 +286,7 @@ export function clientInfoString(
 	type: string
 } {
 	const type = loggedIn
-		? neverNull(typedKeys(AccountType).find((typeName) => AccountType[typeName] === logins.getUserController().user.accountType))
+		? neverNull(typedKeys(AccountType).find((typeName) => AccountType[typeName] === locator.logins.getUserController().user.accountType))
 		: "UNKNOWN"
 
 	const client = (() => {

@@ -28,7 +28,6 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { CompletenessIndicator } from "../../gui/CompletenessIndicator.js"
 import { TimePicker } from "../../gui/TimePicker"
 import { getSharedGroupName } from "../../sharing/GroupUtils"
-import { logins } from "../../api/main/LoginController"
 import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
 import { askIfShouldSendCalendarUpdatesToAttendees } from "./CalendarGuiUtils"
 import type { CalendarInfo } from "../model/CalendarModel"
@@ -112,8 +111,8 @@ export async function showCalendarEventDialog(
 		responseMail ?? null,
 		false,
 	)
-	const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
-	const groupColors = logins.getUserController().userSettingsGroupRoot.groupSettings.reduce((acc, gc) => {
+	const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(locator.logins.getUserController().userSettingsGroupRoot)
+	const groupColors = locator.logins.getUserController().userSettingsGroupRoot.groupSettings.reduce((acc, gc) => {
 		acc.set(gc.group, gc.color)
 		return acc
 	}, new Map())

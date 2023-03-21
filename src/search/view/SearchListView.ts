@@ -12,7 +12,6 @@ import { locator } from "../../api/main/MainLocator"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer, downcast, groupBy, isSameTypeRef, neverNull, noOp, ofClass, TypeRef } from "@tutao/tutanota-utils"
 import type { OperationType } from "../../api/common/TutanotaConstants"
-import { logins } from "../../api/main/LoginController"
 import { hasMoreResults } from "../model/SearchModel"
 import { Dialog } from "../../gui/base/Dialog"
 import { assertIsEntity2, elementIdPart, GENERATED_MAX_ID, isSameId, listIdPart, sortCompareByReverseId } from "../../api/common/utils/EntityUtils"
@@ -209,7 +208,7 @@ export class SearchListView implements Component {
 			emptyMessage:
 				lang.get("searchNoResults_msg") +
 				"\n" +
-				(logins.getUserController().isFreeAccount() ? lang.get("goPremium_msg") : lang.get("switchSearchInMenu_label")),
+				(locator.logins.getUserController().isFreeAccount() ? lang.get("goPremium_msg") : lang.get("switchSearchInMenu_label")),
 		})
 	}
 

@@ -37,7 +37,7 @@ export class ReferralLinkViewer implements Component<ReferralLinkAttrs> {
 			value: referralLink,
 			injectionsRight: () => this.renderButtons(referralLink),
 			helpLabel: () =>
-				ifAllowedTutanotaLinks(InfoLink.ReferralLink, (link) => [
+				ifAllowedTutanotaLinks(locator.logins, InfoLink.ReferralLink, (link) => [
 					m("span", lang.get("moreInfo_msg") + " "),
 					m("span.text-break", [m(`a[href=${link}][target=_blank]`, link)]),
 				]),

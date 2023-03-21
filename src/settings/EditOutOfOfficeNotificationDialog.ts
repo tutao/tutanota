@@ -2,22 +2,18 @@ import m, { Children, Component, Vnode } from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { getStartOfTheWeekOffsetForUser } from "../calendar/date/CalendarUtils"
 import type { OutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
-import type { TextFieldAttrs } from "../gui/base/TextField.js"
 import { TextField } from "../gui/base/TextField.js"
 import { lang } from "../misc/LanguageViewModel"
 import { Keys, OUT_OF_OFFICE_SUBJECT_PREFIX } from "../api/common/TutanotaConstants"
-import type { CheckboxAttrs } from "../gui/base/Checkbox.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { px } from "../gui/size"
 import { ButtonType } from "../gui/base/Button.js"
 import { getDefaultNotificationLabel } from "../misc/OutOfOfficeNotificationUtils"
 import { showBusinessFeatureRequiredDialog } from "../misc/SubscriptionDialogs"
-import type { DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { showUserError } from "../misc/ErrorHandlerImpl"
 import { BusinessFeatureRequiredError } from "../api/main/BusinessFeatureRequiredError"
 import { locator } from "../api/main/MainLocator"
-import { logins } from "../api/main/LoginController"
 import { EditOutOfOfficeNotificationDialogModel, RecipientMessageType } from "./EditOutOfOfficeNotificationDialogModel"
 import { HtmlEditor } from "../gui/editor/HtmlEditor"
 import { UserError } from "../api/main/UserError"
@@ -27,7 +23,7 @@ import { ofClass } from "@tutao/tutanota-utils"
 import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 
 export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: OutOfOfficeNotification | null) {
-	const dialogModel = new EditOutOfOfficeNotificationDialogModel(outOfOfficeNotification, locator.entityClient, logins.getUserController(), lang)
+	const dialogModel = new EditOutOfOfficeNotificationDialogModel(outOfOfficeNotification, locator.entityClient, locator.logins.getUserController(), lang)
 	const organizationMessageEditor = new HtmlEditor("message_label")
 		.setMinHeight(100)
 		.showBorders()
@@ -96,7 +92,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 		const { model, defaultMessageEditor, organizationMessageEditor } = vnode.attrs
 		const defaultEnabled = model.isDefaultMessageEnabled()
 		const organizationEnabled = model.isOrganizationMessageEnabled()
-		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
+		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(locator.logins.getUserController().userSettingsGroupRoot)
 		return [
 			this.renderEnabled(model),
 			this.renderRecipients(model),

@@ -17,7 +17,6 @@ import type { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
 import { getCapabilityText, getMemberCabability, getSharedGroupName, hasCapabilityOnGroup, isShareableGroupType, isSharedGroupOwner } from "../GroupUtils"
 import { sendShareNotificationEmail } from "../GroupSharingUtils"
 import { GroupSharingModel } from "../model/GroupSharingModel"
-import { logins } from "../../api/main/LoginController"
 import { locator } from "../../api/main/MainLocator"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
@@ -39,7 +38,7 @@ export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNam
 			groupInfo,
 			locator.eventController,
 			locator.entityClient,
-			logins,
+			locator.logins,
 			locator.mailFacade,
 			locator.shareFacade,
 			locator.groupManagementFacade,
@@ -79,7 +78,7 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
 				lines: this._renderMemberInfos(model, texts, groupName).concat(this._renderGroupInvitations(model, texts, groupName)),
 				showActionButtonColumn: true,
-				addButtonAttrs: hasCapabilityOnGroup(logins.getUserController().user, model.group, ShareCapability.Invite)
+				addButtonAttrs: hasCapabilityOnGroup(locator.logins.getUserController().user, model.group, ShareCapability.Invite)
 					? {
 							title: "addParticipant_action",
 							click: () => showAddParticipantDialog(model, texts),
@@ -239,7 +238,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 					await sendShareNotificationEmail(model.info, invitedMailAddresses, texts)
 				} catch (e) {
 					if (e instanceof PreconditionFailedError) {
-						if (logins.getUserController().isGlobalAdmin()) {
+						if (locator.logins.getUserController().isGlobalAdmin()) {
 							if (await Dialog.confirm(() => texts.sharingNotOrderedAdmin)) {
 								const { showSharingBuyDialog } = await import("../../subscription/BuyDialog")
 								showSharingBuyDialog(true)

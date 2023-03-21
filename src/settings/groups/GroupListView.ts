@@ -8,14 +8,12 @@ import type { GroupInfo, GroupMembership } from "../../api/entities/sys/TypeRefs
 import { CustomerTypeRef, GroupInfoTypeRef, GroupMemberTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import type { SettingsView, UpdatableSettingsViewer } from "../SettingsView.js"
-import { logins } from "../../api/main/LoginController.js"
 import { GroupDetailsView } from "./GroupDetailsView.js"
 import * as AddGroupDialog from "./AddGroupDialog.js"
 import { Icon } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
-import { header } from "../../gui/Header.js"
 import { isAdministratedGroup } from "../../search/model/SearchUtils.js"
 import type { EntityUpdateData } from "../../api/main/EventController.js"
 import { isUpdateForTypeRef } from "../../api/main/EventController.js"
@@ -44,11 +42,11 @@ export class GroupListView implements UpdatableSettingsViewer {
 	constructor(settingsView: SettingsView) {
 		this._settingsView = settingsView
 		this._listId = new LazyLoaded(() => {
-			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
+			return locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer)).then((customer) => {
 				return customer.teamGroups
 			})
 		})
-		this._localAdminGroupMemberships = logins.getUserController().getLocalAdminGroupMemberships()
+		this._localAdminGroupMemberships = locator.logins.getUserController().getLocalAdminGroupMemberships()
 		this.list = new List({
 			rowHeight: size.list_row_height,
 			fetch: async (startId, count) => {
@@ -56,10 +54,10 @@ export class GroupListView implements UpdatableSettingsViewer {
 					const listId = await this._listId.getAsync()
 					const allGroupInfos = await locator.entityClient.loadAll(GroupInfoTypeRef, listId)
 					let items: GroupInfo[]
-					if (logins.getUserController().isGlobalAdmin()) {
+					if (locator.logins.getUserController().isGlobalAdmin()) {
 						items = allGroupInfos
 					} else {
-						let localAdminGroupIds = logins
+						let localAdminGroupIds = locator.logins
 							.getUserController()
 							.getLocalAdminGroupMemberships()
 							.map((gm) => gm.group)
@@ -114,7 +112,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 		}
 
 		this.list.loadInitial()
-		const searchBar = neverNull(header.searchBar)
+		const searchBar = neverNull(locator.header.searchBar)
 
 		this._listId.getAsync().then((listId) => {
 			searchBar.setGroupInfoRestrictionListId(listId)
@@ -152,7 +150,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 	}
 
 	addButtonClicked() {
-		if (logins.getUserController().isFreeAccount()) {
+		if (locator.logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog(false)
 		} else {
 			AddGroupDialog.show()
@@ -169,10 +167,10 @@ export class GroupListView implements UpdatableSettingsViewer {
 		const { instanceListId, instanceId, operation } = update
 
 		if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this._listId.getSync() === instanceListId) {
-			if (!logins.getUserController().isGlobalAdmin()) {
+			if (!locator.logins.getUserController().isGlobalAdmin()) {
 				let listEntity = this.list.getEntity(instanceId)
 				return locator.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then((gi) => {
-					let localAdminGroupIds = logins
+					let localAdminGroupIds = locator.logins
 						.getUserController()
 						.getLocalAdminGroupMemberships()
 						.map((gm) => gm.group)
@@ -192,10 +190,10 @@ export class GroupListView implements UpdatableSettingsViewer {
 			} else {
 				return this.list.entityEventReceived(instanceId, operation)
 			}
-		} else if (!logins.getUserController().isGlobalAdmin() && isUpdateForTypeRef(GroupMemberTypeRef, update)) {
+		} else if (!locator.logins.getUserController().isGlobalAdmin() && isUpdateForTypeRef(GroupMemberTypeRef, update)) {
 			let oldLocalAdminGroupMembership = this._localAdminGroupMemberships.find((gm) => gm.groupMember[1] === instanceId)
 
-			let newLocalAdminGroupMembership = logins
+			let newLocalAdminGroupMembership = locator.logins
 				.getUserController()
 				.getLocalAdminGroupMemberships()
 				.find((gm) => gm.groupMember[1] === instanceId)
@@ -208,7 +206,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 			}
 
 			return promise.then(() => {
-				this._localAdminGroupMemberships = logins.getUserController().getLocalAdminGroupMemberships()
+				this._localAdminGroupMemberships = locator.logins.getUserController().getLocalAdminGroupMemberships()
 			})
 		} else {
 			return Promise.resolve()

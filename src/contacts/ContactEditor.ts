@@ -17,7 +17,6 @@ import {
 import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../api/common/Env"
 import { windowFacade } from "../misc/WindowFacade"
-import { logins } from "../api/main/LoginController"
 import { LockedError, NotFoundError, PayloadTooLargeError } from "../api/common/error/RestError"
 import type { ButtonAttrs } from "../gui/base/Button.js"
 import { ButtonType } from "../gui/base/Button.js"
@@ -42,6 +41,7 @@ import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { ToggleButton } from "../gui/base/ToggleButton.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
+import { locator } from "../api/main/MainLocator.js"
 
 assertMainOrNode()
 
@@ -222,9 +222,9 @@ export class ContactEditor {
 	private async saveNewContact(): Promise<void> {
 		this.contact._area = "0" // legacy
 		this.contact.autoTransmitPassword = "" // legacy
-		this.contact._owner = logins.getUserController().user._id
+		this.contact._owner = locator.logins.getUserController().user._id
 		this.contact._ownerGroup = assertNotNull(
-			logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact),
+			locator.logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact),
 			"did not find contact group membership",
 		).group
 		const contactId = await this.entityClient.setup(this.listId, this.contact)

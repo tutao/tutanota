@@ -1,7 +1,6 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { lang } from "../misc/LanguageViewModel"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
-import { logins } from "../api/main/LoginController"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
@@ -71,8 +70,8 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 	private close(data: UpgradeSubscriptionData, dom: HTMLElement) {
 		let promise = Promise.resolve()
 
-		if (data.newAccountData && logins.isUserLoggedIn()) {
-			promise = logins.logout(false)
+		if (data.newAccountData && locator.logins.isUserLoggedIn()) {
+			promise = locator.logins.logout(false)
 		}
 
 		promise.then(() => {

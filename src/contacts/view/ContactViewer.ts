@@ -12,13 +12,11 @@ import { getContactSocialType, Keys } from "../../api/common/TutanotaConstants"
 import type { Contact, ContactAddress, ContactPhoneNumber, ContactSocialId } from "../../api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../api/main/MainLocator"
 import { newMailEditorFromTemplate } from "../../mail/editor/MailEditor"
-import { logins } from "../../api/main/LoginController"
 import { downcast, NBSP, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ActionBar } from "../../gui/base/ActionBar"
 import { getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel } from "./ContactGuiUtils"
 import { appendEmailSignature } from "../../mail/signature/Signature"
 import { formatBirthdayOfContact, getSocialUrl } from "../model/ContactUtils"
-import { ButtonAttrs, Button } from "../../gui/base/Button.js"
 import { assertMainOrNode } from "../../api/common/Env"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
@@ -233,7 +231,7 @@ export class ContactViewer implements ClassComponent {
 					],
 				},
 				"",
-				appendEmailSignature("", logins.getUserController().props),
+				appendEmailSignature("", locator.logins.getUserController().props),
 			).then((editor) => editor.show())
 		})
 	}

@@ -9,7 +9,6 @@ import Stream from "mithril/stream"
 import type { InvoiceData, PaymentData } from "../api/common/TutanotaConstants"
 import { getClientType, Keys, PaymentDataResultType, PaymentMethodType, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { logins } from "../api/main/LoginController"
 import type { AccountingInfo, Braintree3ds2Request } from "../api/entities/sys/TypeRefs.js"
 import { AccountingInfoTypeRef, CustomerInfoTypeRef, CustomerTypeRef, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { assertNotNull, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
@@ -78,15 +77,15 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 
 		let login: Promise<Credentials | null> = Promise.resolve(null)
 
-		if (!logins.isUserLoggedIn()) {
-			login = logins.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, SessionType.Temporary)
+		if (!locator.logins.isUserLoggedIn()) {
+			login = locator.logins.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, SessionType.Temporary)
 		}
 
 		login
 			.then(() => {
 				if (!data.accountingInfo || !data.customer) {
 					return locator.entityClient
-						.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+						.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 						.then((customer) => {
 							data.customer = customer
 							return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
@@ -102,8 +101,8 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 				this._invoiceDataInput = new InvoiceDataInput(data.options.businessUse(), data.invoiceData, InvoiceDataInputLocation.InWizard)
 				let payPalRequestUrl = getLazyLoadedPayPalUrl()
 
-				if (logins.isUserLoggedIn()) {
-					logins.waitForFullLogin().then(() => payPalRequestUrl.getAsync())
+				if (locator.logins.isUserLoggedIn()) {
+					locator.logins.waitForFullLogin().then(() => payPalRequestUrl.getAsync())
 				}
 
 				this._paymentMethodInput = new PaymentMethodInput(

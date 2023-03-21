@@ -12,7 +12,6 @@ import { size } from "../../gui/size"
 import { styles } from "../../gui/styles"
 import { Icon } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
-import { logins } from "../../api/main/LoginController"
 import type { ButtonAttrs } from "../../gui/base/Button.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { Dialog } from "../../gui/base/Dialog"
@@ -99,7 +98,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			className: className,
 			swipe: {
 				renderLeftSpacer: () =>
-					!logins.isInternalUserLoggedIn()
+					!locator.logins.isInternalUserLoggedIn()
 						? []
 						: this.showingDraft
 						? [
@@ -129,7 +128,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 				],
 				swipeLeft: (listElement: Mail) => promptAndDeleteMails(locator.mailModel, [listElement], () => this.list.selectNone()),
 				swipeRight: (listElement: Mail) => {
-					if (!logins.isInternalUserLoggedIn()) {
+					if (!locator.logins.isInternalUserLoggedIn()) {
 						return Promise.resolve(false) // externals don't have an archive folder
 					} else if (this.showingDraft) {
 						// just cancel selection if in drafts
@@ -496,7 +495,8 @@ export class MailListView implements Component<MailListViewAttrs> {
 			// applies the email is moved out of inbox and we don't return it here.
 			if (mailboxDetail && isInboxList(mailboxDetail, this.listId)) {
 				const mailsToKeepInInbox = await promiseFilter(items, async (mail) => {
-					const wasMatched = (await findAndApplyMatchingRule(locator.mailFacade, locator.entityClient, mailboxDetail, mail, true)) != null
+					const wasMatched =
+						(await findAndApplyMatchingRule(locator.mailFacade, locator.entityClient, locator.logins, mailboxDetail, mail, true)) != null
 					return !wasMatched
 				})
 				return { items: mailsToKeepInInbox, complete: items.length < count }

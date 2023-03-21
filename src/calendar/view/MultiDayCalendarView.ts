@@ -28,7 +28,6 @@ import { EventTextTimeOption, WeekStart } from "../../api/common/TutanotaConstan
 import { lang } from "../../misc/LanguageViewModel"
 import { PageView } from "../../gui/base/PageView"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
-import { logins } from "../../api/main/LoginController"
 import type { GroupColors } from "./CalendarView"
 import type { EventDragHandlerCallbacks, MousePos } from "./EventDragHandler"
 import { EventDragHandler } from "./EventDragHandler"
@@ -41,6 +40,7 @@ import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarVi
 import { CalendarViewType } from "./CalendarViewModel"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
+import { locator } from "../../api/main/MainLocator.js"
 
 export type Attrs = {
 	selectedDate: Date
@@ -563,7 +563,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 			color: getEventColor(event, groupColors),
 			onEventClicked,
 			showTime,
-			user: logins.getUserController().user,
+			user: locator.logins.getUserController().user,
 			fadeIn,
 			opacity,
 			enablePointerEvents,

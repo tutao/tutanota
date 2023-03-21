@@ -24,9 +24,8 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		subject: string,
 		mailToUrlString: string,
 	): Promise<void> {
-		const { fileApp, mailModel } = await WebCommonNativeFacade.getInitializedLocator()
+		const { fileApp, mailModel, logins } = await WebCommonNativeFacade.getInitializedLocator()
 		const { newMailEditorFromTemplate, newMailtoUrlMailEditor } = await import("../../mail/editor/MailEditor.js")
-		const { logins } = await import("../../api/main/LoginController.js")
 		const signatureModule = await import("../../mail/signature/Signature")
 		await logins.waitForPartialLogin()
 		const mailboxDetails = await mailModel.getUserMailboxDetails()

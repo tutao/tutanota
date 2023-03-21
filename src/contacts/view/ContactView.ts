@@ -2,7 +2,7 @@ import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { ContactViewer } from "./ContactViewer"
-import { BaseHeaderAttrs, header } from "../../gui/Header.js"
+import { BaseHeaderAttrs } from "../../gui/Header.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { ContactEditor } from "../ContactEditor"
 import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
@@ -16,7 +16,6 @@ import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
 import { Icons } from "../../gui/base/icons/Icons"
 import { Dialog } from "../../gui/base/Dialog"
-import { logins } from "../../api/main/LoginController"
 import { vCardFileToVCards, vCardListToContacts } from "../VCardImporter"
 import { LockedError, NotFoundError } from "../../api/common/error/RestError"
 import { MultiContactViewer } from "./MultiContactViewer"
@@ -89,7 +88,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							m(
 								SidebarSection,
 								{
-									name: () => getGroupInfoDisplayName(logins.getUserController().userGroupInfo),
+									name: () => getGroupInfoDisplayName(locator.logins.getUserController().userGroupInfo),
 								},
 								this.createContactFoldersExpanderChildren(),
 							),
@@ -158,7 +157,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		return m(
 			"#contact.main-view",
 			m(this.viewSlider, {
-				header: m(header, {
+				header: m(locator.header, {
 					headerView: this.renderHeaderView(),
 					rightView: this.renderHeaderRightView(),
 					viewSlider: this.viewSlider,
@@ -336,7 +335,9 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 						"pleaseWait_msg",
 						Promise.resolve().then(() => {
 							const flatvCards = flat(vCardsList)
-							const contactMembership = assertNotNull(logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact))
+							const contactMembership = assertNotNull(
+								locator.logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact),
+							)
 							const contactList = vCardListToContacts(flatvCards, contactMembership.group)
 							numberOfContacts = contactList.length
 							return locator.contactModel.contactListId().then((contactListId) =>

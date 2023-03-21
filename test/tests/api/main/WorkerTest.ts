@@ -4,7 +4,6 @@ import { CryptoError } from "../../../../src/api/common/error/CryptoError.js"
 import { NotAuthenticatedError } from "../../../../src/api/common/error/RestError.js"
 import { Request } from "../../../../src/api/common/MessageDispatcher.js"
 import { ProgrammingError } from "../../../../src/api/common/error/ProgrammingError.js"
-import { logins } from "../../../../src/api/main/LoginController.js"
 import { locator } from "../../../../src/api/main/MainLocator.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { SessionType } from "../../../../src/api/common/SessionType.js"
@@ -31,7 +30,7 @@ o.spec(
 		})
 		o("login", async function () {
 			o.timeout(5000)
-			await logins.createSession("map-free@tutanota.de", "map", SessionType.Login)
+			await locator.logins.createSession("map-free@tutanota.de", "map", SessionType.Login)
 		})
 		o("programming error handling", async function () {
 			const e = await assertThrows(ProgrammingError, () =>

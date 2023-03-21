@@ -13,8 +13,7 @@ import { ofClass } from "@tutao/tutanota-utils"
  *The admin does not have to enter the old password in addition to the new password (twice). The password strength is not enforced.
  */
 export async function showChangeUserPasswordAsAdminDialog(user: User) {
-	const { logins } = await import("../../api/main/LoginController.js")
-	const model = new PasswordModel(logins, { checkOldPassword: false, enforceStrength: false, hideConfirmation: true })
+	const model = new PasswordModel(locator.logins, { checkOldPassword: false, enforceStrength: false, hideConfirmation: true })
 
 	const changeUserPasswordAsAdminOkAction = (dialog: Dialog) => {
 		showProgressDialog("pleaseWait_msg", locator.userManagementFacade.changeUserPassword(user, model.getNewPassword())).then(
@@ -41,9 +40,7 @@ export async function showChangeUserPasswordAsAdminDialog(user: User) {
  * The user must enter the old password in addition to the new password (twice). The password strength is enforced.
  */
 export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
-	const { logins } = await import("../../api/main/LoginController.js")
-
-	const model = new PasswordModel(logins, { checkOldPassword: true, enforceStrength: true })
+	const model = new PasswordModel(locator.logins, { checkOldPassword: true, enforceStrength: true })
 
 	const changeOwnPasswordOkAction = (dialog: Dialog) => {
 		const error = model.getErrorMessageId()
@@ -53,7 +50,7 @@ export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
 		} else {
 			showProgressDialog("pleaseWait_msg", locator.loginFacade.changePassword(model.getOldPassword(), model.getNewPassword()))
 				.then(() => {
-					locator.credentialsProvider.deleteByUserId(getEtId(logins.getUserController().user))
+					locator.credentialsProvider.deleteByUserId(getEtId(locator.logins.getUserController().user))
 					Dialog.message("pwChangeValid_msg")
 					dialog.close()
 				})

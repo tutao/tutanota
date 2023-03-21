@@ -14,7 +14,6 @@ import { Dialog } from "../gui/base/Dialog"
 import { lang } from "./LanguageViewModel"
 import { assertMainOrNode, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
 import { neverNull, noOp } from "@tutao/tutanota-utils"
-import { logins } from "../api/main/LoginController"
 import { OutOfSyncError } from "../api/common/error/OutOfSyncError"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { IndexingNotSupportedError } from "../api/common/error/IndexingNotSupportedError"
@@ -46,6 +45,8 @@ let showingImportError = false
 const ignoredMessages = ["webkitExitFullScreen", "googletag", "avast_submit"]
 
 export async function handleUncaughtErrorImpl(e: Error) {
+	const { logins, interWindowEventSender, sqlCipherFacade, search } = locator
+
 	if (isLoggingOut) {
 		// ignore all errors while logging out
 		return
@@ -90,8 +91,8 @@ export async function handleUncaughtErrorImpl(e: Error) {
 
 		const { userId } = logins.getUserController()
 		if (isDesktop()) {
-			await locator.interWindowEventSender?.localUserDataInvalidated(userId)
-			await locator.sqlCipherFacade?.deleteDb(userId)
+			await interWindowEventSender?.localUserDataInvalidated(userId)
+			await sqlCipherFacade?.deleteDb(userId)
 		}
 		await logins.logout(false)
 		await windowFacade.reload({ noAutoLogin: true })
@@ -119,7 +120,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		}
 	} else if (e instanceof IndexingNotSupportedError) {
 		console.log("Indexing not supported", e)
-		locator.search.indexingSupported = false
+		search.indexingSupported = false
 	} else if (e instanceof QuotaExceededError) {
 		if (!shownQuotaError) {
 			shownQuotaError = true
@@ -174,13 +175,14 @@ function logoutIfNoPasswordPrompt() {
 
 export async function reloginForExpiredSession() {
 	if (!loginDialogActive) {
+		const { logins, loginFacade, secondFactorHandler, credentialsProvider, sqlCipherFacade } = locator
 		// Make sure that partial login part is complete before we will try to make a new session.
 		// Otherwise we run into a race condition where login failure arrives before we initialize userController.
 		await logins.waitForPartialLogin()
 		console.log("RELOGIN", logins.isUserLoggedIn())
 		const sessionType = logins.getUserController().sessionType
 		const userId = logins.getUserController().user._id
-		locator.loginFacade.resetSession()
+		loginFacade.resetSession()
 		loginDialogActive = true
 
 		const dialog = Dialog.showRequestPasswordDialog({
@@ -203,14 +205,14 @@ export async function reloginForExpiredSession() {
 					}
 				} finally {
 					// Once login succeeds we need to manually close the dialog
-					locator.secondFactorHandler.closeWaitingForSecondFactorDialog()
+					secondFactorHandler.closeWaitingForSecondFactorDialog()
 				}
 				// Fetch old credentials to preserve database key if it's there
-				const oldCredentials = await locator.credentialsProvider.getCredentialsByUserId(userId)
-				await locator.sqlCipherFacade?.closeDb()
-				await locator.credentialsProvider.deleteByUserId(userId, { deleteOfflineDb: false })
+				const oldCredentials = await credentialsProvider.getCredentialsByUserId(userId)
+				await sqlCipherFacade?.closeDb()
+				await credentialsProvider.deleteByUserId(userId, { deleteOfflineDb: false })
 				if (sessionType === SessionType.Persistent) {
-					await locator.credentialsProvider.store({ credentials: credentials, databaseKey: oldCredentials?.databaseKey })
+					await credentialsProvider.store({ credentials: credentials, databaseKey: oldCredentials?.databaseKey })
 				}
 				loginDialogActive = false
 				dialog.close()

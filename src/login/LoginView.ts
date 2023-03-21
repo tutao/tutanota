@@ -10,7 +10,7 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { windowFacade } from "../misc/WindowFacade"
 import { DeviceType } from "../misc/ClientConstants"
 import { Button, ButtonType } from "../gui/base/Button.js"
-import { BaseHeaderAttrs, header } from "../gui/Header.js"
+import { BaseHeaderAttrs } from "../gui/Header.js"
 import { AriaLandmarks, landmarkAttrs, liveDataAttrs } from "../gui/AriaUtils"
 import { DisplayMode, LoginState, LoginViewModel } from "./LoginViewModel"
 import { LoginForm } from "./LoginForm"
@@ -23,6 +23,7 @@ import { IconButton } from "../gui/base/IconButton.js"
 import { showLogsDialog } from "./LoginLogDialog.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
+import { locator } from "../api/main/MainLocator.js"
 
 assertMainOrNode()
 
@@ -72,7 +73,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				},
 			},
 			[
-				m(header, {
+				m(locator.header, {
 					viewSlider: null,
 					...attrs.header,
 				}),

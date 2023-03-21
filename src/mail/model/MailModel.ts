@@ -349,7 +349,14 @@ export class MailModel {
 							// We only apply rules on server if we are the leader in case of incoming messages
 							return (
 								mailboxDetail &&
-								findAndApplyMatchingRule(this.mailFacade, this.entityClient, mailboxDetail, mail, this.connectivityModel.isLeader())
+								findAndApplyMatchingRule(
+									this.mailFacade,
+									this.entityClient,
+									this.logins,
+									mailboxDetail,
+									mail,
+									this.connectivityModel.isLeader(),
+								)
 							)
 						})
 						.then((newId) => this._showNotification(newId || mailId))

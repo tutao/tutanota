@@ -4,7 +4,6 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { neverNull } from "@tutao/tutanota-utils"
 import { PreconditionFailedError } from "../../api/common/error/RestError"
 import { Icons } from "../../gui/base/icons/Icons"
-import { logins } from "../../api/main/LoginController"
 import { showNotAvailableForFreeDialog } from "../../misc/SubscriptionDialogs"
 import { showWhitelabelBuyDialog } from "../../subscription/BuyDialog"
 import * as SetCustomDomainCertificateDialog from "../SetDomainCertificateDialog"
@@ -79,7 +78,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 	}
 
 	private edit(isWhitelabelFeatureEnabled: boolean, customerInfo: CustomerInfo) {
-		if (logins.getUserController().isFreeAccount()) {
+		if (locator.logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog(false)
 		} else {
 			const whitelabelFailedPromise: Promise<boolean> = isWhitelabelFeatureEnabled ? Promise.resolve(false) : showWhitelabelBuyDialog(true)

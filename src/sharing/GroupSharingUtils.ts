@@ -1,7 +1,6 @@
 import { getDefaultSender, getEnabledMailAddressesWithUser, getSenderNameForUser } from "../mail/model/MailUtils"
 import type { GroupInfo, ReceivedGroupInvitation } from "../api/entities/sys/TypeRefs.js"
 import { locator } from "../api/main/MainLocator"
-import { logins } from "../api/main/LoginController"
 import { MailMethod } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { GroupSharingTexts } from "./GroupGuiUtils"
@@ -10,8 +9,8 @@ import { PartialRecipient, Recipients } from "../api/common/recipients/Recipient
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<PartialRecipient>, texts: GroupSharingTexts) {
 	locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
-		const senderMailAddress = getDefaultSender(logins, mailboxDetails)
-		const userName = getSenderNameForUser(mailboxDetails, logins.getUserController())
+		const senderMailAddress = getDefaultSender(locator.logins, mailboxDetails)
+		const userName = getSenderNameForUser(mailboxDetails, locator.logins.getUserController())
 		// Sending notifications as bcc so that invited people don't see each other
 		const bcc = recipients.map(({ name, address }) => ({
 			name,
@@ -81,9 +80,9 @@ function _sendNotificationEmail(recipients: Recipients, subject: string, body: s
 			usePlaceholderForInlineImages: false,
 		}).html
 		locator.mailModel.getUserMailboxDetails().then(async (mailboxDetails) => {
-			const sender = getEnabledMailAddressesWithUser(mailboxDetails, logins.getUserController().userGroupInfo).includes(senderMailAddress)
+			const sender = getEnabledMailAddressesWithUser(mailboxDetails, locator.logins.getUserController().userGroupInfo).includes(senderMailAddress)
 				? senderMailAddress
-				: getDefaultSender(logins, mailboxDetails)
+				: getDefaultSender(locator.logins, mailboxDetails)
 
 			const confirm = () => Promise.resolve(true)
 

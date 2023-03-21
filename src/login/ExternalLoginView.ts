@@ -11,10 +11,9 @@ import { progressIcon } from "../gui/base/Icon"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { Autocomplete, TextField, TextFieldType as TextFieldType } from "../gui/base/TextField.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
-import { logins } from "../api/main/LoginController"
 import { MessageBox } from "../gui/base/MessageBox.js"
 import { renderInfoLinks } from "./LoginView"
-import { BaseHeaderAttrs, header } from "../gui/Header.js"
+import { BaseHeaderAttrs } from "../gui/Header.js"
 import { GENERATED_MIN_ID } from "../api/common/utils/EntityUtils"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../misc/LoginUtils"
 import { locator } from "../api/main/MainLocator"
@@ -59,7 +58,7 @@ export class ExternalLoginViewModel {
 
 		const sessionType = persistentSession ? SessionType.Persistent : SessionType.Login
 		const { userId, salt } = this.urlData
-		const newCredentials = await logins.createExternalSession(userId, password, salt, clientIdentifier, sessionType)
+		const newCredentials = await locator.logins.createExternalSession(userId, password, salt, clientIdentifier, sessionType)
 
 		this.password = ""
 
@@ -72,7 +71,7 @@ export class ExternalLoginViewModel {
 
 		if (storedCredentials) {
 			// delete persistent session if a new session is created
-			await logins.deleteOldSession(storedCredentials.credentials)
+			await locator.logins.deleteOldSession(storedCredentials.credentials)
 
 			if (!persistentSession) {
 				await this.credentialsProvider.deleteByUserId(userId)
@@ -92,7 +91,7 @@ export class ExternalLoginViewModel {
 	}
 
 	private async resumeSession(credentials: Credentials): Promise<void> {
-		const result = await logins.resumeSession({ credentials, databaseKey: null }, this.urlData.salt, null)
+		const result = await locator.logins.resumeSession({ credentials, databaseKey: null }, this.urlData.salt, null)
 		if (result.type === "error") {
 			switch (result.reason) {
 				case ResumeSessionErrorReason.OfflineNotAvailableForFree:
@@ -197,7 +196,7 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 
 	view({ attrs }: Vnode<ExternalLoginViewAttrs>): Children {
 		return m(".main-view", [
-			m(header, {
+			m(locator.header, {
 				viewSlider: null,
 				...attrs.header,
 			}),

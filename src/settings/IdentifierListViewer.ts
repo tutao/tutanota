@@ -5,15 +5,12 @@ import { lang } from "../misc/LanguageViewModel"
 import { assertNotNull, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import type { PushIdentifier, User } from "../api/entities/sys/TypeRefs.js"
 import { createPushIdentifier, PushIdentifierTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { logins } from "../api/main/LoginController"
 import { Icons } from "../gui/base/icons/Icons"
 import { PushServiceType } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { Dialog } from "../gui/base/Dialog"
 import { NotFoundError } from "../api/common/error/RestError"
 import { attachDropdown } from "../gui/base/Dropdown.js"
-import type { ButtonAttrs } from "../gui/base/Button.js"
-import { Button, ButtonType } from "../gui/base/Button.js"
 import type { ExpanderAttrs } from "../gui/base/Expander"
 import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
 import stream from "mithril/stream"
@@ -177,7 +174,7 @@ export class IdentifierListViewer {
 	}
 
 	_showAddNotificationEmailAddressDialog(user: User) {
-		if (logins.getUserController().isFreeAccount()) {
+		if (locator.logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog(true)
 		} else {
 			let mailAddress = ""

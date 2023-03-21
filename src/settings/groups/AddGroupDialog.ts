@@ -5,7 +5,6 @@ import type { ValidationResult } from "../SelectMailAddressForm.js"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { getGroupTypeDisplayName } from "./GroupDetailsView.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import { logins } from "../../api/main/LoginController.js"
 import type { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { showBuyDialog } from "../../subscription/BuyDialog.js"
@@ -104,10 +103,10 @@ export class AddGroupDialogViewModel {
 	}
 
 	getAvailableGroupTypes(): GroupType[] {
-		if (logins.isEnabled(FeatureType.WhitelabelChild)) {
+		if (locator.logins.isEnabled(FeatureType.WhitelabelChild)) {
 			return []
 		} else {
-			return logins.getUserController().isGlobalAdmin() ? [GroupType.Mail, GroupType.LocalAdmin] : [GroupType.Mail]
+			return locator.logins.getUserController().isGlobalAdmin() ? [GroupType.Mail, GroupType.LocalAdmin] : [GroupType.Mail]
 		}
 	}
 
@@ -121,7 +120,7 @@ export class AddGroupDialogViewModel {
 }
 
 export function show(): void {
-	getAvailableDomains(locator.entityClient, logins).then((availableDomains) => {
+	getAvailableDomains(locator.entityClient, locator.logins).then((availableDomains) => {
 		const viewModel = new AddGroupDialogViewModel(availableDomains, locator.groupManagementFacade)
 		if (viewModel.getAvailableGroupTypes().length === 0) return Dialog.message("selectionNotAvailable_msg")
 

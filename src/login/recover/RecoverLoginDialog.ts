@@ -15,7 +15,6 @@ import { CancelledError } from "../../api/common/error/CancelledError"
 import { locator } from "../../api/main/MainLocator"
 import { windowFacade } from "../../misc/WindowFacade"
 import { assertMainOrNode } from "../../api/common/Env"
-import { logins } from "../../api/main/LoginController.js"
 import { createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
@@ -25,7 +24,7 @@ export type ResetAction = "password" | "secondFactor"
 
 export function show(mailAddress?: string | null, resetAction?: ResetAction): Dialog {
 	const selectedAction: Stream<ResetAction | null> = stream(resetAction ?? null)
-	const passwordModel = new PasswordModel(logins, { checkOldPassword: false, enforceStrength: true })
+	const passwordModel = new PasswordModel(locator.logins, { checkOldPassword: false, enforceStrength: true })
 	const passwordValueStream = stream("")
 	const emailAddressStream = stream(mailAddress || "")
 	const resetPasswordAction: DropdownButtonAttrs = {

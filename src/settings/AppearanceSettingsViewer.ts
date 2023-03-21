@@ -6,7 +6,6 @@ import type { DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
 import { DropDownSelector, SelectorItemList } from "../gui/base/DropDownSelector.js"
 import { deviceConfig } from "../misc/DeviceConfig"
 import { TimeFormat, WeekStart } from "../api/common/TutanotaConstants"
-import { logins } from "../api/main/LoginController"
 import { downcast, incrementDate, noOp, promiseMap } from "@tutao/tutanota-utils"
 import type { EntityUpdateData } from "../api/main/EventController"
 import { isUpdateForTypeRef } from "../api/main/EventController"
@@ -65,7 +64,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 				m.redraw()
 			},
 		}
-		const userSettingsGroupRoot = logins.getUserController().userSettingsGroupRoot
+		const userSettingsGroupRoot = locator.logins.getUserController().userSettingsGroupRoot
 		const hourFormatDropDownAttrs: DropDownSelectorAttrs<TimeFormat> = {
 			label: "timeFormat_label",
 			items: [

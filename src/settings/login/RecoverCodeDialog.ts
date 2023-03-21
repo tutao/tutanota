@@ -11,7 +11,6 @@ import { locator } from "../../api/main/MainLocator.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { User } from "../../api/entities/sys/TypeRefs.js"
 import { getEtId, isSameId } from "../../api/common/utils/EntityUtils.js"
-import { logins } from "../../api/main/LoginController.js"
 import { GroupType } from "../../api/common/TutanotaConstants.js"
 
 type Action = "get" | "create"
@@ -19,7 +18,7 @@ assertMainOrNode()
 
 export function showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user: User) {
 	// We only show the recovery code if it is for the current user and it is a global admin
-	if (!isSameId(getEtId(logins.getUserController().user), getEtId(user)) || !user.memberships.find((gm) => gm.groupType === GroupType.Admin)) {
+	if (!isSameId(getEtId(locator.logins.getUserController().user), getEtId(user)) || !user.memberships.find((gm) => gm.groupType === GroupType.Admin)) {
 		return
 	}
 

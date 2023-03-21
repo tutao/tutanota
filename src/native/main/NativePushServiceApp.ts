@@ -1,10 +1,10 @@
 import type { PushIdentifier } from "../../api/entities/sys/TypeRefs.js"
 import { createPushIdentifier, PushIdentifierTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { assert, assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/tutanota-utils"
 import { PushServiceType } from "../../api/common/TutanotaConstants"
 import { lang } from "../../misc/LanguageViewModel"
-import { getApiOrigin, isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env"
-import { LoginController, logins } from "../../api/main/LoginController"
+import { isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env"
+import { LoginController } from "../../api/main/LoginController"
 import { client } from "../../misc/ClientDetector"
 import { DeviceConfig, deviceConfig } from "../../misc/DeviceConfig"
 import { getElementId } from "../../api/common/utils/EntityUtils"
@@ -68,8 +68,8 @@ export class NativePushServiceApp {
 		console.log("invalidating alarms")
 		deviceConfig.setNoAlarmsScheduled()
 
-		if (logins.isUserLoggedIn()) {
-			await logins.waitForFullLogin()
+		if (this.logins.isUserLoggedIn()) {
+			await this.logins.waitForFullLogin()
 			return this.register()
 		} else {
 			return Promise.resolve()

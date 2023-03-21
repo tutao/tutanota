@@ -87,7 +87,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		const setRunInBackgroundAttrs: DropDownSelectorAttrs<boolean> = {
 			label: "runInBackground_action",
 			helpLabel: () => {
-				return ifAllowedTutanotaLinks(InfoLink.RunInBackground, (link) => [
+				return ifAllowedTutanotaLinks(locator.logins, InfoLink.RunInBackground, (link) => [
 					m("span", lang.get("runInBackground_msg") + " "),
 					m("span", lang.get("moreInfo_msg") + " "),
 					m("span.text-break", [m(`a[href=${link}][target=_blank]`, link)]),

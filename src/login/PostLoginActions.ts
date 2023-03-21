@@ -1,6 +1,5 @@
 import m, { Component } from "mithril"
 import type { IPostLoginAction, LoggedInEvent } from "../api/main/LoginController"
-import { logins } from "../api/main/LoginController"
 import { isAdminClient, isApp, isDesktop, LOGIN_TITLE, Mode } from "../api/common/Env"
 import { assertNotNull, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade"
@@ -46,12 +45,12 @@ export class PostLoginActions implements IPostLoginAction {
 		// We establish websocket connection even for temporary sessions because we need to get updates e.g. during signup
 		windowFacade.addOnlineListener(() => {
 			console.log(new Date().toISOString(), "online - try reconnect")
-			if (logins.isFullyLoggedIn()) {
+			if (locator.logins.isFullyLoggedIn()) {
 				// When we try to connect after receiving online event it might not succeed so we delay reconnect attempt by 2s
 				this.connectivityModel.tryReconnect(true, true, 2000)
 			} else {
 				// log in user
-				logins.retryAsyncLogin()
+				locator.logins.retryAsyncLogin()
 			}
 		})
 		windowFacade.addOfflineListener(() => {
@@ -60,7 +59,7 @@ export class PostLoginActions implements IPostLoginAction {
 		})
 
 		// only show "Tutanota" after login if there is no custom title set
-		if (!logins.getUserController().isInternalUser()) {
+		if (!locator.logins.getUserController().isInternalUser()) {
 			if (document.title === LOGIN_TITLE) {
 				document.title = "Tutanota"
 			}
@@ -68,7 +67,7 @@ export class PostLoginActions implements IPostLoginAction {
 			return
 		} else {
 			let postLoginTitle = document.title === LOGIN_TITLE ? "Tutanota" : document.title
-			document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - " + postLoginTitle
+			document.title = neverNull(locator.logins.getUserController().userGroupInfo.mailAddress) + " - " + postLoginTitle
 		}
 		notifications.requestPermission()
 
@@ -84,7 +83,7 @@ export class PostLoginActions implements IPostLoginAction {
 
 		lang.updateFormats({
 			// partial
-			hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot),
+			hourCycle: getHourCycle(locator.logins.getUserController().userSettingsGroupRoot),
 		})
 
 		if (isApp() || isDesktop()) {
@@ -94,7 +93,7 @@ export class PostLoginActions implements IPostLoginAction {
 	}
 
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
-		if (loggedInEvent.sessionType === SessionType.Temporary || !logins.getUserController().isInternalUser()) {
+		if (loggedInEvent.sessionType === SessionType.Temporary || !locator.logins.getUserController().isInternalUser()) {
 			return
 		}
 
@@ -103,7 +102,7 @@ export class PostLoginActions implements IPostLoginAction {
 	}
 
 	private async fullLoginAsyncActions() {
-		await checkApprovalStatus(logins, true)
+		await checkApprovalStatus(locator.logins, true)
 		await this.showUpgradeReminder()
 		await this.checkStorageWarningLimit()
 
@@ -121,7 +120,7 @@ export class PostLoginActions implements IPostLoginAction {
 			await this.maybeSetCustomTheme()
 		}
 
-		if (logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
+		if (locator.logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
 			const receiveInfoData = createReceiveInfoServiceData({
 				language: lang.code,
 			})
@@ -176,7 +175,7 @@ export class PostLoginActions implements IPostLoginAction {
 	}
 
 	private async maybeSetCustomTheme(): Promise<any> {
-		const domainInfoAndConfig = await logins.getUserController().loadWhitelabelConfig()
+		const domainInfoAndConfig = await locator.logins.getUserController().loadWhitelabelConfig()
 
 		if (domainInfoAndConfig && domainInfoAndConfig.whitelabelConfig.jsonTheme) {
 			const customizations: ThemeCustomizations = getThemeCustomizations(domainInfoAndConfig.whitelabelConfig)
@@ -201,23 +200,23 @@ export class PostLoginActions implements IPostLoginAction {
 	}
 
 	private async checkStorageWarningLimit(): Promise<void> {
-		if (!logins.getUserController().isGlobalAdmin()) {
+		if (!locator.logins.getUserController().isGlobalAdmin()) {
 			return
 		}
 
-		const customerId = assertNotNull(logins.getUserController().user.customer)
+		const customerId = assertNotNull(locator.logins.getUserController().user.customer)
 		const usedStorage = await locator.customerFacade.readUsedCustomerStorage(customerId)
 		if (Number(usedStorage) > Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR) {
 			const availableStorage = await locator.customerFacade.readAvailableCustomerStorage(customerId)
 			if (Number(usedStorage) > Number(availableStorage) * Const.MEMORY_WARNING_FACTOR) {
-				showMoreStorageNeededOrderDialog(logins, "insufficientStorageWarning_msg")
+				showMoreStorageNeededOrderDialog(locator.logins, "insufficientStorageWarning_msg")
 			}
 		}
 	}
 
 	private showUpgradeReminder(): Promise<void> {
-		if (logins.getUserController().isFreeAccount() && env.mode !== Mode.App) {
-			return logins
+		if (locator.logins.getUserController().isFreeAccount() && env.mode !== Mode.App) {
+			return locator.logins
 				.getUserController()
 				.loadCustomer()
 				.then((customer) => {
@@ -249,7 +248,7 @@ export class PostLoginActions implements IPostLoginAction {
 	}
 
 	private enforcePasswordChange(): void {
-		if (logins.getUserController().user.requirePasswordUpdate) {
+		if (locator.logins.getUserController().user.requirePasswordUpdate) {
 			import("../settings/login/ChangePasswordDialogs.js").then(({ showChangeOwnPasswordDialog }) => {
 				return showChangeOwnPasswordDialog(false)
 			})

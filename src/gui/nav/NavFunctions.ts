@@ -1,5 +1,5 @@
-import { logins } from "../../api/main/LoginController"
 import { FeatureType } from "../../api/common/TutanotaConstants"
+import { locator } from "../../api/main/MainLocator.js"
 
 export function showUpgradeDialog() {
 	import("../../subscription/UpgradeSubscriptionWizard.js").then((upgradeWizard) => upgradeWizard.showUpgradeWizard())
@@ -10,5 +10,5 @@ export function showSupportDialog() {
 }
 
 export function isNewMailActionAvailable(): boolean {
-	return logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.ReplyOnly)
+	return locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.ReplyOnly)
 }

@@ -1,5 +1,4 @@
 import { lang } from "../../misc/LanguageViewModel"
-import { logins } from "../../api/main/LoginController"
 import { AdministratedGroupTypeRef, GroupTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import type { ContactFormLanguage } from "../../api/entities/tutanota/TypeRefs.js"
 import { createContactFormLanguage } from "../../api/entities/tutanota/TypeRefs.js"
@@ -28,7 +27,7 @@ export function getDefaultContactFormLanguage(supportedLanguages: ContactFormLan
 }
 
 export async function getAdministratedGroupIds(): Promise<Id[]> {
-	const localAdminGroups = await promiseMap(logins.getUserController().getLocalAdminGroupMemberships(), (gm) =>
+	const localAdminGroups = await promiseMap(locator.logins.getUserController().getLocalAdminGroupMemberships(), (gm) =>
 		locator.entityClient.load(GroupTypeRef, gm.group),
 	)
 	const administratedGroupIds = await promiseMap(localAdminGroups, async (localAdminGroup) => {

@@ -1,7 +1,6 @@
 import m, { Child, Children, Component, Vnode } from "mithril"
 import { MailboxDetail } from "../model/MailModel.js"
 import { locator } from "../../api/main/MainLocator.js"
-import { logins } from "../../api/main/LoginController.js"
 import { SidebarSection } from "../../gui/SidebarSection.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { FolderSubtree } from "../../api/common/mail/FolderSystem.js"
@@ -54,7 +53,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		if (systemChildren) {
 			children.push(...systemChildren.children)
 		}
-		if (logins.isInternalUserLoggedIn()) {
+		if (locator.logins.isInternalUserLoggedIn()) {
 			children.push(
 				m(
 					SidebarSection,

@@ -21,7 +21,6 @@ import { InvalidDataError } from "../api/common/error/RestError"
 import { locator } from "../api/main/MainLocator"
 import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
 import { UsageTest } from "@tutao/tutanota-usagetests"
-import { logins } from "../api/main/LoginController.js"
 import { runCaptchaFlow } from "./Captcha.js"
 import { SelectMailAddressFormWithSuggestions } from "../settings/SelectMailAddressFormWithSuggestions.js"
 
@@ -57,7 +56,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	constructor() {
 		this.__mailValid = stream(false)
 		this.__lastMailValidationError = stream(null)
-		this.passwordModel = new PasswordModel(logins, { checkOldPassword: false, enforceStrength: true }, this.__mailValid)
+		this.passwordModel = new PasswordModel(locator.logins, { checkOldPassword: false, enforceStrength: true }, this.__mailValid)
 
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")

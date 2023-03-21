@@ -4,7 +4,6 @@ import { locator } from "../../api/main/MainLocator"
 import { CalendarAttendeeStatus, CalendarMethod, getAsEnumValue } from "../../api/common/TutanotaConstants"
 import { assertNotNull, clone, filterInt, noOp, ofClass, Thunk } from "@tutao/tutanota-utils"
 import { findPrivateCalendar, getEventStart, getTimeZone } from "./CalendarUtils"
-import { logins } from "../../api/main/LoginController"
 import { calendarUpdateDistributor } from "./CalendarUpdateDistributor"
 import { Dialog } from "../../gui/base/Dialog"
 import { UserError } from "../../api/main/UserError"
@@ -51,7 +50,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 	let onEditEvent: Thunk | null = null
 
 	// Do not create calendar event view model for external users as external users cannot delete/edit a calendar event. They don't have a calendar.
-	if (logins.getUserController().isInternalUser()) {
+	if (locator.logins.getUserController().isInternalUser()) {
 		const calendarInfos = await locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor())
 		const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
 		const mailboxProerties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
@@ -135,7 +134,7 @@ export async function replyToEventInvitation(
 				if (calendar) {
 					// if the owner group is set there is an existing event already so just update
 					if (event._ownerGroup) {
-						return locator.calendarModel.loadAlarms(event.alarmInfos, logins.getUserController().user).then((alarms) => {
+						return locator.calendarModel.loadAlarms(event.alarmInfos, locator.logins.getUserController().user).then((alarms) => {
 							const alarmInfos = alarms.map((a) => a.alarmInfo)
 							return locator.calendarModel.updateEvent(eventClone, alarmInfos, getTimeZone(), calendar.groupRoot, event).then(noOp)
 						})

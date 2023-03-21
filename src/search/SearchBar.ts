@@ -1,7 +1,6 @@
 import { TextFieldType } from "../gui/base/TextField.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { Icons } from "../gui/base/icons/Icons"
-import { logins } from "../api/main/LoginController"
 import { inputLineHeight, px, size } from "../gui/size"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -629,8 +628,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		let filteredInstances = instances.slice()
 
 		// filter group infos for local admins
-		if (isSameTypeRef(restriction.type, GroupInfoTypeRef) && !logins.getUserController().isGlobalAdmin()) {
-			const localAdminGroupIds = logins
+		if (isSameTypeRef(restriction.type, GroupInfoTypeRef) && !locator.logins.getUserController().isGlobalAdmin()) {
+			const localAdminGroupIds = locator.logins
 				.getUserController()
 				.getLocalAdminGroupMemberships()
 				.map((gm) => gm.group)

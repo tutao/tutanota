@@ -2,7 +2,6 @@ import m from "mithril"
 import { lang, TranslationText } from "../misc/LanguageViewModel"
 import { BookingItemFeatureType } from "../api/common/TutanotaConstants"
 import { Dialog } from "../gui/base/Dialog"
-import { logins } from "../api/main/LoginController"
 import { PasswordForm, PasswordModel } from "./PasswordForm"
 import { SelectMailAddressForm } from "./SelectMailAddressForm"
 import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
@@ -17,12 +16,12 @@ import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
 assertMainOrNode()
 
 export function show(): Promise<void> {
-	return getAvailableDomains(locator.entityClient, logins).then((availableDomains) => {
+	return getAvailableDomains(locator.entityClient, locator.logins).then((availableDomains) => {
 		let emailAddress: string | null = null
 		let errorMsg: TranslationText | null = "mailAddressNeutral_msg"
 		let isVerificationBusy = false
 		let userName = ""
-		const passwordModel = new PasswordModel(logins, { checkOldPassword: false, enforceStrength: false, hideConfirmation: true })
+		const passwordModel = new PasswordModel(locator.logins, { checkOldPassword: false, enforceStrength: false, hideConfirmation: true })
 		let form = {
 			view: () => {
 				return [

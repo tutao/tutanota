@@ -5,7 +5,6 @@ import type { BuyOptionBoxAttr } from "./BuyOptionBox"
 import { BuyOptionBox, updateBuyOptionBoxPriceInformation } from "./BuyOptionBox"
 import { neverNull } from "@tutao/tutanota-utils"
 import { CustomerInfoTypeRef, CustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { logins } from "../api/main/LoginController"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { showBuyDialogToBookItem } from "./BuyDialog"
@@ -13,7 +12,7 @@ import { locator } from "../api/main/MainLocator"
 
 export function show(): Promise<void> {
 	return locator.entityClient
-		.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 		.then((customer) => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 		.then((customerInfo) => {
 			let dialog: Dialog

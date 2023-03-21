@@ -10,11 +10,9 @@ import { assertNotNull, contains, LazyLoaded, neverNull, noOp, promiseMap } from
 import { UserViewer } from "./UserViewer.js"
 import type { SettingsView, UpdatableSettingsViewer } from "./SettingsView.js"
 import { FeatureType, GroupType, OperationType } from "../api/common/TutanotaConstants.js"
-import { logins } from "../api/main/LoginController.js"
 import { Icon } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
-import { header } from "../gui/Header.js"
 import type { EntityUpdateData } from "../api/main/EventController.js"
 import { isUpdateForTypeRef } from "../api/main/EventController.js"
 import { Button, ButtonType } from "../gui/base/Button.js"
@@ -39,7 +37,7 @@ export class UserListView implements UpdatableSettingsViewer {
 
 	constructor(private readonly settingsView: SettingsView) {
 		this.listId = new LazyLoaded(async () => {
-			const customer = await locator.entityClient.load(CustomerTypeRef, logins.getUserController().user.customer!)
+			const customer = await locator.entityClient.load(CustomerTypeRef, locator.logins.getUserController().user.customer!)
 			return customer.userGroups
 		})
 		this.list = new List({
@@ -54,10 +52,10 @@ export class UserListView implements UpdatableSettingsViewer {
 
 				// we return all users because we have already loaded all users and the scroll bar shall have the complete size.
 				let items: GroupInfo[]
-				if (logins.getUserController().isGlobalAdmin()) {
+				if (locator.logins.getUserController().isGlobalAdmin()) {
 					items = allUserGroupInfos
 				} else {
-					let localAdminGroupIds = logins
+					let localAdminGroupIds = locator.logins
 						.getUserController()
 						.getLocalAdminGroupMemberships()
 						.map((gm) => gm.group)
@@ -95,7 +93,7 @@ export class UserListView implements UpdatableSettingsViewer {
 		})
 
 		this.list.loadInitial()
-		const searchBar = neverNull(header.searchBar)
+		const searchBar = neverNull(locator.header.searchBar)
 
 		this.listId.getAsync().then((listId) => {
 			searchBar.setGroupInfoRestrictionListId(listId)
@@ -112,7 +110,7 @@ export class UserListView implements UpdatableSettingsViewer {
 	}
 
 	view(): Children {
-		if (logins.isEnabled(FeatureType.WhitelabelChild)) {
+		if (locator.logins.isEnabled(FeatureType.WhitelabelChild)) {
 			return null
 		}
 
@@ -139,7 +137,7 @@ export class UserListView implements UpdatableSettingsViewer {
 	}
 
 	private async loadAdmins(): Promise<void> {
-		const adminGroupMembership = logins.getUserController().user.memberships.find((gm) => gm.groupType === GroupType.Admin)
+		const adminGroupMembership = locator.logins.getUserController().user.memberships.find((gm) => gm.groupType === GroupType.Admin)
 		if (adminGroupMembership == null) {
 			return
 		}
@@ -169,7 +167,7 @@ export class UserListView implements UpdatableSettingsViewer {
 	}
 
 	private addButtonClicked() {
-		if (logins.getUserController().isFreeAccount()) {
+		if (locator.logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog(false)
 		} else {
 			AddUserDialog.show()
@@ -181,10 +179,10 @@ export class UserListView implements UpdatableSettingsViewer {
 			const { instanceListId, instanceId, operation } = update
 
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === instanceListId) {
-				if (!logins.getUserController().isGlobalAdmin()) {
+				if (!locator.logins.getUserController().isGlobalAdmin()) {
 					let listEntity = this.list.getEntity(instanceId)
 					return locator.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then((gi) => {
-						let localAdminGroupIds = logins
+						let localAdminGroupIds = locator.logins
 							.getUserController()
 							.getLocalAdminGroupMemberships()
 							.map((gm) => gm.group)

@@ -7,7 +7,6 @@ import { contains, neverNull, objectEntries } from "@tutao/tutanota-utils"
 import { Dialog } from "../gui/base/Dialog"
 import type { EmailSenderListElement } from "../api/entities/sys/TypeRefs.js"
 import { CustomerInfoTypeRef, CustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { logins } from "../api/main/LoginController"
 import stream from "mithril/stream"
 import type { SelectorItemList } from "../gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
@@ -97,7 +96,7 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 
 async function loadData(): Promise<LoadedData> {
 	const customerServerProperties = await locator.customerFacade.loadCustomerServerProperties()
-	const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+	const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 	const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 
 	const customDomains = customerInfo.domainInfos.map((d) => d.domain)

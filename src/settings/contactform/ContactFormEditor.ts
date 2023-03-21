@@ -5,7 +5,6 @@ import { BookingItemFeatureType, GroupType, Keys } from "../../api/common/Tutano
 import { getWhitelabelDomain } from "../../api/common/utils/Utils"
 import { clear, mapAndFilterNull, neverNull, ofClass, remove } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env"
-import { logins } from "../../api/main/LoginController"
 import type { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
 import { CustomerInfoTypeRef, CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import type { TableAttrs, TableLineAttrs } from "../../gui/base/Table.js"
@@ -85,8 +84,8 @@ export class ContactFormEditor {
 		this._allSharedMailboxGroupInfos = allSharedMailboxGroupInfos
 		this._brandingDomain = brandingDomain
 
-		if (!logins.getUserController().isGlobalAdmin()) {
-			let localAdminGroupIds = logins
+		if (!locator.logins.getUserController().isGlobalAdmin()) {
+			let localAdminGroupIds = locator.logins
 				.getUserController()
 				.getLocalAdminGroupMemberships()
 				.map((gm) => gm.group)
@@ -257,7 +256,7 @@ export class ContactFormEditor {
 			// check that the path is unique
 			showProgressDialog(
 				"pleaseWait_msg",
-				locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
+				locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer)).then((customer) => {
 					return locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then((root) => {
 						const receivingMailbox = this._receivingMailbox()
 
@@ -305,7 +304,7 @@ export class ContactFormEditor {
 												return Dialog.message("receivingMailboxAlreadyUsed_msg")
 											} else {
 												this._contactForm._ownerGroup = neverNull(
-													logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Customer),
+													locator.logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Customer),
 												).group
 												this._contactForm.targetGroup = receivingMailbox.group
 												this._contactForm.targetGroupInfo = receivingMailbox._id
@@ -571,7 +570,7 @@ export class ContactFormEditor {
  * @param newContactFormIdReceiver. Is called receiving the contact id as soon as the new contact was saved.
  */
 export async function show(c: ContactForm | null, createNew: boolean, newContactFormIdReceiver: (arg0: string) => void) {
-	const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+	const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 	const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 	const whitelabelDomain = getWhitelabelDomain(customerInfo)
 

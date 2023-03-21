@@ -13,7 +13,6 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { assertNotNull, LazyLoaded, memoized, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { htmlSanitizer } from "../misc/HtmlSanitizer"
 import { getWhitelabelDomain } from "../api/common/utils/Utils"
-import { logins } from "../api/main/LoginController"
 import { PayloadTooLargeError } from "../api/common/error/RestError"
 import { SegmentControl } from "../gui/base/SegmentControl"
 import { insertInlineImageB64ClickHandler } from "../mail/view/MailViewerUtils"
@@ -62,7 +61,7 @@ export function showBuyOrSetNotificationEmailDialog(
 	customerProperties: LazyLoaded<CustomerProperties>,
 	existingTemplate?: NotificationMailTemplate,
 ) {
-	if (logins.getUserController().isFreeAccount()) {
+	if (locator.logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog(false)
 	} else {
 		const whitelabelFailedPromise = isWhitelabelActive(lastBooking) ? Promise.resolve(false) : showWhitelabelBuyDialog(true)
@@ -151,7 +150,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 		m(editor),
 	]
 
-	const senderName = logins.getUserController().userGroupInfo.name
+	const senderName = locator.logins.getUserController().userGroupInfo.name
 	let senderDomain = "https://mail.tutanota.com"
 	loadCustomerInfo().then((customerInfo) => {
 		const whitelabelDomainInfo = customerInfo && getWhitelabelDomain(customerInfo)
@@ -283,7 +282,7 @@ function getDefaultNotificationMail(): string {
 }
 
 function loadCustomerInfo(): Promise<CustomerInfo | null> {
-	return logins
+	return locator.logins
 		.getUserController()
 		.loadCustomer()
 		.then((customer) => locator.entityClient.load<CustomerInfo>(CustomerInfoTypeRef, customer.customerInfo))

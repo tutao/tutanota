@@ -5,7 +5,6 @@ import { isDomainName, isRegularExpression } from "../../misc/FormatValidator"
 import { getLegacyMailHeaders, getMailHeaders } from "../../api/common/utils/Utils"
 import { assertNotNull, asyncFind, debounce, neverNull, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
-import { logins } from "../../api/main/LoginController"
 import type { MailboxDetail } from "./MailModel"
 import { LockedError, NotFoundError, PreconditionFailedError } from "../../api/common/error/RestError"
 import type { SelectorItemList } from "../../gui/base/DropDownSelector.js"
@@ -15,6 +14,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 import { isLegacyMail } from "../../api/common/MailWrapper.js"
 import { assertSystemFolderOfType } from "../../api/common/mail/CommonMailUtils.js"
+import { LoginController } from "../../api/main/LoginController.js"
 
 assertMainOrNode()
 const moveMailDataPerFolder: MoveMailData[] = []
@@ -99,6 +99,7 @@ export function getInboxRuleTypeName(type: string): string {
 export function findAndApplyMatchingRule(
 	mailFacade: MailFacade,
 	entityClient: EntityClient,
+	logins: LoginController,
 	mailboxDetail: MailboxDetail,
 	mail: Mail,
 	applyRulesOnServer: boolean,

@@ -10,7 +10,6 @@ import m from "mithril"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { progressIcon } from "../../gui/base/Icon.js"
 import { checkApprovalStatus } from "../../misc/LoginUtils.js"
-import { logins } from "../../api/main/LoginController.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { UserError } from "../../api/main/UserError.js"
 import { showUserError } from "../../misc/ErrorHandlerImpl.js"
@@ -92,7 +91,7 @@ export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 }
 
 export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
-	const sendAllowed = await checkApprovalStatus(logins, false)
+	const sendAllowed = await checkApprovalStatus(locator.logins, false)
 	if (sendAllowed) {
 		// check if to be opened draft has already been minimized, iff that is the case, re-open it
 		const minimizedEditor = locator.minimizedMailModel.getEditorForDraft(viewModel.mail)
@@ -252,7 +251,7 @@ function reportMail(viewModel: MailViewerViewModel) {
 				},
 				[
 					m("div", lang.get("phishingReport_msg")),
-					ifAllowedTutanotaLinks(InfoLink.Phishing, (link) =>
+					ifAllowedTutanotaLinks(locator.logins, InfoLink.Phishing, (link) =>
 						m(
 							"a.mt-s",
 							{

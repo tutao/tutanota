@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Dialog } from "../../gui/base/Dialog"
-import { logins } from "../../api/main/LoginController"
 import type { GiftCard, GiftCardOption } from "../../api/entities/sys/TypeRefs.js"
 import { GiftCardTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
@@ -22,7 +21,7 @@ import { GiftCardMessageEditorField } from "./GiftCardMessageEditorField"
 import { client } from "../../misc/ClientDetector"
 import { count, filterInt, noOp, ofClass } from "@tutao/tutanota-utils"
 import { isIOSApp } from "../../api/common/Env"
-import { formatPrice, PriceAndConfigProvider, PaymentInterval } from "../PriceUtils"
+import { formatPrice, PaymentInterval, PriceAndConfigProvider } from "../PriceUtils"
 import { GiftCardService } from "../../api/entities/sys/Services"
 import { SubscriptionType, UpgradePriceType } from "../FeatureListProvider"
 
@@ -246,16 +245,16 @@ export async function showPurchaseGiftCardDialog() {
 }
 
 async function loadGiftCardModel(): Promise<PurchaseGiftCardModel> {
-	const accountingInfo = await logins.getUserController().loadAccountingInfo()
+	const accountingInfo = await locator.logins.getUserController().loadAccountingInfo()
 
 	// Only allow purchase with supported payment methods
 	if (!accountingInfo || accountingInfo.paymentMethod === PaymentMethodType.Invoice || accountingInfo.paymentMethod === PaymentMethodType.AccountBalance) {
 		throw new UserError("invalidGiftCardPaymentMethod_msg")
 	}
 
-	const [giftCardInfo, customerInfo, prices] = await Promise.all([
+	const [giftCardInfo, customerInfo] = await Promise.all([
 		locator.serviceExecutor.get(GiftCardService, null),
-		logins.getUserController().loadCustomerInfo(),
+		locator.logins.getUserController().loadCustomerInfo(),
 		loadUpgradePrices(null), // do not pass in any campaign here because the gift card prices should be based on default prices.
 	])
 
