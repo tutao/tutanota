@@ -39,7 +39,7 @@ export class NewsModel {
 			const newsItemName = newsItemId.newsItemName
 			const newsListItem = await this.newsListItemFactory(newsItemName)
 
-			if (!!newsListItem && newsListItem.isShown(newsItemId)) {
+			if (!!newsListItem && (await newsListItem.isShown(newsItemId))) {
 				this.liveNewsIds.push(newsItemId)
 				this.liveNewsListItems[newsItemName] = newsListItem
 			}

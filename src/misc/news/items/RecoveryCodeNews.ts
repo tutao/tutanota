@@ -31,9 +31,9 @@ export class RecoveryCodeNews implements NewsListItem {
 		private readonly userManagementFacade: UserManagementFacade,
 	) {}
 
-	isShown(newsId: NewsId): boolean {
+	isShown(newsId: NewsId): Promise<boolean> {
 		const customerCreationTime = this.userController.userGroupInfo.created.getTime()
-		return this.userController.isGlobalAdmin() && Date.now() - customerCreationTime > daysToMillis(14)
+		return Promise.resolve(this.userController.isGlobalAdmin() && Date.now() - customerCreationTime > daysToMillis(14))
 	}
 
 	render(newsId: NewsId): Children {

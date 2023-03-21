@@ -19,8 +19,8 @@ const appstoreLink = "https://apps.apple.com/app/tutanota/id922429609"
 export class PinBiometricsNews implements NewsListItem {
 	constructor(private readonly newsModel: NewsModel, private readonly credentialsProvider: CredentialsProvider, private readonly userId: Id) {}
 
-	isShown(newsId: NewsId): boolean {
-		return (isIOSApp() || isAndroidApp()) && !this.newsModel.hasAcknowledgedNewsForDevice(newsId.newsItemId)
+	isShown(newsId: NewsId): Promise<boolean> {
+		return Promise.resolve((isIOSApp() || isAndroidApp()) && !this.newsModel.hasAcknowledgedNewsForDevice(newsId.newsItemId))
 	}
 
 	render(newsId: NewsId): Mithril.Children {

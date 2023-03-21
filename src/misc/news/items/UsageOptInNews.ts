@@ -14,8 +14,8 @@ import { UsageTestModel } from "../../UsageTestModel.js"
 export class UsageOptInNews implements NewsListItem {
 	constructor(private readonly newsModel: NewsModel, private readonly usageTestModel: UsageTestModel) {}
 
-	isShown(): boolean {
-		return locator.usageTestModel.showOptInIndicator()
+	isShown(): Promise<boolean> {
+		return Promise.resolve(locator.usageTestModel.showOptInIndicator())
 	}
 
 	render(newsId: NewsId): Children {

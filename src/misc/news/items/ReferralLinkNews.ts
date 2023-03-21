@@ -19,14 +19,17 @@ const REFERRAL_NEWS_DISPLAY_THRESHOLD_DAYS = 7
 export class ReferralLinkNews implements NewsListItem {
 	private referralLink: string = ""
 
-	constructor(private readonly newsModel: NewsModel, private readonly dateProvider: DateProvider, private readonly userController: UserController) {
-		getReferralLink(userController).then((link) => {
-			this.referralLink = link
-			m.redraw()
-		})
-	}
+	constructor(private readonly newsModel: NewsModel, private readonly dateProvider: DateProvider, private readonly userController: UserController) {}
 
-	isShown(): boolean {
+	async isShown(): Promise<boolean> {
+		// Do not show this for business customers yet (not allowed to create referral links)
+		if ((await this.userController.loadCustomer()).businessUse === true) {
+			return false
+		}
+
+		// Create the referral link
+		this.referralLink = await getReferralLink(this.userController)
+
 		// Decode the date the user was generated from the timestamp in the user ID
 		const customerCreatedTime = generatedIdToTimestamp(neverNull(this.userController.user.customer))
 		return (
