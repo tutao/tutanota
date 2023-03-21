@@ -14,6 +14,7 @@ import { px, size } from "../../gui/size.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
 import { keyManager, Shortcut } from "../../misc/KeyManager.js"
 import { styles } from "../../gui/styles.js"
+import { client } from "../../misc/ClientDetector"
 
 export interface ConversationViewerAttrs {
 	viewModel: ConversationViewModel
@@ -86,7 +87,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				this.renderLoadingState(viewModel),
 				this.renderFooter(),
 			),
-			this.renderFloatingSubject(),
+			client.isMobileDevice() ? null : this.renderFloatingSubject(),
 		])
 	}
 
