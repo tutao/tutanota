@@ -5,7 +5,6 @@ import type { AccountingInfo, Booking, Customer, CustomerInfo, GiftCard, OrderPr
 import {
 	AccountingInfoTypeRef,
 	BookingTypeRef,
-	CustomerInfoTypeRef,
 	CustomerTypeRef,
 	GiftCardTypeRef,
 	GroupInfoTypeRef,
@@ -361,8 +360,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 			.then((customer) => {
 				this._updateCustomerData(customer)
-
-				return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+				return locator.logins.getUserController().loadCustomerInfo()
 			})
 			.then((customerInfo) => {
 				this._customerInfo = customerInfo
@@ -507,8 +505,9 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			.getUserController()
 			.loadCustomer()
 			.then((customer) => {
-				return locator.entityClient
-					.load(CustomerInfoTypeRef, customer.customerInfo)
+				return locator.logins
+					.getUserController()
+					.loadCustomerInfo()
 					.catch(
 						ofClass(NotFoundError, (e) => {
 							console.log("could not update bookings as customer info does not exist (moved between free/premium lists)")

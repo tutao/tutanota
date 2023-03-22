@@ -10,7 +10,7 @@ import type { InvoiceData, PaymentData } from "../api/common/TutanotaConstants"
 import { getClientType, Keys, PaymentDataResultType, PaymentMethodType, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { AccountingInfo, Braintree3ds2Request } from "../api/entities/sys/TypeRefs.js"
-import { AccountingInfoTypeRef, CustomerInfoTypeRef, CustomerTypeRef, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { AccountingInfoTypeRef, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { assertNotNull, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import { getLazyLoadedPayPalUrl, getPreconditionFailedPaymentMsg, PaymentErrorCode, UpgradeType } from "./SubscriptionUtils"
 import { Button, ButtonType } from "../gui/base/Button.js"
@@ -86,11 +86,12 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		login
 			.then(() => {
 				if (!data.accountingInfo || !data.customer) {
-					return locator.entityClient
-						.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+					return locator.logins
+						.getUserController()
+						.loadCustomer()
 						.then((customer) => {
 							data.customer = customer
-							return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+							return locator.logins.getUserController().loadCustomerInfo()
 						})
 						.then((customerInfo) =>
 							locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then((accountingInfo) => {

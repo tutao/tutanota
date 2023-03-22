@@ -45,11 +45,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 					return locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then((root) => root.contactForms)
 				})
 		})
-		this.customerInfo = new LazyLoaded(() => {
-			return locator.entityClient
-				.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
-				.then((customer) => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
-		})
+		this.customerInfo = new LazyLoaded(() => locator.logins.getUserController().loadCustomerInfo())
 
 		this.customerInfo.getAsync() // trigger loading so it is available later
 

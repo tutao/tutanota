@@ -3,14 +3,7 @@ import { assertMainOrNode, isIOSApp } from "../api/common/Env"
 import { assertNotNull, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import type { AccountingInfo, Booking, Customer, InvoiceInfo } from "../api/entities/sys/TypeRefs.js"
-import {
-	AccountingInfoTypeRef,
-	BookingTypeRef,
-	createDebitServicePutData,
-	CustomerInfoTypeRef,
-	CustomerTypeRef,
-	InvoiceInfoTypeRef,
-} from "../api/entities/sys/TypeRefs.js"
+import { AccountingInfoTypeRef, BookingTypeRef, createDebitServicePutData, CustomerTypeRef, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
 import { formatPrice, getPaymentMethodInfoText, getPaymentMethodName } from "./PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
@@ -81,12 +74,12 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				[this.renderInvoiceData(), this.renderPaymentMethod(), this._renderPostings(postingExpanded)],
 			)
 		}
-
-		locator.entityClient
-			.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+		locator.logins
+			.getUserController()
+			.loadCustomer()
 			.then((customer) => {
 				this._customer = customer
-				return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+				return locator.logins.getUserController().loadCustomerInfo()
 			})
 			.then((customerInfo) => locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo))
 			.then((accountingInfo) => {
@@ -303,8 +296,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	_loadBookings(): Promise<void> {
 		return locator.logins
 			.getUserController()
-			.loadCustomer()
-			.then((customer) => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
+			.loadCustomerInfo()
 			.then((customerInfo) => (customerInfo.bookings ? locator.entityClient.loadAll(BookingTypeRef, customerInfo.bookings.items) : []))
 			.then((bookings) => {
 				this._lastBooking = bookings[bookings.length - 1]

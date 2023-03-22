@@ -48,7 +48,7 @@ async function prepareDialog({ featureType, count, reactivate }: BookingParams):
 	} else {
 		const price = await locator.bookingFacade.getPrice(featureType, count, reactivate)
 		const priceChangeModel = new PriceChangeModel(price, featureType)
-		const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
 		const accountingInfo = await locator.entityClient
 			.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
 			.catch(ofClass(NotAuthorizedError, () => null))

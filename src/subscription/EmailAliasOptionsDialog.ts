@@ -3,53 +3,48 @@ import { lang } from "../misc/LanguageViewModel"
 import { BookingItemFeatureType } from "../api/common/TutanotaConstants"
 import type { BuyOptionBoxAttr } from "./BuyOptionBox"
 import { BuyOptionBox, updateBuyOptionBoxPriceInformation } from "./BuyOptionBox"
-import { neverNull } from "@tutao/tutanota-utils"
-import { CustomerInfoTypeRef, CustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { showBuyDialogToBookItem } from "./BuyDialog"
 import { locator } from "../api/main/MainLocator"
 
-export function show(): Promise<void> {
-	return locator.entityClient
-		.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
-		.then((customer) => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
-		.then((customerInfo) => {
-			let dialog: Dialog
-			let freeEmailAliases = Math.max(Number(customerInfo.includedEmailAliases), Number(customerInfo.promotionEmailAliases))
-			return new Promise((resolve) => {
-				const changeEmailAliasPackageAction = (amount: number) => {
-					dialog.close()
-					showBuyDialogToBookItem(BookingItemFeatureType.Alias, amount, freeEmailAliases)
-						.then((cancelled) => {
-							if (cancelled) show()
-						})
-						.then(() => resolve())
-				}
+export async function show(): Promise<void> {
+	const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
 
-				const emailAliasesBuyOptionsAttrs = [
-					createEmailAliasPackageBox(0, freeEmailAliases, changeEmailAliasPackageAction),
-					createEmailAliasPackageBox(20, freeEmailAliases, changeEmailAliasPackageAction),
-					createEmailAliasPackageBox(40, freeEmailAliases, changeEmailAliasPackageAction),
-					createEmailAliasPackageBox(100, freeEmailAliases, changeEmailAliasPackageAction),
-				]
-					.filter((aliasPackage) => aliasPackage.amount === 0 || aliasPackage.amount > freeEmailAliases)
-					.map((scb) => scb.buyOptionBoxAttr)
-				// filter needless buy options
-				dialog = Dialog.showActionDialog({
-					title: lang.get("emailAlias_label"),
-					okAction: null,
-					type: DialogType.EditLarge,
-					child: () => [
-						m(".pt.center", lang.get("buyEmailAliasInfo_msg")),
-						m(
-							".flex-center.flex-wrap",
-							emailAliasesBuyOptionsAttrs.map((attr) => m(BuyOptionBox, attr)),
-						),
-					],
+	let dialog: Dialog
+	let freeEmailAliases = Math.max(Number(customerInfo.includedEmailAliases), Number(customerInfo.promotionEmailAliases))
+	return new Promise((resolve) => {
+		const changeEmailAliasPackageAction = (amount: number) => {
+			dialog.close()
+			showBuyDialogToBookItem(BookingItemFeatureType.Alias, amount, freeEmailAliases)
+				.then((cancelled) => {
+					if (cancelled) show()
 				})
-			})
+				.then(() => resolve())
+		}
+
+		const emailAliasesBuyOptionsAttrs = [
+			createEmailAliasPackageBox(0, freeEmailAliases, changeEmailAliasPackageAction),
+			createEmailAliasPackageBox(20, freeEmailAliases, changeEmailAliasPackageAction),
+			createEmailAliasPackageBox(40, freeEmailAliases, changeEmailAliasPackageAction),
+			createEmailAliasPackageBox(100, freeEmailAliases, changeEmailAliasPackageAction),
+		]
+			.filter((aliasPackage) => aliasPackage.amount === 0 || aliasPackage.amount > freeEmailAliases)
+			.map((scb) => scb.buyOptionBoxAttr)
+		// filter needless buy options
+		dialog = Dialog.showActionDialog({
+			title: lang.get("emailAlias_label"),
+			okAction: null,
+			type: DialogType.EditLarge,
+			child: () => [
+				m(".pt.center", lang.get("buyEmailAliasInfo_msg")),
+				m(
+					".flex-center.flex-wrap",
+					emailAliasesBuyOptionsAttrs.map((attr) => m(BuyOptionBox, attr)),
+				),
+			],
 		})
+	})
 }
 
 function createEmailAliasPackageBox(

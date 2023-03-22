@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { assertNotNull, DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog } from "./AddSpamRuleDialog"
 import { getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType } from "../api/common/TutanotaConstants"
@@ -56,7 +56,7 @@ const REJECTED_SENDERS_MAX_NUMBER = 100
 export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	private readonly props = stream<Readonly<CustomerServerProperties>>()
 	private customer: Customer | null = null
-	private readonly customerInfo = new LazyLoaded<CustomerInfo>(() => this.loadCustomerInfo())
+	private readonly customerInfo = new LazyLoaded<CustomerInfo>(() => locator.logins.getUserController().loadCustomerInfo())
 
 	private spamRuleLines: ReadonlyArray<TableLineAttrs> = []
 	private rejectedSenderLines: ReadonlyArray<TableLineAttrs> = []
@@ -665,12 +665,6 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
 			}
 		})
-	}
-
-	private loadCustomerInfo(): Promise<CustomerInfo> {
-		return locator.entityClient
-			.load(CustomerTypeRef, assertNotNull(locator.logins.getUserController().user.customer))
-			.then((customer) => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 	}
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
