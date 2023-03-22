@@ -221,25 +221,28 @@ export class PostLoginActions implements IPostLoginAction {
 				.loadCustomer()
 				.then((customer) => {
 					return locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)).then((properties) => {
-						return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then((customerInfo) => {
-							if (
-								properties.lastUpgradeReminder == null &&
-								customerInfo.creationTime.getTime() + Const.UPGRADE_REMINDER_INTERVAL < new Date().getTime()
-							) {
-								let message = lang.get("premiumOffer_msg")
-								let title = lang.get("upgradeReminderTitle_msg")
-								return Dialog.reminder(title, message, InfoLink.PremiumProBusiness)
-									.then((confirm) => {
-										if (confirm) {
-											import("../subscription/UpgradeSubscriptionWizard").then((wizard) => wizard.showUpgradeWizard())
-										}
-									})
-									.then(() => {
-										properties.lastUpgradeReminder = new Date()
-										locator.entityClient.update(properties).catch(ofClass(LockedError, noOp))
-									})
-							}
-						})
+						return locator.logins
+							.getUserController()
+							.loadCustomerInfo()
+							.then((customerInfo) => {
+								if (
+									properties.lastUpgradeReminder == null &&
+									customerInfo.creationTime.getTime() + Const.UPGRADE_REMINDER_INTERVAL < new Date().getTime()
+								) {
+									let message = lang.get("premiumOffer_msg")
+									let title = lang.get("upgradeReminderTitle_msg")
+									return Dialog.reminder(title, message, InfoLink.PremiumProBusiness)
+										.then((confirm) => {
+											if (confirm) {
+												import("../subscription/UpgradeSubscriptionWizard").then((wizard) => wizard.showUpgradeWizard())
+											}
+										})
+										.then(() => {
+											properties.lastUpgradeReminder = new Date()
+											locator.entityClient.update(properties).catch(ofClass(LockedError, noOp))
+										})
+								}
+							})
 					})
 				})
 		} else {

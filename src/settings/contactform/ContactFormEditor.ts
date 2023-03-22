@@ -574,7 +574,7 @@ export class ContactFormEditor {
  */
 export async function show(c: ContactForm | null, createNew: boolean, newContactFormIdReceiver: (arg0: string) => void) {
 	const customer = await locator.logins.getUserController().loadCustomer()
-	const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+	const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
 	const whitelabelDomain = getWhitelabelDomain(customerInfo)
 
 	if (whitelabelDomain) {

@@ -1,11 +1,13 @@
-import { Hex, neverNull, ofClass } from "@tutao/tutanota-utils"
-import type { AccountingInfo, Customer, CustomerInfo, UpgradePriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
+import type { Hex } from "@tutao/tutanota-utils"
+import { ofClass } from "@tutao/tutanota-utils"
 import {
+	AccountingInfo,
 	AccountingInfoTypeRef,
 	createReferralCodeGetIn,
 	createUpgradePriceServiceData,
-	CustomerInfoTypeRef,
-	CustomerTypeRef,
+	Customer,
+	CustomerInfo,
+	UpgradePriceServiceReturn,
 } from "../api/entities/sys/TypeRefs.js"
 import type { InvoiceData, PaymentData } from "../api/common/TutanotaConstants"
 import { Const, getPaymentMethodType, PaymentMethodType as PaymentMethod } from "../api/common/TutanotaConstants"
@@ -74,25 +76,19 @@ export function loadUpgradePrices(registrationDataId: string | null): Promise<Up
 	return locator.serviceExecutor.get(UpgradePriceService, data)
 }
 
-function loadCustomerAndInfo(): Promise<{
+async function loadCustomerAndInfo(): Promise<{
 	customer: Customer
 	customerInfo: CustomerInfo
 	accountingInfo: AccountingInfo
 }> {
-	return locator.logins
-		.getUserController()
-		.loadCustomer()
-		.then((customer) =>
-			locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then((customerInfo) =>
-				locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then((accountingInfo) => {
-					return {
-						customer,
-						customerInfo,
-						accountingInfo,
-					}
-				}),
-			),
-		)
+	const customer = await locator.logins.getUserController().loadCustomer()
+	const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+	const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+	return {
+		customer,
+		customerInfo,
+		accountingInfo,
+	}
 }
 
 export async function showUpgradeWizard(): Promise<void> {
