@@ -256,92 +256,95 @@ export class ContactFormEditor {
 			// check that the path is unique
 			showProgressDialog(
 				"pleaseWait_msg",
-				locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer)).then((customer) => {
-					return locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then((root) => {
-						const receivingMailbox = this._receivingMailbox()
+				locator.logins
+					.getUserController()
+					.loadCustomer()
+					.then((customer) => {
+						return locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then((root) => {
+							const receivingMailbox = this._receivingMailbox()
 
-						if (!receivingMailbox) {
-							return Dialog.message("noReceivingMailbox_label")
-						}
+							if (!receivingMailbox) {
+								return Dialog.message("noReceivingMailbox_label")
+							}
 
-						let contactFormsListId = root.contactForms
-						let customElementIdFromPath = stringToCustomId(this._path)
-						let contactFormIdFromPath = [contactFormsListId, customElementIdFromPath] as const
-						let samePathFormCheck = Promise.resolve(false)
+							let contactFormsListId = root.contactForms
+							let customElementIdFromPath = stringToCustomId(this._path)
+							let contactFormIdFromPath = [contactFormsListId, customElementIdFromPath] as const
+							let samePathFormCheck = Promise.resolve(false)
 
-						// only compare the path if this is a new contact form or it is a different existing contact form
-						if (!this._contactForm._id || !isSameId(this._contactForm._id, contactFormIdFromPath)) {
-							samePathFormCheck = locator.entityClient
-								.load(ContactFormTypeRef, contactFormIdFromPath)
-								.then((cf) => true)
-								.catch(ofClass(NotFoundError, (e) => false))
-						}
+							// only compare the path if this is a new contact form or it is a different existing contact form
+							if (!this._contactForm._id || !isSameId(this._contactForm._id, contactFormIdFromPath)) {
+								samePathFormCheck = locator.entityClient
+									.load(ContactFormTypeRef, contactFormIdFromPath)
+									.then((cf) => true)
+									.catch(ofClass(NotFoundError, (e) => false))
+							}
 
-						return samePathFormCheck.then((samePathForm) => {
-							if (samePathForm) {
-								return Dialog.message("pathAlreadyExists_msg")
-							} else {
-								// check if the target mail group is already referenced by a different contact form
-								return locator.entityClient
-									.load(GroupTypeRef, receivingMailbox.group)
-									.then((group) => {
-										if (group.user) {
-											return locator.entityClient.load(UserTypeRef, group.user).then((user) => {
-												return neverNull(user.memberships.find((m) => m.groupType === GroupType.Mail)).group
-											})
-										} else {
-											return group._id
-										}
-									})
-									.then((mailGroupId) => {
-										return locator.entityClient.load(MailboxGroupRootTypeRef, mailGroupId).then((mailboxGroupRoot) => {
-											let contactFormIdToCheck = this._createNew ? contactFormIdFromPath : this._contactForm._id
-
-											if (
-												mailboxGroupRoot.targetMailGroupContactForm &&
-												!isSameId(mailboxGroupRoot.targetMailGroupContactForm, contactFormIdToCheck)
-											) {
-												return Dialog.message("receivingMailboxAlreadyUsed_msg")
+							return samePathFormCheck.then((samePathForm) => {
+								if (samePathForm) {
+									return Dialog.message("pathAlreadyExists_msg")
+								} else {
+									// check if the target mail group is already referenced by a different contact form
+									return locator.entityClient
+										.load(GroupTypeRef, receivingMailbox.group)
+										.then((group) => {
+											if (group.user) {
+												return locator.entityClient.load(UserTypeRef, group.user).then((user) => {
+													return neverNull(user.memberships.find((m) => m.groupType === GroupType.Mail)).group
+												})
 											} else {
-												this._contactForm._ownerGroup = neverNull(
-													locator.logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Customer),
-												).group
-												this._contactForm.targetGroup = receivingMailbox.group
-												this._contactForm.targetGroupInfo = receivingMailbox._id
-												this._contactForm.participantGroupInfos = this._participantGroupInfoList.map((groupInfo) => groupInfo._id)
-												this._contactForm.path = this._path
-												this.updateLanguageFromFields(this._language())
-												this._contactForm.languages = this._languages
-												let p
-
-												if (this._createNew) {
-													this._contactForm._id = contactFormIdFromPath
-													p = showBuyDialog({
-														featureType: BookingItemFeatureType.ContactForm,
-														count: 1,
-														freeAmount: 0,
-														reactivate: false,
-													}).then((accepted) => {
-														if (accepted) {
-															return locator.entityClient.setup(contactFormsListId, this._contactForm).then(() => {
-																this._newContactFormIdReceiver(customElementIdFromPath)
-															})
-														}
-													})
-												} else {
-													p = locator.entityClient.update(this._contactForm).then(() => {
-														this._newContactFormIdReceiver(customElementIdFromPath)
-													})
-												}
-
-												return p.then(() => this._close())
+												return group._id
 											}
 										})
-									})
-							}
+										.then((mailGroupId) => {
+											return locator.entityClient.load(MailboxGroupRootTypeRef, mailGroupId).then((mailboxGroupRoot) => {
+												let contactFormIdToCheck = this._createNew ? contactFormIdFromPath : this._contactForm._id
+
+												if (
+													mailboxGroupRoot.targetMailGroupContactForm &&
+													!isSameId(mailboxGroupRoot.targetMailGroupContactForm, contactFormIdToCheck)
+												) {
+													return Dialog.message("receivingMailboxAlreadyUsed_msg")
+												} else {
+													this._contactForm._ownerGroup = neverNull(
+														locator.logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Customer),
+													).group
+													this._contactForm.targetGroup = receivingMailbox.group
+													this._contactForm.targetGroupInfo = receivingMailbox._id
+													this._contactForm.participantGroupInfos = this._participantGroupInfoList.map((groupInfo) => groupInfo._id)
+													this._contactForm.path = this._path
+													this.updateLanguageFromFields(this._language())
+													this._contactForm.languages = this._languages
+													let p
+
+													if (this._createNew) {
+														this._contactForm._id = contactFormIdFromPath
+														p = showBuyDialog({
+															featureType: BookingItemFeatureType.ContactForm,
+															count: 1,
+															freeAmount: 0,
+															reactivate: false,
+														}).then((accepted) => {
+															if (accepted) {
+																return locator.entityClient.setup(contactFormsListId, this._contactForm).then(() => {
+																	this._newContactFormIdReceiver(customElementIdFromPath)
+																})
+															}
+														})
+													} else {
+														p = locator.entityClient.update(this._contactForm).then(() => {
+															this._newContactFormIdReceiver(customElementIdFromPath)
+														})
+													}
+
+													return p.then(() => this._close())
+												}
+											})
+										})
+								}
+							})
 						})
-					})
-				}),
+					}),
 			)
 		}
 	}
@@ -570,7 +573,7 @@ export class ContactFormEditor {
  * @param newContactFormIdReceiver. Is called receiving the contact id as soon as the new contact was saved.
  */
 export async function show(c: ContactForm | null, createNew: boolean, newContactFormIdReceiver: (arg0: string) => void) {
-	const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+	const customer = await locator.logins.getUserController().loadCustomer()
 	const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 	const whitelabelDomain = getWhitelabelDomain(customerInfo)
 

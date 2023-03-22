@@ -38,9 +38,12 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 	constructor(settingsView: SettingsView) {
 		this.settingsView = settingsView
 		this.listId = new LazyLoaded(() => {
-			return locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer)).then((customer) => {
-				return locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then((root) => root.contactForms)
-			})
+			return locator.logins
+				.getUserController()
+				.loadCustomer()
+				.then((customer) => {
+					return locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then((root) => root.contactForms)
+				})
 		})
 		this.customerInfo = new LazyLoaded(() => {
 			return locator.entityClient

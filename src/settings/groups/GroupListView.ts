@@ -42,9 +42,12 @@ export class GroupListView implements UpdatableSettingsViewer {
 	constructor(settingsView: SettingsView) {
 		this._settingsView = settingsView
 		this._listId = new LazyLoaded(() => {
-			return locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer)).then((customer) => {
-				return customer.teamGroups
-			})
+			return locator.logins
+				.getUserController()
+				.loadCustomer()
+				.then((customer) => {
+					return customer.teamGroups
+				})
 		})
 		this._localAdminGroupMemberships = locator.logins.getUserController().getLocalAdminGroupMemberships()
 		this.list = new List({

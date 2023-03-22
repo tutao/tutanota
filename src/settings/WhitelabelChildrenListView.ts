@@ -33,9 +33,12 @@ export class WhitelabelChildrenListView {
 	constructor(settingsView: SettingsView) {
 		this._settingsView = settingsView
 		this._listId = new LazyLoaded(() => {
-			return locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer)).then((customer) => {
-				return customer.whitelabelChildren ? customer.whitelabelChildren.items : null
-			})
+			return locator.logins
+				.getUserController()
+				.loadCustomer()
+				.then((customer) => {
+					return customer.whitelabelChildren ? customer.whitelabelChildren.items : null
+				})
 		})
 		this.list = new List({
 			rowHeight: size.list_row_height,

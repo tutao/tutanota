@@ -79,17 +79,20 @@ function loadCustomerAndInfo(): Promise<{
 	customerInfo: CustomerInfo
 	accountingInfo: AccountingInfo
 }> {
-	return locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer)).then((customer) =>
-		locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then((customerInfo) =>
-			locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then((accountingInfo) => {
-				return {
-					customer,
-					customerInfo,
-					accountingInfo,
-				}
-			}),
-		),
-	)
+	return locator.logins
+		.getUserController()
+		.loadCustomer()
+		.then((customer) =>
+			locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then((customerInfo) =>
+				locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then((accountingInfo) => {
+					return {
+						customer,
+						customerInfo,
+						accountingInfo,
+					}
+				}),
+			),
+		)
 }
 
 export async function showUpgradeWizard(): Promise<void> {
