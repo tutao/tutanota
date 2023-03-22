@@ -59,9 +59,6 @@ const { anything } = matchers
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
 async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
-	// const {OfflineDbFacade} = await import("../../../../../src/desktop/db/OfflineDbFacade.js")
-	// const {OfflineDb} = await import("../../../../../src/desktop/db/OfflineDb.js")
-
 	const { OfflineDbManager, PerWindowSqlCipherFacade } = await import("../../../../../src/desktop/db/PerWindowSqlCipherFacade.js")
 	const { DesktopSqlCipher } = await import("../../../../../src/desktop/DesktopSqlCipher.js")
 
@@ -101,7 +98,7 @@ node(() => testEntityRestCache("offline", getOfflineStorage))()
 export function testEntityRestCache(name: string, getStorage: (userId: Id) => Promise<CacheStorage>) {
 	const groupId = "groupId"
 	const batchId = "batchId"
-	o.spec("entity rest cache " + name, function () {
+	o.spec(`entity rest cache ${name}`, function () {
 		let storage: CacheStorage
 		let cache: DefaultEntityRestCache
 
@@ -560,6 +557,23 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 				unmockAttribute(loadMock)
 			})
+
+			// element notifications
+			o("When update event for cached entity is received but it can't be downloaded it is removed from cache", async function () {
+				let initialBody = createBodyInstance("id1", "hello")
+				await storage.put(initialBody)
+
+				const load = o.spy(async () => {
+					throw new NotFoundError("test!")
+				})
+				const loadMock = mockAttribute(entityRestClient, entityRestClient.load, load)
+				await cache.entityEventsReceived(makeBatch([createUpdate(MailBodyTypeRef, null as any, createId("id1"), OperationType.UPDATE)]))
+				o(load.callCount).equals(1) // entity is loaded from server
+				o(await storage.get(initialBody._type, null, initialBody._id)).equals(null)("the body is deleted from the cache")
+
+				unmockAttribute(loadMock)
+			})
+
 			o("element should be deleted from the cache when a delete event is received", async function () {
 				let initialBody = createBodyInstance("id1", "hello")
 				await storage.put(initialBody)

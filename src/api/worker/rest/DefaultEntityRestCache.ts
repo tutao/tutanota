@@ -729,7 +729,14 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				await this.storage.put(newEntity)
 				return update
 			} catch (e) {
-				return this._handleProcessingError(e)
+				// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexisting instance around.
+				// Even for list elements this should be safe as the instance is not there anymore and is definitely not in this version
+				const result = this._handleProcessingError(e)
+				if (result == null) {
+					console.log(`Instance not found when processing update for ${JSON.stringify(update)}, deleting from the cache.`)
+					await this.storage.deleteIfExists(typeRef, instanceListId, instanceId)
+				}
+				return result
 			}
 		}
 		return update
