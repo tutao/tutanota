@@ -22,6 +22,7 @@ import { firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
+import { ElementEntity } from "../../common/EntityTypes"
 import { EntityUpdateData } from "../../main/EventController"
 import { QueuedBatch } from "../EventQueue.js"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
@@ -116,9 +117,11 @@ export interface ExposedCacheStorage {
 	clearExcludedData(): Promise<void>
 
 	/**
-	 * remove an entity from the cache by typeRef and Id
+	 * remove an ElementEntity from the cache by typeRef and Id.
+	 * the exposed interface is intentionally more narrow than the internal cacheStorage because
+	 * we must maintain the integrity of our list ranges.
 	 * */
-	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
+	deleteIfExists<T extends ElementEntity>(typeRef: TypeRef<T>, listId: null, id: Id): Promise<void>
 }
 
 export interface CacheStorage extends ExposedCacheStorage {
@@ -163,6 +166,8 @@ export interface CacheStorage extends ExposedCacheStorage {
 	 * Retrieve the least processed batch id for a given group.
 	 */
 	getLastBatchIdForGroup(groupId: Id): Promise<Id | null>
+
+	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
 
 	purgeStorage(): Promise<void>
 
