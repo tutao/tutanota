@@ -248,12 +248,7 @@ export function getMailboxName(logins: LoginController, mailboxDetails: MailboxD
 	if (!logins.isInternalUserLoggedIn()) {
 		return lang.get("mailbox_label")
 	} else if (isUserMailbox(mailboxDetails)) {
-		const userController = logins.getUserController()
-		return userController.userGroupInfo &&
-			userController.props.defaultSender &&
-			contains(getEnabledMailAddressesForGroupInfo(userController.userGroupInfo), userController.props.defaultSender)
-			? userController.props.defaultSender
-			: userController.userGroupInfo.mailAddress ?? lang.get("mailbox_label")
+		return getDefaultSender(logins, mailboxDetails)
 	} else {
 		return getGroupInfoDisplayName(assertNotNull(mailboxDetails.mailGroupInfo, "mailboxDetails without mailGroupInfo?"))
 	}
