@@ -53,7 +53,7 @@ class RemoteBridge : NSObject, NativeInterface {
     self.globalDispatcher = IosGlobalDispatcher(
       commonSystemFacade: commonSystemFacade,
       fileFacade: fileFacade,
-      mobileSystemFacade: IosMobileSystemFacade(contactsSource: ContactsSource()),
+      mobileSystemFacade: IosMobileSystemFacade(contactsSource: ContactsSource(), viewController: self.viewController),
       nativeCredentialsFacade: nativeCredentialsFacade,
       nativeCryptoFacade: nativeCryptoFacade,
       nativePushFacade: nativePushFacade,
