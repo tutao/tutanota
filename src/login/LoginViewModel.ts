@@ -13,7 +13,6 @@ import { KeyPermanentlyInvalidatedError } from "../api/common/error/KeyPermanent
 import { assertMainOrNode } from "../api/common/Env"
 import { SessionType } from "../api/common/SessionType"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
-import { DatabaseKeyFactory } from "../misc/credentials/DatabaseKeyFactory"
 import { DeviceConfig } from "../misc/DeviceConfig"
 
 assertMainOrNode()
@@ -133,7 +132,6 @@ export class LoginViewModel implements ILoginViewModel {
 		private readonly loginController: LoginController,
 		private readonly credentialsProvider: CredentialsProvider,
 		private readonly secondFactorHandler: SecondFactorHandler,
-		private readonly databaseKeyFactory: DatabaseKeyFactory,
 		private readonly deviceConfig: DeviceConfig,
 	) {
 		this.state = LoginState.NotAuthenticated
@@ -327,18 +325,13 @@ export class LoginViewModel implements ILoginViewModel {
 		try {
 			const sessionType = savePassword ? SessionType.Persistent : SessionType.Login
 
-			let newDatabaseKey: Uint8Array | null = null
-			if (sessionType === SessionType.Persistent) {
-				newDatabaseKey = await this.databaseKeyFactory.generateKey()
-			}
-
-			const newCredentials = await this.loginController.createSession(mailAddress, password, sessionType, newDatabaseKey)
+			const { credentials, databaseKey } = await this.loginController.createSession(mailAddress, password, sessionType)
 			await this._onLogin()
 
 			// we don't want to have multiple credentials that
 			// * share the same userId with different mail addresses (may happen if a user chooses a different alias to log in than the one they saved)
 			// * share the same mail address (may happen if mail aliases are moved between users)
-			const storedCredentialsToDelete = this.savedInternalCredentials.filter((c) => c.login === mailAddress || c.userId === newCredentials.userId)
+			const storedCredentialsToDelete = this.savedInternalCredentials.filter((c) => c.login === mailAddress || c.userId === credentials.userId)
 
 			for (const credentialToDelete of storedCredentialsToDelete) {
 				const credentials = await this.credentialsProvider.getCredentialsByUserId(credentialToDelete.userId)
@@ -353,8 +346,8 @@ export class LoginViewModel implements ILoginViewModel {
 			if (savePassword) {
 				try {
 					await this.credentialsProvider.store({
-						credentials: newCredentials,
-						databaseKey: newDatabaseKey,
+						credentials,
+						databaseKey,
 					})
 				} catch (e) {
 					if (e instanceof KeyPermanentlyInvalidatedError) {

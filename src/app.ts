@@ -165,14 +165,7 @@ import("./translations/en")
 						return {
 							component: LoginView,
 							cache: {
-								makeViewModel: () =>
-									new LoginViewModel(
-										locator.logins,
-										locator.credentialsProvider,
-										locator.secondFactorHandler,
-										new DatabaseKeyFactory(locator.deviceEncryptionFacade),
-										deviceConfig,
-									),
+								makeViewModel: () => new LoginViewModel(locator.logins, locator.credentialsProvider, locator.secondFactorHandler, deviceConfig),
 								header: await locator.baseHeaderAttrs(),
 							},
 						}

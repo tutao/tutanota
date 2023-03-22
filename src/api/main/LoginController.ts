@@ -5,7 +5,7 @@ import type { UserController, UserControllerInitData } from "./UserController"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations"
 import { NotFoundError } from "../common/error/RestError"
 import { client } from "../../misc/ClientDetector"
-import type { LoginFacade } from "../worker/facades/LoginFacade"
+import type { LoginFacade, NewSessionData } from "../worker/facades/LoginFacade"
 import { ResumeSessionErrorReason } from "../worker/facades/LoginFacade"
 import type { Credentials } from "../../misc/credentials/Credentials"
 import { FeatureType } from "../common/TutanotaConstants"
@@ -65,15 +65,17 @@ export class LoginController {
 		return locator.loginFacade
 	}
 
-	async createSession(username: string, password: string, sessionType: SessionType, databaseKey: Uint8Array | null = null): Promise<Credentials> {
+	/**
+	 * create a new session and set up stored credentials and offline database, if applicable.
+	 * @param username the mail address being used to log in
+	 * @param password the password given to log in
+	 * @param sessionType whether to store the credentials in local storage
+	 * @param databaseKey if given, will use this key for the offline database. if not, will force a new database to be created and generate a key.
+	 */
+	async createSession(username: string, password: string, sessionType: SessionType, databaseKey: Uint8Array | null = null): Promise<NewSessionData> {
 		const loginFacade = await this.getLoginFacade()
-		const { user, credentials, sessionId, userGroupInfo } = await loginFacade.createSession(
-			username,
-			password,
-			client.getIdentifier(),
-			sessionType,
-			databaseKey,
-		)
+		const newSessionData = await loginFacade.createSession(username, password, client.getIdentifier(), sessionType, databaseKey)
+		const { user, credentials, sessionId, userGroupInfo } = newSessionData
 		await this.onPartialLoginSuccess(
 			{
 				user,
@@ -84,7 +86,7 @@ export class LoginController {
 			},
 			sessionType,
 		)
-		return credentials
+		return newSessionData
 	}
 
 	addPostLoginAction(handler: IPostLoginAction) {
