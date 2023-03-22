@@ -387,24 +387,29 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private updateAuditLog(): Promise<void> {
-		return locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer)).then((customer) => {
-			this.customer = customer
+		return locator.logins
+			.getUserController()
+			.loadCustomer()
+			.then((customer) => {
+				this.customer = customer
 
-			return locator.entityClient.loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true).then((auditLog) => {
-				this.auditLogLoaded = true // indicate that we do not need to reload the list again when we expand
-				this.auditLogLines = auditLog.map((auditLogEntry) => {
-					return {
-						cells: [auditLogEntry.action, auditLogEntry.modifiedEntity, formatDateTimeFromYesterdayOn(auditLogEntry.date)],
-						actionButtonAttrs: {
-							title: "showMore_action",
-							icon: Icons.More,
-							click: () => this.showAuditLogDetails(auditLogEntry, customer),
-							size: ButtonSize.Compact,
-						},
-					}
-				})
+				return locator.entityClient
+					.loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true)
+					.then((auditLog) => {
+						this.auditLogLoaded = true // indicate that we do not need to reload the list again when we expand
+						this.auditLogLines = auditLog.map((auditLogEntry) => {
+							return {
+								cells: [auditLogEntry.action, auditLogEntry.modifiedEntity, formatDateTimeFromYesterdayOn(auditLogEntry.date)],
+								actionButtonAttrs: {
+									title: "showMore_action",
+									icon: Icons.More,
+									click: () => this.showAuditLogDetails(auditLogEntry, customer),
+									size: ButtonSize.Compact,
+								},
+							}
+						})
+					})
 			})
-		})
 	}
 
 	private showAuditLogDetails(entry: AuditLogEntry, customer: Customer) {
@@ -606,7 +611,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async loadMailboxGroupDataAndCatchAllId(domainInfo: DomainInfo): Promise<{ available: Array<GroupData>; selected: GroupData | null }> {
-		const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+		const customer = await locator.logins.getUserController().loadCustomer()
 		const teamMailGroups = await loadEnabledTeamMailGroups(customer)
 		const userMailGroups = await loadEnabledUserMailGroups(customer)
 		const allMailGroups = teamMailGroups.concat(userMailGroups)

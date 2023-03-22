@@ -511,7 +511,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private loadCustomer(): Promise<Customer> {
-		return locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+		return locator.logins.getUserController().loadCustomer()
 	}
 
 	private loadTeamGroupInfos(): Promise<Array<GroupInfo>> {

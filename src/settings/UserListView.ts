@@ -37,7 +37,7 @@ export class UserListView implements UpdatableSettingsViewer {
 
 	constructor(private readonly settingsView: SettingsView) {
 		this.listId = new LazyLoaded(async () => {
-			const customer = await locator.entityClient.load(CustomerTypeRef, locator.logins.getUserController().user.customer!)
+			const customer = await locator.logins.getUserController().loadCustomer()
 			return customer.userGroups
 		})
 		this.list = new List({

@@ -503,44 +503,47 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateBookings(): Promise<void> {
-		return locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer)).then((customer) => {
-			return locator.entityClient
-				.load(CustomerInfoTypeRef, customer.customerInfo)
-				.catch(
-					ofClass(NotFoundError, (e) => {
-						console.log("could not update bookings as customer info does not exist (moved between free/premium lists)")
-					}),
-				)
-				.then((customerInfo) => {
-					if (!customerInfo) {
-						return
-					}
+		return locator.logins
+			.getUserController()
+			.loadCustomer()
+			.then((customer) => {
+				return locator.entityClient
+					.load(CustomerInfoTypeRef, customer.customerInfo)
+					.catch(
+						ofClass(NotFoundError, (e) => {
+							console.log("could not update bookings as customer info does not exist (moved between free/premium lists)")
+						}),
+					)
+					.then((customerInfo) => {
+						if (!customerInfo) {
+							return
+						}
 
-					this._customerInfo = customerInfo
-					return locator.entityClient
-						.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
-						.then(async (bookings) => {
-							const priceAndConfigProvider = await PriceAndConfigProvider.getInitializedInstance(null)
-							this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
-							this._customer = customer
-							this._isCancelled = customer.canceledPremiumAccount
-							this._currentSubscription = priceAndConfigProvider.getSubscriptionType(this._lastBooking, customer, customerInfo)
+						this._customerInfo = customerInfo
+						return locator.entityClient
+							.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+							.then(async (bookings) => {
+								const priceAndConfigProvider = await PriceAndConfigProvider.getInitializedInstance(null)
+								this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
+								this._customer = customer
+								this._isCancelled = customer.canceledPremiumAccount
+								this._currentSubscription = priceAndConfigProvider.getSubscriptionType(this._lastBooking, customer, customerInfo)
 
-							this._updateSubscriptionField(this._isCancelled)
+								this._updateSubscriptionField(this._isCancelled)
 
-							return Promise.all([
-								this._updateUserField(),
-								this._updateStorageField(customer, customerInfo),
-								this._updateAliasField(customer, customerInfo),
-								this._updateGroupsField(),
-								this._updateWhitelabelField(),
-								this._updateSharingField(),
-								this._updateBusinessFeatureField(),
-								this._updateContactFormsField(),
-							]).then(() => m.redraw())
-						})
-				})
-		})
+								return Promise.all([
+									this._updateUserField(),
+									this._updateStorageField(customer, customerInfo),
+									this._updateAliasField(customer, customerInfo),
+									this._updateGroupsField(),
+									this._updateWhitelabelField(),
+									this._updateSharingField(),
+									this._updateBusinessFeatureField(),
+									this._updateContactFormsField(),
+								]).then(() => m.redraw())
+							})
+					})
+			})
 	}
 
 	_updateUserField(): Promise<void> {

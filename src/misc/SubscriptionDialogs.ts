@@ -50,13 +50,16 @@ export function checkPremiumSubscription(included: boolean): Promise<boolean> {
 		return Promise.resolve(false)
 	}
 
-	return locator.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer)).then((customer) => {
-		if (customer.canceledPremiumAccount) {
-			return Dialog.message("subscriptionCancelledMessage_msg").then(() => false)
-		} else {
-			return Promise.resolve(true)
-		}
-	})
+	return locator.logins
+		.getUserController()
+		.loadCustomer()
+		.then((customer) => {
+			if (customer.canceledPremiumAccount) {
+				return Dialog.message("subscriptionCancelledMessage_msg").then(() => false)
+			} else {
+				return Promise.resolve(true)
+			}
+		})
 }
 
 export function showMoreStorageNeededOrderDialog(loginController: LoginController, messageIdOrMessageFunction: TranslationKey): Promise<void> {
