@@ -715,9 +715,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// No need to try to download something that's not there anymore
 		if (cached != null) {
 			try {
-				// if the password changed we'll be logged out at this point.
-				// not catching the NotAuthorized or NotAuthenticated Error that results of this to delete the user
-				// allows us to still use the offline login with the old user
+				// in case this is an update for the user instance: if the password changed we'll be logged out at this point
+				// if we don't catch the expected NotAuthenticated Error that results from trying to load anything with
+				// the old user.
+				// Letting the NotAuthenticatedError propagate to the main thread instead of trying to handle it ourselves
+				// or throwing out the update drops us onto the login page and into the session recovery flow if the user
+				// clicks their saved credentials again, but lets them still use offline login if they try to use the
+				// outdated credentials while not connected to the internet.
 				const newEntity = await this.entityRestClient.load(typeRef, collapseId(instanceListId, instanceId))
 				if (isSameTypeRef(typeRef, UserTypeRef)) {
 					await this.handleUpdatedUser(cached, newEntity)
