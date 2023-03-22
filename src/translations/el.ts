@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2023-03-09T18:22:03Z",
+	"updated_at": "2023-03-20T10:59:37Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -284,6 +284,7 @@ export default {
 		"continueSearchMailbox_msg": "Για να εκτελέσουμε αυτήν την αναζήτηση, πρέπει να κατεβάσουμε περισσότερα email από το διακομιστή, τα οποία μπορεί να χρειαστούν κάποιο χρόνο.",
 		"contractorInfo_msg": "Πληκτρολογήστε το όνομα και την διεύθυνση της συμβαλλόμενης εταιρίας. ",
 		"contractor_label": "Συμβαλλόμενα μέρη",
+		"conversationViewPref_label": "Νήμα συζήτησης",
 		"copyLinkError_msg": "Αποτυχία αντιγραφής συνδέσμου",
 		"copyLink_action": "Αντιγραφή διεύθυνση συνδέσμου ",
 		"copyToClipboard_action": "Αντιγραφή στο πρόχειρο",
@@ -1364,6 +1365,7 @@ export default {
 		"showOnlySelectedMail_label": "Εμφάνιση μόνο επιλεγμένου email",
 		"showRejectReason_action": "Εμφάνιση λόγου απόρριψης",
 		"showRichTextToolbar_action": "Εργαλεία διαμόρφωσης ",
+		"showText_action": "Εμφάνιση κειμένου",
 		"showURL_alt": "Άνοιγμα συνδέσμου",
 		"show_action": "Εμφάνιση",
 		"signedOn_msg": "Υπογράφτηκε στις {date}",
