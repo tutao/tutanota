@@ -180,16 +180,23 @@ export async function reloginForExpiredSession() {
 		// Otherwise we run into a race condition where login failure arrives before we initialize userController.
 		await logins.waitForPartialLogin()
 		console.log("RELOGIN", logins.isUserLoggedIn())
-		const sessionType = logins.getUserController().sessionType
+		const oldSessionType = logins.getUserController().sessionType
 		const userId = logins.getUserController().user._id
-		loginFacade.resetSession()
+		const mailAddress = neverNull(logins.getUserController().userGroupInfo.mailAddress)
+		// Fetch old credentials to preserve database key if it's there
+		const oldCredentials = await credentialsProvider.getCredentialsByUserId(userId)
+		const sessionReset = loginFacade.resetSession()
 		loginDialogActive = true
 
 		const dialog = Dialog.showRequestPasswordDialog({
 			action: async (pw) => {
+				await sessionReset
 				let credentials: Credentials
+				let databaseKey: Uint8Array | null
 				try {
-					credentials = await logins.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress), pw, sessionType)
+					const newSessionData = await logins.createSession(mailAddress, pw, oldSessionType, oldCredentials?.databaseKey)
+					credentials = newSessionData.credentials
+					databaseKey = newSessionData.databaseKey
 				} catch (e) {
 					if (
 						e instanceof CancelledError ||
@@ -207,12 +214,9 @@ export async function reloginForExpiredSession() {
 					// Once login succeeds we need to manually close the dialog
 					secondFactorHandler.closeWaitingForSecondFactorDialog()
 				}
-				// Fetch old credentials to preserve database key if it's there
-				const oldCredentials = await credentialsProvider.getCredentialsByUserId(userId)
-				await sqlCipherFacade?.closeDb()
 				await credentialsProvider.deleteByUserId(userId, { deleteOfflineDb: false })
-				if (sessionType === SessionType.Persistent) {
-					await credentialsProvider.store({ credentials: credentials, databaseKey: oldCredentials?.databaseKey })
+				if (oldSessionType === SessionType.Persistent) {
+					await credentialsProvider.store({ credentials, databaseKey })
 				}
 				loginDialogActive = false
 				dialog.close()

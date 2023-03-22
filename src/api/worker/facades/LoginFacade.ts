@@ -87,6 +87,7 @@ import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js
 import { EntropyFacade } from "./EntropyFacade.js"
 import { BlobAccessTokenFacade } from "./BlobAccessTokenFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
+import { DatabaseKeyFactory } from "../../../misc/credentials/DatabaseKeyFactory.js"
 
 assertWorkerOrNode()
 
@@ -95,6 +96,7 @@ export type NewSessionData = {
 	userGroupInfo: GroupInfo
 	sessionId: IdTuple
 	credentials: Credentials
+	databaseKey: Uint8Array | null
 }
 
 export type CacheInfo = {
@@ -179,6 +181,7 @@ export class LoginFacade {
 		private readonly userFacade: UserFacade,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 		private readonly entropyFacade: EntropyFacade,
+		private readonly databaseKeyFactory: DatabaseKeyFactory,
 	) {}
 
 	init(eventBusClient: EventBusClient) {
@@ -224,11 +227,18 @@ export class LoginFacade {
 		}
 		const createSessionReturn = await this.serviceExecutor.post(SessionService, createSessionData)
 		const sessionData = await this.waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress)
+
+		const forceNewDatabase = sessionType === SessionType.Persistent && databaseKey == null
+		if (forceNewDatabase) {
+			console.log("generating new database key for persistent session")
+			databaseKey = await this.databaseKeyFactory.generateKey()
+		}
+
 		const cacheInfo = await this.initCache({
 			userId: sessionData.userId,
 			databaseKey,
 			timeRangeDays: null,
-			forceNewDatabase: true,
+			forceNewDatabase,
 		})
 		const { user, userGroupInfo, accessToken } = await this.initSession(
 			sessionData.userId,
@@ -249,6 +259,9 @@ export class LoginFacade {
 				userId: sessionData.userId,
 				type: "internal",
 			},
+			// we always try to make a persistent cache with a key for persistent session, but this
+			// falls back to ephemeral cache in browsers. no point storing the key then.
+			databaseKey: cacheInfo.isPersistent ? databaseKey : null,
 		}
 	}
 
@@ -363,6 +376,7 @@ export class LoginFacade {
 				userId,
 				type: "external",
 			},
+			databaseKey: null,
 		}
 	}
 
@@ -598,6 +612,16 @@ export class LoginFacade {
 		}
 	}
 
+	/**
+	 * init an appropriate cache implementation. we will always try to create a persistent cache for persistent sessions and fall back to an ephemeral cache
+	 * in the browser.
+	 *
+	 * @param userId the user for which the cache is created
+	 * @param databaseKey the key to use
+	 * @param timeRangeDays how far into the past the cache keeps data around
+	 * @param forceNewDatabase true if the old database should be deleted if there is one
+	 * @private
+	 */
 	private async initCache({ userId, databaseKey, timeRangeDays, forceNewDatabase }: InitCacheOptions): Promise<CacheInfo> {
 		if (databaseKey != null) {
 			return this.cacheInitializer.initialize({ type: "offline", userId, databaseKey, timeRangeDays, forceNewDatabase })

@@ -78,7 +78,9 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		let login: Promise<Credentials | null> = Promise.resolve(null)
 
 		if (!locator.logins.isUserLoggedIn()) {
-			login = locator.logins.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, SessionType.Temporary)
+			login = locator.logins
+				.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, SessionType.Temporary)
+				.then((newSessionData) => newSessionData.credentials)
 		}
 
 		login
