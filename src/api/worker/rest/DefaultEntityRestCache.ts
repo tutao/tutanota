@@ -678,6 +678,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return otherEventUpdates.concat(flat(postMultipleEventUpdates))
 	}
 
+	/** Returns {null} when the update should be skipped. */
 	private async processCreateEvent(typeRef: TypeRef<any>, update: EntityUpdate, batch: ReadonlyArray<EntityUpdate>): Promise<EntityUpdate | null> {
 		// do not return undefined to avoid implicit returns
 		const { instanceId, instanceListId } = getUpdateInstanceId(update)
@@ -700,7 +701,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					.load(typeRef, [instanceListId, instanceId])
 					.then((entity) => this.storage.put(entity))
 					.then(() => update)
-					.catch((e) => this._handleProcessingError(e))
+					.catch((e) => {
+						if (isExpectedErrorForSynchronization(e)) {
+							return null
+						} else {
+							throw e
+						}
+					})
 			} else {
 				return update
 			}
@@ -709,6 +716,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		}
 	}
 
+	/** Returns {null} when the update should be skipped. */
 	private async processUpdateEvent(typeRef: TypeRef<SomeEntity>, update: EntityUpdate): Promise<EntityUpdate | null> {
 		const { instanceId, instanceListId } = getUpdateInstanceId(update)
 		const cached = await this.storage.get(typeRef, instanceListId, instanceId)
@@ -731,12 +739,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			} catch (e) {
 				// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexisting instance around.
 				// Even for list elements this should be safe as the instance is not there anymore and is definitely not in this version
-				const result = this._handleProcessingError(e)
-				if (result == null) {
+				if (isExpectedErrorForSynchronization(e)) {
 					console.log(`Instance not found when processing update for ${JSON.stringify(update)}, deleting from the cache.`)
 					await this.storage.deleteIfExists(typeRef, instanceListId, instanceId)
+					return null
+				} else {
+					throw e
 				}
-				return result
 			}
 		}
 		return update
@@ -760,17 +769,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	}
 
 	/**
-	 * @returns {null} to avoid implicit returns where it is called
-	 */
-	private _handleProcessingError(e: Error): null {
-		if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
-			return null
-		} else {
-			throw e
-		}
-	}
-
-	/**
 	 *
 	 * @returns {Array<Id>} the ids that are in cache range and therefore should be cached
 	 */
@@ -783,6 +781,14 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		}
 		return ret
 	}
+}
+
+/**
+ * Returns whether the error is expected for the cases where our local state might not be up-to-date with the server yet. E.g. we might be processing an update
+ * for the instance that was already deleted. Normally this would be optimized away but it might still happen due to timing.
+ */
+function isExpectedErrorForSynchronization(e: Error): boolean {
+	return e instanceof NotFoundError || e instanceof NotAuthorizedError
 }
 
 export function expandId(id: Id | IdTuple): { listId: Id | null; elementId: Id } {
