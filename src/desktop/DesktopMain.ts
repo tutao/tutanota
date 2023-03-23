@@ -20,10 +20,10 @@ import { log } from "./DesktopLog"
 import { UpdaterWrapperImpl } from "./UpdaterWrapper"
 import { ElectronNotificationFactory } from "./NotificatonFactory"
 import { KeytarSecretStorage } from "./sse/SecretStorage"
-import fs from "fs"
+import fs from "node:fs"
 import { DesktopIntegrator, getDesktopIntegratorForPlatform } from "./integration/DesktopIntegrator"
-import net from "net"
-import child_process from "child_process"
+import net from "node:net"
+import child_process from "node:child_process"
 import { LocalShortcutManager } from "./electron-localshortcut/LocalShortcut"
 import { cryptoFns } from "./CryptoFns"
 import { DesktopConfigMigrator } from "./config/migrations/DesktopConfigMigrator"
@@ -36,7 +36,7 @@ import { DesktopThemeFacade } from "./DesktopThemeFacade"
 import { BuildConfigKey, DesktopConfigKey } from "./config/ConfigKeys"
 import { DesktopNativeCredentialsFacade } from "./credentials/DesktopNativeCredentialsFacade.js"
 import { WebDialogController } from "./WebDialog.js"
-import path from "path"
+import path from "node:path"
 import { DesktopContextMenu } from "./DesktopContextMenu.js"
 import { DesktopNativePushFacade } from "./sse/DesktopNativePushFacade.js"
 import { NativeCredentialsFacade } from "../native/common/generatedipc/NativeCredentialsFacade.js"
@@ -58,6 +58,7 @@ import { OfflineDbFactory, OfflineDbManager, PerWindowSqlCipherFacade } from "./
 import { SqlCipherFacade } from "../native/common/generatedipc/SqlCipherFacade.js"
 import { DesktopSqlCipher } from "./DesktopSqlCipher.js"
 import { lazyMemoized } from "@tutao/tutanota-utils"
+import dns from "node:dns"
 
 /**
  * Should be injected during build time.
@@ -66,6 +67,8 @@ import { lazyMemoized } from "@tutao/tutanota-utils"
 declare const buildOptions: {
 	readonly sqliteNativePath: string
 }
+
+dns.setDefaultResultOrder("ipv4first")
 
 setupAssetProtocol(electron)
 
