@@ -7,7 +7,7 @@ import { EntityClient } from "../../api/common/EntityClient.js"
 import { LoadingStateTracker } from "../../offline/LoadingState.js"
 import { EntityEventsListener, EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
 import { ConversationType, MailFolderType, MailState, OperationType } from "../../api/common/TutanotaConstants.js"
-import { NotFoundError } from "../../api/common/error/RestError.js"
+import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
 import { normalizeSubject } from "../model/MailUtils.js"
 import { isOfTypeOrSubfolderOf } from "../../api/common/mail/CommonMailUtils.js"
 import { MailModel } from "../model/MailModel.js"
@@ -184,9 +184,22 @@ export class ConversationViewModel {
 			if (this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()) {
 				this.conversation = this.conversationItemsForSelectedMailOnly()
 			} else {
-				const conversationEntries = await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(this.primaryMail.conversationEntry))
-				const allMails = await this.loadMails(conversationEntries)
-				this.conversation = this.createConversationItems(conversationEntries, allMails)
+				this.conversation = await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(this.primaryMail.conversationEntry)).then(
+					async (entries) => {
+						const allMails = await this.loadMails(entries)
+						return this.createConversationItems(entries, allMails)
+					},
+					async (e) => {
+						if (e instanceof NotAuthorizedError) {
+							// Most likely the conversation entry list does not exist anymore. The server does not distinguish between the case when the
+							// list does not exist and when we have no permission on it (and for good reasons, it prevents enumeration).
+							// Most often it happens when we are not fully synced with the server yet and the primary mail does not even exist.
+							return this.conversationItemsForSelectedMailOnly()
+						} else {
+							throw e
+						}
+					},
+				)
 			}
 		} finally {
 			this.onUiUpdate()
