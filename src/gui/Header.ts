@@ -215,7 +215,7 @@ export class Header implements Component<HeaderAttrs> {
 		if (!styles.isUsingBottomNavigation()) return null
 
 		const header = (title: string, left?: Children, right?: Children) => {
-			return m(".text-center.header-middle.text-ellipsis.b", [left || null, m(".mt-s", title), right || null])
+			return m(".flex-center.header-middle.b", [left || null, m(".mt-s.text-ellipsis", title), right || null])
 		}
 
 		if (this.mobileSearchBarVisible()) {
