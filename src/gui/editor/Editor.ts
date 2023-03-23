@@ -9,6 +9,7 @@ import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { isKeyPressed } from "../../misc/KeyManager"
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
+type ImagePasteEvent = CustomEvent<{ clipboardData: DataTransfer }>
 export type Style = "b" | "i" | "u" | "c" | "a"
 export type Alignment = "left" | "center" | "right" | "justify"
 export type Listing = "ol" | "ul"
@@ -63,25 +64,25 @@ export class Editor implements ImageHandler, Component {
 		}
 	}
 
-	/**
-	 * @param dataTransfer Image data from the clipboard.
-	 */
-	onPasteImage(dataTransfer: any) {
-		const items = [...dataTransfer.detail.clipboardData.items]
+	private onPasteImage({ detail }: ImagePasteEvent) {
+		const items = Array.from(detail.clipboardData.items)
 		const imageItems = items.filter((item) => /image/.test(item.type))
-
 		if (!imageItems.length) {
 			return false
 		}
-
+		const file = imageItems[0]?.getAsFile()
+		if (file == null) {
+			return false
+		}
 		const reader = new FileReader()
 
-		reader.onload = (loadEvent: ProgressEvent) => {
-			const target: any = loadEvent.target
-			this.insertImage(target.result)
+		reader.onload = () => {
+			if ("string" !== typeof reader.result) {
+				return
+			}
+			this.insertImage(reader.result)
 		}
-
-		reader.readAsDataURL(imageItems[0].getAsFile())
+		reader.readAsDataURL(file)
 	}
 
 	view(): Children {
@@ -139,7 +140,7 @@ export class Editor implements ImageHandler, Component {
 					createList(blocks, /^\*\s$/, false) // create an unordered list if a line is started with '* '
 				}
 			})
-			.addEventListener("pasteImage", this.onPasteImage)
+			.addEventListener("pasteImage", (e: ImagePasteEvent) => this.onPasteImage(e))
 		this.squire = squire
 
 		// Suppress paste events if pasting while disabled
