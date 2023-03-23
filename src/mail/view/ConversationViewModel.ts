@@ -184,6 +184,9 @@ export class ConversationViewModel {
 			if (this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()) {
 				this.conversation = this.conversationItemsForSelectedMailOnly()
 			} else {
+				// Catch errors but only for loading conversation entries.
+				// if success, proceed with loading mails
+				// otherwise do the error handling
 				this.conversation = await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(this.primaryMail.conversationEntry)).then(
 					async (entries) => {
 						const allMails = await this.loadMails(entries)
