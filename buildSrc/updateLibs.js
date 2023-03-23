@@ -22,7 +22,7 @@ const clientDependencies = [
 	"../node_modules/systemjs/dist/s.js",
 	"../node_modules/mithril/mithril.js",
 	"../node_modules/mithril/stream/stream.js",
-	"../node_modules/squire-rte/build/squire-raw.js",
+	"../node_modules/squire-rte/dist/squire-raw.mjs",
 	"../node_modules/dompurify/dist/purify.js",
 	{ src: "../node_modules/linkifyjs/dist/linkify.module.js", target: "linkify.js" },
 	{ src: "../node_modules/linkifyjs/dist/linkify-html.module.js", target: "linkify-html.js" },
