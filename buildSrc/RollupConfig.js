@@ -4,7 +4,7 @@ import path from "path"
 export const dependencyMap = {
 	mithril: path.normalize("./libs/mithril.js"),
 	"mithril/stream": path.normalize("./libs/stream.js"),
-	"squire-rte": path.normalize("./libs/squire-raw.js"),
+	"squire-rte": path.normalize("./libs/squire-raw.mjs"),
 	dompurify: path.normalize("./libs/purify.js"),
 	"qrcode-svg": path.normalize("./libs/qrcode.js"),
 	jszip: path.normalize("./libs/jszip.js"),
