@@ -21,11 +21,10 @@ import { elementIdPart, GENERATED_MAX_ID } from "../api/common/utils/EntityUtils
 import { ListColumnWrapper } from "../gui/ListColumnWrapper.js"
 import { assertMainOrNode } from "../api/common/Env.js"
 import { locator } from "../api/main/MainLocator.js"
-import Stream from "mithril/stream"
 import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs.js"
 import * as AddUserDialog from "./AddUserDialog.js"
 import { SelectableRowContainer, setSelectedRowStyle, setVisibility } from "../gui/SelectableRowContainer.js"
-import { theme } from "../gui/theme.js"
+import Stream from "mithril/stream"
 
 assertMainOrNode()
 const className = "user-list"
@@ -95,13 +94,12 @@ export class UserListView implements UpdatableSettingsViewer {
 		})
 
 		this.list.loadInitial()
-		const searchBar = neverNull(locator.header.searchBar)
 
 		this.listId.getAsync().then((listId) => {
-			searchBar.setGroupInfoRestrictionListId(listId)
+			locator.search.setGroupInfoRestrictionListId(listId)
 		})
 
-		this.searchResultStreamDependency = searchBar.lastSelectedGroupInfoResult.map((groupInfo) => {
+		this.searchResultStreamDependency = locator.search.lastSelectedGroupInfoResult.map((groupInfo) => {
 			if (this.listId.isLoaded() && this.listId.getSync() === groupInfo._id[0]) {
 				this.list.scrollToIdAndSelect(groupInfo._id[1])
 			}

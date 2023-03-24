@@ -11,7 +11,7 @@ import { isNavButtonSelected, NavButton, NavButtonColor } from "../../gui/base/N
 import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { SearchListView, SearchResultListEntry } from "./SearchListView"
-import { size } from "../../gui/size"
+import { px, size } from "../../gui/size"
 import {
 	createRestriction,
 	getFreeSearchStartDate,
@@ -30,7 +30,7 @@ import { showDateRangeSelectionDialog } from "../../gui/date/DatePickerDialog"
 import { Icons } from "../../gui/base/icons/Icons"
 import { PageSize } from "../../gui/base/List"
 import { MultiSelectionBar } from "../../gui/base/MultiSelectionBar"
-import { BaseHeaderAttrs } from "../../gui/Header.js"
+import { BaseHeaderAttrs, Header } from "../../gui/Header.js"
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { isUpdateForTypeRef } from "../../api/main/EventController"
 import { getStartOfTheWeekOffsetForUser } from "../../calendar/date/CalendarUtils"
@@ -69,6 +69,7 @@ import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../gui/theme.js"
 import { SearchResult } from "../../api/worker/search/SearchTypes.js"
 import { isSameSearchRestriction } from "../model/SearchModel.js"
+import { searchBar } from "../SearchBar.js"
 
 assertMainOrNode()
 
@@ -181,7 +182,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 		this.oncreate = (vnode) => {
 			keyManager.registerShortcuts(shortcuts)
-			neverNull(locator.header.searchBar).setReturnListener(() => this.resultListColumn.focus())
 			locator.eventController.addEntityListener(this.entityListener)
 			this.mailboxSubscription = locator.mailModel.mailboxDetails.map((mailboxes) => this.onMailboxesChanged(mailboxes))
 		}
@@ -191,7 +191,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			this.loadingAllForSearchResult = null
 
 			keyManager.unregisterShortcuts(shortcuts)
-			neverNull(locator.header.searchBar).setReturnListener(noOp)
 			locator.eventController.removeEntityListener(this.entityListener)
 			this.mailboxSubscription?.end(true)
 		}
@@ -326,10 +325,16 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return m(
 			"#search.main-view",
 			m(this.viewSlider, {
-				header: m(locator.header, {
+				header: m(Header, {
 					headerView: this.renderHeaderView(),
 					rightView: this.renderHeaderRightView(),
 					viewSlider: this.viewSlider,
+					searchBar: () =>
+						m(searchBar, {
+							placeholder: this.searchBarPlaceholder(),
+							returnListener: () => this.resultListColumn.focus(),
+						}),
+					centerContent: () => this.centerContent(),
 					...attrs.header,
 				}),
 				bottomNav:
@@ -338,6 +343,25 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						: m(BottomNav),
 			}),
 		)
+	}
+
+	private searchBarPlaceholder() {
+		return lang.get(m.route.get().startsWith("/search/mail") ? "searchEmails_placeholder" : "searchContacts_placeholder")
+	}
+
+	private centerContent() {
+		return styles.isUsingBottomNavigation()
+			? m(searchBar, {
+					alwaysExpanded: true,
+					classes: ".flex-center",
+					placeholder: this.searchBarPlaceholder(),
+					style: {
+						height: "100%",
+						"margin-left": px(size.navbar_edge_width_mobile),
+						"margin-right": px(size.navbar_edge_width_mobile),
+					},
+			  })
+			: null
 	}
 
 	_renderSearchFilters(): Children {

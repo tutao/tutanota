@@ -90,7 +90,7 @@ export class WhitelabelChildrenListView {
 		}
 
 		this.list.loadInitial()
-		this._searchResultStreamDependency = neverNull(locator.header.searchBar).lastSelectedWhitelabelChildrenInfoResult.map((whitelabelChild) => {
+		this._searchResultStreamDependency = locator.search.lastSelectedWhitelabelChildrenInfoResult.map((whitelabelChild) => {
 			if (this._listId.isLoaded() && this._listId.getSync() === whitelabelChild._id[0]) {
 				this.list.scrollToIdAndSelect(whitelabelChild._id[1])
 			}

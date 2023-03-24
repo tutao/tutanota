@@ -5,7 +5,7 @@ import { ColumnType, ViewColumn } from "../gui/base/ViewColumn"
 import { ViewSlider } from "../gui/nav/ViewSlider.js"
 import { SettingsFolder } from "./SettingsFolder"
 import { lang } from "../misc/LanguageViewModel"
-import { BaseHeaderAttrs } from "../gui/Header.js"
+import { BaseHeaderAttrs, Header } from "../gui/Header.js"
 import { LoginSettingsViewer } from "./login/LoginSettingsViewer.js"
 import { GlobalSettingsViewer } from "./GlobalSettingsViewer"
 import { DesktopSettingsViewer } from "./DesktopSettingsViewer"
@@ -62,6 +62,7 @@ import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
+import { searchBar } from "../search/SearchBar.js"
 import { ReferralSettingsViewer } from "./ReferralSettingsViewer.js"
 import { LoginController } from "../api/main/LoginController.js"
 
@@ -410,13 +411,31 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		return m(
 			"#settings.main-view",
 			m(this.viewSlider, {
-				header: m(locator.header, {
+				header: m(Header, {
 					viewSlider: this.viewSlider,
+					searchBar: () => this.renderSearchBar(),
 					...attrs.header,
 				}),
 				bottomNav: m(BottomNav),
 			}),
 		)
+	}
+
+	private renderSearchBar(): Children {
+		const route = m.route.get()
+		return route.startsWith("/settings/users")
+			? m(searchBar, {
+					placeholder: lang.get("searchUsers_placeholder"),
+			  })
+			: route.startsWith("/settings/groups")
+			? m(searchBar, {
+					placeholder: lang.get("searchGroups_placeholder"),
+			  })
+			: route.startsWith("settings/whitelabelaccounts")
+			? m(searchBar, {
+					placeholder: lang.get("emptyString_msg"),
+			  })
+			: null
 	}
 
 	_createSettingsFolderNavButton(folder: SettingsFolder<unknown>): NavButtonAttrs {

@@ -7,7 +7,7 @@ import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { isSelectedPrefix } from "../../gui/base/NavButton.js"
 import { Dialog } from "../../gui/base/Dialog"
 import { FeatureType, Keys, MailFolderType } from "../../api/common/TutanotaConstants"
-import { BaseHeaderAttrs } from "../../gui/Header.js"
+import { BaseHeaderAttrs, Header } from "../../gui/Header.js"
 import type { Mail, MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
 import { assertNotNull, defer, getFirstOrThrow, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
@@ -46,6 +46,7 @@ import { assertSystemFolderOfType, isSpamOrTrashFolder, isSubfolderOfType } from
 import { FolderColumnView } from "../../gui/FolderColumnView.js"
 import { SidebarSection } from "../../gui/SidebarSection.js"
 import { EditFoldersDialog } from "./EditFoldersDialog.js"
+import { searchBar } from "../../search/SearchBar.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { ConversationViewModel } from "./ConversationViewModel.js"
 import { ConversationViewer } from "./ConversationViewer.js"
@@ -256,10 +257,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				},
 			},
 			m(this.viewSlider, {
-				header: m(locator.header, {
+				header: m(Header, {
 					headerView: this.renderHeaderView(),
 					rightView: this.renderHeaderRightView(),
 					viewSlider: this.viewSlider,
+					searchBar: () =>
+						m(searchBar, {
+							placeholder: lang.get("searchEmails_placeholder"),
+						}),
 					...attrs.header,
 				}),
 				bottomNav:
