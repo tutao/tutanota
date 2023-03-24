@@ -45,11 +45,12 @@ export type ShowMoreAction = {
 	indexTimestamp: number
 	allowShowMore: boolean
 }
-type SearchBarAttrs = {
+export type SearchBarAttrs = {
 	classes?: string
 	style?: Record<string, string>
 	alwaysExpanded?: boolean
 	placeholder?: string | null
+	returnListener?: (() => unknown) | null
 }
 const SEARCH_INPUT_WIDTH = 200 // includes input field and close/progress icon
 
@@ -74,22 +75,18 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	private _state: Stream<SearchBarState>
 	oncreate: Component<SearchBarAttrs>["oncreate"]
 	busy: boolean
-	private _groupInfoRestrictionListId: Id | null
 	lastSelectedGroupInfoResult: Stream<GroupInfo>
 	lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild>
 	private _closeOverlayFunction: (() => Promise<void>) | null = null
 	private _overlayContentComponent: Component
-	private _returnListener: () => void
 	private _confirmDialogShown: boolean = false
 
 	constructor() {
-		this._groupInfoRestrictionListId = null
 		this.lastSelectedGroupInfoResult = stream()
 		this.lastSelectedWhitelabelChildrenInfoResult = stream()
 		this.focused = false
 		this.skipNextBlur = stream<boolean>(false)
 		this.busy = false
-		this._returnListener = noOp
 		this._state = stream<SearchBarState>({
 			query: "",
 			searchResult: null,
@@ -380,11 +377,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		]
 	}
 
-	// TODO: remove this and take the list id from the url as soon as the list id is included in user and group settings
-	setGroupInfoRestrictionListId(listId: Id) {
-		this._groupInfoRestrictionListId = listId
-	}
-
 	_downloadResults({ results, restriction }: SearchResult): Promise<Array<Entry>> {
 		if (results.length === 0) {
 			return Promise.resolve([])
@@ -471,7 +463,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		let restriction = this._getRestriction()
 
 		if (isSameTypeRef(restriction.type, GroupInfoTypeRef)) {
-			restriction.listId = this._groupInfoRestrictionListId
+			restriction.listId = locator.search.getGroupInfoRestrictionListId()
 		}
 
 		if (!locator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef) && !this._confirmDialogShown) {
@@ -641,7 +633,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		return filteredInstances
 	}
 
-	_getInputField(attrs: any): Children {
+	_getInputField(attrs: SearchBarAttrs): Children {
 		return m("input.input.input-no-clear", {
 			"aria-autocomplete": "list",
 			tabindex: this.expanded ? TabIndex.Default : TabIndex.Programmatic,
@@ -702,7 +694,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 								}
 							}
 
-							this._returnListener()
+							attrs
 						},
 					},
 					{
@@ -789,10 +781,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		return SEARCH_INPUT_WIDTH + 40 // includes  input width + search icon(21) + margin right(15) + spacer(4)
 	}
 
-	setReturnListener(listener: () => void) {
-		this._returnListener = listener
-	}
-
 	_updateState(update: Partial<SearchBarState>): SearchBarState {
 		const newState = Object.assign({}, this._state(), update)
 
@@ -801,3 +789,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		return newState
 	}
 }
+
+// Should be change to not be a singleton and be proper component (instantiated by mithril).
+// We need to extract some state of it into some kind of viewModel, pluggable depending on the current view but this requires complete rewrite of SearchBar.
+export const searchBar = new SearchBar()

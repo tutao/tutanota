@@ -13,10 +13,9 @@ import { Autocomplete, TextField, TextFieldType as TextFieldType } from "../gui/
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { MessageBox } from "../gui/base/MessageBox.js"
 import { renderInfoLinks } from "./LoginView"
-import { BaseHeaderAttrs } from "../gui/Header.js"
+import { BaseHeaderAttrs, Header } from "../gui/Header.js"
 import { GENERATED_MIN_ID } from "../api/common/utils/EntityUtils"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../misc/LoginUtils"
-import { locator } from "../api/main/MainLocator"
 import type { CredentialsProvider } from "../misc/credentials/CredentialsProvider.js"
 import { assertMainOrNode } from "../api/common/Env"
 import type { Credentials } from "../misc/credentials/Credentials"
@@ -24,6 +23,7 @@ import { SessionType } from "../api/common/SessionType.js"
 import { ResumeSessionErrorReason } from "../api/worker/facades/LoginFacade"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
+import { locator } from "../api/main/MainLocator.js"
 
 assertMainOrNode()
 
@@ -196,7 +196,7 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 
 	view({ attrs }: Vnode<ExternalLoginViewAttrs>): Children {
 		return m(".main-view", [
-			m(locator.header, {
+			m(Header, {
 				viewSlider: null,
 				...attrs.header,
 			}),

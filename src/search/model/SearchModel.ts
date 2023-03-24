@@ -7,6 +7,7 @@ import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../.
 import { arrayEquals, isSameTypeRef, ofClass } from "@tutao/tutanota-utils"
 import type { SearchFacade } from "../../api/worker/search/SearchFacade"
 import { assertMainOrNode } from "../../api/common/Env"
+import { GroupInfo, WhitelabelChild } from "../../api/entities/sys/TypeRefs.js"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -21,14 +22,19 @@ export class SearchModel {
 	indexState: Stream<SearchIndexStateInfo>
 	lastQuery: Stream<string | null>
 	indexingSupported: boolean
+	lastSelectedGroupInfoResult: Stream<GroupInfo>
+	lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild>
 	_searchFacade: SearchFacade
 	_lastQuery: SearchQuery | null
 	_lastSearchPromise: Promise<SearchResult | void>
+	_groupInfoRestrictionListId: Id | null
 
 	constructor(searchFacade: SearchFacade) {
 		this._searchFacade = searchFacade
 		this.result = stream()
 		this.lastQuery = stream<string | null>("")
+		this.lastSelectedGroupInfoResult = stream()
+		this.lastSelectedWhitelabelChildrenInfoResult = stream()
 		this.indexingSupported = true
 		this.indexState = stream<SearchIndexStateInfo>({
 			initializing: true,
@@ -41,6 +47,7 @@ export class SearchModel {
 		})
 		this._lastQuery = null
 		this._lastSearchPromise = Promise.resolve(undefined)
+		this._groupInfoRestrictionListId = null
 	}
 
 	async search(searchQuery: SearchQuery): Promise<SearchResult | void> {
@@ -117,6 +124,15 @@ export class SearchModel {
 		}
 
 		return !isSameSearchRestriction(restriction, result.restriction)
+	}
+
+	// TODO: remove this and take the list id from the url as soon as the list id is included in user and group settings
+	setGroupInfoRestrictionListId(listId: Id) {
+		this._groupInfoRestrictionListId = listId
+	}
+
+	getGroupInfoRestrictionListId(): Id | null {
+		return this._groupInfoRestrictionListId
 	}
 }
 

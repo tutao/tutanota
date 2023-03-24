@@ -1,8 +1,7 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, ClassComponent, Vnode } from "mithril"
 import { NavBar } from "./base/NavBar.js"
 import { NavButton, NavButtonColor } from "./base/NavButton.js"
 import { styles } from "./styles.js"
-import { neverNull } from "@tutao/tutanota-utils"
 import type { Shortcut } from "../misc/KeyManager.js"
 import { keyManager } from "../misc/KeyManager.js"
 import { lang } from "../misc/LanguageViewModel.js"
@@ -10,9 +9,7 @@ import { theme } from "./theme.js"
 import { FeatureType, Keys } from "../api/common/TutanotaConstants.js"
 import { px, size as sizes } from "./size.js"
 import { BootIcons } from "./base/icons/BootIcons.js"
-import type { SearchBar } from "../search/SearchBar.js"
-import type { IMainLocator } from "../api/main/MainLocator.js"
-import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX } from "../misc/RouteChange.js"
+import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes } from "../misc/RouteChange.js"
 import { AriaLandmarks, landmarkAttrs } from "./AriaUtils.js"
 import type { ViewSlider } from "./nav/ViewSlider.js"
 import { assertMainOrNode } from "../api/common/Env.js"
@@ -23,6 +20,7 @@ import { CounterBadge } from "./base/CounterBadge.js"
 import { SessionType } from "../api/common/SessionType.js"
 import { NewsModel } from "../misc/news/NewsModel.js"
 import { LoginController } from "../api/main/LoginController.js"
+import { locator } from "../api/main/MainLocator.js"
 
 const LogoutPath = "/login?noAutoLogin=true"
 export const LogoutUrl: string = window.location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath
@@ -39,41 +37,29 @@ export interface HeaderAttrs extends BaseHeaderAttrs {
 	rightView?: Children
 	handleBackPress?: () => boolean
 	overrideBackIcon?: "back" | "menu"
+	/** search bar, only rendered when NOT using bottom navigation */
+	searchBar?: () => Children
+	/** content in the center of the search bar, where title and offline status normally are */
+	centerContent?: () => Children
 }
 
-export class Header implements Component<HeaderAttrs> {
-	searchBar: SearchBar | null = null
-
-	private readonly shortcuts: Shortcut[]
-
-	constructor(private readonly logins: LoginController) {
-		this.shortcuts = this.setupShortcuts()
-
-		import("../search/SearchBar.js").then(({ SearchBar }) => {
-			this.searchBar = new SearchBar()
-			m.redraw()
-		})
-
-		// we may be able to remove this when we stop creating the Header with new
-		this.view = this.view.bind(this)
-		this.onremove = this.onremove.bind(this)
-		this.oncreate = this.oncreate.bind(this)
-	}
+export class Header implements ClassComponent<HeaderAttrs> {
+	private shortcuts: Shortcut[] = this.setupShortcuts()
 
 	view({ attrs }: Vnode<HeaderAttrs>): Children {
 		// Do not return undefined if headerView is not present
 		const injectedView = attrs.headerView
 		return m(".header-nav.overflow-hidden.flex.items-end.flex-center", [
-			isNotTemporary(this.logins) ? m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }) : null,
+			isNotTemporary(locator.logins) ? m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }) : null,
 			injectedView
 				? // Make sure this wrapper takes up the full height like the things inside it expect
 				  m(".flex-grow.height-100p", injectedView)
 				: [this.renderLeftContent(attrs), this.renderCenterContent(attrs), this.renderRightContent(attrs)],
 			styles.isUsingBottomNavigation() &&
-			this.logins.isAtLeastPartiallyLoggedIn() &&
-			!this.mobileSearchBarVisible() &&
+			locator.logins.isAtLeastPartiallyLoggedIn() &&
+			!attrs.centerContent &&
 			!injectedView &&
-			isNotTemporary(this.logins)
+			isNotTemporary(locator.logins)
 				? m(OfflineIndicatorMobile, attrs.offlineIndicatorModel.getCurrentAttrs())
 				: null,
 		])
@@ -102,26 +88,20 @@ export class Header implements Component<HeaderAttrs> {
 	private renderFullNavigation(attrs: HeaderAttrs): Children {
 		return m(
 			".header-right.pr-l.mr-negative-m.flex-end.items-center",
-			this.logins.isAtLeastPartiallyLoggedIn()
+			locator.logins.isAtLeastPartiallyLoggedIn()
 				? [
-						this.renderDesktopSearchBar(),
+						this.renderDesktopSearchBar(attrs),
 						m(OfflineIndicatorDesktop, attrs.offlineIndicatorModel.getCurrentAttrs()),
 						m(".nav-bar-spacer"),
 						m(NavBar, this.renderButtons(attrs)),
 				  ]
-				: [this.renderDesktopSearchBar(), m(NavBar, this.renderButtons(attrs))],
+				: [this.renderDesktopSearchBar(attrs), m(NavBar, this.renderButtons(attrs))],
 		)
 	}
 
-	private renderDesktopSearchBar(): Children {
-		return this.searchBar && this.desktopSearchBarVisible()
-			? [
-					m(this.searchBar, {
-						placeholder: this.searchPlaceholder(),
-					}),
-					m(".nav-bar-spacer"),
-			  ]
-			: null
+	private renderDesktopSearchBar(attrs: HeaderAttrs): Children {
+		const searchBar = attrs.searchBar?.()
+		return searchBar ? [searchBar, m(".nav-bar-spacer")] : null
 	}
 
 	private focusMain(attrs: HeaderAttrs) {
@@ -130,7 +110,7 @@ export class Header implements Component<HeaderAttrs> {
 
 	private renderButtons(attrs: HeaderAttrs): Children {
 		// We assign click listeners to buttons to move focus correctly if the view is already open
-		return this.logins.isInternalUserLoggedIn()
+		return locator.logins.isInternalUserLoggedIn()
 			? [
 					m(NavButton, {
 						label: "emails_label",
@@ -140,7 +120,7 @@ export class Header implements Component<HeaderAttrs> {
 						colors: NavButtonColor.Header,
 						click: () => m.route.get() === navButtonRoutes.mailUrl && this.focusMain(attrs),
 					}),
-					!this.logins.isEnabled(FeatureType.DisableContacts)
+					!locator.logins.isEnabled(FeatureType.DisableContacts)
 						? m(NavButton, {
 								label: "contacts_label",
 								icon: () => BootIcons.Contacts,
@@ -150,7 +130,7 @@ export class Header implements Component<HeaderAttrs> {
 								click: () => m.route.get() === navButtonRoutes.contactsUrl && this.focusMain(attrs),
 						  })
 						: null,
-					!this.logins.isEnabled(FeatureType.DisableCalendar)
+					!locator.logins.isEnabled(FeatureType.DisableCalendar)
 						? m(NavButton, {
 								label: "calendar_label",
 								icon: () => BootIcons.Calendar,
@@ -163,42 +143,29 @@ export class Header implements Component<HeaderAttrs> {
 			: null
 	}
 
-	private mobileSearchBarVisible(): boolean {
-		let route = m.route.get()
-		let locator: IMainLocator | null = window.tutao.locator
-		return (
-			this.searchBar != null &&
-			locator != null &&
-			!locator.search.indexState().initializing &&
-			styles.isUsingBottomNavigation() &&
-			this.logins.isInternalUserLoggedIn() &&
-			route.startsWith(SEARCH_PREFIX)
-		)
-	}
-
 	private setupShortcuts(): Shortcut[] {
 		return [
 			{
 				key: Keys.M,
-				enabled: () => this.logins.isUserLoggedIn(),
+				enabled: () => locator.logins.isUserLoggedIn(),
 				exec: (key) => m.route.set(navButtonRoutes.mailUrl),
 				help: "mailView_action",
 			},
 			{
 				key: Keys.C,
-				enabled: () => this.logins.isInternalUserLoggedIn() && !this.logins.isEnabled(FeatureType.DisableContacts),
+				enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.DisableContacts),
 				exec: (key) => m.route.set(navButtonRoutes.contactsUrl),
 				help: "contactView_action",
 			},
 			{
 				key: Keys.O,
-				enabled: () => this.logins.isInternalUserLoggedIn(),
+				enabled: () => locator.logins.isInternalUserLoggedIn(),
 				exec: (key) => m.route.set(navButtonRoutes.calendarUrl),
 				help: "calendarView_action",
 			},
 			{
 				key: Keys.S,
-				enabled: () => this.logins.isInternalUserLoggedIn(),
+				enabled: () => locator.logins.isInternalUserLoggedIn(),
 				exec: (key) => m.route.set(navButtonRoutes.settingsUrl),
 				help: "settingsView_action",
 			},
@@ -206,7 +173,7 @@ export class Header implements Component<HeaderAttrs> {
 				key: Keys.L,
 				shift: true,
 				ctrl: true,
-				enabled: () => this.logins.isUserLoggedIn(),
+				enabled: () => locator.logins.isUserLoggedIn(),
 				exec: (key) => m.route.set(LogoutUrl),
 				help: "logout_label",
 			},
@@ -220,8 +187,8 @@ export class Header implements Component<HeaderAttrs> {
 			return m(".flex-center.header-middle.b", [left || null, m(".mt-s.text-ellipsis", title), right || null])
 		}
 
-		if (this.mobileSearchBarVisible()) {
-			return this.renderMobileSearchBar()
+		if (attrs.centerContent) {
+			return attrs.centerContent()
 		} else if (attrs.viewSlider) {
 			const firstVisibleBgColumn = attrs.viewSlider.getBackgroundColumns().find((c) => c.visible)
 
@@ -245,31 +212,7 @@ export class Header implements Component<HeaderAttrs> {
 	}
 
 	private renderRightContent(attrs: HeaderAttrs): Children {
-		return isNotTemporary(this.logins) ? (styles.isUsingBottomNavigation() ? this.renderHeaderAction(attrs) : this.renderFullNavigation(attrs)) : null
-	}
-
-	private renderMobileSearchBar(): Children {
-		let placeholder
-		const route = m.route.get()
-
-		if (route.startsWith("/search/mail")) {
-			placeholder = lang.get("searchEmails_placeholder")
-		} else if (route.startsWith("/search/contact")) {
-			placeholder = lang.get("searchContacts_placeholder")
-		} else {
-			placeholder = null
-		}
-
-		return m(neverNull(this.searchBar), {
-			alwaysExpanded: true,
-			classes: ".flex-center",
-			placeholder,
-			style: {
-				height: "100%",
-				"margin-left": px(sizes.navbar_edge_width_mobile),
-				"margin-right": px(sizes.navbar_edge_width_mobile),
-			},
-		})
+		return isNotTemporary(locator.logins) ? (styles.isUsingBottomNavigation() ? this.renderHeaderAction(attrs) : this.renderFullNavigation(attrs)) : null
 	}
 
 	private renderLeftContent(attrs: HeaderAttrs): Children {
@@ -339,40 +282,6 @@ export class Header implements Component<HeaderAttrs> {
 		}
 
 		return attrs.overrideBackIcon ? attrs.overrideBackIcon === "back" : !attrs.viewSlider.getBackgroundColumns()[0].visible
-	}
-
-	private searchPlaceholder(): string | null {
-		const route = m.route.get()
-
-		if (route.startsWith(MAIL_PREFIX) || route.startsWith("/search/mail")) {
-			return lang.get("searchEmails_placeholder")
-		} else if (route.startsWith(CONTACTS_PREFIX) || route.startsWith("/search/contact")) {
-			return lang.get("searchContacts_placeholder")
-		} else if (route.startsWith("/settings/users")) {
-			return lang.get("searchUsers_placeholder")
-		} else if (route.startsWith("/settings/groups")) {
-			return lang.get("searchGroups_placeholder")
-		} else {
-			return null
-		}
-	}
-
-	private desktopSearchBarVisible(): boolean {
-		let route = m.route.get()
-		let locator: IMainLocator | null = window.tutao.locator
-		return (
-			this.searchBar != null &&
-			locator != null &&
-			!locator.search.indexState().initializing &&
-			styles.isDesktopLayout() &&
-			this.logins.isInternalUserLoggedIn() &&
-			(route.startsWith(SEARCH_PREFIX) ||
-				route.startsWith(MAIL_PREFIX) ||
-				route.startsWith(CONTACTS_PREFIX) ||
-				route.startsWith("/settings/users") ||
-				route.startsWith("/settings/groups") ||
-				route.startsWith("/settings/whitelabelaccounts"))
-		)
 	}
 }
 
