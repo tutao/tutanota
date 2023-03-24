@@ -24,9 +24,9 @@ import { showNotAvailableForFreeDialog } from "../../misc/SubscriptionDialogs.js
 import { locator } from "../../api/main/MainLocator.js"
 import { ListColumnWrapper } from "../../gui/ListColumnWrapper.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
-import Stream from "mithril/stream"
 import { GroupDetailsModel } from "./GroupDetailsModel.js"
 import { SelectableRowContainer, setSelectedRowStyle, setVisibility } from "../../gui/SelectableRowContainer.js"
+import Stream from "mithril/stream"
 
 assertMainOrNode()
 const className = "group-list"
@@ -119,13 +119,12 @@ export class GroupListView implements UpdatableSettingsViewer {
 		}
 
 		this.list.loadInitial()
-		const searchBar = neverNull(locator.header.searchBar)
 
 		this._listId.getAsync().then((listId) => {
-			searchBar.setGroupInfoRestrictionListId(listId)
+			locator.search.setGroupInfoRestrictionListId(listId)
 		})
 
-		this._searchResultStreamDependency = searchBar.lastSelectedGroupInfoResult.map((groupInfo) => {
+		this._searchResultStreamDependency = locator.search.lastSelectedGroupInfoResult.map((groupInfo) => {
 			if (this._listId.isLoaded() && this._listId.getSync() === groupInfo._id[0]) {
 				this.list.scrollToIdAndSelect(groupInfo._id[1])
 			}

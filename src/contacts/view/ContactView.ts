@@ -1,7 +1,7 @@
 import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
-import { BaseHeaderAttrs } from "../../gui/Header.js"
+import { BaseHeaderAttrs, Header } from "../../gui/Header.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { ContactEditor } from "../ContactEditor"
 import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
@@ -53,6 +53,7 @@ import { MobileContactActionBar } from "./MobileContactActionBar.js"
 import { appendEmailSignature } from "../../mail/signature/Signature.js"
 import { PartialRecipient } from "../../api/common/recipients/Recipient.js"
 import { newMailEditorFromTemplate } from "../../mail/editor/MailEditor.js"
+import { searchBar, SearchBarAttrs } from "../../search/SearchBar.js"
 
 assertMainOrNode()
 
@@ -184,10 +185,14 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		return m(
 			"#contact.main-view",
 			m(this.viewSlider, {
-				header: m(locator.header, {
+				header: m(Header, {
 					headerView: this.renderHeaderView(),
 					rightView: this.renderHeaderRightView(),
 					viewSlider: this.viewSlider,
+					searchBar: () =>
+						m(searchBar, {
+							placeholder: lang.get("searchContacts_placeholder"),
+						}),
 					...attrs.header,
 				}),
 				bottomNav:

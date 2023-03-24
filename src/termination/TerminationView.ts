@@ -1,6 +1,6 @@
 import m, { Children, Vnode } from "mithril"
 import { assertMainOrNode } from "../api/common/Env.js"
-import { BaseHeaderAttrs } from "../gui/Header.js"
+import { BaseHeaderAttrs, Header } from "../gui/Header.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { AriaLandmarks, landmarkAttrs } from "../gui/AriaUtils.js"
 import { lang } from "../misc/LanguageViewModel.js"
@@ -49,7 +49,7 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 				},
 			},
 			[
-				m(locator.header, {
+				m(Header, {
 					viewSlider: null,
 					...attrs.header,
 				}),

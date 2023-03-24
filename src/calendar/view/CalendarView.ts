@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { BaseHeaderAttrs, HeaderAttrs } from "../../gui/Header.js"
+import { BaseHeaderAttrs, Header, HeaderAttrs } from "../../gui/Header.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
@@ -732,7 +732,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return m(
 			".main-view",
 			m(this.viewSlider, {
-				header: m(locator.header, {
+				header: m(Header, {
 					viewSlider: this.viewSlider,
 					overrideBackIcon: this.getHeaderBackIcon(),
 					rightView: this.renderHeaderRightView(),

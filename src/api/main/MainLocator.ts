@@ -461,8 +461,7 @@ class MainLocator {
 		this.logins = new LoginController()
 		// Should be called elsewhere later e.g. in mainLocator
 		this.logins.init()
-		this.header = new Header(this.logins)
-		this.eventController = new EventController(this.logins)
+		this.eventController = new EventController(locator.logins)
 		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(this.searchFacade)
 		this.entityClient = new EntityClient(restInterface)

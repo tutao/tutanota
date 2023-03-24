@@ -11,7 +11,7 @@ import { getDefaultContactFormLanguage } from "../../settings/contactform/Contac
 import { htmlSanitizer } from "../../misc/HtmlSanitizer"
 import { renderInfoLinks } from "../LoginView"
 import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
-import { BaseHeaderAttrs } from "../../gui/Header.js"
+import { BaseHeaderAttrs, Header } from "../../gui/Header.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { Keys } from "../../api/common/TutanotaConstants"
 import type { ContactForm } from "../../api/entities/tutanota/TypeRefs.js"
@@ -63,7 +63,7 @@ export class ContactFormView implements TopLevelView {
 
 		this.view = (): Children => {
 			return m(".main-view.flex.col", [
-				m(locator.header, {
+				m(Header, {
 					viewSlider: null,
 					...this.headerAttrs,
 				}),
