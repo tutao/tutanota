@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { Editor } from "../../gui/editor/Editor"
+import { Editor, ImagePasteEvent } from "../../gui/editor/Editor"
 import type { Attachment, InitAsResponseArgs, SendMailModel } from "./SendMailModel"
 import { Dialog } from "../../gui/base/Dialog"
 import { InfoLink, lang } from "../../misc/LanguageViewModel"
@@ -52,7 +52,7 @@ import { KnowledgeBaseModel } from "../../knowledgebase/model/KnowledgeBaseModel
 import { styles } from "../../gui/styles"
 import { showMinimizedMailEditor } from "../view/MinimizedMailEditorOverlay"
 import { SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
-import { isTutanotaFile } from "../../api/common/utils/FileUtils"
+import { FileReference, isTutanotaFile } from "../../api/common/utils/FileUtils"
 import { parseMailtoUrl } from "../../misc/parsing/MailAddressParser"
 import { CancelledError } from "../../api/common/error/CancelledError"
 import { Shortcut } from "../../misc/KeyManager"
@@ -73,7 +73,7 @@ import { DialogInjectionRightAttrs } from "../../gui/base/DialogInjectionRight.j
 import { KnowledgebaseDialogContentAttrs } from "../../knowledgebase/view/KnowledgeBaseDialogContent.js"
 import { MailWrapper } from "../../api/common/MailWrapper.js"
 import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
-import { DataFile } from "../../api/common/DataFile.js"
+import { createDataFile, DataFile } from "../../api/common/DataFile.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -165,6 +165,27 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			})
 			// since the editor is the source for the body text, the model won't know if the body has changed unless we tell it
 			this.editor.addChangeListener(() => model.setBody(replaceInlineImagesWithCids(this.editor.getDOM()).innerHTML))
+			this.editor.addEventListener("pasteImage", ({ detail }: ImagePasteEvent) => {
+				const items = Array.from(detail.clipboardData.items)
+				const imageItems = items.filter((item) => /image/.test(item.type))
+				if (!imageItems.length) {
+					return false
+				}
+				const file = imageItems[0]?.getAsFile()
+				if (file == null) {
+					return false
+				}
+				const reader = new FileReader()
+				reader.onload = () => {
+					if (reader.result == null || "string" === typeof reader.result) {
+						return
+					}
+					const newInlineImages = [createDataFile(file.name, file.type, new Uint8Array(reader.result))]
+					model.attachFiles(newInlineImages)
+					this.insertInlineImages(model, newInlineImages)
+				}
+				reader.readAsArrayBuffer(file)
+			})
 
 			if (a.templateModel) {
 				a.templateModel.init().then((templateModel) => {
@@ -521,6 +542,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	private async imageButtonClickHandler(model: SendMailModel, rect: DOMRect): Promise<void> {
 		const files = await chooseAndAttachFile(model, rect, ALLOWED_IMAGE_FORMATS)
 		if (!files || files.length === 0) return
+		return await this.insertInlineImages(model, files)
+	}
+
+	private async insertInlineImages(model: SendMailModel, files: ReadonlyArray<DataFile | FileReference>): Promise<void> {
 		for (const file of files) {
 			const img = createInlineImage(file as DataFile)
 			model.loadedInlineImages.set(img.cid, img)
