@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2023-03-20T15:47:20Z",
+	"updated_at": "2023-03-24T12:00:28Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -827,7 +827,7 @@ export default {
 		"mailAddressInvalid_msg": "Ungültige E-Mail-Adresse.",
 		"mailAddressNANudge_msg": "E-Mail-Adresse ist bereits vergeben. Versuche eine andere Domain aus dem Dropdown.",
 		"mailAddressNA_msg": "E-Mail-Adresse ist bereits vergeben.",
-		"mailAddressNeutral_msg": "Bitte E-Mail-Adresse eingeben.",
+		"mailAddressNeutral_msg": "Gewünschte E-Mail-Adresse eingeben.",
 		"mailAddress_label": "E-Mail-Adresse",
 		"mailAuthFailed_label": "Echtheitsprüfung der Nachricht ist fehlgeschlagen",
 		"mailAuthFailed_msg": "Diese Nachricht ist möglicherweise gefälscht. Der Inhalt dieser Nachricht ist nicht vertrauenswürdig, da Absendeadresse oder Nachrichtentext gefälscht sein könnten!",
@@ -1216,7 +1216,7 @@ export default {
 		"referralSettings_label": "Freunde werben",
 		"referralSignupCampaignError_msg": "Es ist nicht möglich sich gleichzeitig mit einem Aktionscode und einem Empfehlungscode anzumelden.",
 		"referralSignupInvalid_msg": "Du hast versucht, dich mit einem ungültigen Empfehlungslink anzumelden. Du kannst dich zwar jetzt registrieren, aber die Empfehlungsaktion gilt nicht.",
-		"referralSignup_msg": "Du meldest dich mit einem persönlichen Empfehlungslink an. Abonniere Tutanota für ein Jahr und du erhältst einen zusätzlichen Gratismonat!",
+		"referralSignup_msg": "Komm zu Tutanota! Wähle ein Jahresabo von Premium oder Teams & erhalte einen gratis Monat dazu.",
 		"refresh_action": "Aktualisieren",
 		"refund_label": "Auszahlung",
 		"regeneratePassword_action": "Neu generieren",

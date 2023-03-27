@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2023-03-22T13:29:37Z",
+	"updated_at": "2023-03-24T16:46:26Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -827,7 +827,7 @@ export default {
 		"mailAddressInvalid_msg": "La dirección de correo es inválida.",
 		"mailAddressNANudge_msg": "La dirección de correo no está disponible. Prueba con otro dominio del desplegable.",
 		"mailAddressNA_msg": "Dirección de correo no disponible.",
-		"mailAddressNeutral_msg": "Por favor introduce una dirección de correo.",
+		"mailAddressNeutral_msg": "Introduce tu dirección de correo favorita",
 		"mailAddress_label": "Dirección de correo",
 		"mailAuthFailed_label": "Error en la autenticación de correo",
 		"mailAuthFailed_msg": "¡Ten cuidado al confiar en este mensaje! La verificación del remitente o del contenido ha fallado, por lo que este mensaje podría ser falsificado.",
@@ -1216,7 +1216,7 @@ export default {
 		"referralSettings_label": "Recomienda a un amigo",
 		"referralSignupCampaignError_msg": "No es posible registrarse con el código de campaña y el código de referencia al mismo tiempo.",
 		"referralSignupInvalid_msg": "Has intentado registrarte con un enlace de recomendación no válido. Puedes seguir registrándote, pero la promoción de recomendación no se aplicará.",
-		"referralSignup_msg": "Te estás registrando con un enlace de recomendación personal. Suscríbete durante un año y obtendrás un mes gratis adicional.",
+		"referralSignup_msg": "¡Estás invitado a Tutanota! Elige una suscripción anual de Premium o Equipos y obtendrás un mes gratis adicional.",
 		"refresh_action": "Actualizar",
 		"refund_label": "Reembolso",
 		"regeneratePassword_action": "Regenerar",
