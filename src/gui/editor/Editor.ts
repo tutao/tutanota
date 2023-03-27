@@ -9,7 +9,7 @@ import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { isKeyPressed } from "../../misc/KeyManager"
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
-type ImagePasteEvent = CustomEvent<{ clipboardData: DataTransfer }>
+export type ImagePasteEvent = CustomEvent<{ clipboardData: DataTransfer }>
 export type Style = "b" | "i" | "u" | "c" | "a"
 export type Alignment = "left" | "center" | "right" | "justify"
 export type Listing = "ol" | "ul"
@@ -64,27 +64,6 @@ export class Editor implements ImageHandler, Component {
 		}
 	}
 
-	private onPasteImage({ detail }: ImagePasteEvent) {
-		const items = Array.from(detail.clipboardData.items)
-		const imageItems = items.filter((item) => /image/.test(item.type))
-		if (!imageItems.length) {
-			return false
-		}
-		const file = imageItems[0]?.getAsFile()
-		if (file == null) {
-			return false
-		}
-		const reader = new FileReader()
-
-		reader.onload = () => {
-			if ("string" !== typeof reader.result) {
-				return
-			}
-			this.insertImage(reader.result)
-		}
-		reader.readAsDataURL(file)
-	}
-
 	view(): Children {
 		return m(".hide-outline.selectable", {
 			role: "textbox",
@@ -128,19 +107,18 @@ export class Editor implements ImageHandler, Component {
 			blockAttributes: {
 				dir: "auto",
 			},
-		})
-			.addEventListener("keyup", (e: KeyboardEvent) => {
-				if (this.createsLists && isKeyPressed(e.keyCode, Keys.SPACE)) {
-					let blocks: HTMLElement[] = []
-					squire.forEachBlock((block: HTMLElement) => {
-						blocks.push(block)
-					})
-					createList(blocks, /^1\.\s$/, true) // create an ordered list if a line is started with '1. '
+		}).addEventListener("keyup", (e: KeyboardEvent) => {
+			if (this.createsLists && isKeyPressed(e.keyCode, Keys.SPACE)) {
+				let blocks: HTMLElement[] = []
+				squire.forEachBlock((block: HTMLElement) => {
+					blocks.push(block)
+				})
+				createList(blocks, /^1\.\s$/, true) // create an ordered list if a line is started with '1. '
 
-					createList(blocks, /^\*\s$/, false) // create an unordered list if a line is started with '* '
-				}
-			})
-			.addEventListener("pasteImage", (e: ImagePasteEvent) => this.onPasteImage(e))
+				createList(blocks, /^\*\s$/, false) // create an unordered list if a line is started with '* '
+			}
+		})
+
 		this.squire = squire
 
 		// Suppress paste events if pasting while disabled
