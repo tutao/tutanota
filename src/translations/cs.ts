@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2023-03-21T07:10:59Z",
+	"updated_at": "2023-03-27T08:48:22Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -823,7 +823,7 @@ export default {
 		"mailAddressInvalid_msg": "E-mailová adresa není platná.",
 		"mailAddressNANudge_msg": "E-mailová adresa není dostupná. Zkuste jinou doménu ze seznamu.",
 		"mailAddressNA_msg": "E-mailová adresa není k dispozici.",
-		"mailAddressNeutral_msg": "Zadejte prosím e-mailovou adresu.",
+		"mailAddressNeutral_msg": "Zadejte požadovanou e-mailovou adresu.",
 		"mailAddress_label": "E-mailová adresa",
 		"mailAuthFailed_label": "Ověření e-mailu selhalo",
 		"mailAuthFailed_msg": "Buďte u této zprávy obezřetní! Ověření odesílatele nebo obsahu selhalo. Tato zpráva může být podvržená!",
@@ -1211,7 +1211,7 @@ export default {
 		"referralSettings_label": "Doporučit příteli",
 		"referralSignupCampaignError_msg": "Při registraci není možné kombinovat doporučující kód s promo kódem.",
 		"referralSignupInvalid_msg": "Pokoušíte se zaregistrovat pomocí neplatného odkazu. V registraci můžete pokračovat, ale akční nabídka, kterou můžete získat díky doporučení, se na vás nebude vztahovat.",
-		"referralSignup_msg": "Registrujete se přes doporučující odkaz. Předplaťte si Tutanotu na jeden rok a získáte další měsíc zdarma!",
+		"referralSignup_msg": "Přejděte k Tutanotě! Předplaťte si Tutanotu na jeden rok (Premium nebo Teams) a získejte další měsíc zdarma!",
 		"refresh_action": "Obnovit",
 		"refund_label": "Vrácení peněz",
 		"regeneratePassword_action": "Generovat nové",

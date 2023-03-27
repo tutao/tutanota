@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2023-03-20T10:59:56Z",
+	"updated_at": "2023-03-24T11:59:51Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -823,7 +823,7 @@ export default {
 		"mailAddressInvalid_msg": "Mail address is not valid.",
 		"mailAddressNANudge_msg": "Email address is not available. Try another domain from the dropdown.",
 		"mailAddressNA_msg": "Email address is not available.",
-		"mailAddressNeutral_msg": "Please enter mail address.",
+		"mailAddressNeutral_msg": "Enter preferred email address",
 		"mailAddress_label": "Email address",
 		"mailAuthFailed_label": "Mail authentication failed",
 		"mailAuthFailed_msg": "Be careful when trusting this message! The verification of the sender or contents has failed, so this message might be forged!",
@@ -1212,7 +1212,7 @@ export default {
 		"referralSettings_label": "Refer a friend",
 		"referralSignupCampaignError_msg": "Not possible to sign up with campaign code and referral code at the same time.",
 		"referralSignupInvalid_msg": "You have tried signing up with an invalid referral link. You can continue registering, but the referral promotion will not apply.",
-		"referralSignup_msg": "You are signing up with a personal referral link. Subscribe for one year and you will get an additional free month!",
+		"referralSignup_msg": "You are invited to Tutanota! Choose a yearly subscription of Premium or Teams & you will get an additional free month.",
 		"refresh_action": "Refresh",
 		"refund_label": "Refund",
 		"regeneratePassword_action": "Regenerate",

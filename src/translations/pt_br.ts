@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2023-03-21T14:00:06Z",
+	"updated_at": "2023-03-25T18:29:35Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -825,7 +825,7 @@ export default {
 		"mailAddressInvalid_msg": "O endereço de email não é válido.",
 		"mailAddressNANudge_msg": "O endereço de email não está disponível. Tente um outro domínio na lista a seguir.",
 		"mailAddressNA_msg": "Endereço de email não disponível.",
-		"mailAddressNeutral_msg": "Digite o endereço de email.",
+		"mailAddressNeutral_msg": "Digite o endereço de email preferido.",
 		"mailAddress_label": "Endereço de email",
 		"mailAuthFailed_label": "Autenticação da mensagem falhou",
 		"mailAuthFailed_msg": "Tenha cuidado ao confiar nesta mensagem. Não confie no conteúdo dessa mensagem, pois o endereço do remetente e o conteúdo podem ser falsificados!",
@@ -1212,7 +1212,7 @@ export default {
 		"referralSettings_label": "Encaminhe um amigo",
 		"referralSignupCampaignError_msg": "Não é possível inscrever-se com código de campanha e código de encaminhamento ao mesmo tempo.",
 		"referralSignupInvalid_msg": "Tentou inscrever-se com um link de encaminhamento inválido. Pode continuar a inscrever-se, mas a promoção de encaminhamento não se aplicará.",
-		"referralSignup_msg": "Está se inscrevendo com um link de encaminhamento pessoal. Inscreva-se para um ano e receberá um mês adicional grátis!",
+		"referralSignup_msg": "Está convidado a inscrever-se no  Tutanota! Escolha uma assinatura anual Premium ou Equipes & receberá um mês adicional grátis.",
 		"refresh_action": "Atualizar",
 		"refund_label": "Reembolso",
 		"regeneratePassword_action": "Recuperar",
