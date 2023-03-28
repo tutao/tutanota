@@ -1,6 +1,6 @@
 pipeline {
     environment {
-         PATH="/opt/node-v16.3.0-linux-x64/bin:${env.PATH}"
+         PATH="/opt/node-v16.16.0-linux-x64/bin:${env.PATH}"
     }
 	options {
 		preserveStashes()
