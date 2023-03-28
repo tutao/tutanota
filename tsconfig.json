@@ -1,6 +1,7 @@
 {
 	"extends": "./tsconfig_common.json",
 	"compilerOptions": {
+		"removeComments": false,
 		"declaration": false,
 		"noEmit": true,
 		"outDir": "build/dist",

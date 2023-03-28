@@ -35,7 +35,6 @@ export async function createCredentialsProvider(
 ): Promise<CredentialsProvider> {
 	if (usingKeychainAuthentication()) {
 		const { NativeCredentialsFacadeSendDispatcher } = await import("../../native/common/generatedipc/NativeCredentialsFacadeSendDispatcher.js")
-		const { SqlCipherFacadeSendDispatcher } = await import("../../native/common/generatedipc/SqlCipherFacadeSendDispatcher.js")
 		const nativeCredentials = new NativeCredentialsFacadeSendDispatcher(assertNotNull(nativeApp))
 		const credentialsKeyProvider = new CredentialsKeyProvider(nativeCredentials, deviceConfig, deviceEncryptionFacade)
 		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nativeCredentials)
