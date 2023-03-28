@@ -160,7 +160,6 @@ import("./translations/en")
 				{
 					prepareRoute: async () => {
 						const { LoginViewModel } = await import("./login/LoginViewModel.js")
-						const { DatabaseKeyFactory } = await import("./misc/credentials/DatabaseKeyFactory.js")
 						const { LoginView } = await import("./login/LoginView.js")
 						return {
 							component: LoginView,

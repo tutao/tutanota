@@ -3,13 +3,12 @@
  */
 import { rollup } from "rollup"
 import typescript from "@rollup/plugin-typescript"
-import { terser } from "rollup-plugin-terser"
+import terser from "@rollup/plugin-terser"
 import path from "path"
 import { nodeResolve } from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
 import fs from "fs-extra"
 import { bundleDependencyCheckPlugin, getChunkName, resolveLibs } from "./RollupConfig.js"
-import { visualizer } from "rollup-plugin-visualizer"
 import os from "os"
 import * as env from "./env.js"
 import { createHtml } from "./createHtml.js"
@@ -73,7 +72,6 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 			}),
 			minify && terser(),
 			analyzer(projectDir),
-			visualizer({ filename: "build/stats.html", gzipSize: true }),
 			bundleDependencyCheckPlugin(),
 			nodeResolve(),
 		],
@@ -187,16 +185,18 @@ function analyzer(projectDir) {
 			let buffer = "digraph G {\n"
 			buffer += "edge [dir=back]\n"
 
-			for (const [key, value] of Object.entries(bundle)) {
-				if (key.startsWith("translation")) continue
-				for (const dep of value.imports) {
+			for (const [fileName, info] of Object.entries(bundle)) {
+				if (fileName.startsWith("translation")) continue
+				// https://www.rollupjs.org/plugin-development/#generatebundle
+				if (info.type === "asset") continue
+				for (const dep of info.imports) {
 					if (!dep.includes("translation")) {
-						buffer += `"${dep}" -> "${key}"\n`
+						buffer += `"${dep}" -> "${fileName}"\n`
 					}
 				}
 
-				console.log(key, "", value.code.length / 1024 + "K")
-				for (const module of Object.keys(value.modules)) {
+				console.log(fileName, "", info.code.length / 1024 + "K")
+				for (const module of Object.keys(info.modules)) {
 					if (module.includes("src/api/entities")) {
 						continue
 					}

@@ -8,7 +8,6 @@ import { assertMainOrNode, getWebRoot, isAndroidApp, isApp, isBrowser, isDesktop
 import { notifications } from "../../gui/Notifications"
 import { LoginController } from "./LoginController"
 import type { ContactModel } from "../../contacts/model/ContactModel"
-import { ContactModelImpl } from "../../contacts/model/ContactModel"
 import { EntityClient } from "../common/EntityClient"
 import { CalendarInfo, CalendarModel } from "../../calendar/model/CalendarModel"
 import type { DeferredObject } from "@tutao/tutanota-utils"
@@ -582,6 +581,7 @@ class MainLocator {
 			this.calendarFacade,
 			this.fileController,
 		)
+		const { ContactModelImpl } = await import("../../contacts/model/ContactModel")
 		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, this.logins)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.usageTestController = new UsageTestController(this.usageTestModel)

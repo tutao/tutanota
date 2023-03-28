@@ -1,3 +1,5 @@
+//@bundleInto:common
+
 import type { DeviceEncryptionFacade } from "../../api/worker/facades/DeviceEncryptionFacade"
 import { isOfflineStorageAvailable } from "../../api/common/Env"
 

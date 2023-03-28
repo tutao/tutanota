@@ -89,8 +89,13 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 	}
 
 	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("packages/tutanota-utils")) {
+		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		return "common-min"
+	} else if (code.includes("@bundleInto:common")) {
+		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
+		return "common"
 	} else if (code.includes("assertMainOrNodeBoot") || isIn("libs/mithril") || isIn("src/app.ts") || code.includes("@bundleInto:boot")) {
+		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		// everything marked as assertMainOrNodeBoot goes into boot bundle right now
 		// (which is getting merged into app.js)
 		return "boot"
@@ -158,7 +163,12 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		// things that are used in both worker and client
 		// entities could be separate in theory but in practice they are anyway
 		return "common"
-	} else if (moduleId.includes("rollupPluginBabelHelpers") || moduleId.includes("commonjsHelpers") || moduleId.includes("tslib")) {
+	} else if (
+		moduleId.includes("rollupPluginBabelHelpers") ||
+		moduleId.includes("commonjsHelpers") ||
+		moduleId.includes("tslib") ||
+		moduleId.includes("commonjs-dynamic-modules")
+	) {
 		return "polyfill-helpers"
 	} else if (isIn("src/settings") || isIn("src/subscription") || isIn("libs/qrcode") || isIn("src/termination")) {
 		// subscription and settings depend on each other right now.
@@ -249,6 +259,8 @@ export function bundleDependencyCheckPlugin() {
 			const getModuleInfo = this.getModuleInfo.bind(this)
 
 			for (const chunk of Object.values(bundle)) {
+				// https://www.rollupjs.org/plugin-development/#generatebundle
+				if (chunk.type === "asset") continue
 				if (!chunk || !chunk.modules) {
 					continue
 				}
