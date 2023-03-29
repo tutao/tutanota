@@ -17,7 +17,7 @@ import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import { DesktopDownloadManager } from "./net/DesktopDownloadManager.js"
 import { DesktopTray } from "./tray/DesktopTray"
 import { log } from "./DesktopLog"
-import { UpdaterWrapperImpl } from "./UpdaterWrapper"
+import { UpdaterWrapper } from "./UpdaterWrapper"
 import { ElectronNotificationFactory } from "./NotificatonFactory"
 import { KeytarSecretStorage } from "./sse/SecretStorage"
 import fs from "node:fs"
@@ -145,7 +145,7 @@ async function createComponents(): Promise<Components> {
 	const dateProvider = new DateProviderImpl()
 	const dl = new DesktopDownloadManager(conf, desktopNet, desktopUtils, dateProvider, fs, electron)
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
-	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapperImpl(), fs)
+	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
 	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto)
 

@@ -66,62 +66,61 @@ export class ElectronUpdater {
 			debug: (m: string, ...args: any) => console.log.apply(console, [TAG, "DEBUG:", m].concat(args)),
 			silly: (m: string, ...args: any) => console.log.apply(console, [TAG, "DEBUG:", m].concat(args)),
 		}
-		this.updater.electronUpdater.then((autoUpdater) => {
-			autoUpdater.logger = this.logger
-			// default behaviour is to just dl the update as soon as found, but we want to check the signature
-			// before telling the updater to get the file.
-			autoUpdater.autoDownload = false
-			autoUpdater.autoInstallOnAppQuit = false
-			autoUpdater
-				.on("checking-for-update", () => {
-					this.logger.info("checking-for-update")
-				})
-				.on("update-available", () => {
-					this.logger.info("update-available")
-					this.stopPolling()
-					this.downloadUpdate()
-				})
-				.on("update-not-available", (info) => {
-					this.logger.info("update not available:", info)
-				})
-				.on("download-progress", (prg) => {
-					this.logger.debug("update dl progress:", prg)
-				})
-				.on("update-downloaded", async (info: UpdateDownloadedEvent & { signature: string }) => {
-					this._updateInfo = info
-					this.logger.info(`update-downloaded: ${JSON.stringify(info)}`)
-					this.stopPolling()
+		const autoUpdater = this.updater.electronUpdater
+		autoUpdater.logger = this.logger
+		// default behaviour is to just dl the update as soon as found, but we want to check the signature
+		// before telling the updater to get the file.
+		autoUpdater.autoDownload = false
+		autoUpdater.autoInstallOnAppQuit = false
+		autoUpdater
+			.on("checking-for-update", () => {
+				this.logger.info("checking-for-update")
+			})
+			.on("update-available", () => {
+				this.logger.info("update-available")
+				this.stopPolling()
+				this.downloadUpdate()
+			})
+			.on("update-not-available", (info) => {
+				this.logger.info("update not available:", info)
+			})
+			.on("download-progress", (prg) => {
+				this.logger.debug("update dl progress:", prg)
+			})
+			.on("update-downloaded", async (info: UpdateDownloadedEvent & { signature: string }) => {
+				this._updateInfo = info
+				this.logger.info(`update-downloaded: ${JSON.stringify(info)}`)
+				this.stopPolling()
 
-					const data = await this.fs.promises.readFile(info.downloadedFile)
-					const publicKeys: string[] = await this.conf.getConst(BuildConfigKey.pubKeys)
-					const verified = publicKeys.some((pk) => this.verifySignature(pk, assertNotNull(info), data))
+				const data = await this.fs.promises.readFile(info.downloadedFile)
+				const publicKeys: string[] = await this.conf.getConst(BuildConfigKey.pubKeys)
+				const verified = publicKeys.some((pk) => this.verifySignature(pk, assertNotNull(info), data))
 
-					if (verified) {
-						this.notifyAndInstall(info)
-					} else {
-						this._updateInfo = null
-						this.logger.warn(`all signatures invalid, could not update. Deleting ${info.downloadedFile}.`)
-						this.fs.promises.unlink(info.downloadedFile)
-					}
-				})
-				.on("error", (e) => {
-					this.stopPolling()
-					this.errorCount += 1
-					const messageEvent: { message: string } = downcast(e)
-					if (this.errorCount >= 5) {
-						this.logger.error(`Auto Update Error ${this.errorCount}, shutting down updater:\n${messageEvent.message}`)
-						autoUpdater.removeAllListeners("update-available")
-						autoUpdater.removeAllListeners("update-downloaded")
-						autoUpdater.removeAllListeners("checking-for-update")
-						autoUpdater.removeAllListeners("error")
-						this.notifyUpdateError()
-						this.logger.error(`Update failed multiple times. Last error:\n${messageEvent.message}`)
-					} else {
-						this.logger.error(`Auto Update Error ${this.errorCount}, continuing polling:\n${messageEvent.message}`)
-						this.startPolling()
-					}
-				})
-		})
+				if (verified) {
+					this.notifyAndInstall(info)
+				} else {
+					this._updateInfo = null
+					this.logger.warn(`all signatures invalid, could not update. Deleting ${info.downloadedFile}.`)
+					this.fs.promises.unlink(info.downloadedFile)
+				}
+			})
+			.on("error", (e) => {
+				this.stopPolling()
+				this.errorCount += 1
+				const messageEvent: { message: string } = downcast(e)
+				if (this.errorCount >= 5) {
+					this.logger.error(`Auto Update Error ${this.errorCount}, shutting down updater:\n${messageEvent.message}`)
+					autoUpdater.removeAllListeners("update-available")
+					autoUpdater.removeAllListeners("update-downloaded")
+					autoUpdater.removeAllListeners("checking-for-update")
+					autoUpdater.removeAllListeners("error")
+					this.notifyUpdateError()
+					this.logger.error(`Update failed multiple times. Last error:\n${messageEvent.message}`)
+				} else {
+					this.logger.error(`Auto Update Error ${this.errorCount}, continuing polling:\n${messageEvent.message}`)
+					this.startPolling()
+				}
+			})
 
 		/**
 		 * this replaces the autoInstallOnAppQuit feature of autoUpdater,
@@ -141,12 +140,11 @@ export class ElectronUpdater {
 					// system-wide installation does not work.
 					// see https://github.com/tutao/tutanota/issues/1413#issuecomment-796737959
 					// see c4b12e9
-					this.updater.electronUpdater.then((autoUpdater) => {
-						// quitAndInstall takes two arguments which are only used for windows and linux updater.
-						// isSilent and isForceRunAfter. If the first one is set to false then the second one is set to true implicitly.
-						// we want a silent install on quit anyway (as we disabled update on quit for windows) and no restart of the application.
-						autoUpdater.quitAndInstall(true, false)
-					})
+
+					// quitAndInstall takes two arguments which are only used for windows and linux updater.
+					// isSilent and isForceRunAfter. If the first one is set to false then the second one is set to true implicitly.
+					// we want a silent install on quit anyway (as we disabled update on quit for windows) and no restart of the application.
+					this.updater.electronUpdater.quitAndInstall(true, false)
 				}
 			}
 		})
@@ -204,7 +202,7 @@ export class ElectronUpdater {
 	}
 
 	setUpdateDownloadedListener(listener: () => void): void {
-		this.updater.electronUpdater.then((autoUpdater) => autoUpdater.on("update-downloaded", listener))
+		this.updater.electronUpdater.on("update-downloaded", listener)
 	}
 
 	private async startPolling() {
@@ -267,15 +265,15 @@ export class ElectronUpdater {
 		return Promise.resolve(false)
 	}
 
-	private downloadUpdate(): Promise<Array<string>> {
+	private async downloadUpdate(): Promise<Array<string>> {
 		this.logger.debug("downloading")
-		return this.updater.electronUpdater
-			.then((autoUpdater) => autoUpdater.downloadUpdate())
-			.catch((e) => {
-				this.logger.error("Update Download failed,", e.message)
-				// no files have been dl'd
-				return []
-			})
+		try {
+			return await this.updater.electronUpdater.downloadUpdate()
+		} catch (e) {
+			this.logger.error("Update Download failed,", e.message)
+			// no files have been dl'd
+			return []
+		}
 	}
 
 	private async notifyAndInstall(info: TutanotaUpdateInfo): Promise<void> {
@@ -306,7 +304,7 @@ export class ElectronUpdater {
 		//  Ignored if isSilent is set to false.
 		// https://www.electron.build/auto-update#appupdater-eventemitter
 		// As this is triggered by user we want to restart afterwards and don't mind showing the wizard either.
-		this.updater.electronUpdater.then((autoUpdater) => autoUpdater.quitAndInstall(false, true))
+		this.updater.electronUpdater.quitAndInstall(false, true)
 	}
 
 	private async notifyUpdateError() {

@@ -137,7 +137,7 @@ o.spec("ElectronUpdater Test", function () {
 		}
 
 		updaterImpl = downcast({
-			electronUpdater: Promise.resolve(autoUpdater),
+			electronUpdater: autoUpdater,
 			updatesEnabledInBuild: () => true,
 		})
 	})
