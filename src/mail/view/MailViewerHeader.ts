@@ -14,18 +14,16 @@ import { InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../a
 import { Icon, progressIcon } from "../../gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../misc/Formatter.js"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env.js"
-import { Button, ButtonAttrs, ButtonColor, ButtonType } from "../../gui/base/Button.js"
+import { Button, ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
 import { size } from "../../gui/size.js"
 import Badge from "../../gui/base/Badge.js"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
 import { createMoreSecondaryButtonAttrs } from "../../gui/base/GuiUtils.js"
-import { isNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { isNotNull, noOp } from "@tutao/tutanota-utils"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
-import { UserError } from "../../api/main/UserError.js"
-import { showUserError } from "../../misc/ErrorHandlerImpl.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
-import { editDraft, mailViewerMargin, mailViewerMoreActions, mailViewerPadding, makeAssignMailsButtons } from "./MailViewerUtils.js"
+import { editDraft, mailViewerMargin, mailViewerMoreActions, mailViewerPadding } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../gui/AriaUtils.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 
@@ -682,27 +680,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private actionButtons(attrs: MailViewerHeaderAttrs): Children {
 		const { viewModel } = attrs
-		let actions: Children
-		if (styles.isSingleColumnLayout() || !attrs.isPrimary) {
-			actions = [this.moreButton(attrs)]
-		} else if (viewModel.isAnnouncement()) {
-			actions = [this.deleteButton(attrs), this.moreButton(attrs)]
-		} else if (viewModel.isDraftMail()) {
-			actions = [this.deleteButton(attrs), this.moveButton(attrs), this.editButton(attrs)]
-		} else if (viewModel.canForwardOrMove()) {
-			actions = [
-				this.replyButtons(attrs),
-				this.forwardButton(attrs),
-				this.separator(),
-				this.deleteButton(attrs),
-				this.moveButton(attrs),
-				this.moreButton(attrs),
-			]
-		} else if (viewModel.canAssignMails()) {
-			actions = [this.replyButtons(attrs), this.assignButton(attrs), this.separator(), this.deleteButton(attrs), this.moreButton(attrs)]
-		} else {
-			actions = [this.replyButtons(attrs), this.separator(), this.deleteButton(attrs), this.moreButton(attrs)]
-		}
+		const actions = this.moreButton(attrs)
 
 		return m(
 			".flex-end.items-center.ml-between-s.mt-xs",
@@ -715,79 +693,11 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		)
 	}
 
-	private deleteButton({ viewModel }: MailViewerHeaderAttrs): Children {
-		return m(IconButton, {
-			title: "delete_action",
-			click: () => {
-				promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp)
-			},
-			icon: Icons.Trash,
-		})
-	}
-
 	private moreButton(attrs: MailViewerHeaderAttrs): Children {
 		return m(IconButton, {
 			title: "more_label",
 			icon: Icons.More,
 			click: this.prepareMoreActions(attrs),
-		})
-	}
-
-	private moveButton({ viewModel }: MailViewerHeaderAttrs): Children {
-		return m(IconButton, {
-			title: "move_action",
-			icon: Icons.Folder,
-			click: (e, dom) => showMoveMailsDropdown(viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
-		})
-	}
-
-	private editButton({ viewModel }: MailViewerHeaderAttrs) {
-		return m(IconButton, {
-			title: "edit_action",
-			click: () => editDraft(viewModel),
-			icon: Icons.Edit,
-		})
-	}
-
-	private replyButtons({ viewModel }: MailViewerHeaderAttrs) {
-		const actions: Children = []
-		actions.push(
-			m(IconButton, {
-				title: "reply_action",
-				click: () => viewModel.reply(false),
-				icon: Icons.Reply,
-			}),
-		)
-
-		if (viewModel.canReplyAll()) {
-			actions.push(
-				m(IconButton, {
-					title: "replyAll_action",
-					click: () => viewModel.reply(true),
-					icon: Icons.ReplyAll,
-				}),
-			)
-		}
-		return actions
-	}
-
-	private forwardButton({ viewModel }: MailViewerHeaderAttrs) {
-		return m(IconButton, {
-			title: "forward_action",
-			click: () => viewModel.forward().catch(ofClass(UserError, showUserError)),
-			icon: Icons.Forward,
-		})
-	}
-
-	private assignButton({ viewModel }: MailViewerHeaderAttrs) {
-		return m(IconButton, {
-			title: "forward_action",
-			icon: Icons.Forward,
-			colors: ButtonColor.Content,
-			click: createAsyncDropdown({
-				width: 250,
-				lazyButtons: () => makeAssignMailsButtons(viewModel),
-			}),
 		})
 	}
 
@@ -823,41 +733,39 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						icon: Icons.Trash,
 					})
 				} else {
-					if (!isPrimary || styles.isSingleColumnLayout()) {
-						if (viewModel.canForwardOrMove()) {
-							actionButtons.push({
-								label: "reply_action",
-								click: () => viewModel.reply(false),
-								icon: Icons.Reply,
-							})
+					if (viewModel.canForwardOrMove()) {
+						actionButtons.push({
+							label: "reply_action",
+							click: () => viewModel.reply(false),
+							icon: Icons.Reply,
+						})
 
-							if (viewModel.canReplyAll()) {
-								actionButtons.push({
-									label: "replyAll_action",
-									click: () => viewModel.reply(true),
-									icon: Icons.ReplyAll,
-								})
-							}
-
+						if (viewModel.canReplyAll()) {
 							actionButtons.push({
-								label: "forward_action",
-								click: () => viewModel.forward(),
-								icon: Icons.Forward,
-							})
-							actionButtons.push({
-								label: "move_action",
-								click: (_: MouseEvent, dom: HTMLElement) =>
-									showMoveMailsDropdown(viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
-								icon: Icons.Folder,
+								label: "replyAll_action",
+								click: () => viewModel.reply(true),
+								icon: Icons.ReplyAll,
 							})
 						}
 
 						actionButtons.push({
-							label: "delete_action",
-							click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
-							icon: Icons.Trash,
+							label: "forward_action",
+							click: () => viewModel.forward(),
+							icon: Icons.Forward,
+						})
+						actionButtons.push({
+							label: "move_action",
+							click: (_: MouseEvent, dom: HTMLElement) =>
+								showMoveMailsDropdown(viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
+							icon: Icons.Folder,
 						})
 					}
+
+					actionButtons.push({
+						label: "delete_action",
+						click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
+						icon: Icons.Trash,
+					})
 
 					actionButtons.push(...mailViewerMoreActions(viewModel))
 				}

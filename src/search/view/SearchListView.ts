@@ -1,5 +1,5 @@
 import m, { Children, Component } from "mithril"
-import { List, ListFetchResult } from "../../gui/base/List"
+import { List, ListFetchResult, VirtualRow } from "../../gui/base/List"
 import { assertMainOrNode } from "../../api/common/Env"
 import { lang } from "../../misc/LanguageViewModel"
 import { size } from "../../gui/size"
@@ -22,6 +22,8 @@ import type { SearchResult } from "../../api/worker/search/SearchTypes"
 import type { ListElementEntity } from "../../api/common/EntityTypes"
 import Stream from "mithril/stream"
 import { markMails } from "../../mail/model/MailUtils.js"
+import { ListColumnWrapper } from "../../gui/ListColumnWrapper.js"
+import { styles } from "../../gui/styles.js"
 
 assertMainOrNode()
 
@@ -100,15 +102,43 @@ export class SearchListView implements Component {
 			})
 		}
 
-		this.view = (): Children => {
-			return this.list ? m(this.list) : null
-		}
+		this.view = (): Children => (this.list ? m(ListColumnWrapper, { headerContent: this.renderToolbar() }, m(this.list)) : null)
 
 		this.onremove = () => {
 			if (this._resultStreamDependency) {
 				this._resultStreamDependency.end(true)
 			}
 		}
+	}
+
+	private renderToolbar(): Children {
+		if (styles.isSingleColumnLayout()) {
+			return null
+		} else {
+			return m(".flex.pt-xs.pb-xs.items-center", [
+				// matching MailRow spacing here
+				m(".flex.items-center.pl-s.mlr.button-height", this.renderSelectAll()),
+			])
+		}
+	}
+
+	private renderSelectAll() {
+		const list = this.list
+		if (!list) return
+		const selectedEntities = list.getSelectedEntities()
+		return m("input.checkbox", {
+			type: "checkbox",
+			// I'm not sure this is the best condition but it will do for now
+			checked: selectedEntities.length > 0 && selectedEntities.length === list.getLoadedEntities().length && list.isMultiSelectionActive(),
+			onchange: (e: Event) => {
+				const checkbox = e.target as HTMLInputElement
+				if (checkbox.checked) {
+					list.selectAll()
+				} else {
+					list.selectNone()
+				}
+			},
+		})
 	}
 
 	_loadInitial(list: List<any, any>) {
@@ -195,7 +225,14 @@ export class SearchListView implements Component {
 			elementSelected: (entities: SearchResultListEntry[], elementClicked, selectionChanged, multiSelectionActive) => {
 				this._searchView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive)
 			},
-			createVirtualRow: () => new SearchResultListRow(m.route.param("category") === "mail" ? new MailRow(true) : new ContactRow()),
+			createVirtualRow: () => {
+				const row: SearchResultListRow = new SearchResultListRow(
+					m.route.param("category") === "mail"
+						? new MailRow(true, () => row.entity && this.list?.toggleMultiSelectForEntity(row.entity))
+						: new ContactRow(() => row.entity && this.list?.toggleMultiSelectForEntity(row.entity)),
+				)
+				return row
+			},
 			className: m.route.param("category") === "mail" ? "mail-list" : "contact-list",
 			swipe: {
 				renderLeftSpacer: () => [],
@@ -457,11 +494,20 @@ export class SearchListView implements Component {
 	}
 }
 
-export class SearchResultListRow {
+export class SearchResultListRow implements VirtualRow<SearchResultListEntry> {
 	top: number
 	domElement: HTMLElement | null = null // set from List
 
-	entity: SearchResultListEntry | null
+	_entity: SearchResultListEntry | null = null
+	get entity(): SearchResultListEntry | null {
+		return this._entity
+	}
+
+	set entity(entity: SearchResultListEntry | null) {
+		this._delegate.entity = downcast(entity?.entry)
+		this._entity = entity
+	}
+
 	private _delegate: MailRow | ContactRow
 
 	constructor(delegate: MailRow | ContactRow) {
@@ -470,10 +516,10 @@ export class SearchResultListRow {
 		this.entity = null
 	}
 
-	update(entry: SearchResultListEntry, selected: boolean): void {
+	update(entry: SearchResultListEntry, selected: boolean, isInMultiSelect: boolean): void {
 		this._delegate.domElement = this.domElement
 
-		this._delegate.update(downcast(entry.entry), selected)
+		this._delegate.update(downcast(entry.entry), selected, isInMultiSelect)
 	}
 
 	render(): Children {

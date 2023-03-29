@@ -17,8 +17,8 @@ export class CustomColorEditorPreview implements Component {
 	private toggleSelected: boolean = false
 
 	constructor() {
-		this._mailRow = new MailRow(false)
-		this._mailRow2 = new MailRow(false)
+		this._mailRow = new MailRow(false, noOp)
+		this._mailRow2 = new MailRow(false, noOp)
 	}
 
 	view(): Children {
@@ -114,7 +114,7 @@ export class CustomColorEditorPreview implements Component {
 					{
 						oncreate: (vnode) => {
 							this._mailRow.domElement = vnode.dom as HTMLElement
-							requestAnimationFrame(() => this._mailRow.update(mail, false))
+							requestAnimationFrame(() => this._mailRow.update(mail, false, false))
 						},
 					},
 					this._mailRow.render(),
@@ -124,7 +124,7 @@ export class CustomColorEditorPreview implements Component {
 					{
 						oncreate: (vnode) => {
 							this._mailRow2.domElement = vnode.dom as HTMLElement
-							requestAnimationFrame(() => this._mailRow2.update(mail2, true))
+							requestAnimationFrame(() => this._mailRow2.update(mail2, true, false))
 						},
 						style: {
 							top: px(size.list_row_height),

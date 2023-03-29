@@ -8,6 +8,8 @@ import m, { Children } from "mithril"
 import Badge from "../../gui/base/Badge"
 import { px } from "../../gui/size"
 import type { VirtualRow } from "../../gui/base/List"
+import { SelectableRowContainer, setSelectedRowStyle, setVisibility } from "../../gui/SelectableRowContainer.js"
+import { styles } from "../../gui/styles.js"
 
 const iconMap: Record<MailFolderType, string> = {
 	[MailFolderType.CUSTOM]: FontIcons.Folder,
@@ -24,65 +26,137 @@ export class MailRow implements VirtualRow<Mail> {
 	domElement: HTMLElement | null = null // set from List
 
 	entity: Mail | null = null
-	private _domSubject!: HTMLElement
-	private _domSender!: HTMLElement
-	private _domDate!: HTMLElement
-	private _iconsDom!: HTMLElement
-	private _domUnread!: HTMLElement
-	private _showFolderIcon: boolean
-	private _domFolderIcons: Record<MailFolderType, HTMLElement>
-	private _domTeamLabel!: HTMLElement
+	private subjectDom!: HTMLElement
+	private senderDom!: HTMLElement
+	private dateDom!: HTMLElement
+	private iconsDom!: HTMLElement
+	private unreadDom!: HTMLElement
+	private folderIconsDom: Record<MailFolderType, HTMLElement>
+	private teamLabelDom!: HTMLElement
+	private innerContainerDom!: HTMLElement
+	private checkboxDom!: HTMLInputElement
 
-	constructor(showFolderIcon: boolean) {
+	constructor(private readonly showFolderIcon: boolean, private readonly onSelected: (mail: Mail, selected: boolean) => unknown) {
 		this.top = 0
 		this.entity = null
-		this._showFolderIcon = showFolderIcon
-		this._domFolderIcons = {} as Record<MailFolderType, HTMLElement>
+		this.folderIconsDom = {} as Record<MailFolderType, HTMLElement>
 	}
 
-	update(mail: Mail, selected: boolean): void {
+	update(mail: Mail, selected: boolean, isInMultiSelect: boolean): void {
 		if (!this.domElement) {
 			return
 		}
 
-		if (selected) {
-			this.domElement.classList.add("row-selected")
+		setSelectedRowStyle(this.innerContainerDom, selected)
+		this.checkboxDom.checked = isInMultiSelect && selected
 
-			this._iconsDom.classList.add("secondary")
-		} else {
-			this.domElement.classList.remove("row-selected")
-
-			this._iconsDom.classList.remove("secondary")
-		}
-
-		this._iconsDom.textContent = this._iconsText(mail)
-		this._domDate.textContent = formatDateTimeFromYesterdayOn(mail.receivedDate)
-		this._domSender.textContent = getSenderOrRecipientHeading(mail, true)
-		this._domSubject.textContent = mail.subject
+		this.iconsDom.textContent = this.iconsText(mail)
+		this.dateDom.textContent = formatDateTimeFromYesterdayOn(mail.receivedDate)
+		this.senderDom.textContent = getSenderOrRecipientHeading(mail, true)
+		this.subjectDom.textContent = mail.subject
 
 		if (mail.unread) {
-			this._domUnread.classList.remove("hidden")
+			this.unreadDom.classList.remove("hidden")
 
-			this._domSubject.classList.add("b")
+			this.subjectDom.classList.add("b")
+			this.senderDom.classList.add("b")
 		} else {
-			this._domUnread.classList.add("hidden")
+			this.unreadDom.classList.add("hidden")
 
-			this._domSubject.classList.remove("b")
+			this.subjectDom.classList.remove("b")
+			this.senderDom.classList.remove("b")
 		}
 
-		if (isTutanotaTeamMail(mail)) {
-			this._domTeamLabel.style.display = ""
-		} else {
-			this._domTeamLabel.style.display = "none"
-		}
+		setVisibility(this.teamLabelDom, isTutanotaTeamMail(mail))
+		this.updateCheckboxVisibility()
 	}
 
-	_iconsText(mail: Mail): string {
+	private updateCheckboxVisibility() {
+		this.checkboxDom.style.visibility = styles.isSingleColumnLayout() ? "hidden" : ""
+	}
+
+	/**
+	 * Only the structure is managed by mithril. We set all contents on our own (see update) in order to avoid the vdom overhead (not negligible on mobiles)
+	 */
+	render(): Children {
+		return m(
+			SelectableRowContainer,
+			{
+				oncreate: (vnode) => {
+					this.innerContainerDom = vnode.dom as HTMLElement
+				},
+			},
+			[
+				m(
+					".flex.col.items-center.flex-no-grow.no-shrink.pr-s.pt-xs",
+					m("input.checkbox", {
+						type: "checkbox",
+						onclick: (e: MouseEvent) => {
+							e.stopPropagation()
+							// e.redraw = false
+						},
+						onchange: () => {
+							this.entity && this.onSelected(this.entity, this.checkboxDom.checked)
+						},
+						oncreate: (vnode) => {
+							this.checkboxDom = vnode.dom as HTMLInputElement
+							// doing it right away to avoid visual glitch of it appearing/disappearing
+							this.updateCheckboxVisibility()
+						},
+					}),
+					m(".dot.bg-accent-fg.hidden", {
+						style: {
+							marginTop: "10px",
+						},
+						oncreate: (vnode) => (this.unreadDom = vnode.dom as HTMLElement),
+					}),
+				),
+				m(".flex-grow.min-width-0", [
+					m(".flex.badge-line-height", [
+						m(".text-ellipsis.smaller", {
+							oncreate: (vnode) => (this.senderDom = vnode.dom as HTMLElement),
+						}),
+						m(".flex-grow"),
+						m("small.text-ellipsis.flex-fixed", {
+							oncreate: (vnode) => (this.dateDom = vnode.dom as HTMLElement),
+						}),
+					]),
+					m(
+						".flex",
+						{
+							style: {
+								marginTop: px(2),
+							},
+						},
+						[
+							m(
+								Badge,
+								{
+									classes: ".small.mr-s",
+									oncreate: (vnode) => (this.teamLabelDom = vnode.dom as HTMLElement),
+								},
+								"Tutanota Team",
+							),
+							m(".smaller.text-ellipsis", {
+								oncreate: (vnode) => (this.subjectDom = vnode.dom as HTMLElement),
+							}),
+							m(".flex-grow"),
+							m("span.ion.ml-s.list-font-icons", {
+								oncreate: (vnode) => (this.iconsDom = vnode.dom as HTMLElement),
+							}),
+						],
+					),
+				]),
+			],
+		)
+	}
+
+	private iconsText(mail: Mail): string {
 		let iconText = ""
 
-		if (this._showFolderIcon) {
+		if (this.showFolderIcon) {
 			let folder = locator.mailModel.getMailFolder(mail._id[0])
-			iconText += folder ? this._getFolderIcon(getMailFolderType(folder)) : ""
+			iconText += folder ? this.folderIcon(getMailFolderType(folder)) : ""
 		}
 
 		iconText += mail._errors ? FontIcons.Warning : ""
@@ -117,56 +191,7 @@ export class MailRow implements VirtualRow<Mail> {
 		return iconText
 	}
 
-	/**
-	 * Only the structure is managed by mithril. We set all contents on our own (see update) in order to avoid the vdom overhead (not negligible on mobiles)
-	 */
-	render(): Children {
-		return m(".flex", [
-			m(
-				".flex.items-start.flex-no-grow.no-shrink.pr-s.pb-xs",
-				m(".dot.bg-accent-fg.hidden", {
-					oncreate: (vnode) => (this._domUnread = vnode.dom as HTMLElement),
-				}),
-			),
-			m(".flex-grow.min-width-0", [
-				m(".top.flex.badge-line-height", [
-					m(
-						Badge,
-						{
-							classes: ".small.mr-s",
-							oncreate: (vnode) => (this._domTeamLabel = vnode.dom as HTMLElement),
-						},
-						"Tutanota Team",
-					),
-					m("small.text-ellipsis", {
-						oncreate: (vnode) => (this._domSender = vnode.dom as HTMLElement),
-					}),
-					m(".flex-grow"),
-					m("small.text-ellipsis.flex-fixed", {
-						oncreate: (vnode) => (this._domDate = vnode.dom as HTMLElement),
-					}),
-				]),
-				m(
-					".bottom.flex-space-between",
-					{
-						style: {
-							marginTop: px(2),
-						},
-					},
-					[
-						m(".text-ellipsis.flex-grow", {
-							oncreate: (vnode) => (this._domSubject = vnode.dom as HTMLElement),
-						}),
-						m("span.ion.ml-s.list-font-icons.secondary", {
-							oncreate: (vnode) => (this._iconsDom = vnode.dom as HTMLElement),
-						}),
-					],
-				),
-			]),
-		])
-	}
-
-	_getFolderIcon(type: MailFolderType): string {
+	private folderIcon(type: MailFolderType): string {
 		return iconMap[type]
 	}
 }

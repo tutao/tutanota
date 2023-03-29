@@ -1,6 +1,5 @@
 import m, { Component, Vnode } from "mithril"
 import { assertMainOrNode, isApp } from "../../api/common/Env"
-import { ActionBar } from "../../gui/base/ActionBar"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import { lang } from "../../misc/LanguageViewModel"
 import { Icons } from "../../gui/base/icons/Icons"
@@ -15,12 +14,18 @@ import { attachDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { exportMails } from "../export/Exporter"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
+import { MailViewerToolbar } from "./MailViewerToolbar.js"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import { progressIcon } from "../../gui/base/Icon.js"
 
 assertMainOrNode()
 
 export type MultiMailViewerAttrs = {
 	selectedEntities: Array<Mail>
 	selectNone: () => unknown
+	loadingAll: "can_load" | "loading" | "loaded"
+	loadAll: () => unknown
+	stopLoadAll: () => unknown
 }
 
 /**
@@ -28,32 +33,58 @@ export type MultiMailViewerAttrs = {
  */
 export class MultiMailViewer implements Component<MultiMailViewerAttrs> {
 	view({ attrs }: Vnode<MultiMailViewerAttrs>) {
-		const { selectedEntities, selectNone } = attrs
+		const { selectedEntities, selectNone, loadAll, loadingAll, stopLoadAll } = attrs
 		return [
 			m(
-				".fill-absolute.mt-xs",
-				selectedEntities.length > 0
-					? [
-							m(
-								".flex-space-between.pl-l",
-								{
-									style: {
-										marginRight: "6px",
-									},
-								},
-								[
-									m(".flex.items-center", this.getMailSelectionMessage(selectedEntities)),
-									m(ActionBar, {
-										buttons: getMultiMailViewerActionButtonAttrs(selectedEntities, selectNone, true),
-									}),
-								],
-							),
-					  ]
-					: m(ColumnEmptyMessageBox, {
-							message: () => this.getMailSelectionMessage(selectedEntities),
-							icon: BootIcons.Mail,
-							color: theme.content_message_bg,
-					  }),
+				".flex.col.fill-absolute",
+				m(MailViewerToolbar, {
+					mailModel: locator.mailModel,
+					mails: selectedEntities,
+					selectNone: selectNone,
+					readAction: () => markMails(locator.entityClient, selectedEntities, false),
+					unreadAction: () => markMails(locator.entityClient, selectedEntities, true),
+				}),
+				m(
+					".flex-grow.rel.overflow-hidden",
+					m(ColumnEmptyMessageBox, {
+						message: () => this.getMailSelectionMessage(selectedEntities),
+						icon: BootIcons.Mail,
+						color: theme.content_message_bg,
+						backgroundColor: theme.navigation_bg,
+						bottomContent:
+							loadingAll === "loading"
+								? m(".flex.items-center", [
+										m(Button, {
+											label: "cancel_action",
+											type: ButtonType.Secondary,
+											click: () => {
+												stopLoadAll()
+											},
+										}),
+										m(".flex.items-center.plr-button", progressIcon()),
+								  ])
+								: selectedEntities.length === 0
+								? null
+								: m(".flex", [
+										m(Button, {
+											label: "cancel_action",
+											type: ButtonType.Secondary,
+											click: () => {
+												selectNone()
+											},
+										}),
+										loadingAll === "can_load"
+											? m(Button, {
+													label: "loadAll_action",
+													type: ButtonType.Secondary,
+													click: () => {
+														loadAll()
+													},
+											  })
+											: null,
+								  ]),
+					}),
+				),
 			),
 		]
 	}

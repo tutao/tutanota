@@ -13,4 +13,5 @@ export const FontIcons = Object.freeze({
 	Draft: `\uea0c`,
 	Edit: `\uea0d`,
 	Confidential: `\uea0e`,
+	Checkbox: `\uea0f`,
 } as const)

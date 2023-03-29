@@ -6,7 +6,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import { NotFoundError } from "../../api/common/error/RestError"
 import { size } from "../../gui/size"
 import type { SettingsView, UpdatableSettingsViewer } from "../SettingsView"
-import { LazyLoaded, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { LazyLoaded, NBSP, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { ContactFormViewer } from "./ContactFormViewer"
 import * as ContactFormEditor from "./ContactFormEditor"
 import type { ContactForm } from "../../api/entities/tutanota/TypeRefs.js"
@@ -25,6 +25,7 @@ import { showNotAvailableForFreeDialog } from "../../misc/SubscriptionDialogs"
 import { GENERATED_MAX_ID, isSameId } from "../../api/common/utils/EntityUtils"
 import { ListColumnWrapper } from "../../gui/ListColumnWrapper"
 import { locator } from "../../api/main/MainLocator"
+import { SelectableRowContainer, setSelectedRowStyle } from "../../gui/SelectableRowContainer.js"
 
 assertMainOrNode()
 const className = "group-list"
@@ -209,38 +210,33 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 }
 
 export class ContactFormRow implements VirtualRow<ContactForm> {
-	top: number
+	top: number = 0
 	domElement: HTMLElement | null = null // set from List
+	entity: ContactForm | null = null
 
-	entity: ContactForm | null
-	private _domPageTitle!: HTMLElement
-	private _domUrl!: HTMLElement
-	private _domDeletedIcon!: HTMLElement
-	private _customerInfo: LazyLoaded<CustomerInfo>
+	private pageTitleDom!: HTMLElement
+	private urlDom!: HTMLElement
+	private deletedIconDom!: HTMLElement
+	private innerContainerDom!: HTMLElement
 
-	constructor(customerInfo: LazyLoaded<CustomerInfo>) {
-		this.top = 0
-		this.entity = null
-		this._customerInfo = customerInfo
-	}
+	constructor(private readonly customerInfo: LazyLoaded<CustomerInfo>) {}
 
 	update(contactForm: ContactForm, selected: boolean): void {
 		if (!this.domElement) {
 			return
 		}
 
-		if (selected) {
-			this.domElement.classList.add("row-selected")
+		setSelectedRowStyle(this.innerContainerDom, selected)
+
+		// replace empty string with NBSP so that we always have a row
+		this.pageTitleDom.textContent = getDefaultContactFormLanguage(contactForm.languages).pageTitle || NBSP
+
+		if (this.customerInfo.isLoaded()) {
+			const whitelabelDomain = getWhitelabelDomain(this.customerInfo.getLoaded())
+
+			this.urlDom.textContent = getContactFormUrl(whitelabelDomain?.domain ?? null, contactForm.path)
 		} else {
-			this.domElement.classList.remove("row-selected")
-		}
-
-		this._domPageTitle.textContent = getDefaultContactFormLanguage(contactForm.languages).pageTitle
-
-		if (this._customerInfo.isLoaded()) {
-			const whitelabelDomain = getWhitelabelDomain(this._customerInfo.getLoaded())
-
-			this._domUrl.textContent = getContactFormUrl(whitelabelDomain?.domain ?? null, contactForm.path)
+			this.urlDom.textContent = NBSP
 		}
 	}
 
@@ -248,28 +244,34 @@ export class ContactFormRow implements VirtualRow<ContactForm> {
 	 * Only the structure is managed by mithril. We set all contents on our own (see update) in order to avoid the vdom overhead (not negligible on mobiles)
 	 */
 	render(): Children {
-		return [
-			m(".top", [
-				m(".name", {
-					oncreate: (vnode) => (this._domPageTitle = vnode.dom as HTMLElement),
+		return m(
+			SelectableRowContainer,
+			{
+				oncreate: (vnode) => {
+					this.innerContainerDom = vnode.dom as HTMLElement
+				},
+			},
+			m(".flex.col.flex-grow", [
+				m(".smaller", {
+					oncreate: (vnode) => (this.pageTitleDom = vnode.dom as HTMLElement),
 				}),
-			]),
-			m(".bottom.flex-space-between", [
-				m("small.mail-address", {
-					oncreate: (vnode) => (this._domUrl = vnode.dom as HTMLElement),
-				}),
-				m(".icons.flex", [
-					m(Icon, {
-						icon: Icons.Trash,
-						oncreate: (vnode) => (this._domDeletedIcon = vnode.dom as HTMLElement),
-						style: {
-							display: "none",
-						},
-						class: "svg-list-accent-fg",
+				m(".flex-space-between", [
+					m(".smaller.mail-address", {
+						oncreate: (vnode) => (this.urlDom = vnode.dom as HTMLElement),
 					}),
+					m(".icons.flex", [
+						m(Icon, {
+							icon: Icons.Trash,
+							oncreate: (vnode) => (this.deletedIconDom = vnode.dom as HTMLElement),
+							style: {
+								display: "none",
+							},
+							class: "svg-list-accent-fg",
+						}),
+					]),
 				]),
 			]),
-		]
+		)
 	}
 }
 

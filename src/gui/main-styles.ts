@@ -7,6 +7,8 @@ import { assertMainOrNode, isAdminClient, isApp, isElectronClient } from "../api
 import { getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
 import { BrowserType } from "../misc/ClientConstants"
 import { stateBgActive, stateBgFocus, stateBgHover } from "./builtinThemes.js"
+import { FontIcons } from "./base/icons/FontIcons.js"
+import { DefaultAnimationTime } from "./animation/Animations.js"
 
 assertMainOrNode()
 
@@ -296,6 +298,10 @@ styles.registerStyle("main", () => {
 		".mlr": {
 			"margin-left": px(size.hpad),
 			"margin-right": px(size.hpad),
+		},
+		".mlr-vpad": {
+			"margin-left": px(size.vpad),
+			"margin-right": px(size.vpad),
 		},
 		".mlr-button": {
 			"margin-left": px(size.hpad_button),
@@ -1220,7 +1226,6 @@ styles.registerStyle("main", () => {
 			width: "0px",
 			height: "22px",
 			"margin-left": "2px",
-			"margin-top": "10px",
 			"border-color": theme.navigation_border,
 			"border-width": "1px",
 			"border-style": "solid",
@@ -1317,11 +1322,6 @@ styles.registerStyle("main", () => {
 			"border-color": `${theme.list_accent_fg} !important`,
 			color: `${theme.list_accent_fg}`,
 		},
-		// FIXME why??
-		// ".folder-row > a": {
-		// 	"flex-grow": 1,
-		// 	"margin-left": px(-size.hpad_button - size.border_selection),
-		// },
 		".hoverable-list-item:hover": {
 			"border-color": `${theme.list_accent_fg} !important`,
 			color: `${theme.list_accent_fg}`,
@@ -1362,23 +1362,12 @@ styles.registerStyle("main", () => {
 			"list-style": "none",
 			margin: 0,
 			padding: 0,
-			"border-bottom": `1px solid ${theme.list_border}`,
-		},
-		".list-alternate-background": {
-			background: `repeating-linear-gradient(to bottom, ${theme.list_bg}, ${theme.list_bg} ${px(size.list_row_height)},  ${theme.list_alternate_bg} ${px(
-				size.list_row_height,
-			)}, ${theme.list_alternate_bg} ${px(size.list_row_height * 2)})`,
 		},
 		".list-row": {
 			position: "absolute",
 			left: 0,
 			right: 0,
-			"background-color": theme.list_alternate_bg,
 			height: px(size.list_row_height),
-			"border-left": px(size.border_selection) + " solid transparent",
-		},
-		".list-row > div": {
-			"margin-left": px(-size.border_selection),
 		},
 		".odd-row": {
 			"background-color": theme.list_bg,
@@ -1477,8 +1466,6 @@ styles.registerStyle("main", () => {
 			"padding-right": px(size.vpad),
 		},
 		"button, .nav-button": {
-			// FIXME whyyy?
-			// position: "relative",
 			border: 0,
 			cursor: "pointer",
 			overflow: "hidden",
@@ -1760,6 +1747,41 @@ styles.registerStyle("main", () => {
 			"border-width": "1.5px",
 			"border-style": "solid",
 			"border-radius": "2px",
+		},
+		".checkbox": {
+			appearance: "none",
+			// reset browser style
+			margin: "0",
+			display: "block",
+			width: "14px",
+			height: "14px",
+			border: `2px solid ${theme.content_button}`,
+			"border-radius": "3px",
+			position: "relative",
+			transition: `all ${DefaultAnimationTime}ms cubic-bezier(.4,.0,.23,1)`,
+		},
+		".checkbox:checked": {
+			border: `7px solid ${theme.content_accent}`,
+		},
+		".checkbox:checked:after": {
+			display: "inline-flex",
+		},
+		".checkbox:after": {
+			"font-family": "'Ionicons'",
+			content: `'${FontIcons.Checkbox}'`,
+			position: "absolute",
+			display: "none",
+			"font-size": "12px",
+			// related to border width
+			top: "-6px",
+			left: "-6px",
+			right: 0,
+			bottom: 0,
+			"line-height": "12px",
+			color: theme.content_bg,
+			"align-items": "center",
+			width: "12px",
+			height: "12px",
 		},
 		".calendar-alternate-background": {
 			background: `${theme.list_alternate_bg} !important`,

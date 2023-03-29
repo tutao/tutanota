@@ -198,7 +198,6 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 
 	private renderEditFoldersButton(attrs: MailFolderViewAttrs): Child {
 		return m(IconButton, {
-			// FIXME another translation maybe?
 			title: "edit_action",
 			click: () => attrs.onEditMailbox(),
 			icon: Icons.Edit,

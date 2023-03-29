@@ -1,110 +1,88 @@
-import m, { Child, Children, ClassComponent, Component } from "mithril"
+import m, { Children, ClassComponent, Vnode } from "mithril"
 import { lang } from "../../misc/LanguageViewModel"
-import { ContactEditor } from "../ContactEditor"
 import { TextField, TextFieldType } from "../../gui/base/TextField.js"
-import { keyManager, Shortcut } from "../../misc/KeyManager"
-import { Dialog } from "../../gui/base/Dialog"
 import { Icons } from "../../gui/base/icons/Icons"
-import { NotFoundError } from "../../api/common/error/RestError"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
 import type { ContactAddressType } from "../../api/common/TutanotaConstants"
-import { getContactSocialType, Keys } from "../../api/common/TutanotaConstants"
+import { ContactPhoneNumberType, getContactSocialType } from "../../api/common/TutanotaConstants"
 import type { Contact, ContactAddress, ContactPhoneNumber, ContactSocialId } from "../../api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../api/main/MainLocator"
 import { newMailEditorFromTemplate } from "../../mail/editor/MailEditor"
-import { downcast, NBSP, noOp, ofClass } from "@tutao/tutanota-utils"
-import { ActionBar } from "../../gui/base/ActionBar"
+import { downcast, memoized, NBSP, noOp } from "@tutao/tutanota-utils"
 import { getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel } from "./ContactGuiUtils"
 import { appendEmailSignature } from "../../mail/signature/Signature"
 import { formatBirthdayOfContact, getSocialUrl } from "../model/ContactUtils"
 import { assertMainOrNode } from "../../api/common/Env"
-import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
+import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { PartialRecipient, Recipient, RecipientType } from "../../api/common/recipients/Recipient.js"
 
 assertMainOrNode()
 
-function insertBetween(array: Children[], spacer: () => Children) {
-	let ret: Children = []
-
-	for (let e of array) {
-		if (e != null) {
-			if (ret.length > 0) {
-				ret.push(spacer())
-			}
-
-			ret.push(e)
-		}
-	}
-
-	return ret
+export interface ContactViewerAttrs {
+	contact: Contact
+	onWriteMail: (to: PartialRecipient) => unknown
 }
 
-export class ContactViewer implements ClassComponent {
-	readonly contact: Contact
-	readonly contactAppellation: string
-	readonly oncreate: Component["oncreate"]
-	readonly onremove: Component["onremove"]
-	readonly formattedBirthday: string | null
+/**
+ *  Displays information about a single contact
+ */
+export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
+	private readonly contactAppellation = memoized((contact: Contact) => {
+		const title = contact.title ? `${contact.title} ` : ""
+		// const nickname = contact.nickname ? ` | "${contact.nickname}"` : ""
+		const fullName = `${contact.firstName} ${contact.lastName}`
+		return (title + fullName).trim()
+	})
 
-	constructor(contact: Contact) {
-		this.contact = contact
-		let title = this.contact.title ? this.contact.title + " " : ""
-		let nickname = this.contact.nickname ? ' | "' + this.contact.nickname + '"' : ""
-		let fullName = this.contact.firstName + " " + this.contact.lastName
-		this.contactAppellation = (title + fullName + nickname).trim()
-		this.formattedBirthday = this._hasBirthday() ? formatBirthdayOfContact(this.contact) : null
-		let shortcuts: Array<Shortcut> = [
-			{
-				key: Keys.E,
-				exec: () => this.edit(),
-				help: "editContact_label",
-			},
-		]
+	private readonly formattedBirthday = memoized((contact: Contact) => {
+		return this.hasBirthday(contact) ? formatBirthdayOfContact(contact) : null
+	})
 
-		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
-
-		this.onremove = () => keyManager.unregisterShortcuts(shortcuts)
+	private hasBirthday(contact: Contact): boolean {
+		return contact.birthdayIso != null
 	}
 
-	view(): Children {
-		return [
-			m("#contact-viewer.fill-absolute.scroll.plr-l.pb-floating.mlr-safe-inset", [
-				m(".header.pt-ml", [
-					m(".contact-actions.flex-space-between.flex-wrap.mt-xs", [
-						m(".left.flex-grow-shrink-150", [
-							m(".h2.selectable.text-break", [
-								this.contactAppellation,
-								NBSP, // alignment in case nothing is present here
-							]),
-							m(".flex-wrap.selectable", [
-								insertBetween(
-									[
-										this.contact.company ? m("span.company", this.contact.company) : null,
-										this.contact.role ? m("span.title", this.contact.role) : null,
-										this.formattedBirthday ? m("span.birthday", this.formattedBirthday) : null,
-									],
-									() => m("span", " | "),
+	view({ attrs }: Vnode<ContactViewerAttrs>): Children {
+		const { contact, onWriteMail } = attrs
+		return m(".scroll.plr-l.pb-floating.mlr-safe-inset", [
+			m("", [
+				m(
+					".contact-actions.flex-space-between.flex-wrap.mt-xs",
+					m(".left.flex-grow-shrink-150", [
+						m(".h2.selectable.text-break", [
+							this.contactAppellation(contact),
+							NBSP, // alignment in case nothing is present here
+						]),
+						contact.nickname ? m("", `"${contact.nickname}"`) : null,
+						m(
+							"",
+							insertBetween([contact.role ? m("span", contact.role) : null, contact.company ? m("span", contact.company) : null], () =>
+								m(
+									"span.plr-s",
+									{
+										style: {
+											fontWeight: "900",
+										},
+									},
+									" · ",
 								),
-								NBSP, // alignment in case nothing is present here
-							]),
-						]),
-						m(".action-bar.align-self-end", [
-							//css align self needed otherwise the buttons will float in the top right corner instead of bottom right
-							this._createActionbar(),
-						]),
+							),
+						),
+						this.hasBirthday(contact) ? m("", this.formattedBirthday(contact)) : null,
 					]),
-					m("hr.hr.mt.mb"),
-				]),
-				this._renderMailAddressesAndPhones(),
-				this._renderAddressesAndSocialIds(),
-				this._renderComment(),
+				),
+				m("hr.hr.mt.mb"),
 			]),
-		]
+			this.renderMailAddressesAndPhones(contact, onWriteMail),
+			this.renderAddressesAndSocialIds(contact),
+			this.renderComment(contact),
+		])
 	}
 
-	_renderAddressesAndSocialIds(): Children {
-		const addresses = this.contact.addresses.map((element) => this._createAddress(element))
-		const socials = this.contact.socialIds.map((element) => this._createSocialId(element))
+	private renderAddressesAndSocialIds(contact: Contact): Children {
+		const addresses = contact.addresses.map((element) => this.renderAddress(element))
+		const socials = contact.socialIds.map((element) => this.renderSocialId(element))
 		return addresses.length > 0 || socials.length > 0
 			? m(".wrapping-row", [
 					m(".address.mt-l", addresses.length > 0 ? [m(".h4", lang.get("address_label")), m(".aggregateEditors", addresses)] : null),
@@ -113,9 +91,9 @@ export class ContactViewer implements ClassComponent {
 			: null
 	}
 
-	_renderMailAddressesAndPhones(): Children {
-		const mailAddresses = this.contact.mailAddresses.map((element) => this._createMailAddress(element))
-		const phones = this.contact.phoneNumbers.map((element) => this._createPhone(element))
+	private renderMailAddressesAndPhones(contact: Contact, onWriteMail: ContactViewerAttrs["onWriteMail"]): Children {
+		const mailAddresses = contact.mailAddresses.map((element) => this.renderMailAddress(contact, element, onWriteMail))
+		const phones = contact.phoneNumbers.map((element) => this.renderPhoneNumber(element))
 		return mailAddresses.length > 0 || phones.length > 0
 			? m(".wrapping-row", [
 					m(".mail.mt-l", mailAddresses.length > 0 ? [m(".h4", lang.get("email_label")), m(".aggregateEditors", [mailAddresses])] : null),
@@ -124,31 +102,13 @@ export class ContactViewer implements ClassComponent {
 			: null
 	}
 
-	_renderComment(): Children {
-		return this.contact.comment && this.contact.comment.trim().length > 0
-			? [m("hr.hr.mt-l"), m("p.mt-l.text-prewrap.text-break.selectable", this.contact.comment)]
+	private renderComment(contact: Contact): Children {
+		return contact.comment && contact.comment.trim().length > 0
+			? [m(".h4.mt-l", lang.get("comment_label")), m("p.mt-l.text-prewrap.text-break.selectable", contact.comment)]
 			: null
 	}
 
-	_createActionbar(): Children {
-		const actionBarButtons: IconButtonAttrs[] = [
-			{
-				title: "edit_action",
-				click: () => this.edit(),
-				icon: Icons.Edit,
-			},
-			{
-				title: "delete_action",
-				click: () => this.delete(),
-				icon: Icons.Trash,
-			},
-		]
-		return m(ActionBar, {
-			buttons: actionBarButtons,
-		})
-	}
-
-	_createSocialId(contactSocialId: ContactSocialId): Children {
+	private renderSocialId(contactSocialId: ContactSocialId): Children {
 		const showButton = m(IconButton, {
 			title: "showURL_alt",
 			click: noOp,
@@ -163,11 +123,11 @@ export class ContactViewer implements ClassComponent {
 		})
 	}
 
-	_createMailAddress(address: ContactAddress): Child {
+	private renderMailAddress(contact: Contact, address: ContactAddress, onWriteMail: ContactViewerAttrs["onWriteMail"]): Children {
 		const newMailButton = m(IconButton, {
 			title: "sendMail_alt",
-			click: () => this._writeMail(address.address),
-			icon: BootIcons.Mail,
+			click: () => onWriteMail({ name: `${contact.firstName} ${contact.lastName}`.trim(), address: address.address, contact: contact }),
+			icon: Icons.PencilSquare,
 			size: ButtonSize.Compact,
 		})
 		return m(TextField, {
@@ -178,7 +138,7 @@ export class ContactViewer implements ClassComponent {
 		})
 	}
 
-	_createPhone(phone: ContactPhoneNumber): Children {
+	private renderPhoneNumber(phone: ContactPhoneNumber): Children {
 		const callButton = m(IconButton, {
 			title: "callNumber_alt",
 			click: () => null,
@@ -186,14 +146,14 @@ export class ContactViewer implements ClassComponent {
 			size: ButtonSize.Compact,
 		})
 		return m(TextField, {
-			label: () => getContactPhoneNumberTypeLabel(phone.type as any, phone.customTypeName),
+			label: () => getContactPhoneNumberTypeLabel(phone.type as ContactPhoneNumberType, phone.customTypeName),
 			value: phone.number,
 			disabled: true,
 			injectionsRight: () => m(`a[href="tel:${phone.number}"][target=_blank]`, callButton),
 		})
 	}
 
-	_createAddress(address: ContactAddress): Children {
+	private renderAddress(address: ContactAddress): Children {
 		let prepAddress: string
 
 		if (address.address.indexOf("\n") !== -1) {
@@ -216,43 +176,20 @@ export class ContactViewer implements ClassComponent {
 			injectionsRight: () => m(`a[href="https://www.openstreetmap.org/search?query=${prepAddress}"][target=_blank]`, showButton),
 		})
 	}
+}
 
-	_writeMail(mailAddress: string): Promise<any> {
-		return locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
-			const name = `${this.contact.firstName} ${this.contact.lastName}`.trim()
-			return newMailEditorFromTemplate(
-				mailboxDetails,
-				{
-					to: [
-						{
-							name,
-							address: mailAddress,
-						},
-					],
-				},
-				"",
-				appendEmailSignature("", locator.logins.getUserController().props),
-			).then((editor) => editor.show())
-		})
-	}
+function insertBetween(array: Children[], spacer: () => Children) {
+	let ret: Children = []
 
-	delete() {
-		Dialog.confirm("deleteContact_msg").then((confirmed) => {
-			if (confirmed) {
-				locator.entityClient.erase(this.contact).catch(
-					ofClass(NotFoundError, (e) => {
-						// ignore because the delete key shortcut may be executed again while the contact is already deleted
-					}),
-				)
+	for (let e of array) {
+		if (e != null) {
+			if (ret.length > 0) {
+				ret.push(spacer())
 			}
-		})
+
+			ret.push(e)
+		}
 	}
 
-	edit() {
-		new ContactEditor(locator.entityClient, this.contact).show()
-	}
-
-	_hasBirthday(): boolean {
-		return !!this.contact.birthdayIso
-	}
+	return ret
 }
