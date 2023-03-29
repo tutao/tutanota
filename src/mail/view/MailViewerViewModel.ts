@@ -8,7 +8,6 @@ import {
 	FileTypeRef,
 	Mail,
 	MailAddress,
-	MailRestriction,
 	MailTypeRef,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import {
@@ -34,6 +33,7 @@ import stream from "mithril/stream"
 import { addAll, assertNonNull, contains, downcast, filterInt, first, neverNull, noOp, ofClass, startsWith } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 import {
+	areParticipantsRestricted,
 	getDefaultSender,
 	getEnabledMailAddressesWithUser,
 	getFolderName,
@@ -451,10 +451,6 @@ export class MailViewerViewModel {
 
 	setWarningDismissed(dismissed: boolean) {
 		this.warningDismissed = dismissed
-	}
-
-	getRestrictions(): MailRestriction | null {
-		return this.mail.restrictions
 	}
 
 	async setContentBlockingStatus(status: ContentBlockingStatus): Promise<void> {
@@ -1031,26 +1027,21 @@ export class MailViewerViewModel {
 		// do not allow re-assigning from personal mailbox
 		return (
 			this.logins.getUserController().isInternalUser() &&
-			this.areParticipantsRestricted() &&
+			areParticipantsRestricted(this.mail) &&
 			this.logins.getUserController().getUserMailGroupMembership().group !== this.getMailOwnerGroup()
 		)
-	}
-
-	private areParticipantsRestricted(): boolean {
-		const restrictions = this.getRestrictions()
-		return restrictions != null && restrictions.participantGroupInfos.length > 0
 	}
 
 	canReplyAll(): boolean {
 		return (
 			this.logins.getUserController().isInternalUser() &&
 			this.getToRecipients().length + this.getCcRecipients().length + this.getBccRecipients().length > 1 &&
-			!this.areParticipantsRestricted()
+			!areParticipantsRestricted(this.mail)
 		)
 	}
 
 	canForwardOrMove(): boolean {
-		return this.logins.getUserController().isInternalUser() && !this.areParticipantsRestricted()
+		return this.logins.getUserController().isInternalUser() && !areParticipantsRestricted(this.mail)
 	}
 
 	shouldDelayRendering(): boolean {

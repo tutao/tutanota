@@ -8,14 +8,18 @@ import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { getContactListName } from "../model/ContactUtils"
 import { lang } from "../../misc/LanguageViewModel"
 import { NotFoundError } from "../../api/common/error/RestError"
-import { size } from "../../gui/size"
+import { px, size } from "../../gui/size"
 import { locator } from "../../api/main/MainLocator"
 import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils"
 import { ListColumnWrapper } from "../../gui/ListColumnWrapper"
-import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import { compareContacts } from "./ContactGuiUtils"
-import { ofClass } from "@tutao/tutanota-utils"
+import { NBSP, ofClass } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env"
+import { IconButton } from "../../gui/base/IconButton.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { createDropdown } from "../../gui/base/Dropdown.js"
+import { SelectableRowContainer, setSelectedRowStyle } from "../../gui/SelectableRowContainer.js"
+import { styles } from "../../gui/styles.js"
 
 assertMainOrNode()
 const className = "contact-list"
@@ -27,11 +31,11 @@ export class ContactListView {
 	view: (...args: Array<any>) => any
 	oncreate: (...args: Array<any>) => any
 	onbeforeremove: (...args: Array<any>) => any
+	private sortByFirstName = stream(true)
 
 	constructor(contactListId: Id, contactView: ContactView) {
 		this.listId = contactListId
 		this.contactView = contactView
-		const sortByFirstName = stream(true)
 		this.list = new List({
 			rowHeight: size.list_row_height,
 			fetch: async (startId, count) => {
@@ -52,10 +56,10 @@ export class ContactListView {
 					}),
 				)
 			},
-			sortCompare: (c1, c2) => compareContacts(c1, c2, sortByFirstName()),
+			sortCompare: (c1, c2) => compareContacts(c1, c2, this.sortByFirstName()),
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
 				contactView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
-			createVirtualRow: () => new ContactRow(),
+			createVirtualRow: () => new ContactRow((entity) => this.list.toggleMultiSelectForEntity(entity)),
 			className: className,
 			swipe: {
 				renderLeftSpacer: () => [],
@@ -72,23 +76,7 @@ export class ContactListView {
 			return m(
 				ListColumnWrapper,
 				{
-					headerContent: m(DropDownSelector, {
-						label: "sortBy_label",
-						selectedValue: sortByFirstName(),
-						selectionChangedHandler: sortByFirstName,
-						items: [
-							{
-								name: lang.get("firstName_placeholder"),
-								value: true,
-							},
-							{
-								name: lang.get("lastName_placeholder"),
-								value: false,
-							},
-						],
-						class: "mt-m ml mb-xs",
-						doShowBorder: false,
-					}),
+					headerContent: this.renderToolbar(),
 				},
 				m(this.list),
 			)
@@ -97,11 +85,65 @@ export class ContactListView {
 		let sortModeChangedListener: stream<void>
 
 		this.oncreate = () => {
-			sortModeChangedListener = sortByFirstName.map(() => this.list.sort())
+			sortModeChangedListener = this.sortByFirstName.map(() => this.list.sort())
 		}
 
 		this.onbeforeremove = () => {
 			sortModeChangedListener.end(true)
+		}
+	}
+
+	private renderToolbar(): Children {
+		return m(".flex.pt-xs.pb-xs.items-center.flex-space-between.pr-s", [
+			// matching ContactRow spacing here
+			m(
+				".flex.items-center.pl-s.mlr",
+				{
+					style: {
+						height: px(size.button_height),
+					},
+				},
+				this.renderSelectAll(),
+			),
+			m(IconButton, {
+				title: "sortBy_label",
+				icon: Icons.ListOrdered,
+				click: (e: MouseEvent, dom: HTMLElement) => {
+					createDropdown({
+						lazyButtons: () => [
+							{
+								label: "firstName_placeholder",
+								click: () => this.sortByFirstName(true),
+							},
+							{
+								label: "lastName_placeholder",
+								click: () => this.sortByFirstName(false),
+							},
+						],
+					})(e, dom)
+				},
+			}),
+		])
+	}
+
+	private renderSelectAll(): Children {
+		if (styles.isSingleColumnLayout()) {
+			return null
+		} else {
+			const selectedEntities = this.list.getSelectedEntities()
+			return m("input.checkbox", {
+				type: "checkbox",
+				// I'm not sure this is the best condition but it will do for now
+				checked: selectedEntities.length > 0 && selectedEntities.length === this.list.getLoadedEntities().length && this.list.isMultiSelectionActive(),
+				onchange: (e: Event) => {
+					const checkbox = e.target as HTMLInputElement
+					if (checkbox.checked) {
+						this.list.selectAll()
+					} else {
+						this.list.selectNone()
+					}
+				},
+			})
 		}
 	}
 }
@@ -111,45 +153,69 @@ export class ContactRow implements VirtualRow<Contact> {
 	domElement: HTMLElement | null = null // set from List
 
 	entity: Contact | null
-	private _domName!: HTMLElement
-	private _domAddress!: HTMLElement
+	private innerContainerDom!: HTMLElement
+	private domName!: HTMLElement
+	private domAddress!: HTMLElement
+	private checkboxDom!: HTMLInputElement
 
-	constructor() {
+	constructor(private readonly onSelected: (entity: Contact, selected: boolean) => unknown) {
 		this.top = 0
 		this.entity = null
 	}
 
-	update(contact: Contact, selected: boolean): void {
+	update(contact: Contact, selected: boolean, isInMultiSelect: boolean): void {
 		if (!this.domElement) {
 			return
 		}
 
-		if (selected) {
-			this.domElement.classList.add("row-selected")
-		} else {
-			this.domElement.classList.remove("row-selected")
-		}
+		setSelectedRowStyle(this.innerContainerDom, selected)
+		this.updateCheckboxVisibility()
+		this.checkboxDom.checked = selected && isInMultiSelect
 
-		this._domName.textContent = getContactListName(contact)
-		this._domAddress.textContent = contact.mailAddresses && contact.mailAddresses.length > 0 ? contact.mailAddresses[0].address : ""
+		this.domName.textContent = getContactListName(contact)
+		this.domAddress.textContent = contact.mailAddresses && contact.mailAddresses.length > 0 ? contact.mailAddresses[0].address : NBSP
 	}
 
 	/**
 	 * Only the structure is managed by mithril. We set all contents on our own (see update) in order to avoid the vdom overhead (not negligible on mobiles)
 	 */
 	render(): Children {
-		let elements = [
-			m(".top", [
-				m(".name.text-ellipsis", {
-					oncreate: (vnode) => (this._domName = vnode.dom as HTMLElement),
+		return m(
+			SelectableRowContainer,
+			{
+				oncreate: (vnode) => {
+					this.innerContainerDom = vnode.dom as HTMLElement
+				},
+			},
+			m(".mt-xs.mr-s", [
+				m("input.checkbox", {
+					type: "checkbox",
+					onclick: (e: MouseEvent) => {
+						e.stopPropagation()
+						// e.redraw = false
+					},
+					onchange: () => {
+						this.entity && this.onSelected(this.entity, this.checkboxDom.checked)
+					},
+					oncreate: (vnode) => {
+						this.checkboxDom = vnode.dom as HTMLInputElement
+						// to avoid visual bugs until the update
+						this.updateCheckboxVisibility()
+					},
 				}),
 			]),
-			m(".bottom.flex-space-between", [
-				m("small.mail-address", {
-					oncreate: (vnode) => (this._domAddress = vnode.dom as HTMLElement),
+			m(".flex.col.overflow-hidden", [
+				m(".text-ellipsis.smaller", {
+					oncreate: (vnode) => (this.domName = vnode.dom as HTMLElement),
+				}),
+				m(".text-ellipsis.smaller", {
+					oncreate: (vnode) => (this.domAddress = vnode.dom as HTMLElement),
 				}),
 			]),
-		]
-		return elements
+		)
+	}
+
+	private updateCheckboxVisibility() {
+		this.checkboxDom.style.visibility = styles.isSingleColumnLayout() ? "hidden" : ""
 	}
 }

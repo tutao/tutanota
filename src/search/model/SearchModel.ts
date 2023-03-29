@@ -116,20 +116,20 @@ export class SearchModel {
 			return false
 		}
 
-		return !searchRestrictionEquals(restriction, result.restriction)
+		return !isSameSearchRestriction(restriction, result.restriction)
 	}
 }
 
 function searchQueryEquals(a: SearchQuery, b: SearchQuery) {
 	return (
 		a.query === b.query &&
-		searchRestrictionEquals(a.restriction, b.restriction) &&
+		isSameSearchRestriction(a.restriction, b.restriction) &&
 		a.minSuggestionCount === b.minSuggestionCount &&
 		a.maxResults === b.maxResults
 	)
 }
 
-function searchRestrictionEquals(a: SearchRestriction, b: SearchRestriction): boolean {
+export function isSameSearchRestriction(a: SearchRestriction, b: SearchRestriction): boolean {
 	const isSameAttributeIds = a.attributeIds === b.attributeIds || (!!a.attributeIds && !!b.attributeIds && arrayEquals(a.attributeIds, b.attributeIds))
 	return isSameTypeRef(a.type, b.type) && a.start === b.start && a.end === b.end && a.field === b.field && isSameAttributeIds && a.listId === b.listId
 }

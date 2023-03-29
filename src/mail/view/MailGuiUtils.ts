@@ -322,6 +322,6 @@ export async function showMoveMailsDropdown(
 
 	const dropdown = new Dropdown(() => folderButtons, width)
 
-	dropdown.setOrigin(new DomRectReadOnlyPolyfilled(origin.left, origin.top, origin.width, 0))
+	dropdown.setOrigin(new DomRectReadOnlyPolyfilled(origin.left, origin.top, origin.width, origin.height))
 	modal.displayUnique(dropdown, withBackground)
 }

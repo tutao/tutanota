@@ -76,7 +76,7 @@ export class OfflineIndicatorDesktop implements Component<OfflineIndicatorAttrs>
 	view(vnode: Vnode<OfflineIndicatorAttrs>): Children {
 		const a = vnode.attrs
 		return m(
-			"button.small.pt-s.mlr-l.flex.col",
+			"button.small.mlr-l.flex.col",
 			{
 				type: "button",
 				href: "#",

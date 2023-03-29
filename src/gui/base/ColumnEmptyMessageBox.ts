@@ -14,6 +14,8 @@ export type Attrs = {
 	message: TranslationKey | lazy<Children>
 	icon?: AllIcons
 	color: string
+	bottomContent?: Children
+	backgroundColor?: string
 }
 
 /** Displays a big message with an option icon above it. */
@@ -53,14 +55,18 @@ export default class ColumnEmptyMessageBox implements Component<Attrs> {
 			{
 				style: {
 					"margin-top": px(attrs.icon ? -size.icon_message_box - size.vpad_xl : -size.vpad_xl),
+					backgroundColor: attrs?.backgroundColor,
 				},
 			},
 			// If we pass plain attrs all lifecycle callbacks we attach from the outside will be called twice, once on the wrong element.
-			m(IconMessageBox, {
-				message: attrs.message,
-				icon: attrs.icon,
-				color: attrs.color,
-			}),
+			[
+				m(IconMessageBox, {
+					message: attrs.message,
+					icon: attrs.icon,
+					color: attrs.color,
+				}),
+				attrs.bottomContent ?? m(".button-height"),
+			],
 		)
 	}
 }

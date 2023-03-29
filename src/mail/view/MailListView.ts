@@ -94,7 +94,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			sortCompare: sortCompareByReverseId,
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
 				this.mailView?.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
-			createVirtualRow: () => new MailRow(false),
+			createVirtualRow: () => new MailRow(false, (entity) => this.list.toggleMultiSelectForEntity(entity)),
 			className: className,
 			swipe: {
 				renderLeftSpacer: () =>
@@ -434,18 +434,49 @@ export class MailListView implements Component<MailListViewAttrs> {
 			m(
 				ListColumnWrapper,
 				{
-					headerContent: this.showingSpamOrTrash
-						? [
-								m(".flex.flex-column.plr-l", [
-									m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
-									m(".mr-negative-s.align-self-end", m(Button, purgeButtonAttrs)),
-								]),
-						  ]
-						: null,
+					headerContent: m(".flex.col", [
+						this.renderToolbar(),
+						this.showingSpamOrTrash
+							? [
+									m(".flex.flex-column.plr-l", [
+										m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
+										m(".mr-negative-s.align-self-end", m(Button, purgeButtonAttrs)),
+									]),
+							  ]
+							: null,
+					]),
 				},
 				m(this.list),
 			),
 		)
+	}
+
+	private renderToolbar(): Children {
+		if (styles.isSingleColumnLayout()) {
+			return null
+		} else {
+			return m(".flex.pt-xs.pb-xs.items-center", [
+				// matching MailRow spacing here
+				m(".flex.items-center.pl-s.mlr.button-height", this.renderSelectAll()),
+			])
+		}
+	}
+
+	private renderSelectAll() {
+		const selectedEntities = this.list.getSelectedEntities()
+		return m("input.checkbox", {
+			type: "checkbox",
+			// I'm not sure this is the best condition but it will do for now
+			checked: selectedEntities.length > 0 && selectedEntities.length === this.list.getLoadedEntities().length && this.list.isMultiSelectionActive(),
+			onchange: (e: Event) => {
+				const checkbox = e.target as HTMLInputElement
+				if (checkbox.checked) {
+					this.list.selectAll()
+				} else {
+					this.list.selectNone()
+				}
+			},
+		})
 	}
 
 	oncreate(vnode: VnodeDOM<MailListViewAttrs>) {

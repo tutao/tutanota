@@ -21,6 +21,8 @@ import type { LoginController } from "../api/main/LoginController"
 import { ListColumnWrapper } from "../gui/ListColumnWrapper"
 import { promiseMap } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../api/common/Env"
+import { SelectableRowContainer, setSelectedRowStyle } from "../gui/SelectableRowContainer.js"
+import { theme } from "../gui/theme.js"
 
 assertMainOrNode()
 
@@ -183,8 +185,9 @@ export class TemplateRow implements VirtualRow<EmailTemplate> {
 	domElement: HTMLElement | null = null // set from List
 
 	entity: EmailTemplate | null = null
-	private _domTemplateTitle!: HTMLElement
-	private _domTemplateId!: HTMLElement
+	private innerContainerDom!: HTMLElement
+	private titleDom!: HTMLElement
+	private idDom!: HTMLElement
 
 	constructor() {
 		this.top = 0 // is needed because of the list component
@@ -195,28 +198,30 @@ export class TemplateRow implements VirtualRow<EmailTemplate> {
 			return
 		}
 
-		if (selected) {
-			this.domElement.classList.add("row-selected")
-		} else {
-			this.domElement.classList.remove("row-selected")
-		}
+		setSelectedRowStyle(this.innerContainerDom, selected)
 
-		this._domTemplateTitle.textContent = template.title
-		this._domTemplateId.textContent = TEMPLATE_SHORTCUT_PREFIX + template.tag
+		this.titleDom.textContent = template.title
+		this.idDom.textContent = TEMPLATE_SHORTCUT_PREFIX + template.tag
 	}
 
 	render(): Children {
-		return [
-			m(".top", [
-				m(".name.text-ellipsis", {
-					oncreate: (vnode) => (this._domTemplateTitle = vnode.dom as HTMLElement),
+		return m(
+			SelectableRowContainer,
+			{
+				oncreate: (vnode) => {
+					this.innerContainerDom = vnode.dom as HTMLElement
+				},
+			},
+			m(".flex.col", [
+				m("", [
+					m(".text-ellipsis.smaller", {
+						oncreate: (vnode) => (this.titleDom = vnode.dom as HTMLElement),
+					}),
+				]),
+				m(".smaller", {
+					oncreate: (vnode) => (this.idDom = vnode.dom as HTMLElement),
 				}),
 			]),
-			m(".bottom.flex-space-between", [
-				m("small.templateContent", {
-					oncreate: (vnode) => (this._domTemplateId = vnode.dom as HTMLElement),
-				}),
-			]),
-		]
+		)
 	}
 }

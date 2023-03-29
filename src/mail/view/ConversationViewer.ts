@@ -1,19 +1,18 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { ConversationItem, ConversationViewModel, SubjectItem } from "./ConversationViewModel.js"
+import { ConversationItem, ConversationViewModel } from "./ConversationViewModel.js"
 import { MailViewer } from "./MailViewer.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { theme } from "../../gui/theme.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
-import { assertNotNull, NBSP } from "@tutao/tutanota-utils"
 import { elementIdPart, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { CollapsedMailView } from "./CollapsedMailView.js"
 import { mailViewerMargin } from "./MailViewerUtils.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
-import { max } from "@tutao/tutanota-utils/dist/CollectionUtils.js"
 import { px, size } from "../../gui/size.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
 import { keyManager, Shortcut } from "../../misc/KeyManager.js"
 import { styles } from "../../gui/styles.js"
+import { MailViewerToolbar } from "./MailViewerToolbar.js"
 
 export interface ConversationViewerAttrs {
 	viewModel: ConversationViewModel
@@ -21,19 +20,16 @@ export interface ConversationViewerAttrs {
 
 const SCROLL_FACTOR = 4 / 5
 
-const conversationCardMargin = 18
+export const conversationCardMargin = 18
 
 /**
  * Displays mails in a conversation
  */
 export class ConversationViewer implements Component<ConversationViewerAttrs> {
 	private containerDom: HTMLElement | null = null
-	private floatingSubjectDom: HTMLElement | null = null
 	private didScroll = false
 	/** items from the last render, we need them to calculate the right subject based on the scroll position without the full re-render. */
 	private lastItems: readonly ConversationItem[] | null = null
-	/** ids of the subject entries above the currently visible items. */
-	private subjectsAboveViewport: Set<string> = new Set()
 
 	private readonly shortcuts: Shortcut[] = [
 		{
@@ -71,9 +67,16 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 		this.lastItems = viewModel.conversationItems()
 		this.doScroll(viewModel, this.lastItems)
 
-		return m(".fill-absolute.nav-bg", [
+		return m(".fill-absolute.nav-bg.flex.col", [
+			m(MailViewerToolbar, {
+				mailModel: viewModel.primaryViewModel().mailModel,
+				mailViewerViewModel: viewModel.primaryViewModel(),
+				mails: [viewModel.primaryMail],
+				readAction: () => viewModel.primaryViewModel().setUnread(false),
+				unreadAction: () => viewModel.primaryViewModel().setUnread(true),
+			}),
 			m(
-				".fill-absolute.scroll",
+				".flex-grow.scroll",
 				{
 					oncreate: (vnode) => {
 						this.containerDom = vnode.dom as HTMLElement
@@ -86,7 +89,6 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				this.renderLoadingState(viewModel),
 				this.renderFooter(),
 			),
-			styles.isSingleColumnLayout() ? null : this.renderFloatingSubject(),
 		])
 	}
 
@@ -144,34 +146,6 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 			: null
 	}
 
-	private renderFloatingSubject(): Children {
-		return m(
-			".abs.nav-bg",
-			{
-				class: mailViewerMargin(),
-				style: {
-					top: 0,
-					left: 0,
-					right: 0,
-					transform: "translateY(-100%)",
-				},
-			},
-			m(
-				".b.h5.subject.text-break.text-ellipsis.selectable",
-				{
-					oncreate: ({ dom }) => {
-						this.floatingSubjectDom = dom as HTMLElement
-					},
-					style: {
-						marginTop: px(conversationCardMargin),
-						marginBottom: px(conversationCardMargin),
-					},
-				},
-				"",
-			),
-		)
-	}
-
 	private renderViewer(mailViewModel: MailViewerViewModel, isPrimary: boolean, position: number | null): Children {
 		return m(
 			".border-radius-big.rel",
@@ -201,48 +175,11 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 	private renderSubject(normalizedSubject: string, id: string): Children {
 		return m(ObservableSubject, {
 			subject: normalizedSubject,
-			cb: (visiblity) => this.onSubjectVisible(id, visiblity),
 			// we use id as the key:
 			// It is unique: each email appears only once (when sending to self,sent and received emails are independent). The subject text however can appear multiple times.
 			// It is more predicatable (regarding visiblity) if the element gets destroyed and created again.
 			key: "item-subject-" + id,
 		})
-	}
-
-	private onSubjectVisible(id: string, visibility: SubjectVisiblity) {
-		switch (visibility) {
-			case "visible":
-				this.subjectsAboveViewport.delete(id)
-				break
-			case "above":
-				this.subjectsAboveViewport.add(id)
-				break
-			case "below":
-				this.subjectsAboveViewport.delete(id)
-				break
-		}
-		if (this.floatingSubjectDom) {
-			if (this.subjectsAboveViewport.size === 0) {
-				// all subjects above us are visible, hide the sticky subject
-				this.floatingSubjectDom.parentElement!.style.transform = "translateY(-100%)"
-			} else {
-				this.floatingSubjectDom.parentElement!.style.transform = ""
-				// use NBSP to keep the height
-				this.floatingSubjectDom.innerText = this.subjectForFloatingHeader() ?? NBSP
-			}
-		}
-	}
-
-	private subjectForFloatingHeader(): string | null {
-		const entries = this.lastItems
-		if (!entries) return null
-		// knowingly N^2
-		const lastInvisibleSubject = max(Array.from(this.subjectsAboveViewport).map((id) => entries.findIndex((e) => e.type === "subject" && e.id === id)))
-		// We might not find anything if nothing is above the viewport. Another case is when the subject item has changed e.g. it was from the primary email but then we loaded
-		// the conversation and now we have this subject from another email earlier in the chain and we can't find
-		// the subject temporarily.
-		if (lastInvisibleSubject == null || lastInvisibleSubject === -1) return null
-		return (entries[lastInvisibleSubject] as SubjectItem).subject
 	}
 
 	private doScroll(viewModel: ConversationViewModel, items: readonly ConversationItem[]) {
@@ -260,9 +197,11 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				const itemIndex = items.findIndex((e) => e.type === "mail" && isSameId(e.entryId, conversationId))
 				// Don't scroll if it's already the first (or if we didn't find it but that would be weird)
 				if (itemIndex > 1) {
-					const top = (containerDom.childNodes[itemIndex] as HTMLElement).offsetTop
-					// The single pixel seems to make the difference between jittering or not. Inferred empiraically.
-					containerDom.scrollTo({ top: top - calculateSubjectHeaderHeight() + 1 })
+					const childDom = containerDom.childNodes[itemIndex] as HTMLElement
+					const parentTop = containerDom.getBoundingClientRect().top
+					const childTop = childDom.getBoundingClientRect().top
+					const relativeTop = childTop - parentTop
+					containerDom.scrollTo({ top: relativeTop - conversationCardMargin * 2 - 10 })
 				}
 			})
 		}
@@ -296,7 +235,6 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 type SubjectVisiblity = "above" | "below" | "visible"
 
 interface ObservableSubjectAttrs {
-	cb: (visibility: SubjectVisiblity) => unknown
 	subject: string
 }
 
@@ -317,24 +255,6 @@ export class ObservableSubject implements Component<ObservableSubjectAttrs> {
 				class: mailViewerMargin(),
 				"aria-label": lang.get("subject_label") + ", " + (this.lastAttrs.subject || ""),
 				style: { marginTop: px(conversationCardMargin) },
-				oncreate: (vnode) => {
-					this.observer = new IntersectionObserver(
-						(entries) => {
-							const [entry] = entries
-							const visibility = entry.isIntersecting
-								? "visible"
-								: entry.boundingClientRect.bottom < assertNotNull(entry.rootBounds).top
-								? "above"
-								: "below"
-							this.lastAttrs.cb(visibility)
-						},
-						{ root: vnode.dom.parentElement, rootMargin: px(-calculateSubjectHeaderHeight()) },
-					)
-					this.observer.observe(vnode.dom)
-				},
-				onremove: (vnode) => {
-					this.observer?.unobserve(vnode.dom)
-				},
 			},
 			this.lastAttrs.subject,
 		)

@@ -49,7 +49,6 @@ type SearchBarAttrs = {
 	classes?: string
 	style?: Record<string, string>
 	alwaysExpanded?: boolean
-	spacer?: boolean
 	placeholder?: string | null
 }
 const SEARCH_INPUT_WIDTH = 200 // includes input field and close/progress icon
@@ -297,7 +296,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 							),
 						],
 					),
-					vnode.attrs.spacer ? m(".nav-bar-spacer") : null,
 				],
 			)
 		}

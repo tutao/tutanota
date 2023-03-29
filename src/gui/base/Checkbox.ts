@@ -27,7 +27,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 		const a = vnode.attrs
 		const helpLabel = a.helpLabel ? m("small.block.content-fg", lang.getMaybeLazy(a.helpLabel)) : []
 		return m(
-			".checkbox.click.pt",
+			".click.pt",
 			{
 				onclick: (e: MouseEvent) => {
 					if (e.target !== this._domInput) {
