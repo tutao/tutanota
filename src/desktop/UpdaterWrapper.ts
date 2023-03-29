@@ -7,13 +7,7 @@ import fs from "fs"
 import { app } from "electron"
 import { AppUpdater } from "electron-updater"
 
-export interface UpdaterWrapper {
-	updatesEnabledInBuild(): boolean
-
-	electronUpdater: Promise<AppUpdater>
-}
-
-export class UpdaterWrapperImpl implements UpdaterWrapper {
+export class UpdaterWrapper {
 	updatesEnabledInBuild(): boolean {
 		try {
 			const basepath = process.platform === "darwin" ? path.join(path.dirname(app.getPath("exe")), "..") : path.dirname(app.getPath("exe"))
@@ -25,9 +19,8 @@ export class UpdaterWrapperImpl implements UpdaterWrapper {
 		}
 	}
 
-	electronUpdater: Promise<AppUpdater> = env.dist
-		? import("electron-updater").then((m) => m.autoUpdater)
-		: Promise.resolve(downcast<AppUpdater>(fakeAutoUpdater))
+	// we're using require() here because dynamic import() does not manage to resolve the module even though it's there.
+	electronUpdater: AppUpdater = env.dist ? require("electron-updater").autoUpdater : downcast<AppUpdater>(fakeAutoUpdater)
 }
 
 const fakeAutoUpdater = new (class {
