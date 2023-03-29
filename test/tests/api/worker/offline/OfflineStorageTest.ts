@@ -180,14 +180,18 @@ o.spec("OfflineStorage", function () {
 					o(mail).equals(null)
 
 					await storage.put(storableMail)
+					await storage.setNewRangeForList(MailTypeRef, listId, elementId, elementId)
 
 					mail = await storage.get(MailTypeRef, listId, elementId)
 					o(mail!._id).deepEquals(storableMail._id)
-
+					const rangeBefore = await storage.getRangeForList(MailTypeRef, listId)
+					o(rangeBefore).deepEquals({ upper: elementId, lower: elementId })
 					await storage.deleteAllOfType(MailTypeRef)
 
 					mail = await storage.get(MailTypeRef, listId, elementId)
 					o(mail).equals(null)
+					const rangeAfter = await storage.getRangeForList(MailTypeRef, listId)
+					o(rangeAfter).equals(null)
 				})
 			})
 

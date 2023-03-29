@@ -11,17 +11,7 @@ import {
 import { CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
-import {
-	assert,
-	assertNotNull,
-	DAY_IN_MILLIS,
-	getTypeId,
-	groupByAndMap,
-	groupByAndMapUniquely,
-	isSameTypeRef,
-	mapNullable,
-	TypeRef,
-} from "@tutao/tutanota-utils"
+import { assert, assertNotNull, DAY_IN_MILLIS, getTypeId, groupByAndMap, groupByAndMapUniquely, mapNullable, TypeRef } from "@tutao/tutanota-utils"
 import { isDesktop, isOfflineStorageAvailable, isTest } from "../../common/Env.js"
 import { modelInfos, resolveTypeReference } from "../../common/EntityFunctions.js"
 import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../common/TutanotaConstants.js"
@@ -217,7 +207,9 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 				break
 			case TypeId.ListElement:
 				preparedQuery = sql`DELETE FROM list_entities WHERE type = ${type}`
-				break
+				await this.sqlCipherFacade.run(preparedQuery.query, preparedQuery.params)
+				await this.deleteAllRangesForType(type)
+				return
 			case TypeId.BlobElement:
 				preparedQuery = sql`DELETE FROM blob_element_entities WHERE type = ${type}`
 				break
@@ -225,6 +217,11 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 				throw new Error("must be a persistent type")
 		}
 		await this.sqlCipherFacade.run(preparedQuery.query, preparedQuery.params)
+	}
+
+	private async deleteAllRangesForType(type: string): Promise<void> {
+		const { query, params } = sql`DELETE FROM ranges WHERE type = ${type}`
+		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<T | null> {
