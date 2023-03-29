@@ -1,24 +1,16 @@
 import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { OfflineStorage } from "../OfflineStorage.js"
-import { migrateAllListElements } from "../StandardMigrations.js"
-import { CalendarEvent, CalendarEventTypeRef, createCalendarEvent } from "../../../entities/tutanota/TypeRefs.js"
-import { createRepeatRule } from "../../../entities/sys/TypeRefs.js"
-
-function migrateCalendarEvent(oldEvent: CalendarEvent): CalendarEvent {
-	if (oldEvent.repeatRule) {
-		const repeatRule = createRepeatRule(oldEvent.repeatRule)
-		const newEvent = createCalendarEvent(oldEvent)
-		newEvent.repeatRule = repeatRule
-		return newEvent
-	} else {
-		return createCalendarEvent(oldEvent)
-	}
-}
+import { CalendarEventTypeRef } from "../../../entities/tutanota/TypeRefs.js"
+import { deleteInstancesOfType } from "../StandardMigrations.js"
 
 export const tutanota61: OfflineMigration = {
 	app: "tutanota",
 	version: 61,
 	async migrate(storage: OfflineStorage) {
-		await migrateAllListElements(CalendarEventTypeRef, storage, [migrateCalendarEvent])
+		// we need to delete them because we may already have added exclusions to an event
+		// with a newer client and cached it with the older client.
+		// server will have back-migrated the exclusions away and there's no way for us to get at
+		// them without re-downlading.
+		await deleteInstancesOfType(storage, CalendarEventTypeRef)
 	},
 }
