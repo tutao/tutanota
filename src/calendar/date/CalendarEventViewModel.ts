@@ -841,6 +841,7 @@ export class CalendarEventViewModel {
 		const originalEvent = existingEvent.repeatRule ? await this._entityClient.load(CalendarEventTypeRef, existingEvent._id) : existingEvent
 		if (!originalEvent || originalEvent.repeatRule == null) return
 		const event = clone(originalEvent)
+		event.attendees = originalEvent.attendees.map((a) => createCalendarEventAttendee(a))
 		const excludedDates = event.repeatRule!.excludedDates
 		const timeToInsert = existingEvent.startTime.getTime()
 		const insertionIndex = excludedDates.findIndex(({ date }) => date.getTime() >= timeToInsert)

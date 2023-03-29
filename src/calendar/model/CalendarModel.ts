@@ -32,7 +32,7 @@ import { ProgressTracker } from "../../api/main/ProgressTracker"
 import type { IProgressMonitor } from "../../api/common/utils/ProgressMonitor"
 import { EntityClient } from "../../api/common/EntityClient"
 import type { MailModel } from "../../mail/model/MailModel"
-import { elementIdPart, getElementId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
+import { elementIdPart, getElementId, isSameId, listIdPart, removeTechnicalFields } from "../../api/common/utils/EntityUtils"
 import type { AlarmScheduler } from "../date/AlarmScheduler"
 import type { Notifications } from "../../gui/Notifications"
 import m from "mithril"
@@ -191,6 +191,8 @@ export class CalendarModel {
 		alarmInfos: Array<AlarmInfo>,
 		existingEvent?: CalendarEvent,
 	): Promise<void> {
+		// If the event was copied it might still carry some fields for re-encryption. We can't reuse them.
+		removeTechnicalFields(event)
 		const { assignEventId } = await import("../date/CalendarUtils")
 		// if values of the existing events have changed that influence the alarm time then delete the old event and create a new
 		// one.
