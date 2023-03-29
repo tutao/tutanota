@@ -650,51 +650,56 @@ export class CalendarEventViewModel {
 	}
 
 	onRepeatPeriodSelected(repeatPeriod: RepeatPeriod | null) {
-		if (repeatPeriod == null) {
+		if (this.repeat?.frequency === repeatPeriod) {
+			// repeat null => we will return if repeatPeriod is null
+			// repeat not null => we return if the repeat period is null or it did not change.
+			return
+		} else if (repeatPeriod == null) {
 			this.repeat = null
+		} else if (this.repeat != null) {
+			this.repeat.frequency = repeatPeriod
+			this.deleteExcludedDates()
 		} else {
-			// Provide default values if repeat is not there, override them with existing repeat if it's there, provide new frequency
-			this.repeat = Object.assign(
-				{
-					interval: 1,
-					endType: EndType.Never,
-					endValue: 1,
-					frequency: repeatPeriod,
-					excludedDates: [],
-				},
-				this.repeat,
-				{
-					frequency: repeatPeriod,
-				},
-			)
+			// new repeat rule, populate with default values.
+			this.repeat = {
+				interval: 1,
+				endType: EndType.Never,
+				endValue: 1,
+				frequency: repeatPeriod,
+				excludedDates: [],
+			}
 		}
 	}
 
 	onEndOccurencesSelected(endValue: number) {
-		if (this.repeat && this.repeat.endType === EndType.Count) {
+		if (this.repeat && this.repeat.endType === EndType.Count && this.repeat.endValue !== endValue) {
 			this.repeat.endValue = endValue
+			this.deleteExcludedDates()
 		}
 	}
 
-	onRepeatEndDateSelected(endDate: Date | null) {
+	onRepeatEndDateSelected(endDate: Date) {
 		const { repeat } = this
 
-		if (endDate && repeat && repeat.endType === EndType.UntilDate) {
+		if (repeat && repeat.endType === EndType.UntilDate && repeat.endValue !== endDate.getTime()) {
 			repeat.endValue = endDate.getTime()
+			this.deleteExcludedDates()
 		}
 	}
 
 	onRepeatIntervalChanged(interval: number) {
-		if (this.repeat) {
+		if (this.repeat && this.repeat.interval !== interval) {
 			this.repeat.interval = interval
+			this.deleteExcludedDates()
 		}
 	}
 
 	onRepeatEndTypeChanged(endType: EndType) {
 		const { repeat } = this
 
-		if (repeat) {
+		if (repeat && repeat.endType !== endType) {
 			repeat.endType = endType
+			this.deleteExcludedDates()
 
 			if (endType === EndType.UntilDate) {
 				repeat.endValue = incrementByRepeatPeriod(new Date(), RepeatPeriod.MONTHLY, 1, this._zone).getTime()

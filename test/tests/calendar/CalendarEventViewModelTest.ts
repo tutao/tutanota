@@ -3085,6 +3085,98 @@ o.spec("CalendarEventViewModel", function () {
 			viewModel.deleteExcludedDates()
 			o(viewModel.repeat?.excludedDates).deepEquals([])
 		})
+		o("end occurrence changes delete exclusions", async function () {
+			const userController = makeUserController()
+			const excludedDates = [new Date("2023-03-13T00:00:00Z")]
+			const viewModel = await init({
+				userController,
+				calendars: makeCalendars("own"),
+				existingEvent: createCalendarEvent({
+					repeatRule: createRepeatRule({
+						frequency: "1",
+						interval: "1",
+						endType: EndType.Count,
+						endValue: "10",
+						excludedDates: excludedDates.map((date) => createDateWrapper({ date })),
+					}),
+				}),
+			})
+
+			viewModel.onEndOccurencesSelected(10)
+			o(viewModel.repeat?.excludedDates).deepEquals(excludedDates)
+			viewModel.onEndOccurencesSelected(2)
+			o(viewModel.repeat?.excludedDates).deepEquals([])
+		})
+		o("interval changes delete exclusions", async function () {
+			const userController = makeUserController()
+			const excludedDates = [new Date("2023-03-13T00:00:00Z")]
+			const viewModel = await init({
+				userController,
+				calendars: makeCalendars("own"),
+				existingEvent: createCalendarEvent({
+					repeatRule: createRepeatRule({
+						frequency: "1",
+						interval: "1",
+						endType: EndType.Count,
+						endValue: "10",
+						excludedDates: excludedDates.map((date) => createDateWrapper({ date })),
+					}),
+				}),
+			})
+
+			viewModel.onRepeatIntervalChanged(1)
+			o(viewModel.repeat?.excludedDates).deepEquals(excludedDates)
+			viewModel.onRepeatIntervalChanged(2)
+			o(viewModel.repeat?.excludedDates).deepEquals([])
+		})
+		o("frequency changes delete exclusions", async function () {
+			const userController = makeUserController()
+			const excludedDates = [new Date("2023-03-13T00:00:00Z")]
+			const viewModel = await init({
+				userController,
+				calendars: makeCalendars("own"),
+				existingEvent: createCalendarEvent({
+					repeatRule: createRepeatRule({
+						frequency: "1",
+						interval: "1",
+						endType: EndType.Count,
+						endValue: "10",
+						excludedDates: excludedDates.map((date) => createDateWrapper({ date })),
+					}),
+				}),
+			})
+
+			viewModel.onRepeatPeriodSelected(RepeatPeriod.WEEKLY)
+			o(viewModel.repeat?.excludedDates).deepEquals(excludedDates)
+			viewModel.onRepeatPeriodSelected(RepeatPeriod.DAILY)
+			o(viewModel.repeat?.excludedDates).deepEquals([])
+		})
+		o("end date changes delete exclusions", async function () {
+			const userController = makeUserController()
+			const excludedDates = [new Date("2023-04-13T15:00:00Z")]
+			const originalUntilDate = new Date("2023-05-13T00:00:00Z")
+			let b = new Date(parseInt(originalUntilDate.getTime().toString()))
+			const viewModel = await init({
+				userController,
+				calendars: makeCalendars("own"),
+				existingEvent: createCalendarEvent({
+					startTime: new Date("2023-01-13T15:00:00Z"),
+					endTime: new Date("2023-01-13T20:00:00Z"),
+					repeatRule: createRepeatRule({
+						frequency: RepeatPeriod.DAILY,
+						interval: "1",
+						endType: EndType.UntilDate,
+						endValue: originalUntilDate.getTime().toString(),
+						excludedDates: excludedDates.map((date) => createDateWrapper({ date })),
+					}),
+				}),
+			})
+
+			viewModel.onRepeatEndDateSelected(new Date(viewModel.repeat!.endValue))
+			o(viewModel.repeat?.excludedDates).deepEquals(excludedDates)
+			viewModel.onRepeatEndDateSelected(new Date("2023-06-13T00:00:00Z"))
+			o(viewModel.repeat?.excludedDates).deepEquals([])
+		})
 	})
 	o.spec("excludeThisOccurence", function () {
 		o("no exclusion is added if event has no repeat rule", async function () {
