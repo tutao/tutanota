@@ -18,7 +18,8 @@ import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { locator } from "../../api/main/MainLocator"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { assertIsEntity2 } from "../../api/common/utils/EntityUtils.js"
-import { getMultiMailViewerActionButtonAttrs } from "../../mail/view/MultiMailViewer.js"
+import { getMultiMailViewerActionButtonAttrs, MultiMailViewer } from "../../mail/view/MultiMailViewer.js"
+import { px, size } from "../../gui/size.js"
 
 assertMainOrNode()
 
@@ -44,34 +45,36 @@ export class MultiSearchViewer implements Component {
 			const selectedEntities = (this.searchListView.list && this.searchListView.list.getSelectedEntities()) ?? []
 			return [
 				m(
-					".fill-absolute.mt-xs.plr-l",
-					selectedEntities.length > 0
-						? this.viewingMails()
-							? [
-									m(".flex-space-between.mr-negative-s", [
-										m(".flex.items-center", this.getSearchSelectionMessage(selectedEntities)),
-										m(ActionBar, {
-											buttons: getMultiMailViewerActionButtonAttrs(
-												selectedEntities.map(({ entry }) => entry).filter(assertIsEntity2(MailTypeRef)),
-												() => this.searchListView.list?.selectNone(),
-												true,
-											),
-										}),
-									]),
-							  ]
-							: [
-									m(".flex-space-between.mr-negative-s", [
-										m(".flex.items-center", this.getSearchSelectionMessage(selectedEntities)),
-										m(ActionBar, {
-											buttons: contactActionBarButtons,
-										}),
-									]),
-							  ]
-						: m(ColumnEmptyMessageBox, {
-								message: () => this.getSearchSelectionMessage(selectedEntities),
-								color: theme.content_message_bg,
-								icon: this.isMailList ? BootIcons.Mail : BootIcons.Contacts,
-						  }),
+					".flex.col.fill-absolute",
+					this.viewingMails()
+						? [
+								m(MultiMailViewer, {
+									selectedEntities: selectedEntities.map(({ entry }) => entry).filter(assertIsEntity2(MailTypeRef)),
+									selectNone: () => {
+										this.searchListView.list?.selectNone()
+									},
+								}),
+						  ]
+						: selectedEntities.length > 0
+						? [
+								m(".flex-space-between.mr-negative-s", [
+									m(".flex.items-center", this.getSearchSelectionMessage(selectedEntities)),
+									m(ActionBar, {
+										buttons: contactActionBarButtons,
+									}),
+								]),
+						  ]
+						: [
+								m(".flex.pt-xs.pb-xs.list-bg.plr-m.list-border-bottom.items-center", { style: { height: px(size.button_height) } }),
+								m(
+									".flex-grow.rel.overflow-hidden",
+									m(ColumnEmptyMessageBox, {
+										message: "noSelection_msg",
+										color: theme.content_message_bg,
+										icon: this.isMailList ? BootIcons.Mail : BootIcons.Contacts,
+									}),
+								),
+						  ],
 				),
 			]
 		}

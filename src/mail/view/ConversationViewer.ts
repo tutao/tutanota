@@ -4,7 +4,7 @@ import { MailViewer } from "./MailViewer.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { theme } from "../../gui/theme.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
-import { assertNotNull, NBSP } from "@tutao/tutanota-utils"
+import { assertNotNull, NBSP, noOp } from "@tutao/tutanota-utils"
 import { elementIdPart, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { CollapsedMailView } from "./CollapsedMailView.js"
 import { mailViewerMargin } from "./MailViewerUtils.js"
@@ -14,6 +14,7 @@ import { px, size } from "../../gui/size.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
 import { keyManager, Shortcut } from "../../misc/KeyManager.js"
 import { styles } from "../../gui/styles.js"
+import { MailViewerToolbar } from "./MailViewerToolbar.js"
 
 export interface ConversationViewerAttrs {
 	viewModel: ConversationViewModel
@@ -28,7 +29,7 @@ const conversationCardMargin = 18
  */
 export class ConversationViewer implements Component<ConversationViewerAttrs> {
 	private containerDom: HTMLElement | null = null
-	private floatingSubjectDom: HTMLElement | null = null
+	private subjectDom: HTMLElement | null = null
 	private didScroll = false
 	/** items from the last render, we need them to calculate the right subject based on the scroll position without the full re-render. */
 	private lastItems: readonly ConversationItem[] | null = null
@@ -71,9 +72,17 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 		this.lastItems = viewModel.conversationItems()
 		this.doScroll(viewModel, this.lastItems)
 
-		return m(".fill-absolute.nav-bg", [
+		return m(".fill-absolute.nav-bg.flex.col", [
+			m(MailViewerToolbar, {
+				mailModel: viewModel.primaryViewModel().mailModel,
+				mailViewerViewModel: viewModel.primaryViewModel(),
+				mails: [viewModel.primaryMail],
+				selectNone: noOp,
+				readAction: () => viewModel.primaryViewModel().setUnread(false),
+				unreadAction: () => viewModel.primaryViewModel().setUnread(true),
+			}),
 			m(
-				".fill-absolute.scroll",
+				".flex-grow.scroll",
 				{
 					oncreate: (vnode) => {
 						this.containerDom = vnode.dom as HTMLElement
@@ -86,7 +95,6 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				this.renderLoadingState(viewModel),
 				this.renderFooter(),
 			),
-			styles.isSingleColumnLayout() ? null : this.renderFloatingSubject(),
 		])
 	}
 
@@ -144,34 +152,6 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 			: null
 	}
 
-	private renderFloatingSubject(): Children {
-		return m(
-			".abs.nav-bg",
-			{
-				class: mailViewerMargin(),
-				style: {
-					top: 0,
-					left: 0,
-					right: 0,
-					transform: "translateY(-100%)",
-				},
-			},
-			m(
-				".b.h5.subject.text-break.text-ellipsis.selectable",
-				{
-					oncreate: ({ dom }) => {
-						this.floatingSubjectDom = dom as HTMLElement
-					},
-					style: {
-						marginTop: px(conversationCardMargin),
-						marginBottom: px(conversationCardMargin),
-					},
-				},
-				"",
-			),
-		)
-	}
-
 	private renderViewer(mailViewModel: MailViewerViewModel, isPrimary: boolean, position: number | null): Children {
 		return m(
 			".border-radius-big.rel",
@@ -221,14 +201,13 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				this.subjectsAboveViewport.delete(id)
 				break
 		}
-		if (this.floatingSubjectDom) {
+		if (this.subjectDom) {
 			if (this.subjectsAboveViewport.size === 0) {
 				// all subjects above us are visible, hide the sticky subject
-				this.floatingSubjectDom.parentElement!.style.transform = "translateY(-100%)"
+				this.subjectDom.innerText = ""
 			} else {
-				this.floatingSubjectDom.parentElement!.style.transform = ""
 				// use NBSP to keep the height
-				this.floatingSubjectDom.innerText = this.subjectForFloatingHeader() ?? NBSP
+				this.subjectDom.innerText = this.subjectForFloatingHeader() ?? NBSP
 			}
 		}
 	}
@@ -260,9 +239,11 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				const itemIndex = items.findIndex((e) => e.type === "mail" && isSameId(e.entryId, conversationId))
 				// Don't scroll if it's already the first (or if we didn't find it but that would be weird)
 				if (itemIndex > 1) {
-					const top = (containerDom.childNodes[itemIndex] as HTMLElement).offsetTop
-					// The single pixel seems to make the difference between jittering or not. Inferred empiraically.
-					containerDom.scrollTo({ top: top - calculateSubjectHeaderHeight() + 1 })
+					const childDom = containerDom.childNodes[itemIndex] as HTMLElement
+					const parentTop = containerDom.getBoundingClientRect().top
+					const childTop = childDom.getBoundingClientRect().top
+					const relativeTop = childTop - parentTop
+					containerDom.scrollTo({ top: relativeTop - conversationCardMargin * 2 })
 				}
 			})
 		}
@@ -328,7 +309,7 @@ export class ObservableSubject implements Component<ObservableSubjectAttrs> {
 								: "below"
 							this.lastAttrs.cb(visibility)
 						},
-						{ root: vnode.dom.parentElement, rootMargin: px(-calculateSubjectHeaderHeight()) },
+						{ root: vnode.dom.parentElement },
 					)
 					this.observer.observe(vnode.dom)
 				},

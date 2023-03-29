@@ -139,20 +139,22 @@ export async function makeAssignMailsButtons(viewModel: MailViewerViewModel): Pr
 	})
 }
 
-export function mailViewerMoreActions(viewModel: MailViewerViewModel): Array<DropdownButtonAttrs> {
+export function mailViewerMoreActions(viewModel: MailViewerViewModel, showReadButton: boolean = true): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
-	if (viewModel.isUnread()) {
-		moreButtons.push({
-			label: "markRead_action",
-			click: () => viewModel.setUnread(false),
-			icon: Icons.Eye,
-		})
-	} else {
-		moreButtons.push({
-			label: "markUnread_action",
-			click: () => viewModel.setUnread(true),
-			icon: Icons.NoEye,
-		})
+	if (showReadButton) {
+		if (viewModel.isUnread()) {
+			moreButtons.push({
+				label: "markRead_action",
+				click: () => viewModel.setUnread(false),
+				icon: Icons.Eye,
+			})
+		} else {
+			moreButtons.push({
+				label: "markUnread_action",
+				click: () => viewModel.setUnread(true),
+				icon: Icons.NoEye,
+			})
+		}
 	}
 
 	if (!client.isMobileDevice() && viewModel.canExport()) {

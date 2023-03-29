@@ -6,6 +6,7 @@ import { Icon } from "./Icon"
 import { px, size } from "../size"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env"
+import { theme } from "../theme.js"
 
 assertMainOrNode()
 
@@ -14,6 +15,7 @@ export type Attrs = {
 	message: TranslationKey | lazy<Children>
 	icon?: AllIcons
 	color: string
+	clearAction?: () => unknown
 }
 
 /** Displays a big message with an option icon above it. */
@@ -49,7 +51,7 @@ export class IconMessageBox implements Component<Attrs> {
 export default class ColumnEmptyMessageBox implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
 		return m(
-			".fill-absolute.flex.col.items-center.justify-center",
+			".fill-absolute.flex.col.items-center.justify-center.nav-bg",
 			{
 				style: {
 					"margin-top": px(attrs.icon ? -size.icon_message_box - size.vpad_xl : -size.vpad_xl),
@@ -61,6 +63,26 @@ export default class ColumnEmptyMessageBox implements Component<Attrs> {
 				icon: attrs.icon,
 				color: attrs.color,
 			}),
+			m(
+				"button.small.pt-s.mlr-l.flex.col",
+				{
+					type: "button",
+					role: "button",
+					onclick: attrs.clearAction,
+					style: {
+						visibility: attrs.clearAction === undefined ? "hidden" : "unset",
+					},
+				},
+				m(
+					"span",
+					{
+						style: {
+							color: theme.content_accent,
+						},
+					},
+					lang.get("cancel_action"),
+				),
+			),
 		)
 	}
 }

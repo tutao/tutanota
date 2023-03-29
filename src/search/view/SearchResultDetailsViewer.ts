@@ -15,6 +15,7 @@ import { isSameId } from "../../api/common/utils/EntityUtils"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ConversationViewer } from "../../mail/view/ConversationViewer.js"
 import { ConversationViewModel } from "../../mail/view/ConversationViewModel.js"
+import { px, size } from "../../gui/size.js"
 
 assertMainOrNode()
 
@@ -65,14 +66,20 @@ export class SearchResultDetailsViewer {
 		const selected = this.listView.list ? this.listView.list.getSelectedEntities() : []
 
 		if (selected.length === 0) {
-			return m(
-				".fill-absolute.mt-xs.plr-l",
-				m(ColumnEmptyMessageBox, {
-					message: "noSelection_msg",
-					color: theme.content_message_bg,
-					icon: isSameTypeRef(this.listView._lastType, MailTypeRef) ? BootIcons.Mail : BootIcons.Contacts,
-				}),
-			)
+			return [
+				m(
+					".flex.col.fill-absolute",
+					m(".flex.pt-xs.pb-xs.list-bg.plr-m.list-border-bottom.items-center", { style: { height: px(size.button_height) } }),
+					m(
+						".flex-grow.rel.overflow-hidden",
+						m(ColumnEmptyMessageBox, {
+							message: "noSelection_msg",
+							color: theme.content_message_bg,
+							icon: isSameTypeRef(this.listView._lastType, MailTypeRef) ? BootIcons.Mail : BootIcons.Contacts,
+						}),
+					),
+				),
+			]
 		} else {
 			const viewer = this.viewer
 			return viewer?.mode === "mail"

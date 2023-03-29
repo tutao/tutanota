@@ -1,6 +1,5 @@
-import m, { Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { assertMainOrNode, isApp } from "../../api/common/Env"
-import { ActionBar } from "../../gui/base/ActionBar"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import { lang } from "../../misc/LanguageViewModel"
 import { Icons } from "../../gui/base/icons/Icons"
@@ -10,11 +9,14 @@ import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { theme } from "../../gui/theme"
 import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../api/main/MainLocator"
-import { moveMails, promptAndDeleteMails } from "./MailGuiUtils"
+import { moveMails, promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils"
 import { attachDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { exportMails } from "../export/Exporter"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
-import { IconButtonAttrs } from "../../gui/base/IconButton.js"
+import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
+import { styles } from "../../gui/styles.js"
+import { px, size } from "../../gui/size.js"
+import { MailViewerToolbar } from "./MailViewerToolbar.js"
 
 assertMainOrNode()
 
@@ -31,29 +33,23 @@ export class MultiMailViewer implements Component<MultiMailViewerAttrs> {
 		const { selectedEntities, selectNone } = attrs
 		return [
 			m(
-				".fill-absolute.mt-xs",
-				selectedEntities.length > 0
-					? [
-							m(
-								".flex-space-between.pl-l",
-								{
-									style: {
-										marginRight: "6px",
-									},
-								},
-								[
-									m(".flex.items-center", this.getMailSelectionMessage(selectedEntities)),
-									m(ActionBar, {
-										buttons: getMultiMailViewerActionButtonAttrs(selectedEntities, selectNone, true),
-									}),
-								],
-							),
-					  ]
-					: m(ColumnEmptyMessageBox, {
-							message: () => this.getMailSelectionMessage(selectedEntities),
-							icon: BootIcons.Mail,
-							color: theme.content_message_bg,
-					  }),
+				".flex.col.fill-absolute",
+				m(MailViewerToolbar, {
+					mailModel: locator.mailModel,
+					mails: selectedEntities,
+					selectNone: selectNone,
+					readAction: () => markMails(locator.entityClient, selectedEntities, false),
+					unreadAction: () => markMails(locator.entityClient, selectedEntities, true),
+				}),
+				m(
+					".flex-grow.rel.overflow-hidden",
+					m(ColumnEmptyMessageBox, {
+						message: () => this.getMailSelectionMessage(selectedEntities),
+						icon: BootIcons.Mail,
+						color: theme.content_message_bg,
+						clearAction: selectedEntities.length > 0 ? selectNone : undefined,
+					}),
+				),
 			),
 		]
 	}
