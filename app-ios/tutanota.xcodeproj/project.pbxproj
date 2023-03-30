@@ -162,7 +162,7 @@
 		3D9B12B42721A1E2002B46A1 /* TUTErrorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D9B12B22721A1E2002B46A1 /* TUTErrorFactory.m */; };
 		3DA047BF212C1BBE0062C36C /* CompatibilityTestData.json in Resources */ = {isa = PBXBuildFile; fileRef = 3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */; };
 		3DAA23A9267A208200219051 /* UIColorExtensionsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAA23A8267A208200219051 /* UIColorExtensionsTest.swift */; };
-		3DAED2AF29A6267D00806DEA /* NotificatoinsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAED2AE29A6267D00806DEA /* NotificatoinsHandler.swift */; };
+		3DAED2AF29A6267D00806DEA /* NotificationsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAED2AE29A6267D00806DEA /* NotificationsHandler.swift */; };
 		3DB07C7B27303F0600BFBB4D /* Keys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DB07C7A27303F0600BFBB4D /* Keys.swift */; };
 		3DBA56C72850AAA6004416BE /* FileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56B72850AAA6004416BE /* FileFacade.swift */; };
 		3DBA56C82850AAA6004416BE /* MobileFacadeSendDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56B82850AAA6004416BE /* MobileFacadeSendDispatcher.swift */; };
@@ -403,7 +403,7 @@
 		3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = CompatibilityTestData.json; sourceTree = "<group>"; };
 		3DAA23A5267A202000219051 /* tutanotaTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "tutanotaTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		3DAA23A8267A208200219051 /* UIColorExtensionsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorExtensionsTest.swift; sourceTree = "<group>"; };
-		3DAED2AE29A6267D00806DEA /* NotificatoinsHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificatoinsHandler.swift; sourceTree = "<group>"; };
+		3DAED2AE29A6267D00806DEA /* NotificationsHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsHandler.swift; sourceTree = "<group>"; };
 		3DB07C7A27303F0600BFBB4D /* Keys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keys.swift; sourceTree = "<group>"; };
 		3DBA56B72850AAA6004416BE /* FileFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileFacade.swift; sourceTree = "<group>"; };
 		3DBA56B82850AAA6004416BE /* MobileFacadeSendDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileFacadeSendDispatcher.swift; sourceTree = "<group>"; };
@@ -1162,7 +1162,7 @@
 		3DAED2AD29A6266800806DEA /* Push */ = {
 			isa = PBXGroup;
 			children = (
-				3DAED2AE29A6267D00806DEA /* NotificatoinsHandler.swift */,
+				3DAED2AE29A6267D00806DEA /* NotificationsHandler.swift */,
 			);
 			path = Push;
 			sourceTree = "<group>";
@@ -1694,7 +1694,7 @@
 				3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */,
 				3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */,
 				3DC5DED52858CB58007364FF /* NativeCryptoFacade.swift in Sources */,
-				3DAED2AF29A6267D00806DEA /* NotificatoinsHandler.swift in Sources */,
+				3DAED2AF29A6267D00806DEA /* NotificationsHandler.swift in Sources */,
 				3DC5DEC728576621007364FF /* NativeInterface.swift in Sources */,
 				3D220202293F752D00366FD2 /* WebauthnKeyDescriptor.swift in Sources */,
 				3DCE7AAC27200E0A0085E40D /* WebviewHacks.m in Sources */,

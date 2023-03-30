@@ -23,4 +23,9 @@ export interface NativePushFacade {
 	closePushNotifications(addressesArray: ReadonlyArray<string>): Promise<void>
 
 	scheduleAlarms(alarms: ReadonlyArray<EncryptedAlarmNotification>): Promise<void>
+
+	/**
+	 * Unschedule and remove alarms belonging to a specific user from the persistent storage
+	 */
+	invalidateAlarmsForUser(userId: string): Promise<void>
 }

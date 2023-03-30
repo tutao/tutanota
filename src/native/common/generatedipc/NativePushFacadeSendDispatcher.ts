@@ -22,4 +22,7 @@ export class NativePushFacadeSendDispatcher implements NativePushFacade {
 	async scheduleAlarms(...args: Parameters<NativePushFacade["scheduleAlarms"]>) {
 		return this.transport.invokeNative("ipc", ["NativePushFacade", "scheduleAlarms", ...args])
 	}
+	async invalidateAlarmsForUser(...args: Parameters<NativePushFacade["invalidateAlarmsForUser"]>) {
+		return this.transport.invokeNative("ipc", ["NativePushFacade", "invalidateAlarmsForUser", ...args])
+	}
 }

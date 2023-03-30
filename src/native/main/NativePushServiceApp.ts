@@ -6,7 +6,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env"
 import { LoginController } from "../../api/main/LoginController"
 import { client } from "../../misc/ClientDetector"
-import { DeviceConfig, deviceConfig } from "../../misc/DeviceConfig"
+import { DeviceConfig } from "../../misc/DeviceConfig"
 import { getElementId } from "../../api/common/utils/EntityUtils"
 import { locator } from "../../api/main/MainLocator"
 import { DeviceStorageUnavailableError } from "../../api/common/error/DeviceStorageUnavailableError"
@@ -14,6 +14,17 @@ import { NativePushFacade } from "../common/generatedipc/NativePushFacade.js"
 import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
+import modelInfo from "../../api/entities/sys/ModelInfo.js"
+
+// keep in sync with SYS_MODEL_VERSION in app-android/app/build.gradle
+// keep in sync with app-ios/tutanota/Sources/Utils/Utils.swift
+const MOBILE_SYS_MODEL_VERSION = 85
+
+function effectiveModelVersion(): number {
+	// on desktop we use generated classes
+	// on mobile we use hand-written classes
+	return isDesktop() ? modelInfo.version : MOBILE_SYS_MODEL_VERSION
+}
 
 export class NativePushServiceApp {
 	private _currentIdentifier: string | null = null
@@ -33,7 +44,7 @@ export class NativePushServiceApp {
 			try {
 				const identifier = (await this.loadPushIdentifierFromNative()) ?? (await locator.workerFacade.generateSsePushIdentifer())
 				this._currentIdentifier = identifier
-				const pushIdentifier = (await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentiferInstance(identifier, PushServiceType.SSE))
+				const pushIdentifier = (await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentifierInstance(identifier, PushServiceType.SSE))
 				await this.storePushIdentifierLocally(pushIdentifier)
 				await this.scheduleAlarmsIfNeeded(pushIdentifier)
 				await this.initPushNotifications()
@@ -49,7 +60,7 @@ export class NativePushServiceApp {
 
 			if (identifier) {
 				this._currentIdentifier = identifier
-				const pushIdentifier = (await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentiferInstance(identifier, PushServiceType.IOS))
+				const pushIdentifier = (await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentifierInstance(identifier, PushServiceType.IOS))
 
 				if (pushIdentifier.language !== lang.code) {
 					pushIdentifier.language = lang.code
@@ -66,7 +77,7 @@ export class NativePushServiceApp {
 
 	async invalidateAlarms(): Promise<void> {
 		console.log("invalidating alarms")
-		deviceConfig.setNoAlarmsScheduled()
+		this.deviceConfig.setNoAlarmsScheduled()
 
 		if (this.logins.isUserLoggedIn()) {
 			await this.logins.waitForFullLogin()
@@ -94,7 +105,7 @@ export class NativePushServiceApp {
 		return identifiers.find((i) => i.identifier === identifier) ?? null
 	}
 
-	private async createPushIdentiferInstance(identifier: string, pushServiceType: PushServiceType): Promise<PushIdentifier> {
+	private async createPushIdentifierInstance(identifier: string, pushServiceType: PushServiceType): Promise<PushIdentifier> {
 		const list = assertNotNull(this.logins.getUserController().user.pushIdentifierList?.list)
 		const pushIdentifier = createPushIdentifier({
 			_area: "0",
@@ -124,10 +135,15 @@ export class NativePushServiceApp {
 	private async scheduleAlarmsIfNeeded(pushIdentifier: PushIdentifier): Promise<void> {
 		const userId = this.logins.getUserController().user._id
 
-		if (!this.deviceConfig.hasScheduledAlarmsForUser(userId)) {
-			console.log("Alarms not scheduled for user, scheduling!")
+		// The native part might have alarms stored for the older model version and they might miss some new fields.
+		// We need to remove all of them, re-download and re-schedule all of them.
+		const scheduledAlarmsModelVersion = this.deviceConfig.getScheduledAlarmsModelVersion(userId)
+		if (scheduledAlarmsModelVersion == null || scheduledAlarmsModelVersion < effectiveModelVersion()) {
+			console.log(`Alarms not scheduled for user ${userId} (stored v ${scheduledAlarmsModelVersion}), scheduling`)
+			await this.nativePushFacade.invalidateAlarmsForUser(userId)
 			await this.calendarFacade.scheduleAlarmsForNewDevice(pushIdentifier)
-			deviceConfig.setAlarmsScheduledForUser(userId, true)
+			// tell native to delete all alarms for the user
+			this.deviceConfig.setScheduledAlarmsModelVersion(userId, effectiveModelVersion())
 		}
 	}
 }

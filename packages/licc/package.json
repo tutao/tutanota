@@ -8,7 +8,7 @@
 	"main": "index.js",
 	"type": "module",
 	"scripts": {
-		"build": "tsc -b",
+		"build": "npx tsc -b",
 		"test": "rm -rf ./test/build && tsc -b test && cd test/build && node test/Suite.js",
 		"preinstall": "node preinstall.js"
 	},

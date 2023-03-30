@@ -7,6 +7,11 @@ import Foundation
 let EVENTS_SCHEDULED_AHEAD = 14
 let SYSTEM_ALARM_LIMIT = 64
 
+fileprivate let TAG = "AlarmManager"
+fileprivate func log(_ message: String) {
+  TUTSLog("\(TAG) \(message)")
+}
+
 /// Entry point for dealing with alarms
 /// Receives alarm notifications and makes sure that the persisted state is correct and that alarms are scheduled with the system.
 /// We can only schedule limited number of alarms ahead so they need to be periodically re-scheduled.
@@ -30,6 +35,7 @@ class AlarmManager {
 
   /// Process new alarms into the app. Will persist the changes and reschedule as appropriate
   func processNewAlarms(_ alarms: Array<EncryptedAlarmNotification>) throws {
+    log("processNewAlarms")
     // We will modify this list and the overwrite persisted alarms with what is inside this list
     var savedNotifications = self.alarmPersistor.alarms
     var resultError: Error?
@@ -37,16 +43,16 @@ class AlarmManager {
       do {
         try self.handleAlarmNotification(alarmNotification, existingAlarms: &savedNotifications)
       } catch {
-        TUTSLog("Error while handling alarm \(error)")
+        log("Error while handling alarm \(error)")
         resultError = error
       }
     }
     
-    TUTSLog("Finished processing \(alarms.count) alarms")
+    log("Finished processing \(alarms.count) alarms")
     self.alarmPersistor.store(alarms: savedNotifications)
     
     self.rescheduleAlarms()
-    TUTSLog("Finished re-scheduling")
+    log("Finished processNewAlarms")
     if let error = resultError {
       throw error
     }
@@ -54,20 +60,20 @@ class AlarmManager {
 
   /// Remove everything persisted and unschedule all alarms
   func resetStoredState() {
-    TUTSLog("Resetting stored state")
+    log("Resetting stored state")
     self.unscheduleAllAlarms(userId: nil)
     self.alarmPersistor.clear()
   }
   
   /// Take the alarms from the persistor and schedule the soonest occurrences
   func rescheduleAlarms() {
-    TUTSLog("Re-scheduling alarms")
+    log("rescheduleAlarms")
     let decryptedAlarms = self.savedAlarms()
       .compactMap { encryptedAlarm in
         do {
           return try alarmCryptor.decrypt(alarm: encryptedAlarm)
         } catch {
-          TUTSLog("Error when decrypting alarm \(encryptedAlarm) \(error)")
+          log("Error when decrypting alarm \(encryptedAlarm) \(error)")
           return nil
         }
       }
@@ -83,6 +89,7 @@ class AlarmManager {
         alarmIdentifier: occurrence.alarm.alarmInfo.alarmIdentifer
       )
     }
+    log("finished rescheduleAlarms")
   }
 
   private func savedAlarms() -> Set<EncryptedAlarmNotification> {
@@ -91,7 +98,7 @@ class AlarmManager {
     // de-duplicate alarms by their identifier
     let set = Set(savedNotifications)
     if set.count != savedNotifications.count {
-      TUTSLog("Duplicated alarms detected, re-saving...")
+      log("Duplicated alarms detected, re-saving...")
       self.alarmPersistor.store(alarms: Array(set))
     }
 
@@ -116,7 +123,7 @@ class AlarmManager {
       do {
         try self.unschedule(alarm: alarmToUnschedule)
       } catch {
-        TUTSLog("Failed to cancel alarm \(alarm) \(error)")
+        log("Failed to cancel alarm \(alarm) \(error)")
         throw error
       }
       if let index = existingAlarms.firstIndex(of: alarmToUnschedule) {
@@ -128,19 +135,23 @@ class AlarmManager {
     }
   }
   
-  /// Unschedule all alarms associated with userId all all of them if it's nil
+  /// Unschedule all alarms associated with userId or all of them if userId is nil
+  /// clears every unscheduled alarm from the persistent storage
   func unscheduleAllAlarms(userId: String?) {
     let alarms = self.alarmPersistor.alarms
+    var alarmsToKeep: [EncryptedAlarmNotification] = []
     for alarm in alarms {
       if userId != nil && userId != alarm.user {
+        alarmsToKeep.append(alarm)
         continue
       }
       do {
         try self.unschedule(alarm: alarm)
       } catch {
-        TUTSLog("Error while unscheduling of all alarms \(error)")
+        log("Error while unscheduling of all alarms \(error)")
       }
     }
+    self.alarmPersistor.store(alarms: alarmsToKeep)
   }
   
   private func unschedule(alarm encAlarmNotification: EncryptedAlarmNotification) throws {
@@ -150,7 +161,7 @@ class AlarmManager {
       .map {
         ocurrenceIdentifier(alarmIdentifier: $0.alarm.identifier, occurrence: $0.occurrenceNumber)
       }
-    TUTSLog("Cancelling alarm \(alarmNotification.identifier)")
+    log("Cancelling alarm \(alarmNotification.identifier)")
     self.alarmScheduler.unscheduleAll(occurrenceIds: occurrenceIds)
   }
   

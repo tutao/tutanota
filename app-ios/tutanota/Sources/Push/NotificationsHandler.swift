@@ -7,18 +7,24 @@ class NotificationsHandler {
   private let alarmManager: AlarmManager
   private let notificationStorage: NotificationStorage
   private let fetchQueue: OperationQueue
-  
+
   init(alarmManager: AlarmManager, notificationStorage: NotificationStorage) {
     self.alarmManager = alarmManager
     self.notificationStorage = notificationStorage
     self.fetchQueue = OperationQueue()
     self.fetchQueue.maxConcurrentOperationCount = 1
   }
-  
+
   func initialize() {
     if self.hasNotificationTTLExpired() {
       self.alarmManager.resetStoredState()
     } else {
+      // we're scheduling the reschedule before fetching so we don't get
+      // two reschedules in parallel
+      self.fetchQueue.addOperation { [weak self] in
+        self?.alarmManager.rescheduleAlarms()
+      }
+
       self.fetchMissedNotifications { result in
         switch result {
         case .success():
@@ -27,12 +33,9 @@ class NotificationsHandler {
           TUTSLog("Failed to fetch/process missed notification \(err)")
         }
       }
-      DispatchQueue.global(qos: .background).async {
-        self.alarmManager.rescheduleAlarms()
-      }
     }
   }
-  
+
   private func hasNotificationTTLExpired() -> Bool {
     guard let lastMissedNotificationCheckTime = notificationStorage.lastMissedNotificationCheckTime else {
       return false
@@ -41,38 +44,38 @@ class NotificationsHandler {
     // Important: timeIntervalSinceNow is negative if it's in the past
     return sinceNow < 0 && Int64(abs(sinceNow)) > MISSED_NOTIFICATION_TTL_SEC
   }
-  
+
   /// Fetch and process missed notification. Will execute fetch operations one by one if it's queued multiple times.  Will wait for suspension if necessary.
   func fetchMissedNotifications(_ completionHandler: @escaping ResponseCallback<Void>) {
-    TUTSLog("Adding fetch notificaiton operation to queue")
+    TUTSLog("Adding fetch notification operation to queue")
     self.fetchQueue.addOperation { [weak self] in
       let void: Void = ()
       guard let self = self else {
         completionHandler(.success(void))
         return
       }
-      
+
       let result = Result { try self.doFetchMissedNotifications() }
       completionHandler(result)
     }
   }
-  
+
   /// Fetch and process missed notification, actual impl without queuing which makes it easier to just call it recursively.
   private func doFetchMissedNotifications() throws {
     guard let sseInfo = self.notificationStorage.sseInfo else {
       TUTSLog("No stored SSE info")
       return
     }
-    
+
     if sseInfo.userIds.isEmpty {
       TUTSLog("No users to download missed notification with")
       self.alarmManager.unscheduleAllAlarms(userId: nil)
       return
     }
-    
+
     var additionalHeaders = [String: String]()
     addSystemModelHeaders(to: &additionalHeaders)
-    
+
     let userId: String = sseInfo.userIds[0]
     additionalHeaders["userIds"] = userId
     if let lastNotificationId = self.notificationStorage.lastProcessedNotificationId {
@@ -80,16 +83,16 @@ class NotificationsHandler {
     }
     let configuration = URLSessionConfiguration.ephemeral
     configuration.httpAdditionalHeaders = additionalHeaders
-    
+
     let urlSession = URLSession(configuration: configuration)
     let urlString = self.missedNotificationUrl(origin: sseInfo.sseOrigin, pushIdentifier: sseInfo.pushIdentifier)
-    
+
     TUTSLog("Downloading missed notification with userId \(userId)")
-    
+
     let (data, response) = try urlSession.synchronousDataTask(with: URL(string: urlString)!)
     let httpResponse = response as! HTTPURLResponse
     TUTSLog("Fetched missed notifications with status code \(httpResponse.statusCode)")
-    
+
     switch (HttpStatusCode(rawValue: httpResponse.statusCode)) {
     case .notAuthenticated:
       TUTSLog("Not authenticated to download missed notification w/ user \(userId)")
@@ -121,7 +124,7 @@ class NotificationsHandler {
       throw error
     }
   }
-  
+
   private func missedNotificationUrl(origin: String, pushIdentifier: String) -> String {
     let base64UrlId = stringToCustomId(customId: pushIdentifier)
     return "\(origin)/rest/sys/missednotification/\(base64UrlId)"

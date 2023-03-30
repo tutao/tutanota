@@ -44,6 +44,12 @@ public class NativePushFacadeReceiveDispatcher {
 				alarms
 			)
 			return "null"
+		case "invalidateAlarmsForUser":
+			let userId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.invalidateAlarmsForUser(
+				userId
+			)
+			return "null"
 		default:
 			fatalError("licc messed up! \(method)")
 		}

@@ -6,6 +6,7 @@ import {
 	createAlarmNotification,
 	createAlarmServicePost,
 	createCalendarEventRef,
+	createDateWrapper,
 	createNotificationSessionKey,
 	createRepeatRule,
 	createUserAlarmInfo,
@@ -504,7 +505,7 @@ function createRepeatRuleForCalendarRepeatRule(calendarRepeatRule: CalendarRepea
 		frequency: calendarRepeatRule.frequency,
 		interval: calendarRepeatRule.interval,
 		timeZone: calendarRepeatRule.timeZone,
-		excludedDates: calendarRepeatRule.excludedDates,
+		excludedDates: calendarRepeatRule.excludedDates.map(({ date }) => createDateWrapper({ date })),
 	})
 }
 

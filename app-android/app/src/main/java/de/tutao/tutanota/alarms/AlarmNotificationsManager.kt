@@ -39,7 +39,7 @@ class AlarmNotificationsManager(
 			if (pushIdentifierSessionKey != null) {
 				val pushIdentifierSessionEncSessionKey =
 						encNotificationSessionKey.pushIdentifierSessionEncSessionKey.base64ToBytes()
-				return crypto.decryptKey(pushIdentifierSessionKey, pushIdentifierSessionEncSessionKey)
+				return crypto.decryptKey(encryptionKey =pushIdentifierSessionKey, encryptedKeyWithoutIV = pushIdentifierSessionEncSessionKey)
 			}
 		} catch (e: UnrecoverableEntryException) {
 			Log.w(TAG, "could not decrypt session key", e)

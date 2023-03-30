@@ -7,6 +7,7 @@ import type { Base64 } from "@tutao/tutanota-utils"
 import { base64ToUint8Array, findAllAndRemove, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { log } from "../DesktopLog"
 import { EncryptedAlarmNotification, NotificationSessionKey } from "../../native/common/EncryptedAlarmNotification.js"
+import { AlarmNotification, RepeatRule } from "../../api/entities/sys/TypeRefs.js"
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
@@ -112,7 +113,18 @@ export class DesktopAlarmStorage {
 	}
 
 	async getScheduledAlarms(): Promise<Array<EncryptedAlarmNotification>> {
-		return (await this.conf.getVar(DesktopConfigKey.scheduledAlarms)) || []
+		// the model for alarm notifications changed and we may have stored some that are missing the
+		// excludedDates field.
+		// to be able to decrypt & map these we need to at least add a plausible value there
+		// we'll unschedule, redownload and reschedule the fixed instances after login.
+		const alarms: Array<EncryptedAlarmNotification & { repeatRule?: Record<string, unknown> }> = await this.conf.getVar(DesktopConfigKey.scheduledAlarms)
+		return (
+			alarms?.map((a) => {
+				if (!a.repeatRule) return a
+				a.repeatRule = { excludedDates: [], ...a.repeatRule }
+				return a
+			}) || []
+		)
 	}
 
 	_saveAlarms(alarms: ReadonlyArray<EncryptedAlarmNotification>): Promise<void> {
