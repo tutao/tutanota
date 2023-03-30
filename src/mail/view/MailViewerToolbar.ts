@@ -53,7 +53,12 @@ export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
 				attrs.mailViewerViewModel.isDraftMail() ? null : this.readButton(attrs),
 			]
 		} else if (attrs.mails.length > 0) {
-			return [this.deleteButton(attrs), this.moveButton(attrs.mailModel, attrs.mails), this.readButton(attrs), this.exportButton(attrs)]
+			return [
+				this.deleteButton(attrs),
+				locator.logins.getUserController().isInternalUser() ? this.moveButton(attrs.mailModel, attrs.mails) : null,
+				this.readButton(attrs),
+				this.exportButton(attrs),
+			]
 		}
 	}
 
