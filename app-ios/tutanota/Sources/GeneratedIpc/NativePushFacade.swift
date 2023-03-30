@@ -27,4 +27,10 @@ public protocol NativePushFacade {
 	func scheduleAlarms(
 		_ alarms: [EncryptedAlarmNotification]
 	) async throws -> Void
+	/**
+	 * Unschedule and remove alarms belonging to a specific user from the persistent storage
+	 */
+	func invalidateAlarmsForUser(
+		_ userId: String
+	) async throws -> Void
 }

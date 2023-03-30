@@ -20,7 +20,7 @@ export const defaultThemeId: ThemeId = "light"
 interface ConfigObject {
 	_version: number
 	_credentials: Map<Id, PersistentCredentials>
-	_scheduledAlarmUsers: Id[]
+	scheduledAlarmModelVersionPerUser: Record<Id, number>
 	_themeId: ThemeId
 	_language: LanguageCode | null
 	_defaultCalendarView: Record<Id, CalendarViewType | null>
@@ -79,7 +79,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 			_encryptedCredentialsKey: loadedConfig._encryptedCredentialsKey ?? null,
 			acknowledgedNewsItems: loadedConfig.acknowledgedNewsItems ?? [],
 			_themeId: loadedConfig._themeId ?? defaultThemeId,
-			_scheduledAlarmUsers: loadedConfig._scheduledAlarmUsers ?? [],
+			scheduledAlarmModelVersionPerUser: loadedConfig.scheduledAlarmModelVersionPerUser ?? {},
 			_language: loadedConfig._language ?? null,
 			_defaultCalendarView: loadedConfig._defaultCalendarView ?? {},
 			_hiddenCalendars: loadedConfig._hiddenCalendars ?? {},
@@ -146,26 +146,17 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 		return this.config._signupToken
 	}
 
-	hasScheduledAlarmsForUser(userId: Id): boolean {
-		return this.config._scheduledAlarmUsers.includes(userId)
+	getScheduledAlarmsModelVersion(userId: Id): number | null {
+		return this.config.scheduledAlarmModelVersionPerUser[userId] ?? null
 	}
 
-	setAlarmsScheduledForUser(userId: Id, setScheduled: boolean) {
-		const scheduledIndex = this.config._scheduledAlarmUsers.indexOf(userId)
-
-		const scheduledSaved = scheduledIndex !== -1
-
-		if (setScheduled && !scheduledSaved) {
-			this.config._scheduledAlarmUsers.push(userId)
-		} else if (!setScheduled && scheduledSaved) {
-			this.config._scheduledAlarmUsers.splice(scheduledIndex, 1)
-		}
-
+	setScheduledAlarmsModelVersion(userId: Id, version: number): void {
+		this.config.scheduledAlarmModelVersionPerUser[userId] = version
 		this.writeToStorage()
 	}
 
 	setNoAlarmsScheduled() {
-		this.config._scheduledAlarmUsers = []
+		this.config.scheduledAlarmModelVersionPerUser = {}
 		this.writeToStorage()
 	}
 

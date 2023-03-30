@@ -88,7 +88,7 @@ o.spec("DeviceConfig", function () {
 				_encryptedCredentialsKey: "somekey",
 				acknowledgedNewsItems: [],
 				_themeId: "mytheme",
-				_scheduledAlarmUsers: ["userId"],
+				scheduledAlarmModelVersionPerUser: {},
 				_language: "en",
 				_defaultCalendarView: {},
 				_hiddenCalendars: {},

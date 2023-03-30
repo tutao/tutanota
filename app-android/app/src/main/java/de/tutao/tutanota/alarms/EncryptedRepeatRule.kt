@@ -1,5 +1,6 @@
 package de.tutao.tutanota.alarms
 
+import androidx.room.ColumnInfo
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import de.tutao.tutanota.AndroidNativeCryptoFacade
@@ -26,10 +27,11 @@ class EncryptedRepeatRule(
 ) {
 	internal class ExcludedDateWrapperConverter {
 		@TypeConverter
-		fun listToString(excludedDatesList: List<EncryptedDateWrapper>) = excludedDatesList.map { it.date }.joinToString(",")
+		fun listToString(excludedDatesList: List<EncryptedDateWrapper>) =
+			excludedDatesList.joinToString(",") { it.date }
 
 		@TypeConverter
-		fun stringToList(string: String) = if (string.isNotEmpty()) string.split(",").map { EncryptedDateWrapper(it) } else emptyList()
+		fun stringToList(string: String?) = if (string != null && string.isNotEmpty()) string.split(",").map { EncryptedDateWrapper(it) } else emptyList()
 	}
 }
 

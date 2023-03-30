@@ -29,6 +29,10 @@ export class NativePushFacadeReceiveDispatcher {
 				const alarms: ReadonlyArray<EncryptedAlarmNotification> = arg[0]
 				return this.facade.scheduleAlarms(alarms)
 			}
+			case "invalidateAlarmsForUser": {
+				const userId: string = arg[0]
+				return this.facade.invalidateAlarmsForUser(userId)
+			}
 		}
 	}
 }

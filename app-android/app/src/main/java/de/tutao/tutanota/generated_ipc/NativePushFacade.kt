@@ -30,4 +30,10 @@ interface NativePushFacade {
 	 suspend fun scheduleAlarms(
 		alarms: List<EncryptedAlarmNotification>,
 	): Unit
+	/**
+	 * Unschedule and remove alarms belonging to a specific user from the persistent storage
+	 */
+	 suspend fun invalidateAlarmsForUser(
+		userId: String,
+	): Unit
 }

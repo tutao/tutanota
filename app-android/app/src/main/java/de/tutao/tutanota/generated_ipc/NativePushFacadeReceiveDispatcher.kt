@@ -53,6 +53,13 @@ class NativePushFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"invalidateAlarmsForUser" -> {
+				val userId: String = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.invalidateAlarmsForUser(
+					userId,
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for NativePushFacade: $method")
 		}
 	}

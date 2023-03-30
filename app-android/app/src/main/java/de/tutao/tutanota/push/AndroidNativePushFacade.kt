@@ -9,16 +9,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class AndroidNativePushFacade(
-		private val activity: MainActivity,
-		private val sseStorage: SseStorage,
-		private val alarmNotificationsManager: AlarmNotificationsManager,
+	private val activity: MainActivity,
+	private val sseStorage: SseStorage,
+	private val alarmNotificationsManager: AlarmNotificationsManager,
 ) : NativePushFacade {
 
 	override suspend fun getPushIdentifier(): String? {
 		return sseStorage.getPushIdentifier()
 	}
 
-	override suspend fun storePushIdentifierLocally(identifier: String, userId: String, sseOrigin: String, pushIdentifierId: String, pushIdentifierSessionKey: DataWrapper) {
+	override suspend fun storePushIdentifierLocally(
+		identifier: String,
+		userId: String,
+		sseOrigin: String,
+		pushIdentifierId: String,
+		pushIdentifierSessionKey: DataWrapper
+	) {
 		sseStorage.storePushIdentifier(identifier, sseOrigin)
 		sseStorage.storePushIdentifierSessionKey(userId, pushIdentifierId, pushIdentifierSessionKey.data)
 	}
@@ -32,16 +38,20 @@ class AndroidNativePushFacade(
 
 	override suspend fun closePushNotifications(addressesArray: List<String>) {
 		activity.startService(
-				notificationDismissedIntent(
-						activity,
-						ArrayList(addressesArray),
-						"Native",
-						false
-				)
+			notificationDismissedIntent(
+				activity,
+				ArrayList(addressesArray),
+				"Native",
+				false
+			)
 		)
 	}
 
 	override suspend fun scheduleAlarms(alarms: List<EncryptedAlarmNotification>) {
 		alarmNotificationsManager.scheduleNewAlarms(alarms)
+	}
+
+	override suspend fun invalidateAlarmsForUser(userId: String) {
+		alarmNotificationsManager.unscheduleAlarms(userId)
 	}
 }

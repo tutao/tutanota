@@ -1,6 +1,7 @@
 import Foundation
 
 class IosNativePushFacade : NativePushFacade {
+  
 
   private let appDelegate: AppDelegate
   private let alarmManager: AlarmManager
@@ -53,5 +54,9 @@ class IosNativePushFacade : NativePushFacade {
 
   func scheduleAlarms(_ alarms: [EncryptedAlarmNotification]) async throws {
     try self.alarmManager.processNewAlarms(alarms)
+  }
+  
+  func invalidateAlarmsForUser(_ userId: String) async throws {
+    alarmManager.unscheduleAllAlarms(userId: userId)
   }
 }
