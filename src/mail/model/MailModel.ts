@@ -230,7 +230,14 @@ export class MailModel {
 	 * Finally deletes all given mails. Caller must ensure that mails are only from one folder
 	 */
 	async _moveMails(mails: Mail[], targetMailFolder: MailFolder): Promise<void> {
-		let moveMails = mails.filter((m) => m._id[0] !== targetMailFolder.mails && targetMailFolder._ownerGroup === m._ownerGroup) // prevent moving mails between mail boxes.
+		let moveMails = mails.filter(
+			(m) =>
+				m._id[0] !== targetMailFolder.mails &&
+				targetMailFolder._ownerGroup === m._ownerGroup &&
+				// equivelent to !areParticipantsRestricted() in canForwardOrMove() in MailViewerViewModel.
+				// there is a chance to get here without going through that check when using multiselect, so checking again here.
+				!(m.restrictions != null && m.restrictions.participantGroupInfos.length > 0),
+		) // prevent moving mails between mail boxes.
 
 		// Do not move if target is the same as the current mailFolder
 		const sourceMailFolder = this.getMailFolder(getListId(mails[0]))
