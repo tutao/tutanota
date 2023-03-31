@@ -19,7 +19,7 @@ import { locator } from "../../api/main/MainLocator"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { assertIsEntity2 } from "../../api/common/utils/EntityUtils.js"
 import { getMultiMailViewerActionButtonAttrs, MultiMailViewer } from "../../mail/view/MultiMailViewer.js"
-import { px, size } from "../../gui/size.js"
+import { MailViewerToolbar } from "../../mail/view/MailViewerToolbar.js"
 
 assertMainOrNode()
 
@@ -65,7 +65,7 @@ export class MultiSearchViewer implements Component {
 								]),
 						  ]
 						: [
-								m(".flex.pt-xs.pb-xs.list-bg.plr-m.list-border-bottom.items-center", { style: { height: px(size.button_height) } }),
+								m(MailViewerToolbar),
 								m(
 									".flex-grow.rel.overflow-hidden",
 									m(ColumnEmptyMessageBox, {

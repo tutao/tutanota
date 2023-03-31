@@ -14,18 +14,16 @@ import { InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../a
 import { Icon, progressIcon } from "../../gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../misc/Formatter.js"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env.js"
-import { Button, ButtonAttrs, ButtonColor, ButtonType } from "../../gui/base/Button.js"
+import { Button, ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
 import { size } from "../../gui/size.js"
 import Badge from "../../gui/base/Badge.js"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
 import { createMoreSecondaryButtonAttrs } from "../../gui/base/GuiUtils.js"
-import { isNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { isNotNull, noOp } from "@tutao/tutanota-utils"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
-import { UserError } from "../../api/main/UserError.js"
-import { showUserError } from "../../misc/ErrorHandlerImpl.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
-import { editDraft, mailViewerMargin, mailViewerMoreActions, mailViewerPadding, makeAssignMailsButtons } from "./MailViewerUtils.js"
+import { editDraft, mailViewerMargin, mailViewerMoreActions, mailViewerPadding } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../gui/AriaUtils.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 
@@ -682,29 +680,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private actionButtons(attrs: MailViewerHeaderAttrs): Children {
 		const { viewModel } = attrs
-		// FIXME clean this up
 		const actions = this.moreButton(attrs)
-		// let actions: Children
-		// if (styles.isSingleColumnLayout() || !attrs.isPrimary) {
-		// 	actions = [this.moreButton(attrs)]
-		// } else if (viewModel.isAnnouncement()) {
-		// 	actions = [this.deleteButton(attrs), this.moreButton(attrs)]
-		// } else if (viewModel.isDraftMail()) {
-		// 	actions = [this.deleteButton(attrs), this.moveButton(attrs), this.editButton(attrs)]
-		// } else if (viewModel.canForwardOrMove()) {
-		// 	actions = [
-		// 		this.replyButtons(attrs),
-		// 		this.forwardButton(attrs),
-		// 		this.separator(),
-		// 		this.deleteButton(attrs),
-		// 		this.moveButton(attrs),
-		// 		this.moreButton(attrs),
-		// 	]
-		// } else if (viewModel.canAssignMails()) {
-		// 	actions = [this.replyButtons(attrs), this.assignButton(attrs), this.separator(), this.deleteButton(attrs), this.moreButton(attrs)]
-		// } else {
-		// 	actions = [this.replyButtons(attrs), this.separator(), this.deleteButton(attrs), this.moreButton(attrs)]
-		// }
 
 		return m(
 			".flex-end.items-center.ml-between-s.mt-xs",

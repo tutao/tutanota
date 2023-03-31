@@ -4,7 +4,7 @@ import { MailModel } from "../model/MailModel.js"
 import { Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
-import { ofClass } from "@tutao/tutanota-utils"
+import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { UserError } from "../../api/main/UserError.js"
@@ -19,13 +19,17 @@ import { FeatureType } from "../../api/common/TutanotaConstants.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { exportMails } from "../export/Exporter.js"
 
+/*
+	Everything is optional to allow for having an empty toolbar, but mailModel and mails are a requirement
+	note that mailViewerViewModel has a mailModel, so you do not need to pass both in that case
+ */
 export interface MailViewerToolbarAttrs {
-	mailModel: MailModel
+	mailModel?: MailModel
 	mailViewerViewModel?: MailViewerViewModel
-	mails: Mail[]
-	selectNone: () => void
-	readAction: () => unknown
-	unreadAction: () => unknown
+	mails?: Mail[]
+	selectNone?: () => void
+	readAction?: () => unknown
+	unreadAction?: () => unknown
 }
 
 export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
@@ -36,28 +40,30 @@ export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
 
 		return m(
 			".flex.pt-xs.pb-xs.list-bg.plr-m.list-border-bottom.items-center",
-			// Height keeps the toolbar showing for consistency, even if there are no actions
-			{ style: { height: px(size.button_height) } },
 			this.leftSideActions(vnode.attrs),
-			m(".flex-grow"),
+			// Height keeps the toolbar showing for consistency, even if there are no actions
+			m(".flex-grow", { style: { height: px(size.button_height) } }),
 			this.rightSideActions(vnode.attrs),
 		)
 	}
 
 	private leftSideActions(attrs: MailViewerToolbarAttrs): Children {
+		const mailModel = attrs.mailViewerViewModel ? attrs.mailViewerViewModel.mailModel : attrs.mailModel
 		// mailViewerViewModel means we are viewing one mail; if there is only the mailModel, it is coming from a MultiViewer
-		if (attrs.mailViewerViewModel) {
+		if (!mailModel || !attrs.mails) {
+			return null
+		} else if (attrs.mailViewerViewModel) {
 			return [
-				this.deleteButton(attrs),
-				attrs.mailViewerViewModel.canForwardOrMove() ? this.moveButton(attrs.mailModel, attrs.mails) : null,
+				this.deleteButton(mailModel, attrs.mails, attrs.selectNone ? attrs.selectNone : noOp),
+				attrs.mailViewerViewModel.canForwardOrMove() ? this.moveButton(mailModel, attrs.mails) : null,
 				attrs.mailViewerViewModel.isDraftMail() ? null : this.readButton(attrs),
 			]
 		} else if (attrs.mails.length > 0) {
 			return [
-				this.deleteButton(attrs),
-				locator.logins.getUserController().isInternalUser() ? this.moveButton(attrs.mailModel, attrs.mails) : null,
+				this.deleteButton(mailModel, attrs.mails, attrs.selectNone ? attrs.selectNone : noOp),
+				locator.logins.getUserController().isInternalUser() ? this.moveButton(mailModel, attrs.mails) : null,
 				this.readButton(attrs),
-				this.exportButton(attrs),
+				this.exportButton(attrs.mails),
 			]
 		}
 	}
@@ -81,7 +87,7 @@ export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
 		}
 	}
 
-	private deleteButton({ mailModel, mails, selectNone }: MailViewerToolbarAttrs): Children {
+	private deleteButton(mailModel: MailModel, mails: Mail[], selectNone: () => void): Children {
 		return m(IconButton, {
 			title: "delete_action",
 			click: () => {
@@ -103,12 +109,12 @@ export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
 		const readButtons = [
 			m(IconButton, {
 				title: "markRead_action",
-				click: readAction,
+				click: () => readAction,
 				icon: Icons.Eye,
 			}),
 			m(IconButton, {
 				title: "markUnread_action",
-				click: unreadAction,
+				click: () => unreadAction,
 				icon: Icons.NoEye,
 			}),
 		]
@@ -125,7 +131,7 @@ export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
 		return readButtons
 	}
 
-	private exportButton({ mails }: MailViewerToolbarAttrs) {
+	private exportButton(mails: Mail[]) {
 		if (!isApp() && !locator.logins.isEnabled(FeatureType.DisableMailExport)) {
 			return m(IconButton, {
 				title: "export_action",

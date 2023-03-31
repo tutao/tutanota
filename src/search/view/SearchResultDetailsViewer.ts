@@ -16,6 +16,7 @@ import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ConversationViewer } from "../../mail/view/ConversationViewer.js"
 import { ConversationViewModel } from "../../mail/view/ConversationViewModel.js"
 import { px, size } from "../../gui/size.js"
+import { MailViewerToolbar } from "../../mail/view/MailViewerToolbar.js"
 
 assertMainOrNode()
 
@@ -69,7 +70,7 @@ export class SearchResultDetailsViewer {
 			return [
 				m(
 					".flex.col.fill-absolute",
-					m(".flex.pt-xs.pb-xs.list-bg.plr-m.list-border-bottom.items-center", { style: { height: px(size.button_height) } }),
+					m(MailViewerToolbar),
 					m(
 						".flex-grow.rel.overflow-hidden",
 						m(ColumnEmptyMessageBox, {
