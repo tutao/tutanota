@@ -705,25 +705,25 @@ styles.registerStyle("main", () => {
 		"::-webkit-scrollbar": !client.isMobileDevice()
 			? {
 					background: "transparent",
-					width: "8px", // width of vertical scrollbar
-					height: "8px", // width of horizontal scrollbar
+					width: "6px", // width of vertical scrollbar
+					height: "6px", // width of horizontal scrollbar
 			  }
 			: {},
 		"::-webkit-scrollbar-thumb": !client.isMobileDevice()
 			? {
 					background: theme.content_button,
-					"border-radius": "4px",
+					"border-radius": "3px",
 			  }
 			: {},
 		// scrollbar will be disabled for mobile devices, even with .scroll applied,
 		// apply this class if you need it to show
 		".visible-scrollbar::-webkit-scrollbar": {
 			background: "transparent",
-			width: "8px",
+			width: "6px",
 		},
 		".visible-scrollbar::-webkit-scrollbar-thumb": {
 			background: theme.content_button,
-			"border-radius": "4px",
+			"border-radius": "3px",
 		},
 		//TODO: migrate to .text-center
 		".center": {
