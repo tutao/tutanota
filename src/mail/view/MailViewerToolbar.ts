@@ -9,7 +9,7 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { UserError } from "../../api/main/UserError.js"
 import { showUserError } from "../../misc/ErrorHandlerImpl.js"
-import { createAsyncDropdown, createDropdown } from "../../gui/base/Dropdown.js"
+import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { editDraft, mailViewerMoreActions, makeAssignMailsButtons } from "./MailViewerUtils.js"
 import { ButtonColor } from "../../gui/base/Button.js"
 import { px, size } from "../../gui/size.js"
@@ -18,6 +18,7 @@ import { locator } from "../../api/main/MainLocator.js"
 import { FeatureType } from "../../api/common/TutanotaConstants.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { exportMails } from "../export/Exporter.js"
+import { theme } from "../../gui/theme.js"
 
 /*
 	Everything is optional to allow for having an empty toolbar, but mailModel and mails are a requirement
@@ -39,17 +40,19 @@ export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
 		}
 
 		return m(
-			".flex.pt-xs.pb-xs.list-bg.plr-m.list-border-bottom.items-center",
-			this.leftSideActions(vnode.attrs),
+			".flex.pt-xs.pb-xs.list-bg.plr-m.list-border-bottom.items-center.ml-between-s",
 			// Height keeps the toolbar showing for consistency, even if there are no actions
 			m(".flex-grow", { style: { height: px(size.button_height) } }),
-			this.rightSideActions(vnode.attrs),
+			this.singleMailActions(vnode.attrs),
+			vnode.attrs.mailViewerViewModel ? this.separator() : null,
+			this.actions(vnode.attrs),
+			this.moreButton(vnode.attrs.mailViewerViewModel),
 		)
 	}
 
-	private leftSideActions(attrs: MailViewerToolbarAttrs): Children {
+	private actions(attrs: MailViewerToolbarAttrs): Children {
 		const mailModel = attrs.mailViewerViewModel ? attrs.mailViewerViewModel.mailModel : attrs.mailModel
-		// mailViewerViewModel means we are viewing one mail; if there is only the mailModel, it is coming from a MultiViewer
+
 		if (!mailModel || !attrs.mails) {
 			return null
 		} else if (attrs.mailViewerViewModel) {
@@ -68,7 +71,11 @@ export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
 		}
 	}
 
-	private rightSideActions(attrs: MailViewerToolbarAttrs): Children {
+	/*
+	 * Actions that can only be taken on a single mail (reply, forward, edit, assign)
+	 * Will only return actions if there is a mailViewerViewModel
+	 * */
+	private singleMailActions(attrs: MailViewerToolbarAttrs): Children {
 		// mailViewerViewModel means we are viewing one mail; if there is only the mailModel, it is coming from a MultiViewer
 		if (attrs.mailViewerViewModel) {
 			if (attrs.mailViewerViewModel.isAnnouncement()) {
@@ -76,15 +83,26 @@ export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
 			} else if (attrs.mailViewerViewModel.isDraftMail()) {
 				this.editButton(attrs.mailViewerViewModel)
 			} else if (attrs.mailViewerViewModel.canForwardOrMove()) {
-				return [this.replyButtons(attrs.mailViewerViewModel), this.forwardButton(attrs.mailViewerViewModel), this.moreButton(attrs.mailViewerViewModel)]
+				return [this.replyButtons(attrs.mailViewerViewModel), this.forwardButton(attrs.mailViewerViewModel)]
 			} else if (attrs.mailViewerViewModel.canAssignMails()) {
-				return [this.replyButtons(attrs.mailViewerViewModel), this.assignButton(attrs.mailViewerViewModel), this.moreButton(attrs.mailViewerViewModel)]
+				return [this.replyButtons(attrs.mailViewerViewModel), this.assignButton(attrs.mailViewerViewModel)]
 			} else {
-				return [this.replyButtons(attrs.mailViewerViewModel), this.moreButton(attrs.mailViewerViewModel)]
+				return [this.replyButtons(attrs.mailViewerViewModel)]
 			}
 		} else {
 			return []
 		}
+	}
+
+	private separator(): Children {
+		return m("", {
+			style: {
+				width: "0",
+				// 24px is usually the visible icon size
+				height: "24px",
+				border: `0.5px solid ${theme.content_border}`,
+			},
+		})
 	}
 
 	private deleteButton(mailModel: MailModel, mails: Mail[], selectNone: () => void): Children {
@@ -171,15 +189,23 @@ export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
 		})
 	}
 
-	private moreButton(viewModel: MailViewerViewModel): Children {
-		return m(IconButton, {
-			title: "more_label",
-			icon: Icons.More,
-			click: createDropdown({
-				lazyButtons: () => mailViewerMoreActions(viewModel, false),
-				width: 300,
-			}),
-		})
+	private moreButton(viewModel: MailViewerViewModel | undefined): Children {
+		let actions: DropdownButtonAttrs[] = []
+
+		if (viewModel) {
+			actions = mailViewerMoreActions(viewModel, false)
+		}
+
+		return actions.length > 0
+			? m(IconButton, {
+					title: "more_label",
+					icon: Icons.More,
+					click: createDropdown({
+						lazyButtons: () => actions,
+						width: 300,
+					}),
+			  })
+			: null
 	}
 
 	private assignButton(viewModel: MailViewerViewModel) {
