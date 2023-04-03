@@ -1,19 +1,17 @@
 import { Editor } from "../../gui/editor/Editor"
 import { isKeyPressed } from "../../misc/KeyManager"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast, getFirstOrThrow } from "@tutao/tutanota-utils"
 import { Keys } from "../../api/common/TutanotaConstants"
 import { TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel } from "../model/TemplatePopupModel"
 import { lang, languageByCode, LanguageViewModel } from "../../misc/LanguageViewModel"
-import { ButtonType } from "../../gui/base/Button.js"
 import { Dropdown } from "../../gui/base/Dropdown.js"
 import { modal } from "../../gui/base/Modal"
 import { showTemplatePopupInEditor } from "./TemplatePopup"
-import { getFirstOrThrow } from "@tutao/tutanota-utils"
 
 export function registerTemplateShortcutListener(editor: Editor, templateModel: TemplatePopupModel): TemplateShortcutListener {
 	const listener = new TemplateShortcutListener(editor, templateModel, lang)
-	editor.addEventListener("keydown", (event) => listener.handleKeyDown(event))
-	editor.addEventListener("cursor", (event) => listener.handleCursorChange(event))
+	editor.addEventListener("keydown", (event: KeyboardEvent) => listener.handleKeyDown(event))
+	editor.addEventListener("cursor", (event: CustomEvent<{ range: Range | null }>) => listener.handleCursorChange(event))
 	return listener
 }
 
@@ -31,8 +29,8 @@ class TemplateShortcutListener {
 	}
 
 	// add this event listener to handle quick selection of templates inside the editor
-	handleKeyDown(event: Event) {
-		if (isKeyPressed(downcast(event).keyCode, Keys.TAB) && this._currentCursorPosition) {
+	handleKeyDown(event: KeyboardEvent) {
+		if (isKeyPressed(event.keyCode, Keys.TAB) && this._currentCursorPosition) {
 			const cursorEndPos = this._currentCursorPosition
 			const text = cursorEndPos.startContainer.nodeType === Node.TEXT_NODE ? cursorEndPos.startContainer.textContent ?? "" : ""
 			const templateShortcutStartIndex = text.lastIndexOf(TEMPLATE_SHORTCUT_PREFIX)
@@ -84,7 +82,7 @@ class TemplateShortcutListener {
 		}
 	}
 
-	handleCursorChange(event: Event) {
-		this._currentCursorPosition = downcast(event).range
+	handleCursorChange(event: CustomEvent<{ range: Range | null }>) {
+		this._currentCursorPosition = event.detail.range
 	}
 }
