@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Component, Vnode } from "mithril"
 import { assertMainOrNode, isApp } from "../../api/common/Env"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import { lang } from "../../misc/LanguageViewModel"
@@ -9,13 +9,11 @@ import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { theme } from "../../gui/theme"
 import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../api/main/MainLocator"
-import { moveMails, promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils"
+import { moveMails, promptAndDeleteMails } from "./MailGuiUtils"
 import { attachDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { exportMails } from "../export/Exporter"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
-import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
-import { styles } from "../../gui/styles.js"
-import { px, size } from "../../gui/size.js"
+import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { MailViewerToolbar } from "./MailViewerToolbar.js"
 
 assertMainOrNode()
@@ -48,6 +46,7 @@ export class MultiMailViewer implements Component<MultiMailViewerAttrs> {
 						icon: BootIcons.Mail,
 						color: theme.content_message_bg,
 						clearAction: selectedEntities.length > 0 ? selectNone : undefined,
+						backgroundColor: theme.navigation_bg,
 					}),
 				),
 			),

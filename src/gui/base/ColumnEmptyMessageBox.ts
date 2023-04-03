@@ -16,6 +16,7 @@ export type Attrs = {
 	icon?: AllIcons
 	color: string
 	clearAction?: () => unknown
+	backgroundColor?: string
 }
 
 /** Displays a big message with an option icon above it. */
@@ -51,10 +52,11 @@ export class IconMessageBox implements Component<Attrs> {
 export default class ColumnEmptyMessageBox implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
 		return m(
-			".fill-absolute.flex.col.items-center.justify-center.nav-bg",
+			".fill-absolute.flex.col.items-center.justify-center",
 			{
 				style: {
 					"margin-top": px(attrs.icon ? -size.icon_message_box - size.vpad_xl : -size.vpad_xl),
+					backgroundColor: attrs?.backgroundColor,
 				},
 			},
 			// If we pass plain attrs all lifecycle callbacks we attach from the outside will be called twice, once on the wrong element.

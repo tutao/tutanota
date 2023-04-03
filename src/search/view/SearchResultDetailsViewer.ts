@@ -15,7 +15,6 @@ import { isSameId } from "../../api/common/utils/EntityUtils"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ConversationViewer } from "../../mail/view/ConversationViewer.js"
 import { ConversationViewModel } from "../../mail/view/ConversationViewModel.js"
-import { px, size } from "../../gui/size.js"
 import { MailViewerToolbar } from "../../mail/view/MailViewerToolbar.js"
 
 assertMainOrNode()
@@ -77,6 +76,7 @@ export class SearchResultDetailsViewer {
 							message: "noSelection_msg",
 							color: theme.content_message_bg,
 							icon: isSameTypeRef(this.listView._lastType, MailTypeRef) ? BootIcons.Mail : BootIcons.Contacts,
+							backgroundColor: theme.navigation_bg,
 						}),
 					),
 				),

@@ -72,6 +72,7 @@ export class MultiSearchViewer implements Component {
 										message: "noSelection_msg",
 										color: theme.content_message_bg,
 										icon: this.isMailList ? BootIcons.Mail : BootIcons.Contacts,
+										backgroundColor: theme.navigation_bg,
 									}),
 								),
 						  ],
