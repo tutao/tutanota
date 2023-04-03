@@ -1151,9 +1151,10 @@ styles.registerStyle("main", () => {
 			position: "relative",
 			height: px(size.navbar_height),
 			"background-color": theme.header_bg,
-			"box-shadow": `0 2px 4px 0 ${theme.header_box_shadow_bg}`,
+			"border-color": theme.navigation_border,
+			"border-width": "1px",
+			"border-style": "solid",
 			"z-index": 2,
-			// box_shadow will be overruled by the views background, otherwise
 			"margin-top": "env(safe-area-inset-top)", // insets for iPhone X
 		},
 		"bottom-nav, .bottom-nav": {
