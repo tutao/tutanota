@@ -7,7 +7,9 @@ export type ListColumnAttrs = {
 export class ListColumnWrapper implements Component<ListColumnAttrs> {
 	view(vnode: Vnode<ListColumnAttrs>): Children {
 		return m(".flex.flex-column.fill-absolute", [
-			m(".flex.flex-column.justify-center.list-border-right.list-bg.list-border-bottom.plr-safe-inset", vnode.attrs.headerContent),
+			vnode.attrs.headerContent
+				? m(".flex.flex-column.justify-center.list-border-right.list-bg.list-border-bottom.plr-safe-inset", vnode.attrs.headerContent)
+				: null,
 			m(".rel.flex-grow", vnode.children),
 		])
 	}
