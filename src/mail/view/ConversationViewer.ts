@@ -243,7 +243,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 					const parentTop = containerDom.getBoundingClientRect().top
 					const childTop = childDom.getBoundingClientRect().top
 					const relativeTop = childTop - parentTop
-					containerDom.scrollTo({ top: relativeTop - conversationCardMargin * 2 })
+					containerDom.scrollTo({ top: relativeTop - conversationCardMargin * 2 - 10 })
 				}
 			})
 		}
