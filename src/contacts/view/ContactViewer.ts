@@ -1,6 +1,5 @@
 import m, { Child, Children, ClassComponent, Component } from "mithril"
 import { lang } from "../../misc/LanguageViewModel"
-import { ContactEditor } from "../ContactEditor"
 import { TextField, TextFieldType } from "../../gui/base/TextField.js"
 import { keyManager, Shortcut } from "../../misc/KeyManager"
 import { Dialog } from "../../gui/base/Dialog"
@@ -13,12 +12,11 @@ import type { Contact, ContactAddress, ContactPhoneNumber, ContactSocialId } fro
 import { locator } from "../../api/main/MainLocator"
 import { newMailEditorFromTemplate } from "../../mail/editor/MailEditor"
 import { downcast, NBSP, noOp, ofClass } from "@tutao/tutanota-utils"
-import { ActionBar } from "../../gui/base/ActionBar"
 import { getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel } from "./ContactGuiUtils"
 import { appendEmailSignature } from "../../mail/signature/Signature"
 import { formatBirthdayOfContact, getSocialUrl } from "../model/ContactUtils"
 import { assertMainOrNode } from "../../api/common/Env"
-import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
+import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 
 assertMainOrNode()
@@ -42,8 +40,6 @@ function insertBetween(array: Children[], spacer: () => Children) {
 export class ContactViewer implements ClassComponent {
 	readonly contact: Contact
 	readonly contactAppellation: string
-	readonly oncreate: Component["oncreate"]
-	readonly onremove: Component["onremove"]
 	readonly formattedBirthday: string | null
 
 	constructor(contact: Contact) {
@@ -53,24 +49,14 @@ export class ContactViewer implements ClassComponent {
 		let fullName = this.contact.firstName + " " + this.contact.lastName
 		this.contactAppellation = (title + fullName + nickname).trim()
 		this.formattedBirthday = this._hasBirthday() ? formatBirthdayOfContact(this.contact) : null
-		let shortcuts: Array<Shortcut> = [
-			{
-				key: Keys.E,
-				exec: () => this.edit(),
-				help: "editContact_label",
-			},
-		]
-
-		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
-
-		this.onremove = () => keyManager.unregisterShortcuts(shortcuts)
 	}
 
 	view(): Children {
 		return [
-			m("#contact-viewer.fill-absolute.scroll.plr-l.pb-floating.mlr-safe-inset", [
+			m("#contact-viewer.scroll.plr-l.pb-floating.mlr-safe-inset", [
 				m(".header.pt-ml", [
-					m(".contact-actions.flex-space-between.flex-wrap.mt-xs", [
+					m(
+						".contact-actions.flex-space-between.flex-wrap.mt-xs",
 						m(".left.flex-grow-shrink-150", [
 							m(".h2.selectable.text-break", [
 								this.contactAppellation,
@@ -88,11 +74,7 @@ export class ContactViewer implements ClassComponent {
 								NBSP, // alignment in case nothing is present here
 							]),
 						]),
-						m(".action-bar.align-self-end", [
-							//css align self needed otherwise the buttons will float in the top right corner instead of bottom right
-							this._createActionbar(),
-						]),
-					]),
+					),
 					m("hr.hr.mt.mb"),
 				]),
 				this._renderMailAddressesAndPhones(),
@@ -126,26 +108,8 @@ export class ContactViewer implements ClassComponent {
 
 	_renderComment(): Children {
 		return this.contact.comment && this.contact.comment.trim().length > 0
-			? [m("hr.hr.mt-l"), m("p.mt-l.text-prewrap.text-break.selectable", this.contact.comment)]
+			? [m(".h4.mt-l", lang.get("comment_label")), m("p.mt-l.text-prewrap.text-break.selectable", this.contact.comment)]
 			: null
-	}
-
-	_createActionbar(): Children {
-		const actionBarButtons: IconButtonAttrs[] = [
-			{
-				title: "edit_action",
-				click: () => this.edit(),
-				icon: Icons.Edit,
-			},
-			{
-				title: "delete_action",
-				click: () => this.delete(),
-				icon: Icons.Trash,
-			},
-		]
-		return m(ActionBar, {
-			buttons: actionBarButtons,
-		})
 	}
 
 	_createSocialId(contactSocialId: ContactSocialId): Children {
@@ -246,10 +210,6 @@ export class ContactViewer implements ClassComponent {
 				)
 			}
 		})
-	}
-
-	edit() {
-		new ContactEditor(locator.entityClient, this.contact).show()
 	}
 
 	_hasBirthday(): boolean {

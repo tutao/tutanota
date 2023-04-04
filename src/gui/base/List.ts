@@ -743,7 +743,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 	}
 
 	isEntitySelected(id: Id): boolean {
-		return this.selectedEntities.find((entity) => getLetId(entity)[1] === id) != null
+		return this.selectedEntities.find((entity) => getElementId(entity) === id) != null
 	}
 
 	getSelectedEntities(): ElementType[] {

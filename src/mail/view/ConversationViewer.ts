@@ -21,7 +21,7 @@ export interface ConversationViewerAttrs {
 
 const SCROLL_FACTOR = 4 / 5
 
-const conversationCardMargin = 18
+export const conversationCardMargin = 18
 
 /**
  * Displays mails in a conversation
