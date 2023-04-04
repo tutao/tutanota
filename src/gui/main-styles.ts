@@ -1220,7 +1220,6 @@ styles.registerStyle("main", () => {
 			width: "0px",
 			height: "22px",
 			"margin-left": "2px",
-			"margin-top": "10px",
 			"border-color": theme.navigation_border,
 			"border-width": "1px",
 			"border-style": "solid",

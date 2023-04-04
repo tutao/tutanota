@@ -18,7 +18,6 @@ import { locator } from "../../api/main/MainLocator.js"
 import { FeatureType } from "../../api/common/TutanotaConstants.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { exportMails } from "../export/Exporter.js"
-import { theme } from "../../gui/theme.js"
 
 /*
 	Everything is optional to allow for having an empty toolbar, but mailModel and mails are a requirement
@@ -44,7 +43,7 @@ export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
 			// Height keeps the toolbar showing for consistency, even if there are no actions
 			m(".flex-grow", { style: { height: px(size.button_height) } }),
 			this.singleMailActions(vnode.attrs),
-			vnode.attrs.mailViewerViewModel ? this.separator() : null,
+			vnode.attrs.mailViewerViewModel ? m(".nav-bar-spacer") : null,
 			this.actions(vnode.attrs),
 			this.moreButton(vnode.attrs.mailViewerViewModel),
 		)
@@ -92,17 +91,6 @@ export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
 		} else {
 			return []
 		}
-	}
-
-	private separator(): Children {
-		return m("", {
-			style: {
-				width: "0",
-				// 24px is usually the visible icon size
-				height: "24px",
-				border: `0.5px solid ${theme.content_border}`,
-			},
-		})
 	}
 
 	private deleteButton(mailModel: MailModel, mails: Mail[], selectNone: () => void): Children {

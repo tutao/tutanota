@@ -115,10 +115,12 @@ export class Header implements Component<HeaderAttrs> {
 
 	private renderDesktopSearchBar(): Children {
 		return this.searchBar && this.desktopSearchBarVisible()
-			? m(this.searchBar, {
-					spacer: true,
-					placeholder: this.searchPlaceholder(),
-			  })
+			? [
+					m(this.searchBar, {
+						placeholder: this.searchPlaceholder(),
+					}),
+					m(".nav-bar-spacer"),
+			  ]
 			: null
 	}
 

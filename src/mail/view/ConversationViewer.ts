@@ -1,15 +1,14 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { ConversationItem, ConversationViewModel, SubjectItem } from "./ConversationViewModel.js"
+import { ConversationItem, ConversationViewModel } from "./ConversationViewModel.js"
 import { MailViewer } from "./MailViewer.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { theme } from "../../gui/theme.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
-import { assertNotNull, NBSP, noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/tutanota-utils"
 import { elementIdPart, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { CollapsedMailView } from "./CollapsedMailView.js"
 import { mailViewerMargin } from "./MailViewerUtils.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
-import { max } from "@tutao/tutanota-utils/dist/CollectionUtils.js"
 import { px, size } from "../../gui/size.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
 import { keyManager, Shortcut } from "../../misc/KeyManager.js"
@@ -29,12 +28,9 @@ const conversationCardMargin = 18
  */
 export class ConversationViewer implements Component<ConversationViewerAttrs> {
 	private containerDom: HTMLElement | null = null
-	private subjectDom: HTMLElement | null = null
 	private didScroll = false
 	/** items from the last render, we need them to calculate the right subject based on the scroll position without the full re-render. */
 	private lastItems: readonly ConversationItem[] | null = null
-	/** ids of the subject entries above the currently visible items. */
-	private subjectsAboveViewport: Set<string> = new Set()
 
 	private readonly shortcuts: Shortcut[] = [
 		{
@@ -181,47 +177,11 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 	private renderSubject(normalizedSubject: string, id: string): Children {
 		return m(ObservableSubject, {
 			subject: normalizedSubject,
-			cb: (visiblity) => this.onSubjectVisible(id, visiblity),
 			// we use id as the key:
 			// It is unique: each email appears only once (when sending to self,sent and received emails are independent). The subject text however can appear multiple times.
 			// It is more predicatable (regarding visiblity) if the element gets destroyed and created again.
 			key: "item-subject-" + id,
 		})
-	}
-
-	private onSubjectVisible(id: string, visibility: SubjectVisiblity) {
-		switch (visibility) {
-			case "visible":
-				this.subjectsAboveViewport.delete(id)
-				break
-			case "above":
-				this.subjectsAboveViewport.add(id)
-				break
-			case "below":
-				this.subjectsAboveViewport.delete(id)
-				break
-		}
-		if (this.subjectDom) {
-			if (this.subjectsAboveViewport.size === 0) {
-				// all subjects above us are visible, hide the sticky subject
-				this.subjectDom.innerText = ""
-			} else {
-				// use NBSP to keep the height
-				this.subjectDom.innerText = this.subjectForFloatingHeader() ?? NBSP
-			}
-		}
-	}
-
-	private subjectForFloatingHeader(): string | null {
-		const entries = this.lastItems
-		if (!entries) return null
-		// knowingly N^2
-		const lastInvisibleSubject = max(Array.from(this.subjectsAboveViewport).map((id) => entries.findIndex((e) => e.type === "subject" && e.id === id)))
-		// We might not find anything if nothing is above the viewport. Another case is when the subject item has changed e.g. it was from the primary email but then we loaded
-		// the conversation and now we have this subject from another email earlier in the chain and we can't find
-		// the subject temporarily.
-		if (lastInvisibleSubject == null || lastInvisibleSubject === -1) return null
-		return (entries[lastInvisibleSubject] as SubjectItem).subject
 	}
 
 	private doScroll(viewModel: ConversationViewModel, items: readonly ConversationItem[]) {
@@ -277,7 +237,6 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 type SubjectVisiblity = "above" | "below" | "visible"
 
 interface ObservableSubjectAttrs {
-	cb: (visibility: SubjectVisiblity) => unknown
 	subject: string
 }
 
@@ -298,24 +257,6 @@ export class ObservableSubject implements Component<ObservableSubjectAttrs> {
 				class: mailViewerMargin(),
 				"aria-label": lang.get("subject_label") + ", " + (this.lastAttrs.subject || ""),
 				style: { marginTop: px(conversationCardMargin) },
-				oncreate: (vnode) => {
-					this.observer = new IntersectionObserver(
-						(entries) => {
-							const [entry] = entries
-							const visibility = entry.isIntersecting
-								? "visible"
-								: entry.boundingClientRect.bottom < assertNotNull(entry.rootBounds).top
-								? "above"
-								: "below"
-							this.lastAttrs.cb(visibility)
-						},
-						{ root: vnode.dom.parentElement },
-					)
-					this.observer.observe(vnode.dom)
-				},
-				onremove: (vnode) => {
-					this.observer?.unobserve(vnode.dom)
-				},
 			},
 			this.lastAttrs.subject,
 		)

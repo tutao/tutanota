@@ -34,7 +34,7 @@ import { elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, lis
 import { NotFoundError, PreconditionFailedError } from "../../api/common/error/RestError"
 import type { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../api/main/LoginController.js"
-import { getEnabledMailAddressesWithUser } from "./MailUtils.js"
+import { areParticipantsRestricted, getEnabledMailAddressesWithUser } from "./MailUtils.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
@@ -234,9 +234,8 @@ export class MailModel {
 			(m) =>
 				m._id[0] !== targetMailFolder.mails &&
 				targetMailFolder._ownerGroup === m._ownerGroup &&
-				// equivelent to !areParticipantsRestricted() in canForwardOrMove() in MailViewerViewModel.
 				// there is a chance to get here without going through that check when using multiselect, so checking again here.
-				!(m.restrictions != null && m.restrictions.participantGroupInfos.length > 0),
+				!areParticipantsRestricted(m),
 		) // prevent moving mails between mail boxes.
 
 		// Do not move if target is the same as the current mailFolder
