@@ -279,7 +279,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderDetails(attrs: MailViewerHeaderAttrs, { bubbleMenuWidth }: { bubbleMenuWidth: number }): Children {
 		const { viewModel, createMailAddressContextButtons } = attrs
 		const envelopeSender = viewModel.getDifferentEnvelopeSender()
-		return m("." + mailViewerPadding() + liveDataAttrs(), [
+		return m("." + mailViewerPadding(), liveDataAttrs(), [
 			m(
 				".mt-s",
 				m(".small.b", lang.get("from_label")),
@@ -465,7 +465,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			attachments.forEach((attachment) => (totalAttachmentSize += Number(attachment.size)))
 
 			return [
-				m(".flex" + liveDataAttrs() + "." + mailViewerMargin(), [
+				m(".flex" + "." + mailViewerMargin(), liveDataAttrs(), [
 					attachmentCount === 1
 						? // If we have exactly one attachment, just show the attachment
 						  this.renderAttachmentContainer(viewModel, attachments)

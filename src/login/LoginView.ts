@@ -275,7 +275,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 
 	_renderCredentialsSelector(): Children {
 		return [
-			m(".small.center.statusTextColor.pt" + liveDataAttrs(), lang.getMaybeLazy(this.viewModel.helpText)),
+			m(".small.center.statusTextColor.pt", liveDataAttrs(), lang.getMaybeLazy(this.viewModel.helpText)),
 			m(CredentialsSelector, {
 				credentials: this.viewModel.getSavedCredentials(),
 				onCredentialsSelected: async (c) => {

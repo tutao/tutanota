@@ -116,7 +116,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 				),
 				m(
 					"p.center.statusTextColor",
-					m("small" + liveDataAttrs(), [
+					m("small", liveDataAttrs(), [
 						a.helpText ? a.helpText : null,
 						" ",
 						a.invalidCredentials && a.showRecoveryOption
