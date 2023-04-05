@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2023-03-24T11:59:43Z",
+	"updated_at": "2023-03-29T08:16:25Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1155,7 +1155,7 @@ export default {
 		"pricing.privateUse_label": "Privat",
 		"pricing.select_action": "Auswählen",
 		"pricing.servers_label": "Servers in Deutschland",
-		"pricing.servers_tooltip": "Alle Daten werden auf unseren eigenen Servern in ISO-zertifizierten Rechenzentren in Deutschland gespeichert.",
+		"pricing.servers_tooltip": "Alle Daten werden auf unseren eigenen Servern in ISO 27001-zertifizierten Rechenzentren in Deutschland gespeichert.",
 		"pricing.showAllFeatures": "Alle Features anzeigen",
 		"pricing.signature_label": "HTML Signaturen",
 		"pricing.signature_tooltip": "Passen Sie Ihre Signaturen mit Bildern, Logos, Links etc. an.",
