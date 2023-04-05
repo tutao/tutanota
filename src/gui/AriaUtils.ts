@@ -46,8 +46,11 @@ const enum AriaLiveData {
 	Assertive = "assertive",
 }
 
-export function liveDataAttrs(): string {
-	return `[aria-live="${AriaLiveData.Polite}"][aria-atomic=true]`
+export function liveDataAttrs(): Record<string, string> {
+	return {
+		"aria-live": AriaLiveData.Polite,
+		"aria-atomic": "true",
+	}
 }
 
 export function landmarkAttrs(role: AriaLandmarks, label?: string): Record<string, string | undefined> {

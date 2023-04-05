@@ -127,7 +127,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 						type: ButtonType.Login,
 					}),
 				),
-				m(".small.center.statusTextColor.mt" + liveDataAttrs(), [a.helpText]),
+				m(".small.center.statusTextColor.mt", liveDataAttrs(), [a.helpText]),
 			],
 		)
 	}

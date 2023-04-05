@@ -143,7 +143,7 @@ class SelectCredentialsEncryptionModeView implements Component<SelectCredentialE
 					},
 				},
 				[
-					attrs.error ? m(".small.center.statusTextColor.pb-s" + liveDataAttrs(), attrs.error) : null,
+					attrs.error ? m(".small.center.statusTextColor.pb-s", liveDataAttrs(), attrs.error) : null,
 					m("", lang.get("credentialsEncryptionModeSelection_msg")),
 					m(
 						".mt",
