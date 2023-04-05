@@ -19,7 +19,7 @@ import { Autocomplete, TextField, TextFieldType } from "./TextField.js"
 import type { DropDownSelectorAttrs, SelectorItemList } from "./DropDownSelector.js"
 import { DropDownSelector } from "./DropDownSelector.js"
 import { Keys } from "../../api/common/TutanotaConstants"
-import { dialogAttrs } from "../AriaUtils"
+import { AriaWindow } from "../AriaUtils"
 import { styles } from "../styles"
 import type { lazy, MaybeLazy, Thunk } from "@tutao/tutanota-utils"
 import { $Promisable, assertNotNull, getAsLazy, identity, mapLazily, noOp } from "@tutao/tutanota-utils"
@@ -117,8 +117,12 @@ export class Dialog implements ModalComponent {
 					},
 					[
 						m(
-							this._getDialogStyle(dialogType) + dialogAttrs("dialog-title", "dialog-message"),
+							this._getDialogStyle(dialogType),
 							{
+								role: AriaWindow.Dialog,
+								"aria-modal": "true",
+								"aria-labelledby": "dialog-title",
+								"aria-describedby": "dialog-message",
 								onclick: (e: MouseEvent) => e.stopPropagation(),
 								// do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
 								oncreate: (vnode) => {

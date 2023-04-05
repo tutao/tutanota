@@ -32,7 +32,7 @@ export const enum AriaLiveRegions {
 	Timer = "timer",
 }
 
-const enum AriaWindow {
+export const enum AriaWindow {
 	AlertDialog = "alertdialog",
 	Dialog = "dialog",
 }
@@ -44,10 +44,6 @@ const enum AriaLiveData {
 	Polite = "polite",
 	//region has the highest priority
 	Assertive = "assertive",
-}
-
-export function dialogAttrs(labeledBy: string, describedBy: string): string {
-	return `[role="${AriaWindow.Dialog}"][aria-modal=true][aria-labelledby="${labeledBy}"][aria-describedby="${describedBy}"]`
 }
 
 export function liveDataAttrs(): string {
