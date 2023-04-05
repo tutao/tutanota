@@ -372,7 +372,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				this._adminFolders.push(
 					new SettingsFolder<void>(
 						"adminPayment_action",
-						() => Icons.Cash,
+						() => Icons.CreditCard,
 						"invoice",
 						() => new PaymentViewer(),
 						undefined,
