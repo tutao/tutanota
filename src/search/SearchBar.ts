@@ -135,8 +135,9 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				},
 				[
 					m(
-						".search-bar.flex-end.items-center" + landmarkAttrs(AriaLandmarks.Search),
+						".search-bar.flex-end.items-center",
 						{
+							...landmarkAttrs(AriaLandmarks.Search),
 							oncreate: (vnode) => {
 								this._domWrapper = vnode.dom as HTMLElement
 								shortcuts = this._setupShortcuts()

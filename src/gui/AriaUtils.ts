@@ -54,10 +54,11 @@ export function liveDataAttrs(): string {
 	return `[aria-live="${AriaLiveData.Polite}"][aria-atomic=true]`
 }
 
-export function landmarkAttrs(role: AriaLandmarks, label?: string): string {
-	// We disable outline for landmarks. Outlines are useful as a visual clue for users who use keyboard navigation (or similar). Landmarks
-	// are screen reader function and can only be focused using special landmark menu, they are not in the tab index. This makes them
-	// redundant.
-	// As they are big elements which receive focus automatically we would like to avoid showing them when we don't have to.
-	return `.hide-outline[role="${role}"][tabindex="${TabIndex.Programmatic}"]` + (label ? `[aria-label="${label}"]` : "")
+export function landmarkAttrs(role: AriaLandmarks, label?: string): Record<string, string | undefined> {
+	return {
+		class: "hide-outline",
+		role,
+		tabindex: TabIndex.Programmatic,
+		"aria-label": label,
+	}
 }

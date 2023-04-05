@@ -80,8 +80,9 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				m(
 					".flex-grow.flex-center.scroll",
 					m(
-						".flex-grow-shrink-auto.max-width-s.pt.plr-l" + landmarkAttrs(AriaLandmarks.Main, lang.get("login_label")),
+						".flex-grow-shrink-auto.max-width-s.pt.plr-l",
 						{
+							...landmarkAttrs(AriaLandmarks.Main, lang.get("login_label")),
 							oncreate: (vnode) => {
 								;(vnode.dom as HTMLElement).focus()
 							},
