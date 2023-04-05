@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2023-03-24T11:59:51Z",
+	"updated_at": "2023-04-05T08:38:30Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1151,7 +1151,7 @@ export default {
 		"pricing.privateUse_label": "Private",
 		"pricing.select_action": "Select",
 		"pricing.servers_label": "Servers based in Germany",
-		"pricing.servers_tooltip": "All data is stored on our own servers in ISO certified data centers based in Germany.",
+		"pricing.servers_tooltip": "All data is stored on our own servers in ISO 27001 certified data centers based in Germany.",
 		"pricing.showAllFeatures": "Show all features",
 		"pricing.signature_label": "HTML Signatures",
 		"pricing.signature_tooltip": "Customize your signatures with pictures, logos, links, and more.",
@@ -1304,7 +1304,7 @@ export default {
 		"secondFactorPendingOtherClientOnly_msg": "Please accept this login from another client.",
 		"secondFactorPending_msg": "Please authenticate with your second factor or accept this login from another client.",
 		"secondMergeContact_label": "Contact 2",
-		"secondReminderAutomatic_msg": "Unfortunately, we still haven't received the payment for your Tutanota account. Therefore, we kindly ask you to verify your payment details in 'Settings' -> 'Payment'. For further invoice details you can also check your invoices there. \n\nYour account will be deactivated if we do not receive the payment within two weeks.",
+		"secondReminderAutomatic_msg": "Unfortunately, we still haven't received the payment for your Tutanota account. Therefore, we kindly ask you to verify your payment details in 'Settings' -> 'Payment'. For further invoice details you can also check your invoices there. \n\nYour account will be suspended if we do not receive the payment within two weeks.",
 		"secondReminderSubject_msg": "Second reminder / overdue payment",
 		"secureNow_action": "Secure now",
 		"security_title": "Security",

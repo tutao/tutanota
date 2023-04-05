@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T09:48:48Z",
-	"updated_at": "2023-03-24T11:59:40Z",
+	"updated_at": "2023-03-30T15:42:49Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -421,6 +421,7 @@ export default {
 		"deleteEventConfirmation_msg": "이 이벤트를 삭제하시겠습니까?",
 		"deleteLanguageConfirmation_msg": "\"{language}\" 항목을 삭제하시겠습니까?",
 		"deleteSharedCalendarConfirm_msg": "\"{calendar}\" 캘린더가 다른 사용자와 공유됩니다.",
+		"deleteSingleEventRecurrence_action": "이 이벤트만 삭제하기",
 		"deleteTemplateGroups_msg": "비즈니스 기능을 취소하기 전에 삭제해야 하는 템플릿 목록이 아직 활성화되어 있습니다. 여기에는 공유 템플릿 목록이나 사용자 소유의 템플릿 목록이 포함될 수 있습니다.",
 		"deleteTemplateGroup_msg": "템플릿 목록을 삭제하시겠습니까?",
 		"deleteTemplate_msg": "이 템플릿을 삭제하시겠습니까?",
@@ -1204,6 +1205,9 @@ export default {
 		"referralLinkShare_msg": "지금 Tutanota에 가입하세요: {referralLink}",
 		"referralLink_label": "추천인 링크",
 		"referralSettings_label": "친구에게 추천하기",
+		"referralSignupCampaignError_msg": "가입시 캠페인 코드와 추천인 코드를 동시에 적용하실 수 없습니다.",
+		"referralSignupInvalid_msg": "유효하지 않은 추천인 링크입니다. 가입을 진행하실 수 있지만, 추천인 혜택은 적용되지 않습니다.",
+		"referralSignup_msg": "Tutanota에 초대받으셨습니다! 프리미엄(Premium) 또는 팀(Teams) 플랜으로 연간 구독시 무료 1개월 추가 혜택을 드립니다.",
 		"refresh_action": "새로고침",
 		"refund_label": "환불",
 		"regeneratePassword_action": "재생성",
