@@ -68,10 +68,11 @@ export class ViewColumn implements Component<Attrs> {
 		this.view = (vnode: Vnode<Attrs>) => {
 			const zIndex = !this.visible && this.columnType === ColumnType.Foreground ? LayerType.ForegroundMenu + 1 : ""
 			const border = vnode.attrs.rightBorder ? ".list-border-right" : ""
-			const landmark = this._ariaRole ? landmarkAttrs(this._ariaRole, this.ariaLabel ? this.ariaLabel() : this.getTitle()) : ""
+			const landmark = this._ariaRole ? landmarkAttrs(this._ariaRole, this.ariaLabel ? this.ariaLabel() : this.getTitle()) : {}
 			return m(
-				".view-column.overflow-x-hidden.fill-absolute" + border + landmark,
+				".view-column.overflow-x-hidden.fill-absolute" + border,
 				{
+					...landmark,
 					"aria-hidden": this.visible || this.isInForeground ? "false" : "true",
 					oncreate: (vnode) => {
 						this._domColumn = vnode.dom as HTMLElement

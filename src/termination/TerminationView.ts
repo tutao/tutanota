@@ -10,7 +10,7 @@ import { formatDateTime, formatDateWithMonth } from "../misc/Formatter.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { CustomerAccountTerminationRequest } from "../api/entities/sys/TypeRefs.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
-import { TopLevelView, TopLevelAttrs } from "../TopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { locator } from "../api/main/MainLocator.js"
 
 assertMainOrNode()
@@ -56,8 +56,9 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 				m(
 					".flex-grow.flex-center.scroll",
 					m(
-						".flex-grow-shrink-auto.max-width-m.pt.plr-l" + landmarkAttrs(AriaLandmarks.Main, lang.get("terminationForm_title")),
+						".flex-grow-shrink-auto.max-width-m.pt.plr-l",
 						{
+							...landmarkAttrs(AriaLandmarks.Main, lang.get("terminationForm_title")),
 							oncreate: (vnode) => {
 								;(vnode.dom as HTMLElement).focus()
 							},

@@ -30,8 +30,9 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 		const liveNewsCount = newsModel.liveNewsIds.length
 
 		return m(
-			"drawer-menu" + landmarkAttrs(AriaLandmarks.Contentinfo, "drawer menu"),
+			"drawer-menu",
 			{
+				...landmarkAttrs(AriaLandmarks.Contentinfo, "drawer menu"),
 				style: {
 					"padding-left": getSafeAreaInsetLeft(),
 				},

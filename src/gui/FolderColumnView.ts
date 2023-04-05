@@ -21,7 +21,7 @@ export class FolderColumnView implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
 		return m(".flex.height-100p", [
 			m(DrawerMenu, attrs.drawer),
-			m(".folder-column.flex-grow.overflow-x-hidden.flex.col" + landmarkAttrs(AriaLandmarks.Navigation, lang.getMaybeLazy(attrs.ariaLabel)), [
+			m(".folder-column.flex-grow.overflow-x-hidden.flex.col", landmarkAttrs(AriaLandmarks.Navigation, lang.getMaybeLazy(attrs.ariaLabel)), [
 				this.renderMainButton(attrs),
 				m(
 					".scroll.overflow-x-hidden.flex.col.flex-grow",

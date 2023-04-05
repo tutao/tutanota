@@ -10,8 +10,9 @@ assertMainOrNode()
 export class NotFoundPage implements Component<void> {
 	view(): Children {
 		return m(
-			".main-view.flex.items-center.justify-center.mlr" + landmarkAttrs(AriaLandmarks.Main),
+			".main-view.flex.items-center.justify-center.mlr",
 			{
+				...landmarkAttrs(AriaLandmarks.Main),
 				style: {
 					"max-height": px(450),
 				},

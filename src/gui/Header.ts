@@ -313,8 +313,9 @@ export class Header implements Component<HeaderAttrs> {
 			])
 		} else if (!styles.isUsingBottomNavigation() && (!viewSlider || viewSlider.isUsingOverlayColumns())) {
 			content = m(
-				".logo.logo-height" + landmarkAttrs(AriaLandmarks.Banner, "Tutanota logo"),
+				".logo.logo-height",
 				{
+					...landmarkAttrs(AriaLandmarks.Banner, "Tutanota logo"),
 					style: {
 						"margin-left": px(sizes.drawer_menu_width),
 					},
