@@ -19,7 +19,7 @@ import {
 	ReplyType,
 	TUTANOTA_MAIL_ADDRESS_DOMAINS,
 } from "../../api/common/TutanotaConstants"
-import { assertNotNull, contains, endsWith, first, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, contains, endsWith, first, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { assertMainOrNode, isDesktop } from "../../api/common/Env"
 import { LockedError, NotFoundError } from "../../api/common/error/RestError"
 import type { LoginController } from "../../api/main/LoginController"
@@ -264,17 +264,19 @@ export interface ImageHandler {
 	insertImage(srcAttr: string, attrs?: Record<string, string>): HTMLElement
 }
 
-export function markMails(entityClient: EntityClient, mails: Mail[], unread: boolean): Promise<void> {
-	return Promise.all(
-		mails.map((mail) => {
+export async function markMails(entityClient: EntityClient, mails: Mail[], unread: boolean): Promise<void> {
+	await promiseMap(
+		mails,
+		async (mail) => {
 			if (mail.unread !== unread) {
 				mail.unread = unread
 				return entityClient.update(mail).catch(ofClass(NotFoundError, noOp)).catch(ofClass(LockedError, noOp))
 			} else {
 				return Promise.resolve()
 			}
-		}),
-	).then(noOp)
+		},
+		{ concurrency: 5 },
+	)
 }
 
 /**
