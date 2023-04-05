@@ -53,6 +53,11 @@ export function liveDataAttrs(): Record<string, string> {
 	}
 }
 
+/**
+ * construct spreadable landmark attributes for screen readers.
+ * return value includes a hide-outline class that will be overridden if the selector
+ * used to construct the element contains other classes.
+ */
 export function landmarkAttrs(role: AriaLandmarks, label?: string): Record<string, string | undefined> {
 	return {
 		class: "hide-outline",
