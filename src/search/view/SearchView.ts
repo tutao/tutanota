@@ -65,6 +65,8 @@ import { ConversationViewModel } from "../../mail/view/ConversationViewModel.js"
 import { ContactViewToolbar } from "../../contacts/view/ContactViewToolbar.js"
 import { confirmMerge, deleteContacts, getMultiContactViewActionAttrs } from "../../contacts/view/ContactView.js"
 import { ActionBar } from "../../gui/base/ActionBar.js"
+import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
+import { theme } from "../../gui/theme.js"
 
 assertMainOrNode()
 
@@ -200,30 +202,25 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					.map(({ entry }) => entry)
 					.filter(assertIsEntity2(ContactTypeRef)) ?? []
 
-			const toolbar = m(ContactViewToolbar, {
-				contacts: selectedContacts,
-				deleteAction: selectedContacts.length > 0 ? () => deleteContacts(selectedContacts) : undefined,
-				editAction: selectedContacts.length === 1 ? () => new ContactEditor(locator.entityClient, selectedContacts[0]).show() : undefined,
-				mergeAction: selectedContacts.length === 2 ? () => confirmMerge(selectedContacts[0], selectedContacts[1]) : undefined,
-			})
-			if (selectedContacts.length !== 1) {
-				console.log("multicontact")
-				return m(
-					".fill-absolute.flex.col",
-					toolbar,
-					m(
-						".flex-grow.rel.overflow-hidden",
-						m(MultiContactViewer, {
-							selectedEntities: selectedContacts,
-							selectNone: () => this.searchList.selectNone(),
-						}),
-					),
-				)
-			} else {
-				console.log("singlecontact")
-				return m(".fill-absolute.flex.col.nav-bg", toolbar, m(ContactCardViewer, { contact: selectedContacts[0] }))
-			}
-		} else {
+			return m(
+				".fill-absolute.flex.col.nav-bg",
+				m(ContactViewToolbar, {
+					contacts: selectedContacts,
+					deleteAction: selectedContacts.length > 0 ? () => deleteContacts(selectedContacts) : undefined,
+					editAction: selectedContacts.length === 1 ? () => new ContactEditor(locator.entityClient, selectedContacts[0]).show() : undefined,
+					mergeAction: selectedContacts.length === 2 ? () => confirmMerge(selectedContacts[0], selectedContacts[1]) : undefined,
+				}),
+				selectedContacts.length === 1
+					? m(ContactCardViewer, { contact: selectedContacts[0] })
+					: m(
+							".flex-grow.rel.overflow-hidden",
+							m(MultiContactViewer, {
+								selectedEntities: selectedContacts,
+								selectNone: () => this.searchList.selectNone(),
+							}),
+					  ),
+			)
+		} else if (getCurrentSearchMode() === "mail") {
 			const selectedMails =
 				this.searchList.list
 					?.getSelectedEntities()
@@ -231,12 +228,24 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					.filter(assertIsEntity2(MailTypeRef)) ?? []
 
 			if (selectedMails.length !== 1 || !this.conversationViewModel) {
-				console.log("multimail")
 				return m(MultiMailViewer, { selectedEntities: selectedMails, selectNone: this.searchList.selectNone })
 			} else {
-				console.log("singlemail")
 				return m(ConversationViewer, { viewModel: this.conversationViewModel })
 			}
+		} else {
+			return m(
+				".flex.col.fill-absolute",
+				// Using contactViewToolbar because it will display empty
+				m(ContactViewToolbar, { contacts: [] }),
+				m(
+					".flex-grow.rel.overflow-hidden",
+					m(ColumnEmptyMessageBox, {
+						message: () => lang.get("noSelection_msg"),
+						color: theme.content_message_bg,
+						backgroundColor: theme.navigation_bg,
+					}),
+				),
+			)
 		}
 	}
 

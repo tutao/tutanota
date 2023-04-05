@@ -4,7 +4,6 @@ import { MailViewer } from "./MailViewer.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { theme } from "../../gui/theme.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
-import { noOp } from "@tutao/tutanota-utils"
 import { elementIdPart, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { CollapsedMailView } from "./CollapsedMailView.js"
 import { mailViewerMargin } from "./MailViewerUtils.js"
@@ -73,7 +72,6 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				mailModel: viewModel.primaryViewModel().mailModel,
 				mailViewerViewModel: viewModel.primaryViewModel(),
 				mails: [viewModel.primaryMail],
-				selectNone: noOp,
 				readAction: () => viewModel.primaryViewModel().setUnread(false),
 				unreadAction: () => viewModel.primaryViewModel().setUnread(true),
 			}),

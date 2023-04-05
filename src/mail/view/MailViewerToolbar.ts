@@ -20,16 +20,15 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { exportMails } from "../export/Exporter.js"
 
 /*
-	Everything is optional to allow for having an empty toolbar, but mailModel and mails are a requirement
-	note that mailViewerViewModel has a mailModel, so you do not need to pass both in that case
+	note that mailViewerViewModel has a mailModel, so you do not need to pass both if you pass a mailViewerViewModel
  */
 export interface MailViewerToolbarAttrs {
-	mailModel?: MailModel
+	mailModel: MailModel
 	mailViewerViewModel?: MailViewerViewModel
-	mails?: Mail[]
+	mails: Mail[]
 	selectNone?: () => void
-	readAction?: () => unknown
-	unreadAction?: () => unknown
+	readAction: () => unknown
+	unreadAction: () => unknown
 }
 
 export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
@@ -115,12 +114,12 @@ export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
 		const readButtons = [
 			m(IconButton, {
 				title: "markRead_action",
-				click: () => readAction,
+				click: readAction,
 				icon: Icons.Eye,
 			}),
 			m(IconButton, {
 				title: "markUnread_action",
-				click: () => unreadAction,
+				click: unreadAction,
 				icon: Icons.NoEye,
 			}),
 		]
