@@ -3,7 +3,6 @@ import m, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode
 import { lang, languageCodeToTag, languages } from "./misc/LanguageViewModel"
 import { root } from "./RootView"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "./misc/ErrorHandler"
-import "./gui/main-styles"
 import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable, isTutanotaDomain } from "./api/common/Env"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { windowFacade } from "./misc/WindowFacade"
@@ -118,6 +117,8 @@ if (!isDesktop() && typeof navigator.registerProtocolHandler === "function") {
 import("./translations/en")
 	.then((en) => lang.init(en.default))
 	.then(async () => {
+		await import("./gui/main-styles")
+
 		// do this after lang initialized
 		const { locator } = await import("./api/main/MainLocator")
 		await locator.init()
