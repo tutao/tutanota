@@ -1,5 +1,4 @@
 import m, { Children } from "mithril"
-import stream from "mithril/stream"
 import { ContactView } from "./ContactView"
 import type { VirtualRow } from "../../gui/base/List"
 import { List } from "../../gui/base/List"
@@ -25,13 +24,10 @@ assertMainOrNode()
 const className = "contact-list"
 
 export class ContactListView {
-	listId: Id
-	contactView: ContactView
-	list: List<Contact, ContactRow>
-	view: (...args: Array<any>) => any
-	oncreate: (...args: Array<any>) => any
-	onbeforeremove: (...args: Array<any>) => any
-	private sortByFirstName = stream(true)
+	readonly listId: Id
+	readonly contactView: ContactView
+	readonly list: List<Contact, ContactRow>
+	private sortByFirstName = true
 
 	constructor(contactListId: Id, contactView: ContactView) {
 		this.listId = contactListId
@@ -56,7 +52,7 @@ export class ContactListView {
 					}),
 				)
 			},
-			sortCompare: (c1, c2) => compareContacts(c1, c2, this.sortByFirstName()),
+			sortCompare: (c1, c2) => compareContacts(c1, c2, this.sortByFirstName),
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
 				contactView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
 			createVirtualRow: () => new ContactRow((entity) => this.list.toggleMultiSelectForEntity(entity)),
@@ -72,25 +68,18 @@ export class ContactListView {
 			emptyMessage: lang.get("noContacts_msg"),
 		})
 
-		this.view = (): Children => {
-			return m(
-				ListColumnWrapper,
-				{
-					headerContent: this.renderToolbar(),
-				},
-				m(this.list),
-			)
-		}
+		// old style components lose "this" ref easily
+		this.view = this.view.bind(this)
+	}
 
-		let sortModeChangedListener: stream<void>
-
-		this.oncreate = () => {
-			sortModeChangedListener = this.sortByFirstName.map(() => this.list.sort())
-		}
-
-		this.onbeforeremove = () => {
-			sortModeChangedListener.end(true)
-		}
+	view(): Children {
+		return m(
+			ListColumnWrapper,
+			{
+				headerContent: this.renderToolbar(),
+			},
+			m(this.list),
+		)
 	}
 
 	private renderToolbar(): Children {
@@ -113,11 +102,17 @@ export class ContactListView {
 						lazyButtons: () => [
 							{
 								label: "firstName_placeholder",
-								click: () => this.sortByFirstName(true),
+								click: () => {
+									this.sortByFirstName = true
+									this.list.sort()
+								},
 							},
 							{
 								label: "lastName_placeholder",
-								click: () => this.sortByFirstName(false),
+								click: () => {
+									this.sortByFirstName = false
+									this.list.sort()
+								},
 							},
 						],
 					})(e, dom)
