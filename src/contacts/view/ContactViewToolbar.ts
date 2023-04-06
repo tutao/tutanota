@@ -16,8 +16,12 @@ export interface ContactViewToolbarAttrs {
 	editAction?: () => void
 }
 
+/**
+ * Displays actions for contact or multiple contacts.
+ * Also registers shortcuts
+ */
 export class ContactViewToolbar implements Component<ContactViewToolbarAttrs> {
-	shortcuts: Array<Shortcut> = []
+	private shortcuts: Array<Shortcut> = []
 
 	view(vnode: Vnode<ContactViewToolbarAttrs>): Children {
 		const { contacts } = vnode.attrs
