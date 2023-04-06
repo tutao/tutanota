@@ -283,7 +283,7 @@ export function bundleDependencyCheckPlugin() {
 						if (!allowedImports[importedChunk]) {
 							unknownChunks.push(`${importedChunk} of ${importedId}`)
 						}
-						if (ownChunk !== importedChunk && !allowedImports[ownChunk].includes(importedChunk)) {
+						if (ownChunk !== importedChunk && !allowedImports[ownChunk]?.includes(importedChunk)) {
 							pushToMapEntry(illegalImports, `${moduleId} [${ownChunk}]`, `${importedId} [${importedChunk}]`)
 						}
 					}
