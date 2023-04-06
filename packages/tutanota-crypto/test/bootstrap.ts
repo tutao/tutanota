@@ -8,7 +8,7 @@ export async function bootstrapTests() {
 			bytes.set(randomBytes)
 		},
 		randomUUID: function () {
-			return "36b8f84d-df4e-4d49-b662-bcde71a8764f"
+			return "36b8f84d-df4e-4d49-b662-bcde71a8764f" as const
 		},
 		subtle: "We have to do this, because node's crypto is not compatible with SubtleCrypto. Sorry." as unknown as SubtleCrypto,
 	}
