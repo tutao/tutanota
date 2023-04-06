@@ -3,12 +3,12 @@ import { px, size } from "./size"
 import { client } from "../misc/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute, positionValue } from "./mixins"
-import { assertMainOrNodeBoot, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
+import { assertMainOrNode, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
 import { getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
 import { BrowserType } from "../misc/ClientConstants"
 import { stateBgActive, stateBgFocus, stateBgHover } from "./builtinThemes.js"
 
-assertMainOrNodeBoot()
+assertMainOrNode()
 
 export function getFonts(): string {
 	// see https://bitsofco.de/the-new-system-font-stack/
