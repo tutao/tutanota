@@ -5,15 +5,17 @@ import { px } from "../../gui/size.js"
 import { conversationCardMargin } from "../../mail/view/ConversationViewer.js"
 import { Contact } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactViewer } from "./ContactViewer.js"
+import { PartialRecipient } from "../../api/common/recipients/Recipient.js"
 
-export type ContactCardAttrs = {
+export interface ContactCardAttrs {
 	contact: Contact
+	onWriteMail: (to: PartialRecipient) => unknown
 }
 
+/** Wraps contact viewer in a nice card. */
 export class ContactCardViewer implements Component<ContactCardAttrs> {
-	view(vnode: Vnode<ContactCardAttrs>): Children {
-		const contactViewer = new ContactViewer(vnode.attrs.contact)
-
+	view({ attrs }: Vnode<ContactCardAttrs>): Children {
+		const { contact, onWriteMail } = attrs
 		return [
 			m(
 				".border-radius-big.rel",
@@ -25,7 +27,7 @@ export class ContactCardViewer implements Component<ContactCardAttrs> {
 						marginTop: px(conversationCardMargin),
 					},
 				},
-				m(contactViewer),
+				m(ContactViewer, { contact, onWriteMail }),
 			),
 			m(".mt-l"),
 		]

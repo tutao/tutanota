@@ -63,7 +63,7 @@ import { getMultiMailViewerActionButtonAttrs, MultiMailViewer } from "../../mail
 import { ConversationViewer } from "../../mail/view/ConversationViewer.js"
 import { ConversationViewModel } from "../../mail/view/ConversationViewModel.js"
 import { ContactViewToolbar } from "../../contacts/view/ContactViewToolbar.js"
-import { confirmMerge, deleteContacts, getMultiContactViewActionAttrs } from "../../contacts/view/ContactView.js"
+import { confirmMerge, deleteContacts, getMultiContactViewActionAttrs, writeMail } from "../../contacts/view/ContactView.js"
 import { ActionBar } from "../../gui/base/ActionBar.js"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../gui/theme.js"
@@ -224,7 +224,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								selectNone: () => this.searchList.selectNone(),
 							}),
 					  )
-					: m(ContactCardViewer, { contact: selectedContacts[0] }),
+					: m(ContactCardViewer, { contact: selectedContacts[0], onWriteMail: writeMail }),
 			)
 		} else if (getCurrentSearchMode() === "mail") {
 			const selectedMails =

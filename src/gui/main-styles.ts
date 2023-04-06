@@ -299,10 +299,6 @@ styles.registerStyle("main", () => {
 			"margin-left": px(size.hpad),
 			"margin-right": px(size.hpad),
 		},
-		".mlr-vpad": {
-			"margin-left": px(size.vpad),
-			"margin-right": px(size.vpad),
-		},
 		".mlr-button": {
 			"margin-left": px(size.hpad_button),
 			"margin-right": px(size.hpad_button),

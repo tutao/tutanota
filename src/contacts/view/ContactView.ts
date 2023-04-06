@@ -50,6 +50,9 @@ import { stateBgHover } from "../../gui/builtinThemes.js"
 import { ContactCardViewer } from "./ContactCardViewer.js"
 import { ContactViewToolbar } from "./ContactViewToolbar.js"
 import { MobileContactActionBar } from "./MobileContactActionBar.js"
+import { appendEmailSignature } from "../../mail/signature/Signature.js"
+import { PartialRecipient } from "../../api/common/recipients/Recipient.js"
+import { newMailEditorFromTemplate } from "../../mail/editor/MailEditor.js"
 
 assertMainOrNode()
 
@@ -141,7 +144,10 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 										selectedEntities: this._contactList?.list.getSelectedEntities() ?? [],
 										selectNone: () => this._contactList?.list.selectNone(),
 								  })
-								: m(ContactCardViewer, { contact: contacts[0] }),
+								: m(ContactCardViewer, {
+										contact: contacts[0],
+										onWriteMail: writeMail,
+								  }),
 						),
 					])
 				},
@@ -652,6 +658,19 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			return null
 		}
 	}
+}
+
+export function writeMail(to: PartialRecipient): Promise<unknown> {
+	return locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+		return newMailEditorFromTemplate(
+			mailboxDetails,
+			{
+				to: [to],
+			},
+			"",
+			appendEmailSignature("", locator.logins.getUserController().props),
+		).then((editor) => editor.show())
+	})
 }
 
 export function deleteContacts(contactList: Contact[]): Promise<void> {
