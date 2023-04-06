@@ -21,7 +21,7 @@ export class MultiContactViewer implements Component<MultiContactViewerAttrs> {
 	view({ attrs }: Vnode<MultiContactViewerAttrs>) {
 		return [
 			m(ColumnEmptyMessageBox, {
-				message: () => this._getContactSelectionMessage(attrs.selectedEntities),
+				message: () => this.getContactSelectionMessage(attrs.selectedEntities),
 				icon: BootIcons.Contacts,
 				color: theme.content_message_bg,
 				bottomContent:
@@ -37,7 +37,7 @@ export class MultiContactViewer implements Component<MultiContactViewerAttrs> {
 		]
 	}
 
-	_getContactSelectionMessage(selectedEntities: Contact[]): string {
+	private getContactSelectionMessage(selectedEntities: Contact[]): string {
 		if (selectedEntities.length === 0) {
 			return lang.get("noContact_msg")
 		} else {

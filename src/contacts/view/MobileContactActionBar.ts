@@ -7,6 +7,7 @@ export interface MobileContactActionBarAttrs {
 	deleteAction: () => unknown
 }
 
+/** Toolbar with contact actions at the bottom of single-column layout. */
 export class MobileContactActionBar implements Component<MobileContactActionBarAttrs> {
 	view(vnode: Vnode<MobileContactActionBarAttrs>): Children {
 		const { attrs } = vnode
