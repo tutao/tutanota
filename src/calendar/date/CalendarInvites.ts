@@ -47,7 +47,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 		import("../../misc/HtmlSanitizer"),
 	])
 	let viewModel: CalendarEventViewModel | null = null
-	let onEditEvent: Thunk | null = null
+	let onEditEvent: Thunk = noOp
 
 	// Do not create calendar event view model for external users as external users cannot delete/edit a calendar event. They don't have a calendar.
 	if (locator.logins.getUserController().isInternalUser()) {

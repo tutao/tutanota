@@ -1,5 +1,5 @@
 import type { Shortcut } from "../../misc/KeyManager"
-import m, { Children, Vnode } from "mithril"
+import m, { Children } from "mithril"
 import { px } from "../../gui/size"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { Icons } from "../../gui/base/icons/Icons"
@@ -20,151 +20,145 @@ import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { IconButton } from "../../gui/base/IconButton.js"
 
 export class CalendarEventPopup implements ModalComponent {
-	_calendarEvent: CalendarEvent
-	_eventBubbleRect: PosRect
-	_shortcuts: Shortcut[]
-	_sanitizedDescription: string
-	_onEditEvent: () => unknown
-	_viewModel: CalendarEventViewModel | null // null for external users
+	private readonly _shortcuts: Shortcut[] = []
+	private readonly sanitizedDescription: string
 
-	_isPersistentEvent: boolean
-	_isExternal: boolean
-	view: ModalComponent["view"]
+	private readonly isPersistentEvent: boolean
+	private readonly isExternal: boolean
 
 	constructor(
-		calendarEvent: CalendarEvent,
-		eventBubbleRect: PosRect,
+		private readonly calendarEvent: CalendarEvent,
+		private readonly eventBubbleRect: PosRect,
 		htmlSanitizer: HtmlSanitizer,
-		onEditEvent: (() => unknown) | null,
-		viewModel: CalendarEventViewModel | null,
+		private readonly onEditEvent: () => unknown = noOp,
+		// null for external users
+		private readonly viewModel: CalendarEventViewModel | null,
 		private readonly firstOccurrence: CalendarEvent | null,
 	) {
-		this._calendarEvent = calendarEvent
-		this._eventBubbleRect = eventBubbleRect
-		this._onEditEvent = onEditEvent || noOp
-		this._viewModel = viewModel
 		const preparedDescription = prepareCalendarDescription(calendarEvent.description)
 		// We receive the HtmlSanitizer from outside and do the sanitization inside, so that we don't have to just assume it was already done
-		this._sanitizedDescription = preparedDescription
+		this.sanitizedDescription = preparedDescription
 			? htmlSanitizer.sanitizeHTML(preparedDescription, {
 					blockExternalContent: true,
 			  }).html
 			: ""
-		this._isPersistentEvent = !!calendarEvent._ownerGroup
-		this._isExternal = !this._viewModel
-		this._shortcuts = [
-			{
-				key: Keys.ESC,
-				exec: () => this._close(),
-				help: "close_alt",
-			},
-		]
+		this.isPersistentEvent = !!calendarEvent._ownerGroup
+		this.isExternal = !this.viewModel
+		this._shortcuts.push({
+			key: Keys.ESC,
+			exec: () => this.close(),
+			help: "close_alt",
+		})
 
-		if (!this._isExternal) {
+		if (!this.isExternal) {
 			this._shortcuts.push({
 				key: Keys.E,
 				exec: () => {
-					this._onEditEvent()
+					this.onEditEvent()
 
-					this._close()
+					this.close()
 				},
 				help: "edit_action",
 			})
 		}
 
-		if (this._isDeleteAvailable()) {
+		if (this.isDeleteAvailable()) {
 			this._shortcuts.push({
 				key: Keys.DELETE,
 				exec: () => {
-					this._deleteEvent()
+					this.deleteEvent()
 				},
 				help: "delete_action",
 			})
 		}
 
-		if (!!this._viewModel && this._viewModel.isForceUpdateAvailable()) {
+		if (!!this.viewModel && this.viewModel.isForceUpdateAvailable()) {
 			this._shortcuts.push({
 				key: Keys.R,
 				exec: () => {
-					this._forceSendingUpdatesToAttendees()
+					// noinspection JSIgnoredPromiseFromCall
+					this.forceSendingUpdatesToAttendees()
 				},
 				help: "sendUpdates_label",
 			})
 		}
 
-		this.view = (vnode: Vnode<any>) => {
-			return m(
-				".abs.elevated-bg.plr.border-radius.dropdown-shadow.flex.flex-column",
-				{
-					style: {
-						width: px(Math.min(window.innerWidth - DROPDOWN_MARGIN * 2, 400)),
-						// minus margin, need to apply it now to not overflow later
-						opacity: "0",
-						// see hack description below
-						margin: "1px", // because calendar event bubbles have 1px border, we want to align
-					},
-					oncreate: (vnode) => {
-						const dom = vnode.dom as HTMLElement
-						// This is a hack to get "natural" view size but render it without opacity first and then show dropdown with inferred
-						// size.
-						setTimeout(() => showDropdown(this._eventBubbleRect, dom, dom.offsetHeight, 400), 24)
-					},
-				},
-				[
-					m(".flex.flex-end", [
-						!!this._viewModel && this._viewModel.isForceUpdateAvailable()
-							? m(Button, {
-									label: "sendUpdates_label",
-									click: () => this._forceSendingUpdatesToAttendees(),
-									type: ButtonType.ActionLarge,
-									icon: () => BootIcons.Mail,
-									colors: ButtonColor.DrawerNav,
-							  })
-							: null,
-						!this._isExternal
-							? m(Button, {
-									label: "edit_action",
-									click: () => {
-										this._onEditEvent()
+		this.view = this.view.bind(this)
+	}
 
-										this._close()
-									},
-									type: ButtonType.ActionLarge,
-									icon: () => Icons.Edit,
-									colors: ButtonColor.DrawerNav,
-							  })
-							: null,
-						this.renderDeleteButton(),
-						m(Button, {
-							label: "close_alt",
-							click: () => this._close(),
-							type: ButtonType.ActionLarge,
-							icon: () => Icons.Cancel,
-							colors: ButtonColor.DrawerNav,
-						}),
-					]),
-					m(".flex-grow.scroll.visible-scrollbar", [
-						m(EventPreviewView, {
-							event: this._calendarEvent,
-							sanitizedDescription: this._sanitizedDescription,
-						}),
-					]),
-				],
-			)
-		}
+	view(): Children {
+		return m(
+			".abs.elevated-bg.plr.border-radius.dropdown-shadow.flex.flex-column",
+			{
+				style: {
+					// minus margin, need to apply it now to not overflow later
+					width: px(Math.min(window.innerWidth - DROPDOWN_MARGIN * 2, 400)),
+					// see hack description below
+					opacity: "0",
+					// because calendar event bubbles have 1px border, we want to align
+					margin: "1px",
+				},
+				oncreate: (vnode) => {
+					const dom = vnode.dom as HTMLElement
+					// This is a hack to get "natural" view size but render it without opacity first and then show dropdown with inferred
+					// size.
+					setTimeout(() => showDropdown(this.eventBubbleRect, dom, dom.offsetHeight, 400), 24)
+				},
+			},
+			[
+				m(".flex.flex-end", [
+					!!this.viewModel && this.viewModel.isForceUpdateAvailable()
+						? m(Button, {
+								label: "sendUpdates_label",
+								click: () => this.forceSendingUpdatesToAttendees(),
+								type: ButtonType.ActionLarge,
+								icon: () => BootIcons.Mail,
+								colors: ButtonColor.DrawerNav,
+						  })
+						: null,
+					!this.isExternal
+						? m(Button, {
+								label: "edit_action",
+								click: () => {
+									this.onEditEvent()
+
+									this.close()
+								},
+								type: ButtonType.ActionLarge,
+								icon: () => Icons.Edit,
+								colors: ButtonColor.DrawerNav,
+						  })
+						: null,
+					this.renderDeleteButton(),
+					m(Button, {
+						label: "close_alt",
+						click: () => this.close(),
+						type: ButtonType.ActionLarge,
+						icon: () => Icons.Cancel,
+						colors: ButtonColor.DrawerNav,
+					}),
+				]),
+				m(".flex-grow.scroll.visible-scrollbar", [
+					m(EventPreviewView, {
+						event: this.calendarEvent,
+						sanitizedDescription: this.sanitizedDescription,
+					}),
+				]),
+			],
+		)
 	}
 
 	show() {
-		if (!this._viewModel?.selectedCalendar) return
+		if (!this.viewModel?.selectedCalendar) return
 		modal.display(this, false)
 	}
 
-	_close() {
+	private close() {
 		modal.remove(this)
 	}
 
 	private renderDeleteButton(): Children {
-		if (!this._isDeleteAvailable()) return null
+		if (!this.isDeleteAvailable()) return null
 
 		return m(
 			IconButton,
@@ -181,14 +175,14 @@ export class CalendarEventPopup implements ModalComponent {
 					},
 					{
 						label: "deleteAllEventRecurrence_action",
-						click: () => this._deleteEvent(),
+						click: () => this.deleteEvent(),
 					},
 				],
 				showDropdown: () => {
 					if (this.firstOccurrence && calendarEventHasMoreThanOneOccurrencesLeft(this.firstOccurrence)) {
 						return true
 					} else {
-						this._deleteEvent()
+						this.deleteEvent()
 						return false
 					}
 				},
@@ -206,7 +200,7 @@ export class CalendarEventPopup implements ModalComponent {
 	}
 
 	onClose(): void {
-		this._close()
+		this.close()
 	}
 
 	shortcuts(): Shortcut[] {
@@ -218,12 +212,12 @@ export class CalendarEventPopup implements ModalComponent {
 		return false
 	}
 
-	_isDeleteAvailable(): boolean {
-		return this._isPersistentEvent && !!this._viewModel && !this._viewModel.isReadOnlyEvent()
+	private isDeleteAvailable(): boolean {
+		return this.isPersistentEvent && !!this.viewModel && !this.viewModel.isReadOnlyEvent()
 	}
 
-	async _forceSendingUpdatesToAttendees(): Promise<void> {
-		const viewModel = this._viewModel
+	private async forceSendingUpdatesToAttendees(): Promise<void> {
+		const viewModel = this.viewModel
 
 		if (viewModel) {
 			// we handle askForUpdates here to avoid making a request if not necessary
@@ -241,14 +235,14 @@ export class CalendarEventPopup implements ModalComponent {
 					.finally(() => viewModel.isForceUpdates(false))
 
 				if (success) {
-					this._close()
+					this.close()
 				}
 			}
 		}
 	}
 
-	async _deleteEvent(): Promise<void> {
-		const viewModel = this._viewModel
+	private async deleteEvent(): Promise<void> {
+		const viewModel = this.viewModel
 
 		if (viewModel) {
 			const confirmed = await Dialog.confirm("deleteEventConfirmation_msg")
@@ -256,16 +250,16 @@ export class CalendarEventPopup implements ModalComponent {
 			if (confirmed) {
 				await viewModel.deleteEvent().catch(ofClass(UserError, (e) => Dialog.message(() => e.message)))
 
-				this._close()
+				this.close()
 			}
 		}
 	}
 
 	/** add an exclusion for this event instance start time on the original event */
 	private async addExclusion(): Promise<void> {
-		const viewModel = this._viewModel
+		const viewModel = this.viewModel
 		if (viewModel == null) return
-		this._close()
+		this.close()
 		return await viewModel.excludeThisOccurrence()
 	}
 }
