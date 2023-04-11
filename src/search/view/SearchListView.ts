@@ -498,11 +498,13 @@ export class SearchResultListRow implements VirtualRow<SearchResultListEntry> {
 	top: number
 	domElement: HTMLElement | null = null // set from List
 
+	// this is our own entry which we need for some reason (probably easier to deal with than a lot of sum type entries)
 	_entity: SearchResultListEntry | null = null
 	get entity(): SearchResultListEntry | null {
 		return this._entity
 	}
 
+	// we need to actually assign the entity to our delegate, otherwise multiselect might not work
 	set entity(entity: SearchResultListEntry | null) {
 		this._delegate.entity = downcast(entity?.entry)
 		this._entity = entity

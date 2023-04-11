@@ -256,7 +256,7 @@ export class ContactFormRow implements VirtualRow<ContactForm> {
 					oncreate: (vnode) => (this.pageTitleDom = vnode.dom as HTMLElement),
 				}),
 				m(".flex-space-between", [
-					m(".smaller.mail-address", {
+					m(".smaller", {
 						oncreate: (vnode) => (this.urlDom = vnode.dom as HTMLElement),
 					}),
 					m(".icons.flex", [
