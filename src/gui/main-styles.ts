@@ -1514,7 +1514,6 @@ styles.registerStyle("main", () => {
 			"padding-top": px(size.text_bubble_tpad),
 		},
 		".bubble": {
-			"max-width": "300px",
 			"border-radius": px(size.border_radius),
 			height: px(size.button_height_bubble),
 			"background-color": theme.button_bubble_bg,
