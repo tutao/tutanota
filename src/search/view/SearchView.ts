@@ -751,7 +751,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			try {
 				await locator.entityClient.load(typeRef, id)
 				m.redraw()
-				//this.viewer.showEntity(updatedEntity, false)
 			} catch (e) {
 				// ignore. might happen if a mail was just sent
 			}

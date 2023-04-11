@@ -51,42 +51,45 @@ export class MultiMailViewer implements Component<MultiMailViewerAttrs> {
 						icon: BootIcons.Mail,
 						color: theme.content_message_bg,
 						backgroundColor: theme.navigation_bg,
-						bottomContent:
-							loadingAll === "loading"
-								? m(".flex.items-center", [
-										m(Button, {
-											label: "cancel_action",
-											type: ButtonType.Secondary,
-											click: () => {
-												stopLoadAll()
-											},
-										}),
-										m(".flex.items-center.plr-button", progressIcon()),
-								  ])
-								: selectedEntities.length === 0
-								? null
-								: m(".flex", [
-										m(Button, {
-											label: "cancel_action",
-											type: ButtonType.Secondary,
-											click: () => {
-												selectNone()
-											},
-										}),
-										loadingAll === "can_load"
-											? m(Button, {
-													label: "loadAll_action",
-													type: ButtonType.Secondary,
-													click: () => {
-														loadAll()
-													},
-											  })
-											: null,
-								  ]),
+						bottomContent: this.renderEmptyMessageButtons(attrs),
 					}),
 				),
 			),
 		]
+	}
+
+	private renderEmptyMessageButtons({ loadingAll, stopLoadAll, selectedEntities, selectNone, loadAll }: MultiMailViewerAttrs) {
+		return loadingAll === "loading"
+			? m(".flex.items-center", [
+					m(Button, {
+						label: "cancel_action",
+						type: ButtonType.Secondary,
+						click: () => {
+							stopLoadAll()
+						},
+					}),
+					m(".flex.items-center.plr-button", progressIcon()),
+			  ])
+			: selectedEntities.length === 0
+			? null
+			: m(".flex", [
+					m(Button, {
+						label: "cancel_action",
+						type: ButtonType.Secondary,
+						click: () => {
+							selectNone()
+						},
+					}),
+					loadingAll === "can_load"
+						? m(Button, {
+								label: "loadAll_action",
+								type: ButtonType.Secondary,
+								click: () => {
+									loadAll()
+								},
+						  })
+						: null,
+			  ])
 	}
 
 	private getMailSelectionMessage(selectedEntities: Array<Mail>): string {
