@@ -531,6 +531,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return attachments.map((attachment) =>
 			m(AttachmentBubble, {
 				attachment,
+				remove: null,
 				download:
 					isAndroidApp() || isDesktop()
 						? () => viewModel.downloadAndOpenAttachment(attachment, false)

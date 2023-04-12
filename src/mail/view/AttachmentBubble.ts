@@ -20,6 +20,7 @@ export type AttachmentBubbleAttrs = {
 	attachment: Attachment
 	download: Thunk | null
 	open: Thunk | null
+	remove: Thunk | null
 }
 
 export class AttachmentBubble implements Component<AttachmentBubbleAttrs> {
@@ -79,6 +80,15 @@ export class AttachmentDetailsPopup implements ModalComponent {
 				help: "download_action",
 			})
 		}
+		if (attrs.remove) {
+			this._shortcuts.push({
+				key: Keys.DELETE,
+				exec: () => {
+					attrs.remove?.()
+				},
+				help: "remove_action",
+			})
+		}
 		this.view = this.view.bind(this)
 	}
 
@@ -104,7 +114,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 	}
 
 	private renderContent(): Children {
-		const { open, download, attachment } = this.attrs
+		const { remove, open, download, attachment } = this.attrs
 		return m(
 			".flex.row.mb-s.pr",
 			{
@@ -125,20 +135,9 @@ export class AttachmentDetailsPopup implements ModalComponent {
 					m(".flex.row.justify-between.items-center.flex-grow", [
 						`${formatStorageSize(Number(attachment.size))}`,
 						m(".no-wrap", [
-							open
-								? m(Button, {
-										type: ButtonType.Secondary,
-										label: "open_action",
-										click: () => open(),
-								  })
-								: null,
-							download
-								? m(Button, {
-										type: ButtonType.Secondary,
-										label: "download_action",
-										click: () => download(),
-								  })
-								: null,
+							remove ? m(Button, { type: ButtonType.Secondary, label: "remove_action", click: () => remove() }) : null,
+							open ? m(Button, { type: ButtonType.Secondary, label: "open_action", click: () => open() }) : null,
+							download ? m(Button, { type: ButtonType.Secondary, label: "download_action", click: () => download() }) : null,
 						]),
 					]),
 				]),

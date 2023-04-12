@@ -7,12 +7,7 @@ import { PermissionError } from "../../api/common/error/PermissionError"
 import { Dialog } from "../../gui/base/Dialog"
 import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"
 import { lang } from "../../misc/LanguageViewModel"
-import type { ButtonAttrs } from "../../gui/base/Button.js"
-import { ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { FileOpenError } from "../../api/common/error/FileOpenError"
-import { createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
-import { Icons } from "../../gui/base/icons/Icons"
-import { formatStorageSize } from "../../misc/Formatter"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { locator } from "../../api/main/MainLocator"
@@ -20,6 +15,7 @@ import { FileReference, isDataFile, isFileReference, isTutanotaFile } from "../.
 import { DataFile } from "../../api/common/DataFile"
 import { showFileChooser } from "../../file/FileController.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { AttachmentBubbleAttrs } from "../view/AttachmentBubble.js"
 
 export async function chooseAndAttachFile(
 	model: SendMailModel,
@@ -78,44 +74,27 @@ export function showFileChooserForAttachments(boundingRect: ClientRect, fileType
 		)
 }
 
-export function createAttachmentButtonAttrs(model: SendMailModel, inlineImageElements: Array<HTMLElement>): Array<ButtonAttrs> {
-	return model.getAttachments().map((file) => {
-		const lazyButtonAttrs: DropdownButtonAttrs[] = [
-			{
-				label: "download_action",
-				click: () => _downloadAttachment(file),
-			},
-			{
-				label: "remove_action",
-				click: () => {
-					model.removeAttachment(file)
+export function createAttachmentBubbleAttrs(model: SendMailModel, inlineImageElements: Array<HTMLElement>): Array<AttachmentBubbleAttrs> {
+	return model.getAttachments().map((attachment) => ({
+		attachment,
+		open: null,
+		download: () => _downloadAttachment(attachment),
+		remove: () => {
+			model.removeAttachment(attachment)
 
-					// If an attachment has a cid it means it could be in the editor's inline images too
-					if (file.cid) {
-						const imageElement = inlineImageElements.find((e) => e.getAttribute("cid") === file.cid)
+			// If an attachment has a cid it means it could be in the editor's inline images too
+			if (attachment.cid) {
+				const imageElement = inlineImageElements.find((e) => e.getAttribute("cid") === attachment.cid)
 
-						if (imageElement) {
-							imageElement.remove()
-							remove(inlineImageElements, imageElement)
-						}
-					}
+				if (imageElement) {
+					imageElement.remove()
+					remove(inlineImageElements, imageElement)
+				}
+			}
 
-					m.redraw()
-				},
-			},
-		]
-
-		return {
-			label: () => file.name,
-			icon: () => Icons.Attachment,
-			type: ButtonType.Bubble,
-			staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
-			colors: ButtonColor.Elevated,
-			click: createDropdown({
-				lazyButtons: () => lazyButtonAttrs,
-			}),
-		}
-	})
+			m.redraw()
+		},
+	}))
 }
 
 async function _downloadAttachment(attachment: Attachment) {
