@@ -15,7 +15,7 @@ import { FileReference, isDataFile, isFileReference, isTutanotaFile } from "../.
 import { DataFile } from "../../api/common/DataFile"
 import { showFileChooser } from "../../file/FileController.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
-import { AttachmentBubbleAttrs } from "../view/AttachmentBubble.js"
+import { AttachmentBubbleAttrs } from "../../gui/AttachmentBubble.js"
 
 export async function chooseAndAttachFile(
 	model: SendMailModel,

@@ -1,20 +1,20 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { Attachment } from "../editor/SendMailModel.js"
-import { Button, ButtonType } from "../../gui/base/Button.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
-import { formatStorageSize } from "../../misc/Formatter.js"
+import { Attachment } from "../mail/editor/SendMailModel.js"
+import { Button, ButtonType } from "./base/Button.js"
+import { Icons } from "./base/icons/Icons.js"
+import { formatStorageSize } from "../misc/Formatter.js"
 import { Thunk } from "@tutao/tutanota-utils"
-import { modal, ModalComponent } from "../../gui/base/Modal.js"
-import { Shortcut } from "../../misc/KeyManager.js"
-import { PosRect } from "../../gui/base/Dropdown.js"
-import { Keys } from "../../api/common/TutanotaConstants.js"
-import { px } from "../../gui/size.js"
-import { Icon } from "../../gui/base/Icon.js"
-import { theme } from "../../gui/theme.js"
-import { animations, height, opacity, transform, TransformEnum, width } from "../../gui/animation/Animations.js"
-import { ease } from "../../gui/animation/Easing.js"
-import { getFileBaseName, getFileExtension } from "../../api/common/utils/FileUtils.js"
-import { getSafeAreaInsetBottom } from "../../gui/HtmlUtils.js"
+import { modal, ModalComponent } from "./base/Modal.js"
+import { Shortcut } from "../misc/KeyManager.js"
+import { PosRect } from "./base/Dropdown.js"
+import { Keys } from "../api/common/TutanotaConstants.js"
+import { px } from "./size.js"
+import { Icon } from "./base/Icon.js"
+import { theme } from "./theme.js"
+import { animations, height, opacity, transform, TransformEnum, width } from "./animation/Animations.js"
+import { ease } from "./animation/Easing.js"
+import { getFileBaseName, getFileExtension } from "../api/common/utils/FileUtils.js"
+import { getSafeAreaInsetBottom } from "./HtmlUtils.js"
 
 export type AttachmentBubbleAttrs = {
 	attachment: Attachment
@@ -29,13 +29,14 @@ export class AttachmentBubble implements Component<AttachmentBubbleAttrs> {
 	view(vnode: Vnode<AttachmentBubbleAttrs>): Children {
 		const { attachment } = vnode.attrs
 		const extension = getFileExtension(attachment.name)
+		const spacedExtension = extension.length > 0 ? extension + " " : extension
 		const rest = getFileBaseName(attachment.name)
 		return m(Button, {
 			label: () => rest,
 			title: () => attachment.name,
 			icon: () => Icons.Attachment,
 			type: ButtonType.Bubble,
-			staticRightText: `${extension} (${formatStorageSize(Number(attachment.size))})`,
+			staticRightText: `${spacedExtension}(${formatStorageSize(Number(attachment.size))})`,
 			click: () => showAttachmentDetailsPopup(this.dom!, vnode.attrs),
 		})
 	}

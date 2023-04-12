@@ -25,7 +25,7 @@ import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { editDraft, mailViewerMargin, mailViewerMoreActions, mailViewerPadding } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../gui/AriaUtils.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
-import { AttachmentBubble } from "./AttachmentBubble.js"
+import { AttachmentBubble } from "../../gui/AttachmentBubble.js"
 
 export interface MailAddressAndName {
 	name: string

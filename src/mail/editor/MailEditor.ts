@@ -74,7 +74,7 @@ import { KnowledgebaseDialogContentAttrs } from "../../knowledgebase/view/Knowle
 import { MailWrapper } from "../../api/common/MailWrapper.js"
 import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 import { createDataFile, DataFile } from "../../api/common/DataFile.js"
-import { AttachmentBubble } from "../view/AttachmentBubble.js"
+import { AttachmentBubble } from "../../gui/AttachmentBubble.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
