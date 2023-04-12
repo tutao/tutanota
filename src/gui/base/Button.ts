@@ -145,7 +145,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 					this._getLabelElement(a),
 					a.staticRightText
 						? m(
-								"span",
+								".pl-s",
 								{
 									style: this._getLabelStyle(a),
 								},
@@ -261,6 +261,10 @@ export class Button implements ClassComponent<ButtonAttrs> {
 
 		if (![ButtonType.TextBubble].includes(type)) {
 			wrapperClasses.push("plr-button")
+		}
+
+		if (ButtonType.Bubble === type) {
+			wrapperClasses.push("smaller")
 		}
 
 		wrapperClasses.push("justify-center")
