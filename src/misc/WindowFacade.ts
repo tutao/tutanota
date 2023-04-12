@@ -42,6 +42,25 @@ export class WindowFacade {
 				this.addPageInBackgroundListener()
 			}
 		})
+
+		const onresize = () => {
+			// see https://developer.mozilla.org/en-US/docs/Web/Events/resize
+			if (!this.resizeTimeout) {
+				const cb = () => {
+					this.resizeTimeout = null
+
+					this._resize() // The actualResizeHandler will execute at a rate of 15fps
+				}
+
+				// On mobile devices there's usaually no resize but when changing orientation it's to early to
+				// measure the size in requestAnimationFrame (it's usually incorrect size at this point)
+				this.resizeTimeout = client.isMobileDevice() ? setTimeout(cb, 66) : requestAnimationFrame(cb)
+			}
+		}
+		window.onresize = onresize
+		// specifially for iOS: rotation through the unsupported orientation (e.g, 90 degrees 3 times) will not trigger the resize and we wouldn't resize
+		// some things so we react to both, it is throttled anyway
+		window.onorientationchange = onresize
 	}
 
 	/**
@@ -92,24 +111,6 @@ export class WindowFacade {
 
 	init(logins: LoginController) {
 		this.logins = logins
-		const onresize = () => {
-			// see https://developer.mozilla.org/en-US/docs/Web/Events/resize
-			if (!this.resizeTimeout) {
-				const cb = () => {
-					this.resizeTimeout = null
-
-					this._resize() // The actualResizeHandler will execute at a rate of 15fps
-				}
-
-				// On mobile devices there's usaually no resize but when changing orientation it's to early to
-				// measure the size in requestAnimationFrame (it's usually incorrect size at this point)
-				this.resizeTimeout = client.isMobileDevice() ? setTimeout(cb, 66) : requestAnimationFrame(cb)
-			}
-		}
-		window.onresize = onresize
-		// specifially for iOS: rotation through the unsupported orientation (e.g, 90 degrees 3 times) will not trigger the resize and we wouldn't resize
-		// some things so we react to both, it is throttled anyway
-		window.onorientationchange = onresize
 
 		if (window.addEventListener && !isApp()) {
 			window.addEventListener("beforeunload", (e) => this._beforeUnload(e))
