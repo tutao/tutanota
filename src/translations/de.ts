@@ -1624,6 +1624,7 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"loadAll_action": "Alle laden"
+		"loadAll_action": "Alle laden",
+		"selectAllLoaded_action": "Alle geladenen Einträge auswählen",
 	}
 }

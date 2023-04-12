@@ -1606,3 +1606,4 @@ export type TranslationKeyType =
 	| "you_label"
 	| "emptyString_msg"
 	| "loadAll_action"
+	| "selectAllLoaded_action"
