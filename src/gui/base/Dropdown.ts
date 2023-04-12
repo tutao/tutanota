@@ -433,12 +433,12 @@ export const DROPDOWN_MARGIN = 4
 export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentHeight: number, contentWidth: number): Promise<unknown> {
 	// |------------------|    |------------------|    |------------------|    |------------------|
 	// |                  |    |                  |    |                  |    |                  |
-	// |      |-------|   |    |  |-------|       |    |  |-----------|   |    |  |-----------|   |
+	// |      |-------|   |    |  |-------|       |    |  |-----------^   |    |  ^-----------|   |
 	// |      | elem  |   |    |  | elem  |       |    |  | dropdown  |   |    |  | dropdown  |   |
-	// |      |-------|   |    |  |-------|       |    |  |-----------|   |    |  |-----------|   |
-	// |  |-----------|   |    |  |-----------|   |    |      |-------|   |    |  |-------|       |
+	// |      |-------|   |    |  |-------|       |    |  |<----------|   |    |  |---------->|   |
+	// |  |<----------|   |    |  |---------->|   |    |      |-------|   |    |  |-------|       |
 	// |  | dropdown  |   |    |  | dropdown  |   |    |      | elem  |   |    |  | elem  |       |
-	// /  |-----------|   |    |  |-----------|   |    |      |-------|   |    |  |-------|       |
+	// /  |-----------V   |    |  V-----------|   |    |      |-------|   |    |  |-------|       |
 	//
 	// Decide were to open dropdown. We open the dropdown depending on the position of the touched element.
 	// For that we devide the screen into four parts which are upper/lower and right/left part of the screen.

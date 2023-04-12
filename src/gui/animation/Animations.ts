@@ -22,10 +22,13 @@ export const enum AlphaEnum {
 }
 
 export const enum TransformEnum {
+	/** shift the element in left-right direction. begin and end denote the target offset from the "natural" position */
 	TranslateX = "translateX",
+	/** shift the element in top-bottom direction. begin and end denote the target offset from the "natural" position */
 	TranslateY = "translateY",
 	RotateY = "rotateY",
 	RotateZ = "rotateZ",
+	/** scale the element both horizontally and vertically. begin and end denote the desired scale in 0-1 range. */
 	Scale = "scale",
 }
 

@@ -49,7 +49,7 @@ class Modal implements Component {
 				},
 				this.components.map((wrapper, i, array) => {
 					return m(
-						".layer.fill-absolute",
+						".fill-absolute",
 						{
 							key: wrapper.key,
 							oncreate: (vnode) => {

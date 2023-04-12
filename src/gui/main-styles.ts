@@ -527,6 +527,9 @@ styles.registerStyle("main", () => {
 			"word-break": "normal",
 			"overflow-wrap": "break-word",
 		},
+		".break-all": {
+			"word-break": "break-all",
+		},
 		".break-word-links a": {
 			"word-wrap": "break-word",
 		},
@@ -1532,6 +1535,10 @@ styles.registerStyle("main", () => {
 			"border-radius": px(size.border_radius),
 			margin: px(size.vpad_small / 2),
 			"background-color": theme.button_bubble_bg,
+		},
+		".bubble-color": {
+			"background-color": theme.button_bubble_bg,
+			color: theme.button_bubble_fg,
 		},
 		mark: {
 			// 'background-color': theme.content_button,

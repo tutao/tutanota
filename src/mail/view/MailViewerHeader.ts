@@ -9,13 +9,12 @@ import { BannerType, InfoBanner } from "./InfoBanner.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { EventBanner } from "./EventBanner.js"
 import { RecipientButton } from "../../gui/base/RecipientButton.js"
-import { createAsyncDropdown, createDropdown, DomRectReadOnlyPolyfilled, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
+import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../api/common/TutanotaConstants.js"
 import { Icon, progressIcon } from "../../gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../misc/Formatter.js"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env.js"
 import { Button, ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
-import { size } from "../../gui/size.js"
 import Badge from "../../gui/base/Badge.js"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
 import { createMoreSecondaryButtonAttrs } from "../../gui/base/GuiUtils.js"
@@ -26,6 +25,7 @@ import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { editDraft, mailViewerMargin, mailViewerMoreActions, mailViewerPadding } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../gui/AriaUtils.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
+import { AttachmentBubble } from "./AttachmentBubble.js"
 
 export interface MailAddressAndName {
 	name: string
@@ -528,48 +528,16 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderAttachmentContainer(viewModel: MailViewerViewModel, attachments: TutanotaFile[]): Children {
-		return attachments.map((attachment) => this.renderAttachmentButton(viewModel, attachment))
-	}
-
-	private renderAttachmentButton(viewModel: MailViewerViewModel, attachment: TutanotaFile): Children {
-		if (isAndroidApp() || isDesktop()) {
-			return m(Button, {
-				label: () => attachment.name,
-				icon: () => Icons.Attachment,
-				type: ButtonType.Bubble,
-				staticRightText: `(${formatStorageSize(Number(attachment.size))})`,
-				click: createDropdown({
-					width: 200,
-					overrideOrigin: (originalOrigin) => {
-						// Bubble buttons use border so dropdown is misaligned by default
-						return new DomRectReadOnlyPolyfilled(
-							originalOrigin.left + size.bubble_border_width,
-							originalOrigin.top,
-							originalOrigin.width,
-							originalOrigin.height,
-						)
-					},
-					lazyButtons: () => [
-						{
-							label: "open_action",
-							click: () => viewModel.downloadAndOpenAttachment(attachment, true),
-						},
-						{
-							label: "download_action",
-							click: () => viewModel.downloadAndOpenAttachment(attachment, false),
-						},
-					],
-				}),
-			})
-		} else {
-			return m(Button, {
-				label: () => attachment.name,
-				icon: () => Icons.Attachment,
-				click: () => viewModel.downloadAndOpenAttachment(attachment, true),
-				type: ButtonType.Bubble,
-				staticRightText: `(${formatStorageSize(Number(attachment.size))})`,
-			})
-		}
+		return attachments.map((attachment) =>
+			m(AttachmentBubble, {
+				attachment,
+				download:
+					isAndroidApp() || isDesktop()
+						? () => viewModel.downloadAndOpenAttachment(attachment, false)
+						: () => viewModel.downloadAndOpenAttachment(attachment, true),
+				open: isAndroidApp() || isDesktop() ? () => viewModel.downloadAndOpenAttachment(attachment, true) : null,
+			}),
+		)
 	}
 
 	private tutaoBadge(viewModel: MailViewerViewModel): Children {

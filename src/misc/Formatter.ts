@@ -113,7 +113,7 @@ export function dateWithWeekdayWoMonth(date: Date): string {
  * Formats the given size in bytes to a better human readable string using B, KB, MB, GB, TB.
  */
 export function formatStorageSize(sizeInBytes: number): string {
-	var units = ["B", "KB", "MB", "GB", "TB"]
+	var units = ["B", "kB", "MB", "GB", "TB"]
 	var narrowNoBreakSpace = " " // this space is the special unicode narrow no-break character
 
 	var unitIndex = 0
