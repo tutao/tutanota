@@ -27,7 +27,7 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { AnimationPromise, animations, height, opacity } from "../../gui/animation/Animations"
 import type { TextFieldAttrs } from "../../gui/base/TextField.js"
 import { Autocomplete, TextField, TextFieldType } from "../../gui/base/TextField.js"
-import { chooseAndAttachFile, cleanupInlineAttachments, createAttachmentButtonAttrs, getConfidentialStateMessage } from "./MailEditorViewModel"
+import { chooseAndAttachFile, cleanupInlineAttachments, createAttachmentBubbleAttrs, getConfidentialStateMessage } from "./MailEditorViewModel"
 import { ExpanderPanel } from "../../gui/base/Expander"
 import { windowFacade } from "../../misc/WindowFacade"
 import { UserError } from "../../api/main/UserError"
@@ -74,6 +74,7 @@ import { KnowledgebaseDialogContentAttrs } from "../../knowledgebase/view/Knowle
 import { MailWrapper } from "../../api/common/MailWrapper.js"
 import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 import { createDataFile, DataFile } from "../../api/common/DataFile.js"
+import { AttachmentBubble } from "../view/AttachmentBubble.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -331,7 +332,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				]),
 		}
 
-		const attachmentButtonAttrs = createAttachmentButtonAttrs(model, this.inlineImageElements)
+		const attachmentBubbleAttrs = createAttachmentBubbleAttrs(model, this.inlineImageElements)
 
 		let editCustomNotificationMailAttrs: IconButtonAttrs | null = null
 
@@ -474,7 +475,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				m(".row", m(TextField, subjectFieldAttrs)),
 				m(
 					".flex-start.flex-wrap.column-gap",
-					attachmentButtonAttrs.map((a) => m(Button, a)),
+					attachmentBubbleAttrs.map((a) => m(AttachmentBubble, a)),
 				),
 				model.getAttachments().length > 0 ? m("hr.hr") : null,
 				a.doShowToolbar() ? this.renderToolbar(model) : null,
