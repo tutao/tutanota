@@ -65,27 +65,21 @@ export class AttachmentDetailsPopup implements ModalComponent {
 		if (attrs.open) {
 			this._shortcuts.push({
 				key: Keys.O,
-				exec: () => {
-					attrs.open?.()
-				},
+				exec: () => this.thenClose(attrs.open),
 				help: "open_action",
 			})
 		}
 		if (attrs.download) {
 			this._shortcuts.push({
 				key: Keys.D,
-				exec: () => {
-					attrs.download?.()
-				},
+				exec: () => this.thenClose(attrs.download),
 				help: "download_action",
 			})
 		}
 		if (attrs.remove) {
 			this._shortcuts.push({
 				key: Keys.DELETE,
-				exec: () => {
-					attrs.remove?.()
-				},
+				exec: () => this.thenClose(attrs.remove),
 				help: "remove_action",
 			})
 		}
@@ -127,22 +121,35 @@ export class AttachmentDetailsPopup implements ModalComponent {
 					style: {
 						fill: theme.button_bubble_fg,
 						"background-color": "initial",
-						marginTop: "7px",
+						marginTop: "6px",
 					},
 				}),
 				m(".flex.col.flex-grow", [
-					m(".mb.mt-xs.break-all", attachment.name),
+					m(
+						".mb.break-all.smaller",
+						{
+							style: {
+								marginTop: "5px",
+							},
+						},
+						attachment.name,
+					),
 					m(".flex.row.justify-between.items-center.flex-grow", [
-						`${formatStorageSize(Number(attachment.size))}`,
+						m("span.smaller", `${formatStorageSize(Number(attachment.size))}`),
 						m(".no-wrap", [
-							remove ? m(Button, { type: ButtonType.Secondary, label: "remove_action", click: () => remove() }) : null,
-							open ? m(Button, { type: ButtonType.Secondary, label: "open_action", click: () => open() }) : null,
-							download ? m(Button, { type: ButtonType.Secondary, label: "download_action", click: () => download() }) : null,
+							remove ? m(Button, { type: ButtonType.Secondary, label: "remove_action", click: () => this.thenClose(remove) }) : null,
+							open ? m(Button, { type: ButtonType.Secondary, label: "open_action", click: () => this.thenClose(open) }) : null,
+							download ? m(Button, { type: ButtonType.Secondary, label: "download_action", click: () => this.thenClose(download) }) : null,
 						]),
 					]),
 				]),
 			],
 		)
+	}
+
+	private thenClose(action: Thunk | null): void {
+		action?.()
+		this.onClose()
 	}
 
 	private async animatePanel(): Promise<void> {
