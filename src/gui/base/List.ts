@@ -30,7 +30,7 @@ import type { Shortcut } from "../../misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../misc/KeyManager"
 import type { ListElement } from "../../api/common/utils/EntityUtils"
 import { firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId } from "../../api/common/utils/EntityUtils"
-import { assertMainOrNode } from "../../api/common/Env"
+import { assertMainOrNode, isDesktop } from "../../api/common/Env"
 import { Button, ButtonType } from "./Button.js"
 import { LoadingState, LoadingStateTracker } from "../../offline/LoadingState"
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
@@ -552,7 +552,13 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 		this.changeSelection(entity, "togglingNewMultiselect")
 	}
 
+	isAllSelected(): boolean {
+		const selectedEntities = this.getSelectedEntities()
+		return selectedEntities.length > 0 && selectedEntities.length === this.getLoadedEntities().length && this.isMultiSelectionActive()
+	}
+
 	selectAll() {
+		if (!this.config.multiSelectionAllowed) return
 		this.selectedEntities = this.loadedEntities.slice()
 		this.isInMultiSelect = true
 
@@ -1610,12 +1616,14 @@ export function listSelectionKeyboardShortcuts<T extends ListElement, R extends 
 			shift: true,
 			exec: mapLazily(list, (list) => list.selectPrevious(true)),
 			help: "addPrevious_action",
+			enabled: mapLazily(list, (list) => list.config.multiSelectionAllowed),
 		},
 		{
 			key: Keys.K,
 			shift: true,
 			exec: mapLazily(list, (list) => list.selectPrevious(true)),
 			help: "addPrevious_action",
+			enabled: mapLazily(list, (list) => list.config.multiSelectionAllowed),
 		},
 		{
 			key: Keys.DOWN,
@@ -1632,12 +1640,22 @@ export function listSelectionKeyboardShortcuts<T extends ListElement, R extends 
 			shift: true,
 			exec: mapLazily(list, (list) => list.selectNext(true)),
 			help: "addNext_action",
+			enabled: mapLazily(list, (list) => list.config.multiSelectionAllowed),
 		},
 		{
 			key: Keys.J,
 			shift: true,
 			exec: mapLazily(list, (list) => list.selectNext(true)),
 			help: "addNext_action",
+			enabled: mapLazily(list, (list) => list.config.multiSelectionAllowed),
+		},
+		{
+			key: Keys.A,
+			ctrl: true,
+			shift: true,
+			exec: mapLazily(list, (list) => (list.isAllSelected() ? list.selectNone() : list.selectAll())),
+			help: "selectAllLoaded_action",
+			enabled: mapLazily(list, (list) => isDesktop() && list.config.multiSelectionAllowed),
 		},
 	]
 }

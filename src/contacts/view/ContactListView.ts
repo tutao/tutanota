@@ -125,20 +125,21 @@ export class ContactListView {
 		if (styles.isSingleColumnLayout()) {
 			return null
 		} else {
-			const selectedEntities = this.list.getSelectedEntities()
 			return m("input.checkbox", {
 				type: "checkbox",
+				title: lang.get("selectAllLoaded_action"),
 				// I'm not sure this is the best condition but it will do for now
-				checked: selectedEntities.length > 0 && selectedEntities.length === this.list.getLoadedEntities().length && this.list.isMultiSelectionActive(),
-				onchange: (e: Event) => {
-					const checkbox = e.target as HTMLInputElement
-					if (checkbox.checked) {
-						this.list.selectAll()
-					} else {
-						this.list.selectNone()
-					}
-				},
+				checked: this.list.isAllSelected(),
+				onchange: ({ target }: Event) => this.changeSelectAll((target as HTMLInputElement).checked),
 			})
+		}
+	}
+
+	private changeSelectAll(selectAll: boolean): void {
+		if (selectAll) {
+			this.list.selectAll()
+		} else {
+			this.list.selectNone()
 		}
 	}
 }

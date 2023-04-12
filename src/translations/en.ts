@@ -1620,6 +1620,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"loadAll_action": "Load all"
+		"loadAll_action": "Load all",
+		"selectAllLoaded_action": "Select all loaded items",
 	}
 }
