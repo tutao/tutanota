@@ -2,7 +2,6 @@ import m, { Children } from "mithril"
 import { Dialog, DialogType } from "../../gui/base/Dialog"
 import { Autocomplete, TextField, TextFieldType } from "../../gui/base/TextField.js"
 import { lang } from "../../misc/LanguageViewModel"
-import { formatStorageSize } from "../../misc/Formatter"
 import { ConversationType, Keys, MailMethod, MAX_ATTACHMENT_SIZE, PushServiceType } from "../../api/common/TutanotaConstants"
 import { animations, height } from "../../gui/animation/Animations"
 import { downcast, neverNull, noOp, ofClass, remove } from "@tutao/tutanota-utils"
@@ -19,7 +18,7 @@ import Stream from "mithril/stream"
 import { Checkbox } from "../../gui/base/Checkbox.js"
 import { getPrivacyStatementLink } from "../LoginView"
 import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
-import { Button, ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
+import { Button, ButtonType } from "../../gui/base/Button.js"
 import type { ContactForm, File as TutanotaFile } from "../../api/entities/tutanota/TypeRefs.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
@@ -30,10 +29,10 @@ import { DataFile } from "../../api/common/DataFile"
 import { FileReference } from "../../api/common/utils/FileUtils"
 import { SessionType } from "../../api/common/SessionType.js"
 import { RecipientType } from "../../api/common/recipients/Recipient"
-import { createDropdown } from "../../gui/base/Dropdown.js"
 import { readLocalFiles, showFileChooser } from "../../file/FileController.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { AttachmentBubble, AttachmentBubbleAttrs } from "../../mail/view/AttachmentBubble.js"
 
 assertMainOrNode()
 
@@ -43,7 +42,7 @@ export class ContactFormRequestDialog {
 	_editor: HtmlEditor
 	_attachments: Array<TutanotaFile | DataFile | FileReference> // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 
-	_attachmentButtonAttrs: Array<ButtonAttrs> = [] // these map 1:1 to the _attachments
+	_attachmentButtonAttrs: Array<AttachmentBubbleAttrs> = [] // these map 1:1 to the _attachments
 
 	_loadingAttachments: boolean
 	_contactForm: ContactForm
@@ -160,7 +159,7 @@ export class ContactFormRequestDialog {
 				m(
 					".flex-start.flex-wrap.column-gap" + (this._attachmentButtonAttrs.length > 0 ? ".pt" : ""),
 					!this._loadingAttachments
-						? this._attachmentButtonAttrs.map((attrs) => m(Button, attrs))
+						? this._attachmentButtonAttrs.map((attrs) => m(AttachmentBubble, attrs))
 						: [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))],
 				),
 				this._attachmentButtonAttrs.length > 0 ? m("hr.hr") : null,
@@ -231,38 +230,22 @@ export class ContactFormRequestDialog {
 	}
 
 	_updateAttachmentButtons() {
-		this._attachmentButtonAttrs = this._attachments.map((file) => {
+		this._attachmentButtonAttrs = this._attachments.map((attachment) => {
 			return {
-				label: () => file.name,
-				icon: () => Icons.Attachment,
-				type: ButtonType.Bubble,
-				staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
-				click: createDropdown({
-					lazyButtons: () => [
-						{
-							label: "download_action",
-							click: () => {
-								if (file._type === "DataFile") {
-									locator.fileController.saveDataFile(downcast(file))
-								} else {
-									locator.fileController.open(file as TutanotaFile)
-								}
-							},
-							type: ButtonType.Secondary,
-						},
-						{
-							label: "remove_action",
-							click: () => {
-								remove(this._attachments, file)
-
-								this._updateAttachmentButtons()
-
-								m.redraw()
-							},
-							type: ButtonType.Secondary,
-						},
-					],
-				}),
+				attachment,
+				remove: () => {
+					remove(this._attachments, attachment)
+					this._updateAttachmentButtons()
+					m.redraw()
+				},
+				download: () => {
+					if (attachment._type === "DataFile") {
+						locator.fileController.saveDataFile(downcast(attachment))
+					} else {
+						locator.fileController.open(attachment as TutanotaFile)
+					}
+				},
+				open: null,
 			}
 		})
 	}
