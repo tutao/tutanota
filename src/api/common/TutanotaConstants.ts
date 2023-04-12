@@ -633,6 +633,10 @@ export const Keys = Object.freeze({
 		code: 67,
 		name: "C",
 	},
+	D: {
+		code: 68,
+		name: "D",
+	},
 	E: {
 		code: 69,
 		name: "E",
