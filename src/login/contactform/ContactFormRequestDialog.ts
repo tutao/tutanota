@@ -32,7 +32,7 @@ import { RecipientType } from "../../api/common/recipients/Recipient"
 import { readLocalFiles, showFileChooser } from "../../file/FileController.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
-import { AttachmentBubble, AttachmentBubbleAttrs } from "../../mail/view/AttachmentBubble.js"
+import { AttachmentBubble, AttachmentBubbleAttrs } from "../../gui/AttachmentBubble.js"
 
 assertMainOrNode()
 
