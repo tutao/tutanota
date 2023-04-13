@@ -11,10 +11,13 @@ import { Keys } from "../api/common/TutanotaConstants"
 import { clear, debounce } from "@tutao/tutanota-utils"
 import { writeSupportMail } from "../mail/editor/MailEditor"
 import { assertMainOrNode } from "../api/common/Env"
+import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs.js"
+import { LoginController } from "../api/main/LoginController.js"
 
 assertMainOrNode()
 
-export function showSupportDialog() {
+export function showSupportDialog(logins: LoginController) {
+	const canHaveEmailSupport = logins.isInternalUserLoggedIn()
 	const searchValue = stream("")
 	const searchResult: Array<FaqEntry> = []
 	let searchExecuted = false
@@ -53,9 +56,14 @@ export function showSupportDialog() {
 		label: "contactSupport_action",
 		type: ButtonType.Login,
 		click: () => {
-			// noinspection JSIgnoredPromiseFromCall
-			writeSupportMail(searchValue().trim())
-			closeAction()
+			if (canHaveEmailSupport && logins.getUserController().isPremiumAccount()) {
+				// noinspection JSIgnoredPromiseFromCall
+				writeSupportMail(searchValue().trim())
+				closeAction()
+			} else {
+				// noinspection JSIgnoredPromiseFromCall
+				showNotAvailableForFreeDialog(true)
+			}
 		},
 	}
 	const header: DialogHeaderBarAttrs = {
@@ -87,7 +95,7 @@ export function showSupportDialog() {
 						])
 					}),
 				),
-				searchExecuted
+				searchExecuted && canHaveEmailSupport
 					? m(".pb", [
 							m(".h1 .text-center", lang.get("noSolution_msg")),
 							m(".flex.center-horizontally.pt", m(".flex-grow-shrink-auto.max-width-200", m(Button, contactSupport))),
