@@ -99,25 +99,20 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					label: "showHelp_action",
 					icon: () => BootIcons.Help,
 					type: ButtonType.ActionLarge,
-					click: (e, dom) => {
-						if (logins.isUserLoggedIn() && logins.getUserController().isPremiumAccount()) {
-							createDropdown({
-								width: 300,
-								lazyButtons: () => [
-									{
-										label: "supportMenu_label",
-										click: () => showSupportDialog(),
-									},
-									{
-										label: "keyboardShortcuts_title",
-										click: () => keyManager.openF1Help(true),
-									},
-								],
-							})(e, dom)
-						} else {
-							keyManager.openF1Help()
-						}
-					},
+					click: (e, dom) =>
+						createDropdown({
+							width: 300,
+							lazyButtons: () => [
+								{
+									label: "supportMenu_label",
+									click: () => showSupportDialog(logins),
+								},
+								{
+									label: "keyboardShortcuts_title",
+									click: () => keyManager.openF1Help(true),
+								},
+							],
+						})(e, dom),
 					noBubble: true,
 					colors: ButtonColor.DrawerNav,
 				}),
