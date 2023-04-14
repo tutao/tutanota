@@ -52,7 +52,7 @@ export class WindowFacade {
 					this._resize() // The actualResizeHandler will execute at a rate of 15fps
 				}
 
-				// On mobile devices there's usaually no resize but when changing orientation it's to early to
+				// On mobile devices there's usually no resize but when changing orientation it's to early to
 				// measure the size in requestAnimationFrame (it's usually incorrect size at this point)
 				this.resizeTimeout = client.isMobileDevice() ? setTimeout(cb, 66) : requestAnimationFrame(cb)
 			}
@@ -135,11 +135,15 @@ export class WindowFacade {
 				}
 			})
 		}
+
+		// call the resize listeners once to make sure everyone
+		// has the current window size once we're done initializing
+		this._resize()
 	}
 
 	_resize() {
 		try {
-			for (let listener of this._windowSizeListeners) {
+			for (const listener of this._windowSizeListeners) {
 				listener(window.innerWidth, window.innerHeight)
 			}
 		} finally {
