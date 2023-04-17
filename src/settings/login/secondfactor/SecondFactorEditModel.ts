@@ -152,6 +152,7 @@ export class SecondFactorEditModel {
 		} else {
 			this.verificationStatus = VerificationStatus.Progress
 		}
+		this.updateViewCallback()
 	}
 
 	/**
@@ -197,7 +198,9 @@ export class SecondFactorEditModel {
 				sf.u2f = this.u2fRegistrationData
 			}
 		} else if (this.selectedType === SecondFactorType.totp) {
-			if (this.verificationStatus !== VerificationStatus.Success) {
+			if (this.verificationStatus === VerificationStatus.Failed) {
+				throw new UserError("totpCodeWrong_msg")
+			} else if (this.verificationStatus === VerificationStatus.Initial || this.verificationStatus === VerificationStatus.Progress) {
 				throw new UserError("totpCodeEnter_msg")
 			} else {
 				sf.otpSecret = this.totpKeys.key
