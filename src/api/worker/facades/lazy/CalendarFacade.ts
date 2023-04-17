@@ -16,7 +16,6 @@ import {
 	UserTypeRef,
 } from "../../../entities/sys/TypeRefs.js"
 import {
-	asyncFindAndMap,
 	downcast,
 	flat,
 	flatMap,
@@ -129,17 +128,16 @@ export class CalendarFacade {
 		const user = this.userFacade.getLoggedInUser()
 
 		const numEvents = eventsWrapper.length
-		const eventsWithAlarms: Array<AlarmNotificationsPerEvent> = await this._saveMultipleAlarms(user, eventsWrapper).catch(
-			ofClass(SetupMultipleError, (e) => {
-				if (e.errors.some(isOfflineError)) {
-					//In this case the user will not be informed about the number of failed alarms. We considered this is okay because it is not actionable anyways.
-					throw new ConnectionError("Connection lost while saving alarms")
-				} else {
-					console.log("Saving alarms failed.", e)
-					throw new ImportError(e.errors[0], "Could not save alarms.", numEvents)
-				}
-			}),
-		)
+		let eventsWithAlarms: Array<AlarmNotificationsPerEvent>
+		try {
+			eventsWithAlarms = await this._saveMultipleAlarms(user, eventsWrapper)
+		} catch (e) {
+			if (e instanceof SetupMultipleError) {
+				console.log("Saving alarms failed.", e)
+				throw new ImportError(e.errors[0], "Could not save alarms.", numEvents)
+			}
+			throw e
+		}
 		eventsWithAlarms.forEach(({ event, alarmInfoIds }) => (event.alarmInfos = alarmInfoIds))
 		currentProgress = 33
 		await onProgress(currentProgress)
@@ -261,37 +259,34 @@ export class CalendarFacade {
 		})
 	}
 
-	_encryptNotificationKeyForDevices(
+	async _encryptNotificationKeyForDevices(
 		notificationSessionKey: Aes128Key,
 		alarmNotifications: Array<AlarmNotification>,
 		pushIdentifierList: Array<PushIdentifier>,
 	): Promise<void> {
 		// PushID SK ->* Notification SK -> alarm fields
-		return promiseMap(pushIdentifierList, async (identifier) => {
-			return this.cryptoFacade.resolveSessionKeyForInstance(identifier).then((pushIdentifierSk) => {
-				if (pushIdentifierSk) {
-					const pushIdentifierSessionEncSessionKey = encryptKey(pushIdentifierSk, notificationSessionKey)
-					return {
-						identifierId: identifier._id,
-						pushIdentifierSessionEncSessionKey,
-					}
-				} else {
-					return null
+		const maybeEncSessionKeys = await promiseMap(pushIdentifierList, async (identifier) => {
+			const pushIdentifierSk = await this.cryptoFacade.resolveSessionKeyForInstance(identifier)
+			if (pushIdentifierSk) {
+				const pushIdentifierSessionEncSessionKey = encryptKey(pushIdentifierSk, notificationSessionKey)
+				return {
+					identifierId: identifier._id,
+					pushIdentifierSessionEncSessionKey,
 				}
-			})
+			} else {
+				return null
+			}
 		}) // rate limiting against blocking while resolving session keys (neccessary)
-			.then((maybeEncSessionKeys) => {
-				const encSessionKeys = maybeEncSessionKeys.filter(isNotNull)
+		const encSessionKeys = maybeEncSessionKeys.filter(isNotNull)
 
-				for (let notification of alarmNotifications) {
-					notification.notificationSessionKeys = encSessionKeys.map((esk) => {
-						return createNotificationSessionKey({
-							pushIdentifier: esk.identifierId,
-							pushIdentifierSessionEncSessionKey: esk.pushIdentifierSessionEncSessionKey,
-						})
-					})
-				}
+		for (let notification of alarmNotifications) {
+			notification.notificationSessionKeys = encSessionKeys.map((esk) => {
+				return createNotificationSessionKey({
+					pushIdentifier: esk.identifierId,
+					pushIdentifierSessionEncSessionKey: esk.pushIdentifierSessionEncSessionKey,
+				})
 			})
+		}
 	}
 
 	async addCalendar(name: string): Promise<{ user: User; group: Group }> {
@@ -384,26 +379,29 @@ export class CalendarFacade {
 	 * Queries the event using the uid index. The index is stored per calendar so we have to go through all calendars to find matching event.
 	 * We currently only need this for calendar event updates and for that we don't want to look into shared calendars.
 	 */
-	getEventByUid(uid: string): Promise<CalendarEvent | null> {
+	async getEventByUid(uid: string): Promise<CalendarEvent | null> {
 		const calendarMemberships = this.userFacade.getLoggedInUser().memberships.filter((m) => m.groupType === GroupType.Calendar && m.capability == null)
-
-		return asyncFindAndMap(calendarMemberships, (membership) => {
-			return this.entityClient
-				.load(CalendarGroupRootTypeRef, membership.group)
-				.then(
-					(groupRoot) =>
-						groupRoot.index &&
-						this.entityClient.load<CalendarEventUidIndex>(CalendarEventUidIndexTypeRef, [groupRoot.index.list, uint8arrayToCustomId(hashUid(uid))]),
-				)
-				.catch(ofClass(NotFoundError, () => null))
-				.catch(ofClass(NotAuthorizedError, () => null))
-		}).then((indexEntry) => {
-			if (indexEntry) {
-				return this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, indexEntry.calendarEvent).catch(ofClass(NotFoundError, () => null))
-			} else {
-				return null
+		for (const membership of calendarMemberships) {
+			let indexEntry
+			try {
+				const groupRoot = await this.entityClient.load(CalendarGroupRootTypeRef, membership.group)
+				if (groupRoot.index == null) {
+					continue
+				}
+				indexEntry = await this.entityClient.load<CalendarEventUidIndex>(CalendarEventUidIndexTypeRef, [
+					groupRoot.index.list,
+					uint8arrayToCustomId(hashUid(uid)),
+				])
+				return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, indexEntry.calendarEvent)
+			} catch (e) {
+				if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+					continue
+				}
+				throw e
 			}
-		})
+		}
+
+		return null
 	}
 
 	async _saveMultipleAlarms(
@@ -456,7 +454,8 @@ export class CalendarFacade {
 		const allAlarms = flat(
 			userAlarmInfosAndNotificationsPerEvent.map(({ userAlarmInfoAndNotification }) => userAlarmInfoAndNotification.map(({ alarm }) => alarm)),
 		)
-		const alarmIds = await this.entityClient.setupMultipleEntities(userAlarmInfoListId, allAlarms)
+
+		const alarmIds: Array<Id> = await this.entityClient.setupMultipleEntities(userAlarmInfoListId, allAlarms)
 		let currentIndex = 0
 		return userAlarmInfosAndNotificationsPerEvent.map(({ event, userAlarmInfoAndNotification }) => {
 			return {
