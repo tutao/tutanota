@@ -46,7 +46,7 @@ let showingImportError = false
 const ignoredMessages = ["webkitExitFullScreen", "googletag", "avast_submit"]
 
 export async function handleUncaughtErrorImpl(e: Error) {
-	const { logins, interWindowEventSender, sqlCipherFacade, search } = locator
+	const { logins, interWindowEventSender, worker, search } = locator
 
 	if (isLoggingOut) {
 		// ignore all errors while logging out
@@ -93,7 +93,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		const { userId } = logins.getUserController()
 		if (isDesktop()) {
 			await interWindowEventSender?.localUserDataInvalidated(userId)
-			await sqlCipherFacade?.deleteDb(userId)
+			await worker.getWorkerInterface().sqlCipherFacade.deleteDb(userId)
 		}
 		await logins.logout(false)
 		await windowFacade.reload({ noAutoLogin: true })
