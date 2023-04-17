@@ -152,7 +152,7 @@ o.spec("SecondFactorEditModel", function () {
 			const user = await model.save()
 			o(user).deepEquals(userMock)
 
-			verify(redrawMock(), { times: 2 })
+			verify(redrawMock(), { times: 3 })
 			verify(entityClientMock.setup(matchers.anything(), matchers.anything()), { times: 1 })
 		})
 	})

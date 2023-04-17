@@ -139,6 +139,7 @@ export class SecondFactorEditDialog {
 			m(TextField, {
 				label: "totpCode_label",
 				value: this.model.totpCode,
+				helpLabel: () => this.statusMessage(),
 				autocompleteAs: Autocomplete.oneTimeCode,
 				oninput: (newValue) => this.model.onTotpValueChange(newValue),
 			}),
