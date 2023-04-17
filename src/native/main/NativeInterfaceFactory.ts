@@ -27,8 +27,6 @@ import { SearchTextInAppFacade } from "../common/generatedipc/SearchTextInAppFac
 import { DesktopSystemFacade } from "../common/generatedipc/DesktopSystemFacade.js"
 import { InterWindowEventFacade } from "../common/generatedipc/InterWindowEventFacade.js"
 import { InterWindowEventFacadeSendDispatcher } from "../common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import { SqlCipherFacade } from "../common/generatedipc/SqlCipherFacade.js"
-import { SqlCipherFacadeSendDispatcher } from "../common/generatedipc/SqlCipherFacadeSendDispatcher.js"
 import { LoginController } from "../../api/main/LoginController.js"
 
 export type NativeInterfaces = {
@@ -38,7 +36,6 @@ export type NativeInterfaces = {
 	mobileSystemFacade: MobileSystemFacade
 	commonSystemFacade: CommonSystemFacade
 	themeFacade: ThemeFacade
-	sqlCipherFacade: SqlCipherFacade
 }
 
 export type DesktopInterfaces = {
@@ -74,7 +71,6 @@ export function createNativeInterfaces(
 	const commonSystemFacade = new CommonSystemFacadeSendDispatcher(native)
 	const mobileSystemFacade = new MobileSystemFacadeSendDispatcher(native)
 	const themeFacade = new ThemeFacadeSendDispatcher(native)
-	const sqlCipherFacade = new SqlCipherFacadeSendDispatcher(native)
 	return {
 		native,
 		fileApp,
@@ -82,7 +78,6 @@ export function createNativeInterfaces(
 		mobileSystemFacade: mobileSystemFacade,
 		commonSystemFacade,
 		themeFacade,
-		sqlCipherFacade,
 	}
 }
 
