@@ -29,6 +29,7 @@ import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest"
 import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade"
 import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade"
 import { InfoMessageHandler } from "../../../../../src/gui/InfoMessageHandler.js"
+import { ConnectionError } from "../../../../../src/api/common/error/RestError.js"
 
 o.spec("CalendarFacadeTest", async function () {
 	let userAlarmInfoListId: Id
@@ -231,7 +232,7 @@ o.spec("CalendarFacadeTest", async function () {
 			o(entityRestCache.setupMultiple.callCount).equals(1)
 		})
 
-		o("If not all events can be saved an ImportError is thrown", async function () {
+		o("If not all events can be saved and no connection error is present, an ImportError is thrown", async function () {
 			const listId1 = "listID1"
 			const listId2 = "listID2"
 			entityRequest = function (listId, instances) {
@@ -265,6 +266,48 @@ o.spec("CalendarFacadeTest", async function () {
 			]
 			const result = await assertThrows(ImportError, async () => await calendarFacade._saveCalendarEvents(eventsWrapper, () => Promise.resolve()))
 			o(result.numFailed).equals(1)
+			// @ts-ignore
+			o(calendarFacade._sendAlarmNotifications.callCount).equals(1)
+			// @ts-ignore
+			o(calendarFacade._sendAlarmNotifications.args[0].length).equals(2)
+			// @ts-ignore
+			o(entityRestCache.setupMultiple.callCount).equals(3)
+		})
+		o("If not all events can be saved and a connection error is present, it is thrown", async function () {
+			const listId1 = "listID1"
+			const listId2 = "listID2"
+			entityRequest = function (listId, instances) {
+				const typeRef = instances[0]?._type
+				if (isSameTypeRef(typeRef, CalendarEventTypeRef)) {
+					if (listId === listId1) {
+						return Promise.reject(
+							new SetupMultipleError("could not save event", [new Error("failed"), new ConnectionError("no connection")], instances),
+						)
+					} else if (listId === listId2) {
+						return Promise.resolve(["eventId2"])
+					} else {
+						throw new Error("Unknown id")
+					}
+				} else if (isSameTypeRef(typeRef, UserAlarmInfoTypeRef)) {
+					o(instances.length).equals(3)
+					return Promise.resolve(["1", "2", "3"])
+				}
+				throw new Error("should not be reached")
+			}
+
+			const event1 = makeEvent(listId1, "eventId1")
+			const event2 = makeEvent(listId2, "eventId2")
+			const eventsWrapper = [
+				{
+					event: event1,
+					alarms: [makeAlarmInfo(event1)],
+				},
+				{
+					event: event2,
+					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
+				},
+			]
+			await assertThrows(ConnectionError, async () => await calendarFacade._saveCalendarEvents(eventsWrapper, () => Promise.resolve()))
 			// @ts-ignore
 			o(calendarFacade._sendAlarmNotifications.callCount).equals(1)
 			// @ts-ignore

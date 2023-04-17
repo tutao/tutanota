@@ -26,6 +26,7 @@ import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 import { BlobServerUrl } from "../../entities/storage/TypeRefs.js"
 import { BlobAccessTokenFacade } from "../facades/BlobAccessTokenFacade.js"
+import { isOfflineError } from "../../common/utils/ErrorCheckUtils.js"
 
 assertWorkerOrNode()
 
@@ -346,6 +347,9 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 
 		if (errors.length) {
+			if (errors.some(isOfflineError)) {
+				throw new ConnectionError("Setup multiple entities failed")
+			}
 			throw new SetupMultipleError<T>("Setup multiple entities failed", errors, failedInstances)
 		} else {
 			return flat(idChunks)
