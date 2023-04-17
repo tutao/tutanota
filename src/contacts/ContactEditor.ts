@@ -77,10 +77,10 @@ export class ContactEditor {
 		private readonly newContactIdReceiver: ((contactId: Id) => unknown) | null = null,
 	) {
 		this.contact = contact ? clone(contact) : createContact()
-		this.isNewContact = contact == null
+		this.isNewContact = contact?._id == null
 
-		if (contact == null && listId == null) {
-			throw new ProgrammingError("must provide contact to edit or listId for the new contact")
+		if (this.isNewContact && listId == null) {
+			throw new ProgrammingError("must provide contact with Id to edit or listId for the new contact")
 		} else {
 			this.listId = listId ? listId : assertNotNull(contact, "got an existing contact without id")._id[0]
 		}
