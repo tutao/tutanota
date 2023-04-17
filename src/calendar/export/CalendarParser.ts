@@ -738,9 +738,17 @@ export function parseTime(
 			: {},
 		components,
 	)
-	return {
-		date: toValidJSDate(DateTime.fromObject(filledComponents, { zone: effectiveZone }), value, zone ?? null),
-		allDay,
+
+	try {
+		const dateTime = DateTime.fromObject(filledComponents, { zone: effectiveZone })
+		return { date: toValidJSDate(dateTime, value, zone ?? null), allDay }
+	} catch (e) {
+		if (e instanceof ParserError) {
+			throw e
+		}
+		throw new ParserError(
+			`failed to parse time from ${value} to ${JSON.stringify(filledComponents)}, effectiveZone: ${effectiveZone}, original error: ${e.message}`,
+		)
 	}
 }
 
