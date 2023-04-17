@@ -8,7 +8,7 @@ import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedErro
 const MAX_WAIT_FOR_DB_CLOSE_MS = 1000
 
 export class PerWindowSqlCipherFacade implements SqlCipherFacade {
-	private state: { userId: string; db: SqlCipherFacade } | null = null
+	private state: { userId: string; db: Promise<SqlCipherFacade> } | null = null
 
 	constructor(private readonly manager: OfflineDbManager) {}
 
@@ -18,7 +18,7 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 		}
 		this.state = {
 			userId,
-			db: await this.manager.getOrCreateDb(userId, dbKey),
+			db: this.manager.getOrCreateDb(userId, dbKey),
 		}
 	}
 
@@ -43,16 +43,16 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 		await this.manager.deleteDb(userId)
 	}
 
-	get(query: string, params: ReadonlyArray<TaggedSqlValue>): Promise<Record<string, TaggedSqlValue> | null> {
-		return this.db().get(query, params)
+	async get(query: string, params: ReadonlyArray<TaggedSqlValue>): Promise<Record<string, TaggedSqlValue> | null> {
+		return (await this.db()).get(query, params)
 	}
 
-	all(query: string, params: ReadonlyArray<TaggedSqlValue>): Promise<ReadonlyArray<Record<string, TaggedSqlValue>>> {
-		return this.db().all(query, params)
+	async all(query: string, params: ReadonlyArray<TaggedSqlValue>): Promise<ReadonlyArray<Record<string, TaggedSqlValue>>> {
+		return (await this.db()).all(query, params)
 	}
 
-	run(query: string, params: ReadonlyArray<TaggedSqlValue>): Promise<void> {
-		return this.db().run(query, params)
+	async run(query: string, params: ReadonlyArray<TaggedSqlValue>): Promise<void> {
+		return (await this.db()).run(query, params)
 	}
 
 	/**
@@ -72,11 +72,11 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 		return this.manager.unlockRangesDbAccess(listId)
 	}
 
-	private db(): SqlCipherFacade {
+	private async db(): Promise<SqlCipherFacade> {
 		if (this.state == null) {
 			throw new OfflineDbClosedError()
 		}
-		return this.state.db
+		return await this.state.db
 	}
 }
 

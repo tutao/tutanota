@@ -1,6 +1,6 @@
 import { CryptoError } from "../common/error/CryptoError"
 import type { Commands, Transport } from "../common/MessageDispatcher"
-import { MessageDispatcher, Request, WorkerTransport } from "../common/MessageDispatcher"
+import { MessageDispatcher, Request, WebWorkerTransport } from "../common/MessageDispatcher"
 import { assertMainOrNode } from "../common/Env"
 import type { IMainLocator } from "./MainLocator"
 import { client } from "../../misc/ClientDetector"
@@ -49,7 +49,7 @@ export class WorkerClient {
 			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
 			const workerUrl = prefixWithoutFile + "/worker-bootstrap.js"
 			const worker = new Worker(workerUrl)
-			this._dispatcher = new MessageDispatcher(new WorkerTransport(worker), this.queueCommands(locator))
+			this._dispatcher = new MessageDispatcher(new WebWorkerTransport(worker), this.queueCommands(locator))
 			await this._dispatcher.postRequest(new Request("setup", [window.env, this.getInitialEntropy(), client.browserData()]))
 
 			worker.onerror = (e: any) => {

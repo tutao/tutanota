@@ -65,7 +65,7 @@ const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319
 
 async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	const { OfflineDbManager, PerWindowSqlCipherFacade } = await import("../../../../../src/desktop/db/PerWindowSqlCipherFacade.js")
-	const { DesktopSqlCipher } = await import("../../../../../src/desktop/DesktopSqlCipher.js")
+	const { DesktopSqlCipher } = await import("../../../../../src/desktop/db/DesktopSqlCipher.js")
 
 	const odbManager = new (class extends OfflineDbManager {
 		async getOrCreateDb(userId: string, key: Uint8Array) {
