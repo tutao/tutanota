@@ -2,8 +2,8 @@ import o from "@tutao/otest"
 import { object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
 import { OfflineDbFactory, OfflineDbManager } from "../../../../src/desktop/db/PerWindowSqlCipherFacade.js"
-import { DesktopSqlCipher } from "../../../../src/desktop/DesktopSqlCipher.js"
 import { delay } from "@tutao/tutanota-utils"
+import { DesktopSqlCipher } from "../../../../src/desktop/db/DesktopSqlCipher.js"
 
 o.spec("OfflineDbFacade", function () {
 	let factory: OfflineDbFactory

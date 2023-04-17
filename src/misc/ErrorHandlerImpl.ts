@@ -178,7 +178,7 @@ export async function reloginForExpiredSession() {
 	if (loginDialogActive) {
 		return
 	}
-	const { logins, loginFacade, secondFactorHandler, credentialsProvider, sqlCipherFacade, cacheStorage } = locator
+	const { logins, loginFacade, secondFactorHandler, credentialsProvider, cacheStorage } = locator
 	// Make sure that partial login part is complete before we will try to make a new session.
 	// Otherwise we run into a race condition where login failure arrives before we initialize userController.
 	await logins.waitForPartialLogin()

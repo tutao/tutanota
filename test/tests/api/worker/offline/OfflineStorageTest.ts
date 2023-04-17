@@ -24,7 +24,6 @@ import {
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { OfflineStorageMigrator } from "../../../../../src/api/worker/offline/OfflineStorageMigrator.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import { DesktopSqlCipher } from "../../../../../src/desktop/DesktopSqlCipher.js"
 import * as fs from "node:fs"
 import { untagSqlObject } from "../../../../../src/api/worker/offline/SqlValue.js"
 import { MailFolderType } from "../../../../../src/api/common/TutanotaConstants.js"
@@ -34,6 +33,7 @@ import { Type as TypeId } from "../../../../../src/api/common/EntityConstants.js
 import { expandId } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import { WorkerImpl } from "../../../../../src/api/worker/WorkerImpl.js"
 import { createUser, UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { DesktopSqlCipher } from "../../../../../src/desktop/db/DesktopSqlCipher.js"
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)

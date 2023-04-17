@@ -4,6 +4,8 @@
 import { WorkerImpl } from "./WorkerImpl"
 import { Logger, replaceNativeLogger } from "../common/Logger"
 
+console.log("native app", self.nativeApp)
+
 /**
  * Receives the first message from the client and initializes the WorkerImpl to receive all future messages. Sends a response to the client on this first message.
  */

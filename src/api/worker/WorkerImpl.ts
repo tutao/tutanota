@@ -1,5 +1,5 @@
 import type { Commands } from "../common/MessageDispatcher"
-import { errorToObj, MessageDispatcher, Request, WorkerTransport } from "../common/MessageDispatcher"
+import { errorToObj, MessageDispatcher, Request, WebWorkerTransport } from "../common/MessageDispatcher"
 import { CryptoError } from "../common/error/CryptoError"
 import { BookingFacade } from "./facades/lazy/BookingFacade.js"
 import { NotAuthenticatedError } from "../common/error/RestError"
@@ -102,7 +102,7 @@ export class WorkerImpl implements NativeInterface {
 
 	constructor(self: DedicatedWorkerGlobalScope) {
 		this._scope = self
-		this._dispatcher = new MessageDispatcher(new WorkerTransport(this._scope), this.queueCommands(this.exposedInterface))
+		this._dispatcher = new MessageDispatcher(new WebWorkerTransport(this._scope), this.queueCommands(this.exposedInterface))
 	}
 
 	async init(browserData: BrowserData): Promise<void> {
