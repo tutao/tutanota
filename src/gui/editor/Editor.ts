@@ -10,6 +10,7 @@ import { isKeyPressed } from "../../misc/KeyManager"
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 export type ImagePasteEvent = CustomEvent<{ clipboardData: DataTransfer }>
+export type TextPasteEvent = CustomEvent<{ fragment: DocumentFragment }>
 export type Style = "b" | "i" | "u" | "c" | "a"
 export type Alignment = "left" | "center" | "right" | "justify"
 export type Listing = "ol" | "ul"
@@ -21,11 +22,12 @@ type Styles = {
 }
 
 export class Editor implements ImageHandler, Component {
-	squire: SquireEditor
+	squire: SquireEditor | null
 	initialized = defer<void>()
 	domElement: HTMLElement | null = null
 	enabled = true
 	private createsLists = true
+	private userHasPasted = false
 	private styleActions = Object.freeze({
 		b: [() => this.squire.bold(), () => this.squire.removeBold(), () => this.styles.b],
 		i: [() => this.squire.italic(), () => this.squire.removeItalic(), () => this.styles.i],
@@ -44,6 +46,21 @@ export class Editor implements ImageHandler, Component {
 		listing: null,
 	}
 
+	/**
+	 * squire 2.0 removed the isPaste argument from the sanitizeToDomFragment function.
+	 * since sanitizeToDomFragment is called before squire's willPaste event is fired, we
+	 * can't have our sanitization strategy depend on the willPaste event.
+	 *
+	 * we therefore add our own paste handler to the dom element squire uses and set a
+	 * flag once we detect a paste and reset it when squire next fires the "input" event.
+	 *
+	 * * user pastes
+	 * * "paste" event on dom sets flag
+	 * * sanitizeToDomFragment is called by squire
+	 * * "input" event on squire resets flag.
+	 */
+	private pasteListener: (e: ClipboardEvent) => void = (_: ClipboardEvent) => (this.userHasPasted = true)
+
 	constructor(private minHeight: number | null, private sanitizer: SanitizerFn) {
 		this.onremove = this.onremove.bind(this)
 		this.onbeforeupdate = this.onbeforeupdate.bind(this)
@@ -56,6 +73,7 @@ export class Editor implements ImageHandler, Component {
 	}
 
 	onremove() {
+		this.domElement?.removeEventListener("paste", this.pasteListener)
 		if (this.squire) {
 			this.squire.destroy()
 
@@ -103,7 +121,7 @@ export class Editor implements ImageHandler, Component {
 
 	initSquire(domElement: HTMLElement) {
 		let squire = new SquireEditor(domElement, {
-			sanitizeToDOMFragment: this.sanitizer,
+			sanitizeToDOMFragment: (html: string) => this.sanitizer(html, this.userHasPasted),
 			blockAttributes: {
 				dir: "auto",
 			},
@@ -122,11 +140,14 @@ export class Editor implements ImageHandler, Component {
 		this.squire = squire
 
 		// Suppress paste events if pasting while disabled
-		this.squire.addEventListener("willPaste", (e: Event) => {
+		this.squire.addEventListener("willPaste", (e: TextPasteEvent) => {
 			if (!this.isEnabled()) {
 				e.preventDefault()
 			}
 		})
+
+		this.squire.addEventListener("input", (_: CustomEvent<void>) => (this.userHasPasted = false))
+		domElement.addEventListener("paste", this.pasteListener)
 
 		this.squire.addEventListener("pathChange", () => {
 			this.getStylesAtPath()
