@@ -1,8 +1,7 @@
 pipeline {
 	environment {
-		NODE_PATH = "/opt/node-v16.16.0-linux-x64/bin"
 		NODE_MAC_PATH = "/usr/local/opt/node@16/bin/"
-		VERSION = sh(returnStdout: true, script: "${NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
+		VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
 		RELEASE_NOTES_PATH = "app-ios/fastlane/metadata/default/release_notes.txt"
 	}
 

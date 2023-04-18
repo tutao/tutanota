@@ -4,9 +4,8 @@ def releaseNotes
 
 pipeline {
 	environment {
-		PATH="/opt/node-v16.16.0-linux-x64/bin:${env.PATH}"
-		VERSION = sh(returnStdout: true, script: "${NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
-        NODE_PATH = '/opt/node-v16.16.0-linux-x64/bin'
+		PATH="${env.NODE_PATH}:${env.PATH}"
+		VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
 	}
 
     parameters {
