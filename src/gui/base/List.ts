@@ -646,6 +646,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 			this.selectedEntities.sort(this.config.sortCompare)
 
 			this.updateDomElements()
+			m.redraw()
 		}
 
 		this.elementSelected(this.getSelectedEntities(), true, multiSelect)

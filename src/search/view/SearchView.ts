@@ -4,7 +4,7 @@ import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { FeatureType, FULL_INDEXED_TIMESTAMP, Keys, MailFolderType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../api/common/TutanotaConstants"
-import { assertMainOrNode } from "../../api/common/Env"
+import { assertMainOrNode, isDesktop } from "../../api/common/Env"
 import { keyManager, Shortcut } from "../../misc/KeyManager"
 import type { NavButtonAttrs } from "../../gui/base/NavButton.js"
 import { isNavButtonSelected, NavButton, NavButtonColor } from "../../gui/base/NavButton.js"
@@ -677,6 +677,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 			const viewModel = await locator.conversationViewModel({ mail, showFolder: true }, mailboxDetails, mailboxProperties)
 			await viewModel.init()
+			if (viewModel && isDesktop()) {
+				// Notify the admin client about the mail being selected
+				locator.desktopSystemFacade?.sendSocketMessage(viewModel.primaryMail.sender.address)
+			}
 			this.conversationViewModel = viewModel
 		}
 	}
