@@ -434,28 +434,32 @@ export class MailListView implements Component<MailListViewAttrs> {
 			m(
 				ListColumnWrapper,
 				{
-					headerContent: m(".flex.col", [
-						this.renderToolbar(),
-						this.showingSpamOrTrash
-							? [
-									m(".flex.flex-column.plr-l", [
-										m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
-										m(".mr-negative-s.align-self-end", m(Button, purgeButtonAttrs)),
-									]),
-							  ]
-							: null,
-					]),
+					headerContent: this.renderListHeader(purgeButtonAttrs),
 				},
 				m(this.list),
 			),
 		)
 	}
 
+	private renderListHeader(purgeButtonAttrs: ButtonAttrs): Children {
+		return m(".flex.col", [
+			this.renderToolbar(),
+			this.showingSpamOrTrash
+				? [
+						m(".flex.flex-column.plr-l.list-border-bottom", [
+							m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
+							m(".mr-negative-s.align-self-end", m(Button, purgeButtonAttrs)),
+						]),
+				  ]
+				: null,
+		])
+	}
+
 	private renderToolbar(): Children {
 		if (styles.isSingleColumnLayout()) {
 			return null
 		} else {
-			return m(".flex.pt-xs.pb-xs.items-center", [
+			return m(".flex.pt-xs.pb-xs.items-center.list-border-bottom", [
 				// matching MailRow spacing here
 				m(".flex.items-center.pl-s.mlr.button-height", this.renderSelectAll()),
 			])

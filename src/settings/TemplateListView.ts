@@ -22,7 +22,6 @@ import { ListColumnWrapper } from "../gui/ListColumnWrapper"
 import { promiseMap } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../api/common/Env"
 import { SelectableRowContainer, setSelectedRowStyle } from "../gui/SelectableRowContainer.js"
-import { theme } from "../gui/theme.js"
 
 assertMainOrNode()
 
@@ -93,9 +92,9 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			ListColumnWrapper,
 			{
 				headerContent: this.userCanEdit()
-					? m(".flex.flex-end.center-vertically.plr-l", [
+					? m(".flex.flex-end.center-vertically.plr-l.list-border-bottom", [
 							m(
-								".mr-negative-s.align-self-end",
+								".mr-negative-s",
 								m(Button, {
 									label: "addTemplate_label",
 									type: ButtonType.Primary,

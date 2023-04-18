@@ -83,7 +83,7 @@ export class ContactListView {
 	}
 
 	private renderToolbar(): Children {
-		return m(".flex.pt-xs.pb-xs.items-center.flex-space-between.pr-s", [
+		return m(".flex.pt-xs.pb-xs.items-center.flex-space-between.pr-s.list-border-bottom", [
 			// matching ContactRow spacing here
 			m(
 				".flex.items-center.pl-s.mlr",

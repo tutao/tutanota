@@ -14,19 +14,22 @@ export class DummyTemplateListView implements Component<DummyTemplateListViewAtt
 			ListColumnWrapper,
 			{
 				headerContent: m(
-					".plr-l.mr-negative-s.align-self-end",
-					m(Button, {
-						label: "addTemplate_label",
-						type: ButtonType.Primary,
-						click: () => {
-							// SettingsView will reroute to the folder for the newly created template list (if there is one)
-							createInitialTemplateListIfAllowed().then((groupRoot) => {
-								if (groupRoot) {
-									showTemplateEditor(null, groupRoot)
-								}
-							})
-						},
-					}),
+					".flex.flex-end.center-vertically.plr-l.list-border-bottom",
+					m(
+						".mr-negative-s",
+						m(Button, {
+							label: "addTemplate_label",
+							type: ButtonType.Primary,
+							click: () => {
+								// SettingsView will reroute to the folder for the newly created template list (if there is one)
+								createInitialTemplateListIfAllowed().then((groupRoot) => {
+									if (groupRoot) {
+										showTemplateEditor(null, groupRoot)
+									}
+								})
+							},
+						}),
+					),
 				),
 			},
 			m(
