@@ -107,6 +107,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	view(): Children {
+		this._defaultSender = getDefaultSenderFromUser(locator.logins.getUserController())
 		const defaultSenderAttrs: DropDownSelectorAttrs<string> = {
 			label: "defaultSenderMailAddress_label",
 			items: getEnabledMailAddressesForGroupInfo(locator.logins.getUserController().userGroupInfo)
