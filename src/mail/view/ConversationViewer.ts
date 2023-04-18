@@ -113,12 +113,6 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 					// only pass in position if we do have an actual conversation position
 					return this.renderViewer(mailViewModel, isPrimary, viewModel.isFinished() ? position : null)
 				}
-				case "subject": {
-					return this.renderSubject(entry.subject, entry.id)
-				}
-				case "deleted": {
-					return m(DeletedMailView, { key: elementIdPart(entry.entryId) })
-				}
 			}
 		})
 	}
@@ -172,16 +166,6 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 		)
 	}
 
-	private renderSubject(normalizedSubject: string, id: string): Children {
-		return m(ObservableSubject, {
-			subject: normalizedSubject,
-			// we use id as the key:
-			// It is unique: each email appears only once (when sending to self,sent and received emails are independent). The subject text however can appear multiple times.
-			// It is more predicatable (regarding visiblity) if the element gets destroyed and created again.
-			key: "item-subject-" + id,
-		})
-	}
-
 	private doScroll(viewModel: ConversationViewModel, items: readonly ConversationItem[]) {
 		const containerDom = this.containerDom
 		if (!this.didScroll && containerDom && viewModel.isFinished()) {
@@ -230,55 +214,4 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 			this.containerDom.scrollTo({ top: this.containerDom.scrollHeight - this.containerDom.offsetHeight, behavior: "smooth" })
 		}
 	}
-}
-
-type SubjectVisiblity = "above" | "below" | "visible"
-
-interface ObservableSubjectAttrs {
-	subject: string
-}
-
-export class ObservableSubject implements Component<ObservableSubjectAttrs> {
-	lastAttrs: ObservableSubjectAttrs
-
-	observer: IntersectionObserver | null = null
-
-	constructor(vnode: Vnode<ObservableSubjectAttrs>) {
-		this.lastAttrs = vnode.attrs
-	}
-
-	view(vnode: Vnode<ObservableSubjectAttrs>): Children {
-		this.lastAttrs = vnode.attrs
-		return m(
-			".h5.subject.text-break.selectable.b.flex-grow",
-			{
-				class: mailViewerMargin(),
-				"aria-label": lang.get("subject_label") + ", " + (this.lastAttrs.subject || ""),
-				style: { marginTop: px(conversationCardMargin) },
-			},
-			this.lastAttrs.subject,
-		)
-	}
-}
-
-class DeletedMailView implements Component {
-	view() {
-		return m(
-			".center.pt-s.pb-s.font-weight-600.border-radius-big",
-			{
-				class: mailViewerMargin(),
-				style: {
-					border: `1px solid ${theme.list_border}`,
-					color: theme.content_button,
-					marginTop: px(conversationCardMargin),
-				},
-			},
-			"Deleted Email",
-		)
-	}
-}
-
-function calculateSubjectHeaderHeight(): number {
-	// size.font_size_base * 1.2 = font size of h5
-	return conversationCardMargin * 2 + size.line_height * size.font_size_base * 1.2
 }
