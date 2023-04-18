@@ -103,12 +103,15 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			ListColumnWrapper,
 			{
 				headerContent: m(
-					".mr-negative-s.align-self-end.plr-l",
-					m(Button, {
-						label: "createContactForm_label",
-						type: ButtonType.Primary,
-						click: () => this.addButtonClicked(),
-					}),
+					".flex.flex-end.center-vertically.plr-l.list-border-bottom",
+					m(
+						".mr-negative-s",
+						m(Button, {
+							label: "createContactForm_label",
+							type: ButtonType.Primary,
+							click: () => this.addButtonClicked(),
+						}),
+					),
 				),
 			},
 			m(this.list),

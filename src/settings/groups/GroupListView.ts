@@ -103,12 +103,15 @@ export class GroupListView implements UpdatableSettingsViewer {
 				ListColumnWrapper,
 				{
 					headerContent: m(
-						".plr-l.mr-negative-s.align-self-end",
-						m(Button, {
-							label: "addGroup_label",
-							type: ButtonType.Primary,
-							click: () => this.addButtonClicked(),
-						}),
+						".flex.flex-end.center-vertically.plr-l.list-border-bottom",
+						m(
+							".mr-negative-s",
+							m(Button, {
+								label: "addGroup_label",
+								type: ButtonType.Primary,
+								click: () => this.addButtonClicked(),
+							}),
+						),
 					),
 				},
 				m(this.list),
