@@ -182,7 +182,7 @@ export class ContactRow implements VirtualRow<Contact> {
 					this.innerContainerDom = vnode.dom as HTMLElement
 				},
 			},
-			m(".mt-xs.mr-s", [
+			m(".mt-xs.mr", [
 				m("input.checkbox", {
 					type: "checkbox",
 					onclick: (e: MouseEvent) => {
@@ -200,7 +200,7 @@ export class ContactRow implements VirtualRow<Contact> {
 				}),
 			]),
 			m(".flex.col.overflow-hidden", [
-				m(".text-ellipsis.smaller", {
+				m(".text-ellipsis.badge-line-height", {
 					oncreate: (vnode) => (this.domName = vnode.dom as HTMLElement),
 				}),
 				m(".text-ellipsis.smaller", {

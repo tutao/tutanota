@@ -213,7 +213,7 @@ export class TemplateRow implements VirtualRow<EmailTemplate> {
 			},
 			m(".flex.col", [
 				m("", [
-					m(".text-ellipsis.smaller", {
+					m(".text-ellipsis.badge-line-height", {
 						oncreate: (vnode) => (this.titleDom = vnode.dom as HTMLElement),
 					}),
 				]),

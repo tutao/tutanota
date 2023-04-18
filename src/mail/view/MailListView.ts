@@ -32,6 +32,7 @@ import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/main/EventController.js"
 import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
+import { checkboxOpacity } from "../../gui/SelectableRowContainer.js"
 
 assertMainOrNode()
 const className = "mail-list"

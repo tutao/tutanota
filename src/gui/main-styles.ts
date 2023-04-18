@@ -361,8 +361,9 @@ styles.registerStyle("main", () => {
 		".pt-l": {
 			"padding-top": px(size.vpad_large),
 		},
+		// FIXME: fix existing places
 		".pt-m": {
-			"padding-top": px(size.vpad),
+			"padding-top": px(size.hpad),
 		},
 		".pt-ml": {
 			"padding-top": px(size.vpad_ml),
@@ -395,8 +396,9 @@ styles.registerStyle("main", () => {
 		".pb-xl": {
 			"padding-bottom": px(size.vpad_xl),
 		},
+		// FIXME fix existing places
 		".pb-m": {
-			"padding-bottom": px(size.vpad),
+			"padding-bottom": px(size.hpad),
 		},
 		".pb-ml": {
 			"padding-bottom": px(size.vpad_ml),
@@ -1754,10 +1756,15 @@ styles.registerStyle("main", () => {
 			border: `2px solid ${theme.content_button}`,
 			"border-radius": "3px",
 			position: "relative",
-			transition: `all ${DefaultAnimationTime}ms cubic-bezier(.4,.0,.23,1)`,
+			transition: `border ${DefaultAnimationTime}ms cubic-bezier(.4,.0,.23,1)`,
+			opacity: "0.8",
+		},
+		".checkbox:hover": {
+			opacity: "1",
 		},
 		".checkbox:checked": {
 			border: `7px solid ${theme.content_accent}`,
+			opacity: "1",
 		},
 		".checkbox:checked:after": {
 			display: "inline-flex",
@@ -1778,6 +1785,32 @@ styles.registerStyle("main", () => {
 			"align-items": "center",
 			width: "12px",
 			height: "12px",
+		},
+		".checkbox:before": {
+			content: "''",
+			position: "absolute",
+			width: "30px",
+			height: "30px",
+			// position relative to the inner size of checkbox (inside the border)
+			top: "-10px",
+			left: "-10px",
+			"border-radius": px(size.border_radius),
+			// position is relate to padding and we animate padding so to keep the checkbox in place we also animate position so it looks like it doesn't move
+			transition: `all ${DefaultAnimationTime}ms cubic-bezier(.4,.0,.23,1)`,
+		},
+		".checkbox:checked:before": {
+			// position relative to the inner size of the checkbox (inside the border) and selected checkbox has border 50%
+			top: "-15px",
+			left: "-15px",
+		},
+		".checkbox:hover:before": {
+			background: stateBgHover,
+		},
+		".checkbox:active:before": {
+			background: stateBgActive,
+		},
+		".list-checkbox": {
+			opacity: "0.4",
 		},
 		".calendar-alternate-background": {
 			background: `${theme.list_alternate_bg} !important`,

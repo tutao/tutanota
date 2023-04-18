@@ -266,7 +266,7 @@ export class GroupRow implements VirtualRow<GroupInfo> {
 				},
 			},
 			m(".flex.col.flex-grow", [
-				m(".smaller", [
+				m(".badge-line-height", [
 					m("", {
 						oncreate: (vnode) => (this.nameDom = vnode.dom as HTMLElement),
 					}),
