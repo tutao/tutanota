@@ -542,7 +542,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 		// (there are also key press handlers but they are invoked from another place)
 		let changeType: Parameters<typeof this.changeSelection>[1]
 		if (event.ctrlKey || (client.isMacOS && event.metaKey)) {
-			changeType = "togglingSingle"
+			changeType = "togglingIncludingSingle"
 		} else if (event.shiftKey) {
 			changeType = "range"
 		} else {
@@ -552,7 +552,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 	}
 
 	toggleMultiSelectForEntity(entity: ElementType) {
-		this.changeSelection(entity, "togglingSingle")
+		this.changeSelection(entity, "togglingNewMultiselect")
 	}
 
 	selectAll() {
@@ -564,11 +564,23 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 		this.elementSelected(this.selectedEntities, true, true)
 	}
 
-	private changeSelection(clickedEntity: ElementType, changeType: "single" | "togglingSingle" | "range") {
+	/**
+	 * changeType:
+	 *  * single: one item selection (not multiselect)
+	 *  * togglingIncludingSingle: if not in multiselect, start multiselect. Turns multiselect on or off for the item. Includes the item from single selection
+	 *    when turning multiselect on.
+	 *  * togglingNewMultiselect: if not in multiselect, start multiselect. Turns multiselect on or off for the item. Only selected item will be in multiselect
+	 *    when turning multiselect on.
+	 *  * range: range selection, extends the range until the selected item
+	 */
+	private changeSelection(clickedEntity: ElementType, changeType: "single" | "togglingIncludingSingle" | "togglingNewMultiselect" | "range") {
 		let selectionChanged = false
 		let multiSelect: boolean
 
-		if (this.config.multiSelectionAllowed && (this.mobileMultiSelectionActive || changeType === "togglingSingle")) {
+		if (
+			this.config.multiSelectionAllowed &&
+			(this.mobileMultiSelectionActive || changeType === "togglingIncludingSingle" || changeType === "togglingNewMultiselect")
+		) {
 			selectionChanged = true
 			multiSelect = true
 			selectionChanged = true
@@ -580,7 +592,11 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 					this.selectedEntities.push(clickedEntity)
 				}
 			} else {
-				this.selectedEntities = [clickedEntity]
+				if (changeType === "togglingNewMultiselect") {
+					this.selectedEntities = [clickedEntity]
+				} else {
+					this.selectedEntities.push(clickedEntity)
+				}
 			}
 		} else if (this.config.multiSelectionAllowed && changeType === "range") {
 			multiSelect = true
