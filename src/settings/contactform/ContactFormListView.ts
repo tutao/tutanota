@@ -255,7 +255,7 @@ export class ContactFormRow implements VirtualRow<ContactForm> {
 				},
 			},
 			m(".flex.col.flex-grow", [
-				m(".smaller", {
+				m(".badge-line-height", {
 					oncreate: (vnode) => (this.pageTitleDom = vnode.dom as HTMLElement),
 				}),
 				m(".flex-space-between", [
