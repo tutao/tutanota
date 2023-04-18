@@ -5,7 +5,7 @@ import { Button, ButtonType } from "../gui/base/Button.js"
 import { Icons } from "../gui/base/icons/Icons"
 import { isEmpty, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
 import { FULL_INDEXED_TIMESTAMP } from "../api/common/TutanotaConstants"
-import { formatDate, formatDateTimeFromYesterdayOn, formatDateWithMonth } from "../misc/Formatter"
+import { formatDate, formatDateWithMonth, formatTimeOrDateOrYesterday } from "../misc/Formatter"
 import type { Contact, Mail } from "../api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { getSenderOrRecipientHeading, isTutanotaTeamMail } from "../mail/model/MailUtils"
@@ -200,7 +200,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 						  )
 						: null,
 					m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
-					m("small.text-ellipsis.flex-fixed", formatDateTimeFromYesterdayOn(mail.receivedDate)),
+					m("small.text-ellipsis.flex-fixed", formatTimeOrDateOrYesterday(mail.receivedDate)),
 				]),
 				m(".bottom.flex-space-between", [
 					m(".text-ellipsis", mail.subject),

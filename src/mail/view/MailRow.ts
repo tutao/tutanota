@@ -1,7 +1,7 @@
 import { getMailFolderType, MailFolderType, MailState, ReplyType } from "../../api/common/TutanotaConstants"
 import { FontIcons } from "../../gui/base/icons/FontIcons"
 import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
-import { formatDateTimeFromYesterdayOn } from "../../misc/Formatter"
+import { formatTimeOrDateOrYesterday } from "../../misc/Formatter"
 import { getSenderOrRecipientHeading, isTutanotaTeamMail } from "../model/MailUtils"
 import { locator } from "../../api/main/MainLocator"
 import m, { Children } from "mithril"
@@ -51,7 +51,7 @@ export class MailRow implements VirtualRow<Mail> {
 		this.checkboxDom.checked = isInMultiSelect && selected
 
 		this.iconsDom.textContent = this.iconsText(mail)
-		this.dateDom.textContent = formatDateTimeFromYesterdayOn(mail.receivedDate)
+		this.dateDom.textContent = formatTimeOrDateOrYesterday(mail.receivedDate)
 		this.senderDom.textContent = getSenderOrRecipientHeading(mail, true)
 		this.subjectDom.textContent = mail.subject
 
