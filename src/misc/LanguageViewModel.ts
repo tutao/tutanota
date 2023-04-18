@@ -186,6 +186,7 @@ export class LanguageViewModel {
 		dateWithWeekdayAndYear: Intl.DateTimeFormat
 		dateWithWeekdayAndYearLong: Intl.DateTimeFormat
 		dateWithWeekdayAndTime: Intl.DateTimeFormat
+		weekdayLong: Intl.DateTimeFormat,
 		weekdayShort: Intl.DateTimeFormat
 		weekdayNarrow: Intl.DateTimeFormat
 		time: Intl.DateTimeFormat
@@ -349,6 +350,9 @@ export class LanguageViewModel {
 					options,
 				),
 			),
+			weekdayLong: new Intl.DateTimeFormat(tag, {
+				weekday: "long",
+			}),
 			weekdayShort: new Intl.DateTimeFormat(tag, {
 				weekday: "short",
 			}),
