@@ -10,7 +10,7 @@ import "zx/globals"
 
 	if (process.argv[2] === "webapp") {
 		await compress()
-		const tutanotaVersion = getTutanotaAppVersion()
+		const tutanotaVersion = await getTutanotaAppVersion()
 		await packageAndPublishDeb({
 			version: tutanotaVersion,
 			name: "tutanota",
@@ -20,7 +20,7 @@ import "zx/globals"
 		})
 	} else if (process.argv[2] === "desktop") {
 		await compress()
-		const tutanotaVersion = getTutanotaAppVersion()
+		const tutanotaVersion = await getTutanotaAppVersion()
 		await packageAndPublishDeb({
 			version: tutanotaVersion,
 			name: "tutanota-desktop",

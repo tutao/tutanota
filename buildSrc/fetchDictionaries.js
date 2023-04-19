@@ -2,12 +2,13 @@
  * Utility to download/update the dictionaries used for translations within the app.
  */
 import path from "node:path"
-import { exitOnFail, getDefaultDistDirectory, getElectronVersion } from "./buildUtils.js"
+import { exitOnFail, getDefaultDistDirectory } from "./buildUtils.js"
 import { program } from "commander"
 import { spawnSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import fs from "fs-extra"
 import "zx/globals"
+import { getElectronVersion } from "./getInstalledModuleVersion.js"
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	program
