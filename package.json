@@ -20,6 +20,7 @@
 		"fasttest": "cd test && node test -f",
 		"types": "tsc --incremental true --noEmit true",
 		"prebuild": "node buildSrc/prebuild.js",
+		"preinstall": "git config core.hooksPath githooks",
 		"postinstall": "node buildSrc/postinstall.js",
 		"bump-version": "node buildSrc/bump-version.js",
 		"generate-ipc": "npm run build -w @tutao/licc && licc ./ipc-schema",

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# pre-commit hook to check & fix formatting. does not deal with spaces in paths.
+
+#     get staged files     exclude deleted files    | only match what prettier matches  | transform newline & whitespace into spaces
+CHG=$(git diff --name-only --diff-filter=d --cached | grep -E ".*\.(ts|js|json|json5)$" | tr [:space:] " ")
+# run prettier fix on them
+npx prettier -w  $CHG > /dev/null
+# re-add the fixed files
+git add $CHG > /dev/null
