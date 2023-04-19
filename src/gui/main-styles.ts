@@ -361,7 +361,6 @@ styles.registerStyle("main", () => {
 		".pt-l": {
 			"padding-top": px(size.vpad_large),
 		},
-		// FIXME: fix existing places
 		".pt-m": {
 			"padding-top": px(size.hpad),
 		},
@@ -396,7 +395,6 @@ styles.registerStyle("main", () => {
 		".pb-xl": {
 			"padding-bottom": px(size.vpad_xl),
 		},
-		// FIXME fix existing places
 		".pb-m": {
 			"padding-bottom": px(size.hpad),
 		},

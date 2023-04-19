@@ -76,10 +76,8 @@ export class MailRow implements VirtualRow<Mail> {
 	private updateCheckboxVisibility() {
 		if (styles.isSingleColumnLayout()) {
 			this.checkboxDom.style.display = "none"
-			// this.unreadDom.style.marginTop = "3px"
 		} else {
 			this.checkboxDom.style.display = ""
-			// this.unreadDom.style.marginTop = "10px"
 		}
 
 		checkboxOpacity(this.checkboxDom, false)

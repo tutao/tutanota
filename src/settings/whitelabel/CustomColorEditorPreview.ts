@@ -31,7 +31,7 @@ export class CustomColorEditorPreview implements Component {
 			},
 			[
 				m(
-					".pt-m",
+					".pt",
 					{
 						style: {
 							width: px(BUTTON_WIDTH),
@@ -43,7 +43,7 @@ export class CustomColorEditorPreview implements Component {
 						type: ButtonType.Login,
 					}),
 				),
-				m(".pt-m", [
+				m(".pt", [
 					m(Button, {
 						label: () => "Secondary",
 						click: noOp,
@@ -55,7 +55,7 @@ export class CustomColorEditorPreview implements Component {
 						type: ButtonType.Primary,
 					}),
 				]),
-				m(".pt-m", [
+				m(".pt", [
 					m(IconButton, {
 						title: () => "Icon button",
 						icon: Icons.Folder,
@@ -68,7 +68,7 @@ export class CustomColorEditorPreview implements Component {
 						onToggled: () => (this.toggleSelected = !this.toggleSelected),
 					}),
 				]),
-				m(".pt-m", this.renderPreviewMailRow()),
+				m(".pt", this.renderPreviewMailRow()),
 			],
 		)
 	}
@@ -110,7 +110,7 @@ export class CustomColorEditorPreview implements Component {
 			},
 			[
 				m(
-					".list-row.pl.pr-l.odd-row.pt-m.pb-m",
+					".list-row.pl.pr-l.odd-row.pt.pb",
 					{
 						oncreate: (vnode) => {
 							this._mailRow.domElement = vnode.dom as HTMLElement
@@ -120,7 +120,7 @@ export class CustomColorEditorPreview implements Component {
 					this._mailRow.render(),
 				),
 				m(
-					".list-row.pl.pr-l.pt-m.pb-m",
+					".list-row.pl.pr-l.pt.pb",
 					{
 						oncreate: (vnode) => {
 							this._mailRow2.domElement = vnode.dom as HTMLElement

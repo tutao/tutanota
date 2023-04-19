@@ -151,7 +151,7 @@ export class SecondFactorEditDialog {
 		if (otpInfo) {
 			const qrCodeSvg = assertNotNull(otpInfo.qrCodeSvg)
 			// sanitized in the model
-			return m(".flex-center.pt-m", m.trust(qrCodeSvg))
+			return m(".flex-center.pt", m.trust(qrCodeSvg))
 		} else {
 			return null
 		}

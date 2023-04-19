@@ -114,7 +114,7 @@ export async function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ ignored:
 								},
 								m(".selectable", [
 									m(".selectable", preparedContent.subject),
-									preparedContent.message.split("\n").map((l) => (l.trim() === "" ? m(".pb-m", "") : m("", l))),
+									preparedContent.message.split("\n").map((l) => (l.trim() === "" ? m(".pb", "") : m("", l))),
 								]),
 							),
 						]
