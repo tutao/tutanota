@@ -163,7 +163,7 @@ export class ContactRow implements VirtualRow<Contact> {
 			return
 		}
 
-		setSelectedRowStyle(this.innerContainerDom, selected)
+		setSelectedRowStyle(this.innerContainerDom, styles.isSingleColumnLayout() ? isInMultiSelect && selected : selected)
 		this.updateCheckboxVisibility()
 		this.checkboxDom.checked = selected && isInMultiSelect
 
