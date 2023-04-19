@@ -47,7 +47,7 @@ export class MailRow implements VirtualRow<Mail> {
 			return
 		}
 
-		setSelectedRowStyle(this.innerContainerDom, selected)
+		setSelectedRowStyle(this.innerContainerDom, styles.isSingleColumnLayout() ? isInMultiSelect && selected : selected)
 		this.checkboxDom.checked = isInMultiSelect && selected
 
 		this.iconsDom.textContent = this.iconsText(mail)
