@@ -1,6 +1,6 @@
 import path from "node:path"
 import { readFileSync } from "node:fs"
-import { getElectronVersion } from "./buildUtils.js"
+import { getElectronVersion, getInstalledModuleVersion } from "./getInstalledModuleVersion.js"
 
 /**
  * This is used for launching electron:

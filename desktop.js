@@ -58,7 +58,7 @@ await program
 async function doBuild(opts) {
 	try {
 		measure()
-		const version = getTutanotaAppVersion()
+		const version = await getTutanotaAppVersion()
 
 		await checkOfflineDatabaseMigrations()
 

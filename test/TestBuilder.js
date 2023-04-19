@@ -3,12 +3,13 @@ import fs from "fs-extra"
 import path from "node:path"
 import { renderHtml } from "../buildSrc/LaunchHtml.js"
 import { build as esbuild } from "esbuild"
-import { getTutanotaAppVersion, runStep, sh, writeFile } from "../buildSrc/buildUtils.js"
+import { getTutanotaAppVersion, runStep, writeFile } from "../buildSrc/buildUtils.js"
 import { aliasPath as esbuildPluginAliasPath } from "esbuild-plugin-alias-path"
 import { keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin } from "../buildSrc/esbuildUtils.js"
 import { buildPackages } from "../buildSrc/packageBuilderFunctions.js"
 import watPlugin from "esbuild-plugin-wat"
 import { domainConfigs } from "../buildSrc/DomainConfigs.js"
+import { sh } from "../buildSrc/sh.js"
 
 export async function runTestBuild({ clean, fast = false }) {
 	if (clean) {
@@ -27,7 +28,7 @@ export async function runTestBuild({ clean, fast = false }) {
 		})
 	}
 
-	const version = getTutanotaAppVersion()
+	const version = await getTutanotaAppVersion()
 	const localEnv = env.create({ staticUrl: "http://localhost:9000", version, mode: "Test", dist: false, domainConfigs })
 
 	await runStep("Assets", async () => {

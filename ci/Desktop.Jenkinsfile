@@ -66,8 +66,8 @@ pipeline {
 					steps {
 						bat "npm ci"
 
-						bat "node buildSrc\\nativeLibraryProvider.js keytar --force-rebuild --root-dir ${WORKSPACE}"
-						bat "node buildSrc\\nativeLibraryProvider.js better-sqlite3 --copy-target better_sqlite3 --force-rebuild --root-dir ${WORKSPACE}"
+						bat "node buildSrc\\getNativeLibrary.js keytar --force-rebuild --root-dir ${WORKSPACE}"
+						bat "node buildSrc\\getNativeLibrary.js better-sqlite3 --copy-target better_sqlite3 --force-rebuild --root-dir ${WORKSPACE}"
 						stash includes: 'native-cache/**/*', name: 'native_modules'
 					}
 				}

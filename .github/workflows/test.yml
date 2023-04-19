@@ -18,6 +18,14 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
+      - name: Get better-sqlite3 cached location
+        run: |
+          echo "better_sqlite3_path=$(node buildSrc/getNativeCacheLocation.js better-sqlite3)" >> $GITHUB_ENV
+      - name: try to use cached better-sqlite3
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.better_sqlite3_path }}
+          key: ${{ env.better_sqlite3_path }}
       - name: install npm
         run: npm i -g npm@9.6.7
       - name: install packages
