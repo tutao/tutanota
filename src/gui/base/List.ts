@@ -488,13 +488,10 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 					this.mobileMultiSelectionActive = true
 
 					// check that virtualRow.entity exists because we had error feedbacks about it
-					if (virtualRow.entity && !this.isEntitySelected(virtualRow.entity._id[1])) {
-						clearArr(this.selectedEntities)
-
-						this.handleEvent(virtualRow.entity, e)
-					} else {
-						m.redraw() // only header changes we don't need updateDomElements here
+					if (virtualRow.entity) {
+						this.changeSelection(virtualRow.entity, "togglingNewMultiselect")
 					}
+					m.redraw()
 				}, LONG_PRESS_DURATION_MS)
 				touchStartCoords = {
 					x: e.touches[0].pageX,
@@ -586,7 +583,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 			selectionChanged = true
 
 			if (this.isInMultiSelect) {
-				if (this.selectedEntities.indexOf(clickedEntity) !== -1) {
+				if (this.selectedEntities.includes(clickedEntity)) {
 					remove(this.selectedEntities, clickedEntity)
 				} else {
 					this.selectedEntities.push(clickedEntity)
@@ -594,7 +591,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 			} else {
 				if (changeType === "togglingNewMultiselect") {
 					this.selectedEntities = [clickedEntity]
-				} else {
+				} else if (!this.selectedEntities.includes(clickedEntity)) {
 					this.selectedEntities.push(clickedEntity)
 				}
 			}
