@@ -213,7 +213,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private makeSubjectActionsLineClasses() {
 		let classes = ".flex.click"
 		if (styles.isSingleColumnLayout()) {
-			classes += ".mt-xs.mlr"
+			classes += ".mt-xs.ml"
 		} else {
 			classes += ".pl-l"
 		}
@@ -679,14 +679,14 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private actionButtons(attrs: MailViewerHeaderAttrs): Children {
-		const { viewModel } = attrs
 		const actions = this.moreButton(attrs)
 
 		return m(
 			".flex-end.items-center.ml-between-s.mt-xs",
 			{
 				style: {
-					marginRight: "6px",
+					// align "more" button with the datetime text
+					marginRight: styles.isSingleColumnLayout() ? "-3px" : "6px",
 				},
 			},
 			actions,
