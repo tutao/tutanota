@@ -92,6 +92,8 @@ export class ConversationViewModel {
 				let index = findLastIndex(conversation, (i) => firstBiggerThanSecond(getElementId(entry), elementIdPart(i.entryId)))
 				if (index < 0) {
 					index = conversation.length
+				} else {
+					index = index + 1
 				}
 				conversation.splice(index, 0, { type: "mail", viewModel: this.viewModelFactory({ ...this.options, mail }), entryId: entry._id })
 				this.onUiUpdate()
