@@ -428,16 +428,3 @@ export async function loadMailHeaders(entityClient: EntityClient, mailWrapper: M
 		return details.headers != null ? getMailHeaders(details.headers) : null
 	}
 }
-
-/**
- * Extract and normalize email subject.
- * Remove re:/fwd: prefixes.
- * remove newlines
- */
-export function normalizeSubject(subject: string): string {
-	subject = subject.replace(/[\n\r]/g, "")
-	// try to remove re: and fwd: in front of the subject
-	const match = subject.match(/^(?:(?:re|fwd)(?::|\s)+)*(.*)$/i)
-	// if we can't match fall back to the regular subject
-	return match ? match[1] : subject
-}

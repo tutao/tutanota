@@ -1,14 +1,14 @@
 import { getMailFolderType, MailFolderType, MailState, ReplyType } from "../../api/common/TutanotaConstants"
 import { FontIcons } from "../../gui/base/icons/FontIcons"
 import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
-import { formatDateTimeFromYesterdayOn } from "../../misc/Formatter"
+import { formatTimeOrDateOrYesterday } from "../../misc/Formatter"
 import { getSenderOrRecipientHeading, isTutanotaTeamMail } from "../model/MailUtils"
 import { locator } from "../../api/main/MainLocator"
 import m, { Children } from "mithril"
 import Badge from "../../gui/base/Badge"
 import { px } from "../../gui/size"
 import type { VirtualRow } from "../../gui/base/List"
-import { SelectableRowContainer, setSelectedRowStyle, setVisibility } from "../../gui/SelectableRowContainer.js"
+import { checkboxOpacity, SelectableRowContainer, setSelectedRowStyle, setVisibility } from "../../gui/SelectableRowContainer.js"
 import { styles } from "../../gui/styles.js"
 
 const iconMap: Record<MailFolderType, string> = {
@@ -47,11 +47,11 @@ export class MailRow implements VirtualRow<Mail> {
 			return
 		}
 
-		setSelectedRowStyle(this.innerContainerDom, selected)
+		setSelectedRowStyle(this.innerContainerDom, styles.isSingleColumnLayout() ? isInMultiSelect && selected : selected)
 		this.checkboxDom.checked = isInMultiSelect && selected
 
 		this.iconsDom.textContent = this.iconsText(mail)
-		this.dateDom.textContent = formatDateTimeFromYesterdayOn(mail.receivedDate)
+		this.dateDom.textContent = formatTimeOrDateOrYesterday(mail.receivedDate)
 		this.senderDom.textContent = getSenderOrRecipientHeading(mail, true)
 		this.subjectDom.textContent = mail.subject
 
@@ -69,10 +69,18 @@ export class MailRow implements VirtualRow<Mail> {
 
 		setVisibility(this.teamLabelDom, isTutanotaTeamMail(mail))
 		this.updateCheckboxVisibility()
+
+		checkboxOpacity(this.checkboxDom, selected)
 	}
 
 	private updateCheckboxVisibility() {
-		this.checkboxDom.style.visibility = styles.isSingleColumnLayout() ? "hidden" : ""
+		if (styles.isSingleColumnLayout()) {
+			this.checkboxDom.style.display = "none"
+		} else {
+			this.checkboxDom.style.display = ""
+		}
+
+		checkboxOpacity(this.checkboxDom, false)
 	}
 
 	/**
@@ -88,9 +96,12 @@ export class MailRow implements VirtualRow<Mail> {
 			},
 			[
 				m(
-					".flex.col.items-center.flex-no-grow.no-shrink.pr-s.pt-xs",
-					m("input.checkbox", {
+					".flex.col.items-center.flex-no-grow.no-shrink.pr.pt-xs",
+					m("input.checkbox.list-checkbox", {
 						type: "checkbox",
+						style: {
+							marginBottom: "7px",
+						},
 						onclick: (e: MouseEvent) => {
 							e.stopPropagation()
 							// e.redraw = false
@@ -106,14 +117,22 @@ export class MailRow implements VirtualRow<Mail> {
 					}),
 					m(".dot.bg-accent-fg.hidden", {
 						style: {
-							marginTop: "10px",
+							marginTop: "3px",
 						},
 						oncreate: (vnode) => (this.unreadDom = vnode.dom as HTMLElement),
 					}),
 				),
 				m(".flex-grow.min-width-0", [
 					m(".flex.badge-line-height", [
-						m(".text-ellipsis.smaller", {
+						m(
+							Badge,
+							{
+								classes: ".small.mr-s",
+								oncreate: (vnode) => (this.teamLabelDom = vnode.dom as HTMLElement),
+							},
+							"Tutanota Team",
+						),
+						m(".text-ellipsis", {
 							oncreate: (vnode) => (this.senderDom = vnode.dom as HTMLElement),
 						}),
 						m(".flex-grow"),
@@ -129,14 +148,6 @@ export class MailRow implements VirtualRow<Mail> {
 							},
 						},
 						[
-							m(
-								Badge,
-								{
-									classes: ".small.mr-s",
-									oncreate: (vnode) => (this.teamLabelDom = vnode.dom as HTMLElement),
-								},
-								"Tutanota Team",
-							),
 							m(".smaller.text-ellipsis", {
 								oncreate: (vnode) => (this.subjectDom = vnode.dom as HTMLElement),
 							}),

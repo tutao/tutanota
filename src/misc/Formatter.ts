@@ -1,6 +1,6 @@
 import { lang } from "./LanguageViewModel"
 import { getByAbbreviation } from "../api/common/CountryList"
-import { neverNull, pad } from "@tutao/tutanota-utils"
+import { DAY_IN_MILLIS, neverNull, pad } from "@tutao/tutanota-utils"
 import type { UserSettingsGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
 import { TimeFormat } from "../api/common/TutanotaConstants"
 import { assertMainOrNode } from "../api/common/Env"
@@ -54,6 +54,19 @@ export function formatDateTimeFromYesterdayOn(date: Date): string {
 	}
 
 	return (dateString + " " + formatTime(date)).trim()
+}
+
+export function formatTimeOrDateOrYesterday(date: Date): string {
+	const startOfToday = new Date().setHours(0, 0, 0, 0)
+	if (date.getTime() >= startOfToday) {
+		return formatTime(date)
+	} else if (date.getTime() >= startOfToday - DAY_IN_MILLIS) {
+		return lang.get("yesterday_label")
+	} else if (date.getFullYear() === new Date().getFullYear()) {
+		return lang.formats.dateWithoutYear.format(date)
+	} else {
+		return lang.formats.dateWithMonth.format(date)
+	}
 }
 
 export function formatTime(date: Date): string {

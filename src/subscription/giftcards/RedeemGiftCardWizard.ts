@@ -218,7 +218,7 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 				),
 			),
 			m(
-				".flex-center.full-width.pt-l.pb-m",
+				".flex-center.full-width.pt-l.pb",
 				m(
 					"",
 					{

@@ -107,14 +107,17 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			{
 				headerContent: this.userCanEdit()
 					? m(
-							".plr-l.mr-negative-s.align-self-end",
-							m(Button, {
-								label: "addEntry_label",
-								type: ButtonType.Primary,
-								click: () => {
-									showKnowledgeBaseEditor(null, this._templateGroupRoot)
-								},
-							}),
+							".flex.flex-end.center-vertically.plr-l.list-border-bottom",
+							m(
+								".mr-negative-s",
+								m(Button, {
+									label: "addEntry_label",
+									type: ButtonType.Primary,
+									click: () => {
+										showKnowledgeBaseEditor(null, this._templateGroupRoot)
+									},
+								}),
+							),
 					  )
 					: null,
 			},

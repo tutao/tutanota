@@ -79,7 +79,7 @@ export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
 			if (attrs.mailViewerViewModel.isAnnouncement()) {
 				return []
 			} else if (attrs.mailViewerViewModel.isDraftMail()) {
-				this.renderEditButton(attrs.mailViewerViewModel)
+				return [this.renderEditButton(attrs.mailViewerViewModel)]
 			} else if (attrs.mailViewerViewModel.canForwardOrMove()) {
 				return [this.renderReplyButton(attrs.mailViewerViewModel), this.renderForwardButton(attrs.mailViewerViewModel)]
 			} else if (attrs.mailViewerViewModel.canAssignMails()) {

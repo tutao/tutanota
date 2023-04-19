@@ -258,7 +258,9 @@ o.spec("ConversationViewModel", function () {
 
 			const mailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail")
 			o(sameAsConversation(mailsDisplayed)).equals(true)(
-				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => ci.entryId)}, should be ${conversation.map((ce) => ce._id)}`,
+				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => `[${ci.entryId[0]}, ${ci.entryId[1]}]`).join(", ")}, should be ${conversation
+					.map((ce) => `[${ce._id[0]}, ${ce._id[1]}]`)
+					.join(", ")}`,
 			)
 		})
 

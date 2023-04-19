@@ -1,16 +1,32 @@
 import { pureComponent } from "./base/PureComponent.js"
 import m from "mithril"
-import { theme } from "./theme.js"
+import { stateBgHover } from "./builtinThemes.js"
 
 export const SelectableRowContainer = pureComponent((_, children) => {
-	return m(".flex.mt-s.mb-s.border-radius.pt-s.pb-s.pl-s.pr.mlr", children)
+	return m(
+		".flex.mt-xs.border-radius.pt-m.pb-m.pl.pr.mlr-s",
+		{
+			style: {
+				paddingTop: "14px",
+				paddingBottom: "12px",
+			},
+		},
+		children,
+	)
 })
 
 export function setSelectedRowStyle(innerContainer: HTMLElement, selected: boolean) {
-	// "#F2F2F2" would be swell
-	innerContainer.style.backgroundColor = selected ? theme.list_alternate_bg : ""
+	innerContainer.style.backgroundColor = selected ? stateBgHover : ""
 }
 
 export function setVisibility(dom: HTMLElement, visible: boolean) {
 	dom.style.display = visible ? "" : "none"
+}
+
+export function checkboxOpacity(dom: HTMLInputElement, selected: boolean) {
+	if (selected) {
+		dom.classList.remove("list-checkbox")
+	} else {
+		dom.classList.add("list-checkbox")
+	}
 }

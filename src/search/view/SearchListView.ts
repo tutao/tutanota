@@ -115,7 +115,7 @@ export class SearchListView implements Component {
 		if (styles.isSingleColumnLayout()) {
 			return null
 		} else {
-			return m(".flex.pt-xs.pb-xs.items-center", [
+			return m(".flex.pt-xs.pb-xs.items-center.list-border-bottom", [
 				// matching MailRow spacing here
 				m(".flex.items-center.pl-s.mlr.button-height", this.renderSelectAll()),
 			])

@@ -103,12 +103,15 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			ListColumnWrapper,
 			{
 				headerContent: m(
-					".mr-negative-s.align-self-end.plr-l",
-					m(Button, {
-						label: "createContactForm_label",
-						type: ButtonType.Primary,
-						click: () => this.addButtonClicked(),
-					}),
+					".flex.flex-end.center-vertically.plr-l.list-border-bottom",
+					m(
+						".mr-negative-s",
+						m(Button, {
+							label: "createContactForm_label",
+							type: ButtonType.Primary,
+							click: () => this.addButtonClicked(),
+						}),
+					),
 				),
 			},
 			m(this.list),
@@ -252,7 +255,7 @@ export class ContactFormRow implements VirtualRow<ContactForm> {
 				},
 			},
 			m(".flex.col.flex-grow", [
-				m(".smaller", {
+				m(".badge-line-height", {
 					oncreate: (vnode) => (this.pageTitleDom = vnode.dom as HTMLElement),
 				}),
 				m(".flex-space-between", [

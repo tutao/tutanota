@@ -83,7 +83,7 @@ export class ContactListView {
 	}
 
 	private renderToolbar(): Children {
-		return m(".flex.pt-xs.pb-xs.items-center.flex-space-between.pr-s", [
+		return m(".flex.pt-xs.pb-xs.items-center.flex-space-between.pr-s.list-border-bottom", [
 			// matching ContactRow spacing here
 			m(
 				".flex.items-center.pl-s.mlr",
@@ -163,7 +163,7 @@ export class ContactRow implements VirtualRow<Contact> {
 			return
 		}
 
-		setSelectedRowStyle(this.innerContainerDom, selected)
+		setSelectedRowStyle(this.innerContainerDom, styles.isSingleColumnLayout() ? isInMultiSelect && selected : selected)
 		this.updateCheckboxVisibility()
 		this.checkboxDom.checked = selected && isInMultiSelect
 
@@ -182,7 +182,7 @@ export class ContactRow implements VirtualRow<Contact> {
 					this.innerContainerDom = vnode.dom as HTMLElement
 				},
 			},
-			m(".mt-xs.mr-s", [
+			m(".mt-xs.mr", [
 				m("input.checkbox", {
 					type: "checkbox",
 					onclick: (e: MouseEvent) => {
@@ -200,7 +200,7 @@ export class ContactRow implements VirtualRow<Contact> {
 				}),
 			]),
 			m(".flex.col.overflow-hidden", [
-				m(".text-ellipsis.smaller", {
+				m(".text-ellipsis.badge-line-height", {
 					oncreate: (vnode) => (this.domName = vnode.dom as HTMLElement),
 				}),
 				m(".text-ellipsis.smaller", {

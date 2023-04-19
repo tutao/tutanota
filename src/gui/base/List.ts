@@ -488,13 +488,10 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 					this.mobileMultiSelectionActive = true
 
 					// check that virtualRow.entity exists because we had error feedbacks about it
-					if (virtualRow.entity && !this.isEntitySelected(virtualRow.entity._id[1])) {
-						clearArr(this.selectedEntities)
-
-						this.handleEvent(virtualRow.entity, e)
-					} else {
-						m.redraw() // only header changes we don't need updateDomElements here
+					if (virtualRow.entity) {
+						this.changeSelection(virtualRow.entity, "togglingNewMultiselect")
 					}
+					m.redraw()
 				}, LONG_PRESS_DURATION_MS)
 				touchStartCoords = {
 					x: e.touches[0].pageX,
@@ -542,7 +539,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 		// (there are also key press handlers but they are invoked from another place)
 		let changeType: Parameters<typeof this.changeSelection>[1]
 		if (event.ctrlKey || (client.isMacOS && event.metaKey)) {
-			changeType = "togglingSingle"
+			changeType = "togglingIncludingSingle"
 		} else if (event.shiftKey) {
 			changeType = "range"
 		} else {
@@ -552,7 +549,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 	}
 
 	toggleMultiSelectForEntity(entity: ElementType) {
-		this.changeSelection(entity, "togglingSingle")
+		this.changeSelection(entity, "togglingNewMultiselect")
 	}
 
 	selectAll() {
@@ -564,23 +561,39 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 		this.elementSelected(this.selectedEntities, true, true)
 	}
 
-	private changeSelection(clickedEntity: ElementType, changeType: "single" | "togglingSingle" | "range") {
+	/**
+	 * changeType:
+	 *  * single: one item selection (not multiselect)
+	 *  * togglingIncludingSingle: if not in multiselect, start multiselect. Turns multiselect on or off for the item. Includes the item from single selection
+	 *    when turning multiselect on.
+	 *  * togglingNewMultiselect: if not in multiselect, start multiselect. Turns multiselect on or off for the item. Only selected item will be in multiselect
+	 *    when turning multiselect on.
+	 *  * range: range selection, extends the range until the selected item
+	 */
+	private changeSelection(clickedEntity: ElementType, changeType: "single" | "togglingIncludingSingle" | "togglingNewMultiselect" | "range") {
 		let selectionChanged = false
 		let multiSelect: boolean
 
-		if (this.config.multiSelectionAllowed && (this.mobileMultiSelectionActive || changeType === "togglingSingle")) {
+		if (
+			this.config.multiSelectionAllowed &&
+			(this.mobileMultiSelectionActive || changeType === "togglingIncludingSingle" || changeType === "togglingNewMultiselect")
+		) {
 			selectionChanged = true
 			multiSelect = true
 			selectionChanged = true
 
 			if (this.isInMultiSelect) {
-				if (this.selectedEntities.indexOf(clickedEntity) !== -1) {
+				if (this.selectedEntities.includes(clickedEntity)) {
 					remove(this.selectedEntities, clickedEntity)
 				} else {
 					this.selectedEntities.push(clickedEntity)
 				}
 			} else {
-				this.selectedEntities = [clickedEntity]
+				if (changeType === "togglingNewMultiselect") {
+					this.selectedEntities = [clickedEntity]
+				} else if (!this.selectedEntities.includes(clickedEntity)) {
+					this.selectedEntities.push(clickedEntity)
+				}
 			}
 		} else if (this.config.multiSelectionAllowed && changeType === "range") {
 			multiSelect = true
@@ -646,6 +659,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 			this.selectedEntities.sort(this.config.sortCompare)
 
 			this.updateDomElements()
+			m.redraw()
 		}
 
 		this.elementSelected(this.getSelectedEntities(), true, multiSelect)

@@ -103,12 +103,15 @@ export class GroupListView implements UpdatableSettingsViewer {
 				ListColumnWrapper,
 				{
 					headerContent: m(
-						".plr-l.mr-negative-s.align-self-end",
-						m(Button, {
-							label: "addGroup_label",
-							type: ButtonType.Primary,
-							click: () => this.addButtonClicked(),
-						}),
+						".flex.flex-end.center-vertically.plr-l.list-border-bottom",
+						m(
+							".mr-negative-s",
+							m(Button, {
+								label: "addGroup_label",
+								type: ButtonType.Primary,
+								click: () => this.addButtonClicked(),
+							}),
+						),
 					),
 				},
 				m(this.list),
@@ -263,7 +266,7 @@ export class GroupRow implements VirtualRow<GroupInfo> {
 				},
 			},
 			m(".flex.col.flex-grow", [
-				m(".smaller", [
+				m(".badge-line-height", [
 					m("", {
 						oncreate: (vnode) => (this.nameDom = vnode.dom as HTMLElement),
 					}),
