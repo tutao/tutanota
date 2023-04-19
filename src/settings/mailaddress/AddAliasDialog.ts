@@ -59,7 +59,7 @@ export function showAddAliasDialog(model: MailAddressTableModel) {
 							{
 								expanded: isTutanotaDomain(),
 							},
-							m(".pt-m", lang.get("permanentAliasWarning_msg")),
+							m(".pt", lang.get("permanentAliasWarning_msg")),
 						),
 						m(TextField, {
 							label: "mailName_label",

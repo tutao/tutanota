@@ -134,7 +134,7 @@ class SelectCredentialsEncryptionModeView implements Component<SelectCredentialE
 
 		return [
 			m(
-				".flex.col.pt-m.scroll.plr-l",
+				".flex.col.pt.scroll.plr-l",
 				{
 					style: {
 						position: "relative",
