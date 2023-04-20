@@ -37,6 +37,13 @@ class FakeWindow {
 
 	performance = {
 		now: () => 3,
+		getEntries: () => [],
+	}
+
+	screen = {
+		orientation: {
+			angle: 90,
+		},
 	}
 }
 
@@ -225,17 +232,14 @@ o.spec("EntropyCollector", function () {
 				z: 5,
 			},
 		})
-		// we assume window.orientation is not set
 
 		runInterval()
 
 		o(addedEntropy.length).equals(1)("added entropy")
 		o(addedEntropy[0]).deepEquals([
-			{
-				source: "accel",
-				entropy: 2,
-				data: 2,
-			},
+			{ source: "accel", entropy: 2, data: 2 },
+			{ source: "time", entropy: 2, data: 3 },
+			{ source: "accel", entropy: 0, data: 90 },
 			...ENTROPY_SUFFIX,
 		])
 	})
