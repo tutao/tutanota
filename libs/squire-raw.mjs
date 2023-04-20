@@ -340,15 +340,15 @@ var moveRangeBoundariesDownTree = (range) => {
     if (!child || isLeaf(child)) {
       if (startOffset) {
         child = startContainer.childNodes[startOffset - 1];
-        let prev = child.previousSibling;
-        while (child instanceof Text && !child.length && prev && prev instanceof Text) {
-          child.remove();
-          child = prev;
-          continue;
-        }
         if (child instanceof Text) {
-          startContainer = child;
-          startOffset = child.data.length;
+          let textChild = child;
+          let prev;
+          while (!textChild.length && (prev = textChild.previousSibling) && prev instanceof Text) {
+            textChild.remove();
+            textChild = prev;
+          }
+          startContainer = textChild;
+          startOffset = textChild.data.length;
         }
       }
       break;
@@ -468,18 +468,14 @@ var fixCursor = (node) => {
   return node;
 };
 var fixContainer = (container, root) => {
-  const children = container.childNodes;
   let wrapper = null;
-  for (let i = 0, l = children.length; i < l; i += 1) {
-    const child = children[i];
+  Array.from(container.childNodes).forEach((child) => {
     const isBR = child.nodeName === "BR";
     if (!isBR && isInline(child)) {
       if (!wrapper) {
         wrapper = createElement("DIV");
       }
       wrapper.appendChild(child);
-      i -= 1;
-      l -= 1;
     } else if (isBR || wrapper) {
       if (!wrapper) {
         wrapper = createElement("DIV");
@@ -489,15 +485,13 @@ var fixContainer = (container, root) => {
         container.replaceChild(wrapper, child);
       } else {
         container.insertBefore(wrapper, child);
-        i += 1;
-        l += 1;
       }
       wrapper = null;
     }
     if (isContainer(child)) {
       fixContainer(child, root);
     }
-  }
+  });
   if (wrapper) {
     container.appendChild(fixCursor(wrapper));
   }
@@ -1645,6 +1639,8 @@ var linkifyText = (self, textNode, offset) => {
     self._getRangeAndRemoveBookmark(selection);
     const index = searchFrom + match.index;
     const endIndex = index + match[0].length;
+    const needsSelectionUpdate = selection.startContainer === textNode;
+    const newSelectionOffset = selection.startOffset - endIndex;
     if (index) {
       textNode = textNode.splitText(index);
     }
@@ -1660,12 +1656,10 @@ var linkifyText = (self, textNode, offset) => {
     );
     link.textContent = data.slice(index, endIndex);
     textNode.parentNode.insertBefore(link, textNode);
-    const startOffset = selection.startOffset;
     textNode.data = data.slice(endIndex);
-    if (selection.startContainer === textNode) {
-      const newOffset = startOffset - endIndex;
-      selection.setStart(textNode, newOffset);
-      selection.setEnd(textNode, newOffset);
+    if (needsSelectionUpdate) {
+      selection.setStart(textNode, newSelectionOffset);
+      selection.setEnd(textNode, newSelectionOffset);
     }
     self.setSelection(selection);
   }
@@ -1723,6 +1717,7 @@ var Backspace = (self, event, range) => {
       text.deleteData(offset - 1, 1);
       self.setSelection(range);
       self.removeLink();
+      event.preventDefault();
     } else {
       self.setSelection(range);
       setTimeout(() => {
@@ -1930,8 +1925,27 @@ var keyHandlers = {
   "ArrowLeft"(self) {
     self._removeZWS();
   },
-  "ArrowRight"(self) {
+  "ArrowRight"(self, event, range) {
     self._removeZWS();
+    const root = self.getRoot();
+    if (rangeDoesEndAtBlockBoundary(range, root)) {
+      moveRangeBoundariesDownTree(range);
+      let node = range.endContainer;
+      do {
+        if (node.nodeName === "CODE") {
+          let next = node.nextSibling;
+          if (!(next instanceof Text)) {
+            const textNode = document.createTextNode("\xA0");
+            node.parentNode.insertBefore(textNode, next);
+            next = textNode;
+          }
+          range.setStart(next, 1);
+          self.setSelection(range);
+          event.preventDefault();
+          break;
+        }
+      } while (!node.nextSibling && (node = node.parentNode) && node !== root);
+    }
   }
 };
 if (!supportsInputEvents) {
@@ -4053,7 +4067,7 @@ var Squire = class {
       range = this.getSelection();
     }
     if (range.collapsed) {
-      return this;
+      return this.focus();
     }
     const root = this._root;
     let stopNode = range.commonAncestorContainer;
@@ -4065,7 +4079,7 @@ var Squire = class {
       stopNode = root;
     }
     if (stopNode instanceof Text) {
-      return this;
+      return this.focus();
     }
     this.saveUndoState(range);
     moveRangeBoundariesUpTree(range, stopNode, stopNode, root);
