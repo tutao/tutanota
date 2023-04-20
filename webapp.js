@@ -11,10 +11,10 @@
  */
 import { program, Argument } from "commander"
 import fs from "fs-extra"
-import path, { dirname } from "path"
+import path, { dirname } from "node:path"
 import { buildWebapp } from "./buildSrc/buildWebapp.js"
 import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
-import { fileURLToPath } from "url"
+import { fileURLToPath } from "node:url"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 

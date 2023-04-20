@@ -2,8 +2,8 @@
 // @ts-check
 
 import { Argument, Option, program } from "commander"
-import fs from "fs"
-import path from "path"
+import fs from "node:fs"
+import path from "node:path"
 import { $ } from "zx"
 
 await program

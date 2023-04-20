@@ -3,8 +3,8 @@
  */
 import fs from "fs-extra"
 import { renderHtml } from "./LaunchHtml.js"
-import { mkdir } from "fs/promises"
-import path from "path"
+import { mkdir } from "node:fs/promises"
+import path from "node:path"
 
 /**
  *

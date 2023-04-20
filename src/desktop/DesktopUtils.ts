@@ -1,5 +1,5 @@
-import path from "path"
-import { spawn } from "child_process"
+import path from "node:path"
+import { spawn } from "node:child_process"
 import type { Rectangle } from "electron"
 import { NativeImage } from "electron"
 import { base64ToBase64Url, defer, delay, noOp, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"

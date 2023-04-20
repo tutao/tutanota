@@ -77,7 +77,7 @@ async function setupNode() {
 		mark: noOp,
 		measure: noOp,
 	}
-	const crypto = await import("crypto")
+	const crypto = await import("node:crypto")
 	globalThis.crypto = {
 		getRandomValues: function (bytes) {
 			let randomBytes = crypto.randomBytes(bytes.length)

@@ -13,7 +13,7 @@ import { runDevBuild } from "./buildSrc/DevBuild.js"
 import { prepareMobileBuild } from "./buildSrc/prepareMobileBuild.js"
 import { buildWebapp } from "./buildSrc/buildWebapp.js"
 import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
-import path from "path"
+import path from "node:path"
 import { $, cd } from "zx"
 
 const log = (...messages) => console.log(chalk.green("\nBUILD:"), ...messages, "\n")

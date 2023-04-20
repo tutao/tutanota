@@ -1,4 +1,4 @@
-import type * as FsModule from "fs"
+import type * as FsModule from "node:fs"
 
 const instances: Record<string, ConfigFile> = {}
 

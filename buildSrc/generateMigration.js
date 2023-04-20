@@ -1,6 +1,6 @@
 import fs from "fs-extra"
 import { Argument, InvalidArgumentError, program } from "commander"
-import path from "path"
+import path from "node:path"
 import { fileExists } from "./buildUtils.js"
 await program
 	.addArgument(

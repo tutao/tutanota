@@ -27,7 +27,7 @@ o.spec("Encoding", function () {
 			global.TextDecoder = window.TextDecoder
 			global.TextEncoder = window.TextEncoder
 		} else {
-			const { TextDecoder: nodeTextDecoder, TextEncoder: nodeTextEncoder } = await import("util")
+			const { TextDecoder: nodeTextDecoder, TextEncoder: nodeTextEncoder } = await import("node:util")
 			// @ts-ignore
 			global.TextDecoder = nodeTextDecoder
 			global.TextEncoder = nodeTextEncoder

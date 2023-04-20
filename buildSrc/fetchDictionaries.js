@@ -1,11 +1,11 @@
 /**
  * Utility to download/update the dictionaries used for translations within the app.
  */
-import path from "path"
+import path from "node:path"
 import { exitOnFail, getDefaultDistDirectory, getElectronVersion } from "./buildUtils.js"
 import { program } from "commander"
-import { spawnSync } from "child_process"
-import { fileURLToPath } from "url"
+import { spawnSync } from "node:child_process"
+import { fileURLToPath } from "node:url"
 import fs from "fs-extra"
 import "zx/globals"
 
@@ -110,7 +110,7 @@ export async function fetchDictionaries(electronVersion, targets) {
 }
 
 async function fetch(url) {
-	const https = await import("https")
+	const https = await import("node:https")
 	return new Promise((resolve, reject) => {
 		const data = []
 

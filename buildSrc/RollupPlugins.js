@@ -1,4 +1,4 @@
-import { default as path } from "path"
+import { default as path } from "node:path"
 import fs from "fs-extra"
 
 export function nativeDepWorkaroundPlugin() {

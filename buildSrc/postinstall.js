@@ -2,7 +2,7 @@
  * @file Script to do postinstall tasks without resorting to shell (or batch) scropts.
  */
 
-import { spawnSync } from "child_process"
+import { spawnSync } from "node:child_process"
 
 dumpResolvedModuleVersions()
 

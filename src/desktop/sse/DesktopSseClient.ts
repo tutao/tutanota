@@ -17,7 +17,7 @@ import { handleRestError, NotAuthenticatedError, NotAuthorizedError, ServiceUnav
 import { TutanotaError } from "../../api/common/error/TutanotaError"
 import { log } from "../DesktopLog"
 import { BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey } from "../config/ConfigKeys"
-import http from "http"
+import http from "node:http"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
 
 export type SseInfo = {

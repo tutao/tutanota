@@ -1,6 +1,6 @@
 import { getNativeLibModulePath } from "./nativeLibraryProvider.js"
 import fs from "fs-extra"
-import path from "path"
+import path from "node:path"
 import { dependencyMap } from "./RollupConfig.js"
 import { aliasPath as esbuildPluginAliasPath } from "esbuild-plugin-alias-path"
 

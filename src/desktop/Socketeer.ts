@@ -4,7 +4,7 @@ import { isMailAddress } from "../misc/FormatValidator"
 import { log } from "./DesktopLog"
 import type { TimeoutSetter } from "@tutao/tutanota-utils"
 import { NetExports } from "./ElectronExportTypes"
-import { Server, Socket } from "net"
+import { Server, Socket } from "node:net"
 
 const SOCKET_PATH = "/tmp/tutadb.sock"
 

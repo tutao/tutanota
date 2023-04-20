@@ -1,6 +1,6 @@
 import o from "ospec"
 import { EXECUTABLE_EXTENSIONS, looksExecutable, nonClobberingFilename, swapFilename } from "../../../src/desktop/PathUtils.js"
-import path from "path"
+import path from "node:path"
 
 o.spec("PathUtils", function () {
 	o.spec("nonClobberingFileName Test", function () {
