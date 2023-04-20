@@ -39,15 +39,13 @@ export class EntropyCollector {
 		this.addEntropy(value, 2, "touch")
 	}
 
+	/** e is a DeviceMotionEvent but it's typed in a very annoying way */
 	private accelerometer = (e: any) => {
-		// DeviceMotionEvent but it's typed in a very annoying way
-		if (this.window.orientation && typeof this.window.orientation === "number") {
-			this.addEntropy(this.window.orientation, 0, "accel")
-		}
-
 		if (e.accelerationIncludingGravity) {
 			this.addEntropy(e.accelerationIncludingGravity.x ^ e.accelerationIncludingGravity.y ^ e.accelerationIncludingGravity.z, 2, "accel")
 		}
+
+		this.addEntropy(this.window.screen.orientation.angle, 0, "accel")
 	}
 
 	/**
@@ -95,17 +93,16 @@ export class EntropyCollector {
 	}
 
 	private addPerformanceTimingValues() {
-		if (this.window.performance?.timing) {
-			// get values from window.performance.timing
-			let values: any = window.performance.timing
-			let added: number[] = []
-
-			for (let v in values) {
-				if (typeof values[v] === "number" && values[v] !== 0) {
-					if (added.indexOf(values[v]) === -1) {
-						this.addEntropy(values[v], 1, "static")
-
-						added.push(values[v])
+		if (!this.window.performance) return
+		const entries = this.window.performance.getEntries()
+		let added: number[] = []
+		for (const entry of entries.map((e) => e.toJSON())) {
+			for (let key in entry) {
+				const value = entry[key]
+				if (typeof value === "number" && value !== 0) {
+					if (added.indexOf(value) === -1) {
+						this.addEntropy(value, 1, "static")
+						added.push(value)
 					}
 				}
 			}
