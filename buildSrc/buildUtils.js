@@ -2,10 +2,10 @@
  * This file contains some utilities used from various build scripts in this directory.
  */
 import fs from "fs-extra"
-import path, { dirname } from "path"
-import { fileURLToPath } from "url"
-import stream from "stream"
-import { spawn, spawnSync } from "child_process"
+import path, { dirname } from "node:path"
+import { fileURLToPath } from "node:url"
+import stream from "node:stream"
+import { spawn, spawnSync } from "node:child_process"
 import { $ } from "zx"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))

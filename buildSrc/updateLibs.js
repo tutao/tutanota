@@ -4,8 +4,8 @@
  * We do this to be able to audit changes in the libraries and not rely on npm for checksums.
  */
 import fs from "fs-extra"
-import path, { dirname } from "path"
-import { fileURLToPath } from "url"
+import path, { dirname } from "node:path"
+import { fileURLToPath } from "node:url"
 import { rollup } from "rollup"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))

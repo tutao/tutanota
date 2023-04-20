@@ -2,11 +2,11 @@
  * Script to build desktop release versions of the app.
  */
 import * as env from "./buildSrc/env.js"
-import os from "os"
+import os from "node:os"
 import { buildWebapp } from "./buildSrc/buildWebapp.js"
 import { getCanonicalPlatformName, getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
-import { dirname } from "path"
-import { fileURLToPath } from "url"
+import { dirname } from "node:path"
+import { fileURLToPath } from "node:url"
 import { createHtml } from "./buildSrc/createHtml.js"
 import { Argument, program } from "commander"
 import { checkOfflineDatabaseMigrations } from "./buildSrc/checkOfflineDbMigratons.js"

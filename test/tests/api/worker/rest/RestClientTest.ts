@@ -3,7 +3,7 @@ import { isSuspensionResponse, RestClient } from "../../../../../src/api/worker/
 import { HttpMethod, MediaType } from "../../../../../src/api/common/EntityFunctions.js"
 import { ResourceError } from "../../../../../src/api/common/error/RestError.js"
 import { downcast } from "@tutao/tutanota-utils"
-import http from "http"
+import http from "node:http"
 
 const SERVER_TIME_IN_HEADER = "Mon, 12 Jul 2021 13:18:39 GMT"
 const SERVER_TIMESTAMP = 1626095919000

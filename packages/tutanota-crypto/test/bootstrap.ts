@@ -1,7 +1,7 @@
 import { random } from "../lib/random/Randomizer.js"
 
 export async function bootstrapTests() {
-	const crypto = await import("crypto")
+	const crypto = await import("node:crypto")
 	globalThis.crypto = {
 		getRandomValues: function (bytes: Uint8Array) {
 			let randomBytes = crypto.randomBytes(bytes.length)

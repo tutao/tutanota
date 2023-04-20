@@ -4,7 +4,7 @@ import { DesktopDownloadManager } from "../../../../src/desktop/net/DesktopDownl
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { DesktopNetworkClient } from "../../../../src/desktop/net/DesktopNetworkClient.js"
 import { PreconditionFailedError, TooManyRequestsError } from "../../../../src/api/common/error/RestError.js"
-import type * as fs from "fs"
+import type * as fs from "node:fs"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { createDataFile } from "../../../../src/api/common/DataFile.js"
 

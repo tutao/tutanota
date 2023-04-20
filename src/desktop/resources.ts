@@ -1,4 +1,4 @@
-import path from "path"
+import path from "node:path"
 
 export function getResourcePath(resource: string): string {
 	if (env.dist) {

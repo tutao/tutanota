@@ -1,8 +1,8 @@
-import http from "http"
-import https from "https"
+import http from "node:http"
+import https from "node:https"
 import { ConnectionError } from "../../api/common/error/RestError.js"
 import { log } from "../DesktopLog.js"
-import type { ReadStream } from "fs"
+import type { ReadStream } from "node:fs"
 
 const TAG = "[DesktopNetworkClient]"
 

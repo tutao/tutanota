@@ -2,7 +2,7 @@
 
 import typescript from "@rollup/plugin-typescript"
 import commonjs from "@rollup/plugin-commonjs"
-import path from "path"
+import path from "node:path"
 import fs from "fs-extra"
 import { dependencyMap } from "./RollupConfig"
 

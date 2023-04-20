@@ -1,7 +1,7 @@
-import fs from "fs"
+import fs from "node:fs"
 import { program } from "commander"
 import glob from "glob"
-import { fileURLToPath } from "url"
+import { fileURLToPath } from "node:url"
 import "zx/globals"
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

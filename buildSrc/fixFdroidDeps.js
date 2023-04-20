@@ -1,6 +1,6 @@
 // Script which removes dependencies with binaries which raise F-Droid alarms.
 
-import fs from "fs"
+import fs from "node:fs"
 
 const packageJson = JSON.parse(fs.readFileSync("./package.json", "utf8"))
 

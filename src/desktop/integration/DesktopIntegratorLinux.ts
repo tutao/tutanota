@@ -1,10 +1,10 @@
-import path from "path"
+import path from "node:path"
 import { lang } from "../../misc/LanguageViewModel"
 import type { WindowManager } from "../DesktopWindowManager"
 import { log } from "../DesktopLog"
 import type { DesktopIntegrator } from "./DesktopIntegrator"
 import { ChildProcessExports, ElectronExports, FsExports } from "../ElectronExportTypes"
-import { ExecFileException } from "child_process"
+import { ExecFileException } from "node:child_process"
 
 export class DesktopIntegratorLinux implements DesktopIntegrator {
 	_electron: ElectronExports

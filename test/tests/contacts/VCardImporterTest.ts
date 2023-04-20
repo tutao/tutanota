@@ -15,7 +15,7 @@ o.spec("VCardImporterTest", function () {
 			globalThis.TextDecoder = window.TextDecoder
 		} else {
 			// @ts-ignore
-			globalThis.TextDecoder = (await import("util")).TextDecoder
+			globalThis.TextDecoder = (await import("node:util")).TextDecoder
 		}
 
 		lang.init(en)

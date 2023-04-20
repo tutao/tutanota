@@ -4,7 +4,7 @@
 import type { NativeImage } from "electron"
 import { app, Menu, MenuItem, Tray } from "electron"
 import type { WindowManager } from "../DesktopWindowManager"
-import os from "os"
+import os from "node:os"
 import { getResourcePath } from "../resources"
 import type { PlatformTray } from "./DesktopTray"
 
