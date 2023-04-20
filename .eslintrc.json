@@ -19,7 +19,7 @@
 		"ecmaVersion": 2021,
 		"sourceType": "module"
 	},
-	"plugins": ["@typescript-eslint"],
+	"plugins": ["@typescript-eslint", "unicorn"],
 	"rules": {
 		// These rules have hits when running eslint (in ascending order of frequency) *after* running prettier and eslint --fix
 		// We should work to re-enable these rules, or at least most of them (some are very prevalent)
@@ -48,6 +48,7 @@
 		"@typescript-eslint/ban-ts-comment": 0,
 		"@typescript-eslint/no-explicit-any": 0,
 		"@typescript-eslint/no-unused-vars": 0,
-		"@typescript-eslint/no-inferrable-types": 0
+		"@typescript-eslint/no-inferrable-types": 0,
+		"unicorn/prefer-node-protocol": 2
 	}
 }
