@@ -9,7 +9,7 @@ android {
 	compileSdkVersion 31
 	defaultConfig {
 		applicationId "de.tutao.tutanota"
-		minSdkVersion 23
+		minSdkVersion 26
 		targetSdkVersion 31
 		versionCode 396213
 		versionName "3.112.8"
@@ -23,7 +23,7 @@ android {
 	}
 	signingConfigs {
 		release {
-			// Provide non-empty placeholders because otherwise configuration will braek even in debug.
+			// Provide non-empty placeholders because otherwise configuration will break even in debug.
 			storeFile file(System.getenv("APK_SIGN_STORE") ?: 'EMPTY')
 			storePassword System.getenv("APK_SIGN_STORE_PASS" ?: 'EMPTY')
 			keyAlias System.getenv("APK_SIGN_ALIAS" ?: 'EMPTY')
