@@ -35,12 +35,8 @@ export const size = {
 	button_icon_bg_size: 32,
 	button_floating_size: 56,
 
-	get bubble_border_width(): number {
-		return (this.button_height - this.button_height_bubble) / 2
-	},
-
 	navbar_height: 70,
-	navbar_height_mobile: 48,
+	navbar_height_mobile: 52,
 	bottom_nav_bar: 50,
 	navbar_button_width: 80,
 	navbar_edge_width_mobile: 58,
@@ -83,6 +79,9 @@ export const size = {
 	get two_column_layout_width(): number {
 		return this.second_col_min_width + this.third_col_min_width
 	},
+
+	dot_size: 7,
+	checkbox_size: 14,
 }
 export const inputLineHeight: number = size.font_size_base + 8
 

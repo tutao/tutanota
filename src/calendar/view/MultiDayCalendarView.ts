@@ -17,7 +17,6 @@ import {
 	getStartOfWeek,
 	getTimeTextFormatForLongEvent,
 	getTimeZone,
-	getWeekNumber,
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
 } from "../date/CalendarUtils"
@@ -35,7 +34,7 @@ import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { styles } from "../../gui/styles"
-import { renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton, SELECTED_DATE_INDICATOR_THICKNESS } from "./CalendarGuiUtils"
+import { SELECTED_DATE_INDICATOR_THICKNESS } from "./CalendarGuiUtils"
 import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarViewModel"
 import { CalendarViewType } from "./CalendarViewModel"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
@@ -45,7 +44,6 @@ import { locator } from "../../api/main/MainLocator.js"
 export type Attrs = {
 	selectedDate: Date
 	daysInPeriod: number
-	renderHeaderText: (arg0: Date) => string
 	onDateSelected: (date: Date, calendarViewTypeToShow?: CalendarViewType) => unknown
 	getEventsOnDays: (range: Array<Date>) => EventsOnDays
 	onNewEvent: (date: Date | null) => unknown
@@ -117,7 +115,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 
 	_renderWeek(attrs: Attrs, thisWeek: EventsOnDays, mainWeek: EventsOnDays): Children {
 		return m(
-			".fill-absolute.flex.col.calendar-column-border.mlr-safe-inset",
+			".fill-absolute.flex.col.calendar-column-border.mlr-safe-inset.content-bg",
 			{
 				oncreate: (vnode) => {
 					this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
@@ -149,13 +147,8 @@ export class MultiDayCalendarView implements Component<Attrs> {
 			},
 			[
 				styles.isDesktopLayout()
-					? this.renderHeaderDesktop(attrs, thisWeek.days, thisWeek, mainWeek)
+					? this.renderHeaderDesktop(attrs, thisWeek, mainWeek)
 					: this.renderHeaderMobile(thisWeek, mainWeek, attrs.groupColors, attrs.onEventClicked, attrs.temporaryEvents),
-				m("", {
-					style: {
-						"border-bottom": `1px solid ${theme.content_border}`,
-					},
-				}),
 				// using .scroll-no-overlay because of a browser bug in Chromium where scroll wouldn't work at all
 				// see https://github.com/tutao/tutanota/issues/4846
 				m(
@@ -256,7 +249,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		}
 	}
 
-	renderHeaderMobile(
+	private renderHeaderMobile(
 		thisPageEvents: EventsOnDays,
 		mainPageEvents: EventsOnDays,
 		groupColors: GroupColors,
@@ -295,19 +288,9 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		)
 	}
 
-	renderHeaderDesktop(attrs: Attrs, dates: Array<Date>, thisPageEvents: EventsOnDays, mainPageEvents: EventsOnDays): Children {
-		const { selectedDate, renderHeaderText, groupColors, onEventClicked, onChangeViewPeriod, startOfTheWeek } = attrs
-		const firstDate = thisPageEvents.days[0]
-		return m(".calendar-long-events-header.mt-s.flex-fixed", [
-			// Only display navigation buttons if it is the visible page
-			thisPageEvents === mainPageEvents
-				? m(".pr-l.flex.row.items-center", [
-						renderCalendarSwitchLeftButton("prevWeek_label", () => onChangeViewPeriod(false)),
-						renderCalendarSwitchRightButton("nextWeek_label", () => onChangeViewPeriod(true)),
-						m("h1", renderHeaderText(selectedDate)),
-						this.renderWeekNumberLabel(firstDate, startOfTheWeek),
-				  ])
-				: m(".pr-l.flex.row.items-center", [m("h1", renderHeaderText(selectedDate)), this.renderWeekNumberLabel(firstDate, startOfTheWeek)]),
+	private renderHeaderDesktop(attrs: Attrs, thisPageEvents: EventsOnDays, mainPageEvents: EventsOnDays): Children {
+		const { selectedDate, groupColors, onEventClicked } = attrs
+		return m(".calendar-long-events-header.flex-fixed", [
 			m(
 				".calendar-hour-margin",
 				{
@@ -327,6 +310,10 @@ export class MultiDayCalendarView implements Component<Attrs> {
 						this._dateUnderMouse = date
 					},
 				},
+				// this section is tricky with margins. We use this view for both week and day view.
+				// in day view there's no days row and no selection indicator.
+				// it all must work with and without long events.
+				// thread carefully and test all the cases.
 				[
 					this.renderDayNamesRow(thisPageEvents.days, attrs.onDateSelected),
 					this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, attrs.temporaryEvents),
@@ -336,7 +323,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		])
 	}
 
-	renderLongEventsSection(
+	private renderLongEventsSection(
 		thisPageEvents: EventsOnDays,
 		mainPageEvents: EventsOnDays,
 		groupColors: GroupColors,
@@ -346,7 +333,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		const thisPageLongEvents = this.renderLongEvents(thisPageEvents.days, thisPageEvents.longEvents, groupColors, onEventClicked, temporayEvents)
 		const mainPageLongEvents = this.renderLongEvents(mainPageEvents.days, mainPageEvents.longEvents, groupColors, onEventClicked, temporayEvents)
 		return m(
-			".rel",
+			".rel.mb-xs",
 			{
 				oncreate: (vnode) => {
 					if (mainPageEvents === thisPageEvents) {
@@ -370,9 +357,11 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		)
 	}
 
-	renderSelectedDateIndicatorRow(selectedDate: Date, dates: Array<Date>): Children {
+	private renderSelectedDateIndicatorRow(selectedDate: Date, dates: Array<Date>): Children {
+		if (dates.length === 1) return null
+
 		return m(
-			".flex.pt-s",
+			".flex",
 			dates.map((day) =>
 				m(
 					".flex-grow.flex.col",
@@ -384,7 +373,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 					m("", {
 						style: {
 							// Don't render the selected date if there is only one day shown, since it's obvious
-							background: isSameDay(selectedDate, day) && dates.length > 1 ? theme.content_accent : "none",
+							background: isSameDay(selectedDate, day) ? theme.content_accent : "none",
 							// Browsers which don't support overflow:overlay (looking at you, FF) will shrink the contents of the event grid and it
 							// will shift relative to the header (with indicator). It's noticeable when it's close to borders but it's not as bad
 							// when it's smaller than the grid.
@@ -397,27 +386,6 @@ export class MultiDayCalendarView implements Component<Attrs> {
 					}),
 				),
 			),
-		)
-	}
-
-	renderWeekNumberLabel(date: Date, startOfTheWeek: WeekStart): Children {
-		// According to ISO 8601, weeks always start on Monday. Week numbering systems for
-		// weeks that do not start on Monday are not strictly defined, so we only display
-		// a week number if the user's client is configured to start weeks on Monday
-		if (startOfTheWeek !== WeekStart.MONDAY) {
-			return null
-		}
-
-		return m(
-			".ml-m.content-message-bg.small",
-			{
-				style: {
-					padding: "2px 4px",
-				},
-			},
-			lang.get("weekNumber_label", {
-				"{week}": String(getWeekNumber(date)),
-			}),
 		)
 	}
 
@@ -570,13 +538,11 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		})
 	}
 
-	renderDayNamesRow(days: Array<Date>, onDateSelected: (arg0: Date, arg1: CalendarViewType) => unknown): Children {
-		if (days.length <= 1) {
-			return null
-		}
+	private renderDayNamesRow(days: Array<Date>, onDateSelected: (arg0: Date, arg1: CalendarViewType) => unknown): Children {
+		if (days.length === 1) return null
 
 		return m(
-			".flex",
+			".flex.mb-s",
 			days.map((day) => {
 				const dayNumberClass =
 					".calendar-day-indicator.calendar-day-number.clickable.circle" + (this._getTodayTimestamp() === day.getTime() ? ".accent-bg" : "")

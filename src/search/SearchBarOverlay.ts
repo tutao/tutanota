@@ -27,7 +27,6 @@ type SearchBarOverlayAttrs = {
 	state: SearchBarState
 	isQuickSearch: boolean
 	isFocused: boolean
-	isExpanded: boolean
 	skipNextBlur: Stream<boolean>
 	selectResult: (result: Entry | null) => void
 }
@@ -37,7 +36,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 		const { state } = attrs
 		return [
 			this._renderIndexingStatus(state, attrs),
-			state.entities && !isEmpty(state.entities) && attrs.isQuickSearch && attrs.isExpanded && attrs.isFocused ? this.renderResults(state, attrs) : null,
+			state.entities && !isEmpty(state.entities) && attrs.isQuickSearch && attrs.isFocused ? this.renderResults(state, attrs) : null,
 		]
 	}
 

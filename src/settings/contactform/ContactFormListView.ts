@@ -25,7 +25,7 @@ import { showNotAvailableForFreeDialog } from "../../misc/SubscriptionDialogs"
 import { GENERATED_MAX_ID, isSameId } from "../../api/common/utils/EntityUtils"
 import { ListColumnWrapper } from "../../gui/ListColumnWrapper"
 import { locator } from "../../api/main/MainLocator"
-import { SelectableRowContainer, setSelectedRowStyle } from "../../gui/SelectableRowContainer.js"
+import { SelectableRowContainer, SelectableRowSelectedSetter } from "../../gui/SelectableRowContainer.js"
 
 assertMainOrNode()
 const className = "group-list"
@@ -220,7 +220,7 @@ export class ContactFormRow implements VirtualRow<ContactForm> {
 	private pageTitleDom!: HTMLElement
 	private urlDom!: HTMLElement
 	private deletedIconDom!: HTMLElement
-	private innerContainerDom!: HTMLElement
+	private selectionUpdater!: SelectableRowSelectedSetter
 
 	constructor(private readonly customerInfo: LazyLoaded<CustomerInfo>) {}
 
@@ -229,7 +229,7 @@ export class ContactFormRow implements VirtualRow<ContactForm> {
 			return
 		}
 
-		setSelectedRowStyle(this.innerContainerDom, selected)
+		this.selectionUpdater(selected, false)
 
 		// replace empty string with NBSP so that we always have a row
 		this.pageTitleDom.textContent = getDefaultContactFormLanguage(contactForm.languages).pageTitle || NBSP
@@ -250,9 +250,7 @@ export class ContactFormRow implements VirtualRow<ContactForm> {
 		return m(
 			SelectableRowContainer,
 			{
-				oncreate: (vnode) => {
-					this.innerContainerDom = vnode.dom as HTMLElement
-				},
+				onSelectedChangeRef: (updater) => (this.selectionUpdater = updater),
 			},
 			m(".flex.col.flex-grow", [
 				m(".badge-line-height", {

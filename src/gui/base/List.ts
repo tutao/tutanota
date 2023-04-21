@@ -185,7 +185,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 	private idOfEntityToSelectWhenReceived: Id | null = null
 	private isInMultiSelect = false
 	/** Can be activated by holding on element in a list. When active, elements can be selected just by tapping them */
-	private mobileMultiSelectionActive: boolean = false
+	private isInMobileMultiSelect: boolean = false
 
 	private loadingState = new LoadingStateTracker()
 	private loadingIndicatorDom = defer<HTMLElement>()
@@ -223,7 +223,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 	}
 
 	view(): Children {
-		return m(".list-container.fill-absolute.scroll.list-bg.nofocus.overflow-x-hidden", {
+		return m(".list-container.fill-absolute.scroll.nofocus.overflow-x-hidden", {
 			tabindex: TabIndex.Programmatic,
 			oncreate: (vnode) => {
 				this.domListContainer = vnode.dom as HTMLElement
@@ -485,7 +485,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 			if (this.config.multiSelectionAllowed) {
 				// Activate multi selection after pause
 				timeoutId = setTimeout(() => {
-					this.mobileMultiSelectionActive = true
+					this.isInMobileMultiSelect = true
 
 					// check that virtualRow.entity exists because we had error feedbacks about it
 					if (virtualRow.entity) {
@@ -554,7 +554,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 
 	isAllSelected(): boolean {
 		const selectedEntities = this.getSelectedEntities()
-		return selectedEntities.length > 0 && selectedEntities.length === this.getLoadedEntities().length && this.isMultiSelectionActive()
+		return selectedEntities.length > 0 && selectedEntities.length === this.getLoadedEntities().length && this.isMultiSelectActive()
 	}
 
 	selectAll() {
@@ -582,7 +582,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 
 		if (
 			this.config.multiSelectionAllowed &&
-			(this.mobileMultiSelectionActive || changeType === "togglingIncludingSingle" || changeType === "togglingNewMultiselect")
+			(this.isInMobileMultiSelect || changeType === "togglingIncludingSingle" || changeType === "togglingNewMultiselect")
 		) {
 			selectionChanged = true
 			multiSelect = true
@@ -654,7 +654,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 
 		// must be done before updateDomElements()
 		if (this.selectedEntities.length === 0) {
-			this.mobileMultiSelectionActive = false
+			this.isInMobileMultiSelect = false
 			this.isInMultiSelect = false
 		} else {
 			this.isInMultiSelect = multiSelect
@@ -707,7 +707,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 			}
 
 			if (this.selectedEntities.length === 0) {
-				this.mobileMultiSelectionActive = false
+				this.isInMobileMultiSelect = false
 			}
 
 			this.elementSelected(this.getSelectedEntities(), false, this.isInMultiSelect)
@@ -795,16 +795,16 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 	}
 
 	selectNone() {
-		this.mobileMultiSelectionActive = false
+		this.isInMobileMultiSelect = false
 		this.isInMultiSelect = false
 
 		if (this.selectedEntities.length > 0) {
 			this.selectedEntities = []
 
-			this.updateDomElements()
-
 			this.elementSelected([], false, false)
 		}
+
+		this.updateDomElements()
 	}
 
 	isEntitySelected(id: Id): boolean {
@@ -1363,11 +1363,21 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 		})
 	}
 
-	isMobileMultiSelectionActionActive(): boolean {
-		return this.mobileMultiSelectionActive
+	isSomeMultiselectActive(): boolean {
+		return this.isMultiSelectActive() || this.isMobileMultiselectActive()
 	}
 
-	isMultiSelectionActive(): boolean {
+	isMobileMultiselectActive(): boolean {
+		return this.isInMobileMultiSelect
+	}
+
+	enterMobileMultiselect() {
+		this.isInMobileMultiSelect = true
+		this.isInMultiSelect = true
+		this.updateDomElements()
+	}
+
+	isMultiSelectActive(): boolean {
 		return this.isInMultiSelect
 	}
 

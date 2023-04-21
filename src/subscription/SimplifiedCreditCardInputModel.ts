@@ -40,7 +40,7 @@ export function getCardTypeRange(cc: string): CardType {
 type CardSpec = { cvvLength: number | null; cvvName: string; name: string | null }
 
 // we can't have enums with
-const CardSpecs: Record<CardType, CardSpec> = Object.freeze({
+const CardSpecs = Object.freeze({
 	[CardType.Visa]: { cvvLength: 3, cvvName: "CVV", name: "Visa" },
 	[CardType.Mastercard]: { cvvLength: 3, cvvName: "CVC", name: "Mastercard" },
 	[CardType.Maestro]: { cvvLength: 3, cvvName: "CVV", name: "Maestro" },

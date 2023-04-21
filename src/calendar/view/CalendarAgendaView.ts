@@ -1,7 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { CalendarEventBubble } from "./CalendarEventBubble"
 import { incrementDate, lastThrow, neverNull } from "@tutao/tutanota-utils"
-import { styles } from "../../gui/styles"
 import { lang } from "../../misc/LanguageViewModel"
 import { formatDate, formatDateWithWeekday } from "../../misc/Formatter"
 import {
@@ -14,11 +13,11 @@ import {
 	hasAlarmsForTheUser,
 } from "../date/CalendarUtils"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
-import { px, size } from "../../gui/size"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
 import type { CalendarEventBubbleClickHandler } from "./CalendarViewModel"
 import { locator } from "../../api/main/MainLocator.js"
+import { getNextFourteenDays } from "./CalendarGuiUtils.js"
 
 type Attrs = {
 	/**
@@ -40,29 +39,10 @@ export class CalendarAgendaView implements Component<Attrs> {
 		const tomorrow = incrementDate(new Date(today), 1)
 		const days = getNextFourteenDays(today)
 		const lastDay = lastThrow(days)
-		const title =
-			days[0].getFullYear() === lastDay.getFullYear()
-				? `${lang.formats.dateWithWeekday.format(days[0])} - ${lang.formats.dateWithWeekdayAndYear.format(lastDay)}`
-				: `${lang.formats.dateWithWeekdayAndYear.format(days[0])} - ${lang.formats.dateWithWeekdayAndYear.format(lastDay)}`
 
 		const lastDayFormatted = formatDate(lastDay)
-		return m(".fill-absolute.flex.col.mlr-safe-inset", [
-			m(".mt-s.pr-l", [
-				styles.isDesktopLayout()
-					? [
-							m(
-								"h1.flex.row",
-								{
-									style: {
-										"margin-left": px(size.calendar_hour_width),
-									},
-								},
-								[lang.get("agenda_label"), m(".ml-m.no-wrap.overflow-hidden", title)],
-							),
-							m("hr.hr.mt-s"),
-					  ]
-					: null,
-			]),
+		return m(".fill-absolute.flex.col.mlr-safe-inset.content-bg", [
+			m(".mt-s.pr-l", []),
 			m(
 				".scroll.pt-s",
 				days
@@ -147,16 +127,4 @@ export class CalendarAgendaView implements Component<Attrs> {
 			),
 		])
 	}
-}
-
-function getNextFourteenDays(startOfToday: Date): Array<Date> {
-	let calculationDate = new Date(startOfToday)
-	const days: Date[] = []
-
-	for (let i = 0; i < 14; i++) {
-		days.push(new Date(calculationDate.getTime()))
-		calculationDate = incrementDate(calculationDate, 1)
-	}
-
-	return days
 }

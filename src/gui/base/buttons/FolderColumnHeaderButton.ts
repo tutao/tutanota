@@ -5,6 +5,7 @@ import { addFlash, removeFlash } from "../Flash"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import type { clickHandler } from "../GuiUtils"
 import { theme } from "../../theme.js"
+import { px, size } from "../../size.js"
 
 export interface FolderColumnHeaderButtonAttrs {
 	label: TranslationText
@@ -18,9 +19,11 @@ export class FolderColumnHeaderButton implements Component<FolderColumnHeaderBut
 		return m(
 			"button",
 			{
-				class: "bg-transparent button-height full-width noselect limit-width border-radius-small",
+				class: "bg-transparent full-width noselect limit-width border-radius-big",
 				style: {
 					border: `2px solid ${theme.content_accent}`,
+					// matching toolbar
+					height: px(size.button_height + size.vpad_xs * 2),
 				},
 				onclick: (event: MouseEvent) => attrs.click(event, assertNotNull(this.domButton)),
 				title: lang.getMaybeLazy(attrs.label),

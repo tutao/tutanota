@@ -444,45 +444,15 @@ export class MailListView implements Component<MailListViewAttrs> {
 
 	private renderListHeader(purgeButtonAttrs: ButtonAttrs): Children {
 		return m(".flex.col", [
-			this.renderToolbar(),
 			this.showingSpamOrTrash
 				? [
-						m(".flex.flex-column.plr-l.list-border-bottom", [
+						m(".flex.flex-column.plr-l", [
 							m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
 							m(".mr-negative-s.align-self-end", m(Button, purgeButtonAttrs)),
 						]),
 				  ]
 				: null,
 		])
-	}
-
-	private renderToolbar(): Children {
-		if (styles.isSingleColumnLayout()) {
-			return null
-		} else {
-			return m(".flex.pt-xs.pb-xs.items-center.list-border-bottom", [
-				// matching MailRow spacing here
-				m(".flex.items-center.pl-s.mlr.button-height", this.renderSelectAll()),
-			])
-		}
-	}
-
-	private renderSelectAll() {
-		return m("input.checkbox", {
-			type: "checkbox",
-			title: lang.get("selectAllLoaded_action"),
-			// I'm not sure this is the best condition but it will do for now
-			checked: this.list.isAllSelected(),
-			onchange: ({ target }: Event) => this.changeSelectAll((target as HTMLInputElement).checked),
-		})
-	}
-
-	private changeSelectAll(selectAll: boolean): void {
-		if (selectAll) {
-			this.list.selectAll()
-		} else {
-			this.list.selectNone()
-		}
 	}
 
 	oncreate(vnode: VnodeDOM<MailListViewAttrs>) {

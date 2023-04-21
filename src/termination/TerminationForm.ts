@@ -41,7 +41,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 				},
 			},
 			[
-				m(".h3.mt-l", lang.get("terminationForm_title")),
+				m(".h3", lang.get("terminationForm_title")),
 				m(".mt-s", lang.get("termination_text")),
 				m(
 					"",

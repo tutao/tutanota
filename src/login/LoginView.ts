@@ -4,13 +4,11 @@ import { assertMainOrNode, isApp, isDesktop, isTutanotaDomain } from "../api/com
 import { InfoLink, lang } from "../misc/LanguageViewModel"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer, mapNullable } from "@tutao/tutanota-utils"
-import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { windowFacade } from "../misc/WindowFacade"
 import { DeviceType } from "../misc/ClientConstants"
 import { Button, ButtonType } from "../gui/base/Button.js"
-import { BaseHeaderAttrs, Header } from "../gui/Header.js"
 import { AriaLandmarks, landmarkAttrs, liveDataAttrs } from "../gui/AriaUtils"
 import { DisplayMode, LoginState, LoginViewModel } from "./LoginViewModel"
 import { LoginForm } from "./LoginForm"
@@ -23,7 +21,8 @@ import { IconButton } from "../gui/base/IconButton.js"
 import { showLogsDialog } from "./LoginLogDialog.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
-import { locator } from "../api/main/MainLocator.js"
+import { px } from "../gui/size.js"
+import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 
 assertMainOrNode()
 
@@ -31,7 +30,6 @@ export interface LoginViewAttrs extends TopLevelAttrs {
 	/** Default path to redirect to after the login. Can be overridden with query param `requestedPath`. */
 	targetPath: string
 	makeViewModel: () => LoginViewModel
-	header: BaseHeaderAttrs
 }
 
 export class LoginView extends BaseTopLevelView implements TopLevelView<LoginViewAttrs> {
@@ -64,7 +62,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 
 	view({ attrs }: Vnode<LoginViewAttrs>) {
 		return m(
-			"#login-view.main-view.flex.col",
+			"#login-view.main-view.flex.col.nav-bg",
 			{
 				oncreate: () => windowFacade.addKeyboardSizeListener(this.keyboardListener),
 				onremove: () => windowFacade.removeKeyboardSizeListener(this.keyboardListener),
@@ -73,14 +71,11 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				},
 			},
 			[
-				m(Header, {
-					viewSlider: null,
-					...attrs.header,
-				}),
+				m(LoginScreenHeader),
 				m(
 					".flex-grow.flex-center.scroll",
 					m(
-						".flex-grow-shrink-auto.max-width-s.pt.plr-l",
+						".flex.col.flex-grow-shrink-auto.max-width-m.pt-l.plr-l",
 						{
 							...landmarkAttrs(AriaLandmarks.Main, lang.get("login_label")),
 							oncreate: (vnode) => {
@@ -88,11 +83,16 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 							},
 						},
 						[
-							this.viewModel.displayMode === DisplayMode.Credentials || this.viewModel.displayMode === DisplayMode.DeleteCredentials
-								? this._renderCredentialsSelector()
-								: this._renderLoginForm(),
+							m(
+								".content-bg.border-radius-big.plr-2l.pb",
+								{},
+								this.viewModel.displayMode === DisplayMode.Credentials || this.viewModel.displayMode === DisplayMode.DeleteCredentials
+									? this._renderCredentialsSelector()
+									: this._renderLoginForm(),
+								this.renderMoreOptions(),
+							),
+							m(".flex-grow"),
 							!(isApp() || isDesktop()) && isTutanotaDomain(location.hostname) ? this._renderAppButtons() : null,
-							this._anyMoreItemVisible() ? this._renderOptionsExpander() : null,
 							renderInfoLinks(),
 						],
 					),
@@ -101,73 +101,55 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 		)
 	}
 
-	_renderOptionsExpander(): Children {
-		return [
-			m(
-				".flex-center.pt-l",
-				m(ExpanderButton, {
-					label: "more_label",
-					expanded: this.moreExpanded,
-					onExpandedChange: (v) => (this.moreExpanded = v),
-				}),
-			),
-			m(
-				ExpanderPanel,
-				{
-					expanded: this.moreExpanded,
-				},
-				[
-					m(".flex-center.flex-column", [
-						this._loginAnotherLinkVisible()
-							? m(Button, {
-									label: "loginOtherAccount_action",
-									type: ButtonType.Secondary,
-									click: () => {
-										this.viewModel.showLoginForm()
-									},
-							  })
-							: null,
-						this._deleteCredentialsLinkVisible()
-							? m(Button, {
-									label: this.viewModel.displayMode === DisplayMode.DeleteCredentials ? "cancel_action" : "deleteCredentials_action",
-									type: ButtonType.Secondary,
-									click: () => this._switchDeleteCredentialsState(),
-							  })
-							: null,
-						this._knownCredentialsLinkVisible()
-							? m(Button, {
-									label: "knownCredentials_label",
-									type: ButtonType.Secondary,
-									click: () => this.viewModel.showCredentials(),
-							  })
-							: null,
-						this._signupLinkVisible()
-							? m(Button, {
-									label: "register_label",
-									type: ButtonType.Secondary,
-									click: () => m.route.set("/signup"),
-							  })
-							: null,
-						this._switchThemeLinkVisible()
-							? m(Button, {
-									label: "switchColorTheme_action",
-									type: ButtonType.Secondary,
-									click: this.themeSwitchListener(),
-							  })
-							: null,
-						this._recoverLoginVisible()
-							? m(Button, {
-									label: "recoverAccountAccess_action",
-									click: () => {
-										m.route.set("/recover")
-									},
-									type: ButtonType.Secondary,
-							  })
-							: null,
-					]),
-				],
-			),
-		]
+	private renderMoreOptions(): Children {
+		return m(".flex-center.flex-column", [
+			this._loginAnotherLinkVisible()
+				? m(Button, {
+						label: "loginOtherAccount_action",
+						type: ButtonType.Secondary,
+						click: () => {
+							this.viewModel.showLoginForm()
+						},
+				  })
+				: null,
+			this._deleteCredentialsLinkVisible()
+				? m(Button, {
+						label: this.viewModel.displayMode === DisplayMode.DeleteCredentials ? "cancel_action" : "deleteCredentials_action",
+						type: ButtonType.Secondary,
+						click: () => this._switchDeleteCredentialsState(),
+				  })
+				: null,
+			this._knownCredentialsLinkVisible()
+				? m(Button, {
+						label: "knownCredentials_label",
+						type: ButtonType.Secondary,
+						click: () => this.viewModel.showCredentials(),
+				  })
+				: null,
+			this._signupLinkVisible()
+				? m(Button, {
+						label: "register_label",
+						type: ButtonType.Secondary,
+						click: () => m.route.set("/signup"),
+				  })
+				: null,
+			this._switchThemeLinkVisible()
+				? m(Button, {
+						label: "switchColorTheme_action",
+						type: ButtonType.Secondary,
+						click: this.themeSwitchListener(),
+				  })
+				: null,
+			this._recoverLoginVisible()
+				? m(Button, {
+						label: "recoverAccountAccess_action",
+						click: () => {
+							m.route.set("/recover")
+						},
+						type: ButtonType.Secondary,
+				  })
+				: null,
+		])
 	}
 
 	themeSwitchListener(): clickHandler {
@@ -223,20 +205,9 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 		return isTutanotaDomain(location.hostname)
 	}
 
-	_anyMoreItemVisible(): boolean {
-		return (
-			this._signupLinkVisible() ||
-			this._loginAnotherLinkVisible() ||
-			this._deleteCredentialsLinkVisible() ||
-			this._knownCredentialsLinkVisible() ||
-			this._switchThemeLinkVisible() ||
-			this._recoverLoginVisible()
-		)
-	}
-
 	_renderLoginForm(): Children {
 		return m(
-			"",
+			".flex.col.pb",
 			{
 				oncreate: (vnode) => {
 					const children = vnode.children as ChildArray
@@ -244,23 +215,26 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 					this.loginForm.resolve(firstChild.state)
 				},
 			},
-			m(LoginForm, {
-				oninit: () => {
-					// we need to re-resolve this promise sometimes and for that we
-					// need a new promise. otherwise, callbacks that are registered after
-					// this point never get called because they have been registered after
-					// it was resolved the first time.
-					this.loginForm = defer()
-				},
-				onSubmit: () => this._loginWithProgressDialog(),
-				mailAddress: this.viewModel.mailAddress,
-				password: this.viewModel.password,
-				savePassword: this.viewModel.savePassword,
-				helpText: lang.getMaybeLazy(this.viewModel.helpText),
-				invalidCredentials: this.viewModel.state === LoginState.InvalidCredentials,
-				showRecoveryOption: this._recoverLoginVisible(),
-				accessExpired: this.viewModel.state === LoginState.AccessExpired,
-			}),
+			[
+				m(".h4.center.pt", lang.get("login_label")),
+				m(LoginForm, {
+					oninit: () => {
+						// we need to re-resolve this promise sometimes and for that we
+						// need a new promise. otherwise, callbacks that are registered after
+						// this point never get called because they have been registered after
+						// it was resolved the first time.
+						this.loginForm = defer()
+					},
+					onSubmit: () => this._loginWithProgressDialog(),
+					mailAddress: this.viewModel.mailAddress,
+					password: this.viewModel.password,
+					savePassword: this.viewModel.savePassword,
+					helpText: lang.getMaybeLazy(this.viewModel.helpText),
+					invalidCredentials: this.viewModel.state === LoginState.InvalidCredentials,
+					showRecoveryOption: this._recoverLoginVisible(),
+					accessExpired: this.viewModel.state === LoginState.AccessExpired,
+				}),
+			],
 		)
 	}
 
@@ -274,8 +248,9 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	}
 
 	_renderCredentialsSelector(): Children {
-		return [
-			m(".small.center.statusTextColor.pt", liveDataAttrs(), lang.getMaybeLazy(this.viewModel.helpText)),
+		return m(".flex.col.pb-l", [
+			m(".h3.text-center.pt", lang.get("knownCredentials_label")),
+			m(".small.center.statusTextColor.pt-xs", liveDataAttrs(), lang.getMaybeLazy(this.viewModel.helpText)),
 			m(CredentialsSelector, {
 				credentials: this.viewModel.getSavedCredentials(),
 				onCredentialsSelected: async (c) => {
@@ -289,7 +264,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 						  }
 						: null,
 			}),
-		]
+		])
 	}
 
 	_renderAppButtons(): Children {
@@ -404,27 +379,31 @@ export function getPrivacyStatementLink(): string | null {
 }
 
 export function renderInfoLinks(): Children {
-	return m("div.center.flex.flex-grow.items-end.justify-center.mb-l.mt-xl.wrap", [
-		!isApp() && getPrivacyStatementLink()
-			? m(
-					"a.plr",
-					{
-						href: getPrivacyStatementLink(),
-						target: "_blank",
-					},
-					lang.get("privacyLink_label"),
-			  )
-			: null,
-		!isApp() && getImprintLink()
-			? m(
-					"a.plr",
-					{
-						href: getImprintLink(),
-						target: "_blank",
-					},
-					lang.get("imprint_label"),
-			  )
-			: null,
+	return m(
+		".flex.col.mt-l",
+		m(
+			".flex.wrap.justify-center",
+			!isApp() && getPrivacyStatementLink()
+				? m(
+						"a.plr",
+						{
+							href: getPrivacyStatementLink(),
+							target: "_blank",
+						},
+						lang.get("privacyLink_label"),
+				  )
+				: null,
+			!isApp() && getImprintLink()
+				? m(
+						"a.plr",
+						{
+							href: getImprintLink(),
+							target: "_blank",
+						},
+						lang.get("imprint_label"),
+				  )
+				: null,
+		),
 		m(
 			".mt.mb.center.small.full-width",
 			{
@@ -432,7 +411,7 @@ export function renderInfoLinks(): Children {
 			},
 			`v${env.versionNumber}`,
 		),
-	])
+	)
 }
 
 function showVersionDropdown(e: MouseEvent) {

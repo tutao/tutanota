@@ -90,9 +90,7 @@ export class OfflineIndicatorDesktop implements Component<OfflineIndicatorAttrs>
 }
 
 export class OfflineIndicatorMobile implements Component<OfflineIndicatorAttrs> {
-	view(vnode: Vnode<OfflineIndicatorAttrs>): Children {
-		const a = vnode.attrs
-		const secondLine = attrToSecondLine(a)
+	view({ attrs }: Vnode<OfflineIndicatorAttrs>): Children {
 		return m(
 			"button.small.center.mb-xs",
 			{
@@ -100,9 +98,9 @@ export class OfflineIndicatorMobile implements Component<OfflineIndicatorAttrs> 
 				href: "#",
 				tabindex: "0",
 				role: "button",
-				onclick: a.state === OfflineIndicatorState.Offline ? a.reconnectAction : noOp,
+				onclick: attrs.state === OfflineIndicatorState.Offline ? attrs.reconnectAction : noOp,
 			},
-			attrToFirstLine(a),
+			attrToFirstLine(attrs),
 		)
 	}
 }

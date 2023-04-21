@@ -45,6 +45,8 @@ const green = "#00d2a7"
 export const logo_text_bright_grey = "#c5c7c7"
 
 // These are constants that have been chosen because they work across themes
+// This is even lighter than hover, for special cases like inactive search bar background
+export const stateBgLike = "rgba(139,139,139,0.18)"
 export const stateBgHover = "rgba(139,139,139,0.22)"
 export const stateBgFocus = "rgba(139,139,139,0.29)"
 export const stateBgActive = "rgba(139,139,139,0.38)"

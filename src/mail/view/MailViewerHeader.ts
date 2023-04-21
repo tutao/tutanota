@@ -22,10 +22,11 @@ import { isNotNull, noOp } from "@tutao/tutanota-utils"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
-import { editDraft, mailViewerMargin, mailViewerMoreActions, mailViewerPadding } from "./MailViewerUtils.js"
+import { editDraft, mailViewerMoreActions } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../gui/AriaUtils.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 import { AttachmentBubble } from "../../gui/AttachmentBubble.js"
+import { responsiveCardHMargin, responsiveCardHPadding } from "../../gui/cards.js"
 
 export interface MailAddressAndName {
 	name: string
@@ -101,7 +102,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return m(
 			".flex.mt-xs.click.col",
 			{
-				class: mailViewerMargin(),
+				class: responsiveCardHMargin(),
 				role: "button",
 				"aria-pressed": String(this.detailsExpanded),
 				tabindex: TabIndex.Default,
@@ -176,24 +177,40 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				},
 			},
 			[
-				m(".flex.flex-grow.align-self-start.items-start.mt", [
-					viewModel.isUnread() ? this.renderUnreadDot() : null,
-					viewModel.isDraftMail()
-						? m(
-								".mr-xs.align-self-center",
-								m(Icon, {
-									icon: Icons.Edit,
-									container: "div",
-									style: {
-										fill: theme.content_button,
-									},
-								}),
-						  )
-						: null,
-					this.tutaoBadge(viewModel),
-					m("span.text-break" + (viewModel.isUnread() ? ".font-weight-600" : ""), viewModel.mail.sender.name),
-				]),
-				this.actionButtons(attrs),
+				m(
+					".flex.flex-grow.align-self-start.items-start",
+					{
+						class: styles.isSingleColumnLayout() ? "mt-m" : "mt",
+					},
+					[
+						viewModel.isUnread() ? this.renderUnreadDot() : null,
+						viewModel.isDraftMail()
+							? m(
+									".mr-xs.align-self-center",
+									m(Icon, {
+										icon: Icons.Edit,
+										container: "div",
+										style: {
+											fill: theme.content_button,
+										},
+									}),
+							  )
+							: null,
+						this.tutaoBadge(viewModel),
+						m("span.text-break" + (viewModel.isUnread() ? ".font-weight-600" : ""), viewModel.mail.sender.name),
+					],
+				),
+				m(
+					".flex-end.items-start.ml-between-s",
+					{
+						class: styles.isSingleColumnLayout() ? "" : "mt-xs",
+						style: {
+							// align "more" button with the datetime text
+							marginRight: styles.isSingleColumnLayout() ? "-3px" : "6px",
+						},
+					},
+					this.moreButton(attrs),
+				),
 			],
 		)
 	}
@@ -213,7 +230,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private makeSubjectActionsLineClasses() {
 		let classes = ".flex.click"
 		if (styles.isSingleColumnLayout()) {
-			classes += ".mt-xs.ml"
+			classes += ".ml"
 		} else {
 			classes += ".pl-l"
 		}
@@ -227,13 +244,13 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		// we don't wrap it in a single element because our container might depend on us being separate children for margins
 		return [
 			m(
-				"." + mailViewerMargin(),
+				"." + responsiveCardHMargin(),
 				this.renderPhishingWarning(viewModel) ||
 					this.renderHardAuthenticationFailWarning(viewModel) ||
 					this.renderSoftAuthenticationFailWarning(viewModel),
 			),
-			m("." + mailViewerMargin(), this.renderExternalContentBanner(attrs)),
-			m("hr.hr.mt-xs." + mailViewerMargin()),
+			m("." + responsiveCardHMargin(), this.renderExternalContentBanner(attrs)),
+			m("hr.hr.mt-xs." + responsiveCardHMargin()),
 		].filter(Boolean)
 	}
 
@@ -242,7 +259,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		// If the mail body did load but not everything else, we show the message here
 		if (viewModel.isConnectionLost()) {
 			return m(
-				"." + mailViewerMargin(),
+				"." + responsiveCardHMargin(),
 				m(InfoBanner, {
 					message: "mailPartsNotLoaded_msg",
 					icon: Icons.Warning,
@@ -263,7 +280,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		const event = viewModel.getCalendarEventAttachment()
 		return event
 			? m(
-					"." + mailViewerMargin(),
+					"." + responsiveCardHMargin(),
 					m(EventBanner, {
 						event: event.event,
 						method: event.method,
@@ -277,7 +294,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderDetails(attrs: MailViewerHeaderAttrs, { bubbleMenuWidth }: { bubbleMenuWidth: number }): Children {
 		const { viewModel, createMailAddressContextButtons } = attrs
 		const envelopeSender = viewModel.getDifferentEnvelopeSender()
-		return m("." + mailViewerPadding(), liveDataAttrs(), [
+		return m("." + responsiveCardHPadding(), liveDataAttrs(), [
 			m(
 				".mt-s",
 				m(".small.b", lang.get("from_label")),
@@ -445,7 +462,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderAttachments(viewModel: MailViewerViewModel): Children {
 		// Show a loading symbol if we are loading attachments
 		if (viewModel.isLoadingAttachments() && !viewModel.isConnectionLost()) {
-			return m(".flex." + mailViewerMargin(), [
+			return m(".flex." + responsiveCardHMargin(), [
 				m(".flex-v-center.pl-button", progressIcon()),
 				m(".small.flex-v-center.plr.button-height", lang.get("loading_msg")),
 			])
@@ -463,7 +480,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			attachments.forEach((attachment) => (totalAttachmentSize += Number(attachment.size)))
 
 			return [
-				m(".flex" + "." + mailViewerMargin(), liveDataAttrs(), [
+				m(".flex" + "." + responsiveCardHMargin(), liveDataAttrs(), [
 					attachmentCount === 1
 						? // If we have exactly one attachment, just show the attachment
 						  this.renderAttachmentContainer(viewModel, attachments)
@@ -508,7 +525,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							{
 								expanded: this.filesExpanded,
 							},
-							m(".flex.col." + mailViewerMargin(), [
+							m(".flex.col." + responsiveCardHMargin(), [
 								m(".flex.flex-wrap.column-gap", this.renderAttachmentContainer(viewModel, attachments)),
 								isIOSApp()
 									? null
@@ -647,37 +664,11 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		})
 	}
 
-	private actionButtons(attrs: MailViewerHeaderAttrs): Children {
-		const actions = this.moreButton(attrs)
-
-		return m(
-			".flex-end.items-center.ml-between-s.mt-xs",
-			{
-				style: {
-					// align "more" button with the datetime text
-					marginRight: styles.isSingleColumnLayout() ? "-3px" : "6px",
-				},
-			},
-			actions,
-		)
-	}
-
 	private moreButton(attrs: MailViewerHeaderAttrs): Children {
 		return m(IconButton, {
 			title: "more_label",
 			icon: Icons.More,
 			click: this.prepareMoreActions(attrs),
-		})
-	}
-
-	private separator() {
-		return m("", {
-			style: {
-				width: "0",
-				// 24px is usually the visible icon size
-				height: "24px",
-				border: `0.5px solid ${theme.content_border}`,
-			},
 		})
 	}
 

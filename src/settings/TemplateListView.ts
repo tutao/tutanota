@@ -21,7 +21,7 @@ import type { LoginController } from "../api/main/LoginController"
 import { ListColumnWrapper } from "../gui/ListColumnWrapper"
 import { promiseMap } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../api/common/Env"
-import { SelectableRowContainer, setSelectedRowStyle } from "../gui/SelectableRowContainer.js"
+import { SelectableRowContainer, SelectableRowSelectedSetter } from "../gui/SelectableRowContainer.js"
 
 assertMainOrNode()
 
@@ -190,7 +190,7 @@ export class TemplateRow implements VirtualRow<EmailTemplate> {
 	domElement: HTMLElement | null = null // set from List
 
 	entity: EmailTemplate | null = null
-	private innerContainerDom!: HTMLElement
+	private selectionUpdater!: SelectableRowSelectedSetter
 	private titleDom!: HTMLElement
 	private idDom!: HTMLElement
 
@@ -203,7 +203,7 @@ export class TemplateRow implements VirtualRow<EmailTemplate> {
 			return
 		}
 
-		setSelectedRowStyle(this.innerContainerDom, selected)
+		this.selectionUpdater(selected, false)
 
 		this.titleDom.textContent = template.title
 		this.idDom.textContent = TEMPLATE_SHORTCUT_PREFIX + template.tag
@@ -213,9 +213,7 @@ export class TemplateRow implements VirtualRow<EmailTemplate> {
 		return m(
 			SelectableRowContainer,
 			{
-				oncreate: (vnode) => {
-					this.innerContainerDom = vnode.dom as HTMLElement
-				},
+				onSelectedChangeRef: (updater) => (this.selectionUpdater = updater),
 			},
 			m(".flex.col", [
 				m("", [

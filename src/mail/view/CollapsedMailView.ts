@@ -5,7 +5,8 @@ import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { theme } from "../../gui/theme.js"
 import { AllIcons, Icon } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
-import { mailViewerPadding } from "./MailViewerUtils.js"
+
+import { responsiveCardHPadding } from "../../gui/cards.js"
 
 export interface CollapsedMailViewAttrs {
 	viewModel: MailViewerViewModel
@@ -22,7 +23,7 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 		return m(
 			".flex.items-center.pt.pb.click.no-wrap",
 			{
-				class: mailViewerPadding(),
+				class: responsiveCardHPadding(),
 				style: {
 					color: theme.content_button,
 				},

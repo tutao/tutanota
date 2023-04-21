@@ -17,7 +17,7 @@ import {
 } from "@tutao/tutanota-utils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTypeRef, UserSettingsGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import { OperationType, reverse } from "../../api/common/TutanotaConstants"
+import { getWeekStart, OperationType, reverse, WeekStart } from "../../api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
 import { getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
 import { LoginController } from "../../api/main/LoginController"
@@ -104,7 +104,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	readonly _timeZone: string
 
 	constructor(
-		loginController: LoginController,
+		private readonly logins: LoginController,
 		createCalendarEventViewModelCallback: CreateCalendarEventViewModelFunction,
 		calendarModel: CalendarModel,
 		entityClient: EntityClient,
@@ -118,7 +118,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this._createCalendarEventViewModelCallback = createCalendarEventViewModelCallback
 		this._transientEvents = []
 
-		const userId = loginController.getUserController().user._id
+		const userId = logins.getUserController().user._id
 
 		this._loadedMonths = new Set()
 		this._eventsForDays = freezeMap(new Map())
@@ -133,7 +133,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		// we load three instances per calendar / CalendarGroupRoot / GroupInfo / Group + 3
 		// for each calendar we load short events for three months +3
 		const workPerCalendar = 3 + 3
-		const totalWork = loginController.getUserController().getCalendarMemberships().length * workPerCalendar
+		const totalWork = logins.getUserController().getCalendarMemberships().length * workPerCalendar
 		const monitorHandle = progressTracker.registerMonitorSync(totalWork)
 		let progressMonitor: IProgressMonitor = neverNull(progressTracker.getMonitor(monitorHandle))
 		this._calendarInfos = new LazyLoaded(() =>
@@ -185,6 +185,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	get redraw(): Stream<void> {
 		return this._redrawStream
+	}
+
+	get weekStart(): WeekStart {
+		return getWeekStart(this.logins.getUserController().userSettingsGroupRoot)
 	}
 
 	onDragStart(originalEvent: CalendarEvent, timeToMoveBy: number) {
@@ -241,7 +245,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	setHiddenCalendars(newHiddenCalendars: Set<Id>) {
 		this._hiddenCalendars = newHiddenCalendars
 
-		this._deviceConfig.setHiddenCalendars(locator.logins.getUserController().user._id, [...newHiddenCalendars])
+		this._deviceConfig.setHiddenCalendars(this.logins.getUserController().user._id, [...newHiddenCalendars])
 	}
 
 	/**
@@ -405,10 +409,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 					}
 				} else if (
 					isUpdateForTypeRef(UserTypeRef, update) && // only process update event received for the user group - to not process user update from admin membership.
-					isSameId(eventOwnerGroupId, locator.logins.getUserController().user.userGroup.group)
+					isSameId(eventOwnerGroupId, this.logins.getUserController().user.userGroup.group)
 				) {
 					if (update.operation === OperationType.UPDATE) {
-						const calendarMemberships = locator.logins.getUserController().getCalendarMemberships()
+						const calendarMemberships = this.logins.getUserController().getCalendarMemberships()
 						return this._calendarInfos.getAsync().then((calendarInfos) => {
 							// Remove calendars we no longer have membership in
 							calendarInfos.forEach((ci, group) => {

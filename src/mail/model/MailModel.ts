@@ -2,7 +2,7 @@ import m from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { containsEventOfType } from "../../api/common/utils/Utils"
-import { assertNotNull, groupBy, lazyMemoized, neverNull, noOp, ofClass, splitInChunks } from "@tutao/tutanota-utils"
+import { assertNotNull, groupBy, lazyMemoized, neverNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import type { Mail, MailBox, MailboxGroupRoot, MailboxProperties, MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
 import {
 	createMailAddressProperties,
@@ -31,7 +31,7 @@ import { Notifications } from "../../gui/Notifications"
 import { findAndApplyMatchingRule } from "./InboxRuleHandler"
 import { EntityClient } from "../../api/common/EntityClient"
 import { elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
-import { NotFoundError, PreconditionFailedError } from "../../api/common/error/RestError"
+import { LockedError, NotFoundError, PreconditionFailedError } from "../../api/common/error/RestError"
 import type { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { areParticipantsRestricted, getEnabledMailAddressesWithUser } from "./MailUtils.js"
@@ -271,6 +271,27 @@ export class MailModel {
 				console.log("Move mail: no mail folder for list id", listId)
 			}
 		}
+	}
+
+	isMovingMailsAllowed(): boolean {
+		return this.logins.getUserController().isInternalUser()
+	}
+
+	isExportingMailsAllowed(): boolean {
+		return !this.logins.isEnabled(FeatureType.DisableMailExport)
+	}
+
+	async markMails(mails: readonly Mail[], unread: boolean): Promise<void> {
+		await promiseMap(
+			mails,
+			async (mail) => {
+				if (mail.unread !== unread) {
+					mail.unread = unread
+					return this.entityClient.update(mail).catch(ofClass(NotFoundError, noOp)).catch(ofClass(LockedError, noOp))
+				}
+			},
+			{ concurrency: 5 },
+		)
 	}
 
 	/**

@@ -21,7 +21,6 @@ import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import type { SearchResult } from "../../api/worker/search/SearchTypes"
 import type { ListElementEntity } from "../../api/common/EntityTypes"
 import Stream from "mithril/stream"
-import { markMails } from "../../mail/model/MailUtils.js"
 import { ListColumnWrapper } from "../../gui/ListColumnWrapper.js"
 import { styles } from "../../gui/styles.js"
 
@@ -102,43 +101,13 @@ export class SearchListView implements Component {
 			})
 		}
 
-		this.view = (): Children => (this.list ? m(ListColumnWrapper, { headerContent: this.renderToolbar() }, m(this.list)) : null)
+		this.view = (): Children => (this.list ? m(this.list) : null)
 
 		this.onremove = () => {
 			if (this._resultStreamDependency) {
 				this._resultStreamDependency.end(true)
 			}
 		}
-	}
-
-	private renderToolbar(): Children {
-		if (styles.isSingleColumnLayout()) {
-			return null
-		} else {
-			return m(".flex.pt-xs.pb-xs.items-center.list-border-bottom", [
-				// matching MailRow spacing here
-				m(".flex.items-center.pl-s.mlr.button-height", this.renderSelectAll()),
-			])
-		}
-	}
-
-	private renderSelectAll() {
-		const list = this.list
-		if (!list) return
-		const selectedEntities = list.getSelectedEntities()
-		return m("input.checkbox", {
-			type: "checkbox",
-			// I'm not sure this is the best condition but it will do for now
-			checked: selectedEntities.length > 0 && selectedEntities.length === list.getLoadedEntities().length && list.isMultiSelectionActive(),
-			onchange: (e: Event) => {
-				const checkbox = e.target as HTMLInputElement
-				if (checkbox.checked) {
-					list.selectAll()
-				} else {
-					list.selectNone()
-				}
-			},
-		})
 	}
 
 	_loadInitial(list: List<any, any>) {
@@ -452,7 +421,7 @@ export class SearchListView implements Component {
 			.filter(assertIsEntity2(MailTypeRef))
 
 		if (selectedMails.length > 0) {
-			markMails(locator.entityClient, selectedMails, !selectedMails[0].unread)
+			locator.mailModel.markMails(selectedMails, !selectedMails[0].unread)
 		}
 	}
 

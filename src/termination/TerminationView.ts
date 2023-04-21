@@ -1,6 +1,5 @@
 import m, { Children, Vnode } from "mithril"
 import { assertMainOrNode } from "../api/common/Env.js"
-import { BaseHeaderAttrs, Header } from "../gui/Header.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { AriaLandmarks, landmarkAttrs } from "../gui/AriaUtils.js"
 import { lang } from "../misc/LanguageViewModel.js"
@@ -11,13 +10,12 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { CustomerAccountTerminationRequest } from "../api/entities/sys/TypeRefs.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
-import { locator } from "../api/main/MainLocator.js"
+import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 
 assertMainOrNode()
 
 export interface TerminationViewAttrs extends TopLevelAttrs {
 	makeViewModel: () => TerminationViewModel
-	header: BaseHeaderAttrs
 }
 
 export class TerminationView extends BaseTopLevelView implements TopLevelView<TerminationViewAttrs> {
@@ -40,7 +38,7 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 
 	public view({ attrs }: Vnode<TerminationViewAttrs>) {
 		return m(
-			"#termination-view.main-view.flex.col",
+			"#termination-view.main-view.flex.col.nav-bg",
 			{
 				oncreate: () => windowFacade.addKeyboardSizeListener(this.keyboardListener),
 				onremove: () => windowFacade.removeKeyboardSizeListener(this.keyboardListener),
@@ -49,25 +47,22 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 				},
 			},
 			[
-				m(Header, {
-					viewSlider: null,
-					...attrs.header,
-				}),
+				m(LoginScreenHeader),
 				m(
 					".flex-grow.flex-center.scroll",
 					m(
-						".flex-grow-shrink-auto.max-width-m.pt.plr-l",
+						".flex-grow-shrink-auto.max-width-m.pb",
 						{
 							...landmarkAttrs(AriaLandmarks.Main, lang.get("terminationForm_title")),
 							oncreate: (vnode) => {
 								;(vnode.dom as HTMLElement).focus()
 							},
 						},
-						[
+						m(".flex.col.pt.plr-l.content-bg.border-radius-big", [
 							this.model.acceptedTerminationRequest
 								? this.renderTerminationInfo(this.model.mailAddress, this.model.acceptedTerminationRequest)
 								: this.renderTerminationForm(),
-						],
+						]),
 					),
 				),
 			],
@@ -76,7 +71,7 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 
 	private renderTerminationInfo(mailAddress: string, acceptedTerminationRequest: CustomerAccountTerminationRequest): Children {
 		return m("", [
-			m(".h3.mt-l", "Termination successful"),
+			m(".h3.mt", "Termination successful"),
 			m(
 				"p.mt",
 				lang.get("terminationSuccessful_msg", {

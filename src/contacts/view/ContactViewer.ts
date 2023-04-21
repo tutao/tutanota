@@ -44,7 +44,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		return m(".scroll.plr-l.pb-floating.mlr-safe-inset", [
 			m("", [
 				m(
-					".contact-actions.flex-space-between.flex-wrap.mt-xs",
+					".flex-space-between.flex-wrap.mt-m",
 					m(".left.flex-grow-shrink-150", [
 						m(".h2.selectable.text-break", [
 							this.contactAppellation(contact),
