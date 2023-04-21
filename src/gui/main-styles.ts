@@ -1367,6 +1367,7 @@ styles.registerStyle("main", () => {
 			left: 0,
 			right: 0,
 			height: px(size.list_row_height),
+			"background-color": theme.list_bg,
 		},
 		".odd-row": {
 			"background-color": theme.list_bg,
