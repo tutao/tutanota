@@ -11,13 +11,14 @@ import { getDefaultContactFormLanguage } from "../../settings/contactform/Contac
 import { htmlSanitizer } from "../../misc/HtmlSanitizer"
 import { renderInfoLinks } from "../LoginView"
 import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
-import { BaseHeaderAttrs, Header } from "../../gui/Header.js"
+import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { Keys } from "../../api/common/TutanotaConstants"
 import type { ContactForm } from "../../api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../api/main/MainLocator"
 import { assertMainOrNode } from "../../api/common/Env"
 import { TopLevelView } from "../../TopLevelView.js"
+import { LoginScreenHeader } from "../../gui/LoginScreenHeader.js"
 
 assertMainOrNode()
 
@@ -31,7 +32,7 @@ export class ContactFormView implements TopLevelView {
 	private _headerHtml: string | null
 	private _footerHtml: string | null
 
-	constructor(private readonly headerAttrs: BaseHeaderAttrs) {
+	constructor(private readonly headerAttrs: AppHeaderAttrs) {
 		this._contactForm = null
 		this._helpHtml = null
 		this._headerHtml = null
@@ -63,10 +64,7 @@ export class ContactFormView implements TopLevelView {
 
 		this.view = (): Children => {
 			return m(".main-view.flex.col", [
-				m(Header, {
-					viewSlider: null,
-					...this.headerAttrs,
-				}),
+				m(LoginScreenHeader),
 				m(".flex-center.scroll", m(".flex-grow-shrink-auto.max-width-l.third.pb.plr-l", this._getContactFormContent())),
 			])
 		}

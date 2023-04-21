@@ -58,7 +58,6 @@ o.spec("calendar utils tests", function () {
 	})
 
 	o.spec("getStartOfDayWithZone", function () {
-		//FIXME
 		o("it produces a date at the start of the day according to the time zone", function () {
 			// DateTime.fromObject({year: 2023, month: 1, day: 30, hour: 5, minute: 30}, {zone: "Asia/Krasnoyarsk"}).toMillis()
 			const date = new Date(1675031400000)

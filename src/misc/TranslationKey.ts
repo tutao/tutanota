@@ -1629,3 +1629,7 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "selectMultiple_action"
+	| "menu_label"
+	| "oneEmail_label"
+	| "nbrOrEmails_label"

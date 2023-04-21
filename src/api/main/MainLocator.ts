@@ -85,7 +85,7 @@ import { OperationProgressTracker } from "./OperationProgressTracker.js"
 import { WorkerFacade } from "../worker/facades/WorkerFacade.js"
 import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
 import { OfflineIndicatorViewModel } from "../../gui/base/OfflineIndicatorViewModel.js"
-import { BaseHeaderAttrs, Header } from "../../gui/Header.js"
+import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel.js"
 import { GroupType } from "../common/TutanotaConstants.js"
@@ -171,7 +171,7 @@ class MainLocator {
 		return new OfflineIndicatorViewModel(this.cacheStorage, this.loginListener, this.connectivityModel, this.logins, this.progressTracker, m.redraw)
 	})
 
-	async baseHeaderAttrs(): Promise<BaseHeaderAttrs> {
+	async appHeaderAttrs(): Promise<AppHeaderAttrs> {
 		return {
 			offlineIndicatorModel: await this.offlineIndicatorViewModel(),
 			newsModel: this.newsModel,

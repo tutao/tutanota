@@ -13,7 +13,7 @@ import { Autocomplete, TextField, TextFieldType as TextFieldType } from "../gui/
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { MessageBox } from "../gui/base/MessageBox.js"
 import { renderInfoLinks } from "./LoginView"
-import { BaseHeaderAttrs, Header } from "../gui/Header.js"
+import { AppHeaderAttrs, Header } from "../gui/Header.js"
 import { GENERATED_MIN_ID } from "../api/common/utils/EntityUtils"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../misc/LoginUtils"
 import type { CredentialsProvider } from "../misc/credentials/CredentialsProvider.js"
@@ -24,6 +24,7 @@ import { ResumeSessionErrorReason } from "../api/worker/facades/LoginFacade"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { locator } from "../api/main/MainLocator.js"
+import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 
 assertMainOrNode()
 
@@ -163,7 +164,6 @@ export class ExternalLoginViewModel {
 
 export interface ExternalLoginViewAttrs extends TopLevelAttrs {
 	viewModelFactory: () => ExternalLoginViewModel
-	header: BaseHeaderAttrs
 }
 
 /** Login view for external mailboxes: recipients from other mail servers when the email is password-protected. */
@@ -195,12 +195,9 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 	}
 
 	view({ attrs }: Vnode<ExternalLoginViewAttrs>): Children {
-		return m(".main-view", [
-			m(Header, {
-				viewSlider: null,
-				...attrs.header,
-			}),
-			m(".flex-center.scroll.pt-responsive", m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", this.renderContent())),
+		return m(".main-view.flex.col.nav-bg", [
+			m(LoginScreenHeader),
+			m(".flex-grow.flex.col.items-center.scroll", m(".flex-grow-shrink-auto.flex.col.max-width-m.pt.pb.plr-l", this.renderContent())),
 		])
 	}
 
@@ -211,8 +208,11 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 			return m("p.center", m(MessageBox, {}, lang.getMaybeLazy(this.viewModel.errorMessageId)))
 		} else {
 			return [
-				this.viewModel.showAutoLoginButton ? this.renderAutoLoginButton() : this.renderForm(),
-				m("p.center.statusTextColor", m("small", lang.getMaybeLazy(this.viewModel.helpText))),
+				m(".flex.col.content-bg.border-radius-big.plr-2l.mt", [
+					this.viewModel.showAutoLoginButton ? this.renderAutoLoginButton() : this.renderForm(),
+					m("p.center.statusTextColor.mt-xs.mb-s", m("small", lang.getMaybeLazy(this.viewModel.helpText))),
+				]),
+				m(".flex-grow"),
 				renderInfoLinks(),
 			]
 		}
@@ -220,7 +220,7 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 
 	renderAutoLoginButton(): Children {
 		return m(
-			".pt",
+			".pt-l",
 			m(Button, {
 				label: "showMail_action",
 				click: () => this.viewModel.loginWithStoredCredentials(),

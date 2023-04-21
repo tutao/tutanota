@@ -26,3 +26,5 @@ export const navButtonRoutes = {
 	calendarUrl: CALENDAR_PREFIX,
 	settingsUrl: SETTINGS_PREFIX,
 }
+const LogoutPath = "/login?noAutoLogin=true"
+export const LogoutUrl: string = window.location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath

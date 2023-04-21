@@ -1,4 +1,3 @@
-import { styles } from "../../gui/styles.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { MailModel } from "../model/MailModel.js"
 import { Mail } from "../../api/entities/tutanota/TypeRefs.js"
@@ -12,10 +11,8 @@ import { showUserError } from "../../misc/ErrorHandlerImpl.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { editDraft, mailViewerMoreActions, makeAssignMailsButtons } from "./MailViewerUtils.js"
 import { ButtonColor } from "../../gui/base/Button.js"
-import { px, size } from "../../gui/size.js"
 import { isApp } from "../../api/common/Env.js"
 import { locator } from "../../api/main/MainLocator.js"
-import { FeatureType } from "../../api/common/TutanotaConstants.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { exportMails } from "../export/Exporter.js"
 
@@ -27,25 +24,16 @@ export interface MailViewerToolbarAttrs {
 	mailViewerViewModel?: MailViewerViewModel
 	mails: Mail[]
 	selectNone?: () => void
-	readAction: () => unknown
-	unreadAction: () => unknown
 }
 
-export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
-	view(vnode: Vnode<MailViewerToolbarAttrs>): Children {
-		if (styles.isSingleColumnLayout()) {
-			return null
-		}
-
-		return m(
-			".flex.pt-xs.pb-xs.list-bg.plr-m.list-border-bottom.items-center.ml-between-s",
-			// Height keeps the toolbar showing for consistency, even if there are no actions
-			m(".flex-grow", { style: { height: px(size.button_height) } }),
+export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
+	view(vnode: Vnode<MailViewerToolbarAttrs>) {
+		return m(".flex.ml-between-s.items-center", [
 			this.renderSingleMailActions(vnode.attrs),
 			vnode.attrs.mailViewerViewModel ? m(".nav-bar-spacer") : null,
 			this.renderActions(vnode.attrs),
 			this.renderMoreButton(vnode.attrs.mailViewerViewModel),
-		)
+		])
 	}
 
 	private renderActions(attrs: MailViewerToolbarAttrs): Children {
@@ -55,16 +43,16 @@ export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
 			return null
 		} else if (attrs.mailViewerViewModel) {
 			return [
-				this.renderDeleteButton(mailModel, attrs.mails, attrs.selectNone ? attrs.selectNone : noOp),
+				this.renderDeleteButton(mailModel, attrs.mails, attrs.selectNone ?? noOp),
 				attrs.mailViewerViewModel.canForwardOrMove() ? this.renderMoveButton(mailModel, attrs.mails) : null,
 				attrs.mailViewerViewModel.isDraftMail() ? null : this.renderReadButton(attrs),
 			]
 		} else if (attrs.mails.length > 0) {
 			return [
-				this.renderDeleteButton(mailModel, attrs.mails, attrs.selectNone ? attrs.selectNone : noOp),
-				locator.logins.getUserController().isInternalUser() ? this.renderMoveButton(mailModel, attrs.mails) : null,
+				this.renderDeleteButton(mailModel, attrs.mails, attrs.selectNone ?? noOp),
+				attrs.mailModel.isMovingMailsAllowed() ? this.renderMoveButton(mailModel, attrs.mails) : null,
 				this.renderReadButton(attrs),
-				this.renderExportButton(attrs.mails),
+				this.renderExportButton(attrs),
 			]
 		}
 	}
@@ -110,37 +98,39 @@ export class MailViewerToolbar implements Component<MailViewerToolbarAttrs> {
 		})
 	}
 
-	private renderReadButton({ readAction, unreadAction, mailViewerViewModel }: MailViewerToolbarAttrs): Children {
-		const readButtons = [
-			m(IconButton, {
-				title: "markRead_action",
-				click: readAction,
-				icon: Icons.Eye,
-			}),
-			m(IconButton, {
-				title: "markUnread_action",
-				click: unreadAction,
-				icon: Icons.NoEye,
-			}),
-		]
+	private renderReadButton({ mailModel, mailViewerViewModel, mails }: MailViewerToolbarAttrs): Children {
+		const markAction: (unread: boolean) => unknown = mailViewerViewModel
+			? (unread) => mailViewerViewModel.setUnread(unread)
+			: (unread) => mailModel.markMails(mails, unread)
+
+		const markReadButton = m(IconButton, {
+			title: "markRead_action",
+			click: () => markAction(false),
+			icon: Icons.Eye,
+		})
+		const markUnreadButton = m(IconButton, {
+			title: "markUnread_action",
+			click: () => markAction(true),
+			icon: Icons.NoEye,
+		})
 
 		// mailViewerViewModel means we are viewing one mail; if there is only the mailModel, it is coming from a MultiViewer
 		if (mailViewerViewModel) {
 			if (mailViewerViewModel.isUnread()) {
-				return readButtons[0]
+				return markReadButton
 			} else {
-				return readButtons[1]
+				return markUnreadButton
 			}
 		}
 
-		return readButtons
+		return [markReadButton, markUnreadButton]
 	}
 
-	private renderExportButton(mails: Mail[]) {
-		if (!isApp() && !locator.logins.isEnabled(FeatureType.DisableMailExport)) {
+	private renderExportButton(attrs: MailViewerToolbarAttrs) {
+		if (!isApp() && attrs.mailModel.isExportingMailsAllowed()) {
 			return m(IconButton, {
 				title: "export_action",
-				click: () => showProgressDialog("pleaseWait_msg", exportMails(mails, locator.entityClient, locator.fileController)),
+				click: () => showProgressDialog("pleaseWait_msg", exportMails(attrs.mails, locator.entityClient, locator.fileController)),
 				icon: Icons.Export,
 			})
 		}

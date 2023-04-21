@@ -6,13 +6,12 @@ import { theme } from "../../gui/theme.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { elementIdPart, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { CollapsedMailView } from "./CollapsedMailView.js"
-import { mailViewerMargin } from "./MailViewerUtils.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { px, size } from "../../gui/size.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
 import { keyManager, Shortcut } from "../../misc/KeyManager.js"
 import { styles } from "../../gui/styles.js"
-import { MailViewerToolbar } from "./MailViewerToolbar.js"
+import { responsiveCardHMargin } from "../../gui/cards.js"
 
 export interface ConversationViewerAttrs {
 	viewModel: ConversationViewModel
@@ -20,7 +19,7 @@ export interface ConversationViewerAttrs {
 
 const SCROLL_FACTOR = 4 / 5
 
-export const conversationCardMargin = 18
+export const conversationCardMargin = size.hpad_large
 
 /**
  * Displays mails in a conversation
@@ -68,13 +67,6 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 		this.doScroll(viewModel, this.lastItems)
 
 		return m(".fill-absolute.nav-bg.flex.col", [
-			m(MailViewerToolbar, {
-				mailModel: viewModel.primaryViewModel().mailModel,
-				mailViewerViewModel: viewModel.primaryViewModel(),
-				mails: [viewModel.primaryMail],
-				readAction: () => viewModel.primaryViewModel().setUnread(false),
-				unreadAction: () => viewModel.primaryViewModel().setUnread(true),
-			}),
 			m(
 				".flex-grow.scroll",
 				{
@@ -129,7 +121,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 			  )
 			: !viewModel.isFinished()
 			? m(
-					".font-weight-600.center.mt-l" + "." + mailViewerMargin(),
+					".font-weight-600.center.mt-l" + "." + responsiveCardHMargin(),
 					{
 						style: {
 							color: theme.content_button,
@@ -146,12 +138,11 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 			m(
 				".border-radius-big.rel",
 				{
-					class: mailViewerMargin(),
+					class: responsiveCardHMargin(),
 					key: elementIdPart(mailViewModel.mail.conversationEntry),
 					style: {
-						border: `1px solid ${theme.list_border}`,
 						backgroundColor: theme.content_bg,
-						marginTop: px(conversationCardMargin),
+						marginTop: px(position == null || position === 0 ? 0 : conversationCardMargin),
 					},
 				},
 				mailViewModel.isCollapsed()
@@ -161,9 +152,8 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 					: m(MailViewer, {
 							viewModel: mailViewModel,
 							isPrimary: isPrimary,
-							//  position 0 is a subject and we want to expand for the first email
-							// like when it's a forwarded email
-							defaultQuoteBehavior: position === 1 ? "expand" : "collapse",
+							// we want to expand for the first email like when it's a forwarded email
+							defaultQuoteBehavior: position === 0 ? "expand" : "collapse",
 					  }),
 			),
 		)
@@ -183,12 +173,13 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				// and viewModel is finished.
 				const itemIndex = items.findIndex((e) => e.type === "mail" && isSameId(e.entryId, conversationId))
 				// Don't scroll if it's already the first (or if we didn't find it but that would be weird)
-				if (itemIndex > 1) {
+				if (itemIndex > 0) {
 					const childDom = containerDom.childNodes[itemIndex] as HTMLElement
 					const parentTop = containerDom.getBoundingClientRect().top
 					const childTop = childDom.getBoundingClientRect().top
 					const relativeTop = childTop - parentTop
-					containerDom.scrollTo({ top: relativeTop - conversationCardMargin * 2 - 10 })
+					const top = relativeTop - conversationCardMargin * 2 - 10
+					containerDom.scrollTo({ top: top })
 				}
 			})
 		}

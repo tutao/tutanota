@@ -1643,6 +1643,10 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"selectMultiple_action": "Select multiple",
+		"menu_label": "Menu",
+		"oneEmail_label": "1 email",
+		"nbrOrEmails_label": "{number} emails"
 	}
 }

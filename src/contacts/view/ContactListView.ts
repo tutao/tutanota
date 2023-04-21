@@ -12,13 +12,17 @@ import { locator } from "../../api/main/MainLocator"
 import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils"
 import { ListColumnWrapper } from "../../gui/ListColumnWrapper"
 import { compareContacts } from "./ContactGuiUtils"
-import { NBSP, ofClass } from "@tutao/tutanota-utils"
+import { NBSP, noOp, ofClass } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env"
-import { IconButton } from "../../gui/base/IconButton.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
-import { createDropdown } from "../../gui/base/Dropdown.js"
-import { checkboxOpacity, SelectableRowContainer, setSelectedRowStyle } from "../../gui/SelectableRowContainer.js"
-import { styles } from "../../gui/styles.js"
+import {
+	checkboxOpacity,
+	scaleXHide,
+	scaleXShow,
+	selectableRowAnimParams,
+	SelectableRowContainer,
+	SelectableRowSelectedSetter,
+	shouldAlwaysShowMultiselectCheckbox,
+} from "../../gui/SelectableRowContainer.js"
 
 assertMainOrNode()
 const className = "contact-list"
@@ -27,7 +31,7 @@ export class ContactListView {
 	readonly listId: Id
 	readonly contactView: ContactView
 	readonly list: List<Contact, ContactRow>
-	private sortByFirstName = true
+	sortByFirstName = true
 
 	constructor(contactListId: Id, contactView: ContactView) {
 		this.listId = contactListId
@@ -76,83 +80,27 @@ export class ContactListView {
 		return m(
 			ListColumnWrapper,
 			{
-				headerContent: this.renderToolbar(),
+				headerContent: null,
 			},
 			m(this.list),
 		)
 	}
-
-	private renderToolbar(): Children {
-		return m(".flex.pt-xs.pb-xs.items-center.flex-space-between.pr-s.list-border-bottom", [
-			// matching ContactRow spacing here
-			m(
-				".flex.items-center.pl-s.mlr",
-				{
-					style: {
-						height: px(size.button_height),
-					},
-				},
-				this.renderSelectAll(),
-			),
-			m(IconButton, {
-				title: "sortBy_label",
-				icon: Icons.ListOrdered,
-				click: (e: MouseEvent, dom: HTMLElement) => {
-					createDropdown({
-						lazyButtons: () => [
-							{
-								label: "firstName_placeholder",
-								click: () => {
-									this.sortByFirstName = true
-									this.list.sort()
-								},
-							},
-							{
-								label: "lastName_placeholder",
-								click: () => {
-									this.sortByFirstName = false
-									this.list.sort()
-								},
-							},
-						],
-					})(e, dom)
-				},
-			}),
-		])
-	}
-
-	private renderSelectAll(): Children {
-		if (styles.isSingleColumnLayout()) {
-			return null
-		} else {
-			return m("input.checkbox", {
-				type: "checkbox",
-				title: lang.get("selectAllLoaded_action"),
-				// I'm not sure this is the best condition but it will do for now
-				checked: this.list.isAllSelected(),
-				onchange: ({ target }: Event) => this.changeSelectAll((target as HTMLInputElement).checked),
-			})
-		}
-	}
-
-	private changeSelectAll(selectAll: boolean): void {
-		if (selectAll) {
-			this.list.selectAll()
-		} else {
-			this.list.selectNone()
-		}
-	}
 }
+
+const shiftByForCheckbox = px(size.checkbox_size + size.hpad)
+const translateXShow = `translateX(${shiftByForCheckbox})`
+const translateXHide = "translateX(0)"
 
 export class ContactRow implements VirtualRow<Contact> {
 	top: number
 	domElement: HTMLElement | null = null // set from List
 
 	entity: Contact | null
-	private innerContainerDom!: HTMLElement
+	private selectionUpdater!: SelectableRowSelectedSetter
 	private domName!: HTMLElement
 	private domAddress!: HTMLElement
 	private checkboxDom!: HTMLInputElement
+	private checkboxWasVisible = shouldAlwaysShowMultiselectCheckbox()
 
 	constructor(private readonly onSelected: (entity: Contact, selected: boolean) => unknown) {
 		this.top = 0
@@ -164,8 +112,8 @@ export class ContactRow implements VirtualRow<Contact> {
 			return
 		}
 
-		setSelectedRowStyle(this.innerContainerDom, styles.isSingleColumnLayout() ? isInMultiSelect && selected : selected)
-		this.updateCheckboxVisibility()
+		this.selectionUpdater(selected, isInMultiSelect)
+		this.showCheckboxAnimated(shouldAlwaysShowMultiselectCheckbox() || isInMultiSelect)
 		checkboxOpacity(this.checkboxDom, selected)
 		this.checkboxDom.checked = selected && isInMultiSelect
 
@@ -181,12 +129,16 @@ export class ContactRow implements VirtualRow<Contact> {
 			SelectableRowContainer,
 			{
 				oncreate: (vnode) => {
-					this.innerContainerDom = vnode.dom as HTMLElement
+					Promise.resolve().then(() => this.showCheckbox(shouldAlwaysShowMultiselectCheckbox()))
 				},
+				onSelectedChangeRef: (updater) => (this.selectionUpdater = updater),
 			},
-			m(".mt-xs.mr", [
+			m(".mt-xs.abs", [
 				m("input.checkbox.list-checkbox", {
 					type: "checkbox",
+					style: {
+						transformOrigin: "left",
+					},
 					onclick: (e: MouseEvent) => {
 						e.stopPropagation()
 						// e.redraw = false
@@ -196,13 +148,11 @@ export class ContactRow implements VirtualRow<Contact> {
 					},
 					oncreate: (vnode) => {
 						this.checkboxDom = vnode.dom as HTMLInputElement
-						// to avoid visual bugs until the update
-						this.updateCheckboxVisibility()
 						checkboxOpacity(this.checkboxDom, false)
 					},
 				}),
 			]),
-			m(".flex.col.overflow-hidden", [
+			m(".flex.col.overflow-hidden.flex-grow", [
 				m(".text-ellipsis.badge-line-height", {
 					oncreate: (vnode) => (this.domName = vnode.dom as HTMLElement),
 				}),
@@ -213,7 +163,58 @@ export class ContactRow implements VirtualRow<Contact> {
 		)
 	}
 
-	private updateCheckboxVisibility() {
-		this.checkboxDom.style.visibility = styles.isSingleColumnLayout() ? "hidden" : ""
+	private showCheckboxAnimated(show: boolean) {
+		if (this.checkboxWasVisible === show) return
+		if (show) {
+			this.domName.style.paddingRight = shiftByForCheckbox
+			this.domAddress.style.paddingRight = shiftByForCheckbox
+
+			const nameAnim = this.domName.animate({ transform: [translateXHide, translateXShow] }, selectableRowAnimParams)
+			const addressAnim = this.domAddress.animate({ transform: [translateXHide, translateXShow] }, selectableRowAnimParams)
+			const checkboxAnim = this.checkboxDom.animate({ transform: [scaleXHide, scaleXShow] }, selectableRowAnimParams)
+
+			Promise.all([nameAnim.finished, addressAnim.finished, checkboxAnim.finished]).then(() => {
+				nameAnim.cancel()
+				addressAnim.cancel()
+				checkboxAnim.cancel()
+				this.showCheckbox(show)
+			}, noOp)
+		} else {
+			this.domName.style.paddingRight = "0"
+			this.domAddress.style.paddingRight = "0"
+
+			const nameAnim = this.domName.animate({ transform: [translateXShow, translateXHide] }, selectableRowAnimParams)
+			const addressAnim = this.domAddress.animate({ transform: [translateXShow, translateXHide] }, selectableRowAnimParams)
+			const checkboxAnim = this.checkboxDom.animate({ transform: [scaleXShow, scaleXHide] }, selectableRowAnimParams)
+
+			Promise.all([nameAnim.finished, addressAnim.finished, checkboxAnim.finished]).then(() => {
+				nameAnim.cancel()
+				addressAnim.cancel()
+				checkboxAnim.cancel()
+				this.showCheckbox(show)
+			}, noOp)
+		}
+		this.checkboxWasVisible = show
+	}
+
+	private showCheckbox(show: boolean) {
+		let translate
+		let scale
+		let padding
+		if (show) {
+			translate = translateXShow
+			scale = scaleXShow
+			padding = shiftByForCheckbox
+		} else {
+			translate = translateXHide
+			scale = scaleXHide
+			padding = "0"
+		}
+
+		this.domAddress.style.transform = translate
+		this.domName.style.transform = translate
+		this.domAddress.style.paddingRight = padding
+		this.domName.style.paddingRight = padding
+		this.checkboxDom.style.transform = scale
 	}
 }

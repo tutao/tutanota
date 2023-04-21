@@ -115,7 +115,13 @@ export class LoginForm implements Component<LoginFormAttrs> {
 					}),
 				),
 				m(
-					"p.center.statusTextColor",
+					"p.center.statusTextColor.mt-s",
+					{
+						style: {
+							// browser reset
+							marginBottom: 0,
+						},
+					},
 					m("small", liveDataAttrs(), [
 						a.helpText ? a.helpText : null,
 						" ",

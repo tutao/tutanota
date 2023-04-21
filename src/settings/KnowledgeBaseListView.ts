@@ -20,7 +20,7 @@ import { ListColumnWrapper } from "../gui/ListColumnWrapper"
 import { KnowledgeBaseEntryView } from "../knowledgebase/view/KnowledgeBaseEntryView"
 import { NBSP, promiseMap } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../api/common/Env"
-import { SelectableRowContainer, setSelectedRowStyle } from "../gui/SelectableRowContainer.js"
+import { SelectableRowContainer, SelectableRowSelectedSetter } from "../gui/SelectableRowContainer.js"
 
 assertMainOrNode()
 
@@ -155,14 +155,15 @@ export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
 	domElement: HTMLElement | null = null
 	entity: KnowledgeBaseEntry | null = null
 	private entryTitleDom!: HTMLElement
-	private innerContainerDom!: HTMLElement
+	private selectionUpdater!: SelectableRowSelectedSetter
 
 	update(entry: KnowledgeBaseEntry, selected: boolean): void {
 		if (!this.domElement) {
 			return
 		}
 
-		setSelectedRowStyle(this.innerContainerDom, selected)
+		this.selectionUpdater(selected, false)
+
 		this.entryTitleDom.textContent = entry.title
 	}
 
@@ -170,9 +171,7 @@ export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
 		return m(
 			SelectableRowContainer,
 			{
-				oncreate: (vnode) => {
-					this.innerContainerDom = vnode.dom as HTMLElement
-				},
+				onSelectedChangeRef: (updater) => (this.selectionUpdater = updater),
 			},
 			m(".flex.col.flex-grow", [
 				m(".text-ellipsis", {

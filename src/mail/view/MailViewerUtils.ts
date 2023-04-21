@@ -21,7 +21,6 @@ import { client } from "../../misc/ClientDetector.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { LockedError } from "../../api/common/error/RestError.js"
 import { ifAllowedTutanotaLinks } from "../../gui/base/GuiUtils.js"
-import { styles } from "../../gui/styles.js"
 
 export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
 	showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
@@ -285,12 +284,4 @@ function reportMail(viewModel: MailViewerViewModel) {
 			),
 		okAction: null,
 	})
-}
-
-export function mailViewerMargin() {
-	return styles.isSingleColumnLayout() ? "mlr" : "mlr-l"
-}
-
-export function mailViewerPadding() {
-	return styles.isSingleColumnLayout() ? "plr" : "plr-l"
 }

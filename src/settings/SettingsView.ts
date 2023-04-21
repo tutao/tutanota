@@ -5,7 +5,7 @@ import { ColumnType, ViewColumn } from "../gui/base/ViewColumn"
 import { ViewSlider } from "../gui/nav/ViewSlider.js"
 import { SettingsFolder } from "./SettingsFolder"
 import { lang } from "../misc/LanguageViewModel"
-import { BaseHeaderAttrs, Header } from "../gui/Header.js"
+import { AppHeaderAttrs, Header } from "../gui/Header.js"
 import { LoginSettingsViewer } from "./login/LoginSettingsViewer.js"
 import { GlobalSettingsViewer } from "./GlobalSettingsViewer"
 import { DesktopSettingsViewer } from "./DesktopSettingsViewer"
@@ -62,9 +62,12 @@ import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
-import { searchBar } from "../search/SearchBar.js"
 import { ReferralSettingsViewer } from "./ReferralSettingsViewer.js"
 import { LoginController } from "../api/main/LoginController.js"
+import { BackgroundColumnLayout } from "../gui/BackgroundColumnLayout.js"
+import { styles } from "../gui/styles.js"
+import { MobileHeader } from "../gui/MobileHeader.js"
+import { LazySearchBar } from "../misc/LazySearchBar.js"
 
 assertMainOrNode()
 
@@ -82,7 +85,7 @@ export interface UpdatableSettingsDetailsViewer {
 
 export interface SettingsViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
-	header: BaseHeaderAttrs
+	header: AppHeaderAttrs
 	logins: LoginController
 }
 
@@ -262,7 +265,27 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			{
 				// the CSS improves the situation on devices with notches (no control elements
 				// are concealed), but there's still room for improvement for scrollbars
-				view: () => m(".mlr-safe-inset.fill-absolute", m(this._getCurrentViewer())),
+				view: () =>
+					m(BackgroundColumnLayout, {
+						backgroundColor: theme.navigation_bg,
+						columnLayout: m(
+							".mlr-safe-inset.fill-absolute.content-bg",
+							{
+								class: styles.isUsingBottomNavigation() ? "" : "border-radius-top-left-big",
+							},
+							m(this._getCurrentViewer()),
+						),
+						mobileHeader: () =>
+							m(MobileHeader, {
+								...vnode.attrs.header,
+								viewSlider: this.viewSlider,
+								columnType: "first",
+								title: lang.getMaybeLazy(this._selectedFolder.name),
+								actions: [],
+								primaryAction: () => null,
+							}),
+						desktopToolbar: () => null,
+					}),
 			},
 			ColumnType.Background,
 			400,
@@ -271,10 +294,24 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		)
 		this._settingsDetailsColumn = new ViewColumn(
 			{
-				view: () => m(".mlr-safe-inset.fill-absolute", this.detailsViewer ? this.detailsViewer.renderView() : m("")),
+				view: () =>
+					m(BackgroundColumnLayout, {
+						backgroundColor: theme.navigation_bg,
+						columnLayout: m(".mlr-safe-inset.fill-absolute.content-bg", this.detailsViewer ? this.detailsViewer.renderView() : m("")),
+						mobileHeader: () =>
+							m(MobileHeader, {
+								...vnode.attrs.header,
+								viewSlider: this.viewSlider,
+								columnType: "other",
+								title: lang.getMaybeLazy(this._selectedFolder.name),
+								actions: [],
+								primaryAction: () => null,
+							}),
+						desktopToolbar: () => null,
+					}),
 			},
 			ColumnType.Background,
-			600,
+			500,
 			2400,
 			() => lang.get("settings_label"),
 		)
@@ -412,7 +449,6 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			"#settings.main-view",
 			m(this.viewSlider, {
 				header: m(Header, {
-					viewSlider: this.viewSlider,
 					searchBar: () => this.renderSearchBar(),
 					...attrs.header,
 				}),
@@ -424,15 +460,15 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	private renderSearchBar(): Children {
 		const route = m.route.get()
 		return route.startsWith("/settings/users")
-			? m(searchBar, {
+			? m(LazySearchBar, {
 					placeholder: lang.get("searchUsers_placeholder"),
 			  })
 			: route.startsWith("/settings/groups")
-			? m(searchBar, {
+			? m(LazySearchBar, {
 					placeholder: lang.get("searchGroups_placeholder"),
 			  })
 			: route.startsWith("settings/whitelabelaccounts")
-			? m(searchBar, {
+			? m(LazySearchBar, {
 					placeholder: lang.get("emptyString_msg"),
 			  })
 			: null

@@ -404,7 +404,7 @@ export class LanguageViewModel {
 	/**
 	 * @throws An error if there is no translation for the given id.
 	 */
-	get(id: TranslationKey, replacements?: Record<string, any>): string {
+	get(id: TranslationKey, replacements?: Record<string, string | number>): string {
 		if (id == null) {
 			return ""
 		}
@@ -430,7 +430,7 @@ export class LanguageViewModel {
 		}
 
 		for (let param in replacements) {
-			text = replaceAll(text, param, replacements[param])
+			text = replaceAll(text, param, String(replacements[param]))
 		}
 
 		return text

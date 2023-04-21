@@ -160,7 +160,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 	_getStyle(a: ButtonAttrs): {} {
 		return a.type === ButtonType.Login
 			? {
-					"border-radius": px(size.border_radius_small),
+					"border-radius": px(size.border_radius),
 					"background-color": theme.content_accent,
 			  }
 			: {}

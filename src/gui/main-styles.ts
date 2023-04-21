@@ -6,7 +6,7 @@ import { noselect, position_absolute, positionValue } from "./mixins"
 import { assertMainOrNode, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
 import { getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
 import { BrowserType } from "../misc/ClientConstants"
-import { stateBgActive, stateBgFocus, stateBgHover } from "./builtinThemes.js"
+import { stateBgActive, stateBgFocus, stateBgHover, stateBgLike } from "./builtinThemes.js"
 import { FontIcons } from "./base/icons/FontIcons.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
 
@@ -31,7 +31,9 @@ export function getFonts(): string {
 	return fonts.join(", ")
 }
 
-const boxShadow = `0 2px 12px rgba(0, 0, 0, 0.4), 0 10px 40px rgba(0, 0, 0, 0.3)`
+const boxShadow = `0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)`
+const searchBarShadow = "0px 2px 4px rgb(0, 0, 0, 0.12)"
+
 styles.registerStyle("main", () => {
 	return {
 		"#link-tt": isElectronClient()
@@ -446,6 +448,10 @@ styles.registerStyle("main", () => {
 			"padding-left": px(size.hpad_large),
 			"padding-right": px(size.hpad_large),
 		},
+		".plr-2l": {
+			"padding-left": px(size.hpad_large * 2),
+			"padding-right": px(size.hpad_large * 2),
+		},
 		".pl-l": {
 			"padding-left": px(size.hpad_large),
 		},
@@ -713,8 +719,8 @@ styles.registerStyle("main", () => {
 		"::-webkit-scrollbar": !client.isMobileDevice()
 			? {
 					background: "transparent",
-					width: "6px", // width of vertical scrollbar
-					height: "6px", // width of horizontal scrollbar
+					width: "3px", // width of vertical scrollbar
+					height: "3px", // width of horizontal scrollbar
 			  }
 			: {},
 		"::-webkit-scrollbar-thumb": !client.isMobileDevice()
@@ -983,6 +989,9 @@ styles.registerStyle("main", () => {
 			"border-top-left-radius": px(size.border_radius),
 			"border-top-right-radius": px(size.border_radius),
 		},
+		".border-radius-top-left-big": {
+			"border-top-left-radius": px(size.border_radius_big),
+		},
 		".border-radius-bottom": {
 			"border-bottom-left-radius": px(size.border_radius),
 			"border-bottom-right-radius": px(size.border_radius),
@@ -1019,13 +1028,26 @@ styles.registerStyle("main", () => {
 			height: px(size.icon_size_medium),
 			width: px(size.icon_size_medium),
 		},
+		// a bit cursed solution to make the visible icon not too huge relative to the tiny "close" icon that we have but also to keep the size consistent
+		// with icon-large so that the text field doesn't jump around
 		".icon-progress-search": {
-			height: px(20),
-			width: px(20),
+			height: px(size.icon_size_large),
+			width: px(size.icon_size_large),
 		},
 		".icon-progress-search > svg": {
 			height: px(20),
 			width: px(20),
+		},
+		".search-bar": {
+			transition: "all 200ms",
+			"background-color": stateBgLike,
+		},
+		".search-bar:hover": {
+			"background-color": stateBgHover,
+		},
+		".search-bar[focused=true]": {
+			"background-color": theme.content_bg,
+			"box-shadow": searchBarShadow,
 		},
 		".icon-progress-tiny": {
 			height: px(15),
@@ -1156,17 +1178,13 @@ styles.registerStyle("main", () => {
 		},
 		// header
 		".header-nav": {
-			position: "relative",
 			height: px(size.navbar_height),
-			"background-color": theme.header_bg,
-			"border-color": theme.navigation_border,
-			"border-width": "1px",
-			"border-style": "solid",
+			"background-color": theme.navigation_bg,
 			"z-index": 2,
 			"margin-top": "env(safe-area-inset-top)", // insets for iPhone X
 		},
 		"bottom-nav, .bottom-nav": {
-			"box-shadow": `0 -2px 4px 0 ${theme.header_box_shadow_bg}`,
+			"border-top": `1px solid ${theme.navigation_border}`,
 			height: positionValue(size.bottom_nav_bar),
 			background: theme.header_bg,
 			"margin-bottom": "env(safe-area-inset-bottom)",
@@ -1184,17 +1202,14 @@ styles.registerStyle("main", () => {
 			overflow: "hidden",
 		},
 		".dot": {
-			width: px(size.hpad_large_mobile + 1),
-			height: px(size.hpad_large_mobile + 1),
+			width: px(size.dot_size),
+			height: px(size.dot_size),
 			"border-radius": "50%",
 			overflow: "hidden",
 			"margin-top": px(6),
 		},
 		".news-button": {
 			position: "relative",
-		},
-		".logo": {
-			height: px(size.header_logo_height),
 		},
 		".logo-text": {
 			height: px(size.header_logo_height),
@@ -1211,19 +1226,6 @@ styles.registerStyle("main", () => {
 			"background-repeat": "no-repeat",
 			"background-size": "auto 100%",
 		},
-		".header-left": {
-			position: "absolute",
-			left: "0",
-			top: 0,
-			bottom: 0,
-		},
-		".header-right": {
-			position: "absolute",
-			left: "56px",
-			right: "0",
-			top: 0,
-			bottom: 0,
-		},
 		".nav-bar-spacer": {
 			width: "0px",
 			height: "22px",
@@ -1231,9 +1233,6 @@ styles.registerStyle("main", () => {
 			"border-color": theme.navigation_border,
 			"border-width": "1px",
 			"border-style": "solid",
-		},
-		".search-bar > .text-field": {
-			"padding-top": "0 !important",
 		},
 		// dialogs
 		".dialog": {
@@ -1370,7 +1369,6 @@ styles.registerStyle("main", () => {
 			left: 0,
 			right: 0,
 			height: px(size.list_row_height),
-			"background-color": theme.list_bg,
 		},
 		".odd-row": {
 			"background-color": theme.list_bg,
@@ -1759,8 +1757,8 @@ styles.registerStyle("main", () => {
 			// reset browser style
 			margin: "0",
 			display: "block",
-			width: "14px",
-			height: "14px",
+			width: px(size.checkbox_size),
+			height: px(size.checkbox_size),
 			border: `2px solid ${theme.content_button}`,
 			"border-radius": "3px",
 			position: "relative",
@@ -2022,31 +2020,6 @@ styles.registerStyle("main", () => {
 		"drawer-menu": {
 			width: px(size.drawer_menu_width),
 			background: getNavigationMenuBg(),
-			"border-right": `0.5px solid ${theme.navigation_border}`,
-		},
-		".mobile .header-nav": {
-			height: px(size.navbar_height_mobile),
-		},
-		".mobile .header-logo": {
-			height: px(size.header_logo_height_mobile),
-		},
-		".mobile .header-logo > svg": {
-			height: px(size.header_logo_height_mobile),
-			width: "auto",
-		},
-		".mobile .header-left": {
-			width: `${px(size.navbar_edge_width_mobile)}`,
-		},
-		".mobile .header-middle": {
-			position: "absolute",
-			right: px(size.navbar_edge_width_mobile),
-			left: px(size.navbar_edge_width_mobile),
-			top: 0,
-			bottom: 0,
-		},
-		".mobile .header-right": {
-			left: "auto",
-			width: `${px(size.navbar_edge_width_mobile)}`,
 		},
 		".menu-shadow": {
 			"box-shadow": "0 4px 5px 2px rgba(0,0,0,0.14), 0 4px 5px 2px rgba(0,0,0,0.14), 0 4px 5px 2px rgba(0,0,0,0.14)",
@@ -2059,12 +2032,6 @@ styles.registerStyle("main", () => {
 			".main-view": {
 				top: 0,
 				bottom: 0,
-			},
-			".logo-height": {
-				height: px(size.header_logo_height_mobile),
-			},
-			".logo-height > svg": {
-				height: px(size.header_logo_height_mobile),
 			},
 			".fixed-bottom-right": {
 				bottom: px(size.hpad_large_mobile + size.bottom_nav_bar),

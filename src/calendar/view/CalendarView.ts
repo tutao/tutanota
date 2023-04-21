@@ -1,19 +1,18 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { BaseHeaderAttrs, Header, HeaderAttrs } from "../../gui/Header.js"
+import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
-import { lang, TranslationKey } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
 import { Icons } from "../../gui/base/icons/Icons"
-import { downcast, getStartOfDay, incrementDate, LazyLoaded, memoized, ofClass } from "@tutao/tutanota-utils"
+import { downcast, getStartOfDay, LazyLoaded, memoized, ofClass } from "@tutao/tutanota-utils"
 import type { CalendarEvent, GroupSettings, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTypeRef, createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import { defaultCalendarColor, GroupType, Keys, ShareCapability, TimeFormat } from "../../api/common/TutanotaConstants"
 import { locator } from "../../api/main/MainLocator"
-import { getEventStart, getStartOfTheWeekOffset, getStartOfWeek, getTimeZone, shouldDefaultToAmPmTimeFormat } from "../date/CalendarUtils"
+import { getEventStart, getTimeZone, shouldDefaultToAmPmTimeFormat } from "../date/CalendarUtils"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
-import { formatDateWithWeekday, formatDateWithWeekdayAndYearLong, formatMonthWithFullYear } from "../../misc/Formatter"
 import { NavButton, NavButtonColor } from "../../gui/base/NavButton.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
@@ -37,7 +36,7 @@ import { GroupInvitationFolderRow } from "../../sharing/view/GroupInvitationFold
 import { SidebarSection } from "../../gui/SidebarSection"
 import type { HtmlSanitizer } from "../../misc/HtmlSanitizer"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
-import { renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton } from "./CalendarGuiUtils"
+import { calendarNavConfiguration } from "./CalendarGuiUtils"
 import { CalendarViewModel, CalendarViewType, CalendarViewTypeByValue, MouseOrPointerEvent } from "./CalendarViewModel"
 import { showCalendarEventDialog } from "./CalendarEventEditDialog"
 import { CalendarEventPopup } from "./CalendarEventPopup"
@@ -52,12 +51,16 @@ import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { DrawerMenuAttrs } from "../../gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
+import { BackgroundColumnLayout } from "../../gui/BackgroundColumnLayout.js"
+import { theme } from "../../gui/theme.js"
+import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
+import { CalendarDesktopToolbar } from "./CalendarDesktopToolbar.js"
 
 export type GroupColors = Map<Id, string>
 
 export interface CalendarViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
-	header: BaseHeaderAttrs
+	header: AppHeaderAttrs
 	calendarViewModel: CalendarViewModel
 }
 
@@ -82,7 +85,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		this.sidebarColumn = new ViewColumn(
 			{
 				view: () =>
-					// FIXME somewhere here buttons are still bold
 					m(FolderColumnView, {
 						drawer: vnode.attrs.drawerAttrs,
 						button: styles.isUsingBottomNavigation()
@@ -168,100 +170,99 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 					switch (this.currentViewType) {
 						case CalendarViewType.MONTH:
-							return m(CalendarMonthView, {
-								temporaryEvents: this.viewModel.temporaryEvents,
-								eventsForDays: this.viewModel.eventsForDays,
-								getEventsOnDays: this.viewModel.getEventsOnDays.bind(this.viewModel),
-								onEventClicked: (calendarEvent, domEvent) => this._onEventSelected(calendarEvent, domEvent, this.htmlSanitizer),
-								onNewEvent: (date) => {
-									this._createNewEventDialog(date)
-								},
-								selectedDate: this.viewModel.selectedDate(),
-								onDateSelected: (date, calendarViewType) => {
-									this._setUrl(calendarViewType, date)
-								},
-								onChangeMonth: (next) => this._viewPeriod(next, CalendarViewType.MONTH),
-								amPmFormat: locator.logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS,
-								startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
-								groupColors,
-								hiddenCalendars: this.viewModel.hiddenCalendars,
-								dragHandlerCallbacks: this.viewModel,
+							return m(BackgroundColumnLayout, {
+								backgroundColor: theme.navigation_bg,
+								desktopToolbar: () => this.renderDesktopToolbar(),
+								mobileHeader: () => this.renderMobileHeader(vnode.attrs.header),
+								columnLayout: m(CalendarMonthView, {
+									temporaryEvents: this.viewModel.temporaryEvents,
+									eventsForDays: this.viewModel.eventsForDays,
+									getEventsOnDays: this.viewModel.getEventsOnDays.bind(this.viewModel),
+									onEventClicked: (calendarEvent, domEvent) => this._onEventSelected(calendarEvent, domEvent, this.htmlSanitizer),
+									onNewEvent: (date) => {
+										this._createNewEventDialog(date)
+									},
+									selectedDate: this.viewModel.selectedDate(),
+									onDateSelected: (date, calendarViewType) => {
+										this._setUrl(calendarViewType, date)
+									},
+									onChangeMonth: (next) => this._viewPeriod(CalendarViewType.MONTH, next),
+									amPmFormat: locator.logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS,
+									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
+									groupColors,
+									hiddenCalendars: this.viewModel.hiddenCalendars,
+									dragHandlerCallbacks: this.viewModel,
+								}),
 							})
-
 						case CalendarViewType.DAY:
-							return m(MultiDayCalendarView, {
-								temporaryEvents: this.viewModel.temporaryEvents,
-								getEventsOnDays: this.viewModel.getEventsOnDays.bind(this.viewModel),
-								renderHeaderText: formatDateWithWeekdayAndYearLong,
-								daysInPeriod: 1,
-								onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this.htmlSanitizer),
-								onNewEvent: (date) => {
-									this._createNewEventDialog(date)
-								},
-								selectedDate: this.viewModel.selectedDate(),
-								onDateSelected: (date) => {
-									this.viewModel.selectedDate(date)
+							return m(BackgroundColumnLayout, {
+								backgroundColor: theme.navigation_bg,
+								desktopToolbar: () => this.renderDesktopToolbar(),
+								mobileHeader: () => this.renderMobileHeader(vnode.attrs.header),
+								columnLayout: m(MultiDayCalendarView, {
+									temporaryEvents: this.viewModel.temporaryEvents,
+									getEventsOnDays: this.viewModel.getEventsOnDays.bind(this.viewModel),
+									daysInPeriod: 1,
+									onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this.htmlSanitizer),
+									onNewEvent: (date) => {
+										this._createNewEventDialog(date)
+									},
+									selectedDate: this.viewModel.selectedDate(),
+									onDateSelected: (date) => {
+										this.viewModel.selectedDate(date)
 
-									m.redraw()
+										m.redraw()
 
-									this._setUrl(CalendarViewType.DAY, date)
-								},
-								groupColors,
-								hiddenCalendars: this.viewModel.hiddenCalendars,
-								onChangeViewPeriod: (next) => this._viewPeriod(next, CalendarViewType.DAY),
-								startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
-								dragHandlerCallbacks: this.viewModel,
+										this._setUrl(CalendarViewType.DAY, date)
+									},
+									groupColors,
+									hiddenCalendars: this.viewModel.hiddenCalendars,
+									onChangeViewPeriod: (next) => this._viewPeriod(CalendarViewType.DAY, next),
+									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
+									dragHandlerCallbacks: this.viewModel,
+								}),
 							})
 
 						case CalendarViewType.WEEK:
-							return m(MultiDayCalendarView, {
-								temporaryEvents: this.viewModel.temporaryEvents,
-								getEventsOnDays: this.viewModel.getEventsOnDays.bind(this.viewModel),
-								daysInPeriod: 7,
-								renderHeaderText: (date) => {
-									const startOfTheWeekOffset = getStartOfTheWeekOffset(
-										downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
-									)
-									const firstDate = getStartOfWeek(date, startOfTheWeekOffset)
-									const lastDate = incrementDate(new Date(firstDate), 6)
-
-									if (firstDate.getMonth() !== lastDate.getMonth()) {
-										if (firstDate.getFullYear() !== lastDate.getFullYear()) {
-											return `${lang.formats.monthLong.format(firstDate)} ${lang.formats.yearNumeric.format(firstDate)} -
-											${lang.formats.monthLong.format(lastDate)} ${lang.formats.yearNumeric.format(lastDate)}`
-										}
-										return `${lang.formats.monthLong.format(firstDate)} - ${lang.formats.monthLong.format(
-											lastDate,
-										)} ${lang.formats.yearNumeric.format(firstDate)}`
-									} else {
-										return `${lang.formats.monthLong.format(firstDate)} ${lang.formats.yearNumeric.format(firstDate)}`
-									}
-								},
-								onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this.htmlSanitizer),
-								onNewEvent: (date) => {
-									this._createNewEventDialog(date)
-								},
-								selectedDate: this.viewModel.selectedDate(),
-								onDateSelected: (date, viewType) => {
-									this._setUrl(viewType ?? CalendarViewType.WEEK, date)
-								},
-								startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
-								groupColors,
-								hiddenCalendars: this.viewModel.hiddenCalendars,
-								onChangeViewPeriod: (next) => this._viewPeriod(next, CalendarViewType.WEEK),
-								dragHandlerCallbacks: this.viewModel,
+							return m(BackgroundColumnLayout, {
+								backgroundColor: theme.navigation_bg,
+								desktopToolbar: () => this.renderDesktopToolbar(),
+								mobileHeader: () => this.renderMobileHeader(vnode.attrs.header),
+								columnLayout: m(MultiDayCalendarView, {
+									temporaryEvents: this.viewModel.temporaryEvents,
+									getEventsOnDays: this.viewModel.getEventsOnDays.bind(this.viewModel),
+									daysInPeriod: 7,
+									onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this.htmlSanitizer),
+									onNewEvent: (date) => {
+										this._createNewEventDialog(date)
+									},
+									selectedDate: this.viewModel.selectedDate(),
+									onDateSelected: (date, viewType) => {
+										this._setUrl(viewType ?? CalendarViewType.WEEK, date)
+									},
+									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
+									groupColors,
+									hiddenCalendars: this.viewModel.hiddenCalendars,
+									onChangeViewPeriod: (next) => this._viewPeriod(CalendarViewType.WEEK, next),
+									dragHandlerCallbacks: this.viewModel,
+								}),
 							})
 
 						case CalendarViewType.AGENDA:
-							return m(CalendarAgendaView, {
-								eventsForDays: this.viewModel.eventsForDays,
-								amPmFormat: shouldDefaultToAmPmTimeFormat(),
-								onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this.htmlSanitizer),
-								groupColors,
-								hiddenCalendars: this.viewModel.hiddenCalendars,
-								onDateSelected: (date) => {
-									this._setUrl(CalendarViewType.DAY, date)
-								},
+							return m(BackgroundColumnLayout, {
+								backgroundColor: theme.navigation_bg,
+								desktopToolbar: () => this.renderDesktopToolbar(),
+								mobileHeader: () => this.renderMobileHeader(vnode.attrs.header),
+								columnLayout: m(CalendarAgendaView, {
+									eventsForDays: this.viewModel.eventsForDays,
+									amPmFormat: shouldDefaultToAmPmTimeFormat(),
+									onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this.htmlSanitizer),
+									groupColors,
+									hiddenCalendars: this.viewModel.hiddenCalendars,
+									onDateSelected: (date) => {
+										this._setUrl(CalendarViewType.DAY, date)
+									},
+								}),
 							})
 
 						default:
@@ -272,27 +273,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			ColumnType.Background,
 			size.second_col_min_width + size.third_col_min_width,
 			size.third_col_max_width,
-			() => {
-				const left = (title: TranslationKey) => renderCalendarSwitchLeftButton(title, () => this._viewPeriod(false, this.currentViewType))
-
-				const right = (title: TranslationKey) => renderCalendarSwitchRightButton(title, () => this._viewPeriod(true, this.currentViewType))
-
-				return {
-					[CalendarViewType.DAY]: {
-						left: left("prevDay_label"),
-						middle: formatDateWithWeekday(this.viewModel.selectedDate()),
-						right: right("nextDay_label"),
-					},
-					// week view doesn't exist on mobile so we don't bother making buttons/title
-					[CalendarViewType.WEEK]: "",
-					[CalendarViewType.MONTH]: {
-						left: left("prevMonth_label"),
-						middle: formatMonthWithFullYear(this.viewModel.selectedDate()),
-						right: right("nextMonth_label"),
-					},
-					[CalendarViewType.AGENDA]: lang.get("agenda_label"),
-				}[this.currentViewType]
-			},
 		)
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
 
@@ -317,6 +297,26 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				listener.end(true)
 			}
 		}
+	}
+
+	private renderDesktopToolbar(): Children {
+		const navConfig = calendarNavConfiguration(this.currentViewType, this.viewModel.selectedDate(), this.viewModel.weekStart, (viewType, next) =>
+			this._viewPeriod(viewType, next),
+		)
+		return m(CalendarDesktopToolbar, { navConfig })
+	}
+
+	private renderMobileHeader(header: AppHeaderAttrs) {
+		return m(CalendarMobileHeader, {
+			...header,
+			viewType: this.currentViewType,
+			viewSlider: this.viewSlider,
+			navConfiguration: calendarNavConfiguration(this.currentViewType, this.viewModel.selectedDate(), this.viewModel.weekStart, (viewType, next) =>
+				this._viewPeriod(viewType, next),
+			),
+			onCreateEvent: () => this._createNewEventDialog(),
+			onBack: () => this.handleBackButton(),
+		})
 	}
 
 	_setupShortcuts(): Shortcut[] {
@@ -344,13 +344,13 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			{
 				key: Keys.J,
 				enabled: () => this.currentViewType !== CalendarViewType.AGENDA,
-				exec: () => this._viewPeriod(true, this.currentViewType),
+				exec: () => this._viewPeriod(this.currentViewType, true),
 				help: "viewNextPeriod_action",
 			},
 			{
 				key: Keys.K,
 				enabled: () => this.currentViewType !== CalendarViewType.AGENDA,
-				exec: () => this._viewPeriod(false, this.currentViewType),
+				exec: () => this._viewPeriod(this.currentViewType, false),
 				help: "viewPrevPeriod_action",
 			},
 			{
@@ -401,7 +401,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		})
 	}
 
-	_viewPeriod(next: boolean, viewType: CalendarViewType) {
+	_viewPeriod(viewType: CalendarViewType, next: boolean) {
 		let duration
 		let unit: "day" | "week" | "month"
 
@@ -497,16 +497,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				),
 			),
 		)
-	}
-
-	private renderHeaderRightView(): Children {
-		return m(Button, {
-			label: "newEvent_action",
-			click: () => this._createNewEventDialog(),
-			icon: () => Icons.Add,
-			type: ButtonType.Action,
-			colors: ButtonColor.Header,
-		})
 	}
 
 	handleBackButton(): boolean {
@@ -733,19 +723,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			".main-view",
 			m(this.viewSlider, {
 				header: m(Header, {
-					viewSlider: this.viewSlider,
-					overrideBackIcon: this.getHeaderBackIcon(),
-					rightView: this.renderHeaderRightView(),
 					handleBackPress: () => this.handleBackButton(),
 					...attrs.header,
 				}),
 				bottomNav: m(BottomNav),
 			}),
 		)
-	}
-
-	private getHeaderBackIcon(): NonNullable<HeaderAttrs["overrideBackIcon"]> {
-		return this.currentViewType === CalendarViewType.WEEK || this.currentViewType === CalendarViewType.DAY ? "back" : "menu"
 	}
 
 	onNewUrl(args: Record<string, any>) {

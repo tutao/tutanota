@@ -14,12 +14,13 @@ import { MailFolderType, MailReportType } from "../../api/common/TutanotaConstan
 import { getElementId, getListId } from "../../api/common/utils/EntityUtils"
 import { reportMailsAutomatically } from "./MailReportDialog"
 import { DataFile } from "../../api/common/DataFile"
-import { TranslationKey } from "../../misc/LanguageViewModel"
+import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { FileController } from "../../file/FileController"
 import { DomRectReadOnlyPolyfilled, Dropdown, PosRect } from "../../gui/base/Dropdown.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { modal } from "../../gui/base/Modal.js"
 import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
+import { ConversationViewModel } from "./ConversationViewModel.js"
 
 export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
 	let trashMails: Mail[] = []
@@ -304,7 +305,7 @@ export function getReferencedAttachments(attachments: Array<TutanotaFile>, refer
 export async function showMoveMailsDropdown(
 	model: MailModel,
 	origin: PosRect,
-	mails: Mail[],
+	mails: readonly Mail[],
 	opts?: { width?: number; withBackground?: boolean; onSelected?: () => unknown },
 ): Promise<void> {
 	const { width = 300, withBackground = false, onSelected = noOp } = opts ?? {}
@@ -324,4 +325,16 @@ export async function showMoveMailsDropdown(
 
 	dropdown.setOrigin(new DomRectReadOnlyPolyfilled(origin.left, origin.top, origin.width, origin.height))
 	modal.displayUnique(dropdown, withBackground)
+}
+
+export function getConversationTitle(conversationViewModel: ConversationViewModel): string {
+	if (!conversationViewModel.isFinished()) {
+		return lang.get("loading_msg")
+	}
+	const numberOfEmails = conversationViewModel.conversationItems().length
+	if (numberOfEmails === 1) {
+		return lang.get("oneEmail_label")
+	} else {
+		return lang.get("nbrOrEmails_label", { "{number}": numberOfEmails })
+	}
 }

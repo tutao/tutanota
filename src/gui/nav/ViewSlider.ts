@@ -106,7 +106,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 					},
 				},
 				[
-					attrs.header,
+					styles.isUsingBottomNavigation() ? null : attrs.header,
 					m(
 						".view-columns.flex-grow.rel",
 						{
@@ -379,9 +379,11 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		return this.getPreviousColumn() != null
 	}
 
-	focusPreviousColumn() {
+	focusPreviousColumn(): Promise<unknown> {
 		if (this.isFocusPreviousPossible()) {
-			this.focus(neverNull(this.getPreviousColumn()))
+			return this.focus(neverNull(this.getPreviousColumn()))
+		} else {
+			return Promise.resolve()
 		}
 	}
 

@@ -6,10 +6,19 @@ import { getSenderOrRecipientHeading, isTutanotaTeamMail } from "../model/MailUt
 import { locator } from "../../api/main/MainLocator"
 import m, { Children } from "mithril"
 import Badge from "../../gui/base/Badge"
-import { px } from "../../gui/size"
 import type { VirtualRow } from "../../gui/base/List"
-import { checkboxOpacity, SelectableRowContainer, setSelectedRowStyle, setVisibility } from "../../gui/SelectableRowContainer.js"
-import { styles } from "../../gui/styles.js"
+import {
+	checkboxOpacity,
+	scaleXHide,
+	scaleXShow,
+	selectableRowAnimParams,
+	SelectableRowContainer,
+	SelectableRowSelectedSetter,
+	setVisibility,
+	shouldAlwaysShowMultiselectCheckbox,
+} from "../../gui/SelectableRowContainer.js"
+import { px, size } from "../../gui/size.js"
+import { NBSP, noOp } from "@tutao/tutanota-utils"
 
 const iconMap: Record<MailFolderType, string> = {
 	[MailFolderType.CUSTOM]: FontIcons.Folder,
@@ -20,6 +29,12 @@ const iconMap: Record<MailFolderType, string> = {
 	[MailFolderType.SPAM]: FontIcons.Spam,
 	[MailFolderType.DRAFT]: FontIcons.Draft,
 }
+
+export const MAIL_ROW_V_MARGIN = 3
+
+const shiftByForCheckbox = px(10)
+const translateXHide = "translateX(0)"
+const translateXShow = `translateX(${shiftByForCheckbox})`
 
 export class MailRow implements VirtualRow<Mail> {
 	top: number
@@ -33,8 +48,9 @@ export class MailRow implements VirtualRow<Mail> {
 	private unreadDom!: HTMLElement
 	private folderIconsDom: Record<MailFolderType, HTMLElement>
 	private teamLabelDom!: HTMLElement
-	private innerContainerDom!: HTMLElement
 	private checkboxDom!: HTMLInputElement
+	private checkboxWasVisible = shouldAlwaysShowMultiselectCheckbox()
+	private selectionSetter!: SelectableRowSelectedSetter
 
 	constructor(private readonly showFolderIcon: boolean, private readonly onSelected: (mail: Mail, selected: boolean) => unknown) {
 		this.top = 0
@@ -47,13 +63,13 @@ export class MailRow implements VirtualRow<Mail> {
 			return
 		}
 
-		setSelectedRowStyle(this.innerContainerDom, styles.isSingleColumnLayout() ? isInMultiSelect && selected : selected)
+		this.selectionSetter(selected, isInMultiSelect)
 		this.checkboxDom.checked = isInMultiSelect && selected
 
 		this.iconsDom.textContent = this.iconsText(mail)
 		this.dateDom.textContent = formatTimeOrDateOrYesterday(mail.receivedDate)
 		this.senderDom.textContent = getSenderOrRecipientHeading(mail, true)
-		this.subjectDom.textContent = mail.subject
+		this.subjectDom.textContent = mail.subject || NBSP
 
 		if (mail.unread) {
 			this.unreadDom.classList.remove("hidden")
@@ -68,17 +84,86 @@ export class MailRow implements VirtualRow<Mail> {
 		}
 
 		setVisibility(this.teamLabelDom, isTutanotaTeamMail(mail))
-		this.updateCheckboxVisibility()
+		this.showCheckboxAnimated(shouldAlwaysShowMultiselectCheckbox() || isInMultiSelect)
 
 		checkboxOpacity(this.checkboxDom, selected)
 	}
 
-	private updateCheckboxVisibility() {
-		if (styles.isSingleColumnLayout()) {
-			this.checkboxDom.style.display = "none"
+	private showCheckboxAnimated(show: boolean) {
+		// this causes a slide animation where checkbox pops up and the text is shifted to make space for it.
+		// we can't animate the width of the checkbox as it causes the layout shifts and is very slow so instead we change the padding of the text elements in
+		// a single step and then shift them in an animation. The effect is almost the same as if we would expand/shrink the checkbox.
+		// using requestAnimationFrame() because when we toggle it some elements might not be there yet. Could also for the end of the event loop too.
+		// using web animations to be able to cancel them easily. Could probably use transition and listen for the end instead but it would be harder to
+		// do the bookkeeping.
+		// using noOp to catch rejection when the animation is cancelled
+		const shouldShowCheckbox = show
+		if (this.checkboxWasVisible === shouldShowCheckbox) return
+
+		if (shouldShowCheckbox) {
+			this.senderDom.style.paddingRight = shiftByForCheckbox
+			this.subjectDom.style.paddingRight = shiftByForCheckbox
+
+			const showTranslateTransform = { transform: [translateXHide, translateXShow] }
+			const senderAnim = this.senderDom.animate(showTranslateTransform, selectableRowAnimParams)
+			const subjectAnim = this.subjectDom.animate(showTranslateTransform, selectableRowAnimParams)
+			const badgeAnim = this.teamLabelDom.animate(showTranslateTransform, selectableRowAnimParams)
+			const checkboxAnim = this.checkboxDom.animate({ transform: [scaleXHide, scaleXShow] }, selectableRowAnimParams)
+
+			Promise.all([senderAnim.finished, subjectAnim.finished, checkboxAnim.finished]).then(() => {
+				this.showCheckbox(true)
+
+				senderAnim.cancel()
+				subjectAnim.cancel()
+				badgeAnim.cancel()
+				checkboxAnim.cancel()
+			}, noOp)
 		} else {
-			this.checkboxDom.style.display = ""
+			this.senderDom.style.paddingRight = "0"
+			this.subjectDom.style.paddingRight = "0"
+
+			const hideTranslateTransform = { transform: [translateXShow, translateXHide] }
+			const senderAnim = this.senderDom.animate(hideTranslateTransform, selectableRowAnimParams)
+			const subjectAnim = this.subjectDom.animate(hideTranslateTransform, selectableRowAnimParams)
+			const badgeAnim = this.teamLabelDom.animate(hideTranslateTransform, selectableRowAnimParams)
+			const checkboxAnim = this.checkboxDom.animate({ transform: [scaleXShow, scaleXHide] }, selectableRowAnimParams)
+
+			Promise.all([senderAnim.finished, subjectAnim.finished, checkboxAnim.finished]).then(() => {
+				this.showCheckbox(false)
+
+				senderAnim.cancel()
+				subjectAnim.cancel()
+				badgeAnim.cancel()
+				checkboxAnim.cancel()
+			}, noOp)
 		}
+		this.checkboxWasVisible = shouldShowCheckbox
+	}
+
+	private showCheckbox(show: boolean) {
+		let translate
+		let scale
+		let padding
+		if (show) {
+			translate = translateXShow
+			scale = scaleXShow
+			padding = shiftByForCheckbox
+		} else {
+			translate = translateXHide
+			scale = scaleXHide
+			padding = "0"
+		}
+		this.senderDom.style.transform = translate
+		this.subjectDom.style.transform = translate
+		this.teamLabelDom.style.transform = translate
+		this.checkboxDom.style.transform = scale
+
+		this.senderDom.style.paddingRight = padding
+		this.subjectDom.style.paddingRight = padding
+
+		// we effectively remove it from interaction
+		this.checkboxDom.disabled = !show
+		this.checkboxDom.tabIndex = show ? 0 : -1
 	}
 
 	/**
@@ -88,17 +173,23 @@ export class MailRow implements VirtualRow<Mail> {
 		return m(
 			SelectableRowContainer,
 			{
-				oncreate: (vnode) => {
-					this.innerContainerDom = vnode.dom as HTMLElement
+				onSelectedChangeRef: (changer) => {
+					this.selectionSetter = changer
+				},
+				oncreate: () => {
+					// doing it right away to avoid visual glitch of it appearing/disappearing
+					// but doing it at the end of the event loop because we touch other DOM elements too which might not be there yet
+					Promise.resolve().then(() => this.showCheckbox(shouldAlwaysShowMultiselectCheckbox()))
 				},
 			},
 			[
 				m(
-					".flex.col.items-center.flex-no-grow.no-shrink.pr.pt-xs",
+					".flex.col.items-center.flex-no-grow.no-shrink.pt-xs.abs",
 					m("input.checkbox.list-checkbox", {
 						type: "checkbox",
 						style: {
 							marginBottom: "7px",
+							transformOrigin: "left",
 						},
 						onclick: (e: MouseEvent) => {
 							e.stopPropagation()
@@ -109,46 +200,52 @@ export class MailRow implements VirtualRow<Mail> {
 						},
 						oncreate: (vnode) => {
 							this.checkboxDom = vnode.dom as HTMLInputElement
-							// doing it right away to avoid visual glitch of it appearing/disappearing
-							this.updateCheckboxVisibility()
 							checkboxOpacity(this.checkboxDom, false)
 						},
 					}),
 					m(".dot.bg-accent-fg.hidden", {
 						style: {
-							marginTop: "3px",
+							marginTop: px(MAIL_ROW_V_MARGIN),
 						},
 						oncreate: (vnode) => (this.unreadDom = vnode.dom as HTMLElement),
 					}),
 				),
-				m(".flex-grow.min-width-0", [
-					m(".flex.badge-line-height", [
-						m(
-							Badge,
-							{
-								classes: ".small.mr-s",
-								oncreate: (vnode) => (this.teamLabelDom = vnode.dom as HTMLElement),
-							},
-							"Tutanota Team",
-						),
-						m(".text-ellipsis", {
-							oncreate: (vnode) => (this.senderDom = vnode.dom as HTMLElement),
-						}),
-						m(".flex-grow"),
-						m("small.text-ellipsis.flex-fixed", {
-							oncreate: (vnode) => (this.dateDom = vnode.dom as HTMLElement),
-						}),
-					]),
-					m(".flex.mt-xxs", [
-						m(".smaller.text-ellipsis", {
-							oncreate: (vnode) => (this.subjectDom = vnode.dom as HTMLElement),
-						}),
-						m(".flex-grow"),
-						m("span.ion.ml-s.list-font-icons", {
-							oncreate: (vnode) => (this.iconsDom = vnode.dom as HTMLElement),
-						}),
-					]),
-				]),
+				m(
+					".flex-grow.min-width-0",
+					{
+						style: {
+							marginLeft: px(size.checkbox_size + size.vpad_xs),
+						},
+					},
+					[
+						m(".flex.badge-line-height", [
+							m(
+								Badge,
+								{
+									classes: ".small.mr-s",
+									oncreate: (vnode) => (this.teamLabelDom = vnode.dom as HTMLElement),
+								},
+								"Tutanota Team",
+							),
+							m(".text-ellipsis", {
+								oncreate: (vnode) => (this.senderDom = vnode.dom as HTMLElement),
+							}),
+							m(".flex-grow"),
+							m("small.text-ellipsis.flex-fixed", {
+								oncreate: (vnode) => (this.dateDom = vnode.dom as HTMLElement),
+							}),
+						]),
+						m(".flex.mt-xxs", [
+							m(".smaller.text-ellipsis", {
+								oncreate: (vnode) => (this.subjectDom = vnode.dom as HTMLElement),
+							}),
+							m(".flex-grow"),
+							m("span.ion.ml-s.list-font-icons", {
+								oncreate: (vnode) => (this.iconsDom = vnode.dom as HTMLElement),
+							}),
+						]),
+					],
+				),
 			],
 		)
 	}

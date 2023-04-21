@@ -45,7 +45,7 @@ export class FolderColumnView implements Component<Attrs> {
 		return attrs.button
 			? attrs.button.type === ButtonType.FolderColumnHeader
 				? m(
-						".plr-button-double.mt.mb",
+						".plr-button-double",
 						m(FolderColumnHeaderButton, {
 							label: attrs.button.label,
 							click: attrs.button.click,

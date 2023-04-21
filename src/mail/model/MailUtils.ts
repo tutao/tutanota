@@ -264,21 +264,6 @@ export interface ImageHandler {
 	insertImage(srcAttr: string, attrs?: Record<string, string>): HTMLElement
 }
 
-export async function markMails(entityClient: EntityClient, mails: Mail[], unread: boolean): Promise<void> {
-	await promiseMap(
-		mails,
-		async (mail) => {
-			if (mail.unread !== unread) {
-				mail.unread = unread
-				return entityClient.update(mail).catch(ofClass(NotFoundError, noOp)).catch(ofClass(LockedError, noOp))
-			} else {
-				return Promise.resolve()
-			}
-		},
-		{ concurrency: 5 },
-	)
-}
-
 /**
  * Check if all mails in the selection are drafts. If there are mixed drafts and non-drafts or the array is empty, return true.
  * @param mails
@@ -379,7 +364,7 @@ export enum RecipientField {
 
 export type FolderInfo = { level: number; folder: MailFolder }
 
-export async function getMoveTargetFolderSystems(model: MailModel, mails: Mail[]): Promise<Array<FolderInfo>> {
+export async function getMoveTargetFolderSystems(model: MailModel, mails: readonly Mail[]): Promise<Array<FolderInfo>> {
 	const firstMail = first(mails)
 	if (firstMail == null) return []
 

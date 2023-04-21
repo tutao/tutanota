@@ -46,11 +46,11 @@ export class ProgressBar implements Component<ProgressBarAttrs> {
 					}, 500)
 				}),
 			style: {
-				bottom: 0,
+				top: 0,
 				left: 0,
 				transition: "width 500ms",
 				width: a.progress * 100 + "%",
-				height: "3px",
+				height: "2px",
 			},
 		})
 	}

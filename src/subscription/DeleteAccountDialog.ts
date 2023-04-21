@@ -52,7 +52,7 @@ export function showDeleteAccountDialog() {
 }
 
 function deleteAccount(reason: string, takeover: string, password: string): Promise<boolean> {
-	let cleanedTakeover = takeover === "" ? "" : getCleanedMailAddress(takeover)
+	const cleanedTakeover = takeover === "" ? "" : getCleanedMailAddress(takeover)
 
 	if (cleanedTakeover === null) {
 		return Dialog.message("mailAddressInvalid_msg").then(() => false)

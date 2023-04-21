@@ -23,7 +23,7 @@ import { assertMainOrNode } from "../api/common/Env.js"
 import { locator } from "../api/main/MainLocator.js"
 import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs.js"
 import * as AddUserDialog from "./AddUserDialog.js"
-import { SelectableRowContainer, setSelectedRowStyle, setVisibility } from "../gui/SelectableRowContainer.js"
+import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } from "../gui/SelectableRowContainer.js"
 import Stream from "mithril/stream"
 
 assertMainOrNode()
@@ -222,7 +222,7 @@ export class UserRow implements VirtualRow<GroupInfo> {
 	private addressDom!: HTMLElement
 	private adminIconDom!: HTMLElement
 	private deletedIconDom!: HTMLElement
-	private innerContainerDom!: HTMLElement
+	private selectionUpdater!: SelectableRowSelectedSetter
 
 	constructor(private readonly isAdmin: (groupInfo: GroupInfo) => boolean) {}
 
@@ -231,7 +231,7 @@ export class UserRow implements VirtualRow<GroupInfo> {
 			return
 		}
 
-		setSelectedRowStyle(this.innerContainerDom, selected)
+		this.selectionUpdater(selected, false)
 
 		this.nameDom.textContent = groupInfo.name
 		this.addressDom.textContent = groupInfo.mailAddress ? groupInfo.mailAddress : ""
@@ -247,9 +247,7 @@ export class UserRow implements VirtualRow<GroupInfo> {
 		return m(
 			SelectableRowContainer,
 			{
-				oncreate: (vnode) => {
-					this.innerContainerDom = vnode.dom as HTMLElement
-				},
+				onSelectedChangeRef: (updater) => (this.selectionUpdater = updater),
 			},
 			m(".flex.col.flex-grow", [
 				m(".badge-line-height", [

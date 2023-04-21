@@ -51,22 +51,30 @@ export class IconMessageBox implements Component<Attrs> {
 export default class ColumnEmptyMessageBox implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
 		return m(
-			".fill-absolute.flex.col.items-center.justify-center",
+			".fill-absolute.flex.col.items-center.justify-center.overflow-hidden",
 			{
 				style: {
-					"margin-top": px(attrs.icon ? -size.icon_message_box - size.vpad_xl : -size.vpad_xl),
 					backgroundColor: attrs?.backgroundColor,
 				},
 			},
-			// If we pass plain attrs all lifecycle callbacks we attach from the outside will be called twice, once on the wrong element.
-			[
-				m(IconMessageBox, {
-					message: attrs.message,
-					icon: attrs.icon,
-					color: attrs.color,
-				}),
-				attrs.bottomContent ?? m(".button-height"),
-			],
+			m(
+				".flex.col.items-center",
+				{
+					style: {
+						// move up *only* this element, not the whole .fill-absolute parent to not overflow into the items above us
+						"margin-top": px(attrs.icon ? -size.icon_message_box - size.vpad_xl : -size.vpad_xl),
+					},
+				},
+				[
+					// If we pass plain attrs all lifecycle callbacks we attach from the outside will be called twice, once on the wrong element.
+					m(IconMessageBox, {
+						message: attrs.message,
+						icon: attrs.icon,
+						color: attrs.color,
+					}),
+					attrs.bottomContent ?? m(".button-height"),
+				],
+			),
 		)
 	}
 }

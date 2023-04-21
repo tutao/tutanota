@@ -36,13 +36,10 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		}
 
 		return m(
-			".bottom-nav.bottom-action-bar.flex.items-center.plr-l",
+			".bottom-nav.bottom-action-bar.flex.items-center.plr-l.justify-between",
 			{
 				oncreate: (vnode) => {
 					this.dom = vnode.dom as HTMLElement
-				},
-				style: {
-					justifyContent: "space-between",
 				},
 			},
 			[actions],
