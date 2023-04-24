@@ -2,7 +2,6 @@
 import { BigInteger, parseBigInt, RSAKey } from "../internal/crypto-jsbn-2012-08-09_1.js"
 import type { Base64, Hex } from "@tutao/tutanota-utils"
 import { base64ToHex, base64ToUint8Array, concat, int8ArrayToBase64, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
-import { random } from "../random/Randomizer.js"
 import type { PrivateKey, PublicKey, RsaKeyPair } from "./RsaKeyPair.js"
 import { CryptoError } from "../misc/CryptoError.js"
 import { sha256Hash } from "../hashes/Sha256.js"

@@ -12,6 +12,10 @@ export const dependencyMap = {
 	linkifyjs: path.normalize("./libs/linkify.js"),
 	"linkifyjs/html": path.normalize("./libs/linkify-html.js"),
 	cborg: path.normalize("./libs/cborg.js"),
+	// belaw this, the modules are only running in the desktop main thread.
+	"electron-updater": path.normalize("./libs/electron-updater.mjs"),
+	"better-sqlite3": path.normalize("./libs/better-sqlite3.mjs"),
+	keytar: path.normalize("./libs/keytar.mjs"),
 }
 
 /**
@@ -60,12 +64,15 @@ export const allowedImports = {
 	linkify: [],
 }
 
+/** resolves certain imports to vendored libraries for the dist build */
 export function resolveLibs(baseDir = ".") {
 	return {
 		name: "resolve-libs",
 		resolveId(source) {
-			const resolved = dependencyMap[source]
-			return resolved && path.join(baseDir, resolved)
+			const value = dependencyMap[source]
+			if (!value) return null
+			const id = path.join(baseDir, value)
+			return { id, resolvedBy: this.name }
 		},
 	}
 }

@@ -1,18 +1,16 @@
 import { resolveLibs } from "./RollupConfig.js"
-import { nativeDepWorkaroundPlugin } from "./RollupPlugins.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import fs from "node:fs"
 import path, { dirname } from "node:path"
 import { rollup } from "rollup"
 import terser from "@rollup/plugin-terser"
-import commonjs from "@rollup/plugin-commonjs"
 import electronBuilder from "electron-builder"
 import generatePackageJson from "./electron-package-json-template.js"
 import { create as createEnv, preludeEnvPlugin } from "./env.js"
 import cp from "node:child_process"
 import util from "node:util"
 import typescript from "@rollup/plugin-typescript"
-import { keytarNativePlugin, sqliteNativeBannerPlugin } from "./nativeLibraryRollupPlugin.js"
+import { copyNativeModulePlugin, nativeBannerPlugin } from "./nativeLibraryRollupPlugin.js"
 import { fileURLToPath } from "node:url"
 import { getCanonicalPlatformName } from "./buildUtils.js"
 
@@ -103,8 +101,8 @@ export async function buildDesktop({ dirname, version, platform, updateUrl, name
 			.map((file) => fs.promises.rename(path.join(distDir, "/installers/", file), path.join(outDir, file))),
 	)
 	await Promise.all([
-		fs.promises.rm(path.join(distDir, "/installers/"), { recursive: true }),
-		fs.promises.rm(path.join(distDir, "/node_modules/"), { recursive: true }),
+		fs.promises.rm(path.join(distDir, "/installers/"), { recursive: true, force: true }),
+		fs.promises.rm(path.join(distDir, "/node_modules/"), { recursive: true, force: true }),
 		fs.promises.unlink(path.join(distDir, "/package.json")),
 		fs.promises.unlink(path.join(distDir, "/package-lock.json")),
 	])
@@ -116,38 +114,39 @@ async function rollupDesktop(dirname, outDir, version, platform, disableMinify) 
 		input: path.join(dirname, "src/desktop/DesktopMain.ts"),
 		// some transitive dep of a transitive dev-dep requires https://www.npmjs.com/package/url
 		// which rollup for some reason won't distinguish from the node builtin.
-		external: ["url", "util", "path", "fs", "os", "http", "https", "crypto", "child_process", "electron-updater"],
+		external: ["url", "util", "path", "fs", "os", "http", "https", "crypto", "child_process", "electron"],
 		preserveEntrySignatures: false,
 		plugins: [
+			copyNativeModulePlugin({
+				rootDir: projectRoot,
+				dstPath: "./build/dist/desktop/",
+				platform,
+				nodeModule: "better-sqlite3",
+			}),
+			copyNativeModulePlugin({
+				rootDir: projectRoot,
+				dstPath: "./build/dist/desktop/",
+				platform,
+				nodeModule: "keytar",
+			}),
 			typescript({
 				tsconfig: "tsconfig.json",
 				outDir,
 			}),
 			resolveLibs(),
-			nativeDepWorkaroundPlugin(),
-			keytarNativePlugin({
-				rootDir: projectRoot,
-				platform,
-			}),
-			nodeResolve({ preferBuiltins: true }),
-			// requireReturnsDefault: "preferred" is needed in order to correclty generate a wrapper for the native keytar module
-			commonjs({
-				exclude: "src/**",
-				requireReturnsDefault: "preferred",
-				ignoreDynamicRequires: true,
+			nodeResolve({
+				preferBuiltins: true,
+				resolveOnly: [/^@tutao\/.*$/],
 			}),
 			disableMinify ? undefined : terser(),
 			preludeEnvPlugin(createEnv({ staticUrl: null, version, mode: "Desktop", dist: true })),
-			sqliteNativeBannerPlugin({
-				environment: "electron",
-				rootDir: projectRoot,
-				dstPath: "./build/dist/desktop/better_sqlite3.node",
+			nativeBannerPlugin({
 				// Relative to the source file from which the .node file is loaded.
 				// In our case it will be desktop/DesktopMain.js, which is located in the same directory.
 				// This depends on the changes we made in our own fork of better_sqlite3.
 				// It's okay to use forward slash here, it is passed to require which can deal with it.
-				nativeBindingPath: "./better_sqlite3.node",
-				platform,
+				keytar: "./keytar.node",
+				"better-sqlite3": "./better-sqlite3.node",
 			}),
 		],
 	})

@@ -38,6 +38,23 @@ export async function runTestBuild({ clean, fast = false }) {
 	})
 	await runStep("Esbuild", async () => {
 		await esbuild({
+			// this is here because the test build targets esm and esbuild
+			// does not support dynamic requires, which better-sqlite3 uses
+			// to load the native module.
+			banner: {
+				js: `
+				let require, __filename, __dirname = null
+
+					if (typeof process !== "undefined") {
+						const path = await import("node:path")
+						const {fileURLToPath} = await import("node:url")
+						const {createRequire} = await import("node:module")
+						require = createRequire(import.meta.url)
+						__filename = fileURLToPath(import.meta.url);
+						__dirname = path.dirname(__filename);
+					}
+    `,
+			},
 			entryPoints: ["tests/testInBrowser.ts", "tests/testInNode.ts"],
 			outdir: "./build",
 			// Bundle to include the whole graph
@@ -78,8 +95,7 @@ export async function runTestBuild({ clean, fast = false }) {
 					// We put it back into node_modules because we don't bundle it. If we remove node_modules but keep the cached one we will not run build.
 					dstPath: "../node_modules/better-sqlite3/build/Release/better_sqlite3.node",
 					platform: process.platform,
-					// Since we don't bundle it we need to give a path relative to database.js in node_modules/better_sqlite3
-					nativeBindingPath: "../build/Release/better_sqlite3.node",
+					nativeBindingPath: path.resolve("../node_modules/better-sqlite3/build/Release/better_sqlite3.node"),
 				}),
 				keytarNativePlugin({
 					environment: "node",
