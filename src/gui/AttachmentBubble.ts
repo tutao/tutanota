@@ -3,9 +3,9 @@ import { Attachment } from "../mail/editor/SendMailModel.js"
 import { Button, ButtonType } from "./base/Button.js"
 import { Icons } from "./base/icons/Icons.js"
 import { formatStorageSize } from "../misc/Formatter.js"
-import { Thunk } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, Thunk } from "@tutao/tutanota-utils"
 import { modal, ModalComponent } from "./base/Modal.js"
-import { Shortcut } from "../misc/KeyManager.js"
+import { focusNext, focusPrevious, Shortcut } from "../misc/KeyManager.js"
 import { PosRect } from "./base/Dropdown.js"
 import { Keys } from "../api/common/TutanotaConstants.js"
 import { px } from "./size.js"
@@ -37,7 +37,10 @@ export class AttachmentBubble implements Component<AttachmentBubbleAttrs> {
 			icon: () => Icons.Attachment,
 			type: ButtonType.Bubble,
 			staticRightText: `${spacedExtension}(${formatStorageSize(Number(attachment.size))})`,
-			click: () => showAttachmentDetailsPopup(this.dom!, vnode.attrs),
+			click: async () => {
+				await showAttachmentDetailsPopup(this.dom!, vnode.attrs)
+				this.dom?.focus()
+			},
 		})
 	}
 
@@ -50,18 +53,37 @@ async function showAttachmentDetailsPopup(dom: HTMLElement, attrs: AttachmentBub
 	const parentRect = dom.getBoundingClientRect()
 	const panel = new AttachmentDetailsPopup(parentRect, parentRect.width, attrs)
 	panel.show()
+	return panel.deferAfterClose
 }
 
 export class AttachmentDetailsPopup implements ModalComponent {
 	private readonly _shortcuts: Array<Shortcut> = []
 	private domContent: HTMLElement | null = null
 	private domPanel: HTMLElement | null = null
+	private focusedFirst: boolean = false
+	private closeDefer: DeferredObject<void> = defer()
+
+	get deferAfterClose(): Promise<void> {
+		return this.closeDefer.promise
+	}
 
 	constructor(private readonly targetRect: PosRect, private readonly targetWidth: number, private readonly attrs: AttachmentBubbleAttrs) {
 		this._shortcuts.push({
 			key: Keys.ESC,
 			exec: () => this.onClose(),
 			help: "close_alt",
+		})
+		this._shortcuts.push({
+			key: Keys.TAB,
+			shift: true,
+			exec: () => (this.domContent ? focusPrevious(this.domContent) : false),
+			help: "selectPrevious_action",
+		})
+		this._shortcuts.push({
+			key: Keys.TAB,
+			shift: false,
+			exec: () => (this.domContent ? focusNext(this.domContent) : false),
+			help: "selectNext_action",
 		})
 		if (attrs.open) {
 			this._shortcuts.push({
@@ -98,9 +120,9 @@ export class AttachmentDetailsPopup implements ModalComponent {
 				},
 				oncreate: (vnode) => {
 					this.domPanel = vnode.dom as HTMLElement
-					// This is a hack to get "natural" view size but render it without opacity first and then show dropdown with inferred
-					// size.
-					setTimeout(() => this.animatePanel(), 24)
+					// This is a hack to get "natural" view size but render it without opacity first and then show the panel with inferred size.
+					// also focus the first tabbable element in the content after the panel opens.
+					setTimeout(() => this.animatePanel().then(() => this.domContent && focusNext(this.domContent)), 24)
 				},
 				onclick: () => this.onClose(),
 			},
@@ -160,7 +182,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 		const initialHeight = 30
 		const targetHeight = domContent.offsetHeight
 		// for very short attachment bubbles, we need to set a min width so the buttons fit.
-		const targetWidth = Math.max(targetRect.width, 250)
+		const targetWidth = Math.max(targetRect.width, 300)
 		domPanel.style.width = px(targetRect.width)
 		domPanel.style.height = px(initialHeight)
 		// add half the difference between .button height of 44px and 30px for pixel-perfect positioning
@@ -183,7 +205,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 	}
 
 	show() {
-		modal.display(this, true)
+		modal.displayUnique(this, true)
 	}
 
 	backgroundClick(e: MouseEvent): void {
@@ -201,6 +223,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 
 	onClose(): void {
 		modal.remove(this)
+		this.closeDefer.resolve()
 	}
 
 	shortcuts(): Shortcut[] {
