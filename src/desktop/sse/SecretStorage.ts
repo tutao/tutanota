@@ -1,6 +1,8 @@
-import { CANCELLED, getPassword, setPassword } from "keytar"
+import { default as keytar } from "keytar"
 import { CancelledError } from "../../api/common/error/CancelledError"
 import { noOp } from "@tutao/tutanota-utils"
+
+const { CANCELLED, getPassword, setPassword } = keytar
 
 export interface SecretStorage {
 	getPassword(service: string, account: string): Promise<string | null>

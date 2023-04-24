@@ -5,7 +5,9 @@ import { downcast, noOp } from "@tutao/tutanota-utils"
 import path from "node:path"
 import fs from "node:fs"
 import { app } from "electron"
-import { AppUpdater } from "electron-updater"
+import electronUpdater, { AppUpdater } from "electron-updater"
+
+const { autoUpdater } = electronUpdater
 
 export class UpdaterWrapper {
 	updatesEnabledInBuild(): boolean {
@@ -19,8 +21,7 @@ export class UpdaterWrapper {
 		}
 	}
 
-	// we're using require() here because dynamic import() does not manage to resolve the module even though it's there.
-	electronUpdater: AppUpdater = env.dist ? require("electron-updater").autoUpdater : downcast<AppUpdater>(fakeAutoUpdater)
+	electronUpdater: AppUpdater = env.dist ? autoUpdater : downcast<AppUpdater>(fakeAutoUpdater)
 }
 
 const fakeAutoUpdater = new (class {
