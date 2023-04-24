@@ -271,7 +271,7 @@ export class GroupRow implements VirtualRow<GroupInfo> {
 						oncreate: (vnode) => (this.nameDom = vnode.dom as HTMLElement),
 					}),
 				]),
-				m(".flex-space-between", [
+				m(".flex-space-between.mt-xxs", [
 					m(".smaller", {
 						oncreate: (vnode) => (this.addressDom = vnode.dom as HTMLElement),
 					}),

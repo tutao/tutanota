@@ -175,11 +175,11 @@ export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
 				},
 			},
 			m(".flex.col.flex-grow", [
-				m(".smaller.text-ellipsis", {
+				m(".text-ellipsis", {
 					oncreate: (vnode) => (this.entryTitleDom = vnode.dom as HTMLElement),
 				}),
 				// to create a second row
-				m(".smaller", NBSP),
+				m(".smaller.mt-xxs", NBSP),
 			]),
 		)
 	}

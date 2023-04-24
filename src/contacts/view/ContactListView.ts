@@ -17,7 +17,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { createDropdown } from "../../gui/base/Dropdown.js"
-import { SelectableRowContainer, setSelectedRowStyle } from "../../gui/SelectableRowContainer.js"
+import { checkboxOpacity, SelectableRowContainer, setSelectedRowStyle } from "../../gui/SelectableRowContainer.js"
 import { styles } from "../../gui/styles.js"
 
 assertMainOrNode()
@@ -166,6 +166,7 @@ export class ContactRow implements VirtualRow<Contact> {
 
 		setSelectedRowStyle(this.innerContainerDom, styles.isSingleColumnLayout() ? isInMultiSelect && selected : selected)
 		this.updateCheckboxVisibility()
+		checkboxOpacity(this.checkboxDom, selected)
 		this.checkboxDom.checked = selected && isInMultiSelect
 
 		this.domName.textContent = getContactListName(contact)
@@ -184,7 +185,7 @@ export class ContactRow implements VirtualRow<Contact> {
 				},
 			},
 			m(".mt-xs.mr", [
-				m("input.checkbox", {
+				m("input.checkbox.list-checkbox", {
 					type: "checkbox",
 					onclick: (e: MouseEvent) => {
 						e.stopPropagation()
@@ -197,6 +198,7 @@ export class ContactRow implements VirtualRow<Contact> {
 						this.checkboxDom = vnode.dom as HTMLInputElement
 						// to avoid visual bugs until the update
 						this.updateCheckboxVisibility()
+						checkboxOpacity(this.checkboxDom, false)
 					},
 				}),
 			]),
@@ -204,7 +206,7 @@ export class ContactRow implements VirtualRow<Contact> {
 				m(".text-ellipsis.badge-line-height", {
 					oncreate: (vnode) => (this.domName = vnode.dom as HTMLElement),
 				}),
-				m(".text-ellipsis.smaller", {
+				m(".text-ellipsis.smaller.mt-xxs", {
 					oncreate: (vnode) => (this.domAddress = vnode.dom as HTMLElement),
 				}),
 			]),
