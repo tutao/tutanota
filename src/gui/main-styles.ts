@@ -262,6 +262,9 @@ styles.registerStyle("main", () => {
 		".mt-xs": {
 			"margin-top": px(size.vpad_xs),
 		},
+		".mt-xxs": {
+			"margin-top": px(2),
+		},
 		".mt-s": {
 			"margin-top": px(size.vpad_small),
 		},

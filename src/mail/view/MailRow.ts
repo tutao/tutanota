@@ -79,8 +79,6 @@ export class MailRow implements VirtualRow<Mail> {
 		} else {
 			this.checkboxDom.style.display = ""
 		}
-
-		checkboxOpacity(this.checkboxDom, false)
 	}
 
 	/**
@@ -113,6 +111,7 @@ export class MailRow implements VirtualRow<Mail> {
 							this.checkboxDom = vnode.dom as HTMLInputElement
 							// doing it right away to avoid visual glitch of it appearing/disappearing
 							this.updateCheckboxVisibility()
+							checkboxOpacity(this.checkboxDom, false)
 						},
 					}),
 					m(".dot.bg-accent-fg.hidden", {
@@ -140,23 +139,15 @@ export class MailRow implements VirtualRow<Mail> {
 							oncreate: (vnode) => (this.dateDom = vnode.dom as HTMLElement),
 						}),
 					]),
-					m(
-						".flex",
-						{
-							style: {
-								marginTop: px(2),
-							},
-						},
-						[
-							m(".smaller.text-ellipsis", {
-								oncreate: (vnode) => (this.subjectDom = vnode.dom as HTMLElement),
-							}),
-							m(".flex-grow"),
-							m("span.ion.ml-s.list-font-icons", {
-								oncreate: (vnode) => (this.iconsDom = vnode.dom as HTMLElement),
-							}),
-						],
-					),
+					m(".flex.mt-xxs", [
+						m(".smaller.text-ellipsis", {
+							oncreate: (vnode) => (this.subjectDom = vnode.dom as HTMLElement),
+						}),
+						m(".flex-grow"),
+						m("span.ion.ml-s.list-font-icons", {
+							oncreate: (vnode) => (this.iconsDom = vnode.dom as HTMLElement),
+						}),
+					]),
 				]),
 			],
 		)
