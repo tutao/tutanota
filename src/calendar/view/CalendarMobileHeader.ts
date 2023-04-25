@@ -1,4 +1,3 @@
-import { CalendarViewType } from "./CalendarViewModel.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
@@ -7,7 +6,7 @@ import { BaseMobileHeader } from "../../gui/BaseMobileHeader.js"
 import { OfflineIndicatorMobile } from "../../gui/base/OfflineIndicator.js"
 import { ProgressBar } from "../../gui/base/ProgressBar.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
-import { CalendarNavConfiguration } from "./CalendarGuiUtils.js"
+import { CalendarNavConfiguration, CalendarViewType } from "./CalendarGuiUtils.js"
 import { MobileHeaderMenuButton, MobileHeaderTitle } from "../../gui/MobileHeader.js"
 import { AppHeaderAttrs } from "../../gui/Header.js"
 

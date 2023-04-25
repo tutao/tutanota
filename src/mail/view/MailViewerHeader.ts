@@ -5,7 +5,7 @@ import { theme } from "../../gui/theme.js"
 import { styles } from "../../gui/styles.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
 import { File as TutanotaFile } from "../../api/entities/tutanota/TypeRefs.js"
-import { BannerType, InfoBanner } from "./InfoBanner.js"
+import { BannerType, InfoBanner } from "../../gui/base/InfoBanner.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { EventBanner } from "./EventBanner.js"
 import { RecipientButton } from "../../gui/base/RecipientButton.js"
@@ -17,7 +17,7 @@ import { isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env.js"
 import { Button, ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
 import Badge from "../../gui/base/Badge.js"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
-import { createMoreSecondaryButtonAttrs } from "../../gui/base/GuiUtils.js"
+import { canSeeTutanotaLinks, createMoreSecondaryButtonAttrs } from "../../gui/base/GuiUtils.js"
 import { isNotNull, noOp } from "@tutao/tutanota-utils"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
@@ -576,7 +576,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				message: "phishingMessageBody_msg",
 				icon: Icons.Warning,
 				type: BannerType.Warning,
-				helpLink: InfoLink.Phishing,
+				helpLink: canSeeTutanotaLinks(viewModel.logins) ? InfoLink.Phishing : null,
 				buttons: [
 					{
 						label: "markAsNotPhishing_action",
@@ -592,7 +592,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			return m(InfoBanner, {
 				message: "mailAuthFailed_msg",
 				icon: Icons.Warning,
-				helpLink: InfoLink.MailAuth,
+				helpLink: canSeeTutanotaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
 				type: BannerType.Warning,
 				buttons: [
 					{
@@ -614,7 +614,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						  })
 						: lang.get("mailAuthMissing_label"),
 				icon: Icons.Warning,
-				helpLink: InfoLink.MailAuth,
+				helpLink: canSeeTutanotaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
 				buttons: [
 					{
 						label: "close_alt",
@@ -659,7 +659,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return m(InfoBanner, {
 			message: "contentBlocked_msg",
 			icon: Icons.Picture,
-			helpLink: InfoLink.LoadImages,
+			helpLink: canSeeTutanotaLinks(attrs.viewModel.logins) ? InfoLink.LoadImages : null,
 			buttons: [showButton, ...maybeDropdownButtons],
 		})
 	}
@@ -672,7 +672,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		})
 	}
 
-	private prepareMoreActions({ viewModel, isPrimary }: MailViewerHeaderAttrs) {
+	private prepareMoreActions({ viewModel }: MailViewerHeaderAttrs) {
 		return createDropdown({
 			lazyButtons: () => {
 				let actionButtons: DropdownButtonAttrs[] = []

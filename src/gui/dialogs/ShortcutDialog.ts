@@ -40,7 +40,7 @@ export function showShortcutDialog(shortcuts: Array<Shortcut>): Promise<void> {
 			],
 			middle: () => lang.get("keyboardShortcuts_title"),
 		}
-		dialog = Dialog.largeDialogN(headerAttrs, ShortcutDialog, {
+		dialog = Dialog.editDialog(headerAttrs, ShortcutDialog, {
 			shortcuts,
 		})
 			.addShortcut({

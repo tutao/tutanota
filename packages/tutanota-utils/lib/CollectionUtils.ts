@@ -25,3 +25,41 @@ export function max<T extends Iterable<number>>(set: T): number | null {
 	}
 	return max
 }
+
+/**
+ * diff two maps by keys
+ * @param before the map that's considered the old contents
+ * @param after the map that's representing the current contents.
+ * @returns arrays containing the kept, added, and deleted values.
+ */
+export function trisectingDiff<T>(
+	before: ReadonlyMap<unknown, T>,
+	after: ReadonlyMap<unknown, T>,
+): {
+	kept: Array<T>
+	added: Array<T>
+	deleted: Array<T>
+} {
+	const kept: Array<T> = []
+	const added: Array<T> = []
+	const deleted: Array<T> = []
+
+	const beforeScratch = new Map(before)
+	const afterScratch = new Map(after)
+
+	for (const [k, v] of beforeScratch.entries()) {
+		beforeScratch.delete(k)
+		if (afterScratch.has(k)) {
+			afterScratch.delete(k)
+			kept.push(v)
+		} else {
+			deleted.push(v)
+		}
+	}
+
+	for (const v of afterScratch.values()) {
+		added.push(v)
+	}
+
+	return { kept, added, deleted }
+}

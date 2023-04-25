@@ -5,9 +5,8 @@ import { ButtonType } from "../../gui/base/Button.js"
 import { Icons } from "../../gui/base/icons/Icons"
 import { Dialog } from "../../gui/base/Dialog"
 import type { MousePosAndBounds } from "../../gui/base/GuiUtils"
-import { Time } from "../../api/common/utils/Time"
+import { Time } from "../date/Time.js"
 import { assert, clamp, incrementDate, lastThrow } from "@tutao/tutanota-utils"
-import { CalendarViewType } from "./CalendarViewModel.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { formatDateWithWeekday, formatMonthWithFullYear } from "../../misc/Formatter.js"
 import { getStartOfTheWeekOffset, getStartOfWeek, getWeekNumber } from "../date/CalendarUtils.js"
@@ -80,6 +79,13 @@ function calendarWeek(date: Date, weekStart: WeekStart) {
 	return lang.get("weekNumber_label", {
 		"{week}": String(getWeekNumber(date)),
 	})
+}
+
+export enum CalendarViewType {
+	DAY = "day",
+	WEEK = "week",
+	MONTH = "month",
+	AGENDA = "agenda",
 }
 
 export function calendarNavConfiguration(

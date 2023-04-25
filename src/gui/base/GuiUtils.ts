@@ -16,6 +16,7 @@ import m, { Children } from "mithril"
 import { DropDownSelector } from "./DropDownSelector.js"
 import { IconButtonAttrs } from "./IconButton.js"
 import { LoginController } from "../../api/main/LoginController.js"
+import { client } from "../../misc/ClientDetector.js"
 
 export type dropHandler = (dragData: string) => void
 // not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
@@ -221,5 +222,14 @@ export function getPosAndBoundsFromMouseEvent({ currentTarget, x, y }: MouseEven
 		}
 	} else {
 		throw new ProgrammingError("Target is not a HTMLElement")
+	}
+}
+
+/** render two children either next to each other (on desktop devices) or above each other (mobile) */
+export function renderTwoColumnsIfFits(left: Children, right: Children): Children {
+	if (client.isMobileDevice()) {
+		return m(".flex.col", [m(".flex", left), m(".flex", right)])
+	} else {
+		return m(".flex", [m(".flex.flex-half.pr-s", left), m(".flex.flex-half.pl-s", right)])
 	}
 }

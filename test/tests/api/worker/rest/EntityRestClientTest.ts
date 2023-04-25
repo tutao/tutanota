@@ -33,7 +33,7 @@ import {
 	MailDetailsBlobTypeRef,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { DateProvider } from "../../../../../src/api/common/DateProvider.js"
-import { DateProviderImpl } from "../../../../../src/calendar/date/CalendarUtils.js"
+import { DefaultDateProvider } from "../../../../../src/calendar/date/CalendarUtils.js"
 
 const { anything, argThat } = matchers
 
@@ -106,7 +106,7 @@ o.spec("EntityRestClient", async function () {
 			},
 		}
 
-		dateProvider = instance(DateProviderImpl)
+		dateProvider = instance(DefaultDateProvider)
 		entityRestClient = new EntityRestClient(authDataProvider, restClient, () => cryptoFacadeMock, instanceMapperMock, blobAccessTokenFacade)
 	})
 

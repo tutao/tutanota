@@ -1,124 +1,77 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { MessageBox } from "../../gui/base/MessageBox.js"
-import { px, size } from "../../gui/size"
-import { Button, ButtonType } from "../../gui/base/Button.js"
+import { ButtonType } from "../../gui/base/Button.js"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../api/common/TutanotaConstants"
-import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
-import { theme } from "../../gui/theme"
 import type { CalendarEvent, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { Dialog } from "../../gui/base/Dialog"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
-import type { lazy } from "@tutao/tutanota-utils"
 import { isRepliedTo } from "../model/MailUtils"
 import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUtils.js"
+import { BannerType, InfoBanner, InfoBannerAttrs } from "../../gui/base/InfoBanner.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { LazyLoaded } from "@tutao/tutanota-utils"
 
-export type Attrs = {
+export type EventBannerAttrs = {
 	event: CalendarEvent
 	mail: Mail
 	recipient: string
 	method: CalendarMethod
 }
 
-export class EventBanner implements Component<Attrs> {
-	view({ attrs: { event, mail, recipient, method } }: Vnode<Attrs>): Children {
-		const ownAttendee = findAttendeeInAddresses(event.attendees, [recipient])
-		return m(
-			MessageBox,
-			{
-				style: {
-					alignItems: "start",
-					paddingBottom: "0",
-					maxWidth: "100%",
-					display: "flex",
-					flexDirection: "column",
-					paddingLeft: px(size.hpad_large),
-					paddingRight: px(size.hpad_large),
-					overflow: "hidden",
-					paddingTop: "0",
+/**
+ * displayed above a mail that contains a calendar invite.
+ * Its main function is to make it possible to inspect the event with the CalendarEventPopup, to quick respond
+ * your attendance with Accept/Decline/Tentative while adding the event to your personal calendar
+ */
+export class EventBanner implements Component<EventBannerAttrs> {
+	/** ReplyButtons are used from mail-view and calendar-view.
+	 * they can't import each other and only have gui-base as a
+	 * common ancestor, where these don't belong. */
+	private readonly ReplyButtons = new LazyLoaded(async () => (await import("../../calendar/view/eventpopup/EventPreviewView.js")).ReplyButtons)
+
+	view({ attrs }: Vnode<EventBannerAttrs>): Children {
+		const { event, mail } = attrs
+		return m(InfoBanner, {
+			message: () => this.getMessage(attrs),
+			type: BannerType.Info,
+			icon: Icons.People,
+			buttons: [
+				{
+					label: "viewEvent_action",
+					type: ButtonType.Secondary,
+					click: (e, dom) =>
+						import("../../calendar/date/CalendarInvites").then(({ showEventDetails }) =>
+							showEventDetails(event, dom.getBoundingClientRect(), mail),
+						),
 				},
-			},
-			[
-				m(
-					"",
-					method === CalendarMethod.REQUEST && ownAttendee
-						? isRepliedTo(mail) || (ownAttendee && ownAttendee.status !== CalendarAttendeeStatus.NEEDS_ACTION)
-							? m(".pt.align-self-start.start.smaller", lang.get("alreadyReplied_msg"))
-							: renderReplyButtons(event, mail, recipient)
-						: method === CalendarMethod.REPLY
-						? m(".pt.align-self-start.start.smaller", lang.get("eventNotificationUpdated_msg"))
-						: null,
-				),
-				m(
-					".ml-negative-s.limit-width.align-self-start",
-					m(Button, {
-						label: "viewEvent_action",
-						type: ButtonType.Secondary,
-						click: (e, dom) =>
-							import("../../calendar/date/CalendarInvites").then(({ showEventDetails }) =>
-								showEventDetails(event, dom.getBoundingClientRect(), mail),
-							),
-					}),
-				),
 			],
-		)
+		} satisfies InfoBannerAttrs)
+	}
+
+	private getMessage({ event, mail, recipient, method }: EventBannerAttrs): Children {
+		const ownAttendee = findAttendeeInAddresses(event.attendees, [recipient])
+		if (method === CalendarMethod.REQUEST && ownAttendee != null) {
+			if (isRepliedTo(mail) || ownAttendee.status !== CalendarAttendeeStatus.NEEDS_ACTION) {
+				return m(".align-self-start.start.small", lang.get("alreadyReplied_msg"))
+			} else if (this.ReplyButtons.isLoaded()) {
+				return m(this.ReplyButtons.getLoaded(), {
+					ownAttendee,
+					setParticipation: (status: CalendarAttendeeStatus) => sendResponse(event, recipient, status, mail),
+				})
+			} else {
+				this.ReplyButtons.reload().then(m.redraw)
+				return null
+			}
+		} else if (method === CalendarMethod.REPLY) {
+			m(".pt.align-self-start.start.small", lang.get("eventNotificationUpdated_msg"))
+		} else {
+			return null
+		}
 	}
 }
 
-export type BannerButtonAttrs = {
-	borderColor: string
-	color: string
-	click: () => unknown
-	text: TranslationKey | lazy<string>
-}
-
-export class BannerButton implements Component<BannerButtonAttrs> {
-	view({ attrs }: Vnode<BannerButtonAttrs>): Children {
-		return m(
-			"button.border-radius.mr-s.center",
-			{
-				style: {
-					border: `2px solid ${attrs.borderColor}`,
-					background: "transparent",
-					color: attrs.color,
-					width: "min-content",
-					padding: px(size.hpad_button),
-					minWidth: "60px",
-				},
-				onclick: attrs.click,
-			},
-			lang.getMaybeLazy(attrs.text),
-		)
-	}
-}
-
-function renderReplyButtons(event: CalendarEvent, previousMail: Mail, recipient: string) {
-	return [
-		m(".pt", lang.get("invitedToEvent_msg")),
-		m(".flex.items-center.mt", [
-			m(BannerButton, {
-				text: "yes_label",
-				click: () => sendResponse(event, recipient, CalendarAttendeeStatus.ACCEPTED, previousMail),
-				borderColor: theme.content_button,
-				color: theme.content_fg,
-			}),
-			m(BannerButton, {
-				text: "maybe_label",
-				click: () => sendResponse(event, recipient, CalendarAttendeeStatus.TENTATIVE, previousMail),
-				borderColor: theme.content_button,
-				color: theme.content_fg,
-			}),
-			m(BannerButton, {
-				text: "no_label",
-				click: () => sendResponse(event, recipient, CalendarAttendeeStatus.DECLINED, previousMail),
-				borderColor: theme.content_button,
-				color: theme.content_fg,
-			}),
-		]),
-	]
-}
-
-function sendResponse(event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) {
+/** show a progress dialog while sending a response to the event's organizer and update the ui. will always send a reply, even if the status did not change. */
+export function sendResponse(event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) {
 	showProgressDialog(
 		"pleaseWait_msg",
 		import("../../calendar/date/CalendarInvites").then(({ getLatestEvent, replyToEventInvitation }) => {

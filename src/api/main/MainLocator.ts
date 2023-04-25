@@ -9,7 +9,7 @@ import { notifications } from "../../gui/Notifications"
 import { LoginController } from "./LoginController"
 import type { ContactModel } from "../../contacts/model/ContactModel"
 import { EntityClient } from "../common/EntityClient"
-import { CalendarInfo, CalendarModel } from "../../calendar/model/CalendarModel"
+import { CalendarModel } from "../../calendar/model/CalendarModel"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer, lazyMemoized } from "@tutao/tutanota-utils"
 import { ProgressTracker } from "./ProgressTracker"
@@ -73,7 +73,6 @@ import type { AnotherUserMailAddressNameChanger } from "../../settings/mailaddre
 import type { GroupInfo } from "../entities/sys/TypeRefs.js"
 import type { SendMailModel } from "../../mail/editor/SendMailModel.js"
 import type { CalendarEvent, Mail, MailboxProperties } from "../entities/tutanota/TypeRefs.js"
-import type { CalendarEventViewModel } from "../../calendar/date/CalendarEventViewModel.js"
 import type { CreateMailViewerOptions } from "../../mail/view/MailViewer.js"
 import type { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 import type { MailViewerViewModel } from "../../mail/view/MailViewerViewModel.js"
@@ -92,6 +91,8 @@ import { Const, GroupType } from "../common/TutanotaConstants.js"
 import type { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
 import type { ConversationViewModel } from "../../mail/view/ConversationViewModel.js"
 import { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
+import { CalendarEventModel } from "../../calendar/date/eventeditor/CalendarEventModel.js"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 
 assertMainOrNode()
 
@@ -182,16 +183,14 @@ class MainLocator {
 	async calendarViewModel(): Promise<CalendarViewModel> {
 		const { ReceivedGroupInvitationsModel } = await import("../../sharing/model/ReceivedGroupInvitationsModel.js")
 		const { CalendarViewModel } = await import("../../calendar/view/CalendarViewModel.js")
-		const { getEventStart, getTimeZone } = await import("../../calendar/date/CalendarUtils.js")
 		const calendarInvitations = new ReceivedGroupInvitationsModel(GroupType.Calendar, this.eventController, this.entityClient, this.logins)
 		calendarInvitations.init()
 		return new CalendarViewModel(
 			this.logins,
-			async (event, calendarInfo) => {
+			async (event: CalendarEvent) => {
 				const mailboxDetail = await this.mailModel.getUserMailboxDetails()
 				const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
-				const calendars = await calendarInfo.getAsync()
-				return this.calenderEventViewModel(getEventStart(event, getTimeZone()), calendars, mailboxDetail, mailboxProperties, event, null, false)
+				return await this.calendarEventModel(event, mailboxDetail, mailboxProperties, null)
 			},
 			this.calendarModel,
 			this.entityClient,
@@ -202,7 +201,7 @@ class MainLocator {
 		)
 	}
 
-	/** This ugly bit exists because CalendarEventViewModel wants a sync factory. */
+	/** This ugly bit exists because CalendarEventWhoModel wants a sync factory. */
 	private async sendMailModelSyncFactory(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): Promise<() => SendMailModel> {
 		const { SendMailModel } = await import("../../mail/editor/SendMailModel")
 		const recipientsModel = await this.recipientsModel()
@@ -222,34 +221,33 @@ class MainLocator {
 			)
 	}
 
-	async calenderEventViewModel(
-		date: Date,
-		calendars: ReadonlyMap<Id, CalendarInfo>,
+	async calendarEventModel(
+		event: Partial<CalendarEvent>,
 		mailboxDetail: MailboxDetail,
 		mailboxProperties: MailboxProperties,
-		existingEvent: CalendarEvent | null,
-		previousMail: Mail | null,
-		resolveRecipientsLazily: boolean,
-	): Promise<CalendarEventViewModel> {
-		const { CalendarEventViewModel } = await import("../../calendar/date/CalendarEventViewModel.js")
-		const { calendarUpdateDistributor } = await import("../../calendar/date/CalendarUpdateDistributor.js")
+		responseTo: Mail | null,
+	): Promise<CalendarEventModel> {
+		const [{ makeCalendarEventModel }, { getTimeZone }, { calendarUpdateDistributor }] = await Promise.all([
+			import("../../calendar/date/eventeditor/CalendarEventModel.js"),
+			import("../../calendar/date/CalendarUtils.js"),
+			import("../../calendar/date/CalendarUpdateDistributor.js"),
+		])
 		const sendMailModelFactory = await this.sendMailModelSyncFactory(mailboxDetail, mailboxProperties)
-		const { getTimeZone } = await import("../../calendar/date/CalendarUtils.js")
+		const showProgress = <T>(p: Promise<T>) => showProgressDialog("pleaseWait_msg", p)
 
-		return new CalendarEventViewModel(
-			this.logins.getUserController(),
-			calendarUpdateDistributor,
+		return await makeCalendarEventModel(
+			event,
+			await this.recipientsModel(),
 			this.calendarModel,
-			this.entityClient,
+			this.logins,
 			mailboxDetail,
 			mailboxProperties,
 			sendMailModelFactory,
-			date,
+			calendarUpdateDistributor,
+			this.entityClient,
+			responseTo,
 			getTimeZone(),
-			calendars,
-			existingEvent,
-			previousMail,
-			resolveRecipientsLazily,
+			showProgress,
 		)
 	}
 
@@ -595,8 +593,8 @@ class MainLocator {
 
 	private alarmScheduler: () => Promise<AlarmScheduler> = lazyMemoized(async () => {
 		const { AlarmSchedulerImpl } = await import("../../calendar/date/AlarmScheduler")
-		const { DateProviderImpl } = await import("../../calendar/date/CalendarUtils")
-		const dateProvider = new DateProviderImpl()
+		const { DefaultDateProvider } = await import("../../calendar/date/CalendarUtils")
+		const dateProvider = new DefaultDateProvider()
 		return new AlarmSchedulerImpl(dateProvider, await this.scheduler())
 	})
 

@@ -17,7 +17,7 @@ import {
 } from "../date/CalendarUtils"
 import { CalendarEventBubble } from "./CalendarEventBubble"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
-import { Time } from "../../api/common/utils/Time"
+import { Time } from "../date/Time.js"
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { getTimeFromMousePos } from "./CalendarGuiUtils"
 import type { CalendarEventBubbleClickHandler } from "./CalendarViewModel"
@@ -64,10 +64,10 @@ export class CalendarDayEventsView implements Component<Attrs> {
 					m(".calendar-hour.flex.cursor-pointer", {
 						onclick: (e: MouseEvent) => {
 							e.stopPropagation()
-							attrs.onTimePressed(time.hours, time.minutes)
+							attrs.onTimePressed(time.hour, time.minute)
 						},
 						oncontextmenu: (e: MouseEvent) => {
-							attrs.onTimeContextPressed(time.hours, time.minutes)
+							attrs.onTimeContextPressed(time.hour, time.minute)
 							e.preventDefault()
 						},
 					}),

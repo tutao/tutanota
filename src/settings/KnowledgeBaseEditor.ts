@@ -52,7 +52,7 @@ export function showKnowledgeBaseEditor(entry: KnowledgeBaseEntry | null, templa
 		],
 		middle: () => lang.get(editorModel.entry._id ? "editEntry_label" : "createEntry_action"),
 	}
-	const dialog = Dialog.largeDialogN(headerBarAttrs, KnowledgeBaseEditor, editorModel)
+	const dialog = Dialog.editDialog(headerBarAttrs, KnowledgeBaseEditor, editorModel)
 	dialog.show()
 }
 

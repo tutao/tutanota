@@ -1,4 +1,4 @@
-import { AccountType, FeatureType, GroupType, TimeFormat } from "../../../src/api/common/TutanotaConstants.js"
+import { AccountType, ContactAddressType, FeatureType, GroupType, ShareCapability, TimeFormat } from "../../../src/api/common/TutanotaConstants.js"
 import type { UserController } from "../../../src/api/main/UserController.js"
 import {
 	createBookingsRef,
@@ -12,11 +12,22 @@ import {
 	createPlanConfiguration,
 	createUser,
 	Feature,
+	User,
 } from "../../../src/api/entities/sys/TypeRefs.js"
 import { GENERATED_MAX_ID } from "../../../src/api/common/utils/EntityUtils.js"
 import { downcast, LazyLoaded } from "@tutao/tutanota-utils"
 import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { createCalendarEvent, createMailBox, createMailboxGroupRoot, createTutanotaProperties } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	createCalendarEvent,
+	createCalendarGroupRoot,
+	createContact,
+	createContactAddress,
+	createEncryptedMailAddress,
+	createMailBox,
+	createMailboxGroupRoot,
+	createTutanotaProperties,
+	EncryptedMailAddress,
+} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import type { MailboxDetail } from "../../../src/mail/model/MailModel.js"
 import { MailModel } from "../../../src/mail/model/MailModel.js"
 import type { CalendarUpdateDistributor } from "../../../src/calendar/date/CalendarUpdateDistributor.js"
@@ -24,10 +35,98 @@ import o from "ospec"
 import type { CalendarInfo } from "../../../src/calendar/model/CalendarModel"
 import { CalendarModel } from "../../../src/calendar/model/CalendarModel"
 import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
+import { RecipientType } from "../../../src/api/common/recipients/Recipient.js"
 
-export const accountMailAddress = "address@tutanota.com" as const
-export const userId = "12356" as const
+export const ownerMailAddress = "calendarowner@tutanota.de" as const
+export const ownerId = "ownerId" as const
 export const calendarGroupId = "0" as const
+
+export const ownerAddress = createEncryptedMailAddress({
+	address: ownerMailAddress,
+	name: "Calendar Owner",
+})
+export const ownerRecipient = {
+	address: ownerAddress.address,
+	name: ownerAddress.name,
+	type: RecipientType.INTERNAL,
+	contact: null,
+}
+export const ownerAlias = createEncryptedMailAddress({
+	address: "calendarowneralias@tutanota.de",
+	name: "Calendar Owner Alias",
+})
+export const ownerAliasRecipient = {
+	address: ownerAlias.address,
+	name: ownerAlias.name,
+	type: RecipientType.INTERNAL,
+	contact: null,
+}
+export const otherAddress = createEncryptedMailAddress({
+	address: "someone@tutanota.de",
+	name: "Some One",
+})
+export const otherRecipient = {
+	address: otherAddress.address,
+	name: otherAddress.name,
+	type: RecipientType.EXTERNAL,
+	contact: createContact({
+		nickname: otherAddress.name,
+		presharedPassword: "otherPassword",
+		addresses: [
+			createContactAddress({
+				address: otherAddress.address,
+				type: ContactAddressType.WORK,
+			}),
+		],
+	}),
+}
+export const otherAddress2 = createEncryptedMailAddress({
+	address: "someoneelse@tutanota.de",
+	name: "Some One Else",
+})
+export const otherRecipient2 = {
+	address: otherAddress2.address,
+	name: otherAddress2.name,
+	type: RecipientType.INTERNAL,
+	contact: createContact({
+		nickname: otherAddress2.name,
+		presharedPassword: "otherPassword2",
+		addresses: [
+			createContactAddress({
+				address: otherAddress2.address,
+				type: ContactAddressType.WORK,
+			}),
+		],
+	}),
+}
+
+export const calendars: Map<Id, CalendarInfo> = new Map()
+
+calendars.set("ownCalendar", {
+	groupRoot: createCalendarGroupRoot({}),
+	shared: false,
+	longEvents: new LazyLoaded(() => Promise.resolve([])),
+	groupInfo: createGroupInfo({}),
+	group: createGroup({
+		_id: "ownCalendar",
+		user: "ownerId",
+		type: GroupType.Calendar,
+	}),
+})
+
+calendars.set("sharedCalendar", {
+	groupRoot: createCalendarGroupRoot({}),
+	shared: true,
+	longEvents: new LazyLoaded(() => Promise.resolve([])),
+	groupInfo: createGroupInfo({}),
+	group: createGroup({
+		_id: "sharedCalendar",
+		user: "otherId",
+		type: GroupType.Calendar,
+	}),
+})
+
+export const ownAddresses: ReadonlyArray<EncryptedMailAddress> = [ownerAddress, ownerAlias]
 
 export function makeUserController(
 	aliases: Array<string> = [],
@@ -51,7 +150,7 @@ export function makeUserController(
 
 	return downcast({
 		user: createUser({
-			_id: userId,
+			_id: ownerId,
 			memberships: [
 				createGroupMembership({
 					groupType: GroupType.Mail,
@@ -63,7 +162,7 @@ export function makeUserController(
 			accountType,
 		}),
 		props: createTutanotaProperties({
-			defaultSender: defaultSender || accountMailAddress,
+			defaultSender: defaultSender || ownerMailAddress,
 		}),
 		userGroupInfo: createGroupInfo({
 			mailAddressAliases: aliases.map((address) =>
@@ -72,7 +171,7 @@ export function makeUserController(
 					enabled: true,
 				}),
 			),
-			mailAddress: accountMailAddress,
+			mailAddress: ownerMailAddress,
 		}),
 		userSettingsGroupRoot: {
 			timeFormat: TimeFormat.TWENTY_FOUR_HOURS,
@@ -111,7 +210,7 @@ export function makeMailboxDetail(): MailboxDetail {
 		folders: new FolderSystem([]),
 		mailGroupInfo: createGroupInfo(),
 		mailGroup: createGroup({
-			user: userId,
+			user: ownerId,
 		}),
 		mailboxGroupRoot: createMailboxGroupRoot(),
 	}
@@ -128,7 +227,7 @@ export function makeCalendarInfo(type: "own" | "shared", id: string): CalendarIn
 		group: createGroup({
 			_id: id,
 			type: GroupType.Calendar,
-			user: type === "own" ? userId : "anotherUserId",
+			user: type === "own" ? ownerId : "anotherUserId",
 		}),
 		shared: type === "shared",
 	}
@@ -137,15 +236,6 @@ export function makeCalendarInfo(type: "own" | "shared", id: string): CalendarIn
 export function makeCalendars(type: "own" | "shared", id: string = calendarGroupId): Map<string, CalendarInfo> {
 	const calendarInfo = makeCalendarInfo(type, id)
 	return new Map([[id, calendarInfo]])
-}
-
-export function makeDistributor(): CalendarUpdateDistributor {
-	return {
-		sendInvite: o.spy(() => Promise.resolve()),
-		sendUpdate: o.spy(() => Promise.resolve()),
-		sendCancellation: o.spy(() => Promise.resolve()),
-		sendResponse: o.spy(() => Promise.resolve()),
-	}
 }
 
 export function makeCalendarModel(): CalendarModel {
@@ -164,12 +254,6 @@ export function makeCalendarModel(): CalendarModel {
 	})
 }
 
-export function makeMailModel(): MailModel {
-	return downcast({
-		getUserMailboxDetails: o.spy(() => Promise.resolve(makeMailboxDetail())),
-	})
-}
-
 function id(element): IdTuple {
 	return ["list", element]
 }
@@ -181,4 +265,13 @@ export function makeEvent(_id: string, startTime: Date, endTime: Date, uid: stri
 		endTime,
 		uid,
 	})
+}
+
+export function addCapability(user: User, groupId: Id, capability: ShareCapability) {
+	user.memberships.push(
+		createGroupMembership({
+			group: groupId,
+			capability,
+		}),
+	)
 }

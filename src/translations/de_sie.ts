@@ -1685,6 +1685,9 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"cannotAddAttendees_msg": "Sie können die Gästeliste für dieses Ereignis nicht bearbeiten weil es nicht in Ihrem Kalender erstellt wurde.",
+		"noCalendar_msg": "Bitte wählen Sie einen Kalender für das Ereignis aus.",
+		"cannotEditFullEvent_msg": "Sie können nur Teile dieses Ereignisses bearbeiten weil es nicht in Ihrem Kalender erstellt wurde."
 	}
 }

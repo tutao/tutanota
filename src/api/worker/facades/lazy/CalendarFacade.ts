@@ -16,6 +16,7 @@ import {
 	UserTypeRef,
 } from "../../../entities/sys/TypeRefs.js"
 import {
+	assertNotNull,
 	downcast,
 	flat,
 	flatMap,
@@ -24,7 +25,6 @@ import {
 	groupByAndMapUniquely,
 	isNotNull,
 	neverNull,
-	noOp,
 	ofClass,
 	promiseMap,
 	stringToUtf8Uint8Array,
@@ -62,10 +62,6 @@ import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
 
 assertWorkerOrNode()
 
-function hashUid(uid: string): Uint8Array {
-	return sha256Hash(stringToUtf8Uint8Array(uid))
-}
-
 type AlarmNotificationsPerEvent = {
 	event: CalendarEvent
 	alarmInfoIds: IdTuple[]
@@ -91,10 +87,6 @@ export class CalendarFacade {
 		this.entityClient = new EntityClient(this.entityRestCache)
 	}
 
-	hashEventUid(event: CalendarEvent) {
-		event.hashedUid = event.uid ? hashUid(event.uid) : null
-	}
-
 	async saveImportedCalendarEvents(
 		eventsWrapper: Array<{
 			event: CalendarEvent
@@ -103,8 +95,7 @@ export class CalendarFacade {
 		operationId: OperationId,
 	): Promise<void> {
 		// it is safe to assume that all event uids are set here
-		eventsWrapper.forEach(({ event }) => this.hashEventUid(event))
-		return this._saveCalendarEvents(eventsWrapper, (percent) => this.operationProgressTracker.onProgress(operationId, percent))
+		return this.saveCalendarEvents(eventsWrapper, (percent) => this.operationProgressTracker.onProgress(operationId, percent))
 	}
 
 	/**
@@ -115,22 +106,26 @@ export class CalendarFacade {
 	 * @param eventsWrapper the events and alarmNotifications to be created.
 	 * @param onProgress
 	 */
-	async _saveCalendarEvents(
+	private async saveCalendarEvents(
 		eventsWrapper: Array<{
 			event: CalendarEvent
-			alarms: Array<AlarmInfo>
+			alarms: ReadonlyArray<AlarmInfo>
 		}>,
 		onProgress: (percent: number) => Promise<void>,
 	): Promise<void> {
 		let currentProgress = 10
 		await onProgress(currentProgress)
 
+		for (const { event } of eventsWrapper) {
+			event.hashedUid = hashUid(assertNotNull(event.uid, "tried to save calendar event without uid."))
+		}
+
 		const user = this.userFacade.getLoggedInUser()
 
 		const numEvents = eventsWrapper.length
 		let eventsWithAlarms: Array<AlarmNotificationsPerEvent>
 		try {
-			eventsWithAlarms = await this._saveMultipleAlarms(user, eventsWrapper)
+			eventsWithAlarms = await this.saveMultipleAlarms(user, eventsWrapper)
 		} catch (e) {
 			if (e instanceof SetupMultipleError) {
 				console.log("Saving alarms failed.", e)
@@ -172,7 +167,7 @@ export class CalendarFacade {
 		const pushIdentifierList = await this.entityClient.loadAll(PushIdentifierTypeRef, neverNull(this.userFacade.getLoggedInUser().pushIdentifierList).list)
 
 		if (collectedAlarmNotifications.length > 0 && pushIdentifierList.length > 0) {
-			await this._sendAlarmNotifications(collectedAlarmNotifications, pushIdentifierList)
+			await this.sendAlarmNotifications(collectedAlarmNotifications, pushIdentifierList)
 		}
 
 		await onProgress(100)
@@ -188,17 +183,17 @@ export class CalendarFacade {
 		}
 	}
 
-	async saveCalendarEvent(event: CalendarEvent, alarmInfos: Array<AlarmInfo>, oldEvent: CalendarEvent | null): Promise<void> {
+	async saveCalendarEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfo>, oldEvent: CalendarEvent | null): Promise<void> {
 		if (event._id == null) throw new Error("No id set on the event")
 		if (event._ownerGroup == null) throw new Error("No _ownerGroup is set on the event")
 		if (event.uid == null) throw new Error("no uid set on the event")
-		this.hashEventUid(event)
+		event.hashedUid = hashUid(event.uid)
 
 		if (oldEvent) {
-			await this.entityClient.erase(oldEvent).catch(ofClass(NotFoundError, noOp))
+			await this.entityClient.erase(oldEvent).catch(ofClass(NotFoundError, () => console.log("could not delete old event when saving new one")))
 		}
 
-		return await this._saveCalendarEvents(
+		return await this.saveCalendarEvents(
 			[
 				{
 					event,
@@ -209,14 +204,17 @@ export class CalendarFacade {
 		)
 	}
 
-	async updateCalendarEvent(event: CalendarEvent, newAlarms: Array<AlarmInfo>, existingEvent: CalendarEvent): Promise<void> {
+	async updateCalendarEvent(event: CalendarEvent, newAlarms: ReadonlyArray<AlarmInfo>, existingEvent: CalendarEvent): Promise<void> {
 		event._id = existingEvent._id
 		event._ownerEncSessionKey = existingEvent._ownerEncSessionKey
 		event._permissions = existingEvent._permissions
+		if (existingEvent.uid == null) throw new Error("no uid set on the existing event")
+		event.uid = existingEvent.uid
+		event.hashedUid = hashUid(existingEvent.uid)
 
 		const user = this.userFacade.getLoggedInUser()
 
-		const userAlarmIdsWithAlarmNotificationsPerEvent = await this._saveMultipleAlarms(user, [
+		const userAlarmIdsWithAlarmNotificationsPerEvent = await this.saveMultipleAlarms(user, [
 			{
 				event,
 				alarms: newAlarms,
@@ -234,58 +232,7 @@ export class CalendarFacade {
 				PushIdentifierTypeRef,
 				neverNull(this.userFacade.getLoggedInUser().pushIdentifierList).list,
 			)
-			await this._sendAlarmNotifications(alarmNotifications, pushIdentifierList)
-		}
-	}
-
-	_sendAlarmNotifications(alarmNotifications: Array<AlarmNotification>, pushIdentifierList: Array<PushIdentifier>): Promise<void> {
-		const notificationSessionKey = aes128RandomKey()
-		return this._encryptNotificationKeyForDevices(notificationSessionKey, alarmNotifications, pushIdentifierList).then(async () => {
-			const requestEntity = createAlarmServicePost({
-				alarmNotifications,
-			})
-			try {
-				await this.serviceExecutor.post(AlarmService, requestEntity, { sessionKey: notificationSessionKey })
-			} catch (e) {
-				if (e instanceof PayloadTooLargeError) {
-					return this.infoMessageHandler.onInfoMessage({
-						translationKey: "calendarAlarmsTooBigError_msg",
-						args: {},
-					})
-				} else {
-					throw e
-				}
-			}
-		})
-	}
-
-	async _encryptNotificationKeyForDevices(
-		notificationSessionKey: Aes128Key,
-		alarmNotifications: Array<AlarmNotification>,
-		pushIdentifierList: Array<PushIdentifier>,
-	): Promise<void> {
-		// PushID SK ->* Notification SK -> alarm fields
-		const maybeEncSessionKeys = await promiseMap(pushIdentifierList, async (identifier) => {
-			const pushIdentifierSk = await this.cryptoFacade.resolveSessionKeyForInstance(identifier)
-			if (pushIdentifierSk) {
-				const pushIdentifierSessionEncSessionKey = encryptKey(pushIdentifierSk, notificationSessionKey)
-				return {
-					identifierId: identifier._id,
-					pushIdentifierSessionEncSessionKey,
-				}
-			} else {
-				return null
-			}
-		}) // rate limiting against blocking while resolving session keys (neccessary)
-		const encSessionKeys = maybeEncSessionKeys.filter(isNotNull)
-
-		for (let notification of alarmNotifications) {
-			notification.notificationSessionKeys = encSessionKeys.map((esk) => {
-				return createNotificationSessionKey({
-					pushIdentifier: esk.identifierId,
-					pushIdentifierSessionEncSessionKey: esk.pushIdentifierSessionEncSessionKey,
-				})
-			})
+			await this.sendAlarmNotifications(alarmNotifications, pushIdentifierList)
 		}
 	}
 
@@ -324,7 +271,7 @@ export class CalendarFacade {
 		// Theoretically we don't need to encrypt anything if we are sending things locally but we use already encrypted data on the client
 		// to store alarms securely.
 		const notificationKey = aes128RandomKey()
-		await this._encryptNotificationKeyForDevices(notificationKey, alarmNotifications, [pushIdentifier])
+		await this.encryptNotificationKeyForDevices(notificationKey, alarmNotifications, [pushIdentifier])
 		const requestEntity = createAlarmServicePost({
 			alarmNotifications,
 		})
@@ -404,11 +351,62 @@ export class CalendarFacade {
 		return null
 	}
 
-	async _saveMultipleAlarms(
+	private async sendAlarmNotifications(alarmNotifications: Array<AlarmNotification>, pushIdentifierList: Array<PushIdentifier>): Promise<void> {
+		const notificationSessionKey = aes128RandomKey()
+		return this.encryptNotificationKeyForDevices(notificationSessionKey, alarmNotifications, pushIdentifierList).then(async () => {
+			const requestEntity = createAlarmServicePost({
+				alarmNotifications,
+			})
+			try {
+				await this.serviceExecutor.post(AlarmService, requestEntity, { sessionKey: notificationSessionKey })
+			} catch (e) {
+				if (e instanceof PayloadTooLargeError) {
+					return this.infoMessageHandler.onInfoMessage({
+						translationKey: "calendarAlarmsTooBigError_msg",
+						args: {},
+					})
+				} else {
+					throw e
+				}
+			}
+		})
+	}
+
+	private async encryptNotificationKeyForDevices(
+		notificationSessionKey: Aes128Key,
+		alarmNotifications: Array<AlarmNotification>,
+		pushIdentifierList: Array<PushIdentifier>,
+	): Promise<void> {
+		// PushID SK ->* Notification SK -> alarm fields
+		const maybeEncSessionKeys = await promiseMap(pushIdentifierList, async (identifier) => {
+			const pushIdentifierSk = await this.cryptoFacade.resolveSessionKeyForInstance(identifier)
+			if (pushIdentifierSk) {
+				const pushIdentifierSessionEncSessionKey = encryptKey(pushIdentifierSk, notificationSessionKey)
+				return {
+					identifierId: identifier._id,
+					pushIdentifierSessionEncSessionKey,
+				}
+			} else {
+				return null
+			}
+		}) // rate limiting against blocking while resolving session keys (neccessary)
+		const encSessionKeys = maybeEncSessionKeys.filter(isNotNull)
+
+		for (let notification of alarmNotifications) {
+			notification.notificationSessionKeys = encSessionKeys.map((esk) => {
+				return createNotificationSessionKey({
+					pushIdentifier: esk.identifierId,
+					pushIdentifierSessionEncSessionKey: esk.pushIdentifierSessionEncSessionKey,
+				})
+			})
+		}
+	}
+
+	private async saveMultipleAlarms(
 		user: User,
 		eventsWrapper: Array<{
 			event: CalendarEvent
-			alarms: Array<AlarmInfo>
+			alarms: ReadonlyArray<AlarmInfo>
 		}>,
 	): Promise<Array<AlarmNotificationsPerEvent>> {
 		const userAlarmInfosAndNotificationsPerEvent: Array<{
@@ -510,4 +508,9 @@ function createRepeatRuleForCalendarRepeatRule(calendarRepeatRule: CalendarRepea
 
 function getEventIdFromUserAlarmInfo(userAlarmInfo: UserAlarmInfo): IdTuple {
 	return [userAlarmInfo.alarmInfo.calendarRef.listId, userAlarmInfo.alarmInfo.calendarRef.elementId]
+}
+
+/** to make lookup on the encrypted event uid possible, we hash it and use that value as a key. */
+function hashUid(uid: string): Uint8Array {
+	return sha256Hash(stringToUtf8Uint8Array(uid))
 }

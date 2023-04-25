@@ -1,8 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { AllIcons, Icon } from "./Icon.js"
-import { lang, TranslationText } from "../../misc/LanguageViewModel.js"
-import { ButtonColor, getColors } from "./Button.js"
-import { ButtonSize } from "./ButtonSize.js"
+import { AllIcons, Icon } from "../Icon.js"
+import { lang, TranslationText } from "../../../misc/LanguageViewModel.js"
+import { ButtonColor, getColors } from "../Button.js"
+import { ButtonSize } from "../ButtonSize.js"
 
 export interface ToggleButtonAttrs {
 	icon: AllIcons

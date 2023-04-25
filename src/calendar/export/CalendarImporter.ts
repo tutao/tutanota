@@ -33,10 +33,11 @@ export type ParsedCalendarData = {
 	contents: Array<ParsedEvent>
 }
 
-export function parseCalendarFile(file: DataFile): ParsedCalendarData {
+/** given an ical datafile, get the parsed calendar events with their alarms as well as the ical method */
+export async function parseCalendarFile(file: DataFile): Promise<ParsedCalendarData> {
 	try {
 		const stringData = utf8Uint8ArrayToString(file.data)
-		return parseCalendarStringData(stringData, getTimeZone())
+		return await parseCalendarStringData(stringData, getTimeZone())
 	} catch (e) {
 		if (e instanceof ParserError) {
 			throw new ParserError(e.message, file.name)
@@ -46,16 +47,7 @@ export function parseCalendarFile(file: DataFile): ParsedCalendarData {
 	}
 }
 
-export function parseCalendarStringData(value: string, zone: string): ParsedCalendarData {
-	const tree = parseICalendar(value)
-	return parseCalendarEvents(tree, zone)
-}
-
-export function makeInvitationCalendar(versionNumber: string, event: CalendarEvent, method: string, now: Date, zone: string): string {
-	const eventSerialized = serializeEvent(event, [], now, zone)
-	return wrapIntoCalendar(versionNumber, method, eventSerialized)
-}
-
+/** create an ical data file that can be attached to an invitation/update/cancellation/response mail */
 export function makeInvitationCalendarFile(event: CalendarEvent, method: CalendarMethod, now: Date, zone: string): DataFile {
 	const stringValue = makeInvitationCalendar(env.versionNumber, event, method, now, zone)
 	const data = stringToUtf8Uint8Array(stringValue)
@@ -67,13 +59,7 @@ export function makeInvitationCalendarFile(event: CalendarEvent, method: Calenda
 	return convertToDataFile(tmpFile, data)
 }
 
-function wrapIntoCalendar(versionNumber: string, method: string, contents: Array<string>): string {
-	let value = ["BEGIN:VCALENDAR", `PRODID:-//Tutao GmbH//Tutanota ${versionNumber}//EN`, "VERSION:2.0", "CALSCALE:GREGORIAN", `METHOD:${method}`]
-	value.push(...contents)
-	value.push("END:VCALENDAR")
-	return value.join("\r\n")
-}
-
+/** serialize a list of events into a valid ical string using the PUBLISH method suitable to import as a calendar into any app supporting ical */
 export function serializeCalendar(
 	versionNumber: string,
 	events: Array<{
@@ -86,106 +72,17 @@ export function serializeCalendar(
 	return wrapIntoCalendar(versionNumber, "PUBLISH", flat(events.map(({ event, alarms }) => serializeEvent(event, alarms, now, zone))))
 }
 
-export function serializeRepeatRule(repeatRule: RepeatRule | null, isAllDayEvent: boolean, localTimeZone: string) {
-	if (repeatRule) {
-		let endType = ""
+//
+// end of the public interface for calendar invites/import/export, everything below this is exported for testing.
+//
 
-		if (repeatRule.endType === EndType.Count) {
-			endType = `;COUNT=${neverNull(repeatRule.endValue)}`
-		} else if (repeatRule.endType === EndType.UntilDate) {
-			// According to the RFC 5545 section 3.3.5
-			//  The UNTIL rule part defines a DATE or DATE-TIME value that bounds
-			//  the recurrence rule in an inclusive manner.  If the value
-			//  specified by UNTIL is synchronized with the specified recurrence,
-			//  this DATE or DATE-TIME becomes the last instance of the
-			//  recurrence.  The value of the UNTIL rule part MUST have the same
-			//  value type as the "DTSTART" property.  Furthermore, if the
-			//  "DTSTART" property is specified as a date with local time, then
-			//  the UNTIL rule part MUST also be specified as a date with local
-			//  time.  If the "DTSTART" property is specified as a date with UTC
-			//  time or a date with local time and time zone reference, then the
-			//  UNTIL rule part MUST be specified as a date with UTC time.
-			// We have three cases (check serializeEvent()).
-			// So our matrix wil be:
-			//
-			// Case       | start/end format | UNTIL format
-			// All-day:   | date             | date
-			// w/RR       | TZID + DateTime  | timestamp
-			// w/o/RR     | timestamp        | N/A
-			//
-			// In this branch there is a repeat rule and we just check if it's all day.
-			// We also differ in a way that we define end as exclusive (because it's so
-			// hard to find anything in this RFC).
-			const date = new Date(Number(repeatRule.endValue))
-			const value = isAllDayEvent ? formatDate(incrementDate(date, -1), localTimeZone) : formatDateTimeUTC(new Date(date.getTime() - SECOND_MS))
-			endType = `;UNTIL=${value}`
-		}
-
-		const excludedDates = serializeExcludedDates(repeatRule.excludedDates, repeatRule.timeZone)
-		return [
-			`RRULE:FREQ=${repeatPeriodToIcalFrequency(assertEnumValue(RepeatPeriod, repeatRule.frequency))}` + `;INTERVAL=${repeatRule.interval}` + endType,
-		].concat(excludedDates)
-	} else {
-		return []
-	}
+/** importer internals exported for testing */
+export function parseCalendarStringData(value: string, zone: string): ParsedCalendarData {
+	const tree = parseICalendar(value)
+	return parseCalendarEvents(tree, zone)
 }
 
-export function serializeExcludedDates(excludedDates: DateWrapper[], timeZone: string): string[] {
-	if (excludedDates.length > 0) {
-		let dates = ""
-		for (let i = 0; i < excludedDates.length; i++) {
-			dates += formatDateTime(excludedDates[i].date, timeZone)
-			if (i < excludedDates.length - 1) {
-				dates += ","
-			}
-		}
-		return [`EXDATE;TZID=${timeZone}:${dates}`]
-	} else {
-		return []
-	}
-}
-
-function serializeTrigger(alarmInterval: AlarmInterval): string {
-	switch (alarmInterval) {
-		case AlarmInterval.FIVE_MINUTES:
-			return "-PT05M"
-
-		case AlarmInterval.TEN_MINUTES:
-			return "-PT10M"
-
-		case AlarmInterval.THIRTY_MINUTES:
-			return "-PT30M"
-
-		case AlarmInterval.ONE_HOUR:
-			return "-PT01H"
-
-		case AlarmInterval.ONE_DAY:
-			return "-P1D"
-
-		case AlarmInterval.TWO_DAYS:
-			return "-P2D"
-
-		case AlarmInterval.THREE_DAYS:
-			return "-P3D"
-
-		case AlarmInterval.ONE_WEEK:
-			return "-P1W"
-
-		default:
-			throw new Error("unknown alarm interval: " + alarmInterval)
-	}
-}
-
-function serializeAlarm(event: CalendarEvent, alarm: UserAlarmInfo): Array<string> {
-	return [
-		"BEGIN:VALARM",
-		"ACTION:DISPLAY",
-		"DESCRIPTION:This is an event reminder",
-		`TRIGGER:${serializeTrigger(downcast(alarm.alarmInfo.trigger))}`,
-		"END:VALARM",
-	]
-}
-
+/** importer internals exported for testing, should always be used through serializeCalendar */
 export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date, timeZone: string): Array<string> {
 	const repeatRule = event.repeatRule
 	const isAllDay = isAllDayEvent(event)
@@ -231,6 +128,124 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 		.concat("END:VEVENT")
 }
 
+/** importer internals exported for testing */
+export function serializeRepeatRule(repeatRule: RepeatRule | null, isAllDayEvent: boolean, localTimeZone: string) {
+	if (repeatRule) {
+		let endType = ""
+
+		if (repeatRule.endType === EndType.Count) {
+			endType = `;COUNT=${neverNull(repeatRule.endValue)}`
+		} else if (repeatRule.endType === EndType.UntilDate) {
+			// According to the RFC 5545 section 3.3.5
+			//  The UNTIL rule part defines a DATE or DATE-TIME value that bounds
+			//  the recurrence rule in an inclusive manner.  If the value
+			//  specified by UNTIL is synchronized with the specified recurrence,
+			//  this DATE or DATE-TIME becomes the last instance of the
+			//  recurrence.  The value of the UNTIL rule part MUST have the same
+			//  value type as the "DTSTART" property.  Furthermore, if the
+			//  "DTSTART" property is specified as a date with local time, then
+			//  the UNTIL rule part MUST also be specified as a date with local
+			//  time.  If the "DTSTART" property is specified as a date with UTC
+			//  time or a date with local time and time zone reference, then the
+			//  UNTIL rule part MUST be specified as a date with UTC time.
+			// We have three cases (check serializeEvent()).
+			// So our matrix wil be:
+			//
+			// Case       | start/end format | UNTIL format
+			// All-day:   | date             | date
+			// w/RR       | TZID + DateTime  | timestamp
+			// w/o/RR     | timestamp        | N/A
+			//
+			// In this branch there is a repeat rule and we just check if it's all day.
+			// We also differ in a way that we define end as exclusive (because it's so
+			// hard to find anything in this RFC).
+			const date = new Date(Number(repeatRule.endValue))
+			const value = isAllDayEvent ? formatDate(incrementDate(date, -1), localTimeZone) : formatDateTimeUTC(new Date(date.getTime() - SECOND_MS))
+			endType = `;UNTIL=${value}`
+		}
+
+		const excludedDates = serializeExcludedDates(repeatRule.excludedDates, repeatRule.timeZone)
+		return [
+			`RRULE:FREQ=${repeatPeriodToIcalFrequency(assertEnumValue(RepeatPeriod, repeatRule.frequency))}` + `;INTERVAL=${repeatRule.interval}` + endType,
+		].concat(excludedDates)
+	} else {
+		return []
+	}
+}
+
+/** importer internals exported for testing */
+export function serializeExcludedDates(excludedDates: DateWrapper[], timeZone: string): string[] {
+	if (excludedDates.length > 0) {
+		let dates = ""
+		for (let i = 0; i < excludedDates.length; i++) {
+			dates += formatDateTime(excludedDates[i].date, timeZone)
+			if (i < excludedDates.length - 1) {
+				dates += ","
+			}
+		}
+		return [`EXDATE;TZID=${timeZone}:${dates}`]
+	} else {
+		return []
+	}
+}
+
+/** importer internals exported for testing */
+export function formatDateTimeUTC(date: Date): string {
+	return `${date.getUTCFullYear()}${pad2(date.getUTCMonth() + 1)}${pad2(date.getUTCDate())}T${pad2(date.getUTCHours())}${pad2(date.getUTCMinutes())}${pad2(
+		date.getUTCSeconds(),
+	)}Z`
+}
+
+function formatDateTime(date: Date, timeZone: string): string {
+	const dateTime = DateTime.fromJSDate(date, {
+		zone: timeZone,
+	})
+	return `${dateTime.year}${pad2(dateTime.month)}${pad2(dateTime.day)}T${pad2(dateTime.hour)}${pad2(dateTime.minute)}${pad2(dateTime.second)}`
+}
+
+function formatDate(date: Date, timeZone: string): string {
+	const dateTime = DateTime.fromJSDate(date, {
+		zone: timeZone,
+	})
+	return `${dateTime.year}${pad2(dateTime.month)}${pad2(dateTime.day)}`
+}
+
+function makeInvitationCalendar(versionNumber: string, event: CalendarEvent, method: string, now: Date, zone: string): string {
+	const eventSerialized = serializeEvent(event, [], now, zone)
+	return wrapIntoCalendar(versionNumber, method, eventSerialized)
+}
+
+function serializeTrigger(alarmInterval: AlarmInterval): string {
+	switch (alarmInterval) {
+		case AlarmInterval.FIVE_MINUTES:
+			return "-PT05M"
+
+		case AlarmInterval.TEN_MINUTES:
+			return "-PT10M"
+
+		case AlarmInterval.THIRTY_MINUTES:
+			return "-PT30M"
+
+		case AlarmInterval.ONE_HOUR:
+			return "-PT01H"
+
+		case AlarmInterval.ONE_DAY:
+			return "-P1D"
+
+		case AlarmInterval.TWO_DAYS:
+			return "-P2D"
+
+		case AlarmInterval.THREE_DAYS:
+			return "-P3D"
+
+		case AlarmInterval.ONE_WEEK:
+			return "-P1W"
+
+		default:
+			throw new Error("unknown alarm interval: " + alarmInterval)
+	}
+}
+
 function serializeParticipants(event: CalendarEvent): Array<string> {
 	const { organizer, attendees } = event
 
@@ -271,22 +286,19 @@ function pad2(number: number) {
 	return pad(number, 2)
 }
 
-export function formatDateTime(date: Date, timeZone: string): string {
-	const dateTime = DateTime.fromJSDate(date, {
-		zone: timeZone,
-	})
-	return `${dateTime.year}${pad2(dateTime.month)}${pad2(dateTime.day)}T${pad2(dateTime.hour)}${pad2(dateTime.minute)}${pad2(dateTime.second)}`
+function wrapIntoCalendar(versionNumber: string, method: string, contents: Array<string>): string {
+	let value = ["BEGIN:VCALENDAR", `PRODID:-//Tutao GmbH//Tutanota ${versionNumber}//EN`, "VERSION:2.0", "CALSCALE:GREGORIAN", `METHOD:${method}`]
+	value.push(...contents)
+	value.push("END:VCALENDAR")
+	return value.join("\r\n")
 }
 
-export function formatDateTimeUTC(date: Date): string {
-	return `${date.getUTCFullYear()}${pad2(date.getUTCMonth() + 1)}${pad2(date.getUTCDate())}T${pad2(date.getUTCHours())}${pad2(date.getUTCMinutes())}${pad2(
-		date.getUTCSeconds(),
-	)}Z`
-}
-
-export function formatDate(date: Date, timeZone: string): string {
-	const dateTime = DateTime.fromJSDate(date, {
-		zone: timeZone,
-	})
-	return `${dateTime.year}${pad2(dateTime.month)}${pad2(dateTime.day)}`
+function serializeAlarm(event: CalendarEvent, alarm: UserAlarmInfo): Array<string> {
+	return [
+		"BEGIN:VALARM",
+		"ACTION:DISPLAY",
+		"DESCRIPTION:This is an event reminder",
+		`TRIGGER:${serializeTrigger(downcast(alarm.alarmInfo.trigger))}`,
+		"END:VALARM",
+	]
 }

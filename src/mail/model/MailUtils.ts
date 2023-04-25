@@ -19,9 +19,8 @@ import {
 	ReplyType,
 	TUTANOTA_MAIL_ADDRESS_DOMAINS,
 } from "../../api/common/TutanotaConstants"
-import { assertNotNull, contains, endsWith, first, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, contains, endsWith, first, neverNull } from "@tutao/tutanota-utils"
 import { assertMainOrNode, isDesktop } from "../../api/common/Env"
-import { LockedError, NotFoundError } from "../../api/common/error/RestError"
 import type { LoginController } from "../../api/main/LoginController"
 import type { Language, TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
@@ -60,7 +59,10 @@ export function createNewContact(user: User, mailAddress: string, name: string):
 	let firstAndLastName = name.trim() !== "" ? fullNameToFirstAndLastName(name) : mailAddressToFirstAndLastName(mailAddress)
 	let contact = createContact()
 	contact._owner = user._id
-	contact._ownerGroup = assertNotNull(user.memberships.find((m) => m.groupType === GroupType.Contact)).group
+	contact._ownerGroup = assertNotNull(
+		user.memberships.find((m) => m.groupType === GroupType.Contact),
+		"called createNewContact as user without contact group mship",
+	).group
 	contact.firstName = firstAndLastName.firstName
 	contact.lastName = firstAndLastName.lastName
 	let ma = createContactMailAddress()

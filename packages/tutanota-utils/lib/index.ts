@@ -43,7 +43,7 @@ export {
 	count,
 } from "./ArrayUtils.js"
 export { AsyncResult } from "./AsyncResult.js"
-export { intersection } from "./CollectionUtils.js"
+export { intersection, trisectingDiff } from "./CollectionUtils.js"
 export {
 	DAY_IN_MILLIS,
 	getStartOfNextDay,

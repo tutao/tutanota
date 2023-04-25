@@ -46,7 +46,6 @@ import { MobileContactActionBar } from "./MobileContactActionBar.js"
 import { appendEmailSignature } from "../../mail/signature/Signature.js"
 import { PartialRecipient } from "../../api/common/recipients/Recipient.js"
 import { newMailEditorFromTemplate } from "../../mail/editor/MailEditor.js"
-import { searchBar } from "../../search/SearchBar.js"
 import { BackgroundColumnLayout } from "../../gui/BackgroundColumnLayout.js"
 import { theme } from "../../gui/theme.js"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../gui/DesktopToolbars.js"
@@ -632,14 +631,14 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 }
 
-export function writeMail(to: PartialRecipient): Promise<unknown> {
+export function writeMail(to: PartialRecipient, subject: string = ""): Promise<unknown> {
 	return locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
 		return newMailEditorFromTemplate(
 			mailboxDetails,
 			{
 				to: [to],
 			},
-			"",
+			subject,
 			appendEmailSignature("", locator.logins.getUserController().props),
 		).then((editor) => editor.show())
 	})

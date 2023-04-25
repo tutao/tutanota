@@ -9,7 +9,7 @@ import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { animations, height, opacity } from "../animation/Animations"
 import { client } from "../../misc/ClientDetector"
 import { BrowserType } from "../../misc/ClientConstants"
-import { ToggleButton } from "./ToggleButton.js"
+import { ToggleButton } from "./buttons/ToggleButton.js"
 import { IconButton, IconButtonAttrs } from "./IconButton.js"
 import { ButtonSize } from "./ButtonSize.js"
 

@@ -15,9 +15,8 @@ import {
 	promiseMap,
 	symmetricDifference,
 } from "@tutao/tutanota-utils"
-import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
-import { CalendarEventTypeRef, UserSettingsGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import { getWeekStart, OperationType, reverse, WeekStart } from "../../api/common/TutanotaConstants"
+import { CalendarEvent, CalendarEventTypeRef, UserSettingsGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { getWeekStart, OperationType, WeekStart } from "../../api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
 import { getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
 import { LoginController } from "../../api/main/LoginController"
@@ -31,7 +30,7 @@ import {
 	addDaysForEvent,
 	addDaysForLongEvent,
 	addDaysForRecurringEvent,
-	getDiffInHours,
+	getDiffIn60mIntervals,
 	getEventStart,
 	getMonth,
 	getTimeZone,
@@ -40,8 +39,7 @@ import {
 } from "../date/CalendarUtils"
 import { DateTime } from "luxon"
 import { geEventElementMaxId, getEventElementMinId, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
-import type { EventCreateResult } from "../date/CalendarEventViewModel"
-import { CalendarEventViewModel } from "../date/CalendarEventViewModel"
+import { CalendarEventModel, EventSaveResult, getNonOrganizerAttendees } from "../date/eventeditor/CalendarEventModel.js"
 import { askIfShouldSendCalendarUpdatesToAttendees } from "./CalendarGuiUtils"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel"
 import type { CalendarInfo, CalendarModel } from "../model/CalendarModel"
@@ -51,7 +49,8 @@ import { EntityClient } from "../../api/common/EntityClient"
 import { ProgressTracker } from "../../api/main/ProgressTracker"
 import { DeviceConfig } from "../../misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
-import { locator } from "../../api/main/MainLocator.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { CalendarEventEditMode } from "./eventeditor/CalendarEventEditDialog.js"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -67,20 +66,11 @@ export type DraggedEvent = {
 	eventClone: CalendarEvent
 }
 
-export enum CalendarViewType {
-	DAY = "day",
-	WEEK = "week",
-	MONTH = "month",
-	AGENDA = "agenda",
-}
-
-export const CalendarViewTypeByValue = reverse(CalendarViewType)
-
 export type MouseOrPointerEvent = MouseEvent | PointerEvent
 export type CalendarEventBubbleClickHandler = (arg0: CalendarEvent, arg1: MouseOrPointerEvent) => unknown
 type EventsForDays = Map<number, Array<CalendarEvent>>
 export const LIMIT_PAST_EVENTS_YEARS = 100
-export type CreateCalendarEventViewModelFunction = (event: CalendarEvent, calendarInfos: LazyLoaded<Map<Id, CalendarInfo>>) => Promise<CalendarEventViewModel>
+export type CalendarEventEditModelsFactory = (event: CalendarEvent) => Promise<CalendarEventModel>
 
 export class CalendarViewModel implements EventDragHandlerCallbacks {
 	// Should not be changed directly but only through the URL
@@ -93,7 +83,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	_hiddenCalendars: Set<Id>
 	readonly _calendarInvitations: ReceivedGroupInvitationsModel
-	_createCalendarEventViewModelCallback: (event: CalendarEvent, calendarInfos: LazyLoaded<Map<Id, CalendarInfo>>) => Promise<CalendarEventViewModel>
 	readonly _calendarModel: CalendarModel
 	readonly _entityClient: EntityClient
 	// Events that have been dropped but still need to be rendered as temporary while waiting for entity updates.
@@ -105,7 +94,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	constructor(
 		private readonly logins: LoginController,
-		createCalendarEventViewModelCallback: CreateCalendarEventViewModelFunction,
+		private readonly createCalendarEventEditModel: CalendarEventEditModelsFactory,
 		calendarModel: CalendarModel,
 		entityClient: EntityClient,
 		eventController: EventController,
@@ -115,7 +104,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	) {
 		this._calendarModel = calendarModel
 		this._entityClient = entityClient
-		this._createCalendarEventViewModelCallback = createCalendarEventViewModelCallback
 		this._transientEvents = []
 
 		const userId = logins.getUserController().user._id
@@ -220,12 +208,12 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 			this._addTransientEvent(eventClone)
 
-			const firstOccurrence = originalEvent.repeatRule ? await this._entityClient.load(CalendarEventTypeRef, originalEvent._id) : originalEvent
+			const progenitor = await resolveCalendarEventProgenitor(originalEvent, this._entityClient)
 
 			try {
-				const didUpdate = await this._moveEvent(firstOccurrence, timeToMoveBy)
+				const didUpdate = await this.moveEvent(progenitor, timeToMoveBy)
 
-				if (!didUpdate) {
+				if (didUpdate !== EventSaveResult.Saved) {
 					this._removeTransientEvent(eventClone)
 				}
 			} catch (e) {
@@ -295,7 +283,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			const events = this._eventsForDays.get(day.getTime()) || []
 
 			const sortEvent = (event: CalendarEvent) => {
-				if (isAllDayEvent(event) || getDiffInHours(event.startTime, event.endTime) >= 24) {
+				if (isAllDayEvent(event) || getDiffIn60mIntervals(event.startTime, event.endTime) >= 24) {
 					longEvents.add(event)
 				} else {
 					shortEventsForDay.push(event)
@@ -347,16 +335,31 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	 * move an event to a new start time
 	 * @param event the actually dragged event (may be a repeated instance)
 	 * @param diff the amount of milliseconds to shift the event by
+	 * @param mode which parts of the series should be rescheduled?
 	 */
-	async _moveEvent(event: CalendarEvent, diff: number): Promise<EventCreateResult> {
-		const viewModel: CalendarEventViewModel = await this._createCalendarEventViewModelCallback(event, this.calendarInfos)
-		viewModel.rescheduleEvent(diff)
+	private async moveEvent(event: CalendarEvent, diff: number, mode: CalendarEventEditMode = CalendarEventEditMode.All): Promise<EventSaveResult> {
+		if (event.uid == null) {
+			throw new ProgrammingError("called moveEvent for an event without uid")
+		}
+
+		if (mode !== CalendarEventEditMode.All) {
+			throw new ProgrammingError("single-instance-rescheduling is not implemented.")
+		}
+
+		const editModel = await this.createCalendarEventEditModel(event)
+		editModel.editModels.whenModel.rescheduleEvent({ millisecond: diff })
+
+		if (getNonOrganizerAttendees(event).length > 0) {
+			const response = await askIfShouldSendCalendarUpdatesToAttendees()
+			if (response === "yes") {
+				editModel.shouldSendUpdates = true
+			} else if (response === "cancel") {
+				return EventSaveResult.Failed
+			}
+		}
+
 		// Errors are handled in the individual views
-		return viewModel.saveAndSend({
-			askForUpdates: askIfShouldSendCalendarUpdatesToAttendees,
-			askInsecurePassword: async () => true,
-			showProgress: noOp,
-		})
+		return await editModel.updateExistingEvent()
 	}
 
 	_addOrUpdateEvent(calendarInfo: CalendarInfo | null, event: CalendarEvent) {
@@ -562,10 +565,11 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	/**
-	 * Removes existing event from {@param events} and also from {@code this._eventsForDays} if end time does not match
+	 * Removes {@param eventToRemove} from {@param events} using isSameEvent()
+	 * also removes it from {@code this._eventsForDays} if end time does not match
 	 */
-	_removeExistingEvent(events: Array<CalendarEvent>, newEvent: CalendarEvent) {
-		const indexOfOldEvent = events.findIndex((el) => isSameEvent(el, newEvent))
+	_removeExistingEvent(events: Array<CalendarEvent>, eventToRemove: CalendarEvent) {
+		const indexOfOldEvent = events.findIndex((el) => isSameEvent(el, eventToRemove))
 
 		if (indexOfOldEvent !== -1) {
 			const oldEvent = events[indexOfOldEvent]
@@ -573,7 +577,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			// If the old and new event end times do not match, we need to remove all occurrences of old event, otherwise iterating
 			// occurrences of new event won't replace all occurrences of old event. Changes of start or repeat rule already change
 			// ID of the event so it is not a problem.
-			if (oldEvent.endTime.getTime() !== newEvent.endTime.getTime()) {
+			if (oldEvent.endTime.getTime() !== eventToRemove.endTime.getTime()) {
 				const newMap = this._cloneEvents()
 
 				newMap.forEach(
@@ -655,4 +659,13 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 function updateTemporaryEventWithDiff(eventClone: CalendarEvent, originalEvent: CalendarEvent, mouseDiff: number) {
 	eventClone.startTime = new Date(originalEvent.startTime.getTime() + mouseDiff)
 	eventClone.endTime = new Date(originalEvent.endTime.getTime() + mouseDiff)
+}
+
+/**
+ * get the "primary" event of a series - the one that contains the repeat rule and is not a repeated or a rescheduled instance.
+ * @param calendarEvent
+ * @param entityClient
+ */
+export async function resolveCalendarEventProgenitor(calendarEvent: CalendarEvent, entityClient: EntityClient): Promise<CalendarEvent> {
+	return calendarEvent.repeatRule ? await entityClient.load(CalendarEventTypeRef, calendarEvent._id) : calendarEvent
 }

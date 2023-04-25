@@ -8,7 +8,7 @@ export type DialogHeaderBarAttrs = {
 	left?: MaybeLazy<Array<ButtonAttrs>>
 	right?: MaybeLazy<Array<ButtonAttrs>>
 	middle?: lazy<string>
-	create?: () => void
+	create?: (dom: HTMLElement) => void
 	remove?: () => void
 	noHeader?: boolean
 }
@@ -30,8 +30,8 @@ export class DialogHeaderBar implements Component<DialogHeaderBarAttrs> {
 		return m(
 			".flex-space-between.dialog-header-line-height",
 			{
-				oncreate: () => {
-					if (a.create) a.create()
+				oncreate: ({ dom }) => {
+					if (a.create) a.create(dom as HTMLElement)
 				},
 				onremove: () => {
 					if (a.remove) a.remove()

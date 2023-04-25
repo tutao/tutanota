@@ -478,7 +478,8 @@ export const enum EndType {
 
 export const defaultCalendarColor = "2196f3"
 
-export const enum AlarmInterval {
+// keep non-const for iteration/filtering
+export enum AlarmInterval {
 	FIVE_MINUTES = "5M",
 	TEN_MINUTES = "10M",
 	THIRTY_MINUTES = "30M",

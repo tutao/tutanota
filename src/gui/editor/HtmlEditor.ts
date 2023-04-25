@@ -184,6 +184,13 @@ export class HtmlEditor implements Component {
 		}
 	}
 
+	/**
+	 * squire HTML editor usually has some HTML when appearing empty, sometimes we don't want that content.
+	 */
+	getTrimmedValue(): string {
+		return this.isEmpty() ? "" : this.getValue()
+	}
+
 	setValue(html: string): HtmlEditor {
 		if (this.mode === HtmlEditorMode.WYSIWYG) {
 			this.editor.initialized.promise.then(() => this.editor.setHTML(html))
@@ -200,9 +207,10 @@ export class HtmlEditor implements Component {
 
 	isEmpty(): boolean {
 		// either nothing or default squire content
-		return this.value() === "" || this.value() === '<div dir="auto"><br></div>'
+		return this.value() === "" || this.value() === "<div><br></div>"
 	}
 
+	/** set whether the dialog should be editable.*/
 	setEnabled(enabled: boolean): HtmlEditor {
 		this.editor.setEnabled(enabled)
 		if (this.domTextArea) {

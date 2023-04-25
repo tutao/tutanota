@@ -7,8 +7,10 @@ import { ContactSocialType } from "../../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
-export function getContactDisplayName(contact: Contact): string {
-	if (contact.nickname) {
+export type ContactNames = Pick<Contact, "nickname" | "firstName" | "lastName">
+
+export function getContactDisplayName(contact: ContactNames): string {
+	if (contact.nickname != null) {
 		return contact.nickname
 	} else {
 		return `${contact.firstName} ${contact.lastName}`.trim()

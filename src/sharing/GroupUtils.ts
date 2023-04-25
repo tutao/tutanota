@@ -1,22 +1,12 @@
-import type { User } from "../api/entities/sys/TypeRefs.js"
-import type { Group } from "../api/entities/sys/TypeRefs.js"
+import type { Group, GroupInfo, GroupMember, GroupMembership, ReceivedGroupInvitation, User } from "../api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef, GroupMemberTypeRef, ReceivedGroupInvitationTypeRef, UserGroupRootTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { GroupType, GroupTypeNameByCode, ShareCapability } from "../api/common/TutanotaConstants"
-import type { GroupMembership } from "../api/entities/sys/TypeRefs.js"
 import { getEtId, isSameId } from "../api/common/utils/EntityUtils"
 import { lang } from "../misc/LanguageViewModel"
-import type { GroupInfo } from "../api/entities/sys/TypeRefs.js"
-import { GroupInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { downcast } from "@tutao/tutanota-utils"
-import type { GroupMember } from "../api/entities/sys/TypeRefs.js"
-import { GroupMemberTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { downcast, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import type { EntityClient } from "../api/common/EntityClient"
-import { ofClass, promiseMap } from "@tutao/tutanota-utils"
-import type { ReceivedGroupInvitation } from "../api/entities/sys/TypeRefs.js"
-import { ReceivedGroupInvitationTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { UserGroupRootTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { NotFoundError } from "../api/common/error/RestError"
 import type { UserController } from "../api/main/UserController"
-import { locator } from "../api/main/MainLocator.js"
 
 /**
  * Whether or not a user has a given capability for a shared group. If the group type is not shareable, this will always return false
@@ -63,8 +53,7 @@ export function getCapabilityText(capability: ShareCapability): string {
 	}
 }
 
-export function getSharedGroupName(groupInfo: GroupInfo, allowGroupNameOverride: boolean): string {
-	const { userSettingsGroupRoot } = locator.logins.getUserController()
+export function getSharedGroupName(groupInfo: GroupInfo, { userSettingsGroupRoot }: UserController, allowGroupNameOverride: boolean): string {
 	const groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === groupInfo.group)
 	return (allowGroupNameOverride && groupSettings && groupSettings.name) || groupInfo.name || getDefaultGroupName(downcast(groupInfo.groupType))
 }
@@ -74,7 +63,7 @@ export type GroupMemberInfo = {
 	info: GroupInfo
 }
 
-export function getMemberCabability(memberInfo: GroupMemberInfo, group: Group): ShareCapability {
+export function getMemberCapability(memberInfo: GroupMemberInfo, group: Group): ShareCapability {
 	if (isSharedGroupOwner(group, memberInfo.member.user)) {
 		return ShareCapability.Invite
 	}

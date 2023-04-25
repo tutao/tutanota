@@ -758,12 +758,13 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	async _makeTemplateFolders(): Promise<Array<SettingsFolder<TemplateGroupInstance>>> {
-		const templateMemberships = (this.logins.getUserController() && this.logins.getUserController().getTemplateMemberships()) || []
+		const userController = this.logins.getUserController()
+		const templateMemberships = userController.getTemplateMemberships()
 		return promiseMap(
 			await loadTemplateGroupInstances(templateMemberships, locator.entityClient),
 			(groupInstance) =>
 				new SettingsFolder(
-					() => getSharedGroupName(groupInstance.groupInfo, true),
+					() => getSharedGroupName(groupInstance.groupInfo, userController, true),
 					() => Icons.ListAlt,
 					{
 						folder: "templates",
@@ -776,7 +777,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	async _makeKnowledgeBaseFolders(): Promise<Array<SettingsFolder<void>>> {
-		const customer = await this.logins.getUserController().loadCustomer()
+		const userController = this.logins.getUserController()
+		const customer = await userController.loadCustomer()
 
 		if (isCustomizationEnabledForCustomer(customer, FeatureType.KnowledgeBase)) {
 			const templateMemberships = (this.logins.getUserController() && this.logins.getUserController().getTemplateMemberships()) || []
@@ -784,7 +786,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				await loadTemplateGroupInstances(templateMemberships, locator.entityClient),
 				(groupInstance) =>
 					new SettingsFolder(
-						() => getSharedGroupName(groupInstance.groupInfo, true),
+						() => getSharedGroupName(groupInstance.groupInfo, userController, true),
 						() => Icons.Book,
 						{
 							folder: "knowledgebase",
@@ -801,8 +803,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 }
 
 function showRenameTemplateListDialog(instance: TemplateGroupInstance) {
-	const name = stream(getSharedGroupName(instance.groupInfo, true))
 	const logins = locator.logins
+	const name = stream(getSharedGroupName(instance.groupInfo, logins.getUserController(), true))
 	Dialog.showActionDialog({
 		title: () => lang.get("renameTemplateList_label"),
 		allowOkWithReturn: true,

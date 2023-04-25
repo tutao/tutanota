@@ -10,7 +10,7 @@ import { lang, TranslationText } from "../../misc/LanguageViewModel"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../HtmlUtils"
 import type { $Promisable, lazy, lazyAsync } from "@tutao/tutanota-utils"
-import { assertNotNull, delay, downcast, filterNull, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, downcast, filterNull, neverNull, Thunk } from "@tutao/tutanota-utils"
 import { client } from "../../misc/ClientDetector"
 import { pureComponent } from "./PureComponent"
 import type { clickHandler } from "./GuiUtils"
@@ -93,6 +93,7 @@ export class Dropdown implements ModalComponent {
 	private _domContents: HTMLElement | null = null
 	private _isFilterable: boolean = false
 	private _maxHeight: number | null = null
+	private closeHandler: Thunk | null = null
 
 	constructor(lazyChildren: lazy<ReadonlyArray<DropdownChildAttrs | null>>, width: number) {
 		this.children = []
@@ -234,7 +235,7 @@ export class Dropdown implements ModalComponent {
 			!(e.target as HTMLElement).classList.contains("doNotClose") &&
 			(this._domDropdown.contains(e.target as HTMLElement) || this._domDropdown.parentNode === e.target)
 		) {
-			modal.remove(this)
+			this.onClose()
 		}
 	}
 
@@ -242,7 +243,7 @@ export class Dropdown implements ModalComponent {
 		return [
 			{
 				key: Keys.ESC,
-				exec: () => this.close(),
+				exec: () => this.onClose(),
 				help: "close_alt",
 			},
 			{
@@ -275,8 +276,9 @@ export class Dropdown implements ModalComponent {
 		]
 	}
 
-	setOrigin(origin: PosRect) {
+	setOrigin(origin: PosRect): this {
 		this.origin = origin
+		return this
 	}
 
 	close(): void {
@@ -284,12 +286,16 @@ export class Dropdown implements ModalComponent {
 	}
 
 	onClose(): void {
-		this.close()
+		if (this.closeHandler) {
+			this.closeHandler()
+		} else {
+			this.close()
+		}
 	}
 
 	popState(e: Event): boolean {
-		this.close()
-		return true
+		this.onClose()
+		return false
 	}
 
 	chooseMatch: () => boolean = () => {
@@ -312,6 +318,11 @@ export class Dropdown implements ModalComponent {
 	 */
 	hideAnimation(): Promise<void> {
 		return Promise.resolve()
+	}
+
+	setCloseHandler(handler: Thunk): this {
+		this.closeHandler = handler
+		return this
 	}
 
 	_visibleChildren(): Array<DropdownChildAttrs> {
@@ -357,7 +368,7 @@ export function createAsyncDropdown({
 	withBackground?: boolean
 }): clickHandler {
 	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
-	return (e, dom) => {
+	return (_, dom) => {
 		const originalButtons = lazyButtons()
 		let buttonsResolved = false
 		originalButtons.then(() => {
@@ -401,6 +412,7 @@ export function showDropdownAtPosition(buttons: ReadonlyArray<DropdownChildAttrs
 type AttachDropdownParams = {
 	mainButtonAttrs: Omit<IconButtonAttrs, "click">
 	childAttrs: lazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>
+	/** called to determine if the dropdown actually needs to be shown */
 	showDropdown?: lazy<boolean>
 	width?: number
 	overrideOrigin?: (original: PosRect) => PosRect
@@ -408,8 +420,7 @@ type AttachDropdownParams = {
 
 /**
  *
- * @param mainButtonAttrs the attributes of the main button. if showDropdown returns false, this buttons onclick will
- * be executed instead of opening the dropdown.
+ * @param mainButtonAttrs the attributes of the main button. if showDropdown returns false, nothing will happen.
  * @param childAttrs the attributes of the children shown in the dropdown
  * @param showDropdown this will be checked before showing the dropdown
  * @param width width of the dropdown
