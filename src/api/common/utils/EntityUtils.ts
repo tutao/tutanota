@@ -5,6 +5,7 @@ import {
 	base64ToBase64Url,
 	base64ToUint8Array,
 	base64UrlToBase64,
+	clone,
 	hexToBase64,
 	isSameTypeRef,
 	pad,
@@ -53,6 +54,14 @@ export const CUSTOM_MAX_ID =
 export const RANGE_ITEM_LIMIT = 1000
 export const LOAD_MULTIPLE_LIMIT = 100
 export const POST_MULTIPLE_LIMIT = 100
+
+/**
+ * an entity that only contains the actual user data and can not be used to refer to any existing entity.
+ */
+export type Stripped<T extends Partial<SomeEntity>> = Omit<
+	T,
+	"_id" | "_ownerGroup" | "_ownerEncSessionKey" | "_permissions" | "_errors" | "_format" | "_type" | `_finalEncrypted${string}` | `_defaultEncrypted${string}`
+>
 
 /**
  * Tests if one id is bigger than another.
@@ -340,7 +349,7 @@ export function assertIsEntity2<T extends SomeEntity>(type: TypeRef<T>): (entity
  *
  * Only use for new entities, the {@param entity} won't be usable for updates anymore after this.
  */
-export function removeTechnicalFields<E extends SomeEntity>(entity: E) {
+export function removeTechnicalFields<E extends Partial<SomeEntity>>(entity: E) {
 	// we want to restrict outer function to entity types but internally we also want to handle aggregates
 	function _removeTechnicalFields(erased: Record<string, any>) {
 		for (const key of Object.keys(erased)) {
@@ -356,4 +365,37 @@ export function removeTechnicalFields<E extends SomeEntity>(entity: E) {
 	}
 
 	_removeTechnicalFields(entity)
+}
+
+/**
+ * get a clone of a (partial) entity that does not contain any fields that would indicate that it was ever persisted anywhere.
+ * @param entity the entity to strip
+ */
+export function getStrippedClone<E extends SomeEntity>(entity: Partial<E>): Stripped<Partial<E>> {
+	const cloned = clone(entity)
+	removeTechnicalFields(cloned)
+	removeIdentityFields(cloned)
+	return cloned
+}
+
+/**
+ * remove fields that do not contain user defined data but are related to finding/accessing the entity on the server
+ */
+function removeIdentityFields<E extends Partial<SomeEntity>>(entity: E) {
+	const keysToDelete = ["_id", "_ownerGroup", "_ownerEncSessionKey", "_permissions"]
+
+	function _removeIdentityFields(erased: Record<string, any>) {
+		for (const key of Object.keys(erased)) {
+			if (keysToDelete.includes(key)) {
+				delete erased[key]
+			} else {
+				const value = erased[key]
+				if (value instanceof Object) {
+					_removeIdentityFields(value)
+				}
+			}
+		}
+	}
+
+	_removeIdentityFields(entity)
 }

@@ -22,7 +22,7 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 
 	try {
 		const dataFiles = await showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
-		parsedEvents = dataFiles.map((file) => parseCalendarFile(file).contents)
+		parsedEvents = await promiseMap(dataFiles, async (file) => (await parseCalendarFile(file)).contents)
 	} catch (e) {
 		if (e instanceof ParserError) {
 			console.log("Failed to parse file", e)
@@ -132,28 +132,20 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 		.finally(() => operation.done())
 }
 
-export function exportCalendar(calendarName: string, groupRoot: CalendarGroupRoot, userAlarmInfos: Id, now: Date, zone: string) {
-	showProgressDialog(
+/** export all events from a calendar, using the alarmInfos the current user has access to and ignoring the other ones that may be set on the event. */
+export async function exportCalendar(calendarName: string, groupRoot: CalendarGroupRoot, userAlarmInfos: Id, now: Date, zone: string): Promise<void> {
+	return await showProgressDialog(
 		"pleaseWait_msg",
-		loadAllEvents(groupRoot)
-			.then((allEvents) => {
-				return promiseMap(allEvents, (event) => {
-					const thisUserAlarms = event.alarmInfos.filter((alarmInfoId) => isSameId(userAlarmInfos, listIdPart(alarmInfoId)))
-
-					if (thisUserAlarms.length > 0) {
-						return locator.entityClient.loadMultiple(UserAlarmInfoTypeRef, userAlarmInfos, thisUserAlarms.map(elementIdPart)).then((alarms) => ({
-							event,
-							alarms,
-						}))
-					} else {
-						return {
-							event,
-							alarms: [],
-						}
-					}
-				})
+		(async () => {
+			const allEvents = await loadAllEvents(groupRoot)
+			const eventsWithAlarms = await promiseMap(allEvents, async (event: CalendarEvent) => {
+				const thisUserAlarms = event.alarmInfos.filter((alarmInfoId) => isSameId(userAlarmInfos, listIdPart(alarmInfoId)))
+				if (thisUserAlarms.length === 0) return { event, alarms: [] }
+				const alarms = await locator.entityClient.loadMultiple(UserAlarmInfoTypeRef, userAlarmInfos, thisUserAlarms.map(elementIdPart))
+				return { event, alarms }
 			})
-			.then((eventsWithAlarms) => exportCalendarEvents(calendarName, eventsWithAlarms, now, zone)),
+			return await exportCalendarEvents(calendarName, eventsWithAlarms, now, zone)
+		})(),
 	)
 }
 

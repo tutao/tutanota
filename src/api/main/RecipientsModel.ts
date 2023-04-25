@@ -176,6 +176,9 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		try {
 			if (this.overrideContact) {
 				return this.overrideContact
+			} else if ((await this.contactModel.contactListId()) == null) {
+				console.log("can't resolve contacts for users with no contact list id")
+				return null
 			} else if (contact instanceof Array) {
 				return await this.entityClient.load(ContactTypeRef, contact)
 			} else if (contact == null) {

@@ -72,6 +72,7 @@ o.spec("CalendarFacadeTest", async function () {
 	function makeEvent(listId: Id, elementId?: Id): CalendarEvent {
 		return createCalendarEvent({
 			_id: [listId, elementId || restClientMock.getNextId()],
+			uid: `${listId}-${elementId}`,
 		})
 	}
 
@@ -152,7 +153,8 @@ o.spec("CalendarFacadeTest", async function () {
 				return entityRequest.apply(this, arguments)
 			})
 
-			sendAlarmNotificationsMock = mockAttribute(calendarFacade, calendarFacade._sendAlarmNotifications, () => Promise.resolve())
+			// @ts-ignore
+			sendAlarmNotificationsMock = mockAttribute(calendarFacade, calendarFacade.sendAlarmNotifications, () => Promise.resolve())
 			enitityClientLoadAllMock = mockAttribute(calendarFacade.entityClient, calendarFacade.entityClient.loadAll, loadAllMock)
 			entityRequestMock = mockAttribute(restClientMock, restClientMock.setupMultiple, requestSpy)
 		})
@@ -192,11 +194,12 @@ o.spec("CalendarFacadeTest", async function () {
 					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
 				},
 			]
-			await calendarFacade._saveCalendarEvents(eventsWrapper, () => Promise.resolve())
 			// @ts-ignore
-			o(calendarFacade._sendAlarmNotifications.callCount).equals(1)
+			await calendarFacade.saveCalendarEvents(eventsWrapper, () => Promise.resolve())
 			// @ts-ignore
-			o(calendarFacade._sendAlarmNotifications.args[0].length).equals(3)
+			o(calendarFacade.sendAlarmNotifications.callCount).equals(1)
+			// @ts-ignore
+			o(calendarFacade.sendAlarmNotifications.args[0].length).equals(3)
 			// @ts-ignore
 			o(entityRestCache.setupMultiple.callCount).equals(2)
 		})
@@ -224,10 +227,11 @@ o.spec("CalendarFacadeTest", async function () {
 					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
 				},
 			]
-			const result = await assertThrows(ImportError, async () => await calendarFacade._saveCalendarEvents(eventsWrapper, () => Promise.resolve()))
+			// @ts-ignore
+			const result = await assertThrows(ImportError, async () => await calendarFacade.saveCalendarEvents(eventsWrapper, () => Promise.resolve()))
 			o(result.numFailed).equals(2)
 			// @ts-ignore
-			o(calendarFacade._sendAlarmNotifications.callCount).equals(0)
+			o(calendarFacade.sendAlarmNotifications.callCount).equals(0)
 			// @ts-ignore
 			o(entityRestCache.setupMultiple.callCount).equals(1)
 		})
@@ -264,12 +268,13 @@ o.spec("CalendarFacadeTest", async function () {
 					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
 				},
 			]
-			const result = await assertThrows(ImportError, async () => await calendarFacade._saveCalendarEvents(eventsWrapper, () => Promise.resolve()))
+			// @ts-ignore
+			const result = await assertThrows(ImportError, async () => await calendarFacade.saveCalendarEvents(eventsWrapper, () => Promise.resolve()))
 			o(result.numFailed).equals(1)
 			// @ts-ignore
-			o(calendarFacade._sendAlarmNotifications.callCount).equals(1)
+			o(calendarFacade.sendAlarmNotifications.callCount).equals(1)
 			// @ts-ignore
-			o(calendarFacade._sendAlarmNotifications.args[0].length).equals(2)
+			o(calendarFacade.sendAlarmNotifications.args[0].length).equals(2)
 			// @ts-ignore
 			o(entityRestCache.setupMultiple.callCount).equals(3)
 		})
@@ -307,11 +312,12 @@ o.spec("CalendarFacadeTest", async function () {
 					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
 				},
 			]
-			await assertThrows(ConnectionError, async () => await calendarFacade._saveCalendarEvents(eventsWrapper, () => Promise.resolve()))
 			// @ts-ignore
-			o(calendarFacade._sendAlarmNotifications.callCount).equals(1)
+			await assertThrows(ConnectionError, async () => await calendarFacade.saveCalendarEvents(eventsWrapper, () => Promise.resolve()))
 			// @ts-ignore
-			o(calendarFacade._sendAlarmNotifications.args[0].length).equals(2)
+			o(calendarFacade.sendAlarmNotifications.callCount).equals(1)
+			// @ts-ignore
+			o(calendarFacade.sendAlarmNotifications.args[0].length).equals(2)
 			// @ts-ignore
 			o(entityRestCache.setupMultiple.callCount).equals(3)
 		})

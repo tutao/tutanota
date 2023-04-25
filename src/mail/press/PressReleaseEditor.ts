@@ -174,7 +174,7 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
 			},
 		],
 	}
-	const dialog = Dialog.largeDialogN(header, PressReleaseForm, pressRelease)
+	const dialog = Dialog.editDialog(header, PressReleaseForm, pressRelease)
 	dialog.show()
 }
 

@@ -499,7 +499,7 @@ export function symmetricDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T
  * @param array
  * @param predicate
  */
-export function partition<T>(array: Array<T>, predicate: (arg0: T) => boolean): [Array<T>, Array<T>] {
+export function partition<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boolean): [Array<T>, Array<T>] {
 	const left: T[] = []
 	const right: T[] = []
 

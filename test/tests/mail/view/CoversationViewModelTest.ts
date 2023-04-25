@@ -11,7 +11,7 @@ import {
 	Mail,
 	MailboxProperties,
 } from "../../../../src/api/entities/tutanota/TypeRefs.js"
-import { userId } from "../../calendar/CalendarTestUtils.js"
+import { ownerId } from "../../calendar/CalendarTestUtils.js"
 import { CreateMailViewerOptions } from "../../../../src/mail/view/MailViewer.js"
 import { MailboxDetail, MailModel } from "../../../../src/mail/model/MailModel.js"
 import { MailViewerViewModel } from "../../../../src/mail/view/MailViewerViewModel.js"
@@ -66,7 +66,7 @@ o.spec("ConversationViewModel", function () {
 			folders: new FolderSystem([]),
 			mailGroupInfo: createGroupInfo(),
 			mailGroup: createGroup({
-				user: userId,
+				user: ownerId,
 			}),
 			mailboxGroupRoot: createMailboxGroupRoot(),
 		}

@@ -12,8 +12,10 @@ import {
 	isSameDayOfDate,
 	isValidDate,
 	neverNull,
+	numberRange,
 } from "@tutao/tutanota-utils"
 import {
+	AccountType,
 	AlarmInterval,
 	CalendarAttendeeStatus,
 	defaultCalendarColor,
@@ -21,26 +23,39 @@ import {
 	EventTextTimeOption,
 	getWeekStart,
 	RepeatPeriod,
+	ShareCapability,
+	TimeFormat,
 	WeekStart,
 } from "../../api/common/TutanotaConstants"
 import { DateTime, FixedOffsetZone, IANAZone } from "luxon"
 import { CalendarEvent, CalendarGroupRoot, CalendarRepeatRule, createCalendarRepeatRule, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
-import { DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
+import {
+	CalendarEventTimes,
+	cleanMailAddress,
+	DAYS_SHIFTED_MS,
+	generateEventElementId,
+	isAllDayEvent,
+	isAllDayEventByTimes,
+} from "../../api/common/utils/CommonCalendarUtils"
 import { lang } from "../../misc/LanguageViewModel"
 import { formatDateTime, formatDateWithMonth, formatTime, timeStringFromParts } from "../../misc/Formatter"
 import { size } from "../../gui/size"
-import type { DateWrapper, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
-import { createDateWrapper } from "../../api/entities/sys/TypeRefs.js"
+import type { DateWrapper, RepeatRule } from "../../api/entities/sys/TypeRefs.js"
+import { createDateWrapper, User } from "../../api/entities/sys/TypeRefs.js"
 import { isColorLight } from "../../gui/base/Color"
 import type { GroupColors } from "../view/CalendarView"
 import { isSameId } from "../../api/common/utils/EntityUtils"
-import type { Time } from "../../api/common/utils/Time"
+import type { Time } from "./Time.js"
 import type { SelectorItemList } from "../../gui/base/DropDownSelector.js"
 import type { CalendarInfo } from "../model/CalendarModel"
 import { assertMainOrNode } from "../../api/common/Env"
 import { ChildArray, Children } from "mithril"
 import { DateProvider } from "../../api/common/DateProvider"
 import { TIMESTAMP_ZERO_YEAR } from "@tutao/tutanota-utils/dist/DateUtils"
+import { AllIcons } from "../../gui/base/Icon.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { EventType } from "./eventeditor/CalendarEventModel.js"
+import { hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
 
 assertMainOrNode()
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
@@ -112,35 +127,19 @@ export function getMonth(date: Date, zone: string): CalendarMonthTimeRange {
 }
 
 /**
- * Provides a date representing the beginning of the given date in local time.
+ * @param date a date object representing a calendar date (like 1st of May 2023 15:15) in {@param zone}
+ * @param zone the time zone to calculate which calendar date {@param date} represents.
+ * @returns a date object representing the beginning of the given day in local time, like 1st of May 2023 00:00)
  */
 export function getStartOfDayWithZone(date: Date, zone: string): Date {
-	return DateTime.fromJSDate(date, {
-		zone,
-	})
-		.set({
-			hour: 0,
-			minute: 0,
-			second: 0,
-			millisecond: 0,
-		})
-		.toJSDate()
+	return DateTime.fromJSDate(date, { zone }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toJSDate()
 }
 
+/** @param date a date object representing some time on some calendar date (like 1st of May 2023) in {@param zone}
+ * @param zone the time zone for which to calculate the calendar date that {@param date} represents
+ * @returns a date object representing the start of the next calendar date (2nd of May 2023 00:00) in {@param zone} */
 export function getStartOfNextDayWithZone(date: Date, zone: string): Date {
-	return DateTime.fromJSDate(date, {
-		zone,
-	})
-		.set({
-			hour: 0,
-			minute: 0,
-			second: 0,
-			millisecond: 0,
-		})
-		.plus({
-			day: 1,
-		})
-		.toJSDate()
+	return DateTime.fromJSDate(date, { zone }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).plus({ day: 1 }).toJSDate()
 }
 
 export function calculateAlarmTime(date: Date, interval: AlarmInterval, ianaTimeZone?: string): Date {
@@ -209,15 +208,11 @@ export function calculateAlarmTime(date: Date, interval: AlarmInterval, ianaTime
 }
 
 /** takes a date which encodes the day in UTC and produces a date that encodes the same date but in local time zone. All times must be 0. */
-export function getAllDayDateForTimezone(utcDate: Date, timeZone: string): Date {
-	return DateTime.fromObject(
-		{
-			year: utcDate.getUTCFullYear(),
-			month: utcDate.getUTCMonth() + 1,
-			day: utcDate.getUTCDate(),
-		},
-		{ zone: timeZone },
-	).toJSDate()
+export function getAllDayDateForTimezone(utcDate: Date, zone: string): Date {
+	return DateTime.fromJSDate(utcDate, { zone: "utc" })
+		.setZone(zone, { keepLocalTime: true })
+		.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+		.toJSDate()
 }
 
 export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriod, interval: number, ianaTimeZone: string): Date {
@@ -263,14 +258,6 @@ export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriod, 
 	}
 }
 
-export function getEventStartByTimes(startTime: Date, endTime: Date, timeZone: string): Date {
-	if (isAllDayEventByTimes(startTime, endTime)) {
-		return getAllDayDateForTimezone(startTime, timeZone)
-	} else {
-		return startTime
-	}
-}
-
 export function getValidTimeZone(zone: string, fallback?: string): string {
 	if (IANAZone.isValidZone(zone)) {
 		return zone
@@ -290,7 +277,7 @@ export function getTimeZone(): string {
 	return DateTime.local().zoneName
 }
 
-export class DateProviderImpl implements DateProvider {
+export class DefaultDateProvider implements DateProvider {
 	now(): number {
 		return Date.now()
 	}
@@ -499,18 +486,21 @@ export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Arr
 }
 
 /**
+ * difference in whole 24-hour-intervals between two dates, not anticommutative.
  * Result is positive or 0 if b > a, result is negative or 0 otherwise
  */
-export function getDiffInDays(a: Date, b: Date): number {
-	// discard the time and time-zone information
+export function getDiffIn24hIntervals(a: Date, b: Date): number {
 	return Math.floor(DateTime.fromJSDate(b).diff(DateTime.fromJSDate(a), "day").days)
 }
 
 /**
- * Result is positive or 0 if b > a, result is negative or 0 otherwise
+ * difference in whole 60 minute intervals between two dates
+ * result is 0 if the diff is less than 60 minutes, otherwise
+ * positive if b is after a, otherwise negative.
+ *
+ * not anticommutative.
  */
-export function getDiffInHours(a: Date, b: Date): number {
-	// discard the time and time-zone information
+export function getDiffIn60mIntervals(a: Date, b: Date): number {
 	return Math.floor(DateTime.fromJSDate(b).diff(DateTime.fromJSDate(a), "hours").hours)
 }
 
@@ -562,12 +552,17 @@ export function getStartOfTheWeekOffsetForUser(userSettingsGroupRoot: UserSettin
 	return getStartOfTheWeekOffset(getWeekStart(userSettingsGroupRoot))
 }
 
+export function getTimeFormatForUser(userSettingsGroupRoot: UserSettingsGroupRoot): TimeFormat {
+	// it's saved as a string, but is a const enum.
+	return userSettingsGroupRoot.timeFormat as TimeFormat
+}
+
 export function getWeekNumber(startOfTheWeek: Date): number {
 	// Currently it doesn't support US-based week numbering system with partial weeks.
 	return DateTime.fromJSDate(startOfTheWeek).weekNumber
 }
 
-export function getEventEnd(event: CalendarEvent, timeZone: string): Date {
+export function getEventEnd(event: CalendarEventTimes, timeZone: string): Date {
 	if (isAllDayEvent(event)) {
 		return getAllDayDateForTimezone(event.endTime, timeZone)
 	} else {
@@ -575,18 +570,22 @@ export function getEventEnd(event: CalendarEvent, timeZone: string): Date {
 	}
 }
 
-export function getEventStart(event: CalendarEvent, timeZone: string): Date {
-	return getEventStartByTimes(event.startTime, event.endTime, timeZone)
+export function getEventStart({ startTime, endTime }: CalendarEventTimes, timeZone: string): Date {
+	return getEventStartByTimes(startTime, endTime, timeZone)
 }
 
-export function getAllDayDateUTCFromZone(date: Date, timeZone: string): Date {
-	return DateTime.fromJSDate(date, {
-		zone: timeZone,
-	})
-		.setZone("utc", {
-			keepLocalTime: true,
-		})
-		.toJSDate()
+export function getEventStartByTimes(startTime: Date, endTime: Date, timeZone: string): Date {
+	if (isAllDayEventByTimes(startTime, endTime)) {
+		return getAllDayDateForTimezone(startTime, timeZone)
+	} else {
+		return startTime
+	}
+}
+
+/** @param date encodes some calendar date in {@param zone} (like the 1st of May 2023)
+ * @returns {Date} encodes the same calendar date in UTC */
+export function getAllDayDateUTCFromZone(date: Date, zone: string): Date {
+	return DateTime.fromJSDate(date, { zone }).setZone("utc", { keepLocalTime: true }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toJSDate()
 }
 
 export function isLongEvent(event: CalendarEvent, zone: string): boolean {
@@ -596,6 +595,7 @@ export function isLongEvent(event: CalendarEvent, zone: string): boolean {
 	return getEventEnd(event, zone).getTime() - getEventStart(event, zone).getTime() > DAYS_SHIFTED_MS
 }
 
+/** create an event id depending on the calendar it is in and on its length */
 export function assignEventId(event: CalendarEvent, zone: string, groupRoot: CalendarGroupRoot): void {
 	const listId = event.repeatRule || isLongEvent(event, zone) ? groupRoot.longEvents : groupRoot.shortEvents
 	event._id = [listId, generateEventElementId(event.startTime.getTime())]
@@ -712,18 +712,25 @@ export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event
 
 /**
  * Returns the end date of a repeating rule that can be used to display in the ui.
- * The actual end date that is stored on the repeat rule is always one day behind the displayed end date. The end date is always excluded
- * but to  display the end date we want show the last date of the period which is included.
+ *
+ * The actual end date that is stored on the repeat rule is always one day behind the displayed end date:
+ * * for all-day events:
+ *   - displayed end date: 2023-05-18
+ *   - last occurrence can be: 2023-05-18
+ *   - exported end date: 2023-05-18
+ *   - actual timestamp on the entity: Midnight UTC 2023-05-19 (start of day)
+ * * normal events behave the same except:
+ *   - actual timestamp on the entity is Midnight local timezone 2023-05-19 (start of day)
  * @returns {Date}
  */
-export function getRepeatEndTime(repeatRule: RepeatRule, isAllDay: boolean, timeZone: string): Date {
+export function getRepeatEndTimeForDisplay(repeatRule: RepeatRule, isAllDay: boolean, timeZone: string): Date {
 	if (repeatRule.endType !== EndType.UntilDate) {
 		throw new Error("Event has no repeat rule end type is not UntilDate: " + JSON.stringify(repeatRule))
 	}
 
-	const rawEndDate = new Date(Number(repeatRule.endValue))
+	const rawEndDate = new Date(filterInt(repeatRule.endValue ?? "0"))
 	const localDate = isAllDay ? getAllDayDateForTimezone(rawEndDate, timeZone) : rawEndDate
-	// Shown date is one day behind the actual end (for us it's excluded)
+	// Shown date is one day behind the actual end (but it is still excluded)
 	return incrementByRepeatPeriod(localDate, RepeatPeriod.DAILY, -1, timeZone)
 }
 
@@ -802,7 +809,7 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string): Gene
 	}
 
 	let calcStartTime = eventStartTime
-	const calcDuration = allDay ? getDiffInDays(eventStartTime, eventEndTime) : eventEndTime.getTime() - eventStartTime.getTime()
+	const calcDuration = allDay ? getDiffIn24hIntervals(eventStartTime, eventEndTime) : eventEndTime.getTime() - eventStartTime.getTime()
 	let calcEndTime = eventEndTime
 	let iteration = 1
 
@@ -823,9 +830,10 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string): Gene
  * return true if an event has more than one visible occurrence according to its repeat rule and excluded dates
  *
  * will compare exclusion time stamps with the exact date-time value of the occurrences startTime
- * @param event the calendar event to check
+ *
+ * @param event the calendar event to check. to get correct results, this must be the progenitor.
  */
-export function calendarEventHasMoreThanOneOccurrencesLeft(event: CalendarEvent): boolean {
+export function calendarEventHasMoreThanOneOccurrencesLeft(event: Readonly<CalendarEvent>): boolean {
 	if (event.repeatRule == null) {
 		return false
 	}
@@ -1062,7 +1070,7 @@ export function getCalendarMonth(date: Date, firstDayOfWeekFromOffset: number, w
 	}
 }
 
-export function formatEventDuration(event: CalendarEvent, zone: string, includeTimezone: boolean): string {
+export function formatEventDuration(event: CalendarEventTimes, zone: string, includeTimezone: boolean): string {
 	if (isAllDayEvent(event)) {
 		const startTime = getEventStart(event, zone)
 		const startString = formatDateWithMonth(startTime)
@@ -1107,23 +1115,30 @@ export function calendarAttendeeStatusSymbol(status: CalendarAttendeeStatus): st
 	}
 }
 
-export function incrementSequence(sequence: string, isOwnEvent: boolean): string {
+export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
+	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
+	[CalendarAttendeeStatus.TENTATIVE]: Icons.CircleHelp,
+	[CalendarAttendeeStatus.DECLINED]: Icons.CircleReject,
+	[CalendarAttendeeStatus.NEEDS_ACTION]: Icons.CircleEmpty,
+	[CalendarAttendeeStatus.ADDED]: Icons.CircleEmpty,
+})
+
+/**
+ *
+ * https://www.kanzaki.com/docs/ical/sequence.html
+ * The "Organizer" includes this property in an iCalendar object that it sends to an
+ * "Attendee" to specify the current version of the calendar component.
+ *
+ * The "Attendee" includes this property in an iCalendar object that it sends to the "Organizer"
+ * to specify the version of the calendar component that the "Attendee" is referring to.
+ *
+ * @param sequence
+ * @param mayIncrement whether we are allowed to change the sequence number in the event.
+ */
+export function incrementSequence(sequence: string, mayIncrement: boolean): string {
 	const current = filterInt(sequence) || 0
 	// Only the organizer should increase sequence numbers
-	return String(isOwnEvent ? current + 1 : current)
-}
-
-export function getNextHalfHour(): Date {
-	let date: Date = new Date()
-
-	if (date.getMinutes() > 30) {
-		date.setHours(date.getHours() + 1, 0)
-	} else {
-		date.setMinutes(30)
-	}
-
-	date.setMilliseconds(0)
-	return date
+	return String(mayIncrement ? current + 1 : current)
 }
 
 export function findPrivateCalendar(calendarInfo: Map<Id, CalendarInfo>): CalendarInfo | null {
@@ -1137,16 +1152,19 @@ export function findPrivateCalendar(calendarInfo: Map<Id, CalendarInfo>): Calend
 }
 
 /**
- * Prepare calendar event description to be shown to the user. Must be called *before* sanitizing.
+ * Prepare calendar event description to be shown to the user.
  *
  * It is needed to fix special format of links from Outlook which otherwise disappear during sanitizing.
  * They look like this:
  * ```
  * text<https://example.com>
  * ```
+ *
+ * @param description description to clean up
+ * @param sanitizer optional sanitizer to apply after preparing the description
  */
-export function prepareCalendarDescription(description: string): string {
-	return description.replace(/<(http|https):\/\/[A-z0-9$-_.+!*‘(),\/?]+>/gi, (possiblyLink) => {
+export function prepareCalendarDescription(description: string, sanitizer: (s: string) => string): string {
+	const prepared = description.replace(/<(http|https):\/\/[A-z0-9$-_.+!*‘(),\/?]+>/gi, (possiblyLink) => {
 		try {
 			const withoutBrackets = possiblyLink.slice(1, -1)
 			const url = new URL(withoutBrackets)
@@ -1155,6 +1173,8 @@ export function prepareCalendarDescription(description: string): string {
 			return possiblyLink
 		}
 	})
+
+	return sanitizer(prepared)
 }
 
 export const DEFAULT_HOUR_OF_DAY = 6
@@ -1193,8 +1213,8 @@ export function getTimeTextFormatForLongEvent(ev: CalendarEvent, startDay: Date,
  */
 export function combineDateWithTime(date: Date, time: Time): Date {
 	const newDate = new Date(date)
-	newDate.setHours(time.hours)
-	newDate.setMinutes(time.minutes)
+	newDate.setHours(time.hour)
+	newDate.setMinutes(time.minute)
 	return newDate
 }
 
@@ -1206,7 +1226,7 @@ export function isEventBetweenDays(event: CalendarEvent, firstDay: Date, lastDay
 	return !(eventEndsBefore(firstDay, zone, event) || eventStartsAfter(getEndOfDay(lastDay), zone, event))
 }
 
-export function createRepeatRuleFrequencyValues(): SelectorItemList<RepeatPeriod | null> {
+export const createRepeatRuleFrequencyValues = (): SelectorItemList<RepeatPeriod | null> => {
 	return [
 		{
 			name: lang.get("calendarRepeatIntervalNoRepeat_label"),
@@ -1231,7 +1251,7 @@ export function createRepeatRuleFrequencyValues(): SelectorItemList<RepeatPeriod
 	]
 }
 
-export function createRepeatRuleEndTypeValues(): SelectorItemList<EndType> {
+export const createRepeatRuleEndTypeValues = (): SelectorItemList<EndType> => {
 	return [
 		{
 			name: lang.get("calendarRepeatStopConditionNever_label"),
@@ -1248,8 +1268,128 @@ export function createRepeatRuleEndTypeValues(): SelectorItemList<EndType> {
 	]
 }
 
+export const createIntervalValues = (): SelectorItemList<number> => numberRange(1, 256).map((n) => ({ name: String(n), value: n }))
+
+export const createAlarmIntervalItems = (): SelectorItemList<AlarmInterval> => [
+	{
+		name: lang.get("calendarReminderIntervalFiveMinutes_label"),
+		value: AlarmInterval.FIVE_MINUTES,
+	},
+	{
+		name: lang.get("calendarReminderIntervalTenMinutes_label"),
+		value: AlarmInterval.TEN_MINUTES,
+	},
+	{
+		name: lang.get("calendarReminderIntervalThirtyMinutes_label"),
+		value: AlarmInterval.THIRTY_MINUTES,
+	},
+	{
+		name: lang.get("calendarReminderIntervalOneHour_label"),
+		value: AlarmInterval.ONE_HOUR,
+	},
+	{
+		name: lang.get("calendarReminderIntervalOneDay_label"),
+		value: AlarmInterval.ONE_DAY,
+	},
+	{
+		name: lang.get("calendarReminderIntervalTwoDays_label"),
+		value: AlarmInterval.TWO_DAYS,
+	},
+	{
+		name: lang.get("calendarReminderIntervalThreeDays_label"),
+		value: AlarmInterval.THREE_DAYS,
+	},
+	{
+		name: lang.get("calendarReminderIntervalOneWeek_label"),
+		value: AlarmInterval.ONE_WEEK,
+	},
+]
+
+export const createAttendingItems = (): SelectorItemList<CalendarAttendeeStatus> => [
+	{
+		name: lang.get("yes_label"),
+		value: CalendarAttendeeStatus.ACCEPTED,
+	},
+	{
+		name: lang.get("maybe_label"),
+		value: CalendarAttendeeStatus.TENTATIVE,
+	},
+	{
+		name: lang.get("no_label"),
+		value: CalendarAttendeeStatus.DECLINED,
+	},
+	{
+		name: lang.get("pending_label"),
+		value: CalendarAttendeeStatus.NEEDS_ACTION,
+		selectable: false,
+	},
+]
+
 export function getFirstDayOfMonth(d: Date): Date {
 	const date = new Date(d)
 	date.setDate(1)
 	return date
+}
+
+/**
+ *  find out how we ended up with this event, which determines the capabilities we have with it.
+ *  for shared events in calendar where we have read-write access, we can still only view events that have
+ *  attendees, because we could not send updates after we edit something
+ * @param existingEvent the event in question.
+ * @param calendars a list of calendars that this user has access to.
+ * @param ownMailAddresses the list of mail addresses this user might be using.
+ * @param user the user accessing the event.
+ */
+export function getEventType(
+	existingEvent: Partial<CalendarEvent>,
+	calendars: ReadonlyMap<Id, CalendarInfo>,
+	ownMailAddresses: ReadonlyArray<string>,
+	user: User,
+): EventType {
+	if (user.accountType === AccountType.EXTERNAL) {
+		return EventType.EXTERNAL
+	}
+
+	const existingOrganizer = existingEvent.organizer
+	const isOrganizer = existingOrganizer != null && ownMailAddresses.some((a) => cleanMailAddress(a) === existingOrganizer.address)
+
+	if (existingEvent._ownerGroup == null) {
+		if (existingOrganizer != null && !isOrganizer) {
+			// OwnerGroup is not set for events from file, but we also require an organizer to treat it as an invite.
+			return EventType.INVITE
+		} else {
+			// either the organizer exists and it's us, or the organizer does not exist and we can treat this as our event,
+			// like for newly created events.
+			return EventType.OWN
+		}
+	}
+
+	const calendarInfoForEvent = calendars.get(existingEvent._ownerGroup) ?? null
+
+	if (calendarInfoForEvent == null) {
+		// event has an ownergroup, but it's not in one of our calendars. this might actually be an error.
+		return EventType.SHARED_RO
+	}
+
+	if (calendarInfoForEvent.shared) {
+		const canWrite = hasCapabilityOnGroup(user, calendarInfoForEvent.group, ShareCapability.Write)
+		if (canWrite) {
+			const organizerAddress = cleanMailAddress(existingOrganizer?.address ?? "")
+			const wouldRequireUpdates: boolean =
+				existingEvent.attendees != null && existingEvent.attendees.filter((a) => cleanMailAddress(a.address.address) !== organizerAddress).length > 0
+			return wouldRequireUpdates ? EventType.LOCKED : EventType.SHARED_RW
+		} else {
+			return EventType.SHARED_RO
+		}
+	}
+
+	//For an event in a personal calendar there are 3 options
+	if (existingOrganizer == null || existingEvent.attendees?.length === 0 || isOrganizer) {
+		// 1. we are the organizer of the event or the event does not have an organizer yet
+		// 2. we are not the organizer and the event does not have guests. it was created by someone we shared our calendar with (also considered our own event)
+		return EventType.OWN
+	} else {
+		// 3. the event is an invitation that has another organizer and/or attendees.
+		return EventType.INVITE
+	}
 }

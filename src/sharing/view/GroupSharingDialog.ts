@@ -14,7 +14,7 @@ import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import { PreconditionFailedError, TooManyRequestsError } from "../../api/common/error/RestError"
 import { TextField } from "../../gui/base/TextField.js"
 import type { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
-import { getCapabilityText, getMemberCabability, getSharedGroupName, hasCapabilityOnGroup, isShareableGroupType, isSharedGroupOwner } from "../GroupUtils"
+import { getCapabilityText, getMemberCapability, getSharedGroupName, hasCapabilityOnGroup, isShareableGroupType, isSharedGroupOwner } from "../GroupUtils"
 import { sendShareNotificationEmail } from "../GroupSharingUtils"
 import { GroupSharingModel } from "../model/GroupSharingModel"
 import { locator } from "../../api/main/MainLocator"
@@ -72,7 +72,7 @@ type GroupSharingDialogAttrs = {
 class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 	view(vnode: Vnode<GroupSharingDialogAttrs>): Children {
 		const { model, allowGroupNameOverride, texts } = vnode.attrs
-		const groupName = getSharedGroupName(model.info, allowGroupNameOverride)
+		const groupName = getSharedGroupName(model.info, model.logins.getUserController(), allowGroupNameOverride)
 		return m(".flex.col.pt-s", [
 			m(Table, {
 				columnHeading: [() => texts.participantsLabel(groupName)],
@@ -125,7 +125,7 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 						info: [
 							(isSharedGroupOwner(model.group, memberInfo.member.user) ? lang.get("owner_label") : lang.get("participant_label")) +
 								", " +
-								getCapabilityText(getMemberCabability(memberInfo, model.group)),
+								getCapabilityText(getMemberCapability(memberInfo, model.group)),
 						],
 					},
 				],
@@ -150,8 +150,8 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 	const recipientsText = stream("")
 	const recipients = [] as Array<ResolvableRecipient>
 	const capability = stream<ShareCapability>(ShareCapability.Read)
-	const realGroupName = getSharedGroupName(model.info, false)
-	const customGroupName = getSharedGroupName(model.info, true)
+	const realGroupName = getSharedGroupName(model.info, locator.logins.getUserController(), false)
+	const customGroupName = getSharedGroupName(model.info, locator.logins.getUserController(), true)
 
 	const search = await locator.recipientsSearchModel()
 	const recipientsModel = await locator.recipientsModel()

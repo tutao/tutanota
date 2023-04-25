@@ -12,7 +12,7 @@ import m from "mithril"
 export async function showLogsDialog() {
 	const logContent = await prepareLogContent()
 
-	const dialog: Dialog = Dialog.largeDialogN(
+	const dialog: Dialog = Dialog.editDialog(
 		{
 			middle: () => "Logs",
 			right: () => [

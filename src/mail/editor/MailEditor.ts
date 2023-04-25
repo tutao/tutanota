@@ -66,7 +66,7 @@ import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { animateToolbar, RichTextToolbar } from "../../gui/base/RichTextToolbar.js"
 import { readLocalFiles } from "../../file/FileController"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
-import { ToggleButton, ToggleButtonAttrs } from "../../gui/base/ToggleButton.js"
+import { ToggleButton, ToggleButtonAttrs } from "../../gui/base/buttons/ToggleButton.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { DialogInjectionRightAttrs } from "../../gui/base/DialogInjectionRight.js"
@@ -939,7 +939,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			help: "send_action",
 		},
 	]
-	dialog = Dialog.largeDialogN(headerBarAttrs, MailEditor, mailEditorAttrs)
+	dialog = Dialog.editDialog(headerBarAttrs, MailEditor, mailEditorAttrs)
 	dialog.setCloseHandler(() => minimize())
 
 	for (let shortcut of shortcuts) {

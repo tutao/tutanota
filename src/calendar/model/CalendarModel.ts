@@ -76,20 +76,24 @@ export class CalendarModel {
 		eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
 	}
 
-	async createEvent(event: CalendarEvent, alarmInfos: Array<AlarmInfo>, zone: string, groupRoot: CalendarGroupRoot): Promise<void> {
+	async createEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfo>, zone: string, groupRoot: CalendarGroupRoot): Promise<void> {
 		await this.doCreate(event, zone, groupRoot, alarmInfos)
 	}
 
 	/** Update existing event when time did not change */
 	async updateEvent(
 		newEvent: CalendarEvent,
-		newAlarms: Array<AlarmInfo>,
+		newAlarms: ReadonlyArray<AlarmInfo>,
 		zone: string,
 		groupRoot: CalendarGroupRoot,
 		existingEvent: CalendarEvent,
 	): Promise<CalendarEvent> {
 		if (existingEvent._id == null) {
-			throw new Error("Invalid existing event: no id")
+			throw new Error("Invalid existing event for update: no id")
+		}
+
+		if (existingEvent.uid != null && newEvent.uid !== existingEvent.uid) {
+			throw new Error("Invalid existing event for update: mismatched uids.")
 		}
 
 		if (
@@ -188,7 +192,7 @@ export class CalendarModel {
 		event: CalendarEvent,
 		zone: string,
 		groupRoot: CalendarGroupRoot,
-		alarmInfos: Array<AlarmInfo>,
+		alarmInfos: ReadonlyArray<AlarmInfo>,
 		existingEvent?: CalendarEvent,
 	): Promise<void> {
 		// If the event was copied it might still carry some fields for re-encryption. We can't reuse them.
@@ -229,7 +233,7 @@ export class CalendarModel {
 			const file = await this.entityClient.load(FileTypeRef, fileId)
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const { parseCalendarFile } = await import("../export/CalendarImporter")
-			return parseCalendarFile(dataFile)
+			return await parseCalendarFile(dataFile)
 		} catch (e) {
 			if (e instanceof ParserError || e instanceof NotFoundError) {
 				console.warn(TAG, "could not get calendar update data", e)

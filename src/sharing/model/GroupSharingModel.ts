@@ -4,16 +4,11 @@ import type { EntityEventsListener, EntityUpdateData } from "../../api/main/Even
 import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
 import { EntityClient } from "../../api/common/EntityClient"
 import { getElementId, getEtId, isSameId } from "../../api/common/utils/EntityUtils"
-import type { SentGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
-import { SentGroupInvitationTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import type { Group, GroupInfo, GroupMember, SentGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
+import { GroupMemberTypeRef, GroupTypeRef, SentGroupInvitationTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { OperationType, ShareCapability } from "../../api/common/TutanotaConstants"
 import { NotFoundError } from "../../api/common/error/RestError"
 import { findAndRemove, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
-import type { GroupMember } from "../../api/entities/sys/TypeRefs.js"
-import { GroupMemberTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import type { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
-import type { Group } from "../../api/entities/sys/TypeRefs.js"
-import { GroupTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import type { GroupMemberInfo } from "../GroupUtils"
 import { getSharedGroupName, hasCapabilityOnGroup, isSharedGroupOwner, loadGroupInfoForMember, loadGroupMembers } from "../GroupUtils"
 import type { LoginController } from "../../api/main/LoginController"
@@ -159,7 +154,7 @@ export class GroupSharingModel {
 		try {
 			groupInvitationReturn = await this._shareFacade.sendGroupInvitation(
 				sharedGroupInfo,
-				getSharedGroupName(sharedGroupInfo, false),
+				getSharedGroupName(sharedGroupInfo, this.logins.getUserController(), false),
 				recipients.map((r) => r.address),
 				capability,
 			)

@@ -3,6 +3,8 @@ import type { CalendarEvent } from "../../entities/tutanota/TypeRefs.js"
 import { EncryptedMailAddress } from "../../entities/tutanota/TypeRefs.js"
 import { stringToCustomId } from "./EntityUtils"
 
+export type CalendarEventTimes = Pick<CalendarEvent, "startTime" | "endTime">
+
 /**
  * the time in ms that element ids for calendar events and alarms  get randomized by
  */
@@ -11,7 +13,7 @@ export const DAYS_SHIFTED_MS = 15 * DAY_IN_MILLIS
 /*
  * convenience wrapper for isAllDayEventByTimes
  */
-export function isAllDayEvent({ startTime, endTime }: CalendarEvent): boolean {
+export function isAllDayEvent({ startTime, endTime }: CalendarEventTimes): boolean {
 	return isAllDayEventByTimes(startTime, endTime)
 }
 
@@ -113,4 +115,31 @@ export function findAttendeeInAddresses<T extends { address: EncryptedMailAddres
 export function findRecipientWithAddress<T extends { address: string }>(recipients: ReadonlyArray<T>, address: string): T | null {
 	const cleanAddress = cleanMailAddress(address)
 	return recipients.find((r) => cleanMailAddress(r.address) === cleanAddress) ?? null
+}
+
+/** get the start of the next full half hour from the time this is called at */
+export function getNextHalfHour(): Date {
+	let date: Date = new Date()
+
+	if (date.getMinutes() > 30) {
+		date.setHours(date.getHours() + 1, 0)
+	} else {
+		date.setMinutes(30)
+	}
+
+	date.setMilliseconds(0)
+	return date
+}
+
+/**
+ * get a partial calendar event with start time set to the passed value
+ * (year, day, hours and minutes. seconds and milliseconds are zeroed.)
+ * and an end time 30 minutes later than that.
+ * @param startDate the start time to use for the event (defaults to the next full half hour)
+ */
+export function getEventWithDefaultTimes(startDate: Date = getNextHalfHour()): CalendarEventTimes {
+	return {
+		startTime: new Date(startDate),
+		endTime: new Date(startDate.setMinutes(startDate.getMinutes() + 30)),
+	}
 }

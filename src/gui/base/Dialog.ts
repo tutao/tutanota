@@ -92,18 +92,21 @@ export class Dialog implements ModalComponent {
 		]
 
 		this.view = (): Children => {
-			let marginPx = px(size.hpad)
+			const marginPx = px(size.hpad)
 			const sidesMargin = styles.isSingleColumnLayout() && dialogType === DialogType.EditLarge ? "4px" : marginPx
 			return m(
-				this._getDialogWrapperStyle(dialogType),
+				this._getDialogWrapperClasses(dialogType),
 				{
 					style: {
 						paddingTop: "env(safe-area-inset-top)",
 						paddingLeft: "env(safe-area-inset-left)",
 						paddingRight: "env(safe-area-inset-right)",
 					},
-				}, // controls vertical alignment
-				// we need overflow-hidden (actually resulting in min-height: 0 instead of auto) here because otherwise the content of the dialog may make this wrapper grow bigger outside the window on some browsers, e.g. upgrade reminder on Firefox mobile
+				},
+				/** controls vertical alignment
+				 * we need overflow-hidden (actually resulting in min-height: 0 instead of auto)
+				 * here because otherwise the content of the dialog may make this wrapper grow bigger outside
+				 * the window on some browsers, e.g. upgrade reminder on Firefox mobile */
 				m(
 					".flex.justify-center.align-self-stretch.rel.overflow-hidden" + (dialogType === DialogType.EditLarge ? ".flex-grow" : ".transition-margin"),
 					{
@@ -201,7 +204,7 @@ export class Dialog implements ModalComponent {
 		}
 	}
 
-	_getDialogWrapperStyle(dialogType: DialogType): string {
+	_getDialogWrapperClasses(dialogType: DialogType): string {
 		// change direction of axis to handle resize of dialogs (iOS keyboard open changes size)
 		let dialogWrapperStyle = ".fill-absolute.flex.items-stretch.flex-column"
 
@@ -875,6 +878,7 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
+	/** @deprecated use editDialog*/
 	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: Component): Dialog {
 		return new Dialog(DialogType.EditLarge, {
 			view: () => {
@@ -886,14 +890,15 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
-	static largeDialogN<T extends {}>(headerBarAttrs: DialogHeaderBarAttrs, child: Class<Component<T>>, childAttrs: T): Dialog {
+	static editDialog<T extends {}>(headerBarAttrs: DialogHeaderBarAttrs, child: Class<Component<T>>, childAttrs: T): Dialog {
 		return new Dialog(DialogType.EditLarge, {
-			view: () => {
-				return m("", [
+			view: () =>
+				m("", [
+					/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
 					headerBarAttrs.noHeader ? null : m(".dialog-header.plr-l", m(DialogHeaderBar, headerBarAttrs)),
+					/** variable-size child container that may be scrollable. */
 					m(".dialog-container.scroll", m(".fill-absolute.plr-l", m(child, childAttrs))),
-				])
-			},
+				]),
 		})
 	}
 

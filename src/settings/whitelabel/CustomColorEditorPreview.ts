@@ -7,7 +7,7 @@ import { MailRow } from "../../mail/view/MailRow"
 import { noOp } from "@tutao/tutanota-utils"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
-import { ToggleButton } from "../../gui/base/ToggleButton.js"
+import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
 
 export const BUTTON_WIDTH = 270
 

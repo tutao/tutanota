@@ -39,12 +39,12 @@ export class KnowledgeBaseModel {
 	readonly _entityEventReceived: EntityEventsListener
 	_groupInstances: Array<TemplateGroupInstance>
 	_initialized: LazyLoaded<KnowledgeBaseModel>
-	_userController: UserController
+	readonly userController: UserController
 
 	constructor(eventController: EventController, entityClient: EntityClient, userController: UserController) {
 		this._eventController = eventController
 		this._entityClient = entityClient
-		this._userController = userController
+		this.userController = userController
 		this._allEntries = SortedArray.empty(compareKnowledgeBaseEntriesForSort)
 		this._allKeywords = []
 		this._matchedKeywordsInContent = []
@@ -63,7 +63,7 @@ export class KnowledgeBaseModel {
 		this.filteredEntries(this._allEntries.array)
 		this.selectedEntry(this.containsResult() ? this.filteredEntries()[0] : null)
 		this._initialized = new LazyLoaded(() => {
-			const templateMemberships = this._userController.getTemplateMemberships()
+			const templateMemberships = this.userController.getTemplateMemberships()
 
 			let newGroupInstances: TemplateGroupInstance[] = []
 			return promiseMap(templateMemberships, (membership) => loadTemplateGroupInstance(membership, entityClient))
@@ -214,7 +214,7 @@ export class KnowledgeBaseModel {
 	isReadOnly(entry: KnowledgeBaseEntry): boolean {
 		const instance = this._groupInstances.find((instance) => isSameId(entry._ownerGroup, getEtId(instance.group)))
 
-		return !instance || !hasCapabilityOnGroup(this._userController.user, instance.group, ShareCapability.Write)
+		return !instance || !hasCapabilityOnGroup(this.userController.user, instance.group, ShareCapability.Write)
 	}
 
 	_entityUpdate(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {

@@ -1,16 +1,15 @@
 import o from "ospec"
-import { accountMailAddress, calendarGroupId, makeCalendarModel, makeEvent, makeUserController } from "./CalendarTestUtils.js"
+import { ownerMailAddress, calendarGroupId, makeCalendarModel, makeEvent, makeUserController } from "./CalendarTestUtils.js"
 import type { LoginController } from "../../../src/api/main/LoginController.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
-import { assertNotNull, downcast, getStartOfDay, LazyLoaded, neverNull, noOp } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, getStartOfDay, neverNull, noOp } from "@tutao/tutanota-utils"
 import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { createCalendarEvent, createEncryptedMailAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { DateTime } from "luxon"
 import { addDaysForEvent, getTimeZone } from "../../../src/calendar/date/CalendarUtils.js"
-import type { CalendarInfo, CalendarModel } from "../../../src/calendar/model/CalendarModel.js"
-import type { CreateCalendarEventViewModelFunction } from "../../../src/calendar/view/CalendarViewModel.js"
-import { CalendarViewModel } from "../../../src/calendar/view/CalendarViewModel.js"
-import { CalendarEventViewModel } from "../../../src/calendar/date/CalendarEventViewModel.js"
+import type { CalendarModel } from "../../../src/calendar/model/CalendarModel.js"
+import { CalendarEventEditModelsFactory, CalendarViewModel } from "../../../src/calendar/view/CalendarViewModel.js"
+import { CalendarEventModel, EventSaveResult } from "../../../src/calendar/date/eventeditor/CalendarEventModel.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import type { EntityUpdateData } from "../../../src/api/main/EventController.js"
 import { EventController } from "../../../src/api/main/EventController.js"
@@ -21,13 +20,14 @@ import { getElementId, getListId } from "../../../src/api/common/utils/EntityUti
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import { ReceivedGroupInvitationsModel } from "../../../src/sharing/model/ReceivedGroupInvitationsModel.js"
 import { ProgressMonitor } from "../../../src/api/common/utils/ProgressMonitor.js"
+import { object, when } from "testdouble"
 
 let saveAndSendMock
 let rescheduleEventMock
 o.spec("CalendarViewModel", async function () {
 	let entityClientMock: EntityRestClientMock
 
-	function initCalendarViewModel(makeViewModelCallback: CreateCalendarEventViewModelFunction, eventController?): CalendarViewModel {
+	function initCalendarViewModel(makeViewModelCallback: CalendarEventEditModelsFactory, eventController?): CalendarViewModel {
 		if (eventController == null) {
 			eventController = downcast({
 				addEntityListener: () => Promise.resolve(),
@@ -94,14 +94,13 @@ o.spec("CalendarViewModel", async function () {
 		rescheduleEventMock = o.spy(() => Promise.resolve())
 	})
 	o("Can init view model", function () {
-		const viewModel = initCalendarViewModel(makeCalendarEventViewModel)
-		// @ts-ignore
+		const viewModel = initCalendarViewModel(makeCalendarEventModel)
 		o(viewModel).notEquals(undefined)
 		o(viewModel.selectedDate()).deepEquals(getStartOfDay(new Date()))
 	})
 	o.spec("Dragging Events", function () {
 		o("Start then drag then change mind is noop", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventViewModel)
+			const viewModel = initCalendarViewModel(makeCalendarEventModel)
 			let originalEventStartTime = new Date(2021, 8, 22)
 			const event = makeEvent("event", originalEventStartTime, new Date(2021, 8, 23))
 			// Dragged a bit
@@ -112,7 +111,7 @@ o.spec("CalendarViewModel", async function () {
 			o(viewModel._transientEvents).deepEquals([])
 		})
 		o("A good drag and drop run", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventViewModel)
+			const viewModel = initCalendarViewModel(makeCalendarEventModel)
 			let originalDate = new Date(2021, 8, 22)
 			const event = makeEvent("event", originalDate, new Date(2021, 8, 23))
 			simulateDrag(event, new Date(2021, 8, 24), viewModel)
@@ -129,7 +128,7 @@ o.spec("CalendarViewModel", async function () {
 			o(viewModel._transientEvents).deepEquals([temporaryEvent])
 		})
 		o("Complete drag and drop and saving fails", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventViewModelThatFailsSaving)
+			const viewModel = initCalendarViewModel(makeCalendarEventEditModelThatFailsSaving)
 			let originalDate = new Date(2021, 8, 22)
 			const event = makeEvent("event", originalDate, new Date(2021, 8, 23))
 			simulateDrag(event, new Date(2021, 8, 24), viewModel)
@@ -139,7 +138,7 @@ o.spec("CalendarViewModel", async function () {
 			o(viewModel._transientEvents).deepEquals([])
 		})
 		o("Complete drag and drop and saving does an error", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventViewModelThatThrowsOnSaving)
+			const viewModel = initCalendarViewModel(makeCalendarEventEditModelThatThrowsOnSaving)
 			let originalDate = new Date(2021, 8, 22)
 			const event = makeEvent("event", originalDate, new Date(2021, 8, 23))
 			simulateDrag(event, new Date(2021, 8, 24), viewModel)
@@ -151,7 +150,7 @@ o.spec("CalendarViewModel", async function () {
 			o(viewModel._transientEvents).deepEquals([])
 		})
 		o("Drag while having temporary events should still work", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventViewModel)
+			const viewModel = initCalendarViewModel(makeCalendarEventModel)
 			let origStartDate1 = new Date(2021, 8, 22)
 			const event1 = makeEvent("event1", origStartDate1, new Date(2021, 8, 23))
 			let origStartDate2 = new Date(2021, 8, 22)
@@ -183,7 +182,20 @@ o.spec("CalendarViewModel", async function () {
 			o(viewModel._transientEvents).deepEquals([temporaryEvent1, temporaryEvent2])
 		})
 		o("Drag while having temporary events but the second update failed", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventViewModel)
+			// testdouble seems to have difficulty with multiple arguments on .thenResolve
+			let tryCount = 0
+			const viewModel = initCalendarViewModel(async () => {
+				const saveModel: CalendarEventModel = object()
+				when(saveModel.updateExistingEvent()).thenDo(() => {
+					tryCount++
+					if (tryCount === 1) {
+						return EventSaveResult.Saved
+					} else {
+						return EventSaveResult.Failed
+					}
+				})
+				return saveModel
+			})
 			let origStartDate1 = new Date(2021, 8, 22)
 			const event1 = makeEvent("event1", origStartDate1, new Date(2021, 8, 23), "uid1")
 			let origStartDate2 = new Date(2021, 8, 22)
@@ -203,8 +215,6 @@ o.spec("CalendarViewModel", async function () {
 			o(viewModel._transientEvents).deepEquals([temporaryEvent1])
 			//star second drop
 			diff = new Date(2021, 8, 25).getTime() - origStartDate2.getTime()
-			//this will fail
-			viewModel._createCalendarEventViewModelCallback = makeCalendarEventViewModelThatFailsSaving
 			const endDragPromise2 = viewModel.onDragEnd(diff)
 			// Now we have two transient events
 			o(viewModel._draggedEvent?.originalEvent).equals(undefined)
@@ -215,22 +225,33 @@ o.spec("CalendarViewModel", async function () {
 			o(viewModel._transientEvents).deepEquals([temporaryEvent1])
 		})
 		o("Drag while having temporary events and then the first update fails", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventViewModel)
+			// testdouble seems to have difficulty with multiple arguments on .thenResolve
+			let tryCount = 0
+			const viewModel = initCalendarViewModel(async () => {
+				const saveModel: CalendarEventModel = object()
+				when(saveModel.updateExistingEvent()).thenDo(() => {
+					tryCount++
+					if (tryCount === 1) {
+						return EventSaveResult.Failed
+					} else {
+						return EventSaveResult.Saved
+					}
+				})
+				return saveModel
+			})
 			let origStartDate1 = new Date(2021, 8, 22)
 			const event1 = makeEvent("event1", origStartDate1, new Date(2021, 8, 23), "uid1")
 			let origStartDate2 = new Date(2021, 8, 22)
 			const event2 = makeEvent("event2", origStartDate2, new Date(2021, 8, 23), "uid2")
 			//start first drag
 			simulateDrag(event1, new Date(2021, 8, 24), viewModel)
-			const temporaryEvent1 = neverNull(viewModel._draggedEvent?.eventClone)
+			const temporaryEvent1 = assertNotNull(viewModel._draggedEvent?.eventClone, "temporary 1 was null")
 			//start first drop
 			let diff = new Date(2021, 8, 25).getTime() - origStartDate1.getTime()
-			//this will fail
-			viewModel._createCalendarEventViewModelCallback = makeCalendarEventViewModelThatFailsSaving
 			const endDragPromise1 = viewModel.onDragEnd(diff)
 			//start second drag
 			simulateDrag(event2, new Date(2021, 8, 24), viewModel)
-			const temporaryEvent2 = neverNull(viewModel._draggedEvent?.eventClone)
+			const temporaryEvent2 = assertNotNull(viewModel._draggedEvent?.eventClone, "temporary 2 was null")
 			//now we have a temporary and a transient event
 			o(viewModel._draggedEvent?.originalEvent).equals(event2)
 			o(viewModel._draggedEvent?.eventClone).equals(temporaryEvent2)
@@ -238,7 +259,6 @@ o.spec("CalendarViewModel", async function () {
 			//start second drop
 			diff = new Date(2021, 8, 25).getTime() - origStartDate1.getTime()
 			//this will not fail
-			viewModel._createCalendarEventViewModelCallback = makeCalendarEventViewModel
 			const endDragPromise2 = viewModel.onDragEnd(diff)
 			// Now we have two temporary events and we are not dragging anymore
 			o(viewModel._draggedEvent?.originalEvent).equals(undefined)
@@ -252,7 +272,7 @@ o.spec("CalendarViewModel", async function () {
 	})
 	o.spec("Filtering events", function () {
 		o("Before drag, input events are all used", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventViewModel)
+			const viewModel = initCalendarViewModel(makeCalendarEventModel)
 			const inputEvents = [
 				makeEvent("event1", new Date(2021, 0, 1), new Date(2021, 0, 2), "uid1"),
 				makeEvent("event2", new Date(2021, 0, 1), new Date(2021, 0, 3), "uid2"),
@@ -273,7 +293,7 @@ o.spec("CalendarViewModel", async function () {
 			}).deepEquals(expected)
 		})
 		o("During drag, temporary event overrides the original version", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventViewModel)
+			const viewModel = initCalendarViewModel(makeCalendarEventModel)
 			let originalDateForDraggedEvent = new Date(2021, 0, 3, 13, 0)
 			const inputEvents = [
 				makeEvent("event1", new Date(2021, 0, 1), new Date(2021, 0, 2), "uid1"),
@@ -297,7 +317,7 @@ o.spec("CalendarViewModel", async function () {
 			}).deepEquals(expected)
 		})
 		o("After drop, before load", async function () {
-			const viewModel = initCalendarViewModel(makeCalendarEventViewModel)
+			const viewModel = initCalendarViewModel(makeCalendarEventModel)
 			let originalDateForDraggedEvent = new Date(2021, 0, 3, 13, 0)
 			const inputEvents = [
 				makeEvent("event1", new Date(2021, 0, 1), new Date(2021, 0, 2), "uid1"),
@@ -331,7 +351,7 @@ o.spec("CalendarViewModel", async function () {
 					entityListeners.push(listener)
 				},
 			})
-			const viewModel = initCalendarViewModel(makeCalendarEventViewModel, eventController)
+			const viewModel = initCalendarViewModel(makeCalendarEventModel, eventController)
 			const originalDateForDraggedEvent = new Date(2021, 0, 3, 13, 0)
 			let eventToDrag = makeEvent("event3", originalDateForDraggedEvent, new Date(2021, 0, 3, 14, 30), "uid3")
 			const inputEvents = [
@@ -384,7 +404,7 @@ function makeTestEvent(): CalendarEvent {
 			address,
 		})
 
-	const encMailAddress = wrapEncIntoMailAddress(accountMailAddress)
+	const encMailAddress = wrapEncIntoMailAddress(ownerMailAddress)
 	return createCalendarEvent({
 		summary: "test event",
 		startTime: DateTime.fromObject(
@@ -412,29 +432,22 @@ function makeTestEvent(): CalendarEvent {
 	})
 }
 
-async function makeCalendarEventViewModel(existingEvent: CalendarEvent, calendars: LazyLoaded<Map<Id, CalendarInfo>>): Promise<CalendarEventViewModel> {
-	return downcast({
-		saveAndSend: saveAndSendMock,
-		rescheduleEvent: rescheduleEventMock,
-	})
+async function makeCalendarEventModel(existingEvent: CalendarEvent): Promise<CalendarEventModel> {
+	const saveModel: CalendarEventModel = object()
+	when(saveModel.updateExistingEvent()).thenResolve(EventSaveResult.Saved)
+	return saveModel
 }
 
-async function makeCalendarEventViewModelThatFailsSaving(
-	existingEvent: CalendarEvent,
-	calendars: LazyLoaded<Map<Id, CalendarInfo>>,
-): Promise<CalendarEventViewModel> {
-	return downcast({
-		saveAndSend: () => Promise.resolve(false),
-		rescheduleEvent: () => Promise.resolve(),
-	})
+async function makeCalendarEventEditModelThatFailsSaving(existingEvent: CalendarEvent): Promise<CalendarEventModel> {
+	const saveModel: CalendarEventModel = object()
+	when(saveModel.saveNewEvent()).thenResolve(EventSaveResult.Failed)
+	when(saveModel.updateExistingEvent()).thenResolve(EventSaveResult.Failed)
+	return saveModel
 }
 
-async function makeCalendarEventViewModelThatThrowsOnSaving(
-	existingEvent: CalendarEvent,
-	calendars: LazyLoaded<Map<Id, CalendarInfo>>,
-): Promise<CalendarEventViewModel> {
-	return downcast({
-		saveAndSend: () => Promise.reject(new Error("whoopsie")),
-		rescheduleEvent: () => Promise.resolve(),
-	})
+async function makeCalendarEventEditModelThatThrowsOnSaving(existingEvent: CalendarEvent): Promise<CalendarEventModel> {
+	const saveModel: CalendarEventModel = object()
+	when(saveModel.saveNewEvent()).thenReject(new Error("whoopsie"))
+	when(saveModel.updateExistingEvent()).thenReject(new Error("whoopsie"))
+	return saveModel
 }

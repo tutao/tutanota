@@ -17,7 +17,7 @@ import { UsageTest } from "@tutao/tutanota-usagetests"
 import Stream from "mithril/stream"
 import { locator } from "../api/main/MainLocator.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
-import { ToggleButton } from "../gui/base/ToggleButton.js"
+import { ToggleButton } from "../gui/base/buttons/ToggleButton.js"
 
 assertMainOrNode()
 

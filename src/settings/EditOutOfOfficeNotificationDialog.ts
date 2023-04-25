@@ -62,7 +62,7 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: O
 		],
 		middle: () => lang.get("outOfOfficeNotification_title"),
 	}
-	const dialog = Dialog.largeDialogN(dialogHeaderAttrs, EditOutOfOfficeNotificationDialog, {
+	const dialog = Dialog.editDialog(dialogHeaderAttrs, EditOutOfOfficeNotificationDialog, {
 		model: dialogModel,
 		organizationMessageEditor,
 		defaultMessageEditor,

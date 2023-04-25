@@ -225,7 +225,7 @@ export class SendMailModel {
 	 */
 	setSender(senderAddress: string) {
 		// we can (and should) do this because we lowercase all addresses on signup and when creating aliases.
-		senderAddress = senderAddress.toLowerCase()
+		senderAddress = cleanMailAddress(senderAddress)
 		this.markAsChangedIfNecessary(this.senderAddress !== senderAddress)
 		this.senderAddress = senderAddress
 	}
@@ -966,7 +966,7 @@ export class SendMailModel {
 		}
 	}
 
-	allRecipients(): Array<ResolvableRecipient> {
+	allRecipients(): ReadonlyArray<ResolvableRecipient> {
 		return this.toRecipients().concat(this.ccRecipients()).concat(this.bccRecipients())
 	}
 

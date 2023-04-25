@@ -9,6 +9,14 @@ export interface ErrorInfo {
 export type lazy<T> = () => T
 export type lazyAsync<T> = () => Promise<T>
 export type Thunk = () => unknown
+
+/** specifies a set of keys to be required, even if they're originally optional on a type.
+ * requires nullable fields to be non-null, this may not be desired for all use cases.
+ * Use "RequireNullable<K, T>" for cases where null is a meaningful value.
+ *
+ * `Require<"uid", Partial<CalendarEvent>>` */
+export type Require<K extends keyof T, T> = T & { [P in K]-?: NonNullable<T[P]> }
+
 export type DeferredObject<T> = {
 	resolve: (arg0: T) => void
 	reject: (arg0: Error) => void
@@ -157,7 +165,7 @@ export function clone<T>(instance: T): T {
  * of this resulting function result will be remembered and returned
  * on consequent invocations.
  */
-export function lazyMemoized<T>(source: () => T): () => T {
+export function lazyMemoized<T>(source: () => T): lazy<T> {
 	// Using separate variable for tracking because value can be undefined and we want to the function call only once
 	let cached = false
 	let value: T

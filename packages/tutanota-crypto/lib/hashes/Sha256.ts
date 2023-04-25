@@ -1,5 +1,6 @@
 // @ts-ignore[untyped-import]
 import sjcl from "../internal/sjcl.js"
+
 const sha256 = new sjcl.hash.sha256()
 export const SHA256_HASH_LENGTH_BYTES = 32
 

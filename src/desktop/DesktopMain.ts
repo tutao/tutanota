@@ -31,7 +31,7 @@ import type { DesktopKeyStoreFacade } from "./KeyStoreFacadeImpl"
 import { KeyStoreFacadeImpl } from "./KeyStoreFacadeImpl"
 import { AlarmSchedulerImpl } from "../calendar/date/AlarmScheduler"
 import { SchedulerImpl } from "../api/common/utils/Scheduler.js"
-import { DateProviderImpl } from "../calendar/date/CalendarUtils"
+import { DefaultDateProvider } from "../calendar/date/CalendarUtils"
 import { DesktopThemeFacade } from "./DesktopThemeFacade"
 import { BuildConfigKey, DesktopConfigKey } from "./config/ConfigKeys"
 import { DesktopNativeCredentialsFacade } from "./credentials/DesktopNativeCredentialsFacade.js"
@@ -143,7 +143,7 @@ async function createComponents(): Promise<Components> {
 	const sock = new Socketeer(net, app)
 	const tray = new DesktopTray(conf)
 	const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
-	const dateProvider = new DateProviderImpl()
+	const dateProvider = new DefaultDateProvider()
 	const dl = new DesktopDownloadManager(conf, desktopNet, desktopUtils, dateProvider, fs, electron)
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)

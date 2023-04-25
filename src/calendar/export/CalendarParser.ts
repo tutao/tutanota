@@ -1,4 +1,4 @@
-import { DAY_IN_MILLIS, downcast, filterInt, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, DAY_IN_MILLIS, downcast, filterInt, neverNull } from "@tutao/tutanota-utils"
 import { DateTime, IANAZone } from "luxon"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventAttendee, createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"

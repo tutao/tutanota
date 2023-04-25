@@ -8,7 +8,7 @@ import {
 	getAllDayDateForTimezone,
 	getCalendarMonth,
 	getDateIndicator,
-	getDiffInDays,
+	getDiffIn24hIntervals,
 	getEventColor,
 	getEventEnd,
 	getFirstDayOfMonth,
@@ -35,10 +35,15 @@ import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { theme } from "../../gui/theme"
-import { getDateFromMousePos, renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton, SELECTED_DATE_INDICATOR_THICKNESS } from "./CalendarGuiUtils"
+import {
+	CalendarViewType,
+	getDateFromMousePos,
+	renderCalendarSwitchLeftButton,
+	renderCalendarSwitchRightButton,
+	SELECTED_DATE_INDICATOR_THICKNESS,
+} from "./CalendarGuiUtils"
 import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarViewModel"
-import { CalendarViewType } from "./CalendarViewModel"
-import { Time } from "../../api/common/utils/Time"
+import { Time } from "../date/Time.js"
 import { client } from "../../misc/ClientDetector"
 import { locator } from "../../api/main/MainLocator.js"
 
@@ -422,8 +427,8 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		columnIndex: number,
 	): SimplePosRect {
 		const top = (size.calendar_line_height + spaceBetweenEvents()) * columnIndex + calendarDayHeight + EVENT_BUBBLE_VERTICAL_OFFSET
-		const dayOfStartDateInWeek = getDiffInDaysFast(eventStart, firstDayOfWeek)
-		const dayOfEndDateInWeek = getDiffInDaysFast(eventEnd, firstDayOfWeek)
+		const dayOfStartDateInWeek = getDiffIn24IntervalsFast(eventStart, firstDayOfWeek)
+		const dayOfEndDateInWeek = getDiffIn24IntervalsFast(eventEnd, firstDayOfWeek)
 		const calendarEventMargin = styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile
 		const left = (eventStart < firstDayOfWeek ? 0 : dayOfStartDateInWeek * calendarDayWidth) + calendarEventMargin
 		const right = (eventEnd > firstDayOfNextWeek ? 0 : (6 - dayOfEndDateInWeek) * calendarDayWidth) + calendarEventMargin
@@ -457,10 +462,10 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
  * Optimization to not create luxon's DateTime in simple case.
  * May not work if we allow override time zones.
  */
-function getDiffInDaysFast(left: Date, right: Date): number {
+function getDiffIn24IntervalsFast(left: Date, right: Date): number {
 	if (left.getMonth() === right.getMonth()) {
 		return left.getDate() - right.getDate()
 	} else {
-		return getDiffInDays(right, left)
+		return getDiffIn24hIntervals(right, left)
 	}
 }

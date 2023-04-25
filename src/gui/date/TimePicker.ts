@@ -1,16 +1,15 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { TextField, TextFieldType as TextFieldType } from "./base/TextField.js"
-import { theme } from "./theme"
-import { client } from "../misc/ClientDetector"
-import { Keys } from "../api/common/TutanotaConstants"
-import { timeStringFromParts } from "../misc/Formatter"
-import { parseTime } from "../misc/parsing/TimeParser"
-import { Time } from "../api/common/utils/Time"
+import { TextField, TextFieldType as TextFieldType } from "../base/TextField.js"
+import { theme } from "../theme.js"
+import { client } from "../../misc/ClientDetector.js"
+import { Keys, TimeFormat } from "../../api/common/TutanotaConstants.js"
+import { timeStringFromParts } from "../../misc/Formatter.js"
+import { Time } from "../../calendar/date/Time.js"
 
 export type TimePickerAttrs = {
 	time: Time | null
 	onTimeSelected: (arg0: Time | null) => unknown
-	amPmFormat: boolean
+	timeFormat: TimeFormat
 	disabled?: boolean
 }
 
@@ -20,15 +19,17 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	private _selectedIndex!: number
 	private _oldValue: string
 	private _value: string
+	private amPm: boolean
 
 	constructor({ attrs }: Vnode<TimePickerAttrs>) {
 		this._focused = false
 		this._value = ""
+		this.amPm = attrs.timeFormat === TimeFormat.TWELVE_HOURS
 		const times: string[] = []
 
 		for (let hour = 0; hour < 24; hour++) {
 			for (let minute = 0; minute < 60; minute += 30) {
-				times.push(timeStringFromParts(hour, minute, attrs.amPmFormat))
+				times.push(timeStringFromParts(hour, minute, this.amPm))
 			}
 		}
 		this._oldValue = attrs.time?.toString(false) ?? "--"
@@ -37,7 +38,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 
 	view({ attrs }: Vnode<TimePickerAttrs>): Children {
 		if (attrs.time) {
-			const timeAsString = attrs.time?.toString(attrs.amPmFormat) ?? ""
+			const timeAsString = attrs.time?.toString(this.amPm) ?? ""
 			this._selectedIndex = this._values.indexOf(timeAsString)
 
 			if (!this._focused) {
@@ -72,7 +73,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					return
 				}
 				this._value = value
-				attrs.onTimeSelected(parseTime(value))
+				attrs.onTimeSelected(Time.parseFromString(value))
 			},
 			disabled: attrs.disabled,
 		})
@@ -137,7 +138,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 						},
 						onmousedown: () => {
 							this._focused = false
-							attrs.onTimeSelected(parseTime(time))
+							attrs.onTimeSelected(Time.parseFromString(time))
 						},
 					},
 					time,
@@ -149,7 +150,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	_onSelected(attrs: TimePickerAttrs) {
 		this._focused = false
 
-		attrs.onTimeSelected(parseTime(this._value))
+		attrs.onTimeSelected(Time.parseFromString(this._value))
 	}
 
 	_setScrollTop(attrs: TimePickerAttrs, vnode: VnodeDOM<TimePickerAttrs>) {

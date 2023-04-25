@@ -1,13 +1,6 @@
 import { lang } from "../../misc/LanguageViewModel"
 import { makeInvitationCalendarFile } from "../export/CalendarImporter"
-import {
-	CalendarAttendeeStatus,
-	CalendarMethod,
-	ConversationType,
-	getAttendeeStatus,
-	MailMethod,
-	mailMethodToCalendarMethod,
-} from "../../api/common/TutanotaConstants"
+import { CalendarMethod, ConversationType, getAttendeeStatus, MailMethod, mailMethodToCalendarMethod } from "../../api/common/TutanotaConstants"
 import { calendarAttendeeStatusSymbol, formatEventDuration, getTimeZone } from "./CalendarUtils"
 import type { CalendarEvent, CalendarEventAttendee, EncryptedMailAddress, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { createCalendarEventAttendee } from "../../api/entities/tutanota/TypeRefs.js"
@@ -25,15 +18,21 @@ export interface CalendarUpdateDistributor {
 
 	sendCancellation(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void>
 
-	sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, sendAs: string, responseTo: Mail | null, status: CalendarAttendeeStatus): Promise<void>
+	/**
+	 * send a response mail to the organizer of an event
+	 * @param event the event to respond to (included as a .ics file attachment)
+	 * @param sendMailModel used to actually send the mail
+	 * @param responseTo the mail in which we received the original event invite
+	 */
+	sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, responseTo: Mail | null): Promise<void>
 }
 
 export class CalendarMailDistributor implements CalendarUpdateDistributor {
 	/** Used for knowing how many emails are in the process of being sent. */
-	_countDownLatch: number
+	private countDownLatch: number
 
 	constructor() {
-		this._countDownLatch = 0
+		this.countDownLatch = 0
 	}
 
 	sendInvite(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
@@ -100,9 +99,9 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 		)
 	}
 
-	sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, sendAs: string, responseTo: Mail | null, status: CalendarAttendeeStatus): Promise<void> {
+	sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, responseTo: Mail | null): Promise<void> {
+		const sendAs = sendMailModel.getSender()
 		const message = lang.get("repliedToEventInvite_msg", {
-			"{sender}": sendAs,
 			"{event}": event.summary,
 		})
 		const organizer = assertOrganizer(event)
@@ -191,17 +190,17 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 	private _windowUnsubscribe: (() => void) | null = null
 
 	_sendStart() {
-		this._countDownLatch++
+		this.countDownLatch++
 
-		if (this._countDownLatch === 1) {
+		if (this.countDownLatch === 1) {
 			this._windowUnsubscribe = windowFacade.addWindowCloseListener(noOp)
 		}
 	}
 
 	_sendEnd() {
-		this._countDownLatch--
+		this.countDownLatch--
 
-		if (this._countDownLatch === 0 && this._windowUnsubscribe) {
+		if (this.countDownLatch === 0 && this._windowUnsubscribe) {
 			this._windowUnsubscribe()
 
 			this._windowUnsubscribe = null

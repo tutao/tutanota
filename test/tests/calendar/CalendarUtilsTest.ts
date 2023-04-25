@@ -10,8 +10,8 @@ import {
 	getAllDayDateForTimezone,
 	getAllDayDateUTCFromZone,
 	getCalendarMonth,
-	getDiffInDays,
-	getDiffInHours,
+	getDiffIn24hIntervals,
+	getDiffIn60mIntervals,
 	getStartOfDayWithZone,
 	getStartOfWeek,
 	getTimeZone,
@@ -26,10 +26,10 @@ import { timeStringFromParts } from "../../../src/misc/Formatter.js"
 import { DateTime } from "luxon"
 import { getAllDayDateUTC } from "../../../src/api/common/utils/CommonCalendarUtils.js"
 import { hasCapabilityOnGroup } from "../../../src/sharing/GroupUtils.js"
-import { parseTime } from "../../../src/misc/parsing/TimeParser.js"
 import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { createCalendarEvent, createCalendarRepeatRule } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { lastThrow, neverNull } from "@tutao/tutanota-utils"
+import { identity, lastThrow, neverNull } from "@tutao/tutanota-utils"
+import { Time } from "../../../src/calendar/date/Time.js"
 
 const zone = "Europe/Berlin"
 
@@ -49,22 +49,26 @@ o.spec("calendar utils tests", function () {
 	o.spec("getAllDayDateUTCFromZone", function () {
 		o("it produces a date with the same day in UTC", function () {
 			// DateTime.fromObject({year: 2023, month: 1, day: 30}, {zone: "Asia/Krasnoyarsk"}).toMillis()
-			const date = new Date(1675011600000)
+			const date = new Date("2023-01-29T17:00:00.000Z")
 			// DateTime.fromObject({year: 2023, month: 1, day: 30}, {zone:"UTC"}).toMillis()
-			const expected = 1675036800000
-			const result = getAllDayDateUTCFromZone(date, "Asia/Krasnoyarsk").getTime()
-			o(result).equals(expected)(iso`${result} vs. ${expected}`)
+			const expected = "2023-01-30T00:00:00.000Z"
+			const result = getAllDayDateUTCFromZone(date, "Asia/Krasnoyarsk").toISOString()
+			o(result).equals(expected)(`${result} vs. ${expected}`)
 		})
 	})
 
 	o.spec("getStartOfDayWithZone", function () {
 		o("it produces a date at the start of the day according to the time zone", function () {
-			// DateTime.fromObject({year: 2023, month: 1, day: 30, hour: 5, minute: 30}, {zone: "Asia/Krasnoyarsk"}).toMillis()
-			const date = new Date(1675031400000)
-			// DateTime.fromObject({year: 2023, month: 1, day: 30}, {zone: "Asia/Krasnoyarsk"}).toMillis()
-			const expected = 1675011600000
+			const date = new Date("2023-01-29T22:30:00.000Z")
+			const expected = "2023-01-29T17:00:00.000Z"
 			const result = getStartOfDayWithZone(date, "Asia/Krasnoyarsk")
-			o(result.getTime()).equals(expected)(iso`${result.getTime()} vs ${expected}`)
+			o(result.toISOString()).equals(expected)(`${result.toISOString()} vs ${expected}`)
+		})
+		o("when given a date that's already start of day, that date is returned", function () {
+			const date = new Date("2023-01-29T00:00:00.000Z")
+			const expected = "2023-01-29T00:00:00.000Z"
+			const result = getStartOfDayWithZone(date, "utc")
+			o(result.toISOString()).equals(expected)("the utc date was not kept the same")
 		})
 	})
 
@@ -209,7 +213,7 @@ o.spec("calendar utils tests", function () {
 	})
 	o.spec("parseTimeTo", function () {
 		function parseTimeString(timeString: string): { hours: number; minutes: number } {
-			return neverNull(parseTime(timeString)?.toObject() ?? null)
+			return neverNull(Time.parseFromString(timeString)?.toObject() ?? null)
 		}
 
 		o("parses full 24H time", function () {
@@ -460,25 +464,25 @@ o.spec("calendar utils tests", function () {
 	})
 	o.spec("prepareCalendarDescription", function () {
 		o("angled link replaced with a proper link", function () {
-			o(prepareCalendarDescription("JoinBlahBlah<https://the-link.com/path>")).equals(
+			o(prepareCalendarDescription("JoinBlahBlah<https://the-link.com/path>", identity)).equals(
 				`JoinBlahBlah<a href="https://the-link.com/path">https://the-link.com/path</a>`,
 			)
 		})
 		o("normal HTML link is not touched", function () {
-			o(prepareCalendarDescription(`JoinBlahBlah<a href="https://the-link.com/path">a link</a>`)).equals(
+			o(prepareCalendarDescription(`JoinBlahBlah<a href="https://the-link.com/path">a link</a>`, identity)).equals(
 				`JoinBlahBlah<a href="https://the-link.com/path">a link</a>`,
 			)
 		})
 		o("non-HTTP/HTTPS link is not allowed", function () {
-			o(prepareCalendarDescription(`JoinBlahBlah<protocol://the-link.com/path>`)).equals(`JoinBlahBlah<protocol://the-link.com/path>`)
+			o(prepareCalendarDescription(`JoinBlahBlah<protocol://the-link.com/path>`, identity)).equals(`JoinBlahBlah<protocol://the-link.com/path>`)
 		})
 		o("link with additional text is not allowed", function () {
-			o(prepareCalendarDescription("JoinBlahBlah<https://the-link.com/path and some other text>")).equals(
+			o(prepareCalendarDescription("JoinBlahBlah<https://the-link.com/path and some other text>", identity)).equals(
 				`JoinBlahBlah<https://the-link.com/path and some other text>`,
 			)
 		})
 		o("non-closed tag is not allowed", function () {
-			o(prepareCalendarDescription("JoinBlahBlah<https://the-link.com/path and some other text")).equals(
+			o(prepareCalendarDescription("JoinBlahBlah<https://the-link.com/path and some other text", identity)).equals(
 				`JoinBlahBlah<https://the-link.com/path and some other text`,
 			)
 		})
@@ -635,17 +639,18 @@ o.spec("calendar utils tests", function () {
 		})
 	})
 	o.spec("Diff between events", function () {
-		o("diff in hours", function () {
-			o(getDiffInHours(new Date(2021, 0, 1, 0, 0), new Date(2021, 0, 2, 0, 0))).equals(24)
-			o(getDiffInHours(new Date(2021, 0, 2, 0, 0), new Date(2021, 0, 1, 0, 0))).equals(-24)
-			o(getDiffInHours(new Date(2021, 0, 1, 0, 0), new Date(2021, 0, 1, 0, 30))).equals(0)
-			o(getDiffInHours(new Date(2021, 0, 1, 0, 0), new Date(2021, 0, 1, 1, 0))).equals(1)
+		o("getDiffIn60mIntervals", function () {
+			o(getDiffIn60mIntervals(new Date("2020-12-31T23:00:00.000Z"), new Date("2021-01-01T23:00:00.000Z"))).equals(24)
+			o(getDiffIn60mIntervals(new Date("2021-01-01T23:00:00.000Z"), new Date("2020-12-31T23:00:00.000Z"))).equals(-24)
+			o(getDiffIn60mIntervals(new Date("2020-12-31T23:00:00.000Z"), new Date("2020-12-31T23:30:00.000Z"))).equals(0)
+			o(getDiffIn60mIntervals(new Date("2020-12-31T23:00:00.000Z"), new Date("2021-01-01T00:00:00.000Z"))).equals(1)
 		})
-		o("diff in days", function () {
-			o(getDiffInDays(new Date(2021, 0, 1, 0, 0), new Date(2021, 0, 2, 0, 0))).equals(1)
-			o(getDiffInDays(new Date(2021, 0, 2, 0, 0), new Date(2021, 0, 1, 0, 0))).equals(-1)
-			o(getDiffInDays(new Date(2021, 0, 1, 0, 0), new Date(2021, 0, 1, 0, 30))).equals(0)
-			o(getDiffInDays(new Date(2021, 0, 1, 0, 0), new Date(2021, 0, 1, 1, 0))).equals(0)
+		o("getDiffIn24hIntervals", function () {
+			o(getDiffIn24hIntervals(new Date("2020-12-31T23:00:00.000Z"), new Date("2021-01-01T23:00:00.000Z"))).equals(1)
+			o(getDiffIn24hIntervals(new Date("2021-01-01T23:00:00.000Z"), new Date("2020-12-31T23:00:00.000Z"))).equals(-1)
+			o(getDiffIn24hIntervals(new Date("2021-01-01T00:01:00.000Z"), new Date("2020-12-30T23:59:00.000Z"))).equals(-2)("less than 2*24, but gives -2?")
+			o(getDiffIn24hIntervals(new Date("2020-12-31T23:00:00.000Z"), new Date("2020-12-31T23:30:00.000Z"))).equals(0)
+			o(getDiffIn24hIntervals(new Date("2020-12-31T23:00:00.000Z"), new Date("2021-01-01T00:00:00.000Z"))).equals(0)
 		})
 	})
 	o.spec("Event start and end time comparison", function () {

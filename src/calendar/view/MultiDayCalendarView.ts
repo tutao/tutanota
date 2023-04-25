@@ -8,7 +8,7 @@ import {
 	eventEndsAfterDay,
 	EventLayoutMode,
 	eventStartsBefore,
-	getDiffInDays,
+	getDiffIn24hIntervals,
 	getEventColor,
 	getEventEnd,
 	getEventStart,
@@ -34,9 +34,8 @@ import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { styles } from "../../gui/styles"
-import { SELECTED_DATE_INDICATOR_THICKNESS } from "./CalendarGuiUtils"
+import { CalendarViewType, SELECTED_DATE_INDICATOR_THICKNESS } from "./CalendarGuiUtils"
 import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarViewModel"
-import { CalendarViewType } from "./CalendarViewModel"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { locator } from "../../api/main/MainLocator.js"
@@ -471,8 +470,8 @@ export class MultiDayCalendarView implements Component<Attrs> {
 					rows.map((event) => {
 						const isAllDay = isAllDayEvent(event)
 						const eventEnd = isAllDay ? incrementDate(getEventEnd(event, zone), -1) : event.endTime
-						const dayOfStartDate = getDiffInDays(firstDay, getEventStart(event, zone))
-						const dayOfEndDate = getDiffInDays(firstDay, eventEnd)
+						const dayOfStartDate = getDiffIn24hIntervals(firstDay, getEventStart(event, zone))
+						const dayOfEndDate = getDiffIn24hIntervals(firstDay, eventEnd)
 						const startsBefore = eventStartsBefore(firstDay, zone, event)
 						const endsAfter = eventEndsAfterDay(lastDay, zone, event)
 						const left = startsBefore ? 0 : dayOfStartDate * dayWidth

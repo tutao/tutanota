@@ -31,7 +31,7 @@ import { isNewMailActionAvailable } from "../../gui/nav/NavFunctions"
 import { CancelledError } from "../../api/common/error/CancelledError"
 import { MailViewerHeader } from "./MailViewerHeader.js"
 import { editDraft, showHeaderDialog } from "./MailViewerUtils.js"
-import { ToggleButton } from "../../gui/base/ToggleButton.js"
+import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../gui/cards.js"
 

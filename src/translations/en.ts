@@ -1681,6 +1681,9 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"cannotAddAttendees_msg": "You can not modify the guest list for this event because it was not created in your calendar.",
+		"noCalendar_msg": "Please select a calendar for the event.",
+		"cannotEditFullEvent_msg": "You can only edit parts of this event because it does not originate in your calendar."
 	}
 }

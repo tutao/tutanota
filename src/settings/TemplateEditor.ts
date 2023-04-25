@@ -55,7 +55,7 @@ export function showTemplateEditor(template: EmailTemplate | null, templateGroup
 		],
 		middle: () => lang.get(editorModel.template._id ? "editTemplate_action" : "createTemplate_action"),
 	}
-	const dialog = Dialog.largeDialogN(headerBarAttrs, TemplateEditor, {
+	const dialog = Dialog.editDialog(headerBarAttrs, TemplateEditor, {
 		model: editorModel,
 	})
 	dialog.show()

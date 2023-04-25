@@ -1667,3 +1667,6 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "cannotAddAttendees_msg"
+	| "noCalendar_msg"
+	| "cannotEditFullEvent_msg"
