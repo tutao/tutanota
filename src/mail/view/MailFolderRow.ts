@@ -25,6 +25,8 @@ export type MailFolderRowAttrs = {
 }
 
 export class MailFolderRow implements Component<MailFolderRowAttrs> {
+	_hovered: boolean = false
+
 	view(vnode: Vnode<MailFolderRowAttrs>): Children {
 		const { count, button, rightButton, expanded, indentationLevel, icon, hasChildren, editMode } = vnode.attrs
 
@@ -37,6 +39,12 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 			{
 				style: {
 					background: isNavButtonSelected(button) ? stateBgHover : "",
+				},
+				onmouseenter: () => {
+					this._hovered = true
+				},
+				onmouseleave: () => {
+					this._hovered = false
 				},
 			},
 			[
@@ -81,7 +89,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 					}),
 				),
 				m(NavButton, button),
-				rightButton
+				rightButton && (this._hovered || editMode)
 					? m(IconButton, {
 							...rightButton,
 					  })
@@ -90,6 +98,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 								count,
 								color: theme.navigation_button_icon,
 								background: getNavButtonIconBackground(),
+								showFullCount: true,
 							}),
 					  ]),
 			],
