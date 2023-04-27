@@ -17,6 +17,9 @@ import { ButtonColor } from "../../gui/base/Button.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { MailFolderType } from "../../api/common/TutanotaConstants.js"
 import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
+import { lang } from "../../misc/LanguageViewModel.js"
+import { Icon } from "../../gui/base/Icon.js"
+import { theme } from "../../gui/theme.js"
 
 export interface MailFolderViewAttrs {
 	mailboxDetail: MailboxDetail
@@ -65,6 +68,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 					this.renderFolderTree(customSystems, groupCounters, attrs, path).children,
 				),
 			)
+			children.push(this.renderAddButton(attrs))
 		}
 		return children
 	}
@@ -106,10 +110,9 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						count: attrs.inEditMode ? 0 : summedCount,
 						button,
 						icon: getFolderIcon(system.folder),
-						rightButton:
-							attrs.inEditMode && !(system.folder.folderType === MailFolderType.TRASH || system.folder.folderType === MailFolderType.SPAM)
-								? this.createFolderMoreButton(system.folder, attrs)
-								: null,
+						rightButton: !(system.folder.folderType === MailFolderType.TRASH || system.folder.folderType === MailFolderType.SPAM)
+							? this.createFolderMoreButton(system.folder, attrs)
+							: null,
 						expanded: hasChildren ? currentExpansionState : null,
 						indentationLevel: Math.min(indentationLevel, MAX_FOLDER_INDENT_LEVEL),
 						onExpanderClick: hasChildren ? () => attrs.onFolderExpanded(system.folder, currentExpansionState) : noOp,
@@ -126,6 +129,27 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			result.children.push(render)
 		}
 		return result
+	}
+
+	private renderAddButton(attrs: MailFolderViewAttrs): Child | null {
+		return m(
+			".folder-row.flex.flex-row.mlr-button.border-radius-small.state-bg.button-height.click",
+			{
+				key: "addFolder",
+				onclick: () => {
+					attrs.onShowFolderAddEditDialog(attrs.mailboxDetail.mailGroup._id, null, null)
+				},
+			},
+			m(Icon, {
+				icon: Icons.Add,
+				large: true,
+				style: {
+					fill: theme.navigation_button,
+				},
+				class: "plr-button",
+			}),
+			m("span.label.plr-button", lang.get("addFolder_action")),
+		)
 	}
 
 	private getTotalFolderCounter(counters: Counters, system: FolderSubtree): number {
