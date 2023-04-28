@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- This is a version for devices with API < 23. They cannot size vector properly. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@color/white" />
-    <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@drawable/ic_logo" />
-    </item>
+	<item android:drawable="@color/white" />
+	<item android:drawable="@drawable/ic_logo"
+		  android:gravity="center">
+	</item>
 </layer-list>
