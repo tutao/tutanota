@@ -88,7 +88,17 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 						},
 					}),
 				),
-				m(NavButton, button),
+				m(NavButton, {
+					...button,
+					onfocus: () => (this._hovered = true),
+					onblur: () => {
+						// The setTimout is so that there is some time to tab to the rightButton
+						// otherwise it disappears immediately and is unreachable on keyboard
+						setTimeout(() => {
+							this._hovered = false
+						}, 5)
+					},
+				}),
 				rightButton && (this._hovered || editMode)
 					? m(IconButton, {
 							...rightButton,
