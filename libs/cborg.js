@@ -1123,11 +1123,8 @@ const typeEncoders = {
     }
   },
   bigint(obj, _typ, _options, _refStack) {
-    if (obj >= BigInt(0)) {
-      return new Token(Type.uint, obj);
-    } else {
-      return new Token(Type.negint, obj);
-    }
+	const type = obj >= BigInt(0) ? Type.uint : Type.negint;
+	return return new Token(type, obj);
   },
   Uint8Array(obj, _typ, _options, _refStack) {
     return new Token(Type.bytes, obj);
