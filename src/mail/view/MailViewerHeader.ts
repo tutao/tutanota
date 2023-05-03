@@ -56,7 +56,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		const dateTime = formatDateWithWeekday(viewModel.mail.receivedDate) + " • " + formatTime(viewModel.mail.receivedDate)
 		const dateTimeFull = formatDateWithWeekdayAndYear(viewModel.mail.receivedDate) + " • " + formatTime(viewModel.mail.receivedDate)
 
-		return m(".header.mlr-safe-inset", [
+		return m(".header", [
 			this.renderSubjectActionsLine(attrs),
 			this.renderFolderText(viewModel),
 			this.renderAddressesAndDate(viewModel, attrs, dateTime, dateTimeFull),
