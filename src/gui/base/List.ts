@@ -1335,7 +1335,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 			if (entity) {
 				let nextElementSelected = false
 
-				if (this.selectedEntities.length === 1 && this.selectedEntities[0] === entity && this.loadedEntities.length > 1) {
+				if (this.selectedEntities.length === 1 && this.selectedEntities[0] === entity && this.loadedEntities.length > 1 && !this.isInMultiSelect) {
 					const nextSelection =
 						entity === last(this.loadedEntities)
 							? this.loadedEntities[this.loadedEntities.length - 2]
