@@ -163,7 +163,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				this.renderMailHeader(vnode.attrs),
 				this.renderMailSubject(vnode.attrs),
 				m(
-					".flex-grow.mlr-safe-inset.scroll-x.pt.pb.border-radius-big" + (this.viewModel.isContrastFixNeeded() ? ".bg-white.content-black" : " "),
+					".flex-grow.scroll-x.pt.pb.border-radius-big" + (this.viewModel.isContrastFixNeeded() ? ".bg-white.content-black" : " "),
 					{
 						class: mailViewerPadding(),
 						oncreate: (vnode) => {

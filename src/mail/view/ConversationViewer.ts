@@ -142,27 +142,30 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 
 	private renderViewer(mailViewModel: MailViewerViewModel, isPrimary: boolean, position: number | null): Children {
 		return m(
-			".border-radius-big.rel",
-			{
-				class: mailViewerMargin(),
-				key: elementIdPart(mailViewModel.mail.conversationEntry),
-				style: {
-					border: `1px solid ${theme.list_border}`,
-					backgroundColor: theme.content_bg,
-					marginTop: px(conversationCardMargin),
+			".mlr-safe-inset",
+			m(
+				".border-radius-big.rel",
+				{
+					class: mailViewerMargin(),
+					key: elementIdPart(mailViewModel.mail.conversationEntry),
+					style: {
+						border: `1px solid ${theme.list_border}`,
+						backgroundColor: theme.content_bg,
+						marginTop: px(conversationCardMargin),
+					},
 				},
-			},
-			mailViewModel.isCollapsed()
-				? m(CollapsedMailView, {
-						viewModel: mailViewModel,
-				  })
-				: m(MailViewer, {
-						viewModel: mailViewModel,
-						isPrimary: isPrimary,
-						//  position 0 is a subject and we want to expand for the first email
-						// like when it's a forwarded email
-						defaultQuoteBehavior: position === 1 ? "expand" : "collapse",
-				  }),
+				mailViewModel.isCollapsed()
+					? m(CollapsedMailView, {
+							viewModel: mailViewModel,
+					  })
+					: m(MailViewer, {
+							viewModel: mailViewModel,
+							isPrimary: isPrimary,
+							//  position 0 is a subject and we want to expand for the first email
+							// like when it's a forwarded email
+							defaultQuoteBehavior: position === 1 ? "expand" : "collapse",
+					  }),
+			),
 		)
 	}
 
