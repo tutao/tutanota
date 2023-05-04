@@ -347,7 +347,7 @@ export class HtmlSanitizer {
 		//
 		// cross-fade(20% url(twenty.png), url(eighty.png))
 		// image-set('test.jpg' 1x, 'test-2x.jpg' 2x)
-		if (value.includes("url(") && !value.match(/^url\(["']?data:/)) {
+		if (value.includes("url(") && value.match(/url\(/g)?.length !== value.match(/url\(["']?data:/g)?.length) {
 			this.externalContent++
 			;(htmlNode.style as any)[styleAttributeName] = `url("${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}")`
 
