@@ -151,6 +151,17 @@ o.spec(
 				const p = result.fragment.querySelector("p")!
 				o(p.style.backgroundImage).equals(REPLACEMENT_VALUE)
 			})
+			o("content is blocked if there is any non-data url in background-image ", function () {
+				const result = htmlSanitizer.sanitizeFragment(
+					"<p style=\"background-image: url('data:image/svg+xml;utf8,inline,'), url(&quot;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&quot;)\"></p>",
+					{
+						blockExternalContent: true,
+					},
+				)
+				o(result.externalContent).equals(1)
+				const p = result.fragment.querySelector("p")!
+				o(p.style.backgroundImage).equals(`url("${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}")`)
+			})
 			o("when external content is blocked background url in quotes is replaced", function () {
 				const result = htmlSanitizer.sanitizeFragment(
 					'<p style="background: url(&quot;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&quot;)"></p>',
@@ -284,6 +295,11 @@ o.spec(
 		o("detect background inline images", function () {
 			const backgroundUrl = "data:image/svg+xml;utf8,inline"
 			let result = htmlSanitizer.sanitizeHTML(`<p style="background-image: url(${backgroundUrl})"> </p>`, {
+				blockExternalContent: true,
+			})
+			o(result.externalContent).equals(0)
+			o(result.html.includes(backgroundUrl)).equals(true)
+			result = htmlSanitizer.sanitizeHTML(`<p style="background-image: url(${backgroundUrl}), url(${backgroundUrl})"> </p>`, {
 				blockExternalContent: true,
 			})
 			o(result.externalContent).equals(0)
