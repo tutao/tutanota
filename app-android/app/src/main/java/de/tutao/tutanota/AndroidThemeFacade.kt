@@ -14,15 +14,22 @@ import java.util.*
 
 typealias Theme = Map<String, String>
 
-private const val CURRENT_THEME_KEY = "theme"
-private const val THEMES_KEY = "themes"
-private const val TAG = "AndroidThemeFacade"
-
 
 class AndroidThemeFacade(
-		private val context: Context,
-		private val activity: MainActivity,
+	private val context: Context,
+	private val activity: MainActivity,
 ) : ThemeFacade {
+	companion object {
+		private const val CURRENT_THEME_KEY = "theme"
+		private const val THEMES_KEY = "themes"
+		private const val TAG = "AndroidThemeFacade"
+		private val LIGHT_FALLBACK_THEME = mapOf(
+			"themeId" to "light-fallback",
+			"content_bg" to "#ffffff",
+			"header_bg" to "#ffffff",
+			"navigation_bg" to "#f6f6f6",
+		)
+	}
 
 	private val prefs: SharedPreferences
 		get() = PreferenceManager.getDefaultSharedPreferences(context)
@@ -50,11 +57,9 @@ class AndroidThemeFacade(
 		}
 
 	val currentThemeWithFallback: Theme
-		get() = currentTheme ?: mapOf(
-				"themeId" to "light-fallback",
-				"content_bg" to "#ffffff",
-				"header_bg" to "#ffffff",
-		)
+		get() {
+			return currentTheme ?: LIGHT_FALLBACK_THEME
+		}
 
 
 	val themes: List<Theme>
@@ -84,21 +89,28 @@ class AndroidThemeFacade(
 
 	private fun doApplyTheme(theme: Theme) {
 		Log.d(TAG, "changeTheme: " + theme["themeId"])
-		@ColorInt val backgroundColor = parseColor(theme["content_bg"]!!)
+		@ColorInt val backgroundColor = parseColor(getColor(theme, "content_bg"))
 		activity.window.setBackgroundDrawable(ColorDrawable(backgroundColor))
 
-		val decorView = activity.window.decorView
-		val headerBg = theme["header_bg"]!!
+		// It is not an accident that navBg and headerBg seem to be swapped, the original color scheme was reused in
+		// this way.
 
-		@ColorInt val statusBarColor = parseColor(headerBg)
-		val isStatusBarLight = headerBg.isLightHexColor()
+		val decorView = activity.window.decorView
+		val navBg = getColor(theme, "header_bg")
+
+		@ColorInt val navColor = parseColor(navBg)
+		val isNavBarLight = navBg.isLightHexColor()
 		var visibilityFlags = 0
 		if (atLeastOreo()) {
-			activity.window.navigationBarColor = statusBarColor
-			if (isStatusBarLight) {
+			activity.window.navigationBarColor = navColor
+			if (isNavBarLight) {
 				visibilityFlags = visibilityFlags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
 			}
 		}
+
+		val headerBg = getColor(theme, "navigation_bg")
+		@ColorInt val statusBarColor = parseColor(headerBg)
+		val isStatusBarLight = headerBg.isLightHexColor()
 
 		// Changing status bar color
 		// Before Android M there was no flag to use lightStatusBar (so that text is white or
@@ -113,6 +125,9 @@ class AndroidThemeFacade(
 
 		decorView.systemUiVisibility = visibilityFlags
 	}
+
+	private fun getColor(theme: Map<String, String>, key: String): String =
+		theme[key] ?: LIGHT_FALLBACK_THEME[key] ?: "#FFFFFF"
 
 	override suspend fun getThemes(): List<Map<String, String>> {
 		return this.themes
