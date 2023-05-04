@@ -129,6 +129,8 @@ export class NavButton implements Component<NavButtonAttrs> {
 					this.click(e, a)
 				}
 			},
+			onfocus: a.onfocus,
+			onblur: a.onblur,
 		}
 
 		if (a.dropHandler) {
@@ -162,10 +164,6 @@ export class NavButton implements Component<NavButtonAttrs> {
 					neverNull(a.dropHandler)(ev.dataTransfer.getData("text"))
 				}
 			}
-
-			attr.onfocus = a.onfocus
-
-			attr.onblur = a.onblur
 		}
 
 		return attr

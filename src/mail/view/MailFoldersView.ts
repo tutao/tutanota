@@ -17,9 +17,9 @@ import { ButtonColor } from "../../gui/base/Button.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { MailFolderType } from "../../api/common/TutanotaConstants.js"
 import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
-import { lang } from "../../misc/LanguageViewModel.js"
 import { Icon } from "../../gui/base/Icon.js"
 import { theme } from "../../gui/theme.js"
+import { lang } from "../../misc/LanguageViewModel.js"
 
 export interface MailFolderViewAttrs {
 	mailboxDetail: MailboxDetail
@@ -132,10 +132,12 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 	}
 
 	private renderAddButton(attrs: MailFolderViewAttrs): Child | null {
+		// This button needs to fill the whole role, but is not a navigation button (so IconButton or NavButton weren't appropriate)
 		return m(
 			".folder-row.flex.flex-row.mlr-button.border-radius-small.state-bg.button-height.click",
 			{
 				key: "addFolder",
+				"aria-role": "button",
 				onclick: () => {
 					attrs.onShowFolderAddEditDialog(attrs.mailboxDetail.mailGroup._id, null, null)
 				},
