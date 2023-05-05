@@ -17,7 +17,7 @@ import { ElectronExports, WebContentsEvent } from "./ElectronExportTypes"
 import { RemoteBridge } from "./ipc/RemoteBridge.js"
 import { OfflineDbManager } from "./db/PerWindowSqlCipherFacade.js"
 import { ASSET_PROTOCOL } from "./net/ProtocolProxy.js"
-import path from "path"
+import path from "node:path"
 
 const TAG = "[DesktopWindowManager]"
 

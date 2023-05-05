@@ -1,6 +1,6 @@
 import { Argument, program } from "commander"
 import { runDevBuild } from "./buildSrc/DevBuild.js"
-import { spawn } from "child_process"
+import { spawn } from "node:child_process"
 import { chalk } from "zx"
 
 await program

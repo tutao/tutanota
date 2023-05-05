@@ -2,8 +2,8 @@
  * This is a little wrapper around electron-updater to decouple logic.
  */
 import { downcast, noOp } from "@tutao/tutanota-utils"
-import path from "path"
-import fs from "fs"
+import path from "node:path"
+import fs from "node:fs"
 import { app } from "electron"
 import { AppUpdater } from "electron-updater"
 

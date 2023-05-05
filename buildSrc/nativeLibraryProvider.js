@@ -1,14 +1,14 @@
 /**
  * This script provides a utility for building and getting cached native modules
  */
-import path from "path"
-import fs from "fs"
+import path from "node:path"
+import fs from "node:fs"
 import { program } from "commander"
-import { fileURLToPath } from "url"
+import { fileURLToPath } from "node:url"
 import { fileExists, getCanonicalPlatformName, getElectronVersion, getInstalledModuleVersion, LogWriter } from "./buildUtils.js"
-import { createRequire } from "module"
+import { createRequire } from "node:module"
 
-import { spawn } from "child_process"
+import { spawn } from "node:child_process"
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	await program

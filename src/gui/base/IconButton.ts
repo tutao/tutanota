@@ -17,6 +17,7 @@ export interface IconButtonAttrs {
 	click: clickHandler
 	colors?: ButtonColor
 	size?: ButtonSize
+	onblur?: () => unknown
 }
 
 export class IconButton implements Component<IconButtonAttrs> {
@@ -34,6 +35,7 @@ export class IconButton implements Component<IconButtonAttrs> {
 					// It doesn't make sense to propagate click events if we are the button
 					e.stopPropagation()
 				},
+				onblur: attrs.onblur,
 				title: lang.getMaybeLazy(attrs.title),
 				class: attrs.size === ButtonSize.Compact ? "compact" : "",
 			},

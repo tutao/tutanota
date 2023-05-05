@@ -1,5 +1,5 @@
-import path from "path"
-import fs from "fs/promises"
+import path from "node:path"
+import fs from "node:fs/promises"
 
 // keeping for admin client for now
 export async function writeNollupBundle(generatedBundle, log, dir = "build") {

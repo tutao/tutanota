@@ -25,7 +25,7 @@ import {
 import { OfflineStorageMigrator } from "../../../../../src/api/worker/offline/OfflineStorageMigrator.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { DesktopSqlCipher } from "../../../../../src/desktop/DesktopSqlCipher.js"
-import * as fs from "fs"
+import * as fs from "node:fs"
 import { untagSqlObject } from "../../../../../src/api/worker/offline/SqlValue.js"
 import { MailFolderType } from "../../../../../src/api/common/TutanotaConstants.js"
 import { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "../../../../../src/api/common/EntityTypes.js"

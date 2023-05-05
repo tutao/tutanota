@@ -4,8 +4,8 @@
  * * DEBUG_SIGN - path to a folder containing either a self-signed certificate for signing the desktop client (test.p12) or a private key in PEM format (test.key)
  * More Info in Wiki -> Desktop Updater Test & Development
  */
-import fs from "fs"
-import path from "path"
+import fs from "node:fs"
+import path from "node:path"
 import { fileExists } from "./buildUtils.js"
 import { sign } from "./installerSigner.js"
 

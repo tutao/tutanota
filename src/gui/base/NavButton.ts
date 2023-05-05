@@ -33,6 +33,8 @@ export type NavButtonAttrs = {
 	disableHoverBackground?: boolean
 	disabled?: boolean
 	persistentBackground?: boolean
+	onfocus?: () => unknown
+	onblur?: () => unknown
 }
 
 export class NavButton implements Component<NavButtonAttrs> {
@@ -127,6 +129,8 @@ export class NavButton implements Component<NavButtonAttrs> {
 					this.click(e, a)
 				}
 			},
+			onfocus: a.onfocus,
+			onblur: a.onblur,
 		}
 
 		if (a.dropHandler) {

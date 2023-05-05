@@ -1,8 +1,8 @@
 import { Octokit } from "@octokit/rest"
 import { Option, program } from "commander"
-import { fileURLToPath } from "url"
-import fs from "fs"
-import crypto from "crypto"
+import { fileURLToPath } from "node:url"
+import fs from "node:fs"
+import crypto from "node:crypto"
 
 const wasRunFromCli = fileURLToPath(import.meta.url).startsWith(process.argv[1])
 

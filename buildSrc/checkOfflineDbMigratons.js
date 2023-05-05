@@ -1,8 +1,8 @@
 import { globby } from "zx"
 import fs from "fs-extra"
 import { fileExists } from "./buildUtils.js"
-import path from "path"
-import { fileURLToPath } from "url"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
 
 if (fileURLToPath(import.meta.url) === process.argv[1]) {
 	await checkOfflineDatabaseMigrations()

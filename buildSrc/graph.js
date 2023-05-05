@@ -1,4 +1,4 @@
-import fs from "fs"
+import fs from "node:fs"
 
 function toDot(modules, output) {
 	let buffer = "digraph G {\n"

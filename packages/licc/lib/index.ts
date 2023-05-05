@@ -2,8 +2,8 @@ import { TypescriptGenerator } from "./TypescriptGenerator.js"
 import { capitalize, EnumDefinition, FacadeDefinition, LangGenerator, Language, Platform, StructDefinition, TypeRefDefinition } from "./common.js"
 import { SwiftGenerator } from "./SwiftGenerator.js"
 import { KotlinGenerator } from "./KotlinGenerator.js"
-import * as path from "path"
-import * as fs from "fs"
+import * as path from "node:path"
+import * as fs from "node:fs"
 import JSON5 from "json5"
 
 function generatorForLang(lang: Language): LangGenerator {

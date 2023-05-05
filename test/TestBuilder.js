@@ -1,6 +1,6 @@
 import * as env from "../buildSrc/env.js"
 import fs from "fs-extra"
-import path from "path"
+import path from "node:path"
 import { renderHtml } from "../buildSrc/LaunchHtml.js"
 import { build as esbuild } from "esbuild"
 import { getTutanotaAppVersion, runStep, sh, writeFile } from "../buildSrc/buildUtils.js"

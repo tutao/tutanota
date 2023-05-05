@@ -1,7 +1,7 @@
 import o from "ospec"
-import http from "http"
-import https from "https"
-import path from "path"
+import http from "node:http"
+import https from "node:https"
+import path from "node:path"
 import { constructor, matchers, object, replace, verify, when } from "testdouble"
 import { doHandleProtocols, handleProtocols } from "../../../../src/desktop/net/ProtocolProxy.js"
 

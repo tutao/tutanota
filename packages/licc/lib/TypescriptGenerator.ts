@@ -1,7 +1,7 @@
 import { Accumulator } from "./Accumulator.js"
 import { EnumDefinition, FacadeDefinition, getArgs, LangGenerator, minusculize, RenderedType, StructDefinition, TypeRefDefinition } from "./common.js"
 import { ParsedType, parseType } from "./Parser.js"
-import path from "path"
+import path from "node:path"
 
 export class TypescriptGenerator implements LangGenerator {
 	generateGlobalDispatcher(name: string, facadeNames: Array<string>): string {

@@ -1,5 +1,5 @@
 import { app, BrowserWindow, WebContents } from "electron"
-import path from "path"
+import path from "node:path"
 import { defer } from "@tutao/tutanota-utils"
 import { ElectronWebContentsTransport } from "./ipc/ElectronWebContentsTransport.js"
 import { NativeToWebRequest, WebToNativeRequest } from "../native/main/WebauthnNativeBridge.js"

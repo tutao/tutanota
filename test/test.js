@@ -1,4 +1,4 @@
-import child_process from "child_process"
+import child_process from "node:child_process"
 import { runTestBuild } from "./TestBuilder.js"
 import { Option, program } from "commander"
 

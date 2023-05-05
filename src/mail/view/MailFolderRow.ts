@@ -25,6 +25,8 @@ export type MailFolderRowAttrs = {
 }
 
 export class MailFolderRow implements Component<MailFolderRowAttrs> {
+	private hovered: boolean = false
+
 	view(vnode: Vnode<MailFolderRowAttrs>): Children {
 		const { count, button, rightButton, expanded, indentationLevel, icon, hasChildren, editMode } = vnode.attrs
 
@@ -37,6 +39,12 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 			{
 				style: {
 					background: isNavButtonSelected(button) ? stateBgHover : "",
+				},
+				onmouseenter: () => {
+					this.hovered = true
+				},
+				onmouseleave: () => {
+					this.hovered = false
 				},
 			},
 			[
@@ -80,16 +88,30 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 						},
 					}),
 				),
-				m(NavButton, button),
-				rightButton
+				m(NavButton, {
+					...button,
+					onfocus: () => (this.hovered = true),
+					onblur: () => {
+						// The setTimout is so that there is some time to tab to the rightButton
+						// otherwise it disappears immediately and is unreachable on keyboard
+						setTimeout(() => {
+							this.hovered = false
+						}, 5)
+					},
+				}),
+				rightButton && (this.hovered || editMode)
 					? m(IconButton, {
 							...rightButton,
+							onblur: () => {
+								m.redraw()
+							},
 					  })
 					: m("", { style: { marginRight: px(size.hpad_button) } }, [
 							m(CounterBadge, {
 								count,
 								color: theme.navigation_button_icon,
 								background: getNavButtonIconBackground(),
+								showFullCount: true,
 							}),
 					  ]),
 			],

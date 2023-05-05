@@ -1,4 +1,4 @@
-import path from "path"
+import path from "node:path"
 
 // These are the dependencies that must be provided for the module loader systemjs
 export const dependencyMap = {
