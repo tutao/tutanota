@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2023-03-24T11:59:41Z",
+	"updated_at": "2023-04-12T10:10:13Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -780,7 +780,7 @@ export default {
 		"login_label": "ログイン",
 		"login_msg": "ログインしています…",
 		"logout_label": "ログアウト",
-		"mailAddressAliasesMaxNbr_label": "{1}個のエイリアスが登録できます。",
+		"mailAddressAliasesMaxNbr_label": "{1} メールエイリアスを登録することができます。",
 		"mailAddressAliases_label": "メールエイリアス",
 		"mailAddressAvailable_msg": "メールアドレスが入手できます。",
 		"mailAddressBusy_msg": "メールアドレスを確認しています...",

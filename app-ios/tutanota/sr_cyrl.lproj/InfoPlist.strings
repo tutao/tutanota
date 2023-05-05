@@ -10,3 +10,5 @@ TutaoChangePermissionMsg = "Да одобрите приступ, морате �
 TutaoCancelAction = "Откажи";
 TutaoSettingsAction = "Подешавања";
 TutaoCalendarAlarmTitle = "Подсетник";
+TutaoScheduleAlarmError = "Није могуће поставити аларм. Ажурирајте апликацију.";
+TutaoUnlockCredentialsAction = "Откључај акредитиве";

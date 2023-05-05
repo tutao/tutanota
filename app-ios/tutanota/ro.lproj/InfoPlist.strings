@@ -10,5 +10,5 @@ TutaoChangePermissionMsg = "Pentru a permite accesul, trebuie să modifici permi
 TutaoCancelAction = "Renunță";
 TutaoSettingsAction = "Opțiuni";
 TutaoCalendarAlarmTitle = "Reamintire";
-TutaoScheduleAlarmError = "Alarma nu a putut fi pusă. Te rugăm să actualizezi aplicația.";
+TutaoScheduleAlarmError = "Alarma nu a putut fi pusă. Actualizează aplicația.";
 TutaoUnlockCredentialsAction = "Deblochează datele de autentificare";
