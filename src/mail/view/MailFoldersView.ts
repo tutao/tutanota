@@ -20,6 +20,7 @@ import { isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
 import { Icon } from "../../gui/base/Icon.js"
 import { theme } from "../../gui/theme.js"
 import { lang } from "../../misc/LanguageViewModel.js"
+import { px, size } from "../../gui/size.js"
 
 export interface MailFolderViewAttrs {
 	mailboxDetail: MailboxDetail
@@ -68,7 +69,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 					this.renderFolderTree(customSystems, groupCounters, attrs, path).children,
 				),
 			)
-			children.push(this.renderAddButton(attrs))
+			children.push(this.renderAddFolderButtonRow(attrs))
 		}
 		return children
 	}
@@ -131,13 +132,16 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		return result
 	}
 
-	private renderAddButton(attrs: MailFolderViewAttrs): Child | null {
+	private renderAddFolderButtonRow(attrs: MailFolderViewAttrs): Child {
 		// This button needs to fill the whole role, but is not a navigation button (so IconButton or NavButton weren't appropriate)
 		return m(
-			".folder-row.flex.flex-row.mlr-button.border-radius-small.state-bg.button-height.click",
+			"button.folder-row.flex.flex-row.mlr-button.border-radius-small.state-bg.button-height",
 			{
 				key: "addFolder",
-				"aria-role": "button",
+				style: {
+					color: theme.navigation_button,
+					width: `calc(100% - ${px(size.hpad_button * 2)})`,
+				},
 				onclick: () => {
 					attrs.onShowFolderAddEditDialog(attrs.mailboxDetail.mailGroup._id, null, null)
 				},
