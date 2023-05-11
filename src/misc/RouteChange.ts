@@ -8,9 +8,18 @@ export function throttleRoute(): (url: string) => void {
 	let lastCall = 0
 	return function (url: string) {
 		const now = new Date().getTime()
-		m.route.set(url, null, {
-			replace: now - lastCall < limit,
-		})
+		try {
+			m.route.set(url, null, {
+				replace: now - lastCall < limit,
+			})
+		} catch (e) {
+			if (e.message.includes("can't access dead object")) {
+				console.log(`Caught error: ${e.message}`)
+			} else {
+				throw e
+			}
+		}
+
 		lastCall = now
 	}
 }
