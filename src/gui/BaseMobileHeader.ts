@@ -14,7 +14,7 @@ export interface BaseMobileHeaderAttrs {
  */
 export const BaseMobileHeader = pureComponent(({ left, center, right, injections }: BaseMobileHeaderAttrs) => {
 	return m(
-		".flex.items-center.rel.button-height",
+		".flex.items-center.rel.button-height.mt-safe-inset.plr-safe-inset",
 		{
 			style: {
 				height: px(size.navbar_height_mobile),

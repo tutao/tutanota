@@ -5,6 +5,12 @@ typealias Theme = Dictionary<String, String>
 
 fileprivate let SELECTED_THEME = "theme"
 fileprivate let THEMES = "themes"
+fileprivate let LIGHT_FALLBACK_THEME = [
+  "themeId": "light-fallback",
+  "content_bg": "#ffffff",
+  "header_bg": "#ffffff",
+  "navigation_bg": "f6f6f6"
+]
 
 class ThemeManager : NSObject {
   public var selectedThemeId: ThemeId {
@@ -33,11 +39,7 @@ class ThemeManager : NSObject {
   
   public var currentThemeWithFallback: Theme {
     get {
-      currentTheme ?? [
-        "themeId": "light-fallback",
-        "content_bg": "#ffffff",
-        "header_bg": "#ffffff"
-      ]
+      currentTheme ?? LIGHT_FALLBACK_THEME
     }
   }
 }

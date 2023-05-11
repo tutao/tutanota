@@ -12,7 +12,7 @@ export const LoginScreenHeader = pureComponent(() =>
 		: m(
 				".mt-l.flex.justify-center",
 				m(
-					".logo.logo-height",
+					".logo.logo-height.mt-safe-inset",
 					{
 						...landmarkAttrs(AriaLandmarks.Banner, "Tutanota logo"),
 					},
