@@ -2,7 +2,6 @@ import { ImapSyncSessionMailbox } from "./ImapSyncSessionMailbox.js"
 import { AdSyncEventListener, AdSyncEventType } from "./AdSyncEventListener.js"
 import { ImapAccount, ImapMailIds } from "./ImapSyncState.js"
 import { ImapMail } from "./imapmail/ImapMail.js"
-// @ts-ignore // TODO define types
 import { AdSyncDownloadBatchSizeOptimizer } from "./optimizer/AdSyncDownloadBatchSizeOptimizer.js"
 import { ImapError } from "./imapmail/ImapError.js"
 import { ImapMailbox, ImapMailboxStatus } from "./imapmail/ImapMailbox.js"
@@ -10,15 +9,14 @@ import { AdSyncConfig } from "./ImapAdSync.js"
 import { AdSyncProcessesOptimizerEventListener } from "./optimizer/processesoptimizer/AdSyncProcessesOptimizer.js"
 import { DifferentialUidLoader, UID_FETCH_REQUEST_WAIT_TIME, UidFetchRequestType } from "./utils/DifferentialUidLoader.js"
 import { setTimeout } from "node:timers/promises"
-
-const { ImapFlow } = require("imapflow")
+import { ImapFlow } from "imapflow"
 
 export enum SyncSessionProcessState {
 	NOT_STARTED,
 	STOPPED,
 	RUNNING,
 	CONNECTION_FAILED_UNKNOWN,
-	CONNECTION_FAILED_NO,
+	CONNECTION_FAILED_REJECTED,
 }
 
 export class ImapSyncSessionProcess {
@@ -28,20 +26,17 @@ export class ImapSyncSessionProcess {
 	private adSyncOptimizer: AdSyncDownloadBatchSizeOptimizer
 	private adSyncProcessesOptimizerEventListener: AdSyncProcessesOptimizerEventListener
 	private adSyncConfig: AdSyncConfig
-	private isIncludeMailUpdates: boolean
 
 	constructor(
 		processId: number,
 		adSyncOptimizer: AdSyncDownloadBatchSizeOptimizer,
 		adSyncProcessesOptimizerEventListener: AdSyncProcessesOptimizerEventListener,
 		adSyncConfig: AdSyncConfig,
-		isIncludeMailUpdates: boolean,
 	) {
 		this.processId = processId
 		this.adSyncOptimizer = adSyncOptimizer
 		this.adSyncProcessesOptimizerEventListener = adSyncProcessesOptimizerEventListener
 		this.adSyncConfig = adSyncConfig
-		this.isIncludeMailUpdates = isIncludeMailUpdates
 	}
 
 	async startSyncSessionProcess(imapAccount: ImapAccount, adSyncEventListener: AdSyncEventListener): Promise<SyncSessionProcessState> {
@@ -58,9 +53,10 @@ export class ImapSyncSessionProcess {
 				pass: imapAccount.password,
 				accessToken: imapAccount.accessToken,
 			},
-			// @ts-ignore
-			qresync: this.adSyncConfig.isEnableImapQresync, // TODO add type definitions
+			qresync: this.adSyncConfig.isEnableImapQresync,
 		})
+
+		this.setupImapFlowErrorHandler(imapClient, adSyncEventListener)
 
 		try {
 			await imapClient.connect()
@@ -69,11 +65,11 @@ export class ImapSyncSessionProcess {
 				this.state = SyncSessionProcessState.RUNNING
 			}
 		} catch (error) {
-			// TODO we most probably did run in a rate limit
-			// TODO QRESYNC is an issue if the import got postponed, but we have a new modseq somehow and did not finish loading all emails for this modseq ...
-			// https://www.rfc-editor.org/rfc/rfc7162.html#section-3.1.4
-			// modsequences should therefore only be used once the complete fetch call is finished ... update in batch --> otherwise cancel batch
-			this.state = SyncSessionProcessState.CONNECTION_FAILED_NO
+			if (error.message.match("(NO|BAD)")) {
+				this.state = SyncSessionProcessState.CONNECTION_FAILED_REJECTED
+			} else {
+				this.state = SyncSessionProcessState.CONNECTION_FAILED_UNKNOWN
+			}
 		}
 		return this.state
 	}
@@ -84,14 +80,15 @@ export class ImapSyncSessionProcess {
 		return this.adSyncOptimizer.optimizedSyncSessionMailbox
 	}
 
-	private async runSyncSessionProcess(imapClient: typeof ImapFlow, adSyncEventListener: AdSyncEventListener) {
+	private async runSyncSessionProcess(imapClient: ImapFlow, adSyncEventListener: AdSyncEventListener) {
 		let isMailboxFinished = false
 
 		try {
+			let imapQresyncImapMails: ImapMail[] = []
 			let highestModSeq = this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState.highestModSeq
 
 			// open mailbox readonly
-			let mailboxObject = await imapClient.mailboxOpen(this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState.path, { readonly: true })
+			let mailboxObject = await imapClient.mailboxOpen(this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState.path, { readOnly: true })
 
 			// store ImapMailboxStatus
 			let imapMailboxStatus = ImapMailboxStatus.fromImapFlowMailboxObject(mailboxObject)
@@ -109,7 +106,7 @@ export class ImapSyncSessionProcess {
 				openedImapMailbox,
 				this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState.importedUidToMailIdsMap,
 				isEnableImapQresync,
-				this.isIncludeMailUpdates,
+				this.adSyncConfig.emitAdSyncEventTypes,
 			)
 
 			differentialUidLoader
@@ -118,7 +115,9 @@ export class ImapSyncSessionProcess {
 					this.adSyncOptimizer.optimizedSyncSessionMailbox.downloadBatchSize,
 					this.adSyncOptimizer.optimizedSyncSessionMailbox.mailCount,
 				)
-				.then((deletedUids) => this.handleDeletedUids(deletedUids, openedImapMailbox, adSyncEventListener))
+				.then((deletedUids) => {
+					this.handleDeletedUids(deletedUids, openedImapMailbox, adSyncEventListener)
+				})
 
 			let fetchOptions = this.initFetchOptions(imapMailboxStatus, isEnableImapQresync)
 			let nextUidFetchRequest = await differentialUidLoader.getNextUidFetchRequest(this.adSyncOptimizer.optimizedSyncSessionMailbox.downloadBatchSize)
@@ -134,10 +133,12 @@ export class ImapSyncSessionProcess {
 				this.adSyncOptimizer.optimizedSyncSessionMailbox.reportDownloadBatchSizeUsage(nextUidFetchRequest.usedDownloadBatchSize)
 
 				let mailFetchStartTime = Date.now()
+
 				let mails = imapClient.fetch(
 					nextUidFetchRequest.uidFetchSequenceString,
 					{
 						uid: true,
+						// @ts-ignore
 						source: true,
 						labels: true,
 						size: true,
@@ -148,6 +149,7 @@ export class ImapSyncSessionProcess {
 					fetchOptions,
 				)
 
+				// @ts-ignore
 				for await (const mail of mails) {
 					if (this.state == SyncSessionProcessState.STOPPED) {
 						await this.logout(imapClient, isMailboxFinished, mail.seq - 1)
@@ -177,13 +179,17 @@ export class ImapSyncSessionProcess {
 									imapMail.uid,
 									new ImapMailIds(imapMail.uid),
 								)
-								adSyncEventListener.onMail(imapMail, AdSyncEventType.CREATE)
+								if (this.adSyncConfig.emitAdSyncEventTypes.has(AdSyncEventType.CREATE)) {
+									adSyncEventListener.onMail(imapMail, AdSyncEventType.CREATE)
+								}
 								break
 							case UidFetchRequestType.UPDATE:
-								adSyncEventListener.onMail(imapMail, AdSyncEventType.UPDATE)
+								if (this.adSyncConfig.emitAdSyncEventTypes.has(AdSyncEventType.UPDATE)) {
+									adSyncEventListener.onMail(imapMail, AdSyncEventType.UPDATE)
+								}
 								break
 							case UidFetchRequestType.QRESYNC:
-								this.handleQresyncFetchResult(imapMail, adSyncEventListener)
+								imapQresyncImapMails.push(imapMail)
 								break
 						}
 					} else {
@@ -194,6 +200,10 @@ export class ImapSyncSessionProcess {
 				nextUidFetchRequest = await differentialUidLoader.getNextUidFetchRequest(this.adSyncOptimizer.optimizedSyncSessionMailbox.downloadBatchSize)
 			}
 
+			if (isEnableImapQresync) {
+				this.handleQresyncFetchResult(imapQresyncImapMails, adSyncEventListener)
+			}
+
 			isMailboxFinished = true
 		} catch (error: any) {
 			adSyncEventListener.onError(new ImapError(error))
@@ -202,7 +212,7 @@ export class ImapSyncSessionProcess {
 		}
 	}
 
-	private async logout(imapClient: typeof ImapFlow, isMailboxFinished: boolean, lastFetchedMailSeq: number = 1) {
+	private async logout(imapClient: ImapFlow, isMailboxFinished: boolean, lastFetchedMailSeq: number = 0) {
 		await imapClient.logout()
 
 		if (isMailboxFinished) {
@@ -232,33 +242,52 @@ export class ImapSyncSessionProcess {
 		return fetchOptions
 	}
 
-	// TODO handle Qresync delete events
-	private handleQresyncFetchResult(imapMail: ImapMail, adSyncEventListener: AdSyncEventListener) {
-		let isMailUpdate = this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState.importedUidToMailIdsMap.has(imapMail.uid)
+	private handleQresyncFetchResult(imapMails: ImapMail[], adSyncEventListener: AdSyncEventListener) {
+		imapMails.forEach((imapMail) => {
+			let isMailUpdate = this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState.importedUidToMailIdsMap.has(imapMail.uid)
 
-		if (isMailUpdate) {
-			adSyncEventListener.onMail(imapMail, AdSyncEventType.UPDATE)
-		} else {
-			this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState.importedUidToMailIdsMap.set(imapMail.uid, new ImapMailIds(imapMail.uid))
-			adSyncEventListener.onMail(imapMail, AdSyncEventType.CREATE)
-		}
-	}
-
-	private async handleDeletedUids(deletedUids: number[], openedImapMailbox: ImapMailbox, adSyncEventListener: AdSyncEventListener) {
-		deletedUids.forEach((deletedUid) => {
-			let imapMail = new ImapMail(deletedUid, openedImapMailbox).setExternalMailId(
-				this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState.importedUidToMailIdsMap.get(deletedUid),
-			)
-
-			this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState.importedUidToMailIdsMap.delete(deletedUid)
-			adSyncEventListener.onMail(imapMail, AdSyncEventType.DELETE)
+			if (isMailUpdate && this.adSyncConfig.emitAdSyncEventTypes.has(AdSyncEventType.UPDATE)) {
+				adSyncEventListener.onMail(imapMail, AdSyncEventType.UPDATE)
+			} else if (this.adSyncConfig.emitAdSyncEventTypes.has(AdSyncEventType.CREATE)) {
+				this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState.importedUidToMailIdsMap.set(imapMail.uid, new ImapMailIds(imapMail.uid))
+				adSyncEventListener.onMail(imapMail, AdSyncEventType.CREATE)
+			}
 		})
 	}
 
-	updateMailboxState(imapMailboxStatus: ImapMailboxStatus) {
+	private updateMailboxState(imapMailboxStatus: ImapMailboxStatus) {
 		let mailboxState = this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState
 		mailboxState.uidValidity = imapMailboxStatus.uidValidity
 		mailboxState.uidNext = imapMailboxStatus.uidNext
 		mailboxState.highestModSeq = imapMailboxStatus.highestModSeq
+	}
+
+	private async handleDeletedUids(deletedUids: number[], openedImapMailbox: ImapMailbox, adSyncEventListener: AdSyncEventListener) {
+		deletedUids.forEach((deletedUid) => {
+			this.emitImapMailDeleteEvent(deletedUid, openedImapMailbox, adSyncEventListener)
+		})
+	}
+
+	private setupImapFlowErrorHandler(imapClient: ImapFlow, adSyncEventListener: AdSyncEventListener) {
+		imapClient.on("error", (error) => {
+			adSyncEventListener.onError(new ImapError(error))
+			this.logout(imapClient, false)
+		})
+	}
+
+	private setupImapFlowExpungeHandler(imapClient: ImapFlow, openedImapMailbox: ImapMailbox, adSyncEventListener: AdSyncEventListener) {
+		imapClient.on("expunge", (deletedMail) => {
+			this.emitImapMailDeleteEvent(deletedMail.uid, openedImapMailbox, adSyncEventListener)
+		})
+	}
+
+	private emitImapMailDeleteEvent(deletedUid: number, openedImapMailbox: ImapMailbox, adSyncEventListener: AdSyncEventListener) {
+		if (this.adSyncConfig.emitAdSyncEventTypes.has(AdSyncEventType.DELETE)) {
+			let imapMail = new ImapMail(deletedUid, openedImapMailbox).setExternalMailId(
+				this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState.importedUidToMailIdsMap.get(deletedUid),
+			)
+			this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState.importedUidToMailIdsMap.delete(deletedUid)
+			adSyncEventListener.onMail(imapMail, AdSyncEventType.DELETE)
+		}
 	}
 }

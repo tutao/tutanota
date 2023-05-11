@@ -1,5 +1,5 @@
 import { ImapMailIds } from "../ImapSyncState.js"
-import { AdSyncEventListener } from "../AdSyncEventListener.js"
+import { AdSyncEventListener, AdSyncEventType } from "../AdSyncEventListener.js"
 import { ImapMailbox } from "../imapmail/ImapMailbox.js"
 import { ImapFlow } from "imapflow"
 
@@ -18,7 +18,7 @@ export enum UidFetchRequestType {
 export const UID_FETCH_REQUEST_WAIT_TIME = 5000 // in ms
 
 export interface UidFetchRequest {
-	uidFetchSequenceString?: string
+	uidFetchSequenceString: string
 	fetchRequestType: UidFetchRequestType
 	usedDownloadBatchSize?: number
 }
@@ -39,7 +39,7 @@ export class DifferentialUidLoader {
 	private readonly openedImapMailbox: ImapMailbox
 	private readonly importedUidToMailIdsMap: Map<number, ImapMailIds>
 	private readonly isEnableImapQresync: boolean
-	private readonly isIncludeMailUpdates: boolean
+	private readonly emitAdSyncEventTypes: Set<AdSyncEventType>
 
 	constructor(
 		imapClient: ImapFlow,
@@ -47,14 +47,14 @@ export class DifferentialUidLoader {
 		openedImapMailbox: ImapMailbox,
 		importedUidToMailIdsMap: Map<number, ImapMailIds>,
 		isEnableImapQresync: boolean,
-		isIncludeMailUpdates: boolean,
+		emitAdSyncEventTypes: Set<AdSyncEventType>,
 	) {
 		this.imapClient = imapClient
 		this.adSyncEventListener = adSyncEventListener
 		this.openedImapMailbox = openedImapMailbox
 		this.importedUidToMailIdsMap = importedUidToMailIdsMap
 		this.isEnableImapQresync = isEnableImapQresync
-		this.isIncludeMailUpdates = isIncludeMailUpdates
+		this.emitAdSyncEventTypes = emitAdSyncEventTypes
 	}
 
 	async calculateUidDiff(lastFetchedMailSeq: number, downloadBatchSize: number, totalMessageCount: number | null): Promise<DeletedUids> {
@@ -71,9 +71,12 @@ export class DifferentialUidLoader {
 
 		let seenUids = await this.calculateUidDiffInBatches(lastFetchedMailSeq + 1, downloadBatchSize, totalMessageCount)
 
-		let deletedUids = [...this.importedUidToMailIdsMap.keys()].filter((uid) => {
-			!seenUids.includes(uid)
-		})
+		let deletedUids: number[] = []
+		if (this.emitAdSyncEventTypes.has(AdSyncEventType.DELETE)) {
+			deletedUids = [...this.importedUidToMailIdsMap.keys()].filter((uid) => {
+				!seenUids.includes(uid)
+			})
+		}
 
 		this.uidDiffInProgress = false
 		return deletedUids
@@ -118,14 +121,15 @@ export class DifferentialUidLoader {
 		let nextUidFetchRange: number[]
 		let fetchRequestType: UidFetchRequestType
 
-		if (this.uidCreateQueue.length != 0) {
+		if (this.emitAdSyncEventTypes.has(AdSyncEventType.CREATE) && this.uidCreateQueue.length != 0) {
 			nextUidFetchRange = this.uidCreateQueue.splice(0, downloadBatchSize)
 			fetchRequestType = UidFetchRequestType.CREATE
-		} else if (this.isIncludeMailUpdates && this.uidUpdateQueue.length != 0) {
+		} else if (this.emitAdSyncEventTypes.has(AdSyncEventType.UPDATE) && this.uidUpdateQueue.length != 0) {
 			nextUidFetchRange = this.uidUpdateQueue.splice(0, downloadBatchSize)
 			fetchRequestType = UidFetchRequestType.UPDATE
 		} else if (this.uidDiffInProgress) {
 			return {
+				uidFetchSequenceString: "",
 				fetchRequestType: UidFetchRequestType.WAIT,
 			}
 		} else {

@@ -37,7 +37,6 @@ export class ImapSyncSession implements SyncSessionEventListener {
 	private adSyncConfig: AdSyncConfig
 	private state: SyncSessionState
 	private imapSyncState?: ImapSyncState
-	private isIncludeMailUpdates: boolean = false
 	private adSyncOptimizer?: AdSyncProcessesOptimizer
 	private runningSyncSessionProcesses: Map<number, ImapSyncSessionProcess> = new Map()
 	private downloadedQuotas: number[] = []
@@ -48,11 +47,10 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		this.state = SyncSessionState.PAUSED
 	}
 
-	async startSyncSession(imapSyncState: ImapSyncState, isIncludeMailUpdates: boolean): Promise<void> {
+	async startSyncSession(imapSyncState: ImapSyncState): Promise<void> {
 		if (this.state != SyncSessionState.RUNNING) {
 			this.state = SyncSessionState.RUNNING
 			this.imapSyncState = imapSyncState
-			this.isIncludeMailUpdates = isIncludeMailUpdates
 			this.runningSyncSessionProcesses = new Map()
 			this.downloadedQuotas = []
 			this.runSyncSession()
@@ -197,17 +195,11 @@ export class ImapSyncSession implements SyncSessionEventListener {
 				nextMailboxToDownload,
 				this.adSyncConfig.downloadBatchSizeOptimizationDifference,
 			)
-			let syncSessionProcess = new ImapSyncSessionProcess(
-				processId,
-				adSyncDownloadBlatchSizeOptimizer,
-				this.adSyncOptimizer,
-				this.adSyncConfig,
-				this.isIncludeMailUpdates,
-			)
+			let syncSessionProcess = new ImapSyncSessionProcess(processId, adSyncDownloadBlatchSizeOptimizer, this.adSyncOptimizer, this.adSyncConfig)
 
 			this.runningSyncSessionProcesses.set(syncSessionProcess.processId, syncSessionProcess)
 			syncSessionProcess.startSyncSessionProcess(this.imapSyncState.imapAccount, this.adSyncEventListener).then((state) => {
-				if (state == SyncSessionProcessState.CONNECTION_FAILED_NO) {
+				if (state == SyncSessionProcessState.CONNECTION_FAILED_REJECTED) {
 					this.adSyncOptimizer?.forceStopSyncSessionProcess(processId, true)
 				} else if (state == SyncSessionProcessState.CONNECTION_FAILED_UNKNOWN) {
 					this.adSyncOptimizer?.forceStopSyncSessionProcess(processId, false)

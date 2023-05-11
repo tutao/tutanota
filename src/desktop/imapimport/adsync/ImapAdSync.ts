@@ -1,4 +1,4 @@
-import { AdSyncEventListener } from "./AdSyncEventListener.js"
+import { AdSyncEventListener, AdSyncEventType } from "./AdSyncEventListener.js"
 import { ImapSyncSession } from "./ImapSyncSession.js"
 import { ImapSyncState } from "./ImapSyncState.js"
 
@@ -7,7 +7,8 @@ const defaultAdSyncConfig: AdSyncConfig = {
 	isEnableDownloadBatchSizeOptimizer: true,
 	parallelProcessesOptimizationDifference: 2,
 	downloadBatchSizeOptimizationDifference: 100,
-	isEnableImapQresync: false,
+	emitAdSyncEventTypes: new Set<AdSyncEventType>([AdSyncEventType.CREATE, AdSyncEventType.UPDATE, AdSyncEventType.DELETE]),
+	isEnableImapQresync: true,
 }
 
 export interface AdSyncConfig {
@@ -15,12 +16,9 @@ export interface AdSyncConfig {
 	isEnableDownloadBatchSizeOptimizer: boolean
 	parallelProcessesOptimizationDifference: number
 	downloadBatchSizeOptimizationDifference: number
+	emitAdSyncEventTypes: Set<AdSyncEventType>
 	isEnableImapQresync: boolean
 }
-
-// TODO evaluation
-// const impap_conf = JSON.parse(process.env["IMAP_IMPORT_SETTINGS"])
-// impap_conf.value === 3
 
 export class ImapAdSync {
 	private syncSession: ImapSyncSession
@@ -29,8 +27,8 @@ export class ImapAdSync {
 		this.syncSession = new ImapSyncSession(adSyncEventListener, adSyncConfig)
 	}
 
-	async startAdSync(imapSyncState: ImapSyncState, isIncludeMailUpdates: boolean = true): Promise<void> {
-		return this.syncSession.startSyncSession(imapSyncState, isIncludeMailUpdates)
+	async startAdSync(imapSyncState: ImapSyncState): Promise<void> {
+		return this.syncSession.startSyncSession(imapSyncState)
 	}
 
 	async stopAdSync(): Promise<void> {
