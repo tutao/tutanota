@@ -1,9 +1,15 @@
 import type { Theme, ThemeId } from "../gui/theme"
 import { DesktopConfig } from "./config/DesktopConfig"
 import { DesktopConfigKey } from "./config/ConfigKeys"
-import { downcast } from "@tutao/tutanota-utils"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
 import { WindowManager } from "./DesktopWindowManager"
+
+const LIGHT_FALLBACK_THEME: Partial<Theme> = {
+	themeId: "light-fallback",
+	content_bg: "#ffffff",
+	header_bg: "#ffffff",
+	navigation_bg: "#f6f6f6",
+}
 
 /**
  * ThemeManager impl like in other native parts.
@@ -37,18 +43,8 @@ export class DesktopThemeFacade implements ThemeFacade {
 	}
 
 	async getCurrentThemeWithFallback(): Promise<Theme> {
-		let theme = await this.getCurrentTheme()
-
-		if (theme == null) {
-			const fallback = {
-				themeId: "light-fallback",
-				content_bg: "#ffffff",
-				header_bg: "#ffffff",
-			} as Partial<Theme>
-			return downcast<Theme>(fallback)
-		} else {
-			return theme
-		}
+		const theme = await this.getCurrentTheme()
+		return theme ? { ...LIGHT_FALLBACK_THEME, ...theme } : (LIGHT_FALLBACK_THEME as Theme)
 	}
 
 	private async applyTheme() {
