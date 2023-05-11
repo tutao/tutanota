@@ -1176,12 +1176,14 @@ styles.registerStyle("main", () => {
 			"padding-right": "env(safe-area-inset-right)",
 			"padding-left": "env(safe-area-inset-left)",
 		},
+		".mt-safe-inset": {
+			"margin-top": "env(safe-area-inset-top)",
+		},
 		// header
 		".header-nav": {
 			height: px(size.navbar_height),
 			"background-color": theme.navigation_bg,
 			"z-index": 2,
-			"margin-top": "env(safe-area-inset-top)", // insets for iPhone X
 		},
 		"bottom-nav, .bottom-nav": {
 			"border-top": `1px solid ${theme.navigation_border}`,
