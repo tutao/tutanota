@@ -8,7 +8,7 @@ import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { AllIcons, Icon } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { stateBgHover } from "../../gui/builtinThemes.js"
-import { isDesktop } from "../../api/common/Env.js"
+import { client } from "../../misc/ClientDetector.js"
 
 export type MailFolderRowAttrs = {
 	count: number
@@ -100,7 +100,8 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 						}, 5)
 					},
 				}),
-				rightButton && (this.hovered || editMode) && isDesktop()
+				// show the edit button in either edit mode or on hover (excluding hover on mobile)
+				rightButton && (editMode || (!client.isMobileDevice() && this.hovered))
 					? m(IconButton, {
 							...rightButton,
 							onblur: () => {
