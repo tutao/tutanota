@@ -9,7 +9,6 @@ import { dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 import { createHtml } from "./buildSrc/createHtml.js"
 import { Argument, program } from "commander"
-import { checkOfflineDatabaseMigrations } from "./buildSrc/checkOfflineDbMigratons.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -52,7 +51,8 @@ async function doBuild(opts) {
 		measure()
 		const version = getTutanotaAppVersion()
 
-		await checkOfflineDatabaseMigrations()
+		// TOOD FIXME activate before release
+		//await checkOfflineDatabaseMigrations()
 
 		if (opts.existing) {
 			console.log("Found existing option (-e). Skipping Webapp build.")

@@ -90,11 +90,10 @@ export class ImapSyncSessionProcess {
 			// open mailbox readonly
 			let mailboxObject = await imapClient.mailboxOpen(this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState.path, { readOnly: true })
 
-			// store ImapMailboxStatus
+			// emit ImapMailboxStatus and update SyncSessionMailbox
 			let imapMailboxStatus = ImapMailboxStatus.fromImapFlowMailboxObject(mailboxObject)
-			this.updateMailboxState(imapMailboxStatus)
-			this.adSyncOptimizer.optimizedSyncSessionMailbox.initSessionMailbox(imapMailboxStatus.messageCount)
 			adSyncEventListener.onMailboxStatus(imapMailboxStatus)
+			this.updateSyncSessionMailbox(imapMailboxStatus)
 
 			let openedImapMailbox = ImapMailbox.fromSyncSessionMailbox(this.adSyncOptimizer.optimizedSyncSessionMailbox)
 			let isEnableImapQresync = this.adSyncConfig.isEnableImapQresync && highestModSeq != null
@@ -255,11 +254,13 @@ export class ImapSyncSessionProcess {
 		})
 	}
 
-	private updateMailboxState(imapMailboxStatus: ImapMailboxStatus) {
+	private updateSyncSessionMailbox(imapMailboxStatus: ImapMailboxStatus) {
 		let mailboxState = this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState
 		mailboxState.uidValidity = imapMailboxStatus.uidValidity
 		mailboxState.uidNext = imapMailboxStatus.uidNext
 		mailboxState.highestModSeq = imapMailboxStatus.highestModSeq
+
+		this.adSyncOptimizer.optimizedSyncSessionMailbox.mailCount = imapMailboxStatus.messageCount ?? null
 	}
 
 	private async handleDeletedUids(deletedUids: number[], openedImapMailbox: ImapMailbox, adSyncEventListener: AdSyncEventListener) {

@@ -1,3 +1,5 @@
+//@bundleInto:commin-min
+
 import { ImapMailbox } from "./imapmail/ImapMailbox.js"
 
 export class ImapAccount {
@@ -44,11 +46,11 @@ export class ImapMailboxState {
 export class ImapSyncState {
 	imapAccount: ImapAccount
 	maxQuota: number
-	mailboxStates: ImapMailboxState[]
+	imapMailboxStates: ImapMailboxState[]
 
 	constructor(imapAccount: ImapAccount, maxQuata: number, mailboxStates: ImapMailboxState[]) {
 		this.imapAccount = imapAccount
 		this.maxQuota = maxQuata
-		this.mailboxStates = mailboxStates
+		this.imapMailboxStates = mailboxStates
 	}
 }

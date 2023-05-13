@@ -97,7 +97,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			throw new ProgrammingError("The ImapSyncState has not been set!")
 		}
 
-		let knownMailboxes = this.imapSyncState.mailboxStates.map((mailboxState) => {
+		let knownMailboxes = this.imapSyncState.imapMailboxStates.map((mailboxState) => {
 			return new ImapSyncSessionMailbox(mailboxState, this.adSyncConfig.defaultDownloadBatchSize)
 		})
 

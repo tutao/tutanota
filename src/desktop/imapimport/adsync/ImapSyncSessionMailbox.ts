@@ -24,6 +24,7 @@ export class ImapSyncSessionMailbox {
 	timeToLiveInterval: number = 10 // in seconds
 	importance: SyncSessionMailboxImportance = SyncSessionMailboxImportance.MEDIUM
 	lastFetchedMailSeq = 0
+
 	private _specialUse: ImapMailboxSpecialUse | null = null
 	private throughputHistory: Map<TimeStamp, Throughput> = new Map<TimeStamp, Throughput>()
 	private averageThroughputInTimeIntervalHistory: Map<TimeIntervalTimeStamp, AverageThroughput> = new Map<TimeIntervalTimeStamp, AverageThroughput>()
@@ -32,10 +33,6 @@ export class ImapSyncSessionMailbox {
 	constructor(mailboxState: ImapMailboxState, downloadBatchSize: number) {
 		this.mailboxState = mailboxState
 		this.downloadBatchSize = downloadBatchSize
-	}
-
-	initSessionMailbox(mailCount?: number): void {
-		this.mailCount = mailCount ? mailCount : null
 	}
 
 	get specialUse(): ImapMailboxSpecialUse | null {

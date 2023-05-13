@@ -1,3 +1,5 @@
+//@bundleInto:common-min
+
 export enum ImportState {
 	NOT_INITIALIZED,
 	RUNNING,

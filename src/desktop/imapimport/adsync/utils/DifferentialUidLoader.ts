@@ -85,6 +85,10 @@ export class DifferentialUidLoader {
 	async calculateUidDiffInBatches(fromSeq: number, downloadBatchSize: number, totalMessageCount: number | null): Promise<SeenUids> {
 		let seenUids: number[] = []
 
+		if (totalMessageCount == 0) {
+			return seenUids
+		}
+
 		let toSeq = fromSeq + downloadBatchSize
 		let isFinalBatch = totalMessageCount == null || toSeq > totalMessageCount
 

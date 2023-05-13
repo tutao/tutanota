@@ -1,3 +1,5 @@
+//@bundleInto:common-min
+
 import { ImapMailbox, ImapMailboxStatus } from "./imapmail/ImapMailbox.js"
 import { ImapMail } from "./imapmail/ImapMail.js"
 import { ImapError } from "./imapmail/ImapError.js"

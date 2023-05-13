@@ -1,3 +1,5 @@
+//@bundleInto:common-min
+
 import { ImapSyncSessionMailbox } from "../ImapSyncSessionMailbox.js"
 
 export class ImapMailboxStatus {
