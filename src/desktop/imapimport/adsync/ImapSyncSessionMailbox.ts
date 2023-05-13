@@ -19,9 +19,9 @@ export enum SyncSessionMailboxImportance {
 
 export class ImapSyncSessionMailbox {
 	mailboxState: ImapMailboxState
+	downloadBatchSize: number
 	mailCount: number | null = 0
 	timeToLiveInterval: number = 10 // in seconds
-	downloadBatchSize = 500
 	importance: SyncSessionMailboxImportance = SyncSessionMailboxImportance.MEDIUM
 	lastFetchedMailSeq = 0
 	private _specialUse: ImapMailboxSpecialUse | null = null
@@ -29,8 +29,9 @@ export class ImapSyncSessionMailbox {
 	private averageThroughputInTimeIntervalHistory: Map<TimeIntervalTimeStamp, AverageThroughput> = new Map<TimeIntervalTimeStamp, AverageThroughput>()
 	private downloadBatchSizeHistory: Map<TimeStamp, DownloadBatchSize> = new Map<TimeStamp, DownloadBatchSize>()
 
-	constructor(mailboxState: ImapMailboxState) {
+	constructor(mailboxState: ImapMailboxState, downloadBatchSize: number) {
 		this.mailboxState = mailboxState
+		this.downloadBatchSize = downloadBatchSize
 	}
 
 	initSessionMailbox(mailCount?: number): void {

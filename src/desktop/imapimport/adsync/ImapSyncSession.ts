@@ -98,7 +98,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		}
 
 		let knownMailboxes = this.imapSyncState.mailboxStates.map((mailboxState) => {
-			return new ImapSyncSessionMailbox(mailboxState)
+			return new ImapSyncSessionMailbox(mailboxState, this.adSyncConfig.defaultDownloadBatchSize)
 		})
 
 		let imapAccount = this.imapSyncState.imapAccount
@@ -161,7 +161,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		let syncSessionMailbox = knownMailboxes.find((value) => value.mailboxState.path == imapMailbox.path)
 		if (syncSessionMailbox === undefined) {
 			this.adSyncEventListener.onMailbox(imapMailbox, AdSyncEventType.CREATE)
-			syncSessionMailbox = new ImapSyncSessionMailbox(ImapMailboxState.fromImapMailbox(imapMailbox))
+			syncSessionMailbox = new ImapSyncSessionMailbox(ImapMailboxState.fromImapMailbox(imapMailbox), this.adSyncConfig.defaultDownloadBatchSize)
 		}
 
 		if (imapMailbox.specialUse) {
