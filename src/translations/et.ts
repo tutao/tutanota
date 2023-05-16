@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2023-04-11T08:31:09Z",
+	"updated_at": "2023-05-15T13:31:57Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -219,7 +219,7 @@ export default {
 		"display_action": "Kuva",
 		"domain_label": "Domeen",
 		"downgradeToPremium_msg": "Teie konto alandatakse Premium tasemele 5 aliase, 1 GB ruumi ja ilma kohandatud domeeni sisselogimise ja kujunduseta.",
-		"download_action": "Laadi alal",
+		"download_action": "Laadi alla",
 		"draft_action": "Mustandid",
 		"duplicatedMailAddressInUserList_msg": "E-maili aadress sisaldub rohkem kui korra sisestatud andmetes.",
 		"duplicatesNotification_msg": "{1} duplikeeritud kontakti leiti ja kustutatakse.",
