@@ -7,25 +7,13 @@ const flashedIn: Map<HTMLElement, number> = new Map() // currently flashed in el
 
 const PREVENT = (e: Event) => e.preventDefault()
 
-const eventListenerArgs = client.passive()
-	? {
-			passive: true,
-	  }
-	: false
+const eventListenerArgs = { passive: true }
 
 export function addFlash(target: any) {
 	if (client.isDesktopDevice()) {
 		target.addEventListener("mousedown", flashIn, eventListenerArgs)
 		target.addEventListener("mouseup", flashOut, eventListenerArgs)
-		target.addEventListener(
-			"dragstart",
-			PREVENT,
-			client.passive()
-				? {
-						passive: false,
-				  }
-				: false,
-		)
+		target.addEventListener("dragstart", PREVENT, { passive: false })
 		target.addEventListener("mouseleave", flashOut, eventListenerArgs)
 	} else {
 		target.addEventListener("touchstart", flashIn, eventListenerArgs)

@@ -167,25 +167,6 @@ export class ClientDetector {
 		}
 	}
 
-	/**
-	 * @see https://github.com/Modernizr/Modernizr/issues/1894
-	 */
-	passive(): boolean {
-		let supportsPassive = false
-
-		try {
-			// @ts-ignore
-			window.document.addEventListener("test", null, {
-				// @ts-ignore
-				get passive() {
-					supportsPassive = true
-				},
-			})
-		} catch (e) {}
-
-		return supportsPassive
-	}
-
 	_setBrowserAndVersion() {
 		const operaIndex1 = this.userAgent.indexOf("Opera")
 		const operaIndex2 = this.userAgent.indexOf("OPR/")

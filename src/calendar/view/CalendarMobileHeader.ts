@@ -31,7 +31,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 							title: "back_action",
 							click: attrs.onBack,
 					  })
-					: m(MobileHeaderMenuButton, { viewSlider: attrs.viewSlider, newsModel: attrs.newsModel }),
+					: m(MobileHeaderMenuButton, { newsModel: attrs.newsModel, backAction: () => attrs.viewSlider.focusPreviousColumn() }),
 			center: m(MobileHeaderTitle, {
 				title: attrs.navConfiguration.title,
 				bottom: m(OfflineIndicatorMobile, attrs.offlineIndicatorModel.getCurrentAttrs()),

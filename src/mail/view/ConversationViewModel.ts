@@ -2,7 +2,7 @@ import { ConversationEntry, ConversationEntryTypeRef, Mail, MailTypeRef } from "
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { elementIdPart, firstBiggerThanSecond, getElementId, getListId, haveSameId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
-import { assertNotNull, findLastIndex, groupBy } from "@tutao/tutanota-utils"
+import { assertNotNull, findLastIndex, groupBy, makeSingleUse } from "@tutao/tutanota-utils"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { LoadingStateTracker } from "../../offline/LoadingState.js"
 import { EntityEventsListener, EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
@@ -19,6 +19,8 @@ export type ConversationItem = MailItem
 export interface ConversationPrefProvider {
 	getConversationViewShowOnlySelectedMail(): boolean
 }
+
+export type ConversationViewModelFactory = (options: CreateMailViewerOptions) => ConversationViewModel
 
 export class ConversationViewModel {
 	/** Primary viewModel is for the mail that was selected from the list. */
@@ -40,11 +42,11 @@ export class ConversationViewModel {
 		this._primaryViewModel = viewModelFactory(options)
 	}
 
-	init() {
+	readonly init = makeSingleUse((delayBodyRendering: Promise<unknown>) => {
 		this.loadingPromise = this.loadingState.trackPromise(this.loadConversation())
 		this.eventController.addEntityListener(this.onEntityEvent)
-		this._primaryViewModel.expandMail()
-	}
+		this._primaryViewModel.expandMail(delayBodyRendering)
+	})
 
 	private readonly onEntityEvent: EntityEventsListener = async (updates, eventOwnerGroupId) => {
 		// conversation entry can be created when new email arrives
@@ -273,7 +275,7 @@ export class ConversationViewModel {
 			this.loadingState.trackPromise(
 				this.loadConversation().then(async () => {
 					const mails = (this.conversation?.filter((e) => e.type === "mail") ?? []) as Array<MailItem>
-					await Promise.all(mails.map((m) => m.viewModel.loadAll()))
+					await Promise.all(mails.map((m) => m.viewModel.loadAll(Promise.resolve())))
 				}),
 			)
 		}

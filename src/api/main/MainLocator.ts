@@ -10,8 +10,8 @@ import { LoginController } from "./LoginController"
 import type { ContactModel } from "../../contacts/model/ContactModel"
 import { EntityClient } from "../common/EntityClient"
 import { CalendarModel } from "../../calendar/model/CalendarModel"
-import type { DeferredObject } from "@tutao/tutanota-utils"
-import { defer, lazyMemoized } from "@tutao/tutanota-utils"
+import type { DeferredObject, lazyAsync } from "@tutao/tutanota-utils"
+import { defer, lazyMemoized, noOp } from "@tutao/tutanota-utils"
 import { ProgressTracker } from "./ProgressTracker"
 import { MinimizedMailEditorViewModel } from "../../mail/model/MinimizedMailEditorViewModel"
 import { SchedulerImpl } from "../common/utils/Scheduler.js"
@@ -89,10 +89,15 @@ import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel.js"
 import { Const, GroupType } from "../common/TutanotaConstants.js"
 import type { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
-import type { ConversationViewModel } from "../../mail/view/ConversationViewModel.js"
+import type { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
 import { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
 import { CalendarEventModel } from "../../calendar/date/eventeditor/CalendarEventModel.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
+import { SearchViewModel } from "../../search/view/SearchViewModel.js"
+import { SearchRouter } from "../../search/view/SearchRouter.js"
+import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
+import { InboxRuleHandler } from "../../mail/model/InboxRuleHandler.js"
+import { ScopedRouter } from "../../gui/ScopedRouter.js"
 
 assertMainOrNode()
 
@@ -167,10 +172,20 @@ class MainLocator {
 		return factory()
 	}
 
-	offlineIndicatorViewModel = lazyMemoized(async () => {
-		// just to make sure that some random place that imports locator doesn't import mithril too
+	private readonly redraw: lazyAsync<() => unknown> = lazyMemoized(async () => {
 		const m = await import("mithril")
-		return new OfflineIndicatorViewModel(this.cacheStorage, this.loginListener, this.connectivityModel, this.logins, this.progressTracker, m.redraw)
+		return m.redraw
+	})
+
+	readonly offlineIndicatorViewModel = lazyMemoized(async () => {
+		return new OfflineIndicatorViewModel(
+			this.cacheStorage,
+			this.loginListener,
+			this.connectivityModel,
+			this.logins,
+			this.progressTracker,
+			await this.redraw(),
+		)
 	})
 
 	async appHeaderAttrs(): Promise<AppHeaderAttrs> {
@@ -179,6 +194,63 @@ class MainLocator {
 			newsModel: this.newsModel,
 		}
 	}
+
+	readonly mailViewModel = lazyMemoized(async () => {
+		const { MailViewModel } = await import("../../mail/view/MailViewModel.js")
+		const conversationViewModelFactory = await this.conversationViewModelFactory()
+		return new MailViewModel(
+			this.mailModel,
+			this.entityClient,
+			this.eventController,
+			this.connectivityModel,
+			this.cacheStorage,
+			conversationViewModelFactory,
+			this.mailOpenedListener,
+			deviceConfig,
+			this.inboxRuleHanlder(),
+			new ScopedRouter("/mail"),
+			await this.redraw(),
+		)
+	})
+
+	inboxRuleHanlder(): InboxRuleHandler {
+		return new InboxRuleHandler(this.mailFacade, this.entityClient, this.logins)
+	}
+
+	async searchViewModelFactory(): Promise<() => SearchViewModel> {
+		const { SearchViewModel } = await import("../../search/view/SearchViewModel.js")
+		const { SearchRouter } = await import("../../search/view/SearchRouter.js")
+		const conversationViewModelFactory = await this.conversationViewModelFactory()
+		const redraw = await this.redraw()
+		return () => {
+			return new SearchViewModel(
+				new SearchRouter(),
+				this.search,
+				this.searchFacade,
+				this.mailModel,
+				this.logins,
+				this.indexerFacade,
+				this.entityClient,
+				this.eventController,
+				this.mailOpenedListener,
+				conversationViewModelFactory,
+				redraw,
+			)
+		}
+	}
+
+	readonly mailOpenedListener: MailOpenedListener = {
+		onEmailOpened: isDesktop()
+			? (mail) => {
+					this.desktopSystemFacade.sendSocketMessage(mail.sender.address)
+			  }
+			: noOp,
+	}
+
+	readonly contactViewModel = lazyMemoized(async () => {
+		const { ContactViewModel } = await import("../../contacts/view/ContactViewModel.js")
+		return new ContactViewModel(this.contactModel, this.entityClient, this.eventController, new ScopedRouter("/contact"), await this.redraw())
+	})
 
 	async calendarViewModel(): Promise<CalendarViewModel> {
 		const { ReceivedGroupInvitationsModel } = await import("../../sharing/model/ReceivedGroupInvitationsModel.js")
@@ -256,34 +328,34 @@ class MainLocator {
 		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, isApp() ? this.systemFacade : null)
 	}
 
-	async conversationViewModel(
-		options: CreateMailViewerOptions,
-		mailboxDetails: MailboxDetail,
-		mailboxProperties: MailboxProperties,
-	): Promise<ConversationViewModel> {
+	readonly conversationViewModelFactory: lazyAsync<ConversationViewModelFactory> = async () => {
 		const { ConversationViewModel } = await import("../../mail/view/ConversationViewModel.js")
 		const factory = await this.mailViewerViewModelFactory()
 		const m = await import("mithril")
-		return new ConversationViewModel(
-			options,
-			(options) => factory(options, mailboxDetails, mailboxProperties),
-			this.entityClient,
-			this.eventController,
-			deviceConfig,
-			this.mailModel,
-			m.redraw,
-		)
+		return (options: CreateMailViewerOptions) => {
+			return new ConversationViewModel(
+				options,
+				(options) => factory(options),
+				this.entityClient,
+				this.eventController,
+				deviceConfig,
+				this.mailModel,
+				m.redraw,
+			)
+		}
 	}
 
-	async mailViewerViewModelFactory(): Promise<
-		(options: CreateMailViewerOptions, mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties) => MailViewerViewModel
-	> {
+	async conversationViewModel(options: CreateMailViewerOptions): Promise<ConversationViewModel> {
+		const factory = await this.conversationViewModelFactory()
+		return factory(options)
+	}
+
+	async mailViewerViewModelFactory(): Promise<(options: CreateMailViewerOptions) => MailViewerViewModel> {
 		const { MailViewerViewModel } = await import("../../mail/view/MailViewerViewModel.js")
-		return ({ mail, showFolder, delayBodyRenderingUntil }, mailboxDetails, mailboxProperties) =>
+		return ({ mail, showFolder }) =>
 			new MailViewerViewModel(
 				mail,
 				showFolder,
-				delayBodyRenderingUntil ?? Promise.resolve(),
 				this.entityClient,
 				this.mailModel,
 				this.contactModel,
@@ -291,7 +363,10 @@ class MainLocator {
 				this.fileFacade,
 				this.fileController,
 				this.logins,
-				() => this.sendMailModel(mailboxDetails, mailboxProperties),
+				async (mailboxDetails) => {
+					const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+					return this.sendMailModel(mailboxDetails, mailboxProperties)
+				},
 				this.eventController,
 				this.workerFacade,
 				this.search,
@@ -469,7 +544,15 @@ class MainLocator {
 		this.entropyFacade = entropyFacade
 		this.workerFacade = workerFacade
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
-		this.mailModel = new MailModel(notifications, this.eventController, this.connectivityModel, this.mailFacade, this.entityClient, this.logins)
+		this.mailModel = new MailModel(
+			notifications,
+			this.eventController,
+			this.connectivityModel,
+			this.mailFacade,
+			this.entityClient,
+			this.logins,
+			this.inboxRuleHanlder(),
+		)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler(this.search)
 		this.Const = Const

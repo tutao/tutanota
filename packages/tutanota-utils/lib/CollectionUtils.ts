@@ -1,3 +1,5 @@
+import { identity } from "./Utils.js"
+
 /**
  * Everything that is in both array1 and array2
  * This is a naive implementation, don't use it on large inputs
@@ -7,23 +9,63 @@ export function intersection<T>(set1: Set<T>, set2: Set<T>): Set<T> {
 }
 
 export function min<T extends Iterable<number>>(set: T): number | null {
+	return minBy(set, identity)
+}
+
+export function minBy<E, T extends Iterable<E>>(collection: T, selector: (item: E) => number): E | null {
 	let min = null
-	for (const item of set) {
-		if (min == null || item < min) {
-			min = item
+	for (const item of collection) {
+		const value = selector(item)
+		if (min == null || value < min.value) {
+			min = { item, value }
 		}
 	}
-	return min
+	return min ? min.item : null
 }
 
 export function max<T extends Iterable<number>>(set: T): number | null {
+	return maxBy(set, identity)
+}
+
+export function maxBy<E, T extends Iterable<E>>(collection: T, selector: (item: E) => number): E | null {
 	let max = null
-	for (const item of set) {
-		if (max == null || item > max) {
-			max = item
+	for (const item of collection) {
+		const value = selector(item)
+		if (max == null || value > max.value) {
+			max = { item, value }
 		}
 	}
-	return max
+	return max ? max.item : null
+}
+
+export function setAddAll<T>(set: Set<T>, toAdd: Iterable<T>) {
+	for (const item of toAdd) {
+		set.add(item)
+	}
+}
+
+/**
+ * Returns an element of the {@param collection} if it satisfies {@param selector} or {@code null} otherwise.
+ */
+export function findBy<T>(collection: Iterable<T>, selector: (item: T) => boolean): T | null {
+	for (const item of collection) {
+		if (selector(item)) {
+			return item
+		}
+	}
+	return null
+}
+
+export function mapWith<K, V>(map: ReadonlyMap<K, V>, key: K, value: V): Map<K, V> {
+	const newMap = new Map(map)
+	newMap.set(key, value)
+	return newMap
+}
+
+export function mapWithout<K, V>(map: ReadonlyMap<K, V>, key: K): Map<K, V> {
+	const newMap = new Map(map)
+	newMap.delete(key)
+	return newMap
 }
 
 /**

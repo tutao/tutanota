@@ -150,6 +150,10 @@ export function isSameSearchRestriction(a: SearchRestriction, b: SearchRestricti
 	return isSameTypeRef(a.type, b.type) && a.start === b.start && a.end === b.end && a.field === b.field && isSameAttributeIds && a.listId === b.listId
 }
 
+export function areResultsForTheSameQuery(a: SearchResult, b: SearchResult) {
+	return a.query === b.query && isSameSearchRestriction(a.restriction, b.restriction)
+}
+
 export function hasMoreResults(searchResult: SearchResult): boolean {
 	return (
 		searchResult.moreResults.length > 0 ||

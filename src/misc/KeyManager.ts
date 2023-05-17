@@ -5,6 +5,7 @@ import { Keys } from "../api/common/TutanotaConstants"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertMainOrNodeBoot } from "../api/common/Env"
 import { mod } from "@tutao/tutanota-utils"
+import m from "mithril"
 
 assertMainOrNodeBoot()
 export const TABBABLE = "button, input, textarea, div[contenteditable='true'], [tabindex='0']"
@@ -155,6 +156,7 @@ class KeyManager {
 				e.preventDefault()
 			}
 		}
+		m.redraw()
 	}
 
 	/**
@@ -181,17 +183,17 @@ class KeyManager {
 		import("../gui/dialogs/ShortcutDialog.js").then(({ showShortcutDialog }) => showShortcutDialog(shortcutsToShow)).then(() => (this._isHelpOpen = false))
 	}
 
-	registerShortcuts(shortcuts: Array<Shortcut>) {
+	registerShortcuts(shortcuts: ReadonlyArray<Shortcut>) {
 		Keys.META.code = client.browser === BrowserType.FIREFOX ? 224 : 91
 
 		this._applyOperation(shortcuts, (id, s) => this._keyToShortcut.set(id, s))
 	}
 
-	unregisterShortcuts(shortcuts: Array<Shortcut>) {
+	unregisterShortcuts(shortcuts: ReadonlyArray<Shortcut>) {
 		this._applyOperation(shortcuts, (id, s) => this._keyToShortcut.delete(id))
 	}
 
-	registerDesktopShortcuts(shortcuts: Array<Shortcut>) {
+	registerDesktopShortcuts(shortcuts: ReadonlyArray<Shortcut>) {
 		this._applyOperation(shortcuts, (id, s) => this._desktopShortcuts.push(s))
 	}
 
@@ -213,7 +215,7 @@ class KeyManager {
 	 * @param operation operation to execute for every shortcut and its ID
 	 * @private
 	 */
-	_applyOperation(shortcuts: Array<Shortcut>, operation: (id: string, s: Shortcut) => unknown) {
+	_applyOperation(shortcuts: ReadonlyArray<Shortcut>, operation: (id: string, s: Shortcut) => unknown) {
 		shortcuts.forEach((s) => operation(createKeyIdentifier(s.key.code, s.ctrl, s.alt, s.shift, s.meta), s))
 	}
 }

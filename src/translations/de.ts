@@ -1688,6 +1688,10 @@ export default {
 		"you_label": "Du",
 		"cannotAddAttendees_msg": "Du kannst die Gästeliste für dieses Ereignis nicht bearbeiten weil es nicht in deinem Kalender erstellt wurde.",
 		"noCalendar_msg": "Bitte wähle einen Kalender für das Ereignis aus.",
-		"cannotEditFullEvent_msg": "Du kannst nur Teile dieses Ereignisses bearbeiten weil es nicht in deinem Kalender erstellt wurde."
+		"cannotEditFullEvent_msg": "Du kannst nur Teile dieses Ereignisses bearbeiten weil es nicht in deinem Kalender erstellt wurde.",
+		"filterUnread_label": "Ungelesene",
+		"filterRead_label": "Gelesene",
+		"filterAllMails_label": "Alle Mails",
+		"filterWithAttachments_label": "Mit Anhängen"
 	}
 }

@@ -52,6 +52,7 @@ import { WebauthnError } from "../error/WebauthnError"
 import { SuspensionError } from "../error/SuspensionError.js"
 import { LoginIncompleteError } from "../error/LoginIncompleteError.js"
 import { OfflineDbClosedError } from "../error/OfflineDbClosedError.js"
+import Stream from "mithril/stream"
 
 export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName?: string): DomainInfo | null {
 	return customerInfo.domainInfos.find((info) => info.whitelabelConfig != null && (domainName == null || info.domain === domainName)) ?? null

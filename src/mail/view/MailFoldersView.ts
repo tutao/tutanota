@@ -24,7 +24,7 @@ import { px, size } from "../../gui/size.js"
 
 export interface MailFolderViewAttrs {
 	mailboxDetail: MailboxDetail
-	folderToUrl: Readonly<Record<Id, string>>
+	mailListToSelectedMail: ReadonlyMap<Id, Id>
 	onFolderClick: (folder: MailFolder) => unknown
 	onFolderDrop: (mailId: string, folder: MailFolder) => unknown
 	expandedFolders: ReadonlySet<Id>
@@ -87,7 +87,18 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			const id = getElementId(system.folder)
 			const button: NavButtonAttrs = {
 				label: () => getFolderName(system.folder),
-				href: () => (attrs.inEditMode ? m.route.get() : attrs.folderToUrl[system.folder._id[1]]),
+				href: () => {
+					if (attrs.inEditMode) {
+						return m.route.get()
+					} else {
+						const mailId = attrs.mailListToSelectedMail.get(system.folder.mails)
+						if (mailId) {
+							return `/mail/${system.folder.mails}/${mailId}`
+						} else {
+							return `/mail/${system.folder.mails}`
+						}
+					}
+				},
 				isSelectedPrefix: attrs.inEditMode ? false : MAIL_PREFIX + "/" + system.folder.mails,
 				colors: NavButtonColor.Nav,
 				click: () => attrs.onFolderClick(system.folder),

@@ -39,6 +39,7 @@ import { elementIdPart, getListId, listIdPart } from "../../api/common/utils/Ent
 import { isDetailsDraft, isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { getLegacyMailHeaders, getMailHeaders } from "../../api/common/utils/Utils.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
+import { ListFilter } from "../../misc/ListModel.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -413,5 +414,24 @@ export async function loadMailHeaders(entityClient: EntityClient, mailWrapper: M
 	} else {
 		const details = mailWrapper.getDetails()
 		return details.headers != null ? getMailHeaders(details.headers) : null
+	}
+}
+
+export enum MailFilterType {
+	Unread,
+	Read,
+	WithAttachments,
+}
+
+export function getMailFilterForType(filter: MailFilterType | null): ListFilter<Mail> | null {
+	switch (filter) {
+		case MailFilterType.Read:
+			return (mail) => !mail.unread
+		case MailFilterType.Unread:
+			return (mail) => mail.unread
+		case MailFilterType.WithAttachments:
+			return (mail) => mail.attachments.length > 0
+		case null:
+			return null
 	}
 }

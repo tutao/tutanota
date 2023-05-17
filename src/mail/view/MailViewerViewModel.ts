@@ -124,12 +124,6 @@ export class MailViewerViewModel {
 	constructor(
 		private _mail: Mail,
 		showFolder: boolean,
-		/**
-		 * This exists for a single purpose: making opening emails smooth in a single column layout. When the app is in a single-column layout and the email
-		 * is selected from the list then there is an animation of switching between columns. This parameter will delay sanitizing of mail body and rendering
-		 * of progress indicator until the animation is done.
-		 */
-		private delayBodyRenderingUntil: Promise<void>,
 		readonly entityClient: EntityClient,
 		public readonly mailModel: MailModel,
 		readonly contactModel: ContactModel,
@@ -142,11 +136,6 @@ export class MailViewerViewModel {
 		private readonly workerFacade: WorkerFacade,
 		private readonly searchModel: SearchModel,
 	) {
-		this.delayBodyRenderingUntil.then(() => {
-			this.renderIsDelayed = false
-			m.redraw()
-		})
-
 		this.folderMailboxText = null
 		if (showFolder) {
 			this.showFolder()
@@ -224,45 +213,51 @@ export class MailViewerViewModel {
 	}
 
 	async loadAll(
+		delay: Promise<unknown>,
 		{
 			notify,
 		}: {
 			notify: boolean
 		} = { notify: true },
 	) {
-		await this.loading
+		this.renderIsDelayed = true
 		try {
-			this.loading = this.loadAndProcessAdditionalMailInfo(this.mail)
-				.then((inlineImageCids) => {
-					this.determineRelevantRecipient()
-					return inlineImageCids
-				})
-				.then((inlineImageCids) => this.loadAttachments(this.mail, inlineImageCids))
-			await this.loadingState.trackPromise(this.loading)
+			await this.loading
+			try {
+				this.loading = this.loadAndProcessAdditionalMailInfo(this.mail, delay)
+					.then((inlineImageCids) => {
+						this.determineRelevantRecipient()
+						return inlineImageCids
+					})
+					.then((inlineImageCids) => this.loadAttachments(this.mail, inlineImageCids))
+				await this.loadingState.trackPromise(this.loading)
 
-			if (notify) this.loadCompleteNotification(null)
-		} catch (e) {
-			this.loading = null
+				if (notify) this.loadCompleteNotification(null)
+			} catch (e) {
+				this.loading = null
 
-			if (!isOfflineError(e)) {
-				throw e
+				if (!isOfflineError(e)) {
+					throw e
+				}
 			}
+
+			m.redraw()
+
+			// We need the conversation entry in order to reply to the message.
+			// We don't want the user to have to wait for it to load when they click reply,
+			// So we load it here pre-emptively to make sure it is in the cache.
+			this.entityClient.load(ConversationEntryTypeRef, this.mail.conversationEntry).catch((e) => {
+				if (e instanceof NotFoundError) {
+					console.log("could load conversation entry as it has been moved/deleted already", e)
+				} else if (isOfflineError(e)) {
+					console.log("failed to load conversation entry, because of a lost connection", e)
+				} else {
+					throw e
+				}
+			})
+		} finally {
+			this.renderIsDelayed = false
 		}
-
-		m.redraw()
-
-		// We need the conversation entry in order to reply to the message.
-		// We don't want the user to have to wait for it to load when they click reply,
-		// So we load it here pre-emptively to make sure it is in the cache.
-		this.entityClient.load(ConversationEntryTypeRef, this.mail.conversationEntry).catch((e) => {
-			if (e instanceof NotFoundError) {
-				console.log("could load conversation entry as it has been moved/deleted already", e)
-			} else if (isOfflineError(e)) {
-				console.log("failed to load conversation entry, because of a lost connection", e)
-			} else {
-				throw e
-			}
-		})
 	}
 
 	isLoading(): boolean {
@@ -593,7 +588,7 @@ export class MailViewerViewModel {
 	}
 
 	/** @return list of inline referenced cid */
-	private async loadAndProcessAdditionalMailInfo(mail: Mail): Promise<string[]> {
+	private async loadAndProcessAdditionalMailInfo(mail: Mail, delayBodyRenderingUntil: Promise<unknown>): Promise<string[]> {
 		// If the mail is a non-draft and we have loaded it before, we don't need to reload it because it cannot have been edited, so we return early
 		// drafts however can be edited, and we want to receive the changes, so for drafts we will always reload
 		if (this.renderedMail != null && haveSameId(mail, this.renderedMail) && mail.state !== MailState.DRAFT && this.sanitizeResult != null) {
@@ -625,7 +620,8 @@ export class MailViewerViewModel {
 		const isAllowedAndAuthenticatedExternalSender =
 			externalImageRule === ExternalImageRule.Allow && mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
 		// We should not try to sanitize body while we still animate because it's a heavy operation.
-		await this.delayBodyRenderingUntil
+		await delayBodyRenderingUntil
+		this.renderIsDelayed = false
 
 		this.sanitizeResult = await this.sanitizeMailBody(mail, !isAllowedAndAuthenticatedExternalSender)
 
@@ -753,7 +749,7 @@ export class MailViewerViewModel {
 				return
 			}
 			// Call this again to make sure everything is loaded, including inline images because this can be called earlier than all the parts are loaded.
-			await this.loadAll({ notify: false })
+			await this.loadAll(Promise.resolve(), { notify: false })
 			const editor = await newMailEditorAsResponse(args, this.isBlockingExternalImages(), this.getLoadedInlineImages(), mailboxDetails)
 			editor.show()
 		}
@@ -858,7 +854,7 @@ export class MailViewerViewModel {
 			const { prependEmailSignature } = await import("../signature/Signature.js")
 			const { newMailEditorAsResponse } = await import("../editor/MailEditor")
 
-			await this.loadAll({ notify: false })
+			await this.loadAll(Promise.resolve(), { notify: false })
 			// It should be there after loadAll() but if not we just give up
 			const inlineImageCids = this.sanitizeResult?.inlineImageCids ?? []
 
@@ -972,7 +968,7 @@ export class MailViewerViewModel {
 			return false
 		}
 		// Make sure inline images are loaded
-		await this.loadAll({ notify: false })
+		await this.loadAll(Promise.resolve(), { notify: false })
 		const model = await this.sendMailModelFactory(mailboxDetails)
 		await model.initAsResponse(args, this.getLoadedInlineImages())
 		await model.send(MailMethod.NONE)
@@ -1052,8 +1048,8 @@ export class MailViewerViewModel {
 		return this.collapsed
 	}
 
-	expandMail(): void {
-		this.loadAll({ notify: true })
+	expandMail(delayBodyRendering: Promise<unknown>): void {
+		this.loadAll(delayBodyRendering, { notify: true })
 		if (this.isUnread()) {
 			this.setUnread(false)
 		}
@@ -1080,22 +1076,13 @@ export class MailViewerViewModel {
 		return this.mail._ownerGroup
 	}
 
-	private updateMail({ mail, delayBodyRenderingUntil, showFolder }: { mail: Mail; delayBodyRenderingUntil?: Promise<void>; showFolder?: boolean }) {
+	private updateMail({ mail, showFolder }: { mail: Mail; showFolder?: boolean }) {
 		if (!isSameId(mail._id, this.mail._id)) {
 			throw new ProgrammingError(
 				`Trying to update MailViewerViewModel with unrelated email ${JSON.stringify(this.mail._id)} ${JSON.stringify(mail._id)} ${m.route.get()}`,
 			)
 		}
 		this._mail = mail
-
-		if (delayBodyRenderingUntil) {
-			this.delayBodyRenderingUntil = delayBodyRenderingUntil
-			this.renderIsDelayed = true
-			this.delayBodyRenderingUntil.then(() => {
-				this.renderIsDelayed = false
-				m.redraw()
-			})
-		}
 
 		this.folderMailboxText = null
 		if (showFolder) {
@@ -1105,6 +1092,6 @@ export class MailViewerViewModel {
 		this.relevantRecipient = null
 		this.determineRelevantRecipient()
 
-		this.loadAll({ notify: true })
+		this.loadAll(Promise.resolve(), { notify: true })
 	}
 }

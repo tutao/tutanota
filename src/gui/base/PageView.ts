@@ -36,6 +36,7 @@ export class PageView implements Component<Attrs> {
 				oncreate: (vnode) => {
 					this._viewDom = vnode.dom as HTMLElement
 					this._swipeHandler = new PageSwipeHandler(this._viewDom, (next) => this._onChangePage(next))
+					this._swipeHandler.attach()
 				},
 			},
 			[

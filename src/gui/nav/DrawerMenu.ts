@@ -3,7 +3,7 @@ import { Button, ButtonColor, ButtonType } from "../base/Button.js"
 import { BootIcons } from "../base/icons/BootIcons"
 import { showSupportDialog, showUpgradeDialog } from "./NavFunctions"
 import { isIOSApp } from "../../api/common/Env"
-import { LogoutUrl, navButtonRoutes } from "../../misc/RouteChange"
+import { LogoutUrl, SETTINGS_PREFIX } from "../../misc/RouteChange"
 import { getSafeAreaInsetLeft } from "../HtmlUtils"
 import { Icons } from "../base/icons/Icons"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils"
@@ -121,7 +121,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					? m(Button, {
 							icon: () => BootIcons.Settings,
 							label: "settings_label",
-							click: () => m.route.set(navButtonRoutes.settingsUrl),
+							click: () => m.route.set(SETTINGS_PREFIX),
 							type: ButtonType.ActionLarge,
 							colors: ButtonColor.DrawerNav,
 					  })

@@ -36,3 +36,7 @@ export function isSameTypeRefByAttr(typeRef: TypeRef<unknown>, app: string, type
 export function isSameTypeRef(typeRef1: TypeRef<unknown>, typeRef2: TypeRef<unknown>): boolean {
 	return isSameTypeRefByAttr(typeRef1, typeRef2.app, typeRef2.type)
 }
+
+export function isSameTypeRefNullable(typeRef1: TypeRef<unknown> | null, typeRef2: TypeRef<unknown> | null): boolean {
+	return (typeRef1 == null && typeRef2 == null) || (typeRef1 != null && typeRef2 !== null && isSameTypeRef(typeRef1, typeRef2))
+}

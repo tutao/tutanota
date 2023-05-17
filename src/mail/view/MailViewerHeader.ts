@@ -266,7 +266,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					buttons: [
 						{
 							label: "retry_action",
-							click: () => viewModel.loadAll(),
+							click: () => viewModel.loadAll(Promise.resolve()),
 						},
 					],
 				}),

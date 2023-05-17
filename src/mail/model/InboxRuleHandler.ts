@@ -92,23 +92,19 @@ export function getInboxRuleTypeName(type: string): string {
 	return typeNameMapping != null ? typeNameMapping.name : ""
 }
 
-/**
- * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
- * @returns true if a rule matches otherwise false
- */
-export function findAndApplyMatchingRule(
-	mailFacade: MailFacade,
-	entityClient: EntityClient,
-	logins: LoginController,
-	mailboxDetail: MailboxDetail,
-	mail: Mail,
-	applyRulesOnServer: boolean,
-): Promise<IdTuple | null> {
-	if (mail._errors || !mail.unread || !isInboxList(mailboxDetail, getListId(mail)) || !logins.getUserController().isPremiumAccount()) {
-		return Promise.resolve(null)
-	}
+export class InboxRuleHandler {
+	constructor(private readonly mailFacade: MailFacade, private readonly entityClient: EntityClient, private readonly logins: LoginController) {}
 
-	return _findMatchingRule(entityClient, mail, logins.getUserController().props.inboxRules).then((inboxRule) => {
+	/**
+	 * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
+	 * @returns true if a rule matches otherwise false
+	 */
+	async findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mail, applyRulesOnServer: boolean): Promise<IdTuple | null> {
+		if (mail._errors || !mail.unread || !isInboxList(mailboxDetail, getListId(mail)) || !this.logins.getUserController().isPremiumAccount()) {
+			return null
+		}
+
+		const inboxRule = await _findMatchingRule(this.entityClient, mail, this.logins.getUserController().props.inboxRules)
 		if (inboxRule) {
 			let targetFolder = mailboxDetail.folders.getFolderById(inboxRule.targetFolder)
 
@@ -125,7 +121,7 @@ export function findAndApplyMatchingRule(
 						moveMailDataPerFolder.push(moveMailData)
 					}
 
-					applyMatchingRules(mailFacade)
+					applyMatchingRules(this.mailFacade)
 				}
 
 				return [targetFolder.mails, getElementId(mail)]
@@ -135,7 +131,7 @@ export function findAndApplyMatchingRule(
 		} else {
 			return null
 		}
-	})
+	}
 }
 
 /**

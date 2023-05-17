@@ -10,7 +10,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 assertMainOrNode()
 
 // If you change this make sure you pass through all the attrs
-export type Attrs = {
+export type InfoMessaggeBoxAttrs = {
 	message: TranslationKey | lazy<Children>
 	icon?: AllIcons
 	color: string
@@ -19,8 +19,8 @@ export type Attrs = {
 }
 
 /** Displays a big message with an option icon above it. */
-export class IconMessageBox implements Component<Attrs> {
-	view({ attrs }: Vnode<Attrs>): Children {
+export class IconMessageBox implements Component<InfoMessaggeBoxAttrs> {
+	view({ attrs }: Vnode<InfoMessaggeBoxAttrs>): Children {
 		return m(".flex.col.items-center.justify-center.mlr", [
 			attrs.icon
 				? m(Icon, {
@@ -44,12 +44,14 @@ export class IconMessageBox implements Component<Attrs> {
 	}
 }
 
+export type ColumnEmptyMessageBoxAttrs = InfoMessaggeBoxAttrs
+
 /**
  * A message displaying a text. A message box can be displayed on the background of a column if the column is empty. The text inside of it will be centered vertically, taking the icon into account.
  */
 
-export default class ColumnEmptyMessageBox implements Component<Attrs> {
-	view({ attrs }: Vnode<Attrs>): Children {
+export default class ColumnEmptyMessageBox implements Component<ColumnEmptyMessageBoxAttrs> {
+	view({ attrs }: Vnode<ColumnEmptyMessageBoxAttrs>): Children {
 		return m(
 			".fill-absolute.flex.col.items-center.justify-center.overflow-hidden",
 			{
@@ -79,6 +81,6 @@ export default class ColumnEmptyMessageBox implements Component<Attrs> {
 	}
 }
 
-function getMessage({ message }: Attrs) {
+function getMessage({ message }: InfoMessaggeBoxAttrs) {
 	return typeof message === "function" ? message() : lang.get(message)
 }

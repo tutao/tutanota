@@ -28,7 +28,6 @@ import type { EntityUpdateData } from "../../api/main/EventController"
 import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
 import { lang } from "../../misc/LanguageViewModel"
 import { Notifications } from "../../gui/Notifications"
-import { findAndApplyMatchingRule } from "./InboxRuleHandler"
 import { EntityClient } from "../../api/common/EntityClient"
 import { elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
 import { LockedError, NotFoundError, PreconditionFailedError } from "../../api/common/error/RestError"
@@ -40,6 +39,7 @@ import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityMode
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { UserError } from "../../api/main/UserError.js"
 import { assertSystemFolderOfType, isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
+import { InboxRuleHandler } from "./InboxRuleHandler.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox
@@ -70,6 +70,7 @@ export class MailModel {
 		private readonly mailFacade: MailFacade,
 		private readonly entityClient: EntityClient,
 		private readonly logins: LoginController,
+		private readonly inboxRuleHandler: InboxRuleHandler,
 	) {}
 
 	// only init listeners once
@@ -374,17 +375,7 @@ export class MailModel {
 					await this.getMailboxDetailsForMailListId(update.instanceListId)
 						.then((mailboxDetail) => {
 							// We only apply rules on server if we are the leader in case of incoming messages
-							return (
-								mailboxDetail &&
-								findAndApplyMatchingRule(
-									this.mailFacade,
-									this.entityClient,
-									this.logins,
-									mailboxDetail,
-									mail,
-									this.connectivityModel.isLeader(),
-								)
-							)
+							return mailboxDetail && this.inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, this.connectivityModel.isLeader())
 						})
 						.then((newId) => this._showNotification(newId || mailId))
 						.catch(noOp)
@@ -409,7 +400,7 @@ export class MailModel {
 			{
 				actions: [],
 			},
-			(e) => {
+			(_) => {
 				m.route.set(`/mail/${listIdPart(mailId)}/${elementIdPart(mailId)}`)
 				window.focus()
 			},

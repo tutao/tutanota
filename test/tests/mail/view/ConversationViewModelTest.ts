@@ -4,8 +4,6 @@ import {
 	ConversationEntry,
 	createConversationEntry,
 	createMail,
-	createMailBox,
-	createMailboxGroupRoot,
 	createMailboxProperties,
 	createMailFolder,
 	Mail,
@@ -21,8 +19,6 @@ import { EntityEventsListener, EventController } from "../../../../src/api/main/
 import { defer, DeferredObject, delay, noOp } from "@tutao/tutanota-utils"
 import { matchers, object, when } from "testdouble"
 import { MailFolderType, MailState, OperationType } from "../../../../src/api/common/TutanotaConstants.js"
-import { FolderSystem } from "../../../../src/api/common/mail/FolderSystem.js"
-import { createGroup, createGroupInfo } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { isSameId } from "../../../../src/api/common/utils/EntityUtils.js"
 
 o.spec("ConversationViewModel", function () {
@@ -45,30 +41,11 @@ o.spec("ConversationViewModel", function () {
 	const viewModelFactory = async (): Promise<
 		(options: CreateMailViewerOptions, mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties) => MailViewerViewModel
 	> => {
-		return ({ mail, showFolder, delayBodyRenderingUntil }, mailboxDetails, mailboxProperties) => {
+		return ({ mail, showFolder }) => {
 			const viewModelObject = object<MailViewerViewModel>()
 			// @ts-ignore
 			viewModelObject.mail = mail
 			return viewModelObject
-		}
-	}
-
-	function makeMailModel(mailBoxDetail: MailboxDetail): MailModel {
-		return {
-			getMailboxDetailsForMail: o.spy(() => Promise.resolve(mailBoxDetail)),
-			getMailFolder: o.spy(() => null),
-		} as Partial<MailModel> as MailModel
-	}
-
-	function makeMailboxDetail(): MailboxDetail {
-		return {
-			mailbox: createMailBox(),
-			folders: new FolderSystem([]),
-			mailGroupInfo: createGroupInfo(),
-			mailGroup: createGroup({
-				user: ownerId,
-			}),
-			mailboxGroupRoot: createMailboxGroupRoot(),
 		}
 	}
 
@@ -157,7 +134,7 @@ o.spec("ConversationViewModel", function () {
 
 	o.spec("Correct amount of mails are shown", function () {
 		o("shows all mails in conversation by default", async function () {
-			viewModel.init()
+			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
 			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
@@ -169,7 +146,7 @@ o.spec("ConversationViewModel", function () {
 		o("when the option is off it only shows selected mail", async function () {
 			when(prefProvider.getConversationViewShowOnlySelectedMail()).thenReturn(true)
 
-			viewModel.init()
+			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
 			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
@@ -182,7 +159,7 @@ o.spec("ConversationViewModel", function () {
 			const draftMail = addMail("draftMail")
 			draftMail.state = MailState.DRAFT
 
-			viewModel.init()
+			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
 			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
@@ -204,7 +181,7 @@ o.spec("ConversationViewModel", function () {
 
 			conversation.pop() // since this mail shouldn't actually be a part of the conversation
 
-			viewModel.init()
+			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
 			const mailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail")
@@ -226,7 +203,7 @@ o.spec("ConversationViewModel", function () {
 
 			await makeViewModel(trashDraftMail)
 
-			viewModel.init()
+			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
 			const mailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail")
@@ -238,7 +215,7 @@ o.spec("ConversationViewModel", function () {
 
 	o.spec("Entity Updates", function () {
 		o("when a new mail comes in, it is added to conversation", async function () {
-			viewModel.init()
+			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
 			const yetAnotherMail = addMail("yetAnotherMailId")
@@ -265,7 +242,7 @@ o.spec("ConversationViewModel", function () {
 		})
 
 		o("when a mail gets deleted, it is removed from conversation", async function () {
-			viewModel.init()
+			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
 			conversation.pop() // "deleting" the mail
@@ -303,7 +280,7 @@ o.spec("ConversationViewModel", function () {
 		o("when conversation mode is turned off and a new mail comes in, nothing added to conversation", async function () {
 			when(prefProvider.getConversationViewShowOnlySelectedMail()).thenReturn(true)
 
-			viewModel.init()
+			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
 			const yetAnotherMail = addMail("yetAnotherMailId")
@@ -330,7 +307,7 @@ o.spec("ConversationViewModel", function () {
 			const trashDraftMail = addMail("trashDraftMail")
 			trashDraftMail.state = MailState.DRAFT
 
-			viewModel.init()
+			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
 			conversation.pop()

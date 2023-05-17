@@ -1670,3 +1670,7 @@ export type TranslationKeyType =
 	| "cannotAddAttendees_msg"
 	| "noCalendar_msg"
 	| "cannotEditFullEvent_msg"
+	| "filterUnread_label"
+	| "filterRead_label"
+	| "filterAllMails_label"
+	| "filterWithAttachments_label"
