@@ -116,11 +116,7 @@ async function checkCanAcceptInvitation(invitation: ReceivedGroupInvitation): Pr
 		return false
 	}
 	const customer = await locator.logins.getUserController().loadCustomer()
-	if (groupRequiresBusinessFeature(getInvitationGroupType(invitation)) && !isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled)) {
-		return showBusinessFeatureRequiredDialog("businessFeatureRequiredGeneral_msg")
-	} else {
-		return true
-	}
+	return groupRequiresBusinessFeature(getInvitationGroupType(invitation)) && !isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) ? showBusinessFeatureRequiredDialog("businessFeatureRequiredGeneral_msg") : true
 }
 
 function renderCalendarGroupInvitationFields(invitation: ReceivedGroupInvitation, selectedColourValue: Stream<string>): Children {
