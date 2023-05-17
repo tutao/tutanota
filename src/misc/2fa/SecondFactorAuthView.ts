@@ -69,11 +69,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 			return null
 		}
 
-		if (webauthn.canLogin) {
-			return this.renderWebauthnLogin(webauthn)
-		} else {
-			return this._renderOtherDomainLogin(webauthn)
-		}
+		return webauthn.canLogin ? this.renderWebauthnLogin(webauthn) : this._renderOtherDomainLogin(webauthn)
 	}
 
 	renderWebauthnLogin(webauthn: WebauthnLoginParams): Children {
