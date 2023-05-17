@@ -23,7 +23,8 @@ export interface IconButtonAttrs {
 export class IconButton implements Component<IconButtonAttrs> {
 	private dom: HTMLElement | null = null
 
-	view({ attrs }: Vnode<IconButtonAttrs>): Children {
+	view(vnode: Vnode<IconButtonAttrs>): Children {
+		const { attrs } = vnode
 		return m(
 			"button.icon-button.state-bg",
 			{

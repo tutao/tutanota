@@ -286,7 +286,9 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		}
 	}
 
-	focus(viewColumn: ViewColumn): Promise<unknown> {
+	async focus(viewColumn: ViewColumn): Promise<unknown> {
+		// await this._busy
+		// if (this.focusedColumn === viewColumn) return
 		return this._busy
 			.then(() => {
 				// hide the foreground column if the column is in foreground
@@ -316,6 +318,10 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 				m.redraw()
 				viewColumn.focus()
 			}) // for updating header bar after animation
+	}
+
+	waitForAnimation(): Promise<unknown> {
+		return this._busy
 	}
 
 	/**

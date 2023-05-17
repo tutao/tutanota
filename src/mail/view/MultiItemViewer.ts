@@ -10,19 +10,17 @@ import { progressIcon } from "../../gui/base/Icon.js"
 
 assertMainOrNode()
 
-export type MultiMailViewerAttrs = {
-	selectedEntities: Array<Mail>
+export type MultiItemViewerAttrs<T> = {
+	selectedEntities: Array<T>
 	selectNone: () => unknown
 	loadingAll: "can_load" | "loading" | "loaded"
 	loadAll: () => unknown
 	stopLoadAll: () => unknown
+	getSelectionMessage: (entities: ReadonlyArray<T>) => string
 }
 
-/**
- * The MailViewer displays the action buttons for multiple selected emails.
- */
-export class MultiMailViewer implements Component<MultiMailViewerAttrs> {
-	view({ attrs }: Vnode<MultiMailViewerAttrs>) {
+export class MultiItemViewer<T> implements Component<MultiItemViewerAttrs<T>> {
+	view({ attrs }: Vnode<MultiItemViewerAttrs<T>>) {
 		const { selectedEntities } = attrs
 		return [
 			m(
@@ -30,7 +28,7 @@ export class MultiMailViewer implements Component<MultiMailViewerAttrs> {
 				m(
 					".flex-grow.rel.overflow-hidden",
 					m(ColumnEmptyMessageBox, {
-						message: () => getMailSelectionMessage(selectedEntities),
+						message: () => attrs.getSelectionMessage(selectedEntities),
 						icon: BootIcons.Mail,
 						color: theme.content_message_bg,
 						backgroundColor: theme.navigation_bg,
@@ -41,7 +39,7 @@ export class MultiMailViewer implements Component<MultiMailViewerAttrs> {
 		]
 	}
 
-	private renderEmptyMessageButtons({ loadingAll, stopLoadAll, selectedEntities, selectNone, loadAll }: MultiMailViewerAttrs) {
+	private renderEmptyMessageButtons({ loadingAll, stopLoadAll, selectedEntities, selectNone, loadAll }: MultiItemViewerAttrs<T>) {
 		return loadingAll === "loading"
 			? m(".flex.items-center", [
 					m(Button, {

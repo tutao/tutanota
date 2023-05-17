@@ -2,7 +2,6 @@ import { pureComponent } from "./base/PureComponent.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { NBSP } from "@tutao/tutanota-utils"
 import { AppHeaderAttrs } from "./Header.js"
-import { ViewSlider } from "./nav/ViewSlider.js"
 import { BaseMobileHeader } from "./BaseMobileHeader.js"
 import { IconButton } from "./base/IconButton.js"
 import { BootIcons } from "./base/icons/BootIcons.js"
@@ -15,7 +14,6 @@ import { theme } from "./theme.js"
 import { NewsModel } from "../misc/news/NewsModel.js"
 
 export interface MobileHeaderAttrs extends AppHeaderAttrs {
-	viewSlider: ViewSlider
 	columnType: "first" | "other"
 	/** Actions that should be displayed on the opposite side of menu/back button. */
 	actions: Children
@@ -27,6 +25,7 @@ export interface MobileHeaderAttrs extends AppHeaderAttrs {
 	 */
 	primaryAction: () => Children
 	title?: string
+	backAction: () => unknown
 }
 
 /**
@@ -42,13 +41,13 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 		return m(BaseMobileHeader, {
 			left:
 				attrs.columnType === "first"
-					? m(MobileHeaderMenuButton, { viewSlider: attrs.viewSlider, newsModel: attrs.newsModel })
+					? m(MobileHeaderMenuButton, { newsModel: attrs.newsModel, backAction: attrs.backAction })
 					: styles.isSingleColumnLayout()
 					? m(IconButton, {
 							title: "back_action",
 							icon: BootIcons.Back,
 							click: () => {
-								attrs.viewSlider.focusPreviousColumn()
+								attrs.backAction()
 							},
 					  })
 					: null,
@@ -75,13 +74,13 @@ export const MobileHeaderTitle = pureComponent(({ title, bottom }: { title?: str
 	return m(".flex.col.items-start.min-width-0", [m(".font-weight-600.text-ellipsis.align-self-stretch", title ?? NBSP), bottom])
 })
 
-export const MobileHeaderMenuButton = pureComponent(({ viewSlider, newsModel }: { viewSlider: ViewSlider; newsModel: NewsModel }) => {
+export const MobileHeaderMenuButton = pureComponent(({ newsModel, backAction }: { newsModel: NewsModel; backAction: () => unknown }) => {
 	return m(".rel", [
 		m(IconButton, {
 			title: "menu_label",
 			icon: BootIcons.MoreVertical,
 			click: () => {
-				viewSlider.focusPreviousColumn()
+				backAction()
 			},
 		}),
 		m(CounterBadge, {

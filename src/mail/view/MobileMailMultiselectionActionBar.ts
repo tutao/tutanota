@@ -47,7 +47,8 @@ export class MobileMailMultiselectionActionBar {
 					title: "markRead_action",
 					click: () => {
 						mailModel.markMails(mails, false)
-						selectNone()
+						// I think these should be left out and it stops a bug, but we'll see
+						//selectNone()
 					},
 				}),
 				m(IconButton, {
@@ -55,7 +56,7 @@ export class MobileMailMultiselectionActionBar {
 					title: "markUnread_action",
 					click: () => {
 						mailModel.markMails(mails, true)
-						selectNone()
+						//selectNone()
 					},
 				}),
 			],

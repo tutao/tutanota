@@ -16,6 +16,7 @@ import { LoginController } from "../../../src/api/main/LoginController.js"
 import { object } from "testdouble"
 import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
 import { WebsocketConnectivityModel } from "../../../src/misc/WebsocketConnectivityModel.js"
+import { InboxRuleHandler } from "../../../src/mail/model/InboxRuleHandler.js"
 
 o.spec("MailModelTest", function () {
 	let notifications: Partial<Notifications>
@@ -29,6 +30,8 @@ o.spec("MailModelTest", function () {
 	anotherFolder.folderType = MailFolderType.ARCHIVE
 	let mailboxDetails: Partial<MailboxDetail>[]
 	let logins: LoginController
+	let inboxRuleHandler: InboxRuleHandler
+
 	o.beforeEach(function () {
 		mailboxDetails = [
 			{
@@ -41,7 +44,8 @@ o.spec("MailModelTest", function () {
 		const connectivityModel = object<WebsocketConnectivityModel>()
 		const mailFacade = nodemocker.mock<MailFacade>("mailFacade", {}).set()
 		logins = object()
-		model = new MailModel(downcast(notifications), downcast({}), connectivityModel, mailFacade, new EntityClient(restClient), logins)
+		inboxRuleHandler = object()
+		model = new MailModel(downcast(notifications), downcast({}), connectivityModel, mailFacade, new EntityClient(restClient), logins, inboxRuleHandler)
 		// not pretty, but works
 		model.mailboxDetails(mailboxDetails as MailboxDetail[])
 	})

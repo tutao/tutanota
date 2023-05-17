@@ -1,4 +1,3 @@
-import { client } from "../../misc/ClientDetector"
 import { size } from "../size"
 
 export const enum DirectionLock {
@@ -6,14 +5,17 @@ export const enum DirectionLock {
 	Vertical,
 }
 
+export interface Coordinate2D {
+	x: number
+	y: number
+}
+
 /* Tool to detect swipe gestures on certain elements. */
 export class SwipeHandler {
-	startPos: {
-		x: number
-		y: number
-	}
+	/** uses clientX/clientY thus relative to view port */
+	startPos: Coordinate2D
 	touchArea: HTMLElement
-	animating: Promise<any>
+	animating: Promise<unknown>
 	isAnimating: boolean = false
 	directionLock: DirectionLock | null
 
@@ -25,31 +27,29 @@ export class SwipeHandler {
 		this.touchArea = touchArea
 		this.animating = Promise.resolve()
 		this.directionLock = null
-		let eventListenerArgs = client.passive()
-			? {
-					passive: true,
-			  }
-			: false
-		this.touchArea.addEventListener("touchstart", (e: TouchEvent) => this.start(e), eventListenerArgs)
-		this.touchArea.addEventListener(
-			"touchmove",
-			(e: TouchEvent) => this.move(e),
-			client.passive()
-				? {
-						passive: false,
-				  }
-				: false,
-		) // does invoke prevent default
-
-		this.touchArea.addEventListener("touchend", (e: TouchEvent) => this.end(e), eventListenerArgs)
 	}
 
-	start(e: TouchEvent) {
-		this.startPos.x = e.touches[0].clientX
-		this.startPos.y = e.touches[0].clientY
+	attach() {
+		this.touchArea.addEventListener("touchstart", this.onTouchStart, { passive: true })
+		// does invoke prevent default
+		this.touchArea.addEventListener("touchmove", this.onTouchMove, { passive: false })
+		this.touchArea.addEventListener("touchend", this.onTouchEnd, { passive: true })
 	}
 
-	move(e: TouchEvent) {
+	detach() {
+		this.touchArea.removeEventListener("touchstart", this.onTouchStart)
+		this.touchArea.removeEventListener("touchmove", this.onTouchMove)
+		this.touchArea.removeEventListener("touchend", this.onTouchEnd)
+	}
+
+	private readonly onTouchStart = (e: TouchEvent) => {
+		this.startPos = {
+			x: e.touches[0].clientX,
+			y: e.touches[0].clientY,
+		}
+	}
+
+	private readonly onTouchMove = (e: TouchEvent) => {
 		let { x, y } = this.getDelta(e)
 
 		// If we're either locked horizontally OR if we're not locked vertically but would like to lock horizontally, then lock horizontally
@@ -81,11 +81,11 @@ export class SwipeHandler {
 		}
 	}
 
-	end(e: TouchEvent) {
+	private readonly onTouchEnd = (e: TouchEvent) => {
 		this.gestureEnd(e)
 	}
 
-	gestureEnd(e: TouchEvent) {
+	private gestureEnd(e: TouchEvent) {
 		const delta = this.getDelta(e)
 
 		if (!this.isAnimating && this.directionLock === DirectionLock.Horizontal) {
@@ -106,12 +106,12 @@ export class SwipeHandler {
 		// noOp
 	}
 
-	onHorizontalGestureCompleted(delta: { x: number; y: number }): Promise<void> {
+	onHorizontalGestureCompleted(delta: { x: number; y: number }): Promise<unknown> {
 		// noOp
 		return Promise.resolve()
 	}
 
-	reset(delta: { x: number; y: number }): Promise<any> {
+	reset(delta: { x: number; y: number }): Promise<unknown> {
 		return Promise.resolve()
 	}
 

@@ -32,6 +32,9 @@ import { AppHeaderAttrs } from "./gui/Header.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { ExternalLoginView, ExternalLoginViewAttrs, ExternalLoginViewModel } from "./login/ExternalLoginView.js"
 import { LoginController } from "./api/main/LoginController.js"
+import type { MailViewModel } from "./mail/view/MailViewModel.js"
+import { SearchViewModel } from "./search/view/SearchViewModel.js"
+import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -196,17 +199,25 @@ import("./translations/en")
 				},
 				locator.logins,
 			),
-			contact: makeViewResolver<ContactViewAttrs, ContactView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs }>(
+			contact: makeViewResolver<
+				ContactViewAttrs,
+				ContactView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+					contactViewModel: ContactViewModel
+				}
+			>(
 				{
 					prepareRoute: async () => {
 						const { ContactView } = await import("./contacts/view/ContactView.js")
 						const drawerAttrsFactory = await locator.drawerAttrsFactory()
 						return {
 							component: ContactView,
-							cache: { drawerAttrsFactory, header: await locator.appHeaderAttrs() },
+							cache: { drawerAttrsFactory, header: await locator.appHeaderAttrs(), contactViewModel: await locator.contactViewModel() },
 						}
 					},
-					prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header }),
+					prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header, contactViewModel: cache.contactViewModel }),
 				},
 				locator.logins,
 			),
@@ -225,7 +236,16 @@ import("./translations/en")
 				},
 				locator.logins,
 			),
-			mail: makeViewResolver<MailViewAttrs, MailView, { drawerAttrsFactory: () => DrawerMenuAttrs; cache: MailViewCache; header: AppHeaderAttrs }>(
+			mail: makeViewResolver<
+				MailViewAttrs,
+				MailView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					cache: MailViewCache
+					header: AppHeaderAttrs
+					mailViewModel: MailViewModel
+				}
+			>(
 				{
 					prepareRoute: async (previousCache) => {
 						const { MailView } = await import("./mail/view/MailView.js")
@@ -235,14 +255,16 @@ import("./translations/en")
 								drawerAttrsFactory: await locator.drawerAttrsFactory(),
 								cache: { mailList: null, selectedFolder: null, conversationViewModel: null, conversationViewPreference: null },
 								header: await locator.appHeaderAttrs(),
+								mailViewModel: await locator.mailViewModel(),
 							},
 						}
 					},
-					prepareAttrs: ({ drawerAttrsFactory, cache, header }) => ({
+					prepareAttrs: ({ drawerAttrsFactory, cache, header, mailViewModel }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						cache,
 						header,
 						desktopSystemFacade: locator.desktopSystemFacade,
+						mailViewModel,
 					}),
 				},
 				locator.logins,
@@ -261,17 +283,29 @@ import("./translations/en")
 				},
 				locator.logins,
 			),
-			search: makeViewResolver<SearchViewAttrs, SearchView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs }>(
+			search: makeViewResolver<
+				SearchViewAttrs,
+				SearchView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+					searchViewModelFactory: () => SearchViewModel
+				}
+			>(
 				{
 					prepareRoute: async () => {
 						const { SearchView } = await import("./search/view/SearchView.js")
 						const drawerAttrsFactory = await locator.drawerAttrsFactory()
 						return {
 							component: SearchView,
-							cache: { drawerAttrsFactory, header: await locator.appHeaderAttrs() },
+							cache: {
+								drawerAttrsFactory,
+								header: await locator.appHeaderAttrs(),
+								searchViewModelFactory: await locator.searchViewModelFactory(),
+							},
 						}
 					},
-					prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header }),
+					prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header, makeViewModel: cache.searchViewModelFactory }),
 				},
 				locator.logins,
 			),

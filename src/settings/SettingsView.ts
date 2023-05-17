@@ -33,7 +33,7 @@ import type { NavButtonAttrs } from "../gui/base/NavButton.js"
 import { NavButtonColor } from "../gui/base/NavButton.js"
 import { Dialog } from "../gui/base/Dialog"
 import { AboutDialog } from "./AboutDialog"
-import { navButtonRoutes, SETTINGS_PREFIX } from "../misc/RouteChange"
+import { SETTINGS_PREFIX } from "../misc/RouteChange"
 import { size } from "../gui/size"
 import { FolderColumnView } from "../gui/FolderColumnView.js"
 import { getEtId, isSameId } from "../api/common/utils/EntityUtils"
@@ -278,7 +278,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						mobileHeader: () =>
 							m(MobileHeader, {
 								...vnode.attrs.header,
-								viewSlider: this.viewSlider,
+								backAction: () => this.viewSlider.focusPreviousColumn(),
 								columnType: "first",
 								title: lang.getMaybeLazy(this._selectedFolder.name),
 								actions: [],
@@ -301,7 +301,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						mobileHeader: () =>
 							m(MobileHeader, {
 								...vnode.attrs.header,
-								viewSlider: this.viewSlider,
+								backAction: () => this.viewSlider.focusPreviousColumn(),
 								columnType: "other",
 								title: lang.getMaybeLazy(this._selectedFolder.name),
 								actions: [],
@@ -626,7 +626,6 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				// make sure the currentViewer is available. if we do not call this._getCurrentViewer(), the floating + button is not always visible
 				this._getCurrentViewer()
 
-				navButtonRoutes.settingsUrl = folder.url
 				m.redraw()
 			}
 		}
@@ -649,7 +648,6 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	_setUrl(url: string) {
-		navButtonRoutes.settingsUrl = url
 		m.route.set(url + location.hash)
 	}
 

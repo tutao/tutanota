@@ -218,6 +218,15 @@ export function memoized<T, R>(fn: (arg0: T) => R): (arg0: T) => R {
 }
 
 /**
+ * Like {@link memoized} but the argument is passed in via {@param argumentProvider}.
+ * Useful for the cases where we want to keep only one field around e.g. for lazy getters
+ */
+export function memoizedWithHiddenArgument<T, R>(argumentProvider: () => T, computationFunction: (arg: T) => R): () => R {
+	const memoizedComputation = memoized(computationFunction)
+	return () => memoizedComputation(argumentProvider())
+}
+
+/**
  * Function which returns what was passed into it
  */
 export function identity<T>(t: T): T {

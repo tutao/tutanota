@@ -17,7 +17,6 @@ import { theme } from "../../gui/theme"
 import { client } from "../../misc/ClientDetector"
 import { styles } from "../../gui/styles"
 import { DropdownButtonAttrs, showDropdownAtPosition } from "../../gui/base/Dropdown.js"
-import { navButtonRoutes } from "../../misc/RouteChange"
 import type { InlineImageReference } from "./MailGuiUtils"
 import { replaceCidsWithInlineImages } from "./MailGuiUtils"
 import { getCoordsOfMouseOrTouchEvent } from "../../gui/base/GuiUtils"
@@ -146,9 +145,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			// Reset scaling status if it's a new email.
 			this.isScaling = true
 			this.lastContentBlockingStatus = null
-			if (isPrimary) {
-				this.viewModel.expandMail()
-			}
 			this.delayProgressSpinner = true
 			setTimeout(() => {
 				this.delayProgressSpinner = false
@@ -606,8 +602,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					buttons.push({
 						label: "showContact_action",
 						click: () => {
-							navButtonRoutes.contactsUrl = `/contact/${neverNull(contact)._id[0]}/${neverNull(contact)._id[1]}`
-							m.route.set(navButtonRoutes.contactsUrl + location.hash)
+							const [listId, contactId] = assertNotNull(contact)._id
+							m.route.set("/contact/:listId/:contactId", { listId, contactId })
 						},
 					})
 				} else {
@@ -685,10 +681,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		}
 
 		this.lastBodyTouchEndTime = now
-	}
-
-	private async setContentBlockingStatus(status: ContentBlockingStatus) {
-		await this.viewModel.setContentBlockingStatus(status)
 	}
 
 	private addSpamRule(defaultInboxRuleField: InboxRuleType | null, address: string) {

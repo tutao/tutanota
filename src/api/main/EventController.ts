@@ -17,7 +17,11 @@ export type EntityUpdateData = {
 	operation: OperationType
 }
 export type EntityEventsListener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => Promise<any>
-export const isUpdateForTypeRef = <T>(typeRef: TypeRef<T>, update: EntityUpdateData): boolean => isSameTypeRefByAttr(typeRef, update.application, update.type)
+
+export function isUpdateForTypeRef(typeRef: TypeRef<unknown>, update: EntityUpdateData): boolean {
+	return isSameTypeRefByAttr(typeRef, update.application, update.type)
+}
+
 export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdateData): boolean {
 	const typeRef = entity._type as TypeRef<T>
 	return (

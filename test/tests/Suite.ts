@@ -158,7 +158,7 @@ async function setupSuite() {
 		await import("./api/worker/offline/OfflineStorageMigratorTest.js")
 		await import("./api/worker/offline/OfflineStorageMigrationsTest.js")
 		await import("./api/worker/offline/OfflineStorageTest.js")
-		await import("./mail/view/CoversationViewModelTest.js")
+		await import("./mail/view/ConversationViewModelTest.js")
 		await import("./desktop/config/DesktopConfigTest.js")
 	}
 

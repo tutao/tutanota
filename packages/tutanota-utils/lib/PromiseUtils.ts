@@ -151,3 +151,8 @@ export async function promiseFilter<T>(iterable: Iterable<T>, filter: (item: T, 
 
 	return result
 }
+
+/** Call the handler for both resolution and rejection. Unlike finally() will not propagate the error. */
+export function settledThen<T, R>(promise: Promise<T>, handler: () => R): Promise<R> {
+	return promise.then(handler, handler)
+}

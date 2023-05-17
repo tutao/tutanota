@@ -28,10 +28,10 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 				style: {
 					color: theme.content_button,
 				},
-				onclick: () => viewModel.expandMail(),
+				onclick: () => viewModel.expandMail(Promise.resolve()),
 				onkeyup: (e: KeyboardEvent) => {
 					if (isKeyPressed(e.keyCode, Keys.SPACE)) {
-						viewModel.expandMail()
+						viewModel.expandMail(Promise.resolve())
 					}
 				},
 				tabindex: TabIndex.Default,

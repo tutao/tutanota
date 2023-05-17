@@ -1,8 +1,8 @@
 import m from "mithril"
 import type { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, WhitelabelChildTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { getDayShifted, getStartOfDay, isSameTypeRef, neverNull } from "@tutao/tutanota-utils"
-import { throttleRoute } from "../../misc/RouteChange"
+import { assertNotNull, getDayShifted, getStartOfDay, isSameTypeRef, neverNull } from "@tutao/tutanota-utils"
+import { RouteSetFn, throttleRoute } from "../../misc/RouteChange"
 import type { SearchRestriction } from "../../api/worker/search/SearchTypes"
 import { assertMainOrNode } from "../../api/common/Env"
 import { TranslationKey } from "../../misc/LanguageViewModel"
@@ -76,16 +76,20 @@ export const SEARCH_MAIL_FIELDS: ReadonlyArray<SearchMailField> = [
 	},
 ]
 
-const routeSetThrottled = throttleRoute()
+const routeSetThrottled: RouteSetFn = throttleRoute()
 
 export function setSearchUrl(url: string) {
 	if (url !== m.route.get()) {
-		routeSetThrottled(url)
+		routeSetThrottled(url, {})
 	}
 }
 
+export function searchCategoryForRestriction(restriction: SearchRestriction) {
+	return assertNotNull(SEARCH_CATEGORIES.find((c) => isSameTypeRef(c.typeRef, restriction.type))).name
+}
+
 export function getSearchUrl(query: string | null, restriction: SearchRestriction, selectedId?: Id): string {
-	let category = neverNull(SEARCH_CATEGORIES.find((c) => isSameTypeRef(c.typeRef, restriction.type))).name
+	const category = searchCategoryForRestriction(restriction)
 	let url = "/search/" + category + (selectedId ? "/" + selectedId : "") + "?query=" + encodeURIComponent(query || "")
 
 	if (restriction.start) {

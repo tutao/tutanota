@@ -1,4 +1,4 @@
-import m, { Children, Component } from "mithril"
+import m, { Child, Children, ClassComponent, Component, Vnode } from "mithril"
 import { Cat, log } from "../../misc/Log"
 import { px, size } from "../size"
 import { client } from "../../misc/ClientDetector"
@@ -35,6 +35,8 @@ import { Button, ButtonType } from "./Button.js"
 import { LoadingState, LoadingStateTracker } from "../../offline/LoadingState"
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { PosRect } from "./Dropdown.js"
+import Stream from "mithril/stream"
+import { settledThen } from "@tutao/tutanota-utils/dist/PromiseUtils.js"
 
 assertMainOrNode()
 export const ScrollBuffer = 15 // virtual elements that are used as scroll buffer in both directions
@@ -328,7 +330,6 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 	}
 
 	private renderStatusRow(): Children {
-		// odd-row is toggled manually on the dom element when the number of elements changes
 		return m(
 			"li.list-row",
 			{
@@ -1402,11 +1403,6 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 
 export const ACTION_DISTANCE = 150
 
-/** Call the handler for both resolution and rejection. Unlike finally() will not propagate the error. */
-function settledThen<T, R>(promise: Promise<T>, handler: () => R): Promise<R> {
-	return promise.then(handler, handler)
-}
-
 /** Detects swipe gestures for list elements. On mobile some lists have actions on swiping, e.g. deleting an email. */
 class ListSwipeHandler<ElementType extends ListElement, RowType extends VirtualRow<ElementType>> extends SwipeHandler {
 	private virtualElement: VirtualRow<ElementType> | null = null
@@ -1416,6 +1412,7 @@ class ListSwipeHandler<ElementType extends ListElement, RowType extends VirtualR
 	constructor(touchArea: HTMLElement, list: List<any, any>) {
 		super(touchArea)
 		this.list = list
+		this.attach()
 	}
 
 	onHorizontalDrag(xDelta: number, yDelta: number) {

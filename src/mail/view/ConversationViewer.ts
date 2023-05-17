@@ -15,6 +15,7 @@ import { responsiveCardHMargin } from "../../gui/cards.js"
 
 export interface ConversationViewerAttrs {
 	viewModel: ConversationViewModel
+	delayBodyRendering: Promise<unknown>
 }
 
 const SCROLL_FACTOR = 4 / 5
@@ -62,7 +63,10 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 	}
 
 	view(vnode: Vnode<ConversationViewerAttrs>): Children {
-		const { viewModel } = vnode.attrs
+		const { viewModel, delayBodyRendering } = vnode.attrs
+
+		viewModel.init(delayBodyRendering)
+
 		this.lastItems = viewModel.conversationItems()
 		this.doScroll(viewModel, this.lastItems)
 

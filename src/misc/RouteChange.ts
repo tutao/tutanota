@@ -3,13 +3,15 @@ import { assertMainOrNodeBoot } from "../api/common/Env"
 
 assertMainOrNodeBoot()
 
-export function throttleRoute(): (url: string) => void {
+export type RouteSetFn = (path: string, args: Record<string, any>) => void
+
+export function throttleRoute(): RouteSetFn {
 	const limit = 200
 	let lastCall = 0
-	return function (url: string) {
+	return function (url: string, args: Record<string, any>) {
 		const now = new Date().getTime()
 		try {
-			m.route.set(url, null, {
+			m.route.set(url, args, {
 				replace: now - lastCall < limit,
 			})
 		} catch (e) {
@@ -29,11 +31,5 @@ export const CONTACTS_PREFIX = "/contact"
 export const CALENDAR_PREFIX = "/calendar"
 export const SEARCH_PREFIX = "/search"
 export const SETTINGS_PREFIX = "/settings"
-export const navButtonRoutes = {
-	mailUrl: MAIL_PREFIX,
-	contactsUrl: CONTACTS_PREFIX,
-	calendarUrl: CALENDAR_PREFIX,
-	settingsUrl: SETTINGS_PREFIX,
-}
 const LogoutPath = "/login?noAutoLogin=true"
 export const LogoutUrl: string = window.location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath

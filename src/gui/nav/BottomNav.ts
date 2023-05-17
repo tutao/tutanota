@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { NavButton } from "../base/NavButton.js"
 import { size } from "../size"
-import { CALENDAR_PREFIX, CONTACTS_PREFIX, navButtonRoutes, SEARCH_PREFIX } from "../../misc/RouteChange"
+import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, SEARCH_PREFIX } from "../../misc/RouteChange"
 import { FeatureType } from "../../api/common/TutanotaConstants"
 import { BootIcons } from "../base/icons/BootIcons"
 import { locator } from "../../api/main/MainLocator.js"
@@ -16,7 +16,7 @@ export class BottomNav implements Component<Attrs> {
 			m(NavButton, {
 				label: "emails_label",
 				icon: () => BootIcons.Mail,
-				href: navButtonRoutes.mailUrl,
+				href: MAIL_PREFIX,
 				vertical: true,
 				fontSize,
 			}),
@@ -38,7 +38,7 @@ export class BottomNav implements Component<Attrs> {
 				? m(NavButton, {
 						label: "contacts_label",
 						icon: () => BootIcons.Contacts,
-						href: () => navButtonRoutes.contactsUrl,
+						href: () => CONTACTS_PREFIX,
 						isSelectedPrefix: CONTACTS_PREFIX,
 						vertical: true,
 						fontSize,

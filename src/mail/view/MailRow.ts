@@ -59,9 +59,7 @@ export class MailRow implements VirtualRow<Mail> {
 	}
 
 	update(mail: Mail, selected: boolean, isInMultiSelect: boolean): void {
-		if (!this.domElement) {
-			return
-		}
+		this.entity = mail
 
 		this.selectionSetter(selected, isInMultiSelect)
 		this.checkboxDom.checked = isInMultiSelect && selected

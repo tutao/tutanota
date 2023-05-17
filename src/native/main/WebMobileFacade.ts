@@ -1,7 +1,7 @@
 import m from "mithril"
 import { assertMainOrNode } from "../../api/common/Env"
 import { modal } from "../../gui/base/Modal"
-import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX, SETTINGS_PREFIX } from "../../misc/RouteChange"
+import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, SEARCH_PREFIX, SETTINGS_PREFIX } from "../../misc/RouteChange"
 import { last } from "@tutao/tutanota-utils"
 import { CloseEventBusOption, MailFolderType, SECOND_MS } from "../../api/common/TutanotaConstants.js"
 import { MobileFacade } from "../common/generatedipc/MobileFacade.js"
@@ -58,7 +58,7 @@ export class WebMobileFacade implements MobileFacade {
 				currentRoute.startsWith(CALENDAR_PREFIX)
 			) {
 				// go back to mail from other paths
-				m.route.set(navButtonRoutes.mailUrl)
+				m.route.set(MAIL_PREFIX)
 				return true
 			} else if (viewSlider && viewSlider.isFirstBackgroundColumnFocused()) {
 				// If the first background column is focused in mail view (showing a folder), move to inbox.

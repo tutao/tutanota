@@ -1684,6 +1684,10 @@ export default {
 		"you_label": "You",
 		"cannotAddAttendees_msg": "You can not modify the guest list for this event because it was not created in your calendar.",
 		"noCalendar_msg": "Please select a calendar for the event.",
-		"cannotEditFullEvent_msg": "You can only edit parts of this event because it does not originate in your calendar."
+		"cannotEditFullEvent_msg": "You can only edit parts of this event because it does not originate in your calendar.",
+		"filterUnread_label": "Unread",
+		"filterRead_label": "Read",
+		"filterAllMails_label": "All mails",
+		"filterWithAttachments_label": "With attachments"
 	}
 }

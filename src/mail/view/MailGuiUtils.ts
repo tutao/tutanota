@@ -21,6 +21,7 @@ import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { modal } from "../../gui/base/Modal.js"
 import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
 import { ConversationViewModel } from "./ConversationViewModel.js"
+import { size } from "../../gui/size.js"
 
 export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
 	let trashMails: Mail[] = []
@@ -337,4 +338,8 @@ export function getConversationTitle(conversationViewModel: ConversationViewMode
 	} else {
 		return lang.get("nbrOrEmails_label", { "{number}": numberOfEmails })
 	}
+}
+
+export function getMoveMailBounds(): PosRect {
+	return new DomRectReadOnlyPolyfilled(size.hpad, size.vpad, window.innerWidth - size.hpad * 2, window.innerHeight - size.vpad * 2)
 }
