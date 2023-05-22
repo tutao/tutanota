@@ -23,6 +23,7 @@ import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { px } from "../gui/size.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
+import { styles } from "../gui/styles.js"
 
 assertMainOrNode()
 
@@ -75,7 +76,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				m(
 					".flex-grow.flex-center.scroll",
 					m(
-						".flex.col.flex-grow-shrink-auto.max-width-m.pt-l.plr-l",
+						".flex.col.flex-grow-shrink-auto.max-width-m.plr-l." + (styles.isSingleColumnLayout() ? "pt" : "pt-l"),
 						{
 							...landmarkAttrs(AriaLandmarks.Main, lang.get("login_label")),
 							oncreate: (vnode) => {
@@ -84,8 +85,10 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 						},
 						[
 							m(
-								".content-bg.border-radius-big.plr-2l.pb",
-								{},
+								".content-bg.border-radius-big.pb",
+								{
+									class: styles.isSingleColumnLayout() ? "plr-l" : "plr-2l",
+								},
 								this.viewModel.displayMode === DisplayMode.Credentials || this.viewModel.displayMode === DisplayMode.DeleteCredentials
 									? this._renderCredentialsSelector()
 									: this._renderLoginForm(),
@@ -216,7 +219,6 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				},
 			},
 			[
-				m(".h4.center.pt", lang.get("login_label")),
 				m(LoginForm, {
 					oninit: () => {
 						// we need to re-resolve this promise sometimes and for that we
@@ -249,8 +251,14 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 
 	_renderCredentialsSelector(): Children {
 		return m(".flex.col.pb-l", [
-			m(".h3.text-center.pt", lang.get("knownCredentials_label")),
-			m(".small.center.statusTextColor.pt-xs", liveDataAttrs(), lang.getMaybeLazy(this.viewModel.helpText)),
+			m(
+				".small.center.statusTextColor",
+				{
+					...liveDataAttrs(),
+					class: styles.isSingleColumnLayout() ? "" : "pt-xs",
+				},
+				lang.getMaybeLazy(this.viewModel.helpText),
+			),
 			m(CredentialsSelector, {
 				credentials: this.viewModel.getSavedCredentials(),
 				onCredentialsSelected: async (c) => {
