@@ -313,6 +313,11 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 					transform: `translateY(-${this.config.rowHeight}px)`,
 				},
 				ondragstart: (event: DragEvent) => {
+					// The quick change of the background color is to prevent a white background appearing in dark mode
+					if (virtualRow.domElement) virtualRow.domElement!.style.background = theme.navigation_bg
+					requestAnimationFrame(() => {
+						if (virtualRow.domElement) virtualRow.domElement!.style.background = ""
+					})
 					if (this.config.dragStart) {
 						this.config.dragStart(event, virtualRow, this.selectedEntities)
 					}
