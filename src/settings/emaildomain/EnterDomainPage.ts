@@ -63,7 +63,11 @@ export class EnterDomainPage implements WizardPageN<AddDomainData> {
 
 function validateDomain(domain: string): TranslationKey | null {
 	let cleanDomainName = domain.toLocaleLowerCase().trim()
-	return !cleanDomainName.length || !isDomainName(cleanDomainName) ? "customDomainNeutral_msg" : null
+	if (!cleanDomainName.length || !isDomainName(cleanDomainName)) {
+		return "customDomainNeutral_msg"
+	} else {
+		return null
+	}
 }
 
 export class EnterDomainPageAttrs implements WizardPageAttrs<AddDomainData> {
