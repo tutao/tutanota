@@ -351,9 +351,6 @@ styles.registerStyle("main", () => {
 		".p0": {
 			padding: "0",
 		},
-		".pt-responsive": {
-			"padding-top": px(size.hpad_large * 3),
-		},
 		".pt": {
 			"padding-top": px(size.vpad),
 		},
@@ -2038,9 +2035,6 @@ styles.registerStyle("main", () => {
 			".fixed-bottom-right": {
 				bottom: px(size.hpad_large_mobile + size.bottom_nav_bar),
 				right: px(size.hpad_large_mobile),
-			},
-			".pt-responsive": {
-				"padding-top": px(size.hpad_large),
 			},
 			".custom-logo": {
 				width: px(40),
