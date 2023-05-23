@@ -59,6 +59,7 @@ import { SqlCipherFacade } from "../native/common/generatedipc/SqlCipherFacade.j
 import { DesktopSqlCipher } from "./DesktopSqlCipher.js"
 import { lazyMemoized } from "@tutao/tutanota-utils"
 import dns from "node:dns"
+import { getConfigFile } from "./config/ConfigFile.js"
 
 /**
  * Should be injected during build time.
@@ -131,9 +132,9 @@ async function createComponents(): Promise<Components> {
 	const secretStorage = new KeytarSecretStorage()
 	const keyStoreFacade = new KeyStoreFacadeImpl(secretStorage, desktopCrypto)
 	const configMigrator = new DesktopConfigMigrator(desktopCrypto, keyStoreFacade, electron)
-	const conf = new DesktopConfig(app, configMigrator, keyStoreFacade, desktopCrypto)
+	const conf = new DesktopConfig(configMigrator, keyStoreFacade, desktopCrypto)
 	// Fire config loading, dont wait for it
-	conf.init().catch((e) => {
+	conf.init(getConfigFile(app.getAppPath(), "package.json", fs), getConfigFile(app.getPath("userData"), "conf.json", fs)).catch((e) => {
 		console.error("Could not load config", e)
 		process.exit(1)
 	})

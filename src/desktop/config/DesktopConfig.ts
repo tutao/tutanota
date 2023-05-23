@@ -1,19 +1,19 @@
-import path from "node:path"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer, downcast } from "@tutao/tutanota-utils"
 import type { MigrationKind } from "./migrations/DesktopConfigMigrator"
 import { DesktopConfigMigrator } from "./migrations/DesktopConfigMigrator"
-import fs from "node:fs"
 import type { Config } from "./ConfigCommon"
 import { BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey } from "./ConfigKeys"
-import type { App } from "electron"
 import type { DesktopKeyStoreFacade } from "../KeyStoreFacadeImpl"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
 import { CryptoError } from "../../api/common/error/CryptoError"
 import { log } from "../DesktopLog"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import type { ConfigFileType } from "./ConfigFile"
-import { getConfigFile } from "./ConfigFile"
+import { ConfigFile } from "./ConfigFile"
+import type * as FsModule from "node:fs"
+
+type FsExports = typeof FsModule
 
 export type AllConfigKeys = DesktopConfigKey | DesktopConfigEncKey
 
@@ -25,56 +25,47 @@ type OnValueSetListeners = { [k in AllConfigKeys]: Array<(val: ConfigValue | nul
  * manages build and user config
  */
 export class DesktopConfig {
-	_buildConfig: DeferredObject<Config>
-	_desktopConfig: DeferredObject<Config> // user preferences as set for this installation
-	_desktopConfigFile: ConfigFileType
-	_keyStoreFacade: DesktopKeyStoreFacade
-	_cryptoFacade: DesktopNativeCryptoFacade
-	_app: App
-	_migrator: DesktopConfigMigrator
-	_onValueSetListeners: OnValueSetListeners
+	private readonly buildConfig: DeferredObject<Config>
+	private readonly desktopConfig: DeferredObject<Config> // user preferences as set for this installation
+	private desktopConfigFile!: ConfigFileType
+	onValueSetListeners: OnValueSetListeners = {} as OnValueSetListeners
 
-	constructor(app: App, migrator: DesktopConfigMigrator, keyStoreFacade: DesktopKeyStoreFacade, cryptFacade: DesktopNativeCryptoFacade) {
-		this._keyStoreFacade = keyStoreFacade
-		this._cryptoFacade = cryptFacade
-		this._app = app
-		this._migrator = migrator
-		this._desktopConfigFile = getConfigFile(path.join(app.getPath("userData"), "conf.json"), fs)
-		this._onValueSetListeners = {} as OnValueSetListeners
-		this._buildConfig = defer()
-		this._desktopConfig = defer()
+	constructor(
+		private readonly migrator: DesktopConfigMigrator,
+		private readonly keyStoreFacade: DesktopKeyStoreFacade,
+		private readonly cryptoFacade: DesktopNativeCryptoFacade,
+	) {
+		this.buildConfig = defer()
+		this.desktopConfig = defer()
 	}
 
-	async init() {
-		try {
-			const packageJsonFile = getConfigFile(path.join(this._app.getAppPath(), "package.json"), fs)
-			const packageJson = downcast<Record<string, unknown>>(await packageJsonFile.readJSON())
-			this._buildConfig.resolve(downcast<Config>(packageJson["tutao-config"]))
-		} catch (e) {
-			throw new Error("Could not load build config: " + e)
-		}
+	async init(buildConfigFile: ConfigFile, desktopConfigFile: ConfigFile) {
+		const packageJson = await buildConfigFile.readJSON()
+		const buildConfig = packageJson["tutao-config"]
+		this.buildConfig.resolve(buildConfig)
 
-		const buildConfig = await this._buildConfig.promise
-		const defaultConf: Config = downcast(buildConfig["defaultDesktopConfig"])
+		this.desktopConfigFile = desktopConfigFile
+
+		const defaultConf = buildConfig["defaultDesktopConfig"] as Config
 
 		// create default config if none exists
-		await this._desktopConfigFile.ensurePresence(defaultConf)
-
-		const userConf = (await this._desktopConfigFile.readJSON()) || defaultConf
+		await this.desktopConfigFile.ensurePresence(defaultConf)
+		const userConf = (await this.desktopConfigFile.readJSON()) || defaultConf
 		const populatedConfig = Object.assign({}, defaultConf, userConf)
-		const desktopConfig = await this._migrator.applyMigrations(downcast<MigrationKind>(buildConfig["configMigrationFunction"]), populatedConfig)
-		await fs.promises.mkdir(path.join(this._app.getPath("userData")), { recursive: true })
-		await this._desktopConfigFile.writeJSON(desktopConfig)
-		this._desktopConfig.resolve(desktopConfig)
+
+		const desktopConfig = await this.migrator.applyMigrations(downcast<MigrationKind>(buildConfig["configMigrationFunction"]), populatedConfig)
+
+		await this.desktopConfigFile.writeJSON(desktopConfig)
+		this.desktopConfig.resolve(desktopConfig)
 	}
 
 	async getConst(key?: BuildConfigKey): Promise<any> {
-		const config = await this._buildConfig.promise
+		const config = await this.buildConfig.promise
 		return key ? config[key] : config
 	}
 
 	async getVar<K extends AllConfigKeys>(key: K): Promise<any> {
-		const desktopConfig = await this._desktopConfig.promise
+		const desktopConfig = await this.desktopConfig.promise
 
 		if (key in DesktopConfigKey) {
 			return desktopConfig[key]
@@ -84,16 +75,16 @@ export class DesktopConfig {
 	}
 
 	async _getEncryptedVar(key: DesktopConfigEncKey): Promise<any> {
-		const desktopConfig = await this._desktopConfig.promise
+		const desktopConfig = await this.desktopConfig.promise
 		const encryptedValue = desktopConfig[key]
 
 		if (!encryptedValue) {
 			return null
 		}
 
-		const deviceKey = await this._keyStoreFacade.getDeviceKey()
+		const deviceKey = await this.keyStoreFacade.getDeviceKey()
 		try {
-			return this._cryptoFacade.aesDecryptObject(deviceKey, downcast<string>(encryptedValue))
+			return this.cryptoFacade.aesDecryptObject(deviceKey, downcast<string>(encryptedValue))
 		} catch (e) {
 			if (e instanceof CryptoError) {
 				log.error(`Could not decrypt encrypted var ${key}`, e)
@@ -104,14 +95,14 @@ export class DesktopConfig {
 	}
 
 	async _setEncryptedVar(key: DesktopConfigEncKey, value: ConfigValue | null) {
-		const deviceKey = await this._keyStoreFacade.getDeviceKey()
+		const deviceKey = await this.keyStoreFacade.getDeviceKey()
 		let encryptedValue
 		if (value != null) {
-			encryptedValue = this._cryptoFacade.aesEncryptObject(deviceKey, value)
+			encryptedValue = this.cryptoFacade.aesEncryptObject(deviceKey, value)
 		} else {
 			encryptedValue = null
 		}
-		const desktopConfig = await this._desktopConfig.promise
+		const desktopConfig = await this.desktopConfig.promise
 		desktopConfig[key] = encryptedValue
 	}
 
@@ -122,7 +113,7 @@ export class DesktopConfig {
 	 * @returns {never|Promise<any>|Promise<void>|*}
 	 */
 	async setVar(key: DesktopConfigKey | DesktopConfigEncKey, value: ConfigValue | null): Promise<void> {
-		const desktopConfig = await this._desktopConfig.promise
+		const desktopConfig = await this.desktopConfig.promise
 
 		if (Object.values(DesktopConfigKey).includes(downcast(key))) {
 			desktopConfig[key] = value
@@ -140,8 +131,8 @@ export class DesktopConfig {
 	}
 
 	async _saveAndNotify(key: AllConfigKeys, value: ConfigValue | null): Promise<void> {
-		const desktopConfig = await this._desktopConfig.promise
-		await this._desktopConfigFile.writeJSON(desktopConfig)
+		const desktopConfig = await this.desktopConfig.promise
+		await this.desktopConfigFile.writeJSON(desktopConfig)
 		this._notifyChangeListeners(key, value)
 	}
 
@@ -152,33 +143,33 @@ export class DesktopConfig {
 	 * @returns {DesktopConfig}
 	 */
 	on(key: AllConfigKeys, cb: (val: any) => void): DesktopConfig {
-		if (!this._onValueSetListeners[key]) {
-			this._onValueSetListeners[key] = [cb]
+		if (!this.onValueSetListeners[key]) {
+			this.onValueSetListeners[key] = [cb]
 		} else {
-			this._onValueSetListeners[key].push(cb)
+			this.onValueSetListeners[key].push(cb)
 		}
 		return this
 	}
 
 	removeAllListeners(key?: DesktopConfigKey): this {
 		if (key) {
-			this._onValueSetListeners[key] = []
+			this.onValueSetListeners[key] = []
 		} else {
-			this._onValueSetListeners = {} as OnValueSetListeners
+			this.onValueSetListeners = {} as OnValueSetListeners
 		}
 
 		return this
 	}
 
 	removeListener(key: AllConfigKeys, cb: (val: any) => void): this {
-		if (!this._onValueSetListeners[key]) return this
-		this._onValueSetListeners[key].splice(this._onValueSetListeners[key].indexOf(cb), 1)
+		if (!this.onValueSetListeners[key]) return this
+		this.onValueSetListeners[key].splice(this.onValueSetListeners[key].indexOf(cb), 1)
 		return this
 	}
 
 	_notifyChangeListeners(key: AllConfigKeys, value: ConfigValue | null) {
-		if (this._onValueSetListeners[key]) {
-			for (const cb of this._onValueSetListeners[key]) {
+		if (this.onValueSetListeners[key]) {
+			for (const cb of this.onValueSetListeners[key]) {
 				cb(value)
 			}
 		}
