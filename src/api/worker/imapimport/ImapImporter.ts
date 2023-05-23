@@ -11,12 +11,12 @@ import { ImapMail, ImapMailAttachment } from "../../../desktop/imapimport/adsync
 import { ImapError } from "../../../desktop/imapimport/adsync/imapmail/ImapError.js"
 import { ImapImportSystemFacade } from "../../../native/common/generatedipc/ImapImportSystemFacade.js"
 import { ImapImportFacade } from "../../../native/common/generatedipc/ImapImportFacade.js"
-import { defer, DeferredObject, uint8ArrayToString } from "@tutao/tutanota-utils"
+import { uint8ArrayToString } from "@tutao/tutanota-utils"
 import { sha256Hash } from "@tutao/tutanota-crypto"
 import { MaybePromise } from "rollup"
 import { SuspensionError } from "../../common/error/SuspensionError.js"
 
-const DEFAULT_POSTPONE_TIME = 120 * 1000
+const DEFAULT_TUTANOTA_SERVER_POSTPONE_TIME = 120 * 1000 // 120 seconds
 
 export interface InitializeImapImportParams {
 	host: string
@@ -33,11 +33,6 @@ export class ImapImporter implements ImapImportFacade {
 	private importImapAccountSyncState: ImportImapAccountSyncState | null = null
 	private importImapFolderSyncStates?: ImportImapFolderSyncState[]
 	private importedImapAttachmentHashToIdMap?: Map<string, MaybePromise<IdTuple | undefined>>
-
-	// TODO remove after evaluation
-	private testMailCounterPromise?: DeferredObject<void>
-	private testMailCounter = 0
-	private testDownloadStartTime: Date = new Date()
 
 	constructor(
 		private readonly imapImportSystemFacade: ImapImportSystemFacade,
@@ -94,10 +89,6 @@ export class ImapImporter implements ImapImportFacade {
 
 		await this.imapImportSystemFacade.startImport(imapSyncState)
 
-		// TODO remove after evaluation
-		this.testMailCounter = 0
-		this.testDownloadStartTime.setTime(Date.now())
-
 		this.imapImportState = new ImapImportState(ImportState.RUNNING)
 		return this.imapImportState
 	}
@@ -122,7 +113,7 @@ export class ImapImporter implements ImapImportFacade {
 	}
 
 	async deleteImport(): Promise<boolean> {
-		// TODO delete imap import
+		// TODO delete import
 		return true
 	}
 
@@ -221,7 +212,7 @@ export class ImapImporter implements ImapImportFacade {
 			this.importedImapAttachmentHashToIdMap?.set(fileHash, deferredAttachmentId)
 			let importDataFile: ImapImportDataFile = {
 				_type: "DataFile",
-				name: imapMailAttachment.filename ?? imapMailAttachment.cid + Date.now().toString(), // TODO better to use hash?
+				name: imapMailAttachment.filename ?? imapMailAttachment.cid + Date.now().toString(), // TODO better to directly use the hash?
 				data: imapMailAttachment.content,
 				size: imapMailAttachment.size,
 				mimeType: imapMailAttachment.contentType,
@@ -254,8 +245,10 @@ export class ImapImporter implements ImapImportFacade {
 				}
 				break
 			case AdSyncEventType.UPDATE:
+				// TODO update mail folder through existing Tutanota API's
 				break
 			case AdSyncEventType.DELETE:
+				// TODO delete mail folder through existing Tutanota API's
 				break
 		}
 
@@ -279,13 +272,6 @@ export class ImapImporter implements ImapImportFacade {
 	}
 
 	async onMail(imapMail: ImapMail, eventType: AdSyncEventType): Promise<void> {
-		// TODO remove after evaluation
-		// lock testMailCounter
-		await this.testMailCounterPromise?.promise
-		this.testMailCounterPromise = defer()
-		this.testMailCounter += 1
-		this.testMailCounterPromise.resolve()
-
 		if (this.importImapFolderSyncStates === undefined) {
 			throw new ProgrammingError("onMail event received but importImapFolderSyncStates not initialized!")
 		}
@@ -299,14 +285,17 @@ export class ImapImporter implements ImapImportFacade {
 				case AdSyncEventType.CREATE:
 					this.importMailFacade.importMail(importMailParams).catch((error) => {
 						if (error instanceof SuspensionError) {
-							this.postponeImport(new Date(Date.now() + (error.suspensionTime ? parseInt(error.suspensionTime) : DEFAULT_POSTPONE_TIME)))
+							this.postponeImport(
+								new Date(Date.now() + (error.suspensionTime ? parseInt(error.suspensionTime) : DEFAULT_TUTANOTA_SERVER_POSTPONE_TIME)),
+							)
 						}
 					})
 					break
 				case AdSyncEventType.UPDATE:
-					//this.importMailFacade.updateMail(importMailParams) // TODO update mail properties through existing tutanota apis (unread / read, etc)
+					// TODO update mail properties through existing Tutanota API's (unread / read, etc.)
 					break
 				case AdSyncEventType.DELETE:
+					// TODO delete mail through existing Tutanota API's
 					break
 			}
 		}
@@ -320,13 +309,6 @@ export class ImapImporter implements ImapImportFacade {
 	}
 
 	onFinish(downloadedQuota: number): Promise<void> {
-		// TODO remove after evaluation
-		let downloadTime = Date.now() - this.testDownloadStartTime.getTime()
-		console.log("Downloaded data (byte): " + downloadedQuota)
-		console.log("Took (ms): " + downloadTime)
-		console.log("Average throughput (bytes/ms): " + downloadedQuota / downloadTime)
-		console.log("# amount of mails downloaded: " + this.testMailCounter)
-
 		this.imapImportState = new ImapImportState(ImportState.FINISHED)
 		return Promise.resolve()
 	}

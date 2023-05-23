@@ -83,9 +83,14 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 		if (mailboxes != null) {
 			if (this.adSyncConfig.isEnableParallelProcessesOptimizer) {
-				this.adSyncOptimizer = new AdSyncParallelProcessesOptimizer(mailboxes, this.adSyncConfig.parallelProcessesOptimizationDifference, this)
+				this.adSyncOptimizer = new AdSyncParallelProcessesOptimizer(
+					mailboxes,
+					this.adSyncConfig.parallelProcessesOptimizationDifference,
+					this.adSyncConfig.optimizationInterval,
+					this,
+				)
 			} else {
-				// start AdSyncSingleProcessesOptimizer with optimizationDifference of zero (0) (always open only a single mailbox (i.e. folder) at a time)
+				// start AdSyncSingleProcessesOptimizer with optimizationDifference and optimizationInterval of zero (0) (always open only a single mailbox (i.e. folder) at a time)
 				this.adSyncOptimizer = new AdSyncSingleProcessesOptimizer(mailboxes, this)
 			}
 			this.adSyncOptimizer.startAdSyncOptimizer()
@@ -98,7 +103,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		}
 
 		let knownMailboxes = this.imapSyncState.imapMailboxStates.map((mailboxState) => {
-			return new ImapSyncSessionMailbox(mailboxState, this.adSyncConfig.defaultDownloadBatchSize)
+			return new ImapSyncSessionMailbox(mailboxState, this.adSyncConfig.defaultDownloadBatchSize, this.adSyncConfig.processesTimeToLive)
 		})
 
 		let imapAccount = this.imapSyncState.imapAccount
@@ -106,10 +111,6 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			host: imapAccount.host,
 			port: imapAccount.port,
 			secure: true,
-			tls: {
-				rejectUnauthorized: false, // TODO deactivate after testing
-			},
-			logger: true,
 			auth: {
 				user: imapAccount.username,
 				pass: imapAccount.password,
@@ -156,12 +157,16 @@ export class ImapSyncSession implements SyncSessionEventListener {
 	}
 
 	private traverseImapMailboxes(knownMailboxes: ImapSyncSessionMailbox[], imapMailbox: ImapMailbox): ImapSyncSessionMailbox[] {
-		let result = []
+		let result: ImapSyncSessionMailbox[] = []
 
 		let syncSessionMailbox = knownMailboxes.find((value) => value.mailboxState.path == imapMailbox.path)
 		if (syncSessionMailbox === undefined) {
 			this.adSyncEventListener.onMailbox(imapMailbox, AdSyncEventType.CREATE)
-			syncSessionMailbox = new ImapSyncSessionMailbox(ImapMailboxState.fromImapMailbox(imapMailbox), this.adSyncConfig.defaultDownloadBatchSize)
+			syncSessionMailbox = new ImapSyncSessionMailbox(
+				ImapMailboxState.fromImapMailbox(imapMailbox),
+				this.adSyncConfig.defaultDownloadBatchSize,
+				this.adSyncConfig.processesTimeToLive,
+			)
 		}
 
 		if (imapMailbox.specialUse) {
@@ -194,6 +199,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			let adSyncDownloadBlatchSizeOptimizer = new AdSyncDownloadBatchSizeOptimizer(
 				nextMailboxToDownload,
 				this.adSyncConfig.downloadBatchSizeOptimizationDifference,
+				this.adSyncConfig.optimizationInterval,
 			)
 			let syncSessionProcess = new ImapSyncSessionProcess(processId, adSyncDownloadBlatchSizeOptimizer, this.adSyncOptimizer, this.adSyncConfig)
 

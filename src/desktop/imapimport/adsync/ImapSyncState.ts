@@ -1,4 +1,4 @@
-//@bundleInto:commin-min
+//@bundleInto:common
 
 import { ImapMailbox } from "./imapmail/ImapMailbox.js"
 

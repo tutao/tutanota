@@ -92,13 +92,10 @@ export class ImportImapFacade {
 	}
 
 	async postponeImapImport(postponedUntil: Date, importImapAccountSyncStateId: Id): Promise<ImportImapAccountSyncState> {
-		const mailGroupId = this.userFacade.getGroupId(GroupType.Mail)
-
 		const importImapAccountSyncState = await this.entityClient.load(ImportImapAccountSyncStateTypeRef, importImapAccountSyncStateId)
 		importImapAccountSyncState.postponedUntil = postponedUntil.getTime().toString()
 
 		await this.entityClient.update(importImapAccountSyncState)
-
 		return importImapAccountSyncState
 	}
 

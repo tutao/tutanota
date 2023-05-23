@@ -52,7 +52,7 @@ export function imapMailToImportMailParams(
 		receivedDate: imapMail.internalDate ?? new Date(Date.now()),
 		state: mailStateFromImapMailbox(imapMail.belongsToMailbox),
 		unread: unreadFromImapMail(imapMail),
-		messageId: imapMail.envelope?.messageId ?? null, // if null, a new messageId is generated on the tutadb server
+		messageId: imapMail.envelope?.messageId ?? null, // TODO if null, a new messageId should be generated on the Tutadb server
 		senderMailAddress: fromMailAddress,
 		senderName: fromName,
 		method: mailMethodFromImapMail(imapMail),

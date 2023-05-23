@@ -15,7 +15,7 @@ export enum UidFetchRequestType {
 	WAIT,
 }
 
-export const UID_FETCH_REQUEST_WAIT_TIME = 5000 // in ms
+export const UID_FETCH_REQUEST_WAIT_TIME = 10 // in ms
 
 export interface UidFetchRequest {
 	uidFetchSequenceString: string
@@ -82,7 +82,7 @@ export class DifferentialUidLoader {
 		return deletedUids
 	}
 
-	async calculateUidDiffInBatches(fromSeq: number, downloadBatchSize: number, totalMessageCount: number | null): Promise<SeenUids> {
+	private async calculateUidDiffInBatches(fromSeq: number, downloadBatchSize: number, totalMessageCount: number | null): Promise<SeenUids> {
 		let seenUids: number[] = []
 
 		if (totalMessageCount == 0) {
@@ -170,7 +170,7 @@ export class DifferentialUidLoader {
 			return uidFetchSequenceList
 		}, [])
 
-		// We restrict the length of the uidFetchSequenceString to speed up IMAP server communication (we only allow 25 SequenceStrings per IMAP command)
+		// we restrict the length of the uidFetchSequenceString to speed up IMAP server communication (we only allow 25 SequenceStrings per IMAP command)
 		let perChunk = 25
 		let uidFetchSequenceChunks = uidFetchSequenceList.reduce<UidFetchSequence[][]>(
 			(uidFetchSequenceListChunks: UidFetchSequence[][], uidFetchSequenceList, index) => {

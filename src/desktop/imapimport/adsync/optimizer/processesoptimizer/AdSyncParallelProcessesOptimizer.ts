@@ -3,7 +3,6 @@ import { AverageThroughput, TimeStamp } from "../../utils/AdSyncUtils.js"
 import { ProgrammingError } from "../../../../../api/common/error/ProgrammingError.js"
 import { AdSyncProcessesOptimizer, OptimizerProcess } from "./AdSyncProcessesOptimizer.js"
 
-const OPTIMIZATION_INTERVAL = 5 // in seconds
 const MINIMUM_PARALLEL_PROCESSES = 2
 const MAX_PARALLEL_PROCESSES = 15
 
@@ -13,7 +12,7 @@ export class AdSyncParallelProcessesOptimizer extends AdSyncProcessesOptimizer {
 
 	override startAdSyncOptimizer(): void {
 		super.startAdSyncOptimizer()
-		this.scheduler = setInterval(this.optimize.bind(this), OPTIMIZATION_INTERVAL * 1000) // every OPTIMIZATION_INTERVAL seconds
+		this.scheduler = setInterval(this.optimize.bind(this), this.optimizationInterval * 1000) // every optimizationInterval seconds
 		this.optimize() // call once to start downloading of mails
 	}
 
@@ -22,6 +21,8 @@ export class AdSyncParallelProcessesOptimizer extends AdSyncProcessesOptimizer {
 		let lastInterval = this.getLastTimeStampInterval()
 		let combinedAverageThroughputCurrent = this.getCombinedAverageThroughputInTimeInterval(currentInterval.fromTimeStamp, currentInterval.toTimeStamp)
 		let combinedAverageThroughputLast = this.getCombinedAverageThroughputInTimeInterval(lastInterval.fromTimeStamp, lastInterval.toTimeStamp)
+
+		// TODO remove logging
 		console.log("(ParallelProcessOptimizer) Throughput stats: ... | " + combinedAverageThroughputLast + " | " + combinedAverageThroughputCurrent + " |")
 
 		let lastUpdateAction = this.optimizerUpdateActionHistory.at(-1)
@@ -65,9 +66,10 @@ export class AdSyncParallelProcessesOptimizer extends AdSyncProcessesOptimizer {
 	}
 
 	forceStopSyncSessionProcess(processId: number, isExceededRateLimit: boolean = false) {
-		super.forceStopSyncSessionProcess(processId)
 		if (isExceededRateLimit && this.runningProcessMap.size >= MINIMUM_PARALLEL_PROCESSES) {
 			this.maxParallelProcesses = this.runningProcessMap.size - 1
 		}
+
+		super.forceStopSyncSessionProcess(processId)
 	}
 }

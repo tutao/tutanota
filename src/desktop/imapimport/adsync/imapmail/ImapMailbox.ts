@@ -1,4 +1,4 @@
-//@bundleInto:common-min
+//@bundleInto:common
 
 import { ImapSyncSessionMailbox } from "../ImapSyncSessionMailbox.js"
 

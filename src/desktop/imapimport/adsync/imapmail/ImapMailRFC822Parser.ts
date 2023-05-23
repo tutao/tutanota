@@ -1,7 +1,8 @@
 import { ImapMailAttachment, ImapMailBody, ImapMailEnvelope } from "./ImapMail.js"
 import * as Stream from "node:stream"
 
-const MailParser = require("mailparser").MailParser
+// @ts-ignore
+import MailParser from "mailparser"
 
 export type MailParserAddress = {
 	name: string
@@ -21,7 +22,7 @@ export interface ParsedImapRFC822 {
 	parsedAttachments?: ImapMailAttachment[]
 }
 
-// TODO perform security cleansing
+// TODO perform security HTML, etc. cleansing / sanitization
 export class ImapMailRFC822Parser {
 	private parser: typeof MailParser
 

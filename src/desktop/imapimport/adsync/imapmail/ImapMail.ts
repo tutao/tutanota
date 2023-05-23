@@ -92,6 +92,8 @@ export class ImapMailEnvelope {
 	static fromMailParserHeadersMap(mailParserHeadersMap: Map<string, string | string[] | MailParserAddressObject | Date | object>) {
 		let imapMailEnvelope = new ImapMailEnvelope()
 
+		// TODO test case where mail is not properly formatted --> crashing?
+
 		if (mailParserHeadersMap.has("date")) {
 			imapMailEnvelope.setDate(mailParserHeadersMap.get("date") as Date)
 		}

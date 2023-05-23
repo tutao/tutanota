@@ -28,8 +28,13 @@ export class AdSyncProcessesOptimizer extends AdSyncOptimizer implements AdSyncP
 	protected runningProcessMap = new Map<number, OptimizerProcess>()
 	private nextProcessId: number = 0
 
-	constructor(mailboxes: ImapSyncSessionMailbox[], optimizationDifference: number, syncSessionEventListener: SyncSessionEventListener) {
-		super(optimizationDifference)
+	constructor(
+		mailboxes: ImapSyncSessionMailbox[],
+		optimizationDifference: number,
+		optimizationInterval: number,
+		syncSessionEventListener: SyncSessionEventListener,
+	) {
+		super(optimizationDifference, optimizationInterval)
 		this.optimizedSyncSessionMailboxes = mailboxes
 		this.syncSessionEventListener = syncSessionEventListener
 	}
@@ -59,8 +64,7 @@ export class AdSyncProcessesOptimizer extends AdSyncOptimizer implements AdSyncP
 		nextProcessIdsToDrop.forEach((processId) => {
 			let mailboxToDrop = this.runningProcessMap.get(processId)
 			if (mailboxToDrop) {
-				let timeToLiveIntervalMS =
-					1000 * (mailboxToDrop.syncSessionMailbox?.timeToLiveInterval ? mailboxToDrop.syncSessionMailbox?.timeToLiveInterval : 0) // conversion to milliseconds
+				let timeToLiveIntervalMS = 1000 * (mailboxToDrop.syncSessionMailbox?.timeToLive ? mailboxToDrop.syncSessionMailbox?.timeToLive : 0) // conversion to milliseconds
 
 				// a process may run at least its timeToLiveInterval in seconds
 				if (mailboxToDrop.processStartTime + timeToLiveIntervalMS <= Date.now()) {
@@ -91,7 +95,7 @@ export class AdSyncProcessesOptimizer extends AdSyncOptimizer implements AdSyncP
 				return value.syncSessionMailbox !== undefined
 			})
 			.sort(([_processIdA, valueA], [_processIdB, valueB]) => {
-				let averageEfficiencyScoreA = valueB.syncSessionMailbox!.getAverageEfficiencyScoreInTimeInterval(
+				let averageEfficiencyScoreA = valueA.syncSessionMailbox!.getAverageEfficiencyScoreInTimeInterval(
 					currentInterval.fromTimeStamp,
 					currentInterval.toTimeStamp,
 				)

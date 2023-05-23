@@ -7,14 +7,14 @@ export class AdSyncDownloadBatchSizeOptimizer extends AdSyncOptimizer {
 	protected _optimizedSyncSessionMailbox: ImapSyncSessionMailbox
 	protected scheduler?: NodeJS.Timer
 
-	constructor(syncSessionMailbox: ImapSyncSessionMailbox, optimizationDifference: number) {
-		super(optimizationDifference)
+	constructor(syncSessionMailbox: ImapSyncSessionMailbox, optimizationDifference: number, optimizationInterval: number) {
+		super(optimizationDifference, optimizationInterval)
 		this._optimizedSyncSessionMailbox = syncSessionMailbox
 	}
 
 	override startAdSyncOptimizer(): void {
 		super.startAdSyncOptimizer()
-		this.scheduler = setInterval(this.optimize.bind(this), OPTIMIZATION_INTERVAL * 1000) // every OPTIMIZATION_INTERVAL seconds
+		this.scheduler = setInterval(this.optimize.bind(this), this.optimizationInterval * 1000) // every optimizationInterval seconds
 	}
 
 	get optimizedSyncSessionMailbox(): ImapSyncSessionMailbox {
@@ -29,6 +29,8 @@ export class AdSyncDownloadBatchSizeOptimizer extends AdSyncOptimizer {
 			currentInterval.toTimeStamp,
 		)
 		let averageThroughputLast = this.optimizedSyncSessionMailbox.getAverageThroughputInTimeInterval(lastInterval.fromTimeStamp, lastInterval.toTimeStamp)
+
+		// TODO remove logging
 		console.log(
 			"(DownloadBatchSizeOptimizer -> " +
 				this.optimizedSyncSessionMailbox.mailboxState.path +

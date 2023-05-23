@@ -15,11 +15,13 @@ export const THROUGHPUT_THRESHOLD: number = 10
 
 export abstract class AdSyncOptimizer {
 	protected optimizationDifference: number
+	protected optimizationInterval: number
 	protected abstract scheduler?: NodeJS.Timer
 	protected optimizerUpdateTimeStampHistory: TimeStamp[] = []
 
-	protected constructor(optimizationDifference: number) {
+	protected constructor(optimizationDifference: number, optimizationInterval: number) {
 		this.optimizationDifference = optimizationDifference
+		this.optimizationInterval = optimizationInterval
 	}
 
 	protected abstract optimize(): void

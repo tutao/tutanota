@@ -44,10 +44,6 @@ export class ImapSyncSessionProcess {
 			host: imapAccount.host,
 			port: imapAccount.port,
 			secure: true,
-			tls: {
-				rejectUnauthorized: false, // TODO deactivate after testing
-			},
-			logger: false,
 			auth: {
 				user: imapAccount.username,
 				pass: imapAccount.password,
@@ -65,7 +61,7 @@ export class ImapSyncSessionProcess {
 				this.state = SyncSessionProcessState.RUNNING
 			}
 		} catch (error) {
-			if (error.message.match("(NO|BAD)")) {
+			if (error.responseStatus !== undefined && error.responseStatus.match("(NO|BAD)")) {
 				this.state = SyncSessionProcessState.CONNECTION_FAILED_REJECTED
 			} else {
 				this.state = SyncSessionProcessState.CONNECTION_FAILED_UNKNOWN
@@ -97,6 +93,10 @@ export class ImapSyncSessionProcess {
 
 			let openedImapMailbox = ImapMailbox.fromSyncSessionMailbox(this.adSyncOptimizer.optimizedSyncSessionMailbox)
 			let isEnableImapQresync = this.adSyncConfig.isEnableImapQresync && highestModSeq != null
+
+			if (isEnableImapQresync) {
+				this.setupImapFlowExpungeHandler(imapClient, openedImapMailbox, adSyncEventListener)
+			}
 
 			// calculate UID differences
 			let differentialUidLoader = new DifferentialUidLoader(
@@ -131,8 +131,6 @@ export class ImapSyncSessionProcess {
 
 				this.adSyncOptimizer.optimizedSyncSessionMailbox.reportDownloadBatchSizeUsage(nextUidFetchRequest.usedDownloadBatchSize)
 
-				let mailFetchStartTime = Date.now()
-
 				let mails = imapClient.fetch(
 					nextUidFetchRequest.uidFetchSequenceString,
 					{
@@ -148,6 +146,7 @@ export class ImapSyncSessionProcess {
 					fetchOptions,
 				)
 
+				let mailFetchStartTime = Date.now()
 				// @ts-ignore
 				for await (const mail of mails) {
 					if (this.state == SyncSessionProcessState.STOPPED) {
@@ -160,7 +159,7 @@ export class ImapSyncSessionProcess {
 
 					if (mail.source) {
 						let mailSize = mail.source.length
-						let mailDownloadTime = mailFetchTime != 0 ? mailFetchTime : 1 // we approximate the mailFetchTime to minimum 1 millisecond
+						let mailDownloadTime = mailFetchTime != 0 ? mailFetchTime : 0.5 // we approximate the mailFetchTime to minimum 1 millisecond
 						let currenThroughput = mailSize / mailDownloadTime
 						this.adSyncOptimizer.optimizedSyncSessionMailbox.reportCurrentThroughput(currenThroughput)
 
@@ -194,6 +193,8 @@ export class ImapSyncSessionProcess {
 					} else {
 						adSyncEventListener.onError(new ImapError(`No IMAP mail source available for IMAP mail with UID ${mail.uid}.`))
 					}
+
+					mailFetchStartTime = Date.now()
 				}
 
 				nextUidFetchRequest = await differentialUidLoader.getNextUidFetchRequest(this.adSyncOptimizer.optimizedSyncSessionMailbox.downloadBatchSize)
@@ -276,6 +277,7 @@ export class ImapSyncSessionProcess {
 		})
 	}
 
+	// emit DELETE events when IMAP QRESYNC is enabled and supported
 	private setupImapFlowExpungeHandler(imapClient: ImapFlow, openedImapMailbox: ImapMailbox, adSyncEventListener: AdSyncEventListener) {
 		imapClient.on("expunge", (deletedMail) => {
 			this.emitImapMailDeleteEvent(deletedMail.uid, openedImapMailbox, adSyncEventListener)

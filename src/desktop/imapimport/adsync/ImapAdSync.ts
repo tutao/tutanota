@@ -4,20 +4,24 @@ import { ImapSyncState } from "./ImapSyncState.js"
 
 const defaultAdSyncConfig: AdSyncConfig = {
 	isEnableParallelProcessesOptimizer: true,
-	isEnableDownloadBatchSizeOptimizer: true,
 	parallelProcessesOptimizationDifference: 2,
+	processesTimeToLive: 15,
+	isEnableDownloadBatchSizeOptimizer: true,
 	downloadBatchSizeOptimizationDifference: 100,
 	defaultDownloadBatchSize: 500,
+	optimizationInterval: 10,
 	emitAdSyncEventTypes: new Set<AdSyncEventType>([AdSyncEventType.CREATE, AdSyncEventType.UPDATE, AdSyncEventType.DELETE]),
 	isEnableImapQresync: true,
 }
 
 export interface AdSyncConfig {
 	isEnableParallelProcessesOptimizer: boolean
-	isEnableDownloadBatchSizeOptimizer: boolean
 	parallelProcessesOptimizationDifference: number
+	processesTimeToLive: number
+	isEnableDownloadBatchSizeOptimizer: boolean
 	downloadBatchSizeOptimizationDifference: number
 	defaultDownloadBatchSize: number
+	optimizationInterval: number
 	emitAdSyncEventTypes: Set<AdSyncEventType>
 	isEnableImapQresync: boolean
 }
