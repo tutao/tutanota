@@ -7,6 +7,9 @@ import fs from "fs-extra"
 import path, { dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 import { rollup } from "rollup"
+import commonjs from "@rollup/plugin-commonjs"
+import { nodeResolve } from "@rollup/plugin-node-resolve"
+import json from "@rollup/plugin-json"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -28,6 +31,8 @@ const clientDependencies = [
 	{ src: "../node_modules/linkifyjs/dist/linkify-html.module.js", target: "linkify-html.js" },
 	"../node_modules/luxon/build/es6/luxon.js",
 	{ src: "../node_modules/cborg/esm/cborg.js", target: "cborg.js", rollup: true },
+	{ src: "../node_modules/imapflow/lib/imap-flow.js", target: "imapflow.js", rollup: true },
+	{ src: "../node_modules/mailparser/lib/mail-parser.js", target: "mailparser.js", rollup: true },
 ]
 
 run()
@@ -56,6 +61,9 @@ async function copyToLibs(files) {
 
 /** Will bundle starting at {@param src} into a single file at {@param target}. */
 async function roll(src, target) {
-	const bundle = await rollup({ input: path.join(__dirname, src) })
+	const bundle = await rollup({
+		input: path.join(__dirname, src),
+		plugins: [json(), commonjs(), nodeResolve({ preferBuiltins: true })],
+	})
 	await bundle.write({ file: path.join(__dirname, "../libs", target) })
 }

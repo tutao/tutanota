@@ -12,6 +12,8 @@ export const dependencyMap = {
 	linkifyjs: path.normalize("./libs/linkify.js"),
 	"linkifyjs/html": path.normalize("./libs/linkify-html.js"),
 	cborg: path.normalize("./libs/cborg.js"),
+	imapflow: path.normalize("./libs/imapflow.js"),
+	mailparser: path.normalize("./libs/mailparser.js"),
 }
 
 /**
