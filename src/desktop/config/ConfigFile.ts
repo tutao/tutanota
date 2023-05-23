@@ -1,4 +1,5 @@
 import type * as FsModule from "node:fs"
+import path from "node:path"
 
 const instances: Record<string, ConfigFile> = {}
 
@@ -9,34 +10,30 @@ type FsExports = typeof FsModule
  * @param p {string} path to file the configFile should write to
  * @param fs the fs object returned by "import fs from ''fs"
  */
-export function getConfigFile(p: string, fs: FsExports): ConfigFile {
-	if (!Object.keys(instances).includes(p)) {
-		instances[p] = new ConfigFile(p, fs)
+export function getConfigFile(p: string, f: string, fs: FsExports): ConfigFile {
+	const fullpath = path.join(p, f)
+	if (!Object.keys(instances).includes(fullpath)) {
+		instances[fullpath] = new ConfigFile(p, fullpath, fs)
 	}
 
-	return instances[p]
+	return instances[fullpath]
 }
 
 export type ConfigFileType = ConfigFile
 
-class ConfigFile {
-	_path: string
-	_accessPromise: Promise<any>
-	readonly _fs: FsExports
+export class ConfigFile {
+	private accessPromise: Promise<any>
 
 	/**
-	 * @param p path to the file the json objects should be stored in
-	 * @param fs
+	 * @param filePath path to the file the json objects should be stored in
 	 **/
-	constructor(p: string, fs: FsExports) {
-		this._path = p
-		this._accessPromise = Promise.resolve()
-		this._fs = fs
+	constructor(private readonly filePath: string, private readonly fullpath: string, private readonly fs: FsExports) {
+		this.accessPromise = Promise.resolve()
 	}
 
 	ensurePresence(defaultObj: any): Promise<void> {
 		try {
-			this._fs.accessSync(this._path, this._fs.constants.F_OK)
+			this.fs.accessSync(this.fullpath, this.fs.constants.F_OK)
 		} catch (e) {
 			return this.writeJSON(defaultObj || {})
 		}
@@ -45,14 +42,14 @@ class ConfigFile {
 	}
 
 	readJSON(): Promise<any> {
-		this._accessPromise = this._accessPromise
-			.then(() => this._fs.promises.readFile(this._path, "utf8"))
+		this.accessPromise = this.accessPromise
+			.then(() => this.fs.promises.readFile(this.fullpath, "utf8"))
 			.then((t) => JSON.parse(t))
 			.catch((e) => {
 				// catch needed to make future reads/writes work
 				console.error("failed to read config!", e)
 			})
-		return this._accessPromise
+		return this.accessPromise
 	}
 
 	/**
@@ -65,12 +62,13 @@ class ConfigFile {
 	 * @returns {Promise<void>} resolves when the object has been written
 	 */
 	writeJSON(obj: any): Promise<void> {
-		this._accessPromise = this._accessPromise
+		this.accessPromise = this.accessPromise
+			.then(() => this.fs.promises.mkdir(this.filePath, { recursive: true }))
 			.then(() => JSON.stringify(obj, null, 2))
-			.then((json) => this._fs.promises.writeFile(this._path, json))
+			.then((json) => this.fs.promises.writeFile(this.fullpath, json))
 			.catch((e) => {
 				console.error("failed to write conf:", e)
 			})
-		return this._accessPromise
+		return this.accessPromise
 	}
 }
