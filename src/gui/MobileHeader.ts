@@ -38,6 +38,7 @@ export interface MobileHeaderAttrs extends AppHeaderAttrs {
  */
 export class MobileHeader implements Component<MobileHeaderAttrs> {
 	view({ attrs }: Vnode<MobileHeaderAttrs>): Children {
+		const firstVisibleColumn = attrs.columnType === "first" || styles.isSingleColumnLayout()
 		return m(BaseMobileHeader, {
 			left:
 				attrs.columnType === "first"
@@ -51,19 +52,18 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 							},
 					  })
 					: null,
-			center:
-				attrs.columnType === "first" || styles.isSingleColumnLayout()
-					? m(MobileHeaderTitle, {
-							title: attrs.title,
-							bottom: m(OfflineIndicatorMobile, attrs.offlineIndicatorModel.getCurrentAttrs()),
-					  })
-					: null,
+			center: firstVisibleColumn
+				? m(MobileHeaderTitle, {
+						title: attrs.title,
+						bottom: m(OfflineIndicatorMobile, attrs.offlineIndicatorModel.getCurrentAttrs()),
+				  })
+				: null,
 			right: [
 				styles.isSingleColumnLayout() ? null : attrs.multicolumnActions?.(),
 				attrs.actions,
 				styles.isSingleColumnLayout() || attrs.columnType === "other" ? attrs.primaryAction() : null,
 			],
-			injections: m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }),
+			injections: firstVisibleColumn ? m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }) : null,
 		})
 	}
 }
