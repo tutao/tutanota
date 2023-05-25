@@ -1,4 +1,4 @@
-import { AccountType, GroupType, OperationType } from "../common/TutanotaConstants"
+import { AccountType, FeatureType, GroupType, LegacyPlans, OperationType, PlanType } from "../common/TutanotaConstants"
 import type { Base64Url } from "@tutao/tutanota-utils"
 import { downcast, first, mapAndFilterNull, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { MediaType } from "../common/EntityFunctions"
@@ -37,6 +37,7 @@ import {
 } from "../entities/tutanota/TypeRefs"
 import { typeModels as sysTypeModels } from "../entities/sys/TypeModels"
 import { SessionType } from "../common/SessionType"
+import { isCustomizationEnabledForCustomer } from "../common/utils/Utils.js"
 
 assertMainOrNode()
 
@@ -113,8 +114,38 @@ export class UserController {
 		return this.entityClient.load(CustomerTypeRef, neverNull(this.user.customer))
 	}
 
-	loadCustomerInfo(): Promise<CustomerInfo> {
-		return this.loadCustomer().then((customer) => this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
+	async loadCustomerInfo(): Promise<CustomerInfo> {
+		const customer = await this.loadCustomer()
+		return await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+	}
+
+	async getPlanType(): Promise<PlanType> {
+		const customerInfo = await this.loadCustomerInfo()
+		return downcast(customerInfo.plan)
+	}
+
+	public isLegacyPlan(type: PlanType): boolean {
+		return LegacyPlans.includes(type)
+	}
+
+	async isNewPaidPlan(): Promise<boolean> {
+		const type = await this.getPlanType()
+		return !this.isLegacyPlan(type) && type !== PlanType.Free
+	}
+
+	async isNewPaidBusinessPlan(): Promise<boolean> {
+		const type = await this.getPlanType()
+		return type === PlanType.Essential || type === PlanType.Advanced || type === PlanType.Unlimited
+	}
+
+	/**
+	 * Checks if the current plan allows adding users and groups.
+	 */
+	async canHaveUsers(): Promise<boolean> {
+		const customer = await this.loadCustomer()
+		const planType = await this.getPlanType()
+
+		return this.isLegacyPlan(planType) || (await this.isNewPaidBusinessPlan()) || isCustomizationEnabledForCustomer(customer, FeatureType.MultipleUsers)
 	}
 
 	loadAccountingInfo(): Promise<AccountingInfo> {

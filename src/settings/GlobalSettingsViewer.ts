@@ -130,7 +130,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				click: async () => {
 					const customerInfo = await this.customerInfo.getAsync()
 					if (locator.logins.getUserController().isFreeAccount()) {
-						showNotAvailableForFreeDialog(getCustomMailDomains(customerInfo).length === 0)
+						showNotAvailableForFreeDialog()
 					} else {
 						const mailAddressTableModel = await locator.mailAddressTableModelForOwnMailbox()
 						await showAddDomainWizard("", customerInfo, mailAddressTableModel)

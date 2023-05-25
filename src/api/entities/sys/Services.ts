@@ -33,6 +33,7 @@ import {GiftCardCreateDataTypeRef} from "./TypeRefs.js"
 import {GiftCardCreateReturnTypeRef} from "./TypeRefs.js"
 import {GiftCardDeleteDataTypeRef} from "./TypeRefs.js"
 import {LocationServiceGetReturnTypeRef} from "./TypeRefs.js"
+import {MailAddressAliasGetInTypeRef} from "./TypeRefs.js"
 import {MailAddressAliasServiceReturnTypeRef} from "./TypeRefs.js"
 import {MailAddressAliasServiceDataTypeRef} from "./TypeRefs.js"
 import {MailAddressAliasServiceDataDeleteTypeRef} from "./TypeRefs.js"
@@ -262,7 +263,7 @@ export const LocationService = Object.freeze({
 export const MailAddressAliasService = Object.freeze({
 	app: "sys",
 	name: "MailAddressAliasService",
-	get: {data: null, return: MailAddressAliasServiceReturnTypeRef},
+	get: {data: MailAddressAliasGetInTypeRef, return: MailAddressAliasServiceReturnTypeRef},
 	post: {data: MailAddressAliasServiceDataTypeRef, return: null},
 	put: null,
 	delete: {data: MailAddressAliasServiceDataDeleteTypeRef, return: null},

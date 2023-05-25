@@ -150,15 +150,13 @@ export const enum InfoLink {
 	SpamRules = "https://tutanota.com/faq#spam",
 	DomainInfo = "https://tutanota.com/faq#custom-domain",
 	Whitelabel = "https://tutanota.com/faq#whitelabel",
+	ReferralLink = "https://tutanota.com/faq#refer-a-friend",
 	Webview = "https://tutanota.com/faq#webview",
 	Phishing = "https://tutanota.com/faq#phishing",
 	MailAuth = "https://tutanota.com/faq#mail-auth",
 	RunInBackground = "https://tutanota.com/faq#tray-desktop",
 	LoadImages = "https://tutanota.com/faq#load-images",
 	Usage = "https://tutanota.com/faq#usage",
-	//blog
-	PremiumProBusiness = "https://tutanota.com/blog/posts/premium-pro-business",
-	ReferralLink = "https://tutanota.com/faq#refer-a-friend",
 }
 
 /**

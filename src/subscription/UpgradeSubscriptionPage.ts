@@ -11,20 +11,22 @@ import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
-import { Keys } from "../api/common/TutanotaConstants"
+import { Keys, PlanType } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { locator } from "../api/main/MainLocator"
 import { UsageTest } from "@tutao/tutanota-usagetests"
-import { SubscriptionType, UpgradePriceType } from "./FeatureListProvider"
+import { UpgradePriceType } from "./FeatureListProvider"
 import { asPaymentInterval, PaymentInterval } from "./PriceUtils.js"
 import { lazy } from "@tutao/tutanota-utils"
 
 /** Subscription type passed from the website */
-export const SubscriptionTypeParameter = Object.freeze({
+export const PlanTypeParameter = Object.freeze({
 	FREE: "free",
-	PREMIUM: "premium",
-	TEAMS: "teams",
-	PRO: "pro",
+	REVOLUTIONARY: "revolutionary",
+	LEGEND: "legend",
+	ESSENTIAL: "essential",
+	ADVANCED: "advanced",
+	UNLIMITED: "unlimited",
 })
 
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
@@ -56,35 +58,33 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
 		const data = vnode.attrs.data
 		const subscriptionActionButtons: SubscriptionActionButtons = {
-			Free: () => {
+			[PlanType.Free]: () => {
 				return {
 					label: "pricing.select_action",
 					click: () => this.selectFree(data),
 					type: ButtonType.Login,
-				}
+				} as ButtonAttrs
 			},
-			Premium: this.createUpgradeButton(data, SubscriptionType.Premium),
-			PremiumBusiness: this.createUpgradeButton(data, SubscriptionType.PremiumBusiness),
-			Teams: this.createUpgradeButton(data, SubscriptionType.Teams),
-			TeamsBusiness: this.createUpgradeButton(data, SubscriptionType.TeamsBusiness),
-			Pro: this.createUpgradeButton(data, SubscriptionType.Pro),
+			[PlanType.Revolutionary]: this.createUpgradeButton(data, PlanType.Revolutionary),
+			[PlanType.Legend]: this.createUpgradeButton(data, PlanType.Legend),
+			[PlanType.Essential]: this.createUpgradeButton(data, PlanType.Essential),
+			[PlanType.Advanced]: this.createUpgradeButton(data, PlanType.Advanced),
+			[PlanType.Unlimited]: this.createUpgradeButton(data, PlanType.Unlimited),
 		}
 		return m("#upgrade-account-dialog.pt", [
 			m(SubscriptionSelector, {
 				options: data.options,
-				campaignInfoTextId: data.campaignInfoTextId,
-				referralCodeMsg: data.referralCodeMsg,
+				priceInfoTextId: data.priceInfoTextId,
 				boxWidth: 230,
 				boxHeight: 270,
-				isInitialUpgrade: data.upgradeType !== UpgradeType.Switch,
-				currentSubscriptionType: data.currentSubscription,
-				currentlySharingOrdered: false,
-				currentlyBusinessOrdered: false,
-				currentlyWhitelabelOrdered: false,
-				orderedContactForms: 0,
+				acceptedPlans: vnode.attrs.data.acceptedPlans,
+				allowSwitchingPaymentInterval: data.upgradeType !== UpgradeType.Switch,
+				currentPlanType: data.currentPlan,
 				actionButtons: subscriptionActionButtons,
 				featureListProvider: vnode.attrs.data.featureListProvider,
 				priceAndConfigProvider: vnode.attrs.data.planPrices,
+				multipleUsersAllowed: vnode.attrs.data.multipleUsersAllowed,
+				msg: data.msg,
 			}),
 		])
 	}
@@ -103,7 +103,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			if (confirmed) {
 				// Confirmation of free/business dialog (click on ok)
 				this.__signupFreeTest?.getStage(1).complete()
-				data.type = SubscriptionType.Free
+				data.type = PlanType.Free
 				data.price = "0"
 				data.priceNextYear = "0"
 				this.showNextPage()
@@ -123,16 +123,16 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			data.options.businessUse(false)
 
 			switch (subscriptionParameters.subscription) {
-				case SubscriptionTypeParameter.FREE:
+				case PlanTypeParameter.FREE:
 					this.selectFree(data)
 					break
 
-				case SubscriptionTypeParameter.PREMIUM:
-					this.setNonFreeDataAndGoToNextPage(data, SubscriptionType.Premium)
+				case PlanTypeParameter.REVOLUTIONARY:
+					this.setNonFreeDataAndGoToNextPage(data, PlanType.Revolutionary)
 					break
 
-				case SubscriptionTypeParameter.TEAMS:
-					this.setNonFreeDataAndGoToNextPage(data, SubscriptionType.Teams)
+				case PlanTypeParameter.LEGEND:
+					this.setNonFreeDataAndGoToNextPage(data, PlanType.Legend)
 					break
 
 				default:
@@ -143,16 +143,16 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			data.options.businessUse(true)
 
 			switch (subscriptionParameters.subscription) {
-				case SubscriptionTypeParameter.PREMIUM:
-					this.setNonFreeDataAndGoToNextPage(data, SubscriptionType.PremiumBusiness)
+				case PlanTypeParameter.ESSENTIAL:
+					this.setNonFreeDataAndGoToNextPage(data, PlanType.Essential)
 					break
 
-				case SubscriptionTypeParameter.TEAMS:
-					this.setNonFreeDataAndGoToNextPage(data, SubscriptionType.TeamsBusiness)
+				case PlanTypeParameter.ADVANCED:
+					this.setNonFreeDataAndGoToNextPage(data, PlanType.Advanced)
 					break
 
-				case SubscriptionTypeParameter.PRO:
-					this.setNonFreeDataAndGoToNextPage(data, SubscriptionType.Pro)
+				case PlanTypeParameter.UNLIMITED:
+					this.setNonFreeDataAndGoToNextPage(data, PlanType.Unlimited)
 					break
 
 				default:
@@ -164,7 +164,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		}
 	}
 
-	setNonFreeDataAndGoToNextPage(data: UpgradeSubscriptionData, subscriptionType: SubscriptionType): void {
+	setNonFreeDataAndGoToNextPage(data: UpgradeSubscriptionData, planType: PlanType): void {
 		// Confirmation of paid subscription selection (click on subscription selector)
 		if (this.__signupFreeTest) {
 			this.__signupFreeTest.active = false
@@ -174,7 +174,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			this.__signupPaidTest.active = true
 			this.__signupPaidTest.getStage(0).complete()
 		}
-		data.type = subscriptionType
+		data.type = planType
 		const { planPrices, options } = data
 		data.price = String(planPrices.getSubscriptionPrice(options.paymentInterval(), data.type, UpgradePriceType.PlanActualPrice))
 		let nextYear = String(planPrices.getSubscriptionPrice(options.paymentInterval(), data.type, UpgradePriceType.PlanNextYearsPrice))
@@ -182,10 +182,10 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		this.showNextPage()
 	}
 
-	createUpgradeButton(data: UpgradeSubscriptionData, subscriptionType: SubscriptionType): lazy<ButtonAttrs> {
+	createUpgradeButton(data: UpgradeSubscriptionData, planType: PlanType): lazy<ButtonAttrs> {
 		return () => ({
 			label: "pricing.select_action",
-			click: () => this.setNonFreeDataAndGoToNextPage(data, subscriptionType),
+			click: () => this.setNonFreeDataAndGoToNextPage(data, planType),
 			type: ButtonType.Login,
 		})
 	}
@@ -255,8 +255,6 @@ function confirmFreeSubscription(): Promise<boolean> {
 
 export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
 	data: UpgradeSubscriptionData
-	subscriptionType: string | null = null
-	hideAllPagingButtons = true
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
 		this.data = upgradeData

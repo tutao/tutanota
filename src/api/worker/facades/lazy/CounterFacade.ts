@@ -1,19 +1,30 @@
-import { createReadCounterData } from "../../../entities/monitor/TypeRefs.js"
+import { CounterValue, createReadCounterData } from "../../../entities/monitor/TypeRefs.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { CounterService } from "../../../entities/monitor/Services.js"
+import { CounterType } from "../../../common/TutanotaConstants.js"
 
 assertWorkerOrNode()
 
 export class CounterFacade {
 	constructor(private readonly serviceExecutor: IServiceExecutor) {}
 
-	async readCounterValue(monitorValue: string, ownerId: Id): Promise<NumberString | null> {
+	async readCounterValue(counterType: CounterType, rowName: string, columnName: Id): Promise<number> {
 		const counterData = createReadCounterData({
-			monitor: monitorValue,
-			owner: ownerId,
+			counterType,
+			rowName,
+			columnName,
 		})
 		const counterReturn = await this.serviceExecutor.get(CounterService, counterData)
-		return counterReturn.value
+		return Number(counterReturn.counterValues[0].value)
+	}
+
+	async readAllCustomerCounterValues(counterType: CounterType, customerId: Id): Promise<CounterValue[]> {
+		const counterData = createReadCounterData({
+			counterType,
+			rowName: customerId,
+		})
+		const counterReturn = await this.serviceExecutor.get(CounterService, counterData)
+		return counterReturn.counterValues
 	}
 }

@@ -6,14 +6,9 @@ import stream from "mithril/stream"
 import { EntityUpdateData, EventController, isUpdateFor, isUpdateForTypeRef } from "../../api/main/EventController.js"
 import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { getAvailableDomains } from "./MailAddressesUtils.js"
-import { CustomerInfoTypeRef, GroupInfo, GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { GroupInfo, GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, lazyMemoized } from "@tutao/tutanota-utils"
 import { isTutanotaMailAddress } from "../../mail/model/MailUtils.js"
-
-export interface AliasCount {
-	availableToCreate: number
-	availableToEnable: number
-}
 
 export enum AddressStatus {
 	Primary,
@@ -42,12 +37,10 @@ export interface MailAddressNameChanger {
 /** Model for showing the list of mail addresses and optionally adding more, enabling/disabling/setting names for them. */
 export class MailAddressTableModel {
 	readonly redraw = stream<void>()
-	private _aliasCount: AliasCount | null = null
 	private nameMappings: AddressToName | null = null
 
 	init: () => Promise<void> = lazyMemoized(async () => {
 		this.eventController.addEntityListener(this.entityEventsReceived)
-		await this.updateAliasCount()
 		await this.loadNames()
 		this.redraw()
 	})
@@ -100,29 +93,13 @@ export class MailAddressTableModel {
 		return [primaryAddressInfo, ...aliasesInfo]
 	}
 
-	aliasCount(): AliasCount | null {
-		return this._aliasCount
-	}
-
 	async setAliasName(address: string, senderName: string) {
 		this.nameMappings = await this.nameChanger.setSenderName(address, senderName)
 		this.redraw()
 	}
 
-	private async updateAliasCount() {
-		const mailAddressAliasServiceReturn = await this.mailAddressFacade.getAliasCounters()
-		const newNbr = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases) - Number(mailAddressAliasServiceReturn.usedAliases))
-		const newNbrToEnable = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases) - Number(mailAddressAliasServiceReturn.enabledAliases))
-		this._aliasCount = {
-			availableToCreate: newNbr,
-			availableToEnable: newNbrToEnable,
-		}
-		this.redraw()
-	}
-
 	async addAlias(alias: string, senderName: string): Promise<void> {
 		await this.mailAddressFacade.addMailAlias(this.userGroupInfo.group, alias)
-		await this.updateAliasCount()
 		await this.setAliasName(alias, senderName)
 	}
 
@@ -135,23 +112,6 @@ export class MailAddressTableModel {
 		this.redraw()
 		this.nameMappings = await this.nameChanger.removeSenderName(address)
 		this.redraw()
-		await this.updateAliasCount()
-	}
-
-	checkTryingToAddAlias(): "loading" | "freeaccount" | "limitreached" | "notanadmin" | "ok" {
-		if (!this.logins.getUserController().isGlobalAdmin()) {
-			return "notanadmin"
-		} else if (this._aliasCount == null) {
-			return "loading"
-		} else if (this._aliasCount.availableToCreate === 0) {
-			if (this.logins.getUserController().isFreeAccount()) {
-				return "freeaccount"
-			} else {
-				return "limitreached"
-			}
-		} else {
-			return "ok"
-		}
 	}
 
 	defaultSenderName(): string {
@@ -162,8 +122,6 @@ export class MailAddressTableModel {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 				await this.loadNames()
-			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
-				await this.updateAliasCount()
 			} else if (isUpdateFor(this.userGroupInfo, update) && update.operation === OperationType.UPDATE) {
 				this.userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userGroupInfo._id)
 			}

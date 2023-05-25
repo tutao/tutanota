@@ -3,7 +3,7 @@ import { assertMainOrNode, isApp } from "../api/common/Env"
 import { lang } from "../misc/LanguageViewModel"
 import type { MailboxGroupRoot, MailboxProperties, OutOfOfficeNotification, TutanotaProperties } from "../api/entities/tutanota/TypeRefs.js"
 import { MailboxPropertiesTypeRef, MailFolderTypeRef, OutOfOfficeNotificationTypeRef, TutanotaPropertiesTypeRef } from "../api/entities/tutanota/TypeRefs.js"
-import { FeatureType, InboxRuleType, OperationType, ReportMovedMailsType } from "../api/common/TutanotaConstants"
+import { Const, FeatureType, InboxRuleType, OperationType, ReportMovedMailsType } from "../api/common/TutanotaConstants"
 import { capitalizeFirstLetter, defer, LazyLoaded, noOp, ofClass } from "@tutao/tutanota-utils"
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import { MailAddressTable } from "./mailaddress/MailAddressTable.js"
@@ -41,6 +41,8 @@ import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { getReportMovedMailsType } from "../misc/MailboxPropertiesUtils.js"
 import { MailAddressTableModel } from "./mailaddress/MailAddressTableModel.js"
 import { getEnabledMailAddressesForGroupInfo } from "../api/common/utils/GroupUtils.js"
+import { formatStorageSize } from "../misc/Formatter.js"
+import { CustomerInfo } from "../api/entities/sys/TypeRefs.js"
 
 assertMainOrNode()
 
@@ -59,6 +61,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_identifierListViewer: IdentifierListViewer
 	_outOfOfficeNotification: LazyLoaded<OutOfOfficeNotification | null>
 	_outOfOfficeStatus: Stream<string> // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
+	private _storageFieldValue: Stream<string>
+	private customerInfo: CustomerInfo | null
 	private mailAddressTableModel: MailAddressTableModel | null = null
 
 	private offlineStorageSettings = new OfflineStorageSettingsModel(locator.logins.getUserController(), deviceConfig)
@@ -97,13 +101,33 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 		this._outOfOfficeNotification.getAsync().then(() => this._updateOutOfOfficeNotification())
 
+		this.customerInfo = null
+		this._storageFieldValue = stream("")
+
 		this.offlineStorageSettings.init().then(() => m.redraw())
+	}
+
+	async oninit(): Promise<void> {
+		this.customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+		this.updateStorageField(this.customerInfo).then(() => m.redraw())
 	}
 
 	private async getMailboxGroupRoot(): Promise<MailboxGroupRoot> {
 		// For now we assume user mailbox, in the future we should specify which mailbox we are configuring
 		const { mailboxGroupRoot } = await locator.mailModel.getUserMailboxDetails()
 		return mailboxGroupRoot
+	}
+
+	private async updateStorageField(customerInfo: CustomerInfo): Promise<void> {
+		const user = locator.logins.getUserController().user
+		const usedStorage = formatStorageSize(Number(await locator.userManagementFacade.readUsedUserStorage(user)))
+		const totalStorage = formatStorageSize(Number(customerInfo.perUserStorageCapacity) * Const.MEMORY_GB_FACTOR)
+		this._storageFieldValue(
+			lang.get("amountUsedOf_label", {
+				"{amount}": usedStorage,
+				"{totalAmount}": totalStorage,
+			}),
+		)
 	}
 
 	view(): Children {
@@ -296,6 +320,17 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					},
 				},
 				[
+					this.customerInfo != null && Number(this.customerInfo.perUserStorageCapacity) > 0
+						? [
+								m(".h4.mt-l", lang.get("storageCapacity_label")),
+								m(TextField, {
+									label: "storageCapacity_label",
+									value: this._storageFieldValue(),
+									oninput: this._storageFieldValue,
+									disabled: true,
+								}),
+						  ]
+						: null,
 					m(".h4.mt-l", lang.get("emailSending_label")),
 					m(DropDownSelector, defaultSenderAttrs),
 					m(TextField, signatureAttrs),
@@ -366,7 +401,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 	private async onEditStoredDataTimeRangeClicked() {
 		if (locator.logins.getUserController().isFreeAccount()) {
-			showNotAvailableForFreeDialog(true, "offlineStoragePremiumOnly_msg")
+			showNotAvailableForFreeDialog()
 		} else {
 			await showEditStoredDataTimeRangeDialog(this.offlineStorageSettings)
 			m.redraw()

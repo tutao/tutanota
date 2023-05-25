@@ -21,10 +21,9 @@ import { elementIdPart, GENERATED_MAX_ID } from "../api/common/utils/EntityUtils
 import { ListColumnWrapper } from "../gui/ListColumnWrapper.js"
 import { assertMainOrNode } from "../api/common/Env.js"
 import { locator } from "../api/main/MainLocator.js"
-import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs.js"
+import Stream from "mithril/stream"
 import * as AddUserDialog from "./AddUserDialog.js"
 import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } from "../gui/SelectableRowContainer.js"
-import Stream from "mithril/stream"
 
 assertMainOrNode()
 const className = "user-list"
@@ -170,11 +169,7 @@ export class UserListView implements UpdatableSettingsViewer {
 	}
 
 	private addButtonClicked() {
-		if (locator.logins.getUserController().isFreeAccount()) {
-			showNotAvailableForFreeDialog(false)
-		} else {
-			AddUserDialog.show()
-		}
+		AddUserDialog.show()
 	}
 
 	entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {

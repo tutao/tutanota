@@ -4,7 +4,7 @@ import { Dialog } from "../gui/base/Dialog"
 import { formatDateWithMonth, formatStorageSize } from "../misc/Formatter"
 import { lang } from "../misc/LanguageViewModel"
 import type { Customer, GroupInfo, GroupMembership, User } from "../api/entities/sys/TypeRefs.js"
-import { CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap, remove } from "@tutao/tutanota-utils"
 import { BookingItemFeatureType, GroupType, OperationType } from "../api/common/TutanotaConstants"
 import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../api/common/error/RestError"
@@ -23,7 +23,6 @@ import { checkAndImportUserData, CSV_USER_FORMAT } from "./ImportUsersViewer"
 import { MailAddressTable } from "./mailaddress/MailAddressTable.js"
 import { compareGroupInfos, getGroupInfoDisplayName } from "../api/common/utils/GroupUtils"
 import { CUSTOM_MIN_ID, isSameId } from "../api/common/utils/EntityUtils"
-import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs"
 import { showBuyDialog } from "../subscription/BuyDialog"
 import { TextField } from "../gui/base/TextField.js"
 import { locator } from "../api/main/MainLocator"
@@ -34,6 +33,7 @@ import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { MailAddressTableModel } from "./mailaddress/MailAddressTableModel.js"
 import { progressIcon } from "../gui/base/Icon.js"
+import { toFeatureType } from "../subscription/SubscriptionUtils.js"
 
 assertMainOrNode()
 
@@ -458,7 +458,16 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private async deleteUser() {
-		const confirmed = await showBuyDialog({ featureType: BookingItemFeatureType.Users, count: -1, freeAmount: 0, reactivate: false })
+		const planType = await locator.logins.getUserController().getPlanType()
+		const newPlan = await locator.logins.getUserController().isNewPaidPlan()
+
+		const confirmed = await showBuyDialog({
+			featureType: newPlan ? toFeatureType(planType) : BookingItemFeatureType.Users,
+			bookingText: "cancelUserAccounts_label",
+			count: -1,
+			freeAmount: 0,
+			reactivate: false,
+		})
 		if (confirmed) {
 			return locator.userManagementFacade
 				.deleteUser(await this.user.getAsync(), false)
@@ -467,7 +476,15 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private async restoreUser() {
-		const confirmed = await showBuyDialog({ featureType: BookingItemFeatureType.Users, count: 1, freeAmount: 0, reactivate: true })
+		const planType = await locator.logins.getUserController().getPlanType()
+		const newPlan = await locator.logins.getUserController().isNewPaidPlan()
+		const confirmed = await showBuyDialog({
+			featureType: newPlan ? toFeatureType(planType) : BookingItemFeatureType.Users,
+			bookingText: "bookingItemUsersIncluding_label",
+			count: 1,
+			freeAmount: 0,
+			reactivate: true,
+		})
 		if (confirmed) {
 			await locator.userManagementFacade
 				.deleteUser(await this.user.getAsync(), true)
@@ -533,14 +550,9 @@ export function showUserImportDialog(customDomains: string[]) {
 		title: lang.get("importUsers_action"),
 		child: form,
 		okAction: (csvDialog) => {
-			if (locator.logins.getUserController().isFreeAccount()) {
-				showNotAvailableForFreeDialog(false)
-			} else {
-				let closeCsvDialog = checkAndImportUserData(editor.getValue(), customDomains)
-
-				if (closeCsvDialog) {
-					csvDialog.close()
-				}
+			let closeCsvDialog = checkAndImportUserData(editor.getValue(), customDomains)
+			if (closeCsvDialog) {
+				csvDialog.close()
 			}
 		},
 	})

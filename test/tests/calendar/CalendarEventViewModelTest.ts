@@ -232,9 +232,9 @@ o.spec("CalendarEventViewModel", function () {
 
 	let askForUpdates: any
 	let askInsecurePassword: any
-	o.before(function () {
+	o.before(async function () {
 		// We need this because SendMailModel queries for default language. We should refactor to avoid this.
-		lang.init(en)
+		await lang.init(en)
 	})
 	o.beforeEach(function () {
 		askForUpdates = o.spy(async () => "yes")
@@ -1360,7 +1360,7 @@ o.spec("CalendarEventViewModel", function () {
 		})
 	})
 	o.spec("create event", function () {
-		o("own calendar, no guests", async function () {
+		o("own calendar, no guest, legacy with business feature", async function () {
 			const calendars = makeCalendars("own")
 			const calendarModel = makeCalendarModel()
 			const distributor = makeDistributor()
@@ -1389,6 +1389,57 @@ o.spec("CalendarEventViewModel", function () {
 			o(distributor.sendInvite.callCount).equals(0)
 			// @ts-ignore
 			o(distributor.sendCancellation.callCount).equals(0)
+			o(askForUpdates.callCount).equals(0)
+			o(askInsecurePassword.callCount).equals(0)
+		})
+		o("own calendar, new guests, newPaidAccount", async function () {
+			const calendars = makeCalendars("own")
+			const calendarModel = makeCalendarModel()
+			const distributor = makeDistributor()
+			const userController = makeUserController([], AccountType.PREMIUM, "", false, true)
+			const viewModel = await init({
+				userController,
+				calendars,
+				existingEvent: null,
+				calendarModel,
+				distributor,
+			})
+			const newGuest = "new-attendee@example.com"
+			viewModel.addGuest(newGuest, null)
+			askInsecurePassword = o.spy(async () => true)
+			o(
+				await viewModel.saveAndSend({
+					askForUpdates,
+					askInsecurePassword,
+					showProgress,
+				}),
+			).equals(true)
+			// @ts-ignore
+			o(calendarModel.createEvent.calls.length).equals(1)("created event")
+			// @ts-ignore
+			o(distributor.sendInvite.calls[0].args[1]).deepEquals(inviteModel)
+			// @ts-ignore
+			o(distributor.sendCancellation.callCount).equals(0)
+			o(inviteModel.bccRecipients().map((r) => r.address)).deepEquals([newGuest])
+			// @ts-ignore
+			const createdEvent = calendarModel.createEvent.calls[0].args[0]
+			o(
+				createdEvent.attendees.map((a) => ({
+					status: a.status,
+					address: a.address,
+				})),
+			).deepEquals([
+				{
+					status: CalendarAttendeeStatus.ACCEPTED,
+					address: encMailAddress,
+				},
+				{
+					status: CalendarAttendeeStatus.NEEDS_ACTION,
+					address: createEncryptedMailAddress({
+						address: newGuest,
+					}),
+				},
+			])
 			o(askForUpdates.callCount).equals(0)
 			o(askInsecurePassword.callCount).equals(0)
 		})
@@ -3032,7 +3083,7 @@ o.spec("CalendarEventViewModel", function () {
 				calendars: makeCalendars("own"),
 				existingEvent: null,
 			})
-			const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
+			const notAvailable = await viewModel.shouldShowSendInviteNotAvailable()
 			o(notAvailable).equals(true)
 		})
 		o("not available for premium users without business subscription", async function () {
@@ -3043,7 +3094,7 @@ o.spec("CalendarEventViewModel", function () {
 				existingEvent: null,
 			})
 			await viewModel.updateCustomerFeatures()
-			const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
+			const notAvailable = await viewModel.shouldShowSendInviteNotAvailable()
 			o(notAvailable).equals(true)
 		})
 		o("available for premium users with business subscription", async function () {
@@ -3054,7 +3105,7 @@ o.spec("CalendarEventViewModel", function () {
 				existingEvent: null,
 			})
 			await viewModel.updateCustomerFeatures()
-			const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
+			const notAvailable = await viewModel.shouldShowSendInviteNotAvailable()
 			o(notAvailable).equals(false)
 		})
 		o("available for external users", async function () {
@@ -3065,7 +3116,7 @@ o.spec("CalendarEventViewModel", function () {
 				existingEvent: null,
 			})
 			await viewModel.updateCustomerFeatures()
-			const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
+			const notAvailable = await viewModel.shouldShowSendInviteNotAvailable()
 			o(notAvailable).equals(false)
 		})
 	})

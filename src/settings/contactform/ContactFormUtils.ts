@@ -17,12 +17,6 @@ export function getDefaultContactFormLanguage(supportedLanguages: ContactFormLan
 		language = supportedLanguages[0]
 	}
 
-	if (!language) {
-		// FIXME: only needed for existing contact forms remove after all existing contact forms have been saved.
-		language = createContactFormLanguage()
-		language.code = lang.code
-	}
-
 	return language
 }
 

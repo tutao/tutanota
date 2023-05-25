@@ -10,7 +10,6 @@ import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { TableAttrs } from "../../gui/base/Table.js"
 import { ColumnWidth, Table } from "../../gui/base/Table.js"
-import { theme } from "../../gui/theme"
 import type { WizardPageAttrs } from "../../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../gui/base/WizardDialog.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
@@ -32,7 +31,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 	}
 
 	onremove({ attrs }: Vnode<AddEmailAddressesPageAttrs>) {
-		attrs.data.editAliasFormAttrs.model.dispose()
+		// MailAddressTableModel.dispose is handled by the AddDomainWizard close action in order to allow going back and forth navigation within the wizard dialog.
 	}
 
 	view(vnode: Vnode<AddEmailAddressesPageAttrs>): Children {
@@ -71,29 +70,9 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 		}
 		return m("", [
 			m("h4.mt-l.text-center", lang.get("addCustomDomainAddresses_title")),
-			m(".mt.mb", lang.get("addCustomDomainAdresses_msg")),
-			m(".h4.mt", lang.get("emailAlias_label")),
-			m(".mt", lang.get("addCustomDomainAliases_msg")),
+			m(".mt.mb", lang.get("addCustomDomainAddAdresses_msg")),
 			m(SelectMailAddressForm, mailFormAttrs),
-			this.renderAliasCount(a),
 			locator.logins.getUserController().userGroupInfo.mailAddressAliases.length ? m(Table, aliasesTableAttrs) : null,
-			m(".h4.mt", lang.get("bookingItemUsers_label")),
-			m(".mt", [
-				lang.get("addCustomDomainUsers_msg"),
-				" ",
-				m(
-					"span.nav-button",
-					{
-						style: {
-							color: theme.content_accent,
-						},
-						onclick: (e: MouseEvent) => {
-							this.showAddUsersDialog(e.target as HTMLElement)
-						},
-					},
-					lang.get("adminUserList_action"),
-				),
-			]),
 			m(
 				".flex-center.full-width.pt-l.mb-l",
 				m(
@@ -111,36 +90,6 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 				),
 			),
 		])
-	}
-
-	private renderAliasCount(a: AddEmailAddressesPageAttrs): Children {
-		const model = a.data.editAliasFormAttrs.model
-		const aliasCount = model.aliasCount()
-		if (aliasCount == null) {
-			return null
-		}
-		return m(
-			".small.left",
-			aliasCount.availableToCreate === 0
-				? lang.get("adminMaxNbrOfAliasesReached_msg")
-				: lang.get("mailAddressAliasesMaxNbr_label", { "{1}": aliasCount.availableToCreate }),
-		)
-	}
-
-	private showAddUsersDialog(dom: HTMLElement) {
-		Dialog.showActionDialog({
-			title: lang.get("addUsers_title"),
-			child: {
-				view: () => {
-					return [m("p", lang.get("userManagementRedirect_msg"))]
-				},
-			},
-			okAction: (confirmationDialog) => {
-				m.route.set("/settings/users")
-				confirmationDialog.close()
-				emitWizardEvent(dom, WizardEventType.CLOSEDIALOG)
-			},
-		})
 	}
 }
 

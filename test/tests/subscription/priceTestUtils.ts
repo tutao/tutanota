@@ -1,4 +1,3 @@
-import { PriceAndConfigProvider } from "../../../src/subscription/PriceUtils.js"
 import { matchers, object, when } from "testdouble"
 import { IServiceExecutor } from "../../../src/api/common/ServiceRequest.js"
 import { UpgradePriceService } from "../../../src/api/entities/sys/Services.js"
@@ -7,6 +6,7 @@ import { createPlanPrices } from "../../../src/api/entities/sys/TypeRefs.js"
 export const PLAN_PRICES = {
 	PremiumBusiness: createPlanPrices({
 		additionalUserPriceMonthly: "2.40",
+		business: true,
 		contactFormPriceMonthly: "24.00",
 		firstYearDiscount: "0",
 		includedAliases: "5",
@@ -16,6 +16,7 @@ export const PLAN_PRICES = {
 	}),
 	Premium: createPlanPrices({
 		additionalUserPriceMonthly: "1.20",
+		business: false,
 		contactFormPriceMonthly: "24.00",
 		firstYearDiscount: "0",
 		includedAliases: "5",
@@ -25,6 +26,7 @@ export const PLAN_PRICES = {
 	}),
 	Pro: createPlanPrices({
 		additionalUserPriceMonthly: "4.80",
+		business: true,
 		contactFormPriceMonthly: "24.00",
 		firstYearDiscount: "0",
 		includedAliases: "20",
@@ -34,6 +36,7 @@ export const PLAN_PRICES = {
 	}),
 	TeamsBusiness: createPlanPrices({
 		additionalUserPriceMonthly: "3.60",
+		business: true,
 		contactFormPriceMonthly: "24.00",
 		firstYearDiscount: "0",
 		includedAliases: "5",
@@ -43,6 +46,7 @@ export const PLAN_PRICES = {
 	}),
 	Teams: createPlanPrices({
 		additionalUserPriceMonthly: "2.40",
+		business: false,
 		contactFormPriceMonthly: "24.00",
 		firstYearDiscount: "0",
 		includedAliases: "5",
@@ -50,12 +54,28 @@ export const PLAN_PRICES = {
 		monthlyPrice: "4.80",
 		monthlyReferencePrice: "4.80",
 	}),
+	Revolutionary: createPlanPrices({
+		additionalUserPriceMonthly: "3.60",
+		business: true,
+		contactFormPriceMonthly: "24.00",
+		firstYearDiscount: "0",
+		includedAliases: "15",
+		includedStorage: "20",
+		monthlyPrice: "3.60",
+		monthlyReferencePrice: "3.60",
+		sharing: true,
+		whitelabel: false,
+	}),
 }
 
 /**
  * gives a real PriceAndConfigProvider with mocked data
  */
-export async function createPriceMock(planPrices: typeof PLAN_PRICES = PLAN_PRICES): Promise<PriceAndConfigProvider> {
+export async function createUpgradePriceServiceMock(
+	planPrices: typeof PLAN_PRICES = PLAN_PRICES,
+	registrationDataId: string | null = null,
+	bonusMonths: number = 0,
+): Promise<IServiceExecutor> {
 	const executorMock = object<IServiceExecutor>()
 	when(executorMock.get(UpgradePriceService, matchers.anything())).thenResolve({
 		premiumPrices: planPrices.Premium,
@@ -63,6 +83,8 @@ export async function createPriceMock(planPrices: typeof PLAN_PRICES = PLAN_PRIC
 		teamsPrices: planPrices.Teams,
 		teamsBusinessPrices: planPrices.TeamsBusiness,
 		proPrices: planPrices.Pro,
+		revolutionaryPrices: planPrices.Revolutionary,
+		bonusMonthsForYearlyPlan: String(bonusMonths),
 	})
-	return await PriceAndConfigProvider.getInitializedInstance(null, executorMock)
+	return executorMock
 }

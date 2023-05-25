@@ -1,10 +1,11 @@
 import { LoginController } from "../api/main/LoginController.js"
-import { CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { assertNotNull, mapNullable, pad, promiseMap, renderCsv, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
+import { CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { assertNotNull, mapNullable, neverNull, pad, promiseMap, renderCsv, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { FileController } from "../file/FileController.js"
 import { createDataFile } from "../api/common/DataFile.js"
+import { CounterFacade } from "../api/worker/facades/lazy/CounterFacade.js"
+import { CounterType } from "../api/common/TutanotaConstants.js"
 
 export const CSV_MIMETYPE = "text/csv"
 export const USER_CSV_FILENAME = "users.csv"
@@ -18,13 +19,8 @@ interface UserExportData {
 	aliases: Array<string>
 }
 
-export async function exportUserCsv(
-	entityClient: EntityClient,
-	userManagementFacade: UserManagementFacade,
-	logins: LoginController,
-	fileController: FileController,
-) {
-	const data = await loadUserExportData(entityClient, userManagementFacade, logins)
+export async function exportUserCsv(entityClient: EntityClient, logins: LoginController, fileController: FileController, counterFacade: CounterFacade) {
+	const data = await loadUserExportData(entityClient, logins, counterFacade)
 	const csv = renderCsv(
 		["name", "mail address", "date created", "date deleted", "storage used (in bytes)", "aliases"],
 		data.map((user) => [
@@ -47,11 +43,7 @@ function formatDate(date: Date): string {
 /**
  * Load data for each user administrated by the logged in user, in order to be exported
  */
-export async function loadUserExportData(
-	entityClient: EntityClient,
-	userManagementFacade: UserManagementFacade,
-	logins: LoginController,
-): Promise<Array<UserExportData>> {
+export async function loadUserExportData(entityClient: EntityClient, logins: LoginController, counterFacade: CounterFacade): Promise<Array<UserExportData>> {
 	const { user } = logins.getUserController()
 	const { userGroups } = await entityClient.load(CustomerTypeRef, assertNotNull(user.customer))
 
@@ -67,10 +59,11 @@ export async function loadUserExportData(
 		// otherwise we only keep group infos of users who the logged in user administrates
 		(info) => logins.getUserController().isGlobalAdmin() || (info.localAdmin && localAdminGroupIds.has(info.localAdmin)),
 	)
+	const usedCustomerStorageCounterValues = await counterFacade.readAllCustomerCounterValues(CounterType.UserStorageLegacy, neverNull(user.customer))
 	return promiseMap(groupsAdministeredByUser, async (info) => {
 		const group = await entityClient.load(GroupTypeRef, info.group)
-		const user = await entityClient.load(UserTypeRef, assertNotNull(group.user))
-		const usedStorage = await userManagementFacade.readUsedUserStorage(user)
+		const userStorageCounterValue = usedCustomerStorageCounterValues.find((counterValue) => counterValue.counterId === group.storageCounter)
+		const usedStorage = userStorageCounterValue != null ? Number(userStorageCounterValue.value) : 0
 
 		return {
 			name: info.name,

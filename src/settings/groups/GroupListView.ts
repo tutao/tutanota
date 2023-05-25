@@ -20,7 +20,6 @@ import { isUpdateForTypeRef } from "../../api/main/EventController.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { compareGroupInfos } from "../../api/common/utils/GroupUtils.js"
 import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils.js"
-import { showNotAvailableForFreeDialog } from "../../misc/SubscriptionDialogs.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { ListColumnWrapper } from "../../gui/ListColumnWrapper.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
@@ -156,11 +155,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 	}
 
 	addButtonClicked() {
-		if (locator.logins.getUserController().isFreeAccount()) {
-			showNotAvailableForFreeDialog(false)
-		} else {
-			AddGroupDialog.show()
-		}
+		AddGroupDialog.show()
 	}
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {

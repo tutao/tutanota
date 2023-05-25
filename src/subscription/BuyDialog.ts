@@ -1,15 +1,14 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertNotNull, filterInt, incrementDate, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, filterInt, incrementDate, ofClass } from "@tutao/tutanota-utils"
 import { TextField, TextFieldType } from "../gui/base/TextField.js"
 import { Dialog, DialogType } from "../gui/base/Dialog.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { AccountType, BookingItemFeatureType, FeatureType } from "../api/common/TutanotaConstants.js"
 import { formatDate } from "../misc/Formatter.js"
 import type { PriceData, PriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
-import { AccountingInfoTypeRef, CustomerInfoTypeRef, CustomerTypeRef, PriceItemData } from "../api/entities/sys/TypeRefs.js"
+import { AccountingInfoTypeRef, PriceItemData } from "../api/entities/sys/TypeRefs.js"
 import { NotAuthorizedError } from "../api/common/error/RestError.js"
 import { asPaymentInterval, formatPrice, getPriceItem, PaymentInterval } from "./PriceUtils.js"
-import { bookItem } from "./SubscriptionUtils.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { locator } from "../api/main/MainLocator.js"
 import { assertMainOrNode } from "../api/common/Env.js"
@@ -18,6 +17,7 @@ assertMainOrNode()
 
 export interface BookingParams {
 	featureType: BookingItemFeatureType
+	bookingText: TranslationKey
 	count: number
 	freeAmount: number
 	reactivate: boolean
@@ -33,7 +33,7 @@ export async function showBuyDialog(params: BookingParams): Promise<boolean> {
 	const priceChangeModel = await showProgressDialog("pleaseWait_msg", prepareDialog(params))
 	if (priceChangeModel) {
 		return showDialog(priceChangeModel.getActionLabel(), () =>
-			m(ConfirmSubscriptionView, { priceChangeModel, count: params.count, freeAmount: params.freeAmount }),
+			m(ConfirmSubscriptionView, { priceChangeModel, count: params.count, freeAmount: params.freeAmount, bookingText: params.bookingText }),
 		)
 	} else {
 		return false
@@ -65,60 +65,6 @@ async function prepareDialog({ featureType, count, reactivate }: BookingParams):
 	}
 }
 
-/**
- * Shows the buy dialog to enable or disable the whitelabel package.
- * @param enable true if the whitelabel package should be enabled otherwise false.
- * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
- */
-export function showWhitelabelBuyDialog(enable: boolean): Promise<boolean> {
-	return showBuyDialogToBookItem(BookingItemFeatureType.Whitelabel, enable ? 1 : 0)
-}
-
-/**
- * Shows the buy dialog to enable or disable the sharing package.
- * @param enable true if the whitelabel package should be enabled otherwise false.
- * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
- */
-export async function showSharingBuyDialog(enable: boolean): Promise<boolean> {
-	const ok = enable ? true : await Dialog.confirm("sharingDeletionWarning_msg")
-	if (ok) {
-		return showBuyDialogToBookItem(BookingItemFeatureType.Sharing, enable ? 1 : 0)
-	} else {
-		return true
-	}
-}
-
-/**
- * Shows the buy dialog to enable or disable the business package.
- * @param enable true if the business package should be enabled otherwise false.
- * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
- */
-export async function showBusinessBuyDialog(enable: boolean): Promise<boolean> {
-	const ok = enable ? true : await Dialog.confirm("businessDeletionWarning_msg")
-	if (ok) {
-		return showBuyDialogToBookItem(BookingItemFeatureType.Business, enable ? 1 : 0)
-	} else {
-		return true
-	}
-}
-
-/**
- * @returns True if it failed, false otherwise
- */
-export async function showBuyDialogToBookItem(
-	bookingItemFeatureType: BookingItemFeatureType,
-	count: number,
-	freeAmount: number = 0,
-	reactivate: boolean = false,
-): Promise<boolean> {
-	const accepted = await showBuyDialog({ featureType: bookingItemFeatureType, count, freeAmount, reactivate })
-	if (accepted) {
-		return bookItem(bookingItemFeatureType, count)
-	} else {
-		return true
-	}
-}
-
 function showDialog(okLabel: TranslationKey, view: () => Children) {
 	return new Promise<boolean>((resolve) => {
 		let dialog: Dialog
@@ -143,6 +89,7 @@ interface ConfirmAttrs {
 	priceChangeModel: PriceChangeModel
 	count: number
 	freeAmount: number
+	bookingText: TranslationKey
 }
 
 class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
@@ -153,7 +100,9 @@ class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
 		return m("", [
 			m(TextField, {
 				label: "bookingOrder_label",
-				value: this.getBookingText(priceChangeModel, count, freeAmount),
+				value: lang.get(attrs.bookingText, {
+					"{1}": Math.abs(count),
+				}),
 				type: TextFieldType.Area,
 				disabled: true,
 			}),
@@ -172,116 +121,6 @@ class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
 				disabled: true,
 			}),
 		])
-	}
-
-	private getBookingText(model: PriceChangeModel, count: number, freeAmount: number): string {
-		if (model.isSinglePriceType()) {
-			switch (model.featureType) {
-				case BookingItemFeatureType.Users:
-					if (count > 0) {
-						const additionalFeatureLabels: string[] = []
-
-						if (model.additionalFeatures.has(BookingItemFeatureType.Whitelabel)) {
-							additionalFeatureLabels.push(lang.get("whitelabelFeature_label"))
-						}
-
-						if (model.additionalFeatures.has(BookingItemFeatureType.Sharing)) {
-							additionalFeatureLabels.push(lang.get("sharingFeature_label"))
-						}
-
-						if (model.additionalFeatures.has(BookingItemFeatureType.Business)) {
-							additionalFeatureLabels.push(lang.get("businessFeature_label"))
-						}
-
-						if (additionalFeatureLabels.length > 0) {
-							return count + " " + lang.get("bookingItemUsersIncluding_label") + " " + additionalFeatureLabels.join(", ")
-						} else {
-							return count + " " + lang.get("bookingItemUsers_label")
-						}
-					} else {
-						return lang.get("cancelUserAccounts_label", {
-							"{1}": Math.abs(count),
-						})
-					}
-				case BookingItemFeatureType.Whitelabel:
-					if (count > 0) {
-						return lang.get("whitelabelBooking_label", { "{1}": model.getFutureCount() })
-					} else {
-						return lang.get("cancelWhitelabelBooking_label", { "{1}": model.getCurrentCount() })
-					}
-				case BookingItemFeatureType.Sharing:
-					if (count > 0) {
-						return lang.get("sharingBooking_label", {
-							"{1}": model.getFutureCount(),
-						})
-					} else {
-						return lang.get("cancelSharingBooking_label", {
-							"{1}": model.getCurrentCount(),
-						})
-					}
-				case BookingItemFeatureType.Business:
-					if (count > 0) {
-						return lang.get("businessBooking_label", {
-							"{1}": model.getFutureCount(),
-						})
-					} else {
-						return lang.get("cancelBusinessBooking_label", {
-							"{1}": model.getCurrentCount(),
-						})
-					}
-				case BookingItemFeatureType.ContactForm:
-					if (count > 0) {
-						return count + " " + lang.get("contactForm_label")
-					} else {
-						return lang.get("cancelContactForm_label")
-					}
-				case BookingItemFeatureType.SharedMailGroup:
-					if (count > 0) {
-						return count + " " + lang.get(count === 1 ? "sharedMailbox_label" : "sharedMailboxes_label")
-					} else {
-						return lang.get("cancelSharedMailbox_label")
-					}
-				case BookingItemFeatureType.LocalAdminGroup:
-					if (count > 0) {
-						return count + " " + lang.get(count === 1 ? "localAdminGroup_label" : "localAdminGroups_label")
-					} else {
-						return lang.get("cancelLocalAdminGroup_label")
-					}
-				default:
-					return ""
-			}
-		} else {
-			let newPackageCount = 0
-
-			if (model.futureItem != null) {
-				newPackageCount = model.getFutureCount()
-			}
-
-			const visibleAmount = Math.max(count, freeAmount)
-
-			switch (model.featureType) {
-				case BookingItemFeatureType.Storage:
-					if (count < 1000) {
-						return lang.get("storageCapacity_label") + " " + visibleAmount + " GB"
-					} else {
-						return lang.get("storageCapacity_label") + " " + visibleAmount / 1000 + " TB"
-					}
-				case BookingItemFeatureType.Users:
-					if (count > 0) {
-						return lang.get("packageUpgradeUserAccounts_label", {
-							"{1}": newPackageCount,
-						})
-					} else {
-						return lang.get("packageDowngradeUserAccounts_label", {
-							"{1}": newPackageCount,
-						})
-					}
-				case BookingItemFeatureType.Alias:
-					return visibleAmount + " " + lang.get("mailAddressAliases_label")
-				default:
-					return ""
-			}
-		}
 	}
 
 	private getSubscriptionText(model: PriceChangeModel): string {

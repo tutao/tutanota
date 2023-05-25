@@ -17,12 +17,12 @@ import { PayloadTooLargeError } from "../api/common/error/RestError"
 import { SegmentControl } from "../gui/base/SegmentControl"
 import { insertInlineImageB64ClickHandler } from "../mail/view/MailViewerUtils"
 import { UserError } from "../api/main/UserError"
-import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs"
+import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../misc/SubscriptionDialogs"
 import { isWhitelabelActive } from "../subscription/SubscriptionUtils"
-import { showWhitelabelBuyDialog } from "../subscription/BuyDialog"
 import type { UserController } from "../api/main/UserController"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils"
 import { locator } from "../api/main/MainLocator"
+import { PlanType } from "../api/common/TutanotaConstants.js"
 
 export function showAddOrEditNotificationEmailDialog(userController: UserController, selectedNotificationLanguage?: string) {
 	let existingTemplate: NotificationMailTemplate | undefined = undefined
@@ -56,20 +56,22 @@ export function showAddOrEditNotificationEmailDialog(userController: UserControl
 	})
 }
 
-export function showBuyOrSetNotificationEmailDialog(
+export async function showBuyOrSetNotificationEmailDialog(
 	lastBooking: Booking | null,
 	customerProperties: LazyLoaded<CustomerProperties>,
 	existingTemplate?: NotificationMailTemplate,
-) {
+): Promise<void> {
 	if (locator.logins.getUserController().isFreeAccount()) {
-		showNotAvailableForFreeDialog(false)
+		showNotAvailableForFreeDialog([PlanType.Unlimited])
 	} else {
-		const whitelabelFailedPromise = isWhitelabelActive(lastBooking) ? Promise.resolve(false) : showWhitelabelBuyDialog(true)
-		whitelabelFailedPromise.then((failed) => {
-			if (!failed) {
-				show(existingTemplate ?? null, customerProperties)
-			}
-		})
+		const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+		let whitelabel = isWhitelabelActive(lastBooking, customerInfo)
+		if (!whitelabel) {
+			whitelabel = await showPlanUpgradeRequiredDialog([PlanType.Unlimited])
+		}
+		if (whitelabel) {
+			show(existingTemplate ?? null, customerProperties)
+		}
 	}
 }
 

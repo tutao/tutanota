@@ -12,6 +12,7 @@ import { TextField } from "../gui/base/TextField.js"
 import { locator } from "../api/main/MainLocator"
 import { assertMainOrNode } from "../api/common/Env"
 import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
+import { toFeatureType } from "../subscription/SubscriptionUtils.js"
 
 assertMainOrNode()
 
@@ -50,7 +51,7 @@ export function show(): Promise<void> {
 			},
 		}
 
-		let addUserOkAction = (dialog: Dialog) => {
+		let addUserOkAction = async (dialog: Dialog) => {
 			if (isVerificationBusy) return
 			const passwordFormError = passwordModel.getErrorMessageId()
 
@@ -62,10 +63,15 @@ export function show(): Promise<void> {
 				return
 			}
 
+			const userController = locator.logins.getUserController()
+			const planType = await userController.getPlanType()
+			const newPlan = await userController.isNewPaidPlan()
+
 			showProgressDialog(
 				"pleaseWait_msg",
 				showBuyDialog({
-					featureType: BookingItemFeatureType.Users,
+					featureType: newPlan ? toFeatureType(planType) : BookingItemFeatureType.Users,
+					bookingText: "bookingItemUsers_label",
 					count: 1,
 					freeAmount: 0,
 					reactivate: false,

@@ -10,7 +10,7 @@ import type { DropDownSelectorAttrs, SelectorItemList } from "../../gui/base/Dro
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import { Icons } from "../../gui/base/icons/Icons"
 import { ButtonType } from "../../gui/base/Button.js"
-import { AlarmInterval, CalendarAttendeeStatus, defaultCalendarColor, EndType, Keys, RepeatPeriod } from "../../api/common/TutanotaConstants"
+import { AlarmInterval, CalendarAttendeeStatus, defaultCalendarColor, EndType, Keys, NewPaidPlans, RepeatPeriod } from "../../api/common/TutanotaConstants"
 import { createRepeatRuleEndTypeValues, createRepeatRuleFrequencyValues, getStartOfTheWeekOffsetForUser } from "../date/CalendarUtils"
 import { AllIcons, Icon } from "../../gui/base/Icon"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
@@ -21,7 +21,7 @@ import type { Guest } from "../date/CalendarEventViewModel"
 import { CalendarEventViewModel } from "../date/CalendarEventViewModel"
 import { UserError } from "../../api/main/UserError"
 import { theme } from "../../gui/theme"
-import { showBusinessFeatureRequiredDialog } from "../../misc/SubscriptionDialogs"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
 import { BusinessFeatureRequiredError } from "../../api/main/BusinessFeatureRequiredError"
 import type { MailboxDetail } from "../../mail/model/MailModel"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
@@ -164,7 +164,7 @@ export async function showCalendarEventDialog(
 				)
 				.catch(
 					ofClass(BusinessFeatureRequiredError, async (e) => {
-						const businessFeatureOrdered = await showBusinessFeatureRequiredDialog(() => e.message)
+						const businessFeatureOrdered = await showPlanUpgradeRequiredDialog(NewPaidPlans)
 						// entity event updates are too slow to call updateBusinessFeature()
 						viewModel.hasBusinessFeature(businessFeatureOrdered)
 						return false
@@ -638,9 +638,9 @@ function renderAddAttendeesField(text: Stream<string>, viewModel: CalendarEventV
 			recipients: [],
 			disabled: false,
 			onRecipientAdded: async (address, name, contact) => {
-				const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
+				const notAvailable = await viewModel.shouldShowSendInviteNotAvailable()
 				if (notAvailable) {
-					const businessFeatureOrdered = await showBusinessFeatureRequiredDialog("businessFeatureRequiredInvite_msg")
+					const businessFeatureOrdered = await showPlanUpgradeRequiredDialog(NewPaidPlans)
 					if (businessFeatureOrdered) {
 						viewModel.addGuest(address, contact)
 					}

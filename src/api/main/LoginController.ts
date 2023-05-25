@@ -11,7 +11,7 @@ import type { Credentials } from "../../misc/credentials/Credentials"
 import { FeatureType } from "../common/TutanotaConstants"
 import { CredentialsAndDatabaseKey } from "../../misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../common/SessionType"
-import { IMainLocator } from "./MainLocator"
+import { IMainLocator, locator } from "./MainLocator"
 
 assertMainOrNodeBoot()
 

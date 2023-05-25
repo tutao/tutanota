@@ -1,13 +1,10 @@
 import type { TranslationKey } from "../misc/LanguageViewModel"
-import { AccountType, BookingItemFeatureType, Const, getClientType } from "../api/common/TutanotaConstants"
-import { PreconditionFailedError } from "../api/common/error/RestError"
+import { AccountType, BookingItemFeatureType, getClientType, PlanType } from "../api/common/TutanotaConstants"
 import type { Customer, CustomerInfo } from "../api/entities/sys/TypeRefs.js"
-import { Booking, createBookingServiceData, createPaymentDataServiceGetData } from "../api/entities/sys/TypeRefs.js"
-import { Dialog } from "../gui/base/Dialog"
-import { LazyLoaded, ofClass } from "@tutao/tutanota-utils"
+import { Booking, createPaymentDataServiceGetData } from "../api/entities/sys/TypeRefs.js"
+import { LazyLoaded } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator"
-import { BookingService, PaymentDataService } from "../api/entities/sys/Services"
-import { SubscriptionConfig } from "./FeatureListProvider"
+import { PaymentDataService } from "../api/entities/sys/Services"
 
 export const enum UpgradeType {
 	Signup = "Signup",
@@ -29,8 +26,8 @@ export function getCurrentCount(featureType: BookingItemFeatureType, booking: Bo
 /**
  * Returns the available storage capacity for the customer in GB
  */
-export function getTotalStorageCapacity(customer: Customer, customerInfo: CustomerInfo, lastBooking: Booking | null): number {
-	let freeStorageCapacity = getIncludedStorageCapacity(customerInfo)
+export function getTotalStorageCapacityPerCustomer(customer: Customer, customerInfo: CustomerInfo, lastBooking: Booking | null): number {
+	let freeStorageCapacity = getIncludedStorageCapacityPerCustomer(customerInfo)
 
 	if (customer.type === AccountType.PREMIUM) {
 		return Math.max(freeStorageCapacity, getCurrentCount(BookingItemFeatureType.Storage, lastBooking))
@@ -39,30 +36,12 @@ export function getTotalStorageCapacity(customer: Customer, customerInfo: Custom
 	}
 }
 
-export function getIncludedStorageCapacity(customerInfo: CustomerInfo): number {
+function getIncludedStorageCapacityPerCustomer(customerInfo: CustomerInfo): number {
 	return Math.max(Number(customerInfo.includedStorageCapacity), Number(customerInfo.promotionStorageCapacity))
 }
 
-export function getTotalAliases(customer: Customer, customerInfo: CustomerInfo, lastBooking: Booking | null): number {
-	let freeAliases = getIncludedAliases(customerInfo)
-
-	if (customer.type === AccountType.PREMIUM) {
-		return Math.max(freeAliases, getCurrentCount(BookingItemFeatureType.Alias, lastBooking))
-	} else {
-		return freeAliases
-	}
-}
-
-export function getNbrOfUsers(lastBooking: Booking | null): number {
-	return getCurrentCount(BookingItemFeatureType.Users, lastBooking)
-}
-
-export function getNbrOfContactForms(lastBooking: Booking | null): number {
-	return getCurrentCount(BookingItemFeatureType.ContactForm, lastBooking)
-}
-
-export function isWhitelabelActive(lastBooking: Booking | null): boolean {
-	return getCurrentCount(BookingItemFeatureType.Whitelabel, lastBooking) !== 0
+export function isWhitelabelActive(lastBooking: Booking | null, customerInfo: CustomerInfo): boolean {
+	return getCurrentCount(BookingItemFeatureType.Whitelabel, lastBooking) !== 0 || customerInfo.plan == PlanType.Unlimited
 }
 
 export function isSharingActive(lastBooking: Booking | null): boolean {
@@ -71,20 +50,6 @@ export function isSharingActive(lastBooking: Booking | null): boolean {
 
 export function isBusinessFeatureActive(lastBooking: Booking | null): boolean {
 	return getCurrentCount(BookingItemFeatureType.Business, lastBooking) !== 0
-}
-
-export function getIncludedAliases(customerInfo: CustomerInfo): number {
-	return Math.max(Number(customerInfo.includedEmailAliases), Number(customerInfo.promotionEmailAliases))
-}
-
-export function hasAllFeaturesInPlan(currentSubscription: SubscriptionConfig, planSubscription: SubscriptionConfig): boolean {
-	return !(
-		currentSubscription.nbrOfAliases < planSubscription.nbrOfAliases ||
-		currentSubscription.storageGb < planSubscription.storageGb ||
-		(!currentSubscription.sharing && planSubscription.sharing) ||
-		(!currentSubscription.whitelabel && planSubscription.whitelabel) ||
-		(!currentSubscription.business && planSubscription.business)
-	)
 }
 
 export type PaymentErrorCode =
@@ -149,100 +114,6 @@ export function getPreconditionFailedPaymentMsg(data: string | null): Translatio
 	}
 }
 
-const enum BookingFailureReason {
-	TOO_MANY_DOMAINS = "bookingservice.too_many_domains",
-	BUSINESS_USE = "bookingservice.business_use",
-	TOO_MANY_ALIASES = "bookingservice.too_many_aliases",
-	TOO_MUCH_STORAGE_USED = "bookingservice.too_much_storage_used",
-	SHARED_GROUP_ACTIVE = "bookingservice.shared_group_active",
-	WHITELABEL_DOMAIN_ACTIVE = "bookingservice.whitelabel_domain_active",
-	BALANCE_INSUFFICIENT = "balance.insufficient",
-	HAS_TEMPLATE_GROUP = "bookingservice.has_template_group",
-}
-
-/**
- * @returns True if it failed, false otherwise
- */
-export function bookItem(featureType: BookingItemFeatureType, amount: number): Promise<boolean> {
-	const bookingData = createBookingServiceData({
-		amount: amount.toString(),
-		featureType,
-		date: Const.CURRENT_DATE,
-	})
-	return locator.serviceExecutor
-		.post(BookingService, bookingData)
-		.then(() => false)
-		.catch(
-			ofClass(PreconditionFailedError, (error) => {
-				// error handling for cancelling a feature.
-				switch (error.data) {
-					case BookingFailureReason.BALANCE_INSUFFICIENT:
-						return Dialog.message("insufficientBalanceError_msg").then(() => true)
-
-					case BookingFailureReason.TOO_MANY_DOMAINS:
-						return Dialog.message("tooManyCustomDomains_msg").then(() => true)
-
-					case BookingFailureReason.BUSINESS_USE:
-						return Dialog.message("featureRequiredForBusinessUse_msg").then(() => true)
-
-					case BookingFailureReason.HAS_TEMPLATE_GROUP:
-						return Dialog.message("deleteTemplateGroups_msg").then(() => true)
-
-					default:
-						return Dialog.message(getBookingItemErrorMsg(featureType)).then(() => true)
-				}
-			}),
-		)
-}
-
-export function buyAliases(amount: number): Promise<boolean> {
-	return bookItem(BookingItemFeatureType.Alias, amount)
-}
-
-export function buyStorage(amount: number): Promise<boolean> {
-	return bookItem(BookingItemFeatureType.Storage, amount)
-}
-
-/**
- * @returns True if it failed, false otherwise
- */
-export function buyWhitelabel(enable: boolean): Promise<boolean> {
-	return bookItem(BookingItemFeatureType.Whitelabel, enable ? 1 : 0)
-}
-
-/**
- * @returns True if it failed, false otherwise
- */
-export function buySharing(enable: boolean): Promise<boolean> {
-	return bookItem(BookingItemFeatureType.Sharing, enable ? 1 : 0)
-}
-
-/**
- * @returns True if it failed, false otherwise
- */
-export function buyBusiness(enable: boolean): Promise<boolean> {
-	return bookItem(BookingItemFeatureType.Business, enable ? 1 : 0)
-}
-
-function getBookingItemErrorMsg(feature: BookingItemFeatureType): TranslationKey {
-	switch (feature) {
-		case BookingItemFeatureType.Alias:
-			return "emailAliasesTooManyActivatedForBooking_msg"
-
-		case BookingItemFeatureType.Storage:
-			return "storageCapacityTooManyUsedForBooking_msg"
-
-		case BookingItemFeatureType.Whitelabel:
-			return "whitelabelDomainExisting_msg"
-
-		case BookingItemFeatureType.Sharing:
-			return "unknownError_msg"
-
-		default:
-			return "unknownError_msg"
-	}
-}
-
 export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
 	return new LazyLoaded(() => {
 		const clientType = getClientType()
@@ -257,4 +128,24 @@ export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
 				return result.loginUrl
 			})
 	})
+}
+
+/**
+ * only to be invoked for PlanTypes where isNewPlan returns true
+ */
+export function toFeatureType(type: PlanType): BookingItemFeatureType {
+	switch (type) {
+		case PlanType.Revolutionary:
+			return BookingItemFeatureType.Revolutionary
+		case PlanType.Legend:
+			return BookingItemFeatureType.Legend
+		case PlanType.Essential:
+			return BookingItemFeatureType.Essential
+		case PlanType.Advanced:
+			return BookingItemFeatureType.Advanced
+		case PlanType.Unlimited:
+			return BookingItemFeatureType.Unlimited
+		default:
+			throw new Error(`can't convert ${type} to BookingItemFeatureType`)
+	}
 }

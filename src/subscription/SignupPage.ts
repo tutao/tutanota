@@ -4,7 +4,8 @@ import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { SignupForm } from "./SignupForm"
-import { getDisplayNameOfSubscriptionType, SubscriptionType } from "./FeatureListProvider"
+import { getDisplayNameOfPlanType } from "./FeatureListProvider"
+import { PlanType } from "../api/common/TutanotaConstants.js"
 
 type ConfirmStatus = {
 	type: string
@@ -29,7 +30,7 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 				emitWizardEvent(this.dom, WizardEventType.SHOWNEXTPAGE)
 			},
 			isBusinessUse: data.options.businessUse,
-			isPaidSubscription: () => data.type !== SubscriptionType.Free,
+			isPaidSubscription: () => data.type !== PlanType.Free,
 			campaign: () => data.registrationDataId,
 			prefilledMailAddress: mailAddress,
 			readonly: !!newAccountData,
@@ -45,9 +46,9 @@ export class SignupPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData>
 	}
 
 	headerTitle(): string {
-		var title = getDisplayNameOfSubscriptionType(this.data.type)
+		var title = getDisplayNameOfPlanType(this.data.type)
 
-		if (this.data.type === SubscriptionType.PremiumBusiness || this.data.type === SubscriptionType.TeamsBusiness) {
+		if (this.data.type === PlanType.Essential || this.data.type === PlanType.Advanced) {
 			return title + " Business"
 		} else {
 			return title

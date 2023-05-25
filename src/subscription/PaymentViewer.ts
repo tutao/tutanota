@@ -11,7 +11,7 @@ import { Icons } from "../gui/base/icons/Icons"
 import { ColumnWidth, Table, TableLineAttrs } from "../gui/base/Table.js"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { formatDate, formatNameAndAddress } from "../misc/Formatter"
-import { getPaymentMethodType, PaymentMethodType, PostingType } from "../api/common/TutanotaConstants"
+import { getPaymentMethodType, NewPaidPlans, PaymentMethodType, PostingType } from "../api/common/TutanotaConstants"
 import { BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError } from "../api/common/error/RestError"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { getByAbbreviation } from "../api/common/CountryList"
@@ -117,7 +117,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					title: "paymentMethod_label",
 					// iOS app doesn't work with PayPal button or 3dsecure redirects
 					click: createNotAvailableForFreeClickHandler(
-						true,
+						NewPaidPlans,
 						() => this.changePaymentMethod(),
 						() => !isIOSApp() && locator.logins.getUserController().isPremiumAccount(),
 					),
@@ -383,7 +383,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				m(IconButton, {
 					title: "invoiceData_msg",
 					click: createNotAvailableForFreeClickHandler(
-						true,
+						NewPaidPlans,
 						() => this.changeInvoiceData(),
 						() => locator.logins.getUserController().isPremiumAccount(),
 					),

@@ -98,7 +98,7 @@ export class EntityClient {
 		const typeModel = await resolveTypeReference(typeRef)
 		const rootId = [groupId, typeModel.rootId] as const
 		const root = await this.load<RootInstance>(RootInstanceTypeRef, rootId)
-		return this.load<T>(typeRef, downcast(root.reference)) // FIXME Passing in Id here should be allowed?
+		return this.load<T>(typeRef, downcast(root.reference))
 	}
 }
 

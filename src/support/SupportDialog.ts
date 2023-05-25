@@ -11,7 +11,6 @@ import { Keys } from "../api/common/TutanotaConstants"
 import { clear, debounce } from "@tutao/tutanota-utils"
 import { writeSupportMail } from "../mail/editor/MailEditor"
 import { assertMainOrNode } from "../api/common/Env"
-import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs.js"
 import { LoginController } from "../api/main/LoginController.js"
 
 assertMainOrNode()
@@ -55,14 +54,9 @@ export function showSupportDialog(logins: LoginController) {
 	const contactSupport: ButtonAttrs = {
 		label: "contactSupport_action",
 		type: ButtonType.Login,
-		click: () => {
-			if (canHaveEmailSupport && logins.getUserController().isPremiumAccount()) {
-				// noinspection JSIgnoredPromiseFromCall
-				writeSupportMail(searchValue().trim())
+		click: async () => {
+			if (await writeSupportMail(searchValue().trim())) {
 				closeAction()
-			} else {
-				// noinspection JSIgnoredPromiseFromCall
-				showNotAvailableForFreeDialog(true)
 			}
 		},
 	}

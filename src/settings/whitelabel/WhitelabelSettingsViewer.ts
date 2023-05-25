@@ -253,7 +253,9 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_renderWhitelabelStatusSettings(): Children {
-		const whitelabelActive = isWhitelabelActive(this._lastBooking)
+		const customerInfo = this._customerInfo.getSync()
+		if (customerInfo == null) return null
+		const whitelabelActive = isWhitelabelActive(this._lastBooking, customerInfo)
 		const whitelabelStatusSettingsAttrs = {
 			isWhitelabelActive: whitelabelActive,
 			logins: this._logins,
@@ -266,7 +268,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 
 		if (!customerInfo) return null
 		const certificateInfo = this._certificateInfo
-		const isWhitelabelFeatureEnabled = isWhitelabelActive(this._lastBooking)
+		const isWhitelabelFeatureEnabled = isWhitelabelActive(this._lastBooking, customerInfo)
 		const whitelabelDomain = this._whitelabelDomainInfo ? this._whitelabelDomainInfo.domain : ""
 		const whitelabelBrandingDomainSettingsAttrs = {
 			customerInfo,

@@ -4,12 +4,12 @@ import { getStartOfTheWeekOffsetForUser } from "../calendar/date/CalendarUtils"
 import type { OutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
 import { TextField } from "../gui/base/TextField.js"
 import { lang } from "../misc/LanguageViewModel"
-import { Keys, OUT_OF_OFFICE_SUBJECT_PREFIX } from "../api/common/TutanotaConstants"
+import { Keys, NewPaidPlans, OUT_OF_OFFICE_SUBJECT_PREFIX } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { px } from "../gui/size"
 import { ButtonType } from "../gui/base/Button.js"
 import { getDefaultNotificationLabel } from "../misc/OutOfOfficeNotificationUtils"
-import { showBusinessFeatureRequiredDialog } from "../misc/SubscriptionDialogs"
+import { showPlanUpgradeRequiredDialog } from "../misc/SubscriptionDialogs"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { showUserError } from "../misc/ErrorHandlerImpl"
 import { BusinessFeatureRequiredError } from "../api/main/BusinessFeatureRequiredError"
@@ -38,7 +38,7 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: O
 			.saveOutOfOfficeNotification()
 			.then(() => cancel())
 			.catch(ofClass(UserError, (e) => showUserError(e)))
-			.catch(ofClass(BusinessFeatureRequiredError, (e) => showBusinessFeatureRequiredDialog(() => e.message)))
+			.catch(ofClass(BusinessFeatureRequiredError, (e) => showPlanUpgradeRequiredDialog(NewPaidPlans)))
 	}
 
 	function cancel() {

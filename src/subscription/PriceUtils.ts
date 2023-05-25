@@ -1,23 +1,14 @@
-import type { BookingItemFeatureType } from "../api/common/TutanotaConstants"
-import { AccountType, Const, PaymentMethodType } from "../api/common/TutanotaConstants"
-import { lang } from "../misc/LanguageViewModel"
-import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
-import type { AccountingInfo, Booking, PriceData, PriceItemData } from "../api/entities/sys/TypeRefs.js"
-import { createUpgradePriceServiceData, Customer, CustomerInfo, UpgradePriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
-import { SubscriptionConfig, SubscriptionPlanPrices, SubscriptionType, UpgradePriceType, WebsitePlanPrices } from "./FeatureListProvider"
+import { BookingItemFeatureType, Const, PaymentMethodType, PlanType } from "../api/common/TutanotaConstants"
+import { assertTranslation, lang, TranslationKey } from "../misc/LanguageViewModel"
+import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
+import type { AccountingInfo, PlanPrices, PriceData, PriceItemData } from "../api/entities/sys/TypeRefs.js"
+import { createUpgradePriceServiceData, PlanPricesTypeRef, UpgradePriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
+import { SubscriptionPlanPrices, UpgradePriceType, WebsitePlanPrices } from "./FeatureListProvider"
 import { locator } from "../api/main/MainLocator"
 import { UpgradePriceService } from "../api/entities/sys/Services"
-import {
-	getTotalAliases,
-	getTotalStorageCapacity,
-	hasAllFeaturesInPlan,
-	isBusinessFeatureActive,
-	isSharingActive,
-	isWhitelabelActive,
-} from "./SubscriptionUtils"
 import { IServiceExecutor } from "../api/common/ServiceRequest"
-import { ConnectionError } from "../api/common/error/RestError"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { UserError } from "../api/main/UserError.js"
 
 export const enum PaymentInterval {
 	Monthly = 1,
@@ -122,50 +113,52 @@ export function getPriceFromPriceData(priceData: PriceData | null, featureType: 
 	}
 }
 
-const SUBSCRIPTION_CONFIG_RESOURCE_URL = "https://tutanota.com/resources/data/subscriptions.json"
-
 export class PriceAndConfigProvider {
 	private upgradePriceData: UpgradePriceServiceReturn | null = null
 	private planPrices: SubscriptionPlanPrices | null = null
-
-	private possibleSubscriptionList: { [K in SubscriptionType]: SubscriptionConfig } | null = null
+	private isReferralCodeSignup: boolean = false
 
 	private constructor() {}
 
-	private async init(registrationDataId: string | null, serviceExecutor: IServiceExecutor): Promise<void> {
+	private async init(registrationDataId: string | null, serviceExecutor: IServiceExecutor, referralCode: string | null): Promise<void> {
 		const data = createUpgradePriceServiceData({
 			date: Const.CURRENT_DATE,
 			campaign: registrationDataId,
+			referralCode: referralCode,
 		})
 		this.upgradePriceData = await serviceExecutor.get(UpgradePriceService, data)
+		this.isReferralCodeSignup = referralCode != null
 		this.planPrices = {
-			Premium: this.upgradePriceData.premiumPrices,
-			PremiumBusiness: this.upgradePriceData.premiumBusinessPrices,
-			Teams: this.upgradePriceData.teamsPrices,
-			TeamsBusiness: this.upgradePriceData.teamsBusinessPrices,
-			Pro: this.upgradePriceData.proPrices,
-		}
-
-		if ("undefined" === typeof fetch) return
-		try {
-			this.possibleSubscriptionList = await (await fetch(SUBSCRIPTION_CONFIG_RESOURCE_URL)).json()
-		} catch (e) {
-			console.log("failed to fetch subscription list:", e)
-			throw new ConnectionError("failed to fetch subscription list")
+			[PlanType.Free]: this.upgradePriceData.freePrices,
+			[PlanType.Premium]: this.upgradePriceData.premiumPrices,
+			[PlanType.PremiumBusiness]: this.upgradePriceData.premiumBusinessPrices,
+			[PlanType.Teams]: this.upgradePriceData.teamsPrices,
+			[PlanType.TeamsBusiness]: this.upgradePriceData.teamsBusinessPrices,
+			[PlanType.Pro]: this.upgradePriceData.proPrices,
+			[PlanType.Revolutionary]: this.upgradePriceData.revolutionaryPrices,
+			[PlanType.Legend]: this.upgradePriceData.legendaryPrices,
+			[PlanType.Essential]: this.upgradePriceData.essentialPrices,
+			[PlanType.Advanced]: this.upgradePriceData.advancedPrices,
+			[PlanType.Unlimited]: this.upgradePriceData.unlimitedPrices,
 		}
 	}
 
 	static async getInitializedInstance(
 		registrationDataId: string | null,
 		serviceExecutor: IServiceExecutor = locator.serviceExecutor,
+		referralCode: string | null,
 	): Promise<PriceAndConfigProvider> {
+		// There should be only one method to request a discount either referralCode or a promotion
+		if (referralCode != null && registrationDataId != null) {
+			throw new UserError("referralSignupCampaignError_msg")
+		}
+
 		const priceDataProvider = new PriceAndConfigProvider()
-		await priceDataProvider.init(registrationDataId, serviceExecutor)
+		await priceDataProvider.init(registrationDataId, serviceExecutor, referralCode)
 		return priceDataProvider
 	}
 
-	getSubscriptionPrice(paymentInterval: PaymentInterval, subscription: SubscriptionType, type: UpgradePriceType): number {
-		if (subscription === SubscriptionType.Free) return 0
+	getSubscriptionPrice(paymentInterval: PaymentInterval, subscription: PlanType, type: UpgradePriceType): number {
 		return paymentInterval === PaymentInterval.Yearly
 			? this.getYearlySubscriptionPrice(subscription, type)
 			: this.getMonthlySubscriptionPrice(subscription, type)
@@ -175,31 +168,7 @@ export class PriceAndConfigProvider {
 		return assertNotNull(this.upgradePriceData)
 	}
 
-	getSubscriptionConfig(targetSubscription: SubscriptionType): SubscriptionConfig {
-		return assertNotNull(this.possibleSubscriptionList)[targetSubscription]
-	}
-
-	getSubscriptionType(lastBooking: Booking | null, customer: Customer, customerInfo: CustomerInfo): SubscriptionType {
-		if (customer.type !== AccountType.PREMIUM) {
-			return SubscriptionType.Free
-		}
-
-		const currentSubscription = {
-			nbrOfAliases: getTotalAliases(customer, customerInfo, lastBooking),
-			orderNbrOfAliases: getTotalAliases(customer, customerInfo, lastBooking),
-			// dummy value
-			storageGb: getTotalStorageCapacity(customer, customerInfo, lastBooking),
-			orderStorageGb: getTotalStorageCapacity(customer, customerInfo, lastBooking),
-			// dummy value
-			sharing: isSharingActive(lastBooking),
-			business: isBusinessFeatureActive(lastBooking),
-			whitelabel: isWhitelabelActive(lastBooking),
-		}
-		const foundPlan = descendingSubscriptionOrder().find((plan) => hasAllFeaturesInPlan(currentSubscription, this.getSubscriptionConfig(plan)))
-		return foundPlan || SubscriptionType.Premium
-	}
-
-	private getYearlySubscriptionPrice(subscription: SubscriptionType, upgrade: UpgradePriceType): number {
+	private getYearlySubscriptionPrice(subscription: PlanType, upgrade: UpgradePriceType): number {
 		const prices = this.getPlanPrices(subscription)
 		const monthlyPrice = getPriceForUpgradeType(upgrade, prices)
 		const monthsFactor = upgrade === UpgradePriceType.PlanReferencePrice ? Number(PaymentInterval.Yearly) : 10
@@ -207,22 +176,26 @@ export class PriceAndConfigProvider {
 		return monthlyPrice * monthsFactor - discount
 	}
 
-	private getMonthlySubscriptionPrice(subscription: SubscriptionType, upgrade: UpgradePriceType): number {
+	private getMonthlySubscriptionPrice(subscription: PlanType, upgrade: UpgradePriceType): number {
 		const prices = this.getPlanPrices(subscription)
 		return getPriceForUpgradeType(upgrade, prices)
 	}
 
-	private getPlanPrices(subscription: SubscriptionType): WebsitePlanPrices {
-		if (subscription === SubscriptionType.Free) {
-			return {
-				additionalUserPriceMonthly: "0",
-				contactFormPriceMonthly: "0",
-				firstYearDiscount: "0",
-				monthlyPrice: "0",
-				monthlyReferencePrice: "0",
-			}
-		}
+	getPlanPrices(subscription: PlanType): PlanPrices {
 		return assertNotNull(this.planPrices)[subscription]
+	}
+
+	getPriceInfoMessage(): TranslationKey | null {
+		const rawData = this.getRawPricingData()
+		const bonusMonthMessage = getReasonForBonusMonths(Number(rawData.bonusMonthsForYearlyPlan), this.isReferralCodeSignup)
+		if (bonusMonthMessage) {
+			return bonusMonthMessage
+		} else if (rawData.messageTextId) {
+			// text id that is specified by a promotion.
+			return assertTranslation(rawData.messageTextId)
+		} else {
+			return null
+		}
 	}
 }
 
@@ -240,15 +213,36 @@ function getPriceForUpgradeType(upgrade: UpgradePriceType, prices: WebsitePlanPr
 	}
 }
 
-function descendingSubscriptionOrder(): Array<SubscriptionType> {
-	return [SubscriptionType.Pro, SubscriptionType.TeamsBusiness, SubscriptionType.Teams, SubscriptionType.PremiumBusiness, SubscriptionType.Premium]
+function descendingSubscriptionOrder(): Array<PlanType> {
+	return [PlanType.Unlimited, PlanType.Advanced, PlanType.Legend, PlanType.Essential, PlanType.Revolutionary]
 }
 
 /**
  * Returns true if the targetSubscription plan is considered to be a lower (~ cheaper) subscription plan
  * Is based on the order of business and non-business subscriptions as defined in descendingSubscriptionOrder
  */
-export function isSubscriptionDowngrade(targetSubscription: SubscriptionType, currentSubscription: SubscriptionType): boolean {
+export function isSubscriptionDowngrade(targetSubscription: PlanType, currentSubscription: PlanType): boolean {
 	const order = descendingSubscriptionOrder()
-	return order.indexOf(targetSubscription) > order.indexOf(currentSubscription)
+	if (Object.values(PlanType).includes(downcast(currentSubscription))) {
+		return order.indexOf(targetSubscription) > order.indexOf(downcast(currentSubscription))
+	} else {
+		return false
+	}
+}
+
+/**
+ * Helper function to determine the reason for bonus months that have be provided by the UpgradePriceService
+ * @param bonusMonths The amount of bonus month
+ * @param isReferralCodeSignup Indication if a referral code has been used to query the bonus months.
+ */
+function getReasonForBonusMonths(bonusMonths: Number, isReferralCodeSignup: boolean): TranslationKey | null {
+	if (bonusMonths == 12) {
+		return "chooseYearlyForOffer_msg"
+	} else if (bonusMonths == 1) {
+		return "referralSignup_msg"
+	} else if (bonusMonths == 0 && isReferralCodeSignup) {
+		return "referralSignupInvalid_msg"
+	} else {
+		return null
+	}
 }

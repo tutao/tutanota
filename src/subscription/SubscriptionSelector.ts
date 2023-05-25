@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { TranslationKey } from "../misc/LanguageViewModel"
+import type { TranslationKey, TranslationText } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import type { BuyOptionBoxAttr } from "./BuyOptionBox"
 import { BOX_MARGIN, BuyOptionBox, getActiveSubscriptionActionButtonReplacement } from "./BuyOptionBox"
@@ -7,17 +7,18 @@ import type { SegmentControlItem } from "../gui/base/SegmentControl"
 import { SegmentControl } from "../gui/base/SegmentControl"
 import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import {
+	FeatureCategory,
 	FeatureListItem,
 	FeatureListProvider,
-	getDisplayNameOfSubscriptionType,
+	getDisplayNameOfPlanType,
 	ReplacementKey,
 	SelectedSubscriptionOptions,
-	SubscriptionType,
 	UpgradePriceType,
 } from "./FeatureListProvider"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { ButtonAttrs } from "../gui/base/Button.js"
-import { lazy } from "@tutao/tutanota-utils"
+import { downcast, lazy } from "@tutao/tutanota-utils"
+import { AvailablePlanType, LegacyPlans, NewBusinessPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -30,34 +31,25 @@ const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	},
 ]
 
-export type SubscriptionActionButtons = {
-	Free: lazy<ButtonAttrs>
-	Premium: lazy<ButtonAttrs>
-	PremiumBusiness: lazy<ButtonAttrs>
-	Teams: lazy<ButtonAttrs>
-	TeamsBusiness: lazy<ButtonAttrs>
-	Pro: lazy<ButtonAttrs>
-}
+export type SubscriptionActionButtons = Record<AvailablePlanType, lazy<ButtonAttrs>>
 
 export type SubscriptionSelectorAttr = {
 	options: SelectedSubscriptionOptions
-	campaignInfoTextId: TranslationKey | null
+	priceInfoTextId: TranslationKey | null
 	actionButtons: SubscriptionActionButtons
 	boxWidth: number
 	boxHeight: number
 	highlightPremium?: boolean
-	currentSubscriptionType: SubscriptionType | null
-	currentlySharingOrdered: boolean
-	currentlyBusinessOrdered: boolean
-	currentlyWhitelabelOrdered: boolean
-	orderedContactForms: number
-	isInitialUpgrade: boolean
+	currentPlanType: PlanType | null
+	allowSwitchingPaymentInterval: boolean
 	featureListProvider: FeatureListProvider
 	priceAndConfigProvider: PriceAndConfigProvider
-	referralCodeMsg: TranslationKey | null
+	acceptedPlans: AvailablePlanType[]
+	multipleUsersAllowed: boolean
+	msg: TranslationText | null
 }
 
-export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: SubscriptionType): lazy<ButtonAttrs> {
+export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: AvailablePlanType): lazy<ButtonAttrs> {
 	const ret = actionButtons[subscription]
 	if (ret == null) {
 		throw new ProgrammingError("Plan is not valid")
@@ -65,81 +57,96 @@ export function getActionButtonBySubscription(actionButtons: SubscriptionActionB
 	return ret
 }
 
-type ExpanderTargets = SubscriptionType | "All"
+type ExpanderTargets = AvailablePlanType | "All"
 
 export class SubscriptionSelector implements Component<SubscriptionSelectorAttr> {
 	private containerDOM: Element | null = null
 	private featuresExpanded: { [K in ExpanderTargets]: boolean } = {
-		Free: false,
-		Premium: false,
-		PremiumBusiness: false,
-		Teams: false,
-		TeamsBusiness: false,
-		Pro: false,
+		[PlanType.Free]: false,
+		[PlanType.Revolutionary]: false,
+		[PlanType.Legend]: false,
+		[PlanType.Essential]: false,
+		[PlanType.Advanced]: false,
+		[PlanType.Unlimited]: false,
 		All: false,
 	}
 
+	oninit(vnode: Vnode<SubscriptionSelectorAttr>): any {
+		const acceptedPlans = vnode.attrs.acceptedPlans
+		const onlyBusinessPlansAccepted = acceptedPlans.every((plan) => NewBusinessPlans.includes(plan))
+
+		if (onlyBusinessPlansAccepted) {
+			// if only business plans are accepted, we show them first even if the current plan is a personal plan
+			vnode.attrs.options.businessUse(true)
+		}
+	}
+
 	view(vnode: Vnode<SubscriptionSelectorAttr>): Children {
-		let buyBoxesViewPlacement
 		// Add BuyOptionBox margin twice to the boxWidth received
 		const columnWidth = vnode.attrs.boxWidth + BOX_MARGIN * 2
-		const inMobileView: boolean | null = this.containerDOM && this.containerDOM.clientWidth < columnWidth * 2
+		const inMobileView: boolean = (this.containerDOM && this.containerDOM.clientWidth < columnWidth * 2) == true
 		const featureExpander = this.renderFeatureExpanders(inMobileView, vnode.attrs.featureListProvider) // renders all feature expanders, both for every single subscription option but also for the whole list
 		let additionalInfo: Children
 
+		const acceptedPlans = vnode.attrs.acceptedPlans
+		let plans: AvailablePlanType[]
+		const currentPlan = vnode.attrs.currentPlanType
+		const onlyBusinessPlansAccepted = acceptedPlans.every((plan) => NewBusinessPlans.includes(plan))
+		// show the business segmentControl for signup, if on a personal plan or if also personal plans are accepted
+		let showBusinessSelector = currentPlan == null || NewPersonalPlans.includes(downcast(currentPlan)) || !onlyBusinessPlansAccepted
+
+		let subscriptionPeriodInfoMsg = currentPlan !== PlanType.Free ? lang.get("switchSubscriptionInfo_msg") + " " : ""
 		if (vnode.attrs.options.businessUse()) {
-			buyBoxesViewPlacement = [
-				m("", [m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.PremiumBusiness)), featureExpander.PremiumBusiness]),
-				m("", [m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.TeamsBusiness)), featureExpander.TeamsBusiness]),
-				m("", [m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Pro)), featureExpander.Pro]),
-			]
+			plans = [PlanType.Essential, PlanType.Advanced, PlanType.Unlimited]
+			subscriptionPeriodInfoMsg += lang.get("pricing.subscriptionPeriodInfoBusiness_msg")
 			additionalInfo = m(".flex.flex-column.items-center", [
 				featureExpander.All, // global feature expander
-				m(".smaller.mb.center", lang.get("pricing.downgradeToPrivateNotAllowed_msg")), //only displayed when business options are shown)
-				m(".smaller.mb.center", lang.get("pricing.subscriptionPeriodInfoBusiness_msg")),
+				m(".smaller.mb.center", subscriptionPeriodInfoMsg),
 			])
 		} else {
-			const currentSubscription = vnode.attrs.currentSubscriptionType
-			const premiumBuyOptionBox = m(
-				"",
-				currentSubscription === SubscriptionType.PremiumBusiness
-					? [m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.PremiumBusiness)), featureExpander.PremiumBusiness]
-					: [m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Premium)), featureExpander.Premium],
-			)
-			const teamsBuyOptionBox = m(
-				"",
-				currentSubscription === SubscriptionType.TeamsBusiness
-					? [m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.TeamsBusiness)), featureExpander.TeamsBusiness]
-					: [m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Teams)), featureExpander.Teams],
-			)
-
-			const freeBuyOptionBox = m("", [m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Free)), featureExpander.Free])
-
-			// Changes order of BuyBoxes to Premium Pro Free, needed for mobile view (one column layout)
 			if (inMobileView) {
-				buyBoxesViewPlacement = [premiumBuyOptionBox, teamsBuyOptionBox, freeBuyOptionBox]
+				plans = [PlanType.Revolutionary, PlanType.Legend, PlanType.Free]
 			} else {
-				buyBoxesViewPlacement = [freeBuyOptionBox, premiumBuyOptionBox, teamsBuyOptionBox]
+				plans = [PlanType.Free, PlanType.Revolutionary, PlanType.Legend]
 			}
+			subscriptionPeriodInfoMsg += lang.get("pricing.subscriptionPeriodInfoPrivate_msg")
 			additionalInfo = m(".flex.flex-column.items-center", [
 				featureExpander.All, // global feature expander
-				m(".smaller.mb.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")),
+				m(".smaller.mb.center", subscriptionPeriodInfoMsg),
 			])
+			showBusinessSelector = true
 		}
+		const buyBoxesViewPlacement = plans
+			.filter((plan) => acceptedPlans.includes(plan) || vnode.attrs.currentPlanType === plan)
+			.map((personalPlan, i) => {
+				// only show category title for the leftmost item
+				return this.renderBuyOptionBox(vnode.attrs, i === 0, inMobileView, personalPlan, featureExpander)
+			})
 
-		const currentPlanInfo = this.getCurrentPlanInfo(vnode.attrs)
+		const isYearly = vnode.attrs.options.paymentInterval() === 12
 
+		const showCurrentPlanDiscontinuedHint = vnode.attrs.currentPlanType != null && LegacyPlans.includes(vnode.attrs.currentPlanType)
+		const bonusMonths = Number(vnode.attrs.priceAndConfigProvider.getRawPricingData().bonusMonthsForYearlyPlan)
 		return [
-			vnode.attrs.isInitialUpgrade
+			showBusinessSelector
 				? m(SegmentControl, {
 						selectedValue: vnode.attrs.options.businessUse(),
 						onValueSelected: vnode.attrs.options.businessUse,
 						items: BusinessUseItems,
 				  })
 				: null,
-			vnode.attrs.campaignInfoTextId && lang.exists(vnode.attrs.campaignInfoTextId) ? m(".b.center.mt", lang.get(vnode.attrs.campaignInfoTextId)) : null,
-			vnode.attrs.referralCodeMsg ? m(".b.center.mt", lang.get(vnode.attrs.referralCodeMsg)) : null,
-			currentPlanInfo ? m(".smaller.center.mt", currentPlanInfo) : null,
+			m(".flex-center.items-center.mt", [
+				vnode.attrs.priceInfoTextId && lang.exists(vnode.attrs.priceInfoTextId) ? m(".b.center", lang.get(vnode.attrs.priceInfoTextId)) : null,
+				bonusMonths > 0
+					? m(".bonus-month.flex-center.items-center.text-center.b.ml-m", { style: { visibility: isYearly ? "visible" : "hidden" } }, [
+							"+" + bonusMonths,
+							m("br"),
+							lang.get("months_label"),
+					  ])
+					: null,
+			]),
+			vnode.attrs.msg ? m(".b.center.mt", lang.getMaybeLazy(vnode.attrs.msg)) : null,
+			showCurrentPlanDiscontinuedHint ? m(".b.center.mt", lang.get("currentPlanDiscontinued_msg")) : null,
 			m(
 				".flex.center-horizontally.wrap",
 				{
@@ -154,57 +161,56 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		]
 	}
 
-	private getCurrentPlanInfo(selectorAttrs: SubscriptionSelectorAttr): string | null {
-		if (selectorAttrs.options.businessUse() && selectorAttrs.currentSubscriptionType && !selectorAttrs.currentlyBusinessOrdered) {
-			const { priceAndConfigProvider, options, currentSubscriptionType } = selectorAttrs
-			const price = priceAndConfigProvider.getSubscriptionPrice(options.paymentInterval(), currentSubscriptionType, UpgradePriceType.PlanActualPrice)
-			return (
-				lang.get("businessCustomerNeedsBusinessFeaturePlan_msg", {
-					"{price}": formatMonthlyPrice(price, selectorAttrs.options.paymentInterval()),
-					"{plan}": selectorAttrs.currentSubscriptionType,
-				}) +
-				" " +
-				lang.get("businessCustomerAutoBusinessFeature_msg")
-			)
-		}
-
-		return null
+	private renderBuyOptionBox(
+		attrs: SubscriptionSelectorAttr,
+		renderCategoryTitle: boolean,
+		inMobileView: boolean,
+		planType: AvailablePlanType,
+		featureExpander: Record<ExpanderTargets, m.Children>,
+	): Children {
+		return m("", [m(BuyOptionBox, this.createBuyOptionBoxAttr(attrs, planType, renderCategoryTitle, inMobileView)), featureExpander[planType]])
 	}
 
-	private createBuyOptionBoxAttr(selectorAttrs: SubscriptionSelectorAttr, targetSubscription: SubscriptionType): BuyOptionBoxAttr {
+	private createBuyOptionBoxAttr(
+		selectorAttrs: SubscriptionSelectorAttr,
+		targetSubscription: AvailablePlanType,
+		renderCategoryTitle: boolean,
+		mobile: boolean,
+	): BuyOptionBoxAttr {
 		const { featureListProvider, priceAndConfigProvider } = selectorAttrs
 		const subscriptionFeatures = featureListProvider.getFeatureList(targetSubscription)
-		const featuresToShow = subscriptionFeatures.features
-			.filter((f) => this.featuresExpanded[targetSubscription] || this.featuresExpanded.All || !f.omit)
-			.map((f) => localizeFeatureListItem(f, targetSubscription, selectorAttrs))
-			.filter((f): f is BuyOptionBoxAttr["features"][0] => f != null)
+		const categoriesToShow = subscriptionFeatures.categories
+			.map((fc) => {
+				return localizeFeatureCategory(fc, targetSubscription, selectorAttrs)
+			})
+			.filter((fc): fc is BuyOptionBoxAttr["categories"][0] => fc != null)
 
 		// we only highlight the private Premium box if this is a signup or the current subscription type is Free
-		selectorAttrs.highlightPremium =
-			targetSubscription === SubscriptionType.Premium &&
-			!selectorAttrs.options.businessUse() &&
-			(!selectorAttrs.currentSubscriptionType || selectorAttrs.currentSubscriptionType === SubscriptionType.Free)
+		selectorAttrs.highlightPremium = targetSubscription === PlanType.Revolutionary && !selectorAttrs.options.businessUse() && !selectorAttrs.currentPlanType
 		const subscriptionPrice = priceAndConfigProvider.getSubscriptionPrice(
 			selectorAttrs.options.paymentInterval(),
 			targetSubscription,
 			UpgradePriceType.PlanActualPrice,
 		)
+		const multiuser = NewBusinessPlans.includes(targetSubscription) || LegacyPlans.includes(targetSubscription) || selectorAttrs.multipleUsersAllowed
 		return {
-			heading: getDisplayNameOfSubscriptionType(targetSubscription),
+			heading: getDisplayNameOfPlanType(targetSubscription),
 			actionButton:
-				selectorAttrs.currentSubscriptionType === targetSubscription
+				selectorAttrs.currentPlanType === targetSubscription
 					? getActiveSubscriptionActionButtonReplacement()
 					: getActionButtonBySubscription(selectorAttrs.actionButtons, targetSubscription),
 			price: formatMonthlyPrice(subscriptionPrice, selectorAttrs.options.paymentInterval()),
-			priceHint: getPriceHint(subscriptionPrice, selectorAttrs.options.paymentInterval()),
+			priceHint: getPriceHint(subscriptionPrice, selectorAttrs.options.paymentInterval(), multiuser),
 			helpLabel: getHelpLabel(targetSubscription, selectorAttrs.options.businessUse()),
-			features: featuresToShow,
+			categories: categoriesToShow,
 			featuresExpanded: this.featuresExpanded[targetSubscription] || this.featuresExpanded.All,
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,
-			paymentInterval: selectorAttrs.isInitialUpgrade && targetSubscription !== SubscriptionType.Free ? selectorAttrs.options.paymentInterval : null,
+			paymentInterval: selectorAttrs.allowSwitchingPaymentInterval && targetSubscription !== PlanType.Free ? selectorAttrs.options.paymentInterval : null,
 			highlighted: selectorAttrs.highlightPremium,
-			showReferenceDiscount: selectorAttrs.isInitialUpgrade,
+			showReferenceDiscount: selectorAttrs.allowSwitchingPaymentInterval,
+			renderCategoryTitle,
+			mobile,
 		}
 	}
 
@@ -216,12 +222,12 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		if (!featureListProvider.featureLoadingDone()) {
 			// the feature list is not available
 			return {
-				Free: null,
-				Pro: null,
-				Teams: null,
-				Premium: null,
-				TeamsBusiness: null,
-				PremiumBusiness: null,
+				[PlanType.Free]: null,
+				[PlanType.Revolutionary]: null,
+				[PlanType.Legend]: null,
+				[PlanType.Essential]: null,
+				[PlanType.Advanced]: null,
+				[PlanType.Unlimited]: null,
 				All: null,
 			}
 		}
@@ -233,12 +239,12 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				}
 			}
 			return {
-				Free: this.renderExpander(SubscriptionType.Free),
-				Pro: this.renderExpander(SubscriptionType.Pro),
-				Teams: this.renderExpander(SubscriptionType.Teams),
-				Premium: this.renderExpander(SubscriptionType.Premium),
-				TeamsBusiness: this.renderExpander(SubscriptionType.TeamsBusiness),
-				PremiumBusiness: this.renderExpander(SubscriptionType.PremiumBusiness),
+				[PlanType.Free]: this.renderExpander(PlanType.Free),
+				[PlanType.Revolutionary]: this.renderExpander(PlanType.Revolutionary),
+				[PlanType.Legend]: this.renderExpander(PlanType.Legend),
+				[PlanType.Advanced]: this.renderExpander(PlanType.Advanced),
+				[PlanType.Essential]: this.renderExpander(PlanType.Essential),
+				[PlanType.Unlimited]: this.renderExpander(PlanType.Unlimited),
 				All: null,
 			}
 		} else {
@@ -273,23 +279,35 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 function localizeFeatureListItem(
 	item: FeatureListItem,
-	targetSubscription: SubscriptionType,
+	targetSubscription: PlanType,
 	attrs: SubscriptionSelectorAttr,
-): BuyOptionBoxAttr["features"][0] | null {
-	const text = tryGetTranslation(item.text, getReplacement(item.replacements, targetSubscription, attrs))
+): BuyOptionBoxAttr["categories"][0]["features"][0] | null {
+	let text = tryGetTranslation(item.text, getReplacement(item.replacements, targetSubscription, attrs))
 	if (text == null) {
 		return null
 	}
 	if (!item.toolTip) {
-		return { text, key: item.text, antiFeature: item.antiFeature }
+		return { text, key: item.text, antiFeature: item.antiFeature, omit: item.omit, heart: item.heart ? true : false }
 	} else {
 		const toolTipText = tryGetTranslation(item.toolTip)
 		if (toolTipText === null) {
 			return null
 		}
 		const toolTip = item.toolTip.endsWith("_markdown") ? m.trust(toolTipText) : toolTipText
-		return { text, toolTip, key: item.text, antiFeature: item.antiFeature }
+		return { text, toolTip, key: item.text, antiFeature: item.antiFeature, omit: item.omit, heart: item.heart ? true : false }
 	}
+}
+
+function localizeFeatureCategory(
+	category: FeatureCategory,
+	targetSubscription: PlanType,
+	attrs: SubscriptionSelectorAttr,
+): BuyOptionBoxAttr["categories"][0] | null {
+	const title = tryGetTranslation(category.title)
+	const features = downcast<{ text: string; toolTip?: m.Child; key: string; antiFeature?: boolean | undefined; omit: boolean; heart: boolean }[]>(
+		category.features.map((f) => localizeFeatureListItem(f, targetSubscription, attrs)).filter((it) => it != null),
+	)
+	return { title, key: category.title, features, featureCount: category.featureCount }
 }
 
 function tryGetTranslation(key: TranslationKey, replacements?: Record<string, string | number>): string | null {
@@ -307,22 +325,17 @@ function tryGetTranslation(key: TranslationKey, replacements?: Record<string, st
  */
 export function getReplacement(
 	key: ReplacementKey | undefined,
-	subscription: SubscriptionType,
+	subscription: PlanType,
 	attrs: SubscriptionSelectorAttr,
 ): Record<string, string | number> | undefined {
 	const { priceAndConfigProvider, options } = attrs
 	switch (key) {
-		case "pricePerExtraUser":
-			const subscriptionPriceUser = priceAndConfigProvider.getSubscriptionPrice(
-				options.paymentInterval(),
-				subscription,
-				UpgradePriceType.AdditionalUserPrice,
-			)
-			return { "{1}": formatMonthlyPrice(subscriptionPriceUser, attrs.options.paymentInterval()) }
+		case "customDomains":
+			return { "{amount}": priceAndConfigProvider.getPlanPrices(subscription).customDomains }
 		case "mailAddressAliases":
-			return { "{amount}": priceAndConfigProvider.getSubscriptionConfig(subscription).nbrOfAliases }
+			return { "{amount}": priceAndConfigProvider.getPlanPrices(subscription).includedAliases }
 		case "storage":
-			return { "{amount}": priceAndConfigProvider.getSubscriptionConfig(subscription).storageGb }
+			return { "{amount}": priceAndConfigProvider.getPlanPrices(subscription).includedStorage }
 		case "contactForm":
 			const subscriptionPriceContact = priceAndConfigProvider.getSubscriptionPrice(
 				options.paymentInterval(),
@@ -333,14 +346,18 @@ export function getReplacement(
 	}
 }
 
-function getHelpLabel(subscriptionType: SubscriptionType, businessUse: boolean): TranslationKey {
-	if (subscriptionType === SubscriptionType.Free) return "pricing.upgradeLater_msg"
+function getHelpLabel(planType: PlanType, businessUse: boolean): TranslationKey {
+	if (planType === PlanType.Free) return "pricing.upgradeLater_msg"
 	return businessUse ? "pricing.basePriceExcludesTaxes_msg" : "pricing.basePriceIncludesTaxes_msg"
 }
 
-function getPriceHint(subscriptionPrice: number, paymentInterval: PaymentInterval): TranslationKey {
+function getPriceHint(subscriptionPrice: number, paymentInterval: PaymentInterval, multiuser: boolean): TranslationKey {
 	if (subscriptionPrice > 0) {
-		return paymentInterval === PaymentInterval.Yearly ? "pricing.perMonthPaidYearly_label" : "pricing.perMonth_label"
+		if (multiuser) {
+			return paymentInterval === PaymentInterval.Yearly ? "pricing.perUserMonthPaidYearly_label" : "pricing.perUserMonth_label"
+		} else {
+			return paymentInterval === PaymentInterval.Yearly ? "pricing.perMonthPaidYearly_label" : "pricing.perMonth_label"
+		}
 	} else {
 		return "emptyString_msg"
 	}

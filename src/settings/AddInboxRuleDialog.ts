@@ -24,7 +24,7 @@ assertMainOrNode()
 
 export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRule) {
 	if (locator.logins.getUserController().isFreeAccount()) {
-		showNotAvailableForFreeDialog(true)
+		showNotAvailableForFreeDialog()
 	} else if (mailBoxDetail) {
 		let targetFolders = mailBoxDetail.folders.getIndentedList().map((folderInfo) => {
 			return {
