@@ -146,14 +146,37 @@ export const AccountTypeNames: Record<AccountType, string> = {
 	[AccountType.EXTERNAL]: "External",
 }
 
-export const enum PaidSubscriptionType {
+export enum PlanType {
 	Premium = "0",
-	Legacy_Pro = "1",
 	Pro = "2",
 	Teams = "3",
-	Premium_Business = "4",
-	Teams_Business = "5",
+	PremiumBusiness = "4",
+	TeamsBusiness = "5",
+	Revolutionary = "6",
+	Legend = "7",
+	Essential = "8",
+	Advanced = "9",
+	Unlimited = "10",
+	Free = "11",
 }
+
+export type PlanName = keyof typeof PlanType
+export type AvailablePlanType = Exclude<PlanType, PlanType.Premium | PlanType.Pro | PlanType.Teams | PlanType.PremiumBusiness | PlanType.TeamsBusiness>
+export const AvailablePlans: AvailablePlanType[] = [
+	PlanType.Free,
+	PlanType.Revolutionary,
+	PlanType.Legend,
+	PlanType.Essential,
+	PlanType.Advanced,
+	PlanType.Unlimited,
+]
+export const NewPaidPlans: AvailablePlanType[] = [PlanType.Revolutionary, PlanType.Legend, PlanType.Essential, PlanType.Advanced, PlanType.Unlimited]
+export const NewBusinessPlans: AvailablePlanType[] = [PlanType.Essential, PlanType.Advanced, PlanType.Unlimited]
+export const NewPersonalPlans: AvailablePlanType[] = [PlanType.Free, PlanType.Revolutionary, PlanType.Legend]
+
+export const LegacyPlans = [PlanType.Premium, PlanType.PremiumBusiness, PlanType.Teams, PlanType.TeamsBusiness, PlanType.Pro]
+
+export const PlanTypeToName = reverse(PlanType)
 
 export enum BookingItemFeatureType {
 	Users = "0",
@@ -167,6 +190,11 @@ export enum BookingItemFeatureType {
 	Discount = "8",
 	Sharing = "9",
 	Business = "10",
+	Revolutionary = "11",
+	Legend = "12",
+	Essential = "13",
+	Advanced = "14",
+	Unlimited = "15",
 }
 
 export const BookingItemFeatureByCode = reverse(BookingItemFeatureType)
@@ -186,9 +214,6 @@ export const Const = {
 	UPGRADE_REMINDER_INTERVAL: 14 * 24 * 60 * 60 * 1000,
 	MEMORY_GB_FACTOR: 1000000000,
 	MEMORY_WARNING_FACTOR: 0.9,
-	COUNTER_USED_MEMORY_INTERNAL: "UsedMemoryInternalNew",
-	COUNTER_USED_MEMORY_EXTERNAL: "UsedMemoryExternalNew",
-	COUNTER_USED_MEMORY: "UsedMemoryNew",
 	// Sets the current date for testing date dependent services. Only available in test environments.
 	CURRENT_DATE: null,
 	CURRENCY_SYMBOL_EUR: "€",
@@ -350,6 +375,7 @@ export enum FeatureType {
 	Newsletter = "14",
 	Blobs = "15", // enables blob attachments for mails
 	MailDetails = "16", // enable new mail model support
+	MultipleUsers = "17", // Multi-user support for new personal plans.
 }
 
 export const enum BootstrapFeatureType {
@@ -504,7 +530,17 @@ export const enum PostingType {
 	SalesCommission = "9",
 }
 
-export const CounterType_UnreadMails = "2"
+export enum CounterType {
+	Default = "0",
+	Signup = "1",
+	UnreadMails = "2",
+	UserStorageLegacy = "3",
+	GroupStorageLegacy = "4",
+	UserStorage = "5",
+	GroupStorage = "6",
+}
+
+export const CounterTypeToName = reverse(CounterType)
 
 export const enum UnsubscribeFailureReason {
 	TOO_MANY_ENABLED_USERS = "unsubscribe.too_many_users",
@@ -512,7 +548,22 @@ export const enum UnsubscribeFailureReason {
 	TOO_MANY_CALENDARS = "unsubscribe.too_many_calendars",
 	CALENDAR_TYPE = "unsubscirbe.invalid_calendar_type",
 	TOO_MANY_ALIASES = "unsubscribe.too_many_aliases",
-	FEATURE = "unsubscribe.feature",
+	TOO_MUCH_STORAGE_USED = "unsubscribe.too_much_storage",
+	TOO_MANY_DOMAINS = "unsubscribe.too_many_domains",
+	HAS_TEMPLATE_GROUP = "unsubscribe.has_template_group",
+	WHITELABEL_DOMAIN_ACTIVE = "unsubscribe.whitelabel_domain_active",
+	SHARED_GROUP_ACTIVE = "unsubscribe.shared_group_active",
+	HAS_CONTACT_FORM = "unsubscribe.has_contact_form",
+}
+
+// legacy, should be deleted after clients older than 3.114 have been disabled.
+export const enum BookingFailureReason {
+	TOO_MANY_DOMAINS = "bookingservice.too_many_domains",
+	TOO_MANY_ALIASES = "bookingservice.too_many_aliases",
+	TOO_MUCH_STORAGE_USED = "bookingservice.too_much_storage_used",
+	SHARED_GROUP_ACTIVE = "bookingservice.shared_group_active",
+	WHITELABEL_DOMAIN_ACTIVE = "bookingservice.whitelabel_domain_active",
+	HAS_TEMPLATE_GROUP = "bookingservice.has_template_group",
 }
 
 export const Keys = Object.freeze({

@@ -1,4 +1,4 @@
-import { AccountType, Const, GroupType } from "../../../common/TutanotaConstants.js"
+import { AccountType, Const, CounterType, GroupType } from "../../../common/TutanotaConstants.js"
 import type { User } from "../../../entities/sys/TypeRefs.js"
 import {
 	createMembershipAddData,
@@ -15,7 +15,6 @@ import type { ContactFormUserData, UserAccountUserData } from "../../../entities
 import { createContactFormUserData, createUserAccountCreateData, createUserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
 import type { GroupManagementFacade } from "./GroupManagementFacade.js"
 import type { RecoverData } from "../LoginFacade.js"
-import type { WorkerImpl } from "../../WorkerImpl.js"
 import { CounterFacade } from "./CounterFacade.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import {
@@ -159,14 +158,9 @@ export class UserManagementFacade {
 		await this.serviceExecutor.post(UpdateAdminshipService, data)
 	}
 
-	readUsedUserStorage(user: User): Promise<number> {
-		return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Mail)).then((mailStorage) => {
-			return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.Contact)).then((contactStorage) => {
-				return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY, this._getGroupId(user, GroupType.File)).then((fileStorage) => {
-					return Number(mailStorage) + Number(contactStorage) + Number(fileStorage)
-				})
-			})
-		})
+	async readUsedUserStorage(user: User): Promise<number> {
+		const counterValue = await this.counters.readCounterValue(CounterType.UserStorageLegacy, neverNull(user.customer), user.userGroup.group)
+		return Number(counterValue)
 	}
 
 	async deleteUser(user: User, restore: boolean): Promise<void> {

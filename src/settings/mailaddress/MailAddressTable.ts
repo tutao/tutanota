@@ -7,16 +7,17 @@ import { LimitReachedError } from "../../api/common/error/RestError.js"
 import { ofClass } from "@tutao/tutanota-utils"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import * as EmailAliasOptionsDialog from "../../subscription/EmailAliasOptionsDialog.js"
 import Stream from "mithril/stream"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
 import { attachDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
-import { showNotAvailableForFreeDialog } from "../../misc/SubscriptionDialogs.js"
+import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { AddressInfo, AddressStatus, MailAddressTableModel } from "./MailAddressTableModel.js"
 import { showAddAliasDialog } from "./AddAliasDialog.js"
+import { locator } from "../../api/main/MainLocator.js"
+import { NewPaidPlans } from "../../api/common/TutanotaConstants.js"
 
 assertMainOrNode()
 
@@ -71,52 +72,16 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 				},
 				m(Table, aliasesTableAttrs),
 			),
-			this.renderAliasCount(a),
 		]
 	}
 
-	private renderAliasCount({ model }: MailAddressTableAttrs) {
-		if (!model.userCanModifyAliases()) {
-			return null
-		}
-		const aliasCount = model.aliasCount()
-		if (aliasCount == null) {
-			return null
-		}
-		return m(
-			".small",
-			aliasCount.availableToCreate === 0
-				? lang.get("adminMaxNbrOfAliasesReached_msg")
-				: lang.get("mailAddressAliasesMaxNbr_label", { "{1}": aliasCount.availableToCreate }),
-		)
-	}
-
 	private onAddAlias(attrs: MailAddressTableAttrs) {
-		const { model } = attrs
-		switch (model.checkTryingToAddAlias()) {
-			case "freeaccount":
-				showNotAvailableForFreeDialog(true)
-				break
-			case "limitreached":
-				this.onAliasLimitReached()
-				break
-			case "ok":
-				showAddAliasDialog(attrs.model)
-				break
-			case "loading":
-			case "notanadmin":
-				break
+		const userController = locator.logins.getUserController()
+		if (userController.isFreeAccount()) {
+			showNotAvailableForFreeDialog()
+		} else {
+			showAddAliasDialog(attrs.model)
 		}
-	}
-
-	private onAliasLimitReached() {
-		Dialog.confirm(() => lang.get("adminMaxNbrOfAliasesReached_msg") + " " + lang.get("orderAliasesConfirm_msg")).then((confirmed) => {
-			if (confirmed) {
-				// Navigate to subscriptions folder and show alias options
-				m.route.set("/settings/subscription")
-				EmailAliasOptionsDialog.show()
-			}
-		})
 	}
 }
 
@@ -223,7 +188,7 @@ async function switchAliasStatus(alias: AddressInfo, attrs: MailAddressTableAttr
 
 	const updateModel = attrs.model.setAliasStatus(alias.address, !deactivateOrDeleteAlias).catch(
 		ofClass(LimitReachedError, () => {
-			Dialog.message("adminMaxNbrOfAliasesReached_msg")
+			showPlanUpgradeRequiredDialog(NewPaidPlans, "moreAliasesRequired_msg")
 		}),
 	)
 	await showProgressDialog("pleaseWait_msg", updateModel)

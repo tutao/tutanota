@@ -1,6 +1,7 @@
 import type { GroupInfo, MailAddressAliasServiceReturn, MailAddressAvailability } from "../../../entities/sys/TypeRefs.js"
 import {
 	createDomainMailAddressAvailabilityData,
+	createMailAddressAliasGetIn,
 	createMailAddressAliasServiceData,
 	createMailAddressAliasServiceDataDelete,
 	createMultipleMailAddressAvailabilityData,
@@ -38,8 +39,9 @@ export class MailAddressFacade {
 		private readonly nonCachingEntityClient: EntityClient,
 	) {}
 
-	getAliasCounters(): Promise<MailAddressAliasServiceReturn> {
-		return this.serviceExecutor.get(MailAddressAliasService, null)
+	getAliasCounters(userGroupId: Id): Promise<MailAddressAliasServiceReturn> {
+		const data = createMailAddressAliasGetIn({ targetGroup: userGroupId })
+		return this.serviceExecutor.get(MailAddressAliasService, data)
 	}
 
 	isMailAddressAvailable(mailAddress: string): Promise<boolean> {

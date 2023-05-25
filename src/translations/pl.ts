@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2023-05-12T20:39:46Z",
+	"updated_at": "2023-05-23T08:58:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -587,7 +587,7 @@ export default {
 		"formatTextRight_msg": "Do prawej",
 		"formatTextUl_msg": "Wypunktowanie",
 		"formatTextUnderline_msg": "Podkreślenie wybranego tekstu.",
-		"forward_action": "Dalej",
+		"forward_action": "Przekaż",
 		"freeAccountInfo_msg": "Dozwolone jest tylko jedno bezpłatne konto na osobę. Darmowe konta mogą być używane tylko do prywatnej komunikacji. Jeśli chcesz korzystać z Tutanota w biznesie lub jako freelancer, zamów płatną subskrypcję. Pamiętaj, że bezpłatne konta zostaną usunięte jeśli nie zalogujesz się przez 6 miesięcy. ",
 		"from_label": "Od",
 		"functionNotSupported_msg": "Ta funkcja nie jest wspierana przez twoje urządzenie lub przeglądarkę.",

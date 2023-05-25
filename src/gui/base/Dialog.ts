@@ -555,7 +555,7 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
-	static reminder(title: string, message: string, link: string): Promise<boolean> {
+	static reminder(title: string, message: string): Promise<boolean> {
 		return new Promise((resolve) => {
 			let dialog: Dialog
 
@@ -588,7 +588,6 @@ export class Dialog implements ModalComponent {
 								},
 							}),
 						]),
-						m("a[href=" + link + "][target=_blank]", link),
 					]),
 					m(
 						".flex-center.dialog-buttons.flex-no-grow-no-shrink-auto",

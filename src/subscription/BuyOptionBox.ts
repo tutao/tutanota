@@ -12,6 +12,7 @@ import { asPaymentInterval, formatMonthlyPrice, getCountFromPriceData, getPriceF
 import type { BookingFacade } from "../api/worker/facades/lazy/BookingFacade.js"
 import Stream from "mithril/stream"
 import { Icons } from "../gui/base/icons/Icons"
+import { BootIcons } from "../gui/base/icons/BootIcons"
 
 export type BuyOptionBoxAttr = {
 	heading: string | Children
@@ -22,7 +23,12 @@ export type BuyOptionBoxAttr = {
 	price?: string
 	priceHint?: TranslationKey | lazy<string>
 	helpLabel: TranslationKey | lazy<string>
-	features: Array<{ text: string; toolTip?: Child; key: string; antiFeature?: boolean }>
+	categories: Array<{
+		title: string | null
+		key: string
+		featureCount: { max: number }
+		features: Array<{ text: string; toolTip?: Child; key: string; antiFeature?: boolean; omit: boolean; heart: boolean }>
+	}>
 	featuresExpanded?: boolean
 	width: number
 	height: number
@@ -32,6 +38,8 @@ export type BuyOptionBoxAttr = {
 	paymentInterval: Stream<PaymentInterval> | null
 	highlighted?: boolean
 	showReferenceDiscount: boolean
+	renderCategoryTitle: boolean
+	mobile: boolean
 }
 
 export function getActiveSubscriptionActionButtonReplacement(): {
@@ -106,7 +114,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							: null,
 					],
 				),
-				this.renderFeatureList(attrs.features),
+				this.renderFeatureList(attrs),
 			],
 		)
 	}
@@ -124,7 +132,8 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 	}
 
 	private renderRibbon(paymentInterval?: PaymentInterval): Children {
-		return paymentInterval === PaymentInterval.Yearly ? m(".ribbon-vertical", m(".text-center.b.h4", { style: { "padding-top": px(22) } }, "%")) : null
+		return []
+		// return paymentInterval === PaymentInterval.Yearly ? m(".ribbon-vertical", m(".text-center.b.h4", { style: { "padding-top": px(22) } }, "%")) : null
 	}
 
 	private renderPaymentIntervalControl(paymentInterval: Stream<PaymentInterval> | null): Children {
@@ -144,20 +153,39 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			: null
 	}
 
-	private renderFeatureList(features: BuyOptionBoxAttr["features"]): Children {
+	private renderFeatureList(attrs: BuyOptionBoxAttr): Children {
 		return m(
 			".mt.pl",
-			features.map((f) =>
-				m(this.featureListItemSelector, { key: f.key }, [
-					m(Icon, { icon: f.antiFeature ? Icons.Cancel : Icons.Checkmark }),
-					m(".small.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", f.text),
-					f.toolTip
-						? //@ts-ignore
-						  m(InfoIcon, { text: f.toolTip })
-						: null,
-				]),
-			),
+			attrs.categories.map((fc) => {
+				return [
+					this.renderCategoryTitle(fc, attrs.renderCategoryTitle),
+					fc.features
+						.filter((f) => !f.omit || this.featuresExpanded)
+						.map((f) =>
+							m(this.featureListItemSelector, { key: f.key }, [
+								f.heart ? m(Icon, { icon: BootIcons.Heart }) : m(Icon, { icon: f.antiFeature ? Icons.Cancel : Icons.Checkmark }),
+								m(".small.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", [m("span", f.text)]),
+								f.toolTip
+									? //@ts-ignore
+									  m(InfoIcon, { text: f.toolTip })
+									: null,
+							]),
+						),
+					this.renderPlaceholders(fc),
+				]
+			}),
 		)
+	}
+
+	private renderCategoryTitle(fc: BuyOptionBoxAttr["categories"][0], renderCategoryTitle: boolean): Children {
+		if (fc.title && this.featuresExpanded) {
+			return [
+				m(".b.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", ""),
+				m(".b.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", renderCategoryTitle ? fc.title : ""),
+			]
+		} else {
+			return []
+		}
 	}
 
 	private renderHeading(heading: string): Children {
@@ -181,6 +209,15 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 				heading,
 			),
 		)
+	}
+
+	private renderPlaceholders(fc: BuyOptionBoxAttr["categories"][0]): Children {
+		if (!this.featuresExpanded) {
+			return []
+		} else {
+			const placeholderCount = fc.featureCount.max - fc.features.length
+			return [...Array(placeholderCount)].map(() => m(".button-height", ""))
+		}
 	}
 }
 

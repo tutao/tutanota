@@ -88,7 +88,7 @@ import { OfflineIndicatorViewModel } from "../../gui/base/OfflineIndicatorViewMo
 import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel.js"
-import { GroupType } from "../common/TutanotaConstants.js"
+import { Const, GroupType } from "../common/TutanotaConstants.js"
 import type { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
 import type { ConversationViewModel } from "../../mail/view/ConversationViewModel.js"
 import { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
@@ -146,6 +146,7 @@ class MainLocator {
 	connectivityModel!: WebsocketConnectivityModel
 	operationProgressTracker!: OperationProgressTracker
 	infoMessageHandler!: InfoMessageHandler
+	Const!: Record<string, any>
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private exposedNativeInterfaces: ExposedNativeInterface | null = null
@@ -473,7 +474,7 @@ class MainLocator {
 		this.mailModel = new MailModel(notifications, this.eventController, this.connectivityModel, this.mailFacade, this.entityClient, this.logins)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler(this.search)
-
+		this.Const = Const
 		if (!isBrowser()) {
 			const { WebDesktopFacade } = await import("../../native/main/WebDesktopFacade")
 			const { WebMobileFacade } = await import("../../native/main/WebMobileFacade.js")
@@ -557,6 +558,12 @@ class MainLocator {
 					const { ReferralLinkNews } = await import("../../misc/news/items/ReferralLinkNews.js")
 					const dateProvider = await this.noZoneDateProvider()
 					return new ReferralLinkNews(this.newsModel, dateProvider, this.logins.getUserController())
+				case "newPlans":
+					const { NewPlansNews } = await import("../../misc/news/items/NewPlansNews.js")
+					return new NewPlansNews(this.newsModel, this.logins.getUserController())
+				case "newPlansOfferEnding":
+					const { NewPlansOfferEndingNews } = await import("../../misc/news/items/NewPlansOfferEndingNews.js")
+					return new NewPlansOfferEndingNews(this.newsModel, this.logins.getUserController())
 				default:
 					console.log(`No implementation for news named '${name}'`)
 					return null

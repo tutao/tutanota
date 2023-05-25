@@ -3,7 +3,7 @@ import { Dialog } from "../gui/base/Dialog"
 import { lang } from "../misc/LanguageViewModel"
 import { formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./PriceUtils"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
-import { AccountType, Const, PaidSubscriptionType, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
+import { AccountType, Const, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
@@ -16,7 +16,7 @@ import { ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services"
 import { UsageTest } from "@tutao/tutanota-usagetests"
-import { getDisplayNameOfSubscriptionType, SelectedSubscriptionOptions, SubscriptionType } from "./FeatureListProvider"
+import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -37,7 +37,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 	private upgrade(data: UpgradeSubscriptionData) {
 		const serviceData = createSwitchAccountTypePostIn({
 			accountType: AccountType.PREMIUM,
-			subscriptionType: this.subscriptionTypeToPaidSubscriptionType(data.type),
+			plan: data.type,
 			date: Const.CURRENT_DATE,
 			referralCode: data.referralCode,
 		})
@@ -91,7 +91,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			m(".pt.pb.plr-l", [
 				m(TextField, {
 					label: "subscription_label",
-					value: getDisplayNameOfSubscriptionType(attrs.data.type),
+					value: getDisplayNameOfPlanType(attrs.data.type),
 					disabled: true,
 				}),
 				m(TextField, {
@@ -144,23 +144,6 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 					disabled: true,
 			  })
 			: null
-	}
-
-	private subscriptionTypeToPaidSubscriptionType(subscriptionType: SubscriptionType): PaidSubscriptionType {
-		switch (subscriptionType) {
-			case SubscriptionType.Premium:
-				return PaidSubscriptionType.Premium
-			case SubscriptionType.PremiumBusiness:
-				return PaidSubscriptionType.Premium_Business
-			case SubscriptionType.Teams:
-				return PaidSubscriptionType.Teams
-			case SubscriptionType.TeamsBusiness:
-				return PaidSubscriptionType.Teams_Business
-			case SubscriptionType.Pro:
-				return PaidSubscriptionType.Pro
-			default:
-				throw new Error("not a valid Premium subscription type: " + subscriptionType)
-		}
 	}
 
 	private close(data: UpgradeSubscriptionData, dom: HTMLElement) {

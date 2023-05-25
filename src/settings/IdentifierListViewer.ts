@@ -175,7 +175,7 @@ export class IdentifierListViewer {
 
 	_showAddNotificationEmailAddressDialog(user: User) {
 		if (locator.logins.getUserController().isFreeAccount()) {
-			showNotAvailableForFreeDialog(true)
+			showNotAvailableForFreeDialog()
 		} else {
 			let mailAddress = ""
 

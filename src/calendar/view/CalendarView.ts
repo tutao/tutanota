@@ -518,7 +518,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			this._showCreateCalendarDialog()
 		} else {
 			import("../../misc/SubscriptionDialogs")
-				.then((SubscriptionDialogUtils) => SubscriptionDialogUtils.checkPremiumSubscription(true))
+				.then((SubscriptionDialogUtils) => SubscriptionDialogUtils.checkPremiumSubscription())
 				.then((ok) => {
 					if (ok) {
 						this._showCreateCalendarDialog()
@@ -613,7 +613,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						icon: Icons.ContactImport,
 						click: () => {
 							if (locator.logins.getUserController().isFreeAccount()) {
-								showNotAvailableForFreeDialog(false)
+								showNotAvailableForFreeDialog()
 							} else {
 								showGroupSharingDialog(groupInfo, sharedCalendar)
 							}

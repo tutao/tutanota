@@ -321,6 +321,7 @@ export class ContactFormEditor {
 														this._contactForm._id = contactFormIdFromPath
 														p = showBuyDialog({
 															featureType: BookingItemFeatureType.ContactForm,
+															bookingText: "contactForm_label",
 															count: 1,
 															freeAmount: 0,
 															reactivate: false,

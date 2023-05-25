@@ -92,7 +92,48 @@ export const typeModels = {
             }
         },
         "app": "monitor",
-        "version": "21"
+        "version": "22"
+    },
+    "CounterValue": {
+        "name": "CounterValue",
+        "since": 22,
+        "type": "AGGREGATED_TYPE",
+        "id": 300,
+        "rootId": "B21vbml0b3IAASw",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 301,
+                "since": 22,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "counterId": {
+                "final": false,
+                "name": "counterId",
+                "id": 302,
+                "since": 22,
+                "type": "GeneratedId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "value": {
+                "final": false,
+                "name": "value",
+                "id": 303,
+                "since": 22,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {},
+        "app": "monitor",
+        "version": "22"
     },
     "ReadCounterData": {
         "name": "ReadCounterData",
@@ -112,28 +153,37 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "monitor": {
+            "columnName": {
                 "final": false,
-                "name": "monitor",
-                "id": 14,
-                "since": 1,
-                "type": "String",
-                "cardinality": "One",
-                "encrypted": false
-            },
-            "owner": {
-                "final": false,
-                "name": "owner",
+                "name": "columnName",
                 "id": 15,
                 "since": 1,
                 "type": "GeneratedId",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "counterType": {
+                "final": false,
+                "name": "counterType",
+                "id": 299,
+                "since": 22,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "rowName": {
+                "final": false,
+                "name": "rowName",
+                "id": 14,
+                "since": 1,
+                "type": "String",
                 "cardinality": "One",
                 "encrypted": false
             }
         },
         "associations": {},
         "app": "monitor",
-        "version": "21"
+        "version": "22"
     },
     "ReadCounterReturn": {
         "name": "ReadCounterReturn",
@@ -163,9 +213,20 @@ export const typeModels = {
                 "encrypted": false
             }
         },
-        "associations": {},
+        "associations": {
+            "counterValues": {
+                "final": false,
+                "name": "counterValues",
+                "id": 304,
+                "since": 22,
+                "type": "AGGREGATION",
+                "cardinality": "Any",
+                "refType": "CounterValue",
+                "dependency": null
+            }
+        },
         "app": "monitor",
-        "version": "21"
+        "version": "22"
     },
     "WriteCounterData": {
         "name": "WriteCounterData",
@@ -224,6 +285,6 @@ export const typeModels = {
         },
         "associations": {},
         "app": "monitor",
-        "version": "21"
+        "version": "22"
     }
 }

@@ -18,7 +18,7 @@ import { ContactFormListView } from "./contactform/ContactFormListView.js"
 import { WhitelabelSettingsViewer } from "./whitelabel/WhitelabelSettingsViewer"
 import { Icons } from "../gui/base/icons/Icons"
 import { theme } from "../gui/theme"
-import { FeatureType, GroupType } from "../api/common/TutanotaConstants"
+import { FeatureType, GroupType, LegacyPlans } from "../api/common/TutanotaConstants"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { locator } from "../api/main/MainLocator"
 import { WhitelabelChildrenListView } from "./WhitelabelChildrenListView"
@@ -326,27 +326,30 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 	private async populateAdminFolders() {
 		await this.updateShowBusinessSettings()
+		const currentPlanType = await this.logins.getUserController().getPlanType()
+		const isLegacyPlan = LegacyPlans.includes(currentPlanType)
 
-		this._adminFolders.push(
-			new SettingsFolder(
-				"adminUserList_action",
-				() => BootIcons.Contacts,
-				"users",
-				() => new UserListView(this),
-				undefined,
-			),
-		)
-
-		if (!this.logins.isEnabled(FeatureType.WhitelabelChild)) {
+		if (await this.logins.getUserController().canHaveUsers()) {
 			this._adminFolders.push(
 				new SettingsFolder(
-					"groups_label",
-					() => Icons.People,
-					"groups",
-					() => new GroupListView(this),
+					"adminUserList_action",
+					() => BootIcons.Contacts,
+					"users",
+					() => new UserListView(this),
 					undefined,
 				),
 			)
+			if (!this.logins.isEnabled(FeatureType.WhitelabelChild)) {
+				this._adminFolders.push(
+					new SettingsFolder(
+						"groups_label",
+						() => Icons.People,
+						"groups",
+						() => new GroupListView(this),
+						undefined,
+					),
+				)
+			}
 		}
 
 		if (this.logins.getUserController().isGlobalAdmin()) {
@@ -386,15 +389,17 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		}
 
 		if (!this.logins.isEnabled(FeatureType.WhitelabelChild)) {
-			this._adminFolders.push(
-				new SettingsFolder(
-					"contactForms_label",
-					() => Icons.Chat,
-					"contactforms",
-					() => new ContactFormListView(this),
-					undefined,
-				),
-			)
+			if (isLegacyPlan) {
+				this._adminFolders.push(
+					new SettingsFolder(
+						"contactForms_label",
+						() => Icons.Chat,
+						"contactforms",
+						() => new ContactFormListView(this),
+						undefined,
+					),
+				)
+			}
 
 			if (this.logins.getUserController().isGlobalAdmin()) {
 				this._adminFolders.push(
@@ -402,7 +407,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						"adminSubscription_action",
 						() => BootIcons.Premium,
 						"subscription",
-						() => new SubscriptionViewer(),
+						() => new SubscriptionViewer(currentPlanType),
 						undefined,
 					).setIsVisibleHandler(() => !isIOSApp() || !this.logins.getUserController().isFreeAccount()),
 				)
@@ -575,7 +580,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 												{
 													label: "exportUsers_action",
 													click: () =>
-														exportUserCsv(locator.entityClient, locator.userManagementFacade, this.logins, locator.fileController),
+														exportUserCsv(locator.entityClient, this.logins, locator.fileController, locator.counterFacade),
 												},
 											],
 										}),
@@ -688,10 +693,12 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						}
 					})
 				}
-
 				m.redraw()
 			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
 				this._customDomains.reset()
+				this._adminFolders.length = 0
+				// When switching a plan we hide/show certain admin settings.
+				await this.populateAdminFolders()
 
 				return this._customDomains.getAsync().then(() => m.redraw())
 			}

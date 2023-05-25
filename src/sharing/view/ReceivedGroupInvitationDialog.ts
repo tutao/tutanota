@@ -13,10 +13,10 @@ import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js
 import { isSameId } from "../../api/common/utils/EntityUtils"
 import { sendAcceptNotificationEmail, sendRejectNotificationEmail } from "../GroupSharingUtils"
 import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, groupRequiresBusinessFeature } from "../GroupUtils"
-import { showBusinessFeatureRequiredDialog } from "../../misc/SubscriptionDialogs"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
 import type { GroupSharingTexts } from "../GroupGuiUtils"
 import { getTextsForGroupType } from "../GroupGuiUtils"
-import { FeatureType, GroupType } from "../../api/common/TutanotaConstants"
+import { FeatureType, GroupType, NewPaidPlans } from "../../api/common/TutanotaConstants"
 import { ColorPicker } from "../../gui/base/ColorPicker"
 import { locator } from "../../api/main/MainLocator"
 
@@ -111,13 +111,13 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 
 async function checkCanAcceptInvitation(invitation: ReceivedGroupInvitation): Promise<boolean> {
 	const SubscriptionDialogUtils = await import("../../misc/SubscriptionDialogs")
-	const allowed = await SubscriptionDialogUtils.checkPremiumSubscription(false)
+	const allowed = await SubscriptionDialogUtils.checkPremiumSubscription()
 	if (!allowed) {
 		return false
 	}
 	const customer = await locator.logins.getUserController().loadCustomer()
 	if (groupRequiresBusinessFeature(getInvitationGroupType(invitation)) && !isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled)) {
-		return showBusinessFeatureRequiredDialog("businessFeatureRequiredGeneral_msg")
+		return showPlanUpgradeRequiredDialog(NewPaidPlans)
 	} else {
 		return true
 	}

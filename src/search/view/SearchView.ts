@@ -491,7 +491,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						if (locator.logins.getUserController().isFreeAccount()) {
 							if (newValue != null) {
 								this.selectedMailField = null
-								showNotAvailableForFreeDialog(true)
+								showNotAvailableForFreeDialog()
 							}
 						} else {
 							this._searchAgain()
@@ -509,7 +509,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								if (locator.logins.getUserController().isFreeAccount()) {
 									if (newValue != null) {
 										this.selectedMailFolder = null
-										showNotAvailableForFreeDialog(true)
+										showNotAvailableForFreeDialog()
 									}
 								} else {
 									this._searchAgain()
@@ -617,7 +617,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private async selectTimePeriod() {
 		if (locator.logins.getUserController().isFreeAccount()) {
-			showNotAvailableForFreeDialog(true)
+			showNotAvailableForFreeDialog()
 		} else {
 			const startOfWeek = getStartOfTheWeekOffsetForUser(locator.logins.getUserController().userSettingsGroupRoot)
 			const { end, start } = await showDateRangeSelectionDialog(

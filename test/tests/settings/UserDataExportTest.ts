@@ -1,12 +1,14 @@
 import o from "ospec"
 import { loadUserExportData } from "../../../src/settings/UserDataExporter.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
-import { UserManagementFacade } from "../../../src/api/worker/facades/lazy/UserManagementFacade.js"
 import { LoginController } from "../../../src/api/main/LoginController.js"
 import { FileController } from "../../../src/file/FileController.js"
 import { object, when } from "testdouble"
-import { CustomerTypeRef, GroupInfo, GroupInfoTypeRef, GroupTypeRef, User, UserTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
+import { CustomerTypeRef, Group, GroupInfo, GroupInfoTypeRef, GroupTypeRef, User } from "../../../src/api/entities/sys/TypeRefs.js"
 import { formatDateTimeUTC } from "../../../src/calendar/export/CalendarImporter.js"
+import { CounterFacade } from "../../../src/api/worker/facades/lazy/CounterFacade.js"
+import { CounterType } from "../../../src/api/common/TutanotaConstants.js"
+import { createCounterValue } from "../../../src/api/entities/monitor/TypeRefs.js"
 
 o.spec("user data export", function () {
 	const customerId = "customerId"
@@ -19,7 +21,7 @@ o.spec("user data export", function () {
 	let allUserGroupInfos: Array<GroupInfo>
 
 	let entityClientMock: EntityClient
-	let userManagementFacadeMock: UserManagementFacade
+	let counterFacadeMock: CounterFacade
 	let loginsMock: LoginController
 	let fileControllerMock: FileController
 
@@ -40,7 +42,7 @@ o.spec("user data export", function () {
 		})
 		when(entityClientMock.loadAll(GroupInfoTypeRef, userGroupsId)).thenResolve(allUserGroupInfos)
 
-		userManagementFacadeMock = object()
+		counterFacadeMock = object()
 		fileControllerMock = object()
 	})
 
@@ -48,10 +50,16 @@ o.spec("user data export", function () {
 		const oneCreated = new Date(1655294400000) // 2022-06-15 12:00:00 GMT+0
 		const oneDeleted = new Date(1655469000000) // "2022-06-17 12:30:00 GMT +0"
 		const twoCreated = new Date(1657886400000) // "2022-07-15 12:00:00 GMT+0"
-		addUser("my name", "mail1@mail.com", oneCreated, oneDeleted, 100, ["alias1@alias.com", "alias2@alias.com"], "user1", "group1")
-		addUser("eman ym", "mail2@mail.com", twoCreated, null, null, [], "user2", "group2")
+		addUser("my name", "mail1@mail.com", oneCreated, oneDeleted, 100, ["alias1@alias.com", "alias2@alias.com"], "user1", "group1", "storage1")
+		addUser("eman ym", "mail2@mail.com", twoCreated, null, null, [], "user2", "group2", "storage2")
 
-		const [first, second] = await loadUserExportData(entityClientMock, userManagementFacadeMock, loginsMock)
+		when(counterFacadeMock.readAllCustomerCounterValues(CounterType.UserStorageLegacy, customerId)).thenResolve([
+			createCounterValue({ counterId: "storage1", value: "100" }),
+			createCounterValue({ counterId: "wrongId", value: "42" }), // some other counter
+			// missing counter for second user!
+		])
+
+		const [first, second] = await loadUserExportData(entityClientMock, loginsMock, counterFacadeMock)
 
 		o(first.name).equals("my name")
 		o(second.name).equals("eman ym")
@@ -66,13 +74,13 @@ o.spec("user data export", function () {
 		o(second.deleted).equals(null)
 
 		o(first.usedStorage).equals(100)
-		o(second.usedStorage).equals(null)
+		o(second.usedStorage).equals(0)
 
 		o(first.aliases).deepEquals(["alias1@alias.com", "alias2@alias.com"])
 		o(second.aliases).deepEquals([])
 	})
 
-	function addUser(name, mailAddress, created, deleted, usedStorage, aliases, userId, groupId) {
+	function addUser(name, mailAddress, created, deleted, usedStorage, aliases, userId, groupId, storageCounterId) {
 		allUserGroupInfos.push({
 			name,
 			mailAddress,
@@ -82,9 +90,7 @@ o.spec("user data export", function () {
 			group: groupId,
 		} as GroupInfo)
 
-		const user = { _id: userId } as User
-		when(entityClientMock.load(GroupTypeRef, groupId)).thenResolve({ user: userId })
-		when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-		when(userManagementFacadeMock.readUsedUserStorage(user)).thenResolve(usedStorage)
+		const group = { storageCounter: storageCounterId } as Group
+		when(entityClientMock.load(GroupTypeRef, groupId)).thenResolve({ storageCounter: group.storageCounter })
 	}
 })

@@ -9,7 +9,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import { getMailAddressDisplayText } from "../../mail/model/MailUtils"
 import { ButtonType } from "../../gui/base/Button.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
-import { ShareCapability } from "../../api/common/TutanotaConstants"
+import { NewPaidPlans, ShareCapability } from "../../api/common/TutanotaConstants"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import { PreconditionFailedError, TooManyRequestsError } from "../../api/common/error/RestError"
 import { TextField } from "../../gui/base/TextField.js"
@@ -26,6 +26,7 @@ import { getTextsForGroupType } from "../GroupGuiUtils"
 import { ResolvableRecipient, ResolveMode } from "../../api/main/RecipientsModel"
 import { MailRecipientsTextField } from "../../gui/MailRecipientsTextField.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 
 export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {
 	const groupType = downcast(assertNotNull(groupInfo.groupType))
@@ -227,8 +228,8 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 				return Dialog.message("noRecipients_msg")
 			}
 
-			const { checkPremiumSubscription } = await import("../../misc/SubscriptionDialogs")
-			if (await checkPremiumSubscription(false)) {
+			const { checkPremiumSubscription, showPlanUpgradeRequiredDialog } = await import("../../misc/SubscriptionDialogs")
+			if (await checkPremiumSubscription()) {
 				try {
 					const invitedMailAddresses = await showProgressDialog(
 						"calendarInvitationProgress_msg",
@@ -239,10 +240,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 				} catch (e) {
 					if (e instanceof PreconditionFailedError) {
 						if (locator.logins.getUserController().isGlobalAdmin()) {
-							if (await Dialog.confirm(() => texts.sharingNotOrderedAdmin)) {
-								const { showSharingBuyDialog } = await import("../../subscription/BuyDialog")
-								showSharingBuyDialog(true)
-							}
+							await showPlanUpgradeRequiredDialog(NewPaidPlans)
 						} else {
 							Dialog.message(() => `${texts.sharingNotOrderedUser} ${lang.get("contactAdmin_msg")}`)
 						}

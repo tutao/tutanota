@@ -156,7 +156,6 @@ export class CalendarEventViewModel {
 	readonly sendingOutUpdate: Stream<boolean>
 	_processing: boolean
 	hasBusinessFeature: Stream<boolean>
-	hasPremiumLegacy: Stream<boolean>
 	isForceUpdates: Stream<boolean>
 	readonly initialized: Promise<CalendarEventViewModel>
 
@@ -192,7 +191,6 @@ export class CalendarEventViewModel {
 		this.sendingOutUpdate = stream<boolean>(false)
 		this._processing = false
 		this.hasBusinessFeature = stream<boolean>(false)
-		this.hasPremiumLegacy = stream<boolean>(false)
 		this.isForceUpdates = stream<boolean>(false)
 		this.location = stream("")
 		this.note = ""
@@ -436,10 +434,8 @@ export class CalendarEventViewModel {
 		if (this._userController.isInternalUser()) {
 			const customer = await this._userController.loadCustomer()
 			this.hasBusinessFeature(isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled))
-			this.hasPremiumLegacy(isCustomizationEnabledForCustomer(customer, FeatureType.PremiumLegacy))
 		} else {
 			this.hasBusinessFeature(false)
-			this.hasPremiumLegacy(false)
 		}
 	}
 
@@ -741,7 +737,7 @@ export class CalendarEventViewModel {
 		return selectedCalendar != null && !selectedCalendar.shared && this._eventType !== EventType.INVITE
 	}
 
-	shouldShowSendInviteNotAvailable(): boolean {
+	async shouldShowSendInviteNotAvailable(): Promise<boolean> {
 		if (this._userController.user.accountType === AccountType.FREE) {
 			return true
 		}
@@ -750,7 +746,7 @@ export class CalendarEventViewModel {
 			return false
 		}
 
-		return !this.hasBusinessFeature() && !this.hasPremiumLegacy()
+		return !this.hasBusinessFeature() && !(await this._userController.isNewPaidPlan())
 	}
 
 	removeAttendee(guest: Guest) {
@@ -873,7 +869,7 @@ export class CalendarEventViewModel {
 	}
 
 	isForceUpdateAvailable(): boolean {
-		return this._eventType === EventType.OWN && !this.shouldShowSendInviteNotAvailable() && this._hasUpdatableAttendees()
+		return this._eventType === EventType.OWN && this._hasUpdatableAttendees()
 	}
 
 	/**
@@ -1000,11 +996,11 @@ export class CalendarEventViewModel {
 		// no updates possible
 		const passwordCheck = () => (this.hasInsecurePasswords() && this.containsExternalRecipients() ? askInsecurePassword() : Promise.resolve(true))
 
-		return askForUpdatesAwait.then((updateResponse) => {
+		return askForUpdatesAwait.then(async (updateResponse) => {
 			if (updateResponse === "cancel") {
 				return false
 			} else if (
-				this.shouldShowSendInviteNotAvailable() && // we check again to prevent updates after cancelling business or updates for an imported event
+				(await this.shouldShowSendInviteNotAvailable()) && // we check again to prevent updates after cancelling business or updates for an imported event
 				(updateResponse === "yes" || this._inviteModel.bccRecipients().length || this._cancelModel.bccRecipients().length)
 			) {
 				throw new BusinessFeatureRequiredError("businessFeatureRequiredInvite_msg")

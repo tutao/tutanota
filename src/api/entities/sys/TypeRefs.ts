@@ -19,7 +19,6 @@ export type AccountingInfo = {
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
 	_permissions: Id;
-	business: boolean;
 	invoiceAddress: string;
 	invoiceCountry: null | string;
 	invoiceName: string;
@@ -301,7 +300,7 @@ export type Booking = {
 	_owner: Id;
 	_ownerGroup: null | Id;
 	_permissions: Id;
-	business: boolean;
+	bonusMonth: NumberString;
 	createDate: Date;
 	endDate: null | Date;
 	paymentInterval: NumberString;
@@ -753,7 +752,7 @@ export type Customer = {
 	_ownerGroup: null | Id;
 	_permissions: Id;
 	approvalStatus: NumberString;
-	businessUse: null | boolean;
+	businessUse: boolean;
 	canceledPremiumAccount: boolean;
 	orderProcessingAgreementNeeded: boolean;
 	type: NumberString;
@@ -871,6 +870,9 @@ export type CustomerInfo = {
 	erased: boolean;
 	includedEmailAliases: NumberString;
 	includedStorageCapacity: NumberString;
+	perUserAliasCount: NumberString;
+	perUserStorageCapacity: NumberString;
+	plan: NumberString;
 	promotionEmailAliases: NumberString;
 	promotionStorageCapacity: NumberString;
 	registrationMailAddress: string;
@@ -1357,6 +1359,7 @@ export type Group = {
 	invitations: Id;
 	keys: KeyPair[];
 	members: Id;
+	storageCounter:  null | Id;
 	user:  null | Id;
 }
 export const GroupInfoTypeRef: TypeRef<GroupInfo> = new TypeRef("sys", "GroupInfo")
@@ -1589,6 +1592,19 @@ export type MailAddressAlias = {
 	_id: Id;
 	enabled: boolean;
 	mailAddress: string;
+}
+export const MailAddressAliasGetInTypeRef: TypeRef<MailAddressAliasGetIn> = new TypeRef("sys", "MailAddressAliasGetIn")
+
+export function createMailAddressAliasGetIn(values?: Partial<MailAddressAliasGetIn>): MailAddressAliasGetIn {
+	return Object.assign(create(typeModels.MailAddressAliasGetIn, MailAddressAliasGetInTypeRef), values)
+}
+
+export type MailAddressAliasGetIn = {
+	_type: TypeRef<MailAddressAliasGetIn>;
+
+	_format: NumberString;
+
+	targetGroup: Id;
 }
 export const MailAddressAliasServiceDataTypeRef: TypeRef<MailAddressAliasServiceData> = new TypeRef("sys", "MailAddressAliasServiceData")
 
@@ -1865,7 +1881,6 @@ export type PaymentDataServicePutData = {
 	_errors: Object;
 
 	_format: NumberString;
-	business: boolean;
 	confirmedCountry: null | string;
 	invoiceAddress: string;
 	invoiceCountry: string;
@@ -1982,12 +1997,16 @@ export type PlanPrices = {
 
 	_id: Id;
 	additionalUserPriceMonthly: NumberString;
+	business: boolean;
 	contactFormPriceMonthly: NumberString;
+	customDomains: NumberString;
 	firstYearDiscount: NumberString;
 	includedAliases: NumberString;
 	includedStorage: NumberString;
 	monthlyPrice: NumberString;
 	monthlyReferencePrice: NumberString;
+	sharing: boolean;
+	whitelabel: boolean;
 }
 export const PremiumFeatureDataTypeRef: TypeRef<PremiumFeatureData> = new TypeRef("sys", "PremiumFeatureData")
 
@@ -2674,7 +2693,7 @@ export type SwitchAccountTypePostIn = {
 	_format: NumberString;
 	accountType: NumberString;
 	date: null | Date;
-	subscriptionType: NumberString;
+	plan: NumberString;
 
 	referralCode:  null | Id;
 }
@@ -2840,6 +2859,8 @@ export type UpgradePriceServiceData = {
 	_format: NumberString;
 	campaign: null | string;
 	date: null | Date;
+
+	referralCode:  null | Id;
 }
 export const UpgradePriceServiceReturnTypeRef: TypeRef<UpgradePriceServiceReturn> = new TypeRef("sys", "UpgradePriceServiceReturn")
 
@@ -2851,14 +2872,21 @@ export type UpgradePriceServiceReturn = {
 	_type: TypeRef<UpgradePriceServiceReturn>;
 
 	_format: NumberString;
+	bonusMonthsForYearlyPlan: NumberString;
 	business: boolean;
 	messageTextId: null | string;
 
+	advancedPrices: PlanPrices;
+	essentialPrices: PlanPrices;
+	freePrices: PlanPrices;
+	legendaryPrices: PlanPrices;
 	premiumBusinessPrices: PlanPrices;
 	premiumPrices: PlanPrices;
 	proPrices: PlanPrices;
+	revolutionaryPrices: PlanPrices;
 	teamsBusinessPrices: PlanPrices;
 	teamsPrices: PlanPrices;
+	unlimitedPrices: PlanPrices;
 }
 export const UserTypeRef: TypeRef<User> = new TypeRef("sys", "User")
 

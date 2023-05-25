@@ -22,8 +22,8 @@ import { lang } from "../../misc/LanguageViewModel"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../../misc/LoginUtils"
 import { RecoverCodeField } from "../../settings/login/RecoverCodeDialog.js"
 import { HabReminderImage } from "../../gui/base/icons/Icons"
-import { PaymentMethodType } from "../../api/common/TutanotaConstants"
-import { formatPrice, getPaymentMethodName, PriceAndConfigProvider, PaymentInterval } from "../PriceUtils"
+import { PaymentMethodType, PlanType } from "../../api/common/TutanotaConstants"
+import { formatPrice, getPaymentMethodName, PaymentInterval, PriceAndConfigProvider } from "../PriceUtils"
 import { TextField } from "../../gui/base/TextField.js"
 import { elementIdPart, isSameId } from "../../api/common/utils/EntityUtils"
 import type { CredentialsInfo } from "../../misc/credentials/CredentialsProvider.js"
@@ -34,7 +34,7 @@ import { GiftCardFacade } from "../../api/worker/facades/lazy/GiftCardFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { Country, getByAbbreviation } from "../../api/common/CountryList.js"
 import { renderCountryDropdown } from "../../gui/base/GuiUtils.js"
-import { SubscriptionType, UpgradePriceType } from "../FeatureListProvider"
+import { UpgradePriceType } from "../FeatureListProvider"
 
 const enum GetCredentialsMethod {
 	Login,
@@ -159,7 +159,7 @@ class RedeemGiftCardModel {
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		this.accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
 
-		if (customer.businessUse || this.accountingInfo.business) {
+		if (customer.businessUse) {
 			throw new UserError("onlyPrivateAccountFeature_msg")
 		}
 	}
@@ -440,21 +440,32 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 		])
 	}
 
+	private getCreditOrDebitMessage(model: RedeemGiftCardModel): string {
+		const remainingAmount = Number(model.giftCardInfo.value) - model.premiumPrice
+		if (remainingAmount > 0) {
+			return `${lang.get("giftCardUpgradeNotifyCredit_msg", {
+				"{price}": formatPrice(model.premiumPrice, true),
+				"{amount}": formatPrice(remainingAmount, true),
+			})} ${lang.get("creditUsageOptions_msg")}`
+		} else if (remainingAmount < 0) {
+			return lang.get("giftCardUpgradeNotifyDebit_msg", {
+				"{price}": formatPrice(model.premiumPrice, true),
+				"{amount}": formatPrice(remainingAmount * -1, true),
+			})
+		} else {
+			return ""
+		}
+	}
+
 	private renderInfoForFreeAccounts(model: RedeemGiftCardModel): Children {
 		return [
-			m(
-				".pt-l.plr-l",
-				`${lang.get("giftCardUpgradeNotify_msg", {
-					"{price}": formatPrice(model.premiumPrice, true),
-					"{credit}": formatPrice(Number(model.giftCardInfo.value) - model.premiumPrice, true),
-				})} ${lang.get("creditUsageOptions_msg")}`,
-			),
+			m(".pt-l.plr-l", `${lang.get("giftCardUpgradeNotifyRevolutionary_msg")} ${this.getCreditOrDebitMessage(model)}`),
 			m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
 			m(".flex-space-around.flex-wrap", [
 				m(".flex-grow-shrink-half.plr-l", [
 					m(TextField, {
 						label: "subscription_label",
-						value: "Premium",
+						value: "Revolutionary",
 						disabled: true,
 					}),
 					m(TextField, {
@@ -542,13 +553,13 @@ async function loadModel(hashFromUrl: string): Promise<RedeemGiftCardModel> {
 	const giftCardInfo = await locator.giftCardFacade.getGiftCardInfo(id, key)
 
 	const storedCredentials = await locator.credentialsProvider.getInternalCredentialsInfos()
-	const pricesDataProvider = await PriceAndConfigProvider.getInitializedInstance(null)
+	const pricesDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
 
 	return new RedeemGiftCardModel(
 		{
 			giftCardInfo,
 			key,
-			premiumPrice: pricesDataProvider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice),
+			premiumPrice: pricesDataProvider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.PlanActualPrice),
 			storedCredentials,
 		},
 		locator.giftCardFacade,

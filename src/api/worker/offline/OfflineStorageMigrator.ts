@@ -20,6 +20,7 @@ import { sys84 } from "./migrations/sys-v84.js"
 import { tutanota61 } from "./migrations/tutanota-v61.js"
 import { sys85 } from "./migrations/sys-v85.js"
 import { accounting5 } from "./migrations/accounting-v5.js"
+import { sys86 } from "./migrations/sys-v86.js"
 
 export interface OfflineMigration {
 	readonly app: VersionMetadataBaseKey
@@ -51,6 +52,7 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	sys84,
 	tutanota61,
 	sys85,
+	sys86,
 ]
 
 const CURRENT_OFFLINE_VERSION = 1

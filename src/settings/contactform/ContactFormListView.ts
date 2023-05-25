@@ -21,7 +21,6 @@ import { getAdministratedGroupIds, getContactFormUrl, getDefaultContactFormLangu
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { isUpdateForTypeRef } from "../../api/main/EventController"
 import { Button, ButtonType } from "../../gui/base/Button.js"
-import { showNotAvailableForFreeDialog } from "../../misc/SubscriptionDialogs"
 import { GENERATED_MAX_ID, isSameId } from "../../api/common/utils/EntityUtils"
 import { ListColumnWrapper } from "../../gui/ListColumnWrapper"
 import { locator } from "../../api/main/MainLocator"
@@ -142,11 +141,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 	}
 
 	private addButtonClicked() {
-		if (locator.logins.getUserController().isFreeAccount()) {
-			showNotAvailableForFreeDialog(false)
-		} else {
-			ContactFormEditor.show(null, true, (contactFormId) => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
-		}
+		ContactFormEditor.show(null, true, (contactFormId) => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {

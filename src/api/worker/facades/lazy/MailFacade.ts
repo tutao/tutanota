@@ -13,7 +13,7 @@ import {
 import type { ConversationType } from "../../../common/TutanotaConstants.js"
 import {
 	ArchiveDataType,
-	CounterType_UnreadMails,
+	CounterType,
 	GroupType,
 	MailAuthenticationStatus as MailAuthStatus,
 	MailMethod,
@@ -583,7 +583,7 @@ export class MailFacade {
 
 	async fixupCounterForMailList(groupId: Id, listId: Id, unreadMails: number): Promise<void> {
 		const data = createWriteCounterData({
-			counterType: CounterType_UnreadMails,
+			counterType: CounterType.UnreadMails,
 			row: groupId,
 			column: listId,
 			value: String(unreadMails),

@@ -2,7 +2,7 @@ import type { LoginController } from "../api/main/LoginController"
 import { Dialog } from "../gui/base/Dialog"
 import { generatedIdToTimestamp } from "../api/common/utils/EntityUtils"
 import type { TranslationText } from "./LanguageViewModel"
-import { InfoLink, lang } from "./LanguageViewModel"
+import { lang } from "./LanguageViewModel"
 import { getApiOrigin } from "../api/common/Env"
 import {
 	AccessBlockedError,
@@ -85,8 +85,8 @@ export function checkApprovalStatus(logins: LoginController, includeInvoiceNotPa
 
 				return false
 			} else if (status === ApprovalStatus.PAID_SUBSCRIPTION_NEEDED) {
-				let message = lang.get(customer.businessUse ? "businessUseUpgradeNeeded_msg" : "upgradeNeeded_msg")
-				return Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, InfoLink.PremiumProBusiness).then((confirmed) => {
+				const message = lang.get("upgradeNeeded_msg")
+				return Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message).then((confirmed) => {
 					if (confirmed) {
 						import("../subscription/UpgradeSubscriptionWizard").then((m) => m.showUpgradeWizard())
 					}

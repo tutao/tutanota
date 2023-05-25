@@ -4,13 +4,12 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { neverNull } from "@tutao/tutanota-utils"
 import { PreconditionFailedError } from "../../api/common/error/RestError"
 import { Icons } from "../../gui/base/icons/Icons"
-import { showNotAvailableForFreeDialog } from "../../misc/SubscriptionDialogs"
-import { showWhitelabelBuyDialog } from "../../subscription/BuyDialog"
+import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
 import * as SetCustomDomainCertificateDialog from "../SetDomainCertificateDialog"
 import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
 import type { CertificateInfo, CustomerInfo } from "../../api/entities/sys/TypeRefs.js"
-import { CertificateState, CertificateType } from "../../api/common/TutanotaConstants"
+import { CertificateState, CertificateType, PlanType } from "../../api/common/TutanotaConstants"
 import { formatDateTime } from "../../misc/Formatter"
 import { locator } from "../../api/main/MainLocator"
 import { IconButton } from "../../gui/base/IconButton.js"
@@ -77,16 +76,16 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 		})
 	}
 
-	private edit(isWhitelabelFeatureEnabled: boolean, customerInfo: CustomerInfo) {
+	private async edit(isWhitelabelFeatureEnabled: boolean, customerInfo: CustomerInfo): Promise<void> {
 		if (locator.logins.getUserController().isFreeAccount()) {
-			showNotAvailableForFreeDialog(false)
+			showNotAvailableForFreeDialog([PlanType.Unlimited])
 		} else {
-			const whitelabelFailedPromise: Promise<boolean> = isWhitelabelFeatureEnabled ? Promise.resolve(false) : showWhitelabelBuyDialog(true)
-			whitelabelFailedPromise.then((failed) => {
-				if (!failed) {
-					SetCustomDomainCertificateDialog.show(customerInfo)
-				}
-			})
+			if (!isWhitelabelFeatureEnabled) {
+				isWhitelabelFeatureEnabled = await showPlanUpgradeRequiredDialog([PlanType.Unlimited])
+			}
+			if (isWhitelabelFeatureEnabled) {
+				SetCustomDomainCertificateDialog.show(customerInfo)
+			}
 		}
 	}
 

@@ -22,6 +22,19 @@ export type ApprovalMail = {
 
 	customer:  null | Id;
 }
+export const CounterValueTypeRef: TypeRef<CounterValue> = new TypeRef("monitor", "CounterValue")
+
+export function createCounterValue(values?: Partial<CounterValue>): CounterValue {
+	return Object.assign(create(typeModels.CounterValue, CounterValueTypeRef), values)
+}
+
+export type CounterValue = {
+	_type: TypeRef<CounterValue>;
+
+	_id: Id;
+	counterId: Id;
+	value: NumberString;
+}
 export const ReadCounterDataTypeRef: TypeRef<ReadCounterData> = new TypeRef("monitor", "ReadCounterData")
 
 export function createReadCounterData(values?: Partial<ReadCounterData>): ReadCounterData {
@@ -32,8 +45,9 @@ export type ReadCounterData = {
 	_type: TypeRef<ReadCounterData>;
 
 	_format: NumberString;
-	monitor: string;
-	owner: Id;
+	columnName: null | Id;
+	counterType: NumberString;
+	rowName: string;
 }
 export const ReadCounterReturnTypeRef: TypeRef<ReadCounterReturn> = new TypeRef("monitor", "ReadCounterReturn")
 
@@ -46,6 +60,8 @@ export type ReadCounterReturn = {
 
 	_format: NumberString;
 	value: null | NumberString;
+
+	counterValues: CounterValue[];
 }
 export const WriteCounterDataTypeRef: TypeRef<WriteCounterData> = new TypeRef("monitor", "WriteCounterData")
 

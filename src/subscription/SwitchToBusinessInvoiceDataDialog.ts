@@ -1,116 +1,72 @@
 import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
-import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import { InvoiceDataInput, InvoiceDataInputLocation } from "./InvoiceDataInput"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { BadRequestError } from "../api/common/error/RestError"
 import type { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
-import { CustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { showBusinessBuyDialog } from "./BuyDialog"
-import { locator } from "../api/main/MainLocator"
-import type { EntityUpdateData } from "../api/main/EventController"
-import { isUpdateForTypeRef } from "../api/main/EventController"
-import { defer, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { InvoiceData } from "../api/common/TutanotaConstants"
 import { asPaymentInterval } from "./PriceUtils.js"
+import { defer, ofClass } from "@tutao/tutanota-utils"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 /**
  * Shows a dialog to update the invoice data for business use. Switches the account to business use before actually saving the new invoice data
  * because only when the account is set to business use some payment data like vat id number may be saved.
+ * @return true, if the business invoiceData was written successfully
  */
-export function show(
-	customer: Customer,
-	invoiceData: InvoiceData,
-	accountingInfo: AccountingInfo,
-	currentlyBusinessOrdered: boolean,
-	headingId: TranslationKey | null,
-	infoMessageId: TranslationKey | null,
-): Dialog {
-	const invoiceDataInput = new InvoiceDataInput(true, invoiceData, InvoiceDataInputLocation.InWizard)
-	const entityEventUpdateForCustomer = defer() // required if business is booked because the customer is then changed
-
-	const entityEventListener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> => {
-		return promiseMap(updates, (update) => {
-			if (isUpdateForTypeRef(CustomerTypeRef, update)) {
-				return locator.entityClient.load(CustomerTypeRef, customer._id).then((updatedCustomer) => {
-					customer = updatedCustomer
-					entityEventUpdateForCustomer.resolve(null)
-				})
-			}
-		}).then(noOp)
+export function showSwitchToBusinessInvoiceDataDialog(customer: Customer, invoiceData: InvoiceData, accountingInfo: AccountingInfo): Promise<boolean> {
+	if (customer.businessUse) {
+		throw new ProgrammingError("cannot show invoice data dialog if the customer is already a business customer")
 	}
+	const invoiceDataInput = new InvoiceDataInput(true, invoiceData, InvoiceDataInputLocation.InWizard)
 
-	locator.eventController.addEntityListener(entityEventListener)
-
-	const confirmAction = () => {
+	const result = defer<boolean>()
+	const confirmAction = async () => {
 		let error = invoiceDataInput.validateInvoiceData()
 
 		if (error) {
 			Dialog.message(error)
 		} else {
-			let p = Promise.resolve(false)
+			showProgressDialog("pleaseWait_msg", result.promise)
 
-			if (!currentlyBusinessOrdered) {
-				p = showBusinessBuyDialog(true)
-			} else {
-				entityEventUpdateForCustomer.resolve(null)
-			}
-
-			p.then((failed) => {
-				if (failed) {
-					return
-				}
-
-				showProgressDialog(
-					"pleaseWait_msg",
-					entityEventUpdateForCustomer.promise
-						.then(() => {
-							customer.businessUse = true
-						})
-						.then(() => {
-							locator.entityClient.update(customer).then(() => {
-								updatePaymentData(
-									asPaymentInterval(accountingInfo.paymentInterval),
-									invoiceDataInput.getInvoiceData(),
-									null,
-									null,
-									false,
-									"0",
-									accountingInfo,
-								)
-									.then((success) => {
-										if (success) {
-											locator.eventController.removeEntityListener(entityEventListener)
-											dialog.close()
-										}
-									})
-									.catch(
-										ofClass(BadRequestError, (e) => {
-											Dialog.message("paymentMethodNotAvailable_msg")
-										}),
-									)
-							})
-						}),
+			const success = await updatePaymentData(
+				asPaymentInterval(accountingInfo.paymentInterval),
+				invoiceDataInput.getInvoiceData(),
+				null,
+				null,
+				false,
+				"0",
+				accountingInfo,
+			)
+				.catch(
+					ofClass(BadRequestError, () => {
+						Dialog.message("paymentMethodNotAvailable_msg")
+						return false
+					}),
 				)
-			})
+				.catch((e) => {
+					result.reject(e)
+				})
+			if (success) {
+				dialog.close()
+				result.resolve(true)
+			} else {
+				result.resolve(false)
+			}
 		}
 	}
 
-	const cancelAction = () => {
-		locator.eventController.removeEntityListener(entityEventListener)
-	}
+	const cancelAction = () => result.resolve(false)
 
 	const dialog = Dialog.showActionDialog({
-		title: headingId ? lang.get(headingId) : lang.get("invoiceData_msg"),
+		title: lang.get("invoiceData_msg"),
 		child: {
 			view: () =>
 				m("#changeInvoiceDataDialog", [
-					infoMessageId ? m(".pt", lang.get(infoMessageId)) : null,
+					// infoMessageId ? m(".pt", lang.get(infoMessageId)) : null,
 					m(invoiceDataInput),
-					m(".pt.small", lang.get("pricing.downgradeToPrivateNotAllowed_msg")),
-					!currentlyBusinessOrdered ? m(".pt-s.small", lang.get("businessCustomerAutoBusinessFeature_msg")) : null,
 				]),
 		},
 		okAction: confirmAction,
@@ -118,5 +74,6 @@ export function show(
 		allowCancel: true,
 		okActionTextId: "save_action",
 	})
-	return dialog
+
+	return result.promise
 }

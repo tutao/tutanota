@@ -95,6 +95,71 @@
 					"info": "AddAssociation RepeatRule/excludedDates/AGGREGATION/2076."
 				}
 			]
+		},
+		{
+			"version": 86,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "Group",
+					"info": "AddAssociation Group/storageCounter/ELEMENT_ASSOCIATION/2092."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "CustomerInfo",
+					"info": "AddValue CustomerInfo/perUserStorageCapacity/2093."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "CustomerInfo",
+					"info": "AddValue CustomerInfo/perUserAliasCount/2094."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "CustomerInfo",
+					"info": "AddValue CustomerInfo/plan/2098."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "PlanPrices",
+					"info": "AddValue PlanPrices/sharing/2099."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "PlanPrices",
+					"info": "AddValue PlanPrices/business/2100."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "PlanPrices",
+					"info": "AddValue PlanPrices/whitelabel/2101."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "PlanPrices",
+					"info": "AddValue PlanPrices/customDomains/2102."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "AccountingInfo",
+					"info": "RemoveValue AccountingInfo/business/761."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "Booking",
+					"info": "RemoveValue Booking/business/720."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Booking",
+					"info": "AddValue Booking/bonusMonth/2103."
+				},
+				{
+					"name": "ChangeValueCardinality",
+					"sourceType": "Customer",
+					"info": "ChangeValueCardinality Customer/businessUse/One."
+				}
+			]
 		}
 	]
 }

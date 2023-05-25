@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import { Editor, ImagePasteEvent } from "../../gui/editor/Editor"
 import type { Attachment, InitAsResponseArgs, SendMailModel } from "./SendMailModel"
 import { Dialog } from "../../gui/base/Dialog"
-import { InfoLink, lang } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
 import type { MailboxDetail } from "../model/MailModel"
 import { checkApprovalStatus } from "../../misc/LoginUtils"
 import {
@@ -20,7 +20,7 @@ import { locator } from "../../api/main/MainLocator"
 import { ALLOWED_IMAGE_FORMATS, ConversationType, FeatureType, Keys, MailMethod } from "../../api/common/TutanotaConstants"
 import { TooManyRequestsError } from "../../api/common/error/RestError"
 import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
-import { Button, ButtonType } from "../../gui/base/Button.js"
+import { ButtonType } from "../../gui/base/Button.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../gui/base/Dropdown.js"
 import { isApp, isBrowser, isDesktop } from "../../api/common/Env"
 import { Icons } from "../../gui/base/icons/Icons"
@@ -1081,9 +1081,9 @@ export function getSupportMailSignature(): Promise<string> {
  * or show an option to upgrade
  * @param subject
  * @param mailboxDetails
- * @returns {Promise<any>|Promise<R>|*}
+ * @returns true if sending support email is allowed, false if upgrade to premium is required (may have been ordered)
  */
-export async function writeSupportMail(subject: string = "", mailboxDetails?: MailboxDetail) {
+export async function writeSupportMail(subject: string = "", mailboxDetails?: MailboxDetail): Promise<boolean> {
 	if (locator.logins.getUserController().isPremiumAccount()) {
 		const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 		const recipients = {
@@ -1097,20 +1097,22 @@ export async function writeSupportMail(subject: string = "", mailboxDetails?: Ma
 		const signature = await getSupportMailSignature()
 		const dialog = await newMailEditorFromTemplate(detailsProperties.mailboxDetails, recipients, subject, signature)
 		dialog.show()
+		return true
 	} else {
-		import("../../subscription/PriceUtils")
+		return import("../../subscription/PriceUtils")
 			.then(({ formatPrice }) => {
 				const message = lang.get("premiumOffer_msg", {
 					"{1}": formatPrice(1, true),
 				})
 				const title = lang.get("upgradeReminderTitle_msg")
-				return Dialog.reminder(title, message, InfoLink.PremiumProBusiness)
+				return Dialog.reminder(title, message)
 			})
 			.then((confirm) => {
 				if (confirm) {
 					import("../../subscription/UpgradeSubscriptionWizard").then((utils) => utils.showUpgradeWizard())
 				}
 			})
+			.then(() => false)
 	}
 }
 

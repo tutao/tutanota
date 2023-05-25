@@ -7,6 +7,7 @@ import { Dialog } from "../../../gui/base/Dialog.js"
 import { Button, ButtonAttrs, ButtonType } from "../../../gui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
 import { UsageTestModel } from "../../UsageTestModel.js"
+import { MoreInfoLink } from "../MoreInfoLink.js"
 
 /**
  * News item that informs users about the usage data opt-in.
@@ -19,8 +20,6 @@ export class UsageOptInNews implements NewsListItem {
 	}
 
 	render(newsId: NewsId): Children {
-		const lnk = InfoLink.Privacy
-
 		const closeAction = (optedIn?: boolean) => {
 			this.newsModel
 				.acknowledgeNews(newsId.newsItemId)
@@ -66,21 +65,8 @@ export class UsageOptInNews implements NewsListItem {
 				m("li", lang.get("userUsageDataOptInStatement2_msg")),
 				m("li", lang.get("userUsageDataOptInStatement3_msg")),
 				m("li", lang.get("userUsageDataOptInStatement4_msg")),
-				m(
-					"p",
-					lang.get("moreInfo_msg") + " ",
-					m("small.text-break", [
-						m(
-							"a",
-							{
-								href: lnk,
-								target: "_blank",
-							},
-							lnk,
-						),
-					]),
-				),
 			]),
+			m(MoreInfoLink, { link: InfoLink.Privacy }),
 			m(
 				".flex-end.flex-no-grow-no-shrink-auto.flex-wrap",
 				buttonAttrs.map((a) => m(Button, a)),

@@ -138,4 +138,5 @@ export function isShareableGroupType(groupType: GroupType): boolean {
 
 export const TemplateGroupPreconditionFailedReason = Object.freeze({
 	BUSINESS_FEATURE_REQUIRED: "templategroup.business_feature_required",
+	UNLIMITED_REQUIRED: "templategroup.unlimited_required",
 })

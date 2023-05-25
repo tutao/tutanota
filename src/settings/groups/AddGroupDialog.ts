@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { BookingItemFeatureType, FeatureType, GroupType } from "../../api/common/TutanotaConstants.js"
+import { BookingItemFeatureType, FeatureType, GroupType, PlanType } from "../../api/common/TutanotaConstants.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import type { ValidationResult } from "../SelectMailAddressForm.js"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
@@ -9,7 +9,7 @@ import type { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { showBuyDialog } from "../../subscription/BuyDialog.js"
 import { PreconditionFailedError } from "../../api/common/error/RestError.js"
-import { showBusinessFeatureRequiredDialog } from "../../misc/SubscriptionDialogs.js"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { TemplateGroupPreconditionFailedReason } from "../../sharing/GroupUtils.js"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import { TextField } from "../../gui/base/TextField.js"
@@ -18,6 +18,7 @@ import type { GroupManagementFacade } from "../../api/worker/facades/lazy/GroupM
 import { locator } from "../../api/main/MainLocator.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 import { getAvailableDomains } from "../mailaddress/MailAddressesUtils.js"
+import { toFeatureType } from "../../subscription/SubscriptionUtils.js"
 
 assertMainOrNode()
 
@@ -88,10 +89,6 @@ export class AddGroupDialogViewModel {
 		return this._groupManagementFacade.createMailGroup(this.groupName, this.mailAddress)
 	}
 
-	createLocalAdminGroup(): Promise<void> {
-		return this._groupManagementFacade.createLocalAdminGroup(this.groupName)
-	}
-
 	validateAddGroupInput(): TranslationKey | null {
 		if (this.groupType === GroupType.Mail) {
 			return this.errorMessageId
@@ -106,7 +103,7 @@ export class AddGroupDialogViewModel {
 		if (locator.logins.isEnabled(FeatureType.WhitelabelChild)) {
 			return []
 		} else {
-			return locator.logins.getUserController().isGlobalAdmin() ? [GroupType.Mail, GroupType.LocalAdmin] : [GroupType.Mail]
+			return [GroupType.Mail]
 		}
 	}
 
@@ -124,7 +121,7 @@ export function show(): void {
 		const viewModel = new AddGroupDialogViewModel(availableDomains, locator.groupManagementFacade)
 		if (viewModel.getAvailableGroupTypes().length === 0) return Dialog.message("selectionNotAvailable_msg")
 
-		let addGroupOkAction = (dialog: Dialog) => {
+		let addGroupOkAction = async (dialog: Dialog) => {
 			if (viewModel.isVerifactionBusy) return
 			const errorId = viewModel.validateAddGroupInput()
 
@@ -133,23 +130,23 @@ export function show(): void {
 				return
 			}
 
+			const userController = locator.logins.getUserController()
+			const planType = await userController.getPlanType()
+			const newPlan = await userController.isNewPaidPlan()
+
 			if (viewModel.groupType === GroupType.Mail) {
 				showProgressDialog(
 					"pleaseWait_msg",
-					showBuyDialog({ featureType: BookingItemFeatureType.SharedMailGroup, count: 1, freeAmount: 0, reactivate: false }).then((accepted) => {
+					showBuyDialog({
+						featureType: newPlan ? toFeatureType(planType) : BookingItemFeatureType.SharedMailGroup,
+						bookingText: "sharedMailbox_label",
+						count: 1,
+						freeAmount: 0,
+						reactivate: false,
+					}).then((accepted) => {
 						if (accepted) {
 							dialog.close()
 							return viewModel.createMailGroup()
-						}
-					}),
-				)
-			} else if (viewModel.groupType === GroupType.LocalAdmin) {
-				showProgressDialog(
-					"pleaseWait_msg",
-					showBuyDialog({ featureType: BookingItemFeatureType.LocalAdminGroup, count: 1, freeAmount: 0, reactivate: false }).then((accepted) => {
-						if (accepted) {
-							dialog.close()
-							return viewModel.createLocalAdminGroup()
 						}
 					}),
 				)
@@ -191,8 +188,11 @@ function addTemplateGroup(name: string): Promise<boolean> {
 			.then(() => true)
 			.catch(
 				ofClass(PreconditionFailedError, (e) => {
-					if (e.data === TemplateGroupPreconditionFailedReason.BUSINESS_FEATURE_REQUIRED) {
-						showBusinessFeatureRequiredDialog("businessFeatureRequiredGeneral_msg")
+					if (
+						e.data === TemplateGroupPreconditionFailedReason.BUSINESS_FEATURE_REQUIRED ||
+						e.data === TemplateGroupPreconditionFailedReason.UNLIMITED_REQUIRED
+					) {
+						showPlanUpgradeRequiredDialog([PlanType.Unlimited])
 					} else {
 						Dialog.message(() => e.message)
 					}

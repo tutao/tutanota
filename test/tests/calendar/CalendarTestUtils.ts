@@ -33,6 +33,7 @@ export function makeUserController(
 	accountType: AccountType = AccountType.PREMIUM,
 	defaultSender?: string,
 	businessFeatureOrdered: boolean = false,
+	isNewPaidPlan: boolean = false,
 ): UserController {
 	const bookingsRef = createBookingsRef({
 		items: GENERATED_MAX_ID,
@@ -77,6 +78,7 @@ export function makeUserController(
 		},
 		isInternalUser: () => true,
 		isFreeAccount: () => true,
+		isNewPaidPlan: () => isNewPaidPlan,
 		loadCustomer: () =>
 			Promise.resolve(
 				createCustomer({
