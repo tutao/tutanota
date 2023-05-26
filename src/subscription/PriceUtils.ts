@@ -2,7 +2,7 @@ import { BookingItemFeatureType, Const, PaymentMethodType, PlanType } from "../a
 import { assertTranslation, lang, TranslationKey } from "../misc/LanguageViewModel"
 import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
 import type { AccountingInfo, PlanPrices, PriceData, PriceItemData } from "../api/entities/sys/TypeRefs.js"
-import { createUpgradePriceServiceData, PlanPricesTypeRef, UpgradePriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
+import { createUpgradePriceServiceData, UpgradePriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
 import { SubscriptionPlanPrices, UpgradePriceType, WebsitePlanPrices } from "./FeatureListProvider"
 import { locator } from "../api/main/MainLocator"
 import { UpgradePriceService } from "../api/entities/sys/Services"
@@ -113,6 +113,25 @@ export function getPriceFromPriceData(priceData: PriceData | null, featureType: 
 	}
 }
 
+/**
+ * Convert an instance of UpgradePriceServiceReturn into an instance of SubscriptionPlanPrices
+ */
+export function mapUpgradePriceData(upgradePriceData: UpgradePriceServiceReturn): SubscriptionPlanPrices {
+	return {
+		[PlanType.Free]: upgradePriceData.freePrices,
+		[PlanType.Premium]: upgradePriceData.premiumPrices,
+		[PlanType.PremiumBusiness]: upgradePriceData.premiumBusinessPrices,
+		[PlanType.Teams]: upgradePriceData.teamsPrices,
+		[PlanType.TeamsBusiness]: upgradePriceData.teamsBusinessPrices,
+		[PlanType.Pro]: upgradePriceData.proPrices,
+		[PlanType.Revolutionary]: upgradePriceData.revolutionaryPrices,
+		[PlanType.Legend]: upgradePriceData.legendaryPrices,
+		[PlanType.Essential]: upgradePriceData.essentialPrices,
+		[PlanType.Advanced]: upgradePriceData.advancedPrices,
+		[PlanType.Unlimited]: upgradePriceData.unlimitedPrices,
+	}
+}
+
 export class PriceAndConfigProvider {
 	private upgradePriceData: UpgradePriceServiceReturn | null = null
 	private planPrices: SubscriptionPlanPrices | null = null
@@ -128,19 +147,7 @@ export class PriceAndConfigProvider {
 		})
 		this.upgradePriceData = await serviceExecutor.get(UpgradePriceService, data)
 		this.isReferralCodeSignup = referralCode != null
-		this.planPrices = {
-			[PlanType.Free]: this.upgradePriceData.freePrices,
-			[PlanType.Premium]: this.upgradePriceData.premiumPrices,
-			[PlanType.PremiumBusiness]: this.upgradePriceData.premiumBusinessPrices,
-			[PlanType.Teams]: this.upgradePriceData.teamsPrices,
-			[PlanType.TeamsBusiness]: this.upgradePriceData.teamsBusinessPrices,
-			[PlanType.Pro]: this.upgradePriceData.proPrices,
-			[PlanType.Revolutionary]: this.upgradePriceData.revolutionaryPrices,
-			[PlanType.Legend]: this.upgradePriceData.legendaryPrices,
-			[PlanType.Essential]: this.upgradePriceData.essentialPrices,
-			[PlanType.Advanced]: this.upgradePriceData.advancedPrices,
-			[PlanType.Unlimited]: this.upgradePriceData.unlimitedPrices,
-		}
+		this.planPrices = mapUpgradePriceData(this.upgradePriceData)
 	}
 
 	static async getInitializedInstance(
