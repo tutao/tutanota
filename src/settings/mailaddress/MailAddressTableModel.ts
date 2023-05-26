@@ -4,11 +4,16 @@ import { MailAddressFacade } from "../../api/worker/facades/lazy/MailAddressFaca
 import { LoginController } from "../../api/main/LoginController.js"
 import stream from "mithril/stream"
 import { EntityUpdateData, EventController, isUpdateFor, isUpdateForTypeRef } from "../../api/main/EventController.js"
-import { OperationType } from "../../api/common/TutanotaConstants.js"
+import { NewPaidPlans, OperationType, PlanType } from "../../api/common/TutanotaConstants.js"
 import { getAvailableDomains } from "./MailAddressesUtils.js"
 import { GroupInfo, GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, lazyMemoized } from "@tutao/tutanota-utils"
 import { isTutanotaMailAddress } from "../../mail/model/MailUtils.js"
+import { loadUpgradePrices } from "../../subscription/UpgradeSubscriptionWizard.js"
+import { mapUpgradePriceData } from "../../subscription/PriceUtils.js"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
+import { Dialog } from "../../gui/base/Dialog.js"
+import { LimitReachedError } from "../../api/common/error/RestError.js"
 
 export enum AddressStatus {
 	Primary,
@@ -98,9 +103,20 @@ export class MailAddressTableModel {
 		this.redraw()
 	}
 
+	/**
+	 * Add an alias.
+	 * @throws if an error occurred, such as a LimitReachedError if too many aliases were added
+	 */
 	async addAlias(alias: string, senderName: string): Promise<void> {
-		await this.mailAddressFacade.addMailAlias(this.userGroupInfo.group, alias)
-		await this.setAliasName(alias, senderName)
+		try {
+			await this.mailAddressFacade.addMailAlias(this.userGroupInfo.group, alias)
+			await this.setAliasName(alias, senderName)
+		} catch (e) {
+			if (e instanceof LimitReachedError) {
+				await this.handleTooManyAliases()
+			}
+			throw e
+		}
 	}
 
 	getAvailableDomains(): Promise<string[]> {
@@ -131,5 +147,20 @@ export class MailAddressTableModel {
 
 	private async loadNames() {
 		this.nameMappings = await this.nameChanger.getSenderNames()
+	}
+
+	private async handleTooManyAliases(): Promise<void> {
+		// Determine if there is an available plan we can switch to that would let the user add an additional alias.
+		//
+		// If so, show an upgrade dialog. Otherwise, inform the user that they reached the maximum number of aliases.
+		const potentialUpgrades = await loadUpgradePrices(null)
+		const potentialPlans = mapUpgradePriceData(potentialUpgrades)
+		const availablePlanTypes = NewPaidPlans.map((p) => potentialPlans[p as PlanType])
+		const canUpgradeAliasCount = availablePlanTypes.some((plan) => Number(plan.includedAliases) > this.userGroupInfo.mailAddressAliases.length)
+		if (canUpgradeAliasCount) {
+			await showPlanUpgradeRequiredDialog(NewPaidPlans, "moreAliasesRequired_msg")
+		} else {
+			await Dialog.message("adminMaxNbrOfAliasesReached_msg")
+		}
 	}
 }

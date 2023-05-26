@@ -175,7 +175,7 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 					return true
 				})
 				.catch(ofClass(InvalidDataError, () => Dialog.message("mailAddressNA_msg").then(() => false)))
-				.catch(ofClass(LimitReachedError, () => Dialog.message("adminMaxNbrOfAliasesReached_msg").then(() => false)))
+				.catch(ofClass(LimitReachedError, () => false))
 		}
 	}
 }
