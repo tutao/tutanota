@@ -6,7 +6,6 @@ import { getByAbbreviation } from "../api/common/CountryList"
 import { PaymentMethodInput } from "./PaymentMethodInput"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { px } from "../gui/size"
-import { formatNameAndAddress } from "../misc/Formatter"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { PaymentMethodType } from "../api/common/TutanotaConstants"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
@@ -15,6 +14,7 @@ import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { asPaymentInterval } from "./PriceUtils.js"
 import { getLazyLoadedPayPalUrl } from "./SubscriptionUtils.js"
 import { locator } from "../api/main/MainLocator.js"
+import { formatNameAndAddress } from "../misc/CommonFormatter.js"
 
 /**
  * @returns {boolean} true if the payment data update was successful

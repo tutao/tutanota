@@ -10,7 +10,7 @@ import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import { Icons } from "../gui/base/icons/Icons"
 import { ColumnWidth, Table, TableLineAttrs } from "../gui/base/Table.js"
 import { Button, ButtonType } from "../gui/base/Button.js"
-import { formatDate, formatNameAndAddress } from "../misc/Formatter"
+import { formatDate } from "../misc/Formatter"
 import { getPaymentMethodType, NewPaidPlans, PaymentMethodType, PostingType } from "../api/common/TutanotaConstants"
 import { BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError } from "../api/common/error/RestError"
 import { Dialog, DialogType } from "../gui/base/Dialog"
@@ -35,6 +35,7 @@ import { CustomerAccountService } from "../api/entities/accounting/Services"
 import { DebitService } from "../api/entities/sys/Services"
 import { IconButton } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
+import { formatNameAndAddress } from "../misc/CommonFormatter.js"
 
 assertMainOrNode()
 
