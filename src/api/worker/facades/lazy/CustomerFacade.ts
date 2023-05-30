@@ -430,7 +430,7 @@ export class CustomerFacade {
 	 */
 	async changePaymentInterval(accountingInfo: AccountingInfo, newPaymentInterval: PaymentInterval): Promise<PaymentDataServicePutReturn> {
 		const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
-		const { formatNameAndAddress } = await import("../../../../misc/Formatter.js")
+		const { formatNameAndAddress } = await import("../../../../misc/CommonFormatter.js")
 
 		return this.updatePaymentData(
 			newPaymentInterval,

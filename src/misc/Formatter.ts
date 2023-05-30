@@ -1,6 +1,5 @@
 import { lang } from "./LanguageViewModel"
-import { getByAbbreviation } from "../api/common/CountryList"
-import { DAY_IN_MILLIS, neverNull, pad } from "@tutao/tutanota-utils"
+import { DAY_IN_MILLIS, pad } from "@tutao/tutanota-utils"
 import type { UserSettingsGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
 import { TimeFormat } from "../api/common/TutanotaConstants"
 import { assertMainOrNode } from "../api/common/Env"
@@ -131,32 +130,6 @@ export function formatStorageSize(sizeInBytes: number): string {
 
 export function urlEncodeHtmlTags(text: string): string {
 	return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;")
-}
-
-export function formatNameAndAddress(name: string, address: string, countryCode?: string): string {
-	let result = ""
-
-	if (name) {
-		result += name
-	}
-
-	if (address) {
-		if (result) {
-			result += "\n"
-		}
-
-		result += address
-	}
-
-	if (countryCode) {
-		if (result) {
-			result += "\n"
-		}
-
-		result += neverNull(getByAbbreviation(countryCode)).n
-	}
-
-	return result
 }
 
 export function getHourCycle(userSettings: UserSettingsGroupRoot): "h12" | "h23" {

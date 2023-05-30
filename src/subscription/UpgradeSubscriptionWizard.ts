@@ -20,7 +20,6 @@ import {
 } from "../api/common/TutanotaConstants"
 import { getByAbbreviation } from "../api/common/CountryList"
 import { UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs } from "./UpgradeSubscriptionPage"
-import { formatNameAndAddress } from "../misc/Formatter"
 import m from "mithril"
 import stream from "mithril/stream"
 import type { TranslationKey, TranslationText } from "../misc/LanguageViewModel"
@@ -36,6 +35,7 @@ import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListP
 import { UpgradeType } from "./SubscriptionUtils"
 import { UpgradeConfirmSubscriptionPage } from "./UpgradeConfirmSubscriptionPage.js"
 import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
+import { formatNameAndAddress } from "../misc/CommonFormatter.js"
 
 assertMainOrNode()
 export type SubscriptionParameters = {

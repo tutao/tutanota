@@ -1,8 +1,6 @@
 import o from "ospec"
 import { lang, languageCodeToTag, languages } from "../../../src/misc/LanguageViewModel.js"
-// @ts-ignore[untyped-import]
-import en from "../../../src/translations/en.js"
-import { formatDate, formatNameAndAddress } from "../../../src/misc/Formatter.js"
+import { formatDate } from "../../../src/misc/Formatter.js"
 import { createBirthday } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { _getNumDaysInMonth, parseBirthday, parseDate } from "../../../src/misc/DateParser.js"
 
@@ -121,17 +119,6 @@ o.spec("FormatterTest", function () {
 			o(() => parseDate("05/2015")).throws(Error)
 		}),
 	)
-
-	o("formatNameAndAddress", function () {
-		o(formatNameAndAddress("", "")).equals("")
-		o(formatNameAndAddress("Bernd", "")).equals("Bernd")
-		o(formatNameAndAddress("Bernd", "")).equals("Bernd")
-		o(formatNameAndAddress("", "Hanomaghof")).equals("Hanomaghof")
-		o(formatNameAndAddress("Bernd", "Hanomaghof 2\n30449 Hannover")).equals("Bernd\nHanomaghof 2\n30449 Hannover")
-		o(formatNameAndAddress("Bernd", "Hanomaghof 2\n30449 Hannover", "FR")).equals("Bernd\nHanomaghof 2\n30449 Hannover\nFrance")
-		o(formatNameAndAddress("", "", "DE")).equals("Deutschland")
-		o(formatNameAndAddress("a", "", "DE")).equals("a\nDeutschland")
-	})
 
 	o(
 		"parseBirthdayGermanLocale",
