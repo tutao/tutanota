@@ -91,11 +91,13 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const acceptedPlans = vnode.attrs.acceptedPlans
 		let plans: AvailablePlanType[]
 		const currentPlan = vnode.attrs.currentPlanType
+		const signup = currentPlan == null
+
 		const onlyBusinessPlansAccepted = acceptedPlans.every((plan) => NewBusinessPlans.includes(plan))
 		// show the business segmentControl for signup, if on a personal plan or if also personal plans are accepted
-		let showBusinessSelector = currentPlan == null || NewPersonalPlans.includes(downcast(currentPlan)) || !onlyBusinessPlansAccepted
+		let showBusinessSelector = signup || NewPersonalPlans.includes(downcast(currentPlan)) || !onlyBusinessPlansAccepted
 
-		let subscriptionPeriodInfoMsg = currentPlan !== PlanType.Free ? lang.get("switchSubscriptionInfo_msg") + " " : ""
+		let subscriptionPeriodInfoMsg = !signup && currentPlan !== PlanType.Free ? lang.get("switchSubscriptionInfo_msg") + " " : ""
 		if (vnode.attrs.options.businessUse()) {
 			plans = [PlanType.Essential, PlanType.Advanced, PlanType.Unlimited]
 			subscriptionPeriodInfoMsg += lang.get("pricing.subscriptionPeriodInfoBusiness_msg")
