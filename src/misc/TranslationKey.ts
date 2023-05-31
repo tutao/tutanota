@@ -1660,3 +1660,4 @@ export type TranslationKeyType =
 	| "switchSubscriptionInfo_msg"
 	| "giftCardUpgradeNotifyCredit_msg"
 	| "giftCardUpgradeNotifyDebit_msg"
+	| "invoiceNotPaidSwitch_msg"

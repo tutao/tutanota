@@ -1683,5 +1683,7 @@ export default {
 		"pricing.comparison3Domains_msg": "3 eigene Domains",
 		"pricing.comparison10Domains_msg": "10 eigene Domains",
 		"pricing.comparisonUnlimitedDomains_msg": "Unbegrenzte Domains",
-		"pricing.security_label": "Sicherheit",	}
+		"pricing.security_label": "Sicherheit",
+		"invoiceNotPaidSwitch_msg": "Leider kannst du gerade nicht das Abonnement wechseln, weil mindestens eine deiner Rechnungen nicht bezahlt ist.",
+	}
 }

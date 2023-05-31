@@ -1680,5 +1680,6 @@ export default {
 		"pricing.comparison10Domains_msg": "10 custom domains",
 		"pricing.comparisonUnlimitedDomains_msg": "Unlimited custom domains",
 		"pricing.security_label": "Security",
+		"invoiceNotPaidSwitch_msg": "Sorry, you are currently not allowed to switch to a different plan because at least one of your invoices is not paid.",
 	}
 }
