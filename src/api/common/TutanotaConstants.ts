@@ -554,6 +554,8 @@ export const enum UnsubscribeFailureReason {
 	WHITELABEL_DOMAIN_ACTIVE = "unsubscribe.whitelabel_domain_active",
 	SHARED_GROUP_ACTIVE = "unsubscribe.shared_group_active",
 	HAS_CONTACT_FORM = "unsubscribe.has_contact_form",
+	NOT_ENOUGH_CREDIT = "unsubscribe.not_enough_credit",
+	INVOICE_NOT_PAID = "unsubscribe.invoice_not_paid",
 }
 
 // legacy, should be deleted after clients older than 3.114 have been disabled.

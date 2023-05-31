@@ -205,6 +205,12 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 				detailMsg = lang.get("contactFormLegacy_msg")
 				break
 
+			case UnsubscribeFailureReason.NOT_ENOUGH_CREDIT:
+				return Dialog.message("insufficientBalanceError_msg")
+
+			case UnsubscribeFailureReason.INVOICE_NOT_PAID:
+				return Dialog.message("invoiceNotPaidSwitch_msg")
+
 			default:
 				throw e
 		}
