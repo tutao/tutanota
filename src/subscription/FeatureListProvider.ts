@@ -3,7 +3,7 @@ import { PlanPrices } from "../api/entities/sys/TypeRefs"
 import { TranslationKey } from "../misc/LanguageViewModel"
 import { PaymentInterval } from "./PriceUtils.js"
 import { PlanName, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants.js"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast, getFromMap } from "@tutao/tutanota-utils"
 
 const FEATURE_LIST_RESOURCE_URL = "https://tutanota.com/resources/data/features.json"
 // const FEATURE_LIST_RESOURCE_URL = "http://localhost:9000/resources/data/features.json"
@@ -32,11 +32,13 @@ export class FeatureListProvider {
 			var count = featureCounts.get(category.title)
 			const numberOfFeatures = category.features.length
 			if (count == null || numberOfFeatures > count.max) {
-				category.featureCount = { max: numberOfFeatures }
-			} else {
-				category.featureCount = count
+				featureCounts.set(category.title, { max: numberOfFeatures })
 			}
-			featureCounts.set(category.title, category.featureCount)
+		})
+		categories.forEach((category) => {
+			category.featureCount = getFromMap(featureCounts, category.title, () => {
+				return { max: 0 }
+			})
 		})
 	}
 
