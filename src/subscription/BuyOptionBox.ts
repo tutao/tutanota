@@ -256,13 +256,12 @@ export class InfoIcon implements Component<InfoIconAttrs> {
 
 	view({ attrs }: Vnode<InfoIconAttrs>) {
 		return m(
-			".flex.items-center.justify-center.no-grow-no-shrink.overflow-visible",
+			"div.flex.justify-center.no-grow-no-shrink.overflow-visible",
 			{
 				"aria-pressed": String(this.expanded),
 				role: "button",
 				style: {
-					width: "24px",
-					height: "24px",
+					"margin-top": px(1),
 				},
 				// we can't really do the state with pure CSS on mobile
 				onclick: () => {
