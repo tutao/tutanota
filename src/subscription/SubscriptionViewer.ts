@@ -25,14 +25,12 @@ import { showUpgradeWizard } from "./UpgradeSubscriptionWizard"
 import { showSwitchDialog } from "./SwitchSubscriptionDialog"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { showDeleteAccountDialog } from "./DeleteAccountDialog"
 import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
 import * as SwitchToBusinessInvoiceDataDialog from "./SwitchToBusinessInvoiceDataDialog"
 import { NotFoundError } from "../api/common/error/RestError"
 import type { EntityUpdateData } from "../api/main/EventController"
 import { isUpdateForTypeRef } from "../api/main/EventController"
 import { getCurrentCount, getTotalAliases, getTotalStorageCapacity, isBusinessFeatureActive, isSharingActive, isWhitelabelActive } from "./SubscriptionUtils"
-import { Button, ButtonType } from "../gui/base/Button.js"
 import { TextField } from "../gui/base/TextField.js"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { ColumnWidth, Table } from "../gui/base/Table.js"
@@ -326,33 +324,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							}),
 						]),
 				}),
-				m(
-					".mb-l",
-					m(
-						SettingsExpander,
-						{
-							title: "adminDeleteAccount_action",
-							buttonText: "adminDeleteAccount_action",
-							expanded: deleteAccountExpanded,
-						},
-						m(
-							".flex-center",
-							m(
-								"",
-								{
-									style: {
-										width: "200px",
-									},
-								},
-								m(Button, {
-									label: "adminDeleteAccount_action",
-									click: showDeleteAccountDialog,
-									type: ButtonType.Login,
-								}),
-							),
-						),
-					),
-				),
 			])
 		}
 
