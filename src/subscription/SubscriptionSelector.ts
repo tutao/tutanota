@@ -348,7 +348,7 @@ export function getReplacement(
 
 function getHelpLabel(planType: PlanType, businessUse: boolean): TranslationKey {
 	if (planType === PlanType.Free) return "pricing.upgradeLater_msg"
-	return businessUse ? "pricing.basePriceExcludesTaxes_msg" : "pricing.basePriceIncludesTaxes_msg"
+	return businessUse ? "pricing.excludesTaxes_msg" : "pricing.includesTaxes_msg"
 }
 
 function getPriceHint(subscriptionPrice: number, paymentInterval: PaymentInterval, multiuser: boolean): TranslationKey {
