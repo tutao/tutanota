@@ -1106,8 +1106,6 @@ export default {
 		"pricing.admin_label": "Administrationskonsole",
 		"pricing.admin_tooltip": "Administrationskonsole zur Verwaltung deines Teams, zum Zurücksetzen von Passwörtern und zweiten Faktoren, zur Definition mehrerer Administratorrollen und zur zentralen Abrechnung.",
 		"pricing.attachmentSize_label": "25 MB Anhänge",
-		"pricing.basePriceExcludesTaxes_msg": "Basispreis. Ohne MwSt.",
-		"pricing.basePriceIncludesTaxes_msg": "Basispreis. Inklusive MwSt.",
 		"pricing.billing_label": "Zentralisierte Abrechnung",
 		"pricing.billing_tooltip": "Alle globalen Administratoren haben Zugriff auf die Verwaltungskonsole, in der die Abrechnung für das gesamte Konto zentral verwaltet wird.",
 		"pricing.businessShareTemplates_msg": "Teile E-Mail-Vorlagen",
@@ -1683,6 +1681,8 @@ export default {
 		"pricing.comparison3Domains_msg": "3 eigene Domains",
 		"pricing.comparison10Domains_msg": "10 eigene Domains",
 		"pricing.comparisonUnlimitedDomains_msg": "Unbegrenzte Domains",
+		"pricing.excludesTaxes_msg": "Ohne MwSt.",
+		"pricing.includesTaxes_msg": "Inklusive MwSt.",
 		"pricing.security_label": "Sicherheit",
 		"invoiceNotPaidSwitch_msg": "Leider kannst du gerade nicht das Abonnement wechseln, weil mindestens eine deiner Rechnungen nicht bezahlt ist.",
 	}

@@ -1661,3 +1661,5 @@ export type TranslationKeyType =
 	| "giftCardUpgradeNotifyCredit_msg"
 	| "giftCardUpgradeNotifyDebit_msg"
 	| "invoiceNotPaidSwitch_msg"
+	| "pricing.excludesTaxes_msg"
+	| "pricing.includesTaxes_msg"

@@ -1102,8 +1102,6 @@ export default {
 		"pricing.admin_label": "Administration console",
 		"pricing.admin_tooltip": "Admin console that lets you manage your Team, reset passwords and second factors, define multiple admin roles, centralized billing.",
 		"pricing.attachmentSize_label": "25 MB attachments size",
-		"pricing.basePriceExcludesTaxes_msg": "Base price. Excludes taxes.",
-		"pricing.basePriceIncludesTaxes_msg": "Base price. Includes taxes.",
 		"pricing.billing_label": "Centralized billing",
 		"pricing.billing_tooltip": "All global admins have access to the admin console where the billing is managed centrally for the whole account.",
 		"pricing.businessShareTemplates_msg": "Share email templates",
@@ -1680,6 +1678,8 @@ export default {
 		"pricing.comparison10Domains_msg": "10 custom domains",
 		"pricing.comparisonUnlimitedDomains_msg": "Unlimited custom domains",
 		"pricing.security_label": "Security",
+		"pricing.excludesTaxes_msg": "Excludes taxes.",
+		"pricing.includesTaxes_msg": "Includes taxes.",
 		"invoiceNotPaidSwitch_msg": "Sorry, you are currently not allowed to switch to a different plan because at least one of your invoices is not paid.",
 	}
 }
