@@ -2202,7 +2202,9 @@ styles.registerStyle("main", () => {
 			background: theme.content_accent,
 			color: theme.content_bg,
 			width: px(100),
+			"min-width": px(100),
 			height: px(100),
+			"min-height": px(100),
 			"border-radius": px(100),
 		},
 	}
