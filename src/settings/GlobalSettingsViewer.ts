@@ -46,6 +46,8 @@ import { assertMainOrNode } from "../api/common/Env"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { SettingsExpander } from "./SettingsExpander.js"
+import { Button, ButtonType } from "../gui/base/Button.js"
+import { showDeleteAccountDialog } from "../subscription/DeleteAccountDialog.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -73,6 +75,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	private requirePasswordUpdateAfterReset = false
 	private saveIpAddress = false
 	private readonly usageDataExpanded = stream(false)
+	private readonly deleteAccountExpanded = stream(false)
 	private readonly customerProperties = new LazyLoaded(() =>
 		locator.entityClient
 			.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
@@ -275,6 +278,33 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 								: null,
 					  )
 					: null,
+				m(
+					".mb-l",
+					m(
+						SettingsExpander,
+						{
+							title: "adminDeleteAccount_action",
+							buttonText: "adminDeleteAccount_action",
+							expanded: this.deleteAccountExpanded,
+						},
+						m(
+							".flex-center",
+							m(
+								"",
+								{
+									style: {
+										width: "200px",
+									},
+								},
+								m(Button, {
+									label: "adminDeleteAccount_action",
+									click: showDeleteAccountDialog,
+									type: ButtonType.Login,
+								}),
+							),
+						),
+					),
+				),
 			]),
 		]
 	}

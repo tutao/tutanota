@@ -205,33 +205,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							}),
 					  ]
 					: [],
-				m(
-					".mb-l",
-					m(
-						SettingsExpander,
-						{
-							title: "adminDeleteAccount_action",
-							buttonText: "adminDeleteAccount_action",
-							expanded: deleteAccountExpanded,
-						},
-						m(
-							".flex-center",
-							m(
-								"",
-								{
-									style: {
-										width: "200px",
-									},
-								},
-								m(Button, {
-									label: "adminDeleteAccount_action",
-									click: showDeleteAccountDialog,
-									type: ButtonType.Login,
-								}),
-							),
-						),
-					),
-				),
 			])
 		}
 
