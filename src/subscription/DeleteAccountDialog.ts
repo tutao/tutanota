@@ -7,11 +7,13 @@ import { neverNull, ofClass } from "@tutao/tutanota-utils"
 import { getCleanedMailAddress } from "../misc/parsing/MailAddressParser"
 import { locator } from "../api/main/MainLocator"
 import { getEtId } from "../api/common/utils/EntityUtils"
+import { CloseEventBusOption } from "../api/common/TutanotaConstants.js"
 
 export function showDeleteAccountDialog() {
 	let why = ""
 	let takeover = ""
 	let password = ""
+	const userId = getEtId(locator.logins.getUserController().user)
 	Dialog.showActionDialog({
 		title: lang.get("adminDeleteAccount_action"),
 		child: {
@@ -39,23 +41,24 @@ export function showDeleteAccountDialog() {
 					}),
 				]),
 		},
-		okAction: () => {
-			deleteAccount(why, takeover, password).then((isDeleted) => {
-				if (isDeleted) {
-					deleteSavedCredentials()
-				}
-			})
+		okAction: async () => {
+			const isDeleted = await deleteAccount(why, takeover, password)
+			if (isDeleted) {
+				await locator.credentialsProvider.deleteByUserId(userId)
+				m.route.set("/login", { noAutoLogin: true })
+			}
 		},
 		allowCancel: true,
 		okActionTextId: "delete_action",
 	})
 }
 
-function deleteAccount(reason: string, takeover: string, password: string): Promise<boolean> {
+async function deleteAccount(reason: string, takeover: string, password: string): Promise<boolean> {
 	const cleanedTakeover = takeover === "" ? "" : getCleanedMailAddress(takeover)
 
 	if (cleanedTakeover === null) {
-		return Dialog.message("mailAddressInvalid_msg").then(() => false)
+		await Dialog.message("mailAddressInvalid_msg")
+		return false
 	} else {
 		const messageFn = () =>
 			cleanedTakeover === ""
@@ -64,21 +67,19 @@ function deleteAccount(reason: string, takeover: string, password: string): Prom
 						"{1}": cleanedTakeover,
 				  })
 
-		return Dialog.confirm(messageFn).then((ok) => {
-			if (ok) {
-				return locator.loginFacade
-					.deleteAccount(password, reason, neverNull(cleanedTakeover))
-					.then(() => true)
-					.catch(ofClass(PreconditionFailedError, () => Dialog.message("passwordWrongInvalid_msg").then(() => false)))
-					.catch(ofClass(InvalidDataError, () => Dialog.message("takeoverAccountInvalid_msg").then(() => false)))
-					.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg").then(() => false)))
-			} else {
-				return false
-			}
-		})
+		const ok = await Dialog.confirm(messageFn)
+		if (!ok) return false
+		// this is necessary to prevent us from applying websocket events to an already deleted/closed offline DB
+		// which is an immediate crash on ios
+		await locator.connectivityModel.close(CloseEventBusOption.Terminate)
+		try {
+			await locator.loginFacade.deleteAccount(password, reason, neverNull(cleanedTakeover))
+			return true
+		} catch (e) {
+			if (e instanceof PreconditionFailedError) await Dialog.message("passwordWrongInvalid_msg")
+			if (e instanceof InvalidDataError) await Dialog.message("takeoverAccountInvalid_msg")
+			if (e instanceof LockedError) await Dialog.message("operationStillActive_msg")
+			return false
+		}
 	}
-}
-
-function deleteSavedCredentials() {
-	locator.credentialsProvider.deleteByUserId(getEtId(locator.logins.getUserController().user))
 }
