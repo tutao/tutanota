@@ -29,14 +29,13 @@ export class AttachmentBubble implements Component<AttachmentBubbleAttrs> {
 	view(vnode: Vnode<AttachmentBubbleAttrs>): Children {
 		const { attachment } = vnode.attrs
 		const extension = getFileExtension(attachment.name)
-		const spacedExtension = extension.length > 0 ? extension + " " : extension
 		const rest = getFileBaseName(attachment.name)
 		return m(Button, {
 			label: () => rest,
 			title: () => attachment.name,
 			icon: () => Icons.Attachment,
 			type: ButtonType.Bubble,
-			staticRightText: `${spacedExtension}(${formatStorageSize(Number(attachment.size))})`,
+			staticRightText: `${extension}, ${formatStorageSize(Number(attachment.size))}`,
 			click: async () => {
 				await showAttachmentDetailsPopup(this.dom!, vnode.attrs)
 				this.dom?.focus()

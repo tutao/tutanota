@@ -145,7 +145,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 					this._getLabelElement(a),
 					a.staticRightText
 						? m(
-								".pl-s",
+								"span",
 								{
 									style: this._getLabelStyle(a),
 								},
