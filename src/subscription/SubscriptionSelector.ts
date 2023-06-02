@@ -136,6 +136,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				  })
 				: null,
 			m(".flex-center.items-center.mt", [
+				m(".bonus-month.flex-center.items-center.text-center.b.ml-m", { style: { visibility: "hidden" } }), // hackity hack to make the text be always centered
 				vnode.attrs.priceInfoTextId && lang.exists(vnode.attrs.priceInfoTextId) ? m(".b.center", lang.get(vnode.attrs.priceInfoTextId)) : null,
 				bonusMonths > 0
 					? m(".bonus-month.flex-center.items-center.text-center.b.ml-m", { style: { visibility: isYearly ? "visible" : "hidden" } }, [
