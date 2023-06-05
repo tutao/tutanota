@@ -205,7 +205,10 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			showReferenceDiscount: selectorAttrs.allowSwitchingPaymentInterval,
 			renderCategoryTitle,
 			mobile,
-			yearlyBonusMonth: Number(selectorAttrs.priceAndConfigProvider.getRawPricingData().bonusMonthsForYearlyPlan),
+			bonusMonths:
+				targetSubscription !== PlanType.Free && selectorAttrs.options.paymentInterval() === PaymentInterval.Yearly
+					? Number(selectorAttrs.priceAndConfigProvider.getRawPricingData().bonusMonthsForYearlyPlan)
+					: 0,
 		}
 	}
 

@@ -40,7 +40,7 @@ export type BuyOptionBoxAttr = {
 	showReferenceDiscount: boolean
 	renderCategoryTitle: boolean
 	mobile: boolean
-	yearlyBonusMonth: number
+	bonusMonths: number
 }
 
 export function getActiveSubscriptionActionButtonReplacement(): {
@@ -89,7 +89,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						},
 					},
 					[
-						this.renderRibbon(attrs.paymentInterval?.() === PaymentInterval.Yearly ? attrs.yearlyBonusMonth : 0),
+						this.renderRibbon(attrs.bonusMonths),
 						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading) : attrs.heading,
 						m(".text-center.pt.flex.center-vertically.center-horizontally", m("span.h1", attrs.price)),
 						m(".small.text-center", attrs.priceHint ? lang.getMaybeLazy(attrs.priceHint) : lang.get("emptyString_msg")),
