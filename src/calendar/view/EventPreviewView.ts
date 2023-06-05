@@ -221,7 +221,7 @@ function getFrequencyTimeUnit(frequency: RepeatPeriod): string {
 			return lang.get("weeks_label")
 
 		case RepeatPeriod.MONTHLY:
-			return lang.get("months_label")
+			return lang.get("pricing.months_label")
 
 		case RepeatPeriod.ANNUALLY:
 			return lang.get("years_label")
