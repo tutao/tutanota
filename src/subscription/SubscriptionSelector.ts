@@ -126,7 +126,6 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const isYearly = vnode.attrs.options.paymentInterval() === 12
 
 		const showCurrentPlanDiscontinuedHint = vnode.attrs.currentPlanType != null && LegacyPlans.includes(vnode.attrs.currentPlanType)
-		const bonusMonths = Number(vnode.attrs.priceAndConfigProvider.getRawPricingData().bonusMonthsForYearlyPlan)
 		return [
 			showBusinessSelector
 				? m(SegmentControl, {
@@ -136,15 +135,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				  })
 				: null,
 			m(".flex-center.items-center.mt", [
-				m(".bonus-month.flex-center.items-center.text-center.b.ml-m", { style: { visibility: "hidden" } }), // hackity hack to make the text be always centered
 				vnode.attrs.priceInfoTextId && lang.exists(vnode.attrs.priceInfoTextId) ? m(".b.center", lang.get(vnode.attrs.priceInfoTextId)) : null,
-				bonusMonths > 0
-					? m(".bonus-month.flex-center.items-center.text-center.b.ml-m", { style: { visibility: isYearly ? "visible" : "hidden" } }, [
-							"+" + bonusMonths,
-							m("br"),
-							lang.get("months_label"),
-					  ])
-					: null,
 			]),
 			vnode.attrs.msg ? m(".b.center.mt", lang.getMaybeLazy(vnode.attrs.msg)) : null,
 			showCurrentPlanDiscontinuedHint ? m(".b.center.mt", lang.get("currentPlanDiscontinued_msg")) : null,
@@ -212,6 +203,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			showReferenceDiscount: selectorAttrs.allowSwitchingPaymentInterval,
 			renderCategoryTitle,
 			mobile,
+			yearlyBonusMonth: Number(selectorAttrs.priceAndConfigProvider.getRawPricingData().bonusMonthsForYearlyPlan),
 		}
 	}
 
