@@ -35,7 +35,7 @@ import { CustomerAccountService } from "../api/entities/accounting/Services"
 import { DebitService } from "../api/entities/sys/Services"
 import { IconButton } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
-import { formatNameAndAddress } from "../misc/CommonFormatter.js"
+import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 
 assertMainOrNode()
 

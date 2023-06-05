@@ -35,7 +35,7 @@ import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListP
 import { UpgradeType } from "./SubscriptionUtils"
 import { UpgradeConfirmSubscriptionPage } from "./UpgradeConfirmSubscriptionPage.js"
 import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
-import { formatNameAndAddress } from "../misc/CommonFormatter.js"
+import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 
 assertMainOrNode()
 export type SubscriptionParameters = {

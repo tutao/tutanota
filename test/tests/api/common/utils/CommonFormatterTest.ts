@@ -1,5 +1,5 @@
 import o from "ospec"
-import { formatNameAndAddress } from "../../../src/misc/CommonFormatter.js"
+import { formatNameAndAddress } from "../../../../../src/api/common/utils/CommonFormatter.js"
 
 o.spec("CommonFormatterTest", function () {
 	o("formatNameAndAddress", function () {
