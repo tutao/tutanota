@@ -40,6 +40,7 @@ export type BuyOptionBoxAttr = {
 	showReferenceDiscount: boolean
 	renderCategoryTitle: boolean
 	mobile: boolean
+	yearlyBonusMonth: number
 }
 
 export function getActiveSubscriptionActionButtonReplacement(): {
@@ -88,7 +89,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						},
 					},
 					[
-						this.renderRibbon(attrs.paymentInterval?.()),
+						this.renderRibbon(attrs.paymentInterval?.() === PaymentInterval.Yearly ? attrs.yearlyBonusMonth : 0),
 						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading) : attrs.heading,
 						m(".text-center.pt.flex.center-vertically.center-horizontally", m("span.h1", attrs.price)),
 						m(".small.text-center", attrs.priceHint ? lang.getMaybeLazy(attrs.priceHint) : lang.get("emptyString_msg")),
@@ -131,9 +132,10 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 		}
 	}
 
-	private renderRibbon(paymentInterval?: PaymentInterval): Children {
-		return []
-		// return paymentInterval === PaymentInterval.Yearly ? m(".ribbon-vertical", m(".text-center.b.h4", { style: { "padding-top": px(22) } }, "%")) : null
+	private renderRibbon(bonusMonths: number): Children {
+		return bonusMonths > 0
+			? m(".ribbon-horizontal", m(".text-center.b", { style: { padding: px(3) } }, `+${bonusMonths} ${lang.get("months_label")}`))
+			: null
 	}
 
 	private renderPaymentIntervalControl(paymentInterval: Stream<PaymentInterval> | null): Children {
@@ -196,6 +198,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 					// we need some margin for the discount banner for longer translations shown on the website
 					"margin-right": px(30),
 					"margin-left": px(30),
+					"margin-bottom": px(6),
 					"line-height": 1,
 				},
 			},

@@ -1710,35 +1710,34 @@ styles.registerStyle("main", () => {
 		".tooltip:hover .tooltiptext, .tooltip[expanded=true] .tooltiptext": {
 			visibility: "visible",
 		},
-		".ribbon-vertical": {
+		".ribbon-horizontal": {
 			position: "absolute",
 			"margin-bottom": "80px",
-			width: "40px",
-			height: "60px",
 			background: theme.content_accent,
-			top: "-6px",
-			right: "10px",
+			top: "50px",
+			left: "-6px",
+			right: "-6px",
 			color: theme.content_bg,
 		},
-		".ribbon-vertical:before": {
+		".ribbon-horizontal:after": {
 			content: '""',
 			position: "absolute",
 			height: 0,
 			width: 0,
-			"border-bottom": `6px solid ${theme.content_accent}`,
-			"border-right": "6px solid transparent",
-			right: "-6px",
+			"border-left": `6px solid ${theme.content_accent}`,
+			"border-bottom": "6px solid transparent",
+			bottom: "-6px",
+			right: 0,
 		},
-		".ribbon-vertical:after": {
+		".ribbon-horizontal:before": {
 			content: '""',
 			position: "absolute",
 			height: 0,
 			width: 0,
+			"border-right": `6px solid ${theme.content_accent}`,
+			"border-bottom": "6px solid transparent",
+			bottom: "-6px",
 			left: 0,
-			"border-left": `20px solid ${theme.content_accent}`,
-			"border-right": `20px solid ${theme.content_accent}`,
-			"border-bottom": "20px solid transparent",
-			bottom: "-20px",
 		},
 		// calendar
 		".flex-end-on-child .button-content": {
