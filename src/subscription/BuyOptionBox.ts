@@ -134,7 +134,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 
 	private renderRibbon(bonusMonths: number): Children {
 		return bonusMonths > 0
-			? m(".ribbon-horizontal", m(".text-center.b", { style: { padding: px(3) } }, `+${bonusMonths} ${lang.get("months_label")}`))
+			? m(".ribbon-horizontal", m(".text-center.b", { style: { padding: px(3) } }, `+${bonusMonths} ${lang.get("pricing.months_label")}`))
 			: null
 	}
 

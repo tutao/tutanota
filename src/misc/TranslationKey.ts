@@ -860,7 +860,7 @@ export type TranslationKeyType =
 	| "microphoneUsageDescription_msg"
 	| "mobile_label"
 	| "modified_label"
-	| "months_label"
+	| "pricing.months_label"
 	| "month_label"
 	| "moreAliasesRequired_msg"
 	| "moreCustomDomainsRequired_msg"
