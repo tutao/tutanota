@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2023-05-23T08:58:26Z",
+	"updated_at": "2023-06-05T12:15:58Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -838,7 +838,6 @@ export default {
 		"microphoneUsageDescription_msg": "वीडियो संलग्नक रिकार्ड करते वक्त उपयोग किया जाता है।",
 		"mobile_label": "फोन",
 		"modified_label": "परिवर्तित",
-		"months_label": "महीने",
 		"month_label": "महीना",
 		"moreInformation_action": "अधिक जानकारी",
 		"moreInfo_msg": "अधिक जानकारी :",
@@ -1071,6 +1070,7 @@ export default {
 		"pricing.extEmailProtection_tooltip": "टुटानोटा उपयोगकर्ताओं के बीच सभी ईमेल स्वचालित रूप से एन्क्रिप्ट किए जाते हैं। आप साझा पासवर्ड के माध्यम से दुनिया में किसी के भी साथ एन्क्रिप्टेड ईमेल का आदान-प्रदान कर सकते हैं।",
 		"pricing.mailAddressAliasesShort_label": "{amount} अतिरिक्त ईमेल पते",
 		"pricing.monthly_label": "मासिक",
+		"pricing.months_label": "महीने",
 		"pricing.perMonthPaidYearly_label": "प्रति माह - वार्षिक भुगतान किया गया",
 		"pricing.perMonth_label": "प्रतिमाह",
 		"pricing.perYear_label": "प्रति वर्ष",

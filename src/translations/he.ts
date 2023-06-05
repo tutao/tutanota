@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-13T07:36:09Z",
-	"updated_at": "2023-05-23T08:58:26Z",
+	"updated_at": "2023-06-05T12:15:58Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -715,7 +715,6 @@ export default {
 		"microphoneUsageDescription_msg": "בשימוש בעת הקלטת וידאו בתור קובץ מצורף.",
 		"mobile_label": "נייד",
 		"modified_label": "ערוך",
-		"months_label": "חודשים",
 		"month_label": "חודש",
 		"moreInformation_action": "מידע נוסף",
 		"moreInfo_msg": "מידע נוסף:",
@@ -917,6 +916,7 @@ export default {
 		"pricing.downgradeToPrivateNotAllowed_msg": "החלפה בין משתמש עיסקי ופרטי אינה אפשרית",
 		"pricing.mailAddressAliasesShort_label": "{amount} כינויים",
 		"pricing.monthly_label": "חודשי",
+		"pricing.months_label": "חודשים",
 		"pricing.perMonth_label": "מידי חודש",
 		"pricing.perYear_label": "לשנה",
 		"pricing.privateUse_label": "פרטי",

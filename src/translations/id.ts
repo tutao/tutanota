@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2023-05-23T08:58:26Z",
+	"updated_at": "2023-06-05T12:15:58Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -804,7 +804,6 @@ export default {
 		"microphoneUsageDescription_msg": "Digunakan ketika merekam video sebagai lampiran.",
 		"mobile_label": "Ponsel",
 		"modified_label": "Diubah",
-		"months_label": "bulan",
 		"month_label": "Bulan",
 		"moreInformation_action": "Informasi lanjut",
 		"moreInfo_msg": "Info lebih lanjut:",
@@ -1056,6 +1055,7 @@ export default {
 		"pricing.mailAddressAliasesShort_label": "{amount} alias",
 		"pricing.mailAddressFree_label": "1 alamat email Tutanota gratis",
 		"pricing.monthly_label": "Bulanan",
+		"pricing.months_label": "bulan",
 		"pricing.offline_label": "Dukungan luring",
 		"pricing.offline_tooltip": "Masuk dan lihat email, kalender, dan kontak Anda kapanpun dan di manapun - bahkan saat Anda tidak terkoneksi ke Internet - dengan semua aplikasi kami (desktop, Android & iOS).",
 		"pricing.perMonthPaidYearly_label": "per bulan - dibayar tahunan",

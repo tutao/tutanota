@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2023-05-23T08:58:23Z",
+	"updated_at": "2023-06-05T12:15:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -856,7 +856,6 @@ export default {
 		"microphoneUsageDescription_msg": "تُستعمل عند تسجيل فيديو كمُرفق.",
 		"mobile_label": "الجوال",
 		"modified_label": "تم التعديل",
-		"months_label": "شهور",
 		"month_label": "الشهر ",
 		"moreInformation_action": "معلومات اكثر",
 		"moreInfo_msg": "معلومات إضافية:",
@@ -1131,6 +1130,7 @@ export default {
 		"pricing.mailAddressAliases_tooltip_markdown": "<p>يمكن لعناوين البريد الإلكتروني المستعارة أن تقلل  من الرسائل غير المرغوب فيها وتساعد في تسريع فرز رسائل البريد الإلكتروني الواردة. اقرأ المزيد من النصائح <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">على مدونتنا</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 عنوان بريد إلكتروني مجاني في توتانوتا",
 		"pricing.monthly_label": "شهريا",
+		"pricing.months_label": "شهور",
 		"pricing.noAds_label": "بدون إعلانات وبدون تتبع ",
 		"pricing.offline_label": "الدعم دون اتصال ",
 		"pricing.offline_tooltip": "قم بتسجيل الدخول وعرض رسائل البريد الإلكتروني والتقويمات وجهات الاتصال الخاصة بك  متى وأينما شئت - حتى لو لم يكن لديك اتصال بالإنترنت مع جميع تطبيقاتنا (سطح المكتب، Android و iOS).",

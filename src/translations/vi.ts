@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2023-05-23T08:58:27Z",
+	"updated_at": "2023-06-05T12:15:58Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -847,7 +847,6 @@ export default {
 		"microphoneUsageDescription_msg": "Được sử dụng khi quay video làm phần đính kèm.",
 		"mobile_label": "Di động",
 		"modified_label": "Đã sửa",
-		"months_label": "tháng",
 		"month_label": "Tháng",
 		"moreInformation_action": "Thông tin thêm",
 		"moreInfo_msg": "Thông tin thêm: ",
@@ -1116,6 +1115,7 @@ export default {
 		"pricing.mailAddressAliases_tooltip_markdown": "<p>Các địa chỉ biệt danh có thể làm giảm thư rác và giúp tăng tốc độ sắp xếp thư đến. Đọc thêm các mẹo khác <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">ở blog của chúng tôi</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 địa chỉ thư Tutanota miễn phí",
 		"pricing.monthly_label": "Hằng tháng",
+		"pricing.months_label": "tháng",
 		"pricing.noAds_label": "Không quảng cáo, không theo dõi",
 		"pricing.offline_label": "Hỗ trợ ngoại tuyến",
 		"pricing.offline_tooltip": "Đăng nhập và xem thư, lịch và các liên hệ của bạn bất cứ khi nào, ở bất cứ đâu - kể cả khi bạn không có kết nối Liên Mạng - bằng tất cả các ứng dụng của chúng tôi (máy tính, Android & iOS).",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2023-05-23T16:34:49Z",
+	"updated_at": "2023-06-05T12:15:58Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -839,7 +839,6 @@ export default {
 		"microphoneUsageDescription_msg": "Käytetään, kun videota tallennetaan liitteenä.",
 		"mobile_label": "Matkapuhelin",
 		"modified_label": "Muutettu",
-		"months_label": "kuukautta",
 		"month_label": "Kuukausi",
 		"moreInformation_action": "Lisätietoja",
 		"moreInfo_msg": "Lisätietoja:",
@@ -1079,6 +1078,7 @@ export default {
 		"pricing.gdpr_label": "GDPR-yhteensopiva",
 		"pricing.mailAddressAliasesShort_label": "{amount} alias-osoitetta",
 		"pricing.monthly_label": "Kuukausittainen",
+		"pricing.months_label": "kuukautta",
 		"pricing.offline_label": "Offline-tuki",
 		"pricing.perMonthPaidYearly_label": "kuukaudessa - maksetaan vuosittain",
 		"pricing.perMonth_label": "kuukaudessa",

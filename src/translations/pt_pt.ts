@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2023-05-23T08:58:24Z",
+	"updated_at": "2023-06-05T12:15:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -805,7 +805,6 @@ export default {
 		"microphoneUsageDescription_msg": "Usado quando se grava um vídeo como anexo.",
 		"mobile_label": "Telemóvel",
 		"modified_label": "Modificado",
-		"months_label": "meses",
 		"month_label": "Mês",
 		"moreInformation_action": "Mais informação",
 		"moreInfo_msg": "Mais Informação:",
@@ -1036,6 +1035,7 @@ export default {
 		"pricing.extEmailProtection_tooltip": "Todos os emails entre utilizadores Tutanota são cifrados automaticamente. Pode trocar emails cifrados com qualquer pessoa no mundo através de uma palavra-passe partilhada.",
 		"pricing.mailAddressAliasesShort_label": "{amount} endereços adicionais",
 		"pricing.monthly_label": "Mensal",
+		"pricing.months_label": "meses",
 		"pricing.perMonthPaidYearly_label": "por mês - pago anualmente",
 		"pricing.perMonth_label": "por mês",
 		"pricing.perYear_label": "por ano",

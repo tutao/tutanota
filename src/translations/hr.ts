@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2023-05-23T08:58:25Z",
+	"updated_at": "2023-06-05T12:15:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -779,7 +779,6 @@ export default {
 		"microphoneUsageDescription_msg": "Koristi se prilikom snimanja video privitka.",
 		"mobile_label": "Mobitel",
 		"modified_label": "Promijenjeno",
-		"months_label": "mjeseci",
 		"month_label": "Mjesec",
 		"moreInformation_action": "Više informacija",
 		"moreInfo_msg": "Više informacija:",
@@ -1015,6 +1014,7 @@ export default {
 		"pricing.mailAddressAliasesShort_label": "{amount} pseudonim(a)",
 		"pricing.mailAddressFree_label": "1 besplatna adresa Tutanota e-pošte",
 		"pricing.monthly_label": "Mjesečno",
+		"pricing.months_label": "mjeseci",
 		"pricing.offline_tooltip": "Prijavite se i pregledavajte svoju e-poštu, kalendare i kontakte bilo kada i bilo gdje - čak i ako nemate internetsku vezu - sa svim našim aplikacijama (desktop, Android i iOS).",
 		"pricing.perMonthPaidYearly_label": "mjesečno - godišnje",
 		"pricing.perMonth_label": "mjesečno",

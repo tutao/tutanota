@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2023-05-23T08:58:24Z",
+	"updated_at": "2023-06-05T12:15:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -870,7 +870,6 @@ export default {
 		"microphoneUsageDescription_msg": "Gebruikt bij het opnemen van een video als bijlage.",
 		"mobile_label": "Mobiel",
 		"modified_label": "Gewijzigd",
-		"months_label": "maanden",
 		"month_label": "Maand",
 		"moreInformation_action": "Meer informatie",
 		"moreInfo_msg": "Meer informatie:",
@@ -1157,6 +1156,7 @@ export default {
 		"pricing.management_label": "Gebruikersbeheer",
 		"pricing.management_tooltip": "Wachtwoorden en tweede factoren van gebruikers opnieuw instellen, aliassen voor gebruikers aanmaken, gebruikers deactiveren en meer.",
 		"pricing.monthly_label": "Maandelijks",
+		"pricing.months_label": "maanden",
 		"pricing.noAds_label": "Geen advertenties, geen tracking",
 		"pricing.offline_label": "Offline ondersteuning",
 		"pricing.offline_tooltip": "Login en bekijk uw e-mails, agenda en contactpersonen wanneer en waar u ook bent - zelfs als u even geen internetverbinding heeft - met all onze apps (desktop, Android & iOS).",
