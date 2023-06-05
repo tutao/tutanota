@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2023-05-23T08:58:24Z",
+	"updated_at": "2023-06-05T12:15:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -871,7 +871,6 @@ export default {
 		"microphoneUsageDescription_msg": "Video kaydını ek olarak kaydederken kullanılır.",
 		"mobile_label": "Mobil",
 		"modified_label": "Değiştirildi",
-		"months_label": "ay",
 		"month_label": "Hafta",
 		"moreInformation_action": "Daha fazla bilgi",
 		"moreInfo_msg": "Daha fazla bilgi:",
@@ -1156,6 +1155,7 @@ export default {
 		"pricing.management_label": "Kullanıcı yönetimi",
 		"pricing.management_tooltip": "Kullanıcıların parolalarını ve ikinci unsurlarını sıfırlayın, kullanıcılar için takma adlar oluşturun, kullanıcıları devre dışı bırakın ve daha fazlasını yapın.",
 		"pricing.monthly_label": "Aylık",
+		"pricing.months_label": "ay",
 		"pricing.noAds_label": "Reklam yok , izlenme yok",
 		"pricing.offline_label": "Çevrimdışı destek",
 		"pricing.offline_tooltip": "Tüm uygulamalarımızla (masaüstü, Android ve iOS) nerede ve ne zaman olursanız olun - internet bağlantınız olmasa bile - giriş yapın ve e-postalarınızı, takvimlerinizi ve kişilerinizi görüntüleyin.",

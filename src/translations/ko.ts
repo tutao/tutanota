@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T09:48:48Z",
-	"updated_at": "2023-05-23T08:58:25Z",
+	"updated_at": "2023-06-05T12:15:58Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -866,7 +866,6 @@ export default {
 		"microphoneUsageDescription_msg": "동영상을 첨부 파일로 녹화할 때 사용합니다.",
 		"mobile_label": "휴대전화",
 		"modified_label": "수정됨",
-		"months_label": "달",
 		"month_label": "월",
 		"moreInformation_action": "더 많은 정보",
 		"moreInfo_msg": "추가 정보:",
@@ -1151,6 +1150,7 @@ export default {
 		"pricing.management_label": "사용자 관리",
 		"pricing.management_tooltip": "사용자의 비밀번호와 2차 인증을 재설정하고, 사용자 별칭(얼라이어스)을 생성하며 사용자를 비활성화할 수 있습니다.",
 		"pricing.monthly_label": "월간",
+		"pricing.months_label": "달",
 		"pricing.noAds_label": "광고 없음, 추적 없음",
 		"pricing.offline_label": "오프라인 지원",
 		"pricing.offline_tooltip": "모든 앱(데스크톱, Android 및 iOS)에서 인터넷에 연결되어 있지 않아도 언제 어디서나 로그인하여 이메일, 캘린더, 연락처를 확인할 수 있습니다.",

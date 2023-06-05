@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2023-05-23T08:58:25Z",
+	"updated_at": "2023-06-05T12:15:58Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -867,7 +867,6 @@ export default {
 		"microphoneUsageDescription_msg": "Користи се при снимању видео прилога.",
 		"mobile_label": "Мобилни",
 		"modified_label": "Промењено",
-		"months_label": "месеци",
 		"month_label": "Месец",
 		"moreInformation_action": "Више информација",
 		"moreInfo_msg": "Више информација:",
@@ -1153,6 +1152,7 @@ export default {
 		"pricing.management_label": "Управљање корисницима",
 		"pricing.management_tooltip": "Ресетујте лозинке и друге факторе корисника, креирајте псеудониме за кориснике, деактивирајте кориснике и још много тога.",
 		"pricing.monthly_label": "Месечно",
+		"pricing.months_label": "месеци",
 		"pricing.noAds_label": "Без огласа, без праћења",
 		"pricing.offline_label": "Подршка ван мреже",
 		"pricing.offline_tooltip": "Пријавите се и прегледајте своје е-поруке, календаре и контакте кад год и где год да се налазите - чак и ако немате интернет везу - са свим нашим апликацијама (десктоп, Андроид и iOS).",

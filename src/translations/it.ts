@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2023-05-23T08:58:24Z",
+	"updated_at": "2023-06-05T12:15:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -870,7 +870,6 @@ export default {
 		"microphoneUsageDescription_msg": "Utilizzato durante la registrazione di un video come allegato.",
 		"mobile_label": "Cellulare",
 		"modified_label": "Modificato",
-		"months_label": "mesi",
 		"month_label": "Mese",
 		"moreInformation_action": "Ulteriori informazioni",
 		"moreInfo_msg": "Più informazioni:",
@@ -1153,6 +1152,7 @@ export default {
 		"pricing.management_label": "Gestione utente",
 		"pricing.management_tooltip": "Reimpostare le password e i secondi fattori degli utenti, creare alias per gli utenti, disattivare gli utenti e altro ancora.",
 		"pricing.monthly_label": "Mensile",
+		"pricing.months_label": "mesi",
 		"pricing.noAds_label": "Nessuna pubblicità, nessun tracciamento",
 		"pricing.offline_label": "Supporto offline",
 		"pricing.offline_tooltip": "Accedi e visualizza le tue email, i tuoi calendari e i tuoi contatti in qualsiasi momento e ovunque tu sia, anche se non hai una connessione a Internet, con tutte le nostre app (desktop, Android e iOS).",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2023-05-23T08:58:25Z",
+	"updated_at": "2023-06-05T12:15:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -864,7 +864,6 @@ export default {
 		"microphoneUsageDescription_msg": "Χρησιμοποιείται οταν ανεβάζεις ενα βίντεο σαν συνημμένο .",
 		"mobile_label": "Κινητό",
 		"modified_label": "Τροποποιημένο",
-		"months_label": "Μήνες",
 		"month_label": "Μήνας",
 		"moreInformation_action": "Περισσότερες πληροφορίες",
 		"moreInfo_msg": "Περισσότερες πληροφορίες: ",
@@ -1136,6 +1135,7 @@ export default {
 		"pricing.mailAddressAliases_tooltip_markdown": "<p>Τα ψευδώνυμα email μπορούν να μειώσουν την ανεπιθύμητη αλληλογραφία και να επιταχύνουν την οργάνωση εισερχόμενων email. Διαβάστε περισσότερες συμβουλές <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">onourblog</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 δωρεάν διεύθυνση email Tutanota",
 		"pricing.monthly_label": "Μηνιαία",
+		"pricing.months_label": "Μήνες",
 		"pricing.noAds_label": "Χωρίς διαφημίσεις, χωρίς παρακολούθηση",
 		"pricing.offline_label": "Υποστήριξη εκτός σύνδεσης",
 		"pricing.offline_tooltip": "Συνδεθείτε και δείτε τα email σας, τα ημερολόγια και τις επαφές σας όποτε και οπουδήποτε και αν είστε - ακόμα και αν δεν έχετε διαδικτυακή σύνδεση - με όλες τις εφαρμογές μας (Υπολογιστή, Android, iOS).",

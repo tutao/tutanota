@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2023-05-23T08:58:26Z",
+	"updated_at": "2023-06-05T12:15:58Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -762,7 +762,6 @@ export default {
 		"microphoneUsageDescription_msg": "Bruges, når du optager en video som vedhæftet fil.",
 		"mobile_label": "Mobil",
 		"modified_label": "Ændret",
-		"months_label": "måneder",
 		"month_label": "Måned",
 		"moreInformation_action": "Mere information",
 		"moreInfo_msg": "Mere information:",
@@ -981,6 +980,7 @@ export default {
 		"pricing.extEmailProtection_label": "Adgangskodebeskyttede emails",
 		"pricing.mailAddressAliasesShort_label": "{amount} aliasser",
 		"pricing.monthly_label": "Månedelig",
+		"pricing.months_label": "måneder",
 		"pricing.perMonthPaidYearly_label": "per måned - betalt årligt",
 		"pricing.perMonth_label": "om måneden",
 		"pricing.perYear_label": "pr. år",
