@@ -1,5 +1,5 @@
 import { neverNull } from "@tutao/tutanota-utils"
-import { getByAbbreviation } from "../api/common/CountryList.js"
+import { getByAbbreviation } from "../CountryList.js"
 
 export function formatNameAndAddress(name: string, address: string, countryCode?: string): string {
 	let result = ""

@@ -55,6 +55,7 @@ import { BookingFacade } from "./BookingFacade.js"
 import { UserFacade } from "../UserFacade.js"
 import { PaymentInterval } from "../../../../subscription/PriceUtils.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
+import { formatNameAndAddress } from "../../../common/utils/CommonFormatter.js"
 
 assertWorkerOrNode()
 
@@ -430,7 +431,6 @@ export class CustomerFacade {
 	 */
 	async changePaymentInterval(accountingInfo: AccountingInfo, newPaymentInterval: PaymentInterval): Promise<PaymentDataServicePutReturn> {
 		const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
-		const { formatNameAndAddress } = await import("../../../../misc/CommonFormatter.js")
 
 		return this.updatePaymentData(
 			newPaymentInterval,

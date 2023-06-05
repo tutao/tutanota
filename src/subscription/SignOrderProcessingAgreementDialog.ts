@@ -14,7 +14,7 @@ import type { Customer } from "../api/entities/sys/TypeRefs.js"
 import type { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
 import { locator } from "../api/main/MainLocator"
 import { SignOrderProcessingAgreementService } from "../api/entities/sys/Services"
-import { formatNameAndAddress } from "../misc/CommonFormatter.js"
+import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 
 assertMainOrNode()
 const PRINT_DIV_ID = "print-div"

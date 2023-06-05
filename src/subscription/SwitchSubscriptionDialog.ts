@@ -32,7 +32,7 @@ import { defer, DeferredObject, downcast, lazy } from "@tutao/tutanota-utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
 import { getByAbbreviation } from "../api/common/CountryList.js"
 import { isCustomizationEnabledForCustomer } from "../api/common/utils/Utils.js"
-import { formatNameAndAddress } from "../misc/CommonFormatter.js"
+import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
