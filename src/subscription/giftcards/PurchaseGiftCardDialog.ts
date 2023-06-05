@@ -147,7 +147,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 						showReferenceDiscount: false,
 						renderCategoryTitle: false,
 						mobile: false,
-						yearlyBonusMonth: 0,
+						bonusMonths: 0,
 					})
 				}),
 			),

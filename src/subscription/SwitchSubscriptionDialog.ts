@@ -85,7 +85,7 @@ export async function showSwitchDialog(
 					boxHeight: 270,
 					acceptedPlans: acceptedPlans,
 					currentPlanType: currentPlanInfo.planType,
-					allowSwitchingPaymentInterval: currentPlanInfo.paymentInterval !== PaymentInterval.Yearly && LegacyPlans.includes(currentPlanInfo.planType),
+					allowSwitchingPaymentInterval: currentPlanInfo.paymentInterval !== PaymentInterval.Yearly,
 					actionButtons: subscriptionActionButtons,
 					featureListProvider: featureListProvider,
 					priceAndConfigProvider,
