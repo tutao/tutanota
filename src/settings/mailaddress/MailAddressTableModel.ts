@@ -156,7 +156,7 @@ export class MailAddressTableModel {
 	 * @throws UpgradeRequiredError if the customer can upgrade to a plan with more aliases
 	 * @throws UserError if the customer cannot add more aliases
 	 */
-	async handleTooManyAliases(): Promise<void> {
+	public async handleTooManyAliases(): Promise<void> {
 		// Determine if there is an available plan we can switch to that would let the user add an alias.
 		//
 		// If so, show an upgrade dialog. Otherwise, inform the user that they reached the maximum number of aliases.

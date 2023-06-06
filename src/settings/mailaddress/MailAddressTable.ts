@@ -10,14 +10,13 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import Stream from "mithril/stream"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
 import { attachDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
-import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
+import { showNotAvailableForFreeDialog } from "../../misc/SubscriptionDialogs.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { AddressInfo, AddressStatus, MailAddressTableModel } from "./MailAddressTableModel.js"
 import { showAddAliasDialog } from "./AddAliasDialog.js"
 import { locator } from "../../api/main/MainLocator.js"
-import { NewPaidPlans } from "../../api/common/TutanotaConstants.js"
 
 assertMainOrNode()
 
@@ -186,11 +185,9 @@ async function switchAliasStatus(alias: AddressInfo, attrs: MailAddressTableAttr
 		}
 	}
 
-	const updateModel = attrs.model.setAliasStatus(alias.address, !deactivateOrDeleteAlias).catch(
-		ofClass(LimitReachedError, () => {
-			attrs.model.handleTooManyAliases()
-		}),
-	)
+	const updateModel = attrs.model
+		.setAliasStatus(alias.address, !deactivateOrDeleteAlias)
+		.catch(ofClass(LimitReachedError, () => attrs.model.handleTooManyAliases()))
 	await showProgressDialog("pleaseWait_msg", updateModel)
 }
 
