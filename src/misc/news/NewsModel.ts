@@ -3,6 +3,7 @@ import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
 import { NewsService } from "../../api/entities/tutanota/Services.js"
 import { NotFoundError } from "../../api/common/error/RestError.js"
 import { NewsListItem } from "./NewsListItem.js"
+import { isIOSApp } from "../../api/common/Env.js"
 
 /**
  * Interface for storing information about displayed news items on the device.
@@ -40,8 +41,12 @@ export class NewsModel {
 			const newsListItem = await this.newsListItemFactory(newsItemName)
 
 			if (!!newsListItem && (await newsListItem.isShown(newsItemId))) {
-				this.liveNewsIds.push(newsItemId)
-				this.liveNewsListItems[newsItemName] = newsListItem
+				// we can't display those news items unless we allow apple payments
+				const unsupportedIosNewsItem = isIOSApp() && ["newPlans", "newPlansOfferEnding"].includes(newsItemId.newsItemName)
+				if (!unsupportedIosNewsItem) {
+					this.liveNewsIds.push(newsItemId)
+					this.liveNewsListItems[newsItemName] = newsListItem
+				}
 			}
 		}
 
