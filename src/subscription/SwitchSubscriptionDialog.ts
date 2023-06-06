@@ -15,6 +15,7 @@ import {
 	LegacyPlans,
 	NewBusinessPlans,
 	PlanType,
+	PlanTypeToName,
 	UnsubscribeFailureReason,
 } from "../api/common/TutanotaConstants"
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
@@ -142,6 +143,13 @@ function createPlanButton(
 	return () => ({
 		label: "buy_action",
 		click: async () => {
+			// Show an extra dialog in the case that someone is upgrading from a legacy plan to a new plan because they can't revert.
+			if (
+				LegacyPlans.includes(currentPlanInfo.planType) &&
+				!(await Dialog.confirm(() => lang.get("upgradePlan_msg", { "{plan}": PlanTypeToName[targetSubscription] })))
+			) {
+				return
+			}
 			await showProgressDialog(
 				"pleaseWait_msg",
 				doSwitchPlan(accountingInfo, newPaymentInterval(), targetSubscription, dialog, currentPlanInfo, deferredPlan),
