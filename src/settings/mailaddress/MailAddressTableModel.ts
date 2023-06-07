@@ -150,15 +150,17 @@ export class MailAddressTableModel {
 	}
 
 	private async handleTooManyAliases(): Promise<void> {
-		// Determine if there is an available plan we can switch to that would let the user add an additional alias.
+		// Determine if there is an available plan we can switch to that would let the user add an alias.
 		//
 		// If so, show an upgrade dialog. Otherwise, inform the user that they reached the maximum number of aliases.
 		const potentialUpgrades = await loadUpgradePrices(null)
 		const potentialPlans = mapUpgradePriceData(potentialUpgrades)
-		const availablePlanTypes = NewPaidPlans.map((p) => potentialPlans[p as PlanType])
-		const canUpgradeAliasCount = availablePlanTypes.some((plan) => Number(plan.includedAliases) > this.userGroupInfo.mailAddressAliases.length)
-		if (canUpgradeAliasCount) {
-			await showPlanUpgradeRequiredDialog(NewPaidPlans, "moreAliasesRequired_msg")
+		const plansWithMoreAliases = NewPaidPlans.filter((p) => {
+			const potentialPlan = potentialPlans[p as PlanType]
+			return Number(potentialPlan.includedAliases) > this.userGroupInfo.mailAddressAliases.length
+		})
+		if (plansWithMoreAliases.length > 0) {
+			await showPlanUpgradeRequiredDialog(plansWithMoreAliases, "moreAliasesRequired_msg")
 		} else {
 			await Dialog.message("adminMaxNbrOfAliasesReached_msg")
 		}
