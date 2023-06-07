@@ -1,10 +1,8 @@
 import m from "mithril"
 import type { lazy } from "@tutao/tutanota-utils"
-import { neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/tutanota-utils"
 import { TextField } from "../gui/base/TextField.js"
 import type { EntityUpdateData } from "../api/main/EventController"
-import type { ButtonAttrs } from "../gui/base/Button.js"
-import { Button, ButtonType } from "../gui/base/Button.js"
 import { Icons } from "../gui/base/icons/Icons"
 import { getLanguageCode } from "./TemplateEditorModel"
 import { showTemplateEditor } from "./TemplateEditor"
@@ -17,13 +15,12 @@ import { EntityClient } from "../api/common/EntityClient"
 import { TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
 import type { UpdatableSettingsDetailsViewer } from "./SettingsView"
 import { ActionBar } from "../gui/base/ActionBar.js"
+import { htmlSanitizer } from "../misc/HtmlSanitizer.js"
 
 export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
-	isReadOnly: lazy<boolean>
 	readonly renderView: UpdatableSettingsDetailsViewer["renderView"]
 
-	constructor(template: EmailTemplate, entityClient: EntityClient, isReadOnly: lazy<boolean>) {
-		this.isReadOnly = isReadOnly
+	constructor(private readonly template: EmailTemplate, private readonly entityClient: EntityClient, readonly isReadOnly: lazy<boolean>) {
 		this.renderView = () => {
 			return m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 				m(".flex.mt-l.center-vertically", [
@@ -48,14 +45,14 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 				m("", [
 					m(TextField, {
 						label: "shortcut_label",
-						value: TEMPLATE_SHORTCUT_PREFIX + neverNull(template.tag),
+						value: TEMPLATE_SHORTCUT_PREFIX + assertNotNull(template.tag, "template without tag!"),
 						disabled: true,
 					}),
 					template.contents.map((emailTemplateContent) => {
 						const language = languageByCode[getLanguageCode(emailTemplateContent)]
 						return m(".flex.flex-column", [
 							m(".h4.mt-l", lang.get(language.textId)),
-							m(".editor-border.text-break", m.trust(emailTemplateContent.text)),
+							m(".editor-border.text-break", m.trust(this.sanitize(emailTemplateContent.text))),
 						])
 					}),
 				]),
@@ -72,9 +69,13 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private editTemplate(template: EmailTemplate) {
-		locator.entityClient.load(TemplateGroupRootTypeRef, neverNull(template._ownerGroup)).then((groupRoot) => {
+		locator.entityClient.load(TemplateGroupRootTypeRef, assertNotNull(template._ownerGroup, "template without ownerGroup!")).then((groupRoot) => {
 			showTemplateEditor(template, groupRoot)
 		})
+	}
+
+	private sanitize(html: string): string {
+		return htmlSanitizer.sanitizeHTML(html, { blockExternalContent: false, allowRelativeLinks: true }).html
 	}
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {

@@ -30,16 +30,13 @@ assertMainOrNode()
  */
 export class TemplateListView implements UpdatableSettingsViewer {
 	_list: List<EmailTemplate, TemplateRow>
-	_settingsView: SettingsView
-	_groupInstance: TemplateGroupInstance
-	_entityClient: EntityClient
-	_logins: LoginController
 
-	constructor(settingsView: SettingsView, templateGroupInstance: TemplateGroupInstance, entityClient: EntityClient, logins: LoginController) {
-		this._settingsView = settingsView
-		this._groupInstance = templateGroupInstance
-		this._entityClient = entityClient
-		this._logins = logins
+	constructor(
+		private readonly settingsView: SettingsView,
+		private readonly templateGroupInstance: TemplateGroupInstance,
+		private readonly entityClient: EntityClient,
+		private readonly logins: LoginController,
+	) {
 		this._list = this._initTemplateList()
 	}
 
@@ -50,14 +47,14 @@ export class TemplateListView implements UpdatableSettingsViewer {
 				// fetch works like in ContactListView and KnowledgeBaseListView, because we have a custom sort order there too
 				if (startId === GENERATED_MAX_ID) {
 					// load all entries at once to apply custom sort order
-					const allEntries = await this._entityClient.loadAll(EmailTemplateTypeRef, this.templateListId())
+					const allEntries = await this.entityClient.loadAll(EmailTemplateTypeRef, this.templateListId())
 					return { items: allEntries, complete: true }
 				} else {
 					throw new Error("fetch template entry called for specific start id")
 				}
 			},
 			loadSingle: (elementId) => {
-				return this._entityClient.load<EmailTemplate>(EmailTemplateTypeRef, [this.templateListId(), elementId])
+				return this.entityClient.load<EmailTemplate>(EmailTemplateTypeRef, [this.templateListId(), elementId])
 			},
 			sortCompare: (a: EmailTemplate, b: EmailTemplate) => {
 				const titleA = a.title.toUpperCase()
@@ -66,11 +63,11 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			},
 			elementSelected: (templates: Array<EmailTemplate>, elementClicked) => {
 				if (templates.length > 0) {
-					this._settingsView.detailsViewer = new TemplateDetailsViewer(templates[0], this._entityClient, () => !this.userCanEdit())
+					this.settingsView.detailsViewer = new TemplateDetailsViewer(templates[0], this.entityClient, () => !this.userCanEdit())
 
-					this._settingsView.focusSettingsDetailsColumn()
+					this.settingsView.focusSettingsDetailsColumn()
 				} else {
-					this._settingsView.detailsViewer = null
+					this.settingsView.detailsViewer = null
 					m.redraw()
 				}
 			},
@@ -105,7 +102,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 									label: "addTemplate_label",
 									type: ButtonType.Primary,
 									click: () => {
-										showTemplateEditor(null, this._groupInstance.groupRoot)
+										showTemplateEditor(null, this.templateGroupInstance.groupRoot)
 									},
 								}),
 							),
@@ -123,9 +120,9 @@ export class TemplateListView implements UpdatableSettingsViewer {
 					const selected = this._list.getSelectedEntities()[0]
 
 					if (update.operation === OperationType.UPDATE && selected && isSameId(getElementId(selected), update.instanceId)) {
-						this._settingsView.detailsViewer = new TemplateDetailsViewer(selected, this._entityClient, () => !this.userCanEdit())
+						this.settingsView.detailsViewer = new TemplateDetailsViewer(selected, this.entityClient, () => !this.userCanEdit())
 
-						this._settingsView.focusSettingsDetailsColumn()
+						this.settingsView.focusSettingsDetailsColumn()
 					} else if (update.operation === OperationType.CREATE) {
 						this._list.scrollToIdAndSelect(update.instanceId)
 					}
@@ -135,11 +132,11 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	}
 
 	userCanEdit(): boolean {
-		return hasCapabilityOnGroup(this._logins.getUserController().user, this._groupInstance.group, ShareCapability.Write)
+		return hasCapabilityOnGroup(this.logins.getUserController().user, this.templateGroupInstance.group, ShareCapability.Write)
 	}
 
 	templateListId(): Id {
-		return this._groupInstance.groupRoot.templates
+		return this.templateGroupInstance.groupRoot.templates
 	}
 }
 
