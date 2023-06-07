@@ -9,7 +9,7 @@ import { keyManager, Shortcut } from "../../misc/KeyManager"
 import type { NavButtonAttrs } from "../../gui/base/NavButton.js"
 import { isNavButtonSelected, NavButton, NavButtonColor } from "../../gui/base/NavButton.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
-import { ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { Contact, ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { SearchListView, SearchResultListEntry } from "./SearchListView"
 import { size } from "../../gui/size"
 import {
@@ -248,7 +248,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 			const actions = m(ContactViewerActions, {
 				contacts: selectedContacts,
-				onEdit: () => new ContactEditor(locator.entityClient, selectedContacts[0]),
+				onEdit: (c: Contact) => new ContactEditor(locator.entityClient, c).show(),
 				onDelete: deleteContacts,
 				onMerge: confirmMerge,
 				onExport: exportContacts,

@@ -21,8 +21,6 @@ import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import type { SearchResult } from "../../api/worker/search/SearchTypes"
 import type { ListElementEntity } from "../../api/common/EntityTypes"
 import Stream from "mithril/stream"
-import { ListColumnWrapper } from "../../gui/ListColumnWrapper.js"
-import { styles } from "../../gui/styles.js"
 
 assertMainOrNode()
 
