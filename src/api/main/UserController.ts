@@ -165,8 +165,9 @@ export class UserController {
 		return this.isLegacyPlan(planType) || planConfig.multiUser || isCustomizationEnabledForCustomer(customer, FeatureType.MultipleUsers)
 	}
 
-	loadAccountingInfo(): Promise<AccountingInfo> {
-		return this.loadCustomerInfo().then((customerInfo) => this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo))
+	async loadAccountingInfo(): Promise<AccountingInfo> {
+		const customerInfo = await this.loadCustomerInfo()
+		return await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
 	}
 
 	getMailGroupMemberships(): GroupMembership[] {

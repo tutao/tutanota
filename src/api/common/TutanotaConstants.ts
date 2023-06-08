@@ -1035,5 +1035,3 @@ export enum TerminationPeriodOptions {
 	EndOfCurrentPeriod = "0",
 	FutureDate = "1",
 }
-
-export const GIGABYTE_FACTOR = 1000 * 1000 * 1000

@@ -7,7 +7,7 @@ import { locator } from "../api/main/MainLocator"
 import type { UserController } from "../api/main/UserController.js"
 import { BookingTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
-import { AvailablePlanType, GIGABYTE_FACTOR, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
+import { AvailablePlanType, Const, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
 import { showSwitchDialog } from "../subscription/SwitchSubscriptionDialog.js"
 import { UserError } from "../api/main/UserError.js"
 
@@ -80,7 +80,7 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 			const usedStorage = Number(await locator.userManagementFacade.readUsedUserStorage(user))
 			const { PriceAndConfigProvider } = await import("../subscription/PriceUtils.js")
 			const priceProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
-			const plansWithMoreStorage = priceProvider.getMatchingPlans((prices) => Number(prices.includedStorage) * GIGABYTE_FACTOR > usedStorage)
+			const plansWithMoreStorage = priceProvider.getMatchingPlans((prices) => Number(prices.includedStorage) * Const.MEMORY_GB_FACTOR > usedStorage)
 			if (plansWithMoreStorage.length > 0) {
 				await showPlanUpgradeRequiredDialog(plansWithMoreStorage)
 			} else {

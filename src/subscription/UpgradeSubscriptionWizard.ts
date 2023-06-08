@@ -67,7 +67,7 @@ export type UpgradeSubscriptionData = {
 }
 
 export async function showUpgradeWizard(logins: LoginController, acceptedPlans: AvailablePlanType[] = NewPaidPlans, msg?: TranslationText): Promise<PlanType> {
-	const [customer, accountingInfo] = await Promise.all([logins.getUserController().loadCustomer(), logins.loadAccountingInfo()])
+	const [customer, accountingInfo] = await Promise.all([logins.getUserController().loadCustomer(), logins.getUserController().loadAccountingInfo()])
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
 
 	const prices = priceDataProvider.getRawPricingData()

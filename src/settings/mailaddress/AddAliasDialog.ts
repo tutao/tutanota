@@ -5,11 +5,13 @@ import { TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../../api/common/TutanotaConstant
 import m from "mithril"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
-import { getFirstOrThrow, noOp, ofClass } from "@tutao/tutanota-utils"
+import { getFirstOrThrow } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { InvalidDataError, LimitReachedError, PreconditionFailedError } from "../../api/common/error/RestError.js"
 import { MailAddressTableModel } from "./MailAddressTableModel.js"
 import { Autocomplete, TextField } from "../../gui/base/TextField.js"
+import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 
 const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 
@@ -76,19 +78,24 @@ export function showAddAliasDialog(model: MailAddressTableModel) {
 	})
 }
 
-function addAlias(model: MailAddressTableModel, alias: string, senderName: string): Promise<void> {
-	return showProgressDialog("pleaseWait_msg", model.addAlias(alias, senderName))
-		.catch(ofClass(InvalidDataError, () => Dialog.message("mailAddressNA_msg")))
-		.catch(ofClass(LimitReachedError, noOp))
-		.catch(
-			ofClass(PreconditionFailedError, (e) => {
-				let errorMsg = e.toString()
+async function addAlias(model: MailAddressTableModel, alias: string, senderName: string): Promise<void> {
+	try {
+		await showProgressDialog("pleaseWait_msg", model.addAlias(alias, senderName))
+	} catch (error) {
+		if (error instanceof InvalidDataError) {
+			Dialog.message("mailAddressNA_msg")
+		} else if (error instanceof PreconditionFailedError) {
+			let errorMsg = error.toString()
 
-				if (e.data === FAILURE_USER_DISABLED) {
-					errorMsg = lang.get("addAliasUserDisabled_msg")
-				}
+			if (error.data === FAILURE_USER_DISABLED) {
+				errorMsg = lang.get("addAliasUserDisabled_msg")
+			}
 
-				return Dialog.message(() => errorMsg)
-			}),
-		)
+			return Dialog.message(() => errorMsg)
+		} else if (error instanceof UpgradeRequiredError) {
+			showPlanUpgradeRequiredDialog(error.plans, error.message)
+		} else {
+			throw error
+		}
+	}
 }

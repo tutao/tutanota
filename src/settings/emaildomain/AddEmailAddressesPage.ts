@@ -165,7 +165,8 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 		const error = this.errorMessageId
 
 		if (error) {
-			return Dialog.message(error).then(() => false)
+			await Dialog.message(error)
+			return false
 		} else {
 			const mailAddressTableModel = this.data.editAliasFormAttrs.model
 			try {

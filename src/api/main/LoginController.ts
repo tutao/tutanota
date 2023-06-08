@@ -12,7 +12,6 @@ import { FeatureType } from "../common/TutanotaConstants"
 import { CredentialsAndDatabaseKey } from "../../misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../common/SessionType"
 import { IMainLocator, locator } from "./MainLocator"
-import { AccountingInfo } from "../entities/sys/TypeRefs.js"
 
 assertMainOrNodeBoot()
 
@@ -199,14 +198,6 @@ export class LoginController {
 
 	getUserController(): UserController {
 		return assertNotNull(this.userController) // only to be used after login (when user is defined)
-	}
-
-	/**
-	 * Load the payment information for the current customer
-	 */
-	async loadAccountingInfo(): Promise<AccountingInfo> {
-		const { customerFacade } = await this.getMainLocator()
-		return await customerFacade.loadAccountingInfo()
 	}
 
 	isEnabled(feature: FeatureType): boolean {
