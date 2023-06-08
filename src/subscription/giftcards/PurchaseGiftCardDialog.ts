@@ -14,7 +14,6 @@ import { UserError } from "../../api/main/UserError"
 import { Keys, PaymentMethodType, PlanType } from "../../api/common/TutanotaConstants"
 import { lang } from "../../misc/LanguageViewModel"
 import { BadGatewayError, PreconditionFailedError } from "../../api/common/error/RestError"
-import { loadUpgradePrices } from "../UpgradeSubscriptionWizard"
 import { Icons } from "../../gui/base/icons/Icons"
 import { Icon } from "../../gui/base/Icon"
 import { GiftCardMessageEditorField } from "./GiftCardMessageEditorField"
@@ -269,7 +268,6 @@ async function loadGiftCardModel(): Promise<PurchaseGiftCardModel> {
 	const [giftCardInfo, customerInfo] = await Promise.all([
 		locator.serviceExecutor.get(GiftCardService, null),
 		locator.logins.getUserController().loadCustomerInfo(),
-		loadUpgradePrices(null), // do not pass in any campaign here because the gift card prices should be based on default prices.
 	])
 
 	// User can't buy too many gift cards so we have to load their giftcards in order to check how many they ordered

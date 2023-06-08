@@ -3,7 +3,7 @@ import { locator } from "../../api/main/MainLocator.js"
 import { LoginController } from "../../api/main/LoginController.js"
 
 export function showUpgradeDialog() {
-	import("../../subscription/UpgradeSubscriptionWizard.js").then((upgradeWizard) => upgradeWizard.showUpgradeWizard())
+	import("../../subscription/UpgradeSubscriptionWizard.js").then((upgradeWizard) => upgradeWizard.showUpgradeWizard(locator.logins))
 }
 
 export function showSupportDialog(logins: LoginController) {

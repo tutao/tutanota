@@ -19,6 +19,8 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { Icons } from "../../gui/base/icons/Icons"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import type Stream from "mithril/stream"
+import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 
 assertMainOrNode()
 
@@ -159,23 +161,31 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 	/**
 	 * Try to add an alias from input field and return true if it succeeded
 	 */
-	addAliasFromInput(): Promise<boolean> {
+	async addAliasFromInput(): Promise<boolean> {
 		const error = this.errorMessageId
 
 		if (error) {
 			return Dialog.message(error).then(() => false)
 		} else {
 			const mailAddressTableModel = this.data.editAliasFormAttrs.model
-			return showProgressDialog(
-				"pleaseWait_msg",
-				// Using default sender name for now
-				mailAddressTableModel.addAlias(this.mailAddress, mailAddressTableModel.defaultSenderName()),
-			)
-				.then(() => {
-					return true
-				})
-				.catch(ofClass(InvalidDataError, () => Dialog.message("mailAddressNA_msg").then(() => false)))
-				.catch(ofClass(LimitReachedError, () => false))
+			try {
+				await showProgressDialog(
+					"pleaseWait_msg",
+					// Using default sender name for now
+					mailAddressTableModel.addAlias(this.mailAddress, mailAddressTableModel.defaultSenderName()),
+				)
+				return true
+			} catch (e) {
+				if (e instanceof InvalidDataError) {
+					await Dialog.message("mailAddressNA_msg")
+					return false
+				} else if (e instanceof LimitReachedError) {
+					return false
+				} else if (e instanceof UpgradeRequiredError) {
+					await showPlanUpgradeRequiredDialog(e.plans, e.message)
+				}
+				throw e
+			}
 		}
 	}
 }

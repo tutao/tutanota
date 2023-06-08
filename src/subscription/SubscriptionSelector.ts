@@ -329,11 +329,11 @@ export function getReplacement(
 	const { priceAndConfigProvider, options } = attrs
 	switch (key) {
 		case "customDomains":
-			return { "{amount}": priceAndConfigProvider.getPlanPrices(subscription).customDomains }
+			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).customDomains }
 		case "mailAddressAliases":
-			return { "{amount}": priceAndConfigProvider.getPlanPrices(subscription).includedAliases }
+			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).includedAliases }
 		case "storage":
-			return { "{amount}": priceAndConfigProvider.getPlanPrices(subscription).includedStorage }
+			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).includedStorage }
 		case "contactForm":
 			const subscriptionPriceContact = priceAndConfigProvider.getSubscriptionPrice(
 				options.paymentInterval(),

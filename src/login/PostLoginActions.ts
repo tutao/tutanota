@@ -220,7 +220,7 @@ export class PostLoginActions implements IPostLoginAction {
 
 	private checkStorageWarningDialog(usedStorageInBytes: number, availableStorageInBytes: number) {
 		if (Number(usedStorageInBytes) > Number(availableStorageInBytes) * Const.MEMORY_WARNING_FACTOR) {
-			showMoreStorageNeededOrderDialog(locator.logins, "insufficientStorageWarning_msg")
+			showMoreStorageNeededOrderDialog("insufficientStorageWarning_msg")
 		}
 	}
 
@@ -244,7 +244,7 @@ export class PostLoginActions implements IPostLoginAction {
 									return Dialog.reminder(title, message)
 										.then((confirm) => {
 											if (confirm) {
-												import("../subscription/UpgradeSubscriptionWizard").then((wizard) => wizard.showUpgradeWizard())
+												import("../subscription/UpgradeSubscriptionWizard").then((wizard) => wizard.showUpgradeWizard(locator.logins))
 											}
 										})
 										.then(() => {

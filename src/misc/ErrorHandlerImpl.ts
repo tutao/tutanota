@@ -99,7 +99,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		await windowFacade.reload({ noAutoLogin: true })
 	} else if (e instanceof InsufficientStorageError) {
 		if (logins.getUserController().isGlobalAdmin()) {
-			showMoreStorageNeededOrderDialog(logins, "insufficientStorageAdmin_msg")
+			showMoreStorageNeededOrderDialog("insufficientStorageAdmin_msg")
 		} else {
 			const errorMessage = () => lang.get("insufficientStorageUser_msg") + " " + lang.get("contactAdmin_msg")
 

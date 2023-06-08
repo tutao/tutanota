@@ -1,7 +1,7 @@
 import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import stream from "mithril/stream"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { NewPaidPlans, PlanType, TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../../api/common/TutanotaConstants.js"
+import { TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../../api/common/TutanotaConstants.js"
 import m from "mithril"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
@@ -10,9 +10,6 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { InvalidDataError, LimitReachedError, PreconditionFailedError } from "../../api/common/error/RestError.js"
 import { MailAddressTableModel } from "./MailAddressTableModel.js"
 import { Autocomplete, TextField } from "../../gui/base/TextField.js"
-import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
-import { loadUpgradePrices } from "../../subscription/UpgradeSubscriptionWizard.js"
-import { mapUpgradePriceData } from "../../subscription/PriceUtils.js"
 
 const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 

@@ -31,13 +31,11 @@ import { showUpgradeWizard } from "./UpgradeSubscriptionWizard"
 import { showSwitchDialog } from "./SwitchSubscriptionDialog"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { showDeleteAccountDialog } from "./DeleteAccountDialog"
 import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
 import { NotFoundError } from "../api/common/error/RestError"
 import type { EntityUpdateData } from "../api/main/EventController"
 import { isUpdateForTypeRef } from "../api/main/EventController"
 import { getCurrentCount, getTotalStorageCapacityPerCustomer, isBusinessFeatureActive, isSharingActive, isWhitelabelActive } from "./SubscriptionUtils"
-import { Button, ButtonType } from "../gui/base/Button.js"
 import { TextField } from "../gui/base/TextField.js"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { ColumnWidth, Table } from "../gui/base/Table.js"
@@ -116,7 +114,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						locator.logins.getUserController().isFreeAccount()
 							? m(IconButton, {
 									title: "upgrade_action",
-									click: () => showUpgradeWizard(),
+									click: () => showUpgradeWizard(locator.logins),
 									icon: Icons.Edit,
 									size: ButtonSize.Compact,
 							  })

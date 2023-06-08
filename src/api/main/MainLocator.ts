@@ -421,6 +421,7 @@ class MainLocator {
 		const nameChanger = await this.ownMailAddressNameChanger()
 		return new MailAddressTableModel(
 			this.entityClient,
+			this.serviceExecutor,
 			this.mailAddressFacade,
 			this.logins,
 			this.eventController,
@@ -432,7 +433,15 @@ class MainLocator {
 	async mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userGroupInfo: GroupInfo): Promise<MailAddressTableModel> {
 		const { MailAddressTableModel } = await import("../../settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.adminNameChanger(mailGroupId, userId)
-		return new MailAddressTableModel(this.entityClient, this.mailAddressFacade, this.logins, this.eventController, userGroupInfo, nameChanger)
+		return new MailAddressTableModel(
+			this.entityClient,
+			this.serviceExecutor,
+			this.mailAddressFacade,
+			this.logins,
+			this.eventController,
+			userGroupInfo,
+			nameChanger,
+		)
 	}
 
 	async ownMailAddressNameChanger(): Promise<MailAddressNameChanger> {

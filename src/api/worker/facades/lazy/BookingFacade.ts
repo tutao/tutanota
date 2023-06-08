@@ -17,9 +17,6 @@ export class BookingFacade {
 	 * @param  type The booking feature type, one of tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_*.
 	 * @param  count Number of items, may be negative.
 	 * @param  reactivate  If true a user or group is reactivated instead of created - not used for aliases, storage or branding
-	 * @param  paymentInterval. If not provided the customers payment interval is used.
-	 * @param  accountType The account type, one of tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_*. If not provided, the customers account type is used.
-	 * @param  business Business or private.
 	 * @return Resolves to PriceServiceReturn or an exception if the loading failed.
 	 */
 	getPrice(type: BookingItemFeatureType, count: number, reactivate: boolean): Promise<PriceServiceReturn> {

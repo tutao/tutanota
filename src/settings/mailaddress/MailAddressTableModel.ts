@@ -4,16 +4,16 @@ import { MailAddressFacade } from "../../api/worker/facades/lazy/MailAddressFaca
 import { LoginController } from "../../api/main/LoginController.js"
 import stream from "mithril/stream"
 import { EntityUpdateData, EventController, isUpdateFor, isUpdateForTypeRef } from "../../api/main/EventController.js"
-import { NewPaidPlans, OperationType, PlanType } from "../../api/common/TutanotaConstants.js"
+import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { getAvailableDomains } from "./MailAddressesUtils.js"
 import { GroupInfo, GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, lazyMemoized } from "@tutao/tutanota-utils"
 import { isTutanotaMailAddress } from "../../mail/model/MailUtils.js"
-import { loadUpgradePrices } from "../../subscription/UpgradeSubscriptionWizard.js"
-import { mapUpgradePriceData } from "../../subscription/PriceUtils.js"
-import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
-import { Dialog } from "../../gui/base/Dialog.js"
 import { LimitReachedError } from "../../api/common/error/RestError.js"
+import { UserError } from "../../api/main/UserError.js"
+import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
+import { PriceAndConfigProvider } from "../../subscription/PriceUtils.js"
+import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
 
 export enum AddressStatus {
 	Primary,
@@ -52,6 +52,7 @@ export class MailAddressTableModel {
 
 	constructor(
 		private readonly entityClient: EntityClient,
+		private readonly serviceExecutor: IServiceExecutor,
 		private readonly mailAddressFacade: MailAddressFacade,
 		private readonly logins: LoginController,
 		private readonly eventController: EventController,
@@ -153,16 +154,12 @@ export class MailAddressTableModel {
 		// Determine if there is an available plan we can switch to that would let the user add an alias.
 		//
 		// If so, show an upgrade dialog. Otherwise, inform the user that they reached the maximum number of aliases.
-		const potentialUpgrades = await loadUpgradePrices(null)
-		const potentialPlans = mapUpgradePriceData(potentialUpgrades)
-		const plansWithMoreAliases = NewPaidPlans.filter((p) => {
-			const potentialPlan = potentialPlans[p as PlanType]
-			return Number(potentialPlan.includedAliases) > this.userGroupInfo.mailAddressAliases.length
-		})
+		const priceProvider = await PriceAndConfigProvider.getInitializedInstance(null, this.serviceExecutor, null)
+		const plansWithMoreAliases = priceProvider.getMatchingPlans((prices) => Number(prices.includedAliases) > this.userGroupInfo.mailAddressAliases.length)
 		if (plansWithMoreAliases.length > 0) {
-			await showPlanUpgradeRequiredDialog(plansWithMoreAliases, "moreAliasesRequired_msg")
+			throw new UpgradeRequiredError("moreAliasesRequired_msg", plansWithMoreAliases)
 		} else {
-			await Dialog.message("adminMaxNbrOfAliasesReached_msg")
+			throw new UserError("adminMaxNbrOfAliasesReached_msg")
 		}
 	}
 }

@@ -1109,7 +1109,7 @@ export async function writeSupportMail(subject: string = "", mailboxDetails?: Ma
 			})
 			.then((confirm) => {
 				if (confirm) {
-					import("../../subscription/UpgradeSubscriptionWizard").then((utils) => utils.showUpgradeWizard())
+					import("../../subscription/UpgradeSubscriptionWizard").then((utils) => utils.showUpgradeWizard(locator.logins))
 				}
 			})
 			.then(() => false)

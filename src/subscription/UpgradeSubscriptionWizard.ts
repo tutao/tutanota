@@ -1,18 +1,10 @@
 import type { Hex } from "@tutao/tutanota-utils"
 import { defer } from "@tutao/tutanota-utils"
-import {
-	AccountingInfo,
-	AccountingInfoTypeRef,
-	createUpgradePriceServiceData,
-	Customer,
-	CustomerInfo,
-	UpgradePriceServiceReturn,
-} from "../api/entities/sys/TypeRefs.js"
+import { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
 import type { InvoiceData, PaymentData } from "../api/common/TutanotaConstants"
 import {
 	AvailablePlans,
 	AvailablePlanType,
-	Const,
 	getPaymentMethodType,
 	NewPaidPlans,
 	PaymentMethodType as PaymentMethod,
@@ -30,12 +22,12 @@ import { SignupPage, SignupPageAttrs } from "./SignupPage"
 import { assertMainOrNode } from "../api/common/Env"
 import { locator } from "../api/main/MainLocator"
 import { StorageBehavior } from "../misc/UsageTestModel"
-import { UpgradePriceService } from "../api/entities/sys/Services.js"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { UpgradeType } from "./SubscriptionUtils"
 import { UpgradeConfirmSubscriptionPage } from "./UpgradeConfirmSubscriptionPage.js"
 import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
+import { LoginController } from "../api/main/LoginController.js"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -74,31 +66,8 @@ export type UpgradeSubscriptionData = {
 	msg: TranslationText | null
 }
 
-export function loadUpgradePrices(registrationDataId: string | null): Promise<UpgradePriceServiceReturn> {
-	const data = createUpgradePriceServiceData({
-		date: Const.CURRENT_DATE,
-		campaign: registrationDataId,
-	})
-	return locator.serviceExecutor.get(UpgradePriceService, data)
-}
-
-async function loadCustomerAndInfo(): Promise<{
-	customer: Customer
-	customerInfo: CustomerInfo
-	accountingInfo: AccountingInfo
-}> {
-	const customer = await locator.logins.getUserController().loadCustomer()
-	const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
-	const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
-	return {
-		customer,
-		customerInfo,
-		accountingInfo,
-	}
-}
-
-export async function showUpgradeWizard(acceptedPlans: AvailablePlanType[] = NewPaidPlans, msg?: TranslationText): Promise<PlanType> {
-	const { customer, accountingInfo } = await loadCustomerAndInfo()
+export async function showUpgradeWizard(logins: LoginController, acceptedPlans: AvailablePlanType[] = NewPaidPlans, msg?: TranslationText): Promise<PlanType> {
+	const [customer, accountingInfo] = await Promise.all([logins.getUserController().loadCustomer(), logins.loadAccountingInfo()])
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
 
 	const prices = priceDataProvider.getRawPricingData()

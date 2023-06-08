@@ -1,10 +1,9 @@
-import { BookingItemFeatureType, Const, PaymentMethodType, PlanType } from "../api/common/TutanotaConstants"
+import { AvailablePlanType, BookingItemFeatureType, Const, NewPaidPlans, PaymentMethodType, PlanType } from "../api/common/TutanotaConstants"
 import { assertTranslation, lang, TranslationKey } from "../misc/LanguageViewModel"
 import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
 import type { AccountingInfo, PlanPrices, PriceData, PriceItemData } from "../api/entities/sys/TypeRefs.js"
 import { createUpgradePriceServiceData, UpgradePriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
 import { SubscriptionPlanPrices, UpgradePriceType, WebsitePlanPrices } from "./FeatureListProvider"
-import { locator } from "../api/main/MainLocator"
 import { UpgradePriceService } from "../api/entities/sys/Services"
 import { IServiceExecutor } from "../api/common/ServiceRequest"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
@@ -152,7 +151,7 @@ export class PriceAndConfigProvider {
 
 	static async getInitializedInstance(
 		registrationDataId: string | null,
-		serviceExecutor: IServiceExecutor = locator.serviceExecutor,
+		serviceExecutor: IServiceExecutor,
 		referralCode: string | null,
 	): Promise<PriceAndConfigProvider> {
 		// There should be only one method to request a discount either referralCode or a promotion
@@ -176,7 +175,7 @@ export class PriceAndConfigProvider {
 	}
 
 	private getYearlySubscriptionPrice(subscription: PlanType, upgrade: UpgradePriceType): number {
-		const prices = this.getPlanPrices(subscription)
+		const prices = this.getPlanPricesForPlan(subscription)
 		const monthlyPrice = getPriceForUpgradeType(upgrade, prices)
 		const monthsFactor = upgrade === UpgradePriceType.PlanReferencePrice ? Number(PaymentInterval.Yearly) : 10
 		const discount = upgrade === UpgradePriceType.PlanActualPrice ? Number(prices.firstYearDiscount) : 0
@@ -184,12 +183,25 @@ export class PriceAndConfigProvider {
 	}
 
 	private getMonthlySubscriptionPrice(subscription: PlanType, upgrade: UpgradePriceType): number {
-		const prices = this.getPlanPrices(subscription)
+		const prices = this.getPlanPricesForPlan(subscription)
 		return getPriceForUpgradeType(upgrade, prices)
 	}
 
-	getPlanPrices(subscription: PlanType): PlanPrices {
-		return assertNotNull(this.planPrices)[subscription]
+	getPlanPricesForPlan(subscription: PlanType): PlanPrices {
+		return assertNotNull(this.planPrices, "called getPlanPricesForPlan before init")[subscription]
+	}
+
+	/**
+	 * Get paid plans that can be booked and that satisfy the given predicate.
+	 * @param predicate takes an instance of PlanPrices, which should contain everything you
+	 *                  need to know about a plan. Return true to include the plan.
+	 * @return array of the matching plans
+	 */
+	getMatchingPlans(predicate: (plan: PlanPrices) => boolean): Array<AvailablePlanType> {
+		return NewPaidPlans.filter((p) => {
+			const potentialPlan = this.getPlanPricesForPlan(p)
+			return predicate(potentialPlan)
+		})
 	}
 
 	getPriceInfoMessage(): TranslationKey | null {

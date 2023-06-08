@@ -1,4 +1,3 @@
-import type { LoginController } from "../api/main/LoginController"
 import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
 import { Dialog } from "../gui/base/Dialog"
 import type { TranslationKey, TranslationText } from "./LanguageViewModel"
@@ -8,8 +7,9 @@ import { locator } from "../api/main/MainLocator"
 import type { UserController } from "../api/main/UserController.js"
 import { BookingTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
-import { AvailablePlanType, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
+import { AvailablePlanType, GIGABYTE_FACTOR, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
 import { showSwitchDialog } from "../subscription/SwitchSubscriptionDialog.js"
+import { UserError } from "../api/main/UserError.js"
 
 /**
  * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.
@@ -26,7 +26,7 @@ export async function showNotAvailableForFreeDialog(acceptedPlans: AvailablePlan
 			NewPersonalPlans.includes(downcast(customerInfo.plan))
 		const msg = businessPlanRequired ? "pricing.notSupportedByPersonalPlan_msg" : "newPaidPlanRequired_msg"
 
-		await wizard.showUpgradeWizard(acceptedPlans, msg)
+		await wizard.showUpgradeWizard(locator.logins, acceptedPlans, msg)
 	}
 }
 
@@ -65,7 +65,7 @@ export function checkPremiumSubscription(): Promise<boolean> {
 		})
 }
 
-export async function showMoreStorageNeededOrderDialog(loginController: LoginController, messageIdOrMessageFunction: TranslationKey): Promise<PlanType | void> {
+export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunction: TranslationKey): Promise<PlanType | void> {
 	const userController = locator.logins.getUserController()
 	if (!userController.isGlobalAdmin()) {
 		return Dialog.message("insufficientStorageWarning_msg")
@@ -74,9 +74,22 @@ export async function showMoreStorageNeededOrderDialog(loginController: LoginCon
 	if (confirmed) {
 		if (userController.isFreeAccount()) {
 			const wizard = await import("../subscription/UpgradeSubscriptionWizard")
-			return wizard.showUpgradeWizard()
+			return wizard.showUpgradeWizard(locator.logins)
 		} else {
-			await showPlanUpgradeRequiredDialog()
+			const user = locator.logins.getUserController().user
+			const usedStorage = Number(await locator.userManagementFacade.readUsedUserStorage(user))
+			const { PriceAndConfigProvider } = await import("../subscription/PriceUtils.js")
+			const priceProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
+			const plansWithMoreStorage = priceProvider.getMatchingPlans((prices) => Number(prices.includedStorage) * GIGABYTE_FACTOR > usedStorage)
+			if (plansWithMoreStorage.length > 0) {
+				await showPlanUpgradeRequiredDialog(plansWithMoreStorage)
+			} else {
+				if (userController.isGlobalAdmin()) {
+					throw new UserError("insufficientStorageAdmin_msg")
+				} else {
+					throw new UserError("insufficientStorageUser_msg")
+				}
+			}
 		}
 	}
 }
@@ -106,7 +119,7 @@ export async function showPlanUpgradeRequiredDialog(acceptedPlans: AvailablePlan
 export async function showUpgradeWizardOrSwitchSubscriptionDialog(userController: UserController): Promise<PlanType> {
 	if (userController.isFreeAccount()) {
 		const { showUpgradeWizard } = await import("../subscription/UpgradeSubscriptionWizard")
-		return showUpgradeWizard()
+		return showUpgradeWizard(locator.logins)
 	} else {
 		return showSwitchPlanDialog(userController, NewPaidPlans)
 	}
