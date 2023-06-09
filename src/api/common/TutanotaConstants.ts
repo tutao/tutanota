@@ -175,6 +175,7 @@ export const NewBusinessPlans: AvailablePlanType[] = [PlanType.Essential, PlanTy
 export const NewPersonalPlans: AvailablePlanType[] = [PlanType.Free, PlanType.Revolutionary, PlanType.Legend]
 
 export const LegacyPlans = [PlanType.Premium, PlanType.PremiumBusiness, PlanType.Teams, PlanType.TeamsBusiness, PlanType.Pro]
+export const HighlightedPlans: AvailablePlanType[] = [PlanType.Revolutionary, PlanType.Advanced]
 
 export const PlanTypeToName = reverse(PlanType)
 
