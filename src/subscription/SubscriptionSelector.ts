@@ -18,7 +18,7 @@ import {
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { ButtonAttrs } from "../gui/base/Button.js"
 import { downcast, lazy } from "@tutao/tutanota-utils"
-import { AvailablePlanType, LegacyPlans, NewBusinessPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
+import { AvailablePlanType, HighlightedPlans, LegacyPlans, NewBusinessPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -39,7 +39,6 @@ export type SubscriptionSelectorAttr = {
 	actionButtons: SubscriptionActionButtons
 	boxWidth: number
 	boxHeight: number
-	highlightPremium?: boolean
 	currentPlanType: PlanType | null
 	allowSwitchingPaymentInterval: boolean
 	featureListProvider: FeatureListProvider
@@ -179,8 +178,9 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			})
 			.filter((fc): fc is BuyOptionBoxAttr["categories"][0] => fc != null)
 
-		// we only highlight the private Premium box if this is a signup or the current subscription type is Free
-		selectorAttrs.highlightPremium = targetSubscription === PlanType.Revolutionary && !selectorAttrs.options.businessUse() && !selectorAttrs.currentPlanType
+		// we highlight the center box if this is a signup or the current subscription type is Free
+		const upgradingToPaidAccount = !selectorAttrs.currentPlanType || selectorAttrs.currentPlanType === PlanType.Free
+		const highlighted = upgradingToPaidAccount && HighlightedPlans.includes(targetSubscription)
 		const subscriptionPrice = priceAndConfigProvider.getSubscriptionPrice(
 			selectorAttrs.options.paymentInterval(),
 			targetSubscription,
@@ -201,7 +201,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,
 			paymentInterval: selectorAttrs.allowSwitchingPaymentInterval && targetSubscription !== PlanType.Free ? selectorAttrs.options.paymentInterval : null,
-			highlighted: selectorAttrs.highlightPremium,
+			highlighted: highlighted,
 			showReferenceDiscount: selectorAttrs.allowSwitchingPaymentInterval,
 			renderCategoryTitle,
 			mobile,
