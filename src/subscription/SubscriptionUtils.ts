@@ -1,6 +1,6 @@
 import type { TranslationKey } from "../misc/LanguageViewModel"
-import { AccountType, BookingItemFeatureType, getClientType, PlanType, UnsubscribeFailureReason } from "../api/common/TutanotaConstants"
-import type { Customer, CustomerInfo } from "../api/entities/sys/TypeRefs.js"
+import { AccountType, BookingItemFeatureType, getClientType, PlanType } from "../api/common/TutanotaConstants"
+import type { Customer, CustomerInfo, PlanConfiguration } from "../api/entities/sys/TypeRefs.js"
 import { Booking, createPaymentDataServiceGetData } from "../api/entities/sys/TypeRefs.js"
 import { LazyLoaded } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator"
@@ -40,16 +40,16 @@ function getIncludedStorageCapacityPerCustomer(customerInfo: CustomerInfo): numb
 	return Math.max(Number(customerInfo.includedStorageCapacity), Number(customerInfo.promotionStorageCapacity))
 }
 
-export function isWhitelabelActive(lastBooking: Booking | null, customerInfo: CustomerInfo): boolean {
-	return getCurrentCount(BookingItemFeatureType.Whitelabel, lastBooking) !== 0 || customerInfo.plan == PlanType.Unlimited
+export function isWhitelabelActive(lastBooking: Booking | null, planConfig: PlanConfiguration): boolean {
+	return getCurrentCount(BookingItemFeatureType.Whitelabel, lastBooking) !== 0 || planConfig.whitelabel
 }
 
-export function isSharingActive(lastBooking: Booking | null): boolean {
-	return getCurrentCount(BookingItemFeatureType.Sharing, lastBooking) !== 0
+export function isSharingActive(lastBooking: Booking | null, planConfig: PlanConfiguration): boolean {
+	return getCurrentCount(BookingItemFeatureType.Sharing, lastBooking) !== 0 || planConfig.sharing
 }
 
-export function isBusinessFeatureActive(lastBooking: Booking | null): boolean {
-	return getCurrentCount(BookingItemFeatureType.Business, lastBooking) !== 0
+export function isBusinessFeatureActive(lastBooking: Booking | null, planConfig: PlanConfiguration): boolean {
+	return getCurrentCount(BookingItemFeatureType.Business, lastBooking) !== 0 || planConfig.business
 }
 
 export type PaymentErrorCode =
@@ -66,8 +66,6 @@ export type PaymentErrorCode =
 	| "card.cvv_invalid"
 	| "card.number_invalid"
 	| "card.date_invalid"
-	| UnsubscribeFailureReason.NOT_ENOUGH_CREDIT
-	| UnsubscribeFailureReason.INVOICE_NOT_PAID
 
 export function getPreconditionFailedPaymentMsg(data: string | null): TranslationKey {
 	// the type is mostly there to keep multiple locations that switch over these in sync
@@ -110,12 +108,6 @@ export function getPreconditionFailedPaymentMsg(data: string | null): Translatio
 
 		case "card.date_invalid":
 			return "creditCardExprationDateInvalid_msg"
-
-		case UnsubscribeFailureReason.NOT_ENOUGH_CREDIT:
-			return "insufficientBalanceError_msg"
-
-		case UnsubscribeFailureReason.INVOICE_NOT_PAID:
-			return "invoiceNotPaidSwitch_msg"
 
 		default:
 			return "payContactUsError_msg"

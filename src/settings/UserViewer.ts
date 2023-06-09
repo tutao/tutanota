@@ -462,7 +462,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		const newPlan = await locator.logins.getUserController().isNewPaidPlan()
 
 		const confirmed = await showBuyDialog({
-			featureType: newPlan ? toFeatureType(planType) : BookingItemFeatureType.Users,
+			featureType: newPlan ? toFeatureType(planType) : BookingItemFeatureType.LegacyUsers,
 			bookingText: "cancelUserAccounts_label",
 			count: -1,
 			freeAmount: 0,
@@ -479,7 +479,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		const planType = await locator.logins.getUserController().getPlanType()
 		const newPlan = await locator.logins.getUserController().isNewPaidPlan()
 		const confirmed = await showBuyDialog({
-			featureType: newPlan ? toFeatureType(planType) : BookingItemFeatureType.Users,
+			featureType: newPlan ? toFeatureType(planType) : BookingItemFeatureType.LegacyUsers,
 			bookingText: "bookingItemUsersIncluding_label",
 			count: 1,
 			freeAmount: 0,

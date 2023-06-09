@@ -746,7 +746,7 @@ export class CalendarEventViewModel {
 			return false
 		}
 
-		return !this.hasBusinessFeature() && !(await this._userController.isNewPaidPlan())
+		return !this.hasBusinessFeature() && !(await this._userController.getPlanConfig()).business
 	}
 
 	removeAttendee(guest: Guest) {

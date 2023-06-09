@@ -104,7 +104,7 @@ export async function showSwitchDialog(
 		[PlanType.Free]: () =>
 			({
 				label: "pricing.select_action",
-				click: () => cancelSubscription(dialog, currentPlanInfo, deferred),
+				click: () => cancelSubscription(dialog, currentPlanInfo, deferred, customer),
 				type: ButtonType.Login,
 			} as ButtonAttrs),
 
@@ -250,13 +250,15 @@ async function tryDowngradePremiumToFree(switchAccountTypeData: SwitchAccountTyp
 	}
 }
 
-async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanInfo, planPromise: DeferredObject<PlanType>): Promise<void> {
+async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanInfo, planPromise: DeferredObject<PlanType>, customer: Customer): Promise<void> {
 	if (!(await Dialog.confirm("unsubscribeConfirm_msg"))) {
 		return
 	}
 	const switchAccountTypeData = createSwitchAccountTypePostIn()
 	switchAccountTypeData.accountType = AccountType.FREE
 	switchAccountTypeData.date = Const.CURRENT_DATE
+	switchAccountTypeData.customer = customer._id
+	switchAccountTypeData.specialPriceUserSingle = null
 	try {
 		await showProgressDialog(
 			"pleaseWait_msg",
@@ -293,6 +295,8 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 		postIn.plan = targetSubscription
 		postIn.date = Const.CURRENT_DATE
 		postIn.referralCode = null
+		postIn.customer = customer._id
+		postIn.specialPriceUserSingle = null
 
 		try {
 			await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, postIn))

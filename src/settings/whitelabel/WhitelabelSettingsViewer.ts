@@ -9,6 +9,7 @@ import type {
 	CustomerProperties,
 	DomainInfo,
 	NotificationMailTemplate,
+	PlanConfiguration,
 	WhitelabelConfig,
 } from "../../api/entities/sys/TypeRefs.js"
 import {
@@ -57,6 +58,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	private _customJsonTheme: ThemeCustomizations | null = null
 	private _customer: LazyLoaded<Customer>
 	private _customerInfo: LazyLoaded<CustomerInfo>
+	private _planConfig: LazyLoaded<PlanConfiguration>
 	private _customerProperties: LazyLoaded<CustomerProperties>
 	private _lastBooking: Booking | null
 	private _entityClient: EntityClient
@@ -68,6 +70,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		this._logins = logins
 		this._customer = new LazyLoaded(() => locator.logins.getUserController().loadCustomer())
 		this._customerInfo = new LazyLoaded(() => locator.logins.getUserController().loadCustomerInfo())
+		this._planConfig = new LazyLoaded(() => locator.logins.getUserController().getPlanConfig())
 		this._customerProperties = new LazyLoaded(() =>
 			this._customer.getAsync().then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
 		)
@@ -253,9 +256,9 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_renderWhitelabelStatusSettings(): Children {
-		const customerInfo = this._customerInfo.getSync()
-		if (customerInfo == null) return null
-		const whitelabelActive = isWhitelabelActive(this._lastBooking, customerInfo)
+		const planConfig = this._planConfig.getSync()
+		if (planConfig == null) return null
+		const whitelabelActive = isWhitelabelActive(this._lastBooking, planConfig)
 		const whitelabelStatusSettingsAttrs = {
 			isWhitelabelActive: whitelabelActive,
 			logins: this._logins,
@@ -265,10 +268,11 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 
 	_renderBrandingDomainConfig(): Children {
 		const customerInfo = this._customerInfo.getSync()
+		const planConfig = this._planConfig.getSync()
 
-		if (!customerInfo) return null
+		if (!customerInfo || !planConfig) return null
 		const certificateInfo = this._certificateInfo
-		const isWhitelabelFeatureEnabled = isWhitelabelActive(this._lastBooking, customerInfo)
+		const isWhitelabelFeatureEnabled = isWhitelabelActive(this._lastBooking, planConfig)
 		const whitelabelDomain = this._whitelabelDomainInfo ? this._whitelabelDomainInfo.domain : ""
 		const whitelabelBrandingDomainSettingsAttrs = {
 			customerInfo,
@@ -309,20 +313,18 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	_updateFields(): Promise<void> {
-		return this._customerInfo.getAsync().then((customerInfo) => {
-			this._whitelabelDomainInfo = getWhitelabelDomain(customerInfo)
-			return this._tryLoadWhitelabelConfig(this._whitelabelDomainInfo).then((data) => {
-				this._whitelabelConfig = data?.whitelabelConfig ?? null
-				this._certificateInfo = data?.certificateInfo ?? null
-				return locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true).then((bookings) => {
-					this._lastBooking = bookings.length === 1 ? bookings[0] : null
-					this._customJsonTheme = this._whitelabelConfig ? getThemeCustomizations(this._whitelabelConfig) : null
-					m.redraw()
-
-					this._customerProperties.getAsync().then(m.redraw)
-				})
-			})
+	async _updateFields(): Promise<void> {
+		await this._planConfig.getAsync()
+		const customerInfo = await this._customerInfo.getAsync()
+		this._whitelabelDomainInfo = getWhitelabelDomain(customerInfo)
+		const data = await this._tryLoadWhitelabelConfig(this._whitelabelDomainInfo)
+		this._whitelabelConfig = data?.whitelabelConfig ?? null
+		this._certificateInfo = data?.certificateInfo ?? null
+		return locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true).then((bookings) => {
+			this._lastBooking = bookings.length === 1 ? bookings[0] : null
+			this._customJsonTheme = this._whitelabelConfig ? getThemeCustomizations(this._whitelabelConfig) : null
+			m.redraw()
+			this._customerProperties.getAsync().then(m.redraw)
 		})
 	}
 

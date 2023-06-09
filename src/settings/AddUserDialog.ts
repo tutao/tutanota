@@ -70,7 +70,7 @@ export function show(): Promise<void> {
 			showProgressDialog(
 				"pleaseWait_msg",
 				showBuyDialog({
-					featureType: newPlan ? toFeatureType(planType) : BookingItemFeatureType.Users,
+					featureType: newPlan ? toFeatureType(planType) : BookingItemFeatureType.LegacyUsers,
 					bookingText: "bookingItemUsers_label",
 					count: 1,
 					freeAmount: 0,

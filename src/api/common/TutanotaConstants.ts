@@ -179,7 +179,7 @@ export const LegacyPlans = [PlanType.Premium, PlanType.PremiumBusiness, PlanType
 export const PlanTypeToName = reverse(PlanType)
 
 export enum BookingItemFeatureType {
-	Users = "0",
+	LegacyUsers = "0",
 	Storage = "1",
 	Alias = "2",
 	SharedMailGroup = "3",

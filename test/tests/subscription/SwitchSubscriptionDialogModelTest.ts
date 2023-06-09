@@ -134,7 +134,7 @@ function createPremiumCustomerInstances() {
 	// always create user booking
 	lastBooking.items.push(
 		createBookingItem({
-			featureType: BookingItemFeatureType.Users,
+			featureType: BookingItemFeatureType.LegacyUsers,
 			currentCount: "1",
 			maxCount: "1",
 			price: "1.20",
@@ -194,7 +194,7 @@ function getPriceData(booking: Booking): PriceData {
 			featureType === BookingItemFeatureType.Business ||
 			featureType === BookingItemFeatureType.Whitelabel
 		) {
-			const userCount = getCurrentCount(BookingItemFeatureType.Users, booking)
+			const userCount = getCurrentCount(BookingItemFeatureType.LegacyUsers, booking)
 			return total + itemPrice * userCount
 		} else if (singleType) {
 			return total + itemPrice * count
@@ -219,7 +219,7 @@ function getPriceData(booking: Booking): PriceData {
 
 function isSingleType(featureType: BookingItemFeatureType): boolean {
 	switch (featureType) {
-		case BookingItemFeatureType.Users:
+		case BookingItemFeatureType.LegacyUsers:
 		case BookingItemFeatureType.Sharing:
 		case BookingItemFeatureType.Business:
 		case BookingItemFeatureType.Whitelabel:
@@ -237,7 +237,7 @@ function isSingleType(featureType: BookingItemFeatureType): boolean {
 
 function getFeatureTypePrice(featureType: BookingItemFeatureType, count: number): NumberString {
 	switch (featureType) {
-		case BookingItemFeatureType.Users:
+		case BookingItemFeatureType.LegacyUsers:
 			return "1.20"
 
 		case BookingItemFeatureType.Alias:

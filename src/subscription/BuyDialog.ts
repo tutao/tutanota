@@ -174,7 +174,7 @@ class PriceChangeModel {
 		this.currentPrice = this.getPriceFromPriceData(price.currentPriceNextPeriod, featureType)
 		this.futurePrice = this.getPriceFromPriceData(price.futurePriceNextPeriod, featureType)
 
-		if (this.featureType === BookingItemFeatureType.Users) {
+		if (this.featureType === BookingItemFeatureType.LegacyUsers) {
 			this.additionalFeatures = new Set(
 				[BookingItemFeatureType.Whitelabel, BookingItemFeatureType.Sharing, BookingItemFeatureType.Business].filter((f) => this.getFuturePrice(f) > 0),
 			)
@@ -250,7 +250,7 @@ class PriceChangeModel {
 		let item = getPriceItem(priceData, featureType)
 		let itemPrice = item ? Number(item.price) : 0
 
-		if (featureType === BookingItemFeatureType.Users) {
+		if (featureType === BookingItemFeatureType.LegacyUsers) {
 			itemPrice += this.getPriceFromPriceData(priceData, BookingItemFeatureType.Whitelabel)
 			itemPrice += this.getPriceFromPriceData(priceData, BookingItemFeatureType.Sharing)
 			itemPrice += this.getPriceFromPriceData(priceData, BookingItemFeatureType.Business)

@@ -64,8 +64,8 @@ export async function showBuyOrSetNotificationEmailDialog(
 	if (locator.logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog([PlanType.Unlimited])
 	} else {
-		const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
-		let whitelabel = isWhitelabelActive(lastBooking, customerInfo)
+		const planConfiguration = await locator.logins.getUserController().getPlanConfig()
+		let whitelabel = isWhitelabelActive(lastBooking, planConfiguration)
 		if (!whitelabel) {
 			whitelabel = await showPlanUpgradeRequiredDialog([PlanType.Unlimited])
 		}
