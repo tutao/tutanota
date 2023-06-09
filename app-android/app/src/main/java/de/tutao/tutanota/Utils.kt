@@ -4,6 +4,7 @@ package de.tutao.tutanota
 
 import android.content.Context
 import android.content.res.Resources
+import android.net.MailTo
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
@@ -145,3 +146,6 @@ fun HttpURLConnection.iterateDataAsLines(action: (line: String) -> Unit) =
 fun Int.toPx(): Int = (this * Resources.getSystem().displayMetrics.density).toInt()
 
 fun Int.toDp(): Int = (this / Resources.getSystem().displayMetrics.density).toInt()
+
+val MailTo.isEmpty: Boolean
+	get() = headers?.all { entry -> entry.value.isNullOrEmpty() } ?: true
