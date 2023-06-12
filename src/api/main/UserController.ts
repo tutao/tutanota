@@ -10,7 +10,7 @@ import { locator } from "./MainLocator"
 import { isSameId } from "../common/utils/EntityUtils"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations"
 import { EntityClient } from "../common/EntityClient"
-import { CloseSessionService } from "../entities/sys/Services"
+import { CloseSessionService, PlanService } from "../entities/sys/Services"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
@@ -23,6 +23,7 @@ import {
 	GroupInfo,
 	GroupInfoTypeRef,
 	GroupMembership,
+	PlanConfiguration,
 	User,
 	UserTypeRef,
 	WhitelabelConfig,
@@ -38,10 +39,13 @@ import {
 import { typeModels as sysTypeModels } from "../entities/sys/TypeModels"
 import { SessionType } from "../common/SessionType"
 import { isCustomizationEnabledForCustomer } from "../common/utils/Utils.js"
+import { IServiceExecutor } from "../common/ServiceRequest.js"
 
 assertMainOrNode()
 
 export class UserController {
+	private planConfig: PlanConfiguration | null
+
 	constructor(
 		// should be readonly but is needed for a workaround in CalendarModel
 		public user: User,
@@ -52,7 +56,10 @@ export class UserController {
 		private _userSettingsGroupRoot: UserSettingsGroupRoot,
 		public readonly sessionType: SessionType,
 		private readonly entityClient: EntityClient,
-	) {}
+		private readonly serviceExecutor: IServiceExecutor,
+	) {
+		this.planConfig = null
+	}
 
 	get userId(): Id {
 		return this.user._id
@@ -124,6 +131,14 @@ export class UserController {
 		return downcast(customerInfo.plan)
 	}
 
+	async getPlanConfig(): Promise<PlanConfiguration> {
+		if (this.planConfig === null) {
+			const planServiceGetOut = await this.serviceExecutor.get(PlanService, null)
+			this.planConfig = planServiceGetOut.config
+		}
+		return downcast(this.planConfig)
+	}
+
 	public isLegacyPlan(type: PlanType): boolean {
 		return LegacyPlans.includes(type)
 	}
@@ -133,19 +148,15 @@ export class UserController {
 		return !this.isLegacyPlan(type) && type !== PlanType.Free
 	}
 
-	async isNewPaidBusinessPlan(): Promise<boolean> {
-		const type = await this.getPlanType()
-		return type === PlanType.Essential || type === PlanType.Advanced || type === PlanType.Unlimited
-	}
-
 	/**
 	 * Checks if the current plan allows adding users and groups.
 	 */
 	async canHaveUsers(): Promise<boolean> {
 		const customer = await this.loadCustomer()
 		const planType = await this.getPlanType()
+		const planConfig = await this.getPlanConfig()
 
-		return this.isLegacyPlan(planType) || (await this.isNewPaidBusinessPlan()) || isCustomizationEnabledForCustomer(customer, FeatureType.MultipleUsers)
+		return this.isLegacyPlan(planType) || planConfig.multiUser || isCustomizationEnabledForCustomer(customer, FeatureType.MultipleUsers)
 	}
 
 	loadAccountingInfo(): Promise<AccountingInfo> {
@@ -187,9 +198,13 @@ export class UserController {
 				this._props = await this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group)
 			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
 				this._userSettingsGroupRoot = await this.entityClient.load(UserSettingsGroupRootTypeRef, this.user.userGroup.group)
-			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && operation === OperationType.CREATE) {
-				// After premium upgrade customer info is deleted and created with new id. We want to make sure that it's cached for offline login.
-				await this.entityClient.load(CustomerInfoTypeRef, [update.instanceListId, update.instanceId])
+			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
+				if (operation === OperationType.CREATE) {
+					// After premium upgrade customer info is deleted and created with new id. We want to make sure that it's cached for offline login.
+					await this.entityClient.load(CustomerInfoTypeRef, [update.instanceListId, update.instanceId])
+				}
+				// cached plan config might be outdated now
+				this.planConfig = null
 			}
 		}
 	}
@@ -314,10 +329,6 @@ export class UserController {
 			}
 		}
 	}
-
-	isPersistentSession(): boolean {
-		return this.sessionType === SessionType.Persistent
-	}
 }
 
 export type UserControllerInitData = {
@@ -343,5 +354,5 @@ export async function initUserController({ user, userGroupInfo, sessionId, acces
 				),
 			),
 	])
-	return new UserController(user, userGroupInfo, sessionId, props, accessToken, userSettingsGroupRoot, sessionType, entityClient)
+	return new UserController(user, userGroupInfo, sessionId, props, accessToken, userSettingsGroupRoot, sessionType, entityClient, locator.serviceExecutor)
 }

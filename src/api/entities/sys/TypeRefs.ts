@@ -882,6 +882,7 @@ export type CustomerInfo = {
 
 	accountingInfo: Id;
 	bookings:  null | BookingsRef;
+	customPlan:  null | PlanConfiguration;
 	customer: Id;
 	domainInfos: DomainInfo[];
 	giftCards:  null | GiftCardsRef;
@@ -1986,6 +1987,25 @@ export type PhoneNumber = {
 	_id: Id;
 	number: string;
 }
+export const PlanConfigurationTypeRef: TypeRef<PlanConfiguration> = new TypeRef("sys", "PlanConfiguration")
+
+export function createPlanConfiguration(values?: Partial<PlanConfiguration>): PlanConfiguration {
+	return Object.assign(create(typeModels.PlanConfiguration, PlanConfigurationTypeRef), values)
+}
+
+export type PlanConfiguration = {
+	_type: TypeRef<PlanConfiguration>;
+
+	_id: Id;
+	business: boolean;
+	customDomainType: NumberString;
+	multiUser: boolean;
+	nbrOfAliases: NumberString;
+	sharing: boolean;
+	storageGb: NumberString;
+	templates: boolean;
+	whitelabel: boolean;
+}
 export const PlanPricesTypeRef: TypeRef<PlanPrices> = new TypeRef("sys", "PlanPrices")
 
 export function createPlanPrices(values?: Partial<PlanPrices>): PlanPrices {
@@ -2007,6 +2027,19 @@ export type PlanPrices = {
 	monthlyReferencePrice: NumberString;
 	sharing: boolean;
 	whitelabel: boolean;
+}
+export const PlanServiceGetOutTypeRef: TypeRef<PlanServiceGetOut> = new TypeRef("sys", "PlanServiceGetOut")
+
+export function createPlanServiceGetOut(values?: Partial<PlanServiceGetOut>): PlanServiceGetOut {
+	return Object.assign(create(typeModels.PlanServiceGetOut, PlanServiceGetOutTypeRef), values)
+}
+
+export type PlanServiceGetOut = {
+	_type: TypeRef<PlanServiceGetOut>;
+
+	_format: NumberString;
+
+	config: PlanConfiguration;
 }
 export const PremiumFeatureDataTypeRef: TypeRef<PremiumFeatureData> = new TypeRef("sys", "PremiumFeatureData")
 
@@ -2692,8 +2725,10 @@ export type SwitchAccountTypePostIn = {
 
 	_format: NumberString;
 	accountType: NumberString;
+	customer: null | Id;
 	date: null | Date;
 	plan: NumberString;
+	specialPriceUserSingle: null | NumberString;
 
 	referralCode:  null | Id;
 }

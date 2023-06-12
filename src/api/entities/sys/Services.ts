@@ -48,6 +48,7 @@ import {PaymentDataServicePutDataTypeRef} from "./TypeRefs.js"
 import {PaymentDataServicePutReturnTypeRef} from "./TypeRefs.js"
 import {PdfInvoiceServiceDataTypeRef} from "./TypeRefs.js"
 import {PdfInvoiceServiceReturnTypeRef} from "./TypeRefs.js"
+import {PlanServiceGetOutTypeRef} from "./TypeRefs.js"
 import {PremiumFeatureDataTypeRef} from "./TypeRefs.js"
 import {PremiumFeatureReturnTypeRef} from "./TypeRefs.js"
 import {PriceServiceDataTypeRef} from "./TypeRefs.js"
@@ -300,6 +301,15 @@ export const PdfInvoiceService = Object.freeze({
 	app: "sys",
 	name: "PdfInvoiceService",
 	get: {data: PdfInvoiceServiceDataTypeRef, return: PdfInvoiceServiceReturnTypeRef},
+	post: null,
+	put: null,
+	delete: null,
+} as const)
+
+export const PlanService = Object.freeze({
+	app: "sys",
+	name: "PlanService",
+	get: {data: null, return: PlanServiceGetOutTypeRef},
 	post: null,
 	put: null,
 	delete: null,

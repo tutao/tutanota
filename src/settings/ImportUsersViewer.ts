@@ -127,7 +127,7 @@ async function showBookingDialog(userDetailsArray: UserImportDetails[]) {
 	const planType = await userController.getPlanType()
 
 	const accepted = await showBuyDialog({
-		featureType: (await userController.isNewPaidPlan()) ? toFeatureType(planType) : BookingItemFeatureType.Users,
+		featureType: (await userController.isNewPaidPlan()) ? toFeatureType(planType) : BookingItemFeatureType.LegacyUsers,
 		bookingText: "bookingItemUsersIncluding_label",
 		count: userDetailsArray.length,
 		freeAmount: 0,

@@ -160,6 +160,16 @@
 					"info": "ChangeValueCardinality Customer/businessUse/One."
 				}
 			]
+		},
+		{
+			"version": 87,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "CustomerInfo",
+					"info": "AddAssociation CustomerInfo/customPlan/AGGREGATION/2114."
+				}
+			]
 		}
 	]
 }

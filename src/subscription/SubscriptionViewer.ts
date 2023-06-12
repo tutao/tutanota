@@ -11,7 +11,7 @@ import {
 	OperationType,
 	PlanType,
 } from "../api/common/TutanotaConstants"
-import type { AccountingInfo, Booking, Customer, CustomerInfo, GiftCard, OrderProcessingAgreement } from "../api/entities/sys/TypeRefs.js"
+import type { AccountingInfo, Booking, Customer, CustomerInfo, GiftCard, OrderProcessingAgreement, PlanConfiguration } from "../api/entities/sys/TypeRefs.js"
 import {
 	AccountingInfoTypeRef,
 	BookingTypeRef,
@@ -355,6 +355,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							this._isCancelled = customer.canceledPremiumAccount
 							this.currentPlanType = await userController.getPlanType()
 
+							const planConfig = await userController.getPlanConfig()
 							await this._updateSubscriptionField(this._isCancelled)
 
 							return Promise.all([
@@ -362,9 +363,9 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 								this._updateStorageField(customer, customerInfo),
 								this._updateAliasField(customer, customerInfo, userController.user.userGroup.group),
 								this._updateGroupsField(),
-								this._updateWhitelabelField(),
-								this._updateSharingField(),
-								this._updateBusinessFeatureField(),
+								this._updateWhitelabelField(planConfig),
+								this._updateSharingField(planConfig),
+								this._updateBusinessFeatureField(planConfig),
 								this._updateContactFormsField(),
 							]).then(() => m.redraw())
 						})
@@ -373,7 +374,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateUserField(): Promise<void> {
-		this._usersFieldValue("" + Math.max(1, getCurrentCount(BookingItemFeatureType.Users, this._lastBooking)))
+		this._usersFieldValue("" + Math.max(1, getCurrentCount(BookingItemFeatureType.LegacyUsers, this._lastBooking)))
 
 		return Promise.resolve()
 	}
@@ -436,9 +437,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		return Promise.resolve()
 	}
 
-	_updateWhitelabelField(): Promise<void> {
-		let customerInfo = this._customerInfo
-		if (customerInfo && isWhitelabelActive(this._lastBooking, customerInfo)) {
+	_updateWhitelabelField(planConfig: PlanConfiguration): Promise<void> {
+		if (isWhitelabelActive(this._lastBooking, planConfig)) {
 			this._whitelabelFieldValue(lang.get("active_label"))
 		} else {
 			this._whitelabelFieldValue(lang.get("deactivated_label"))
@@ -447,8 +447,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		return Promise.resolve()
 	}
 
-	_updateSharingField(): Promise<void> {
-		if (isSharingActive(this._lastBooking)) {
+	_updateSharingField(planConfig: PlanConfiguration): Promise<void> {
+		if (isSharingActive(this._lastBooking, planConfig)) {
 			this._sharingFieldValue(lang.get("active_label"))
 		} else {
 			this._sharingFieldValue(lang.get("deactivated_label"))
@@ -457,10 +457,10 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		return Promise.resolve()
 	}
 
-	_updateBusinessFeatureField(): Promise<void> {
+	_updateBusinessFeatureField(planConfig: PlanConfiguration): Promise<void> {
 		if (!this._customer) {
 			this._businessFeatureFieldValue("")
-		} else if (isBusinessFeatureActive(this._lastBooking)) {
+		} else if (isBusinessFeatureActive(this._lastBooking, planConfig)) {
 			this._businessFeatureFieldValue(lang.get("active_label"))
 		} else {
 			this._businessFeatureFieldValue(lang.get("deactivated_label"))

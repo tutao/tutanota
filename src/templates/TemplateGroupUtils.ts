@@ -12,7 +12,7 @@ export async function createInitialTemplateListIfAllowed(): Promise<TemplateGrou
 	const userController = locator.logins.getUserController()
 	const customer = await userController.loadCustomer()
 	const allowed =
-		(await userController.getPlanType()) === PlanType.Unlimited ||
+		(await userController.getPlanConfig()).templates ||
 		isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) ||
 		(await showPlanUpgradeRequiredDialog([PlanType.Unlimited]))
 	if (allowed) {

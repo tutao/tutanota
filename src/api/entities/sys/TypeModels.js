@@ -3594,6 +3594,16 @@ export const typeModels = {
                 "refType": "BookingsRef",
                 "dependency": null
             },
+            "customPlan": {
+                "final": true,
+                "name": "customPlan",
+                "id": 2114,
+                "since": 87,
+                "type": "AGGREGATION",
+                "cardinality": "ZeroOrOne",
+                "refType": "PlanConfiguration",
+                "dependency": null
+            },
             "customer": {
                 "final": true,
                 "name": "customer",
@@ -7943,6 +7953,101 @@ export const typeModels = {
         "app": "sys",
         "version": "87"
     },
+    "PlanConfiguration": {
+        "name": "PlanConfiguration",
+        "since": 87,
+        "type": "AGGREGATED_TYPE",
+        "id": 2104,
+        "rootId": "A3N5cwAIOA",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 2105,
+                "since": 87,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "business": {
+                "final": true,
+                "name": "business",
+                "id": 2109,
+                "since": 87,
+                "type": "Boolean",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "customDomainType": {
+                "final": true,
+                "name": "customDomainType",
+                "id": 2111,
+                "since": 87,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "multiUser": {
+                "final": true,
+                "name": "multiUser",
+                "id": 2112,
+                "since": 87,
+                "type": "Boolean",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "nbrOfAliases": {
+                "final": true,
+                "name": "nbrOfAliases",
+                "id": 2106,
+                "since": 87,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "sharing": {
+                "final": true,
+                "name": "sharing",
+                "id": 2108,
+                "since": 87,
+                "type": "Boolean",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "storageGb": {
+                "final": true,
+                "name": "storageGb",
+                "id": 2107,
+                "since": 87,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "templates": {
+                "final": true,
+                "name": "templates",
+                "id": 2113,
+                "since": 87,
+                "type": "Boolean",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "whitelabel": {
+                "final": true,
+                "name": "whitelabel",
+                "id": 2110,
+                "since": 87,
+                "type": "Boolean",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {},
+        "app": "sys",
+        "version": "87"
+    },
     "PlanPrices": {
         "name": "PlanPrices",
         "since": 39,
@@ -8062,6 +8167,40 @@ export const typeModels = {
             }
         },
         "associations": {},
+        "app": "sys",
+        "version": "87"
+    },
+    "PlanServiceGetOut": {
+        "name": "PlanServiceGetOut",
+        "since": 87,
+        "type": "DATA_TRANSFER_TYPE",
+        "id": 2115,
+        "rootId": "A3N5cwAIQw",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_format": {
+                "final": false,
+                "name": "_format",
+                "id": 2116,
+                "since": 87,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "config": {
+                "final": false,
+                "name": "config",
+                "id": 2117,
+                "since": 87,
+                "type": "AGGREGATION",
+                "cardinality": "One",
+                "refType": "PlanConfiguration",
+                "dependency": null
+            }
+        },
         "app": "sys",
         "version": "87"
     },
@@ -10597,6 +10736,15 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
+            "customer": {
+                "final": false,
+                "name": "customer",
+                "id": 2123,
+                "since": 87,
+                "type": "GeneratedId",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
             "date": {
                 "final": false,
                 "name": "date",
@@ -10613,6 +10761,15 @@ export const typeModels = {
                 "since": 30,
                 "type": "Number",
                 "cardinality": "One",
+                "encrypted": false
+            },
+            "specialPriceUserSingle": {
+                "final": false,
+                "name": "specialPriceUserSingle",
+                "id": 2124,
+                "since": 87,
+                "type": "Number",
+                "cardinality": "ZeroOrOne",
                 "encrypted": false
             }
         },
