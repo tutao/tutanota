@@ -1,5 +1,5 @@
 import type { TranslationKey } from "../misc/LanguageViewModel"
-import { AccountType, BookingItemFeatureType, getClientType, PlanType } from "../api/common/TutanotaConstants"
+import { AccountType, BookingItemFeatureType, getClientType, PlanType, UnsubscribeFailureReason } from "../api/common/TutanotaConstants"
 import type { Customer, CustomerInfo } from "../api/entities/sys/TypeRefs.js"
 import { Booking, createPaymentDataServiceGetData } from "../api/entities/sys/TypeRefs.js"
 import { LazyLoaded } from "@tutao/tutanota-utils"
@@ -66,6 +66,8 @@ export type PaymentErrorCode =
 	| "card.cvv_invalid"
 	| "card.number_invalid"
 	| "card.date_invalid"
+	| UnsubscribeFailureReason.NOT_ENOUGH_CREDIT
+	| UnsubscribeFailureReason.INVOICE_NOT_PAID
 
 export function getPreconditionFailedPaymentMsg(data: string | null): TranslationKey {
 	// the type is mostly there to keep multiple locations that switch over these in sync
@@ -108,6 +110,12 @@ export function getPreconditionFailedPaymentMsg(data: string | null): Translatio
 
 		case "card.date_invalid":
 			return "creditCardExprationDateInvalid_msg"
+
+		case UnsubscribeFailureReason.NOT_ENOUGH_CREDIT:
+			return "insufficientBalanceError_msg"
+
+		case UnsubscribeFailureReason.INVOICE_NOT_PAID:
+			return "invoiceNotPaidSwitch_msg"
 
 		default:
 			return "payContactUsError_msg"
