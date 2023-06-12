@@ -9,6 +9,7 @@ import {
 	createGroupInfo,
 	createGroupMembership,
 	createMailAddressAlias,
+	createPlanConfiguration,
 	createUser,
 	Feature,
 } from "../../../src/api/entities/sys/TypeRefs.js"
@@ -95,6 +96,12 @@ export function makeUserController(
 			//TODO
 			return []
 		},
+		getPlanConfig: () =>
+			Promise.resolve(
+				createPlanConfiguration({
+					business: businessFeatureOrdered || isNewPaidPlan,
+				}),
+			),
 	})
 }
 
