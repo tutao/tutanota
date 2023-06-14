@@ -132,13 +132,13 @@ export function show(): void {
 
 			const userController = locator.logins.getUserController()
 			const planType = await userController.getPlanType()
-			const newPlan = await userController.isNewPaidPlan()
+			const useLegacyBookingItem = await userController.useLegacyBookingItem()
 
 			if (viewModel.groupType === GroupType.Mail) {
 				showProgressDialog(
 					"pleaseWait_msg",
 					showBuyDialog({
-						featureType: newPlan ? toFeatureType(planType) : BookingItemFeatureType.SharedMailGroup,
+						featureType: useLegacyBookingItem ? toFeatureType(planType) : BookingItemFeatureType.SharedMailGroup,
 						bookingText: "sharedMailbox_label",
 						count: 1,
 						freeAmount: 0,

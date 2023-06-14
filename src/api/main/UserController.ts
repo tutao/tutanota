@@ -148,6 +148,12 @@ export class UserController {
 		return !this.isLegacyPlan(type) && type !== PlanType.Free
 	}
 
+	async useLegacyBookingItem(): Promise<boolean> {
+		const customerInfo = await this.loadCustomerInfo()
+		const type: PlanType = downcast(customerInfo.plan)
+		return !(this.isLegacyPlan(type) && customerInfo.customPlan == null) && type !== PlanType.Free
+	}
+
 	/**
 	 * Checks if the current plan allows adding users and groups.
 	 */

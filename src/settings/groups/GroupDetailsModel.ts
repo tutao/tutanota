@@ -204,13 +204,13 @@ export class GroupDetailsModel {
 
 			const userController = locator.logins.getUserController()
 			const planType = await userController.getPlanType()
-			const newPlan = await userController.isNewPaidPlan()
+			const useLegacyBookingItem = await userController.useLegacyBookingItem()
 
 			if (this.groupInfo.groupType === GroupType.LocalAdmin) {
-				bookingItemType = newPlan ? toFeatureType(planType) : BookingItemFeatureType.LocalAdminGroup
+				bookingItemType = useLegacyBookingItem ? toFeatureType(planType) : BookingItemFeatureType.LocalAdminGroup
 				bookingText = deactivate ? "cancelLocalAdminGroup_label" : "localAdminGroup_label"
 			} else {
-				bookingItemType = newPlan ? toFeatureType(planType) : BookingItemFeatureType.SharedMailGroup
+				bookingItemType = useLegacyBookingItem ? toFeatureType(planType) : BookingItemFeatureType.SharedMailGroup
 				bookingText = deactivate ? "cancelSharedMailbox_label" : "sharedMailbox_label"
 			}
 

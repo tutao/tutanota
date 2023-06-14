@@ -145,6 +145,8 @@ export function toFeatureType(type: PlanType): BookingItemFeatureType {
 			return BookingItemFeatureType.Advanced
 		case PlanType.Unlimited:
 			return BookingItemFeatureType.Unlimited
+		case PlanType.Premium:
+			return BookingItemFeatureType.LegacyUsers
 		default:
 			throw new Error(`can't convert ${type} to BookingItemFeatureType`)
 	}
