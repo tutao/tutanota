@@ -2028,6 +2028,8 @@ export type PlanPrices = {
 	monthlyReferencePrice: NumberString;
 	sharing: boolean;
 	whitelabel: boolean;
+
+	planConfiguration: PlanConfiguration;
 }
 export const PlanServiceGetOutTypeRef: TypeRef<PlanServiceGetOut> = new TypeRef("sys", "PlanServiceGetOut")
 

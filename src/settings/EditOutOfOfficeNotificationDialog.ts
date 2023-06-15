@@ -4,7 +4,7 @@ import { getStartOfTheWeekOffsetForUser } from "../calendar/date/CalendarUtils"
 import type { OutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
 import { TextField } from "../gui/base/TextField.js"
 import { lang } from "../misc/LanguageViewModel"
-import { Keys, NewPaidPlans, OUT_OF_OFFICE_SUBJECT_PREFIX } from "../api/common/TutanotaConstants"
+import { Keys, OUT_OF_OFFICE_SUBJECT_PREFIX } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { px } from "../gui/size"
 import { ButtonType } from "../gui/base/Button.js"
@@ -12,7 +12,6 @@ import { getDefaultNotificationLabel } from "../misc/OutOfOfficeNotificationUtil
 import { showPlanUpgradeRequiredDialog } from "../misc/SubscriptionDialogs"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { showUserError } from "../misc/ErrorHandlerImpl"
-import { BusinessFeatureRequiredError } from "../api/main/BusinessFeatureRequiredError"
 import { locator } from "../api/main/MainLocator"
 import { EditOutOfOfficeNotificationDialogModel, RecipientMessageType } from "./EditOutOfOfficeNotificationDialogModel"
 import { HtmlEditor } from "../gui/editor/HtmlEditor"
@@ -21,9 +20,16 @@ import { DatePicker } from "../gui/date/DatePicker"
 import type { lazy } from "@tutao/tutanota-utils"
 import { ofClass } from "@tutao/tutanota-utils"
 import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
+import { UpgradeRequiredError } from "../api/main/UpgradeRequiredError.js"
 
 export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: OutOfOfficeNotification | null) {
-	const dialogModel = new EditOutOfOfficeNotificationDialogModel(outOfOfficeNotification, locator.entityClient, locator.logins.getUserController(), lang)
+	const dialogModel = new EditOutOfOfficeNotificationDialogModel(
+		outOfOfficeNotification,
+		locator.entityClient,
+		locator.logins.getUserController(),
+		lang,
+		locator.serviceExecutor,
+	)
 	const organizationMessageEditor = new HtmlEditor("message_label")
 		.setMinHeight(100)
 		.showBorders()
@@ -38,7 +44,7 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: O
 			.saveOutOfOfficeNotification()
 			.then(() => cancel())
 			.catch(ofClass(UserError, (e) => showUserError(e)))
-			.catch(ofClass(BusinessFeatureRequiredError, (e) => showPlanUpgradeRequiredDialog(NewPaidPlans)))
+			.catch(ofClass(UpgradeRequiredError, (e) => showPlanUpgradeRequiredDialog(e.plans)))
 	}
 
 	function cancel() {

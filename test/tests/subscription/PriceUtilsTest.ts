@@ -35,7 +35,7 @@ o.spec("PriceUtilsTest", function () {
 	o("getSubscriptionPrice Premium discount yearly", async function () {
 		const discountPlanPrices = clone(PLAN_PRICES)
 		discountPlanPrices.Premium.firstYearDiscount = "12"
-		const priceServiceMock = await createUpgradePriceServiceMock(discountPlanPrices)
+		const priceServiceMock = createUpgradePriceServiceMock(discountPlanPrices)
 		const provider = await PriceAndConfigProvider.getInitializedInstance(null, priceServiceMock, null)
 		o(formatPrice(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Premium, UpgradePriceType.PlanReferencePrice), false)).equals("14.40")
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Premium, UpgradePriceType.PlanActualPrice)).equals(0)
@@ -46,7 +46,7 @@ o.spec("PriceUtilsTest", function () {
 	o("getSubscriptionPrice Pro discount yearly", async function () {
 		const discountPlanPrices = clone(PLAN_PRICES)
 		discountPlanPrices.Pro.firstYearDiscount = "84"
-		const priceServiceMock = await createUpgradePriceServiceMock(discountPlanPrices)
+		const priceServiceMock = createUpgradePriceServiceMock(discountPlanPrices)
 		const provider = await PriceAndConfigProvider.getInitializedInstance(null, priceServiceMock, null)
 		o(formatPrice(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Pro, UpgradePriceType.PlanReferencePrice), false)).equals("100.80")
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Pro, UpgradePriceType.PlanActualPrice)).equals(0)
@@ -57,7 +57,7 @@ o.spec("PriceUtilsTest", function () {
 	o("getSubscriptionPrice Premium discount monthly", async function () {
 		const discountPlanPrices = clone(PLAN_PRICES)
 		discountPlanPrices.Premium.firstYearDiscount = "12"
-		const priceServiceMock = await createUpgradePriceServiceMock(discountPlanPrices)
+		const priceServiceMock = createUpgradePriceServiceMock(discountPlanPrices)
 		const provider = await PriceAndConfigProvider.getInitializedInstance(null, priceServiceMock, null)
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Premium, UpgradePriceType.PlanReferencePrice)).equals(1.2)
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Premium, UpgradePriceType.PlanActualPrice)).equals(1.2)
@@ -69,7 +69,7 @@ o.spec("PriceUtilsTest", function () {
 	o("getSubscriptionPrice Revolutionary discount monthly", async function () {
 		const discountPlanPrices = clone(PLAN_PRICES)
 		discountPlanPrices.Premium.firstYearDiscount = "36"
-		const priceServiceMock = await createUpgradePriceServiceMock(discountPlanPrices)
+		const priceServiceMock = createUpgradePriceServiceMock(discountPlanPrices)
 		const provider = await PriceAndConfigProvider.getInitializedInstance(null, priceServiceMock, null)
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Revolutionary, UpgradePriceType.PlanReferencePrice)).equals(3.6)
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Revolutionary, UpgradePriceType.PlanActualPrice)).equals(3.6)
@@ -81,7 +81,7 @@ o.spec("PriceUtilsTest", function () {
 	o("getSubscriptionPrice Revolutionary discount yearly", async function () {
 		const discountPlanPrices = clone(PLAN_PRICES)
 		discountPlanPrices.Revolutionary.firstYearDiscount = "36"
-		const priceServiceMock = await createUpgradePriceServiceMock(discountPlanPrices)
+		const priceServiceMock = createUpgradePriceServiceMock(discountPlanPrices)
 		const provider = await PriceAndConfigProvider.getInitializedInstance(null, priceServiceMock, null)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.PlanReferencePrice)).equals(43.2)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.PlanActualPrice)).equals(0)
@@ -101,34 +101,34 @@ o.spec("PriceUtilsTest", function () {
 
 	o("getPriceInfoMessage - default", async function () {
 		const discountPlanPrices = clone(PLAN_PRICES)
-		const priceServiceMock = await createUpgradePriceServiceMock(discountPlanPrices)
+		const priceServiceMock = createUpgradePriceServiceMock(discountPlanPrices)
 		const provider = await PriceAndConfigProvider.getInitializedInstance(null, priceServiceMock, null)
 		o(provider.getPriceInfoMessage()).equals(null)
 	})
 
 	o("getPriceInfoMessage - bonus months", async function () {
 		const discountPlanPrices = clone(PLAN_PRICES)
-		const priceServiceMock = await createUpgradePriceServiceMock(discountPlanPrices, null, 12)
+		const priceServiceMock = createUpgradePriceServiceMock(discountPlanPrices, null, 12)
 		const provider = await PriceAndConfigProvider.getInitializedInstance(null, priceServiceMock, null)
 		o(provider.getPriceInfoMessage()).equals("chooseYearlyForOffer_msg")
 	})
 
 	o("getPriceInfoMessage - referral code", async function () {
 		const discountPlanPrices = clone(PLAN_PRICES)
-		const priceServiceMock = await createUpgradePriceServiceMock(discountPlanPrices, null, 1)
+		const priceServiceMock = createUpgradePriceServiceMock(discountPlanPrices, null, 1)
 		const provider = await PriceAndConfigProvider.getInitializedInstance(null, priceServiceMock, "abc")
 		o(provider.getPriceInfoMessage()).equals("referralSignup_msg")
 	})
 	o("getPriceInfoMessage - referral code invalid", async function () {
 		const discountPlanPrices = clone(PLAN_PRICES)
-		const priceServiceMock = await createUpgradePriceServiceMock(discountPlanPrices, null, 0)
+		const priceServiceMock = createUpgradePriceServiceMock(discountPlanPrices, null, 0)
 		const provider = await PriceAndConfigProvider.getInitializedInstance(null, priceServiceMock, "abc")
 		o(provider.getPriceInfoMessage()).equals("referralSignupInvalid_msg")
 	})
 
 	o("getPriceInfoMessage - referral code and registration id not allowed", async function () {
 		const discountPlanPrices = clone(PLAN_PRICES)
-		const priceServiceMock = await createUpgradePriceServiceMock(discountPlanPrices, null, 0)
+		const priceServiceMock = createUpgradePriceServiceMock(discountPlanPrices, null, 0)
 		try {
 			await PriceAndConfigProvider.getInitializedInstance("reg-data-id", priceServiceMock, "abc")
 			throw new Error("exception expected")
@@ -156,6 +156,6 @@ o.spec("PaymentInterval", function () {
 })
 
 async function initPriceAndConfigProvider(): Promise<PriceAndConfigProvider> {
-	const serviceExecutor = await createUpgradePriceServiceMock()
+	const serviceExecutor = createUpgradePriceServiceMock()
 	return PriceAndConfigProvider.getInitializedInstance(null, serviceExecutor, null)
 }

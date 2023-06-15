@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { BookingItemFeatureType, FeatureType, GroupType, PlanType } from "../../api/common/TutanotaConstants.js"
+import { BookingItemFeatureType, CustomDomainType, CustomDomainTypeCount, FeatureType, GroupType, PlanType } from "../../api/common/TutanotaConstants.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import type { ValidationResult } from "../SelectMailAddressForm.js"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
@@ -18,7 +18,7 @@ import type { GroupManagementFacade } from "../../api/worker/facades/lazy/GroupM
 import { locator } from "../../api/main/MainLocator.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 import { getAvailableDomains } from "../mailaddress/MailAddressesUtils.js"
-import { toFeatureType } from "../../subscription/SubscriptionUtils.js"
+import { getAvailableMatchingPlans, toFeatureType } from "../../subscription/SubscriptionUtils.js"
 
 assertMainOrNode()
 
@@ -187,12 +187,13 @@ function addTemplateGroup(name: string): Promise<boolean> {
 			.createTemplateGroup(name)
 			.then(() => true)
 			.catch(
-				ofClass(PreconditionFailedError, (e) => {
+				ofClass(PreconditionFailedError, async (e) => {
 					if (
 						e.data === TemplateGroupPreconditionFailedReason.BUSINESS_FEATURE_REQUIRED ||
 						e.data === TemplateGroupPreconditionFailedReason.UNLIMITED_REQUIRED
 					) {
-						showPlanUpgradeRequiredDialog([PlanType.Unlimited])
+						const plans = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => config.templates)
+						showPlanUpgradeRequiredDialog(plans)
 					} else {
 						Dialog.message(() => e.message)
 					}

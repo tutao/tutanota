@@ -24,6 +24,7 @@ import { LoginController } from "../../../api/main/LoginController.js"
 import { CalendarEventModel } from "../../date/eventeditor/CalendarEventModel.js"
 import { DropDownSelector } from "../../../gui/base/DropDownSelector.js"
 import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
+import { getAvailableMatchingPlans } from "../../../subscription/SubscriptionUtils.js"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */
@@ -40,7 +41,7 @@ export type AttendeeListEditorAttrs = {
  */
 export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 	private text: string = ""
-	private orderedBusinessFeature: boolean = false
+	private hasPlanWithInvites: boolean = false
 	private externalPasswordVisibility: Map<string, boolean> = new Map()
 
 	view({ attrs }: Vnode<AttendeeListEditorAttrs>): Children {
@@ -59,10 +60,11 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 				recipients: [],
 				disabled: false,
 				onRecipientAdded: async (address, name, contact) => {
-					if (!(this.orderedBusinessFeature || !model.shouldShowSendInviteNotAvailable())) {
+					if (!(this.hasPlanWithInvites || !model.shouldShowSendInviteNotAvailable())) {
+						const plansWithEventInvites = await model.getPlansWithEventInvites()
 						//entity event updates are too slow to call updateBusinessFeature()
-						this.orderedBusinessFeature = await showPlanUpgradeRequiredDialog(NewPaidPlans)
-						if (!this.orderedBusinessFeature) return
+						this.hasPlanWithInvites = await showPlanUpgradeRequiredDialog(plansWithEventInvites)
+						if (!this.hasPlanWithInvites) return
 					}
 					model.editModels.whoModel.addAttendee(address, contact)
 				},

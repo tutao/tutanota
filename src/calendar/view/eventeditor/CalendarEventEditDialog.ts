@@ -9,7 +9,7 @@
 import { Dialog } from "../../../gui/base/Dialog.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { ButtonType } from "../../../gui/base/Button.js"
-import { Keys, NewPaidPlans } from "../../../api/common/TutanotaConstants.js"
+import { Keys } from "../../../api/common/TutanotaConstants.js"
 import { getStartOfTheWeekOffsetForUser, getTimeFormatForUser } from "../../date/CalendarUtils.js"
 import { client } from "../../../misc/ClientDetector.js"
 import type { DialogHeaderBarAttrs } from "../../../gui/base/DialogHeaderBar.js"
@@ -23,9 +23,9 @@ import { askIfShouldSendCalendarUpdatesToAttendees } from "../CalendarGuiUtils.j
 import { UserError } from "../../../api/main/UserError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
 import { showUserError } from "../../../misc/ErrorHandlerImpl.js"
-import { BusinessFeatureRequiredError } from "../../../api/main/BusinessFeatureRequiredError.js"
 import { CalendarEventIdentity, CalendarEventModel, EventSaveResult, EventType } from "../../date/eventeditor/CalendarEventModel.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
+import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
 
 /**
  * which parts of a calendar event series to apply an edit operation to.
@@ -156,8 +156,8 @@ export async function showNewCalendarEventEditDialog(model: CalendarEventModel):
 			if (e instanceof UserError) {
 				// noinspection ES6MissingAwait
 				showUserError(e)
-			} else if (e instanceof BusinessFeatureRequiredError) {
-				model.canUseInvites = await showPlanUpgradeRequiredDialog(NewPaidPlans)
+			} else if (e instanceof UpgradeRequiredError) {
+				model.canUseInvites = await showPlanUpgradeRequiredDialog(e.plans)
 			} else {
 				throw e
 			}
@@ -205,8 +205,8 @@ export async function showExistingCalendarEventEditDialog(
 			if (e instanceof UserError) {
 				// noinspection ES6MissingAwait
 				showUserError(e)
-			} else if (e instanceof BusinessFeatureRequiredError) {
-				model.canUseInvites = await showPlanUpgradeRequiredDialog(NewPaidPlans)
+			} else if (e instanceof UpgradeRequiredError) {
+				model.canUseInvites = await showPlanUpgradeRequiredDialog(e.plans)
 			} else {
 				throw e
 			}

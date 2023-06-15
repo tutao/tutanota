@@ -14,6 +14,7 @@ import { formatDateTime } from "../../misc/Formatter"
 import { locator } from "../../api/main/MainLocator"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { getAvailableMatchingPlans } from "../../subscription/SubscriptionUtils.js"
 
 export type WhitelabelBrandingDomainSettingsAttrs = {
 	customerInfo: CustomerInfo
@@ -81,7 +82,8 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 			showNotAvailableForFreeDialog([PlanType.Unlimited])
 		} else {
 			if (!isWhitelabelFeatureEnabled) {
-				isWhitelabelFeatureEnabled = await showPlanUpgradeRequiredDialog([PlanType.Unlimited])
+				const plansWithWhitelabel = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => config.whitelabel)
+				isWhitelabelFeatureEnabled = await showPlanUpgradeRequiredDialog(plansWithWhitelabel)
 			}
 			if (isWhitelabelFeatureEnabled) {
 				SetCustomDomainCertificateDialog.show(customerInfo)

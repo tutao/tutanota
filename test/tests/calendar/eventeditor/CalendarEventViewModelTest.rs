@@ -41,7 +41,6 @@ import { SendMailModel } from "../../../src/mail/editor/SendMailModel"
 import type { LoginController } from "../../../src/api/main/LoginController"
 import { EventController } from "../../../src/api/main/EventController"
 import { EntityClient } from "../../../src/api/common/EntityClient"
-import { BusinessFeatureRequiredError } from "../../../src/api/main/BusinessFeatureRequiredError"
 import { MailFacade } from "../../../src/api/worker/facades/lazy/MailFacade.js"
 import { Time } from "../../../src/api/common/utils/Time"
 import {
@@ -61,6 +60,9 @@ import { ContactModel } from "../../../src/contacts/model/ContactModel"
 import { ResolvableRecipientMock } from "../mail/ResolvableRecipientMock.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import { NoZoneDateProvider } from "../../../src/api/common/utils/NoZoneDateProvider.js"
+import { createUpgradePriceServiceMock, PLAN_PRICES } from "../subscription/priceTestUtils.js"
+import { IServiceExecutor } from "../../../src/api/common/ServiceRequest.js"
+import { UpgradeRequiredError } from "../../../src/api/main/UpgradeRequiredError.js"
 
 const now = new Date(2020, 4, 25, 13, 40)
 const zone = getTimeZone()
@@ -222,6 +224,7 @@ o.spec("CalendarEventSaveModel", function () {
 			existingEvent,
 			mail,
 			false,
+			createUpgradePriceServiceMock(clone(PLAN_PRICES)),
 		)
 		viewModel.hasBusinessFeature = true
 		await viewModel.initialized
@@ -1203,7 +1206,7 @@ o.spec("CalendarEventSaveModel", function () {
 			const newGuest = "new-attendee@example.com"
 			viewModel.addGuest(newGuest, null)
 			askInsecurePassword = o.spy(async () => true)
-			const e = await assertThrows(BusinessFeatureRequiredError, () =>
+			const e = await assertThrows(UpgradeRequiredError, () =>
 				viewModel.saveAndSend({
 					askForUpdates,
 					askInsecurePassword,

@@ -14,6 +14,7 @@ import { UserError } from "../../api/main/UserError.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { PriceAndConfigProvider } from "../../subscription/PriceUtils.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
+import { getAvailableMatchingPlans } from "../../subscription/SubscriptionUtils.js"
 
 export enum AddressStatus {
 	Primary,
@@ -150,12 +151,14 @@ export class MailAddressTableModel {
 		this.nameMappings = await this.nameChanger.getSenderNames()
 	}
 
-	private async handleTooManyAliases(): Promise<void> {
+	async handleTooManyAliases(): Promise<void> {
 		// Determine if there is an available plan we can switch to that would let the user add an alias.
 		//
 		// If so, show an upgrade dialog. Otherwise, inform the user that they reached the maximum number of aliases.
-		const priceProvider = await PriceAndConfigProvider.getInitializedInstance(null, this.serviceExecutor, null)
-		const plansWithMoreAliases = priceProvider.getMatchingPlans((prices) => Number(prices.includedAliases) > this.userGroupInfo.mailAddressAliases.length)
+		const plansWithMoreAliases = await getAvailableMatchingPlans(
+			this.serviceExecutor,
+			(config) => Number(config.nbrOfAliases) > this.userGroupInfo.mailAddressAliases.length,
+		)
 		if (plansWithMoreAliases.length > 0) {
 			throw new UpgradeRequiredError("moreAliasesRequired_msg", plansWithMoreAliases)
 		} else {

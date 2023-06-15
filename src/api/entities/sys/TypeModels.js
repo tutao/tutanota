@@ -8175,7 +8175,18 @@ export const typeModels = {
                 "encrypted": false
             }
         },
-        "associations": {},
+        "associations": {
+            "planConfiguration": {
+                "final": false,
+                "name": "planConfiguration",
+                "id": 2125,
+                "since": 88,
+                "type": "AGGREGATION",
+                "cardinality": "One",
+                "refType": "PlanConfiguration",
+                "dependency": null
+            }
+        },
         "app": "sys",
         "version": "88"
     },

@@ -10,6 +10,7 @@ import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 import { AvailablePlanType, Const, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
 import { showSwitchDialog } from "../subscription/SwitchSubscriptionDialog.js"
 import { UserError } from "../api/main/UserError.js"
+import { getAvailableMatchingPlans } from "../subscription/SubscriptionUtils.js"
 
 /**
  * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.
@@ -78,9 +79,11 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 		} else {
 			const user = locator.logins.getUserController().user
 			const usedStorage = Number(await locator.userManagementFacade.readUsedUserStorage(user))
-			const { PriceAndConfigProvider } = await import("../subscription/PriceUtils.js")
-			const priceProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
-			const plansWithMoreStorage = priceProvider.getMatchingPlans((prices) => Number(prices.includedStorage) * Const.MEMORY_GB_FACTOR > usedStorage)
+
+			const plansWithMoreStorage = await getAvailableMatchingPlans(
+				locator.serviceExecutor,
+				(config) => Number(config.storageGb) * Const.MEMORY_GB_FACTOR > usedStorage,
+			)
 			if (plansWithMoreStorage.length > 0) {
 				await showPlanUpgradeRequiredDialog(plansWithMoreStorage)
 			} else {

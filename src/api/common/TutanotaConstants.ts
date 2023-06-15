@@ -146,6 +146,30 @@ export const AccountTypeNames: Record<AccountType, string> = {
 	[AccountType.EXTERNAL]: "External",
 }
 
+export enum CustomDomainType {
+	NONE = "0",
+	ONE = "1",
+	THREE = "2",
+	TEN = "3",
+	UNLIMITED = "4",
+}
+
+export const CustomDomainTypeCount: Record<CustomDomainType, number> = {
+	[CustomDomainType.NONE]: 0,
+	[CustomDomainType.ONE]: 1,
+	[CustomDomainType.THREE]: 3,
+	[CustomDomainType.TEN]: 10,
+	[CustomDomainType.UNLIMITED]: -1,
+}
+
+export const CustomDomainTypeCountName: Record<CustomDomainType, string> = {
+	[CustomDomainType.NONE]: "0",
+	[CustomDomainType.ONE]: "1",
+	[CustomDomainType.THREE]: "3",
+	[CustomDomainType.TEN]: "10",
+	[CustomDomainType.UNLIMITED]: "∞",
+}
+
 export enum PlanType {
 	Premium = "0",
 	Pro = "2",

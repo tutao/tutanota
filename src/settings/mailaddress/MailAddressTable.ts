@@ -188,7 +188,7 @@ async function switchAliasStatus(alias: AddressInfo, attrs: MailAddressTableAttr
 
 	const updateModel = attrs.model.setAliasStatus(alias.address, !deactivateOrDeleteAlias).catch(
 		ofClass(LimitReachedError, () => {
-			showPlanUpgradeRequiredDialog(NewPaidPlans, "moreAliasesRequired_msg")
+			attrs.model.handleTooManyAliases()
 		}),
 	)
 	await showProgressDialog("pleaseWait_msg", updateModel)

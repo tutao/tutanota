@@ -1,19 +1,18 @@
-import type { OutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
-import { createOutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
+import type { OutOfOfficeNotification, OutOfOfficeNotificationMessage } from "../api/entities/tutanota/TypeRefs.js"
+import { createOutOfOfficeNotification, createOutOfOfficeNotificationMessage } from "../api/entities/tutanota/TypeRefs.js"
 import stream from "mithril/stream"
-import { getDayShifted, getStartOfDay, getStartOfNextDay } from "@tutao/tutanota-utils"
+import Stream from "mithril/stream"
+import { getDayShifted, getStartOfDay, getStartOfNextDay, ofClass } from "@tutao/tutanota-utils"
 import { OutOfOfficeNotificationMessageType } from "../api/common/TutanotaConstants"
-import type { OutOfOfficeNotificationMessage } from "../api/entities/tutanota/TypeRefs.js"
-import { createOutOfOfficeNotificationMessage } from "../api/entities/tutanota/TypeRefs.js"
 import { InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError"
-import { BusinessFeatureRequiredError } from "../api/main/BusinessFeatureRequiredError"
 import type { EntityClient } from "../api/common/EntityClient"
 import type { LanguageViewModel } from "../misc/LanguageViewModel"
 import type { UserController } from "../api/main/UserController"
 import { appendEmailSignature } from "../mail/signature/Signature"
 import { UserError } from "../api/main/UserError"
-import { ofClass } from "@tutao/tutanota-utils"
-import Stream from "mithril/stream"
+import { UpgradeRequiredError } from "../api/main/UpgradeRequiredError.js"
+import { getAvailableMatchingPlans } from "../subscription/SubscriptionUtils.js"
+import { IServiceExecutor } from "../api/common/ServiceRequest.js"
 
 export const enum RecipientMessageType {
 	EXTERNAL_TO_EVERYONE = 0,
@@ -44,6 +43,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 		entityClient: EntityClient,
 		userController: UserController,
 		languageViewModel: LanguageViewModel,
+		readonly serviceExecutor: IServiceExecutor,
 	) {
 		this._entityClient = entityClient
 		this._userController = userController
@@ -170,7 +170,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 
 	/**
 	 * @throws UserError
-	 * @throws BusinessFeatureRequiredError
+	 * @throws UpgradeRequiredError
 	 */
 	saveOutOfOfficeNotification(): Promise<any> {
 		return Promise.resolve()
@@ -189,9 +189,12 @@ export class EditOutOfOfficeNotificationDialogModel {
 				}),
 			)
 			.catch(
-				ofClass(PreconditionFailedError, (e) => {
+				ofClass(PreconditionFailedError, async (e) => {
 					if (e.data === FAILURE_BUSINESS_FEATURE_REQUIRED) {
-						throw new BusinessFeatureRequiredError("businessFeatureRequiredGeneral_msg")
+						throw new UpgradeRequiredError(
+							"businessFeatureRequiredGeneral_msg",
+							await getAvailableMatchingPlans(this.serviceExecutor, (config) => config.business),
+						)
 					} else {
 						throw new UserError(() => e.toString())
 					}

@@ -180,6 +180,16 @@
 					"info": "AddValue InvoiceInfo/discountPercentage/2126."
 				}
 			]
+		},
+		{
+			"version": 88,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "PlanPrices",
+					"info": "AddAssociation PlanPrices/planConfiguration/AGGREGATION/2125."
+				}
+			]
 		}
 	]
 }

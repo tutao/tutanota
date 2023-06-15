@@ -18,7 +18,7 @@ import { SegmentControl } from "../gui/base/SegmentControl"
 import { insertInlineImageB64ClickHandler } from "../mail/view/MailViewerUtils"
 import { UserError } from "../api/main/UserError"
 import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../misc/SubscriptionDialogs"
-import { isWhitelabelActive } from "../subscription/SubscriptionUtils"
+import { getAvailableMatchingPlans, isWhitelabelActive } from "../subscription/SubscriptionUtils"
 import type { UserController } from "../api/main/UserController"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils"
 import { locator } from "../api/main/MainLocator"
@@ -67,7 +67,8 @@ export async function showBuyOrSetNotificationEmailDialog(
 		const planConfiguration = await locator.logins.getUserController().getPlanConfig()
 		let whitelabel = isWhitelabelActive(lastBooking, planConfiguration)
 		if (!whitelabel) {
-			whitelabel = await showPlanUpgradeRequiredDialog([PlanType.Unlimited])
+			const plansWithWhitelabel = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => config.whitelabel)
+			whitelabel = await showPlanUpgradeRequiredDialog(plansWithWhitelabel)
 		}
 		if (whitelabel) {
 			show(existingTemplate ?? null, customerProperties)

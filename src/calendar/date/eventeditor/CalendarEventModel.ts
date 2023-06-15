@@ -54,7 +54,7 @@
  *     * etc.
  */
 
-import { AccountType, AlarmInterval, CalendarAttendeeStatus, FeatureType } from "../../../api/common/TutanotaConstants.js"
+import { AccountType, AlarmInterval, AvailablePlanType, CalendarAttendeeStatus, FeatureType } from "../../../api/common/TutanotaConstants.js"
 import {
 	CalendarEvent,
 	CalendarEventAttendee,
@@ -75,7 +75,6 @@ import { CalendarUpdateDistributor } from "../CalendarUpdateDistributor.js"
 import { SendMailModel } from "../../../mail/editor/SendMailModel.js"
 import { UserError } from "../../../api/main/UserError.js"
 import { EntityClient } from "../../../api/common/EntityClient.js"
-import { BusinessFeatureRequiredError } from "../../../api/main/BusinessFeatureRequiredError.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { Require } from "@tutao/tutanota-utils/dist/Utils.js"
 import { RecipientsModel } from "../../../api/main/RecipientsModel.js"
@@ -90,6 +89,9 @@ import { CalendarEventAlarmModel } from "./CalendarEventAlarmModel.js"
 import { SanitizedTextViewModel } from "../../../misc/SanitizedTextViewModel.js"
 import { getStrippedClone, Stripped } from "../../../api/common/utils/EntityUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
+import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
+import { getAvailableMatchingPlans } from "../../../subscription/SubscriptionUtils.js"
+import { IServiceExecutor } from "../../../api/common/ServiceRequest.js"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {
@@ -143,6 +145,7 @@ export async function makeCalendarEventModel(
 	distributor: CalendarUpdateDistributor,
 	entityClient: EntityClient,
 	responseTo: Mail | null,
+	serviceExecutor: IServiceExecutor,
 	zone: string = getTimeZone(),
 	showProgress: ShowProgressCallback = identity,
 	uiUpdateCallback: () => void = m.redraw,
@@ -205,6 +208,7 @@ export async function makeCalendarEventModel(
 		calendars,
 		zone,
 		responseTo,
+		serviceExecutor,
 		showProgress,
 	)
 }
@@ -252,6 +256,7 @@ export class CalendarEventModel {
 		private readonly calendars: ReadonlyMap<Id, CalendarInfo>,
 		private readonly zone: string,
 		private readonly responseTo: Mail | null,
+		private readonly serviceExecutor: IServiceExecutor,
 		private readonly showProgress: ShowProgressCallback = identity,
 	) {
 		this.calendars = calendars
@@ -434,12 +439,16 @@ export class CalendarEventModel {
 			return
 		}
 		if (this.shouldShowSendInviteNotAvailable()) {
-			throw new BusinessFeatureRequiredError("businessFeatureRequiredInvite_msg")
+			throw new UpgradeRequiredError("businessFeatureRequiredInvite_msg", await this.getPlansWithEventInvites())
 		}
 		const invitePromise = models.inviteModel != null ? this.sendInvites(newEvent, models.inviteModel) : Promise.resolve()
 		const cancelPromise = models.cancelModel != null ? this.sendCancellation(newEvent, models.cancelModel) : Promise.resolve()
 		const updatePromise = models.updateModel != null && this.shouldSendUpdates ? this.sendUpdates(newEvent, models.updateModel) : Promise.resolve()
 		return await Promise.all([invitePromise, cancelPromise, updatePromise]).then()
+	}
+
+	async getPlansWithEventInvites(): Promise<AvailablePlanType[]> {
+		return await getAvailableMatchingPlans(this.serviceExecutor, (config) => config.business)
 	}
 
 	/**

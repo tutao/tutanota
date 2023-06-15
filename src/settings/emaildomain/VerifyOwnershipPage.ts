@@ -1,4 +1,4 @@
-import { assertEnumValue, AvailablePlanType, CustomDomainValidationResult, PlanType } from "../../api/common/TutanotaConstants"
+import { assertEnumValue, CustomDomainType, CustomDomainTypeCount, CustomDomainValidationResult } from "../../api/common/TutanotaConstants"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import type { AddDomainData } from "./AddDomainWizard"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
@@ -14,6 +14,7 @@ import { ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/MainLocator"
 import { assertMainOrNode } from "../../api/common/Env"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
+import { getAvailableMatchingPlans } from "../../subscription/SubscriptionUtils.js"
 
 assertMainOrNode()
 
@@ -119,20 +120,19 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 				return true
 			})
 			.catch(
-				ofClass(PreconditionFailedError, (e) => {
+				ofClass(PreconditionFailedError, async (e) => {
 					if (e.data === CustomDomainFailureReasons.LIMIT_REACHED) {
 						const nbrOfCustomDomains = this.data.customerInfo.domainInfos.filter((domainInfo) => domainInfo.whitelabelConfig == null).length
-						const acceptedPlans: AvailablePlanType[] = []
-						if (nbrOfCustomDomains < 3) {
-							acceptedPlans.push(PlanType.Revolutionary, PlanType.Essential)
-						}
-						if (nbrOfCustomDomains < 10) {
-							acceptedPlans.push(PlanType.Legend, PlanType.Advanced)
-						}
-						acceptedPlans.push(PlanType.Unlimited)
+						const plans = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => {
+							if (config.customDomainType in CustomDomainTypeCount) {
+								const planDomains = CustomDomainTypeCount[config.customDomainType as CustomDomainType]
+								return planDomains === -1 || planDomains > nbrOfCustomDomains
+							}
+							return false
+						})
 
 						// ignore promise. always return false to not switch to next page.
-						showPlanUpgradeRequiredDialog(acceptedPlans, "moreCustomDomainsRequired_msg")
+						showPlanUpgradeRequiredDialog(plans, "moreCustomDomainsRequired_msg")
 					} else {
 						Dialog.message(() => e.toString())
 					}
