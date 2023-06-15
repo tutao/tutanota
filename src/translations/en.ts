@@ -1689,6 +1689,7 @@ export default {
 		"filterRead_label": "Read",
 		"filterAllMails_label": "All mails",
 		"filterWithAttachments_label": "With attachments",
-		"searchTemplates_placeholder": "Search templates"
+		"searchTemplates_placeholder": "Search templates",
+		"searchKnowledgebase_placeholder": "Search knowledgebase"
 	}
 }

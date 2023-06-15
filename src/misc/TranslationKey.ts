@@ -1675,3 +1675,4 @@ export type TranslationKeyType =
 	| "filterAllMails_label"
 	| "filterWithAttachments_label"
 	| "searchTemplates_placeholder"
+	| "searchKnowledgebase_placeholder"

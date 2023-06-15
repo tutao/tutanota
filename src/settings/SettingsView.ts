@@ -26,7 +26,7 @@ import { SubscriptionViewer } from "../subscription/SubscriptionViewer"
 import { PaymentViewer } from "../subscription/PaymentViewer"
 import type { EntityUpdateData } from "../api/main/EventController"
 import { isUpdateForTypeRef } from "../api/main/EventController"
-import { showUserImportDialog } from "./UserViewer"
+import { showUserImportDialog, UserViewer } from "./UserViewer"
 import { LazyLoaded, partition, promiseMap } from "@tutao/tutanota-utils"
 import { AppearanceSettingsViewer } from "./AppearanceSettingsViewer"
 import type { NavButtonAttrs } from "../gui/base/NavButton.js"
@@ -38,7 +38,7 @@ import { size } from "../gui/size"
 import { FolderColumnView } from "../gui/FolderColumnView.js"
 import { getEtId, isSameId } from "../api/common/utils/EntityUtils"
 import { TemplateListView } from "./TemplateListView"
-import { KnowledgeBaseListView } from "./KnowledgeBaseListView"
+import { KnowledgeBaseListView, KnowledgeBaseSettingsDetailsViewer } from "./KnowledgeBaseListView"
 import { loadTemplateGroupInstances } from "../templates/model/TemplatePopupModel"
 import type { TemplateGroupInstance } from "../templates/model/TemplateGroupModel"
 import { showGroupSharingDialog } from "../sharing/view/GroupSharingDialog"
@@ -437,11 +437,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		}
 	}
 
-	private replaceDetailsViewer(viewer: UserViewer | GroupDetailsView | TemplateDetailsViewer | null) {
+	private replaceDetailsViewer(viewer: UserViewer | GroupDetailsView | TemplateDetailsViewer | KnowledgeBaseSettingsDetailsViewer | null) {
 		return (this.detailsViewer = viewer)
 	}
 
-	oncreate(vnode: Vnode<SettingsViewAttrs>) {
+	async oncreate(vnode: Vnode<SettingsViewAttrs>) {
 		locator.eventController.addEntityListener(this.entityListener)
 
 		await this.populateAdminFolders()
@@ -803,7 +803,15 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 							folder: "knowledgebase",
 							id: getEtId(groupInstance.group),
 						},
-						() => new KnowledgeBaseListView(this, locator.entityClient, this.logins, groupInstance.groupRoot, groupInstance.group),
+						() =>
+							new KnowledgeBaseListView(
+								(viewer) => this.replaceDetailsViewer(viewer),
+								() => this.focusSettingsDetailsColumn(),
+								locator.entityClient,
+								this.logins,
+								groupInstance.groupRoot,
+								groupInstance.group,
+							),
 						undefined,
 					),
 			)
