@@ -1293,7 +1293,6 @@ styles.registerStyle("main", () => {
 		},
 		// mail folder view column
 		" .folder-column": {
-			"background-color": theme.navigation_bg,
 			height: "100%",
 			"padding-top": "env(safe-area-inset-top)",
 		},

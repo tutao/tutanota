@@ -19,7 +19,7 @@ export type Attrs = {
 
 export class FolderColumnView implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
-		return m(".flex.height-100p", [
+		return m(".flex.height-100p.nav-bg", [
 			m(DrawerMenu, attrs.drawer),
 			m(".folder-column.flex-grow.overflow-x-hidden.flex.col", landmarkAttrs(AriaLandmarks.Navigation, lang.getMaybeLazy(attrs.ariaLabel)), [
 				this.renderMainButton(attrs),
