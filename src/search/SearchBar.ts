@@ -44,7 +44,7 @@ export type SearchBarAttrs = {
 }
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
-export type Entry = Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction
+export type Entry = Mail | Contact | WhitelabelChild | ShowMoreAction
 type Entries = Array<Entry>
 export type SearchBarState = {
 	query: string
@@ -63,7 +63,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	focused: boolean = false
 	private state: Stream<SearchBarState>
 	busy: boolean = false
-	private lastSelectedGroupInfoResult: Stream<GroupInfo> = stream()
 	private lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild> = stream()
 	private closeOverlayFunction: (() => Promise<void>) | null = null
 	private overlayContentComponent: Component
@@ -338,7 +337,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			.then(flat)
 	}
 
-	private selectResult(result: (Mail | null) | Contact | GroupInfo | WhitelabelChild | ShowMoreAction) {
+	private selectResult(result: (Mail | null) | Contact | WhitelabelChild | ShowMoreAction) {
 		const { query } = this.state()
 
 		if (result != null) {
@@ -353,8 +352,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				this.updateSearchUrl(query, downcast(result))
 			} else if (isSameTypeRef(ContactTypeRef, type)) {
 				this.updateSearchUrl(query, downcast(result))
-			} else if (isSameTypeRef(GroupInfoTypeRef, type)) {
-				this.lastSelectedGroupInfoResult(downcast(result))
 			} else if (isSameTypeRef(WhitelabelChildTypeRef, type)) {
 				this.lastSelectedWhitelabelChildrenInfoResult(downcast(result))
 			}
@@ -539,14 +536,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	private filterResults(instances: ReadonlyArray<Entry>, restriction: SearchRestriction): Entries {
 		let filteredInstances = instances.slice()
 
-		// filter group infos for local admins
-		if (isSameTypeRef(restriction.type, GroupInfoTypeRef) && !locator.logins.getUserController().isGlobalAdmin()) {
-			const localAdminGroupIds = locator.logins
-				.getUserController()
-				.getLocalAdminGroupMemberships()
-				.map((gm) => gm.group)
-			filteredInstances = filteredInstances.filter((gi) => isAdministratedGroup(localAdminGroupIds, downcast(gi)))
-		} else if (isSameTypeRef(restriction.type, ContactTypeRef)) {
+		if (isSameTypeRef(restriction.type, ContactTypeRef)) {
 			// Sort contacts by name
 			filteredInstances.sort((o1, o2) => compareContacts(o1 as any, o2 as any))
 		}

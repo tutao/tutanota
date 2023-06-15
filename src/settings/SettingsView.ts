@@ -26,7 +26,7 @@ import { SubscriptionViewer } from "../subscription/SubscriptionViewer"
 import { PaymentViewer } from "../subscription/PaymentViewer"
 import type { EntityUpdateData } from "../api/main/EventController"
 import { isUpdateForTypeRef } from "../api/main/EventController"
-import { showUserImportDialog } from "./UserViewer"
+import { showUserImportDialog, UserViewer } from "./UserViewer"
 import { LazyLoaded, partition, promiseMap } from "@tutao/tutanota-utils"
 import { AppearanceSettingsViewer } from "./AppearanceSettingsViewer"
 import type { NavButtonAttrs } from "../gui/base/NavButton.js"
@@ -335,7 +335,14 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					"adminUserList_action",
 					() => BootIcons.Contacts,
 					"users",
-					() => new UserListView(this),
+					() =>
+						new UserListView(
+							(viewer) => this.replaceDetailsViewer(viewer),
+							() => this.focusSettingsDetailsColumn(),
+							() => !isApp() && this._customDomains.isLoaded() && this._customDomains.getLoaded().length > 0,
+							() => showUserImportDialog(this._customDomains.getLoaded()),
+							() => exportUserCsv(locator.entityClient, this.logins, locator.fileController, locator.counterFacade),
+						),
 					undefined,
 				),
 			)
@@ -435,10 +442,14 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		}
 	}
 
-	async oncreate(vnode: Vnode<SettingsViewAttrs>) {
+	private replaceDetailsViewer(viewer: UserViewer | null) {
+		return (this.detailsViewer = viewer)
+	}
+
+	oncreate(vnode: Vnode<SettingsViewAttrs>) {
 		locator.eventController.addEntityListener(this.entityListener)
 
-		await this.populateAdminFolders()
+		this.populateAdminFolders()
 	}
 
 	onremove(vnode: VnodeDOM<SettingsViewAttrs>) {
@@ -464,11 +475,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 	private renderSearchBar(): Children {
 		const route = m.route.get()
-		return route.startsWith("/settings/users")
-			? m(LazySearchBar, {
-					placeholder: lang.get("searchUsers_placeholder"),
-			  })
-			: route.startsWith("/settings/groups")
+		return route.startsWith("/settings/groups")
 			? m(LazySearchBar, {
 					placeholder: lang.get("searchGroups_placeholder"),
 			  })
@@ -557,35 +564,10 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			folders
 				.filter((folder) => folder.isVisible())
 				.map((folder) => {
-					const canImportUsers = !isApp() && this._customDomains.isLoaded() && this._customDomains.getLoaded().length > 0
-
 					const buttonAttrs = this._createSettingsFolderNavButton(folder)
 
 					return m(SettingsFolderRow, {
 						mainButtonAttrs: buttonAttrs,
-						extraButton:
-							canImportUsers && folder.path === "users"
-								? m(
-										IconButton,
-										attachDropdown({
-											mainButtonAttrs: {
-												title: "more_label",
-												icon: Icons.More,
-											},
-											childAttrs: () => [
-												{
-													label: "importUsers_action",
-													click: () => showUserImportDialog(this._customDomains.getLoaded()),
-												},
-												{
-													label: "exportUsers_action",
-													click: () =>
-														exportUserCsv(locator.entityClient, this.logins, locator.fileController, locator.counterFacade),
-												},
-											],
-										}),
-								  )
-								: null,
 					})
 				}),
 		)
