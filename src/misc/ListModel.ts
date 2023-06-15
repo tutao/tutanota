@@ -144,6 +144,10 @@ export class ListModel<ElementType extends ListElement> {
 
 	setFilter(filter: ListFilter<ElementType> | null) {
 		this.filter = filter
+		this.reapplyFilter()
+	}
+
+	reapplyFilter() {
 		const newFilteredItems = this.applyFilter(this.rawState.unfilteredItems)
 
 		const newSelectedItems = new Set(this.applyFilter([...this.state.selectedItems]))

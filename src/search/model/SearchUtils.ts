@@ -24,10 +24,6 @@ export const SEARCH_CATEGORIES = [
 		typeRef: ContactTypeRef,
 	},
 	{
-		name: "groupinfo",
-		typeRef: GroupInfoTypeRef,
-	},
-	{
 		name: "whitelabelchild",
 		typeRef: WhitelabelChildTypeRef,
 	},
@@ -213,8 +209,6 @@ export function getRestriction(route: string): SearchRestriction {
 		}
 	} else if (route.startsWith("/contact") || route.startsWith("/search/contact")) {
 		category = "contact"
-	} else if (route.startsWith("/settings/users") || route.startsWith("/settings/groups")) {
-		category = "groupinfo"
 	} else if (route.startsWith("/settings/whitelabelaccounts")) {
 		category = "whitelabelchild"
 	} else {
