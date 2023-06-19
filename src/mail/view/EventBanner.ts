@@ -10,6 +10,7 @@ import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUt
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../gui/base/InfoBanner.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { LazyLoaded } from "@tutao/tutanota-utils"
+import { ReplyResult } from "../../calendar/date/CalendarInvites.js"
 
 export type EventBannerAttrs = {
 	event: CalendarEvent
@@ -63,7 +64,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				return null
 			}
 		} else if (method === CalendarMethod.REPLY) {
-			m(".pt.align-self-start.start.small", lang.get("eventNotificationUpdated_msg"))
+			return m(".pt.align-self-start.start.small", lang.get("eventNotificationUpdated_msg"))
 		} else {
 			return null
 		}
@@ -74,19 +75,20 @@ export class EventBanner implements Component<EventBannerAttrs> {
 export function sendResponse(event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) {
 	showProgressDialog(
 		"pleaseWait_msg",
-		import("../../calendar/date/CalendarInvites").then(({ getLatestEvent, replyToEventInvitation }) => {
-			return getLatestEvent(event).then((latestEvent) => {
-				const ownAttendee = findAttendeeInAddresses(latestEvent.attendees, [recipient])
+		import("../../calendar/date/CalendarInvites").then(async ({ getLatestEvent, replyToEventInvitation }) => {
+			const latestEvent = await getLatestEvent(event)
+			const ownAttendee = findAttendeeInAddresses(latestEvent.attendees, [recipient])
 
-				if (ownAttendee == null) {
-					Dialog.message("attendeeNotFound_msg")
-					return
-				}
+			if (ownAttendee == null) {
+				Dialog.message("attendeeNotFound_msg")
+				return
+			}
 
-				replyToEventInvitation(latestEvent, ownAttendee, status, previousMail)
-					.then(() => (ownAttendee.status = status))
-					.then(m.redraw)
-			})
+			const replyResult = await replyToEventInvitation(latestEvent, ownAttendee, status, previousMail)
+			if (replyResult === ReplyResult.ReplySent) {
+				ownAttendee.status = status
+			}
+			m.redraw()
 		}),
 	)
 }

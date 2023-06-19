@@ -10,6 +10,7 @@ export type CalendarEventBubbleAttrs = {
 	secondLineText?: string | null
 	color: string
 	hasAlarm: boolean
+	isAltered: boolean
 	click: clickHandler
 	height?: number
 	noBorderRight?: boolean
@@ -58,6 +59,17 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 				attrs.hasAlarm
 					? m(Icon, {
 							icon: Icons.Notifications,
+							style: {
+								fill: colorForBg("#" + attrs.color),
+								"padding-top": "2px",
+								"padding-right": "2px",
+							},
+							class: "icon-small",
+					  })
+					: null,
+				attrs.isAltered
+					? m(Icon, {
+							icon: Icons.Edit,
 							style: {
 								fill: colorForBg("#" + attrs.color),
 								"padding-top": "2px",

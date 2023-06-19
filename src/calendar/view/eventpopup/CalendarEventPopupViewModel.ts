@@ -3,7 +3,7 @@ import { calendarEventHasMoreThanOneOccurrencesLeft } from "../../date/CalendarU
 import { CalendarEventModel, EventSaveResult, EventType, getNonOrganizerAttendees } from "../../date/eventeditor/CalendarEventModel.js"
 import { NotFoundError } from "../../../api/common/error/RestError.js"
 import { CalendarModel } from "../../model/CalendarModel.js"
-import { CalendarEventEditMode, showExistingCalendarEventEditDialog } from "../eventeditor/CalendarEventEditDialog.js"
+import { CalendarOperation, showExistingCalendarEventEditDialog } from "../eventeditor/CalendarEventEditDialog.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { CalendarAttendeeStatus } from "../../../api/common/TutanotaConstants.js"
 import m from "mithril"
@@ -18,6 +18,13 @@ export class CalendarEventPopupViewModel {
 	readonly canSendUpdates: boolean
 	/** for editing, an event that has only one non-deleted instance is still considered repeating
 	 * because we might reschedule that instance and then unexclude some deleted instances.
+	 *
+	 * the ability to edit a single instance also depends on the event type:
+	 *    * OWN -> I can do what I want
+	 *    * SHARED_RW -> can edit single instance as if it was my own (since single instance editing locks attendees anyway)
+	 *    * SHARED_RO, LOCKED, EXTERNAL -> cannot edit at all
+	 *    * INVITE -> we're not the organizer, we can only set our own attendance globally and send it back to the organizer.
+	 *          probably the best reason to make single-instance attendee editing possible asap.
 	 */
 	readonly isRepeatingForEditing: boolean
 
@@ -31,6 +38,7 @@ export class CalendarEventPopupViewModel {
 	 * @param eventType
 	 * @param hasBusinessFeature if the current user is allowed to do certain operations.
 	 * @param ownAttendee will be cloned to have a copy that's not influencing the actual event but can be changed to quickly update the UI
+	 * @param lazyProgenitor async function to resolve the progenitor of the shown event
 	 * @param eventModelFactory
 	 * @param uiUpdateCallback
 	 */
@@ -41,7 +49,7 @@ export class CalendarEventPopupViewModel {
 		private readonly hasBusinessFeature: boolean,
 		ownAttendee: CalendarEventAttendee | null,
 		private readonly lazyProgenitor: () => Promise<CalendarEvent>,
-		private readonly eventModelFactory: (mode: CalendarEventEditMode) => Promise<CalendarEventModel>,
+		private readonly eventModelFactory: (mode: CalendarOperation) => Promise<CalendarEventModel | null>,
 		private readonly uiUpdateCallback: () => void = m.redraw,
 	) {
 		this._ownAttendee = clone(ownAttendee)
@@ -61,7 +69,7 @@ export class CalendarEventPopupViewModel {
 		}
 
 		// we do not edit single instances yet
-		this.isRepeatingForEditing = false // calendarEvent.repeatRule != null
+		this.isRepeatingForEditing = (calendarEvent.repeatRule != null || calendarEvent.recurrenceId != null) && (eventType === EventType.OWN || eventType === EventType.SHARED_RW)
 	}
 
 	/** for deleting, an event that has only one non-deleted instance behaves as if it wasn't repeating
@@ -83,9 +91,14 @@ export class CalendarEventPopupViewModel {
 		try {
 			this.ownAttendee.status = status
 			this.uiUpdateCallback()
-			const model = await this.eventModelFactory(CalendarEventEditMode.All)
-			model.editModels.whoModel.setOwnAttendance(status)
-			await model.updateExistingEvent()
+			// no per-instance attendees yet.
+			const model = await this.eventModelFactory(CalendarOperation.EditAll)
+			if (model) {
+				model.editModels.whoModel.setOwnAttendance(status)
+				await model.apply()
+			} else {
+				this.ownAttendee.status = oldStatus
+			}
 		} catch (e) {
 			this.ownAttendee.status = oldStatus
 			throw e
@@ -100,10 +113,8 @@ export class CalendarEventPopupViewModel {
 	 * */
 	async deleteSingle() {
 		try {
-			// passing "all" because this is actually an update to the progenitor
-			const model = await this.eventModelFactory(CalendarEventEditMode.All)
-			await model.editModels.whenModel.excludeDate(this.calendarEvent.startTime)
-			await model.updateExistingEvent()
+			const model = await this.eventModelFactory(CalendarOperation.DeleteThis)
+			await model?.apply()
 		} catch (e) {
 			if (!(e instanceof NotFoundError)) {
 				throw e
@@ -113,8 +124,8 @@ export class CalendarEventPopupViewModel {
 
 	async deleteAll(): Promise<void> {
 		try {
-			const model = await this.eventModelFactory(CalendarEventEditMode.All)
-			await model.deleteEvent()
+			const model = await this.eventModelFactory(CalendarOperation.DeleteAll)
+			await model?.apply()
 		} catch (e) {
 			if (!(e instanceof NotFoundError)) {
 				throw e
@@ -123,16 +134,37 @@ export class CalendarEventPopupViewModel {
 	}
 
 	async editSingle() {
-		throw new ProgrammingError("not implemented")
-	}
-
-	async editAll() {
-		const model = await this.eventModelFactory(CalendarEventEditMode.All)
-
+		const model = await this.eventModelFactory(CalendarOperation.EditThis)
+		if (model == null) {
+			return
+		}
 		try {
 			return await showExistingCalendarEventEditDialog(model, {
 				uid: this.calendarEvent.uid,
 				sequence: this.calendarEvent.sequence,
+				recurrenceId: this.calendarEvent.startTime,
+			})
+		} catch (err) {
+			if (err instanceof NotFoundError) {
+				console.log("occurrence not found when clicking on the event")
+			} else {
+				throw err
+			}
+		}
+
+		throw new ProgrammingError("not implemented")
+	}
+
+	async editAll() {
+		const model = await this.eventModelFactory(CalendarOperation.EditAll)
+		if (model == null) {
+			return
+		}
+		try {
+			return await showExistingCalendarEventEditDialog(model, {
+				uid: this.calendarEvent.uid,
+				sequence: this.calendarEvent.sequence,
+				recurrenceId: null,
 			})
 		} catch (err) {
 			if (err instanceof NotFoundError) {
@@ -144,13 +176,16 @@ export class CalendarEventPopupViewModel {
 	}
 
 	async sendUpdates(): Promise<EventSaveResult> {
-		const model = await this.eventModelFactory(CalendarEventEditMode.All)
+		const model = await this.eventModelFactory(CalendarOperation.EditAll)
+		if (model == null) {
+			return EventSaveResult.Failed
+		}
 		try {
-			model.shouldSendUpdates = true
-			await model.updateExistingEvent()
+			model.editModels.whoModel.shouldSendUpdates = true
+			await model.apply()
 			return EventSaveResult.Saved
 		} finally {
-			model.shouldSendUpdates = false
+			model.editModels.whoModel.shouldSendUpdates = false
 		}
 	}
 }

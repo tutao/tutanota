@@ -54,28 +54,27 @@
  *     * etc.
  */
 
-import { AccountType, AlarmInterval, CalendarAttendeeStatus, FeatureType } from "../../../api/common/TutanotaConstants.js"
+import { AccountType, AlarmInterval } from "../../../api/common/TutanotaConstants.js"
 import {
 	CalendarEvent,
 	CalendarEventAttendee,
+	CalendarRepeatRule,
 	createCalendarEvent,
 	createEncryptedMailAddress,
 	Mail,
 	MailboxProperties,
 } from "../../../api/entities/tutanota/TypeRefs.js"
-import { AlarmInfo, User } from "../../../api/entities/sys/TypeRefs.js"
+import { AlarmInfo, DateWrapper, User } from "../../../api/entities/sys/TypeRefs.js"
 import { MailboxDetail } from "../../../mail/model/MailModel.js"
-import { CalendarEventValidity, checkEventValidity, DefaultDateProvider, generateUid, getEventType, getTimeZone, incrementSequence } from "../CalendarUtils.js"
-import { isCustomizationEnabledForCustomer } from "../../../api/common/utils/Utils.js"
-import { arrayEqualsWithPredicate, assertNotNull, clone, getFirstOrThrow, identity, lazy } from "@tutao/tutanota-utils"
-import { cleanMailAddress, findAttendeeInAddresses } from "../../../api/common/utils/CommonCalendarUtils.js"
+import { CalendarEventValidity, checkEventValidity, DefaultDateProvider, getEventType, getTimeZone, incrementSequence } from "../CalendarUtils.js"
+import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, getFirstOrThrow, identity, lazy } from "@tutao/tutanota-utils"
+import { cleanMailAddress } from "../../../api/common/utils/CommonCalendarUtils.js"
 import { CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
-import { PayloadTooLargeError, TooManyRequestsError } from "../../../api/common/error/RestError.js"
-import { CalendarUpdateDistributor } from "../CalendarUpdateDistributor.js"
+import { PayloadTooLargeError } from "../../../api/common/error/RestError.js"
+import { CalendarNotificationSender } from "../CalendarNotificationSender.js"
 import { SendMailModel } from "../../../mail/editor/SendMailModel.js"
 import { UserError } from "../../../api/main/UserError.js"
 import { EntityClient } from "../../../api/common/EntityClient.js"
-import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { Require } from "@tutao/tutanota-utils/dist/Utils.js"
 import { RecipientsModel } from "../../../api/main/RecipientsModel.js"
 import { LoginController } from "../../../api/main/LoginController.js"
@@ -83,13 +82,16 @@ import m from "mithril"
 import { NoopProgressMonitor } from "../../../api/common/utils/ProgressMonitor.js"
 import { PartialRecipient } from "../../../api/common/recipients/Recipient.js"
 import { getPasswordStrengthForUser } from "../../../misc/passwords/PasswordUtils.js"
-import { areRepeatRulesEqual, CalendarEventWhenModel } from "./CalendarEventWhenModel.js"
+import { CalendarEventWhenModel } from "./CalendarEventWhenModel.js"
 import { CalendarEventWhoModel } from "./CalendarEventWhoModel.js"
 import { CalendarEventAlarmModel } from "./CalendarEventAlarmModel.js"
 import { SanitizedTextViewModel } from "../../../misc/SanitizedTextViewModel.js"
 import { getStrippedClone, Stripped } from "../../../api/common/utils/EntityUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
-import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
+import { CalendarNotificationModel, CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
+import { CalendarEventApplyStrategies, CalendarEventModelStrategy } from "./CalendarEventModelStrategy.js"
+import { CalendarOperation } from "../../view/eventeditor/CalendarEventEditDialog.js"
+import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {
@@ -119,20 +121,11 @@ export type CalendarEventValues = Omit<Stripped<CalendarEvent>, EventIdentityFie
  */
 export type CalendarEventIdentity = Pick<Stripped<CalendarEvent>, EventIdentityFieldNames>
 
-/** all the people that may be interested in changes to an event get stored in these models.
- * if one of them is null, it's because there is no one that needs that kind of update.
- * */
-export type CalendarEventUpdateNotificationModels = {
-	inviteModel: SendMailModel | null
-	updateModel: SendMailModel | null
-	cancelModel: SendMailModel | null
-	responseModel: SendMailModel | null
-}
-
 /**
  * get the models enabling consistent calendar event updates.
  */
 export async function makeCalendarEventModel(
+	operation: CalendarOperation,
 	initialValues: Partial<CalendarEvent>,
 	recipientsModel: RecipientsModel,
 	calendarModel: CalendarModel,
@@ -140,13 +133,13 @@ export async function makeCalendarEventModel(
 	mailboxDetail: MailboxDetail,
 	mailboxProperties: MailboxProperties,
 	sendMailModelFactory: lazy<SendMailModel>,
-	distributor: CalendarUpdateDistributor,
+	notificationSender: CalendarNotificationSender,
 	entityClient: EntityClient,
 	responseTo: Mail | null,
 	zone: string = getTimeZone(),
 	showProgress: ShowProgressCallback = identity,
 	uiUpdateCallback: () => void = m.redraw,
-): Promise<CalendarEventModel> {
+): Promise<CalendarEventModel | null> {
 	const { htmlSanitizer } = await import("../../../misc/HtmlSanitizer.js")
 	const ownMailAddresses = mailboxProperties.mailAddressProperties.map(({ mailAddress, senderName }) =>
 		createEncryptedMailAddress({
@@ -154,8 +147,14 @@ export async function makeCalendarEventModel(
 			name: senderName,
 		}),
 	)
-	const isNew = initialValues._ownerGroup == null
+	if (operation === CalendarOperation.DeleteAll || operation === CalendarOperation.EditAll) {
+		assertNonNull(initialValues.uid, "tried to edit/delete all with nonexistent uid")
+		const progenitor = await calendarModel.resolveCalendarEventProgenitor({ uid: initialValues.uid ?? null })
+		if (progenitor == null) return null
+		initialValues = progenitor
+	}
 	const cleanInitialValues = cleanupInitialValuesForEditing(initialValues)
+
 	const user = logins.getUserController().user
 	const [alarms, calendars] = await Promise.all([
 		resolveAlarmsForEvent(initialValues.alarmInfos ?? [], calendarModel, user),
@@ -172,41 +171,111 @@ export async function makeCalendarEventModel(
 		user,
 	)
 
-	const editModels = {
-		whenModel: new CalendarEventWhenModel(cleanInitialValues, zone, uiUpdateCallback),
+	const makeEditModels = (initializationEvent: CalendarEvent) => ({
+		whenModel: new CalendarEventWhenModel(initializationEvent, zone, uiUpdateCallback),
 		whoModel: new CalendarEventWhoModel(
-			cleanInitialValues,
+			initializationEvent,
 			eventType,
+			operation,
 			calendars,
 			selectedCalendar,
 			logins.getUserController(),
-			isNew,
+			operation === CalendarOperation.Create,
 			ownMailAddresses,
 			recipientsModel,
+			responseTo,
 			getPasswordStrength,
 			sendMailModelFactory,
 			uiUpdateCallback,
 		),
 		alarmModel: new CalendarEventAlarmModel(eventType, alarms, new DefaultDateProvider(), uiUpdateCallback),
-		location: new SanitizedTextViewModel(cleanInitialValues.location, htmlSanitizer, uiUpdateCallback),
-		summary: new SanitizedTextViewModel(cleanInitialValues.summary, htmlSanitizer, uiUpdateCallback),
-		description: new SanitizedTextViewModel(cleanInitialValues.description, htmlSanitizer, uiUpdateCallback),
+		location: new SanitizedTextViewModel(initializationEvent.location, htmlSanitizer, uiUpdateCallback),
+		summary: new SanitizedTextViewModel(initializationEvent.summary, htmlSanitizer, uiUpdateCallback),
+		description: new SanitizedTextViewModel(initializationEvent.description, htmlSanitizer, uiUpdateCallback),
+	})
+
+	const notificationModel = new CalendarNotificationModel(notificationSender, logins)
+	const applyStrategies = new CalendarEventApplyStrategies(calendarModel, logins, notificationModel, showProgress, zone)
+	const progenitor = () => calendarModel.resolveCalendarEventProgenitor(cleanInitialValues)
+	const strategy = await selectStrategy(makeEditModels, applyStrategies, operation, progenitor, createCalendarEvent(initialValues), cleanInitialValues)
+	return strategy && new CalendarEventModel(strategy, eventType, operation, logins.getUserController(), notificationSender, entityClient, calendars)
+}
+
+async function selectStrategy(
+	makeEditModels: (i: CalendarEvent) => CalendarEventEditModels,
+	applyStrategies: CalendarEventApplyStrategies,
+	operation: CalendarOperation,
+	resolveProgenitor: () => Promise<CalendarEvent | null>,
+	existingInstanceIdentity: CalendarEvent,
+	cleanInitialValues: CalendarEvent,
+): Promise<CalendarEventModelStrategy | null> {
+	let editModels: CalendarEventEditModels
+	let apply: () => Promise<void>
+	let mayRequireSendingUpdates: () => Promise<boolean>
+	if (operation === CalendarOperation.Create) {
+		editModels = makeEditModels(cleanInitialValues)
+		apply = () => applyStrategies.saveNewEvent(editModels)
+		mayRequireSendingUpdates = async () => true
+	} else if (operation === CalendarOperation.EditThis) {
+		cleanInitialValues.repeatRule = null
+		if (cleanInitialValues.recurrenceId == null) {
+			const progenitor = await resolveProgenitor()
+			if (progenitor == null || progenitor.repeatRule == null) {
+				console.warn("no repeating progenitor during EditThis operation?")
+				return null
+			}
+			apply = () =>
+				applyStrategies.saveNewAlteredInstance({
+					editModels: editModels,
+					editModelsForProgenitor: makeEditModels(progenitor),
+					existingInstance: existingInstanceIdentity,
+					progenitor: progenitor,
+				})
+			mayRequireSendingUpdates = async () => true
+			editModels = makeEditModels(cleanInitialValues)
+		} else {
+			editModels = makeEditModels(cleanInitialValues)
+			apply = () => applyStrategies.saveExistingAlteredInstance(editModels, existingInstanceIdentity)
+			mayRequireSendingUpdates = async () =>
+				(await assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation)).hasUpdateWorthyChanges
+		}
+	} else if (operation === CalendarOperation.DeleteThis) {
+		if (cleanInitialValues.recurrenceId == null) {
+			const progenitor = await resolveProgenitor()
+			if (progenitor == null) {
+				return null
+			}
+			editModels = makeEditModels(progenitor)
+			apply = () => applyStrategies.excludeSingleInstance(editModels, existingInstanceIdentity, progenitor)
+			mayRequireSendingUpdates = async () => true
+		} else {
+			editModels = makeEditModels(cleanInitialValues)
+			apply = () => applyStrategies.deleteAlteredInstance(editModels, existingInstanceIdentity)
+			mayRequireSendingUpdates = async () => true
+		}
+	} else if (operation === CalendarOperation.EditAll) {
+		const progenitor = await resolveProgenitor()
+		if (progenitor == null) {
+			return null
+		}
+		editModels = makeEditModels(cleanInitialValues)
+		apply = () => applyStrategies.saveEntireExistingEvent(editModels, progenitor)
+		mayRequireSendingUpdates = async () =>
+			(await assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation)).hasUpdateWorthyChanges
+	} else if (operation === CalendarOperation.DeleteAll) {
+		const progenitor = await resolveProgenitor()
+		if (progenitor == null) {
+			return null
+		}
+		editModels = makeEditModels(cleanInitialValues)
+		apply = () => applyStrategies.deleteEntireExistingEvent(editModels, progenitor)
+		mayRequireSendingUpdates = async () =>
+			(await assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation)).hasUpdateWorthyChanges
+	} else {
+		throw new ProgrammingError(`unknown calendar operation: ${operation}`)
 	}
 
-	return new CalendarEventModel(
-		/** in this case, we only want to give the existing event if it actually exists on the server. */
-		initialValues._ownerGroup != null ? createCalendarEvent(initialValues) : null,
-		eventType,
-		editModels,
-		logins.getUserController(),
-		distributor,
-		calendarModel,
-		entityClient,
-		calendars,
-		zone,
-		responseTo,
-		showProgress,
-	)
+	return { apply, mayRequireSendingUpdates, editModels }
 }
 
 /** return all the attendees in the list of attendees that are not the given organizer. */
@@ -226,317 +295,51 @@ export function getNonOrganizerAttendees({
 export class CalendarEventModel {
 	processing: boolean = false
 
-	/**
-	 * whether this user will send updates for this event.
-	 * * this needs to be our event.
-	 * * we need a paid account
-	 * * there need to be changes that require updating the attendees (eg alarms do not)
-	 * * there also need to be attendees that require updates/invites/cancellations/response
-	 */
-	shouldSendUpdates: boolean = false
-	canUseInvites: boolean = false
-	hasPremiumLegacy: boolean = false
-	readonly initialized: Promise<CalendarEventModel>
-	private readonly sequence: string
+	get editModels(): CalendarEventEditModels {
+		return this.strategy.editModels
+	}
 
 	constructor(
-		private readonly existingEvent: Readonly<CalendarEvent> | null,
+		private readonly strategy: CalendarEventModelStrategy,
 		public readonly eventType: EventType,
-		public readonly editModels: CalendarEventEditModels,
+		public readonly operation: CalendarOperation,
 		// UserController already keeps track of user updates, it is better to not have our own reference to the user, we might miss
 		// important updates like premium upgrade
 		readonly userController: UserController,
-		private readonly distributor: CalendarUpdateDistributor,
-		private readonly calendarModel: CalendarModel,
+		private readonly distributor: CalendarNotificationSender,
 		private readonly entityClient: EntityClient,
 		private readonly calendars: ReadonlyMap<Id, CalendarInfo>,
-		private readonly zone: string,
-		private readonly responseTo: Mail | null,
-		private readonly showProgress: ShowProgressCallback = identity,
 	) {
 		this.calendars = calendars
-		this.sequence = existingEvent?.sequence ?? "0"
-		this.initialized = this.updateCustomerFeatures()
 	}
 
-	private async updateCustomerFeatures(): Promise<CalendarEventModel> {
-		if (this.userController.isInternalUser()) {
-			const customer = await this.userController.loadCustomer()
-			this.canUseInvites = await this.canSendInvites()
-			this.hasPremiumLegacy = isCustomizationEnabledForCustomer(customer, FeatureType.PremiumLegacy)
-		} else {
-			this.canUseInvites = false
-			this.hasPremiumLegacy = false
-		}
-
-		return this
-	}
-
-	private async canSendInvites(): Promise<boolean> {
-		const planConfig = await this.userController.getPlanConfig()
-		return planConfig.eventInvites
-	}
-
-	shouldShowSendInviteNotAvailable(): boolean {
-		if (this.userController.user.accountType === AccountType.FREE) {
-			return true
-		}
-
+	async apply(): Promise<EventSaveResult> {
 		if (this.userController.user.accountType === AccountType.EXTERNAL) {
-			return false
+			console.log("did not apply event changes, we're an external user.")
+			return EventSaveResult.Failed
 		}
-
-		return !this.canUseInvites && !this.hasPremiumLegacy
-	}
-
-	/**
-	 * save a new event to the selected calendar, invite all attendees except for the organizer and set up alarms.
-	 */
-	async saveNewEvent(): Promise<EventSaveResult> {
-		let result = EventSaveResult.Failed
-		await this.initialized
-
-		const { eventValues, newAlarms, sendModels, calendar } = assembleCalendarEventEditResult(this.editModels)
-		const { inviteModel } = sendModels
-		const uid = generateUid(calendar.group._id, Date.now())
-		const newEvent = assignEventIdentity(eventValues, { uid })
-
-		assertEventValidity(newEvent)
-		if (this.processing) {
-			return result
-		}
-		this.processing = true
-		try {
-			result = await this.showProgress(
-				(async () => {
-					if (inviteModel != null) await this.sendInvites(newEvent, inviteModel)
-					return await this.saveEvent(newEvent, calendar, newAlarms)
-				})(),
-			)
-		} catch (e) {
-			if (e instanceof PayloadTooLargeError) {
-				throw new UserError("requestTooLarge_msg")
-			} else {
-				throw e
-			}
-		} finally {
-			this.processing = false
-		}
-
-		return result
-	}
-
-	async deleteEvent(): Promise<EventSaveResult> {
-		const event = assertNotNull(this.existingEvent, "tried to delete non-existing event")
-		const { sendModels } = assembleCalendarEventEditResult(this.editModels)
-		const { updateModel } = sendModels
-		if (updateModel) {
-			await this.distributor.sendCancellation(event, updateModel)
-		}
-		await this.calendarModel.deleteEvent(event)
-		return EventSaveResult.Saved
-	}
-
-	/**
-	 * update the whole event by completely deleting the old event, writing the new one,
-	 * updating/inviting/cancelling any attendees where that is necessary.
-	 */
-	async updateExistingEvent(): Promise<EventSaveResult> {
-		await this.initialized
 		if (this.processing) {
 			return EventSaveResult.Failed
 		}
 		this.processing = true
 
-		const { newEvent, calendar, newAlarms, sendModels } = await this.assembleEditResult()
-		const { responseModel, inviteModel, updateModel, cancelModel } = sendModels
-
 		try {
-			if (this.eventType === EventType.OWN) {
-				// It is our own event. We might need to send out invites/cancellations/updates
-				return await this.showProgress(
-					(async () => {
-						await this.sendNotifications(newEvent, { inviteModel, updateModel, cancelModel })
-						return await this.saveEvent(newEvent, calendar, newAlarms)
-					})(),
-				)
-			} else if (this.eventType === EventType.INVITE && responseModel != null) {
-				// We have been invited by another person (internal/unsecure external)
-				return await this.showProgress(
-					(async () => {
-						await this.respondToOrganizer(newEvent, responseModel)
-						return await this.saveEvent(newEvent, calendar, newAlarms)
-					})(),
-				)
-			} else {
-				// Either this is an event in a shared calendar. We cannot send anything because it's not our event.
-				// Or no changes were made that require sending updates and we just save other changes.
-				return await this.showProgress(this.saveEvent(newEvent, calendar, newAlarms))
-			}
+			await this.strategy.apply()
+			return EventSaveResult.Saved
 		} catch (e) {
 			if (e instanceof PayloadTooLargeError) {
 				throw new UserError("requestTooLarge_msg")
+			} else {
+				throw e
 			}
-			throw e
 		} finally {
 			this.processing = false
 		}
 	}
 
-	private async sendCancellation(event: CalendarEvent, cancelModel: SendMailModel): Promise<any> {
-		const updatedEvent = clone(event)
-
-		// This is guaranteed to be our own event.
-		updatedEvent.sequence = incrementSequence(this.sequence, true)
-
-		try {
-			await this.distributor.sendCancellation(updatedEvent, cancelModel)
-		} catch (e) {
-			if (e instanceof TooManyRequestsError) {
-				throw new UserError("mailAddressDelay_msg") // This will be caught and open error dialog
-			} else {
-				throw e
-			}
-		}
-	}
-
-	private async saveEvent(eventToSave: CalendarEvent, calendar: CalendarInfo, newAlarms: ReadonlyArray<AlarmInfo>): Promise<EventSaveResult> {
-		if (this.userController.user.accountType === AccountType.EXTERNAL) {
-			console.log("did not save event, we're an external user.")
-			return Promise.resolve(EventSaveResult.Failed)
-		}
-		const { groupRoot } = calendar
-
-		if (eventToSave._id == null) {
-			await this.calendarModel.createEvent(eventToSave, newAlarms, this.zone, groupRoot)
-		} else {
-			await this.calendarModel.updateEvent(
-				eventToSave,
-				newAlarms,
-				this.zone,
-				groupRoot,
-				assertNotNull(this.existingEvent, "tried to update non-existing event."),
-			)
-		}
-		return EventSaveResult.Saved
-	}
-
-	/**
-	 * send all notifications required for the new event. will always send cancellations and invites, but will skip updates
-	 * if this.shouldSendUpdates is false.
-	 *
-	 * will modify the attendee list of newEvent if invites/cancellations are sent.
-	 */
-	async sendNotifications(
-		newEvent: CalendarEvent,
-		models: {
-			inviteModel: SendMailModel | null
-			updateModel: SendMailModel | null
-			cancelModel: SendMailModel | null
-		},
-	): Promise<void> {
-		if (models.updateModel == null && models.cancelModel == null && models.inviteModel == null) {
-			return
-		}
-		if (this.shouldShowSendInviteNotAvailable()) {
-			var subscriptionUtils = await import("../../../subscription/SubscriptionUtils.js")
-			throw new UpgradeRequiredError("upgradeRequired_msg", await subscriptionUtils.getAvailablePlansWithEventInvites())
-		}
-		const invitePromise = models.inviteModel != null ? this.sendInvites(newEvent, models.inviteModel) : Promise.resolve()
-		const cancelPromise = models.cancelModel != null ? this.sendCancellation(newEvent, models.cancelModel) : Promise.resolve()
-		const updatePromise = models.updateModel != null && this.shouldSendUpdates ? this.sendUpdates(newEvent, models.updateModel) : Promise.resolve()
-		return await Promise.all([invitePromise, cancelPromise, updatePromise]).then()
-	}
-
-	/**
-	 * invite all new attendees for an event and set their status from "ADDED" to "NEEDS_ACTION"
-	 * @param event will be modified if invites are sent.
-	 * @param inviteModel
-	 * @private
-	 */
-	private async sendInvites(event: CalendarEvent, inviteModel: SendMailModel): Promise<void> {
-		if (event.organizer == null || inviteModel?.allRecipients().length === 0) {
-			throw new ProgrammingError("event has no organizer or no invitable attendees, can't send invites.")
-		}
-		const newAttendees = getNonOrganizerAttendees(event).filter((a) => a.status === CalendarAttendeeStatus.ADDED)
-		await inviteModel.waitForResolvedRecipients()
-		await this.distributor.sendInvite(event, inviteModel)
-		for (const attendee of newAttendees) {
-			if (attendee.status === CalendarAttendeeStatus.ADDED) {
-				attendee.status = CalendarAttendeeStatus.NEEDS_ACTION
-			}
-		}
-	}
-
-	private async sendUpdates(event: CalendarEvent, updateModel: SendMailModel): Promise<void> {
-		await updateModel.waitForResolvedRecipients()
-		await this.distributor.sendUpdate(event, updateModel)
-	}
-
-	/**
-	 * send a response mail to the organizer as stated on the original event. calling this for an event that is not an invite or
-	 * does not contain address as an attendee or that has no organizer is an error.
-	 * @param newEvent the event to send the update for, this should be identical to existingEvent except for the own status.
-	 * @param responseModel
-	 * @private
-	 */
-	private async respondToOrganizer(newEvent: CalendarEvent, responseModel: SendMailModel): Promise<void> {
-		if (this.existingEvent?.attendees == null || this.existingEvent.attendees.length === 0 || this.existingEvent.organizer == null) {
-			throw new ProgrammingError("trying to send a response to an event that has no attendees or has no organizer")
-		}
-		if (this.eventType !== EventType.INVITE) {
-			throw new ProgrammingError("trying to send a response to an event that is not an invite.")
-		}
-
-		const existingOwnAttendee = findAttendeeInAddresses(this.existingEvent.attendees, [responseModel.getSender()])
-		const newOwnAttendee = findAttendeeInAddresses(newEvent.attendees, [responseModel.getSender()])
-		if (existingOwnAttendee == null || newOwnAttendee == null) {
-			throw new ProgrammingError("trying to send a response when the responding address is not in the event attendees")
-		}
-
-		if (!(existingOwnAttendee.status !== newOwnAttendee.status && newOwnAttendee.status !== CalendarAttendeeStatus.NEEDS_ACTION)) {
-			console.log("got response model to notify organizer, but status did not change")
-			return
-		}
-
-		await this.showProgress(
-			(async () => {
-				await responseModel.waitForResolvedRecipients()
-				await this.distributor.sendResponse(newEvent, responseModel, this.responseTo)
-				responseModel.dispose()
-			})(),
-		)
-	}
-
 	/** check the current state of the edit operation and see if they amount to anything the attendees should be notified of. */
 	async hasUpdateWorthyChanges(): Promise<boolean> {
-		return (await this.assembleEditResult()).hasUpdateWorthyChanges
-	}
-
-	private async assembleEditResult() {
-		const assembleResult = assembleCalendarEventEditResult(this.editModels)
-
-		const mayIncrement = this.eventType === EventType.OWN || this.eventType === EventType.SHARED_RW
-		const { uid: oldUid, sequence: oldSequence } = assertNotNull(this.existingEvent, "called update existing event on nonexisting event")
-		const uid = assertNotNull(oldUid, "called update existing event on event without uid")
-		const newEvent = assignEventIdentity(assembleResult.eventValues, {
-			uid,
-			sequence: incrementSequence(oldSequence, mayIncrement),
-		})
-
-		assertEventValidity(newEvent)
-
-		newEvent._id = assertNotNull(this.existingEvent?._id, "no id to update existing event")
-		newEvent._ownerGroup = assertNotNull(this.existingEvent?._ownerGroup, "no ownergroup to update existing event")
-		newEvent._permissions = assertNotNull(this.existingEvent?._permissions, "no permissions to update existing event")
-
-		return {
-			hasUpdateWorthyChanges: eventHasChanged(newEvent, this.existingEvent),
-			newEvent,
-			calendar: assembleResult.calendar,
-			newAlarms: assembleResult.newAlarms,
-			sendModels: assembleResult.sendModels,
-		}
+		return await this.strategy.mayRequireSendingUpdates()
 	}
 }
 
@@ -545,17 +348,19 @@ export class CalendarEventModel {
  * @param now the new event.
  * @param previous the event as it originally was
  * @returns {boolean} true if changes were made to the event that justify sending updates to attendees.
+ * exported for testing
  */
-function eventHasChanged(now: CalendarEvent, previous: Partial<CalendarEvent> | null): boolean {
+export function eventHasChanged(now: CalendarEvent, previous: Partial<CalendarEvent> | null): boolean {
 	if (previous == null) return true
 	// we do not check for the sequence number (as it should be changed with every update) or the default instance properties such as _id
 	return (
 		now.startTime.getTime() !== previous?.startTime?.getTime() ||
-		now.description !== previous.description ||
+		now.description !== previous?.description ||
 		now.summary !== previous.summary ||
 		now.location !== previous.location ||
 		now.endTime.getTime() !== previous?.endTime?.getTime() ||
 		now.invitedConfidentially !== previous.invitedConfidentially ||
+		// FIXME: this should be a hard error, we never want to change the uid or compare events with different UIDs?
 		now.uid !== previous.uid ||
 		!areRepeatRulesEqual(now.repeatRule, previous?.repeatRule ?? null) ||
 		!arrayEqualsWithPredicate(
@@ -567,7 +372,27 @@ function eventHasChanged(now: CalendarEvent, previous: Partial<CalendarEvent> | 
 	) // we ignore the names
 }
 
-function assertEventValidity(event: CalendarEvent) {
+export function areRepeatRulesEqual(r1: CalendarRepeatRule | null, r2: CalendarRepeatRule | null): boolean {
+	return (
+		r1 === r2 ||
+		(r1?.endType === r2?.endType &&
+			r1?.endValue === r2?.endValue &&
+			r1?.frequency === r2?.frequency &&
+			r1?.interval === r2?.interval &&
+			/** r1?.timeZone === r2?.timeZone && we're ignoring time zone because it's not an observable change. */
+			areExcludedDatesEqual(r1?.excludedDates ?? [], r2?.excludedDates ?? []))
+	)
+}
+
+/**
+ * compare two lists of dates that are sorted from earliest to latest. return true if they are equivalent.
+ */
+export function areExcludedDatesEqual(e1: ReadonlyArray<DateWrapper>, e2: ReadonlyArray<DateWrapper>): boolean {
+	if (e1.length !== e2.length) return false
+	return e1.every(({ date }, i) => e2[i].date.getTime() === date.getTime())
+}
+
+export function assertEventValidity(event: CalendarEvent) {
 	switch (checkEventValidity(event)) {
 		case CalendarEventValidity.InvalidContainsInvalidDate:
 			throw new UserError("invalidDate_msg")
@@ -587,10 +412,10 @@ function assertEventValidity(event: CalendarEvent) {
  * on the server before assigning the ids.
  * @param models
  */
-function assembleCalendarEventEditResult(models: CalendarEventEditModels): {
+export function assembleCalendarEventEditResult(models: CalendarEventEditModels): {
 	eventValues: CalendarEventValues
 	newAlarms: ReadonlyArray<AlarmInfo>
-	sendModels: CalendarEventUpdateNotificationModels
+	sendModels: CalendarNotificationSendModels
 	calendar: CalendarInfo
 } {
 	const whenResult = models.whenModel.result
@@ -625,12 +450,41 @@ function assembleCalendarEventEditResult(models: CalendarEventEditModels): {
 	}
 }
 
+/** assemble the edit result from an existing event edit operation and apply some fields from the original event
+ * @param existingEvent the event we will be updating and take id, ownerGroup and permissions from as well as the uid, sequence to increment and recurrenceId
+ * @param editModels the editModels providing the values for the new event.
+ * @param operation determines the source of the recurrenceId - in the case of EditThis it's the start time of the original event, otherwise existingEvents' recurrenceId is used.
+ */
+export async function assembleEditResultAndAssignFromExisting(existingEvent: CalendarEvent, editModels: CalendarEventEditModels, operation: CalendarOperation) {
+	const assembleResult = assembleCalendarEventEditResult(editModels)
+	const { uid: oldUid, sequence: oldSequence, recurrenceId } = existingEvent
+	const newEvent = assignEventIdentity(assembleResult.eventValues, {
+		uid: oldUid!,
+		sequence: incrementSequence(oldSequence),
+		recurrenceId: operation === CalendarOperation.EditThis && recurrenceId == null ? existingEvent.startTime : recurrenceId,
+	})
+
+	assertEventValidity(newEvent)
+
+	newEvent._id = existingEvent._id
+	newEvent._ownerGroup = existingEvent._ownerGroup
+	newEvent._permissions = existingEvent._permissions
+
+	return {
+		hasUpdateWorthyChanges: eventHasChanged(newEvent, existingEvent),
+		newEvent,
+		calendar: assembleResult.calendar,
+		newAlarms: assembleResult.newAlarms,
+		sendModels: assembleResult.sendModels,
+	}
+}
+
 /**
  * combine event values with the fields required to identify a particular instance of the event.
  * @param values
  * @param identity sequence (default "0") and recurrenceId (default null) are optional, but the uid must be specified.
  */
-function assignEventIdentity(values: CalendarEventValues, identity: Require<"uid", Partial<CalendarEventIdentity>>): CalendarEvent {
+export function assignEventIdentity(values: CalendarEventValues, identity: Require<"uid", Partial<CalendarEventIdentity>>): CalendarEvent {
 	return createCalendarEvent({
 		...values,
 		sequence: "0",
@@ -662,7 +516,7 @@ export const enum EventSaveResult {
 }
 
 /** generic function that asynchronously returns whatever type the caller passed in, but not necessarily the same promise. */
-type ShowProgressCallback = <T>(input: Promise<T>) => Promise<T>
+export type ShowProgressCallback = <T>(input: Promise<T>) => Promise<T>
 
 /** exported for testing */
 export type CalendarEventEditModels = {
@@ -675,7 +529,7 @@ export type CalendarEventEditModels = {
 }
 
 /** the fields that together with the start time point to a specific version and instance of an event */
-type EventIdentityFieldNames = "uid" | "sequence" // | "recurrenceId"
+type EventIdentityFieldNames = "uid" | "sequence" | "recurrenceId"
 
 /**
  * return the calendar the given event belongs to, if any, otherwise get the first one from the given calendars.

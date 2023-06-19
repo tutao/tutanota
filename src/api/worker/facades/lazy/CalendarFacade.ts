@@ -60,6 +60,8 @@ import { EncryptedAlarmNotification } from "../../../../native/common/EncryptedA
 import { NativePushFacade } from "../../../../native/common/generatedipc/NativePushFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
+import { mapMapAsync } from "@tutao/tutanota-utils/dist/ArrayUtils.js"
+import { Require } from "@tutao/tutanota-utils/dist/Utils.js"
 
 assertWorkerOrNode()
 
@@ -67,6 +69,12 @@ type AlarmNotificationsPerEvent = {
 	event: CalendarEvent
 	alarmInfoIds: IdTuple[]
 	alarmNotifications: AlarmNotification[]
+}
+
+export type CalendarEventRecurrence = Require<"recurrenceId", CalendarEvent>
+export type CalendarEventUidIndexEntry = {
+	progenitor: CalendarEvent
+	recurrences: Array<CalendarEventRecurrence>
 }
 
 export class CalendarFacade {
@@ -324,23 +332,46 @@ export class CalendarFacade {
 	}
 
 	/**
-	 * Queries the event using the uid index. The index is stored per calendar so we have to go through all calendars to find matching event.
-	 * We currently only need this for calendar event updates and for that we don't want to look into shared calendars.
+	 * Queries the events using the uid index. The index is stored per calendar, so we have to go through all calendars
+	 * to find the matching events. We currently only need this for calendar event updates and for that we don't want to
+	 * look into shared calendars.
+	 *
+	 * @returns {CalendarEventUidIndexEntry} a list of calendar events with this UID, which will have the progenitor at index 0 and
+	 * any edited recurrences sorted by original start time after that.
 	 */
-	async getEventByUid(uid: string): Promise<CalendarEvent | null> {
-		const calendarMemberships = this.userFacade.getLoggedInUser().memberships.filter((m) => m.groupType === GroupType.Calendar && m.capability == null)
-		for (const membership of calendarMemberships) {
-			let indexEntry
+	async getEventsByUid(uid: string): Promise<CalendarEventUidIndexEntry | null> {
+		const { memberships } = this.userFacade.getLoggedInUser()
+		for (const membership of memberships) {
+			if (membership.groupType !== GroupType.Calendar) continue
 			try {
 				const groupRoot = await this.entityClient.load(CalendarGroupRootTypeRef, membership.group)
 				if (groupRoot.index == null) {
 					continue
 				}
-				indexEntry = await this.entityClient.load<CalendarEventUidIndex>(CalendarEventUidIndexTypeRef, [
+				const indexEntry: CalendarEventUidIndex = await this.entityClient.load<CalendarEventUidIndex>(CalendarEventUidIndexTypeRef, [
 					groupRoot.index.list,
 					uint8arrayToCustomId(hashUid(uid)),
 				])
-				return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, indexEntry.calendarEvent)
+
+				if (indexEntry.calendarEvents.length !== 0) {
+					const indexedEventIds: Map<Id, Array<Id>> = groupByAndMap<IdTuple, Id, Id>(
+						indexEntry.calendarEvents,
+						(e: IdTuple) => listIdPart(e),
+						(e: IdTuple) => elementIdPart(e),
+					)
+
+					const indexedEventsByList: Map<Id, Array<CalendarEvent>> = await mapMapAsync(indexedEventIds, (listId, elementIds) =>
+						this.entityClient.loadMultiple(CalendarEventTypeRef, listId, elementIds),
+					)
+					const [recurrences, progenitors] = partition<CalendarEventRecurrence, CalendarEvent>(
+						Array.from(indexedEventsByList.values()).flat(),
+						(e): e is CalendarEventRecurrence => e.recurrenceId != null,
+					)
+					sortByRecurrenceId(recurrences)
+					return { progenitor: progenitors[0], recurrences }
+				} else if (indexEntry.calendarEvent != null) {
+					return { progenitor: await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, indexEntry.calendarEvent), recurrences: [] }
+				}
 			} catch (e) {
 				if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 					continue
@@ -514,4 +545,12 @@ function getEventIdFromUserAlarmInfo(userAlarmInfo: UserAlarmInfo): IdTuple {
 /** to make lookup on the encrypted event uid possible, we hash it and use that value as a key. */
 function hashUid(uid: string): Uint8Array {
 	return sha256Hash(stringToUtf8Uint8Array(uid))
+}
+
+/**
+ * sort a list of events by recurrence id, sorting events without a recurrence id to the front.
+ * @param arr the array of events to sort
+ */
+function sortByRecurrenceId(arr: Array<CalendarEventRecurrence>): void {
+	arr.sort((a, b) => (a.recurrenceId < b.recurrenceId ? -1 : 1))
 }

@@ -1,8 +1,8 @@
 import { lang } from "../../misc/LanguageViewModel"
 import { makeInvitationCalendarFile } from "../export/CalendarImporter"
-import { CalendarMethod, ConversationType, getAttendeeStatus, MailMethod, mailMethodToCalendarMethod } from "../../api/common/TutanotaConstants"
+import { getAttendeeStatus, MailMethod, mailMethodToCalendarMethod } from "../../api/common/TutanotaConstants"
 import { calendarAttendeeStatusSymbol, formatEventDuration, getTimeZone } from "./CalendarUtils"
-import type { CalendarEvent, CalendarEventAttendee, EncryptedMailAddress, Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import type { CalendarEvent, CalendarEventAttendee, EncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
 import { createCalendarEventAttendee } from "../../api/entities/tutanota/TypeRefs.js"
 import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import type { SendMailModel } from "../../mail/editor/SendMailModel"
@@ -10,24 +10,9 @@ import { windowFacade } from "../../misc/WindowFacade"
 import { RecipientsNotFoundError } from "../../api/common/error/RecipientsNotFoundError"
 import { RecipientField } from "../../mail/model/MailUtils"
 import { cleanMailAddress, findAttendeeInAddresses, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
-export interface CalendarUpdateDistributor {
-	sendInvite(existingEvent: CalendarEvent, sendMailModel: SendMailModel): Promise<void>
-
-	sendUpdate(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void>
-
-	sendCancellation(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void>
-
-	/**
-	 * send a response mail to the organizer of an event
-	 * @param event the event to respond to (included as a .ics file attachment)
-	 * @param sendMailModel used to actually send the mail
-	 * @param responseTo the mail in which we received the original event invite
-	 */
-	sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, responseTo: Mail | null): Promise<void>
-}
-
-export class CalendarMailDistributor implements CalendarUpdateDistributor {
+export class CalendarNotificationSender {
 	/** Used for knowing how many emails are in the process of being sent. */
 	private countDownLatch: number
 
@@ -40,7 +25,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 			"{event}": event.summary,
 		})
 		const sender = assertOrganizer(event).address
-		return this._sendCalendarFile({
+		return this.sendCalendarFile({
 			sendMailModel,
 			method: MailMethod.ICAL_REQUEST,
 			subject: message,
@@ -55,7 +40,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 			"{event}": event.summary,
 		})
 		const sender = assertOrganizer(event).address
-		return this._sendCalendarFile({
+		return this.sendCalendarFile({
 			sendMailModel,
 			method: MailMethod.ICAL_REQUEST,
 			subject: message,
@@ -70,7 +55,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 			"{event}": event.summary,
 		})
 		const sender = assertOrganizer(event).address
-		return this._sendCalendarFile({
+		return this.sendCalendarFile({
 			sendMailModel,
 			method: MailMethod.ICAL_CANCEL,
 			subject: message,
@@ -99,56 +84,29 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 		)
 	}
 
-	sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, responseTo: Mail | null): Promise<void> {
+	/**
+	 * send a response mail to the organizer of an event
+	 * @param event the event to respond to (included as a .ics file attachment)
+	 * @param sendMailModel used to actually send the mail
+	 */
+	async sendResponse(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
 		const sendAs = sendMailModel.getSender()
 		const message = lang.get("repliedToEventInvite_msg", {
 			"{event}": event.summary,
 		})
 		const organizer = assertOrganizer(event)
 		const body = makeInviteEmailBody(organizer.address, event, message)
-
-		if (responseTo) {
-			return Promise.resolve()
-				.then(() => {
-					this._sendStart()
-
-					return sendMailModel.initAsResponse(
-						{
-							previousMail: responseTo,
-							conversationType: ConversationType.REPLY,
-							senderMailAddress: sendAs,
-							recipients: [
-								{
-									address: organizer.address,
-									name: organizer.name,
-								},
-							],
-							attachments: [],
-							bodyText: body,
-							subject: message,
-							replyTos: [],
-						},
-						new Map(),
-					)
-				})
-				.then((model) => {
-					model.attachFiles([makeInvitationCalendarFile(event, CalendarMethod.REPLY, new Date(), getTimeZone())])
-					return model.send(MailMethod.ICAL_REPLY).then(noOp)
-				})
-				.finally(() => this._sendEnd())
-		} else {
-			return this._sendCalendarFile({
-				sendMailModel,
-				method: MailMethod.ICAL_REPLY,
-				subject: message,
-				body,
-				event,
-				sender: sendAs,
-			})
-		}
+		return this.sendCalendarFile({
+			event,
+			sendMailModel,
+			method: MailMethod.ICAL_REPLY,
+			subject: message,
+			body: body,
+			sender: sendAs,
+		})
 	}
 
-	async _sendCalendarFile({
+	private async sendCalendarFile({
 		sendMailModel,
 		method,
 		subject,
@@ -169,27 +127,14 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 		sendMailModel.setSubject(subject)
 		sendMailModel.setBody(body)
 
-		this._sendStart()
+		this.sendStart()
 
-		await sendMailModel
-			.send(method)
-			.catch((e) => {
-				// we remove the attachment from the model to prevent adding more than one calendar file
-				// in case the user changes the event and tries to send again a new attachment is created
-				const attachedInviteFile = sendMailModel.getAttachments().find((file) => file.name === inviteFile.name)
-
-				if (attachedInviteFile) {
-					sendMailModel.removeAttachment(attachedInviteFile)
-				}
-
-				throw e
-			})
-			.finally(() => this._sendEnd())
+		await sendMailModel.send(method).finally(() => this.sendEnd())
 	}
 
 	private _windowUnsubscribe: (() => void) | null = null
 
-	_sendStart() {
+	private sendStart() {
 		this.countDownLatch++
 
 		if (this.countDownLatch === 1) {
@@ -197,7 +142,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 		}
 	}
 
-	_sendEnd() {
+	private sendEnd() {
 		this.countDownLatch--
 
 		if (this.countDownLatch === 0 && this._windowUnsubscribe) {
@@ -274,10 +219,10 @@ function makeInviteEmailBody(sender: string, event: CalendarEvent, message: stri
 
 function assertOrganizer(event: CalendarEvent): EncryptedMailAddress {
 	if (event.organizer == null) {
-		throw new Error("Cannot send event update without organizer")
+		throw new ProgrammingError("Cannot send event update without organizer")
 	}
 
 	return event.organizer
 }
 
-export const calendarUpdateDistributor: CalendarUpdateDistributor = new CalendarMailDistributor()
+export const calendarNotificationSender: CalendarNotificationSender = new CalendarNotificationSender()

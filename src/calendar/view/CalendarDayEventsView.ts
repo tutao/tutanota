@@ -150,6 +150,7 @@ export class CalendarDayEventsView implements Component<Attrs> {
 				click: (domEvent) => attrs.onEventClicked(ev, domEvent),
 				height: height - size.calendar_day_event_padding,
 				hasAlarm: hasAlarmsForTheUser(locator.logins.getUserController().user, ev),
+				isAltered: ev.recurrenceId != null,
 				verticalPadding: size.calendar_day_event_padding,
 				fadeIn: !attrs.isTemporaryEvent(ev),
 				opacity: attrs.isTemporaryEvent(ev) ? TEMPORARY_EVENT_OPACITY : 1,

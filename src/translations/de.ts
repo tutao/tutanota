@@ -1542,6 +1542,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"cannotEditSingleInstance_msg": "Du kannst nur Teile dieses Ereignisses bearbeiten weil es Teil einer Serie ist.",
 	}
 }

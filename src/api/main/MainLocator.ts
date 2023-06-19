@@ -98,6 +98,7 @@ import { SearchRouter } from "../../search/view/SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
 import { InboxRuleHandler } from "../../mail/model/InboxRuleHandler.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../../gui/ScopedRouter.js"
+import { CalendarOperation } from "../../calendar/view/eventeditor/CalendarEventEditDialog.js"
 
 assertMainOrNode()
 
@@ -273,10 +274,10 @@ class MainLocator {
 		calendarInvitations.init()
 		return new CalendarViewModel(
 			this.logins,
-			async (event: CalendarEvent) => {
+			async (mode: CalendarOperation, event: CalendarEvent) => {
 				const mailboxDetail = await this.mailModel.getUserMailboxDetails()
 				const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
-				return await this.calendarEventModel(event, mailboxDetail, mailboxProperties, null)
+				return await this.calendarEventModel(mode, event, mailboxDetail, mailboxProperties, null)
 			},
 			this.calendarModel,
 			this.entityClient,
@@ -308,20 +309,36 @@ class MainLocator {
 	}
 
 	async calendarEventModel(
+		editMode: CalendarOperation,
 		event: Partial<CalendarEvent>,
 		mailboxDetail: MailboxDetail,
 		mailboxProperties: MailboxProperties,
 		responseTo: Mail | null,
-	): Promise<CalendarEventModel> {
-		const [{ makeCalendarEventModel }, { getTimeZone }, { calendarUpdateDistributor }] = await Promise.all([
+	): Promise<CalendarEventModel | null> {
+		const [{ makeCalendarEventModel }, { getTimeZone }, { calendarNotificationSender }] = await Promise.all([
 			import("../../calendar/date/eventeditor/CalendarEventModel.js"),
 			import("../../calendar/date/CalendarUtils.js"),
-			import("../../calendar/date/CalendarUpdateDistributor.js"),
+			import("../../calendar/date/CalendarNotificationSender.js"),
 		])
 		const sendMailModelFactory = await this.sendMailModelSyncFactory(mailboxDetail, mailboxProperties)
 		const showProgress = <T>(p: Promise<T>) => showProgressDialog("pleaseWait_msg", p)
 
+		switch (editMode) {
+			case CalendarOperation.Create: {
+				break
+			}
+			case CalendarOperation.EditThis:
+				break
+			case CalendarOperation.DeleteThis:
+				break
+			case CalendarOperation.EditAll:
+				break
+			case CalendarOperation.DeleteAll:
+				break
+		}
+
 		return await makeCalendarEventModel(
+			editMode,
 			event,
 			await this.recipientsModel(),
 			this.calendarModel,
@@ -329,7 +346,7 @@ class MainLocator {
 			mailboxDetail,
 			mailboxProperties,
 			sendMailModelFactory,
-			calendarUpdateDistributor,
+			calendarNotificationSender,
 			this.entityClient,
 			responseTo,
 			getTimeZone(),

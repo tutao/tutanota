@@ -20,6 +20,7 @@ import { HtmlEditor } from "../../../gui/editor/HtmlEditor.js"
 import { attachDropdown } from "../../../gui/base/Dropdown.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../gui/base/InfoBanner.js"
 import { CalendarEventModel, EventType } from "../../date/eventeditor/CalendarEventModel.js"
+import { CalendarOperation } from "./CalendarEventEditDialog.js"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel
@@ -108,11 +109,13 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private renderReadonlyMessage(attrs: CalendarEventEditViewAttrs): Children {
 		const { model } = attrs
 		// when editing new events, eventType is always is OWN, but you might still not be able to add guests.
+		// changing guests is also not possible if you're editing a single instance of a series.
 		if (model.eventType === EventType.OWN && model.editModels.whoModel.canModifyGuests) return null
+		const message = model.operation === CalendarOperation.EditThis ? "cannotEditSingleInstance_msg" : "cannotEditFullEvent_msg"
 		return m(
 			".pt-s",
 			m(InfoBanner, {
-				message: () => m(".small", lang.get("cannotEditFullEvent_msg")),
+				message: () => m(".small", lang.get(message)),
 				icon: Icons.People,
 				type: BannerType.Info,
 				buttons: [],
@@ -150,10 +153,10 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		} satisfies EventTimeEditorAttrs)
 	}
 
-	private renderRepeatRuleEditor(attrs: CalendarEventEditViewAttrs): Children {
-		if (attrs.model.eventType !== EventType.OWN && attrs.model.eventType !== EventType.SHARED_RW) return null
+	private renderRepeatRuleEditor({ model }: CalendarEventEditViewAttrs): Children {
+		if ((model.eventType !== EventType.OWN && model.eventType !== EventType.SHARED_RW) || model.operation === CalendarOperation.EditThis) return null
 		return m(RepeatRuleEditor, {
-			model: attrs.model.editModels.whenModel,
+			model: model.editModels.whenModel,
 			startOfTheWeekOffset: this.startOfTheWeekOffset,
 		} satisfies RepeatRuleEditorAttrs)
 	}
@@ -174,7 +177,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				selectedValue: model.editModels.whoModel.selectedCalendar,
 				selectionChangedHandler: (v) => (model.editModels.whoModel.selectedCalendar = v),
 				icon: BootIcons.Expand,
-				disabled: model.eventType !== EventType.OWN && model.eventType !== EventType.SHARED_RW,
+				disabled: model.eventType !== EventType.OWN && model.eventType !== EventType.SHARED_RW && model.operation !== CalendarOperation.EditThis,
 				helpLabel: () => this.renderCalendarColor(model.editModels.whoModel.selectedCalendar, vnode.attrs.groupColors),
 			} satisfies DropDownSelectorAttrs<CalendarInfo>),
 		)

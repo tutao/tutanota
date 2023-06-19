@@ -3,31 +3,35 @@ import { AccountType, CalendarAttendeeStatus, EndType, RepeatPeriod } from "../.
 import { func, matchers, object, verify, when } from "testdouble"
 import { UserController } from "../../../../src/api/main/UserController.js"
 import {
+	areExcludedDatesEqual,
+	areRepeatRulesEqual,
 	CalendarEventEditModels,
-	CalendarEventModel,
+	eventHasChanged,
 	EventSaveResult,
-	EventType,
 	makeCalendarEventModel,
 } from "../../../../src/calendar/date/eventeditor/CalendarEventModel.js"
-import { CalendarUpdateDistributor } from "../../../../src/calendar/date/CalendarUpdateDistributor.js"
+import { CalendarNotificationSender } from "../../../../src/calendar/date/CalendarNotificationSender.js"
 import { CalendarModel } from "../../../../src/calendar/model/CalendarModel.js"
 import {
 	createCalendarEvent,
 	createCalendarEventAttendee,
+	createEncryptedMailAddress,
 	createMailBox,
 	createMailboxGroupRoot,
 	createMailboxProperties,
 	MailboxProperties,
 } from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../../src/api/common/EntityClient.js"
-import { calendars, makeUserController, otherAddress, ownerAddress, ownerAlias, ownerId, ownerMailAddress } from "../CalendarTestUtils.js"
+import { calendars, getDateInZone, makeUserController, otherAddress, ownerAddress, ownerAlias, ownerId, ownerMailAddress } from "../CalendarTestUtils.js"
 import {
 	createAlarmInfo,
 	createCalendarEventRef,
+	createDateWrapper,
 	createGroup,
 	createGroupInfo,
 	createRepeatRule,
 	createUserAlarmInfo,
+	DateWrapper,
 } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { identity, noOp } from "@tutao/tutanota-utils"
 import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../../../../src/api/main/RecipientsModel.js"
@@ -35,10 +39,11 @@ import { LoginController } from "../../../../src/api/main/LoginController.js"
 import { MailboxDetail } from "../../../../src/mail/model/MailModel.js"
 import { FolderSystem } from "../../../../src/api/common/mail/FolderSystem.js"
 import { SendMailModel } from "../../../../src/mail/editor/SendMailModel.js"
+import { CalendarOperation } from "../../../../src/calendar/view/eventeditor/CalendarEventEditDialog.js"
 
 o.spec("CalendarEventModelTest", function () {
 	let userController: UserController
-	let distributor: CalendarUpdateDistributor
+	let distributor: CalendarNotificationSender
 	let calendarModel: CalendarModel
 	let entityClient: EntityClient
 	let editModels: CalendarEventEditModels
@@ -114,6 +119,7 @@ o.spec("CalendarEventModelTest", function () {
 				}),
 			])
 			when(calendarModel.loadCalendarInfos(matchers.anything())).thenResolve(calendars)
+			when(calendarModel.resolveCalendarEventProgenitor(matchers.anything())).thenResolve(event)
 			const resolvableOwner: ResolvableRecipient = object()
 			when(resolvableOwner.resolved()).thenResolve(ownerAddress)
 			const resolvableRecipient: ResolvableRecipient = object()
@@ -133,6 +139,7 @@ o.spec("CalendarEventModelTest", function () {
 			const mailboxProperties: MailboxProperties = createMailboxProperties({})
 			const sendModelFac: () => SendMailModel = func<() => SendMailModel>()
 			const model = await makeCalendarEventModel(
+				CalendarOperation.EditAll,
 				event,
 				recipientsModel,
 				calendarModel,
@@ -147,13 +154,13 @@ o.spec("CalendarEventModelTest", function () {
 				identity,
 				noOp,
 			)
-			const result = await model.updateExistingEvent()
+			const result = await model?.apply()
 			o(result).equals(EventSaveResult.Saved)
 			verify(
 				calendarModel.updateEvent(
 					matchers.contains({
 						...event,
-						sequence: "0",
+						sequence: "1",
 						alarmInfos: [],
 						repeatRule: {
 							...event.repeatRule,
@@ -171,77 +178,113 @@ o.spec("CalendarEventModelTest", function () {
 		})
 	})
 
-	o.spec("sending invites availability", async function () {
-		o("not available for free users will is true for free accounts", async function () {
-			const userController = makeUserController([], AccountType.FREE, "", false)
-			const model = new CalendarEventModel(
-				null,
-				EventType.OWN,
-				editModels,
-				userController,
-				distributor,
-				calendarModel,
-				entityClient,
-				calendars,
-				"Europe/Berlin",
-				null,
-			)
-			const notAvailable = model.shouldShowSendInviteNotAvailable()
-			o(notAvailable).equals(true)
+	o.spec("eventHasChanged", function () {
+		const fixedOrganizer = createEncryptedMailAddress({
+			address: "moo@d.de",
+			name: "bla",
 		})
-		o("not available for premium users without business subscription", async function () {
-			const userController = makeUserController([], AccountType.PAID, "", false)
-			const model = new CalendarEventModel(
-				null,
-				EventType.OWN,
-				editModels,
-				userController,
-				distributor,
-				calendarModel,
-				entityClient,
-				calendars,
-				"Europe/Berlin",
-				null,
-			)
-			await model.initialized
-			const notAvailable = model.shouldShowSendInviteNotAvailable()
-			o(notAvailable).equals(true)
+		const att = (a, n, s) =>
+			createCalendarEventAttendee({
+				address: createEncryptedMailAddress({ address: a, name: n }),
+				status: s,
+			})
+		// attr, now, previous, expected, msg
+		const cases = [
+			["alarmInfos", [], ["some", "alarm"], false, "alarmInfos are ignored"],
+			["summary", "new", "old", true],
+			["location", "here", "there", true],
+			["description", "ho", "ha", true],
+			["invitedConfidentially", true, false, true],
+			["startTime", getDateInZone("2023-05-10T13:30"), getDateInZone("2023-05-15T13:30"), true],
+			["endTime", getDateInZone("2023-05-26"), getDateInZone("2023-05-27"), true],
+			["uid", "newUid", "oldUid", true],
+			["organizer", fixedOrganizer, fixedOrganizer, false, "same object in organizer"],
+			["organizer", fixedOrganizer, createEncryptedMailAddress({ address: "moo@d.de", name: "bla" }), false, "same organizer, different object"],
+			["organizer", fixedOrganizer, createEncryptedMailAddress({ address: "moo@d.de", name: "blabla" }), false, "different address, same name"],
+			["organizer", fixedOrganizer, createEncryptedMailAddress({ address: "moo@d.io", name: "bla" }), true, "same name, different address"],
+			["attendees", [], [], false, "no attendees in either event"],
+			[
+				"attendees",
+				[att("b@c.d", "b", CalendarAttendeeStatus.NEEDS_ACTION)],
+				[att("b@c.d", "C", CalendarAttendeeStatus.NEEDS_ACTION)],
+				false,
+				"only names changed",
+			],
+			[
+				"attendees",
+				[att("b@c.d", "b", CalendarAttendeeStatus.NEEDS_ACTION)],
+				[att("B@C.D", "b", CalendarAttendeeStatus.NEEDS_ACTION)],
+				false,
+				"only address case changed",
+			],
+			["attendees", [att("b@c.d", "b", CalendarAttendeeStatus.NEEDS_ACTION)], [], true, "attendee changed"],
+			[
+				"attendees",
+				[att("b@c.d", "b", CalendarAttendeeStatus.NEEDS_ACTION)],
+				[att("b@c.d", "b", CalendarAttendeeStatus.ACCEPTED)],
+				true,
+				"status changed",
+			],
+			// repeat rule is tested with areRepeatRulesEqual
+		] as const
+
+		for (const [attr, now, previous, expected, msg] of cases) {
+			o(`${attr} changed -> ${expected}`, function () {
+				o(eventHasChanged(createCalendarEvent({ [attr]: now }), createCalendarEvent({ [attr]: previous }))).equals(expected)(msg ?? attr)
+				o(eventHasChanged(createCalendarEvent({ [attr]: now }), createCalendarEvent({ [attr]: now }))).equals(false)(`do not change ${msg}`)
+			})
+		}
+
+		o("same object -> false", function () {
+			const event = createCalendarEvent({})
+			o(eventHasChanged(event, event)).equals(false)
 		})
-		o("available for premium users with business subscription", async function () {
-			const userController = makeUserController([], AccountType.PAID, "", true)
-			const model = new CalendarEventModel(
-				null,
-				EventType.OWN,
-				editModels,
-				userController,
-				distributor,
-				calendarModel,
-				entityClient,
-				calendars,
-				"Europe/Berlin",
-				null,
-			)
-			await model.initialized
-			const notAvailable = model.shouldShowSendInviteNotAvailable()
-			o(notAvailable).equals(false)
+	})
+
+	const dw = (d) => createDateWrapper({ date: getDateInZone(d) })
+	o.spec("areRepeatRulesEqual", function () {
+		// property, now, previous, expected, msg
+		const cases = [
+			["endType", EndType.Never, EndType.Count, false],
+			["endValue", "10", "15", false],
+			["frequency", RepeatPeriod.DAILY, RepeatPeriod.MONTHLY, false],
+			["interval", "10", "15", false],
+			["excludedDates", [] as Array<DateWrapper>, [] as Array<DateWrapper>, true, "no exclusions"],
+			["excludedDates", [] as Array<DateWrapper>, [dw("2023-02-01")] as Array<DateWrapper>, false, "added exclusion"],
+			["excludedDates", [dw("2023-02-01")] as Array<DateWrapper>, [dw("2023-02-01")] as Array<DateWrapper>, true, "same exclusions"],
+		] as const
+
+		for (const [attr, now, previous, expected, msg] of cases) {
+			o(`${attr} changed -> ${expected}`, function () {
+				o(areRepeatRulesEqual(createRepeatRule({ [attr]: now }), createRepeatRule({ [attr]: previous }))).equals(expected)(msg ?? attr)
+				o(areRepeatRulesEqual(createRepeatRule({ [attr]: now }), createRepeatRule({ [attr]: now }))).equals(true)(`do not change ${msg}`)
+			})
+		}
+		o("same object -> true", function () {
+			const r1 = createRepeatRule({})
+			o(areRepeatRulesEqual(r1, r1)).equals(true)
 		})
-		o("available for external users", async function () {
-			const userController = makeUserController([], AccountType.EXTERNAL, "", false)
-			const model = new CalendarEventModel(
-				null,
-				EventType.OWN,
-				editModels,
-				userController,
-				distributor,
-				calendarModel,
-				entityClient,
-				calendars,
-				"Europe/Berlin",
-				null,
-			)
-			await model.initialized
-			const notAvailable = model.shouldShowSendInviteNotAvailable()
-			o(notAvailable).equals(false)
+	})
+
+	o.spec("areExcludedDatesEqual", function () {
+		o("empty arrays are equal", function () {
+			o(areExcludedDatesEqual([], [])).equals(true)
+		})
+		o("a nonempty array with an empty array is unequal", function () {
+			o(areExcludedDatesEqual([], [dw("2023-03-06T13:56")])).equals(false)
+			o(areExcludedDatesEqual([dw("2023-03-06T13:56")], [])).equals(false)
+		})
+		o("nonequal if an array is a subsequence of the other", function () {
+			const a = [dw("2023-03-06T13:56"), dw("2023-03-09T13:56")]
+			o(areExcludedDatesEqual(a, a.slice(1))).equals(false)
+		})
+
+		o("nonequal if the dates are different", function () {
+			o(areExcludedDatesEqual([dw("2023-03-06T13:56")], [dw("2023-03-09T13:56")])).equals(false)
+		})
+
+		o("equal if the dates are the same", function () {
+			o(areExcludedDatesEqual([dw("2023-03-06T13:56")], [dw("2023-03-06T13:56")])).equals(true)
 		})
 	})
 })

@@ -136,12 +136,12 @@ export class MultiDayCalendarView implements Component<Attrs> {
 				onmouseup: (mouseEvent: EventRedraw<MouseEvent>) => {
 					mouseEvent.redraw = false
 
-					this._endDrag()
+					this._endDrag(mouseEvent)
 				},
 				onmouseleave: (mouseEvent: EventRedraw<MouseEvent>) => {
 					mouseEvent.redraw = false
 
-					this._endDrag()
+					this._endDrag(mouseEvent)
 				},
 			},
 			[
@@ -575,11 +575,11 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		)
 	}
 
-	_endDrag() {
+	_endDrag(pos: MousePos) {
 		this._isHeaderEventBeingDragged = false
 
 		if (this._dateUnderMouse) {
-			this._eventDragHandler.endDrag(this._dateUnderMouse).catch(ofClass(UserError, showUserError))
+			this._eventDragHandler.endDrag(this._dateUnderMouse, pos).catch(ofClass(UserError, showUserError))
 		}
 	}
 }

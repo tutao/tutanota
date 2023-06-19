@@ -10,7 +10,7 @@ import { lang, TranslationText } from "../../misc/LanguageViewModel"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../HtmlUtils"
 import type { $Promisable, lazy, lazyAsync } from "@tutao/tutanota-utils"
-import { assertNotNull, delay, downcast, filterNull, neverNull, Thunk } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, downcast, filterNull, makeSingleUse, neverNull, noOp, Thunk } from "@tutao/tutanota-utils"
 import { client } from "../../misc/ClientDetector"
 import { pureComponent } from "./PureComponent"
 import type { clickHandler } from "./GuiUtils"
@@ -403,9 +403,20 @@ export function createAsyncDropdown({
 	}
 }
 
-export function showDropdownAtPosition(buttons: ReadonlyArray<DropdownChildAttrs>, xPos: number, yPos: number, width: number = 200) {
+export function showDropdownAtPosition(
+	buttons: ReadonlyArray<DropdownChildAttrs>,
+	xPos: number,
+	yPos: number,
+	closeHandler: Thunk = noOp,
+	width: number = 200,
+) {
 	const dropdown = new Dropdown(() => buttons, width)
+	const close = makeSingleUse<void>(() => {
+		closeHandler()
+		dropdown.close()
+	})
 	dropdown.setOrigin(new DomRectReadOnlyPolyfilled(xPos, yPos, 0, 0))
+	dropdown.setCloseHandler(close)
 	modal.displayUnique(dropdown, false)
 }
 

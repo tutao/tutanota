@@ -84,6 +84,7 @@ export class CalendarEventPopup implements ModalComponent {
 						{
 							label: "updateOneCalendarEvent_action",
 							click: () => {
+								// noinspection JSIgnoredPromiseFromCall
 								this.model.editSingle()
 								this.close()
 							},
@@ -91,6 +92,7 @@ export class CalendarEventPopup implements ModalComponent {
 						{
 							label: "updateAllCalendarEvents_action",
 							click: () => {
+								// noinspection JSIgnoredPromiseFromCall
 								this.model.editAll()
 								this.close()
 							},
@@ -144,7 +146,8 @@ export class CalendarEventPopup implements ModalComponent {
 										setParticipation: async (status) => {
 											await this.model.setOwnAttendance(status)
 											// closing this since repeated edit operations from the popup would always
-											// use the version of the event the popup was opened with.
+											// use the version of the event the popup was opened with, which means the next
+											// click uses an outdated version.
 											this.close()
 										},
 								  }

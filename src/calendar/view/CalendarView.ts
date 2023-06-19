@@ -37,7 +37,7 @@ import type { HtmlSanitizer } from "../../misc/HtmlSanitizer"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import { calendarNavConfiguration, CalendarViewType } from "./CalendarGuiUtils"
 import { CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
-import { CalendarEventEditMode, showNewCalendarEventEditDialog } from "./eventeditor/CalendarEventEditDialog.js"
+import { CalendarOperation, showNewCalendarEventEditDialog } from "./eventeditor/CalendarEventEditDialog.js"
 import { CalendarEventPopup } from "./eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import type { CalendarInfo } from "../model/CalendarModel"
@@ -182,7 +182,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								columnLayout: m(CalendarMonthView, {
 									temporaryEvents: this.viewModel.temporaryEvents,
 									eventsForDays: this.viewModel.eventsForDays,
-									getEventsOnDays: this.viewModel.getEventsOnDays.bind(this.viewModel),
+									getEventsOnDaysToRender: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									onEventClicked: (calendarEvent, domEvent) => this._onEventSelected(calendarEvent, domEvent, this.htmlSanitizer),
 									onNewEvent: (date) => {
 										this._createNewEventDialog(date)
@@ -206,7 +206,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								mobileHeader: () => this.renderMobileHeader(vnode.attrs.header),
 								columnLayout: m(MultiDayCalendarView, {
 									temporaryEvents: this.viewModel.temporaryEvents,
-									getEventsOnDays: this.viewModel.getEventsOnDays.bind(this.viewModel),
+									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 1,
 									onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this.htmlSanitizer),
 									onNewEvent: (date) => {
@@ -235,7 +235,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								mobileHeader: () => this.renderMobileHeader(vnode.attrs.header),
 								columnLayout: m(MultiDayCalendarView, {
 									temporaryEvents: this.viewModel.temporaryEvents,
-									getEventsOnDays: this.viewModel.getEventsOnDays.bind(this.viewModel),
+									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 7,
 									onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this.htmlSanitizer),
 									onNewEvent: (date) => {
@@ -386,8 +386,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 		const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
 		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-		const model = await locator.calendarEventModel(getEventWithDefaultTimes(dateToUse), mailboxDetails, mailboxProperties, null)
-		await showNewCalendarEventEditDialog(model)
+		const model = await locator.calendarEventModel(CalendarOperation.Create, getEventWithDefaultTimes(dateToUse), mailboxDetails, mailboxProperties, null)
+		if (model) {
+			await showNewCalendarEventEditDialog(model)
+		}
 	}
 
 	_viewPeriod(viewType: CalendarViewType, next: boolean) {
@@ -804,13 +806,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			hasBusinessFeature,
 			ownAttendee,
 			lazyProgenitor,
-			async (mode: CalendarEventEditMode) => {
-				if (mode === CalendarEventEditMode.All) {
-					return locator.calendarEventModel(await lazyProgenitor(), mailboxDetails, mailboxProperties, null)
-				} else {
-					return locator.calendarEventModel(selectedEvent, mailboxDetails, mailboxProperties, null)
-				}
-			},
+			async (mode: CalendarOperation) => locator.calendarEventModel(mode, selectedEvent, mailboxDetails, mailboxProperties, null),
 		)
 		new CalendarEventPopup(popupModel, rect, htmlSanitizer).show()
 	}

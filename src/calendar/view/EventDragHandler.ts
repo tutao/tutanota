@@ -2,6 +2,8 @@ import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import m from "mithril"
 import { getAllDayDateUTC, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { Time } from "../date/Time.js"
+import { CalendarOperation } from "./eventeditor/CalendarEventEditDialog.js"
+import { showDropdownAtPosition } from "../../gui/base/Dropdown.js"
 
 const DRAG_THRESHOLD = 10
 export type MousePos = {
@@ -19,7 +21,7 @@ type DragData = {
 export interface EventDragHandlerCallbacks {
 	readonly onDragStart: (calendarEvent: CalendarEvent, timeToMoveBy: number) => void
 	readonly onDragUpdate: (timeToMoveBy: number) => void
-	readonly onDragEnd: (timeToMoveBy: number) => Promise<void>
+	readonly onDragEnd: (timeToMoveBy: number, mode: CalendarOperation | null) => Promise<void>
 }
 
 /**
@@ -83,6 +85,7 @@ export class EventDragHandler {
 	 * Will be a no-op if the prepareDrag hasn't been called or if cancelDrag has been called since the last prepareDrag call
 	 * The dragging doesn't actually begin until the distance between the mouse and it's original location is greater than some threshold
 	 * @param dateUnderMouse The current date under the mouse courser, may include a time.
+	 * @param mousePos the position of the mouse when the drag ended.
 	 */
 	handleDrag(dateUnderMouse: Date, mousePos: MousePos) {
 		if (this._data) {
@@ -124,7 +127,7 @@ export class EventDragHandler {
 	 *
 	 * This function will only trigger when prepareDrag has been called
 	 */
-	async endDrag(dateUnderMouse: Date): Promise<void> {
+	async endDrag(dateUnderMouse: Date, pos: MousePos): Promise<void> {
 		this._draggingArea.classList.remove("cursor-grabbing")
 
 		if (this._isDragging && this._data) {
@@ -136,9 +139,20 @@ export class EventDragHandler {
 			this._data = null
 			const diffBetweenDates = this.getDayUnderMouseDiff(dragData, adjustedDateUnderMouse)
 
+			// technically, we should check that this event is EventType OWN or SHARED_RW, but we'll assume that we're
+			// not allowed to drag events where that's not the case.
+			// note that we're not allowing changing the whole series from dragging an altered instance.
+			const { repeatRule, recurrenceId } = dragData.originalEvent
+			// prettier-ignore
+			const mode = repeatRule != null
+				? await showModeSelectionDropdown(pos)
+				: recurrenceId != null
+					? CalendarOperation.EditThis
+					: CalendarOperation.EditAll
+
 			// If the date hasn't changed we still have to do the callback so the view model can cancel the drag
 			try {
-				await this._eventDragCallbacks.onDragEnd(diffBetweenDates)
+				await this._eventDragCallbacks.onDragEnd(diffBetweenDates, mode)
 			} finally {
 				this._hasChanged = true
 				m.redraw()
@@ -169,4 +183,18 @@ export class EventDragHandler {
 		this._hasChanged = true
 		this._lastDiffBetweenDates = null
 	}
+}
+
+async function showModeSelectionDropdown(pos: MousePos): Promise<CalendarOperation | null> {
+	return new Promise((resolve) => {
+		showDropdownAtPosition(
+			[
+				{ label: "updateOneCalendarEvent_action", click: () => resolve(CalendarOperation.EditThis) },
+				{ label: "updateAllCalendarEvents_action", click: () => resolve(CalendarOperation.EditAll) },
+			],
+			pos.x,
+			pos.y,
+			() => resolve(null),
+		)
+	})
 }

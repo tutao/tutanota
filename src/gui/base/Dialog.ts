@@ -492,6 +492,10 @@ export class Dialog implements ModalComponent {
 		return dialog
 	}
 
+	/** show a dialog with several buttons on the bottom and return the option that was selected.
+	 *
+	 * never resolves if the user escapes out of the dialog without selecting an option.
+	 * */
 	static choice<T>(
 		message: TranslationText,
 		choices: Array<{

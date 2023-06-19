@@ -12,6 +12,7 @@ import {
 	getCalendarMonth,
 	getDiffIn24hIntervals,
 	getDiffIn60mIntervals,
+	getEventType,
 	getStartOfDayWithZone,
 	getStartOfWeek,
 	getTimeZone,
@@ -20,16 +21,24 @@ import {
 	prepareCalendarDescription,
 } from "../../../src/calendar/date/CalendarUtils.js"
 import { lang } from "../../../src/misc/LanguageViewModel.js"
-import { createDateWrapper, createGroup, createGroupMembership, createUser } from "../../../src/api/entities/sys/TypeRefs.js"
-import { AlarmInterval, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/api/common/TutanotaConstants.js"
+import { createDateWrapper, createGroup, createGroupMembership, createUser, User } from "../../../src/api/entities/sys/TypeRefs.js"
+import { AccountType, AlarmInterval, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/api/common/TutanotaConstants.js"
 import { timeStringFromParts } from "../../../src/misc/Formatter.js"
 import { DateTime } from "luxon"
 import { getAllDayDateUTC } from "../../../src/api/common/utils/CommonCalendarUtils.js"
 import { hasCapabilityOnGroup } from "../../../src/sharing/GroupUtils.js"
 import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { createCalendarEvent, createCalendarRepeatRule } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	createCalendarEvent,
+	createCalendarEventAttendee,
+	createCalendarRepeatRule,
+	createEncryptedMailAddress,
+} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { identity, lastThrow, neverNull } from "@tutao/tutanota-utils"
 import { Time } from "../../../src/calendar/date/Time.js"
+import { EventType } from "../../../src/calendar/date/eventeditor/CalendarEventModel.js"
+import { CalendarInfo } from "../../../src/calendar/model/CalendarModel.js"
+import { object, replace } from "testdouble"
 
 const zone = "Europe/Berlin"
 
@@ -945,6 +954,169 @@ o.spec("calendar utils tests", function () {
 			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
 			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(false)
 		})
+	})
+	o.spec("getEventType", function () {
+		o("external gets EXTERNAL", function () {
+			const event = {}
+			const calendars: Map<string, CalendarInfo> = new Map()
+			const ownMailAddresses = []
+			const user: User = object()
+			user.accountType = AccountType.EXTERNAL
+			o(getEventType(event, calendars, ownMailAddresses, user)).equals(EventType.EXTERNAL)
+		})
+
+		o("if no ownergroup but organizer, gets OWN", function () {
+			const event: Partial<CalendarEvent> = { organizer: createEncryptedMailAddress({ address: "my@address.to", name: "my" }) }
+			const calendars = new Map()
+			const ownMailAddresses = ["my@address.to"]
+			const user: User = object()
+			user.accountType = AccountType.PAID
+			o(getEventType(event, calendars, ownMailAddresses, user)).equals(EventType.OWN)
+		})
+
+		o("if no ownergroup and not organizer, gets INVITE", function () {
+			const event: Partial<CalendarEvent> = { organizer: createEncryptedMailAddress({ address: "no@address.to", name: "my" }) }
+			const calendars = new Map()
+			const ownMailAddresses = ["my@address.to"]
+			const user: User = object()
+			user.accountType = AccountType.PAID
+			o(getEventType(event, calendars, ownMailAddresses, user)).equals(EventType.INVITE)
+		})
+
+		o("event in not any of our calendars gets SHARED_RO", function () {
+			const event: Partial<CalendarEvent> = { organizer: createEncryptedMailAddress({ address: "no@address.to", name: "my" }), _ownerGroup: "ownergroup" }
+			const calendars = new Map()
+			const ownMailAddresses = ["my@address.to"]
+			const user: User = object()
+			user.accountType = AccountType.PAID
+			o(getEventType(event, calendars, ownMailAddresses, user)).equals(EventType.SHARED_RO)
+		})
+
+		o("event in rw-shared calendar w/o attendees gets SHARED_RW", function () {
+			const event: Partial<CalendarEvent> = { organizer: createEncryptedMailAddress({ address: "no@address.to", name: "my" }), _ownerGroup: "ownergroup" }
+			const calendars = new Map()
+			calendars.set("ownergroup", {
+				shared: true,
+				group: createGroup({
+					_id: "calendarGroup",
+					type: GroupType.Calendar,
+					user: "otherUser",
+				}),
+			})
+			const ownMailAddresses = ["my@address.to"]
+			const user: User = object()
+			user.accountType = AccountType.PAID
+			user.memberships = [
+				createGroupMembership({
+					group: "calendarGroup",
+					capability: ShareCapability.Write,
+				}),
+			]
+			replace(user, "_id", ["userList", "userId"])
+			o(getEventType(event, calendars, ownMailAddresses, user)).equals(EventType.SHARED_RW)
+		})
+
+		o("event in rw-shared calendar w attendees gets LOCKED", function () {
+			const event: Partial<CalendarEvent> = {
+				organizer: createEncryptedMailAddress({ address: "no@address.to", name: "my" }),
+				_ownerGroup: "ownergroup",
+				attendees: [createCalendarEventAttendee({ address: createEncryptedMailAddress({ address: "bla", name: "blabla" }) })],
+			}
+			const calendars = new Map()
+			calendars.set("ownergroup", {
+				shared: true,
+				group: createGroup({
+					_id: "calendarGroup",
+					type: GroupType.Calendar,
+					user: "otherUser",
+				}),
+			})
+			const ownMailAddresses = ["my@address.to"]
+			const user: User = object()
+			user.accountType = AccountType.PAID
+			user.memberships = [
+				createGroupMembership({
+					group: "calendarGroup",
+					capability: ShareCapability.Write,
+				}),
+			]
+			replace(user, "_id", ["userList", "userId"])
+			o(getEventType(event, calendars, ownMailAddresses, user)).equals(EventType.LOCKED)
+		})
+
+		o("event with ownergroup in own calendar where we're organizer gets OWN", function () {
+			const event: Partial<CalendarEvent> = {
+				organizer: createEncryptedMailAddress({ address: "my@address.to", name: "my" }),
+				_ownerGroup: "ownergroup",
+				attendees: [createCalendarEventAttendee({ address: createEncryptedMailAddress({ address: "bla", name: "blabla" }) })],
+			}
+			const calendars = new Map()
+			calendars.set("ownergroup", {
+				shared: false,
+				group: createGroup({
+					_id: "calendarGroup",
+					type: GroupType.Calendar,
+					user: "userId",
+				}),
+			})
+			const ownMailAddresses = ["my@address.to"]
+			const user: User = object()
+			user.accountType = AccountType.PAID
+			user.memberships = []
+			replace(user, "_id", ["userList", "userId"])
+			o(getEventType(event, calendars, ownMailAddresses, user)).equals(EventType.OWN)
+		})
+	})
+
+	o("event with ownergroup in ro-shared calendar gets shared_ro", function () {
+		const event: Partial<CalendarEvent> = {
+			organizer: createEncryptedMailAddress({ address: "no@address.to", name: "my" }),
+			_ownerGroup: "ownergroup",
+			attendees: [createCalendarEventAttendee({ address: createEncryptedMailAddress({ address: "bla", name: "blabla" }) })],
+		}
+		const calendars = new Map()
+		calendars.set("ownergroup", {
+			shared: true,
+			group: createGroup({
+				_id: "calendarGroup",
+				type: GroupType.Calendar,
+				user: "otherUser",
+			}),
+		})
+		const ownMailAddresses = ["my@address.to"]
+		const user: User = object()
+		user.accountType = AccountType.PAID
+		user.memberships = [
+			createGroupMembership({
+				group: "calendarGroup",
+				capability: ShareCapability.Read,
+			}),
+		]
+		replace(user, "_id", ["userList", "userId"])
+		o(getEventType(event, calendars, ownMailAddresses, user)).equals(EventType.SHARED_RO)
+	})
+
+	o("event with ownergroup in own calendar and a different organizer gets INVITE", function () {
+		const event: Partial<CalendarEvent> = {
+			organizer: createEncryptedMailAddress({ address: "other@address.to", name: "other" }),
+			_ownerGroup: "ownergroup",
+			attendees: [createCalendarEventAttendee({ address: createEncryptedMailAddress({ address: "bla", name: "blabla" }) })],
+		}
+		const calendars = new Map()
+		calendars.set("ownergroup", {
+			shared: false,
+			group: createGroup({
+				_id: "calendarGroup",
+				type: GroupType.Calendar,
+				user: "userId",
+			}),
+		})
+		const ownMailAddresses = ["my@address.to"]
+		const user: User = object()
+		user.accountType = AccountType.PAID
+		user.memberships = []
+		replace(user, "_id", ["userList", "userId"])
+		o(getEventType(event, calendars, ownMailAddresses, user)).equals(EventType.INVITE)
 	})
 })
 

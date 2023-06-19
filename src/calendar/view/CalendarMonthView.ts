@@ -44,7 +44,7 @@ type CalendarMonthAttrs = {
 	selectedDate: Date
 	onDateSelected: (date: Date, calendarViewTypeToShow: CalendarViewType) => unknown
 	eventsForDays: Map<number, Array<CalendarEvent>>
-	getEventsOnDays: (range: Array<Date>) => EventsOnDays
+	getEventsOnDaysToRender: (range: Array<Date>) => EventsOnDays
 	onNewEvent: (date: Date | null) => unknown
 	onEventClicked: CalendarEventBubbleClickHandler
 	onChangeMonth: (next: boolean) => unknown
@@ -103,12 +103,13 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		const nextMonthDate = new Date(attrs.selectedDate)
 		nextMonthDate.setMonth(nextMonthDate.getMonth() + 1)
 		const nextMonth = getCalendarMonth(nextMonthDate, startOfTheWeekOffset, false)
-		let lastMontDate = incrementMonth(attrs.selectedDate, -1)
+		let lastMonthDate = incrementMonth(attrs.selectedDate, -1)
 		let nextMontDate = incrementMonth(attrs.selectedDate, 1)
 		return m(PageView, {
 			previousPage: {
-				key: getFirstDayOfMonth(lastMontDate).getTime(),
-				nodes: this._monthDom ? this._renderCalendar(attrs, previousMonth, thisMonth, lastMontDate, this._zone) : null,
+				key: getFirstDayOfMonth(lastMonthDate).getTime(),
+				// FIXME
+				nodes: null, // this._monthDom ? this._renderCalendar(attrs, previousMonth, thisMonth, lastMonthDate, this._zone) : null,
 			},
 			currentPage: {
 				key: getFirstDayOfMonth(attrs.selectedDate).getTime(),
@@ -116,7 +117,8 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			},
 			nextPage: {
 				key: getFirstDayOfMonth(nextMontDate).getTime(),
-				nodes: this._monthDom ? this._renderCalendar(attrs, nextMonth, thisMonth, nextMontDate, this._zone) : null,
+				// FIXME
+				nodes: null, // this._monthDom ? this._renderCalendar(attrs, nextMonth, thisMonth, nextMontDate, this._zone) : null,
 			},
 			onChangePage: (next) => attrs.onChangeMonth(next),
 		})
@@ -144,7 +146,6 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 
 	_renderCalendar(attrs: CalendarMonthAttrs, month: CalendarMonth, currentlyVisibleMonth: CalendarMonth, date: Date, zone: string): Children {
 		const { weekdays, weeks } = month
-		const firstDay = getFirstDayOfMonth(date)
 		const today = getStartOfDayWithZone(new Date(), getTimeZone())
 		return m(".fill-absolute.flex.col.mlr-safe-inset.content-bg", [
 			styles.isDesktopLayout() ? null : m(".pt-s"),
@@ -180,12 +181,12 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					onmouseup: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
 						mouseEvent.redraw = false
 
-						this._endDrag()
+						this._endDrag(mouseEvent)
 					},
 					onmouseleave: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
 						mouseEvent.redraw = false
 
-						this._endDrag()
+						this._endDrag(mouseEvent)
 					},
 				},
 				weeks.map((week) => {
@@ -201,7 +202,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		])
 	}
 
-	_endDrag() {
+	_endDrag(pos: MousePos) {
 		const dayUnderMouse = this._dayUnderMouse
 		const originalDate = this._eventDragHandler.originalEvent?.startTime
 
@@ -209,16 +210,17 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			//make sure the date we move to also gets a time
 			const dateUnderMouse = Time.fromDate(originalDate).toDate(dayUnderMouse)
 
-			this._eventDragHandler.endDrag(dateUnderMouse).catch(ofClass(UserError, showUserError))
+			this._eventDragHandler.endDrag(dateUnderMouse, pos).catch(ofClass(UserError, showUserError))
 		}
 	}
 
+	/** render the grid of days */
 	_renderDay(attrs: CalendarMonthAttrs, day: CalendarDay, today: Date, weekDayNumber: number): Children {
 		const { selectedDate } = attrs
 		const isSelectedDate = isSameDay(selectedDate, day.date)
 		return m(
 			".calendar-day.calendar-column-border.flex-grow.rel.overflow-hidden.fill-absolute.cursor-pointer" +
-				(day.paddingDay ? ".calendar-alternate-background" : ""),
+				(day.isPaddingDay ? ".calendar-alternate-background" : ""),
 			{
 				key: day.date.getTime(),
 				onclick: (e: MouseEvent) => {
@@ -273,8 +275,9 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		])
 	}
 
+	/** render the events for the given week */
 	_renderWeekEvents(attrs: CalendarMonthAttrs, week: Array<CalendarDay>, zone: string): Children {
-		const eventsOnDays = attrs.getEventsOnDays(week.map((day) => day.date))
+		const eventsOnDays = attrs.getEventsOnDaysToRender(week.map((day) => day.date))
 		const events = new Set(eventsOnDays.longEvents.concat(eventsOnDays.shortEvents.flat()))
 		const firstDayOfWeek = week[0].date
 		const lastDayOfWeek = lastThrow(week)
@@ -286,8 +289,9 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		const eventHeight = size.calendar_line_height + spaceBetweenEvents() // height + border
 
 		const maxEventsPerDay = (weekHeight - dayHeight()) / eventHeight
-		const eventsPerDay = Math.floor(maxEventsPerDay) - 1 // preserve some space for the more events indicator
+		const numberOfEventsPerDayToRender = Math.floor(maxEventsPerDay) - 1 // preserve some space for the more events indicator
 
+		/** initially, we have 0 extra, non-rendered events on each day of the week */
 		const moreEventsForDay = [0, 0, 0, 0, 0, 0, 0]
 		const eventMargin = styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile
 		const firstDayOfNextWeek = getStartOfNextDayWithZone(lastDayOfWeek.date, zone)
@@ -296,9 +300,9 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			zone,
 			(columns) => {
 				return columns
-					.map((events, columnIndex) => {
-						return events.map((event) => {
-							if (columnIndex < eventsPerDay) {
+					.map((eventsInColumn, columnIndex) => {
+						return eventsInColumn.map((event) => {
+							if (columnIndex < numberOfEventsPerDayToRender) {
 								const eventIsAllDay = isAllDayEventByTimes(event.startTime, event.endTime)
 								const eventStart = eventIsAllDay ? getAllDayDateForTimezone(event.startTime, zone) : event.startTime
 								const eventEnd = eventIsAllDay ? incrementDate(getEventEnd(event, zone), -1) : event.endTime
@@ -312,14 +316,13 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 									dayHeight(),
 									columnIndex,
 								)
-
 								return this.renderEvent(event, position, eventStart, firstDayOfWeek, firstDayOfNextWeek, eventEnd, attrs)
 							} else {
-								week.forEach((dayInWeek, index) => {
+								week.forEach((dayInWeek, dayIndex) => {
 									const eventsForDay = attrs.eventsForDays.get(dayInWeek.date.getTime())
 
 									if (eventsForDay && eventsForDay.indexOf(event) !== -1) {
-										moreEventsForDay[index]++
+										moreEventsForDay[dayIndex]++
 									}
 								})
 								return null
@@ -329,7 +332,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					.concat(
 						moreEventsForDay.map((moreEventsCount, weekday) => {
 							const day = week[weekday]
-							const isPadding = day.paddingDay
+							const isPadding = day.isPaddingDay
 
 							if (moreEventsCount > 0) {
 								return m(

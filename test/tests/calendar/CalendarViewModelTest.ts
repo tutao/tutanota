@@ -1,12 +1,10 @@
 import o from "ospec"
-import { ownerMailAddress, calendarGroupId, makeCalendarModel, makeEvent, makeUserController } from "./CalendarTestUtils.js"
+import { getDateInZone, makeCalendarModel, makeEvent, makeUserController } from "./CalendarTestUtils.js"
 import type { LoginController } from "../../../src/api/main/LoginController.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { assertNotNull, downcast, getStartOfDay, neverNull, noOp } from "@tutao/tutanota-utils"
 import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { createCalendarEvent, createEncryptedMailAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { DateTime } from "luxon"
-import { addDaysForEvent, getTimeZone } from "../../../src/calendar/date/CalendarUtils.js"
+import { addDaysForEventInstance } from "../../../src/calendar/date/CalendarUtils.js"
 import type { CalendarModel } from "../../../src/calendar/model/CalendarModel.js"
 import { CalendarEventEditModelsFactory, CalendarViewModel } from "../../../src/calendar/view/CalendarViewModel.js"
 import { CalendarEventModel, EventSaveResult } from "../../../src/calendar/date/eventeditor/CalendarEventModel.js"
@@ -21,6 +19,7 @@ import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js
 import { ReceivedGroupInvitationsModel } from "../../../src/sharing/model/ReceivedGroupInvitationsModel.js"
 import { ProgressMonitor } from "../../../src/api/common/utils/ProgressMonitor.js"
 import { object, when } from "testdouble"
+import { CalendarOperation } from "../../../src/calendar/view/eventeditor/CalendarEventEditDialog.js"
 
 let saveAndSendMock
 let rescheduleEventMock
@@ -64,24 +63,24 @@ o.spec("CalendarViewModel", async function () {
 
 	function init(events) {
 		const month = {
-			start: new Date(2021, 0, 1),
-			end: new Date(2021, 0, 30),
+			start: getDateInZone("2021-01-01").getTime(),
+			end: getDateInZone("2021-01-31").getTime(),
 		}
 		const eventsForDays = new Map()
 
 		for (let event of events) {
-			addDaysForEvent(eventsForDays, event, month)
+			addDaysForEventInstance(eventsForDays, event, month)
 		}
 
 		return {
 			days: [
-				new Date(2021, 0, 1),
-				new Date(2021, 0, 2),
-				new Date(2021, 0, 3),
-				new Date(2021, 0, 4),
-				new Date(2021, 0, 5),
-				new Date(2021, 0, 6),
-				new Date(2021, 0, 7),
+				getDateInZone("2021-01-01"),
+				getDateInZone("2021-01-02"),
+				getDateInZone("2021-01-03"),
+				getDateInZone("2021-01-04"),
+				getDateInZone("2021-01-05"),
+				getDateInZone("2021-01-06"),
+				getDateInZone("2021-01-07"),
 			],
 			eventsForDays,
 			month,
@@ -119,7 +118,7 @@ o.spec("CalendarViewModel", async function () {
 			o(viewModel._draggedEvent?.eventClone.endTime.toISOString()).equals(new Date(2021, 8, 25).toISOString())
 			const temporaryEvent = neverNull(viewModel._draggedEvent?.eventClone)
 			let diff = new Date(2021, 8, 25).getTime() - originalDate.getTime()
-			const endDragPromise = viewModel.onDragEnd(diff)
+			const endDragPromise = viewModel.onDragEnd(CalendarOperation.EditAll, diff)
 			o(viewModel._draggedEvent?.eventClone).equals(undefined)
 			o(viewModel._transientEvents).deepEquals([temporaryEvent])
 			await endDragPromise
@@ -143,7 +142,7 @@ o.spec("CalendarViewModel", async function () {
 			const event = makeEvent("event", originalDate, new Date(2021, 8, 23))
 			simulateDrag(event, new Date(2021, 8, 24), viewModel)
 			let diff = new Date(2021, 8, 25).getTime() - originalDate.getTime()
-			const endDragPromise = viewModel.onDragEnd(diff)
+			const endDragPromise = viewModel.onDragEnd(CalendarOperation.EditAll, diff)
 			await assertThrows(Error, () => endDragPromise)
 			// The callback threw, so we remove our event from transient events
 			o(viewModel._draggedEvent?.eventClone).equals(undefined)
@@ -160,7 +159,7 @@ o.spec("CalendarViewModel", async function () {
 			const temporaryEvent1 = neverNull(viewModel._draggedEvent?.eventClone)
 			//star first drop
 			let diff = new Date(2021, 8, 25).getTime() - origStartDate1.getTime()
-			const endDragPromise1 = viewModel.onDragEnd(diff)
+			const endDragPromise1 = viewModel.onDragEnd(CalendarOperation.EditAll, diff)
 			//start second drag
 			simulateDrag(event2, new Date(2021, 8, 24), viewModel)
 			const temporaryEvent2 = neverNull(viewModel._draggedEvent?.eventClone)
@@ -169,7 +168,7 @@ o.spec("CalendarViewModel", async function () {
 			o(viewModel._transientEvents).deepEquals([temporaryEvent1])
 			//start second drop
 			diff = new Date(2021, 8, 25).getTime() - origStartDate2.getTime()
-			const endDragPromise2 = viewModel.onDragEnd(diff)
+			const endDragPromise2 = viewModel.onDragEnd(CalendarOperation.EditAll, diff)
 			// Now we have two transient events
 			o(viewModel._draggedEvent?.originalEvent).equals(undefined)
 			o(viewModel._transientEvents).deepEquals([temporaryEvent1, temporaryEvent2])
@@ -185,8 +184,8 @@ o.spec("CalendarViewModel", async function () {
 			// testdouble seems to have difficulty with multiple arguments on .thenResolve
 			let tryCount = 0
 			const viewModel = initCalendarViewModel(async () => {
-				const saveModel: CalendarEventModel = object()
-				when(saveModel.updateExistingEvent()).thenDo(() => {
+				const eventModel: CalendarEventModel = object()
+				when(eventModel.apply()).thenDo(() => {
 					tryCount++
 					if (tryCount === 1) {
 						return EventSaveResult.Saved
@@ -194,7 +193,7 @@ o.spec("CalendarViewModel", async function () {
 						return EventSaveResult.Failed
 					}
 				})
-				return saveModel
+				return eventModel
 			})
 			let origStartDate1 = new Date(2021, 8, 22)
 			const event1 = makeEvent("event1", origStartDate1, new Date(2021, 8, 23), "uid1")
@@ -205,7 +204,7 @@ o.spec("CalendarViewModel", async function () {
 			const temporaryEvent1 = neverNull(viewModel._draggedEvent?.eventClone)
 			//star first drop
 			let diff = new Date(2021, 8, 25).getTime() - origStartDate1.getTime()
-			const endDragPromise1 = viewModel.onDragEnd(diff)
+			const endDragPromise1 = viewModel.onDragEnd(CalendarOperation.EditAll, diff)
 			//End first drop
 			await endDragPromise1
 			//start second drag
@@ -215,7 +214,7 @@ o.spec("CalendarViewModel", async function () {
 			o(viewModel._transientEvents).deepEquals([temporaryEvent1])
 			//star second drop
 			diff = new Date(2021, 8, 25).getTime() - origStartDate2.getTime()
-			const endDragPromise2 = viewModel.onDragEnd(diff)
+			const endDragPromise2 = viewModel.onDragEnd(CalendarOperation.EditAll, diff)
 			// Now we have two transient events
 			o(viewModel._draggedEvent?.originalEvent).equals(undefined)
 			o(viewModel._transientEvents).deepEquals([temporaryEvent1, temporaryEvent2])
@@ -229,7 +228,7 @@ o.spec("CalendarViewModel", async function () {
 			let tryCount = 0
 			const viewModel = initCalendarViewModel(async () => {
 				const saveModel: CalendarEventModel = object()
-				when(saveModel.updateExistingEvent()).thenDo(() => {
+				when(saveModel.apply()).thenDo(() => {
 					tryCount++
 					if (tryCount === 1) {
 						return EventSaveResult.Failed
@@ -248,7 +247,7 @@ o.spec("CalendarViewModel", async function () {
 			const temporaryEvent1 = assertNotNull(viewModel._draggedEvent?.eventClone, "temporary 1 was null")
 			//start first drop
 			let diff = new Date(2021, 8, 25).getTime() - origStartDate1.getTime()
-			const endDragPromise1 = viewModel.onDragEnd(diff)
+			const endDragPromise1 = viewModel.onDragEnd(CalendarOperation.EditAll, diff)
 			//start second drag
 			simulateDrag(event2, new Date(2021, 8, 24), viewModel)
 			const temporaryEvent2 = assertNotNull(viewModel._draggedEvent?.eventClone, "temporary 2 was null")
@@ -259,7 +258,7 @@ o.spec("CalendarViewModel", async function () {
 			//start second drop
 			diff = new Date(2021, 8, 25).getTime() - origStartDate1.getTime()
 			//this will not fail
-			const endDragPromise2 = viewModel.onDragEnd(diff)
+			const endDragPromise2 = viewModel.onDragEnd(CalendarOperation.EditAll, diff)
 			// Now we have two temporary events and we are not dragging anymore
 			o(viewModel._draggedEvent?.originalEvent).equals(undefined)
 			o(viewModel._transientEvents).deepEquals([temporaryEvent1, temporaryEvent2])
@@ -274,9 +273,9 @@ o.spec("CalendarViewModel", async function () {
 		o("Before drag, input events are all used", async function () {
 			const viewModel = initCalendarViewModel(makeCalendarEventModel)
 			const inputEvents = [
-				makeEvent("event1", new Date(2021, 0, 1), new Date(2021, 0, 2), "uid1"),
-				makeEvent("event2", new Date(2021, 0, 1), new Date(2021, 0, 3), "uid2"),
-				makeEvent("event3", new Date(2021, 0, 3, 13, 0), new Date(2021, 0, 3, 14, 30), "uid3"),
+				makeEvent("event1", getDateInZone("2021-01-01"), getDateInZone("2021-01-02"), "uid1"),
+				makeEvent("event2", getDateInZone("2021-01-01"), getDateInZone("2021-01-03"), "uid2"),
+				makeEvent("event3", getDateInZone("2021-01-03T13:00"), getDateInZone("2021-01-03T14:30"), "uid3"),
 			]
 			const { days, eventsForDays } = init(inputEvents)
 			const expected = {
@@ -286,12 +285,13 @@ o.spec("CalendarViewModel", async function () {
 
 			viewModel._replaceEvents(eventsForDays)
 
-			const { shortEvents, longEvents } = viewModel.getEventsOnDays(days)
+			const { shortEvents, longEvents } = viewModel.getEventsOnDaysToRender(days)
 			o({
 				shortEvents,
 				longEvents: Array.from(longEvents),
 			}).deepEquals(expected)
 		})
+
 		o("During drag, temporary event overrides the original version", async function () {
 			const viewModel = initCalendarViewModel(makeCalendarEventModel)
 			let originalDateForDraggedEvent = new Date(2021, 0, 3, 13, 0)
@@ -304,13 +304,12 @@ o.spec("CalendarViewModel", async function () {
 
 			viewModel._replaceEvents(eventsForDays)
 
-			//drag
 			simulateDrag(inputEvents[2], new Date(2021, 0, 4, 13, 0), viewModel)
 			const expected = {
 				shortEvents: [[], [], [], [viewModel._draggedEvent?.eventClone], [], [], []],
 				longEvents: [inputEvents[0], inputEvents[1]],
 			} as any
-			const { shortEvents, longEvents } = viewModel.getEventsOnDays(days)
+			const { shortEvents, longEvents } = viewModel.getEventsOnDaysToRender(days)
 			o({
 				shortEvents: shortEvents,
 				longEvents: Array.from(longEvents),
@@ -318,29 +317,27 @@ o.spec("CalendarViewModel", async function () {
 		})
 		o("After drop, before load", async function () {
 			const viewModel = initCalendarViewModel(makeCalendarEventModel)
-			let originalDateForDraggedEvent = new Date(2021, 0, 3, 13, 0)
+			let originalDateForDraggedEvent = getDateInZone("2021-01-03T13:00")
 			const inputEvents = [
-				makeEvent("event1", new Date(2021, 0, 1), new Date(2021, 0, 2), "uid1"),
-				makeEvent("event2", new Date(2021, 0, 1), new Date(2021, 0, 3), "uid2"),
+				makeEvent("event1", getDateInZone("2021-01-01"), getDateInZone("2021-01-02"), "uid1"),
+				makeEvent("event2", getDateInZone("2021-01-01"), getDateInZone("2021-01-03"), "uid2"),
 				makeEvent("event3", originalDateForDraggedEvent, new Date(2021, 0, 3, 14, 30), "uid3"),
 			]
 			const { days, eventsForDays, month } = init(inputEvents)
 
 			viewModel._replaceEvents(eventsForDays)
 
-			//drag
-			simulateDrag(inputEvents[2], new Date(2021, 0, 4, 13, 0), viewModel)
-			//end drag
-			await simulateEndDrag(originalDateForDraggedEvent, new Date(2021, 0, 5, 13, 0), viewModel)
+			//drag 2nd event to the 4th
+			simulateDrag(inputEvents[2], getDateInZone("2021-01-04T13:00"), viewModel)
+			//end drag with dropping the event on the 5th?
+			await simulateEndDrag(originalDateForDraggedEvent, getDateInZone("2021-01-05T13:00"), viewModel)
 			const expected = {
 				shortEvents: [[], [], [], [], [viewModel._transientEvents[0]], [], []],
 				longEvents: [inputEvents[0], inputEvents[1]],
 			}
-			const { shortEvents, longEvents } = viewModel.getEventsOnDays(days)
-			o({
-				shortEvents,
-				longEvents: Array.from(longEvents),
-			}).deepEquals(expected)
+			const { shortEvents, longEvents } = viewModel.getEventsOnDaysToRender(days)
+			o(shortEvents).deepEquals(expected.shortEvents)
+			o(Array.from(longEvents)).deepEquals(expected.longEvents)
 		})
 	})
 	o.spec("entityEventsReceived", function () {
@@ -393,61 +390,23 @@ function simulateDrag(originalEvent: CalendarEvent, newDate: Date, viewModel: Ca
 
 async function simulateEndDrag(originalDate: Date, newDate: Date, viewModel: CalendarViewModel) {
 	let diff = newDate.getTime() - originalDate.getTime()
-	await viewModel.onDragEnd(diff)
+	await viewModel.onDragEnd(diff, CalendarOperation.EditAll)
 }
 
-function makeTestEvent(): CalendarEvent {
-	const zone = getTimeZone()
-
-	const wrapEncIntoMailAddress = (address) =>
-		createEncryptedMailAddress({
-			address,
-		})
-
-	const encMailAddress = wrapEncIntoMailAddress(ownerMailAddress)
-	return createCalendarEvent({
-		summary: "test event",
-		startTime: DateTime.fromObject(
-			{
-				year: 2020,
-				month: 5,
-				day: 26,
-				hour: 12,
-			},
-			{ zone },
-		).toJSDate(),
-		endTime: DateTime.fromObject(
-			{
-				year: 2020,
-				month: 5,
-				day: 26,
-				hour: 13,
-			},
-			{ zone },
-		).toJSDate(),
-		description: "note",
-		location: "location",
-		_ownerGroup: calendarGroupId,
-		organizer: encMailAddress,
-	})
+async function makeCalendarEventModel(mode: CalendarOperation, existingEvent: CalendarEvent): Promise<CalendarEventModel> {
+	const eventModel: CalendarEventModel = object()
+	when(eventModel.apply()).thenResolve(EventSaveResult.Saved)
+	return eventModel
 }
 
-async function makeCalendarEventModel(existingEvent: CalendarEvent): Promise<CalendarEventModel> {
-	const saveModel: CalendarEventModel = object()
-	when(saveModel.updateExistingEvent()).thenResolve(EventSaveResult.Saved)
-	return saveModel
+async function makeCalendarEventEditModelThatFailsSaving(mode: CalendarOperation, existingEvent: CalendarEvent): Promise<CalendarEventModel> {
+	const eventModel: CalendarEventModel = object()
+	when(eventModel.apply()).thenResolve(EventSaveResult.Failed)
+	return eventModel
 }
 
-async function makeCalendarEventEditModelThatFailsSaving(existingEvent: CalendarEvent): Promise<CalendarEventModel> {
-	const saveModel: CalendarEventModel = object()
-	when(saveModel.saveNewEvent()).thenResolve(EventSaveResult.Failed)
-	when(saveModel.updateExistingEvent()).thenResolve(EventSaveResult.Failed)
-	return saveModel
-}
-
-async function makeCalendarEventEditModelThatThrowsOnSaving(existingEvent: CalendarEvent): Promise<CalendarEventModel> {
-	const saveModel: CalendarEventModel = object()
-	when(saveModel.saveNewEvent()).thenReject(new Error("whoopsie"))
-	when(saveModel.updateExistingEvent()).thenReject(new Error("whoopsie"))
-	return saveModel
+async function makeCalendarEventEditModelThatThrowsOnSaving(mode: CalendarOperation, existingEvent: CalendarEvent): Promise<CalendarEventModel> {
+	const eventModel: CalendarEventModel = object()
+	when(eventModel.apply()).thenReject(new Error("whoopsie"))
+	return eventModel
 }

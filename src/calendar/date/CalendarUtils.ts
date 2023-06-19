@@ -1,8 +1,10 @@
 import {
+	assert,
 	clone,
 	downcast,
 	filterInt,
 	findAllAndRemove,
+	findAndRemove,
 	getEndOfDay,
 	getFromMap,
 	getStartOfDay,
@@ -68,9 +70,9 @@ import { EntityClient } from "../../api/common/EntityClient.js"
 assertMainOrNode()
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
 export const TEMPORARY_EVENT_OPACITY = 0.7
-export type CalendarMonthTimeRange = {
-	start: Date
-	end: Date
+export type CalendarTimeRange = {
+	start: number
+	end: number
 }
 
 export function eventStartsBefore(currentDate: Date, zone: string, event: CalendarEvent): boolean {
@@ -112,7 +114,8 @@ export function shouldDefaultToAmPmTimeFormat(): boolean {
 	return lang.code === "en"
 }
 
-export function getMonth(date: Date, zone: string): CalendarMonthTimeRange {
+/** get the timestamps of the start date and end date of the month the given date is in. */
+export function getMonthRange(date: Date, zone: string): CalendarTimeRange {
 	const startDateTime = DateTime.fromJSDate(date, {
 		zone,
 	}).set({
@@ -122,12 +125,13 @@ export function getMonth(date: Date, zone: string): CalendarMonthTimeRange {
 		second: 0,
 		millisecond: 0,
 	})
-	const start = startDateTime.toJSDate()
+	const start = startDateTime.toJSDate().getTime()
 	const end = startDateTime
 		.plus({
 			month: 1,
 		})
 		.toJSDate()
+		.getTime()
 	return {
 		start,
 		end,
@@ -399,6 +403,8 @@ export function layOutEvents(
 	return children
 }
 
+/** get an event that can be rendered to the screen. in day view, the event is returned as-is, otherwise it's stretched to cover each day
+ * it occurs on completely. */
 function getCalculationEvent(event: CalendarEvent, zone: string, eventLayoutMode: EventLayoutMode): CalendarEvent {
 	if (eventLayoutMode === EventLayoutMode.DayBasedColumn) {
 		const calcEvent = clone(event)
@@ -609,8 +615,10 @@ export function assignEventId(event: CalendarEvent, zone: string, groupRoot: Cal
 	event._id = [listId, generateEventElementId(event.startTime.getTime())]
 }
 
-export function isSameEvent(left: CalendarEvent, right: CalendarEvent): boolean {
+/** predicate that tells us if two CalendarEvent objects refer to the same instance or different ones.*/
+export function isSameEventInstance(left: CalendarEvent, right: CalendarEvent): boolean {
 	// in addition to the id we compare the start time equality to be able to distinguish repeating events. They have the same id but different start time.
+	// altered events with recurrenceId never have the same Id as another event instance, but might start at the same time.
 	return isSameId(left._id, right._id) && left.startTime.getTime() === right.startTime.getTime()
 }
 
@@ -660,60 +668,88 @@ export function checkEventValidity(event: CalendarEvent): CalendarEventValidity 
 
 const MAX_EVENT_ITERATIONS = 10000
 
-export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange, zone: string = getTimeZone()) {
-	const eventStart = getEventStart(event, zone)
-	let calculationDate = getStartOfDayWithZone(eventStart, zone)
-	const eventEndDate = getEventEnd(event, zone)
-
-	// only add events when the start time is inside this month
-	if (eventStart.getTime() < month.start.getTime() || eventStart.getTime() >= month.end.getTime()) {
-		return
-	}
-
+/**
+ * add the days the given {@param event} is happening on during the given {@param range} to {@param daysToEvents}.
+ *
+ * ignores repeat rules.
+ * @param zone
+ */
+export function addDaysForEventInstance(
+	daysToEvents: Map<number, Array<CalendarEvent>>,
+	event: CalendarEvent,
+	range: CalendarTimeRange,
+	zone: string = getTimeZone(),
+) {
+	const { start: rangeStart, end: rangeEnd } = range
+	const clippedRange = clipRanges(getEventStart(event, zone).getTime(), getEventEnd(event, zone).getTime(), rangeStart, rangeEnd)
+	// the event and range do not intersect
+	if (clippedRange == null) return
+	const { start: eventStartInRange, end: eventEndInRange } = clippedRange
+	let calculationDate = getStartOfDayWithZone(new Date(eventStartInRange), zone)
+	let calculationTime = calculationDate.getTime()
 	let iterations = 0
 
-	// if start time is in current month then also add events for subsequent months until event ends
-	while (calculationDate.getTime() < eventEndDate.getTime()) {
+	while (calculationTime < rangeEnd) {
 		assertDateIsValid(calculationDate)
-
-		if (iterations > MAX_EVENT_ITERATIONS) {
-			throw new Error("Run into the infinite loop, addDaysForEvent")
-		}
-
-		if (eventEndDate.getTime() >= month.start.getTime()) {
-			insertIntoSortedArray(
-				event,
-				getFromMap(events, calculationDate.getTime(), () => []),
-				eventComparator,
-				isSameEvent,
+		assert(iterations <= MAX_EVENT_ITERATIONS, "Run into the infinite loop, addDaysForEvent")
+		if (calculationTime < eventEndInRange) {
+			const eventsForCalculationDate = getFromMap(daysToEvents, calculationTime, () => [])
+			insertIntoSortedArray(event, eventsForCalculationDate, eventComparator, isSameEventInstance)
+		} else {
+			// If the duration of the original event instance was reduced, we also have to delete the remaining days of the previous event instance.
+			const removed = findAllAndRemove(
+				getFromMap(daysToEvents, calculationTime, () => []),
+				(e) => isSameEventInstance(e, event),
 			)
+			if (!removed) {
+				// no further days this event instance occurred on
+				break
+			}
 		}
 
 		calculationDate = incrementByRepeatPeriod(calculationDate, RepeatPeriod.DAILY, 1, zone)
+		calculationTime = calculationDate.getTime()
 		iterations++
 	}
+}
 
-	// If the duration of the original event was reduced, we also have delete the remaining days of the original event
-	const remainingDaysForExistingEvent: CalendarEvent | null = events.get(calculationDate.getTime())?.find((e) => isSameEvent(e, event)) ?? null
+/** add the days a repeating {@param event} occurs on during {@param range} to {@param daysToEvents} by calling addDaysForEventInstance() for each of its
+ * non-excluded instances.
+ * @param timeZone
+ */
+export function addDaysForRecurringEvent(
+	daysToEvents: Map<number, Array<CalendarEvent>>,
+	event: CalendarEvent,
+	range: CalendarTimeRange,
+	timeZone: string = getTimeZone(),
+) {
+	const repeatRule = event.repeatRule
 
-	if (remainingDaysForExistingEvent) {
-		const existingEventEndDate = getEventEnd(remainingDaysForExistingEvent, zone)
+	if (repeatRule == null) {
+		throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
+	}
+	const allDay = isAllDayEvent(event)
+	const exclusions = allDay
+		? repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date: getAllDayDateForTimezone(date, timeZone) }))
+		: repeatRule.excludedDates
 
-		if (existingEventEndDate.getTime() > eventEndDate.getTime()) {
-			while (calculationDate.getTime() < existingEventEndDate.getTime()) {
-				assertDateIsValid(calculationDate)
-
-				if (iterations > MAX_EVENT_ITERATIONS) {
-					throw new Error("Run into the infinite loop, addDaysForEvent")
-				}
-
-				findAllAndRemove(
-					getFromMap(events, calculationDate.getTime(), () => []),
-					(e) => isSameEvent(e, event),
-				)
-				calculationDate = incrementByRepeatPeriod(calculationDate, RepeatPeriod.DAILY, 1, zone)
-				iterations++
+	for (const { startTime, endTime } of generateEventOccurrences(event, timeZone)) {
+		if (startTime.getTime() > range.end) break
+		if (endTime.getTime() < range.start) continue
+		if (isExcludedDate(startTime, exclusions)) {
+			const eventsOnExcludedDay = daysToEvents.get(getStartOfDayWithZone(startTime, timeZone).getTime())
+			if (!eventsOnExcludedDay) continue
+			findAndRemove(eventsOnExcludedDay, (e) => isSameEventInstance(e, event))
+		} else {
+			const eventClone = clone(event)
+			if (allDay) {
+				eventClone.startTime = getAllDayDateUTCFromZone(startTime, timeZone)
+				eventClone.endTime = getAllDayDateUTCFromZone(endTime, timeZone)
+			} else {
+				eventClone.startTime = new Date(startTime)
+				eventClone.endTime = new Date(endTime)
 			}
+			addDaysForEventInstance(daysToEvents, eventClone, range, timeZone)
 		}
 	}
 }
@@ -740,43 +776,6 @@ export function getRepeatEndTimeForDisplay(repeatRule: RepeatRule, isAllDay: boo
 	const localDate = isAllDay ? getAllDayDateForTimezone(rawEndDate, timeZone) : rawEndDate
 	// Shown date is one day behind the actual end (but it is still excluded)
 	return incrementByRepeatPeriod(localDate, RepeatPeriod.DAILY, -1, timeZone)
-}
-
-export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange, timeZone: string) {
-	const repeatRule = event.repeatRule
-
-	if (repeatRule == null) {
-		throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
-	}
-	const isLong = isLongEvent(event, timeZone)
-	const allDay = isAllDayEvent(event)
-	const exclusions = allDay
-		? repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date: getAllDayDateForTimezone(date, timeZone) }))
-		: repeatRule.excludedDates
-
-	for (const { startTime, endTime } of generateEventOccurrences(event, timeZone)) {
-		if (startTime.getTime() > month.end.getTime()) break
-
-		if (!isExcludedDate(startTime, exclusions)) {
-			if (endTime.getTime() >= month.start.getTime()) {
-				const eventClone = clone(event)
-
-				if (allDay) {
-					eventClone.startTime = getAllDayDateUTCFromZone(startTime, timeZone)
-					eventClone.endTime = getAllDayDateUTCFromZone(endTime, timeZone)
-				} else {
-					eventClone.startTime = new Date(startTime)
-					eventClone.endTime = new Date(endTime)
-				}
-
-				if (isLong) {
-					addDaysForLongEvent(events, eventClone, month, timeZone)
-				} else {
-					addDaysForEvent(events, eventClone, month, timeZone)
-				}
-			}
-		}
-	}
 }
 
 /**
@@ -842,9 +841,17 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string): Gene
  * @param event the calendar event to check. to get correct results, this must be the progenitor.
  */
 export function calendarEventHasMoreThanOneOccurrencesLeft(event: Readonly<CalendarEvent>): boolean {
+	if (event.recurrenceId != null) {
+		// note: we're ignoring the edge case of an altered instance being the last one of a series with this.
+		// note: we need to check the progenitors repeat rule to handle it. altered instances have no repeat rule.
+		// note: since the popup needs the progenitor for showing the repeat rule anyway, we could pass it in.
+		return true
+	}
+
 	if (event.repeatRule == null) {
 		return false
 	}
+
 	const { endType, endValue, excludedDates } = event.repeatRule
 	if (endType === EndType.Never) {
 		// there are infinite occurrences
@@ -880,57 +887,6 @@ export function calendarEventHasMoreThanOneOccurrencesLeft(event: Readonly<Calen
  */
 function isExcludedDate(currentDate: Date, excludedDates: ReadonlyArray<DateWrapper> = []): boolean {
 	return excludedDates.some((dw) => dw.date.getTime() === currentDate.getTime())
-}
-
-export function addDaysForLongEvent(
-	events: Map<number, Array<CalendarEvent>>,
-	event: CalendarEvent,
-	month: CalendarMonthTimeRange,
-	zone: string = getTimeZone(),
-) {
-	// for long running events we create events for the month only
-	// first start of event is inside month
-	const eventStart = getEventStart(event, zone).getTime()
-	const eventEnd = getEventEnd(event, zone).getTime()
-	let calculationDate
-	let eventEndInMonth
-
-	if (eventStart >= month.start.getTime() && eventStart < month.end.getTime()) {
-		// first: start of event is inside month
-		calculationDate = getStartOfDayWithZone(new Date(eventStart), zone)
-	} else if (eventStart < month.start.getTime()) {
-		// start is before month
-		calculationDate = new Date(month.start)
-	} else {
-		return // start date is after month end
-	}
-
-	if (eventEnd > month.start.getTime() && eventEnd <= month.end.getTime()) {
-		//end is inside month
-		eventEndInMonth = new Date(eventEnd)
-	} else if (eventEnd > month.end.getTime()) {
-		// end is after month end
-		eventEndInMonth = new Date(month.end)
-	} else {
-		return // end is before start of month
-	}
-
-	let iterations = 0
-
-	while (calculationDate.getTime() < eventEndInMonth.getTime()) {
-		assertDateIsValid(calculationDate)
-		insertIntoSortedArray(
-			event,
-			getFromMap(events, calculationDate.getTime(), () => []),
-			eventComparator,
-			isSameEvent,
-		)
-		calculationDate = incrementByRepeatPeriod(calculationDate, RepeatPeriod.DAILY, 1, zone)
-
-		if (iterations++ > MAX_EVENT_ITERATIONS) {
-			throw new Error("Run into the infinite loop, addDaysForLongEvent")
-		}
-	}
 }
 
 export type AlarmOccurrence = {
@@ -980,19 +936,23 @@ export function findNextAlarmOccurrence(
 	return null
 }
 
+/** */
 export type CalendarDay = {
 	date: Date
 	year: number
 	month: number
 	day: number
-	paddingDay: boolean
+	/** days that are technically not part of the current month, but are shown to fill the grid. */
+	isPaddingDay: boolean
 }
+
 export type CalendarMonth = {
 	weekdays: Array<string>
 	weeks: Array<Array<CalendarDay>>
 }
 
 /**
+ * get an object representing the calendar month the given date is in.
  * @param date
  * @param firstDayOfWeekFromOffset
  * @return {{weeks: Array[], weekdays: Array}}
@@ -1022,7 +982,7 @@ export function getCalendarMonth(date: Date, firstDayOfWeekFromOffset: number, w
 			day: calculationDate.getDate(),
 			month: calculationDate.getMonth(),
 			year: calculationDate.getFullYear(),
-			paddingDay: true,
+			isPaddingDay: true,
 		})
 		incrementDate(calculationDate, 1)
 	}
@@ -1039,7 +999,7 @@ export function getCalendarMonth(date: Date, firstDayOfWeekFromOffset: number, w
 			year: currentYear,
 			month: month,
 			day: calculationDate.getDate(),
-			paddingDay: false,
+			isPaddingDay: false,
 		}
 		weeks[weeks.length - 1].push(dayInfo)
 		incrementDate(calculationDate, 1)
@@ -1057,7 +1017,7 @@ export function getCalendarMonth(date: Date, firstDayOfWeekFromOffset: number, w
 			year: calculationDate.getFullYear(),
 			month: calculationDate.getMonth(),
 			date: new Date(calculationDate),
-			paddingDay: true,
+			isPaddingDay: true,
 		})
 		incrementDate(calculationDate, 1)
 		dayCount++
@@ -1141,12 +1101,11 @@ export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = O
  * to specify the version of the calendar component that the "Attendee" is referring to.
  *
  * @param sequence
- * @param mayIncrement whether we are allowed to change the sequence number in the event.
  */
-export function incrementSequence(sequence: string, mayIncrement: boolean): string {
+export function incrementSequence(sequence: string): string {
 	const current = filterInt(sequence) || 0
 	// Only the organizer should increase sequence numbers
-	return String(mayIncrement ? current + 1 : current)
+	return String(current + 1)
 }
 
 export function findPrivateCalendar(calendarInfo: ReadonlyMap<Id, CalendarInfo>): CalendarInfo | null {
@@ -1409,4 +1368,13 @@ export function getEventType(
  */
 export async function resolveCalendarEventProgenitor(calendarEvent: CalendarEvent, entityClient: EntityClient): Promise<CalendarEvent> {
 	return calendarEvent.repeatRule ? await entityClient.load(CalendarEventTypeRef, calendarEvent._id) : calendarEvent
+}
+
+/** clip the range start-end to the range given by min-max. if the result would have length 0, null is returned. */
+function clipRanges(start: number, end: number, min: number, max: number): CalendarTimeRange | null {
+	const res = {
+		start: Math.max(start, min),
+		end: Math.min(end, max),
+	}
+	return res.start < res.end ? res : null
 }

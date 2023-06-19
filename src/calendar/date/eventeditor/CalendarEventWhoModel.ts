@@ -5,13 +5,14 @@ import {
 	createCalendarEventAttendee,
 	createEncryptedMailAddress,
 	EncryptedMailAddress,
+	Mail,
 } from "../../../api/entities/tutanota/TypeRefs.js"
 import { PartialRecipient, Recipient, RecipientType } from "../../../api/common/recipients/Recipient.js"
 import { haveSameId, Stripped } from "../../../api/common/utils/EntityUtils.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../../api/common/utils/CommonCalendarUtils.js"
 import { getContactDisplayName } from "../../../contacts/model/ContactUtils.js"
 import { assertNotNull, clone, defer, DeferredObject, findAll, lazy, noOp } from "@tutao/tutanota-utils"
-import { CalendarAttendeeStatus, ShareCapability } from "../../../api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, ConversationType, ShareCapability } from "../../../api/common/TutanotaConstants.js"
 import { RecipientsModel, ResolveMode } from "../../../api/main/RecipientsModel.js"
 import { Guest } from "../CalendarInvites.js"
 import { isSecurePassword } from "../../../misc/passwords/PasswordUtils.js"
@@ -21,9 +22,11 @@ import { CalendarInfo } from "../../model/CalendarModel.js"
 import { hasCapabilityOnGroup } from "../../../sharing/GroupUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
 import { UserError } from "../../../api/main/UserError.js"
-import { CalendarEventUpdateNotificationModels, EventType } from "./CalendarEventModel.js"
+import { EventType } from "./CalendarEventModel.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { trisectingDiff } from "@tutao/tutanota-utils/dist/CollectionUtils.js"
+import { CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
+import { CalendarOperation } from "../../view/eventeditor/CalendarEventEditDialog.js"
 
 /** there is no point in returning recipients, the SendMailModel will re-resolve them anyway. */
 type AttendanceModelResult = {
@@ -32,7 +35,7 @@ type AttendanceModelResult = {
 	isConfidential: boolean
 	/** which calendar should the result be assigned to */
 	calendar: CalendarInfo
-} & CalendarEventUpdateNotificationModels
+} & CalendarNotificationSendModels
 
 /** model to decouple attendee list edit operations from other changes to a calendar event.
  * tracks external passwords, attendance status, list of attendees, recipients to invite,
@@ -55,6 +58,7 @@ export class CalendarEventWhoModel {
 	 * we keep the attendees in maps for deduplication, keyed by their address.
 	 * */
 	private initialAttendees: Map<string, CalendarEventAttendee> = new Map()
+	private initialOwnAttendeeStatus: CalendarAttendeeStatus | null = null
 	/** we only show the send update checkbox if there are attendees that require updates from us. */
 	readonly initiallyHadOtherAttendees: boolean
 	/** the current list of attendees. */
@@ -65,17 +69,27 @@ export class CalendarEventWhoModel {
 	private _ownAttendee: CalendarEventAttendee | null = null
 
 	public isConfidential: boolean
+	/**
+	 * whether this user will send updates for this event.
+	 * * this needs to be our event.
+	 * * we need a paid account
+	 * * there need to be changes that require updating the attendees (eg alarms do not)
+	 * * there also need to be attendees that require updates/invites/cancellations/response
+	 */
+	shouldSendUpdates: boolean = false
 
 	/**
 	 *
 	 * @param initialValues
 	 * @param eventType
+	 * @param operation the operation the user is currently attempting. we could use recurrenceId on initialvalues for this information, but this is safer.
 	 * @param calendars
 	 * @param _selectedCalendar
 	 * @param userController
 	 * @param isNew whether the event is new (never been saved)
 	 * @param ownMailAddresses an array of the mail addresses this user could be mentioned as as an attendee or organizer.
 	 * @param recipientsModel
+	 * @param responseTo
 	 * @param passwordStrengthModel
 	 * @param sendMailModelFactory
 	 * @param uiUpdateCallback
@@ -83,8 +97,9 @@ export class CalendarEventWhoModel {
 	constructor(
 		initialValues: Partial<Stripped<CalendarEvent>>,
 		private readonly eventType: EventType,
+		private readonly operation: CalendarOperation,
 		private readonly calendars: ReadonlyMap<Id, CalendarInfo>,
-		/** this should only be relevant to saving so could be put in the saveModel, but at the moment we restrict attendees depending on the
+		/** this should only be relevant to saving so could be put in the apply strategy, but at the moment we restrict attendees depending on the
 		 * calendar we're saving to.
 		 * think of it as configuring who has access to the event.
 		 * */
@@ -93,6 +108,7 @@ export class CalendarEventWhoModel {
 		private readonly isNew: boolean,
 		private readonly ownMailAddresses: ReadonlyArray<EncryptedMailAddress>,
 		private readonly recipientsModel: RecipientsModel,
+		private readonly responseTo: Mail | null,
 		private readonly passwordStrengthModel: (password: string, recipientInfo: PartialRecipient) => number,
 		private readonly sendMailModelFactory: lazy<SendMailModel>,
 		private readonly uiUpdateCallback: () => void = noOp,
@@ -126,6 +142,8 @@ export class CalendarEventWhoModel {
 
 	/**
 	 * whether the current user can modify the guest list of the event depending on event type and the calendar it's in.
+	 *
+	 * * at the moment, we can never modify guests when editing only part of a series.
 	 * * selected calendar is our own:
 	 *   * event is invite (we're not organizer): can't modify guest list, any edit operation will be local only.
 	 *   * event is our own: can do what we want.
@@ -136,11 +154,9 @@ export class CalendarEventWhoModel {
 	 *   * rw, existing event with attendees:  this is the case where we can see attendees, but can't edit them.
 	 *                                         but we also can't edit the event since there are attendees and we're
 	 *                                         unable to send updates.
-	 *
 	 */
 	get canModifyGuests(): boolean {
-		// It is not allowed to modify guests in shared calendar or invite.
-		return !(this.selectedCalendar?.shared || this.eventType === EventType.INVITE)
+		return !(this.selectedCalendar?.shared || this.eventType === EventType.INVITE || this.operation === CalendarOperation.EditThis)
 	}
 
 	/**
@@ -231,6 +247,7 @@ export class CalendarEventWhoModel {
 		// we don't want ourselves in the attendee list, since we're using it to track updates we need to send.
 		const ownAttendeeAddresses = findAll(Array.from(this.initialAttendees.keys()), (address) => ownAddresses.includes(address))
 		this._ownAttendee = this.initialAttendees.get(ownAttendeeAddresses[0]) ?? null
+		this.initialOwnAttendeeStatus = (this._ownAttendee?.status as CalendarAttendeeStatus) ?? null
 		for (const match of ownAttendeeAddresses) {
 			this.initialAttendees.delete(match)
 		}
@@ -513,6 +530,9 @@ export class CalendarEventWhoModel {
 		if (!this._ownAttendee) return null
 		const recipients = attendees.map(({ address }) => address)
 		const model = this.sendMailModelFactory()
+		// do not pass recipients in template arguments as recipient checks in sendMailModel are done in sync part of send
+		model.initWithTemplate([], "", "")
+
 		for (const recipient of recipients) {
 			model.addRecipient(RecipientField.BCC, recipient)
 			// Only set the password if we have an entry.
@@ -526,6 +546,49 @@ export class CalendarEventWhoModel {
 		model.setSender(this._ownAttendee.address.address)
 		model.setConfidential(this.isConfidential)
 		return model
+	}
+
+	private prepareResponseModel(): SendMailModel | null {
+		if (this.eventType !== EventType.INVITE || this._ownAttendee === null || this._organizer == null || this._ownAttendee == null) {
+			// not checking for initialAttendees.size === 0 because we and the organizer might be the only attendees, which do not show
+			// up there.
+			return null
+		}
+
+		const initialOwnAttendeeStatus = assertNotNull(
+			this.initialOwnAttendeeStatus,
+			"somehow managed to become an attendee on an invite we weren't invited to before",
+		)
+
+		if (!(initialOwnAttendeeStatus !== this._ownAttendee.status && this._ownAttendee.status !== CalendarAttendeeStatus.NEEDS_ACTION)) {
+			// either our status did not actually change or our new status is "NEEDS_ACTION"
+			return null
+		}
+
+		const responseModel: SendMailModel = this.sendMailModelFactory()
+
+		if (this.responseTo != null) {
+			// do not pass recipients in template arguments as recipient checks in sendMailModel are done in sync part of send
+			responseModel.initAsResponse(
+				{
+					previousMail: this.responseTo,
+					conversationType: ConversationType.REPLY,
+					senderMailAddress: this._ownAttendee.address.address,
+					recipients: [],
+					attachments: [],
+					bodyText: "",
+					subject: "",
+					replyTos: [],
+				},
+				new Map(),
+			)
+		} else {
+			// do not pass recipients in template arguments as recipient checks in sendMailModel are done in sync part of send
+			responseModel.initWithTemplate({}, "", "")
+		}
+		responseModel.addRecipient(RecipientField.TO, this._organizer.address)
+
+		return responseModel
 	}
 
 	get result(): AttendanceModelResult {
@@ -543,20 +606,14 @@ export class CalendarEventWhoModel {
 
 		const { allAttendees, organizerToPublish } = assembleAttendees(attendeesToInvite, attendeesToUpdate, this._organizer, this._ownAttendee)
 
-		let responseModel: SendMailModel | null = null
-		if (this._organizer != null && organizerToPublish != null && !isOrganizer && this._ownAttendee != null) {
-			responseModel = this.sendMailModelFactory()
-			responseModel.addRecipient(RecipientField.TO, this._organizer.address)
-		}
-
 		return {
 			attendees: allAttendees,
 			organizer: organizerToPublish,
 			isConfidential: this.isConfidential,
 			cancelModel: isOrganizer && attendeesToCancel.length > 0 ? this.prepareSendModel(attendeesToCancel) : null,
 			inviteModel: isOrganizer && attendeesToInvite.length > 0 ? this.prepareSendModel(attendeesToInvite) : null,
-			updateModel: isOrganizer && attendeesToUpdate.length > 0 ? this.prepareSendModel(attendeesToUpdate) : null,
-			responseModel,
+			updateModel: isOrganizer && attendeesToUpdate.length > 0 && this.shouldSendUpdates ? this.prepareSendModel(attendeesToUpdate) : null,
+			responseModel: !isOrganizer && organizerToPublish != null ? this.prepareResponseModel() : null,
 			calendar: this._selectedCalendar,
 		}
 	}

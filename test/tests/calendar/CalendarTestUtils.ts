@@ -29,13 +29,12 @@ import {
 	EncryptedMailAddress,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import type { MailboxDetail } from "../../../src/mail/model/MailModel.js"
-import { MailModel } from "../../../src/mail/model/MailModel.js"
-import type { CalendarUpdateDistributor } from "../../../src/calendar/date/CalendarUpdateDistributor.js"
 import o from "ospec"
 import type { CalendarInfo } from "../../../src/calendar/model/CalendarModel"
 import { CalendarModel } from "../../../src/calendar/model/CalendarModel"
 import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
 import { Recipient, RecipientType } from "../../../src/api/common/recipients/Recipient.js"
+import { DateTime } from "luxon"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const
@@ -95,6 +94,23 @@ export const otherRecipient2: Recipient = {
 			createContactAddress({
 				address: otherAddress2.address,
 				type: ContactAddressType.WORK,
+			}),
+		],
+	}),
+}
+
+export const thirdAddress = createEncryptedMailAddress({ address: "somethirdaddress@tutanota.com", name: "thirdperson" })
+export const thirdRecipient: Recipient = {
+	address: thirdAddress.address,
+	name: thirdAddress.name,
+	type: RecipientType.INTERNAL,
+	contact: createContact({
+		nickname: "drei",
+		presharedPassword: "noPassword",
+		addresses: [
+			createContactAddress({
+				address: thirdAddress.address,
+				type: ContactAddressType.OTHER,
 			}),
 		],
 	}),
@@ -265,6 +281,7 @@ function id(element): IdTuple {
 
 export function makeEvent(_id: string, startTime: Date, endTime: Date, uid: string = ""): CalendarEvent {
 	return createCalendarEvent({
+		_ownerGroup: "ownerGroup",
 		_id: id(_id),
 		startTime,
 		endTime,
@@ -279,4 +296,30 @@ export function addCapability(user: User, groupId: Id, capability: ShareCapabili
 			capability,
 		}),
 	)
+}
+
+export const zone = "Europe/Berlin"
+
+/** create a js date object corresponding to the given ISO-like date string (YYYY-MM-DDTHH:MM)in
+ * the {@param useZone} time zone, which defaults to Europe/Berlin (UTC+2)
+ * times can be omitted.
+ * */
+export function getDateInZone(iso: string, useZone = zone): Date {
+	const dt = DateTime.fromISO(iso, { zone: useZone })
+	if (!dt.isValid) {
+		throw new Error(`Invalid date! ${iso} ${dt.invalidExplanation}`)
+	}
+	return dt.toJSDate()
+}
+
+/** create a js date object corresponding to the given ISO-like date string (YYYY-MM-DDTHH:MM)in
+ * the utc time zone
+ * times can be omitted.
+ * */
+export function getDateInUTC(iso: string): Date {
+	const dt = DateTime.fromISO(iso, { zone: "utc" })
+	if (!dt.isValid) {
+		throw new Error(`Invalid date! ${iso} ${dt.invalidExplanation}`)
+	}
+	return dt.toJSDate()
 }
