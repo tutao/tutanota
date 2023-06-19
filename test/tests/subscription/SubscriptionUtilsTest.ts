@@ -1,9 +1,9 @@
 import o from "ospec"
 import { NewPaidPlans, PlanType } from "../../../src/api/common/TutanotaConstants.js"
-import { getAvailableMatchingPlans } from "../../../src/subscription/SubscriptionUtils.js"
 import { IServiceExecutor } from "../../../src/api/common/ServiceRequest.js"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "./priceTestUtils.js"
 import { clone } from "@tutao/tutanota-utils"
+import { getAvailableMatchingPlans } from "../../../src/misc/SubscriptionDialogs.js"
 
 o.spec("SubscriptionUtilsTest", function () {
 	let serviceExecutor: IServiceExecutor

@@ -5,12 +5,12 @@ import { isIOSApp } from "../api/common/Env"
 import type { clickHandler } from "../gui/base/GuiUtils"
 import { locator } from "../api/main/MainLocator"
 import type { UserController } from "../api/main/UserController.js"
-import { BookingTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { BookingTypeRef, PlanConfiguration } from "../api/entities/sys/TypeRefs.js"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 import { AvailablePlanType, Const, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
 import { showSwitchDialog } from "../subscription/SwitchSubscriptionDialog.js"
 import { UserError } from "../api/main/UserError.js"
-import { getAvailableMatchingPlans } from "../subscription/SubscriptionUtils.js"
+import { IServiceExecutor } from "../api/common/ServiceRequest.js"
 
 /**
  * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.
@@ -64,6 +64,23 @@ export function checkPremiumSubscription(): Promise<boolean> {
 				return Promise.resolve(true)
 			}
 		})
+}
+
+/**
+ * Get plans that are available for purchase and that comply with the given criteria.
+ * @param serviceExecutor
+ * @param predicate
+ */
+export async function getAvailableMatchingPlans(
+	serviceExecutor: IServiceExecutor,
+	predicate: (configuration: PlanConfiguration) => boolean,
+): Promise<Array<AvailablePlanType>> {
+	const { PriceAndConfigProvider } = await import("../subscription/PriceUtils.js")
+	const priceAndConfigProvider = await PriceAndConfigProvider.getInitializedInstance(null, serviceExecutor, null)
+	return NewPaidPlans.filter((p) => {
+		const config = priceAndConfigProvider.getPlanPricesForPlan(p).planConfiguration
+		return predicate(config)
+	})
 }
 
 export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunction: TranslationKey): Promise<PlanType | void> {

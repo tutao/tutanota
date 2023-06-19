@@ -1,12 +1,10 @@
 import type { TranslationKey } from "../misc/LanguageViewModel"
-import { AccountType, AvailablePlanType, BookingItemFeatureType, getClientType, NewPaidPlans, PlanType } from "../api/common/TutanotaConstants"
+import { AccountType, BookingItemFeatureType, getClientType, PlanType } from "../api/common/TutanotaConstants"
 import type { Customer, CustomerInfo, PlanConfiguration } from "../api/entities/sys/TypeRefs.js"
 import { Booking, createPaymentDataServiceGetData } from "../api/entities/sys/TypeRefs.js"
 import { LazyLoaded } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator"
 import { PaymentDataService } from "../api/entities/sys/Services"
-import { PriceAndConfigProvider } from "./PriceUtils.js"
-import { IServiceExecutor } from "../api/common/ServiceRequest.js"
 
 export const enum UpgradeType {
 	Signup = "Signup",
@@ -52,22 +50,6 @@ export function isSharingActive(lastBooking: Booking | null, planConfig: PlanCon
 
 export function isBusinessFeatureActive(lastBooking: Booking | null, planConfig: PlanConfiguration): boolean {
 	return getCurrentCount(BookingItemFeatureType.Business, lastBooking) !== 0 || planConfig.business
-}
-
-/**
- * Get plans that are available for purchase and that comply with the given criteria.
- * @param serviceExecutor
- * @param predicate
- */
-export async function getAvailableMatchingPlans(
-	serviceExecutor: IServiceExecutor,
-	predicate: (configuration: PlanConfiguration) => boolean,
-): Promise<Array<AvailablePlanType>> {
-	const priceAndConfigProvider = await PriceAndConfigProvider.getInitializedInstance(null, serviceExecutor, null)
-	return NewPaidPlans.filter((p) => {
-		const config = priceAndConfigProvider.getPlanPricesForPlan(p).planConfiguration
-		return predicate(config)
-	})
 }
 
 export type PaymentErrorCode =

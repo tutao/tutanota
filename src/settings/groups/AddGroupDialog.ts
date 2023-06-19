@@ -9,7 +9,7 @@ import type { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { showBuyDialog } from "../../subscription/BuyDialog.js"
 import { PreconditionFailedError } from "../../api/common/error/RestError.js"
-import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
+import { getAvailableMatchingPlans, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { TemplateGroupPreconditionFailedReason } from "../../sharing/GroupUtils.js"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import { TextField } from "../../gui/base/TextField.js"
@@ -18,7 +18,7 @@ import type { GroupManagementFacade } from "../../api/worker/facades/lazy/GroupM
 import { locator } from "../../api/main/MainLocator.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 import { getAvailableDomains } from "../mailaddress/MailAddressesUtils.js"
-import { getAvailableMatchingPlans, toFeatureType } from "../../subscription/SubscriptionUtils.js"
+import { toFeatureType } from "../../subscription/SubscriptionUtils.js"
 
 assertMainOrNode()
 

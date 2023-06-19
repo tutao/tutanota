@@ -11,8 +11,8 @@ import type { UserController } from "../api/main/UserController"
 import { appendEmailSignature } from "../mail/signature/Signature"
 import { UserError } from "../api/main/UserError"
 import { UpgradeRequiredError } from "../api/main/UpgradeRequiredError.js"
-import { getAvailableMatchingPlans } from "../subscription/SubscriptionUtils.js"
 import { IServiceExecutor } from "../api/common/ServiceRequest.js"
+import { getAvailableMatchingPlans } from "../misc/SubscriptionDialogs.js"
 
 export const enum RecipientMessageType {
 	EXTERNAL_TO_EVERYONE = 0,

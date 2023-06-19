@@ -6,7 +6,7 @@ import { Icons } from "../../../gui/base/icons/Icons.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { Checkbox } from "../../../gui/base/Checkbox.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
-import { CalendarAttendeeStatus, NewPaidPlans } from "../../../api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus } from "../../../api/common/TutanotaConstants.js"
 import { Autocomplete, TextField, TextFieldType } from "../../../gui/base/TextField.js"
 import { CompletenessIndicator } from "../../../gui/CompletenessIndicator.js"
 import { RecipientsSearchModel } from "../../../misc/RecipientsSearchModel.js"
@@ -24,7 +24,6 @@ import { LoginController } from "../../../api/main/LoginController.js"
 import { CalendarEventModel } from "../../date/eventeditor/CalendarEventModel.js"
 import { DropDownSelector } from "../../../gui/base/DropDownSelector.js"
 import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
-import { getAvailableMatchingPlans } from "../../../subscription/SubscriptionUtils.js"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */
