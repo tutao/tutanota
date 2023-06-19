@@ -137,3 +137,5 @@ npm test
 - anything that depends on luxon goes into `date` and is being imported dynamically
 - native code is only imported from common code dynamically. Worker is exception for technical reasons.
 - `contacts` and `mail-editor` depend on sanitizer statically, rest of the app doesn't
+
+You can check if your imports respect chunking by running `node webapp local`.
