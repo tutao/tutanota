@@ -4,6 +4,7 @@ import { getAvailableMatchingPlans, showPlanUpgradeRequiredDialog } from "../mis
 import { locator } from "../api/main/MainLocator"
 import { FeatureType, PlanType } from "../api/common/TutanotaConstants"
 import { isCustomizationEnabledForCustomer } from "../api/common/utils/Utils"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 /**
  * @return True if the group has been created.
@@ -12,6 +13,9 @@ export async function createInitialTemplateListIfAllowed(): Promise<TemplateGrou
 	const userController = locator.logins.getUserController()
 	const customer = await userController.loadCustomer()
 	const plans = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => config.templates)
+	if (plans.length <= 0) {
+		throw new ProgrammingError("no plans to upgrade to")
+	}
 	const allowed =
 		(await userController.getPlanConfig()).templates ||
 		isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) ||

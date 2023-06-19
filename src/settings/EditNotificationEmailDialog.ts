@@ -23,6 +23,7 @@ import type { UserController } from "../api/main/UserController"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils"
 import { locator } from "../api/main/MainLocator"
 import { PlanType } from "../api/common/TutanotaConstants.js"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 export function showAddOrEditNotificationEmailDialog(userController: UserController, selectedNotificationLanguage?: string) {
 	let existingTemplate: NotificationMailTemplate | undefined = undefined
@@ -68,7 +69,11 @@ export async function showBuyOrSetNotificationEmailDialog(
 		let whitelabel = isWhitelabelActive(lastBooking, planConfiguration)
 		if (!whitelabel) {
 			const plansWithWhitelabel = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => config.whitelabel)
-			whitelabel = await showPlanUpgradeRequiredDialog(plansWithWhitelabel)
+			if (plansWithWhitelabel.length > 0) {
+				whitelabel = await showPlanUpgradeRequiredDialog(plansWithWhitelabel)
+			} else {
+				throw new ProgrammingError("no plans to upgrade to")
+			}
 		}
 		if (whitelabel) {
 			show(existingTemplate ?? null, customerProperties)

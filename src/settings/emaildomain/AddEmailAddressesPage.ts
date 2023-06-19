@@ -21,6 +21,7 @@ import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import type Stream from "mithril/stream"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
 
@@ -183,7 +184,12 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 				} else if (e instanceof LimitReachedError) {
 					return false
 				} else if (e instanceof UpgradeRequiredError) {
-					await showPlanUpgradeRequiredDialog(e.plans, e.message)
+					if (e.plans.length > 0) {
+						await showPlanUpgradeRequiredDialog(e.plans, e.message)
+						return false
+					} else {
+						throw new ProgrammingError("no plans to upgrade to")
+					}
 				}
 				throw e
 			}

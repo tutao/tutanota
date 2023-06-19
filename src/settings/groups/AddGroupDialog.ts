@@ -19,6 +19,7 @@ import { locator } from "../../api/main/MainLocator.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 import { getAvailableDomains } from "../mailaddress/MailAddressesUtils.js"
 import { toFeatureType } from "../../subscription/SubscriptionUtils.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
 
@@ -193,6 +194,9 @@ function addTemplateGroup(name: string): Promise<boolean> {
 						e.data === TemplateGroupPreconditionFailedReason.UNLIMITED_REQUIRED
 					) {
 						const plans = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => config.templates)
+						if (plans.length <= 0) {
+							throw new ProgrammingError("no plans to upgrade to")
+						}
 						showPlanUpgradeRequiredDialog(plans)
 					} else {
 						Dialog.message(() => e.message)

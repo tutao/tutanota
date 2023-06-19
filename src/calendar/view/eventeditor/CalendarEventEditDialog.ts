@@ -157,7 +157,10 @@ export async function showNewCalendarEventEditDialog(model: CalendarEventModel):
 				// noinspection ES6MissingAwait
 				showUserError(e)
 			} else if (e instanceof UpgradeRequiredError) {
-				model.canUseInvites = await showPlanUpgradeRequiredDialog(e.plans)
+				if (e.plans.length > 0) model.canUseInvites = await showPlanUpgradeRequiredDialog(e.plans)
+				else {
+					throw new ProgrammingError("no plans to upgrade to")
+				}
 			} else {
 				throw e
 			}
@@ -206,7 +209,10 @@ export async function showExistingCalendarEventEditDialog(
 				// noinspection ES6MissingAwait
 				showUserError(e)
 			} else if (e instanceof UpgradeRequiredError) {
-				model.canUseInvites = await showPlanUpgradeRequiredDialog(e.plans)
+				if (e.plans.length > 0) model.canUseInvites = await showPlanUpgradeRequiredDialog(e.plans)
+				else {
+					throw new ProgrammingError("no plans to upgrade to")
+				}
 			} else {
 				throw e
 			}

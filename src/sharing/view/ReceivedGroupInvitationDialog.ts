@@ -19,6 +19,7 @@ import { getTextsForGroupType } from "../GroupGuiUtils"
 import { FeatureType, GroupType, NewPaidPlans } from "../../api/common/TutanotaConstants"
 import { ColorPicker } from "../../gui/base/ColorPicker"
 import { locator } from "../../api/main/MainLocator"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)
@@ -118,6 +119,9 @@ async function checkCanAcceptInvitation(invitation: ReceivedGroupInvitation): Pr
 	const customer = await locator.logins.getUserController().loadCustomer()
 	if (groupRequiresBusinessFeature(getInvitationGroupType(invitation)) && !isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled)) {
 		const plans = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => config.business)
+		if (plans.length <= 0) {
+			throw new ProgrammingError("no plans to upgrade to")
+		}
 		return showPlanUpgradeRequiredDialog(plans)
 	} else {
 		return true

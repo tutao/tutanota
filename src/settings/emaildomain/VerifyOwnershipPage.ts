@@ -14,6 +14,7 @@ import { ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/MainLocator"
 import { assertMainOrNode } from "../../api/common/Env"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
 
@@ -130,6 +131,9 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 							return false
 						})
 
+						if (plans.length <= 0) {
+							throw new ProgrammingError("no plans to upgrade to")
+						}
 						// ignore promise. always return false to not switch to next page.
 						showPlanUpgradeRequiredDialog(plans, "moreCustomDomainsRequired_msg")
 					} else {

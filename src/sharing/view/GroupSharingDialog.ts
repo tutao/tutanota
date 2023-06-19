@@ -27,6 +27,7 @@ import { ResolvableRecipient, ResolveMode } from "../../api/main/RecipientsModel
 import { MailRecipientsTextField } from "../../gui/MailRecipientsTextField.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 import { getAvailableMatchingPlans, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {
 	const groupType = downcast(assertNotNull(groupInfo.groupType))
@@ -241,6 +242,9 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 					if (e instanceof PreconditionFailedError) {
 						if (locator.logins.getUserController().isGlobalAdmin()) {
 							const plans = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => config.sharing)
+							if (plans.length <= 0) {
+								throw new ProgrammingError("no plans to upgrade to")
+							}
 							await showPlanUpgradeRequiredDialog(plans)
 						} else {
 							Dialog.message(() => `${texts.sharingNotOrderedUser} ${lang.get("contactAdmin_msg")}`)

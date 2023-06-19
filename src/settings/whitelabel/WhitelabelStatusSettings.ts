@@ -6,6 +6,7 @@ import { TextField } from "../../gui/base/TextField.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 export type WhitelabelStatusSettingsAttrs = {
 	isWhitelabelActive: boolean
@@ -28,6 +29,9 @@ export class WhitelabelStatusSettings implements Component<WhitelabelStatusSetti
 			title: "whitelabelDomain_label",
 			click: async () => {
 				const plansWithWhitelabel = await getAvailableMatchingPlans(serviceExecutor, (config) => config.whitelabel)
+				if (plansWithWhitelabel.length <= 0) {
+					throw new ProgrammingError("no plans to upgrade to")
+				}
 				showPlanUpgradeRequiredDialog(plansWithWhitelabel)
 			},
 			icon: Icons.Edit,

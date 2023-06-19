@@ -14,6 +14,7 @@ import { formatDateTime } from "../../misc/Formatter"
 import { locator } from "../../api/main/MainLocator"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 export type WhitelabelBrandingDomainSettingsAttrs = {
 	customerInfo: CustomerInfo
@@ -82,6 +83,9 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 		} else {
 			if (!isWhitelabelFeatureEnabled) {
 				const plansWithWhitelabel = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => config.whitelabel)
+				if (plansWithWhitelabel.length <= 0) {
+					throw new ProgrammingError("no plans to upgrade to")
+				}
 				isWhitelabelFeatureEnabled = await showPlanUpgradeRequiredDialog(plansWithWhitelabel)
 			}
 			if (isWhitelabelFeatureEnabled) {

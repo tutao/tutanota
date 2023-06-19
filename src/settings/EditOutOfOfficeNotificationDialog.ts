@@ -21,6 +21,7 @@ import type { lazy } from "@tutao/tutanota-utils"
 import { ofClass } from "@tutao/tutanota-utils"
 import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 import { UpgradeRequiredError } from "../api/main/UpgradeRequiredError.js"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: OutOfOfficeNotification | null) {
 	const dialogModel = new EditOutOfOfficeNotificationDialogModel(
@@ -44,7 +45,15 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: O
 			.saveOutOfOfficeNotification()
 			.then(() => cancel())
 			.catch(ofClass(UserError, (e) => showUserError(e)))
-			.catch(ofClass(UpgradeRequiredError, (e) => showPlanUpgradeRequiredDialog(e.plans)))
+			.catch(
+				ofClass(UpgradeRequiredError, (e) => {
+					if (e.plans.length > 0) {
+						showPlanUpgradeRequiredDialog(e.plans)
+					} else {
+						throw new ProgrammingError("no plans to upgrade to")
+					}
+				}),
+			)
 	}
 
 	function cancel() {
