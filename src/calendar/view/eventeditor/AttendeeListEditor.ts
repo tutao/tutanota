@@ -6,7 +6,7 @@ import { Icons } from "../../../gui/base/icons/Icons.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { Checkbox } from "../../../gui/base/Checkbox.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
-import { CalendarAttendeeStatus } from "../../../api/common/TutanotaConstants.js"
+import { AccountType, CalendarAttendeeStatus } from "../../../api/common/TutanotaConstants.js"
 import { Autocomplete, TextField, TextFieldType } from "../../../gui/base/TextField.js"
 import { CompletenessIndicator } from "../../../gui/CompletenessIndicator.js"
 import { RecipientsSearchModel } from "../../../misc/RecipientsSearchModel.js"
@@ -24,6 +24,8 @@ import { LoginController } from "../../../api/main/LoginController.js"
 import { CalendarEventModel } from "../../date/eventeditor/CalendarEventModel.js"
 import { DropDownSelector } from "../../../gui/base/DropDownSelector.js"
 import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
+import { hasPlanWithInvites } from "../../date/eventeditor/CalendarNotificationModel.js"
+import { CalendarOperation } from "./CalendarEventEditDialog.js"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */
@@ -48,7 +50,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 	}
 
 	private renderInvitationField(attrs: AttendeeListEditorAttrs): Children {
-		const { model, recipientsSearch } = attrs
+		const { model, recipientsSearch, logins } = attrs
 
 		return m(".flex.flex-column.flex-grow", [
 			m(MailRecipientsTextField, {
@@ -59,14 +61,18 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 				recipients: [],
 				disabled: false,
 				onRecipientAdded: async (address, name, contact) => {
-					if (!(this.hasPlanWithInvites || !model.shouldShowSendInviteNotAvailable())) {
+					if (!(await hasPlanWithInvites(logins)) && !this.hasPlanWithInvites) {
+						if (logins.getUserController().user.accountType === AccountType.EXTERNAL) return
 						const { getAvailablePlansWithEventInvites } = await import("../../../subscription/SubscriptionUtils.js")
 						const plansWithEventInvites = await getAvailablePlansWithEventInvites()
+						if (plansWithEventInvites.length === 0) return
 						//entity event updates are too slow to call updateBusinessFeature()
 						this.hasPlanWithInvites = await showPlanUpgradeRequiredDialog(plansWithEventInvites)
+						// the user could have, but did not upgrade.
 						if (!this.hasPlanWithInvites) return
+					} else {
+						model.editModels.whoModel.addAttendee(address, contact)
 					}
-					model.editModels.whoModel.addAttendee(address, contact)
 				},
 				// do nothing because we don't have any bubbles here
 				onRecipientRemoved: noOp,
@@ -101,8 +107,8 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 					".mt-negative-s",
 					m(Checkbox, {
 						label: () => lang.get("sendUpdates_label"),
-						onChecked: (v) => (model.shouldSendUpdates = v),
-						checked: model.shouldSendUpdates,
+						onChecked: (v) => (whoModel.shouldSendUpdates = v),
+						checked: whoModel.shouldSendUpdates,
 					}),
 			  )
 	}
@@ -205,32 +211,36 @@ export function renderOrganizer(organizer: Guest, { model }: Pick<AttendeeListEd
 		  ])
 		: m(".flex.flex-grow.items-center", fullName)
 
-	const rightContent = isMe
-		? m(
-				"",
-				{ style: { minWidth: "120px" } },
-				m(DropDownSelector, {
-					label: "attending_label",
-					items: createAttendingItems(),
-					selectedValue: status,
-					class: "",
-					selectionChangedHandler: (value: CalendarAttendeeStatus) => {
-						if (value == null) return
-						whoModel.setOwnAttendance(value)
-					},
-				}),
-		  )
-		: m(IconButton, {
-				title: "sendMail_alt",
-				click: async () =>
-					(await import("../../../contacts/view/ContactView.js")).writeMail(
-						organizer,
-						lang.get("repliedToEventInvite_msg", {
-							"{event}": model.editModels.summary.content,
+	const rightContent =
+		// this prevents us from setting our own attendance on a single instance that we're editing.
+		model.operation !== CalendarOperation.EditThis
+			? isMe
+				? m(
+						"",
+						{ style: { minWidth: "120px" } },
+						m(DropDownSelector, {
+							label: "attending_label",
+							items: createAttendingItems(),
+							selectedValue: status,
+							class: "",
+							selectionChangedHandler: (value: CalendarAttendeeStatus) => {
+								if (value == null) return
+								whoModel.setOwnAttendance(value)
+							},
 						}),
-					),
-				icon: Icons.PencilSquare,
-		  })
+				  )
+				: m(IconButton, {
+						title: "sendMail_alt",
+						click: async () =>
+							(await import("../../../contacts/view/ContactView.js")).writeMail(
+								organizer,
+								lang.get("repliedToEventInvite_msg", {
+									"{event}": model.editModels.summary.content,
+								}),
+							),
+						icon: Icons.PencilSquare,
+				  })
+			: null
 
 	return renderAttendee(nameAndAddress, statusLine, rightContent)
 }

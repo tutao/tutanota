@@ -17,6 +17,7 @@ export function mergeMaps<T>(maps: Map<string, T>[]): Map<string, T[]> {
 		return mergedMap
 	}, new Map())
 }
+
 export function getFromMap<K, V>(map: Map<K, V>, key: K, byDefault: () => V): V {
 	let value = map.get(key)
 
@@ -34,6 +35,7 @@ export function addMapEntry<K, V>(map: ReadonlyMap<K, V>, key: K, value: V): Map
 	newMap.set(key, value)
 	return newMap
 }
+
 export function deleteMapEntry<K, V>(map: ReadonlyMap<K, V>, key: K): Map<K, V> {
 	const newMap = new Map(map)
 	newMap.delete(key)

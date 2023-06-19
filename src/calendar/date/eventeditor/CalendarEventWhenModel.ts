@@ -14,32 +14,13 @@ import { TIMESTAMP_ZERO_YEAR } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { CalendarEvent, CalendarRepeatRule } from "../../../api/entities/tutanota/TypeRefs.js"
 import { Stripped } from "../../../api/common/utils/EntityUtils.js"
 import { EndType, RepeatPeriod } from "../../../api/common/TutanotaConstants.js"
-import { createDateWrapper, createRepeatRule, DateWrapper, RepeatRule } from "../../../api/entities/sys/TypeRefs.js"
+import { createDateWrapper, createRepeatRule, RepeatRule } from "../../../api/entities/sys/TypeRefs.js"
 import { UserError } from "../../../api/main/UserError.js"
 import { clone, filterInt, incrementDate, noOp } from "@tutao/tutanota-utils"
+import { areExcludedDatesEqual, areRepeatRulesEqual } from "./CalendarEventModel.js"
 
 export type CalendarEventWhenModelResult = CalendarEventTimes & {
 	repeatRule: CalendarRepeatRule | null
-}
-
-export function areRepeatRulesEqual(r1: CalendarRepeatRule | null, r2: CalendarRepeatRule | null): boolean {
-	return (
-		r1 === r2 ||
-		(r1?.endType === r2?.endType &&
-			r1?.endValue === r2?.endValue &&
-			r1?.frequency === r2?.frequency &&
-			r1?.interval === r2?.interval &&
-			/** r1?.timeZone === r2?.timeZone && we're ignoring time zone because it's not an observable change. */
-			areExcludedDatesEqual(r1?.excludedDates ?? [], r2?.excludedDates ?? []))
-	)
-}
-
-/**
- * compare two lists of dates that are sorted from earliest to latest. return true if they are equivalent.
- */
-export function areExcludedDatesEqual(e1: ReadonlyArray<DateWrapper>, e2: ReadonlyArray<DateWrapper>): boolean {
-	if (e1.length !== e2.length) return false
-	return e1.every(({ date }, i) => e2[i].date.getTime() === date.getTime())
 }
 
 /*
@@ -175,6 +156,25 @@ export class CalendarEventWhenModel {
 		if (newEnd < currentStart) return
 		this._endTime = v
 		this.uiUpdateCallback()
+	}
+
+	/** return the duration of the event in minutes */
+	get duration(): { minutes: number } {
+		const { startTime, endTime } = this.getTimes()
+		const duration = DateTime.fromJSDate(endTime).diff(DateTime.fromJSDate(startTime))
+		return { minutes: duration.as("minutes") }
+	}
+
+	/** set the duration of the event in minutes, effectively setting the endDate and endTime. */
+	set duration(value: { minutes: number }) {
+		if (value.minutes < 1) return
+		const diff = { minutes: this.duration.minutes - value.minutes }
+		const oldEndTime = this.endTime.toDateTime(this.endDate, this.zone)
+		const newEndTime = oldEndTime.plus(diff)
+		this._endDate = getStartOfDayWithZone(newEndTime.toJSDate(), this.zone)
+		if (!this._isAllDay) {
+			this._endTime = Time.fromDateTime(newEndTime)
+		}
 	}
 
 	/**
@@ -494,8 +494,11 @@ export class CalendarEventWhenModel {
 	 * @private
 	 */
 	private deleteExcludedDatesIfNecessary(newRepeat: RepeatRule | null) {
+		//  FIXME we can't decide anything about excluded dates here because we don't know what we are actually doing.
+		//  it also conceptually doesn't really fit in this model because it concerns other occurrences and not our "current" one
 		if (newRepeat == null) return
 		const oldRepeat = this.initialValues.repeatRule ?? null
+		// if excluded dates have changed,
 		if (!areRepeatRulesEqual(newRepeat, oldRepeat) && areExcludedDatesEqual(newRepeat?.excludedDates ?? [], oldRepeat?.excludedDates ?? [])) {
 			newRepeat.excludedDates = []
 			return
@@ -503,15 +506,8 @@ export class CalendarEventWhenModel {
 		if (this.initialValues.startTime == null) {
 			return
 		}
-		const newStartDate = getStartOfDayWithZone(this._startDate, this.zone)
-		const oldStartDate = getStartOfDayWithZone(this.initialValues.startTime, this.zone)
-		if (newStartDate.getTime() !== oldStartDate.getTime()) {
-			newRepeat.excludedDates = []
-			return
-		}
-		const newEndDate = getStartOfDayWithZone(this._endDate, this.zone)
-		const oldEndDate = getStartOfDayWithZone(this.initialValues.startTime, this.zone)
-		if (newEndDate.getTime() !== oldEndDate.getTime()) {
+		const { startTime } = this.getTimes()
+		if (startTime.getTime() !== this.initialValues.startTime.getTime()) {
 			newRepeat.excludedDates = []
 			return
 		}

@@ -2,11 +2,12 @@ import o from "ospec"
 import { noOp } from "@tutao/tutanota-utils"
 import { getEventWithDefaultTimes, isAllDayEvent } from "../../../../src/api/common/utils/CommonCalendarUtils.js"
 import { Time } from "../../../../src/calendar/date/Time.js"
-import { areExcludedDatesEqual, CalendarEventWhenModel, getDefaultEndCountValue } from "../../../../src/calendar/date/eventeditor/CalendarEventWhenModel.js"
+import { CalendarEventWhenModel, getDefaultEndCountValue } from "../../../../src/calendar/date/eventeditor/CalendarEventWhenModel.js"
 import { EndType, RepeatPeriod } from "../../../../src/api/common/TutanotaConstants.js"
 import { createDateWrapper, createRepeatRule } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { CalendarEvent, createCalendarEvent } from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import { DateTime } from "luxon"
+import { areExcludedDatesEqual } from "../../../../src/calendar/date/eventeditor/CalendarEventModel.js"
 
 o.spec("CalendarEventWhenModel", function () {
 	const getModelBerlin = (initialValues: Partial<CalendarEvent>) => new CalendarEventWhenModel(initialValues, "Europe/Berlin", noOp)
@@ -100,25 +101,6 @@ o.spec("CalendarEventWhenModel", function () {
 			o(model.endTime.to24HourString()).equals("10:57")("still has old time after unsetting all-day")
 			const result = model.result
 			o(result.endTime.toISOString()).equals("2023-04-27T08:57:00.000Z")("the not-all-day-result includes the time")
-		})
-		o("rescheduling the event by a few hours correctly updates start and end time", function () {
-			const model = getModelBerlin({
-				startTime: new Date("2023-04-27T08:27:45.523Z"),
-				endTime: new Date("2023-04-28T08:57:45.523Z"),
-			})
-
-			o(model.startDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("correct display start date")
-			o(model.endDate.toISOString()).equals("2023-04-27T22:00:00.000Z")("correct display end date")
-			o(model.startTime.to24HourString()).equals("10:27")("display start time correct")
-			o(model.endTime.to24HourString()).equals("10:57")("display end time correct")
-			model.rescheduleEvent({ hours: 10 })
-			o(model.startTime.to24HourString()).equals("20:27")("start time changed correct amount")
-			o(model.endTime.to24HourString()).equals("20:57")("end time changed correct amount")
-			o(model.startDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("the display start date did not change")
-			o(model.endDate.toISOString()).equals("2023-04-27T22:00:00.000Z")("the display end date did not change")
-			const result = model.result
-			o(result.startTime.toISOString()).equals("2023-04-27T18:27:00.000Z")("result start time is correct")
-			o(result.endTime.toISOString()).equals("2023-04-28T18:57:00.000Z")("result end time is correct")
 		})
 		o("rescheduling the event by a few hours correctly updates start and end time", function () {
 			const model = getModelBerlin({
@@ -517,42 +499,11 @@ o.spec("CalendarEventWhenModel", function () {
 		})
 	})
 
-	o.spec("areExcludedDatesEqual", function () {
-		o("empty arrays are equal", function () {
-			o(areExcludedDatesEqual([], [])).equals(true)
-		})
-		o("a nonempty array with an empty array is unequal", function () {
-			o(areExcludedDatesEqual([], [createDateWrapper({ date: new Date("2023-03-06T13:56:28.658Z") })])).equals(false)
-			o(areExcludedDatesEqual([createDateWrapper({ date: new Date("2023-03-06T13:56:28.658Z") })], [])).equals(false)
-		})
-		o("nonequal if an array is a subsequence of the other", function () {
-			const a = [createDateWrapper({ date: new Date("2023-03-06T13:56:28.658Z") }), createDateWrapper({ date: new Date("2023-03-09T13:56:28.658Z") })]
-			o(areExcludedDatesEqual(a, a.slice(1))).equals(false)
-		})
-
-		o("nonequal if the dates are different", function () {
-			o(
-				areExcludedDatesEqual(
-					[createDateWrapper({ date: new Date("2023-03-06T13:56:28.658Z") })],
-					[createDateWrapper({ date: new Date("2023-03-09T13:56:28.658Z") })],
-				),
-			).equals(false)
-		})
-
-		o("equal if the dates are the same", function () {
-			o(
-				areExcludedDatesEqual(
-					[createDateWrapper({ date: new Date("2023-03-06T13:56:28.658Z") })],
-					[createDateWrapper({ date: new Date("2023-03-06T13:56:28.658Z") })],
-				),
-			).equals(true)
-		})
-	})
-
 	o.spec("deleteExcludedDates", function () {
 		o("clears the array of excluded dates", async function () {
 			const model = await getModelBerlin(
 				createCalendarEvent({
+					startTime: new Date("2023-03-13T00:00:00Z"),
 					repeatRule: createRepeatRule({
 						excludedDates: [createDateWrapper({ date: new Date("2023-03-13T00:00:00Z") })],
 					}),
@@ -566,6 +517,7 @@ o.spec("CalendarEventWhenModel", function () {
 		o("end occurrence changed to smaller -> delete exclusions", async function () {
 			const model = await getModelBerlin(
 				createCalendarEvent({
+					startTime: new Date("2023-03-13T00:00:00Z"),
 					repeatRule: createRepeatRule({
 						endType: EndType.Count,
 						endValue: "42",
@@ -580,6 +532,7 @@ o.spec("CalendarEventWhenModel", function () {
 		o("end occurrence changed to bigger -> delete exclusions", async function () {
 			const model = await getModelBerlin(
 				createCalendarEvent({
+					startTime: new Date("2023-03-13T00:00:00Z"),
 					repeatRule: createRepeatRule({
 						endType: EndType.Count,
 						endValue: "42",
@@ -594,6 +547,7 @@ o.spec("CalendarEventWhenModel", function () {
 		o("interval changes delete exclusions", async function () {
 			const excludedDates = [new Date("2023-03-13T00:00:00Z")]
 			const event = createCalendarEvent({
+				startTime: new Date("2023-03-13T00:00:00Z"),
 				repeatRule: createRepeatRule({
 					frequency: "1",
 					interval: "1",
@@ -606,8 +560,8 @@ o.spec("CalendarEventWhenModel", function () {
 			const model = getModelBerlin(event)
 
 			model.repeatInterval = 1
-			o(model.excludedDates).deepEquals(excludedDates)
-			o(model.result.repeatRule?.excludedDates).deepEquals(event.repeatRule?.excludedDates)
+			o(model.excludedDates).deepEquals(excludedDates)("model has same exclusions as original event")
+			o(model.result.repeatRule?.excludedDates).deepEquals(event.repeatRule?.excludedDates)("result has same exclusion as original event")
 			model.repeatInterval = 2
 			o(model.excludedDates).deepEquals(excludedDates)
 			o(model.result.repeatRule?.excludedDates).deepEquals([])
@@ -615,6 +569,7 @@ o.spec("CalendarEventWhenModel", function () {
 		o("frequency changes delete exclusions", async function () {
 			const excludedDates = [new Date("2023-03-13T00:00:00Z")]
 			const event = createCalendarEvent({
+				startTime: new Date("2023-03-13T00:00:00Z"),
 				repeatRule: createRepeatRule({
 					frequency: "1",
 					interval: "1",

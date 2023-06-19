@@ -1,4 +1,4 @@
-import { assertNotNull, DAY_IN_MILLIS, downcast, filterInt, neverNull } from "@tutao/tutanota-utils"
+import { DAY_IN_MILLIS, downcast, filterInt, neverNull } from "@tutao/tutanota-utils"
 import { DateTime, IANAZone } from "luxon"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventAttendee, createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
@@ -380,6 +380,20 @@ export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {
 	return [...allExDates.values()].sort((dateWrapper1, dateWrapper2) => dateWrapper1.date.getTime() - dateWrapper2.date.getTime())
 }
 
+export function parseRecurrenceId(recurrenceIdProp: Property, tzId: string | null): Date {
+	const components = parseTimeIntoComponents(recurrenceIdProp.value)
+	// rrule until is inclusive in ical but exclusive in Tutanota
+	const filledComponents = components
+	// if minute is not provided it is an all day date YYYYMMDD
+	const allDay = !("minute" in components)
+	// We don't use the zone from the components (RRULE) but the one from start time if it was given.
+	// Don't ask me why but that's how it is.
+	const effectiveZone = allDay ? "UTC" : tzId ?? undefined
+	delete filledComponents["zone"]
+	const luxonDate = DateTime.fromObject(filledComponents, { zone: effectiveZone })
+	return toValidJSDate(luxonDate, recurrenceIdProp.value, tzId)
+}
+
 function parseEventDuration(durationProp: Property, event: CalendarEvent): void {
 	if (typeof durationProp.value !== "string") throw new ParserError("DURATION value is not a string")
 	const duration = parseDuration(durationProp.value)
@@ -513,6 +527,12 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 		if (rruleProp != null) {
 			event.repeatRule = parseRrule(rruleProp, tzId)
 			event.repeatRule.excludedDates = parseExDates(excludedDateProps)
+		}
+
+		const recurrenceIdProp = eventObj.properties.find((p) => p.name === "RECURRENCE-ID")
+		if (recurrenceIdProp != null) {
+			// FIXME: this is only valid if there's also a UID
+			event.recurrenceId = parseRecurrenceId(recurrenceIdProp, tzId)
 		}
 
 		const descriptionProp = eventObj.properties.find((p) => p.name === "DESCRIPTION")
@@ -653,6 +673,7 @@ type TimeComponents = {
 }
 type DateTimeComponents = DateComponents & TimeComponents
 
+/** parse a time */
 export function parseTimeIntoComponents(value: string): DateComponents | DateTimeComponents {
 	const trimmedValue = value.trim()
 

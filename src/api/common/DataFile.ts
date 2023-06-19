@@ -48,6 +48,8 @@ export function convertToDataFile(file: File | TutanotaFile, data: Uint8Array): 
 	}
 }
 
+/** make sure we have a valid mime type by replacing empty ones with "application/octet-stream" and
+ * removing double quotes and single quotes*/
 export function getCleanedMimeType(mimeType: string | null): string {
 	if (!mimeType || mimeType.trim() === "") {
 		return "application/octet-stream"

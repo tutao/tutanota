@@ -8,14 +8,23 @@ import { Dialog } from "../../gui/base/Dialog"
 import { lang } from "../../misc/LanguageViewModel"
 import { parseCalendarFile, ParsedEvent, serializeCalendar } from "./CalendarImporter"
 import { elementIdPart, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
-import type { UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
+import type { AlarmInfo, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
 import { UserAlarmInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { convertToDataFile } from "../../api/common/DataFile"
 import { locator } from "../../api/main/MainLocator"
-import { ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { getFromMap, ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils"
 import { ImportError } from "../../api/common/error/ImportError"
 import { TranslationKeyType } from "../../misc/TranslationKey"
+
+const enum EventImportRejectionReason {
+	Pre1970,
+	Inversed,
+	InvalidDate,
+	Duplicate,
+}
+
+type RejectedEvents = Map<EventImportRejectionReason, Array<CalendarEvent>>
 
 export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot): Promise<void> {
 	let parsedEvents: ParsedEvent[][]
@@ -39,68 +48,42 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 	const zone = getTimeZone()
 
 	const existingEvents = await showProgressDialog("loading_msg", loadAllEvents(calendarGroupRoot))
-	const existingUidToEventMap = new Map()
-	existingEvents.forEach((existingEvent) => {
-		existingEvent.uid && existingUidToEventMap.set(existingEvent.uid, existingEvent)
-	})
+	const instanceIdentifierToEventMap = new Map()
+	for (const existingEvent of existingEvents) {
+		if (existingEvent.uid == null) continue
+		instanceIdentifierToEventMap.set(makeInstanceIdentifier(existingEvent), existingEvent)
+	}
 	const flatParsedEvents = parsedEvents.flat()
-	const eventsWithInvalidDate: CalendarEvent[] = []
-	const inversedEvents: CalendarEvent[] = []
-	const pre1970Events: CalendarEvent[] = []
-	const eventsWithExistingUid: CalendarEvent[] = []
+	const rejectedEvents: RejectedEvents = new Map()
 	// Don't try to create event which we already have
-	const eventsForCreation = flatParsedEvents // only create events with non-existing uid
-		.filter(({ event }) => {
-			if (!event.uid) {
-				// should not happen because calendar parser will generate uids if they do not exist
-				throw new Error("Uid is not set for imported event")
-			}
+	const eventsForCreation: Array<{ event: CalendarEvent; alarms: Array<AlarmInfo> }> = []
+	for (const { event, alarms } of flatParsedEvents) {
+		const rejectionReason = shouldBeSkipped(event, instanceIdentifierToEventMap)
+		if (rejectionReason != null) {
+			getFromMap(rejectedEvents, rejectionReason, () => []).push(event)
+			continue
+		}
 
-			switch (checkEventValidity(event)) {
-				case CalendarEventValidity.InvalidContainsInvalidDate:
-					eventsWithInvalidDate.push(event)
-					return false
-				case CalendarEventValidity.InvalidEndBeforeStart:
-					inversedEvents.push(event)
-					return false
-				case CalendarEventValidity.InvalidPre1970:
-					pre1970Events.push(event)
-					return false
-			}
+		// hashedUid will be set later in calendarFacade to avoid importing the hash function here
+		const repeatRule = event.repeatRule
+		event._ownerGroup = calendarGroupRoot._id
 
-			if (!existingUidToEventMap.has(event.uid)) {
-				existingUidToEventMap.set(event.uid, event)
-				return true
-			} else {
-				eventsWithExistingUid.push(event)
-				return false
-			}
-		})
-		.map(({ event, alarms }) => {
-			// hashedUid will be set later in calendarFacade to avoid importing the hash function here
-			const repeatRule = event.repeatRule
-			assignEventId(event, zone, calendarGroupRoot)
-			event._ownerGroup = calendarGroupRoot._id
+		if (repeatRule && repeatRule.timeZone === "") {
+			repeatRule.timeZone = getTimeZone()
+		}
 
-			if (repeatRule && repeatRule.timeZone === "") {
-				repeatRule.timeZone = getTimeZone()
-			}
+		for (let alarmInfo of alarms) {
+			alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
+		}
 
-			for (let alarmInfo of alarms) {
-				alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
-			}
+		assignEventId(event, zone, calendarGroupRoot)
+		eventsForCreation.push({ event, alarms })
+	}
 
-			assignEventId(event, zone, calendarGroupRoot)
-			return {
-				event,
-				alarms,
-			}
-		})
-
-	if (!(await showConfirmPartialImportDialog(eventsWithExistingUid, "importEventExistingUid_msg"))) return
-	if (!(await showConfirmPartialImportDialog(eventsWithInvalidDate, "importInvalidDatesInEvent_msg"))) return
-	if (!(await showConfirmPartialImportDialog(inversedEvents, "importEndNotAfterStartInEvent_msg"))) return
-	if (!(await showConfirmPartialImportDialog(pre1970Events, "importPre1970StartInEvent_msg"))) return
+	if (!(await showConfirmPartialImportDialog(rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? [], "importEventExistingUid_msg"))) return
+	if (!(await showConfirmPartialImportDialog(rejectedEvents.get(EventImportRejectionReason.InvalidDate) ?? [], "importInvalidDatesInEvent_msg"))) return
+	if (!(await showConfirmPartialImportDialog(rejectedEvents.get(EventImportRejectionReason.Inversed) ?? [], "importEndNotAfterStartInEvent_msg"))) return
+	if (!(await showConfirmPartialImportDialog(rejectedEvents.get(EventImportRejectionReason.Pre1970) ?? [], "importPre1970StartInEvent_msg"))) return
 
 	/**
 	 * show an error dialog detailing the reason and amount for events that failed to import
@@ -118,18 +101,44 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 	}
 
 	const operation = locator.operationProgressTracker.startNewOperation()
-	return showProgressDialog("importCalendar_label", locator.calendarFacade.saveImportedCalendarEvents(eventsForCreation, operation.id), operation.progress)
+	// FIXME: is this necessary?
+	const total = [...eventsForCreation, ...eventsForCreationAltered]
+	return showProgressDialog("importCalendar_label", locator.calendarFacade.saveImportedCalendarEvents(total, operation.id), operation.progress)
 		.catch(
 			ofClass(ImportError, (e) =>
 				Dialog.message(() =>
 					lang.get("importEventsError_msg", {
 						"{amount}": e.numFailed + "",
-						"{total}": eventsForCreation.length + "",
+						"{total}": total.length.toString(),
 					}),
 				),
 			),
 		)
 		.finally(() => operation.done())
+}
+
+/** check if the event should be skipped because it's invalid or already imported. if not, add it to the map. */
+function shouldBeSkipped(event: CalendarEvent, instanceIdentifierToEventMap: Map<string, CalendarEvent>): EventImportRejectionReason | null {
+	if (!event.uid) {
+		// should not happen because calendar parser will generate uids if they do not exist
+		throw new Error("Uid is not set for imported event")
+	}
+
+	switch (checkEventValidity(event)) {
+		case CalendarEventValidity.InvalidContainsInvalidDate:
+			return EventImportRejectionReason.InvalidDate
+		case CalendarEventValidity.InvalidEndBeforeStart:
+			return EventImportRejectionReason.Inversed
+		case CalendarEventValidity.InvalidPre1970:
+			return EventImportRejectionReason.Pre1970
+	}
+	const instanceIdentifier = makeInstanceIdentifier(event)
+	if (!instanceIdentifierToEventMap.has(instanceIdentifier)) {
+		instanceIdentifierToEventMap.set(instanceIdentifier, event)
+		return null
+	} else {
+		return EventImportRejectionReason.Duplicate
+	}
 }
 
 /** export all events from a calendar, using the alarmInfos the current user has access to and ignoring the other ones that may be set on the event. */
@@ -173,4 +182,10 @@ function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEven
 			return shortEvents.concat(longEvents)
 		}),
 	)
+}
+
+/** we try to enforce that each calendar only contains each uid once, but we need to take into consideration
+ * that altered instances have the same uid as their progenitor.*/
+function makeInstanceIdentifier(event: CalendarEvent): string {
+	return `${event.uid}-${event.recurrenceId?.getTime() ?? "progenitor"}`
 }

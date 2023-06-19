@@ -99,6 +99,7 @@ export class CalendarAgendaView implements Component<Attrs> {
 														secondLineText: formattedEventTime + eventLocation,
 														color: getEventColor(ev, attrs.groupColors),
 														hasAlarm: !startsBefore && hasAlarmsForTheUser(locator.logins.getUserController().user, ev),
+														isAltered: ev.recurrenceId != null,
 														click: (domEvent) => attrs.onEventClicked(ev, domEvent),
 														height: 38,
 														verticalPadding: 2,

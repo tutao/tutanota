@@ -41,6 +41,7 @@ export class ContinuingCalendarEventBubble implements Component<ContinuingCalend
 					noBorderLeft: attrs.startsBefore,
 					noBorderRight: attrs.endsAfter,
 					hasAlarm: hasAlarmsForTheUser(attrs.user, attrs.event),
+					isAltered: attrs.event.recurrenceId != null,
 					fadeIn: attrs.fadeIn,
 					opacity: attrs.opacity,
 					enablePointerEvents: attrs.enablePointerEvents,

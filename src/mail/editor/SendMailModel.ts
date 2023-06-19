@@ -11,8 +11,11 @@ import {
 import { UserError } from "../../api/main/UserError"
 import { getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE } from "../../misc/passwords/PasswordUtils"
 import {
+	assertNotNull,
 	cleanMatch,
 	deduplicate,
+	defer,
+	DeferredObject,
 	downcast,
 	findAndRemove,
 	getFromMap,
@@ -60,6 +63,7 @@ import { DateProvider } from "../../api/common/DateProvider.js"
 import { getSenderName } from "../../misc/MailboxPropertiesUtils.js"
 import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
 
@@ -97,6 +101,7 @@ type InitArgs = {
  * Model which allows sending mails interactively - including resolving of recipients and handling of drafts.
  */
 export class SendMailModel {
+	private initialized: DeferredObject<void> | null = null
 	onMailChanged: Stream<null> = stream(null)
 	onRecipientDeleted: Stream<{ field: RecipientField; recipient: Recipient } | null> = stream(null)
 	onBeforeSend: () => void = noOp
@@ -277,6 +282,7 @@ export class SendMailModel {
 		senderMailAddress?: string,
 		initialChangedState?: boolean,
 	): Promise<SendMailModel> {
+		this.startInit()
 		return this.init({
 			conversationType: ConversationType.NEW,
 			subject,
@@ -290,6 +296,8 @@ export class SendMailModel {
 	}
 
 	async initAsResponse(args: InitAsResponseArgs, inlineImages: InlineImages): Promise<SendMailModel> {
+		this.startInit()
+
 		const { previousMail, conversationType, senderMailAddress, recipients, attachments, subject, bodyText, replyTos } = args
 		let previousMessageId: string | null = null
 		await this.entity
@@ -321,6 +329,8 @@ export class SendMailModel {
 	}
 
 	async initWithDraft(attachments: File[], mailWrapper: MailWrapper, inlineImages: InlineImages): Promise<SendMailModel> {
+		this.startInit()
+
 		let previousMessageId: string | null = null
 		let previousMail: Mail | null = null
 
@@ -382,6 +392,13 @@ export class SendMailModel {
 			previousMessageId,
 			initialChangedState: false,
 		})
+	}
+
+	private startInit() {
+		if (this.initialized) {
+			throw new ProgrammingError("trying to initialize SendMailModel twice")
+		}
+		this.initialized = defer()
 	}
 
 	private async init({
@@ -455,6 +472,8 @@ export class SendMailModel {
 		} else {
 			this.mailSavedAt = this.mailChangedAt + 1
 		}
+
+		assertNotNull(this.initialized, "somehow got to the end of init without startInit called").resolve()
 
 		return this
 	}
@@ -747,7 +766,7 @@ export class SendMailModel {
 
 			await this.saveDraft(true, mailMethod)
 			await this.updateContacts(recipients)
-			await this.mailFacade.sendDraft(neverNull(this.draft), recipients, this.selectedNotificationLanguage)
+			await this.mailFacade.sendDraft(assertNotNull(this.draft, "draft was null?"), recipients, this.selectedNotificationLanguage)
 			await this.updatePreviousMail()
 			await this.updateExternalLanguage()
 			return true
@@ -846,6 +865,10 @@ export class SendMailModel {
 	 * @throws PreconditionFailedError when the draft is locked
 	 */
 	private async doSaveDraft(saveAttachments: boolean, mailMethod: MailMethod): Promise<void> {
+		if (this.initialized == null) {
+			throw new ProgrammingError("init for SendMailModel was not called")
+		}
+		await this.initialized
 		try {
 			const attachments = saveAttachments ? this.attachments : null
 
@@ -856,6 +879,7 @@ export class SendMailModel {
 					: await this.updateDraft(this.getBody(), attachments, this.draft)
 
 			const attachmentIds = await this.mailFacade.getAttachmentIds(this.draft)
+			for (const id of attachmentIds) console.log("doing the attachment", id)
 			const newAttachments = await promiseMap(attachmentIds, (fileId) => this.entity.load<TutanotaFile>(FileTypeRef, fileId), {
 				concurrency: 5,
 			})

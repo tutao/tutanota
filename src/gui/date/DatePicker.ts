@@ -291,22 +291,22 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		this.displayingDate.setMonth(this.displayingDate.getMonth() + 1)
 	}
 
-	private renderDay({ date, day, paddingDay }: CalendarDay, attrs: VisualDatePickerAttrs): Children {
+	private renderDay({ date, day, isPaddingDay }: CalendarDay, attrs: VisualDatePickerAttrs): Children {
 		const size = px(this.getElementWidth(attrs))
 		return m(
-			".center.click" + (paddingDay ? "" : getDateIndicator(date, attrs.selectedDate)),
+			".center.click" + (isPaddingDay ? "" : getDateIndicator(date, attrs.selectedDate)),
 			{
 				style: {
 					height: size,
 					width: size,
 				},
 				onclick:
-					!paddingDay &&
+					!isPaddingDay &&
 					(() => {
 						attrs.onDateSelected && attrs.onDateSelected(date, true)
 					}),
 			},
-			paddingDay ? null : day,
+			isPaddingDay ? null : day,
 		)
 	}
 

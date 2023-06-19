@@ -21,26 +21,28 @@ import { locator } from "../../../api/main/MainLocator.js"
 import { CalendarEventEditView } from "./CalendarEventEditView.js"
 import { askIfShouldSendCalendarUpdatesToAttendees } from "../CalendarGuiUtils.js"
 import { UserError } from "../../../api/main/UserError.js"
-import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
 import { showUserError } from "../../../misc/ErrorHandlerImpl.js"
 import { CalendarEventIdentity, CalendarEventModel, EventSaveResult, EventType } from "../../date/eventeditor/CalendarEventModel.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
+import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
 
 /**
  * which parts of a calendar event series to apply an edit operation to.
  * consumers must take care to only use appropriate values for the operation
  * in question (ie removing a repeat rule from a single event in a series is nonsensical)
  */
-export const enum CalendarEventEditMode {
-	/** only apply the edit to only one particular instance of the series */
-	This,
-	/** edit the whole series */
-	All,
-	/** apply the edit to every instance from the edited one out */
-	ThisAndFuture,
-	/** don't apply the edit at all */
-	Cancel,
+export const enum CalendarOperation {
+	/** create a new event */
+	Create,
+	/** only apply an edit to only one particular instance of the series */
+	EditThis,
+	/** Delete a single instance from a series, altered or not */
+	DeleteThis,
+	/** apply the edit operation to all instances of the series*/
+	EditAll,
+	/** delete the whole series */
+	DeleteAll,
 }
 
 const enum ConfirmationResult {
@@ -141,13 +143,13 @@ export async function showNewCalendarEventEditDialog(model: CalendarEventModel):
 
 	const okAction: EditDialogOkHandler = async (posRect, finish) => {
 		/** new event, so we always want to send invites. */
-		model.shouldSendUpdates = true
+		model.editModels.whoModel.shouldSendUpdates = true
 		if (finished || (await askUserIfInsecurePasswordsAreOk(model)) === ConfirmationResult.Cancel) {
 			return
 		}
 
 		try {
-			const result = await model.saveNewEvent()
+			const result = await model.apply()
 			if (result === EventSaveResult.Saved) {
 				finished = true
 				finish()
@@ -157,7 +159,7 @@ export async function showNewCalendarEventEditDialog(model: CalendarEventModel):
 				// noinspection ES6MissingAwait
 				showUserError(e)
 			} else if (e instanceof UpgradeRequiredError) {
-				model.canUseInvites = await showPlanUpgradeRequiredDialog(e.plans)
+				await showPlanUpgradeRequiredDialog(e.plans)
 			} else {
 				throw e
 			}
@@ -196,7 +198,7 @@ export async function showExistingCalendarEventEditDialog(
 		}
 
 		try {
-			const result = await model.updateExistingEvent()
+			const result = await model.apply()
 			if (result === EventSaveResult.Saved) {
 				finished = true
 				finish()
@@ -206,7 +208,7 @@ export async function showExistingCalendarEventEditDialog(
 				// noinspection ES6MissingAwait
 				showUserError(e)
 			} else if (e instanceof UpgradeRequiredError) {
-				model.canUseInvites = await showPlanUpgradeRequiredDialog(e.plans)
+				await showPlanUpgradeRequiredDialog(e.plans)
 			} else {
 				throw e
 			}
@@ -222,13 +224,13 @@ export async function showExistingCalendarEventEditDialog(
 async function askUserIfUpdatesAreNeededOrCancel(model: CalendarEventModel): Promise<ConfirmationResult> {
 	if (
 		model.eventType === EventType.OWN &&
-		!model.shouldSendUpdates &&
+		!model.editModels.whoModel.shouldSendUpdates &&
 		model.editModels.whoModel.initiallyHadOtherAttendees &&
 		(await model.hasUpdateWorthyChanges())
 	) {
 		switch (await askIfShouldSendCalendarUpdatesToAttendees()) {
 			case "yes":
-				model.shouldSendUpdates = true
+				model.editModels.whoModel.shouldSendUpdates = true
 				break
 			case "no":
 				break
@@ -245,7 +247,7 @@ async function askUserIfUpdatesAreNeededOrCancel(model: CalendarEventModel): Pro
  * @returns {ConfirmationResult} Cancel if the dialog should stay open, Continue if the save action should proceed despite insecure passwords. */
 async function askUserIfInsecurePasswordsAreOk(model: CalendarEventModel): Promise<ConfirmationResult> {
 	if (
-		model.shouldSendUpdates && // we want to send updates
+		model.editModels.whoModel.shouldSendUpdates && // we want to send updates
 		model.editModels.whoModel.hasInsecurePasswords() && // the model declares some of the passwords insecure
 		!(await Dialog.confirm("presharedPasswordNotStrongEnough_msg")) // and the user is not OK with that
 	) {

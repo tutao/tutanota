@@ -1,10 +1,10 @@
 import { parseCalendarFile } from "../export/CalendarImporter"
 import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../api/main/MainLocator"
-import { CalendarAttendeeStatus, CalendarMethod, FeatureType, getAsEnumValue } from "../../api/common/TutanotaConstants"
-import { assertNotNull, clone, filterInt, lazy, noOp } from "@tutao/tutanota-utils"
+import { CalendarAttendeeStatus, CalendarMethod, FeatureType, getAsEnumValue, NewPaidPlans } from "../../api/common/TutanotaConstants"
+import { assertNotNull, clone, filterInt, noOp } from "@tutao/tutanota-utils"
 import { findPrivateCalendar, getEventType, getTimeZone, resolveCalendarEventProgenitor } from "./CalendarUtils"
-import { calendarUpdateDistributor } from "./CalendarUpdateDistributor"
+import { calendarNotificationSender } from "./CalendarNotificationSender.js"
 import { Dialog } from "../../gui/base/Dialog"
 import { UserError } from "../../api/main/UserError"
 import { NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor"
@@ -14,6 +14,11 @@ import { Recipient } from "../../api/common/recipients/Recipient.js"
 import { isCustomizationEnabledForCustomer } from "../../api/common/utils/Utils.js"
 import { SendMailModel } from "../../mail/editor/SendMailModel.js"
 import { CalendarEventModel, EventType } from "./eventeditor/CalendarEventModel.js"
+import { CalendarNotificationModel } from "./eventeditor/CalendarNotificationModel.js"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
+import { RecipientField } from "../../mail/model/MailUtils.js"
+import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
+import { CalendarOperation } from "../view/eventeditor/CalendarEventEditDialog.js"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }
@@ -30,6 +35,13 @@ async function getParsedEvent(fileData: DataFile): Promise<ParsedIcalFileContent
 	try {
 		const { contents, method } = await parseCalendarFile(fileData)
 		const verifiedMethod = getAsEnumValue(CalendarMethod, method) || CalendarMethod.PUBLISH
+		// we only care about the first event in the file for invites, even updates
+		// where the whole series is changed (including altered occurrences) seem
+		// to be sent one-by-one by all calendaring apps we could check.
+		if (contents.length > 1) {
+			// FIXME: maybe it would be useful to extract the exporting app from the ical file.
+			console.log(`got an invite file with ${contents.length} events, still only handling the first one`)
+		}
 		const parsedEventWithAlarms = contents[0]
 
 		if (parsedEventWithAlarms && parsedEventWithAlarms.event.uid) {
@@ -56,7 +68,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 	])
 
 	let eventType: EventType
-	let editModelsFactory: lazy<Promise<CalendarEventModel>>
+	let editModelsFactory: (mode: CalendarOperation) => Promise<CalendarEventModel | null>
 	let hasBusinessFeature: boolean
 	let ownAttendee: CalendarEventAttendee | null = null
 	const lazyProgenitor = () => resolveCalendarEventProgenitor(latestEvent, locator.entityClient)
@@ -75,7 +87,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 		const ownMailAddresses = mailboxProperties.mailAddressProperties.map(({ mailAddress }) => mailAddress)
 		ownAttendee = findAttendeeInAddresses(latestEvent.attendees, ownMailAddresses)
 		eventType = getEventType(latestEvent, calendarInfos, ownMailAddresses, locator.logins.getUserController().user)
-		editModelsFactory = () => locator.calendarEventModel(latestEvent, mailboxDetails, mailboxProperties, mail)
+		editModelsFactory = (mode: CalendarOperation) => locator.calendarEventModel(mode, latestEvent, mailboxDetails, mailboxProperties, mail)
 		hasBusinessFeature =
 			isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await locator.logins.getUserController().isNewPaidPlan())
 	}
@@ -99,23 +111,35 @@ export async function getEventFromFile(file: TutanotaFile): Promise<CalendarEven
 }
 
 /**
- * Returns the latest version for the given event by uid. If the event is not in
+ * Returns the latest version for the given event by uid and recurrenceId. If the event is not in
  * any calendar (because it has not been stored yet, e.g. in case of invite)
  * the given event is returned.
  */
 export async function getLatestEvent(event: CalendarEvent): Promise<CalendarEvent> {
 	const uid = event.uid
 	if (uid == null) return event
-	const existingEvent = await locator.calendarFacade.getEventByUid(uid)
-	if (existingEvent == null) return event
+	const existingEvents = await locator.calendarFacade.getEventsByUid(uid)
+
 	// If the file we are opening is newer than the one which we have on the server, update server version.
 	// Should not happen normally but can happen when e.g. reply and update were sent one after another before we accepted
 	// the invite. Then accepting first invite and then opening update should give us updated version.
+	const existingEvent =
+		event.recurrenceId == null
+			? existingEvents?.progenitor // the progenitor does not have a recurrence id and is always first in uid index
+			: existingEvents?.recurrences.find((e) => e.recurrenceId === event.recurrenceId)
+
+	if (existingEvent == null) return event
+
 	if (filterInt(existingEvent.sequence) < filterInt(event.sequence)) {
 		return await locator.calendarModel.updateEventWithExternal(existingEvent, event)
 	} else {
 		return existingEvent
 	}
+}
+
+export const enum ReplyResult {
+	ReplyNotSent,
+	ReplySent,
 }
 
 /**
@@ -125,28 +149,33 @@ export async function replyToEventInvitation(
 	event: CalendarEvent,
 	attendee: CalendarEventAttendee,
 	decision: CalendarAttendeeStatus,
-	previousMail: Mail | null,
-	sendMailModel: SendMailModel | null = null,
-): Promise<void> {
+	previousMail: Mail,
+): Promise<ReplyResult> {
 	const eventClone = clone(event)
 	const foundAttendee = assertNotNull(findAttendeeInAddresses(eventClone.attendees, [attendee.address.address]), "attendee was not found in event clone")
 	foundAttendee.status = decision
-	const [calendar, responseModel] = await Promise.all([
-		locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()).then(findPrivateCalendar),
-		previousMail != null ? getResponseModelForMail(previousMail) : sendMailModel,
-	])
-	if (responseModel == null) return
+
+	const notificationModel = new CalendarNotificationModel(calendarNotificationSender, locator.logins)
+	const responseModel = await getResponseModelForMail(previousMail)
+	responseModel?.initWithTemplate([], "", "")
+	responseModel?.addRecipient(RecipientField.TO, previousMail.sender)
+
 	try {
-		await calendarUpdateDistributor.sendResponse(eventClone, responseModel, previousMail)
+		await notificationModel.send(eventClone, { responseModel, inviteModel: null, cancelModel: null, updateModel: null })
 	} catch (e) {
 		if (e instanceof UserError) {
 			await Dialog.message(() => e.message)
+			return ReplyResult.ReplyNotSent
+		} else if (e instanceof UpgradeRequiredError) {
+			await showPlanUpgradeRequiredDialog(NewPaidPlans)
+			return ReplyResult.ReplyNotSent
 		} else {
 			throw e
 		}
 	}
 
-	if (calendar == null) return
+	const calendar = await locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()).then(findPrivateCalendar)
+	if (calendar == null) return ReplyResult.ReplyNotSent
 	// if the owner group is set there is an existing event already so just update
 	if (event._ownerGroup) {
 		const alarms = await locator.calendarModel.loadAlarms(event.alarmInfos, locator.logins.getUserController().user)
@@ -155,6 +184,7 @@ export async function replyToEventInvitation(
 	} else if (decision !== CalendarAttendeeStatus.DECLINED) {
 		await locator.calendarModel.createEvent(eventClone, [], getTimeZone(), calendar.groupRoot)
 	}
+	return ReplyResult.ReplySent
 }
 
 export async function getResponseModelForMail(mail: Mail): Promise<SendMailModel | null> {

@@ -62,7 +62,22 @@ type TestIdGenerator = {
 	newListId: () => Id
 	newIdTuple: () => IdTuple
 }
-let testIdGenerator: TestIdGenerator
+let testIdGenerator: TestIdGenerator = {
+	currentIdValue: 0,
+	currentListIdValue: 0,
+
+	newId(): Id {
+		return (this.currentIdValue++).toString()
+	},
+
+	newListId(): Id {
+		return (this.currentListIdValue++).toString()
+	},
+
+	newIdTuple(): IdTuple {
+		return [this.newListId(), this.newId()]
+	},
+}
 
 const EXTERNAL_ADDRESS_1 = "address1@test.com"
 const EXTERNAL_ADDRESS_2 = "address2@test.com"
@@ -88,23 +103,6 @@ o.spec("SendMailModel", function () {
 	let model: SendMailModel
 
 	o.beforeEach(function () {
-		testIdGenerator = {
-			currentIdValue: 0,
-			currentListIdValue: 0,
-
-			newId(): Id {
-				return (this.currentIdValue++).toString()
-			},
-
-			newListId(): Id {
-				return (this.currentListIdValue++).toString()
-			},
-
-			newIdTuple(): IdTuple {
-				return [this.newListId(), this.newId()]
-			},
-		}
-
 		entity = instance(EntityClient)
 		when(
 			entity.loadRoot(
@@ -451,16 +449,13 @@ o.spec("SendMailModel", function () {
 				address: "test@address.com",
 				contact: null,
 			}
-			model.addRecipient(RecipientField.TO, recipient)
-			model.setSubject("subject")
+			await model.initWithTemplate({ to: [recipient] }, "subject", "", [], true, "me@tutanota.com", false)
 			model.setPassword("test@address.com", "abc")
 			o(model.getPassword(recipient.address)).equals("abc")
-			model.setConfidential(true)
 			const method = MailMethod.NONE
 
 			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
 			when(getConfirmation(anything())).thenResolve(false)
-
 			const r = await model.send(method, getConfirmation)
 			o(r).equals(false)
 			verify(mailFacade.sendDraft(anything(), anything(), anything()), { times: 0 })
@@ -473,12 +468,10 @@ o.spec("SendMailModel", function () {
 				address: "test@address.com",
 				contact: null,
 			}
-			model.addRecipient(RecipientField.TO, recipient)
-			model.setSubject("did you get that thing i sent ya?")
+			await model.initWithTemplate({ to: [recipient] }, "did you get that thing i sent ya?", "", [], true, "me@tutanota.de", false)
 			const password = WEAK_PASSWORD
 			model.setPassword("test@address.com", password)
 			o(model.getPassword(recipient.address)).equals(password)
-			model.setConfidential(true)
 			const method = MailMethod.NONE
 			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
 			when(getConfirmation(anything())).thenResolve(true)
@@ -509,11 +502,9 @@ o.spec("SendMailModel", function () {
 				address: address,
 				contact: null,
 			}
-			model.addRecipient(RecipientField.TO, recipient)
-			model.setSubject("did you get that thing i sent ya?")
+			await model.initWithTemplate({ to: [recipient] }, "subjecttttt", "", [], true, "me@tutanota.de", false)
 			const password = STRONG_PASSWORD
 			model.setPassword(address, password)
-			model.setConfidential(true)
 			const method = MailMethod.NONE
 
 			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
@@ -540,34 +531,31 @@ o.spec("SendMailModel", function () {
 				lastName: "chippie",
 				presharedPassword: "weak password",
 			})
+			await model.initWithTemplate({ to: [] }, "did you get that thing i sent ya?", "no?", [], true, "me@tutanota.de", false)
 
-			model.addRecipient(RecipientField.TO, {
+			await model.addRecipient(RecipientField.TO, {
 				name: "chippie",
 				address: "chippie@cinco.net",
 				contact,
 			})
 
 			model.setPassword("chippie@cinco.net", STRONG_PASSWORD)
-			model.setSubject("did you get that thing i sent ya?")
-			model.setConfidential(true)
-
 			await model.send(MailMethod.NONE, getConfirmation)
-
 			verify(entity.update(contact), { times: 1 })
 		})
 	})
 
 	o.spec("Entity Event Updates", function () {
 		let existingContact
-
-		o.beforeEach(async function () {
+		let recipients
+		o.before(function () {
 			existingContact = createContact({
 				_id: testIdGenerator.newIdTuple(),
 				firstName: "james",
 				lastName: "hetfield",
 			})
 
-			const recipients = [
+			recipients = [
 				{
 					name: "paul gilbert",
 					address: "paul@gmail.com",
@@ -579,13 +567,6 @@ o.spec("SendMailModel", function () {
 					contact: existingContact,
 				},
 			]
-			await model.initWithTemplate(
-				{
-					to: recipients,
-				},
-				"they all drink lemonade",
-				"",
-			)
 		})
 
 		o("nonmatching event", async function () {
@@ -619,7 +600,7 @@ o.spec("SendMailModel", function () {
 					argThat((id) => isSameId(id, existingContact._id)),
 				),
 			).thenResolve(createContact(Object.assign({ _id: existingContact._id } as Contact, contactForUpdate)))
-
+			await model.initWithTemplate({ to: recipients }, "somb", "", [], true, "a@b.c", false)
 			await model.handleEntityEvent({
 				application: app,
 				type,
@@ -654,7 +635,7 @@ o.spec("SendMailModel", function () {
 					),
 				),
 			)
-
+			await model.initWithTemplate({ to: recipients }, "b", "c", [], true, "", false)
 			await model.handleEntityEvent({
 				application: app,
 				type,
@@ -669,6 +650,7 @@ o.spec("SendMailModel", function () {
 		o("contact removed", async function () {
 			const { app, type } = ContactTypeRef
 			const [instanceListId, instanceId] = existingContact._id
+			await model.initWithTemplate({ to: recipients }, "subj", "", [], true, "a@b.c", false)
 			await model.handleEntityEvent({
 				application: app,
 				type,
@@ -698,8 +680,9 @@ o.spec("SendMailModel", function () {
 			const getConfirmation = func<(key: TranslationKey) => Promise<boolean>>()
 			when(getConfirmation("manyRecipients_msg")).thenResolve(false)
 
-			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
-			o(await model.send(MailMethod.NONE, getConfirmation)).equals(false)
+			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de", false)
+			const hasBeenSent = await model.send(MailMethod.NONE, getConfirmation)
+			o(hasBeenSent).equals(false)("nothing was sent")
 			verify(getConfirmation("manyRecipients_msg"), { times: 1 })
 		})
 		o("too many to recipients confirm", async function () {

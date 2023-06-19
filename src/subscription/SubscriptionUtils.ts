@@ -218,7 +218,6 @@ export async function getAvailablePlansWithSharing(): Promise<Array<AvailablePla
 
 /**
  * Get plans that a customer can upgrade to that include the Event Invites feature.
- * @throws ProgrammingError if no plans include it.
  */
 export async function getAvailablePlansWithEventInvites(): Promise<Array<AvailablePlanType>> {
 	return getAtLeastOneAvailableMatchingPlan((config) => config.eventInvites, "no available plan with the Event Invites feature")
@@ -230,4 +229,8 @@ export async function getAvailablePlansWithEventInvites(): Promise<Array<Availab
  */
 export async function getAvailablePlansWithAutoResponder(): Promise<Array<AvailablePlanType>> {
 	return getAtLeastOneAvailableMatchingPlan((config) => config.autoResponder, "no available plan with the Auto-Responder feature")
+}
+
+export async function getAvailablePlansWithCalendarInvites(): Promise<Array<AvailablePlanType>> {
+	return getAtLeastOneAvailableMatchingPlan((config) => config.eventInvites, "no available plan with the Calendar Invite feature")
 }

@@ -1,5 +1,6 @@
 import {
 	$Promisable,
+	assertNotNull,
 	clone,
 	DAY_IN_MILLIS,
 	findAllAndRemove,
@@ -10,33 +11,29 @@ import {
 	groupByAndMapUniquely,
 	LazyLoaded,
 	neverNull,
-	noOp,
-	ofClass,
 	promiseMap,
 	symmetricDifference,
 } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarEventTypeRef, UserSettingsGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { getWeekStart, OperationType, WeekStart } from "../../api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
-import { getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
+import { getElementId, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
 import { LoginController } from "../../api/main/LoginController"
 import { IProgressMonitor, NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor"
 import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type { CalendarMonthTimeRange } from "../date/CalendarUtils"
+import type { CalendarTimeRange } from "../date/CalendarUtils"
 import {
-	addDaysForEvent,
-	addDaysForLongEvent,
+	addDaysForEventInstance,
 	addDaysForRecurringEvent,
 	getDiffIn60mIntervals,
 	getEventStart,
-	getMonth,
+	getMonthRange,
 	getTimeZone,
 	isEventBetweenDays,
-	isSameEvent,
-	resolveCalendarEventProgenitor,
+	isSameEventInstance,
 } from "../date/CalendarUtils"
 import { DateTime } from "luxon"
 import { geEventElementMaxId, getEventElementMinId, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
@@ -51,7 +48,7 @@ import { ProgressTracker } from "../../api/main/ProgressTracker"
 import { DeviceConfig } from "../../misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
-import { CalendarEventEditMode } from "./eventeditor/CalendarEventEditDialog.js"
+import { CalendarOperation } from "./eventeditor/CalendarEventEditDialog.js"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -71,7 +68,7 @@ export type MouseOrPointerEvent = MouseEvent | PointerEvent
 export type CalendarEventBubbleClickHandler = (arg0: CalendarEvent, arg1: MouseOrPointerEvent) => unknown
 type EventsForDays = Map<number, Array<CalendarEvent>>
 export const LIMIT_PAST_EVENTS_YEARS = 100
-export type CalendarEventEditModelsFactory = (event: CalendarEvent) => Promise<CalendarEventModel>
+export type CalendarEventEditModelsFactory = (mode: CalendarOperation, event: CalendarEvent) => Promise<CalendarEventModel | null>
 
 export class CalendarViewModel implements EventDragHandlerCallbacks {
 	// Should not be changed directly but only through the URL
@@ -133,13 +130,13 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			}),
 		).load()
 		this.selectedDate.map((d) => {
-			const thisMonthStart = getMonth(d, this._timeZone).start
+			const thisMonthStart = getMonthRange(d, this._timeZone).start
 			const previousMonthDate = new Date(thisMonthStart)
-			previousMonthDate.setMonth(thisMonthStart.getMonth() - 1)
+			previousMonthDate.setMonth(new Date(thisMonthStart).getMonth() - 1)
 			const nextMonthDate = new Date(thisMonthStart)
-			nextMonthDate.setMonth(thisMonthStart.getMonth() + 1)
+			nextMonthDate.setMonth(new Date(thisMonthStart).getMonth() + 1)
 
-			this._loadMonthIfNeeded(thisMonthStart)
+			this._loadMonthIfNeeded(new Date(thisMonthStart))
 				.then(() => progressMonitor.workDone(1))
 				.then(() => this._loadMonthIfNeeded(nextMonthDate))
 				.then(() => progressMonitor.workDone(1))
@@ -198,9 +195,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	/**
 	 * This is called when the event is dropped.
 	 */
-	async onDragEnd(timeToMoveBy: number): Promise<void> {
+	async onDragEnd(timeToMoveBy: number, mode: CalendarOperation | null): Promise<void> {
 		//if the time of the dragged event is the same as of the original we only cancel the drag
-		if (timeToMoveBy !== 0) {
+		if (timeToMoveBy !== 0 && mode != null) {
 			if (this._draggedEvent == null) return
 
 			const { originalEvent, eventClone } = this._draggedEvent
@@ -209,10 +206,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 			this._addTransientEvent(eventClone)
 
-			const progenitor = await resolveCalendarEventProgenitor(originalEvent, this._entityClient)
-
 			try {
-				const didUpdate = await this.moveEvent(progenitor, timeToMoveBy)
+				const didUpdate = await this.moveEvent(originalEvent, timeToMoveBy, mode)
 
 				if (didUpdate !== EventSaveResult.Saved) {
 					this._removeTransientEvent(eventClone)
@@ -261,16 +256,21 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	/**
-	 * Given a events and days, return the long and short events of that range of days
-	 *we detect events that should be removed based on their UID + start and end time
+	 * Given an event and days, return the long and short events of that range of days
+	 * we detect events that should be removed based on their UID + start and end time
 	 *
 	 * @param days: The range of days from which events should be returned
-	 * @returns    shortEvents: Array<Array<CalendarEvent>>, short events per day.,
+	 * @returns    shortEvents: Array<Array<CalendarEvent>>, short events per day
 	 *             longEvents: Array<CalendarEvent>: long events over the whole range,
 	 *             days: Array<Date>: the original days that were passed in
 	 */
-	getEventsOnDays(days: Array<Date>): EventsOnDays {
-		const longEvents: Set<CalendarEvent> = new Set()
+	getEventsOnDaysToRender(days: Array<Date>): EventsOnDays {
+		// addDaysForRecurringEvents produces some weeks that have non-referentially-identical objects for the same event instance (occurrence)
+		// in particular, this happens for the weeks straddling a month border because each month adds a different clone of the occurrence to its part of the week
+		// this means we can't use a set to deduplicate these.
+
+		/** A map from event id and start time to the event instance. It is not enough to just use an id because different occurrences will have the same id. */
+		const longEvents: Map<string, CalendarEvent> = new Map()
 		let shortEvents: Array<Array<CalendarEvent>> = []
 		// It might be the case that a UID is shared by events across calendars, so we need to differentiate them by list ID aswell
 		const transientEventUidsByCalendar = groupByAndMapUniquely(
@@ -279,44 +279,52 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			(event) => event.uid,
 		)
 
-		for (let day of days) {
-			const shortEventsForDay: CalendarEvent[] = []
-			const events = this._eventsForDays.get(day.getTime()) || []
-
-			const sortEvent = (event: CalendarEvent) => {
-				if (isAllDayEvent(event) || getDiffIn60mIntervals(event.startTime, event.endTime) >= 24) {
-					longEvents.add(event)
-				} else {
-					shortEventsForDay.push(event)
-				}
+		const sortEvent = (event: CalendarEvent, shortEventsForDay: Array<CalendarEvent>) => {
+			if (isAllDayEvent(event) || getDiffIn60mIntervals(event.startTime, event.endTime) >= 24) {
+				longEvents.set(getElementId(event) + event.startTime.toString(), event)
+			} else {
+				shortEventsForDay.push(event)
 			}
+		}
 
-			for (let event of events) {
+		for (const day of days) {
+			const shortEventsForDay: CalendarEvent[] = []
+			const eventsForDay = this._eventsForDays.get(day.getTime()) || []
+
+			for (const event of eventsForDay) {
 				if (transientEventUidsByCalendar.get(getListId(event))?.has(event.uid)) {
 					continue
 				}
 
-				if (this._draggedEvent?.originalEvent !== event && !this._hiddenCalendars.has(neverNull(event._ownerGroup))) {
-					sortEvent(event)
+				if (
+					this._draggedEvent?.originalEvent !== event &&
+					!this._hiddenCalendars.has(assertNotNull(event._ownerGroup, "event without ownerGroup in getEventsOnDays"))
+				) {
+					// this is not the dragged event (not rendered) and does not belong to a hidden calendar, so we should render it.
+					sortEvent(event, shortEventsForDay)
 				}
 			}
 
-			this._transientEvents.filter((event) => isEventBetweenDays(event, day, day, this._timeZone)).forEach(sortEvent)
+			for (const event of this._transientEvents) {
+				if (isEventBetweenDays(event, day, day, this._timeZone)) {
+					sortEvent(event, shortEventsForDay)
+				}
+			}
 
 			const temporaryEvent = this._draggedEvent?.eventClone
 
 			if (temporaryEvent && isEventBetweenDays(temporaryEvent, day, day, this._timeZone)) {
-				sortEvent(temporaryEvent)
+				sortEvent(temporaryEvent, shortEventsForDay)
 			}
 
 			shortEvents.push(shortEventsForDay)
 		}
 
-		const longEventsArray = Array.from(longEvents)
+		const longEventsArray = Array.from(longEvents.values())
 		return {
 			days,
 			longEvents: longEventsArray,
-			shortEvents: shortEvents.map((innerShortEvents) => innerShortEvents.filter((event) => !longEvents.has(event))),
+			shortEvents: shortEvents,
 		}
 	}
 
@@ -338,64 +346,60 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	 * @param diff the amount of milliseconds to shift the event by
 	 * @param mode which parts of the series should be rescheduled?
 	 */
-	private async moveEvent(event: CalendarEvent, diff: number, mode: CalendarEventEditMode = CalendarEventEditMode.All): Promise<EventSaveResult> {
+	private async moveEvent(event: CalendarEvent, diff: number, mode: CalendarOperation): Promise<EventSaveResult> {
 		if (event.uid == null) {
 			throw new ProgrammingError("called moveEvent for an event without uid")
 		}
 
-		if (mode !== CalendarEventEditMode.All) {
-			throw new ProgrammingError("single-instance-rescheduling is not implemented.")
+		const editModel = await this.createCalendarEventEditModel(mode, event)
+		if (editModel == null) {
+			return EventSaveResult.Failed
 		}
-
-		const editModel = await this.createCalendarEventEditModel(event)
 		editModel.editModels.whenModel.rescheduleEvent({ millisecond: diff })
 
 		if (getNonOrganizerAttendees(event).length > 0) {
 			const response = await askIfShouldSendCalendarUpdatesToAttendees()
 			if (response === "yes") {
-				editModel.shouldSendUpdates = true
+				editModel.editModels.whoModel.shouldSendUpdates = true
 			} else if (response === "cancel") {
 				return EventSaveResult.Failed
 			}
 		}
 
 		// Errors are handled in the individual views
-		return await editModel.updateExistingEvent()
+		return await editModel.apply()
 	}
 
 	_addOrUpdateEvent(calendarInfo: CalendarInfo | null, event: CalendarEvent) {
-		if (calendarInfo) {
-			const eventListId = getListId(event)
-			const eventMonth = getMonth(getEventStart(event, this._timeZone), this._timeZone)
+		if (calendarInfo == null) {
+			return
+		}
+		const eventListId = getListId(event)
+		const eventMonth = getMonthRange(getEventStart(event, this._timeZone), this._timeZone)
+		if (isSameId(calendarInfo.groupRoot.shortEvents, eventListId) && this._loadedMonths.has(eventMonth.start)) {
+			// If the month is not loaded, we don't want to put it into events.
+			// We will put it there when we load the month
+			this._addDaysForEvent(event, eventMonth)
+		} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
+			const loadedLongEvents = calendarInfo.longEvents.getLoaded()
+			this._removeExistingEvent(loadedLongEvents, event)
 
-			if (isSameId(calendarInfo.groupRoot.shortEvents, eventListId)) {
-				// If the month is not loaded, we don't want to put it into events.
-				// We will put it there when we load the month
-				if (!this._loadedMonths.has(eventMonth.start.getTime())) {
-					return
+			loadedLongEvents.push(event)
+
+			for (const firstDayTimestamp of this._loadedMonths) {
+				const loadedMonth = getMonthRange(new Date(firstDayTimestamp), this._timeZone)
+
+				if (event.repeatRule != null) {
+					this._addDaysForRecurringEvent(event, loadedMonth)
+				} else {
+					this._addDaysForEvent(event, loadedMonth)
 				}
-
-				this._addDaysForEvent(event, eventMonth)
-			} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
-				this._removeExistingEvent(calendarInfo.longEvents.getLoaded(), event)
-
-				calendarInfo.longEvents.getLoaded().push(event)
-
-				this._loadedMonths.forEach((firstDayTimestamp) => {
-					const loadedMonth = getMonth(new Date(firstDayTimestamp), this._timeZone)
-
-					if (event.repeatRule) {
-						this._addDaysForRecurringEvent(event, loadedMonth)
-					} else {
-						this._addDaysForLongEvent(event, loadedMonth)
-					}
-				})
 			}
 		}
 	}
 
 	_entityEventReceived<T>(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
-		return this._calendarInfos.getAsync().then((calendarEvents) => {
+		return this._calendarInfos.getAsync().then((calendarInfos) => {
 			const addedOrUpdatedEventsUpdates: EntityUpdateData[] = [] // we try to make get multiple requests for calendar events potentially created by post multiple
 
 			return promiseMap(updates, (update) => {
@@ -463,49 +467,44 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 						}
 					})
 				}
-			}).then(() => {
+			}).then(async () => {
 				// handle potential post multiple updates in get multiple requests
 				// this is only necessary until post multiple updates are dealt with in EntityRestCache
 				const updatesPerList = groupBy(addedOrUpdatedEventsUpdates, (update) => update.instanceListId)
-				return promiseMap(updatesPerList, ([instanceListId, updates]) => {
+				for (const [instanceListId, updates] of updatesPerList) {
 					const ids = updates.map((update) => update.instanceId)
-					return this._entityClient
-						.loadMultiple(CalendarEventTypeRef, instanceListId, ids)
-						.then((events) => {
-							events.forEach((event) => {
-								this._addOrUpdateEvent(calendarEvents.get(neverNull(event._ownerGroup)) ?? null, event)
-
-								this._removeTransientEvent(event)
-							})
-
-							this._redraw()
-						})
-						.catch(
-							ofClass(NotAuthorizedError, (e) => {
-								// return updates that are not in cache Range if NotAuthorizedError (for those updates that are in cache range)
-								console.log("NotAuthorizedError for event in entityEventsReceived of view", e)
-							}),
-						)
-						.catch(
-							ofClass(NotFoundError, (e) => {
-								console.log("Not found event in entityEventsReceived of view", e)
-							}),
-						)
-				}).then(noOp)
+					try {
+						const events = await this._entityClient.loadMultiple(CalendarEventTypeRef, instanceListId, ids)
+						for (const event of events) {
+							this._addOrUpdateEvent(calendarInfos.get(neverNull(event._ownerGroup)) ?? null, event)
+							this._removeTransientEvent(event)
+						}
+						this._redraw()
+					} catch (e) {
+						if (e instanceof NotAuthorizedError) {
+							// return updates that are not in cache Range if NotAuthorizedError (for those updates that are in cache range)
+							console.log("NotAuthorizedError for event in entityEventsReceived of view", e)
+						} else if (e instanceof NotFoundError) {
+							console.log("Not found event in entityEventsReceived of view", e)
+						} else {
+							throw e
+						}
+					}
+				}
 			})
 		})
 	}
 
 	async _loadMonthIfNeeded(dayInMonth: Date): Promise<void> {
-		const month = getMonth(dayInMonth, this._timeZone)
+		const month = getMonthRange(dayInMonth, this._timeZone)
 
-		if (!this._loadedMonths.has(month.start.getTime())) {
-			this._loadedMonths.add(month.start.getTime())
+		if (!this._loadedMonths.has(month.start)) {
+			this._loadedMonths.add(month.start)
 
 			try {
 				await this._loadEvents(month)
 			} catch (e) {
-				this._loadedMonths.delete(month.start.getTime())
+				this._loadedMonths.delete(month.start)
 
 				throw e
 			} finally {
@@ -514,55 +513,39 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 	}
 
-	_loadEvents(month: CalendarMonthTimeRange): Promise<any> {
-		return this._calendarInfos.getAsync().then((calendarInfos) => {
-			// Because of the timezones and all day events, we might not load an event which we need to display.
-			// So we add a margin on 24 hours to be sure we load everything we need. We will filter matching
-			// events anyway.
-			const startId = getEventElementMinId(month.start.getTime() - DAY_IN_MILLIS)
-			const endId = geEventElementMaxId(month.end.getTime() + DAY_IN_MILLIS)
-			// We collect events from all calendars together and then replace map synchronously.
-			// This is important to replace the map synchronously to not get race conditions because we load different months in parallel.
-			// We could replace map more often instead of aggregating events but this would mean creating even more (cals * months) maps.
-			//
-			// Note: there may be issues if we get entity update before other calendars finish loading but the chance is low and we do not
-			// take care of this now.
-			const aggregateShortEvents: CalendarEvent[] = []
-			const aggregateLongEvents: CalendarEvent[] = []
-			return promiseMap(calendarInfos.values(), (calendarInfo) => {
-				const { groupRoot, longEvents } = calendarInfo
-				return Promise.all([
-					this._entityClient.loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, 200),
-					longEvents.getAsync(),
-				]).then(([shortEventsResult, longEvents]) => {
-					aggregateShortEvents.push(...shortEventsResult.elements)
-					aggregateLongEvents.push(...longEvents)
-				})
-			}).then(() => {
-				const newEvents = this._cloneEvents()
+	async _loadEvents(month: CalendarTimeRange): Promise<any> {
+		const calendarInfos = await this._calendarInfos.getAsync()
 
-				aggregateShortEvents
-					.filter((e) => {
-						const eventStart = getEventStart(e, this._timeZone).getTime()
-						return eventStart >= month.start.getTime() && eventStart < month.end.getTime()
-					}) // only events for the loaded month
-					.forEach((e) => {
-						addDaysForEvent(newEvents, e, month)
-					})
-				const zone = this._timeZone
-				aggregateLongEvents.forEach((e) => {
-					if (e.repeatRule) {
-						addDaysForRecurringEvent(newEvents, e, month, zone)
-					} else {
-						// Event through we get the same set of long events for each month we have to invoke this for each month
-						// because addDaysForLongEvent adds days only for the specified month.
-						addDaysForLongEvent(newEvents, e, month, zone)
-					}
-				})
-
-				this._replaceEvents(newEvents)
-			})
-		})
+		// Because of the timezones and all day events, we might not load an event which we need to display.
+		// So we add a margin on 24 hours to be sure we load everything we need. We will filter matching
+		// events anyway.
+		const startId = getEventElementMinId(month.start - DAY_IN_MILLIS)
+		const endId = geEventElementMaxId(month.end + DAY_IN_MILLIS)
+		// We collect events from all calendars together and then replace map synchronously.
+		// This is important to replace the map synchronously to not get race conditions because we load different months in parallel.
+		// We could replace map more often instead of aggregating events but this would mean creating even more (cals * months) maps.
+		//
+		// Note: there may be issues if we get entity update before other calendars finish loading but the chance is low and we do not
+		// take care of this now.
+		const aggregateEvents: CalendarEvent[] = []
+		for (const calendarInfo of calendarInfos.values()) {
+			const { groupRoot, longEvents } = calendarInfo
+			const [shortEventsResult, longEventsResult] = await Promise.all([
+				this._entityClient.loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, 200),
+				longEvents.getAsync(),
+			])
+			aggregateEvents.push(...shortEventsResult.elements, ...longEventsResult)
+		}
+		const newEvents = this._cloneEvents()
+		for (const e of aggregateEvents) {
+			const zone = this._timeZone
+			if (e.repeatRule) {
+				addDaysForRecurringEvent(newEvents, e, month, zone)
+			} else {
+				addDaysForEventInstance(newEvents, e, month)
+			}
+		}
+		this._replaceEvents(newEvents)
 	}
 
 	/**
@@ -570,35 +553,33 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	 * also removes it from {@code this._eventsForDays} if end time does not match
 	 */
 	_removeExistingEvent(events: Array<CalendarEvent>, eventToRemove: CalendarEvent) {
-		const indexOfOldEvent = events.findIndex((el) => isSameEvent(el, eventToRemove))
+		const indexOfOldEvent = events.findIndex((el) => isSameEventInstance(el, eventToRemove))
 
-		if (indexOfOldEvent !== -1) {
-			const oldEvent = events[indexOfOldEvent]
-
-			// If the old and new event end times do not match, we need to remove all occurrences of old event, otherwise iterating
-			// occurrences of new event won't replace all occurrences of old event. Changes of start or repeat rule already change
-			// ID of the event so it is not a problem.
-			if (oldEvent.endTime.getTime() !== eventToRemove.endTime.getTime()) {
-				const newMap = this._cloneEvents()
-
-				newMap.forEach(
-					(
-						dayEvents, // finding all because event can overlap with itself so a day can have multiple occurrences of the same event in it
-					) => findAllAndRemove(dayEvents, (e) => isSameId(e._id, oldEvent._id)),
-				)
-
-				this._replaceEvents(newMap)
-			}
-
-			events.splice(indexOfOldEvent, 1)
+		if (indexOfOldEvent == -1) {
+			return
 		}
+		const oldEvent = events[indexOfOldEvent]
+		// If the old and new event end times do not match, we need to remove all occurrences of old event, otherwise iterating
+		// intstances of new event won't replace all instances of old event. Changes of start or repeat rule already change
+		// ID of the event so it is not a problem.
+		if (oldEvent.endTime.getTime() !== eventToRemove.endTime.getTime()) {
+			const newMap = this._cloneEvents()
+
+			newMap.forEach(
+				(
+					dayEvents, // finding all because event can overlap with itself so a day can have multiple occurrences of the same event in it
+				) => findAllAndRemove(dayEvents, (e) => isSameId(e._id, oldEvent._id)),
+			)
+
+			this._replaceEvents(newMap)
+		}
+
+		events.splice(indexOfOldEvent, 1)
 	}
 
-	_addDaysForEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {
+	_addDaysForEvent(event: CalendarEvent, month: CalendarTimeRange) {
 		const newMap = this._cloneEvents()
-
-		addDaysForEvent(newMap, event, month)
-
+		addDaysForEventInstance(newMap, event, month)
 		this._replaceEvents(newMap)
 	}
 
@@ -610,7 +591,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return new Map(this._eventsForDays)
 	}
 
-	_addDaysForRecurringEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {
+	_addDaysForRecurringEvent(event: CalendarEvent, month: CalendarTimeRange) {
 		if (-DateTime.fromJSDate(event.startTime).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS) {
 			console.log("repeating event is too far into the past", event)
 			return
@@ -641,14 +622,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				}
 			}
 		}
-	}
-
-	_addDaysForLongEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {
-		const newMap = this._cloneEvents()
-
-		addDaysForLongEvent(newMap, event, month)
-
-		this._replaceEvents(newMap)
 	}
 
 	_redraw() {

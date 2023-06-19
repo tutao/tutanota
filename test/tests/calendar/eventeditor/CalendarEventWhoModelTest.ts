@@ -1,11 +1,5 @@
 import o from "ospec"
-import {
-	CalendarEvent,
-	createCalendarEvent,
-	createCalendarEventAttendee,
-	createContact,
-	createEncryptedMailAddress,
-} from "../../../../src/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, createCalendarEvent, createCalendarEventAttendee, createContact } from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import { CalendarEventWhoModel } from "../../../../src/calendar/date/eventeditor/CalendarEventWhoModel.js"
 import { matchers, object, verify, when } from "testdouble"
 import { RecipientsModel } from "../../../../src/api/main/RecipientsModel.js"
@@ -18,6 +12,7 @@ import { EventType } from "../../../../src/calendar/date/eventeditor/CalendarEve
 import {
 	addCapability,
 	calendars,
+	getDateInZone,
 	makeUserController,
 	otherAddress,
 	otherAddress2,
@@ -28,10 +23,13 @@ import {
 	ownerAlias,
 	ownerAliasRecipient,
 	ownerRecipient,
+	thirdAddress,
+	thirdRecipient,
 } from "../CalendarTestUtils.js"
-import { neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { RecipientField } from "../../../../src/mail/model/MailUtils.js"
 import { ProgrammingError } from "../../../../src/api/common/error/ProgrammingError.js"
+import { CalendarOperation } from "../../../../src/calendar/view/eventeditor/CalendarEventEditDialog.js"
 
 o.spec("CalendarEventWhoModel", function () {
 	const passwordStrengthModel = () => 1
@@ -55,18 +53,21 @@ o.spec("CalendarEventWhoModel", function () {
 		setupRecipient(ownerAliasRecipient)
 		setupRecipient(otherRecipient)
 		setupRecipient(otherRecipient2)
+		setupRecipient(thirdRecipient)
 	})
 
 	const getNewModel = (initialValues: Partial<CalendarEvent>) =>
 		new CalendarEventWhoModel(
 			initialValues,
 			EventType.OWN,
+			CalendarOperation.Create,
 			calendars,
 			calendars.get("ownCalendar")!,
 			userController,
 			true,
 			ownAddresses,
 			recipients,
+			null,
 			passwordStrengthModel,
 			() => sendMailModel,
 		)
@@ -74,12 +75,14 @@ o.spec("CalendarEventWhoModel", function () {
 		new CalendarEventWhoModel(
 			initialValues,
 			eventType,
+			CalendarOperation.EditAll,
 			calendars,
 			calendars.get("ownCalendar")!,
 			userController,
 			false,
 			ownAddresses,
 			recipients,
+			null,
 			passwordStrengthModel,
 			() => sendMailModel,
 		)
@@ -88,12 +91,14 @@ o.spec("CalendarEventWhoModel", function () {
 		new CalendarEventWhoModel(
 			initialValues,
 			eventType,
+			CalendarOperation.EditAll,
 			calendars,
 			calendars.get("sharedCalendar")!,
 			userController,
 			false,
 			ownAddresses,
 			recipients,
+			null,
 			passwordStrengthModel,
 			() => sendMailModel,
 		)
@@ -102,12 +107,14 @@ o.spec("CalendarEventWhoModel", function () {
 		new CalendarEventWhoModel(
 			initialValues,
 			EventType.INVITE,
+			CalendarOperation.EditAll,
 			calendars,
 			calendars.get("ownCalendar")!,
 			userController,
 			false,
 			ownAddresses,
 			recipients,
+			null,
 			passwordStrengthModel,
 			() => sendMailModel,
 		)
@@ -116,12 +123,14 @@ o.spec("CalendarEventWhoModel", function () {
 		new CalendarEventWhoModel(
 			initialValues,
 			EventType.INVITE,
+			CalendarOperation.Create,
 			calendars,
 			calendars.get("ownCalendar")!,
 			userController,
 			true,
 			ownAddresses,
 			recipients,
+			null,
 			passwordStrengthModel,
 			() => sendMailModel,
 		)
@@ -412,20 +421,13 @@ o.spec("CalendarEventWhoModel", function () {
 			o(model.result.attendees.length).equals(3)("we as organizer + the original organizer + the other attendee are in the result")
 		})
 		o("removing/adding attendees on existing event correctly creates the send models", function () {
-			const sendModels: Array<SendMailModel> = [object(), object(), object()]
+			const sendModels: Array<SendMailModel> = [object<SendMailModel>("first"), object<SendMailModel>("second"), object<SendMailModel>("third")]
 			const userController = makeUserController([], AccountType.PAID)
-			const third = createEncryptedMailAddress({ address: "somethirdaddress@tutanota.com" })
-			setupRecipient({
-				name: "third",
-				address: third.address,
-				type: RecipientType.INTERNAL,
-				contact: null,
-			})
 
 			const existingEvent = createCalendarEvent({
 				_ownerGroup: "ownCalendar",
-				startTime: new Date(2020, 5, 1),
-				endTime: new Date(2020, 5, 2),
+				startTime: getDateInZone("2020-06-01"),
+				endTime: getDateInZone("2020-06-02"),
 				organizer: ownerAddress,
 				attendees: [
 					createCalendarEventAttendee({
@@ -438,30 +440,37 @@ o.spec("CalendarEventWhoModel", function () {
 					}),
 					createCalendarEventAttendee({
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
-						address: third,
+						address: thirdAddress,
 					}),
 				],
 			})
 			const model = new CalendarEventWhoModel(
 				existingEvent,
 				EventType.OWN,
+				CalendarOperation.EditAll,
 				calendars,
 				calendars.get("ownCalendar")!,
 				userController,
 				false,
 				ownAddresses,
 				recipients,
+				null,
 				passwordStrengthModel,
-				() => sendModels.pop()!,
+				() => assertNotNull(sendModels.pop(), "requested more sendModels than expected"),
 			)
+			model.shouldSendUpdates = true
 			model.removeAttendee(otherAddress2.address)
 			model.addAttendee(otherAddress.address, createContact({ nickname: otherAddress.name }))
 			const result = model.result
+			// this is not an invite to us, so we do not respond
 			o(result.responseModel).equals(null)
-			verify(result.updateModel?.addRecipient(RecipientField.BCC, third), { times: 1 })
+			// thirdAddress should be updated since they were invited before and not removed.
+			verify(result.updateModel?.addRecipient(RecipientField.BCC, thirdAddress), { times: 1 })
+			// otherAddress2 was removed, so needs cancel
 			verify(result.cancelModel?.addRecipient(RecipientField.BCC, otherAddress2), { times: 1 })
+			// otherAddress was added, so needs invite.
 			verify(result.inviteModel?.addRecipient(RecipientField.BCC, otherAddress), { times: 1 })
-			o(sendModels.length).equals(0)
+			o(sendModels.length).equals(0)("all sendmodels have been requested")
 			o(result.attendees.length).equals(3)("all the attendees are there")
 		})
 		o("adding attendees on new event correctly creates invite model", function () {
@@ -486,12 +495,14 @@ o.spec("CalendarEventWhoModel", function () {
 			const model = new CalendarEventWhoModel(
 				existingEvent,
 				EventType.OWN,
+				CalendarOperation.Create,
 				calendars,
 				calendars.get("ownCalendar")!,
 				userController,
 				true,
 				ownAddresses,
 				recipients,
+				null,
 				passwordStrengthModel,
 				() => sendModels.pop()!,
 			)
@@ -578,8 +589,8 @@ o.spec("CalendarEventWhoModel", function () {
 			const userController = makeUserController([], AccountType.PAID)
 			const existingEvent = createCalendarEvent({
 				_ownerGroup: "ownCalendar",
-				startTime: new Date(2020, 5, 1),
-				endTime: new Date(2020, 5, 2),
+				startTime: getDateInZone("2020-06-01"),
+				endTime: getDateInZone("2020-06-02"),
 				organizer: otherAddress,
 				attendees: [
 					createCalendarEventAttendee({
@@ -599,12 +610,14 @@ o.spec("CalendarEventWhoModel", function () {
 			const model = new CalendarEventWhoModel(
 				existingEvent,
 				EventType.INVITE,
+				CalendarOperation.Create,
 				calendars,
 				calendars.get("ownCalendar")!,
 				userController,
 				true,
 				ownAddresses,
 				recipients,
+				null,
 				passwordStrengthModel,
 				() => sendMailModel,
 			)
@@ -642,12 +655,14 @@ o.spec("CalendarEventWhoModel", function () {
 			const model = new CalendarEventWhoModel(
 				existingEvent,
 				EventType.INVITE,
+				CalendarOperation.EditAll,
 				calendars,
 				calendars.get("ownCalendar")!,
 				userController,
 				false,
 				ownAddresses,
 				recipients,
+				null,
 				passwordStrengthModel,
 				() => sendMailModel,
 			)

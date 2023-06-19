@@ -133,8 +133,9 @@ export function findAndRemove<T>(theArray: Array<T>, finder: (arg0: T) => boolea
 	}
 }
 
+/** find all matches inside an array and remove them. returns true if any instances were removed. */
 export function findAllAndRemove<T>(theArray: Array<T>, finder: (arg0: T) => boolean, startIndex: number = 0): boolean {
-	var removedElement = false
+	let removedElement = false
 
 	for (let i = theArray.length - 1; i >= startIndex; i--) {
 		if (finder(theArray[i])) {
