@@ -439,7 +439,7 @@ export class CalendarEventModel {
 			return
 		}
 		if (this.shouldShowSendInviteNotAvailable()) {
-			throw new UpgradeRequiredError("businessFeatureRequiredInvite_msg", await this.getPlansWithEventInvites())
+			throw new UpgradeRequiredError("upgradeRequired_msg", await this.getPlansWithEventInvites())
 		}
 		const invitePromise = models.inviteModel != null ? this.sendInvites(newEvent, models.inviteModel) : Promise.resolve()
 		const cancelPromise = models.cancelModel != null ? this.sendCancellation(newEvent, models.cancelModel) : Promise.resolve()

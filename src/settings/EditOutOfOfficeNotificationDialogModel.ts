@@ -192,7 +192,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 				ofClass(PreconditionFailedError, async (e) => {
 					if (e.data === FAILURE_BUSINESS_FEATURE_REQUIRED) {
 						throw new UpgradeRequiredError(
-							"businessFeatureRequiredGeneral_msg",
+							"upgradeRequired_msg",
 							await getAvailableMatchingPlans(this.serviceExecutor, (config) => config.business),
 						)
 					} else {

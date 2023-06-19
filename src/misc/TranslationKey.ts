@@ -1533,3 +1533,4 @@ export type TranslationKeyType =
 	| "searchTemplates_placeholder"
 	| "searchKnowledgebase_placeholder"
 	| "npo50PercentDiscount_msg"
+	| "upgradeRequired_msg"
