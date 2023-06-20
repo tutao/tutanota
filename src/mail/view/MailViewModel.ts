@@ -138,12 +138,13 @@ export class MailViewModel {
 		this.singInit()
 		const conversationEnabled = this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()
 		if (this.conversationViewModel && this.conversationPref !== conversationEnabled) {
+			const mail = this.conversationViewModel.primaryMail
 			this.createConversationViewModel({
-				mail: this.conversationViewModel.primaryMail,
+				mail,
 				showFolder: false,
-				// FIXME
 				delayBodyRenderingUntil: Promise.resolve(),
 			})
+			this.mailOpenedListener.onEmailOpened(mail)
 		}
 		this.conversationPref = conversationEnabled
 	}
@@ -262,7 +263,6 @@ export class MailViewModel {
 	private createConversationViewModel(viewModelParams: CreateMailViewerOptions) {
 		this.conversationViewModel?.dispose()
 		this.conversationViewModel = this.conversationViewModelFactory(viewModelParams)
-		this.mailOpenedListener.onEmailOpened(viewModelParams.mail)
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
