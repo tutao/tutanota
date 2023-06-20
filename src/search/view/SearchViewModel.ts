@@ -1,6 +1,6 @@
 import { ListFilter, ListModel } from "../../misc/ListModel.js"
 import { SearchResultListEntry } from "./SearchListView.js"
-import { SearchResult } from "../../api/worker/search/SearchTypes.js"
+import { SearchRestriction, SearchResult } from "../../api/worker/search/SearchTypes.js"
 import { EntityEventsListener, EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
 import { Contact, ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { ListElementEntity, SomeEntity } from "../../api/common/EntityTypes.js"
@@ -14,7 +14,6 @@ import {
 	listIdPart,
 	sortCompareByReverseId,
 } from "../../api/common/utils/EntityUtils.js"
-import m from "mithril"
 import { ListState } from "../../gui/base/NewList.js"
 import {
 	assertNotNull,
@@ -34,7 +33,6 @@ import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, Sea
 import { NotFoundError } from "../../api/common/error/RestError.js"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils.js"
 import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
-import { isDesktop } from "../../api/common/Env.js"
 import { createRestriction, getRestriction, searchCategoryForRestriction } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import { MailboxDetail, MailModel } from "../../mail/model/MailModel.js"
@@ -121,6 +119,10 @@ export class SearchViewModel {
 		this.mailboxSubscription = this.mailModel.mailboxDetails.map((mailboxes) => this.onMailboxesChanged(mailboxes))
 		this.eventController.addEntityListener(this.entityEventsListener)
 	})
+
+	getRestriction(): SearchRestriction {
+		return this.router.getRestriction()
+	}
 
 	private readonly entityEventsListener: EntityEventsListener = async (updates) => {
 		for (const update of updates) {

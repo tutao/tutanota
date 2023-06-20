@@ -11,7 +11,7 @@ import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { Contact, ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
 import { size } from "../../gui/size"
-import { getFreeSearchStartDate, getRestriction, SEARCH_MAIL_FIELDS } from "../model/SearchUtils"
+import { getFreeSearchStartDate, SEARCH_MAIL_FIELDS } from "../model/SearchUtils"
 import { Dialog } from "../../gui/base/Dialog"
 import { locator } from "../../api/main/MainLocator"
 import { getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils"
@@ -99,7 +99,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		this.folderColumn = new ViewColumn(
 			{
 				view: () => {
-					const restriction = getRestriction(m.route.get())
+					const restriction = this.searchViewModel.getRestriction()
 					return m(FolderColumnView, {
 						drawer: vnode.attrs.drawerAttrs,
 						button: this.getMainButton(restriction.type),
@@ -480,7 +480,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderHeaderRightView(): Children {
-		const restriction = getRestriction(m.route.get())
+		const restriction = this.searchViewModel.getRestriction()
 		return styles.isUsingBottomNavigation()
 			? isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()
 				? m(IconButton, {
@@ -633,6 +633,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		// afterwards
 		await this.searchViewModel.init()
 		this.searchViewModel.onNewUrl(args, requestedPath)
+		// redraw because init() is async
+		m.redraw()
 	}
 
 	private getMainButton(typeRef: TypeRef<unknown>): {

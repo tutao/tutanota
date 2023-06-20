@@ -15,7 +15,7 @@ import { ContactTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.j
 import type { Shortcut } from "../misc/KeyManager"
 import { keyManager } from "../misc/KeyManager"
 import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError"
-import { getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl } from "./model/SearchUtils"
+import { getRestriction, isAdministratedGroup } from "./model/SearchUtils"
 import { locator } from "../api/main/MainLocator"
 import { Dialog } from "../gui/base/Dialog"
 import type { GroupInfo, WhitelabelChild } from "../api/entities/sys/TypeRefs.js"
@@ -37,6 +37,7 @@ import type { ListElement } from "../api/common/utils/EntityUtils"
 import { elementIdPart, getElementId, listIdPart } from "../api/common/utils/EntityUtils"
 import { compareContacts } from "../contacts/view/ContactGuiUtils"
 import { LayerType } from "../RootView"
+import { SearchRouter } from "./view/SearchRouter.js"
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -49,7 +50,6 @@ export type SearchBarAttrs = {
 	placeholder?: string | null
 	returnListener?: (() => unknown) | null
 }
-const SEARCH_INPUT_WIDTH = 200 // includes input field and close/progress icon
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
 export type Entry = Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction
@@ -61,6 +61,11 @@ export type SearchBarState = {
 	entities: Entries
 	selected: Entry | null
 }
+
+// create our own copy which is not perfect because we don't benefit from the shared cache but currently there's no way to get async dependencies into
+// singletons like this (without top-level await at least)
+// once SearchBar is rewritten this should be removed
+const searchRouter = new SearchRouter(locator.throttledRouter())
 
 export class SearchBar implements Component<SearchBarAttrs> {
 	view: Component<SearchBarAttrs>["view"]
@@ -404,11 +409,11 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	_getRestriction(): SearchRestriction {
-		return getRestriction(m.route.get())
+		return searchRouter.getRestriction()
 	}
 
 	_updateSearchUrl(query: string, selected?: ListElement) {
-		setSearchUrl(getSearchUrl(query, this._getRestriction(), selected && getElementId(selected)))
+		searchRouter.routeTo(query, this._getRestriction(), selected && getElementId(selected))
 	}
 
 	search(query?: string) {
@@ -515,7 +520,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			}
 		} else {
 			// instances will be displayed as part of the list of the search view, when the search view is displayed
-			setSearchUrl(getSearchUrl(query, safeResult.restriction))
+			searchRouter.routeTo(query, safeResult.restriction)
 		}
 	}
 
@@ -726,7 +731,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		if (this._state().query === "") {
 			if (m.route.get().startsWith("/search")) {
 				locator.search.result(null)
-				setSearchUrl(getSearchUrl("", getRestriction(m.route.get())))
+				const restriction = searchRouter.getRestriction()
+				searchRouter.routeTo("", restriction)
 			}
 		}
 	}

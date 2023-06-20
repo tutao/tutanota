@@ -434,7 +434,9 @@ export class ListModel<ElementType extends ListElement> {
 	}
 
 	cancelLoadAll() {
-		this.updateState({ loadingAll: false })
+		if (this.state.loadingAll) {
+			this.updateState({ loadingAll: false })
+		}
 	}
 
 	async loadAll() {
