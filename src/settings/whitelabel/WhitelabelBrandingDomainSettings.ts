@@ -4,7 +4,7 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { neverNull } from "@tutao/tutanota-utils"
 import { PreconditionFailedError } from "../../api/common/error/RestError"
 import { Icons } from "../../gui/base/icons/Icons"
-import { getAvailableMatchingPlans, showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
+import { getAvailablePlansWithWhitelabel, showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
 import * as SetCustomDomainCertificateDialog from "../SetDomainCertificateDialog"
 import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
@@ -82,10 +82,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 			showNotAvailableForFreeDialog([PlanType.Unlimited])
 		} else {
 			if (!isWhitelabelFeatureEnabled) {
-				const plansWithWhitelabel = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => config.whitelabel)
-				if (plansWithWhitelabel.length <= 0) {
-					throw new ProgrammingError("no plans to upgrade to")
-				}
+				const plansWithWhitelabel = await getAvailablePlansWithWhitelabel()
 				isWhitelabelFeatureEnabled = await showPlanUpgradeRequiredDialog(plansWithWhitelabel)
 			}
 			if (isWhitelabelFeatureEnabled) {

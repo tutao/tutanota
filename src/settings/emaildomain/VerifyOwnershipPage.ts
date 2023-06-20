@@ -132,6 +132,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 						})
 
 						if (plans.length <= 0) {
+							// TODO: show error dialog?
 							throw new ProgrammingError("no plans to upgrade to")
 						}
 						// ignore promise. always return false to not switch to next page.

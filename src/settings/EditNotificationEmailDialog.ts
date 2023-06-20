@@ -17,13 +17,12 @@ import { PayloadTooLargeError } from "../api/common/error/RestError"
 import { SegmentControl } from "../gui/base/SegmentControl"
 import { insertInlineImageB64ClickHandler } from "../mail/view/MailViewerUtils"
 import { UserError } from "../api/main/UserError"
-import { getAvailableMatchingPlans, showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../misc/SubscriptionDialogs"
+import { getAvailablePlansWithWhitelabel, showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../misc/SubscriptionDialogs"
 import { isWhitelabelActive } from "../subscription/SubscriptionUtils"
 import type { UserController } from "../api/main/UserController"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils"
 import { locator } from "../api/main/MainLocator"
 import { PlanType } from "../api/common/TutanotaConstants.js"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 export function showAddOrEditNotificationEmailDialog(userController: UserController, selectedNotificationLanguage?: string) {
 	let existingTemplate: NotificationMailTemplate | undefined = undefined
@@ -68,12 +67,8 @@ export async function showBuyOrSetNotificationEmailDialog(
 		const planConfiguration = await locator.logins.getUserController().getPlanConfig()
 		let whitelabel = isWhitelabelActive(lastBooking, planConfiguration)
 		if (!whitelabel) {
-			const plansWithWhitelabel = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => config.whitelabel)
-			if (plansWithWhitelabel.length > 0) {
-				whitelabel = await showPlanUpgradeRequiredDialog(plansWithWhitelabel)
-			} else {
-				throw new ProgrammingError("no plans to upgrade to")
-			}
+			const plansWithWhitelabel = await getAvailablePlansWithWhitelabel()
+			whitelabel = await showPlanUpgradeRequiredDialog(plansWithWhitelabel)
 		}
 		if (whitelabel) {
 			show(existingTemplate ?? null, customerProperties)

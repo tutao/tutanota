@@ -11,6 +11,7 @@ import { AvailablePlanType, Const, NewBusinessPlans, NewPaidPlans, NewPersonalPl
 import { showSwitchDialog } from "../subscription/SwitchSubscriptionDialog.js"
 import { UserError } from "../api/main/UserError.js"
 import { IServiceExecutor } from "../api/common/ServiceRequest.js"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 /**
  * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.
@@ -81,6 +82,51 @@ export async function getAvailableMatchingPlans(
 		const config = priceAndConfigProvider.getPlanPricesForPlan(p).planConfiguration
 		return predicate(config)
 	})
+}
+
+/**
+ * Filter for plans a customer can upgrade to that include a feature, assuming that the feature must be available on at least one plan.
+ * @param predicate the criterion to select plans by
+ * @param errorMessage the error message to throw in case no plan satisfies the criterion
+ */
+async function getPlansThatShouldExist(predicate: (configuration: PlanConfiguration) => boolean, errorMessage: string): Promise<Array<AvailablePlanType>> {
+	const plans = await getAvailableMatchingPlans(locator.serviceExecutor, predicate)
+	if (plans.length <= 0) {
+		throw new ProgrammingError(errorMessage)
+	}
+	return plans
+}
+
+/**
+ * Get plans that a customer can upgrade to that include the Whitelabel feature.
+ * @throws ProgrammingError if no plans include it.
+ */
+export async function getAvailablePlansWithWhitelabel(): Promise<Array<AvailablePlanType>> {
+	return getPlansThatShouldExist((config) => config.whitelabel, "no available plan with the Whitelabel feature")
+}
+
+/**
+ * Get plans that a customer can upgrade to that include the Whitelabel feature.
+ * @throws ProgrammingError if no plans include it.
+ */
+export async function getAvailablePlansWithTemplates(): Promise<Array<AvailablePlanType>> {
+	return getPlansThatShouldExist((config) => config.templates, "no available plan with the Templates feature")
+}
+
+/**
+ * Get plans that a customer can upgrade to that include the Sharing feature.
+ * @throws ProgrammingError if no plans include it.
+ */
+export async function getAvailablePlansWithSharing(): Promise<Array<AvailablePlanType>> {
+	return getPlansThatShouldExist((config) => config.sharing, "no available plan with the Sharing feature")
+}
+
+/**
+ * Get plans that a customer can upgrade to that include the Business feature.
+ * @throws ProgrammingError if no plans include it.
+ */
+export async function getAvailablePlansWithBusiness(): Promise<Array<AvailablePlanType>> {
+	return getPlansThatShouldExist((config) => config.business, "no available plan with the Business feature")
 }
 
 export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunction: TranslationKey): Promise<PlanType | void> {

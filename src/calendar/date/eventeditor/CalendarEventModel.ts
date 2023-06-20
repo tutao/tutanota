@@ -63,7 +63,7 @@ import {
 	Mail,
 	MailboxProperties,
 } from "../../../api/entities/tutanota/TypeRefs.js"
-import { AlarmInfo, PlanConfiguration, User } from "../../../api/entities/sys/TypeRefs.js"
+import { AlarmInfo, User } from "../../../api/entities/sys/TypeRefs.js"
 import { MailboxDetail } from "../../../mail/model/MailModel.js"
 import { CalendarEventValidity, checkEventValidity, DefaultDateProvider, generateUid, getEventType, getTimeZone, incrementSequence } from "../CalendarUtils.js"
 import { isCustomizationEnabledForCustomer } from "../../../api/common/utils/Utils.js"
@@ -91,7 +91,7 @@ import { getStrippedClone, Stripped } from "../../../api/common/utils/EntityUtil
 import { UserController } from "../../../api/main/UserController.js"
 import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
 import { IServiceExecutor } from "../../../api/common/ServiceRequest.js"
-import { getAvailableMatchingPlans } from "../../../misc/SubscriptionDialogs.js"
+import { getAvailablePlansWithBusiness } from "../../../misc/SubscriptionDialogs.js"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {
@@ -448,7 +448,7 @@ export class CalendarEventModel {
 	}
 
 	async getPlansWithEventInvites(): Promise<AvailablePlanType[]> {
-		return await getAvailableMatchingPlans(this.serviceExecutor, (config: PlanConfiguration) => config.business)
+		return await getAvailablePlansWithBusiness()
 	}
 
 	/**

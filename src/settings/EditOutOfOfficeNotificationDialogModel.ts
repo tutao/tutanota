@@ -12,7 +12,7 @@ import { appendEmailSignature } from "../mail/signature/Signature"
 import { UserError } from "../api/main/UserError"
 import { UpgradeRequiredError } from "../api/main/UpgradeRequiredError.js"
 import { IServiceExecutor } from "../api/common/ServiceRequest.js"
-import { getAvailableMatchingPlans } from "../misc/SubscriptionDialogs.js"
+import { getAvailablePlansWithBusiness } from "../misc/SubscriptionDialogs.js"
 
 export const enum RecipientMessageType {
 	EXTERNAL_TO_EVERYONE = 0,
@@ -191,10 +191,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 			.catch(
 				ofClass(PreconditionFailedError, async (e) => {
 					if (e.data === FAILURE_BUSINESS_FEATURE_REQUIRED) {
-						throw new UpgradeRequiredError(
-							"upgradeRequired_msg",
-							await getAvailableMatchingPlans(this.serviceExecutor, (config) => config.business),
-						)
+						throw new UpgradeRequiredError("upgradeRequired_msg", await getAvailablePlansWithBusiness())
 					} else {
 						throw new UserError(() => e.toString())
 					}

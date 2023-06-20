@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { BookingItemFeatureType, CustomDomainType, CustomDomainTypeCount, FeatureType, GroupType, PlanType } from "../../api/common/TutanotaConstants.js"
+import { BookingItemFeatureType, FeatureType, GroupType } from "../../api/common/TutanotaConstants.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import type { ValidationResult } from "../SelectMailAddressForm.js"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
@@ -9,7 +9,7 @@ import type { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { showBuyDialog } from "../../subscription/BuyDialog.js"
 import { PreconditionFailedError } from "../../api/common/error/RestError.js"
-import { getAvailableMatchingPlans, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
+import { getAvailablePlansWithTemplates, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { TemplateGroupPreconditionFailedReason } from "../../sharing/GroupUtils.js"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import { TextField } from "../../gui/base/TextField.js"
@@ -19,7 +19,6 @@ import { locator } from "../../api/main/MainLocator.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 import { getAvailableDomains } from "../mailaddress/MailAddressesUtils.js"
 import { toFeatureType } from "../../subscription/SubscriptionUtils.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
 
@@ -193,10 +192,7 @@ function addTemplateGroup(name: string): Promise<boolean> {
 						e.data === TemplateGroupPreconditionFailedReason.BUSINESS_FEATURE_REQUIRED ||
 						e.data === TemplateGroupPreconditionFailedReason.UNLIMITED_REQUIRED
 					) {
-						const plans = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => config.templates)
-						if (plans.length <= 0) {
-							throw new ProgrammingError("no plans to upgrade to")
-						}
+						const plans = await getAvailablePlansWithTemplates()
 						showPlanUpgradeRequiredDialog(plans)
 					} else {
 						Dialog.message(() => e.message)
