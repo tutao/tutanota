@@ -1538,6 +1538,7 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"cannotEditSingleInstance_msg": "You can only edit parts of this event because it is part of an event series.",
 	}
 }

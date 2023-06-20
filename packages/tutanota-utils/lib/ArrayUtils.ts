@@ -281,12 +281,25 @@ export function groupByAndMapUniquely<T, R, E>(iterable: Iterable<T>, discrimina
 export function groupByAndMap<T, R, E>(iterable: Iterable<T>, discriminator: (arg0: T) => R, mapper: (arg0: T) => E): Map<R, Array<E>> {
 	const map = new Map()
 
-	for (let el of iterable) {
+	for (const el of iterable) {
 		const key = discriminator(el)
 		getFromMap(map, key, () => []).push(mapper(el))
 	}
 
 	return map
+}
+
+/**
+ * convert a map from one value type to another by applying a mapper function to each value.
+ * keeps the keys as-is.
+ * @param map the map to map the entries of
+ * @param mapper the function that maps the entries to the new type
+ */
+export async function mapMapAsync<K, I, O>(map: ReadonlyMap<K, I>, mapper: (key: K, val: I) => Promise<O>): Promise<Map<K, O>> {
+	const entries: Array<[K, I]> = Array.from(map.entries())
+	const newEntryPromises: Array<Promise<readonly [K, O]>> = entries.map(async ([k, v]) => [k, await mapper(k, v)] as const)
+	const newEntries = await Promise.all(newEntryPromises)
+	return new Map(newEntries)
 }
 
 /**
@@ -495,13 +508,24 @@ export function symmetricDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T
 }
 
 /**
- * Splits an array into two based on a predicate, where elements that match the predicate go into the left side
+ * type that is Then when T and U are mutually assignable and Else otherwise.
+ * in some cases, this still fails (for example if T and/or U are intersections of function types)
+ * https://github.com/Microsoft/TypeScript/issues/27024#issuecomment-421529650
+ */
+type IfEquals<T, U, Then, Else> = (<G>() => G extends T ? 1 : 2) extends <G>() => G extends U ? 1 : 2 ? Then : Else
+
+/**
+ * Splits an array into two based on a predicate, where elements that match the predicate go into the left side.
+ * also acts as a type guard if TL and TR are not equal in the sense of IfEquals
  * @param array
  * @param predicate
  */
-export function partition<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boolean): [Array<T>, Array<T>] {
-	const left: T[] = []
-	const right: T[] = []
+export function partition<TL, TR = TL>(
+	array: ReadonlyArray<TL | TR>,
+	predicate: IfEquals<TL, TR, (arg0: TL | TR) => boolean, (arg0: TL | TR) => arg0 is TL>,
+): [Array<TL>, Array<TR>] {
+	const left: Array<TL> = []
+	const right: Array<TR> = []
 
 	for (let item of array) {
 		if (predicate(item)) {
@@ -515,7 +539,7 @@ export function partition<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => bo
 }
 
 /**
- * like partition(), but async
+ * like partition(), but async and only for TL = TR
  * rejects if any of the predicates reject.
  * @param array
  * @param predicate
