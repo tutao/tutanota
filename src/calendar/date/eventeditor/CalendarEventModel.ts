@@ -90,7 +90,6 @@ import { SanitizedTextViewModel } from "../../../misc/SanitizedTextViewModel.js"
 import { getStrippedClone, Stripped } from "../../../api/common/utils/EntityUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
 import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
-import { IServiceExecutor } from "../../../api/common/ServiceRequest.js"
 import { getAvailablePlansWithEventInvites } from "../../../misc/SubscriptionDialogs.js"
 
 /** the type of the event determines which edit operations are available to us. */
@@ -145,7 +144,6 @@ export async function makeCalendarEventModel(
 	distributor: CalendarUpdateDistributor,
 	entityClient: EntityClient,
 	responseTo: Mail | null,
-	serviceExecutor: IServiceExecutor,
 	zone: string = getTimeZone(),
 	showProgress: ShowProgressCallback = identity,
 	uiUpdateCallback: () => void = m.redraw,
@@ -208,7 +206,6 @@ export async function makeCalendarEventModel(
 		calendars,
 		zone,
 		responseTo,
-		serviceExecutor,
 		showProgress,
 	)
 }
@@ -256,7 +253,6 @@ export class CalendarEventModel {
 		private readonly calendars: ReadonlyMap<Id, CalendarInfo>,
 		private readonly zone: string,
 		private readonly responseTo: Mail | null,
-		private readonly serviceExecutor: IServiceExecutor,
 		private readonly showProgress: ShowProgressCallback = identity,
 	) {
 		this.calendars = calendars

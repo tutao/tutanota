@@ -35,7 +35,6 @@ import { LoginController } from "../../../../src/api/main/LoginController.js"
 import { MailboxDetail } from "../../../../src/mail/model/MailModel.js"
 import { FolderSystem } from "../../../../src/api/common/mail/FolderSystem.js"
 import { SendMailModel } from "../../../../src/mail/editor/SendMailModel.js"
-import { IServiceExecutor } from "../../../../src/api/common/ServiceRequest.js"
 
 o.spec("CalendarEventModelTest", function () {
 	let userController: UserController
@@ -43,14 +42,12 @@ o.spec("CalendarEventModelTest", function () {
 	let calendarModel: CalendarModel
 	let entityClient: EntityClient
 	let editModels: CalendarEventEditModels
-	let serviceExecutor: IServiceExecutor
 
 	o.beforeEach(function () {
 		userController = object()
 		distributor = object()
 		calendarModel = object()
 		entityClient = object()
-		serviceExecutor = object()
 
 		editModels = {
 			alarmModel: object(),
@@ -146,7 +143,6 @@ o.spec("CalendarEventModelTest", function () {
 				distributor,
 				entityClient,
 				null,
-				serviceExecutor,
 				"Europe/Berlin",
 				identity,
 				noOp,
@@ -189,7 +185,6 @@ o.spec("CalendarEventModelTest", function () {
 				calendars,
 				"Europe/Berlin",
 				null,
-				serviceExecutor,
 			)
 			const notAvailable = model.shouldShowSendInviteNotAvailable()
 			o(notAvailable).equals(true)
@@ -207,7 +202,6 @@ o.spec("CalendarEventModelTest", function () {
 				calendars,
 				"Europe/Berlin",
 				null,
-				serviceExecutor,
 			)
 			await model.initialized
 			const notAvailable = model.shouldShowSendInviteNotAvailable()
@@ -226,7 +220,6 @@ o.spec("CalendarEventModelTest", function () {
 				calendars,
 				"Europe/Berlin",
 				null,
-				serviceExecutor,
 			)
 			await model.initialized
 			const notAvailable = model.shouldShowSendInviteNotAvailable()
@@ -245,7 +238,6 @@ o.spec("CalendarEventModelTest", function () {
 				calendars,
 				"Europe/Berlin",
 				null,
-				serviceExecutor,
 			)
 			await model.initialized
 			const notAvailable = model.shouldShowSendInviteNotAvailable()
