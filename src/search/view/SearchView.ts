@@ -76,6 +76,7 @@ import { showDateRangeSelectionDialog } from "../../gui/date/DatePickerDialog.js
 import { MailFilterButton } from "../../mail/view/MailFilterButton.js"
 import { isSameTypeRefNullable } from "@tutao/tutanota-utils/dist/TypeRef.js"
 import { listSelectionKeyboardShortcuts } from "../../gui/base/ListUtils.js"
+import { getElementId } from "../../api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
 
@@ -332,6 +333,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							primaryAction: () => this.renderHeaderRightView(),
 						}),
 					columnLayout: m(ConversationViewer, {
+						// Re-create the whole viewer and its vnode tree if email has changed
+						key: getElementId(conversationViewModel.primaryMail),
 						viewModel: conversationViewModel,
 						delayBodyRendering: Promise.resolve(),
 					}),
