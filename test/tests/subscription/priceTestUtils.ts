@@ -15,6 +15,8 @@ export const PLAN_PRICES = {
 		monthlyReferencePrice: "0.00",
 		sharing: false,
 		whitelabel: false,
+		planName: "Free",
+		businessPlan: false,
 		planConfiguration: createPlanConfiguration({
 			nbrOfAliases: "0",
 			whitelabel: false,
@@ -34,6 +36,8 @@ export const PLAN_PRICES = {
 		includedStorage: "1",
 		monthlyPrice: "2.40",
 		monthlyReferencePrice: "2.40",
+		planName: "PremiumBusiness",
+		businessPlan: true,
 		planConfiguration: createPlanConfiguration({
 			nbrOfAliases: "5",
 			whitelabel: false,
@@ -48,6 +52,8 @@ export const PLAN_PRICES = {
 		includedStorage: "1",
 		monthlyPrice: "1.20",
 		monthlyReferencePrice: "1.20",
+		planName: "Premium",
+		businessPlan: false,
 		planConfiguration: createPlanConfiguration({
 			nbrOfAliases: "5",
 			whitelabel: false,
@@ -62,6 +68,8 @@ export const PLAN_PRICES = {
 		includedStorage: "10",
 		monthlyPrice: "8.40",
 		monthlyReferencePrice: "8.40",
+		planName: "Pro",
+		businessPlan: true,
 		planConfiguration: createPlanConfiguration({
 			nbrOfAliases: "20",
 			whitelabel: false,
@@ -76,6 +84,8 @@ export const PLAN_PRICES = {
 		includedStorage: "10",
 		monthlyPrice: "6.00",
 		monthlyReferencePrice: "6.00",
+		planName: "TeamsBusiness",
+		businessPlan: true,
 		planConfiguration: createPlanConfiguration({
 			nbrOfAliases: "5",
 			whitelabel: false,
@@ -90,6 +100,8 @@ export const PLAN_PRICES = {
 		includedStorage: "10",
 		monthlyPrice: "4.80",
 		monthlyReferencePrice: "4.80",
+		planName: "Teams",
+		businessPlan: false,
 		planConfiguration: createPlanConfiguration({
 			nbrOfAliases: "5",
 			whitelabel: false,
@@ -106,6 +118,8 @@ export const PLAN_PRICES = {
 		monthlyReferencePrice: "3.60",
 		sharing: true,
 		whitelabel: false,
+		planName: "Revolutionary",
+		businessPlan: false,
 		planConfiguration: createPlanConfiguration({
 			nbrOfAliases: "15",
 			whitelabel: false,
@@ -122,6 +136,8 @@ export const PLAN_PRICES = {
 		monthlyReferencePrice: "9.60",
 		sharing: true,
 		whitelabel: false,
+		planName: "Legend",
+		businessPlan: false,
 		planConfiguration: createPlanConfiguration({
 			nbrOfAliases: "30",
 			whitelabel: false,
@@ -138,6 +154,8 @@ export const PLAN_PRICES = {
 		monthlyReferencePrice: "7.20",
 		sharing: true,
 		whitelabel: false,
+		planName: "Essential",
+		businessPlan: true,
 		planConfiguration: createPlanConfiguration({
 			nbrOfAliases: "15",
 			whitelabel: false,
@@ -154,6 +172,8 @@ export const PLAN_PRICES = {
 		monthlyReferencePrice: "9.60",
 		sharing: true,
 		whitelabel: false,
+		planName: "Advanced",
+		businessPlan: true,
 		planConfiguration: createPlanConfiguration({
 			nbrOfAliases: "30",
 			whitelabel: false,
@@ -170,6 +190,8 @@ export const PLAN_PRICES = {
 		monthlyReferencePrice: "14.40",
 		sharing: true,
 		whitelabel: true,
+		planName: "Unlimited",
+		businessPlan: true,
 		planConfiguration: createPlanConfiguration({
 			nbrOfAliases: "30",
 			whitelabel: true,
@@ -199,6 +221,7 @@ export function createUpgradePriceServiceMock(
 		unlimitedPrices: planPrices.Unlimited,
 		freePrices: planPrices.Free,
 		bonusMonthsForYearlyPlan: String(bonusMonths),
+		plans: Object.values(planPrices),
 	})
 	return executorMock
 }

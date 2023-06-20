@@ -1,9 +1,9 @@
-import { AvailablePlanType, BookingItemFeatureType, Const, NewPaidPlans, PaymentMethodType, PlanType } from "../api/common/TutanotaConstants"
+import { BookingItemFeatureType, Const, PaymentMethodType, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
 import { assertTranslation, lang, TranslationKey } from "../misc/LanguageViewModel"
 import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
 import type { AccountingInfo, PlanPrices, PriceData, PriceItemData } from "../api/entities/sys/TypeRefs.js"
 import { createUpgradePriceServiceData, UpgradePriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
-import { SubscriptionPlanPrices, UpgradePriceType, WebsitePlanPrices } from "./FeatureListProvider"
+import { UpgradePriceType, WebsitePlanPrices } from "./FeatureListProvider"
 import { UpgradePriceService } from "../api/entities/sys/Services"
 import { IServiceExecutor } from "../api/common/ServiceRequest"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
@@ -111,29 +111,9 @@ export function getPriceFromPriceData(priceData: PriceData | null, featureType: 
 		return 0
 	}
 }
-
-/**
- * Convert an instance of UpgradePriceServiceReturn into an instance of SubscriptionPlanPrices
- */
-export function mapUpgradePriceData(upgradePriceData: UpgradePriceServiceReturn): SubscriptionPlanPrices {
-	return {
-		[PlanType.Free]: upgradePriceData.freePrices,
-		[PlanType.Premium]: upgradePriceData.premiumPrices,
-		[PlanType.PremiumBusiness]: upgradePriceData.premiumBusinessPrices,
-		[PlanType.Teams]: upgradePriceData.teamsPrices,
-		[PlanType.TeamsBusiness]: upgradePriceData.teamsBusinessPrices,
-		[PlanType.Pro]: upgradePriceData.proPrices,
-		[PlanType.Revolutionary]: upgradePriceData.revolutionaryPrices,
-		[PlanType.Legend]: upgradePriceData.legendaryPrices,
-		[PlanType.Essential]: upgradePriceData.essentialPrices,
-		[PlanType.Advanced]: upgradePriceData.advancedPrices,
-		[PlanType.Unlimited]: upgradePriceData.unlimitedPrices,
-	}
-}
-
 export class PriceAndConfigProvider {
 	private upgradePriceData: UpgradePriceServiceReturn | null = null
-	private planPrices: SubscriptionPlanPrices | null = null
+	private planPrices: Array<PlanPrices> | null = null
 	private isReferralCodeSignup: boolean = false
 
 	private constructor() {}
@@ -146,7 +126,7 @@ export class PriceAndConfigProvider {
 		})
 		this.upgradePriceData = await serviceExecutor.get(UpgradePriceService, data)
 		this.isReferralCodeSignup = referralCode != null
-		this.planPrices = mapUpgradePriceData(this.upgradePriceData)
+		this.planPrices = this.upgradePriceData.plans
 	}
 
 	static async getInitializedInstance(
@@ -188,20 +168,11 @@ export class PriceAndConfigProvider {
 	}
 
 	getPlanPricesForPlan(subscription: PlanType): PlanPrices {
-		return assertNotNull(this.planPrices, "called getPlanPricesForPlan before init")[subscription]
-	}
-
-	/**
-	 * Get paid plans that can be booked and that satisfy the given predicate.
-	 * @param predicate takes an instance of PlanPrices, which should contain everything you
-	 *                  need to know about a plan. Return true to include the plan.
-	 * @return array of the matching plans
-	 */
-	getMatchingPlans(predicate: (plan: PlanPrices) => boolean): Array<AvailablePlanType> {
-		return NewPaidPlans.filter((p) => {
-			const potentialPlan = this.getPlanPricesForPlan(p)
-			return predicate(potentialPlan)
-		})
+		const planPrices = assertNotNull(this.planPrices, "called getPlanPricesForPlan before init")
+		return assertNotNull(
+			planPrices.find((prices) => PlanTypeToName[subscription] === prices.planName),
+			"plan type not found",
+		)
 	}
 
 	getPriceInfoMessage(): TranslationKey | null {

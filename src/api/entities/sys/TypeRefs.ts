@@ -2020,6 +2020,7 @@ export type PlanPrices = {
 	_id: Id;
 	additionalUserPriceMonthly: NumberString;
 	business: boolean;
+	businessPlan: boolean;
 	contactFormPriceMonthly: NumberString;
 	customDomains: NumberString;
 	firstYearDiscount: NumberString;
@@ -2027,6 +2028,7 @@ export type PlanPrices = {
 	includedStorage: NumberString;
 	monthlyPrice: NumberString;
 	monthlyReferencePrice: NumberString;
+	planName: string;
 	sharing: boolean;
 	whitelabel: boolean;
 
@@ -2919,6 +2921,7 @@ export type UpgradePriceServiceReturn = {
 	essentialPrices: PlanPrices;
 	freePrices: PlanPrices;
 	legendaryPrices: PlanPrices;
+	plans: PlanPrices[];
 	premiumBusinessPrices: PlanPrices;
 	premiumPrices: PlanPrices;
 	proPrices: PlanPrices;

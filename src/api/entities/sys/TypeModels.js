@@ -7983,7 +7983,7 @@ export const typeModels = {
             "autoResponder": {
                 "final": true,
                 "name": "autoResponder",
-                "id": 2126,
+                "id": 2128,
                 "since": 88,
                 "type": "Boolean",
                 "cardinality": "One",
@@ -8102,6 +8102,15 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
+            "businessPlan": {
+                "final": false,
+                "name": "businessPlan",
+                "id": 2127,
+                "since": 88,
+                "type": "Boolean",
+                "cardinality": "One",
+                "encrypted": false
+            },
             "contactFormPriceMonthly": {
                 "final": false,
                 "name": "contactFormPriceMonthly",
@@ -8162,6 +8171,15 @@ export const typeModels = {
                 "id": 1462,
                 "since": 39,
                 "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "planName": {
+                "final": false,
+                "name": "planName",
+                "id": 2126,
+                "since": 88,
+                "type": "String",
                 "cardinality": "One",
                 "encrypted": false
             },
@@ -11504,6 +11522,16 @@ export const typeModels = {
                 "since": 86,
                 "type": "AGGREGATION",
                 "cardinality": "One",
+                "refType": "PlanPrices",
+                "dependency": null
+            },
+            "plans": {
+                "final": false,
+                "name": "plans",
+                "id": 2129,
+                "since": 88,
+                "type": "AGGREGATION",
+                "cardinality": "Any",
                 "refType": "PlanPrices",
                 "dependency": null
             },
