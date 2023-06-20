@@ -506,7 +506,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 		const selectedMails = mailList.getSelectedAsArray()
 
-		// Render the dropdown at the position of the selected mails in the MailList
 		showMoveMailsDropdown(locator.mailModel, getMoveMailBounds(), selectedMails)
 	}
 
