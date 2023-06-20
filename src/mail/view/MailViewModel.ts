@@ -89,7 +89,7 @@ export class MailViewModel {
 				listIdToUse = await this.getListIdForUserInbox()
 			}
 		} else {
-			listIdToUse = await this.getListIdForUserInbox()
+			listIdToUse = this._listId ?? (await this.getListIdForUserInbox())
 		}
 
 		await this.setListId(listIdToUse)
