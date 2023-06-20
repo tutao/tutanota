@@ -341,5 +341,6 @@ export function getConversationTitle(conversationViewModel: ConversationViewMode
 }
 
 export function getMoveMailBounds(): PosRect {
-	return new DomRectReadOnlyPolyfilled(size.hpad, size.vpad, window.innerWidth - size.hpad * 2, window.innerHeight - size.vpad * 2)
+	// just putting the move mail dropdown in the left side of the viewport with a bit of margin
+	return new DomRectReadOnlyPolyfilled(size.hpad_large, size.vpad_large, 0, 0)
 }
