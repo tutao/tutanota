@@ -12,7 +12,6 @@ import { isTutanotaMailAddress } from "../../mail/model/MailUtils.js"
 import { LimitReachedError } from "../../api/common/error/RestError.js"
 import { UserError } from "../../api/main/UserError.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
-import { PriceAndConfigProvider } from "../../subscription/PriceUtils.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
 
 import { getAvailableMatchingPlans } from "../../misc/SubscriptionDialogs.js"
