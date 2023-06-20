@@ -188,6 +188,16 @@
 					"name": "AddAssociation",
 					"sourceType": "PlanPrices",
 					"info": "AddAssociation PlanPrices/planConfiguration/AGGREGATION/2125."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "PlanConfiguration",
+					"info": "RenameAttribute PlanConfiguration: business -> eventInvites."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "PlanConfiguration",
+					"info": "AddValue PlanConfiguration/autoResponder/2126."
 				}
 			]
 		}

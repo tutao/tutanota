@@ -54,7 +54,7 @@
  *     * etc.
  */
 
-import { AccountType, AlarmInterval, AvailablePlanType, CalendarAttendeeStatus, FeatureType } from "../../../api/common/TutanotaConstants.js"
+import { AccountType, AlarmInterval, CalendarAttendeeStatus, FeatureType } from "../../../api/common/TutanotaConstants.js"
 import {
 	CalendarEvent,
 	CalendarEventAttendee,
@@ -91,7 +91,7 @@ import { getStrippedClone, Stripped } from "../../../api/common/utils/EntityUtil
 import { UserController } from "../../../api/main/UserController.js"
 import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
 import { IServiceExecutor } from "../../../api/common/ServiceRequest.js"
-import { getAvailablePlansWithBusiness } from "../../../misc/SubscriptionDialogs.js"
+import { getAvailablePlansWithEventInvites } from "../../../misc/SubscriptionDialogs.js"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {
@@ -439,16 +439,12 @@ export class CalendarEventModel {
 			return
 		}
 		if (this.shouldShowSendInviteNotAvailable()) {
-			throw new UpgradeRequiredError("upgradeRequired_msg", await this.getPlansWithEventInvites())
+			throw new UpgradeRequiredError("upgradeRequired_msg", await getAvailablePlansWithEventInvites())
 		}
 		const invitePromise = models.inviteModel != null ? this.sendInvites(newEvent, models.inviteModel) : Promise.resolve()
 		const cancelPromise = models.cancelModel != null ? this.sendCancellation(newEvent, models.cancelModel) : Promise.resolve()
 		const updatePromise = models.updateModel != null && this.shouldSendUpdates ? this.sendUpdates(newEvent, models.updateModel) : Promise.resolve()
 		return await Promise.all([invitePromise, cancelPromise, updatePromise]).then()
-	}
-
-	async getPlansWithEventInvites(): Promise<AvailablePlanType[]> {
-		return await getAvailablePlansWithBusiness()
 	}
 
 	/**

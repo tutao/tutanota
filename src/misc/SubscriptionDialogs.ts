@@ -122,11 +122,19 @@ export async function getAvailablePlansWithSharing(): Promise<Array<AvailablePla
 }
 
 /**
- * Get plans that a customer can upgrade to that include the Business feature.
+ * Get plans that a customer can upgrade to that include the Event Invites feature.
  * @throws ProgrammingError if no plans include it.
  */
-export async function getAvailablePlansWithBusiness(): Promise<Array<AvailablePlanType>> {
-	return getPlansThatShouldExist((config) => config.business, "no available plan with the Business feature")
+export async function getAvailablePlansWithEventInvites(): Promise<Array<AvailablePlanType>> {
+	return getPlansThatShouldExist((config) => config.eventInvites, "no available plan with the Event Invites feature")
+}
+
+/**
+ * Get plans that a customer can upgrade to that include the Auto-Responder feature.
+ * @throws ProgrammingError if no plans include it.
+ */
+export async function getAvailablePlansWithAutoResponder(): Promise<Array<AvailablePlanType>> {
+	return getPlansThatShouldExist((config) => config.autoResponder, "no available plan with the Auto-Responder feature")
 }
 
 export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunction: TranslationKey): Promise<PlanType | void> {

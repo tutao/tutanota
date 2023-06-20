@@ -198,7 +198,7 @@ export function makeUserController(
 		getPlanConfig: () =>
 			Promise.resolve(
 				createPlanConfiguration({
-					business: businessFeatureOrdered || isNewPaidPlan,
+					eventInvites: businessFeatureOrdered || isNewPaidPlan,
 				}),
 			),
 	})

@@ -1998,8 +1998,9 @@ export type PlanConfiguration = {
 	_type: TypeRef<PlanConfiguration>;
 
 	_id: Id;
-	business: boolean;
+	autoResponder: boolean;
 	customDomainType: NumberString;
+	eventInvites: boolean;
 	multiUser: boolean;
 	nbrOfAliases: NumberString;
 	sharing: boolean;

@@ -13,7 +13,7 @@ import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js
 import { isSameId } from "../../api/common/utils/EntityUtils"
 import { sendAcceptNotificationEmail, sendRejectNotificationEmail } from "../GroupSharingUtils"
 import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, groupRequiresBusinessFeature } from "../GroupUtils"
-import { getAvailablePlansWithBusiness, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
+import { getAvailablePlansWithEventInvites, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
 import type { GroupSharingTexts } from "../GroupGuiUtils"
 import { getTextsForGroupType } from "../GroupGuiUtils"
 import { FeatureType, GroupType } from "../../api/common/TutanotaConstants"
@@ -117,7 +117,7 @@ async function checkCanAcceptInvitation(invitation: ReceivedGroupInvitation): Pr
 	}
 	const customer = await locator.logins.getUserController().loadCustomer()
 	if (groupRequiresBusinessFeature(getInvitationGroupType(invitation)) && !isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled)) {
-		const plans = await getAvailablePlansWithBusiness()
+		const plans = await getAvailablePlansWithEventInvites()
 		return showPlanUpgradeRequiredDialog(plans)
 	} else {
 		return true

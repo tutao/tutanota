@@ -49,7 +49,7 @@ export function isSharingActive(lastBooking: Booking | null, planConfig: PlanCon
 }
 
 export function isBusinessFeatureActive(lastBooking: Booking | null, planConfig: PlanConfiguration): boolean {
-	return getCurrentCount(BookingItemFeatureType.Business, lastBooking) !== 0 || planConfig.business
+	return getCurrentCount(BookingItemFeatureType.Business, lastBooking) !== 0 || (planConfig.autoResponder && planConfig.eventInvites)
 }
 
 export type PaymentErrorCode =

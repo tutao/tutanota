@@ -7980,11 +7980,11 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "business": {
+            "autoResponder": {
                 "final": true,
-                "name": "business",
-                "id": 2109,
-                "since": 87,
+                "name": "autoResponder",
+                "id": 2126,
+                "since": 88,
                 "type": "Boolean",
                 "cardinality": "One",
                 "encrypted": false
@@ -7995,6 +7995,15 @@ export const typeModels = {
                 "id": 2111,
                 "since": 87,
                 "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "eventInvites": {
+                "final": true,
+                "name": "eventInvites",
+                "id": 2109,
+                "since": 87,
+                "type": "Boolean",
                 "cardinality": "One",
                 "encrypted": false
             },

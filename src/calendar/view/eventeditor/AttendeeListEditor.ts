@@ -23,7 +23,7 @@ import { CalendarEventWhoModel } from "../../date/eventeditor/CalendarEventWhoMo
 import { LoginController } from "../../../api/main/LoginController.js"
 import { CalendarEventModel } from "../../date/eventeditor/CalendarEventModel.js"
 import { DropDownSelector } from "../../../gui/base/DropDownSelector.js"
-import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
+import { getAvailablePlansWithEventInvites, showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
 import { TutanotaError } from "../../../api/common/error/TutanotaError.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 
@@ -62,7 +62,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 				disabled: false,
 				onRecipientAdded: async (address, name, contact) => {
 					if (!(this.hasPlanWithInvites || !model.shouldShowSendInviteNotAvailable())) {
-						const plansWithEventInvites = await model.getPlansWithEventInvites()
+						const plansWithEventInvites = await getAvailablePlansWithEventInvites()
 						if (plansWithEventInvites.length > 0) {
 							//entity event updates are too slow to call updateBusinessFeature()
 							this.hasPlanWithInvites = await showPlanUpgradeRequiredDialog(plansWithEventInvites)
