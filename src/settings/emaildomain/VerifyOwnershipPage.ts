@@ -14,7 +14,6 @@ import { ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/MainLocator"
 import { assertMainOrNode } from "../../api/common/Env"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
 
@@ -132,8 +131,9 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 						})
 
 						if (plans.length <= 0) {
-							// TODO: show error dialog?
-							throw new ProgrammingError("no plans to upgrade to")
+							// shouldn't happen while we have the Unlimited plan...
+							Dialog.message("tooManyCustomDomains_msg")
+							return false
 						}
 						// ignore promise. always return false to not switch to next page.
 						showPlanUpgradeRequiredDialog(plans, "moreCustomDomainsRequired_msg")
