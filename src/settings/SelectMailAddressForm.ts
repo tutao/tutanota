@@ -54,6 +54,8 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 
 	view({ attrs }: Vnode<SelectMailAddressFormAttrs>): Children {
 		// this is a semi-good hack to reset the username after the user pressed "ok"
+		// this behavior is not necessarily expected, e.g. if the user enters an invalid email address and presses "ok" we might not want to clear the
+		// username field. we would need to find a way to clear the field from the outside to solve this.
 		if (attrs.injectionsRightButtonAttrs?.click) {
 			const originalCallback = attrs.injectionsRightButtonAttrs.click
 
