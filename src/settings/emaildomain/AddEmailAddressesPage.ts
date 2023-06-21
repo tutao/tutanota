@@ -102,7 +102,7 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 	constructor(domainData: AddDomainData) {
 		this.data = domainData
 		this.mailAddress = ""
-		this.errorMessageId = null
+		this.errorMessageId = "mailAddressNeutral_msg" // we need to set this message id to prevent that an empty input is initially regarded as valid
 		this.isMailVerificationBusy = false
 	}
 
