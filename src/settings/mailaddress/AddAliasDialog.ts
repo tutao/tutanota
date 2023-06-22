@@ -7,12 +7,11 @@ import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
 import { getFirstOrThrow } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import { InvalidDataError, LimitReachedError, PreconditionFailedError } from "../../api/common/error/RestError.js"
+import { InvalidDataError, PreconditionFailedError } from "../../api/common/error/RestError.js"
 import { MailAddressTableModel } from "./MailAddressTableModel.js"
 import { Autocomplete, TextField } from "../../gui/base/TextField.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 
@@ -95,7 +94,8 @@ async function addAlias(model: MailAddressTableModel, alias: string, senderName:
 			return Dialog.message(() => errorMsg)
 		} else if (error instanceof UpgradeRequiredError) {
 			if (error.plans.length <= 0) {
-				throw new ProgrammingError("no plans to upgrade to")
+				Dialog.message("adminMaxNbrOfAliasesReached_msg")
+				return
 			}
 			showPlanUpgradeRequiredDialog(error.plans, error.message)
 		} else {
