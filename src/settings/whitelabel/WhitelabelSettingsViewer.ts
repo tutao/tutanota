@@ -261,7 +261,6 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		const whitelabelActive = isWhitelabelActive(this._lastBooking, planConfig)
 		const whitelabelStatusSettingsAttrs = {
 			isWhitelabelActive: whitelabelActive,
-			serviceExecutor: locator.serviceExecutor,
 		}
 		return m(WhitelabelStatusSettings, whitelabelStatusSettingsAttrs)
 	}

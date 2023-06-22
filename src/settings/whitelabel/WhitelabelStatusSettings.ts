@@ -9,12 +9,11 @@ import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
 
 export type WhitelabelStatusSettingsAttrs = {
 	isWhitelabelActive: boolean
-	serviceExecutor: IServiceExecutor
 }
 
 export class WhitelabelStatusSettings implements Component<WhitelabelStatusSettingsAttrs> {
 	view({ attrs }: Vnode<WhitelabelStatusSettingsAttrs>): Children {
-		const { isWhitelabelActive, serviceExecutor } = attrs
+		const { isWhitelabelActive } = attrs
 		return m(TextField, {
 			label: "state_label",
 			value: isWhitelabelActive ? lang.get("active_label") : lang.get("deactivated_label"),
