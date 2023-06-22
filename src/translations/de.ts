@@ -1545,6 +1545,6 @@ export default {
 		"cannotAddAttendees_msg": "Du kannst die Gästeliste für dieses Ereignis nicht bearbeiten weil es nicht in deinem Kalender erstellt wurde.",
 		"noCalendar_msg": "Bitte wähle einen Kalender für das Ereignis aus.",
 		"cannotEditFullEvent_msg": "Du kannst nur Teile dieses Ereignisses bearbeiten weil es nicht in deinem Kalender erstellt wurde.",
-		"upgradeRequired_msg": "Dieses Feature ist in deinem Abonnement nicht verfügbar, bitte upgrade zu einem der forgenden Abonnemments:",
+		"upgradeRequired_msg": "Dieses Feature ist in deinem Abonnement nicht verfügbar. Bitte upgrade zu einem der folgenden Abonnements:",
 	}
 }
