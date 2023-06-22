@@ -151,6 +151,11 @@ export class MailAddressTableModel {
 		this.nameMappings = await this.nameChanger.getSenderNames()
 	}
 
+	/**
+	 * Chooses the correct error to throw.
+	 * @throws UpgradeRequiredError if the customer can upgrade to a plan with more aliases
+	 * @throws UserError if the customer cannot add more aliases
+	 */
 	async handleTooManyAliases(): Promise<void> {
 		// Determine if there is an available plan we can switch to that would let the user add an alias.
 		//
