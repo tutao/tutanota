@@ -54,7 +54,6 @@ import { TextField } from "../gui/base/TextField.js"
 import { createGroupSettings, createUserAreaGroupDeleteData } from "../api/entities/tutanota/TypeRefs.js"
 import { GroupInvitationFolderRow } from "../sharing/view/GroupInvitationFolderRow"
 import { TemplateGroupService } from "../api/entities/tutanota/Services"
-import { attachDropdown } from "../gui/base/Dropdown.js"
 import { exportUserCsv } from "./UserDataExporter.js"
 import { IconButton } from "../gui/base/IconButton.js"
 import { BottomNav } from "../gui/nav/BottomNav.js"
@@ -68,6 +67,7 @@ import { BackgroundColumnLayout } from "../gui/BackgroundColumnLayout.js"
 import { styles } from "../gui/styles.js"
 import { MobileHeader } from "../gui/MobileHeader.js"
 import { LazySearchBar } from "../misc/LazySearchBar.js"
+import { GroupDetailsView } from "./groups/GroupDetailsView.js"
 
 assertMainOrNode()
 
@@ -352,7 +352,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						"groups_label",
 						() => Icons.People,
 						"groups",
-						() => new GroupListView(this),
+						() =>
+							new GroupListView(
+								(viewer) => this.replaceDetailsViewer(viewer),
+								() => this.focusSettingsDetailsColumn(),
+							),
 						undefined,
 					),
 				)
@@ -442,7 +446,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		}
 	}
 
-	private replaceDetailsViewer(viewer: UserViewer | null) {
+	private replaceDetailsViewer(viewer: UserViewer | GroupDetailsView | null) {
 		return (this.detailsViewer = viewer)
 	}
 
@@ -475,11 +479,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 	private renderSearchBar(): Children {
 		const route = m.route.get()
-		return route.startsWith("/settings/groups")
-			? m(LazySearchBar, {
-					placeholder: lang.get("searchGroups_placeholder"),
-			  })
-			: route.startsWith("settings/whitelabelaccounts")
+		return route.startsWith("settings/whitelabelaccounts")
 			? m(LazySearchBar, {
 					placeholder: lang.get("emptyString_msg"),
 			  })
