@@ -125,6 +125,31 @@
 					"info": "AddAssociation CalendarRepeatRule/excludedDates/AGGREGATION/1319."
 				}
 			]
+		},
+		{
+			"version": 62,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "CalendarEvent",
+					"info": "AddValue CalendarEvent/recurrenceId/1320."
+				},
+				{
+					"name": "ChangeAssociationCardinality",
+					"sourceType": "CalendarEventUidIndex",
+					"info": "ChangeAssociationCardinality CalendarEventUidIndex/calendarEvent/ZeroOrOne."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "CalendarEventUidIndex",
+					"info": "RenameAttribute CalendarEventUidIndex: calendarEvent -> progenitor."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "CalendarEventUidIndex",
+					"info": "AddAssociation CalendarEventUidIndex/alteredInstances/LIST_ELEMENT_ASSOCIATION/1321."
+				}
+			]
 		}
 	]
 }
