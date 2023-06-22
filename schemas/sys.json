@@ -170,6 +170,16 @@
 					"info": "AddAssociation CustomerInfo/customPlan/AGGREGATION/2114."
 				}
 			]
+		},
+		{
+			"version": 88,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "InvoiceInfo",
+					"info": "AddValue InvoiceInfo/discountPercentage/2126."
+				}
+			]
 		}
 	]
 }

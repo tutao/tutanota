@@ -1507,6 +1507,7 @@ export type InvoiceInfo = {
 	_id: Id;
 	_ownerGroup: null | Id;
 	_permissions: Id;
+	discountPercentage: null | NumberString;
 	extendedPeriodOfPaymentDays: NumberString;
 	persistentPaymentPeriodExtension: boolean;
 	publishInvoices: boolean;
