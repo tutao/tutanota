@@ -1,47 +1,62 @@
 import m, { Children } from "mithril"
 import type { VirtualRow } from "../../gui/base/List.js"
-import { List } from "../../gui/base/List.js"
-import { lang } from "../../misc/LanguageViewModel.js"
-import { NotFoundError } from "../../api/common/error/RestError.js"
-import { size } from "../../gui/size.js"
 import type { GroupInfo, GroupMembership } from "../../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, GroupMemberTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
-import type { SettingsView, UpdatableSettingsViewer } from "../SettingsView.js"
+import { LazyLoaded, memoized, noOp } from "@tutao/tutanota-utils"
+import type { UpdatableSettingsViewer } from "../SettingsView.js"
 import { GroupDetailsView } from "./GroupDetailsView.js"
 import * as AddGroupDialog from "./AddGroupDialog.js"
 import { Icon } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
-import { isAdministratedGroup } from "../../search/model/SearchUtils.js"
 import type { EntityUpdateData } from "../../api/main/EventController.js"
 import { isUpdateForTypeRef } from "../../api/main/EventController.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
-import { compareGroupInfos } from "../../api/common/utils/GroupUtils.js"
-import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { ListColumnWrapper } from "../../gui/ListColumnWrapper.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 import { GroupDetailsModel } from "./GroupDetailsModel.js"
 import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } from "../../gui/SelectableRowContainer.js"
 import Stream from "mithril/stream"
+import { MultiselectMode, NewList, NewListAttrs, RenderConfig } from "../../gui/base/NewList.js"
+import { size } from "../../gui/size.js"
+import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils.js"
+import { ListModel } from "../../misc/ListModel.js"
+import { compareGroupInfos } from "../../api/common/utils/GroupUtils.js"
+import { NotFoundError } from "../../api/common/error/RestError.js"
+import { listSelectionKeyboardShortcuts, onlySingleSelection } from "../../gui/base/ListUtils.js"
+import { keyManager } from "../../misc/KeyManager.js"
+import { BaseSearchBar, BaseSearchBarAttrs } from "../../gui/base/BaseSearchBar.js"
+import { lang } from "../../misc/LanguageViewModel.js"
+import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
+import { theme } from "../../gui/theme.js"
 
 assertMainOrNode()
 const className = "group-list"
 
 export class GroupListView implements UpdatableSettingsViewer {
-	list: List<GroupInfo, GroupRow>
-	view: (...args: Array<any>) => any
-	_listId: LazyLoaded<Id>
-	_settingsView: SettingsView
-	_searchResultStreamDependency: Stream<any>
-	onremove: (...args: Array<any>) => any
-	_localAdminGroupMemberships: GroupMembership[]
+	private searchQuery: string = ""
+	private listModel: ListModel<GroupInfo>
+	private readonly renderConfig: RenderConfig<GroupInfo, GroupRow> = {
+		itemHeight: size.list_row_height,
+		multiselectionAllowed: MultiselectMode.Disabled,
+		swipe: null,
+		createElement: (dom) => {
+			const groupRow = new GroupRow()
+			m.render(dom, groupRow.render())
+			return groupRow
+		},
+	}
 
-	constructor(settingsView: SettingsView) {
-		this._settingsView = settingsView
-		this._listId = new LazyLoaded(() => {
+	private listId: LazyLoaded<Id>
+	private searchResultStreamDependency: Stream<any>
+	private localAdminGroupMemberships: GroupMembership[]
+	private listStateSubscription: Stream<unknown> | null = null
+
+	constructor(private readonly updateDetailsViewer: (viewer: GroupDetailsView | null) => unknown, private readonly focusDetailsViewer: () => unknown) {
+		this.listModel = this.makeListModel()
+		this.listId = new LazyLoaded(() => {
 			return locator.logins
 				.getUserController()
 				.loadCustomer()
@@ -49,169 +64,189 @@ export class GroupListView implements UpdatableSettingsViewer {
 					return customer.teamGroups
 				})
 		})
-		this._localAdminGroupMemberships = locator.logins.getUserController().getLocalAdminGroupMemberships()
-		this.list = new List({
-			rowHeight: size.list_row_height,
-			fetch: async (startId, count) => {
-				if (startId === GENERATED_MAX_ID) {
-					const listId = await this._listId.getAsync()
-					const allGroupInfos = await locator.entityClient.loadAll(GroupInfoTypeRef, listId)
-					let items: GroupInfo[]
-					if (locator.logins.getUserController().isGlobalAdmin()) {
-						items = allGroupInfos
-					} else {
-						let localAdminGroupIds = locator.logins
-							.getUserController()
-							.getLocalAdminGroupMemberships()
-							.map((gm) => gm.group)
-						items = allGroupInfos.filter((gi: GroupInfo) => isAdministratedGroup(localAdminGroupIds, gi))
-					}
-					return { items, complete: true }
-				} else {
-					throw new Error("fetch user group infos called for specific start id")
-				}
-			},
-			loadSingle: (elementId) => {
-				return this._listId.getAsync().then((listId) => {
-					return locator.entityClient.load<GroupInfo>(GroupInfoTypeRef, [listId, elementId]).catch(
-						ofClass(NotFoundError, (e) => {
-							// we return null if the entity does not exist
-							return null
-						}),
-					)
-				})
-			},
-			sortCompare: compareGroupInfos,
-			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
-				this.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
-			createVirtualRow: () => new GroupRow(),
-			className: className,
-			swipe: {
-				renderLeftSpacer: () => [],
-				renderRightSpacer: () => [],
-				swipeLeft: (listElement) => Promise.resolve(false),
-				swipeRight: (listElement) => Promise.resolve(false),
-				enabled: false,
-			},
-			multiSelectionAllowed: false,
-			emptyMessage: lang.get("noEntries_msg"),
-		})
+		this.localAdminGroupMemberships = locator.logins.getUserController().getLocalAdminGroupMemberships()
 
-		this.view = (): Children => {
-			return m(
-				ListColumnWrapper,
-				{
-					headerContent: m(
-						".flex.flex-end.center-vertically.plr-l.list-border-bottom",
-						m(
-							".mr-negative-s",
-							m(Button, {
-								label: "addGroup_label",
-								type: ButtonType.Primary,
-								click: () => this.addButtonClicked(),
-							}),
-						),
-					),
-				},
-				m(this.list),
-			)
-		}
+		this.listModel.loadInitial()
 
-		this.list.loadInitial()
-
-		this._listId.getAsync().then((listId) => {
+		this.listId.getAsync().then((listId) => {
 			locator.search.setGroupInfoRestrictionListId(listId)
 		})
 
-		this._searchResultStreamDependency = locator.search.lastSelectedGroupInfoResult.map((groupInfo) => {
-			if (this._listId.isLoaded() && this._listId.getSync() === groupInfo._id[0]) {
-				this.list.scrollToIdAndSelect(groupInfo._id[1])
+		this.searchResultStreamDependency = locator.search.lastSelectedGroupInfoResult.map((groupInfo) => {
+			if (this.listId.isLoaded() && this.listId.getSync() === groupInfo._id[0]) {
+				this.listModel.loadAndSelect(groupInfo._id[1], () => false)
 			}
 		})
 
-		this.onremove = () => {
-			if (this._searchResultStreamDependency) {
-				this._searchResultStreamDependency.end(true)
-			}
-		}
+		this.oncreate = this.oncreate.bind(this)
+		this.onremove = this.onremove.bind(this)
+		this.view = this.view.bind(this)
 	}
 
-	elementSelected(groupInfos: GroupInfo[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
-		if (groupInfos.length === 0 && this._settingsView.detailsViewer) {
-			this._settingsView.detailsViewer = null
-			m.redraw()
-		} else if (groupInfos.length === 1 && selectionChanged) {
-			const newSelectionModel = new GroupDetailsModel(groupInfos[0], locator.entityClient, m.redraw)
-			this._settingsView.detailsViewer = new GroupDetailsView(newSelectionModel)
+	private readonly shortcuts = listSelectionKeyboardShortcuts(MultiselectMode.Disabled, () => this.listModel)
 
-			if (elementClicked) {
-				this._settingsView.focusSettingsDetailsColumn()
-			}
+	oncreate() {
+		keyManager.registerShortcuts(this.shortcuts)
+	}
 
-			m.redraw()
-		} else {
-			this._settingsView.focusSettingsDetailsColumn()
+	view(): Children {
+		return m(
+			ListColumnWrapper,
+			{
+				headerContent: m(
+					".flex.flex-space-between.center-vertically.plr-l",
+					m(BaseSearchBar, {
+						text: this.searchQuery,
+						onInput: (text) => this.updateQuery(text),
+						busy: false,
+						onKeyDown: (e) => e.stopPropagation(),
+						onClear: () => {
+							this.searchQuery = ""
+							this.listModel.reapplyFilter()
+						},
+						placeholder: lang.get("searchGroups_placeholder"),
+					} satisfies BaseSearchBarAttrs),
+					m(
+						".mr-negative-s",
+						m(Button, {
+							label: "addGroup_label",
+							type: ButtonType.Primary,
+							click: () => this.addButtonClicked(),
+						}),
+					),
+				),
+			},
+			this.listModel.isEmptyAndDone()
+				? m(ColumnEmptyMessageBox, {
+						color: theme.list_message_bg,
+						icon: Icons.People,
+						message: "noEntries_msg",
+				  })
+				: m(NewList, {
+						renderConfig: this.renderConfig,
+						state: this.listModel.state,
+						onLoadMore: () => this.listModel.loadMore(),
+						onRetryLoading: () => this.listModel.retryLoading(),
+						onStopLoading: () => this.listModel.stopLoading(),
+						onSingleSelection: (item: GroupInfo) => {
+							this.listModel.onSingleSelection(item)
+							this.focusDetailsViewer()
+						},
+						onSingleExclusiveSelection: noOp,
+						selectRangeTowards: noOp,
+				  } satisfies NewListAttrs<GroupInfo, GroupRow>),
+		)
+	}
+
+	onremove() {
+		keyManager.unregisterShortcuts(this.shortcuts)
+
+		if (this.searchResultStreamDependency) {
+			this.searchResultStreamDependency.end(true)
 		}
+		this.listStateSubscription?.end(true)
 	}
 
 	addButtonClicked() {
 		AddGroupDialog.show()
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		return promiseMap(updates, (update) => {
-			return this.processUpdate(update)
-		}).then(noOp)
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		for (const update of updates) {
+			const { instanceListId, instanceId, operation } = update
+
+			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === instanceListId) {
+				await this.listModel.entityEventReceived(instanceId, operation)
+			} else if (isUpdateForTypeRef(GroupMemberTypeRef, update)) {
+				let oldLocalAdminGroupMembership = this.localAdminGroupMemberships.find((gm) => gm.groupMember[1] === instanceId)
+
+				let newLocalAdminGroupMembership = locator.logins
+					.getUserController()
+					.getLocalAdminGroupMemberships()
+					.find((gm) => gm.groupMember[1] === instanceId)
+				let promise = Promise.resolve()
+
+				if (operation === OperationType.CREATE && !oldLocalAdminGroupMembership && newLocalAdminGroupMembership) {
+					promise = this.listModel.entityEventReceived(newLocalAdminGroupMembership.groupInfo[1], operation)
+				} else if (operation === OperationType.DELETE && oldLocalAdminGroupMembership && !newLocalAdminGroupMembership) {
+					promise = this.listModel.entityEventReceived(oldLocalAdminGroupMembership.groupInfo[1], operation)
+				}
+
+				this.localAdminGroupMemberships = locator.logins.getUserController().getLocalAdminGroupMemberships()
+				this.listModel.reapplyFilter()
+			}
+
+			m.redraw()
+		}
 	}
 
-	processUpdate(update: EntityUpdateData): Promise<void> {
-		const { instanceListId, instanceId, operation } = update
+	private makeListModel(): ListModel<GroupInfo> {
+		const listModel = new ListModel<GroupInfo>({
+			topId: GENERATED_MAX_ID,
+			sortCompare: compareGroupInfos,
+			fetch: async (startId) => {
+				if (startId === GENERATED_MAX_ID) {
+					const listId = await this.listId.getAsync()
+					const allGroupInfos = await locator.entityClient.loadAll(GroupInfoTypeRef, listId)
 
-		if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this._listId.getSync() === instanceListId) {
-			if (!locator.logins.getUserController().isGlobalAdmin()) {
-				let listEntity = this.list.getEntity(instanceId)
-				return locator.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then((gi) => {
-					let localAdminGroupIds = locator.logins
-						.getUserController()
-						.getLocalAdminGroupMemberships()
-						.map((gm) => gm.group)
-
-					if (listEntity) {
-						if (!isAdministratedGroup(localAdminGroupIds, gi)) {
-							return this.list.entityEventReceived(instanceId, OperationType.DELETE)
-						} else {
-							return this.list.entityEventReceived(instanceId, operation)
-						}
+					return { items: allGroupInfos, complete: true }
+				} else {
+					throw new Error("fetch user group infos called for specific start id")
+				}
+			},
+			loadSingle: async (elementId) => {
+				const listId = await this.listId.getAsync()
+				try {
+					return await locator.entityClient.load<GroupInfo>(GroupInfoTypeRef, [listId, elementId])
+				} catch (e) {
+					if (e instanceof NotFoundError) {
+						// we return null if the GroupInfo does not exist
+						return null
 					} else {
-						if (isAdministratedGroup(localAdminGroupIds, gi)) {
-							return this.list.entityEventReceived(instanceId, OperationType.CREATE)
-						}
+						throw e
 					}
-				})
-			} else {
-				return this.list.entityEventReceived(instanceId, operation)
-			}
-		} else if (!locator.logins.getUserController().isGlobalAdmin() && isUpdateForTypeRef(GroupMemberTypeRef, update)) {
-			let oldLocalAdminGroupMembership = this._localAdminGroupMemberships.find((gm) => gm.groupMember[1] === instanceId)
+				}
+			},
+		})
 
-			let newLocalAdminGroupMembership = locator.logins
-				.getUserController()
-				.getLocalAdminGroupMemberships()
-				.find((gm) => gm.groupMember[1] === instanceId)
-			let promise = Promise.resolve()
+		listModel.setFilter((item: GroupInfo) => this.groupFilter(item) && this.queryFilter(item))
 
-			if (operation === OperationType.CREATE && !oldLocalAdminGroupMembership && newLocalAdminGroupMembership) {
-				promise = this.list.entityEventReceived(newLocalAdminGroupMembership.groupInfo[1], operation)
-			} else if (operation === OperationType.DELETE && oldLocalAdminGroupMembership && !newLocalAdminGroupMembership) {
-				promise = this.list.entityEventReceived(oldLocalAdminGroupMembership.groupInfo[1], operation)
-			}
+		this.listStateSubscription?.end(true)
+		this.listStateSubscription = listModel.stateStream.map((state) => {
+			this.onSelectionChanged(onlySingleSelection(state))
+			m.redraw()
+		})
 
-			return promise.then(() => {
-				this._localAdminGroupMemberships = locator.logins.getUserController().getLocalAdminGroupMemberships()
-			})
-		} else {
-			return Promise.resolve()
+		return listModel
+	}
+
+	private readonly onSelectionChanged = memoized((item: GroupInfo | null) => {
+		if (item) {
+			const newSelectionModel = new GroupDetailsModel(item, locator.entityClient, m.redraw)
+			const detailsViewer = item == null ? null : new GroupDetailsView(newSelectionModel)
+			this.updateDetailsViewer(detailsViewer)
 		}
+	})
+
+	private queryFilter(gi: GroupInfo) {
+		return (
+			gi.name.includes(this.searchQuery) ||
+			(!!gi.mailAddress && gi.mailAddress?.includes(this.searchQuery)) ||
+			gi.mailAddressAliases.some((mai) => mai.mailAddress.includes(this.searchQuery))
+		)
+	}
+
+	private groupFilter = (gi: GroupInfo) => {
+		if (locator.logins.getUserController().isGlobalAdmin()) {
+			return true
+		} else {
+			return !!gi.localAdmin && this.localAdminGroupMemberships.map((gm) => gm.group).includes(gi.localAdmin)
+		}
+	}
+
+	private updateQuery(query: string) {
+		this.searchQuery = query
+		this.listModel.reapplyFilter()
 	}
 }
 
@@ -229,9 +264,7 @@ export class GroupRow implements VirtualRow<GroupInfo> {
 	constructor() {}
 
 	update(groupInfo: GroupInfo, selected: boolean): void {
-		if (!this.domElement) {
-			return
-		}
+		this.entity = groupInfo
 
 		this.selectionUpdater(selected, false)
 
