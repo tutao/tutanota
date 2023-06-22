@@ -26,7 +26,6 @@ export {
 	groupByAndMap,
 	groupBy,
 	splitInChunks,
-	flat,
 	flatMap,
 	insertIntoSortedArray,
 	zip,

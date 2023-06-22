@@ -10,7 +10,7 @@ import {
 	removeBinaryBlockRanges,
 } from "../../../../../src/api/worker/search/SearchIndexEncoding.js"
 import { spy as makeSpy } from "@tutao/tutanota-test-utils"
-import { concat, flat } from "@tutao/tutanota-utils"
+import { concat } from "@tutao/tutanota-utils"
 o.spec("SearchIndexEncoding test", function () {
 	o("numberOfBytes", function () {
 		;[
@@ -119,7 +119,7 @@ o.spec("SearchIndexEncoding test", function () {
 			// l  d  l  l  d  d  d  l  l  d  l  d  d
 			// [1 ]  [2          ]  [3     ] [4    ]
 			// "i" - length, "d" data
-			const row = new Uint8Array(flat([shortBlock, longBlock, anotherLongBlock, anotherShortBlock]))
+			const row = new Uint8Array([shortBlock, longBlock, anotherLongBlock, anotherShortBlock].flat())
 			const spy = makeSpy()
 			iterateBinaryBlocks(row, spy)
 			o(JSON.stringify(spy.invocations)).equals(

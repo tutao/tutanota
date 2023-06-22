@@ -20,10 +20,9 @@ import {
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
 } from "../date/CalendarUtils"
-import { flat, incrementDate, incrementMonth, isSameDay, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { incrementDate, incrementMonth, isSameDay, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { styles } from "../../gui/styles"
-import { formatMonthWithFullYear } from "../../misc/Formatter"
 import { isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
 import { windowFacade } from "../../misc/WindowFacade"
 import { PageView } from "../../gui/base/PageView"
@@ -35,13 +34,7 @@ import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { theme } from "../../gui/theme"
-import {
-	CalendarViewType,
-	getDateFromMousePos,
-	renderCalendarSwitchLeftButton,
-	renderCalendarSwitchRightButton,
-	SELECTED_DATE_INDICATOR_THICKNESS,
-} from "./CalendarGuiUtils"
+import { CalendarViewType, getDateFromMousePos, SELECTED_DATE_INDICATOR_THICKNESS } from "./CalendarGuiUtils"
 import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarViewModel"
 import { Time } from "../date/Time.js"
 import { client } from "../../misc/ClientDetector"
@@ -282,7 +275,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 
 	_renderWeekEvents(attrs: CalendarMonthAttrs, week: Array<CalendarDay>, zone: string): Children {
 		const eventsOnDays = attrs.getEventsOnDays(week.map((day) => day.date))
-		const events = new Set(eventsOnDays.longEvents.concat(flat(eventsOnDays.shortEvents)))
+		const events = new Set(eventsOnDays.longEvents.concat(eventsOnDays.shortEvents.flat()))
 		const firstDayOfWeek = week[0].date
 		const lastDayOfWeek = lastThrow(week)
 

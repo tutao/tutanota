@@ -1,5 +1,5 @@
 import { showFileChooser } from "../../file/FileController.js"
-import { assertNotNull, flat, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { assertNotNull, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { vCardFileToVCards, vCardListToContacts } from "../VCardImporter.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { locator } from "../../api/main/MainLocator.js"
@@ -30,7 +30,7 @@ export function importAsVCard() {
 				return showProgressDialog(
 					"pleaseWait_msg",
 					Promise.resolve().then(() => {
-						const flatvCards = flat(vCardsList)
+						const flatvCards = vCardsList.flat()
 						const contactMembership = assertNotNull(
 							locator.logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact),
 						)

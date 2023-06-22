@@ -13,7 +13,7 @@ import {
 	PayloadTooLargeError,
 } from "../../common/error/RestError"
 import type { lazy } from "@tutao/tutanota-utils"
-import { flat, isSameTypeRef, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import { isSameTypeRef, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
@@ -191,7 +191,7 @@ export class EntityRestClient implements EntityRestInterface {
 			}
 			return this._handleLoadMultipleResult(typeRef, JSON.parse(json))
 		})
-		return flat(loadedChunks)
+		return loadedChunks.flat()
 	}
 
 	private async loadMultipleBlobElements(
@@ -352,7 +352,7 @@ export class EntityRestClient implements EntityRestInterface {
 			}
 			throw new SetupMultipleError<T>("Setup multiple entities failed", errors, failedInstances)
 		} else {
-			return flat(idChunks)
+			return idChunks.flat()
 		}
 	}
 

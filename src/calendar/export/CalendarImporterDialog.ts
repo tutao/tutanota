@@ -12,7 +12,7 @@ import type { UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
 import { UserAlarmInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { convertToDataFile } from "../../api/common/DataFile"
 import { locator } from "../../api/main/MainLocator"
-import { flat, ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils"
 import { ImportError } from "../../api/common/error/ImportError"
 import { TranslationKeyType } from "../../misc/TranslationKey"
@@ -43,7 +43,7 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 	existingEvents.forEach((existingEvent) => {
 		existingEvent.uid && existingUidToEventMap.set(existingEvent.uid, existingEvent)
 	})
-	const flatParsedEvents = flat(parsedEvents)
+	const flatParsedEvents = parsedEvents.flat()
 	const eventsWithInvalidDate: CalendarEvent[] = []
 	const inversedEvents: CalendarEvent[] = []
 	const pre1970Events: CalendarEvent[] = []

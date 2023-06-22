@@ -1,9 +1,8 @@
 import { lang } from "../../misc/LanguageViewModel"
 import { AdministratedGroupTypeRef, GroupTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import type { ContactFormLanguage } from "../../api/entities/tutanota/TypeRefs.js"
-import { createContactFormLanguage } from "../../api/entities/tutanota/TypeRefs.js"
 import { getElementId } from "../../api/common/utils/EntityUtils"
-import { flat, promiseMap } from "@tutao/tutanota-utils"
+import { promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/MainLocator"
 
 export function getDefaultContactFormLanguage(supportedLanguages: ContactFormLanguage[]): ContactFormLanguage {
@@ -32,7 +31,7 @@ export async function getAdministratedGroupIds(): Promise<Id[]> {
 			return []
 		}
 	})
-	return flat(administratedGroupIds)
+	return administratedGroupIds.flat()
 }
 
 export function getContactFormUrl(domain: string | null, path: string): string {

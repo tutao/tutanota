@@ -12,7 +12,7 @@ import type { LoginController } from "../../api/main/LoginController"
 import { getElementId, getEtId, isSameId } from "../../api/common/utils/EntityUtils"
 import type { GroupMembership } from "../../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { flat, LazyLoaded, promiseMap, SortedArray } from "@tutao/tutanota-utils"
+import { LazyLoaded, promiseMap, SortedArray } from "@tutao/tutanota-utils"
 import type { TemplateGroupInstance } from "./TemplateGroupModel"
 import { search } from "../../api/common/utils/PlainTextSearch.js"
 
@@ -241,7 +241,7 @@ export function loadTemplateGroupInstance(groupMembership: GroupMembership, enti
 
 function loadTemplates(templateGroups: Array<TemplateGroupInstance>, entityClient: EntityClient): Promise<Array<EmailTemplate>> {
 	return promiseMap(templateGroups, (group) => entityClient.loadAll(EmailTemplateTypeRef, group.groupRoot.templates)).then((groupedTemplates) =>
-		flat(groupedTemplates),
+		groupedTemplates.flat(),
 	)
 }
 

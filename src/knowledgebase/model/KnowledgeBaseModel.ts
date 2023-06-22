@@ -1,7 +1,5 @@
-import type { KnowledgeBaseEntry } from "../../api/entities/tutanota/TypeRefs.js"
-import { KnowledgeBaseEntryTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import type { EmailTemplate } from "../../api/entities/tutanota/TypeRefs.js"
-import { EmailTemplateTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import type { EmailTemplate, KnowledgeBaseEntry } from "../../api/entities/tutanota/TypeRefs.js"
+import { EmailTemplateTypeRef, KnowledgeBaseEntryTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import type { EntityEventsListener, EntityUpdateData } from "../../api/main/EventController"
 import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
 import { EntityClient } from "../../api/common/EntityClient"
@@ -9,14 +7,14 @@ import { knowledgeBaseSearch } from "./KnowledgeBaseSearchFilter"
 import type { LanguageCode } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import { OperationType, ShareCapability } from "../../api/common/TutanotaConstants"
-import { downcast, flat, LazyLoaded, noOp, promiseMap, SortedArray } from "@tutao/tutanota-utils"
+import { downcast, LazyLoaded, noOp, promiseMap, SortedArray } from "@tutao/tutanota-utils"
 import { getElementId, getEtId, getLetId, isSameId } from "../../api/common/utils/EntityUtils"
 import type { TemplateGroupInstance } from "../../templates/model/TemplateGroupModel"
 import { loadTemplateGroupInstance } from "../../templates/model/TemplatePopupModel"
 import type { UserController } from "../../api/main/UserController"
 import { hasCapabilityOnGroup } from "../../sharing/GroupUtils"
-import Stream from "mithril/stream"
 
 export const SELECT_NEXT_ENTRY = "next"
 
@@ -257,6 +255,6 @@ export class KnowledgeBaseModel {
 
 function loadKnowledgebaseEntries(templateGroups: Array<TemplateGroupInstance>, entityClient: EntityClient): Promise<Array<KnowledgeBaseEntry>> {
 	return promiseMap(templateGroups, (group) => entityClient.loadAll(KnowledgeBaseEntryTypeRef, group.groupRoot.knowledgeBase)).then((groupedTemplates) =>
-		flat(groupedTemplates),
+		groupedTemplates.flat(),
 	)
 }

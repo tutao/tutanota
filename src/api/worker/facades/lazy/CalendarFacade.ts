@@ -18,14 +18,15 @@ import {
 import {
 	assertNotNull,
 	downcast,
-	flat,
 	flatMap,
 	getFromMap,
 	groupBy,
+	groupByAndMap,
 	groupByAndMapUniquely,
 	isNotNull,
 	neverNull,
 	ofClass,
+	partition,
 	promiseMap,
 	stringToUtf8Uint8Array,
 } from "@tutao/tutanota-utils"
@@ -94,7 +95,7 @@ export class CalendarFacade {
 		}>,
 		operationId: OperationId,
 	): Promise<void> {
-		// it is safe to assume that all event uids are set here
+		// it is safe to assume that all event uids are set at this time
 		return this.saveCalendarEvents(eventsWrapper, (percent) => this.operationProgressTracker.onProgress(operationId, percent))
 	}
 
@@ -158,7 +159,7 @@ export class CalendarFacade {
 						successfulEvents = eventsWithAlarmsOfOneList.filter(({ event }) => !e.failedInstances.includes(event))
 					}),
 				)
-			const allAlarmNotificationsOfListId = flat(successfulEvents.map((event) => event.alarmNotifications))
+			const allAlarmNotificationsOfListId = successfulEvents.map((event) => event.alarmNotifications).flat()
 			collectedAlarmNotifications = collectedAlarmNotifications.concat(allAlarmNotificationsOfListId)
 			currentProgress += Math.floor(56 / size)
 			await onProgress(currentProgress)
@@ -314,7 +315,7 @@ export class CalendarFacade {
 				throw error
 			})
 		})
-		return flat(calendarEvents).map((event) => {
+		return calendarEvents.flat().map((event) => {
 			return {
 				event,
 				userAlarmInfos: getFromMap(eventIdToAlarmInfos, getLetId(event).join(""), () => []),
@@ -449,8 +450,8 @@ export class CalendarFacade {
 			})
 		}
 
-		const allAlarms = flat(
-			userAlarmInfosAndNotificationsPerEvent.map(({ userAlarmInfoAndNotification }) => userAlarmInfoAndNotification.map(({ alarm }) => alarm)),
+		const allAlarms = userAlarmInfosAndNotificationsPerEvent.flatMap(({ userAlarmInfoAndNotification }) =>
+			userAlarmInfoAndNotification.map(({ alarm }) => alarm),
 		)
 
 		const alarmIds: Array<Id> = await this.entityClient.setupMultipleEntities(userAlarmInfoListId, allAlarms)
