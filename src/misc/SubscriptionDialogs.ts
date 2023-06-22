@@ -89,7 +89,10 @@ export async function getAvailableMatchingPlans(
  * @param predicate the criterion to select plans by
  * @param errorMessage the error message to throw in case no plan satisfies the criterion
  */
-async function getPlansThatShouldExist(predicate: (configuration: PlanConfiguration) => boolean, errorMessage: string): Promise<Array<AvailablePlanType>> {
+async function getAtLeastOneAvailableMatchingPlan(
+	predicate: (configuration: PlanConfiguration) => boolean,
+	errorMessage: string,
+): Promise<Array<AvailablePlanType>> {
 	const plans = await getAvailableMatchingPlans(locator.serviceExecutor, predicate)
 	if (plans.length <= 0) {
 		throw new ProgrammingError(errorMessage)
@@ -102,7 +105,7 @@ async function getPlansThatShouldExist(predicate: (configuration: PlanConfigurat
  * @throws ProgrammingError if no plans include it.
  */
 export async function getAvailablePlansWithWhitelabel(): Promise<Array<AvailablePlanType>> {
-	return getPlansThatShouldExist((config) => config.whitelabel, "no available plan with the Whitelabel feature")
+	return getAtLeastOneAvailableMatchingPlan((config) => config.whitelabel, "no available plan with the Whitelabel feature")
 }
 
 /**
@@ -110,7 +113,7 @@ export async function getAvailablePlansWithWhitelabel(): Promise<Array<Available
  * @throws ProgrammingError if no plans include it.
  */
 export async function getAvailablePlansWithTemplates(): Promise<Array<AvailablePlanType>> {
-	return getPlansThatShouldExist((config) => config.templates, "no available plan with the Templates feature")
+	return getAtLeastOneAvailableMatchingPlan((config) => config.templates, "no available plan with the Templates feature")
 }
 
 /**
@@ -118,7 +121,7 @@ export async function getAvailablePlansWithTemplates(): Promise<Array<AvailableP
  * @throws ProgrammingError if no plans include it.
  */
 export async function getAvailablePlansWithSharing(): Promise<Array<AvailablePlanType>> {
-	return getPlansThatShouldExist((config) => config.sharing, "no available plan with the Sharing feature")
+	return getAtLeastOneAvailableMatchingPlan((config) => config.sharing, "no available plan with the Sharing feature")
 }
 
 /**
@@ -126,7 +129,7 @@ export async function getAvailablePlansWithSharing(): Promise<Array<AvailablePla
  * @throws ProgrammingError if no plans include it.
  */
 export async function getAvailablePlansWithEventInvites(): Promise<Array<AvailablePlanType>> {
-	return getPlansThatShouldExist((config) => config.eventInvites, "no available plan with the Event Invites feature")
+	return getAtLeastOneAvailableMatchingPlan((config) => config.eventInvites, "no available plan with the Event Invites feature")
 }
 
 /**
@@ -134,7 +137,7 @@ export async function getAvailablePlansWithEventInvites(): Promise<Array<Availab
  * @throws ProgrammingError if no plans include it.
  */
 export async function getAvailablePlansWithAutoResponder(): Promise<Array<AvailablePlanType>> {
-	return getPlansThatShouldExist((config) => config.autoResponder, "no available plan with the Auto-Responder feature")
+	return getAtLeastOneAvailableMatchingPlan((config) => config.autoResponder, "no available plan with the Auto-Responder feature")
 }
 
 export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunction: TranslationKey): Promise<PlanType | void> {
