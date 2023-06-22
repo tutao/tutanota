@@ -18,7 +18,7 @@ import { FULL_INDEXED_TIMESTAMP, Keys } from "../api/common/TutanotaConstants"
 import { assertMainOrNode, isApp } from "../api/common/Env"
 import { styles } from "../gui/styles"
 import { client } from "../misc/ClientDetector"
-import { debounce, downcast, flat, groupBy, isSameTypeRef, memoized, mod, ofClass, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import { debounce, downcast, groupBy, isSameTypeRef, memoized, mod, ofClass, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { BrowserType } from "../misc/ClientConstants"
 import { hasMoreResults } from "./model/SearchModel"
 import { SearchBarOverlay } from "./SearchBarOverlay"
@@ -341,7 +341,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				concurrency: 3,
 			},
 		) // Higher concurrency to not wait too long for search results of multiple lists
-			.then(flat)
+			.then((a) => a.flat())
 	}
 
 	private selectResult(result: (Mail | null) | Contact | WhitelabelChild | ShowMoreAction) {

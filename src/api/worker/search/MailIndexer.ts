@@ -14,7 +14,7 @@ import {
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
 import { typeModels } from "../../entities/tutanota/TypeModels"
 import { containsEventOfType } from "../../common/utils/Utils"
-import { assertNotNull, flat, groupBy, groupByAndMap, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, groupBy, groupByAndMap, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../../common/utils/EntityUtils"
 import { _createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo } from "./IndexUtils"
 import type { Db, GroupData, IndexUpdate, SearchIndexEntry } from "./SearchTypes"
@@ -772,7 +772,7 @@ class IndexLoader {
 			)
 		})
 		// if (this._indexingCancelled) throw new CancelledError("cancelled indexing in loading attachments")
-		return Promise.all(fileLoadingPromises).then((filesResults: TutanotaFile[][]) => flat(filesResults))
+		return Promise.all(fileLoadingPromises).then((filesResults: TutanotaFile[][]) => filesResults.flat())
 	}
 
 	private loadInChunks<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, ids: Id[]): Promise<T[]> {
@@ -785,6 +785,6 @@ class IndexLoader {
 			{
 				concurrency: 2,
 			},
-		).then((entityResults) => flat(entityResults))
+		).then((entityResults) => entityResults.flat())
 	}
 }

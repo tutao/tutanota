@@ -1,15 +1,10 @@
-import { GroupTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { UserTypeRef } from "../api/entities/sys/TypeRefs.js"
-import type { GroupInfo } from "../api/entities/sys/TypeRefs.js"
-import { GroupInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { groupBy, groupByAndMap, neverNull } from "@tutao/tutanota-utils"
+import type { Customer, GroupInfo } from "../api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { groupByAndMap, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { GroupType } from "../api/common/TutanotaConstants"
-import { flat } from "@tutao/tutanota-utils"
-import type { Customer } from "../api/entities/sys/TypeRefs.js"
 import { getGroupInfoDisplayName, getUserGroupMemberships } from "../api/common/utils/GroupUtils"
-import { promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator"
-import { elementIdPart, getElementId, getListId, listIdPart } from "../api/common/utils/EntityUtils"
+import { elementIdPart, listIdPart } from "../api/common/utils/EntityUtils"
 
 /**
  * As users personal mail group infos do not contain name and mail address we use this wrapper to store group ids together with name and mail address.
@@ -78,5 +73,5 @@ export function loadGroupInfos(groupInfoIds: IdTuple[]): Promise<GroupInfo[]> {
 		{
 			concurrency: 5,
 		},
-	).then(flat)
+	).then((a) => a.flat())
 }

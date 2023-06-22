@@ -1,7 +1,7 @@
 import type { Contact, ContactList } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactListTypeRef, ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { createRestriction } from "../../search/model/SearchUtils"
-import { flat, groupBy, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { groupBy, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
 import { DbError } from "../../api/common/error/DbError"
 import { EntityClient } from "../../api/common/EntityClient"
@@ -112,7 +112,7 @@ export class ContactModelImpl implements ContactModel {
 				concurrency: 3,
 			},
 		)
-		return flat(loadedContacts)
+		return loadedContacts.flat()
 	}
 }
 

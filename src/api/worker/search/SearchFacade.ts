@@ -8,7 +8,6 @@ import {
 	asyncFind,
 	contains,
 	downcast,
-	flat,
 	getDayShifted,
 	getStartOfDay,
 	isNotNull,
@@ -361,7 +360,7 @@ export class SearchFacade {
 					return this._promiseMapCompat(rowsToReadForIndexKeys, (rowsToRead: RowsToReadForIndexKey) => {
 						// For each token find token entries in the rows we've found
 						return this._promiseMapCompat(rowsToRead.rows, (entry) => this._findEntriesForMetadata(transaction, entry))
-							.thenOrApply(flat)
+							.thenOrApply((a) => a.flat())
 							.thenOrApply((indexEntries: EncryptedSearchIndexEntry[]) => {
 								return indexEntries.map((entry) => ({
 									encEntry: entry,

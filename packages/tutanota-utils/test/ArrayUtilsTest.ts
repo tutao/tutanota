@@ -8,7 +8,6 @@ import {
 	deduplicate,
 	difference,
 	findLastIndex,
-	flat,
 	flatMap,
 	groupBy,
 	groupByAndMap,
@@ -663,23 +662,6 @@ o.spec("array utils", function () {
 				a: 20,
 			},
 		])
-	})
-	o("flat", function () {
-		o(flat([])).deepEquals([])
-		o(flat([[], [], []])).deepEquals([])
-		o(flat([[0, 1, 2, 3]])).deepEquals([0, 1, 2, 3])
-		o(flat([[], [0], [1, 2, 3], [4, 5, 6], [], [7, 8, 9]])).deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-		o(
-			flat([
-				[[0]],
-				[
-					[1, 2, 3],
-					[4, 5, 6],
-				],
-				[],
-				[[]],
-			]),
-		).deepEquals([[0], [1, 2, 3], [4, 5, 6], []])
 	})
 	o("flatMap", function () {
 		o(flatMap([], (v) => [v])).deepEquals([])

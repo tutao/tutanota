@@ -2,7 +2,7 @@ import type { EntityRestInterface } from "./EntityRestClient"
 import { EntityRestClient, EntityRestClientSetupOptions } from "./EntityRestClient"
 import { resolveTypeReference } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, difference, flat, getFirstOrThrow, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, difference, getFirstOrThrow, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import { containsEventOfType, getEventOfType } from "../../common/utils/Utils"
 import type { EntityUpdate, User } from "../../entities/sys/TypeRefs.js"
 import {
@@ -675,7 +675,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// the whole batch has been written successfully
 		await this.storage.putLastBatchIdForGroup(batch.groupId, batch.batchId)
 		// merge the results
-		return otherEventUpdates.concat(flat(postMultipleEventUpdates))
+		return otherEventUpdates.concat(postMultipleEventUpdates.flat())
 	}
 
 	/** Returns {null} when the update should be skipped. */

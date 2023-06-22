@@ -346,10 +346,6 @@ function _chunk<T>(chunkSize: number, array: Array<T> | Uint8Array): Array<Array
 	return chunks
 }
 
-export function flat<T>(arrays: ReadonlyArray<ReadonlyArray<T>>): Array<T> {
-	return arrays.flat()
-}
-
 /**
  * Maps an array into a nested array and then flattens it
  * @param array
