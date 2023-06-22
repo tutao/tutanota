@@ -961,6 +961,7 @@ export default {
 		"noValidMembersToAdd_msg": "You are not administrating any users that are not already a member of this group.",
 		"no_label": "No",
 		"npoDiscount_msg": "Offer for NPOs: 50% user discount for Premium and 20 aliases free of charge!",
+		"promotion.npoDiscount_msg": "Offer for NPOs: 50% user discount for Premium and 20 aliases free of charge!",
 		"npoDonation_msg": "Donation for NPOs: up to 50 users for Premium and 100 aliases free of charge!",
 		"number_label": "Number",
 		"offlineLoginPremiumOnly_msg": "You are offline. Upgrade to a premium account to enable offline login.",
@@ -1223,7 +1224,6 @@ export default {
 		"private_label": "Private",
 		"progressDeleting_msg": "Deleting ...",
 		"promotion.ctAdventCalendarDiscount_msg": "c't advent calendar: Use Tutanota 12 months for free",
-		"promotion.npoDiscount_msg": "Offer for NPOs: 50% user discount for Premium and 20 aliases free of charge!",
 		"promotion.npoDonation_msg": "Donation for NPOs: up to 50 users for Premium and 100 aliases free of charge!",
 		"providePaymentDetails_msg": "Please provide payment details",
 		"purchaseDate_label": "Purchase date",
@@ -1690,6 +1690,7 @@ export default {
 		"filterAllMails_label": "All mails",
 		"filterWithAttachments_label": "With attachments",
 		"searchTemplates_placeholder": "Search templates",
-		"searchKnowledgebase_placeholder": "Search knowledgebase"
+		"searchKnowledgebase_placeholder": "Search knowledgebase",
+		"npo50PercentDiscount_msg": "Offer for NPOs: 50% discount on the price per user!",
 	}
 }

@@ -1676,3 +1676,4 @@ export type TranslationKeyType =
 	| "filterWithAttachments_label"
 	| "searchTemplates_placeholder"
 	| "searchKnowledgebase_placeholder"
+	| "npo50PercentDiscount_msg"

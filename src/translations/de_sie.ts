@@ -1694,6 +1694,7 @@ export default {
 		"filterAllMails_label": "Alle Mails",
 		"filterWithAttachments_label": "Mit Anhängen",
 		"searchTemplates_placeholder": "Vorlagen suchen",
-		"searchKnowledgebase_placeholder": "Knowledgebase durchsuchen"
+		"searchKnowledgebase_placeholder": "Knowledgebase durchsuchen",
+		"npo50PercentDiscount_msg": "Angebot für NPOs: 50% Benutzer-Rabatt!",
 	}
 }
