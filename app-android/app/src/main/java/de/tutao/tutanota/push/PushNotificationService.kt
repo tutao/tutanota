@@ -10,6 +10,7 @@ import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.SseInfo
 import de.tutao.tutanota.push.SseClient.SseListener
+import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 
 private enum class State {
@@ -81,7 +82,8 @@ class PushNotificationService : LifecycleJobService() {
 				crypto,
 				sseStorage,
 				NetworkObserver(this, this),
-				NotificationSseListener(localNotificationsFacade, sseStorage, alarmNotificationsManager)
+				NotificationSseListener(localNotificationsFacade, sseStorage, alarmNotificationsManager, NetworkUtils.defaultClient),
+				NetworkUtils.defaultClient
 		)
 		sseStorage.observeUsers().observeForever { userInfos ->
 			Log.d(TAG, "sse storage updated " + userInfos.size)
@@ -205,10 +207,11 @@ class PushNotificationService : LifecycleJobService() {
 	private inner class NotificationSseListener(
 			notificationsFacade: LocalNotificationsFacade,
 			sseStorage: SseStorage,
-			alarmNotificationsManager: AlarmNotificationsManager
+			alarmNotificationsManager: AlarmNotificationsManager,
+			defaultClient: OkHttpClient
 	) : SseListener {
 
-		private val tutanotaNotificationsHandler = TutanotaNotificationsHandler(notificationsFacade, sseStorage, alarmNotificationsManager)
+		private val tutanotaNotificationsHandler = TutanotaNotificationsHandler(notificationsFacade, sseStorage, alarmNotificationsManager, defaultClient)
 
 		override fun onStartingConnection(): Boolean {
 			Log.d(TAG, "onStartingConnection")

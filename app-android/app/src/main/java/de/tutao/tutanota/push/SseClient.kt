@@ -3,12 +3,11 @@ package de.tutao.tutanota.push
 import android.util.Log
 import de.tutao.tutanota.*
 import de.tutao.tutanota.data.SseInfo
+import okhttp3.*
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.IOException
-import java.io.UnsupportedEncodingException
-import java.net.HttpURLConnection
+import java.io.*
 import java.net.URL
 import java.net.URLEncoder
 import java.util.*
@@ -21,6 +20,7 @@ class SseClient internal constructor(
 		private val sseStorage: SseStorage,
 		private val networkObserver: NetworkObserver,
 		private val sseListener: SseListener,
+		private val defaultClient: OkHttpClient
 ) {
 	@Volatile
 	private var connectedSseInfo: SseInfo? = null
@@ -28,7 +28,7 @@ class SseClient internal constructor(
 	@Volatile
 	private var timeoutInSeconds: Long = 90
 	private var failedConnectionAttempts = 0
-	private val httpsURLConnectionRef = AtomicReference<HttpURLConnection?>(null)
+	private val response = AtomicReference<Response?>(null)
 	private val looperThread = LooperThread { connect() }
 	private fun reschedule(delayInSeconds: Int) {
 		if (looperThread._handler != null) {
@@ -41,8 +41,8 @@ class SseClient internal constructor(
 	fun restartConnectionIfNeeded(sseInfo: SseInfo) {
 		val oldConnectedInfo = connectedSseInfo
 		connectedSseInfo = sseInfo
-		val connection = httpsURLConnectionRef.get()
-		if (connection == null) {
+		val response = response.get()
+		if (response == null) {
 			Log.d(TAG, "restart requested and connectionRef is not available, schedule connect")
 			reschedule(0)
 		} else if (
@@ -53,7 +53,7 @@ class SseClient internal constructor(
 			// If pushIdentifier or SSE origin have changed for some reason, restart the connect.
 			// If user IDs have changed, do not restart, if current user is invalid we have either oldConnectedInfo
 			Log.d(TAG, "restart requested, connectionRef is available, but sseInfo has changed, call disconnect to reschedule connection")
-			connection.disconnect()
+			response.close()
 		} else {
 			Log.d(TAG, "restart requested but connectionRef available and didn't change, do nothing")
 		}
@@ -77,9 +77,10 @@ class SseClient internal constructor(
 		val connectionData = prepareSSEConnection(connectedSseInfo)
 		try {
 			var shouldNotifyAboutEstablishedConnection = true
-			val httpURLConnection = openSseConnection(connectionData)
+			val response = openSseConnection(connectionData)
 			Log.d(TAG, "connected, listening for events")
-			httpURLConnection.iterateDataAsLines {
+			// 		BufferedReader(InputStreamReader(BufferedInputStream(this.inputStream))).forEachLine(action)
+			BufferedReader(InputStreamReader(response.body!!.byteStream())).forEachLine {
 				handleLine(it)
 				if (shouldNotifyAboutEstablishedConnection) {
 					// We expect to get at least one event right away so we don't consider the connection "established"
@@ -92,15 +93,15 @@ class SseClient internal constructor(
 			handleException(random, exception, connectionData.userId)
 		} finally {
 			sseListener.onConnectionBroken()
-			httpsURLConnectionRef.set(null)
+			response.set(null)
 		}
 	}
 
 	private fun handleException(random: Random, exception: Exception, userId: String) {
-		val httpURLConnection = httpsURLConnectionRef.get()
+		val response = response.get()
 		try {
 			// we get not authorized for the stored identifier and user ids, so remove them
-			if (httpURLConnection != null && httpURLConnection.responseCode == 403) {
+			if (response != null && response.code == 403) {
 				Log.e(TAG, "not authorized to connect, disable reconnect for $userId")
 				sseListener.onNotAuthorized(userId)
 				return
@@ -186,26 +187,34 @@ class SseClient internal constructor(
 	}
 
 	@Throws(IOException::class)
-	private fun openSseConnection(connectionData: ConnectionData): HttpURLConnection {
-		val httpsURLConnection = connectionData.url.openConnection() as HttpURLConnection
-		httpsURLConnectionRef.set(httpsURLConnection)
-		httpsURLConnection.requestMethod = "GET"
-		httpsURLConnection.setRequestProperty("Content-Type", "application/json")
-		httpsURLConnection.setRequestProperty("Connection", "Keep-Alive")
-		httpsURLConnection.setRequestProperty("Keep-Alive", "header")
-		httpsURLConnection.setRequestProperty("Connection", "close")
-		httpsURLConnection.setRequestProperty("Accept", "text/event-stream")
-		addCommonHeaders(httpsURLConnection)
-		httpsURLConnection.connectTimeout = TimeUnit.SECONDS.toMillis(5).toInt()
-		httpsURLConnection.readTimeout = (TimeUnit.SECONDS.toMillis(timeoutInSeconds) * 1.2).toInt()
-		return httpsURLConnection
+	private fun openSseConnection(connectionData: ConnectionData): Response {
+		val requestBuilder = Request.Builder()
+				.url(connectionData.url)
+				.method("GET", null)
+				.header("Content-Type", "application/json")
+				.header("Connection", "Keep-Alive")
+				.header("Accept", "text/event-stream")
+		addCommonHeaders(requestBuilder)
+
+		var req = requestBuilder.build()
+
+		val response = defaultClient
+				.newBuilder()
+				.connectTimeout(5, TimeUnit.SECONDS)
+				.writeTimeout(5, TimeUnit.SECONDS)
+				.readTimeout((timeoutInSeconds * 1.2).toLong(), TimeUnit.SECONDS)
+				.build()
+				.newCall(req)
+				.execute()
+		this.response.set(response)
+		return response
 	}
 
 	fun stopConnection() {
-		val connection = httpsURLConnectionRef.get()
+		val response = response.get()
 		Log.d(TAG, "Disconnect sse client")
-		if (connection != null) {
-			connection.disconnect()
+		if (response != null) {
+			response.close()
 			// check in connect() prevents rescheduling new connection attempts
 			connectedSseInfo = null
 		}
@@ -236,7 +245,7 @@ class SseClient internal constructor(
 	init {
 		looperThread.start()
 		networkObserver.setNetworkConnectivityListener { connected ->
-			val connection = httpsURLConnectionRef.get()
+			val connection = response.get()
 			if (connected && connection == null) {
 				Log.d(TAG, "ConnectionRef not available, schedule connect because of network state change")
 				reschedule(0)

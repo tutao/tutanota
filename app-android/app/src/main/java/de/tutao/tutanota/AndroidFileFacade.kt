@@ -19,19 +19,23 @@ import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.showDownloadNotification
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okio.BufferedSink
+import okio.buffer
+import okio.source
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.BoundedInputStream
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.*
-import java.net.HttpURLConnection
-import java.net.URL
-import java.net.URLConnection
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
 import java.util.*
+import java.util.concurrent.TimeUnit
+
 
 class TempDir(
 		private val context: Context,
@@ -48,10 +52,9 @@ class TempDir(
 class AndroidFileFacade(
 		private val activity: MainActivity,
 		private val localNotificationsFacade: LocalNotificationsFacade,
-		private val random: SecureRandom
+		private val random: SecureRandom,
+		private val defaultClient: OkHttpClient
 ) : FileFacade {
-
-	constructor(activity: MainActivity, localNotificationsFacade: LocalNotificationsFacade) : this(activity, localNotificationsFacade, SecureRandom())
 
 	val tempDir = TempDir(activity, random)
 
@@ -224,79 +227,103 @@ class AndroidFileFacade(
 	override suspend fun upload(fileUrl: String, targetUrl: String, method: String, headers: Map<String, String>): UploadTaskResponse =
 			withContext(Dispatchers.IO) {
 				val parsedUri = Uri.parse(fileUrl)
-				val inputStream = activity.contentResolver.openInputStream(parsedUri)!!
-				val con = URL(targetUrl).openConnection() as HttpURLConnection
-				try {
-					val fileSize = inputStream.available()
-					// this disables internal buffering of the output stream
-					con.setFixedLengthStreamingMode(fileSize)
-					con.connectTimeout = HTTP_TIMEOUT
-					// infinite timeout
-					// - the server stops listening after 10 minutes -> SocketException
-					// - if the internet connection dies -> SocketException
-					// we don't want to time out in case of a slow connection because we may already be
-					// waiting for the response code while the TCP stack is still busy sending our data
-					con.readTimeout = 0
-					con.requestMethod = method
-					con.doInput = true
-					con.doOutput = true
-					con.useCaches = false
-					con.setRequestProperty("Content-Type", "application/octet-stream")
-					addHeadersToRequest(con, JSONObject(headers))
-					con.connect()
-					IOUtils.copy(inputStream, con.outputStream)
+				val contentResolver = activity.contentResolver
+				val contentType = contentResolver.getType(parsedUri)
+				val fd = contentResolver.openAssetFileDescriptor(parsedUri, "r")!!
+				val requestBody: RequestBody = object : RequestBody() {
+					override fun contentLength(): Long {
+						return fd.declaredLength
+					}
 
+					override fun contentType(): MediaType? {
+						return contentType?.toMediaTypeOrNull()
+					}
+
+					@Throws(IOException::class)
+					override fun writeTo(sink: BufferedSink) {
+						fd.createInputStream().use { inputStream -> sink.writeAll(inputStream.source().buffer()) }
+					}
+				}
+
+				defaultClient.newBuilder()
+						.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+						// infinite timeout
+						// - the server stops listening after 10 minutes -> SocketException
+						// - if the internet connection dies -> SocketException
+						// we don't want to time out in case of a slow connection because we may already be
+						// waiting for the response code while the TCP stack is still busy sending our data
+						.writeTimeout(0, TimeUnit.SECONDS)
+						.readTimeout(0, TimeUnit.SECONDS)
+				val requestBuilder = Request.Builder()
+						.url(targetUrl)
+						.method(method, requestBody)
+						.header("Content-Type", "application/octet-stream")
+						.header("Cache-Control", "no-cache")
+				addHeadersToRequest(requestBuilder, JSONObject(headers))
+
+				var response = defaultClient.newBuilder()
+						.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+						.writeTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+						.readTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+						.build()
+						.newCall(requestBuilder.build())
+						.execute()
+				try {
 					// this would run into the read timeout if the upload is still running
-					val responseCode = con.responseCode
-					val suspensionTime = con.getHeaderField("Retry-After") ?: con.getHeaderField("Suspension-Time")
+					val responseCode = response.code
+					val suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time")
 					val responseBody = if (responseCode in 200..299) {
-						val responseBodyStream = ByteArrayOutputStream()
-						IOUtils.copy(con.inputStream, responseBodyStream)
-						responseBodyStream.toByteArray().wrap()
+						val bodyOrNull = response.body?.bytes()?.wrap()
+						if (bodyOrNull != null) bodyOrNull else byteArrayOf().wrap()
 					} else {
 						byteArrayOf().wrap()
 					}
 					UploadTaskResponse(
 							statusCode = responseCode,
-							errorId = con.getHeaderField("Error-Id"),
-							precondition = con.getHeaderField("Precondition"),
+							errorId = response.header("Error-Id"),
+							precondition = response.header("Precondition"),
 							suspensionTime = suspensionTime,
 							responseBody = responseBody
 					)
 				} finally {
-					con.disconnect()
+					response.close()
 				}
 			}
 
 	@Throws(IOException::class, JSONException::class)
 	override suspend fun download(sourceUrl: String, filename: String, headers: Map<String, String>): DownloadTaskResponse =
 			withContext(Dispatchers.IO) {
-				val con: HttpURLConnection = URL(sourceUrl).openConnection() as HttpURLConnection
-				try {
-					con.connectTimeout = HTTP_TIMEOUT
-					con.readTimeout = HTTP_TIMEOUT
-					con.requestMethod = "GET"
-					con.doInput = true
-					con.useCaches = false
-					addHeadersToRequest(con, JSONObject(headers))
+				val requestBuilder = Request.Builder()
+						.url(sourceUrl)
+						.method("GET", null)
+						.header("Content-Type", "application/json")
+						.header("Cache-Control", "no-cache")
+				addHeadersToRequest(requestBuilder, JSONObject(headers))
 
-					con.connect()
+				var response = defaultClient.newBuilder()
+						.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+						.writeTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+						.readTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+						.build()
+						.newCall(requestBuilder.build())
+						.execute()
+				try {
 					var encryptedFile: File? = null
-					if (con.responseCode == 200) {
-						val inputStream = con.inputStream
+					if (response.code == 200) {
+						val inputStream = response.body!!.byteStream()
 						encryptedFile = File(tempDir.encrypt, filename)
 						writeFileStream(encryptedFile, inputStream)
 					}
 
 					DownloadTaskResponse(
-							statusCode = con.responseCode,
-							errorId = con.getHeaderField("Error-Id"),
-							precondition = con.getHeaderField("Precondition"),
-							suspensionTime = con.getHeaderField("Retry-After") ?: con.getHeaderField("Suspension-Time"),
+							statusCode = response.code,
+							errorId = response.header("Error-Id"),
+							precondition = response.header("Precondition"),
+							suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time"),
 							encryptedFileUri = encryptedFile?.toUri().toString(),
 					)
 				} finally {
-					con.disconnect()
+					response.close()
 				}
 			}
 
@@ -365,7 +392,7 @@ class AndroidFileFacade(
 
 	private companion object {
 		const val TAG = "FileUtil"
-		const val HTTP_TIMEOUT = 15 * 1000
+		const val HTTP_TIMEOUT = 15L
 		const val COPY_BUFFER_SIZE = 1024 * 1000
 	}
 
@@ -381,16 +408,16 @@ class AndroidFileFacade(
 class FileOpenException(message: String) : Exception(message)
 
 @Throws(JSONException::class)
-private fun addHeadersToRequest(connection: URLConnection, headers: JSONObject) {
+private fun addHeadersToRequest(request: Request.Builder, headers: JSONObject) {
 	for (headerKey in headers.keys()) {
 		var headerValues = headers.optJSONArray(headerKey)
 		if (headerValues == null) {
 			headerValues = JSONArray()
 			headerValues.put(headers.getString(headerKey))
 		}
-		connection.setRequestProperty(headerKey, headerValues.getString(0))
+		request.header(headerKey, headerValues.getString(0))
 		for (i in 1 until headerValues.length()) {
-			connection.addRequestProperty(headerKey, headerValues.getString(i))
+			request.addHeader(headerKey, headerValues.getString(i))
 		}
 	}
 }

@@ -15,7 +15,6 @@ import org.apache.commons.io.IOUtils
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.*
-import java.net.HttpURLConnection
 import java.security.SecureRandom
 
 fun SecureRandom.bytes(numBytes: Int): ByteArray {
@@ -139,9 +138,6 @@ fun parseColor(color: String): Int {
 	return rgb or -0x1000000
 }
 
-fun HttpURLConnection.iterateDataAsLines(action: (line: String) -> Unit) =
-
-		BufferedReader(InputStreamReader(BufferedInputStream(this.inputStream))).forEachLine(action)
 fun Int.toPx(): Int = (this * Resources.getSystem().displayMetrics.density).toInt()
 
 fun Int.toDp(): Int = (this / Resources.getSystem().displayMetrics.density).toInt()

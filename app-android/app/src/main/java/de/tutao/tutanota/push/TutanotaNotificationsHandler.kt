@@ -10,6 +10,9 @@ import de.tutao.tutanota.data.SseInfo
 import de.tutao.tutanota.toBase64
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import org.apache.commons.io.IOUtils
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -24,6 +27,7 @@ class TutanotaNotificationsHandler(
 		private val localNotificationsFacade: LocalNotificationsFacade,
 		private val sseStorage: SseStorage,
 		private val alarmNotificationsManager: AlarmNotificationsManager,
+		private val defaultClient: OkHttpClient
 ) {
 
 	private val json = Json { ignoreUnknownKeys = true }
@@ -122,19 +126,34 @@ class TutanotaNotificationsHandler(
 	@Throws(IllegalArgumentException::class, IOException::class, HttpException::class)
 	private fun executeMissedNotificationDownload(sseInfo: SseInfo, userId: String?): MissedNotification {
 		val url = makeAlarmNotificationUrl(sseInfo)
-		val urlConnection = url.openConnection() as HttpURLConnection
-		urlConnection.connectTimeout = 30 * 1000
-		urlConnection.readTimeout = 20 * 1000
-		urlConnection.setRequestProperty("userIds", userId)
-		addCommonHeaders(urlConnection)
+		val requestBuilder = Request.Builder()
+				.url(url)
+				.method("GET", null)
+				.header("Content-Type", "application/json")
+				.header("Connection", "Keep-Alive")
+				.header("Accept", "text/event-stream")
+				.header("userIds", userId?:"")
+		addCommonHeaders(requestBuilder)
 		val lastProcessedNotificationId = sseStorage.getLastProcessedNotificationId()
 		if (lastProcessedNotificationId != null) {
-			urlConnection.setRequestProperty("lastProcessedNotificationId", lastProcessedNotificationId)
+			requestBuilder.header("lastProcessedNotificationId", lastProcessedNotificationId)
 		}
-		val responseCode = urlConnection.responseCode
+
+		var req = requestBuilder.build()
+
+		val response = defaultClient
+				.newBuilder()
+				.connectTimeout(30, TimeUnit.SECONDS)
+				.writeTimeout(20, TimeUnit.SECONDS)
+				.readTimeout(20, TimeUnit.SECONDS)
+				.build()
+				.newCall(req)
+				.execute()
+
+		val responseCode = response.code
 		Log.d(TAG, "MissedNotification response code $responseCode")
-		handleResponseCode(urlConnection, responseCode)
-		urlConnection.inputStream.use { inputStream ->
+		handleResponseCode(response)
+		response.body?.byteStream().use { inputStream ->
 			val responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
 			Log.d(TAG, "Loaded Missed notifications response")
 			return json.decodeFromString(responseString)
@@ -148,32 +167,32 @@ class TutanotaNotificationsHandler(
 			ServiceUnavailableException::class,
 			TooManyRequestsException::class
 	)
-	private fun handleResponseCode(urlConnection: HttpURLConnection, responseCode: Int) {
-		when (responseCode) {
+	private fun handleResponseCode(response: Response) {
+		when (response.code) {
 			404 -> {
 				throw FileNotFoundException("Missed notification not found: " + 404)
 			}
 			ServiceUnavailableException.CODE -> {
-				val suspensionTime = extractSuspensionTime(urlConnection)
+				val suspensionTime = extractSuspensionTime(response)
 				throw ServiceUnavailableException(suspensionTime)
 			}
 			TooManyRequestsException.CODE -> {
-				val suspensionTime = extractSuspensionTime(urlConnection)
+				val suspensionTime = extractSuspensionTime(response)
 				throw TooManyRequestsException(suspensionTime)
 			}
 			in 400..499 -> {
-				throw ClientRequestException(responseCode)
+				throw ClientRequestException(response.code)
 			}
 			in 500..600 -> {
-				throw ServerResponseException(responseCode)
+				throw ServerResponseException(response.code)
 			}
 		}
 	}
 
-	private fun extractSuspensionTime(urlConnection: HttpURLConnection): Int {
-		val retryAfterHeader = urlConnection.getHeaderField("Retry-After")
-				?: urlConnection.getHeaderField("Suspension-Time")
-		return retryAfterHeader.toIntOrNull() ?: 0
+	private fun extractSuspensionTime(response: Response): Int {
+		val retryAfterHeader = response.header("Retry-After")
+				?: response.header("Suspension-Time")
+		return retryAfterHeader?.toIntOrNull() ?: 0
 	}
 
 	@Throws(MalformedURLException::class)
