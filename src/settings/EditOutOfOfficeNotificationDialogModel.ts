@@ -20,7 +20,7 @@ export const enum RecipientMessageType {
 	INTERNAL_ONLY = 2,
 }
 
-const FAILURE_BUSINESS_FEATURE_REQUIRED = "outofoffice.business_feature_required"
+const FAILURE_UPGRADE_REQUIRED = "outofoffice.not_available_on_current_plan"
 
 export class EditOutOfOfficeNotificationDialogModel {
 	outOfOfficeNotification: OutOfOfficeNotification
@@ -190,7 +190,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 			)
 			.catch(
 				ofClass(PreconditionFailedError, async (e) => {
-					if (e.data === FAILURE_BUSINESS_FEATURE_REQUIRED) {
+					if (e.data === FAILURE_UPGRADE_REQUIRED) {
 						throw new UpgradeRequiredError("upgradeRequired_msg", await getAvailablePlansWithAutoResponder())
 					} else {
 						throw new UserError(() => e.toString())
