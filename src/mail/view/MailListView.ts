@@ -353,8 +353,8 @@ export class MailListView implements Component<MailListViewAttrs> {
 								listModel.onSingleSelection(item)
 								vnode.attrs.onSingleSelection()
 							},
-							onSingleExclusiveSelection: (item: Mail) => {
-								listModel.onSingleExclusiveSelection(item)
+							onSingleMultiselection: (item: Mail) => {
+								listModel.onSingleInclusiveSelection(item)
 							},
 							selectRangeTowards: (item: Mail) => {
 								listModel.selectRangeTowards(item)

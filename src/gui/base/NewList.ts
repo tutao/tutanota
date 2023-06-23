@@ -84,7 +84,7 @@ export interface NewListAttrs<T, R extends ViewHolder<T>> {
 	onSingleSelection(item: T): unknown
 
 	/** selection that enters multiselect when triggered */
-	onSingleExclusiveSelection(item: T): unknown
+	onSingleMultiselection(item: T): unknown
 
 	/** called when range selection is extended */
 	selectRangeTowards(item: T): unknown
@@ -276,7 +276,7 @@ export class NewList<T, VH extends ViewHolder<T>> implements ClassComponent<NewL
 				timeoutId = setTimeout(() => {
 					// check that virtualRow.entity exists because we had error feedbacks about it
 					if (row.entity) {
-						attrs.onSingleExclusiveSelection(row.entity)
+						attrs.onSingleMultiselection(row.entity)
 					}
 					m.redraw()
 				}, LONG_PRESS_DURATION_MS)
@@ -346,7 +346,7 @@ export class NewList<T, VH extends ViewHolder<T>> implements ClassComponent<NewL
 				break
 			case "togglingIncludingSingle":
 				if (this.lastAttrs.renderConfig.multiselectionAllowed === MultiselectMode.Enabled) {
-					this.lastAttrs.onSingleExclusiveSelection(clickedEntity)
+					this.lastAttrs.onSingleMultiselection(clickedEntity)
 				}
 				break
 			case "range":
