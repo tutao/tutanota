@@ -13,10 +13,10 @@ import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js
 import { isSameId } from "../../api/common/utils/EntityUtils"
 import { sendAcceptNotificationEmail, sendRejectNotificationEmail } from "../GroupSharingUtils"
 import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, groupRequiresBusinessFeature } from "../GroupUtils"
-import { getAvailablePlansWithEventInvites, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
 import type { GroupSharingTexts } from "../GroupGuiUtils"
 import { getTextsForGroupType } from "../GroupGuiUtils"
-import { FeatureType, GroupType } from "../../api/common/TutanotaConstants"
+import { FeatureType, GroupType, NewPaidPlans } from "../../api/common/TutanotaConstants"
 import { ColorPicker } from "../../gui/base/ColorPicker"
 import { locator } from "../../api/main/MainLocator"
 
@@ -117,8 +117,8 @@ async function checkCanAcceptInvitation(invitation: ReceivedGroupInvitation): Pr
 	}
 	const customer = await locator.logins.getUserController().loadCustomer()
 	if (groupRequiresBusinessFeature(getInvitationGroupType(invitation)) && !isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled)) {
-		const plans = await getAvailablePlansWithEventInvites()
-		return showPlanUpgradeRequiredDialog(plans)
+		// Any paid plan should be able to respond to event invites, but you can only upgrade to the new ones.
+		return showPlanUpgradeRequiredDialog(NewPaidPlans)
 	} else {
 		return true
 	}
