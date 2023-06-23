@@ -12,6 +12,7 @@ import stream from "mithril/stream"
 
 interface ListModelConfig<ElementType> {
 	topId: Id
+
 	/**
 	 * Get the given number of entities starting after the given id. May return more elements than requested, e.g. if all elements are available on first fetch.
 	 */
@@ -265,6 +266,7 @@ export class ListModel<ElementType extends ListElement> {
 		}
 	}
 
+	/** An element was added to the selection. If multiselect was not on, discard previous single selection and only added selected item to the selection. */
 	onSingleExclusiveSelection(item: ElementType): void {
 		const activeIndex = this.indexFor(item)
 		if (!this.rawState.inMultiselect) {
@@ -284,6 +286,24 @@ export class ListModel<ElementType extends ListElement> {
 				this.updateState({ selectedItems, inMultiselect: true, activeIndex })
 				this.rangeSelectionAnchorIndex = activeIndex
 			}
+		}
+	}
+
+	/** An element was added to the selection. If multiselect was not on, app previous single selection and newly added selected item to the selection. */
+	onSingleInclusiveSelection(item: ElementType): void {
+		const activeIndex = this.indexFor(item)
+		const selectedItems = new Set(this.state.selectedItems)
+		if (selectedItems.has(item)) {
+			selectedItems.delete(item)
+		} else {
+			selectedItems.add(item)
+		}
+		if (selectedItems.size === 0) {
+			this.updateState({ selectedItems, inMultiselect: false, activeIndex: null })
+			this.rangeSelectionAnchorIndex = null
+		} else {
+			this.updateState({ selectedItems, inMultiselect: true, activeIndex })
+			this.rangeSelectionAnchorIndex = activeIndex
 		}
 	}
 
