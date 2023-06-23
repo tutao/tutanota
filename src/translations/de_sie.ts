@@ -132,8 +132,6 @@ export default {
 		"bookingSummary_label": "Buchungsübersicht",
 		"boughtGiftCardPosting_label": "Gutschein gekauft",
 		"breakLink_action": "Hyperlink entfernen",
-		"businessFeatureRequiredGeneral_msg": "Um diese Funktion zu benutzen, müssen Sie das Business-Feature buchen.",
-		"businessFeatureRequiredInvite_msg": "Um Kalender-Einladungen zu versenden, müssen Sie das Business-Feature buchen.",
 		"buyGiftCard_label": "Gutschein kaufen",
 		"buy_action": "Kaufen",
 		"by_label": "von",

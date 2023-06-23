@@ -1540,7 +1540,5 @@ export default {
 		"noCalendar_msg": "Please select a calendar for the event.",
 		"cannotEditFullEvent_msg": "You can only edit parts of this event because it does not originate in your calendar.",
 		"upgradeRequired_msg": "This feature is not available on your plan, please upgrade to one of the following plans:",
-		"businessFeatuseRequiredGeneral_msg": "To use this function you have to order the business feature.",
-		"businessFeatureRequiredInvite_msg": "To send event invites you have to order the business feature.",
 	}
 }

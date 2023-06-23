@@ -8,6 +8,7 @@ import {
 	AccountType,
 	AvailablePlanType,
 	BookingFailureReason,
+	BookingItemFeatureType,
 	Const,
 	FeatureType,
 	InvoiceData,
@@ -51,7 +52,7 @@ export async function showSwitchDialog(
 		"pleaseWait_msg",
 		Promise.all([FeatureListProvider.getInitializedInstance(), PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)]),
 	)
-	const model = new SwitchSubscriptionDialogModel(customer, accountingInfo, await locator.logins.getUserController().getPlanType())
+	const model = new SwitchSubscriptionDialogModel(customer, accountingInfo, await locator.logins.getUserController().getPlanType(), lastBooking)
 	const cancelAction = () => {
 		dialog.close()
 		deferred.resolve(customerInfo.plan as PlanType)
@@ -71,6 +72,8 @@ export async function showSwitchDialog(
 	const currentPlanInfo = model.currentPlanInfo
 	const businessUse = stream(currentPlanInfo.businessUse)
 	const paymentInterval = stream(PaymentInterval.Yearly) // always default to yearly
+	const multipleUsersAllowed = model.multipleUsersStillSupportedLegacy()
+
 	const dialog: Dialog = Dialog.largeDialog(headerBarAttrs, {
 		view: () =>
 			m(
@@ -90,7 +93,7 @@ export async function showSwitchDialog(
 					actionButtons: subscriptionActionButtons,
 					featureListProvider: featureListProvider,
 					priceAndConfigProvider,
-					multipleUsersAllowed: isCustomizationEnabledForCustomer(customer, FeatureType.MultipleUsers),
+					multipleUsersAllowed,
 				}),
 			),
 	})
