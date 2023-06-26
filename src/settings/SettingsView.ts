@@ -68,6 +68,8 @@ import { BackgroundColumnLayout } from "../gui/BackgroundColumnLayout.js"
 import { styles } from "../gui/styles.js"
 import { MobileHeader } from "../gui/MobileHeader.js"
 import { LazySearchBar } from "../misc/LazySearchBar.js"
+import { GroupDetailsView } from "./groups/GroupDetailsView.js"
+import { TemplateDetailsViewer } from "./TemplateDetailsViewer.js"
 
 assertMainOrNode()
 
@@ -435,7 +437,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		}
 	}
 
-	async oncreate(vnode: Vnode<SettingsViewAttrs>) {
+	private replaceDetailsViewer(viewer: UserViewer | GroupDetailsView | TemplateDetailsViewer | null) {
+		return (this.detailsViewer = viewer)
+	}
+
+	oncreate(vnode: Vnode<SettingsViewAttrs>) {
 		locator.eventController.addEntityListener(this.entityListener)
 
 		await this.populateAdminFolders()
@@ -768,7 +774,14 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						folder: "templates",
 						id: getEtId(groupInstance.group),
 					},
-					() => new TemplateListView(this, groupInstance, locator.entityClient, this.logins),
+					() =>
+						new TemplateListView(
+							(viewer) => this.replaceDetailsViewer(viewer),
+							() => this.focusSettingsDetailsColumn(),
+							groupInstance,
+							locator.entityClient,
+							this.logins,
+						),
 					groupInstance,
 				),
 		)

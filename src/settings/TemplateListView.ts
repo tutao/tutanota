@@ -1,27 +1,34 @@
 import m, { Children } from "mithril"
-import { Button, ButtonType } from "../gui/base/Button.js"
-import { lang } from "../misc/LanguageViewModel"
 import type { EntityUpdateData } from "../api/main/EventController"
 import { isUpdateForTypeRef } from "../api/main/EventController"
-import type { ListConfig, VirtualRow } from "../gui/base/List"
-import { List } from "../gui/base/List"
-import { size } from "../gui/size"
-import type { SettingsView, UpdatableSettingsViewer } from "./SettingsView"
-import { TemplateDetailsViewer } from "./TemplateDetailsViewer"
+import type { VirtualRow } from "../gui/base/List"
+import type { UpdatableSettingsViewer } from "./SettingsView"
 import { showTemplateEditor } from "./TemplateEditor"
 import type { EmailTemplate, TemplateGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
 import { createEmailTemplate, createEmailTemplateContent, EmailTemplateTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../api/common/EntityClient"
-import { GENERATED_MAX_ID, getElementId, isSameId } from "../api/common/utils/EntityUtils"
-import { TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
+import { GENERATED_MAX_ID, isSameId } from "../api/common/utils/EntityUtils"
+import { searchInTemplates, TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
 import { hasCapabilityOnGroup } from "../sharing/GroupUtils"
-import { OperationType, ShareCapability } from "../api/common/TutanotaConstants"
+import { ShareCapability } from "../api/common/TutanotaConstants"
 import type { TemplateGroupInstance } from "../templates/model/TemplateGroupModel"
 import type { LoginController } from "../api/main/LoginController"
 import { ListColumnWrapper } from "../gui/ListColumnWrapper"
-import { promiseMap } from "@tutao/tutanota-utils"
+import { memoized, noOp } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../api/common/Env"
 import { SelectableRowContainer, SelectableRowSelectedSetter } from "../gui/SelectableRowContainer.js"
+import { ListModel } from "../misc/ListModel.js"
+import Stream from "mithril/stream"
+import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox.js"
+import { theme } from "../gui/theme.js"
+import { Icons } from "../gui/base/icons/Icons.js"
+import { MultiselectMode, NewList, NewListAttrs, RenderConfig } from "../gui/base/NewList.js"
+import { size } from "../gui/size.js"
+import { TemplateDetailsViewer } from "./TemplateDetailsViewer.js"
+import { onlySingleSelection } from "../gui/base/ListUtils.js"
+import { IconButton } from "../gui/base/IconButton.js"
+import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
+import { lang } from "../misc/LanguageViewModel.js"
 
 assertMainOrNode()
 
@@ -29,20 +36,50 @@ assertMainOrNode()
  *  List that is rendered within the template Settings
  */
 export class TemplateListView implements UpdatableSettingsViewer {
-	_list: List<EmailTemplate, TemplateRow>
+	private searchQuery: string = ""
+	private resultItemIds: ReadonlyArray<IdTuple> = []
+	private groupInstance: TemplateGroupInstance
+	private entityClient: EntityClient
+	private logins: LoginController
 
-	constructor(
-		private readonly settingsView: SettingsView,
-		private readonly templateGroupInstance: TemplateGroupInstance,
-		private readonly entityClient: EntityClient,
-		private readonly logins: LoginController,
-	) {
-		this._list = this._initTemplateList()
+	private listModel: ListModel<EmailTemplate>
+	private listStateSubscription: Stream<unknown> | null = null
+	private readonly renderConfig: RenderConfig<EmailTemplate, TemplateRow> = {
+		itemHeight: size.list_row_height,
+		multiselectionAllowed: MultiselectMode.Disabled,
+		swipe: null,
+		createElement: (dom) => {
+			const templateRow = new TemplateRow()
+			m.render(dom, templateRow.render())
+			return templateRow
+		},
 	}
 
-	_initTemplateList(): List<EmailTemplate, TemplateRow> {
-		const listConfig: ListConfig<EmailTemplate, TemplateRow> = {
-			rowHeight: size.list_row_height,
+	constructor(
+		private readonly updateDetailsViewer: (viewer: TemplateDetailsViewer | null) => unknown,
+		private readonly focusDetailsViewer: () => unknown,
+		templateGroupInstance: TemplateGroupInstance,
+		entityClient: EntityClient,
+		logins: LoginController,
+	) {
+		this.groupInstance = templateGroupInstance
+		this.entityClient = entityClient
+		this.logins = logins
+		this.listModel = this.makeListModel()
+
+		this.listModel.loadInitial()
+
+		this.view = this.view.bind(this)
+	}
+
+	private makeListModel() {
+		const listModel = new ListModel<EmailTemplate>({
+			topId: GENERATED_MAX_ID,
+			sortCompare: (a: EmailTemplate, b: EmailTemplate) => {
+				const titleA = a.title.toUpperCase()
+				const titleB = b.title.toUpperCase()
+				return titleA < titleB ? -1 : titleA > titleB ? 1 : 0
+			},
 			fetch: async (startId, count) => {
 				// fetch works like in ContactListView and KnowledgeBaseListView, because we have a custom sort order there too
 				if (startId === GENERATED_MAX_ID) {
@@ -56,87 +93,104 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			loadSingle: (elementId) => {
 				return this.entityClient.load<EmailTemplate>(EmailTemplateTypeRef, [this.templateListId(), elementId])
 			},
-			sortCompare: (a: EmailTemplate, b: EmailTemplate) => {
-				const titleA = a.title.toUpperCase()
-				const titleB = b.title.toUpperCase()
-				return titleA < titleB ? -1 : titleA > titleB ? 1 : 0
-			},
-			elementSelected: (templates: Array<EmailTemplate>, elementClicked) => {
-				if (templates.length > 0) {
-					this.settingsView.detailsViewer = new TemplateDetailsViewer(templates[0], this.entityClient, () => !this.userCanEdit())
+		})
 
-					this.settingsView.focusSettingsDetailsColumn()
-				} else {
-					this.settingsView.detailsViewer = null
-					m.redraw()
-				}
-			},
-			createVirtualRow: () => {
-				return new TemplateRow()
-			},
-			className: "template-list",
-			swipe: {
-				renderLeftSpacer: () => [],
-				renderRightSpacer: () => [],
-				swipeLeft: (listElement) => Promise.resolve(false),
-				swipeRight: (listElement) => Promise.resolve(false),
-				enabled: false,
-			},
-			multiSelectionAllowed: false,
-			emptyMessage: lang.get("noEntries_msg"),
-		}
-		const list = new List(listConfig)
-		list.loadInitial()
-		return list
+		listModel.setFilter((item: EmailTemplate) => this.queryFilter(item))
+
+		this.listStateSubscription?.end(true)
+		this.listStateSubscription = listModel.stateStream.map((state) => {
+			this.onSelectionChanged(onlySingleSelection(state))
+			m.redraw()
+		})
+
+		return listModel
 	}
 
 	view(): Children {
 		return m(
 			ListColumnWrapper,
 			{
-				headerContent: this.userCanEdit()
-					? m(".flex.flex-end.center-vertically.plr-l.list-border-bottom", [
-							m(
+				headerContent: m(
+					".flex.flex-space-between.center-vertically.plr-l",
+					m(BaseSearchBar, {
+						text: this.searchQuery,
+						onInput: (text) => this.updateQuery(text),
+						busy: false,
+						onKeyDown: (e) => e.stopPropagation(),
+						onClear: () => {
+							this.searchQuery = ""
+							this.resultItemIds = []
+							this.listModel.reapplyFilter()
+						},
+						placeholder: lang.get("searchTemplates_placeholder"),
+					} satisfies BaseSearchBarAttrs),
+					this.userCanEdit()
+						? m(
 								".mr-negative-s",
-								m(Button, {
-									label: "addTemplate_label",
-									type: ButtonType.Primary,
+								m(IconButton, {
+									title: "addTemplate_label",
+									icon: Icons.Add,
 									click: () => {
-										showTemplateEditor(null, this.templateGroupInstance.groupRoot)
+										showTemplateEditor(null, this.groupInstance.groupRoot)
 									},
 								}),
-							),
-					  ])
-					: null,
+						  )
+						: null,
+				),
 			},
-			this._list ? m(this._list) : null,
+			this.listModel.isEmptyAndDone()
+				? m(ColumnEmptyMessageBox, {
+						color: theme.list_message_bg,
+						icon: Icons.ListAlt,
+						message: "noEntries_msg",
+				  })
+				: m(NewList, {
+						renderConfig: this.renderConfig,
+						state: this.listModel.state,
+						onLoadMore: () => this.listModel.loadMore(),
+						onRetryLoading: () => this.listModel.retryLoading(),
+						onStopLoading: () => this.listModel.stopLoading(),
+						onSingleSelection: (item: EmailTemplate) => {
+							this.listModel.onSingleSelection(item)
+							this.focusDetailsViewer()
+						},
+						onSingleExclusiveSelection: noOp,
+						selectRangeTowards: noOp,
+				  } satisfies NewListAttrs<EmailTemplate, TemplateRow>),
 		)
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		return promiseMap(updates, (update) => {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		for (const update of updates) {
 			if (isUpdateForTypeRef(EmailTemplateTypeRef, update) && isSameId(this.templateListId(), update.instanceListId)) {
-				return this._list.entityEventReceived(update.instanceId, update.operation).then(() => {
-					const selected = this._list.getSelectedEntities()[0]
-
-					if (update.operation === OperationType.UPDATE && selected && isSameId(getElementId(selected), update.instanceId)) {
-						this.settingsView.detailsViewer = new TemplateDetailsViewer(selected, this.entityClient, () => !this.userCanEdit())
-
-						this.settingsView.focusSettingsDetailsColumn()
-					} else if (update.operation === OperationType.CREATE) {
-						this._list.scrollToIdAndSelect(update.instanceId)
-					}
-				})
+				await this.listModel.entityEventReceived(update.instanceId, update.operation)
 			}
-		}).then(m.redraw.bind(m))
+
+			m.redraw()
+		}
+	}
+
+	private readonly onSelectionChanged = memoized((item: EmailTemplate | null) => {
+		const detailsViewer = item == null ? null : new TemplateDetailsViewer(item, this.entityClient, () => !this.userCanEdit())
+		this.updateDetailsViewer(detailsViewer)
+	})
+
+	private queryFilter(item: EmailTemplate) {
+		return this.resultItemIds.length === 0 && this.searchQuery === "" ? true : this.resultItemIds.includes(item._id)
+	}
+
+	private updateQuery(query: string) {
+		this.searchQuery = query
+		this.resultItemIds = searchInTemplates(this.searchQuery, this.listModel.getUnfilteredAsArray()).map((item) => item._id)
+		this.listModel.reapplyFilter()
 	}
 
 	userCanEdit(): boolean {
-		return hasCapabilityOnGroup(this.logins.getUserController().user, this.templateGroupInstance.group, ShareCapability.Write)
+		return hasCapabilityOnGroup(this.logins.getUserController().user, this.groupInstance.group, ShareCapability.Write)
 	}
 
 	templateListId(): Id {
-		return this.templateGroupInstance.groupRoot.templates
+		return this.groupInstance.groupRoot.templates
 	}
 }
 
@@ -183,7 +237,7 @@ export function createTemplates(gorgiasTemplates: Array<Array<string>>, template
 }
 
 export class TemplateRow implements VirtualRow<EmailTemplate> {
-	top: number
+	top: number = 0
 	domElement: HTMLElement | null = null // set from List
 
 	entity: EmailTemplate | null = null
@@ -191,14 +245,10 @@ export class TemplateRow implements VirtualRow<EmailTemplate> {
 	private titleDom!: HTMLElement
 	private idDom!: HTMLElement
 
-	constructor() {
-		this.top = 0 // is needed because of the list component
-	}
+	constructor() {}
 
 	update(template: EmailTemplate, selected: boolean): void {
-		if (!this.domElement) {
-			return
-		}
+		this.entity = template
 
 		this.selectionUpdater(selected, false)
 

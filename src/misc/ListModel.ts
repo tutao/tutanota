@@ -12,6 +12,7 @@ import stream from "mithril/stream"
 
 interface ListModelConfig<ElementType> {
 	topId: Id
+
 	/**
 	 * Get the given number of entities starting after the given id. May return more elements than requested, e.g. if all elements are available on first fetch.
 	 */
@@ -415,6 +416,11 @@ export class ListModel<ElementType extends ListElement> {
 	readonly getSelectedAsArray: () => Array<ElementType> = memoizedWithHiddenArgument(
 		() => this.state,
 		(state: ListState<ElementType>) => [...state.selectedItems],
+	)
+
+	readonly getUnfilteredAsArray: () => Array<ElementType> = memoizedWithHiddenArgument(
+		() => this.rawState,
+		(state: PrivateListState<ElementType>) => [...state.unfilteredItems],
 	)
 
 	enterMultiselect() {
