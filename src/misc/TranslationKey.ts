@@ -1674,3 +1674,4 @@ export type TranslationKeyType =
 	| "filterRead_label"
 	| "filterAllMails_label"
 	| "filterWithAttachments_label"
+	| "searchTemplates_placeholder"
