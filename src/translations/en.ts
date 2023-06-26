@@ -1688,6 +1688,7 @@ export default {
 		"filterUnread_label": "Unread",
 		"filterRead_label": "Read",
 		"filterAllMails_label": "All mails",
-		"filterWithAttachments_label": "With attachments"
+		"filterWithAttachments_label": "With attachments",
+		"searchTemplates_placeholder": "Search templates"
 	}
 }

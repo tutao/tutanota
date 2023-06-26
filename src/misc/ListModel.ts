@@ -456,6 +456,11 @@ export class ListModel<ElementType extends ListElement> {
 		(state: ListState<ElementType>) => [...state.selectedItems],
 	)
 
+	readonly getUnfilteredAsArray: () => Array<ElementType> = memoizedWithHiddenArgument(
+		() => this.rawState,
+		(state: PrivateListState<ElementType>) => [...state.unfilteredItems],
+	)
+
 	enterMultiselect() {
 		// avoid having the viewed element as a preselected one which might be confusing.
 		this.selectNone()
