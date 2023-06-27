@@ -12,7 +12,6 @@ import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import type { EntityUpdateData } from "../../api/main/EventController.js"
 import { isUpdateForTypeRef } from "../../api/main/EventController.js"
-import { Button, ButtonType } from "../../gui/base/Button.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { ListColumnWrapper } from "../../gui/ListColumnWrapper.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
@@ -31,6 +30,7 @@ import { BaseSearchBar, BaseSearchBarAttrs } from "../../gui/base/BaseSearchBar.
 import { lang } from "../../misc/LanguageViewModel.js"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../gui/theme.js"
+import { IconButton } from "../../gui/base/IconButton.js"
 
 assertMainOrNode()
 const className = "group-list"
@@ -108,9 +108,9 @@ export class GroupListView implements UpdatableSettingsViewer {
 					} satisfies BaseSearchBarAttrs),
 					m(
 						".mr-negative-s",
-						m(Button, {
-							label: "addGroup_label",
-							type: ButtonType.Primary,
+						m(IconButton, {
+							title: "addGroup_label",
+							icon: Icons.Add,
 							click: () => this.addButtonClicked(),
 						}),
 					),

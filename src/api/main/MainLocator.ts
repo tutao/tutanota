@@ -10,7 +10,7 @@ import { LoginController } from "./LoginController"
 import type { ContactModel } from "../../contacts/model/ContactModel"
 import { EntityClient } from "../common/EntityClient"
 import { CalendarModel } from "../../calendar/model/CalendarModel"
-import type { DeferredObject, lazy, lazyAsync } from "@tutao/tutanota-utils"
+import type { DeferredObject, lazyAsync } from "@tutao/tutanota-utils"
 import { defer, lazyMemoized, noOp } from "@tutao/tutanota-utils"
 import { ProgressTracker } from "./ProgressTracker"
 import { MinimizedMailEditorViewModel } from "../../mail/model/MinimizedMailEditorViewModel"
@@ -97,7 +97,7 @@ import { SearchViewModel } from "../../search/view/SearchViewModel.js"
 import { SearchRouter } from "../../search/view/SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
 import { InboxRuleHandler } from "../../mail/model/InboxRuleHandler.js"
-import { Router, ScopedRouter, ThrottledRouter } from "../../gui/ScopedRouter.js"
+import { ScopedRouter } from "../../gui/ScopedRouter.js"
 
 assertMainOrNode()
 
@@ -198,7 +198,6 @@ class MainLocator {
 	readonly mailViewModel = lazyMemoized(async () => {
 		const { MailViewModel } = await import("../../mail/view/MailViewModel.js")
 		const conversationViewModelFactory = await this.conversationViewModelFactory()
-		const router = new ScopedRouter(this.throttledRouter(), "/mail")
 		return new MailViewModel(
 			this.mailModel,
 			this.entityClient,
@@ -209,7 +208,7 @@ class MainLocator {
 			this.mailOpenedListener,
 			deviceConfig,
 			this.inboxRuleHanlder(),
-			router,
+			new ScopedRouter("/mail"),
 			await this.redraw(),
 		)
 	})
@@ -220,12 +219,12 @@ class MainLocator {
 
 	async searchViewModelFactory(): Promise<() => SearchViewModel> {
 		const { SearchViewModel } = await import("../../search/view/SearchViewModel.js")
+		const { SearchRouter } = await import("../../search/view/SearchRouter.js")
 		const conversationViewModelFactory = await this.conversationViewModelFactory()
 		const redraw = await this.redraw()
-		const searchRouter = await this.scopedSearchRouter()
 		return () => {
 			return new SearchViewModel(
-				searchRouter,
+				new SearchRouter(),
 				this.search,
 				this.searchFacade,
 				this.mailModel,
@@ -240,18 +239,6 @@ class MainLocator {
 		}
 	}
 
-	readonly throttledRouter: lazy<Router> = lazyMemoized(() => new ThrottledRouter())
-
-	readonly scopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
-		const { SearchRouter } = await import("../../search/view/SearchRouter.js")
-		return new SearchRouter(new ScopedRouter(this.throttledRouter(), "/search"))
-	})
-
-	readonly unscopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
-		const { SearchRouter } = await import("../../search/view/SearchRouter.js")
-		return new SearchRouter(this.throttledRouter())
-	})
-
 	readonly mailOpenedListener: MailOpenedListener = {
 		onEmailOpened: isDesktop()
 			? (mail) => {
@@ -262,8 +249,7 @@ class MainLocator {
 
 	readonly contactViewModel = lazyMemoized(async () => {
 		const { ContactViewModel } = await import("../../contacts/view/ContactViewModel.js")
-		const router = new ScopedRouter(this.throttledRouter(), "/contact")
-		return new ContactViewModel(this.contactModel, this.entityClient, this.eventController, router, await this.redraw())
+		return new ContactViewModel(this.contactModel, this.entityClient, this.eventController, new ScopedRouter("/contact"), await this.redraw())
 	})
 
 	async calendarViewModel(): Promise<CalendarViewModel> {

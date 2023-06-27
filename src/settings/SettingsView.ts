@@ -66,7 +66,6 @@ import { LoginController } from "../api/main/LoginController.js"
 import { BackgroundColumnLayout } from "../gui/BackgroundColumnLayout.js"
 import { styles } from "../gui/styles.js"
 import { MobileHeader } from "../gui/MobileHeader.js"
-import { LazySearchBar } from "../misc/LazySearchBar.js"
 import { GroupDetailsView } from "./groups/GroupDetailsView.js"
 import { TemplateDetailsViewer } from "./TemplateDetailsViewer.js"
 
@@ -385,18 +384,6 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						undefined,
 					),
 				)
-
-				if (this.logins.isEnabled(FeatureType.WhitelabelParent)) {
-					this._adminFolders.push(
-						new SettingsFolder(
-							"whitelabelAccounts_label",
-							() => Icons.People,
-							"whitelabelaccounts",
-							() => new WhitelabelChildrenListView(this),
-							undefined,
-						),
-					)
-				}
 			}
 		}
 
@@ -470,21 +457,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			"#settings.main-view",
 			m(this.viewSlider, {
 				header: m(Header, {
-					searchBar: () => this.renderSearchBar(),
 					...attrs.header,
 				}),
 				bottomNav: m(BottomNav),
 			}),
 		)
-	}
-
-	private renderSearchBar(): Children {
-		const route = m.route.get()
-		return route.startsWith("settings/whitelabelaccounts")
-			? m(LazySearchBar, {
-					placeholder: lang.get("emptyString_msg"),
-			  })
-			: null
 	}
 
 	_createSettingsFolderNavButton(folder: SettingsFolder<unknown>): NavButtonAttrs {

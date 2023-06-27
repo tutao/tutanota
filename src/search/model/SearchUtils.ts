@@ -80,40 +80,28 @@ export function setSearchUrl(url: string) {
 	}
 }
 
-export function searchCategoryForRestriction(restriction: SearchRestriction): string {
+export function searchCategoryForRestriction(restriction: SearchRestriction) {
 	return assertNotNull(SEARCH_CATEGORIES.find((c) => isSameTypeRef(c.typeRef, restriction.type))).name
 }
 
-export function getSearchUrl(
-	query: string | null,
-	restriction: SearchRestriction,
-	selectedId?: Id,
-): {
-	path: string
-	params: Record<string, string | number>
-} {
+export function getSearchUrl(query: string | null, restriction: SearchRestriction, selectedId?: Id): string {
 	const category = searchCategoryForRestriction(restriction)
-	const params: Record<string, string | number> = {
-		query: query ?? "",
-		category,
-	}
-	// a bit annoying but avoids putting unnecessary things into the url (if we woudl put undefined into it)
+	let url = "/search/" + category + (selectedId ? "/" + selectedId : "") + "?query=" + encodeURIComponent(query || "")
+
 	if (restriction.start) {
-		params.start = restriction.start
+		url += "&start=" + restriction.start
 	}
 	if (restriction.end) {
-		params.end = restriction.end
+		url += "&end=" + restriction.end
 	}
 	if (restriction.listId) {
-		params.list = restriction.listId
+		url += "&list=" + restriction.listId
 	}
 	if (restriction.field) {
-		params.field = restriction.field
+		url += "&field=" + restriction.field
 	}
-	return {
-		path: "/search/:category" + (selectedId ? "/" + selectedId : ""),
-		params: params,
-	}
+
+	return url
 }
 
 export function getFreeSearchStartDate(): Date {
@@ -174,7 +162,7 @@ export function createRestriction(
  * Adjusts the restriction according to the account type if necessary
  */
 export function getRestriction(route: string): SearchRestriction {
-	let category: string
+	let category = "mail"
 	let start: number | null = null
 	let end: number | null = null
 	let field: string | null = null
@@ -185,23 +173,29 @@ export function getRestriction(route: string): SearchRestriction {
 
 		if (route.startsWith("/search/mail")) {
 			try {
-				// mithril will parse boolean but not numbers
-				const { params } = m.parsePathname(route)
-				if (typeof params["start"] === "string") {
-					start = filterInt(params["start"])
+				let startString = getValueFromRoute(route, "start")
+
+				if (startString) {
+					start = Number(startString)
 				}
 
-				if (typeof params["end"] === "string") {
-					end = filterInt(params["end"])
+				let endString = getValueFromRoute(route, "end")
+
+				if (endString) {
+					end = Number(endString)
 				}
 
-				if (typeof params["field"] === "string") {
-					const fieldString = params["field"]
-					field = SEARCH_MAIL_FIELDS.find((f) => f.field === fieldString)?.field ?? null
+				let fieldString = getValueFromRoute(route, "field")
+				let fieldData = SEARCH_MAIL_FIELDS.find((f) => f.field === fieldString)
+
+				if (fieldData) {
+					field = fieldString
 				}
 
-				if (typeof params["list"] === "string") {
-					listId = params["list"]
+				let listIdString = getValueFromRoute(route, "list")
+
+				if (listIdString) {
+					listId = listIdString
 				}
 			} catch (e) {
 				console.log("invalid query: " + route, e)
@@ -216,6 +210,20 @@ export function getRestriction(route: string): SearchRestriction {
 	}
 
 	return createRestriction(category, start, end, field, listId)
+}
+
+function getValueFromRoute(route: string, name: string): string | null {
+	let key = "&" + name + "="
+	let keyIndex = route.indexOf(key)
+
+	if (keyIndex !== -1) {
+		let valueStartIndex = keyIndex + key.length
+		let valueEndIndex = route.indexOf("&", valueStartIndex)
+		let value = valueEndIndex === -1 ? route.substring(valueStartIndex) : route.substring(valueStartIndex, valueEndIndex)
+		return decodeURIComponent(value)
+	} else {
+		return null
+	}
 }
 
 export function isAdministratedGroup(localAdminGroupIds: Id[], gi: GroupInfo): boolean {
