@@ -16,12 +16,12 @@ export interface BaseSearchBarAttrs {
 	text: string
 	busy: boolean
 	onInput: (text: string) => unknown
-	onFocus: () => unknown
-	onBlur: () => unknown
-	onSearchClick: () => unknown
-	onClear: () => unknown
-	onWrapperCreated: (dom: HTMLElement) => unknown
-	onKeyDown: (keyboardEvent: KeyboardEvent) => boolean
+	onFocus?: () => unknown
+	onBlur?: () => unknown
+	onSearchClick?: () => unknown
+	onClear?: () => unknown
+	onWrapperCreated?: (dom: HTMLElement) => unknown
+	onKeyDown?: (keyboardEvent: KeyboardEvent) => unknown
 }
 
 export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
@@ -41,7 +41,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 					"max-width": styles.isUsingBottomNavigation() ? "" : px(350),
 				},
 				oncreate: ({ dom }) => {
-					attrs.onWrapperCreated(dom as HTMLElement)
+					attrs.onWrapperCreated?.(dom as HTMLElement)
 				},
 			},
 			[
@@ -56,7 +56,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 								},
 								onclick: (e: MouseEvent) => {
 									e.preventDefault()
-									attrs.onSearchClick()
+									attrs.onSearchClick?.()
 								},
 							},
 							m(Icon, {
@@ -85,7 +85,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 						m(
 							"button.closeIconWrapper",
 							{
-								onclick: () => attrs.onClear(),
+								onclick: () => attrs.onClear?.(),
 								style: {
 									width: size.icon_size_large,
 								},
@@ -117,7 +117,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 		)
 	}
 
-	renderInputField(attrs: BaseSearchBarAttrs): Children {
+	private renderInputField(attrs: BaseSearchBarAttrs): Children {
 		return m("input.input.input-no-clear", {
 			"aria-autocomplete": "list",
 			tabindex: TabIndex.Default,
@@ -130,11 +130,11 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 			},
 			onfocus: () => {
 				this.isFocused = true
-				attrs.onFocus()
+				attrs.onFocus?.()
 			},
 			onblur: () => {
 				this.isFocused = false
-				attrs.onBlur()
+				attrs.onBlur?.()
 			},
 			onremove: () => {
 				this.domInput.onblur = null
@@ -144,7 +144,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 				attrs.onInput(this.domInput.value)
 			},
 			onkeydown: (e: KeyboardEvent) => {
-				attrs.onKeyDown(e)
+				attrs.onKeyDown?.(e)
 			},
 			style: {
 				"line-height": px(inputLineHeight),

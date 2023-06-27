@@ -3,7 +3,7 @@ import { ListModel } from "../../misc/ListModel.js"
 import { Shortcut } from "../../misc/KeyManager.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
 import { mapLazily } from "@tutao/tutanota-utils"
-import { MultiselectMode } from "./NewList.js"
+import { ListState, MultiselectMode } from "./NewList.js"
 
 export function listSelectionKeyboardShortcuts<T extends ListElement>(multiselectMode: MultiselectMode, list: () => ListModel<T> | null): Array<Shortcut> {
 	const multiselectionEnabled = multiselectMode == MultiselectMode.Enabled ? () => true : () => false
@@ -65,4 +65,12 @@ export function listSelectionKeyboardShortcuts<T extends ListElement>(multiselec
 			enabled: multiselectionEnabled,
 		},
 	]
+}
+
+export function onlySingleSelection<T>(state: ListState<T>): T | null {
+	if (state.selectedItems.size === 1) {
+		return state.selectedItems.values().next().value
+	} else {
+		return null
+	}
 }
