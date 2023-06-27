@@ -9,7 +9,7 @@ import { ContactTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.j
 import type { Shortcut } from "../misc/KeyManager"
 import { keyManager } from "../misc/KeyManager"
 import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError"
-import { getRestriction, isAdministratedGroup } from "./model/SearchUtils"
+import { getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl } from "./model/SearchUtils"
 import { locator } from "../api/main/MainLocator"
 import { Dialog } from "../gui/base/Dialog"
 import type { GroupInfo, WhitelabelChild } from "../api/entities/sys/TypeRefs.js"
@@ -53,11 +53,6 @@ export type SearchBarState = {
 	entities: Entries
 	selected: Entry | null
 }
-
-// create our own copy which is not perfect because we don't benefit from the shared cache but currently there's no way to get async dependencies into
-// singletons like this (without top-level await at least)
-// once SearchBar is rewritten this should be removed
-const searchRouter = new SearchRouter(locator.throttledRouter())
 
 export class SearchBar implements Component<SearchBarAttrs> {
 	focused: boolean = false
@@ -475,7 +470,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			}
 		} else {
 			// instances will be displayed as part of the list of the search view, when the search view is displayed
-			searchRouter.routeTo(query, safeResult.restriction)
+			setSearchUrl(getSearchUrl(query, safeResult.restriction))
 		}
 	}
 
@@ -565,8 +560,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		if (this.state().query === "") {
 			if (m.route.get().startsWith("/search")) {
 				locator.search.result(null)
-				const restriction = searchRouter.getRestriction()
-				searchRouter.routeTo("", restriction)
+				setSearchUrl(getSearchUrl("", getRestriction(m.route.get())))
 			}
 		}
 		m.redraw()
