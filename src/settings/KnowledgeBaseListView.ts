@@ -1,26 +1,34 @@
 import m, { Children } from "mithril"
-import type { SettingsView, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "./SettingsView"
+import type { UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "./SettingsView"
 import type { KnowledgeBaseEntry, TemplateGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
 import { KnowledgeBaseEntryTypeRef } from "../api/entities/tutanota/TypeRefs.js"
-import { Button, ButtonType } from "../gui/base/Button.js"
 import { lang } from "../misc/LanguageViewModel"
-import type { ListConfig, VirtualRow } from "../gui/base/List"
-import { List } from "../gui/base/List"
+import type { VirtualRow } from "../gui/base/List"
 import type { EntityUpdateData } from "../api/main/EventController"
 import { isUpdateForTypeRef } from "../api/main/EventController"
 import { size } from "../gui/size"
 import { EntityClient } from "../api/common/EntityClient"
-import { showKnowledgeBaseEditor } from "./KnowledgeBaseEditor"
-import { GENERATED_MAX_ID, getElementId, isSameId, listIdPart } from "../api/common/utils/EntityUtils"
+import { GENERATED_MAX_ID, isSameId, listIdPart } from "../api/common/utils/EntityUtils"
 import { hasCapabilityOnGroup } from "../sharing/GroupUtils"
-import { OperationType, ShareCapability } from "../api/common/TutanotaConstants"
+import { ShareCapability } from "../api/common/TutanotaConstants"
 import type { LoginController } from "../api/main/LoginController"
 import type { Group } from "../api/entities/sys/TypeRefs.js"
 import { ListColumnWrapper } from "../gui/ListColumnWrapper"
 import { KnowledgeBaseEntryView } from "../knowledgebase/view/KnowledgeBaseEntryView"
-import { NBSP, promiseMap } from "@tutao/tutanota-utils"
+import { memoized, NBSP, noOp } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../api/common/Env"
 import { SelectableRowContainer, SelectableRowSelectedSetter } from "../gui/SelectableRowContainer.js"
+import { ListModel } from "../misc/ListModel.js"
+import { onlySingleSelection } from "../gui/base/ListUtils.js"
+import Stream from "mithril/stream"
+import { MultiselectMode, NewList, NewListAttrs, RenderConfig } from "../gui/base/NewList.js"
+import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
+import { IconButton } from "../gui/base/IconButton.js"
+import { Icons } from "../gui/base/icons/Icons.js"
+import { showTemplateEditor } from "./TemplateEditor.js"
+import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox.js"
+import { theme } from "../gui/theme.js"
+import { knowledgeBaseSearch } from "../knowledgebase/model/KnowledgeBaseSearchFilter.js"
 
 assertMainOrNode()
 
@@ -28,125 +36,165 @@ assertMainOrNode()
  *  List that is rendered within the knowledgeBase Settings
  */
 export class KnowledgeBaseListView implements UpdatableSettingsViewer {
-	private _list!: List<KnowledgeBaseEntry, KnowledgeBaseRow>
-	private _listId: Id | null = null
-	private _settingsView: SettingsView
-	private _templateGroupRoot: TemplateGroupRoot
-	private _templateGroup: Group
-	private _entityClient: EntityClient
-	private _logins: LoginController
+	private searchQuery: string = ""
+	private resultItemIds: Array<IdTuple> = []
+	private templateGroupRoot: TemplateGroupRoot
+	private templateGroup: Group
+	private entityClient: EntityClient
+	private logins: LoginController
 
-	constructor(settingsView: SettingsView, entityClient: EntityClient, logins: LoginController, templateGroupRoot: TemplateGroupRoot, templateGroup: Group) {
-		this._settingsView = settingsView
-		this._entityClient = entityClient
-		this._logins = logins
-		this._templateGroupRoot = templateGroupRoot
-		this._templateGroup = templateGroup
-
-		this._initKnowledgeBaseList()
+	private listModel: ListModel<KnowledgeBaseEntry>
+	private listStateSubscription: Stream<unknown> | null = null
+	private readonly renderConfig: RenderConfig<KnowledgeBaseEntry, KnowledgeBaseRow> = {
+		itemHeight: size.list_row_height,
+		multiselectionAllowed: MultiselectMode.Disabled,
+		swipe: null,
+		createElement: (dom) => {
+			const knowledgebaseRow = new KnowledgeBaseRow()
+			m.render(dom, knowledgebaseRow.render())
+			return knowledgebaseRow
+		},
 	}
 
-	_initKnowledgeBaseList() {
-		const knowledgebaseListId = this._templateGroupRoot.knowledgeBase
-		const listConfig: ListConfig<KnowledgeBaseEntry, KnowledgeBaseRow> = {
-			rowHeight: size.list_row_height,
+	constructor(
+		private readonly updateDetailsViewer: (viewer: KnowledgeBaseSettingsDetailsViewer | null) => unknown,
+		private readonly focusDetailsViewer: () => unknown,
+		entityClient: EntityClient,
+		logins: LoginController,
+		templateGroupRoot: TemplateGroupRoot,
+		templateGroup: Group,
+	) {
+		this.entityClient = entityClient
+		this.logins = logins
+		this.templateGroupRoot = templateGroupRoot
+		this.templateGroup = templateGroup
+
+		this.listModel = this.makeListModel()
+
+		this.listModel.loadInitial()
+
+		this.view = this.view.bind(this)
+	}
+
+	private makeListModel() {
+		const listModel = new ListModel<KnowledgeBaseEntry>({
+			topId: GENERATED_MAX_ID,
+			sortCompare: (a: KnowledgeBaseEntry, b: KnowledgeBaseEntry) => {
+				var titleA = a.title.toUpperCase()
+				var titleB = b.title.toUpperCase()
+				return titleA < titleB ? -1 : titleA > titleB ? 1 : 0
+			},
 			fetch: async (startId, count) => {
 				// fetch works like in ContactListView, because we have a custom sort order there too
 				if (startId === GENERATED_MAX_ID) {
 					// load all entries at once to apply custom sort order
-					const allEntries = await this._entityClient.loadAll(KnowledgeBaseEntryTypeRef, knowledgebaseListId)
+					const allEntries = await this.entityClient.loadAll(KnowledgeBaseEntryTypeRef, this.getListId())
 					return { items: allEntries, complete: true }
 				} else {
 					throw new Error("fetch knowledgeBase entry called for specific start id")
 				}
 			},
 			loadSingle: (elementId) => {
-				return this._entityClient.load<KnowledgeBaseEntry>(KnowledgeBaseEntryTypeRef, [knowledgebaseListId, elementId])
+				return this.entityClient.load<KnowledgeBaseEntry>(KnowledgeBaseEntryTypeRef, [this.getListId(), elementId])
 			},
-			sortCompare: (a: KnowledgeBaseEntry, b: KnowledgeBaseEntry) => {
-				var titleA = a.title.toUpperCase()
-				var titleB = b.title.toUpperCase()
-				return titleA < titleB ? -1 : titleA > titleB ? 1 : 0
-			},
-			elementSelected: (selectedEntries: Array<KnowledgeBaseEntry>, elementClicked) => {
-				if (selectedEntries.length === 0 && this._settingsView.detailsViewer) {
-					this._settingsView.detailsViewer = null
-				} else {
-					this._settingsView.detailsViewer = new KnowledgeBaseSettingsDetailsViewer(selectedEntries[0], !this.userCanEdit())
+		})
 
-					this._settingsView.focusSettingsDetailsColumn()
-				}
+		listModel.setFilter((item: KnowledgeBaseEntry) => this.queryFilter(item))
 
-				m.redraw()
-			},
-			createVirtualRow: () => {
-				return new KnowledgeBaseRow()
-			},
-			className: "knowledgeBase-list",
-			swipe: {
-				renderLeftSpacer: () => [],
-				renderRightSpacer: () => [],
-				swipeLeft: (listElement) => Promise.resolve(false),
-				swipeRight: (listElement) => Promise.resolve(false),
-				enabled: false,
-			},
-			multiSelectionAllowed: false,
-			emptyMessage: lang.get("noEntries_msg"),
-		}
-		this._listId = knowledgebaseListId
-		this._list = new List(listConfig)
+		this.listStateSubscription?.end(true)
+		this.listStateSubscription = listModel.stateStream.map((state) => {
+			this.onSelectionChanged(onlySingleSelection(state))
+			m.redraw()
+		})
 
-		this._list.loadInitial()
-
-		m.redraw()
+		return listModel
 	}
 
 	view(): Children {
 		return m(
 			ListColumnWrapper,
 			{
-				headerContent: this.userCanEdit()
-					? m(
-							".flex.flex-end.center-vertically.plr-l.list-border-bottom",
-							m(
+				headerContent: m(
+					".flex.flex-space-between.center-vertically.plr-l",
+					m(BaseSearchBar, {
+						text: this.searchQuery,
+						onInput: (text) => this.updateQuery(text),
+						busy: false,
+						onKeyDown: (e) => e.stopPropagation(),
+						onClear: () => {
+							this.searchQuery = ""
+							this.resultItemIds = []
+							this.listModel.reapplyFilter()
+						},
+						placeholder: lang.get("searchKnowledgebase_placeholder"),
+					} satisfies BaseSearchBarAttrs),
+					this.userCanEdit()
+						? m(
 								".mr-negative-s",
-								m(Button, {
-									label: "addEntry_label",
-									type: ButtonType.Primary,
+								m(IconButton, {
+									title: "addEntry_label",
+									icon: Icons.Add,
 									click: () => {
-										showKnowledgeBaseEditor(null, this._templateGroupRoot)
+										showTemplateEditor(null, this.templateGroupRoot)
 									},
 								}),
-							),
-					  )
-					: null,
+						  )
+						: null,
+				),
 			},
-			this._list ? m(this._list) : null,
+			this.listModel.isEmptyAndDone()
+				? m(ColumnEmptyMessageBox, {
+						color: theme.list_message_bg,
+						icon: Icons.Book,
+						message: "noEntries_msg",
+				  })
+				: m(NewList, {
+						renderConfig: this.renderConfig,
+						state: this.listModel.state,
+						onLoadMore: () => this.listModel.loadMore(),
+						onRetryLoading: () => this.listModel.retryLoading(),
+						onStopLoading: () => this.listModel.stopLoading(),
+						onSingleSelection: (item: KnowledgeBaseEntry) => {
+							this.listModel.onSingleSelection(item)
+							this.focusDetailsViewer()
+						},
+						onSingleExclusiveSelection: noOp,
+						selectRangeTowards: noOp,
+				  } satisfies NewListAttrs<KnowledgeBaseEntry, KnowledgeBaseRow>),
 		)
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
-		return promiseMap(updates, (update) => {
-			const list = this._list
-
-			if (list && this._listId && isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update) && isSameId(this._listId, update.instanceListId)) {
-				return this._list.entityEventReceived(update.instanceId, update.operation).then(() => {
-					const selected = this._list.getSelectedEntities()[0]
-
-					if (update.operation === OperationType.UPDATE && selected && isSameId(getElementId(selected), update.instanceId)) {
-						this._settingsView.detailsViewer = new KnowledgeBaseSettingsDetailsViewer(selected, !this.userCanEdit())
-
-						this._settingsView.focusSettingsDetailsColumn()
-					} else if (update.operation === OperationType.CREATE) {
-						this._list.scrollToIdAndSelect(update.instanceId)
-					}
-				})
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
+		for (const update of updates) {
+			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update) && isSameId(this.getListId(), update.instanceListId)) {
+				await this.listModel.entityEventReceived(update.instanceId, update.operation)
 			}
-		})
+
+			m.redraw()
+		}
+	}
+
+	private readonly onSelectionChanged = memoized((item: KnowledgeBaseEntry | null) => {
+		const detailsViewer = item == null ? null : new KnowledgeBaseSettingsDetailsViewer(item, this.userCanEdit())
+		this.updateDetailsViewer(detailsViewer)
+	})
+
+	private queryFilter(item: KnowledgeBaseEntry) {
+		return this.resultItemIds.length === 0 && this.searchQuery === "" ? true : this.resultItemIds.includes(item._id)
+	}
+
+	private updateQuery(query: string) {
+		this.searchQuery = query
+		this.resultItemIds = knowledgeBaseSearch(this.searchQuery, this.listModel.getUnfilteredAsArray()).map((item) => item._id)
+		this.listModel.reapplyFilter()
 	}
 
 	userCanEdit(): boolean {
-		return hasCapabilityOnGroup(this._logins.getUserController().user, this._templateGroup, ShareCapability.Write)
+		return hasCapabilityOnGroup(this.logins.getUserController().user, this.templateGroup, ShareCapability.Write)
+	}
+
+	getListId(): Id {
+		return this.templateGroupRoot.knowledgeBase
 	}
 }
 
@@ -158,9 +206,7 @@ export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
 	private selectionUpdater!: SelectableRowSelectedSetter
 
 	update(entry: KnowledgeBaseEntry, selected: boolean): void {
-		if (!this.domElement) {
-			return
-		}
+		this.entity = entry
 
 		this.selectionUpdater(selected, false)
 
@@ -173,8 +219,8 @@ export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
 			{
 				onSelectedChangeRef: (updater) => (this.selectionUpdater = updater),
 			},
-			m(".flex.col.flex-grow", [
-				m(".text-ellipsis", {
+			m(".flex.col", [
+				m(".text-ellipsis.badge-line-height", {
 					oncreate: (vnode) => (this.entryTitleDom = vnode.dom as HTMLElement),
 				}),
 				// to create a second row
@@ -184,7 +230,7 @@ export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
 	}
 }
 
-class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsDetailsViewer {
+export class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsDetailsViewer {
 	entry: KnowledgeBaseEntry
 	readonly: boolean
 
