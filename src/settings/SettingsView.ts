@@ -38,7 +38,7 @@ import { size } from "../gui/size"
 import { FolderColumnView } from "../gui/FolderColumnView.js"
 import { getEtId, isSameId } from "../api/common/utils/EntityUtils"
 import { TemplateListView } from "./TemplateListView"
-import { KnowledgeBaseListView } from "./KnowledgeBaseListView"
+import { KnowledgeBaseListView, KnowledgeBaseSettingsDetailsViewer } from "./KnowledgeBaseListView"
 import { loadTemplateGroupInstances } from "../templates/model/TemplatePopupModel"
 import type { TemplateGroupInstance } from "../templates/model/TemplateGroupModel"
 import { showGroupSharingDialog } from "../sharing/view/GroupSharingDialog"
@@ -447,7 +447,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		}
 	}
 
-	private replaceDetailsViewer(viewer: UserViewer | GroupDetailsView | TemplateDetailsViewer | null) {
+	private replaceDetailsViewer(viewer: UserViewer | GroupDetailsView | TemplateDetailsViewer | KnowledgeBaseSettingsDetailsViewer | null) {
 		return (this.detailsViewer = viewer)
 	}
 
@@ -780,7 +780,15 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 							folder: "knowledgebase",
 							id: getEtId(groupInstance.group),
 						},
-						() => new KnowledgeBaseListView(this, locator.entityClient, this.logins, groupInstance.groupRoot, groupInstance.group),
+						() =>
+							new KnowledgeBaseListView(
+								(viewer) => this.replaceDetailsViewer(viewer),
+								() => this.focusSettingsDetailsColumn(),
+								locator.entityClient,
+								this.logins,
+								groupInstance.groupRoot,
+								groupInstance.group,
+							),
 						undefined,
 					),
 			)
