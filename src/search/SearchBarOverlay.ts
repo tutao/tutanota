@@ -20,14 +20,12 @@ import { theme } from "../gui/theme"
 import { getContactListName } from "../contacts/model/ContactUtils"
 import { getMailFolderIcon } from "../mail/view/MailGuiUtils"
 import { locator } from "../api/main/MainLocator"
-import Stream from "mithril/stream"
 import { IndexingErrorReason } from "../api/worker/search/SearchTypes"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState
 	isQuickSearch: boolean
 	isFocused: boolean
-	skipNextBlur: Stream<boolean>
 	selectResult: (result: Entry | null) => void
 }
 
@@ -50,8 +48,8 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 							height: px(52),
 							"border-left": px(size.border_selection) + " solid transparent",
 						},
-						onmousedown: () => attrs.skipNextBlur(true),
 						// avoid closing overlay before the click event can be received
+						onmousedown: (e: MouseEvent) => e.preventDefault(),
 						onclick: () => attrs.selectResult(result),
 						class: state.selected === result ? "row-selected" : "",
 					},
@@ -102,7 +100,8 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 						? m(
 								"div",
 								{
-									onmousedown: () => attrs.skipNextBlur(true),
+									// avoid closing overlay before the click event can be received
+									onmousedown: (e: MouseEvent) => e.preventDefault(),
 								},
 								m(Button, {
 									label: "cancel_action",
@@ -142,7 +141,8 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 					m(
 						"div",
 						{
-							onmousedown: () => attrs.skipNextBlur(true),
+							// avoid closing overlay before the click event can be received
+							onmousedown: (e: MouseEvent) => e.preventDefault(),
 						},
 						m(Button, {
 							label: "retry_action",
