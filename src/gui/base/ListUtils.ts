@@ -3,7 +3,30 @@ import { ListModel } from "../../misc/ListModel.js"
 import { Shortcut } from "../../misc/KeyManager.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
 import { mapLazily } from "@tutao/tutanota-utils"
-import { ListState, MultiselectMode } from "./NewList.js"
+import { ListState, MultiselectMode } from "./List.js"
+import { Children } from "mithril"
+
+export const ACTION_DISTANCE = 150
+export const PageSize = 100
+
+/**
+ * 1:1 mapping to DOM elements. Displays a single list entry.
+ */
+export interface VirtualRow<ElementType> {
+	render(): Children
+
+	update(listEntry: ElementType, selected: boolean, isInMultiSelect: boolean): void
+
+	entity: ElementType | null
+	top: number
+	domElement: HTMLElement | null
+}
+
+export interface ListFetchResult<ElementType> {
+	items: Array<ElementType>
+	/** Complete means that we loaded the whole list and additional requests will not yield any results. */
+	complete: boolean
+}
 
 export function listSelectionKeyboardShortcuts<T extends ListElement>(multiselectMode: MultiselectMode, list: () => ListModel<T> | null): Array<Shortcut> {
 	const multiselectionEnabled = multiselectMode == MultiselectMode.Enabled ? () => true : () => false

@@ -3,7 +3,6 @@ import type { UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "./
 import type { KnowledgeBaseEntry, TemplateGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
 import { KnowledgeBaseEntryTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { lang } from "../misc/LanguageViewModel"
-import type { VirtualRow } from "../gui/base/List"
 import type { EntityUpdateData } from "../api/main/EventController"
 import { isUpdateForTypeRef } from "../api/main/EventController"
 import { size } from "../gui/size"
@@ -19,9 +18,9 @@ import { memoized, NBSP, noOp } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../api/common/Env"
 import { SelectableRowContainer, SelectableRowSelectedSetter } from "../gui/SelectableRowContainer.js"
 import { ListModel } from "../misc/ListModel.js"
-import { onlySingleSelection } from "../gui/base/ListUtils.js"
+import { onlySingleSelection, VirtualRow } from "../gui/base/ListUtils.js"
 import Stream from "mithril/stream"
-import { MultiselectMode, NewList, NewListAttrs, RenderConfig } from "../gui/base/NewList.js"
+import { List, ListAttrs, MultiselectMode, RenderConfig } from "../gui/base/List.js"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
 import { IconButton } from "../gui/base/IconButton.js"
 import { Icons } from "../gui/base/icons/Icons.js"
@@ -38,10 +37,6 @@ assertMainOrNode()
 export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
 	private resultItemIds: Array<IdTuple> = []
-	private templateGroupRoot: TemplateGroupRoot
-	private templateGroup: Group
-	private entityClient: EntityClient
-	private logins: LoginController
 
 	private listModel: ListModel<KnowledgeBaseEntry>
 	private listStateSubscription: Stream<unknown> | null = null
@@ -57,18 +52,13 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	}
 
 	constructor(
+		private readonly entityClient: EntityClient,
+		private readonly logins: LoginController,
+		private readonly templateGroupRoot: TemplateGroupRoot,
+		private readonly templateGroup: Group,
 		private readonly updateDetailsViewer: (viewer: KnowledgeBaseSettingsDetailsViewer | null) => unknown,
 		private readonly focusDetailsViewer: () => unknown,
-		entityClient: EntityClient,
-		logins: LoginController,
-		templateGroupRoot: TemplateGroupRoot,
-		templateGroup: Group,
 	) {
-		this.entityClient = entityClient
-		this.logins = logins
-		this.templateGroupRoot = templateGroupRoot
-		this.templateGroup = templateGroup
-
 		this.listModel = this.makeListModel()
 
 		this.listModel.loadInitial()
@@ -148,7 +138,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 						icon: Icons.Book,
 						message: "noEntries_msg",
 				  })
-				: m(NewList, {
+				: m(List, {
 						renderConfig: this.renderConfig,
 						state: this.listModel.state,
 						onLoadMore: () => this.listModel.loadMore(),
@@ -160,7 +150,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 						},
 						onSingleExclusiveSelection: noOp,
 						selectRangeTowards: noOp,
-				  } satisfies NewListAttrs<KnowledgeBaseEntry, KnowledgeBaseRow>),
+				  } satisfies ListAttrs<KnowledgeBaseEntry, KnowledgeBaseRow>),
 		)
 	}
 
@@ -180,7 +170,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	})
 
 	private queryFilter(item: KnowledgeBaseEntry) {
-		return this.resultItemIds.length === 0 && this.searchQuery === "" ? true : this.resultItemIds.includes(item._id)
+		return this.searchQuery === "" ? true : this.resultItemIds.includes(item._id)
 	}
 
 	private updateQuery(query: string) {

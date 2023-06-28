@@ -1,4 +1,3 @@
-import { VirtualRow } from "../../gui/base/List.js"
 import { Contact } from "../../api/entities/tutanota/TypeRefs.js"
 import {
 	checkboxOpacity,
@@ -13,6 +12,7 @@ import { getContactListName } from "../model/ContactUtils.js"
 import { NBSP, noOp } from "@tutao/tutanota-utils"
 import m, { Children } from "mithril"
 import { px, size } from "../../gui/size.js"
+import { VirtualRow } from "../../gui/base/ListUtils.js"
 
 const shiftByForCheckbox = px(size.checkbox_size + size.hpad)
 const translateXShow = `translateX(${shiftByForCheckbox})`

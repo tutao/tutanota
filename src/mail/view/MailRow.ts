@@ -6,7 +6,7 @@ import { getSenderOrRecipientHeading, isTutanotaTeamMail } from "../model/MailUt
 import { locator } from "../../api/main/MainLocator"
 import m, { Children } from "mithril"
 import Badge from "../../gui/base/Badge"
-import type { VirtualRow } from "../../gui/base/List"
+
 import {
 	checkboxOpacity,
 	scaleXHide,
@@ -19,6 +19,7 @@ import {
 } from "../../gui/SelectableRowContainer.js"
 import { px, size } from "../../gui/size.js"
 import { NBSP, noOp } from "@tutao/tutanota-utils"
+import { VirtualRow } from "../../gui/base/ListUtils.js"
 
 const iconMap: Record<MailFolderType, string> = {
 	[MailFolderType.CUSTOM]: FontIcons.Folder,

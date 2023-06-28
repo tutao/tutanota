@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../misc/LanguageViewModel"
-import type { VirtualRow } from "../../gui/base/List"
+
 import { MailFolderType, MailState } from "../../api/common/TutanotaConstants"
 import type { Mail, MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
 import { canDoDragAndDropExport } from "../model/MailUtils"
@@ -25,10 +25,11 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { assertSystemFolderOfType } from "../../api/common/mail/CommonMailUtils.js"
 import { MailViewModel } from "./MailViewModel.js"
-import { ListSwipeDecision, MultiselectMode, NewList, NewListAttrs, RenderConfig, SwipeConfiguration } from "../../gui/base/NewList.js"
+import { List, ListAttrs, ListSwipeDecision, MultiselectMode, RenderConfig, SwipeConfiguration } from "../../gui/base/List.js"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { theme } from "../../gui/theme.js"
+import { VirtualRow } from "../../gui/base/ListUtils.js"
 
 assertMainOrNode()
 
@@ -340,7 +341,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 							message: "noMails_msg",
 							color: theme.list_message_bg,
 					  })
-					: m(NewList, {
+					: m(List, {
 							state: listModel.state,
 							renderConfig: this.renderConfig,
 							onLoadMore() {
@@ -353,7 +354,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 								listModel.onSingleSelection(item)
 								vnode.attrs.onSingleSelection(item)
 							},
-							onSingleMultiselection: (item: Mail) => {
+							onSingleExclusiveSelection: (item: Mail) => {
 								listModel.onSingleInclusiveSelection(item)
 							},
 							selectRangeTowards: (item: Mail) => {
@@ -362,7 +363,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 							onStopLoading() {
 								listModel.stopLoading()
 							},
-					  } satisfies NewListAttrs<Mail, MailRow>),
+					  } satisfies ListAttrs<Mail, MailRow>),
 			),
 		)
 	}

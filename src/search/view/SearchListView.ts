@@ -1,10 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { VirtualRow } from "../../gui/base/List"
 import { assertMainOrNode } from "../../api/common/Env"
 import { downcast, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
 import { MailRow } from "../../mail/view/MailRow"
 import { ListModel } from "../../misc/ListModel.js"
-import { MultiselectMode, NewList, NewListAttrs, RenderConfig } from "../../gui/base/NewList.js"
+import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../gui/base/List.js"
 import { size } from "../../gui/size.js"
 import { KindaContactRow } from "../../contacts/view/ContactListView.js"
 import { SearchableTypes } from "./SearchViewModel.js"
@@ -13,6 +12,7 @@ import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { theme } from "../../gui/theme.js"
+import { VirtualRow } from "../../gui/base/ListUtils.js"
 
 assertMainOrNode()
 
@@ -50,7 +50,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 							lang.get("searchNoResults_msg") + "\n" + (attrs.isFreeAccount ? lang.get("goPremium_msg") : lang.get("switchSearchInMenu_label")),
 						color: theme.list_message_bg,
 				  })
-				: m(NewList, {
+				: m(List, {
 						state: attrs.listModel.state,
 						renderConfig: showingMail ? this.mailRenderConfig : this.contactRenderConfig,
 						onLoadMore: () => {
@@ -63,7 +63,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 							attrs.listModel?.onSingleSelection(item)
 							attrs.onSingleSelection(item)
 						},
-						onSingleMultiselection: (item: SearchResultListEntry) => {
+						onSingleExclusiveSelection: (item: SearchResultListEntry) => {
 							attrs.listModel.onSingleExclusiveSelection(item)
 						},
 						selectRangeTowards: (item: SearchResultListEntry) => {
@@ -72,7 +72,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 						onStopLoading() {
 							attrs.listModel.stopLoading()
 						},
-				  } satisfies NewListAttrs<SearchResultListEntry, SearchResultListRow>)
+				  } satisfies ListAttrs<SearchResultListEntry, SearchResultListRow>)
 			: null
 	}
 

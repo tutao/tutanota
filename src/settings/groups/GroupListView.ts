@@ -1,5 +1,4 @@
 import m, { Children } from "mithril"
-import type { VirtualRow } from "../../gui/base/List.js"
 import type { GroupInfo, GroupMembership } from "../../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, GroupMemberTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { LazyLoaded, memoized, noOp } from "@tutao/tutanota-utils"
@@ -8,7 +7,6 @@ import { GroupDetailsView } from "./GroupDetailsView.js"
 import * as AddGroupDialog from "./AddGroupDialog.js"
 import { Icon } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
-import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import type { EntityUpdateData } from "../../api/main/EventController.js"
 import { isUpdateForTypeRef } from "../../api/main/EventController.js"
@@ -18,13 +16,13 @@ import { assertMainOrNode } from "../../api/common/Env.js"
 import { GroupDetailsModel } from "./GroupDetailsModel.js"
 import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } from "../../gui/SelectableRowContainer.js"
 import Stream from "mithril/stream"
-import { MultiselectMode, NewList, NewListAttrs, RenderConfig } from "../../gui/base/NewList.js"
+import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../gui/base/List.js"
 import { size } from "../../gui/size.js"
 import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils.js"
 import { ListModel } from "../../misc/ListModel.js"
 import { compareGroupInfos } from "../../api/common/utils/GroupUtils.js"
 import { NotFoundError } from "../../api/common/error/RestError.js"
-import { listSelectionKeyboardShortcuts, onlySingleSelection } from "../../gui/base/ListUtils.js"
+import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../../gui/base/ListUtils.js"
 import { keyManager } from "../../misc/KeyManager.js"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../gui/base/BaseSearchBar.js"
 import { lang } from "../../misc/LanguageViewModel.js"
@@ -50,7 +48,6 @@ export class GroupListView implements UpdatableSettingsViewer {
 	}
 
 	private listId: LazyLoaded<Id>
-	private searchResultStreamDependency: Stream<any>
 	private localAdminGroupMemberships: GroupMembership[]
 	private listStateSubscription: Stream<unknown> | null = null
 
@@ -70,12 +67,6 @@ export class GroupListView implements UpdatableSettingsViewer {
 
 		this.listId.getAsync().then((listId) => {
 			locator.search.setGroupInfoRestrictionListId(listId)
-		})
-
-		this.searchResultStreamDependency = locator.search.lastSelectedGroupInfoResult.map((groupInfo) => {
-			if (this.listId.isLoaded() && this.listId.getSync() === groupInfo._id[0]) {
-				this.listModel.loadAndSelect(groupInfo._id[1], () => false)
-			}
 		})
 
 		this.oncreate = this.oncreate.bind(this)
@@ -122,7 +113,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 						icon: Icons.People,
 						message: "noEntries_msg",
 				  })
-				: m(NewList, {
+				: m(List, {
 						renderConfig: this.renderConfig,
 						state: this.listModel.state,
 						onLoadMore: () => this.listModel.loadMore(),
@@ -134,16 +125,13 @@ export class GroupListView implements UpdatableSettingsViewer {
 						},
 						onSingleExclusiveSelection: noOp,
 						selectRangeTowards: noOp,
-				  } satisfies NewListAttrs<GroupInfo, GroupRow>),
+				  } satisfies ListAttrs<GroupInfo, GroupRow>),
 		)
 	}
 
 	onremove() {
 		keyManager.unregisterShortcuts(this.shortcuts)
 
-		if (this.searchResultStreamDependency) {
-			this.searchResultStreamDependency.end(true)
-		}
 		this.listStateSubscription?.end(true)
 	}
 
@@ -158,20 +146,6 @@ export class GroupListView implements UpdatableSettingsViewer {
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === instanceListId) {
 				await this.listModel.entityEventReceived(instanceId, operation)
 			} else if (isUpdateForTypeRef(GroupMemberTypeRef, update)) {
-				let oldLocalAdminGroupMembership = this.localAdminGroupMemberships.find((gm) => gm.groupMember[1] === instanceId)
-
-				let newLocalAdminGroupMembership = locator.logins
-					.getUserController()
-					.getLocalAdminGroupMemberships()
-					.find((gm) => gm.groupMember[1] === instanceId)
-				let promise = Promise.resolve()
-
-				if (operation === OperationType.CREATE && !oldLocalAdminGroupMembership && newLocalAdminGroupMembership) {
-					promise = this.listModel.entityEventReceived(newLocalAdminGroupMembership.groupInfo[1], operation)
-				} else if (operation === OperationType.DELETE && oldLocalAdminGroupMembership && !newLocalAdminGroupMembership) {
-					promise = this.listModel.entityEventReceived(oldLocalAdminGroupMembership.groupInfo[1], operation)
-				}
-
 				this.localAdminGroupMemberships = locator.logins.getUserController().getLocalAdminGroupMemberships()
 				this.listModel.reapplyFilter()
 			}

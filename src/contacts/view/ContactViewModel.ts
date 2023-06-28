@@ -4,7 +4,7 @@ import { EntityEventsListener, EventController, isUpdateForTypeRef } from "../..
 import { ListModel } from "../../misc/ListModel.js"
 import { Contact, ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { compareContacts } from "./ContactGuiUtils.js"
-import { ListState } from "../../gui/base/NewList.js"
+import { ListState } from "../../gui/base/List.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { GENERATED_MAX_ID, getElementId } from "../../api/common/utils/EntityUtils.js"
 import Stream from "mithril/stream"

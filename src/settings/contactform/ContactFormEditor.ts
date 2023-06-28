@@ -47,7 +47,6 @@ let PATH_PATTERN = /^[a-zA-Z0-9_\\-]+$/
 export class ContactFormEditor {
 	_createNew: boolean
 	_contactForm: ContactForm
-	_newContactFormIdReceiver: (arg0: string) => void
 	dialog: Dialog
 	view: (...args: Array<any>) => any
 	_receivingMailbox: Stream<GroupInfo | null>
@@ -68,18 +67,10 @@ export class ContactFormEditor {
 	/**
 	 * This constructor is only used internally. See show() for the external interface.
 	 */
-	constructor(
-		c: ContactForm | null,
-		createNew: boolean,
-		newContactFormIdReceiver: (arg0: string) => void,
-		allUserGroupInfos: GroupInfo[],
-		allSharedMailboxGroupInfos: GroupInfo[],
-		brandingDomain: string,
-	) {
+	constructor(c: ContactForm | null, createNew: boolean, allUserGroupInfos: GroupInfo[], allSharedMailboxGroupInfos: GroupInfo[], brandingDomain: string) {
 		this._createNew = createNew
 		this._contactForm = c ? c : createContactForm()
 		this._createNew = createNew
-		this._newContactFormIdReceiver = newContactFormIdReceiver
 		this._allUserGroupInfos = allUserGroupInfos
 		this._allSharedMailboxGroupInfos = allSharedMailboxGroupInfos
 		this._brandingDomain = brandingDomain
@@ -327,15 +318,11 @@ export class ContactFormEditor {
 															reactivate: false,
 														}).then((accepted) => {
 															if (accepted) {
-																return locator.entityClient.setup(contactFormsListId, this._contactForm).then(() => {
-																	this._newContactFormIdReceiver(customElementIdFromPath)
-																})
+																return locator.entityClient.setup(contactFormsListId, this._contactForm)
 															}
 														})
 													} else {
-														p = locator.entityClient.update(this._contactForm).then(() => {
-															this._newContactFormIdReceiver(customElementIdFromPath)
-														})
+														p = locator.entityClient.update(this._contactForm)
 													}
 
 													return p.then(() => this._close())
@@ -571,9 +558,8 @@ export class ContactFormEditor {
 
 /**
  * @param createNew If true creates a new contact form. if c is provided it is taken as template for the new form.
- * @param newContactFormIdReceiver. Is called receiving the contact id as soon as the new contact was saved.
  */
-export async function show(c: ContactForm | null, createNew: boolean, newContactFormIdReceiver: (arg0: string) => void) {
+export async function show(c: ContactForm | null, createNew: boolean) {
 	const customer = await locator.logins.getUserController().loadCustomer()
 	const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
 	const whitelabelDomain = getWhitelabelDomain(customerInfo)
@@ -586,7 +572,7 @@ export async function show(c: ContactForm | null, createNew: boolean, newContact
 				// get and separate all enabled shared mail groups and shared team groups
 				const groupInfos = await locator.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups)
 				const sharedMailGroupInfos = groupInfos.filter((g) => !g.deleted && g.groupType === GroupType.Mail)
-				let editor = new ContactFormEditor(c, createNew, newContactFormIdReceiver, userGroupInfos, sharedMailGroupInfos, whitelabelDomain.domain)
+				let editor = new ContactFormEditor(c, createNew, userGroupInfos, sharedMailGroupInfos, whitelabelDomain.domain)
 				editor.dialog.show()
 			}),
 		)

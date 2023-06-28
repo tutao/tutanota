@@ -21,7 +21,6 @@ import { theme } from "../gui/theme"
 import { FeatureType, GroupType, LegacyPlans } from "../api/common/TutanotaConstants"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { locator } from "../api/main/MainLocator"
-import { WhitelabelChildrenListView } from "./WhitelabelChildrenListView"
 import { SubscriptionViewer } from "../subscription/SubscriptionViewer"
 import { PaymentViewer } from "../subscription/PaymentViewer"
 import type { EntityUpdateData } from "../api/main/EventController"
@@ -68,6 +67,7 @@ import { styles } from "../gui/styles.js"
 import { MobileHeader } from "../gui/MobileHeader.js"
 import { GroupDetailsView } from "./groups/GroupDetailsView.js"
 import { TemplateDetailsViewer } from "./TemplateDetailsViewer.js"
+import { ContactFormViewer } from "./contactform/ContactFormViewer.js"
 
 assertMainOrNode()
 
@@ -394,7 +394,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						"contactForms_label",
 						() => Icons.Chat,
 						"contactforms",
-						() => new ContactFormListView(this),
+						() =>
+							new ContactFormListView(
+								(viewer) => this.replaceDetailsViewer(viewer),
+								() => this.focusSettingsDetailsColumn(),
+							),
 						undefined,
 					),
 				)
@@ -434,7 +438,9 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		}
 	}
 
-	private replaceDetailsViewer(viewer: UserViewer | GroupDetailsView | TemplateDetailsViewer | KnowledgeBaseSettingsDetailsViewer | null) {
+	private replaceDetailsViewer(
+		viewer: UserViewer | GroupDetailsView | TemplateDetailsViewer | KnowledgeBaseSettingsDetailsViewer | ContactFormViewer | null,
+	) {
 		return (this.detailsViewer = viewer)
 	}
 
@@ -730,11 +736,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					},
 					() =>
 						new TemplateListView(
-							(viewer) => this.replaceDetailsViewer(viewer),
-							() => this.focusSettingsDetailsColumn(),
 							groupInstance,
 							locator.entityClient,
 							this.logins,
+							(viewer) => this.replaceDetailsViewer(viewer),
+							() => this.focusSettingsDetailsColumn(),
 						),
 					groupInstance,
 				),
@@ -759,12 +765,12 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						},
 						() =>
 							new KnowledgeBaseListView(
-								(viewer) => this.replaceDetailsViewer(viewer),
-								() => this.focusSettingsDetailsColumn(),
 								locator.entityClient,
 								this.logins,
 								groupInstance.groupRoot,
 								groupInstance.group,
+								(viewer) => this.replaceDetailsViewer(viewer),
+								() => this.focusSettingsDetailsColumn(),
 							),
 						undefined,
 					),

@@ -1,42 +1,58 @@
 import m, { Children } from "mithril"
-import type { VirtualRow } from "../../gui/base/List"
-import { List } from "../../gui/base/List"
 import { assertMainOrNode } from "../../api/common/Env"
-import { lang } from "../../misc/LanguageViewModel"
 import { NotFoundError } from "../../api/common/error/RestError"
 import { size } from "../../gui/size"
-import type { SettingsView, UpdatableSettingsViewer } from "../SettingsView"
-import { LazyLoaded, NBSP, neverNull, ofClass } from "@tutao/tutanota-utils"
+import type { UpdatableSettingsViewer } from "../SettingsView"
+import { LazyLoaded, memoized, NBSP, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ContactFormViewer } from "./ContactFormViewer"
 import * as ContactFormEditor from "./ContactFormEditor"
 import type { ContactForm } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactFormTypeRef, CustomerContactFormGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { getWhitelabelDomain } from "../../api/common/utils/Utils"
 import type { CustomerInfo } from "../../api/entities/sys/TypeRefs.js"
-import { CustomerInfoTypeRef, CustomerTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { OperationType } from "../../api/common/TutanotaConstants"
+import { CustomerInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { Icon } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
 import { getAdministratedGroupIds, getContactFormUrl, getDefaultContactFormLanguage } from "./ContactFormUtils"
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { isUpdateForTypeRef } from "../../api/main/EventController"
-import { Button, ButtonType } from "../../gui/base/Button.js"
-import { GENERATED_MAX_ID, isSameId } from "../../api/common/utils/EntityUtils"
+import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils"
 import { ListColumnWrapper } from "../../gui/ListColumnWrapper"
 import { locator } from "../../api/main/MainLocator"
 import { SelectableRowContainer, SelectableRowSelectedSetter } from "../../gui/SelectableRowContainer.js"
+import { ListModel } from "../../misc/ListModel.js"
+import Stream from "mithril/stream"
+import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../gui/base/List.js"
+import { onlySingleSelection, VirtualRow } from "../../gui/base/ListUtils.js"
+import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
+import { theme } from "../../gui/theme.js"
+import { IconButton } from "../../gui/base/IconButton.js"
 
 assertMainOrNode()
 const className = "group-list"
 
 export class ContactFormListView implements UpdatableSettingsViewer {
-	private readonly list: List<ContactForm, ContactFormRow>
 	private readonly listId: LazyLoaded<Id>
 	private readonly customerInfo: LazyLoaded<CustomerInfo>
-	private readonly settingsView: SettingsView
 
-	constructor(settingsView: SettingsView) {
-		this.settingsView = settingsView
+	private listModel: ListModel<ContactForm>
+	private listStateSubscription: Stream<unknown> | null = null
+	private readonly renderConfig: RenderConfig<ContactForm, ContactFormRow> = {
+		itemHeight: size.list_row_height,
+		multiselectionAllowed: MultiselectMode.Disabled,
+		swipe: null,
+		createElement: (dom) => {
+			const contactFormRow = new ContactFormRow(this.customerInfo)
+			m.render(dom, contactFormRow.render())
+			return contactFormRow
+		},
+	}
+
+	constructor(private readonly updateDetailsViewer: (viewer: ContactFormViewer | null) => unknown, private readonly focusDetailsViewer: () => unknown) {
+		this.customerInfo = new LazyLoaded(() => locator.logins.getUserController().loadCustomerInfo())
+
+		this.customerInfo.getAsync() // trigger loading so it is available later
+
 		this.listId = new LazyLoaded(() => {
 			return locator.logins
 				.getUserController()
@@ -45,12 +61,19 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 					return locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then((root) => root.contactForms)
 				})
 		})
-		this.customerInfo = new LazyLoaded(() => locator.logins.getUserController().loadCustomerInfo())
 
-		this.customerInfo.getAsync() // trigger loading so it is available later
+		this.listModel = this.makeListModel()
 
-		this.list = new List({
-			rowHeight: size.list_row_height,
+		this.listModel.loadInitial()
+
+		// Old-style component hacks
+		this.view = this.view.bind(this)
+	}
+
+	private makeListModel() {
+		const listModel = new ListModel<ContactForm>({
+			topId: GENERATED_MAX_ID,
+			sortCompare: (a: ContactForm, b: ContactForm) => a.path.localeCompare(b.path),
 			fetch: async (startId, count) => {
 				if (startId !== GENERATED_MAX_ID) {
 					throw new Error("fetch user group infos called for specific start id")
@@ -71,30 +94,42 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 					)
 				})
 			},
-			sortCompare: (a: ContactForm, b: ContactForm) => a.path.localeCompare(b.path),
-			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
-				this.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
-			createVirtualRow: () => new ContactFormRow(this.customerInfo),
-			className: className,
-			swipe: {
-				enabled: false,
-				renderLeftSpacer: () => [],
-				renderRightSpacer: () => [],
-				swipeLeft: () => {
-					return Promise.resolve(false)
-				},
-				swipeRight: () => {
-					return Promise.resolve(false)
-				},
-			},
-			multiSelectionAllowed: false,
-			emptyMessage: lang.get("noEntries_msg"),
 		})
 
-		// Old-style component hacks
-		this.view = this.view.bind(this)
+		listModel.setFilter((item: ContactForm) => this.groupFilter(item))
 
-		this.list.loadInitial()
+		this.listStateSubscription?.end(true)
+		this.listStateSubscription = listModel.stateStream.map((state) => {
+			this.onSelectionChanged(onlySingleSelection(state))
+			m.redraw()
+		})
+
+		return listModel
+	}
+
+	private readonly onSelectionChanged = memoized((item: ContactForm | null) => {
+		if (item) {
+			// const newSelectionModel = new GroupDetailsModel(item, locator.entityClient, m.redraw)
+			this.customerInfo.getAsync().then((customerInfo) => {
+				const whitelabelDomain = getWhitelabelDomain(customerInfo)
+				const detailsViewer = item == null ? null : new ContactFormViewer(item, whitelabelDomain?.domain ?? null)
+				this.updateDetailsViewer(detailsViewer)
+			})
+		}
+	})
+
+	private groupFilter = (item: ContactForm) => {
+		if (locator.logins.getUserController().isGlobalAdmin()) {
+			return true
+		} else {
+			const allAdministratedGroupIds = locator.logins
+				.getUserController()
+				.getLocalAdminGroupMemberships()
+				.map((gm) => gm.group)
+			return allAdministratedGroupIds.includes(item.targetGroup)
+		}
+
+		return false
 	}
 
 	view(): Children {
@@ -105,104 +140,56 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 					".flex.flex-end.center-vertically.plr-l.list-border-bottom",
 					m(
 						".mr-negative-s",
-						m(Button, {
-							label: "createContactForm_label",
-							type: ButtonType.Primary,
+						m(IconButton, {
+							title: "createContactForm_label",
+							icon: Icons.Add,
 							click: () => this.addButtonClicked(),
 						}),
 					),
 				),
 			},
-			m(this.list),
+			this.listModel.isEmptyAndDone()
+				? m(ColumnEmptyMessageBox, {
+						color: theme.list_message_bg,
+						icon: Icons.Chat,
+						message: "noEntries_msg",
+				  })
+				: m(List, {
+						renderConfig: this.renderConfig,
+						state: this.listModel.state,
+						onLoadMore: () => this.listModel.loadMore(),
+						onRetryLoading: () => this.listModel.retryLoading(),
+						onStopLoading: () => this.listModel.stopLoading(),
+						onSingleSelection: (item: ContactForm) => {
+							this.listModel.onSingleSelection(item)
+							this.focusDetailsViewer()
+						},
+						onSingleExclusiveSelection: noOp,
+						selectRangeTowards: noOp,
+				  } satisfies ListAttrs<ContactForm, ContactFormRow>),
 		)
 	}
 
-	private elementSelected(contactForms: ContactForm[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
-		if (contactForms.length === 0 && this.settingsView.detailsViewer) {
-			this.settingsView.detailsViewer = null
-			m.redraw()
-		} else if (contactForms.length === 1 && selectionChanged) {
-			this.customerInfo.getAsync().then((customerInfo) => {
-				const whitelabelDomain = getWhitelabelDomain(customerInfo)
-
-				this.settingsView.detailsViewer = new ContactFormViewer(contactForms[0], whitelabelDomain?.domain ?? null, (contactFormId) =>
-					this.list.scrollToIdAndSelectWhenReceived(contactFormId),
-				)
-
-				if (elementClicked) {
-					this.settingsView.focusSettingsDetailsColumn()
-				}
-
-				m.redraw()
-			})
-		} else {
-			this.settingsView.focusSettingsDetailsColumn()
-		}
-	}
-
 	private addButtonClicked() {
-		ContactFormEditor.show(null, true, (contactFormId) => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
+		ContactFormEditor.show(null, true)
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			await this.processUpdate(update)
-		}
-	}
+			const { instanceListId, instanceId, operation } = update
 
-	private async processUpdate(update: EntityUpdateData): Promise<void> {
-		const { instanceListId, instanceId, operation } = update
+			if (isUpdateForTypeRef(ContactFormTypeRef, update) && this.listId.isLoaded() && instanceListId === this.listId.getLoaded()) {
+				await this.listModel.entityEventReceived(instanceId, operation)
+			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && this.customerInfo.isLoaded()) {
+				// a domain may have been added
+				this.customerInfo.reset()
 
-		if (isUpdateForTypeRef(ContactFormTypeRef, update) && this.listId.isLoaded() && instanceListId === this.listId.getLoaded()) {
-			if (!locator.logins.getUserController().isGlobalAdmin() && update.operation !== OperationType.DELETE) {
-				const listEntity = this.list.getEntity(instanceId)
-				const cf = await locator.entityClient.load(ContactFormTypeRef, [neverNull(instanceListId), instanceId])
-				const allAdministratedGroupIds = await getAdministratedGroupIds()
-				if (listEntity) {
-					if (!allAdministratedGroupIds.includes(cf.targetGroup)) {
-						await this.list.entityEventReceived(instanceId, OperationType.DELETE)
-					} else {
-						await this.list.entityEventReceived(instanceId, operation)
-					}
-				} else {
-					if (allAdministratedGroupIds.includes(cf.targetGroup)) {
-						return this.list.entityEventReceived(instanceId, OperationType.CREATE)
-					}
-				}
-			} else {
-				await this.list.entityEventReceived(instanceId, operation)
+				await this.customerInfo.getAsync()
+
+				this.listModel.reapplyFilter()
 			}
 
-			if (
-				this.customerInfo.isLoaded() &&
-				getWhitelabelDomain(this.customerInfo.getLoaded()) &&
-				this.settingsView.detailsViewer &&
-				operation === OperationType.UPDATE &&
-				isSameId((this.settingsView.detailsViewer as ContactFormViewer).contactForm._id, [neverNull(instanceListId), instanceId])
-			) {
-				const updatedContactForm = await locator.entityClient.load(ContactFormTypeRef, [neverNull(instanceListId), instanceId])
-				this.settingsView.detailsViewer = new ContactFormViewer(
-					updatedContactForm,
-					neverNull(getWhitelabelDomain(this.customerInfo.getLoaded())).domain,
-					(contactFormId) => this.list.scrollToIdAndSelectWhenReceived(contactFormId),
-				)
-				m.redraw()
-			}
-		} else if (
-			isUpdateForTypeRef(CustomerInfoTypeRef, update) &&
-			this.customerInfo.isLoaded() &&
-			isSameId(this.customerInfo.getLoaded()._id, [neverNull(instanceListId), instanceId]) &&
-			operation === OperationType.UPDATE
-		) {
-			// a domain may have been added
-			this.customerInfo.reset()
-
-			await this.customerInfo.getAsync()
-		} else if (isUpdateForTypeRef(CustomerTypeRef, update) && this.customerInfo.isLoaded() && operation === OperationType.UPDATE) {
-			// the customer info may have been moved in case of premium upgrade/downgrade
-			this.customerInfo.reset()
-
-			await this.customerInfo.getAsync()
+			m.redraw()
 		}
 	}
 }
@@ -220,9 +207,7 @@ export class ContactFormRow implements VirtualRow<ContactForm> {
 	constructor(private readonly customerInfo: LazyLoaded<CustomerInfo>) {}
 
 	update(contactForm: ContactForm, selected: boolean): void {
-		if (!this.domElement) {
-			return
-		}
+		this.entity = contactForm
 
 		this.selectionUpdater(selected, false)
 

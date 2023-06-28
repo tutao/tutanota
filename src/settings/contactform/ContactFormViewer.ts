@@ -28,11 +28,7 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 	private participationGroupInfos: GroupInfo[] | null = null
 	private readonly language: ContactFormLanguage
 
-	constructor(
-		readonly contactForm: ContactForm,
-		private readonly brandingDomain: string | null,
-		private readonly newContactFormIdReceiver: (id: Id) => unknown,
-	) {
+	constructor(readonly contactForm: ContactForm, private readonly brandingDomain: string | null) {
 		this.language = getDefaultContactFormLanguage(this.contactForm.languages)
 
 		locator.entityClient.load(GroupInfoTypeRef, neverNull(contactForm.targetGroupInfo)).then((groupInfo) => {
@@ -75,7 +71,7 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 			this.brandingDomain
 				? {
 						title: "edit_action",
-						click: () => ContactFormEditor.show(this.contactForm, false, this.newContactFormIdReceiver),
+						click: () => ContactFormEditor.show(this.contactForm, false),
 						icon: Icons.Edit,
 				  }
 				: null,
@@ -121,7 +117,7 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 		newForm.path = "" // do not copy the path
 
 		newForm.languages = this.contactForm.languages.map((l) => Object.assign({}, l))
-		ContactFormEditor.show(newForm, true, this.newContactFormIdReceiver)
+		ContactFormEditor.show(newForm, true)
 	}
 
 	private delete() {
