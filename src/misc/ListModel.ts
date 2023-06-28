@@ -4,7 +4,7 @@ import { ListLoadingState, ListState } from "../gui/base/NewList.js"
 import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
 import { OperationType } from "../api/common/TutanotaConstants.js"
 import { settledThen } from "@tutao/tutanota-utils/dist/PromiseUtils.js"
-import { assertNonNull, defer, findLast, first, getFirstOrThrow, last, lastIndex, lastThrow, remove } from "@tutao/tutanota-utils"
+import { assertNonNull, binarySearch, defer, findLast, first, getFirstOrThrow, last, lastIndex, lastThrow, remove } from "@tutao/tutanota-utils"
 import { findBy, setAddAll } from "@tutao/tutanota-utils/dist/CollectionUtils.js"
 import { memoizedWithHiddenArgument } from "@tutao/tutanota-utils/dist/Utils.js"
 import Stream from "mithril/stream"
@@ -62,9 +62,10 @@ export class ListModel<ElementType extends ListElement> {
 	})
 
 	readonly stateStream: Stream<ListState<ElementType>> = this.rawStateStream.map((state) => {
-		const activeId = state.activeElement
-		const activeIndex = activeId ? state.filteredItems.findIndex((e) => this.config.sortCompare(e, activeId) > -1) : -1
-		return { ...state, items: state.filteredItems, activeIndex: activeIndex }
+		const activeElement = state.activeElement
+		const foundIndex = activeElement ? binarySearch(state.filteredItems, activeElement, (l, r) => this.config.sortCompare(l, r)) : -1
+		const activeIndex = foundIndex < 0 ? null : foundIndex
+		return { ...state, items: state.filteredItems, activeIndex }
 	})
 
 	private updateState(newStatePart: Partial<PrivateListState<ElementType>>) {
@@ -195,21 +196,19 @@ export class ListModel<ElementType extends ListElement> {
 	}
 
 	private updateLoadedEntity(entity: ElementType) {
-		const id = getElementId(entity)
-
 		// update unfiltered list: find the position, take out the old item and put the updated one
-		const positionToUpdateUnfiltered = this.rawState.unfilteredItems.findIndex((item) => getElementId(item) === id)
+		const positionToUpdateUnfiltered = binarySearch(this.rawState.unfilteredItems, entity, (left, right) => this.config.sortCompare(left, right))
 		const unfilteredItems = this.rawState.unfilteredItems.slice()
-		if (positionToUpdateUnfiltered !== -1) {
+		if (positionToUpdateUnfiltered > 0) {
 			unfilteredItems.splice(positionToUpdateUnfiltered, 1, entity)
 			unfilteredItems.sort(this.config.sortCompare)
 		}
 
 		// update filtered list & selected items
-		const positionToUpdateFiltered = this.rawState.filteredItems.findIndex((item) => getElementId(item) === id)
+		const positionToUpdateFiltered = binarySearch(this.rawState.filteredItems, entity, (left, right) => this.config.sortCompare(left, right))
 		const filteredItems = this.rawState.filteredItems.slice()
 		const selectedItems = new Set(this.rawState.selectedItems)
-		if (positionToUpdateFiltered !== -1) {
+		if (positionToUpdateFiltered > 0) {
 			const [oldItem] = filteredItems.splice(positionToUpdateFiltered, 1, entity)
 			filteredItems.sort(this.config.sortCompare)
 			if (selectedItems.delete(oldItem)) {
@@ -262,10 +261,6 @@ export class ListModel<ElementType extends ListElement> {
 				this.updateState({ filteredItems, selectedItems, unfilteredItems })
 			}
 		})
-	}
-
-	private indexFor(item: ElementType) {
-		return this.state.items.indexOf(item)
 	}
 
 	onSingleSelection(item: ElementType): void {
@@ -390,7 +385,6 @@ export class ListModel<ElementType extends ListElement> {
 					selectedItems.delete(this.state.items[previousActiveIndex])
 				} else {
 					// add
-					selectedItems.add(this.rangeSelectionAnchorElement)
 					selectedItems.add(newActiveItem)
 				}
 				this.updateState({ activeElement: newActiveItem, selectedItems, inMultiselect: true })
@@ -428,7 +422,6 @@ export class ListModel<ElementType extends ListElement> {
 				if (towardsAnchor) {
 					selectedItems.delete(this.state.items[previousActiveIndex])
 				} else {
-					selectedItems.add(this.rangeSelectionAnchorElement)
 					selectedItems.add(newActiveItem)
 				}
 				this.updateState({ selectedItems, inMultiselect: true, activeElement: newActiveItem })
