@@ -3,7 +3,7 @@ import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
 import { size } from "../../gui/size"
 import { ListColumnWrapper } from "../../gui/ListColumnWrapper"
 import { assertMainOrNode } from "../../api/common/Env"
-import { MultiselectMode, NewList, NewListAttrs, RenderConfig, ViewHolder } from "../../gui/base/NewList.js"
+import { MultiselectMode, List, ListAttrs, RenderConfig, ViewHolder } from "../../gui/base/List.js"
 import { ContactRow } from "./ContactRow.js"
 import { ContactViewModel } from "./ContactViewModel.js"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
@@ -33,7 +33,7 @@ export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 						message: "noContacts_msg",
 						icon: BootIcons.Contacts,
 				  })
-				: m(NewList, {
+				: m(List, {
 						renderConfig: this.renderConfig,
 						state: contactViewModel.listState(),
 						// should not be called anyway
@@ -45,7 +45,7 @@ export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 							contactViewModel.listModel.onSingleSelection(item)
 							onSingleSelection()
 						},
-						onSingleMultiselection: (item: Contact) => {
+						onSingleExclusiveSelection: (item: Contact) => {
 							contactViewModel.listModel.onSingleInclusiveSelection(item)
 						},
 						selectRangeTowards: (item: Contact) => {
@@ -54,7 +54,7 @@ export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 						onStopLoading() {
 							contactViewModel.listModel.stopLoading()
 						},
-				  } satisfies NewListAttrs<Contact, KindaContactRow>),
+				  } satisfies ListAttrs<Contact, KindaContactRow>),
 		)
 	}
 

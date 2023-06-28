@@ -14,7 +14,7 @@ import {
 	listIdPart,
 	sortCompareByReverseId,
 } from "../../api/common/utils/EntityUtils.js"
-import { ListState } from "../../gui/base/NewList.js"
+import { ListState } from "../../gui/base/List.js"
 import {
 	assertNotNull,
 	defer,

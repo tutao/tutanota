@@ -1,9 +1,9 @@
-import { ACTION_DISTANCE } from "./List.js"
 import { Coordinate2D, SwipeHandler } from "./SwipeHandler.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { animations, DefaultAnimationTime, opacity, transform, TransformEnum } from "../animation/Animations.js"
 import { ease } from "../animation/Easing.js"
-import { ListRow, ListSwipeDecision, ViewHolder } from "./NewList.js"
+import { ListRow, ListSwipeDecision, ViewHolder } from "./List.js"
+import { ACTION_DISTANCE } from "./ListUtils.js"
 
 /** Detects swipe gestures for list elements. On mobile some lists have actions on swiping, e.g. deleting an email. */
 export class ListSwipeHandler<ElementType, VH extends ViewHolder<ElementType>> extends SwipeHandler {

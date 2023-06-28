@@ -1,7 +1,6 @@
 import m, { Children } from "mithril"
 import type { EntityUpdateData } from "../api/main/EventController"
 import { isUpdateForTypeRef } from "../api/main/EventController"
-import type { VirtualRow } from "../gui/base/List"
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { showTemplateEditor } from "./TemplateEditor"
 import type { EmailTemplate, TemplateGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
@@ -22,10 +21,10 @@ import Stream from "mithril/stream"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../gui/theme.js"
 import { Icons } from "../gui/base/icons/Icons.js"
-import { MultiselectMode, NewList, NewListAttrs, RenderConfig } from "../gui/base/NewList.js"
+import { List, ListAttrs, MultiselectMode, RenderConfig } from "../gui/base/List.js"
 import { size } from "../gui/size.js"
 import { TemplateDetailsViewer } from "./TemplateDetailsViewer.js"
-import { onlySingleSelection } from "../gui/base/ListUtils.js"
+import { onlySingleSelection, VirtualRow } from "../gui/base/ListUtils.js"
 import { IconButton } from "../gui/base/IconButton.js"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
 import { lang } from "../misc/LanguageViewModel.js"
@@ -38,9 +37,6 @@ assertMainOrNode()
 export class TemplateListView implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
 	private resultItemIds: ReadonlyArray<IdTuple> = []
-	private groupInstance: TemplateGroupInstance
-	private entityClient: EntityClient
-	private logins: LoginController
 
 	private listModel: ListModel<EmailTemplate>
 	private listStateSubscription: Stream<unknown> | null = null
@@ -56,15 +52,12 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	}
 
 	constructor(
+		private readonly groupInstance: TemplateGroupInstance,
+		private readonly entityClient: EntityClient,
+		private readonly logins: LoginController,
 		private readonly updateDetailsViewer: (viewer: TemplateDetailsViewer | null) => unknown,
 		private readonly focusDetailsViewer: () => unknown,
-		templateGroupInstance: TemplateGroupInstance,
-		entityClient: EntityClient,
-		logins: LoginController,
 	) {
-		this.groupInstance = templateGroupInstance
-		this.entityClient = entityClient
-		this.logins = logins
 		this.listModel = this.makeListModel()
 
 		this.listModel.loadInitial()
@@ -144,7 +137,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 						icon: Icons.ListAlt,
 						message: "noEntries_msg",
 				  })
-				: m(NewList, {
+				: m(List, {
 						renderConfig: this.renderConfig,
 						state: this.listModel.state,
 						onLoadMore: () => this.listModel.loadMore(),
@@ -156,7 +149,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 						},
 						onSingleExclusiveSelection: noOp,
 						selectRangeTowards: noOp,
-				  } satisfies NewListAttrs<EmailTemplate, TemplateRow>),
+				  } satisfies ListAttrs<EmailTemplate, TemplateRow>),
 		)
 	}
 
@@ -176,7 +169,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	})
 
 	private queryFilter(item: EmailTemplate) {
-		return this.resultItemIds.length === 0 && this.searchQuery === "" ? true : this.resultItemIds.includes(item._id)
+		return this.searchQuery === "" ? true : this.resultItemIds.includes(item._id)
 	}
 
 	private updateQuery(query: string) {

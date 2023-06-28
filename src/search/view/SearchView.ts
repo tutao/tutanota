@@ -68,7 +68,7 @@ import {
 import { SelectAllCheckbox } from "../../gui/SelectAllCheckbox.js"
 import { selectionAttrsForList } from "../../misc/ListModel.js"
 import { MultiselectMobileHeader } from "../../gui/MultiselectMobileHeader.js"
-import { MultiselectMode } from "../../gui/base/NewList.js"
+import { MultiselectMode } from "../../gui/base/List.js"
 import { PaidFunctionResult, SearchViewModel } from "./SearchViewModel.js"
 import { NotFoundError } from "../../api/common/error/RestError.js"
 import { showNotAvailableForFreeDialog } from "../../misc/SubscriptionDialogs.js"

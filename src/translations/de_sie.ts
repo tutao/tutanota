@@ -1692,6 +1692,8 @@ export default {
 		"filterUnread_label": "Ungelesene",
 		"filterRead_label": "Gelesene",
 		"filterAllMails_label": "Alle Mails",
-		"filterWithAttachments_label": "Mit Anhängen"
+		"filterWithAttachments_label": "Mit Anhängen",
+		"searchTemplates_placeholder": "Vorlagen suchen",
+		"searchKnowledgebase_placeholder": "Knowledgebase durchsuchen"
 	}
 }

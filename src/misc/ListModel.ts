@@ -1,6 +1,5 @@
-import { ListFetchResult, PageSize } from "../gui/base/List.js"
 import { getElementId, isSameId, ListElement } from "../api/common/utils/EntityUtils.js"
-import { ListLoadingState, ListState } from "../gui/base/NewList.js"
+import { ListLoadingState, ListState } from "../gui/base/List.js"
 import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
 import { OperationType } from "../api/common/TutanotaConstants.js"
 import { settledThen } from "@tutao/tutanota-utils/dist/PromiseUtils.js"
@@ -9,6 +8,7 @@ import { findBy, setAddAll } from "@tutao/tutanota-utils/dist/CollectionUtils.js
 import { memoizedWithHiddenArgument } from "@tutao/tutanota-utils/dist/Utils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
+import { ListFetchResult, PageSize } from "../gui/base/ListUtils.js"
 
 interface ListModelConfig<ElementType> {
 	topId: Id

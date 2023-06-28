@@ -1,5 +1,4 @@
 import m, { Children } from "mithril"
-import type { VirtualRow } from "../gui/base/List.js"
 import { NotFoundError } from "../api/common/error/RestError.js"
 import { size } from "../gui/size.js"
 import type { GroupInfo, User } from "../api/entities/sys/TypeRefs.js"
@@ -22,8 +21,8 @@ import Stream from "mithril/stream"
 import * as AddUserDialog from "./AddUserDialog.js"
 import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } from "../gui/SelectableRowContainer.js"
 import { ListModel } from "../misc/ListModel.js"
-import { MultiselectMode, NewList, NewListAttrs, RenderConfig } from "../gui/base/NewList.js"
-import { listSelectionKeyboardShortcuts, onlySingleSelection } from "../gui/base/ListUtils.js"
+import { List, ListAttrs, MultiselectMode, RenderConfig } from "../gui/base/List.js"
+import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../gui/base/ListUtils.js"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../gui/theme.js"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
@@ -54,7 +53,6 @@ export class UserListView implements UpdatableSettingsViewer {
 	}
 
 	private readonly listId: LazyLoaded<Id>
-	private readonly searchResultSubscription: Stream<unknown>
 	private adminUserGroupInfoIds: Id[] = []
 	private listStateSubscription: Stream<unknown> | null = null
 
@@ -76,12 +74,6 @@ export class UserListView implements UpdatableSettingsViewer {
 
 		this.listId.getAsync().then((listId) => {
 			locator.search.setGroupInfoRestrictionListId(listId)
-		})
-
-		this.searchResultSubscription = locator.search.lastSelectedGroupInfoResult.map((groupInfo) => {
-			if (this.listId.isLoaded() && this.listId.getSync() === groupInfo._id[0]) {
-				this.listModel.loadAndSelect(groupInfo._id[1], () => false)
-			}
 		})
 
 		this.oncreate = this.oncreate.bind(this)
@@ -133,7 +125,7 @@ export class UserListView implements UpdatableSettingsViewer {
 						icon: BootIcons.Contacts,
 						message: "noEntries_msg",
 				  })
-				: m(NewList, {
+				: m(List, {
 						renderConfig: this.renderConfig,
 						state: this.listModel.state,
 						onLoadMore: () => this.listModel.loadMore(),
@@ -145,7 +137,7 @@ export class UserListView implements UpdatableSettingsViewer {
 						},
 						onSingleExclusiveSelection: noOp,
 						selectRangeTowards: noOp,
-				  } satisfies NewListAttrs<GroupInfo, UserRow>),
+				  } satisfies ListAttrs<GroupInfo, UserRow>),
 		)
 	}
 
@@ -182,9 +174,6 @@ export class UserListView implements UpdatableSettingsViewer {
 	onremove() {
 		keyManager.unregisterShortcuts(this.shortcuts)
 
-		if (this.searchResultSubscription) {
-			this.searchResultSubscription.end(true)
-		}
 		this.listStateSubscription?.end(true)
 	}
 
