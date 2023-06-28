@@ -38,7 +38,7 @@ export interface MailListViewAttrs {
 	onClearFolder: () => unknown
 	mailViewModel: MailViewModel
 	listId: Id
-	onSingleSelection: () => unknown
+	onSingleSelection: (mail: Mail) => unknown
 }
 
 export class MailListView implements Component<MailListViewAttrs> {
@@ -351,7 +351,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 							},
 							onSingleSelection: (item) => {
 								listModel.onSingleSelection(item)
-								vnode.attrs.onSingleSelection()
+								vnode.attrs.onSingleSelection(item)
 							},
 							onSingleMultiselection: (item: Mail) => {
 								listModel.onSingleInclusiveSelection(item)

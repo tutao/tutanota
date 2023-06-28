@@ -76,7 +76,7 @@ import { showDateRangeSelectionDialog } from "../../gui/date/DatePickerDialog.js
 import { MailFilterButton } from "../../mail/view/MailFilterButton.js"
 import { isSameTypeRefNullable } from "@tutao/tutanota-utils/dist/TypeRef.js"
 import { listSelectionKeyboardShortcuts } from "../../gui/base/ListUtils.js"
-import { getElementId } from "../../api/common/utils/EntityUtils.js"
+import { getElementId, isSameId } from "../../api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
 
@@ -173,8 +173,20 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							? m(SearchListView, {
 									listModel: this.searchViewModel.listModel,
 									currentType: this.searchViewModel.lastType,
-									onSingleSelection: () => {
+									onSingleSelection: (item) => {
 										this.viewSlider.focus(this.resultDetailsColumn)
+
+										if (isSameTypeRef(item.entry._type, MailTypeRef)) {
+											// Make sure that we mark mail as read if you select the mail again, even if it was selected before.
+											// Do it in the next even loop to not rely on what is called first, listModel or us. ListModel changes are
+											// sync so this should be enough.
+											Promise.resolve().then(() => {
+												const conversationViewModel = this.searchViewModel.conversationViewModel
+												if (conversationViewModel && isSameId(item._id, conversationViewModel.primaryMail._id)) {
+													conversationViewModel?.primaryViewModel().setUnread(false)
+												}
+											})
+										}
 									},
 									isFreeAccount: locator.logins.getUserController().isFreeAccount(),
 							  } satisfies SearchListViewAttrs)

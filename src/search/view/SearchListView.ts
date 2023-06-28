@@ -26,7 +26,7 @@ export class SearchResultListEntry {
 
 export interface SearchListViewAttrs {
 	listModel: ListModel<SearchResultListEntry>
-	onSingleSelection: () => unknown
+	onSingleSelection: (item: SearchResultListEntry) => unknown
 	currentType: TypeRef<Mail> | TypeRef<Contact>
 	isFreeAccount: boolean
 }
@@ -61,7 +61,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 						},
 						onSingleSelection: (item: SearchResultListEntry) => {
 							attrs.listModel?.onSingleSelection(item)
-							attrs.onSingleSelection()
+							attrs.onSingleSelection(item)
 						},
 						onSingleMultiselection: (item: SearchResultListEntry) => {
 							attrs.listModel.onSingleExclusiveSelection(item)

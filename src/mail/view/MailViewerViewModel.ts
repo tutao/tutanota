@@ -548,12 +548,14 @@ export class MailViewerViewModel {
 	}
 
 	setUnread(unread: boolean) {
-		this.mail.unread = unread
+		if (this.mail.unread !== unread) {
+			this.mail.unread = unread
 
-		this.entityClient
-			.update(this.mail)
-			.catch(ofClass(LockedError, () => console.log("could not update mail read state: ", lang.get("operationStillActive_msg"))))
-			.catch(ofClass(NotFoundError, noOp))
+			this.entityClient
+				.update(this.mail)
+				.catch(ofClass(LockedError, () => console.log("could not update mail read state: ", lang.get("operationStillActive_msg"))))
+				.catch(ofClass(NotFoundError, noOp))
+		}
 	}
 
 	isListUnsubscribe(): boolean {
