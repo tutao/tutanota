@@ -1,10 +1,10 @@
 import { ListFetchResult, PageSize } from "../gui/base/List.js"
-import { getElementId, ListElement } from "../api/common/utils/EntityUtils.js"
+import { getElementId, isSameId, ListElement } from "../api/common/utils/EntityUtils.js"
 import { ListLoadingState, ListState } from "../gui/base/NewList.js"
 import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
 import { OperationType } from "../api/common/TutanotaConstants.js"
 import { settledThen } from "@tutao/tutanota-utils/dist/PromiseUtils.js"
-import { assertNonNull, defer, last, lastIndex, lastThrow, remove } from "@tutao/tutanota-utils"
+import { assertNonNull, defer, findLast, first, getFirstOrThrow, last, lastIndex, lastThrow, remove } from "@tutao/tutanota-utils"
 import { findBy, setAddAll } from "@tutao/tutanota-utils/dist/CollectionUtils.js"
 import { memoizedWithHiddenArgument } from "@tutao/tutanota-utils/dist/Utils.js"
 import Stream from "mithril/stream"
@@ -28,7 +28,11 @@ interface ListModelConfig<ElementType> {
 
 export type ListFilter<ElementType extends ListElement> = (item: ElementType) => boolean
 
-type PrivateListState<ElementType> = Omit<ListState<ElementType>, "items"> & { unfilteredItems: ElementType[]; filteredItems: ElementType[] }
+type PrivateListState<ElementType> = Omit<ListState<ElementType>, "items" | "activeIndex"> & {
+	unfilteredItems: ElementType[]
+	filteredItems: ElementType[]
+	activeElement: ElementType | null
+}
 
 /** ListModel that does the state upkeep for the List, including loading state, loaded items, selection and filters*/
 export class ListModel<ElementType extends ListElement> {
@@ -37,7 +41,7 @@ export class ListModel<ElementType extends ListElement> {
 	private loadState: "created" | "initialized" = "created"
 	private loading: Promise<unknown> = Promise.resolve()
 	private filter: ListFilter<ElementType> | null = null
-	private rangeSelectionAnchorIndex: number | null = null
+	private rangeSelectionAnchorElement: ElementType | null = null
 
 	get state(): ListState<ElementType> {
 		return this.stateStream()
@@ -54,11 +58,13 @@ export class ListModel<ElementType extends ListElement> {
 		loadingStatus: ListLoadingState.Idle,
 		loadingAll: false,
 		selectedItems: new Set(),
-		activeIndex: null,
+		activeElement: null,
 	})
 
 	readonly stateStream: Stream<ListState<ElementType>> = this.rawStateStream.map((state) => {
-		return { ...state, items: state.filteredItems }
+		const activeId = state.activeElement
+		const activeIndex = activeId ? state.filteredItems.findIndex((e) => this.config.sortCompare(e, activeId) > -1) : -1
+		return { ...state, items: state.filteredItems, activeIndex: activeIndex }
 	})
 
 	private updateState(newStatePart: Partial<PrivateListState<ElementType>>) {
@@ -141,14 +147,7 @@ export class ListModel<ElementType extends ListElement> {
 
 		const newSelectedItems = new Set(this.applyFilter([...this.state.selectedItems]))
 
-		let newActiveIndex: number | null = null
-		const activeItem = this.state.activeIndex ? this.state.items[this.state.activeIndex] : null
-		if (activeItem && newSelectedItems.has(activeItem)) {
-			newActiveIndex = newFilteredItems.indexOf(activeItem)
-		}
-		this.rangeSelectionAnchorIndex = newActiveIndex
-
-		this.updateState({ filteredItems: newFilteredItems, selectedItems: newSelectedItems, activeIndex: newActiveIndex })
+		this.updateState({ filteredItems: newFilteredItems, selectedItems: newSelectedItems })
 	}
 
 	isFiltered(): boolean {
@@ -198,6 +197,7 @@ export class ListModel<ElementType extends ListElement> {
 	private updateLoadedEntity(entity: ElementType) {
 		const id = getElementId(entity)
 
+		// update unfiltered list: find the position, take out the old item and put the updated one
 		const positionToUpdateUnfiltered = this.rawState.unfilteredItems.findIndex((item) => getElementId(item) === id)
 		const unfilteredItems = this.rawState.unfilteredItems.slice()
 		if (positionToUpdateUnfiltered !== -1) {
@@ -205,6 +205,7 @@ export class ListModel<ElementType extends ListElement> {
 			unfilteredItems.sort(this.config.sortCompare)
 		}
 
+		// update filtered list & selected items
 		const positionToUpdateFiltered = this.rawState.filteredItems.findIndex((item) => getElementId(item) === id)
 		const filteredItems = this.rawState.filteredItems.slice()
 		const selectedItems = new Set(this.rawState.selectedItems)
@@ -216,8 +217,17 @@ export class ListModel<ElementType extends ListElement> {
 			}
 		}
 
-		if (positionToUpdateFiltered !== -1 && positionToUpdateFiltered !== -1) {
-			this.updateState({ unfilteredItems, filteredItems, selectedItems })
+		// keep active element up-to-date
+		const activeElementUpdated = this.rawState.activeElement != null && isSameId(this.rawState.activeElement._id, entity._id)
+		const newActiveElement = activeElementUpdated ? this.rawState.activeElement : this.rawState.activeElement
+
+		if (positionToUpdateUnfiltered !== -1 && positionToUpdateFiltered !== -1 && activeElementUpdated) {
+			this.updateState({ unfilteredItems, filteredItems, selectedItems, activeElement: newActiveElement })
+		}
+
+		// keep anchor up-to-date
+		if (this.rangeSelectionAnchorElement != null && isSameId(this.rangeSelectionAnchorElement._id, entity._id)) {
+			this.rangeSelectionAnchorElement = entity
 		}
 	}
 
@@ -259,19 +269,15 @@ export class ListModel<ElementType extends ListElement> {
 	}
 
 	onSingleSelection(item: ElementType): void {
-		const activeIndex = this.indexFor(item)
-		if (activeIndex !== -1) {
-			this.updateState({ selectedItems: new Set([item]), inMultiselect: false, activeIndex })
-			this.rangeSelectionAnchorIndex = activeIndex
-		}
+		this.updateState({ selectedItems: new Set([item]), inMultiselect: false, activeElement: item })
+		this.rangeSelectionAnchorElement = item
 	}
 
 	/** An element was added to the selection. If multiselect was not on, discard previous single selection and only added selected item to the selection. */
 	onSingleExclusiveSelection(item: ElementType): void {
-		const activeIndex = this.indexFor(item)
 		if (!this.rawState.inMultiselect) {
-			this.updateState({ selectedItems: new Set([item]), inMultiselect: true, activeIndex })
-			this.rangeSelectionAnchorIndex = activeIndex
+			this.updateState({ selectedItems: new Set([item]), inMultiselect: true, activeElement: item })
+			this.rangeSelectionAnchorElement = item
 		} else {
 			const selectedItems = new Set(this.state.selectedItems)
 			if (selectedItems.has(item)) {
@@ -280,18 +286,17 @@ export class ListModel<ElementType extends ListElement> {
 				selectedItems.add(item)
 			}
 			if (selectedItems.size === 0) {
-				this.updateState({ selectedItems, inMultiselect: false, activeIndex: null })
-				this.rangeSelectionAnchorIndex = null
+				this.updateState({ selectedItems, inMultiselect: false, activeElement: null })
+				this.rangeSelectionAnchorElement = null
 			} else {
-				this.updateState({ selectedItems, inMultiselect: true, activeIndex })
-				this.rangeSelectionAnchorIndex = activeIndex
+				this.updateState({ selectedItems, inMultiselect: true, activeElement: item })
+				this.rangeSelectionAnchorElement = item
 			}
 		}
 	}
 
 	/** An element was added to the selection. If multiselect was not on, app previous single selection and newly added selected item to the selection. */
 	onSingleInclusiveSelection(item: ElementType): void {
-		const activeIndex = this.indexFor(item)
 		const selectedItems = new Set(this.state.selectedItems)
 		if (selectedItems.has(item)) {
 			selectedItems.delete(item)
@@ -299,11 +304,11 @@ export class ListModel<ElementType extends ListElement> {
 			selectedItems.add(item)
 		}
 		if (selectedItems.size === 0) {
-			this.updateState({ selectedItems, inMultiselect: false, activeIndex: null })
-			this.rangeSelectionAnchorIndex = null
+			this.updateState({ selectedItems, inMultiselect: false, activeElement: null })
+			this.rangeSelectionAnchorElement = null
 		} else {
-			this.updateState({ selectedItems, inMultiselect: true, activeIndex })
-			this.rangeSelectionAnchorIndex = activeIndex
+			this.updateState({ selectedItems, inMultiselect: true, activeElement: item })
+			this.rangeSelectionAnchorElement = item
 		}
 	}
 
@@ -360,31 +365,36 @@ export class ListModel<ElementType extends ListElement> {
 
 			setAddAll(selectedItems, itemsToAddToSelection)
 		}
-		const activeIndex = this.indexFor(item)
-		this.updateState({ selectedItems, inMultiselect: true, activeIndex })
-		this.rangeSelectionAnchorIndex = activeIndex
+		this.updateState({ selectedItems, inMultiselect: true, activeElement: item })
+		this.rangeSelectionAnchorElement = item
 	}
 
 	selectPrevious(multiselect: boolean) {
-		const newActiveIndex = this.state.activeIndex == null ? 0 : this.state.activeIndex === 0 ? 0 : this.state.activeIndex - 1
-		const newActiveItem = this.state.items[newActiveIndex]
-
-		if (!multiselect) {
-			this.onSingleSelection(newActiveItem)
-		} else {
-			const selectedItems = new Set(this.state.selectedItems)
-			this.rangeSelectionAnchorIndex = this.rangeSelectionAnchorIndex ?? 0
-			const previousActiveIndex = this.state.activeIndex ?? 0
-			const towardsAnchor = previousActiveIndex > this.rangeSelectionAnchorIndex
-			if (towardsAnchor) {
-				// remove
-				selectedItems.delete(this.state.items[previousActiveIndex])
+		const oldActiveItem = this.rawState.activeElement
+		const newActiveItem =
+			oldActiveItem == null
+				? first(this.state.items)
+				: findLast(this.state.items, (el) => this.config.sortCompare(el, oldActiveItem) < 0) ?? first(this.state.items)
+		if (newActiveItem != null) {
+			if (!multiselect) {
+				this.onSingleSelection(newActiveItem)
 			} else {
-				// add
-				selectedItems.add(this.state.items[this.rangeSelectionAnchorIndex])
-				selectedItems.add(newActiveItem)
+				const selectedItems = new Set(this.state.selectedItems)
+				this.rangeSelectionAnchorElement = this.rangeSelectionAnchorElement ?? first(this.state.items)
+				if (!this.rangeSelectionAnchorElement) return
+
+				const previousActiveIndex = this.state.activeIndex ?? 0
+				const towardsAnchor = this.config.sortCompare(oldActiveItem ?? getFirstOrThrow(this.state.items), this.rangeSelectionAnchorElement) > 0
+				if (towardsAnchor) {
+					// remove
+					selectedItems.delete(this.state.items[previousActiveIndex])
+				} else {
+					// add
+					selectedItems.add(this.rangeSelectionAnchorElement)
+					selectedItems.add(newActiveItem)
+				}
+				this.updateState({ activeElement: newActiveItem, selectedItems, inMultiselect: true })
 			}
-			this.updateState({ activeIndex: newActiveIndex, selectedItems, inMultiselect: true })
 		}
 	}
 
@@ -395,22 +405,34 @@ export class ListModel<ElementType extends ListElement> {
 				: this.state.activeIndex >= lastIndex(this.state.items)
 				? lastIndex(this.state.items)
 				: this.state.activeIndex + 1
-		const newActiveItem = this.state.items[newActiveIndex]
 
-		if (!multiselect) {
-			this.onSingleSelection(newActiveItem)
-		} else {
-			const selectedItems = new Set(this.state.selectedItems)
-			this.rangeSelectionAnchorIndex = this.rangeSelectionAnchorIndex ?? 0
-			const previousActiveIndex = this.state.activeIndex ?? 0
-			const towardsAnchor = previousActiveIndex < this.rangeSelectionAnchorIndex
-			if (towardsAnchor) {
-				selectedItems.delete(this.state.items[previousActiveIndex])
+		const oldActiveItem = this.rawState.activeElement
+		const lastItem = last(this.state.items)
+		const newActiveItem =
+			oldActiveItem == null
+				? first(this.state.items)
+				: lastItem && this.config.sortCompare(lastItem, oldActiveItem) <= 0
+				? lastItem
+				: this.state.items.find((el) => this.config.sortCompare(el, oldActiveItem) > 0) ?? first(this.state.items)
+
+		if (newActiveItem != null) {
+			if (!multiselect) {
+				this.onSingleSelection(newActiveItem)
 			} else {
-				selectedItems.add(this.state.items[this.rangeSelectionAnchorIndex])
-				selectedItems.add(newActiveItem)
+				const selectedItems = new Set(this.state.selectedItems)
+				this.rangeSelectionAnchorElement = this.rangeSelectionAnchorElement ?? first(this.state.items)
+				if (!this.rangeSelectionAnchorElement) return
+
+				const previousActiveIndex = this.state.activeIndex ?? 0
+				const towardsAnchor = this.config.sortCompare(oldActiveItem ?? getFirstOrThrow(this.state.items), this.rangeSelectionAnchorElement) < 0
+				if (towardsAnchor) {
+					selectedItems.delete(this.state.items[previousActiveIndex])
+				} else {
+					selectedItems.add(this.rangeSelectionAnchorElement)
+					selectedItems.add(newActiveItem)
+				}
+				this.updateState({ selectedItems, inMultiselect: true, activeElement: newActiveItem })
 			}
-			this.updateState({ selectedItems, inMultiselect: true, activeIndex: newActiveIndex })
 		}
 	}
 
@@ -419,13 +441,13 @@ export class ListModel<ElementType extends ListElement> {
 	}
 
 	selectAll() {
-		this.updateState({ selectedItems: new Set(this.state.items), activeIndex: null, inMultiselect: true })
-		this.rangeSelectionAnchorIndex = null
+		this.updateState({ selectedItems: new Set(this.state.items), activeElement: null, inMultiselect: true })
+		this.rangeSelectionAnchorElement = null
 	}
 
 	selectNone() {
-		this.rangeSelectionAnchorIndex = null
-		this.updateState({ selectedItems: new Set<ElementType>(), activeIndex: null, inMultiselect: false })
+		this.rangeSelectionAnchorElement = null
+		this.updateState({ selectedItems: new Set<ElementType>(), inMultiselect: false })
 	}
 
 	isItemSelected(itemId: Id): boolean {

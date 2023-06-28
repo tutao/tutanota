@@ -214,7 +214,7 @@ export function first<T>(array: ReadonlyArray<T>): T | null {
 	return array[0] || null
 }
 
-export function findLast<T>(array: Array<T>, predicate: (arg0: T) => boolean): T | null | undefined {
+export function findLast<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boolean): T | null | undefined {
 	const index = findLastIndex(array, predicate)
 
 	if (index !== -1) {
@@ -224,7 +224,7 @@ export function findLast<T>(array: Array<T>, predicate: (arg0: T) => boolean): T
 	return null
 }
 
-export function findLastIndex<T>(array: Array<T>, predicate: (arg0: T) => boolean): number {
+export function findLastIndex<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boolean): number {
 	for (let i = array.length - 1; i >= 0; i--) {
 		if (predicate(array[i])) {
 			return i
