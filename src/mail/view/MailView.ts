@@ -24,7 +24,7 @@ import { px, size } from "../../gui/size"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { archiveMails, getConversationTitle, getMoveMailBounds, moveMails, moveToInbox, promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils"
-import { getElementId } from "../../api/common/utils/EntityUtils"
+import { getElementId, isSameId } from "../../api/common/utils/EntityUtils"
 import { isNewMailActionAvailable } from "../../gui/nav/NavFunctions"
 import { CancelledError } from "../../api/common/error/CancelledError"
 import Stream from "mithril/stream"
@@ -127,9 +127,19 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 										key: listId,
 										mailViewModel: this.mailViewModel,
 										listId: listId,
-										onSingleSelection: () => {
+										onSingleSelection: (mail) => {
 											if (!this.mailViewModel.listModel?.state.inMultiselect) {
 												this.viewSlider.focus(this.mailColumn)
+
+												// Make sure that we mark mail as read if you select the mail again, even if it was selected before.
+												// Do it in the next even loop to not rely on what is called first, listModel or us. ListModel changes are
+												// sync so this should be enough.
+												Promise.resolve().then(() => {
+													const conversationViewModel = this.mailViewModel.getConversationViewModel()
+													if (conversationViewModel && isSameId(mail._id, conversationViewModel.primaryMail._id)) {
+														conversationViewModel?.primaryViewModel().setUnread(false)
+													}
+												})
 											}
 										},
 										onClearFolder: async () => {
