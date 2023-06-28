@@ -7,9 +7,9 @@ import { emitWizardEvent, WizardEventType } from "../../gui/base/WizardDialog.js
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { assertMainOrNode } from "../../api/common/Env"
 import { AddImapImportData, ImapImportModel } from "./AddImapImportWizard.js"
-import { ToggleButton } from "../../gui/base/ToggleButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
 
 assertMainOrNode()
 

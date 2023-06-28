@@ -212,7 +212,7 @@ export class ImapImporter implements ImapImportFacade {
 			this.importedImapAttachmentHashToIdMap?.set(fileHash, deferredAttachmentId)
 			let importDataFile: ImapImportDataFile = {
 				_type: "DataFile",
-				name: imapMailAttachment.filename ?? imapMailAttachment.cid + Date.now().toString(), // TODO better to directly use the hash?
+				name: imapMailAttachment.filename ?? imapMailAttachment.cid + Date.now().toString(), // TODO Should we use the hash directly?
 				data: imapMailAttachment.content,
 				size: imapMailAttachment.size,
 				mimeType: imapMailAttachment.contentType,

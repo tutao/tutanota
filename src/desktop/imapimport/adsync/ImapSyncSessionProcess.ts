@@ -159,7 +159,7 @@ export class ImapSyncSessionProcess {
 
 					if (mail.source) {
 						let mailSize = mail.source.length
-						let mailDownloadTime = mailFetchTime != 0 ? mailFetchTime : 0.5 // we approximate the mailFetchTime to minimum 1 millisecond
+						let mailDownloadTime = mailFetchTime != 0 ? mailFetchTime : 0.5 // we approximate the mailFetchTime to minimum 0.5 millisecond
 						let currenThroughput = mailSize / mailDownloadTime
 						this.adSyncOptimizer.optimizedSyncSessionMailbox.reportCurrentThroughput(currenThroughput)
 

@@ -209,7 +209,6 @@ export class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 		m.redraw()
 	}
 
-	// TODO we should maybe track the importState on the server to allow the UI to be updated.
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(ImportImapAccountSyncStateTypeRef, update)) {

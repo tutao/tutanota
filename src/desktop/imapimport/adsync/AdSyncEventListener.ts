@@ -11,15 +11,15 @@ export enum AdSyncEventType {
 }
 
 export interface AdSyncEventListener {
-	onMailbox(imapMailbox: ImapMailbox, eventType: AdSyncEventType): void
+	onMailbox(imapMailbox: ImapMailbox, eventType: AdSyncEventType): Promise<void>
 
-	onMailboxStatus(imapMailboxStatus: ImapMailboxStatus): void
+	onMailboxStatus(imapMailboxStatus: ImapMailboxStatus): Promise<void>
 
-	onMail(imapMail: ImapMail, eventType: AdSyncEventType): void
+	onMail(imapMail: ImapMail, eventType: AdSyncEventType): Promise<void>
 
-	onPostpone(postponedUntil: Date): void
+	onPostpone(postponedUntil: Date): Promise<void>
 
-	onFinish(downloadedQuota: number): void
+	onFinish(downloadedQuota: number): Promise<void>
 
-	onError(imapError: ImapError): void
+	onError(imapError: ImapError): Promise<void>
 }

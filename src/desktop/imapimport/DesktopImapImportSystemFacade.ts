@@ -25,27 +25,27 @@ export class DesktopImapImportSystemFacade implements ImapImportSystemFacade, Ad
 		return Promise.resolve()
 	}
 
-	onError(error: ImapError): void {
+	async onError(error: ImapError): Promise<void> {
 		this.win.imapImportFacade.onError(error)
 	}
 
-	onFinish(downloadedQuota: number): void {
+	async onFinish(downloadedQuota: number): Promise<void> {
 		this.win.imapImportFacade.onFinish(downloadedQuota)
 	}
 
-	onMail(mail: ImapMail, eventType: AdSyncEventType): void {
+	async onMail(mail: ImapMail, eventType: AdSyncEventType): Promise<void> {
 		this.win.imapImportFacade.onMail(mail, eventType)
 	}
 
-	onMailbox(mailbox: ImapMailbox, eventType: AdSyncEventType): void {
+	async onMailbox(mailbox: ImapMailbox, eventType: AdSyncEventType): Promise<void> {
 		this.win.imapImportFacade.onMailbox(mailbox, eventType)
 	}
 
-	onMailboxStatus(mailboxStatus: ImapMailboxStatus): void {
+	async onMailboxStatus(mailboxStatus: ImapMailboxStatus): Promise<void> {
 		this.win.imapImportFacade.onMailboxStatus(mailboxStatus)
 	}
 
-	onPostpone(postponedUntil: Date): void {
+	async onPostpone(postponedUntil: Date): Promise<void> {
 		this.win.imapImportFacade.onPostpone(postponedUntil)
 	}
 }
