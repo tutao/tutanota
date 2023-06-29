@@ -34,11 +34,12 @@ class NetworkUtils {
 				val conscrypt = Conscrypt.newProvider()
 				var result = Security.insertProviderAt(conscrypt, 1)
 				if (result == 1) {
-					Log.d(TAG, "enabled conscrypt for TLS1.3 support on legacy android")
+					Log.i(TAG, "enabled conscrypt for TLS1.3 support on legacy android")
 				} else {
-					Log.d(TAG, "failed to enable conscrypt")
+					Log.e(TAG, "failed to enable conscrypt")
 				}
 				try {
+					// we need to pass conscrypt to the SSLContext. Just inserting the security provider is not enough to make okhttp pick it up
 					val tm: X509TrustManager = Conscrypt.getDefaultX509TrustManager()
 					val sslContext: SSLContext = SSLContext.getInstance("TLS", conscrypt)
 					sslContext.init(null, arrayOf<TrustManager>(tm), null)
