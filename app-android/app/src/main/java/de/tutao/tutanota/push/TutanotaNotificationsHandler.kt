@@ -130,8 +130,6 @@ class TutanotaNotificationsHandler(
 				.url(url)
 				.method("GET", null)
 				.header("Content-Type", "application/json")
-				.header("Connection", "Keep-Alive")
-				.header("Accept", "text/event-stream")
 				.header("userIds", userId?:"")
 		addCommonHeaders(requestBuilder)
 		val lastProcessedNotificationId = sseStorage.getLastProcessedNotificationId()
@@ -153,6 +151,7 @@ class TutanotaNotificationsHandler(
 		val responseCode = response.code
 		Log.d(TAG, "MissedNotification response code $responseCode")
 		handleResponseCode(response)
+
 		response.body?.byteStream().use { inputStream ->
 			val responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
 			Log.d(TAG, "Loaded Missed notifications response")

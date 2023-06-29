@@ -229,52 +229,50 @@ class AndroidFileFacade(
 				val parsedUri = Uri.parse(fileUrl)
 				val contentResolver = activity.contentResolver
 				val contentType = contentResolver.getType(parsedUri)
-				val fd = contentResolver.openAssetFileDescriptor(parsedUri, "r")!!
-				val requestBody: RequestBody = object : RequestBody() {
-					override fun contentLength(): Long {
-						return fd.declaredLength
+				val response = contentResolver.openAssetFileDescriptor(parsedUri, "r")!!.use { fd ->
+
+					val requestBody: RequestBody = object : RequestBody() {
+						override fun contentLength(): Long {
+							return fd.declaredLength
+						}
+
+						override fun contentType(): MediaType? {
+							return contentType?.toMediaTypeOrNull()
+						}
+
+						@Throws(IOException::class)
+						override fun writeTo(sink: BufferedSink) {
+							fd.createInputStream().use { inputStream -> sink.writeAll(inputStream.source().buffer()) }
+						}
 					}
 
-					override fun contentType(): MediaType? {
-						return contentType?.toMediaTypeOrNull()
-					}
+					val requestBuilder = Request.Builder()
+							.url(targetUrl)
+							.method(method, requestBody)
+							.header("Content-Type", "application/octet-stream")
+							.header("Cache-Control", "no-cache")
+					addHeadersToRequest(requestBuilder, JSONObject(headers))
 
-					@Throws(IOException::class)
-					override fun writeTo(sink: BufferedSink) {
-						fd.createInputStream().use { inputStream -> sink.writeAll(inputStream.source().buffer()) }
-					}
+					// infinite timeout
+					// - the server stops listening after 10 minutes -> SocketException
+					// - if the internet connection dies -> SocketException
+					// we don't want to time out in case of a slow connection because we may already be
+					// waiting for the response code while the TCP stack is still busy sending our data
+					defaultClient.newBuilder()
+							.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+							.writeTimeout(0, TimeUnit.SECONDS)
+							.readTimeout(0, TimeUnit.SECONDS)
+							.build()
+							.newCall(requestBuilder.build())
+							.execute()
 				}
 
-				defaultClient.newBuilder()
-						.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
-						// infinite timeout
-						// - the server stops listening after 10 minutes -> SocketException
-						// - if the internet connection dies -> SocketException
-						// we don't want to time out in case of a slow connection because we may already be
-						// waiting for the response code while the TCP stack is still busy sending our data
-						.writeTimeout(0, TimeUnit.SECONDS)
-						.readTimeout(0, TimeUnit.SECONDS)
-				val requestBuilder = Request.Builder()
-						.url(targetUrl)
-						.method(method, requestBody)
-						.header("Content-Type", "application/octet-stream")
-						.header("Cache-Control", "no-cache")
-				addHeadersToRequest(requestBuilder, JSONObject(headers))
-
-				var response = defaultClient.newBuilder()
-						.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
-						.writeTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
-						.readTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
-						.build()
-						.newCall(requestBuilder.build())
-						.execute()
-				try {
+				response.use { response ->
 					// this would run into the read timeout if the upload is still running
 					val responseCode = response.code
 					val suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time")
 					val responseBody = if (responseCode in 200..299) {
-						val bodyOrNull = response.body?.bytes()?.wrap()
-						if (bodyOrNull != null) bodyOrNull else byteArrayOf().wrap()
+						response.body?.bytes()?.wrap() ?: byteArrayOf().wrap()
 					} else {
 						byteArrayOf().wrap()
 					}
@@ -285,8 +283,6 @@ class AndroidFileFacade(
 							suspensionTime = suspensionTime,
 							responseBody = responseBody
 					)
-				} finally {
-					response.close()
 				}
 			}
 
@@ -300,14 +296,15 @@ class AndroidFileFacade(
 						.header("Cache-Control", "no-cache")
 				addHeadersToRequest(requestBuilder, JSONObject(headers))
 
-				var response = defaultClient.newBuilder()
+				val response = defaultClient.newBuilder()
 						.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
 						.writeTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
 						.readTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
 						.build()
 						.newCall(requestBuilder.build())
 						.execute()
-				try {
+
+				response.use { response ->
 					var encryptedFile: File? = null
 					if (response.code == 200) {
 						val inputStream = response.body!!.byteStream()
@@ -322,8 +319,6 @@ class AndroidFileFacade(
 							suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time"),
 							encryptedFileUri = encryptedFile?.toUri().toString(),
 					)
-				} finally {
-					response.close()
 				}
 			}
 
