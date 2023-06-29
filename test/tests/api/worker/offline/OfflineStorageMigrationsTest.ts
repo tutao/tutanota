@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { OfflineStorage } from "../../../../../src/api/worker/offline/OfflineStorage.js"
 import { matchers, object, when } from "testdouble"
 import { GiftCard, GiftCardTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"

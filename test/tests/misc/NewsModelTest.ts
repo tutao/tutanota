@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { IServiceExecutor } from "../../../src/api/common/ServiceRequest.js"
 import { object, verify, when } from "testdouble"
 import { NewsItemStorage, NewsModel } from "../../../src/misc/news/NewsModel.js"

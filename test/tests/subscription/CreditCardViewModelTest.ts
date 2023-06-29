@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { object } from "testdouble"
 import { CardType, getCardTypeRange, inferExpirationDate, SimplifiedCreditCardViewModel } from "../../../src/subscription/SimplifiedCreditCardInputModel.js"
 

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { GroupType } from "../../src/api/common/TutanotaConstants.js"
 import type { MailFolder } from "../../src/api/entities/tutanota/TypeRefs.js"
 import {

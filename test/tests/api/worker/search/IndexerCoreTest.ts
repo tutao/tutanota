@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import type {
 	ElementDataDbRow,
 	ElementDataSurrogate,
@@ -909,12 +909,13 @@ o.spec("IndexerCore test", () => {
 			o(decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, searchIndexMeta.id))).deepEquals(searchIndexMeta)
 		})
 	})
-	o("writeIndexUpdate _updateGroupDataBatchId abort in case batch has been indexed already", function (done) {
+	o("writeIndexUpdate _updateGroupDataBatchId abort in case batch has been indexed already", async function () {
 		let groupId = "my-group"
 
 		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 
 		const batchId = "last-batch-id"
+		const deferred = defer<void>()
 		let transaction: any = {
 			get: (os, key) => {
 				o(os).equals(GroupDataOS)
@@ -926,18 +927,21 @@ o.spec("IndexerCore test", () => {
 			},
 			aborted: true,
 			abort: () => {
-				done()
+				deferred.resolve()
 			},
 		}
 		const core = makeCore()
 
 		core._updateGroupDataBatchId(groupId, batchId, transaction)
+		await deferred.promise
 	})
-	o("writeIndexUpdate _updateGroupDataBatchId", function (done) {
+
+	o("writeIndexUpdate _updateGroupDataBatchId", async function () {
 		let groupId = "my-group"
 
 		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 
+		const deferred = defer<void>()
 		const batchId = "2"
 		let transaction: any = {
 			get: (os, key) => {
@@ -957,13 +961,15 @@ o.spec("IndexerCore test", () => {
 						lastBatchIds: ["4", "3", "2", "1"],
 					}),
 				)
-				done()
+				deferred.resolve()
 			},
 		}
 		const core = makeCore()
 
 		core._updateGroupDataBatchId(groupId, batchId, transaction)
+		await deferred.promise
 	})
+
 	o("writeIndexUpdate", async function () {
 		let groupId = "my-group"
 
@@ -983,12 +989,11 @@ o.spec("IndexerCore test", () => {
 				transaction,
 			},
 			(mocked) => {
-				// @ts-ignore
-				mocked._moveIndexedInstance = o.spy(() => PromisableWrapper.from())
-				mocked._deleteIndexedInstance = o.spy()
-				mocked._insertNewElementData = o.spy(() => Promise.resolve())
-				mocked._insertNewIndexEntries = o.spy(() => Promise.resolve(encWordToMetaRow))
-				mocked._updateGroupDataIndexTimestamp = o.spy()
+				mocked._moveIndexedInstance = spy(() => PromisableWrapper.from(undefined))
+				mocked._deleteIndexedInstance = spy()
+				mocked._insertNewElementData = spy(() => Promise.resolve())
+				mocked._insertNewIndexEntries = spy(() => Promise.resolve(encWordToMetaRow))
+				mocked._updateGroupDataIndexTimestamp = spy()
 			},
 		)
 		const groupUpdate = [
@@ -998,28 +1003,19 @@ o.spec("IndexerCore test", () => {
 			},
 		]
 		await core.writeIndexUpdate(groupUpdate, indexUpdate)
-		// @ts-ignore
 		o(core._moveIndexedInstance.callCount).equals(1)
-		// @ts-ignore
 		o(core._moveIndexedInstance.args).deepEquals([indexUpdate, transaction])
-		// @ts-ignore
 		o(core._deleteIndexedInstance.callCount).equals(1)
-		// @ts-ignore
 		o(core._deleteIndexedInstance.args).deepEquals([indexUpdate, transaction])
-		// @ts-ignore
 		o(core._insertNewElementData.callCount).equals(1)
-		// @ts-ignore
 		o(core._insertNewElementData.args).deepEquals([indexUpdate, transaction, encWordToMetaRow])
-		// @ts-ignore
 		o(core._insertNewIndexEntries.callCount).equals(1)
-		// @ts-ignore
 		o(core._insertNewIndexEntries.args).deepEquals([indexUpdate, transaction])
-		// @ts-ignore
 		o(core._updateGroupDataIndexTimestamp.callCount).equals(1)
-		// @ts-ignore
 		o(core._updateGroupDataIndexTimestamp.args).deepEquals([groupUpdate, transaction])
 		o(waitForTransaction).equals(true)
 	})
+
 	o("processDeleted", async function () {
 		const groupId = "my-group"
 

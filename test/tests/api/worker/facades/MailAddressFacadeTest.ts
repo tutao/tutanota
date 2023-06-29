@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { WorkerImpl } from "../../../../../src/api/worker/WorkerImpl.js"
 import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
 import { GroupManagementFacade } from "../../../../../src/api/worker/facades/lazy/GroupManagementFacade.js"

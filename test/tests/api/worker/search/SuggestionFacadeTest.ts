@@ -1,12 +1,13 @@
 /**
  * Created by bdeterding on 13.12.17.
  */
-import o from "ospec"
+import o from "@tutao/otest"
 import { ContactTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { SuggestionFacade } from "../../../../../src/api/worker/search/SuggestionFacade.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { SearchTermSuggestionsOS } from "../../../../../src/api/worker/search/IndexTables.js"
+import { spy } from "@tutao/tutanota-test-utils"
 
 o.spec("SuggestionFacade test", () => {
 	let db
@@ -44,8 +45,8 @@ o.spec("SuggestionFacade test", () => {
 	})
 	o("load empty", () => {
 		let transactionMock: any = {}
-		transactionMock.get = o.spy(() => Promise.resolve(null))
-		downcast(db.dbFacade).createTransaction = o.spy(() => Promise.resolve(transactionMock))
+		transactionMock.get = spy(() => Promise.resolve(null))
+		downcast(db.dbFacade).createTransaction = spy(() => Promise.resolve(transactionMock))
 		facade.addSuggestions(["aaaaaaa"])
 		return facade.load().then(() => {
 			o(transactionMock.get.callCount).equals(1)
@@ -56,9 +57,9 @@ o.spec("SuggestionFacade test", () => {
 	})
 	o("store and load", () => {
 		let transactionMock: any = {}
-		transactionMock.put = o.spy(() => Promise.resolve())
-		transactionMock.wait = o.spy(() => Promise.resolve())
-		downcast(db.dbFacade).createTransaction = o.spy(() => Promise.resolve(transactionMock))
+		transactionMock.put = spy(() => Promise.resolve())
+		transactionMock.wait = spy(() => Promise.resolve())
+		downcast(db.dbFacade).createTransaction = spy(() => Promise.resolve(transactionMock))
 		facade.addSuggestions(["aaaa"])
 		return facade.store().then(() => {
 			o(transactionMock.put.args[0]).equals(SearchTermSuggestionsOS)
@@ -69,8 +70,8 @@ o.spec("SuggestionFacade test", () => {
 			o(facade.getSuggestions("a").join(" ")).equals("aaaa accc")
 			o(facade.getSuggestions("b").join(" ")).equals("bbbb")
 			let transactionLoadMock: any = {}
-			downcast(db.dbFacade).createTransaction = o.spy(() => Promise.resolve(transactionLoadMock))
-			transactionLoadMock.get = o.spy(() => Promise.resolve(encSuggestions))
+			downcast(db.dbFacade).createTransaction = spy(() => Promise.resolve(transactionLoadMock))
+			transactionLoadMock.get = spy(() => Promise.resolve(encSuggestions))
 			return facade.load().then(() => {
 				// restored
 				o(transactionLoadMock.get.args[0]).equals(SearchTermSuggestionsOS)

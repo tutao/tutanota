@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { urlify } from "../../../../src/api/worker/Urlifier.js"
 o.spec("UrlifierTest", function () {
 	o(" validHtmlLinks", function () {

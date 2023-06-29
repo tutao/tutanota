@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { deduplicateFilenames, sanitizeFilename } from "../../../../../src/api/common/utils/FileUtils.js"
 
 o.spec("FileUtilsTest", function () {

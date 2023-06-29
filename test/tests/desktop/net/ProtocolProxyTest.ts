@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import path from "node:path"
 import { OutgoingHttpHeader } from "node:http"
 import { func, matchers, object, verify, when } from "testdouble"

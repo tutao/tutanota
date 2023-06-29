@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { mergeMaps } from "../lib/MapUtils.js"
 o.spec("map utils", function () {
 	o("merge maps", function () {

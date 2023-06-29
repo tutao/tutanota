@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { tokenize } from "../../../../../src/api/worker/search/Tokenizer.js"
 o.spec("Tokenizer test", () => {
 	o("tokenize", () => {

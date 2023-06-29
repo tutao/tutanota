@@ -1,7 +1,8 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { bitArrayToUint8Array, checkIs128BitKey, padAes, uint8ArrayToBitArray, unpadAes } from "../lib/misc/Utils.js"
 import { CryptoError } from "../lib/misc/CryptoError.js"
 import { random } from "../lib/random/Randomizer.js"
+
 o.spec("crypto utils", function () {
 	o("pad ", function () {
 		_testPadding([], 16)
@@ -45,19 +46,14 @@ o.spec("crypto utils", function () {
 		}
 	}
 
-	o("checkIs128BitKey", function (done) {
+	o("checkIs128BitKey", function () {
 		let key128 = uint8ArrayToBitArray(random.generateRandomData(16))
 		let key256 = uint8ArrayToBitArray(random.generateRandomData(32))
 		let badKey = uint8ArrayToBitArray(random.generateRandomData(20))
 		o(checkIs128BitKey(key128)).equals(true)
 		o(checkIs128BitKey(key256)).equals(false)
 
-		try {
-			checkIs128BitKey(badKey)
-		} catch (e) {
-			o(e instanceof CryptoError).equals(true)
-			done()
-		}
+		o(() => checkIs128BitKey(badKey)).throws(CryptoError)
 	})
 	o("bitArrayToUint8Array", function () {
 		let bitArray = [8794650181632]

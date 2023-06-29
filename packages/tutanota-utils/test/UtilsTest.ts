@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { clone, deepEqual, getChangedProps } from "../lib/Utils.js"
 
 o.spec("utils", function () {

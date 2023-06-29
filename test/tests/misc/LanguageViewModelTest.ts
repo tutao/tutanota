@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { getSubstitutedLanguageCode, getAvailableLanguageCode, lang } from "../../../src/misc/LanguageViewModel.js"
 // @ts-ignore[untyped-import]
 import en from "../../../src/translations/en.js"

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import type { WorkerClient } from "../../../../src/api/main/WorkerClient.js"
 import { CryptoError } from "../../../../src/api/common/error/CryptoError.js"
 import { NotAuthenticatedError } from "../../../../src/api/common/error/RestError.js"
@@ -13,7 +13,6 @@ o.spec(
 	node(function () {
 		let worker: WorkerClient
 		o.before(async function () {
-			o.timeout(2000)
 			locator.init()
 			worker = locator.worker
 			await worker.initialized
@@ -33,6 +32,7 @@ o.spec(
 			await locator.logins.createSession("map-free@tutanota.de", "map", SessionType.Login)
 		})
 		o("programming error handling", async function () {
+			o.timeout(2000)
 			const e = await assertThrows(ProgrammingError, () =>
 				worker._postRequest(
 					new Request("testError", [
@@ -46,6 +46,7 @@ o.spec(
 			o(e?.message).equals("wtf: ProgrammingError")
 		})
 		o("crypto error handling", async function () {
+			o.timeout(2000)
 			const e = await assertThrows(CryptoError, () =>
 				worker._postRequest(
 					new Request("testError", [
@@ -59,6 +60,7 @@ o.spec(
 			o(e?.message).equals("wtf: CryptoError")
 		})
 		o("rest error handling", async function () {
+			o.timeout(2000)
 			const e = await assertThrows(NotAuthenticatedError, () =>
 				worker._postRequest(
 					new Request("testError", [

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { loadUserExportData } from "../../../src/settings/UserDataExporter.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import { LoginController } from "../../../src/api/main/LoginController.js"

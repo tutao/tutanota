@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { random } from "../lib/random/Randomizer.js"
 import sjcl from "../lib/internal/sjcl.js"
 import { CryptoError } from "../lib/misc/CryptoError.js"

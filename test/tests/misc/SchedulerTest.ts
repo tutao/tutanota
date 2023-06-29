@@ -1,10 +1,11 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import type { ScheduledTimeoutId, Scheduler, SystemInterval, SystemTimeout } from "../../../src/api/common/utils/Scheduler.js"
 import { SchedulerImpl, SET_TIMEOUT_LIMIT } from "../../../src/api/common/utils/Scheduler.js"
 import type { Thunk } from "@tutao/tutanota-utils"
 import { assertNotNull, downcast } from "@tutao/tutanota-utils"
 import { DateTime, Duration } from "luxon"
 import { DateProvider } from "../../../src/api/common/DateProvider.js"
+import { spy } from "@tutao/tutanota-test-utils"
 
 o.spec("Scheduler", function () {
 	let dateProvider: DateProvider
@@ -21,7 +22,7 @@ o.spec("Scheduler", function () {
 		scheduler = new SchedulerImpl(dateProvider, downcast<SystemTimeout>(timeoutMock), new IntervalMock())
 	})
 	o("scheduleAt close", function () {
-		const cb = o.spy()
+		const cb = spy()
 		const duration = Duration.fromObject({
 			minutes: 10,
 		})
@@ -33,7 +34,7 @@ o.spec("Scheduler", function () {
 		o(cb.callCount).equals(1)("Was called after timeout")
 	})
 	o("scheduleAt far", function () {
-		const cb = o.spy()
+		const cb = spy()
 		const duration = Duration.fromObject({
 			milliseconds: SET_TIMEOUT_LIMIT + 2000,
 		})
@@ -55,7 +56,7 @@ o.spec("Scheduler", function () {
 		o(cb.callCount).equals(1)("Was called after timeout")
 	})
 	o("scheduleAt far, cancelled intermediate timeout", function () {
-		const cb = o.spy()
+		const cb = spy()
 		const duration = Duration.fromObject({
 			milliseconds: SET_TIMEOUT_LIMIT + 2000,
 		})
@@ -68,7 +69,7 @@ o.spec("Scheduler", function () {
 		o(Array.from(timeoutMock.cancelled.values())).deepEquals([intermediateTimeout.id])
 	})
 	o("scheduleAt far, cancelled final timeout", function () {
-		const cb = o.spy()
+		const cb = spy()
 		const duration = Duration.fromObject({
 			milliseconds: SET_TIMEOUT_LIMIT + 2000,
 		})
@@ -131,6 +132,7 @@ class IntervalMock implements SystemInterval {
 	setInterval(cb, ms): number {
 		throw new Error("Not implemented")
 	}
+
 	clearInterval() {
 		throw new Error("Not implemented")
 	}

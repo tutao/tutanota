@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { CHECK_INTERVAL, SLEEP_INTERVAL, SleepDetector } from "../../../../../src/api/worker/utils/SleepDetector.js"
 import { SchedulerMock } from "../../../TestUtils.js"
 import { func, object, verify, when } from "testdouble"

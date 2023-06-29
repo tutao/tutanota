@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { ArchiveDataType } from "../../../../../src/api/common/TutanotaConstants.js"
 import { createBlob } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { createFile, createMailBody } from "../../../../../src/api/entities/tutanota/TypeRefs.js"

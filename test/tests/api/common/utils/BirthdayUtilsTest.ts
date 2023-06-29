@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { createBirthday } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { birthdayToIsoDate, isoDateToBirthday } from "../../../../../src/api/common/utils/BirthdayUtils.js"
 import { ParsingError } from "../../../../../src/api/common/error/ParsingError.js"

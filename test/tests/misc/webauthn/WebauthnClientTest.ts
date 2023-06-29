@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { matchers, object, when } from "testdouble"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { WebauthnClient } from "../../../../src/misc/2fa/webauthn/WebauthnClient.js"

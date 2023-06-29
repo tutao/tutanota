@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { DisplayMode, LoginState, LoginViewModel } from "../../../src/login/LoginViewModel.js"
 import type { LoginController } from "../../../src/api/main/LoginController.js"
 import { createGroupInfo, createUser } from "../../../src/api/entities/sys/TypeRefs.js"

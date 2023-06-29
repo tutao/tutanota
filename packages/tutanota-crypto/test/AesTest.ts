@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import type { Hex } from "@tutao/tutanota-utils"
 import { concat, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import {
@@ -15,6 +15,7 @@ import {
 import { base64ToKey, bitArrayToUint8Array, keyToBase64, uint8ArrayToBitArray } from "../lib/misc/Utils.js"
 import { CryptoError } from "../lib/misc/CryptoError.js"
 import { random } from "../lib/random/Randomizer.js"
+import { throwsErrorWithMessage } from "@tutao/tutanota-test-utils"
 
 o.spec("aes", function () {
 	o("encryption roundtrip 128 without mac", () => arrayRoundtrip(aes128Encrypt, aes128Decrypt, aes128RandomKey(), false))
@@ -74,57 +75,40 @@ o.spec("aes", function () {
 		return uint8ArrayToHex(bitArrayToUint8Array(key))
 	}
 
-	o("encryptWithInvalidKey 128 without mac", (done) => encryptWithInvalidKey(done, aes128Encrypt, false))
-	o("encryptWithInvalidKey 128 with mac", (done) => encryptWithInvalidKey(done, aes128Encrypt, true))
-	o("encryptWithInvalidKey 256 without mac", (done) => encryptWithInvalidKey(done, aes256Encrypt, false))
+	o("encryptWithInvalidKey 128 without mac", () => encryptWithInvalidKey(aes128Encrypt, false))
+	o("encryptWithInvalidKey 128 with mac", () => encryptWithInvalidKey(aes128Encrypt, true))
+	o("encryptWithInvalidKey 256 without mac", () => encryptWithInvalidKey(aes256Encrypt, false))
 
 	// o("encryptWithInvalidKey 256 webcrypto", done => encryptWithInvalidKey(done, aes256EncryptFile, true))
-	function encryptWithInvalidKey(done, encrypt, useMac) {
+	function encryptWithInvalidKey(encrypt, useMac) {
 		let key = _hexToKey("7878787878")
 
-		try {
-			encrypt(key, stringToUtf8Uint8Array("hello"), random.generateRandomData(IV_BYTE_LENGTH), true, useMac)
-		} catch (e) {
-			const error = e as Error
-			o(error instanceof CryptoError).equals(true)
-			o(error.message.startsWith("Illegal key length")).equals(true)
-			done()
-		}
+		o.check(() => encrypt(key, stringToUtf8Uint8Array("hello"), random.generateRandomData(IV_BYTE_LENGTH), true, useMac)).satisfies(
+			throwsErrorWithMessage(CryptoError, "Illegal key length"),
+		)
 	}
 
-	o("decryptWithInvalidKey 128", (done) => decryptWithInvalidKey(done, aes128Decrypt))
-	o("decryptWithInvalidKey 256 without hmac", (done) => decryptWithInvalidKey(done, aes256Decrypt))
+	o("decryptWithInvalidKey 128", () => decryptWithInvalidKey(aes128Decrypt))
+	o("decryptWithInvalidKey 256 without hmac", () => decryptWithInvalidKey(aes256Decrypt))
 
 	// o("decryptWithInvalidKey 256 webcrypto", done => decryptWithInvalidKey(done, aes256DecryptFile))
-	function decryptWithInvalidKey(done, decrypt) {
+	function decryptWithInvalidKey(decrypt) {
 		let key = _hexToKey("7878787878")
 
-		try {
-			;(decrypt as any)(key, stringToUtf8Uint8Array("hello"), true, false) // useMac is only used for aes256Decrypt
-		} catch (e) {
-			const error = e as Error
-			o(error instanceof CryptoError).equals(true)
-			o(error.message.startsWith("Illegal key length")).equals(true)
-			done()
-		}
+		// useMac is only used for aes256Decrypt
+		o(() => decrypt(key, stringToUtf8Uint8Array("hello"), true, false)).satisfies(throwsErrorWithMessage(CryptoError, "Illegal key length"))
 	}
 
-	o("decryptInvalidData 128", (done) =>
-		decryptInvalidData(done, aes128RandomKey(), aes128Decrypt, "Invalid IV length in AES128Decrypt: 10 bytes, must be 16 bytes (128 bits)"),
+	o("decryptInvalidData 128", () =>
+		decryptInvalidData(aes128RandomKey(), aes128Decrypt, "Invalid IV length in AES128Decrypt: 10 bytes, must be 16 bytes (128 bits)"),
 	)
-	o("decryptInvalidData 256 without hmac", (done) =>
-		decryptInvalidData(done, aes256RandomKey(), aes256Decrypt, "Invalid IV length in AES256Decrypt: 10 bytes, must be 16 bytes (128 bits)"),
+	o("decryptInvalidData 256 without hmac", () =>
+		decryptInvalidData(aes256RandomKey(), aes256Decrypt, "Invalid IV length in AES256Decrypt: 10 bytes, must be 16 bytes (128 bits)"),
 	)
 
-	function decryptInvalidData(done, key, decrypt, errorMessage) {
-		try {
-			;(decrypt as any)(key, new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]), true, false) // useMac is only used for aes256Decrypt
-		} catch (e) {
-			const error = e as Error
-			o(error instanceof CryptoError).equals(true)
-			o(error.message).equals(errorMessage)
-			done()
-		}
+	function decryptInvalidData(key, decrypt, errorMessage) {
+		// useMac is only used for aes256Decrypt
+		o.check(() => decrypt(key, new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]), true, false)).satisfies(throwsErrorWithMessage(CryptoError, errorMessage))
 	}
 
 	// o("decryptInvalidData 256 webcrypto", browser(done => {
@@ -149,6 +133,7 @@ o.spec("aes", function () {
 		let encrypted = aes128Encrypt(key, stringToUtf8Uint8Array("hello"), iv, true, true)
 		encrypted[1] = encrypted[1] + 1
 
+		o.check(() => aes128Decrypt(key, encrypted, true)).satisfies(throwsErrorWithMessage(CryptoError, "invalid mac"))
 		try {
 			aes128Decrypt(key, encrypted, true)
 		} catch (e) {
@@ -163,13 +148,7 @@ o.spec("aes", function () {
 		let encrypted = aes128Encrypt(key, stringToUtf8Uint8Array("hello"), iv, true, true)
 		encrypted[encrypted.length - 1] = encrypted[encrypted.length - 1] + 1
 
-		try {
-			aes128Decrypt(key, encrypted, true)
-		} catch (e) {
-			const error = e as Error
-			o(error instanceof CryptoError).equals(true)
-			o(error.message).equals("invalid mac")
-		}
+		o.check(() => aes128Decrypt(key, encrypted, true)).satisfies(throwsErrorWithMessage(CryptoError, "invalid mac"))
 	})
 	o("decryptMissingMac 128", function () {
 		let key = [151050668, 1341212767, 316219065, 2150939763]
@@ -177,13 +156,7 @@ o.spec("aes", function () {
 		let encrypted = aes128Encrypt(key, stringToUtf8Uint8Array("hello"), iv, true, false)
 		encrypted = concat(new Uint8Array([1]), encrypted)
 
-		try {
-			aes128Decrypt(key, encrypted, true)
-		} catch (e) {
-			const error = e as Error
-			o(error instanceof CryptoError).equals(true)
-			o(error.message).equals("invalid mac")
-		}
+		o.check(() => aes128Decrypt(key, encrypted, true)).satisfies(throwsErrorWithMessage(CryptoError, "invalid mac"))
 	})
 	// TODO uncomment when aes 256 with hmac is implemented
 	// o("decryptManipulatedData 256", function (done) {
@@ -210,26 +183,18 @@ o.spec("aes", function () {
 	// 		done()
 	// 	})
 	// }))
-	o("decryptWithWrongKey 128 without mac", (done) =>
-		decryptWithWrongKey(done, aes128RandomKey(), aes128RandomKey(), aes128Encrypt, aes128Decrypt, false, "aes decryption failed> pkcs#5 padding corrupt"),
+	o("decryptWithWrongKey 128 without mac", () =>
+		decryptWithWrongKey(aes128RandomKey(), aes128RandomKey(), aes128Encrypt, aes128Decrypt, false, "aes decryption failed> pkcs#5 padding corrupt"),
 	)
-	o("decryptWithWrongKey 128 with mac", (done) =>
-		decryptWithWrongKey(done, aes128RandomKey(), aes128RandomKey(), aes128Encrypt, aes128Decrypt, true, "invalid mac"),
-	)
-	o("decryptWithWrongKey 256 without mac", (done) =>
-		decryptWithWrongKey(done, aes256RandomKey(), aes256RandomKey(), aes256Encrypt, aes256Decrypt, false, "aes decryption failed> pkcs#5 padding corrupt"),
+	o("decryptWithWrongKey 128 with mac", () => decryptWithWrongKey(aes128RandomKey(), aes128RandomKey(), aes128Encrypt, aes128Decrypt, true, "invalid mac"))
+	o("decryptWithWrongKey 256 without mac", () =>
+		decryptWithWrongKey(aes256RandomKey(), aes256RandomKey(), aes256Encrypt, aes256Decrypt, false, "aes decryption failed> pkcs#5 padding corrupt"),
 	)
 
-	function decryptWithWrongKey(done, key, key2, encrypt, decrypt, useMac, errorMessage) {
-		try {
-			let encrypted = encrypt(key, stringToUtf8Uint8Array("hello"), random.generateRandomData(IV_BYTE_LENGTH), true, useMac)
-			;(decrypt as any)(key2, encrypted, true, useMac) // useMac is only used for aes256Decrypt
-		} catch (e) {
-			const error = e as Error
-			o(error instanceof CryptoError).equals(true)
-			o(error.message).equals(errorMessage)
-			done()
-		}
+	function decryptWithWrongKey(key, key2, encrypt, decrypt, useMac, errorMessage) {
+		const encrypted = encrypt(key, stringToUtf8Uint8Array("hello"), random.generateRandomData(IV_BYTE_LENGTH), true, useMac)
+		// useMac is only used for aes256Decrypt
+		o.check(() => decrypt(key2, encrypted, true, useMac)).satisfies(throwsErrorWithMessage(CryptoError, errorMessage))
 	}
 
 	// o("decryptWithWrongKey 256 webcrypto", browser(function (done, timeout) {

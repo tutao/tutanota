@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import {
 	ContactListTypeRef,
 	ContactTypeRef,
@@ -22,6 +22,7 @@ import { isSameId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { fixedIv } from "@tutao/tutanota-crypto"
 import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
 import { GroupDataOS } from "../../../../../src/api/worker/search/IndexTables.js"
+import { spy } from "@tutao/tutanota-test-utils"
 
 const dbMock: any = { iv: fixedIv }
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
@@ -30,8 +31,8 @@ o.spec("ContactIndexer test", () => {
 	let suggestionFacadeMock
 	o.beforeEach(function () {
 		suggestionFacadeMock = {} as any
-		suggestionFacadeMock.addSuggestions = o.spy()
-		suggestionFacadeMock.store = o.spy(() => Promise.resolve())
+		suggestionFacadeMock.addSuggestions = spy()
+		suggestionFacadeMock.store = spy(() => Promise.resolve())
 	})
 
 	o("createContactIndexEntries without entries", function () {
@@ -53,7 +54,7 @@ o.spec("ContactIndexer test", () => {
 	})
 
 	o("createContactIndexEntries", async function () {
-		let core = { createIndexEntriesForAttributes: o.spy() } as any
+		let core = { createIndexEntriesForAttributes: spy() } as any
 		const contactIndexer = new ContactIndexer(core, dbMock, null as any, suggestionFacadeMock)
 
 		let addresses = [createContactAddress(), createContactAddress()]
@@ -115,7 +116,7 @@ o.spec("ContactIndexer test", () => {
 
 		let indexer = { createIndexEntriesForAttributes: () => keyToIndexEntries } as any
 		let entity = {
-			load: o.spy(() => Promise.resolve(contact)),
+			load: spy(() => Promise.resolve(contact)),
 		} as any
 
 		const contactIndexer = new ContactIndexer(indexer, dbMock, entity, suggestionFacadeMock)
@@ -162,7 +163,7 @@ o.spec("ContactIndexer test", () => {
 		})
 	})
 
-	o("processNewContact passes other Errors", function () {
+	o("processNewContact passes other Errors", async function () {
 		let core = {
 			createIndexEntriesForAttributes: () => {},
 		} as any
@@ -171,7 +172,7 @@ o.spec("ContactIndexer test", () => {
 		} as any
 		const contactIndexer = new ContactIndexer(core, dbMock, entity, suggestionFacadeMock)
 		let event: EntityUpdate = { instanceListId: "lid", instanceId: "eid" } as any
-		return contactIndexer.processNewContact(event).catch((e) => {
+		await contactIndexer.processNewContact(event).catch((e) => {
 			o(suggestionFacadeMock.addSuggestions.callCount).equals(0)
 		})
 	})
@@ -188,7 +189,7 @@ o.spec("ContactIndexer test", () => {
 		})
 
 		const core = makeCore({ transaction }, (mocked) => {
-			mocked.writeIndexUpdate = o.spy()
+			mocked.writeIndexUpdate = spy()
 		})
 
 		let userGroupId = "userGroupId"
@@ -233,8 +234,8 @@ o.spec("ContactIndexer test", () => {
 	})
 	o("processEntityEvents new contact", async function () {
 		const core = makeCore({}, (mocked) => {
-			mocked.writeIndexUpdate = o.spy()
-			mocked._processDeleted = o.spy()
+			mocked.writeIndexUpdate = spy()
+			mocked._processDeleted = spy()
 		})
 
 		let contact = createContact()
@@ -259,8 +260,8 @@ o.spec("ContactIndexer test", () => {
 
 	o("processEntityEvents update contact", function () {
 		const core = makeCore({}, (mocked) => {
-			mocked.writeIndexUpdate = o.spy()
-			mocked._processDeleted = o.spy()
+			mocked.writeIndexUpdate = spy()
+			mocked._processDeleted = spy()
 		})
 
 		let contact = createContact()
@@ -279,17 +280,15 @@ o.spec("ContactIndexer test", () => {
 			// nothing changed
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
 			o(indexUpdate.move.length).equals(0)
-			// @ts-ignore
 			o(core._processDeleted.callCount).equals(1)
-			// @ts-ignore
 			o(core._processDeleted.args).deepEquals([events[0], indexUpdate])
 		})
 	})
 
 	o("processEntityEvents delete contact", function () {
 		const core = makeCore({}, (mocked) => {
-			mocked.writeIndexUpdate = o.spy()
-			mocked._processDeleted = o.spy()
+			mocked.writeIndexUpdate = spy()
+			mocked._processDeleted = spy()
 		})
 
 		let contact = createContact()
@@ -308,9 +307,7 @@ o.spec("ContactIndexer test", () => {
 			// nothing changed
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
 			o(indexUpdate.move.length).equals(0)
-			// @ts-ignore
 			o(core._processDeleted.callCount).equals(1)
-			// @ts-ignore
 			o(core._processDeleted.args).deepEquals([events[0], indexUpdate])
 		})
 	})

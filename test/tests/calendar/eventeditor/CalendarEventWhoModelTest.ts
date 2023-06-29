@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { CalendarEvent, createCalendarEvent, createCalendarEventAttendee, createContact } from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import { CalendarEventWhoModel } from "../../../../src/calendar/date/eventeditor/CalendarEventWhoModel.js"
 import { matchers, object, verify, when } from "testdouble"

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { NotAuthorizedError } from "../../../../../src/api/common/error/RestError.js"
 import type { Db, ElementDataDbRow, IndexUpdate } from "../../../../../src/api/worker/search/SearchTypes.js"
 import { _createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo } from "../../../../../src/api/worker/search/IndexUtils.js"
@@ -25,7 +25,7 @@ import {
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { mock, spy } from "@tutao/tutanota-test-utils"
 import { browserDataStub, makeCore } from "../../../TestUtils.js"
-import { downcast, getDayShifted, getStartOfDay, neverNull } from "@tutao/tutanota-utils"
+import { defer, downcast, getDayShifted, getStartOfDay, neverNull } from "@tutao/tutanota-utils"
 import { EventQueue } from "../../../../../src/api/worker/EventQueue.js"
 import { createSearchIndexDbStub } from "./DbStub.js"
 import { getElementId, getListId, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
@@ -58,11 +58,9 @@ class FixedDateProvider implements DateProvider {
 const dbMock: any = {
 	iv: fixedIv,
 }
-const emptyFutureActionsObj = {
-	deleted: {},
-	moved: {},
-}
+
 const mailId = "L-dNNLe----0"
+
 o.spec("MailIndexer test", () => {
 	let entityMock: EntityRestClientMock
 	let entityCache: DefaultEntityRestCache
@@ -93,7 +91,7 @@ o.spec("MailIndexer test", () => {
 	})
 	o("createMailIndexEntries", async function () {
 		let core: IndexerCore = {
-			createIndexEntriesForAttributes: o.spy(),
+			createIndexEntriesForAttributes: spy(),
 			_stats: {},
 		} as any
 		let indexer = new MailIndexer(core, dbMock, null as any, null as any, null as any, dateProvider)
@@ -195,7 +193,7 @@ o.spec("MailIndexer test", () => {
 		entityMock.addListInstances(mail, ...files)
 		entityMock.addBlobInstances(mailDetailsBlob)
 		let indexer = mock(new MailIndexer(null as any, dbMock, null as any, entityMock, entityCache, dateProvider), (mocked) => {
-			mocked.createMailIndexEntries = o.spy((detailsParam, filesParam) => {
+			mocked.createMailIndexEntries = spy((detailsParam, filesParam) => {
 				o(detailsParam.getMail()).deepEquals(mail)
 				o(detailsParam.getDetails()).deepEquals(mailDetailsBlob.details)
 				o(filesParam).deepEquals(files)
@@ -230,18 +228,16 @@ o.spec("MailIndexer test", () => {
 			o(result).equals(null)
 		})
 	})
-	o("processNewMail passes other Errors", function (done) {
+	o("processNewMail passes other Errors", async function () {
 		entityMock.setListElementException(["lid", "eid"], new Error("blah"))
 		const indexer = new MailIndexer(null as any, null as any, null as any, entityMock, entityCache, dateProvider)
 		let event: EntityUpdate = {
 			instanceListId: "lid",
 			instanceId: "eid",
 		} as any
-		indexer.processNewMail(event).catch((e) => {
-			done()
-		})
+		await o(() => indexer.processNewMail(event)).asyncThrows(Error)
 	})
-	o("processMovedMail", function (done) {
+	o("processMovedMail", async function () {
 		let event: EntityUpdate = {
 			instanceListId: "new-list-id",
 			instanceId: "eid",
@@ -266,14 +262,12 @@ o.spec("MailIndexer test", () => {
 
 		let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 
-		indexer.processMovedMail(event, indexUpdate).then(() => {
-			o(indexUpdate.move.length).equals(1)
-			o(Array.from(indexUpdate.move[0].encInstanceId)).deepEquals(Array.from(encInstanceId))
-			o(indexUpdate.move[0].newListId).equals(event.instanceListId)
-			done()
-		})
+		await indexer.processMovedMail(event, indexUpdate)
+		o(indexUpdate.move.length).equals(1)
+		o(Array.from(indexUpdate.move[0].encInstanceId)).deepEquals(Array.from(encInstanceId))
+		o(indexUpdate.move[0].newListId).equals(event.instanceListId)
 	})
-	o("processMovedMail that does not exist", function (done) {
+	o("processMovedMail that does not exist", async function () {
 		let transaction = {
 			get: (os, id) => {
 				o(os).equals(ElementDataOS)
@@ -294,7 +288,7 @@ o.spec("MailIndexer test", () => {
 		} as any
 		let encInstanceId = encryptIndexKeyBase64(db.key, event.instanceId, fixedIv)
 		const core: any = {
-			encryptSearchIndexEntries: o.spy(),
+			encryptSearchIndexEntries: spy(),
 		}
 		const indexer: any = new MailIndexer(core, db, null as any, null as any, null as any, dateProvider)
 		let result = {
@@ -304,19 +298,17 @@ o.spec("MailIndexer test", () => {
 			},
 			keyToIndexEntries: new Map(),
 		}
-		indexer.processNewMail = o.spy(() => Promise.resolve(result))
+		indexer.processNewMail = spy(() => Promise.resolve(result))
 
 		let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 
-		indexer.processMovedMail(event, indexUpdate).then(() => {
-			o(indexUpdate.move.length).equals(0)
-			o(indexer.processNewMail.callCount).equals(1)
-			o(core.encryptSearchIndexEntries.callCount).equals(1)
-			o(core.encryptSearchIndexEntries.args).deepEquals([result.mail._id, result.mail._ownerGroup, result.keyToIndexEntries, indexUpdate])
-			done()
-		})
+		await indexer.processMovedMail(event, indexUpdate)
+		o(indexUpdate.move.length).equals(0)
+		o(indexer.processNewMail.callCount).equals(1)
+		o(core.encryptSearchIndexEntries.callCount).equals(1)
+		o(core.encryptSearchIndexEntries.args).deepEquals([result.mail._id, result.mail._ownerGroup, result.keyToIndexEntries, indexUpdate])
 	})
-	o("enableMailIndexing", function (done) {
+	o("enableMailIndexing", async function () {
 		let metadata = {}
 		let transaction = {
 			get: (os, key) => {
@@ -357,21 +349,18 @@ o.spec("MailIndexer test", () => {
 				return spamFolder
 			}
 		})
-		indexer.enableMailIndexing(user).then(() => {
-			// @ts-ignore
-			o(indexer.indexMailboxes.invocations[0]).deepEquals([user, beforeNowInterval])
-			o(indexer.mailIndexingEnabled).equals(true)
-			o(indexer._excludedListIds).deepEquals([spamFolder.mails])
-			o(JSON.stringify(metadata)).equals(
-				JSON.stringify({
-					[MetaData.mailIndexingEnabled]: true,
-					[MetaData.excludedListIds]: [spamFolder.mails],
-				}),
-			)
-			done()
-		})
+		await indexer.enableMailIndexing(user)
+		o(indexer.indexMailboxes.invocations[0]).deepEquals([user, beforeNowInterval])
+		o(indexer.mailIndexingEnabled).equals(true)
+		o(indexer._excludedListIds).deepEquals([spamFolder.mails])
+		o(JSON.stringify(metadata)).equals(
+			JSON.stringify({
+				[MetaData.mailIndexingEnabled]: true,
+				[MetaData.excludedListIds]: [spamFolder.mails],
+			}),
+		)
 	})
-	o("enableMailIndexing already enabled", function (done) {
+	o("enableMailIndexing already enabled", async function () {
 		let transaction = {
 			get: (os, key) => {
 				o(os).equals(MetaDataOS)
@@ -392,22 +381,20 @@ o.spec("MailIndexer test", () => {
 			},
 		} as any
 		const indexer: any = new MailIndexer(null as any, db, null as any, null as any, null as any, dateProvider)
-		indexer.indexMailboxes = o.spy()
+		indexer.indexMailboxes = spy()
 		indexer.mailIndexingEnabled = false
 		indexer._excludedListIds = []
 		let user = createUser()
-		indexer.enableMailIndexing(user).then(() => {
-			o(indexer.indexMailboxes.callCount).equals(0)
-			o(indexer.mailIndexingEnabled).equals(true)
-			o(indexer._excludedListIds).deepEquals([1, 2])
-			done()
-		})
+		await await indexer.enableMailIndexing(user)
+		o(indexer.indexMailboxes.callCount).equals(0)
+		o(indexer.mailIndexingEnabled).equals(true)
+		o(indexer._excludedListIds).deepEquals([1, 2])
 	})
 	o("disableMailIndexing", function () {
 		let db: Db = {
 			key: aes256RandomKey(),
 			dbFacade: {
-				deleteDatabase: o.spy(),
+				deleteDatabase: spy(),
 			},
 		} as any
 		const indexer: any = new MailIndexer(null as any, db, null as any, null as any, null as any, dateProvider)
@@ -419,11 +406,11 @@ o.spec("MailIndexer test", () => {
 		// @ts-ignore
 		o(db.dbFacade.deleteDatabase.callCount).equals(1)
 	})
-	o("indexMailboxes disabled", function (done) {
+	o("indexMailboxes disabled", async function () {
 		const indexer = mock(new MailIndexer(null as any, null as any, null as any, entityMock, entityCache, dateProvider), (mocked) => {
 			mocked.mailIndexingEnabled = false
-			mocked.indexMailboxes(createUser(), 1512946800000).then(done)
 		})
+		await indexer.indexMailboxes(createUser(), 1512946800000)
 	})
 	o.spec("indexMailboxes", function () {
 		o("initial indexing", function () {
@@ -515,7 +502,7 @@ o.spec("MailIndexer test", () => {
 					browserDataStub,
 				),
 				(mocked) => {
-					mocked.writeIndexUpdate = o.spy(() => Promise.resolve())
+					mocked.writeIndexUpdate = spy(() => Promise.resolve())
 				},
 			)
 			const infoMessageHandler = object<InfoMessageHandler>()
@@ -816,7 +803,7 @@ async function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number
 			return Promise.resolve([mailListId])
 		}
 
-		mock._indexMailLists = o.spy(() => Promise.resolve())
+		mock._indexMailLists = spy(() => Promise.resolve())
 	})
 	const indexPromise = indexer.indexMailboxes(user, endIndexTimstamp)
 	o(indexer.isIndexing).equals(true)
@@ -870,8 +857,8 @@ function _prepareProcessEntityTests(indexingEnabled: boolean, mailState: MailSta
 			browserDataStub,
 		),
 		(mocked) => {
-			mocked.writeIndexUpdate = o.spy()
-			mocked._processDeleted = o.spy()
+			mocked.writeIndexUpdate = spy()
+			mocked._processDeleted = spy()
 		},
 	)
 	const { mail, mailDetailsBlob } = createMailInstances(["new-mail-list", mailId], ["details-list-id", "details-id"])

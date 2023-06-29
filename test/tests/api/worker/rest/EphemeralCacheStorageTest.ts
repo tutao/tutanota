@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { EphemeralCacheStorage } from "../../../../../src/api/worker/rest/EphemeralCacheStorage.js"
 import { createMailDetails, createMailDetailsBlob, MailDetailsBlobTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 

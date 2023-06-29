@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -66,7 +66,7 @@ o.spec("RestErrorTest", function () {
 				thrown = true
 			}
 
-			o(thrown).equals(true)
+			o(thrown).equals(true)(`throws ${type}`)
 		})
 	}
 

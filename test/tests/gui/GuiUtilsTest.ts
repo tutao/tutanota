@@ -1,16 +1,18 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { Dialog } from "../../../src/gui/base/Dialog.js"
-import { getConfirmation, getPosAndBoundsFromMouseEvent } from "../../../src/gui/base/GuiUtils.js"
+import { getConfirmation } from "../../../src/gui/base/GuiUtils.js"
 import { downcast } from "@tutao/tutanota-utils"
+import { spy } from "@tutao/tutanota-test-utils"
+
 o.spec("GuiUtils", function () {
 	o.spec("getConfirmation ok", function () {
 		o.beforeEach(function () {
-			Dialog.confirm = o.spy(function (...args) {
+			Dialog.confirm = spy(function (...args) {
 				return Promise.resolve(true)
 			})
 		})
 		o("calls confirmed", async function () {
-			const confirmAction = o.spy(() => {})
+			const confirmAction = spy(() => {})
 			const confirmation = getConfirmation(downcast("message"), downcast("ok action")).confirmed(confirmAction)
 			await confirmation.result
 			o(confirmAction.callCount).equals(1)
@@ -18,7 +20,7 @@ o.spec("GuiUtils", function () {
 			o(Dialog.confirm.args).deepEquals(["message", "ok action"])
 		})
 		o("calls cancelled", async function () {
-			const cancelAction = o.spy(() => {})
+			const cancelAction = spy(() => {})
 			const confirmation = getConfirmation(downcast("message"), downcast("ok action")).cancelled(cancelAction)
 			await confirmation.result
 			o(cancelAction.callCount).equals(0)
@@ -26,8 +28,8 @@ o.spec("GuiUtils", function () {
 			o(Dialog.confirm.args).deepEquals(["message", "ok action"])
 		})
 		o("calls confirmed and cancelled", async function () {
-			const confirmAction = o.spy(() => {})
-			const cancelAction = o.spy(() => {})
+			const confirmAction = spy(() => {})
+			const cancelAction = spy(() => {})
 			const confirmation = getConfirmation(downcast("message"), downcast("ok action")).confirmed(confirmAction).cancelled(cancelAction)
 			await confirmation.result
 			o(confirmAction.callCount).equals(1)
@@ -38,12 +40,12 @@ o.spec("GuiUtils", function () {
 	})
 	o.spec("getConfirmation !ok", function () {
 		o.beforeEach(function () {
-			Dialog.confirm = o.spy(function (...args) {
+			Dialog.confirm = spy(function (...args) {
 				return Promise.resolve(false)
 			})
 		})
 		o("calls confirmed", async function () {
-			const confirmAction = o.spy(() => {})
+			const confirmAction = spy(() => {})
 			const confirmation = getConfirmation(downcast("message"), downcast("ok action")).confirmed(confirmAction)
 			await confirmation.result
 			o(confirmAction.callCount).equals(0)
@@ -51,7 +53,7 @@ o.spec("GuiUtils", function () {
 			o(Dialog.confirm.args).deepEquals(["message", "ok action"])
 		})
 		o("calls cancelled", async function () {
-			const cancelAction = o.spy(() => {})
+			const cancelAction = spy(() => {})
 			const confirmation = getConfirmation(downcast("message"), downcast("ok action")).cancelled(cancelAction)
 			await confirmation.result
 			o(cancelAction.callCount).equals(1)
@@ -59,8 +61,8 @@ o.spec("GuiUtils", function () {
 			o(Dialog.confirm.args).deepEquals(["message", "ok action"])
 		})
 		o("calls confirmed and cancelled", async function () {
-			const confirmAction = o.spy(() => {})
-			const cancelAction = o.spy(() => {})
+			const confirmAction = spy(() => {})
+			const cancelAction = spy(() => {})
 			const confirmation = getConfirmation(downcast("message"), downcast("ok action")).confirmed(confirmAction).cancelled(cancelAction)
 			await confirmation.result
 			o(confirmAction.callCount).equals(0)

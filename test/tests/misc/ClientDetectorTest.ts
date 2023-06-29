@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { client } from "../../../src/misc/ClientDetector.js"
 import { Mode } from "../../../src/api/common/Env.js"
 import { BrowserType, DeviceType } from "../../../src/misc/ClientConstants.js"

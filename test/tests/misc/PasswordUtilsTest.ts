@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import {
 	_BAD_SEQUENCES,
 	_getNbrOfSequenceChars,

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { getDateFromMousePos, getTimeFromMousePos } from "../../../src/calendar/view/CalendarGuiUtils.js"
 o.spec("CalendarGuiUtils", function () {
 	o("getDateFromMouseClick", function () {

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { EXECUTABLE_EXTENSIONS, looksExecutable, nonClobberingFilename, swapFilename } from "../../../src/desktop/PathUtils.js"
 import path from "node:path"
 

@@ -1,0 +1,14 @@
+{
+	"include": ["lib/*"],
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "esnext",
+		"strict": true,
+		"skipLibCheck": true,
+		"outDir": "dist",
+		"incremental": true,
+		"composite": true,
+		"rootDir": "lib",
+		"tsBuildInfoFile": "dist/tsbuildinfo"
+	}
+}

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import {
 	arrayEquals,
 	base64ToUint8Array,
@@ -48,7 +48,7 @@ import {
 	UpdatePermissionKeyData,
 	UserIdReturnTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows, spy } from "@tutao/tutanota-test-utils"
 import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
 import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
 import {
@@ -807,13 +807,13 @@ o.spec("crypto facade", function () {
 
 				const mailInstance = await instanceMapper.decryptAndMapToInstance<Mail>(testData.MailTypeModel, testData.mailLiteral, testData.sk)
 
-				// @ts-ignore
-				instanceMapper.decryptAndMapToInstance = o.spy(instanceMapper.decryptAndMapToInstance)
-				crypto.convertBucketKeyToInstanceIfNecessary = o.spy(crypto.convertBucketKeyToInstanceIfNecessary)
+				// do not use testdouble here because it's hard to not break the function itself and then verify invocations
+				const decryptAndMapToInstance = (instanceMapper.decryptAndMapToInstance = spy(instanceMapper.decryptAndMapToInstance))
+				const convertBucketKeyToInstanceIfNecessary = (crypto.convertBucketKeyToInstanceIfNecessary = spy(crypto.convertBucketKeyToInstanceIfNecessary))
 
 				const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, mailInstance))
-				o(instanceMapper.decryptAndMapToInstance.callCount).equals(0)
-				o(crypto.convertBucketKeyToInstanceIfNecessary.callCount).equals(1)
+				o(decryptAndMapToInstance.invocations.length).equals(0)
+				o(convertBucketKeyToInstanceIfNecessary.invocations.length).equals(1)
 
 				o(sessionKey).deepEquals(testData.sk)
 				o(crypto.getSessionKeyCache()["draftDetailsId"]).deepEquals(testData.sk)

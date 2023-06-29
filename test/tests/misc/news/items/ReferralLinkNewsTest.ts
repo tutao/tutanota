@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { DateProvider } from "../../../../../src/api/common/DateProvider.js"
 import { NewsModel } from "../../../../../src/misc/news/NewsModel.js"
 import { object, replace, when } from "testdouble"

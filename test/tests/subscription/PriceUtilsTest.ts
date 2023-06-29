@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { asPaymentInterval, formatMonthlyPrice, formatPrice, PaymentInterval, PriceAndConfigProvider } from "../../../src/subscription/PriceUtils.js"
 import { clone } from "@tutao/tutanota-utils"
 import { UpgradePriceType } from "../../../src/subscription/FeatureListProvider"

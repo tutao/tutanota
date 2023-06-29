@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import n from "../../nodemocker.js"
 import { delay, numberRange } from "@tutao/tutanota-utils"
 import { getConfigFile } from "../../../../src/desktop/config/ConfigFile.js"

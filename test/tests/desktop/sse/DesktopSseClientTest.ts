@@ -1,8 +1,8 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import n from "../../nodemocker.js"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import type { TimeoutMock } from "@tutao/tutanota-test-utils"
-import { makeTimeoutMock } from "@tutao/tutanota-test-utils"
+import { makeTimeoutMock, spy } from "@tutao/tutanota-test-utils"
 import { defer, delay, downcast, neverNull, noOp, numberRange } from "@tutao/tutanota-utils"
 import { AlarmInterval } from "../../../../src/api/common/TutanotaConstants.js"
 import * as url from "node:url"
@@ -233,7 +233,7 @@ o.spec("DesktopSseClient Test", function () {
 
 		//store new timeout value
 		res.callbacks["data"]("data: heartbeatTimeout:42\n")
-		o(confMock.setVar.calls[1].args).deepEquals([DesktopConfigKey.heartbeatTimeoutInSeconds, 42])
+		o(confMock.setVar.calls[1]).deepEquals([DesktopConfigKey.heartbeatTimeoutInSeconds, 42])
 
 		//check for reschedule on heartbeat
 		let oldTimeout = sse._nextReconnect
@@ -310,7 +310,7 @@ o.spec("DesktopSseClient Test", function () {
 			sseOrigin: "http://here.there",
 			userIds: ["id2"],
 		})
-		o(alarmSchedulerMock.unscheduleAllAlarms.calls[0].args).deepEquals(["id1"])
+		o(alarmSchedulerMock.unscheduleAllAlarms.calls[0]).deepEquals(["id1"])
 		o(sse._nextReconnect).notEquals(null)
 
 		// done
@@ -429,7 +429,7 @@ o.spec("DesktopSseClient Test", function () {
 				},
 			})
 			.set()
-		const timeoutSpy = o.spy(timeoutMock)
+		const timeoutSpy = spy(timeoutMock)
 
 		const sse = new DesktopSseClient(
 			electronMock.app,
@@ -527,7 +527,7 @@ o.spec("DesktopSseClient Test", function () {
 		sseConnectResponse.callbacks["data"](`data: notification\n`)
 
 		await delay(1)
-		o(confMock.setVar.calls[2].args).deepEquals([DesktopConfigKey.lastProcessedNotificationId, "1"])
+		o(confMock.setVar.calls[2]).deepEquals([DesktopConfigKey.lastProcessedNotificationId, "1"])
 		o(notifierMock.submitGroupedNotification.callCount).equals(1)
 		o(notifierMock.submitGroupedNotification.args[0]).equals("pushNewMail_msg")
 		o(notifierMock.submitGroupedNotification.args[1]).equals("me@here.com (2)")
@@ -751,7 +751,7 @@ o.spec("DesktopSseClient Test", function () {
 		o(notifierMock.submitGroupedNotification.callCount).equals(0)
 		o(alarmSchedulerMock.handleAlarmNotification.callCount).equals(0)
 		await Promise.resolve()
-		o(confMock.setVar.calls.find((c) => c.args[0] === DesktopConfigEncKey.sseInfo)?.args!).deepEquals([
+		o(confMock.setVar.calls.find((c) => c[0] === DesktopConfigEncKey.sseInfo)).deepEquals([
 			DesktopConfigEncKey.sseInfo,
 			{
 				identifier,
@@ -759,7 +759,7 @@ o.spec("DesktopSseClient Test", function () {
 				userIds: ["id2"],
 			},
 		])
-		o(alarmSchedulerMock.unscheduleAllAlarms.calls[0].args).deepEquals(["id1"])
+		o(alarmSchedulerMock.unscheduleAllAlarms.calls[0]).deepEquals(["id1"])
 		downcast(electronMock.app).callbacks["will-quit"]()
 	})
 
@@ -801,7 +801,7 @@ o.spec("DesktopSseClient Test", function () {
 		downcast(electronMock.app).callbacks["will-quit"]()
 	})
 
-	o("suspension on downloadMissedNotification Service Unavailable", async function () {
+	o("suspesion on downloadMissedNotification Service Unavailable", async function () {
 		const sse = new DesktopSseClient(
 			electronMock.app,
 			confMock,
@@ -832,7 +832,7 @@ o.spec("DesktopSseClient Test", function () {
 		o(net.ClientRequest.mockedInstances[1].abort.callCount).equals(1)
 		o(missedNotificationResponse.destroy.callCount).equals(1)
 
-		o(downcast(timeoutMock).calls.some((c) => c.args[1] === 5000)).equals(true)
+		o(downcast(timeoutMock).calls.some((c) => c[1] === 5000)).equals(true)
 		timeoutMock.next()
 
 		// wait for missedNotification request to be sent...
@@ -877,7 +877,7 @@ o.spec("DesktopSseClient Test", function () {
 		o(net.ClientRequest.mockedInstances[1].abort.callCount).equals(1)
 		o(missedNotificationResponse.destroy.callCount).equals(1)
 
-		o(downcast(timeoutMock).calls.some((c) => c.args[1] === 5000)).equals(true)
+		o(downcast(timeoutMock).calls.some((c) => c[1] === 5000)).equals(true)
 		timeoutMock.next()
 
 		// wait for missedNotification request to be sent...
@@ -911,7 +911,7 @@ o.spec("DesktopSseClient Test", function () {
 				},
 			})
 			.set()
-		const timeoutSpy = o.spy(timeoutMock)
+		const timeoutSpy = spy(timeoutMock)
 		const sse = new DesktopSseClient(
 			electronMock.app,
 			confMock,
@@ -929,9 +929,9 @@ o.spec("DesktopSseClient Test", function () {
 		await delay(10)
 
 		o(alarmSchedulerMock.unscheduleAllAlarms.callCount).equals(1)
-		o(confMock.setVar.calls[0].args).deepEquals([DesktopConfigKey.lastMissedNotificationCheckTime, null])
-		o(confMock.setVar.calls[1].args).deepEquals(["lastProcessedNotificationId", null])
-		o(confMock.setVar.calls[2].args).deepEquals([DesktopConfigEncKey.sseInfo, { identifier, userIds: [], sseOrigin: sseInfo.sseOrigin }])
+		o(confMock.setVar.calls[0]).deepEquals([DesktopConfigKey.lastMissedNotificationCheckTime, null])
+		o(confMock.setVar.calls[1]).deepEquals(["lastProcessedNotificationId", null])
+		o(confMock.setVar.calls[2]).deepEquals([DesktopConfigEncKey.sseInfo, { identifier, userIds: [], sseOrigin: sseInfo.sseOrigin }])
 		o(alarmStorageMock.removePushIdentifierKeys.callCount).equals(1)
 		o(timeoutSpy.callCount).equals(1)
 	})

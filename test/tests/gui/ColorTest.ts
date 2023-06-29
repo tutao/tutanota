@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { hexToRgb, isColorLight, rgbToHex } from "../../../src/gui/base/Color.js"
 o.spec("color", function () {
 	o("hexToRGB 6digit", function () {

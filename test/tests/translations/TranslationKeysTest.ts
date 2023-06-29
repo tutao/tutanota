@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import {difference} from "@tutao/tutanota-utils"
 // @ts-ignore[untyped-import]
 import en from "../../../src/translations/en.js"

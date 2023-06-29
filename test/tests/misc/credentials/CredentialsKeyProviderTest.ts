@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { CredentialsKeyProvider } from "../../../../src/misc/credentials/CredentialsKeyProvider.js"
 import { CredentialEncryptionMode } from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
 import type { DeviceEncryptionFacade } from "../../../../src/api/worker/facades/DeviceEncryptionFacade.js"

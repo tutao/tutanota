@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { OfflineMigration, OfflineStorageMigrator } from "../../../../../src/api/worker/offline/OfflineStorageMigrator.js"
 import { OfflineStorage } from "../../../../../src/api/worker/offline/OfflineStorage.js"
 import { func, instance, matchers, object, when } from "testdouble"

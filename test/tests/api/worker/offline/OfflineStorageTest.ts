@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { verify } from "@tutao/tutanota-test-utils"
 import { customTypeEncoders, OfflineStorage, sql } from "../../../../../src/api/worker/offline/OfflineStorage.js"
 import { instance, object, when } from "testdouble"

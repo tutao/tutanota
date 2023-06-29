@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import type { AlarmOccurrence, CalendarMonth } from "../../../src/calendar/date/CalendarUtils.js"
 import {
 	calendarEventHasMoreThanOneOccurrencesLeft,

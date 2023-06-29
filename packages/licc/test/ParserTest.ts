@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { ParsedType, parseType } from "../lib/Parser.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 

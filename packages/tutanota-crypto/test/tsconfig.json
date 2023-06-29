@@ -10,6 +10,9 @@
 	"references": [
 		{
 			"path": "../../tutanota-utils"
+		},
+		{
+			"path": "../../otest"
 		}
 	]
 }

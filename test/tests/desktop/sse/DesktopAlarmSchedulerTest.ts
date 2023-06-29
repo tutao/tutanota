@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import n from "../../nodemocker.js"
 import { EndType, RepeatPeriod } from "../../../../src/api/common/TutanotaConstants.js"
 import { DesktopAlarmScheduler } from "../../../../src/desktop/sse/DesktopAlarmScheduler.js"
@@ -9,7 +9,7 @@ import { WindowManager } from "../../../../src/desktop/DesktopWindowManager.js"
 import { DesktopNotifier, NotificationResult } from "../../../../src/desktop/DesktopNotifier.js"
 import { DesktopAlarmStorage } from "../../../../src/desktop/sse/DesktopAlarmStorage.js"
 import { DesktopNativeCryptoFacade } from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows, spy } from "@tutao/tutanota-test-utils"
 import { EncryptedAlarmNotification } from "../../../../src/native/common/EncryptedAlarmNotification.js"
 
 const oldTimezone = process.env.TZ
@@ -40,8 +40,8 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 
 	function makeAlarmScheduler(): AlarmScheduler {
 		return {
-			scheduleAlarm: o.spy(),
-			cancelAlarm: o.spy(),
+			scheduleAlarm: spy(),
+			cancelAlarm: spy(),
 		}
 	}
 
@@ -58,8 +58,8 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 		const notifierMock = n.mock<DesktopNotifier>("__notifier", notifier).set()
 
 		const alarmStorage = {
-			storeAlarm: o.spy(() => Promise.resolve()),
-			deleteAlarm: o.spy(() => Promise.resolve()),
+			storeAlarm: spy(() => Promise.resolve()),
+			deleteAlarm: spy(() => Promise.resolve()),
 			getPushIdentifierSessionKey: () => Promise.resolve("piSk"),
 			getScheduledAlarms: () => [],
 			removePushIdentifierKey: () => {},
@@ -109,7 +109,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 			await scheduler.rescheduleAll()
 
 			o(alarmStorageMock.storeAlarm.callCount).equals(0)
-			o(alarmScheduler.scheduleAlarm.calls.map((c) => c.args.slice(0, -1))).deepEquals([
+			o(alarmScheduler.scheduleAlarm.calls.map((c) => c.slice(0, -1))).deepEquals([
 				[{ startTime: an.eventStart, endTime: an.eventEnd, summary: an.summary }, an.alarmInfo, an.repeatRule],
 			])
 		})
@@ -149,14 +149,14 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 			await scheduler.handleAlarmNotification(an2)
 
 			// We don't want the callback argument
-			o(alarmScheduler.scheduleAlarm.calls.map((c) => c.args.slice(0, -1))).deepEquals([
+			o(alarmScheduler.scheduleAlarm.calls.map((c) => c.slice(0, -1))).deepEquals([
 				[{ startTime: an1.eventStart, endTime: an1.eventEnd, summary: an1.summary }, an1.alarmInfo, an1.repeatRule],
 				[{ startTime: an2.eventStart, endTime: an2.eventEnd, summary: an2.summary }, an2.alarmInfo, an2.repeatRule],
 			])
 
 			// @ts-ignore
 			await scheduler.handleAlarmNotification(an3)
-			o(alarmScheduler.cancelAlarm.calls.map((c) => c.args)).deepEquals([[an3.alarmInfo.alarmIdentifier]])
+			o(alarmScheduler.cancelAlarm.calls).deepEquals([[an3.alarmInfo.alarmIdentifier]])
 		})
 
 		o("notification is shown and calendar is opened when it's clicked", async function () {
@@ -179,14 +179,14 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 			await scheduler.handleAlarmNotification(an1)
 			o(notifierMock.submitGroupedNotification.callCount).equals(0)
 
-			const cb = lastThrow(alarmScheduler.scheduleAlarm.calls[0].args)
+			const cb = lastThrow(alarmScheduler.scheduleAlarm.calls[0])
 			const title = "title"
 			const body = "body"
 			cb(title, body)
 
-			o(notifierMock.submitGroupedNotification.calls.map((c) => c.args.slice(0, -1))).deepEquals([[title, body, an1.alarmInfo.alarmIdentifier]])
+			o(notifierMock.submitGroupedNotification.calls.map((c) => c.slice(0, -1))).deepEquals([[title, body, an1.alarmInfo.alarmIdentifier]])
 			o(wmMock.openCalendar.callCount).equals(0)
-			const onClick = lastThrow(notifierMock.submitGroupedNotification.calls[0].args)
+			const onClick = lastThrow(notifierMock.submitGroupedNotification.calls[0])
 			onClick(NotificationResult.Click)
 			o(wmMock.openCalendar.callCount).equals(1)
 		})
@@ -195,8 +195,8 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 			const { wmMock, notifierMock, cryptoMock } = standardMocks()
 			const alarmStorageMock = n
 				.mock<DesktopAlarmStorage>("__alarmStorage", {
-					storeAlarm: o.spy(() => Promise.resolve()),
-					deleteAlarm: o.spy(() => Promise.resolve()),
+					storeAlarm: spy(() => Promise.resolve()),
+					deleteAlarm: spy(() => Promise.resolve()),
 					getPushIdentifierSessionKey: () => null,
 					getScheduledAlarms: () => [],
 				})

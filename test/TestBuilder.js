@@ -36,7 +36,7 @@ export async function runTestBuild({ clean, fast = false }) {
 	})
 	await runStep("Esbuild", async () => {
 		await esbuild({
-			entryPoints: ["tests/bootstrapTests.ts"],
+			entryPoints: ["tests/testInBrowser.ts", "tests/testInNode.ts"],
 			outdir: "./build",
 			// Bundle to include the whole graph
 			bundle: true,
@@ -90,7 +90,7 @@ export async function runTestBuild({ clean, fast = false }) {
 }
 
 async function createUnitTestHtml(localEnv) {
-	const imports = [{ src: `./bootstrapTests.js`, type: "module" }]
+	const imports = [{ src: `./testInBrowser.js`, type: "module" }]
 	const htmlFilePath = inBuildDir("test.html")
 
 	console.log(`Generating browser tests at "${htmlFilePath}"`)

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { formatNameAndAddress } from "../../../../../src/api/common/utils/CommonFormatter.js"
 
 o.spec("CommonFormatterTest", function () {

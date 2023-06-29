@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { aes256Decrypt256Key, aes256Encrypt256Key, decryptKey, decryptRsaKey, encryptKey, encryptRsaKey } from "../lib/encryption/KeyEncryption.js"
 import { hexToPrivateKey } from "../lib/encryption/Rsa.js"

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
 import { User } from "../../../../../src/api/entities/sys/TypeRefs.js"
 

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { AlarmInterval } from "../../../../src/api/common/TutanotaConstants.js"
 import { CalendarEventAlarmModel } from "../../../../src/calendar/date/eventeditor/CalendarEventAlarmModel.js"
 import { createAlarmIntervalItems } from "../../../../src/calendar/date/CalendarUtils.js"

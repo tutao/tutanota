@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { ConnectMode, EventBusClient, EventBusListener } from "../../../../src/api/worker/EventBusClient.js"
 import { GroupType, OperationType } from "../../../../src/api/common/TutanotaConstants.js"
 import type { EntityUpdate } from "../../../../src/api/entities/sys/TypeRefs.js"

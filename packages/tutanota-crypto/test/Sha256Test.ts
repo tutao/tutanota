@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { hexToUint8Array, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { sha256Hash } from "../lib/hashes/Sha256.js"
 import sjcl from "../lib/internal/sjcl.js"

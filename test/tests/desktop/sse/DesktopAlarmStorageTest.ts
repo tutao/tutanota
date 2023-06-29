@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { DesktopAlarmStorage } from "../../../../src/desktop/sse/DesktopAlarmStorage.js"
 import { DesktopConfig } from "../../../../src/desktop/config/DesktopConfig.js"

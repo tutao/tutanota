@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { clamp } from "../lib/MathUtils.js"
 
 o.spec("MathUtils", function () {

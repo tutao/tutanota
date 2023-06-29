@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { DesktopConfigMigrator } from "../../../../../src/desktop/config/migrations/DesktopConfigMigrator.js"
 import { DesktopNativeCryptoFacade } from "../../../../../src/desktop/DesktopNativeCryptoFacade.js"
 import { downcast } from "@tutao/tutanota-utils"

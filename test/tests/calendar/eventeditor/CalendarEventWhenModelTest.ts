@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { noOp } from "@tutao/tutanota-utils"
 import { getEventWithDefaultTimes, isAllDayEvent } from "../../../../src/api/common/utils/CommonCalendarUtils.js"
 import { Time } from "../../../../src/calendar/date/Time.js"

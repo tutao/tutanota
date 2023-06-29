@@ -1,8 +1,8 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { isSuspensionResponse, RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
 import { HttpMethod, MediaType } from "../../../../../src/api/common/EntityFunctions.js"
 import { ResourceError } from "../../../../../src/api/common/error/RestError.js"
-import { downcast } from "@tutao/tutanota-utils"
+import { defer, downcast, noOp } from "@tutao/tutanota-utils"
 import http from "node:http"
 
 const SERVER_TIME_IN_HEADER = "Mon, 12 Jul 2021 13:18:39 GMT"
@@ -10,9 +10,9 @@ const SERVER_TIMESTAMP = 1626095919000
 
 o.spec("rest client", function () {
 	const suspensionHandlerMock = {
-		activateSuspensionIfInactive: o.spy(),
-		isSuspended: o.spy(() => false),
-		deferRequest: o.spy((request) => request()),
+		activateSuspensionIfInactive: noOp,
+		isSuspended: () => false,
+		deferRequest: (request) => request(),
 	}
 	const restClient = new RestClient(downcast(suspensionHandlerMock))
 	o.spec(
@@ -20,15 +20,19 @@ o.spec("rest client", function () {
 		node(function () {
 			let app = global.express()
 			let server: http.Server | null = null
-			o.before(function (done) {
-				server = app.listen(3000, done)
+			o.before(async function () {
+				const deferred = defer()
+				server = app.listen(3000, deferred.resolve)
+				await deferred.promise
 			})
-			o.after(function (done) {
+			o.after(async function () {
 				if (server) {
+					const deferred = defer<void>()
 					server.close(function (err) {
 						if (err) console.log(err)
-						done()
+						deferred.resolve()
 					})
+					await deferred.promise
 				}
 			})
 			o("GET json", async function () {
@@ -46,49 +50,46 @@ o.spec("rest client", function () {
 				})
 				o(res).equals(responseText)
 			})
-			o("GET with body (converted to query parameter)", function (done) {
+			o("GET with body (converted to query parameter)", async function () {
 				o.timeout(200)
 				let request = "{get: true}"
+				const deferred = defer<void>()
 				app.get("/get/with-body", (req, res) => {
 					o(req.method).equals("GET")
 					o(req.query._body).equals(request)
 					res.send()
-					done()
+					deferred.resolve()
 				})
 				restClient.request("/get/with-body", HttpMethod.GET, {
 					body: request,
 					responseType: MediaType.Json,
 					baseUrl: "http://localhost:3000",
 				})
+				await deferred.promise
 			})
-			o("GET binary", function (done) {
+			o("GET binary", async function () {
 				o.timeout(200)
 				let response = new Buffer([1, 50, 83, 250])
-				let before = new Date().getTime()
 				app.get("/get/binary", (req, res) => {
 					o(req.method).equals("GET")
 					o(req.headers["content-type"]).equals(undefined)
 					o(req.headers["accept"]).equals("application/octet-stream")
 					res.send(response)
 				})
-				restClient
-					.request("/get/binary", HttpMethod.GET, {
-						queryParams: {},
-						responseType: MediaType.Binary,
-						baseUrl: "http://localhost:3000",
-					})
-					.then((res) => {
-						o(res instanceof Uint8Array).equals(true)
-						o(Array.from(res as any)).deepEquals(Array.from(response))
-						done()
-					})
+				const res = await restClient.request("/get/binary", HttpMethod.GET, {
+					queryParams: {},
+					responseType: MediaType.Binary,
+					baseUrl: "http://localhost:3000",
+				})
+				o(res instanceof Uint8Array).equals(true)
+				o(Array.from(res as any)).deepEquals(Array.from(response))
 			})
 			o("POST json", testJson("POST"))
 			o("PUT json", testJson("PUT"))
 			o("DELETE json", testJson("DELETE"))
 
 			function testJson(method) {
-				return function (done) {
+				return async function () {
 					o.timeout(200)
 					let requestText = '{"msg":"Dear Server"}'
 					let responseText = '{"msg":"Hello Client"}'
@@ -104,16 +105,12 @@ o.spec("rest client", function () {
 
 						res.send(responseText)
 					})
-					restClient
-						.request(url, method, {
-							body: requestText,
-							responseType: MediaType.Json,
-							baseUrl: "http://localhost:3000",
-						})
-						.then((res) => {
-							o(res).equals(responseText)
-							done()
-						})
+					const res = await restClient.request(url, method, {
+						body: requestText,
+						responseType: MediaType.Json,
+						baseUrl: "http://localhost:3000",
+					})
+					o(res).equals(responseText)
 				}
 			}
 
@@ -122,7 +119,7 @@ o.spec("rest client", function () {
 			o("DELETE binary", testBinary("DELETE"))
 
 			function testBinary(method) {
-				return function (done) {
+				return async function () {
 					o.timeout(200)
 					let request = new Buffer([8, 5, 2, 183])
 					let response = new Buffer([1, 50, 83, 250])
@@ -137,45 +134,35 @@ o.spec("rest client", function () {
 
 						res.send(response)
 					})
-					restClient
-						.request(url, method, {
-							body: new Uint8Array(request),
-							responseType: MediaType.Binary,
-							baseUrl: "http://localhost:3000",
-						})
-						.then((res) => {
-							o(res instanceof Uint8Array).equals(true)
-							o(Array.from(res as any)).deepEquals(Array.from(response))
-							done()
-						})
+					const res = await restClient.request(url, method, {
+						body: new Uint8Array(request),
+						responseType: MediaType.Binary,
+						baseUrl: "http://localhost:3000",
+					})
+					o(res instanceof Uint8Array).equals(true)
+					o(Array.from(res as any)).deepEquals(Array.from(response))
 				}
 			}
 
-			o("GET empty body", testEmptyBody("GET"))
-			o("POST empty body", testEmptyBody("POST"))
-			o("PUT empty body", testEmptyBody("PUT"))
-			o("DELETE empty body", testEmptyBody("DELETE"))
+			o.test("GET empty body", testEmptyBody("GET"))
+			o.test("POST empty body", testEmptyBody("POST"))
+			o.test("PUT empty body", testEmptyBody("PUT"))
+			o.test("DELETE empty body", testEmptyBody("DELETE"))
 
 			function testEmptyBody(method) {
-				return function () {
+				return async function () {
 					o.timeout(200)
-					return new Promise((resolve) => {
-						let url = "/" + method + "/empty-body"
-						app[method.toLowerCase()](url, (req, res) => {
-							o(req.headers["content-type"]).equals(undefined)
-							o(req.headers["accept"]).equals(undefined)
-							res.set("Date", SERVER_TIME_IN_HEADER)
-							res.send()
-						})
-						restClient
-							.request(url, method, {
-								baseUrl: "http://localhost:3000",
-							})
-							.then((res) => {
-								o(res).equals(null)
-								resolve(null)
-							})
+					let url = "/" + method + "/empty-body"
+					app[method.toLowerCase()](url, (req, res) => {
+						o(req.headers["content-type"]).equals(undefined)
+						o(req.headers["accept"]).equals(undefined)
+						res.set("Date", SERVER_TIME_IN_HEADER)
+						res.send()
 					})
+					const res = await restClient.request(url, method, {
+						baseUrl: "http://localhost:3000",
+					})
+					o(res).equals(null)
 				}
 			}
 
@@ -185,21 +172,13 @@ o.spec("rest client", function () {
 			o("DELETE empty body error", testError("DELETE"))
 
 			function testError(method) {
-				return function () {
-					return new Promise((resolve, reject) => {
-						let url = "/" + method + "/error"
-						app[method.toLowerCase()](url, (req, res) => {
-							res.set("Date", SERVER_TIME_IN_HEADER)
-							res.status(205).send() // every status code !== 200 is currently handled as error
-						})
-						restClient
-							.request(url, method, { baseUrl: "http://localhost:3000" })
-							.then(reject)
-							.catch((e) => {
-								o(e instanceof ResourceError).equals(true)
-								resolve(null)
-							})
+				return async function () {
+					let url = "/" + method + "/error"
+					app[method.toLowerCase()](url, (req, res) => {
+						res.set("Date", SERVER_TIME_IN_HEADER)
+						res.status(205).send() // every status code !== 200 is currently handled as error
 					})
+					await o(() => restClient.request(url, method, { baseUrl: "http://localhost:3000" })).asyncThrows(ResourceError)
 				}
 			}
 

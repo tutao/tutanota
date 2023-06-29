@@ -1,10 +1,11 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import type { DomMutation } from "../../../../src/gui/animation/Animations.js"
 import { alpha, AlphaEnum, Animation, animations, DefaultAnimationTime, transform, TransformEnum } from "../../../../src/gui/animation/Animations.js"
 import { ease } from "../../../../src/gui/animation/Easing.js"
 import { client } from "../../../../src/misc/ClientDetector.js"
 import { DeviceType } from "../../../../src/misc/ClientConstants.js"
 import { assertNotNull, downcast } from "@tutao/tutanota-utils"
+import { spy } from "@tutao/tutanota-test-utils"
 
 client.device = DeviceType.DESKTOP
 
@@ -58,8 +59,7 @@ o.spec("Animations", function () {
 		o("animation is created on add with default delay of 0", function () {
 			let target = newTarget()
 
-			// @ts-ignore
-			window.requestAnimationFrame = o.spy()
+			window.requestAnimationFrame = spy()
 
 			animations.add([target], defaultMutation)
 
@@ -72,8 +72,7 @@ o.spec("Animations", function () {
 		o("single element animation with delay", function () {
 			let target = newTarget()
 
-			// @ts-ignore
-			window.requestAnimationFrame = o.spy()
+			window.requestAnimationFrame = spy()
 
 			animations.add([target], defaultMutation, { delay: 55 })
 
@@ -87,8 +86,7 @@ o.spec("Animations", function () {
 			o(animations.activeAnimations).deepEquals([])
 			let target = newTarget()
 
-			// @ts-ignore
-			window.requestAnimationFrame = o.spy()
+			window.requestAnimationFrame = spy()
 			animations.add([target], defaultMutation)
 
 			o(window.requestAnimationFrame.args).deepEquals([animations._animate])
@@ -97,8 +95,7 @@ o.spec("Animations", function () {
 			o(animations.activeAnimations).deepEquals([])
 			let target = newTarget()
 
-			// @ts-ignore
-			window.requestAnimationFrame = o.spy()
+			window.requestAnimationFrame = spy()
 			animations.add([target], defaultMutation)
 			animations.add([target], defaultMutation)
 			o(window.requestAnimationFrame.callCount).equals(1)
@@ -107,14 +104,13 @@ o.spec("Animations", function () {
 		o("unfinished animations are invoked and a new animation frame is requested", function () {
 			time = 5
 			let animation = downcast({
-				animateFrame: o.spy(),
-				isFinished: o.spy(),
-				resolve: o.spy(),
+				animateFrame: spy(),
+				isFinished: spy(),
+				resolve: spy(),
 			})
 			animations.activeAnimations = [animation]
 
-			// @ts-ignore
-			window.requestAnimationFrame = o.spy()
+			window.requestAnimationFrame = spy()
 
 			animations._animate()
 
@@ -125,14 +121,13 @@ o.spec("Animations", function () {
 
 		o("finished animations are removed from the queue and resolved", function () {
 			let animation = downcast({
-				animateFrame: o.spy(),
+				animateFrame: spy(),
 				isFinished: () => true,
-				resolve: o.spy(),
+				resolve: spy(),
 			})
 			animations.activeAnimations = [animation]
 
-			// @ts-ignore
-			window.requestAnimationFrame = o.spy()
+			window.requestAnimationFrame = spy()
 
 			animations._animate()
 
@@ -144,8 +139,8 @@ o.spec("Animations", function () {
 
 		o("stagger", function () {
 			const targets = [newTarget(), newTarget(), newTarget()]
-			// @ts-ignore
-			window.requestAnimationFrame = o.spy()
+
+			window.requestAnimationFrame = spy()
 
 			animations.add(targets, defaultMutation, { stagger: 55 })
 
@@ -171,8 +166,8 @@ o.spec("Animations", function () {
 
 		o("start and finish", function () {
 			let target = newTarget()
-			let mutation = Object.assign({}, defaultMutation, { updateDom: o.spy() })
-			let resolve = o.spy()
+			let mutation = Object.assign({}, defaultMutation, { updateDom: spy() })
+			let resolve = spy()
 			let a = new Animation(target, [mutation], resolve, 0, ease.linear)
 
 			o(a.animationStart).equals(null)
@@ -204,8 +199,8 @@ o.spec("Animations", function () {
 
 		o("delay and domMutation", function () {
 			let target = newTarget()
-			let mutation = Object.assign({}, defaultMutation, { updateDom: o.spy() })
-			let resolve = o.spy()
+			let mutation = Object.assign({}, defaultMutation, { updateDom: spy() })
+			let resolve = spy()
 			let delay = 150
 			let a = new Animation(target, [mutation], resolve, delay, ease.linear)
 

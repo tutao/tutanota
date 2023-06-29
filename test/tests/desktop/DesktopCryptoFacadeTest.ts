@@ -1,5 +1,5 @@
 import n from "../nodemocker.js"
-import o from "ospec"
+import o from "@tutao/otest"
 import { DesktopNativeCryptoFacade } from "../../../src/desktop/DesktopNativeCryptoFacade.js"
 import type { Base64 } from "@tutao/tutanota-utils"
 import { arrayEquals, downcast, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"

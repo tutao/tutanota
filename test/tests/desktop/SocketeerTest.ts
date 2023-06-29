@@ -1,6 +1,6 @@
 import n from "../nodemocker.js"
-import o from "ospec"
-import { makeTimeoutMock } from "@tutao/tutanota-test-utils"
+import o from "@tutao/otest"
+import { makeTimeoutMock, spy } from "@tutao/tutanota-test-utils"
 import { Socketeer } from "../../../src/desktop/Socketeer.js"
 o.spec("Socketeer Test", function () {
 	const electron = {
@@ -99,8 +99,8 @@ o.spec("Socketeer Test", function () {
 	o("startClient & cleanup", function () {
 		const { electronMock, netMock } = standardMocks()
 		const sock = new Socketeer(netMock, electronMock.app)
-		const ondata = o.spy((data) => {})
-		const ondata2 = o.spy((data) => {})
+		const ondata = spy(() => {})
+		const ondata2 = spy(() => {})
 		sock.startClient(ondata)
 		sock.startClient(ondata2) // ignored
 
@@ -125,7 +125,7 @@ o.spec("Socketeer Test", function () {
 	o("reconnect on end", async function () {
 		const { electronMock, netMock, timeoutMock } = standardMocks()
 		const sock = new Socketeer(netMock, electronMock.app, timeoutMock)
-		const ondata = o.spy((data) => {})
+		const ondata = spy(() => {})
 		sock.startClient(ondata)
 		connectionMock.callbacks["end"]()
 		timeoutMock.next()
@@ -140,7 +140,7 @@ o.spec("Socketeer Test", function () {
 	o("reconnect on close with error", async function () {
 		const { electronMock, netMock, timeoutMock } = standardMocks()
 		const sock = new Socketeer(netMock, electronMock.app, timeoutMock)
-		const ondata = o.spy((data) => {})
+		const ondata = spy(() => {})
 		sock.startClient(ondata)
 		connectionMock.callbacks["close"](true)
 		timeoutMock.next()
@@ -155,7 +155,7 @@ o.spec("Socketeer Test", function () {
 	o("don't reconnect on close without error", async function () {
 		const { electronMock, netMock, timeoutMock } = standardMocks()
 		const sock = new Socketeer(netMock, electronMock.app, timeoutMock)
-		const ondata = o.spy((data) => {})
+		const ondata = spy(() => {})
 		sock.startClient(ondata)
 		connectionMock.callbacks["close"](false)
 		timeoutMock.next()
@@ -170,7 +170,7 @@ o.spec("Socketeer Test", function () {
 	o("sendSocketMessage calls write", function () {
 		const { electronMock, netMock } = standardMocks()
 		const sock = new Socketeer(netMock, electronMock.app)
-		const ondata = o.spy((data) => {})
+		const ondata = spy(() => {})
 		sock.startClient(ondata)
 		sock.sendSocketMessage({
 			some: ["a", "b", "c"],

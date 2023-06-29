@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import type { EntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import {
 	createCustomer,
@@ -21,6 +21,7 @@ import { isSameId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
 import { GroupDataOS } from "../../../../../src/api/worker/search/IndexTables.js"
+import { spy } from "@tutao/tutanota-test-utils"
 
 const dbMock: any = {
 	iv: fixedIv,
@@ -30,9 +31,10 @@ o.spec("GroupInfoIndexer test", function () {
 	let suggestionFacadeMock
 	o.beforeEach(function () {
 		suggestionFacadeMock = {} as any
-		suggestionFacadeMock.addSuggestions = o.spy()
-		suggestionFacadeMock.store = o.spy(() => Promise.resolve())
+		suggestionFacadeMock.addSuggestions = spy()
+		suggestionFacadeMock.store = spy(() => Promise.resolve())
 	})
+
 	o("createGroupInfoIndexEntries without entries", function () {
 		let g = createGroupInfo()
 		let indexer = new GroupInfoIndexer(new IndexerCore(dbMock, null as any, browserDataStub), null as any, null as any, suggestionFacadeMock)
@@ -40,6 +42,7 @@ o.spec("GroupInfoIndexer test", function () {
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("")
 		o(keyToIndexEntries.size).equals(0)
 	})
+
 	o("createGroupInfoIndexEntries with one entry", function () {
 		let g = createGroupInfo()
 		g.name = "test"
@@ -48,9 +51,10 @@ o.spec("GroupInfoIndexer test", function () {
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("test")
 		o(keyToIndexEntries.size).equals(1)
 	})
+
 	o("createGroupInfoIndexEntries", async function () {
 		let core = {
-			createIndexEntriesForAttributes: o.spy(),
+			createIndexEntriesForAttributes: spy(),
 		} as any
 		let indexer = new GroupInfoIndexer(core, dbMock, null as any, suggestionFacadeMock)
 		let mailAddressAliases = [createMailAddressAlias(), createMailAddressAlias()]
@@ -91,6 +95,7 @@ o.spec("GroupInfoIndexer test", function () {
 			]),
 		)
 	})
+
 	o("processNewGroupInfo", function () {
 		let groupInfo = createGroupInfo()
 		let keyToIndexEntries = new Map()
@@ -98,7 +103,7 @@ o.spec("GroupInfoIndexer test", function () {
 			createIndexEntriesForAttributes: () => keyToIndexEntries,
 		} as any
 		let entity = {
-			load: o.spy(() => Promise.resolve(groupInfo)),
+			load: spy(() => Promise.resolve(groupInfo)),
 		} as any
 		const indexer = new GroupInfoIndexer(core, dbMock, entity, suggestionFacadeMock)
 		let event: EntityUpdate = {
@@ -110,12 +115,11 @@ o.spec("GroupInfoIndexer test", function () {
 				groupInfo,
 				keyToIndexEntries,
 			})
-			// @ts-ignore
 			o(indexer._entity.load.args[0]).equals(GroupInfoTypeRef)
-			// @ts-ignore
 			o(indexer._entity.load.args[1]).deepEquals([event.instanceListId, event.instanceId])
 		})
 	})
+
 	o("processNewGroupInfo catches NotFoundError", function () {
 		let core = {
 			createIndexEntriesForAttributes: () => {},
@@ -132,7 +136,8 @@ o.spec("GroupInfoIndexer test", function () {
 			o(result).equals(null)
 		})
 	})
-	o("processNewGroupInfo passes other Errors", function (done) {
+
+	o("processNewGroupInfo passes other Errors", async function () {
 		let core = {
 			createIndexEntriesForAttributes: () => {},
 		} as any
@@ -144,10 +149,9 @@ o.spec("GroupInfoIndexer test", function () {
 			instanceListId: "lid",
 			instanceId: "eid",
 		} as any
-		indexer.processNewGroupInfo(event).catch((e) => {
-			done()
-		})
+		await o(() => indexer.processNewGroupInfo(event)).asyncThrows(Error)
 	})
+
 	o("indexAllUserAndTeamGroupInfosForAdmin", function () {
 		let db: Db = {
 			key: aes256RandomKey(),
@@ -163,7 +167,7 @@ o.spec("GroupInfoIndexer test", function () {
 			} as any,
 			browserDataStub,
 		)
-		core.writeIndexUpdate = o.spy()
+		core.writeIndexUpdate = spy()
 		let userGroupId = "userGroupId"
 		let user = createUser()
 		user.memberships.push(createGroupMembership())
@@ -216,6 +220,7 @@ o.spec("GroupInfoIndexer test", function () {
 			o(suggestionFacadeMock.addSuggestions.callCount).equals(2)
 		})
 	})
+
 	o("indexAllUserAndTeamGroupInfosForAdmin not an admin", function () {
 		let db: Db = {
 			key: aes256RandomKey(),
@@ -229,7 +234,7 @@ o.spec("GroupInfoIndexer test", function () {
 			} as any,
 			browserDataStub,
 		)
-		core.writeIndexUpdate = o.spy()
+		core.writeIndexUpdate = spy()
 		let userGroupId = "userGroupId"
 		let user = createUser()
 		user.memberships.push(createGroupMembership())
@@ -240,6 +245,7 @@ o.spec("GroupInfoIndexer test", function () {
 			o(core.writeIndexUpdate.callCount).equals(0)
 		})
 	})
+
 	o("indexAllUserAndTeamGroupInfosForAdmin already indexed", function () {
 		let db: Db = {
 			key: aes256RandomKey(),
@@ -255,7 +261,7 @@ o.spec("GroupInfoIndexer test", function () {
 			} as any,
 			browserDataStub,
 		)
-		core.writeIndexUpdate = o.spy()
+		core.writeIndexUpdate = spy()
 		let userGroupId = "userGroupId"
 		let user = createUser()
 		user.memberships.push(createGroupMembership())
@@ -287,7 +293,8 @@ o.spec("GroupInfoIndexer test", function () {
 			o(core.writeIndexUpdate.callCount).equals(0)
 		})
 	})
-	o("processEntityEvents do nothing if user is not an admin", function (done) {
+
+	o("processEntityEvents do nothing if user is not an admin", async function () {
 		let db: any = {
 			key: aes256RandomKey(),
 			iv: fixedIv,
@@ -299,8 +306,8 @@ o.spec("GroupInfoIndexer test", function () {
 			} as any,
 			browserDataStub,
 		)
-		core.writeIndexUpdate = o.spy()
-		core._processDeleted = o.spy()
+		core.writeIndexUpdate = spy()
+		core._processDeleted = spy()
 		const indexer = new GroupInfoIndexer(core, db, null as any, suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate(groupTypeInfo)
@@ -313,15 +320,14 @@ o.spec("GroupInfoIndexer test", function () {
 		let user = createUser()
 		user.memberships = [createGroupMembership()]
 		user.memberships[0].groupType = GroupType.User
-		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user).then(() => {
-			// nothing changed
-			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
-			o(indexUpdate.move.length).equals(0)
-			o(core._processDeleted.callCount).equals(0)
-			o(suggestionFacadeMock.addSuggestions.callCount).equals(0)
-			done()
-		})
+		await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user)
+		// nothing changed
+		o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
+		o(indexUpdate.move.length).equals(0)
+		o(core._processDeleted.callCount).equals(0)
+		o(suggestionFacadeMock.addSuggestions.callCount).equals(0)
 	})
+
 	o("processEntityEvents new groupInfo", async function () {
 		let db: any = {
 			key: aes256RandomKey(),
@@ -334,8 +340,8 @@ o.spec("GroupInfoIndexer test", function () {
 			} as any,
 			browserDataStub,
 		)
-		core.writeIndexUpdate = o.spy()
-		core._processDeleted = o.spy()
+		core.writeIndexUpdate = spy()
+		core._processDeleted = spy()
 		let groupInfo = createGroupInfo()
 		groupInfo._id = ["groupInfo-list", "L-dNNLe----0"]
 		let entity: any = {
@@ -358,6 +364,7 @@ o.spec("GroupInfoIndexer test", function () {
 		o(indexUpdate.move.length).equals(0)
 		o(core._processDeleted.callCount).equals(0)
 	})
+
 	o("processEntityEvents update groupInfo", async function () {
 		let db: any = {
 			key: aes256RandomKey(),
@@ -370,8 +377,8 @@ o.spec("GroupInfoIndexer test", function () {
 			} as any,
 			browserDataStub,
 		)
-		core.writeIndexUpdate = o.spy()
-		core._processDeleted = o.spy()
+		core.writeIndexUpdate = spy()
+		core._processDeleted = spy()
 		let groupInfo = createGroupInfo()
 		groupInfo._id = ["groupInfo-list", "L-dNNLe----0"]
 		let entity: any = {
@@ -397,7 +404,8 @@ o.spec("GroupInfoIndexer test", function () {
 		o(suggestionFacadeMock.addSuggestions.callCount).equals(1)
 		o(suggestionFacadeMock.addSuggestions.callCount).equals(1)
 	})
-	o("processEntityEvents delete groupInfo", function (done) {
+
+	o("processEntityEvents delete groupInfo", async function () {
 		let db: any = {
 			key: aes256RandomKey(),
 			iv: fixedIv,
@@ -409,8 +417,8 @@ o.spec("GroupInfoIndexer test", function () {
 			} as any,
 			browserDataStub,
 		)
-		core.writeIndexUpdate = o.spy()
-		core._processDeleted = o.spy()
+		core.writeIndexUpdate = spy()
+		core._processDeleted = spy()
 		let groupInfo = createGroupInfo()
 		groupInfo._id = ["groupInfo-list", "1"]
 		let entity: any = {
@@ -427,14 +435,12 @@ o.spec("GroupInfoIndexer test", function () {
 		let user = createUser()
 		user.memberships = [createGroupMembership()]
 		user.memberships[0].groupType = GroupType.Admin
-		indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user).then(() => {
-			// nothing changed
-			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
-			o(indexUpdate.move.length).equals(0)
-			o(core._processDeleted.callCount).equals(1)
-			o(core._processDeleted.args).deepEquals([events[0], indexUpdate])
-			done()
-		})
+		await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user)
+		// nothing changed
+		o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
+		o(indexUpdate.move.length).equals(0)
+		o(core._processDeleted.callCount).equals(1)
+		o(core._processDeleted.args).deepEquals([events[0], indexUpdate])
 	})
 })
 

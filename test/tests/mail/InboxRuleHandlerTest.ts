@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { _findMatchingRule, _matchesRegularExpression } from "../../../src/mail/model/InboxRuleHandler.js"
 import type { InboxRule } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { createInboxRule } from "../../../src/api/entities/tutanota/TypeRefs.js"

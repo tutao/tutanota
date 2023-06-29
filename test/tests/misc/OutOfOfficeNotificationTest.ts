@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { createOutOfOfficeNotification } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { mockAttribute, unmockAttribute } from "@tutao/tutanota-test-utils"
 import { getDayShifted, getStartOfDay, getStartOfNextDay } from "@tutao/tutanota-utils"

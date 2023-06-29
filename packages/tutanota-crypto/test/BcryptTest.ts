@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { generateKeyFromPassphrase, generateRandomSalt } from "../lib/hashes/Bcrypt.js"
 import { KeyLength } from "../lib/misc/Constants.js"
 import { bitArrayToUint8Array } from "../lib/misc/Utils.js"

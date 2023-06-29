@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { Notifications } from "../../../src/gui/Notifications.js"
 import type { Spy } from "@tutao/tutanota-test-utils"
 import { spy } from "@tutao/tutanota-test-utils"

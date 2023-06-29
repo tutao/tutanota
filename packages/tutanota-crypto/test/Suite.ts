@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import "./AesTest.js"
 import "./BcryptTest.js"
 import "./CryptoUtilsTest.js"
@@ -10,7 +10,8 @@ import "./Sha1Test.js"
 import "./Sha256Test.js"
 import "./TotpVerifierTest.js"
 import { bootstrapTests } from "./bootstrap.js"
-;(async function () {
-	await bootstrapTests()
-	await o.run()
-})()
+
+await bootstrapTests()
+const result = await o.run()
+o.printReport(result)
+o.terminateProcess(result)

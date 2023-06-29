@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { lang, languageCodeToTag, languages } from "../../../src/misc/LanguageViewModel.js"
 import { formatDate } from "../../../src/misc/Formatter.js"
 import { createBirthday } from "../../../src/api/entities/tutanota/TypeRefs.js"

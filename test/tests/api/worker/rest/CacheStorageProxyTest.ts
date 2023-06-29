@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { func, instance, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
 import { LateInitializedCacheStorageImpl, OfflineStorageArgs } from "../../../../../src/api/worker/rest/CacheStorageProxy.js"

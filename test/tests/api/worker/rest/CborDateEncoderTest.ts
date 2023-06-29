@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import * as cborg from "cborg"
 import { customTypeDecoders, customTypeEncoders } from "../../../../../src/api/worker/offline/OfflineStorage.js"
 
