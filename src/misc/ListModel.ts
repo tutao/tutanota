@@ -90,7 +90,7 @@ export class ListModel<ElementType extends ListElement> {
 			return
 		}
 		this.loadState = "initialized"
-		this.doLoad()
+		await this.doLoad()
 	}
 
 	async loadMore() {
@@ -103,11 +103,11 @@ export class ListModel<ElementType extends ListElement> {
 		await this.doLoad()
 	}
 
-	retryLoading() {
+	async retryLoading() {
 		if (this.loadState !== "initialized" || this.rawState.loadingStatus !== ListLoadingState.ConnectionLost) {
 			return
 		}
-		this.doLoad()
+		await this.doLoad()
 	}
 
 	private async doLoad() {
@@ -234,7 +234,7 @@ export class ListModel<ElementType extends ListElement> {
 		}
 	}
 
-	deleteLoadedEntity(elementId: Id): Promise<void> {
+	private deleteLoadedEntity(elementId: Id): Promise<void> {
 		return settledThen(this.loading, () => {
 			const entity = this.rawState.filteredItems.find((e) => getElementId(e) === elementId)
 
@@ -338,9 +338,13 @@ export class ListModel<ElementType extends ListElement> {
 		if (selectedItems.size === 0) {
 			selectedItems.add(item)
 		} else {
+			// we are trying to find the element that's closest to the click one
+			// and after that we will select everything between the closest and the clicked one
+
 			const clickedItemIndex: number = this.state.items.indexOf(item)
 			let nearestSelectedIndex: number | null = null
 
+			// find absolute min based on the distance (closest)
 			for (const selectedItem of selectedItems) {
 				const currentSelectedItemIndex = this.state.items.indexOf(selectedItem)
 
@@ -397,13 +401,6 @@ export class ListModel<ElementType extends ListElement> {
 	}
 
 	selectNext(multiselect: boolean) {
-		const newActiveIndex =
-			this.state.activeIndex == null
-				? 0
-				: this.state.activeIndex >= lastIndex(this.state.items)
-				? lastIndex(this.state.items)
-				: this.state.activeIndex + 1
-
 		const oldActiveItem = this.rawState.activeElement
 		const lastItem = last(this.state.items)
 		const newActiveItem =
