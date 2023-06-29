@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { MailAddressNameChanger, MailAddressTableModel } from "../../../../src/settings/mailaddress/MailAddressTableModel.js"
 import { EntityClient } from "../../../../src/api/common/EntityClient.js"
 import { matchers, object, when } from "testdouble"

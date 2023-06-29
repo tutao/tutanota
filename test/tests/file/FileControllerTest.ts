@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { ArchiveDataType } from "../../../src/api/common/TutanotaConstants.js"
 import { BlobFacade } from "../../../src/api/worker/facades/lazy/BlobFacade.js"
 import { FileFacade } from "../../../src/api/worker/facades/lazy/FileFacade.js"

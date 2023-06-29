@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { ServiceWorker } from "../../../src/serviceworker/sw.js"
 o.spec(
 	"ServiveWorkerTest ",

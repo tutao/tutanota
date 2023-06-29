@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { CustomColorsEditorViewModel } from "../../../../src/settings/whitelabel/CustomColorsEditorViewModel.js"
 import { ThemeController } from "../../../../src/gui/ThemeController.js"
 import { createWhitelabelConfig } from "../../../../src/api/entities/sys/TypeRefs.js"
@@ -8,6 +8,7 @@ import type { ThemeCustomizations } from "../../../../src/misc/WhitelabelCustomi
 import { EntityClient } from "../../../../src/api/common/EntityClient.js"
 import { themes } from "../../../../src/gui/builtinThemes.js"
 import type { LoginController } from "../../../../src/api/main/LoginController.js"
+import { spy } from "@tutao/tutanota-test-utils"
 
 o.spec("Simple Color Editor", function () {
 	let model: CustomColorsEditorViewModel
@@ -30,7 +31,7 @@ o.spec("Simple Color Editor", function () {
 	o.beforeEach(function () {
 		isWhitelabelEnabled = false
 		themeController = downcast({
-			updateCustomTheme: o.spy(),
+			updateCustomTheme: spy(),
 			getDefaultTheme: () => {
 				return themes["light"]
 			},
@@ -40,7 +41,7 @@ o.spec("Simple Color Editor", function () {
 		whitelabelDomainInfo.domain = "test.domain.com"
 		defaultTheme = themeController.getDefaultTheme()
 		entityClient = downcast({
-			update: o.spy(),
+			update: spy(),
 		})
 		loginController = downcast({
 			isWhitelabel: () => {

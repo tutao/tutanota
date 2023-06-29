@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { ContactAddressTypeRef, ContactMailAddressTypeRef, ContactPhoneNumberTypeRef, createContact } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { neverNull } from "@tutao/tutanota-utils"
 import { vCardFileToVCards, vCardListToContacts } from "../../../src/contacts/VCardImporter.js"

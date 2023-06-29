@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { BLOB_SERVICE_REST_PATH, BlobFacade } from "../../../../../src/api/worker/facades/lazy/BlobFacade.js"
 import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
 import { SuspensionHandler } from "../../../../../src/api/worker/SuspensionHandler.js"

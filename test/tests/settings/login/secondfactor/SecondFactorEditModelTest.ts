@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { function as tdfn, matchers, object, verify, when } from "testdouble"
 import {
 	DEFAULT_TOTP_NAME,

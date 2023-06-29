@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { SortedArray } from "../lib/SortedArray.js"
 o.spec("SortedArray", function () {
 	o("with numbers", function () {

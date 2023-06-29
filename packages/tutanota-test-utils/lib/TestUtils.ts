@@ -1,6 +1,6 @@
-import o from "ospec"
+import otest from "@tutao/otest"
 import * as td from "testdouble"
-import { mapObject } from "@tutao/tutanota-utils"
+import { lastThrow, mapObject } from "@tutao/tutanota-utils"
 
 /**
  * Mocks an attribute (function or object) on an object and makes sure that it can be restored to the original attribute by calling unmockAttribute() later.
@@ -26,7 +26,7 @@ export function mockAttribute(
 		throw new Error("attribute not found on object")
 	}
 
-	object[attributeName] = typeof attributeOnObject == "function" ? o.spy(attributeMock as (...args: Array<any>) => any) : attributeMock
+	object[attributeName] = typeof attributeOnObject == "function" ? spy(attributeMock as (...args: Array<any>) => any) : attributeMock
 	return {
 		_originalObject: object,
 		_originalAttribute: attributeOnObject,
@@ -45,12 +45,28 @@ export type Spy = ((...args: any) => any) & {
 export function spy(producer?: (...args: any) => any): Spy {
 	const invocations: any[][] = []
 
-	const s = (...args: any[]) => {
+	// make it *non* arrow function so that it can be bound to objects
+	const s = function (this: any, ...args: any[]) {
 		invocations.push(args)
-		return producer && producer(...args)
+		return producer && producer.apply(this, args)
 	}
 
 	s.invocations = invocations
+	Object.defineProperty(s, "callCount", {
+		get(): number {
+			return s.invocations.length
+		},
+	})
+	Object.defineProperty(s, "args", {
+		get(): any[] {
+			return lastThrow(s.invocations)
+		},
+	})
+	Object.defineProperty(s, "calls", {
+		get(): any[] {
+			return s.invocations
+		},
+	})
 	return s
 }
 
@@ -83,32 +99,15 @@ export function replaceAllMaps(toReplace: any): any {
 		: toReplace
 }
 
-/** Catch error and return either value or error */
-export async function asResult<T>(p: Promise<T>): Promise<T | Error> {
-	return p.catch((e) => e)
-}
-
 export async function assertThrows<T extends Error>(expected: Class<T>, fn: () => Promise<unknown>): Promise<T> {
 	try {
 		await fn()
 	} catch (e) {
-		o(e instanceof expected).equals(true)("AssertThrows failed: Expected a " + expected.name + " to be thrown, but got a " + e)
+		otest.check(e instanceof expected).equals(true)("AssertThrows failed: Expected a " + expected.name + " to be thrown, but got a " + e)
 		return e as T
 	}
 
 	throw new Error("AssertThrows failed: Expected a " + (expected as any) + " to be thrown, but nothing was")
-}
-
-export async function assertResolvedIn(ms: number, ...promises: ReadonlyArray<Promise<any>>): Promise<any> {
-	const allP = [delay(ms).then(() => "timeout")].concat(promises.map((p, i) => p.then(() => `promise ${i} is resolved`)))
-	const result = await Promise.race(allP)
-	o(result).notEquals("timeout")
-}
-
-export async function assertNotResolvedIn(ms: number, ...promises: ReadonlyArray<Promise<any>>): Promise<any> {
-	const allP = [delay(ms).then(() => "timeout")].concat(promises.map((p, i) => p.then(() => `promise ${i} is resolved`)))
-	const result = await Promise.race(allP)
-	o(result).equals("timeout")
 }
 
 export interface TimeoutMock {
@@ -127,7 +126,7 @@ export function makeTimeoutMock(): TimeoutMock {
 		return timeoutId
 	}
 
-	const spiedMock: any = o.spy(timeoutMock)
+	const spiedMock: any = spy(timeoutMock)
 
 	spiedMock.next = function () {
 		scheduledFn && scheduledFn()
@@ -142,7 +141,7 @@ function delay(ms: number): Promise<void> {
 	})
 }
 
-/** Verify using testdouble, but register as an ospec assertion */
+/** Verify using testdouble, but register as an otest assertion */
 export function verify(demonstration: any, config?: td.VerificationConfig) {
 	function check(demonstration) {
 		try {
@@ -159,5 +158,17 @@ export function verify(demonstration: any, config?: td.VerificationConfig) {
 		}
 	}
 
-	o(demonstration).satisfies(check)
+	otest(demonstration).satisfies(check)
+}
+
+export function throwsErrorWithMessage(errorClass, message): (fn) => { pass: boolean; message: string } {
+	return (fn) => {
+		try {
+			fn()
+			return { pass: false, message: "Did not throw!" }
+		} catch (e) {
+			const pass = e instanceof errorClass && typeof e.message === "string" && e.message.includes(message)
+			return { pass, message: `Error of type ${errorClass} w/ message ${message}, instead got ${e}` }
+		}
+	}
 }

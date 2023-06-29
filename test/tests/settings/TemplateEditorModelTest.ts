@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { createEmailTemplate } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { TemplateEditorModel } from "../../../src/settings/TemplateEditorModel.js"
 import { createTemplateGroupRoot } from "../../../src/api/entities/tutanota/TypeRefs.js"

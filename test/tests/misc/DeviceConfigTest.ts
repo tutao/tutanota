@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { DeviceConfig, migrateConfig, migrateConfigV2to3 } from "../../../src/misc/DeviceConfig.js"
 import { PersistentCredentials } from "../../../src/misc/credentials/CredentialsProvider.js"
 import { matchers, object, when } from "testdouble"

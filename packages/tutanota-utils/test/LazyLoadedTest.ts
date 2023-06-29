@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { LazyLoaded } from "../lib/LazyLoaded.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 

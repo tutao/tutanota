@@ -1,5 +1,7 @@
-import o from "ospec"
+import o from "@tutao/otest"
+
 import "./ParserTest.js"
-;(async function () {
-	await o.run()
-})()
+
+const result = await o.run()
+o.printReport(result)
+o.terminateProcess(result)

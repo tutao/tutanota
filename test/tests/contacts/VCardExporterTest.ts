@@ -1,7 +1,7 @@
 // Attention! Be very careful with this file, there are some trailing whitespaces in multiline strings that can mess things up if your editor does not respect
 // them.
 
-import o from "ospec"
+import o from "@tutao/otest"
 import type { Contact } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	ContactAddressTypeRef,

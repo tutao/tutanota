@@ -1,9 +1,10 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import type { ElectronNotificationFactory } from "../../../src/desktop/NotificatonFactory.js"
 import { defer, delay, downcast } from "@tutao/tutanota-utils"
 import { DesktopNotifier } from "../../../src/desktop/DesktopNotifier.js"
 import type { DesktopTray } from "../../../src/desktop/tray/DesktopTray.js"
 import type { NativeImage } from "electron"
+import { spy } from "@tutao/tutanota-test-utils"
 
 // just a placeholder, symbol to make sure it's the same instance
 const appIcon: NativeImage = downcast(Symbol("appIcon"))
@@ -19,14 +20,14 @@ o.spec("Desktop Notifier Test", function () {
 		createdNotifications = []
 		desktopTray = downcast({
 			getAppIcon: () => appIcon,
-			update: o.spy(() => {}),
-			setBadge: o.spy(() => {}),
+			update: spy(() => {}),
+			setBadge: spy(() => {}),
 		})
 		notificationFactory = downcast({
 			isSupported: () => true,
-			makeNotification: o.spy((props, click) => {
+			makeNotification: spy((props, click) => {
 				const n = {
-					close: o.spy(),
+					close: spy(),
 					click,
 				}
 				createdNotifications.push(n)
@@ -49,7 +50,7 @@ o.spec("Desktop Notifier Test", function () {
 			o(notificationFactory.makeNotification.calls).deepEquals([])
 		})
 		await delay(notificationStartDelay * 3)
-		o(notificationFactory.makeNotification.calls[0].args[0]).deepEquals({
+		o(notificationFactory.makeNotification.calls[0][0]).deepEquals({
 			title: "Title1",
 			body: "Body1",
 			icon: icon1,
@@ -98,7 +99,7 @@ o.spec("Desktop Notifier Test", function () {
 	o("grouped notification disappear after clicking", async function () {
 		const notifier = new DesktopNotifier(desktopTray, notificationFactory)
 		notifier.start(notificationStartDelay)
-		const clickHandler = o.spy(() => notifier.resolveGroupedNotification("gn1"))
+		const clickHandler = spy(() => notifier.resolveGroupedNotification("gn1"))
 		notifier.submitGroupedNotification("Title1", "Message1", "gn1", clickHandler)
 		// not shown yet
 		o(createdNotifications.length).equals(0)

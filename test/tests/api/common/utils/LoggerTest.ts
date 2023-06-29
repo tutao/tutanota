@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { LOG_SIZE, Logger } from "../../../../../src/api/common/Logger.js"
 import { lastThrow } from "@tutao/tutanota-utils"
 o.spec("Loger test", function () {

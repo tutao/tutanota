@@ -1,31 +1,27 @@
-import child_process from "node:child_process"
 import { runTestBuild } from "./TestBuilder.js"
 import { Option, program } from "commander"
 
 await program
 	.addOption(new Option("-i, --integration", "Include integration tests (requires local server)"))
 	.addOption(new Option("-c, --clean"))
-	.addOption(new Option("-f, --fast"))
-	.action(async ({ clean, integration, fast }) => {
-		await runTestBuild({ clean, fast })
+	.addOption(new Option("-f, --filter <query>", "Filter for tests and specs to run only matching tests"))
+	.addOption(new Option("--no-run", "Do not run the tests"))
+	.action(async ({ clean, integration, filter, run }) => {
+		await runTestBuild({ clean })
 		console.log("build finished!")
-
-		await runTestsAndExit(integration)
+		if (run) {
+			await runTestsAndExit({ integration, filter })
+		}
 	})
 	.parseAsync(process.argv)
 
 /** Function which runs tests and exits with the exit code afterwards. */
-async function runTestsAndExit(integration) {
-	const code = await runTest(integration)
-	process.exit(code)
-}
-
-function runTest(integration) {
-	return new Promise((resolve) => {
-		console.log("running tests")
-		const args = integration ? ["-i"] : []
-		// We fork because ospec is very weird and doesn't just let you wait for the results unless you do something with report
-		const testProcess = child_process.fork(`./build/bootstrapTests.js`, args)
-		testProcess.on("exit", resolve)
-	})
+async function runTestsAndExit({ integration, filter }) {
+	const { run } = await import("./build/testInNode.js")
+	const result = await run({ integration, filter })
+	if (result.failingTests.length) {
+		process.exit(1)
+	} else {
+		process.exit(0)
+	}
 }

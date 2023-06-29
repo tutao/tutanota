@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { createMailFolder } from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import { MailFolderType } from "../../../../src/api/common/TutanotaConstants.js"
 import { FolderSystem } from "../../../../src/api/common/mail/FolderSystem.js"

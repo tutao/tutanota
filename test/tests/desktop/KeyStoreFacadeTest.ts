@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { CredentialsKeySpec, DeviceKeySpec, KeyStoreFacadeImpl } from "../../../src/desktop/KeyStoreFacadeImpl.js"
 import { DesktopNativeCryptoFacade } from "../../../src/desktop/DesktopNativeCryptoFacade.js"
 import type { SecretStorage } from "../../../src/desktop/sse/SecretStorage.js"
@@ -40,7 +40,7 @@ o.spec("KeyStoreFacade test", function () {
 				const actualKey = await keyStoreFacade[opName]()
 				o(actualKey).deepEquals(aes256Key)
 				o(secretStorageSpy.getPassword.callCount).equals(1)
-				o(secretStorageSpy.getPassword.calls[0].args).deepEquals([spec.serviceName, spec.accountName])
+				o(secretStorageSpy.getPassword.calls[0]).deepEquals([spec.serviceName, spec.accountName])
 			})
 
 			o("should store the key", async function () {
@@ -77,10 +77,10 @@ o.spec("KeyStoreFacade test", function () {
 				o(actualKey2).deepEquals(aes256Key)
 				if (spec.cached) {
 					o(secretStorageSpy.getPassword.callCount).equals(1)
-					o(secretStorageSpy.getPassword.calls[0].args).deepEquals([spec.serviceName, spec.accountName])
+					o(secretStorageSpy.getPassword.calls[0]).deepEquals([spec.serviceName, spec.accountName])
 				} else {
 					o(secretStorageSpy.getPassword.callCount).equals(2)
-					o(secretStorageSpy.getPassword.calls[1].args).deepEquals([spec.serviceName, spec.accountName])
+					o(secretStorageSpy.getPassword.calls[1]).deepEquals([spec.serviceName, spec.accountName])
 				}
 			})
 
@@ -107,7 +107,7 @@ o.spec("KeyStoreFacade test", function () {
 				o(actualKey).deepEquals(aes256Key)
 
 				o(secretStorageSpy.getPassword.callCount).equals(2)
-				o(secretStorageSpy.getPassword.calls[1].args).deepEquals([spec.serviceName, spec.accountName])
+				o(secretStorageSpy.getPassword.calls[1]).deepEquals([spec.serviceName, spec.accountName])
 			})
 		})
 	}

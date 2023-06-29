@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { EntropyCollector } from "../../../../src/api/main/EntropyCollector.js"
 import { EntropyDataChunk, EntropyFacade } from "../../../../src/api/worker/facades/EntropyFacade.js"
 import { matchers, object, when } from "testdouble"

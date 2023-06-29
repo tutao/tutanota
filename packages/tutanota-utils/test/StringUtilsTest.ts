@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { replaceAll } from "../lib/StringUtils.js"
 o.spec("StringUtils", function () {
 	o.spec("replaceAll", function () {

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import type { Contact } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { createContact } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {

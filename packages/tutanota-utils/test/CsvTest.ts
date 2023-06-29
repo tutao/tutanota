@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { renderCsv } from "../lib/Csv.js"
 
 o.spec("Csv", function () {

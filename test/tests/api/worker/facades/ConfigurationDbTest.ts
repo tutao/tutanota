@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { ConfigurationDatabase, encryptItem } from "../../../../../src/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { DbStub } from "../search/DbStub.js"

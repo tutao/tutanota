@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { murmurHash } from "../lib/hashes/MurmurHash.js"
 
 o.spec("murmur hash", function () {

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import n from "../../nodemocker.js"
 import { getDesktopIntegratorForPlatform } from "../../../../src/desktop/integration/DesktopIntegrator.js"
 import { downcast } from "@tutao/tutanota-utils"
@@ -8,6 +8,7 @@ import en from "../../../../src/translations/en.js"
 import { DesktopIntegratorLinux } from "../../../../src/desktop/integration/DesktopIntegratorLinux.js"
 import { DesktopIntegratorDarwin } from "../../../../src/desktop/integration/DesktopIntegratorDarwin.js"
 import { DesktopIntegratorWin32 } from "../../../../src/desktop/integration/DesktopIntegratorWin32.js"
+import { spy } from "@tutao/tutanota-test-utils"
 
 const desktopEntry = `[Desktop Entry]
 Name=Tutanota Desktop
@@ -243,7 +244,7 @@ o.spec("DesktopIntegrator Test", () => {
 			const integrator = new DesktopIntegratorDarwin(electronMock)
 
 			const wmMock = downcast<WindowManager>({
-				newWindow: o.spy(() => {}),
+				newWindow: spy(() => {}),
 			})
 			await integrator.runIntegration(wmMock)
 			o(electronMock.Menu.buildFromTemplate.callCount).equals(1)

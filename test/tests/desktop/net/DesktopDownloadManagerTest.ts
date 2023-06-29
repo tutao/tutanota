@@ -1,7 +1,7 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import n, { Mocked } from "../../nodemocker.js"
 import { DesktopDownloadManager } from "../../../../src/desktop/net/DesktopDownloadManager.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows, spy } from "@tutao/tutanota-test-utils"
 import { DesktopNetworkClient } from "../../../../src/desktop/net/DesktopNetworkClient.js"
 import { PreconditionFailedError, TooManyRequestsError } from "../../../../src/api/common/error/RestError.js"
 import type * as fs from "node:fs"
@@ -222,7 +222,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 
 		o("with default download path but file exists", async function () {
 			const mocks = standardMocks()
-			mocks.fsMock.promises.writeFile = o.spy(async (path) => {
+			mocks.fsMock.promises.writeFile = spy(async (path) => {
 				if (path === "/tutanota/tmp/path/download/blob") {
 					const e = new Error() as any
 					e.code = "EEXISTS"
@@ -273,7 +273,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 			response.on = (eventName, cb) => {
 				if (eventName === "finish") cb()
 			}
-			mocks.netMock.executeRequest = o.spy(() => response)
+			mocks.netMock.executeRequest = spy(() => response)
 
 			const expectedFilePath = "/tutanota/tmp/path/encrypted/nativelyDownloadedFile"
 
@@ -435,7 +435,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 			o(mocks.fsMock.createWriteStream.callCount).equals(1)("createStream calls")
 			const ws = WriteStream.mockedInstances[0]
 			o(ws.close.callCount).equals(1)("stream is closed")
-			o(mocks.fsMock.promises.unlink.calls.map((c) => c.args)).deepEquals([["/tutanota/tmp/path/encrypted/nativelyDownloadedFile"]])("unlink")
+			o(mocks.fsMock.promises.unlink.calls).deepEquals([["/tutanota/tmp/path/encrypted/nativelyDownloadedFile"]])("unlink")
 		})
 	})
 
@@ -475,7 +475,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		o("when there's no error it uploads correct data and returns the right result", async function () {
 			const body = stringToUtf8Uint8Array("BODY")
 			const response = mockResponse(200, { responseBody: body })
-			mocks.netMock.executeRequest = o.spy(() => response)
+			mocks.netMock.executeRequest = spy(() => response)
 			const headers = {
 				blobAccessToken: "1236",
 			}
@@ -503,7 +503,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		o("when 404 is returned it returns correct result", async function () {
 			const errorId = "123"
 			const response = mockResponse(404, { responseHeaders: { "error-id": errorId } })
-			mocks.netMock.executeRequest = o.spy(() => response)
+			mocks.netMock.executeRequest = spy(() => response)
 
 			const uploadResult = await dl.upload(fileToUploadPath, targetUrl, "POST", {})
 
@@ -523,7 +523,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 					"retry-after": retryAFter,
 				},
 			})
-			mocks.netMock.executeRequest = o.spy(() => response)
+			mocks.netMock.executeRequest = spy(() => response)
 
 			const uploadResult = await dl.upload(fileToUploadPath, targetUrl, "POST", {})
 
@@ -543,7 +543,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 					"suspension-time": retryAFter,
 				},
 			})
-			mocks.netMock.executeRequest = o.spy(() => response)
+			mocks.netMock.executeRequest = spy(() => response)
 
 			const uploadResult = await dl.upload(fileToUploadPath, targetUrl, "POST", {})
 
@@ -564,7 +564,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 					precondition: precondition,
 				},
 			})
-			mocks.netMock.executeRequest = o.spy(() => response)
+			mocks.netMock.executeRequest = spy(() => response)
 
 			const uploadResult = await dl.upload(fileToUploadPath, targetUrl, "POST", {})
 
@@ -579,23 +579,21 @@ o.spec("DesktopDownloadManagerTest", function () {
 	})
 
 	o.spec("open", function () {
-		o("open", async function () {
+		o("open valid", async function () {
 			const mocks = standardMocks()
 			const dl = makeMockedDownloadManager(mocks)
-			return dl
-				.open("/some/folder/file")
-				.then(() => {
-					o(mocks.electronMock.shell.openPath.callCount).equals(1)
-					o(mocks.electronMock.shell.openPath.args.length).equals(1)
-					o(mocks.electronMock.shell.openPath.args[0]).equals("/some/folder/file")
-				})
-				.then(() => dl.open("invalid"))
-				.then(() => o(false).equals(true))
-				.catch(() => {
-					o(mocks.electronMock.shell.openPath.callCount).equals(2)
-					o(mocks.electronMock.shell.openPath.args.length).equals(1)
-					o(mocks.electronMock.shell.openPath.args[0]).equals("invalid")
-				})
+			await dl.open("/some/folder/file")
+			o(mocks.electronMock.shell.openPath.callCount).equals(1)
+			o(mocks.electronMock.shell.openPath.args.length).equals(1)
+			o(mocks.electronMock.shell.openPath.args[0]).equals("/some/folder/file")
+		})
+		o("open invalid", async () => {
+			const mocks = standardMocks()
+			const dl = makeMockedDownloadManager(mocks)
+			await o(() => dl.open("invalid")).asyncThrows(Error)
+			o(mocks.electronMock.shell.openPath.callCount).equals(1)
+			o(mocks.electronMock.shell.openPath.args.length).equals(1)
+			o(mocks.electronMock.shell.openPath.args[0]).equals("invalid")
 		})
 		o("open on windows", async function () {
 			n.setPlatform("win32")
@@ -657,10 +655,10 @@ o.spec("DesktopDownloadManagerTest", function () {
 			const expectedChunkPath1 = `/tutanota/tmp/path/download/${filenameHash}.1.blob`
 			o(chunks).deepEquals([expectedChunkPath0, expectedChunkPath1])
 
-			o(mocks.fsMock.promises.writeFile.calls[0].args[0]).equals(expectedChunkPath0)
-			o(Array.from(mocks.fsMock.promises.writeFile.calls[0].args[1])).deepEquals(Array.from(fileContent.slice(0, 30)))
-			o(mocks.fsMock.promises.writeFile.calls[1].args[0]).equals(expectedChunkPath1)
-			o(Array.from(mocks.fsMock.promises.writeFile.calls[1].args[1])).deepEquals(Array.from(fileContent.slice(30)))
+			o(mocks.fsMock.promises.writeFile.calls[0][0]).equals(expectedChunkPath0)
+			o(Array.from(mocks.fsMock.promises.writeFile.calls[0][1])).deepEquals(Array.from(fileContent.slice(0, 30)))
+			o(mocks.fsMock.promises.writeFile.calls[1][0]).equals(expectedChunkPath1)
+			o(Array.from(mocks.fsMock.promises.writeFile.calls[1][1])).deepEquals(Array.from(fileContent.slice(30)))
 		})
 	})
 

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { RecipientsModel, ResolveMode } from "../../../src/api/main/RecipientsModel.js"
 import { ContactModel } from "../../../src/contacts/model/ContactModel.js"
 import { LoginController } from "../../../src/api/main/LoginController.js"

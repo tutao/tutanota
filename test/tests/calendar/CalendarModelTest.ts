@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import type { CalendarEvent, CalendarGroupRoot } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	CalendarEventTypeRef,
@@ -23,7 +23,14 @@ import { generateEventElementId } from "../../../src/api/common/utils/CommonCale
 import type { EntityUpdateData } from "../../../src/api/main/EventController.js"
 import { EventController } from "../../../src/api/main/EventController.js"
 import { Notifications } from "../../../src/gui/Notifications.js"
-import { createAlarmInfo, createDateWrapper, createUser, createUserAlarmInfo, createUserAlarmInfoListType } from "../../../src/api/entities/sys/TypeRefs.js"
+import {
+	AlarmInfo,
+	createAlarmInfo,
+	createDateWrapper,
+	createUser,
+	createUserAlarmInfo,
+	createUserAlarmInfoListType,
+} from "../../../src/api/entities/sys/TypeRefs.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import type { UserController } from "../../../src/api/main/UserController.js"
 import { NotFoundError } from "../../../src/api/common/error/RestError.js"
@@ -33,10 +40,11 @@ import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import { MailModel } from "../../../src/mail/model/MailModel.js"
 import { AlarmScheduler } from "../../../src/calendar/date/AlarmScheduler.js"
 import { CalendarEventProgenitor, CalendarFacade } from "../../../src/api/worker/facades/lazy/CalendarFacade.js"
-import { asResult, mapToObject } from "@tutao/tutanota-test-utils"
+import { mapToObject, verify } from "@tutao/tutanota-test-utils"
 import type { WorkerClient } from "../../../src/api/main/WorkerClient.js"
 import { FileController } from "../../../src/file/FileController.js"
 import { getDateInUTC, getDateInZone, zone } from "./CalendarTestUtils.js"
+import { func, matchers, when } from "testdouble"
 
 function countDaysWithEvents(eventsForDays: Map<number, Array<CalendarEvent>>) {
 	return Array.from(eventsForDays).filter(([_, events]) => events.length).length
@@ -842,8 +850,7 @@ o.spec("CalendarModel", function () {
 					},
 				],
 			})
-			// @ts-ignore
-			o(calendarFacade.updateCalendarEvent.calls.length).equals(0)
+			verify(calendarFacade.updateCalendarEvent(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		})
 		o("reply", async function () {
 			const uid = "uid"
@@ -919,7 +926,11 @@ o.spec("CalendarModel", function () {
 					},
 				],
 			})
-			const [createdEvent, alarms] = calendarFacade.updateCalendarEvent.calls[0].args
+			const eventCaptor = matchers.captor()
+			const alarmsCaptor = matchers.captor()
+			verify(calendarFacade.updateCalendarEvent(eventCaptor.capture(), alarmsCaptor.capture(), matchers.anything()))
+			const createdEvent: CalendarEvent = eventCaptor.value
+			const alarms: ReadonlyArray<AlarmInfo> = alarmsCaptor.value
 			o(createdEvent.uid).equals(existingEvent.uid)
 			o(createdEvent.summary).equals(existingEvent.summary)
 			o(createdEvent.attendees).deepEquals([
@@ -973,9 +984,7 @@ o.spec("CalendarModel", function () {
 					},
 				],
 			})
-			// It'a a new invite, we don't do anything with them yet
-			// @ts-ignore
-			o(calendarFacade.updateCalendarEvent.calls).deepEquals([])
+			verify(calendarFacade.updateCalendarEvent(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		})
 		o("request as an update", async function () {
 			const uid = "uid"
@@ -1033,8 +1042,13 @@ o.spec("CalendarModel", function () {
 					},
 				],
 			})
-			// @ts-ignore
-			const [updatedEvent, updatedAlarms, oldEvent] = calendarFacade.updateCalendarEvent.calls[0].args
+			const eventCaptor = matchers.captor()
+			const alarmsCaptor = matchers.captor()
+			const oldEventCaptor = matchers.captor()
+			verify(calendarFacade.updateCalendarEvent(eventCaptor.capture(), alarmsCaptor.capture(), oldEventCaptor.capture()))
+			const updatedEvent = eventCaptor.value
+			const updatedAlarms = alarmsCaptor.value
+			const oldEvent = oldEventCaptor.value
 			o(updatedEvent.summary).equals(sentEvent.summary)
 			o(updatedEvent.sequence).equals(sentEvent.sequence)
 			o(updatedAlarms).deepEquals([alarm])
@@ -1109,10 +1123,16 @@ o.spec("CalendarModel", function () {
 					},
 				],
 			})
-			// @ts-ignore
-			o(calendarFacade.updateCalendarEvent.calls).deepEquals([])
-			// @ts-ignore
-			const [updatedEvent, updatedAlarms, oldEvent] = calendarFacade.saveCalendarEvent.calls[0].args
+			verify(calendarFacade.updateCalendarEvent(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+
+			const eventCaptor = matchers.captor()
+			const alarmsCaptor = matchers.captor()
+			const oldEventCaptor = matchers.captor()
+			verify(calendarFacade.saveCalendarEvent(eventCaptor.capture(), alarmsCaptor.capture(), oldEventCaptor.capture()))
+			const updatedEvent = eventCaptor.value
+			const updatedAlarms = alarmsCaptor.value
+			const oldEvent = oldEventCaptor.value
+
 			o(updatedEvent.summary).equals(sentEvent.summary)
 			o(updatedEvent.sequence).equals(sentEvent.sequence)
 			o(updatedEvent.startTime.toISOString()).equals(sentEvent.startTime.toISOString())
@@ -1163,9 +1183,7 @@ o.spec("CalendarModel", function () {
 						},
 					],
 				})
-				o(Object.getPrototypeOf(await asResult(restClientMock.load(CalendarEventTypeRef, existingEvent._id, null)))).equals(NotFoundError.prototype)(
-					"Calendar event was deleted",
-				)
+				await o(() => restClientMock.load(CalendarEventTypeRef, existingEvent._id, null)).asyncThrows(NotFoundError)
 			})
 			o("event is cancelled by someone else than organizer", async function () {
 				const uid = "uid"
@@ -1274,8 +1292,8 @@ function createEvent(startTime: Date, endTime: Date): CalendarEvent {
 
 function makeAlarmScheduler(): AlarmScheduler {
 	return {
-		scheduleAlarm: o.spy(),
-		cancelAlarm: o.spy(),
+		scheduleAlarm: func<AlarmScheduler["scheduleAlarm"]>(),
+		cancelAlarm: func<AlarmScheduler["cancelAlarm"]>(),
 	}
 }
 
@@ -1283,15 +1301,20 @@ function makeMailModel(): MailModel {
 	return downcast({})
 }
 
-function makeCalendarFacade(getEventsByUid, entityRestClient: EntityRestClientMock): CalendarFacade {
-	return downcast({
-		getEventsByUid: getEventsByUid.getEventsByUid,
-		updateCalendarEvent: o.spy(() => Promise.resolve()),
-		saveCalendarEvent: o.spy((event) => {
+function makeCalendarFacade(getEventsByUid: { getEventsByUid: Function }, entityRestClient: EntityRestClientMock): CalendarFacade {
+	const saveCalendarEvent = func<CalendarFacade["saveCalendarEvent"]>()
+	when(saveCalendarEvent(matchers.anything(), matchers.anything(), matchers.anything())).thenDo((event) => {
+		// testdouble is very insistent on calling such callbacks even during verification and we get weird args here
+		if (!event.__matches) {
 			entityRestClient.addListInstances(event)
-			return Promise.resolve()
-		}),
+		}
+		return Promise.resolve()
 	})
+	return {
+		getEventsByUid: getEventsByUid.getEventsByUid,
+		updateCalendarEvent: func<CalendarFacade["updateCalendarEvent"]>(),
+		saveCalendarEvent,
+	} as Partial<CalendarFacade> as CalendarFacade
 }
 
 function makeFileController(): FileController {

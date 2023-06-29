@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import {
 	_replaceLoneSurrogates,
 	_stringToUtf8Uint8ArrayLegacy,

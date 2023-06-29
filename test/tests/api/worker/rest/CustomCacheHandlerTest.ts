@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { instance, matchers, verify, when } from "testdouble"
 import { CalendarEventTypeRef, createCalendarEvent } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { CustomCalendarEventCacheHandler } from "../../../../../src/api/worker/rest/CustomCacheHandler.js"

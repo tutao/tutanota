@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest.js"
 import { matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"

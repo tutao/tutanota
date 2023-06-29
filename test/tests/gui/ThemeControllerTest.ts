@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { ThemeController } from "../../../src/gui/ThemeController.js"
 import type { ThemeCustomizations } from "../../../src/misc/WhitelabelCustomizations.js"
 import { downcast } from "@tutao/tutanota-utils"

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import n from "../../nodemocker.js"
 
 import { DesktopNativeCredentialsFacade } from "../../../../src/desktop/credentials/DesktopNativeCredentialsFacade.js"

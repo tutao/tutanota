@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { PingAdapter, Stage, UsageTest } from "../lib/index.js"
 import { UsageTestController } from "../lib/model/UsageTestController.js"
 
@@ -227,4 +227,6 @@ o.spec("Main", function () {
 	})
 })
 
-o.run()
+const result = await o.run()
+o.printReport(result)
+o.terminateProcess(result)

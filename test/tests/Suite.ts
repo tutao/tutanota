@@ -1,5 +1,6 @@
-import o from "ospec"
+import o from "@tutao/otest"
 
+import "./misc/ListModelTest.js"
 import "./api/worker/facades/LoginFacadeTest.js"
 import "./api/common/utils/LoggerTest.js"
 import "./api/common/utils/BirthdayUtilsTest.js"
@@ -111,21 +112,22 @@ import "./misc/ListModelTest.js"
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"
 import { Mode } from "../../src/api/common/Env.js"
-import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 
-await setupSuite()
+export async function run({ integration, filter }: { integration?: boolean; filter?: string } = {}) {
+	await setupSuite({ integration })
+	const result = await o.run({ filter })
 
-preTest()
+	o.printReport(result)
 
-// @ts-ignore
-o.run(reportTest)
+	return result
+}
 
-async function setupSuite() {
+async function setupSuite({ integration }: { integration?: boolean }) {
 	const { WorkerImpl } = await import("../../src/api/worker/WorkerImpl.js")
 	globalThis.testWorker = WorkerImpl
 
 	if (typeof process != "undefined") {
-		if (process.argv.includes("-i")) {
+		if (integration) {
 			console.log("\nRunning with integration tests because was run with -i\n")
 			await import("./api/main/WorkerTest.js")
 			await import("./IntegrationTest.js")
@@ -169,7 +171,6 @@ async function setupSuite() {
 	td.config({
 		ignoreWarnings: true,
 	})
-
 	o.before(async function () {
 		// setup the Entropy for all testcases
 		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
@@ -177,31 +178,8 @@ async function setupSuite() {
 
 	o.afterEach(function () {
 		td.reset()
+
 		// Reset env.mode in case any tests have fiddled with it
 		env.mode = Mode.Test
 	})
-}
-
-export function preTest() {
-	if (globalThis.isBrowser) {
-		const p = document.createElement("p")
-		p.id = "report"
-		p.style.fontWeight = "bold"
-		p.style.fontSize = "30px"
-		p.style.fontFamily = "sans-serif"
-		p.textContent = "Running tests..."
-		neverNull(document.body).appendChild(p)
-	}
-}
-
-export function reportTest(results: any, stats: any) {
-	// @ts-ignore
-	const errCount = o.report(results, stats)
-	if (typeof process != "undefined" && errCount !== 0) process.exit(1) // eslint-disable-line no-process-exit
-	if (globalThis.isBrowser) {
-		const p = assertNotNull(document.getElementById("report"))
-		// errCount includes bailCount
-		p.textContent = errCount === 0 ? "No errors" : `${errCount} error(s) (see console)`
-		p.style.color = errCount === 0 ? "green" : "red"
-	}
 }

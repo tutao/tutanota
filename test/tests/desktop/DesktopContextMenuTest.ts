@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import n from "../nodemocker.js"
 import { DesktopContextMenu } from "../../../src/desktop/DesktopContextMenu.js"
 import { downcast } from "@tutao/tutanota-utils"

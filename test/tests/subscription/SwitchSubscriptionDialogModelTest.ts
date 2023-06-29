@@ -1,6 +1,6 @@
 import { createAccountingInfo, createBooking, createBookingItem, createCustomer, createFeature } from "../../../src/api/entities/sys/TypeRefs.js"
 import { AccountType, BookingItemFeatureType, FeatureType, PlanType } from "../../../src/api/common/TutanotaConstants.js"
-import o from "ospec"
+import o from "@tutao/otest"
 import { SwitchSubscriptionDialogModel } from "../../../src/subscription/SwitchSubscriptionDialogModel.js"
 import { PaymentInterval } from "../../../src/subscription/PriceUtils.js"
 

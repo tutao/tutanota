@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import { DesktopUtils } from "../../../src/desktop/DesktopUtils.js"
 import { base64ToUint8Array, base64UrlToBase64 } from "@tutao/tutanota-utils"

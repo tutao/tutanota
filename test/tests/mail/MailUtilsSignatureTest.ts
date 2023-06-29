@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { LINE_BREAK } from "../../../src/mail/model/MailUtils.js"
 import { EmailSignatureType } from "../../../src/api/common/TutanotaConstants.js"
 import { mockAttribute, unmockAttribute } from "@tutao/tutanota-test-utils"

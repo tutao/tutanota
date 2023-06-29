@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
 import { OfflineDbFactory, OfflineDbManager } from "../../../../src/desktop/db/PerWindowSqlCipherFacade.js"

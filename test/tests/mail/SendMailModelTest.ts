@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 // @ts-ignore[untyped-import]
 import en from "../../../src/translations/en.js"
 import type { UserController } from "../../../src/api/main/UserController.js"

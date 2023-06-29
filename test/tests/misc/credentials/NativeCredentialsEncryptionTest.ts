@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { NativeCredentialsEncryption } from "../../../../src/misc/credentials/NativeCredentialsEncryption.js"
 import type { DeviceEncryptionFacade } from "../../../../src/api/worker/facades/DeviceEncryptionFacade.js"
 import n from "../../nodemocker.js"

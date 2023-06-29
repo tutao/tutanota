@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { AccountType, CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../../src/api/common/TutanotaConstants.js"
 import { func, matchers, object, verify, when } from "testdouble"
 import { UserController } from "../../../../src/api/main/UserController.js"

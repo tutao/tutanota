@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { EventDragHandler } from "../../../src/calendar/view/EventDragHandler.js"
 import { defer, downcast } from "@tutao/tutanota-utils"
 import type { DraggedEvent } from "../../../src/calendar/view/CalendarViewModel.js"
@@ -7,6 +7,7 @@ import { getAllDayDateUTCFromZone, getStartOfDayWithZone, getStartOfNextDayWithZ
 import { isAllDayEvent } from "../../../src/api/common/utils/CommonCalendarUtils.js"
 import { DateTime } from "luxon"
 import { DAY_IN_MILLIS } from "@tutao/tutanota-utils"
+import { spy } from "@tutao/tutanota-test-utils"
 
 const INIT_MOUSE_POS = {
 	x: 0,
@@ -33,9 +34,9 @@ o.spec("Event Drag Handler", function () {
 		let handler
 		o.beforeEach(() => {
 			callbackMock = downcast({
-				onDragStart: o.spy((draggedEvent: DraggedEvent, diff: number) => {}),
-				onDragUpdate: o.spy((diff: number) => {}),
-				onDragEnd: o.spy((diff: number) => Promise.resolve()),
+				onDragStart: spy((draggedEvent: DraggedEvent, diff: number) => {}),
+				onDragUpdate: spy((diff: number) => {}),
+				onDragEnd: spy((diff: number) => Promise.resolve()),
 			})
 			handler = new EventDragHandler(body, callbackMock)
 		})
@@ -61,7 +62,7 @@ o.spec("Event Drag Handler", function () {
 		})
 		o("Not moving mouse past 10px threshhold is noop", async function () {
 			const event = makeEvent("event", new Date(2021, 8, 22), new Date(2021, 8, 23))
-			const callback = o.spy(() => Promise.resolve(true))
+			const callback = spy(() => Promise.resolve(true))
 			handler.prepareDrag(event, new Date(2021, 8, 22), INIT_MOUSE_POS, true)
 			// Dragged a bit
 			handler.handleDrag(new Date(2021, 8, 21), NOT_DRAG_MOUSE_POS)
@@ -91,7 +92,7 @@ o.spec("Event Drag Handler", function () {
 			o(updateTimeToMoveBy).equals(3 * DAY_IN_MILLIS)
 			// drag end
 			const deferredCallbackComplete = defer()
-			callbackMock.onDragEnd = o.spy(() => deferredCallbackComplete.promise)
+			callbackMock.onDragEnd = spy(() => deferredCallbackComplete.promise)
 			const endDragPromise = handler.endDrag(dragDate)
 			o(callbackMock.onDragEnd.callCount).equals(1)
 			const [endTimeToMoveBy] = callbackMock.onDragEnd.args

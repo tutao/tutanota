@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import type { CalendarEventAlteredInstance, EventWithAlarmInfos } from "../../../../../src/api/worker/facades/lazy/CalendarFacade.js"
 import { CalendarFacade, sortByRecurrenceId } from "../../../../../src/api/worker/facades/lazy/CalendarFacade.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
@@ -19,7 +19,7 @@ import { getElementId, getLetId, getListId } from "../../../../../src/api/common
 import type { CalendarEvent } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTypeRef, createCalendarEvent } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { ProgressMonitor } from "../../../../../src/api/common/utils/ProgressMonitor.js"
-import { assertThrows, mockAttribute, unmockAttribute } from "@tutao/tutanota-test-utils"
+import { assertThrows, mockAttribute, spy, unmockAttribute } from "@tutao/tutanota-test-utils"
 import { ImportError } from "../../../../../src/api/common/error/ImportError.js"
 import { SetupMultipleError } from "../../../../../src/api/common/error/SetupMultipleError.js"
 import { InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
@@ -115,7 +115,7 @@ o.spec("CalendarFacadeTest", async function () {
 			sendProgress: () => Promise.resolve(),
 		})
 		nativeMock = downcast({
-			invokeNative: o.spy(() => Promise.resolve()),
+			invokeNative: spy(() => Promise.resolve()),
 		})
 		instanceMapper = new InstanceMapper()
 		serviceExecutor = object()
@@ -149,7 +149,7 @@ o.spec("CalendarFacadeTest", async function () {
 			entityRequest = function () {
 				return Promise.resolve()
 			} //dummy overwrite in test
-			requestSpy = o.spy(function () {
+			requestSpy = spy(function () {
 				return entityRequest.apply(this, arguments)
 			})
 

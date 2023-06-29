@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { makeMailBundle } from "../../../../src/mail/export/Bundler.js"
 import {
 	createEncryptedMailAddress,

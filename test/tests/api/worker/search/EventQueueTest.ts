@@ -1,13 +1,13 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import type { QueuedBatch } from "../../../../../src/api/worker/EventQueue.js"
 import { EventQueue } from "../../../../../src/api/worker/EventQueue.js"
 import type { EntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { createEntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { OperationType } from "../../../../../src/api/common/TutanotaConstants.js"
-import { defer } from "@tutao/tutanota-utils"
+import { defer, delay } from "@tutao/tutanota-utils"
 import { ConnectionError } from "../../../../../src/api/common/error/RestError.js"
 import { MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { delay } from "@tutao/tutanota-utils"
+import { spy } from "@tutao/tutanota-test-utils"
 
 o.spec("EventQueueTest", function () {
 	let queue: EventQueue
@@ -23,7 +23,7 @@ o.spec("EventQueueTest", function () {
 
 	o.beforeEach(function () {
 		lastProcess = defer()
-		processElement = o.spy(() => {
+		processElement = spy(() => {
 			if (queue._eventQueue.length === 1) {
 				// the last element is removed right after processing it
 				lastProcess.resolve()
@@ -80,7 +80,7 @@ o.spec("EventQueueTest", function () {
 		}
 
 		lastProcess = defer()
-		processElement = o.spy(() => {
+		processElement = spy(() => {
 			if (queue._eventQueue.length === 1) {
 				// the last element is removed right after processing it
 				lastProcess.resolve()
@@ -91,9 +91,7 @@ o.spec("EventQueueTest", function () {
 			if (nextElement.batchId === "2") {
 				return Promise.reject(new ConnectionError("no connection"))
 			} else {
-				// @ts-ignore
-				o("should not be called").equals(true)
-				return Promise.resolve()
+				throw new Error("should not be called")
 			}
 		})
 		queue.addBatches([batchWithThrow, batchWithOnlyCreate])
@@ -120,7 +118,7 @@ o.spec("EventQueueTest", function () {
 
 			const expectedDelete = createUpdate(OperationType.DELETE, createEvent.instanceListId, createEvent.instanceId, "u2")
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([[{ events: [expectedDelete], batchId: "batch-id-2", groupId: "group-id" }]])
+			o(processElement.invocations).deepEquals([[{ events: [expectedDelete], batchId: "batch-id-2", groupId: "group-id" }]])
 		})
 
 		o("create + update == create", async function () {
@@ -134,7 +132,7 @@ o.spec("EventQueueTest", function () {
 
 			const expectedCreate = createUpdate(OperationType.CREATE, createEvent.instanceListId, createEvent.instanceId, "u1")
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([[{ events: [expectedCreate], batchId: "batch-id-1", groupId: "group-id" }]])
+			o(processElement.invocations).deepEquals([[{ events: [expectedCreate], batchId: "batch-id-1", groupId: "group-id" }]])
 		})
 
 		o("create + create", async function () {
@@ -149,7 +147,7 @@ o.spec("EventQueueTest", function () {
 			const expectedCreate = createUpdate(OperationType.CREATE, createEvent.instanceListId, createEvent.instanceId, "u1")
 			const expectedCreate2 = createUpdate(OperationType.CREATE, createEvent.instanceListId, createEvent.instanceId, "u2")
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([
+			o(processElement.invocations).deepEquals([
 				[{ events: [expectedCreate], batchId: "batch-id-1", groupId: "group-id" }],
 				[{ events: [expectedCreate2], batchId: "batch-id-2", groupId: "group-id" }],
 			])
@@ -168,7 +166,7 @@ o.spec("EventQueueTest", function () {
 
 			const expectedDelete = createUpdate(OperationType.DELETE, createEvent.instanceListId, createEvent.instanceId, "u")
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([[{ events: [expectedDelete], batchId: "batch-id-3", groupId: "group-id" }]])
+			o(processElement.invocations).deepEquals([[{ events: [expectedDelete], batchId: "batch-id-3", groupId: "group-id" }]])
 		})
 
 		o("create & move == create*", async function () {
@@ -184,7 +182,7 @@ o.spec("EventQueueTest", function () {
 
 			const expectedCreate = createUpdate(OperationType.CREATE, "new-mail-list-2", "1", "u3")
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([[{ events: [expectedCreate], groupId: "group-id", batchId: "batch-id-1" }]])
+			o(processElement.invocations).deepEquals([[{ events: [expectedCreate], groupId: "group-id", batchId: "batch-id-1" }]])
 		})
 
 		o("move + move == move", async function () {
@@ -206,7 +204,7 @@ o.spec("EventQueueTest", function () {
 				createUpdate(OperationType.DELETE, "new-mail-list-1", instanceId, "u1"),
 				createUpdate(OperationType.CREATE, "new-mail-list-3", instanceId, "u4"),
 			]
-			o(processElement.calls.map((c) => c.args)).deepEquals([[{ events: expectedEvents, groupId: "group-id", batchId: "batch-id-1" }]])
+			o(processElement.invocations).deepEquals([[{ events: expectedEvents, groupId: "group-id", batchId: "batch-id-1" }]])
 		})
 
 		o("update + move == delete + create", async function () {
@@ -225,7 +223,7 @@ o.spec("EventQueueTest", function () {
 			const expectedDelete = createUpdate(OperationType.DELETE, "new-mail-list", instanceId, "u2")
 			const expectedCreate = createUpdate(OperationType.CREATE, "new-mail-list-2", instanceId, "u3")
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([
+			o(processElement.invocations).deepEquals([
 				[{ events: [expectedDelete], groupId: "group-id", batchId: "batch-id-1" }],
 				[{ events: [expectedCreate], groupId: "group-id", batchId: "batch-id-2" }],
 			])
@@ -241,7 +239,7 @@ o.spec("EventQueueTest", function () {
 			queue.resume()
 			await lastProcess.promise
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([
+			o(processElement.invocations).deepEquals([
 				[{ events: [moveDeleteEvent, moveCreateEvent], batchId: "batch-id-1", groupId: "group-id" }],
 				[{ events: [updateEvent], batchId: "batch-id-2", groupId: "group-id" }],
 			])
@@ -264,7 +262,7 @@ o.spec("EventQueueTest", function () {
 
 			const expectedEvents = [createUpdate(OperationType.DELETE, "new-mail-list", instanceId, "u1")]
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([[{ events: expectedEvents, groupId: "group-id", batchId: "batch-id-1" }]])
+			o(processElement.invocations).deepEquals([[{ events: expectedEvents, groupId: "group-id", batchId: "batch-id-1" }]])
 		})
 
 		o("move + update + delete == delete", async function () {
@@ -279,7 +277,7 @@ o.spec("EventQueueTest", function () {
 			queue.resume()
 			await lastProcess.promise
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([[{ events: [moveDeleteEvent], batchId: "batch-id-1", groupId: "group-id" }]])
+			o(processElement.invocations).deepEquals([[{ events: [moveDeleteEvent], batchId: "batch-id-1", groupId: "group-id" }]])
 		})
 
 		o("update + move + delete == delete", async function () {
@@ -294,7 +292,7 @@ o.spec("EventQueueTest", function () {
 			queue.resume()
 			await lastProcess.promise
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([[{ events: [moveDeleteEvent], batchId: "batch-id-1", groupId: "group-id" }]])
+			o(processElement.invocations).deepEquals([[{ events: [moveDeleteEvent], batchId: "batch-id-1", groupId: "group-id" }]])
 		})
 
 		o("move + update + move + delete == delete (from first move)", async function () {
@@ -312,7 +310,7 @@ o.spec("EventQueueTest", function () {
 			queue.resume()
 			await lastProcess.promise
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([[{ events: [moveDeleteEvent], batchId: "batch-id-1", groupId: "group-id" }]])
+			o(processElement.invocations).deepEquals([[{ events: [moveDeleteEvent], batchId: "batch-id-1", groupId: "group-id" }]])
 		})
 
 		o("create + move + update + delete == delete (from first move)", async function () {
@@ -329,7 +327,7 @@ o.spec("EventQueueTest", function () {
 			queue.resume()
 			await lastProcess.promise
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([[{ events: [deleteEvent], batchId: "batch-id-4", groupId: "group-id" }]])
+			o(processElement.invocations).deepEquals([[{ events: [deleteEvent], batchId: "batch-id-4", groupId: "group-id" }]])
 		})
 
 		o("create + update + move + delete == delete (from first move)", async function () {
@@ -346,7 +344,7 @@ o.spec("EventQueueTest", function () {
 			queue.resume()
 			await lastProcess.promise
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([[{ events: [deleteEvent], batchId: "batch-id-4", groupId: "group-id" }]])
+			o(processElement.invocations).deepEquals([[{ events: [deleteEvent], batchId: "batch-id-4", groupId: "group-id" }]])
 		})
 
 		o("delete + create == delete + create", async function () {
@@ -359,7 +357,7 @@ o.spec("EventQueueTest", function () {
 			queue.resume()
 			await lastProcess.promise
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([
+			o(processElement.invocations).deepEquals([
 				[{ events: [deleteEvent], batchId: "batch-id-0", groupId: "group-id" }],
 				[{ events: [createEvent], batchId: "batch-id-1", groupId: "group-id" }],
 			])
@@ -385,7 +383,7 @@ o.spec("EventQueueTest", function () {
 			const expectedDelete = createUpdate(OperationType.DELETE, createEvent1.instanceListId, createEvent1.instanceId, "u1")
 			const expectedCreate = createUpdate(OperationType.CREATE, createEvent1.instanceListId, createEvent1.instanceId, "u4")
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([
+			o(processElement.invocations).deepEquals([
 				[{ events: [expectedDelete], batchId: "batch-id-1", groupId: "group-id" }],
 				[{ events: [nonEmptyEventInBetween], batchId: "batch-id-1.1", groupId: "group-id" }],
 				[{ events: [expectedCreate], batchId: "batch-id-4", groupId: "group-id" }],
@@ -401,7 +399,7 @@ o.spec("EventQueueTest", function () {
 			queue.resume()
 			await lastProcess.promise
 
-			o(processElement.calls.map((c) => c.args)).deepEquals([
+			o(processElement.invocations).deepEquals([
 				[{ events: [createEvent1], batchId: "batch-id-1", groupId: "group-id-1" }],
 				[{ events: [createEvent1], batchId: "batch-id-1", groupId: "group-id-2" }],
 			])

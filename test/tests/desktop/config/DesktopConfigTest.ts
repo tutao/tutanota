@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { DesktopConfig } from "../../../../src/desktop/config/DesktopConfig.js"
 import { DesktopConfigMigrator } from "../../../../src/desktop/config/migrations/DesktopConfigMigrator.js"
 import { downcast, noOp } from "@tutao/tutanota-utils"
@@ -6,6 +6,7 @@ import { DesktopKeyStoreFacade } from "../../../../src/desktop/KeyStoreFacadeImp
 import { DesktopNativeCryptoFacade } from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
 import { DesktopConfigKey } from "../../../../src/desktop/config/ConfigKeys.js"
 import { ConfigFile } from "../../../../src/desktop/config/ConfigFile.js"
+import { spy } from "@tutao/tutanota-test-utils"
 
 o.spec("DesktopConfigTest", function () {
 	let desktopConfig: DesktopConfig
@@ -41,7 +42,7 @@ o.spec("DesktopConfigTest", function () {
 					},
 				})
 			},
-			writeJSON: o.spy((obj: any) => {
+			writeJSON: spy((obj: any) => {
 				return Promise.resolve()
 			}),
 			ensurePresence: () => {
@@ -50,7 +51,7 @@ o.spec("DesktopConfigTest", function () {
 		})
 
 		configMigrator = downcast({
-			applyMigrations: o.spy((migrationFunction, oldConfig) => {
+			applyMigrations: spy((migrationFunction, oldConfig) => {
 				return oldConfig
 			}),
 		})
@@ -65,10 +66,10 @@ o.spec("DesktopConfigTest", function () {
 		})
 
 		desktopCrypto = downcast({
-			aesDecryptObject: o.spy((key, value) => {
+			aesDecryptObject: spy((key, value) => {
 				return "decrypted"
 			}),
-			aesEncryptObject: o.spy((key, value) => {
+			aesEncryptObject: spy((key, value) => {
 				return "encrypted"
 			}),
 		})
@@ -78,7 +79,7 @@ o.spec("DesktopConfigTest", function () {
 	})
 
 	o("setVar updates config value", async function () {
-		const cb1 = o.spy((value: any) => noOp())
+		const cb1 = spy(() => noOp())
 		desktopConfig.on(DesktopConfigKey.lastBounds, cb1)
 
 		o(await desktopConfig.getVar(DesktopConfigKey.lastBounds)).equals(undefined)
@@ -92,8 +93,8 @@ o.spec("DesktopConfigTest", function () {
 	})
 
 	o("setVar updates correct config value", async function () {
-		const cb1 = o.spy((value: any) => noOp())
-		const cb2 = o.spy((value: any) => noOp())
+		const cb1 = spy(() => noOp())
+		const cb2 = spy(() => noOp())
 		desktopConfig.on(DesktopConfigKey.lastBounds, cb1)
 		desktopConfig.on(DesktopConfigKey.spellcheck, cb2)
 

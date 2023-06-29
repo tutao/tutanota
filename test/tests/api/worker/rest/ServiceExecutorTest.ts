@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { ServiceExecutor } from "../../../../../src/api/worker/rest/ServiceExecutor.js"
 import { RestClient, RestClientOptions } from "../../../../../src/api/worker/rest/RestClient.js"
 import { InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
@@ -622,8 +622,7 @@ o.spec("ServiceExecutor", function () {
 			}
 			const giftCardCreateData = createGiftCardCreateData({ message: "test" })
 
-			assertThrows(ProgrammingError, () => executor.get(getService, giftCardCreateData))
-
+			await o(() => executor.get(getService, giftCardCreateData)).asyncThrows(ProgrammingError)
 			verify(restClient.request(anything(), anything()), { ignoreExtraArgs: true, times: 0 })
 		})
 	})

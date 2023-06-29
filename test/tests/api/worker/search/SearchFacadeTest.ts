@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { SearchFacade } from "../../../../../src/api/worker/search/SearchFacade.js"
 import { ContactTypeRef, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { createUser } from "../../../../../src/api/entities/sys/TypeRefs.js"

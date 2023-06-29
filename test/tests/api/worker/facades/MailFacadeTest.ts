@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { MailFacade, phishingMarkerValue } from "../../../../../src/api/worker/facades/lazy/MailFacade.js"
 import { createMail, createMailAddress, createPhishingMarker } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { MailAuthenticationStatus, ReportedMailFieldType } from "../../../../../src/api/common/TutanotaConstants.js"

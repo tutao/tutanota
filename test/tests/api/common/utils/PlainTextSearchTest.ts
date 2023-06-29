@@ -1,5 +1,6 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { _findMatches, _search, search } from "../../../../../src/api/common/utils/PlainTextSearch.js"
+
 o.spec("PlainTextSearchTest", function () {
 	const entryWithNestedArray1 = {
 		title: "Is my password strong enough?",

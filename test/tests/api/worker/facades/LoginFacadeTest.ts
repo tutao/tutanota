@@ -1,5 +1,5 @@
-import o from "ospec"
-import { instance, matchers, object, when } from "testdouble"
+import o from "@tutao/otest"
+import td, { instance, matchers, object, when } from "testdouble"
 import {
 	createCreateSessionReturn,
 	createGroupInfo,
@@ -26,7 +26,6 @@ import { Credentials } from "../../../../../src/misc/credentials/Credentials"
 import { defer, DeferredObject, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { AccountType } from "../../../../../src/api/common/TutanotaConstants"
 import { AccessExpiredError, ConnectionError, NotAuthenticatedError } from "../../../../../src/api/common/error/RestError"
-import { assertThrows, verify } from "@tutao/tutanota-test-utils"
 import { SessionType } from "../../../../../src/api/common/SessionType"
 import { HttpMethod } from "../../../../../src/api/common/EntityFunctions"
 import { ConnectMode, EventBusClient } from "../../../../../src/api/worker/EventBusClient"
@@ -36,6 +35,26 @@ import { EntropyFacade } from "../../../../../src/api/worker/facades/EntropyFaca
 import { DatabaseKeyFactory } from "../../../../../src/misc/credentials/DatabaseKeyFactory.js"
 
 const { anything } = matchers
+
+/** Verify using testdouble, but register as an ospec assertion */
+export function verify(demonstration: any, config?: td.VerificationConfig) {
+	function check(demonstration) {
+		try {
+			td.verify(demonstration, config)
+			return {
+				pass: true,
+				message: "Successful verification",
+			}
+		} catch (e) {
+			return {
+				pass: false,
+				message: e.toString(),
+			}
+		}
+	}
+
+	o(demonstration).satisfies(check)
+}
 
 const SALT = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
 
@@ -261,7 +280,7 @@ o.spec("LoginFacadeTest", function () {
 						anything(),
 					),
 				).thenReject(new NotAuthenticatedError("not your cheese"))
-				await assertThrows(NotAuthenticatedError, () => facade.resumeSession(credentials, SALT, dbKey, timeRangeDays))
+				await o(() => facade.resumeSession(credentials, SALT, dbKey, timeRangeDays)).asyncThrows(NotAuthenticatedError)
 				verify(cacheStorageInitializerMock.deInitialize())
 			})
 		})
@@ -423,7 +442,7 @@ o.spec("LoginFacadeTest", function () {
 					throw new ConnectionError("Oopsie 3")
 				})
 
-				await assertThrows(ConnectionError, () => facade.resumeSession(credentials, user.salt, dbKey, timeRangeDays))
+				await o(() => facade.resumeSession(credentials, user.salt, dbKey, timeRangeDays)).asyncThrows(ConnectionError)
 				o(calls).deepEquals(["sessionService"])
 			}
 		})
@@ -576,7 +595,7 @@ o.spec("LoginFacadeTest", function () {
 			o("when the salt is outdated, AccessExpiredError is thrown", async function () {
 				user.externalAuthInfo!.latestSaltHash = new Uint8Array([1, 2, 3])
 
-				await assertThrows(AccessExpiredError, () => facade.resumeSession(credentials, SALT, null, timeRangeDays))
+				await o(() => facade.resumeSession(credentials, SALT, null, timeRangeDays)).asyncThrows(AccessExpiredError)
 				verify(restClientMock.request(matchers.contains("sys/session"), HttpMethod.DELETE, anything()), { times: 0 })
 			})
 
@@ -584,7 +603,7 @@ o.spec("LoginFacadeTest", function () {
 				user.verifier = new Uint8Array([1, 2, 3])
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.DELETE, anything())).thenResolve(null)
 
-				await assertThrows(NotAuthenticatedError, () => facade.resumeSession(credentials, SALT, null, timeRangeDays))
+				await o(() => facade.resumeSession(credentials, SALT, null, timeRangeDays)).asyncThrows(NotAuthenticatedError)
 				verify(restClientMock.request(matchers.contains("sys/session"), HttpMethod.DELETE, anything()))
 			})
 		})

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import {
 	create,
 	GENERATED_MIN_ID,

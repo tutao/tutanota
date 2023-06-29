@@ -29,12 +29,13 @@ import {
 	EncryptedMailAddress,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import type { MailboxDetail } from "../../../src/mail/model/MailModel.js"
-import o from "ospec"
+import o from "@tutao/otest"
 import type { CalendarInfo } from "../../../src/calendar/model/CalendarModel"
 import { CalendarModel } from "../../../src/calendar/model/CalendarModel"
 import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
 import { Recipient, RecipientType } from "../../../src/api/common/recipients/Recipient.js"
 import { DateTime } from "luxon"
+import { spy } from "@tutao/tutanota-test-utils"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const
@@ -261,10 +262,10 @@ export function makeCalendars(type: "own" | "shared", id: string = calendarGroup
 
 export function makeCalendarModel(): CalendarModel {
 	return downcast({
-		createEvent: o.spy(() => Promise.resolve()),
-		updateEvent: o.spy(() => Promise.resolve()),
-		deleteEvent: o.spy(() => Promise.resolve()),
-		loadAlarms: o.spy(() => Promise.resolve([])),
+		createEvent: spy(() => Promise.resolve()),
+		updateEvent: spy(() => Promise.resolve()),
+		deleteEvent: spy(() => Promise.resolve()),
+		loadAlarms: spy(() => Promise.resolve([])),
 		loadCalendarInfos: () => {
 			return Promise.resolve(makeCalendars("own", calendarGroupId))
 		},

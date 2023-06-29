@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { knowledgeBaseSearch } from "../../../src/knowledgebase/model/KnowledgeBaseSearchFilter.js"
 import type { KnowledgeBaseEntry } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { createKnowledgeBaseEntry } from "../../../src/api/entities/tutanota/TypeRefs.js"

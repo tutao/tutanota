@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { applyScriptBuilder, removeScriptBuilder } from "../../../../src/desktop/integration/RegistryScriptGenerator.js"
 
 o.spec("RegistryScriptGenerator Test", function () {

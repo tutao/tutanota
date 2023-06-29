@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { ListModel, ListModelConfig } from "../../../src/misc/ListModel.js"
 import { GENERATED_MAX_ID, getElementId, sortCompareById, timestampToGeneratedId } from "../../../src/api/common/utils/EntityUtils.js"
 import { defer, DeferredObject } from "@tutao/tutanota-utils"

@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { isMailAddress, isRegularExpression, isValidCreditCardNumber } from "../../../src/misc/FormatValidator.js"
 o.spec("FormatValidatorTest", function () {
 	o(" isRegularExpression", function () {

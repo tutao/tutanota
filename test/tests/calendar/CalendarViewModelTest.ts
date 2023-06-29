@@ -1,7 +1,7 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { getDateInZone, makeCalendarModel, makeEvent, makeUserController, zone } from "./CalendarTestUtils.js"
 import type { LoginController } from "../../../src/api/main/LoginController.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows, spy } from "@tutao/tutanota-test-utils"
 import { assertNotNull, downcast, getStartOfDay, neverNull, noOp } from "@tutao/tutanota-utils"
 import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { addDaysForEventInstance, getMonthRange } from "../../../src/calendar/date/CalendarUtils.js"
@@ -86,8 +86,8 @@ o.spec("CalendarViewModel", async function () {
 
 	o.beforeEach(function () {
 		entityClientMock = new EntityRestClientMock()
-		saveAndSendMock = o.spy(() => Promise.resolve(true))
-		rescheduleEventMock = o.spy(() => Promise.resolve())
+		saveAndSendMock = spy(() => Promise.resolve(true))
+		rescheduleEventMock = spy(() => Promise.resolve())
 	})
 	o("Can init view model", function () {
 		const viewModel = initCalendarViewModel(makeCalendarEventModel)

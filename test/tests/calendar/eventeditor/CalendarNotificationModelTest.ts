@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { AccountType, FeatureType } from "../../../../src/api/common/TutanotaConstants.js"
 import { hasPlanWithInvites } from "../../../../src/calendar/date/eventeditor/CalendarNotificationModel.js"
 import { LoginController } from "../../../../src/api/main/LoginController.js"

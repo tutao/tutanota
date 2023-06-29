@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { hexToUint8Array, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { sha1Hash } from "../lib/hashes/Sha1.js"
 o.spec("Sha1", function () {

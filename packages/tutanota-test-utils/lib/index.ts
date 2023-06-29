@@ -5,11 +5,9 @@ export {
 	mock,
 	mapToObject,
 	replaceAllMaps,
-	asResult,
 	assertThrows,
-	assertResolvedIn,
-	assertNotResolvedIn,
 	makeTimeoutMock,
 	verify,
+	throwsErrorWithMessage,
 } from "./TestUtils.js"
 export type { Spy, TimeoutMock } from "./TestUtils.js"

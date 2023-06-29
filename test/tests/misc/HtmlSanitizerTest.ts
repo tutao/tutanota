@@ -1,4 +1,4 @@
-import o from "ospec"
+import o from "@tutao/otest"
 import { htmlSanitizer, PREVENT_EXTERNAL_IMAGE_LOADING_ICON } from "../../../src/misc/HtmlSanitizer.js"
 import { createDataFile } from "../../../src/api/common/DataFile.js"
 import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
