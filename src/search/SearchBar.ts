@@ -115,7 +115,9 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			busy: this.busy,
 			onInput: (text) => this.search(text),
 			onSearchClick: () => this.handleSearchClick(),
-			onClear: () => {},
+			onClear: () => {
+				this.clear()
+			},
 			onWrapperCreated: (dom) => {
 				this.domWrapper = dom
 				this.showOverlay()

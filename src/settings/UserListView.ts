@@ -260,10 +260,11 @@ export class UserListView implements UpdatableSettingsViewer {
 	})
 
 	private queryFilter(gi: GroupInfo) {
+		const lowercaseSearch = this.searchQuery.toLowerCase()
 		return (
-			gi.name.includes(this.searchQuery) ||
-			(!!gi.mailAddress && gi.mailAddress?.includes(this.searchQuery)) ||
-			gi.mailAddressAliases.some((mai) => mai.mailAddress.includes(this.searchQuery))
+			gi.name.toLowerCase().includes(lowercaseSearch) ||
+			(!!gi.mailAddress && gi.mailAddress?.toLowerCase().includes(lowercaseSearch)) ||
+			gi.mailAddressAliases.some((mai) => mai.mailAddress.toLowerCase().includes(lowercaseSearch))
 		)
 	}
 
