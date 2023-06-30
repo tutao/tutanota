@@ -3,7 +3,7 @@ import { ListLoadingState, ListState } from "../gui/base/List.js"
 import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
 import { OperationType } from "../api/common/TutanotaConstants.js"
 import { settledThen } from "@tutao/tutanota-utils/dist/PromiseUtils.js"
-import { assertNonNull, binarySearch, defer, findLast, first, getFirstOrThrow, last, lastIndex, lastThrow, remove } from "@tutao/tutanota-utils"
+import { assertNonNull, binarySearch, defer, findLast, first, getFirstOrThrow, last, lastThrow, remove } from "@tutao/tutanota-utils"
 import { findBy, setAddAll } from "@tutao/tutanota-utils/dist/CollectionUtils.js"
 import { memoizedWithHiddenArgument } from "@tutao/tutanota-utils/dist/Utils.js"
 import Stream from "mithril/stream"
@@ -203,7 +203,7 @@ export class ListModel<ElementType extends ListElement> {
 		// update unfiltered list: find the position, take out the old item and put the updated one
 		const positionToUpdateUnfiltered = binarySearch(this.rawState.unfilteredItems, entity, (left, right) => this.config.sortCompare(left, right))
 		const unfilteredItems = this.rawState.unfilteredItems.slice()
-		if (positionToUpdateUnfiltered > 0) {
+		if (positionToUpdateUnfiltered >= 0) {
 			unfilteredItems.splice(positionToUpdateUnfiltered, 1, entity)
 			unfilteredItems.sort(this.config.sortCompare)
 		}
@@ -212,7 +212,7 @@ export class ListModel<ElementType extends ListElement> {
 		const positionToUpdateFiltered = binarySearch(this.rawState.filteredItems, entity, (left, right) => this.config.sortCompare(left, right))
 		const filteredItems = this.rawState.filteredItems.slice()
 		const selectedItems = new Set(this.rawState.selectedItems)
-		if (positionToUpdateFiltered > 0) {
+		if (positionToUpdateFiltered >= 0) {
 			const [oldItem] = filteredItems.splice(positionToUpdateFiltered, 1, entity)
 			filteredItems.sort(this.config.sortCompare)
 			if (selectedItems.delete(oldItem)) {
@@ -224,7 +224,7 @@ export class ListModel<ElementType extends ListElement> {
 		const activeElementUpdated = this.rawState.activeElement != null && isSameId(this.rawState.activeElement._id, entity._id)
 		const newActiveElement = activeElementUpdated ? this.rawState.activeElement : this.rawState.activeElement
 
-		if (positionToUpdateUnfiltered !== -1 && positionToUpdateFiltered !== -1 && activeElementUpdated) {
+		if (positionToUpdateUnfiltered !== -1 || positionToUpdateFiltered !== -1 || activeElementUpdated) {
 			this.updateState({ unfilteredItems, filteredItems, selectedItems, activeElement: newActiveElement })
 		}
 
