@@ -24,10 +24,10 @@ import { List, ListAttrs, MultiselectMode, RenderConfig } from "../gui/base/List
 import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
 import { IconButton } from "../gui/base/IconButton.js"
 import { Icons } from "../gui/base/icons/Icons.js"
-import { showTemplateEditor } from "./TemplateEditor.js"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../gui/theme.js"
 import { knowledgeBaseSearch } from "../knowledgebase/model/KnowledgeBaseSearchFilter.js"
+import { showKnowledgeBaseEditor } from "./KnowledgeBaseEditor.js"
 
 assertMainOrNode()
 
@@ -125,7 +125,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 									title: "addEntry_label",
 									icon: Icons.Add,
 									click: () => {
-										showTemplateEditor(null, this.templateGroupRoot)
+										showKnowledgeBaseEditor(null, this.templateGroupRoot)
 									},
 								}),
 						  )
@@ -165,7 +165,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	}
 
 	private readonly onSelectionChanged = memoized((item: KnowledgeBaseEntry | null) => {
-		const detailsViewer = item == null ? null : new KnowledgeBaseSettingsDetailsViewer(item, this.userCanEdit())
+		const detailsViewer = item == null ? null : new KnowledgeBaseSettingsDetailsViewer(item, !this.userCanEdit())
 		this.updateDetailsViewer(detailsViewer)
 	})
 
@@ -221,13 +221,7 @@ export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
 }
 
 export class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsDetailsViewer {
-	entry: KnowledgeBaseEntry
-	readonly: boolean
-
-	constructor(entry: KnowledgeBaseEntry, readonly: boolean) {
-		this.entry = entry
-		this.readonly = readonly
-	}
+	constructor(private readonly entry: KnowledgeBaseEntry, private readonly readonly: boolean) {}
 
 	renderView(): Children {
 		return m(

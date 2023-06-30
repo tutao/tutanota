@@ -203,11 +203,8 @@ export class GroupListView implements UpdatableSettingsViewer {
 	})
 
 	private queryFilter(gi: GroupInfo) {
-		return (
-			gi.name.includes(this.searchQuery) ||
-			(!!gi.mailAddress && gi.mailAddress?.includes(this.searchQuery)) ||
-			gi.mailAddressAliases.some((mai) => mai.mailAddress.includes(this.searchQuery))
-		)
+		const lowercaseSearch = this.searchQuery.toLowerCase()
+		return gi.name.toLowerCase().includes(lowercaseSearch) || (!!gi.mailAddress && gi.mailAddress?.toLowerCase().includes(lowercaseSearch))
 	}
 
 	private groupFilter = (gi: GroupInfo) => {
