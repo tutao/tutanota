@@ -3,7 +3,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { getAliasLineAttrs } from "../mailaddress/MailAddressTable.js"
 import type { AddDomainData } from "./AddDomainWizard"
 import { CustomerTypeRef, GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { neverNull, ofClass } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/tutanota-utils"
 import { Dialog } from "../../gui/base/Dialog"
 import { locator } from "../../api/main/MainLocator"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
@@ -21,7 +21,6 @@ import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import type Stream from "mithril/stream"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
 
@@ -184,12 +183,7 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 				} else if (e instanceof LimitReachedError) {
 					return false
 				} else if (e instanceof UpgradeRequiredError) {
-					if (e.plans.length > 0) {
-						await showPlanUpgradeRequiredDialog(e.plans, e.message)
-						return false
-					} else {
-						throw new ProgrammingError("no plans to upgrade to")
-					}
+					await showPlanUpgradeRequiredDialog(e.plans, e.message)
 				}
 				throw e
 			}

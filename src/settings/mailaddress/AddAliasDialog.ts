@@ -93,10 +93,6 @@ async function addAlias(model: MailAddressTableModel, alias: string, senderName:
 
 			return Dialog.message(() => errorMsg)
 		} else if (error instanceof UpgradeRequiredError) {
-			if (error.plans.length <= 0) {
-				Dialog.message("adminMaxNbrOfAliasesReached_msg")
-				return
-			}
 			showPlanUpgradeRequiredDialog(error.plans, error.message)
 		} else {
 			throw error

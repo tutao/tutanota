@@ -10,7 +10,7 @@ import { emitWizardEvent, WizardEventType } from "../../gui/base/WizardDialog.js
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { PreconditionFailedError } from "../../api/common/error/RestError.js"
 import { getAvailableMatchingPlans, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
-import { ofClass } from "@tutao/tutanota-utils"
+import { isEmpty, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/MainLocator"
 import { assertMainOrNode } from "../../api/common/Env"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
@@ -130,17 +130,16 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 							return false
 						})
 
-						if (plans.length <= 0) {
+						if (isEmpty(plans)) {
 							// shouldn't happen while we have the Unlimited plan...
 							Dialog.message("tooManyCustomDomains_msg")
-							return false
+						} else {
+							// ignore promise. always return false to not switch to next page.
+							showPlanUpgradeRequiredDialog(plans, "moreCustomDomainsRequired_msg")
 						}
-						// ignore promise. always return false to not switch to next page.
-						showPlanUpgradeRequiredDialog(plans, "moreCustomDomainsRequired_msg")
 					} else {
 						Dialog.message(() => e.toString())
 					}
-
 					return false
 				}),
 			)

@@ -1,4 +1,4 @@
-import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, isEmpty, neverNull } from "@tutao/tutanota-utils"
 import { Dialog } from "../gui/base/Dialog"
 import type { TranslationKey, TranslationText } from "./LanguageViewModel"
 import { isIOSApp } from "../api/common/Env"
@@ -9,7 +9,6 @@ import { BookingTypeRef, PlanConfiguration } from "../api/entities/sys/TypeRefs.
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 import { AvailablePlanType, Const, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
 import { showSwitchDialog } from "../subscription/SwitchSubscriptionDialog.js"
-import { UserError } from "../api/main/UserError.js"
 import { IServiceExecutor } from "../api/common/ServiceRequest.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
@@ -32,11 +31,7 @@ export async function showNotAvailableForFreeDialog(acceptedPlans: AvailablePlan
 	}
 }
 
-export function createNotAvailableForFreeClickHandler(
-	acceptedPlans: AvailablePlanType[] = NewPaidPlans,
-	click: clickHandler,
-	available: () => boolean,
-): clickHandler {
+export function createNotAvailableForFreeClickHandler(acceptedPlans: AvailablePlanType[], click: clickHandler, available: () => boolean): clickHandler {
 	return (e, dom) => {
 		if (!available()) {
 			showNotAvailableForFreeDialog(acceptedPlans)
@@ -94,7 +89,7 @@ async function getAtLeastOneAvailableMatchingPlan(
 	errorMessage: string,
 ): Promise<Array<AvailablePlanType>> {
 	const plans = await getAvailableMatchingPlans(locator.serviceExecutor, predicate)
-	if (plans.length <= 0) {
+	if (isEmpty(plans)) {
 		throw new ProgrammingError(errorMessage)
 	}
 	return plans
@@ -151,21 +146,15 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 			const wizard = await import("../subscription/UpgradeSubscriptionWizard")
 			return wizard.showUpgradeWizard(locator.logins)
 		} else {
-			const user = locator.logins.getUserController().user
-			const usedStorage = Number(await locator.userManagementFacade.readUsedUserStorage(user))
-
+			const usedStorage = Number(await locator.userManagementFacade.readUsedUserStorage(userController.user))
 			const plansWithMoreStorage = await getAvailableMatchingPlans(
 				locator.serviceExecutor,
 				(config) => Number(config.storageGb) * Const.MEMORY_GB_FACTOR > usedStorage,
 			)
-			if (plansWithMoreStorage.length > 0) {
-				await showPlanUpgradeRequiredDialog(plansWithMoreStorage)
+			if (isEmpty(plansWithMoreStorage)) {
+				await Dialog.message(userController.isGlobalAdmin() ? "insufficientStorageAdmin_msg" : "insufficientStorageUser_msg")
 			} else {
-				if (userController.isGlobalAdmin()) {
-					throw new UserError("insufficientStorageAdmin_msg")
-				} else {
-					throw new UserError("insufficientStorageUser_msg")
-				}
+				await showPlanUpgradeRequiredDialog(plansWithMoreStorage)
 			}
 		}
 	}
@@ -174,7 +163,10 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 /**
  * @returns true if the needed plan has been ordered
  */
-export async function showPlanUpgradeRequiredDialog(acceptedPlans: AvailablePlanType[] = NewPaidPlans, reason?: TranslationText): Promise<boolean> {
+export async function showPlanUpgradeRequiredDialog(acceptedPlans: AvailablePlanType[], reason?: TranslationText): Promise<boolean> {
+	if (isEmpty(acceptedPlans)) {
+		throw new ProgrammingError("no plans specified")
+	}
 	const userController = locator.logins.getUserController()
 	if (userController.isFreeAccount()) {
 		showNotAvailableForFreeDialog(acceptedPlans)
