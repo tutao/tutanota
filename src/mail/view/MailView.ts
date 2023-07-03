@@ -267,7 +267,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				key: getElementId(viewModel.primaryMail),
 				viewModel: viewModel,
 				// this assumes that the viewSlider focus animation is already started
-				delayBodyRendering: this.viewSlider.waitForAnimation().then(m.redraw),
+				delayBodyRendering: this.viewSlider.waitForAnimation(),
 			}),
 		})
 	}
