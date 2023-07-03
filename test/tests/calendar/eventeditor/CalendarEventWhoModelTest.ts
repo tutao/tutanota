@@ -15,7 +15,6 @@ import { createUser } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { SendMailModel } from "../../../../src/mail/editor/SendMailModel.js"
 import { UserController } from "../../../../src/api/main/UserController.js"
 import { EventType } from "../../../../src/calendar/date/eventeditor/CalendarEventModel.js"
-import { UserError } from "../../../../src/api/main/UserError.js"
 import {
 	addCapability,
 	calendars,
@@ -41,16 +40,17 @@ o.spec("CalendarEventWhoModel", function () {
 	let sendMailModel: SendMailModel
 	let userController: UserController
 
+	const setupRecipient = (recipient: Recipient) => {
+		const sameAddressMatcher = matchers.argThat((p) => p.address === recipient.address)
+		when(recipients.resolve(sameAddressMatcher, matchers.anything())).thenReturn({
+			resolved: () => Promise.resolve(recipient),
+		})
+	}
+
 	o.beforeEach(() => {
 		userController = object()
 		sendMailModel = object()
 		recipients = object()
-		const setupRecipient = (recipient: Recipient) => {
-			const sameAddressMatcher = matchers.argThat((p) => p.address === recipient.address)
-			when(recipients.resolve(sameAddressMatcher, matchers.anything())).thenReturn({
-				resolved: () => Promise.resolve(recipient),
-			})
-		}
 		setupRecipient(ownerRecipient)
 		setupRecipient(ownerAliasRecipient)
 		setupRecipient(otherRecipient)
@@ -415,6 +415,13 @@ o.spec("CalendarEventWhoModel", function () {
 			const sendModels: Array<SendMailModel> = [object(), object(), object()]
 			const userController = makeUserController([], AccountType.PREMIUM)
 			const third = createEncryptedMailAddress({ address: "somethirdaddress@tutanota.com" })
+			setupRecipient({
+				name: "third",
+				address: third.address,
+				type: RecipientType.INTERNAL,
+				contact: null,
+			})
+
 			const existingEvent = createCalendarEvent({
 				_ownerGroup: "ownCalendar",
 				startTime: new Date(2020, 5, 1),

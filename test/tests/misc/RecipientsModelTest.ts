@@ -4,7 +4,7 @@ import { ContactModel } from "../../../src/contacts/model/ContactModel.js"
 import { LoginController } from "../../../src/api/main/LoginController.js"
 import { MailFacade } from "../../../src/api/worker/facades/lazy/MailFacade.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
-import { func, instance, object, replace, when } from "testdouble"
+import { func, instance, object, when } from "testdouble"
 import { createGroupInfo, createGroupMembership, createPublicKeyReturn, createUser } from "../../../src/api/entities/sys/TypeRefs.js"
 import { Recipient, RecipientType } from "../../../src/api/common/recipients/Recipient.js"
 import { ContactTypeRef, createContact, createContactMailAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
@@ -32,25 +32,18 @@ o.spec("RecipientsModel", function () {
 	o.beforeEach(function () {
 		contactModelMock = object()
 
-		userControllerMock = object()
-		replace(
-			userControllerMock,
-			"user",
-			createUser({
+		userControllerMock = {
+			user: createUser({
 				memberships: [
 					createGroupMembership({
 						groupType: GroupType.Contact,
 					}),
 				],
 			}),
-		)
-		replace(
-			userControllerMock,
-			"userGroupInfo",
-			createGroupInfo({
+			userGroupInfo: createGroupInfo({
 				mailAddress: "test@example.com",
 			}),
-		)
+		} satisfies Partial<UserController> as UserController
 
 		loginControllerMock = object()
 		when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
@@ -112,8 +105,9 @@ o.spec("RecipientsModel", function () {
 
 	o("infers internal recipient from tutanota address, otherwise unknown", async function () {
 		when(contactModelMock.contactListId()).thenResolve("contactListId")
-		o(model.resolve({ address: tutanotaAddress }, ResolveMode.Eager).type).equals(RecipientType.INTERNAL)("Tutanota address")
-		o(model.resolve({ address: otherAddress }, ResolveMode.Eager).type).equals(RecipientType.UNKNOWN)("Internal address")
+		// using lazy mode to not wait for the resolution and to not have async task running after the test is done
+		o(model.resolve({ address: tutanotaAddress }, ResolveMode.Lazy).type).equals(RecipientType.INTERNAL)("Tutanota address")
+		o(model.resolve({ address: otherAddress }, ResolveMode.Lazy).type).equals(RecipientType.UNKNOWN)("Internal address")
 	})
 
 	o("correctly resolves type for non tutanota addresses", async function () {
