@@ -35,7 +35,7 @@ import o from "ospec"
 import type { CalendarInfo } from "../../../src/calendar/model/CalendarModel"
 import { CalendarModel } from "../../../src/calendar/model/CalendarModel"
 import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
-import { RecipientType } from "../../../src/api/common/recipients/Recipient.js"
+import { Recipient, RecipientType } from "../../../src/api/common/recipients/Recipient.js"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const
@@ -45,7 +45,7 @@ export const ownerAddress = createEncryptedMailAddress({
 	address: ownerMailAddress,
 	name: "Calendar Owner",
 })
-export const ownerRecipient = {
+export const ownerRecipient: Recipient = {
 	address: ownerAddress.address,
 	name: ownerAddress.name,
 	type: RecipientType.INTERNAL,
@@ -55,7 +55,7 @@ export const ownerAlias = createEncryptedMailAddress({
 	address: "calendarowneralias@tutanota.de",
 	name: "Calendar Owner Alias",
 })
-export const ownerAliasRecipient = {
+export const ownerAliasRecipient: Recipient = {
 	address: ownerAlias.address,
 	name: ownerAlias.name,
 	type: RecipientType.INTERNAL,
@@ -65,7 +65,7 @@ export const otherAddress = createEncryptedMailAddress({
 	address: "someone@tutanota.de",
 	name: "Some One",
 })
-export const otherRecipient = {
+export const otherRecipient: Recipient = {
 	address: otherAddress.address,
 	name: otherAddress.name,
 	type: RecipientType.EXTERNAL,
@@ -84,7 +84,7 @@ export const otherAddress2 = createEncryptedMailAddress({
 	address: "someoneelse@tutanota.de",
 	name: "Some One Else",
 })
-export const otherRecipient2 = {
+export const otherRecipient2: Recipient = {
 	address: otherAddress2.address,
 	name: otherAddress2.name,
 	type: RecipientType.INTERNAL,
