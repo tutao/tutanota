@@ -178,26 +178,21 @@
 					"name": "AddValue",
 					"sourceType": "InvoiceInfo",
 					"info": "AddValue InvoiceInfo/discountPercentage/2126."
-				}
-			]
-		},
-		{
-			"version": 88,
-			"changes": [
+				},
 				{
 					"name": "AddAssociation",
 					"sourceType": "PlanPrices",
-					"info": "AddAssociation PlanPrices/planConfiguration/AGGREGATION/2125."
+					"info": "AddAssociation PlanPrices/planConfiguration/AGGREGATION/2127."
 				},
 				{
 					"name": "AddValue",
 					"sourceType": "PlanPrices",
-					"info": "AddValue PlanPrices/planName/2126."
+					"info": "AddValue PlanPrices/planName/2128."
 				},
 				{
 					"name": "AddValue",
 					"sourceType": "PlanPrices",
-					"info": "AddValue PlanPrices/businessPlan/2127."
+					"info": "AddValue PlanPrices/businessPlan/2129."
 				},
 				{
 					"name": "RenameAttribute",
@@ -207,7 +202,7 @@
 				{
 					"name": "AddValue",
 					"sourceType": "PlanConfiguration",
-					"info": "AddValue PlanConfiguration/autoResponder/2128."
+					"info": "AddValue PlanConfiguration/autoResponder/2130."
 				}
 			]
 		}
