@@ -21,6 +21,30 @@ o.spec("ListModel", function () {
 		},
 	}
 
+	const itemA = createKnowledgeBaseEntry({
+		_id: [listId, "a"],
+		title: "a",
+	})
+	const itemB = createKnowledgeBaseEntry({
+		_id: [listId, "b"],
+		title: "b",
+	})
+	const itemC = createKnowledgeBaseEntry({
+		_id: [listId, "c"],
+		title: "c",
+	})
+	const itemD = createKnowledgeBaseEntry({
+		_id: [listId, "d"],
+		title: "d",
+	})
+
+	const items = [itemA, itemB, itemC, itemD]
+
+	async function setItems(items: KnowledgeBaseEntry[]) {
+		fetchDefer.resolve({ items, complete: true })
+		await listModel.loadInitial()
+	}
+
 	o.beforeEach(function () {
 		fetchDefer = defer<ListFetchResult<KnowledgeBaseEntry>>()
 		listModel = new ListModel<KnowledgeBaseEntry>(defaultListConfig)
@@ -93,30 +117,6 @@ o.spec("ListModel", function () {
 	}
 
 	o.spec("selection controls", function () {
-		const itemA = createKnowledgeBaseEntry({
-			_id: [listId, "a"],
-			title: "a",
-		})
-		const itemB = createKnowledgeBaseEntry({
-			_id: [listId, "b"],
-			title: "b",
-		})
-		const itemC = createKnowledgeBaseEntry({
-			_id: [listId, "c"],
-			title: "c",
-		})
-		const itemD = createKnowledgeBaseEntry({
-			_id: [listId, "d"],
-			title: "d",
-		})
-
-		const items = [itemA, itemB, itemC, itemD]
-
-		async function setItems(items: KnowledgeBaseEntry[]) {
-			fetchDefer.resolve({ items, complete: true })
-			await listModel.loadInitial()
-		}
-
 		o.spec("single", function () {
 			o("when selectNext and the list is empty nothing happens", async function () {
 				await setItems([])
@@ -677,6 +677,25 @@ o.spec("ListModel", function () {
 				o(listModel.state.inMultiselect).equals(true)
 				o(listModel.state.activeIndex).equals(2)
 			})
+		})
+	})
+
+	o.spec("Removing element in list", function () {
+		o("in single select, the active element is updated correctly", async function () {
+			await setItems(items)
+			listModel.onSingleSelection(itemB)
+			await listModel.entityEventReceived(getElementId(itemB), OperationType.DELETE)
+
+			o(listModel.state.activeIndex).equals(1)
+		})
+
+		o("in multiselect, next element is not selected when element is removed", async function () {
+			await setItems(items)
+			listModel.onSingleInclusiveSelection(itemB)
+			await listModel.entityEventReceived(getElementId(itemB), OperationType.DELETE)
+
+			o(listModel.state.inMultiselect).equals(true)
+			o(listModel.state.activeIndex).equals(null)
 		})
 	})
 })
