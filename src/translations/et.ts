@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2023-06-05T12:15:58Z",
+	"updated_at": "2023-07-03T09:02:52Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -480,7 +480,6 @@ export default {
 		"notificationsDisabled_label": "Keelatud",
 		"notificationSettings_action": "Teated",
 		"no_label": "Ei",
-		"npoDiscount_msg": "Pakkumine MTÜ-dele: 50% kasutaja allahindlust Premium tasemele ja 100 aliast tasuta!",
 		"number_label": "Arv",
 		"ok_action": "Ok",
 		"oldPasswordInvalid_msg": "Sobimatu vana salasõna.",
@@ -570,7 +569,6 @@ export default {
 		"privateKey_label": "Privaatvõti",
 		"private_label": "Isiklik",
 		"progressDeleting_msg": "Kustutamine...",
-		"promotion.npoDonation_msg": "Annetus MTÜ-dele: kuni 50 kasutajat Premium tasemele ja 100 aliast tasuta!",
 		"pushIdentifierCurrentDevice_label": "See seade",
 		"pushNewMailReceivedBody_msg": "Olete saanud uue e-kirja oma postkasti {emailAddress} domeenil {domainName}.",
 		"pushNewMail_msg": "Uus e-kiri saabunud.",
@@ -680,7 +678,6 @@ export default {
 		"statisticsFields_label": "Statistikaväljad",
 		"storageCapacityUsed_label": "Kasutatud mälumaht",
 		"storageCapacity_label": "Mälumaht",
-		"storageDeletionAnnouncement_msg": "Info: Kirjad prügikastis või spam kaustas kustutatakse automaatselt 30 päeva möödudes.",
 		"storePassword_action": "Salvesta salasõna",
 		"subject_label": "Teema",
 		"subscriptionCancelledMessage_msg": "Teie tellimus on tühistatud. Palun kontakteeruge toega, et oma tellimust uuesti aktiveerida.",

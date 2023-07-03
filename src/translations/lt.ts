@@ -13,11 +13,10 @@ export default {
 		"many"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2023-06-05T12:15:41Z",
+	"updated_at": "2023-07-03T09:02:52Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
-		"accountSwitchAdditionalPackagesActive_msg": "Prašome išjungti užsakytą talpą ar bet kokį kitą paketą ir išjungti visus kitus el. paštus prieš pakeičiant vartotojo tipą.",
 		"accountSwitchTooManyActiveUsers_msg": "Prieš perjungiant abonemento tipą,  išjungti visus papildomus vartotojus.",
 		"account_label": "Vartotojas",
 		"action_label": "Veiksmas",
@@ -547,7 +546,6 @@ export default {
 		"state_label": "Statusas",
 		"statisticsFields_label": "Statistikos laukas",
 		"storageCapacity_label": "Talpinimo apimtis",
-		"storageDeletionAnnouncement_msg": "Info: El.laiškai perkelti į šiukšlinę ar brukalo aplanką bus automatiškai pašalinti po 30 dienų.",
 		"storePassword_action": "Išsaugoti slaptažodį",
 		"subject_label": "Tema",
 		"subscriptionCancelledMessage_msg": "Jūsų prenumerata panaikinta. Prašome susisiekti su palaikymu, kad būtų vėl aktyvuota jūsų prenumerata.",
