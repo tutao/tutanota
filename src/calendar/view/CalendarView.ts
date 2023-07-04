@@ -507,7 +507,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			this._showCreateCalendarDialog()
 		} else {
 			import("../../misc/SubscriptionDialogs")
-				.then((SubscriptionDialogUtils) => SubscriptionDialogUtils.checkPremiumSubscription())
+				.then((SubscriptionDialogUtils) => SubscriptionDialogUtils.checkPaidSubscription())
 				.then((ok) => {
 					if (ok) {
 						this._showCreateCalendarDialog()

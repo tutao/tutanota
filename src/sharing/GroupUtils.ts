@@ -116,7 +116,7 @@ export function getInvitationGroupType(invitation: ReceivedGroupInvitation): Gro
 	return invitation.groupType === null ? DEFAULT_GROUP_TYPE : downcast(invitation.groupType)
 }
 
-export function groupRequiresBusinessFeature(groupType: GroupType): boolean {
+export function isTemplateGroup(groupType: GroupType): boolean {
 	return groupType === GroupType.Template
 }
 

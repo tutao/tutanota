@@ -228,8 +228,8 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 				return Dialog.message("noRecipients_msg")
 			}
 
-			const { checkPremiumSubscription, showPlanUpgradeRequiredDialog } = await import("../../misc/SubscriptionDialogs")
-			if (await checkPremiumSubscription()) {
+			const { checkPaidSubscription, showPlanUpgradeRequiredDialog } = await import("../../misc/SubscriptionDialogs")
+			if (await checkPaidSubscription()) {
 				try {
 					const invitedMailAddresses = await showProgressDialog(
 						"calendarInvitationProgress_msg",

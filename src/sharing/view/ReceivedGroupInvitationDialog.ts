@@ -5,18 +5,17 @@ import { lang } from "../../misc/LanguageViewModel"
 import { TextField } from "../../gui/base/TextField.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { isCustomizationEnabledForCustomer } from "../../api/common/utils/Utils"
 import { downcast } from "@tutao/tutanota-utils"
 import { Dialog } from "../../gui/base/Dialog"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
 import { isSameId } from "../../api/common/utils/EntityUtils"
 import { sendAcceptNotificationEmail, sendRejectNotificationEmail } from "../GroupSharingUtils"
-import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, groupRequiresBusinessFeature } from "../GroupUtils"
-import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
+import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, isTemplateGroup } from "../GroupUtils"
+import { getAvailablePlansWithTemplates, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
 import type { GroupSharingTexts } from "../GroupGuiUtils"
 import { getTextsForGroupType } from "../GroupGuiUtils"
-import { FeatureType, GroupType, NewPaidPlans } from "../../api/common/TutanotaConstants"
+import { GroupType } from "../../api/common/TutanotaConstants"
 import { ColorPicker } from "../../gui/base/ColorPicker"
 import { locator } from "../../api/main/MainLocator"
 
@@ -36,7 +35,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	let dialog: Dialog
 
 	const onAcceptClicked = () => {
-		checkCanAcceptInvitation(invitation).then((canAccept) => {
+		checkCanAcceptGroupInvitation(invitation).then((canAccept) => {
 			if (canAccept) {
 				acceptInvite(invitation, texts).then(() => {
 					dialog.close()
@@ -109,16 +108,24 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	})
 }
 
-async function checkCanAcceptInvitation(invitation: ReceivedGroupInvitation): Promise<boolean> {
+/**
+ * Checks if the logged-in user is able to accept the group invitation.
+ * This is necessary because to be part of some kinds of groups you must have certain features.
+ * Currently, there are two kinds of group invitations:
+ * 1. Calendar: any paid account can accept invitations
+ * 2. Template: only accounts with the templates feature can accept invitations
+ * @param invitation
+ */
+async function checkCanAcceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<boolean> {
 	const SubscriptionDialogUtils = await import("../../misc/SubscriptionDialogs")
-	const allowed = await SubscriptionDialogUtils.checkPremiumSubscription()
+	const allowed = await SubscriptionDialogUtils.checkPaidSubscription()
 	if (!allowed) {
 		return false
 	}
-	const customer = await locator.logins.getUserController().loadCustomer()
-	if (groupRequiresBusinessFeature(getInvitationGroupType(invitation)) && !isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled)) {
-		// Any paid plan should be able to respond to event invites, but you can only upgrade to the new ones.
-		return showPlanUpgradeRequiredDialog(NewPaidPlans)
+	const planConfig = await locator.logins.getUserController().getPlanConfig()
+	if (isTemplateGroup(getInvitationGroupType(invitation)) && !planConfig.templates) {
+		const plans = await getAvailablePlansWithTemplates()
+		return showPlanUpgradeRequiredDialog(plans)
 	} else {
 		return true
 	}

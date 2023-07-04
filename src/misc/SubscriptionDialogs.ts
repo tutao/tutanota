@@ -42,24 +42,20 @@ export function createNotAvailableForFreeClickHandler(acceptedPlans: AvailablePl
 }
 
 /**
- * Returns whether premium is active and shows one of the showNotAvailableForFreeDialog or subscription cancelled dialogs if needed.
+ * Returns whether a paid subscriptino is active and shows one of the showNotAvailableForFreeDialog or subscription cancelled dialogs if needed.
  */
-export function checkPremiumSubscription(): Promise<boolean> {
+export async function checkPaidSubscription(): Promise<boolean> {
 	if (locator.logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog()
-		return Promise.resolve(false)
+		return false
 	}
 
-	return locator.logins
-		.getUserController()
-		.loadCustomer()
-		.then((customer) => {
-			if (customer.canceledPremiumAccount) {
-				return Dialog.message("subscriptionCancelledMessage_msg").then(() => false)
-			} else {
-				return Promise.resolve(true)
-			}
-		})
+	const customer = await locator.logins.getUserController().loadCustomer()
+	if (customer.canceledPremiumAccount) {
+		return Dialog.message("subscriptionCancelledMessage_msg").then(() => false)
+	} else {
+		return true
+	}
 }
 
 /**
