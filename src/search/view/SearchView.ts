@@ -281,12 +281,17 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						multicolumnActions: () => actions,
 						primaryAction: () => this.renderHeaderRightView(),
 					}),
-				columnLayout: isMultiselect
-					? m(MultiContactViewer, {
-							selectedEntities: selectedContacts,
-							selectNone: () => this.searchViewModel.listModel.selectNone(),
-					  })
-					: m(ContactCardViewer, { contact: selectedContacts[0], onWriteMail: writeMail }),
+				columnLayout:
+					// see comment for .scrollbar-gutter-stable-or-fallback
+					m(
+						".fill-absolute.flex.col.overflow-y-scroll",
+						isMultiselect
+							? m(MultiContactViewer, {
+									selectedEntities: selectedContacts,
+									selectNone: () => this.searchViewModel.listModel.selectNone(),
+							  })
+							: m(ContactCardViewer, { contact: selectedContacts[0], onWriteMail: writeMail }),
+					),
 			})
 		} else if (getCurrentSearchMode() === "mail") {
 			const selectedMails = this.searchViewModel.getSelectedMails()

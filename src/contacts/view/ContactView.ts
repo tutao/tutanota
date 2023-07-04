@@ -167,18 +167,20 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 								title: lang.get("contacts_label"),
 								columnType: "other",
 							}),
-						columnLayout: m(
-							".fill-absolute.flex.col.scroll",
-							this.showingListView()
-								? m(MultiContactViewer, {
-										selectedEntities: contacts,
-										selectNone: () => this.contactViewModel.listModel.selectNone(),
-								  })
-								: m(ContactCardViewer, {
-										contact: contacts[0],
-										onWriteMail: writeMail,
-								  }),
-						),
+						columnLayout:
+							// see comment for .scrollbar-gutter-stable-or-fallback
+							m(
+								".fill-absolute.flex.col.overflow-y-scroll",
+								this.showingListView()
+									? m(MultiContactViewer, {
+											selectedEntities: contacts,
+											selectNone: () => this.contactViewModel.listModel.selectNone(),
+									  })
+									: m(ContactCardViewer, {
+											contact: contacts[0],
+											onWriteMail: writeMail,
+									  }),
+							),
 					})
 				},
 			},

@@ -41,7 +41,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 
 	view({ attrs }: Vnode<ContactViewerAttrs>): Children {
 		const { contact, onWriteMail } = attrs
-		return m(".scroll.plr-l.pb-floating.mlr-safe-inset", [
+		return m(".plr-l.pb-floating.mlr-safe-inset", [
 			m("", [
 				m(
 					".flex-space-between.flex-wrap.mt-m",
