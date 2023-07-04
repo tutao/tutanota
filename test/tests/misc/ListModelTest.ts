@@ -680,11 +680,19 @@ o.spec("ListModel", function () {
 		})
 	})
 
-	o.spec("Removing element in list", function () {
-		o("in single select, the active element is updated correctly", async function () {
+	o.spec("Removing element in list ", function () {
+		o("in single select, the active element is next entity when active element gets deleted", async function () {
 			await setItems(items)
 			listModel.onSingleSelection(itemB)
 			await listModel.entityEventReceived(getElementId(itemB), OperationType.DELETE)
+
+			o(listModel.state.activeIndex).equals(1)
+		})
+
+		o("in single select, the active element is not changed when a different entity is deleted", async function () {
+			await setItems(items)
+			listModel.onSingleSelection(itemC)
+			await listModel.entityEventReceived(getElementId(itemA), OperationType.DELETE)
 
 			o(listModel.state.activeIndex).equals(1)
 		})
