@@ -240,7 +240,7 @@ export class ListModel<ElementType extends ListElement> {
 
 			const selectedItems = new Set(this.rawState.selectedItems)
 
-			let activeElement
+			let newActiveElement
 
 			if (entity) {
 				selectedItems.delete(entity)
@@ -252,19 +252,19 @@ export class ListModel<ElementType extends ListElement> {
 					this.rawState.filteredItems.length > 1 &&
 					!this.rawState.inMultiselect
 				) {
-					activeElement =
+					newActiveElement =
 						entity === last(this.state.items)
 							? this.state.items[this.state.items.length - 2]
 							: this.state.items[this.state.items.indexOf(entity) + 1]
 
-					selectedItems.add(activeElement)
+					selectedItems.add(newActiveElement)
 				}
 
 				const filteredItems = this.rawState.filteredItems.slice()
 				remove(filteredItems, entity)
 				const unfilteredItems = this.rawState.unfilteredItems.slice()
 				remove(unfilteredItems, entity)
-				this.updateState({ filteredItems, selectedItems, unfilteredItems, activeElement: activeElement ?? entity })
+				this.updateState({ filteredItems, selectedItems, unfilteredItems, activeElement: newActiveElement ?? this.rawState.activeElement })
 			}
 		})
 	}
