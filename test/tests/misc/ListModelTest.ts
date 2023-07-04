@@ -677,6 +677,22 @@ o.spec("ListModel", function () {
 				o(listModel.state.inMultiselect).equals(true)
 				o(listModel.state.activeIndex).equals(2)
 			})
+
+			o("when entering multiselect on the same item as previously selected item, the item is selected", async function () {
+				await setItems(items)
+				listModel.onSingleSelection(itemB)
+				listModel.onSingleInclusiveSelection(itemB)
+				o(listModel.getSelectedAsArray()).deepEquals([itemB])
+				o(listModel.state.inMultiselect).equals(true)
+			})
+
+			o("when entering multiselect when having a single item selected, both items are selected", async function () {
+				await setItems(items)
+				listModel.onSingleSelection(itemB)
+				listModel.onSingleInclusiveSelection(itemD)
+				o(getSortedSelection()).deepEquals([itemB, itemD])
+				o(listModel.state.inMultiselect).equals(true)
+			})
 		})
 	})
 
