@@ -34,6 +34,7 @@ export function getFonts(): string {
 const boxShadow = `0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)`
 const searchBarShadow = "0px 2px 4px rgb(0, 0, 0, 0.12)"
 
+const scrollbarWidthHeight = "18px"
 styles.registerStyle("main", () => {
 	return {
 		"#link-tt": isElectronClient()
@@ -199,6 +200,10 @@ styles.registerStyle("main", () => {
 		},
 		".overflow-y-visible": {
 			"overflow-y": "visible !important",
+		},
+		".overflow-y-scroll": {
+			"overflow-y": "scroll",
+			"webkit-overflow-scrolling": "touch",
 		},
 		".overflow-visible": {
 			overflow: "visible",
@@ -698,7 +703,6 @@ styles.registerStyle("main", () => {
 		".scroll": {
 			"overflow-y": client.overflowAuto,
 			"-webkit-overflow-scrolling": "touch",
-			"-ms-overflow-style": "-ms-autohiding-scrollbar",
 		},
 		".scroll-no-overlay": {
 			"overflow-y": "auto",
@@ -707,7 +711,6 @@ styles.registerStyle("main", () => {
 		".scroll-x": {
 			"overflow-x": "auto",
 			"-webkit-overflow-scrolling": "touch",
-			"-ms-overflow-style": "-ms-autohiding-scrollbar",
 		},
 		"*": {
 			"scrollbar-color": `${theme.content_button} transparent`,
@@ -716,8 +719,8 @@ styles.registerStyle("main", () => {
 		"::-webkit-scrollbar": !client.isMobileDevice()
 			? {
 					background: "transparent",
-					width: "18px", // width of vertical scrollbar
-					height: "18px", // width of horizontal scrollbar
+					width: scrollbarWidthHeight, // width of vertical scrollbar
+					height: scrollbarWidthHeight, // width of horizontal scrollbar
 			  }
 			: {},
 		"::-webkit-scrollbar-thumb": !client.isMobileDevice()
@@ -740,6 +743,19 @@ styles.registerStyle("main", () => {
 		".visible-scrollbar::-webkit-scrollbar-thumb": {
 			background: theme.content_button,
 			"border-radius": "3px",
+		},
+		// we are trying to handle 3 cases:
+		// gecko/FF: supports scrollbar-gutter but not custom scrollbars
+		// blink/Chrome: supports scrollbar-gutter and custom scrollbars
+		// webkit/Safari: supports custom scrollbars but not scrollbar-gutter
+		// so for scrolling containers we just force the scrollbars with `overflow: scroll` and for non-scrolling ones we fall back to padding
+		".scrollbar-gutter-stable-or-fallback": {
+			"scrollbar-gutter": "stable",
+		},
+		"@supports not (scrollbar-gutter: stable)": {
+			".scrollbar-gutter-stable-or-fallback": {
+				"padding-right": scrollbarWidthHeight,
+			},
 		},
 		//TODO: migrate to .text-center
 		".center": {

@@ -71,8 +71,9 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 		this.doScroll(viewModel, this.lastItems)
 
 		return m(".fill-absolute.nav-bg.flex.col", [
+			// see comment for .scrollbar-gutter-stable-or-fallback
 			m(
-				".flex-grow.scroll",
+				".flex-grow.overflow-y-scroll",
 				{
 					oncreate: (vnode) => {
 						this.containerDom = vnode.dom as HTMLElement

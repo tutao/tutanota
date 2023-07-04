@@ -123,7 +123,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		const oldAttrs = this.lastAttrs
 		this.lastAttrs = attrs
 		return m(
-			".list-container.scroll.nofocus.overflow-x-hidden.fill-absolute",
+			".list-container.overflow-y-scroll.nofocus.overflow-x-hidden.fill-absolute",
 			{
 				oncreate: ({ dom }: VnodeDOM) => {
 					this.containerDom = dom as HTMLElement
