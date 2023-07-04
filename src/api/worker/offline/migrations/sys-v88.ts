@@ -14,6 +14,6 @@ export const sys88: OfflineMigration = {
 		// we need to populate the other one still.
 		await deleteInstancesOfType(storage, CustomerInfoTypeRef)
 		// We also delete UserType ref to disable offline login. Otherwise, clients will see an unexpected error message with pure offline login.
-		// await deleteInstancesOfType(storage, UserTypeRef)
+		await deleteInstancesOfType(storage, UserTypeRef)
 	},
 }
