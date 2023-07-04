@@ -5,12 +5,12 @@ import { isIOSApp } from "../api/common/Env"
 import type { clickHandler } from "../gui/base/GuiUtils"
 import { locator } from "../api/main/MainLocator"
 import type { UserController } from "../api/main/UserController.js"
-import { BookingTypeRef, PlanConfiguration } from "../api/entities/sys/TypeRefs.js"
+import { BookingTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 import { AvailablePlanType, Const, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
 import { showSwitchDialog } from "../subscription/SwitchSubscriptionDialog.js"
-import { IServiceExecutor } from "../api/common/ServiceRequest.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { getAvailableMatchingPlans } from "../subscription/SubscriptionUtils.js"
 
 /**
  * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.
@@ -56,79 +56,6 @@ export async function checkPaidSubscription(): Promise<boolean> {
 	} else {
 		return true
 	}
-}
-
-/**
- * Get plans that are available for purchase and that comply with the given criteria.
- * @param serviceExecutor
- * @param predicate
- */
-export async function getAvailableMatchingPlans(
-	serviceExecutor: IServiceExecutor,
-	predicate: (configuration: PlanConfiguration) => boolean,
-): Promise<Array<AvailablePlanType>> {
-	const { PriceAndConfigProvider } = await import("../subscription/PriceUtils.js")
-	const priceAndConfigProvider = await PriceAndConfigProvider.getInitializedInstance(null, serviceExecutor, null)
-	return NewPaidPlans.filter((p) => {
-		const config = priceAndConfigProvider.getPlanPricesForPlan(p).planConfiguration
-		return predicate(config)
-	})
-}
-
-/**
- * Filter for plans a customer can upgrade to that include a feature, assuming that the feature must be available on at least one plan.
- * @param predicate the criterion to select plans by
- * @param errorMessage the error message to throw in case no plan satisfies the criterion
- */
-async function getAtLeastOneAvailableMatchingPlan(
-	predicate: (configuration: PlanConfiguration) => boolean,
-	errorMessage: string,
-): Promise<Array<AvailablePlanType>> {
-	const plans = await getAvailableMatchingPlans(locator.serviceExecutor, predicate)
-	if (isEmpty(plans)) {
-		throw new ProgrammingError(errorMessage)
-	}
-	return plans
-}
-
-/**
- * Get plans that a customer can upgrade to that include the Whitelabel feature.
- * @throws ProgrammingError if no plans include it.
- */
-export async function getAvailablePlansWithWhitelabel(): Promise<Array<AvailablePlanType>> {
-	return getAtLeastOneAvailableMatchingPlan((config) => config.whitelabel, "no available plan with the Whitelabel feature")
-}
-
-/**
- * Get plans that a customer can upgrade to that include the Whitelabel feature.
- * @throws ProgrammingError if no plans include it.
- */
-export async function getAvailablePlansWithTemplates(): Promise<Array<AvailablePlanType>> {
-	return getAtLeastOneAvailableMatchingPlan((config) => config.templates, "no available plan with the Templates feature")
-}
-
-/**
- * Get plans that a customer can upgrade to that include the Sharing feature.
- * @throws ProgrammingError if no plans include it.
- */
-export async function getAvailablePlansWithSharing(): Promise<Array<AvailablePlanType>> {
-	return getAtLeastOneAvailableMatchingPlan((config) => config.sharing, "no available plan with the Sharing feature")
-}
-
-/**
- * Get plans that a customer can upgrade to that include the Event Invites feature.
- * @throws ProgrammingError if no plans include it.
- */
-export async function getAvailablePlansWithEventInvites(): Promise<Array<AvailablePlanType>> {
-	return getAtLeastOneAvailableMatchingPlan((config) => config.eventInvites, "no available plan with the Event Invites feature")
-}
-
-/**
- * Get plans that a customer can upgrade to that include the Auto-Responder feature.
- * @throws ProgrammingError if no plans include it.
- */
-export async function getAvailablePlansWithAutoResponder(): Promise<Array<AvailablePlanType>> {
-	return getAtLeastOneAvailableMatchingPlan((config) => config.autoResponder, "no available plan with the Auto-Responder feature")
 }
 
 export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunction: TranslationKey): Promise<PlanType | void> {

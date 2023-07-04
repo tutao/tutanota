@@ -90,7 +90,6 @@ import { SanitizedTextViewModel } from "../../../misc/SanitizedTextViewModel.js"
 import { getStrippedClone, Stripped } from "../../../api/common/utils/EntityUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
 import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
-import { getAvailablePlansWithEventInvites } from "../../../misc/SubscriptionDialogs.js"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {
@@ -440,7 +439,8 @@ export class CalendarEventModel {
 			return
 		}
 		if (this.shouldShowSendInviteNotAvailable()) {
-			throw new UpgradeRequiredError("upgradeRequired_msg", await getAvailablePlansWithEventInvites())
+			var subscriptionUtils = await import("../../../subscription/SubscriptionUtils.js")
+			throw new UpgradeRequiredError("upgradeRequired_msg", await subscriptionUtils.getAvailablePlansWithEventInvites())
 		}
 		const invitePromise = models.inviteModel != null ? this.sendInvites(newEvent, models.inviteModel) : Promise.resolve()
 		const cancelPromise = models.cancelModel != null ? this.sendCancellation(newEvent, models.cancelModel) : Promise.resolve()

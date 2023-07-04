@@ -14,7 +14,7 @@ import { UserError } from "../../api/main/UserError.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
 
-import { getAvailableMatchingPlans } from "../../misc/SubscriptionDialogs.js"
+import { getAvailableMatchingPlans } from "../../subscription/SubscriptionUtils.js"
 
 export enum AddressStatus {
 	Primary,

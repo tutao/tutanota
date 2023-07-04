@@ -9,11 +9,12 @@ import type { WizardPageAttrs, WizardPageN } from "../../gui/base/WizardDialog.j
 import { emitWizardEvent, WizardEventType } from "../../gui/base/WizardDialog.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { PreconditionFailedError } from "../../api/common/error/RestError.js"
-import { getAvailableMatchingPlans, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { isEmpty, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/MainLocator"
 import { assertMainOrNode } from "../../api/common/Env"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
+import { getAvailableMatchingPlans } from "../../subscription/SubscriptionUtils.js"
 
 assertMainOrNode()
 

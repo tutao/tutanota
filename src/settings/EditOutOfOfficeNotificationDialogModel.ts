@@ -12,7 +12,8 @@ import { appendEmailSignature } from "../mail/signature/Signature"
 import { UserError } from "../api/main/UserError"
 import { UpgradeRequiredError } from "../api/main/UpgradeRequiredError.js"
 import { IServiceExecutor } from "../api/common/ServiceRequest.js"
-import { getAvailablePlansWithAutoResponder } from "../misc/SubscriptionDialogs.js"
+
+import { getAvailablePlansWithAutoResponder } from "../subscription/SubscriptionUtils.js"
 
 export const enum RecipientMessageType {
 	EXTERNAL_TO_EVERYONE = 0,

@@ -12,12 +12,13 @@ import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js
 import { isSameId } from "../../api/common/utils/EntityUtils"
 import { sendAcceptNotificationEmail, sendRejectNotificationEmail } from "../GroupSharingUtils"
 import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, isTemplateGroup } from "../GroupUtils"
-import { getAvailablePlansWithTemplates, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
 import type { GroupSharingTexts } from "../GroupGuiUtils"
 import { getTextsForGroupType } from "../GroupGuiUtils"
 import { GroupType } from "../../api/common/TutanotaConstants"
 import { ColorPicker } from "../../gui/base/ColorPicker"
 import { locator } from "../../api/main/MainLocator"
+import { getAvailablePlansWithTemplates } from "../../subscription/SubscriptionUtils.js"
 
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)

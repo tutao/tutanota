@@ -4,7 +4,7 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { neverNull } from "@tutao/tutanota-utils"
 import { PreconditionFailedError } from "../../api/common/error/RestError"
 import { Icons } from "../../gui/base/icons/Icons"
-import { getAvailablePlansWithWhitelabel, showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
+import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
 import * as SetCustomDomainCertificateDialog from "../SetDomainCertificateDialog"
 import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
@@ -15,6 +15,7 @@ import { locator } from "../../api/main/MainLocator"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { getAvailablePlansWithWhitelabel } from "../../subscription/SubscriptionUtils.js"
 
 export type WhitelabelBrandingDomainSettingsAttrs = {
 	customerInfo: CustomerInfo

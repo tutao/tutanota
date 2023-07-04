@@ -1,4 +1,4 @@
-import { getAvailablePlansWithWhitelabel, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
 import { Icons } from "../../gui/base/icons/Icons"
 import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
@@ -6,6 +6,7 @@ import { TextField } from "../../gui/base/TextField.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
+import { getAvailablePlansWithWhitelabel } from "../../subscription/SubscriptionUtils.js"
 
 export type WhitelabelStatusSettingsAttrs = {
 	isWhitelabelActive: boolean

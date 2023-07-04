@@ -23,7 +23,8 @@ import { CalendarEventWhoModel } from "../../date/eventeditor/CalendarEventWhoMo
 import { LoginController } from "../../../api/main/LoginController.js"
 import { CalendarEventModel } from "../../date/eventeditor/CalendarEventModel.js"
 import { DropDownSelector } from "../../../gui/base/DropDownSelector.js"
-import { getAvailablePlansWithEventInvites, showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
+import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
+import { getAvailablePlansWithEventInvites } from "../../../subscription/SubscriptionUtils.js"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */
