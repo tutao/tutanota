@@ -1,8 +1,6 @@
 import { AdSyncOptimizer, THROUGHPUT_THRESHOLD } from "./AdSyncOptimizer.js"
 import { ImapSyncSessionMailbox } from "../ImapSyncSessionMailbox.js"
 
-const OPTIMIZATION_INTERVAL = 10 // in seconds
-
 export class AdSyncDownloadBatchSizeOptimizer extends AdSyncOptimizer {
 	protected _optimizedSyncSessionMailbox: ImapSyncSessionMailbox
 	protected scheduler?: NodeJS.Timer

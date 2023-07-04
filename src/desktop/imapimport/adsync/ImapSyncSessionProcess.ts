@@ -101,8 +101,6 @@ export class ImapSyncSessionProcess {
 			// calculate UID differences
 			let differentialUidLoader = new DifferentialUidLoader(
 				imapClient,
-				adSyncEventListener,
-				openedImapMailbox,
 				this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState.importedUidToMailIdsMap,
 				isEnableImapQresync,
 				this.adSyncConfig.emitAdSyncEventTypes,
@@ -118,7 +116,7 @@ export class ImapSyncSessionProcess {
 					this.handleDeletedUids(deletedUids, openedImapMailbox, adSyncEventListener)
 				})
 
-			let fetchOptions = this.initFetchOptions(imapMailboxStatus, isEnableImapQresync)
+			let fetchOptions = this.initFetchOptions(isEnableImapQresync)
 			let nextUidFetchRequest = await differentialUidLoader.getNextUidFetchRequest(this.adSyncOptimizer.optimizedSyncSessionMailbox.downloadBatchSize)
 
 			while (nextUidFetchRequest) {
@@ -223,7 +221,7 @@ export class ImapSyncSessionProcess {
 		}
 	}
 
-	private initFetchOptions(imapMailboxStatus: ImapMailboxStatus, isEnableImapQresync: boolean) {
+	private initFetchOptions(isEnableImapQresync: boolean) {
 		let fetchOptions = {}
 		if (isEnableImapQresync) {
 			let highestModSeq = [...this.adSyncOptimizer.optimizedSyncSessionMailbox.mailboxState.importedUidToMailIdsMap.values()].reduce<bigint>(

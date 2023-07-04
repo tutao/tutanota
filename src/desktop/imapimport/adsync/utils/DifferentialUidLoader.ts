@@ -1,6 +1,5 @@
 import { ImapMailIds } from "../ImapSyncState.js"
-import { AdSyncEventListener, AdSyncEventType } from "../AdSyncEventListener.js"
-import { ImapMailbox } from "../imapmail/ImapMailbox.js"
+import { AdSyncEventType } from "../AdSyncEventListener.js"
 import { ImapFlow } from "imapflow"
 
 interface UidFetchSequence {
@@ -35,23 +34,17 @@ export class DifferentialUidLoader {
 	private uidDiffInProgress: boolean = false
 
 	private readonly imapClient: ImapFlow
-	private readonly adSyncEventListener: AdSyncEventListener
-	private readonly openedImapMailbox: ImapMailbox
 	private readonly importedUidToMailIdsMap: Map<number, ImapMailIds>
 	private readonly isEnableImapQresync: boolean
 	private readonly emitAdSyncEventTypes: Set<AdSyncEventType>
 
 	constructor(
 		imapClient: ImapFlow,
-		adSyncEventListener: AdSyncEventListener,
-		openedImapMailbox: ImapMailbox,
 		importedUidToMailIdsMap: Map<number, ImapMailIds>,
 		isEnableImapQresync: boolean,
 		emitAdSyncEventTypes: Set<AdSyncEventType>,
 	) {
 		this.imapClient = imapClient
-		this.adSyncEventListener = adSyncEventListener
-		this.openedImapMailbox = openedImapMailbox
 		this.importedUidToMailIdsMap = importedUidToMailIdsMap
 		this.isEnableImapQresync = isEnableImapQresync
 		this.emitAdSyncEventTypes = emitAdSyncEventTypes
