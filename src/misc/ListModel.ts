@@ -296,14 +296,15 @@ export class ListModel<ElementType extends ListElement> {
 		}
 	}
 
-	/** An element was added to the selection. If multiselect was not on, app previous single selection and newly added selected item to the selection. */
+	/** An element was added to the selection. If multiselect was not on, add previous single selection and newly added selected item to the selection. */
 	onSingleInclusiveSelection(item: ElementType): void {
 		const selectedItems = new Set(this.state.selectedItems)
-		if (selectedItems.has(item)) {
+		if (this.state.inMultiselect && selectedItems.has(item)) {
 			selectedItems.delete(item)
 		} else {
 			selectedItems.add(item)
 		}
+
 		if (selectedItems.size === 0) {
 			this.updateState({ selectedItems, inMultiselect: false, activeElement: null })
 			this.rangeSelectionAnchorElement = null
