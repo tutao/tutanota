@@ -22,7 +22,7 @@ import {
 	OrderProcessingAgreementTypeRef,
 	UserTypeRef,
 } from "../api/entities/sys/TypeRefs.js"
-import { assertNotNull, downcast, incrementDate, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, incrementDate, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import { Icons } from "../gui/base/icons/Icons"
 import { asPaymentInterval, formatPrice, formatPriceDataWithInfo, PaymentInterval } from "./PriceUtils"
@@ -35,7 +35,14 @@ import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
 import { NotFoundError } from "../api/common/error/RestError"
 import type { EntityUpdateData } from "../api/main/EventController"
 import { isUpdateForTypeRef } from "../api/main/EventController"
-import { getCurrentCount, getTotalStorageCapacityPerCustomer, isBusinessFeatureActive, isSharingActive, isWhitelabelActive } from "./SubscriptionUtils"
+import {
+	getCurrentCount,
+	getTotalStorageCapacityPerCustomer,
+	isAutoResponderActive,
+	isEventInvitesActive,
+	isSharingActive,
+	isWhitelabelActive,
+} from "./SubscriptionUtils"
 import { TextField } from "../gui/base/TextField.js"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { ColumnWidth, Table } from "../gui/base/Table.js"
@@ -78,7 +85,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private _contactFormsFieldValue: Stream<string>
 	private _whitelabelFieldValue: Stream<string>
 	private _sharingFieldValue: Stream<string>
-	private _businessFeatureFieldValue: Stream<string>
+	private _eventInvitesFieldValue: Stream<string>
+	private _autoResponderFieldValue: Stream<string>
 	private _periodEndDate: Date | null = null
 	private _nextPeriodPriceVisible: boolean | null = null
 	private _customer: Customer | null = null
@@ -95,7 +103,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this.currentPlanType = currentPlanType
 		const isPremiumPredicate = () => locator.logins.getUserController().isPremiumAccount()
 
-		const deleteAccountExpanded = stream(false)
 		this._giftCards = new Map()
 		loadGiftCards(assertNotNull(locator.logins.getUserController().user.customer)).then((giftCards) => {
 			giftCards.forEach((giftCard) => this._giftCards.set(elementIdPart(giftCard._id), giftCard))
@@ -131,9 +138,9 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							  })
 							: null,
 				}),
-				this._showOrderAgreement() ? this.renderAgreement() : null,
-				this._showPriceData() ? this.renderIntervals() : null,
-				this._showPriceData() && this._nextPeriodPriceVisible && this._periodEndDate
+				this.showOrderAgreement() ? this.renderAgreement() : null,
+				this.showPriceData() ? this.renderIntervals() : null,
+				this.showPriceData() && this._nextPeriodPriceVisible && this._periodEndDate
 					? m(TextField, {
 							label: () =>
 								lang.get("priceFrom_label", {
@@ -179,14 +186,14 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							}),
 							m(TextField, {
 								label: "pricing.comparisonEventInvites_msg",
-								value: this._businessFeatureFieldValue(),
-								oninput: this._businessFeatureFieldValue,
+								value: this._eventInvitesFieldValue(),
+								oninput: this._eventInvitesFieldValue,
 								disabled: true,
 							}),
 							m(TextField, {
 								label: "pricing.comparisonOutOfOffice_msg",
-								value: this._businessFeatureFieldValue(),
-								oninput: this._businessFeatureFieldValue,
+								value: this._autoResponderFieldValue(),
+								oninput: this._autoResponderFieldValue,
 								disabled: true,
 							}),
 							m(TextField, {
@@ -209,7 +216,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		locator.entityClient
 			.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
 			.then((customer) => {
-				this._updateCustomerData(customer)
+				this.updateCustomerData(customer)
 				return locator.logins.getUserController().loadCustomerInfo()
 			})
 			.then((customerInfo) => {
@@ -217,7 +224,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				return locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
 			})
 			.then((accountingInfo) => {
-				this._updateAccountInfoData(accountingInfo)
+				this.updateAccountInfoData(accountingInfo)
 			})
 		const loadingString = lang.get("loading_msg")
 		this._currentPriceFieldValue = stream(loadingString)
@@ -230,16 +237,17 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._groupsFieldValue = stream(loadingString)
 		this._whitelabelFieldValue = stream(loadingString)
 		this._sharingFieldValue = stream(loadingString)
-		this._businessFeatureFieldValue = stream(loadingString)
+		this._eventInvitesFieldValue = stream(loadingString)
+		this._autoResponderFieldValue = stream(loadingString)
 		this._contactFormsFieldValue = stream(loadingString)
 		this._selectedSubscriptionInterval = stream<PaymentInterval | null>(null)
 
-		this._updatePriceInfo()
+		this.updatePriceInfo()
 
-		this._updateBookings()
+		this.updateBookings()
 	}
 
-	_showOrderAgreement(): boolean {
+	private showOrderAgreement(): boolean {
 		return (
 			locator.logins.getUserController().isPremiumAccount() &&
 			((this._customer != null && this._customer.businessUse) ||
@@ -247,65 +255,59 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		)
 	}
 
-	_updateCustomerData(customer: Customer): Promise<any> {
-		let p = Promise.resolve()
+	private async updateCustomerData(customer: Customer): Promise<void> {
 		this._customer = customer
 
 		if (customer.orderProcessingAgreement) {
-			p = locator.entityClient.load(OrderProcessingAgreementTypeRef, customer.orderProcessingAgreement).then((a) => {
-				this._orderAgreement = a
-			})
+			this._orderAgreement = await locator.entityClient.load(OrderProcessingAgreementTypeRef, customer.orderProcessingAgreement)
 		} else {
 			this._orderAgreement = null
 		}
 
-		return p.then(() => {
-			if (customer.orderProcessingAgreementNeeded) {
-				this._orderAgreementFieldValue(lang.get("signingNeeded_msg"))
-			} else if (this._orderAgreement) {
-				this._orderAgreementFieldValue(
-					lang.get("signedOn_msg", {
-						"{date}": formatDate(this._orderAgreement.signatureDate),
-					}),
-				)
-			} else {
-				this._orderAgreementFieldValue(lang.get("notSigned_msg"))
-			}
+		if (customer.orderProcessingAgreementNeeded) {
+			this._orderAgreementFieldValue(lang.get("signingNeeded_msg"))
+		} else if (this._orderAgreement) {
+			this._orderAgreementFieldValue(
+				lang.get("signedOn_msg", {
+					"{date}": formatDate(this._orderAgreement.signatureDate),
+				}),
+			)
+		} else {
+			this._orderAgreementFieldValue(lang.get("notSigned_msg"))
+		}
 
-			m.redraw()
-		})
+		m.redraw()
 	}
 
-	_showPriceData(): boolean {
+	private showPriceData(): boolean {
 		return locator.logins.getUserController().isPremiumAccount()
 	}
 
-	_updatePriceInfo(): Promise<void> {
-		if (!this._showPriceData()) {
-			return Promise.resolve()
+	private async updatePriceInfo(): Promise<void> {
+		if (!this.showPriceData()) {
+			return
 		} else {
-			return locator.bookingFacade.getCurrentPrice().then((priceServiceReturn) => {
-				if (priceServiceReturn.currentPriceThisPeriod != null && priceServiceReturn.currentPriceNextPeriod != null) {
-					if (priceServiceReturn.currentPriceThisPeriod.price !== priceServiceReturn.currentPriceNextPeriod.price) {
-						this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
+			const priceServiceReturn = await locator.bookingFacade.getCurrentPrice()
+			if (priceServiceReturn.currentPriceThisPeriod != null && priceServiceReturn.currentPriceNextPeriod != null) {
+				if (priceServiceReturn.currentPriceThisPeriod.price !== priceServiceReturn.currentPriceNextPeriod.price) {
+					this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
 
-						this._nextPriceFieldValue(formatPriceDataWithInfo(neverNull(priceServiceReturn.currentPriceNextPeriod)))
+					this._nextPriceFieldValue(formatPriceDataWithInfo(neverNull(priceServiceReturn.currentPriceNextPeriod)))
 
-						this._nextPeriodPriceVisible = true
-					} else {
-						this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
+					this._nextPeriodPriceVisible = true
+				} else {
+					this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
 
-						this._nextPeriodPriceVisible = false
-					}
-
-					this._periodEndDate = priceServiceReturn.periodEndDate
-					m.redraw()
+					this._nextPeriodPriceVisible = false
 				}
-			})
+
+				this._periodEndDate = priceServiceReturn.periodEndDate
+				m.redraw()
+			}
 		}
 	}
 
-	_updateAccountInfoData(accountingInfo: AccountingInfo) {
+	private updateAccountInfoData(accountingInfo: AccountingInfo) {
 		this._accountingInfo = accountingInfo
 
 		this._selectedSubscriptionInterval(asPaymentInterval(accountingInfo.paymentInterval))
@@ -313,7 +315,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		m.redraw()
 	}
 
-	async _updateSubscriptionField(cancelled: boolean) {
+	private async updateSubscriptionField(cancelled: boolean) {
 		const cancelledText =
 			cancelled && this._periodEndDate
 				? " " +
@@ -328,88 +330,76 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._subscriptionFieldValue(_getAccountTypeName(accountType, planType) + cancelledText)
 	}
 
-	_updateBookings(): Promise<void> {
+	private async updateBookings(): Promise<void> {
 		const userController = locator.logins.getUserController()
 
-		return userController.loadCustomer().then((customer) => {
-			return userController
-				.loadCustomerInfo()
-				.catch(
-					ofClass(NotFoundError, (e) => {
-						console.log("could not update bookings as customer info does not exist (moved between free/premium lists)")
-					}),
-				)
-				.then((customerInfo) => {
-					if (!customerInfo) {
-						return
-					}
+		const customer = await userController.loadCustomer()
+		let customerInfo: CustomerInfo
+		try {
+			customerInfo = await userController.loadCustomerInfo()
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				console.log("could not update bookings as customer info does not exist (moved between free/premium lists)")
+				return
+			} else {
+				throw e
+			}
+		}
 
-					this._customerInfo = customerInfo
-					return locator.entityClient
-						.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
-						.then(async (bookings) => {
-							this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
-							this._customer = customer
-							this._isCancelled = customer.canceledPremiumAccount
-							this.currentPlanType = await userController.getPlanType()
+		this._customerInfo = customerInfo
+		const bookings = await locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+		this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
+		this._customer = customer
+		this._isCancelled = customer.canceledPremiumAccount
+		this.currentPlanType = await userController.getPlanType()
 
-							const planConfig = await userController.getPlanConfig()
-							await this._updateSubscriptionField(this._isCancelled)
+		const planConfig = await userController.getPlanConfig()
+		await this.updateSubscriptionField(this._isCancelled)
 
-							return Promise.all([
-								this._updateUserField(),
-								this._updateStorageField(customer, customerInfo),
-								this._updateAliasField(customer, customerInfo, userController.user.userGroup.group),
-								this._updateGroupsField(),
-								this._updateWhitelabelField(planConfig),
-								this._updateSharingField(planConfig),
-								this._updateBusinessFeatureField(planConfig),
-								this._updateContactFormsField(),
-							]).then(() => m.redraw())
-						})
-				})
-		})
+		await Promise.all([
+			this.updateUserField(),
+			this.updateStorageField(customer, customerInfo),
+			this.updateAliasField(userController.user.userGroup.group),
+			this.updateGroupsField(),
+			this.updateWhitelabelField(planConfig),
+			this.updateSharingField(planConfig),
+			this.updateEventInvitesField(planConfig),
+			this.updateAutoResponderField(planConfig),
+			this.updateContactFormsField(),
+		])
+		m.redraw()
 	}
 
-	_updateUserField(): Promise<void> {
+	private async updateUserField(): Promise<void> {
 		this._usersFieldValue("" + Math.max(1, getCurrentCount(BookingItemFeatureType.LegacyUsers, this._lastBooking)))
-
-		return Promise.resolve()
 	}
 
-	_updateStorageField(customer: Customer, customerInfo: CustomerInfo): Promise<void> {
-		return locator.customerFacade.readUsedCustomerStorage(getEtId(customer)).then((usedStorage) => {
-			const usedStorageFormatted = formatStorageSize(Number(usedStorage))
-			const totalStorageFormatted = formatStorageSize(
-				getTotalStorageCapacityPerCustomer(customer, customerInfo, this._lastBooking) * Const.MEMORY_GB_FACTOR,
-			)
+	private async updateStorageField(customer: Customer, customerInfo: CustomerInfo): Promise<void> {
+		const usedStorage = await locator.customerFacade.readUsedCustomerStorage(getEtId(customer))
+		const usedStorageFormatted = formatStorageSize(Number(usedStorage))
+		const totalStorageFormatted = formatStorageSize(getTotalStorageCapacityPerCustomer(customer, customerInfo, this._lastBooking) * Const.MEMORY_GB_FACTOR)
 
-			this._storageFieldValue(
-				lang.get("amountUsedOf_label", {
-					"{amount}": usedStorageFormatted,
-					"{totalAmount}": totalStorageFormatted,
-				}),
-			)
-		})
+		this._storageFieldValue(
+			lang.get("amountUsedOf_label", {
+				"{amount}": usedStorageFormatted,
+				"{totalAmount}": totalStorageFormatted,
+			}),
+		)
 	}
 
-	_updateAliasField(customer: Customer, customerInfo: CustomerInfo, userGroupId: Id): Promise<void> {
+	private async updateAliasField(userGroupId: Id): Promise<void> {
 		const data = createMailAddressAliasGetIn({ targetGroup: userGroupId })
-		return locator.serviceExecutor
-			.get(MailAddressAliasService, data)
-			.then((aliasServiceReturn) => {
-				this._emailAliasFieldValue(
-					lang.get("amountUsedAndActivatedOf_label", {
-						"{used}": aliasServiceReturn.usedAliases,
-						"{active}": aliasServiceReturn.enabledAliases,
-						"{totalAmount}": aliasServiceReturn.totalAliases,
-					}),
-				)
-			})
-			.then(noOp)
+		const aliasServiceReturn = await locator.serviceExecutor.get(MailAddressAliasService, data)
+		this._emailAliasFieldValue(
+			lang.get("amountUsedAndActivatedOf_label", {
+				"{used}": aliasServiceReturn.usedAliases,
+				"{active}": aliasServiceReturn.enabledAliases,
+				"{totalAmount}": aliasServiceReturn.totalAliases,
+			}),
+		)
 	}
 
-	_updateGroupsField(): Promise<void> {
+	private async updateGroupsField(): Promise<void> {
 		let localAdminCount = getCurrentCount(BookingItemFeatureType.LocalAdminGroup, this._lastBooking)
 		const localAdminText = localAdminCount + " " + lang.get(localAdminCount === 1 ? "localAdminGroup_label" : "localAdminGroups_label")
 		let sharedMailCount = getCurrentCount(BookingItemFeatureType.SharedMailGroup, this._lastBooking)
@@ -423,86 +413,74 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		} else {
 			this._groupsFieldValue(localAdminText)
 		}
-
-		return Promise.resolve()
 	}
 
-	_updateContactFormsField(): Promise<void> {
+	private async updateContactFormsField(): Promise<void> {
 		const totalAmount = getCurrentCount(BookingItemFeatureType.ContactForm, this._lastBooking)
 
 		this._contactFormsFieldValue(totalAmount.toString())
-
-		return Promise.resolve()
 	}
 
-	_updateWhitelabelField(planConfig: PlanConfiguration): Promise<void> {
+	private async updateWhitelabelField(planConfig: PlanConfiguration): Promise<void> {
 		if (isWhitelabelActive(this._lastBooking, planConfig)) {
 			this._whitelabelFieldValue(lang.get("active_label"))
 		} else {
 			this._whitelabelFieldValue(lang.get("deactivated_label"))
 		}
-
-		return Promise.resolve()
 	}
 
-	_updateSharingField(planConfig: PlanConfiguration): Promise<void> {
+	private async updateSharingField(planConfig: PlanConfiguration): Promise<void> {
 		if (isSharingActive(this._lastBooking, planConfig)) {
 			this._sharingFieldValue(lang.get("active_label"))
 		} else {
 			this._sharingFieldValue(lang.get("deactivated_label"))
 		}
-
-		return Promise.resolve()
 	}
 
-	_updateBusinessFeatureField(planConfig: PlanConfiguration): Promise<void> {
+	private async updateEventInvitesField(planConfig: PlanConfiguration): Promise<void> {
 		if (!this._customer) {
-			this._businessFeatureFieldValue("")
-		} else if (isBusinessFeatureActive(this._lastBooking, planConfig)) {
-			this._businessFeatureFieldValue(lang.get("active_label"))
+			this._eventInvitesFieldValue("")
+		} else if (isEventInvitesActive(this._lastBooking, planConfig)) {
+			this._eventInvitesFieldValue(lang.get("active_label"))
 		} else {
-			this._businessFeatureFieldValue(lang.get("deactivated_label"))
+			this._eventInvitesFieldValue(lang.get("deactivated_label"))
 		}
-
-		return Promise.resolve()
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		return promiseMap(updates, (update) => {
-			return this.processUpdate(update)
-		}).then(noOp)
+	private async updateAutoResponderField(planConfig: PlanConfiguration): Promise<void> {
+		if (!this._customer) {
+			this._autoResponderFieldValue("")
+		} else if (isAutoResponderActive(this._lastBooking, planConfig)) {
+			this._autoResponderFieldValue(lang.get("active_label"))
+		} else {
+			this._autoResponderFieldValue(lang.get("deactivated_label"))
+		}
 	}
 
-	processUpdate(update: EntityUpdateData): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		await promiseMap(updates, (update) => this.processUpdate(update))
+	}
+
+	async processUpdate(update: EntityUpdateData): Promise<void> {
 		const { instanceListId, instanceId } = update
 
 		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-			return locator.entityClient
-				.load(AccountingInfoTypeRef, instanceId)
-				.then((accountingInfo) => this._updateAccountInfoData(accountingInfo))
-				.then(() => {
-					return this._updatePriceInfo()
-				})
+			const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, instanceId)
+			await this.updateAccountInfoData(accountingInfo)
+			return await this.updatePriceInfo()
 		} else if (isUpdateForTypeRef(UserTypeRef, update)) {
-			return this._updateBookings().then(() => {
-				return this._updatePriceInfo()
-			})
+			await this.updateBookings()
+			return await this.updatePriceInfo()
 		} else if (isUpdateForTypeRef(BookingTypeRef, update)) {
-			return this._updateBookings().then(() => {
-				return this._updatePriceInfo()
-			})
+			await this.updateBookings()
+			return await this.updatePriceInfo()
 		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
-			return locator.entityClient.load(CustomerTypeRef, instanceId).then((customer) => {
-				this._updateCustomerData(customer)
-			})
+			const customer = await locator.entityClient.load(CustomerTypeRef, instanceId)
+			return await this.updateCustomerData(customer)
 		} else if (isUpdateForTypeRef(GiftCardTypeRef, update)) {
-			return locator.entityClient.load(GiftCardTypeRef, [instanceListId, instanceId]).then((giftCard) => {
-				this._giftCards.set(elementIdPart(giftCard._id), giftCard)
-
-				if (update.operation === OperationType.CREATE) this._giftCardsExpanded(true)
-			})
-		} else {
-			return Promise.resolve()
+			const giftCard = await locator.entityClient.load(GiftCardTypeRef, [instanceListId, instanceId])
+			this._giftCards.set(elementIdPart(giftCard._id), giftCard)
+			if (update.operation === OperationType.CREATE) this._giftCardsExpanded(true)
 		}
 	}
 

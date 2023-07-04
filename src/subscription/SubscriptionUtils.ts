@@ -48,8 +48,16 @@ export function isSharingActive(lastBooking: Booking | null, planConfig: PlanCon
 	return getCurrentCount(BookingItemFeatureType.Sharing, lastBooking) !== 0 || planConfig.sharing
 }
 
-export function isBusinessFeatureActive(lastBooking: Booking | null, planConfig: PlanConfiguration): boolean {
-	return getCurrentCount(BookingItemFeatureType.Business, lastBooking) !== 0 || (planConfig.autoResponder && planConfig.eventInvites)
+function isBusinessFeatureActive(lastBooking: Booking | null): boolean {
+	return getCurrentCount(BookingItemFeatureType.Business, lastBooking) !== 0
+}
+
+export function isEventInvitesActive(lastBooking: Booking | null, planConfig: PlanConfiguration): boolean {
+	return isBusinessFeatureActive(lastBooking) || planConfig.eventInvites
+}
+
+export function isAutoResponderActive(lastBooking: Booking | null, planConfig: PlanConfiguration): boolean {
+	return isBusinessFeatureActive(lastBooking) || planConfig.autoResponder
 }
 
 export type PaymentErrorCode =
@@ -115,18 +123,15 @@ export function getPreconditionFailedPaymentMsg(data: string | null): Translatio
 }
 
 export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
-	return new LazyLoaded(() => {
+	return new LazyLoaded(async () => {
 		const clientType = getClientType()
-		return locator.serviceExecutor
-			.get(
-				PaymentDataService,
-				createPaymentDataServiceGetData({
-					clientType,
-				}),
-			)
-			.then((result) => {
-				return result.loginUrl
-			})
+		const result = await locator.serviceExecutor.get(
+			PaymentDataService,
+			createPaymentDataServiceGetData({
+				clientType,
+			}),
+		)
+		return result.loginUrl
 	})
 }
 

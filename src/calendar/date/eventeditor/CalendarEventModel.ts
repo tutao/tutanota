@@ -263,7 +263,7 @@ export class CalendarEventModel {
 	private async updateCustomerFeatures(): Promise<CalendarEventModel> {
 		if (this.userController.isInternalUser()) {
 			const customer = await this.userController.loadCustomer()
-			this.canUseInvites = isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await this.userController.isNewPaidPlan())
+			this.canUseInvites = await this.canSendInvites()
 			this.hasPremiumLegacy = isCustomizationEnabledForCustomer(customer, FeatureType.PremiumLegacy)
 		} else {
 			this.canUseInvites = false
@@ -271,6 +271,11 @@ export class CalendarEventModel {
 		}
 
 		return this
+	}
+
+	private async canSendInvites(): Promise<boolean> {
+		const planConfig = await this.userController.getPlanConfig()
+		return planConfig.eventInvites
 	}
 
 	shouldShowSendInviteNotAvailable(): boolean {
