@@ -19,7 +19,9 @@ import { SuspensionError } from "../../common/error/SuspensionError.js"
 const DEFAULT_TUTANOTA_SERVER_POSTPONE_TIME = 120 * 1000 // 120 seconds
 
 export interface InitializeImapImportParams {
+	/** hostname of the imap server to import mail from */
 	host: string
+	/** imap port of the host */
 	port: string
 	username: string
 	password: string | null

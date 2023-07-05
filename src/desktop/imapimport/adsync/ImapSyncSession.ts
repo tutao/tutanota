@@ -33,17 +33,13 @@ export interface SyncSessionEventListener {
 }
 
 export class ImapSyncSession implements SyncSessionEventListener {
-	private adSyncEventListener: AdSyncEventListener
-	private adSyncConfig: AdSyncConfig
 	private state: SyncSessionState
 	private imapSyncState?: ImapSyncState
 	private adSyncOptimizer?: AdSyncProcessesOptimizer
 	private runningSyncSessionProcesses: Map<number, ImapSyncSessionProcess> = new Map()
 	private downloadedQuotas: number[] = []
 
-	constructor(adSyncEventListener: AdSyncEventListener, adSyncConfig: AdSyncConfig) {
-		this.adSyncEventListener = adSyncEventListener
-		this.adSyncConfig = adSyncConfig
+	constructor(private adSyncEventListener: AdSyncEventListener, private adSyncConfig: AdSyncConfig) {
 		this.state = SyncSessionState.PAUSED
 	}
 
