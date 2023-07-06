@@ -18,7 +18,6 @@ import { getTextsForGroupType } from "../GroupGuiUtils"
 import { GroupType } from "../../api/common/TutanotaConstants"
 import { ColorPicker } from "../../gui/base/ColorPicker"
 import { locator } from "../../api/main/MainLocator"
-import { getAvailablePlansWithTemplates } from "../../subscription/SubscriptionUtils.js"
 
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)
@@ -125,6 +124,7 @@ async function checkCanAcceptGroupInvitation(invitation: ReceivedGroupInvitation
 	}
 	const planConfig = await locator.logins.getUserController().getPlanConfig()
 	if (isTemplateGroup(getInvitationGroupType(invitation)) && !planConfig.templates) {
+		const { getAvailablePlansWithTemplates } = await import("../../subscription/SubscriptionUtils.js")
 		const plans = await getAvailablePlansWithTemplates()
 		return showPlanUpgradeRequiredDialog(plans)
 	} else {

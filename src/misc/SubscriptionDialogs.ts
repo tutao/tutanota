@@ -70,6 +70,7 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 			return wizard.showUpgradeWizard(locator.logins)
 		} else {
 			const usedStorage = Number(await locator.userManagementFacade.readUsedUserStorage(userController.user))
+			const { getAvailableMatchingPlans } = await import("../subscription/SubscriptionUtils.js")
 			const plansWithMoreStorage = await getAvailableMatchingPlans(
 				locator.serviceExecutor,
 				(config) => Number(config.storageGb) * Const.MEMORY_GB_FACTOR > usedStorage,

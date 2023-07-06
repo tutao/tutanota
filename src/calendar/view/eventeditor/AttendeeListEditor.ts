@@ -24,7 +24,6 @@ import { LoginController } from "../../../api/main/LoginController.js"
 import { CalendarEventModel } from "../../date/eventeditor/CalendarEventModel.js"
 import { DropDownSelector } from "../../../gui/base/DropDownSelector.js"
 import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
-import { getAvailablePlansWithEventInvites } from "../../../subscription/SubscriptionUtils.js"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */
@@ -61,6 +60,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 				disabled: false,
 				onRecipientAdded: async (address, name, contact) => {
 					if (!(this.hasPlanWithInvites || !model.shouldShowSendInviteNotAvailable())) {
+						const { getAvailablePlansWithEventInvites } = await import("../../../subscription/SubscriptionUtils.js")
 						const plansWithEventInvites = await getAvailablePlansWithEventInvites()
 						//entity event updates are too slow to call updateBusinessFeature()
 						this.hasPlanWithInvites = await showPlanUpgradeRequiredDialog(plansWithEventInvites)
