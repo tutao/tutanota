@@ -8,9 +8,7 @@ import {
 	AccountType,
 	AvailablePlanType,
 	BookingFailureReason,
-	BookingItemFeatureType,
 	Const,
-	FeatureType,
 	InvoiceData,
 	Keys,
 	LegacyPlans,
@@ -33,7 +31,6 @@ import { PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import { defer, DeferredObject, downcast, lazy } from "@tutao/tutanota-utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
 import { getByAbbreviation } from "../api/common/CountryList.js"
-import { isCustomizationEnabledForCustomer } from "../api/common/utils/Utils.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 
 /**
@@ -210,6 +207,10 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 			case UnsubscribeFailureReason.WHITELABEL_DOMAIN_ACTIVE:
 			case BookingFailureReason.WHITELABEL_DOMAIN_ACTIVE:
 				detailMsg = lang.get("whitelabelDomainExisting_msg")
+				break
+
+			case UnsubscribeFailureReason.HAS_CONTACT_LIST_GROUP:
+				detailMsg = lang.get("contactListExisting_msg")
 				break
 
 			case UnsubscribeFailureReason.HAS_CONTACT_FORM:

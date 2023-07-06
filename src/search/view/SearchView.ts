@@ -228,7 +228,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					message:
 						getCurrentSearchMode() === "mail"
 							? getMailSelectionMessage(this.searchViewModel.getSelectedMails())
-							: getContactSelectionMessage(this.searchViewModel.getSelectedContacts()),
+							: getContactSelectionMessage(this.searchViewModel.getSelectedContacts().length),
 			  })
 			: m(BaseMobileHeader, {
 					left: m(MobileHeaderMenuButton, { ...header, backAction: () => this.viewSlider.focusPreviousColumn() }),

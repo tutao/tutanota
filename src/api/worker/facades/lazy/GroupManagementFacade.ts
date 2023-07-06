@@ -1,10 +1,11 @@
-import { Const, CounterType, GroupType } from "../../../common/TutanotaConstants.js"
-import type { InternalGroupData, UserAreaGroupData } from "../../../entities/tutanota/TypeRefs.js"
+import { CounterType, GroupType } from "../../../common/TutanotaConstants.js"
+import type { InternalGroupData, ContactListGroupRoot, UserAreaGroupData } from "../../../entities/tutanota/TypeRefs.js"
 import {
 	createCreateMailGroupData,
 	createDeleteGroupData,
 	createInternalGroupData,
 	createUserAreaGroupData,
+	createUserAreaGroupDeleteData,
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
 import { assertNotNull, hexToUint8Array, neverNull } from "@tutao/tutanota-utils"
@@ -17,7 +18,7 @@ import { encryptString } from "../../crypto/CryptoFacade.js"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { aes128RandomKey, decryptKey, encryptKey, encryptRsaKey, publicKeyToHex, RsaKeyPair } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { LocalAdminGroupService, MailGroupService, TemplateGroupService } from "../../../entities/tutanota/Services.js"
+import { LocalAdminGroupService, MailGroupService, ContactListGroupService, TemplateGroupService } from "../../../entities/tutanota/Services.js"
 import { MembershipService } from "../../../entities/sys/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
@@ -114,6 +115,21 @@ export class GroupManagementFacade {
 			})
 			return this.serviceExecutor.post(TemplateGroupService, serviceData).then((returnValue) => returnValue.group)
 		})
+	}
+
+	async createContactListGroup(name: string): Promise<Id> {
+		const groupData = await this.generateUserAreaGroupData(name)
+		const serviceData = createUserAreaGroupPostData({
+			groupData: groupData,
+		})
+		return this.serviceExecutor.post(ContactListGroupService, serviceData).then((returnValue) => returnValue.group)
+	}
+
+	async deleteContactListGroup(groupRoot: ContactListGroupRoot) {
+		const serviceData = createUserAreaGroupDeleteData({
+			group: groupRoot._id,
+		})
+		await this.serviceExecutor.delete(ContactListGroupService, serviceData)
 	}
 
 	generateInternalGroupData(
