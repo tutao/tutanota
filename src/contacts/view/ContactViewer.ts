@@ -5,19 +5,22 @@ import { Icons } from "../../gui/base/icons/Icons"
 import type { ContactAddressType } from "../../api/common/TutanotaConstants"
 import { ContactPhoneNumberType, getContactSocialType } from "../../api/common/TutanotaConstants"
 import type { Contact, ContactAddress, ContactPhoneNumber, ContactSocialId } from "../../api/entities/tutanota/TypeRefs.js"
-import { downcast, memoized, NBSP, noOp } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, memoized, NBSP, noOp } from "@tutao/tutanota-utils"
 import { getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel } from "./ContactGuiUtils"
 import { formatBirthdayOfContact, getSocialUrl } from "../model/ContactUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { PartialRecipient } from "../../api/common/recipients/Recipient.js"
+import { attachDropdown } from "../../gui/base/Dropdown.js"
 
 assertMainOrNode()
 
 export interface ContactViewerAttrs {
 	contact: Contact
 	onWriteMail: (to: PartialRecipient) => unknown
+	editAction?: (contact: Contact) => unknown
+	deleteAction?: (contacts: Contact[]) => unknown
 }
 
 /**
@@ -67,6 +70,38 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 						),
 						this.hasBirthday(contact) ? m("", this.formattedBirthday(contact)) : null,
 					]),
+					contact && attrs.editAction && attrs.deleteAction
+						? m(
+								".flex-end",
+								m(
+									IconButton,
+									attachDropdown({
+										mainButtonAttrs: {
+											title: "more_label",
+											icon: Icons.More,
+										},
+										childAttrs: () => {
+											return [
+												{
+													label: "edit_action",
+													icon: Icons.Edit,
+													click: () => {
+														assertNotNull(attrs.editAction)(contact)
+													},
+												},
+												{
+													label: "delete_action",
+													icon: Icons.Trash,
+													click: () => {
+														assertNotNull(attrs.deleteAction)([contact])
+													},
+												},
+											]
+										},
+									}),
+								),
+						  )
+						: null,
 				),
 				m("hr.hr.mt.mb"),
 			]),

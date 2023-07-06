@@ -1999,6 +1999,7 @@ export type PlanConfiguration = {
 
 	_id: Id;
 	autoResponder: boolean;
+	contactList: boolean;
 	customDomainType: NumberString;
 	eventInvites: boolean;
 	multiUser: boolean;

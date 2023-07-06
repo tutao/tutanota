@@ -3,6 +3,7 @@ import {CreateGroupPostReturnTypeRef} from "./TypeRefs.js"
 import {CalendarDeleteDataTypeRef} from "./TypeRefs.js"
 import {ContactFormAccountDataTypeRef} from "./TypeRefs.js"
 import {ContactFormAccountReturnTypeRef} from "./TypeRefs.js"
+import {UserAreaGroupDeleteDataTypeRef} from "./TypeRefs.js"
 import {CustomerAccountCreateDataTypeRef} from "./TypeRefs.js"
 import {DraftCreateDataTypeRef} from "./TypeRefs.js"
 import {DraftCreateReturnTypeRef} from "./TypeRefs.js"
@@ -35,7 +36,6 @@ import {ReceiveInfoServiceDataTypeRef} from "./TypeRefs.js"
 import {ReportMailPostDataTypeRef} from "./TypeRefs.js"
 import {SendDraftDataTypeRef} from "./TypeRefs.js"
 import {SendDraftReturnTypeRef} from "./TypeRefs.js"
-import {UserAreaGroupDeleteDataTypeRef} from "./TypeRefs.js"
 import {UserAccountCreateDataTypeRef} from "./TypeRefs.js"
 
 export const CalendarService = Object.freeze({
@@ -54,6 +54,15 @@ export const ContactFormAccountService = Object.freeze({
 	post: {data: ContactFormAccountDataTypeRef, return: ContactFormAccountReturnTypeRef},
 	put: null,
 	delete: null,
+} as const)
+
+export const ContactListGroupService = Object.freeze({
+	app: "tutanota",
+	name: "ContactListGroupService",
+	get: null,
+	post: {data: UserAreaGroupPostDataTypeRef, return: CreateGroupPostReturnTypeRef},
+	put: null,
+	delete: {data: UserAreaGroupDeleteDataTypeRef, return: null},
 } as const)
 
 export const CustomerAccountService = Object.freeze({

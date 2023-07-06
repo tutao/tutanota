@@ -190,6 +190,10 @@ export class UserController {
 		return this.user.memberships.filter((membership) => membership.groupType === GroupType.Template)
 	}
 
+	getContactListMemberships(): GroupMembership[] {
+		return this.user.memberships.filter((membership) => membership.groupType === GroupType.ContactList)
+	}
+
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
 			const { instanceListId, instanceId, operation } = update

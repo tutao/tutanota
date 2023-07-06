@@ -1528,3 +1528,12 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "cannotAddAttendees_msg"
+	// todo: add to phrase
+	| "contactLists_label"
+	| "addEntries_action"
+	| "noContactFound_msg"
+	| "editContactList_action"
+	| "nbrOfEntriesSelected_msg"
+	| "addContactList_action"
+	| "confirmDeleteContactList_msg"

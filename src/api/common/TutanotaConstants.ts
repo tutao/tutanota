@@ -49,6 +49,7 @@ export enum GroupType {
 	LocalAdmin = "8",
 	Calendar = "9",
 	Template = "10",
+	ContactList = "11",
 }
 
 export const GroupTypeNameByCode = reverse(GroupType)

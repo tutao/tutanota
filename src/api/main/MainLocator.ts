@@ -265,6 +265,20 @@ class MainLocator {
 		return new ContactViewModel(this.contactModel, this.entityClient, this.eventController, router, await this.redraw())
 	})
 
+	readonly contactListViewModel = lazyMemoized(async () => {
+		const { ContactListViewModel } = await import("../../contacts/view/ContactListViewModel.js")
+		const router = new ScopedRouter(this.throttledRouter(), "/contactlist")
+		return new ContactListViewModel(
+			this.entityClient,
+			this.groupManagementFacade,
+			this.logins,
+			this.eventController,
+			this.contactModel,
+			router,
+			await this.redraw(),
+		)
+	})
+
 	async calendarViewModel(): Promise<CalendarViewModel> {
 		const { ReceivedGroupInvitationsModel } = await import("../../sharing/model/ReceivedGroupInvitationsModel.js")
 		const { CalendarViewModel } = await import("../../calendar/view/CalendarViewModel.js")

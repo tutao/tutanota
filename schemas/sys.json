@@ -205,6 +205,16 @@
 					"info": "AddValue PlanConfiguration/autoResponder/2130."
 				}
 			]
+		},
+		{
+			"version": 89,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "PlanConfiguration",
+					"info": "AddValue PlanConfiguration/contactList/2132."
+				}
+			]
 		}
 	]
 }

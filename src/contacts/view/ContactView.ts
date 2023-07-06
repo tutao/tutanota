@@ -8,7 +8,7 @@ import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactListView } from "./ContactListView"
 import { lang } from "../../misc/LanguageViewModel"
-import { clear, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, clear, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ContactMergeAction, Keys } from "../../api/common/TutanotaConstants"
 import { assertMainOrNode, isApp } from "../../api/common/Env"
 import type { Shortcut } from "../../misc/KeyManager"
@@ -57,6 +57,11 @@ import { EnterMultiselectIconButton } from "../../gui/EnterMultiselectIconButton
 import { selectionAttrsForList } from "../../misc/ListModel.js"
 import { ContactViewModel } from "./ContactViewModel.js"
 import { listSelectionKeyboardShortcuts } from "../../gui/base/ListUtils.js"
+import { ContactListInfo, ContactListViewModel } from "./ContactListViewModel.js"
+import { ContactListRecipientView } from "./ContactListRecipientView.js"
+import { showContactListEditor, showContactListNameEditor } from "../ContactListEditor.js"
+import { ContactListRecipientViewer } from "./ContactListRecipientViewer.js"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 
 assertMainOrNode()
 
@@ -64,14 +69,16 @@ export interface ContactViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
 	contactViewModel: ContactViewModel
+	contactListViewModel: ContactListViewModel
 }
 
 export class ContactView extends BaseTopLevelView implements TopLevelView<ContactViewAttrs> {
 	private listColumn: ViewColumn
-	private contactColumn: ViewColumn
 	private folderColumn: ViewColumn
 	private viewSlider: ViewSlider
 	private contactViewModel: ContactViewModel
+	private contactListViewModel: ContactListViewModel
+	private detailsColumn: ViewColumn
 
 	oncreate: TopLevelView["oncreate"]
 	onremove: TopLevelView["onremove"]
@@ -79,6 +86,9 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	constructor(vnode: Vnode<ContactViewAttrs>) {
 		super()
 		this.contactViewModel = vnode.attrs.contactViewModel
+		this.contactListViewModel = vnode.attrs.contactListViewModel
+		// safe to call multiple times but we need to do it early to load the contact list groups
+		this.contactListViewModel.init()
 
 		this.folderColumn = new ViewColumn(
 			{
@@ -112,85 +122,43 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		this.listColumn = new ViewColumn(
 			{
 				view: () =>
-					m(BackgroundColumnLayout, {
-						backgroundColor: theme.navigation_bg,
-						columnLayout: m(ContactListView, {
-							contactViewModel: this.contactViewModel,
-							onSingleSelection: () => {
-								this.viewSlider.focus(this.contactColumn)
-							},
-						}),
-						desktopToolbar: () => this.renderListToolbar(),
-						mobileHeader: () =>
-							this.contactViewModel.listModel.state.inMultiselect
-								? m(MultiselectMobileHeader, {
-										...selectionAttrsForList(this.contactViewModel.listModel),
-										message: getContactSelectionMessage(this.getSelectedContacts()),
-								  })
-								: m(MobileHeader, {
-										...vnode.attrs.header,
-										backAction: () => this.viewSlider.focusPreviousColumn(),
-										columnType: "first",
-										title: this.listColumn.getTitle(),
-										actions: m(".flex", [
-											this.renderSortByButton(),
-											m(EnterMultiselectIconButton, {
-												clickAction: () => {
-													this.contactViewModel.listModel.enterMultiselect()
-												},
-											}),
-										]),
-										primaryAction: () => this.renderHeaderRightView(),
-								  }),
-					}),
+					this.inContactListView() ? this.renderContactListRecipientColumn(vnode.attrs.header) : this.renderContactListColumn(vnode.attrs.header),
 			},
 			ColumnType.Background,
 			size.second_col_min_width,
 			size.second_col_max_width,
-			() => lang.get("contacts_label"),
+			() => this.getHeaderLabel(),
 		)
 
-		this.contactColumn = new ViewColumn(
+		this.detailsColumn = new ViewColumn(
 			{
-				view: () => {
-					const contacts = this.getSelectedContacts()
-					return m(BackgroundColumnLayout, {
+				view: () =>
+					m(BackgroundColumnLayout, {
 						backgroundColor: theme.navigation_bg,
-						desktopToolbar: () => m(DesktopViewerToolbar, this.contactViewerActions(contacts)),
+						desktopToolbar: () => m(DesktopViewerToolbar, this.detailsViewerActions()),
 						mobileHeader: () =>
 							m(MobileHeader, {
 								...vnode.attrs.header,
 								backAction: () => this.viewSlider.focusPreviousColumn(),
 								actions: null,
-								multicolumnActions: () => this.contactViewerActions(contacts),
+								multicolumnActions: () => this.detailsViewerActions(),
 								primaryAction: () => this.renderHeaderRightView(),
-								title: lang.get("contacts_label"),
+								title: this.getHeaderLabel(),
 								columnType: "other",
 							}),
 						columnLayout:
 							// see comment for .scrollbar-gutter-stable-or-fallback
-							m(
-								".fill-absolute.flex.col.overflow-y-scroll",
-								this.showingListView()
-									? m(MultiContactViewer, {
-											selectedEntities: contacts,
-											selectNone: () => this.contactViewModel.listModel.selectNone(),
-									  })
-									: m(ContactCardViewer, {
-											contact: contacts[0],
-											onWriteMail: writeMail,
-									  }),
-							),
-					})
-				},
+							m(".fill-absolute.flex.col.overflow-y-scroll", this.renderDetailsViewer()),
+					}),
 			},
 			ColumnType.Background,
 			size.third_col_min_width,
 			size.third_col_max_width,
 			undefined,
-			() => lang.get("contacts_label"),
+			() => this.getHeaderLabel(),
 		)
-		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.contactColumn])
+
+		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.detailsColumn])
 
 		const shortcuts = this.getShortcuts()
 		this.oncreate = (vnode) => {
@@ -202,18 +170,109 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		}
 	}
 
-	private contactViewerActions(contacts: Contact[]) {
-		return m(ContactViewerActions, {
-			contacts,
-			onEdit: (c) => this.editContact(c),
-			onExport: exportContacts,
-			onDelete: deleteContacts,
-			onMerge: confirmMerge,
+	private renderContactListColumn(header: AppHeaderAttrs) {
+		return m(BackgroundColumnLayout, {
+			backgroundColor: theme.navigation_bg,
+			columnLayout: m(ContactListView, {
+				contactViewModel: this.contactViewModel,
+				onSingleSelection: () => {
+					this.viewSlider.focus(this.detailsColumn)
+				},
+			}),
+			desktopToolbar: () => this.renderListToolbar(),
+			mobileHeader: () =>
+				this.contactViewModel.listModel.state.inMultiselect
+					? m(MultiselectMobileHeader, {
+							...selectionAttrsForList(this.contactViewModel.listModel),
+							message: getContactSelectionMessage(this.getSelectedContacts().length),
+					  })
+					: m(MobileHeader, {
+							...header,
+							backAction: () => this.viewSlider.focusPreviousColumn(),
+							columnType: "first",
+							title: this.listColumn.getTitle(),
+							actions: m(".flex", [
+								this.renderSortByButton(),
+								m(EnterMultiselectIconButton, {
+									clickAction: () => {
+										this.contactViewModel.listModel.enterMultiselect()
+									},
+								}),
+							]),
+							primaryAction: () => this.renderHeaderRightView(),
+					  }),
 		})
 	}
 
+	private renderContactListRecipientColumn(header: AppHeaderAttrs) {
+		return m(BackgroundColumnLayout, {
+			backgroundColor: theme.navigation_bg,
+			columnLayout: m(ContactListRecipientView, {
+				viewModel: this.contactListViewModel,
+				focusDetailsViewer: () => {
+					this.viewSlider.focus(this.detailsColumn)
+				},
+			}),
+			desktopToolbar: () => this.renderListToolbar(),
+			mobileHeader: () =>
+				this.contactListViewModel.listModel?.state.inMultiselect
+					? m(MultiselectMobileHeader, {
+							...selectionAttrsForList(this.contactListViewModel.listModel),
+							message: getContactSelectionMessage(this.contactListViewModel.listModel?.getSelectedAsArray().length),
+					  })
+					: m(MobileHeader, {
+							...header,
+							backAction: () => this.viewSlider.focusPreviousColumn(),
+							columnType: "first",
+							title: this.listColumn.getTitle(),
+							actions: m(".flex", [
+								m(EnterMultiselectIconButton, {
+									clickAction: () => {
+										this.contactListViewModel.listModel?.enterMultiselect()
+									},
+								}),
+							]),
+							primaryAction: () => {
+								return m(IconButton, {
+									title: () => "Add Recipients",
+									click: () => this.addRecipientsToList(),
+									icon: Icons.Add,
+								})
+							},
+					  }),
+		})
+	}
+
+	private detailsViewerActions() {
+		if (this.inContactListView()) {
+			const recipients = this.contactListViewModel.getSelectedContactListEntries()
+			if (recipients && recipients.length > 0) {
+				return m(IconButton, {
+					title: "delete_action",
+					icon: Icons.Trash,
+					click: () => this.contactListViewModel.deleteContactListEntries(recipients),
+				})
+			}
+		} else {
+			const contacts = this.getSelectedContacts()
+			return m(ContactViewerActions, {
+				contacts,
+				onEdit: (c) => this.editContact(c),
+				onExport: exportContacts,
+				onDelete: deleteContacts,
+				onMerge: confirmMerge,
+			})
+		}
+	}
+
+	private inContactListView() {
+		return m.route.get().startsWith("/contactlist")
+	}
+
 	private showingListView() {
-		return this.getSelectedContacts().length === 0 || this.contactViewModel.listModel.state.inMultiselect
+		return this.inContactListView()
+			? this.contactListViewModel.getSelectedContactListEntries()?.length === 0 || this.contactListViewModel.listModel?.state.inMultiselect
+			: this.getSelectedContacts().length === 0 || this.contactViewModel.listModel.state.inMultiselect
 	}
 
 	view({ attrs }: Vnode<ContactViewAttrs>): Children {
@@ -224,33 +283,57 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					? null
 					: m(Header, {
 							searchBar: () =>
-								m(LazySearchBar, {
-									placeholder: lang.get("searchContacts_placeholder"),
-								}),
+								this.inContactListView()
+									? null
+									: m(LazySearchBar, {
+											placeholder: lang.get("searchContacts_placeholder"),
+									  }),
 							...attrs.header,
 					  }),
 				bottomNav:
-					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.contactColumn && !this.showingListView()
-						? m(MobileContactActionBar, {
-								editAction: () => this.editSelectedContact(),
-								deleteAction: () => this._deleteSelected(),
-						  })
-						: styles.isSingleColumnLayout() &&
-						  this.viewSlider.focusedColumn === this.listColumn &&
-						  //this.showingListView()
-						  this.contactViewModel.listModel.state.inMultiselect
-						? m(MobileBottomActionBar, this.contactViewerActions(this.getSelectedContacts()))
+					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.detailsColumn && !this.showingListView()
+						? this.inContactListView()
+							? m(MobileContactActionBar, {
+									deleteAction: () => this.contactListViewModel.deleteSelectedEntries(),
+							  })
+							: m(MobileContactActionBar, {
+									editAction: () => this.editSelectedContact(),
+									deleteAction: () => this.deleteSelectedContacts(),
+							  })
+						: (styles.isSingleColumnLayout() &&
+								this.viewSlider.focusedColumn === this.listColumn &&
+								//this.showingListView()
+								this.contactViewModel.listModel.state.inMultiselect) ||
+						  this.contactListViewModel.listModel?.state.inMultiselect
+						? m(MobileBottomActionBar, this.detailsViewerActions())
 						: m(BottomNav),
 			}),
 		)
+	}
+
+	private getHeaderLabel(): string {
+		if (this.inContactListView()) {
+			return lang.get("contactLists_label")
+		} else {
+			return lang.get("contacts_label")
+		}
 	}
 
 	private getSelectedContacts() {
 		return this.contactViewModel.listModel.getSelectedAsArray()
 	}
 
-	createNewContact(): void {
-		new ContactEditor(locator.entityClient, null, this.contactViewModel.contactListId, (contactId) => {
+	private async getContactListId() {
+		if (m.route.get().startsWith("/contacts")) {
+			return this.contactViewModel.contactListId
+		} else {
+			return assertNotNull(await this.contactListViewModel.getContactListId())
+		}
+	}
+
+	async createNewContact() {
+		let listId = await this.getContactListId()
+		new ContactEditor(locator.entityClient, null, listId, (contactId) => {
 			// FIXME show new contact
 			// contactList.list.scrollToIdAndSelectWhenReceived(contactId)
 		}).show()
@@ -262,8 +345,8 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		this.editContact(firstSelected)
 	}
 
-	private editContact(contact: Contact) {
-		new ContactEditor(locator.entityClient, contact).show()
+	private editContact(contact: Contact, listId?: Id) {
+		new ContactEditor(locator.entityClient, contact, listId).show()
 	}
 
 	private renderHeaderRightView(): Children {
@@ -274,20 +357,56 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		})
 	}
 
+	private renderDetailsViewer(): Children {
+		if (this.inContactListView()) {
+			return m(ContactListRecipientViewer, {
+				recipients: this.contactListViewModel.getSelectedContactListEntries(),
+				contacts: this.contactListViewModel.contactsForSelectedEntry,
+				contactEdit: (c: Contact) => this.editContact(c),
+				contactDelete: deleteContacts,
+				contactCreate: async (c: Contact) => {
+					let listId = await this.getContactListId()
+					this.editContact(c, listId)
+				},
+				onWriteMail: writeMail,
+				selectNone: () => this.contactListViewModel.listModel?.selectNone(),
+			})
+		} else {
+			const contacts = this.getSelectedContacts()
+			return this.showingListView()
+				? m(MultiContactViewer, {
+						selectedEntities: contacts,
+						selectNone: () => this.contactViewModel.listModel.selectNone(),
+				  })
+				: m(ContactCardViewer, {
+						contact: contacts[0],
+						onWriteMail: writeMail,
+				  })
+		}
+	}
+
 	private getShortcuts() {
 		let shortcuts: Shortcut[] = [
-			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.contactViewModel.listModel),
+			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => {
+				return this.inContactListView() ? this.contactListViewModel.listModel : this.contactViewModel.listModel
+			}),
 			{
 				key: Keys.DELETE,
 				exec: () => {
-					this._deleteSelected()
+					if (this.inContactListView()) {
+						this.contactListViewModel.deleteSelectedEntries()
+					} else {
+						this.deleteSelectedContacts()
+					}
 					return true
 				},
 				help: "deleteContacts_action",
 			},
 			{
 				key: Keys.N,
-				exec: () => this.createNewContact(),
+				exec: () => {
+					this.createNewContact()
+				},
 				help: "newContact_action",
 			},
 		]
@@ -299,12 +418,37 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		const button: NavButtonAttrs = {
 			label: "all_contacts_label",
 			icon: () => BootIcons.Contacts,
-			href: () => m.route.get(),
+			href: () => `/contact`,
+			click: () => this.viewSlider.focus(this.listColumn),
 			disableHoverBackground: true,
 		}
-		return m(".folders.mlr-button.border-radius-small.state-bg", { style: { background: isNavButtonSelected(button) ? stateBgHover : "" } }, [
-			m(".folder-row.flex-space-between.plr-button.row-selected", [m(NavButton, button), this.renderFolderMoreButton()]),
-		])
+
+		return [
+			m(".folders.mlr-button.border-radius-small.state-bg", { style: { background: isNavButtonSelected(button) ? stateBgHover : "" } }, [
+				m(".folder-row.flex-space-between.plr-button.row-selected", [m(NavButton, button), this.renderFolderMoreButton()]),
+			]),
+			m(
+				SidebarSection,
+				{
+					name: "contactLists_label",
+					button: m(IconButton, {
+						icon: Icons.Add,
+						size: ButtonSize.Compact,
+						title: "addContactList_action",
+						click: () => {
+							this.addContactList()
+						},
+					}),
+				},
+				[
+					this.contactListViewModel.contactListInfo
+						.sort((a, b) => a.name.localeCompare(b.name))
+						.map((tl) => {
+							return this.renderContactListRow(tl)
+						}),
+				],
+			),
+		]
 	}
 
 	private renderFolderMoreButton(): Children {
@@ -344,6 +488,66 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				width: 250,
 			}),
 		)
+	}
+
+	private renderContactListRow(contactListInfo: ContactListInfo) {
+		const contactListButton: NavButtonAttrs = {
+			label: () => contactListInfo.name,
+			icon: () => Icons.People,
+			href: () => `/contactlist/${contactListInfo.groupRoot.recipients}`,
+			disableHoverBackground: true,
+			click: () => {
+				this.contactListViewModel.updateSelectedContactList(contactListInfo.groupRoot.recipients)
+				this.viewSlider.focus(this.listColumn)
+			},
+		}
+
+		const moreButton = this.createContactListMoreButton(contactListInfo)
+
+		return m(".folders.mlr-button.border-radius-small.state-bg", { style: { background: isNavButtonSelected(contactListButton) ? stateBgHover : "" } }, [
+			m(".folder-row.flex-space-between.plr-button.row-selected", [
+				m(NavButton, contactListButton),
+				m(IconButton, {
+					...moreButton,
+					onblur: () => {
+						m.redraw()
+					},
+				}),
+			]),
+		])
+	}
+
+	createContactListMoreButton(contactListInfo: ContactListInfo) {
+		return attachDropdown({
+			mainButtonAttrs: {
+				title: "more_label",
+				icon: Icons.More,
+				colors: ButtonColor.Nav,
+				size: ButtonSize.Compact,
+			},
+			childAttrs: () => {
+				return [
+					{
+						label: "edit_action",
+						icon: Icons.Edit,
+						click: () => {
+							showContactListNameEditor(contactListInfo.name, (newName) =>
+								this.contactListViewModel.updateContactList(contactListInfo, newName, []),
+							)
+						},
+					},
+					{
+						label: "delete_action",
+						icon: Icons.Trash,
+						click: async () => {
+							if (await Dialog.confirm("confirmDeleteContactList_msg")) {
+								this.contactListViewModel.deleteContactList(contactListInfo)
+							}
+						},
+					},
+				]
+			},
+		})
 	}
 
 	_mergeAction(): Promise<void> {
@@ -455,10 +659,14 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 
 	onNewUrl(args: Record<string, any>) {
-		this.contactViewModel.init(args.listId, args.contactId)
+		if (this.inContactListView()) {
+			this.contactListViewModel.showListAndEntry(args.listId, args.Id).then(m.redraw)
+		} else {
+			this.contactViewModel.init(args.listId, args.contactId)
+		}
 	}
 
-	_deleteSelected(): Promise<void> {
+	private deleteSelectedContacts(): Promise<void> {
 		return deleteContacts(this.getSelectedContacts())
 	}
 
@@ -468,11 +676,12 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 	handleBackButton(): boolean {
 		// only handle back button if viewing contact
-		if (this.viewSlider.focusedColumn === this.contactColumn) {
+		if (this.viewSlider.focusedColumn === this.detailsColumn) {
 			this.viewSlider.focus(this.listColumn)
 			return true
 		} else if (this.showingListView()) {
 			this.contactViewModel.listModel.selectNone()
+			this.contactListViewModel.listModel?.selectNone()
 
 			return true
 		}
@@ -481,7 +690,37 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 
 	private renderListToolbar() {
-		return m(DesktopListToolbar, m(SelectAllCheckbox, selectionAttrsForList(this.contactViewModel.listModel)), this.renderSortByButton())
+		if (this.inContactListView()) {
+			return m(
+				DesktopListToolbar,
+				m(SelectAllCheckbox, selectionAttrsForList(this.contactListViewModel.listModel)),
+				m(".flex-grow"),
+				m(IconButton, {
+					title: "addEntries_action",
+					icon: Icons.Add,
+					click: () => {
+						this.addRecipientsToList()
+					},
+				}),
+			)
+		} else {
+			return m(DesktopListToolbar, m(SelectAllCheckbox, selectionAttrsForList(this.contactViewModel.listModel)), this.renderSortByButton())
+		}
+	}
+
+	private addRecipientsToList() {
+		showContactListEditor(
+			null,
+			null,
+			lang.get("addEntries_action"),
+			(name, addresses) => {
+				this.contactListViewModel.addRecipientstoContactList(
+					addresses,
+					assertNotNull(this.contactListViewModel.getSelectedContactListInfo()?.groupRoot),
+				)
+			},
+			false,
+		)
 	}
 
 	private renderSortByButton() {
@@ -508,6 +747,18 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			},
 		})
 	}
+
+	private async addContactList() {
+		if (await this.contactListViewModel.canCreateContactList()) {
+			await showContactListEditor(null, null, "Create Recipient List", (name, recipients) => {
+				this.contactListViewModel.addContactList(name, recipients)
+			})
+		} else {
+			const { getAvailablePlansWithContactList } = await import("../../subscription/SubscriptionUtils.js")
+			const plans = await getAvailablePlansWithContactList()
+			await showPlanUpgradeRequiredDialog(plans)
+		}
+	}
 }
 
 export function writeMail(to: PartialRecipient, subject: string = ""): Promise<unknown> {
@@ -526,9 +777,9 @@ export function writeMail(to: PartialRecipient, subject: string = ""): Promise<u
 export function deleteContacts(contactList: Contact[]): Promise<void> {
 	return Dialog.confirm("deleteContacts_msg").then((confirmed) => {
 		if (confirmed) {
-			contactList.forEach((contact) => {
+			for (const contact of contactList) {
 				locator.entityClient.erase(contact).catch(ofClass(NotFoundError, noOp)).catch(ofClass(LockedError, noOp))
-			})
+			}
 		}
 	})
 }
