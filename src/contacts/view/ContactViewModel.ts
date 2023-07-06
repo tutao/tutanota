@@ -5,7 +5,7 @@ import { ListModel } from "../../misc/ListModel.js"
 import { Contact, ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { compareContacts } from "./ContactGuiUtils.js"
 import { ListState } from "../../gui/base/List.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull, lazyMemoized, memoized } from "@tutao/tutanota-utils"
 import { GENERATED_MAX_ID, getElementId } from "../../api/common/utils/EntityUtils.js"
 import Stream from "mithril/stream"
 import { Router } from "../../gui/ScopedRouter.js"
@@ -56,12 +56,16 @@ export class ContactViewModel {
 				})
 		})
 
+		this.initOnce()
+	}
+
+	private readonly initOnce = lazyMemoized(() => {
 		this.eventController.addEntityListener(this.entityListener)
 		this.listModelStateStream = this.listModel.stateStream.map(() => {
 			this.updateUi()
 			this.updateUrl()
 		})
-	}
+	})
 
 	private updateUrl() {
 		const contactId =

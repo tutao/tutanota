@@ -360,6 +360,41 @@ export type ContactList = {
 	contacts: Id;
 	photos:  null | PhotosRef;
 }
+export const ContactListEntryTypeRef: TypeRef<ContactListEntry> = new TypeRef("tutanota", "ContactListEntry")
+
+export function createContactListEntry(values?: Partial<ContactListEntry>): ContactListEntry {
+	return Object.assign(create(typeModels.ContactListEntry, ContactListEntryTypeRef), values)
+}
+
+export type ContactListEntry = {
+	_type: TypeRef<ContactListEntry>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
+	_permissions: Id;
+	emailAddress: string;
+}
+export const ContactListGroupRootTypeRef: TypeRef<ContactListGroupRoot> = new TypeRef("tutanota", "ContactListGroupRoot")
+
+export function createContactListGroupRoot(values?: Partial<ContactListGroupRoot>): ContactListGroupRoot {
+	return Object.assign(create(typeModels.ContactListGroupRoot, ContactListGroupRootTypeRef), values)
+}
+
+export type ContactListGroupRoot = {
+	_type: TypeRef<ContactListGroupRoot>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
+	_permissions: Id;
+
+	recipients: Id;
+}
 export const ContactMailAddressTypeRef: TypeRef<ContactMailAddress> = new TypeRef("tutanota", "ContactMailAddress")
 
 export function createContactMailAddress(values?: Partial<ContactMailAddress>): ContactMailAddress {

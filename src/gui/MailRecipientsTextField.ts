@@ -246,7 +246,7 @@ function parseTypedInput(text: string): ParsedInput {
 	}
 }
 
-function parseMailAddress(text: string): { address: string; name: string | null } | null {
+export function parseMailAddress(text: string): { address: string; name: string | null } | null {
 	text = text.trim()
 
 	if (text === "") return null

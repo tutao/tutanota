@@ -9,6 +9,7 @@ type ViewResolvers = {
 	mail: RouteResolver
 	externalLogin: RouteResolver
 	contact: RouteResolver
+	contactList: RouteResolver
 	search: RouteResolver
 	settings: RouteResolver
 	contactForm: RouteResolver
@@ -26,6 +27,7 @@ export function applicationPaths({
 	mail,
 	externalLogin,
 	contact,
+	contactList,
 	search,
 	settings,
 	contactForm,
@@ -49,6 +51,9 @@ export function applicationPaths({
 		"/contact": contact,
 		"/contact/:listId": contact,
 		"/contact/:listId/:contactId": contact,
+		"/contactlist": contactList,
+		"/contactlist/:listId": contactList,
+		"/contactlist/:listId/:Id": contactList,
 		"/search/:category": search,
 		"/search/:category/:id": search,
 		"/settings": settings,

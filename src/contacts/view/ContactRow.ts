@@ -14,9 +14,9 @@ import m, { Children } from "mithril"
 import { px, size } from "../../gui/size.js"
 import { VirtualRow } from "../../gui/base/ListUtils.js"
 
-const shiftByForCheckbox = px(size.checkbox_size + size.hpad)
-const translateXShow = `translateX(${shiftByForCheckbox})`
-const translateXHide = "translateX(0)"
+export const shiftByForCheckbox = px(size.checkbox_size + size.hpad)
+export const translateXShow = `translateX(${shiftByForCheckbox})`
+export const translateXHide = "translateX(0)"
 
 export class ContactRow implements VirtualRow<Contact> {
 	top: number

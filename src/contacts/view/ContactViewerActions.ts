@@ -76,16 +76,6 @@ export class ContactViewerActions implements Component<ContactViewToolbarAttrs> 
 			})
 		}
 
-		if (this.canDelete(contacts)) {
-			this.shortcuts.push({
-				key: Keys.DELETE,
-				exec: () => {
-					onDelete(contacts)
-				},
-				help: "delete_action",
-			})
-		}
-
 		if (this.canMerge(contacts)) {
 			this.shortcuts.push({
 				key: Keys.M,
@@ -108,6 +98,10 @@ export class ContactViewerActions implements Component<ContactViewToolbarAttrs> 
 			})
 		}
 		keyManager.registerShortcuts(this.shortcuts)
+	}
+
+	onremove() {
+		keyManager.unregisterShortcuts(this.shortcuts)
 	}
 
 	private canExport(contacts: Contact[]) {

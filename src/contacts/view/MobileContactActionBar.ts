@@ -3,7 +3,7 @@ import { IconButton } from "../../gui/base/IconButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 
 export interface MobileContactActionBarAttrs {
-	editAction: () => unknown
+	editAction?: () => unknown
 	deleteAction: () => unknown
 }
 
@@ -25,11 +25,13 @@ export class MobileContactActionBar implements Component<MobileContactActionBarA
 					icon: Icons.Trash,
 					click: attrs.deleteAction,
 				}),
-				m(IconButton, {
-					title: "edit_action",
-					icon: Icons.Edit,
-					click: attrs.editAction,
-				}),
+				attrs.editAction
+					? m(IconButton, {
+							title: "edit_action",
+							icon: Icons.Edit,
+							click: attrs.editAction,
+					  })
+					: null,
 			],
 		)
 	}
