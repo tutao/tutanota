@@ -8,12 +8,14 @@ import { responsiveCardHMargin } from "../../gui/cards.js"
 export interface ContactCardAttrs {
 	contact: Contact
 	onWriteMail: (to: PartialRecipient) => unknown
+	editAction?: (contact: Contact) => unknown
+	deleteAction?: (contacts: Contact[]) => unknown
 }
 
 /** Wraps contact viewer in a nice card. */
 export class ContactCardViewer implements Component<ContactCardAttrs> {
 	view({ attrs }: Vnode<ContactCardAttrs>): Children {
-		const { contact, onWriteMail } = attrs
+		const { contact, onWriteMail, editAction, deleteAction } = attrs
 		return [
 			m(
 				".border-radius-big.rel",
@@ -23,7 +25,12 @@ export class ContactCardViewer implements Component<ContactCardAttrs> {
 						backgroundColor: theme.content_bg,
 					},
 				},
-				m(ContactViewer, { contact, onWriteMail }),
+				m(ContactViewer, {
+					contact,
+					onWriteMail,
+					editAction,
+					deleteAction,
+				}),
 			),
 			m(".mt-l"),
 		]

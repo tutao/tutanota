@@ -1540,3 +1540,4 @@ export type TranslationKeyType =
 	| "webAssemblyNotSupported2_msg"
 	| "lockdownModeNotSupported1_msg"
 	| "lockdownModeNotSupported2_msg"
+	| "cannotAddAttendees_msg"

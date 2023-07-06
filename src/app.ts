@@ -35,6 +35,7 @@ import { LoginController } from "./api/main/LoginController.js"
 import type { MailViewModel } from "./mail/view/MailViewModel.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
+import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
 import type Mithril from "mithril"
 
 assertMainOrNodeBoot()
@@ -128,6 +129,40 @@ import("./translations/en")
 
 		styles.init()
 
+		const contactViewResolver = makeViewResolver<
+			ContactViewAttrs,
+			ContactView,
+			{
+				drawerAttrsFactory: () => DrawerMenuAttrs
+				header: AppHeaderAttrs
+				contactViewModel: ContactViewModel
+				contactListViewModel: ContactListViewModel
+			}
+		>(
+			{
+				prepareRoute: async () => {
+					const { ContactView } = await import("./contacts/view/ContactView.js")
+					const drawerAttrsFactory = await locator.drawerAttrsFactory()
+					return {
+						component: ContactView,
+						cache: {
+							drawerAttrsFactory,
+							header: await locator.appHeaderAttrs(),
+							contactViewModel: await locator.contactViewModel(),
+							contactListViewModel: await locator.contactListViewModel(),
+						},
+					}
+				},
+				prepareAttrs: (cache) => ({
+					drawerAttrs: cache.drawerAttrsFactory(),
+					header: cache.header,
+					contactViewModel: cache.contactViewModel,
+					contactListViewModel: cache.contactListViewModel,
+				}),
+			},
+			locator.logins,
+		)
+
 		const paths = applicationPaths({
 			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel }>(
 				{
@@ -165,28 +200,8 @@ import("./translations/en")
 				},
 				locator.logins,
 			),
-			contact: makeViewResolver<
-				ContactViewAttrs,
-				ContactView,
-				{
-					drawerAttrsFactory: () => DrawerMenuAttrs
-					header: AppHeaderAttrs
-					contactViewModel: ContactViewModel
-				}
-			>(
-				{
-					prepareRoute: async () => {
-						const { ContactView } = await import("./contacts/view/ContactView.js")
-						const drawerAttrsFactory = await locator.drawerAttrsFactory()
-						return {
-							component: ContactView,
-							cache: { drawerAttrsFactory, header: await locator.appHeaderAttrs(), contactViewModel: await locator.contactViewModel() },
-						}
-					},
-					prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header, contactViewModel: cache.contactViewModel }),
-				},
-				locator.logins,
-			),
+			contact: contactViewResolver,
+			contactList: contactViewResolver,
 			externalLogin: makeViewResolver<ExternalLoginViewAttrs, ExternalLoginView, { header: AppHeaderAttrs; makeViewModel: () => ExternalLoginViewModel }>(
 				{
 					prepareRoute: async () => {

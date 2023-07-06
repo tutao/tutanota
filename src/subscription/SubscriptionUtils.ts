@@ -231,6 +231,14 @@ export async function getAvailablePlansWithAutoResponder(): Promise<Array<Availa
 	return getAtLeastOneAvailableMatchingPlan((config) => config.autoResponder, "no available plan with the Auto-Responder feature")
 }
 
+/**
+ * Get plans that a customer can upgrade to that include the Contact List feature.
+ * @throws ProgrammingError if no plans include it.
+ */
+export async function getAvailablePlansWithContactList(): Promise<Array<AvailablePlanType>> {
+	return getAtLeastOneAvailableMatchingPlan((config) => config.contactList, "no available plan with the Contact List feature")
+}
+
 export async function getAvailablePlansWithCalendarInvites(): Promise<Array<AvailablePlanType>> {
 	return getAtLeastOneAvailableMatchingPlan((config) => config.eventInvites, "no available plan with the Calendar Invite feature")
 }

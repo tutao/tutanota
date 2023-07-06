@@ -29,7 +29,7 @@ export interface ListFetchResult<ElementType> {
 	complete: boolean
 }
 
-export function listSelectionKeyboardShortcuts<T extends ListElement>(multiselectMode: MultiselectMode, list: () => ListModel<T> | null): Array<Shortcut> {
+export function listSelectionKeyboardShortcuts(multiselectMode: MultiselectMode, list: () => ListModel<ListElement> | null): Array<Shortcut> {
 	const multiselectionEnabled = multiselectMode == MultiselectMode.Enabled ? () => true : () => false
 	return [
 		{

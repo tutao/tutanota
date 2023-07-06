@@ -1554,6 +1554,7 @@ export default {
 		"webAssemblyNotSupported1_msg": "Your browser does not support WebAssembly and will not be supported in future versions of Tutanota.",
 		"webAssemblyNotSupported2_msg": "Please upgrade your browser or download our app.",
 		"lockdownModeNotSupported1_msg": "Your device has Lockdown Mode enabled which will prevent future versions of Tutanota from running.",
-		"lockdownModeNotSupported2_msg": "Please exclude Tutanota or disable Lockdown Mode."
+		"lockdownModeNotSupported2_msg": "Please exclude Tutanota or disable Lockdown Mode.",
+		"cannotAddAttendees_msg": "You can not modify the guest list for this event because it was not created in your calendar."
 	}
 }
