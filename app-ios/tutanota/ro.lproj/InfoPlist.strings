@@ -1,9 +1,9 @@
-NSCameraUsageDescription = "Fă o poză sau un videoclip pentru a-l atașa.";
+NSCameraUsageDescription = "Fă o poză sau un video pentru a le atașa.";
 NSPhotoLibraryUsageDescription = "Atașează o poză din galerie.";
 NSMicrophoneUsageDescription = "Folosit când înregistrezi un video pentru a-l atașa.";
-NSContactsUsageDescription = "Găsește adresa de e-mail în contacte.";
+NSContactsUsageDescription = "Caută adresa de e-mail în contacte.";
 NSRemindersUsageDescription = "Afișează notificări atunci când sosesc mesaje noi.";
-TutaoShowCameraAction = "Cameră";
+TutaoShowCameraAction = "Camera";
 TutaoChoosePhotosAction = "Fotografii";
 TutaoNoPermissionTitle = "Fără permisiune";
 TutaoChangePermissionMsg = "Pentru a permite accesul, trebuie să modifici permisiunile pentru acest aparat.";

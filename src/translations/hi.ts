@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2023-07-03T12:19:45Z",
+	"updated_at": "2023-07-07T06:46:13Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -122,8 +122,6 @@ export default {
 		"bookingSummary_label": "बुकिंग सारांश",
 		"boughtGiftCardPosting_label": "उपहार कार्ड खरीदें",
 		"breakLink_action": "हाइपरलिंक हटाएँ ",
-		"businessFeatureRequiredGeneral_msg": "इस फ़ंक्शन का उपयोग करने के लिए आपको व्यवसाय सुविधा का आदेश देना होगा।",
-		"businessFeatureRequiredInvite_msg": "ईवेंट आमंत्रण भेजने के लिए आपको व्यवसाय सुविधा का आदेश देना होगा.",
 		"buyGiftCard_label": "एक उपहार कार्ड खरीदें",
 		"buy_action": "खरीदिए",
 		"by_label": "द्वारा",

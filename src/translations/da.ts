@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2023-07-03T12:19:45Z",
+	"updated_at": "2023-07-07T06:46:13Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -115,8 +115,6 @@ export default {
 		"bookingSummary_label": "Booking-resumé",
 		"boughtGiftCardPosting_label": "Køb gavekort",
 		"breakLink_action": "Fjern hyperlink",
-		"businessFeatureRequiredGeneral_msg": "For at benytte denne funktion skal bestiller virksomhedsfunktionen.",
-		"businessFeatureRequiredInvite_msg": "For at kunne sende invitationer skal du bestille virksomhedsfunktionen.",
 		"buyGiftCard_label": "Køb et gavekort",
 		"buy_action": "Køb",
 		"by_label": "af",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2023-07-03T12:19:45Z",
+	"updated_at": "2023-07-07T06:46:13Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -123,8 +123,6 @@ export default {
 		"bookingSummary_label": "Varaukset",
 		"boughtGiftCardPosting_label": "Osta lahjakortti",
 		"breakLink_action": "Poista linkki",
-		"businessFeatureRequiredGeneral_msg": "Tätä toimintoa käyttääksesi sinun tulee tilata yritysominaisuus.",
-		"businessFeatureRequiredInvite_msg": "Lähettääksesi tapahtumakutsuja sinun tulee tilata yritysominaisuus.",
 		"buyGiftCard_label": "Osta lahjakortti",
 		"buy_action": "Osta",
 		"by_label": "kirjoitti",
