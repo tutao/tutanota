@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2023-07-03T12:19:44Z",
+	"updated_at": "2023-07-07T06:46:14Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -131,8 +131,6 @@ export default {
 		"bookingSummary_label": "订单摘要",
 		"boughtGiftCardPosting_label": "购买礼品卡",
 		"breakLink_action": "移除超链接",
-		"businessFeatureRequiredGeneral_msg": "要使用这一功能，您需要订购商业功能。",
-		"businessFeatureRequiredInvite_msg": "要发送活动邀请，您需要订购商业功能。",
 		"buyGiftCard_label": "购买礼品卡",
 		"buy_action": "购买",
 		"by_label": "来自",
@@ -805,8 +803,8 @@ export default {
 		"pricing.comparison3Domains_msg": "3个自定义域名",
 		"pricing.comparisonAddUser_msg": "支付{1}，以添加用户",
 		"pricing.comparisonContactFormPro_msg": "联系人表{price}",
-		"pricing.comparisonDomainBusiness_tooltip_markdown": "<p>使用你自己的自定义电子邮件域名（you&amp;#064;yourbusiness.com）。</p>\n",
-		"pricing.comparisonDomainPremium_tooltip_markdown": "<p>使用您的自定义邮件域名 (nin&amp;#064; nindemingzi.com)</p>\n",
+		"pricing.comparisonDomainBusiness_tooltip_markdown": "<p>使用你自己的自定义电子邮件域名（you@yourbusiness.com）。</p>\n",
+		"pricing.comparisonDomainPremium_tooltip_markdown": "<p>使用您的自定义邮件域名 (nin@ nindemingzi.com)</p>\n",
 		"pricing.comparisonEventInvites_msg": "活动邀请函",
 		"pricing.comparisonEventInvites_tooltip": "发送和接收日历邀请。在共享密码的帮助下，也可选择将邀请加密地发送至外部用户。",
 		"pricing.comparisonInboxRulesPremium_msg": "收件箱规则",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2023-07-03T12:19:44Z",
+	"updated_at": "2023-07-07T06:46:13Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -129,8 +129,6 @@ export default {
 		"bookingSummary_label": "Abonelik özeti",
 		"boughtGiftCardPosting_label": "Hediye kartı satın al",
 		"breakLink_action": "Bağlantıyı sil",
-		"businessFeatureRequiredGeneral_msg": "Bu işlevi kullanabilmek için kurumsal abonelik satın almanız gerekmektedir",
-		"businessFeatureRequiredInvite_msg": "Etkinlik davetleri göndermek için işletme özelliğini sipariş etmeniz gerekir.",
 		"buyGiftCard_label": "Hediye kartı satın alın",
 		"buy_action": "Satın al",
 		"by_label": "tarihinde",
@@ -1015,7 +1013,7 @@ export default {
 		"pricing.comparisonAddUser_msg": "Kullanıcı ekle  ({1})",
 		"pricing.comparisonContactFormPro_msg": "İletişim formu ({price})",
 		"pricing.comparisonDomainBusiness_msg": "Çoklu özel alan adları",
-		"pricing.comparisonDomainBusiness_tooltip_markdown": "<p>Kendi domain adresini kullan (sen&amp;#064;seninisin.com).</p>\n",
+		"pricing.comparisonDomainBusiness_tooltip_markdown": "<p>Kendi domain adresini kullan (sen@seninisin.com).</p>\n",
 		"pricing.comparisonDomainPremium_msg": "1 özel alan adı",
 		"pricing.comparisonDomainPremium_tooltip_markdown": "<p>Kendi özelleştirilmiş e-posta alan adreslerinizi kullanın (siz@ isminiz.com)</p>\n",
 		"pricing.comparisonEventInvites_msg": "Etkinlik davetleri",

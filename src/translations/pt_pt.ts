@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2023-07-03T12:19:44Z",
+	"updated_at": "2023-07-07T06:46:13Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -122,7 +122,6 @@ export default {
 		"bookingSummary_label": "Resumo da reserva",
 		"boughtGiftCardPosting_label": "Comprar cartão presente",
 		"breakLink_action": "Remover hiperligação",
-		"businessFeatureRequiredInvite_msg": "Para enviar convites tem que encomendar a funcionalidade de negócio.",
 		"buyGiftCard_label": "Compre um cartão presente",
 		"buy_action": "Comprar",
 		"by_label": "por",

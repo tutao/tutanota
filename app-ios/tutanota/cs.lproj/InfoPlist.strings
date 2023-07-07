@@ -1,4 +1,4 @@
-NSCameraUsageDescription = "Odfoťte fotku nebo natočte video, které chcete přidat jako přílohu.";
+NSCameraUsageDescription = "Pořiďte fotku nebo video, které chcete přidat jako přílohu.";
 NSPhotoLibraryUsageDescription = "Přidat obrázek z knihovny jako přílohu.";
 NSMicrophoneUsageDescription = "Používáno při nahrávání video přílohy.";
 NSContactsUsageDescription = "Najít adresu příjemce v kontaktech";

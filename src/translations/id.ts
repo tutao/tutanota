@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2023-07-03T12:19:45Z",
+	"updated_at": "2023-07-07T06:46:13Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -119,7 +119,6 @@ export default {
 		"bookingSummary_label": "Ringkasan pemesanan",
 		"boughtGiftCardPosting_label": "Beli giftcard",
 		"breakLink_action": "Hapus hyperlink",
-		"businessFeatureRequiredInvite_msg": "Untuk mengirim undangan acara Anda harus pesan fitur bisnis.",
 		"buyGiftCard_label": "Beli kartu hadiah",
 		"buy_action": "Beli",
 		"by_label": "oleh",
@@ -930,9 +929,9 @@ export default {
 		"pricing.comparisonAddUser_msg": "Tambahkan pengguna ({1})",
 		"pricing.comparisonContactFormPro_msg": "Form untuk menghubungi",
 		"pricing.comparisonDomainBusiness_msg": "Domain khusus multipel",
-		"pricing.comparisonDomainBusiness_tooltip_markdown": "<p>Gunakan alamat domain email Anda sendiri (you&amp;#064;yourbusiness.com).</p>\n",
+		"pricing.comparisonDomainBusiness_tooltip_markdown": "<p>Gunakan alamat domain email Anda sendiri (you@yourbusiness.com).</p>\n",
 		"pricing.comparisonDomainPremium_msg": "1 domain khusus",
-		"pricing.comparisonDomainPremium_tooltip_markdown": "<p>Gunakan alamat domain email Anda sendiri (you&amp;#064; yourname.com)</p>\n",
+		"pricing.comparisonDomainPremium_tooltip_markdown": "<p>Gunakan alamat domain email Anda sendiri (you@ yourname.com)</p>\n",
 		"pricing.comparisonEventInvites_msg": "Undangan acara",
 		"pricing.comparisonEventInvites_tooltip": "Kirim dan terima undangan kalender. Dengan opsi mengirim undangan secara terenkripsi ke pengguna lain dengan bantuan kata sandi bersama.",
 		"pricing.comparisonInboxRulesPremium_msg": "Peraturan kotak masuk",

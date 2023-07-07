@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2023-07-03T12:19:45Z",
+	"updated_at": "2023-07-07T06:46:13Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -119,7 +119,6 @@ export default {
 		"bookingSummary_label": "Sažetak rezervacije",
 		"boughtGiftCardPosting_label": "Kupi poklon karticu",
 		"breakLink_action": "Obriši poveznicu",
-		"businessFeatureRequiredInvite_msg": "Za slanje poziva na događaje morate naručiti poslovnu značajku.",
 		"buyGiftCard_label": "Kupi poklon karticu",
 		"buy_action": "Kupi",
 		"by_label": "po",
