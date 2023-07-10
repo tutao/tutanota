@@ -18,7 +18,7 @@ import { memoized, NBSP, noOp } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../api/common/Env"
 import { SelectableRowContainer, SelectableRowSelectedSetter } from "../gui/SelectableRowContainer.js"
 import { ListModel } from "../misc/ListModel.js"
-import { onlySingleSelection, VirtualRow } from "../gui/base/ListUtils.js"
+import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../gui/base/ListUtils.js"
 import Stream from "mithril/stream"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../gui/base/List.js"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
@@ -28,6 +28,7 @@ import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../gui/theme.js"
 import { knowledgeBaseSearch } from "../knowledgebase/model/KnowledgeBaseSearchFilter.js"
 import { showKnowledgeBaseEditor } from "./KnowledgeBaseEditor.js"
+import { keyManager } from "../misc/KeyManager.js"
 
 assertMainOrNode()
 
@@ -50,6 +51,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			return knowledgebaseRow
 		},
 	}
+	private readonly shortcuts = listSelectionKeyboardShortcuts(MultiselectMode.Disabled, () => this.listModel)
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -63,7 +65,18 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 
 		this.listModel.loadInitial()
 
+		// hacks for old components
 		this.view = this.view.bind(this)
+		this.oncreate = this.oncreate.bind(this)
+		this.onremove = this.onremove.bind(this)
+	}
+
+	oncreate() {
+		keyManager.registerShortcuts(this.shortcuts)
+	}
+
+	onremove() {
+		keyManager.unregisterShortcuts(this.shortcuts)
 	}
 
 	private makeListModel() {
