@@ -69,6 +69,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	private overlayContentComponent: Component
 	private confirmDialogShown: boolean = false
 	private domWrapper!: HTMLElement
+	private domInput!: HTMLElement
 	private indexStateStream: Stream<unknown> | null = null
 	private stateStream: Stream<unknown> | null = null
 	private lastQueryStream: Stream<unknown> | null = null
@@ -121,6 +122,9 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			onWrapperCreated: (dom) => {
 				this.domWrapper = dom
 				this.showOverlay()
+			},
+			onInputCreated: (dom) => {
+				this.domInput = dom
 			},
 			onFocus: () => (this.focused = true),
 			onBlur: () => this.onBlur(),
@@ -555,6 +559,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			// setTimeout to fix bug in current Safari with losing focus
 			setTimeout(
 				() => {
+					this.domInput.focus()
+
 					this.search()
 				},
 				client.browser === BrowserType.SAFARI ? 200 : 0,
