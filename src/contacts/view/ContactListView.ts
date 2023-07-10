@@ -45,10 +45,10 @@ export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 							contactViewModel.listModel.onSingleSelection(item)
 							onSingleSelection()
 						},
-						onSingleExclusiveSelection: (item: Contact) => {
+						onSingleTogglingMultiselection: (item: Contact) => {
 							contactViewModel.listModel.onSingleInclusiveSelection(item)
 						},
-						selectRangeTowards: (item: Contact) => {
+						onRangeSelectionTowards: (item: Contact) => {
 							contactViewModel.listModel.selectRangeTowards(item)
 						},
 						onStopLoading() {
