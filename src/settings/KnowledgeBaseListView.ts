@@ -172,9 +172,11 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update) && isSameId(this.getListId(), update.instanceListId)) {
 				await this.listModel.entityEventReceived(update.instanceId, update.operation)
 			}
-
-			m.redraw()
 		}
+
+		// we need to make another search in case items have changed
+		this.updateQuery(this.searchQuery)
+		m.redraw()
 	}
 
 	private readonly onSelectionChanged = memoized((item: KnowledgeBaseEntry | null) => {
