@@ -20,6 +20,7 @@ export interface BaseSearchBarAttrs {
 	onBlur?: () => unknown
 	onSearchClick?: () => unknown
 	onClear?: () => unknown
+	onInputCreated?: (dom: HTMLElement) => unknown
 	onWrapperCreated?: (dom: HTMLElement) => unknown
 	onKeyDown?: (keyboardEvent: KeyboardEvent) => unknown
 }
@@ -127,9 +128,11 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 			value: attrs.text,
 			oncreate: (vnode) => {
 				this.domInput = vnode.dom as HTMLInputElement
+				attrs.onInputCreated?.(this.domInput)
 			},
 			onfocus: () => {
 				this.isFocused = true
+
 				attrs.onFocus?.()
 			},
 			onblur: () => {
