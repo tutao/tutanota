@@ -64,7 +64,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 							attrs.onSingleSelection(item)
 						},
 						onSingleExclusiveSelection: (item: SearchResultListEntry) => {
-							attrs.listModel.onSingleExclusiveSelection(item)
+							attrs.listModel.onSingleInclusiveSelection(item)
 						},
 						selectRangeTowards: (item: SearchResultListEntry) => {
 							attrs.listModel.selectRangeTowards(item)
