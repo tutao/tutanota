@@ -4,7 +4,7 @@ import type { GiftCard, GiftCardOption } from "../../api/entities/sys/TypeRefs.j
 import { GiftCardTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { locator } from "../../api/main/MainLocator"
-import { BuyOptionBox } from "../BuyOptionBox"
+import { BOX_MARGIN, BuyOptionBox } from "../BuyOptionBox"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { getPreconditionFailedPaymentMsg } from "../SubscriptionUtils"
 import { renderAcceptGiftCardTermsCheckbox, showGiftCardToShare } from "./GiftCardUtils"
@@ -24,6 +24,7 @@ import { formatPrice, PaymentInterval, PriceAndConfigProvider } from "../PriceUt
 import { GiftCardService } from "../../api/entities/sys/Services"
 import { UpgradePriceType } from "../FeatureListProvider"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
+import { px } from "../../gui/size.js"
 
 class PurchaseGiftCardModel {
 	message = lang.get("defaultGiftCardMessage_msg")
@@ -115,6 +116,11 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 		return [
 			m(
 				".flex.center-horizontally.wrap",
+				{
+					style: {
+						"column-gap": px(BOX_MARGIN),
+					},
+				},
 				model.availablePackages.map((option, index) => {
 					const value = parseFloat(option.value)
 					return m(BuyOptionBox, {
