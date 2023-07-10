@@ -160,8 +160,8 @@ export class TemplateListView implements UpdatableSettingsViewer {
 							this.listModel.onSingleSelection(item)
 							this.focusDetailsViewer()
 						},
-						onSingleExclusiveSelection: noOp,
-						selectRangeTowards: noOp,
+						onSingleTogglingMultiselection: noOp,
+						onRangeSelectionTowards: noOp,
 				  } satisfies ListAttrs<EmailTemplate, TemplateRow>),
 		)
 	}

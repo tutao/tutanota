@@ -80,14 +80,14 @@ export interface ListAttrs<T, R extends ViewHolder<T>> {
 	/** called after the loading failed/cancelled and retry button on progress item was pressed */
 	onRetryLoading(): void
 
-	/** a normal selection for single item */
+	/** A normal selection for single item. */
 	onSingleSelection(item: T): unknown
 
-	/** selection that enters multiselect when triggered */
-	onSingleExclusiveSelection(item: T): unknown
+	/** Selection that enters multiselect when triggered. Toggling the selection for the selected item in multiselect deselects it. */
+	onSingleTogglingMultiselection(item: T): unknown
 
 	/** called when range selection is extended */
-	selectRangeTowards(item: T): unknown
+	onRangeSelectionTowards(item: T): unknown
 
 	/** called when stop button was pressed in progress item */
 	onStopLoading(): unknown
@@ -276,7 +276,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 				timeoutId = setTimeout(() => {
 					// check that virtualRow.entity exists because we had error feedbacks about it
 					if (row.entity) {
-						attrs.onSingleExclusiveSelection(row.entity)
+						attrs.onSingleTogglingMultiselection(row.entity)
 					}
 					m.redraw()
 				}, LONG_PRESS_DURATION_MS)
@@ -346,12 +346,12 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 				break
 			case "togglingIncludingSingle":
 				if (this.lastAttrs.renderConfig.multiselectionAllowed === MultiselectMode.Enabled) {
-					this.lastAttrs.onSingleExclusiveSelection(clickedEntity)
+					this.lastAttrs.onSingleTogglingMultiselection(clickedEntity)
 				}
 				break
 			case "range":
 				if (this.lastAttrs.renderConfig.multiselectionAllowed === MultiselectMode.Enabled) {
-					this.lastAttrs.selectRangeTowards(clickedEntity)
+					this.lastAttrs.onRangeSelectionTowards(clickedEntity)
 				}
 				break
 		}

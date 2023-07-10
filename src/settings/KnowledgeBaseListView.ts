@@ -161,8 +161,8 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 							this.listModel.onSingleSelection(item)
 							this.focusDetailsViewer()
 						},
-						onSingleExclusiveSelection: noOp,
-						selectRangeTowards: noOp,
+						onSingleTogglingMultiselection: noOp,
+						onRangeSelectionTowards: noOp,
 				  } satisfies ListAttrs<KnowledgeBaseEntry, KnowledgeBaseRow>),
 		)
 	}
