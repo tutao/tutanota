@@ -5,6 +5,8 @@ import { TemplatePopupModel } from "../model/TemplatePopupModel"
 import { isKeyPressed } from "../../misc/KeyManager"
 import type { EmailTemplate } from "../../api/entities/tutanota/TypeRefs.js"
 import { TEMPLATE_POPUP_HEIGHT } from "./TemplateConstants.js"
+import { memoized } from "@tutao/tutanota-utils"
+import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
 
 /**
  * TemplateExpander is the right side that is rendered within the Popup. Consists of Dropdown, Content and Button.
@@ -16,6 +18,14 @@ export type TemplateExpanderAttrs = {
 }
 
 export class TemplateExpander implements Component<TemplateExpanderAttrs> {
+	private readonly sanitizedText = memoized(
+		(text: string) =>
+			htmlSanitizer.sanitizeHTML(text, {
+				blockExternalContent: false,
+				allowRelativeLinks: true,
+			}).html,
+	)
+
 	view({ attrs }: Vnode<TemplateExpanderAttrs>): Children {
 		const { model } = attrs
 		const selectedContent = model.getSelectedContent()
@@ -32,7 +42,7 @@ export class TemplateExpander implements Component<TemplateExpanderAttrs> {
 					}
 				},
 			},
-			[m(".text-break.flex-grow.pr.overflow-y-visible", selectedContent ? m.trust(selectedContent.text) : null)],
+			[m(".text-break.flex-grow.pr.overflow-y-visible", selectedContent ? m.trust(this.sanitizedText(selectedContent.text)) : null)],
 		)
 	}
 }
