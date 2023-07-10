@@ -19,6 +19,7 @@ import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { ButtonAttrs } from "../gui/base/Button.js"
 import { downcast, lazy } from "@tutao/tutanota-utils"
 import { AvailablePlanType, HighlightedPlans, LegacyPlans, NewBusinessPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
+import { px } from "../gui/size.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -147,6 +148,9 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 						this.containerDOM = vnode.dom as HTMLElement
 						m.redraw()
 					},
+					style: {
+						"column-gap": px(BOX_MARGIN),
+					},
 				},
 				buyBoxesViewPlacement,
 				additionalInfo,
@@ -161,7 +165,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		planType: AvailablePlanType,
 		featureExpander: Record<ExpanderTargets, m.Children>,
 	): Children {
-		return m("", [m(BuyOptionBox, this.createBuyOptionBoxAttr(attrs, planType, renderCategoryTitle, inMobileView)), featureExpander[planType]])
+		return m("", m(BuyOptionBox, this.createBuyOptionBoxAttr(attrs, planType, renderCategoryTitle, inMobileView)), featureExpander[planType])
 	}
 
 	private createBuyOptionBoxAttr(

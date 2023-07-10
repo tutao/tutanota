@@ -74,7 +74,6 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			".fg-black",
 			{
 				style: {
-					margin: px(BOX_MARGIN),
 					width: px(attrs.width),
 					padding: "10px",
 				},
