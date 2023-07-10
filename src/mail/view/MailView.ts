@@ -350,9 +350,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				header: m(Header, {
 					rightView: this.renderHeaderRightView(),
 					searchBar: () =>
-						m(LazySearchBar, {
-							placeholder: lang.get("searchEmails_placeholder"),
-						}),
+						// not showing search for external users
+						locator.logins.isInternalUserLoggedIn()
+							? m(LazySearchBar, {
+									placeholder: lang.get("searchEmails_placeholder"),
+							  })
+							: null,
 					...attrs.header,
 				}),
 				bottomNav:

@@ -57,7 +57,8 @@ export class Header implements ClassComponent<HeaderAttrs> {
 				isSelectedPrefix: MAIL_PREFIX,
 				colors: NavButtonColor.Header,
 			}),
-			!locator.logins.isEnabled(FeatureType.DisableContacts)
+			// not available for external mailboxes
+			locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.DisableContacts)
 				? m(NavButton, {
 						label: "contacts_label",
 						icon: () => BootIcons.Contacts,
@@ -66,7 +67,8 @@ export class Header implements ClassComponent<HeaderAttrs> {
 						colors: NavButtonColor.Header,
 				  })
 				: null,
-			!locator.logins.isEnabled(FeatureType.DisableCalendar)
+			// not available for external mailboxes
+			locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.DisableCalendar)
 				? m(NavButton, {
 						label: "calendar_label",
 						icon: () => BootIcons.Calendar,
