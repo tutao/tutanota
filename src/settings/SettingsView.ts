@@ -629,8 +629,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		this.showBusinessSettings((await this.logins.getUserController().loadCustomer()).businessUse === true)
 	}
 
-	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown> {
-		return promiseMap(updates, async (update) => {
+	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		for (const update of updates) {
 			if (isUpdateForTypeRef(CustomerTypeRef, update)) {
 				await this.updateShowBusinessSettings()
 			} else if (isUpdateForTypeRef(UserTypeRef, update) && isSameId(update.instanceId, this.logins.getUserController().user._id)) {
@@ -643,19 +643,18 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 				// template group memberships may have changed
 				if (this._templateFolders.length !== this.logins.getUserController().getTemplateMemberships().length) {
-					return Promise.all([this._makeTemplateFolders(), this._makeKnowledgeBaseFolders()]).then(([templates, knowledgeBases]) => {
-						this._templateFolders = templates
-						this._knowledgeBaseFolders = knowledgeBases
-						const currentRoute = m.route.get()
+					const [templates, knowledgeBases] = await Promise.all([this._makeTemplateFolders(), this._makeKnowledgeBaseFolders()])
+					this._templateFolders = templates
+					this._knowledgeBaseFolders = knowledgeBases
+					const currentRoute = m.route.get()
 
-						if (currentRoute.startsWith(SETTINGS_PREFIX)) {
-							// When user first creates a template group from the dummy list, we need to switch them to
-							// the viewer for their newly created list.
-							const targetRoute = currentRoute === this._dummyTemplateFolder.url ? this._getUserOwnedTemplateSettingsFolder().url : currentRoute
+					if (currentRoute.startsWith(SETTINGS_PREFIX)) {
+						// When user first creates a template group from the dummy list, we need to switch them to
+						// the viewer for their newly created list.
+						const targetRoute = currentRoute === this._dummyTemplateFolder.url ? this._getUserOwnedTemplateSettingsFolder().url : currentRoute
 
-							this._setUrl(targetRoute)
-						}
-					})
+						this._setUrl(targetRoute)
+					}
 				}
 				m.redraw()
 			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
@@ -664,19 +663,14 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				// When switching a plan we hide/show certain admin settings.
 				await this.populateAdminFolders()
 
-				return this._customDomains.getAsync().then(() => m.redraw())
+				await this._customDomains.getAsync()
+				m.redraw()
 			}
-		})
-			.then(() => {
-				if (this._currentViewer) {
-					return this._currentViewer.entityEventsReceived(updates)
-				}
-			})
-			.then(() => {
-				if (this.detailsViewer) {
-					return this.detailsViewer.entityEventsReceived(updates)
-				}
-			})
+		}
+
+		await this._currentViewer?.entityEventsReceived(updates)
+
+		await this.detailsViewer?.entityEventsReceived(updates)
 	}
 
 	getViewSlider(): ViewSlider | null {
