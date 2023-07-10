@@ -551,10 +551,12 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		this.height = containerDom.clientHeight
 
 		if (this.swipeHandler) {
+			// with different zoom levels Blink does weird things and shows parts of elements that it shouldn't so we shift them around by a pixel
+			const translateX = this.width + 1
 			this.domSwipeSpacerLeft.style.width = px(this.width)
 			this.domSwipeSpacerRight.style.width = px(this.width)
-			this.domSwipeSpacerLeft.style.transform = `translateX(${-this.width}px) translateY(0px)`
-			this.domSwipeSpacerRight.style.transform = `translateX(${this.width}px) translateY(0px)`
+			this.domSwipeSpacerLeft.style.transform = `translateX(${-translateX}px) translateY(0px)`
+			this.domSwipeSpacerRight.style.transform = `translateX(${translateX}px) translateY(0px)`
 
 			this.rows.forEach((row) => {
 				row.domElement && applySafeAreaInsetMarginLR(row.domElement)

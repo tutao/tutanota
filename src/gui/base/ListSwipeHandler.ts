@@ -138,8 +138,9 @@ export class ListSwipeHandler<ElementType, VH extends ViewHolder<ElementType>> e
 			])
 
 			// set swipe element to initial configuration
-			this.config.domSwipeSpacerLeft().style.transform = `translateX(${this.xoffset - this.width()}px) translateY(${virtualElement.top}px)`
-			this.config.domSwipeSpacerRight().style.transform = `translateX(${this.xoffset + this.width()}px) translateY(${virtualElement.top}px)`
+			// with different zoom levels Blink does weird things and shows parts of elements that it shouldn't so we shift them around by a pixel
+			this.config.domSwipeSpacerLeft().style.transform = `translateX(${this.xoffset - this.width() - 1}px) translateY(${virtualElement.top}px)`
+			this.config.domSwipeSpacerRight().style.transform = `translateX(${this.xoffset + this.width() + 1}px) translateY(${virtualElement.top}px)`
 			this.config.domSwipeSpacerRight().style.opacity = ""
 			this.config.domSwipeSpacerLeft().style.opacity = ""
 		} finally {
