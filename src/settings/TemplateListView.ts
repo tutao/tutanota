@@ -171,9 +171,10 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			if (isUpdateForTypeRef(EmailTemplateTypeRef, update) && isSameId(this.templateListId(), update.instanceListId)) {
 				await this.listModel.entityEventReceived(update.instanceId, update.operation)
 			}
-
-			m.redraw()
 		}
+		// we need to make another search in case items have changed
+		this.updateQuery(this.searchQuery)
+		m.redraw()
 	}
 
 	private readonly onSelectionChanged = memoized((item: EmailTemplate | null) => {
