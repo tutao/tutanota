@@ -10,23 +10,19 @@ assertMainOrNode()
 type SettingsFolderPath = string | { folder: string; id: string }
 
 export class SettingsFolder<T> {
-	url: string // can be changed from outside
+	readonly url: string
 
-	readonly data: T
-	readonly name: TranslationKey | lazy<string>
-	readonly icon: lazyIcon
-	readonly path: SettingsFolderPath
-	readonly viewerCreator: lazy<UpdatableSettingsViewer>
 	private _isVisibleHandler: lazy<boolean>
 
-	constructor(name: TranslationKey | lazy<string>, icon: lazyIcon, path: SettingsFolderPath, viewerCreator: lazy<UpdatableSettingsViewer>, data: T) {
-		this.data = data
-		this.name = name
-		this.icon = icon
-		this.path = path
+	constructor(
+		readonly name: TranslationKey | lazy<string>,
+		readonly icon: lazyIcon,
+		readonly path: SettingsFolderPath,
+		readonly viewerCreator: lazy<UpdatableSettingsViewer>,
+		readonly data: T,
+	) {
 		this.url =
 			typeof path === "string" ? `/settings/${encodeURIComponent(path)}` : `/settings/${encodeURIComponent(path.folder)}/${encodeURIComponent(path.id)}`
-		this.viewerCreator = viewerCreator
 
 		this._isVisibleHandler = () => true
 	}
@@ -42,5 +38,13 @@ export class SettingsFolder<T> {
 	setIsVisibleHandler(isVisibleHandler: lazy<boolean>): this {
 		this._isVisibleHandler = isVisibleHandler
 		return this
+	}
+
+	get folder(): string | null {
+		return typeof this.path === "string" ? null : this.path.folder
+	}
+
+	get id(): string | null {
+		return typeof this.path === "string" ? null : this.path.id
 	}
 }

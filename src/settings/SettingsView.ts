@@ -589,7 +589,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				this._currentViewer = null
 				this.detailsViewer = null
 
-				// make sure the currentViewer is available. if we do not call this._getCurrentViewer(), the floating + button is not always visible
+				// make sure the currentViewer is available
 				this._getCurrentViewer()
 
 				m.redraw()
@@ -649,11 +649,18 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					const currentRoute = m.route.get()
 
 					if (currentRoute.startsWith(SETTINGS_PREFIX)) {
-						// When user first creates a template group from the dummy list, we need to switch them to
-						// the viewer for their newly created list.
-						const targetRoute = currentRoute === this._dummyTemplateFolder.url ? this._getUserOwnedTemplateSettingsFolder().url : currentRoute
+						const folder = m.route.param("folder")
+						if (folder === "templates") {
+							const templateListId = m.route.param("id")
+							// We might have lost the membership on the template list
+							const haveOpenedFolder = templates.some((t) => t.id === templateListId)
 
-						this._setUrl(targetRoute)
+							// When user first creates a template group from the dummy list, we need to switch them to
+							// the viewer for their newly created list.
+							if (this._dummyTemplateFolder.url || !haveOpenedFolder) {
+								this._setUrl(this._getUserOwnedTemplateSettingsFolder().url)
+							}
+						}
 					}
 				}
 				m.redraw()
