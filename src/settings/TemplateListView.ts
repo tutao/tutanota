@@ -3,8 +3,8 @@ import type { EntityUpdateData } from "../api/main/EventController"
 import { isUpdateForTypeRef } from "../api/main/EventController"
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { showTemplateEditor } from "./TemplateEditor"
-import type { EmailTemplate, TemplateGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
-import { createEmailTemplate, createEmailTemplateContent, EmailTemplateTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import type { EmailTemplate } from "../api/entities/tutanota/TypeRefs.js"
+import { EmailTemplateTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../api/common/EntityClient"
 import { GENERATED_MAX_ID, isSameId } from "../api/common/utils/EntityUtils"
 import { searchInTemplates, TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
@@ -24,10 +24,11 @@ import { Icons } from "../gui/base/icons/Icons.js"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../gui/base/List.js"
 import { size } from "../gui/size.js"
 import { TemplateDetailsViewer } from "./TemplateDetailsViewer.js"
-import { onlySingleSelection, VirtualRow } from "../gui/base/ListUtils.js"
+import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../gui/base/ListUtils.js"
 import { IconButton } from "../gui/base/IconButton.js"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
 import { lang } from "../misc/LanguageViewModel.js"
+import { keyManager } from "../misc/KeyManager.js"
 
 assertMainOrNode()
 
@@ -50,6 +51,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			return templateRow
 		},
 	}
+	private readonly shortcuts = listSelectionKeyboardShortcuts(MultiselectMode.Disabled, () => this.listModel)
 
 	constructor(
 		private readonly groupInstance: TemplateGroupInstance,
@@ -62,7 +64,18 @@ export class TemplateListView implements UpdatableSettingsViewer {
 
 		this.listModel.loadInitial()
 
+		// hacks for old components
 		this.view = this.view.bind(this)
+		this.oncreate = this.oncreate.bind(this)
+		this.onremove = this.onremove.bind(this)
+	}
+
+	oncreate() {
+		keyManager.registerShortcuts(this.shortcuts)
+	}
+
+	onremove() {
+		keyManager.unregisterShortcuts(this.shortcuts)
 	}
 
 	private makeListModel() {
@@ -185,48 +198,6 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	templateListId(): Id {
 		return this.groupInstance.groupRoot.templates
 	}
-}
-
-export function createTemplates(gorgiasTemplates: Array<Array<string>>, templateGroupRoot: TemplateGroupRoot, entityClient: EntityClient) {
-	// id,title,shortcut,subject,tags,cc,bcc,to,body
-	gorgiasTemplates.forEach((gorgiasTemplate) => {
-		let template = createEmailTemplate()
-		let content
-		const gorgiasTitle = gorgiasTemplate[1]
-		const gorgiasId = gorgiasTemplate[2]
-		const gorgiasTags = gorgiasTemplate[4]
-		const gorgiasBody = gorgiasTemplate[8]
-		template.title = gorgiasTitle.replace(/(^")|("$)/g, "") // remove quotes at the beginning and at the end
-
-		template.tag = gorgiasId.replace(/(^")|("$)/g, "")
-
-		// if the gorgias templates has tags, check if they include "ger" to create a german emailTemplateContent
-		if (gorgiasTags) {
-			if (gorgiasTags.includes("ger")) {
-				content = createEmailTemplateContent({
-					languageCode: "de",
-					text: gorgiasBody.replace(/(^")|("$)/g, ""),
-				})
-				template.contents.push(content)
-			} else {
-				content = createEmailTemplateContent({
-					languageCode: "en",
-					text: gorgiasBody.replace(/(^")|("$)/g, ""),
-				})
-				template.contents.push(content)
-			}
-		} else {
-			// use en as language if there are no tags in gorgias
-			content = createEmailTemplateContent({
-				languageCode: "en",
-				text: gorgiasBody.replace(/(^")|("$)/g, ""),
-			})
-			template.contents.push(content)
-		}
-
-		template._ownerGroup = templateGroupRoot._id
-		entityClient.setup(templateGroupRoot.templates, template)
-	})
 }
 
 export class TemplateRow implements VirtualRow<EmailTemplate> {
