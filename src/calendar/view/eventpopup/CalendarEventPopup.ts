@@ -51,8 +51,8 @@ export class CalendarEventPopup implements ModalComponent {
 		this.view = this.view.bind(this)
 	}
 
-	private readonly handleDeleteButtonClick: (ev: MouseEvent, receiver: HTMLElement) => void = (ev: MouseEvent, receiver: HTMLElement) => {
-		if (this.model.isRepeatingForDeleting) {
+	private readonly handleDeleteButtonClick: (ev: MouseEvent, receiver: HTMLElement) => void = async (ev: MouseEvent, receiver: HTMLElement) => {
+		if (await this.model.isRepeatingForDeleting()) {
 			createAsyncDropdown({
 				lazyButtons: () =>
 					Promise.resolve([

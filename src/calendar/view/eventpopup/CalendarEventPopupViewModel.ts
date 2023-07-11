@@ -16,10 +16,6 @@ export class CalendarEventPopupViewModel {
 	readonly canEdit: boolean
 	readonly canDelete: boolean
 	readonly canSendUpdates: boolean
-	/** for deleting, an event that has only one non-deleted instance behaves as if it wasn't repeating
-	 * because deleting the last instance is the same as deleting the whole event from the pov of the user.
-	 */
-	readonly isRepeatingForDeleting: boolean
 	/** for editing, an event that has only one non-deleted instance is still considered repeating
 	 * because we might reschedule that instance and then unexclude some deleted instances.
 	 */
@@ -44,6 +40,7 @@ export class CalendarEventPopupViewModel {
 		readonly eventType: EventType,
 		private readonly hasBusinessFeature: boolean,
 		ownAttendee: CalendarEventAttendee | null,
+		private readonly lazyProgenitor: () => Promise<CalendarEvent>,
 		private readonly eventModelFactory: (mode: CalendarEventEditMode) => Promise<CalendarEventModel>,
 		private readonly uiUpdateCallback: () => void = m.redraw,
 	) {
@@ -65,7 +62,14 @@ export class CalendarEventPopupViewModel {
 
 		// we do not edit single instances yet
 		this.isRepeatingForEditing = false // calendarEvent.repeatRule != null
-		this.isRepeatingForDeleting = calendarEventHasMoreThanOneOccurrencesLeft(calendarEvent)
+	}
+
+	/** for deleting, an event that has only one non-deleted instance behaves as if it wasn't repeating
+	 * because deleting the last instance is the same as deleting the whole event from the pov of the user.
+	 */
+	async isRepeatingForDeleting(): Promise<boolean> {
+		const progenitor = await this.lazyProgenitor()
+		return calendarEventHasMoreThanOneOccurrencesLeft(progenitor)
 	}
 
 	get ownAttendee(): CalendarEventAttendee | null {

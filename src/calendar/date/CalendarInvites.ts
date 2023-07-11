@@ -3,7 +3,7 @@ import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail }
 import { locator } from "../../api/main/MainLocator"
 import { CalendarAttendeeStatus, CalendarMethod, FeatureType, getAsEnumValue } from "../../api/common/TutanotaConstants"
 import { assertNotNull, clone, filterInt, lazy, noOp } from "@tutao/tutanota-utils"
-import { findPrivateCalendar, getEventType, getTimeZone } from "./CalendarUtils"
+import { findPrivateCalendar, getEventType, getTimeZone, resolveCalendarEventProgenitor } from "./CalendarUtils"
 import { calendarUpdateDistributor } from "./CalendarUpdateDistributor"
 import { Dialog } from "../../gui/base/Dialog"
 import { UserError } from "../../api/main/UserError"
@@ -59,6 +59,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 	let editModelsFactory: lazy<Promise<CalendarEventModel>>
 	let hasBusinessFeature: boolean
 	let ownAttendee: CalendarEventAttendee | null = null
+	const lazyProgenitor = () => resolveCalendarEventProgenitor(latestEvent, locator.entityClient)
 	if (!locator.logins.getUserController().isInternalUser()) {
 		// external users cannot delete/edit events as they have no calendar.
 		eventType = EventType.EXTERNAL
@@ -79,7 +80,15 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 			isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await locator.logins.getUserController().isNewPaidPlan())
 	}
 
-	const viewModel = new CalendarEventPopupViewModel(latestEvent, locator.calendarModel, eventType, hasBusinessFeature, ownAttendee, editModelsFactory)
+	const viewModel = new CalendarEventPopupViewModel(
+		latestEvent,
+		locator.calendarModel,
+		eventType,
+		hasBusinessFeature,
+		ownAttendee,
+		lazyProgenitor,
+		editModelsFactory,
+	)
 	new CalendarEventPopup(viewModel, eventBubbleRect, htmlSanitizer).show()
 }
 

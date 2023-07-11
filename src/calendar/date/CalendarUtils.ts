@@ -28,7 +28,14 @@ import {
 	WeekStart,
 } from "../../api/common/TutanotaConstants"
 import { DateTime, FixedOffsetZone, IANAZone } from "luxon"
-import { CalendarEvent, CalendarGroupRoot, CalendarRepeatRule, createCalendarRepeatRule, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
+import {
+	CalendarEvent,
+	CalendarEventTypeRef,
+	CalendarGroupRoot,
+	CalendarRepeatRule,
+	createCalendarRepeatRule,
+	UserSettingsGroupRoot,
+} from "../../api/entities/tutanota/TypeRefs.js"
 import {
 	CalendarEventTimes,
 	cleanMailAddress,
@@ -56,6 +63,7 @@ import { AllIcons } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { EventType } from "./eventeditor/CalendarEventModel.js"
 import { hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
+import { EntityClient } from "../../api/common/EntityClient.js"
 
 assertMainOrNode()
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
@@ -1392,4 +1400,13 @@ export function getEventType(
 		// 3. the event is an invitation that has another organizer and/or attendees.
 		return EventType.INVITE
 	}
+}
+
+/**
+ * get the "primary" event of a series - the one that contains the repeat rule and is not a repeated or a rescheduled instance.
+ * @param calendarEvent
+ * @param entityClient
+ */
+export async function resolveCalendarEventProgenitor(calendarEvent: CalendarEvent, entityClient: EntityClient): Promise<CalendarEvent> {
+	return calendarEvent.repeatRule ? await entityClient.load(CalendarEventTypeRef, calendarEvent._id) : calendarEvent
 }

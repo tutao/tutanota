@@ -36,6 +36,7 @@ import {
 	getTimeZone,
 	isEventBetweenDays,
 	isSameEvent,
+	resolveCalendarEventProgenitor,
 } from "../date/CalendarUtils"
 import { DateTime } from "luxon"
 import { geEventElementMaxId, getEventElementMinId, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
@@ -659,13 +660,4 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 function updateTemporaryEventWithDiff(eventClone: CalendarEvent, originalEvent: CalendarEvent, mouseDiff: number) {
 	eventClone.startTime = new Date(originalEvent.startTime.getTime() + mouseDiff)
 	eventClone.endTime = new Date(originalEvent.endTime.getTime() + mouseDiff)
-}
-
-/**
- * get the "primary" event of a series - the one that contains the repeat rule and is not a repeated or a rescheduled instance.
- * @param calendarEvent
- * @param entityClient
- */
-export async function resolveCalendarEventProgenitor(calendarEvent: CalendarEvent, entityClient: EntityClient): Promise<CalendarEvent> {
-	return calendarEvent.repeatRule ? await entityClient.load(CalendarEventTypeRef, calendarEvent._id) : calendarEvent
 }

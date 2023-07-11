@@ -11,7 +11,7 @@ import type { CalendarEvent, CalendarEventAttendee, GroupSettings, UserSettingsG
 import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import { defaultCalendarColor, FeatureType, GroupType, Keys, reverse, ShareCapability, TimeFormat } from "../../api/common/TutanotaConstants"
 import { locator } from "../../api/main/MainLocator"
-import { getEventType, getTimeZone, shouldDefaultToAmPmTimeFormat } from "../date/CalendarUtils"
+import { getEventType, getTimeZone, resolveCalendarEventProgenitor, shouldDefaultToAmPmTimeFormat } from "../date/CalendarUtils"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { NavButton, NavButtonColor } from "../../gui/base/NavButton.js"
 import { CalendarMonthView } from "./CalendarMonthView"
@@ -36,7 +36,7 @@ import { SidebarSection } from "../../gui/SidebarSection"
 import type { HtmlSanitizer } from "../../misc/HtmlSanitizer"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import { calendarNavConfiguration, CalendarViewType } from "./CalendarGuiUtils"
-import { CalendarViewModel, MouseOrPointerEvent, resolveCalendarEventProgenitor } from "./CalendarViewModel"
+import { CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
 import { CalendarEventEditMode, showNewCalendarEventEditDialog } from "./eventeditor/CalendarEventEditDialog.js"
 import { CalendarEventPopup } from "./eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
@@ -796,20 +796,17 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(selectedEvent.attendees, ownMailAddresses)
 		const eventType = getEventType(selectedEvent, calendars, ownMailAddresses, userController.user)
 		const hasBusinessFeature = isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await userController.isNewPaidPlan())
+		const lazyProgenitor = () => resolveCalendarEventProgenitor(selectedEvent, locator.entityClient)
 		const popupModel = new CalendarEventPopupViewModel(
 			selectedEvent,
 			locator.calendarModel,
 			eventType,
 			hasBusinessFeature,
 			ownAttendee,
+			lazyProgenitor,
 			async (mode: CalendarEventEditMode) => {
 				if (mode === CalendarEventEditMode.All) {
-					return locator.calendarEventModel(
-						await resolveCalendarEventProgenitor(selectedEvent, locator.entityClient),
-						mailboxDetails,
-						mailboxProperties,
-						null,
-					)
+					return locator.calendarEventModel(await lazyProgenitor(), mailboxDetails, mailboxProperties, null)
 				} else {
 					return locator.calendarEventModel(selectedEvent, mailboxDetails, mailboxProperties, null)
 				}
