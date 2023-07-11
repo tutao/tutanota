@@ -1,4 +1,4 @@
-import { BookingItemFeatureType, FeatureType, PlanType } from "../api/common/TutanotaConstants"
+import { BookingItemFeatureType, FeatureType, LegacyPlans, PlanType } from "../api/common/TutanotaConstants"
 import type { AccountingInfo, Booking, Customer } from "../api/entities/sys/TypeRefs.js"
 import { asPaymentInterval, PaymentInterval } from "./PriceUtils"
 import { isCustomizationEnabledForCustomer } from "../api/common/utils/Utils.js"
@@ -40,7 +40,7 @@ export class SwitchSubscriptionDialogModel {
 			return true
 		}
 
-		if (this.planType === PlanType.Premium) {
+		if (LegacyPlans.includes(this.planType)) {
 			const userItem = this.lastBooking.items.find((item) => item.featureType === BookingItemFeatureType.LegacyUsers)
 			const sharedMailItem = this.lastBooking.items.find((item) => item.featureType === BookingItemFeatureType.SharedMailGroup)
 			const localAdminItem = this.lastBooking.items.find((item) => item.featureType === BookingItemFeatureType.LocalAdminGroup)
