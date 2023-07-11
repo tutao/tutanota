@@ -83,12 +83,12 @@ export class CalendarEventWhoModel {
 	constructor(
 		initialValues: Partial<Stripped<CalendarEvent>>,
 		private readonly eventType: EventType,
-		private readonly calendars: Map<Id, CalendarInfo>,
+		private readonly calendars: ReadonlyMap<Id, CalendarInfo>,
 		/** this should only be relevant to saving so could be put in the saveModel, but at the moment we restrict attendees depending on the
 		 * calendar we're saving to.
 		 * think of it as configuring who has access to the event.
 		 * */
-		private _selectedCalendar: CalendarInfo | null,
+		private _selectedCalendar: CalendarInfo,
 		private readonly userController: UserController,
 		private readonly isNew: boolean,
 		private readonly ownMailAddresses: ReadonlyArray<EncryptedMailAddress>,
@@ -109,10 +109,10 @@ export class CalendarEventWhoModel {
 		this.isConfidential = initialValues.invitedConfidentially ?? false
 	}
 
-	set selectedCalendar(v: CalendarInfo | null) {
-		if (v?.shared && this._attendees.size > 0) {
+	set selectedCalendar(v: CalendarInfo) {
+		if (v.shared && this._attendees.size > 0) {
 			throw new ProgrammingError("tried to select shared calendar while there are guests.")
-		} else if (v?.shared && this.isNew && this._organizer != null) {
+		} else if (v.shared && this.isNew && this._organizer != null) {
 			// for new events, it's possible to have an organizer but no attendees if you only add yourself.
 			this._organizer = null
 		}
@@ -120,7 +120,7 @@ export class CalendarEventWhoModel {
 		this.uiUpdateCallback()
 	}
 
-	get selectedCalendar(): CalendarInfo | null {
+	get selectedCalendar(): CalendarInfo {
 		return this._selectedCalendar
 	}
 
@@ -150,16 +150,16 @@ export class CalendarEventWhoModel {
 	getAvailableCalendars(): ReadonlyArray<CalendarInfo> {
 		const calendarArray = Array.from(this.calendars.values())
 
-		if (this.isNew && this._attendees.size > 0) {
+		if (this.eventType === EventType.LOCKED) {
+			return [this.selectedCalendar]
+		} else if (this.isNew && this._attendees.size > 0) {
 			// if we added guests, we cannot select a shared calendar to create the event.
 			return calendarArray.filter((calendarInfo) => !calendarInfo.shared)
-		} else if (this.hasNotifyableOtherAttendees() || this.eventType === EventType.INVITE) {
+		} else if (this._attendees.size > 0 || this.eventType === EventType.INVITE) {
 			// We don't allow inviting in a shared calendar.
 			// If we have attendees, we cannot select a shared calendar.
 			// We also don't allow accepting invites into shared calendars.
-			return calendarArray.filter(
-				(calendarInfo) => !calendarInfo.shared || (this.selectedCalendar != null && haveSameId(calendarInfo.group, this.selectedCalendar?.group)),
-			)
+			return calendarArray.filter((calendarInfo) => !calendarInfo.shared || haveSameId(calendarInfo.group, this.selectedCalendar.group))
 		} else {
 			return calendarArray.filter((calendarInfo) => hasCapabilityOnGroup(this.userController.user, calendarInfo.group, ShareCapability.Write))
 		}

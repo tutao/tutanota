@@ -1141,7 +1141,7 @@ export function incrementSequence(sequence: string, mayIncrement: boolean): stri
 	return String(mayIncrement ? current + 1 : current)
 }
 
-export function findPrivateCalendar(calendarInfo: Map<Id, CalendarInfo>): CalendarInfo | null {
+export function findPrivateCalendar(calendarInfo: ReadonlyMap<Id, CalendarInfo>): CalendarInfo | null {
 	for (const calendar of calendarInfo.values()) {
 		if (!calendar.shared) {
 			return calendar

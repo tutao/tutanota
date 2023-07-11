@@ -507,12 +507,64 @@ o.spec("CalendarEventWhoModel", function () {
 		})
 	})
 	o.spec("calendar selection", function () {
-		o("getAvailableCalendars returns only the calendars we have write access to", function () {
-			userController.user = createUser({ _id: "ownerId" })
-			const model = getNewModel({})
-			// !!(sharedGroup.user && isSameId(sharedGroup.user, typeof user === "string" ? user : getEtId(user)))
-			o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!])
+		o.spec("getAvailableCalendars", function () {
+			o("it returns the shared calendars we have write access to when there are no attendees", function () {
+				userController.user = createUser({ _id: "ownerId" })
+				// add it as a writable calendar so that we see that it's filtered out
+				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
+				const model = getNewModel({})
+				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!, calendars.get("sharedCalendar")!])
+			})
+
+			o("it returns only the calendars we have write access to", function () {
+				userController.user = createUser({ _id: "ownerId" })
+				// add it as a writable calendar so that we see that it's filtered out
+				addCapability(userController.user, "sharedCalendar", ShareCapability.Read)
+				const model = getNewModel({})
+				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!])
+			})
+
+			o("it returns only own calendars after adding attendees to an existing event", function () {
+				userController.user = createUser({ _id: "ownerId" })
+				// add it as a writable calendar so that we see that it's filtered out
+				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
+				const model = getOldModel({})
+				model.addAttendee(otherAddress.address)
+				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!])
+			})
+
+			o("it returns only own calendars for existing own event with attendees ", function () {
+				userController.user = createUser({ _id: "ownerId" })
+				// add it as a writable calendar so that we see that it's filtered out
+				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
+				const model = getOldModel({
+					attendees: [createCalendarEventAttendee({ address: otherAddress, status: CalendarAttendeeStatus.NEEDS_ACTION })],
+				})
+				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!])
+			})
+
+			o("it returns only own calendars for invite", function () {
+				userController.user = createUser({ _id: "ownerId" })
+				// add it as a writable calendar so that we see that it's filtered out
+				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
+				const model = getOldInviteModel({})
+				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!])
+			})
+
+			o("it returns only existing calendar if it's existing shared event with attendees", function () {
+				userController.user = createUser({ _id: "ownerId" })
+				// add it as a writable calendar so that we see that it's filtered out
+				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
+				const model = getOldSharedModel(
+					{
+						attendees: [createCalendarEventAttendee({ address: otherAddress, status: CalendarAttendeeStatus.NEEDS_ACTION })],
+					},
+					EventType.LOCKED,
+				)
+				o(model.getAvailableCalendars()).deepEquals([calendars.get("sharedCalendar")!])
+			})
 		})
+
 		o("changing the calendar to a shared one while the event has attendees is an error", function () {
 			const model = getNewModel({})
 			model.addAttendee(otherAddress.address)

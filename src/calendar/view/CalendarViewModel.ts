@@ -77,7 +77,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	readonly selectedDate: Stream<Date>
 
 	/** Mmap from group/groupRoot ID to the calendar info */
-	_calendarInfos: LazyLoaded<Map<Id, CalendarInfo>>
+	_calendarInfos: LazyLoaded<ReadonlyMap<Id, CalendarInfo>>
 	_eventsForDays: EventsForDays
 	readonly _loadedMonths: Set<number> // first ms of the month
 
@@ -159,7 +159,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this._calendarInvitations.invitations
 	}
 
-	get calendarInfos(): LazyLoaded<Map<Id, CalendarInfo>> {
+	get calendarInfos(): LazyLoaded<ReadonlyMap<Id, CalendarInfo>> {
 		return this._calendarInfos
 	}
 

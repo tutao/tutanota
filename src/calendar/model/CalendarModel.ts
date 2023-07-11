@@ -114,7 +114,7 @@ export class CalendarModel {
 	}
 
 	/** Load map from group/groupRoot ID to the calendar info */
-	async loadCalendarInfos(progressMonitor: IProgressMonitor): Promise<Map<Id, CalendarInfo>> {
+	async loadCalendarInfos(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
 		const user = this.logins.getUserController().user
 
 		const calendarMemberships = user.memberships.filter((m) => m.groupType === GroupType.Calendar)
@@ -157,7 +157,7 @@ export class CalendarModel {
 		return calendarInfos
 	}
 
-	async loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<Map<Id, CalendarInfo>> {
+	async loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
 		const { findPrivateCalendar } = await import("../date/CalendarUtils")
 		const calendarInfo = await this.loadCalendarInfos(progressMonitor)
 

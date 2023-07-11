@@ -100,31 +100,36 @@ export const otherRecipient2: Recipient = {
 	}),
 }
 
-export const calendars: Map<Id, CalendarInfo> = new Map()
-
-calendars.set("ownCalendar", {
-	groupRoot: createCalendarGroupRoot({}),
-	shared: false,
-	longEvents: new LazyLoaded(() => Promise.resolve([])),
-	groupInfo: createGroupInfo({}),
-	group: createGroup({
-		_id: "ownCalendar",
-		user: "ownerId",
-		type: GroupType.Calendar,
-	}),
-})
-
-calendars.set("sharedCalendar", {
-	groupRoot: createCalendarGroupRoot({}),
-	shared: true,
-	longEvents: new LazyLoaded(() => Promise.resolve([])),
-	groupInfo: createGroupInfo({}),
-	group: createGroup({
-		_id: "sharedCalendar",
-		user: "otherId",
-		type: GroupType.Calendar,
-	}),
-})
+export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
+	[
+		"ownCalendar",
+		{
+			groupRoot: createCalendarGroupRoot({}),
+			shared: false,
+			longEvents: new LazyLoaded(() => Promise.resolve([])),
+			groupInfo: createGroupInfo({}),
+			group: createGroup({
+				_id: "ownCalendar",
+				user: "ownerId",
+				type: GroupType.Calendar,
+			}),
+		},
+	],
+	[
+		"sharedCalendar",
+		{
+			groupRoot: createCalendarGroupRoot({}),
+			shared: true,
+			longEvents: new LazyLoaded(() => Promise.resolve([])),
+			groupInfo: createGroupInfo({}),
+			group: createGroup({
+				_id: "sharedCalendar",
+				user: "otherId",
+				type: GroupType.Calendar,
+			}),
+		},
+	],
+])
 
 export const ownAddresses: ReadonlyArray<EncryptedMailAddress> = [ownerAddress, ownerAlias]
 
