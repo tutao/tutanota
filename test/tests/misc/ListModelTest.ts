@@ -1,5 +1,5 @@
 import o from "ospec"
-import { ListModel } from "../../../src/misc/ListModel.js"
+import { ListModel, ListModelConfig } from "../../../src/misc/ListModel.js"
 import { GENERATED_MAX_ID, getElementId, sortCompareById, timestampToGeneratedId } from "../../../src/api/common/utils/EntityUtils.js"
 import { defer, DeferredObject } from "@tutao/tutanota-utils"
 import { createKnowledgeBaseEntry, KnowledgeBaseEntry } from "../../../src/api/entities/tutanota/TypeRefs.js"
@@ -720,6 +720,55 @@ o.spec("ListModel", function () {
 
 			o(listModel.state.inMultiselect).equals(true)
 			o(listModel.state.activeIndex).equals(null)
+		})
+	})
+
+	o.spec("Updating items", function () {
+		o("update for item with id sorting updates item", async function () {
+			const updatedItemD = createKnowledgeBaseEntry({ ...itemD, title: "AA" })
+
+			const newConfig: ListModelConfig<KnowledgeBaseEntry> = {
+				...defaultListConfig,
+				async loadSingle(elementId: Id): Promise<KnowledgeBaseEntry | null> {
+					if (elementId === getElementId(itemD)) {
+						return updatedItemD
+					} else {
+						throw new Error("noop")
+					}
+				},
+			}
+
+			listModel = new ListModel<KnowledgeBaseEntry>(newConfig)
+			await setItems(items)
+
+			await listModel.entityEventReceived(getElementId(itemD), OperationType.UPDATE)
+
+			o(listModel.state.items).deepEquals([itemA, itemB, itemC, updatedItemD])
+		})
+
+		o("update for item with custom sorting changes position", async function () {
+			const updatedItemD = createKnowledgeBaseEntry({ ...itemD, title: "AA" })
+
+			const newConfig: ListModelConfig<KnowledgeBaseEntry> = {
+				...defaultListConfig,
+				async loadSingle(elementId: Id): Promise<KnowledgeBaseEntry | null> {
+					if (elementId === getElementId(itemD)) {
+						return updatedItemD
+					} else {
+						throw new Error("noop")
+					}
+				},
+				sortCompare: (e1, e2) => {
+					return e1.title.localeCompare(e2.title)
+				},
+			}
+
+			listModel = new ListModel<KnowledgeBaseEntry>(newConfig)
+			await setItems(items)
+
+			await listModel.entityEventReceived(getElementId(itemD), OperationType.UPDATE)
+
+			o(listModel.state.items).deepEquals([itemA, updatedItemD, itemB, itemC])
 		})
 	})
 })

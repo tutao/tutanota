@@ -10,7 +10,7 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { ListFetchResult, PageSize } from "../gui/base/ListUtils.js"
 
-interface ListModelConfig<ElementType> {
+export interface ListModelConfig<ElementType> {
 	topId: Id
 
 	/**
@@ -200,8 +200,11 @@ export class ListModel<ElementType extends ListElement> {
 	}
 
 	private updateLoadedEntity(entity: ElementType) {
+		// We cannot use binary search here because the sort order of items can change based on the entity update and we need to find the position of the
+		// old entity by id in order to remove it.
+
 		// update unfiltered list: find the position, take out the old item and put the updated one
-		const positionToUpdateUnfiltered = binarySearch(this.rawState.unfilteredItems, entity, (left, right) => this.config.sortCompare(left, right))
+		const positionToUpdateUnfiltered = this.rawState.unfilteredItems.findIndex((item) => isSameId(item._id, entity._id))
 		const unfilteredItems = this.rawState.unfilteredItems.slice()
 		if (positionToUpdateUnfiltered >= 0) {
 			unfilteredItems.splice(positionToUpdateUnfiltered, 1, entity)
@@ -209,7 +212,7 @@ export class ListModel<ElementType extends ListElement> {
 		}
 
 		// update filtered list & selected items
-		const positionToUpdateFiltered = binarySearch(this.rawState.filteredItems, entity, (left, right) => this.config.sortCompare(left, right))
+		const positionToUpdateFiltered = this.rawState.filteredItems.findIndex((item) => isSameId(item._id, entity._id))
 		const filteredItems = this.rawState.filteredItems.slice()
 		const selectedItems = new Set(this.rawState.selectedItems)
 		if (positionToUpdateFiltered >= 0) {

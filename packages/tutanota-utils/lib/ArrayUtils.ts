@@ -413,7 +413,7 @@ export function deduplicate<T>(arr: Array<T>, comp: (arg0: T, arg1: T) => boolea
 /**
  * http://jsfiddle.net/aryzhov/pkfst550/
  * Binary search in JavaScript.
- * Returns the index of of the element in a sorted array or (-n-1) where n is the insertion point for the new element.
+ * Returns the index of the element in a sorted array or (-n-1) where n is the insertion point for the new element.
  * Parameters:
  *     array - A sorted array
  *     element - An element to search for
