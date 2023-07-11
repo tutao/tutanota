@@ -10,7 +10,7 @@ import { PartialRecipient, Recipient, RecipientType } from "../../../api/common/
 import { haveSameId, Stripped } from "../../../api/common/utils/EntityUtils.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../../api/common/utils/CommonCalendarUtils.js"
 import { getContactDisplayName } from "../../../contacts/model/ContactUtils.js"
-import { clone, defer, DeferredObject, findAll, lazy, noOp } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, defer, DeferredObject, findAll, lazy, noOp } from "@tutao/tutanota-utils"
 import { CalendarAttendeeStatus, ShareCapability } from "../../../api/common/TutanotaConstants.js"
 import { RecipientsModel, ResolveMode } from "../../../api/main/RecipientsModel.js"
 import { Guest } from "../CalendarInvites.js"
@@ -515,7 +515,13 @@ export class CalendarEventWhoModel {
 		const model = this.sendMailModelFactory()
 		for (const recipient of recipients) {
 			model.addRecipient(RecipientField.BCC, recipient)
-			model.setPassword(recipient.address, this.externalPasswords.get(recipient.address) ?? "")
+			// Only set the password if we have an entry.
+			// The recipients might not be resolved at this point yet, so we shouldn't set the password on the model unless we have one for sure.
+			// SendMailModel will anyway resolve the recipients, but it won't detect the right password if it's already pre-filled by us.
+			if (this.externalPasswords.has(recipient.address)) {
+				const password = assertNotNull(this.externalPasswords.get(recipient.address))
+				model.setPassword(recipient.address, password)
+			}
 		}
 		model.setSender(this._ownAttendee.address.address)
 		model.setConfidential(this.isConfidential)
