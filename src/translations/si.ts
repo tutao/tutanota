@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2021-11-11T11:18:04Z",
-	"updated_at": "2023-07-07T06:46:13Z",
+	"updated_at": "2023-07-07T10:21:41Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1455,6 +1455,7 @@ export default {
 		"upgradePremium_label": "ආධික්‍යය",
 		"upgradeReminderCancel_action": "පසුව",
 		"upgradeReminderTitle_msg": "උත්ශ්‍රේණි කරන්න!",
+		"upgradeRequired_msg": "ඔබගේ සැලසුමට මෙම විශේෂාංගය නැත. පහත දැක්වෙන සැලසුමකට උත්ශ්‍රේණි කරන්න:",
 		"upgrade_action": "උත්ශ්‍රේණි",
 		"upToDate_label": "යාවත්කාලීනයි",
 		"urlPath_label": "මාර්ගය",

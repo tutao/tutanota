@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2023-07-07T06:46:13Z",
+	"updated_at": "2023-07-07T10:52:55Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -168,6 +168,7 @@ export default {
 		"cancelSharedMailbox_label": "Cancelar buzón compartido",
 		"cancelUserAccounts_label": "Cancelar {1} cuenta(s) de usuario(s)",
 		"cancel_action": "Cancelar",
+		"cannotEditFullEvent_msg": "Solo puedes editar partes de este evento, porque no fue creado en tu calendario.",
 		"canNotOpenFileOnDevice_msg": "Este archivo no se puede abrir en este dispositivo.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Por favor, introduce el tiempo en horas y minutos.",
@@ -860,6 +861,7 @@ export default {
 		"next_action": "Siguiente",
 		"nickname_placeholder": "Apodo",
 		"noAppAvailable_msg": "No tienes instalada ninguna aplicación que pueda manejar esta acción.",
+		"noCalendar_msg": "Por favor, selecciona un calendario para el evento.",
 		"noContacts_msg": "No hay contactos en esta lista.",
 		"noContact_msg": "Ningún contacto seleccionado",
 		"noEntries_msg": "<no hay entradas>",
@@ -1473,6 +1475,7 @@ export default {
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Más tarde",
 		"upgradeReminderTitle_msg": "¡Actualiza a Premium!",
+		"upgradeRequired_msg": "Esta característica no está disponible en tu plan, por favor, actualiza a alguno de estos planes:",
 		"upgrade_action": "Promover",
 		"upToDate_label": "Todo actualizado",
 		"urlPath_label": "Camino",

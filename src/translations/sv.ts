@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2023-07-07T06:46:13Z",
+	"updated_at": "2023-07-07T09:44:11Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -164,6 +164,7 @@ export default {
 		"cancelSharedMailbox_label": "Avsluta delad brevlåda",
 		"cancelUserAccounts_label": "Avsluta {1} användare",
 		"cancel_action": "Avbryt",
+		"cannotEditFullEvent_msg": "Du kan bara redigera delar av den här händelsen eftersom den inte är skapad i din kalender.",
 		"canNotOpenFileOnDevice_msg": "Filen kan inte öppnas på den här enheten.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Ange tiden i timmar och minuter.",
@@ -856,6 +857,7 @@ export default {
 		"next_action": "Nästa",
 		"nickname_placeholder": "Smeknamn",
 		"noAppAvailable_msg": "Det finns ingen app installerad som kan hantera denna åtgärd.",
+		"noCalendar_msg": "Välj en kalender för händelsen.",
 		"noContacts_msg": "Det finns inga kontakter i listan.",
 		"noContact_msg": "Ingen kontakt vald",
 		"noEntries_msg": "<Inga uppslag>",
@@ -1469,6 +1471,7 @@ export default {
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Senare",
 		"upgradeReminderTitle_msg": "Uppgradera nu!",
+		"upgradeRequired_msg": "Den här funktionen är inte tillgänglig på ditt abonnemang, uppgradera till någon av följande planer:",
 		"upgrade_action": "Uppgradera",
 		"upToDate_label": "Allt är uppdaterat",
 		"urlPath_label": "Sökväg",

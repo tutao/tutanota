@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2023-07-07T06:46:13Z",
+	"updated_at": "2023-07-07T16:55:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -170,6 +170,7 @@ export default {
 		"cancelSharedMailbox_label": "Cofnij udostępnioną skrzynkę odbiorczą",
 		"cancelUserAccounts_label": "Anuluj {1} konto(a) użytkownika(ów)",
 		"cancel_action": "Anuluj",
+		"cannotEditFullEvent_msg": "Możesz edytować tylko częściowo to wydarzenie, ponieważ nie zostało ono utworzone w kalendarzu.",
 		"canNotOpenFileOnDevice_msg": "Ten plik nie może zostać otwarty na tym urządzeniu.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Wprowadź czas w godzinach i minutach.",
@@ -859,6 +860,7 @@ export default {
 		"next_action": "Następny",
 		"nickname_placeholder": "Pseudonim",
 		"noAppAvailable_msg": "Nie zainstalowano aplikacji, która mogłaby wykonać tę czynność.",
+		"noCalendar_msg": "Wybierz kalendarz dla wydarzenia.",
 		"noContacts_msg": "Nie ma żadnych kontaktów na liście.",
 		"noContact_msg": "Nie wybrano żadnego kontaktu",
 		"noEntries_msg": "<Brak wpisów>",
@@ -1471,6 +1473,7 @@ export default {
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Później",
 		"upgradeReminderTitle_msg": "Ulepsz teraz!",
+		"upgradeRequired_msg": "Ta funkcja nie jest dostępna w twoim planie subskrypcji, przejdź na jeden z poniższych planów:",
 		"upgrade_action": "Ulepsz",
 		"upToDate_label": "Wszystko jest aktualne",
 		"urlPath_label": "Ścieżka",

@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2023-07-07T08:16:19Z",
+	"updated_at": "2023-07-07T14:35:22Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -163,6 +163,7 @@ export default {
 		"cancelSharedMailbox_label": "Huỷ hộp thư chung",
 		"cancelUserAccounts_label": "Huỷ {1} người dùng",
 		"cancel_action": "Huỷ",
+		"cannotEditFullEvent_msg": "Bạn chỉ có thể sửa một số phần của sự kiện này vì nó không được tạo trong lịch của bạn.",
 		"canNotOpenFileOnDevice_msg": "Không thể mở tệp này trên thiết bị này.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Vui lòng nhập thời gian theo giờ và phút.",
@@ -853,6 +854,7 @@ export default {
 		"next_action": "Tiếp",
 		"nickname_placeholder": "Biệt danh",
 		"noAppAvailable_msg": "Không có ứng dụng đã cài đặt nào có thể xử lí hành động này.",
+		"noCalendar_msg": "Vui lòng chọn lịch cho sự kiện.",
 		"noContacts_msg": "Không có liên hệ nào trong danh sách.",
 		"noContact_msg": "Chưa chọn liên hệ nào",
 		"noEntries_msg": "<Không có mục nào>",

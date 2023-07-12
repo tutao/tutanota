@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2023-07-07T08:27:31Z",
+	"updated_at": "2023-07-11T10:26:40Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -166,6 +166,7 @@ export default {
 		"cancelSharedMailbox_label": "Zrušiť zdieľanú poštovú schránku",
 		"cancelUserAccounts_label": "Zrušiť {1} používateľov",
 		"cancel_action": "Zrušiť",
+		"cannotEditFullEvent_msg": "Môžeš upraviť iba časti tejto udalosti, pretože nebola vytvorená v tvojom kalendári.",
 		"canNotOpenFileOnDevice_msg": "Tento súbor nemožno otvoriť v tomto zariadení.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Prosím vlož čas v hodinách a minútach",
@@ -856,6 +857,7 @@ export default {
 		"next_action": "Ďalej",
 		"nickname_placeholder": "Prezývka",
 		"noAppAvailable_msg": "Pre túto akciu nie je nainštalovaná žiadna podporovaná aplikácia.",
+		"noCalendar_msg": "Vyber kalendár pre túto udalosť.",
 		"noContacts_msg": "V tomto zozname nie sú žiadne kontakty.",
 		"noContact_msg": "Nie sú vybrané žiadne kontakty",
 		"noEntries_msg": "<Žiadne položky>",
@@ -1509,7 +1511,7 @@ export default {
 		"weeks_label": "týždne",
 		"week_label": "Týždeň",
 		"welcomeMailBodyTweetText_msg": "Práve som si vytvoril poštovú schránku Tutanota. Odteraz chránim svoje e-maily pred zvedavými očami! Môžeš sa pridať tiež:",
-		"welcomeMailBody_markdown": "**Priprav sa na bezpečný, ekologický a bezreklamový e-mailový zážitok, ako žiadny iný. S end-to-end šifrovaním budeš neustále v bezpečí.**\n\nV Tutanote kladieme dôraz na ochranu súkromia a bezpečnosť. Vďaka silnému šifrovaniu je tvoja schránka chránená pred zvedavými očami a tvoje dôverné informácie zostávajú v bezpečí.\n\nAle to nie je všetko. Prechod z iných e-mailových služieb je doslova hračkou: Naše intuitívne aplikácie pre Android a iOS, ako aj počítačové aplikácie pre Windows, macOS a Linux ti umožňujú prístup k zabezpečenej schránke a kalendáru na akomkoľvek zariadení, a to aj v offline režime. Daj zbohom obmedzeniam a privítaj bezproblémovú dostupnosť.\n\nAk si stále držíš starú e-mailovú adresu, nemaj obavy, spolu to zvládneme. V starom účte si nastav automatické preposielanie a postupne si popresúvaj všetky e-maily a kontakty do Tutanoty. V našom sprievodcovi [tu]({faqForwardLink}) sa dozvieš, ako si jednoducho preposlať e-maily do Tutanoty.\n\nKeď si úspešne prenesieš všetky dôležité konverzácie, môžeš si automatické preposielanie deaktivovať. Pohodlne sa usaď a užívaj si peknú, uhladenú a bezspamovú schránku, ktorá ti prinesie pokoj mysle.\n\n**Aby sme mohli ponúkať súkromie rešpektujúcu alternatívu k Big Techu, držíme sa u nás v Tutanote týchto štyroch základných princípov:**\n\n1. Nesledujeme ťa.\n2. Neprezeráme tvoje dáta.\n3. Šifrujeme celú tvoju schránku, kontakty a kalendáre.\n4. Kladieme dôraz na ochranu súkromia už v štádiu návrhu („privacy by design“).\n\nZamiloval/a si si už Tutanotu? Radi by sme získali tvoju spätnú väzbu! **Prosíme, ohodnoť naše aplikácie pre Android a iOS**, aby sme vedeli, ako nám to ide.\n\nV Tutanote sa snúbia súkromie a praktickosť. Pridaj sa k nám na šifrovanú stranu a zaži e-mail ako nikdy predtým.\n\nSme radi, že ťa môžeme privítať v tvojej šifrovanej schránke!\nTvoj tím Tutanota\n\n--\n\n**Každý si zaslúži súkromie.**\n\nNašu misiu presadzovania súkromia vo svete môžeš podporiť tak, že náš budeš sledovať na tvojom obľúbenom sociálnom kanáli a zdieľať náš obsah s tvojimi kamarátmi a kolegami. Spolu zmeníme internet k lepšiemu!\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nTutanota má otvorený zdrojový kód. [Môžeš ho skontrolovať tu]({githubLink}).",
+		"welcomeMailBody_markdown": "**Priprav sa na bezpečný, ekologický e-mailový zážitok bez reklám, ako žiadny iný! S end-to-end šifrovaním budeš neustále v bezpečí.**\n\nV Tutanote kladieme dôraz na ochranu súkromia a bezpečnosť. Vďaka silnému šifrovaniu je tvoja schránka chránená pred zvedavými očami a tvoje dôverné informácie zostávajú v bezpečí.\n\nAle to nie je všetko. Prechod z iných e-mailových služieb je doslova hračkou: Naše intuitívne aplikácie pre Android a iOS, ako aj počítačové aplikácie pre Windows, macOS a Linux ti umožňujú pristupovať k zabezpečenej schránke a kalendáru na akomkoľvek zariadení, a to aj v offline režime. Daj zbohom obmedzeniam a privítaj bezproblémovú dostupnosť.\n\nAk si stále držíš starú e-mailovú adresu, nemaj obavy, myslíme aj na to. V starom účte si nastav automatické preposielanie a postupne si popresúvaj všetky e-maily a kontakty do Tutanoty. V našom sprievodcovi [tu]({faqForwardLink}) sa dozvieš, ako si jednoducho preposlať e-maily do Tutanoty.\n\nKeď si úspešne prenesieš všetky dôležité konverzácie, môžeš si automatické preposielanie deaktivovať. Pohodlne sa usaď a užívaj si peknú, uhladenú schránku bez spamu, ktorá ti prinesie pokoj mysle.\n\n**Aby sme mohli ponúkať súkromie rešpektujúcu alternatívu k Big Techu, držíme sa v Tutanote týchto štyroch základných princípov:**\n\n1. Nesledujeme ťa.\n2. Neprezeráme tvoje dáta.\n3. Šifrujeme celú tvoju schránku, kontakty a kalendáre.\n4. Kladieme dôraz na ochranu súkromia už v štádiu návrhu („privacy by design“).\n\nZamiloval/a si si už Tutanotu? Radi by sme získali od teba spätnú väzbu! **Prosíme, ohodnoť naše aplikácie pre Android a iOS** a daj nám vedieť, ako si počíname.\n\nV Tutanote sa snúbia súkromie a praktickosť. Pridaj sa k nám na šifrovanú stranu a zaži e-mail ako nikdy predtým.\n\nRadi ťa privítame v tvojej šifrovanej schránke!\nTvoj tím Tutanota\n\n--\n\n**Každý si zaslúži súkromie.**\n\nNašu misiu presadzovania súkromia vo svete môžeš podporiť tak, že náš budeš sledovať na tvojom obľúbenom sociálnom kanáli a zdieľať náš obsah s tvojimi kamarátmi a kolegami. Spolu zmeníme internet k lepšiemu!\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n* [YouTube]({youtubeLink})\n\nTutanota má otvorený zdrojový kód. [Môžeš ho preskúmať a posúdiť tu]({githubLink}).",
 		"welcomeMailSubject_msg": "Bezpečné, ekologické a bez reklám!",
 		"whatIsPhishing_msg": "Čo je phishing?",
 		"when_label": "Kedy",

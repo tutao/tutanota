@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2023-07-07T06:46:13Z",
+	"updated_at": "2023-07-10T05:30:58Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -166,6 +166,7 @@ export default {
 		"cancelSharedMailbox_label": "Zrušit sdílenou schránku",
 		"cancelUserAccounts_label": "Zrušit {1} uživatele",
 		"cancel_action": "Zrušit",
+		"cannotEditFullEvent_msg": "Tuto událost můžete upravovat pouze částečně, protože nebyla vytvořena ve vašem kalendáři.",
 		"canNotOpenFileOnDevice_msg": "Tento soubor nelze otevřít na tomto zařízení.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Zadejte prosím čas v hodinách a minutách.",
@@ -856,6 +857,7 @@ export default {
 		"next_action": "Další",
 		"nickname_placeholder": "Přezdívka",
 		"noAppAvailable_msg": "Pro tuto akci není nainstalována žádná aplikace.",
+		"noCalendar_msg": "Zvolte prosím kalendář pro tuto událost.",
 		"noContacts_msg": "V tomto seznamu nejsou žádné kontakty.",
 		"noContact_msg": "Nebyl vybrán žádný kontakt",
 		"noEntries_msg": "<Žádný obsah>",
@@ -1468,6 +1470,7 @@ export default {
 		"upgradePremium_label": "Prémium",
 		"upgradeReminderCancel_action": "Později",
 		"upgradeReminderTitle_msg": "Upgradujte nyní!",
+		"upgradeRequired_msg": "Tato funkce není součástí vašeho předplatného. Přejděte prosím na jeden z následujících tarifů:",
 		"upgrade_action": "Upgrade",
 		"upToDate_label": "Vše je aktuální",
 		"urlPath_label": "Cesta",
