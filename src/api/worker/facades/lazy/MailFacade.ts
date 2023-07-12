@@ -78,7 +78,6 @@ import {
 	defer,
 	isNotNull,
 	isSameTypeRefByAttr,
-	neverNull,
 	noOp,
 	ofClass,
 	promiseFilter,
@@ -353,8 +352,8 @@ export class MailFacade {
 	_getRemovedAttachments(providedFiles: Attachments | null, existingFileIds: IdTuple[]): IdTuple[] {
 		let removedAttachmentIds: IdTuple[] = []
 
-		if (providedFiles) {
-			let attachments = neverNull(providedFiles)
+		if (providedFiles != null) {
+			let attachments = providedFiles
 			// check which attachments have been removed
 			existingFileIds.forEach((fileId) => {
 				if (
@@ -409,7 +408,7 @@ export class MailFacade {
 				return this.crypto.resolveSessionKeyForInstance(providedFile).then((fileSessionKey) => {
 					const attachment = createDraftAttachment()
 					attachment.existingFile = getLetId(providedFile)
-					attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, neverNull(fileSessionKey))
+					attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, assertNotNull(fileSessionKey, "filesessionkey was not resolved"))
 					return attachment
 				})
 			} else {
@@ -455,15 +454,15 @@ export class MailFacade {
 		const attachments = await this.getAttachmentIds(draft)
 		for (let fileId of attachments) {
 			const file = await this.entityClient.load(FileTypeRef, fileId)
-			const fileSessionKey = await this.crypto.resolveSessionKeyForInstance(file)
+			const fileSessionKey = assertNotNull(await this.crypto.resolveSessionKeyForInstance(file), "fileSessionKey was null")
 			const data = createAttachmentKeyData({
 				file: fileId,
 			})
 
 			if (draft.confidential) {
-				data.bucketEncFileSessionKey = encryptKey(bucketKey, neverNull(fileSessionKey))
+				data.bucketEncFileSessionKey = encryptKey(bucketKey, fileSessionKey)
 			} else {
-				data.fileSessionKey = keyToUint8Array(neverNull(fileSessionKey))
+				data.fileSessionKey = keyToUint8Array(fileSessionKey)
 			}
 
 			sendDraftData.attachmentKeyData.push(data)
@@ -474,7 +473,7 @@ export class MailFacade {
 				sendDraftData.plaintext = tutanotaProperties.sendPlaintextOnly
 			}),
 			this.crypto.resolveSessionKeyForInstance(draft).then((mailSessionkey) => {
-				let sk = neverNull(mailSessionkey)
+				let sk = assertNotNull(mailSessionkey, "mailSessionKey was null")
 				sendDraftData.calendarMethod = draft.method !== MailMethod.NONE
 
 				if (draft.confidential) {
@@ -502,7 +501,7 @@ export class MailFacade {
 		if (isLegacyMail(draft)) {
 			return draft.replyTos
 		} else {
-			const mailDetails = await this.entityClient.load(MailDetailsDraftTypeRef, neverNull(draft.mailDetailsDraft))
+			const mailDetails = await this.entityClient.load(MailDetailsDraftTypeRef, assertNotNull(draft.mailDetailsDraft, "draft without mailDetailsDraft"))
 			return mailDetails.details.replyTos
 		}
 	}
@@ -671,13 +670,18 @@ export class MailFacade {
 				.load(ExternalUserReferenceTypeRef, [groupRoot.externalUserReferences, mailAddressId])
 				.then((externalUserReference) => {
 					return this.entityClient.load(UserTypeRef, externalUserReference.user).then((externalUser) => {
-						let mailGroupId = neverNull(externalUser.memberships.find((m) => m.groupType === GroupType.Mail)).group
+						let mailGroupId = assertNotNull(
+							externalUser.memberships.find((m) => m.groupType === GroupType.Mail),
+							"no mail group membership on external user",
+						).group
 						return Promise.all([
 							this.entityClient.load(GroupTypeRef, mailGroupId),
 							this.entityClient.load(GroupTypeRef, externalUserReference.userGroup),
 						]).then(([externalMailGroup, externalUserGroup]) => {
-							let externalUserGroupKey = decryptKey(this.userFacade.getUserGroupKey(), neverNull(externalUserGroup.adminGroupEncGKey))
-							let externalMailGroupKey = decryptKey(externalUserGroupKey, neverNull(externalMailGroup.adminGroupEncGKey))
+							const userAdminKey = assertNotNull(externalUserGroup.adminGroupEncGKey, "no adminGroupEncGKey on external user group")
+							const mailAdminKey = assertNotNull(externalMailGroup.adminGroupEncGKey, "no adminGroupEncGKey on external mail group")
+							let externalUserGroupKey = decryptKey(this.userFacade.getUserGroupKey(), userAdminKey)
+							let externalMailGroupKey = decryptKey(externalUserGroupKey, mailAdminKey)
 							return {
 								externalUserGroupKey,
 								externalMailGroupKey,
@@ -728,14 +732,14 @@ export class MailFacade {
 	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
 		return promiseMap(data, (update) => {
 			if (
-				this.deferredDraftUpdate &&
-				this.deferredDraftId &&
+				this.deferredDraftUpdate != null &&
+				this.deferredDraftId != null &&
 				update.operation === OperationType.UPDATE &&
 				isSameTypeRefByAttr(MailTypeRef, update.application, update.type) &&
 				isSameId(this.deferredDraftId, [update.instanceListId, update.instanceId])
 			) {
-				return this.entityClient.load(MailTypeRef, neverNull(this.deferredDraftId)).then((mail) => {
-					let deferredPromiseWrapper = neverNull(this.deferredDraftUpdate)
+				return this.entityClient.load(MailTypeRef, this.deferredDraftId).then((mail) => {
+					let deferredPromiseWrapper = assertNotNull(this.deferredDraftUpdate, "deferredDraftUpdate went away?")
 					this.deferredDraftUpdate = null
 					deferredPromiseWrapper.resolve(mail)
 				})
