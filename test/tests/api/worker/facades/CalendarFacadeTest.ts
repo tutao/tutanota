@@ -1,9 +1,9 @@
 import o from "ospec"
-import type { EventWithAlarmInfos } from "../../../../../src/api/worker/facades/lazy/CalendarFacade.js"
-import { CalendarFacade } from "../../../../../src/api/worker/facades/lazy/CalendarFacade.js"
+import type { CalendarEventAlteredInstance, EventWithAlarmInfos } from "../../../../../src/api/worker/facades/lazy/CalendarFacade.js"
+import { CalendarFacade, sortByRecurrenceId } from "../../../../../src/api/worker/facades/lazy/CalendarFacade.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
-import { downcast, isSameTypeRef, neverNull, noOp } from "@tutao/tutanota-utils"
+import { clone, downcast, isSameTypeRef, neverNull, noOp } from "@tutao/tutanota-utils"
 import type { AlarmInfo, User, UserAlarmInfo } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import {
 	createAlarmInfo,
@@ -422,6 +422,34 @@ o.spec("CalendarFacadeTest", async function () {
 			const actual = await calendarFacade.loadAlarmEvents()
 			const expected = [{ event, userAlarmInfos: [alarm] }]
 			assertSortedEquals(actual, expected)
+		})
+	})
+
+	o.spec("sortByRecurrenceId", function () {
+		o("sorts empty array", function () {
+			const arr = []
+			sortByRecurrenceId(arr)
+			o(arr).deepEquals([])
+		})
+
+		o("sorts array with len 1", function () {
+			const arr = [createCalendarEvent({ recurrenceId: new Date("2023-07-17T13:00") })] as Array<CalendarEventAlteredInstance>
+			const expected = clone(arr)
+			sortByRecurrenceId(arr)
+			o(arr).deepEquals(expected)
+		})
+
+		o("sorts array that's not sorted", function () {
+			const arr = [
+				createCalendarEvent({ recurrenceId: new Date("2023-07-17T13:00") }),
+				createCalendarEvent({ recurrenceId: new Date("2023-07-16T13:00") }),
+			] as Array<CalendarEventAlteredInstance>
+			const expected = clone(arr)
+			const smaller = expected[1]
+			expected[1] = expected[0]
+			expected[0] = smaller
+			sortByRecurrenceId(arr)
+			o(arr).deepEquals(expected)
 		})
 	})
 })

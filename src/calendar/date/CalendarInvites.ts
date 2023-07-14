@@ -3,7 +3,7 @@ import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail }
 import { locator } from "../../api/main/MainLocator"
 import { CalendarAttendeeStatus, CalendarMethod, FeatureType, getAsEnumValue, NewPaidPlans } from "../../api/common/TutanotaConstants"
 import { assertNotNull, clone, filterInt, noOp } from "@tutao/tutanota-utils"
-import { findPrivateCalendar, getEventType, getTimeZone, resolveCalendarEventProgenitor } from "./CalendarUtils"
+import { findPrivateCalendar, getEventType, resolveCalendarEventProgenitor } from "./CalendarUtils"
 import { calendarNotificationSender } from "./CalendarNotificationSender.js"
 import { Dialog } from "../../gui/base/Dialog"
 import { UserError } from "../../api/main/UserError"
@@ -19,6 +19,7 @@ import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js
 import { RecipientField } from "../../mail/model/MailUtils.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { CalendarOperation } from "../view/eventeditor/CalendarEventEditDialog.js"
+import { Require } from "@tutao/tutanota-utils/dist/Utils.js"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }
@@ -71,7 +72,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 	let editModelsFactory: (mode: CalendarOperation) => Promise<CalendarEventModel | null>
 	let hasBusinessFeature: boolean
 	let ownAttendee: CalendarEventAttendee | null = null
-	const lazyProgenitor = () => resolveCalendarEventProgenitor(latestEvent, locator.entityClient)
+	const lazyIndexEntry = async () => (latestEvent.uid != null ? locator.calendarFacade.getEventsByUid(latestEvent.uid) : null)
 	if (!locator.logins.getUserController().isInternalUser()) {
 		// external users cannot delete/edit events as they have no calendar.
 		eventType = EventType.EXTERNAL
@@ -98,7 +99,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 		eventType,
 		hasBusinessFeature,
 		ownAttendee,
-		lazyProgenitor,
+		lazyIndexEntry,
 		editModelsFactory,
 	)
 	new CalendarEventPopup(viewModel, eventBubbleRect, htmlSanitizer).show()
@@ -126,7 +127,7 @@ export async function getLatestEvent(event: CalendarEvent): Promise<CalendarEven
 	const existingEvent =
 		event.recurrenceId == null
 			? existingEvents?.progenitor // the progenitor does not have a recurrence id and is always first in uid index
-			: existingEvents?.recurrences.find((e) => e.recurrenceId === event.recurrenceId)
+			: existingEvents?.alteredInstances.find((e) => e.recurrenceId === event.recurrenceId)
 
 	if (existingEvent == null) return event
 
@@ -176,13 +177,15 @@ export async function replyToEventInvitation(
 
 	const calendar = await locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()).then(findPrivateCalendar)
 	if (calendar == null) return ReplyResult.ReplyNotSent
-	// if the owner group is set there is an existing event already so just update
-	if (event._ownerGroup) {
-		const alarms = await locator.calendarModel.loadAlarms(event.alarmInfos, locator.logins.getUserController().user)
-		const alarmInfos = alarms.map((a) => a.alarmInfo)
-		await locator.calendarModel.updateEvent(eventClone, alarmInfos, getTimeZone(), calendar.groupRoot, event)
-	} else if (decision !== CalendarAttendeeStatus.DECLINED) {
-		await locator.calendarModel.createEvent(eventClone, [], getTimeZone(), calendar.groupRoot)
+	if (decision !== CalendarAttendeeStatus.DECLINED && event.uid != null) {
+		const dbEvents = await locator.calendarModel.getEventsByUid(event.uid)
+		await locator.calendarModel.processCalendarEventMessage(
+			previousMail.sender.address,
+			CalendarMethod.REQUEST,
+			event as Require<"uid", CalendarEvent>,
+			[],
+			dbEvents ?? { ownerGroup: calendar.group._id, progenitor: null, alteredInstances: [] },
+		)
 	}
 	return ReplyResult.ReplySent
 }

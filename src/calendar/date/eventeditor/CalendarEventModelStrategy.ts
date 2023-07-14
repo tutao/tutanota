@@ -47,7 +47,6 @@ export class CalendarEventApplyStrategies {
 	 */
 	async saveNewEvent(editModels: CalendarEventEditModels): Promise<void> {
 		const { eventValues, newAlarms, sendModels, calendar } = assembleCalendarEventEditResult(editModels)
-		const { inviteModel } = sendModels
 		const uid = generateUid(calendar.group._id, Date.now())
 		const newEvent = assignEventIdentity(eventValues, { uid })
 		assertEventValidity(newEvent)
@@ -89,7 +88,7 @@ export class CalendarEventApplyStrategies {
 						// note: if we ever allow editing guests separately, we need to update this to not use the
 						// note: progenitor edit models since the guest list might be different from the instance
 						// note: we're looking at.
-						for (const occurrence of alteredOccurrences.recurrences) {
+						for (const occurrence of alteredOccurrences.alteredInstances) {
 							const { newEvent, newAlarms, sendModels } = await assembleEditResultAndAssignFromExisting(
 								occurrence,
 								editModelsForProgenitor,
@@ -171,7 +170,7 @@ export class CalendarEventApplyStrategies {
 			(async () => {
 				const alteredOccurrences = await this.calendarModel.getEventsByUid(assertNotNull(existingEvent.uid))
 				if (alteredOccurrences) {
-					for (const occurrence of alteredOccurrences.recurrences) {
+					for (const occurrence of alteredOccurrences.alteredInstances) {
 						if (occurrence.attendees.length === 0) continue
 						const { sendModels } = await assembleEditResultAndAssignFromExisting(occurrence, editModels, CalendarOperation.DeleteAll)
 						sendModels.cancelModel = sendModels.updateModel
@@ -183,7 +182,12 @@ export class CalendarEventApplyStrategies {
 				sendModels.cancelModel = sendModels.updateModel
 				sendModels.updateModel = null
 				await this.notificationModel.send(existingEvent, sendModels)
-				await this.calendarModel.deleteEventsByUid(assertNotNull(existingEvent.uid, "existing event w/o uid"))
+				if (existingEvent.uid != null) {
+					await this.calendarModel.deleteEventsByUid(existingEvent.uid)
+				}
+				// doing this explicitly because we might have clicked an event that's not listed in
+				// the uid index for some reason. this prevents bugs from creating undeletable events.
+				await this.calendarModel.deleteEvent(existingEvent)
 			})(),
 		)
 	}

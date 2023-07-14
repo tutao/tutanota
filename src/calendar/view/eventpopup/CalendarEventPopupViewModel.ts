@@ -8,6 +8,7 @@ import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { CalendarAttendeeStatus } from "../../../api/common/TutanotaConstants.js"
 import m from "mithril"
 import { clone } from "@tutao/tutanota-utils"
+import { CalendarEventUidIndexEntry } from "../../../api/worker/facades/lazy/CalendarFacade.js"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.
@@ -38,7 +39,7 @@ export class CalendarEventPopupViewModel {
 	 * @param eventType
 	 * @param hasBusinessFeature if the current user is allowed to do certain operations.
 	 * @param ownAttendee will be cloned to have a copy that's not influencing the actual event but can be changed to quickly update the UI
-	 * @param lazyProgenitor async function to resolve the progenitor of the shown event
+	 * @param lazyIndexEntry async function to resolve the progenitor of the shown event
 	 * @param eventModelFactory
 	 * @param uiUpdateCallback
 	 */
@@ -48,7 +49,7 @@ export class CalendarEventPopupViewModel {
 		readonly eventType: EventType,
 		private readonly hasBusinessFeature: boolean,
 		ownAttendee: CalendarEventAttendee | null,
-		private readonly lazyProgenitor: () => Promise<CalendarEvent>,
+		private readonly lazyIndexEntry: () => Promise<CalendarEventUidIndexEntry | null>,
 		private readonly eventModelFactory: (mode: CalendarOperation) => Promise<CalendarEventModel | null>,
 		private readonly uiUpdateCallback: () => void = m.redraw,
 	) {
@@ -68,16 +69,17 @@ export class CalendarEventPopupViewModel {
 			this.canSendUpdates = hasBusinessFeature && this.eventType === EventType.OWN && getNonOrganizerAttendees(calendarEvent).length > 0
 		}
 
-		// we do not edit single instances yet
-		this.isRepeatingForEditing = (calendarEvent.repeatRule != null || calendarEvent.recurrenceId != null) && (eventType === EventType.OWN || eventType === EventType.SHARED_RW)
+		this.isRepeatingForEditing =
+			(calendarEvent.repeatRule != null || calendarEvent.recurrenceId != null) && (eventType === EventType.OWN || eventType === EventType.SHARED_RW)
 	}
 
 	/** for deleting, an event that has only one non-deleted instance behaves as if it wasn't repeating
 	 * because deleting the last instance is the same as deleting the whole event from the pov of the user.
 	 */
 	async isRepeatingForDeleting(): Promise<boolean> {
-		const progenitor = await this.lazyProgenitor()
-		return calendarEventHasMoreThanOneOccurrencesLeft(progenitor)
+		const index = await this.lazyIndexEntry()
+		if (index == null) return false
+		return calendarEventHasMoreThanOneOccurrencesLeft(index)
 	}
 
 	get ownAttendee(): CalendarEventAttendee | null {

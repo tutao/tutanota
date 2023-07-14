@@ -36,12 +36,15 @@ import { elementIdPart, getElementId, isSameId, listIdPart, removeTechnicalField
 import type { AlarmScheduler } from "../date/AlarmScheduler"
 import type { Notifications } from "../../gui/Notifications"
 import m from "mithril"
-import type { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
+import type { CalendarEventInstance, CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest"
 import { MembershipService } from "../../api/entities/sys/Services"
 import { FileController } from "../../file/FileController"
 import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUtils.js"
+import { Require } from "@tutao/tutanota-utils/dist/Utils.js"
+import { CalendarEventWhenModel } from "../date/eventeditor/CalendarEventWhenModel.js"
+import { getTimeZone } from "../date/CalendarUtils.js"
 
 const TAG = "[CalendarModel]"
 
@@ -100,7 +103,8 @@ export class CalendarModel {
 		if (
 			existingEvent._ownerGroup !== groupRoot._id ||
 			newEvent.startTime.getTime() !== existingEvent.startTime.getTime() ||
-			!repeatRulesEqual(newEvent.repeatRule, existingEvent.repeatRule)
+			(!repeatRulesEqual(newEvent.repeatRule, existingEvent.repeatRule) &&
+				!isSameExclusions(newEvent.repeatRule?.excludedDates ?? [], existingEvent.repeatRule?.excludedDates ?? []))
 		) {
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
 			await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
@@ -233,16 +237,13 @@ export class CalendarModel {
 
 		const invites = await this.entityClient.loadAll(CalendarEventUpdateTypeRef, calendarEventUpdates.list)
 		for (const invite of invites) {
-			// noinspection ES6MissingAwait
-			this.handleCalendarEventUpdate(invite)
+			await this.handleCalendarEventUpdate(invite)
 		}
 	}
 
 	private async getCalendarDataForUpdate(fileId: IdTuple): Promise<ParsedCalendarData | null> {
-		console.log("loading file", fileId)
 		try {
 			const file = await this.entityClient.load(FileTypeRef, fileId)
-			console.log("loaded file", fileId)
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const { parseCalendarFile } = await import("../export/CalendarImporter")
 			return await parseCalendarFile(dataFile)
@@ -277,39 +278,40 @@ export class CalendarModel {
 		}
 	}
 
+	/** whether the operation could be performed or not */
 	async deleteEventsByUid(uid: string): Promise<void> {
 		const entry = await this.calendarFacade.getEventsByUid(uid)
 		if (entry == null) {
 			console.log("could not find an uid index entry to delete event")
 			return
 		}
-		// fixme: not doing this in parallel because we would get locked errors
-		for (const e of entry.recurrences) {
+		// not doing this in parallel because we would get locked errors
+		for (const e of entry.alteredInstances) {
 			await this.deleteEvent(e)
 		}
-		await this.deleteEvent(entry.progenitor)
+		if (entry.progenitor) {
+			await this.deleteEvent(entry.progenitor)
+		}
 	}
 
 	async deleteAlteredOccurrences(uid: string): Promise<void> {
 		const entry = await this.calendarFacade.getEventsByUid(uid)
 		if (entry) {
-			await Promise.all([...entry.recurrences].map((e) => this.deleteEvent(e)))
+			await Promise.all([...entry.alteredInstances].map((e) => this.deleteEvent(e)))
 		}
 	}
 
-	/**
-	 * Processing calendar data - bring events in calendar up-to-date with ical data sent via email.
-	 * calendar data are currently processed for
-	 * - REQUEST: the update is only processed if there is an existing event, if there is no event, then the
-	 *   "update" would be creating an event - this is done when the user accepts the invite manually.
-	 * - REPLY: update attendee status,
-	 * - CANCEL: we delete existing event.
-	 *
-	 * public for testing
-	 */
+	/** process a calendar update retrieved from the server automatically. will not apply updates to event series that do not
+	 *  exist on the server yet (that's being done by calling processCalendarEventMessage manually)
+	 * public for testing */
 	async processCalendarData(sender: string, calendarData: ParsedCalendarData): Promise<void> {
 		if (calendarData.contents.length === 0) {
 			console.log(TAG, `Calendar update with no events, ignoring`)
+			return
+		}
+
+		if (calendarData.contents[0].event.uid == null) {
+			console.log(TAG, "invalid event update without UID, ignoring.")
 			return
 		}
 
@@ -319,78 +321,137 @@ export class CalendarModel {
 		// 3. it's both (haven't seen in the wild but rumors are some calendars actually do this)
 		// we might want to execute the whole logic below for each of these instead of taking only the first one.
 		// maybe even sort them such that the progenitors are updated first.
-		const updateEvent = calendarData.contents[0].event
 		const updateAlarms = calendarData.contents[0].alarms
-
-		if (updateEvent.uid == null) {
-			console.log(TAG, "invalid event update without UID, ignoring.")
-			return
-		}
+		const updateEvent = calendarData.contents[0].event
+		const method = calendarData.method
 
 		const dbEvents = await this.calendarFacade.getEventsByUid(updateEvent.uid)
 		if (dbEvents == null) {
-			console.log(TAG, "received event update for event that is has no progenitor on the server, ignoring.")
+			// if we ever want to display event invites before accepting them, we probably need to do something else here.
+			console.log(TAG, "received event update for event that has no progenitor on the server, ignoring.")
 			return
 		}
+		// this automatically applies REQUESTs for creating parts of the existing event series that do not exist yet
+		// like accepting another altered instance invite or accepting the progenitor after accepting only an altered instance.
+		return await this.processCalendarEventMessage(sender, method, updateEvent, updateAlarms, dbEvents)
+	}
 
+	/**
+	 * Processing calendar update - bring events in calendar up-to-date with ical data sent via email.
+	 * calendar data are currently processed for
+	 * - REQUEST: here we have two cases:
+	 *     - there is an existing event: we apply the update to that event and do the necessary changes to the other parts of the series that may already exist
+	 *     - there is no existing event: create the event as received, and do the necessary changes to the other parts of the series that may already exist
+	 * - REPLY: update attendee status,
+	 * - CANCEL: we delete existing event instance
+	 *
+	 * @param sender
+	 * @param method
+	 * @param updateEvent the actual instance that needs to be updated
+	 * @param updateAlarms
+	 * @param target either the existing event to update or the calendar group Id to create the event in in case of a new event.
+	 */
+	async processCalendarEventMessage(
+		sender: string,
+		method: string,
+		updateEvent: Require<"uid", CalendarEvent>,
+		updateAlarms: Array<AlarmInfo>,
+		target: CalendarEventUidIndexEntry,
+	): Promise<void> {
 		const updateEventTime = updateEvent.recurrenceId?.getTime()
-		const dbEvent = updateEventTime == null ? dbEvents.progenitor : dbEvents.recurrences.find((e) => e.recurrenceId.getTime() === updateEventTime)
-
-		if (dbEvent == null && dbEvents.progenitor.repeatRule != null && dbEvents.progenitor._ownerGroup != null) {
-			// we got a REQUEST for which we have a progenitor, but not the particular altered instance with the recurrenceId mentioned in the update.
-			// it's probably a single-instance update that created this altered instance. the update to the progenitor comes separately.
-			// we need to create this event on the server since we already accepted the event into our calendar.
-			// FIXME: do all calendar apps add altered instances to the progenitors exclusion list? if not, we need to ensure that here.
-			// FIXME: we then also need to ensure that the exclusion is not deleted by subsequent updates to the progenitor sent by the external organizer.
-			// FIXME: maybe we need to split exclusions into two.
-			return await this.processNewAlteredInstanceRequest(dbEvents.progenitor._ownerGroup, updateEvent, updateAlarms)
-		} else if (dbEvent == null) {
-			console.log(TAG, "got a REQUEST for a new altered instance on progenitor that does not repeat, ignoring")
-			return
+		const targetDbEvent = updateEventTime == null ? target.progenitor : target.alteredInstances.find((e) => e.recurrenceId.getTime() === updateEventTime)
+		if (targetDbEvent == null) {
+			if (method != CalendarMethod.REQUEST) {
+				console.log(TAG, "got something that's not a REQUEST for nonexistent server event:", method)
+				return
+			}
+			// we got a REQUEST for which we do not have a saved version of the particular instance (progenitor or altered)
+			// it may be
+			// - a single-instance update that created this altered instance
+			// - the user got the progenitor invite for a series. it's possible that there's
+			//   already altered instances of this series on the server.
+			return await this.processCalendarAccept(target, updateEvent, updateAlarms)
 		}
 
-		const sentByOrganizer: boolean = dbEvent.organizer != null && dbEvent.organizer.address === sender
-		if (calendarData.method === CalendarMethod.REPLY) {
-			return this.processCalendarReply(sender, dbEvent, updateEvent)
-		} else if (sentByOrganizer && calendarData.method === CalendarMethod.REQUEST) {
-			return await this.processCalendarRequest(dbEvent, updateEvent)
-		} else if (sentByOrganizer && calendarData.method === CalendarMethod.CANCEL) {
-			return await this.processCalendarCancellation(dbEvent)
+		const sentByOrganizer: boolean = targetDbEvent.organizer != null && targetDbEvent.organizer.address === sender
+		if (method === CalendarMethod.REPLY) {
+			return this.processCalendarReply(sender, targetDbEvent, updateEvent)
+		} else if (sentByOrganizer && method === CalendarMethod.REQUEST) {
+			return await this.processCalendarUpdate(target, targetDbEvent, updateEvent)
+		} else if (sentByOrganizer && method === CalendarMethod.CANCEL) {
+			return await this.processCalendarCancellation(targetDbEvent)
 		} else {
-			console.log(TAG, `${calendarData.method} update sent not by organizer, ignoring.`)
+			console.log(TAG, `${method} update sent not by organizer, ignoring.`)
 		}
 	}
 
-	private async processCalendarRequest(dbEvent: CalendarEvent, updateEvent: CalendarEvent): Promise<void> {
-		console.log("processing request", updateEvent, dbEvent)
+	/** process either a request for an existing progenitor or an existing altered instance.
+	 * @param dbTarget the uid entry containing the other events that are known to us that belong to this event series.
+	 * @param dbEvent the version of updateEvent stored on the server. must be identical to dbTarget.progenitor or one of dbTarget.alteredInstances
+	 * @param updateEvent the event that contains the new version of dbEvent. */
+	private async processCalendarUpdate(dbTarget: CalendarEventUidIndexEntry, dbEvent: CalendarEventInstance, updateEvent: CalendarEvent): Promise<void> {
+		console.log(TAG, "processing request for existing event instance")
 		if (filterInt(dbEvent.sequence) >= filterInt(updateEvent.sequence)) {
 			console.log(TAG, "got update for outdated event version, ignoring.")
 			return
 		}
+		if (updateEvent.recurrenceId == null && updateEvent.repeatRule != null) {
+			// the update is for a repeating progenitor. we need to exclude all known altered instances from its repeat rule.
+			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(
+				updateEvent,
+				dbTarget.alteredInstances.map((r) => r.recurrenceId),
+			)
+		} else if (updateEvent.recurrenceId != null && dbTarget.progenitor != null && dbTarget.progenitor.repeatRule != null) {
+			// the update is for an altered instance we already have in the calendar. we need to make sure it is
+			// excluded from the progenitor, if it exists and if it repeats. we'll ignore the nonsensical case where
+			// we have an altered instance update for a non-repeating progenitor.
+			const updatedProgenitor = clone(dbTarget.progenitor)
+			updatedProgenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(dbTarget.progenitor, [updateEvent.recurrenceId])
+			await this.doUpdateEvent(dbTarget.progenitor, updatedProgenitor)
+		}
 		await this.updateEventWithExternal(dbEvent, updateEvent)
 	}
 
-	/** @param ownerGroup the group the progenitor belongs to (calendar)
-	 * @param updateEvent
-	 * @param alarms
+	/**
+	 * do not call this for anything but a REQUEST
+	 * @param dbTarget the progenitor that must have a repeat rule and an exclusion for this event to be accepted, the known altered instances and the ownergroup.
+	 * @param updateEvent the event to create
+	 * @param alarms alarms to set up for this user/event
 	 */
-	private async processNewAlteredInstanceRequest(ownerGroup: Id, updateEvent: CalendarEvent, alarms: Array<AlarmInfo>): Promise<void> {
-		console.log("processing new altered instance request", updateEvent)
+	private async processCalendarAccept(
+		dbTarget: CalendarEventUidIndexEntry,
+		updateEvent: Require<"uid", CalendarEvent>,
+		alarms: Array<AlarmInfo>,
+	): Promise<void> {
+		console.log(TAG, "processing new instance request")
+		if (updateEvent.recurrenceId != null && dbTarget.progenitor != null && dbTarget.progenitor.repeatRule != null) {
+			// request for a new altered instance. we'll try adding the exclusion for this instance to the progenitor if possible
+			// since not all calendar apps add altered instances to the list of exclusions.
+			const updatedProgenitor = clone(dbTarget.progenitor)
+			updatedProgenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(updatedProgenitor, [updateEvent.recurrenceId])
+			await this.doUpdateEvent(dbTarget.progenitor, updatedProgenitor)
+		} else if (updateEvent.recurrenceId == null && updateEvent.repeatRule != null && dbTarget.alteredInstances.length > 0) {
+			// request to add the progenitor to the calendar. we have to exclude all altered instances that are known to us from it.
+			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(
+				updateEvent,
+				dbTarget.alteredInstances.map((r) => r.recurrenceId),
+			)
+		}
 		let calendarGroupRoot
 		try {
-			calendarGroupRoot = await this.entityClient.load(CalendarGroupRootTypeRef, ownerGroup)
+			calendarGroupRoot = await this.entityClient.load(CalendarGroupRootTypeRef, dbTarget.ownerGroup)
 		} catch (e) {
 			if (!(e instanceof NotFoundError) && !(e instanceof NotAuthorizedError)) throw e
-			console.log(TAG, "got new altered instance for progenitor in nonexistent/inaccessible calendar, ignoring")
+			console.log(TAG, "tried to create new progenitor or got new altered instance for progenitor in nonexistent/inaccessible calendar, ignoring")
 			return
 		}
-		return await this.doCreate(updateEvent, "zone", calendarGroupRoot, alarms)
+		return await this.doCreate(updateEvent, "", calendarGroupRoot, alarms)
 	}
 
-	/** Some replied whether they attend an event or not. this MUST be applied to all instances in our
+	/** Someone replied whether they attend an event or not. this MUST be applied to all instances in our
 	 * model since we keep attendee lists in sync for now. */
 	private async processCalendarReply(sender: string, dbEvent: CalendarEvent, updateEvent: CalendarEvent): Promise<void> {
-		console.log("processing calendar reply", updateEvent, dbEvent)
+		console.log("processing calendar reply")
 		// first check if the sender of the email is in the attendee list
 		const replyAttendee = findAttendeeInAddresses(updateEvent.attendees, [sender])
 
@@ -415,7 +476,7 @@ export class CalendarModel {
 	/** handle an event cancellation - either the whole series (progenitor got cancelled)
 	 * or the altered occurrence. */
 	private async processCalendarCancellation(dbEvent: CalendarEvent): Promise<void> {
-		console.log("processing cancellation", dbEvent)
+		console.log("processing cancellation")
 		// not having UID is technically an error, but we'll do our best (the event came from the server after all)
 		if (dbEvent.recurrenceId == null && dbEvent.uid != null) {
 			return await this.deleteEventsByUid(dbEvent.uid)
@@ -618,4 +679,12 @@ function isSameExclusions(dates: ReadonlyArray<DateWrapper>, dates2: ReadonlyArr
 		if (a.getTime() !== b.getTime()) return false
 	}
 	return true
+}
+
+function repeatRuleWithExcludedAlteredInstances(progenitor: CalendarEvent, recurrenceIds: ReadonlyArray<Date>): CalendarRepeatRule {
+	const whoModel = new CalendarEventWhenModel(progenitor, getTimeZone())
+	for (const recurrenceId of recurrenceIds) {
+		whoModel.excludeDate(recurrenceId)
+	}
+	return assertNotNull(whoModel.result.repeatRule, "tried to exclude altered instance on progenitor without repeat rule!")
 }

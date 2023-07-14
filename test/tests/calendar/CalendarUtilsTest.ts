@@ -39,6 +39,8 @@ import { Time } from "../../../src/calendar/date/Time.js"
 import { EventType } from "../../../src/calendar/date/eventeditor/CalendarEventModel.js"
 import { CalendarInfo } from "../../../src/calendar/model/CalendarModel.js"
 import { object, replace } from "testdouble"
+import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/api/worker/facades/lazy/CalendarFacade.js"
+import { getDateInUTC, getDateInZone } from "./CalendarTestUtils.js"
 
 const zone = "Europe/Berlin"
 
@@ -815,13 +817,13 @@ o.spec("calendar utils tests", function () {
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
 			})
-			const event = createCalendarEvent({ startTime: new Date(), endTime: new Date(), repeatRule })
-			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(true)
+			const progenitor = createCalendarEvent({ startTime: new Date(), endTime: new Date(), repeatRule }) as CalendarEventProgenitor
+			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(true)
 		})
 
 		o("event without repeat rule has less than two occurrences", function () {
-			const event = createCalendarEvent({ startTime: new Date(), endTime: new Date(), repeatRule: null })
-			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(false)
+			const progenitor = createCalendarEvent({ startTime: new Date(), endTime: new Date(), repeatRule: null }) as CalendarEventProgenitor
+			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(false)
 		})
 
 		o("event with higher count than exclusions+1 has more left", function () {
@@ -833,8 +835,12 @@ o.spec("calendar utils tests", function () {
 				excludedDates: [createDateWrapper({ date: new Date("2023-03-03T22:00:00Z") })],
 				timeZone: zone,
 			})
-			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
-			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(true)
+			const progenitor = createCalendarEvent({
+				startTime: new Date("2023-03-02T22:00:00Z"),
+				endTime: new Date("2023-03-02T23:00:00Z"),
+				repeatRule,
+			}) as CalendarEventProgenitor
+			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(true)
 		})
 
 		o("event with count and enough exclusions has less than two left", function () {
@@ -846,8 +852,12 @@ o.spec("calendar utils tests", function () {
 				excludedDates: [createDateWrapper({ date: new Date("2023-03-03T22:00:00Z") }), createDateWrapper({ date: new Date("2023-03-04T22:00:00Z") })],
 				timeZone: zone,
 			})
-			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
-			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(false)
+			const progenitor = createCalendarEvent({
+				startTime: new Date("2023-03-02T22:00:00Z"),
+				endTime: new Date("2023-03-02T23:00:00Z"),
+				repeatRule,
+			}) as CalendarEventProgenitor
+			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(false)
 		})
 
 		o("event with count and enough exclusions has less than two left, first is excluded", function () {
@@ -859,8 +869,12 @@ o.spec("calendar utils tests", function () {
 				excludedDates: [createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }), createDateWrapper({ date: new Date("2023-03-04T22:00:00Z") })],
 				timeZone: zone,
 			})
-			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
-			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(false)
+			const progenitor = createCalendarEvent({
+				startTime: new Date("2023-03-02T22:00:00Z"),
+				endTime: new Date("2023-03-02T23:00:00Z"),
+				repeatRule,
+			}) as CalendarEventProgenitor
+			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(false)
 		})
 
 		o("event with end date and enough exclusions has less than two left, first is excluded", function () {
@@ -881,8 +895,12 @@ o.spec("calendar utils tests", function () {
 				timeZone: zone,
 				excludedDates: [createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }), createDateWrapper({ date: new Date("2023-03-04T22:00:00Z") })],
 			})
-			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
-			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(false)
+			const progenitor = createCalendarEvent({
+				startTime: new Date("2023-03-02T22:00:00Z"),
+				endTime: new Date("2023-03-02T23:00:00Z"),
+				repeatRule,
+			}) as CalendarEventProgenitor
+			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(false)
 		})
 
 		o("event with end date and enough exclusions has more than two left, first is excluded", function () {
@@ -903,8 +921,77 @@ o.spec("calendar utils tests", function () {
 				timeZone: zone,
 				excludedDates: [createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }), createDateWrapper({ date: new Date("2023-03-04T22:00:00Z") })],
 			})
-			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
-			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(true)
+			const progenitor = createCalendarEvent({
+				startTime: new Date("2023-03-02T22:00:00Z"),
+				endTime: new Date("2023-03-02T23:00:00Z"),
+				repeatRule,
+			}) as CalendarEventProgenitor
+			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(true)
+		})
+
+		o("event with end date and enough exclusions has more than two left, first is excluded", function () {
+			const repeatRule = createCalendarRepeatRule({
+				endType: EndType.UntilDate,
+				frequency: RepeatPeriod.DAILY,
+				interval: "1",
+				endValue: String(
+					DateTime.fromObject(
+						{
+							year: 2023,
+							month: 3,
+							day: 8,
+						},
+						{ zone },
+					).toMillis(),
+				),
+				timeZone: zone,
+				excludedDates: [
+					createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }),
+					// 2023-03-03T22:00:00Z not excluded
+					createDateWrapper({ date: new Date("2023-03-04T22:00:00Z") }),
+					createDateWrapper({ date: new Date("2023-03-05T22:00:00Z") }),
+					// 2023-03-06T22:00:00Z not excluded
+					// 2023-03-07T22:00:00Z not excluded
+				],
+			})
+			const progenitor = createCalendarEvent({
+				startTime: new Date("2023-03-02T22:00:00Z"),
+				endTime: new Date("2023-03-02T23:00:00Z"),
+				repeatRule,
+			}) as CalendarEventProgenitor
+			o(
+				calendarEventHasMoreThanOneOccurrencesLeft({
+					progenitor,
+					ownerGroup: "",
+					alteredInstances: [{ recurrenceId: new Date("2023-03-05T22:00:00Z") } as CalendarEventAlteredInstance],
+				}),
+			).equals(true)
+		})
+
+		o("event with end date after 2 occurrences and an altered instance is considered to have more than one occurrence", function () {
+			const repeatRule = createCalendarRepeatRule({
+				endType: EndType.UntilDate,
+				frequency: RepeatPeriod.DAILY,
+				interval: "1",
+				endValue: getDateInUTC("2023-03-04").getTime().toString(),
+				timeZone: zone,
+				excludedDates: [
+					createDateWrapper({ date: getDateInZone("2023-03-02T22:00") }),
+					// 2023-03-03T22:00:00Z not excluded
+				],
+			})
+			const progenitor = createCalendarEvent({
+				startTime: getDateInZone("2023-03-02T22:00"),
+				endTime: getDateInZone("2023-03-02T23:00"),
+				repeatRule,
+			}) as CalendarEventProgenitor
+			o(
+				calendarEventHasMoreThanOneOccurrencesLeft({
+					progenitor,
+					ownerGroup: "",
+					alteredInstances: [{ recurrenceId: getDateInZone("2023-03-02T22:00") } as CalendarEventAlteredInstance],
+				}),
+			).equals(true)
 		})
 
 		o("event with exclusions that are not occurrences", function () {
@@ -916,8 +1003,12 @@ o.spec("calendar utils tests", function () {
 				timeZone: zone,
 				excludedDates: [createDateWrapper({ date: new Date("2023-03-03T22:00:00Z") })],
 			})
-			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
-			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(true)
+			const progenitor = createCalendarEvent({
+				startTime: new Date("2023-03-02T22:00:00Z"),
+				endTime: new Date("2023-03-02T23:00:00Z"),
+				repeatRule,
+			}) as CalendarEventProgenitor
+			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(true)
 		})
 
 		o("event with one occurrence (count), no exclusions", function () {
@@ -929,8 +1020,12 @@ o.spec("calendar utils tests", function () {
 				timeZone: zone,
 				excludedDates: [],
 			})
-			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
-			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(false)
+			const progenitor = createCalendarEvent({
+				startTime: new Date("2023-03-02T22:00:00Z"),
+				endTime: new Date("2023-03-02T23:00:00Z"),
+				repeatRule,
+			}) as CalendarEventProgenitor
+			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(false)
 		})
 
 		o("event with one occurrence (untilDate), no exclusions", function () {
@@ -951,8 +1046,12 @@ o.spec("calendar utils tests", function () {
 				timeZone: zone,
 				excludedDates: [],
 			})
-			const event = createCalendarEvent({ startTime: new Date("2023-03-02T22:00:00Z"), endTime: new Date("2023-03-02T23:00:00Z"), repeatRule })
-			o(calendarEventHasMoreThanOneOccurrencesLeft(event)).equals(false)
+			const progenitor = createCalendarEvent({
+				startTime: new Date("2023-03-02T22:00:00Z"),
+				endTime: new Date("2023-03-02T23:00:00Z"),
+				repeatRule,
+			}) as CalendarEventProgenitor
+			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(false)
 		})
 	})
 	o.spec("getEventType", function () {

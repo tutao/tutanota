@@ -22,6 +22,7 @@ import WindowsZones from "./WindowsZones"
 import type { ParsedCalendarData } from "./CalendarImporter"
 import { isMailAddress } from "../../misc/FormatValidator"
 import { AlarmInterval, CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, reverse } from "../../api/common/TutanotaConstants"
+import { Require } from "@tutao/tutanota-utils/dist/Utils.js"
 
 function parseDateString(dateString: string): {
 	year: number
@@ -465,12 +466,34 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 	const method = methodProp ? methodProp.value : CalendarMethod.PUBLISH
 	const eventObjects = icalObject.children.filter((obj) => obj.type === "VEVENT")
 	const contents = eventObjects.map((eventObj, index) => {
-		const event = createCalendarEvent()
+		// this will not be returned before assigning a uid.
+		const event = createCalendarEvent() as Require<"uid", CalendarEvent>
 		const startProp = getProp(eventObj, "DTSTART")
 		if (typeof startProp.value !== "string") throw new ParserError("DTSTART value is not a string")
 		const tzId = getTzId(startProp)
 		const { date: startTime, allDay } = parseTime(startProp.value, tzId ?? undefined)
 		event.startTime = startTime
+		// start time and tzid is sorted, so we can worry about event identity now before proceeding...
+		let hasValidUid = false
+		try {
+			event.uid = getPropStringValue(eventObj, "UID")
+			hasValidUid = true
+		} catch (e) {
+			if (e instanceof ParserError) {
+				// Also parse event and create new UID if none is set
+				event.uid = `import-${Date.now()}-${index}@tutanota.com`
+			} else {
+				throw e
+			}
+		}
+
+		const recurrenceIdProp = eventObj.properties.find((p) => p.name === "RECURRENCE-ID")
+		if (recurrenceIdProp != null && hasValidUid) {
+			// if we generated the UID, we have no way of knowing which event series this recurrenceId refers to.
+			// in that case, we just don't add the recurrence Id and import the event as a standalone.
+			event.recurrenceId = parseRecurrenceId(recurrenceIdProp, tzId)
+		}
+
 		const endProp = eventObj.properties.find((p) => p.name === "DTEND")
 
 		if (endProp) {
@@ -527,12 +550,6 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 		if (rruleProp != null) {
 			event.repeatRule = parseRrule(rruleProp, tzId)
 			event.repeatRule.excludedDates = parseExDates(excludedDateProps)
-		}
-
-		const recurrenceIdProp = eventObj.properties.find((p) => p.name === "RECURRENCE-ID")
-		if (recurrenceIdProp != null) {
-			// FIXME: this is only valid if there's also a UID
-			event.recurrenceId = parseRecurrenceId(recurrenceIdProp, tzId)
 		}
 
 		const descriptionProp = eventObj.properties.find((p) => p.name === "DESCRIPTION")
@@ -604,17 +621,6 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 				})
 			} else {
 				console.log("organizer has no address or address is invalid, ignoring: ", organizerAddress)
-			}
-		}
-
-		try {
-			event.uid = getPropStringValue(eventObj, "UID")
-		} catch (e) {
-			if (e instanceof ParserError) {
-				// Also parse event and create new UID if none is set
-				event.uid = `import-${Date.now()}-${index}@tutanota.com`
-			} else {
-				throw e
 			}
 		}
 

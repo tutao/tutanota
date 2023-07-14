@@ -101,15 +101,13 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 	}
 
 	const operation = locator.operationProgressTracker.startNewOperation()
-	// FIXME: is this necessary?
-	const total = [...eventsForCreation, ...eventsForCreationAltered]
-	return showProgressDialog("importCalendar_label", locator.calendarFacade.saveImportedCalendarEvents(total, operation.id), operation.progress)
+	return showProgressDialog("importCalendar_label", locator.calendarFacade.saveImportedCalendarEvents(eventsForCreation, operation.id), operation.progress)
 		.catch(
 			ofClass(ImportError, (e) =>
 				Dialog.message(() =>
 					lang.get("importEventsError_msg", {
 						"{amount}": e.numFailed + "",
-						"{total}": total.length.toString(),
+						"{total}": eventsForCreation.length.toString(),
 					}),
 				),
 			),

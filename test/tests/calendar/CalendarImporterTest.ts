@@ -796,6 +796,41 @@ o.spec("CalendarImporterTest", function () {
 				},
 			)
 		})
+		o("recurrence id on event without UID will be deleted", async function () {
+			const expected = {
+				event: createCalendarEvent({
+					startTime: new Date("2023-07-04T15:00:00.000Z"),
+					endTime: new Date("2023-07-04T15:30:00.000Z"),
+					sequence: "1",
+					summary: "bkbkbkb",
+					recurrenceId: null,
+				}),
+				alarms: [],
+			}
+			const parsed = parseCalendarStringData(
+				[
+					"BEGIN:VCALENDAR",
+					"PRODID:-//Tutao GmbH//Tutanota 3.115.0//EN",
+					"VERSION:2.0",
+					"CALSCALE:GREGORIAN",
+					"METHOD:PUBLISH",
+					"BEGIN:VEVENT",
+					"DTSTART:20230704T150000Z",
+					"DTEND:20230704T153000Z",
+					"DTSTAMP:20230712T142825Z",
+					"SEQUENCE:1",
+					"SUMMARY:bkbkbkb",
+					"RECURRENCE-ID:20230704T170000",
+					"END:VEVENT",
+					"END:VCALENDAR",
+				].join("\r\n"),
+				zone,
+			).contents[0]
+			o(parsed.event.uid).notEquals(null)
+			// @ts-ignore we want to test that the other fields are the same.
+			parsed.event.uid = null
+			testEventEquality(parsed, expected)
+		})
 		o("all-day event with invalid DTEND", async function () {
 			testEventEquality(
 				parseCalendarStringData(

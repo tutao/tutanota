@@ -703,6 +703,8 @@ export class MailViewerViewModel {
 	/**
 	 * Check if the list of files contain an iCal file which we can then load and display details for. A calendar notification
 	 * should contain only one iCal attachment, so we only process the first matching one.
+	 *
+	 * (this is not true for ie google calendar, they send the invite twice in each mail, but it's always the same file twice)
 	 */
 	private handleCalendarFile(files: Array<TutanotaFile>, mail: Mail): void {
 		const calendarFile = files.find((a) => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
