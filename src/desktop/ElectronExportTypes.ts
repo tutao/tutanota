@@ -11,6 +11,5 @@ export type ChildProcessExports = typeof ChildProcessModule
 export type ElectronExports = typeof Electron.CrossProcessExports
 export type WinregExports = { default: WinregStatic }
 export type WebContentsEvent = {
-	readonly sender: WebContents
 	readonly preventDefault: () => void
 }
