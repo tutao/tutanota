@@ -12,11 +12,10 @@ export async function createInitialTemplateListIfAllowed(): Promise<TemplateGrou
 	const userController = locator.logins.getUserController()
 	const customer = await userController.loadCustomer()
 	const { getAvailablePlansWithTemplates } = await import("../subscription/SubscriptionUtils.js")
-	const plans = await getAvailablePlansWithTemplates()
 	const allowed =
 		(await userController.getPlanConfig()).templates ||
 		isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) ||
-		(await showPlanUpgradeRequiredDialog(plans))
+		(await showPlanUpgradeRequiredDialog(await getAvailablePlansWithTemplates()))
 	if (allowed) {
 		const groupId = await locator.groupManagementFacade.createTemplateGroup("")
 		return locator.entityClient.load<TemplateGroupRoot>(TemplateGroupRootTypeRef, groupId)
