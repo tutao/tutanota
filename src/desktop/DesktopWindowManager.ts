@@ -1,5 +1,5 @@
 import type { NativeImage, Rectangle } from "electron"
-import { app, BrowserWindow, screen } from "electron"
+import { app, screen } from "electron"
 import type { UserInfo } from "./ApplicationWindow"
 import { ApplicationWindow } from "./ApplicationWindow"
 import type { DesktopConfig } from "./config/DesktopConfig"
@@ -11,9 +11,8 @@ import type { LocalShortcutManager } from "./electron-localshortcut/LocalShortcu
 import { BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey } from "./config/ConfigKeys"
 import type { SseInfo } from "./sse/DesktopSseClient"
 import { isRectContainedInRect } from "./DesktopUtils"
-import { downcast } from "@tutao/tutanota-utils"
 import { DesktopThemeFacade } from "./DesktopThemeFacade"
-import { ElectronExports, WebContentsEvent } from "./ElectronExportTypes"
+import { ElectronExports } from "./ElectronExportTypes"
 import { RemoteBridge } from "./ipc/RemoteBridge.js"
 import { OfflineDbManager } from "./db/PerWindowSqlCipherFacade.js"
 import { ASSET_PROTOCOL } from "./net/ProtocolProxy.js"
@@ -131,8 +130,6 @@ export class WindowManager {
 			.on("zoom-changed", (ev: Event, direction: "in" | "out") => {
 				let scale = (this._currentBounds.scale * 100 + (direction === "out" ? -5 : 5)) / 100
 				this.changeZoom(scale)
-				const w = this.getEventSender(downcast(ev))
-				if (!w) return
 				this.saveBounds(w.getBounds())
 			})
 			.on("did-navigate", () => {
@@ -213,16 +210,6 @@ export class WindowManager {
 	get(id: number): ApplicationWindow | null {
 		const w = windows.find((w) => w.id === id)
 		return w ? w : null
-	}
-
-	/**
-	 * https://www.electronjs.org/docs/api/browser-window#browserwindowfromwebcontentswebcontents
-	 * @returns {?ApplicationWindow|null}
-	 */
-	getEventSender(ev: WebContentsEvent): ApplicationWindow | null {
-		const browserWindow = BrowserWindow.fromWebContents(ev.sender)
-		if (browserWindow == null) return null
-		return this.get(browserWindow.id)
 	}
 
 	getAll(): ApplicationWindow[] {
