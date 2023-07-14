@@ -26,7 +26,6 @@ import {
 	isNotNull,
 	neverNull,
 	ofClass,
-	partition,
 	promiseMap,
 	stringToUtf8Uint8Array,
 } from "@tutao/tutanota-utils"
@@ -62,6 +61,7 @@ import { ExposedOperationProgressTracker, OperationId } from "../../../main/Oper
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
 import { mapMapAsync } from "@tutao/tutanota-utils/dist/ArrayUtils.js"
 import { Require } from "@tutao/tutanota-utils/dist/Utils.js"
+import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 
 assertWorkerOrNode()
 
@@ -71,10 +71,16 @@ type AlarmNotificationsPerEvent = {
 	alarmNotifications: AlarmNotification[]
 }
 
-export type CalendarEventRecurrence = Require<"recurrenceId", CalendarEvent>
+/** event that is a part of an event series and references another event via its recurrenceId and uid */
+export type CalendarEventAlteredInstance = Require<"recurrenceId" | "uid", CalendarEvent> & { repeatRule: null }
+/** events that has a uid, but no recurrenceId exist on their own and may define a series. events that do not repeat are also progenitors. */
+export type CalendarEventProgenitor = Require<"uid", CalendarEvent> & { recurrenceId: null }
+export type CalendarEventInstance = CalendarEventAlteredInstance | CalendarEventProgenitor
+/** index entry that bundles all the events with the same uid in the ownerGroup. */
 export type CalendarEventUidIndexEntry = {
-	progenitor: CalendarEvent
-	recurrences: Array<CalendarEventRecurrence>
+	ownerGroup: NonNullable<CalendarEvent["_ownerGroup"]>
+	progenitor: CalendarEventProgenitor | null
+	alteredInstances: Array<CalendarEventAlteredInstance>
 }
 
 export class CalendarFacade {
@@ -336,8 +342,7 @@ export class CalendarFacade {
 	 * to find the matching events. We currently only need this for calendar event updates and for that we don't want to
 	 * look into shared calendars.
 	 *
-	 * @returns {CalendarEventUidIndexEntry} a list of calendar events with this UID, which will have the progenitor at index 0 and
-	 * any edited recurrences sorted by original start time after that.
+	 * @returns {CalendarEventUidIndexEntry}
 	 */
 	async getEventsByUid(uid: string): Promise<CalendarEventUidIndexEntry | null> {
 		const { memberships } = this.userFacade.getLoggedInUser()
@@ -348,30 +353,18 @@ export class CalendarFacade {
 				if (groupRoot.index == null) {
 					continue
 				}
-				const indexEntry: CalendarEventUidIndex = await this.entityClient.load<CalendarEventUidIndex>(CalendarEventUidIndexTypeRef, [
-					groupRoot.index.list,
-					uint8arrayToCustomId(hashUid(uid)),
-				])
 
-				if (indexEntry.calendarEvents.length !== 0) {
-					const indexedEventIds: Map<Id, Array<Id>> = groupByAndMap<IdTuple, Id, Id>(
-						indexEntry.calendarEvents,
-						(e: IdTuple) => listIdPart(e),
-						(e: IdTuple) => elementIdPart(e),
-					)
+				// when doing calendar updates, we will miss uid index entity updates if we're using the cache.
+				// this is mainly caused by some calendaring apps sending the same update multiple times in the same mail.
+				// the earliest place where we could deduplicate would be in entityEventsReceived on the calendarModel.
+				const indexEntry: CalendarEventUidIndex = await this.entityRestCache.entityRestClient.load<CalendarEventUidIndex>(
+					CalendarEventUidIndexTypeRef,
+					[groupRoot.index.list, uint8arrayToCustomId(hashUid(uid))],
+				)
 
-					const indexedEventsByList: Map<Id, Array<CalendarEvent>> = await mapMapAsync(indexedEventIds, (listId, elementIds) =>
-						this.entityClient.loadMultiple(CalendarEventTypeRef, listId, elementIds),
-					)
-					const [recurrences, progenitors] = partition<CalendarEventRecurrence, CalendarEvent>(
-						Array.from(indexedEventsByList.values()).flat(),
-						(e): e is CalendarEventRecurrence => e.recurrenceId != null,
-					)
-					sortByRecurrenceId(recurrences)
-					return { progenitor: progenitors[0], recurrences }
-				} else if (indexEntry.calendarEvent != null) {
-					return { progenitor: await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, indexEntry.calendarEvent), recurrences: [] }
-				}
+				const progenitor: CalendarEventProgenitor | null = await loadProgenitorFromIndexEntry(this.entityClient, indexEntry)
+				const alteredInstances: Array<CalendarEventAlteredInstance> = await loadAlteredInstancesFromIndexEntry(this.entityClient, indexEntry)
+				return { progenitor, alteredInstances, ownerGroup: assertNotNull(indexEntry._ownerGroup, "ownergroup on index entry was null!") }
 			} catch (e) {
 				if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 					continue
@@ -550,7 +543,35 @@ function hashUid(uid: string): Uint8Array {
 /**
  * sort a list of events by recurrence id, sorting events without a recurrence id to the front.
  * @param arr the array of events to sort
+ * exported for testing.
  */
-function sortByRecurrenceId(arr: Array<CalendarEventRecurrence>): void {
-	arr.sort((a, b) => (a.recurrenceId < b.recurrenceId ? -1 : 1))
+export function sortByRecurrenceId(arr: Array<CalendarEventAlteredInstance>): void {
+	arr.sort((a, b) => (a.recurrenceId.getTime() < b.recurrenceId.getTime() ? -1 : 1))
+}
+
+async function loadAlteredInstancesFromIndexEntry(entityClient: EntityClient, indexEntry: CalendarEventUidIndex): Promise<Array<CalendarEventAlteredInstance>> {
+	if (indexEntry.alteredInstances.length === 0) return []
+	const indexedEventIds: Map<Id, Array<Id>> = groupByAndMap<IdTuple, Id, Id>(
+		indexEntry.alteredInstances,
+		(e: IdTuple) => listIdPart(e),
+		(e: IdTuple) => elementIdPart(e),
+	)
+
+	const indexedEventsByList = (await mapMapAsync(indexedEventIds, (listId, elementIds) =>
+		entityClient.loadMultiple(CalendarEventTypeRef, listId, elementIds),
+	)) as Map<Id, Array<CalendarEventAlteredInstance>>
+
+	const alteredInstances = Array.from(indexedEventsByList.values()).flat()
+	sortByRecurrenceId(alteredInstances)
+	return alteredInstances
+}
+
+async function loadProgenitorFromIndexEntry(entityClient: EntityClient, indexEntry: CalendarEventUidIndex): Promise<CalendarEventProgenitor | null> {
+	if (indexEntry.progenitor == null) return null
+	const loadedProgenitor = await entityClient.load<CalendarEvent>(CalendarEventTypeRef, indexEntry.progenitor)
+	if (loadedProgenitor.recurrenceId != null) {
+		throw new ProgrammingError(`loaded progenitor has a recurrence Id! ${loadedProgenitor.recurrenceId.toISOString()}`)
+	}
+	assertNotNull(loadedProgenitor.uid, "loaded progenitor has no UID")
+	return loadedProgenitor as CalendarEventProgenitor
 }

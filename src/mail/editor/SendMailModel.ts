@@ -879,7 +879,6 @@ export class SendMailModel {
 					: await this.updateDraft(this.getBody(), attachments, this.draft)
 
 			const attachmentIds = await this.mailFacade.getAttachmentIds(this.draft)
-			for (const id of attachmentIds) console.log("doing the attachment", id)
 			const newAttachments = await promiseMap(attachmentIds, (fileId) => this.entity.load<TutanotaFile>(FileTypeRef, fileId), {
 				concurrency: 5,
 			})

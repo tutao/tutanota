@@ -149,9 +149,10 @@ export async function makeCalendarEventModel(
 	)
 	if (operation === CalendarOperation.DeleteAll || operation === CalendarOperation.EditAll) {
 		assertNonNull(initialValues.uid, "tried to edit/delete all with nonexistent uid")
-		const progenitor = await calendarModel.resolveCalendarEventProgenitor({ uid: initialValues.uid ?? null })
-		if (progenitor == null) return null
-		initialValues = progenitor
+		const index = await calendarModel.getEventsByUid(initialValues.uid)
+		if (index != null && index.progenitor != null) {
+			initialValues = index.progenitor
+		}
 	}
 	const cleanInitialValues = cleanupInitialValuesForEditing(initialValues)
 
@@ -263,12 +264,8 @@ async function selectStrategy(
 		mayRequireSendingUpdates = async () =>
 			(await assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation)).hasUpdateWorthyChanges
 	} else if (operation === CalendarOperation.DeleteAll) {
-		const progenitor = await resolveProgenitor()
-		if (progenitor == null) {
-			return null
-		}
 		editModels = makeEditModels(cleanInitialValues)
-		apply = () => applyStrategies.deleteEntireExistingEvent(editModels, progenitor)
+		apply = () => applyStrategies.deleteEntireExistingEvent(editModels, existingInstanceIdentity)
 		mayRequireSendingUpdates = async () =>
 			(await assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation)).hasUpdateWorthyChanges
 	} else {

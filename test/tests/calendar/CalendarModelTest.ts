@@ -32,7 +32,7 @@ import { ProgressTracker } from "../../../src/api/main/ProgressTracker.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import { MailModel } from "../../../src/mail/model/MailModel.js"
 import { AlarmScheduler } from "../../../src/calendar/date/AlarmScheduler.js"
-import { CalendarFacade } from "../../../src/api/worker/facades/lazy/CalendarFacade.js"
+import { CalendarEventProgenitor, CalendarFacade } from "../../../src/api/worker/facades/lazy/CalendarFacade.js"
 import { asResult, mapToObject } from "@tutao/tutanota-test-utils"
 import type { WorkerClient } from "../../../src/api/main/WorkerClient.js"
 import { FileController } from "../../../src/file/FileController.js"
@@ -786,7 +786,8 @@ o.spec("CalendarModel", function () {
 			const existingEvent = createCalendarEvent({ uid })
 			const calendarFacade = makeCalendarFacade(
 				{
-					getEventsByUid: (loadUid) => (uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null)),
+					getEventsByUid: (loadUid) =>
+						uid === loadUid ? Promise.resolve({ progenitor: existingEvent, alteredInstances: [] }) : Promise.resolve(null),
 				},
 				restClientMock,
 			)
@@ -802,7 +803,7 @@ o.spec("CalendarModel", function () {
 					{
 						event: createCalendarEvent({
 							uid,
-						}),
+						}) as CalendarEventProgenitor,
 						alarms: [],
 					},
 				],
@@ -847,7 +848,8 @@ o.spec("CalendarModel", function () {
 			const workerClient = makeWorkerClient()
 			const calendarFacade = makeCalendarFacade(
 				{
-					getEventsByUid: (loadUid) => (uid === loadUid ? Promise.resolve({ progenitor: existingEvent }) : Promise.resolve(null)),
+					getEventsByUid: (loadUid) =>
+						uid === loadUid ? Promise.resolve({ progenitor: existingEvent, alteredInstances: [] }) : Promise.resolve(null),
 				},
 				restClientMock,
 			)
@@ -878,7 +880,7 @@ o.spec("CalendarModel", function () {
 									status: CalendarAttendeeStatus.DECLINED,
 								}),
 							],
-						}),
+						}) as CalendarEventProgenitor,
 						alarms: [],
 					},
 				],
@@ -932,7 +934,7 @@ o.spec("CalendarModel", function () {
 									status: CalendarAttendeeStatus.ACCEPTED,
 								}),
 							],
-						}),
+						}) as CalendarEventProgenitor,
 						alarms: [],
 					},
 				],
@@ -969,7 +971,8 @@ o.spec("CalendarModel", function () {
 			const workerClient = makeWorkerClient()
 			const calendarFacade = makeCalendarFacade(
 				{
-					getEventsByUid: (loadUid) => (uid === loadUid ? Promise.resolve({ progenitor: existingEvent }) : Promise.resolve(null)),
+					getEventsByUid: (loadUid) =>
+						uid === loadUid ? Promise.resolve({ progenitor: existingEvent, alteredInstances: [] }) : Promise.resolve(null),
 				},
 				restClientMock,
 			)
@@ -991,7 +994,7 @@ o.spec("CalendarModel", function () {
 				method: CalendarMethod.REQUEST,
 				contents: [
 					{
-						event: sentEvent,
+						event: sentEvent as CalendarEventProgenitor,
 						alarms: [],
 					},
 				],
@@ -1037,7 +1040,8 @@ o.spec("CalendarModel", function () {
 			const workerClient = makeWorkerClient()
 			const calendarFacade = makeCalendarFacade(
 				{
-					getEventsByUid: (loadUid) => (uid === loadUid ? Promise.resolve({ progenitor: existingEvent }) : Promise.resolve(null)),
+					getEventsByUid: (loadUid) =>
+						uid === loadUid ? Promise.resolve({ progenitor: existingEvent, alteredInstances: [] }) : Promise.resolve(null),
 				},
 				restClientMock,
 			)
@@ -1066,7 +1070,7 @@ o.spec("CalendarModel", function () {
 				method: CalendarMethod.REQUEST,
 				contents: [
 					{
-						event: sentEvent,
+						event: sentEvent as CalendarEventProgenitor,
 						alarms: [],
 					},
 				],
@@ -1099,7 +1103,8 @@ o.spec("CalendarModel", function () {
 				const workerClient = makeWorkerClient()
 				const calendarFacade = makeCalendarFacade(
 					{
-						getEventsByUid: (loadUid) => (uid === loadUid ? Promise.resolve({ progenitor: existingEvent }) : Promise.resolve(null)),
+						getEventsByUid: (loadUid) =>
+							uid === loadUid ? Promise.resolve({ progenitor: existingEvent, alteredInstances: [] }) : Promise.resolve(null),
 					},
 					restClientMock,
 				)
@@ -1119,7 +1124,7 @@ o.spec("CalendarModel", function () {
 					method: CalendarMethod.CANCEL,
 					contents: [
 						{
-							event: sentEvent,
+							event: sentEvent as CalendarEventProgenitor,
 							alarms: [],
 						},
 					],
@@ -1157,7 +1162,7 @@ o.spec("CalendarModel", function () {
 					method: CalendarMethod.CANCEL,
 					contents: [
 						{
-							event: sentEvent,
+							event: sentEvent as CalendarEventProgenitor,
 							alarms: [],
 						},
 					],

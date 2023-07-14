@@ -66,6 +66,7 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { EventType } from "./eventeditor/CalendarEventModel.js"
 import { hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
+import { CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
 
 assertMainOrNode()
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
@@ -840,37 +841,40 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string): Gene
  *
  * @param event the calendar event to check. to get correct results, this must be the progenitor.
  */
-export function calendarEventHasMoreThanOneOccurrencesLeft(event: Readonly<CalendarEvent>): boolean {
-	if (event.recurrenceId != null) {
-		// note: we're ignoring the edge case of an altered instance being the last one of a series with this.
-		// note: we need to check the progenitors repeat rule to handle it. altered instances have no repeat rule.
-		// note: since the popup needs the progenitor for showing the repeat rule anyway, we could pass it in.
-		return true
+export function calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, alteredInstances }: CalendarEventUidIndexEntry): boolean {
+	if (progenitor == null) {
+		// this may happen if we accept multiple invites to altered instances without ever getting the progenitor.
+		return alteredInstances.length > 1
 	}
-
-	if (event.repeatRule == null) {
+	const { repeatRule } = progenitor
+	if (repeatRule == null) {
 		return false
 	}
 
-	const { endType, endValue, excludedDates } = event.repeatRule
+	const { endType, endValue, excludedDates } = repeatRule
 	if (endType === EndType.Never) {
 		// there are infinite occurrences
 		return true
-	} else if (endType === EndType.Count && Number(endValue ?? "0") > excludedDates.length + 1) {
+	} else if (endType === EndType.Count && Number(endValue ?? "0") + alteredInstances.length > excludedDates.length + 1) {
 		// if there are not enough exclusions to delete all but one occurrence, we can return true
 		return true
 	} else {
+		// we need to count occurrences and match them up against altered instances & exclusions.
 		const excludedTimestamps = excludedDates.map(({ date }) => date.getTime())
 		let i = 0
-		let occurrencesFound = 0
-
-		for (const { startTime } of generateEventOccurrences(event, getTimeZone())) {
+		// for each altered instance, we have an extra exclusion. we're assuming that each
+		// altered instance matches exactly one exclusion without checking if that is true.
+		let occurrencesFound = alteredInstances.length
+		for (const { startTime } of generateEventOccurrences(progenitor, getTimeZone())) {
 			const startTimestamp = startTime.getTime()
 			while (i < excludedTimestamps.length && startTimestamp > excludedTimestamps[i]) {
+				// exclusions are sorted
 				i++
 			}
 
 			if (startTimestamp !== excludedTimestamps[i]) {
+				// we found the place in the array where the startTimestamp would
+				// be if it were in the array
 				occurrencesFound += 1
 				if (occurrencesFound > 1) return true
 			}

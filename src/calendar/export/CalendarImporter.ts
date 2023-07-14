@@ -12,9 +12,10 @@ import { ParserError } from "../../misc/parsing/ParserCombinator"
 import { DateTime } from "luxon"
 import { CALENDAR_MIME_TYPE } from "../../file/FileController"
 import { getLetId } from "../../api/common/utils/EntityUtils"
+import { Require } from "@tutao/tutanota-utils/dist/Utils.js"
 
 export type ParsedEvent = {
-	event: CalendarEvent
+	event: Require<"uid", CalendarEvent>
 	alarms: Array<AlarmInfo>
 }
 

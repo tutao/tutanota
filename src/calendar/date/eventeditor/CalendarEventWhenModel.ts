@@ -422,7 +422,7 @@ export class CalendarEventWhenModel {
 		// as of now, our maximum repeat frequency is 1/day. this means that we could truncate this to the current day (no time)
 		// but then we run into problems with time zones, since we'd like to delete the n-th occurrence of an event, but detect
 		// if an event is excluded by the start of the utc day it falls on, which may depend on time zone if it's truncated to the local start of day
-		// where the exclusion is created.
+		// on which the exclusion is created.
 		const wrapperToInsert = createDateWrapper({ date })
 		if (insertionIndex < 0) {
 			this.repeatRule.excludedDates.push(wrapperToInsert)
