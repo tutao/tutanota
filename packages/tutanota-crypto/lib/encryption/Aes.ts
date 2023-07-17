@@ -1,6 +1,6 @@
 import sjcl from "../internal/sjcl.js"
 import { random } from "../random/Randomizer.js"
-import { bitArrayToUint8Array, uint8ArrayToBitArray } from "../misc/Utils.js"
+import { BitArray, bitArrayToUint8Array, uint8ArrayToBitArray } from "../misc/Utils.js"
 import { arrayEquals, concat, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { sha256Hash } from "../hashes/Sha256.js"
 import { CryptoError } from "../misc/CryptoError.js"
@@ -8,15 +8,23 @@ import { sha512Hash } from "../hashes/Sha512.js"
 
 export const ENABLE_MAC = true
 export const IV_BYTE_LENGTH = 16
-const KEY_LENGTH_BYTES_AES_256 = 32
+export const KEY_LENGTH_BYTES_AES_256 = 32
 const KEY_LENGTH_BITS_AES_256 = KEY_LENGTH_BYTES_AES_256 * 8
-const KEY_LENGTH_BYTES_AES_128 = 16
+export const KEY_LENGTH_BYTES_AES_128 = 16
 const KEY_LENGTH_BITS_AES_128 = KEY_LENGTH_BYTES_AES_128 * 8
 const MAC_ENABLED_PREFIX = 1
 const MAC_LENGTH_BYTES = 32
 
-export type Aes256Key = number[]
-export type Aes128Key = number[]
+export type Aes256Key = BitArray
+export type Aes128Key = BitArray
+
+/**
+ * @return the key length in bytes
+ */
+export function getKeyLengthBytes(key: Aes128Key | Aes256Key): number {
+	// stored as an array of 32-bit (4 byte) integers
+	return key.length * 4
+}
 
 export function aes256RandomKey(): Aes256Key {
 	return uint8ArrayToBitArray(random.generateRandomData(KEY_LENGTH_BYTES_AES_256))
@@ -60,19 +68,19 @@ export function aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array,
  * @param key The key to use for the decryption.
  * @param encryptedBytes The ciphertext.
  * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
- * @param useMac If true, a 256 bit HMAC is assumed to be appended to the encrypted data and it is checked before decryption.
  * @return The decrypted bytes.
  */
-export function aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean = true, useMac: boolean = true): Uint8Array {
+export function aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean = true): Uint8Array {
 	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
-	let subKeys = getAes256SubKeys(key, useMac)
+	const useMac = encryptedBytes.length % 2 === 1
+	const subKeys = getAes256SubKeys(key, useMac)
 	let cipherTextWithoutMac
 
 	if (useMac) {
 		cipherTextWithoutMac = encryptedBytes.subarray(1, encryptedBytes.length - MAC_LENGTH_BYTES)
-		let providedMacBytes = encryptedBytes.subarray(encryptedBytes.length - MAC_LENGTH_BYTES)
-		let hmac = new sjcl.misc.hmac(subKeys.mKey, sjcl.hash.sha256)
-		let computedMacBytes = bitArrayToUint8Array(hmac.encrypt(uint8ArrayToBitArray(cipherTextWithoutMac)))
+		const providedMacBytes = encryptedBytes.subarray(encryptedBytes.length - MAC_LENGTH_BYTES)
+		const hmac = new sjcl.misc.hmac(subKeys.mKey, sjcl.hash.sha256)
+		const computedMacBytes = bitArrayToUint8Array(hmac.encrypt(uint8ArrayToBitArray(cipherTextWithoutMac)))
 
 		if (!arrayEquals(providedMacBytes, computedMacBytes)) {
 			throw new CryptoError("invalid mac")
@@ -88,10 +96,10 @@ export function aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePad
 		throw new CryptoError(`Invalid IV length in AES256Decrypt: ${iv.length} bytes, must be 16 bytes (128 bits)`)
 	}
 
-	let ciphertext = cipherTextWithoutMac.slice(IV_BYTE_LENGTH)
+	const ciphertext = cipherTextWithoutMac.slice(IV_BYTE_LENGTH)
 
 	try {
-		let decrypted = sjcl.mode.cbc.decrypt(new sjcl.cipher.aes(subKeys.cKey), uint8ArrayToBitArray(ciphertext), uint8ArrayToBitArray(iv), [], usePadding)
+		const decrypted = sjcl.mode.cbc.decrypt(new sjcl.cipher.aes(subKeys.cKey), uint8ArrayToBitArray(ciphertext), uint8ArrayToBitArray(iv), [], usePadding)
 		return new Uint8Array(bitArrayToUint8Array(decrypted))
 	} catch (e) {
 		throw new CryptoError("aes decryption failed", e as Error)

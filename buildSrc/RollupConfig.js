@@ -184,7 +184,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "worker-search"
 	} else if (isIn("src/api/worker/Urlifier") || isIn("libs/linkify") || isIn("libs/linkify-html")) {
 		return "linkify"
-	} else if (isIn("src/api/worker") || moduleId.includes(path.normalize("packages/tutanota-crypto"))) {
+	} else if (isIn("src/api/worker") || moduleId.includes(path.normalize("packages/tutanota-crypto")) || moduleId.includes("argon2")) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (isIn("libs/jszip")) {
 		return "jszip"

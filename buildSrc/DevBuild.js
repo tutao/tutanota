@@ -2,7 +2,6 @@ import path from "node:path"
 import fs from "fs-extra"
 import { build as esbuild } from "esbuild"
 import { getTutanotaAppVersion, runStep, sh, writeFile } from "./buildUtils.js"
-import { $ } from "zx"
 import "zx/globals"
 import * as env from "./env.js"
 import { externalTranslationsPlugin, keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin } from "./esbuildUtils.js"
@@ -194,6 +193,12 @@ export async function prepareAssets(stage, host, version) {
 		fs.copy(path.join(root, "/resources/desktop-icons"), path.join(root, "/build/icons")),
 		fs.copy(path.join(root, "/resources/wordlibrary.json"), path.join(root, "build/wordlibrary.json")),
 		fs.copy(path.join(root, "/src/braintree.html"), path.join(root, "build/braintree.html")),
+	])
+
+	const wasmDir = path.join(root, "/build/wasm")
+	await Promise.all([
+		await fs.emptyDir(wasmDir),
+		fs.copy(path.join(root, "/packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm"), path.join(wasmDir, "argon2.wasm")),
 	])
 
 	// write empty file

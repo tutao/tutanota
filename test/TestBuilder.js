@@ -7,6 +7,7 @@ import { getTutanotaAppVersion, runStep, sh, writeFile } from "../buildSrc/build
 import { aliasPath as esbuildPluginAliasPath } from "esbuild-plugin-alias-path"
 import { keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin } from "../buildSrc/esbuildUtils.js"
 import { buildPackages } from "../buildSrc/packageBuilderFunctions.js"
+import watPlugin from "esbuild-plugin-wat"
 
 export async function runTestBuild({ clean, fast = false }) {
 	if (clean) {
@@ -32,6 +33,7 @@ export async function runTestBuild({ clean, fast = false }) {
 		const pjPath = path.join("..", "package.json")
 		await fs.mkdir(inBuildDir(), { recursive: true })
 		await fs.copyFile(pjPath, inBuildDir("package.json"))
+		await fs.copyFile(path.join("..", "packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm"), inBuildDir("argon2.wasm"))
 		await createUnitTestHtml(localEnv)
 	})
 	await runStep("Esbuild", async () => {
@@ -83,6 +85,9 @@ export async function runTestBuild({ clean, fast = false }) {
 					environment: "node",
 					dstPath: "./build/keytar.node",
 					platform: process.platform,
+				}),
+				watPlugin({
+					loader: "file",
 				}),
 			],
 		})

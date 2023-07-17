@@ -41,7 +41,7 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 
 	aesDecryptObject(encryptionKey: Aes256Key, serializedObject: string): {} {
 		const encryptedBytes = base64ToUint8Array(serializedObject)
-		const decryptedBytes = this.cryptoFns.aes256Decrypt(encryptionKey, encryptedBytes, true, true)
+		const decryptedBytes = this.cryptoFns.aes256Decrypt(encryptionKey, encryptedBytes, true)
 		const stringObject = utf8Uint8ArrayToString(decryptedBytes)
 		return JSON.parse(stringObject)
 	}
@@ -66,7 +66,7 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	}
 
 	aes256DecryptKey(encryptionKey: Aes256Key, keyToDecrypt: Uint8Array): Uint8Array {
-		return this.cryptoFns.aes256Decrypt(encryptionKey, keyToDecrypt, false, false)
+		return this.cryptoFns.aes256Decrypt(encryptionKey, keyToDecrypt, false)
 	}
 
 	aes256EncryptKey(encryptionKey: Aes256Key, keyToEncrypt: Uint8Array): Uint8Array {

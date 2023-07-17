@@ -16,7 +16,7 @@ import {
 	TooManyRequestsError,
 } from "../api/common/error/RestError"
 import { CancelledError } from "../api/common/error/CancelledError"
-import { ApprovalStatus, getCustomerApprovalStatus } from "../api/common/TutanotaConstants"
+import { ApprovalStatus, getCustomerApprovalStatus, KdfType } from "../api/common/TutanotaConstants"
 import type { ResetAction } from "../login/recover/RecoverLoginDialog"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { UserError } from "../api/main/UserError"
@@ -239,4 +239,9 @@ export async function showGiftCardDialog(urlHash: string) {
 export async function showRecoverDialog(mailAddress: string, resetAction: ResetAction) {
 	const dialog = await import("../login/recover/RecoverLoginDialog")
 	dialog.show(mailAddress, resetAction)
+}
+
+export type ExternalUserKeyDeriver = {
+	kdfType: KdfType
+	salt: Uint8Array
 }

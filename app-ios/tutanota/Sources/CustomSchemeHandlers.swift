@@ -91,13 +91,14 @@ class AssetSchemeHandler : NSObject, WKURLSchemeHandler {
         urlSchemeTask.didFailWithError(err)
         return
       }
-      let mimeType = getFileMIMETypeWithDefault(path: requestedFilePath)
-      urlSchemeTask.didReceive(URLResponse(
+      let mimeType = self.getAssetMimeType(path: requestedFilePath)
+      let response = HTTPURLResponse(
         url: urlSchemeTask.request.url!,
-        mimeType: mimeType,
-        expectedContentLength: fileContent.count,
-        textEncodingName: "UTF-8")
-      )
+        statusCode: 200,
+        httpVersion: "HTTP/1.1",
+        headerFields: ["Content-Type": mimeType]
+      )!
+      urlSchemeTask.didReceive(response)
       urlSchemeTask.didReceive(fileContent)
       urlSchemeTask.didFinish()
     }
@@ -105,6 +106,16 @@ class AssetSchemeHandler : NSObject, WKURLSchemeHandler {
   
   func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {
     // we're doing the asset load synchronously, so we won't get a chance to cancel.
+  }
+  
+  private func getAssetMimeType(path: String) -> String {
+    if path.hasSuffix(".wasm") {
+      return "application/wasm"
+    } else if let mimeType = getFileMIMEType(path: path) {
+      return mimeType
+    } else {
+      fatalError("Unknown asset type! \(path)")
+    }
   }
   
 }

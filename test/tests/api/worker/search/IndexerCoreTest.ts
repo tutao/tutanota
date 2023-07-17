@@ -472,7 +472,7 @@ o.spec("IndexerCore test", () => {
 		o(key).equals(encInstanceId)
 		const [listIdValue, encRowsValue, ownerGroupValue] = value
 		o(listIdValue).equals(listId)
-		o(Array.from(aes256Decrypt(core.db.key, encRowsValue, true, false))).deepEquals(Array.from(new Uint8Array([searchIndexRowKey])))
+		o(Array.from(aes256Decrypt(core.db.key, encRowsValue, true))).deepEquals(Array.from(new Uint8Array([searchIndexRowKey])))
 		o(ownerGroupValue).equals(groupId)
 	})
 	o.spec("writeIndexUpdate _insertNewIndexEntries ", function () {
