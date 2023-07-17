@@ -106,7 +106,7 @@ export class UserController {
 	}
 
 	isPremiumAccount(): boolean {
-		return this.user.accountType === AccountType.PREMIUM
+		return this.user.accountType === AccountType.PAID
 	}
 
 	/**

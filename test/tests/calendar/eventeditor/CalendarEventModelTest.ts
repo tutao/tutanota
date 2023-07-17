@@ -98,7 +98,7 @@ o.spec("CalendarEventModelTest", function () {
 			})
 			const recipientsModel: RecipientsModel = object()
 			const logins: LoginController = object()
-			const userController = makeUserController([ownerAlias.address], AccountType.PREMIUM, ownerMailAddress, true)
+			const userController = makeUserController([ownerAlias.address], AccountType.PAID, ownerMailAddress, true)
 			when(logins.getUserController()).thenReturn(userController)
 			when(calendarModel.loadAlarms(event.alarmInfos, userController.user)).thenResolve([
 				createUserAlarmInfo({
@@ -190,7 +190,7 @@ o.spec("CalendarEventModelTest", function () {
 			o(notAvailable).equals(true)
 		})
 		o("not available for premium users without business subscription", async function () {
-			const userController = makeUserController([], AccountType.PREMIUM, "", false)
+			const userController = makeUserController([], AccountType.PAID, "", false)
 			const model = new CalendarEventModel(
 				null,
 				EventType.OWN,
@@ -208,7 +208,7 @@ o.spec("CalendarEventModelTest", function () {
 			o(notAvailable).equals(true)
 		})
 		o("available for premium users with business subscription", async function () {
-			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const userController = makeUserController([], AccountType.PAID, "", true)
 			const model = new CalendarEventModel(
 				null,
 				EventType.OWN,

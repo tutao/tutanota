@@ -590,7 +590,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 }
 
 function _getAccountTypeName(type: AccountType, subscription: PlanType): string {
-	if (type === AccountType.PREMIUM) {
+	if (type === AccountType.PAID) {
 		return getDisplayNameOfPlanType(subscription)
 	} else {
 		return AccountTypeNames[type]

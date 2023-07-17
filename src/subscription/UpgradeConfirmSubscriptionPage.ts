@@ -36,7 +36,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 
 	private upgrade(data: UpgradeSubscriptionData) {
 		const serviceData = createSwitchAccountTypePostIn({
-			accountType: AccountType.PREMIUM,
+			accountType: AccountType.PAID,
 			plan: data.type,
 			date: Const.CURRENT_DATE,
 			referralCode: data.referralCode,

@@ -31,7 +31,7 @@ export function getCurrentCount(featureType: BookingItemFeatureType, booking: Bo
 export function getTotalStorageCapacityPerCustomer(customer: Customer, customerInfo: CustomerInfo, lastBooking: Booking | null): number {
 	let freeStorageCapacity = getIncludedStorageCapacityPerCustomer(customerInfo)
 
-	if (customer.type === AccountType.PREMIUM) {
+	if (customer.type === AccountType.PAID) {
 		return Math.max(freeStorageCapacity, getCurrentCount(BookingItemFeatureType.Storage, lastBooking))
 	} else {
 		return freeStorageCapacity

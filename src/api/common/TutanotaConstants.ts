@@ -134,7 +134,7 @@ export enum AccountType {
 	SYSTEM = "0",
 	FREE = "1",
 	STARTER = "2",
-	PREMIUM = "3",
+	PAID = "3",
 	EXTERNAL = "5",
 }
 
@@ -142,7 +142,7 @@ export const AccountTypeNames: Record<AccountType, string> = {
 	[AccountType.SYSTEM]: "System",
 	[AccountType.FREE]: "Free",
 	[AccountType.STARTER]: "Outlook",
-	[AccountType.PREMIUM]: "Premium",
+	[AccountType.PAID]: "Paid",
 	[AccountType.EXTERNAL]: "External",
 }
 

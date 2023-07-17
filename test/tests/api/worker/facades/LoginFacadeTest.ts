@@ -224,7 +224,7 @@ o.spec("LoginFacadeTest", function () {
 			})
 			o("when resuming a session and the offline initialization has created a new database, we do synchronous login", async function () {
 				usingOfflineStorage = true
-				user.accountType = AccountType.PREMIUM
+				user.accountType = AccountType.PAID
 				when(
 					cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDays, forceNewDatabase: false }),
 				).thenResolve({
@@ -238,7 +238,7 @@ o.spec("LoginFacadeTest", function () {
 			})
 			o("when resuming a session and the offline initialization has an existing database, we do async login", async function () {
 				usingOfflineStorage = true
-				user.accountType = AccountType.PREMIUM
+				user.accountType = AccountType.PAID
 
 				when(
 					cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDays, forceNewDatabase: false }),
@@ -337,7 +337,7 @@ o.spec("LoginFacadeTest", function () {
 
 			o("When using offline as premium user with stable connection, async login", async function () {
 				usingOfflineStorage = true
-				user.accountType = AccountType.PREMIUM
+				user.accountType = AccountType.PAID
 				when(restClientMock.request(anything(), HttpMethod.GET, anything())).thenDo(async () => {
 					calls.push("sessionService")
 					return JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) })
@@ -361,7 +361,7 @@ o.spec("LoginFacadeTest", function () {
 
 			o("When using offline as premium user with unstable connection, async login with later retry", async function () {
 				usingOfflineStorage = true
-				user.accountType = AccountType.PREMIUM
+				user.accountType = AccountType.PAID
 				const connectionError = new ConnectionError("Oopsie 2")
 				when(restClientMock.request(anything(), HttpMethod.GET, anything())).thenDo(async () => {
 					calls.push("sessionService")
@@ -396,12 +396,12 @@ o.spec("LoginFacadeTest", function () {
 
 			o("When not using offline as premium user with stable connection, sync login", async function () {
 				usingOfflineStorage = false
-				user.accountType = AccountType.PREMIUM
+				user.accountType = AccountType.PAID
 				await testSuccessfulSyncLogin()
 			})
 			o("When not using offline as premium with unstable connection, sync login with connection error", async function () {
 				usingOfflineStorage = false
-				user.accountType = AccountType.PREMIUM
+				user.accountType = AccountType.PAID
 				await testConnectionFailingSyncLogin()
 			})
 
@@ -445,7 +445,7 @@ o.spec("LoginFacadeTest", function () {
 
 			o.beforeEach(function () {
 				usingOfflineStorage = true
-				user.accountType = AccountType.PREMIUM
+				user.accountType = AccountType.PAID
 
 				credentials = {
 					/**

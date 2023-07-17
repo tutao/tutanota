@@ -451,7 +451,7 @@ export class LoginFacade {
 			// the next time they login they will be able to do asynchronous login
 			if (cacheInfo?.isPersistent && !cacheInfo.isNewOfflineDb) {
 				const user = await this.entityClient.load(UserTypeRef, credentials.userId)
-				if (user.accountType !== AccountType.PREMIUM) {
+				if (user.accountType !== AccountType.PAID) {
 					// if account is free do not start offline login/async login workflow.
 					// await before return to catch errors here
 					return await this.finishResumeSession(credentials, externalUserSalt, cacheInfo).catch(
