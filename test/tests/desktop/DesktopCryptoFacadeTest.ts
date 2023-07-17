@@ -43,7 +43,7 @@ o.spec("DesktopCryptoFacadeTest", () => {
 			}
 		},
 
-		aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array {
+		aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
 			if (key === aes256Key && arrayEquals(encryptedBytes, aes256EncryptedKey)) {
 				return aes256DecryptedKey
 			} else {

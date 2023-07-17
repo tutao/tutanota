@@ -330,7 +330,7 @@ export class Indexer {
 	async _loadIndexTables(transaction: DbTransaction, user: User, userGroupKey: Aes128Key, userEncDbKey: Uint8Array): Promise<void> {
 		this.db.key = decrypt256Key(userGroupKey, userEncDbKey)
 		const encDbIv = await transaction.get(MetaDataOS, Metadata.encDbIv)
-		this.db.iv = aes256Decrypt(this.db.key, neverNull(encDbIv), true, false)
+		this.db.iv = aes256Decrypt(this.db.key, neverNull(encDbIv), true)
 		await Promise.all([
 			transaction.get(MetaDataOS, Metadata.mailIndexingEnabled).then((mailIndexingEnabled) => {
 				this._mail.mailIndexingEnabled = neverNull(mailIndexingEnabled)

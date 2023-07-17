@@ -150,6 +150,21 @@
 					"info": "AddAssociation CalendarEventUidIndex/alteredInstances/LIST_ELEMENT_ASSOCIATION/1321."
 				}
 			]
+		},
+		{
+			"version": 63,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "UserAccountUserData",
+					"info": "AddValue UserAccountUserData/kdfVersion/1322."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "SecureExternalRecipientKeyData",
+					"info": "AddValue SecureExternalRecipientKeyData/kdfVersion/1324."
+				}
+			]
 		}
 	]
 }

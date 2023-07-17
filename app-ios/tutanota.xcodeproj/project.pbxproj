@@ -2395,6 +2395,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-D DEBUG";
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -2490,6 +2491,7 @@
 					"-DNDEBUG",
 				);
 				OTHER_LDFLAGS = "";
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-D DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";

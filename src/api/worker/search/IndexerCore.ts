@@ -201,7 +201,7 @@ export class IndexerCore {
 
 				// We need to find SearchIndex rows which we want to update. In the ElementData we have references to the metadata and we can find
 				// corresponding SearchIndex row in it.
-				const metaDataRowKeysBinary = aes256Decrypt(this.db.key, elementData[1], true, false)
+				const metaDataRowKeysBinary = aes256Decrypt(this.db.key, elementData[1], true)
 				// For every word we have a metadata reference and we want to update them all.
 				const metaDataRowKeys = decodeNumbers(metaDataRowKeysBinary)
 				metaDataRowKeys.forEach((metaDataRowKey) => {

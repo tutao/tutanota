@@ -336,6 +336,7 @@ class MainActivity : FragmentActivity() {
 			"json" -> "application/json"
 			"html" -> "text/html"
 			"ttf" -> "font/ttf"
+			"wasm" -> "application/wasm"
 			else -> error("Unknown extension $ext for url $url")
 		}
 	}

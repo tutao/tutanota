@@ -60,7 +60,7 @@ function csp(env) {
 			// * Content Security Policies delivered via a <meta> element may not contain the frame-ancestors directive.
 			const cspContent =
 				"default-src 'none';" +
-				" script-src 'self';" +
+				" script-src 'self' 'wasm-unsafe-eval';" +
 				" child-src 'self';" +
 				" font-src 'self';" +
 				" img-src http: blob: data: *;" +
@@ -75,7 +75,7 @@ function csp(env) {
 	} else {
 		const cspContent =
 			"default-src * 'unsafe-inline';" +
-			" script-src * 'unsafe-inline';" +
+			" script-src * 'unsafe-inline' 'wasm-unsafe-eval';" +
 			" img-src * data: blob: 'unsafe-inline';" +
 			" media-src * data: blob: 'unsafe-inline';" +
 			" style-src * 'unsafe-inline';" +

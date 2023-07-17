@@ -11,7 +11,7 @@ import {
 	User,
 	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs"
-import { createAuthVerifier, encryptKey, generateKeyFromPassphrase, KeyLength, keyToBase64, sha256Hash } from "@tutao/tutanota-crypto"
+import { createAuthVerifier, encryptKey, keyToBase64, sha256Hash } from "@tutao/tutanota-crypto"
 import { LoginFacade, LoginListener, ResumeSessionErrorReason } from "../../../../../src/api/worker/facades/LoginFacade"
 import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest"
 import { EntityClient } from "../../../../../src/api/common/EntityClient"
@@ -24,7 +24,7 @@ import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade"
 import { SaltService, SessionService } from "../../../../../src/api/entities/sys/Services"
 import { Credentials } from "../../../../../src/misc/credentials/Credentials"
 import { defer, DeferredObject, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
-import { AccountType } from "../../../../../src/api/common/TutanotaConstants"
+import { AccountType, KdfType } from "../../../../../src/api/common/TutanotaConstants"
 import { AccessExpiredError, ConnectionError, NotAuthenticatedError } from "../../../../../src/api/common/error/RestError"
 import { SessionType } from "../../../../../src/api/common/SessionType"
 import { HttpMethod } from "../../../../../src/api/common/EntityFunctions"
@@ -58,8 +58,8 @@ export function verify(demonstration: any, config?: td.VerificationConfig) {
 
 const SALT = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
 
-function makeUser({ id, passphrase, salt }) {
-	const userPassphraseKey = generateKeyFromPassphrase(passphrase, salt, KeyLength.b128)
+async function makeUser({ id, passphrase, salt }, facade: LoginFacade): Promise<User> {
+	const userPassphraseKey = await facade.deriveUserPassphraseKey(KdfType.Bcrypt, passphrase, salt)
 
 	const groupKey = encryptKey(userPassphraseKey, [3229306880, 2716953871, 4072167920, 3901332676])
 
@@ -70,6 +70,9 @@ function makeUser({ id, passphrase, salt }) {
 			group: "groupId",
 			symEncGKey: groupKey,
 			groupInfo: ["groupInfoListId", "groupInfoElId"],
+		}),
+		externalAuthInfo: createUserExternalAuthInfo({
+			latestSaltHash: SALT,
 		}),
 	})
 }
@@ -155,16 +158,19 @@ o.spec("LoginFacadeTest", function () {
 			const passphrase = "hunter2"
 			const userId = "userId"
 
-			o.beforeEach(function () {
+			o.beforeEach(async function () {
 				when(serviceExecutor.post(SessionService, anything()), { ignoreExtraArgs: true }).thenResolve(
 					createCreateSessionReturn({ user: userId, accessToken: "accessToken", challenges: [] }),
 				)
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(
-					makeUser({
-						id: userId,
-						passphrase,
-						salt: SALT,
-					}),
+					await makeUser(
+						{
+							id: userId,
+							passphrase,
+							salt: SALT,
+						},
+						facade,
+					),
 				)
 			})
 
@@ -189,7 +195,7 @@ o.spec("LoginFacadeTest", function () {
 	})
 
 	o.spec("Resuming existing sessions", function () {
-		o.spec("initializing cache storage", function () {
+		o.spec("initializing cache storage", async function () {
 			const dbKey = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4])
 			const passphrase = "hunter2"
 			const userId = "userId"
@@ -198,11 +204,14 @@ o.spec("LoginFacadeTest", function () {
 
 			let credentials: Credentials
 
-			const user = makeUser({
-				id: userId,
-				passphrase,
-				salt: SALT,
-			})
+			const user = await makeUser(
+				{
+					id: userId,
+					passphrase,
+					salt: SALT,
+				},
+				facade,
+			)
 
 			o.beforeEach(function () {
 				credentials = {
@@ -280,23 +289,37 @@ o.spec("LoginFacadeTest", function () {
 						anything(),
 					),
 				).thenReject(new NotAuthenticatedError("not your cheese"))
-				await o(() => facade.resumeSession(credentials, SALT, dbKey, timeRangeDays)).asyncThrows(NotAuthenticatedError)
+
+				await o(() =>
+					facade.resumeSession(
+						credentials,
+						{
+							salt: SALT,
+							kdfType: KdfType.Bcrypt,
+						},
+						dbKey,
+						timeRangeDays,
+					),
+				).asyncThrows(NotAuthenticatedError)
 				verify(cacheStorageInitializerMock.deInitialize())
 			})
 		})
 
-		o.spec("account type combinations", function () {
+		o.spec("account type combinations", async function () {
 			let credentials: Credentials
 			const dbKey = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4])
 			const passphrase = "hunter2"
 			const userId = "userId"
 			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677]
 			const accessToken = "accessToken"
-			const user = makeUser({
-				id: userId,
-				passphrase,
-				salt: SALT,
-			})
+			const user = await makeUser(
+				{
+					id: userId,
+					passphrase,
+					salt: SALT,
+				},
+				facade,
+			)
 			let calls: string[]
 			let fullLoginDeferred: DeferredObject<void>
 
@@ -346,7 +369,7 @@ o.spec("LoginFacadeTest", function () {
 					throw new ConnectionError("Oopsie 1")
 				})
 
-				const result = await facade.resumeSession(credentials, user.salt, dbKey, timeRangeDays).finally(() => {
+				const result = await facade.resumeSession(credentials, { salt: user.salt!, kdfType: KdfType.Bcrypt }, dbKey, timeRangeDays).finally(() => {
 					calls.push("return")
 				})
 
@@ -365,7 +388,7 @@ o.spec("LoginFacadeTest", function () {
 				const deferred = defer()
 				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything())).thenDo(() => deferred.resolve(null))
 
-				const result = await facade.resumeSession(credentials, user.salt, dbKey, timeRangeDays)
+				const result = await facade.resumeSession(credentials, { salt: user.salt!, kdfType: KdfType.Bcrypt }, dbKey, timeRangeDays)
 
 				o(result.type).equals("success")
 
@@ -390,7 +413,7 @@ o.spec("LoginFacadeTest", function () {
 				const deferred = defer()
 				when(loginListener.onPartialLoginSuccess()).thenDo(() => deferred.resolve(null))
 
-				const result = await facade.resumeSession(credentials, user.salt, dbKey, timeRangeDays)
+				const result = await facade.resumeSession(credentials, { salt: user.salt!, kdfType: KdfType.Bcrypt }, dbKey, timeRangeDays)
 
 				await deferred.promise
 
@@ -430,9 +453,11 @@ o.spec("LoginFacadeTest", function () {
 					return JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) })
 				})
 
-				await facade.resumeSession(credentials, user.salt, dbKey, timeRangeDays).finally(() => {
-					calls.push("return")
-				})
+				await facade
+					.resumeSession(credentials, user.salt == null ? null : { salt: user.salt, kdfType: KdfType.Bcrypt }, dbKey, timeRangeDays)
+					.finally(() => {
+						calls.push("return")
+					})
 				o(calls).deepEquals(["sessionService", "setUser", "return"])
 			}
 
@@ -442,23 +467,28 @@ o.spec("LoginFacadeTest", function () {
 					throw new ConnectionError("Oopsie 3")
 				})
 
-				await o(() => facade.resumeSession(credentials, user.salt, dbKey, timeRangeDays)).asyncThrows(ConnectionError)
+				await o(() => facade.resumeSession(credentials, { salt: user.salt!, kdfType: KdfType.Bcrypt }, dbKey, timeRangeDays)).asyncThrows(
+					ConnectionError,
+				)
 				o(calls).deepEquals(["sessionService"])
 			}
 		})
 
-		o.spec("async login", function () {
+		o.spec("async login", async function () {
 			let credentials: Credentials
 			const dbKey = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4])
 			const passphrase = "hunter2"
 			const userId = "userId"
 			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677]
 			const accessToken = "accessToken"
-			const user = makeUser({
-				id: userId,
-				passphrase,
-				salt: SALT,
-			})
+			const user = await makeUser(
+				{
+					id: userId,
+					passphrase,
+					salt: SALT,
+				},
+				facade,
+			)
 			let calls: string[]
 			let fullLoginDeferred: DeferredObject<void>
 
@@ -504,7 +534,7 @@ o.spec("LoginFacadeTest", function () {
 					JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) }),
 				)
 
-				await facade.resumeSession(credentials, user.salt, dbKey, timeRangeDays)
+				await facade.resumeSession(credentials, { salt: user.salt!, kdfType: KdfType.Bcrypt }, dbKey, timeRangeDays)
 
 				await fullLoginDeferred.promise
 
@@ -527,7 +557,7 @@ o.spec("LoginFacadeTest", function () {
 					// the type definitions for testdouble are lacking, but we can do this
 					.thenReturn(Promise.reject(connectionError), Promise.resolve(JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) })))
 
-				await facade.resumeSession(credentials, user.salt, dbKey, timeRangeDays)
+				await facade.resumeSession(credentials, { salt: user.salt!, kdfType: KdfType.Bcrypt }, dbKey, timeRangeDays)
 
 				verify(userFacade.setAccessToken("accessToken"))
 				verify(userFacade.unlockUserGroupKey(anything()), { times: 0 })
@@ -555,7 +585,7 @@ o.spec("LoginFacadeTest", function () {
 
 			let credentials: Credentials
 
-			o.beforeEach(function () {
+			o.beforeEach(async function () {
 				credentials = {
 					/**
 					 * Identifier which we use for logging in.
@@ -570,11 +600,14 @@ o.spec("LoginFacadeTest", function () {
 					type: "internal",
 				} as Credentials
 
-				user = makeUser({
-					id: userId,
-					passphrase,
-					salt: SALT,
-				})
+				user = await makeUser(
+					{
+						id: userId,
+						passphrase,
+						salt: SALT,
+					},
+					facade,
+				)
 				user.externalAuthInfo = createUserExternalAuthInfo({
 					latestSaltHash: sha256Hash(SALT),
 				})
@@ -587,7 +620,7 @@ o.spec("LoginFacadeTest", function () {
 			})
 
 			o("when the salt is not outdated, login works", async function () {
-				const result = await facade.resumeSession(credentials, SALT, null, timeRangeDays)
+				const result = await facade.resumeSession(credentials, { salt: SALT, kdfType: KdfType.Bcrypt }, null, timeRangeDays)
 
 				o(result.type).equals("success")
 			})
@@ -595,15 +628,25 @@ o.spec("LoginFacadeTest", function () {
 			o("when the salt is outdated, AccessExpiredError is thrown", async function () {
 				user.externalAuthInfo!.latestSaltHash = new Uint8Array([1, 2, 3])
 
-				await o(() => facade.resumeSession(credentials, SALT, null, timeRangeDays)).asyncThrows(AccessExpiredError)
+				await o(() => facade.resumeSession(credentials, { salt: SALT, kdfType: KdfType.Bcrypt }, null, timeRangeDays)).asyncThrows(AccessExpiredError)
 				verify(restClientMock.request(matchers.contains("sys/session"), HttpMethod.DELETE, anything()), { times: 0 })
 			})
 
-			o("when the password is outdated, NotAuthenticatedErorr is thrown", async function () {
+			o("when the password is outdated, NotAuthenticatedError is thrown", async function () {
 				user.verifier = new Uint8Array([1, 2, 3])
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.DELETE, anything())).thenResolve(null)
 
-				await o(() => facade.resumeSession(credentials, SALT, null, timeRangeDays)).asyncThrows(NotAuthenticatedError)
+				await o(() =>
+					facade.resumeSession(
+						credentials,
+						{
+							salt: SALT,
+							kdfType: KdfType.Bcrypt,
+						},
+						null,
+						timeRangeDays,
+					),
+				).asyncThrows(NotAuthenticatedError)
 				verify(restClientMock.request(matchers.contains("sys/session"), HttpMethod.DELETE, anything()))
 			})
 		})

@@ -294,7 +294,7 @@ export class CustomerFacade {
 			date: Const.CURRENT_DATE,
 			lang: currentLanguage,
 			code: registrationCode,
-			userData: this.userManagement.generateUserAccountData(
+			userData: await this.userManagement.generateUserAccountData(
 				userGroupKey,
 				userGroupInfoSessionKey,
 				customerGroupKey,
@@ -347,7 +347,7 @@ export class CustomerFacade {
 		let { userGroupKey, userGroupData } = contactFormUserGroupData
 		await this.operationProgressTracker.onProgress(operationId, 35)
 		let data = createContactFormAccountData()
-		data.userData = this.userManagement.generateContactFormUserAccountData(userGroupKey, password)
+		data.userData = await this.userManagement.generateContactFormUserAccountData(userGroupKey, password)
 		await this.operationProgressTracker.onProgress(operationId, 95)
 		data.userGroupData = userGroupData
 		data.contactForm = contactFormId
