@@ -413,7 +413,7 @@ o.spec("CalendarEventWhoModel", function () {
 		})
 		o("removing/adding attendees on existing event correctly creates the send models", function () {
 			const sendModels: Array<SendMailModel> = [object(), object(), object()]
-			const userController = makeUserController([], AccountType.PREMIUM)
+			const userController = makeUserController([], AccountType.PAID)
 			const third = createEncryptedMailAddress({ address: "somethirdaddress@tutanota.com" })
 			setupRecipient({
 				name: "third",
@@ -466,7 +466,7 @@ o.spec("CalendarEventWhoModel", function () {
 		})
 		o("adding attendees on new event correctly creates invite model", function () {
 			const sendModels: Array<SendMailModel> = [object()]
-			const userController = makeUserController([], AccountType.PREMIUM)
+			const userController = makeUserController([], AccountType.PAID)
 			const existingEvent = createCalendarEvent({
 				_ownerGroup: "ownCalendar",
 				startTime: new Date(2020, 5, 1),
@@ -575,7 +575,7 @@ o.spec("CalendarEventWhoModel", function () {
 	})
 	o.spec("invites in own calendar, changing own attendance", function () {
 		o("changing own attendance on new event results in responseModel and correct status", async function () {
-			const userController = makeUserController([], AccountType.PREMIUM)
+			const userController = makeUserController([], AccountType.PAID)
 			const existingEvent = createCalendarEvent({
 				_ownerGroup: "ownCalendar",
 				startTime: new Date(2020, 5, 1),
@@ -618,7 +618,7 @@ o.spec("CalendarEventWhoModel", function () {
 			o(result.updateModel).equals(null)("no update model")
 		})
 		o("changing own attendance on existing event results in responseModel and correct status", async function () {
-			const userController = makeUserController([], AccountType.PREMIUM)
+			const userController = makeUserController([], AccountType.PAID)
 			const existingEvent = createCalendarEvent({
 				_ownerGroup: "ownCalendar",
 				startTime: new Date(2020, 5, 1),

@@ -110,7 +110,7 @@ export class UserManagementFacade {
 		const keysReturn = await this.serviceExecutor.get(SystemKeysService, null)
 		const user = this.userFacade.getLoggedInUser()
 
-		if (user.accountType === AccountType.PREMIUM) {
+		if (user.accountType === AccountType.PAID) {
 			return {
 				group: neverNull(keysReturn.premiumGroup),
 				symEncGKey: keysReturn.premiumGroupKey,

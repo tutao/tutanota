@@ -294,7 +294,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 
 	try {
 		const postIn = createSwitchAccountTypePostIn()
-		postIn.accountType = AccountType.PREMIUM
+		postIn.accountType = AccountType.PAID
 		postIn.plan = targetSubscription
 		postIn.date = Const.CURRENT_DATE
 		postIn.referralCode = null

@@ -135,7 +135,7 @@ export const ownAddresses: ReadonlyArray<EncryptedMailAddress> = [ownerAddress, 
 
 export function makeUserController(
 	aliases: Array<string> = [],
-	accountType: AccountType = AccountType.PREMIUM,
+	accountType: AccountType = AccountType.PAID,
 	defaultSender?: string,
 	businessFeatureOrdered: boolean = false,
 	isNewPaidPlan: boolean = false,

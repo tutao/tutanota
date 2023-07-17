@@ -7,7 +7,7 @@ import { PaymentInterval } from "../../../src/subscription/PriceUtils.js"
 o.spec("SwitchSubscriptionDialogModelTest", function () {
 	const paidPlanType = PlanType.Premium
 	const premiumCustomer = createCustomer({
-		type: AccountType.PREMIUM,
+		type: AccountType.PAID,
 	})
 	const yearlyIntervalAccountingInfo = createAccountingInfo({
 		paymentInterval: "" + PaymentInterval.Yearly,

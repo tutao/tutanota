@@ -164,7 +164,7 @@ export class CustomerFacade {
 				let availableStorage = Math.max(includedStorage, promotionStorage)
 				let bookedStorage = 0
 
-				if (customer.type === AccountType.PREMIUM) {
+				if (customer.type === AccountType.PAID) {
 					return this.bookingFacade.getCurrentPrice().then((price) => {
 						let currentStorageItem = this.bookingFacade.getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Storage)
 

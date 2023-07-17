@@ -42,7 +42,7 @@ export async function showBuyDialog(params: BookingParams): Promise<boolean> {
 
 async function prepareDialog({ featureType, count, reactivate }: BookingParams): Promise<PriceChangeModel | null> {
 	const customer = await locator.logins.getUserController().loadCustomer()
-	if (customer.type === AccountType.PREMIUM && customer.canceledPremiumAccount) {
+	if (customer.type === AccountType.PAID && customer.canceledPremiumAccount) {
 		await Dialog.message("subscriptionCancelledMessage_msg")
 		return null
 	} else {
