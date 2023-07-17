@@ -109,7 +109,7 @@ async function loadEncryptionMetadata(db: DbFacade, id: string, userGroupKey: Ae
 	}
 
 	const key = decrypt256Key(userGroupKey, encDbKey)
-	const iv = aes256Decrypt(key, encDbIv, true, false)
+	const iv = aes256Decrypt(key, encDbIv, true)
 	return {
 		key,
 		iv,

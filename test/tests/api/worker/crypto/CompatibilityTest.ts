@@ -9,7 +9,8 @@ import {
 	bitArrayToUint8Array,
 	decryptKey,
 	encryptKey,
-	generateKeyFromPassphrase,
+	generateKeyFromPassphraseArgon2id,
+	generateKeyFromPassphraseBcrypt,
 	hexToPrivateKey,
 	hexToPublicKey,
 	KeyLength,
@@ -54,7 +55,7 @@ o.spec("crypto compatibility", function () {
 			// encrypt data
 			let encryptedBytes = aes256Encrypt(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true, false)
 			o(uint8ArrayToBase64(encryptedBytes)).equals(td.cipherTextBase64)
-			let decryptedBytes = uint8ArrayToBase64(aes256Decrypt(key, encryptedBytes, true, false))
+			let decryptedBytes = uint8ArrayToBase64(aes256Decrypt(key, encryptedBytes, true))
 			o(decryptedBytes).equals(td.plainTextBase64)
 			// encrypt 128 key
 			const keyToEncrypt128 = uint8ArrayToBitArray(hexToUint8Array(td.keyToEncrypt128))
@@ -139,15 +140,40 @@ o.spec("crypto compatibility", function () {
 	})
 	o("bcrypt 128", function () {
 		testData.bcrypt128Tests.forEach((td) => {
-			let key = generateKeyFromPassphrase(td.password, hexToUint8Array(td.saltHex), KeyLength.b128)
+			let key = generateKeyFromPassphraseBcrypt(td.password, hexToUint8Array(td.saltHex), KeyLength.b128)
 			o(uint8ArrayToHex(bitArrayToUint8Array(key))).equals(td.keyHex)
 		})
 	})
 	o("bcrypt 256", function () {
 		testData.bcrypt256Tests.forEach((td) => {
-			let key = generateKeyFromPassphrase(td.password, hexToUint8Array(td.saltHex), KeyLength.b256)
+			let key = generateKeyFromPassphraseBcrypt(td.password, hexToUint8Array(td.saltHex), KeyLength.b256)
 			o(uint8ArrayToHex(bitArrayToUint8Array(key))).equals(td.keyHex)
 		})
+	})
+	o("argon2id", async function () {
+		let argon2: WebAssembly.Exports
+
+		// @ts-ignore
+		const { default: argon2Source } = await import("../../../../../packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm")
+
+		if (typeof process !== "undefined") {
+			try {
+				const { join, dirname } = await import("node:path")
+				const { fileURLToPath } = await import("node:url")
+				const { readFile } = await import("node:fs/promises")
+				const path = join(dirname(fileURLToPath(import.meta.url)), argon2Source)
+				argon2 = (await WebAssembly.instantiate(await readFile(path))).instance.exports
+			} catch (e) {
+				throw new Error(`failed to load argon2: ${e}`)
+			}
+		} else {
+			argon2 = (await WebAssembly.instantiateStreaming(fetch(argon2Source))).instance.exports
+		}
+
+		for (let td of testData.argon2idTests) {
+			let key = generateKeyFromPassphraseArgon2id(argon2, td.password, hexToUint8Array(td.saltHex))
+			o(uint8ArrayToHex(bitArrayToUint8Array(key))).equals(td.keyHex)
+		}
 	})
 	o("compression", function () {
 		testData.compressionTests.forEach((td) => {

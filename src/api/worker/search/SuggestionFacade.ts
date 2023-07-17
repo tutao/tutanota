@@ -21,7 +21,7 @@ export class SuggestionFacade<T> {
 			return this._db.dbFacade.createTransaction(true, [SearchTermSuggestionsOS]).then((t) => {
 				return t.get(SearchTermSuggestionsOS, this.type.type.toLowerCase()).then((encSuggestions) => {
 					if (encSuggestions) {
-						this._suggestions = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(this._db.key, encSuggestions, true, false)))
+						this._suggestions = JSON.parse(utf8Uint8ArrayToString(aes256Decrypt(this._db.key, encSuggestions, true)))
 					} else {
 						this._suggestions = {}
 					}

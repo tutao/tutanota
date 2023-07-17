@@ -1,6 +1,7 @@
 import o from "@tutao/otest"
 import "./AesTest.js"
 import "./BcryptTest.js"
+import "./Argon2idTest.js"
 import "./CryptoUtilsTest.js"
 import "./KeyEncryptionTest.js"
 import "./MurmurHashTest.js"

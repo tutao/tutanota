@@ -48,6 +48,12 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     webView.scrollView.delegate = self
     webView.isOpaque = false
     webView.scrollView.contentInsetAdjustmentBehavior = .never
+    
+    #if DEBUG
+    if #available(iOS 16.4, *) {
+      webView.isInspectable = true
+    }
+    #endif
 
     let commonSystemFacade = IosCommonSystemFacade(viewController: self)
     self.bridge = RemoteBridge(

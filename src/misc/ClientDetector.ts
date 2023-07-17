@@ -118,7 +118,7 @@ export class ClientDetector {
 	 */
 	isSupported(): boolean {
 		this.syntaxChecks()
-		return this.isSupportedBrowserVersion() && this.testBuiltins() && this.websockets() && this.testCss()
+		return this.isSupportedBrowserVersion() && this.testBuiltins() && this.websockets() && this.testCss() && this.webassembly()
 	}
 
 	isMobileDevice(): boolean {
@@ -143,6 +143,13 @@ export class ClientDetector {
 			// DOMException is thrown if all cookies are disabled
 			return false
 		}
+	}
+
+	/**
+	 * We need WebAssembly for Argon2.
+	 */
+	webassembly(): boolean {
+		return typeof WebAssembly === "object"
 	}
 
 	/**

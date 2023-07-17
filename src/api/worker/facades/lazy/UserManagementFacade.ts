@@ -1,4 +1,4 @@
-import { AccountType, Const, CounterType, GroupType } from "../../../common/TutanotaConstants.js"
+import { AccountType, asKdfType, Const, CounterType, GroupType, KdfType } from "../../../common/TutanotaConstants.js"
 import type { User } from "../../../entities/sys/TypeRefs.js"
 import {
 	createMembershipAddData,
@@ -15,6 +15,7 @@ import type { ContactFormUserData, UserAccountUserData } from "../../../entities
 import { createContactFormUserData, createUserAccountCreateData, createUserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
 import type { GroupManagementFacade } from "./GroupManagementFacade.js"
 import type { RecoverData } from "../LoginFacade.js"
+import { LoginFacade } from "../LoginFacade.js"
 import { CounterFacade } from "./CounterFacade.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import {
@@ -28,9 +29,7 @@ import {
 	decryptKey,
 	encrypt256Key,
 	encryptKey,
-	generateKeyFromPassphrase,
 	generateRandomSalt,
-	KeyLength,
 	random,
 } from "@tutao/tutanota-crypto"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
@@ -52,12 +51,14 @@ export class UserManagementFacade {
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
+		private readonly loginFacade: LoginFacade,
 	) {}
 
 	async changeUserPassword(user: User, newPassword: string): Promise<void> {
 		const userGroupKey = await this.groupManagement.getGroupKeyViaAdminEncGKey(user.userGroup.group)
 		const salt = generateRandomSalt()
-		const passwordKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
+		const kdfType = this.loginFacade.pickKdfType(asKdfType(user.kdfVersion))
+		const passwordKey = await this.loginFacade.deriveUserPassphraseKey(kdfType, newPassword, salt)
 		const pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
 		const passwordVerifier = createAuthVerifier(passwordKey)
 		const data = createResetPasswordData({
@@ -65,6 +66,7 @@ export class UserManagementFacade {
 			salt,
 			verifier: passwordVerifier,
 			pwEncUserGroupKey,
+			kdfVersion: kdfType,
 		})
 		await this.serviceExecutor.post(ResetPasswordService, data)
 	}
@@ -186,7 +188,7 @@ export class UserManagementFacade {
 		}
 	}
 
-	createUser(
+	async createUser(
 		name: string,
 		mailAddress: string,
 		password: string,
@@ -204,37 +206,38 @@ export class UserManagementFacade {
 
 		const adminGroupKey = this.userFacade.getGroupKey(adminGroupId)
 
-		let customerGroupKey = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Customer))
+		const customerGroupKey = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Customer))
 
-		let userGroupKey = aes128RandomKey()
-		let userGroupInfoSessionKey = aes128RandomKey()
-		return this.rsa
-			.generateKey()
-			.then((keyPair) =>
-				this.groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey),
-			)
-			.then((userGroupData) => {
-				return this.operationProgressTracker.onProgress(operationId, ((userIndex + 0.8) / overallNbrOfUsersToCreate) * 100).then(() => {
-					let data = createUserAccountCreateData()
-					data.date = Const.CURRENT_DATE
-					data.userGroupData = userGroupData
-					data.userData = this.generateUserAccountData(
-						userGroupKey,
-						userGroupInfoSessionKey,
-						customerGroupKey,
-						mailAddress,
-						password,
-						name,
-						this.generateRecoveryCode(userGroupKey),
-					)
-					return this.serviceExecutor.post(UserAccountService, data).then(() => {
-						return this.operationProgressTracker.onProgress(operationId, ((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
-					})
-				})
-			})
+		const userGroupKey = aes128RandomKey()
+		const userGroupInfoSessionKey = aes128RandomKey()
+		const keyPair = await this.rsa.generateKey()
+		const userGroupData = await this.groupManagement.generateInternalGroupData(
+			keyPair,
+			userGroupKey,
+			userGroupInfoSessionKey,
+			adminGroupId,
+			adminGroupKey,
+			customerGroupKey,
+		)
+		await this.operationProgressTracker.onProgress(operationId, ((userIndex + 0.8) / overallNbrOfUsersToCreate) * 100)
+
+		let data = createUserAccountCreateData()
+		data.date = Const.CURRENT_DATE
+		data.userGroupData = userGroupData
+		data.userData = await this.generateUserAccountData(
+			userGroupKey,
+			userGroupInfoSessionKey,
+			customerGroupKey,
+			mailAddress,
+			password,
+			name,
+			this.generateRecoveryCode(userGroupKey),
+		)
+		await this.serviceExecutor.post(UserAccountService, data)
+		return this.operationProgressTracker.onProgress(operationId, ((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
 	}
 
-	generateUserAccountData(
+	async generateUserAccountData(
 		userGroupKey: Aes128Key,
 		userGroupInfoSessionKey: Aes128Key,
 		customerGroupKey: Aes128Key,
@@ -242,25 +245,27 @@ export class UserManagementFacade {
 		password: string,
 		userName: string,
 		recoverData: RecoverData,
-	): UserAccountUserData {
-		let salt = generateRandomSalt()
-		let userPassphraseKey = generateKeyFromPassphrase(password, salt, KeyLength.b128)
-		let mailGroupKey = aes128RandomKey()
-		let contactGroupKey = aes128RandomKey()
-		let fileGroupKey = aes128RandomKey()
-		let clientKey = aes128RandomKey()
-		let mailboxSessionKey = aes128RandomKey()
-		let contactListSessionKey = aes128RandomKey()
-		let fileSystemSessionKey = aes128RandomKey()
-		let mailGroupInfoSessionKey = aes128RandomKey()
-		let contactGroupInfoSessionKey = aes128RandomKey()
-		let fileGroupInfoSessionKey = aes128RandomKey()
-		let tutanotaPropertiesSessionKey = aes128RandomKey()
-		let userEncEntropy = encryptBytes(userGroupKey, random.generateRandomData(32))
-		let userData = createUserAccountUserData()
+	): Promise<UserAccountUserData> {
+		const salt = generateRandomSalt()
+		const kdfType = this.loginFacade.pickKdfType(KdfType.Bcrypt)
+		const userPassphraseKey = await this.loginFacade.deriveUserPassphraseKey(kdfType, password, salt)
+		const mailGroupKey = aes128RandomKey()
+		const contactGroupKey = aes128RandomKey()
+		const fileGroupKey = aes128RandomKey()
+		const clientKey = aes128RandomKey()
+		const mailboxSessionKey = aes128RandomKey()
+		const contactListSessionKey = aes128RandomKey()
+		const fileSystemSessionKey = aes128RandomKey()
+		const mailGroupInfoSessionKey = aes128RandomKey()
+		const contactGroupInfoSessionKey = aes128RandomKey()
+		const fileGroupInfoSessionKey = aes128RandomKey()
+		const tutanotaPropertiesSessionKey = aes128RandomKey()
+		const userEncEntropy = encryptBytes(userGroupKey, random.generateRandomData(32))
+		const userData = createUserAccountUserData()
 		userData.mailAddress = mailAddress
 		userData.encryptedName = encryptString(userGroupInfoSessionKey, userName)
 		userData.salt = salt
+		userData.kdfVersion = kdfType
 		userData.verifier = createAuthVerifier(userPassphraseKey)
 		userData.userEncClientKey = encryptKey(userGroupKey, clientKey)
 		userData.pwEncUserGroupKey = encryptKey(userPassphraseKey, userGroupKey)
@@ -282,16 +287,16 @@ export class UserManagementFacade {
 		return userData
 	}
 
-	generateContactFormUserAccountData(userGroupKey: Aes128Key, password: string): ContactFormUserData {
-		let salt = generateRandomSalt()
-		let userPassphraseKey = generateKeyFromPassphrase(password, salt, KeyLength.b128)
-		let mailGroupKey = aes128RandomKey()
-		let clientKey = aes128RandomKey()
-		let mailboxSessionKey = aes128RandomKey()
-		let mailGroupInfoSessionKey = aes128RandomKey()
-		let tutanotaPropertiesSessionKey = aes128RandomKey()
-		let userEncEntropy = encryptBytes(userGroupKey, random.generateRandomData(32))
-		let userData = createContactFormUserData()
+	async generateContactFormUserAccountData(userGroupKey: Aes128Key, password: string): Promise<ContactFormUserData> {
+		const salt = generateRandomSalt()
+		const userPassphraseKey = await this.loginFacade.deriveUserPassphraseKey(KdfType.Bcrypt, password, salt)
+		const mailGroupKey = aes128RandomKey()
+		const clientKey = aes128RandomKey()
+		const mailboxSessionKey = aes128RandomKey()
+		const mailGroupInfoSessionKey = aes128RandomKey()
+		const tutanotaPropertiesSessionKey = aes128RandomKey()
+		const userEncEntropy = encryptBytes(userGroupKey, random.generateRandomData(32))
+		const userData = createContactFormUserData()
 		userData.salt = salt
 		userData.verifier = createAuthVerifier(userPassphraseKey)
 		userData.userEncClientKey = encryptKey(userGroupKey, clientKey)
@@ -317,23 +322,23 @@ export class UserManagementFacade {
 		}
 	}
 
-	getRecoverCode(password: string): Promise<string> {
+	async getRecoverCode(password: string): Promise<string> {
 		const user = this.userFacade.getLoggedInUser()
 		const recoverCodeId = user.auth?.recoverCode
 		if (recoverCodeId == null) {
-			return Promise.reject(new Error("Auth is missing"))
+			throw new Error("Auth is missing")
 		}
 
-		const key = generateKeyFromPassphrase(password, assertNotNull(user.salt), KeyLength.b128)
+		const key = await this.loginFacade.deriveUserPassphraseKey(asKdfType(user.kdfVersion), password, assertNotNull(user.salt))
 		const extraHeaders = {
 			authVerifier: createAuthVerifierAsBase64Url(key),
 		}
-		return this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, undefined, extraHeaders).then((result) => {
-			return uint8ArrayToHex(bitArrayToUint8Array(decrypt256Key(this.userFacade.getUserGroupKey(), result.userEncRecoverCode)))
-		})
+
+		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, undefined, extraHeaders)
+		return uint8ArrayToHex(bitArrayToUint8Array(decrypt256Key(this.userFacade.getUserGroupKey(), recoveryCodeEntity.userEncRecoverCode)))
 	}
 
-	createRecoveryCode(password: string): Promise<string> {
+	async createRecoveryCode(password: string): Promise<string> {
 		const user = this.userFacade.getUser()
 
 		if (user == null || user.auth == null) {
@@ -346,12 +351,11 @@ export class UserManagementFacade {
 		recoverPasswordEntity.recoverCodeEncUserGroupKey = recoverCodeEncUserGroupKey
 		recoverPasswordEntity._ownerGroup = this.userFacade.getUserGroupId()
 		recoverPasswordEntity.verifier = recoveryCodeVerifier
-		const pwKey = generateKeyFromPassphrase(password, neverNull(user.salt), KeyLength.b128)
+		const pwKey = await this.loginFacade.deriveUserPassphraseKey(asKdfType(user.kdfVersion), password, assertNotNull(user.salt))
 		const authVerifier = createAuthVerifierAsBase64Url(pwKey)
-		return this.entityClient
-			.setup(null, recoverPasswordEntity, {
-				authVerifier,
-			})
-			.then(() => hexCode)
+		await this.entityClient.setup(null, recoverPasswordEntity, {
+			authVerifier,
+		})
+		return hexCode
 	}
 }

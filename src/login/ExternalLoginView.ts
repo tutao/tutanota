@@ -6,14 +6,13 @@ import { lang } from "../misc/LanguageViewModel"
 import { keyManager, Shortcut } from "../misc/KeyManager"
 import { client } from "../misc/ClientDetector"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { Keys } from "../api/common/TutanotaConstants"
+import { asKdfType, KdfType, Keys } from "../api/common/TutanotaConstants"
 import { progressIcon } from "../gui/base/Icon"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { Autocomplete, TextField, TextFieldType as TextFieldType } from "../gui/base/TextField.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { MessageBox } from "../gui/base/MessageBox.js"
 import { renderInfoLinks } from "./LoginView"
-import { AppHeaderAttrs, Header } from "../gui/Header.js"
 import { GENERATED_MIN_ID } from "../api/common/utils/EntityUtils"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../misc/LoginUtils"
 import type { CredentialsProvider } from "../misc/credentials/CredentialsProvider.js"
@@ -28,6 +27,8 @@ import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 
 assertMainOrNode()
 
+type UrlData = { userId: Id; salt: Uint8Array; kdfType: KdfType }
+
 export class ExternalLoginViewModel {
 	password: string = ""
 	doSavePassword: boolean = false
@@ -36,8 +37,8 @@ export class ExternalLoginViewModel {
 	autologinInProgress = false
 	showAutoLoginButton = false
 
-	private _urlData: { userId: Id; salt: Uint8Array } | null = null
-	get urlData(): { userId: Id; salt: Uint8Array } {
+	private _urlData: UrlData | null = null
+	get urlData(): UrlData {
 		return assertNotNull(this._urlData)
 	}
 
@@ -58,8 +59,8 @@ export class ExternalLoginViewModel {
 		const persistentSession = this.doSavePassword
 
 		const sessionType = persistentSession ? SessionType.Persistent : SessionType.Login
-		const { userId, salt } = this.urlData
-		const newCredentials = await locator.logins.createExternalSession(userId, password, salt, clientIdentifier, sessionType)
+		const { userId, salt, kdfType } = this.urlData
+		const newCredentials = await locator.logins.createExternalSession(userId, password, salt, kdfType, clientIdentifier, sessionType)
 
 		this.password = ""
 
@@ -92,7 +93,7 @@ export class ExternalLoginViewModel {
 	}
 
 	private async resumeSession(credentials: Credentials): Promise<void> {
-		const result = await locator.logins.resumeSession({ credentials, databaseKey: null }, this.urlData.salt, null)
+		const result = await locator.logins.resumeSession({ credentials, databaseKey: null }, { salt: this.urlData.salt, kdfType: this.urlData.kdfType }, null)
 		if (result.type === "error") {
 			switch (result.reason) {
 				case ResumeSessionErrorReason.OfflineNotAvailableForFree:
@@ -136,11 +137,24 @@ export class ExternalLoginViewModel {
 
 	async updateUrl(args: Record<string, any>): Promise<void> {
 		try {
-			const id = decodeURIComponent(location.hash).substring(6) // cutoff #mail/ from #mail/KduzrgF----0S3BTO2gypfDMketWB_PbqQ
+			const encodedExternalLoginData = decodeURIComponent(location.hash).substring(6) // cutoff #mail/ from #mail/KduzrgF----0S3BTO2gypfDMketWB_PbqQ
+
+			const userIdOffset = 0
+			const saltOffset = userIdOffset + GENERATED_MIN_ID.length
+			// 16 bytes Base64 encoded is ceil(16 * 4/3) bytes, or 22 bytes
+			const encodedSaltLength = 22
+			const kdfOffset = saltOffset + encodedSaltLength
+
+			// check if the KDF type is in the URL (encodedExternalLoginData.length > kdfOffset); if not, we assume bcrypt to ensure old links stay valid
+			let kdfType = KdfType.Bcrypt
+			if (encodedExternalLoginData.length > kdfOffset) {
+				kdfType = asKdfType(encodedExternalLoginData.substring(kdfOffset, kdfOffset + 1))
+			}
 
 			this._urlData = {
-				userId: id.substring(0, GENERATED_MIN_ID.length),
-				salt: base64ToUint8Array(base64UrlToBase64(id.substring(GENERATED_MIN_ID.length))),
+				userId: encodedExternalLoginData.substring(userIdOffset, saltOffset),
+				salt: base64ToUint8Array(base64UrlToBase64(encodedExternalLoginData.substring(saltOffset, kdfOffset))),
+				kdfType: kdfType,
 			}
 
 			const credentials = await this.credentialsProvider.getCredentialsByUserId(this.urlData.userId)

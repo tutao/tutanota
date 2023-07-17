@@ -8,10 +8,11 @@ import { client } from "../../misc/ClientDetector"
 import type { LoginFacade, NewSessionData } from "../worker/facades/LoginFacade"
 import { ResumeSessionErrorReason } from "../worker/facades/LoginFacade"
 import type { Credentials } from "../../misc/credentials/Credentials"
-import { FeatureType } from "../common/TutanotaConstants"
+import { FeatureType, KdfType } from "../common/TutanotaConstants"
 import { CredentialsAndDatabaseKey } from "../../misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../common/SessionType"
 import { IMainLocator, locator } from "./MainLocator"
+import { ExternalUserKeyDeriver } from "../../misc/LoginUtils.js"
 
 assertMainOrNodeBoot()
 
@@ -112,13 +113,21 @@ export class LoginController {
 		this.partialLogin.resolve()
 	}
 
-	async createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, sessionType: SessionType): Promise<Credentials> {
+	async createExternalSession(
+		userId: Id,
+		password: string,
+		salt: Uint8Array,
+		kdfType: KdfType,
+		clientIdentifier: string,
+		sessionType: SessionType,
+	): Promise<Credentials> {
 		const loginFacade = await this.getLoginFacade()
 		const persistentSession = sessionType === SessionType.Persistent
 		const { user, credentials, sessionId, userGroupInfo } = await loginFacade.createExternalSession(
 			userId,
 			password,
 			salt,
+			kdfType,
 			clientIdentifier,
 			persistentSession,
 		)
@@ -138,16 +147,16 @@ export class LoginController {
 	/**
 	 * Resume an existing session using stored credentials, may or may not unlock a persistent local database
 	 * @param credentials: The stored credentials and optional database key for the offline db
-	 * @param externalUserSalt
+	 * @param externalUserKeyDeriver The KDF type and salt to resume a session
 	 * @param offlineTimeRangeDays: the user configured time range for their offline storage, used to initialize the offline db
 	 */
 	async resumeSession(
 		{ credentials, databaseKey }: CredentialsAndDatabaseKey,
-		externalUserSalt?: Uint8Array | null,
+		externalUserKeyDeriver?: ExternalUserKeyDeriver | null,
 		offlineTimeRangeDays?: number | null,
 	): Promise<ResumeSessionResult> {
 		const loginFacade = await this.getLoginFacade()
-		const resumeResult = await loginFacade.resumeSession(credentials, externalUserSalt ?? null, databaseKey ?? null, offlineTimeRangeDays ?? null)
+		const resumeResult = await loginFacade.resumeSession(credentials, externalUserKeyDeriver ?? null, databaseKey ?? null, offlineTimeRangeDays ?? null)
 		if (resumeResult.type === "error") {
 			return resumeResult
 		} else {

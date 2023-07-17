@@ -32,7 +32,7 @@ o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
 		let key = aes256RandomKey()
 		let encryptedKey = encryptIndexKeyBase64(key, "blubb", fixedIv)
-		let decrypted = aes256Decrypt(key, concat(fixedIv, base64ToUint8Array(encryptedKey)), true, false)
+		let decrypted = aes256Decrypt(key, concat(fixedIv, base64ToUint8Array(encryptedKey)), true)
 		o(utf8Uint8ArrayToString(decrypted)).equals("blubb")
 	})
 	o("encryptSearchIndexEntry + decryptSearchIndexEntry", function () {
@@ -49,7 +49,7 @@ o.spec("Index Utils", () => {
 		// position[1] 536 = 0x218 => length of number = 2 | 0x80 = 0x82 numbers: 0x02, 0x18
 		// position[2] 3 => 0x03
 		const encodedIndexEntry = [0x54, 0xc, 0x82, 0x02, 0x18, 0x03]
-		const result = aes256Decrypt(key, encryptedEntry.slice(16), true, false)
+		const result = aes256Decrypt(key, encryptedEntry.slice(16), true)
 		o(Array.from(result)).deepEquals(Array.from(encodedIndexEntry))
 		let decrypted = decryptSearchIndexEntry(key, encryptedEntry, fixedIv)
 		o(JSON.stringify(decrypted.encId)).equals(JSON.stringify(encId))
@@ -82,7 +82,7 @@ o.spec("Index Utils", () => {
 		const encryptedMeta = encryptMetaData(key, meta)
 		o(encryptedMeta.id).equals(meta.id)
 		o(encryptedMeta.word).equals(meta.word)
-		o(Array.from(aes256Decrypt(key, encryptedMeta.rows, true, false))).deepEquals([
+		o(Array.from(aes256Decrypt(key, encryptedMeta.rows, true))).deepEquals([
 			// First row
 			1,
 			64,

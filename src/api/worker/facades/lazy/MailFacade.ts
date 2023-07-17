@@ -15,6 +15,7 @@ import {
 	ArchiveDataType,
 	CounterType,
 	GroupType,
+	KdfType,
 	MailAuthenticationStatus as MailAuthStatus,
 	MailMethod,
 	MailReportType,
@@ -98,9 +99,7 @@ import {
 	createAuthVerifier,
 	decryptKey,
 	encryptKey,
-	generateKeyFromPassphrase,
 	generateRandomSalt,
-	KeyLength,
 	keyToUint8Array,
 	murmurHash,
 	random,
@@ -116,6 +115,7 @@ import { UserFacade } from "../UserFacade.js"
 import { PartialRecipient, Recipient, RecipientList, RecipientType } from "../../../common/recipients/Recipient.js"
 import { NativeFileApp } from "../../../../native/common/FileApp.js"
 import { isLegacyMail } from "../../../common/MailWrapper.js"
+import { LoginFacade } from "../LoginFacade.js"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -162,6 +162,7 @@ export class MailFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly blobFacade: BlobFacade,
 		private readonly fileApp: NativeFileApp,
+		private readonly loginFacade: LoginFacade,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
@@ -615,14 +616,15 @@ export class MailFacade {
 					continue
 				}
 
+				const kdfVersion = this.loginFacade.pickKdfType(KdfType.Bcrypt)
 				const salt = generateRandomSalt()
-				const passwordKey = generateKeyFromPassphrase(password, salt, KeyLength.b128)
+				const passwordKey = await this.loginFacade.deriveUserPassphraseKey(kdfVersion, password, salt)
 				const passwordVerifier = createAuthVerifier(passwordKey)
 				const externalGroupKeys = await this._getExternalGroupKey(recipient.address, passwordKey, passwordVerifier)
 				const data = createSecureExternalRecipientKeyData()
 				data.mailAddress = recipient.address
 				data.symEncBucketKey = null // legacy for old permission system, not used any more
-
+				data.kdfVersion = kdfVersion
 				data.ownerEncBucketKey = encryptKey(externalGroupKeys.externalMailGroupKey, bucketKey)
 				data.passwordVerifier = passwordVerifier
 				data.salt = salt

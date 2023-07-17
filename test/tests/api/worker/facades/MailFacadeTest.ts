@@ -10,6 +10,7 @@ import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
 import { BlobFacade } from "../../../../../src/api/worker/facades/lazy/BlobFacade.js"
 import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade"
 import { NativeFileApp } from "../../../../../src/native/common/FileApp.js"
+import { LoginFacade } from "../../../../../src/api/worker/facades/LoginFacade.js"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade
@@ -20,6 +21,7 @@ o.spec("MailFacade test", function () {
 	let entity: EntityClient
 	let blobFacade: BlobFacade
 	let fileApp: NativeFileApp
+	let loginFacade: LoginFacade
 
 	o.beforeEach(function () {
 		userFacade = object()
@@ -29,7 +31,8 @@ o.spec("MailFacade test", function () {
 		cryptoFacade = object()
 		serviceExecutor = object()
 		fileApp = object()
-		facade = new MailFacade(userFacade, fileFacade, entity, cryptoFacade, serviceExecutor, blobFacade, fileApp)
+		loginFacade = object()
+		facade = new MailFacade(userFacade, fileFacade, entity, cryptoFacade, serviceExecutor, blobFacade, fileApp, loginFacade)
 	})
 
 	o.spec("checkMailForPhishing", function () {
