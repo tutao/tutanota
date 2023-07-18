@@ -296,8 +296,11 @@ export class CalendarModel {
 
 	async deleteAlteredOccurrences(uid: string): Promise<void> {
 		const entry = await this.calendarFacade.getEventsByUid(uid)
-		if (entry) {
-			await Promise.all([...entry.alteredInstances].map((e) => this.deleteEvent(e)))
+		if (entry == null) {
+			return
+		}
+		for (const e of entry.alteredInstances) {
+			await this.deleteEvent(e)
 		}
 	}
 

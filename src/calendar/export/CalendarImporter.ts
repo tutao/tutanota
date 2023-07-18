@@ -103,8 +103,6 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 		`SUMMARY:${escapeSemicolons(event.summary)}`,
 	]
 		.concat(
-			// FIXME do we need the time zone?
-			// FIXME we can also skip the rrule if we find one of these
 			event.recurrenceId != null
 				? isAllDay
 					? `RECURRENCE-ID;VALUE=DATE:${formatDate(getAllDayDateLocal(event.recurrenceId), localZone)}`
@@ -112,7 +110,7 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 				: [],
 		)
 		.concat(event.description && event.description !== "" ? `DESCRIPTION:${escapeSemicolons(event.description)}` : [])
-		.concat(serializeRepeatRule(repeatRule, isAllDay, timeZone))
+		.concat(event.recurrenceId == null ? serializeRepeatRule(repeatRule, isAllDay, timeZone) : [])
 		.concat(event.location && event.location.length > 0 ? `LOCATION:${escapeSemicolons(event.location)}` : [])
 		.concat(
 			...mapAndFilterNull(alarms, (alarm) => {
