@@ -19,6 +19,7 @@ import {
 import { LoginController } from "../../../api/main/LoginController.js"
 import { DateTime } from "luxon"
 import { CalendarOperation } from "../../view/eventeditor/CalendarEventEditDialog.js"
+import { RecipientField } from "../../../mail/model/MailUtils.js"
 
 /** when starting an edit or delete operation of an event, we
  * need to know how to apply it and whether to send updates. */
@@ -78,30 +79,42 @@ export class CalendarEventApplyStrategies {
 			(async () => {
 				await this.notificationModel.send(newEvent, sendModels)
 				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, existingEvent)
-				const invalidateExceptionalEvents = newEvent.repeatRule && newEvent.repeatRule.excludedDates.length === 0
-				if (invalidateExceptionalEvents) {
-					await this.calendarModel.deleteAlteredOccurrences(uid)
-				} else {
-					const newDuration = editModelsForProgenitor.whenModel.duration
-					const alteredOccurrences = await this.calendarModel.getEventsByUid(uid)
-					if (alteredOccurrences != null) {
-						// note: if we ever allow editing guests separately, we need to update this to not use the
-						// note: progenitor edit models since the guest list might be different from the instance
-						// note: we're looking at.
-						for (const occurrence of alteredOccurrences.alteredInstances) {
-							const { newEvent, newAlarms, sendModels } = await assembleEditResultAndAssignFromExisting(
-								occurrence,
-								editModelsForProgenitor,
-								CalendarOperation.EditThis,
-							)
-							// we need to use the time we had before, not the time of the progenitor (which did not change since we still have altered occurrences)
-							newEvent.startTime = occurrence.startTime
-							newEvent.endTime = DateTime.fromJSDate(newEvent.startTime, { zone: this.zone }).plus(newDuration).toJSDate()
-							// altered instances never have a repeat rule
-							newEvent.repeatRule = null
-							await this.notificationModel.send(newEvent, sendModels)
-							await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, occurrence)
+				const invalidateAlteredInstances = newEvent.repeatRule && newEvent.repeatRule.excludedDates.length === 0
+
+				const newDuration = editModelsForProgenitor.whenModel.duration
+				const index = await this.calendarModel.getEventsByUid(uid)
+				if (index == null) return
+
+				// note: if we ever allow editing guests separately, we need to update this to not use the
+				// note: progenitor edit models since the guest list might be different from the instance
+				// note: we're looking at.
+				for (const occurrence of index.alteredInstances) {
+					if (invalidateAlteredInstances) {
+						editModelsForProgenitor.whoModel.shouldSendUpdates = true
+						const { sendModels } = await assembleEditResultAndAssignFromExisting(occurrence, editModelsForProgenitor, CalendarOperation.EditThis)
+						// we might have a cancel model and an update model if the user changed the guest list
+						// and invalidated the altered instances in the same operation.
+						for (const address in sendModels.cancelModel?.allRecipients() ?? []) {
+							sendModels.updateModel?.addRecipient(RecipientField.BCC, { address })
 						}
+						sendModels.cancelModel = sendModels.updateModel
+						sendModels.updateModel = null
+						sendModels.inviteModel = null
+						await this.notificationModel.send(occurrence, sendModels)
+						await this.calendarModel.deleteEvent(occurrence)
+					} else {
+						const { newEvent, newAlarms, sendModels } = await assembleEditResultAndAssignFromExisting(
+							occurrence,
+							editModelsForProgenitor,
+							CalendarOperation.EditThis,
+						)
+						// we need to use the time we had before, not the time of the progenitor (which did not change since we still have altered occurrences)
+						newEvent.startTime = occurrence.startTime
+						newEvent.endTime = DateTime.fromJSDate(newEvent.startTime, { zone: this.zone }).plus(newDuration).toJSDate()
+						// altered instances never have a repeat rule
+						newEvent.repeatRule = null
+						await this.notificationModel.send(newEvent, sendModels)
+						await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, occurrence)
 					}
 				}
 			})(),

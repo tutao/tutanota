@@ -40,7 +40,6 @@ async function getParsedEvent(fileData: DataFile): Promise<ParsedIcalFileContent
 		// where the whole series is changed (including altered occurrences) seem
 		// to be sent one-by-one by all calendaring apps we could check.
 		if (contents.length > 1) {
-			// FIXME: maybe it would be useful to extract the exporting app from the ical file.
 			console.log(`got an invite file with ${contents.length} events, still only handling the first one`)
 		}
 		const parsedEventWithAlarms = contents[0]
