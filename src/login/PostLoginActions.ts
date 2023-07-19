@@ -111,7 +111,8 @@ export class PostLoginActions implements IPostLoginAction {
 		if (!isAdminClient()) {
 			// If it failed during the partial login due to missing cache entries we will give it another spin here. If it didn't fail then it's just a noop
 			await locator.mailModel.init()
-			await locator.calendarModel.init()
+			const calendarModel = await locator.calendarModel()
+			await calendarModel.init()
 			await this.remindActiveOutOfOfficeNotification()
 		}
 

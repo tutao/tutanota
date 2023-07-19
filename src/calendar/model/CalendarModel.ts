@@ -43,8 +43,6 @@ import { MembershipService } from "../../api/entities/sys/Services"
 import { FileController } from "../../file/FileController"
 import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUtils.js"
 import { Require } from "@tutao/tutanota-utils/dist/Utils.js"
-import { CalendarEventWhenModel } from "../date/eventeditor/CalendarEventWhenModel.js"
-import { getTimeZone } from "../date/CalendarUtils.js"
 
 const TAG = "[CalendarModel]"
 
@@ -75,6 +73,7 @@ export class CalendarModel {
 		private readonly mailModel: MailModel,
 		private readonly calendarFacade: CalendarFacade,
 		private readonly fileController: FileController,
+		private readonly zone: string,
 	) {
 		if (isApp()) return
 		eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
@@ -294,16 +293,6 @@ export class CalendarModel {
 		}
 	}
 
-	async deleteAlteredOccurrences(uid: string): Promise<void> {
-		const entry = await this.calendarFacade.getEventsByUid(uid)
-		if (entry == null) {
-			return
-		}
-		for (const e of entry.alteredInstances) {
-			await this.deleteEvent(e)
-		}
-	}
-
 	/** process a calendar update retrieved from the server automatically. will not apply updates to event series that do not
 	 *  exist on the server yet (that's being done by calling processCalendarEventMessage manually)
 	 * public for testing */
@@ -394,6 +383,7 @@ export class CalendarModel {
 	 * @param updateEvent the event that contains the new version of dbEvent. */
 	private async processCalendarUpdate(dbTarget: CalendarEventUidIndexEntry, dbEvent: CalendarEventInstance, updateEvent: CalendarEvent): Promise<void> {
 		console.log(TAG, "processing request for existing event instance")
+		const { repeatRuleWithExcludedAlteredInstances } = await import("../date/eventeditor/CalendarEventWhenModel.js")
 		if (filterInt(dbEvent.sequence) >= filterInt(updateEvent.sequence)) {
 			console.log(TAG, "got update for outdated event version, ignoring.")
 			return
@@ -403,13 +393,14 @@ export class CalendarModel {
 			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(
 				updateEvent,
 				dbTarget.alteredInstances.map((r) => r.recurrenceId),
+				this.zone,
 			)
 		} else if (updateEvent.recurrenceId != null && dbTarget.progenitor != null && dbTarget.progenitor.repeatRule != null) {
 			// the update is for an altered instance we already have in the calendar. we need to make sure it is
 			// excluded from the progenitor, if it exists and if it repeats. we'll ignore the nonsensical case where
 			// we have an altered instance update for a non-repeating progenitor.
 			const updatedProgenitor = clone(dbTarget.progenitor)
-			updatedProgenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(dbTarget.progenitor, [updateEvent.recurrenceId])
+			updatedProgenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(dbTarget.progenitor, [updateEvent.recurrenceId], this.zone)
 			await this.doUpdateEvent(dbTarget.progenitor, updatedProgenitor)
 		}
 		await this.updateEventWithExternal(dbEvent, updateEvent)
@@ -427,17 +418,19 @@ export class CalendarModel {
 		alarms: Array<AlarmInfo>,
 	): Promise<void> {
 		console.log(TAG, "processing new instance request")
+		const { repeatRuleWithExcludedAlteredInstances } = await import("../date/eventeditor/CalendarEventWhenModel.js")
 		if (updateEvent.recurrenceId != null && dbTarget.progenitor != null && dbTarget.progenitor.repeatRule != null) {
 			// request for a new altered instance. we'll try adding the exclusion for this instance to the progenitor if possible
 			// since not all calendar apps add altered instances to the list of exclusions.
 			const updatedProgenitor = clone(dbTarget.progenitor)
-			updatedProgenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(updatedProgenitor, [updateEvent.recurrenceId])
+			updatedProgenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(updatedProgenitor, [updateEvent.recurrenceId], this.zone)
 			await this.doUpdateEvent(dbTarget.progenitor, updatedProgenitor)
 		} else if (updateEvent.recurrenceId == null && updateEvent.repeatRule != null && dbTarget.alteredInstances.length > 0) {
 			// request to add the progenitor to the calendar. we have to exclude all altered instances that are known to us from it.
 			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(
 				updateEvent,
 				dbTarget.alteredInstances.map((r) => r.recurrenceId),
+				this.zone,
 			)
 		}
 		let calendarGroupRoot
@@ -682,12 +675,4 @@ function isSameExclusions(dates: ReadonlyArray<DateWrapper>, dates2: ReadonlyArr
 		if (a.getTime() !== b.getTime()) return false
 	}
 	return true
-}
-
-function repeatRuleWithExcludedAlteredInstances(progenitor: CalendarEvent, recurrenceIds: ReadonlyArray<Date>): CalendarRepeatRule {
-	const whoModel = new CalendarEventWhenModel(progenitor, getTimeZone())
-	for (const recurrenceId of recurrenceIds) {
-		whoModel.excludeDate(recurrenceId)
-	}
-	return assertNotNull(whoModel.result.repeatRule, "tried to exclude altered instance on progenitor without repeat rule!")
 }

@@ -106,7 +106,6 @@ class MainLocator {
 	eventController!: EventController
 	search!: SearchModel
 	mailModel!: MailModel
-	calendarModel!: CalendarModel
 	minimizedMailModel!: MinimizedMailEditorViewModel
 	contactModel!: ContactModel
 	entityClient!: EntityClient
@@ -279,7 +278,7 @@ class MainLocator {
 				const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
 				return await this.calendarEventModel(mode, event, mailboxDetail, mailboxProperties, null)
 			},
-			this.calendarModel,
+			await this.calendarModel(),
 			this.entityClient,
 			this.eventController,
 			this.progressTracker,
@@ -341,7 +340,7 @@ class MainLocator {
 			editMode,
 			event,
 			await this.recipientsModel(),
-			this.calendarModel,
+			await this.calendarModel(),
 			this.logins,
 			mailboxDetail,
 			mailboxProperties,
@@ -696,7 +695,16 @@ class MainLocator {
 				? new FileControllerBrowser(blobFacade, fileFacade, guiDownload)
 				: new FileControllerNative(blobFacade, fileFacade, guiDownload, this.nativeInterfaces.fileApp)
 
-		this.calendarModel = new CalendarModel(
+		const { ContactModelImpl } = await import("../../contacts/model/ContactModel")
+		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, this.logins)
+		this.minimizedMailModel = new MinimizedMailEditorViewModel()
+		this.usageTestController = new UsageTestController(this.usageTestModel)
+	}
+
+	readonly calendarModel: () => Promise<CalendarModel> = lazyMemoized(async () => {
+		const { DefaultDateProvider } = await import("../../calendar/date/CalendarUtils")
+		const timeZone = new DefaultDateProvider().timeZone()
+		return new CalendarModel(
 			notifications,
 			this.alarmScheduler,
 			this.eventController,
@@ -707,12 +715,9 @@ class MainLocator {
 			this.mailModel,
 			this.calendarFacade,
 			this.fileController,
+			timeZone,
 		)
-		const { ContactModelImpl } = await import("../../contacts/model/ContactModel")
-		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, this.logins)
-		this.minimizedMailModel = new MinimizedMailEditorViewModel()
-		this.usageTestController = new UsageTestController(this.usageTestModel)
-	}
+	})
 
 	private alarmScheduler: () => Promise<AlarmScheduler> = lazyMemoized(async () => {
 		const { AlarmSchedulerImpl } = await import("../../calendar/date/AlarmScheduler")

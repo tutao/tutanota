@@ -10,7 +10,6 @@ import { UserError } from "../../../api/main/UserError.js"
 import { isCustomizationEnabledForCustomer } from "../../../api/common/utils/Utils.js"
 import { getNonOrganizerAttendees } from "./CalendarEventModel.js"
 import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
-import { getAvailablePlansWithCalendarInvites } from "../../../subscription/SubscriptionUtils.js"
 
 /** all the people that may be interested in changes to an event get stored in these models.
  * if one of them is null, it's because there is no one that needs that kind of update.
@@ -38,6 +37,7 @@ export class CalendarNotificationModel {
 			return
 		}
 		if (!(await hasPlanWithInvites(this.loginController))) {
+			const { getAvailablePlansWithCalendarInvites } = await import("../../../subscription/SubscriptionUtils.js")
 			throw new UpgradeRequiredError("upgradeRequired_msg", await getAvailablePlansWithCalendarInvites())
 		}
 		const invitePromise = sendModels.inviteModel != null ? this.sendInvites(event, sendModels.inviteModel) : Promise.resolve()

@@ -3,7 +3,7 @@ import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail }
 import { locator } from "../../api/main/MainLocator"
 import { CalendarAttendeeStatus, CalendarMethod, FeatureType, getAsEnumValue, NewPaidPlans } from "../../api/common/TutanotaConstants"
 import { assertNotNull, clone, filterInt, noOp } from "@tutao/tutanota-utils"
-import { findPrivateCalendar, getEventType, resolveCalendarEventProgenitor } from "./CalendarUtils"
+import { findPrivateCalendar, getEventType } from "./CalendarUtils"
 import { calendarNotificationSender } from "./CalendarNotificationSender.js"
 import { Dialog } from "../../gui/base/Dialog"
 import { UserError } from "../../api/main/UserError"
@@ -79,7 +79,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 		hasBusinessFeature = false
 	} else {
 		const [calendarInfos, mailboxDetails, customer] = await Promise.all([
-			locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()),
+			(await locator.calendarModel()).loadOrCreateCalendarInfo(new NoopProgressMonitor()),
 			locator.mailModel.getUserMailboxDetails(),
 			locator.logins.getUserController().loadCustomer(),
 		])
@@ -94,7 +94,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 
 	const viewModel = new CalendarEventPopupViewModel(
 		latestEvent,
-		locator.calendarModel,
+		await locator.calendarModel(),
 		eventType,
 		hasBusinessFeature,
 		ownAttendee,
@@ -131,7 +131,8 @@ export async function getLatestEvent(event: CalendarEvent): Promise<CalendarEven
 	if (existingEvent == null) return event
 
 	if (filterInt(existingEvent.sequence) < filterInt(event.sequence)) {
-		return await locator.calendarModel.updateEventWithExternal(existingEvent, event)
+		const calendarModel = await locator.calendarModel()
+		return await calendarModel.updateEventWithExternal(existingEvent, event)
 	} else {
 		return existingEvent
 	}
@@ -173,12 +174,12 @@ export async function replyToEventInvitation(
 			throw e
 		}
 	}
-
-	const calendar = await locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()).then(findPrivateCalendar)
+	const calendarModel = await locator.calendarModel()
+	const calendar = await calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()).then(findPrivateCalendar)
 	if (calendar == null) return ReplyResult.ReplyNotSent
 	if (decision !== CalendarAttendeeStatus.DECLINED && event.uid != null) {
-		const dbEvents = await locator.calendarModel.getEventsByUid(event.uid)
-		await locator.calendarModel.processCalendarEventMessage(
+		const dbEvents = await calendarModel.getEventsByUid(event.uid)
+		await calendarModel.processCalendarEventMessage(
 			previousMail.sender.address,
 			CalendarMethod.REQUEST,
 			event as Require<"uid", CalendarEvent>,
