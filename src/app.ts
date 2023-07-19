@@ -115,7 +115,7 @@ import("./translations/en")
 		locator.logins.addPostLoginAction(new PostLoginActions(locator.credentialsProvider, locator.secondFactorHandler, locator.connectivityModel))
 		if (isOfflineStorageAvailable()) {
 			locator.logins.addPostLoginAction(
-				new CachePostLoginAction(locator.calendarModel, locator.entityClient, locator.progressTracker, locator.cacheStorage, locator.logins),
+				new CachePostLoginAction(await locator.calendarModel(), locator.entityClient, locator.progressTracker, locator.cacheStorage, locator.logins),
 			)
 		}
 

@@ -16,7 +16,7 @@ import { Stripped } from "../../../api/common/utils/EntityUtils.js"
 import { EndType, RepeatPeriod } from "../../../api/common/TutanotaConstants.js"
 import { createDateWrapper, createRepeatRule, RepeatRule } from "../../../api/entities/sys/TypeRefs.js"
 import { UserError } from "../../../api/main/UserError.js"
-import { clone, filterInt, incrementDate, noOp } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, filterInt, incrementDate, noOp } from "@tutao/tutanota-utils"
 import { areExcludedDatesEqual, areRepeatRulesEqual } from "./CalendarEventModel.js"
 
 export type CalendarEventWhenModelResult = CalendarEventTimes & {
@@ -527,4 +527,12 @@ export function getDefaultEndDateEndValue({ startTime }: CalendarEventTimes, tim
  */
 export function getDefaultEndCountValue(): string {
 	return "10"
+}
+
+export function repeatRuleWithExcludedAlteredInstances(progenitor: CalendarEvent, recurrenceIds: ReadonlyArray<Date>, timeZone: string): CalendarRepeatRule {
+	const whoModel = new CalendarEventWhenModel(progenitor, timeZone)
+	for (const recurrenceId of recurrenceIds) {
+		whoModel.excludeDate(recurrenceId)
+	}
+	return assertNotNull(whoModel.result.repeatRule, "tried to exclude altered instance on progenitor without repeat rule!")
 }

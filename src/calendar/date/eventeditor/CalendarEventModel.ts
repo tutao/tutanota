@@ -357,7 +357,7 @@ export function eventHasChanged(now: CalendarEvent, previous: Partial<CalendarEv
 		now.location !== previous.location ||
 		now.endTime.getTime() !== previous?.endTime?.getTime() ||
 		now.invitedConfidentially !== previous.invitedConfidentially ||
-		// FIXME: this should be a hard error, we never want to change the uid or compare events with different UIDs?
+		// should this be a hard error, we never want to change the uid or compare events with different UIDs?
 		now.uid !== previous.uid ||
 		!areRepeatRulesEqual(now.repeatRule, previous?.repeatRule ?? null) ||
 		!arrayEqualsWithPredicate(

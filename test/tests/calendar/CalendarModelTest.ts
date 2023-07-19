@@ -1329,5 +1329,6 @@ function init({
 		mailModel,
 		calendarFacade,
 		fileFacade,
+		"Europe/Berlin",
 	)
 }

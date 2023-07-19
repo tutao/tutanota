@@ -526,8 +526,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			"add_action",
 			false,
-			(dialog, properties) => {
-				locator.calendarModel.createCalendar(properties.name, properties.color).then(() => dialog.close())
+			async (dialog, properties) => {
+				const calendarModel = await locator.calendarModel()
+				await calendarModel.createCalendar(properties.name, properties.color)
+				dialog.close()
 			},
 			"save_action",
 		)
@@ -801,7 +803,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		const lazyIndexEntry = async () => (selectedEvent.uid != null ? locator.calendarFacade.getEventsByUid(selectedEvent.uid) : null)
 		const popupModel = new CalendarEventPopupViewModel(
 			selectedEvent,
-			locator.calendarModel,
+			await locator.calendarModel(),
 			eventType,
 			hasBusinessFeature,
 			ownAttendee,
