@@ -354,13 +354,10 @@ export class CalendarFacade {
 					continue
 				}
 
-				// when doing calendar updates, we will miss uid index entity updates if we're using the cache.
-				// this is mainly caused by some calendaring apps sending the same update multiple times in the same mail.
-				// the earliest place where we could deduplicate would be in entityEventsReceived on the calendarModel.
-				const indexEntry: CalendarEventUidIndex = await this.entityRestCache.entityRestClient.load<CalendarEventUidIndex>(
-					CalendarEventUidIndexTypeRef,
-					[groupRoot.index.list, uint8arrayToCustomId(hashUid(uid))],
-				)
+				const indexEntry: CalendarEventUidIndex = await this.entityClient.load<CalendarEventUidIndex>(CalendarEventUidIndexTypeRef, [
+					groupRoot.index.list,
+					uint8arrayToCustomId(hashUid(uid)),
+				])
 
 				const progenitor: CalendarEventProgenitor | null = await loadProgenitorFromIndexEntry(this.entityClient, indexEntry)
 				const alteredInstances: Array<CalendarEventAlteredInstance> = await loadAlteredInstancesFromIndexEntry(this.entityClient, indexEntry)

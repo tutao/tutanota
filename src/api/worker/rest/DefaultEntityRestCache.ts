@@ -17,7 +17,7 @@ import {
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import { MailDetailsBlobTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId } from "../../common/utils/EntityUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
@@ -45,6 +45,10 @@ const IGNORED_TYPES = [
 	SecondFactorTypeRef,
 	RecoverCodeTypeRef,
 	RejectedSenderTypeRef,
+	// when doing automatic calendar updates, we will miss uid index entity updates if we're using the cache.
+	// this is mainly caused by some calendaring apps sending the same update multiple times in the same mail.
+	// the earliest place where we could deduplicate would be in entityEventsReceived on the calendarModel.
+	CalendarEventUidIndexTypeRef,
 ] as const
 
 export interface EntityRestCache extends EntityRestInterface {
