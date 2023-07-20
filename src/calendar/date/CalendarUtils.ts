@@ -5,7 +5,6 @@ import {
 	filterInt,
 	findAllAndRemove,
 	findAndRemove,
-	getEndOfDay,
 	getFromMap,
 	getStartOfDay,
 	incrementDate,
@@ -661,7 +660,7 @@ export function checkEventValidity(event: CalendarEvent): CalendarEventValidity 
 		return CalendarEventValidity.InvalidContainsInvalidDate
 	} else if (event.endTime.getTime() <= event.startTime.getTime()) {
 		return CalendarEventValidity.InvalidEndBeforeStart
-	} else if (event.startTime.getFullYear() < TIMESTAMP_ZERO_YEAR) {
+	} else if (event.startTime.getTime() < TIMESTAMP_ZERO_YEAR) {
 		return CalendarEventValidity.InvalidPre1970
 	}
 	return CalendarEventValidity.Valid
@@ -1189,7 +1188,8 @@ export function combineDateWithTime(date: Date, time: Time): Date {
  * Expects that firstDayOfWeek is before lastDayOfWeek, and that event starts before it ends, otherwise result is invalid
  */
 export function isEventBetweenDays(event: CalendarEvent, firstDay: Date, lastDay: Date, zone: string): boolean {
-	return !(eventEndsBefore(firstDay, zone, event) || eventStartsAfter(getEndOfDay(lastDay), zone, event))
+	const endOfDay = DateTime.fromJSDate(lastDay, { zone }).endOf("day").toJSDate()
+	return !(eventEndsBefore(firstDay, zone, event) || eventStartsAfter(endOfDay, zone, event))
 }
 
 export const createRepeatRuleFrequencyValues = (): SelectorItemList<RepeatPeriod | null> => {

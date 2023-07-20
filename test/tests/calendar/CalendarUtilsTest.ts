@@ -794,16 +794,16 @@ o.spec("calendar utils tests", function () {
 			o(
 				checkEventValidity(
 					createCalendarEvent({
-						startTime: new Date("1970"),
-						endTime: new Date("1990"),
+						startTime: getDateInUTC("1970"),
+						endTime: getDateInUTC("1990"),
 					}),
 				),
-			).equals(CalendarEventValidity.Valid)
+			).equals(CalendarEventValidity.Valid)("events on the cusp of 1970 UTC are valid")
 			o(
 				checkEventValidity(
 					createCalendarEvent({
-						startTime: new Date("1971"),
-						endTime: new Date("2022"),
+						startTime: getDateInZone("1971"),
+						endTime: getDateInZone("2022"),
 					}),
 				),
 			).equals(CalendarEventValidity.Valid)

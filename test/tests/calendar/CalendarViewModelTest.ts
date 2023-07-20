@@ -4,7 +4,7 @@ import type { LoginController } from "../../../src/api/main/LoginController.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { assertNotNull, downcast, getStartOfDay, neverNull, noOp } from "@tutao/tutanota-utils"
 import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { addDaysForEventInstance } from "../../../src/calendar/date/CalendarUtils.js"
+import { addDaysForEventInstance, getMonthRange } from "../../../src/calendar/date/CalendarUtils.js"
 import type { CalendarModel } from "../../../src/calendar/model/CalendarModel.js"
 import { CalendarEventEditModelsFactory, CalendarViewModel } from "../../../src/calendar/view/CalendarViewModel.js"
 import { CalendarEventModel, EventSaveResult } from "../../../src/calendar/date/eventeditor/CalendarEventModel.js"
@@ -58,14 +58,12 @@ o.spec("CalendarViewModel", async function () {
 			progressTracker,
 			deviceConfig,
 			calendarInvitations,
+			zone,
 		)
 	}
 
 	function init(events) {
-		const month = {
-			start: getDateInZone("2021-01-01").getTime(),
-			end: getDateInZone("2021-01-31").getTime(),
-		}
+		const month = getMonthRange(getDateInZone("2021-01-01"), zone)
 		const eventsForDays = new Map()
 
 		for (let event of events) {
@@ -294,26 +292,23 @@ o.spec("CalendarViewModel", async function () {
 
 		o("During drag, temporary event overrides the original version", async function () {
 			const viewModel = initCalendarViewModel(makeCalendarEventModel)
-			let originalDateForDraggedEvent = new Date(2021, 0, 3, 13, 0)
 			const inputEvents = [
-				makeEvent("event1", new Date(2021, 0, 1), new Date(2021, 0, 2), "uid1"),
-				makeEvent("event2", new Date(2021, 0, 1), new Date(2021, 0, 3), "uid2"),
-				makeEvent("event3", originalDateForDraggedEvent, new Date(2021, 0, 3, 14, 30), "uid3"),
+				makeEvent("event1", getDateInZone("2021-01-01"), getDateInZone("2021-01-02"), "uid1"),
+				makeEvent("event2", getDateInZone("2021-01-01"), getDateInZone("2021-01-03"), "uid2"),
+				makeEvent("event3", getDateInZone("2021-01-03T13:00"), getDateInZone("2021-01-03T14:30"), "uid3"),
 			]
 			const { days, eventsForDays } = init(inputEvents)
 
 			viewModel._replaceEvents(eventsForDays)
 
-			simulateDrag(inputEvents[2], new Date(2021, 0, 4, 13, 0), viewModel)
+			simulateDrag(inputEvents[2], getDateInZone("2021-01-04T13:00"), viewModel)
 			const expected = {
 				shortEvents: [[], [], [], [viewModel._draggedEvent?.eventClone], [], [], []],
 				longEvents: [inputEvents[0], inputEvents[1]],
 			} as any
 			const { shortEvents, longEvents } = viewModel.getEventsOnDaysToRender(days)
-			o({
-				shortEvents: shortEvents,
-				longEvents: Array.from(longEvents),
-			}).deepEquals(expected)
+			o(shortEvents).deepEquals(expected.shortEvents)
+			o(Array.from(longEvents)).deepEquals(expected.longEvents)
 		})
 		o("After drop, before load", async function () {
 			const viewModel = initCalendarViewModel(makeCalendarEventModel)
@@ -321,7 +316,7 @@ o.spec("CalendarViewModel", async function () {
 			const inputEvents = [
 				makeEvent("event1", getDateInZone("2021-01-01"), getDateInZone("2021-01-02"), "uid1"),
 				makeEvent("event2", getDateInZone("2021-01-01"), getDateInZone("2021-01-03"), "uid2"),
-				makeEvent("event3", originalDateForDraggedEvent, new Date(2021, 0, 3, 14, 30), "uid3"),
+				makeEvent("event3", originalDateForDraggedEvent, getDateInZone("2021-01-03T14:30"), "uid3"),
 			]
 			const { days, eventsForDays } = init(inputEvents)
 
