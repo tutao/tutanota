@@ -300,9 +300,9 @@ export class DefaultDateProvider implements DateProvider {
 	}
 }
 
-export function createRepeatRuleWithValues(frequency: RepeatPeriod, interval: number): CalendarRepeatRule {
+export function createRepeatRuleWithValues(frequency: RepeatPeriod, interval: number, timeZone: string = getTimeZone()): CalendarRepeatRule {
 	const rule = createCalendarRepeatRule()
-	rule.timeZone = getTimeZone()
+	rule.timeZone = timeZone
 	rule.frequency = frequency
 	rule.interval = String(interval)
 	return rule
@@ -504,8 +504,8 @@ export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Arr
  * difference in whole 24-hour-intervals between two dates, not anticommutative.
  * Result is positive or 0 if b > a, result is negative or 0 otherwise
  */
-export function getDiffIn24hIntervals(a: Date, b: Date): number {
-	return Math.floor(DateTime.fromJSDate(b).diff(DateTime.fromJSDate(a), "day").days)
+export function getDiffIn24hIntervals(a: Date, b: Date, zone?: string): number {
+	return Math.floor(DateTime.fromJSDate(b, { zone }).diff(DateTime.fromJSDate(a, { zone }), "day").days)
 }
 
 /**
@@ -675,12 +675,7 @@ const MAX_EVENT_ITERATIONS = 10000
  * ignores repeat rules.
  * @param zone
  */
-export function addDaysForEventInstance(
-	daysToEvents: Map<number, Array<CalendarEvent>>,
-	event: CalendarEvent,
-	range: CalendarTimeRange,
-	zone: string = getTimeZone(),
-) {
+export function addDaysForEventInstance(daysToEvents: Map<number, Array<CalendarEvent>>, event: CalendarEvent, range: CalendarTimeRange, zone: string) {
 	const { start: rangeStart, end: rangeEnd } = range
 	const clippedRange = clipRanges(getEventStart(event, zone).getTime(), getEventEnd(event, zone).getTime(), rangeStart, rangeEnd)
 	// the event and range do not intersect
@@ -794,8 +789,8 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string): Gene
 
 	const frequency: RepeatPeriod = downcast(repeatRule.frequency)
 	const interval = Number(repeatRule.interval)
-	let eventStartTime = new Date(getEventStart(event, timeZone))
-	let eventEndTime = new Date(getEventEnd(event, timeZone))
+	let eventStartTime = getEventStart(event, timeZone)
+	let eventEndTime = getEventEnd(event, timeZone)
 	// Loop by the frequency step
 	let repeatEndTime: Date | null = null
 	let endOccurrences: number | null = null
@@ -817,7 +812,7 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string): Gene
 	}
 
 	let calcStartTime = eventStartTime
-	const calcDuration = allDay ? getDiffIn24hIntervals(eventStartTime, eventEndTime) : eventEndTime.getTime() - eventStartTime.getTime()
+	const calcDuration = allDay ? getDiffIn24hIntervals(eventStartTime, eventEndTime, timeZone) : eventEndTime.getTime() - eventStartTime.getTime()
 	let calcEndTime = eventEndTime
 	let iteration = 1
 

@@ -542,7 +542,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			if (e.repeatRule) {
 				addDaysForRecurringEvent(newEvents, e, month, zone)
 			} else {
-				addDaysForEventInstance(newEvents, e, month)
+				addDaysForEventInstance(newEvents, e, month, zone)
 			}
 		}
 		this._replaceEvents(newEvents)
@@ -579,7 +579,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	_addDaysForEvent(event: CalendarEvent, month: CalendarTimeRange) {
 		const newMap = this._cloneEvents()
-		addDaysForEventInstance(newMap, event, month)
+		addDaysForEventInstance(newMap, event, month, this._timeZone)
 		this._replaceEvents(newMap)
 	}
 
