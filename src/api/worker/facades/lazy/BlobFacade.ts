@@ -232,7 +232,7 @@ export class BlobFacade {
 		} else if (responseBody == null) {
 			throw new Error("no response body")
 		} else if (isSuspensionResponse(statusCode, suspensionTime)) {
-			this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
+			this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), serviceUrl)
 			return this.suspensionHandler.deferRequest(() => this.uploadNative(location, blobServerAccessInfo, serverUrl, blobHash))
 		} else {
 			throw handleRestError(statusCode, ` | ${HttpMethod.POST} ${fullUrl.toString()} failed to natively upload blob`, errorId, precondition)
@@ -318,7 +318,7 @@ export class BlobFacade {
 			}
 			return decryptedFileUrl
 		} else if (isSuspensionResponse(statusCode, suspensionTime)) {
-			this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
+			this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), serviceUrl)
 			return this.suspensionHandler.deferRequest(() => this.downloadNative(serverUrl, blobServerAccessInfo, sessionKey, fileName, additionalParams))
 		} else {
 			throw handleRestError(statusCode, ` | ${HttpMethod.GET} failed to natively download attachment`, errorId, precondition)

@@ -76,7 +76,8 @@ export class RestClient {
 				}
 
 				const origin = options.baseUrl ?? getApiOrigin()
-				const url = addParamsToUrl(new URL(origin + path), queryParams)
+				const resourceURL = new URL(origin + path)
+				const url = addParamsToUrl(resourceURL, queryParams)
 				const xhr = new XMLHttpRequest()
 				xhr.open(method, url.toString())
 
@@ -129,7 +130,7 @@ export class RestClient {
 						if (isSuspensionResponse(xhr.status, suspensionTime) && options.suspensionBehavior === SuspensionBehavior.Throw) {
 							reject(new SuspensionError(`blocked for ${suspensionTime}, not suspending`))
 						} else if (isSuspensionResponse(xhr.status, suspensionTime)) {
-							this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
+							this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), resourceURL)
 
 							resolve(this.suspensionHandler.deferRequest(() => this.request(path, method, options)))
 						} else {
