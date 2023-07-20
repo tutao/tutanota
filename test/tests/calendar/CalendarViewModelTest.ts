@@ -1,5 +1,5 @@
 import o from "ospec"
-import { getDateInZone, makeCalendarModel, makeEvent, makeUserController } from "./CalendarTestUtils.js"
+import { getDateInZone, makeCalendarModel, makeEvent, makeUserController, zone } from "./CalendarTestUtils.js"
 import type { LoginController } from "../../../src/api/main/LoginController.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { assertNotNull, downcast, getStartOfDay, neverNull, noOp } from "@tutao/tutanota-utils"
@@ -69,7 +69,7 @@ o.spec("CalendarViewModel", async function () {
 		const eventsForDays = new Map()
 
 		for (let event of events) {
-			addDaysForEventInstance(eventsForDays, event, month)
+			addDaysForEventInstance(eventsForDays, event, month, zone)
 		}
 
 		return {
@@ -323,7 +323,7 @@ o.spec("CalendarViewModel", async function () {
 				makeEvent("event2", getDateInZone("2021-01-01"), getDateInZone("2021-01-03"), "uid2"),
 				makeEvent("event3", originalDateForDraggedEvent, new Date(2021, 0, 3, 14, 30), "uid3"),
 			]
-			const { days, eventsForDays, month } = init(inputEvents)
+			const { days, eventsForDays } = init(inputEvents)
 
 			viewModel._replaceEvents(eventsForDays)
 
