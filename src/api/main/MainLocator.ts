@@ -269,6 +269,8 @@ class MainLocator {
 	async calendarViewModel(): Promise<CalendarViewModel> {
 		const { ReceivedGroupInvitationsModel } = await import("../../sharing/model/ReceivedGroupInvitationsModel.js")
 		const { CalendarViewModel } = await import("../../calendar/view/CalendarViewModel.js")
+		const { DefaultDateProvider } = await import("../../calendar/date/CalendarUtils")
+		const timeZone = new DefaultDateProvider().timeZone()
 		const calendarInvitations = new ReceivedGroupInvitationsModel(GroupType.Calendar, this.eventController, this.entityClient, this.logins)
 		calendarInvitations.init()
 		return new CalendarViewModel(
@@ -284,6 +286,7 @@ class MainLocator {
 			this.progressTracker,
 			deviceConfig,
 			calendarInvitations,
+			timeZone,
 		)
 	}
 

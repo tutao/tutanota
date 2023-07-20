@@ -201,7 +201,7 @@ export class CalendarEventWhenModel {
 		// The custom ID for events is derived from the unix timestamp, and sorting
 		// the negative ids is a challenge we decided not to
 		// tackle because it is a rare case and only getting rarer.
-		if (value.getFullYear() < TIMESTAMP_ZERO_YEAR) {
+		if (value.getTime() < TIMESTAMP_ZERO_YEAR) {
 			const thisYear = new Date().getFullYear()
 			value.setFullYear(thisYear)
 		}
