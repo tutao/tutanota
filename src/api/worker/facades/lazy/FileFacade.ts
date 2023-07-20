@@ -75,11 +75,12 @@ export class FileFacade {
 		const queryParams = {
 			_body: body,
 		}
-		const url = addParamsToUrl(new URL(getApiOrigin() + REST_PATH), queryParams)
+		const serviceUrl = new URL(getApiOrigin() + REST_PATH)
+		const url = addParamsToUrl(serviceUrl, queryParams)
 		const { statusCode, encryptedFileUri, errorId, precondition, suspensionTime } = await this.fileApp.download(url.toString(), file.name, headers)
 
 		if (suspensionTime && isSuspensionResponse(statusCode, suspensionTime)) {
-			this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
+			this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), serviceUrl)
 
 			return this.suspensionHandler.deferRequest(() => this.downloadFileContentNative(file))
 		} else if (statusCode === 200 && encryptedFileUri != null) {
