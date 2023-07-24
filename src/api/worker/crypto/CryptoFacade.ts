@@ -364,9 +364,7 @@ export class CryptoFacade {
 
 		if (pubOrExtPermission == null) {
 			const typeName = `${typeModel.app}/${typeModel.name}`
-			throw new SessionKeyNotFoundError(
-				`could not find permission for instance of type ${typeName} with id ${this.getElementIdFromInstance(instance)}: ${JSON.stringify(instance)}`,
-			)
+			throw new SessionKeyNotFoundError(`could not find permission for instance of type ${typeName} with id ${this.getElementIdFromInstance(instance)}`)
 		}
 
 		const bucketPermissions = await this.entityClient.loadAll(BucketPermissionTypeRef, assertNotNull(pubOrExtPermission.bucket).bucketPermissions)
