@@ -77,7 +77,7 @@ import {
 } from "@tutao/tutanota-crypto"
 import { CryptoFacade, encryptString } from "../crypto/CryptoFacade"
 import { InstanceMapper } from "../crypto/InstanceMapper"
-import { Aes128Key } from "@tutao/tutanota-crypto/dist/encryption/Aes"
+import { Aes128Key } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { SessionType } from "../../common/SessionType"
 import { CacheStorageLateInitializer } from "../rest/CacheStorageProxy"

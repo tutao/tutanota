@@ -2,7 +2,7 @@ import { base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, uint8Arr
 import type { CryptoFunctions } from "./CryptoFns"
 import type { TypeModel } from "../api/common/EntityTypes"
 import type * as FsModule from "node:fs"
-import { Aes256Key } from "@tutao/tutanota-crypto/dist/encryption/Aes"
+import { Aes256Key } from "@tutao/tutanota-crypto"
 import { aes256Decrypt256Key, aes256Encrypt256Key, IV_BYTE_LENGTH, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { FileUri } from "../native/common/FileApp"
 import path from "node:path"
