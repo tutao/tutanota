@@ -325,20 +325,6 @@ class MainLocator {
 		const sendMailModelFactory = await this.sendMailModelSyncFactory(mailboxDetail, mailboxProperties)
 		const showProgress = <T>(p: Promise<T>) => showProgressDialog("pleaseWait_msg", p)
 
-		switch (editMode) {
-			case CalendarOperation.Create: {
-				break
-			}
-			case CalendarOperation.EditThis:
-				break
-			case CalendarOperation.DeleteThis:
-				break
-			case CalendarOperation.EditAll:
-				break
-			case CalendarOperation.DeleteAll:
-				break
-		}
-
 		return await makeCalendarEventModel(
 			editMode,
 			event,

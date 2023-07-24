@@ -67,7 +67,7 @@ export class CalendarNotificationModel {
 		}
 	}
 
-	private async sendCancellation(event: CalendarEvent, cancelModel: SendMailModel): Promise<any> {
+	private async sendCancellation(event: CalendarEvent, cancelModel: SendMailModel): Promise<void> {
 		const updatedEvent = clone(event)
 
 		try {
