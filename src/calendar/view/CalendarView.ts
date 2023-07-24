@@ -279,7 +279,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			size.second_col_min_width + size.third_col_min_width,
 			size.third_col_max_width,
 		)
-		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
+		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn])
 
 		const shortcuts = this._setupShortcuts()
 

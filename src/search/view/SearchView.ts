@@ -206,7 +206,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			size.third_col_min_width,
 			size.third_col_max_width,
 		)
-		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn], "ContactView")
+		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn])
 	}
 
 	oncreate(): void {

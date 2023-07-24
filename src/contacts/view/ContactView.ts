@@ -190,7 +190,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			undefined,
 			() => lang.get("contacts_label"),
 		)
-		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.contactColumn], "ContactView")
+		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.contactColumn])
 
 		const shortcuts = this.getShortcuts()
 		this.oncreate = (vnode) => {

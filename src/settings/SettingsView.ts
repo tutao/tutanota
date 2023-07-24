@@ -315,7 +315,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			2400,
 			() => lang.get("settings_label"),
 		)
-		this.viewSlider = new ViewSlider([this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn], "SettingsView")
+		this.viewSlider = new ViewSlider([this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn])
 
 		this._customDomains = new LazyLoaded(() => {
 			return getAvailableDomains(locator.entityClient, this.logins, true)
