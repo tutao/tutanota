@@ -8,6 +8,8 @@ export {
 	aes128Decrypt,
 	ENABLE_MAC,
 	IV_BYTE_LENGTH,
+	Aes128Key,
+	Aes256Key,
 } from "./encryption/Aes.js"
 export { generateRandomSalt, generateKeyFromPassphrase } from "./hashes/Bcrypt.js"
 export { CryptoError } from "./misc/CryptoError.js"
