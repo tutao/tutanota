@@ -35,24 +35,16 @@ import { LoginController } from "./api/main/LoginController.js"
 import type { MailViewModel } from "./mail/view/MailViewModel.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
+import type Mithril from "mithril"
 
 assertMainOrNodeBoot()
 bootFinished()
+
 const urlQueryParams = m.parseQueryString(location.search)
-const platformId = urlQueryParams["platformId"]
 
-if (isApp() || isDesktop()) {
-	if (
-		(isApp() && (platformId === "android" || platformId === "ios")) ||
-		(isDesktop() && (platformId === "linux" || platformId === "win32" || platformId === "darwin"))
-	) {
-		env.platformId = platformId
-	} else {
-		throw new ProgrammingError(`Invalid platform id: ${String(platformId)}`)
-	}
-}
-
+assignEnvPlatformId(urlQueryParams)
 replaceNativeLogger(window, new Logger())
+
 let currentView: Component<unknown> | null = null
 window.tutao = {
 	client,
@@ -62,6 +54,7 @@ window.tutao = {
 	currentView,
 	locator: null,
 }
+
 client.init(navigator.userAgent, navigator.platform)
 
 if (!client.isSupported()) {
@@ -72,50 +65,16 @@ if (!client.isSupported()) {
 // and then the "Update WebView" message will never be show
 // we still want to do this ASAP so we can handle other errors
 setupExceptionHandling()
-const prefix = location.pathname[location.pathname.length - 1] !== "/" ? location.pathname : location.pathname.substring(0, location.pathname.length - 1)
-const prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
 
-export const state: { prefix: string; prefixWithoutFile: string } = { prefix, prefixWithoutFile }
-let startRoute = "/"
-let redirectTo = urlQueryParams["r"] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)
-if (redirectTo) {
-	delete urlQueryParams["r"]
-
-	if (typeof redirectTo !== "string") {
-		redirectTo = ""
-	}
-} else {
-	redirectTo = ""
-}
-
-let newQueryString = m.buildQueryString(urlQueryParams)
-
-if (newQueryString.length > 0) {
-	newQueryString = "?" + newQueryString
-}
-
-let target = redirectTo + newQueryString + location.hash
-if (target === "" || target[0] !== "/") target = "/" + target
-history.replaceState(null, "", assertNotNull(state.prefix) + target)
-startRoute = target
-
+// If the webapp is served under some folder e.g. /build we want to consider this our root
+const urlPrefixes = extractPathPrefixes()
 // Write it here for the WorkerClient so that it can load relative worker easily. Should do it here so that it doesn't break after HMR.
-window.tutao.appState = state
-let origin = location.origin
+window.tutao.appState = urlPrefixes
 
-if (location.origin.indexOf("localhost") !== -1) {
-	origin += "/client/build/index"
-}
+const startRoute = getStartUrl(urlQueryParams)
+history.replaceState(null, "", urlPrefixes.prefix + startRoute)
 
-if (!isDesktop() && typeof navigator.registerProtocolHandler === "function") {
-	try {
-		// @ts-ignore third argument removed from spec, but use is still recommended
-		navigator.registerProtocolHandler("mailto", origin + "/mailto#url=%s", "Tutanota")
-	} catch (e) {
-		// Catch SecurityError's and some other cases when we are not allowed to register a handler
-		console.log("Failed to register a mailto: protocol handler ", e)
-	}
-}
+registerForMailto()
 
 import("./translations/en")
 	.then((en) => lang.init(en.default))
@@ -424,8 +383,11 @@ import("./translations/en")
 				locator.logins,
 			),
 		})
+
+		// In some cases our prefix can have non-ascii characters, depending on the path the webapp is served from
 		// see https://github.com/MithrilJS/mithril.js/issues/2659
-		m.route.prefix = neverNull(state.prefix).replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)
+		m.route.prefix = neverNull(urlPrefixes.prefix).replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)
+
 		// keep in sync with RewriteAppResourceUrlHandler.java
 		const resolvers: RouteDefs = {
 			"/": {
@@ -446,6 +408,7 @@ import("./translations/en")
 				}
 			},
 		}
+
 		// keep in sync with RewriteAppResourceUrlHandler.java
 		m.route(document.body, startRoute, resolvers)
 
@@ -635,6 +598,85 @@ function makeOldViewResolver(
 		render: (vnode) => {
 			return m(root, vnode)
 		},
+	}
+}
+
+// PlatformId is passed by the native part in the URL
+function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
+	const platformId = urlQueryParams["platformId"]
+
+	if (isApp() || isDesktop()) {
+		if (
+			(isApp() && (platformId === "android" || platformId === "ios")) ||
+			(isDesktop() && (platformId === "linux" || platformId === "win32" || platformId === "darwin"))
+		) {
+			env.platformId = platformId
+		} else {
+			throw new ProgrammingError(`Invalid platform id: ${String(platformId)}`)
+		}
+	}
+}
+
+function extractPathPrefixes(): Readonly<{ prefix: string; prefixWithoutFile: string }> {
+	const prefix = location.pathname.endsWith("/") ? location.pathname.substring(0, location.pathname.length - 1) : location.pathname
+	const prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
+	return Object.freeze({ prefix, prefixWithoutFile })
+}
+
+function getStartUrl(urlQueryParams: Mithril.Params): string {
+	// Redirection triggered by the server or service worker (e.g. the user reloads /mail/id by pressing
+	// F5 and we want to open /login?r=mail/id).
+
+	// We want to build a new URL based on the redirect parameter and our current path and hash.
+
+	// take redirect parameter from the query params
+	// remove it from the query params (so that we don't loop)
+	let redirectTo = urlQueryParams["r"]
+	if (redirectTo) {
+		delete urlQueryParams["r"]
+
+		if (typeof redirectTo !== "string") {
+			redirectTo = ""
+		}
+	} else {
+		redirectTo = ""
+	}
+
+	// build new query, this time without redirect
+	let newQueryString = m.buildQueryString(urlQueryParams)
+
+	if (newQueryString.length > 0) {
+		newQueryString = "?" + newQueryString
+	}
+
+	let target = redirectTo + newQueryString
+
+	if (target === "" || target[0] !== "/") target = "/" + target
+
+	// Only append current hash if there's no hash in the redirect already.
+	// Most browsers will keep the hash around even after the redirect unless there's another one provided.
+	// In our case the hash is encoded as part of the query and is not deduplicated like described above so we have to manually do it, otherwise we end
+	// up with double hashes.
+	if (!new URL(urlPrefixes.prefix + target, window.location.href).hash) {
+		target += location.hash
+	}
+	return target
+}
+
+function registerForMailto() {
+	if (!isDesktop() && typeof navigator.registerProtocolHandler === "function") {
+		let origin = location.origin
+
+		if (location.origin.indexOf("localhost") !== -1) {
+			origin += "/client/build/index"
+		}
+		try {
+			// @ts-ignore third argument removed from spec, but use is still recommended
+			navigator.registerProtocolHandler("mailto", origin + "/mailto#url=%s", "Tutanota")
+		} catch (e) {
+			// Catch SecurityError's and some other cases when we are not allowed to register a handler
+			console.log("Failed to register a mailto: protocol handler ", e)
+		}
 	}
 }
 
