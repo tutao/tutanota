@@ -559,7 +559,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 		const oldEvent = events[indexOfOldEvent]
 		// If the old and new event end times do not match, we need to remove all occurrences of old event, otherwise iterating
-		// intstances of new event won't replace all instances of old event. Changes of start or repeat rule already change
+		// instances of new event won't replace all instances of old event. Changes of start or repeat rule already change
 		// ID of the event so it is not a problem.
 		if (oldEvent.endTime.getTime() !== eventToRemove.endTime.getTime()) {
 			const newMap = this._cloneEvents()

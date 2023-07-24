@@ -852,12 +852,15 @@ export function calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, altered
 	} else if (endType === EndType.Count && Number(endValue ?? "0") + alteredInstances.length > excludedDates.length + 1) {
 		// if there are not enough exclusions to delete all but one occurrence, we can return true
 		return true
+	} else if (alteredInstances.length > 1) {
+		return true
 	} else {
 		// we need to count occurrences and match them up against altered instances & exclusions.
 		const excludedTimestamps = excludedDates.map(({ date }) => date.getTime())
 		let i = 0
-		// for each altered instance, we have an extra exclusion. we're assuming that each
-		// altered instance matches exactly one exclusion without checking if that is true.
+		// in our model, we have an extra exclusion for each altered instance. this code
+		// assumes that this invariant is upheld here and does not match each recurrenceId
+		// against an exclusion, but only tallies them up.
 		let occurrencesFound = alteredInstances.length
 		for (const { startTime } of generateEventOccurrences(progenitor, getTimeZone())) {
 			const startTimestamp = startTime.getTime()

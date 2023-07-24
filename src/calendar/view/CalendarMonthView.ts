@@ -97,28 +97,22 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 	view({ attrs }: Vnode<CalendarMonthAttrs>): Children {
 		const startOfTheWeekOffset = getStartOfTheWeekOffset(attrs.startOfTheWeek)
 		const thisMonth = getCalendarMonth(attrs.selectedDate, startOfTheWeekOffset, false)
-		const previousMonthDate = new Date(attrs.selectedDate)
-		previousMonthDate.setMonth(previousMonthDate.getMonth() - 1)
-		const previousMonth = getCalendarMonth(previousMonthDate, startOfTheWeekOffset, false)
-		const nextMonthDate = new Date(attrs.selectedDate)
-		nextMonthDate.setMonth(nextMonthDate.getMonth() + 1)
+		const lastMonthDate = incrementMonth(attrs.selectedDate, -1)
+		const nextMonthDate = incrementMonth(attrs.selectedDate, 1)
+		const previousMonth = getCalendarMonth(lastMonthDate, startOfTheWeekOffset, false)
 		const nextMonth = getCalendarMonth(nextMonthDate, startOfTheWeekOffset, false)
-		let lastMonthDate = incrementMonth(attrs.selectedDate, -1)
-		let nextMontDate = incrementMonth(attrs.selectedDate, 1)
 		return m(PageView, {
 			previousPage: {
 				key: getFirstDayOfMonth(lastMonthDate).getTime(),
-				// FIXME
-				nodes: null, // this._monthDom ? this._renderCalendar(attrs, previousMonth, thisMonth, lastMonthDate, this._zone) : null,
+				nodes: this._monthDom ? this._renderCalendar(attrs, previousMonth, thisMonth, this._zone) : null,
 			},
 			currentPage: {
 				key: getFirstDayOfMonth(attrs.selectedDate).getTime(),
-				nodes: this._renderCalendar(attrs, thisMonth, thisMonth, attrs.selectedDate, this._zone),
+				nodes: this._renderCalendar(attrs, thisMonth, thisMonth, this._zone),
 			},
 			nextPage: {
-				key: getFirstDayOfMonth(nextMontDate).getTime(),
-				// FIXME
-				nodes: null, // this._monthDom ? this._renderCalendar(attrs, nextMonth, thisMonth, nextMontDate, this._zone) : null,
+				key: getFirstDayOfMonth(nextMonthDate).getTime(),
+				nodes: this._monthDom ? this._renderCalendar(attrs, nextMonth, thisMonth, this._zone) : null,
 			},
 			onChangePage: (next) => attrs.onChangeMonth(next),
 		})
@@ -144,7 +138,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		return different || this._eventDragHandler.queryHasChanged()
 	}
 
-	_renderCalendar(attrs: CalendarMonthAttrs, month: CalendarMonth, currentlyVisibleMonth: CalendarMonth, date: Date, zone: string): Children {
+	_renderCalendar(attrs: CalendarMonthAttrs, month: CalendarMonth, currentlyVisibleMonth: CalendarMonth, zone: string): Children {
 		const { weekdays, weeks } = month
 		const today = getStartOfDayWithZone(new Date(), getTimeZone())
 		return m(".fill-absolute.flex.col.mlr-safe-inset.content-bg", [

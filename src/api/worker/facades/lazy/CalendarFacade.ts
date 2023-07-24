@@ -554,11 +554,13 @@ async function loadAlteredInstancesFromIndexEntry(entityClient: EntityClient, in
 		(e: IdTuple) => elementIdPart(e),
 	)
 
-	const indexedEventsByList = (await mapMapAsync(indexedEventIds, (listId, elementIds) =>
-		entityClient.loadMultiple(CalendarEventTypeRef, listId, elementIds),
-	)) as Map<Id, Array<CalendarEventAlteredInstance>>
-
-	const alteredInstances = Array.from(indexedEventsByList.values()).flat()
+	const isAlteredInstance = (e: CalendarEventAlteredInstance): e is CalendarEventAlteredInstance => e.recurrenceId != null && e.uid != null
+	const indexedEventsByList = await mapMapAsync(indexedEventIds, (listId, elementIds) => entityClient.loadMultiple(CalendarEventTypeRef, listId, elementIds))
+	const indexedEvents: Array<CalendarEvent> = Array.from(indexedEventsByList.values()).flat()
+	const alteredInstances: Array<CalendarEventAlteredInstance> = indexedEvents.filter(isAlteredInstance)
+	if (indexedEvents.length > alteredInstances.length) {
+		console.warn("there were altered instances indexed that do not have a recurrence Id or uid!")
+	}
 	sortByRecurrenceId(alteredInstances)
 	return alteredInstances
 }
