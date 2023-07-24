@@ -5,8 +5,7 @@ import { log } from "../DesktopLog.js"
 import { ProtocolRequest, ProtocolResponse, Session } from "electron"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { errorToObj } from "../../api/common/MessageDispatcher.js"
-import { makeSingleUse } from "@tutao/tutanota-utils"
-import { Callback } from "@tutao/tutanota-utils/dist/Utils.js"
+import { Callback, makeSingleUse } from "@tutao/tutanota-utils"
 
 const TAG = "[ProtocolProxy]"
 

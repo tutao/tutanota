@@ -23,6 +23,7 @@ import {
 	groupBy,
 	isSameDay,
 	isSameTypeRef,
+	isSameTypeRefNullable,
 	isToday,
 	lazyMemoized,
 	neverNull,
@@ -42,7 +43,6 @@ import { LoginController } from "../../api/main/LoginController.js"
 import { Indexer } from "../../api/worker/search/Indexer.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/model/MailUtils.js"
-import { isSameTypeRefNullable } from "@tutao/tutanota-utils/dist/TypeRef.js"
 import { SearchRouter } from "./SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
 

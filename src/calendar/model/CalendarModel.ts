@@ -1,4 +1,4 @@
-import type { DeferredObject } from "@tutao/tutanota-utils"
+import type { DeferredObject, Require } from "@tutao/tutanota-utils"
 import { assertNotNull, clone, defer, downcast, filterInt, getFromMap, LazyLoaded } from "@tutao/tutanota-utils"
 import { CalendarMethod, FeatureType, GroupType, OperationType } from "../../api/common/TutanotaConstants"
 import type { EntityUpdateData } from "../../api/main/EventController"
@@ -42,7 +42,6 @@ import { IServiceExecutor } from "../../api/common/ServiceRequest"
 import { MembershipService } from "../../api/entities/sys/Services"
 import { FileController } from "../../file/FileController"
 import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUtils.js"
-import { Require } from "@tutao/tutanota-utils/dist/Utils.js"
 
 const TAG = "[CalendarModel]"
 
