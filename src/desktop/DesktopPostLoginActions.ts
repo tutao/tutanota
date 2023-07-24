@@ -1,9 +1,9 @@
-import { IPostLoginAction, LoggedInEvent } from "../api/main/LoginController"
+import { PostLoginAction, LoggedInEvent } from "../api/main/LoginController"
 import { WindowManager } from "./DesktopWindowManager"
 import { DesktopErrorHandler } from "./DesktopErrorHandler.js"
 import { DesktopNotifier } from "./DesktopNotifier.js"
 
-export class DesktopPostLoginActions implements IPostLoginAction {
+export class DesktopPostLoginActions implements PostLoginAction {
 	constructor(
 		private readonly wm: WindowManager,
 		private readonly err: DesktopErrorHandler,

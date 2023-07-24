@@ -1,4 +1,4 @@
-import type { DeferredObject } from "@tutao/tutanota-utils"
+import type { DeferredObject, lazy } from "@tutao/tutanota-utils"
 import { assertNotNull, defer } from "@tutao/tutanota-utils"
 import { assertMainOrNodeBoot } from "../common/Env"
 import type { UserController, UserControllerInitData } from "./UserController"
@@ -15,7 +15,7 @@ import { IMainLocator, locator } from "./MainLocator"
 
 assertMainOrNodeBoot()
 
-export interface IPostLoginAction {
+export interface PostLoginAction {
 	/** Partial login is achieved with getting the user, can happen offline. The login will wait for the returned promise. */
 	onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void>
 
@@ -35,7 +35,7 @@ export class LoginController {
 	private customizations: NumberString[] | null = null
 	private partialLogin: DeferredObject<void> = defer()
 	private _isWhitelabel: boolean = !!getWhitelabelCustomizations(window)
-	private postLoginActions: Array<IPostLoginAction> = []
+	private postLoginActions: Array<lazy<Promise<PostLoginAction>>> = []
 	private fullyLoggedIn: boolean = false
 	private atLeastPartiallyLoggedIn: boolean = false
 
@@ -43,7 +43,8 @@ export class LoginController {
 		this.waitForFullLogin().then(async () => {
 			this.fullyLoggedIn = true
 			await this.waitForPartialLogin()
-			for (const action of this.postLoginActions) {
+			for (const lazyAction of this.postLoginActions) {
+				const action = await lazyAction()
 				await action.onFullLoginSuccess({
 					sessionType: this.getUserController().sessionType,
 					userId: this.getUserController().userId,
@@ -89,7 +90,7 @@ export class LoginController {
 		return newSessionData
 	}
 
-	addPostLoginAction(handler: IPostLoginAction) {
+	addPostLoginAction(handler: lazy<Promise<PostLoginAction>>) {
 		this.postLoginActions.push(handler)
 	}
 
@@ -100,7 +101,8 @@ export class LoginController {
 		await this.loadCustomizations()
 		await this._determineIfWhitelabel()
 
-		for (const handler of this.postLoginActions) {
+		for (const lazyHandler of this.postLoginActions) {
+			const handler = await lazyHandler()
 			await handler.onPartialLoginSuccess({
 				sessionType,
 				userId: initData.user._id,
