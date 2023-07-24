@@ -148,8 +148,10 @@ export class ServiceWorker {
 	}
 
 	_redirectToDefaultPage(url: string): Response {
-		let hash = url.indexOf("#")
-		const withoutBasePath = url.substring(this._selfLocation.length, hash != -1 ? hash : url.length)
+		// We keep the hash in the url. This might lead to a situation where the client
+		// has the hash twice (once encoded in "r" part and once in the url directly) but
+		// the webapp has been trained to deal with it (see getStartUrl() in app.ts)
+		const withoutBasePath = url.substring(this._selfLocation.length)
 		const params = new URLSearchParams({
 			r: withoutBasePath,
 		})
