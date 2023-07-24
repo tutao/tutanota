@@ -92,8 +92,10 @@ export class CalendarEventApplyStrategies {
 					if (invalidateAlteredInstances) {
 						editModelsForProgenitor.whoModel.shouldSendUpdates = true
 						const { sendModels } = await assembleEditResultAndAssignFromExisting(occurrence, editModelsForProgenitor, CalendarOperation.EditThis)
-						// we might have a cancel model and an update model if the user changed the guest list
-						// and invalidated the altered instances in the same operation.
+						// in cases where guests were removed and the start time/repeat rule changed, we might
+						// have both a cancel model (containing the removed recipients) and an update model (the rest)
+						// we're copying all of them to cancel if the altered instances were invalidated, since the
+						// update (and invite for that matter) is irrelevant for those instances.
 						for (const address in sendModels.cancelModel?.allRecipients() ?? []) {
 							sendModels.updateModel?.addRecipient(RecipientField.BCC, { address })
 						}

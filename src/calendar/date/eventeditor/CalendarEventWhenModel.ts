@@ -493,8 +493,6 @@ export class CalendarEventWhenModel {
 	 * @private
 	 */
 	private deleteExcludedDatesIfNecessary(newRepeat: RepeatRule | null) {
-		//  FIXME we can't decide anything about excluded dates here because we don't know what we are actually doing.
-		//  it also conceptually doesn't really fit in this model because it concerns other occurrences and not our "current" one
 		if (newRepeat == null) return
 		const oldRepeat = this.initialValues.repeatRule ?? null
 		// if excluded dates have changed,
