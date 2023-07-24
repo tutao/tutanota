@@ -99,12 +99,8 @@ export class CalendarModel {
 			throw new Error("Invalid existing event for update: mismatched uids.")
 		}
 
-		if (
-			existingEvent._ownerGroup !== groupRoot._id ||
-			newEvent.startTime.getTime() !== existingEvent.startTime.getTime() ||
-			(!repeatRulesEqual(newEvent.repeatRule, existingEvent.repeatRule) &&
-				!isSameExclusions(newEvent.repeatRule?.excludedDates ?? [], existingEvent.repeatRule?.excludedDates ?? []))
-		) {
+		// in cases where start time or calendar changed, we need to change the event id and so need to delete/recreate.
+		if (existingEvent._ownerGroup !== groupRoot._id || newEvent.startTime.getTime() !== existingEvent.startTime.getTime()) {
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
 			await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
 			return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
@@ -471,7 +467,7 @@ export class CalendarModel {
 
 	/** handle an event cancellation - either the whole series (progenitor got cancelled)
 	 * or the altered occurrence. */
-	private async processCalendarCancellation(dbEvent: CalendarEvent): Promise<void> {
+	private async processCalendarCancellation(dbEvent: CalendarEventInstance): Promise<void> {
 		console.log("processing cancellation")
 		// not having UID is technically an error, but we'll do our best (the event came from the server after all)
 		if (dbEvent.recurrenceId == null && dbEvent.uid != null) {
@@ -640,39 +636,4 @@ export class CalendarModel {
 			alarmScheduler.cancelAlarm(identifier)
 		}
 	}
-}
-
-// allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
-// 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
-// allDay event just points us to the correct date.
-// e.g. there's an allDay event in Europe/Berlin at 2nd of may. We encode it as:
-// {startTime: new Date(Date.UTC(2019, 04, 2, 0, 0, 0, 0)), {endTime: new Date(Date.UTC(2019, 04, 3, 0, 0, 0, 0))}}
-// We check the condition with time == 0 and take a UTC date (which is [2-3) so full day on the 2nd of May). We
-function repeatRulesEqual(repeatRule: CalendarRepeatRule | null, repeatRule2: CalendarRepeatRule | null): boolean {
-	return (
-		(repeatRule == null && repeatRule2 == null) ||
-		(repeatRule != null &&
-			repeatRule2 != null &&
-			repeatRule.endType === repeatRule2.endType &&
-			repeatRule.endValue === repeatRule2.endValue &&
-			repeatRule.frequency === repeatRule2.frequency &&
-			repeatRule.interval === repeatRule2.interval &&
-			repeatRule.timeZone === repeatRule2.timeZone &&
-			isSameExclusions(repeatRule.excludedDates, repeatRule2.excludedDates))
-	)
-}
-
-/**
- * compare two lists of dateWrappers
- * @param dates sorted list of dateWrappers from earliest to latest
- * @param dates2 sorted list of dateWrappers from earliest to latest
- */
-function isSameExclusions(dates: ReadonlyArray<DateWrapper>, dates2: ReadonlyArray<DateWrapper>): boolean {
-	if (dates.length !== dates2.length) return false
-	for (let i = 0; i < dates.length; i++) {
-		const { date: a } = dates[i]
-		const { date: b } = dates2[i]
-		if (a.getTime() !== b.getTime()) return false
-	}
-	return true
 }
