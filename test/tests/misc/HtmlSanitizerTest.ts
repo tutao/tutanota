@@ -78,6 +78,17 @@ o.spec(
 			o(sanitizedLink.includes('rel="noopener noreferrer"')).equals(true)
 			o(sanitizedLink.includes(">here</a>")).equals(true)
 		})
+		o("tutatemplate links in html", function () {
+			let tutatemplateLink = '<a href="tutatemplate:some-id/some-entry">#hashtag</a>'
+			let sanitized = htmlSanitizer.sanitizeHTML(tutatemplateLink).html
+			o(sanitized.includes('href="tutatemplate:some-id/some-entry"')).equals(true)
+		})
+		o("tutatemplate links in fragment", function () {
+			const tutatemplateLink = '<a href="tutatemplate:some-id/some-entry">#hashtag</a>'
+			const sanitized = htmlSanitizer.sanitizeFragment(tutatemplateLink).fragment
+			const a = sanitized.querySelector("a")
+			o(a != null && a.href.includes("tutatemplate:some-id/some-entry")).equals(true)
+		})
 		o("notification mail template link", function () {
 			let simpleHtmlLink = '<a href=" {link} ">here</a>'
 			let sanitizedLink = htmlSanitizer.sanitizeHTML(simpleHtmlLink, {
