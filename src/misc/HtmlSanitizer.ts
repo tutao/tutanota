@@ -79,10 +79,14 @@ const FORBID_TAGS = Object.freeze([
 	"style",
 ] as const)
 
+/** restricts the allowed protocols to some standard ones + our tutatemplate protocol that allows the knowledge base to link to email templates. */
+const ALLOWED_URI_REGEXP = /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|tutatemplate):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+
 const HTML_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT?: undefined; RETURN_DOM?: undefined } = Object.freeze({
 	ADD_ATTR: ADD_ATTR.slice(),
 	ADD_URI_SAFE_ATTR: ADD_URI_SAFE_ATTR.slice(),
 	FORBID_TAGS: FORBID_TAGS.slice(),
+	ALLOWED_URI_REGEXP,
 } as const)
 const SVG_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT?: undefined; RETURN_DOM?: undefined } = Object.freeze({
 	ADD_ATTR: ADD_ATTR.slice(),
@@ -95,7 +99,7 @@ const FRAGMENT_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT: true } = Object
 	ADD_URI_SAFE_ATTR: ADD_URI_SAFE_ATTR.slice(),
 	FORBID_TAGS: FORBID_TAGS.slice(),
 	RETURN_DOM_FRAGMENT: true,
-	ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|tutatemplate):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+	ALLOWED_URI_REGEXP,
 } as const)
 
 type BaseConfig = typeof HTML_CONFIG | typeof SVG_CONFIG | typeof FRAGMENT_CONFIG
