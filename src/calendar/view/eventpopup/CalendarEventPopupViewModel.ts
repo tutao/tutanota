@@ -7,7 +7,7 @@ import { CalendarOperation, showExistingCalendarEventEditDialog } from "../event
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { CalendarAttendeeStatus } from "../../../api/common/TutanotaConstants.js"
 import m from "mithril"
-import { clone } from "@tutao/tutanota-utils"
+import { clone, Thunk } from "@tutao/tutanota-utils"
 import { CalendarEventUidIndexEntry } from "../../../api/worker/facades/lazy/CalendarFacade.js"
 
 /**
@@ -86,7 +86,19 @@ export class CalendarEventPopupViewModel {
 		return this._ownAttendee
 	}
 
-	async setOwnAttendance(status: CalendarAttendeeStatus): Promise<void> {
+	/** return an object enabling us to set and display the participation correctly if this is an invite we're invited to, null otherwise. */
+	getParticipationSetterAndThen(action: Thunk): null | { ownAttendee: CalendarEventAttendee; setParticipation: (status: CalendarAttendeeStatus) => unknown } {
+		if (this.ownAttendee == null || this.eventType !== EventType.INVITE) return null
+		return {
+			ownAttendee: this.ownAttendee,
+			setParticipation: async (status) => {
+				await this.setOwnAttendance(status)
+				action()
+			},
+		}
+	}
+
+	private async setOwnAttendance(status: CalendarAttendeeStatus): Promise<void> {
 		if (this.calendarEvent.organizer == null || this.ownAttendee == null || this.processing || this._ownAttendee?.status === status) return
 		const oldStatus = this.ownAttendee.status
 		this.processing = true

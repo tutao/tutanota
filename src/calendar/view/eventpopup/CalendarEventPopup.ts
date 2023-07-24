@@ -5,7 +5,7 @@ import { Button, ButtonColor, ButtonType } from "../../../gui/base/Button.js"
 import { Icons } from "../../../gui/base/icons/Icons.js"
 import type { ModalComponent } from "../../../gui/base/Modal.js"
 import { modal } from "../../../gui/base/Modal.js"
-import { EventPreviewView } from "./EventPreviewView.js"
+import { EventPreviewView, EventPreviewViewAttrs } from "./EventPreviewView.js"
 import { Dialog } from "../../../gui/base/Dialog.js"
 import { createAsyncDropdown, DROPDOWN_MARGIN, PosRect, showDropdown } from "../../../gui/base/Dropdown.js"
 import { Keys } from "../../../api/common/TutanotaConstants.js"
@@ -14,8 +14,6 @@ import { prepareCalendarDescription } from "../../date/CalendarUtils.js"
 import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
 import { IconButton } from "../../../gui/base/IconButton.js"
 import { CalendarEventPopupViewModel } from "./CalendarEventPopupViewModel.js"
-
-import { EventType } from "../../date/eventeditor/CalendarEventModel.js"
 
 /**
  * small modal displaying all relevant information about an event in a compact fashion. offers limited editing capabilities to participants in the
@@ -139,20 +137,11 @@ export class CalendarEventPopup implements ModalComponent {
 					m(EventPreviewView, {
 						event: this.model.calendarEvent,
 						sanitizedDescription: this.sanitizedDescription,
-						participation:
-							this.model.ownAttendee != null && this.model.eventType === EventType.INVITE
-								? {
-										ownAttendee: this.model.ownAttendee,
-										setParticipation: async (status) => {
-											await this.model.setOwnAttendance(status)
-											// closing this since repeated edit operations from the popup would always
-											// use the version of the event the popup was opened with, which means the next
-											// click uses an outdated version.
-											this.close()
-										},
-								  }
-								: null,
-					}),
+						// closing this since repeated edit operations from the popup would always
+						// use the version of the event the popup was opened with, which means the next
+						// click uses an outdated version.
+						participation: this.model.getParticipationSetterAndThen(() => this.close()),
+					} satisfies EventPreviewViewAttrs),
 				]),
 			],
 		)
