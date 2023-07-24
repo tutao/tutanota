@@ -208,8 +208,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			undefined,
 			() => lang.get("email_label"),
 		)
-		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn], "MailView")
-		this.viewSlider.focusedColumn = this.viewSlider.columns[0]
+		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn])
+		this.viewSlider.focusedColumn = this.folderColumn
 
 		const shortcuts = this.getShortcuts()
 
