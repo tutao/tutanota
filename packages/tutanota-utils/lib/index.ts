@@ -40,9 +40,10 @@ export {
 	partitionAsync,
 	arrayOf,
 	count,
+	mapMapAsync,
 } from "./ArrayUtils.js"
 export { AsyncResult } from "./AsyncResult.js"
-export { intersection, trisectingDiff } from "./CollectionUtils.js"
+export { intersection, trisectingDiff, setAddAll, max, maxBy, findBy, min, minBy, mapWith, mapWithout } from "./CollectionUtils.js"
 export {
 	DAY_IN_MILLIS,
 	getStartOfNextDay,
@@ -62,6 +63,7 @@ export {
 	isValidDate,
 	millisToDays,
 	daysToMillis,
+	TIMESTAMP_ZERO_YEAR,
 } from "./DateUtils.js"
 export {
 	uint8ArrayToArrayBuffer,
@@ -88,7 +90,7 @@ export { LazyLoaded } from "./LazyLoaded.js"
 export { mergeMaps, getFromMap, addMapEntry, deleteMapEntry } from "./MapUtils.js"
 export { pMap } from "./PromiseMap.js"
 export type { Mapper } from "./PromiseMap.js"
-export { mapInCallContext, promiseMap, promiseMapCompat, PromisableWrapper, delay, tap, ofClass, promiseFilter } from "./PromiseUtils.js"
+export { mapInCallContext, promiseMap, promiseMapCompat, PromisableWrapper, delay, tap, ofClass, promiseFilter, settledThen } from "./PromiseUtils.js"
 export type { PromiseMapFn, $Promisable } from "./PromiseUtils.js"
 export { SortedArray } from "./SortedArray.js"
 export type { CompareFn } from "./SortedArray.js"
@@ -107,7 +109,7 @@ export {
 	byteLength,
 	replaceAll,
 } from "./StringUtils.js"
-export { TypeRef, isSameTypeRefByAttr, isSameTypeRef, getTypeId } from "./TypeRef.js"
+export { TypeRef, isSameTypeRefByAttr, isSameTypeRef, getTypeId, isSameTypeRefNullable } from "./TypeRef.js"
 export {
 	defer,
 	deferWithHandler,
@@ -145,8 +147,10 @@ export {
 	insideRect,
 	mapNullable,
 	mapObject,
+	Require,
+	memoizedWithHiddenArgument,
 } from "./Utils.js"
-export type { DeferredObject, lazy, lazyAsync, Thunk, DeferredObjectWithHandler, MaybeLazy, TimeoutSetter, ErrorInfo } from "./Utils.js"
+export type { Callback, DeferredObject, lazy, lazyAsync, Thunk, DeferredObjectWithHandler, MaybeLazy, TimeoutSetter, ErrorInfo } from "./Utils.js"
 
 export { mod, clamp } from "./MathUtils.js"
 

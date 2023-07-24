@@ -1,6 +1,16 @@
 import type { CalendarAttendeeStatus, CalendarMethod } from "../../api/common/TutanotaConstants"
 import { AlarmInterval, assertEnumValue, EndType, RepeatPeriod, SECOND_MS } from "../../api/common/TutanotaConstants"
-import { assertNotNull, downcast, incrementDate, mapAndFilterNull, neverNull, pad, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	downcast,
+	incrementDate,
+	mapAndFilterNull,
+	neverNull,
+	pad,
+	Require,
+	stringToUtf8Uint8Array,
+	utf8Uint8ArrayToString,
+} from "@tutao/tutanota-utils"
 import { calendarAttendeeStatusToParstat, iCalReplacements, parseCalendarEvents, parseICalendar, repeatPeriodToIcalFrequency } from "./CalendarParser"
 import { getAllDayDateLocal, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { generateUid, getTimeZone } from "../date/CalendarUtils"
@@ -12,7 +22,6 @@ import { ParserError } from "../../misc/parsing/ParserCombinator"
 import { DateTime } from "luxon"
 import { CALENDAR_MIME_TYPE } from "../../file/FileController"
 import { getLetId } from "../../api/common/utils/EntityUtils"
-import { Require } from "@tutao/tutanota-utils/dist/Utils.js"
 
 export type ParsedEvent = {
 	event: Require<"uid", CalendarEvent>

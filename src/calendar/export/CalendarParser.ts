@@ -1,4 +1,4 @@
-import { DAY_IN_MILLIS, downcast, filterInt, neverNull } from "@tutao/tutanota-utils"
+import { DAY_IN_MILLIS, downcast, filterInt, neverNull, Require } from "@tutao/tutanota-utils"
 import { DateTime, IANAZone } from "luxon"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventAttendee, createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
@@ -22,7 +22,6 @@ import WindowsZones from "./WindowsZones"
 import type { ParsedCalendarData } from "./CalendarImporter"
 import { isMailAddress } from "../../misc/FormatValidator"
 import { AlarmInterval, CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, reverse } from "../../api/common/TutanotaConstants"
-import { Require } from "@tutao/tutanota-utils/dist/Utils.js"
 
 function parseDateString(dateString: string): {
 	year: number

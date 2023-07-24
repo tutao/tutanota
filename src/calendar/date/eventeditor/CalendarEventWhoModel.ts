@@ -24,7 +24,7 @@ import { UserController } from "../../../api/main/UserController.js"
 import { UserError } from "../../../api/main/UserError.js"
 import { EventType } from "./CalendarEventModel.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
-import { trisectingDiff } from "@tutao/tutanota-utils/dist/CollectionUtils.js"
+import { trisectingDiff } from "@tutao/tutanota-utils"
 import { CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
 import { CalendarOperation } from "../../view/eventeditor/CalendarEventEditDialog.js"
 

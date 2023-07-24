@@ -2,7 +2,7 @@ import { SearchRestriction } from "../../api/worker/search/SearchTypes.js"
 import { getRestriction, getSearchUrl } from "../model/SearchUtils.js"
 import m from "mithril"
 import { Router } from "../../gui/ScopedRouter.js"
-import { memoizedWithHiddenArgument } from "@tutao/tutanota-utils/dist/Utils.js"
+import { memoizedWithHiddenArgument } from "@tutao/tutanota-utils"
 
 export class SearchRouter {
 	constructor(private readonly router: Router) {}

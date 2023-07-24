@@ -14,6 +14,7 @@ import {
 	isValidDate,
 	neverNull,
 	numberRange,
+	TIMESTAMP_ZERO_YEAR,
 } from "@tutao/tutanota-utils"
 import {
 	AccountType,
@@ -59,7 +60,6 @@ import type { CalendarInfo } from "../model/CalendarModel"
 import { assertMainOrNode } from "../../api/common/Env"
 import { ChildArray, Children } from "mithril"
 import { DateProvider } from "../../api/common/DateProvider"
-import { TIMESTAMP_ZERO_YEAR } from "@tutao/tutanota-utils/dist/DateUtils"
 import { AllIcons } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { EventType } from "./eventeditor/CalendarEventModel.js"

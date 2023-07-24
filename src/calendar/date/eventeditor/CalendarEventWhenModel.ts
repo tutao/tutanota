@@ -10,13 +10,12 @@ import {
 	getStartOfNextDayWithZone,
 	incrementByRepeatPeriod,
 } from "../CalendarUtils.js"
-import { TIMESTAMP_ZERO_YEAR } from "@tutao/tutanota-utils/dist/DateUtils.js"
+import { assertNotNull, clone, filterInt, incrementDate, noOp, TIMESTAMP_ZERO_YEAR } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarRepeatRule } from "../../../api/entities/tutanota/TypeRefs.js"
 import { Stripped } from "../../../api/common/utils/EntityUtils.js"
 import { EndType, RepeatPeriod } from "../../../api/common/TutanotaConstants.js"
 import { createDateWrapper, createRepeatRule, RepeatRule } from "../../../api/entities/sys/TypeRefs.js"
 import { UserError } from "../../../api/main/UserError.js"
-import { assertNotNull, clone, filterInt, incrementDate, noOp } from "@tutao/tutanota-utils"
 import { areExcludedDatesEqual, areRepeatRulesEqual } from "./CalendarEventModel.js"
 
 export type CalendarEventWhenModelResult = CalendarEventTimes & {

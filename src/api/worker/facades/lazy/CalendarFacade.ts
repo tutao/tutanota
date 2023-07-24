@@ -24,9 +24,11 @@ import {
 	groupByAndMap,
 	groupByAndMapUniquely,
 	isNotNull,
+	mapMapAsync,
 	neverNull,
 	ofClass,
 	promiseMap,
+	Require,
 	stringToUtf8Uint8Array,
 } from "@tutao/tutanota-utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
@@ -59,8 +61,6 @@ import { EncryptedAlarmNotification } from "../../../../native/common/EncryptedA
 import { NativePushFacade } from "../../../../native/common/generatedipc/NativePushFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
-import { mapMapAsync } from "@tutao/tutanota-utils/dist/ArrayUtils.js"
-import { Require } from "@tutao/tutanota-utils/dist/Utils.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 
 assertWorkerOrNode()

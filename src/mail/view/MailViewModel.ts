@@ -11,7 +11,7 @@ import { EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { MailFolderType } from "../../api/common/TutanotaConstants.js"
 import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../../api/common/mail/CommonMailUtils.js"
-import { mapWith, mapWithout } from "@tutao/tutanota-utils/dist/CollectionUtils.js"
+import { mapWith, mapWithout } from "@tutao/tutanota-utils"
 import { WsConnectionState } from "../../api/main/WorkerClient.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { ExposedCacheStorage } from "../../api/worker/rest/DefaultEntityRestCache.js"
