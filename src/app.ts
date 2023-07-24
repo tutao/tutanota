@@ -112,10 +112,17 @@ import("./translations/en")
 
 		const { PostLoginActions } = await import("./login/PostLoginActions")
 		const { CachePostLoginAction } = await import("./offline/CachePostLoginAction")
-		locator.logins.addPostLoginAction(new PostLoginActions(locator.credentialsProvider, locator.secondFactorHandler, locator.connectivityModel))
+		locator.logins.addPostLoginAction(async () => new PostLoginActions(locator.credentialsProvider, locator.secondFactorHandler, locator.connectivityModel))
 		if (isOfflineStorageAvailable()) {
 			locator.logins.addPostLoginAction(
-				new CachePostLoginAction(await locator.calendarModel(), locator.entityClient, locator.progressTracker, locator.cacheStorage, locator.logins),
+				async () =>
+					new CachePostLoginAction(
+						await locator.calendarModel(),
+						locator.entityClient,
+						locator.progressTracker,
+						locator.cacheStorage,
+						locator.logins,
+					),
 			)
 		}
 
@@ -419,7 +426,7 @@ import("./translations/en")
 		}
 		if (isDesktop()) {
 			const { exposeNativeInterface } = await import("./api/common/ExposeNativeInterface")
-			locator.logins.addPostLoginAction(exposeNativeInterface(locator.native).postLoginActions)
+			locator.logins.addPostLoginAction(async () => exposeNativeInterface(locator.native).postLoginActions)
 		}
 		// after we set up prefixWithoutFile
 		initSW()

@@ -1,4 +1,4 @@
-import { IPostLoginAction, LoggedInEvent, LoginController } from "../api/main/LoginController.js"
+import { PostLoginAction, LoggedInEvent, LoginController } from "../api/main/LoginController.js"
 import { CalendarModel } from "../calendar/model/CalendarModel.js"
 import { CalendarEventTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { CUSTOM_MIN_ID } from "../api/common/utils/EntityUtils.js"
@@ -9,7 +9,7 @@ import { NoopProgressMonitor } from "../api/common/utils/ProgressMonitor.js"
 import { SessionType } from "../api/common/SessionType.js"
 import { ExposedCacheStorage } from "../api/worker/rest/DefaultEntityRestCache.js"
 
-export class CachePostLoginAction implements IPostLoginAction {
+export class CachePostLoginAction implements PostLoginAction {
 	constructor(
 		private readonly calendarModel: CalendarModel,
 		private readonly entityClient: EntityClient,

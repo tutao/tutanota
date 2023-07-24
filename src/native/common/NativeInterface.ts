@@ -1,4 +1,4 @@
-import { IPostLoginAction } from "../../api/main/LoginController"
+import { PostLoginAction } from "../../api/main/LoginController"
 
 export interface NativeInterface {
 	invokeNative(requestType: NativeRequestType, args: ReadonlyArray<unknown>): Promise<any>
@@ -6,5 +6,5 @@ export interface NativeInterface {
 
 /** What native interfaces can be accessed by the web part. */
 export interface ExposedNativeInterface {
-	postLoginActions: IPostLoginAction
+	postLoginActions: PostLoginAction
 }

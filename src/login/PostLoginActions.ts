@@ -1,5 +1,5 @@
 import m, { Component } from "mithril"
-import type { IPostLoginAction, LoggedInEvent } from "../api/main/LoginController"
+import type { PostLoginAction, LoggedInEvent } from "../api/main/LoginController"
 import { isAdminClient, isApp, isDesktop, LOGIN_TITLE, Mode } from "../api/common/Env"
 import { assertNotNull, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade"
@@ -34,7 +34,7 @@ import type { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityMo
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
  */
 
-export class PostLoginActions implements IPostLoginAction {
+export class PostLoginActions implements PostLoginAction {
 	constructor(
 		private readonly credentialsProvider: CredentialsProvider,
 		public secondFactorHandler: SecondFactorHandler,
