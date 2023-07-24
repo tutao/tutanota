@@ -21,11 +21,12 @@ import { formatDateWithMonth } from "../../../misc/Formatter.js"
 import { hasError } from "../../../api/common/utils/ErrorCheckUtils.js"
 import { BannerButton, BannerButtonAttrs } from "../../../gui/base/buttons/BannerButton.js"
 import { pureComponent } from "../../../gui/base/PureComponent.js"
+import { CalendarEventPopupViewModel } from "./CalendarEventPopupViewModel.js"
 
 export type EventPreviewViewAttrs = {
 	event: Omit<CalendarEvent, "description">
 	sanitizedDescription: string | null
-	participation: null | { ownAttendee: CalendarEventAttendee; setParticipation: (status: CalendarAttendeeStatus) => unknown }
+	participation: ReturnType<typeof CalendarEventPopupViewModel.prototype.getParticipationSetterAndThen>
 }
 
 /** the buttons enabling the user to view their current participation status on an event and to trigger a change to it, including

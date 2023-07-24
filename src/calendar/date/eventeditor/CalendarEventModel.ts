@@ -334,9 +334,27 @@ export class CalendarEventModel {
 		}
 	}
 
-	/** check the current state of the edit operation and see if they amount to anything the attendees should be notified of. */
-	async hasUpdateWorthyChanges(): Promise<boolean> {
-		return await this.strategy.mayRequireSendingUpdates()
+	/** true if the event is only partially writable, false if it is fully writable. */
+	isPartiallyWritable(): boolean {
+		return this.eventType !== EventType.OWN && this.eventType !== EventType.SHARED_RW
+	}
+
+	/** some edit operations apply to the whole event series.
+	 * they are not possible if the operation the model was created with only applies to a single instance.
+	 *
+	 * returns true if such operations can be attempted.
+	 * */
+	canEditSeries(): boolean {
+		return !this.isPartiallyWritable() || this.operation === CalendarOperation.EditThis
+	}
+
+	async isAskingForUpdatesNeeded(): Promise<boolean> {
+		return (
+			this.eventType === EventType.OWN &&
+			!this.editModels.whoModel.shouldSendUpdates &&
+			this.editModels.whoModel.initiallyHadOtherAttendees &&
+			(await this.strategy.mayRequireSendingUpdates())
+		)
 	}
 }
 

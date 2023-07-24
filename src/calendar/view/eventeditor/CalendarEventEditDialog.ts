@@ -22,7 +22,7 @@ import { CalendarEventEditView } from "./CalendarEventEditView.js"
 import { askIfShouldSendCalendarUpdatesToAttendees } from "../CalendarGuiUtils.js"
 import { UserError } from "../../../api/main/UserError.js"
 import { showUserError } from "../../../misc/ErrorHandlerImpl.js"
-import { CalendarEventIdentity, CalendarEventModel, EventSaveResult, EventType } from "../../date/eventeditor/CalendarEventModel.js"
+import { CalendarEventIdentity, CalendarEventModel, EventSaveResult } from "../../date/eventeditor/CalendarEventModel.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
@@ -222,12 +222,7 @@ export async function showExistingCalendarEventEditDialog(
  * should proceed.
  * */
 async function askUserIfUpdatesAreNeededOrCancel(model: CalendarEventModel): Promise<ConfirmationResult> {
-	if (
-		model.eventType === EventType.OWN &&
-		!model.editModels.whoModel.shouldSendUpdates &&
-		model.editModels.whoModel.initiallyHadOtherAttendees &&
-		(await model.hasUpdateWorthyChanges())
-	) {
+	if (await model.isAskingForUpdatesNeeded()) {
 		switch (await askIfShouldSendCalendarUpdatesToAttendees()) {
 			case "yes":
 				model.editModels.whoModel.shouldSendUpdates = true
