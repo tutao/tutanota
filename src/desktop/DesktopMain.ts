@@ -31,7 +31,6 @@ import type { DesktopKeyStoreFacade } from "./KeyStoreFacadeImpl"
 import { KeyStoreFacadeImpl } from "./KeyStoreFacadeImpl"
 import { AlarmSchedulerImpl } from "../calendar/date/AlarmScheduler"
 import { SchedulerImpl } from "../api/common/utils/Scheduler.js"
-import { DefaultDateProvider } from "../calendar/date/CalendarUtils"
 import { DesktopThemeFacade } from "./DesktopThemeFacade"
 import { BuildConfigKey, DesktopConfigKey } from "./config/ConfigKeys"
 import { DesktopNativeCredentialsFacade } from "./credentials/DesktopNativeCredentialsFacade.js"
@@ -60,6 +59,7 @@ import { DesktopSqlCipher } from "./DesktopSqlCipher.js"
 import { lazyMemoized } from "@tutao/tutanota-utils"
 import dns from "node:dns"
 import { getConfigFile } from "./config/ConfigFile.js"
+import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 
 /**
  * Should be injected during build time.

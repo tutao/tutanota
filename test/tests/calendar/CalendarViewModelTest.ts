@@ -7,7 +7,7 @@ import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.
 import { addDaysForEventInstance, getMonthRange } from "../../../src/calendar/date/CalendarUtils.js"
 import type { CalendarModel } from "../../../src/calendar/model/CalendarModel.js"
 import { CalendarEventEditModelsFactory, CalendarViewModel } from "../../../src/calendar/view/CalendarViewModel.js"
-import { CalendarEventModel, EventSaveResult } from "../../../src/calendar/date/eventeditor/CalendarEventModel.js"
+import { CalendarEventModel, CalendarOperation, EventSaveResult } from "../../../src/calendar/date/eventeditor/CalendarEventModel.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import type { EntityUpdateData } from "../../../src/api/main/EventController.js"
 import { EventController } from "../../../src/api/main/EventController.js"
@@ -19,7 +19,6 @@ import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js
 import { ReceivedGroupInvitationsModel } from "../../../src/sharing/model/ReceivedGroupInvitationsModel.js"
 import { ProgressMonitor } from "../../../src/api/common/utils/ProgressMonitor.js"
 import { object, when } from "testdouble"
-import { CalendarOperation } from "../../../src/calendar/view/eventeditor/CalendarEventEditDialog.js"
 
 let saveAndSendMock
 let rescheduleEventMock

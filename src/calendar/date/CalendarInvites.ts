@@ -13,12 +13,11 @@ import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUt
 import { Recipient } from "../../api/common/recipients/Recipient.js"
 import { isCustomizationEnabledForCustomer } from "../../api/common/utils/Utils.js"
 import { SendMailModel } from "../../mail/editor/SendMailModel.js"
-import { CalendarEventModel, EventType } from "./eventeditor/CalendarEventModel.js"
+import { CalendarEventModel, CalendarOperation, EventType } from "./eventeditor/CalendarEventModel.js"
 import { CalendarNotificationModel } from "./eventeditor/CalendarNotificationModel.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { RecipientField } from "../../mail/model/MailUtils.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
-import { CalendarOperation } from "../view/eventeditor/CalendarEventEditDialog.js"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }

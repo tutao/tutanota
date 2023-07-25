@@ -91,14 +91,13 @@ import { Const, GroupType } from "../common/TutanotaConstants.js"
 import type { ExternalLoginViewModel } from "../../login/ExternalLoginView.js"
 import type { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
 import { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
-import { CalendarEventModel } from "../../calendar/date/eventeditor/CalendarEventModel.js"
+import { CalendarEventModel, CalendarOperation } from "../../calendar/date/eventeditor/CalendarEventModel.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { SearchViewModel } from "../../search/view/SearchViewModel.js"
 import { SearchRouter } from "../../search/view/SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
 import { InboxRuleHandler } from "../../mail/model/InboxRuleHandler.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../../gui/ScopedRouter.js"
-import { CalendarOperation } from "../../calendar/view/eventeditor/CalendarEventEditDialog.js"
 
 assertMainOrNode()
 

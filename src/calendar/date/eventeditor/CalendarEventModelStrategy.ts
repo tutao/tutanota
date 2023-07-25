@@ -14,11 +14,11 @@ import {
 	assertEventValidity,
 	assignEventIdentity,
 	CalendarEventEditModels,
+	CalendarOperation,
 	ShowProgressCallback,
 } from "./CalendarEventModel.js"
 import { LoginController } from "../../../api/main/LoginController.js"
 import { DateTime } from "luxon"
-import { CalendarOperation } from "../../view/eventeditor/CalendarEventEditDialog.js"
 import { RecipientField } from "../../../mail/model/MailUtils.js"
 
 /** when starting an edit or delete operation of an event, we

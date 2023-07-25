@@ -6,6 +6,7 @@ import {
 	areExcludedDatesEqual,
 	areRepeatRulesEqual,
 	CalendarEventEditModels,
+	CalendarOperation,
 	eventHasChanged,
 	EventSaveResult,
 	makeCalendarEventModel,
@@ -39,7 +40,6 @@ import { LoginController } from "../../../../src/api/main/LoginController.js"
 import { MailboxDetail } from "../../../../src/mail/model/MailModel.js"
 import { FolderSystem } from "../../../../src/api/common/mail/FolderSystem.js"
 import { SendMailModel } from "../../../../src/mail/editor/SendMailModel.js"
-import { CalendarOperation } from "../../../../src/calendar/view/eventeditor/CalendarEventEditDialog.js"
 
 o.spec("CalendarEventModelTest", function () {
 	let userController: UserController

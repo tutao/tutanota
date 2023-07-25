@@ -22,11 +22,10 @@ import { CalendarInfo } from "../../model/CalendarModel.js"
 import { hasCapabilityOnGroup } from "../../../sharing/GroupUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
 import { UserError } from "../../../api/main/UserError.js"
-import { EventType } from "./CalendarEventModel.js"
+import { CalendarOperation, EventType } from "./CalendarEventModel.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { trisectingDiff } from "@tutao/tutanota-utils"
 import { CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
-import { CalendarOperation } from "../../view/eventeditor/CalendarEventEditDialog.js"
 
 /** there is no point in returning recipients, the SendMailModel will re-resolve them anyway. */
 type AttendanceModelResult = {

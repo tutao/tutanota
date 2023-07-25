@@ -21,11 +21,10 @@ import { px, size } from "../../../gui/size.js"
 import { createDropdown } from "../../../gui/base/Dropdown.js"
 import { CalendarEventWhoModel } from "../../date/eventeditor/CalendarEventWhoModel.js"
 import { LoginController } from "../../../api/main/LoginController.js"
-import { CalendarEventModel } from "../../date/eventeditor/CalendarEventModel.js"
+import { CalendarEventModel, CalendarOperation } from "../../date/eventeditor/CalendarEventModel.js"
 import { DropDownSelector } from "../../../gui/base/DropDownSelector.js"
 import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
 import { hasPlanWithInvites } from "../../date/eventeditor/CalendarNotificationModel.js"
-import { CalendarOperation } from "./CalendarEventEditDialog.js"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */

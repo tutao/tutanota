@@ -2,7 +2,7 @@ import { downcast, intersection, isSameTypeRef, toLowerCase } from "@tutao/tutan
 import type { File as TutanotaFile } from "../../entities/tutanota/TypeRefs.js"
 import { FileTypeRef as TutanotaFileTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { DataFile } from "../DataFile"
-import { Attachment } from "../../../mail/editor/SendMailModel.js"
+import type { Attachment } from "../../../mail/editor/SendMailModel.js"
 
 type StringPredicate = (arg0: string) => boolean
 
