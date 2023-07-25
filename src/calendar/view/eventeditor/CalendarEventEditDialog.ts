@@ -27,24 +27,6 @@ import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
 
-/**
- * which parts of a calendar event series to apply an edit operation to.
- * consumers must take care to only use appropriate values for the operation
- * in question (ie removing a repeat rule from a single event in a series is nonsensical)
- */
-export const enum CalendarOperation {
-	/** create a new event */
-	Create,
-	/** only apply an edit to only one particular instance of the series */
-	EditThis,
-	/** Delete a single instance from a series, altered or not */
-	DeleteThis,
-	/** apply the edit operation to all instances of the series*/
-	EditAll,
-	/** delete the whole series */
-	DeleteAll,
-}
-
 const enum ConfirmationResult {
 	Cancel,
 	Continue,

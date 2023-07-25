@@ -89,7 +89,6 @@ import { getStrippedClone, Stripped } from "../../../api/common/utils/EntityUtil
 import { UserController } from "../../../api/main/UserController.js"
 import { CalendarNotificationModel, CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
 import { CalendarEventApplyStrategies, CalendarEventModelStrategy } from "./CalendarEventModelStrategy.js"
-import { CalendarOperation } from "../../view/eventeditor/CalendarEventEditDialog.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 
 /** the type of the event determines which edit operations are available to us. */
@@ -119,6 +118,24 @@ export type CalendarEventValues = Omit<Stripped<CalendarEvent>, EventIdentityFie
  * the parts of a calendar event that define the identity of the event instance.
  */
 export type CalendarEventIdentity = Pick<Stripped<CalendarEvent>, EventIdentityFieldNames>
+
+/**
+ * which parts of a calendar event series to apply an edit operation to.
+ * consumers must take care to only use appropriate values for the operation
+ * in question (ie removing a repeat rule from a single event in a series is nonsensical)
+ */
+export const enum CalendarOperation {
+	/** create a new event */
+	Create,
+	/** only apply an edit to only one particular instance of the series */
+	EditThis,
+	/** Delete a single instance from a series, altered or not */
+	DeleteThis,
+	/** apply the edit operation to all instances of the series*/
+	EditAll,
+	/** delete the whole series */
+	DeleteAll,
+}
 
 /**
  * get the models enabling consistent calendar event updates.

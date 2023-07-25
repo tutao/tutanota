@@ -37,7 +37,7 @@ import type { HtmlSanitizer } from "../../misc/HtmlSanitizer"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import { calendarNavConfiguration, CalendarViewType } from "./CalendarGuiUtils"
 import { CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
-import { CalendarOperation, showNewCalendarEventEditDialog } from "./eventeditor/CalendarEventEditDialog.js"
+import { showNewCalendarEventEditDialog } from "./eventeditor/CalendarEventEditDialog.js"
 import { CalendarEventPopup } from "./eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import type { CalendarInfo } from "../model/CalendarModel"
@@ -58,6 +58,7 @@ import { BackgroundColumnLayout } from "../../gui/BackgroundColumnLayout.js"
 import { theme } from "../../gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
 import { CalendarDesktopToolbar } from "./CalendarDesktopToolbar.js"
+import { CalendarOperation } from "../date/eventeditor/CalendarEventModel.js"
 
 export type GroupColors = Map<Id, string>
 

@@ -8,7 +8,7 @@ import { AccountType, CalendarAttendeeStatus, ShareCapability } from "../../../.
 import { createUser } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { SendMailModel } from "../../../../src/mail/editor/SendMailModel.js"
 import { UserController } from "../../../../src/api/main/UserController.js"
-import { EventType } from "../../../../src/calendar/date/eventeditor/CalendarEventModel.js"
+import { CalendarOperation, EventType } from "../../../../src/calendar/date/eventeditor/CalendarEventModel.js"
 import {
 	addCapability,
 	calendars,
@@ -29,7 +29,6 @@ import {
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { RecipientField } from "../../../../src/mail/model/MailUtils.js"
 import { ProgrammingError } from "../../../../src/api/common/error/ProgrammingError.js"
-import { CalendarOperation } from "../../../../src/calendar/view/eventeditor/CalendarEventEditDialog.js"
 
 o.spec("CalendarEventWhoModel", function () {
 	const passwordStrengthModel = () => 1
