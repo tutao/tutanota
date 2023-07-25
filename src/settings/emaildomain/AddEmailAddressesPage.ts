@@ -184,6 +184,7 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 					return false
 				} else if (e instanceof UpgradeRequiredError) {
 					await showPlanUpgradeRequiredDialog(e.plans, e.message)
+					return false
 				}
 				throw e
 			}
