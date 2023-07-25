@@ -59,7 +59,6 @@ export class AttachmentDetailsPopup implements ModalComponent {
 	private readonly _shortcuts: Array<Shortcut> = []
 	private domContent: HTMLElement | null = null
 	private domPanel: HTMLElement | null = null
-	private focusedFirst: boolean = false
 	private closeDefer: DeferredObject<void> = defer()
 
 	get deferAfterClose(): Promise<void> {
@@ -114,14 +113,14 @@ export class AttachmentDetailsPopup implements ModalComponent {
 			{
 				style: {
 					width: px(this.targetWidth),
-					// see hack description below
+					// see hack description below. if #5587 persists, we might try visibility: hidden instead?
 					opacity: "0",
 				},
 				oncreate: (vnode) => {
 					this.domPanel = vnode.dom as HTMLElement
-					// This is a hack to get "natural" view size but render it without opacity first and then show the panel with inferred size.
+					// This is a hack to get "natural" view size but render it invisibly first and then show the panel with inferred size.
 					// also focus the first tabbable element in the content after the panel opens.
-					setTimeout(() => this.animatePanel().then(() => this.domContent && focusNext(this.domContent)), 24)
+					deferToNextFrame(() => this.animatePanel().then(() => this.domContent && focusNext(this.domContent)))
 				},
 				onclick: () => this.onClose(),
 			},
@@ -179,7 +178,23 @@ export class AttachmentDetailsPopup implements ModalComponent {
 		if (domPanel == null || domContent == null) return
 		// from .bubble class
 		const initialHeight = 30
-		const targetHeight = domContent.offsetHeight
+		// there is a possibility that we get 0 here in some circumstances, but it's unclear when.
+		// might have something to do with the opacity: 0 hack above or because the original 24ms
+		// delay was not enough. https://github.com/tutao/tutanota/issues/5587
+		// 85 is a value that fits for a single line of attachment name, but looks weird for more while
+		// keeping the buttons accessible.
+		// if the reports continue, we can ask for logs.
+		const targetHeight = domContent.offsetHeight === 0 ? 85 : domContent.offsetHeight
+		if (domContent.offsetHeight === 0) {
+			console.log(
+				"got offsetHeight 0, panel contains content:",
+				domPanel.contains(domContent),
+				"content style:",
+				domContent.style,
+				"panel style:",
+				domPanel.style,
+			)
+		}
 		// for very short attachment bubbles, we need to set a min width so the buttons fit.
 		const targetWidth = Math.max(targetRect.width, 300)
 		domPanel.style.width = px(targetRect.width)
@@ -233,4 +248,11 @@ export class AttachmentDetailsPopup implements ModalComponent {
 		modal.remove(this)
 		return false
 	}
+}
+
+/** try and execute stuff after the next rendering frame */
+const deferToNextFrame = (fn: Thunk) => {
+	window.requestAnimationFrame(() => {
+		window.requestAnimationFrame(fn)
+	})
 }
