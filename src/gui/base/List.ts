@@ -128,9 +128,15 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 				oncreate: ({ dom }: VnodeDOM) => {
 					this.containerDom = dom as HTMLElement
 
-					new ResizeObserver(() => {
-						this.updateSize()
-					}).observe(this.containerDom)
+					// Some of the tech-savvy users like to disable *all* "experimental features" in their Safari devices and there's also a toggle to disable
+					// ResizeObserver. Since the app works without it anyway we just fall back to not handling the resize events.
+					if (typeof ResizeObserver !== "undefined") {
+						new ResizeObserver(() => {
+							this.updateSize()
+						}).observe(this.containerDom)
+					} else {
+						requestAnimationFrame(() => this.updateSize())
+					}
 
 					this.swipeHandler = this.createSwipeHandler()
 				},
