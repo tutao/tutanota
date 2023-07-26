@@ -1546,6 +1546,13 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"contactLists_label": "Kontaktliste",
+		"addEntries_action": "Einträge hinzufügen",
+		"noContactFound_msg": "Kein Kontakt mit dieser E-Mail-Adresse gefunden",
+		"editContactList_action" : "Kontaktliste bearbeiten",
+		"nbrOfEntriesSelected_msg": "{nbr} Einträge ausgewählt",
+		"addContactList_action": "Kontaktliste hinzufügen",
+		"confirmDeleteContactList_msg": "Bist du sicher, dass du diese Kontaktliste löschen möchtest? Alle enthaltenen Einträgen werden gelöscht und können nicht wiederhergestellt werden."
 	}
 }

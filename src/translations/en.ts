@@ -1543,12 +1543,11 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"cannotAddAttendees_msg": "You can not modify the guest list for this event because it was not created in your calendar.",
 		// todo: add to phrase
 		"contactLists_label": "Contact lists",
 		"addEntries_action": "Add entries",
 		"noContactFound_msg": "No contacts with this email found",
-		"editContactList_action" : "Edit contact list",
+		"editContactList_action": "Edit contact list",
 		"nbrOfEntriesSelected_msg": "{nbr} entries selected",
 		"addContactList_action": "Add contact list",
 		"confirmDeleteContactList_msg": "Are you sure you want to delete this contact list? All included entries will be lost and can't be restored."
