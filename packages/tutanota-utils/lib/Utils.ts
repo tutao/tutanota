@@ -1,4 +1,5 @@
 import { TypeRef } from "./TypeRef.js"
+import { PromisableWrapper } from "./PromiseUtils.js"
 
 export interface ErrorInfo {
 	readonly name: string | null
@@ -18,7 +19,7 @@ export type Thunk = () => unknown
 export type Require<K extends keyof T, T> = T & { [P in K]-?: NonNullable<T[P]> }
 
 export type DeferredObject<T> = {
-	resolve: (arg0: T) => void
+	resolve: (arg0: T | PromiseLike<T>) => void
 	reject: (arg0: Error) => void
 	promise: Promise<T>
 }
