@@ -361,7 +361,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	private renderDetailsViewer(): Children {
 		if (this.inContactListView()) {
 			const entries = this.contactListViewModel.getSelectedContactListEntries() ?? []
-			return this.showingListView()
+			return this.contactListViewModel.listModel == null || this.showingListView()
 				? m(ColumnEmptyMessageBox, {
 						message: () => getContactListEntriesSelectionMessage(entries),
 						icon: Icons.People,
