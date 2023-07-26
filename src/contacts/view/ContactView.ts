@@ -303,7 +303,6 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							  })
 						: (styles.isSingleColumnLayout() &&
 								this.viewSlider.focusedColumn === this.listColumn &&
-								//this.showingListView()
 								this.contactViewModel.listModel.state.inMultiselect) ||
 						  this.contactListViewModel.listModel?.state.inMultiselect
 						? m(MobileBottomActionBar, this.detailsViewerActions())

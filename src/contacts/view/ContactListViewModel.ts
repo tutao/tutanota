@@ -43,7 +43,7 @@ export class ContactListViewModel {
 		private readonly updateUi: () => unknown,
 	) {}
 
-	async showListAndEntry(listId?: Id, enrtyId?: Id) {
+	async showListAndEntry(listId?: Id, entryId?: Id) {
 		this.selectedContactList = listId ?? null
 
 		// make sure that we have the list infos before we check whether the passed one is in them
@@ -54,8 +54,8 @@ export class ContactListViewModel {
 		}
 		await this.listModel?.loadInitial()
 
-		if (enrtyId && listId) {
-			this.loadAndSelect(enrtyId, listId)
+		if (entryId && listId) {
+			this.loadAndSelect(entryId, listId)
 		}
 	}
 
@@ -202,7 +202,7 @@ export class ContactListViewModel {
 				await this.loadContactLists()
 			}
 
-			m.redraw()
+			this.updateUi()
 		}
 	}
 

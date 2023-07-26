@@ -43,7 +43,7 @@ export async function showContactListEditor(
 			{
 				label: "save_action",
 				click: () => {
-					save(editorModel.name(), editorModel.addresses)
+					save(editorModel.name, editorModel.addresses)
 					dialog.close()
 				},
 				type: ButtonType.Primary,
@@ -82,11 +82,11 @@ export async function showContactListNameEditor(name: string, save: (name: strin
 }
 
 class ContactListEditorModel {
-	name: Stream<string>
+	name: string
 	addresses: Array<string>
 
 	constructor(name: string | null, private readonly groupRoot: ContactListGroupRoot | null, private readonly entityClient: EntityClient) {
-		this.name = stream(name ?? "")
+		this.name = name ?? ""
 		this.addresses = []
 	}
 
@@ -133,8 +133,8 @@ class ContactListEditor implements Component<ContactListEditorAttrs> {
 				? m(TextField, {
 						label: "name_label",
 						class: "big-input pt flex-grow",
-						value: this.model.name(),
-						oninput: this.model.name,
+						value: this.model.name,
+						oninput: (name) => (this.model.name = name),
 				  })
 				: null,
 			m(MailRecipientsTextField, {
