@@ -143,7 +143,9 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 								backAction: () => this.viewSlider.focusPreviousColumn(),
 								actions: null,
 								multicolumnActions: () => this.detailsViewerActions(),
-								primaryAction: () => this.renderHeaderRightView(),
+								primaryAction: () => {
+									return this.inContactListView() ? null : this.renderHeaderRightView()
+								},
 								title: this.getHeaderLabel(),
 								columnType: "other",
 							}),
