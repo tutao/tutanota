@@ -3,8 +3,9 @@ import fs from "node:fs"
 import { log } from "../DesktopLog.js"
 import { Session } from "electron"
 import { errorToObj } from "../../api/common/MessageDispatcher.js"
-import { defer, lazyMemoized, makeSingleUse } from "@tutao/tutanota-utils"
+import { lazyMemoized } from "@tutao/tutanota-utils"
 import { getMimeTypeForFile } from "../DesktopFileFacade.js"
+import { ServiceUnavailableError } from "../../api/common/error/RestError.js"
 
 const TAG = "[ProtocolProxy]"
 
@@ -39,19 +40,16 @@ export function doHandleProtocols(session: Session, assetDir: string, fetchImpl:
 function interceptProtocol(protocol: string, session: Session, fetchImpl: typeof fetch): boolean {
 	if (session.protocol.isProtocolHandled(protocol)) return true
 	session.protocol.handle(protocol, async (request: Request): Promise<Response> => {
-		const deferredResponse = defer<Response>()
-		deferredResponse.resolve = makeSingleUse(deferredResponse.resolve)
-
 		const { method, url, headers } = request
 		const startTime: number = Date.now()
 
 		if (!url.startsWith(protocol)) {
-			deferredResponse.resolve(new Response(null, { status: 400 }))
+			return new Response(null, { status: 400 })
 		} else if (method == "OPTIONS") {
 			// this actually doesn't seem to be called when the actual request is intercepted,
 			// but we'll handle it anyway.
 			log.debug(TAG, "intercepted options request, returning canned response")
-			deferredResponse.resolve(optionsResponse())
+			return optionsResponse()
 		} else {
 			try {
 				const options: RequestInit = {
@@ -65,7 +63,7 @@ function interceptProtocol(protocol: string, session: Session, fetchImpl: typeof
 					headers.set("Content-Length", String(body.byteLength))
 					options.body = body
 				}
-				deferredResponse.resolve(fetchImpl(url, options))
+				return await fetchImpl(url, options)
 			} catch (e) {
 				const parsedUrl = new URL(url)
 				const noQueryUrl = `${parsedUrl.protocol}//${parsedUrl.host}${parsedUrl.pathname}`
@@ -73,10 +71,9 @@ function interceptProtocol(protocol: string, session: Session, fetchImpl: typeof
 				log.debug(TAG, e)
 				log.debug(TAG, JSON.stringify(errorToObj(e)))
 				log.debug(TAG, `failed after ${Date.now() - startTime}ms`)
-				deferredResponse.resolve(new Response(null, { status: 503 }))
+				return new Response(null, { status: ServiceUnavailableError.CODE })
 			}
 		}
-		return deferredResponse.promise
 	})
 	return session.protocol.isProtocolHandled(protocol)
 }
@@ -87,25 +84,22 @@ function interceptProtocol(protocol: string, session: Session, fetchImpl: typeof
  */
 function handleAssetProtocol(session: Session, assetDir: string, pathModule: typeof path, fsModule: typeof fs): boolean {
 	if (session.protocol.isProtocolHandled(ASSET_PROTOCOL)) return true
-
-	const handler = async (request: Request): Promise<Response> => {
-		const deferredResponse = defer<Response>()
-
+	session.protocol.handle(ASSET_PROTOCOL, async (request: Request): Promise<Response> => {
 		const fail = (msg: string) => {
 			log.debug(TAG, msg)
-			deferredResponse.resolve(new Response(null, { status: 404 }))
+			return new Response(null, { status: 404 })
 		}
 		// in node, new URL will normalize the path and remove /.. and /. elements.
 		// this doesn't work in browsers, so the startsWith check below should stay just to be sure
 		const url = new URL(request.url)
 		if (url.protocol.slice(0, -1) !== ASSET_PROTOCOL) {
-			fail(`passed non-asset url to asset handler: ${url}`)
+			return fail(`passed non-asset url to asset handler: ${url}`)
 		} else if (url.hostname !== "app" || !url.pathname.startsWith("/")) {
-			fail(`Invalid asset:// URL: ${request.url}`)
+			return fail(`Invalid asset:// URL: ${request.url}`)
 		} else {
 			const filePath = pathModule.resolve(assetDir, url.pathname.substring(1))
 			if (!filePath.startsWith(assetDir)) {
-				fail(`Invalid asset URL ${request.url} w/ pathname ${url.pathname} got resolved to ${filePath})`)
+				return fail(`Invalid asset URL ${request.url} w/ pathname ${url.pathname} got resolved to ${filePath})`)
 			} else {
 				// fetch for file:/// is not implemented in node 18 apparently, so we're getting it by hand.
 				try {
@@ -114,16 +108,13 @@ function handleAssetProtocol(session: Session, assetDir: string, pathModule: typ
 						"Content-Length": String(content.byteLength),
 						"Content-Type": await getMimeTypeForFile(filePath),
 					})
-					deferredResponse.resolve(new Response(content, { status: 200, headers }))
+					return new Response(content, { status: 200, headers })
 				} catch (e) {
-					fail(`failed to read asset at ${request.url}: ${e.message}`)
+					return fail(`failed to read asset at ${request.url}: ${e.message}`)
 				}
 			}
 		}
-
-		return deferredResponse.promise
-	}
-	session.protocol.handle(ASSET_PROTOCOL, handler)
+	})
 	return session.protocol.isProtocolHandled(ASSET_PROTOCOL)
 }
 
