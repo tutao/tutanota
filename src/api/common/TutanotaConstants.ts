@@ -583,6 +583,7 @@ export const enum UnsubscribeFailureReason {
 	HAS_CONTACT_FORM = "unsubscribe.has_contact_form",
 	NOT_ENOUGH_CREDIT = "unsubscribe.not_enough_credit",
 	INVOICE_NOT_PAID = "unsubscribe.invoice_not_paid",
+	HAS_CONTACT_LIST_GROUP = "unsubscribe.has_contact_list_group",
 }
 
 // legacy, should be deleted after clients older than 3.114 have been disabled.

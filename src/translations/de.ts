@@ -1553,6 +1553,7 @@ export default {
 		"editContactList_action" : "Kontaktliste bearbeiten",
 		"nbrOfEntriesSelected_msg": "{nbr} Einträge ausgewählt",
 		"addContactList_action": "Kontaktliste hinzufügen",
-		"confirmDeleteContactList_msg": "Bist du sicher, dass du diese Kontaktliste löschen möchtest? Alle enthaltenen Einträgen werden gelöscht und können nicht wiederhergestellt werden."
+		"confirmDeleteContactList_msg": "Bist du sicher, dass du diese Kontaktliste löschen möchtest? Alle enthaltenen Einträgen werden gelöscht und können nicht wiederhergestellt werden.",
+		"contactListExisting_msg": "Dein Account enthält noch eine Kontaktliste. Bitte entferne die Kontaktliste.",
 	}
 }
