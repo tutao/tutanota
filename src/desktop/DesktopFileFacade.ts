@@ -26,11 +26,7 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	async getMimeType(file: string): Promise<string> {
-		const ext = path.extname(file).slice(1)
-		const { mimes } = await import("./flat-mimes.js")
-		const candidates = mimes[ext]
-		// sometimes there are multiple options, but we'll take the first and reorder if issues arise.
-		return candidates != null ? candidates[0] : "application/octet-stream"
+		return await getMimeTypeForFile(file)
 	}
 
 	async getName(file: string): Promise<string> {
@@ -93,4 +89,12 @@ export class DesktopFileFacade implements FileFacade {
 		dataFile.mimeType = mimeType
 		return dataFile
 	}
+}
+
+export async function getMimeTypeForFile(file: string): Promise<string> {
+	const ext = path.extname(file).slice(1)
+	const { mimes } = await import("./flat-mimes.js")
+	const candidates = mimes[ext]
+	// sometimes there are multiple options, but we'll take the first and reorder if issues arise.
+	return candidates != null ? candidates[0] : "application/octet-stream"
 }
