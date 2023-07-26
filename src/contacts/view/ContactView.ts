@@ -2,13 +2,13 @@ import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
 import { AppHeaderAttrs, Header } from "../../gui/Header.js"
-import { ButtonColor, ButtonType } from "../../gui/base/Button.js"
+import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { ContactEditor } from "../ContactEditor"
 import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactListView } from "./ContactListView"
 import { lang } from "../../misc/LanguageViewModel"
-import { assertNotNull, clear, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, clear, getFirstOrThrow, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ContactMergeAction, Keys } from "../../api/common/TutanotaConstants"
 import { assertMainOrNode, isApp } from "../../api/common/Env"
 import type { Shortcut } from "../../misc/KeyManager"
@@ -60,8 +60,9 @@ import { listSelectionKeyboardShortcuts } from "../../gui/base/ListUtils.js"
 import { ContactListInfo, ContactListViewModel } from "./ContactListViewModel.js"
 import { ContactListRecipientView } from "./ContactListRecipientView.js"
 import { showContactListEditor, showContactListNameEditor } from "../ContactListEditor.js"
-import { ContactListRecipientViewer } from "./ContactListRecipientViewer.js"
+import { ContactListEntryViewer, getContactListEntriesSelectionMessage } from "./ContactListEntryViewer.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
+import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 
 assertMainOrNode()
 
@@ -359,18 +360,34 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 	private renderDetailsViewer(): Children {
 		if (this.inContactListView()) {
-			return m(ContactListRecipientViewer, {
-				recipients: this.contactListViewModel.getSelectedContactListEntries(),
-				contacts: this.contactListViewModel.contactsForSelectedEntry,
-				contactEdit: (c: Contact) => this.editContact(c),
-				contactDelete: deleteContacts,
-				contactCreate: async (c: Contact) => {
-					let listId = await this.getContactListId()
-					this.editContact(c, listId)
-				},
-				onWriteMail: writeMail,
-				selectNone: () => this.contactListViewModel.listModel?.selectNone(),
-			})
+			const entries = this.contactListViewModel.getSelectedContactListEntries() ?? []
+			return this.showingListView()
+				? m(ColumnEmptyMessageBox, {
+						message: () => getContactListEntriesSelectionMessage(entries),
+						icon: Icons.People,
+						color: theme.content_message_bg,
+						bottomContent:
+							entries.length > 0
+								? m(Button, {
+										label: "cancel_action",
+										type: ButtonType.Secondary,
+										click: () => this.contactListViewModel.listModel?.selectNone(),
+								  })
+								: undefined,
+						backgroundColor: theme.navigation_bg,
+				  })
+				: m(ContactListEntryViewer, {
+						entry: getFirstOrThrow(entries),
+						contacts: this.contactListViewModel.contactsForSelectedEntry,
+						contactEdit: (c: Contact) => this.editContact(c),
+						contactDelete: deleteContacts,
+						contactCreate: async (c: Contact) => {
+							let listId = await this.getContactListId()
+							this.editContact(c, listId)
+						},
+						onWriteMail: writeMail,
+						selectNone: () => this.contactListViewModel.listModel?.selectNone(),
+				  })
 		} else {
 			const contacts = this.getSelectedContacts()
 			return this.showingListView()
