@@ -164,19 +164,12 @@ o.spec("ApplicationWindow Test", function () {
 								setPermissionRequestHandler: () => {},
 								setSpellCheckerDictionaryDownloadURL: () => {},
 								protocol: {
-									isProtocolIntercepted() {
-										return false
+									handled: true,
+									isProtocolHandled: function () {
+										this.handled = !this.handled
+										return this.handled
 									},
-									isProtocolRegistered() {
-										return false
-									},
-									interceptFileProtocol() {
-										return true
-									},
-									interceptStreamProtocol() {
-										return true
-									},
-									registerFileProtocol() {
+									handle() {
 										return true
 									},
 								},
@@ -368,8 +361,7 @@ o.spec("ApplicationWindow Test", function () {
 			"zoom-changed",
 			"update-target-url",
 		])("webContents registered callbacks dont match")
-		o(bwInstance.webContents.session.protocol.interceptStreamProtocol.callCount).equals(2)
-		o(bwInstance.webContents.session.protocol.registerFileProtocol.args[0]).equals("asset")
+		o(bwInstance.webContents.session.protocol.handle.callCount).equals(3)
 	})
 	o("construction, noAutoLogin", async function () {
 		const { electronMock, wmMock, electronLocalshortcutMock, offlineDbFacade, themeFacade, remoteBridge } = standardMocks()
