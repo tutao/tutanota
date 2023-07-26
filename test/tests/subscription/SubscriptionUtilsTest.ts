@@ -12,7 +12,7 @@ o.spec("SubscriptionUtilsTest", function () {
 		serviceExecutor = createUpgradePriceServiceMock(clone(PLAN_PRICES))
 	})
 
-	o.spec("getAvailableMatchingPlans", async function () {
+	o.spec("getAvailableMatchingPlans", function () {
 		o("no filter returns all plans", async function () {
 			o(await getAvailableMatchingPlans(serviceExecutor, () => true)).deepEquals(NewPaidPlans)
 		})
