@@ -65,10 +65,6 @@ globalThis.electronMock = {
 	app: {},
 }
 
-globalThis.XMLHttpRequest = (await import("xhr2")).default
-globalThis.express = (await import("express")).default
-globalThis.bodyParser = (await import("body-parser")).default
-
 window.tutao = {
 	appState: {
 		prefixWithoutFile: "./",

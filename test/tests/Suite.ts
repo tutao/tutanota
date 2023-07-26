@@ -10,7 +10,6 @@ import "./api/worker/crypto/OwnerEncSessionKeysUpdateQueueTest.js"
 import "./api/worker/crypto/CompatibilityTest.js"
 import "./api/common/error/RestErrorTest.js"
 import "./api/common/error/TutanotaErrorTest.js"
-import "./api/worker/rest/RestClientTest.js"
 import "./api/worker/rest/EntityRestCacheTest.js"
 import "./api/worker/rest/EphemeralCacheStorageTest.js"
 import "./api/worker/EventBusClientTest.js"
@@ -164,6 +163,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./api/worker/offline/OfflineStorageTest.js")
 		await import("./mail/view/ConversationViewModelTest.js")
 		await import("./desktop/config/DesktopConfigTest.js")
+		await import("./api/worker/rest/RestClientTest.js")
 	}
 
 	// testdouble complains about certain mocking related code smells, and also prints a warning whenever you replace a property on an object.
