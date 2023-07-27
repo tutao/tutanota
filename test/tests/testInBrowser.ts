@@ -20,17 +20,29 @@ window.tutao = {
 	},
 }
 
-const { run } = await import("./Suite.js")
+report("/status", { status: "loaded" })
 
 const searchParams = new URL(location.href).searchParams
 const filter = searchParams.get("filter") ?? undefined
 
-preTest()
-const result = await run({ filter })
-postTest(result)
+try {
+	const { run } = await import("./Suite.js")
 
-// report results back
-fetch("/result", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(result) })
+	report("/status", { status: "imported suite" })
+
+	preTest()
+	const result = await run({ filter })
+	postTest(result)
+
+	// report results back
+	report("/result", result)
+} catch (e) {
+	report("/status", { status: "error", error: e })
+}
+
+function report(path, data) {
+	fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+}
 
 function preTest() {
 	document.body.style.fontFamily = "sans-serif"

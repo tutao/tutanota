@@ -47,6 +47,10 @@ async function runTestsInBrowser({ filter, browserCmd }) {
 	app.use(express.json({ limit: "10Mb" }))
 
 	const result = await new Promise(async (resolve) => {
+		app.post("/status", (req, res) => {
+			console.log("browser: ", req.body)
+			res.status(200).send()
+		})
 		app.post("/result", (req, res) => {
 			resolve(req.body)
 			res.status(200).send()
@@ -64,7 +68,7 @@ async function runTestsInBrowser({ filter, browserCmd }) {
 		const { spawn } = await import("node:child_process")
 		const command = `${browserCmd} '${url.toString()}'`
 		console.log(`> ${command}`)
-		spawn(command, { stdio: "inherit", shell: true, detached: true })
+		spawn(command, { stdio: "inherit", shell: true })
 	})
 
 	const { default: o } = await import("@tutao/otest")
