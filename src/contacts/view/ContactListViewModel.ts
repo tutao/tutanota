@@ -13,9 +13,7 @@ import { GroupManagementFacade } from "../../api/worker/facades/lazy/GroupManage
 import { LoginController } from "../../api/main/LoginController.js"
 import { GroupInfo, GroupInfoTypeRef, GroupMembership, UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { arrayEquals, debounce, isNotNull, lazyMemoized, memoized, ofClass, promiseMap } from "@tutao/tutanota-utils"
-import { getSharedGroupName } from "../../sharing/GroupUtils.js"
 import { EntityEventsListener, EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
-import m from "mithril"
 import Stream from "mithril/stream"
 import { Router } from "../../gui/ScopedRouter.js"
 import { ContactModel } from "../model/ContactModel.js"
@@ -109,14 +107,16 @@ export class ContactListViewModel {
 		await this.listModel?.loadAndSelect(contactListEntryId, () => this.selectedContactList !== listId)
 	}
 
-	private getContactListInfo(groupInfo: GroupInfo): Promise<ContactListInfo> {
-		return this.entityClient.load(ContactListGroupRootTypeRef, groupInfo.group).then((groupRoot) => {
-			return {
-				name: getSharedGroupName(groupInfo, this.loginController.getUserController(), true),
-				groupInfo,
-				groupRoot,
-			}
-		})
+	private async getContactListInfo(groupInfo: GroupInfo): Promise<ContactListInfo> {
+		const groupRoot = await this.entityClient.load(ContactListGroupRootTypeRef, groupInfo.group)
+
+		const { getSharedGroupName } = await import("../../sharing/GroupUtils.js")
+
+		return {
+			name: getSharedGroupName(groupInfo, this.loginController.getUserController(), true),
+			groupInfo,
+			groupRoot,
+		}
 	}
 
 	getContactListId() {

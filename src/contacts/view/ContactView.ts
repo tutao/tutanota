@@ -326,19 +326,16 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 
 	private async getContactListId() {
-		if (m.route.get().startsWith("/contacts")) {
-			return this.contactViewModel.contactListId
-		} else {
+		if (this.inContactListView()) {
 			return assertNotNull(await this.contactListViewModel.getContactListId())
+		} else {
+			return this.contactViewModel.contactListId
 		}
 	}
 
 	async createNewContact() {
 		let listId = await this.getContactListId()
-		new ContactEditor(locator.entityClient, null, listId, (contactId) => {
-			// FIXME show new contact
-			// contactList.list.scrollToIdAndSelectWhenReceived(contactId)
-		}).show()
+		new ContactEditor(locator.entityClient, null, listId).show()
 	}
 
 	private editSelectedContact() {
