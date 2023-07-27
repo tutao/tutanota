@@ -1,0 +1,13 @@
+ <component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="test chrome headless" type="js.build_tools.npm">
+    <package-json value="$PROJECT_DIR$/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="test:app" />
+    </scripts>
+    <arguments value="-- --no-run --browser --browser-cmd &quot;rm -r /tmp/chrome-user-dir; google-chrome --enable-logging=stderr --headless=new --disable-gpu --user-data-dir=/tmp/chrome-user-dir&quot;" />
+    <node-interpreter value="project" />
+    <envs />
+    <method v="2" />
+  </configuration>
+</component>

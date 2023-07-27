@@ -17,34 +17,26 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: install npm
-        run: npm i -g npm@8.11.0
+        run: npm i -g npm@9.6.7
+      - name: install packages
+        run: npm ci
       - name: lint, formatting
         run: |
-          npm ci
           npm run check
-      - name: npm install, npm test
+      - name: run test in node
         run: |
-          npm ci
           npm run build-packages
           npm test
-
-  webapp:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [ 18.17.0 ]
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - name: install chrome
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v1
         with:
-          node-version: ${{ matrix.node-version }}
-      - name: install npm
-        run: npm i -g npm@8.11.0
-      - name: npm install, node webapp
+          chrome-version: stable
+      - name: run test in browser
+        timeout-minutes: 3
         run: |
-          npm ci
-          npm run build-packages
+          echo Chrome version: ${{ steps.setup-chrome.outputs.chrome-version }}
+          npm run test:app -- --no-run --browser --browser-cmd '${{ steps.setup-chrome.outputs.chrome-path }} --enable-logging=stderr --headless=new --disable-gpu'
+      - name: build web app
+        run: |
           node webapp --disable-minify
