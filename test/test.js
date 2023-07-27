@@ -2,12 +2,13 @@ import { runTestBuild } from "./TestBuilder.js"
 import { Option, program } from "commander"
 
 await program
-	.addOption(new Option("-i, --integration", "Include integration tests (requires local server)"))
+	.addOption(new Option("-i, --integration", "Include integration tests (requires local tutadb server)"))
 	.addOption(new Option("-c, --clean"))
 	.addOption(new Option("-f, --filter <query>", "Filter for tests and specs to run only matching tests"))
 	.addOption(new Option("--no-run", "Do not run the tests in node"))
-	.addOption(new Option("-br, --browser", "Start the web server and run the tests in it").default(false))
-	.action(async ({ clean, integration, filter, run, browser }) => {
+	.addOption(new Option("-br, --browser", "Start the web server and run the tests in browser").default(false))
+	.addOption(new Option("--browser-cmd <path>", "Command used to run the browser").default("xdg-open"))
+	.action(async ({ clean, integration, filter, run, browser, browserCmd }) => {
 		await runTestBuild({ clean })
 		console.log("build finished!")
 
@@ -20,7 +21,7 @@ await program
 
 		let browserOk
 		if (browser) {
-			browserOk = await runTestsInBrowser({ integration, filter })
+			browserOk = await runTestsInBrowser({ filter, browserCmd })
 		} else {
 			browserOk = true
 		}
@@ -38,10 +39,11 @@ function resultIsOk(result) {
 }
 
 /** Function which runs tests and exits with the exit code afterwards. */
-async function runTestsInBrowser({ filter }) {
+async function runTestsInBrowser({ filter, browserCmd }) {
 	const { default: express } = await import("express")
 	const app = express()
 	app.use(express.static("build"))
+	// deafault limit (100Kb) is way too small
 	app.use(express.json({ limit: "10Mb" }))
 
 	const result = await new Promise(async (resolve) => {
@@ -59,9 +61,12 @@ async function runTestsInBrowser({ filter }) {
 			url.searchParams.set("filter", filter)
 		}
 
-		const { execFile } = await import("node:child_process")
-		execFile("xdg-open", [url.toString()])
+		const { spawn } = await import("node:child_process")
+		const command = `${browserCmd} '${url.toString()}'`
+		console.log(`> ${command}`)
+		spawn(command, { stdio: "inherit", shell: true, detached: true })
 	})
+
 	const { default: o } = await import("@tutao/otest")
 	console.log("\n--------------- BROWSER ---------------")
 	o.printReport(result)
