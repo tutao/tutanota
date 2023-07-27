@@ -940,7 +940,7 @@ export class Dialog implements ModalComponent {
 							autocompleteAs: Autocomplete.off,
 							type: TextFieldType.Password,
 							keyHandler: (key: KeyPress) => {
-								if (isKeyPressed(key.keyCode, Keys.RETURN)) {
+								if (isKeyPressed(key.key, Keys.RETURN)) {
 									doAction()
 									return false
 								}

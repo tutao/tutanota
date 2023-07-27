@@ -125,7 +125,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 			selector: this._getNavButtonClass(a),
 			onclick: (e: MouseEvent) => this.click(e, a),
 			onkeyup: (e: KeyboardEvent) => {
-				if (isKeyPressed(e.keyCode, Keys.SPACE)) {
+				if (isKeyPressed(e.key, Keys.SPACE)) {
 					this.click(e, a)
 				}
 			},

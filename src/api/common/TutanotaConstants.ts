@@ -603,210 +603,211 @@ export const enum BookingFailureReason {
 	HAS_TEMPLATE_GROUP = "bookingservice.has_template_group",
 }
 
+// The 'code' for the keys is KeyboardEvent.key
 export const Keys = Object.freeze({
 	NONE: {
-		code: -1,
+		code: "",
 		name: "",
 	},
 	RETURN: {
-		code: 13,
+		code: "enter",
 		name: "⏎",
 	},
 	BACKSPACE: {
-		code: 8,
+		code: "backspace",
 		name: "BACKSPACE",
 	},
 	TAB: {
-		code: 9,
+		code: "tab",
 		name: "↹",
 	},
 	SHIFT: {
-		code: 16,
+		code: "shift",
 		name: "⇧",
 	},
 	CTRL: {
-		code: 17,
+		code: "control",
 		name: "CTRL",
 	},
 	ALT: {
-		code: 17,
+		code: "alt",
 		name: "ALT",
 	},
 	META: {
-		code: 91,
+		code: "meta",
 		name: "\u2318",
 	},
 	// command key (left) (OSX)
 	ESC: {
-		code: 27,
+		code: "escape",
 		name: "ESC",
 	},
 	SPACE: {
-		code: 32,
+		code: " ",
 		name: "Space",
 	},
 	PAGE_UP: {
-		code: 33,
+		code: "pageup",
 		name: "Page ↑",
 	},
 	PAGE_DOWN: {
-		code: 34,
+		code: "pagedown",
 		name: "Page ↓",
 	},
 	END: {
-		code: 35,
+		code: "end",
 		name: "End",
 	},
 	HOME: {
-		code: 36,
+		code: "home",
 		name: "Home",
 	},
 	LEFT: {
-		code: 37,
+		code: "arrowleft",
 		name: "←",
 	},
 	UP: {
-		code: 38,
+		code: "arrowup",
 		name: "↑",
 	},
 	RIGHT: {
-		code: 39,
+		code: "arrowright",
 		name: "→",
 	},
 	DOWN: {
-		code: 40,
+		code: "arrowdown",
 		name: "↓",
 	},
 	DELETE: {
-		code: 46,
+		code: "delete",
 		name: "DEL",
 	},
 	"0": {
-		code: 48,
+		code: "0",
 		name: "0",
 	},
 	ONE: {
-		code: 49,
+		code: "1",
 		name: "1",
 	},
 	TWO: {
-		code: 50,
+		code: "2",
 		name: "2",
 	},
 	THREE: {
-		code: 51,
+		code: "3",
 		name: "3",
 	},
 	FOUR: {
-		code: 52,
+		code: "4",
 		name: "4",
 	},
 	FIVE: {
-		code: 53,
+		code: "5",
 		name: "5",
 	},
 	SIX: {
-		code: 54,
+		code: "6",
 		name: "6",
 	},
 	A: {
-		code: 65,
+		code: "a",
 		name: "A",
 	},
 	B: {
-		code: 66,
+		code: "b",
 		name: "B",
 	},
 	C: {
-		code: 67,
+		code: "c",
 		name: "C",
 	},
 	D: {
-		code: 68,
+		code: "d",
 		name: "D",
 	},
 	E: {
-		code: 69,
+		code: "e",
 		name: "E",
 	},
 	F: {
-		code: 70,
+		code: "f",
 		name: "F",
 	},
 	H: {
-		code: 72,
+		code: "h",
 		name: "H",
 	},
 	I: {
-		code: 73,
+		code: "i",
 		name: "I",
 	},
 	J: {
-		code: 74,
+		code: "j",
 		name: "J",
 	},
 	K: {
-		code: 75,
+		code: "k",
 		name: "K",
 	},
 	L: {
-		code: 76,
+		code: "l",
 		name: "L",
 	},
 	M: {
-		code: 77,
+		code: "m",
 		name: "M",
 	},
 	N: {
-		code: 78,
+		code: "n",
 		name: "N",
 	},
 	O: {
-		code: 79,
+		code: "o",
 		name: "O",
 	},
 	P: {
-		code: 80,
+		code: "p",
 		name: "P",
 	},
 	Q: {
-		code: 81,
+		code: "q",
 		name: "Q",
 	},
 	R: {
-		code: 82,
+		code: "r",
 		name: "R",
 	},
 	S: {
-		code: 83,
+		code: "s",
 		name: "S",
 	},
 	T: {
-		code: 84,
+		code: "t",
 		name: "T",
 	},
 	U: {
-		code: 85,
+		code: "u",
 		name: "U",
 	},
 	V: {
-		code: 86,
+		code: "v",
 		name: "V",
 	},
 	F1: {
-		code: 112,
+		code: "f1",
 		name: "F1",
 	},
 	F5: {
-		code: 116,
+		code: "f5",
 		name: "F5",
 	},
 	F11: {
-		code: 122,
+		code: "f11",
 		name: "F11",
 	},
 	F12: {
-		code: 123,
+		code: "f12",
 		name: "F12",
 	},
 })

@@ -126,7 +126,7 @@ export class Editor implements ImageHandler, Component {
 				dir: "auto",
 			},
 		}).addEventListener("keyup", (e: KeyboardEvent) => {
-			if (this.createsLists && isKeyPressed(e.keyCode, Keys.SPACE)) {
+			if (this.createsLists && isKeyPressed(e.key, Keys.SPACE)) {
 				let blocks: HTMLElement[] = []
 				squire.forEachBlock((block: HTMLElement) => {
 					blocks.push(block)

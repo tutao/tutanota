@@ -37,7 +37,7 @@ export class TemplateExpander implements Component<TemplateExpanderAttrs> {
 					maxHeight: px(TEMPLATE_POPUP_HEIGHT - size.button_height),
 				},
 				onkeydown: (e: KeyboardEvent) => {
-					if (isKeyPressed(e.keyCode, Keys.TAB)) {
+					if (isKeyPressed(e.key, Keys.TAB)) {
 						e.preventDefault()
 					}
 				},

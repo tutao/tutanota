@@ -260,7 +260,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		}
 
 		domElement.onkeyup = (e) => {
-			if (isKeyPressed(e.keyCode, Keys.SPACE, Keys.RETURN)) {
+			if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
 				row.entity && this.handleEvent(row.entity, e)
 			}
 		}

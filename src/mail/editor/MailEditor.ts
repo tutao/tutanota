@@ -240,7 +240,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				ctrl: true,
 				exec: () => this.openTemplates(),
 				help: "openTemplatePopup_msg",
-			}, // these are handled by squire
+			}, // B (bold), I (italic), and U (underline) are handled by squire
 			{
 				key: Keys.B,
 				ctrl: true,

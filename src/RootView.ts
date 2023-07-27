@@ -63,7 +63,7 @@ export class RootView implements ClassComponent {
 				},
 				onkeyup: (e: EventRedraw<KeyboardEvent>) => {
 					// tab key can be pressed in some other situations e.g. editor but it would be switched back quickly again if needed.
-					if (isKeyPressed(e.keyCode, Keys.TAB)) {
+					if (isKeyPressed(e.key, Keys.TAB)) {
 						this.switchNavType(PrimaryNavigationType.Keyboard)
 					}
 					e.redraw = false
