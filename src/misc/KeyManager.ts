@@ -1,22 +1,21 @@
-import { client } from "./ClientDetector"
 import type { TranslationKey } from "./LanguageViewModel"
-import { BrowserType } from "./ClientConstants"
 import { Keys } from "../api/common/TutanotaConstants"
 import type { lazy } from "@tutao/tutanota-utils"
-import { assertMainOrNodeBoot } from "../api/common/Env"
 import { mod } from "@tutao/tutanota-utils"
+import { assertMainOrNodeBoot } from "../api/common/Env"
 import m from "mithril"
 
 assertMainOrNodeBoot()
 export const TABBABLE = "button, input, textarea, div[contenteditable='true'], [tabindex='0']"
 export type KeyPress = {
-	keyCode: number
+	//fixme~ take out
+	//keyCode: number
 	key: string
 	ctrl: boolean
 	shift: boolean
 }
 export type Key = {
-	code: number
+	code: string
 	name: string
 }
 
@@ -103,8 +102,8 @@ export function focusNext(dom: HTMLElement): boolean {
 	return true
 }
 
-function createKeyIdentifier(keycode: number, ctrl?: boolean, alt?: boolean, shift?: boolean, meta?: boolean): string {
-	return keycode + (ctrl ? "C" : "") + (alt ? "A" : "") + (shift ? "S" : "") + (meta ? "M" : "")
+function createKeyIdentifier(key: string, ctrl?: boolean, alt?: boolean, shift?: boolean, meta?: boolean): string {
+	return key + (ctrl ? "C" : "") + (alt ? "A" : "") + (shift ? "S" : "") + (meta ? "M" : "")
 }
 
 /**
@@ -137,14 +136,12 @@ class KeyManager {
 	}
 
 	_handleKeydown(e: KeyboardEvent): void {
-		let keyCode = e.which
 		let keysToShortcuts = this._keyToModalShortcut.size > 1 ? this._keyToModalShortcut : this._keyToShortcut
-		let shortcut = keysToShortcuts.get(createKeyIdentifier(keyCode, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey))
+		let shortcut = keysToShortcuts.get(createKeyIdentifier(e.key.toLowerCase(), e.ctrlKey, e.altKey, e.shiftKey, e.metaKey))
 
 		if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
 			if (
 				shortcut.exec({
-					keyCode,
 					key: e.key,
 					ctrl: e.ctrlKey,
 					// @ts-ignore
@@ -184,7 +181,8 @@ class KeyManager {
 	}
 
 	registerShortcuts(shortcuts: ReadonlyArray<Shortcut>) {
-		Keys.META.code = client.browser === BrowserType.FIREFOX ? 224 : 91
+		//FIXME~ shouldn't need this anymore?
+		//Keys.META.code = client.browser === BrowserType.FIREFOX ? 224 : 91
 
 		this._applyOperation(shortcuts, (id, s) => this._keyToShortcut.set(id, s))
 	}
@@ -220,7 +218,7 @@ class KeyManager {
 	}
 }
 
-export function isKeyPressed(keyCode: number, ...keys: Array<Values<typeof Keys>>): boolean {
+export function isKeyPressed(keyCode: string, ...keys: Array<Values<typeof Keys>>): boolean {
 	return keys.some((key) => key.code === keyCode)
 }
 

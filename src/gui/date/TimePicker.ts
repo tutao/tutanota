@@ -101,7 +101,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				e.redraw = false
 			},
 			keyHandler: (key) => {
-				if (key.keyCode === Keys.RETURN.code) {
+				if (key.key === Keys.RETURN.code) {
 					this._onSelected(attrs)
 					const active = document.activeElement as HTMLElement | null
 					active?.blur()

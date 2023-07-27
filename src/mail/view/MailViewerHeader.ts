@@ -110,7 +110,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					this.detailsExpanded = !this.detailsExpanded
 				},
 				onkeydown: (e: KeyboardEvent) => {
-					if (isKeyPressed(e.keyCode, Keys.SPACE, Keys.RETURN)) {
+					if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
 						this.detailsExpanded = !this.detailsExpanded
 						e.preventDefault()
 					}
@@ -170,7 +170,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					e.stopPropagation()
 				},
 				onkeydown: (e: KeyboardEvent) => {
-					if (isKeyPressed(e.keyCode, Keys.SPACE, Keys.RETURN) && (e.target as HTMLElement).hasAttribute("mail-expander")) {
+					if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN) && (e.target as HTMLElement).hasAttribute("mail-expander")) {
 						viewModel.collapseMail()
 						e.preventDefault()
 					}
@@ -493,7 +493,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 										tabindex: TabIndex.Default,
 										onclick: () => (this.filesExpanded = !this.filesExpanded),
 										onkeydown: (e: KeyboardEvent) => {
-											if (isKeyPressed(e.keyCode, Keys.SPACE, Keys.RETURN)) {
+											if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
 												this.filesExpanded = !this.filesExpanded
 												e.preventDefault()
 											}

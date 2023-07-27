@@ -30,7 +30,7 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 				},
 				onclick: () => viewModel.expandMail(Promise.resolve()),
 				onkeyup: (e: KeyboardEvent) => {
-					if (isKeyPressed(e.keyCode, Keys.SPACE)) {
+					if (isKeyPressed(e.key, Keys.SPACE)) {
 						viewModel.expandMail(Promise.resolve())
 					}
 				},

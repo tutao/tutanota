@@ -30,7 +30,7 @@ class TemplateShortcutListener {
 
 	// add this event listener to handle quick selection of templates inside the editor
 	handleKeyDown(event: KeyboardEvent) {
-		if (isKeyPressed(event.keyCode, Keys.TAB) && this._currentCursorPosition) {
+		if (isKeyPressed(event.key, Keys.TAB) && this._currentCursorPosition) {
 			const cursorEndPos = this._currentCursorPosition
 			const text = cursorEndPos.startContainer.nodeType === Node.TEXT_NODE ? cursorEndPos.startContainer.textContent ?? "" : ""
 			const templateShortcutStartIndex = text.lastIndexOf(TEMPLATE_SHORTCUT_PREFIX)

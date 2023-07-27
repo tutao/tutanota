@@ -179,7 +179,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				},
 			},
 		]
-		let keyCode = e.which
+		let keyCode = e.key
 		let keyHandler = keyHandlers.find((handler) => handler.key.code === keyCode)
 
 		if (keyHandler) {

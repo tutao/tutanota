@@ -179,7 +179,7 @@ export class SearchInPageOverlay {
 							".flex-start.center-vertically",
 							{
 								onkeydown: (e: KeyboardEvent) => {
-									let keyCode = e.which
+									let keyCode = e.key
 
 									if (keyCode === Keys.ESC.code) {
 										this.close()

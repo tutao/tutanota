@@ -226,10 +226,10 @@ export class TemplatePopup implements ModalComponent {
 			value: this._searchBarValue,
 			placeholder: "filter_label",
 			keyHandler: (keyPress) => {
-				if (isKeyPressed(keyPress.keyCode, Keys.DOWN, Keys.UP)) {
+				if (isKeyPressed(keyPress.key, Keys.DOWN, Keys.UP)) {
 					// This duplicates the listener set in this._shortcuts
 					// because the input consumes the event
-					this._templateModel.selectNextTemplate(isKeyPressed(keyPress.keyCode, Keys.UP) ? SELECT_PREV_TEMPLATE : SELECT_NEXT_TEMPLATE)
+					this._templateModel.selectNextTemplate(isKeyPressed(keyPress.key, Keys.UP) ? SELECT_PREV_TEMPLATE : SELECT_NEXT_TEMPLATE)
 
 					return false
 				} else {
@@ -253,7 +253,7 @@ export class TemplatePopup implements ModalComponent {
 			{
 				onkeydown: (e: KeyboardEvent) => {
 					// prevents tabbing into the background of the modal
-					if (isKeyPressed(e.keyCode, Keys.TAB) && !this._templateModel.getSelectedTemplate()) {
+					if (isKeyPressed(e.key, Keys.TAB) && !this._templateModel.getSelectedTemplate()) {
 						this._inputDom?.focus()
 
 						e.preventDefault()
@@ -367,7 +367,7 @@ export class TemplatePopup implements ModalComponent {
 				{
 					onkeydown: (e: KeyboardEvent) => {
 						// prevents tabbing into the background of the modal
-						if (isKeyPressed(e.keyCode, Keys.TAB)) {
+						if (isKeyPressed(e.key, Keys.TAB)) {
 							this._inputDom?.focus()
 
 							e.preventDefault()

@@ -28,8 +28,9 @@ export class EntropyCollector {
 	}
 
 	private keyDown = (e: KeyboardEvent) => {
-		const value = e.keyCode
-
+		//const value = e.key
+		const value = 1
+		// FIXME~ what does the accomplish? then I can know what to put in its place
 		this.addEntropy(value, 2, "key")
 	}
 

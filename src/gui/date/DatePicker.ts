@@ -101,7 +101,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					this.domInput = vnode.dom as HTMLElement
 				},
 				keyHandler: (key) => {
-					if (key.keyCode === Keys.TAB.code) {
+					if (key.key === Keys.TAB.code) {
 						this.showingDropdown = false
 					}
 
