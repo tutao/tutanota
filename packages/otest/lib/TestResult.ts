@@ -11,6 +11,8 @@ export interface TestResult {
 }
 
 export interface RunResult {
+	filter?: string | undefined
+
 	passedTests: {
 		path: string[]
 		result: TestResult
