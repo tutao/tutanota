@@ -129,6 +129,8 @@ class OTestmpl {
 
 ${fancy("TEST FINISHED", ansiSequences.bold)}
 
+${result.filter ? `filter: "${result.filter}"` : ""}
+
 ${fancy("passing", ansiSequences.greenBg)}: ${result.passedTests.length} ${fancy("failing", ansiSequences.redBg)}: ${result.failingTests.length} ${fancy(
 				"skipped",
 				ansiSequences.yellowBg,

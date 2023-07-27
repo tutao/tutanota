@@ -22,19 +22,34 @@ window.tutao = {
 
 const { run } = await import("./Suite.js")
 
+const searchParams = new URL(location.href).searchParams
+const filter = searchParams.get("filter") ?? undefined
+
 preTest()
-const result = await run()
+const result = await run({ filter })
 postTest(result)
 
+// report results back
+fetch("/result", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(result) })
+
 function preTest() {
-	const p = document.createElement("p")
-	p.id = "report"
-	p.style.fontWeight = "bold"
-	p.style.fontSize = "30px"
-	p.style.fontFamily = "sans-serif"
-	p.style.margin = "30px 10px"
-	p.textContent = "Running tests..."
-	document.body.appendChild(p)
+	document.body.style.fontFamily = "sans-serif"
+
+	const reportElement = document.createElement("p")
+	reportElement.id = "report"
+	reportElement.style.fontWeight = "bold"
+	reportElement.style.fontSize = "30px"
+	reportElement.style.margin = "30px 10px"
+	reportElement.textContent = `Running tests...`
+
+	document.body.appendChild(reportElement)
+
+	const filterElement = document.createElement("p")
+	filterElement.style.fontSize = "18px"
+	filterElement.style.margin = "30px 10px"
+	filterElement.innerText = filter ? `filter: "${filter}"` : ""
+
+	document.body.appendChild(filterElement)
 }
 
 function postTest(result: RunResult) {
