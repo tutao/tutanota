@@ -1,15 +1,21 @@
 {
 	"name": "@tutao/otest",
 	"version": "3.115.2",
+	"license": "GPL-3.0",
 	"description": "little test runner",
 	"main": "./dist/index.js",
-	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tutao/tutanota.git",
+		"directory": "packages/otest"
+	},
 	"scripts": {
+		"prepublishOnly": "npm run build",
 		"build": "npx tsc -b"
 	},
 	"author": "",
-	"license": "GPL-3.0",
 	"dependencies": {},
+	"type": "module",
 	"files": [
 		"dist/*",
 		"README.md",
@@ -18,5 +24,9 @@
 	],
 	"devDependencies": {
 		"typescript": "5.0.3"
+	},
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
 	}
 }
