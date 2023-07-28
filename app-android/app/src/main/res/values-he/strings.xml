@@ -5,4 +5,5 @@
     <string name="scheduleAlarmError_msg">לא היתה אפשרות ליצור התראה. אנא עדכנו את התוכנה.</string>
     <string name="wantToSendReport_msg">משהו בלתי צפוי השתבש. האם את/ה מעוניין/ת לשלוח דו״ח שגיאה? את/ה  יכול/ה להוסיף הודעה כדי לעזור לנו לתקן את הבעיה.</string>
     <string name="downloadCompleted_msg">הורדה הושלמה</string>
+    <string name="unlockCredentials_action">שחרר אישורים</string>
 </resources>

@@ -11,3 +11,4 @@ TutaoCancelAction = "ביטול";
 TutaoSettingsAction = "הגדרות";
 TutaoCalendarAlarmTitle = "תזכורת";
 TutaoScheduleAlarmError = "לא היתה אפשרות ליצור התראה. אנא עדכנו את התוכנה.";
+TutaoUnlockCredentialsAction = "שחרר אישורים";

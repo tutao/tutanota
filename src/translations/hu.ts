@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2023-07-07T06:46:13Z",
+	"updated_at": "2023-07-20T09:43:53Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -164,6 +164,7 @@ export default {
 		"cancelSharedMailbox_label": "Megosztott postafiók megszüntetése",
 		"cancelUserAccounts_label": "{1} felhasználói fiók törlése",
 		"cancel_action": "Mégse",
+		"cannotEditFullEvent_msg": "Ennek az eseménynek csak egyes részeit szerkesztheti, mivel az esemény nem a naptárában lett létrehozva.",
 		"canNotOpenFileOnDevice_msg": "Ez a fájl nem nyitható meg ezen az eszközön.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Kérjük, adja meg a jelenlegi időt óra és perc formátumban!",
@@ -855,6 +856,7 @@ export default {
 		"next_action": "Következő",
 		"nickname_placeholder": "Becenév",
 		"noAppAvailable_msg": "Nincs olyan program telepítve, amely kezelni tudná ezt a funkciót.",
+		"noCalendar_msg": "Kérjük, válassza ki az esemény naptárát!",
 		"noContacts_msg": "Ezen a listán nincsenek névjegyek.",
 		"noContact_msg": "Nincs kijelölt névjegy.",
 		"noEntries_msg": "<Nincs bejegyzés>",
@@ -1468,6 +1470,7 @@ export default {
 		"upgradePremium_label": "Prémium",
 		"upgradeReminderCancel_action": "Később",
 		"upgradeReminderTitle_msg": "Frissítsen verziót most!",
+		"upgradeRequired_msg": "Ez a funkció nem érhető el az Ön csomagjában, kérjük, váltson az alábbi csomagok egyikére:",
 		"upgrade_action": "Frissítés",
 		"upToDate_label": "Minden naprakész.",
 		"urlPath_label": "Elérési út",
