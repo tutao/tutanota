@@ -37,7 +37,7 @@ try {
 	// report results back
 	report("/result", result)
 } catch (e) {
-	report("/status", { status: "error", error: e })
+	report("/status", { status: "error", error: String(e) })
 }
 
 function report(path, data) {

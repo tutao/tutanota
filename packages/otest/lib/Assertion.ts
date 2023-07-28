@@ -31,33 +31,45 @@ function errorMatchesDescription(e: unknown, errorDescription: string | ErrorCon
 	)
 }
 
+var asString: (thing: unknown) => string
+if (typeof process !== "undefined") {
+	const { inspect } = await import("node:util")
+	asString = function (thing) {
+		return inspect(thing)
+	}
+} else {
+	asString = function (thing) {
+		return JSON.stringify(thing)
+	}
+}
+
 export class Assertion<T> {
 	constructor(private readonly actual: T, private readonly testResult: TestResult) {}
 
 	deepEquals(expected: T): AssertionDescriber {
 		if (!deepEqual(this.actual, expected)) {
-			return this.addError(`expected "${this.actual}" to be deep equal to "${expected}"`)
+			return this.addError(`expected "${asString(this.actual)}" to be deep equal to "${asString(expected)}"`)
 		}
 		return noop
 	}
 
 	equals(expected: T | null | undefined): AssertionDescriber {
 		if (this.actual !== expected) {
-			return this.addError(`expected "${this.actual}" to be equal to "${expected}"`)
+			return this.addError(`expected "${asString(this.actual)}" to be equal to "${asString(expected)}"`)
 		}
 		return noop
 	}
 
 	notDeepEquals(value: T): AssertionDescriber {
 		if (deepEqual(this.actual, value)) {
-			return this.addError(`expected to "${this.actual}" NOT deep equal to "${value}"`)
+			return this.addError(`expected to "${asString(this.actual)}" NOT deep equal to "${asString(value)}"`)
 		}
 		return noop
 	}
 
 	notEquals(value: T | null | undefined): AssertionDescriber {
 		if (this.actual === value) {
-			return this.addError(`expected "${this.actual}" to NOT be equal to "${value}"`)
+			return this.addError(`expected "${asString(this.actual)}" to NOT be equal to "${asString(value)}"`)
 		}
 		return noop
 	}
@@ -65,7 +77,7 @@ export class Assertion<T> {
 	satisfies(check: (value: T) => { pass: boolean; message: string }) {
 		const result = check(this.actual)
 		if (!result.pass) {
-			return this.addError(`expected "${this.actual}" to satisfy condition: "${result.message}"`)
+			return this.addError(`expected "${asString(this.actual)}" to satisfy condition: "${result.message}"`)
 		}
 		return noop
 	}
@@ -73,7 +85,7 @@ export class Assertion<T> {
 	async asyncSatisfies(check: (value: T) => Promise<{ pass: boolean; message: string }>) {
 		const result = await check(this.actual)
 		if (!result.pass) {
-			return this.addError(`expected "${this.actual}" to satisfy condition: "${result.message}"`)
+			return this.addError(`expected "${asString(this.actual)}" to satisfy condition: "${result.message}"`)
 		}
 		return noop
 	}
@@ -81,7 +93,7 @@ export class Assertion<T> {
 	notSatisfies(check: (value: T) => { pass: boolean; message: string }) {
 		const result = check(this.actual)
 		if (result.pass) {
-			return this.addError(`expected "${this.actual}" to NOT satisfy condition: "${result.message}"`)
+			return this.addError(`expected "${asString(this.actual)}" to NOT satisfy condition: "${result.message}"`)
 		}
 		return noop
 	}
