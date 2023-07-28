@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2023-07-07T10:52:55Z",
+	"updated_at": "2023-07-26T20:48:31Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -169,6 +169,7 @@ export default {
 		"cancelUserAccounts_label": "Cancelar {1} cuenta(s) de usuario(s)",
 		"cancel_action": "Cancelar",
 		"cannotEditFullEvent_msg": "Solo puedes editar partes de este evento, porque no fue creado en tu calendario.",
+		"cannotEditSingleInstance_msg": "Solo puedes editar partes de este evento, porque es parte de una serie de eventos.",
 		"canNotOpenFileOnDevice_msg": "Este archivo no se puede abrir en este dispositivo.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Por favor, introduce el tiempo en horas y minutos.",
@@ -1081,6 +1082,9 @@ export default {
 		"pricing.excludesTaxes_msg": "Impuesto NO incluidos.",
 		"pricing.extEmailProtection_label": "Correos protegidos con contraseña",
 		"pricing.extEmailProtection_tooltip": "Todos los correos entre los usuarios de Tutanota se cifran automáticamente. Puedes enviar correos cifrados con cualquier persona a través de una contraseña compartida.",
+		"pricing.familylegend_tooltip": "Después de elegir Legend, ponte en contacto con nuestro soporte a través del signo de interrogación a la izquierda de tu buzón de correo para que podamos activar el soporte multiusuario para tu familia. Cada miembro de la familia recibirá un buzón separado con 500 GB y 30 direcciones de correo electrónico alias (8 € por usuario / mes).",
+		"pricing.familyrevolutionary_tooltip": "Después de elegir Revolucionario, ponte en contacto con nuestro soporte a través del signo de interrogación a la izquierda de tu buzón de correo para que podamos activar el soporte multiusuario para tu familia. Cada miembro de la familia recibirá un buzón separado con 20 GB y 15 direcciones de correo electrónico alias (3 € por usuario / mes)",
+		"pricing.family_label": "Ofción Familia",
 		"pricing.folders_label": "Carpetas ilimitadas",
 		"pricing.gdprDataProcessing_label": "Acuerdo de procesamiento de datos RGPD",
 		"pricing.gdpr_label": "Cumple con el RGPD",

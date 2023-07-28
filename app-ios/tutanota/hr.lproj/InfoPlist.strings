@@ -11,3 +11,4 @@ TutaoCancelAction = "Odustani";
 TutaoSettingsAction = "Postavke";
 TutaoCalendarAlarmTitle = "Podsjetnik";
 TutaoScheduleAlarmError = "Nije moguće postaviti alarm. Ažurirajte aplikaciju.";
+TutaoUnlockCredentialsAction = "Otključavanje vjerodajnica";

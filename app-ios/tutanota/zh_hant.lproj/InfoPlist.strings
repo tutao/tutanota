@@ -9,3 +9,5 @@ TutaoNoPermissionTitle = "無權限";
 TutaoChangePermissionMsg = "您必須為此裝置修改權限來進行存取";
 TutaoCancelAction = "取消";
 TutaoSettingsAction = "設定";
+TutaoCalendarAlarmTitle = "提醒";
+TutaoUnlockCredentialsAction = "解鎖登入資料";
