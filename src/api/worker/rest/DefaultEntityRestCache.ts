@@ -17,8 +17,8 @@ import {
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
-import { firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId } from "../../common/utils/EntityUtils"
+import { CalendarEventUidIndexTypeRef, Mail, MailDetailsBlobTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, isSameId } from "../../common/utils/EntityUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
@@ -712,8 +712,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			if (deleteEvent != null && element != null) {
 				// It is a move event for cached mail
 				await this.storage.deleteIfExists(typeRef, deleteEvent.instanceListId, instanceId)
-				element._id = [instanceListId, instanceId]
-				await this.storage.put(element)
+				await this.updateListIdOfMailAndUpdateCache(element as Mail, instanceListId, instanceId)
 				return update
 			} else if (await this.storage.isElementIdInCacheRange(typeRef, instanceListId, instanceId)) {
 				// No need to try to download something that's not there anymore
@@ -735,6 +734,25 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		} else {
 			return update
 		}
+	}
+
+	/**
+	 * Updates the given mail with the new list id and add it to the cache.
+	 */
+	private async updateListIdOfMailAndUpdateCache(mail: Mail, newListId: Id, elementId: Id) {
+		// In case of a move operation we have to replace the list id always, as the mail is stored in another folder.
+		mail._id = [newListId, elementId]
+		if (mail.bucketKey != null) {
+			// With the simplified permission system (MailDetails) we also have to update the bucketEncSessionKey for the mail,
+			// which also references the mail list id. We need this for some cases when the move operation was executed
+			// before the UpdateSessionKeyService has been executed, e.g. when using inbox rules.
+			// The UpdateSessionKeyService would remove the bucketKey from the mail and there is no need to synchronize it anymore.
+			const mailSessionKey = mail.bucketKey.bucketEncSessionKeys.find((bucketEncSessionKey) => isSameId(bucketEncSessionKey.instanceId, elementId))
+			if (mailSessionKey) {
+				mailSessionKey.instanceList = newListId
+			}
+		}
+		await this.storage.put(mail)
 	}
 
 	/** Returns {null} when the update should be skipped. */
