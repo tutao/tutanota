@@ -240,7 +240,7 @@ interface Spec {
 	afterEach: (() => void)[]
 }
 
-// this weird API is inherited from ospec, we would like to eventually deprecate it
+// this weird API is inherited from ospec, we would like to eventually deprecate it with proper functions like o.test and o.check but this API is TBD
 export type CallableOTest = OTestmpl & {
 	(name: string, definition: () => Promise<void> | void): void
 

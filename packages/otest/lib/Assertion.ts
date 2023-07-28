@@ -15,13 +15,13 @@ function xor(a: boolean, b: boolean): boolean {
 
 function isArguments(a: any) {
 	if ("callee" in a) {
-		for (let i in a) if (i === "callee") return false
+		for (const i in a) if (i === "callee") return false
 
 		return true
 	}
 }
 
-function testError(errorDescription: string | ErrorConstructor | Class<any>, e: unknown): boolean {
+function errorMatchesDescription(e: unknown, errorDescription: string | ErrorConstructor | Class<any>): boolean {
 	if (e == null) return false
 	// make ts shut up, we know what we are doing here, we are ✨ professionals ✨ here
 	const erased = e as any
@@ -94,7 +94,7 @@ export class Assertion<T> {
 			this.actual()
 			return this.addError(`Expected to be thrown: ${this.errorName(errorDescription)} but nothing was thrown`)
 		} catch (e) {
-			if (testError(errorDescription, e)) {
+			if (errorMatchesDescription(e, errorDescription)) {
 				return noop
 			} else {
 				return this.addError(`Expected to be thrown: ${this.errorName(errorDescription)} but instead was thrown: ${this.errorName(e)}`)
@@ -110,7 +110,7 @@ export class Assertion<T> {
 			await this.actual()
 			return this.addError(`Expected to be thrown: ${this.errorName(errorDescription)} but nothing was thrown`)
 		} catch (e) {
-			if (testError(errorDescription, e)) {
+			if (errorMatchesDescription(e, errorDescription)) {
 				return noop
 			} else {
 				return this.addError(`Expected to be thrown: ${this.errorName(errorDescription)} but instead was thrown: ${this.errorName(e)}`)
