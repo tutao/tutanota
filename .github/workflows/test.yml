@@ -16,6 +16,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
       - name: install npm
         run: npm i -g npm@9.6.7
       - name: install packages
