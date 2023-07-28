@@ -15,11 +15,13 @@ import {
 } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { arrayOf, assertNotNull, clone, downcast, isSameTypeRef, neverNull, TypeRef } from "@tutao/tutanota-utils"
 import {
+	createBucketKey,
 	createCustomer,
 	createEntityUpdate,
 	createExternalUserReference,
 	createGroupMembership,
 	createGroupRoot,
+	createInstanceSessionKey,
 	createPermission,
 	createUser,
 	CustomerTypeRef,
@@ -614,6 +616,37 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				o(load.callCount).equals(1)("load is called once")
 				const result2 = await cache.load(MailTypeRef, [newListId, getElementId(instance)])
 				o(result2).deepEquals(newInstance)("Cached instance is a newInstance")
+				unmockAttribute(loadMock)
+			})
+			o("Mail should not be loaded when a move event is received - update bucket key", async function () {
+				const instance = createMailInstance("listId1", "id1", "henlo")
+				instance.bucketKey = createBucketKey({
+					bucketEncSessionKeys: [
+						createInstanceSessionKey({
+							instanceList: "listId1",
+							instanceId: getElementId(instance),
+						}),
+					],
+				})
+				await storage.put(instance)
+
+				const newListId = "listId2"
+
+				// The moved mail will not be loaded from the server
+				await cache.entityEventsReceived(
+					makeBatch([
+						createUpdate(MailTypeRef, getListId(instance), getElementId(instance), OperationType.DELETE),
+						createUpdate(MailTypeRef, newListId, getElementId(instance), OperationType.CREATE),
+					]),
+				)
+
+				const load = spy(() => Promise.reject(new Error("error from test")))
+				const loadMock = mockAttribute(entityRestClient, entityRestClient.load, load)
+				const thrown = await assertThrows(Error, () => cache.load(MailTypeRef, [getListId(instance), getElementId(instance)]))
+				o(thrown.message).equals("error from test")
+				o(load.callCount).equals(1)("load is called once")
+				const result2 = await cache.load(MailTypeRef, [newListId, getElementId(instance)])
+				o(result2.bucketKey?.bucketEncSessionKeys[0].instanceList).deepEquals(newListId)("Cached instance has updated InstanceSessionKey")
 				unmockAttribute(loadMock)
 			})
 
