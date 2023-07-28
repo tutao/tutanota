@@ -1,6 +1,6 @@
 pipeline {
     environment {
-        NODE_MAC_PATH = '/usr/local/opt/node@16/bin/'
+        NODE_MAC_PATH = '/usr/local/opt/node@18/bin/'
         VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
     }
     options {
