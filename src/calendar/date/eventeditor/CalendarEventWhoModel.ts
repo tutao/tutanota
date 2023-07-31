@@ -11,7 +11,7 @@ import { PartialRecipient, Recipient, RecipientType } from "../../../api/common/
 import { haveSameId, Stripped } from "../../../api/common/utils/EntityUtils.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../../api/common/utils/CommonCalendarUtils.js"
 import { getContactDisplayName } from "../../../contacts/model/ContactUtils.js"
-import { assertNotNull, clone, defer, DeferredObject, findAll, lazy, noOp } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, defer, DeferredObject, findAll, lazy, noOp, trisectingDiff } from "@tutao/tutanota-utils"
 import { CalendarAttendeeStatus, ConversationType, ShareCapability } from "../../../api/common/TutanotaConstants.js"
 import { RecipientsModel, ResolveMode } from "../../../api/main/RecipientsModel.js"
 import { Guest } from "../CalendarInvites.js"
@@ -24,7 +24,6 @@ import { UserController } from "../../../api/main/UserController.js"
 import { UserError } from "../../../api/main/UserError.js"
 import { CalendarOperation, EventType } from "./CalendarEventModel.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
-import { trisectingDiff } from "@tutao/tutanota-utils"
 import { CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
 
 /** there is no point in returning recipients, the SendMailModel will re-resolve them anyway. */
@@ -159,13 +158,13 @@ export class CalendarEventWhoModel {
 	}
 
 	/**
-	 * filter the calendars an event can be saved to depending on the event type and attendee status.
+	 * filter the calendars an event can be saved to depending on the event type, attendee status and edit operation.
 	 * Prevent moving the event to another calendar if you only have read permission or if the event has attendees.
 	 * */
 	getAvailableCalendars(): ReadonlyArray<CalendarInfo> {
 		const calendarArray = Array.from(this.calendars.values())
 
-		if (this.eventType === EventType.LOCKED) {
+		if (this.eventType === EventType.LOCKED || this.operation === CalendarOperation.EditThis) {
 			return [this.selectedCalendar]
 		} else if (this.isNew && this._attendees.size > 0) {
 			// if we added guests, we cannot select a shared calendar to create the event.
