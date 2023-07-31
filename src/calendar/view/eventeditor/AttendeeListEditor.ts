@@ -50,7 +50,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 
 	private renderInvitationField(attrs: AttendeeListEditorAttrs): Children {
 		const { model, recipientsSearch, logins } = attrs
-
+		if (!model.editModels.whoModel.canModifyGuests) return null
 		return m(".flex.flex-column.flex-grow", [
 			m(MailRecipientsTextField, {
 				label: "addGuest_label",
@@ -190,7 +190,7 @@ function showOrganizerDropdown(editModel: CalendarEventWhoModel, e: MouseEvent) 
 	createDropdown({ lazyButtons, width: 300 })(e, e.target as HTMLElement)
 }
 
-export function renderOrganizer(organizer: Guest, { model }: Pick<AttendeeListEditorAttrs, "model">): Children {
+function renderOrganizer(organizer: Guest, { model }: Pick<AttendeeListEditorAttrs, "model">): Children {
 	const { whoModel } = model.editModels
 	const { address, name, status } = organizer
 	const isMe = organizer.address === whoModel.ownGuest?.address

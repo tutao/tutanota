@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { ExpanderButton, ExpanderPanel } from "../../../gui/base/Expander.js"
-import { AttendeeListEditor, AttendeeListEditorAttrs, renderOrganizer } from "./AttendeeListEditor.js"
+import { AttendeeListEditor, AttendeeListEditorAttrs } from "./AttendeeListEditor.js"
 import { locator } from "../../../api/main/MainLocator.js"
 import { EventTimeEditor, EventTimeEditorAttrs } from "./EventTimeEditor.js"
 import { RepeatRuleEditor, RepeatRuleEditorAttrs } from "./RepeatRuleEditor.js"
@@ -47,7 +47,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	constructor(vnode: Vnode<CalendarEventEditViewAttrs>) {
 		this.timeFormat = vnode.attrs.timeFormat
 		this.startOfTheWeekOffset = vnode.attrs.startOfTheWeekOffset
-		this.attendeesExpanded = vnode.attrs.model.editModels.whoModel.guests.length > 0
+		this.attendeesExpanded = vnode.attrs.model.editModels.whoModel.canModifyGuests && vnode.attrs.model.editModels.whoModel.guests.length > 0
 		this.recipientsSearch = vnode.attrs.recipientsSearch
 	}
 
@@ -91,7 +91,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderGuestsExpanderButton(attrs: CalendarEventEditViewAttrs): Children {
-		if (!attrs.model.editModels.whoModel.canModifyGuests) return null
+		if (!attrs.model.editModels.whoModel.canModifyGuests && attrs.model.editModels.whoModel.guests.length === 0) return null
 		return m(
 			".mr-s",
 			m(ExpanderButton, {
@@ -130,23 +130,18 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	private renderAttendees(attrs: CalendarEventEditViewAttrs): Children {
 		const { model } = attrs
-		if (!model.editModels.whoModel.canModifyGuests) {
-			const { organizer } = model.editModels.whoModel
-			return organizer && renderOrganizer(organizer, { model })
-		} else {
-			return m(
-				".mb.rel",
-				m(
-					ExpanderPanel,
-					{ expanded: this.attendeesExpanded },
-					m(AttendeeListEditor, {
-						model,
-						recipientsSearch: this.recipientsSearch,
-						logins: locator.logins,
-					} satisfies AttendeeListEditorAttrs),
-				),
-			)
-		}
+		return m(
+			".mb.rel",
+			m(
+				ExpanderPanel,
+				{ expanded: this.attendeesExpanded },
+				m(AttendeeListEditor, {
+					model,
+					recipientsSearch: this.recipientsSearch,
+					logins: locator.logins,
+				} satisfies AttendeeListEditorAttrs),
+			),
+		)
 	}
 
 	private renderEventTimeEditor(attrs: CalendarEventEditViewAttrs): Children {
