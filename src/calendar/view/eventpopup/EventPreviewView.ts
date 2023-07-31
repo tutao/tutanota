@@ -22,6 +22,8 @@ import { hasError } from "../../../api/common/utils/ErrorCheckUtils.js"
 import { BannerButton, BannerButtonAttrs } from "../../../gui/base/buttons/BannerButton.js"
 import { pureComponent } from "../../../gui/base/PureComponent.js"
 import { CalendarEventPopupViewModel } from "./CalendarEventPopupViewModel.js"
+import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
+import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
 
 export type EventPreviewViewAttrs = {
 	event: Omit<CalendarEvent, "description">
@@ -43,7 +45,23 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 	}
 
 	const makeStatusButtonAttrs = (status: CalendarAttendeeStatus, text: TranslationKey): BannerButtonAttrs =>
-		Object.assign({ text, click: () => participation.setParticipation(status) }, participation.ownAttendee.status === status ? highlightColors : colors)
+		Object.assign(
+			{
+				text,
+				click: async () => {
+					try {
+						await participation.setParticipation(status)
+					} catch (e) {
+						if (e instanceof UpgradeRequiredError) {
+							const ordered = await showPlanUpgradeRequiredDialog(e.plans, e.message)
+							if (!ordered) return
+							participation.setParticipation(status)
+						}
+					}
+				},
+			},
+			participation.ownAttendee.status === status ? highlightColors : colors,
+		)
 
 	return m(".flex.col", [
 		m(".small", lang.get("invitedToEvent_msg")),
