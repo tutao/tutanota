@@ -177,7 +177,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				selectedValue: model.editModels.whoModel.selectedCalendar,
 				selectionChangedHandler: (v) => (model.editModels.whoModel.selectedCalendar = v),
 				icon: BootIcons.Expand,
-				disabled: !model.canEditSeries(),
+				disabled: !model.canEditSeries() || availableCalendars.length < 2,
 				helpLabel: () => this.renderCalendarColor(model.editModels.whoModel.selectedCalendar, vnode.attrs.groupColors),
 			} satisfies DropDownSelectorAttrs<CalendarInfo>),
 		)

@@ -102,6 +102,22 @@ o.spec("CalendarEventWhoModel", function () {
 			() => sendMailModel,
 		)
 
+	const getOldModelWithSingleEdit = (initialValues: Partial<CalendarEvent>, eventType = EventType.OWN) =>
+		new CalendarEventWhoModel(
+			initialValues,
+			eventType,
+			CalendarOperation.EditThis,
+			calendars,
+			calendars.get("ownCalendar")!,
+			userController,
+			false,
+			ownAddresses,
+			recipients,
+			null,
+			passwordStrengthModel,
+			() => sendMailModel,
+		)
+
 	const getOldInviteModel = (initialValues: Partial<CalendarEvent>) =>
 		new CalendarEventWhoModel(
 			initialValues,
@@ -572,6 +588,13 @@ o.spec("CalendarEventWhoModel", function () {
 					EventType.LOCKED,
 				)
 				o(model.getAvailableCalendars()).deepEquals([calendars.get("sharedCalendar")!])
+			})
+
+			o("it returns only the current calendar for single-instance editing", function () {
+				userController.user = createUser({ _id: "ownerId" })
+				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
+				const model = getOldModelWithSingleEdit({ attendees: [] })
+				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!])
 			})
 		})
 
