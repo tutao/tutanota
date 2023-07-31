@@ -19,7 +19,7 @@ import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { HtmlEditor } from "../../../gui/editor/HtmlEditor.js"
 import { attachDropdown } from "../../../gui/base/Dropdown.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../gui/base/InfoBanner.js"
-import { CalendarEventModel } from "../../date/eventeditor/CalendarEventModel.js"
+import { CalendarEventModel, ReadonlyReason } from "../../date/eventeditor/CalendarEventModel.js"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel
@@ -84,7 +84,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			label: "title_placeholder",
 			value: model.editModels.summary.content,
 			oninput: (v) => (model.editModels.summary.content = v),
-			disabled: model.isPartiallyWritable(),
+			disabled: !model.isFullyWritable(),
 			class: "big-input pt flex-grow",
 			injectionsRight: () => this.renderGuestsExpanderButton(attrs),
 		} satisfies TextFieldAttrs)
@@ -117,9 +117,15 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					buttons: [],
 				} satisfies InfoBannerAttrs),
 			)
-		if (model.isPartiallyWritable() || !model.editModels.whoModel.canModifyGuests) return makeMessage("cannotEditFullEvent_msg")
-		else if (!model.canEditSeries()) return makeMessage("cannotEditSingleInstance_msg")
-		else return null
+
+		switch (model.getReadonlyReason()) {
+			case ReadonlyReason.SHARED:
+				return makeMessage("cannotEditFullEvent_msg")
+			case ReadonlyReason.SINGLE_INSTANCE:
+				return makeMessage("cannotEditSingleInstance_msg")
+			case ReadonlyReason.NONE:
+				return null
+		}
 	}
 
 	private renderAttendees(attrs: CalendarEventEditViewAttrs): Children {
@@ -148,7 +154,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			editModel: attrs.model.editModels.whenModel,
 			timeFormat: this.timeFormat,
 			startOfTheWeekOffset: this.startOfTheWeekOffset,
-			disabled: attrs.model.isPartiallyWritable(),
+			disabled: !attrs.model.isFullyWritable(),
 		} satisfies EventTimeEditorAttrs)
 	}
 
@@ -246,7 +252,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			label: "location_label",
 			value: model.editModels.location.content,
 			oninput: (v) => (model.editModels.location.content = v),
-			disabled: model.isPartiallyWritable(),
+			disabled: !model.isFullyWritable(),
 			class: "text pt-s", // override default pt with pt-s because calendar color indicator takes up some space
 			injectionsRight: () => {
 				let address = encodeURIComponent(model.editModels.location.content)
@@ -269,7 +275,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	private renderDescriptionEditor(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
 		const { model } = vnode.attrs
-		vnode.attrs.descriptionEditor.setEnabled(!model.isPartiallyWritable())
+		vnode.attrs.descriptionEditor.setEnabled(model.isFullyWritable())
 		return m(vnode.attrs.descriptionEditor)
 	}
 }
