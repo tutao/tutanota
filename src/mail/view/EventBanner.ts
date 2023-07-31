@@ -57,7 +57,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 			} else if (this.ReplyButtons.isLoaded()) {
 				return m(this.ReplyButtons.getLoaded(), {
 					ownAttendee,
-					setParticipation: (status: CalendarAttendeeStatus) => sendResponse(event, recipient, status, mail),
+					setParticipation: async (status: CalendarAttendeeStatus) => sendResponse(event, recipient, status, mail),
 				})
 			} else {
 				this.ReplyButtons.reload().then(m.redraw)
