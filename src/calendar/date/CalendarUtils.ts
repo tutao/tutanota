@@ -616,7 +616,7 @@ export function assignEventId(event: CalendarEvent, zone: string, groupRoot: Cal
 }
 
 /** predicate that tells us if two CalendarEvent objects refer to the same instance or different ones.*/
-export function isSameEventInstance(left: CalendarEvent, right: CalendarEvent): boolean {
+export function isSameEventInstance(left: Pick<CalendarEvent, "_id" | "startTime">, right: Pick<CalendarEvent, "_id" | "startTime">): boolean {
 	// in addition to the id we compare the start time equality to be able to distinguish repeating events. They have the same id but different start time.
 	// altered events with recurrenceId never have the same Id as another event instance, but might start at the same time.
 	return isSameId(left._id, right._id) && left.startTime.getTime() === right.startTime.getTime()
@@ -734,7 +734,8 @@ export function addDaysForRecurringEvent(
 		if (isExcludedDate(startTime, exclusions)) {
 			const eventsOnExcludedDay = daysToEvents.get(getStartOfDayWithZone(startTime, timeZone).getTime())
 			if (!eventsOnExcludedDay) continue
-			findAndRemove(eventsOnExcludedDay, (e) => isSameEventInstance(e, event))
+			const eventOnThisDay = { _id: event._id, startTime }
+			findAndRemove(eventsOnExcludedDay, (e) => isSameEventInstance(e, eventOnThisDay))
 		} else {
 			const eventClone = clone(event)
 			if (allDay) {
