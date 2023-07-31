@@ -107,6 +107,15 @@ export const enum EventType {
 	EXTERNAL = "external",
 }
 
+export const enum ReadonlyReason {
+	/** it's a shared event, so at least the attendees are read-only */
+	SHARED,
+	/** this edit operation applies to only part of a series, so attendees and calendar are read-only */
+	SINGLE_INSTANCE,
+	/** we can edit anything here */
+	NONE,
+}
+
 /**
  * complete calendar event except the parts that define the identity of the event instance (in ical terms) and the technical fields.
  * when the excluded fields are added, this type can be used to set up a series, update a series or reschedule an instance of a series
@@ -350,9 +359,9 @@ export class CalendarEventModel {
 		}
 	}
 
-	/** true if the event is only partially writable, false if it is fully writable. */
-	isPartiallyWritable(): boolean {
-		return this.eventType !== EventType.OWN && this.eventType !== EventType.SHARED_RW
+	/** false if the event is only partially or not at all writable */
+	isFullyWritable(): boolean {
+		return this.eventType === EventType.OWN || this.eventType === EventType.SHARED_RW
 	}
 
 	/** some edit operations apply to the whole event series.
@@ -361,7 +370,7 @@ export class CalendarEventModel {
 	 * returns true if such operations can be attempted.
 	 * */
 	canEditSeries(): boolean {
-		return !this.isPartiallyWritable() || this.operation === CalendarOperation.EditThis
+		return this.operation !== CalendarOperation.EditThis
 	}
 
 	async isAskingForUpdatesNeeded(): Promise<boolean> {
@@ -371,6 +380,13 @@ export class CalendarEventModel {
 			this.editModels.whoModel.initiallyHadOtherAttendees &&
 			(await this.strategy.mayRequireSendingUpdates())
 		)
+	}
+
+	getReadonlyReason(): ReadonlyReason {
+		if (this.isFullyWritable() && this.canEditSeries() && this.editModels.whoModel.canModifyGuests) return ReadonlyReason.NONE
+		// fully writable and !canModifyGuests happens on shared calendars
+		if (!this.editModels.whoModel.canModifyGuests && this.canEditSeries()) return ReadonlyReason.SHARED
+		return ReadonlyReason.SINGLE_INSTANCE
 	}
 }
 
