@@ -33,7 +33,12 @@ async function run(which, { platform }) {
 		await bumpWorkspaces(newVersionString)
 		await $`npm version --no-git-tag-version ${newVersionString}`
 
-		// Need to run npm i to update package-lock.json
+		// Need to clean and re-install to make sure that all packages
+		// are installed with the correct version. otherwise, npm list
+		// from the tutanota-3 postinstall script will complain about
+		// invalid installed versions after npm i.
+		await fs.promises.unlink("./package-lock.json")
+		await fs.promises.rm("./node_modules", { recursive: true })
 		await $`npm i`
 	}
 
@@ -160,10 +165,18 @@ async function getWorkspaces() {
  * @return {Promise<void>}
  */
 async function bumpWorkspaces(version) {
+	// if we don't first bump versions of packages and _then_
+	// update the inter-package dependencies we will get an error
+	// in the middle of the process because npm can't resolve something
 	const workspaces = await getWorkspaces()
-	for (let workspace of workspaces) {
-		const dependency = workspace.name
+	for (const workspace of workspaces) {
 		await bumpWorkspaceVersion(version, workspace)
+		// npm list finds invalid dependencies if we don't do this.
+		await fs.promises.rm(path.join(workspace.directory, "node_modules"), { recursive: true })
+	}
+
+	for (const workspace of workspaces) {
+		const dependency = workspace.name
 		await updateDependencyForWorkspaces(version, dependency, workspaces)
 	}
 }
@@ -195,7 +208,7 @@ async function readPackageJsonFromDir(directory) {
  */
 async function updateDependencyForWorkspaces(version, dependency, workspaces) {
 	await updateDependency({ version, dependency, directory: "." })
-	for (let workspace of workspaces) {
+	for (const workspace of workspaces) {
 		const directory = workspace.directory
 		await updateDependency({ version, dependency, directory })
 	}

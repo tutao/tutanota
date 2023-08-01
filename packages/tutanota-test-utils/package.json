@@ -20,7 +20,7 @@
 		"LICENSE.txt",
 		"tsconfig.json"
 	],
-	"peerDependencies": {
+	"dependencies": {
 		"@tutao/otest": "3.116.1",
 		"testdouble": "3.18.0"
 	},
