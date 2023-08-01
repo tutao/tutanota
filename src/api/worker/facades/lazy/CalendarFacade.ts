@@ -62,6 +62,7 @@ import { NativePushFacade } from "../../../../native/common/generatedipc/NativeP
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
+import { EventWrapper } from "../../../../calendar/export/CalendarImporterDialog.js"
 
 assertWorkerOrNode()
 
@@ -102,15 +103,9 @@ export class CalendarFacade {
 		this.entityClient = new EntityClient(this.entityRestCache)
 	}
 
-	async saveImportedCalendarEvents(
-		eventsWrapper: Array<{
-			event: CalendarEvent
-			alarms: Array<AlarmInfo>
-		}>,
-		operationId: OperationId,
-	): Promise<void> {
+	async saveImportedCalendarEvents(eventWrappers: Array<EventWrapper>, operationId: OperationId): Promise<void> {
 		// it is safe to assume that all event uids are set at this time
-		return this.saveCalendarEvents(eventsWrapper, (percent) => this.operationProgressTracker.onProgress(operationId, percent))
+		return this.saveCalendarEvents(eventWrappers, (percent) => this.operationProgressTracker.onProgress(operationId, percent))
 	}
 
 	/**
@@ -121,13 +116,7 @@ export class CalendarFacade {
 	 * @param eventsWrapper the events and alarmNotifications to be created.
 	 * @param onProgress
 	 */
-	private async saveCalendarEvents(
-		eventsWrapper: Array<{
-			event: CalendarEvent
-			alarms: ReadonlyArray<AlarmInfo>
-		}>,
-		onProgress: (percent: number) => Promise<void>,
-	): Promise<void> {
+	private async saveCalendarEvents(eventsWrapper: Array<EventWrapper>, onProgress: (percent: number) => Promise<void>): Promise<void> {
 		let currentProgress = 10
 		await onProgress(currentProgress)
 
@@ -300,7 +289,7 @@ export class CalendarFacade {
 	 * Load all events that have an alarm assigned.
 	 * @return: Map from concatenated ListId of an event to list of UserAlarmInfos for that event
 	 */
-	async loadAlarmEvents(): Promise<Array<EventWithAlarmInfos>> {
+	async loadAlarmEvents(): Promise<Array<EventWithUserAlarmInfos>> {
 		const alarmInfoList = this.userFacade.getLoggedInUser().alarmInfoList
 
 		if (!alarmInfoList) {
@@ -487,7 +476,7 @@ export class CalendarFacade {
 	}
 }
 
-export type EventWithAlarmInfos = {
+export type EventWithUserAlarmInfos = {
 	event: CalendarEvent
 	userAlarmInfos: Array<UserAlarmInfo>
 }
