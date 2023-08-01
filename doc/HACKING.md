@@ -118,6 +118,30 @@ To run tests:
 npm test
 ```
 
+To run only the primary project tests and no tests for the modules:
+
+```bash
+npm run test:app
+```
+
+To run only specific tests:
+
+```bash
+npm run test:app -- -f 'CalendarModel'
+```
+
+To run tests in browser:
+
+```bash
+npm run test:app -- -br
+```
+
+To run tests only in browser:
+
+```bash
+npm run test:app -- --no-run -br
+```
+
 ## Chunking rules
 
 - Don't import things statically which you don't want to be bundled together (e.g. importing settings from login will
