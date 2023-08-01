@@ -3,6 +3,7 @@
 	"version": "3.116.1",
 	"license": "GPL-3.0",
 	"description": "little test runner",
+	"license": "GPL-3.0",
 	"main": "./dist/index.js",
 	"repository": {
 		"type": "git",
@@ -13,11 +14,11 @@
 		"prepublishOnly": "npm run build",
 		"build": "npx tsc -b"
 	},
-	"author": "",
 	"dependencies": {},
 	"type": "module",
 	"files": [
-		"dist/*",
+		"dist/*.ts",
+		"dist/*.js",
 		"README.md",
 		"LICENSE.txt",
 		"tsconfig.json"
