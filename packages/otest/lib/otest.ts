@@ -2,12 +2,28 @@ import { ansiSequences, fancy } from "./fancy.js"
 import { Assertion } from "./Assertion.js"
 import { RunResult, TestResult } from "./TestResult.js"
 
-class OTestmpl {
+class OTest {
 	private static readonly DEFAULT_TIMEOUT_MS = 200
 	private taskTree: Spec = { name: "O", specs: [], tests: [], before: [], after: [], beforeEach: [], afterEach: [] }
 	private currentSpec = this.taskTree
-	currentTest: TestResult | null = null
+	private currentTest: TestResult | null = null
 
+	/**
+	 * Define a group of tests.
+	 * Spec may contain:
+	 *  * tests
+	 *  * before/beforeEach/after/afterEach clauses
+	 *  * other specs
+	 *
+	 *  Example:
+	 *  ```ts
+	 *  o.spec("testableFunction", () => {
+	 *      o.test("it works", () => {
+	 *          o.check(testableFunction(1)).equals(2)
+	 *      })
+	 *  })
+	 *  ```
+	 */
 	spec(name: string, definition: () => void) {
 		const previousCurrentSpec = this.currentSpec
 		const newSpec = (this.currentSpec = {
@@ -25,11 +41,19 @@ class OTestmpl {
 		this.currentSpec.specs.push(newSpec)
 	}
 
-	test(name: string, task: (() => Promise<void>) | (() => void)) {
-		Object.defineProperty(task, "name", { value: name, writable: false })
-		this.currentSpec.tests.push({ name, task })
+	/**
+	 * Define a test.
+	 * Tests may be async in which case they should either await or return a promise.
+	 * Timeouts apply and can be changed with {@link timeout}.
+	 */
+	test(name: string, definition: (() => Promise<void>) | (() => void)) {
+		Object.defineProperty(definition, "name", { value: name, writable: false })
+		this.currentSpec.tests.push({ name, task: definition })
 	}
 
+	/**
+	 * Start an assertion.
+	 */
 	check<T>(value: T): Assertion<T> {
 		if (this.currentTest == null) {
 			throw new Error("Assertion outside of running test!")
@@ -37,22 +61,53 @@ class OTestmpl {
 		return new Assertion(value, this.currentTest)
 	}
 
+	/**
+	 * Define a task to be executed before any test in the spec (once per spec).
+	 */
 	before(task: () => Promise<void> | void) {
 		this.currentSpec.before.push(task)
 	}
 
+	/**
+	 * Define a task to be executed after all test in the spec (once per spec).
+	 */
 	after(task: () => Promise<void> | void) {
 		this.currentSpec.after.push(task)
 	}
 
+	/**
+	 * Define a task to be executed before each test in the spec (once per test).
+	 * Also applies to tests in nested specs.
+	 */
 	beforeEach(task: () => Promise<void> | void) {
 		this.currentSpec.beforeEach.push(task)
 	}
 
+	/**
+	 * Define a task to be executed after each test in the spec (once per test).
+	 * Also applies to tests in nested specs.
+	 */
 	afterEach(task: () => Promise<void> | void) {
 		this.currentSpec.afterEach.push(task)
 	}
 
+	/**
+	 * Set a timeout (in ms) for the currently running test.
+	 */
+	timeout(ms: number) {
+		if (this.currentTest === null) {
+			throw new Error("timeout() call outside of test")
+		} else if (this.currentTest.timeout != null) {
+			throw new Error(`timeout is already set! ${this.currentTest}`)
+		} else {
+			this.currentTest.timeout = ms
+		}
+	}
+
+	/**
+	 * Run the tests that were previously defined.
+	 * @param {string} filter: only run tests that match the filter string in either spec name or a test name.
+	 */
 	async run({ filter }: { filter?: string } = {}): Promise<RunResult> {
 		const runResult: RunResult = { passedTests: [], failingTests: [], skippedTests: [] }
 
@@ -123,6 +178,10 @@ class OTestmpl {
 		return result
 	}
 
+	/**
+	 * Output the result of the test run.
+	 * @param result
+	 */
 	printReport(result: RunResult) {
 		console.log(
 			`
@@ -152,13 +211,17 @@ ${fancy("passing", ansiSequences.greenBg)}: ${result.passedTests.length} ${fancy
 		}
 	}
 
+	/**
+	 * A utility to exit the process with the appropriate exit code.
+	 * only runs in node, no-op otherwise.
+	 */
 	terminateProcess(result: RunResult) {
 		if (typeof process !== "undefined") {
 			process.exit(result.failingTests.length ? 1 : 0)
 		}
 	}
 
-	async runTest(test: Test): Promise<TestResult> {
+	private async runTest(test: Test): Promise<TestResult> {
 		const currentTestResult: TestResult = (this.currentTest = { name: test.name, errors: [], timeout: null, skipped: false })
 
 		let testResolved = false
@@ -176,7 +239,7 @@ ${fancy("passing", ansiSequences.greenBg)}: ${result.passedTests.length} ${fancy
 		async function runTask() {
 			try {
 				const p = test.task()
-				currentTestResult.timeout = currentTestResult.timeout ?? OTestmpl.DEFAULT_TIMEOUT_MS
+				currentTestResult.timeout = currentTestResult.timeout ?? OTest.DEFAULT_TIMEOUT_MS
 				await p
 			} finally {
 				testResolved = true
@@ -193,16 +256,6 @@ ${fancy("passing", ansiSequences.greenBg)}: ${result.passedTests.length} ${fancy
 			this.currentTest = null
 		}
 		return currentTestResult
-	}
-
-	timeout(ms: number) {
-		if (this.currentTest === null) {
-			throw new Error("timeout() call outside of test")
-		} else if (this.currentTest.timeout != null) {
-			throw new Error(`timeout is already set! ${this.currentTest}`)
-		} else {
-			this.currentTest.timeout = ms
-		}
 	}
 }
 
@@ -241,17 +294,19 @@ interface Spec {
 }
 
 // this weird API is inherited from ospec, we would like to eventually deprecate it with proper functions like o.test and o.check but this API is TBD
-export type CallableOTest = OTestmpl & {
+export type CallableOTest = OTest & {
+	/** An alias for {@link OTest.test}. Discouraged. */
 	(name: string, definition: () => Promise<void> | void): void
 
+	/** An alias for {@link OTest.check}. Discouraged. */
 	<T>(actual: T): Assertion<T>
 }
 
-const otest = new OTestmpl()
+const otest = new OTest()
 
 function o<T>(item: T | string, definition?: () => Promise<void> | void) {
 	// we need to do these tricks otherwise "this" reference will be lost
-	const oo = o as unknown as OTestmpl
+	const oo = o as unknown as OTest
 	if (typeof definition === "undefined") {
 		return oo.check(item)
 	} else {

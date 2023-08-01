@@ -1,35 +1,6 @@
 import { TestError, TestResult } from "./TestResult.js"
 
 export type AssertionDescriber = (description: string) => void
-const noop = () => {}
-
-class AssertionError extends Error {}
-
-interface Class<T> {
-	new (...args: any[]): T
-}
-
-function xor(a: boolean, b: boolean): boolean {
-	return (a && !b) || (b && !a)
-}
-
-function isArguments(a: any) {
-	if ("callee" in a) {
-		for (const i in a) if (i === "callee") return false
-
-		return true
-	}
-}
-
-function errorMatchesDescription(e: unknown, errorDescription: string | ErrorConstructor | Class<any>): boolean {
-	if (e == null) return false
-	// make ts shut up, we know what we are doing here, we are ✨ professionals ✨ here
-	const erased = e as any
-	return (
-		(typeof errorDescription === "string" && typeof erased.message === "string" && erased.message === errorDescription) ||
-		e instanceof (errorDescription as any)
-	)
-}
 
 var asString: (thing: unknown) => string
 if (typeof process !== "undefined") {
@@ -43,9 +14,17 @@ if (typeof process !== "undefined") {
 	}
 }
 
+/**
+ * A started assertion.
+ */
 export class Assertion<T> {
 	constructor(private readonly actual: T, private readonly testResult: TestResult) {}
 
+	/**
+	 * Verify that two items are deeply equal.
+	 * For arrays length and each element must be deeply equal.
+	 * For objects the key sets must match and each property must be deeply equal.
+	 */
 	deepEquals(expected: T): AssertionDescriber {
 		if (!deepEqual(this.actual, expected)) {
 			return this.addError(`expected "${asString(this.actual)}" to be deep equal to "${asString(expected)}"`)
@@ -53,6 +32,9 @@ export class Assertion<T> {
 		return noop
 	}
 
+	/**
+	 * Verify that two items are referentially equal.
+	 */
 	equals(expected: T | null | undefined): AssertionDescriber {
 		if (this.actual !== expected) {
 			return this.addError(`expected "${asString(this.actual)}" to be equal to "${asString(expected)}"`)
@@ -60,6 +42,7 @@ export class Assertion<T> {
 		return noop
 	}
 
+	/** {@see deepEquals} */
 	notDeepEquals(value: T): AssertionDescriber {
 		if (deepEqual(this.actual, value)) {
 			return this.addError(`expected to "${asString(this.actual)}" NOT deep equal to "${asString(value)}"`)
@@ -67,6 +50,7 @@ export class Assertion<T> {
 		return noop
 	}
 
+	/** {@see equals} */
 	notEquals(value: T | null | undefined): AssertionDescriber {
 		if (this.actual === value) {
 			return this.addError(`expected "${asString(this.actual)}" to NOT be equal to "${asString(value)}"`)
@@ -74,7 +58,10 @@ export class Assertion<T> {
 		return noop
 	}
 
-	satisfies(check: (value: T) => { pass: boolean; message: string }) {
+	/**
+	 * Verify that the value satisfies the {@param check}.
+	 */
+	satisfies(check: (value: T) => { pass: boolean; message: string }): AssertionDescriber {
 		const result = check(this.actual)
 		if (!result.pass) {
 			return this.addError(`expected "${asString(this.actual)}" to satisfy condition: "${result.message}"`)
@@ -82,7 +69,10 @@ export class Assertion<T> {
 		return noop
 	}
 
-	async asyncSatisfies(check: (value: T) => Promise<{ pass: boolean; message: string }>) {
+	/**
+	 * Same as {@link satisfies} but the check function is async.
+	 */
+	async asyncSatisfies(check: (value: T) => Promise<{ pass: boolean; message: string }>): Promise<AssertionDescriber> {
 		const result = await check(this.actual)
 		if (!result.pass) {
 			return this.addError(`expected "${asString(this.actual)}" to satisfy condition: "${result.message}"`)
@@ -90,7 +80,8 @@ export class Assertion<T> {
 		return noop
 	}
 
-	notSatisfies(check: (value: T) => { pass: boolean; message: string }) {
+	/** {@see satisfies} */
+	notSatisfies(check: (value: T) => { pass: boolean; message: string }): AssertionDescriber {
 		const result = check(this.actual)
 		if (result.pass) {
 			return this.addError(`expected "${asString(this.actual)}" to NOT satisfy condition: "${result.message}"`)
@@ -98,6 +89,10 @@ export class Assertion<T> {
 		return noop
 	}
 
+	/**
+	 * Verify that the value returned by the subject function matches the description.
+	 * In case of a string description the message is matched, otherwise the error is checked by instanceof.
+	 */
 	throws(errorDescription: string | ErrorConstructor | Class<any>): AssertionDescriber {
 		if (typeof this.actual !== "function") {
 			throw new Error(`Value for throws() call is not a function! ${errorDescription}`)
@@ -114,6 +109,10 @@ export class Assertion<T> {
 		}
 	}
 
+	/**
+	 * Verity that the value returned by the subject function matches the description.
+	 * In case of a string description the message is matched, otherwise the error is checked by instanceof.
+	 */
 	async asyncThrows(errorDescription: string | ErrorConstructor | Class<any>): Promise<AssertionDescriber> {
 		if (typeof this.actual !== "function") {
 			throw new Error(`Value for throws() call is not a function! ${errorDescription}`)
@@ -142,8 +141,6 @@ export class Assertion<T> {
 		return typeof error === "string" ? error : typeof error === "function" ? error.name : String(error)
 	}
 }
-
-type Promisable<T> = T | Promise<T>
 
 /**
  * modified deepEquals from ospec is only needed as long as we use custom classes (TypeRef) and Date is not properly handled
@@ -196,3 +193,33 @@ function deepEqual(a: any, b: any): boolean {
 
 	return false
 }
+
+class AssertionError extends Error {}
+
+interface Class<T> {
+	new (...args: any[]): T
+}
+
+function xor(a: boolean, b: boolean): boolean {
+	return (a && !b) || (b && !a)
+}
+
+function isArguments(a: any) {
+	if ("callee" in a) {
+		for (const i in a) if (i === "callee") return false
+
+		return true
+	}
+}
+
+function errorMatchesDescription(e: unknown, errorDescription: string | ErrorConstructor | Class<any>): boolean {
+	if (e == null) return false
+	// make ts shut up, we know what we are doing here, we are ✨ professionals ✨ here
+	const erased = e as any
+	return (
+		(typeof errorDescription === "string" && typeof erased.message === "string" && erased.message === errorDescription) ||
+		e instanceof (errorDescription as any)
+	)
+}
+
+function noop() {}
