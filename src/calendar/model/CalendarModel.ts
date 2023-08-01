@@ -3,7 +3,7 @@ import { assertNotNull, clone, defer, downcast, filterInt, getFromMap, LazyLoade
 import { CalendarMethod, FeatureType, GroupType, OperationType } from "../../api/common/TutanotaConstants"
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
-import type { AlarmInfo, DateWrapper, Group, GroupInfo, User, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
+import type { AlarmInfo, Group, GroupInfo, User, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
 import {
 	createDateWrapper,
 	createMembershipRemoveData,
@@ -19,7 +19,6 @@ import {
 	CalendarEventUpdateTypeRef,
 	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
-	CalendarRepeatRule,
 	createGroupSettings,
 	FileTypeRef,
 } from "../../api/entities/tutanota/TypeRefs.js"
@@ -99,7 +98,12 @@ export class CalendarModel {
 		}
 
 		// in cases where start time or calendar changed, we need to change the event id and so need to delete/recreate.
-		if (existingEvent._ownerGroup !== groupRoot._id || newEvent.startTime.getTime() !== existingEvent.startTime.getTime()) {
+		// it's also possible that the event has to be moved from the long event list to the short event list or vice versa.
+		if (
+			existingEvent._ownerGroup !== groupRoot._id ||
+			newEvent.startTime.getTime() !== existingEvent.startTime.getTime() ||
+			(await didLongStateChange(newEvent, existingEvent, zone))
+		) {
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
 			await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
 			return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
@@ -635,4 +639,11 @@ export class CalendarModel {
 			alarmScheduler.cancelAlarm(identifier)
 		}
 	}
+}
+
+/** return false when the given events (representing the new and old version of the same event) are both long events
+ * or both short events, true otherwise */
+async function didLongStateChange(newEvent: CalendarEvent, existingEvent: CalendarEvent, zone: string): Promise<boolean> {
+	const { isLongEvent } = await import("../date/CalendarUtils.js")
+	return isLongEvent(newEvent, zone) !== isLongEvent(existingEvent, zone)
 }

@@ -605,13 +605,14 @@ export function getAllDayDateUTCFromZone(date: Date, zone: string): Date {
 export function isLongEvent(event: CalendarEvent, zone: string): boolean {
 	// long events are longer than the event ID randomization range. we need to distinguish them
 	// to be able to still load and display the ones overlapping the query range even though their
-	// id might not be contained in the query timerange +- randomization range
-	return getEventEnd(event, zone).getTime() - getEventStart(event, zone).getTime() > DAYS_SHIFTED_MS
+	// id might not be contained in the query timerange +- randomization range.
+	// this also applies to events that repeat.
+	return event.repeatRule != null || getEventEnd(event, zone).getTime() - getEventStart(event, zone).getTime() > DAYS_SHIFTED_MS
 }
 
 /** create an event id depending on the calendar it is in and on its length */
 export function assignEventId(event: CalendarEvent, zone: string, groupRoot: CalendarGroupRoot): void {
-	const listId = event.repeatRule || isLongEvent(event, zone) ? groupRoot.longEvents : groupRoot.shortEvents
+	const listId = isLongEvent(event, zone) ? groupRoot.longEvents : groupRoot.shortEvents
 	event._id = [listId, generateEventElementId(event.startTime.getTime())]
 }
 
