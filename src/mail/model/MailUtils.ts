@@ -238,9 +238,9 @@ export function getDefaultSender(logins: LoginController, mailboxDetails: Mailbo
 		let props = logins.getUserController().props
 		return props.defaultSender && contains(getEnabledMailAddressesWithUser(mailboxDetails, logins.getUserController().userGroupInfo), props.defaultSender)
 			? props.defaultSender
-			: assertNotNull(logins.getUserController().userGroupInfo.mailAddress, "mailAdress on userGroupInfo was null")
+			: assertNotNull(logins.getUserController().userGroupInfo.mailAddress)
 	} else {
-		return assertNotNull(mailboxDetails.mailGroupInfo.mailAddress, "mailAddress on mailGroupInfo was null")
+		return assertNotNull(mailboxDetails.mailGroupInfo.mailAddress)
 	}
 }
 

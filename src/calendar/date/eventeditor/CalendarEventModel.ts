@@ -590,7 +590,8 @@ function getPreselectedCalendar(calendars: ReadonlyMap<Id, CalendarInfo>, event?
 }
 
 /** get the list of mail addresses that are enabled for this mailbox with the configured sender names
- * will put the sender that matches the default sender address in the first spot. */
+ * will put the sender that matches the default sender address in the first spot. this enables us to use
+ * it as an easy default without having to pass it around separately */
 function getOwnMailAddressesWithDefaultSenderInFront(
 	logins: LoginController,
 	mailboxDetail: MailboxDetail,
