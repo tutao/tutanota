@@ -157,7 +157,9 @@ o.spec("SendMailModel", function () {
 		const mailboxDetails: MailboxDetail = {
 			mailbox: createMailBox(),
 			folders: new FolderSystem([]),
-			mailGroupInfo: createGroupInfo(),
+			mailGroupInfo: createGroupInfo({
+				mailAddress: "mailgroup@addre.ss",
+			}),
 			mailGroup: createGroup(),
 			mailboxGroupRoot: createMailboxGroupRoot(),
 		}

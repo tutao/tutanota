@@ -61,6 +61,7 @@ import {
 	CalendarRepeatRule,
 	createCalendarEvent,
 	createEncryptedMailAddress,
+	EncryptedMailAddress,
 	Mail,
 	MailboxProperties,
 } from "../../../api/entities/tutanota/TypeRefs.js"
@@ -90,6 +91,7 @@ import { UserController } from "../../../api/main/UserController.js"
 import { CalendarNotificationModel, CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
 import { CalendarEventApplyStrategies, CalendarEventModelStrategy } from "./CalendarEventModelStrategy.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
+import { getDefaultSender } from "../../../mail/model/MailUtils.js"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {
@@ -166,12 +168,7 @@ export async function makeCalendarEventModel(
 	uiUpdateCallback: () => void = m.redraw,
 ): Promise<CalendarEventModel | null> {
 	const { htmlSanitizer } = await import("../../../misc/HtmlSanitizer.js")
-	const ownMailAddresses = mailboxProperties.mailAddressProperties.map(({ mailAddress, senderName }) =>
-		createEncryptedMailAddress({
-			address: mailAddress,
-			name: senderName,
-		}),
-	)
+	const ownMailAddresses = getOwnMailAddressesWithDefaultSenderInFront(logins, mailboxDetail, mailboxProperties)
 	if (operation === CalendarOperation.DeleteAll || operation === CalendarOperation.EditAll) {
 		assertNonNull(initialValues.uid, "tried to edit/delete all with nonexistent uid")
 		const index = await calendarModel.getEventsByUid(initialValues.uid)
@@ -590,4 +587,27 @@ function getPreselectedCalendar(calendars: ReadonlyMap<Id, CalendarInfo>, event?
 	} else {
 		return assertNotNull(calendars.get(ownerGroup), "invalid ownergroup for existing event?")
 	}
+}
+
+/** get the list of mail addresses that are enabled for this mailbox with the configured sender names
+ * will put the sender that matches the default sender address in the first spot. */
+function getOwnMailAddressesWithDefaultSenderInFront(
+	logins: LoginController,
+	mailboxDetail: MailboxDetail,
+	mailboxProperties: MailboxProperties,
+): Array<EncryptedMailAddress> {
+	const defaultSender = getDefaultSender(logins, mailboxDetail)
+	const ownMailAddresses = mailboxProperties.mailAddressProperties.map(({ mailAddress, senderName }) =>
+		createEncryptedMailAddress({
+			address: mailAddress,
+			name: senderName,
+		}),
+	)
+	const defaultIndex = ownMailAddresses.findIndex((address) => address.address === defaultSender)
+	if (defaultIndex < 0) {
+		// should not happen
+		return ownMailAddresses
+	}
+	const defaultEncryptedMailAddress = ownMailAddresses.splice(defaultIndex, 1)
+	return [...defaultEncryptedMailAddress, ...ownMailAddresses]
 }
