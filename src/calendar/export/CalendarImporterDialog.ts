@@ -9,15 +9,15 @@ import { lang } from "../../misc/LanguageViewModel"
 import { parseCalendarFile, ParsedEvent, serializeCalendar } from "./CalendarImporter"
 import { elementIdPart, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
 import type { AlarmInfo, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
-import { UserAlarmInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { createDateWrapper, UserAlarmInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { convertToDataFile } from "../../api/common/DataFile"
 import { locator } from "../../api/main/MainLocator"
-import { getFromMap, ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { getFromMap, groupBy, insertIntoSortedArray, ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils"
 import { ImportError } from "../../api/common/error/ImportError"
 import { TranslationKeyType } from "../../misc/TranslationKey"
 
-const enum EventImportRejectionReason {
+export const enum EventImportRejectionReason {
 	Pre1970,
 	Inversed,
 	InvalidDate,
@@ -25,81 +25,129 @@ const enum EventImportRejectionReason {
 }
 
 type RejectedEvents = Map<EventImportRejectionReason, Array<CalendarEvent>>
+export type EventWrapper = {
+	event: CalendarEvent
+	alarms: ReadonlyArray<AlarmInfo>
+}
+
+/**
+ * show an error dialog detailing the reason and amount for events that failed to import
+ */
+async function partialImportConfirmation(skippedEvents: CalendarEvent[], confirmationText: TranslationKeyType, total: number): Promise<boolean> {
+	return (
+		skippedEvents.length === 0 ||
+		(await Dialog.confirm(() =>
+			lang.get(confirmationText, {
+				"{amount}": skippedEvents.length + "",
+				"{total}": total + "",
+			}),
+		))
+	)
+}
 
 export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot): Promise<void> {
-	let parsedEvents: ParsedEvent[][]
+	const parsedEvents: ParsedEvent[] = await selectAndParseIcalFile()
+	if (parsedEvents.length === 0) return
+	const zone = getTimeZone()
+	const existingEvents = await showProgressDialog("loading_msg", loadAllEvents(calendarGroupRoot))
+	const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(parsedEvents, existingEvents, calendarGroupRoot, zone)
 
+	const total = parsedEvents.length
+	if (!(await partialImportConfirmation(rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? [], "importEventExistingUid_msg", total))) return
+	if (!(await partialImportConfirmation(rejectedEvents.get(EventImportRejectionReason.InvalidDate) ?? [], "importInvalidDatesInEvent_msg", total))) return
+	if (!(await partialImportConfirmation(rejectedEvents.get(EventImportRejectionReason.Inversed) ?? [], "importEndNotAfterStartInEvent_msg", total))) return
+	if (!(await partialImportConfirmation(rejectedEvents.get(EventImportRejectionReason.Pre1970) ?? [], "importPre1970StartInEvent_msg", total))) return
+
+	return await importEvents(eventsForCreation)
+}
+
+async function selectAndParseIcalFile(): Promise<ParsedEvent[]> {
 	try {
 		const dataFiles = await showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
-		parsedEvents = await promiseMap(dataFiles, async (file) => (await parseCalendarFile(file)).contents)
+		const contents = dataFiles.map((file) => parseCalendarFile(file).contents)
+		return contents.flat()
 	} catch (e) {
 		if (e instanceof ParserError) {
 			console.log("Failed to parse file", e)
-			return Dialog.message(() =>
+			Dialog.message(() =>
 				lang.get("importReadFileError_msg", {
 					"{filename}": e.filename,
 				}),
 			)
+			return []
 		} else {
 			throw e
 		}
 	}
+}
 
-	const zone = getTimeZone()
-
-	const existingEvents = await showProgressDialog("loading_msg", loadAllEvents(calendarGroupRoot))
+/** sort the parsed events into the ones we want to create and the ones we want to reject (stating a rejection reason)
+ * will assign event id according to the calendarGroupRoot and the long/short event status */
+export function sortOutParsedEvents(
+	parsedEvents: ParsedEvent[],
+	existingEvents: Array<CalendarEvent>,
+	calendarGroupRoot: CalendarGroupRoot,
+	zone: string,
+): {
+	rejectedEvents: RejectedEvents
+	eventsForCreation: Array<EventWrapper>
+} {
 	const instanceIdentifierToEventMap = new Map()
 	for (const existingEvent of existingEvents) {
 		if (existingEvent.uid == null) continue
 		instanceIdentifierToEventMap.set(makeInstanceIdentifier(existingEvent), existingEvent)
 	}
-	const flatParsedEvents = parsedEvents.flat()
+
 	const rejectedEvents: RejectedEvents = new Map()
-	// Don't try to create event which we already have
 	const eventsForCreation: Array<{ event: CalendarEvent; alarms: Array<AlarmInfo> }> = []
-	for (const { event, alarms } of flatParsedEvents) {
-		const rejectionReason = shouldBeSkipped(event, instanceIdentifierToEventMap)
-		if (rejectionReason != null) {
-			getFromMap(rejectedEvents, rejectionReason, () => []).push(event)
-			continue
+	for (const [_, flatParsedEvents] of groupBy(parsedEvents, (e) => e.event.uid)) {
+		let progenitor: { event: CalendarEvent; alarms: Array<AlarmInfo> } | null = null
+		let alteredInstances: Array<{ event: CalendarEvent; alarms: Array<AlarmInfo> }> = []
+
+		for (const { event, alarms } of flatParsedEvents) {
+			const rejectionReason = shouldBeSkipped(event, instanceIdentifierToEventMap)
+			if (rejectionReason != null) {
+				getFromMap(rejectedEvents, rejectionReason, () => []).push(event)
+				continue
+			}
+
+			// hashedUid will be set later in calendarFacade to avoid importing the hash function here
+			const repeatRule = event.repeatRule
+			event._ownerGroup = calendarGroupRoot._id
+
+			if (repeatRule != null && repeatRule.timeZone === "") {
+				repeatRule.timeZone = getTimeZone()
+			}
+
+			for (let alarmInfo of alarms) {
+				alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
+			}
+
+			assignEventId(event, zone, calendarGroupRoot)
+			if (event.recurrenceId == null) {
+				// the progenitor must be null here since we would have
+				// rejected the second uid-progenitor event in shouldBeSkipped.
+				progenitor = { event, alarms }
+			} else {
+				if (progenitor?.event.repeatRule != null) {
+					insertIntoSortedArray(
+						createDateWrapper({ date: event.recurrenceId }),
+						progenitor.event.repeatRule.excludedDates,
+						(left, right) => left.date.getTime() - right.date.getTime(),
+						() => true,
+					)
+				}
+				alteredInstances.push({ event, alarms })
+			}
 		}
-
-		// hashedUid will be set later in calendarFacade to avoid importing the hash function here
-		const repeatRule = event.repeatRule
-		event._ownerGroup = calendarGroupRoot._id
-
-		if (repeatRule && repeatRule.timeZone === "") {
-			repeatRule.timeZone = getTimeZone()
-		}
-
-		for (let alarmInfo of alarms) {
-			alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
-		}
-
-		assignEventId(event, zone, calendarGroupRoot)
-		eventsForCreation.push({ event, alarms })
+		if (progenitor != null) eventsForCreation.push(progenitor)
+		eventsForCreation.push(...alteredInstances)
 	}
 
-	if (!(await showConfirmPartialImportDialog(rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? [], "importEventExistingUid_msg"))) return
-	if (!(await showConfirmPartialImportDialog(rejectedEvents.get(EventImportRejectionReason.InvalidDate) ?? [], "importInvalidDatesInEvent_msg"))) return
-	if (!(await showConfirmPartialImportDialog(rejectedEvents.get(EventImportRejectionReason.Inversed) ?? [], "importEndNotAfterStartInEvent_msg"))) return
-	if (!(await showConfirmPartialImportDialog(rejectedEvents.get(EventImportRejectionReason.Pre1970) ?? [], "importPre1970StartInEvent_msg"))) return
+	return { rejectedEvents, eventsForCreation }
+}
 
-	/**
-	 * show an error dialog detailing the reason and amount for events that failed to import
-	 */
-	async function showConfirmPartialImportDialog(skippedEvents: CalendarEvent[], confirmationText: TranslationKeyType): Promise<boolean> {
-		return (
-			skippedEvents.length === 0 ||
-			(await Dialog.confirm(() =>
-				lang.get(confirmationText, {
-					"{amount}": skippedEvents.length + "",
-					"{total}": flatParsedEvents.length + "",
-				}),
-			))
-		)
-	}
-
+async function importEvents(eventsForCreation: Array<EventWrapper>): Promise<void> {
 	const operation = locator.operationProgressTracker.startNewOperation()
 	return showProgressDialog("importCalendar_label", locator.calendarFacade.saveImportedCalendarEvents(eventsForCreation, operation.id), operation.progress)
 		.catch(

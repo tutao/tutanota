@@ -6,12 +6,21 @@ import {
 	serializeExcludedDates,
 	serializeRepeatRule,
 } from "../../../src/calendar/export/CalendarImporter.js"
-import { createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	CalendarEvent,
+	createCalendarEvent,
+	createCalendarEventAttendee,
+	createCalendarGroupRoot,
+	createEncryptedMailAddress,
+} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { DateTime } from "luxon"
 import { createAlarmInfo, createDateWrapper, createRepeatRule, createUserAlarmInfo } from "../../../src/api/entities/sys/TypeRefs.js"
 import { AlarmInterval, CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
 import { getAllDayDateUTC } from "../../../src/api/common/utils/CommonCalendarUtils.js"
 import { getAllDayDateUTCFromZone } from "../../../src/calendar/date/CalendarUtils.js"
+import { EventImportRejectionReason, sortOutParsedEvents } from "../../../src/calendar/export/CalendarImporterDialog.js"
+import { getDateInZone } from "./CalendarTestUtils.js"
+import { Require } from "@tutao/tutanota-utils"
 
 const zone = "Europe/Berlin"
 const now = new Date("2019-08-13T14:01:00.630Z")
@@ -1207,6 +1216,49 @@ END:VCALENDAR`
 				zone,
 			)
 			o(serialized).equals(text)
+		})
+	})
+	o.spec("sortOutParsedEvents", function () {
+		o("repeated progenitors are skipped", function () {
+			const progenitor1 = createCalendarEvent({ uid: "hello", startTime: getDateInZone("2023-01-02T13:00") }) as Require<"uid", CalendarEvent>
+			const progenitor2 = createCalendarEvent({ uid: "hello", startTime: getDateInZone("2023-01-01T13:00") }) as Require<"uid", CalendarEvent>
+			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
+				[
+					{ event: progenitor1, alarms: [] },
+					{
+						event: progenitor2,
+						alarms: [],
+					},
+				],
+				[],
+				createCalendarGroupRoot(),
+				zone,
+			)
+			o(eventsForCreation[0].event).equals(progenitor1)
+			o(rejectedEvents.get(EventImportRejectionReason.Duplicate)?.[0]).equals(progenitor2)
+		})
+		o("imported altered instances are added as exclusions", function () {
+			const progenitor = createCalendarEvent({
+				uid: "hello",
+				startTime: getDateInZone("2023-01-02T13:00"),
+				repeatRule: createRepeatRule(),
+			}) as Require<"uid", CalendarEvent>
+			const altered = createCalendarEvent({
+				uid: "hello",
+				startTime: getDateInZone("2023-01-02T14:00"),
+				recurrenceId: getDateInZone("2023-01-02T13:00"),
+			}) as Require<"uid", CalendarEvent>
+			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
+				[
+					{ event: progenitor, alarms: [] },
+					{ event: altered, alarms: [] },
+				],
+				[],
+				createCalendarGroupRoot(),
+				zone,
+			)
+			o(rejectedEvents.size).equals(0)
+			o(eventsForCreation[0].event.repeatRule?.excludedDates[0].date.getTime()).equals(altered.recurrenceId?.getTime())
 		})
 	})
 

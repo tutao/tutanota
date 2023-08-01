@@ -34,10 +34,10 @@ export type ParsedCalendarData = {
 }
 
 /** given an ical datafile, get the parsed calendar events with their alarms as well as the ical method */
-export async function parseCalendarFile(file: DataFile): Promise<ParsedCalendarData> {
+export function parseCalendarFile(file: DataFile): ParsedCalendarData {
 	try {
 		const stringData = utf8Uint8ArrayToString(file.data)
-		return await parseCalendarStringData(stringData, getTimeZone())
+		return parseCalendarStringData(stringData, getTimeZone())
 	} catch (e) {
 		if (e instanceof ParserError) {
 			throw new ParserError(e.message, file.name)

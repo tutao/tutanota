@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import type { CalendarEventAlteredInstance, EventWithAlarmInfos } from "../../../../../src/api/worker/facades/lazy/CalendarFacade.js"
+import type { CalendarEventAlteredInstance, EventWithUserAlarmInfos } from "../../../../../src/api/worker/facades/lazy/CalendarFacade.js"
 import { CalendarFacade, sortByRecurrenceId } from "../../../../../src/api/worker/facades/lazy/CalendarFacade.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
@@ -53,7 +53,7 @@ o.spec("CalendarFacadeTest", async function () {
 	let cryptoFacade: CryptoFacade
 	let infoMessageHandler: InfoMessageHandler
 
-	function sortEventsWithAlarmInfos(eventsWithAlarmInfos: Array<EventWithAlarmInfos>) {
+	function sortEventsWithAlarmInfos(eventsWithAlarmInfos: Array<EventWithUserAlarmInfos>) {
 		const idCompare = (el1, el2) => getLetId(el1).join("").localeCompare(getLetId(el2).join(""))
 
 		eventsWithAlarmInfos.sort((a, b) => idCompare(a.event, b.event))
