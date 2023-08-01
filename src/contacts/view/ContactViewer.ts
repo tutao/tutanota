@@ -70,7 +70,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 						),
 						this.hasBirthday(contact) ? m("", this.formattedBirthday(contact)) : null,
 					]),
-					contact && attrs.editAction && attrs.deleteAction
+					contact && (attrs.editAction || attrs.deleteAction)
 						? m(
 								".flex-end",
 								m(
@@ -82,20 +82,24 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 										},
 										childAttrs: () => {
 											return [
-												{
-													label: "edit_action",
-													icon: Icons.Edit,
-													click: () => {
-														assertNotNull(attrs.editAction)(contact)
-													},
-												},
-												{
-													label: "delete_action",
-													icon: Icons.Trash,
-													click: () => {
-														assertNotNull(attrs.deleteAction)([contact])
-													},
-												},
+												attrs.editAction
+													? {
+															label: "edit_action",
+															icon: Icons.Edit,
+															click: () => {
+																assertNotNull(attrs.editAction, "Edit action in Contact Viewer has disappeared")(contact)
+															},
+													  }
+													: null,
+												attrs.deleteAction
+													? {
+															label: "delete_action",
+															icon: Icons.Trash,
+															click: () => {
+																assertNotNull(attrs.deleteAction, "Delete action in Contact Viewer has disappeared")([contact])
+															},
+													  }
+													: null,
 											]
 										},
 									}),

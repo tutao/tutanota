@@ -5,8 +5,6 @@ import { ButtonType } from "../gui/base/Button.js"
 import { Dialog } from "../gui/base/Dialog.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { TextField } from "../gui/base/TextField.js"
-import Stream from "mithril/stream"
-import stream from "mithril/stream"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { px, size } from "../gui/size.js"
 import { IconButton } from "../gui/base/IconButton.js"
@@ -81,7 +79,7 @@ export async function showContactListNameEditor(name: string, save: (name: strin
 	})
 }
 
-class ContactListEditorModel {
+export class ContactListEditorModel {
 	name: string
 	addresses: Array<string>
 
@@ -105,7 +103,6 @@ class ContactListEditorModel {
 
 	removeRecipient(address: string) {
 		this.addresses = this.addresses.filter((a) => address !== a)
-		m.redraw()
 	}
 }
 
