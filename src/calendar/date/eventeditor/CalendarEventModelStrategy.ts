@@ -28,7 +28,7 @@ export interface CalendarEventModelStrategy {
 	apply(): Promise<void>
 
 	/** check if the current state of the operation would cause updates to be sent*/
-	mayRequireSendingUpdates(): Promise<boolean>
+	mayRequireSendingUpdates(): boolean
 
 	editModels: CalendarEventEditModels
 }
@@ -69,7 +69,7 @@ export class CalendarEventApplyStrategies {
 		assertNotNull(existingEvent?._ownerGroup, "no ownerGroup to update existing event")
 		assertNotNull(existingEvent?._permissions, "no permissions to update existing event")
 
-		const { newEvent, calendar, newAlarms, sendModels } = await assembleEditResultAndAssignFromExisting(
+		const { newEvent, calendar, newAlarms, sendModels } = assembleEditResultAndAssignFromExisting(
 			existingEvent,
 			editModelsForProgenitor,
 			CalendarOperation.EditAll,
@@ -91,7 +91,7 @@ export class CalendarEventApplyStrategies {
 				for (const occurrence of index.alteredInstances) {
 					if (invalidateAlteredInstances) {
 						editModelsForProgenitor.whoModel.shouldSendUpdates = true
-						const { sendModels } = await assembleEditResultAndAssignFromExisting(occurrence, editModelsForProgenitor, CalendarOperation.EditThis)
+						const { sendModels } = assembleEditResultAndAssignFromExisting(occurrence, editModelsForProgenitor, CalendarOperation.EditThis)
 						// in cases where guests were removed and the start time/repeat rule changed, we might
 						// have both a cancel model (containing the removed recipients) and an update model (the rest)
 						// we're copying all of them to cancel if the altered instances were invalidated, since the
@@ -105,7 +105,7 @@ export class CalendarEventApplyStrategies {
 						await this.notificationModel.send(occurrence, sendModels)
 						await this.calendarModel.deleteEvent(occurrence)
 					} else {
-						const { newEvent, newAlarms, sendModels } = await assembleEditResultAndAssignFromExisting(
+						const { newEvent, newAlarms, sendModels } = assembleEditResultAndAssignFromExisting(
 							occurrence,
 							editModelsForProgenitor,
 							CalendarOperation.EditThis,
@@ -137,7 +137,7 @@ export class CalendarEventApplyStrategies {
 		await this.showProgress(
 			(async () => {
 				// NEW: edit models that we used so far are for the new event (rescheduled one). this should be an invite.
-				const { newEvent, calendar, newAlarms, sendModels } = await assembleEditResultAndAssignFromExisting(
+				const { newEvent, calendar, newAlarms, sendModels } = assembleEditResultAndAssignFromExisting(
 					existingInstance,
 					editModels,
 					CalendarOperation.EditThis,
@@ -151,7 +151,7 @@ export class CalendarEventApplyStrategies {
 					newEvent: newProgenitor,
 					sendModels: progenitorSendModels,
 					newAlarms: progenitorAlarms,
-				} = await assembleEditResultAndAssignFromExisting(progenitor, editModelsForProgenitor, CalendarOperation.EditAll)
+				} = assembleEditResultAndAssignFromExisting(progenitor, editModelsForProgenitor, CalendarOperation.EditAll)
 				await this.notificationModel.send(newProgenitor, progenitorSendModels)
 				await this.calendarModel.updateEvent(newProgenitor, progenitorAlarms, this.zone, calendar.groupRoot, progenitor)
 
@@ -163,11 +163,7 @@ export class CalendarEventApplyStrategies {
 	}
 
 	async saveExistingAlteredInstance(editModels: CalendarEventEditModels, existingInstance: CalendarEvent): Promise<void> {
-		const { newEvent, calendar, newAlarms, sendModels } = await assembleEditResultAndAssignFromExisting(
-			existingInstance,
-			editModels,
-			CalendarOperation.EditThis,
-		)
+		const { newEvent, calendar, newAlarms, sendModels } = assembleEditResultAndAssignFromExisting(existingInstance, editModels, CalendarOperation.EditThis)
 		const { groupRoot } = calendar
 		await this.showProgress(
 			(async () => {
@@ -187,7 +183,7 @@ export class CalendarEventApplyStrategies {
 				if (alteredOccurrences) {
 					for (const occurrence of alteredOccurrences.alteredInstances) {
 						if (occurrence.attendees.length === 0) continue
-						const { sendModels } = await assembleEditResultAndAssignFromExisting(occurrence, editModels, CalendarOperation.DeleteAll)
+						const { sendModels } = assembleEditResultAndAssignFromExisting(occurrence, editModels, CalendarOperation.DeleteAll)
 						sendModels.cancelModel = sendModels.updateModel
 						sendModels.updateModel = null
 						await this.notificationModel.send(occurrence, sendModels)
@@ -213,7 +209,7 @@ export class CalendarEventApplyStrategies {
 			(async () => {
 				editModelsForProgenitor.whoModel.shouldSendUpdates = true
 				editModelsForProgenitor.whenModel.excludeDate(existingInstance.startTime)
-				const { newEvent, sendModels, calendar, newAlarms } = await assembleEditResultAndAssignFromExisting(
+				const { newEvent, sendModels, calendar, newAlarms } = assembleEditResultAndAssignFromExisting(
 					progenitor,
 					editModelsForProgenitor,
 					CalendarOperation.DeleteThis,

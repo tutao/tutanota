@@ -234,11 +234,11 @@ async function selectStrategy(
 ): Promise<CalendarEventModelStrategy | null> {
 	let editModels: CalendarEventEditModels
 	let apply: () => Promise<void>
-	let mayRequireSendingUpdates: () => Promise<boolean>
+	let mayRequireSendingUpdates: () => boolean
 	if (operation === CalendarOperation.Create) {
 		editModels = makeEditModels(cleanInitialValues)
 		apply = () => applyStrategies.saveNewEvent(editModels)
-		mayRequireSendingUpdates = async () => true
+		mayRequireSendingUpdates = () => true
 	} else if (operation === CalendarOperation.EditThis) {
 		cleanInitialValues.repeatRule = null
 		if (cleanInitialValues.recurrenceId == null) {
@@ -254,13 +254,12 @@ async function selectStrategy(
 					existingInstance: existingInstanceIdentity,
 					progenitor: progenitor,
 				})
-			mayRequireSendingUpdates = async () => true
+			mayRequireSendingUpdates = () => true
 			editModels = makeEditModels(cleanInitialValues)
 		} else {
 			editModels = makeEditModels(cleanInitialValues)
 			apply = () => applyStrategies.saveExistingAlteredInstance(editModels, existingInstanceIdentity)
-			mayRequireSendingUpdates = async () =>
-				(await assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation)).hasUpdateWorthyChanges
+			mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
 		}
 	} else if (operation === CalendarOperation.DeleteThis) {
 		if (cleanInitialValues.recurrenceId == null) {
@@ -270,11 +269,11 @@ async function selectStrategy(
 			}
 			editModels = makeEditModels(progenitor)
 			apply = () => applyStrategies.excludeSingleInstance(editModels, existingInstanceIdentity, progenitor)
-			mayRequireSendingUpdates = async () => true
+			mayRequireSendingUpdates = () => true
 		} else {
 			editModels = makeEditModels(cleanInitialValues)
 			apply = () => applyStrategies.deleteAlteredInstance(editModels, existingInstanceIdentity)
-			mayRequireSendingUpdates = async () => true
+			mayRequireSendingUpdates = () => true
 		}
 	} else if (operation === CalendarOperation.EditAll) {
 		const progenitor = await resolveProgenitor()
@@ -283,13 +282,11 @@ async function selectStrategy(
 		}
 		editModels = makeEditModels(cleanInitialValues)
 		apply = () => applyStrategies.saveEntireExistingEvent(editModels, progenitor)
-		mayRequireSendingUpdates = async () =>
-			(await assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation)).hasUpdateWorthyChanges
+		mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
 	} else if (operation === CalendarOperation.DeleteAll) {
 		editModels = makeEditModels(cleanInitialValues)
 		apply = () => applyStrategies.deleteEntireExistingEvent(editModels, existingInstanceIdentity)
-		mayRequireSendingUpdates = async () =>
-			(await assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation)).hasUpdateWorthyChanges
+		mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
 	} else {
 		throw new ProgrammingError(`unknown calendar operation: ${operation}`)
 	}
@@ -370,12 +367,12 @@ export class CalendarEventModel {
 		return this.operation !== CalendarOperation.EditThis
 	}
 
-	async isAskingForUpdatesNeeded(): Promise<boolean> {
+	isAskingForUpdatesNeeded(): boolean {
 		return (
 			this.eventType === EventType.OWN &&
 			!this.editModels.whoModel.shouldSendUpdates &&
 			this.editModels.whoModel.initiallyHadOtherAttendees &&
-			(await this.strategy.mayRequireSendingUpdates())
+			this.strategy.mayRequireSendingUpdates()
 		)
 	}
 
@@ -499,7 +496,7 @@ export function assembleCalendarEventEditResult(models: CalendarEventEditModels)
  * @param editModels the editModels providing the values for the new event.
  * @param operation determines the source of the recurrenceId - in the case of EditThis it's the start time of the original event, otherwise existingEvents' recurrenceId is used.
  */
-export async function assembleEditResultAndAssignFromExisting(existingEvent: CalendarEvent, editModels: CalendarEventEditModels, operation: CalendarOperation) {
+export function assembleEditResultAndAssignFromExisting(existingEvent: CalendarEvent, editModels: CalendarEventEditModels, operation: CalendarOperation) {
 	const assembleResult = assembleCalendarEventEditResult(editModels)
 	const { uid: oldUid, sequence: oldSequence, recurrenceId } = existingEvent
 	const newEvent = assignEventIdentity(assembleResult.eventValues, {

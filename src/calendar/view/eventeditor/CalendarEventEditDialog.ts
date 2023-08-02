@@ -204,7 +204,7 @@ export async function showExistingCalendarEventEditDialog(
  * should proceed.
  * */
 async function askUserIfUpdatesAreNeededOrCancel(model: CalendarEventModel): Promise<ConfirmationResult> {
-	if (await model.isAskingForUpdatesNeeded()) {
+	if (model.isAskingForUpdatesNeeded()) {
 		switch (await askIfShouldSendCalendarUpdatesToAttendees()) {
 			case "yes":
 				model.editModels.whoModel.shouldSendUpdates = true
