@@ -32,7 +32,7 @@ export class CalendarNotificationModel {
 	 *
 	 * will modify the attendee list of newEvent if invites/cancellations are sent.
 	 */
-	async send(event: CalendarEvent, sendModels: CalendarNotificationSendModels): Promise<void> {
+	async send(event: CalendarEvent, recurrenceIds: Array<Date>, sendModels: CalendarNotificationSendModels): Promise<void> {
 		if (sendModels.updateModel == null && sendModels.cancelModel == null && sendModels.inviteModel == null && sendModels.responseModel == null) {
 			return
 		}
@@ -40,11 +40,19 @@ export class CalendarNotificationModel {
 			const { getAvailablePlansWithCalendarInvites } = await import("../../../subscription/SubscriptionUtils.js")
 			throw new UpgradeRequiredError("upgradeRequired_msg", await getAvailablePlansWithCalendarInvites())
 		}
+		// we need to exclude the exclusions that are only there because of altered instances specifically
+		// so google calendar handles our invitations
+		const recurrenceTimes = recurrenceIds.map((date) => date.getTime())
+		const originalExclusions = event.repeatRule?.excludedDates ?? []
+		const filteredExclusions = originalExclusions.filter(({ date }) => !recurrenceTimes.includes(date.getTime()))
+		if (event.repeatRule != null) event.repeatRule.excludedDates = filteredExclusions
+
 		const invitePromise = sendModels.inviteModel != null ? this.sendInvites(event, sendModels.inviteModel) : Promise.resolve()
 		const cancelPromise = sendModels.cancelModel != null ? this.sendCancellation(event, sendModels.cancelModel) : Promise.resolve()
 		const updatePromise = sendModels.updateModel != null ? this.sendUpdates(event, sendModels.updateModel) : Promise.resolve()
 		const responsePromise = sendModels.responseModel != null ? this.respondToOrganizer(event, sendModels.responseModel) : Promise.resolve()
-		return await Promise.all([invitePromise, cancelPromise, updatePromise, responsePromise]).then()
+		await Promise.all([invitePromise, cancelPromise, updatePromise, responsePromise])
+		if (event.repeatRule != null) event.repeatRule.excludedDates = originalExclusions
 	}
 
 	/**
