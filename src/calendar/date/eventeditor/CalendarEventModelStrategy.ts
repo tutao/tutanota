@@ -39,6 +39,7 @@ export class CalendarEventApplyStrategies {
 		private readonly calendarModel: CalendarModel,
 		private readonly logins: LoginController,
 		private readonly notificationModel: CalendarNotificationModel,
+		private readonly lazyRecurrenceIds: (uid?: string | null) => Promise<Array<Date>>,
 		private readonly showProgress: ShowProgressCallback = identity,
 		private readonly zone: string,
 	) {}
@@ -55,7 +56,7 @@ export class CalendarEventApplyStrategies {
 
 		await this.showProgress(
 			(async () => {
-				await this.notificationModel.send(newEvent, sendModels)
+				await this.notificationModel.send(newEvent, [], sendModels)
 				await this.calendarModel.createEvent(newEvent, newAlarms, this.zone, groupRoot)
 			})(),
 		)
@@ -77,7 +78,8 @@ export class CalendarEventApplyStrategies {
 		const { groupRoot } = calendar
 		await this.showProgress(
 			(async () => {
-				await this.notificationModel.send(newEvent, sendModels)
+				const recurrenceIds: Array<Date> = await this.lazyRecurrenceIds(uid)
+				await this.notificationModel.send(newEvent, recurrenceIds, sendModels)
 				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, existingEvent)
 				const invalidateAlteredInstances = newEvent.repeatRule && newEvent.repeatRule.excludedDates.length === 0
 
@@ -102,7 +104,7 @@ export class CalendarEventApplyStrategies {
 						sendModels.cancelModel = sendModels.updateModel
 						sendModels.updateModel = null
 						sendModels.inviteModel = null
-						await this.notificationModel.send(occurrence, sendModels)
+						await this.notificationModel.send(occurrence, [], sendModels)
 						await this.calendarModel.deleteEvent(occurrence)
 					} else {
 						const { newEvent, newAlarms, sendModels } = assembleEditResultAndAssignFromExisting(
@@ -115,7 +117,7 @@ export class CalendarEventApplyStrategies {
 						newEvent.endTime = DateTime.fromJSDate(newEvent.startTime, { zone: this.zone }).plus(newDuration).toJSDate()
 						// altered instances never have a repeat rule
 						newEvent.repeatRule = null
-						await this.notificationModel.send(newEvent, sendModels)
+						await this.notificationModel.send(newEvent, [], sendModels)
 						await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, occurrence)
 					}
 				}
@@ -142,7 +144,7 @@ export class CalendarEventApplyStrategies {
 					editModels,
 					CalendarOperation.EditThis,
 				)
-				await this.notificationModel.send(newEvent, sendModels)
+				await this.notificationModel.send(newEvent, [], sendModels)
 
 				// OLD: but we need to update the existing one as well, to add an exclusion for the original instance that we edited.
 				editModelsForProgenitor.whoModel.shouldSendUpdates = true
@@ -152,7 +154,9 @@ export class CalendarEventApplyStrategies {
 					sendModels: progenitorSendModels,
 					newAlarms: progenitorAlarms,
 				} = assembleEditResultAndAssignFromExisting(progenitor, editModelsForProgenitor, CalendarOperation.EditAll)
-				await this.notificationModel.send(newProgenitor, progenitorSendModels)
+				const recurrenceIds = await this.lazyRecurrenceIds(progenitor.uid)
+				recurrenceIds.push(existingInstance.startTime)
+				await this.notificationModel.send(newProgenitor, recurrenceIds, progenitorSendModels)
 				await this.calendarModel.updateEvent(newProgenitor, progenitorAlarms, this.zone, calendar.groupRoot, progenitor)
 
 				// NEW
@@ -167,7 +171,7 @@ export class CalendarEventApplyStrategies {
 		const { groupRoot } = calendar
 		await this.showProgress(
 			(async () => {
-				await this.notificationModel.send(newEvent, sendModels)
+				await this.notificationModel.send(newEvent, [], sendModels)
 				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, existingInstance)
 			})(),
 		)
@@ -186,13 +190,13 @@ export class CalendarEventApplyStrategies {
 						const { sendModels } = assembleEditResultAndAssignFromExisting(occurrence, editModels, CalendarOperation.DeleteAll)
 						sendModels.cancelModel = sendModels.updateModel
 						sendModels.updateModel = null
-						await this.notificationModel.send(occurrence, sendModels)
+						await this.notificationModel.send(occurrence, [], sendModels)
 					}
 				}
 
 				sendModels.cancelModel = sendModels.updateModel
 				sendModels.updateModel = null
-				await this.notificationModel.send(existingEvent, sendModels)
+				await this.notificationModel.send(existingEvent, [], sendModels)
 				if (existingEvent.uid != null) {
 					await this.calendarModel.deleteEventsByUid(existingEvent.uid)
 				}
@@ -214,7 +218,9 @@ export class CalendarEventApplyStrategies {
 					editModelsForProgenitor,
 					CalendarOperation.DeleteThis,
 				)
-				await this.notificationModel.send(newEvent, sendModels)
+				const recurrenceIds = await this.lazyRecurrenceIds(progenitor.uid)
+				recurrenceIds.push(existingInstance.startTime)
+				await this.notificationModel.send(newEvent, recurrenceIds, sendModels)
 				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, calendar.groupRoot, progenitor)
 			})(),
 		)
@@ -228,7 +234,7 @@ export class CalendarEventApplyStrategies {
 		sendModels.updateModel = null
 		await this.showProgress(
 			(async () => {
-				await this.notificationModel.send(existingAlteredInstance, sendModels)
+				await this.notificationModel.send(existingAlteredInstance, [], sendModels)
 				await this.calendarModel.deleteEvent(existingAlteredInstance)
 			})(),
 		)

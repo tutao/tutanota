@@ -160,7 +160,7 @@ export async function replyToEventInvitation(
 	responseModel?.addRecipient(RecipientField.TO, previousMail.sender)
 
 	try {
-		await notificationModel.send(eventClone, { responseModel, inviteModel: null, cancelModel: null, updateModel: null })
+		await notificationModel.send(eventClone, [], { responseModel, inviteModel: null, cancelModel: null, updateModel: null })
 	} catch (e) {
 		if (e instanceof UserError) {
 			await Dialog.message(() => e.message)
