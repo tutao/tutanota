@@ -115,7 +115,7 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 			event.recurrenceId != null
 				? isAllDay
 					? `RECURRENCE-ID;VALUE=DATE:${formatDate(getAllDayDateLocal(event.recurrenceId), localZone)}`
-					: `RECURRENCE-ID:${formatDateTime(event.recurrenceId, localZone)}`
+					: `RECURRENCE-ID;VALUE=DATETIME:${formatDateTimeUTC(event.recurrenceId)}`
 				: [],
 		)
 		.concat(event.description && event.description !== "" ? `DESCRIPTION:${escapeSemicolons(event.description)}` : [])
