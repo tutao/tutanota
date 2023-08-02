@@ -125,15 +125,18 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		const guests: Array<Guest> = whoModel.guests.slice()
 		const attendeeRenderers: Array<() => Children> = []
 
-		// we're assuming that we're the organizer here, since
-		// * no-one but the organizer can edit the attendees of an event
-		// * only the owner of a calendar can add attendees and become the organizer.
 		if (organizer != null) {
 			attendeeRenderers.push(() => renderOrganizer(organizer, attrs))
 		}
 
 		for (const guest of whoModel.guests) {
 			attendeeRenderers.push(() => renderGuest(guest, attrs))
+		}
+
+		// ownGuest is never in the guest list, but it may be identical to organizer.
+		const ownGuest = whoModel.ownGuest
+		if (ownGuest != null && ownGuest.address !== organizer?.address) {
+			attendeeRenderers.push(() => renderGuest(ownGuest, attrs))
 		}
 
 		const externalGuestPasswords = whoModel.isConfidential
@@ -247,7 +250,9 @@ function renderOrganizer(organizer: Guest, { model }: Pick<AttendeeListEditorAtt
 function renderGuest(guest: Guest, { model }: Pick<AttendeeListEditorAttrs, "model">): Children {
 	const { whoModel } = model.editModels
 	const { address, name, status } = guest
-	const statusLine = m(".small.flex.center-vertically", [renderStatusIcon(status), lang.get("guest_label")])
+	const isMe = guest.address === whoModel.ownGuest?.address
+	const roleLabel = isMe ? `${lang.get("guest_label")} | ${lang.get("you_label")}` : lang.get("guest_label")
+	const statusLine = m(".small.flex.center-vertically", [renderStatusIcon(status), roleLabel])
 	const fullName = m("div.text-ellipsis", { style: { lineHeight: px(24) } }, name.length > 0 ? `${name} ${address}` : address)
 	const nameAndAddress = m(".flex.flex-grow.items-center", fullName)
 	const rightContent = whoModel.canModifyGuests
