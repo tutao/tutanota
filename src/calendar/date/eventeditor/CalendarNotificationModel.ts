@@ -36,7 +36,11 @@ export class CalendarNotificationModel {
 		if (sendModels.updateModel == null && sendModels.cancelModel == null && sendModels.inviteModel == null && sendModels.responseModel == null) {
 			return
 		}
-		if (!(await hasPlanWithInvites(this.loginController))) {
+		if (
+			// sending responses is OK for free users.
+			(sendModels.updateModel != null || sendModels.cancelModel != null || sendModels.inviteModel != null) &&
+			!(await hasPlanWithInvites(this.loginController))
+		) {
 			const { getAvailablePlansWithCalendarInvites } = await import("../../../subscription/SubscriptionUtils.js")
 			throw new UpgradeRequiredError("upgradeRequired_msg", await getAvailablePlansWithCalendarInvites())
 		}
