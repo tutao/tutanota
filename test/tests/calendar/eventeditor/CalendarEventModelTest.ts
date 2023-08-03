@@ -230,7 +230,8 @@ o.spec("CalendarEventModelTest", function () {
 
 		for (const [attr, now, previous, expected, msg] of cases) {
 			o(`${attr} changed -> ${expected}`, function () {
-				// createCalendarEvent will create events with new Date(), which is not repeatable, so we only do it once.
+				// createCalendarEvent will create events with a startTime and endTime created by "new Date()",
+				// which is not repeatable, so we only do it once.
 				const template = createCalendarEvent({ [attr]: previous })
 				const copy = Object.assign({}, template, { [attr]: now })
 				o(eventHasChanged(copy, template)).equals(expected)(msg ?? attr)
