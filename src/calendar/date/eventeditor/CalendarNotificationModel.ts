@@ -47,12 +47,15 @@ export class CalendarNotificationModel {
 		const filteredExclusions = originalExclusions.filter(({ date }) => !recurrenceTimes.includes(date.getTime()))
 		if (event.repeatRule != null) event.repeatRule.excludedDates = filteredExclusions
 
-		const invitePromise = sendModels.inviteModel != null ? this.sendInvites(event, sendModels.inviteModel) : Promise.resolve()
-		const cancelPromise = sendModels.cancelModel != null ? this.sendCancellation(event, sendModels.cancelModel) : Promise.resolve()
-		const updatePromise = sendModels.updateModel != null ? this.sendUpdates(event, sendModels.updateModel) : Promise.resolve()
-		const responsePromise = sendModels.responseModel != null ? this.respondToOrganizer(event, sendModels.responseModel) : Promise.resolve()
-		await Promise.all([invitePromise, cancelPromise, updatePromise, responsePromise])
-		if (event.repeatRule != null) event.repeatRule.excludedDates = originalExclusions
+		try {
+			const invitePromise = sendModels.inviteModel != null ? this.sendInvites(event, sendModels.inviteModel) : Promise.resolve()
+			const cancelPromise = sendModels.cancelModel != null ? this.sendCancellation(event, sendModels.cancelModel) : Promise.resolve()
+			const updatePromise = sendModels.updateModel != null ? this.sendUpdates(event, sendModels.updateModel) : Promise.resolve()
+			const responsePromise = sendModels.responseModel != null ? this.respondToOrganizer(event, sendModels.responseModel) : Promise.resolve()
+			await Promise.all([invitePromise, cancelPromise, updatePromise, responsePromise])
+		} finally {
+			if (event.repeatRule != null) event.repeatRule.excludedDates = originalExclusions
+		}
 	}
 
 	/**
