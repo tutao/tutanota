@@ -36,7 +36,13 @@ import {
 } from "../date/CalendarUtils"
 import { DateTime } from "luxon"
 import { geEventElementMaxId, getEventElementMinId, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
-import { CalendarEventModel, CalendarOperation, EventSaveResult, getNonOrganizerAttendees } from "../date/eventeditor/CalendarEventModel.js"
+import {
+	areRepeatRulesEqual,
+	CalendarEventModel,
+	CalendarOperation,
+	EventSaveResult,
+	getNonOrganizerAttendees,
+} from "../date/eventeditor/CalendarEventModel.js"
 import { askIfShouldSendCalendarUpdatesToAttendees } from "./CalendarGuiUtils"
 import { ReceivedGroupInvitationsModel } from "../../sharing/model/ReceivedGroupInvitationsModel"
 import type { CalendarInfo, CalendarModel } from "../model/CalendarModel"
@@ -557,10 +563,13 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			return
 		}
 		const oldEvent = events[indexOfOldEvent]
-		// If the old and new event end times do not match, we need to remove all occurrences of old event, otherwise iterating
-		// instances of new event won't replace all instances of old event. Changes of start or repeat rule already change
-		// ID of the event so it is not a problem.
-		if (oldEvent.endTime.getTime() !== eventToRemove.endTime.getTime()) {
+		// in some cases, we need to remove all references to an event from the events map to make sure everything that needs to be removed is removed.
+		// specifically, this is the case when there are now less days than before that the event occurs on:
+		// * end time changed
+		// * repeat rule gained exclusions
+		// * repeat rule changed end condition or the interval
+		// when the start time changes, the ID of the event is also changed, so it is not a problem - we'll completely re-create it and all references.
+		if (oldEvent.endTime.getTime() !== eventToRemove.endTime.getTime() || !areRepeatRulesEqual(oldEvent.repeatRule, eventToRemove.repeatRule)) {
 			const newMap = this._cloneEvents()
 
 			newMap.forEach(
