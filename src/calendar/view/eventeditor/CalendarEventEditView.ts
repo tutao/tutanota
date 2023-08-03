@@ -154,10 +154,10 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderRepeatRuleEditor({ model }: CalendarEventEditViewAttrs): Children {
-		if (!model.canEditSeries()) return null
 		return m(RepeatRuleEditor, {
 			model: model.editModels.whenModel,
 			startOfTheWeekOffset: this.startOfTheWeekOffset,
+			disabled: !model.canEditSeries(),
 		} satisfies RepeatRuleEditorAttrs)
 	}
 
