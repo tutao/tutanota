@@ -5,6 +5,7 @@ import { Keys } from "../../api/common/TutanotaConstants.js"
 import { mapLazily } from "@tutao/tutanota-utils"
 import { ListState, MultiselectMode } from "./List.js"
 import { Children } from "mithril"
+import { isBrowser } from "../../api/common/Env.js"
 
 export const ACTION_DISTANCE = 150
 export const PageSize = 100
@@ -85,7 +86,9 @@ export function listSelectionKeyboardShortcuts<T extends ListElement>(multiselec
 			shift: true,
 			exec: mapLazily(list, (list) => (list?.areAllSelected() ? list.selectNone() : list?.selectAll())),
 			help: "selectAllLoaded_action",
-			enabled: multiselectionEnabled,
+			// this specific shortcut conflicts with a chrome shortcut. it was chosen because it's adjacent to ctrl + A
+			// for select all.
+			enabled: () => multiselectionEnabled() && !isBrowser(),
 		},
 	]
 }
