@@ -471,7 +471,7 @@ export class CalendarModel {
 	/** handle an event cancellation - either the whole series (progenitor got cancelled)
 	 * or the altered occurrence. */
 	private async processCalendarCancellation(dbEvent: CalendarEventInstance): Promise<void> {
-		console.log("processing cancellation")
+		console.log(TAG, "processing cancellation")
 		// not having UID is technically an error, but we'll do our best (the event came from the server after all)
 		if (dbEvent.recurrenceId == null && dbEvent.uid != null) {
 			return await this.deleteEventsByUid(dbEvent.uid)

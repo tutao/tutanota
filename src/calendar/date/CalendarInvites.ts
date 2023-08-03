@@ -1,7 +1,7 @@
 import { parseCalendarFile } from "../export/CalendarImporter"
 import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../api/main/MainLocator"
-import { CalendarAttendeeStatus, CalendarMethod, FeatureType, getAsEnumValue, NewPaidPlans } from "../../api/common/TutanotaConstants"
+import { CalendarAttendeeStatus, CalendarMethod, FeatureType, getAsEnumValue } from "../../api/common/TutanotaConstants"
 import { assertNotNull, clone, filterInt, noOp, Require } from "@tutao/tutanota-utils"
 import { findPrivateCalendar, getEventType } from "./CalendarUtils"
 import { calendarNotificationSender } from "./CalendarNotificationSender.js"
@@ -15,9 +15,7 @@ import { isCustomizationEnabledForCustomer } from "../../api/common/utils/Utils.
 import { SendMailModel } from "../../mail/editor/SendMailModel.js"
 import { CalendarEventModel, CalendarOperation, EventType } from "./eventeditor/CalendarEventModel.js"
 import { CalendarNotificationModel } from "./eventeditor/CalendarNotificationModel.js"
-import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { RecipientField } from "../../mail/model/MailUtils.js"
-import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { ResolveMode } from "../../api/main/RecipientsModel.js"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
@@ -163,9 +161,6 @@ export async function replyToEventInvitation(
 	} catch (e) {
 		if (e instanceof UserError) {
 			await Dialog.message(() => e.message)
-			return ReplyResult.ReplyNotSent
-		} else if (e instanceof UpgradeRequiredError) {
-			await showPlanUpgradeRequiredDialog(NewPaidPlans)
 			return ReplyResult.ReplyNotSent
 		} else {
 			throw e
