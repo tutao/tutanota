@@ -34,7 +34,7 @@ import {
 	createUserAlarmInfo,
 	DateWrapper,
 } from "../../../../src/api/entities/sys/TypeRefs.js"
-import { identity, noOp } from "@tutao/tutanota-utils"
+import { clone, identity, noOp } from "@tutao/tutanota-utils"
 import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../../../../src/api/main/RecipientsModel.js"
 import { LoginController } from "../../../../src/api/main/LoginController.js"
 import { MailboxDetail } from "../../../../src/mail/model/MailModel.js"
@@ -230,8 +230,11 @@ o.spec("CalendarEventModelTest", function () {
 
 		for (const [attr, now, previous, expected, msg] of cases) {
 			o(`${attr} changed -> ${expected}`, function () {
-				o(eventHasChanged(createCalendarEvent({ [attr]: now }), createCalendarEvent({ [attr]: previous }))).equals(expected)(msg ?? attr)
-				o(eventHasChanged(createCalendarEvent({ [attr]: now }), createCalendarEvent({ [attr]: now }))).equals(false)(`do not change ${msg}`)
+				// createCalendarEvent will create events with new Date(), which is not repeatable, so we only do it once.
+				const template = createCalendarEvent({ [attr]: previous })
+				const copy = Object.assign({}, template, { [attr]: now })
+				o(eventHasChanged(copy, template)).equals(expected)(msg ?? attr)
+				o(eventHasChanged(copy, clone(copy))).equals(false)(`do not change ${msg}`)
 			})
 		}
 
