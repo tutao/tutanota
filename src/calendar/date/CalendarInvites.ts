@@ -18,6 +18,7 @@ import { CalendarNotificationModel } from "./eventeditor/CalendarNotificationMod
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { RecipientField } from "../../mail/model/MailUtils.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
+import { ResolveMode } from "../../api/main/RecipientsModel.js"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }
@@ -156,8 +157,6 @@ export async function replyToEventInvitation(
 
 	const notificationModel = new CalendarNotificationModel(calendarNotificationSender, locator.logins)
 	const responseModel = await getResponseModelForMail(previousMail)
-	responseModel?.initWithTemplate([], "", "")
-	responseModel?.addRecipient(RecipientField.TO, previousMail.sender)
 
 	try {
 		await notificationModel.send(eventClone, [], { responseModel, inviteModel: null, cancelModel: null, updateModel: null })
@@ -192,5 +191,11 @@ export async function getResponseModelForMail(mail: Mail): Promise<SendMailModel
 	const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(mail)
 	if (mailboxDetails == null) return null
 	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-	return await locator.sendMailModel(mailboxDetails, mailboxProperties)
+	const model = await locator.sendMailModel(mailboxDetails, mailboxProperties)
+
+	await model.initWithTemplate([], "", "")
+	await model.addRecipient(RecipientField.TO, mail.sender, ResolveMode.Eager)
+	const toRecipients = await model.toRecipientsResolved()
+	model.setConfidential(toRecipients[0]?.contact?.presharedPassword != null)
+	return model
 }
