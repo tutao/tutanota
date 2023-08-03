@@ -1,5 +1,5 @@
 NSCameraUsageDescription = "Prenez une photo ou une vidéo pour l'ajouter en pièce jointe.";
-NSPhotoLibraryUsageDescription = "Ajouter une photo de votre bibliothèque en pièce jointe.";
+NSPhotoLibraryUsageDescription = "Ajoutez une image de votre bibliothèque en pièce jointe.";
 NSMicrophoneUsageDescription = "Utilisé lors de l'enregistrement de vidéo en tant que pièce jointe.";
 NSContactsUsageDescription = "Trouver l'adresse email du destinataire dans les contacts";
 NSRemindersUsageDescription = "Montrer les notifications quand de nouveaux mails arrivent.";

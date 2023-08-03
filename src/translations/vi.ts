@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2023-07-26T14:45:03Z",
+	"updated_at": "2023-08-03T08:55:03Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -828,6 +828,7 @@ export default {
 		"nativeShareGiftCard_label": "Chia sẻ thẻ quà tặng Tutanota",
 		"nativeShareGiftCard_msg": "Này, tôi đã mua cho bạn một thẻ quà tặng để dùng Tutanota, dịch vụ thư mật mã hoá an toàn! Dùng liên kết này để lấy nhé! {link}",
 		"nbrOfContactsSelected_msg": "Đã chọn {1} liên hệ",
+		"nbrOfEntriesSelected_msg": "Đã chọn {nbr} mục",
 		"nbrOfInboxRules_msg": "Bạn đã đặt {1} luật sắp thư.",
 		"nbrOfMailsSelected_msg": "Đã chọn {1} thư",
 		"nbrOrEmails_label": "{number} thư",

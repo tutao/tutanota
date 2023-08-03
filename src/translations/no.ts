@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2023-07-20T09:43:53Z",
+	"updated_at": "2023-07-31T13:46:08Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1073,6 +1073,7 @@ export default {
 		"pricing.excludesTaxes_msg": "Uten moms.",
 		"pricing.extEmailProtection_label": "Passordbeskyttet e-post",
 		"pricing.extEmailProtection_tooltip": "Alle e-poster mellom brukere av Tutanota er automatisk kryptert. Du kan dele krypterte e-poster med hvem som helst i hele verden via et delt passord.",
+		"pricing.familyrevolutionary_tooltip": "Etter å ha valgt Revolutionary, kontakt vår support via spørsmålstegnet til venstre for postkassen din slik at vi kan aktivere flerbrukerstøtte for familien din. Hvert familiemedlem vil få en egen postkasse med 20 GB og 15 alias-e-postadresser (€3 per bruker/mnd)",
 		"pricing.folders_label": "Ubegrensent antall mapper",
 		"pricing.gdprDataProcessing_label": "GDPR dataprosseseringsavtale",
 		"pricing.gdpr_label": "GDRP-overholdelse",
@@ -1466,6 +1467,7 @@ export default {
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Senere",
 		"upgradeReminderTitle_msg": "Oppgrader nå!",
+		"upgradeRequired_msg": "Denne funksjonen er ikke tilgjengelig på planen din. Oppgrader til en av følgende planer:",
 		"upgrade_action": "Oppgrader",
 		"upToDate_label": "Alt er oppdatert",
 		"urlPath_label": "Sti",
