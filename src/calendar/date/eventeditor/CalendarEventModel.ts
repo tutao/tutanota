@@ -366,7 +366,7 @@ export class CalendarEventModel {
 	 * returns true if such operations can be attempted.
 	 * */
 	canEditSeries(): boolean {
-		return this.operation !== CalendarOperation.EditThis
+		return this.operation !== CalendarOperation.EditThis && (this.eventType === EventType.OWN || this.eventType === EventType.SHARED_RW)
 	}
 
 	isAskingForUpdatesNeeded(): boolean {
