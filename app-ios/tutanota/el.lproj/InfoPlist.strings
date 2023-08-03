@@ -1,5 +1,5 @@
 NSCameraUsageDescription = "Κάντε μια φωτογραφία ή βίντεο για να την προσθέσετε ως συνημμένο.";
-NSPhotoLibraryUsageDescription = "Προσθέστε μια εικόνα από την βιβλιοθήκη σας ως συνημμένο.";
+NSPhotoLibraryUsageDescription = "Προσθέστε μια εικόνα από την βιβλιοθήκη σας ως συνημμένο αρχείο.";
 NSMicrophoneUsageDescription = "Χρησιμοποιείται οταν ανεβάζεις ενα βίντεο σαν συνημμένο .";
 NSContactsUsageDescription = "Βρείτε τη διεύθυνση email του παραλήπτη στις επαφές.";
 NSRemindersUsageDescription = "Εμφανίζει ειδοποίηση όταν φτάνει νέο email.";
