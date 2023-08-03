@@ -1,9 +1,8 @@
 {
 	"name": "@tutao/otest",
-	"version": "3.116.1",
+	"version": "3.116.2",
 	"license": "GPL-3.0",
 	"description": "little test runner",
-	"license": "GPL-3.0",
 	"main": "./dist/index.js",
 	"repository": {
 		"type": "git",
