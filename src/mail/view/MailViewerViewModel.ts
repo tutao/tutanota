@@ -1,5 +1,4 @@
 import {
-	CalendarEvent,
 	ConversationEntryTypeRef,
 	createEncryptedMailAddress,
 	createMailAddress,
@@ -11,14 +10,12 @@ import {
 	MailTypeRef,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import {
-	CalendarMethod,
 	ConversationType,
 	ExternalImageRule,
 	FeatureType,
 	MailAuthenticationStatus,
 	MailFolderType,
 	MailMethod,
-	mailMethodToCalendarMethod,
 	MailPhishingStatus,
 	MailReportType,
 	MailState,
@@ -70,6 +67,7 @@ import { EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api
 import { WorkerFacade } from "../../api/worker/facades/WorkerFacade.js"
 import { SearchModel } from "../../search/model/SearchModel.js"
 import { assertSystemFolderOfType } from "../../api/common/mail/CommonMailUtils.js"
+import { ParsedIcalFileContent } from "../../calendar/date/CalendarInvites.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -101,8 +99,7 @@ export class MailViewerViewModel {
 	private warningDismissed: boolean = false
 
 	private calendarEventAttachment: {
-		event: CalendarEvent
-		method: CalendarMethod
+		contents: ParsedIcalFileContent
 		recipient: string
 	} | null = null
 
@@ -711,14 +708,16 @@ export class MailViewerViewModel {
 
 		if (calendarFile && (mail.method === MailMethod.ICAL_REQUEST || mail.method === MailMethod.ICAL_REPLY) && mail.state === MailState.RECEIVED) {
 			Promise.all([
-				import("../../calendar/date/CalendarInvites").then(({ getEventFromFile }) => getEventFromFile(calendarFile)),
+				import("../../calendar/date/CalendarInvites").then(({ getEventsFromFile }) => getEventsFromFile(calendarFile)),
 				this.getSenderOfResponseMail(),
-			]).then(([event, recipient]) => {
-				this.calendarEventAttachment = event && {
-					event,
-					method: mailMethodToCalendarMethod(downcast(mail.method)),
-					recipient,
-				}
+			]).then(([contents, recipient]) => {
+				this.calendarEventAttachment =
+					contents != null
+						? {
+								contents,
+								recipient,
+						  }
+						: null
 				m.redraw()
 			})
 		}
