@@ -69,7 +69,7 @@ o.spec("RecipientsModel", function () {
 
 	o("loads contact with id", async function () {
 		const contact = makeContactStub(contactId, otherAddress)
-		when(contactModelMock.contactListId()).thenResolve("contactListId")
+		when(contactModelMock.getContactListId()).thenResolve("contactListId")
 		when(entityClientMock.load(ContactTypeRef, contactId)).thenResolve(contact)
 		const recipient = await model.resolve({ address: otherAddress, contact: contactId }, ResolveMode.Eager).resolved()
 		o(recipient.contact).deepEquals(contact)
@@ -80,7 +80,7 @@ o.spec("RecipientsModel", function () {
 		const id = [contactListId, contactId] as const
 		const contact = makeContactStub(id, otherAddress)
 		when(contactModelMock.searchForContact(otherAddress)).thenResolve(contact)
-		when(contactModelMock.contactListId()).thenResolve("contactListId")
+		when(contactModelMock.getContactListId()).thenResolve("contactListId")
 		const recipient = await model.resolve({ address: otherAddress }, ResolveMode.Eager).resolved()
 		o(recipient.contact).deepEquals(contact)
 	})
@@ -96,7 +96,7 @@ o.spec("RecipientsModel", function () {
 	})
 
 	o("uses name from contact if name not provided", async function () {
-		when(contactModelMock.contactListId()).thenResolve("contactListId")
+		when(contactModelMock.getContactListId()).thenResolve("contactListId")
 		const recipient = await model
 			.resolve({ address: tutanotaAddress, contact: makeContactStub(contactId, tutanotaAddress, "Pizza", "Hawaii") }, ResolveMode.Eager)
 			.resolved()
@@ -104,7 +104,7 @@ o.spec("RecipientsModel", function () {
 	})
 
 	o("infers internal recipient from tutanota address, otherwise unknown", async function () {
-		when(contactModelMock.contactListId()).thenResolve("contactListId")
+		when(contactModelMock.getContactListId()).thenResolve("contactListId")
 		// using lazy mode to not wait for the resolution and to not have async task running after the test is done
 		o(model.resolve({ address: tutanotaAddress }, ResolveMode.Lazy).type).equals(RecipientType.INTERNAL)("Tutanota address")
 		o(model.resolve({ address: otherAddress }, ResolveMode.Lazy).type).equals(RecipientType.UNKNOWN)("Internal address")
@@ -148,7 +148,7 @@ o.spec("RecipientsModel", function () {
 	})
 
 	o("lazy resolution isn't triggered until `resolved` is called", async function () {
-		when(contactModelMock.contactListId()).thenResolve("contactListId")
+		when(contactModelMock.getContactListId()).thenResolve("contactListId")
 		const recipient = model.resolve({ address: otherAddress }, ResolveMode.Lazy)
 
 		// see that the resolution doesn't start straight away
@@ -169,7 +169,7 @@ o.spec("RecipientsModel", function () {
 	o("passes resolved recipient to callback", async function () {
 		const contact = makeContactStub(contactId, otherAddress, "Re", "Cipient")
 		when(contactModelMock.searchForContact(otherAddress)).thenResolve(contact)
-		when(contactModelMock.contactListId()).thenResolve("contactListId")
+		when(contactModelMock.getContactListId()).thenResolve("contactListId")
 		when(mailFacadeMock.getRecipientKeyData(otherAddress)).thenResolve(null)
 
 		const handler = func() as (recipient: Recipient) => void

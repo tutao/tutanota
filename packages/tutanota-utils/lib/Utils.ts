@@ -1,5 +1,4 @@
 import { TypeRef } from "./TypeRef.js"
-import { PromisableWrapper } from "./PromiseUtils.js"
 
 export interface ErrorInfo {
 	readonly name: string | null
@@ -510,4 +509,29 @@ export function mapObject<K extends string | number | symbol, V, R>(mapper: (arg
 	}
 
 	return newObj
+}
+
+/**
+ * Run jobs with defined max parallelism.
+ */
+export class BoundedExecutor {
+	private runningJobsCount: number = 0
+	private currentJob: Promise<unknown> = Promise.resolve()
+
+	constructor(private readonly maxParallelJobs: number) {}
+
+	async run<T>(job: () => Promise<T>): Promise<T> {
+		while (this.runningJobsCount === this.maxParallelJobs) {
+			await this.currentJob
+		}
+		this.runningJobsCount++
+
+		try {
+			const jobResult = job()
+			this.currentJob = jobResult.catch(noOp)
+			return await jobResult
+		} finally {
+			this.runningJobsCount--
+		}
+	}
 }

@@ -15,7 +15,7 @@ export interface SearchDropDownAttrs<T extends Suggestion> {
 }
 
 export interface Suggestion {
-	firstRow: string | null
+	firstRow: Children
 	secondRow: string
 	display?: boolean
 }
@@ -79,7 +79,7 @@ export class SearchDropDown<T extends Suggestion> implements ClassComponent<Sear
 		return m(
 			".pt-s.pb-s.click.content-hover",
 			{
-				class: selected ? "content-accent-fg row-selected" : "",
+				class: selected ? "content-accent-fg row-selected icon-accent" : "",
 				onmousedown: () => attrs.onSuggestionSelected(idx),
 				style: {
 					"padding-left": selected ? px(size.hpad_large - 3) : px(size.hpad_large),

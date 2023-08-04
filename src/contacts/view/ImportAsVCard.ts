@@ -36,7 +36,7 @@ export function importAsVCard() {
 						)
 						const contactList = vCardListToContacts(flatvCards, contactMembership.group)
 						numberOfContacts = contactList.length
-						return locator.contactModel.contactListId().then((contactListId) =>
+						return locator.contactModel.getContactListId().then((contactListId) =>
 							locator.entityClient.setupMultipleEntities(contactListId, contactList).then(() => {
 								// actually a success message
 								Dialog.message(() =>
@@ -72,7 +72,7 @@ export function importAsVCard() {
 export function exportAsVCard(contactModel: ContactModel): Promise<void> {
 	return showProgressDialog(
 		"pleaseWait_msg",
-		contactModel.contactListId().then((contactListId) => {
+		contactModel.getContactListId().then((contactListId) => {
 			if (!contactListId) return 0
 			return locator.entityClient.loadAll(ContactTypeRef, contactListId).then((allContacts) => {
 				if (allContacts.length === 0) {

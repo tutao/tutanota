@@ -33,7 +33,7 @@ export class ContactViewModel {
 			return { items, complete: true }
 		},
 		loadSingle: async (elementId: Id) => {
-			const listId = await this.contactModel.contactListId()
+			const listId = await this.contactModel.getContactListId()
 			if (listId == null) return null
 			return this.entityClient.load(ContactTypeRef, [listId, elementId])
 		},
@@ -45,7 +45,7 @@ export class ContactViewModel {
 		if (contactListId == null && contactId == null) this.updateUrl()
 		if (this.contactListId) return
 
-		this.contactListId = assertNotNull(await this.contactModel.contactListId(), "not available for external users")
+		this.contactListId = assertNotNull(await this.contactModel.getContactListId(), "not available for external users")
 		this.targetContactId = contactId ?? null
 
 		this.listModel.loadInitial().then(() => {

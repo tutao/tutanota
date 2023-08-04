@@ -1,11 +1,10 @@
-import { ContactListEntryTypeRef, ContactListGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
+import { ContactListGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
 import { locator } from "../api/main/MainLocator.js"
 import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../gui/base/Button.js"
 import { Dialog } from "../gui/base/Dialog.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { TextField } from "../gui/base/TextField.js"
-import { EntityClient } from "../api/common/EntityClient.js"
 import { px, size } from "../gui/size.js"
 import { IconButton } from "../gui/base/IconButton.js"
 import { Icons } from "../gui/base/icons/Icons.js"
@@ -13,17 +12,25 @@ import { MailRecipientsTextField } from "../gui/MailRecipientsTextField.js"
 import { RecipientsSearchModel } from "../misc/RecipientsSearchModel.js"
 import { noOp } from "@tutao/tutanota-utils"
 import { lang } from "../misc/LanguageViewModel.js"
+import { isSameId } from "../api/common/utils/EntityUtils.js"
+import { Keys } from "../api/common/TutanotaConstants.js"
 
 export async function showContactListEditor(
-	name: string | null,
 	contactListGroupRoot: ContactListGroupRoot | null,
 	headerText: string,
 	save: (name: string, addresses: Array<string>) => void,
 	showName?: boolean,
 ): Promise<void> {
-	const entityClient = locator.entityClient
 	const recipientsSearch = await locator.recipientsSearchModel()
-	const editorModel = new ContactListEditorModel(name, contactListGroupRoot, entityClient)
+	if (contactListGroupRoot) {
+		recipientsSearch.setFilter((item) => {
+			// Exclude the list that we are editing to not show up in suggestions.
+			// It is valid to include other lists to copy them into the current one.
+			return !(item.type === "contactlist" && isSameId(item.value.groupRoot._id, contactListGroupRoot._id))
+		})
+	}
+
+	const editorModel = new ContactListEditorModel()
 
 	const dialogCloseAction = () => {
 		dialog.close()
@@ -50,8 +57,15 @@ export async function showContactListEditor(
 		middle: () => headerText,
 	}
 
-	await editorModel.init()
-	const dialog = Dialog.editDialog(headerBarAttrs, ContactListEditor, { model: editorModel, contactSearch: recipientsSearch, showName: showName })
+	const dialog = Dialog.editDialog(headerBarAttrs, ContactListEditor, {
+		model: editorModel,
+		contactSearch: recipientsSearch,
+		showName: showName,
+	}).addShortcut({
+		key: Keys.ESC,
+		exec: () => dialog.close(),
+		help: "close_alt",
+	})
 	dialog.show()
 }
 
@@ -83,16 +97,9 @@ export class ContactListEditorModel {
 	name: string
 	addresses: Array<string>
 
-	constructor(name: string | null, private readonly groupRoot: ContactListGroupRoot | null, private readonly entityClient: EntityClient) {
-		this.name = name ?? ""
+	constructor() {
+		this.name = ""
 		this.addresses = []
-	}
-
-	async init() {
-		if (this.groupRoot) {
-			const recipients = await this.entityClient.loadAll(ContactListEntryTypeRef, this.groupRoot.recipients)
-			this.addresses = recipients.map((recipient) => recipient.emailAddress)
-		}
 	}
 
 	addRecipient(address: string) {
@@ -141,8 +148,9 @@ class ContactListEditor implements Component<ContactListEditorAttrs> {
 				// we don't show bubbles, we just want the search dropdown
 				recipients: [],
 				disabled: false,
-				onRecipientAdded: async (address, name, contact) => {
+				onRecipientAdded: (address) => {
 					this.model.addRecipient(address)
+					m.redraw()
 				},
 				// do nothing because we don't have any bubbles here
 				onRecipientRemoved: noOp,

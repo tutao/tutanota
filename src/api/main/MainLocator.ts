@@ -155,10 +155,10 @@ class MainLocator {
 	private exposedNativeInterfaces: ExposedNativeInterface | null = null
 	private entropyFacade!: EntropyFacade
 
-	async recipientsModel(): Promise<RecipientsModel> {
+	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("./RecipientsModel.js")
 		return new RecipientsModel(this.contactModel, this.logins, this.mailFacade, this.entityClient)
-	}
+	})
 
 	async noZoneDateProvider(): Promise<NoZoneDateProvider> {
 		return new NoZoneDateProvider()
@@ -355,7 +355,7 @@ class MainLocator {
 
 	async recipientsSearchModel(): Promise<RecipientsSearchModel> {
 		const { RecipientsSearchModel } = await import("../../misc/RecipientsSearchModel.js")
-		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, isApp() ? this.systemFacade : null)
+		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, isApp() ? this.systemFacade : null, this.entityClient)
 	}
 
 	readonly conversationViewModelFactory: lazyAsync<ConversationViewModelFactory> = async () => {
@@ -692,8 +692,8 @@ class MainLocator {
 				? new FileControllerBrowser(blobFacade, guiDownload)
 				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp)
 
-		const { ContactModelImpl } = await import("../../contacts/model/ContactModel")
-		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, this.logins)
+		const { ContactModel } = await import("../../contacts/model/ContactModel")
+		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 	}
