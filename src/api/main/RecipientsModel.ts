@@ -107,7 +107,9 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		this.lazyType = new LazyLoaded(() => this.resolveType())
 		this.lazyContact = new LazyLoaded(async () => {
 			const contact = await this.resolveContact(arg.contact)
-			if (contact != null && this._name == null) {
+			// sometimes we create resolvable contact and then dissect it into parts and resolve it again in which case we will default to an empty name
+			// (see the getter) but we actually want the name from contact.
+			if (contact != null && (this._name == null || this._name === "")) {
 				this._name = getContactDisplayName(contact)
 			}
 			return contact
@@ -176,7 +178,7 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		try {
 			if (this.overrideContact) {
 				return this.overrideContact
-			} else if ((await this.contactModel.contactListId()) == null) {
+			} else if ((await this.contactModel.getContactListId()) == null) {
 				console.log("can't resolve contacts for users with no contact list id")
 				return null
 			} else if (contact instanceof Array) {

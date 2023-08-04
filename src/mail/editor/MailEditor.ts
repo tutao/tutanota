@@ -675,7 +675,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const createdContactReceiver = (contactElementId: Id) => {
 			const mailAddress = recipient.address
 
-			contactModel.contactListId().then((contactListId) => {
+			contactModel.getContactListId().then((contactListId) => {
 				if (!contactListId) return
 				const id: IdTuple = [contactListId, contactElementId]
 				entity.load(ContactTypeRef, id).then((contact) => {
@@ -704,7 +704,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					label: () => lang.get("createContact_action"),
 					click: () => {
 						// contact list
-						contactModel.contactListId().then((contactListId) => {
+						contactModel.getContactListId().then((contactListId) => {
 							const newContact = createNewContact(locator.logins.getUserController().user, recipient.address, recipient.name)
 							import("../../contacts/ContactEditor").then(({ ContactEditor }) => {
 								new ContactEditor(entity, newContact, contactListId ?? undefined, createdContactReceiver).show()

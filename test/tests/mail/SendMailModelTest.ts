@@ -115,7 +115,7 @@ o.spec("SendMailModel", function () {
 		mailModel = instance(MailModel)
 
 		const contactModel = object<ContactModel>()
-		when(contactModel.contactListId()).thenResolve("contactListId")
+		when(contactModel.getContactListId()).thenResolve("contactListId")
 		when(contactModel.searchForContact(anything())).thenResolve(null)
 
 		mailFacade = instance(MailFacade)

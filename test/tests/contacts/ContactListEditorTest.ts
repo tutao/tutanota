@@ -6,12 +6,8 @@ import { ContactListEditorModel } from "../../../src/contacts/ContactListEditor.
 o.spec("ContactListEditorModelTest", function () {
 	let contactListEditorModel: ContactListEditorModel
 
-	let entityClient: EntityClient
-
 	o.beforeEach(() => {
-		entityClient = object()
-
-		contactListEditorModel = new ContactListEditorModel("test", null, entityClient)
+		contactListEditorModel = new ContactListEditorModel()
 	})
 
 	o.spec("adding addresses", function () {

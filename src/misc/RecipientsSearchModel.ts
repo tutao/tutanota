@@ -5,30 +5,37 @@ import { isMailAddress } from "./FormatValidator.js"
 import { ofClass } from "@tutao/tutanota-utils"
 import { DbError } from "../api/common/error/DbError.js"
 import { locator } from "../api/main/MainLocator.js"
-import { ContactTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import { ContactListEntryTypeRef, ContactTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { Mode } from "../api/common/Env.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
 import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
 import { MobileSystemFacade } from "../native/common/generatedipc/MobileSystemFacade.js"
 import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
+import { ContactListInfo } from "../contacts/view/ContactListViewModel.js"
+import { EntityClient } from "../api/common/EntityClient.js"
 
 const MaxNativeSuggestions = 10
 
+export type RecipientSearchResultItem = { type: "recipient"; value: Recipient } | { type: "contactlist"; value: ContactListInfo }
+export type RecipientSearchResultFilter = (item: RecipientSearchResultItem) => boolean
+
 export class RecipientsSearchModel {
-	private searchResults: Array<Recipient> = []
+	private searchResults: Array<RecipientSearchResultItem> = []
 	private _selectedIdx: number = 0
 	private loading: Promise<void> | null = null
 
 	private currentQuery = ""
 	private previousQuery = ""
+	private filter: RecipientSearchResultFilter | null = null
 
 	constructor(
 		private readonly recipientsModel: RecipientsModel,
 		private readonly contactModel: ContactModel,
 		private readonly systemFacade: MobileSystemFacade | null,
+		private readonly entityClient: EntityClient,
 	) {}
 
-	results(): ReadonlyArray<Recipient> {
+	results(): ReadonlyArray<RecipientSearchResultItem> {
 		return this.searchResults
 	}
 
@@ -51,21 +58,37 @@ export class RecipientsSearchModel {
 
 		if (this.loading != null) {
 		} else if (query.length > 0 && !(this.previousQuery.length > 0 && query.indexOf(this.previousQuery) === 0 && this.searchResults.length === 0)) {
-			this.loading = this.findContacts(query.toLowerCase())
-				.then((newSuggestions) => {
-					// Only update search result if search query has not been changed during search and update in all other cases
-					if (query === this.currentQuery) {
-						this.searchResults = newSuggestions
-						this.previousQuery = query
-					}
-				})
-				.finally(() => (this.loading = null))
+			const [newContactListSuggestions, newContactSuggestions] = await Promise.all([
+				this.findContactLists(query.toLowerCase()),
+				this.findContacts(query.toLowerCase()),
+			])
+			if (query === this.currentQuery) {
+				this.searchResults = [
+					...newContactListSuggestions.map((value) => ({ type: "contactlist", value } satisfies RecipientSearchResultItem)),
+					...newContactSuggestions.map((value) => ({ type: "recipient", value } satisfies RecipientSearchResultItem)),
+				].filter(this.filter ?? ((_) => true))
+				this.previousQuery = query
+			}
+			this.loading = null
 		} else if (query.length === 0 && query !== this.previousQuery) {
 			this.searchResults = []
 			this.previousQuery = query
 		}
 
 		await this.loading
+	}
+
+	async resolveContactList(contactList: ContactListInfo): Promise<Array<Recipient>> {
+		const entries = await this.entityClient.loadAll(ContactListEntryTypeRef, contactList.groupRoot.recipients)
+		return entries.map((entry) => {
+			// FIXME should this be eager?
+			//  mail editor will re-resolve them anyway but we should check other places as well
+			return this.recipientsModel.resolve({ address: entry.emailAddress }, ResolveMode.Lazy)
+		})
+	}
+
+	setFilter(filter: RecipientSearchResultFilter | null) {
+		this.filter = filter
 	}
 
 	private async findContacts(query: string): Promise<Array<Recipient>> {
@@ -78,7 +101,7 @@ export class RecipientsSearchModel {
 			.searchForContacts(`"${query}"`, "recipient", 10)
 			.catch(
 				ofClass(DbError, async () => {
-					const listId = await this.contactModel.contactListId()
+					const listId = await this.contactModel.getContactListId()
 					if (listId) {
 						return locator.entityClient.loadAll(ContactTypeRef, listId)
 					} else {
@@ -125,5 +148,9 @@ export class RecipientsSearchModel {
 		}
 		const recipients = await this.systemFacade.findSuggestions(text).catch(ofClass(PermissionError, () => []))
 		return recipients.map(({ name, mailAddress }) => ({ name, address: mailAddress }))
+	}
+
+	private async findContactLists(text: string): Promise<ContactListInfo[]> {
+		return this.contactModel.searchForContactLists(text)
 	}
 }

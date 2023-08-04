@@ -357,7 +357,7 @@ class MainLocator {
 
 	async recipientsSearchModel(): Promise<RecipientsSearchModel> {
 		const { RecipientsSearchModel } = await import("../../misc/RecipientsSearchModel.js")
-		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, isApp() ? this.systemFacade : null)
+		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, isApp() ? this.systemFacade : null, this.entityClient)
 	}
 
 	readonly conversationViewModelFactory: lazyAsync<ConversationViewModelFactory> = async () => {
@@ -697,8 +697,8 @@ class MainLocator {
 				? new FileControllerBrowser(blobFacade, fileFacade, guiDownload)
 				: new FileControllerNative(blobFacade, fileFacade, guiDownload, this.nativeInterfaces.fileApp)
 
-		const { ContactModelImpl } = await import("../../contacts/model/ContactModel")
-		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, this.logins)
+		const { ContactModel } = await import("../../contacts/model/ContactModel")
+		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 	}
