@@ -149,6 +149,7 @@ export {
 	mapObject,
 	Require,
 	memoizedWithHiddenArgument,
+	BoundedExecutor,
 } from "./Utils.js"
 export type { Callback, DeferredObject, lazy, lazyAsync, Thunk, DeferredObjectWithHandler, MaybeLazy, TimeoutSetter, ErrorInfo } from "./Utils.js"
 

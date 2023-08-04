@@ -157,10 +157,10 @@ class MainLocator {
 	private exposedNativeInterfaces: ExposedNativeInterface | null = null
 	private entropyFacade!: EntropyFacade
 
-	async recipientsModel(): Promise<RecipientsModel> {
+	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("./RecipientsModel.js")
 		return new RecipientsModel(this.contactModel, this.logins, this.mailFacade, this.entityClient)
-	}
+	})
 
 	async noZoneDateProvider(): Promise<NoZoneDateProvider> {
 		return new NoZoneDateProvider()
