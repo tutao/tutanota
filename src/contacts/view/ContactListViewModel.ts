@@ -15,6 +15,7 @@ import { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
 import { arrayEquals, debounce, lazyMemoized, memoized } from "@tutao/tutanota-utils"
 import { EntityEventsListener, EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
 import Stream from "mithril/stream"
+import stream from "mithril/stream"
 import { Router } from "../../gui/ScopedRouter.js"
 import { ContactModel } from "../model/ContactModel.js"
 
@@ -29,6 +30,7 @@ export class ContactListViewModel {
 
 	contactsForSelectedEntry: Contact[] = []
 	private listModelStateStream: Stream<unknown> | null = null
+	private sortedContactListInfos: Stream<ReadonlyArray<ContactListInfo>> = stream([])
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -58,6 +60,10 @@ export class ContactListViewModel {
 
 	readonly init = lazyMemoized(async () => {
 		this.eventController.addEntityListener(this.entityEventsReceived)
+		this.sortedContactListInfos = this.contactModel.getContactListInfos().map((infos) => {
+			this.updateUi()
+			return infos.slice().sort((a, b) => a.name.localeCompare(b.name))
+		})
 		await this.contactModel.getLoadedContactListInfos()
 	})
 
@@ -80,7 +86,7 @@ export class ContactListViewModel {
 
 		this.listModelStateStream?.end(true)
 
-		this.listModelStateStream = newListModel.stateStream.map((state) => {
+		this.listModelStateStream = newListModel.stateStream.map(() => {
 			this.contactsForSelectedEntry = []
 			this.updateUi()
 			this.updateUrl()
@@ -98,11 +104,8 @@ export class ContactListViewModel {
 		return this.contactModel.getContactListId()
 	}
 
-	getContactListInfo(): Array<ContactListInfo> {
-		return this.contactModel
-			.getContactListInfos()
-			.slice()
-			.sort((a, b) => a.name.localeCompare(b.name))
+	getContactListInfo(): ReadonlyArray<ContactListInfo> {
+		return this.sortedContactListInfos()
 	}
 
 	private readonly updateSelectedContacts = debounce(50, async () => {
@@ -214,10 +217,11 @@ export class ContactListViewModel {
 	}
 
 	private getContactListForEntryListId(listId: string): ContactListInfo | null {
-		return this.contactModel.getContactListInfos().find((contactList) => contactList.groupRoot.recipients === listId) ?? null
+		return this.sortedContactListInfos().find((contactList) => contactList.groupRoot.recipients === listId) ?? null
 	}
 
 	dispose() {
 		this.eventController.removeEntityListener(this.entityEventsReceived)
+		this.sortedContactListInfos.end(true)
 	}
 }

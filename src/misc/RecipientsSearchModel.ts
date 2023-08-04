@@ -81,8 +81,8 @@ export class RecipientsSearchModel {
 	async resolveContactList(contactList: ContactListInfo): Promise<Array<Recipient>> {
 		const entries = await this.entityClient.loadAll(ContactListEntryTypeRef, contactList.groupRoot.recipients)
 		return entries.map((entry) => {
-			// FIXME should this be eager?
-			//  mail editor will re-resolve them anyway but we should check other places as well
+			// it's okay to be lazy sometimes
+			// all the places anyway resolve the recipients when they need to
 			return this.recipientsModel.resolve({ address: entry.emailAddress }, ResolveMode.Lazy)
 		})
 	}

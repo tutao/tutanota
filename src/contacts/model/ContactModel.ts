@@ -1,7 +1,7 @@
 import type { Contact, ContactList } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactListGroupRootTypeRef, ContactListTypeRef, ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { createRestriction } from "../../search/model/SearchUtils"
-import { groupBy, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { groupBy, identity, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
 import { DbError } from "../../api/common/error/DbError"
 import { EntityClient } from "../../api/common/EntityClient"
@@ -14,12 +14,14 @@ import { cleanMailAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ContactListInfo } from "../view/ContactListViewModel.js"
 import { GroupInfo, GroupInfoTypeRef, GroupMembership, UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { EntityEventsListener, EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
+import Stream from "mithril/stream"
+import stream from "mithril/stream"
 
 assertMainOrNode()
 
 export class ContactModel {
 	private contactListId: LazyLoaded<Id | null>
-	private contactListInfo: ContactListInfo[] = []
+	private contactListInfo: Stream<ReadonlyArray<ContactListInfo>> = stream()
 
 	constructor(
 		private readonly searchFacade: SearchFacade,
@@ -32,13 +34,18 @@ export class ContactModel {
 	}
 
 	async getLoadedContactListInfos(): Promise<ReadonlyArray<ContactListInfo>> {
-		await this.loadContactLists()
-		return this.contactListInfo
+		// prevent re-loading them when we already have them
+		// this is not perfect and might still start loads in parallel
+		if (this.contactListInfo() === undefined) {
+			await this.loadContactLists()
+		}
+		return this.contactListInfo()
 	}
 
 	/** might be empty if not loaded yet */
-	getContactListInfos(): ReadonlyArray<ContactListInfo> {
-		return this.contactListInfo
+	getContactListInfos(): Stream<ReadonlyArray<ContactListInfo>> {
+		// defensive clone
+		return this.contactListInfo.map(identity)
 	}
 
 	/** Id of the contact list. Is null for external users. */
@@ -134,13 +141,15 @@ export class ContactModel {
 	private async loadContactLists() {
 		const userController = this.loginController.getUserController()
 		const contactListMemberships = userController.getContactListMemberships()
-		this.contactListInfo = (
+		const contactListInfo = (
 			await promiseMap(
 				await promiseMap(contactListMemberships, (rlm: GroupMembership) => this.entityClient.load(GroupInfoTypeRef, rlm.groupInfo)),
 				// we might still have a membership for a short time when the group root is already deleted
 				(groupInfo) => this.getContactListInfo(groupInfo).catch(ofClass(NotFoundError, () => null)),
 			)
 		).filter(isNotNull)
+
+		this.contactListInfo(contactListInfo)
 	}
 
 	private async getContactListInfo(groupInfo: GroupInfo): Promise<ContactListInfo> {
@@ -160,7 +169,6 @@ export class ContactModel {
 			if (isUpdateForTypeRef(UserTypeRef, update) && isSameId(this.loginController.getUserController().userId, update.instanceId)) {
 				await this.loadContactLists()
 			}
-			// FIXME we need to either redraw or signal somehow that the contact list has changed
 		}
 	}
 }
