@@ -3,7 +3,7 @@ import { BubbleTextField } from "./base/BubbleTextField.js"
 import { Recipient } from "../api/common/recipients/Recipient.js"
 import { getMailAddressDisplayText } from "../mail/model/MailUtils.js"
 import { px, size } from "./size.js"
-import { progressIcon } from "./base/Icon.js"
+import { Icon, progressIcon } from "./base/Icon.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { stringToNameAndMailAddress } from "../misc/parsing/MailAddressParser.js"
 import { DropdownChildAttrs } from "./base/Dropdown.js"
@@ -13,6 +13,8 @@ import { getFirstOrThrow } from "@tutao/tutanota-utils"
 import { Dialog } from "./base/Dialog.js"
 import { SearchDropDown } from "./SearchDropDown.js"
 import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
+import { Icons } from "./base/icons/Icons.js"
+import { theme } from "./theme.js"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey
@@ -133,7 +135,12 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 						}
 					} else {
 						return {
-							firstRow: "",
+							firstRow: m(Icon, {
+								icon: Icons.People,
+								style: {
+									fill: theme.content_fg,
+								},
+							}),
 							secondRow: suggestion.value.name,
 						}
 					}
