@@ -610,7 +610,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					buttons.push({
 						label: "createContact_action",
 						click: () => {
-							this.viewModel.contactModel.contactListId().then((contactListId) => {
+							this.viewModel.contactModel.getContactListId().then((contactListId) => {
 								import("../../contacts/ContactEditor").then(({ ContactEditor }) => {
 									const contact = createNewContact(locator.logins.getUserController().user, mailAddress.address, mailAddress.name)
 									new ContactEditor(this.viewModel.entityClient, contact, contactListId ?? undefined).show()

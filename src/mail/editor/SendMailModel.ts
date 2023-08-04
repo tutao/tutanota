@@ -980,7 +980,7 @@ export class SendMailModel {
 					contact.presharedPassword = this.getPassword(address).trim()
 				}
 
-				const listId = await this.contactModel.contactListId()
+				const listId = await this.contactModel.getContactListId()
 				await this.entity.setup(listId, contact)
 			} else if (contact._id && isExternalAndConfidential && contact.presharedPassword !== this.getPassword(address).trim()) {
 				contact.presharedPassword = this.getPassword(address).trim()

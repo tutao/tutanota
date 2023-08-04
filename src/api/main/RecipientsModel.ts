@@ -5,7 +5,7 @@ import type { EntityClient } from "../common/EntityClient.js"
 import { createNewContact, isTutanotaMailAddress } from "../../mail/model/MailUtils.js"
 import { getContactDisplayName } from "../../contacts/model/ContactUtils.js"
 import { PartialRecipient, Recipient, RecipientType } from "../common/recipients/Recipient.js"
-import { LazyLoaded } from "@tutao/tutanota-utils"
+import { BoundedExecutor, LazyLoaded } from "@tutao/tutanota-utils"
 import { Contact, ContactTypeRef } from "../entities/tutanota/TypeRefs"
 import { cleanMailAddress } from "../common/utils/CommonCalendarUtils.js"
 
@@ -37,6 +37,8 @@ export enum ResolveMode {
 }
 
 export class RecipientsModel {
+	private executor = new BoundedExecutor(5)
+
 	constructor(
 		private readonly contactModel: ContactModel,
 		private readonly loginController: LoginController,
@@ -49,7 +51,19 @@ export class RecipientsModel {
 	 * If resolveLazily === true, Then resolution will not be initiated (i.e. no server calls will be made) until the first call to `resolved`
 	 */
 	resolve(recipient: PartialRecipient, resolveMode: ResolveMode): ResolvableRecipient {
-		return new ResolvableRecipientImpl(recipient, this.contactModel, this.loginController, this.mailFacade, this.entityClient, resolveMode)
+		return new ResolvableRecipientImpl(
+			recipient,
+			this.contactModel,
+			this.loginController,
+			(mailAddress) => this.executor.run(this.resolveRecipientType(mailAddress)),
+			this.entityClient,
+			resolveMode,
+		)
+	}
+
+	private readonly resolveRecipientType = (mailAddress: string) => async () => {
+		const keyData = await this.mailFacade.getRecipientKeyData(mailAddress)
+		return keyData == null ? RecipientType.EXTERNAL : RecipientType.INTERNAL
 	}
 }
 
@@ -84,7 +98,7 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		arg: PartialRecipient,
 		private readonly contactModel: ContactModel,
 		private readonly loginController: LoginController,
-		private readonly mailFacade: MailFacade,
+		private readonly typeResolver: (mailAddress: string) => Promise<RecipientType>,
 		private readonly entityClient: EntityClient,
 		resolveMode: ResolveMode,
 	) {
@@ -107,7 +121,9 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		this.lazyType = new LazyLoaded(() => this.resolveType())
 		this.lazyContact = new LazyLoaded(async () => {
 			const contact = await this.resolveContact(arg.contact)
-			if (contact != null && this._name == null) {
+			// sometimes we create resolvable contact and then dissect it into parts and resolve it again in which case we will default to an empty name
+			// (see the getter) but we actually want the name from contact.
+			if (contact != null && (this._name == null || this._name === "")) {
 				this._name = getContactDisplayName(contact)
 			}
 			return contact
@@ -154,14 +170,12 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 	private async resolveType(): Promise<RecipientType> {
 		if (this.initialType === RecipientType.UNKNOWN) {
 			const cleanedAddress = cleanMailAddress(this.address)
-			const keyData = await this.mailFacade.getRecipientKeyData(cleanedAddress)
-			if (keyData != null) {
+			const recipientType = await this.typeResolver(cleanedAddress)
+			if (recipientType === RecipientType.INTERNAL) {
 				// we know this is one of ours, so it's safe to clean it up
 				this._address = cleanedAddress
-				return RecipientType.INTERNAL
-			} else {
-				return RecipientType.EXTERNAL
 			}
+			return recipientType
 		} else {
 			return this.initialType
 		}
@@ -176,7 +190,7 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		try {
 			if (this.overrideContact) {
 				return this.overrideContact
-			} else if ((await this.contactModel.contactListId()) == null) {
+			} else if ((await this.contactModel.getContactListId()) == null) {
 				console.log("can't resolve contacts for users with no contact list id")
 				return null
 			} else if (contact instanceof Array) {

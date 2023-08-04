@@ -514,7 +514,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				: isSameTypeRef(restriction.type, ContactTypeRef)
 				? m(IconButton, {
 						click: () => {
-							locator.contactModel.contactListId().then((contactListId) => {
+							locator.contactModel.getContactListId().then((contactListId) => {
 								new ContactEditor(locator.entityClient, null, contactListId ?? undefined).show()
 							})
 						},
@@ -608,7 +608,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						.then((editor) => editor.show())
 						.catch(ofClass(PermissionError, noOp))
 				} else if (type && isSameTypeRef(type, ContactTypeRef)) {
-					locator.contactModel.contactListId().then((contactListId) => {
+					locator.contactModel.getContactListId().then((contactListId) => {
 						new ContactEditor(locator.entityClient, null, contactListId ?? undefined).show()
 					})
 				}
@@ -677,7 +677,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			return {
 				type: ButtonType.FolderColumnHeader,
 				click: () => {
-					locator.contactModel.contactListId().then((contactListId) => {
+					locator.contactModel.getContactListId().then((contactListId) => {
 						new ContactEditor(locator.entityClient, null, contactListId ?? undefined).show()
 					})
 				},

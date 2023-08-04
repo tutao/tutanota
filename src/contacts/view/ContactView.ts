@@ -456,11 +456,9 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					}),
 				},
 				[
-					this.contactListViewModel.contactListInfo
-						.sort((a, b) => a.name.localeCompare(b.name))
-						.map((tl) => {
-							return this.renderContactListRow(tl)
-						}),
+					this.contactListViewModel.getContactListInfo().map((tl) => {
+						return this.renderContactListRow(tl)
+					}),
 				],
 			),
 		]
@@ -568,7 +566,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	_mergeAction(): Promise<void> {
 		return showProgressDialog(
 			"pleaseWait_msg",
-			locator.contactModel.contactListId().then((contactListId) => {
+			locator.contactModel.getContactListId().then((contactListId) => {
 				return contactListId ? locator.entityClient.loadAll(ContactTypeRef, contactListId) : []
 			}),
 		).then((allContacts) => {
@@ -724,15 +722,13 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 
 	private addRecipientsToList() {
+		const groupRoot = this.contactListViewModel.getSelectedContactListInfo()?.groupRoot
+		if (!groupRoot) return
 		showContactListEditor(
-			null,
-			null,
+			groupRoot,
 			lang.get("addEntries_action"),
-			(name, addresses) => {
-				this.contactListViewModel.addRecipientstoContactList(
-					addresses,
-					assertNotNull(this.contactListViewModel.getSelectedContactListInfo()?.groupRoot),
-				)
+			(_, addresses) => {
+				this.contactListViewModel.addRecipientstoContactList(addresses, assertNotNull(groupRoot))
 			},
 			false,
 		)
@@ -765,7 +761,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 	private async addContactList() {
 		if (await this.contactListViewModel.canCreateContactList()) {
-			await showContactListEditor(null, null, "Create Recipient List", (name, recipients) => {
+			await showContactListEditor(null, "Create Recipient List", (name, recipients) => {
 				this.contactListViewModel.addContactList(name, recipients)
 			})
 		} else {
