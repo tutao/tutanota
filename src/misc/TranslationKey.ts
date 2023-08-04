@@ -1541,3 +1541,4 @@ export type TranslationKeyType =
 	| "lockdownModeNotSupported1_msg"
 	| "lockdownModeNotSupported2_msg"
 	| "cannotAddAttendees_msg"
+	| "contactListName_label"

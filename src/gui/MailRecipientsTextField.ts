@@ -3,7 +3,7 @@ import { BubbleTextField } from "./base/BubbleTextField.js"
 import { Recipient } from "../api/common/recipients/Recipient.js"
 import { getMailAddressDisplayText } from "../mail/model/MailUtils.js"
 import { px, size } from "./size.js"
-import { progressIcon } from "./base/Icon.js"
+import { Icon, progressIcon } from "./base/Icon.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { stringToNameAndMailAddress } from "../misc/parsing/MailAddressParser.js"
 import { DropdownChildAttrs } from "./base/Dropdown.js"
@@ -13,6 +13,8 @@ import { getFirstOrThrow } from "@tutao/tutanota-utils"
 import { Dialog } from "./base/Dialog.js"
 import { SearchDropDown } from "./SearchDropDown.js"
 import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
+import { Icons } from "./base/icons/Icons.js"
+import { theme } from "./theme.js"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey
@@ -125,10 +127,23 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 		return m(
 			".rel",
 			m(SearchDropDown, {
-				suggestions: attrs.search.results().map((recipient) => {
-					return {
-						firstRow: recipient.name,
-						secondRow: recipient.address,
+				suggestions: attrs.search.results().map((suggestion) => {
+					if (suggestion.type === "recipient") {
+						return {
+							firstRow: suggestion.value.name,
+							secondRow: suggestion.value.address,
+						}
+					} else {
+						return {
+							firstRow: m(Icon, {
+								icon: Icons.People,
+								style: {
+									fill: theme.content_fg,
+									"aria-describedby": lang.get("contactListName_label"),
+								},
+							}),
+							secondRow: suggestion.value.name,
+						}
 					}
 				}),
 				selectedSuggestionIndex: this.getSelectedSuggestionIdx(attrs),
@@ -156,16 +171,26 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 		}
 	}
 
-	private selectSuggestion(attrs: MailRecipientsTextFieldAttrs, index: number) {
+	private async selectSuggestion(attrs: MailRecipientsTextFieldAttrs, index: number) {
 		const selection = attrs.search.results()[index]
 		if (selection == null) {
 			return
 		}
 
-		const { address, name, contact } = selection
-		attrs.onRecipientAdded(address, name, contact)
-		attrs.search.clear()
-		attrs.onTextChanged("")
+		if (selection.type === "recipient") {
+			const { address, name, contact } = selection.value
+			attrs.onRecipientAdded(address, name, contact)
+			attrs.search.clear()
+			attrs.onTextChanged("")
+		} else {
+			attrs.search.clear()
+			attrs.onTextChanged("")
+			const recipients = await attrs.search.resolveContactList(selection.value)
+			for (const { address, name, contact } of recipients) {
+				attrs.onRecipientAdded(address, name, contact)
+			}
+			m.redraw()
+		}
 	}
 
 	private getSelectedSuggestionIdx(attrs: MailRecipientsTextFieldAttrs): number {

@@ -607,6 +607,9 @@ styles.registerStyle("main", () => {
 		".content-accent-fg": {
 			color: theme.content_accent,
 		},
+		".icon-accent svg": {
+			fill: theme.content_accent,
+		},
 		".svg-content-fg path": {
 			fill: theme.content_fg,
 		},

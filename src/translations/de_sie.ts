@@ -1558,6 +1558,7 @@ export default {
 		"webAssemblyNotSupported1_msg": "Ihr Browser unterstützt kein WebAssembly und wird in zukünfigten Versionen von Tutanota nicht mehr unterstützt.",
 		"webAssemblyNotSupported2_msg": "Bitte aktualisieren Sie Ihren Browser oder downloaden Sie unsere App.",
 		"lockdownModeNotSupported1_msg": "Der Blockierungsmodus ist auf Ihrem Gerät aktiviert. Dies verhindert, dass zukünftige Versionen von Tutanota ausgeführt werden können.",
-		"lockdownModeNotSupported2_msg": "Bitte fügen Sie eine Ausnahme für Tutanota hinzu oder deaktivieren Sie den Blockierungsmodus."
+		"lockdownModeNotSupported2_msg": "Bitte fügen Sie eine Ausnahme für Tutanota hinzu oder deaktivieren Sie den Blockierungsmodus.",
+		"contactListName_label": "Name der Kontaktliste"
 	}
 }
