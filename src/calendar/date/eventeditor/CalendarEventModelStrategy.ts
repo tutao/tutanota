@@ -98,8 +98,8 @@ export class CalendarEventApplyStrategies {
 						// have both a cancel model (containing the removed recipients) and an update model (the rest)
 						// we're copying all of them to cancel if the altered instances were invalidated, since the
 						// update (and invite for that matter) is irrelevant for those instances.
-						for (const address in sendModels.cancelModel?.allRecipients() ?? []) {
-							sendModels.updateModel?.addRecipient(RecipientField.BCC, { address })
+						for (const recipient of sendModels.cancelModel?.allRecipients() ?? []) {
+							sendModels.updateModel?.addRecipient(RecipientField.BCC, recipient)
 						}
 						sendModels.cancelModel = sendModels.updateModel
 						sendModels.updateModel = null
