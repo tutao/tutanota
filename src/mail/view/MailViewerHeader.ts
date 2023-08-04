@@ -7,7 +7,7 @@ import { ExpanderPanel } from "../../gui/base/Expander.js"
 import { File as TutanotaFile } from "../../api/entities/tutanota/TypeRefs.js"
 import { BannerType, InfoBanner } from "../../gui/base/InfoBanner.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
-import { EventBanner } from "./EventBanner.js"
+import { EventBanner, EventBannerAttrs } from "./EventBanner.js"
 import { RecipientButton } from "../../gui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../api/common/TutanotaConstants.js"
@@ -277,16 +277,15 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderEventBanner(viewModel: MailViewerViewModel): Children {
-		const event = viewModel.getCalendarEventAttachment()
-		return event
+		const eventAttachment = viewModel.getCalendarEventAttachment()
+		return eventAttachment
 			? m(
 					"." + responsiveCardHMargin(),
 					m(EventBanner, {
-						event: event.event,
-						method: event.method,
-						recipient: event.recipient,
+						contents: eventAttachment.contents,
+						recipient: eventAttachment.recipient,
 						mail: viewModel.mail,
-					}),
+					} satisfies EventBannerAttrs),
 			  )
 			: null
 	}

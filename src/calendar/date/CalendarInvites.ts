@@ -1,8 +1,8 @@
 import { parseCalendarFile } from "../export/CalendarImporter"
 import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../api/main/MainLocator"
-import { CalendarAttendeeStatus, CalendarMethod, FeatureType, getAsEnumValue } from "../../api/common/TutanotaConstants"
-import { assertNotNull, clone, filterInt, noOp, Require } from "@tutao/tutanota-utils"
+import { CalendarAttendeeStatus, CalendarMethod, ConversationType, FeatureType, getAsEnumValue } from "../../api/common/TutanotaConstants"
+import { assert, assertNotNull, clone, filterInt, noOp, Require } from "@tutao/tutanota-utils"
 import { findPrivateCalendar, getEventType } from "./CalendarUtils"
 import { calendarNotificationSender } from "./CalendarNotificationSender.js"
 import { Dialog } from "../../gui/base/Dialog"
@@ -24,7 +24,7 @@ export type Guest = Recipient & { status: CalendarAttendeeStatus }
 export type ParsedIcalFileContent =
 	| {
 			method: CalendarMethod
-			event: CalendarEvent
+			events: Array<CalendarEvent>
 			uid: string
 	  }
 	| None
@@ -32,23 +32,13 @@ export type ParsedIcalFileContent =
 async function getParsedEvent(fileData: DataFile): Promise<ParsedIcalFileContent> {
 	try {
 		const { contents, method } = await parseCalendarFile(fileData)
-		const verifiedMethod = getAsEnumValue(CalendarMethod, method) || CalendarMethod.PUBLISH
-		// we only care about the first event in the file for invites, even updates
-		// where the whole series is changed (including altered occurrences) seem
-		// to be sent one-by-one by all calendaring apps we could check.
-		if (contents.length > 1) {
-			console.log(`got an invite file with ${contents.length} events, still only handling the first one`)
-		}
-		const parsedEventWithAlarms = contents[0]
-
-		if (parsedEventWithAlarms && parsedEventWithAlarms.event.uid) {
-			return {
-				event: parsedEventWithAlarms.event,
-				uid: parsedEventWithAlarms.event.uid,
-				method: verifiedMethod,
-			}
-		} else {
-			return null
+		const uid = contents[0].event.uid
+		if (uid == null) return null
+		assert(!contents.some((c) => c.event.uid !== uid), "received invite with multiple events, but mismatched UIDs")
+		return {
+			events: contents.map((c) => c.event),
+			uid,
+			method: getAsEnumValue(CalendarMethod, method) || CalendarMethod.PUBLISH,
 		}
 	} catch (e) {
 		console.log(e)
@@ -101,10 +91,9 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 	new CalendarEventPopup(viewModel, eventBubbleRect, htmlSanitizer).show()
 }
 
-export async function getEventFromFile(file: TutanotaFile): Promise<CalendarEvent | null> {
+export async function getEventsFromFile(file: TutanotaFile): Promise<ParsedIcalFileContent> {
 	const dataFile = await locator.fileController.getAsDataFile(file)
-	const parsedEvent = await getParsedEvent(dataFile)
-	return parsedEvent?.event ?? null
+	return await getParsedEvent(dataFile)
 }
 
 /**
@@ -142,6 +131,10 @@ export const enum ReplyResult {
 
 /**
  * Sends a quick reply for the given event and saves the event to the first private calendar.
+ * @param event the CalendarEvent to respond to, will be serialized and sent back with updated status, then saved.
+ * @param attendee the attendee that should respond to the mail
+ * @param decision the new status of the attendee
+ * @param previousMail the mail to respond to
  */
 export async function replyToEventInvitation(
 	event: CalendarEvent,
@@ -154,7 +147,7 @@ export async function replyToEventInvitation(
 	foundAttendee.status = decision
 
 	const notificationModel = new CalendarNotificationModel(calendarNotificationSender, locator.logins)
-	const responseModel = await getResponseModelForMail(previousMail)
+	const responseModel = await getResponseModelForMail(previousMail, attendee.address.address)
 
 	try {
 		await notificationModel.send(eventClone, [], { responseModel, inviteModel: null, cancelModel: null, updateModel: null })
@@ -169,12 +162,12 @@ export async function replyToEventInvitation(
 	const calendarModel = await locator.calendarModel()
 	const calendar = await calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()).then(findPrivateCalendar)
 	if (calendar == null) return ReplyResult.ReplyNotSent
-	if (decision !== CalendarAttendeeStatus.DECLINED && event.uid != null) {
-		const dbEvents = await calendarModel.getEventsByUid(event.uid)
+	if (decision !== CalendarAttendeeStatus.DECLINED && eventClone.uid != null) {
+		const dbEvents = await calendarModel.getEventsByUid(eventClone.uid)
 		await calendarModel.processCalendarEventMessage(
 			previousMail.sender.address,
 			CalendarMethod.REQUEST,
-			event as Require<"uid", CalendarEvent>,
+			eventClone as Require<"uid", CalendarEvent>,
 			[],
 			dbEvents ?? { ownerGroup: calendar.group._id, progenitor: null, alteredInstances: [] },
 		)
@@ -182,14 +175,25 @@ export async function replyToEventInvitation(
 	return ReplyResult.ReplySent
 }
 
-export async function getResponseModelForMail(mail: Mail): Promise<SendMailModel | null> {
-	const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(mail)
+export async function getResponseModelForMail(previousMail: Mail, responder: string): Promise<SendMailModel | null> {
+	const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(previousMail)
 	if (mailboxDetails == null) return null
 	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	const model = await locator.sendMailModel(mailboxDetails, mailboxProperties)
-
-	await model.initWithTemplate([], "", "")
-	await model.addRecipient(RecipientField.TO, mail.sender, ResolveMode.Eager)
+	await model.initAsResponse(
+		{
+			previousMail,
+			conversationType: ConversationType.REPLY,
+			senderMailAddress: responder,
+			recipients: [],
+			attachments: [],
+			subject: "",
+			bodyText: "",
+			replyTos: [],
+		},
+		new Map(),
+	)
+	await model.addRecipient(RecipientField.TO, previousMail.sender, ResolveMode.Eager)
 	const toRecipients = await model.toRecipientsResolved()
 	model.setConfidential(toRecipients[0]?.contact?.presharedPassword != null)
 	return model

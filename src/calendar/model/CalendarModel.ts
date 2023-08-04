@@ -309,22 +309,22 @@ export class CalendarModel {
 		// we can have multiple cases here:
 		// 1. calendarData has one event and it's the progenitor
 		// 2. calendarData has one event and it's an altered occurrence
-		// 3. it's both (haven't seen in the wild but rumors are some calendars actually do this)
-		// we might want to execute the whole logic below for each of these instead of taking only the first one.
-		// maybe even sort them such that the progenitors are updated first.
-		const updateAlarms = calendarData.contents[0].alarms
-		const updateEvent = calendarData.contents[0].event
-		const method = calendarData.method
-
-		const dbEvents = await this.calendarFacade.getEventsByUid(updateEvent.uid)
+		// 3. it's both (thunderbird sends ical files with multiple events)
+		const dbEvents = await this.calendarFacade.getEventsByUid(calendarData.contents[0].event.uid)
 		if (dbEvents == null) {
-			// if we ever want to display event invites before accepting them, we probably need to do something else here.
-			console.log(TAG, "received event update for event that has no progenitor on the server, ignoring.")
+			// if we ever want to display event invites in the calendar before accepting them,
+			// we probably need to do something else here.
+			console.log(TAG, "received event update for event that has not been saved to the server, ignoring.")
 			return
 		}
-		// this automatically applies REQUESTs for creating parts of the existing event series that do not exist yet
-		// like accepting another altered instance invite or accepting the progenitor after accepting only an altered instance.
-		return await this.processCalendarEventMessage(sender, method, updateEvent, updateAlarms, dbEvents)
+		const method = calendarData.method
+		for (const content of calendarData.contents) {
+			const updateAlarms = content.alarms
+			const updateEvent = content.event
+			// this automatically applies REQUESTs for creating parts of the existing event series that do not exist yet
+			// like accepting another altered instance invite or accepting the progenitor after accepting only an altered instance.
+			await this.processCalendarEventMessage(sender, method, updateEvent, updateAlarms, dbEvents)
+		}
 	}
 
 	/**
@@ -383,7 +383,10 @@ export class CalendarModel {
 	private async processCalendarUpdate(dbTarget: CalendarEventUidIndexEntry, dbEvent: CalendarEventInstance, updateEvent: CalendarEvent): Promise<void> {
 		console.log(TAG, "processing request for existing event instance")
 		const { repeatRuleWithExcludedAlteredInstances } = await import("../date/eventeditor/CalendarEventWhenModel.js")
-		if (filterInt(dbEvent.sequence) >= filterInt(updateEvent.sequence)) {
+		// some providers do not increment the sequence for all edit operations (like google when changing the summary)
+		// we'd rather apply the same update too often than miss some, and this enables us to update our own status easily
+		// without having to increment the sequence.
+		if (filterInt(dbEvent.sequence) > filterInt(updateEvent.sequence)) {
 			console.log(TAG, "got update for outdated event version, ignoring.")
 			return
 		}
