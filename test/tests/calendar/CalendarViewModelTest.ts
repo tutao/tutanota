@@ -13,7 +13,7 @@ import type { EntityUpdateData } from "../../../src/api/main/EventController.js"
 import { EventController } from "../../../src/api/main/EventController.js"
 import { ProgressTracker } from "../../../src/api/main/ProgressTracker.js"
 import { DeviceConfig } from "../../../src/misc/DeviceConfig.js"
-import { OperationType } from "../../../src/api/common/TutanotaConstants.js"
+import { GroupType, OperationType } from "../../../src/api/common/TutanotaConstants.js"
 import { getElementId, getListId } from "../../../src/api/common/utils/EntityUtils.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import { ReceivedGroupInvitationsModel } from "../../../src/sharing/model/ReceivedGroupInvitationsModel.js"
@@ -41,7 +41,11 @@ o.spec("CalendarViewModel", async function () {
 		const deviceConfig: DeviceConfig = downcast({
 			getHiddenCalendars: (Id) => [],
 		})
-		const calendarInvitations: ReceivedGroupInvitationsModel = downcast({})
+		const calendarInvitations: ReceivedGroupInvitationsModel<GroupType.Calendar> = downcast({
+			init() {
+				noOp()
+			},
+		})
 		let calendarModel: CalendarModel = makeCalendarModel()
 		const userController = makeUserController()
 		const loginController: LoginController = downcast({

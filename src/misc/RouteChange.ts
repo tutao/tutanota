@@ -50,6 +50,7 @@ function shallowCompare(a: Record<string, unknown>, b: Record<string, unknown>):
 
 export const MAIL_PREFIX = "/mail"
 export const CONTACTS_PREFIX = "/contact"
+export const CONTACTLIST_PREFIX = "/contactlist"
 export const CALENDAR_PREFIX = "/calendar"
 export const SEARCH_PREFIX = "/search"
 export const SETTINGS_PREFIX = "/settings"

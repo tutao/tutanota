@@ -393,7 +393,7 @@ export type ContactListGroupRoot = {
 	_ownerGroup: null | Id;
 	_permissions: Id;
 
-	recipients: Id;
+	entries: Id;
 }
 export const ContactMailAddressTypeRef: TypeRef<ContactMailAddress> = new TypeRef("tutanota", "ContactMailAddress")
 

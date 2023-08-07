@@ -1,9 +1,9 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { NavBar } from "./base/NavBar.js"
-import { NavButton, NavButtonColor } from "./base/NavButton.js"
+import { isSelectedPrefix, NavButton, NavButtonColor } from "./base/NavButton.js"
 import { FeatureType } from "../api/common/TutanotaConstants.js"
 import { BootIcons } from "./base/icons/BootIcons.js"
-import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX } from "../misc/RouteChange.js"
+import { CALENDAR_PREFIX, CONTACTLIST_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX } from "../misc/RouteChange.js"
 import { assertMainOrNode } from "../api/common/Env.js"
 import { OfflineIndicatorDesktop } from "./base/OfflineIndicator.js"
 import { OfflineIndicatorViewModel } from "./base/OfflineIndicatorViewModel.js"
@@ -63,7 +63,7 @@ export class Header implements ClassComponent<HeaderAttrs> {
 						label: "contacts_label",
 						icon: () => BootIcons.Contacts,
 						href: CONTACTS_PREFIX,
-						isSelectedPrefix: CONTACTS_PREFIX,
+						isSelectedPrefix: isSelectedPrefix(CONTACTS_PREFIX) || isSelectedPrefix(CONTACTLIST_PREFIX),
 						colors: NavButtonColor.Header,
 				  })
 				: null,

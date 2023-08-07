@@ -15,7 +15,7 @@ import {
 	symmetricDifference,
 } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarEventTypeRef, UserSettingsGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import { getWeekStart, OperationType, WeekStart } from "../../api/common/TutanotaConstants"
+import { getWeekStart, GroupType, OperationType, WeekStart } from "../../api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
 import { getElementId, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
 import { LoginController } from "../../api/main/LoginController"
@@ -84,7 +84,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	readonly _loadedMonths: Set<number> // first ms of the month
 
 	_hiddenCalendars: Set<Id>
-	readonly _calendarInvitations: ReceivedGroupInvitationsModel
+	readonly _calendarInvitations: ReceivedGroupInvitationsModel<GroupType.Calendar>
 	readonly _calendarModel: CalendarModel
 	readonly _entityClient: EntityClient
 	// Events that have been dropped but still need to be rendered as temporary while waiting for entity updates.
@@ -101,7 +101,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		eventController: EventController,
 		progressTracker: ProgressTracker,
 		deviceConfig: DeviceConfig,
-		calendarInvitations: ReceivedGroupInvitationsModel,
+		calendarInvitations: ReceivedGroupInvitationsModel<GroupType.Calendar>,
 		private readonly timeZone: string,
 	) {
 		this._calendarModel = calendarModel
@@ -154,6 +154,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		eventController.addEntityListener((updates, eventOwnerGroupId) => {
 			return this._entityEventReceived(updates, eventOwnerGroupId)
 		})
+
+		calendarInvitations.init()
 	}
 
 	get calendarInvitations(): Stream<Array<ReceivedGroupInvitation>> {

@@ -4,7 +4,7 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 
 export interface MobileContactActionBarAttrs {
 	editAction?: () => unknown
-	deleteAction: () => unknown
+	deleteAction?: () => unknown
 }
 
 /** Toolbar with contact actions at the bottom of single-column layout. */
@@ -20,11 +20,13 @@ export class MobileContactActionBar implements Component<MobileContactActionBarA
 				},
 			},
 			[
-				m(IconButton, {
-					title: "delete_action",
-					icon: Icons.Trash,
-					click: attrs.deleteAction,
-				}),
+				attrs.deleteAction
+					? m(IconButton, {
+							title: "delete_action",
+							icon: Icons.Trash,
+							click: attrs.deleteAction,
+					  })
+					: null,
 				attrs.editAction
 					? m(IconButton, {
 							title: "edit_action",
