@@ -35,7 +35,7 @@ export function unpadAes(bytes: Uint8Array): Uint8Array {
  * @returns The auth verifier
  */
 export function createAuthVerifier(passwordKey: Aes128Key | Aes256Key): Uint8Array {
-	// FIXME Compatibility Test
+	// TODO Compatibility Test
 	return sha256Hash(bitArrayToUint8Array(passwordKey))
 }
 export function createAuthVerifierAsBase64Url(passwordKey: Aes128Key | Aes256Key): Base64Url {

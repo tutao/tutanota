@@ -1,4 +1,4 @@
-// FIXME
+// TODO
 // * Bcrypt compatibility? => double length
 // * RSA key encryption/decryption compatibility (CryptoFacade.encryptRsaKey)
 // * Android file tests (see CryptoInterfaceAesTest)

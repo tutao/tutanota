@@ -398,8 +398,8 @@ sjcl.bitArray = {
 	 * @return {Number} The requested slice.
 	 */
 	extract: function (a, bstart, blength) {
-		// FIXME: this Math.floor is not necessary at all, but for some reason
-		// seems to suppress a bug in the Chromium JIT.
+		// TODO: this Math.floor is not necessary at all, but for some reason
+		//   seems to suppress a bug in the Chromium JIT.
 		var x,
 			sh = Math.floor((-bstart - blength) & 31)
 		if (((bstart + blength - 1) ^ bstart) & -32) {
