@@ -315,6 +315,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.user,
 			await locator.groupManagement(),
 			assertNotNull(cache),
+			new EntityClient(entityRestClient), // without cache
 			nativePushFacade,
 			mainInterface.operationProgressTracker,
 			locator.instanceMapper,

@@ -215,7 +215,7 @@ export interface CacheStorage extends ExposedCacheStorage {
  * lowerRangeId may be anything from MIN_ID to c, upperRangeId may be anything from k to MAX_ID
  */
 export class DefaultEntityRestCache implements EntityRestCache {
-	constructor(readonly entityRestClient: EntityRestClient, private readonly storage: CacheStorage) {}
+	constructor(private readonly entityRestClient: EntityRestClient, private readonly storage: CacheStorage) {}
 
 	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, queryParameters?: Dict, extraHeaders?: Dict): Promise<T> {
 		const { listId, elementId } = expandId(id)

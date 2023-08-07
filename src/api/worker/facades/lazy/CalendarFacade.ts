@@ -86,13 +86,14 @@ export type CalendarEventUidIndexEntry = {
 
 export class CalendarFacade {
 	// visible for testing
-	readonly entityClient: EntityClient
+	readonly cachingEntityClient: EntityClient
 
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly groupManagementFacade: GroupManagementFacade,
 		// We inject cache directly because we need to delete user from it for a hack
 		private readonly entityRestCache: DefaultEntityRestCache,
+		private readonly noncachingEntityClient: EntityClient,
 		private readonly nativePushFacade: NativePushFacade,
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
 		private readonly instanceMapper: InstanceMapper,
@@ -100,7 +101,7 @@ export class CalendarFacade {
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly infoMessageHandler: InfoMessageHandler,
 	) {
-		this.entityClient = new EntityClient(this.entityRestCache)
+		this.cachingEntityClient = new EntityClient(this.entityRestCache)
 	}
 
 	async saveImportedCalendarEvents(eventWrappers: Array<EventWrapper>, operationId: OperationId): Promise<void> {
@@ -149,7 +150,7 @@ export class CalendarFacade {
 
 		for (const [listId, eventsWithAlarmsOfOneList] of eventsWithAlarmsByEventListId) {
 			let successfulEvents = eventsWithAlarmsOfOneList
-			await this.entityClient
+			await this.cachingEntityClient
 				.setupMultipleEntities(
 					listId,
 					eventsWithAlarmsOfOneList.map((e) => e.event),
@@ -168,7 +169,10 @@ export class CalendarFacade {
 			await onProgress(currentProgress)
 		}
 
-		const pushIdentifierList = await this.entityClient.loadAll(PushIdentifierTypeRef, neverNull(this.userFacade.getLoggedInUser().pushIdentifierList).list)
+		const pushIdentifierList = await this.cachingEntityClient.loadAll(
+			PushIdentifierTypeRef,
+			neverNull(this.userFacade.getLoggedInUser().pushIdentifierList).list,
+		)
 
 		if (collectedAlarmNotifications.length > 0 && pushIdentifierList.length > 0) {
 			await this.sendAlarmNotifications(collectedAlarmNotifications, pushIdentifierList)
@@ -194,7 +198,7 @@ export class CalendarFacade {
 		event.hashedUid = hashUid(event.uid)
 
 		if (oldEvent) {
-			await this.entityClient.erase(oldEvent).catch(ofClass(NotFoundError, () => console.log("could not delete old event when saving new one")))
+			await this.cachingEntityClient.erase(oldEvent).catch(ofClass(NotFoundError, () => console.log("could not delete old event when saving new one")))
 		}
 
 		return await this.saveCalendarEvents(
@@ -229,10 +233,10 @@ export class CalendarFacade {
 		// Remove all alarms which belongs to the current user. We need to be careful about other users' alarms.
 		// Server takes care of the removed alarms,
 		event.alarmInfos = existingEvent.alarmInfos.filter((a) => !isSameId(listIdPart(a), userAlarmInfoListId)).concat(alarmInfoIds)
-		await this.entityClient.update(event)
+		await this.cachingEntityClient.update(event)
 
 		if (alarmNotifications.length > 0) {
-			const pushIdentifierList = await this.entityClient.loadAll(
+			const pushIdentifierList = await this.cachingEntityClient.loadAll(
 				PushIdentifierTypeRef,
 				neverNull(this.userFacade.getLoggedInUser().pushIdentifierList).list,
 			)
@@ -246,14 +250,14 @@ export class CalendarFacade {
 			groupData,
 		})
 		const returnData = await this.serviceExecutor.post(CalendarService, postData)
-		const group = await this.entityClient.load(GroupTypeRef, returnData.group)
+		const group = await this.cachingEntityClient.load(GroupTypeRef, returnData.group)
 		// remove the user from the cache before loading it again to make sure we get the latest version.
 		// otherwise we might not see the new calendar in case it is created at login and the websocket is not connected yet
 		const userId = this.userFacade.getLoggedInUser()._id
 
 		await this.entityRestCache.deleteFromCacheIfExists(UserTypeRef, null, userId)
 
-		const user = await this.entityClient.load(UserTypeRef, userId)
+		const user = await this.cachingEntityClient.load(UserTypeRef, userId)
 		this.userFacade.updateUser(user)
 		return {
 			user,
@@ -297,7 +301,7 @@ export class CalendarFacade {
 			return []
 		}
 
-		const userAlarmInfos = await this.entityClient.loadAll(UserAlarmInfoTypeRef, alarmInfoList.alarms)
+		const userAlarmInfos = await this.cachingEntityClient.loadAll(UserAlarmInfoTypeRef, alarmInfoList.alarms)
 		// Group referenced event ids by list id so we can load events of one list in one request.
 		const listIdToElementIds = groupByAndMapUniquely(
 			userAlarmInfos,
@@ -308,7 +312,7 @@ export class CalendarFacade {
 		// because there might be collisions between event element ids due to being custom ids
 		const eventIdToAlarmInfos = groupBy(userAlarmInfos, (userAlarmInfo) => getEventIdFromUserAlarmInfo(userAlarmInfo).join(""))
 		const calendarEvents = await promiseMap(listIdToElementIds.entries(), ([listId, elementIds]) => {
-			return this.entityClient.loadMultiple(CalendarEventTypeRef, listId, Array.from(elementIds)).catch((error) => {
+			return this.cachingEntityClient.loadMultiple(CalendarEventTypeRef, listId, Array.from(elementIds)).catch((error) => {
 				// handle NotAuthorized here because user could have been removed from group.
 				if (error instanceof NotAuthorizedError) {
 					console.warn("NotAuthorized when downloading alarm events", error)
@@ -333,23 +337,24 @@ export class CalendarFacade {
 	 *
 	 * @returns {CalendarEventUidIndexEntry}
 	 */
-	async getEventsByUid(uid: string): Promise<CalendarEventUidIndexEntry | null> {
+	async getEventsByUid(uid: string, cacheMode: CachingMode = CachingMode.Cached): Promise<CalendarEventUidIndexEntry | null> {
 		const { memberships } = this.userFacade.getLoggedInUser()
+		const entityClient = this.getEntityClient(cacheMode)
 		for (const membership of memberships) {
 			if (membership.groupType !== GroupType.Calendar) continue
 			try {
-				const groupRoot = await this.entityClient.load(CalendarGroupRootTypeRef, membership.group)
+				const groupRoot = await this.cachingEntityClient.load(CalendarGroupRootTypeRef, membership.group)
 				if (groupRoot.index == null) {
 					continue
 				}
 
-				const indexEntry: CalendarEventUidIndex = await this.entityClient.load<CalendarEventUidIndex>(CalendarEventUidIndexTypeRef, [
+				const indexEntry: CalendarEventUidIndex = await entityClient.load<CalendarEventUidIndex>(CalendarEventUidIndexTypeRef, [
 					groupRoot.index.list,
 					uint8arrayToCustomId(hashUid(uid)),
 				])
 
-				const progenitor: CalendarEventProgenitor | null = await loadProgenitorFromIndexEntry(this.entityClient, indexEntry)
-				const alteredInstances: Array<CalendarEventAlteredInstance> = await loadAlteredInstancesFromIndexEntry(this.entityClient, indexEntry)
+				const progenitor: CalendarEventProgenitor | null = await loadProgenitorFromIndexEntry(entityClient, indexEntry)
+				const alteredInstances: Array<CalendarEventAlteredInstance> = await loadAlteredInstancesFromIndexEntry(entityClient, indexEntry)
 				return { progenitor, alteredInstances, ownerGroup: assertNotNull(indexEntry._ownerGroup, "ownergroup on index entry was null!") }
 			} catch (e) {
 				if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
@@ -464,7 +469,7 @@ export class CalendarFacade {
 			userAlarmInfoAndNotification.map(({ alarm }) => alarm),
 		)
 
-		const alarmIds: Array<Id> = await this.entityClient.setupMultipleEntities(userAlarmInfoListId, allAlarms)
+		const alarmIds: Array<Id> = await this.cachingEntityClient.setupMultipleEntities(userAlarmInfoListId, allAlarms)
 		let currentIndex = 0
 		return userAlarmInfosAndNotificationsPerEvent.map(({ event, userAlarmInfoAndNotification }) => {
 			return {
@@ -473,6 +478,14 @@ export class CalendarFacade {
 				alarmNotifications: userAlarmInfoAndNotification.map(({ alarmNotification }) => alarmNotification),
 			}
 		})
+	}
+
+	private getEntityClient(cacheMode: CachingMode): EntityClient {
+		if (cacheMode === CachingMode.Cached) {
+			return this.cachingEntityClient
+		} else {
+			return this.noncachingEntityClient
+		}
 	}
 }
 
@@ -562,4 +575,9 @@ async function loadProgenitorFromIndexEntry(entityClient: EntityClient, indexEnt
 	}
 	assertNotNull(loadedProgenitor.uid, "loaded progenitor has no UID")
 	return loadedProgenitor as CalendarEventProgenitor
+}
+
+export const enum CachingMode {
+	Cached,
+	Bypass,
 }

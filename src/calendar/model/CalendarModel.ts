@@ -35,8 +35,8 @@ import { elementIdPart, getElementId, isSameId, listIdPart, removeTechnicalField
 import type { AlarmScheduler } from "../date/AlarmScheduler"
 import type { Notifications } from "../../gui/Notifications"
 import m from "mithril"
-import type { CalendarEventInstance, CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
-import { CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
+import type { CalendarEventInstance, CalendarEventProgenitor, CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
+import { CachingMode, CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest"
 import { MembershipService } from "../../api/entities/sys/Services"
 import { FileController } from "../../file/FileController"
@@ -310,7 +310,11 @@ export class CalendarModel {
 		// 1. calendarData has one event and it's the progenitor
 		// 2. calendarData has one event and it's an altered occurrence
 		// 3. it's both (thunderbird sends ical files with multiple events)
-		const dbEvents = await this.calendarFacade.getEventsByUid(calendarData.contents[0].event.uid)
+
+		// Load the events bypassing the cache because we might have already processed some updates and they might have changed the events we are about to load.
+		// We want to operate on the latest events only, otherwise we might lose some data.
+		const dbEvents = await this.calendarFacade.getEventsByUid(calendarData.contents[0].event.uid, CachingMode.Bypass)
+
 		if (dbEvents == null) {
 			// if we ever want to display event invites in the calendar before accepting them,
 			// we probably need to do something else here.
@@ -397,15 +401,12 @@ export class CalendarModel {
 				dbTarget.alteredInstances.map((r) => r.recurrenceId),
 				this.zone,
 			)
-		} else if (updateEvent.recurrenceId != null && dbTarget.progenitor != null && dbTarget.progenitor.repeatRule != null) {
-			// the update is for an altered instance we already have in the calendar. we need to make sure it is
-			// excluded from the progenitor, if it exists and if it repeats. we'll ignore the nonsensical case where
-			// we have an altered instance update for a non-repeating progenitor.
-			const updatedProgenitor = clone(dbTarget.progenitor)
-			updatedProgenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(dbTarget.progenitor, [updateEvent.recurrenceId], this.zone)
-			await this.doUpdateEvent(dbTarget.progenitor, updatedProgenitor)
 		}
-		await this.updateEventWithExternal(dbEvent, updateEvent)
+		// If the update is for the altered occurrence, we do not need to update the progenitor, it already has the exclusion.
+		// If we get into this function we already have the altered occurrence in db.
+
+		// write the progenitor back to the uid index entry so that the subsequent updates from the same file get the updated instance
+		dbTarget.progenitor = (await this.updateEventWithExternal(dbEvent, updateEvent)) as CalendarEventProgenitor
 	}
 
 	/**
@@ -426,7 +427,7 @@ export class CalendarModel {
 			// since not all calendar apps add altered instances to the list of exclusions.
 			const updatedProgenitor = clone(dbTarget.progenitor)
 			updatedProgenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(updatedProgenitor, [updateEvent.recurrenceId], this.zone)
-			await this.doUpdateEvent(dbTarget.progenitor, updatedProgenitor)
+			dbTarget.progenitor = (await this.doUpdateEvent(dbTarget.progenitor, updatedProgenitor)) as CalendarEventProgenitor
 		} else if (updateEvent.recurrenceId == null && updateEvent.repeatRule != null && dbTarget.alteredInstances.length > 0) {
 			// request to add the progenitor to the calendar. we have to exclude all altered instances that are known to us from it.
 			updateEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(
