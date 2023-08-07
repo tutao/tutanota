@@ -55,7 +55,9 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 						if (e instanceof UpgradeRequiredError) {
 							const ordered = await showPlanUpgradeRequiredDialog(e.plans, e.message)
 							if (!ordered) return
-							participation.setParticipation(status)
+							await participation.setParticipation(status)
+						} else {
+							throw e
 						}
 					}
 				},
