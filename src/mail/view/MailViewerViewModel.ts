@@ -708,7 +708,7 @@ export class MailViewerViewModel {
 
 		if (calendarFile && (mail.method === MailMethod.ICAL_REQUEST || mail.method === MailMethod.ICAL_REPLY) && mail.state === MailState.RECEIVED) {
 			Promise.all([
-				import("../../calendar/date/CalendarInvites").then(({ getEventsFromFile }) => getEventsFromFile(calendarFile)),
+				import("../../calendar/date/CalendarInvites").then(({ getEventsFromFile }) => getEventsFromFile(calendarFile, mail.confidential)),
 				this.getSenderOfResponseMail(),
 			]).then(([contents, recipient]) => {
 				this.calendarEventAttachment =
