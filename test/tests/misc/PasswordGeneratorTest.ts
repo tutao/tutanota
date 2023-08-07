@@ -55,7 +55,7 @@ o.spec("PasswordGenerator", function () {
 
 			// check edge cases to see if scaling is uniform/correct
 			// easiest way to check edge cases is with a graphic calculator, type in functions and check where they intersect
-			// FIXME these test do not work anymore as we changed the range from 3Bytes to 2Bytes
+			// TODO these test do not work anymore as we changed the range from 3Bytes to 2Bytes
 
 			// const lowerBoundFor7 = 11744052
 			// const upperBoundFor7 = 13421772

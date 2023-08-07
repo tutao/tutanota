@@ -78,7 +78,7 @@ o.spec("Randomizer", function () {
 			o(count >= 500).equals(true) // uniform distribution would mean that each possible number occured 625 times (80%)
 		}
 		let lowerHalfPercent = (100 / (runs * bytesPerRun)) * lowerHalfCount
-		o(lowerHalfPercent > 49 && lowerHalfPercent < 51).equals(true)("distribution should be nearly uniform") // FIXME generate image from RNG to visualize performance:
+		o(lowerHalfPercent > 49 && lowerHalfPercent < 51).equals(true)("distribution should be nearly uniform") // TODO generate image from RNG to visualize performance:
 		// http://boallen.com/random-numbers.html
 	})
 })
