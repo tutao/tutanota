@@ -30,6 +30,7 @@ import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade"
 import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade"
 import { InfoMessageHandler } from "../../../../../src/gui/InfoMessageHandler.js"
 import { ConnectionError } from "../../../../../src/api/common/error/RestError.js"
+import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
 
 o.spec("CalendarFacadeTest", async function () {
 	let userAlarmInfoListId: Id
@@ -125,6 +126,7 @@ o.spec("CalendarFacadeTest", async function () {
 			userFacade,
 			groupManagementFacade,
 			entityRestCache,
+			new EntityClient(entityRestCache),
 			nativeMock,
 			workerMock,
 			instanceMapper,
@@ -155,7 +157,7 @@ o.spec("CalendarFacadeTest", async function () {
 
 			// @ts-ignore
 			sendAlarmNotificationsMock = mockAttribute(calendarFacade, calendarFacade.sendAlarmNotifications, () => Promise.resolve())
-			enitityClientLoadAllMock = mockAttribute(calendarFacade.entityClient, calendarFacade.entityClient.loadAll, loadAllMock)
+			enitityClientLoadAllMock = mockAttribute(calendarFacade.cachingEntityClient, calendarFacade.cachingEntityClient.loadAll, loadAllMock)
 			entityRequestMock = mockAttribute(restClientMock, restClientMock.setupMultiple, requestSpy)
 		})
 		o.afterEach(async function () {
