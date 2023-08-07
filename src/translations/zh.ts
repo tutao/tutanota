@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2023-07-29T01:28:34Z",
+	"updated_at": "2023-08-04T10:30:41Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1146,6 +1146,7 @@ export default {
 		"whitelabelRegistrationCode_label": "注册码",
 		"whitelabelRegistrationEmailDomain_label": "注册邮件域名",
 		"whitelabel_label": "白标签",
+		"who_label": "谁",
 		"work_label": "公司",
 		"wrongUserCsvFormat_msg": "请修正您的CSV格式为：{format}",
 		"xing_label": "XING",
