@@ -91,9 +91,13 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 	new CalendarEventPopup(viewModel, eventBubbleRect, htmlSanitizer).show()
 }
 
-export async function getEventsFromFile(file: TutanotaFile): Promise<ParsedIcalFileContent> {
+export async function getEventsFromFile(file: TutanotaFile, invitedConfidentially: boolean): Promise<ParsedIcalFileContent> {
 	const dataFile = await locator.fileController.getAsDataFile(file)
-	return await getParsedEvent(dataFile)
+	const contents = await getParsedEvent(dataFile)
+	for (const event of contents?.events ?? []) {
+		event.invitedConfidentially = invitedConfidentially
+	}
+	return contents
 }
 
 /**
