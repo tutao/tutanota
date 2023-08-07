@@ -74,6 +74,9 @@ export class CalendarNotificationModel {
 		}
 		const newAttendees = getNonOrganizerAttendees(event).filter((a) => a.status === CalendarAttendeeStatus.ADDED)
 		await inviteModel.waitForResolvedRecipients()
+		if (event.invitedConfidentially != null) {
+			inviteModel.setConfidential(event.invitedConfidentially)
+		}
 		await this.notificationSender.sendInvite(event, inviteModel)
 		for (const attendee of newAttendees) {
 			if (attendee.status === CalendarAttendeeStatus.ADDED) {
@@ -86,6 +89,9 @@ export class CalendarNotificationModel {
 		const updatedEvent = clone(event)
 
 		try {
+			if (event.invitedConfidentially != null) {
+				cancelModel.setConfidential(event.invitedConfidentially)
+			}
 			await this.notificationSender.sendCancellation(updatedEvent, cancelModel)
 		} catch (e) {
 			if (e instanceof TooManyRequestsError) {
@@ -98,6 +104,9 @@ export class CalendarNotificationModel {
 
 	private async sendUpdates(event: CalendarEvent, updateModel: SendMailModel): Promise<void> {
 		await updateModel.waitForResolvedRecipients()
+		if (event.invitedConfidentially != null) {
+			updateModel.setConfidential(event.invitedConfidentially)
+		}
 		await this.notificationSender.sendUpdate(event, updateModel)
 	}
 
@@ -110,6 +119,10 @@ export class CalendarNotificationModel {
 	 */
 	private async respondToOrganizer(newEvent: CalendarEvent, responseModel: SendMailModel): Promise<void> {
 		await responseModel.waitForResolvedRecipients()
+		if (newEvent.invitedConfidentially != null) {
+			responseModel.setConfidential(newEvent.invitedConfidentially)
+		}
+
 		await this.notificationSender.sendResponse(newEvent, responseModel)
 		responseModel.dispose()
 	}
