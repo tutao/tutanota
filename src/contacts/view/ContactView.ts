@@ -5,7 +5,7 @@ import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { ContactEditor } from "../ContactEditor"
 import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
-import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { ContactTypeRef, createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactListView } from "./ContactListView"
 import { lang } from "../../misc/LanguageViewModel"
 import { assertNotNull, clear, getFirstOrThrow, noOp, ofClass } from "@tutao/tutanota-utils"
@@ -57,12 +57,14 @@ import { EnterMultiselectIconButton } from "../../gui/EnterMultiselectIconButton
 import { selectionAttrsForList } from "../../misc/ListModel.js"
 import { ContactViewModel } from "./ContactViewModel.js"
 import { listSelectionKeyboardShortcuts } from "../../gui/base/ListUtils.js"
-import { ContactListInfo, ContactListViewModel } from "./ContactListViewModel.js"
+import { ContactListViewModel } from "./ContactListViewModel.js"
 import { ContactListRecipientView } from "./ContactListRecipientView.js"
 import { showContactListEditor, showContactListNameEditor } from "../ContactListEditor.js"
 import { ContactListEntryViewer, getContactListEntriesSelectionMessage } from "./ContactListEntryViewer.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
+import { ContactListInfo } from "../model/ContactModel.js"
+import { CONTACTLIST_PREFIX } from "../../misc/RouteChange.js"
 
 assertMainOrNode()
 
@@ -80,6 +82,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	private contactViewModel: ContactViewModel
 	private contactListViewModel: ContactListViewModel
 	private detailsColumn: ViewColumn
+	private invitationRows: Children
 
 	oncreate: TopLevelView["oncreate"]
 	onremove: TopLevelView["onremove"]
@@ -120,6 +123,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			size.first_col_max_width,
 			() => lang.get("folderTitle_label"),
 		)
+
 		this.listColumn = new ViewColumn(
 			{
 				view: () =>
@@ -236,20 +240,29 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 								}),
 							]),
 							primaryAction: () => {
-								return m(IconButton, {
-									title: () => "Add Recipients",
-									click: () => this.addRecipientsToList(),
-									icon: Icons.Add,
-								})
+								if (this.canEditSelectedContactList()) {
+									return m(IconButton, {
+										title: "addEntries_action",
+										click: () => this.addRecipientsToList(),
+										icon: Icons.Add,
+									})
+								} else {
+									return null
+								}
 							},
 					  }),
 		})
 	}
 
-	private detailsViewerActions() {
+	private canEditSelectedContactList(): boolean {
+		const contactListInfo = this.contactListViewModel.getSelectedContactListInfo()
+		return contactListInfo != null && contactListInfo.canEdit
+	}
+
+	private detailsViewerActions(): Children {
 		if (this.inContactListView()) {
 			const recipients = this.contactListViewModel.getSelectedContactListEntries()
-			if (recipients && recipients.length > 0) {
+			if (recipients && recipients.length > 0 && this.canEditSelectedContactList()) {
 				return m(IconButton, {
 					title: "delete_action",
 					icon: Icons.Trash,
@@ -269,7 +282,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 
 	private inContactListView() {
-		return m.route.get().startsWith("/contactlist")
+		return m.route.get().startsWith(CONTACTLIST_PREFIX)
 	}
 
 	private showingListView() {
@@ -279,6 +292,8 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 
 	view({ attrs }: Vnode<ContactViewAttrs>): Children {
+		this.getContactListInvitationRows()
+
 		return m(
 			"#contact.main-view",
 			m(this.viewSlider, {
@@ -297,7 +312,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.detailsColumn && !this.showingListView()
 						? this.inContactListView()
 							? m(MobileContactActionBar, {
-									deleteAction: () => this.contactListViewModel.deleteSelectedEntries(),
+									deleteAction: this.canEditSelectedContactList() ? () => this.contactListViewModel.deleteSelectedEntries() : undefined,
 							  })
 							: m(MobileContactActionBar, {
 									editAction: () => this.editSelectedContact(),
@@ -456,12 +471,47 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					}),
 				},
 				[
-					this.contactListViewModel.getContactListInfo().map((tl) => {
-						return this.renderContactListRow(tl)
+					this.contactListViewModel.getOwnContactListInfos().map((cl) => {
+						return this.renderContactListRow(cl, false)
 					}),
 				],
 			),
+			this.contactListViewModel.getSharedContactListInfos().length > 0
+				? m(
+						"",
+						m(
+							SidebarSection,
+							{
+								name: "sharedContactLists_label",
+							},
+							this.contactListViewModel.getSharedContactListInfos().map((cl) => {
+								return this.renderContactListRow(cl, true)
+							}),
+						),
+				  )
+				: null,
+			this.contactListViewModel.getContactListInvitations().length > 0
+				? m(
+						SidebarSection,
+						{
+							name: "contactListInvitations_label",
+						},
+						this.invitationRows,
+				  )
+				: null,
 		]
+	}
+
+	private getContactListInvitationRows() {
+		import("../../sharing/view/GroupInvitationFolderRow.js")
+			.then(({ GroupInvitationFolderRow }) => {
+				this.invitationRows = this.contactListViewModel.getContactListInvitations().map((invitation) =>
+					m(GroupInvitationFolderRow, {
+						invitation,
+					}),
+				)
+			})
+			.then(m.redraw)
 	}
 
 	private renderFolderMoreButton(): Children {
@@ -503,19 +553,19 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		)
 	}
 
-	private renderContactListRow(contactListInfo: ContactListInfo) {
+	private renderContactListRow(contactListInfo: ContactListInfo, shared: boolean) {
 		const contactListButton: NavButtonAttrs = {
 			label: () => contactListInfo.name,
 			icon: () => Icons.People,
-			href: () => `/contactlist/${contactListInfo.groupRoot.recipients}`,
+			href: () => `${CONTACTLIST_PREFIX}/${contactListInfo.groupRoot.entries}`,
 			disableHoverBackground: true,
 			click: () => {
-				this.contactListViewModel.updateSelectedContactList(contactListInfo.groupRoot.recipients)
+				this.contactListViewModel.updateSelectedContactList(contactListInfo.groupRoot.entries)
 				this.viewSlider.focus(this.listColumn)
 			},
 		}
 
-		const moreButton = this.createContactListMoreButton(contactListInfo)
+		const moreButton = this.createContactListMoreButton(contactListInfo, shared)
 
 		return m(".folders.mlr-button.border-radius-small.state-bg", { style: { background: isNavButtonSelected(contactListButton) ? stateBgHover : "" } }, [
 			m(".folder-row.flex-space-between.plr-button.row-selected", [
@@ -530,7 +580,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		])
 	}
 
-	createContactListMoreButton(contactListInfo: ContactListInfo) {
+	createContactListMoreButton(contactListInfo: ContactListInfo, shared: boolean) {
 		return attachDropdown({
 			mainButtonAttrs: {
 				title: "more_label",
@@ -544,23 +594,63 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 						label: "edit_action",
 						icon: Icons.Edit,
 						click: () => {
-							showContactListNameEditor(contactListInfo.name, (newName) =>
-								this.contactListViewModel.updateContactList(contactListInfo, newName, []),
-							)
+							showContactListNameEditor(contactListInfo.name, (newName) => {
+								if (shared) {
+									this.editSharedContactList(contactListInfo, newName)
+								} else {
+									this.contactListViewModel.updateContactList(contactListInfo, newName, [])
+								}
+							})
 						},
 					},
 					{
-						label: "delete_action",
-						icon: Icons.Trash,
+						label: "sharing_label",
+						icon: Icons.ContactImport,
 						click: async () => {
-							if (await Dialog.confirm("confirmDeleteContactList_msg")) {
-								this.contactListViewModel.deleteContactList(contactListInfo)
-							}
+							const { showGroupSharingDialog } = await import("../../sharing/view/GroupSharingDialog.js")
+							showGroupSharingDialog(contactListInfo.groupInfo, true)
 						},
 					},
+					contactListInfo.isOwner
+						? {
+								label: "delete_action",
+								icon: Icons.Trash,
+								click: async () => {
+									if (await Dialog.confirm("confirmDeleteContactList_msg")) {
+										this.contactListViewModel.deleteContactList(contactListInfo)
+									}
+								},
+						  }
+						: {
+								label: "leaveGroup_action",
+								icon: Icons.Trash,
+								click: async () => {
+									if (await Dialog.confirm(() => lang.get("confirmLeaveSharedGroup_msg", { "{groupName}": contactListInfo.name }))) {
+										return this.contactListViewModel.removeUserFromContactList(contactListInfo)
+									}
+								},
+						  },
 				]
 			},
 		})
+	}
+
+	private editSharedContactList(contactListInfo: ContactListInfo, newName: string) {
+		const { userSettingsGroupRoot } = locator.logins.getUserController()
+		const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === contactListInfo.groupInfo.group) ?? null
+
+		if (existingGroupSettings) {
+			existingGroupSettings.name = newName
+		} else {
+			const newGroupSettings = Object.assign(createGroupSettings(), {
+				group: contactListInfo.group,
+				name: newName,
+			})
+		}
+
+		locator.entityClient.update(userSettingsGroupRoot)
+		// Updating the contactListInfo.name directly, so it updates for the user right away
+		contactListInfo.name = newName
 	}
 
 	_mergeAction(): Promise<void> {
@@ -704,17 +794,20 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 	private renderListToolbar() {
 		if (this.inContactListView()) {
+			const selectedList = this.contactListViewModel.getSelectedContactListInfo()
 			return m(
 				DesktopListToolbar,
 				m(SelectAllCheckbox, selectionAttrsForList(this.contactListViewModel.listModel)),
 				m(".flex-grow"),
-				m(IconButton, {
-					title: "addEntries_action",
-					icon: Icons.Add,
-					click: () => {
-						this.addRecipientsToList()
-					},
-				}),
+				this.canEditSelectedContactList()
+					? m(IconButton, {
+							title: "addEntries_action",
+							icon: Icons.Add,
+							click: () => {
+								this.addRecipientsToList()
+							},
+					  })
+					: null,
 			)
 		} else {
 			return m(DesktopListToolbar, m(SelectAllCheckbox, selectionAttrsForList(this.contactViewModel.listModel)), this.renderSortByButton())

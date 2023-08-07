@@ -9,7 +9,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import { getMailAddressDisplayText } from "../../mail/model/MailUtils"
 import { ButtonType } from "../../gui/base/Button.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
-import { ShareCapability } from "../../api/common/TutanotaConstants"
+import { GroupType, ShareCapability } from "../../api/common/TutanotaConstants"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import { PreconditionFailedError, TooManyRequestsError } from "../../api/common/error/RestError"
 import { TextField } from "../../gui/base/TextField.js"
@@ -30,7 +30,7 @@ import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js
 
 export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {
 	const groupType = downcast(assertNotNull(groupInfo.groupType))
-	assert(isShareableGroupType(downcast(groupInfo.groupType)), `Group type "${groupType}" must be shareable`)
+	assert(isShareableGroupType(groupInfo.groupType as GroupType), `Group type "${groupType}" must be shareable`)
 	const texts = getTextsForGroupType(groupType)
 	const recipientsModel = await locator.recipientsModel()
 	showProgressDialog(
@@ -243,8 +243,6 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 							const { getAvailablePlansWithSharing } = await import("../../subscription/SubscriptionUtils.js")
 							const plans = await getAvailablePlansWithSharing()
 							await showPlanUpgradeRequiredDialog(plans)
-						} else {
-							Dialog.message(() => `${texts.sharingNotOrderedUser} ${lang.get("contactAdmin_msg")}`)
 						}
 					} else if (e instanceof UserError) {
 						showUserError(e)

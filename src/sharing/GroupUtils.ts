@@ -112,17 +112,19 @@ export function loadReceivedGroupInvitations(
 // Group invitations without a type set were sent when Calendars were the only shareable kind of user group
 const DEFAULT_GROUP_TYPE = GroupType.Calendar
 
-export function getInvitationGroupType(invitation: ReceivedGroupInvitation): GroupType {
-	return invitation.groupType === null ? DEFAULT_GROUP_TYPE : downcast(invitation.groupType)
+export function getInvitationGroupType(invitation: ReceivedGroupInvitation): ShareableGroupType {
+	return invitation.groupType === null ? DEFAULT_GROUP_TYPE : (invitation.groupType as ShareableGroupType)
 }
 
 export function isTemplateGroup(groupType: GroupType): boolean {
 	return groupType === GroupType.Template
 }
 
-export function isShareableGroupType(groupType: GroupType): boolean {
+export type ShareableGroupType = GroupType.Calendar | GroupType.Template | GroupType.ContactList
+
+export function isShareableGroupType(groupType: GroupType): groupType is ShareableGroupType {
 	// Should be synchronised with GroupType::isShareableGroup in tutadb
-	return groupType === GroupType.Calendar || groupType === GroupType.Template
+	return groupType === GroupType.Calendar || groupType === GroupType.Template || groupType === GroupType.ContactList
 }
 
 export const TemplateGroupPreconditionFailedReason = Object.freeze({

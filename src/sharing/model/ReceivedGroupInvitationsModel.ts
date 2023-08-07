@@ -1,41 +1,38 @@
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
 import { ReceivedGroupInvitationTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { EntityClient } from "../../api/common/EntityClient"
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
-import { getInvitationGroupType, loadReceivedGroupInvitations } from "../GroupUtils"
-import type { GroupType } from "../../api/common/TutanotaConstants"
+import { getInvitationGroupType, loadReceivedGroupInvitations, ShareableGroupType } from "../GroupUtils"
 import { OperationType } from "../../api/common/TutanotaConstants"
 import type { LoginController } from "../../api/main/LoginController"
 import { getLetId, isSameId } from "../../api/common/utils/EntityUtils"
 import { promiseMap } from "@tutao/tutanota-utils"
-import Stream from "mithril/stream"
 
-export class ReceivedGroupInvitationsModel {
+export class ReceivedGroupInvitationsModel<TypeOfGroup extends ShareableGroupType> {
 	readonly invitations: Stream<Array<ReceivedGroupInvitation>>
-	readonly groupType: GroupType
-	eventController: EventController
-	entityClient: EntityClient
-	logins: LoginController
 
-	constructor(groupType: GroupType, eventController: EventController, entityClient: EntityClient, logins: LoginController) {
+	constructor(
+		private readonly groupType: TypeOfGroup,
+		private readonly eventController: EventController,
+		private readonly entityClient: EntityClient,
+		private readonly logins: LoginController,
+	) {
 		this.invitations = stream<Array<ReceivedGroupInvitation>>([])
-		this.groupType = groupType
-		this.eventController = eventController
-		this.entityClient = entityClient
-		this.logins = logins
 	}
 
 	init() {
 		this.eventController.addEntityListener(this.entityEventsReceived)
 		loadReceivedGroupInvitations(this.logins.getUserController(), this.entityClient, this.groupType).then((invitations) =>
-			this.invitations(invitations.filter((invitation) => this.hasCorrectGroupType(invitation))),
+			this.invitations(invitations.filter((invitation) => this.hasMatchingGroupType(invitation))),
 		)
 	}
 
 	dispose() {
 		this.eventController.removeEntityListener(this.entityEventsReceived)
+		this.invitations.end(true)
 	}
 
 	private readonly entityEventsReceived = (updates: ReadonlyArray<EntityUpdateData>) => {
@@ -45,7 +42,7 @@ export class ReceivedGroupInvitationsModel {
 
 				if (update.operation === OperationType.CREATE) {
 					return this.entityClient.load(ReceivedGroupInvitationTypeRef, updateId).then((invitation) => {
-						if (this.hasCorrectGroupType(invitation)) {
+						if (this.hasMatchingGroupType(invitation)) {
 							this.invitations(this.invitations().concat(invitation))
 						}
 					})
@@ -56,7 +53,7 @@ export class ReceivedGroupInvitationsModel {
 		})
 	}
 
-	hasCorrectGroupType(invitation: ReceivedGroupInvitation): boolean {
+	private hasMatchingGroupType(invitation: ReceivedGroupInvitation): boolean {
 		return getInvitationGroupType(invitation) === this.groupType
 	}
 }

@@ -53,7 +53,7 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 							".plr-l.pt.pb.mlr-safe-inset",
 							lang.get("noContactFound_msg"),
 							m(Button, {
-								label: () => "Create Contact",
+								label: "createContact_action",
 								click: () => {
 									let newContact = createContact()
 									let newAddress = createContactMailAddress({
