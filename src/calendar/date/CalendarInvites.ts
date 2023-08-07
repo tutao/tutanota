@@ -194,7 +194,9 @@ export async function getResponseModelForMail(previousMail: Mail, responder: str
 		new Map(),
 	)
 	await model.addRecipient(RecipientField.TO, previousMail.sender, ResolveMode.Eager)
-	const toRecipients = await model.toRecipientsResolved()
-	model.setConfidential(toRecipients[0]?.contact?.presharedPassword != null)
+	// Send confidential reply to confidential mails and the other way around.
+	// If the contact is removed or the password is not there the user would see an error but they wouldn't be
+	// able to reply anyway (unless they fix it).
+	model.setConfidential(previousMail.confidential)
 	return model
 }
