@@ -97,6 +97,7 @@ import { SearchRouter } from "../../search/view/SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
 import { InboxRuleHandler } from "../../mail/model/InboxRuleHandler.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../../gui/ScopedRouter.js"
+import { ShareableGroupType } from "../../sharing/GroupUtils.js"
 
 assertMainOrNode()
 
@@ -272,18 +273,21 @@ class MainLocator {
 			this.logins,
 			this.eventController,
 			this.contactModel,
+			await this.receivedGroupInvitationsModel(GroupType.ContactList),
 			router,
 			await this.redraw(),
 		)
 	})
 
-	async calendarViewModel(): Promise<CalendarViewModel> {
+	async receivedGroupInvitationsModel<TypeOfGroup extends ShareableGroupType>(groupType: TypeOfGroup): Promise<ReceivedGroupInvitationsModel<TypeOfGroup>> {
 		const { ReceivedGroupInvitationsModel } = await import("../../sharing/model/ReceivedGroupInvitationsModel.js")
+		return new ReceivedGroupInvitationsModel<TypeOfGroup>(groupType, this.eventController, this.entityClient, this.logins)
+	}
+
+	async calendarViewModel(): Promise<CalendarViewModel> {
 		const { CalendarViewModel } = await import("../../calendar/view/CalendarViewModel.js")
 		const { DefaultDateProvider } = await import("../../calendar/date/CalendarUtils")
 		const timeZone = new DefaultDateProvider().timeZone()
-		const calendarInvitations = new ReceivedGroupInvitationsModel(GroupType.Calendar, this.eventController, this.entityClient, this.logins)
-		calendarInvitations.init()
 		return new CalendarViewModel(
 			this.logins,
 			async (mode: CalendarOperation, event: CalendarEvent) => {
@@ -296,7 +300,7 @@ class MainLocator {
 			this.eventController,
 			this.progressTracker,
 			deviceConfig,
-			calendarInvitations,
+			await this.receivedGroupInvitationsModel(GroupType.Calendar),
 			timeZone,
 		)
 	}

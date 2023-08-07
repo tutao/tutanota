@@ -1,6 +1,6 @@
 import { PartialRecipient, Recipient } from "../api/common/recipients/Recipient.js"
 import { RecipientsModel, ResolveMode } from "../api/main/RecipientsModel.js"
-import { ContactModel } from "../contacts/model/ContactModel.js"
+import { ContactListInfo, ContactModel } from "../contacts/model/ContactModel.js"
 import { isMailAddress } from "./FormatValidator.js"
 import { ofClass } from "@tutao/tutanota-utils"
 import { DbError } from "../api/common/error/DbError.js"
@@ -11,7 +11,6 @@ import { PermissionError } from "../api/common/error/PermissionError.js"
 import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
 import { MobileSystemFacade } from "../native/common/generatedipc/MobileSystemFacade.js"
 import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
-import { ContactListInfo } from "../contacts/view/ContactListViewModel.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 
 const MaxNativeSuggestions = 10
@@ -79,7 +78,7 @@ export class RecipientsSearchModel {
 	}
 
 	async resolveContactList(contactList: ContactListInfo): Promise<Array<Recipient>> {
-		const entries = await this.entityClient.loadAll(ContactListEntryTypeRef, contactList.groupRoot.recipients)
+		const entries = await this.entityClient.loadAll(ContactListEntryTypeRef, contactList.groupRoot.entries)
 		return entries.map((entry) => {
 			// it's okay to be lazy sometimes
 			// all the places anyway resolve the recipients when they need to

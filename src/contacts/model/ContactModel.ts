@@ -1,23 +1,33 @@
 import type { Contact, ContactList } from "../../api/entities/tutanota/TypeRefs.js"
-import { ContactListGroupRootTypeRef, ContactListTypeRef, ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { ContactListGroupRoot, ContactListGroupRootTypeRef, ContactListTypeRef, ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { createRestriction } from "../../search/model/SearchUtils"
-import { groupBy, identity, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { groupBy, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
 import { DbError } from "../../api/common/error/DbError"
 import { EntityClient } from "../../api/common/EntityClient"
 import type { LoginController } from "../../api/main/LoginController"
-import { compareOldestFirst, elementIdPart, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
+import { compareOldestFirst, elementIdPart, getEtId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
 import type { SearchFacade } from "../../api/worker/search/SearchFacade"
 import { assertMainOrNode } from "../../api/common/Env"
 import { LoginIncompleteError } from "../../api/common/error/LoginIncompleteError"
 import { cleanMailAddress } from "../../api/common/utils/CommonCalendarUtils.js"
-import { ContactListInfo } from "../view/ContactListViewModel.js"
-import { GroupInfo, GroupInfoTypeRef, GroupMembership, UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef, UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { EntityEventsListener, EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
+import { ShareCapability } from "../../api/common/TutanotaConstants.js"
+import { isSharedGroupOwner } from "../../sharing/GroupUtils.js"
 
 assertMainOrNode()
+
+export type ContactListInfo = {
+	name: string
+	groupInfo: GroupInfo
+	group: Group
+	groupRoot: ContactListGroupRoot
+	isOwner: boolean
+	canEdit: boolean
+}
 
 export class ContactModel {
 	private contactListId: LazyLoaded<Id | null>
@@ -43,9 +53,13 @@ export class ContactModel {
 	}
 
 	/** might be empty if not loaded yet */
-	getContactListInfos(): Stream<ReadonlyArray<ContactListInfo>> {
-		// defensive clone
-		return this.contactListInfo.map(identity)
+	getOwnContactListInfos(): Stream<ReadonlyArray<ContactListInfo>> {
+		return this.contactListInfo.map((contactListInfos) => contactListInfos.filter((info) => info.isOwner))
+	}
+
+	/** might be empty if not loaded yet */
+	getSharedContactListInfos(): Stream<ReadonlyArray<ContactListInfo>> {
+		return this.contactListInfo.map((contactListInfos) => contactListInfos.filter((info) => !info.isOwner))
 	}
 
 	/** Id of the contact list. Is null for external users. */
@@ -144,8 +158,12 @@ export class ContactModel {
 		const contactListInfo = (
 			await promiseMap(
 				await promiseMap(contactListMemberships, (rlm: GroupMembership) => this.entityClient.load(GroupInfoTypeRef, rlm.groupInfo)),
-				// we might still have a membership for a short time when the group root is already deleted
-				(groupInfo) => this.getContactListInfo(groupInfo).catch(ofClass(NotFoundError, () => null)),
+				// need to catch both NotFoundError and NotAuthorizedError, as we might still have a membership for a short time
+				// when the group root is already deleted, or we deleted our membership
+				(groupInfo) =>
+					this.getContactListInfo(groupInfo)
+						.catch(ofClass(NotFoundError, () => null))
+						.catch(ofClass(NotAuthorizedError, () => null)),
 			)
 		).filter(isNotNull)
 
@@ -153,14 +171,20 @@ export class ContactModel {
 	}
 
 	private async getContactListInfo(groupInfo: GroupInfo): Promise<ContactListInfo> {
+		const group = await this.entityClient.load(GroupTypeRef, groupInfo.group)
 		const groupRoot = await this.entityClient.load(ContactListGroupRootTypeRef, groupInfo.group)
+		const userController = this.loginController.getUserController()
 
 		const { getSharedGroupName } = await import("../../sharing/GroupUtils.js")
+		const { hasCapabilityOnGroup, isSharedGroupOwner } = await import("../../sharing/GroupUtils.js")
 
 		return {
-			name: getSharedGroupName(groupInfo, this.loginController.getUserController(), true),
+			name: getSharedGroupName(groupInfo, userController, true),
+			group,
 			groupInfo,
 			groupRoot,
+			isOwner: isSharedGroupOwner(group, getEtId(userController.user)),
+			canEdit: hasCapabilityOnGroup(userController.user, group, ShareCapability.Write),
 		}
 	}
 

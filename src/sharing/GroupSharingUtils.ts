@@ -22,7 +22,7 @@ export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipient
 				bcc,
 			},
 			texts.shareEmailSubject,
-			texts.shareEmailBody(getSharedGroupName(sharedGroupInfo, locator.logins.getUserController(), true), userName),
+			texts.shareEmailBody(userName, getSharedGroupName(sharedGroupInfo, locator.logins.getUserController(), true)),
 			senderMailAddress,
 		)
 	})
