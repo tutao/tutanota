@@ -114,6 +114,7 @@ export class CalendarEventPopupViewModel {
 			const model = await this.eventModelFactory(CalendarOperation.EditAll)
 			if (model) {
 				model.editModels.whoModel.setOwnAttendance(status)
+				model.editModels.whoModel.isConfidential = this.calendarEvent.invitedConfidentially ?? false
 				await model.apply()
 			} else {
 				this.ownAttendee.status = oldStatus
