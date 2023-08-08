@@ -398,11 +398,16 @@ export async function loadMailDetails(entityClient: EntityClient, mail: Mail): P
 	if (isLegacyMail(mail)) {
 		return entityClient.load(MailBodyTypeRef, neverNull(mail.body)).then((b) => MailWrapper.body(mail, b))
 	} else if (isDetailsDraft(mail)) {
-		return entityClient.load(MailDetailsDraftTypeRef, neverNull(mail.mailDetailsDraft)).then((d) => MailWrapper.details(mail, d.details))
+		return entityClient
+			.load(MailDetailsDraftTypeRef, neverNull(mail.mailDetailsDraft), undefined, undefined, undefined, mail._ownerEncSessionKey)
+			.then((d) => MailWrapper.details(mail, d.details))
 	} else {
 		const mailDetailsId = neverNull(mail.mailDetails)
+
+		const providedOwnerEncSessionKeys = new Map<Id, Uint8Array>()
+		providedOwnerEncSessionKeys.set(elementIdPart(mailDetailsId), assertNotNull(mail._ownerEncSessionKey))
 		return entityClient
-			.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsId), [elementIdPart(mailDetailsId)])
+			.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsId), [elementIdPart(mailDetailsId)], providedOwnerEncSessionKeys)
 			.then((d) => MailWrapper.details(mail, d[0].details))
 	}
 }

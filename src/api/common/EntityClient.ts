@@ -16,8 +16,15 @@ export class EntityClient {
 		this._target = target
 	}
 
-	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, query?: Dict, extraHeaders?: Dict, ownerKey?: Aes128Key): Promise<T> {
-		return this._target.load(typeRef, id, query, extraHeaders, ownerKey)
+	load<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		id: PropertyType<T, "_id">,
+		query?: Dict,
+		extraHeaders?: Dict,
+		ownerKey?: Aes128Key,
+		providedOwnerEncSessionKey?: Uint8Array | null,
+	): Promise<T> {
+		return this._target.load(typeRef, id, query, extraHeaders, ownerKey, providedOwnerEncSessionKey)
 	}
 
 	async loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start?: Id): Promise<T[]> {
@@ -74,8 +81,13 @@ export class EntityClient {
 	/**
 	 * load multiple does not guarantee order or completeness of returned elements.
 	 */
-	loadMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementIds: Id[]): Promise<T[]> {
-		return this._target.loadMultiple(typeRef, listId, elementIds)
+	loadMultiple<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id | null,
+		elementIds: Id[],
+		providedOwnerEncSessionKeys?: Map<Id, Uint8Array>,
+	): Promise<T[]> {
+		return this._target.loadMultiple(typeRef, listId, elementIds, providedOwnerEncSessionKeys)
 	}
 
 	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id> {

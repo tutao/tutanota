@@ -502,7 +502,14 @@ export class MailFacade {
 		if (isLegacyMail(draft)) {
 			return draft.replyTos
 		} else {
-			const mailDetails = await this.entityClient.load(MailDetailsDraftTypeRef, assertNotNull(draft.mailDetailsDraft, "draft without mailDetailsDraft"))
+			const mailDetails = await this.entityClient.load(
+				MailDetailsDraftTypeRef,
+				assertNotNull(draft.mailDetailsDraft, "draft without mailDetailsDraft"),
+				undefined,
+				undefined,
+				undefined,
+				draft._ownerEncSessionKey,
+			)
 			return mailDetails.details.replyTos
 		}
 	}

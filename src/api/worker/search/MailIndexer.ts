@@ -151,12 +151,14 @@ export class MailIndexer {
 					mailWrapper = await this._defaultCachingEntity.load(MailBodyTypeRef, neverNull(mail.body)).then((b) => MailWrapper.body(mail, b))
 				} else if (isDetailsDraft(mail)) {
 					mailWrapper = await this._defaultCachingEntity
-						.load(MailDetailsDraftTypeRef, neverNull(mail.mailDetailsDraft))
+						.load(MailDetailsDraftTypeRef, neverNull(mail.mailDetailsDraft), undefined, undefined, undefined, mail._ownerEncSessionKey)
 						.then((d) => MailWrapper.details(mail, d.details))
 				} else {
 					const mailDetailsBlobId = neverNull(mail.mailDetails)
+					const providedOwnerEncSessionKeys = new Map<Id, Uint8Array>()
+					providedOwnerEncSessionKeys.set(elementIdPart(mailDetailsBlobId), assertNotNull(mail._ownerEncSessionKey))
 					mailWrapper = await this._defaultCachingEntity
-						.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsBlobId), [elementIdPart(mailDetailsBlobId)])
+						.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsBlobId), [elementIdPart(mailDetailsBlobId)], providedOwnerEncSessionKeys)
 						.then((d) => MailWrapper.details(mail, d[0].details))
 				}
 				const files = await promiseMap(mail.attachments, (attachmentId) => this._defaultCachingEntity.load(FileTypeRef, attachmentId))
