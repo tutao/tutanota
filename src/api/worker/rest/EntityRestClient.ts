@@ -16,7 +16,7 @@ import type { lazy } from "@tutao/tutanota-utils"
 import { isSameTypeRef, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
-import { LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
+import { getElementId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
 import { Type } from "../../common/EntityConstants"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { expandId } from "./DefaultEntityRestCache.js"
@@ -47,8 +47,16 @@ export interface EntityRestInterface {
 	/**
 	 * Reads a single element from the server (or cache). Entities are decrypted before they are returned.
 	 * @param ownerKey Use this key to decrypt session key instead of trying to resolve the owner key based on the ownerGroup.
+	 * @param providedOwnerEncSessionKey use this key instead of instead of instance.ownerEncSessionKey (which might be undefined for MailDetails)
 	 */
-	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, queryParameters?: Dict, extraHeaders?: Dict, ownerKey?: Aes128Key): Promise<T>
+	load<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		id: PropertyType<T, "_id">,
+		queryParameters?: Dict,
+		extraHeaders?: Dict,
+		ownerKey?: Aes128Key,
+		providedOwnerEncSessionKey?: Uint8Array | null,
+	): Promise<T>
 
 	/**
 	 * Reads a range of elements from the server (or cache). Entities are decrypted before they are returned.
@@ -58,7 +66,12 @@ export interface EntityRestInterface {
 	/**
 	 * Reads multiple elements from the server (or cache). Entities are decrypted before they are returned.
 	 */
-	loadMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementIds: Array<Id>): Promise<Array<T>>
+	loadMultiple<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id | null,
+		elementIds: Array<Id>,
+		providedOwnerEncSessionKeys?: Map<Id, Uint8Array>,
+	): Promise<Array<T>>
 
 	/**
 	 * Creates a single element on the server. Entities are encrypted before they are sent.
@@ -117,6 +130,7 @@ export class EntityRestClient implements EntityRestInterface {
 		queryParameters?: Dict,
 		extraHeaders?: Dict,
 		ownerKey?: Aes128Key,
+		providedOwnerEncSessionKey?: Uint8Array | null,
 	): Promise<T> {
 		const { listId, elementId } = expandId(id)
 		const { path, queryParams, headers, typeModel } = await this._validateAndPrepareRestRequest(
@@ -134,6 +148,11 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 		const entity = JSON.parse(json)
 		const migratedEntity = await this._crypto.applyMigrations(typeRef, entity)
+
+		if (providedOwnerEncSessionKey) {
+			entity._ownerEncSessionKey = providedOwnerEncSessionKey
+		}
+
 		const sessionKey = ownerKey
 			? this._crypto.resolveSessionKeyWithOwnerKey(migratedEntity, ownerKey)
 			: await this._crypto.resolveSessionKey(typeModel, migratedEntity).catch(
@@ -170,7 +189,12 @@ export class EntityRestClient implements EntityRestInterface {
 		return this._handleLoadMultipleResult(typeRef, JSON.parse(json))
 	}
 
-	async loadMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementIds: Array<Id>): Promise<Array<T>> {
+	async loadMultiple<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id | null,
+		elementIds: Array<Id>,
+		providedOwnerEncSessionKeys?: Map<Id, Uint8Array>,
+	): Promise<Array<T>> {
 		const { path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, undefined, undefined)
 		const idChunks = splitInChunks(LOAD_MULTIPLE_LIMIT, elementIds)
 		const typeModel = await resolveTypeReference(typeRef)
@@ -189,7 +213,7 @@ export class EntityRestClient implements EntityRestInterface {
 					responseType: MediaType.Json,
 				})
 			}
-			return this._handleLoadMultipleResult(typeRef, JSON.parse(json))
+			return this._handleLoadMultipleResult(typeRef, JSON.parse(json), providedOwnerEncSessionKeys)
 		})
 		return loadedChunks.flat()
 	}
@@ -230,7 +254,11 @@ export class EntityRestClient implements EntityRestInterface {
 		return doBlobRequestWithRetry(doBlobRequest, doEvictToken)
 	}
 
-	async _handleLoadMultipleResult<T extends SomeEntity>(typeRef: TypeRef<T>, loadedEntities: Array<any>): Promise<Array<T>> {
+	async _handleLoadMultipleResult<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		loadedEntities: Array<any>,
+		providedOwnerEncSessionKeys?: Map<Id, Uint8Array>,
+	): Promise<Array<T>> {
 		const model = await resolveTypeReference(typeRef)
 
 		// PushIdentifier was changed in the system model v43 to encrypt the name.
@@ -241,7 +269,16 @@ export class EntityRestClient implements EntityRestInterface {
 			})
 		}
 
-		return promiseMap(loadedEntities, (instance) => this._decryptMapAndMigrate(instance, model), { concurrency: 5 })
+		return promiseMap(
+			loadedEntities,
+			(instance) => {
+				if (providedOwnerEncSessionKeys) {
+					instance._ownerEncSessionKey = providedOwnerEncSessionKeys.get(getElementId(instance))
+				}
+				return this._decryptMapAndMigrate(instance, model)
+			},
+			{ concurrency: 5 },
+		)
 	}
 
 	async _decryptMapAndMigrate<T>(instance: any, model: TypeModel): Promise<T> {

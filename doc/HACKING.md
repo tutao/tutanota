@@ -104,7 +104,7 @@ Most of the server database changes are reflected in the `EntityUpdate`s we rece
 which happened to the entity. Updates are grouped into `EntityEventBatch`es. These batches are ordered and client tries
 tp stay up-to-date with the server (for caching and indexing).
 
-## Workflow
+## Workflow and Testing
 
 ```bash
 node make
@@ -130,6 +130,12 @@ To run only specific tests:
 npm run test:app -- -f 'CalendarModel'
 ```
 
+To run only specific tests without npm:
+
+```bash
+node run test -f CalendarModel
+```
+
 To run tests in browser:
 
 ```bash
@@ -140,6 +146,12 @@ To run tests only in browser:
 
 ```bash
 npm run test:app -- --no-run -br
+```
+
+To show all test options:
+
+```bash
+npm:run test:app -- --help
 ```
 
 ## Chunking rules
