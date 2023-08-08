@@ -3,7 +3,6 @@ import {
 	base64ToUint8Array,
 	downcast,
 	isSameTypeRef,
-	isSameTypeRefByAttr,
 	neverNull,
 	noOp,
 	ofClass,
@@ -31,7 +30,6 @@ import {
 	ContactTypeRef,
 	createEncryptTutanotaPropertiesData,
 	createInternalRecipientKeyData,
-	MailTypeRef,
 	TutanotaPropertiesTypeRef,
 } from "../../entities/tutanota/TypeRefs.js"
 import { typeRefToPath } from "../rest/EntityRestClient"
@@ -45,6 +43,7 @@ import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
 import {
 	aes128Encrypt,
+	Aes128Key,
 	aes128RandomKey,
 	bitArrayToUint8Array,
 	decryptKey,
@@ -62,7 +61,6 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
 import { PublicKeyService, UpdatePermissionKeyService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
-import { Aes128Key } from "@tutao/tutanota-crypto"
 import { elementIdPart } from "../../common/utils/EntityUtils.js"
 import { InstanceMapper } from "./InstanceMapper.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
@@ -78,11 +76,6 @@ export function encryptString(sk: Aes128Key, value: string): Uint8Array {
 }
 
 export class CryptoFacade {
-	// stores a mapping from mail body id to mail body session key. the mail body of a mail is encrypted with the same session key as the mail.
-	// so when resolving the session key of a mail we cache it for the mail's body to avoid that the body's permission (+ bucket permission) have to be loaded.
-	// this especially improves the performance when indexing mail bodies
-	private readonly sessionKeyCache: Record<string, Aes128Key> = {}
-
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
@@ -197,19 +190,7 @@ export class CryptoFacade {
 					return null
 				}
 				const elementId = this.getElementIdFromInstance(instance)
-				const sessionKey = this.sessionKeyCache[elementId]
-				if (sessionKey) {
-					// Reasons for the session key cache:
-					// 1. Optimize resolving of session key for MailBody instances. Mail and MailBody share the same session key and we just want to laod the permission once.
-					// 2. MailDetails entities cannot resolve the session key on their own. We always need to load the mail first and then put the mail session key into the cache as they share the same session key.
-					// 3. With simplified permission system (BucketKey as AT on Mail) File instances cannot resolve the session key on their own, all session keys
-					// are stored in the BucketKey of the mail. We do write ownerEncSessionKeys for Files but we might need file session keys before the update owner enc session key round trip is finished.
-					// When we have ownerEncSessionKey we can remove the key from cache, but we need to keep it for MailDetails as we don't write ownerEncSessionKey for blob entities.
-					if (instance._ownerEncSessionKey != null) {
-						delete this.sessionKeyCache[elementId]
-					}
-					return sessionKey
-				} else if (instance.bucketKey) {
+				if (instance.bucketKey) {
 					// if we have a bucket key, then we need to cache the session keys stored in the bucket key for details, files, etc.
 					// we need to do this BEFORE we check the owner enc session key
 					const bucketKey = await this.convertBucketKeyToInstanceIfNecessary(instance.bucketKey)
@@ -227,19 +208,6 @@ export class CryptoFacade {
 					const permissions = await this.entityClient.loadAll(PermissionTypeRef, instance._permissions)
 					return this.trySymmetricPermission(permissions) ?? (await this.resolveWithPublicOrExternalPermission(permissions, instance, typeModel))
 				}
-			})
-			.then((sessionKey) => {
-				// store the mail session key for the mail body because it is the same
-				if (sessionKey && isSameTypeRefByAttr(MailTypeRef, typeModel.app, typeModel.name)) {
-					if (this.isTuple(instance.mailDetails)) {
-						this.setSessionKeyCacheWithTuple(instance.mailDetails, sessionKey)
-					} else if (this.isTuple(instance.mailDetailsDraft)) {
-						this.setSessionKeyCacheWithTuple(instance.mailDetailsDraft, sessionKey)
-					} else if (instance.body) {
-						this.setSessionKeyCacheWithElementId(instance.body, sessionKey)
-					}
-				}
-				return sessionKey
 			})
 			.catch(
 				ofClass(CryptoError, (e) => {
@@ -271,14 +239,6 @@ export class CryptoFacade {
 
 	private isTuple(element: unknown): element is IdTuple {
 		return element != null && Array.isArray(element)
-	}
-
-	private setSessionKeyCacheWithElementId(elementId: string, sessionKey: Aes128Key) {
-		this.sessionKeyCache[elementId] = sessionKey
-	}
-
-	private setSessionKeyCacheWithTuple(idTuple: IdTuple, sessionKey: Aes128Key) {
-		return this.setSessionKeyCacheWithElementId(elementIdPart(idTuple), sessionKey)
 	}
 
 	private trySymmetricPermission(listPermissions: Permission[]) {
@@ -343,9 +303,6 @@ export class CryptoFacade {
 			const decryptedSessionKey = decryptKey(decBucketKey, instanceSessionKey.symEncSessionKey)
 			if (instanceElementId == instanceSessionKey.instanceId) {
 				resolvedSessionKeyForInstance = decryptedSessionKey
-			} else {
-				// only but session keys to the cache that are referencing another instance (e.g. File)
-				this.setSessionKeyCacheWithElementId(instanceSessionKey.instanceId, decryptedSessionKey)
 			}
 			const ownerEncSessionKey = encryptKey(this.userFacade.getGroupKey(instance._ownerGroup), decryptedSessionKey)
 			const instanceSessionKeyWithOwnerEncSessionKey = createInstanceSessionKey(instanceSessionKey)
@@ -603,13 +560,6 @@ export class CryptoFacade {
 					console.log("Could not update owner enc session key - PayloadTooLargeError", e)
 				}),
 			)
-	}
-
-	/**
-	 * Only visible for testing.
-	 */
-	getSessionKeyCache(): Record<string, Aes128Key> {
-		return this.sessionKeyCache
 	}
 
 	private getElementIdFromInstance(instance: Record<string, any>): Id {

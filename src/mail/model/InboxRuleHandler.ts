@@ -146,7 +146,15 @@ async function getMailDetails(entityClient: EntityClient, mail: Mail): Promise<M
 	if (!isLegacyMail(mail)) {
 		try {
 			let mailDetailsBlobId = neverNull(mail.mailDetails)
-			let mailDetailsBlobs = await entityClient.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsBlobId), [elementIdPart(mailDetailsBlobId)])
+
+			const providedOwnerEncSessionKeys = new Map<Id, Uint8Array>()
+			providedOwnerEncSessionKeys.set(elementIdPart(mailDetailsBlobId), assertNotNull(mail._ownerEncSessionKey))
+			let mailDetailsBlobs = await entityClient.loadMultiple(
+				MailDetailsBlobTypeRef,
+				listIdPart(mailDetailsBlobId),
+				[elementIdPart(mailDetailsBlobId)],
+				providedOwnerEncSessionKeys,
+			)
 			return mailDetailsBlobs[0].details
 		} catch (e) {
 			if (!(e instanceof NotFoundError)) {

@@ -217,7 +217,14 @@ export interface CacheStorage extends ExposedCacheStorage {
 export class DefaultEntityRestCache implements EntityRestCache {
 	constructor(private readonly entityRestClient: EntityRestClient, private readonly storage: CacheStorage) {}
 
-	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, queryParameters?: Dict, extraHeaders?: Dict): Promise<T> {
+	async load<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		id: PropertyType<T, "_id">,
+		queryParameters?: Dict,
+		extraHeaders?: Dict,
+		ownerKey?: Aes128Key,
+		providedOwnerEncSessionKey?: Uint8Array | null,
+	): Promise<T> {
 		const { listId, elementId } = expandId(id)
 
 		const cachedEntity = await this.storage.get(typeRef, listId, elementId)
@@ -225,7 +232,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			queryParameters?.version != null || //if a specific version is requested we have to load again
 			cachedEntity == null
 		) {
-			const entity = await this.entityRestClient.load(typeRef, id, queryParameters, extraHeaders)
+			const entity = await this.entityRestClient.load(typeRef, id, queryParameters, extraHeaders, ownerKey, providedOwnerEncSessionKey)
 			if (queryParameters?.version == null && !isIgnoredType(typeRef)) {
 				await this.storage.put(entity)
 			}
@@ -234,12 +241,17 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return cachedEntity
 	}
 
-	loadMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementIds: Array<Id>): Promise<Array<T>> {
+	loadMultiple<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id | null,
+		elementIds: Array<Id>,
+		providedOwnerEncSessionKeys?: Map<Id, Uint8Array>,
+	): Promise<Array<T>> {
 		if (isIgnoredType(typeRef)) {
-			return this.entityRestClient.loadMultiple(typeRef, listId, elementIds)
+			return this.entityRestClient.loadMultiple(typeRef, listId, elementIds, providedOwnerEncSessionKeys)
 		}
 
-		return this._loadMultiple(typeRef, listId, elementIds)
+		return this._loadMultiple(typeRef, listId, elementIds, providedOwnerEncSessionKeys)
 	}
 
 	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id> {
@@ -308,7 +320,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return this.storage.deleteIfExists(typeRef, listId, elementId)
 	}
 
-	private async _loadMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, ids: Array<Id>): Promise<Array<T>> {
+	private async _loadMultiple<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id | null,
+		ids: Array<Id>,
+		providedOwnerEncSessionKeys?: Map<Id, Uint8Array>,
+	): Promise<Array<T>> {
 		const entitiesInCache: T[] = []
 		const idsToLoad: Id[] = []
 		for (let id of ids) {
@@ -321,7 +338,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		}
 		const entitiesFromServer: T[] = []
 		if (idsToLoad.length > 0) {
-			const entities = await this.entityRestClient.loadMultiple(typeRef, listId, idsToLoad)
+			const entities = await this.entityRestClient.loadMultiple(typeRef, listId, idsToLoad, providedOwnerEncSessionKeys)
 			for (let entity of entities) {
 				await this.storage.put(entity)
 				entitiesFromServer.push(entity)
