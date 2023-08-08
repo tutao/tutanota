@@ -417,7 +417,16 @@ export class CalendarEventWhenModel {
 			return
 		}
 		const timeToInsert = date.getTime()
-		const insertionIndex = this.repeatRule.excludedDates.findIndex(({ date }) => date.getTime() >= timeToInsert)
+		let insertionIndex = -1
+		for (const [index, { date }] of this.repeatRule.excludedDates.entries()) {
+			// the date is already excluded, no need to do anything
+			if (date.getTime() === timeToInsert) {
+				return
+			} else if (date.getTime() > timeToInsert) {
+				insertionIndex = index
+				break
+			}
+		}
 		// as of now, our maximum repeat frequency is 1/day. this means that we could truncate this to the current day (no time)
 		// but then we run into problems with time zones, since we'd like to delete the n-th occurrence of an event, but detect
 		// if an event is excluded by the start of the utc day it falls on, which may depend on time zone if it's truncated to the local start of day

@@ -388,7 +388,7 @@ export function parseRecurrenceId(recurrenceIdProp: Property, tzId: string | nul
 	const allDay = !("minute" in components)
 	// We don't use the zone from the components (RRULE) but the one from start time if it was given.
 	// Don't ask me why but that's how it is.
-	const effectiveZone = allDay ? "UTC" : tzId ?? undefined
+	const effectiveZone = allDay ? "UTC" : components.zone ?? getTzId(recurrenceIdProp) ?? tzId ?? undefined
 	delete filledComponents["zone"]
 	const luxonDate = DateTime.fromObject(filledComponents, { zone: effectiveZone })
 	return toValidJSDate(luxonDate, recurrenceIdProp.value, tzId)

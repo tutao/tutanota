@@ -7,7 +7,6 @@ import { EndType, RepeatPeriod } from "../../../../src/api/common/TutanotaConsta
 import { createDateWrapper, createRepeatRule } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { CalendarEvent, createCalendarEvent } from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import { DateTime } from "luxon"
-import { areExcludedDatesEqual } from "../../../../src/calendar/date/eventeditor/CalendarEventModel.js"
 
 o.spec("CalendarEventWhenModel", function () {
 	const getModelBerlin = (initialValues: Partial<CalendarEvent>) => new CalendarEventWhenModel(initialValues, "Europe/Berlin", noOp)
@@ -660,7 +659,7 @@ o.spec("CalendarEventWhenModel", function () {
 			o(result.repeatRule?.timeZone).equals("Europe/Berlin")
 		})
 	})
-	o.spec("excludeThisOccurence", function () {
+	o.spec("excludeDate", function () {
 		o("no exclusion is added if event has no repeat rule", async function () {
 			const event = createCalendarEvent({
 				startTime: new Date("2023-01-13T00:00:00Z"),
@@ -711,6 +710,26 @@ o.spec("CalendarEventWhenModel", function () {
 
 			o(model.result.repeatRule?.excludedDates).deepEquals(exclusions.map((date) => createDateWrapper({ date })))
 			o(model.excludedDates).deepEquals(exclusions)
+		})
+		o("adding the same exclusion multiple times deduplicates them", async function () {
+			const event = createCalendarEvent({
+				startTime: new Date("2023-01-13T00:00:00Z"),
+				endTime: new Date("2023-01-14T00:00:00Z"),
+				repeatRule: createRepeatRule({
+					frequency: RepeatPeriod.DAILY,
+					interval: "1",
+					endType: EndType.Never,
+					endValue: null,
+					excludedDates: [],
+				}),
+			})
+			const model = getModelBerlin(event)
+			const exclusion = new Date("2023-03-12T00:00:00Z")
+			model.excludeDate(exclusion)
+			model.excludeDate(exclusion)
+
+			o(model.result.repeatRule?.excludedDates).deepEquals([createDateWrapper({ date: exclusion })])
+			o(model.excludedDates).deepEquals([exclusion])
 		})
 	})
 })

@@ -6,6 +6,7 @@ import {
 	parseICalendar,
 	parseProperty,
 	parsePropertyKeyValue,
+	parseRecurrenceId,
 	parseTime,
 	parseUntilRruleTime,
 	propertySequenceParser,
@@ -13,6 +14,7 @@ import {
 import { ParserError, StringIterator } from "../../../src/misc/parsing/ParserCombinator.js"
 import { DateTime } from "luxon"
 import { createDateWrapper } from "../../../src/api/entities/sys/TypeRefs.js"
+import { getDateInUTC, zone } from "./CalendarTestUtils.js"
 
 o.spec("CalendarParser", function () {
 	o.spec("propertySequenceParser", function () {
@@ -254,6 +256,23 @@ o.spec("CalendarParser", function () {
 				{ name: "EXDATES", params: { TZID: "Europe/Sofia" }, value: "20230310T000000" },
 			])
 			o(parsedDates).deepEquals([createDateWrapper({ date: new Date("2023-03-09T22:00:00Z") })])
+		})
+	})
+
+	o.spec("parseRecurrenceId", function () {
+		o("it uses UTC for absolute time", function () {
+			const parsedId = parseRecurrenceId({ name: "RECURRENCE-ID", params: { VALUE: "DATETIME" }, value: "20230809T060000Z" }, zone)
+			o(parsedId).deepEquals(getDateInUTC("2023-08-09T06:00"))
+		})
+
+		o("it uses TZID from param for relative time", function () {
+			const parsedId = parseRecurrenceId({ name: "RECURRENCE-ID", params: { VALUE: "DATETIME", TZID: "Europe/Sofia" }, value: "20230310T000000" }, zone)
+			o(parsedId).deepEquals(getDateInUTC("2023-03-09T22:00:00Z"))
+		})
+
+		o("it uses TZID from param when none are in the value", function () {
+			const parsedId = parseRecurrenceId({ name: "RECURRENCE-ID", params: { VALUE: "DATETIME" }, value: "20230310T000000" }, "Europe/Sofia")
+			o(parsedId).deepEquals(getDateInUTC("2023-03-09T22:00:00Z"))
 		})
 	})
 })
