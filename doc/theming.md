@@ -29,11 +29,16 @@ On startup:
 
 - If we have `window.whitelabelCustomizations`, apply theme from it
 - If we have theme passed in URL, use that
-- If we have a theme saved in storage [^1], use that
+- If we have a theme preference saved in storage [^1], resolve [^2] and use that
 - Or fall back to default theme
 
 [^1]: Storage can be either localStorage for web or device storage for apps. However, in this case we would be given a
 theme if there was one already.
+
+[^2]: System/automatic theme preference means that we need to query the system for the dark/light mode and pick a theme
+according to that.
+
+We are listening to the system theme changes and update the theme if needed (see theme.js).
 
 After login (apps only):
 
