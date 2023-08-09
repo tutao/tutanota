@@ -5,9 +5,11 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { PartialRecipient } from "../../api/common/recipients/Recipient"
 
 assertMainOrNode()
-export const PASSWORD_MAX_VALUE = 100
+/** password strength resulting in a full bar */
+export const PASSWORD_MAX_VALUE = 80
 export const PASSWORD_MIN_VALUE = 0
-export const PASSWORD_MIN_SECURE_VALUE = 80
+/** the minimum password strength we accept, but the user can choose a stronger password */
+export const PASSWORD_MIN_SECURE_VALUE = 64
 export const _BAD_SEQUENCES = [
 	"^1234567890ß´",
 	'°!"§$%&/()=?`',
@@ -40,7 +42,7 @@ const _BAD_STRINGS = ["passwort", "Passwort", "password", "Password", "tutanota"
  * - bad strings (statically defined and passed to function in badStrings)
  * @param password The password to check.
  * @param badStrings Strings that reduce the strength of the password.
- * @return A number from 0 to 100.
+ * @return A number from 0 to PASSWORD_MAX_VALUE.
  */
 export function getPasswordStrength(password: string, badStrings: string[]): number {
 	if (password.length === 0) return 0
@@ -100,9 +102,12 @@ export function getPasswordStrengthForUser(password: string, recipientInfo: Part
 	return Math.min(PASSWORD_MAX_VALUE, getPasswordStrength(password, reserved))
 }
 
+/**
+ * Maps the password strength from the range 0 to PASSWORD_MAX_VALUE to the range 0% to 100%. Therefore, if a password reaches the PASSWORD_MIN_SECURE_VALUE it is not at 100% yet.
+ * @return A value indicating the password strength between 0 and 100.
+ */
 export function scaleToVisualPasswordStrength(passwordStrength: number): number {
-	const scale = PASSWORD_MIN_SECURE_VALUE / 100
-	return Math.min(PASSWORD_MAX_VALUE, passwordStrength / scale)
+	return Math.min(100, (passwordStrength / PASSWORD_MAX_VALUE) * 100)
 }
 
 export function isSecurePassword(passwordStrength: number): boolean {

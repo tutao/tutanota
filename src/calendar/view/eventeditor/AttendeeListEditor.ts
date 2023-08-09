@@ -25,6 +25,7 @@ import { CalendarEventModel, CalendarOperation } from "../../date/eventeditor/Ca
 import { DropDownSelector } from "../../../gui/base/DropDownSelector.js"
 import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
 import { hasPlanWithInvites } from "../../date/eventeditor/CalendarNotificationModel.js"
+import { scaleToVisualPasswordStrength } from "../../../misc/passwords/PasswordUtils.js"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */
@@ -153,7 +154,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 								lang.get("passwordFor_label", {
 									"{1}": guest.address,
 								}),
-							helpLabel: () => m(".mt-s", m(CompletenessIndicator, { percentageCompleted: strength })),
+							helpLabel: () => m(".mt-s", m(CompletenessIndicator, { percentageCompleted: scaleToVisualPasswordStrength(strength) })),
 							key: address,
 							oninput: (newValue) => whoModel.setPresharedPassword(address, newValue),
 							injectionsRight: () => this.renderRevealIcon(guest.address),

@@ -75,6 +75,8 @@ import { MailWrapper } from "../../api/common/MailWrapper.js"
 import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 import { createDataFile, DataFile } from "../../api/common/DataFile.js"
 import { AttachmentBubble } from "../../gui/AttachmentBubble.js"
+import { isSecurePassword, scaleToVisualPasswordStrength } from "../../misc/passwords/PasswordUtils.js"
+import { Status, StatusField } from "../../gui/base/StatusField.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -579,11 +581,13 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						label: () => lang.get("passwordFor_label", { "{1}": recipient.address }),
 						helpLabel: () =>
 							m(".mt-xs.flex.items-center", [
-								m(CompletenessIndicator, { percentageCompleted: this.sendMailModel.getPasswordStrength(recipient) }),
-								// hack! We want to reserve enough space from the text field to be like "real" password field but we don't have any text and
-								// CSS unit "lh" is not supported. We could query it programmatically but instead we insert one text node (this is nbsp character)
-								// which will take line-height and size the line properly.
-								m("", String.fromCharCode(160)),
+								m(
+									".mr-s",
+									m(CompletenessIndicator, {
+										percentageCompleted: scaleToVisualPasswordStrength(this.sendMailModel.getPasswordStrength(recipient)),
+									}),
+								),
+								m(StatusField, { status: this.getExternalRecipientPasswordStatus(recipient) }),
 							]),
 						value: this.sendMailModel.getPassword(recipient.address),
 						autocompleteAs: Autocomplete.off,
@@ -593,6 +597,25 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					})
 				}),
 		)
+	}
+
+	private getExternalRecipientPasswordStatus(recipient: ResolvableRecipient): Status {
+		if (this.sendMailModel.getPassword(recipient.address) === "") {
+			return {
+				type: "neutral",
+				text: "password1Neutral_msg",
+			}
+		} else if (isSecurePassword(this.sendMailModel.getPasswordStrength(recipient))) {
+			return {
+				type: "valid",
+				text: "passwordValid_msg",
+			}
+		} else {
+			return {
+				type: "invalid",
+				text: "password1InvalidUnsecure_msg",
+			}
+		}
 	}
 
 	private renderRecipientField(field: RecipientField, fieldText: Stream<string>, search: RecipientsSearchModel): Children {

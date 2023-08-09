@@ -30,13 +30,7 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 		businessUse: stream(assertNotNull(customer.businessUse)),
 		paymentInterval: stream(asPaymentInterval(accountingInfo.paymentInterval)),
 	}
-	const paymentMethodInput = new PaymentMethodInput(
-		subscriptionOptions,
-		stream(invoiceData.country),
-		neverNull(accountingInfo),
-		payPalRequestUrl,
-		locator.usageTestController.getObsoleteTest(),
-	)
+	const paymentMethodInput = new PaymentMethodInput(subscriptionOptions, stream(invoiceData.country), neverNull(accountingInfo), payPalRequestUrl)
 	const availablePaymentMethods = paymentMethodInput.getVisiblePaymentMethods()
 
 	let selectedPaymentMethod = accountingInfo.paymentMethod as PaymentMethodType
