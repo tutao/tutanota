@@ -45,7 +45,6 @@ import { CalendarInfo } from "../../../src/calendar/model/CalendarModel.js"
 import { object, replace } from "testdouble"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/api/worker/facades/lazy/CalendarFacade.js"
 import { getDateInUTC, getDateInZone } from "./CalendarTestUtils.js"
-import { mapToObject } from "@tutao/tutanota-test-utils"
 
 const zone = "Europe/Berlin"
 
@@ -1292,23 +1291,18 @@ o.spec("calendar utils tests", function () {
 		o("monthly with longer month", function () {
 			// Potential problem with this case is that if the end date is calculated incorrectly, event might be stretched by a few
 			// days (see #1786).
-			const event = createEvent(new Date("2020-02-29T00:00:00.000Z"), new Date("2020-03-01T00:00:00.000Z"))
+			// all-day on the feb 29th, march 1st
+			const event = createEvent(getDateInZone("2020-02-29", "utc"), getDateInZone("2020-03-01", "utc"))
 			const repeatRule = createRepeatRuleWithValues(RepeatPeriod.MONTHLY, 1, zone)
 			repeatRule.endValue = "2"
 			repeatRule.endType = EndType.Count
 			event.repeatRule = repeatRule
-			addDaysForRecurringEvent(eventsForDays, event, getMonthRange(new Date("2020-01-31T23:00:00.000Z"), zone), zone)
-			const expectedForFebruary = {
-				[new Date("2020-02-28T23:00:00.000Z").getTime()]: [event],
-			}
-			o(mapToObject(eventsForDays)).deepEquals(expectedForFebruary)("only the last day of february is in the map")
-			addDaysForRecurringEvent(eventsForDays, event, getMonthRange(new Date("2020-02-31T23:00:00.000Z"), zone), zone)
-			const occurrence = cloneEventWithNewTime(
-				event,
-				getAllDayDateUTCFromZone(new Date("2020-03-28T23:00:00.000Z"), zone),
-				getAllDayDateUTCFromZone(new Date("2020-03-29T22:00:00.000Z"), zone),
-			)
-			o(eventsForDays.get(new Date("2020-03-28T23:00:00.000Z").getTime())).deepEquals([occurrence])("the 28th of march is in the map")
+			addDaysForRecurringEvent(eventsForDays, event, getMonthRange(getDateInZone("2020-02-01"), zone), zone)
+			o(eventsForDays.get(getDateInZone("2020-02-29").getTime())).deepEquals([event])("the 29th of feb is in the map")
+			o(countDaysWithEvents(eventsForDays)).equals(1)("only the last day of february is in the map")
+			addDaysForRecurringEvent(eventsForDays, event, getMonthRange(getDateInZone("2020-03-01"), zone), zone)
+			const occurrence = cloneEventWithNewTime(event, getDateInZone("2020-03-29", "utc"), getDateInZone("2020-03-30", "utc"))
+			o(eventsForDays.get(getDateInZone("2020-03-29").getTime())).deepEquals([occurrence])("the 29th of march is in the map")
 		})
 		o("adding a progenitor while there are altered instances does not remove the altered instance", function () {
 			const event = createEvent(getDateInZone("2023-07-13T13:00"), getDateInZone("2023-07-13T13:30"))
