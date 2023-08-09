@@ -1555,5 +1555,6 @@ export default {
 		"addContactList_action": "Kontaktliste hinzufügen",
 		"confirmDeleteContactList_msg": "Bist du sicher, dass du diese Kontaktliste löschen möchtest? Alle enthaltenen Einträgen werden gelöscht und können nicht wiederhergestellt werden.",
 		"contactListExisting_msg": "Dein Account enthält noch eine Kontaktliste. Bitte entferne die Kontaktliste.",
+		"contactListName_label": "Name der Kontaktliste"
 	}
 }

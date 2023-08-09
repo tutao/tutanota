@@ -139,6 +139,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 								icon: Icons.People,
 								style: {
 									fill: theme.content_fg,
+									"aria-describedby": lang.get("contactListName_label"),
 								},
 							}),
 							secondRow: suggestion.value.name,

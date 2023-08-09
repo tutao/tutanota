@@ -1551,5 +1551,6 @@ export default {
 		"addContactList_action": "Add contact list",
 		"confirmDeleteContactList_msg": "Are you sure you want to delete this contact list? All included entries will be lost and can't be restored.",
 		"contactListExisting_msg": "A contact list still exists. Please remove the contact list.",
+		"contactListName_label": "Contact list name",
 	}
 }
