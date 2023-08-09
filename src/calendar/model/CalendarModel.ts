@@ -36,7 +36,7 @@ import type { AlarmScheduler } from "../date/AlarmScheduler"
 import type { Notifications } from "../../gui/Notifications"
 import m from "mithril"
 import type { CalendarEventInstance, CalendarEventProgenitor, CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
-import { CachingMode, CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
+import { CachingMode, CalendarEventAlteredInstance, CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest"
 import { MembershipService } from "../../api/entities/sys/Services"
 import { FileController } from "../../file/FileController"
@@ -356,16 +356,25 @@ export class CalendarModel {
 		const updateEventTime = updateEvent.recurrenceId?.getTime()
 		const targetDbEvent = updateEventTime == null ? target.progenitor : target.alteredInstances.find((e) => e.recurrenceId.getTime() === updateEventTime)
 		if (targetDbEvent == null) {
-			if (method != CalendarMethod.REQUEST) {
-				console.log(TAG, "got something that's not a REQUEST for nonexistent server event:", method)
+			if (method === CalendarMethod.REQUEST) {
+				// we got a REQUEST for which we do not have a saved version of the particular instance (progenitor or altered)
+				// it may be
+				// - a single-instance update that created this altered instance
+				// - the user got the progenitor invite for a series. it's possible that there's
+				//   already altered instances of this series on the server.
+				return await this.processCalendarAccept(target, updateEvent, updateAlarms)
+			} else if (target.progenitor?.repeatRule != null && updateEvent.recurrenceId != null && method === CalendarMethod.CANCEL) {
+				// some calendaring apps send a cancellation for an altered instance with a RECURRENCE-ID when
+				// users delete a single instance from a series even though that instance was never published as altered.
+				// we can just add the exclusion to the progenitor. this would be another argument for marking
+				// altered-instance-exclusions in some way distinct from "normal" exclusions
+				target.alteredInstances.push(updateEvent as CalendarEventAlteredInstance)
+				// this will now modify the progenitor to have the required exclusions
+				return await this.processCalendarUpdate(target, target.progenitor, target.progenitor)
+			} else {
+				console.log(TAG, `got something that's not a REQUEST for nonexistent server event on uid:`, method)
 				return
 			}
-			// we got a REQUEST for which we do not have a saved version of the particular instance (progenitor or altered)
-			// it may be
-			// - a single-instance update that created this altered instance
-			// - the user got the progenitor invite for a series. it's possible that there's
-			//   already altered instances of this series on the server.
-			return await this.processCalendarAccept(target, updateEvent, updateAlarms)
 		}
 
 		const sentByOrganizer: boolean = targetDbEvent.organizer != null && targetDbEvent.organizer.address === sender
