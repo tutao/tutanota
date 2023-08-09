@@ -1,6 +1,5 @@
 import { createCreditCard, CreditCard } from "../api/entities/sys/TypeRefs.js"
 import { LanguageViewModel, TranslationKey } from "../misc/LanguageViewModel.js"
-import { Stage } from "@tutao/tutanota-usagetests"
 import { CCViewModel } from "./SimplifiedCreditCardInput.js"
 import { isValidCreditCardNumber } from "../misc/FormatValidator.js"
 import { typedValues } from "@tutao/tutanota-utils"
@@ -332,7 +331,6 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 	set creditCardNumber(value: string) {
 		let cleanedNumber = stripNonDigits(stripWhitespace(value))
 		this.creditCardType = getCardTypeRange(cleanedNumber)
-		const spec = CardSpecs[this.creditCardType]
 		this._creditCardNumber =
 			this.creditCardType === CardType.Amex ? groupCreditCardNumber(cleanedNumber, [4, 6, 5, 5]) : groupCreditCardNumber(cleanedNumber)
 	}
@@ -345,61 +343,33 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 		// no-op for now.
 	}
 
-	validateCreditCardPaymentData(stage: Stage | undefined): TranslationKey | null {
+	validateCreditCardPaymentData(): TranslationKey | null {
 		const cc = this.getCreditCardData()
-		const invalidNumber = this.validateCreditCardNumber(cc.number, stage)
+		const invalidNumber = this.validateCreditCardNumber(cc.number)
 		if (invalidNumber) {
 			return invalidNumber
 		}
 		const invalidCVV = this.validateCVV(cc.cvv)
 		if (invalidCVV) {
-			stage?.setMetric({
-				name: "validationFailure",
-				value: "cvvFormat",
-			})
-			stage?.complete()
 			return invalidCVV
 		}
 		const invalidExpirationDate = this.getExpirationDateErrorHint()
 		if (invalidExpirationDate) {
-			stage?.setMetric({
-				name: "validationFailure",
-				value: "expirationDateFormat",
-			})
-			stage?.complete()
 			return invalidExpirationDate
 		}
-
-		stage?.setMetric({
-			name: "validationFailure",
-			value: "none",
-		})
-		stage?.complete()
 		return null
 	}
 
-	validateCreditCardNumber(number: string, stage: Stage | undefined): TranslationKey | null {
-		const spec = CardSpecs[this.creditCardType]
+	validateCreditCardNumber(number: string): TranslationKey | null {
 		if (number === "") {
-			stage?.setMetric({
-				name: "validationFailure",
-				value: "ccNumberMissing",
-			})
-			stage?.complete()
 			return "creditCardNumberFormat_msg"
 		} else if (!isValidCreditCardNumber(number)) {
-			stage?.setMetric({
-				name: "validationFailure",
-				value: "ccNumberFormat",
-			})
-			stage?.complete()
 			return "creditCardNumberInvalid_msg"
 		}
 		return null
 	}
 
 	validateCVV(cvv: string): TranslationKey | null {
-		const spec = CardSpecs[this.creditCardType]
 		if (cvv.length < 3 || cvv.length > 4) {
 			return "creditCardCVVFormat_label"
 		}
@@ -415,7 +385,7 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 	}
 
 	getCreditCardNumberErrorHint(): string | null {
-		return this.validateCreditCardNumber(this._creditCardNumber, undefined) ? this.lang.get("creditCardNumberInvalid_msg") : null
+		return this.validateCreditCardNumber(this._creditCardNumber) ? this.lang.get("creditCardNumberInvalid_msg") : null
 	}
 
 	/**

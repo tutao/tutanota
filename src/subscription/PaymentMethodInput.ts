@@ -20,8 +20,6 @@ import { UsageTest } from "@tutao/tutanota-usagetests"
 import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { CCViewModel, SimplifiedCreditCardInput } from "./SimplifiedCreditCardInput.js"
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.js"
-import { CreditCardInput, OldCreditCardViewModel } from "./CreditCardInput.js"
-import { PaymentCredit2Stages } from "./PaymentCredit2Stages.js"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -41,15 +39,10 @@ export class PaymentMethodInput {
 		selectedCountry: Stream<Country | null>,
 		accountingInfo: AccountingInfo,
 		payPalRequestUrl: LazyLoaded<string>,
-		private readonly ccFormTest: UsageTest,
 	) {
 		this._selectedCountry = selectedCountry
 		this._subscriptionOptions = subscriptionOptions
-		this.ccViewModel = this.ccFormTest.renderVariant<CCViewModel>({
-			[0]: () => new OldCreditCardViewModel(), // no participation
-			[1]: () => new OldCreditCardViewModel(),
-			[2]: () => new SimplifiedCreditCardViewModel(lang),
-		})
+		this.ccViewModel = new SimplifiedCreditCardViewModel(lang)
 		this._accountingInfo = accountingInfo
 		this._payPalAttrs = {
 			payPalRequestUrl,
@@ -113,18 +106,8 @@ export class PaymentMethodInput {
 		} else if (this._selectedPaymentMethod === PaymentMethodType.Paypal) {
 			return m(PaypalInput, this._payPalAttrs)
 		} else {
-			return this.ccFormTest.renderVariant<Vnode<{ viewModel: CCViewModel }>>({
-				[0]: () => m(CreditCardInput, { viewModel: this.ccViewModel as OldCreditCardViewModel, startTest: () => this.startCCTest() }),
-				[1]: () => m(CreditCardInput, { viewModel: this.ccViewModel as OldCreditCardViewModel, startTest: () => this.startCCTest() }),
-				[2]: () => m(SimplifiedCreditCardInput, { viewModel: this.ccViewModel as SimplifiedCreditCardViewModel, startTest: () => this.startCCTest() }),
-			})
+			return m(SimplifiedCreditCardInput, { viewModel: this.ccViewModel as SimplifiedCreditCardViewModel })
 		}
-	}
-
-	private startCCTest() {
-		if (this.ccFormTest.lastCompletedStage > 0) return
-		this.ccFormTest.getStage(PaymentCredit2Stages.FocusedInput).complete()
-		this.ccFormTest.meta["ccTestStartTime"] = Date.now() / 1000
 	}
 
 	isOnAccountAllowed(): boolean {
@@ -157,10 +140,7 @@ export class PaymentMethodInput {
 		} else if (this._selectedPaymentMethod === PaymentMethodType.Paypal) {
 			return isPaypalAssigned(this._accountingInfo) ? null : "paymentDataPayPalLogin_msg"
 		} else if (this._selectedPaymentMethod === PaymentMethodType.CreditCard) {
-			// with the new test it's possible to evade stage1.complete by not selecting any input field
-			// and immediately trying to validate an empty form.
-			this.startCCTest()
-			return this.ccViewModel.validateCreditCardPaymentData(this.ccFormTest?.getStage(PaymentCredit2Stages.TriedClientValidation))
+			return this.ccViewModel.validateCreditCardPaymentData()
 		} else {
 			return null
 		}
@@ -174,19 +154,14 @@ export class PaymentMethodInput {
 				this.ccViewModel.setCreditCardData(paymentData.creditCardData)
 			}
 
-			if (this.__paymentPaypalTest && this.ccFormTest) {
+			if (this.__paymentPaypalTest) {
 				this.__paymentPaypalTest.active = false
-				this.ccFormTest.active = true
 			}
-
-			// this is a dummy stage to circumvent the restart test that's attached to stage 0
-			this.ccFormTest?.getStage(PaymentCredit2Stages.Entered).complete()
 		} else if (value === PaymentMethodType.Paypal) {
 			this._payPalAttrs.payPalRequestUrl.getAsync().then(() => m.redraw())
 
-			if (this.__paymentPaypalTest && this.ccFormTest) {
+			if (this.__paymentPaypalTest) {
 				this.__paymentPaypalTest.active = true
-				this.ccFormTest.active = false
 			}
 
 			this.__paymentPaypalTest?.getStage(0).complete()

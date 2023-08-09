@@ -13,7 +13,6 @@ import { locator } from "../api/main/MainLocator"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { UsageTest } from "@tutao/tutanota-usagetests"
-import { PaymentCredit2Stages } from "./PaymentCredit2Stages.js"
 
 export enum InvoiceDataInputLocation {
 	InWizard = 0,
@@ -25,11 +24,9 @@ export class InvoiceDataInput implements Component {
 	public readonly selectedCountry: Stream<Country | null>
 	private vatNumber: string = ""
 	private __paymentPaypalTest?: UsageTest
-	private __paymentCreditTest?: UsageTest
 
 	constructor(private businessUse: boolean, invoiceData: InvoiceData, private readonly location = InvoiceDataInputLocation.Other) {
 		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
-		this.__paymentCreditTest = locator.usageTestController.getTest("payment.credit2")
 
 		this.invoiceAddressComponent = new HtmlEditor()
 			.setMinHeight(120)
@@ -82,36 +79,20 @@ export class InvoiceDataInput implements Component {
 		})
 	}
 
-	private startCCTest() {
-		if (!this.__paymentCreditTest || this.__paymentCreditTest.lastCompletedStage > 0) return
-		this.__paymentCreditTest.getStage(PaymentCredit2Stages.FocusedInput).complete()
-		this.__paymentCreditTest.meta["ccTestStartTime"] = Date.now() / 1000
-	}
-
 	validateInvoiceData(): TranslationKey | null {
 		const address = this.getAddress()
 		const countrySelected = this.selectedCountry() != null
-		this.startCCTest()
-		const stage = this.__paymentCreditTest?.getStage(PaymentCredit2Stages.TriedClientValidation)
-		stage?.setMetric({
-			name: "validationFailure",
-			value: "invoiceDataMissing",
-		})
 
 		if (this.businessUse) {
 			if (address.trim() === "" || address.split("\n").length > 5) {
-				stage?.complete()
 				return "invoiceAddressInfoBusiness_msg"
 			} else if (!countrySelected) {
-				stage?.complete()
 				return "invoiceCountryInfoBusiness_msg"
 			}
 		} else {
 			if (!countrySelected) {
-				stage?.complete()
 				return "invoiceCountryInfoBusiness_msg" // use business text here because it fits better
 			} else if (address.split("\n").length > 4) {
-				stage?.complete()
 				return "invoiceAddressInfoBusiness_msg"
 			}
 		}

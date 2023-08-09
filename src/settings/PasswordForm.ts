@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
 import { CompletenessIndicator } from "../gui/CompletenessIndicator.js"
-import { getPasswordStrength, isSecurePassword, PASSWORD_MIN_SECURE_VALUE } from "../misc/passwords/PasswordUtils"
+import { getPasswordStrength, isSecurePassword, scaleToVisualPasswordStrength } from "../misc/passwords/PasswordUtils"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import type { Status } from "../gui/base/StatusField"
@@ -50,7 +50,6 @@ export class PasswordModel {
 	private readonly __mailValid?: Stream<boolean>
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
-	private __signupPasswordStrengthTest: UsageTest
 
 	constructor(private readonly logins: LoginController, readonly config: PasswordModelConfig, mailValid?: Stream<boolean>) {
 		this.passwordStrength = this.calculatePasswordStrength()
@@ -58,7 +57,6 @@ export class PasswordModel {
 		this.__mailValid = mailValid
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
-		this.__signupPasswordStrengthTest = locator.usageTestController.getTest("signup.passwordstrength")
 	}
 
 	_checkBothValidAndSendPing() {
@@ -197,16 +195,7 @@ export class PasswordModel {
 	}
 
 	isPasswordInsecure(): boolean {
-		const defaultFunc = () => !isSecurePassword(this.getPasswordStrength())
-
-		const isSecurePasswordPercentage = (threshold: number, passwordStrength: number) => passwordStrength < PASSWORD_MIN_SECURE_VALUE * threshold
-
-		return this.__signupPasswordStrengthTest.renderVariant({
-			[0]: defaultFunc,
-			[1]: defaultFunc,
-			[2]: () => isSecurePasswordPercentage(0.8, this.getPasswordStrength()),
-			[3]: () => isSecurePasswordPercentage(0.6, this.getPasswordStrength()),
-		})
+		return !isSecurePassword(this.getPasswordStrength())
 	}
 
 	getPasswordStrength(): number {
@@ -290,7 +279,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 								m(
 									".mr-s",
 									m(CompletenessIndicator, {
-										percentageCompleted: attrs.model.getPasswordStrength(),
+										percentageCompleted: scaleToVisualPasswordStrength(attrs.model.getPasswordStrength()),
 									}),
 								),
 								m(StatusField, { status: attrs.model.getNewPasswordStatus() }),
