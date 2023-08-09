@@ -536,9 +536,9 @@ export function getDefaultEndCountValue(): string {
 }
 
 export function repeatRuleWithExcludedAlteredInstances(progenitor: CalendarEvent, recurrenceIds: ReadonlyArray<Date>, timeZone: string): CalendarRepeatRule {
-	const whoModel = new CalendarEventWhenModel(progenitor, timeZone)
+	const whenModel = new CalendarEventWhenModel(progenitor, timeZone)
 	for (const recurrenceId of recurrenceIds) {
-		whoModel.excludeDate(recurrenceId)
+		whenModel.excludeDate(recurrenceId)
 	}
-	return assertNotNull(whoModel.result.repeatRule, "tried to exclude altered instance on progenitor without repeat rule!")
+	return assertNotNull(whenModel.result.repeatRule, "tried to exclude altered instance on progenitor without repeat rule!")
 }
