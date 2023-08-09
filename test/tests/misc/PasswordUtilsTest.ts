@@ -83,13 +83,10 @@ o.spec("PasswordUtilsTest", function () {
 	})
 	o("isSecure", function () {
 		o(isSecurePassword(0)).equals(false) // german keyboard
-
 		o(isSecurePassword(10)).equals(false) // german keyboard
-
-		o(isSecurePassword(79)).equals(false) // german keyboard
-
+		o(isSecurePassword(63)).equals(false) // german keyboard
+		o(isSecurePassword(64)).equals(true) // german keyboard
+		o(isSecurePassword(79)).equals(true) // german keyboard
 		o(isSecurePassword(80)).equals(true) // german keyboard
-
-		o(isSecurePassword(100)).equals(true) // german keyboard
 	})
 })

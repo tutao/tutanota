@@ -27,7 +27,6 @@ import { Credentials } from "../misc/credentials/Credentials"
 import { SessionType } from "../api/common/SessionType.js"
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { PaymentInterval } from "./PriceUtils.js"
-import { PaymentCredit2Stages } from "./PaymentCredit2Stages.js"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -41,13 +40,10 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 	private dom!: HTMLElement
 	private __signupPaidTest?: UsageTest
 	private __paymentPaypalTest?: UsageTest
-	private __paymentCreditTest: UsageTest
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
 		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
-		this.__paymentCreditTest = locator.usageTestController.getTest("payment.credit2")
-		this.__paymentCreditTest.recordTime = true
 
 		this._upgradeData = upgradeData
 		this._selectedPaymentMethod = stream()
@@ -113,7 +109,6 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 					this._invoiceDataInput.selectedCountry,
 					neverNull(data.accountingInfo),
 					payPalRequestUrl,
-					this.__paymentCreditTest,
 				)
 				this._availablePaymentMethods = this._paymentMethodInput.getVisiblePaymentMethods()
 
@@ -156,7 +151,6 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 								a.data.upgradeType === UpgradeType.Signup,
 								a.data.price,
 								neverNull(a.data.accountingInfo),
-								this.__paymentCreditTest,
 							).then((success) => {
 								if (success) {
 									// Payment method confirmation (click on next), send selected payment method as an enum
@@ -266,70 +260,48 @@ export async function updatePaymentData(
 	isSignup: boolean,
 	price: string,
 	accountingInfo: AccountingInfo,
-	usageTest?: UsageTest,
 ): Promise<boolean> {
-	// helper lambda to reduce boilerplate
-	const send3DSPreValidationPing = (value: string) => {
-		const stage = (usageTest ?? locator.usageTestController.getObsoleteTest()).getStage(PaymentCredit2Stages.TDSPreValidation)
-		stage.setMetric({
-			name: "validationFailure",
-			value,
-		})
-		stage.complete()
-	}
 	const paymentResult = await locator.customerFacade.updatePaymentData(paymentInterval, invoiceData, paymentData, confirmedCountry)
 	const statusCode = paymentResult.result
 
 	if (statusCode === PaymentDataResultType.OK) {
 		// show dialog
 		let braintree3ds = paymentResult.braintree3dsRequest
-		send3DSPreValidationPing("none")
 		if (braintree3ds) {
 			return verifyCreditCard(accountingInfo, braintree3ds, price)
 		} else {
 			return true
 		}
 	} else if (statusCode === PaymentDataResultType.COUNTRY_MISMATCH) {
-		send3DSPreValidationPing("countryMismatch")
 		const countryName = invoiceData.country ? invoiceData.country.n : ""
 		const confirmMessage = lang.get("confirmCountry_msg", {
 			"{1}": countryName,
 		})
 		const confirmed = await Dialog.confirm(() => confirmMessage)
 		if (confirmed) {
-			return updatePaymentData(paymentInterval, invoiceData, paymentData, invoiceData.country, isSignup, price, accountingInfo, usageTest) // add confirmed invoice country
+			return updatePaymentData(paymentInterval, invoiceData, paymentData, invoiceData.country, isSignup, price, accountingInfo) // add confirmed invoice country
 		} else {
 			return false
 		}
 	} else if (statusCode === PaymentDataResultType.INVALID_VATID_NUMBER) {
-		send3DSPreValidationPing("invalidVatId")
 		await Dialog.message(() => lang.get("invalidVatIdNumber_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
 	} else if (statusCode === PaymentDataResultType.CREDIT_CARD_DECLINED) {
-		send3DSPreValidationPing("ccDeclined")
 		await Dialog.message(() => lang.get("creditCardDeclined_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
 	} else if (statusCode === PaymentDataResultType.CREDIT_CARD_CVV_INVALID) {
-		send3DSPreValidationPing("cvvInvalid")
 		await Dialog.message("creditCardCVVInvalid_msg")
 	} else if (statusCode === PaymentDataResultType.PAYMENT_PROVIDER_NOT_AVAILABLE) {
-		send3DSPreValidationPing("providerNotAvailable")
 		await Dialog.message(() => lang.get("paymentProviderNotAvailableError_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
 	} else if (statusCode === PaymentDataResultType.OTHER_PAYMENT_ACCOUNT_REJECTED) {
-		send3DSPreValidationPing("accountRejected")
 		await Dialog.message(() => lang.get("paymentAccountRejected_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
 	} else if (statusCode === PaymentDataResultType.CREDIT_CARD_DATE_INVALID) {
-		send3DSPreValidationPing("dateInvalid")
 		await Dialog.message("creditCardExprationDateInvalid_msg")
 	} else if (statusCode === PaymentDataResultType.CREDIT_CARD_NUMBER_INVALID) {
-		send3DSPreValidationPing("ccNumberInvalid")
 		await Dialog.message(() => lang.get("creditCardNumberInvalid_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
 	} else if (statusCode === PaymentDataResultType.COULD_NOT_VERIFY_VATID) {
-		send3DSPreValidationPing("vatValidationFailure")
 		await Dialog.message(() => lang.get("invalidVatIdValidationFailed_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
 	} else if (statusCode === PaymentDataResultType.CREDIT_CARD_VERIFICATION_LIMIT_REACHED) {
-		send3DSPreValidationPing("ccVerificationLimitReached")
 		await Dialog.message(() => lang.get("creditCardVerificationLimitReached_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
 	} else {
-		send3DSPreValidationPing("other")
 		await Dialog.message(() => lang.get("otherPaymentProviderError_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
 	}
 
@@ -380,20 +352,13 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 				exec: closeAction,
 				help: "close_alt",
 			})
-		const test = locator.usageTestController.getTest("payment.credit2")
 		let entityEventListener: EntityEventsListener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => {
 			return promiseMap(updates, (update) => {
 				if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
 					return locator.entityClient.load(InvoiceInfoTypeRef, update.instanceId).then((invoiceInfo) => {
 						invoiceInfoWrapper.invoiceInfo = invoiceInfo
-						const stage = test.getStage(PaymentCredit2Stages.TDSValidationResult)
 						if (!invoiceInfo.paymentErrorInfo) {
 							// user successfully verified the card
-							stage.setMetric({
-								name: "validationFailure",
-								value: "none",
-							})
-							stage.complete().then(() => test.getStage(PaymentCredit2Stages.TDSSuccess).complete())
 							progressDialog.close()
 							resolve(true)
 						} else if (invoiceInfo.paymentErrorInfo && invoiceInfo.paymentErrorInfo.errorCode === "card.3ds2_pending") {
@@ -424,15 +389,6 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 									break
 							}
 
-							stage.setMetric({
-								name: "validationFailure",
-								value: error,
-							})
-							stage.complete()
-
-							// Restart the test after a validation failure
-							test.forceRestart()
-
 							Dialog.message(getPreconditionFailedPaymentMsg(invoiceInfo.paymentErrorInfo.errorCode))
 							resolve(false)
 							progressDialog.close()
@@ -449,14 +405,6 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 			braintree3ds.bin,
 		)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${getClientType()}`
 		Dialog.message("creditCardVerificationNeededPopup_msg").then(() => {
-			const elapsedSeconds = (Date.now() / 1000 - test.meta["ccTestStartTime"]) as number
-			test.getStage(PaymentCredit2Stages.TDSInfoConfirmed).setMetric({
-				name: "secondsPassedSinceStart",
-				value: elapsedSeconds.toString(),
-			})
-			test.getStage(PaymentCredit2Stages.TDSInfoConfirmed)
-				.complete()
-				.catch((e) => console.log("failed to send ping, ignoring.", e))
 			window.open(`${getPaymentWebRoot()}/braintree.html#${params}`)
 			progressDialog.show()
 		})

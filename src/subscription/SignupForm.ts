@@ -49,8 +49,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private readonly __lastMailValidationError: Stream<TranslationKey | null>
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
-	private __signupPasswordStrengthTest: UsageTest
-	private __signupUnavailableEmailsTest: UsageTest
 	private __signupEmailDomainsTest: UsageTest
 
 	constructor() {
@@ -60,8 +58,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
-		this.__signupPasswordStrengthTest = locator.usageTestController.getTest("signup.passwordstrength")
-		this.__signupUnavailableEmailsTest = locator.usageTestController.getTest("signup.unavailableemails")
 		this.__signupEmailDomainsTest = locator.usageTestController.getTest("signup.emaildomains")
 
 		this._confirmTerms = stream<boolean>(false)
@@ -81,7 +77,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				if (validationResult.isValid) {
 					this._mailAddress = email
 					this._mailAddressFormErrorId = null
-					this.__signupUnavailableEmailsTest.getStage(2).complete()
 					this.__signupEmailDomainsTest.getStage(2).complete()
 				} else {
 					this._mailAddressFormErrorId = validationResult.errorId
@@ -118,12 +113,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			const errorMessage =
 				this._mailAddressFormErrorId || this.passwordModel.getErrorMessageId() || (!this._confirmTerms() ? "termsAcceptedNeutral_msg" : null)
 
-			if (this.passwordModel.getErrorMessageId()) {
-				this.__signupPasswordStrengthTest.getStage(1).complete()
-			} else {
-				this.__signupPasswordStrengthTest.getStage(2).complete()
-			}
-
 			if (errorMessage) {
 				Dialog.message(errorMessage)
 				return
@@ -152,9 +141,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			"#signup-account-dialog.flex-center",
 			{
 				oncreate: () => {
-					this.__signupPasswordStrengthTest.getStage(0).complete()
 					this.__signupEmailDomainsTest.getStage(0).complete()
-					this.__signupUnavailableEmailsTest.getStage(0).complete()
 				},
 			},
 			m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [

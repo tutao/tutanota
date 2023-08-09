@@ -15,7 +15,6 @@ import { Autocomplete, inputLineHeight, TextField } from "../gui/base/TextField.
 import { attachDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
-import { UsageTest } from "@tutao/tutanota-usagetests"
 
 assertMainOrNode()
 
@@ -41,7 +40,6 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 	private messageId: TranslationKey | null
 	private checkAddressTimeout: TimeoutID | null
 	private isVerificationBusy: boolean
-	private signupUnavailableEmailsTest: UsageTest
 
 	constructor({ attrs }: Vnode<SelectMailAddressFormAttrs>) {
 		this.isVerificationBusy = false
@@ -49,7 +47,6 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		this.domain = getFirstOrThrow(attrs.availableDomains)
 		this.username = ""
 		this.messageId = "mailAddressNeutral_msg"
-		this.signupUnavailableEmailsTest = locator.usageTestController.getTest("signup.unavailableemails")
 	}
 
 	view({ attrs }: Vnode<SelectMailAddressFormAttrs>): Children {
@@ -195,9 +192,6 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			let result: ValidationResult
 			try {
 				const available = await locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress)
-				if (!available) {
-					this.signupUnavailableEmailsTest.getStage(1).complete()
-				}
 				result = available ? { isValid: true, errorId: null } : { isValid: false, errorId: attrs.mailAddressNAError ?? "mailAddressNA_msg" }
 			} catch (e) {
 				if (e instanceof AccessDeactivatedError) {
