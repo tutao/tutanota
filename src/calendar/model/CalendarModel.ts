@@ -45,7 +45,6 @@ import { TutanotaError } from "../../api/common/error/TutanotaError.js"
 import { SessionKeyNotFoundError } from "../../api/common/error/SessionKeyNotFoundError.js"
 
 const TAG = "[CalendarModel]"
-
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot
 	// We use LazyLoaded so that we don't get races for loading these events which is
@@ -264,26 +263,50 @@ export class CalendarModel {
 	}
 
 	private async handleCalendarEventUpdate(update: CalendarEventUpdate): Promise<void> {
+		// we want to delete the CalendarEventUpdate after we are done, even, in some cases, if something went wrong.
+		let erase = true
 		try {
 			const parsedCalendarData = await this.getCalendarDataForUpdate(update.file)
 			if (parsedCalendarData != null) {
 				await this.processCalendarData(update.sender, parsedCalendarData)
 			}
-			await this.entityClient.erase(update)
 		} catch (e) {
 			if (e instanceof NotAuthorizedError) {
+				// we might be authorized in the near future if some permission is delayed, unlikely to be permanent.
+				erase = false
 				console.warn(TAG, "could not process calendar update: not authorized", e)
 			} else if (e instanceof PreconditionFailedError) {
+				// unclear where precon would be thrown, probably in the blob store?
+				erase = false
 				console.warn(TAG, "could not process calendar update: precondition failed", e)
 			} else if (e instanceof LockedError) {
+				// we can try again after the lock is released
+				erase = false
 				console.warn(TAG, "could not process calendar update: locked", e)
 			} else if (e instanceof NotFoundError) {
+				// either the updated event(s) or the file data could not be found,
+				// so we should try to delete since the update itself is obsolete.
 				console.warn(TAG, "could not process calendar update: not found", e)
 			} else if (e instanceof NoOwnerEncSessionKeyForCalendarEventError) {
+				// we will get an update with the mail and sk soon, then we'll be able to finish this.
+				// we will re-enter this function and erase it then.
 				this.fileIdToSkippedCalendarEventUpdates.set(elementIdPart(update.file), update)
 				console.warn(TAG, `could not process calendar update: ${e.message}`, e)
+				return
 			} else {
+				// unknown error that may lead to permanently stuck update if not cleared
+				// this includes CryptoErrors due to #5753 that we want to still monitor
+				// but now they only occur once
+				console.warn(TAG, "could not process calendar update:", e)
 				throw e
+			}
+		} finally {
+			if (erase) {
+				try {
+					await this.entityClient.erase(update)
+				} catch (e) {
+					console.log(TAG, "failed to delete update:", e.name)
+				}
 			}
 		}
 	}
