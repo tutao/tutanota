@@ -23,7 +23,7 @@ private enum class State {
 	/** onStartingConnection has been called. */
 	CONNECTING,
 
-	/** we received an ini	tial message from the server, we release wakeLock and foreground notification. */
+	/** we received an initial message from the server, we release wakeLock and foreground notification. */
 	CONNECTED,
 
 	/** The system forcibly stopped us. */
@@ -113,7 +113,11 @@ class PushNotificationService : LifecycleJobService() {
 
 	private fun removeForegroundNotification() {
 		Log.d(TAG, "removeForegroundNotification")
-		stopForeground(true)
+		if (atLeastTiramisu()) {
+			stopForeground(STOP_FOREGROUND_REMOVE)
+		} else {
+			stopForeground(true)
+		}
 	}
 
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
