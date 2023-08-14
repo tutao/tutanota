@@ -320,15 +320,10 @@ async function onAppReady(components: Components) {
 }
 
 async function main(components: Components) {
-	const { tray, notifier, sock, wm, updater, integrator } = components
+	const { tray, notifier, sock, wm, updater, integrator, desktopThemeFacade } = components
 	tray.update(notifier)
 
-	electron.nativeTheme.on("updated", () => {
-		for (const window of components.wm.getAll()) {
-			window.commonNativeFacade.updateTheme()
-			window.updateBackgroundColor()
-		}
-	})
+	desktopThemeFacade.init()
 
 	if (process.argv.indexOf("-s") !== -1) {
 		sock.startServer()
