@@ -8,8 +8,6 @@ import m from "mithril"
 assertMainOrNodeBoot()
 export const TABBABLE = "button, input, textarea, div[contenteditable='true'], [tabindex='0']"
 export type KeyPress = {
-	//fixme~ take out
-	//keyCode: number
 	key: string
 	ctrl: boolean
 	shift: boolean
@@ -181,9 +179,6 @@ class KeyManager {
 	}
 
 	registerShortcuts(shortcuts: ReadonlyArray<Shortcut>) {
-		//FIXME~ shouldn't need this anymore?
-		//Keys.META.code = client.browser === BrowserType.FIREFOX ? 224 : 91
-
 		this._applyOperation(shortcuts, (id, s) => this._keyToShortcut.set(id, s))
 	}
 
@@ -218,8 +213,13 @@ class KeyManager {
 	}
 }
 
-export function isKeyPressed(keyCode: string, ...keys: Array<Values<typeof Keys>>): boolean {
-	return keys.some((key) => key.code === keyCode)
+/**
+ *
+ * @param key The key to be checked, should correspond to KeyEvent.key
+ * @param keys Keys to be checked against, type of Keys
+ */
+export function isKeyPressed(key: string, ...keys: Array<Values<typeof Keys>>): boolean {
+	return keys.some((k) => k.code === key.toLowerCase())
 }
 
 export const keyManager: KeyManager = new KeyManager()

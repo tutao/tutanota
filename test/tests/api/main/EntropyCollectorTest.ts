@@ -127,7 +127,7 @@ o.spec("EntropyCollector", function () {
 			clientY: 777,
 		})
 		fakeWindow.dispatch("keydown", {
-			keyCode: 87,
+			key: "W",
 		})
 
 		runInterval()
@@ -159,7 +159,7 @@ o.spec("EntropyCollector", function () {
 	o("when collector is started keydown is collected", function () {
 		collector.start()
 		fakeWindow.dispatch("keydown", {
-			keyCode: 48,
+			key: "0",
 		})
 
 		runInterval()
