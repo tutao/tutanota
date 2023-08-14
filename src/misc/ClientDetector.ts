@@ -118,7 +118,7 @@ export class ClientDetector {
 	 */
 	isSupported(): boolean {
 		this.syntaxChecks()
-		return this.isSupportedBrowserVersion() && this.testBuiltins() && this.websockets() && this.testCss() && this.webassembly()
+		return this.isSupportedBrowserVersion() && this.testBuiltins() && this.websockets() && this.testCss()
 	}
 
 	isMobileDevice(): boolean {
@@ -147,9 +147,20 @@ export class ClientDetector {
 
 	/**
 	 * We need WebAssembly for Argon2.
+	 *
+	 * @returns true if webassembly is supported
 	 */
 	webassembly(): boolean {
 		return typeof WebAssembly === "object"
+	}
+
+	/**
+	 * Apple's Lockdown mode disables some features, such as WebAssembly
+	 *
+	 * @returns true if lockdown mode is enabled
+	 */
+	lockdownMode(): boolean {
+		return (this.isIos() || this.isMacOS) && !this.webassembly()
 	}
 
 	/**

@@ -157,6 +157,7 @@ export const enum InfoLink {
 	RunInBackground = "https://tutanota.com/faq#tray-desktop",
 	LoadImages = "https://tutanota.com/faq#load-images",
 	Usage = "https://tutanota.com/faq#usage",
+	Download = "https://tutanota.com/#download",
 }
 
 /**

@@ -1554,6 +1554,10 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"webAssemblyNotSupported1_msg": "Dein Browser unterstützt kein WebAssembly und wird in zukünfigten Versionen von Tutanota nicht mehr unterstützt.",
+		"webAssemblyNotSupported2_msg": "Bitte aktualisiere deinen Browser oder downloade unsere App.",
+		"lockdownModeNotSupported1_msg": "Der Blockierungsmodus ist auf deinem Gerät aktiviert. Dies verhindert, dass zukünftige Versionen von Tutanota ausgeführt werden können.",
+		"lockdownModeNotSupported2_msg": "Bitte füge eine Ausnahme für Tutanota hinzu oder deaktiviere den Blockierungsmodus."
 	}
 }

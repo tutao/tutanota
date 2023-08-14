@@ -1,18 +1,18 @@
 import m, { Component } from "mithril"
-import type { PostLoginAction, LoggedInEvent } from "../api/main/LoginController"
+import type { LoggedInEvent, PostLoginAction } from "../api/main/LoginController"
 import { isAdminClient, isApp, isDesktop, LOGIN_TITLE, Mode } from "../api/common/Env"
 import { assertNotNull, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade"
 import { checkApprovalStatus } from "../misc/LoginUtils"
 import { locator } from "../api/main/MainLocator"
 import { ReceiveInfoService } from "../api/entities/tutanota/Services"
-import { lang } from "../misc/LanguageViewModel"
+import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { getHourCycle } from "../misc/Formatter"
 import type { OutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
 import { createReceiveInfoServiceData } from "../api/entities/tutanota/TypeRefs.js"
 import { isNotificationCurrentlyActive, loadOutOfOfficeNotification } from "../misc/OutOfOfficeNotificationUtils"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
-import { ButtonType } from "../gui/base/Button.js"
+import { ButtonAttrs, ButtonType } from "../gui/base/Button.js"
 import { themeController } from "../gui/theme"
 import { Dialog } from "../gui/base/Dialog"
 import { CloseEventBusOption, Const } from "../api/common/TutanotaConstants"
@@ -29,6 +29,7 @@ import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler"
 import { SessionType } from "../api/common/SessionType"
 import { StorageBehavior } from "../misc/UsageTestModel.js"
 import type { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
+import { client } from "../misc/ClientDetector.js"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -113,6 +114,7 @@ export class PostLoginActions implements PostLoginAction {
 			await locator.mailModel.init()
 			const calendarModel = await locator.calendarModel()
 			await calendarModel.init()
+			await this.checkWebAssemblyEnabled()
 			await this.remindActiveOutOfOfficeNotification()
 		}
 
@@ -148,6 +150,34 @@ export class PostLoginActions implements PostLoginAction {
 	private deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {
 		notification.enabled = false
 		return locator.entityClient.update(notification)
+	}
+
+	private async checkWebAssemblyEnabled() {
+		const closeButton: Partial<ButtonAttrs> = {
+			label: "close_alt",
+		}
+		if (!client.webassembly()) {
+			let notificationMessage: Component
+			let buttons: ButtonAttrs[]
+			if (client.lockdownMode()) {
+				notificationMessage = {
+					view: () => [m(".pb", lang.get("lockdownModeNotSupported1_msg")), m("", lang.get("lockdownModeNotSupported2_msg"))],
+				}
+				buttons = []
+			} else {
+				notificationMessage = {
+					view: () => [m(".pb", lang.get("webAssemblyNotSupported1_msg")), m("", lang.get("webAssemblyNotSupported2_msg"))],
+				}
+				buttons = [
+					{
+						label: "download_action",
+						click: () => window.open(InfoLink.Download, "_blank"),
+						type: ButtonType.Primary,
+					},
+				]
+			}
+			notificationOverlay.show(notificationMessage, closeButton, buttons)
+		}
 	}
 
 	private remindActiveOutOfOfficeNotification(): Promise<void> {
