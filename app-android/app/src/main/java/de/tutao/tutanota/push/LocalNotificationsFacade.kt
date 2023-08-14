@@ -20,8 +20,7 @@ import androidx.core.net.toUri
 import de.tutao.tutanota.*
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.TimeZone
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 const val NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed"

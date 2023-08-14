@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-	compileSdkVersion 31
+	compileSdkVersion 33
 	defaultConfig {
 		applicationId "de.tutao.tutanota"
 		minSdkVersion 23
-		targetSdkVersion 31
+		targetSdkVersion 33
 		versionCode 396244
 		versionName "3.117.0"
 		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

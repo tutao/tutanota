@@ -87,6 +87,8 @@ fun getFileInfo(context: Context, fileUri: Uri): FileInfo {
 	throw RuntimeException("could not resolve file name / size for uri $fileUri")
 }
 
+fun atLeastTiramisu() : Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+
 fun atLeastOreo(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
 
 fun atLeastNougat(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
