@@ -1,5 +1,6 @@
 package de.tutao.tutanota
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.job.JobInfo
 import android.app.job.JobScheduler
@@ -9,7 +10,6 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.net.MailTo
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
@@ -44,9 +44,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import okhttp3.ConnectionSpec
-import okhttp3.OkHttpClient
-import org.conscrypt.Conscrypt
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -54,13 +51,9 @@ import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.security.SecureRandom
-import java.security.Security
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -448,6 +441,18 @@ class MainActivity : FragmentActivity() {
 			}
 		}
 	}
+
+	suspend fun askNotificationPermissionIfNeeded() {
+		// if API < 33 we should have the permission automatically
+		// check also enables us to use the POST_NOTIFICATIONS const
+		if (!atLeastTiramisu()) return
+		try {
+			this.getPermission(Manifest.permission.POST_NOTIFICATIONS)
+		} catch (e: SecurityException) {
+			Log.d(TAG, "got denied notification permission")
+		}
+	}
+
 
 	private fun saveAskedBatteryOptimizations(preferences: SharedPreferences) {
 		preferences.edit().putBoolean(ASKED_BATTERY_OPTIMIZATIONS_PREF, true).apply()
