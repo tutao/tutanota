@@ -3,6 +3,7 @@ import { DesktopConfig } from "./config/DesktopConfig"
 import { DesktopConfigKey } from "./config/ConfigKeys"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
 import { WindowManager } from "./DesktopWindowManager"
+import electron from "electron"
 
 const LIGHT_FALLBACK_THEME: Partial<Theme> = {
 	themeId: "light-fallback",
@@ -17,6 +18,15 @@ const LIGHT_FALLBACK_THEME: Partial<Theme> = {
  */
 export class DesktopThemeFacade implements ThemeFacade {
 	constructor(private readonly config: DesktopConfig, private readonly wm: WindowManager, private readonly nativeTheme: Electron.NativeTheme) {}
+
+	init() {
+		electron.nativeTheme.on("updated", () => {
+			for (const window of this.wm.getAll()) {
+				window.commonNativeFacade.updateTheme()
+				window.updateBackgroundColor()
+			}
+		})
+	}
 
 	getThemePreference(): Promise<ThemePreference | null> {
 		return this.config.getVar(DesktopConfigKey.selectedTheme)
