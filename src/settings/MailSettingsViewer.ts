@@ -64,6 +64,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	private _storageFieldValue: Stream<string>
 	private customerInfo: CustomerInfo | null
 	private mailAddressTableModel: MailAddressTableModel | null = null
+	private mailAddressTableExpanded: boolean
 
 	private offlineStorageSettings = new OfflineStorageSettingsModel(locator.logins.getUserController(), deviceConfig)
 
@@ -77,6 +78,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._noAutomaticContacts = locator.logins.getUserController().props.noAutomaticContacts
 		this._enableMailIndexing = locator.search.indexState().mailIndexEnabled
 		this._inboxRulesExpanded = stream<boolean>(false)
+		this.mailAddressTableExpanded = false
 		this._inboxRulesTableLines = stream<Array<TableLineAttrs>>([])
 		this._outOfOfficeStatus = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
@@ -84,7 +86,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		// normally we would maybe like to get it as an argument but these viewers are created in an odd way
 		locator.mailAddressTableModelForOwnMailbox().then((model) => {
 			this.mailAddressTableModel = model
-			model.init().then(m.redraw)
+			m.redraw()
 		})
 		m.redraw()
 
@@ -342,7 +344,13 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(TextField, outOfOfficeAttrs),
 					m(DropDownSelector, conversationViewDropdownAttrs),
 					this.renderLocalDataSection(),
-					this.mailAddressTableModel ? m(MailAddressTable, { model: this.mailAddressTableModel }) : null,
+					this.mailAddressTableModel
+						? m(MailAddressTable, {
+								model: this.mailAddressTableModel,
+								expanded: this.mailAddressTableExpanded,
+								onExpanded: (newExpanded) => (this.mailAddressTableExpanded = newExpanded),
+						  })
+						: null,
 					locator.logins.isEnabled(FeatureType.InternalCommunication)
 						? null
 						: [

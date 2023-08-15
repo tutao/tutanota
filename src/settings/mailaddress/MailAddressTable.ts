@@ -1,76 +1,81 @@
-import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { Dialog } from "../../gui/base/Dialog.js"
-import type { TableAttrs, TableLineAttrs } from "../../gui/base/Table.js"
+import type { TableLineAttrs } from "../../gui/base/Table.js"
 import { ColumnWidth, Table } from "../../gui/base/Table.js"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { LimitReachedError } from "../../api/common/error/RestError.js"
 import { ofClass } from "@tutao/tutanota-utils"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import Stream from "mithril/stream"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
 import { attachDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
-import { showNotAvailableForFreeDialog } from "../../misc/SubscriptionDialogs.js"
+import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { AddressInfo, AddressStatus, MailAddressTableModel } from "./MailAddressTableModel.js"
 import { showAddAliasDialog } from "./AddAliasDialog.js"
 import { locator } from "../../api/main/MainLocator.js"
+import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 
 assertMainOrNode()
 
 export type MailAddressTableAttrs = {
 	model: MailAddressTableModel
+	expanded: boolean
+	onExpanded: (expanded: boolean) => unknown
 }
 
 /** Shows a table with all aliases and ability to enable/disable them, add more and set names. */
 export class MailAddressTable implements Component<MailAddressTableAttrs> {
-	private expanded: boolean = false
-	private redrawSubscription: Stream<void> | null = null
-
-	oncreate(vnode: VnodeDOM<MailAddressTableAttrs>) {
-		vnode.attrs.model.init()
-		this.redrawSubscription = vnode.attrs.model.redraw.map(m.redraw)
-	}
-
-	onremove() {
-		this.redrawSubscription?.end(true)
-	}
-
-	view(vnode: Vnode<MailAddressTableAttrs>): Children {
-		const a = vnode.attrs
-		const addAliasButtonAttrs: IconButtonAttrs | null = a.model.userCanModifyAliases()
+	view({ attrs }: Vnode<MailAddressTableAttrs>): Children {
+		const { model } = attrs
+		const addAliasButtonAttrs: IconButtonAttrs | null = model.userCanModifyAliases()
 			? {
 					title: "addEmailAlias_label",
-					click: () => this.onAddAlias(a),
+					click: () => this.onAddAlias(attrs),
 					icon: Icons.Add,
 					size: ButtonSize.Compact,
 			  }
 			: null
-		const aliasesTableAttrs: TableAttrs = {
-			columnHeading: ["mailAddress_label", "state_label"],
-			columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
-			showActionButtonColumn: true,
-			addButtonAttrs: addAliasButtonAttrs,
-			lines: getAliasLineAttrs(a),
-		}
 		return [
 			m(".flex-space-between.items-center.mt-l.mb-s", [
 				m(".h4", lang.get("mailAddresses_label")),
 				m(ExpanderButton, {
 					label: "show_action",
-					expanded: this.expanded,
-					onExpandedChange: (v) => (this.expanded = v),
+					expanded: attrs.expanded,
+					onExpandedChange: (v) => {
+						attrs.onExpanded(v)
+						model.init()
+					},
 				}),
 			]),
 			m(
 				ExpanderPanel,
 				{
-					expanded: this.expanded,
+					expanded: attrs.expanded,
 				},
-				m(Table, aliasesTableAttrs),
+				m(Table, {
+					columnHeading: ["mailAddress_label", "state_label"],
+					columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
+					showActionButtonColumn: true,
+					addButtonAttrs: addAliasButtonAttrs,
+					lines: getAliasLineAttrs(attrs),
+				}),
 			),
+			model.aliasCount
+				? [
+						m(
+							".mt-s",
+							lang.get("amountUsedAndActivatedOf_label", {
+								"{used}": model.aliasCount.usedAliases,
+								"{active}": model.aliasCount.enabledAliases,
+								"{totalAmount}": model.aliasCount.totalAliases,
+							}),
+						),
+						m(".small.mt-s", lang.get("mailAddressInfo_msg")),
+				  ]
+				: null,
 		]
 	}
 
@@ -188,6 +193,7 @@ async function switchAliasStatus(alias: AddressInfo, attrs: MailAddressTableAttr
 	const updateModel = attrs.model
 		.setAliasStatus(alias.address, !deactivateOrDeleteAlias)
 		.catch(ofClass(LimitReachedError, () => attrs.model.handleTooManyAliases()))
+		.catch(ofClass(UpgradeRequiredError, (e) => showPlanUpgradeRequiredDialog(e.plans, e.message)))
 	await showProgressDialog("pleaseWait_msg", updateModel)
 }
 
