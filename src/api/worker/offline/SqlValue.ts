@@ -12,6 +12,7 @@ export const enum SqlType {
 	Bytes = "SqlBytes",
 }
 
+export type FormattedQuery = { query: string; params: TaggedSqlValue[] }
 export type TaggedSqlValue =
 	| { type: SqlType.Null; value: null }
 	| { type: SqlType.String; value: string }
