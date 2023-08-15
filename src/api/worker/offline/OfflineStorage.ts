@@ -33,7 +33,7 @@ import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler } from "../rest/
 import { EntityRestClient } from "../rest/EntityRestClient.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
-import { SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject } from "./SqlValue.js"
+import { FormattedQuery, SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject } from "./SqlValue.js"
 import { FolderSystem } from "../../common/mail/FolderSystem.js"
 import { isDetailsDraft, isLegacyMail } from "../../common/MailWrapper.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
@@ -173,21 +173,21 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 			console.log("couldn't resolve typeRef ", typeRef)
 			return
 		}
-		let preparedQuery
+		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
-				preparedQuery = sql`DELETE FROM element_entities WHERE type = ${type} AND elementId = ${elementId}`
+				formattedQuery = sql`DELETE FROM element_entities WHERE type = ${type} AND elementId = ${elementId}`
 				break
 			case TypeId.ListElement:
-				preparedQuery = sql`DELETE FROM list_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
+				formattedQuery = sql`DELETE FROM list_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
 				break
 			case TypeId.BlobElement:
-				preparedQuery = sql`DELETE FROM blob_element_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
+				formattedQuery = sql`DELETE FROM blob_element_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
 				break
 			default:
 				throw new Error("must be a persistent type")
 		}
-		await this.sqlCipherFacade.run(preparedQuery.query, preparedQuery.params)
+		await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
 	}
 
 	async deleteAllOfType(typeRef: TypeRef<SomeEntity>): Promise<void> {
@@ -200,23 +200,23 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 			console.log("couldn't resolve typeRef ", typeRef)
 			return
 		}
-		let preparedQuery
+		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
-				preparedQuery = sql`DELETE FROM element_entities WHERE type = ${type}`
+				formattedQuery = sql`DELETE FROM element_entities WHERE type = ${type}`
 				break
 			case TypeId.ListElement:
-				preparedQuery = sql`DELETE FROM list_entities WHERE type = ${type}`
-				await this.sqlCipherFacade.run(preparedQuery.query, preparedQuery.params)
+				formattedQuery = sql`DELETE FROM list_entities WHERE type = ${type}`
+				await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
 				await this.deleteAllRangesForType(type)
 				return
 			case TypeId.BlobElement:
-				preparedQuery = sql`DELETE FROM blob_element_entities WHERE type = ${type}`
+				formattedQuery = sql`DELETE FROM blob_element_entities WHERE type = ${type}`
 				break
 			default:
 				throw new Error("must be a persistent type")
 		}
-		await this.sqlCipherFacade.run(preparedQuery.query, preparedQuery.params)
+		await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
 	}
 
 	private async deleteAllRangesForType(type: string): Promise<void> {
@@ -227,21 +227,21 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	async get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<T | null> {
 		const type = getTypeId(typeRef)
 		const typeModel = await resolveTypeReference(typeRef)
-		let preparedQuery
+		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
-				preparedQuery = sql`SELECT entity from element_entities WHERE type = ${type} AND elementId = ${elementId}`
+				formattedQuery = sql`SELECT entity from element_entities WHERE type = ${type} AND elementId = ${elementId}`
 				break
 			case TypeId.ListElement:
-				preparedQuery = sql`SELECT entity from list_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
+				formattedQuery = sql`SELECT entity from list_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
 				break
 			case TypeId.BlobElement:
-				preparedQuery = sql`SELECT entity from blob_element_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
+				formattedQuery = sql`SELECT entity from blob_element_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
 				break
 			default:
 				throw new Error("must be a persistent type")
 		}
-		const result = await this.sqlCipherFacade.get(preparedQuery.query, preparedQuery.params)
+		const result = await this.sqlCipherFacade.get(formattedQuery.query, formattedQuery.params)
 		return result?.entity ? this.deserialize(typeRef, result.entity.value as Uint8Array) : null
 	}
 
@@ -273,19 +273,19 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 
 	async provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
 		const type = getTypeId(typeRef)
-		let preparedQuery
+		let formattedQuery
 		if (reverse) {
-			preparedQuery = sql`SELECT entity FROM list_entities WHERE type = ${type} AND listId = ${listId} AND ${firstIdBigger(
+			formattedQuery = sql`SELECT entity FROM list_entities WHERE type = ${type} AND listId = ${listId} AND ${firstIdBigger(
 				start,
 				"elementId",
 			)} ORDER BY LENGTH(elementId) DESC, elementId DESC LIMIT ${count}`
 		} else {
-			preparedQuery = sql`SELECT entity FROM list_entities WHERE type = ${type} AND listId = ${listId} AND ${firstIdBigger(
+			formattedQuery = sql`SELECT entity FROM list_entities WHERE type = ${type} AND listId = ${listId} AND ${firstIdBigger(
 				"elementId",
 				start,
 			)} ORDER BY LENGTH(elementId) ASC, elementId ASC LIMIT ${count}`
 		}
-		const { query, params } = preparedQuery
+		const { query, params } = formattedQuery
 		const serializedList: ReadonlyArray<Record<string, TaggedSqlValue>> = await this.sqlCipherFacade.all(query, params)
 		return this.deserializeList(
 			typeRef,
@@ -299,21 +299,21 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		const type = getTypeId(originalEntity._type)
 		const ownerGroup = originalEntity._ownerGroup
 		const typeModel = await resolveTypeReference(originalEntity._type)
-		let preparedQuery: { query: string; params: TaggedSqlValue[] }
+		let formattedQuery: FormattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
-				preparedQuery = sql`INSERT OR REPLACE INTO element_entities (type, elementId, ownerGroup, entity) VALUES (${type}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
+				formattedQuery = sql`INSERT OR REPLACE INTO element_entities (type, elementId, ownerGroup, entity) VALUES (${type}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
 				break
 			case TypeId.ListElement:
-				preparedQuery = sql`INSERT OR REPLACE INTO list_entities (type, listId, elementId, ownerGroup, entity) VALUES (${type}, ${listId}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
+				formattedQuery = sql`INSERT OR REPLACE INTO list_entities (type, listId, elementId, ownerGroup, entity) VALUES (${type}, ${listId}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
 				break
 			case TypeId.BlobElement:
-				preparedQuery = sql`INSERT OR REPLACE INTO blob_element_entities (type, listId, elementId, ownerGroup, entity) VALUES (${type}, ${listId}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
+				formattedQuery = sql`INSERT OR REPLACE INTO blob_element_entities (type, listId, elementId, ownerGroup, entity) VALUES (${type}, ${listId}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
 				break
 			default:
 				throw new Error("must be a persistent type")
 		}
-		await this.sqlCipherFacade.run(preparedQuery.query, preparedQuery.params)
+		await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
 	}
 
 	async setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
@@ -574,26 +574,26 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 	}
 
 	private async deleteIn(typeRef: TypeRef<unknown>, listId: Id | null, elementIds: Id[]): Promise<void> {
-		let preparedQuery: { query: string; params: TaggedSqlValue[] }
+		let formattedQuery: FormattedQuery
 		const typeModel = await resolveTypeReference(typeRef)
 		switch (typeModel.type) {
 			case TypeId.Element:
-				preparedQuery = sql`DELETE FROM element_entities WHERE type =${getTypeId(typeRef)} AND elementId IN ${paramList(elementIds)}`
+				formattedQuery = sql`DELETE FROM element_entities WHERE type =${getTypeId(typeRef)} AND elementId IN ${paramList(elementIds)}`
 				break
 			case TypeId.ListElement:
-				preparedQuery = sql`DELETE FROM list_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId} AND elementId IN ${paramList(
+				formattedQuery = sql`DELETE FROM list_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId} AND elementId IN ${paramList(
 					elementIds,
 				)}`
 				break
 			case TypeId.BlobElement:
-				preparedQuery = sql`DELETE FROM blob_element_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId} AND elementId IN ${paramList(
+				formattedQuery = sql`DELETE FROM blob_element_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId} AND elementId IN ${paramList(
 					elementIds,
 				)}`
 				break
 			default:
 				throw new Error("must be a persistent type")
 		}
-		return this.sqlCipherFacade.run(preparedQuery.query, preparedQuery.params)
+		return this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
 	}
 
 	/**
@@ -721,10 +721,10 @@ function firstIdBigger(...args: [string, "elementId"] | ["elementId", string]): 
  *
  * which can be consumed by sql.run(query, params)
  */
-export function sql(queryParts: TemplateStringsArray, ...paramInstances: (SqlValue | SqlFragment)[]): { query: string; params: TaggedSqlValue[] } {
+export function sql(queryParts: TemplateStringsArray, ...paramInstances: (SqlValue | SqlFragment)[]): FormattedQuery {
 	let query = ""
 	let params: TaggedSqlValue[] = []
-	let i = 0
+	let i: number
 	for (i = 0; i < paramInstances.length; i++) {
 		query += queryParts[i]
 		const param = paramInstances[i]
