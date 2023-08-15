@@ -444,7 +444,7 @@ class MainActivity : FragmentActivity() {
 						Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
 						Uri.parse("package:$packageName")
 				)
-				startActivity(intent)
+				startActivityForResult(intent)
 			}
 		}
 	}
