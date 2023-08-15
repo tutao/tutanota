@@ -39,6 +39,14 @@ export class MailAddressFacade {
 		private readonly nonCachingEntityClient: EntityClient,
 	) {}
 
+	/**
+	 * For legacy accounts the given userGroupId is ignored since the alias counters are for the customer
+	 */
+	getAliasCounters(userGroupId: Id): Promise<MailAddressAliasServiceReturn> {
+		const data = createMailAddressAliasGetIn({ targetGroup: userGroupId })
+		return this.serviceExecutor.get(MailAddressAliasService, data)
+	}
+
 	isMailAddressAvailable(mailAddress: string): Promise<boolean> {
 		if (this.userFacade.isFullyLoggedIn()) {
 			const data = createDomainMailAddressAvailabilityData({ mailAddress })

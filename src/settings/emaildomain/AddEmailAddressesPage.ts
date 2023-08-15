@@ -25,11 +25,8 @@ import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js
 assertMainOrNode()
 
 export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAttrs> {
-	private redrawSubscription: Stream<void> | null = null
-
 	oncreate({ attrs }: VnodeDOM<AddEmailAddressesPageAttrs>) {
 		attrs.data.editAliasFormAttrs.model.init()
-		this.redrawSubscription = attrs.data.editAliasFormAttrs.model.redraw.map(m.redraw)
 	}
 
 	onremove({ attrs }: Vnode<AddEmailAddressesPageAttrs>) {

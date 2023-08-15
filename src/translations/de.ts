@@ -30,7 +30,7 @@ export default {
 		"accept_action": "Annehmen",
 		"accountCongratulations_msg": "Herzlichen Glückwunsch",
 		"accountCreationCongratulation_msg": "Dein Account wurde erstellt! Willkommen in deiner verschlüsselten Mailbox. 🔒",
-		"accountSwitchAliases_msg": "Bitte lösche alle dir zugeordneten Aliasse.",
+		"accountSwitchAliases_msg": "Bitte deaktiviere/lösche Aliasse, da dein ausgewähltes Abo nur weniger Aliasse erlaubt.",
 		"accountSwitchCustomMailAddress_msg": "Bitte deaktiviere alle E-Mail Aliasse mit eigener Domain.",
 		"accountSwitchMultipleCalendars_msg": "Bitte lösche alle zusätzlichen Kalender.",
 		"accountSwitchNotPossible_msg": "Der Wechsel des Abonnements ist momentan nicht möglich. {detailMsg}",

@@ -3,13 +3,12 @@ import { createWizardDialog, WizardPageWrapper } from "../../../../src/gui/base/
 import { Dialog } from "../../../../src/gui/base/Dialog.js"
 import { EnterDomainPageAttrs } from "../../../../src/settings/emaildomain/EnterDomainPage.js"
 import stream from "mithril/stream"
-import { createCustomerInfo } from "../../../../src/api/entities/sys/TypeRefs.js"
-import { createDnsRecord } from "../../../../src/api/entities/sys/TypeRefs.js"
+import { createCustomerInfo, createDnsRecord } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { DomainDnsStatus } from "../../../../src/settings/DomainDnsStatus.js"
 import { AddDomainData } from "../../../../src/settings/emaildomain/AddDomainWizard.js"
-import { createGroupInfo } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { MailAddressTableModel } from "../../../../src/settings/mailaddress/MailAddressTableModel.js"
 import { object } from "testdouble"
+import { noOp } from "@tutao/tutanota-utils"
 
 const data: AddDomainData = {
 	domain: stream("domain"),
@@ -17,6 +16,8 @@ const data: AddDomainData = {
 	expectedVerificationRecord: createDnsRecord(),
 	editAliasFormAttrs: {
 		model: object<MailAddressTableModel>(),
+		expanded: false,
+		onExpanded: noOp,
 	},
 	domainStatus: new DomainDnsStatus("domain"),
 }

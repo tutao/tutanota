@@ -48,9 +48,12 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private administratedBy: Id | null = null
 	private availableTeamGroupInfos: Array<GroupInfo> = []
 	private mailAddressTableModel: MailAddressTableModel | null = null
+	private mailAddressTableExpanded: boolean
 
 	constructor(public userGroupInfo: GroupInfo, private isAdmin: boolean) {
 		this.userGroupInfo = userGroupInfo
+
+		this.mailAddressTableExpanded = false
 
 		this.secondFactorsForm = new SecondFactorsEditForm(this.user)
 
@@ -152,7 +155,13 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			this.groupsTableAttrs ? m(Table, this.groupsTableAttrs) : null,
 			this.contactFormsTableAttrs ? m(".h4.mt-l.mb-s", lang.get("contactForms_label")) : null,
 			this.contactFormsTableAttrs ? m(Table, this.contactFormsTableAttrs) : null,
-			this.mailAddressTableModel ? m(MailAddressTable, { model: this.mailAddressTableModel }) : progressIcon(),
+			this.mailAddressTableModel
+				? m(MailAddressTable, {
+						model: this.mailAddressTableModel,
+						expanded: this.mailAddressTableExpanded,
+						onExpanded: (newExpanded) => (this.mailAddressTableExpanded = newExpanded),
+				  })
+				: progressIcon(),
 		])
 	}
 

@@ -26,7 +26,7 @@ export default {
 		"accept_action": "Accept",
 		"accountCongratulations_msg": "Congratulations",
 		"accountCreationCongratulation_msg": "Your account has been created! Welcome to the encrypted side. 🔒",
-		"accountSwitchAliases_msg": "Please delete all aliases of your user.",
+		"accountSwitchAliases_msg": "Please deactivate/delete aliases to match the target plan's allowed number of aliases.",
 		"accountSwitchCustomMailAddress_msg": "Please disable all custom domain email aliases.",
 		"accountSwitchMultipleCalendars_msg": "Please delete all additional calendars.",
 		"accountSwitchNotPossible_msg": "Downgrading is currently not possible. {detailMsg}",

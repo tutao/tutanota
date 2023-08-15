@@ -2,11 +2,10 @@ import { EntityClient } from "../../api/common/EntityClient.js"
 import { MailboxPropertiesTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { MailAddressFacade } from "../../api/worker/facades/lazy/MailAddressFacade.js"
 import { LoginController } from "../../api/main/LoginController.js"
-import stream from "mithril/stream"
 import { EntityUpdateData, EventController, isUpdateFor, isUpdateForTypeRef } from "../../api/main/EventController.js"
 import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { getAvailableDomains } from "./MailAddressesUtils.js"
-import { GroupInfo, GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { GroupInfo, GroupInfoTypeRef, MailAddressAliasServiceReturn } from "../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, lazyMemoized } from "@tutao/tutanota-utils"
 import { isTutanotaMailAddress } from "../../mail/model/MailUtils.js"
 import { LimitReachedError } from "../../api/common/error/RestError.js"
@@ -42,12 +41,14 @@ export interface MailAddressNameChanger {
 
 /** Model for showing the list of mail addresses and optionally adding more, enabling/disabling/setting names for them. */
 export class MailAddressTableModel {
-	readonly redraw = stream<void>()
 	private nameMappings: AddressToName | null = null
+	aliasCount: MailAddressAliasServiceReturn | null = null
 
 	init: () => Promise<void> = lazyMemoized(async () => {
 		this.eventController.addEntityListener(this.entityEventsReceived)
 		await this.loadNames()
+		this.redraw()
+		await this.loadAliasCount()
 		this.redraw()
 	})
 
@@ -59,11 +60,11 @@ export class MailAddressTableModel {
 		private readonly eventController: EventController,
 		private userGroupInfo: GroupInfo,
 		private readonly nameChanger: MailAddressNameChanger,
+		private readonly redraw: () => unknown,
 	) {}
 
 	dispose() {
 		this.eventController.removeEntityListener(this.entityEventsReceived)
-		this.redraw.end(true)
 	}
 
 	userCanModifyAliases(): boolean {
@@ -142,6 +143,7 @@ export class MailAddressTableModel {
 				await this.loadNames()
 			} else if (isUpdateFor(this.userGroupInfo, update) && update.operation === OperationType.UPDATE) {
 				this.userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userGroupInfo._id)
+				await this.loadAliasCount()
 			}
 		}
 		this.redraw()
@@ -149,6 +151,10 @@ export class MailAddressTableModel {
 
 	private async loadNames() {
 		this.nameMappings = await this.nameChanger.getSenderNames()
+	}
+
+	private async loadAliasCount() {
+		this.aliasCount = await this.mailAddressFacade.getAliasCounters(this.userGroupInfo.group)
 	}
 
 	/**

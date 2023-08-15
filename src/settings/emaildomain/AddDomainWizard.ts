@@ -24,11 +24,17 @@ export type AddDomainData = {
 
 /** Shows a wizard for adding a custom email domain. */
 export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo, mailAddressTableModel: MailAddressTableModel): Promise<void> {
+	let mailAddressTableExpanded: boolean = false
+
 	const domainData: AddDomainData = {
 		domain: stream(domain),
 		customerInfo: customerInfo,
 		expectedVerificationRecord: createDnsRecord(),
-		editAliasFormAttrs: { model: mailAddressTableModel },
+		editAliasFormAttrs: {
+			model: mailAddressTableModel,
+			expanded: mailAddressTableExpanded,
+			onExpanded: (newExpanded) => (mailAddressTableExpanded = newExpanded),
+		},
 		domainStatus: new DomainDnsStatus(domain),
 	}
 	domainData.expectedVerificationRecord.type = DnsRecordType.DNS_RECORD_TYPE_TXT_SPF // not actually spf, but the type TXT only matters here

@@ -15,7 +15,7 @@ import type { AccountingInfo, Booking, Customer, CustomerInfo, GiftCard, OrderPr
 import {
 	AccountingInfoTypeRef,
 	BookingTypeRef,
-	createMailAddressAliasGetIn,
+	CustomerInfoTypeRef,
 	CustomerTypeRef,
 	GiftCardTypeRef,
 	GroupInfoTypeRef,
@@ -62,7 +62,6 @@ import {
 	renderTermsAndConditionsButton,
 	TermsSection,
 } from "./TermsAndConditions"
-import { MailAddressAliasService } from "../api/entities/sys/Services"
 import { DropDownSelector, SelectorItemList } from "../gui/base/DropDownSelector.js"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
@@ -80,6 +79,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private _nextPriceFieldValue: Stream<string>
 	private _usersFieldValue: Stream<string>
 	private _storageFieldValue: Stream<string>
+	private _emailAliasFieldValue: Stream<string>
 	private _groupsFieldValue: Stream<string>
 	private _contactFormsFieldValue: Stream<string>
 	private _whitelabelFieldValue: Stream<string>
@@ -172,6 +172,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 								disabled: true,
 							}),
 							m(TextField, {
+								label: "mailAddressAliases_label",
+								value: this._emailAliasFieldValue(),
+								oninput: this._emailAliasFieldValue,
+								disabled: true,
+							}),
+							m(TextField, {
 								label: "pricing.comparisonSharingCalendar_msg",
 								value: this._sharingFieldValue(),
 								oninput: this._sharingFieldValue,
@@ -226,6 +232,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._nextPriceFieldValue = stream(loadingString)
 		this._usersFieldValue = stream(loadingString)
 		this._storageFieldValue = stream(loadingString)
+		this._emailAliasFieldValue = stream(loadingString)
 		this._groupsFieldValue = stream(loadingString)
 		this._whitelabelFieldValue = stream(loadingString)
 		this._sharingFieldValue = stream(loadingString)
@@ -351,6 +358,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		await Promise.all([
 			this.updateUserField(),
 			this.updateStorageField(customer, customerInfo),
+			this.updateAliasField(),
 			this.updateGroupsField(),
 			this.updateWhitelabelField(planConfig),
 			this.updateSharingField(planConfig),
@@ -374,6 +382,18 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			lang.get("amountUsedOf_label", {
 				"{amount}": usedStorageFormatted,
 				"{totalAmount}": totalStorageFormatted,
+			}),
+		)
+	}
+
+	private async updateAliasField(): Promise<void> {
+		// we pass in the user group id here even though for legacy plans the id is ignored
+		const counters = await locator.mailAddressFacade.getAliasCounters(locator.logins.getUserController().user.userGroup.group)
+		this._emailAliasFieldValue(
+			lang.get("amountUsedAndActivatedOf_label", {
+				"{used}": counters.usedAliases,
+				"{active}": counters.enabledAliases,
+				"{totalAmount}": counters.totalAliases,
 			}),
 		)
 	}
@@ -456,6 +476,10 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
 			const customer = await locator.entityClient.load(CustomerTypeRef, instanceId)
 			return await this.updateCustomerData(customer)
+		} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
+			// needed to update the displayed plan
+			await this.updateBookings()
+			return await this.updatePriceInfo()
 		} else if (isUpdateForTypeRef(GiftCardTypeRef, update)) {
 			const giftCard = await locator.entityClient.load(GiftCardTypeRef, [instanceListId, instanceId])
 			this._giftCards.set(elementIdPart(giftCard._id), giftCard)
