@@ -11,7 +11,17 @@ import {
 import { CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
-import { assert, assertNotNull, DAY_IN_MILLIS, getTypeId, groupByAndMap, groupByAndMapUniquely, mapNullable, TypeRef } from "@tutao/tutanota-utils"
+import {
+	assert,
+	assertNotNull,
+	DAY_IN_MILLIS,
+	getTypeId,
+	groupByAndMap,
+	groupByAndMapUniquely,
+	mapNullable,
+	splitInChunks,
+	TypeRef,
+} from "@tutao/tutanota-utils"
 import { isDesktop, isOfflineStorageAvailable, isTest } from "../../common/Env.js"
 import { modelInfos, resolveTypeReference } from "../../common/EntityFunctions.js"
 import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../common/TutanotaConstants.js"
@@ -39,6 +49,12 @@ import { isDetailsDraft, isLegacyMail } from "../../common/MailWrapper.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { isSpamOrTrashFolder } from "../../common/mail/CommonMailUtils.js"
+
+/**
+ * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
+ * it may change if the sqlite version is updated.
+ * */
+const MAX_SAFE_SQL_VARS = 32766
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	const time = data.getTime()
@@ -428,13 +444,13 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 				(row) => row.type,
 				(row) => row.listId,
 			)
+			// delete the ranges for those listIds
 			for (const [type, listIds] of listIdsByType.entries()) {
-				// delete the ranges for those listIds
-				const deleteRangeQuery = sql`DELETE FROM ranges WHERE type = ${type} AND listId IN ${paramList(Array.from(listIds))}`
-				await this.sqlCipherFacade.run(deleteRangeQuery.query, deleteRangeQuery.params)
-				// delete all entities that have one of those list Ids.
-				const deleteEntitiesQuery = sql`DELETE FROM list_entities WHERE type = ${type} AND listId IN ${paramList(Array.from(listIds))}`
-				await this.sqlCipherFacade.run(deleteEntitiesQuery.query, deleteEntitiesQuery.params)
+				// this particular query uses one other SQL var for the type.
+				const safeChunkSize = MAX_SAFE_SQL_VARS - 1
+				const listIdArr = Array.from(listIds)
+				await this.runChunked(safeChunkSize, listIdArr, (c) => sql`DELETE FROM ranges WHERE type = ${type} AND listId IN ${paramList(c)}`)
+				await this.runChunked(safeChunkSize, listIdArr, (c) => sql`DELETE FROM list_entities WHERE type = ${type} AND listId IN ${paramList(c)}`)
 			}
 		}
 		{
@@ -574,26 +590,29 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 	}
 
 	private async deleteIn(typeRef: TypeRef<unknown>, listId: Id | null, elementIds: Id[]): Promise<void> {
-		let formattedQuery: FormattedQuery
 		const typeModel = await resolveTypeReference(typeRef)
 		switch (typeModel.type) {
 			case TypeId.Element:
-				formattedQuery = sql`DELETE FROM element_entities WHERE type =${getTypeId(typeRef)} AND elementId IN ${paramList(elementIds)}`
-				break
+				return await this.runChunked(
+					MAX_SAFE_SQL_VARS - 1,
+					elementIds,
+					(c) => sql`DELETE FROM element_entities WHERE type = ${getTypeId(typeRef)} AND elementId IN ${paramList(c)}`,
+				)
 			case TypeId.ListElement:
-				formattedQuery = sql`DELETE FROM list_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId} AND elementId IN ${paramList(
+				return await this.runChunked(
+					MAX_SAFE_SQL_VARS - 2,
 					elementIds,
-				)}`
-				break
+					(c) => sql`DELETE FROM list_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId} AND elementId IN ${paramList(c)}`,
+				)
 			case TypeId.BlobElement:
-				formattedQuery = sql`DELETE FROM blob_element_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId} AND elementId IN ${paramList(
+				return await this.runChunked(
+					MAX_SAFE_SQL_VARS - 2,
 					elementIds,
-				)}`
-				break
+					(c) => sql`DELETE FROM blob_element_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId} AND elementId IN ${paramList(c)}`,
+				)
 			default:
 				throw new Error("must be a persistent type")
 		}
-		return this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
 	}
 
 	/**
@@ -667,11 +686,26 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 	private deserializeList<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Array<Uint8Array>): Array<T> {
 		return loaded.map((entity) => this.deserialize(typeRef, entity))
 	}
+
+	/**
+	 * convenience method to run a potentially too large query over several chunks.
+	 * chunkSize must be chosen such that the total number of SQL variables in the final query does not exceed MAX_SAFE_SQL_VARS
+	 * */
+	private async runChunked(chunkSize: number, originalList: SqlValue[], formatter: (chunk: SqlValue[]) => FormattedQuery): Promise<void> {
+		for (const chunk of splitInChunks(chunkSize, originalList)) {
+			console.log(chunk.length)
+			const formattedQuery = formatter(chunk)
+			await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
+		}
+	}
 }
 
 /*
- * used to automatically create the right amount of query params for selecting ids from a dynamic list.
- * must be used within sql`<query>` template string to inline the logic into the query
+ * used to automatically create the right amount of SQL variables for selecting ids from a dynamic list.
+ * must be used within sql`<query>` template string to inline the logic into the query.
+ *
+ * It is very important that params is kept to a size such that the total amount of SQL variables is
+ * less than MAX_SAFE_SQL_VARS.
  */
 function paramList(params: SqlValue[]): SqlFragment {
 	const qs = params.map(() => "?").join(",")
@@ -680,7 +714,9 @@ function paramList(params: SqlValue[]): SqlFragment {
 
 /**
  * comparison to select ids that are bigger or smaller than a parameter id
- * must be used within sql`<query>` template string to inline the logic into the query
+ * must be used within sql`<query>` template string to inline the logic into the query.
+ *
+ * will always insert 3 constants and 3 SQL variables into the query.
  */
 function firstIdBigger(...args: [string, "elementId"] | ["elementId", string]): SqlFragment {
 	let [l, r]: [string, string] = args
@@ -719,7 +755,10 @@ function firstIdBigger(...args: [string, "elementId"] | ["elementId", string]): 
  *     ]
  * }
  *
- * which can be consumed by sql.run(query, params)
+ * which can be consumed by sql.run(query, params).
+ *
+ * It is important that the caller ensures that the amount of SQL variables does not exceed MAX_SAFE_SQL_VARS!
+ * Violating this rule will lead to an uncaught error with bad stack traces.
  */
 export function sql(queryParts: TemplateStringsArray, ...paramInstances: (SqlValue | SqlFragment)[]): FormattedQuery {
 	let query = ""
