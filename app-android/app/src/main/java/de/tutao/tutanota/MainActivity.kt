@@ -9,7 +9,6 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.net.MailTo
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
@@ -44,9 +43,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import okhttp3.ConnectionSpec
-import okhttp3.OkHttpClient
-import org.conscrypt.Conscrypt
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -54,13 +50,9 @@ import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.security.SecureRandom
-import java.security.Security
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -418,11 +410,6 @@ class MainActivity : FragmentActivity() {
 		}
 	}
 
-	override fun onSaveInstanceState(outState: Bundle) {
-		super.onSaveInstanceState(outState)
-		webView.saveState(outState)
-	}
-
 	suspend fun askBatteryOptimizationsIfNeeded() {
 		val powerManager = getSystemService(POWER_SERVICE) as PowerManager
 
@@ -621,7 +608,9 @@ class MainActivity : FragmentActivity() {
 			// Intent documentation claims that data is copied to ClipData if it's not there
 			// but we want to be sure
 			if (Intent.ACTION_SEND_MULTIPLE == intent.action) {
-				@Suppress("UNCHECKED_CAST")
+				// unchecked_cast: we could just check for null instead?
+				// deprecation: the alternative requires API 33
+				@Suppress("UNCHECKED_CAST", "DEPRECATION")
 				val uris = intent.extras!!.getParcelableArrayList<Uri>(Intent.EXTRA_STREAM)
 				if (uris != null) {
 					for (uri in uris) {
@@ -629,6 +618,8 @@ class MainActivity : FragmentActivity() {
 					}
 				}
 			} else if (intent.hasExtra(Intent.EXTRA_STREAM)) {
+				// depreciation: the alternative requires API 33
+				@Suppress("DEPRECATION")
 				val uri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
 				filesArray.add(uri.toString())
 			} else if (intent.data != null) {
@@ -665,6 +656,10 @@ class MainActivity : FragmentActivity() {
 		commonNativeFacade.openCalendar(userId)
 	}
 
+	// this still works, but there's onBackPressedDispatcher.addCallback
+	// it should work on all API levels we support:
+	// https://stackoverflow.com/questions/72634225/onbackpressed-is-deprecated-what-is-the-alternative
+	@Deprecated("Deprecated in Java")
 	override fun onBackPressed() {
 		if (commonSystemFacade.initialized) {
 			lifecycleScope.launchWhenCreated {
@@ -723,7 +718,6 @@ class MainActivity : FragmentActivity() {
 		const val OPEN_USER_MAILBOX_USERID_KEY = "userId"
 		const val IS_SUMMARY_EXTRA = "isSummary"
 		private const val ASKED_BATTERY_OPTIMIZATIONS_PREF = "askedBatteryOptimizations"
-		private const val MIGRATED_OLD_LOCAL_STORAGE_PREF = "migratedOldLocalStorage"
 		private const val TAG = "MainActivity"
 		private var requestId = 0
 
