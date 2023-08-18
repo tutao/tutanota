@@ -537,6 +537,7 @@ export type ChangePasswordData = {
 
 	_format: NumberString;
 	code: null | string;
+	kdfVersion: NumberString;
 	oldVerifier: null | Uint8Array;
 	pwEncUserGroupKey: Uint8Array;
 	recoverCodeVerifier: null | Uint8Array;
@@ -2449,6 +2450,7 @@ export type ResetPasswordData = {
 	_type: TypeRef<ResetPasswordData>;
 
 	_format: NumberString;
+	kdfVersion: NumberString;
 	pwEncUserGroupKey: Uint8Array;
 	salt: Uint8Array;
 	verifier: Uint8Array;
@@ -2492,6 +2494,7 @@ export type SaltReturn = {
 	_type: TypeRef<SaltReturn>;
 
 	_format: NumberString;
+	kdfVersion: NumberString;
 	salt: Uint8Array;
 }
 export const SecondFactorTypeRef: TypeRef<SecondFactor> = new TypeRef("sys", "SecondFactor")
@@ -2945,6 +2948,7 @@ export type User = {
 	_permissions: Id;
 	accountType: NumberString;
 	enabled: boolean;
+	kdfVersion: NumberString;
 	requirePasswordUpdate: boolean;
 	salt: null | Uint8Array;
 	userEncClientKey: Uint8Array;

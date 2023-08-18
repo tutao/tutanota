@@ -59,7 +59,9 @@ export type BlobGetIn = {
 
 	_format: NumberString;
 	archiveId: Id;
-	blobId: Id;
+	blobId: null | Id;
+
+	blobIds: BlobId[];
 }
 export const BlobIdTypeRef: TypeRef<BlobId> = new TypeRef("storage", "BlobId")
 
