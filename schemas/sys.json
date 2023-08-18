@@ -205,6 +205,16 @@
 					"info": "AddValue PlanConfiguration/autoResponder/2130."
 				}
 			]
+		},
+		{
+			"version": 89,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "User",
+					"info": "AddValue User/kdfVersion/2132."
+				}
+			]
 		}
 	]
 }
