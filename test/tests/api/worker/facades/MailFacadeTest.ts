@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { MailFacade, phishingMarkerValue } from "../../../../../src/api/worker/facades/lazy/MailFacade.js"
-import { createMail, createMailAddress, createPhishingMarker } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { createMail, createMailAddress, createReportedMailFieldMarker } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { MailAuthenticationStatus, ReportedMailFieldType } from "../../../../../src/api/common/TutanotaConstants.js"
 import { object } from "testdouble"
 import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
@@ -58,10 +58,10 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test 2"),
 				}),
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.FROM_DOMAIN, "example2.com"),
 				}),
 			])
@@ -79,10 +79,10 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test 2"),
 				}),
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.FROM_DOMAIN, "example.com"),
 				}),
 			])
@@ -100,10 +100,10 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
 				}),
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.FROM_DOMAIN, "example2.com"),
 				}),
 			])
@@ -121,10 +121,10 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
 				}),
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.FROM_DOMAIN, "example.com"),
 				}),
 			])
@@ -142,10 +142,10 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Testspaces"),
 				}),
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.FROM_DOMAIN, "example.com"),
 				}),
 			])
@@ -163,10 +163,10 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
 				}),
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.FROM_DOMAIN, "example.com"),
 				}),
 			])
@@ -184,10 +184,10 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
 				}),
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.FROM_ADDRESS, "test@example.com"),
 				}),
 			])
@@ -205,10 +205,10 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
 				}),
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.FROM_ADDRESS, "test@example.com"),
 				}),
 			])
@@ -226,10 +226,10 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
 				}),
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.FROM_DOMAIN_NON_AUTH, "example.com"),
 				}),
 			])
@@ -247,10 +247,10 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
 				}),
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.FROM_ADDRESS_NON_AUTH, "test@example.com"),
 				}),
 			])
@@ -268,10 +268,10 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
 				}),
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.LINK, "https://example.com"),
 				}),
 			])
@@ -289,10 +289,10 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.LINK, "https://example.com"),
 				}),
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.LINK, "https://example2.com"),
 				}),
 			])
@@ -315,10 +315,10 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
 				}),
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.LINK_DOMAIN, "example.com"),
 				}),
 			])
@@ -336,10 +336,10 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
 				}),
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.LINK_DOMAIN, "example.com"),
 				}),
 			])
@@ -363,7 +363,7 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
 				}),
 			])
@@ -381,7 +381,7 @@ o.spec("MailFacade test", function () {
 				}),
 			})
 			facade.phishingMarkersUpdateReceived([
-				createPhishingMarker({
+				createReportedMailFieldMarker({
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
 				}),
 			])
