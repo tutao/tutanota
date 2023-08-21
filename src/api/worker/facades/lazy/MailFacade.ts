@@ -31,7 +31,7 @@ import type {
 	File as TutanotaFile,
 	Mail,
 	MailFolder,
-	PhishingMarker,
+	ReportedMailFieldMarker,
 	SendDraftData,
 } from "../../../entities/tutanota/TypeRefs.js"
 import {
@@ -756,7 +756,10 @@ export class MailFacade {
 		}).then(noOp)
 	}
 
-	phishingMarkersUpdateReceived(markers: Array<PhishingMarker>) {
+	/**
+	 * @param markers only phishing (not spam) markers will be sent as event bus updates
+	 */
+	phishingMarkersUpdateReceived(markers: ReportedMailFieldMarker[]) {
 		markers.forEach((marker) => {
 			if (marker.status === PhishingMarkerStatus.INACTIVE) {
 				this.phishingMarkers.delete(marker.marker)
