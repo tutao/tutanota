@@ -38,7 +38,7 @@ import { SleepDetector } from "./utils/SleepDetector.js"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
 import { resolveTypeReference } from "../common/EntityFunctions.js"
-import { PhishingMarker, PhishingMarkerWebsocketData, PhishingMarkerWebsocketDataTypeRef } from "../entities/tutanota/TypeRefs"
+import { ReportedMailFieldMarker, PhishingMarkerWebsocketData, PhishingMarkerWebsocketDataTypeRef } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 
@@ -93,7 +93,10 @@ export interface EventBusListener {
 
 	onEntityEventsReceived(events: EntityUpdate[], batchId: Id, groupId: Id): Promise<void>
 
-	onPhishingMarkersReceived(markers: PhishingMarker[]): unknown
+	/**
+	 * @param markers only phishing (not spam) markers will be sent as event bus updates
+	 */
+	onPhishingMarkersReceived(markers: ReportedMailFieldMarker[]): unknown
 
 	onError(tutanotaError: Error): void
 }

@@ -1,7 +1,7 @@
 import { EventBusListener } from "./EventBusClient.js"
 import { WsConnectionState } from "../main/WorkerClient.js"
 import { EntityUpdate, UserTypeRef, WebsocketCounterData, WebsocketLeaderStatus } from "../entities/sys/TypeRefs.js"
-import { PhishingMarker } from "../entities/tutanota/TypeRefs.js"
+import { ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs.js"
 import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel.js"
 import { WorkerImpl } from "./WorkerImpl.js"
 import { isAdminClient, isTest } from "../common/Env.js"
@@ -44,7 +44,10 @@ export class EventBusEventCoordinator implements EventBusListener {
 		}
 	}
 
-	async onPhishingMarkersReceived(markers: PhishingMarker[]) {
+	/**
+	 * @param markers only phishing (not spam) marker will be sent as websocket updates
+	 */
+	async onPhishingMarkersReceived(markers: ReportedMailFieldMarker[]) {
 		;(await this.mailFacade()).phishingMarkersUpdateReceived(markers)
 	}
 
