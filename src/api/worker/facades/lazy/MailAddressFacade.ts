@@ -39,11 +39,6 @@ export class MailAddressFacade {
 		private readonly nonCachingEntityClient: EntityClient,
 	) {}
 
-	getAliasCounters(userGroupId: Id): Promise<MailAddressAliasServiceReturn> {
-		const data = createMailAddressAliasGetIn({ targetGroup: userGroupId })
-		return this.serviceExecutor.get(MailAddressAliasService, data)
-	}
-
 	isMailAddressAvailable(mailAddress: string): Promise<boolean> {
 		if (this.userFacade.isFullyLoggedIn()) {
 			const data = createDomainMailAddressAvailabilityData({ mailAddress })
