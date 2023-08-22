@@ -140,5 +140,5 @@ export async function hasPlanWithInvites(loginController: LoginController): Prom
 
 	const customer = await loginController.getUserController().loadCustomer()
 
-	return isCustomizationEnabledForCustomer(customer, FeatureType.PremiumLegacy) || (await userController.getPlanConfig()).eventInvites
+	return (await userController.getPlanConfig()).eventInvites
 }

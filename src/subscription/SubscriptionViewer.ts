@@ -80,7 +80,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private _nextPriceFieldValue: Stream<string>
 	private _usersFieldValue: Stream<string>
 	private _storageFieldValue: Stream<string>
-	private _emailAliasFieldValue: Stream<string>
 	private _groupsFieldValue: Stream<string>
 	private _contactFormsFieldValue: Stream<string>
 	private _whitelabelFieldValue: Stream<string>
@@ -173,12 +172,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 								disabled: true,
 							}),
 							m(TextField, {
-								label: "mailAddressAliases_label",
-								value: this._emailAliasFieldValue(),
-								oninput: this._emailAliasFieldValue,
-								disabled: true,
-							}),
-							m(TextField, {
 								label: "pricing.comparisonSharingCalendar_msg",
 								value: this._sharingFieldValue(),
 								oninput: this._sharingFieldValue,
@@ -233,7 +226,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._nextPriceFieldValue = stream(loadingString)
 		this._usersFieldValue = stream(loadingString)
 		this._storageFieldValue = stream(loadingString)
-		this._emailAliasFieldValue = stream(loadingString)
 		this._groupsFieldValue = stream(loadingString)
 		this._whitelabelFieldValue = stream(loadingString)
 		this._sharingFieldValue = stream(loadingString)
@@ -359,7 +351,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		await Promise.all([
 			this.updateUserField(),
 			this.updateStorageField(customer, customerInfo),
-			this.updateAliasField(userController.user.userGroup.group),
 			this.updateGroupsField(),
 			this.updateWhitelabelField(planConfig),
 			this.updateSharingField(planConfig),
@@ -383,18 +374,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			lang.get("amountUsedOf_label", {
 				"{amount}": usedStorageFormatted,
 				"{totalAmount}": totalStorageFormatted,
-			}),
-		)
-	}
-
-	private async updateAliasField(userGroupId: Id): Promise<void> {
-		const data = createMailAddressAliasGetIn({ targetGroup: userGroupId })
-		const aliasServiceReturn = await locator.serviceExecutor.get(MailAddressAliasService, data)
-		this._emailAliasFieldValue(
-			lang.get("amountUsedAndActivatedOf_label", {
-				"{used}": aliasServiceReturn.usedAliases,
-				"{active}": aliasServiceReturn.enabledAliases,
-				"{totalAmount}": aliasServiceReturn.totalAliases,
 			}),
 		)
 	}
