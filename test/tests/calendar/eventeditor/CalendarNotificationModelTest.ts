@@ -45,7 +45,8 @@ o.spec("CalendarNotificationModel", function () {
 		o("available for premium users with business subscription", async function () {
 			when(userController.isNewPaidPlan()).thenResolve(false)
 			replace(userController, "user", { accountType: AccountType.PAID })
-			replace(customer, "customizations", [{ feature: FeatureType.BusinessFeatureEnabled }, { feature: FeatureType.PremiumLegacy }])
+			when(userController.getPlanConfig()).thenResolve({ eventInvites: true })
+			replace(customer, "customizations", [{ feature: FeatureType.BusinessFeatureEnabled }])
 			o(await hasPlanWithInvites(logins)).equals(true)
 		})
 
