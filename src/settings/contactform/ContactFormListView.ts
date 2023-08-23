@@ -136,17 +136,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 		return m(
 			ListColumnWrapper,
 			{
-				headerContent: m(
-					".flex.flex-end.center-vertically.plr-l.list-border-bottom",
-					m(
-						".mr-negative-s",
-						m(IconButton, {
-							title: "createContactForm_label",
-							icon: Icons.Add,
-							click: () => this.addButtonClicked(),
-						}),
-					),
-				),
+				headerContent: [],
 			},
 			this.listModel.isEmptyAndDone()
 				? m(ColumnEmptyMessageBox, {
@@ -168,10 +158,6 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 						onRangeSelectionTowards: noOp,
 				  } satisfies ListAttrs<ContactForm, ContactFormRow>),
 		)
-	}
-
-	private addButtonClicked() {
-		ContactFormEditor.show(null, true)
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
