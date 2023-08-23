@@ -31,17 +31,19 @@ export async function renderHtml(scripts, env) {
 	<meta name="application-name" content="Tutanota">
 	<link rel="apple-touch-icon" sizes="152x152" href="images/logo-favicon-152.png">
 	<link rel="icon" sizes="192x192" href="/images/logo-favicon-192.png">
-	<meta name="twitter:card" content="summary">
-	<meta name="twitter:site" content="@TutanotaTeam">
-	<meta name="twitter:domain" content="tutanota.com">
-	<meta name="twitter:image" content="https://tutanota.com/images/share_image.png">
-	<meta property="og:site_name" content="Tutanota">
-	<meta property="og:title" content="Secure Emails Become a Breeze">
-	<meta property="og:description" content="Get your encrypted mailbox for free and show the Internet spies that you won&amp;#39;t make it easy for them! Why? Because you simply can.">
-	<meta property="og:locale" content="en_US">
-	<meta property="og:url" content="https://tutanota.com/">
-	<meta property="og:image" content="https://tutanota.com/images/share_image.png">
-	<meta property="article:publisher" content="https://www.facebook.com/tutanota">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@TutanotaTeam">
+    <meta name="twitter:domain" content="tutanota.com">
+    <meta name="twitter:image" content="https://tutanota.com/resources/images/share-tutanota-twitter-thumbnail.png">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Tutanota">
+    <meta property="og:title" content="Secure Emails Become a Breeze">
+    <meta property="og:description"
+          content="Tutanota is the secure email service, built in Germany. Use encrypted emails on all devices with our open source email client, mobile apps &amp; desktop clients.">
+    <meta property="og:locale" content="en">
+    <meta property="og:url" content="https://tutanota.com/">
+    <meta property="og:image" content="https://tutanota.com/resources/images/share-tutanota-fb-thumbnail.png">
+    <meta property="article:publisher" content="https://www.facebook.com/tutanota">
 	<meta itemprop="name" content="Secure Emails Become a Breeze.">
 	<meta itemprop="description" content="Get your encrypted mailbox for free and show the Internet spies that you won&amp;#39;t make it easy for them! Why? Because you simply can.">
 	<meta itemprop="image" content="https://tutanota.com/images/share_image.png">
