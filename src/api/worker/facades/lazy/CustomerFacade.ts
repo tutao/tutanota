@@ -1,5 +1,5 @@
 import type { InvoiceData, PaymentData, SpamRuleFieldType, SpamRuleType } from "../../../common/TutanotaConstants.js"
-import { AccountType, BookingItemFeatureType, Const, CounterType, GroupType } from "../../../common/TutanotaConstants.js"
+import { AccountType, BookingItemFeatureType, Const, CounterType, GroupType, KdfType } from "../../../common/TutanotaConstants.js"
 import type {
 	AccountingInfo,
 	CustomDomainReturn,
@@ -248,6 +248,7 @@ export class CustomerFacade {
 		password: string,
 		registrationCode: string,
 		currentLanguage: string,
+		kdfType: KdfType,
 	): Promise<Hex> {
 		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
 		const systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
@@ -302,6 +303,7 @@ export class CustomerFacade {
 				password,
 				"",
 				recoverData,
+				kdfType,
 			),
 			userEncAdminGroupKey: encryptKey(userGroupKey, adminGroupKey),
 			userGroupData,

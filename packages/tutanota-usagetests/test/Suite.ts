@@ -16,7 +16,7 @@ o.spec("Main", function () {
 		const test = new UsageTest(testId, "test 123", 0, true)
 		test.pingAdapter = new MockPingAdapter()
 
-		const rendered = test.renderVariant({
+		const rendered = test.getVariant({
 			[0]: () => 0,
 			[1]: () => 1,
 		})

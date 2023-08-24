@@ -258,6 +258,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 			},
 		],
 		"de",
+		await locator.kdfPicker.pickKdfType(),
 	)
 }
 

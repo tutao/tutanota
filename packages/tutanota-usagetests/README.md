@@ -32,7 +32,7 @@ class SomeView implements Component {
 		const controller = locator.usageTestController
 		const relevantTest = controller.getTest("relevantTestId")
 
-		return m("div", relevantTest.renderVariant({
+		return m("div", relevantTest.getVariant({
 			[0]: () => m("p", "This is rendered if the user is assigned to variant 0"),
 			[1]: () => m("p", "This is rendered if the user is assigned to variant 1")
 		}))

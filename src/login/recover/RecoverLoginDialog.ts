@@ -18,6 +18,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { KdfType } from "../../api/common/TutanotaConstants.js"
 
 assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"
@@ -93,7 +94,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 				]
 			},
 		},
-		okAction: () => {
+		okAction: async () => {
 			const cleanMailAddress = emailAddressStream().trim().toLowerCase()
 			const cleanRecoverCodeValue = editor.getValue().replace(/\s/g, "").toLowerCase()
 
@@ -107,9 +108,16 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 				if (errorMessageId) {
 					Dialog.message(errorMessageId)
 				} else {
+					const newKdfType = await locator.kdfPicker.pickKdfType()
 					showProgressDialog(
 						"pleaseWait_msg",
-						locator.loginFacade.recoverLogin(cleanMailAddress, cleanRecoverCodeValue, passwordModel.getNewPassword(), client.getIdentifier()),
+						locator.loginFacade.recoverLogin(
+							cleanMailAddress,
+							cleanRecoverCodeValue,
+							passwordModel.getNewPassword(),
+							newKdfType,
+							client.getIdentifier(),
+						),
 					)
 						.then(async () => {
 							recoverDialog.close()

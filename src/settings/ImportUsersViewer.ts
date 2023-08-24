@@ -176,12 +176,13 @@ async function showBookingDialog(userDetailsArray: UserImportDetails[]) {
  */
 function createUserIfMailAddressAvailable(user: UserImportDetails, index: number, overallNumberOfUsers: number, operationId: OperationId): Promise<boolean> {
 	let cleanMailAddress = user.mailAddress.trim().toLowerCase()
-	return locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress).then((available) => {
+	return locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress).then(async (available) => {
 		if (available) {
 			// we don't use it currently
 
+			const kdfType = await locator.kdfPicker.pickKdfType()
 			return locator.userManagementFacade
-				.createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers, operationId)
+				.createUser(user.username ? user.username : "", cleanMailAddress, user.password, kdfType, index, overallNumberOfUsers, operationId)
 				.then(() => {
 					// delay is needed so that there are not too many requests from isMailAddressAvailable service if users ar not available (are not created)
 					return delay(delayTime).then(() => true)

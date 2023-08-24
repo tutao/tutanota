@@ -54,10 +54,9 @@ export class UserManagementFacade {
 		private readonly loginFacade: LoginFacade,
 	) {}
 
-	async changeUserPassword(user: User, newPassword: string): Promise<void> {
+	async changeUserPassword(user: User, newPassword: string, kdfType: KdfType): Promise<void> {
 		const userGroupKey = await this.groupManagement.getGroupKeyViaAdminEncGKey(user.userGroup.group)
 		const salt = generateRandomSalt()
-		const kdfType = this.loginFacade.pickKdfType(asKdfType(user.kdfVersion))
 		const passwordKey = await this.loginFacade.deriveUserPassphraseKey(kdfType, newPassword, salt)
 		const pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
 		const passwordVerifier = createAuthVerifier(passwordKey)
@@ -192,6 +191,7 @@ export class UserManagementFacade {
 		name: string,
 		mailAddress: string,
 		password: string,
+		kdfType: KdfType,
 		userIndex: number,
 		overallNbrOfUsersToCreate: number,
 		operationId: OperationId,
@@ -232,6 +232,7 @@ export class UserManagementFacade {
 			password,
 			name,
 			this.generateRecoveryCode(userGroupKey),
+			kdfType,
 		)
 		await this.serviceExecutor.post(UserAccountService, data)
 		return this.operationProgressTracker.onProgress(operationId, ((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
@@ -245,9 +246,9 @@ export class UserManagementFacade {
 		password: string,
 		userName: string,
 		recoverData: RecoverData,
+		kdfType: KdfType,
 	): Promise<UserAccountUserData> {
 		const salt = generateRandomSalt()
-		const kdfType = this.loginFacade.pickKdfType(KdfType.Bcrypt)
 		const userPassphraseKey = await this.loginFacade.deriveUserPassphraseKey(kdfType, password, salt)
 		const mailGroupKey = aes128RandomKey()
 		const contactGroupKey = aes128RandomKey()

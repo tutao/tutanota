@@ -24,7 +24,7 @@ import {
 	SessionService,
 	TakeOverDeletedAddressService,
 } from "../../entities/sys/Services"
-import { AccountType, asKdfType, CloseEventBusOption, Const, KdfType } from "../../common/TutanotaConstants"
+import { AccountType, asKdfType, CloseEventBusOption, KdfType } from "../../common/TutanotaConstants"
 import { CryptoError } from "../../common/error/CryptoError"
 import type { GroupInfo, SecondFactorAuthData, User } from "../../entities/sys/TypeRefs.js"
 import {
@@ -797,32 +797,23 @@ export class LoginFacade {
 		})
 	}
 
-	async changePassword(oldPassword: string, newPassword: string): Promise<void> {
-		const currentKdfType = asKdfType(this.userFacade.getLoggedInUser().kdfVersion)
-		const oldSalt = assertNotNull(this.userFacade.getLoggedInUser().salt)
-		const oldUserPassphraseKey = await this.deriveUserPassphraseKey(currentKdfType, oldPassword, oldSalt)
-		const oldAuthVerifier = createAuthVerifier(oldUserPassphraseKey)
+	async changePassword(currentPassword: string, newPassword: string, currentKdfType: KdfType, newKdfType: KdfType): Promise<void> {
+		const currentSalt = assertNotNull(this.userFacade.getLoggedInUser().salt)
+		const currentUserPassphraseKey = await this.deriveUserPassphraseKey(currentKdfType, currentPassword, currentSalt)
+		const currentAuthVerifier = createAuthVerifier(currentUserPassphraseKey)
 
 		const salt = generateRandomSalt()
-		const newKdfType = this.pickKdfType(currentKdfType)
 		const userPassphraseKey = await this.deriveUserPassphraseKey(newKdfType, newPassword, salt)
 		const pwEncUserGroupKey = encryptKey(userPassphraseKey, this.userFacade.getUserGroupKey())
 		const authVerifier = createAuthVerifier(userPassphraseKey)
 		const service = createChangePasswordData()
 
 		service.kdfVersion = newKdfType
-		service.oldVerifier = oldAuthVerifier
+		service.oldVerifier = currentAuthVerifier
 		service.salt = salt
 		service.verifier = authVerifier
 		service.pwEncUserGroupKey = pwEncUserGroupKey
 		await this.serviceExecutor.post(ChangePasswordService, service)
-	}
-
-	/**
-	 * Determine the KDF type to use, in case it is overridden via `Const`
-	 */
-	pickKdfType(currentKdfType: KdfType): KdfType {
-		return Const.USE_NEW_KDF_TYPE ? KdfType.Argon2id : currentKdfType
 	}
 
 	async deleteAccount(password: string, reason: string, takeover: string): Promise<void> {
@@ -843,7 +834,7 @@ export class LoginFacade {
 	}
 
 	/** Changes user password to another one using recoverCode instead of the old password. */
-	async recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void> {
+	async recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, newKdfType: KdfType, clientIdentifier: string): Promise<void> {
 		const sessionData = createCreateSessionData()
 		const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
 		const recoverCodeVerifier = createAuthVerifier(recoverCodeKey)
@@ -890,14 +881,13 @@ export class LoginFacade {
 		try {
 			const groupKey = aes256DecryptLegacyRecoveryKey(recoverCodeKey, recoverCodeData.recoverCodeEncUserGroupKey)
 			const salt = generateRandomSalt()
-			const kdfType = this.pickKdfType(KdfType.Bcrypt)
 
-			const userPassphraseKey = await this.deriveUserPassphraseKey(kdfType, newPassword, salt)
+			const userPassphraseKey = await this.deriveUserPassphraseKey(newKdfType, newPassword, salt)
 			const pwEncUserGroupKey = encryptKey(userPassphraseKey, groupKey)
 			const newPasswordVerifier = createAuthVerifier(userPassphraseKey)
 			const postData = createChangePasswordData()
 			postData.salt = salt
-			postData.kdfVersion = kdfType
+			postData.kdfVersion = newKdfType
 			postData.pwEncUserGroupKey = pwEncUserGroupKey
 			postData.verifier = newPasswordVerifier
 			postData.recoverCodeVerifier = recoverCodeVerifier
