@@ -9,7 +9,6 @@ import { client } from "../misc/ClientDetector"
 import { File as TutanotaFile } from "../api/entities/tutanota/TypeRefs.js"
 import { deduplicateFilenames, FileReference, sanitizeFilename } from "../api/common/utils/FileUtils"
 import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
-import { FileFacade } from "../api/worker/facades/lazy/FileFacade.js"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { ArchiveDataType } from "../api/common/TutanotaConstants.js"
 import stream from "mithril/stream"
@@ -34,11 +33,7 @@ export type ProgressObserver = (somePromise: Promise<void>, progress?: Stream<nu
  * coordinates single and multiple downloads on different platforms
  */
 export abstract class FileController {
-	protected constructor(
-		protected readonly blobFacade: BlobFacade,
-		protected readonly fileFacade: FileFacade,
-		protected readonly observeProgress: ProgressObserver,
-	) {}
+	protected constructor(protected readonly blobFacade: BlobFacade, protected readonly observeProgress: ProgressObserver) {}
 
 	private async doDownload(tutanotaFiles: TutanotaFile[], action: DownloadPostProcessing, progress?: stream<number>): Promise<void> {
 		const downloadedFiles: Array<FileReference | DataFile> = []
@@ -83,7 +78,7 @@ export abstract class FileController {
 	 */
 	async getAsDataFile(file: TutanotaFile): Promise<DataFile> {
 		// using the browser's built-in download since we don't want to write anything to disk here
-		return downloadAndDecryptDataFile(file, this.fileFacade, this.blobFacade)
+		return downloadAndDecryptDataFile(file, this.blobFacade)
 	}
 
 	/**
@@ -126,16 +121,6 @@ export abstract class FileController {
 	 * Get a file from the server and decrypt it
 	 */
 	protected abstract downloadAndDecrypt(file: TutanotaFile): Promise<FileReference | DataFile>
-}
-
-/**
- * The migration to blob attachments does not remove the FileData reference from files. This might change, therefore,
- * everytime we need to decide whether to treat a file as legacy, we should use this method, so that it is easier to
- * change this behavior in the future.
- * @param file
- */
-export function isLegacyFile(file: TutanotaFile): boolean {
-	return file.blobs.length === 0
 }
 
 export function handleDownloadErrors<R>(e: Error, errorAction: (msg: TranslationKey) => R): R {
@@ -306,13 +291,9 @@ export async function openDataFileInBrowser(dataFile: DataFile): Promise<void> {
 	}
 }
 
-export async function downloadAndDecryptDataFile(file: TutanotaFile, fileFacade: FileFacade, blobFacade: BlobFacade): Promise<DataFile> {
-	if (isLegacyFile(file)) {
-		return await fileFacade.downloadFileContent(file)
-	} else {
-		const bytes = await blobFacade.downloadAndDecrypt(ArchiveDataType.Attachments, createReferencingInstance(file))
-		return convertToDataFile(file, bytes)
-	}
+export async function downloadAndDecryptDataFile(file: TutanotaFile, blobFacade: BlobFacade): Promise<DataFile> {
+	const bytes = await blobFacade.downloadAndDecrypt(ArchiveDataType.Attachments, createReferencingInstance(file))
+	return convertToDataFile(file, bytes)
 }
 
 export function createReferencingInstance(tutanotaFile: TutanotaFile): BlobReferencingInstance {

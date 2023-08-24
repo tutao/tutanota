@@ -21,7 +21,6 @@ import { CounterFacade } from "./facades/lazy/CounterFacade.js"
 import type { Indexer } from "./search/Indexer"
 import { SearchFacade } from "./search/SearchFacade"
 import { MailAddressFacade } from "./facades/lazy/MailAddressFacade.js"
-import { FileFacade } from "./facades/lazy/FileFacade.js"
 import { UserManagementFacade } from "./facades/lazy/UserManagementFacade.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../common/WorkerProxy"
 import type { DeviceEncryptionFacade } from "./facades/DeviceEncryptionFacade"
@@ -68,7 +67,6 @@ export interface WorkerInterface {
 	readonly searchFacade: SearchFacade
 	readonly bookingFacade: BookingFacade
 	readonly mailAddressFacade: MailAddressFacade
-	readonly fileFacade: FileFacade
 	readonly blobAccessTokenFacade: BlobAccessTokenFacade
 	readonly blobFacade: BlobFacade
 	readonly userManagementFacade: UserManagementFacade
@@ -191,10 +189,6 @@ export class WorkerImpl implements NativeInterface {
 
 			async mailAddressFacade() {
 				return locator.mailAddress()
-			},
-
-			async fileFacade() {
-				return locator.file()
 			},
 
 			async blobAccessTokenFacade() {

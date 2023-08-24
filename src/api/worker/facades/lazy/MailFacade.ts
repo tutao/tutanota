@@ -85,7 +85,6 @@ import {
 	promiseMap,
 } from "@tutao/tutanota-utils"
 import { BlobFacade } from "./BlobFacade.js"
-import { FileFacade } from "./FileFacade.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships } from "../../../common/utils/GroupUtils.js"
@@ -156,7 +155,6 @@ export class MailFacade {
 
 	constructor(
 		private readonly userFacade: UserFacade,
-		private readonly fileFacade: FileFacade,
 		private readonly entityClient: EntityClient,
 		private readonly crypto: CryptoFacade,
 		private readonly serviceExecutor: IServiceExecutor,
@@ -420,7 +418,7 @@ export class MailFacade {
 			.then((it) => {
 				// only delete the temporary files after all attachments have been uploaded
 				if (isApp()) {
-					this.fileFacade.clearFileData().catch((e) => console.warn("Failed to clear files", e))
+					this.fileApp.clearFileData().catch((e) => console.warn("Failed to clear files", e))
 				}
 
 				return it
@@ -437,7 +435,6 @@ export class MailFacade {
 		let newAttachmentData = createNewDraftAttachment()
 		newAttachmentData.encFileName = encryptString(fileSessionKey, providedFile.name)
 		newAttachmentData.encMimeType = encryptString(fileSessionKey, providedFile.mimeType)
-		newAttachmentData.fileData = null
 		newAttachmentData.referenceTokens = referenceTokens
 		newAttachmentData.encCid = providedFile.cid == null ? null : encryptString(fileSessionKey, providedFile.cid)
 		attachment.newFile = newAttachmentData

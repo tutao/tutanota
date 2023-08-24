@@ -1,18 +1,16 @@
 import { DataFile } from "../api/common/DataFile"
 import { assertMainOrNode } from "../api/common/Env"
 import { File as TutanotaFile } from "../api/entities/tutanota/TypeRefs.js"
-import { ProgressObserver, FileController, openDataFileInBrowser, zipDataFiles } from "./FileController.js"
+import { FileController, openDataFileInBrowser, ProgressObserver, zipDataFiles } from "./FileController.js"
 import { sortableTimestamp } from "@tutao/tutanota-utils"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
-import { FileFacade } from "../api/worker/facades/lazy/FileFacade.js"
 import { assertOnlyDataFiles, FileReference } from "../api/common/utils/FileUtils.js"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
 
 export class FileControllerBrowser extends FileController {
-	constructor(blobFacade: BlobFacade, fileFacade: FileFacade, guiDownload: ProgressObserver) {
-		super(blobFacade, fileFacade, guiDownload)
+	constructor(blobFacade: BlobFacade, guiDownload: ProgressObserver) {
+		super(blobFacade, guiDownload)
 	}
 
 	async saveDataFile(file: DataFile): Promise<void> {

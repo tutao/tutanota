@@ -8,8 +8,7 @@ import { CancelledError } from "../api/common/error/CancelledError"
 import type { NativeFileApp } from "../native/common/FileApp"
 import { ArchiveDataType } from "../api/common/TutanotaConstants"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
-import { FileFacade } from "../api/worker/facades/lazy/FileFacade.js"
-import { createReferencingInstance, FileController, isLegacyFile, ProgressObserver, zipDataFiles } from "./FileController.js"
+import { createReferencingInstance, FileController, ProgressObserver, zipDataFiles } from "./FileController.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
@@ -18,9 +17,9 @@ assertMainOrNode()
  * coordinates downloads when we have access to native functionality
  */
 export class FileControllerNative extends FileController {
-	constructor(blobFacade: BlobFacade, fileFacade: FileFacade, guiDownload: ProgressObserver, private readonly fileApp: NativeFileApp) {
+	constructor(blobFacade: BlobFacade, guiDownload: ProgressObserver, private readonly fileApp: NativeFileApp) {
 		assert(isElectronClient() || isApp() || isTest(), "Don't make native file controller when not in native")
-		super(blobFacade, fileFacade, guiDownload)
+		super(blobFacade, guiDownload)
 	}
 
 	protected async cleanUp(files: Array<FileReference | DataFile>) {
@@ -62,16 +61,12 @@ export class FileControllerNative extends FileController {
 
 	/** Public for testing */
 	async downloadAndDecrypt(tutanotaFile: TutanotaFile): Promise<FileReference> {
-		if (isLegacyFile(tutanotaFile)) {
-			return await this.fileFacade.downloadFileContentNative(tutanotaFile)
-		} else {
-			return await this.blobFacade.downloadAndDecryptNative(
-				ArchiveDataType.Attachments,
-				createReferencingInstance(tutanotaFile),
-				tutanotaFile.name,
-				assertNotNull(tutanotaFile.mimeType, "tried to call blobfacade.downloadAndDecryptNative with null mimeType"),
-			)
-		}
+		return await this.blobFacade.downloadAndDecryptNative(
+			ArchiveDataType.Attachments,
+			createReferencingInstance(tutanotaFile),
+			tutanotaFile.name,
+			assertNotNull(tutanotaFile.mimeType, "tried to call blobfacade.downloadAndDecryptNative with null mimeType"),
+		)
 	}
 
 	async writeDownloadedFiles(downloadedFiles: FileReference[]): Promise<void> {

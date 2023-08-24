@@ -49,7 +49,6 @@ import { getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImag
 import { SanitizedFragment } from "../../misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../file/FileController"
 import { exportMails } from "../export/Exporter.js"
-import { FileFacade } from "../../api/worker/facades/lazy/FileFacade.js"
 import { IndexingNotSupportedError } from "../../api/common/error/IndexingNotSupportedError"
 import { FileOpenError } from "../../api/common/error/FileOpenError"
 import { Dialog } from "../../gui/base/Dialog"
@@ -125,7 +124,6 @@ export class MailViewerViewModel {
 		public readonly mailModel: MailModel,
 		readonly contactModel: ContactModel,
 		private readonly configFacade: ConfigurationDatabase,
-		private readonly fileFacade: FileFacade,
 		private readonly fileController: FileController,
 		readonly logins: LoginController,
 		private sendMailModelFactory: (mailboxDetails: MailboxDetail) => Promise<SendMailModel>,
