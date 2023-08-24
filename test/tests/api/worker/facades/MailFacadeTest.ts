@@ -5,7 +5,6 @@ import { MailAuthenticationStatus, ReportedMailFieldType } from "../../../../../
 import { object } from "testdouble"
 import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
 import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest.js"
-import { FileFacade } from "../../../../../src/api/worker/facades/lazy/FileFacade.js"
 import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
 import { BlobFacade } from "../../../../../src/api/worker/facades/lazy/BlobFacade.js"
 import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade"
@@ -17,7 +16,6 @@ o.spec("MailFacade test", function () {
 	let userFacade: UserFacade
 	let cryptoFacade: CryptoFacade
 	let serviceExecutor: IServiceExecutor
-	let fileFacade: FileFacade
 	let entity: EntityClient
 	let blobFacade: BlobFacade
 	let fileApp: NativeFileApp
@@ -26,13 +24,12 @@ o.spec("MailFacade test", function () {
 	o.beforeEach(function () {
 		userFacade = object()
 		blobFacade = object()
-		fileFacade = object()
 		entity = object()
 		cryptoFacade = object()
 		serviceExecutor = object()
 		fileApp = object()
 		loginFacade = object()
-		facade = new MailFacade(userFacade, fileFacade, entity, cryptoFacade, serviceExecutor, blobFacade, fileApp, loginFacade)
+		facade = new MailFacade(userFacade, entity, cryptoFacade, serviceExecutor, blobFacade, fileApp, loginFacade)
 	})
 
 	o.spec("checkMailForPhishing", function () {

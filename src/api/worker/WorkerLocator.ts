@@ -8,7 +8,6 @@ import { CacheStorage, DefaultEntityRestCache } from "./rest/DefaultEntityRestCa
 import type { GroupManagementFacade } from "./facades/lazy/GroupManagementFacade.js"
 import type { MailFacade } from "./facades/lazy/MailFacade.js"
 import type { MailAddressFacade } from "./facades/lazy/MailAddressFacade.js"
-import type { FileFacade } from "./facades/lazy/FileFacade.js"
 import type { CustomerFacade } from "./facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "./facades/lazy/CounterFacade.js"
 import { EventBusClient } from "./EventBusClient"
@@ -84,7 +83,6 @@ export type WorkerLocatorType = {
 	login: LoginFacade
 
 	// domains
-	file: lazyAsync<FileFacade>
 	blob: lazyAsync<BlobFacade>
 	mail: lazyAsync<MailFacade>
 	calendar: lazyAsync<CalendarFacade>
@@ -284,31 +282,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.blobAccessToken,
 		)
 	})
-	locator.file = lazyMemoized(async () => {
-		const { FileFacade } = await import("./facades/lazy/FileFacade.js")
-		return new FileFacade(
-			locator.user,
-			locator.restClient,
-			suspensionHandler,
-			fileApp,
-			aesApp,
-			locator.instanceMapper,
-			locator.serviceExecutor,
-			locator.crypto,
-		)
-	})
 	locator.mail = lazyMemoized(async () => {
 		const { MailFacade } = await import("./facades/lazy/MailFacade.js")
-		return new MailFacade(
-			locator.user,
-			await locator.file(),
-			locator.cachingEntityClient,
-			locator.crypto,
-			locator.serviceExecutor,
-			await locator.blob(),
-			fileApp,
-			locator.login,
-		)
+		return new MailFacade(locator.user, locator.cachingEntityClient, locator.crypto, locator.serviceExecutor, await locator.blob(), fileApp, locator.login)
 	})
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
 	locator.calendar = lazyMemoized(async () => {

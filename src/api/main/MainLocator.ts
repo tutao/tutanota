@@ -29,7 +29,6 @@ import type { Indexer } from "../worker/search/Indexer"
 import type { SearchFacade } from "../worker/search/SearchFacade"
 import type { BookingFacade } from "../worker/facades/lazy/BookingFacade.js"
 import type { MailAddressFacade } from "../worker/facades/lazy/MailAddressFacade.js"
-import type { FileFacade } from "../worker/facades/lazy/FileFacade.js"
 import type { ContactFormFacade } from "../worker/facades/lazy/ContactFormFacade.js"
 import type { DeviceEncryptionFacade } from "../worker/facades/DeviceEncryptionFacade"
 import { FileController, guiDownload } from "../../file/FileController"
@@ -129,7 +128,6 @@ class MainLocator {
 	searchFacade!: SearchFacade
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
-	fileFacade!: FileFacade
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
 	contactFormFacade!: ContactFormFacade
@@ -378,7 +376,6 @@ class MainLocator {
 				this.mailModel,
 				this.contactModel,
 				this.configFacade,
-				this.fileFacade,
 				this.fileController,
 				this.logins,
 				async (mailboxDetails) => {
@@ -526,7 +523,6 @@ class MainLocator {
 			searchFacade,
 			bookingFacade,
 			mailAddressFacade,
-			fileFacade,
 			blobFacade,
 			userManagementFacade,
 			contactFormFacade,
@@ -553,7 +549,6 @@ class MainLocator {
 		this.searchFacade = searchFacade
 		this.bookingFacade = bookingFacade
 		this.mailAddressFacade = mailAddressFacade
-		this.fileFacade = fileFacade
 		this.blobFacade = blobFacade
 		this.userManagementFacade = userManagementFacade
 		this.contactFormFacade = contactFormFacade
@@ -680,8 +675,8 @@ class MainLocator {
 
 		this.fileController =
 			this.nativeInterfaces == null
-				? new FileControllerBrowser(blobFacade, fileFacade, guiDownload)
-				: new FileControllerNative(blobFacade, fileFacade, guiDownload, this.nativeInterfaces.fileApp)
+				? new FileControllerBrowser(blobFacade, guiDownload)
+				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp)
 
 		const { ContactModelImpl } = await import("../../contacts/model/ContactModel")
 		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, this.logins)
