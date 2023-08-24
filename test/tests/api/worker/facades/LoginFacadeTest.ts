@@ -195,7 +195,7 @@ o.spec("LoginFacadeTest", function () {
 	})
 
 	o.spec("Resuming existing sessions", function () {
-		o.spec("initializing cache storage", async function () {
+		o.spec("initializing cache storage", function () {
 			const dbKey = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4])
 			const passphrase = "hunter2"
 			const userId = "userId"
@@ -203,17 +203,18 @@ o.spec("LoginFacadeTest", function () {
 			const accessToken = "accessToken"
 
 			let credentials: Credentials
+			let user: User
 
-			const user = await makeUser(
-				{
-					id: userId,
-					passphrase,
-					salt: SALT,
-				},
-				facade,
-			)
+			o.beforeEach(async function () {
+				user = await makeUser(
+					{
+						id: userId,
+						passphrase,
+						salt: SALT,
+					},
+					facade,
+				)
 
-			o.beforeEach(function () {
 				credentials = {
 					/**
 					 * Identifier which we use for logging in.
@@ -305,25 +306,27 @@ o.spec("LoginFacadeTest", function () {
 			})
 		})
 
-		o.spec("account type combinations", async function () {
+		o.spec("account type combinations", function () {
 			let credentials: Credentials
 			const dbKey = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4])
 			const passphrase = "hunter2"
 			const userId = "userId"
 			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677]
 			const accessToken = "accessToken"
-			const user = await makeUser(
-				{
-					id: userId,
-					passphrase,
-					salt: SALT,
-				},
-				facade,
-			)
+
+			let user: User
 			let calls: string[]
 			let fullLoginDeferred: DeferredObject<void>
 
-			o.beforeEach(function () {
+			o.beforeEach(async function () {
+				user = await makeUser(
+					{
+						id: userId,
+						passphrase,
+						salt: SALT,
+					},
+					facade,
+				)
 				credentials = {
 					/**
 					 * Identifier which we use for logging in.
@@ -474,25 +477,27 @@ o.spec("LoginFacadeTest", function () {
 			}
 		})
 
-		o.spec("async login", async function () {
+		o.spec("async login", function () {
 			let credentials: Credentials
 			const dbKey = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4])
 			const passphrase = "hunter2"
 			const userId = "userId"
 			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677]
 			const accessToken = "accessToken"
-			const user = await makeUser(
-				{
-					id: userId,
-					passphrase,
-					salt: SALT,
-				},
-				facade,
-			)
 			let calls: string[]
 			let fullLoginDeferred: DeferredObject<void>
 
-			o.beforeEach(function () {
+			let user: User
+
+			o.beforeEach(async function () {
+				user = await makeUser(
+					{
+						id: userId,
+						passphrase,
+						salt: SALT,
+					},
+					facade,
+				)
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
 
@@ -581,8 +586,8 @@ o.spec("LoginFacadeTest", function () {
 			const userId = "userId"
 			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677]
 			const accessToken = "accessToken"
-			let user: User
 
+			let user: User
 			let credentials: Credentials
 
 			o.beforeEach(async function () {
