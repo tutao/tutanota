@@ -435,25 +435,6 @@ export type CreateExternalUserGroupData = {
 	internalUserEncUserGroupKey: Uint8Array;
 	mailAddress: string;
 }
-export const CreateFileDataTypeRef: TypeRef<CreateFileData> = new TypeRef("tutanota", "CreateFileData")
-
-export function createCreateFileData(values?: Partial<CreateFileData>): CreateFileData {
-	return Object.assign(create(typeModels.CreateFileData, CreateFileDataTypeRef), values)
-}
-
-export type CreateFileData = {
-	_type: TypeRef<CreateFileData>;
-	_errors: Object;
-
-	_format: NumberString;
-	fileName: string;
-	group: Id;
-	mimeType: string;
-	ownerEncSessionKey: Uint8Array;
-
-	fileData: Id;
-	parentFolder:  null | IdTuple;
-}
 export const CreateGroupPostReturnTypeRef: TypeRef<CreateGroupPostReturn> = new TypeRef("tutanota", "CreateGroupPostReturn")
 
 export function createCreateGroupPostReturn(values?: Partial<CreateGroupPostReturn>): CreateGroupPostReturn {
@@ -570,19 +551,6 @@ export type CustomerContactFormGroupRoot = {
 
 	contactFormConversations:  null | DeleteContactFormConversationIndex;
 	contactForms: Id;
-}
-export const DataBlockTypeRef: TypeRef<DataBlock> = new TypeRef("tutanota", "DataBlock")
-
-export function createDataBlock(values?: Partial<DataBlock>): DataBlock {
-	return Object.assign(create(typeModels.DataBlock, DataBlockTypeRef), values)
-}
-
-export type DataBlock = {
-	_type: TypeRef<DataBlock>;
-
-	_id: Id;
-	blockData: Id;
-	size: NumberString;
 }
 export const DeleteContactFormConversationIndexTypeRef: TypeRef<DeleteContactFormConversationIndex> = new TypeRef("tutanota", "DeleteContactFormConversationIndex")
 
@@ -885,83 +853,8 @@ export type File = {
 	size: NumberString;
 
 	blobs: Blob[];
-	data:  null | Id;
 	parent:  null | IdTuple;
 	subFiles:  null | Subfiles;
-}
-export const FileDataTypeRef: TypeRef<FileData> = new TypeRef("tutanota", "FileData")
-
-export function createFileData(values?: Partial<FileData>): FileData {
-	return Object.assign(create(typeModels.FileData, FileDataTypeRef), values)
-}
-
-export type FileData = {
-	_type: TypeRef<FileData>;
-
-	_format: NumberString;
-	_id: Id;
-	_ownerGroup: null | Id;
-	_permissions: Id;
-	size: NumberString;
-	unreferenced: boolean;
-
-	blocks: DataBlock[];
-}
-export const FileDataDataGetTypeRef: TypeRef<FileDataDataGet> = new TypeRef("tutanota", "FileDataDataGet")
-
-export function createFileDataDataGet(values?: Partial<FileDataDataGet>): FileDataDataGet {
-	return Object.assign(create(typeModels.FileDataDataGet, FileDataDataGetTypeRef), values)
-}
-
-export type FileDataDataGet = {
-	_type: TypeRef<FileDataDataGet>;
-	_errors: Object;
-
-	_format: NumberString;
-	base64: boolean;
-
-	file: IdTuple;
-}
-export const FileDataDataPostTypeRef: TypeRef<FileDataDataPost> = new TypeRef("tutanota", "FileDataDataPost")
-
-export function createFileDataDataPost(values?: Partial<FileDataDataPost>): FileDataDataPost {
-	return Object.assign(create(typeModels.FileDataDataPost, FileDataDataPostTypeRef), values)
-}
-
-export type FileDataDataPost = {
-	_type: TypeRef<FileDataDataPost>;
-	_errors: Object;
-
-	_format: NumberString;
-	group: Id;
-	size: NumberString;
-}
-export const FileDataDataReturnTypeRef: TypeRef<FileDataDataReturn> = new TypeRef("tutanota", "FileDataDataReturn")
-
-export function createFileDataDataReturn(values?: Partial<FileDataDataReturn>): FileDataDataReturn {
-	return Object.assign(create(typeModels.FileDataDataReturn, FileDataDataReturnTypeRef), values)
-}
-
-export type FileDataDataReturn = {
-	_type: TypeRef<FileDataDataReturn>;
-	_errors: Object;
-
-	_format: NumberString;
-	size: NumberString;
-}
-export const FileDataReturnPostTypeRef: TypeRef<FileDataReturnPost> = new TypeRef("tutanota", "FileDataReturnPost")
-
-export function createFileDataReturnPost(values?: Partial<FileDataReturnPost>): FileDataReturnPost {
-	return Object.assign(create(typeModels.FileDataReturnPost, FileDataReturnPostTypeRef), values)
-}
-
-export type FileDataReturnPost = {
-	_type: TypeRef<FileDataReturnPost>;
-	_errors: Object;
-
-	_format: NumberString;
-
-	fileData: Id;
 }
 export const FileSystemTypeRef: TypeRef<FileSystem> = new TypeRef("tutanota", "FileSystem")
 
@@ -1547,7 +1440,6 @@ export type NewDraftAttachment = {
 	encFileName: Uint8Array;
 	encMimeType: Uint8Array;
 
-	fileData:  null | Id;
 	referenceTokens: BlobReferenceTokenWrapper[];
 }
 export const NewsIdTypeRef: TypeRef<NewsId> = new TypeRef("tutanota", "NewsId")
@@ -1736,19 +1628,6 @@ export type PasswordRetrievalReturn = {
 	_format: NumberString;
 	transmissionKeyEncryptedPassword: string;
 }
-export const PhishingMarkerTypeRef: TypeRef<PhishingMarker> = new TypeRef("tutanota", "PhishingMarker")
-
-export function createPhishingMarker(values?: Partial<PhishingMarker>): PhishingMarker {
-	return Object.assign(create(typeModels.PhishingMarker, PhishingMarkerTypeRef), values)
-}
-
-export type PhishingMarker = {
-	_type: TypeRef<PhishingMarker>;
-
-	_id: Id;
-	marker: string;
-	status: NumberString;
-}
 export const PhishingMarkerWebsocketDataTypeRef: TypeRef<PhishingMarkerWebsocketData> = new TypeRef("tutanota", "PhishingMarkerWebsocketData")
 
 export function createPhishingMarkerWebsocketData(values?: Partial<PhishingMarkerWebsocketData>): PhishingMarkerWebsocketData {
@@ -1761,7 +1640,7 @@ export type PhishingMarkerWebsocketData = {
 	_format: NumberString;
 	lastId: Id;
 
-	markers: PhishingMarker[];
+	markers: ReportedMailFieldMarker[];
 }
 export const PhotosRefTypeRef: TypeRef<PhotosRef> = new TypeRef("tutanota", "PhotosRef")
 
@@ -1834,6 +1713,19 @@ export type ReportMailPostData = {
 	reportType: NumberString;
 
 	mailId: IdTuple;
+}
+export const ReportedMailFieldMarkerTypeRef: TypeRef<ReportedMailFieldMarker> = new TypeRef("tutanota", "ReportedMailFieldMarker")
+
+export function createReportedMailFieldMarker(values?: Partial<ReportedMailFieldMarker>): ReportedMailFieldMarker {
+	return Object.assign(create(typeModels.ReportedMailFieldMarker, ReportedMailFieldMarkerTypeRef), values)
+}
+
+export type ReportedMailFieldMarker = {
+	_type: TypeRef<ReportedMailFieldMarker>;
+
+	_id: Id;
+	marker: string;
+	status: NumberString;
 }
 export const SecureExternalRecipientKeyDataTypeRef: TypeRef<SecureExternalRecipientKeyData> = new TypeRef("tutanota", "SecureExternalRecipientKeyData")
 

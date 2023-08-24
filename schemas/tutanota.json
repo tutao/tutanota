@@ -165,6 +165,21 @@
 					"info": "AddValue SecureExternalRecipientKeyData/kdfVersion/1324."
 				}
 			]
+		},
+		{
+			"version": 64,
+			"changes": [
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "File",
+					"info": "RemoveAssociation File/data."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "NewDraftAttachment",
+					"info": "RemoveAssociation NewDraftAttachment/fileData."
+				}
+			]
 		}
 	]
 }

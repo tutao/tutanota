@@ -215,6 +215,16 @@
 					"info": "AddValue User/kdfVersion/2132."
 				}
 			]
+		},
+		{
+			"version": 90,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "PlanConfiguration",
+					"info": "AddValue PlanConfiguration/contactList/2136."
+				}
+			]
 		}
 	]
 }
