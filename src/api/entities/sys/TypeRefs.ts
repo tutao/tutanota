@@ -326,20 +326,6 @@ export type BookingItem = {
 	priceType: NumberString;
 	totalInvoicedCount: NumberString;
 }
-export const BookingServiceDataTypeRef: TypeRef<BookingServiceData> = new TypeRef("sys", "BookingServiceData")
-
-export function createBookingServiceData(values?: Partial<BookingServiceData>): BookingServiceData {
-	return Object.assign(create(typeModels.BookingServiceData, BookingServiceDataTypeRef), values)
-}
-
-export type BookingServiceData = {
-	_type: TypeRef<BookingServiceData>;
-
-	_format: NumberString;
-	amount: NumberString;
-	date: null | Date;
-	featureType: NumberString;
-}
 export const BookingsRefTypeRef: TypeRef<BookingsRef> = new TypeRef("sys", "BookingsRef")
 
 export function createBookingsRef(values?: Partial<BookingsRef>): BookingsRef {
@@ -2000,6 +1986,7 @@ export type PlanConfiguration = {
 
 	_id: Id;
 	autoResponder: boolean;
+	contactList: boolean;
 	customDomainType: NumberString;
 	eventInvites: boolean;
 	multiUser: boolean;

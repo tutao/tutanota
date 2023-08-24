@@ -3,7 +3,6 @@ import {AutoLoginDataGetTypeRef} from "./TypeRefs.js"
 import {AutoLoginDataReturnTypeRef} from "./TypeRefs.js"
 import {AutoLoginPostReturnTypeRef} from "./TypeRefs.js"
 import {AutoLoginDataDeleteTypeRef} from "./TypeRefs.js"
-import {BookingServiceDataTypeRef} from "./TypeRefs.js"
 import {BrandingDomainGetReturnTypeRef} from "./TypeRefs.js"
 import {BrandingDomainDataTypeRef} from "./TypeRefs.js"
 import {BrandingDomainDeleteDataTypeRef} from "./TypeRefs.js"
@@ -106,15 +105,6 @@ export const AutoLoginService = Object.freeze({
 	post: {data: AutoLoginDataReturnTypeRef, return: AutoLoginPostReturnTypeRef},
 	put: null,
 	delete: {data: AutoLoginDataDeleteTypeRef, return: null},
-} as const)
-
-export const BookingService = Object.freeze({
-	app: "sys",
-	name: "BookingService",
-	get: null,
-	post: {data: BookingServiceDataTypeRef, return: null},
-	put: null,
-	delete: null,
 } as const)
 
 export const BrandingDomainService = Object.freeze({

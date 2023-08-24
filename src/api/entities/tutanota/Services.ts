@@ -11,10 +11,6 @@ import {DraftUpdateReturnTypeRef} from "./TypeRefs.js"
 import {EncryptTutanotaPropertiesDataTypeRef} from "./TypeRefs.js"
 import {EntropyDataTypeRef} from "./TypeRefs.js"
 import {ExternalUserDataTypeRef} from "./TypeRefs.js"
-import {FileDataDataGetTypeRef} from "./TypeRefs.js"
-import {FileDataDataPostTypeRef} from "./TypeRefs.js"
-import {FileDataReturnPostTypeRef} from "./TypeRefs.js"
-import {FileDataDataReturnTypeRef} from "./TypeRefs.js"
 import {GroupInvitationPostDataTypeRef} from "./TypeRefs.js"
 import {GroupInvitationPostReturnTypeRef} from "./TypeRefs.js"
 import {GroupInvitationPutDataTypeRef} from "./TypeRefs.js"
@@ -98,15 +94,6 @@ export const ExternalUserService = Object.freeze({
 	get: null,
 	post: {data: ExternalUserDataTypeRef, return: null},
 	put: null,
-	delete: null,
-} as const)
-
-export const FileDataService = Object.freeze({
-	app: "tutanota",
-	name: "FileDataService",
-	get: {data: FileDataDataGetTypeRef, return: null},
-	post: {data: FileDataDataPostTypeRef, return: FileDataReturnPostTypeRef},
-	put: {data: FileDataDataReturnTypeRef, return: null},
 	delete: null,
 } as const)
 
