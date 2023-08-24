@@ -442,7 +442,7 @@ export class MailFacade {
 		return attachment
 	}
 
-	async sendDraft(draft: Mail, recipients: Array<Recipient>, language: string): Promise<void> {
+	async sendDraft(draft: Mail, recipients: Array<Recipient>, language: string, kdfVersion: KdfType): Promise<void> {
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), draft.sender.address)
 		const bucketKey = aes128RandomKey()
 		const sendDraftData = createSendDraftData()
@@ -482,7 +482,7 @@ export class MailFacade {
 						sendDraftData.senderNameUnencrypted = draft.sender.name // needed for notification mail
 					}
 
-					return this._addRecipientKeyData(bucketKey, sendDraftData, recipients, senderMailGroupId)
+					return this._addRecipientKeyData(kdfVersion, bucketKey, sendDraftData, recipients, senderMailGroupId)
 				} else {
 					sendDraftData.mailSessionKey = bitArrayToUint8Array(sk)
 				}
@@ -600,7 +600,13 @@ export class MailFacade {
 		return this.phishingMarkers.has(hash)
 	}
 
-	async _addRecipientKeyData(bucketKey: Aes128Key, service: SendDraftData, recipients: Array<Recipient>, senderMailGroupId: Id): Promise<void> {
+	async _addRecipientKeyData(
+		kdfVersion: KdfType,
+		bucketKey: Aes128Key,
+		service: SendDraftData,
+		recipients: Array<Recipient>,
+		senderMailGroupId: Id,
+	): Promise<void> {
 		const notFoundRecipients: string[] = []
 
 		for (let recipient of recipients) {
@@ -620,14 +626,13 @@ export class MailFacade {
 					continue
 				}
 
-				const kdfVersion = this.loginFacade.pickKdfType(KdfType.Bcrypt)
 				const salt = generateRandomSalt()
 				const passwordKey = await this.loginFacade.deriveUserPassphraseKey(kdfVersion, password, salt)
 				const passwordVerifier = createAuthVerifier(passwordKey)
 				const externalGroupKeys = await this._getExternalGroupKey(recipient.address, passwordKey, passwordVerifier)
 				const data = createSecureExternalRecipientKeyData()
 				data.mailAddress = recipient.address
-				data.symEncBucketKey = null // legacy for old permission system, not used any more
+				data.symEncBucketKey = null // legacy for old permission system, not used anymore
 				data.kdfVersion = kdfVersion
 				data.ownerEncBucketKey = encryptKey(externalGroupKeys.externalMailGroupKey, bucketKey)
 				data.passwordVerifier = passwordVerifier

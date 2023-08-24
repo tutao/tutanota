@@ -76,13 +76,15 @@ export function show(): Promise<void> {
 					freeAmount: 0,
 					reactivate: false,
 				}),
-			).then((accepted) => {
+			).then(async (accepted) => {
 				if (accepted) {
 					const operation = locator.operationProgressTracker.startNewOperation()
+					const kdfType = await locator.kdfPicker.pickKdfType()
 					const p = locator.userManagementFacade.createUser(
 						userName.trim(),
 						assertNotNull(emailAddress),
 						passwordModel.getNewPassword(),
+						kdfType,
 						0,
 						1,
 						operation.id,

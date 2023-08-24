@@ -320,7 +320,8 @@ export class ContactFormRequestDialog {
 						replyTos: [],
 						method: MailMethod.NONE,
 					})
-					await mailFacade.sendDraft(draft, [{ name, address: mailAddress, type: RecipientType.INTERNAL, contact: null }], lang.code)
+					const kdfVersion = await locator.kdfPicker.pickKdfType()
+					await mailFacade.sendDraft(draft, [{ name, address: mailAddress, type: RecipientType.INTERNAL, contact: null }], lang.code, kdfVersion)
 				} finally {
 					await locator.logins.logout(false)
 				}

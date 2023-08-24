@@ -60,7 +60,7 @@ export class UsageTest {
 		return stage
 	}
 
-	renderVariant<T>(variants: VariantsIndex<T>): T {
+	getVariant<T>(variants: VariantsIndex<T>): T {
 		return variants[this.variant]()
 	}
 
@@ -148,7 +148,7 @@ export class ObsoleteUsageTest extends UsageTest {
 		return this.obsoleteStage
 	}
 
-	renderVariant<T>(variants: VariantsIndex<T>): T {
+	getVariant<T>(variants: VariantsIndex<T>): T {
 		return variants[0]()
 	}
 

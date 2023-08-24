@@ -8,7 +8,7 @@ import { getWhitelabelRegistrationDomains } from "../login/LoginView"
 import type { NewAccountData } from "./UpgradeSubscriptionWizard"
 import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../settings/SelectMailAddressForm"
 import { isTutanotaDomain } from "../api/common/Env"
-import { AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../api/common/TutanotaConstants"
+import { AccountType, KdfType, TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../api/common/TutanotaConstants"
 import { PasswordForm, PasswordModel } from "../settings/PasswordForm"
 import type { CheckboxAttrs } from "../gui/base/Checkbox.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
@@ -153,7 +153,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 							disabled: true,
 					  })
 					: [
-							this.__signupEmailDomainsTest.renderVariant({
+							this.__signupEmailDomainsTest.getVariant({
 								[0]: () => m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
 								[1]: () => m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
 								[2]: () => m(SelectMailAddressForm, { ...mailAddressFormAttrs, mailAddressNAError: "mailAddressNANudge_msg" }), // Extended supporting text
@@ -247,15 +247,18 @@ function signup(
 	return showProgressDialog(
 		"createAccountRunning_msg",
 		customerFacade.generateSignupKeys(operation.id).then((keyPairs) => {
-			return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign).then((regDataId) => {
+			return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign).then(async (regDataId) => {
 				if (regDataId) {
-					return customerFacade.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code).then((recoverCode) => {
-						return {
-							mailAddress,
-							password: pw,
-							recoverCode,
-						}
-					})
+					const kdfType = await locator.kdfPicker.pickKdfType()
+					return customerFacade
+						.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code, kdfType)
+						.then((recoverCode) => {
+							return {
+								mailAddress,
+								password: pw,
+								recoverCode,
+							}
+						})
 				}
 			})
 		}),

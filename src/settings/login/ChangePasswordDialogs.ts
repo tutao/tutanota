@@ -8,6 +8,7 @@ import { getEtId } from "../../api/common/utils/EntityUtils.js"
 import { NotAuthenticatedError } from "../../api/common/error/RestError.js"
 import { PasswordForm, PasswordModel } from "../PasswordForm.js"
 import { ofClass } from "@tutao/tutanota-utils"
+import { asKdfType } from "../../api/common/TutanotaConstants.js"
 
 /**
  *The admin does not have to enter the old password in addition to the new password (twice). The password strength is not enforced.
@@ -15,8 +16,9 @@ import { ofClass } from "@tutao/tutanota-utils"
 export async function showChangeUserPasswordAsAdminDialog(user: User) {
 	const model = new PasswordModel(locator.logins, { checkOldPassword: false, enforceStrength: false, hideConfirmation: true })
 
-	const changeUserPasswordAsAdminOkAction = (dialog: Dialog) => {
-		showProgressDialog("pleaseWait_msg", locator.userManagementFacade.changeUserPassword(user, model.getNewPassword())).then(
+	const changeUserPasswordAsAdminOkAction = async (dialog: Dialog) => {
+		const kdfType = await locator.kdfPicker.pickKdfType(asKdfType(user.kdfVersion))
+		showProgressDialog("pleaseWait_msg", locator.userManagementFacade.changeUserPassword(user, model.getNewPassword(), kdfType)).then(
 			() => {
 				Dialog.message("pwChangeValid_msg")
 				dialog.close()
@@ -42,13 +44,15 @@ export async function showChangeUserPasswordAsAdminDialog(user: User) {
 export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
 	const model = new PasswordModel(locator.logins, { checkOldPassword: true, enforceStrength: true })
 
-	const changeOwnPasswordOkAction = (dialog: Dialog) => {
+	const changeOwnPasswordOkAction = async (dialog: Dialog) => {
 		const error = model.getErrorMessageId()
 
 		if (error) {
 			Dialog.message(error)
 		} else {
-			showProgressDialog("pleaseWait_msg", locator.loginFacade.changePassword(model.getOldPassword(), model.getNewPassword()))
+			const currentKdfType = asKdfType(locator.logins.getUserController().user.kdfVersion)
+			const newKdfType = await locator.kdfPicker.pickKdfType(currentKdfType)
+			showProgressDialog("pleaseWait_msg", locator.loginFacade.changePassword(model.getOldPassword(), model.getNewPassword(), currentKdfType, newKdfType))
 				.then(() => {
 					locator.credentialsProvider.deleteByUserId(getEtId(locator.logins.getUserController().user))
 					Dialog.message("pwChangeValid_msg")
