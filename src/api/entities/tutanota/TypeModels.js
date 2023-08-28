@@ -1,6 +1,6 @@
 // This is an automatically generated file, please do not edit by hand!
 
-// You should not use it directly, please use `resolveTypReference()` instead.
+// You should not use it directly, please use `resolveTypReference()` instead.	
 // We do not want tsc to spend time either checking or inferring type of these huge expressions. Even when it does try to infer them they are still wrong.
 // The actual type is an object with keys as entities names and values as TypeModel.
 
@@ -1549,18 +1549,18 @@ export const typeModels = {
     },
     "ContactListEntry": {
         "name": "ContactListEntry",
-        "since": 62,
+        "since": 64,
         "type": "LIST_ELEMENT_TYPE",
-        "id": 1320,
-        "rootId": "CHR1dGFub3RhAAUo",
+        "id": 1325,
+        "rootId": "CHR1dGFub3RhAAUt",
         "versioned": false,
         "encrypted": true,
         "values": {
             "_format": {
                 "final": false,
                 "name": "_format",
-                "id": 1324,
-                "since": 62,
+                "id": 1329,
+                "since": 64,
                 "type": "Number",
                 "cardinality": "One",
                 "encrypted": false
@@ -1568,8 +1568,8 @@ export const typeModels = {
             "_id": {
                 "final": true,
                 "name": "_id",
-                "id": 1322,
-                "since": 62,
+                "id": 1327,
+                "since": 64,
                 "type": "GeneratedId",
                 "cardinality": "One",
                 "encrypted": false
@@ -1577,8 +1577,8 @@ export const typeModels = {
             "_ownerEncSessionKey": {
                 "final": true,
                 "name": "_ownerEncSessionKey",
-                "id": 1326,
-                "since": 62,
+                "id": 1331,
+                "since": 64,
                 "type": "Bytes",
                 "cardinality": "ZeroOrOne",
                 "encrypted": false
@@ -1586,8 +1586,8 @@ export const typeModels = {
             "_ownerGroup": {
                 "final": true,
                 "name": "_ownerGroup",
-                "id": 1325,
-                "since": 62,
+                "id": 1330,
+                "since": 64,
                 "type": "GeneratedId",
                 "cardinality": "ZeroOrOne",
                 "encrypted": false
@@ -1595,8 +1595,8 @@ export const typeModels = {
             "_permissions": {
                 "final": true,
                 "name": "_permissions",
-                "id": 1323,
-                "since": 62,
+                "id": 1328,
+                "since": 64,
                 "type": "GeneratedId",
                 "cardinality": "One",
                 "encrypted": false
@@ -1604,8 +1604,8 @@ export const typeModels = {
             "emailAddress": {
                 "final": false,
                 "name": "emailAddress",
-                "id": 1327,
-                "since": 62,
+                "id": 1332,
+                "since": 64,
                 "type": "String",
                 "cardinality": "One",
                 "encrypted": true
@@ -1613,22 +1613,22 @@ export const typeModels = {
         },
         "associations": {},
         "app": "tutanota",
-        "version": "62"
+        "version": "64"
     },
     "ContactListGroupRoot": {
         "name": "ContactListGroupRoot",
-        "since": 62,
+        "since": 64,
         "type": "ELEMENT_TYPE",
-        "id": 1328,
-        "rootId": "CHR1dGFub3RhAAUw",
+        "id": 1333,
+        "rootId": "CHR1dGFub3RhAAU1",
         "versioned": false,
         "encrypted": true,
         "values": {
             "_format": {
                 "final": false,
                 "name": "_format",
-                "id": 1332,
-                "since": 62,
+                "id": 1337,
+                "since": 64,
                 "type": "Number",
                 "cardinality": "One",
                 "encrypted": false
@@ -1636,8 +1636,8 @@ export const typeModels = {
             "_id": {
                 "final": true,
                 "name": "_id",
-                "id": 1330,
-                "since": 62,
+                "id": 1335,
+                "since": 64,
                 "type": "GeneratedId",
                 "cardinality": "One",
                 "encrypted": false
@@ -1645,8 +1645,8 @@ export const typeModels = {
             "_ownerEncSessionKey": {
                 "final": true,
                 "name": "_ownerEncSessionKey",
-                "id": 1334,
-                "since": 62,
+                "id": 1339,
+                "since": 64,
                 "type": "Bytes",
                 "cardinality": "ZeroOrOne",
                 "encrypted": false
@@ -1654,8 +1654,8 @@ export const typeModels = {
             "_ownerGroup": {
                 "final": true,
                 "name": "_ownerGroup",
-                "id": 1333,
-                "since": 62,
+                "id": 1338,
+                "since": 64,
                 "type": "GeneratedId",
                 "cardinality": "ZeroOrOne",
                 "encrypted": false
@@ -1663,19 +1663,19 @@ export const typeModels = {
             "_permissions": {
                 "final": true,
                 "name": "_permissions",
-                "id": 1331,
-                "since": 62,
+                "id": 1336,
+                "since": 64,
                 "type": "GeneratedId",
                 "cardinality": "One",
                 "encrypted": false
             }
         },
         "associations": {
-            "recipients": {
+            "entries": {
                 "final": true,
-                "name": "recipients",
-                "id": 1335,
-                "since": 62,
+                "name": "entries",
+                "id": 1340,
+                "since": 64,
                 "type": "LIST_ASSOCIATION",
                 "cardinality": "One",
                 "refType": "ContactListEntry",
@@ -1683,7 +1683,7 @@ export const typeModels = {
             }
         },
         "app": "tutanota",
-        "version": "62"
+        "version": "64"
     },
     "ContactMailAddress": {
         "name": "ContactMailAddress",
