@@ -256,10 +256,10 @@ export class UsageTestModel implements PingAdapter {
 		await this.entityClient.update(userSettingsGroupRoot)
 		this.lastOptInDecision = decision
 
-		if (decision) {
-			const tests = await this.doLoadActiveUsageTests()
-			this.usageTestController().setTests(tests)
-		}
+		// we need to unset the tests in case of an opt-out because otherwise we might keep using them
+		// in case of an opt-in we need to load them because they might not yet have been loaded
+		const tests = decision ? await this.doLoadActiveUsageTests() : []
+		this.usageTestController().setTests(tests)
 	}
 
 	private getOptInDecision(): boolean {
