@@ -1,5 +1,5 @@
 import { KdfType } from "../api/common/TutanotaConstants.js"
-import { UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
+import { UsageTestController } from "@tutao/tutanota-usagetests"
 
 /**
  * This is a utility class to control the rollout of the new KDF function leveraging the usage tests.
@@ -8,11 +8,7 @@ import { UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
  * It also allows the sys ops to immediately stop the rollout in case there any issues.
  */
 export class KdfPicker {
-	private kdfRolloutTest: UsageTest
-
-	constructor(private readonly usageTestController: UsageTestController) {
-		this.kdfRolloutTest = this.usageTestController.getTest("crypto.kdf")
-	}
+	constructor(private readonly usageTestController: UsageTestController) {}
 
 	/**
 	 * Determine the KDF type to use, in case it is overridden via `Const`
@@ -22,9 +18,12 @@ export class KdfPicker {
 			// we want to avoid downgrading the KDF
 			return currentKdfType
 		}
-		await this.kdfRolloutTest.getStage(0).complete()
+		// we do not load this in the constructor, because the test might only become available later
+		const kdfRolloutTest = this.usageTestController.getTest("crypto.kdf")
 
-		return this.kdfRolloutTest.getVariant({
+		await kdfRolloutTest.getStage(0).complete()
+
+		return kdfRolloutTest.getVariant({
 			[0]: () => KdfType.Bcrypt,
 			[1]: () => KdfType.Argon2id,
 		})
