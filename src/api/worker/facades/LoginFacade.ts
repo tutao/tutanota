@@ -803,9 +803,9 @@ export class LoginFacade {
 		const currentAuthVerifier = createAuthVerifier(currentUserPassphraseKey)
 
 		const salt = generateRandomSalt()
-		const userPassphraseKey = await this.deriveUserPassphraseKey(newKdfType, newPassword, salt)
-		const pwEncUserGroupKey = encryptKey(userPassphraseKey, this.userFacade.getUserGroupKey())
-		const authVerifier = createAuthVerifier(userPassphraseKey)
+		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newKdfType, newPassword, salt)
+		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey())
+		const authVerifier = createAuthVerifier(newUserPassphraseKey)
 		const service = createChangePasswordData()
 
 		service.kdfVersion = newKdfType
