@@ -21,8 +21,6 @@ export class KdfPicker {
 		// we do not load this in the constructor, because the test might only become available later
 		const kdfRolloutTest = this.usageTestController.getTest("crypto.kdf")
 
-		await kdfRolloutTest.getStage(0).complete()
-
 		return kdfRolloutTest.getVariant({
 			[0]: () => KdfType.Bcrypt,
 			[1]: () => KdfType.Argon2id,

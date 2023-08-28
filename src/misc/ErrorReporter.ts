@@ -9,7 +9,7 @@ import { Button, ButtonType } from "../gui/base/Button.js"
 import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
 import { downcast, ErrorInfo, errorToString, neverNull, typedKeys, uint8ArrayToString } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/MainLocator"
-import { AccountType, ConversationType, Keys, MailMethod } from "../api/common/TutanotaConstants"
+import { AccountType, ConversationType, KdfType, Keys, MailMethod } from "../api/common/TutanotaConstants"
 import { copyToClipboard } from "./ClipboardUtils"
 import { px } from "../gui/size"
 import { isApp, isDesktop, Mode } from "../api/common/Env"
@@ -258,7 +258,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 			},
 		],
 		"de",
-		await locator.kdfPicker.pickKdfType(),
+		KdfType.Argon2id, // this is anyway ignored for internal recipients
 	)
 }
 
