@@ -53,8 +53,8 @@ export class ContactListViewModel {
 		}
 		await this.listModel?.loadInitial()
 
-		if (entryId && listId) {
-			this.loadAndSelect(entryId, listId)
+		if (listId && entryId) {
+			this.loadAndSelect(listId, entryId)
 		}
 	}
 
@@ -65,13 +65,6 @@ export class ContactListViewModel {
 			return infos.slice().sort((a, b) => a.name.localeCompare(b.name))
 		})
 		this.sortedSharedContactListInfos = this.contactModel.getSharedContactListInfos().map((infos) => {
-			const selected = this.getSelectedContactListInfo()
-			// If the selected contact list is somehow no longer is the list of contact lists anymore (the owner deleted it or revoked permissions)
-			// reset the selectedContactList and update the url
-			if (selected && !infos.some((info) => isSameId(info.groupInfo._id, selected.groupInfo._id))) {
-				this.selectedContactList = null
-				this.updateUrl()
-			}
 			this.updateUi()
 			return infos.slice().sort((a, b) => a.name.localeCompare(b.name))
 		})
@@ -111,7 +104,7 @@ export class ContactListViewModel {
 		return newListModel
 	})
 
-	private async loadAndSelect(contactListEntryId: Id, listId: Id) {
+	private async loadAndSelect(listId: Id, contactListEntryId: Id) {
 		await this.listModel?.loadAndSelect(contactListEntryId, () => this.selectedContactList !== listId)
 	}
 
