@@ -47,7 +47,7 @@ export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNam
 		),
 	).then((model) => {
 		model.onEntityUpdate.map(m.redraw.bind(m))
-		Dialog.showActionDialog({
+		let dialog = Dialog.showActionDialog({
 			title: lang.get("sharing_label"),
 			type: DialogType.EditMedium,
 			child: () =>
@@ -55,6 +55,7 @@ export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNam
 					model,
 					allowGroupNameOverride,
 					texts,
+					dialog,
 				}),
 			okAction: null,
 			cancelAction: () => model.dispose(),
@@ -67,17 +68,18 @@ type GroupSharingDialogAttrs = {
 	model: GroupSharingModel
 	allowGroupNameOverride: boolean
 	texts: GroupSharingTexts
+	dialog: Dialog
 }
 
 class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 	view(vnode: Vnode<GroupSharingDialogAttrs>): Children {
-		const { model, allowGroupNameOverride, texts } = vnode.attrs
+		const { model, allowGroupNameOverride, texts, dialog } = vnode.attrs
 		const groupName = getSharedGroupName(model.info, model.logins.getUserController(), allowGroupNameOverride)
 		return m(".flex.col.pt-s", [
 			m(Table, {
 				columnHeading: [() => texts.participantsLabel(groupName)],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
-				lines: this._renderMemberInfos(model, texts, groupName).concat(this._renderGroupInvitations(model, texts, groupName)),
+				lines: this._renderMemberInfos(model, texts, groupName, dialog).concat(this._renderGroupInvitations(model, texts, groupName)),
 				showActionButtonColumn: true,
 				addButtonAttrs: hasCapabilityOnGroup(locator.logins.getUserController().user, model.group, ShareCapability.Invite)
 					? {
@@ -116,7 +118,7 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 		})
 	}
 
-	_renderMemberInfos(model: GroupSharingModel, texts: GroupSharingTexts, groupName: string): Array<TableLineAttrs> {
+	_renderMemberInfos(model: GroupSharingModel, texts: GroupSharingTexts, groupName: string, dialog: Dialog): Array<TableLineAttrs> {
 		return model.memberInfos.map((memberInfo) => {
 			return {
 				cells: () => [
@@ -136,6 +138,9 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 							click: () => {
 								getConfirmation(() => texts.removeMemberMessage(groupName, downcast(memberInfo.info.mailAddress))).confirmed(async () => {
 									await model.removeGroupMember(memberInfo.member)
+									if (model.memberIsSelf(memberInfo.member)) {
+										dialog.close()
+									}
 									m.redraw()
 								})
 							},
