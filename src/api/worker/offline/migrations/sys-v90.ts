@@ -1,7 +1,8 @@
 import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { OfflineStorage } from "../OfflineStorage.js"
-import { migrateAllListElements } from "../StandardMigrations.js"
-import { CustomerInfo, CustomerInfoTypeRef } from "../../../entities/sys/TypeRefs.js"
+import { migrateAllElements, migrateAllListElements } from "../StandardMigrations.js"
+import { CustomerInfo, CustomerInfoTypeRef, User, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
+import { KdfType } from "../../../common/TutanotaConstants.js"
 
 export const sys90: OfflineMigration = {
 	app: "sys",
@@ -15,6 +16,16 @@ export const sys90: OfflineMigration = {
 					oldCustomerInfo.customPlan.contactList = false
 				}
 				return oldCustomerInfo
+			},
+		])
+
+		// we forgot to include this in v89 migration
+		await migrateAllElements(UserTypeRef, storage, [
+			(user: User) => {
+				if (!user.kdfVersion) {
+					user.kdfVersion = KdfType.Bcrypt
+				}
+				return user
 			},
 		])
 	},

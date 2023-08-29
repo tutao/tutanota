@@ -1070,6 +1070,16 @@ export enum TerminationPeriodOptions {
 	FutureDate = "1",
 }
 
+/**
+ * Convert the input to KdfType.
+ *
+ * This actually returns the input without modifying it, as it wraps around TypeScript's 'as' operator, but
+ * it also does a runtime check, guaranteeing that the input is truly a KdfType.
+ *
+ * @param maybe kdf type
+ * @return `maybe` as KdfType
+ * @throws Error if the input doesn't correspond to a KdfType
+ */
 export function asKdfType(maybe: string): KdfType {
 	if (Object.values(KdfType).includes(maybe as KdfType)) {
 		return maybe as KdfType
