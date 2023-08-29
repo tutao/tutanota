@@ -107,8 +107,7 @@ export class GroupSharingModel {
 	 */
 	canRemoveGroupMember(member: GroupMember): boolean {
 		return (
-			(hasCapabilityOnGroup(this.logins.getUserController().user, this.group, ShareCapability.Invite) ||
-				isSameId(this.logins.getUserController().user._id, member.user)) &&
+			(hasCapabilityOnGroup(this.logins.getUserController().user, this.group, ShareCapability.Invite) || this.memberIsSelf(member)) &&
 			!isSharedGroupOwner(this.group, member.user)
 		)
 	}
@@ -130,6 +129,10 @@ export class GroupSharingModel {
 			hasCapabilityOnGroup(this.logins.getUserController().user, this.group, ShareCapability.Invite) ||
 			isSharedGroupOwner(this.group, this.logins.getUserController().user._id)
 		)
+	}
+
+	memberIsSelf(member: GroupMember): boolean {
+		return isSameId(this.logins.getUserController().user._id, member.user)
 	}
 
 	cancelInvitation(invitation: SentGroupInvitation): Promise<void> {
