@@ -4,6 +4,7 @@ import { TranslationText } from "../../misc/LanguageViewModel"
 import { Button, ButtonType } from "./Button.js"
 import { Keys } from "../../api/common/TutanotaConstants"
 import { createAsyncDropdown, DropdownChildAttrs } from "./Dropdown.js"
+import { lazy } from "@tutao/tutanota-utils"
 
 export interface BubbleTextFieldAttrs {
 	label: TranslationText
@@ -20,6 +21,7 @@ export interface BubbleTextFieldAttrs {
 	injectionsRight?: Children | null
 	onFocus: () => void
 	onBlur: () => void
+	helpLabel?: lazy<Children> | null
 }
 
 export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
@@ -33,6 +35,7 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 				disabled: attrs.disabled,
 				value: attrs.text,
 				oninput: attrs.onInput,
+				helpLabel: attrs.helpLabel,
 				injectionsLeft: () => {
 					return attrs.items.map((item, idx, items) => {
 						// We need overflow: hidden on both so that ellipsis on button works.

@@ -9,7 +9,7 @@ import { stringToNameAndMailAddress } from "../misc/parsing/MailAddressParser.js
 import { DropdownChildAttrs } from "./base/Dropdown.js"
 import { Contact } from "../api/entities/tutanota/TypeRefs.js"
 import { RecipientsSearchModel } from "../misc/RecipientsSearchModel.js"
-import { getFirstOrThrow } from "@tutao/tutanota-utils"
+import { getFirstOrThrow, lazy } from "@tutao/tutanota-utils"
 import { Dialog } from "./base/Dialog.js"
 import { SearchDropDown } from "./SearchDropDown.js"
 import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
@@ -29,6 +29,7 @@ export interface MailRecipientsTextFieldAttrs {
 	search: RecipientsSearchModel
 	/** Limit the search dropdown to this number of suggestions before starting to scroll */
 	maxSuggestionsToShow?: number
+	helpLabel?: lazy<Children> | null
 }
 
 /**
@@ -48,6 +49,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 		return m(BubbleTextField, {
 			label: attrs.label,
 			text: attrs.text,
+			helpLabel: attrs.helpLabel,
 			onInput: (text) => {
 				attrs.search.search(text).then(() => m.redraw())
 
