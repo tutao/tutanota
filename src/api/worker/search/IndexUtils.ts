@@ -1,4 +1,4 @@
-import { concat, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { Base64, concat, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import type {
 	DecryptedSearchIndexEntry,
 	EncryptedSearchIndexEntry,
@@ -12,19 +12,17 @@ import { GroupType } from "../../common/TutanotaConstants"
 import { calculateNeededSpaceForNumber, calculateNeededSpaceForNumbers, decodeNumberBlock, decodeNumbers, encodeNumbers } from "./SearchIndexEncoding"
 import { typeModels as sysTypeModels } from "../../entities/sys/TypeModels"
 import { typeModels as tutanotaTypeModels } from "../../entities/tutanota/TypeModels"
-import type { User } from "../../entities/sys/TypeRefs.js"
-import type { GroupMembership } from "../../entities/sys/TypeRefs.js"
+import type { GroupMembership, User } from "../../entities/sys/TypeRefs.js"
 import type { TypeModel } from "../../common/EntityTypes"
 import { isTest } from "../../common/Env"
-import type { Base64 } from "@tutao/tutanota-utils"
-import { aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aes256Decrypt, aes256EncryptSearchIndexEntry } from "@tutao/tutanota-crypto"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))
 }
 
 export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Uint8Array {
-	return aes256Encrypt(key, stringToUtf8Uint8Array(indexKey), dbIv, true, false).slice(dbIv.length)
+	return aes256EncryptSearchIndexEntry(key, stringToUtf8Uint8Array(indexKey), dbIv, true).slice(dbIv.length)
 }
 
 export function decryptIndexKey(key: Aes256Key, encIndexKey: Uint8Array, dbIv: Uint8Array): string {
@@ -36,7 +34,7 @@ export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry,
 	const neededSpace = calculateNeededSpaceForNumbers(searchIndexEntryNumberValues)
 	const block = new Uint8Array(neededSpace)
 	encodeNumbers(searchIndexEntryNumberValues, block, 0)
-	const encData = aes256Encrypt(key, block, random.generateRandomData(IV_BYTE_LENGTH), true, false)
+	const encData = aes256EncryptSearchIndexEntry(key, block)
 	const resultArray = new Uint8Array(encryptedInstanceId.length + encData.length)
 	resultArray.set(encryptedInstanceId)
 	resultArray.set(encData, 16)
@@ -76,7 +74,7 @@ export function encryptMetaData(key: Aes256Key, metaData: SearchIndexMetaDataRow
 
 	const numberBlock = new Uint8Array(calculateNeededSpaceForNumbers(numbers))
 	encodeNumbers(numbers, numberBlock)
-	const encryptedRows = aes256Encrypt(key, numberBlock, random.generateRandomData(IV_BYTE_LENGTH), true, false)
+	const encryptedRows = aes256EncryptSearchIndexEntry(key, numberBlock)
 	return {
 		id: metaData.id,
 		word: metaData.word,

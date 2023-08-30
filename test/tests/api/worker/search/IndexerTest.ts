@@ -130,7 +130,7 @@ o.spec("Indexer test", () => {
 	o("init existing db", async function () {
 		let userGroupKey = aes128RandomKey()
 		let dbKey = aes256RandomKey()
-		let encDbIv = aes256Encrypt(dbKey, fixedIv, random.generateRandomData(IV_BYTE_LENGTH), true, false)
+		let encDbIv = aes256Encrypt(dbKey, fixedIv, random.generateRandomData(IV_BYTE_LENGTH), true)
 		let userEncDbKey = encrypt256Key(userGroupKey, dbKey)
 		let transaction = {
 			get: (os, key) => {
@@ -201,7 +201,7 @@ o.spec("Indexer test", () => {
 		let userGroupKey = aes128RandomKey()
 		let dbKey = aes256RandomKey()
 		let userEncDbKey = encrypt256Key(userGroupKey, dbKey)
-		let encDbIv = aes256Encrypt(dbKey, fixedIv, random.generateRandomData(IV_BYTE_LENGTH), true, false)
+		let encDbIv = aes256Encrypt(dbKey, fixedIv, random.generateRandomData(IV_BYTE_LENGTH), true)
 		let transaction = {
 			get: async (os, key) => {
 				if (os == MetaDataOS && key == Metadata.userEncDbKey) return userEncDbKey

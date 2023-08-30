@@ -48,7 +48,7 @@ export class DbFacade {
 	private _activeTransactions: number
 	indexingSupported: boolean = true
 
-	constructor(version: number, onupgrade: (event: any, db: IDBDatabase) => void) {
+	constructor(version: number, onupgrade: (event: any, db: IDBDatabase, dbFacade: DbFacade) => void) {
 		this._activeTransactions = 0
 		this._db = new LazyLoaded(() => {
 			// If indexedDB is disabled in Firefox, the browser crashes when accessing indexedDB in worker process
@@ -93,7 +93,7 @@ export class DbFacade {
 							//console.log("upgrade db", event)
 							try {
 								// @ts-ignore
-								onupgrade(event, event.target.result)
+								onupgrade(event, event.target.result, this)
 							} catch (e) {
 								reject(new DbError("could not create object store for DB " + this._id, e))
 							}

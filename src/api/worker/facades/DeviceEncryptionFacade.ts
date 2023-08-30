@@ -15,7 +15,7 @@ export class DeviceEncryptionFacade {
 	 * @param data Data to encrypt.
 	 */
 	async encrypt(deviceKey: Uint8Array, data: Uint8Array): Promise<Uint8Array> {
-		return aes256Encrypt(uint8ArrayToBitArray(deviceKey), data, generateIV())
+		return aes256Encrypt(uint8ArrayToBitArray(deviceKey), data)
 	}
 
 	/**

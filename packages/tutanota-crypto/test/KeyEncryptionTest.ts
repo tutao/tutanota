@@ -1,9 +1,19 @@
 import o from "@tutao/otest"
 import { base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
-import { aes256Decrypt256Key, aes256Encrypt256Key, decryptKey, decryptRsaKey, encryptKey, encryptRsaKey } from "../lib/encryption/KeyEncryption.js"
+import {
+	aes256Decrypt256Key,
+	aes256DecryptLegacyRecoveryKey,
+	aes256Encrypt256Key,
+	aes256EncryptKey,
+	decryptKey,
+	decryptRsaKey,
+	encryptKey,
+	encryptRsaKey,
+} from "../lib/encryption/KeyEncryption.js"
 import { hexToPrivateKey } from "../lib/encryption/Rsa.js"
-import { uint8ArrayToBitArray } from "../lib/misc/Utils.js"
-import { aes256RandomKey } from "../lib/encryption/Aes.js"
+import { bitArrayToUint8Array, fixedIv, uint8ArrayToBitArray } from "../lib/misc/Utils.js"
+import { aes128RandomKey, aes256RandomKey } from "../lib/encryption/Aes.js"
+import { aes256EncryptLegacy } from "./AesTest.js"
 
 o.spec("key encryption", function () {
 	const rsaPrivateHexKey =
@@ -38,5 +48,25 @@ o.spec("key encryption", function () {
 
 		o(uint8ArrayToBitArray(encryptedKey)).notDeepEquals(key)("It isn't somehow a no-op at least")
 		o(key).deepEquals(decryptedKey)("The round trip works")
+	})
+
+	o("encrypt / decrypt legacy recovery code with fixed iv aes256", function () {
+		const key = aes128RandomKey()
+		const encryptionKey = aes256RandomKey()
+
+		const encryptedKey = aes256EncryptLegacy(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
+		const decryptedKey = aes256DecryptLegacyRecoveryKey(encryptionKey, encryptedKey)
+
+		o(key).deepEquals(decryptedKey)("decrypting sliced, fixed iv aes256 key")
+	})
+
+	o("encrypt / decrypt legacy recovery code without fixed iv aes256", function () {
+		const key = aes128RandomKey()
+		const encryptionKey = aes256RandomKey()
+
+		const encryptedKey = aes256EncryptKey(encryptionKey, key)
+		const decryptedKey = aes256DecryptLegacyRecoveryKey(encryptionKey, encryptedKey)
+
+		o(key).deepEquals(decryptedKey)("decrypting sliced, fixed iv aes256 key")
 	})
 })

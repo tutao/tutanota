@@ -20,7 +20,7 @@ export function encryptKey(encryptionKey: Aes128Key | Aes256Key, keyToBeEncrypte
 	if (keyLength === KEY_LENGTH_BYTES_AES_128) {
 		return aes128Encrypt(encryptionKey, bitArrayToUint8Array(keyToBeEncrypted), fixedIv, false, false).slice(fixedIv.length)
 	} else if (keyLength === KEY_LENGTH_BYTES_AES_256) {
-		return aes256Encrypt(encryptionKey, bitArrayToUint8Array(keyToBeEncrypted), fixedIv, false, false).slice(fixedIv.length)
+		return aes256Encrypt(encryptionKey, bitArrayToUint8Array(keyToBeEncrypted), undefined, false)
 	} else {
 		throw new Error(`invalid AES key length (must be 128-bit or 256-bit, got ${keyLength} bytes instead)`)
 	}
@@ -31,7 +31,7 @@ export function decryptKey(encryptionKey: Aes128Key | Aes256Key, keyToBeDecrypte
 	if (keyLength === KEY_LENGTH_BYTES_AES_128) {
 		return uint8ArrayToBitArray(aes128Decrypt(encryptionKey, concat(fixedIv, keyToBeDecrypted), false))
 	} else if (keyLength === KEY_LENGTH_BYTES_AES_256) {
-		return uint8ArrayToBitArray(aes256Decrypt(encryptionKey, concat(fixedIv, keyToBeDecrypted), false))
+		return uint8ArrayToBitArray(aes256Decrypt(encryptionKey, keyToBeDecrypted, false))
 	} else {
 		throw new Error(`invalid AES key length (must be 128-bit or 256-bit, got ${keyLength} bytes instead)`)
 	}
@@ -46,19 +46,28 @@ export function decrypt256Key(encryptionKey: Aes128Key, keyToBeDecrypted: Uint8A
 }
 
 export function aes256EncryptKey(encryptionKey: Aes256Key, keyToBeEncrypted: Aes128Key): Uint8Array {
-	return aes256Encrypt(encryptionKey, bitArrayToUint8Array(keyToBeEncrypted), fixedIv, false, false).slice(fixedIv.length)
+	return aes256Encrypt(encryptionKey, bitArrayToUint8Array(keyToBeEncrypted), undefined, false)
 }
 
-export function aes256DecryptKey(encryptionKey: Aes256Key, keyToBeDecrypted: Uint8Array): Aes128Key {
-	return uint8ArrayToBitArray(aes256Decrypt(encryptionKey, concat(fixedIv, keyToBeDecrypted), false))
+export function aes256DecryptKey(encryptionKey: Aes256Key, keyToBeDecrypted: Uint8Array): Aes256Key {
+	return uint8ArrayToBitArray(aes256Decrypt(encryptionKey, keyToBeDecrypted, false))
+}
+
+export function aes256DecryptLegacyRecoveryKey(encryptionKey: Aes256Key, keyToBeDecrypted: Uint8Array): Aes256Key {
+	// legacy case: recovery code without IV/mac
+	if (keyToBeDecrypted.length === KEY_LENGTH_BYTES_AES_128) {
+		return uint8ArrayToBitArray(aes256Decrypt(encryptionKey, concat(fixedIv, keyToBeDecrypted), false))
+	} else {
+		return uint8ArrayToBitArray(aes256Decrypt(encryptionKey, keyToBeDecrypted, false))
+	}
 }
 
 export function aes256Encrypt256Key(encryptionKey: Aes256Key, keyToBeEncrypted: Aes256Key): Uint8Array {
-	return aes256Encrypt(encryptionKey, bitArrayToUint8Array(keyToBeEncrypted), fixedIv, false, false).slice(fixedIv.length)
+	return aes256Encrypt(encryptionKey, bitArrayToUint8Array(keyToBeEncrypted), undefined, false)
 }
 
 export function aes256Decrypt256Key(encryptionKey: Aes256Key, keyToBeDecrypted: Uint8Array): Aes256Key {
-	return uint8ArrayToBitArray(aes256Decrypt(encryptionKey, concat(fixedIv, keyToBeDecrypted), false))
+	return uint8ArrayToBitArray(aes256Decrypt(encryptionKey, keyToBeDecrypted, false))
 }
 
 export function encryptRsaKey(encryptionKey: Aes128Key, privateKey: PrivateKey, iv?: Uint8Array): Uint8Array {

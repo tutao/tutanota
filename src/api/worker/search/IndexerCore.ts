@@ -61,7 +61,7 @@ import {
 	removeBinaryBlockRanges,
 } from "./SearchIndexEncoding"
 import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
-import { aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aes256Decrypt, aes256EncryptSearchIndexEntry } from "@tutao/tutanota-crypto"
 import { ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "./IndexTables.js"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
@@ -468,7 +468,7 @@ export class IndexerCore {
 			const metaRows = elementDataSurrogate.encWordsB64.map((w) => encWordToMetaRow[w])
 			const rowKeysBinary = new Uint8Array(calculateNeededSpaceForNumbers(metaRows))
 			encodeNumbers(metaRows, rowKeysBinary)
-			const encMetaRowKeys = aes256Encrypt(this.db.key, rowKeysBinary, random.generateRandomData(IV_BYTE_LENGTH), true, false)
+			const encMetaRowKeys = aes256EncryptSearchIndexEntry(this.db.key, rowKeysBinary)
 			promises.push(transaction.put(ElementDataOS, b64EncInstanceId, [elementDataSurrogate.listId, encMetaRowKeys, elementDataSurrogate.ownerGroup]))
 		})
 		return Promise.all(promises)

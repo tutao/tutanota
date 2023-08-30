@@ -89,6 +89,7 @@ import { BlobAccessTokenFacade } from "./BlobAccessTokenFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { DatabaseKeyFactory } from "../../../misc/credentials/DatabaseKeyFactory.js"
 import { ExternalUserKeyDeriver } from "../../../misc/LoginUtils.js"
+import { aes256DecryptLegacyRecoveryKey } from "@tutao/tutanota-crypto/dist/encryption/KeyEncryption.js"
 
 assertWorkerOrNode()
 
@@ -879,7 +880,7 @@ export class LoginFacade {
 
 		const recoverCodeData = await entityClient.load(RecoverCodeTypeRef, user.auth.recoverCode, undefined, recoverCodeExtraHeaders)
 		try {
-			const groupKey = aes256DecryptKey(recoverCodeKey, recoverCodeData.recoverCodeEncUserGroupKey)
+			const groupKey = aes256DecryptLegacyRecoveryKey(recoverCodeKey, recoverCodeData.recoverCodeEncUserGroupKey)
 			const salt = generateRandomSalt()
 			const kdfType = this.pickKdfType(KdfType.Bcrypt)
 

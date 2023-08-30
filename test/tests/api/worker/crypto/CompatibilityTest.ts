@@ -53,19 +53,19 @@ o.spec("crypto compatibility", function () {
 		testData.aes256Tests.forEach((td) => {
 			let key = uint8ArrayToBitArray(hexToUint8Array(td.hexKey))
 			// encrypt data
-			let encryptedBytes = aes256Encrypt(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true, false)
+			let encryptedBytes = aes256Encrypt(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true)
 			o(uint8ArrayToBase64(encryptedBytes)).equals(td.cipherTextBase64)
 			let decryptedBytes = uint8ArrayToBase64(aes256Decrypt(key, encryptedBytes, true))
 			o(decryptedBytes).equals(td.plainTextBase64)
 			// encrypt 128 key
 			const keyToEncrypt128 = uint8ArrayToBitArray(hexToUint8Array(td.keyToEncrypt128))
-			const encryptedKey128 = aes256EncryptKey(key, keyToEncrypt128)
+			const encryptedKey128 = aes256Encrypt(key, bitArrayToUint8Array(keyToEncrypt128), base64ToUint8Array(td.ivBase64), false)
 			o(uint8ArrayToBase64(encryptedKey128)).equals(td.encryptedKey128)
 			const decryptedKey128 = aes256DecryptKey(key, encryptedKey128)
 			o(uint8ArrayToHex(bitArrayToUint8Array(decryptedKey128))).equals(td.keyToEncrypt128)
 			// encrypt 256 key
 			const keyToEncrypt256 = uint8ArrayToBitArray(hexToUint8Array(td.keyToEncrypt256))
-			const encryptedKey256 = aes256EncryptKey(key, keyToEncrypt256)
+			const encryptedKey256 = aes256Encrypt(key, bitArrayToUint8Array(keyToEncrypt256), base64ToUint8Array(td.ivBase64), false)
 			o(uint8ArrayToBase64(encryptedKey256)).equals(td.encryptedKey256)
 			const decryptedKey256 = aes256DecryptKey(key, encryptedKey256)
 			o(uint8ArrayToHex(bitArrayToUint8Array(decryptedKey256))).equals(td.keyToEncrypt256)
