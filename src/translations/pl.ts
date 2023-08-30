@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2023-08-24T16:26:48Z",
+	"updated_at": "2023-08-30T16:42:26Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -66,6 +66,7 @@ export default {
 		"addParticipant_action": "Dodaj uczestnika",
 		"addPrevious_action": "Dodaj poprzednią pozycję do zaznaczenia",
 		"addResponsiblePerson_label": "Dodaj osobę odpowiedzialną ",
+		"addressAlreadyExistsOnList_msg": "Ten adres znajduje się już na liście ",
 		"addressesAlreadyInUse_msg": "Następujące adresy e-mail są już używane:",
 		"address_label": "Adres",
 		"addSecondFactor_action": "Dodaj drugi czynnik",
@@ -286,6 +287,7 @@ export default {
 		"createAccountRunning_msg": "Tworzenie konta... ",
 		"createActionStatus_msg": "Tworzenie kont użytkowników. Utworzono {index} z {count} kont...",
 		"createContactForm_label": "Utwórz formularz kontaktowy",
+		"createContactList_action": "Utwórz listę kontaktów",
 		"createContactRequest_action": "Napisz wiadomość",
 		"createContactsForRecipients_action": "Utwórz kontakty dla wszystkich odbiorców podczas wysyłania wiadomości e-mail.",
 		"createContacts_label": "Utwórz kontakty",
