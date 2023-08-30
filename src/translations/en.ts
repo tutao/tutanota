@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2023-08-30T13:56:44Z",
+	"updated_at": "2023-08-31T07:09:14Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -771,6 +771,8 @@ export default {
 		"localAdmin_label": "Local admin",
 		"localDataSection_label": "Local data",
 		"location_label": "Location",
+		"lockdownModeNotSupported1_msg": "Your device has Lockdown Mode enabled which will prevent future versions of Tutanota from running.",
+		"lockdownModeNotSupported2_msg": "Please exclude Tutanota or disable Lockdown Mode.",
 		"loggingOut_msg": "Logging out ...",
 		"loginAbuseDetected_msg": "Your account can not be used any more because the Tutanota terms and conditions were violated, e.g. by sending spam emails.",
 		"loginCredentials_label": "Login credentials",
@@ -1546,6 +1548,8 @@ export default {
 		"waitingForApproval_msg": "Sorry, you are currently not allowed to send or receive emails because your account was marked for approval. This process is necessary to offer a privacy-friendly registration and prevent mass registrations at the same time. Your account will normally be automatically approved after 48 hours. Thank you for your patience!",
 		"waitingForU2f_msg": "Waiting for security key…",
 		"wantToSendReport_msg": "Something unexpected went wrong. Do you want to send an error report?  You can add a message to help us fix this error.",
+		"webAssemblyNotSupported1_msg": "Your browser does not support WebAssembly and will not be supported in future versions of Tutanota.",
+		"webAssemblyNotSupported2_msg": "Please upgrade your browser or download our app.",
 		"weekNumber_label": "Week {week}",
 		"weekStart_label": "Week start",
 		"weeks_label": "weeks",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2023-08-30T13:56:56Z",
+	"updated_at": "2023-08-31T07:09:14Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -775,6 +775,8 @@ export default {
 		"localAdmin_label": "Lokaler Admin",
 		"localDataSection_label": "Lokale Daten",
 		"location_label": "Ort",
+		"lockdownModeNotSupported1_msg": "Der Blockierungsmodus ist auf deinem Gerät aktiviert. Dies verhindert, dass zukünftige Versionen von Tutanota ausgeführt werden können.",
+		"lockdownModeNotSupported2_msg": "Bitte füge eine Ausnahme für Tutanota hinzu oder deaktiviere den Blockierungsmodus.",
 		"loggingOut_msg": "Du wirst abgemeldet ...",
 		"loginAbuseDetected_msg": "Dein Account kann nicht mehr verwendet werden, da gegen die AGB von Tutanota verstoßen wurde, z.B. indem Spam-E-Mails gesendet wurden.",
 		"loginCredentials_label": "Zugangsdaten",
@@ -1550,6 +1552,8 @@ export default {
 		"waitingForApproval_msg": "Du darfst leider noch keine E-Mails senden oder empfangen, da dein Account erst freigegeben werden muss. Dies ist notwendig, um eine anonyme Registrierung zu ermöglichen und gleichzeitig Massenregistrierungen zu verhindern. Dein Account wird normalerweise nach 48 Stunden automatisch freigeschaltet. Vielen Dank für deine Geduld!",
 		"waitingForU2f_msg": "Warten auf den Sicherheitsschlüssel…",
 		"wantToSendReport_msg": "Es ist ein unerwarteter Fehler aufgetreten. Möchtest du einen Fehlerbericht senden? Du kannst eine Nachricht hinzufügen, um uns zu helfen, diesen Fehler zu beheben.",
+		"webAssemblyNotSupported1_msg": "Dein Browser unterstützt kein WebAssembly und wird in zukünftigen Versionen von Tutanota nicht mehr unterstützt.",
+		"webAssemblyNotSupported2_msg": "Bitte aktualisiere deinen Browser oder downloade unsere App.",
 		"weekNumber_label": "Woche {week}",
 		"weekStart_label": "Wochenstart",
 		"weeks_label": "Wochen",
