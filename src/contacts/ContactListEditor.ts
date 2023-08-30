@@ -10,19 +10,24 @@ import { IconButton } from "../gui/base/IconButton.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { MailRecipientsTextField } from "../gui/MailRecipientsTextField.js"
 import { RecipientsSearchModel } from "../misc/RecipientsSearchModel.js"
-import { noOp } from "@tutao/tutanota-utils"
+import { lazy, noOp } from "@tutao/tutanota-utils"
 import { lang } from "../misc/LanguageViewModel.js"
 import { isSameId } from "../api/common/utils/EntityUtils.js"
 import { Keys } from "../api/common/TutanotaConstants.js"
+import { isMailAddress } from "../misc/FormatValidator.js"
+import { cleanMailAddress } from "../api/common/utils/CommonCalendarUtils.js"
 
 export async function showContactListEditor(
 	contactListGroupRoot: ContactListGroupRoot | null,
 	headerText: string,
 	save: (name: string, addresses: Array<string>) => void,
-	showName?: boolean,
+	addressesOnList?: Array<string>,
 ): Promise<void> {
+	let showNameInput = true
 	const recipientsSearch = await locator.recipientsSearchModel()
+
 	if (contactListGroupRoot) {
+		showNameInput = false
 		recipientsSearch.setFilter((item) => {
 			// Exclude the list that we are editing to not show up in suggestions.
 			// It is valid to include other lists to copy them into the current one.
@@ -30,7 +35,7 @@ export async function showContactListEditor(
 		})
 	}
 
-	const editorModel = new ContactListEditorModel()
+	const editorModel = new ContactListEditorModel(addressesOnList ?? [])
 
 	const dialogCloseAction = () => {
 		dialog.close()
@@ -48,7 +53,7 @@ export async function showContactListEditor(
 			{
 				label: "save_action",
 				click: () => {
-					save(editorModel.name, editorModel.addresses)
+					save(editorModel.name, editorModel.newAddresses)
 					dialog.close()
 				},
 				type: ButtonType.Primary,
@@ -60,7 +65,7 @@ export async function showContactListEditor(
 	const dialog = Dialog.editDialog(headerBarAttrs, ContactListEditor, {
 		model: editorModel,
 		contactSearch: recipientsSearch,
-		showName: showName,
+		showNameInput,
 	}).addShortcut({
 		key: Keys.ESC,
 		exec: () => dialog.close(),
@@ -95,45 +100,56 @@ export async function showContactListNameEditor(name: string, save: (name: strin
 
 export class ContactListEditorModel {
 	name: string
-	addresses: Array<string>
+	newAddresses: Array<string>
+	currentAddresses: Array<string>
 
-	constructor() {
+	constructor(addresses: Array<string>) {
 		this.name = ""
-		this.addresses = []
+		this.newAddresses = []
+		this.currentAddresses = addresses
 	}
 
 	addRecipient(address: string) {
-		if (!this.addresses.includes(address)) {
-			this.addresses = [address, ...this.addresses]
-		}
+		this.newAddresses = [address, ...this.newAddresses]
 	}
 
 	removeRecipient(address: string) {
-		this.addresses = this.addresses.filter((a) => address !== a)
+		this.newAddresses = this.newAddresses.filter((a) => address !== a)
 	}
 }
 
 type ContactListEditorAttrs = {
 	model: ContactListEditorModel
 	contactSearch: RecipientsSearchModel
-	showName?: boolean
+	showNameInput?: boolean
 }
 
 class ContactListEditor implements Component<ContactListEditorAttrs> {
 	private model: ContactListEditorModel
 	private search: RecipientsSearchModel
-	private newRecipient: string = ""
-	private showName: boolean = true
+	private newAddress: string = ""
+	private showNameInput: boolean = true
 
 	constructor(vnode: Vnode<ContactListEditorAttrs>) {
 		this.model = vnode.attrs.model
 		this.search = vnode.attrs.contactSearch
-		this.showName = vnode.attrs.showName ?? true
+		this.showNameInput = vnode.attrs.showNameInput ?? true
 	}
 
 	view(): Children {
+		let helpLabel: lazy<string> | null = null
+
+		if (this.newAddress.trim().length > 0 && !isMailAddress(this.newAddress.trim(), false)) {
+			helpLabel = () => lang.get("invalidInputFormat_msg")
+		} else if (
+			this.model.currentAddresses.includes(cleanMailAddress(this.newAddress)) ||
+			this.model.newAddresses.includes(cleanMailAddress(this.newAddress))
+		) {
+			helpLabel = () => lang.get("addressAlreadyExistsOnList_msg")
+		}
+
 		return m("", [
-			this.showName
+			this.showNameInput
 				? m(TextField, {
 						label: "name_label",
 						class: "big-input pt flex-grow",
@@ -143,20 +159,23 @@ class ContactListEditor implements Component<ContactListEditorAttrs> {
 				: null,
 			m(MailRecipientsTextField, {
 				label: "addEntries_action",
-				text: this.newRecipient,
-				onTextChanged: (v) => (this.newRecipient = v),
+				text: this.newAddress,
+				onTextChanged: (v) => (this.newAddress = v),
 				// we don't show bubbles, we just want the search dropdown
 				recipients: [],
 				disabled: false,
 				onRecipientAdded: (address) => {
-					this.model.addRecipient(address)
+					if (!this.model.newAddresses.includes(address) && !this.model.currentAddresses.includes(address)) {
+						this.model.addRecipient(address)
+					}
 					m.redraw()
 				},
 				// do nothing because we don't have any bubbles here
 				onRecipientRemoved: noOp,
 				search: this.search,
+				helpLabel,
 			}),
-			this.model.addresses.map((address) => this.renderAddress(address)),
+			this.model.newAddresses.map((address) => this.renderAddress(address)),
 		])
 	}
 

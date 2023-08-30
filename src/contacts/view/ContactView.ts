@@ -243,7 +243,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 								if (this.canEditSelectedContactList()) {
 									return m(IconButton, {
 										title: "addEntries_action",
-										click: () => this.addRecipientsToList(),
+										click: () => this.addAddressesToContactList(),
 										icon: Icons.Add,
 									})
 								} else {
@@ -804,7 +804,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							title: "addEntries_action",
 							icon: Icons.Add,
 							click: () => {
-								this.addRecipientsToList()
+								this.addAddressesToContactList()
 							},
 					  })
 					: null,
@@ -814,7 +814,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		}
 	}
 
-	private addRecipientsToList() {
+	private addAddressesToContactList() {
 		const groupRoot = this.contactListViewModel.getSelectedContactListInfo()?.groupRoot
 		if (!groupRoot) return
 		showContactListEditor(
@@ -823,7 +823,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			(_, addresses) => {
 				this.contactListViewModel.addRecipientstoContactList(addresses, assertNotNull(groupRoot))
 			},
-			false,
+			this.contactListViewModel.listModel?.getUnfilteredAsArray().map((entry) => entry.emailAddress),
 		)
 	}
 
@@ -854,7 +854,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 	private async addContactList() {
 		if (await this.contactListViewModel.canCreateContactList()) {
-			await showContactListEditor(null, "Create Recipient List", (name, recipients) => {
+			await showContactListEditor(null, lang.get("createContactList_action"), (name, recipients) => {
 				this.contactListViewModel.addContactList(name, recipients)
 			})
 		} else {

@@ -1558,3 +1558,5 @@ export type TranslationKeyType =
 	| "sharedContactListDefaultName_label"
 	| "customName_label"
 	| "confirmLeaveSharedGroup_msg"
+	| "createContactList_action"
+	| "addressAlreadyExistsOnList_msg"

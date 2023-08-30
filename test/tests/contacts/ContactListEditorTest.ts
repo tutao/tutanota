@@ -1,13 +1,11 @@
 import o from "ospec"
-import { EntityClient } from "../../../src/api/common/EntityClient.js"
-import { object } from "testdouble"
 import { ContactListEditorModel } from "../../../src/contacts/ContactListEditor.js"
 
 o.spec("ContactListEditorModelTest", function () {
 	let contactListEditorModel: ContactListEditorModel
 
 	o.beforeEach(() => {
-		contactListEditorModel = new ContactListEditorModel()
+		contactListEditorModel = new ContactListEditorModel([])
 	})
 
 	o.spec("adding addresses", function () {
@@ -16,8 +14,8 @@ o.spec("ContactListEditorModelTest", function () {
 
 			contactListEditorModel.addRecipient(newEmail)
 
-			o(contactListEditorModel.addresses.length).equals(1)
-			o(contactListEditorModel.addresses[0]).equals(newEmail)
+			o(contactListEditorModel.newAddresses.length).equals(1)
+			o(contactListEditorModel.newAddresses[0]).equals(newEmail)
 		})
 
 		o("adding address already in list does not add it to the address list", function () {
@@ -26,8 +24,8 @@ o.spec("ContactListEditorModelTest", function () {
 			contactListEditorModel.addRecipient(newEmail)
 			contactListEditorModel.addRecipient(newEmail)
 
-			o(contactListEditorModel.addresses.length).equals(1)
-			o(contactListEditorModel.addresses[0]).equals(newEmail)
+			o(contactListEditorModel.newAddresses.length).equals(1)
+			o(contactListEditorModel.newAddresses[0]).equals(newEmail)
 		})
 	})
 
@@ -40,7 +38,7 @@ o.spec("ContactListEditorModelTest", function () {
 
 		contactListEditorModel.removeRecipient(newEmail)
 
-		o(contactListEditorModel.addresses.length).equals(2)
-		o(contactListEditorModel.addresses.includes(newEmail)).equals(false)
+		o(contactListEditorModel.newAddresses.length).equals(2)
+		o(contactListEditorModel.newAddresses.includes(newEmail)).equals(false)
 	})
 })

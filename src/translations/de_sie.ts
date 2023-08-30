@@ -1576,6 +1576,8 @@ export default {
 		"alreadySharedGroupMember_msg": "Sie sind bereits Mitglied in dieser Gruppe. Bitte entfernen Sie sich aus der Gruppe, bevor Sie diese Einladung annehmen können.",
 		"sharedContactListDefaultName_label": "Kontaktliste von {ownerName}",
 		"customName_label": "Ihr benutzerdefinierter Name: {customName}",
-		"confirmLeaveSharedGroup_msg": "Sind Sie sicher, dass Sie \"{groupName}\" nicht mehr verwenden möchten? Der Inhaber der Kontaktliste müsste Sie dann gegebenenfalls erneut einladen."
+		"confirmLeaveSharedGroup_msg": "Sind Sie sicher, dass Sie \"{groupName}\" nicht mehr verwenden möchten? Der Inhaber der Kontaktliste müsste Sie dann gegebenenfalls erneut einladen.",
+		"createContactList_action": "Kontaktliste erstellen",
+		"addressAlreadyExistsOnList_msg": "Diese Adresse steht bereits auf der Liste"
 	}
 }
