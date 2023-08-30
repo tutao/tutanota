@@ -1,12 +1,12 @@
 import { b64UserIdHash, DbFacade } from "../../search/DbFacade.js"
-import { assertNotNull, LazyLoaded, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { assertNotNull, concat, downcast, LazyLoaded, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import type { User } from "../../../entities/sys/TypeRefs.js"
 import { ExternalImageRule } from "../../../common/TutanotaConstants.js"
 import { aes256Decrypt, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt256Key, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { UserFacade } from "../UserFacade.js"
 import { Metadata, ObjectStoreName } from "../../search/IndexTables.js"
 
-const VERSION: number = 1
+const VERSION: number = 2
 const DB_KEY_PREFIX: string = "ConfigStorage"
 const ExternalImageListOS: ObjectStoreName = "ExternalAllowListOS"
 const MetaDataOS: ObjectStoreName = "MetaDataOS"
@@ -20,8 +20,12 @@ type ConfigDb = {
 }
 
 /** @PublicForTesting */
-export async function encryptItem(item: string, key: Aes128Key, iv: Uint8Array): Promise<Uint8Array> {
-	return aes256Encrypt(key, stringToUtf8Uint8Array(item), iv, true, false).slice(iv.length)
+export async function encryptItem(item: string, key: Aes256Key, iv: Uint8Array): Promise<Uint8Array> {
+	return aes256Encrypt(key, stringToUtf8Uint8Array(item), iv, true)
+}
+
+export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes256Key, iv: Uint8Array): Promise<string> {
+	return utf8Uint8ArrayToString(aes256Decrypt(key, concat(iv, encryptedAddress)))
 }
 
 /**
@@ -33,7 +37,10 @@ export async function encryptItem(item: string, key: Aes128Key, iv: Uint8Array):
 export class ConfigurationDatabase {
 	readonly db: LazyLoaded<ConfigDb>
 
-	constructor(userFacade: UserFacade, dbLoadFn: (arg0: User, arg1: Aes128Key) => Promise<ConfigDb> = loadConfigDb) {
+	constructor(
+		userFacade: UserFacade,
+		dbLoadFn: (arg0: User, arg1: Aes128Key) => Promise<ConfigDb> = (user: User, userGroupKey: Aes128Key) => this.loadConfigDb(user, userGroupKey),
+	) {
 		this.db = new LazyLoaded(() => {
 			const user = assertNotNull(userFacade.getLoggedInUser())
 			const userGroupKey = userFacade.getUserGroupKey()
@@ -77,20 +84,37 @@ export class ConfigurationDatabase {
 			rule: rule,
 		})
 	}
-}
 
-async function loadConfigDb(user: User, userGroupKey: Aes128Key): Promise<ConfigDb> {
-	const id = `${DB_KEY_PREFIX}_${b64UserIdHash(user)}`
-	const db = new DbFacade(VERSION, (event, db) => {
-		db.createObjectStore(MetaDataOS)
-		db.createObjectStore(ExternalImageListOS, {
-			keyPath: "address",
+	async loadConfigDb(user: User, userGroupKey: Aes128Key): Promise<ConfigDb> {
+		const id = `${DB_KEY_PREFIX}_${b64UserIdHash(user)}`
+		const db = new DbFacade(VERSION, async (event, db, dbFacade) => {
+			if (event.oldVersion === 0) {
+				db.createObjectStore(MetaDataOS)
+				db.createObjectStore(ExternalImageListOS, {
+					keyPath: "address",
+				})
+			}
+			const metaData = (await loadEncryptionMetadata(dbFacade, id, userGroupKey)) || (await initializeDb(dbFacade, id, userGroupKey))
+
+			if (event.oldVersion === 1) {
+				// migrate to aes256 with mac
+				const transaction = await dbFacade.createTransaction(true, [ExternalImageListOS])
+				const entries = await transaction.getAll(ExternalImageListOS)
+				const key = assertNotNull(metaData?.key)
+				const iv = assertNotNull(metaData?.iv)
+				for (const entry of entries) {
+					const address = await decryptLegacyItem(new Uint8Array(downcast(entry.key)), key, iv)
+					await this.addExternalImageRule(address, entry.value.rule)
+					const deleteTransaction = await dbFacade.createTransaction(false, [ExternalImageListOS])
+					await deleteTransaction.delete(ExternalImageListOS, entry.key)
+				}
+			}
 		})
-	})
-	const metaData = (await loadEncryptionMetadata(db, id, userGroupKey)) || (await initializeDb(db, id, userGroupKey))
-	return {
-		db,
-		metaData,
+		const metaData = (await loadEncryptionMetadata(db, id, userGroupKey)) || (await initializeDb(db, id, userGroupKey))
+		return {
+			db,
+			metaData,
+		}
 	}
 }
 
@@ -109,7 +133,7 @@ async function loadEncryptionMetadata(db: DbFacade, id: string, userGroupKey: Ae
 	}
 
 	const key = decrypt256Key(userGroupKey, encDbKey)
-	const iv = aes256Decrypt(key, encDbIv, true)
+	const iv = aes256Decrypt(key, encDbIv)
 	return {
 		key,
 		iv,
@@ -126,7 +150,7 @@ async function initializeDb(db: DbFacade, id: string, userGroupKey: Aes128Key): 
 	const iv = random.generateRandomData(IV_BYTE_LENGTH)
 	const transaction = await db.createTransaction(false, [MetaDataOS, ExternalImageListOS])
 	await transaction.put(MetaDataOS, Metadata.userEncDbKey, encrypt256Key(userGroupKey, key))
-	await transaction.put(MetaDataOS, Metadata.encDbIv, aes256Encrypt(key, iv, random.generateRandomData(IV_BYTE_LENGTH), true, false))
+	await transaction.put(MetaDataOS, Metadata.encDbIv, aes256Encrypt(key, iv))
 	return {
 		key,
 		iv,

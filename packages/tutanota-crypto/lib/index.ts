@@ -10,6 +10,7 @@ export {
 	IV_BYTE_LENGTH,
 	Aes128Key,
 	Aes256Key,
+	aes256EncryptSearchIndexEntry,
 } from "./encryption/Aes.js"
 export { generateRandomSalt, generateKeyFromPassphrase as generateKeyFromPassphraseBcrypt } from "./hashes/Bcrypt.js"
 export { generateKeyFromPassphrase as generateKeyFromPassphraseArgon2id } from "./hashes/Argon2id/Argon2id.js"

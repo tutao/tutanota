@@ -9,10 +9,10 @@ import { sha512Hash } from "../hashes/Sha512.js"
 export const ENABLE_MAC = true
 export const IV_BYTE_LENGTH = 16
 export const KEY_LENGTH_BYTES_AES_256 = 32
-const KEY_LENGTH_BITS_AES_256 = KEY_LENGTH_BYTES_AES_256 * 8
+export const KEY_LENGTH_BITS_AES_256 = KEY_LENGTH_BYTES_AES_256 * 8
 export const KEY_LENGTH_BYTES_AES_128 = 16
 const KEY_LENGTH_BITS_AES_128 = KEY_LENGTH_BYTES_AES_128 * 8
-const MAC_ENABLED_PREFIX = 1
+export const MAC_ENABLED_PREFIX = 1
 const MAC_LENGTH_BYTES = 32
 
 export type Aes256Key = BitArray
@@ -38,27 +38,45 @@ export function generateIV(): Uint8Array {
  * Encrypts bytes with AES 256 in CBC mode.
  * @param key The key to use for the encryption.
  * @param bytes The plain text.
- * @param iv The initialization vector.
+ * @param iv The initialization vector (only to be passed for testing).
  * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
- * @param useMac If true, a 256 bit HMAC is appended to the encrypted data.
  * @return The encrypted text as words (sjcl internal structure)..
  */
-export function aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean = true, useMac: boolean = true): Uint8Array {
+export function aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array = generateIV(), usePadding: boolean = true): Uint8Array {
 	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
 
 	if (iv.length !== IV_BYTE_LENGTH) {
 		throw new CryptoError(`Illegal IV length: ${iv.length} (expected: ${IV_BYTE_LENGTH}): ${uint8ArrayToBase64(iv)} `)
 	}
 
-	let subKeys = getAes256SubKeys(key, useMac)
+	let subKeys = getAes256SubKeys(key, true)
 	let encryptedBits = sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(subKeys.cKey), uint8ArrayToBitArray(bytes), uint8ArrayToBitArray(iv), [], usePadding)
 	let data = concat(iv, bitArrayToUint8Array(encryptedBits))
 
-	if (useMac) {
-		let hmac = new sjcl.misc.hmac(subKeys.mKey, sjcl.hash.sha256)
-		let macBytes = bitArrayToUint8Array(hmac.encrypt(uint8ArrayToBitArray(data)))
-		data = concat(new Uint8Array([MAC_ENABLED_PREFIX]), data, macBytes)
+	let hmac = new sjcl.misc.hmac(subKeys.mKey, sjcl.hash.sha256)
+	let macBytes = bitArrayToUint8Array(hmac.encrypt(uint8ArrayToBitArray(data)))
+	data = concat(new Uint8Array([MAC_ENABLED_PREFIX]), data, macBytes)
+	return data
+}
+
+/**
+ * Encrypts bytes with AES 256 in CBC mode without mac. This is legacy code and should be removed once the index has been migrated.
+ * @param key The key to use for the encryption.
+ * @param bytes The plain text.
+ * @param iv The initialization vector (only to be passed for testing).
+ * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
+ * @return The encrypted text as words (sjcl internal structure)..
+ */
+export function aes256EncryptSearchIndexEntry(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array = generateIV(), usePadding: boolean = true): Uint8Array {
+	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
+
+	if (iv.length !== IV_BYTE_LENGTH) {
+		throw new CryptoError(`Illegal IV length: ${iv.length} (expected: ${IV_BYTE_LENGTH}): ${uint8ArrayToBase64(iv)} `)
 	}
+
+	let subKeys = getAes256SubKeys(key, false)
+	let encryptedBits = sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(subKeys.cKey), uint8ArrayToBitArray(bytes), uint8ArrayToBitArray(iv), [], usePadding)
+	let data = concat(iv, bitArrayToUint8Array(encryptedBits))
 
 	return data
 }
@@ -106,7 +124,8 @@ export function aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePad
 	}
 }
 
-function verifyKeySize(key: Aes128Key | Aes256Key, bitLength: number) {
+// visibleForTesting
+export function verifyKeySize(key: Aes128Key | Aes256Key, bitLength: number) {
 	if (sjcl.bitArray.bitLength(key) !== bitLength) {
 		throw new CryptoError(`Illegal key length: ${sjcl.bitArray.bitLength(key)} (expected: ${bitLength})`)
 	}
@@ -209,7 +228,8 @@ function getAes128SubKeys(
 	}
 }
 
-function getAes256SubKeys(
+// visibleForTesting
+export function getAes256SubKeys(
 	key: Aes256Key,
 	mac: boolean,
 ): {

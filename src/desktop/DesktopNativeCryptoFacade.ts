@@ -2,8 +2,7 @@ import { base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, uint8Arr
 import type { CryptoFunctions } from "./CryptoFns"
 import type { TypeModel } from "../api/common/EntityTypes"
 import type * as FsModule from "node:fs"
-import { Aes256Key } from "@tutao/tutanota-crypto"
-import { aes256Decrypt256Key, aes256Encrypt256Key, IV_BYTE_LENGTH, uint8ArrayToKey } from "@tutao/tutanota-crypto"
+import { Aes256Key, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { FileUri } from "../native/common/FileApp"
 import path from "node:path"
 import { NativeCryptoFacade } from "../native/common/generatedipc/NativeCryptoFacade"
@@ -19,23 +18,9 @@ type FsExports = typeof FsModule
 export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	constructor(private readonly fs: FsExports, private readonly cryptoFns: CryptoFunctions, private readonly utils: DesktopUtils) {}
 
-	aes256Encrypt256Key(encryptionKey: Aes256Key, keyToEncrypt: Aes256Key): Uint8Array {
-		return aes256Encrypt256Key(encryptionKey, keyToEncrypt)
-	}
-
-	aes256Decrypt256Key(encryptionKey: Aes256Key, keyToDecrypt: Uint8Array): Aes256Key {
-		return aes256Decrypt256Key(encryptionKey, keyToDecrypt)
-	}
-
 	aesEncryptObject(encryptionKey: Aes256Key, object: number | string | boolean | ReadonlyArray<any> | {}): string {
 		const serializedObject = JSON.stringify(object)
-		const encryptedBytes = this.cryptoFns.aes256Encrypt(
-			encryptionKey,
-			stringToUtf8Uint8Array(serializedObject),
-			this.cryptoFns.randomBytes(IV_BYTE_LENGTH),
-			true,
-			true,
-		)
+		const encryptedBytes = this.cryptoFns.aes256Encrypt(encryptionKey, stringToUtf8Uint8Array(serializedObject), true)
 		return uint8ArrayToBase64(encryptedBytes)
 	}
 
@@ -70,7 +55,7 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	}
 
 	aes256EncryptKey(encryptionKey: Aes256Key, keyToEncrypt: Uint8Array): Uint8Array {
-		return this.cryptoFns.aes256Encrypt(encryptionKey, keyToEncrypt, this.cryptoFns.randomBytes(16), false, false)
+		return this.cryptoFns.aes256Encrypt(encryptionKey, keyToEncrypt, false)
 	}
 
 	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, piSessionKey: Uint8Array, piSessionKeyEncSessionKey: Uint8Array): Promise<T> {

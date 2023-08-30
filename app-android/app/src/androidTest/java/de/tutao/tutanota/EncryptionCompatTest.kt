@@ -3,13 +3,14 @@ package de.tutao.tutanota
 import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.fasterxml.jackson.databind.ObjectMapper
 import de.tutao.tutanota.AndroidNativeCryptoFacade.Companion.bytesToKey
 import de.tutao.tutanota.ipc.RsaPrivateKey
 import de.tutao.tutanota.ipc.RsaPublicKey
 import de.tutao.tutanota.ipc.wrap
+import de.tutao.tutanota.testdata.TestData
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.io.output.ByteArrayOutputStream
-import org.codehaus.jackson.map.ObjectMapper
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.BeforeClass
@@ -17,7 +18,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
 import java.io.ByteArrayInputStream
-import java.io.File
 import java.io.IOException
 import java.math.BigInteger
 import java.security.SecureRandom

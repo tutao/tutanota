@@ -35,7 +35,7 @@ o.spec("DesktopCryptoFacadeTest", () => {
 			}
 		},
 
-		aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array {
+		aes256Encrypt(key: Aes256Key, bytes: Uint8Array, usePadding: boolean): Uint8Array {
 			if (key === aes256Key && arrayEquals(aes256DecryptedKey, bytes)) {
 				return aes256EncryptedKey
 			} else {
@@ -147,7 +147,6 @@ o.spec("DesktopCryptoFacadeTest", () => {
 		const { desktopCrypto, cryptoFnsMock } = setupSubject()
 		const key = desktopCrypto.aes256EncryptKey(aes256Key, aes256DecryptedKey)
 		o(Array.from(key)).deepEquals(Array.from(aes256EncryptedKey))
-		o(cryptoFnsMock.randomBytes.callCount).equals(1)
 	})
 	o("decryptAndMapToInstance", async function () {
 		const { desktopCrypto, cryptoFnsMock } = setupSubject()

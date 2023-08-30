@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import type { Hex } from "@tutao/tutanota-utils"
-import { concat, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { concat, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import {
 	aes128Decrypt,
 	aes128Encrypt,
@@ -10,18 +10,24 @@ import {
 	aes256Encrypt,
 	Aes256Key,
 	aes256RandomKey,
+	getAes256SubKeys,
 	IV_BYTE_LENGTH,
+	KEY_LENGTH_BITS_AES_256,
+	MAC_ENABLED_PREFIX,
+	verifyKeySize,
 } from "../lib/encryption/Aes.js"
 import { base64ToKey, bitArrayToUint8Array, keyToBase64, uint8ArrayToBitArray } from "../lib/misc/Utils.js"
 import { CryptoError } from "../lib/misc/CryptoError.js"
 import { random } from "../lib/random/Randomizer.js"
 import { throwsErrorWithMessage } from "@tutao/tutanota-test-utils"
+import sjcl from "../lib/internal/sjcl.js"
 
 o.spec("aes", function () {
 	o("encryption roundtrip 128 without mac", () => arrayRoundtrip(aes128Encrypt, aes128Decrypt, aes128RandomKey(), false))
 	o("encryption roundtrip 128 with mac", () => arrayRoundtrip(aes128Encrypt, aes128Decrypt, aes128RandomKey(), true))
 	o("encryption roundtrip 256 without mac", () => arrayRoundtrip(aes256Encrypt, aes256Decrypt, aes256RandomKey(), false))
 	o("encrypted roundtrip 256 with mac", () => arrayRoundtrip(aes256Encrypt, aes256Decrypt, aes256RandomKey(), true))
+	o("encrypted roundtrip 256 with legacy encrypted data", () => arrayRoundtrip(aes256EncryptLegacy, aes256Decrypt, aes256RandomKey(), false))
 
 	// o("encryption roundtrip 256 webcrypto", browser(function (done, timeout) {
 	// 	timeout(1000)
@@ -187,9 +193,7 @@ o.spec("aes", function () {
 		decryptWithWrongKey(aes128RandomKey(), aes128RandomKey(), aes128Encrypt, aes128Decrypt, false, "aes decryption failed> pkcs#5 padding corrupt"),
 	)
 	o("decryptWithWrongKey 128 with mac", () => decryptWithWrongKey(aes128RandomKey(), aes128RandomKey(), aes128Encrypt, aes128Decrypt, true, "invalid mac"))
-	o("decryptWithWrongKey 256 without mac", () =>
-		decryptWithWrongKey(aes256RandomKey(), aes256RandomKey(), aes256Encrypt, aes256Decrypt, false, "aes decryption failed> pkcs#5 padding corrupt"),
-	)
+	o("decryptWithWrongKey 256 with mac", () => decryptWithWrongKey(aes256RandomKey(), aes256RandomKey(), aes256Encrypt, aes256Decrypt, true, "invalid mac"))
 
 	function decryptWithWrongKey(key, key2, encrypt, decrypt, useMac, errorMessage) {
 		const encrypted = encrypt(key, stringToUtf8Uint8Array("hello"), random.generateRandomData(IV_BYTE_LENGTH), true, useMac)
@@ -211,7 +215,7 @@ o.spec("aes", function () {
 	// }))
 	o("ciphertextLengths 128 without mac", () => ciphertextLengths(aes128RandomKey(), aes128Encrypt, 32, 48, false))
 	o("ciphertextLengths 128 with mac", () => ciphertextLengths(aes128RandomKey(), aes128Encrypt, 65, 81, true))
-	o("ciphertextLengths 256 without mac", () => ciphertextLengths(aes256RandomKey(), aes256Encrypt, 32, 48, false))
+	o("ciphertextLengths 256 with mac", () => ciphertextLengths(aes256RandomKey(), aes256Encrypt, 65, 81, false))
 
 	function ciphertextLengths(key, encrypt, length15BytePlainText, length16BytePlainText, useMac) {
 		// check that 15 bytes fit into one block
@@ -227,3 +231,24 @@ o.spec("aes", function () {
 	// 	]).then(() => done())
 	// }))
 })
+
+// visibleForTesting
+export function aes256EncryptLegacy(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean = true, useMac: boolean = true): Uint8Array {
+	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
+
+	if (iv.length !== IV_BYTE_LENGTH) {
+		throw new CryptoError(`Illegal IV length: ${iv.length} (expected: ${IV_BYTE_LENGTH}): ${uint8ArrayToBase64(iv)} `)
+	}
+
+	let subKeys = getAes256SubKeys(key, useMac)
+	let encryptedBits = sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(subKeys.cKey), uint8ArrayToBitArray(bytes), uint8ArrayToBitArray(iv), [], usePadding)
+	let data = concat(iv, bitArrayToUint8Array(encryptedBits))
+
+	if (useMac) {
+		let hmac = new sjcl.misc.hmac(subKeys.mKey, sjcl.hash.sha256)
+		let macBytes = bitArrayToUint8Array(hmac.encrypt(uint8ArrayToBitArray(data)))
+		data = concat(new Uint8Array([MAC_ENABLED_PREFIX]), data, macBytes)
+	}
+
+	return data
+}

@@ -1,6 +1,6 @@
 import type { Db } from "./SearchTypes"
 import { stringToUtf8Uint8Array, TypeRef, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aes256Decrypt, aes256EncryptSearchIndexEntry } from "@tutao/tutanota-crypto"
 import { SearchTermSuggestionsOS } from "./IndexTables.js"
 
 export type SuggestionsType = Record<string, string[]>
@@ -67,13 +67,7 @@ export class SuggestionFacade<T> {
 	store(): Promise<void> {
 		return this._db.initialized.then(() => {
 			return this._db.dbFacade.createTransaction(false, [SearchTermSuggestionsOS]).then((t) => {
-				let encSuggestions = aes256Encrypt(
-					this._db.key,
-					stringToUtf8Uint8Array(JSON.stringify(this._suggestions)),
-					random.generateRandomData(IV_BYTE_LENGTH),
-					true,
-					false,
-				)
+				let encSuggestions = aes256EncryptSearchIndexEntry(this._db.key, stringToUtf8Uint8Array(JSON.stringify(this._suggestions)))
 				t.put(SearchTermSuggestionsOS, this.type.type.toLowerCase(), encSuggestions)
 				return t.wait()
 			})

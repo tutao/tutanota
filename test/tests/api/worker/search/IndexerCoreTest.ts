@@ -1043,7 +1043,7 @@ o.spec("IndexerCore test", () => {
 		const listId = "list-id"
 		const elementData: ElementDataDbRow = [
 			listId,
-			aes256Encrypt(core.db.key, new Uint8Array([metaRowId, anotherMetaRowId]), random.generateRandomData(IV_BYTE_LENGTH), true, false),
+			aes256Encrypt(core.db.key, new Uint8Array([metaRowId, anotherMetaRowId]), random.generateRandomData(IV_BYTE_LENGTH), true),
 			groupId,
 		]
 		const otherId = new Uint8Array(16).fill(88)
