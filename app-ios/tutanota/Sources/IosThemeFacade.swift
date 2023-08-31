@@ -22,12 +22,17 @@ class IosThemeFacade : ThemeFacade {
     await self.viewController.applyTheme(self.themeManager.currentThemeWithFallback)
   }
 
-  func getSelectedTheme() async throws -> ThemePreference? {
+  func getThemePreference() async throws -> ThemePreference? {
     return self.themeManager.themePreference
   }
 
-  func setSelectedTheme(_ themePrefernece: ThemePreference) async throws {
+  
+  func setThemePreference(_ themePrefernece: ThemePreference) async throws {
     self.themeManager.themePreference = themePrefernece
     await self.viewController.applyTheme(self.themeManager.currentThemeWithFallback)
+  }
+  
+  func prefersDark() async throws -> Bool {
+    return UITraitCollection.current.userInterfaceStyle == .dark
   }
 }
