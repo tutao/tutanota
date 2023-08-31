@@ -37,28 +37,37 @@ export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 	view(vnode: Vnode<AddGroupDialogAttrs>): Children {
 		const { availableGroupTypes, groupType, availableDomains, onEmailChanged, onBusyStateChanged } = vnode.attrs
 		return [
-			m(DropDownSelector, {
-				label: "groupType_label",
-				items: availableGroupTypes.map((t) => {
-					return {
-						name: getGroupTypeDisplayName(t),
-						value: t,
-					}
-				}),
-				selectedValue: groupType,
-				selectionChangedHandler: vnode.attrs.onGroupTypeChanged,
-			}),
+			availableGroupTypes.length > 1
+				? m(DropDownSelector, {
+						label: "groupType_label",
+						items: availableGroupTypes.map((t) => {
+							return {
+								name: getGroupTypeDisplayName(t),
+								value: t,
+							}
+						}),
+						selectedValue: groupType,
+						selectionChangedHandler: vnode.attrs.onGroupTypeChanged,
+				  })
+				: null,
 			m(TextField, {
 				label: "name_label",
 				value: vnode.attrs.name,
 				oninput: vnode.attrs.onGroupNameChanged,
 			}),
 			groupType === GroupType.Mail
-				? m(SelectMailAddressForm, {
-						availableDomains,
-						onValidationResult: onEmailChanged,
-						onBusyStateChanged,
-				  })
+				? m("", [
+						m(SelectMailAddressForm, {
+							availableDomains,
+							onValidationResult: onEmailChanged,
+							onBusyStateChanged,
+						}),
+						m(".mt-m", ""),
+						m("span.small", lang.get("moreInfo_msg") + " "),
+						m("span.small.text-break", [
+							m(`a[href=https://tutanota.com/support/#shared-mailboxes][target=_blank]`, "https://tutanota.com/support/#shared-mailboxes"),
+						]),
+				  ])
 				: m(""),
 		]
 	}
@@ -79,7 +88,7 @@ export class AddGroupDialogViewModel {
 		this._groupManagementFacade = groupManagementFacade
 		this.groupTypes = this.getAvailableGroupTypes()
 		this.groupType = getFirstOrThrow(this.groupTypes)
-		this.groupName = availableDomains[0]
+		this.groupName = ""
 		this.mailAddress = ""
 		this.errorMessageId = "mailAddressNeutral_msg"
 		this.isVerifactionBusy = false
@@ -160,7 +169,7 @@ export function show(): void {
 		}
 
 		Dialog.showActionDialog({
-			title: lang.get("addGroup_label"),
+			title: viewModel.groupType == GroupType.Mail ? lang.get("createSharedMailbox_label") : lang.get("addGroup_label"),
 			child: () =>
 				m(AddGroupDialog, {
 					groupType: viewModel.groupType,

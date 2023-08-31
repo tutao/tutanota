@@ -794,6 +794,11 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 	}
 
 	const send = async () => {
+		if (model.isSharedMailbox() && model.containsExternalRecipients() && model.isConfidential()) {
+			await Dialog.message("sharedMailboxCanNotSendConfidentialExternal_msg")
+			return
+		}
+
 		try {
 			const success = await model.send(MailMethod.NONE, Dialog.confirm, showProgressDialog)
 			if (success) {
