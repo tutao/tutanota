@@ -75,7 +75,7 @@ export class MailModel {
 
 	// only init listeners once
 	private readonly initListeners = lazyMemoized(() => {
-		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
+		this.eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
 
 		this.eventController.getCountersStream().map((update) => {
 			this._mailboxCountersUpdates(update)
@@ -343,7 +343,7 @@ export class MailModel {
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
 				await this._init()
@@ -353,16 +353,13 @@ export class MailModel {
 					await this._init()
 					m.redraw
 				}
-			} else if (isUpdateForTypeRef(UserTypeRef, update)) {
-				if (update.operation === OperationType.UPDATE && isSameId(this.logins.getUserController().user._id, update.instanceId)) {
-					const updatedUser = await this.entityClient.load(UserTypeRef, update.instanceId)
-					let newMemberships = updatedUser.memberships.filter((membership) => membership.groupType === GroupType.Mail)
-					const mailboxDetails = await this.getMailboxDetails()
+			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
+				let newMemberships = this.logins.getUserController().getMailGroupMemberships()
+				const mailboxDetails = await this.getMailboxDetails()
 
-					if (newMemberships.length !== mailboxDetails.length) {
-						await this._init()
-						m.redraw()
-					}
+				if (newMemberships.length !== mailboxDetails.length) {
+					await this._init()
+					m.redraw()
 				}
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
 				const folder = this.getMailFolder(update.instanceListId)

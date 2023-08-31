@@ -11,7 +11,7 @@ import type { EntityClient } from "../../api/common/EntityClient"
 import type { LoginController } from "../../api/main/LoginController"
 import { getElementId, getEtId, isSameId } from "../../api/common/utils/EntityUtils"
 import type { GroupMembership } from "../../api/entities/sys/TypeRefs.js"
-import { GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef, GroupTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { LazyLoaded, promiseMap, SortedArray } from "@tutao/tutanota-utils"
 import type { TemplateGroupInstance } from "./TemplateGroupModel"
 import { search } from "../../api/common/utils/PlainTextSearch.js"
@@ -55,8 +55,8 @@ export class TemplatePopupModel {
 		this._searchFilter = new TemplateSearchFilter()
 		this._groupInstances = []
 
-		this._entityEventReceived = (updates) => {
-			return this._entityUpdate(updates)
+		this._entityEventReceived = (updates, eventOwnerGroupId) => {
+			return this._entityUpdate(updates, eventOwnerGroupId)
 		}
 
 		this.initialized = new LazyLoaded(() => {
@@ -164,7 +164,7 @@ export class TemplatePopupModel {
 		return this._allTemplates.array.find((template) => template.tag === tag) ?? null
 	}
 
-	_entityUpdate(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
+	_entityUpdate(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<any> {
 		return promiseMap(updates, (update) => {
 			if (isUpdateForTypeRef(EmailTemplateTypeRef, update)) {
 				if (update.operation === OperationType.CREATE) {
@@ -196,7 +196,7 @@ export class TemplatePopupModel {
 
 					this._rerunSearch()
 				}
-			} else if (isUpdateForTypeRef(UserTypeRef, update) && isSameId(update.instanceId, this._logins.getUserController().user._id)) {
+			} else if (this._logins.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
 				// template group memberships may have changed
 				if (this._groupInstances.length !== this._logins.getUserController().getTemplateMemberships().length) {
 					this.initialized.reset()

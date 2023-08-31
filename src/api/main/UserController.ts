@@ -139,7 +139,7 @@ export class UserController {
 		return downcast(this.planConfig)
 	}
 
-	public isLegacyPlan(type: PlanType): boolean {
+	isLegacyPlan(type: PlanType): boolean {
 		return LegacyPlans.includes(type)
 	}
 
@@ -194,10 +194,28 @@ export class UserController {
 		return this.user.memberships.filter((membership) => membership.groupType === GroupType.ContactList)
 	}
 
+	/**
+	 * Returns true if the given update is an update on the user instance of the logged in user and the update event is sent for the user group.
+	 * There are two updates for the user instance sent if the logged in user is an admin:, one for the user group and one for the admin group.
+	 * We only want to process it once, so we skip the admin group update
+	 *
+	 * Attention: Modules that act on user updates, e.g. for changed group memberships, need to use this function in their entityEventsReceived listener.
+	 * Only then it is guaranteed that the user in the user controller has been updated. The update event for the admin group might come first, so if a module
+	 * reacts on that one the user controller is not updated yet.
+	 */
+	isUpdateForLoggedInUserInstance(update: EntityUpdateData, eventOwnerGroupId: Id): boolean {
+		return (
+			update.operation === OperationType.UPDATE &&
+			isUpdateForTypeRef(UserTypeRef, update) &&
+			isSameId(this.user._id, update.instanceId) &&
+			isSameId(this.user.userGroup.group, eventOwnerGroupId)
+		) // only include updates for the user group here
+	}
+
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
 			const { instanceListId, instanceId, operation } = update
-			if (operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, update) && isSameId(this.user.userGroup.group, eventOwnerGroupId)) {
+			if (this.isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
 				this.user = await this.entityClient.load(UserTypeRef, this.user._id)
 			} else if (
 				operation === OperationType.UPDATE &&
