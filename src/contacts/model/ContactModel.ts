@@ -188,9 +188,9 @@ export class ContactModel {
 		}
 	}
 
-	private readonly entityEventsReceived: EntityEventsListener = async (updates: ReadonlyArray<EntityUpdateData>): Promise<void> => {
+	private readonly entityEventsReceived: EntityEventsListener = async (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> => {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(UserTypeRef, update) && isSameId(this.loginController.getUserController().userId, update.instanceId)) {
+			if (this.loginController.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
 				await this.loadContactLists()
 			}
 		}

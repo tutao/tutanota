@@ -21,7 +21,7 @@ import { getElementId, getListId, isSameId, listIdPart } from "../../api/common/
 import { LoginController } from "../../api/main/LoginController"
 import { IProgressMonitor, NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor"
 import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
-import { GroupInfoTypeRef, UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { CalendarTimeRange } from "../date/CalendarUtils"
@@ -421,45 +421,40 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 						this._redraw()
 					}
-				} else if (
-					isUpdateForTypeRef(UserTypeRef, update) && // only process update event received for the user group - to not process user update from admin membership.
-					isSameId(eventOwnerGroupId, this.logins.getUserController().user.userGroup.group)
-				) {
-					if (update.operation === OperationType.UPDATE) {
-						const calendarMemberships = this.logins.getUserController().getCalendarMemberships()
-						return this._calendarInfos.getAsync().then((calendarInfos) => {
-							// Remove calendars we no longer have membership in
-							calendarInfos.forEach((ci, group) => {
-								if (calendarMemberships.every((mb) => group !== mb.group)) {
-									this._hiddenCalendars.delete(group)
-								}
-							})
-							const oldGroupIds = new Set(calendarInfos.keys())
-							const newGroupIds = new Set(calendarMemberships.map((m) => m.group))
-							const diff = symmetricDifference(oldGroupIds, newGroupIds)
-
-							if (diff.size !== 0) {
-								this._loadedMonths.clear()
-
-								this._replaceEvents(new Map())
-
-								this._calendarInfos = new LazyLoaded(() => this._calendarModel.loadCalendarInfos(new NoopProgressMonitor())).load()
-								return this._calendarInfos
-									.getAsync()
-									.then(() => {
-										const selectedDate = this.selectedDate()
-										const previousMonthDate = new Date(selectedDate)
-										previousMonthDate.setMonth(selectedDate.getMonth() - 1)
-										const nextMonthDate = new Date(selectedDate)
-										nextMonthDate.setMonth(selectedDate.getMonth() + 1)
-										return this._loadMonthIfNeeded(selectedDate)
-											.then(() => this._loadMonthIfNeeded(nextMonthDate))
-											.then(() => this._loadMonthIfNeeded(previousMonthDate))
-									})
-									.then(() => this._redraw())
+				} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
+					const calendarMemberships = this.logins.getUserController().getCalendarMemberships()
+					return this._calendarInfos.getAsync().then((calendarInfos) => {
+						// Remove calendars we no longer have membership in
+						calendarInfos.forEach((ci, group) => {
+							if (calendarMemberships.every((mb) => group !== mb.group)) {
+								this._hiddenCalendars.delete(group)
 							}
 						})
-					}
+						const oldGroupIds = new Set(calendarInfos.keys())
+						const newGroupIds = new Set(calendarMemberships.map((m) => m.group))
+						const diff = symmetricDifference(oldGroupIds, newGroupIds)
+
+						if (diff.size !== 0) {
+							this._loadedMonths.clear()
+
+							this._replaceEvents(new Map())
+
+							this._calendarInfos = new LazyLoaded(() => this._calendarModel.loadCalendarInfos(new NoopProgressMonitor())).load()
+							return this._calendarInfos
+								.getAsync()
+								.then(() => {
+									const selectedDate = this.selectedDate()
+									const previousMonthDate = new Date(selectedDate)
+									previousMonthDate.setMonth(selectedDate.getMonth() - 1)
+									const nextMonthDate = new Date(selectedDate)
+									nextMonthDate.setMonth(selectedDate.getMonth() + 1)
+									return this._loadMonthIfNeeded(selectedDate)
+										.then(() => this._loadMonthIfNeeded(nextMonthDate))
+										.then(() => this._loadMonthIfNeeded(previousMonthDate))
+								})
+								.then(() => this._redraw())
+						}
+					})
 				} else if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
 					this._calendarInfos.getAsync().then((calendarInfos) => {
 						const calendarInfo = calendarInfos.get(eventOwnerGroupId)
