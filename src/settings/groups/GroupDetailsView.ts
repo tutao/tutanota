@@ -195,7 +195,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 			child: {
 				view: () =>
 					m(DropDownSelector, {
-						label: "userSettings_label",
+						label: "account_label",
 						items: possibleMembers,
 						selectedValue: currentSelection,
 						selectionChangedHandler: (newSelected: Id) => (currentSelection = newSelected),

@@ -14,16 +14,9 @@ import {
 	MailTypeRef,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import type { Group, GroupInfo, GroupMembership, WebsocketCounterData } from "../../api/entities/sys/TypeRefs.js"
-import { GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef, GroupTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import type { MailReportType } from "../../api/common/TutanotaConstants"
-import {
-	FeatureType,
-	GroupType,
-	MailFolderType,
-	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
-	OperationType,
-	ReportMovedMailsType,
-} from "../../api/common/TutanotaConstants"
+import { FeatureType, MailFolderType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE, OperationType, ReportMovedMailsType } from "../../api/common/TutanotaConstants"
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
 import { lang } from "../../misc/LanguageViewModel"

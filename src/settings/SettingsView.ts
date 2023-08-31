@@ -12,7 +12,7 @@ import { DesktopSettingsViewer } from "./DesktopSettingsViewer"
 import { MailSettingsViewer } from "./MailSettingsViewer"
 import { UserListView } from "./UserListView"
 import type { ReceivedGroupInvitation, User } from "../api/entities/sys/TypeRefs.js"
-import { CustomerInfoTypeRef, CustomerTypeRef, UserTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { CustomerInfoTypeRef, CustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { GroupListView } from "./groups/GroupListView.js"
 import { ContactFormListView } from "./contactform/ContactFormListView.js"
 import { WhitelabelSettingsViewer } from "./whitelabel/WhitelabelSettingsViewer"
@@ -35,7 +35,7 @@ import { AboutDialog } from "./AboutDialog"
 import { SETTINGS_PREFIX } from "../misc/RouteChange"
 import { size } from "../gui/size"
 import { FolderColumnView } from "../gui/FolderColumnView.js"
-import { getEtId, isSameId } from "../api/common/utils/EntityUtils"
+import { getEtId } from "../api/common/utils/EntityUtils"
 import { TemplateListView } from "./TemplateListView"
 import { KnowledgeBaseListView, KnowledgeBaseSettingsDetailsViewer } from "./KnowledgeBaseListView"
 import { loadTemplateGroupInstances } from "../templates/model/TemplatePopupModel"
@@ -349,7 +349,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			if (!this.logins.isEnabled(FeatureType.WhitelabelChild)) {
 				this._adminFolders.push(
 					new SettingsFolder(
-						"groups_label",
+						"sharedMailboxes_label",
 						() => Icons.People,
 						"groups",
 						() =>
@@ -436,6 +436,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				)
 			}
 		}
+		m.redraw()
 	}
 
 	private replaceDetailsViewer(
@@ -454,8 +455,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		locator.eventController.removeEntityListener(this.entityListener)
 	}
 
-	private entityListener = (updates: EntityUpdateData[]) => {
-		return this.entityEventsReceived(updates)
+	private entityListener = (updates: EntityUpdateData[], eventOwnerGroupId: Id) => {
+		return this.entityEventsReceived(updates, eventOwnerGroupId)
 	}
 
 	view({ attrs }: Vnode<SettingsViewAttrs>): Children {
@@ -631,11 +632,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		this.showBusinessSettings((await this.logins.getUserController().loadCustomer()).businessUse === true)
 	}
 
-	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CustomerTypeRef, update)) {
 				await this.updateShowBusinessSettings()
-			} else if (isUpdateForTypeRef(UserTypeRef, update) && isSameId(update.instanceId, this.logins.getUserController().user._id)) {
+			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
 				const user = this.logins.getUserController().user
 
 				// the user admin status might have changed

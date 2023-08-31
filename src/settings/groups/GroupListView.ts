@@ -29,6 +29,7 @@ import { lang } from "../../misc/LanguageViewModel.js"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../gui/theme.js"
 import { IconButton } from "../../gui/base/IconButton.js"
+import { NewPaidPlans } from "../../api/common/TutanotaConstants.js"
 
 assertMainOrNode()
 const className = "group-list"
@@ -95,12 +96,12 @@ export class GroupListView implements UpdatableSettingsViewer {
 							this.searchQuery = ""
 							this.listModel.reapplyFilter()
 						},
-						placeholder: lang.get("searchGroups_placeholder"),
+						placeholder: lang.get("searchMailboxes_placeholder"),
 					} satisfies BaseSearchBarAttrs),
 					m(
 						".mr-negative-s",
 						m(IconButton, {
-							title: "addGroup_label",
+							title: "createSharedMailbox_label",
 							icon: Icons.Add,
 							click: () => this.addButtonClicked(),
 						}),
@@ -135,8 +136,14 @@ export class GroupListView implements UpdatableSettingsViewer {
 		this.listStateSubscription?.end(true)
 	}
 
-	addButtonClicked() {
-		AddGroupDialog.show()
+	async addButtonClicked() {
+		if (await locator.logins.getUserController().isNewPaidPlan()) {
+			AddGroupDialog.show()
+		} else {
+			const msg = lang.get("newPaidPlanRequired_msg") + " " + lang.get("sharedMailboxesMultiUser_msg")
+			const wizard = await import("../../subscription/UpgradeSubscriptionWizard")
+			await wizard.showUpgradeWizard(locator.logins, NewPaidPlans, () => msg)
+		}
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {

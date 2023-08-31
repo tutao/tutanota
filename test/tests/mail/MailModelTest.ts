@@ -13,10 +13,11 @@ import nodemocker from "../nodemocker.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../src/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../src/api/main/LoginController.js"
-import { object } from "testdouble"
+import { matchers, object, when } from "testdouble"
 import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
 import { WebsocketConnectivityModel } from "../../../src/misc/WebsocketConnectivityModel.js"
 import { InboxRuleHandler } from "../../../src/mail/model/InboxRuleHandler.js"
+import { UserController } from "../../../src/api/main/UserController.js"
 
 o.spec("MailModelTest", function () {
 	let notifications: Partial<Notifications>
@@ -44,31 +45,41 @@ o.spec("MailModelTest", function () {
 		const connectivityModel = object<WebsocketConnectivityModel>()
 		const mailFacade = nodemocker.mock<MailFacade>("mailFacade", {}).set()
 		logins = object()
+		let userController = object<UserController>()
+		when(userController.isUpdateForLoggedInUserInstance(matchers.anything(), matchers.anything())).thenReturn(false)
+		when(logins.getUserController()).thenReturn(userController)
+
 		inboxRuleHandler = object()
 		model = new MailModel(downcast(notifications), downcast({}), connectivityModel, mailFacade, new EntityClient(restClient), logins, inboxRuleHandler)
 		// not pretty, but works
 		model.mailboxDetails(mailboxDetails as MailboxDetail[])
 	})
 	o("doesn't send notification for another folder", async function () {
-		await model.entityEventsReceived([
-			makeUpdate({
-				instanceListId: anotherFolder.mails,
-				operation: OperationType.CREATE,
-			}),
-		])
+		await model.entityEventsReceived(
+			[
+				makeUpdate({
+					instanceListId: anotherFolder.mails,
+					operation: OperationType.CREATE,
+				}),
+			],
+			"userGroupId",
+		)
 		o(showSpy.invocations.length).equals(0)
 	})
 	o("doesn't send notification for move operation", async function () {
-		await model.entityEventsReceived([
-			makeUpdate({
-				instanceListId: anotherFolder.mails,
-				operation: OperationType.DELETE,
-			}),
-			makeUpdate({
-				instanceListId: inboxFolder.mails,
-				operation: OperationType.CREATE,
-			}),
-		])
+		await model.entityEventsReceived(
+			[
+				makeUpdate({
+					instanceListId: anotherFolder.mails,
+					operation: OperationType.DELETE,
+				}),
+				makeUpdate({
+					instanceListId: inboxFolder.mails,
+					operation: OperationType.CREATE,
+				}),
+			],
+			"userGroupId",
+		)
 		o(showSpy.invocations.length).equals(0)
 	})
 

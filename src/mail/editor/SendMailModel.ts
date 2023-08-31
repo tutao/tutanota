@@ -189,6 +189,10 @@ export class SendMailModel {
 		return this.logins.getUserController()
 	}
 
+	isSharedMailbox(): boolean {
+		return !this.mailboxDetails.mailGroup.user
+	}
+
 	getPreviousMail(): Mail | null {
 		return this.previousMail
 	}
