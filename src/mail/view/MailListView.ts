@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../misc/LanguageViewModel"
 
-import { MailFolderType, MailState } from "../../api/common/TutanotaConstants"
+import { Keys, MailFolderType, MailState } from "../../api/common/TutanotaConstants"
 import type { Mail, MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
 import { canDoDragAndDropExport } from "../model/MailUtils"
 import { size } from "../../gui/size"
@@ -30,6 +30,7 @@ import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { theme } from "../../gui/theme.js"
 import { VirtualRow } from "../../gui/base/ListUtils.js"
+import { isKeyPressed } from "../../misc/KeyManager.js"
 
 assertMainOrNode()
 
@@ -460,6 +461,6 @@ function isDragAndDropModifierHeld(event: DragEvent | KeyboardEvent): boolean {
 		event.ctrlKey ||
 		event.altKey ||
 		// @ts-ignore
-		(!!event.key && ["alt", "ctrl"].includes(downcast(event.key).toLowerCase()))
+		(event.key != null && isKeyPressed(event.key, Keys.CTRL, Keys.ALT))
 	)
 }

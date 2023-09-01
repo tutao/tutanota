@@ -17,6 +17,7 @@ import type { CalendarDay } from "../../calendar/date/CalendarUtils"
 import { getCalendarMonth, getDateIndicator } from "../../calendar/date/CalendarUtils"
 import { parseDate } from "../../misc/DateParser"
 import Stream from "mithril/stream"
+import { isKeyPressed } from "../../misc/KeyManager.js"
 
 export interface DatePickerAttrs {
 	date: Date
@@ -101,7 +102,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					this.domInput = vnode.dom as HTMLElement
 				},
 				keyHandler: (key) => {
-					if (key.key === Keys.TAB.code) {
+					if (isKeyPressed(key.key, Keys.TAB)) {
 						this.showingDropdown = false
 					}
 

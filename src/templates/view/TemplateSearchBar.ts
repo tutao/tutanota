@@ -41,7 +41,6 @@ export class TemplateSearchBar implements ClassComponent<TemplateSearchBarAttrs>
 			},
 			onkeydown: (e: KeyboardEvent) => {
 				let key = {
-					keyCode: e.which,
 					key: e.key,
 					ctrl: e.ctrlKey,
 					shift: e.shiftKey,

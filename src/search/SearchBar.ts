@@ -7,7 +7,7 @@ import { displayOverlay } from "../gui/base/Overlay"
 import type { Contact, Mail } from "../api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import type { Shortcut } from "../misc/KeyManager"
-import { keyManager } from "../misc/KeyManager"
+import { isKeyPressed, keyManager } from "../misc/KeyManager"
 import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError"
 import { getRestriction } from "./model/SearchUtils"
 import { locator } from "../api/main/MainLocator"
@@ -179,8 +179,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				},
 			},
 		]
-		let keyCode = e.key
-		let keyHandler = keyHandlers.find((handler) => handler.key.code === keyCode)
+		let keyHandler = keyHandlers.find((handler) => isKeyPressed(e.key, handler.key))
 
 		if (keyHandler) {
 			keyHandler.exec()

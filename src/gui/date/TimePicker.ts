@@ -5,6 +5,7 @@ import { client } from "../../misc/ClientDetector.js"
 import { Keys, TimeFormat } from "../../api/common/TutanotaConstants.js"
 import { timeStringFromParts } from "../../misc/Formatter.js"
 import { Time } from "../../calendar/date/Time.js"
+import { isKeyPressed } from "../../misc/KeyManager.js"
 
 export type TimePickerAttrs = {
 	time: Time | null
@@ -101,7 +102,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				e.redraw = false
 			},
 			keyHandler: (key) => {
-				if (key.key === Keys.RETURN.code) {
+				if (isKeyPressed(key.key, Keys.RETURN)) {
 					this._onSelected(attrs)
 					const active = document.activeElement as HTMLElement | null
 					active?.blur()
