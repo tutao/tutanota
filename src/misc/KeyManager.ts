@@ -135,7 +135,7 @@ class KeyManager {
 
 	_handleKeydown(e: KeyboardEvent): void {
 		let keysToShortcuts = this._keyToModalShortcut.size > 1 ? this._keyToModalShortcut : this._keyToShortcut
-		let shortcut = keysToShortcuts.get(createKeyIdentifier(e.key.toLowerCase(), e.ctrlKey, e.altKey, e.shiftKey, e.metaKey))
+		let shortcut = e.key ? keysToShortcuts.get(createKeyIdentifier(e.key.toLowerCase(), e.ctrlKey, e.altKey, e.shiftKey, e.metaKey)) : null
 
 		if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
 			if (
@@ -218,8 +218,11 @@ class KeyManager {
  * @param key The key to be checked, should correspond to KeyEvent.key
  * @param keys Keys to be checked against, type of Keys
  */
-export function isKeyPressed(key: string, ...keys: Array<Values<typeof Keys>>): boolean {
-	return keys.some((k) => k.code === key.toLowerCase())
+export function isKeyPressed(key: string | undefined, ...keys: Array<Values<typeof Keys>>): boolean {
+	if (key != null) {
+		return keys.some((k) => k.code === key.toLowerCase())
+	}
+	return false
 }
 
 export const keyManager: KeyManager = new KeyManager()
