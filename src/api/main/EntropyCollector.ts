@@ -28,7 +28,7 @@ export class EntropyCollector {
 	}
 
 	private keyDown = (e: KeyboardEvent) => {
-		const value = e.key.charCodeAt(0)
+		const value = e.key ? e.key.charCodeAt(0) : undefined
 		this.addEntropy(value, 2, "key")
 	}
 
@@ -49,11 +49,11 @@ export class EntropyCollector {
 
 	/**
 	 * Adds entropy to the random number generator algorithm
-	 * @param data Any number value.
+	 * @param data Any number value, or undefined
 	 * @param entropy The amount of entropy in the number in bit.
 	 * @param source The source of the number. One of RandomizerInterface.ENTROPY_SRC_*.
 	 */
-	private addEntropy(data: number, entropy: number, source: EntropySource) {
+	private addEntropy(data: number | undefined, entropy: number, source: EntropySource) {
 		if (data) {
 			this.entropyCache.push({
 				source: source,
