@@ -115,6 +115,7 @@ import { PartialRecipient, Recipient, RecipientList, RecipientType } from "../..
 import { NativeFileApp } from "../../../../native/common/FileApp.js"
 import { isLegacyMail } from "../../../common/MailWrapper.js"
 import { LoginFacade } from "../LoginFacade.js"
+import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -378,6 +379,9 @@ export class MailFacade {
 		mailGroupKey: Aes128Key,
 	): Promise<DraftAttachment[]> {
 		if (providedFiles == null || providedFiles.length === 0) return []
+
+		// Verify mime types are correct before uploading
+		validateMimeTypesForAttachments(providedFiles)
 
 		return promiseMap(providedFiles, async (providedFile) => {
 			// check if this is a new attachment or an existing one
@@ -848,4 +852,22 @@ function recipientToEncryptedMailAddress(recipient: PartialRecipient): Encrypted
 		name: recipient.name ?? "",
 		address: recipient.address,
 	})
+}
+
+/**
+ * Verify all attachments contain correctly formatted MIME types. This ensures that they can be sent.
+ *
+ * Note that this does not verify that the mime type actually corresponds to a known MIME type.
+ * @param attachments
+ * @throws {ProgrammingError} if a MIME type is somehow not correctly formatted for at least one attachment
+ */
+export function validateMimeTypesForAttachments(attachments: Attachments) {
+	const regex = /^\w+\/[\w.+-]+$/g
+	for (const attachment of attachments) {
+		if (isDataFile(attachment) || isFileReference(attachment)) {
+			if (!attachment.mimeType.match(regex)) {
+				throw new ProgrammingError(`${attachment.mimeType} is not a correctly formatted mimetype (${attachment.name})`)
+			}
+		}
+	}
 }
