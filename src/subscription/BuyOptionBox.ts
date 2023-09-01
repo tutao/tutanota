@@ -13,6 +13,8 @@ import type { BookingFacade } from "../api/worker/facades/lazy/BookingFacade.js"
 import Stream from "mithril/stream"
 import { Icons } from "../gui/base/icons/Icons"
 import { BootIcons } from "../gui/base/icons/BootIcons"
+import { isKeyPressed } from "../misc/KeyManager.js"
+import { Keys } from "../api/common/TutanotaConstants"
 
 export type BuyOptionBoxAttr = {
 	heading: string | Children
@@ -271,7 +273,7 @@ export class InfoIcon implements Component<InfoIconAttrs> {
 					document.addEventListener("click", this.listener, { capture: true })
 				},
 				onkeydown: (e: KeyboardEvent) => {
-					if (e.key === "Escape") {
+					if (isKeyPressed(e.key, Keys.ESC)) {
 						this.listener(e)
 					}
 				},

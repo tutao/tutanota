@@ -10,6 +10,7 @@ import { Button, ButtonType } from "./base/Button.js"
 import { Keys } from "../api/common/TutanotaConstants"
 import { locator } from "../api/main/MainLocator"
 import { ElectronResult } from "../native/common/generatedipc/ElectronResult.js"
+import { isKeyPressed } from "../misc/KeyManager.js"
 
 assertMainOrNode()
 
@@ -179,9 +180,7 @@ export class SearchInPageOverlay {
 							".flex-start.center-vertically",
 							{
 								onkeydown: (e: KeyboardEvent) => {
-									let keyCode = e.key
-
-									if (keyCode === Keys.ESC.code) {
+									if (isKeyPressed(e.key, Keys.ESC)) {
 										this.close()
 									}
 

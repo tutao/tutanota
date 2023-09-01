@@ -249,7 +249,6 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						onkeydown: (e: KeyboardEvent) => {
 							// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
 							let key = {
-								keyCode: e.which,
 								key: e.key,
 								ctrl: e.ctrlKey,
 								shift: e.shiftKey,
@@ -306,7 +305,6 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				onblur: (e: FocusEvent) => this.blur(e, a),
 				onkeydown: (e: KeyboardEvent) => {
 					let key = {
-						keyCode: e.which,
 						key: e.key,
 						ctrl: e.ctrlKey,
 						shift: e.shiftKey,
