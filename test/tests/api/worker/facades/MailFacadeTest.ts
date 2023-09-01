@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { MailFacade, phishingMarkerValue } from "../../../../../src/api/worker/facades/lazy/MailFacade.js"
+import { MailFacade, phishingMarkerValue, validateMimeTypesForAttachments } from "../../../../../src/api/worker/facades/lazy/MailFacade.js"
 import { createMail, createMailAddress, createReportedMailFieldMarker } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { MailAuthenticationStatus, ReportedMailFieldType } from "../../../../../src/api/common/TutanotaConstants.js"
 import { object } from "testdouble"
@@ -10,6 +10,10 @@ import { BlobFacade } from "../../../../../src/api/worker/facades/lazy/BlobFacad
 import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade"
 import { NativeFileApp } from "../../../../../src/native/common/FileApp.js"
 import { LoginFacade } from "../../../../../src/api/worker/facades/LoginFacade.js"
+import { DataFile } from "../../../../../src/api/common/DataFile.js"
+import { downcast } from "@tutao/tutanota-utils"
+import { assertThrows } from "@tutao/tutanota-test-utils"
+import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade
@@ -384,6 +388,43 @@ o.spec("MailFacade test", function () {
 			])
 
 			o(await facade.checkMailForPhishing(mail, [{ href: "https://example.com", innerHTML: "https://example.com/test" }])).equals(false)
+		})
+	})
+
+	o.spec("verifyMimeTypesForAttachments", () => {
+		function attach(mimeType, name): DataFile {
+			return downcast({
+				mimeType,
+				name,
+				_type: "DataFile",
+			})
+		}
+
+		o("valid mimetypes", () => {
+			validateMimeTypesForAttachments([attach("application/json", "something.json")])
+			validateMimeTypesForAttachments([attach("something/orrather", "something.somethingorrather")])
+			validateMimeTypesForAttachments([attach("thisisvalid/technically+this_is-ok_even-if-YOU-dont-like-it", "something.valid")])
+		})
+
+		o("invalid mimetypes", async () => {
+			await assertThrows(ProgrammingError, async () => {
+				validateMimeTypesForAttachments([attach("applicationjson", "something.json")])
+			})
+			await assertThrows(ProgrammingError, async () => {
+				validateMimeTypesForAttachments([attach("application/json", "something.json"), attach("applicationjson", "something.json")])
+			})
+			await assertThrows(ProgrammingError, async () => {
+				validateMimeTypesForAttachments([attach("applicationjson", "something.json"), attach("application/json", "something.json")])
+			})
+			await assertThrows(ProgrammingError, async () => {
+				validateMimeTypesForAttachments([attach("", "bad.json")])
+			})
+			await assertThrows(ProgrammingError, async () => {
+				validateMimeTypesForAttachments([attach("a/b/c", "no.json")])
+			})
+			await assertThrows(ProgrammingError, async () => {
+				validateMimeTypesForAttachments([attach("a/b?c", "please stop.json")])
+			})
 		})
 	})
 })
