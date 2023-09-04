@@ -537,6 +537,7 @@ styles.registerStyle("main", () => {
 		".break-word": {
 			"word-break": "normal",
 			"overflow-wrap": "break-word",
+			hyphens: "auto",
 		},
 		".break-all": {
 			"word-break": "break-all",

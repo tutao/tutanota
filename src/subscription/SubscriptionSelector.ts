@@ -128,7 +128,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const isYearly = vnode.attrs.options.paymentInterval() === 12
 
 		const showCurrentPlanDiscontinuedHint = vnode.attrs.currentPlanType != null && LegacyPlans.includes(vnode.attrs.currentPlanType)
-		return [
+		return m("", { lang: lang.code }, [
 			showBusinessSelector
 				? m(SegmentControl, {
 						selectedValue: vnode.attrs.options.businessUse(),
@@ -155,7 +155,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				buyBoxesViewPlacement,
 				additionalInfo,
 			),
-		]
+		])
 	}
 
 	private renderBuyOptionBox(
