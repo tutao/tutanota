@@ -27,7 +27,7 @@ export class ThemeController {
 	constructor(themeSingleton: {}, private readonly themeFacade: ThemeFacade, private readonly htmlSanitizer: () => Promise<HtmlSanitizer>) {
 		// this will be overwritten quickly
 		this._themeId = defaultThemeId
-		this._themePreference = defaultThemeId
+		this._themePreference = "auto:light|dark"
 		this.theme = Object.assign(themeSingleton, this.getDefaultTheme())
 		this.observableThemeId = stream(this.themeId)
 		// We run them in parallel to initialize as soon as possible
@@ -41,7 +41,8 @@ export class ThemeController {
 
 		if (whitelabelCustomizations && whitelabelCustomizations.theme) {
 			// no need to persist anything if we are on whitelabel domain
-			await this.applyCustomizations(whitelabelCustomizations.theme, false)
+			const assembledTheme = await this.applyCustomizations(whitelabelCustomizations.theme, false)
+			this._themePreference = assembledTheme.themeId
 		} else {
 			// It is theme info passed from native to be applied as early as possible.
 			// Important! Do not blindly apply location.search, someone could try to do prototype pollution.
@@ -54,6 +55,9 @@ export class ThemeController {
 
 				// We also don't need to save anything in this case
 				await this.applyCustomizations(parsedTheme, false)
+				// If it's a first start we might get a fallback theme from native. We can apply it for a short time but we should switch to the full, resolved
+				// theme after that.
+				await this.setThemePreference((await this.themeFacade.getThemePreference()) ?? this._themePreference)
 			} else {
 				await this.reloadTheme()
 			}
@@ -73,9 +77,9 @@ export class ThemeController {
 	}
 
 	async reloadTheme() {
-		const themeId = await this.themeFacade.getThemePreference()
-		if (!themeId) return
-		await this.setThemePreference(themeId, false)
+		const themePreference = await this.themeFacade.getThemePreference()
+		if (!themePreference) return
+		await this.setThemePreference(themePreference, false)
 	}
 
 	get themeId(): ThemeId {
@@ -114,7 +118,8 @@ export class ThemeController {
 		const themeId = await this.resolveThemePreference(newThemePreference)
 		const newTheme = await this.getTheme(themeId)
 
-		this.applyTrustedTheme(newTheme, themeId, newThemePreference)
+		this.applyTrustedTheme(newTheme, themeId)
+		this._themePreference = newThemePreference
 
 		if (permanent) {
 			await this.themeFacade.setThemePreference(newThemePreference)
@@ -129,7 +134,7 @@ export class ThemeController {
 		}
 	}
 
-	private applyTrustedTheme(newTheme: Theme, newThemeId: ThemeId, newThemePreference: ThemePreference) {
+	private applyTrustedTheme(newTheme: Theme, newThemeId: ThemeId) {
 		// Theme object is effectively a singleton and is imported everywhere. It must be updated in place.
 		// see theme.js
 
@@ -139,31 +144,33 @@ export class ThemeController {
 		Object.assign(this.theme, this.getDefaultTheme(), newTheme)
 		this._themeId = newThemeId
 		this.observableThemeId(newThemeId)
-		this._themePreference = newThemePreference
 		m.redraw()
 	}
 
 	/**
 	 * Apply the custom theme, if permanent === true, then the new theme will be saved
 	 */
-	async applyCustomizations(customizations: ThemeCustomizations, permanent: boolean = true): Promise<void> {
+	async applyCustomizations(customizations: ThemeCustomizations, permanent: boolean = true): Promise<Theme> {
 		const updatedTheme = this.assembleTheme(customizations)
 		// Set no logo until we sanitize it.
 		const filledWithoutLogo = Object.assign({}, updatedTheme, {
 			logo: "",
 		})
 
-		this.applyTrustedTheme(filledWithoutLogo, filledWithoutLogo.themeId, filledWithoutLogo.themeId)
+		this.applyTrustedTheme(filledWithoutLogo, filledWithoutLogo.themeId)
 
 		await this.sanitizeTheme(updatedTheme)
 
 		// Now apply with the logo
-		this.applyTrustedTheme(updatedTheme, filledWithoutLogo.themeId, filledWithoutLogo.themeId)
+		this.applyTrustedTheme(updatedTheme, filledWithoutLogo.themeId)
 
 		if (permanent) {
+			this._themePreference = updatedTheme.themeId
 			await this.updateSavedThemeDefinition(updatedTheme)
 			await this.themeFacade.setThemePreference(updatedTheme.themeId)
 		}
+
+		return updatedTheme
 	}
 
 	async storeCustomThemeForCustomizations(customizations: ThemeCustomizations) {

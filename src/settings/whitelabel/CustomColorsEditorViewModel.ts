@@ -139,7 +139,7 @@ export class CustomColorsEditorViewModel {
 	}
 
 	async resetActiveClientTheme(): Promise<void> {
-		return this._themeController.applyCustomizations(
+		await this._themeController.applyCustomizations(
 			downcast(
 				Object.assign(
 					{},
