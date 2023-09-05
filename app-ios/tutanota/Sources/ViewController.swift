@@ -167,6 +167,14 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
 	  try await self.sqlCipherFacade.closeDb()
     }
   }
+  
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    Task.detached { @MainActor in
+      self.applyTheme(self.themeManager.currentThemeWithFallback)
+      try? await self.bridge.commonNativeFacade.updateTheme()
+    }
+  }
 
   override func viewDidLoad() {
     super.viewDidLoad()
