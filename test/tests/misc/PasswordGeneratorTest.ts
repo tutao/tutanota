@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { BYTE_RANGE, PasswordGenerator } from "../../../../src/misc/passwords/PasswordGenerator"
+import { BYTE_RANGE, PasswordGenerator } from "../../../src/misc/passwords/PasswordGenerator.js"
 import { downcast } from "@tutao/tutanota-utils"
 
 o.spec("PasswordGenerator", function () {

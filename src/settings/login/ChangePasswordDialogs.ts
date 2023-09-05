@@ -13,7 +13,7 @@ import { ofClass } from "@tutao/tutanota-utils"
  *The admin does not have to enter the old password in addition to the new password (twice). The password strength is not enforced.
  */
 export async function showChangeUserPasswordAsAdminDialog(user: User) {
-	const model = new PasswordModel(locator.logins, { checkOldPassword: false, enforceStrength: false, hideConfirmation: true })
+	const model = new PasswordModel(locator.usageTestController, locator.logins, { checkOldPassword: false, enforceStrength: false, hideConfirmation: true })
 
 	const changeUserPasswordAsAdminOkAction = (dialog: Dialog) => {
 		showProgressDialog("pleaseWait_msg", locator.userManagementFacade.changeUserPassword(user, model.getNewPassword())).then(
@@ -40,7 +40,7 @@ export async function showChangeUserPasswordAsAdminDialog(user: User) {
  * The user must enter the old password in addition to the new password (twice). The password strength is enforced.
  */
 export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
-	const model = new PasswordModel(locator.logins, { checkOldPassword: true, enforceStrength: true })
+	const model = new PasswordModel(locator.usageTestController, locator.logins, { checkOldPassword: true, enforceStrength: true })
 
 	const changeOwnPasswordOkAction = (dialog: Dialog) => {
 		const error = model.getErrorMessageId()

@@ -14,23 +14,16 @@ export const _BAD_SEQUENCES = [
 	"^1234567890ß´",
 	'°!"§$%&/()=?`',
 	"qwertzuiopü+",
-	"QWERTZUIOPÜ*",
 	"asdfghjklöä#",
-	"ASDFGHJKLÖÄ'",
 	"<yxcvbnm,.-",
-	">YXCVBNM:_",
 	"`1234567890-=",
 	"~!@#$%^&*()_+",
 	"qwertyuiop[]",
-	"QWERTYUIOP{}",
 	"asdfghjkl'\\",
-	'ASDFGHJKL:"|',
 	"\\zxcvbnm,./",
-	"|ZXCVBNM<>?",
 	"abcdefghijklmnopqrstuvwxyz",
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 ]
-const _BAD_STRINGS = ["passwort", "Passwort", "password", "Password", "tutanota", "Tutanota", "free", "Free", "starter", "Starter", "Test", "test"]
+const _BAD_STRINGS = ["passwort", "password", "tutanota", "free", "test", "keemail", "tutamail"]
 
 /**
  * Checks how secure the given password is. The following password characteristics decrease the password strength:
@@ -72,9 +65,9 @@ export function getPasswordStrength(password: string, badStrings: string[]): num
 
 	let nbrOfSameChars = _getNbrOfSameChars(password)
 
-	let nbrOfSequenceDigits = _getNbrOfSequenceChars(password, _BAD_SEQUENCES, true)
+	let nbrOfSequenceDigits = _getNbrOfSequenceChars(password.toLowerCase(), _BAD_SEQUENCES, true)
 
-	let nbrOfBadStringDigits = _getNbrOfSequenceChars(password, badStrings.concat(_BAD_STRINGS), false)
+	let nbrOfBadStringDigits = _getNbrOfSequenceChars(password.toLowerCase(), badStrings.map((s) => s.toLowerCase()).concat(_BAD_STRINGS), false)
 
 	let strength = password.length * 11 // 11 = strength per character without reduction
 
@@ -144,11 +137,11 @@ export function _getNbrOfSequenceChars(password: string, sequences: string[], re
 		s = sequences.concat(sequences.map((s1) => s1.split("").reverse().join("")))
 	}
 
-	let MIN_SEQUENCE_LEN = 3
+	let MIN_SEQUENCE_LEN = 4
 	let nbrOfSequenceDigits = 0
 
 	// check the part of the password (substringToCheck) from i to i+sequenceLen in a loop
-	for (let i = 0; i < password.length - MIN_SEQUENCE_LEN; i++) {
+	for (let i = 0; i <= password.length - MIN_SEQUENCE_LEN; i++) {
 		let maxFoundLen = 0
 
 		for (let sequenceLen = MIN_SEQUENCE_LEN; i + sequenceLen <= password.length; sequenceLen++) {

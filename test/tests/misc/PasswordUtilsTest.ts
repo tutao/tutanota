@@ -60,9 +60,9 @@ o.spec("PasswordUtilsTest", function () {
 
 		o(_getNbrOfSequenceChars("3kfhkjhgfawf", _BAD_SEQUENCES, false)).equals(0) // backward sequence in center no reverse
 
-		o(_getNbrOfSequenceChars("a2345ngb890d", _BAD_SEQUENCES, true)).equals(7) // two separate sequences
+		o(_getNbrOfSequenceChars("a2345ngb890d", _BAD_SEQUENCES, true)).equals(4) // two separate sequences
 
-		o(_getNbrOfSequenceChars("a2345890d", _BAD_SEQUENCES, true)).equals(7) // two adjoining sequences
+		o(_getNbrOfSequenceChars("a2345890d", _BAD_SEQUENCES, true)).equals(4) // two adjoining sequences
 
 		o(_getNbrOfSequenceChars("r56b", _BAD_SEQUENCES, true)).equals(0) // two digit sequence is not found
 
@@ -88,5 +88,13 @@ o.spec("PasswordUtilsTest", function () {
 		o(isSecurePassword(64)).equals(true) // german keyboard
 		o(isSecurePassword(79)).equals(true) // german keyboard
 		o(isSecurePassword(80)).equals(true) // german keyboard
+	})
+	o("calculatePasswordStrength -> reserved strings are case insensitive", function () {
+		o(getPasswordStrength("7jeGABvliT", ["7jegabvlit"])).equals(54)
+		o(getPasswordStrength("7jegabvlit", ["7jegabvlit"])).equals(37)
+		o(getPasswordStrength("7jegabvlit", [])).equals(77)
+		o(getPasswordStrength("7jegabvlit", [])).equals(getPasswordStrength("7jegabvlit", ["7390535"]))
+		o(getPasswordStrength("7jegabvlit", ["7jegabvlit"])).equals(getPasswordStrength("7JEGABVLIT", ["7jegabvlit"]))
+		o(getPasswordStrength("7jegabvlit", ["7jeGABvliT"])).equals(getPasswordStrength("7jegabvlit", ["7jegabvlit"]))
 	})
 })
