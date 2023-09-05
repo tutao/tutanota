@@ -47,7 +47,7 @@ export class ContactFormRequestDialog {
 	_loadingAttachments: boolean
 	_contactForm: ContactForm
 	_notificationEmailAddress: string
-	private passwordModel = new PasswordModel(locator.logins, { checkOldPassword: false, enforceStrength: false })
+	private passwordModel = new PasswordModel(locator.usageTestController, locator.logins, { checkOldPassword: false, enforceStrength: false })
 	_privacyPolicyAccepted: Stream<boolean>
 	_windowCloseUnsubscribe: () => void
 

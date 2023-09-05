@@ -13,9 +13,8 @@ import { showPasswordGeneratorDialog } from "../misc/passwords/PasswordGenerator
 import { theme } from "../gui/theme"
 import { Icons } from "../gui/base/icons/Icons"
 import { px, size } from "../gui/size.js"
-import { UsageTest } from "@tutao/tutanota-usagetests"
+import { UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
 import Stream from "mithril/stream"
-import { locator } from "../api/main/MainLocator.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { ToggleButton } from "../gui/base/buttons/ToggleButton.js"
 
@@ -31,6 +30,7 @@ export interface PasswordModelConfig {
 	readonly enforceStrength: boolean
 	/** if set to true the second password field won't be rendered. If not set at all or false the second password field is rendered */
 	readonly hideConfirmation?: boolean
+	readonly reservedStrings?: () => string[]
 }
 
 const enum PasswordFieldType {
@@ -51,12 +51,17 @@ export class PasswordModel {
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
 
-	constructor(private readonly logins: LoginController, readonly config: PasswordModelConfig, mailValid?: Stream<boolean>) {
+	constructor(
+		private readonly usageTestController: UsageTestController,
+		private readonly logins: LoginController,
+		readonly config: PasswordModelConfig,
+		mailValid?: Stream<boolean>,
+	) {
 		this.passwordStrength = this.calculatePasswordStrength()
 
 		this.__mailValid = mailValid
-		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
-		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
+		this.__signupFreeTest = this.usageTestController.getTest("signup.free")
+		this.__signupPaidTest = this.usageTestController.getTest("signup.paid")
 	}
 
 	_checkBothValidAndSendPing() {
@@ -81,8 +86,14 @@ export class PasswordModel {
 		}
 
 		this.newPassword = newPassword
-		this.passwordStrength = this.calculatePasswordStrength()
+		this.recalculatePasswordStrength()
+	}
 
+	/**
+	 * Might be needed when reserved strings change in the config
+	 */
+	recalculatePasswordStrength() {
+		this.passwordStrength = this.calculatePasswordStrength()
 		this._checkBothValidAndSendPing()
 	}
 
@@ -208,12 +219,12 @@ export class PasswordModel {
 	}
 
 	private calculatePasswordStrength(): number {
-		let reserved: string[] = []
+		let reserved: string[] = this.config.reservedStrings ? this.config.reservedStrings() : []
 
 		if (this.logins.isUserLoggedIn()) {
-			reserved = getEnabledMailAddressesForGroupInfo(this.logins.getUserController().userGroupInfo).concat(
-				this.logins.getUserController().userGroupInfo.name,
-			)
+			reserved = reserved
+				.concat(getEnabledMailAddressesForGroupInfo(this.logins.getUserController().userGroupInfo))
+				.concat(this.logins.getUserController().userGroupInfo.name)
 		}
 
 		// 80% strength is minimum. we expand it to 100%, so the password indicator if completely filled when the password is strong enough
