@@ -1,7 +1,8 @@
 import m, { Component } from "mithril"
 import type { LoggedInEvent, PostLoginAction } from "../api/main/LoginController"
-import { isAdminClient, isAndroidApp, isApp, isDesktop, isIOSApp, LOGIN_TITLE, Mode } from "../api/common/Env"
-import { assertNotNull, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { LoginController } from "../api/main/LoginController"
+import { isAdminClient, isAndroidApp, isApp, isDesktop, isIOSApp, LOGIN_TITLE } from "../api/common/Env"
+import { neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade"
 import { checkApprovalStatus } from "../misc/LoginUtils"
 import { locator } from "../api/main/MainLocator"
@@ -15,10 +16,9 @@ import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import { ButtonAttrs, ButtonType } from "../gui/base/Button.js"
 import { themeController } from "../gui/theme"
 import { Dialog } from "../gui/base/Dialog"
-import { CloseEventBusOption, Const } from "../api/common/TutanotaConstants"
+import { CloseEventBusOption } from "../api/common/TutanotaConstants"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs"
 import { notifications } from "../gui/Notifications"
-import { CustomerPropertiesTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { LockedError } from "../api/common/error/RestError"
 import type { CredentialsProvider } from "../misc/credentials/CredentialsProvider.js"
 import { usingKeychainAuthentication } from "../misc/credentials/CredentialsProviderFactory"
@@ -30,6 +30,12 @@ import { SessionType } from "../api/common/SessionType"
 import { StorageBehavior } from "../misc/UsageTestModel.js"
 import type { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
 import { client } from "../misc/ClientDetector.js"
+import { DateProvider } from "../api/common/DateProvider.js"
+import { createCustomerProperties } from "../api/entities/sys/TypeRefs.js"
+import { EntityClient } from "../api/common/EntityClient.js"
+import { shouldShowStorageWarning, shouldShowUpgradeReminder } from "./PostLoginUtils.js"
+import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
+import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -40,18 +46,23 @@ export class PostLoginActions implements PostLoginAction {
 		private readonly credentialsProvider: CredentialsProvider,
 		public secondFactorHandler: SecondFactorHandler,
 		private readonly connectivityModel: WebsocketConnectivityModel,
+		private readonly logins: LoginController,
+		private readonly dateProvider: DateProvider,
+		private readonly entityClient: EntityClient,
+		private readonly userManagementFacade: UserManagementFacade,
+		private readonly customerFacade: CustomerFacade,
 	) {}
 
 	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
 		// We establish websocket connection even for temporary sessions because we need to get updates e.g. during signup
 		windowFacade.addOnlineListener(() => {
 			console.log(new Date().toISOString(), "online - try reconnect")
-			if (locator.logins.isFullyLoggedIn()) {
+			if (this.logins.isFullyLoggedIn()) {
 				// When we try to connect after receiving online event it might not succeed so we delay reconnect attempt by 2s
 				this.connectivityModel.tryReconnect(true, true, 2000)
 			} else {
 				// log in user
-				locator.logins.retryAsyncLogin()
+				this.logins.retryAsyncLogin()
 			}
 		})
 		windowFacade.addOfflineListener(() => {
@@ -60,7 +71,7 @@ export class PostLoginActions implements PostLoginAction {
 		})
 
 		// only show "Tutanota" after login if there is no custom title set
-		if (!locator.logins.getUserController().isInternalUser()) {
+		if (!this.logins.getUserController().isInternalUser()) {
 			if (document.title === LOGIN_TITLE) {
 				document.title = "Tutanota"
 			}
@@ -68,7 +79,7 @@ export class PostLoginActions implements PostLoginAction {
 			return
 		} else {
 			let postLoginTitle = document.title === LOGIN_TITLE ? "Tutanota" : document.title
-			document.title = neverNull(locator.logins.getUserController().userGroupInfo.mailAddress) + " - " + postLoginTitle
+			document.title = neverNull(this.logins.getUserController().userGroupInfo.mailAddress) + " - " + postLoginTitle
 		}
 		notifications.requestPermission()
 
@@ -84,7 +95,7 @@ export class PostLoginActions implements PostLoginAction {
 
 		lang.updateFormats({
 			// partial
-			hourCycle: getHourCycle(locator.logins.getUserController().userSettingsGroupRoot),
+			hourCycle: getHourCycle(this.logins.getUserController().userSettingsGroupRoot),
 		})
 
 		if (isApp() || isDesktop()) {
@@ -94,7 +105,7 @@ export class PostLoginActions implements PostLoginAction {
 	}
 
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
-		if (loggedInEvent.sessionType === SessionType.Temporary || !locator.logins.getUserController().isInternalUser()) {
+		if (loggedInEvent.sessionType === SessionType.Temporary || !this.logins.getUserController().isInternalUser()) {
 			return
 		}
 
@@ -103,9 +114,9 @@ export class PostLoginActions implements PostLoginAction {
 	}
 
 	private async fullLoginAsyncActions() {
-		await checkApprovalStatus(locator.logins, true)
-		await this.showUpgradeReminder()
-		await this.checkStorageWarningLimit()
+		await checkApprovalStatus(this.logins, true)
+		await this.showUpgradeReminderIfNeeded()
+		await this.checkStorageLimit()
 
 		this.secondFactorHandler.setupAcceptOtherClientLoginListener()
 
@@ -123,7 +134,7 @@ export class PostLoginActions implements PostLoginAction {
 			await this.maybeSetCustomTheme()
 		}
 
-		if (locator.logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
+		if (this.logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
 			const receiveInfoData = createReceiveInfoServiceData({
 				language: lang.code,
 			})
@@ -149,7 +160,7 @@ export class PostLoginActions implements PostLoginAction {
 
 	private deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {
 		notification.enabled = false
-		return locator.entityClient.update(notification)
+		return this.entityClient.update(notification)
 	}
 
 	private async checkWebAssemblyEnabled() {
@@ -202,7 +213,7 @@ export class PostLoginActions implements PostLoginAction {
 	}
 
 	private async maybeSetCustomTheme(): Promise<any> {
-		const domainInfoAndConfig = await locator.logins.getUserController().loadWhitelabelConfig()
+		const domainInfoAndConfig = await this.logins.getUserController().loadWhitelabelConfig()
 
 		if (domainInfoAndConfig && domainInfoAndConfig.whitelabelConfig.jsonTheme) {
 			const customizations: ThemeCustomizations = getThemeCustomizations(domainInfoAndConfig.whitelabelConfig)
@@ -225,69 +236,28 @@ export class PostLoginActions implements PostLoginAction {
 		}
 	}
 
-	private async checkStorageWarningLimit(): Promise<void> {
-		const userController = locator.logins.getUserController()
-		const customerInfo = await userController.loadCustomerInfo()
-		if ((await userController.isNewPaidPlan()) || userController.isFreeAccount()) {
-			const usedStorage = await locator.userManagementFacade.readUsedUserStorage(userController.user)
-			this.checkStorageWarningDialog(usedStorage, Number(customerInfo.perUserStorageCapacity) * Const.MEMORY_GB_FACTOR)
-		} else {
-			if (!userController.isGlobalAdmin()) {
-				return
-			}
-			const customerId = assertNotNull(userController.user.customer)
-			const usedStorage = await locator.customerFacade.readUsedCustomerStorage(customerId)
-			if (Number(usedStorage) > Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR) {
-				const availableStorage = await locator.customerFacade.readAvailableCustomerStorage(customerId)
-				this.checkStorageWarningDialog(usedStorage, availableStorage)
-			}
+	private async checkStorageLimit(): Promise<void> {
+		if (await shouldShowStorageWarning(this.logins.getUserController(), this.userManagementFacade, this.customerFacade)) {
+			await showMoreStorageNeededOrderDialog("insufficientStorageWarning_msg")
 		}
 	}
 
-	private checkStorageWarningDialog(usedStorageInBytes: number, availableStorageInBytes: number) {
-		if (Number(usedStorageInBytes) > Number(availableStorageInBytes) * Const.MEMORY_WARNING_FACTOR) {
-			showMoreStorageNeededOrderDialog("insufficientStorageWarning_msg")
-		}
-	}
+	private async showUpgradeReminderIfNeeded(): Promise<void> {
+		if (await shouldShowUpgradeReminder(this.logins.getUserController(), new Date(this.dateProvider.now()))) {
+			const confirmed = await Dialog.reminder(lang.get("upgradeReminderTitle_msg"), lang.get("premiumOffer_msg"))
+			if (confirmed) {
+				const wizard = await import("../subscription/UpgradeSubscriptionWizard")
+				await wizard.showUpgradeWizard(this.logins)
+			}
 
-	private showUpgradeReminder(): Promise<void> {
-		if (locator.logins.getUserController().isFreeAccount() && env.mode !== Mode.App) {
-			return locator.logins
-				.getUserController()
-				.loadCustomer()
-				.then((customer) => {
-					return locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)).then((properties) => {
-						return locator.logins
-							.getUserController()
-							.loadCustomerInfo()
-							.then((customerInfo) => {
-								if (
-									properties.lastUpgradeReminder == null &&
-									customerInfo.creationTime.getTime() + Const.UPGRADE_REMINDER_INTERVAL < new Date().getTime()
-								) {
-									let message = lang.get("premiumOffer_msg")
-									let title = lang.get("upgradeReminderTitle_msg")
-									return Dialog.reminder(title, message)
-										.then((confirm) => {
-											if (confirm) {
-												import("../subscription/UpgradeSubscriptionWizard").then((wizard) => wizard.showUpgradeWizard(locator.logins))
-											}
-										})
-										.then(() => {
-											properties.lastUpgradeReminder = new Date()
-											locator.entityClient.update(properties).catch(ofClass(LockedError, noOp))
-										})
-								}
-							})
-					})
-				})
-		} else {
-			return Promise.resolve()
+			const newCustomerProperties = createCustomerProperties(await this.logins.getUserController().loadCustomerProperties())
+			newCustomerProperties.lastUpgradeReminder = new Date(this.dateProvider.now())
+			this.entityClient.update(newCustomerProperties).catch(ofClass(LockedError, noOp))
 		}
 	}
 
 	private enforcePasswordChange(): void {
-		if (locator.logins.getUserController().user.requirePasswordUpdate) {
+		if (this.logins.getUserController().user.requirePasswordUpdate) {
 			import("../settings/login/ChangePasswordDialogs.js").then(({ showChangeOwnPasswordDialog }) => {
 				return showChangeOwnPasswordDialog(false)
 			})

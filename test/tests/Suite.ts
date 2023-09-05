@@ -111,6 +111,8 @@ import "./api/worker/facades/MailAddressFacadeTest.js"
 import "./mail/model/FolderSystemTest.js"
 import "./gui/ScopedRouterTest.js"
 import "./contacts/ContactListEditorTest.js"
+import "./login/PostLoginUtilsTest.js"
+
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"
 import { Mode } from "../../src/api/common/Env.js"
