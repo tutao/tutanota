@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2023-08-23T07:53:37Z",
+	"updated_at": "2023-09-04T09:31:21Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -920,7 +920,7 @@ export default {
 		"otherCalendars_label": "Ďalšie kalendáre",
 		"otherPaymentProviderError_msg": "Poskytovateľ platobných služieb vrátil chybu. Prosím skúste to znova.",
 		"other_label": "Iný",
-		"outdatedClientWarningMailBody_msg": "Ahoj,&lt;br&gt;\nmomentálne používaš neaktuálnu verziu Tutanoty. Podpora pre tvoju verziu bude v priebehu niekoľkých dní ukončená.&lt;br&gt;&lt;br&gt;\n\nProsím, aktualizuj svojho klienta cez tento odkaz: {downloadLink}&lt;br&gt;&lt;br&gt;\n\nSkontroluj si tiež, či nepoužívaš neaktuálnu verziu Tutanoty na inom zariadení. Systém prestane posielať tieto e-maily, akonáhle všetky tvoje klienty Tutanota budú aktuálne.&lt;br&gt;&lt;br&gt;\n\nĎakujeme!&lt;br&gt;&lt;br&gt;\n\nTvoj tím Tutanota",
+		"outdatedClientWarningMailBody_msg": "Ahoj,<br>\nmomentálne používaš neaktuálnu verziu Tutanoty. Podpora pre tvoju verziu bude v priebehu niekoľkých dní ukončená.<br><br>\n\nProsím, aktualizuj svojho klienta cez tento odkaz: {downloadLink}<br><br>\n\nSkontroluj si tiež, či nepoužívaš neaktuálnu verziu Tutanoty na inom zariadení. Systém prestane posielať tieto e-maily, akonáhle všetky tvoje klienty Tutanota budú aktuálne.<br><br>\n\nĎakujeme!<br><br>\n\nTvoj tím Tutanota",
 		"outdatedClientWarningMailSubject_msg": "Prosím, aktualizuj Tutanotu",
 		"outdatedClient_msg": "Prosím aktualizuj Tutanotu. Nainštalovaná verzia je príliš stará a nie je už ďalej podporovaná.",
 		"outlookInvoiceMailBodyAutomatic_msg": "v prílohe tohto e-mailu je k dispozícii nová faktúra s číslom {1}. Výsledná suma bude automaticky zaúčtovaná na ťarchu účtu. Všetky svoje faktúry si tiež môžeš pozrieť v časti {2}.",

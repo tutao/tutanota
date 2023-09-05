@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2023-08-23T07:53:37Z",
+	"updated_at": "2023-09-04T09:35:49Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -826,7 +826,7 @@ export default {
 		"otherCalendars_label": "Kalender lainnya",
 		"otherPaymentProviderError_msg": "Penyedia pembayaran mengalami kesalahan. Silakan coba lagi nanti.",
 		"other_label": "Lainnya",
-		"outdatedClientWarningMailBody_msg": "Halo,&lt;br&gt;\nAnda saat ini menggunakan versi Tutanota yang sudah tertinggal. Dukungan untuk versi yang Anda gunakan akan dihentikan dalam beberapa hari ke depan.&lt;br&gt;&lt;br&gt;\n\nMohon perbarui aplikasi klien Anda di: {downloadLink}&lt;br&gt;&lt;br&gt;\n\nTerima kasih!&lt;br&gt;&lt;br&gt;\n\nTim Tutanota",
+		"outdatedClientWarningMailBody_msg": "Halo,<br>\nAnda saat ini menggunakan versi Tutanota yang sudah tertinggal. Dukungan untuk versi yang Anda gunakan akan dihentikan dalam beberapa hari ke depan.<br><br>\n\nMohon perbarui aplikasi klien Anda di: {downloadLink}<br><br>\n\nTerima kasih!<br><br>\n\nTim Tutanota",
 		"outdatedClientWarningMailSubject_msg": "Mohon perbarui Tutanota",
 		"outdatedClient_msg": "Mohon mutakhirkan Tutanota. Versi yang terpasang saat ini sudah terlalu lama dan tidak didukung lagi.",
 		"outlookInvoiceMailBodyAutomatic_msg": "Terdapat tagihan baru dengan nomor _ bagi Anda yang terlampir di email ini. Nominal total akhir akan didebit secara automatis. Anda juga dapat melihat semua tagihan Anda di _.",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2023-08-31T07:09:14Z",
+	"updated_at": "2023-09-05T05:57:12Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -107,6 +107,7 @@ export default {
 		"appInfoIosImageAlt_alt": "iOS app on Apple store",
 		"apply_action": "Apply",
 		"archive_action": "Archive",
+		"archive_label": "Archive",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
 		"attachFiles_action": "Attach files",
 		"attachmentAmount_label": "{amount} attachments",
@@ -941,7 +942,7 @@ export default {
 		"otherCalendars_label": "Other calendars",
 		"otherPaymentProviderError_msg": "The payment provider returned an error. Please try again later.",
 		"other_label": "Other",
-		"outdatedClientWarningMailBody_msg": "Hi there,&lt;br&gt;\nYou are currently using an outdated Tutanota version. Support for your version will be discontinued within the next few days.&lt;br&gt;&lt;br&gt;\n\nPlease update your client at: {downloadLink}&lt;br&gt;&lt;br&gt;\n\nPlease also check whether you are using an outdated version of Tutanota on a different device. The system will stop sending this email once all your Tutanota clients are up to date.&lt;br&gt;&lt;br&gt;\n\nThanks!&lt;br&gt;&lt;br&gt;\n\nYour Tutanota Team",
+		"outdatedClientWarningMailBody_msg": "Hi there,<br>\nYou are currently using an outdated Tutanota version. Support for your version will be discontinued within the next few days.<br><br>\n\nPlease update your client at: {downloadLink}<br><br>\n\nPlease also check whether you are using an outdated version of Tutanota on a different device. The system will stop sending this email once all your Tutanota clients are up to date.<br><br>\n\nThanks!<br><br>\n\nYour Tutanota Team",
 		"outdatedClientWarningMailSubject_msg": "Please update Tutanota",
 		"outdatedClient_msg": "Please update Tutanota. The currently installed version is too old and not supported any longer.",
 		"outlookInvoiceMailBodyAutomatic_msg": "there is a new invoice with the number {1} for you available attached to this email. The grand total will automatically be debited. You can also see all your invoices in {2}",

@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2023-08-23T07:53:37Z",
+	"updated_at": "2023-09-04T09:31:16Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -912,7 +912,7 @@ export default {
 		"otherCalendars_label": "Ostali kalendari",
 		"otherPaymentProviderError_msg": "Pružatelj platne usluga prijavio je pogrešku. Molimo pokušajte ponovo kasnije.",
 		"other_label": "Ostalo",
-		"outdatedClientWarningMailBody_msg": "Bok,&lt;br&gt;\ntrenutno koristiš zastarjelu verziju Tutanota. Podrška za tvoju verziju bit će ukinuta u nekoliko narednih dana.&lt;br&gt;&lt;br&gt;\n\nAžurirajte klijenta na: {{downloadLink}}&lt;br&gt;&lt;br&gt;\n\nMolimo pogledaj da li koristiš zastarjelu verziju Tutanota na drugom uređaju. Sustav će prestati slati ovaj email jednom kada su svi tvoji Tutanota klijenti ažurirani. \n\nHvala!&lt;br&gt;&lt;br&gt;\n\nVaš Tutanota tim",
+		"outdatedClientWarningMailBody_msg": "Bok,<br>\ntrenutno koristiš zastarjelu verziju Tutanota. Podrška za tvoju verziju bit će ukinuta u nekoliko narednih dana.<br><br>\n\nAžurirajte klijenta na: {{downloadLink}}<br><br>\n\nMolimo pogledaj da li koristiš zastarjelu verziju Tutanota na drugom uređaju. Sustav će prestati slati ovaj email jednom kada su svi tvoji Tutanota klijenti ažurirani. \n\nHvala!<br><br>\n\nVaš Tutanota tim",
 		"outdatedClientWarningMailSubject_msg": "Ažurirajte Tutanotu",
 		"outdatedClient_msg": "Molimo nadogradite Tutanota-u. Trenutno instalirana verzija je prastara i nije više podržana.",
 		"outlookInvoiceMailBodyAutomatic_msg": "postoji nova dostavnica s brojem {1} za Vas, koja je priložena u ovoj e-pošti. Ukupni zbroj automatski će biti terećen. Možete vidjeti i sve dostavnice u {2}",

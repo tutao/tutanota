@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2023-08-31T07:09:14Z",
+	"updated_at": "2023-09-05T05:57:12Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -111,6 +111,7 @@ export default {
 		"appInfoIosImageAlt_alt": "iOS App im Apple store",
 		"apply_action": "Übernehmen",
 		"archive_action": "Archiv",
+		"archive_label": "Archiv",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Sie können lokal administrierte Benutzer nicht zum globalen Admin machen.",
 		"attachFiles_action": "Dateien anhängen",
 		"attachmentAmount_label": "{amount} Anhänge",
@@ -945,7 +946,7 @@ export default {
 		"otherCalendars_label": "Andere Kalender",
 		"otherPaymentProviderError_msg": "Es ist ein Fehler beim Zahlungsdienstleister aufgetreten. Bitte versuchen Sie es später erneut.",
 		"other_label": "Anderes",
-		"outdatedClientWarningMailBody_msg": "Hallo,&lt;br&gt;\nSie benutzen zur Zeit eine veraltete Tutanota-Version. Der Support für Ihre Version wird in den nächsten Tagen eingestellt. &lt;br&gt;&lt;br&gt;\n\nBitte aktualisieren Sie Ihren Client unter: {downloadLink}&lt;br&gt;&lt;br&gt;\n\nBitte prüfen Sie ggf. auch, ob Sie eine veraltete Version von Tutanota auf einem anderen Gerät verwenden. Das System wird aufhören, diese E-Mail zu senden, sobald alle Ihre Tutanota-Clients auf dem neuesten Stand sind.&lt;br&gt;&lt;br&gt;\n\nDanke!&lt;br&gt;&lt;br&gt;\nIhr Tutanota-Team",
+		"outdatedClientWarningMailBody_msg": "Hallo,<br>\nSie benutzen zur Zeit eine veraltete Tutanota-Version. Der Support für Ihre Version wird in den nächsten Tagen eingestellt. <br><br>\n\nBitte aktualisieren Sie Ihren Client unter: {downloadLink}<br><br>\n\nBitte prüfen Sie ggf. auch, ob Sie eine veraltete Version von Tutanota auf einem anderen Gerät verwenden. Das System wird aufhören, diese E-Mail zu senden, sobald alle Ihre Tutanota-Clients auf dem neuesten Stand sind.<br><br>\n\nDanke!<br><br>\nIhr Tutanota-Team",
 		"outdatedClientWarningMailSubject_msg": "Bitte aktualisieren Sie Tutanota",
 		"outdatedClient_msg": "Bitte aktualisieren Sie Tutanota. Die installierte Version ist zu alt und wird nicht mehr unterstützt.",
 		"outlookInvoiceMailBodyAutomatic_msg": "im Anhang dieser E-Mail finden Sie Ihre neue Rechnung für Tutanota für Outlook mit der Nummer {1}. Der Rechnungsbetrag wird automatisch abgebucht. Alle Rechnungen lassen sich auch unter {2} einsehen.",

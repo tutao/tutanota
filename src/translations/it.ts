@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2023-08-30T17:20:21Z",
+	"updated_at": "2023-09-04T09:31:12Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -942,7 +942,7 @@ export default {
 		"otherCalendars_label": "Altri calendari",
 		"otherPaymentProviderError_msg": "C'è stato un errore con il servizio di pagamento. Per favore riprova più tardi.",
 		"other_label": "Altro",
-		"outdatedClientWarningMailBody_msg": "Ciao,&lt;br&gt;\nAttualmente stai utilizzando una versione di Tutanota obsoleta. Il supporto per la tua versione verrà interrotto nei prossimi giorni.&lt;br&gt;&lt;br&gt;\n\nAggiorna il tuo cliente all'indirizzo: {downloadLink}&lt;br&gt;&lt;br&gt;\n\nControlla anche se stai utilizzando una versione obsoleta di Tutanota su un dispositivo diverso. Il sistema interromperà l'invio di questa email una volta che tutti i tuoi clienti Tutanota saranno aggiornati.&lt;br&gt;&lt;br&gt;\n\nGrazie!&lt;br&gt;&lt;br&gt;\n\nLa tua squadra di Tutanota",
+		"outdatedClientWarningMailBody_msg": "Ciao,<br>\nAttualmente stai utilizzando una versione di Tutanota obsoleta. Il supporto per la tua versione verrà interrotto nei prossimi giorni.<br><br>\n\nAggiorna il tuo cliente all'indirizzo: {downloadLink}<br><br>\n\nControlla anche se stai utilizzando una versione obsoleta di Tutanota su un dispositivo diverso. Il sistema interromperà l'invio di questa email una volta che tutti i tuoi clienti Tutanota saranno aggiornati.<br><br>\n\nGrazie!<br><br>\n\nLa tua squadra di Tutanota",
 		"outdatedClientWarningMailSubject_msg": "Prego, aggiorna Tutanota",
 		"outdatedClient_msg": "Si prega di aggiornare Tutanota. La versione attualmente installata e' datata e non viene piu' supportata.",
 		"outlookInvoiceMailBodyAutomatic_msg": "c'è una nuova fattura con il numero {1} disponibile per te in allegato a questa email.  Il totale verrà automaticamente addebitato . Puoi anche vedere tutte le tue fatture in {2}",

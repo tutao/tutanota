@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2023-08-23T14:41:46Z",
+	"updated_at": "2023-09-05T12:29:31Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -934,7 +934,7 @@ export default {
 		"otherCalendars_label": "Andre kalendere",
 		"otherPaymentProviderError_msg": "Betalingsformidleren returnerte en feilmelding. Prøv igjen senere.",
 		"other_label": "Annet",
-		"outdatedClientWarningMailBody_msg": "Heisann,&lt;br&gt;\nDu bruker for øyeblikket en utdatert versjon av Tutanota. Støtte for din versjon vil bli avviklet i løpet av de neste dagene.&lt;br&gt;&lt;br&gt;\n\nVennligst oppdater din klient på: {downloadLink}&lt;br&gt;&lt;br&gt;\n\nSjekk også om du bruker en utdatert versjon av Tutanota på en annen enhet. Vi vil slutte å sende denne e-posten når alle dine Tutanota-klienter er oppdatert.&lt;br&gt;&lt;br&gt;\n\nTakk så mye!&lt;br&gt;&lt;br&gt;\n\nMvh Tutanota-laget",
+		"outdatedClientWarningMailBody_msg": "Heisann,<br>\nDu bruker for øyeblikket en utdatert versjon av Tutanota. Støtte for din versjon vil bli avviklet i løpet av de neste dagene.<br><br>\n\nVennligst oppdater din klient på: {downloadLink}<br><br>\n\nSjekk også om du bruker en utdatert versjon av Tutanota på en annen enhet. Vi vil slutte å sende denne e-posten når alle dine Tutanota-klienter er oppdatert.<br><br>\n\nTakk så mye!<br><br>\n\nMvh Tutanota-laget",
 		"outdatedClientWarningMailSubject_msg": "Oppdater Tutanota",
 		"outdatedClient_msg": "Oppdater Tutanota. Den installerte versjonen er utdatert og støttes ikke lenger.",
 		"outlookInvoiceMailBodyAutomatic_msg": "det er en ny faktura med nummer {1} for deg vedlagt denne mailen. Det totale beløpet vil automatisk bli belastet. Du kan også se alle dine fakturer i {2}",
