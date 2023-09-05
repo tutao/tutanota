@@ -1,6 +1,6 @@
 import { AccountType, FeatureType, GroupType, LegacyPlans, OperationType, PlanType } from "../common/TutanotaConstants"
 import type { Base64Url } from "@tutao/tutanota-utils"
-import { downcast, first, mapAndFilterNull, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, first, mapAndFilterNull, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { MediaType } from "../common/EntityFunctions"
 import { assertMainOrNode, getApiOrigin, isDesktop } from "../common/Env"
 import type { EntityUpdateData } from "./EventController"
@@ -18,6 +18,8 @@ import {
 	Customer,
 	CustomerInfo,
 	CustomerInfoTypeRef,
+	CustomerProperties,
+	CustomerPropertiesTypeRef,
 	CustomerTypeRef,
 	DomainInfo,
 	GroupInfo,
@@ -124,6 +126,11 @@ export class UserController {
 	async loadCustomerInfo(): Promise<CustomerInfo> {
 		const customer = await this.loadCustomer()
 		return await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+	}
+
+	async loadCustomerProperties(): Promise<CustomerProperties> {
+		const customer = await this.loadCustomer()
+		return await this.entityClient.load(CustomerPropertiesTypeRef, assertNotNull(customer.properties))
 	}
 
 	async getPlanType(): Promise<PlanType> {

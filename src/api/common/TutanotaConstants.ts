@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import { downcast } from "@tutao/tutanota-utils"
+import { DAY_IN_MILLIS, downcast } from "@tutao/tutanota-utils"
 import type { CertificateInfo, CreditCard, EmailSenderListElement, GroupMembership } from "../entities/sys/TypeRefs.js"
 import { AccountingInfo, Customer } from "../entities/sys/TypeRefs.js"
 import type { CalendarEventAttendee, UserSettingsGroupRoot } from "../entities/tutanota/TypeRefs.js"
@@ -242,7 +242,8 @@ export enum PaymentMethodType {
 export const PaymentMethodTypeToName = reverse(PaymentMethodType)
 
 export const Const = {
-	UPGRADE_REMINDER_INTERVAL: 14 * 24 * 60 * 60 * 1000,
+	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: 14 * DAY_IN_MILLIS,
+	REPEATED_UPGRADE_REMINDER_INTERVAL_MS: 90 * DAY_IN_MILLIS,
 	MEMORY_GB_FACTOR: 1000000000,
 	MEMORY_WARNING_FACTOR: 0.9,
 	// Sets the current date for testing date dependent services. Only available in test environments.
