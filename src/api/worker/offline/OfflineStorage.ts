@@ -693,7 +693,6 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 	 * */
 	private async runChunked(chunkSize: number, originalList: SqlValue[], formatter: (chunk: SqlValue[]) => FormattedQuery): Promise<void> {
 		for (const chunk of splitInChunks(chunkSize, originalList)) {
-			console.log(chunk.length)
 			const formattedQuery = formatter(chunk)
 			await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
 		}
