@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2023-08-24T15:08:52Z",
+	"updated_at": "2023-09-04T09:35:50Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -936,7 +936,7 @@ export default {
 		"otherCalendars_label": "Egyéb naptárak",
 		"otherPaymentProviderError_msg": "A fizetési szolgáltató hibát jelzett. Kérjük, próbálkozzon újra később.",
 		"other_label": "Egyéb",
-		"outdatedClientWarningMailBody_msg": "helló&lt;br&gt;\njelenleg elavult Tutanota verziót használ. A következő napokban megszűnik a verzió támogatása.&lt;br&gt;&lt;br&gt;\n\n\nKérjük, frissítse ügyfelét a következő webhelyen! {downloadLink}&lt;br&gt;&lt;br&gt;\n\n\nKérjük, ellenőrizze azt is, hogy a Tutanota elavult verzióját használja-e egy másik eszközön!  A rendszer leállítja ennek az e-mailnek a küldését, amint az összes Tutanota kliense naprakész.&lt;br&gt;&lt;br&gt;\n\nkösz!&lt;br&gt;&lt;br&gt;\n\nAz Ön Tutanota csapata",
+		"outdatedClientWarningMailBody_msg": "helló<br>\njelenleg elavult Tutanota verziót használ. A következő napokban megszűnik a verzió támogatása.<br><br>\n\n\nKérjük, frissítse ügyfelét a következő webhelyen! {downloadLink}<br><br>\n\n\nKérjük, ellenőrizze azt is, hogy a Tutanota elavult verzióját használja-e egy másik eszközön!  A rendszer leállítja ennek az e-mailnek a küldését, amint az összes Tutanota kliense naprakész.<br><br>\n\nkösz!<br><br>\n\nAz Ön Tutanota csapata",
 		"outdatedClientWarningMailSubject_msg": "Kérjük, frissítse a Tutanota-t!",
 		"outdatedClient_msg": "Frissítse a Tutanotát! A jelenlegi verzió túl régi és a továbbiakban nem támogatott.",
 		"outlookInvoiceMailBodyAutomatic_msg": "új számla érkezett {1} számmal elérhetően az Ön számára az e-mailhez csatoltan. A végösszeg automatikusan terhelésre kerül. Az összes számlát áttekintheti a {2} menüpontban.",

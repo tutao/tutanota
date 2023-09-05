@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2023-08-21T05:57:37Z",
+	"updated_at": "2023-09-04T09:31:11Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -725,7 +725,7 @@ export default {
 		"otherCalendars_label": "Altres calendaris",
 		"otherPaymentProviderError_msg": "El proveïdor de pagament ha retornat error. Si us plau, intenteu-ho més tard.",
 		"other_label": "D'altres",
-		"outdatedClientWarningMailBody_msg": "Hola&lt;br&gt;\nactualment esteu utilitzant una versió obsoleta de Tutanota. El suport per a la vostra versió s'interromp en els pròxims dies.&lt;br&gt;&lt;br&gt;\n\nSi us plau, actualitzeu el client a: {downloadLink}&lt;br&gt;&lt;br&gt;\n\nGràcies!&lt;br&gt;&lt;br&gt;\n\nL'equip de Tutanota",
+		"outdatedClientWarningMailBody_msg": "Hola<br>\nactualment esteu utilitzant una versió obsoleta de Tutanota. El suport per a la vostra versió s'interromp en els pròxims dies.<br><br>\n\nSi us plau, actualitzeu el client a: {downloadLink}<br><br>\n\nGràcies!<br><br>\n\nL'equip de Tutanota",
 		"outdatedClientWarningMailSubject_msg": "Si us plau, actualitzeu Tutanota",
 		"outdatedClient_msg": "Si us plau, actualitza Tutanota. La versió instal·lada és massa antiga i ja no és compatible.",
 		"outlookInvoiceMailBodyAutomatic_msg": "hi ha una nova factura amb el número {1} adjunta a aquest correu electrònic. Automàticament es carregarà la suma total. També podeu veure totes les factures a {2}.",

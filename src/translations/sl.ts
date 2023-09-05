@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2023-08-30T14:04:55Z",
+	"updated_at": "2023-09-05T06:33:32Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -940,7 +940,7 @@ export default {
 		"otherCalendars_label": "Ostali koledarji",
 		"otherPaymentProviderError_msg": "Ponudnik plačilnih storitev je vrnil napako. Prosimo, poskusite kasneje.",
 		"other_label": "Ostalo",
-		"outdatedClientWarningMailBody_msg": "Pozdravljeni,&lt;br&gt;\ntrenutno uporabljate zastarelo različico Tutanote. Podpora za vašo verzijo se bo iztekla v naslednjih nekaj dnevih.&lt;br&gt;&lt;br&gt;\n\nProsimo, posodobite svojega odjemalca: {downloadLink}&lt;br&gt;&lt;br&gt;\n\nPreverite tudi, ali uporabljate zastarelo različico Tutanote na drugi napravi. Sistem bo prenehal pošiljati to sporočilo, ko bodo vsi odjemalci Tutanota posodobljeni.&lt;br&gt;&lt;br&gt;\n\n\nHvala&lt;br&gt;&lt;br&gt;\n\nVaša Tutanota",
+		"outdatedClientWarningMailBody_msg": "Pozdravljeni,<br>\ntrenutno uporabljate zastarelo različico Tutanote. Podpora za vašo verzijo se bo iztekla v naslednjih nekaj dnevih.<br><br>\n\nProsimo, posodobite svojega odjemalca: {downloadLink}<br><br>\n\nPreverite tudi, ali uporabljate zastarelo različico Tutanote na drugi napravi. Sistem bo prenehal pošiljati to sporočilo, ko bodo vsi odjemalci Tutanota posodobljeni.<br><br>\n\n\nHvala<br><br>\n\nVaša Tutanota",
 		"outdatedClientWarningMailSubject_msg": "Prosimo, posodobite Tutanoto",
 		"outdatedClient_msg": "Prosimo, posodobite Tutanoto. Vaša trenutna verzija ni več podprta, ker je prestara.",
 		"outlookInvoiceMailBodyAutomatic_msg": "prejeli ste nov račun s številko {1}. Lahko ga prenesete v {2}. Skupna vsota bo samodejno bremenjena. Vse svoje račune si lahko ogledate v {2}.",

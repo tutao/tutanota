@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2023-08-23T07:53:37Z",
+	"updated_at": "2023-09-04T09:31:18Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -923,7 +923,7 @@ export default {
 		"otherCalendars_label": "Outros calendarios",
 		"otherPaymentProviderError_msg": "O xestor do pagamento devolveu un fallo. Por favor, inténteo máis tarde.",
 		"other_label": "Outro",
-		"outdatedClientWarningMailBody_msg": "Ola&lt;br&gt;\nestás a utilizar unha versión desactualizada de Tutanota. O soporte da túa versión vai rematar nuns días.&lt;br&gt;&lt;br&gt;\n\nPor favor, actualiza o cliente en: {downloadLink}&lt;br&gt;&lt;br&gt;\n\nComproba tamén se estás a utilizar clientes antigos noutros dispositivos. O sistema deixará de enviar este email unha vez tódolos teus clientes estén actualizados.&lt;br&gt;&lt;br&gt;\n\nGrazas!&lt;br&gt;&lt;br&gt;\n\nO Equipo Tutanota",
+		"outdatedClientWarningMailBody_msg": "Ola<br>\nestás a utilizar unha versión desactualizada de Tutanota. O soporte da túa versión vai rematar nuns días.<br><br>\n\nPor favor, actualiza o cliente en: {downloadLink}<br><br>\n\nComproba tamén se estás a utilizar clientes antigos noutros dispositivos. O sistema deixará de enviar este email unha vez tódolos teus clientes estén actualizados.<br><br>\n\nGrazas!<br><br>\n\nO Equipo Tutanota",
 		"outdatedClientWarningMailSubject_msg": "Por favor, actualiza Tutanota",
 		"outdatedClient_msg": "Por favor, actualiza Tutanota. A versión instalada actualmente é demasiado antiga e xa non está soportada.",
 		"outlookInvoiceMailBodyAutomatic_msg": "hai unha nova factura con número {1} anexa a este correo. A suma total será cargado en conta automáticamente. Podes ver as facturas en {2}",

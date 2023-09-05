@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2023-08-23T07:53:37Z",
+	"updated_at": "2023-09-04T09:35:50Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -879,7 +879,7 @@ export default {
 		"otherCalendars_label": "تقویم های دیگر",
 		"otherPaymentProviderError_msg": "فراهم‌آورندهٔ پرداخت یک خطا بازگرداند. لطفاً بعداً دوباره امتحان کنید.",
 		"other_label": "دیگر",
-		"outdatedClientWarningMailBody_msg": "سلام بر شما،&lt;br&gt;\nشما هم اکنون در حال استفاده از نسخه قدیمی توتانوتا هستید. پشتیبانی از نسخه شما طی چند روز آینده به پایان خواهد رسید.&lt;br&gt;&lt;br&gt;\n\nلطفا برنامه خود را با مراجعه به این نشانی به روز کنید: {downloadLink}&lt;br&gt;&lt;br&gt;\n\nبا سپاس!&lt;br&gt;&lt;br&gt;\n\nتیم توتانوتای شما",
+		"outdatedClientWarningMailBody_msg": "سلام بر شما،<br>\nشما هم اکنون در حال استفاده از نسخه قدیمی توتانوتا هستید. پشتیبانی از نسخه شما طی چند روز آینده به پایان خواهد رسید.<br><br>\n\nلطفا برنامه خود را با مراجعه به این نشانی به روز کنید: {downloadLink}<br><br>\n\nبا سپاس!<br><br>\n\nتیم توتانوتای شما",
 		"outdatedClientWarningMailSubject_msg": "لطفا توتانوتا را به‌ روزرسانی کنید",
 		"outdatedClient_msg": "لطفا توتانوتا را به روز کنید. نسخه  نصب شده حاضر خیلی قدیمی‌ست و دیگر پشتیبانی نمی‌شود.",
 		"outlookInvoiceMailBodyAutomatic_msg": "پیوست به این ایمیل، یک صورتحساب جدید به شماره‌ی {1} برای شما در دسترس است. جمع کل به طور خودکار از حساب شما بردا شت خواهد شد. شما می‌توانید همه‌ی صورتحساب‌های خود را از اینجا مشاهده کنید {2}",

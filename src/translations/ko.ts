@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T09:48:48Z",
-	"updated_at": "2023-08-26T17:31:27Z",
+	"updated_at": "2023-09-04T09:31:20Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -890,7 +890,7 @@ export default {
 		"otherCalendars_label": "기타 캘린더",
 		"otherPaymentProviderError_msg": "결제 제공자가 오류를 보냈습니다. 나중에 다시 시도해주세요.",
 		"other_label": "기타",
-		"outdatedClientWarningMailBody_msg": "안녕하세요,&lt;br&gt;\n현재 오래된 버전의 투타노타를 사용 중입니다. 해당 버전에 대한 지원이 며칠 내로 중단될 예정입니다.&lt;br&gt;&lt;br&gt;\n\n다음 주소를 통해 클라이언트를 업데이트하세요: {downloadLink}&lt;br&gt;&lt;br&gt;\n\n또한 다른 기기에서 오래된 버전의 Tutanota를 사용하고 있는지 확인해 주세요. 모든 Tutanota 클라이언트가 최신 버전으로 업데이트되면 시스템에서 이 이메일 전송을 중단합니다.&lt;br&gt;&lt;br&gt;\n\n감사합니다!&lt;br&gt;&lt;br&gt;\n\nTutanota 팀",
+		"outdatedClientWarningMailBody_msg": "안녕하세요,<br>\n현재 오래된 버전의 투타노타를 사용 중입니다. 해당 버전에 대한 지원이 며칠 내로 중단될 예정입니다.<br><br>\n\n다음 주소를 통해 클라이언트를 업데이트하세요: {downloadLink}<br><br>\n\n또한 다른 기기에서 오래된 버전의 Tutanota를 사용하고 있는지 확인해 주세요. 모든 Tutanota 클라이언트가 최신 버전으로 업데이트되면 시스템에서 이 이메일 전송을 중단합니다.<br><br>\n\n감사합니다!<br><br>\n\nTutanota 팀",
 		"outdatedClientWarningMailSubject_msg": "Tutanota를 업데이트해주세요",
 		"outdatedClient_msg": "Tutanota를 업데이트 해주세요. 현재 설치된 버전은 너무 오래되었으며 더 이상 지원되지 않습니다.",
 		"outlookInvoiceMailBodyAutomatic_msg": "이 이메일에 {1} 번호의 새 청구서가 첨부되어 있습니다. 총 금액이 자동으로 인출됩니다. {2}에서 모든 청구서를 확인할 수도 있습니다.",

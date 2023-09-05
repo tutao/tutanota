@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2023-08-29T12:58:11Z",
+	"updated_at": "2023-09-04T09:31:13Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -941,7 +941,7 @@ export default {
 		"otherCalendars_label": "Diğer takvimler",
 		"otherPaymentProviderError_msg": "Ödeme sağlayıcısı bir hata verdi. Lütfen daha sonra tekrar deneyiniz.",
 		"other_label": "Diğer",
-		"outdatedClientWarningMailBody_msg": "Merhaba,&lt;br&gt;\nŞu anda Tutanota'nın eski bir sürümünü kullanıyorsunuz. Bu sürüm için verdiğimiz destek önümüzdeki birkaç gün içinde sona erecektir.&lt;br&gt;&lt;br&gt;\n\nLütfen istemcinizi şu adresten güncelleyin:\n{downloadLink}&lt;br&gt;&lt;br&gt;\n\nAyrıca lütfen farklı bir cihazda Tutanota'nın eski bir sürümünü kullanıp kullanmadığınızı da kontrol edin. Tüm Tutanota istemcileriniz güncel olduğunda sistem bu e-postayı göndermeyi durduracaktır.&lt;br&gt;&lt;br&gt;\n\nTeşekkürler!&lt;br&gt;&lt;br&gt;\n\nTutanota Ekibiniz",
+		"outdatedClientWarningMailBody_msg": "Merhaba,<br>\nŞu anda Tutanota'nın eski bir sürümünü kullanıyorsunuz. Bu sürüm için verdiğimiz destek önümüzdeki birkaç gün içinde sona erecektir.<br><br>\n\nLütfen istemcinizi şu adresten güncelleyin:\n{downloadLink}<br><br>\n\nAyrıca lütfen farklı bir cihazda Tutanota'nın eski bir sürümünü kullanıp kullanmadığınızı da kontrol edin. Tüm Tutanota istemcileriniz güncel olduğunda sistem bu e-postayı göndermeyi durduracaktır.<br><br>\n\nTeşekkürler!<br><br>\n\nTutanota Ekibiniz",
 		"outdatedClientWarningMailSubject_msg": "Lütfen Tutanota'yı güncelleyin",
 		"outdatedClient_msg": "Lütfen Tutanota'yı güncelleyin. Kurulu olan sürüm çok eski ve artık desteklenmiyor.",
 		"outlookInvoiceMailBodyAutomatic_msg": "{1} numaralı yeni faturanız bu mailin ekinde bulunmaktadır. Genel toplam otomatik olarak tahsil edilecektir. Bütün faturalarınızı 'Settings' -> 'Invoicing'  altında görebilirsiniz.",

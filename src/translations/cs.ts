@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2023-08-23T11:13:27Z",
+	"updated_at": "2023-09-04T09:31:14Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -931,7 +931,7 @@ export default {
 		"otherCalendars_label": "Další kalendáře",
 		"otherPaymentProviderError_msg": "U poskytovatele platby se vyskytla chyba. Prosím zkuste to znovu později.",
 		"other_label": "Ostatní",
-		"outdatedClientWarningMailBody_msg": "Dobrý den,&lt;br&gt;\nmomentálně používáte již zastaralou verzi Tutanoty a její podpora brzy skončí.&lt;br&gt;&lt;br&gt;\n\nAktualizujte prosím aplikaci na: {downloadLink}&lt;br&gt;&lt;br&gt;\n\nZkontrolujte prosím, zda nepoužíváte zastaralou verzi i na jiných zařízeních. Až budou všechny vaše e-mailové aplikace Tutanoty aktualizované, nebudete již tento e-mail dostávat.&lt;br&gt;&lt;br&gt;\n\nDěkujeme!&lt;br&gt;&lt;br&gt;\n\nVáš tým Tutanoty",
+		"outdatedClientWarningMailBody_msg": "Dobrý den,<br>\nmomentálně používáte již zastaralou verzi Tutanoty a její podpora brzy skončí.<br><br>\n\nAktualizujte prosím aplikaci na: {downloadLink}<br><br>\n\nZkontrolujte prosím, zda nepoužíváte zastaralou verzi i na jiných zařízeních. Až budou všechny vaše e-mailové aplikace Tutanoty aktualizované, nebudete již tento e-mail dostávat.<br><br>\n\nDěkujeme!<br><br>\n\nVáš tým Tutanoty",
 		"outdatedClientWarningMailSubject_msg": "Aktualizujte prosím Tutanotu",
 		"outdatedClient_msg": "Aktualizujte prosím Tutanotu. Nainstalovaná verze je příliš stará a již není podporována.",
 		"outlookInvoiceMailBodyAutomatic_msg": "v příloze je k dispozici nová faktura s číslem {1}. Celková suma bude automaticky zaúčtována. Všechny faktury jsou dostupné v {2}",

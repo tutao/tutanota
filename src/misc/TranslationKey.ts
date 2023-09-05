@@ -91,6 +91,7 @@ export type TranslationKeyType =
 	| "appInfoIosImageAlt_alt"
 	| "apply_action"
 	| "archive_action"
+	| "archive_label"
 	| "assignAdminRightsToLocallyAdministratedUserError_msg"
 	| "attachFiles_action"
 	| "attachmentAmount_label"
