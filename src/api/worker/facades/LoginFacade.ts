@@ -48,7 +48,7 @@ import { HttpMethod, MediaType, resolveTypeReference } from "../../common/Entity
 import { assertWorkerOrNode } from "../../common/Env"
 import { ConnectMode, EventBusClient } from "../EventBusClient"
 import { EntityRestClient, typeRefToPath } from "../rest/EntityRestClient"
-import { AccessExpiredError, ConnectionError, NotAuthenticatedError, NotFoundError, SessionExpiredError } from "../../common/error/RestError"
+import { AccessExpiredError, ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, SessionExpiredError } from "../../common/error/RestError"
 import type { WorkerImpl } from "../WorkerImpl"
 import { CancelledError } from "../../common/error/CancelledError"
 import { RestClient } from "../rest/RestClient"
@@ -419,13 +419,21 @@ export class LoginFacade {
 		const secondFactorAuthDeleteData = createSecondFactorAuthDeleteData({
 			session: sessionId,
 		})
-		await this.serviceExecutor.delete(SecondFactorAuthService, secondFactorAuthDeleteData).catch(
-			ofClass(NotFoundError, (e) => {
-				// This can happen during some odd behavior in browser where main loop would be blocked by webauthn (hello, FF) and then we would try to
-				// cancel too late. No harm here anyway if the session is already gone.
-				console.warn("Tried to cancel second factor but it was not there anymore", e)
-			}),
-		)
+		await this.serviceExecutor
+			.delete(SecondFactorAuthService, secondFactorAuthDeleteData)
+			.catch(
+				ofClass(NotFoundError, (e) => {
+					// This can happen during some odd behavior in browser where main loop would be blocked by webauthn (hello, FF) and then we would try to
+					// cancel too late. No harm here anyway if the session is already gone.
+					console.warn("Tried to cancel second factor but it was not there anymore", e)
+				}),
+			)
+			.catch(
+				ofClass(LockedError, (e) => {
+					// Might happen if we trigger cancel and confirm at the same time.
+					console.warn("Tried to cancel second factor but it is currently locked", e)
+				}),
+			)
 		this.loginRequestSessionId = null
 		this.loggingInPromiseWrapper?.reject(new CancelledError("login cancelled"))
 	}

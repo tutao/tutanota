@@ -4,7 +4,7 @@ import { assertNotNull, getFirstOrThrow } from "@tutao/tutanota-utils"
 import type { TranslationKey } from "../LanguageViewModel.js"
 import type { Challenge } from "../../api/entities/sys/TypeRefs.js"
 import { createSecondFactorAuthData } from "../../api/entities/sys/TypeRefs.js"
-import { AccessBlockedError, BadRequestError, NotAuthenticatedError } from "../../api/common/error/RestError.js"
+import { AccessBlockedError, BadRequestError, LockedError, NotAuthenticatedError } from "../../api/common/error/RestError.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import m from "mithril"
 import { SecondFactorAuthView } from "./SecondFactorAuthView.js"
@@ -191,6 +191,11 @@ export class SecondFactorAuthDialog {
 					state: "error",
 					error: "couldNotAuthU2f_msg",
 				}
+			} else if (e instanceof LockedError) {
+				this.webauthnState = {
+					state: "init",
+				}
+				Dialog.message("serviceUnavailable_msg")
 			} else if (e instanceof NotAuthenticatedError) {
 				this.webauthnState = {
 					state: "init",
