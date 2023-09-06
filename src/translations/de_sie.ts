@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2023-09-05T05:57:12Z",
+	"updated_at": "2023-09-06T07:45:40Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -297,6 +297,7 @@ export default {
 		"created_label": "Erstellt",
 		"createEntry_action": "Eintrag erstellen",
 		"createEvent_label": "Ereignis",
+		"createSharedMailbox_label": "Mailbox anlegen",
 		"createTemplate_action": "Vorlage erstellen",
 		"createUserFailed_msg": "Benutzer konnte nicht erstellt werden. Bitte kontaktieren Sie den Support.",
 		"credentialsEncryptionModeBiometricsHelp_msg": "Die sicherste Variante. Die gespeicherten Zugangsdaten werden entfernt, wenn die Biometrieeinstellungen geändert werden.",
@@ -1274,6 +1275,7 @@ export default {
 		"searchEmails_placeholder": "Suche nach E-Mails",
 		"searchGroups_placeholder": "Suche nach Gruppen",
 		"searchKnowledgebase_placeholder": "Knowledgebase durchsuchen",
+		"searchMailboxes_placeholder": "Suche nach Mailboxen",
 		"searchMailbox_label": "Suche in Mailbox",
 		"searchNoResults_msg": "Keine Ergebnisse",
 		"searchPage_action": "Seite durchsuchen...",
@@ -1341,6 +1343,8 @@ export default {
 		"sharedGroupAcceptEmailBody_msg": "Hallo {recipientName}, <br/>{invitee} hat Ihre Einladung zur Nutzung von \"{groupName}\" angenommen.",
 		"sharedGroupDeclineEmailBody_msg": "Hallo {recipientName}, <br/>{invitee} hat Ihre Einladung zur Nutzung von \"{groupName}\" nicht angenommen.",
 		"sharedGroupParticipants_label": "Benutzer*innen mit Zugriff auf \"{groupName}\"",
+		"sharedMailboxCanNotSendConfidentialExternal_msg": "Leider ist es noch nicht möglich von geteilten Mailboxen Ende-zu-Ende verschlüsselte E-Mails an externe Empfängers zu senden.",
+		"sharedMailboxesMultiUser_msg": "Falls Sie ein privates Abo (Legend und Revolutionary) buchen, melden Sie sich bitte bei unserem Support, um das Anlegen von mehreren Benutzern freizuschalten. Dann können Sie geteilte Mailboxen in Ihrem Account verwenden.",
 		"sharedMailboxes_label": "Geteilte Mailboxen",
 		"sharedMailbox_label": "Geteilte Mailbox",
 		"sharedTemplateGroupDefaultName_label": "{ownerName}s Vorlagen",

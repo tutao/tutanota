@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2023-09-04T09:31:19Z",
+	"updated_at": "2023-09-05T16:33:39Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -111,6 +111,7 @@ export default {
 		"appInfoIosImageAlt_alt": "App iOS na Apple Store",
 		"apply_action": "Aplicar",
 		"archive_action": "Arquivo",
+		"archive_label": "Arquivo",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Não pode atribuir direitos de administrador global a um utilizador localmente administrado.",
 		"attachFiles_action": "Anexar ficheiros",
 		"attachmentAmount_label": "{amount} anexos",
