@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2023-09-04T09:31:14Z",
+	"updated_at": "2023-09-06T05:36:44Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -106,6 +106,7 @@ export default {
 		"appInfoIosImageAlt_alt": "Aplikace iOS na Apple store",
 		"apply_action": "Použít",
 		"archive_action": "Archiv",
+		"archive_label": "Archiv",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Nemůžete přidělit globální administrátorská práva místně spravovanému uživateli.",
 		"attachFiles_action": "Připojit soubory",
 		"attachmentAmount_label": "{amount} příloh(y)",
@@ -763,6 +764,7 @@ export default {
 		"localAdmin_label": "Místní správce",
 		"localDataSection_label": "Lokální data",
 		"location_label": "Místo",
+		"lockdownModeNotSupported2_msg": "Přidejte prosím výjimku pro Tutanotu nebo vypněte režim uzamčení.",
 		"loggingOut_msg": "Odhlašuji...",
 		"loginAbuseDetected_msg": "Váš účet již nemůže být použit, protože byly porušeny smluvní podmínky Tutanoty, např. zasíláním nevyžádaných e-mailů.",
 		"loginCredentials_label": "Přihlašovací údaje",
