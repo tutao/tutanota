@@ -858,9 +858,13 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				this.contactListViewModel.addContactList(name, recipients)
 			})
 		} else {
-			const { getAvailablePlansWithContactList } = await import("../../subscription/SubscriptionUtils.js")
-			const plans = await getAvailablePlansWithContactList()
-			await showPlanUpgradeRequiredDialog(plans)
+			if (locator.logins.getUserController().isGlobalAdmin()) {
+				const { getAvailablePlansWithContactList } = await import("../../subscription/SubscriptionUtils.js")
+				const plans = await getAvailablePlansWithContactList()
+				await showPlanUpgradeRequiredDialog(plans)
+			} else {
+				Dialog.message(() => lang.get("contactAdmin_msg"))
+			}
 		}
 	}
 }
