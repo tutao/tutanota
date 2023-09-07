@@ -88,7 +88,9 @@ export class WindowFacade {
 	}
 
 	_notifyCloseListeners(e: Event) {
-		this._windowCloseListeners.forEach((f) => f(e))
+		for (const f of this._windowCloseListeners) {
+			f(e)
+		}
 	}
 
 	addKeyboardSizeListener(listener: KeyboardSizeListener) {

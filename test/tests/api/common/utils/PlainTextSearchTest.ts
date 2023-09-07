@@ -80,9 +80,9 @@ o.spec("PlainTextSearchTest", function () {
 			const searchResult = _search(query, _searchEntries, attributeNames, false)
 
 			o(searchResult[0].matchedWords.length).equals(3)
-			searchResult[0].matchedWords.forEach((match) => {
+			for (const match of searchResult[0].matchedWords) {
 				o(query.includes(match)).equals(true)
-			})
+			}
 		})
 		o("check if partialWordMatches count is correct", function () {
 			const query = ["their", "something", "tes", "randomness"]

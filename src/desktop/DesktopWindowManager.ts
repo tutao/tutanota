@@ -134,7 +134,9 @@ export class WindowManager {
 			})
 			.on("did-navigate", () => {
 				// electron likes to override the zoom factor when the URL changes.
-				windows.forEach((w) => w.setZoomFactor(this._currentBounds.scale))
+				for (const w of windows) {
+					w.setZoomFactor(this._currentBounds.scale)
+				}
 			})
 
 		w.setContextMenuHandler((params) => this._contextMenu.open(params))
@@ -190,12 +192,16 @@ export class WindowManager {
 		if (process.platform === "darwin") {
 			app.hide() // hide all windows & give active app status to previous app
 		} else {
-			windows.forEach((w) => w.hide())
+			for (const w of windows) {
+				w.hide()
+			}
 		}
 	}
 
 	minimize() {
-		windows.forEach((w) => w.minimize())
+		for (const w of windows) {
+			w.minimize()
+		}
 	}
 
 	changeZoom(scale: number) {
@@ -204,7 +210,9 @@ export class WindowManager {
 		} else if (scale < 0.5) scale = 0.5
 
 		this._currentBounds.scale = scale
-		windows.forEach((w) => w.setZoomFactor(scale))
+		for (const w of windows) {
+			w.setZoomFactor(scale)
+		}
 	}
 
 	get(id: number): ApplicationWindow | null {

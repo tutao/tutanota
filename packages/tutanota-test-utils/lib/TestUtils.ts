@@ -83,9 +83,9 @@ export const mock = <T>(obj: T, mocker: (arg0: any) => any): T => {
 
 export function mapToObject<K extends string | number | symbol, V>(map: Map<K, V>): Record<K, V> {
 	const obj = {} as Record<K, V>
-	map.forEach((value, key) => {
+	for (const [key, value] of map.entries()) {
 		obj[key] = value
-	})
+	}
 	return obj
 }
 

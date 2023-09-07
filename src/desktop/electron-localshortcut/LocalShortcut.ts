@@ -225,11 +225,11 @@ export function register(win: BrowserWindow, accelerator: Accelerator, callback:
 	let wc = win.webContents
 
 	if (Array.isArray(accelerator)) {
-		accelerator.forEach((accelerator) => {
-			if (typeof accelerator === "string") {
-				register(win, accelerator, callback)
+		for (const acceleratorValue of accelerator) {
+			if (typeof acceleratorValue === "string") {
+				register(win, acceleratorValue, callback)
 			}
-		})
+		}
 		return
 	}
 	const acceleratorString: string = accelerator
@@ -258,14 +258,18 @@ export function register(win: BrowserWindow, accelerator: Accelerator, callback:
 			// Enable shortcut on current windows
 			const windows = BrowserWindow.getAllWindows()
 
-			windows.forEach((win) => enableAppShortcuts(null, win))
+			for (const win of windows) {
+				enableAppShortcuts(null, win)
+			}
 
 			// Enable shortcut on future windows
 			app.on("browser-window-created", enableAppShortcuts)
 
 			shortcutsOfWindow.removeListener = () => {
 				const windows = BrowserWindow.getAllWindows()
-				windows.forEach((win) => win.webContents.removeListener("before-input-event", keyHandler))
+				for (const win of windows) {
+					win.webContents.removeListener("before-input-event", keyHandler)
+				}
 				app.removeListener("browser-window-created", enableAppShortcuts)
 			}
 		} else {
@@ -308,11 +312,11 @@ export function unregister(win: BrowserWindow | typeof ANY_WINDOW, accelerator: 
 	let wc = win instanceof BrowserWindow ? win.webContents : ANY_WINDOW
 
 	if (Array.isArray(accelerator)) {
-		accelerator.forEach((accelerator) => {
-			if (typeof accelerator === "string") {
-				unregister(win, accelerator)
+		for (const nestedAccelerator of accelerator) {
+			if (typeof nestedAccelerator === "string") {
+				unregister(win, nestedAccelerator)
 			}
-		})
+		}
 		return
 	}
 

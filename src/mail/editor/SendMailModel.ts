@@ -1026,7 +1026,7 @@ export class SendMailModel {
 						const matching = this.getRecipientList(fieldType).filter(
 							(recipient) => recipient.contact && isSameId(recipient.contact._id, contact._id),
 						)
-						matching.forEach((recipient) => {
+						for (const recipient of matching) {
 							// if the mail address no longer exists on the contact then delete the recipient
 							if (!contact.mailAddresses.find((ma) => cleanMatch(ma.address, recipient.address))) {
 								changed = changed || this.removeRecipient(recipient, fieldType, true)
@@ -1036,7 +1036,7 @@ export class SendMailModel {
 								recipient.setContact(contact)
 								changed = true
 							}
-						})
+						}
 					}
 				})
 			} else if (operation === OperationType.DELETE) {

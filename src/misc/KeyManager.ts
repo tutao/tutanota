@@ -209,7 +209,9 @@ class KeyManager {
 	 * @private
 	 */
 	_applyOperation(shortcuts: ReadonlyArray<Shortcut>, operation: (id: string, s: Shortcut) => unknown) {
-		shortcuts.forEach((s) => operation(createKeyIdentifier(s.key.code, s.ctrl, s.alt, s.shift, s.meta), s))
+		for (const s of shortcuts) {
+			operation(createKeyIdentifier(s.key.code, s.ctrl, s.alt, s.shift, s.meta), s)
+		}
 	}
 }
 

@@ -112,7 +112,9 @@ class Animations {
 			.map((mutation) => mutation.willChange())
 			.filter((willChange) => willChange.length)
 			.join(" ")
-		targetsArray.forEach((t) => (t.style.willChange = willChange))
+		for (const t of targetsArray) {
+			t.style.willChange = willChange
+		}
 		const animations: Animation[] = []
 		const promise = new Promise((resolve) => {
 			let start = this.activeAnimations.length ? false : true

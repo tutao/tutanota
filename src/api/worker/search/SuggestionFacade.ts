@@ -31,7 +31,7 @@ export class SuggestionFacade<T> {
 	}
 
 	addSuggestions(words: string[]): void {
-		words.forEach((word) => {
+		for (const word of words) {
 			if (word.length > 0) {
 				let key = word.charAt(0)
 
@@ -51,7 +51,7 @@ export class SuggestionFacade<T> {
 					this._suggestions[key] = [word]
 				}
 			}
-		})
+		}
 	}
 
 	getSuggestions(word: string): string[] {

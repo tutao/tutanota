@@ -78,15 +78,13 @@ export class DesktopContextMenu {
 		const submenu = new this.electron.Menu()
 
 		if (misspelledWord !== "") {
-			dictionarySuggestions
-				.map(
-					(s) =>
-						new this.electron.MenuItem({
-							label: s,
-							click: (mi, bw) => bw && bw.webContents && bw.webContents.replaceMisspelling(s),
-						}),
-				)
-				.forEach((mi) => submenu.append(mi))
+			for (const s of dictionarySuggestions) {
+				const menuItem = new this.electron.MenuItem({
+					label: s,
+					click: (mi, bw) => bw && bw.webContents && bw.webContents.replaceMisspelling(s),
+				})
+				submenu.append(menuItem)
+			}
 			submenu.append(
 				new this.electron.MenuItem({
 					type: "separator",

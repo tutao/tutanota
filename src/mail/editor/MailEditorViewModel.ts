@@ -134,7 +134,7 @@ export const cleanupInlineAttachments: (arg0: HTMLElement, arg1: Array<HTMLEleme
 		// briefly, e.g. if some text is inserted before/after the element, Squire would put it into another diff and this
 		// means removal + insertion.
 		const elementsToRemove: HTMLElement[] = []
-		inlineImageElements.forEach((inlineImage) => {
+		for (const inlineImage of inlineImageElements) {
 			if (domElement && !domElement.contains(inlineImage)) {
 				const cid = inlineImage.getAttribute("cid")
 				const attachmentIndex = attachments.findIndex((a) => a.cid === cid)
@@ -145,7 +145,7 @@ export const cleanupInlineAttachments: (arg0: HTMLElement, arg1: Array<HTMLEleme
 					m.redraw()
 				}
 			}
-		})
+		}
 		findAllAndRemove(inlineImageElements, (imageElement) => elementsToRemove.includes(imageElement))
 	},
 )

@@ -4,7 +4,7 @@ import fs from "node:fs"
 
 const packageJson = JSON.parse(fs.readFileSync("./package.json", "utf8"))
 
-;[
+const devDependencies = [
 	"electron",
 	"electron-builder",
 	"electron-localshortcut",
@@ -19,12 +19,15 @@ const packageJson = JSON.parse(fs.readFileSync("./package.json", "utf8"))
 	"rcedit",
 	"winreg",
 	"node-forge",
-].forEach((dep) => {
+]
+for (const dep of devDependencies) {
 	delete packageJson.devDependencies[dep]
-})
-;["keytar"].forEach((dep) => {
+}
+
+const dependencies = ["keytar"]
+for (const dep of dependencies) {
 	delete packageJson.dependencies[dep]
-})
+}
 
 delete packageJson.scripts["postinstall"]
 

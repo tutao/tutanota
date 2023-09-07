@@ -25,16 +25,16 @@ export class Randomizer {
 			data: number | Array<number>
 		}>,
 	): Promise<void> {
-		entropyCache.forEach((entry) => {
+		for (const entry of entropyCache) {
 			this.random.addEntropy(entry.data, entry.entropy, entry.source)
-		})
+		}
 		return Promise.resolve()
 	}
 
 	addStaticEntropy(bytes: Uint8Array) {
-		bytes.forEach((byte) => {
+		for (const byte of bytes) {
 			this.random.addEntropy(byte, 8, "static")
-		})
+		}
 	}
 
 	/**

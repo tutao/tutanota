@@ -7,13 +7,13 @@ import { neverNull } from "./Utils.js"
 export function mergeMaps<T>(maps: Map<string, T>[]): Map<string, T[]> {
 	return maps.reduce((mergedMap: Map<string, T[]>, map: Map<string, T>) => {
 		// merge same key of multiple attributes
-		map.forEach((value: T, key: string) => {
+		for (const [key, value] of map.entries()) {
 			if (mergedMap.has(key)) {
 				neverNull(mergedMap.get(key)).push(value)
 			} else {
 				mergedMap.set(key, [value])
 			}
-		})
+		}
 		return mergedMap
 	}, new Map())
 }

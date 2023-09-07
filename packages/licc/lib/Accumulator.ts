@@ -25,10 +25,10 @@ export class Accumulator {
 	): this {
 		const lineJoiner = opts?.suffix ?? ""
 		const trailingJoiner = opts?.trailing ?? false
-		lines.forEach((line, idx) => {
+		for (const [idx, line] of lines.entries()) {
 			const joiner = trailingJoiner || idx < lines.length - 1 ? lineJoiner : ""
 			this.line(line + joiner)
-		})
+		}
 		return this
 	}
 

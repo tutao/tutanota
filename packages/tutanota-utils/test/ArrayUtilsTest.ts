@@ -831,8 +831,11 @@ o.spec("array utils", function () {
 				],
 			],
 		]
-		// @ts-ignore
-		testcases.forEach(test)
+
+		for (const testCase of testcases) {
+			// @ts-ignore
+			test(testCase)
+		}
 
 		o("rejection in partitionAsync is propagated", async function () {
 			// can't use assertThrows because of circular dependency

@@ -20,7 +20,6 @@ import {
 	createBirthday,
 	createContact,
 	createContactAddress,
-	createFile,
 	FileTypeRef,
 	Mail,
 	MailAddressTypeRef,
@@ -77,7 +76,7 @@ import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
 import { SessionKeyNotFoundError } from "../../../../../src/api/common/error/SessionKeyNotFoundError.js"
 import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
 
-const { anything, captor } = matchers
+const { captor } = matchers
 
 const rsa = new RsaWeb()
 const rsaEncrypt = rsa.encrypt
@@ -842,7 +841,7 @@ o.spec("crypto facade", function () {
 				verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture()))
 				const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value
 				o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
-				testData.bucketKey.bucketEncSessionKeys.forEach((isk) => {
+				for (const isk of testData.bucketKey.bucketEncSessionKeys) {
 					isk.symEncSessionKey = encryptKey(testData.mailGroupKey, decryptKey(testData.bk, isk.symEncSessionKey))
 					o(
 						updatedInstanceSessionKeys.some(
@@ -854,7 +853,7 @@ o.spec("crypto facade", function () {
 								arrayEquals(updatedKey.symEncSessionKey, isk.symEncSessionKey),
 						),
 					).equals(true)
-				})
+				}
 			},
 		)
 	})

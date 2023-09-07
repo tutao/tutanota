@@ -98,11 +98,11 @@ export class GroupInfoIndexer {
 
 				let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(GroupInfoTypeRef))
 
-				allUserGroupInfos.concat(allTeamGroupInfos).forEach((groupInfo) => {
+				for (const groupInfo of allUserGroupInfos.concat(allTeamGroupInfos)) {
 					let keyToIndexEntries = this.createGroupInfoIndexEntries(groupInfo)
 
 					this._core.encryptSearchIndexEntries(groupInfo._id, neverNull(groupInfo._ownerGroup), keyToIndexEntries, indexUpdate)
-				})
+				}
 				return Promise.all([
 					this._core.writeIndexUpdate(
 						[

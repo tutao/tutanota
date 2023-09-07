@@ -111,9 +111,9 @@ o.spec("ElectronUpdater Test", function () {
 			}),
 			emit: function (ev: string, args: any) {
 				const entries = this.callbacks[ev]
-				entries.forEach((entry) => {
+				for (const entry of entries) {
 					setTimeout(() => entry.fn(args), 1)
-				})
+				}
 				this.callbacks[ev] = entries.filter((entry) => !entry.once)
 			},
 			checkForUpdates: spy(function () {

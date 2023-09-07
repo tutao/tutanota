@@ -260,7 +260,9 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				help: "formatTextUnderline_msg",
 			},
 		]
-		shortcuts.forEach(dialog.addShortcut.bind(dialog))
+		for (const shortcut of shortcuts) {
+			dialog.addShortcut(shortcut)
+		}
 		this.editor.initialized.promise.then(() => {
 			a.knowledgeBaseInjection(this.editor).then((injection) => {
 				this.knowledgeBaseInjection = injection
@@ -685,7 +687,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private async getRecipientClickedContextButtons(recipient: ResolvableRecipient, field: RecipientField): Promise<DropdownChildAttrs[]> {
-		const { logins, entity, contactModel } = this.sendMailModel
+		const { entity, contactModel } = this.sendMailModel
 
 		const canEditBubbleRecipient = locator.logins.getUserController().isInternalUser() && !locator.logins.isEnabled(FeatureType.DisableContacts)
 

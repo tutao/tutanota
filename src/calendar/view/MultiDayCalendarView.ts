@@ -116,7 +116,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		return m(
 			".fill-absolute.flex.col.calendar-column-border.mlr-safe-inset.content-bg",
 			{
-				oncreate: (vnode) => {
+				oncreate: () => {
 					this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
 				},
 				onremove: () => {
@@ -160,11 +160,11 @@ export class MultiDayCalendarView implements Component<Attrs> {
 						},
 						onscroll: (event: Event) => {
 							if (thisWeek === mainWeek) {
-								this._domElements.forEach((dom) => {
+								for (const dom of this._domElements) {
 									if (dom !== event.target) {
 										dom.scrollTop = (event.target as HTMLElement).scrollTop
 									}
-								})
+								}
 
 								this._scrollPosition = (event.target as HTMLElement).scrollTop
 							}

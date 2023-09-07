@@ -167,17 +167,16 @@ export class IndexerCore {
 		const encInstanceIdB64 = uint8ArrayToBase64(encInstanceId)
 		const elementIdTimestamp = generatedIdToTimestamp(elementIdPart(id))
 		const encWordsB64: string[] = []
-		keyToIndexEntries.forEach((value, indexKey) => {
+		for (const [indexKey, value] of keyToIndexEntries.entries()) {
 			const encWordB64 = encryptIndexKeyBase64(this.db.key, indexKey, this.db.iv)
 			encWordsB64.push(encWordB64)
 			const encIndexEntries = getFromMap(indexUpdate.create.indexMap, encWordB64, () => [])
-			value.forEach((indexEntry) =>
+			for (const indexEntry of value)
 				encIndexEntries.push({
 					entry: encryptSearchIndexEntry(this.db.key, indexEntry, encInstanceId),
 					timestamp: elementIdTimestamp,
-				}),
-			)
-		})
+				})
+		}
 		indexUpdate.create.encInstanceIdToElementData.set(encInstanceIdB64, {
 			listId,
 			encWordsB64,
@@ -204,7 +203,7 @@ export class IndexerCore {
 				const metaDataRowKeysBinary = aes256Decrypt(this.db.key, elementData[1], true)
 				// For every word we have a metadata reference and we want to update them all.
 				const metaDataRowKeys = decodeNumbers(metaDataRowKeysBinary)
-				metaDataRowKeys.forEach((metaDataRowKey) => {
+				for (const metaDataRowKey of metaDataRowKeys) {
 					// We add current instance into list of instances to delete for each word
 					const ids = getFromMap(indexUpdate.delete.searchMetaRowToEncInstanceIds, metaDataRowKey, () => [])
 					ids.push({
@@ -213,7 +212,7 @@ export class IndexerCore {
 						typeId,
 						timestamp: generatedIdToTimestamp(event.instanceId),
 					})
-				})
+				}
 				indexUpdate.delete.encInstanceIds.push(encInstanceIdB64)
 			})
 		})
@@ -405,7 +404,7 @@ export class IndexerCore {
 			const metaDataRow = decryptMetaData(this.db.key, encMetaDataRow)
 			// add meta data to set to only update meta data once when deleting multiple instances
 			const metaDataEntriesSet = new Set() as Set<SearchIndexMetadataEntry>
-			instanceInfos.forEach((info) => {
+			for (const info of instanceInfos) {
 				// For each instance we find SearchIndex row it belongs to by timestamp
 				const entryIndex = this._findMetaDataEntryByTimestamp(metaDataRow, info.timestamp, info.appId, info.typeId)
 
@@ -419,7 +418,7 @@ export class IndexerCore {
 				} else {
 					metaDataEntriesSet.add(metaDataRow.rows[entryIndex])
 				}
-			})
+			}
 
 			// For each SearchIndex row we need to update...
 			const updateSearchIndex = this._promiseMapCompat(Array.from(metaDataEntriesSet), (metaEntry) => {
@@ -464,13 +463,13 @@ export class IndexerCore {
 		if (indexUpdate.create.encInstanceIdToElementData.size === 0) return null // keep transaction context open (only in Safari)
 
 		let promises: Promise<unknown>[] = []
-		indexUpdate.create.encInstanceIdToElementData.forEach((elementDataSurrogate, b64EncInstanceId) => {
+		for (const [b64EncInstanceId, elementDataSurrogate] of indexUpdate.create.encInstanceIdToElementData.entries()) {
 			const metaRows = elementDataSurrogate.encWordsB64.map((w) => encWordToMetaRow[w])
 			const rowKeysBinary = new Uint8Array(calculateNeededSpaceForNumbers(metaRows))
 			encodeNumbers(metaRows, rowKeysBinary)
 			const encMetaRowKeys = aes256EncryptSearchIndexEntry(this.db.key, rowKeysBinary)
 			promises.push(transaction.put(ElementDataOS, b64EncInstanceId, [elementDataSurrogate.listId, encMetaRowKeys, elementDataSurrogate.ownerGroup]))
-		})
+		}
 		return Promise.all(promises)
 	}
 
@@ -678,9 +677,9 @@ export class IndexerCore {
 						getFromMap(timestampToEntries, timeStamp, () => []).push(encSearchIndexEntry)
 					})
 					// Also add new entries
-					entries.forEach(({ entry, timestamp }) => {
+					for (const { entry, timestamp } of entries) {
 						getFromMap(timestampToEntries, timestamp, () => []).push(entry)
-					})
+					}
 					// Prefer to put entries into the first row if it's not initial indexing (we are likely to grow second row in the future)
 					// Prefer to put entries into the second row if it's initial indexing (we are likely to grow the first row because we move back in time)
 					const isLastEntry = this._nextEntryOfType(metaData, metaEntryIndex + 1, metaEntry.app, metaEntry.type) == null
@@ -757,7 +756,7 @@ export class IndexerCore {
 					oldestElementTimestamp: sortedTimestamps[0],
 				},
 			]
-			sortedTimestamps.forEach((id) => {
+			for (const id of sortedTimestamps) {
 				const encryptedEntries = neverNull(timestampToEntries.get(id))
 
 				if (lastThrow(rows).row.length + encryptedEntries.length > SEARCH_INDEX_ROW_LENGTH) {
@@ -768,7 +767,7 @@ export class IndexerCore {
 				}
 
 				lastThrow(rows).row.push(...encryptedEntries)
-			})
+			}
 			return rows
 		} else {
 			// If we append in the middle, then try to saturate new row
@@ -779,7 +778,7 @@ export class IndexerCore {
 				},
 			]
 			const reveresId = sortedTimestamps.slice().reverse()
-			reveresId.forEach((id) => {
+			for (const id of reveresId) {
 				const encryptedEntries = neverNull(timestampToEntries.get(id))
 
 				if (rows[0].row.length + encryptedEntries.length > SEARCH_INDEX_ROW_LENGTH) {
@@ -791,7 +790,7 @@ export class IndexerCore {
 
 				rows[0].row.unshift(...encryptedEntries)
 				rows[0].oldestElementTimestamp = Math.min(rows[0].oldestElementTimestamp, id)
-			})
+			}
 			return rows
 		}
 	}

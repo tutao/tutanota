@@ -95,11 +95,11 @@ export class KnowledgeBaseModel {
 		this._allKeywords = []
 		this._matchedKeywordsInContent = []
 
-		this._allEntries.array.forEach((entry) => {
-			entry.keywords.forEach((keyword) => {
+		for (const entry of this._allEntries.array) {
+			for (const keyword of entry.keywords) {
 				this._allKeywords.push(keyword.keyword)
-			})
-		})
+			}
+		}
 	}
 
 	isSelectedEntry(entry: KnowledgeBaseEntry): boolean {
@@ -133,11 +133,11 @@ export class KnowledgeBaseModel {
 		this._matchedKeywordsInContent = []
 		const emailContentNoTags = emailContent.replace(/(<([^>]+)>)/gi, "") // remove all html tags
 
-		this._allKeywords.forEach((keyword) => {
+		for (const keyword of this._allKeywords) {
 			if (emailContentNoTags.includes(keyword)) {
 				this._matchedKeywordsInContent.push(keyword)
 			}
-		})
+		}
 
 		this._allEntries = SortedArray.from(this._allEntries.array, (a, b) => this._compareEntriesByMatchedKeywords(a, b))
 		this._filterValue = ""
@@ -152,11 +152,11 @@ export class KnowledgeBaseModel {
 
 	_getMatchedKeywordsNumber(entry: KnowledgeBaseEntry): number {
 		let matches = 0
-		entry.keywords.forEach((k) => {
+		for (const k of entry.keywords) {
 			if (this._matchedKeywordsInContent.includes(k.keyword)) {
 				matches++
 			}
-		})
+		}
 		return matches
 	}
 

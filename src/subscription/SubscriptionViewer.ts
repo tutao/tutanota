@@ -104,7 +104,9 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 		this._giftCards = new Map()
 		loadGiftCards(assertNotNull(locator.logins.getUserController().user.customer)).then((giftCards) => {
-			giftCards.forEach((giftCard) => this._giftCards.set(elementIdPart(giftCard._id), giftCard))
+			for (const giftCard of giftCards) {
+				this._giftCards.set(elementIdPart(giftCard._id), giftCard)
+			}
 		})
 		this._giftCardsExpanded = stream<boolean>(false)
 

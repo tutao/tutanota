@@ -138,7 +138,9 @@ export class CalendarFacade {
 			}
 			throw e
 		}
-		eventsWithAlarms.forEach(({ event, alarmInfoIds }) => (event.alarmInfos = alarmInfoIds))
+		for (const { event, alarmInfoIds } of eventsWithAlarms) {
+			event.alarmInfos = alarmInfoIds
+		}
 		currentProgress = 33
 		await onProgress(currentProgress)
 		const eventsWithAlarmsByEventListId = groupBy(eventsWithAlarms, (eventWrapper) => getListId(eventWrapper.event))

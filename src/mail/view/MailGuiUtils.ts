@@ -174,7 +174,7 @@ export function replaceCidsWithInlineImages(
 		imageElements.push(...shadowImageElements)
 	}
 	const elementsWithCid: HTMLElement[] = []
-	imageElements.forEach((imageElement) => {
+	for (const imageElement of imageElements) {
 		const cid = imageElement.getAttribute("cid")
 
 		if (cid) {
@@ -228,18 +228,18 @@ export function replaceCidsWithInlineImages(
 				}
 			}
 		}
-	})
+	}
 	return elementsWithCid
 }
 
 export function replaceInlineImagesWithCids(dom: HTMLElement): HTMLElement {
 	const domClone = dom.cloneNode(true) as HTMLElement
 	const inlineImages: Array<HTMLElement> = Array.from(domClone.querySelectorAll("img[cid]"))
-	inlineImages.forEach((inlineImage) => {
+	for (const inlineImage of inlineImages) {
 		const cid = inlineImage.getAttribute("cid")
 		inlineImage.setAttribute("src", "cid:" + (cid || ""))
 		inlineImage.removeAttribute("cid")
-	})
+	}
 	return domClone
 }
 
@@ -269,7 +269,7 @@ function createInlineImageReference(file: DataFile, cid: string): InlineImageRef
 
 export function cloneInlineImages(inlineImages: InlineImages): InlineImages {
 	const newMap = new Map()
-	inlineImages.forEach((v, k) => {
+	for (const [k, v] of inlineImages.entries()) {
 		const blob = new Blob([v.blob])
 		const objectUrl = URL.createObjectURL(blob)
 		newMap.set(k, {
@@ -277,14 +277,14 @@ export function cloneInlineImages(inlineImages: InlineImages): InlineImages {
 			objectUrl,
 			blob,
 		})
-	})
+	}
 	return newMap
 }
 
 export function revokeInlineImages(inlineImages: InlineImages): void {
-	inlineImages.forEach((v, k) => {
+	for (const v of inlineImages.values()) {
 		URL.revokeObjectURL(v.objectUrl)
-	})
+	}
 }
 
 export async function loadInlineImages(fileController: FileController, attachments: Array<TutanotaFile>, referencedCids: Array<string>): Promise<InlineImages> {

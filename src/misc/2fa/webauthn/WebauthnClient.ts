@@ -124,7 +124,9 @@ export class WebauthnClient {
 		// get the length of the credential ID
 		const dataView = new DataView(new ArrayBuffer(2))
 		const idLenBytes = authData.slice(53, 55)
-		idLenBytes.forEach((value, index) => dataView.setUint8(index, value))
+		for (const [index, value] of idLenBytes.entries()) {
+			dataView.setUint8(index, value)
+		}
 		const credentialIdLength = dataView.getUint16(0)
 		// get the public key object
 		const publicKeyBytes = authData.slice(55 + credentialIdLength)

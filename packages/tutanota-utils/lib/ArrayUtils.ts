@@ -5,10 +5,10 @@ export function concat(...arrays: Uint8Array[]): Uint8Array {
 	let length = arrays.reduce((previous, current) => previous + current.length, 0)
 	let result = new Uint8Array(length)
 	let index = 0
-	arrays.forEach((array) => {
+	for (const array of arrays) {
 		result.set(array, index)
 		index += array.length
-	})
+	}
 	return result
 }
 
@@ -251,9 +251,9 @@ export function addAll(array: Array<any>, elements: Array<any>) {
 }
 
 export function removeAll(array: Array<any>, elements: Array<any>) {
-	elements.forEach((element) => {
+	for (const element of elements) {
 		remove(array, element)
-	})
+	}
 }
 
 /**
@@ -410,13 +410,13 @@ export function zip<A, B>(arr1: Array<A>, arr2: Array<B>): Array<[A, B]> {
 
 export function deduplicate<T>(arr: Array<T>, comp: (arg0: T, arg1: T) => boolean = (a, b) => a === b): Array<T> {
 	const deduplicated: T[] = []
-	arr.forEach((a) => {
+	for (const a of arr) {
 		const isDuplicate = deduplicated.some((b) => comp(a, b))
 
 		if (!isDuplicate) {
 			deduplicated.push(a)
 		}
-	})
+	}
 	return deduplicated
 }
 

@@ -377,9 +377,9 @@ export class MailModel {
 	_mailboxCountersUpdates(counters: WebsocketCounterData) {
 		const normalized = this.mailboxCounters() || {}
 		const group = normalized[counters.mailGroup] || {}
-		counters.counterValues.forEach((value) => {
+		for (const value of counters.counterValues) {
 			group[value.mailListId] = Number(value.count) || 0
-		})
+		}
 		normalized[counters.mailGroup] = group
 		this.mailboxCounters(normalized)
 	}

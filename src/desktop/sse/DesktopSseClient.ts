@@ -225,7 +225,9 @@ export class DesktopSseClient {
 					const lines = resData.split("\n")
 					resData = lines.pop() ?? "" // put the last line back into the buffer
 
-					lines.forEach((l) => this._processSseData(l, userId))
+					for (const l of lines) {
+						this._processSseData(l, userId)
+					}
 				})
 					.on("close", () => {
 						log.debug("sse response closed")
@@ -372,8 +374,12 @@ export class DesktopSseClient {
 					if (mn.notificationInfos && mn.notificationInfos.length === 0 && mn.alarmNotifications && mn.alarmNotifications.length === 0) {
 						log.debug("MissedNotification is empty")
 					} else {
-						mn.notificationInfos.forEach((ni: NotificationInfo) => this._handleNotificationInfo(this._lang.get("pushNewMail_msg"), ni))
-						mn.alarmNotifications.forEach((an: EncryptedAlarmNotification) => this._alarmScheduler.handleAlarmNotification(an))
+						for (const ni of mn.notificationInfos as Array<NotificationInfo>) {
+							this._handleNotificationInfo(this._lang.get("pushNewMail_msg"), ni)
+						}
+						for (const an of mn.alarmNotifications as Array<EncryptedAlarmNotification>) {
+							this._alarmScheduler.handleAlarmNotification(an)
+						}
 					}
 				})
 				.catch((e) => {

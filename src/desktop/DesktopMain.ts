@@ -280,7 +280,7 @@ async function startupInstance(components: Components) {
 			if (wm.getAll().length === 0) {
 				await wm.newWindow(true)
 			} else {
-				wm.getAll().forEach((w) => w.show())
+				for (const w of wm.getAll()) w.show()
 			}
 
 			await handleMailto(findMailToUrlInArgv(args), components)

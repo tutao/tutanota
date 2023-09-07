@@ -439,7 +439,7 @@ export class ApplicationWindow {
 	private reRegisterShortcuts() {
 		this.localShortcut.unregisterAll(this._browserWindow)
 
-		this.shortcuts.forEach((s) => {
+		for (const s of this.shortcuts) {
 			// build the accelerator string localShortcut understands
 			let shortcutString = ""
 			shortcutString += s.meta ? "Command+" : ""
@@ -449,7 +449,7 @@ export class ApplicationWindow {
 			shortcutString += capitalizeFirstLetter(typedKeys(Keys).filter((k) => s.key === Keys[k])[0])
 
 			this.localShortcut.register(this._browserWindow, shortcutString, s.exec)
-		})
+		}
 	}
 
 	private sendShortcutstoRender(): void {

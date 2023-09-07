@@ -531,11 +531,11 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		const customerInfo = await this.customerInfo.getAsync()
 		let customDomainInfos = getCustomMailDomains(customerInfo)
 		// remove dns status instances for all removed domains
-		Object.keys(this.domainDnsStatus).forEach((domain) => {
+		for (const domain of Object.keys(this.domainDnsStatus)) {
 			if (!customDomainInfos.find((di) => di.domain === domain)) {
 				delete this.domainDnsStatus[domain]
 			}
-		})
+		}
 		return promiseMap(customDomainInfos, (domainInfo) => {
 			// create dns status instances for all new domains
 			if (!this.domainDnsStatus[domainInfo.domain]) {

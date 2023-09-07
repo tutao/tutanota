@@ -38,7 +38,7 @@ o.spec("crypto compatibility", function () {
 		random.generateRandomData = originalRandom
 	})
 	o("rsa encryption", () => {
-		testData.rsaEncryptionTests.forEach((td) => {
+		for (const td of testData.rsaEncryptionTests) {
 			random.generateRandomData = (number) => hexToUint8Array(td.seed)
 
 			let publicKey = hexToPublicKey(td.publicKey)
@@ -47,10 +47,10 @@ o.spec("crypto compatibility", function () {
 			let privateKey = hexToPrivateKey(td.privateKey)
 			let data = rsaDecrypt(privateKey, encryptedData)
 			o(uint8ArrayToHex(data)).equals(td.input)
-		})
+		}
 	})
 	o("aes 256", function () {
-		testData.aes256Tests.forEach((td) => {
+		for (const td of testData.aes256Tests) {
 			let key = uint8ArrayToBitArray(hexToUint8Array(td.hexKey))
 			// encrypt data
 			let encryptedBytes = aes256Encrypt(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true)
@@ -69,7 +69,7 @@ o.spec("crypto compatibility", function () {
 			o(uint8ArrayToBase64(encryptedKey256)).equals(td.encryptedKey256)
 			const decryptedKey256 = aes256DecryptKey(key, encryptedKey256)
 			o(uint8ArrayToHex(bitArrayToUint8Array(decryptedKey256))).equals(td.keyToEncrypt256)
-		})
+		}
 	})
 
 	/*
@@ -113,42 +113,42 @@ o.spec("crypto compatibility", function () {
 	})
 
 	o("aes 128", function () {
-		testData.aes128Tests.forEach((td) => {
+		for (const td of testData.aes128Tests) {
 			let key = uint8ArrayToBitArray(hexToUint8Array(td.hexKey))
 			let encryptedBytes = aes128Encrypt(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true, false)
 			o(uint8ArrayToBase64(encryptedBytes)).equals(td.cipherTextBase64)
 			let decryptedBytes = uint8ArrayToBase64(aes128Decrypt(key, encryptedBytes))
 			o(decryptedBytes).equals(td.plainTextBase64)
-		})
+		}
 	})
 	o("aes 128 mac", function () {
-		testData.aes128MacTests.forEach((td) => {
+		for (const td of testData.aes128MacTests) {
 			let key = uint8ArrayToBitArray(hexToUint8Array(td.hexKey))
 			let encryptedBytes = aes128Encrypt(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true, true)
 			o(uint8ArrayToBase64(encryptedBytes)).equals(td.cipherTextBase64)
 			let decryptedBytes = uint8ArrayToBase64(aes128Decrypt(key, encryptedBytes))
 			o(decryptedBytes).equals(td.plainTextBase64)
-		})
+		}
 	})
 	o("unicodeEncoding", function () {
-		testData.encodingTests.forEach((td) => {
+		for (const td of testData.encodingTests) {
 			let encoded = stringToUtf8Uint8Array(td.string)
 			o(uint8ArrayToBase64(encoded)).equals(neverNull(td.encodedString))
 			let decoded = utf8Uint8ArrayToString(encoded)
 			o(decoded).equals(td.string)
-		})
+		}
 	})
 	o("bcrypt 128", function () {
-		testData.bcrypt128Tests.forEach((td) => {
+		for (const td of testData.bcrypt128Tests) {
 			let key = generateKeyFromPassphraseBcrypt(td.password, hexToUint8Array(td.saltHex), KeyLength.b128)
 			o(uint8ArrayToHex(bitArrayToUint8Array(key))).equals(td.keyHex)
-		})
+		}
 	})
 	o("bcrypt 256", function () {
-		testData.bcrypt256Tests.forEach((td) => {
+		for (const td of testData.bcrypt256Tests) {
 			let key = generateKeyFromPassphraseBcrypt(td.password, hexToUint8Array(td.saltHex), KeyLength.b256)
 			o(uint8ArrayToHex(bitArrayToUint8Array(key))).equals(td.keyHex)
-		})
+		}
 	})
 	o("argon2id", async function () {
 		let argon2: WebAssembly.Exports
@@ -176,10 +176,10 @@ o.spec("crypto compatibility", function () {
 		}
 	})
 	o("compression", function () {
-		testData.compressionTests.forEach((td) => {
+		for (const td of testData.compressionTests) {
 			o(utf8Uint8ArrayToString(uncompress(base64ToUint8Array(td.compressedBase64TextJava)))).equals(td.uncompressedText)
 			o(utf8Uint8ArrayToString(uncompress(base64ToUint8Array(td.compressedBase64TextJavaScript)))).equals(td.uncompressedText)
-		})
+		}
 	})
 	/**
 	 * Creates the Javascript compatibility test data for compression. See CompatibilityTest.writeCompressionTestData() in Java for

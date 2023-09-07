@@ -142,21 +142,14 @@ o.spec("PathUtils", function () {
 			})
 		}
 
-		EXECUTABLE_EXTENSIONS.map((extension) => `someFile.${extension}`).forEach(testDoesLookExecutable)
-
-		EXECUTABLE_EXTENSIONS.map((extension) => `C:\\a\\b\\someFile.${extension}`).forEach(testDoesLookExecutable)
-
-		EXECUTABLE_EXTENSIONS.map((extension) => `C:\\a\\b\\.${extension}`).forEach(testDoesLookExecutable)
-
-		EXECUTABLE_EXTENSIONS.map((extension) => `/a/b/someFile.${extension}`).forEach(testDoesLookExecutable)
-
-		EXECUTABLE_EXTENSIONS.map((extension) => `/a/b/.${extension}`).forEach(testDoesLookExecutable)
-
-		EXECUTABLE_EXTENSIONS.map((extension) => `file:///a/b/someFile.${extension}`).forEach(testDoesLookExecutable)
-
-		EXECUTABLE_EXTENSIONS.map((extension) => `file:///a/b/.${extension}`).forEach(testDoesLookExecutable)
-
-		EXECUTABLE_EXTENSIONS.map((extension) => `.${extension}`).forEach(testDoesLookExecutable)
+		for (const extension of EXECUTABLE_EXTENSIONS) testDoesLookExecutable(`someFile.${extension}`)
+		for (const extension of EXECUTABLE_EXTENSIONS) testDoesLookExecutable(`C:\\a\\b\\someFile.${extension}`)
+		for (const extension of EXECUTABLE_EXTENSIONS) testDoesLookExecutable(`C:\\a\\b\\.${extension}`)
+		for (const extension of EXECUTABLE_EXTENSIONS) testDoesLookExecutable(`/a/b/someFile.${extension}`)
+		for (const extension of EXECUTABLE_EXTENSIONS) testDoesLookExecutable(`/a/b/.${extension}`)
+		for (const extension of EXECUTABLE_EXTENSIONS) testDoesLookExecutable(`file:///a/b/someFile.${extension}`)
+		for (const extension of EXECUTABLE_EXTENSIONS) testDoesLookExecutable(`file:///a/b/.${extension}`)
+		for (const extension of EXECUTABLE_EXTENSIONS) testDoesLookExecutable(`.${extension}`)
 
 		o("should not detect non executable extensions as looking executable", function () {
 			o(looksExecutable("picture.jpg")).equals(false)

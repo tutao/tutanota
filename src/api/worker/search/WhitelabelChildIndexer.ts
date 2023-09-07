@@ -89,11 +89,11 @@ export class WhitelabelChildIndexer {
 							return children.then((allChildren) => {
 								let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(WhitelabelChildTypeRef))
 
-								allChildren.forEach((child) => {
+								for (const child of allChildren) {
 									let keyToIndexEntries = this.createWhitelabelChildIndexEntries(child)
 
 									this._core.encryptSearchIndexEntries(child._id, neverNull(child._ownerGroup), keyToIndexEntries, indexUpdate)
-								})
+								}
 								return Promise.all([
 									this._core.writeIndexUpdate(
 										[

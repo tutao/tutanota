@@ -28,18 +28,18 @@ export class FeatureListProvider {
 
 	private countFeatures(categories: FeatureCategory[]): void {
 		const featureCounts = new Map<string, { max: number }>()
-		categories.forEach((category) => {
+		for (const category of categories) {
 			var count = featureCounts.get(category.title)
 			const numberOfFeatures = category.features.length
 			if (count == null || numberOfFeatures > count.max) {
 				featureCounts.set(category.title, { max: numberOfFeatures })
 			}
-		})
-		categories.forEach((category) => {
+		}
+		for (const category of categories) {
 			category.featureCount = getFromMap(featureCounts, category.title, () => {
 				return { max: 0 }
 			})
-		})
+		}
 	}
 
 	static async getInitializedInstance(): Promise<FeatureListProvider> {

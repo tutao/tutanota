@@ -279,7 +279,7 @@ export function decodeNumbers(binaryNumbers: Uint8Array, offset: number = 0): nu
  * @param offset At which offset they should be written
  */
 export function encodeNumbers(numbers: number[], target: Uint8Array, offset: number = 0): void {
-	numbers.forEach((number) => {
+	for (const number of numbers) {
 		offset += encodeNumberBlock(number, target, offset)
-	})
+	}
 }

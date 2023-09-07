@@ -37,9 +37,12 @@ export function spyify<T>(obj: T): T {
 		case "function":
 			const fSpy = spy(obj as any)
 
-			Object.keys(anyObj) // classes are functions
-				.filter((k) => !["args", "callCount", "spy"].includes(k))
-				.forEach((k) => (fSpy[k] = spyify(anyObj[k])))
+			// classes are functions
+			for (const k of Object.keys(anyObj)) {
+				if (!["args", "callCount", "spy"].includes(k)) {
+					fSpy[k] = spyify(anyObj[k])
+				}
+			}
 
 			return downcast<T>(fSpy)
 		case "object":
@@ -86,7 +89,7 @@ export type Mocked<T> = Class<T> & {
 function classify(template: { prototype: {}; statics: {} }): Mocked<any> {
 	const cls = function () {
 		cls.mockedInstances.push(this)
-		Object.keys(template.prototype).forEach((p) => {
+		for (const p of Object.keys(template.prototype)) {
 			if ("function" === typeof template.prototype[p]) {
 				this[p] = spy(template.prototype[p]) // don't use spyify, we don't want these to be spyCached
 			} else if ("object" === typeof template.prototype[p]) {
@@ -102,7 +105,7 @@ function classify(template: { prototype: {}; statics: {} }): Mocked<any> {
 			} else {
 				this[p] = template.prototype[p]
 			}
-		})
+		}
 
 		if (typeof template.prototype["constructor"] === "function") {
 			template.prototype["constructor"].apply(this, arguments)
@@ -110,7 +113,9 @@ function classify(template: { prototype: {}; statics: {} }): Mocked<any> {
 	}
 
 	if (template.statics) {
-		Object.keys(template.statics).forEach((s) => (cls[s] = template.statics[s]))
+		for (const s of Object.keys(template.statics)) {
+			cls[s] = template.statics[s]
+		}
 	}
 
 	cls.mockedInstances = []

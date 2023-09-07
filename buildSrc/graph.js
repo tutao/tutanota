@@ -4,11 +4,11 @@ function toDot(modules, output) {
 	let buffer = "digraph G {\n"
 	buffer += "edge [dir=back]\n"
 
-	modules.forEach((m) => {
-		m.deps.forEach((dep) => {
+	for (const m of modules) {
+		for (const dep of m.deps) {
 			buffer += `"${dep}" -> "${m.id}"\n`
-		})
-	})
+		}
+	}
 	buffer += "}\n"
 	fs.writeFileSync(output, buffer, { encoding: "utf8" })
 }
@@ -23,9 +23,9 @@ function prune(modules) {
 	//    console.log("pruning", id);
 	let index = modules.indexOf(avail[0])
 	modules.splice(index, 1)
-	modules.forEach((m) => {
+	for (const m of modules) {
 		m.deps = m.deps.filter((dep) => dep != id)
-	})
+	}
 	prune(modules)
 }
 
@@ -63,7 +63,7 @@ export default function plugin(options = {}) {
 			let strip = (str) => (str.startsWith(prefix) ? str.substring(prefix.length) : str)
 
 			let modules = []
-			ids.forEach((id) => {
+			for (const id of ids) {
 				let m = {
 					id: strip(id),
 					deps: this.getModuleInfo(id)
@@ -72,10 +72,10 @@ export default function plugin(options = {}) {
 						.map(strip),
 				}
 				if (exclude(m.id)) {
-					return
+					continue
 				}
 				modules.push(m)
-			})
+			}
 			if (options.prune) {
 				prune(modules)
 			}

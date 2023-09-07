@@ -4,6 +4,7 @@ import { mockAttribute, unmockAttribute } from "@tutao/tutanota-test-utils"
 import { getDayShifted, getStartOfDay, getStartOfNextDay } from "@tutao/tutanota-utils"
 import { lang } from "../../../src/misc/LanguageViewModel.js"
 import { formatActivateState, isNotificationCurrentlyActive } from "../../../src/misc/OutOfOfficeNotificationUtils.js"
+
 o.spec("OutOfOfficeNotificationTest", function () {
 	const mockedAttributes: any = []
 	o.before(function () {
@@ -20,9 +21,9 @@ o.spec("OutOfOfficeNotificationTest", function () {
 		)
 	})
 	o.after(function () {
-		mockedAttributes.forEach(function (mockedAttribute) {
+		for (const mockedAttribute of mockedAttributes) {
 			unmockAttribute(mockedAttribute)
-		})
+		}
 	})
 	o("Active state formatting", function () {
 		lang._setLanguageTag("en")

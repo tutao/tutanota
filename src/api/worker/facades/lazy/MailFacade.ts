@@ -355,7 +355,7 @@ export class MailFacade {
 		if (providedFiles != null) {
 			let attachments = providedFiles
 			// check which attachments have been removed
-			existingFileIds.forEach((fileId) => {
+			for (const fileId of existingFileIds) {
 				if (
 					!attachments.find(
 						(attachment) => attachment._type !== "DataFile" && attachment._type !== "FileReference" && isSameId(getLetId(attachment), fileId),
@@ -363,7 +363,7 @@ export class MailFacade {
 				) {
 					removedAttachmentIds.push(fileId)
 				}
-			})
+			}
 		}
 
 		return removedAttachmentIds
@@ -766,13 +766,13 @@ export class MailFacade {
 	 * @param markers only phishing (not spam) markers will be sent as event bus updates
 	 */
 	phishingMarkersUpdateReceived(markers: ReportedMailFieldMarker[]) {
-		markers.forEach((marker) => {
+		for (const marker of markers) {
 			if (marker.status === PhishingMarkerStatus.INACTIVE) {
 				this.phishingMarkers.delete(marker.marker)
 			} else {
 				this.phishingMarkers.add(marker.marker)
 			}
-		})
+		}
 	}
 
 	getRecipientKeyData(mailAddress: string): Promise<PublicKeyReturn | null> {
