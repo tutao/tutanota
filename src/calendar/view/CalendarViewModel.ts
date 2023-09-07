@@ -425,11 +425,11 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 					const calendarMemberships = this.logins.getUserController().getCalendarMemberships()
 					return this._calendarInfos.getAsync().then((calendarInfos) => {
 						// Remove calendars we no longer have membership in
-						calendarInfos.forEach((ci, group) => {
+						for (const group of calendarInfos.keys()) {
 							if (calendarMemberships.every((mb) => group !== mb.group)) {
 								this._hiddenCalendars.delete(group)
 							}
-						})
+						}
 						const oldGroupIds = new Set(calendarInfos.keys())
 						const newGroupIds = new Set(calendarMemberships.map((m) => m.group))
 						const diff = symmetricDifference(oldGroupIds, newGroupIds)
@@ -569,11 +569,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		if (oldEvent.endTime.getTime() !== eventToRemove.endTime.getTime() || !areRepeatRulesEqual(oldEvent.repeatRule, eventToRemove.repeatRule)) {
 			const newMap = this._cloneEvents()
 
-			newMap.forEach(
-				(
-					dayEvents, // finding all because event can overlap with itself so a day can have multiple occurrences of the same event in it
-				) => findAllAndRemove(dayEvents, (e) => isSameId(e._id, oldEvent._id)),
-			)
+			for (const dayEvents of newMap.values()) {
+				findAllAndRemove(dayEvents, (e) => isSameId(e._id, oldEvent._id))
+			}
 
 			this._replaceEvents(newMap)
 		}
@@ -611,7 +609,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	_removeDaysForEvent(id: IdTuple, ownerGroupId: Id) {
 		const newMap = this._cloneEvents()
 
-		newMap.forEach((dayEvents) => findAllAndRemove(dayEvents, (e) => isSameId(e._id, id)))
+		for (const dayEvents of newMap.values()) {
+			findAllAndRemove(dayEvents, (e) => isSameId(e._id, id))
+		}
 
 		this._replaceEvents(newMap)
 

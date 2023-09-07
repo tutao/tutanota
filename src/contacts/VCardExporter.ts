@@ -27,9 +27,9 @@ export function exportContacts(contacts: Contact[]): Promise<void> {
  */
 export function contactsToVCard(contacts: Contact[]): string {
 	let vCardFile = ""
-	contacts.forEach((contact) => {
+	for (const contact of contacts) {
 		vCardFile += _contactToVCard(contact)
-	})
+	}
 	return vCardFile
 }
 

@@ -489,37 +489,37 @@ export function createFilledContact(
 	c.lastName = lastName
 
 	if (emailAddresses) {
-		emailAddresses.forEach((m) => {
+		for (const m of emailAddresses) {
 			let a = createContactMailAddress()
 			a.address = m
 			a.type = ContactAddressType.WORK
 			a.customTypeName = ""
 			c.mailAddresses.push(a)
-		})
+		}
 	}
 
 	if (phoneNumbers) {
-		phoneNumbers.forEach((m) => {
+		for (const m of phoneNumbers) {
 			let a = createContactPhoneNumber()
 			a.number = m
 			a.type = ContactAddressType.WORK
 			a.customTypeName = ""
 			c.phoneNumbers.push(a)
-		})
+		}
 	}
 
 	if (addresses) {
-		addresses.forEach((m) => {
+		for (const m of addresses) {
 			let a = createContactAddress()
 			a.address = m
 			a.type = ContactAddressType.WORK
 			a.customTypeName = ""
 			c.addresses.push(a)
-		})
+		}
 	}
 
 	if (socialIds) {
-		socialIds.forEach((m) => {
+		for (const m of socialIds) {
 			let a = createContactSocialId()
 			if (typeof m === "string") {
 				a.socialId = m
@@ -530,7 +530,7 @@ export function createFilledContact(
 			}
 			a.customTypeName = ""
 			c.socialIds.push(a)
-		})
+		}
 	}
 
 	c.title = title

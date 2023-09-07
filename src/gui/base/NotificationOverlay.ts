@@ -92,14 +92,14 @@ function showNextNotification() {
 	}
 
 	// close the notification by default when pressing any button
-	allButtons.forEach((b) => {
+	for (const b of allButtons) {
 		const originClickHandler: clickHandler | undefined = b.click
 
 		b.click = (e, dom) => {
 			originClickHandler?.(e, dom)
 			closeAndOpenNext()
 		}
-	})
+	}
 	// add the postpone button
 	const closeFinalAttrs: ButtonAttrs = Object.assign(
 		{},

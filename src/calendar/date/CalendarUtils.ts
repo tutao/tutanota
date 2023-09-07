@@ -292,7 +292,7 @@ export function layOutEvents(
 	const children: Array<Children> = []
 	// Cache for calculation events
 	const calcEvents = new Map()
-	events.forEach((e) => {
+	for (const e of events) {
 		const calcEvent = getFromMap(calcEvents, e, () => getCalculationEvent(e, zone, layoutMode))
 		// Check if a new event group needs to be started
 		if (
@@ -344,7 +344,7 @@ export function layOutEvents(
 		if (lastEventStart == null || lastEventStart.getTime() < calcEvent.startTime.getTime()) {
 			lastEventStart = calcEvent.startTime
 		}
-	})
+	}
 	children.push(...renderer(columns))
 	return children
 }

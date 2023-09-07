@@ -139,7 +139,9 @@ export class ThemeController {
 		// see theme.js
 
 		// Clear all the keys first.
-		Object.keys(this.theme).forEach((key) => delete downcast(this.theme)[key])
+		for (const key of Object.keys(this.theme)) {
+			delete downcast(this.theme)[key]
+		}
 		// Write new keys on it later. First default theme as base (so that optional values are correctly filled in) and then the new theme.
 		Object.assign(this.theme, this.getDefaultTheme(), newTheme)
 		this._themeId = newThemeId

@@ -132,10 +132,10 @@ export class ContactIndexer {
 		let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
 		try {
 			const contacts = await this._entity.loadAll(ContactTypeRef, contactList.contacts)
-			contacts.forEach((contact) => {
+			for (const contact of contacts) {
 				let keyToIndexEntries = this.createContactIndexEntries(contact)
 				this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
-			})
+			}
 			return Promise.all([
 				this._core.writeIndexUpdate(
 					[

@@ -198,11 +198,11 @@ export class CustomColorsEditorViewModel {
 	_filterAndReturnCustomizations(): ThemeCustomizations {
 		const colorValues = Object.entries(this.customizations).filter(([n, v]) => n !== "themeId" && n !== "base" && n !== "logo")
 		const filteredColorValues = colorValues.filter(([n, v]) => this._isValidColorValue(downcast(v)))
-		Object.entries(this.customizations).forEach(([n, v]) => {
+		for (const [n, v] of Object.entries(this.customizations)) {
 			if (n === "themeId" || n === "base" || n === "logo") {
 				filteredColorValues.push([n, v])
 			}
-		})
+		}
 		return downcast(Object.fromEntries(filteredColorValues))
 	}
 }

@@ -290,7 +290,7 @@ export class HtmlSanitizer {
 	}
 
 	private replaceAttributeValue(htmlNode: HTMLElement, config: SanitizeConfig) {
-		EXTERNAL_CONTENT_ATTRS.forEach((attrName) => {
+		for (const attrName of EXTERNAL_CONTENT_ATTRS) {
 			let attribute = htmlNode.attributes.getNamedItem(attrName)
 
 			if (attribute) {
@@ -317,7 +317,7 @@ export class HtmlSanitizer {
 					htmlNode.style.maxWidth = "100px"
 				}
 			}
-		})
+		}
 	}
 
 	/** NB! {@param cssStyleAttributeName} is a *CSS* name ("border-image-source" as opposed to "borderImageSource"). */

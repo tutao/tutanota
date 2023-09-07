@@ -60,7 +60,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 			this.enabled(outOfOfficeNotification.enabled)
 			let defaultEnabled = false
 			let organizationEnabled = false
-			outOfOfficeNotification.notifications.forEach((notification) => {
+			for (const notification of outOfOfficeNotification.notifications) {
 				if (notification.type === OutOfOfficeNotificationMessageType.Default) {
 					defaultEnabled = true
 					this.defaultSubject(notification.subject)
@@ -70,7 +70,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 					this.organizationSubject(notification.subject)
 					this.organizationMessage(notification.message)
 				}
-			})
+			}
 
 			if (defaultEnabled && organizationEnabled) {
 				this.recipientMessageTypes(RecipientMessageType.INTERNAL_AND_EXTERNAL)

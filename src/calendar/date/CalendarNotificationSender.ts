@@ -68,13 +68,13 @@ export class CalendarNotificationSender {
 				// and just exclude them from sending out updates but leave the event untouched for other recipients
 				const invalidRecipients = e.message.split("\n")
 				let hasRemovedRecipient = false
-				invalidRecipients.forEach((invalidRecipient) => {
+				for (const invalidRecipient of invalidRecipients) {
 					const recipientInfo = findRecipientWithAddress(sendMailModel.bccRecipients(), invalidRecipient)
 
 					if (recipientInfo) {
 						hasRemovedRecipient = sendMailModel.removeRecipient(recipientInfo, RecipientField.BCC, false) || hasRemovedRecipient
 					}
-				})
+				}
 
 				// only try sending again if we successfully removed a recipient and there are still other recipients
 				if (hasRemovedRecipient && sendMailModel.allRecipients().length) {
@@ -172,7 +172,7 @@ function newLine(label: string, content: string): string {
 
 function attendeesLine(event: CalendarEvent): string {
 	const { organizer } = event
-	var attendees = ""
+	let attendees = ""
 
 	// If organizer is already in the attendees, we don't have to add them separately.
 	if (organizer && !findAttendeeInAddresses(event.attendees, [organizer.address])) {

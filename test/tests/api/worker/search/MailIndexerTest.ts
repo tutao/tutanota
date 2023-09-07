@@ -589,7 +589,7 @@ o.spec("MailIndexer test", () => {
 	})
 
 	function _checkMailsInIndexUpdate(db: Db, indexUpdate: IndexUpdate, ...includedMails: Array<Mail>) {
-		includedMails.forEach((mail, index) => {
+		for (const [index, mail] of includedMails.entries()) {
 			let encInstanceId = encryptIndexKeyBase64(db.key, getElementId(mail), fixedIv)
 
 			if (indexUpdate.create.encInstanceIdToElementData.get(encInstanceId) == null) {
@@ -597,7 +597,7 @@ o.spec("MailIndexer test", () => {
 			}
 
 			o(indexUpdate.create.encInstanceIdToElementData.get(encInstanceId) != null).equals(true)
-		})
+		}
 	}
 
 	o.spec("processEntityEvents", function () {

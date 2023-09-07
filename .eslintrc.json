@@ -49,6 +49,12 @@
 		"@typescript-eslint/no-explicit-any": 0,
 		"@typescript-eslint/no-unused-vars": 0,
 		"@typescript-eslint/no-inferrable-types": 0,
-		"unicorn/prefer-node-protocol": 2
+		"unicorn/prefer-node-protocol": 2,
+		// foreach is a legacy ad-hoc thing that should be avoided. for..of loops
+		//   1. have proper control flow (e.g. break)
+		//   2. work with async/await
+		//   3. work with static code analysis, e.g. type checking
+		//   4. work with any iterable object
+		"unicorn/no-array-for-each": 2
 	}
 }

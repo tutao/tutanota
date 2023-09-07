@@ -71,7 +71,7 @@ o.spec("SearchFacade test", () => {
 
 	function createDbContent(transaction: DbStubTransaction, dbData: KeyToIndexEntriesWithType[], fullIds: IdTuple[]) {
 		let counter = 0
-		dbData.forEach((keyToIndexEntries, index) => {
+		for (const [index, keyToIndexEntries] of dbData.entries()) {
 			keyToIndexEntries.indexEntries.sort((a, b) => compareOldestFirst(a.id, b.id))
 			const indexEntriesByType = groupBy(keyToIndexEntries.indexEntries, (e) => e.typeInfo)
 			const metaDataRow: SearchIndexMetaDataRow = {
@@ -79,9 +79,9 @@ o.spec("SearchFacade test", () => {
 				word: keyToIndexEntries.indexKey,
 				rows: [],
 			}
-			indexEntriesByType.forEach((entries, typeInfo) => {
+			for (const [typeInfo, entries] of indexEntriesByType.entries()) {
 				const chunks = splitInChunks(2, entries)
-				chunks.forEach((chunk) => {
+				for (const chunk of chunks) {
 					counter++
 					metaDataRow.rows.push({
 						app: typeInfo.appId,
@@ -94,17 +94,16 @@ o.spec("SearchFacade test", () => {
 						chunk.map((entry) => encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id, fixedIv))),
 					)
 					transaction.put(SearchIndexOS, counter, encSearchIndexRow)
-				})
-			})
+				}
+			}
 			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(dbKey, metaDataRow))
-			fullIds.forEach((id) => {
+			for (const id of fullIds) {
 				let encId = encryptIndexKeyBase64(dbKey, elementIdPart(id), fixedIv)
 				const elementDataEntry: ElementDataDbRow = [listIdPart(id), new Uint8Array(0), ""] // rows not needed for search
 
 				transaction.put(ElementDataOS, encId, elementDataEntry)
-			})
-			return Promise.resolve()
-		})
+			}
+		}
 	}
 
 	let createKeyToIndexEntries = (word: string, entries: SearchIndexEntryWithType[]): KeyToIndexEntriesWithType => {

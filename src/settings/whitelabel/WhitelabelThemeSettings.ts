@@ -62,11 +62,11 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 		const confirmed = await Dialog.confirm("confirmDeactivateCustomColors_msg")
 
 		if (confirmed) {
-			Object.keys(customTheme).forEach((key) => {
+			for (const key of Object.keys(customTheme)) {
 				if (key !== "logo") {
 					delete downcast(customTheme)[key]
 				}
-			})
+			}
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
 			if (locator.logins.isWhitelabel()) {

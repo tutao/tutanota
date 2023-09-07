@@ -31,14 +31,14 @@ o.spec(
 					expected: "<img>",
 				},
 			]
-			tests.forEach((test) => {
+			for (const test of tests) {
 				// attacks should not be possible even if we load external content
 				o(
 					htmlSanitizer.sanitizeHTML(test.html, {
 						blockExternalContent: false,
 					}).html,
 				).equals(test.expected)
-			})
+			}
 		})
 		o("blockquotes", function () {
 			//var sanitizer = DOMPurify.sanitize("");

@@ -33,9 +33,9 @@ o.spec("MailUtilsSignatureTest", function () {
 		)
 	})
 	o.after(function () {
-		mockedAttributes.forEach(function (mockedAttribute) {
+		for (const mockedAttribute of mockedAttributes) {
 			unmockAttribute(mockedAttribute)
-		})
+		}
 	})
 	o("append - no signature", function () {
 		const properties = downcast({

@@ -476,7 +476,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 			// Get the total size of the attachments
 			let totalAttachmentSize = 0
-			attachments.forEach((attachment) => (totalAttachmentSize += Number(attachment.size)))
+			for (const attachment of attachments) {
+				totalAttachmentSize += Number(attachment.size)
+			}
 
 			return [
 				m(".flex" + "." + responsiveCardHMargin(), liveDataAttrs(), [

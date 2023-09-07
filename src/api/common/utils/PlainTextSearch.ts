@@ -80,11 +80,11 @@ function _findMatchInEntry<T>(
 		nestedEntry[attributeName] = splittedValue.join("")
 	}
 
-	findResult.matchedQueryWords.forEach((queryWord) => {
+	for (const queryWord of findResult.matchedQueryWords) {
 		if (searchMatch.matchedWords.indexOf(queryWord) === -1) {
 			searchMatch.matchedWords.push(queryWord)
 		}
-	})
+	}
 
 	if (findResult.hits > 0) {
 		searchMatch.partialWordMatches += findResult.hits
@@ -111,10 +111,8 @@ export function _search<T extends Record<string, any>>(
 			partialWordMatches: 0,
 			matchedWords: [],
 		}
-		attributeNames.forEach((name, index) => {
+		for (const name of attributeNames) {
 			const nestedAttributes = name.split(".")
-			let value = null
-
 			if (nestedAttributes.length === 1) {
 				// no nesting regular value check
 				_findMatchInEntry(entry, nestedAttributes[0], queryString, queryWords, searchMatch, markHits)
@@ -125,12 +123,12 @@ export function _search<T extends Record<string, any>>(
 				const nestedArray: Array<Record<string, any>> = entry[nestedArrayName]
 
 				if (Array.isArray(nestedArray)) {
-					nestedArray.forEach((nestedEntry) => {
+					for (const nestedEntry of nestedArray) {
 						_findMatchInEntry(nestedEntry, nestedEntryAttributeName, queryString, queryWords, searchMatch, markHits)
-					})
+					}
 				}
 			}
-		})
+		}
 		return searchMatch
 	})
 }

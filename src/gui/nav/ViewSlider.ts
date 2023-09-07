@@ -86,7 +86,9 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 
 		this.busy = Promise.resolve()
 		this.isModalBackgroundVisible = false
-		this.viewColumns.forEach((column) => column.setRole(this.getColumnRole(column)))
+		for (const column of this.viewColumns) {
+			column.setRole(this.getColumnRole(column))
+		}
 
 		this.view = ({ attrs }): Children => {
 			const mainSliderColumns = this.getColumnsForMainSlider()
@@ -197,7 +199,9 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 
 		this.setWidthForHiddenColumns(visibleColumns)
 
-		this.viewColumns.forEach((column) => (column.visible = visibleColumns.includes(column)))
+		for (const column of this.viewColumns) {
+			column.visible = visibleColumns.includes(column)
+		}
 		this.updateOffsets()
 		this.visibleBackgroundColumns = visibleColumns
 
@@ -253,7 +257,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	 */
 	private distributeRemainingSpace(visibleColumns: ViewColumn[], remainingSpace: number) {
 		let spacePerColumn = remainingSpace / visibleColumns.length
-		visibleColumns.forEach((visibleColumn: ViewColumn, index) => {
+		for (const [index, visibleColumn] of visibleColumns.entries()) {
 			if (visibleColumns.length - 1 === index) {
 				// ignore max width for the last visible column
 				visibleColumn.setWidth(visibleColumn.minWidth + remainingSpace)
@@ -262,7 +266,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 				remainingSpace -= spaceForThisColumn
 				visibleColumn.setWidth(visibleColumn.minWidth + spaceForThisColumn)
 			}
-		})
+		}
 	}
 
 	private setWidthForHiddenColumns(visibleColumns: ViewColumn[]) {
@@ -273,7 +277,9 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 
 		// if only one column is visible set the same width for all columns ignoring max width
 		if (visibleColumns.length === 1) {
-			this.viewColumns.forEach((column) => column.setWidth(visibleColumns[0].width))
+			for (const column of this.viewColumns) {
+				column.setWidth(visibleColumns[0].width)
+			}
 		}
 
 		// Reduce the width of the foreground button to keep always a small part of the background button visible.

@@ -153,6 +153,8 @@ o.spec("ProtocolProxy", function () {
 
 function headersToObject(headers: Headers): Record<string, OutgoingHttpHeader> {
 	const returnObject: Record<string, OutgoingHttpHeader> = {}
+	// headers should be iterable but maybe not in our configuration for some reason
+	// eslint-disable-next-line unicorn/no-array-for-each
 	headers.forEach((value: OutgoingHttpHeader, key: string) => {
 		returnObject[key] = value
 	})

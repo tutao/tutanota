@@ -57,11 +57,11 @@ o.spec("calendar utils tests", function () {
 	function iso(strings: TemplateStringsArray, ...dates: number[]) {
 		let result = ""
 
-		dates.forEach((d, i) => {
+		for (const [i, d] of dates.entries()) {
 			const s = strings[i]
 			result += s
 			result += `(${d}) ${DateTime.fromMillis(d).toISO({ format: "extended", includeOffset: true })}`
-		})
+		}
 		result += lastThrow(strings)
 		return result
 	}

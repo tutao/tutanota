@@ -203,14 +203,14 @@ const init = (sw: ServiceWorker) => {
 			data: error.data,
 		}
 		// @ts-ignore
-		return scope.clients.matchAll().then((allClients) =>
-			allClients.forEach((c: Client) =>
+		return scope.clients.matchAll().then((allClients) => {
+			for (const c of allClients) {
 				c.postMessage({
 					type: "error",
 					value: serializedError,
-				}),
-			),
-		)
+				})
+			}
+		})
 	})
 }
 

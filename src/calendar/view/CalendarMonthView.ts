@@ -312,13 +312,13 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 								)
 								return this.renderEvent(event, position, eventStart, firstDayOfWeek, firstDayOfNextWeek, eventEnd, attrs)
 							} else {
-								week.forEach((dayInWeek, dayIndex) => {
+								for (const [dayIndex, dayInWeek] of week.entries()) {
 									const eventsForDay = attrs.eventsForDays.get(dayInWeek.date.getTime())
 
 									if (eventsForDay && eventsForDay.indexOf(event) !== -1) {
 										moreEventsForDay[dayIndex]++
 									}
-								})
+								}
 								return null
 							}
 						})

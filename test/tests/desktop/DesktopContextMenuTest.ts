@@ -56,7 +56,11 @@ o.spec("DesktopContextMenu Test", () => {
 			misspelledWord: "",
 		}
 		contextMenu.open(contextMenuParams as ContextMenuParams)
-		downcast(electronMock.MenuItem).mockedInstances.forEach((i) => i.click && i.click(undefined, undefined))
-		downcast(electronMock.MenuItem).mockedInstances.forEach((i) => i.click && i.click(undefined, "nowebcontents"))
+		for (const i of downcast(electronMock.MenuItem).mockedInstances) {
+			i.click?.(undefined, undefined)
+		}
+		for (const i of downcast(electronMock.MenuItem).mockedInstances) {
+			i.click?.(undefined, "nowebcontents")
+		}
 	})
 })

@@ -346,19 +346,19 @@ export class UsageTestModel implements PingAdapter {
 
 			for (const [index, stageConfig] of usageTestAssignment.stages.entries()) {
 				const stage = new Stage(index, test, Number(stageConfig.minPings), Number(stageConfig.maxPings))
-				stageConfig.metrics.forEach((metricConfig) => {
+				for (const metricConfig of stageConfig.metrics) {
 					const configValues = new Map<string, string>()
 
-					metricConfig.configValues.forEach((metricConfigValue) => {
+					for (const metricConfigValue of metricConfig.configValues) {
 						configValues.set(metricConfigValue.key, metricConfigValue.value)
-					})
+					}
 
 					stage.setMetricConfig({
 						name: metricConfig.name,
 						type: metricConfig.type,
 						configValues,
 					})
-				})
+				}
 
 				test.addStage(stage)
 			}

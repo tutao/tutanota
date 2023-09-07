@@ -514,11 +514,11 @@ export class MailIndexer {
 				}
 			})
 			.filter(isNotNull)
-		mailWithBodyAndFiles.forEach((element) => {
+		for (const element of mailWithBodyAndFiles) {
 			let keyToIndexEntries = this.createMailIndexEntries(element.mailWrapper, element.files)
 
 			this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
-		})
+		}
 		return mailWithBodyAndFiles.length
 	}
 
@@ -645,7 +645,7 @@ export class MailIndexer {
 // export just for testing
 export function _getCurrentIndexTimestamp(groupIndexTimestamps: number[]): number {
 	let currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
-	groupIndexTimestamps.forEach((t, index) => {
+	for (const [index, t] of groupIndexTimestamps.entries()) {
 		if (index === 0) {
 			currentIndexTimestamp = t
 		} else if (t === NOTHING_INDEXED_TIMESTAMP) {
@@ -660,7 +660,7 @@ export function _getCurrentIndexTimestamp(groupIndexTimestamps: number[]): numbe
 			// set the oldest index timestamp as current timestamp so all mailboxes can index to this timestamp during log in.
 			currentIndexTimestamp = t
 		}
-	})
+	}
 	return currentIndexTimestamp
 }
 
@@ -759,12 +759,12 @@ class IndexLoader {
 
 	loadAttachments(detailsList: MailWrapper[]): Promise<TutanotaFile[]> {
 		const attachmentIds: IdTuple[] = []
-		detailsList.forEach((d) => {
+		for (const d of detailsList) {
 			attachmentIds.push(...d.getAttachmentIds())
-		})
+		}
 		const filesByList = groupBy(attachmentIds, (a) => a[0])
 		const fileLoadingPromises: Array<Promise<Array<TutanotaFile>>> = []
-		filesByList.forEach((fileIds, listId) => {
+		for (const [listId, fileIds] of filesByList.entries()) {
 			fileLoadingPromises.push(
 				this.loadInChunks(
 					FileTypeRef,
@@ -772,7 +772,7 @@ class IndexLoader {
 					fileIds.map((f) => f[1]),
 				),
 			)
-		})
+		}
 		// if (this._indexingCancelled) throw new CancelledError("cancelled indexing in loading attachments")
 		return Promise.all(fileLoadingPromises).then((filesResults: TutanotaFile[][]) => filesResults.flat())
 	}

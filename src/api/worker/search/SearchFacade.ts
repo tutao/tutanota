@@ -492,24 +492,24 @@ export class SearchFacade {
 	 */
 	_filterByEncryptedId(results: KeyToEncryptedIndexEntries[]): KeyToEncryptedIndexEntries[] {
 		// let matchingEncIds = null
-		let matchingEncIds: Set<number>
-		results.forEach((keyToEncryptedIndexEntry) => {
+		let matchingEncIds: Set<number> | null = null
+		for (const keyToEncryptedIndexEntry of results) {
 			if (matchingEncIds == null) {
 				matchingEncIds = new Set(keyToEncryptedIndexEntry.indexEntries.map((entry) => entry.idHash))
 			} else {
 				const filtered = new Set<number>()
-				keyToEncryptedIndexEntry.indexEntries.forEach((indexEntry) => {
+				for (const indexEntry of keyToEncryptedIndexEntry.indexEntries) {
 					if (matchingEncIds.has(indexEntry.idHash)) {
 						filtered.add(indexEntry.idHash)
 					}
-				})
+				}
 				matchingEncIds = filtered
 			}
-		})
+		}
 		return results.map((r) => {
 			return {
 				indexKey: r.indexKey,
-				indexEntries: r.indexEntries.filter((entry) => matchingEncIds.has(entry.idHash)),
+				indexEntries: r.indexEntries.filter((entry) => matchingEncIds?.has(entry.idHash)),
 			}
 		})
 	}
@@ -529,30 +529,30 @@ export class SearchFacade {
 
 		const minIncludedId = timestampToGeneratedId(endTimestamp)
 		const maxExcludedId = restriction.start ? timestampToGeneratedId(restriction.start + 1) : null
-		results.forEach((result) => {
+		for (const result of results) {
 			result.indexEntries = result.indexEntries.filter((entry) => {
 				return this._isValidAttributeAndTime(restriction, entry, minIncludedId, maxExcludedId)
 			})
-		})
+		}
 		// now filter all ids that are in all of the search words
-		let matchingIds: Set<Id>
-		results.forEach((keyToIndexEntry) => {
+		let matchingIds: Set<Id> | null = null
+		for (const keyToIndexEntry of results) {
 			if (!matchingIds) {
 				matchingIds = new Set(keyToIndexEntry.indexEntries.map((entry) => entry.id))
 			} else {
 				let filtered = new Set<Id>()
-				keyToIndexEntry.indexEntries.forEach((entry) => {
+				for (const entry of keyToIndexEntry.indexEntries) {
 					if (matchingIds.has(entry.id)) {
 						filtered.add(entry.id)
 					}
-				})
+				}
 				matchingIds = filtered
 			}
-		})
+		}
 		return results.map((r) => {
 			return {
 				indexKey: r.indexKey,
-				indexEntries: r.indexEntries.filter((entry) => matchingIds.has(entry.id)),
+				indexEntries: r.indexEntries.filter((entry) => matchingIds?.has(entry.id)),
 			}
 		})
 	}

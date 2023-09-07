@@ -337,14 +337,14 @@ export function checkAttachmentSize(files: ReadonlyArray<Attachment>, maxAttachm
 	let totalSize = 0
 	const attachableFiles: Array<Attachment> = []
 	const tooBigFiles: Array<string> = []
-	files.forEach((file) => {
+	for (const file of files) {
 		if (totalSize + Number(file.size) > maxAttachmentSize) {
 			tooBigFiles.push(file.name)
 		} else {
 			totalSize += Number(file.size)
 			attachableFiles.push(file)
 		}
-	})
+	}
 	return {
 		attachableFiles,
 		tooBigFiles,

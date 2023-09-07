@@ -505,9 +505,9 @@ export class Indexer {
 		}[],
 		t2: DbTransaction,
 	): Promise<void> {
-		groupBatches.forEach((groupIdToLastBatchId) => {
+		for (const groupIdToLastBatchId of groupBatches) {
 			t2.put(GroupDataOS, groupIdToLastBatchId.groupId, groupIdToLastBatchId.groupData)
-		})
+		}
 		return t2.wait()
 	}
 

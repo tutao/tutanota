@@ -568,9 +568,9 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			this.domSwipeSpacerLeft.style.transform = `translateX(${-translateX}px) translateY(0px)`
 			this.domSwipeSpacerRight.style.transform = `translateX(${translateX}px) translateY(0px)`
 
-			this.rows.forEach((row) => {
+			for (const row of this.rows) {
 				row.domElement && applySafeAreaInsetMarginLR(row.domElement)
-			})
+			}
 
 			this.domSwipeSpacerLeft.style.opacity = "1"
 			this.domSwipeSpacerRight.style.opacity = "1"

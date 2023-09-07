@@ -178,9 +178,9 @@ export function parseProperty(data: string): Property {
 	const params: Record<string, string> = {}
 
 	if (sequence[1]) {
-		sequence[1][1].forEach(([name, eq, value]) => {
+		for (const [name, _eq, value] of sequence[1][1]) {
 			params[name] = value
-		})
+		}
 	}
 
 	const value = sequence[3]
@@ -205,11 +205,11 @@ const valuesSeparatedBySemicolonParser: Parser<Array<[string, string, string]>> 
  * Parses multiple key=value pair on the right side of the semicolon (value side)
  */
 export function parsePropertyKeyValue(data: string): Record<string, string> {
-	const value = valuesSeparatedBySemicolonParser(new StringIterator(data))
+	const values = valuesSeparatedBySemicolonParser(new StringIterator(data))
 	const result: Record<string, string> = {}
-	value.forEach(([key, eq, value]) => {
+	for (const [key, _eq, value] of values) {
 		result[key] = value
-	})
+	}
 	return result
 }
 
@@ -564,20 +564,20 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 		}
 
 		const alarms: AlarmInfo[] = []
-		eventObj.children.forEach((alarmChild) => {
+		for (const alarmChild of eventObj.children) {
 			if (alarmChild.type === "VALARM") {
 				const newAlarm = parseAlarm(alarmChild, event)
 				if (newAlarm) alarms.push(newAlarm)
 			}
-		})
+		}
 		let attendees: CalendarEventAttendee[] = []
-		eventObj.properties.forEach((property) => {
+		for (const property of eventObj.properties) {
 			if (property.name === "ATTENDEE") {
 				const attendeeAddress = parseMailtoValue(property.value)
 
 				if (!attendeeAddress || !isMailAddress(attendeeAddress, false)) {
 					console.log("attendee has no address or address is invalid, ignoring: ", attendeeAddress)
-					return
+					continue
 				}
 
 				const partStatString = property.params["PARTSTAT"]
@@ -585,7 +585,7 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 
 				if (!status) {
 					console.log(`attendee has invalid partsat: ${partStatString}, ignoring`)
-					return
+					continue
 				}
 
 				attendees.push(
@@ -598,7 +598,7 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 					}),
 				)
 			}
-		})
+		}
 		event.attendees = attendees
 		const organizerProp = eventObj.properties.find((p) => p.name === "ORGANIZER")
 

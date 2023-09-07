@@ -674,9 +674,9 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					).then((confirmed) => {
 						if (confirmed) {
 							// delete async in the background
-							mergeableAndDuplicates.deletable.forEach((dc) => {
+							for (const dc of mergeableAndDuplicates.deletable) {
 								locator.entityClient.erase(dc)
-							})
+							}
 						}
 					})
 				}

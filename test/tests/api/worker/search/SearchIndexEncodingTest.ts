@@ -11,9 +11,10 @@ import {
 } from "../../../../../src/api/worker/search/SearchIndexEncoding.js"
 import { spy as makeSpy } from "@tutao/tutanota-test-utils"
 import { concat } from "@tutao/tutanota-utils"
+
 o.spec("SearchIndexEncoding test", function () {
 	o("numberOfBytes", function () {
-		;[
+		const cases = [
 			[0, 0],
 			[128, 1],
 			[255, 1],
@@ -23,7 +24,10 @@ o.spec("SearchIndexEncoding test", function () {
 			[512, 2],
 			[Math.pow(2, 16) - 1, 2],
 			[Math.pow(2, 16), 3], // 65536
-		].forEach(([num, res]) => o(numberOfBytes(num)).equals(res)(`${num} should require ${res}`))
+		]
+		for (const [num, res] of cases) {
+			o(numberOfBytes(num)).equals(res)(`${num} should require ${res}`)
+		}
 	})
 	o("calculateNeededSpaceSingleArray", function () {
 		o(calculateNeededSpace([new Uint8Array(32)])).equals(1 + 32)

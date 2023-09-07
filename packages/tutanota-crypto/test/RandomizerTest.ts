@@ -63,7 +63,7 @@ o.spec("Randomizer", function () {
 
 		for (var i = 1; i <= runs; i++) {
 			let r = random.generateRandomData(bytesPerRun)
-			r.forEach((number) => {
+			for (const number of r) {
 				results[number]++
 
 				if (number >= 128) {
@@ -71,12 +71,12 @@ o.spec("Randomizer", function () {
 				} else {
 					lowerHalfCount++
 				}
-			})
+			}
 		}
 
-		results.forEach((count) => {
+		for (const count of results) {
 			o(count >= 500).equals(true) // uniform distribution would mean that each possible number occured 625 times (80%)
-		})
+		}
 		let lowerHalfPercent = (100 / (runs * bytesPerRun)) * lowerHalfCount
 		o(lowerHalfPercent > 49 && lowerHalfPercent < 51).equals(true)("distribution should be nearly uniform") // FIXME generate image from RNG to visualize performance:
 		// http://boallen.com/random-numbers.html

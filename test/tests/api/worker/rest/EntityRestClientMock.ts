@@ -43,21 +43,21 @@ export class EntityRestClientMock extends EntityRestClient {
 	}
 
 	addElementInstances(...instances: Array<ElementEntity>) {
-		instances.forEach((instance) => (this._entities[instance._id] = instance))
+		for (const instance of instances) this._entities[instance._id] = instance
 	}
 
 	addListInstances(...instances: Array<ListElementEntity>) {
-		instances.forEach((instance) => {
+		for (const instance of instances) {
 			if (!this._listEntities[getListId(instance)]) this._listEntities[getListId(instance)] = {}
 			this._listEntities[getListId(instance)][getElementId(instance)] = instance
-		})
+		}
 	}
 
 	addBlobInstances(...instances: Array<BlobElementEntity>) {
-		instances.forEach((instance) => {
+		for (const instance of instances) {
 			if (!this._blobEntities[getListId(instance)]) this._blobEntities[getListId(instance)] = {}
 			this._blobEntities[getListId(instance)][getElementId(instance)] = instance
-		})
+		}
 	}
 
 	setElementException(id: Id, error: Error) {
@@ -174,7 +174,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		return resolveTypeReference(instance._type).then((typeModel) => {
 			_verifyType(typeModel)
 
-			var ids = getIds(instance, typeModel)
+			const ids = getIds(instance, typeModel)
 
 			this._handleDelete(ids.id, ids.listId)
 		})

@@ -6,7 +6,6 @@ import type { DesktopNotifier } from "../DesktopNotifier"
 import { lang } from "../../misc/LanguageViewModel"
 import { MacTray } from "./MacTray"
 import { NonMacTray } from "./NonMacTray"
-import { getResourcePath } from "../resources"
 import { BuildConfigKey, DesktopConfigKey } from "../config/ConfigKeys"
 import { log } from "../DesktopLog.js"
 
@@ -71,7 +70,7 @@ export class DesktopTray {
 				}),
 			)
 
-			this._wm.getAll().forEach((w) => {
+			for (const w of this._wm.getAll()) {
 				let label = w.getTitle()
 
 				if (notifier.hasNotificationsForWindow(w)) {
@@ -86,10 +85,12 @@ export class DesktopTray {
 						click: () => w.show(),
 					}),
 				)
-			})
+			}
 		}
 
-		platformTray.getPlatformMenuItems().forEach((mi) => m.append(mi))
+		for (const mi of platformTray.getPlatformMenuItems()) {
+			m.append(mi)
+		}
 		platformTray.attachMenuToTray(m, this._tray)
 	}
 
