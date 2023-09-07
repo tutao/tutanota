@@ -8,12 +8,32 @@ export function intersection<T>(set1: Set<T>, set2: Set<T>): Set<T> {
 	return new Set(Array.from(set1).filter((item) => set2.has(item)))
 }
 
+export function setEquals<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T>): boolean {
+	if (set1.size !== set2.size) {
+		return false
+	}
+	for (let item of set1) {
+		if (!set2.has(item)) {
+			return false
+		}
+	}
+	return true
+}
+
+export function setMap<T, R>(set: ReadonlySet<T>, mapper: (item: T) => R): Set<R> {
+	const result = new Set<R>()
+	for (const item of set) {
+		result.add(mapper(item))
+	}
+	return result
+}
+
 export function min<T extends Iterable<number>>(set: T): number | null {
 	return minBy(set, identity)
 }
 
 export function minBy<E, T extends Iterable<E>>(collection: T, selector: (item: E) => number): E | null {
-	let min = null
+	let min: { item: E; value: number } | null = null
 	for (const item of collection) {
 		const value = selector(item)
 		if (min == null || value < min.value) {
@@ -28,7 +48,7 @@ export function max<T extends Iterable<number>>(set: T): number | null {
 }
 
 export function maxBy<E, T extends Iterable<E>>(collection: T, selector: (item: E) => number): E | null {
-	let max = null
+	let max: { item: E; value: number } | null = null
 	for (const item of collection) {
 		const value = selector(item)
 		if (max == null || value > max.value) {

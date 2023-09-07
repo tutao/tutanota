@@ -22,7 +22,7 @@ import * as AddUserDialog from "./AddUserDialog.js"
 import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } from "../gui/SelectableRowContainer.js"
 import { ListModel } from "../misc/ListModel.js"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../gui/base/List.js"
-import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../gui/base/ListUtils.js"
+import { listSelectionKeyboardShortcuts, VirtualRow } from "../gui/base/ListUtils.js"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../gui/theme.js"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../gui/base/BaseSearchBar.js"
@@ -55,6 +55,7 @@ export class UserListView implements UpdatableSettingsViewer {
 	private readonly listId: LazyLoaded<Id>
 	private adminUserGroupInfoIds: Id[] = []
 	private listStateSubscription: Stream<unknown> | null = null
+	private listSelectionSubscription: Stream<unknown> | null = null
 
 	constructor(
 		private readonly updateDetailsViewer: (viewer: UserViewer | null) => unknown,
@@ -175,6 +176,7 @@ export class UserListView implements UpdatableSettingsViewer {
 		keyManager.unregisterShortcuts(this.shortcuts)
 
 		this.listStateSubscription?.end(true)
+		this.listSelectionSubscription?.end(true)
 	}
 
 	private async loadAdmins(): Promise<void> {
@@ -248,16 +250,23 @@ export class UserListView implements UpdatableSettingsViewer {
 
 		this.listStateSubscription?.end(true)
 		this.listStateSubscription = listModel.stateStream.map((state) => {
-			this.onSelectionChanged(onlySingleSelection(state))
+			m.redraw()
+		})
+
+		this.listSelectionSubscription?.end(true)
+		this.listSelectionSubscription = listModel.differentItemsSelected.map((newSelection) => {
+			let detailsViewer: UserViewer | null
+			if (newSelection.size === 0) {
+				detailsViewer = null
+			} else {
+				const item = newSelection.values().next().value
+				detailsViewer = new UserViewer(item, this.isAdmin(item))
+			}
+			this.updateDetailsViewer(detailsViewer)
 			m.redraw()
 		})
 		return listModel
 	}
-
-	private readonly onSelectionChanged = memoized((item: GroupInfo | null) => {
-		const detailsViewer = item == null ? null : new UserViewer(item, this.isAdmin(item))
-		this.updateDetailsViewer(detailsViewer)
-	})
 
 	private queryFilter(gi: GroupInfo) {
 		const lowercaseSearch = this.searchQuery.toLowerCase()

@@ -15,6 +15,8 @@ import {
 	memoizedWithHiddenArgument,
 	remove,
 	setAddAll,
+	setEquals,
+	setMap,
 	settledThen,
 } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
@@ -78,6 +80,21 @@ export class ListModel<ElementType extends ListElement> {
 		const activeIndex = foundIndex < 0 ? null : foundIndex
 		return { ...state, items: state.filteredItems, activeIndex }
 	})
+
+	readonly differentItemsSelected: Stream<ReadonlySet<ElementType>> = Stream.scan(
+		(acc: ReadonlySet<ElementType>, state: ListState<ElementType>) => {
+			const newSelectedIds = setMap(state.selectedItems, getElementId)
+			const oldSelectedIds = setMap(acc, getElementId)
+			if (setEquals(oldSelectedIds, newSelectedIds)) {
+				// Stream.scan type definitions does not take it into account
+				return Stream.SKIP as unknown as ReadonlySet<ElementType>
+			} else {
+				return state.selectedItems
+			}
+		},
+		new Set(),
+		this.stateStream,
+	)
 
 	private updateState(newStatePart: Partial<PrivateListState<ElementType>>) {
 		this.rawStateStream({ ...this.rawState, ...newStatePart })

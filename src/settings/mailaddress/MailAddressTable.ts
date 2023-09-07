@@ -30,6 +30,11 @@ export type MailAddressTableAttrs = {
 export class MailAddressTable implements Component<MailAddressTableAttrs> {
 	view({ attrs }: Vnode<MailAddressTableAttrs>): Children {
 		const { model } = attrs
+		// If the table is expanded we need to init the model.
+		// It is no-op to init multiple times so it's safe.
+		if (attrs.expanded) {
+			model.init()
+		}
 		const addAliasButtonAttrs: IconButtonAttrs | null = model.userCanModifyAliases()
 			? {
 					title: "addEmailAlias_label",
@@ -46,7 +51,6 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 					expanded: attrs.expanded,
 					onExpandedChange: (v) => {
 						attrs.onExpanded(v)
-						model.init()
 					},
 				}),
 			]),
