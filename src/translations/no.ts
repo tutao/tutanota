@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2023-09-05T13:33:17Z",
+	"updated_at": "2023-09-07T13:52:31Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -279,6 +279,7 @@ export default {
 		"createAccountRunning_msg": "Oppretter konto...",
 		"createActionStatus_msg": "Oppretter brukere. Fullført {index} av {count} kontoer ...",
 		"createContactForm_label": "Lag kontaktskjema",
+		"createContactList_action": "Lag kontaktliste",
 		"createContactRequest_action": "Opprett forespørsel",
 		"createContactsForRecipients_action": "Opprett kontakter for alle mottakere når du sender e-post",
 		"createContacts_label": "Opprett kontakter",
@@ -287,6 +288,7 @@ export default {
 		"created_label": "Opprettet",
 		"createEntry_action": "Opprett oppføring",
 		"createEvent_label": "Hendelse",
+		"createSharedMailbox_label": "Opprett delt postkasse",
 		"createTemplate_action": "Lag mal",
 		"createUserFailed_msg": "Kunne ikke opprette bruker. Kontakt vår brukerstøtte.",
 		"credentialsEncryptionModeBiometricsHelp_msg": "Det sikreste alternativet. Lagret legitimasjon slettes når biometri legges til eller fjernes.",
@@ -1538,6 +1540,8 @@ export default {
 		"waitingForApproval_msg": "Beklager, du har for øyeblikket ikke lov til å sende eller motta e-poster fordi kontoen din ble merket for godkjenning. Denne prosessen er nødvendig for å tilby en personvernvennlig registrering og samtidig forhindre masseregistreringer. Kontoen din godkjennes normalt automatisk etter 48 timer. Takk for din tålmodighet!",
 		"waitingForU2f_msg": "Venter på sikkerhetsnøkkel...",
 		"wantToSendReport_msg": "En uventet feil oppstod. Vil du sende en feilmelding? Du kan legge ved en melding for å hjelpe oss løse denne feilen.",
+		"webAssemblyNotSupported1_msg": "Nettleseren din støtter ikke WebAssembly og vil ikke bli støttet i fremtidige versjoner av Tutanota.",
+		"webAssemblyNotSupported2_msg": "Vennligst oppgrader nettleseren din eller last ned appen vår.",
 		"weekNumber_label": "Uke {week}",
 		"weekStart_label": "Ukestart",
 		"weeks_label": "uker",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2023-09-05T16:33:39Z",
+	"updated_at": "2023-09-07T13:52:31Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -295,6 +295,7 @@ export default {
 		"created_label": "Criado",
 		"createEntry_action": "Criar entrada",
 		"createEvent_label": "Evento",
+		"createSharedMailbox_label": "Foi criada uma caixa de correio partilhada",
 		"createTemplate_action": "Criar modelo",
 		"createUserFailed_msg": "Não foi possível criar o utilizador. Por favor contacte o suporte.",
 		"credentialsEncryptionModeBiometricsHelp_msg": "A opção mais segura. As credenciais armazenadas são apagadas quando os dados biométricos são adicionados ou removidos.",
@@ -1271,6 +1272,7 @@ export default {
 		"searchEmails_placeholder": "Procurar mensagens",
 		"searchGroups_placeholder": "Procurar por grupos",
 		"searchKnowledgebase_placeholder": "Pesquisar na base de dados de conhecimento",
+		"searchMailboxes_placeholder": "Procurar por caixas de correio",
 		"searchMailbox_label": "Pesquisar caixa de correio",
 		"searchNoResults_msg": "Sem resultados",
 		"searchPage_action": "Pesquisar página...",
@@ -1338,6 +1340,8 @@ export default {
 		"sharedGroupAcceptEmailBody_msg": "Olá {recipientName}, <br/>{invitee} aceitou o seu convite para utilizar \"{groupName}\".",
 		"sharedGroupDeclineEmailBody_msg": "Olá {recipientName}, <br/>{invitee} não aceitou o seu convite para utilizar \"{groupName}\".",
 		"sharedGroupParticipants_label": "Utilizadores com acesso a \"{groupName}\"",
+		"sharedMailboxCanNotSendConfidentialExternal_msg": "Lamento, mas ainda não é possível enviar emails encriptados ponta-a-ponta para destinatários externos a partir de uma caixa de correio partilhada.",
+		"sharedMailboxesMultiUser_msg": "Para planos privados (Lenda e Revolucionário) por favor entre em contacto com o suporte e peça para habilitar o suporte a multi-utilizador na sua conta para que possa usar caixas de correio partilhadas.",
 		"sharedMailboxes_label": "Caixa de correio partilhadas",
 		"sharedMailbox_label": "Caixa de correio partilhada:",
 		"sharedTemplateGroupDefaultName_label": "Modelos de {ownerName}",
