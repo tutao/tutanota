@@ -36,7 +36,7 @@ export async function prepareMobileBuild(buildType) {
 	if (fs.existsSync(imagesPath)) {
 		const imageFiles = await globby(prefix + "images/*")
 		for (let file of imageFiles) {
-			const doDiscard = !imagesToKeep.find((name) => file.endsWith(name))
+			const doDiscard = !imagesToKeep.some((name) => file.endsWith(name))
 			if (doDiscard) {
 				console.log("unlinking ", file)
 				fs.unlinkSync(file)

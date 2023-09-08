@@ -400,8 +400,8 @@ export class Indexer {
 							type: group.value.groupType,
 						}
 					})
-					let deletedGroups = oldGroups.filter((oldGroup) => currentGroups.find((m) => m.id === oldGroup.id) == null)
-					let newGroups = currentGroups.filter((m) => oldGroups.find((oldGroup) => m.id === oldGroup.id) == null)
+					let deletedGroups = oldGroups.filter((oldGroup) => !currentGroups.some((m) => m.id === oldGroup.id))
+					let newGroups = currentGroups.filter((m) => !oldGroups.some((oldGroup) => m.id === oldGroup.id))
 					return {
 						deletedGroups,
 						newGroups,

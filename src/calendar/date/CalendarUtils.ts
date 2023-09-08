@@ -1270,7 +1270,7 @@ export function getEventType(
 		if (canWrite) {
 			const organizerAddress = cleanMailAddress(existingOrganizer?.address ?? "")
 			const wouldRequireUpdates: boolean =
-				existingEvent.attendees != null && existingEvent.attendees.filter((a) => cleanMailAddress(a.address.address) !== organizerAddress).length > 0
+				existingEvent.attendees != null && existingEvent.attendees.some((a) => cleanMailAddress(a.address.address) !== organizerAddress)
 			return wouldRequireUpdates ? EventType.LOCKED : EventType.SHARED_RW
 		} else {
 			return EventType.SHARED_RO

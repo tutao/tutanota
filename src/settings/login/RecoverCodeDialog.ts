@@ -18,7 +18,7 @@ assertMainOrNode()
 
 export function showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user: User) {
 	// We only show the recovery code if it is for the current user and it is a global admin
-	if (!isSameId(getEtId(locator.logins.getUserController().user), getEtId(user)) || !user.memberships.find((gm) => gm.groupType === GroupType.Admin)) {
+	if (!isSameId(getEtId(locator.logins.getUserController().user), getEtId(user)) || !user.memberships.some((gm) => gm.groupType === GroupType.Admin)) {
 		return
 	}
 

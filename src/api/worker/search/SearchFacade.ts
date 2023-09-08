@@ -221,7 +221,7 @@ export class SearchFacade {
 					return Promise.resolve(normalizeQuery(entity[attributeName]).indexOf(suggestionToken) !== -1)
 				} else {
 					let words = tokenize(entity[attributeName])
-					return Promise.resolve(words.find((w) => w.startsWith(suggestionToken)) != null)
+					return Promise.resolve(words.some((w) => w.startsWith(suggestionToken)))
 				}
 			} else if (model.associations[attributeName] && model.associations[attributeName].type === AssociationType.Aggregation && entity[attributeName]) {
 				let aggregates = model.associations[attributeName].cardinality === Cardinality.Any ? entity[attributeName] : [entity[attributeName]]
@@ -605,7 +605,7 @@ export class SearchFacade {
 	_reduceToUniqueElementIds(results: ReadonlyArray<DecryptedSearchIndexEntry>, previousResult: SearchResult): ReadonlyArray<MoreResultsIndexEntry> {
 		const uniqueIds = new Set<string>()
 		return results.filter((entry) => {
-			if (!uniqueIds.has(entry.id) && !previousResult.results.find((r) => r[1] === entry.id)) {
+			if (!uniqueIds.has(entry.id) && !previousResult.results.some((r) => r[1] === entry.id)) {
 				uniqueIds.add(entry.id)
 				return true
 			} else {

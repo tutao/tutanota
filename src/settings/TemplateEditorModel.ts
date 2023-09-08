@@ -83,11 +83,11 @@ export class TemplateEditorModel {
 			// the current edited template should not be included in find()
 			return this._entityClient.loadAll(EmailTemplateTypeRef, this._templateGroupRoot.templates).then((allTemplates) => {
 				const filteredTemplates = allTemplates.filter((template) => !isSameId(getElementId(this.template), getElementId(template)))
-				return !!filteredTemplates.find((template) => template.tag.toLowerCase() === this.template.tag.toLowerCase())
+				return filteredTemplates.some((template) => template.tag.toLowerCase() === this.template.tag.toLowerCase())
 			})
 		} else {
 			return this._entityClient.loadAll(EmailTemplateTypeRef, this._templateGroupRoot.templates).then((allTemplates) => {
-				return !!allTemplates.find((template) => template.tag.toLowerCase() === this.template.tag.toLowerCase())
+				return allTemplates.some((template) => template.tag.toLowerCase() === this.template.tag.toLowerCase())
 			})
 		}
 	}

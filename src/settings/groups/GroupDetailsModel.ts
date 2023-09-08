@@ -303,7 +303,7 @@ export class GroupDetailsModel {
 				return false
 			} else {
 				// only show users that are not deleted and not already in the group.
-				return !userGroupInfo.deleted && this.members.getLoaded().find((m) => isSameId(m._id, userGroupInfo._id)) == null
+				return !userGroupInfo.deleted && !this.members.getLoaded().some((m) => isSameId(m._id, userGroupInfo._id))
 			}
 		})
 

@@ -209,7 +209,7 @@ export function _compareMailAddresses(
  */
 export function _getMergedEmailAddresses(mailAddresses1: ContactMailAddress[], mailAddresses2: ContactMailAddress[]): ContactMailAddress[] {
 	let filteredMailAddresses2 = mailAddresses2.filter((ma2) => {
-		return !mailAddresses1.find((ma1) => ma1.address.toLowerCase() === ma2.address.toLowerCase())
+		return !mailAddresses1.some((ma1) => ma1.address.toLowerCase() === ma2.address.toLowerCase())
 	})
 	return mailAddresses1.concat(filteredMailAddresses2)
 }
@@ -270,7 +270,7 @@ function _areSocialIdsEqual(contact1SocialIds: ContactSocialId[], contact2Social
  */
 export function _getMergedSocialIds(socialIds1: ContactSocialId[], socialIds2: ContactSocialId[]): ContactSocialId[] {
 	let filteredSocialIds2 = socialIds2.filter((ma2) => {
-		return !socialIds1.find((ma1) => ma1.socialId === ma2.socialId)
+		return !socialIds1.some((ma1) => ma1.socialId === ma2.socialId)
 	})
 	return socialIds1.concat(filteredSocialIds2)
 }
@@ -289,7 +289,7 @@ function _areAddressesEqual(contact1Addresses: ContactAddress[], contact2Address
  */
 export function _getMergedAddresses(addresses1: ContactAddress[], addresses2: ContactAddress[]): ContactAddress[] {
 	let filteredAddresses2 = addresses2.filter((ma2) => {
-		return !addresses1.find((ma1) => ma1.address === ma2.address)
+		return !addresses1.some((ma1) => ma1.address === ma2.address)
 	})
 	return addresses1.concat(filteredAddresses2)
 }

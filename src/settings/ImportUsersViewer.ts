@@ -101,7 +101,7 @@ function checkAndGetErrorMessage(userData: UserImportDetails[], availableDomains
 				errorMessageArray.push("enterMissingPassword_msg")
 			}
 
-			if (userData.find((otherUser) => otherUser.mailAddress === mailAddress && otherUser !== u)) {
+			if (userData.some((otherUser) => otherUser.mailAddress === mailAddress && otherUser !== u)) {
 				errorMessageArray.push("duplicatedMailAddressInUserList_msg")
 			}
 

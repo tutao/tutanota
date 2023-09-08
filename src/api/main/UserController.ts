@@ -83,7 +83,7 @@ export class UserController {
 	 */
 	isGlobalAdmin(): boolean {
 		if (this.isInternalUser()) {
-			return this.user.memberships.find((m) => m.groupType === GroupType.Admin) != null
+			return this.user.memberships.some((m) => m.groupType === GroupType.Admin)
 		} else {
 			return false
 		}
@@ -91,7 +91,7 @@ export class UserController {
 
 	isGlobalOrLocalAdmin(): boolean {
 		if (this.isInternalUser()) {
-			return this.user.memberships.find((m) => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin) != null
+			return this.user.memberships.some((m) => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin)
 		} else {
 			return false
 		}

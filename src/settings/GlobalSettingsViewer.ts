@@ -532,7 +532,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		let customDomainInfos = getCustomMailDomains(customerInfo)
 		// remove dns status instances for all removed domains
 		for (const domain of Object.keys(this.domainDnsStatus)) {
-			if (!customDomainInfos.find((di) => di.domain === domain)) {
+			if (!customDomainInfos.some((di) => di.domain === domain)) {
 				delete this.domainDnsStatus[domain]
 			}
 		}

@@ -266,7 +266,7 @@ export class Editor implements ImageHandler, Component {
 		}
 
 		// font
-		this.styles.c = pathSegments.find((f) => f.includes("monospace")) !== undefined
+		this.styles.c = pathSegments.some((f) => f.includes("monospace"))
 		// decorations
 		this.styles.b = this.squire.hasFormat("b")
 		this.styles.u = this.squire.hasFormat("u")

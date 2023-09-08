@@ -169,11 +169,11 @@ export function typeRefToTypeInfo(typeRef: TypeRef<any>): TypeInfo {
 }
 
 export function userIsLocalOrGlobalAdmin(user: User): boolean {
-	return user.memberships.find((m) => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin) != null
+	return user.memberships.some((m) => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin)
 }
 
 export function userIsGlobalAdmin(user: User): boolean {
-	return user.memberships.find((m) => m.groupType === GroupType.Admin) != null
+	return user.memberships.some((m) => m.groupType === GroupType.Admin)
 }
 
 export function filterIndexMemberships(user: User): GroupMembership[] {

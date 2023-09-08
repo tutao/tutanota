@@ -1028,7 +1028,7 @@ export class SendMailModel {
 						)
 						for (const recipient of matching) {
 							// if the mail address no longer exists on the contact then delete the recipient
-							if (!contact.mailAddresses.find((ma) => cleanMatch(ma.address, recipient.address))) {
+							if (!contact.mailAddresses.some((ma) => cleanMatch(ma.address, recipient.address))) {
 								changed = changed || this.removeRecipient(recipient, fieldType, true)
 							} else {
 								// else just modify the recipient
