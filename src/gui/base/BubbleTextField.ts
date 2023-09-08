@@ -84,7 +84,7 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 					attrs.onBlur()
 				},
 				keyHandler: (key) => {
-					if (key != null) {
+					if (key.key != null) {
 						switch (key.key.toLowerCase()) {
 							case Keys.BACKSPACE.code:
 								return attrs.onBackspace()
