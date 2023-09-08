@@ -463,7 +463,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private isAdminUser(user: User): boolean {
-		return user.memberships.find((m) => m.groupType === GroupType.Admin) != null
+		return user.memberships.some((m) => m.groupType === GroupType.Admin)
 	}
 
 	private async deleteUser() {

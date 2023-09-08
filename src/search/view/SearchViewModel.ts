@@ -455,7 +455,7 @@ export class SearchViewModel {
 
 	isInSearchResult(typeRef: TypeRef<unknown>, id: IdTuple): boolean {
 		const result = this._searchResult
-		return !!(result && isSameTypeRef(typeRef, result.restriction.type) && result.results.find((r) => isSameId(r, id)))
+		return !!(result && isSameTypeRef(typeRef, result.restriction.type) && result.results.some((r) => isSameId(r, id)))
 	}
 
 	private async loadSearchResults<T extends SearchableTypes>(
@@ -523,7 +523,7 @@ export class SearchViewModel {
 			for (let i = toLoad.length - 1; i >= 0; i--) {
 				const toLoadId = toLoad[i]
 
-				if (instances.find((instance) => isSameId(instance._id, toLoadId)) == null) {
+				if (!instances.some((instance) => isSameId(instance._id, toLoadId))) {
 					currentResult.results.splice(startIndex + i, 1)
 
 					if (instances.length === toLoad.length) {

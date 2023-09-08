@@ -704,7 +704,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				if (!contactListId) return
 				const id: IdTuple = [contactListId, contactElementId]
 				entity.load(ContactTypeRef, id).then((contact) => {
-					if (contact.mailAddresses.find((ma) => cleanMatch(ma.address, mailAddress))) {
+					if (contact.mailAddresses.some((ma) => cleanMatch(ma.address, mailAddress))) {
 						recipient.setName(getContactDisplayName(contact))
 						recipient.setContact(contact)
 					} else {

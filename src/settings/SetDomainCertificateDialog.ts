@@ -78,7 +78,7 @@ export function show(customerInfo: CustomerInfo): void {
 
 			if (!isDomainName(domainAllLowercase) || domainAllLowercase.split(".").length < 3) {
 				Dialog.message("notASubdomain_msg")
-			} else if (customerInfo.domainInfos.find((di) => !di.whitelabelConfig && di.domain === domainAllLowercase)) {
+			} else if (customerInfo.domainInfos.some((di) => !di.whitelabelConfig && di.domain === domainAllLowercase)) {
 				Dialog.message("customDomainErrorDomainNotAvailable_msg")
 			} else {
 				orderWhitelabelCertificate(domainAllLowercase, dialog)

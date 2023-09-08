@@ -58,7 +58,7 @@ export class MinimizedMailEditorViewModel {
 		dialog.close()
 
 		// disallow creation of duplicate minimized mails
-		if (!this._minimizedEditors.find((editor) => editor.dialog === dialog)) {
+		if (!this._minimizedEditors.some((editor) => editor.dialog === dialog)) {
 			this._minimizedEditors.push({
 				sendMailModel: sendMailModel,
 				dialog: dialog,

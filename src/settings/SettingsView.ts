@@ -621,7 +621,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	_isGlobalOrLocalAdmin(user: User): boolean {
-		return user.memberships.find((m) => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin) != null
+		return user.memberships.some((m) => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin)
 	}
 
 	focusSettingsDetailsColumn() {
@@ -640,7 +640,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				const user = this.logins.getUserController().user
 
 				// the user admin status might have changed
-				if (!this._isGlobalOrLocalAdmin(user) && this._currentViewer && this._adminFolders.find((f) => f.isActive())) {
+				if (!this._isGlobalOrLocalAdmin(user) && this._currentViewer && this._adminFolders.some((f) => f.isActive())) {
 					this._setUrl(this._userFolders[0].url)
 				}
 

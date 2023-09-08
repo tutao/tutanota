@@ -64,17 +64,17 @@ export class DomainDnsStatus {
 
 			if (result.checkResult === CustomDomainCheckResult.CUSTOM_DOMAIN_CHECK_RESULT_OK) {
 				let mxOk =
-					!result.missingRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_MX) &&
-					!result.invalidRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_MX)
+					!result.missingRecords.some((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_MX) &&
+					!result.invalidRecords.some((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_MX)
 				let spfOk =
-					!result.missingRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF) &&
-					!result.invalidRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF)
+					!result.missingRecords.some((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF) &&
+					!result.invalidRecords.some((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF)
 				let dkimOk =
-					!result.missingRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM) &&
-					!result.invalidRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM)
+					!result.missingRecords.some((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM) &&
+					!result.invalidRecords.some((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM)
 				let mtaStsOk =
-					!result.missingRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS) &&
-					!result.invalidRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS)
+					!result.missingRecords.some((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS) &&
+					!result.invalidRecords.some((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS)
 				let dmarcWarn = result.missingRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_DMARC)
 				let dmarcBad = result.invalidRecords.find((r) => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_DMARC)
 				return (

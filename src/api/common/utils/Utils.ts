@@ -63,7 +63,7 @@ export function getCustomMailDomains(customerInfo: CustomerInfo): Array<DomainIn
 }
 
 export function containsEventOfType(events: ReadonlyArray<EntityUpdateData>, type: OperationType, elementId: Id): boolean {
-	return events.find((event) => event.operation === type && event.instanceId === elementId) != null
+	return events.some((event) => event.operation === type && event.instanceId === elementId)
 }
 
 export function getEventOfType(events: ReadonlyArray<EntityUpdate>, type: OperationType, elementId: Id): EntityUpdate | null {
@@ -150,7 +150,7 @@ const ErrorNameToType = {
 }
 
 export function isCustomizationEnabledForCustomer(customer: Customer, feature: FeatureType): boolean {
-	return !!customer.customizations.find((customization) => customization.feature === feature)
+	return customer.customizations.some((customization) => customization.feature === feature)
 }
 
 export function isSecurityError(e: any): boolean {

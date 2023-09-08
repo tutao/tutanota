@@ -359,7 +359,7 @@ export class ContactFormEditor {
 							.filter((t) => {
 								if (t.code.endsWith("_sie")) {
 									return false
-								} else if (this._languages.find((l) => l.code === t.code) == null) {
+								} else if (!this._languages.some((l) => l.code === t.code)) {
 									return true
 								}
 
@@ -499,7 +499,7 @@ export class ContactFormEditor {
 			size: ButtonSize.Compact,
 			click: () => {
 				let availableGroupInfos = this._allUserGroupInfos.filter(
-					(g) => this._participantGroupInfoList.find((alreadyAdded) => isSameId(alreadyAdded._id, g._id)) == null,
+					(g) => !this._participantGroupInfoList.some((alreadyAdded) => isSameId(alreadyAdded._id, g._id)),
 				)
 
 				if (availableGroupInfos.length > 0) {

@@ -141,7 +141,7 @@ export function haveSameId(entity1: SomeEntity, entity2: SomeEntity): boolean {
 }
 
 export function containsId(ids: ReadonlyArray<Id | IdTuple>, id: Id | IdTuple): boolean {
-	return ids.find((idInArray) => isSameId(idInArray, id)) != null
+	return ids.some((idInArray) => isSameId(idInArray, id))
 }
 
 export interface Element {

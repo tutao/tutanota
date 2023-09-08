@@ -55,6 +55,7 @@
 		//   2. work with async/await
 		//   3. work with static code analysis, e.g. type checking
 		//   4. work with any iterable object
-		"unicorn/no-array-for-each": 2
+		"unicorn/no-array-for-each": 2,
+		"unicorn/prefer-array-some": 2
 	}
 }

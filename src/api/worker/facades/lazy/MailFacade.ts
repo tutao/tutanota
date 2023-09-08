@@ -357,7 +357,7 @@ export class MailFacade {
 			// check which attachments have been removed
 			for (const fileId of existingFileIds) {
 				if (
-					!attachments.find(
+					!attachments.some(
 						(attachment) => attachment._type !== "DataFile" && attachment._type !== "FileReference" && isSameId(getLetId(attachment), fileId),
 					)
 				) {
