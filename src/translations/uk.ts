@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2023-09-05T17:28:57Z",
+	"updated_at": "2023-09-07T13:52:31Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -293,6 +293,7 @@ export default {
 		"created_label": "Створено",
 		"createEntry_action": "Створити запис",
 		"createEvent_label": "Подія",
+		"createSharedMailbox_label": "Створити спільну поштову скриньку",
 		"createTemplate_action": "Створити шаблон",
 		"createUserFailed_msg": "Не вдалося створити користувача. Зверніться до служби підтримки.",
 		"credentialsEncryptionModeBiometricsHelp_msg": "Найбільш безпечний варіант. Збережені облікові дані очищаються під час додавання або видалення біометричних даних.",
@@ -1269,6 +1270,7 @@ export default {
 		"searchEmails_placeholder": "Пошук пошти",
 		"searchGroups_placeholder": "Пошук груп",
 		"searchKnowledgebase_placeholder": "Пошук у базі знань",
+		"searchMailboxes_placeholder": "Пошук поштових скриньок",
 		"searchMailbox_label": "Пошук у поштовій скриньці",
 		"searchNoResults_msg": "Немає результатів",
 		"searchPage_action": "Сторінка пошуку...",
@@ -1336,6 +1338,8 @@ export default {
 		"sharedGroupAcceptEmailBody_msg": "Привіт, {recipientName}, <br/>{invitee} прийняв ваше запрошення на використання \"{groupName}\".",
 		"sharedGroupDeclineEmailBody_msg": "Привіт, {recipientName}, <br/>{invitee} не прийняв вашого запрошення на використання \"{groupName}\".",
 		"sharedGroupParticipants_label": "Користувачі з доступом до \"{groupName}\"",
+		"sharedMailboxCanNotSendConfidentialExternal_msg": "Шкода, але поки що неможливо надсилати наскрізно зашифровані листи зовнішнім отримувачам зі спільної поштової скриньки.",
+		"sharedMailboxesMultiUser_msg": "Щоб отримати доступ до приватних тарифних планів (Legend і Revolutionary), зверніться до служби підтримки та попросіть увімкнути багатокористувацьку підтримку для свого облікового запису, аби ви могли користуватися спільними поштовими скриньками.",
 		"sharedMailboxes_label": "Спільні поштові скриньки",
 		"sharedMailbox_label": "Спільна поштова скринька",
 		"sharedTemplateGroupDefaultName_label": "Шаблони користувача {ownerName}",
