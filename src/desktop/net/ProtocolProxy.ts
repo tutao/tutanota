@@ -71,7 +71,7 @@ function interceptProtocol(protocol: string, session: Session, fetchImpl: typeof
 				log.debug(TAG, e)
 				log.debug(TAG, JSON.stringify(errorToObj(e)))
 				log.debug(TAG, `failed after ${Date.now() - startTime}ms`)
-				return new Response(null, { status: ServiceUnavailableError.CODE })
+				return Response.error()
 			}
 		}
 	})
