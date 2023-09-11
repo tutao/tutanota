@@ -3,10 +3,10 @@ import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { uint8ArrayToBitArray } from "../../misc/Utils.js"
 
 // Per OWASP's recommendations @ https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
-const ITERATIONS = 4
-const MEMORY_IN_KiB = 32 * 1024
-const PARALLELISM = 1
-const KEY_LENGTH = 32
+export const ARGON2ID_ITERATIONS = 4
+export const ARGON2ID_MEMORY_IN_KiB = 32 * 1024
+export const ARGON2ID_PARALLELISM = 1
+export const ARGON2ID_KEY_LENGTH = 32
 
 /**
  * Create a 256-bit symmetric key from the given passphrase.
@@ -16,7 +16,15 @@ const KEY_LENGTH = 32
  * @return resolved with the key
  */
 export function generateKeyFromPassphrase(argon2: WebAssembly.Exports, pass: string, salt: Uint8Array): Aes256Key {
-	const hash = argon2idHashRaw(argon2, ITERATIONS, MEMORY_IN_KiB, PARALLELISM, stringToUtf8Uint8Array(pass), salt, KEY_LENGTH)
+	const hash = argon2idHashRaw(
+		argon2,
+		ARGON2ID_ITERATIONS,
+		ARGON2ID_MEMORY_IN_KiB,
+		ARGON2ID_PARALLELISM,
+		stringToUtf8Uint8Array(pass),
+		salt,
+		ARGON2ID_KEY_LENGTH,
+	)
 	return uint8ArrayToBitArray(hash)
 }
 

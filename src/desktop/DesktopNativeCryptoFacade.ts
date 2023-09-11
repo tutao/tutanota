@@ -110,4 +110,15 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	async rsaEncrypt(publicKey: RsaPublicKey, data: Uint8Array, seed: Uint8Array): Promise<Uint8Array> {
 		throw new Error("not implemented for this platform")
 	}
+
+	async argon2idHashRaw(
+		password: Uint8Array,
+		salt: Uint8Array,
+		timeCost: number,
+		memoryCost: number,
+		parallelism: number,
+		hashLength: number,
+	): Promise<Uint8Array> {
+		throw new Error("not implemented for this platform")
+	}
 }

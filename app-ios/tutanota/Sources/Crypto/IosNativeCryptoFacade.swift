@@ -4,7 +4,6 @@ import Foundation
 /// Is an actor because we want to have serial execution for all the cryptogaphic operations, doing them in parallel is usually too
 /// much for the device.
 actor IosNativeCryptoFacade: NativeCryptoFacade {
-
   private let crypto: TUTCrypto = TUTCrypto()
 
   func aesEncryptFile(_ key: DataWrapper, _ fileUri: String, _ iv: DataWrapper) async throws -> EncryptedFileInfo {
@@ -66,6 +65,24 @@ actor IosNativeCryptoFacade: NativeCryptoFacade {
         data: data.data
       ).wrap()
     }
+  
+  func argon2idHashRaw(
+    _ password: DataWrapper,
+    _ salt: DataWrapper,
+    _ timeCost: Int,
+    _ memoryCost: Int,
+    _ parallelism: Int,
+    _ hashLength: Int
+  ) async throws -> DataWrapper {
+    return TUTArgon2idFacade.generateHash(
+      ofPlaintext: password.data,
+      ofHashLength: size_t(hashLength),
+      withSalt: salt.data,
+      withIterations: UInt32(timeCost),
+      withParallelism: UInt32(parallelism),
+      withMemoryCost: UInt32(memoryCost)
+    ).wrap()
+  }
 }
 
 private func CryptoError(message: String) -> Error {

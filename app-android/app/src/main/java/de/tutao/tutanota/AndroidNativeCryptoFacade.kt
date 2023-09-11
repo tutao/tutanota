@@ -103,6 +103,14 @@ constructor(
 	}
 
 	@Throws(CryptoError::class)
+	override suspend fun argon2idHashRaw(password: DataWrapper, salt: DataWrapper, timeCost: Int, memoryCost: Int, parallelism: Int, hashLength: Int): DataWrapper {
+		return DataWrapper(this.argon2idHashRawImpl(password.data, salt.data, timeCost, memoryCost, parallelism, hashLength))
+	}
+
+	@Throws(CryptoError::class)
+	external fun argon2idHashRawImpl(password: ByteArray, salt: ByteArray, timeCost: Int, memoryCost: Int, parallelism: Int, hashLength: Int): ByteArray
+
+	@Throws(CryptoError::class)
 	override suspend fun rsaEncrypt(
 			publicKey: RsaPublicKey,
 			data: DataWrapper,

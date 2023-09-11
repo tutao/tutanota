@@ -226,7 +226,7 @@ class MainActivity : FragmentActivity() {
 								200,
 								"OK",
 								null,
-							assets.open(assetPath)
+								assets.open(assetPath)
 						)
 					} catch (e: IOException) {
 						Log.w(TAG, "Resource not found ${url.path}")
@@ -759,6 +759,10 @@ class MainActivity : FragmentActivity() {
 				requestId = 0
 			}
 			return requestId
+		}
+
+		init {
+			System.loadLibrary("tutanota")
 		}
 	}
 }

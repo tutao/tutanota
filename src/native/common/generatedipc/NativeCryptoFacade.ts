@@ -20,4 +20,6 @@ export interface NativeCryptoFacade {
 	aesDecryptFile(key: Uint8Array, fileUri: string): Promise<string>
 
 	generateRsaKey(seed: Uint8Array): Promise<RsaKeyPair>
+
+	argon2idHashRaw(password: Uint8Array, salt: Uint8Array, timeCost: number, memoryCost: number, parallelism: number, hashLength: number): Promise<Uint8Array>
 }

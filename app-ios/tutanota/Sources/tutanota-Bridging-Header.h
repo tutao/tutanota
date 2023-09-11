@@ -8,5 +8,6 @@
 #import "Utils/TUTLog.h"
 #import "Utils/WebviewHacks.h"
 #import "Crypto/TUTAes128Facade.h"
+#import "Crypto/TUTArgon2idFacade.h"
 #import "Crypto/TUTCrypto.h"
 #include "Offline/sqlite3.h"

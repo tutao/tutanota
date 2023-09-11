@@ -34,4 +34,12 @@ interface NativeCryptoFacade {
 	 suspend fun generateRsaKey(
 		seed: DataWrapper,
 	): RsaKeyPair
+	 suspend fun argon2idHashRaw(
+		password: DataWrapper,
+		salt: DataWrapper,
+		timeCost: Int,
+		memoryCost: Int,
+		parallelism: Int,
+		hashLength: Int,
+	): DataWrapper
 }

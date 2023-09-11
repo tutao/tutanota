@@ -1,6 +1,6 @@
 import m, { Component } from "mithril"
 import type { LoggedInEvent, PostLoginAction } from "../api/main/LoginController"
-import { isAdminClient, isApp, isDesktop, LOGIN_TITLE, Mode } from "../api/common/Env"
+import { isAdminClient, isAndroidApp, isApp, isDesktop, isIOSApp, LOGIN_TITLE, Mode } from "../api/common/Env"
 import { assertNotNull, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade"
 import { checkApprovalStatus } from "../misc/LoginUtils"
@@ -159,7 +159,10 @@ export class PostLoginActions implements PostLoginAction {
 		if (!client.webassembly()) {
 			let notificationMessage: Component
 			let buttons: ButtonAttrs[]
-			if (client.lockdownMode()) {
+			if (isIOSApp() || isAndroidApp()) {
+				// It's OK. We are not using WebAssembly on iOS/Android.
+				return
+			} else if (client.lockdownMode()) {
 				notificationMessage = {
 					view: () => [m(".pb", lang.get("lockdownModeNotSupported1_msg")), m("", lang.get("lockdownModeNotSupported2_msg"))],
 				}
