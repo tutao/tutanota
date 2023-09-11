@@ -6,19 +6,18 @@ TOTAL_MEMORY=48MB
 CC=emcc
 WASM=argon2.wasm
 
+ARGON2_DIR=../../../../../libs/phc-winner-argon2
+
 all: ${WASM}
 clean:
 	rm -f ${WASM}
-phc-winner-argon2:
-	git clone https://github.com/tutao/phc-winner-argon2 phc-winner-argon2
-${WASM}: phc-winner-argon2
-	git -C phc-winner-argon2 pull
+${WASM}:
 	${CC} \
-    	phc-winner-argon2/src/argon2.c \
-    	phc-winner-argon2/src/core.c \
-    	phc-winner-argon2/src/ref.c \
-    	phc-winner-argon2/src/blake2/blake2b.c \
-    	-I phc-winner-argon2/include \
+    	"${ARGON2_DIR}/src/argon2.c" \
+    	"${ARGON2_DIR}/src/core.c" \
+    	"${ARGON2_DIR}/src/ref.c" \
+    	"${ARGON2_DIR}/src/blake2/blake2b.c" \
+    	-I "${ARGON2_DIR}/include" \
     	-DARGON2_NO_THREADS \
     	-flto \
     	-O3 \

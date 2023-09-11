@@ -55,6 +55,17 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "3DE113FE2AAF1A3D000D75B2"
+               BuildableName = "argon2Tests.xctest"
+               BlueprintName = "argon2Tests"
+               ReferencedContainer = "container:tutanota.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

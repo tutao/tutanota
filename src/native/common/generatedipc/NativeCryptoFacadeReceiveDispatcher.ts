@@ -34,6 +34,15 @@ export class NativeCryptoFacadeReceiveDispatcher {
 				const seed: Uint8Array = arg[0]
 				return this.facade.generateRsaKey(seed)
 			}
+			case "argon2idHashRaw": {
+				const password: Uint8Array = arg[0]
+				const salt: Uint8Array = arg[1]
+				const timeCost: number = arg[2]
+				const memoryCost: number = arg[3]
+				const parallelism: number = arg[4]
+				const hashLength: number = arg[5]
+				return this.facade.argon2idHashRaw(password, salt, timeCost, memoryCost, parallelism, hashLength)
+			}
 		}
 	}
 }

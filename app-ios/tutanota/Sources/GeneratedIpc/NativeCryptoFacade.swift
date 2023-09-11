@@ -31,4 +31,12 @@ public protocol NativeCryptoFacade {
 	func generateRsaKey(
 		_ seed: DataWrapper
 	) async throws -> RsaKeyPair
+	func argon2idHashRaw(
+		_ password: DataWrapper,
+		_ salt: DataWrapper,
+		_ timeCost: Int,
+		_ memoryCost: Int,
+		_ parallelism: Int,
+		_ hashLength: Int
+	) async throws -> DataWrapper
 }

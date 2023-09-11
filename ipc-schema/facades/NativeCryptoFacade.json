@@ -25,6 +25,17 @@
 		"generateRsaKey": {
 			"arg": [{ "seed": "bytes" }],
 			"ret": "RsaKeyPair"
+		},
+		"argon2idHashRaw": {
+			"arg": [
+				{ "password": "bytes" },
+				{ "salt": "bytes" },
+				{ "timeCost": "number" },
+				{ "memoryCost": "number" },
+				{ "parallelism": "number" },
+				{ "hashLength": "number" }
+			],
+			"ret": "bytes"
 		}
 	}
 }

@@ -61,6 +61,23 @@ class NativeCryptoFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"argon2idHashRaw" -> {
+				val password: DataWrapper = json.decodeFromString(arg[0])
+				val salt: DataWrapper = json.decodeFromString(arg[1])
+				val timeCost: Int = json.decodeFromString(arg[2])
+				val memoryCost: Int = json.decodeFromString(arg[3])
+				val parallelism: Int = json.decodeFromString(arg[4])
+				val hashLength: Int = json.decodeFromString(arg[5])
+				val result: DataWrapper = this.facade.argon2idHashRaw(
+					password,
+					salt,
+					timeCost,
+					memoryCost,
+					parallelism,
+					hashLength,
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for NativeCryptoFacade: $method")
 		}
 	}

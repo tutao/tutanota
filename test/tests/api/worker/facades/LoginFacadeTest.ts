@@ -33,6 +33,7 @@ import { createTutanotaProperties, TutanotaPropertiesTypeRef } from "../../../..
 import { BlobAccessTokenFacade } from "../../../../../src/api/worker/facades/BlobAccessTokenFacade.js"
 import { EntropyFacade } from "../../../../../src/api/worker/facades/EntropyFacade.js"
 import { DatabaseKeyFactory } from "../../../../../src/misc/credentials/DatabaseKeyFactory.js"
+import { NativeCryptoFacade } from "../../../../../src/native/common/generatedipc/NativeCryptoFacade.js"
 
 const { anything } = matchers
 
@@ -93,6 +94,7 @@ o.spec("LoginFacadeTest", function () {
 	let entropyFacade: EntropyFacade
 	let blobAccessTokenFacade: BlobAccessTokenFacade
 	let databaseKeyFactoryMock: DatabaseKeyFactory
+	let nativeCryptoFacade: NativeCryptoFacade
 
 	const timeRangeDays = 42
 
@@ -131,6 +133,7 @@ o.spec("LoginFacadeTest", function () {
 		userFacade = object()
 		entropyFacade = object()
 		databaseKeyFactoryMock = object()
+		nativeCryptoFacade = object()
 
 		facade = new LoginFacade(
 			workerMock,
@@ -145,6 +148,7 @@ o.spec("LoginFacadeTest", function () {
 			blobAccessTokenFacade,
 			entropyFacade,
 			databaseKeyFactoryMock,
+			nativeCryptoFacade,
 		)
 
 		eventBusClientMock = instance(EventBusClient)

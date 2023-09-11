@@ -223,6 +223,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.blobAccessToken,
 		locator.entropyFacade,
 		new DatabaseKeyFactory(locator.deviceEncryptionFacade),
+		new NativeCryptoFacadeSendDispatcher(worker),
 	)
 
 	locator.search = lazyMemoized(async () => {

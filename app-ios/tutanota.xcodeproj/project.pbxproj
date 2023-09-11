@@ -22,7 +22,6 @@
 		3D2DB91B2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2DB91A2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift */; };
 		3D36BCC2274E4A6100428878 /* CryptoTokenKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D378EE62536F51F0001F1F3 /* FileChooser.swift */; };
-		3D3AFAE1285B0C350077F302 /* NativeCredentialsFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFADB285B0C340077F302 /* NativeCredentialsFacadeReceiveDispatcher.swift */; };
 		3D3AFAE2285B0C350077F302 /* NativeContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFADC285B0C340077F302 /* NativeContact.swift */; };
 		3D3AFAE3285B0C350077F302 /* MobileSystemfacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFADD285B0C340077F302 /* MobileSystemfacade.swift */; };
 		3D3AFAE4285B0C350077F302 /* IntegrationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFADE285B0C340077F302 /* IntegrationInfo.swift */; };
@@ -67,6 +66,7 @@
 		3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA302731953E008E7A8A /* RemoteProtocol.swift */; };
 		3D73DA3427319A91008E7A8A /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA3327319A91008E7A8A /* Operation.swift */; };
+		3D74FD732AAF014C0097171B /* TUTArgon2idFacade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74FD722AAF014C0097171B /* TUTArgon2idFacade.m */; };
 		3D7A108029472A6000311B6B /* CancelledError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7A107F29472A6000311B6B /* CancelledError.swift */; };
 		3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56A2721B92C00858A58 /* MissedNotification.swift */; };
 		3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56C2722CEF900858A58 /* FileUtils.swift */; };
@@ -193,6 +193,7 @@
 		3DC5DED82858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DED22858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift */; };
 		3DC5DED92858CB58007364FF /* RsaPublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DED32858CB58007364FF /* RsaPublicKey.swift */; };
 		3DC5DEDB2858D6A9007364FF /* RsaKeyPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEDA2858D6A9007364FF /* RsaKeyPair.swift */; };
+		3DCA05602AAF0F1A0038B944 /* NativeCredentialsFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFADB285B0C340077F302 /* NativeCredentialsFacadeReceiveDispatcher.swift */; };
 		3DCB9B8528F710CC0042A6BB /* TaggedSqlValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCB9B8428F710CC0042A6BB /* TaggedSqlValue.swift */; };
 		3DCB9B8728F711220042A6BB /* SqlCipherStatement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCB9B8628F711220042A6BB /* SqlCipherStatement.swift */; };
 		3DCE7AA22719D04B0085E40D /* UserPreferenceFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA12719D04B0085E40D /* UserPreferenceFacade.swift */; };
@@ -205,6 +206,22 @@
 		3DD4EA3B2726F41200D58207 /* DictionaryCoding in Frameworks */ = {isa = PBXBuildFile; productRef = 3DD4EA3A2726F41200D58207 /* DictionaryCoding */; };
 		3DDB5E6F28FDA59100E1E4BE /* libcrypto.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DDB5E6E28FDA59100E1E4BE /* libcrypto.xcframework */; };
 		3DDE413B28F4665700837BE6 /* SqlCipherDb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DDE413A28F4665700837BE6 /* SqlCipherDb.swift */; };
+		3DE1144B2AAF1C0E000D75B2 /* argon2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DE114452AAF1C0D000D75B2 /* argon2.framework */; };
+		3DE1144C2AAF1C0E000D75B2 /* argon2.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3DE114452AAF1C0D000D75B2 /* argon2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3DE114642AAF1D09000D75B2 /* argon2.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DE114542AAF1D09000D75B2 /* argon2.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		3DE114652AAF1D09000D75B2 /* thread.c in Sources */ = {isa = PBXBuildFile; fileRef = 3DE114562AAF1D09000D75B2 /* thread.c */; };
+		3DE114662AAF1D09000D75B2 /* core.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DE114572AAF1D09000D75B2 /* core.h */; };
+		3DE114672AAF1D0A000D75B2 /* blamka-round-ref.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DE114592AAF1D09000D75B2 /* blamka-round-ref.h */; };
+		3DE114682AAF1D0A000D75B2 /* blamka-round-opt.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DE1145A2AAF1D09000D75B2 /* blamka-round-opt.h */; };
+		3DE114692AAF1D0A000D75B2 /* blake2.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DE1145B2AAF1D09000D75B2 /* blake2.h */; };
+		3DE1146A2AAF1D0A000D75B2 /* blake2b.c in Sources */ = {isa = PBXBuildFile; fileRef = 3DE1145C2AAF1D09000D75B2 /* blake2b.c */; };
+		3DE1146B2AAF1D0A000D75B2 /* blake2-impl.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DE1145D2AAF1D09000D75B2 /* blake2-impl.h */; };
+		3DE1146C2AAF1D0A000D75B2 /* ref.c in Sources */ = {isa = PBXBuildFile; fileRef = 3DE1145E2AAF1D09000D75B2 /* ref.c */; };
+		3DE1146E2AAF1D0A000D75B2 /* encoding.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DE114602AAF1D09000D75B2 /* encoding.h */; };
+		3DE1146F2AAF1D0A000D75B2 /* core.c in Sources */ = {isa = PBXBuildFile; fileRef = 3DE114612AAF1D09000D75B2 /* core.c */; };
+		3DE114702AAF1D0A000D75B2 /* thread.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DE114622AAF1D09000D75B2 /* thread.h */; };
+		3DE114712AAF1D0A000D75B2 /* argon2.c in Sources */ = {isa = PBXBuildFile; fileRef = 3DE114632AAF1D09000D75B2 /* argon2.c */; };
+		3DE114732AAF1D58000D75B2 /* encoding.c in Sources */ = {isa = PBXBuildFile; fileRef = 3DE114722AAF1D58000D75B2 /* encoding.c */; };
 		3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */; };
 		3DE46D2B2848EBDA00DC9D43 /* IosFileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE46D2A2848EBDA00DC9D43 /* IosFileFacade.swift */; };
 		3DE46D2E2849E33000DC9D43 /* IosThemeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE46D2D2849E33000DC9D43 /* IosThemeFacade.swift */; };
@@ -221,6 +238,13 @@
 			remoteGlobalIDString = 3DD4A08220F8C6240086EB36;
 			remoteInfo = tutanota;
 		};
+		3DE114492AAF1C0E000D75B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3DD4A07B20F8C6240086EB36 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3DE114442AAF1C0D000D75B2;
+			remoteInfo = argon2;
+		};
 		3DEF18F82924E1F1009C4B55 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 3DD4A07B20F8C6240086EB36 /* Project object */;
@@ -231,6 +255,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		3DE114102AAF1A3E000D75B2 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				3DE1144C2AAF1C0E000D75B2 /* argon2.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3DEF18E82924E14B009C4B55 /* Embed App Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -302,6 +337,8 @@
 		3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CompatibilityTest.m; sourceTree = "<group>"; };
 		3D73DA302731953E008E7A8A /* RemoteProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteProtocol.swift; sourceTree = "<group>"; };
 		3D73DA3327319A91008E7A8A /* Operation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
+		3D74FD722AAF014C0097171B /* TUTArgon2idFacade.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTArgon2idFacade.m; sourceTree = "<group>"; };
+		3D74FD742AAF016C0097171B /* TUTArgon2idFacade.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTArgon2idFacade.h; sourceTree = "<group>"; };
 		3D7A107F29472A6000311B6B /* CancelledError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CancelledError.swift; sourceTree = "<group>"; };
 		3D84F56A2721B92C00858A58 /* MissedNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissedNotification.swift; sourceTree = "<group>"; };
 		3D84F56C2722CEF900858A58 /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
@@ -449,6 +486,22 @@
 		3DD4A0A120F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3DDB5E6E28FDA59100E1E4BE /* libcrypto.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = libcrypto.xcframework; sourceTree = "<group>"; };
 		3DDE413A28F4665700837BE6 /* SqlCipherDb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SqlCipherDb.swift; sourceTree = "<group>"; };
+		3DE114452AAF1C0D000D75B2 /* argon2.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = argon2.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3DE114542AAF1D09000D75B2 /* argon2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = argon2.h; sourceTree = "<group>"; };
+		3DE114562AAF1D09000D75B2 /* thread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = thread.c; sourceTree = "<group>"; };
+		3DE114572AAF1D09000D75B2 /* core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = core.h; sourceTree = "<group>"; };
+		3DE114592AAF1D09000D75B2 /* blamka-round-ref.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "blamka-round-ref.h"; sourceTree = "<group>"; };
+		3DE1145A2AAF1D09000D75B2 /* blamka-round-opt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "blamka-round-opt.h"; sourceTree = "<group>"; };
+		3DE1145B2AAF1D09000D75B2 /* blake2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = blake2.h; sourceTree = "<group>"; };
+		3DE1145C2AAF1D09000D75B2 /* blake2b.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = blake2b.c; sourceTree = "<group>"; };
+		3DE1145D2AAF1D09000D75B2 /* blake2-impl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "blake2-impl.h"; sourceTree = "<group>"; };
+		3DE1145E2AAF1D09000D75B2 /* ref.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ref.c; sourceTree = "<group>"; };
+		3DE1145F2AAF1D09000D75B2 /* run.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = run.c; sourceTree = "<group>"; };
+		3DE114602AAF1D09000D75B2 /* encoding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = encoding.h; sourceTree = "<group>"; };
+		3DE114612AAF1D09000D75B2 /* core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = core.c; sourceTree = "<group>"; };
+		3DE114622AAF1D09000D75B2 /* thread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = thread.h; sourceTree = "<group>"; };
+		3DE114632AAF1D09000D75B2 /* argon2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = argon2.c; sourceTree = "<group>"; };
+		3DE114722AAF1D58000D75B2 /* encoding.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = encoding.c; sourceTree = "<group>"; };
 		3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+utils.swift"; sourceTree = "<group>"; };
 		3DE46D2A2848EBDA00DC9D43 /* IosFileFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosFileFacade.swift; sourceTree = "<group>"; };
 		3DE46D2D2849E33000DC9D43 /* IosThemeFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosThemeFacade.swift; sourceTree = "<group>"; };
@@ -469,6 +522,7 @@
 			files = (
 				3D36BCC2274E4A6100428878 /* CryptoTokenKit.framework in Frameworks */,
 				3DD4EA3B2726F41200D58207 /* DictionaryCoding in Frameworks */,
+				3DE1144B2AAF1C0E000D75B2 /* argon2.framework in Frameworks */,
 				3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */,
 				3D3B5169293797DC00C1B7DA /* Atomics in Frameworks */,
 				3DDB5E6F28FDA59100E1E4BE /* libcrypto.xcframework in Frameworks */,
@@ -477,6 +531,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		3DD4A09820F8C6260086EB36 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3DE114422AAF1C0D000D75B2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -589,6 +650,8 @@
 				3DE7B3432135855F003415BE /* TUTSubKeys.m */,
 				3D891F262105BB210031E528 /* TUTAes128Facade.h */,
 				3D891F032105B12F0031E528 /* TUTAes128Facade.m */,
+				3D74FD742AAF016C0097171B /* TUTArgon2idFacade.h */,
+				3D74FD722AAF014C0097171B /* TUTArgon2idFacade.m */,
 				3D891F1D2105BB200031E528 /* rsa_oaep_sha256.h */,
 				3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */,
 				3D9B12A22721926E002B46A1 /* ValueEncryption.swift */,
@@ -1221,6 +1284,7 @@
 			children = (
 				3DD4A08520F8C6240086EB36 /* tutanota */,
 				3DD4A09E20F8C6260086EB36 /* tutanotaTests */,
+				3DE114462AAF1C0E000D75B2 /* argon2 */,
 				3DEF18F12924E1F1009C4B55 /* TutanotaShareExtension */,
 				3DD4A08420F8C6240086EB36 /* Products */,
 				3D891EEC2105A5590031E528 /* Frameworks */,
@@ -1235,6 +1299,7 @@
 				3DD4A08320F8C6240086EB36 /* tutanota.app */,
 				3DD4A09B20F8C6260086EB36 /* tutanotaTests.xctest */,
 				3DEF18F02924E1F1009C4B55 /* TutanotaShareExtension.appex */,
+				3DE114452AAF1C0D000D75B2 /* argon2.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1344,6 +1409,60 @@
 			path = Offline;
 			sourceTree = "<group>";
 		};
+		3DE114462AAF1C0E000D75B2 /* argon2 */ = {
+			isa = PBXGroup;
+			children = (
+				3DE114522AAF1D09000D75B2 /* phc-winner-argon2 */,
+			);
+			path = argon2;
+			sourceTree = "<group>";
+		};
+		3DE114522AAF1D09000D75B2 /* phc-winner-argon2 */ = {
+			isa = PBXGroup;
+			children = (
+				3DE114532AAF1D09000D75B2 /* include */,
+				3DE114552AAF1D09000D75B2 /* src */,
+			);
+			path = "phc-winner-argon2";
+			sourceTree = "<group>";
+		};
+		3DE114532AAF1D09000D75B2 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				3DE114542AAF1D09000D75B2 /* argon2.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		3DE114552AAF1D09000D75B2 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				3DE114562AAF1D09000D75B2 /* thread.c */,
+				3DE114572AAF1D09000D75B2 /* core.h */,
+				3DE114582AAF1D09000D75B2 /* blake2 */,
+				3DE1145E2AAF1D09000D75B2 /* ref.c */,
+				3DE1145F2AAF1D09000D75B2 /* run.c */,
+				3DE114602AAF1D09000D75B2 /* encoding.h */,
+				3DE114612AAF1D09000D75B2 /* core.c */,
+				3DE114622AAF1D09000D75B2 /* thread.h */,
+				3DE114632AAF1D09000D75B2 /* argon2.c */,
+				3DE114722AAF1D58000D75B2 /* encoding.c */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		3DE114582AAF1D09000D75B2 /* blake2 */ = {
+			isa = PBXGroup;
+			children = (
+				3DE114592AAF1D09000D75B2 /* blamka-round-ref.h */,
+				3DE1145A2AAF1D09000D75B2 /* blamka-round-opt.h */,
+				3DE1145B2AAF1D09000D75B2 /* blake2.h */,
+				3DE1145C2AAF1D09000D75B2 /* blake2b.c */,
+				3DE1145D2AAF1D09000D75B2 /* blake2-impl.h */,
+			);
+			path = blake2;
+			sourceTree = "<group>";
+		};
 		3DEF18F12924E1F1009C4B55 /* TutanotaShareExtension */ = {
 			isa = PBXGroup;
 			children = (
@@ -1367,6 +1486,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3DE114402AAF1C0D000D75B2 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3DE114642AAF1D09000D75B2 /* argon2.h in Headers */,
+				3DE114692AAF1D0A000D75B2 /* blake2.h in Headers */,
+				3DE114682AAF1D0A000D75B2 /* blamka-round-opt.h in Headers */,
+				3DE1146E2AAF1D0A000D75B2 /* encoding.h in Headers */,
+				3DE114662AAF1D09000D75B2 /* core.h in Headers */,
+				3DE114672AAF1D0A000D75B2 /* blamka-round-ref.h in Headers */,
+				3DE114702AAF1D0A000D75B2 /* thread.h in Headers */,
+				3DE1146B2AAF1D0A000D75B2 /* blake2-impl.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
@@ -1379,11 +1513,13 @@
 				3DD4A08020F8C6240086EB36 /* Frameworks */,
 				3DD4A08120F8C6240086EB36 /* Resources */,
 				3DEF18E82924E14B009C4B55 /* Embed App Extensions */,
+				3DE114102AAF1A3E000D75B2 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				3DEF18F92924E1F1009C4B55 /* PBXTargetDependency */,
+				3DE1144A2AAF1C0E000D75B2 /* PBXTargetDependency */,
 			);
 			name = tutanota;
 			packageProductDependencies = (
@@ -1412,6 +1548,24 @@
 			productReference = 3DD4A09B20F8C6260086EB36 /* tutanotaTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		3DE114442AAF1C0D000D75B2 /* argon2 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3DE1144D2AAF1C0E000D75B2 /* Build configuration list for PBXNativeTarget "argon2" */;
+			buildPhases = (
+				3DE114402AAF1C0D000D75B2 /* Headers */,
+				3DE114412AAF1C0D000D75B2 /* Sources */,
+				3DE114422AAF1C0D000D75B2 /* Frameworks */,
+				3DE114432AAF1C0D000D75B2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = argon2;
+			productName = argon2;
+			productReference = 3DE114452AAF1C0D000D75B2 /* argon2.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 		3DEF18EF2924E1F1009C4B55 /* TutanotaShareExtension */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3DEF18FB2924E1F1009C4B55 /* Build configuration list for PBXNativeTarget "TutanotaShareExtension" */;
@@ -1435,7 +1589,7 @@
 		3DD4A07B20F8C6240086EB36 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1340;
+				LastSwiftUpdateCheck = 1430;
 				LastUpgradeCheck = 1300;
 				ORGANIZATIONNAME = "Tutao GmbH";
 				TargetAttributes = {
@@ -1455,6 +1609,9 @@
 						CreatedOnToolsVersion = 9.4.1;
 						LastSwiftMigration = 1250;
 						TestTargetID = 3DD4A08220F8C6240086EB36;
+					};
+					3DE114442AAF1C0D000D75B2 = {
+						CreatedOnToolsVersion = 14.3.1;
 					};
 					3DEF18EF2924E1F1009C4B55 = {
 						CreatedOnToolsVersion = 13.4.1;
@@ -1564,6 +1721,7 @@
 				3DD4A08220F8C6240086EB36 /* tutanota */,
 				3DD4A09A20F8C6260086EB36 /* tutanotaTests */,
 				3DEF18EF2924E1F1009C4B55 /* TutanotaShareExtension */,
+				3DE114442AAF1C0D000D75B2 /* argon2 */,
 			);
 		};
 /* End PBXProject section */
@@ -1651,6 +1809,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3DE114432AAF1C0D000D75B2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3DEF18EE2924E1F1009C4B55 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1665,7 +1830,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3D3AFAE1285B0C350077F302 /* NativeCredentialsFacadeReceiveDispatcher.swift in Sources */,
+				3DCA05602AAF0F1A0038B944 /* NativeCredentialsFacadeReceiveDispatcher.swift in Sources */,
 				3D9B1294272167D4002B46A1 /* IconFactory.swift in Sources */,
 				3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */,
 				3D9B12A027218AF9002B46A1 /* RepeatRule.swift in Sources */,
@@ -1675,6 +1840,7 @@
 				3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */,
 				3DB07C7B27303F0600BFBB4D /* Keys.swift in Sources */,
 				3D3AFAE5285B0C350077F302 /* MobileSystemFacadeReceiveDispatcher.swift in Sources */,
+				3D74FD732AAF014C0097171B /* TUTArgon2idFacade.m in Sources */,
 				3DC5DED62858CB58007364FF /* RsaPrivateKey.swift in Sources */,
 				3D3B516229376C2200C1B7DA /* SharingUtils.swift in Sources */,
 				3D220200293F752D00366FD2 /* WebAuthnSignResult.swift in Sources */,
@@ -1792,6 +1958,19 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3DE114412AAF1C0D000D75B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3DE1146F2AAF1D0A000D75B2 /* core.c in Sources */,
+				3DE1146C2AAF1D0A000D75B2 /* ref.c in Sources */,
+				3DE114732AAF1D58000D75B2 /* encoding.c in Sources */,
+				3DE114712AAF1D0A000D75B2 /* argon2.c in Sources */,
+				3DE114652AAF1D09000D75B2 /* thread.c in Sources */,
+				3DE1146A2AAF1D0A000D75B2 /* blake2b.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3DEF18EC2924E1F1009C4B55 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1815,6 +1994,11 @@
 			isa = PBXTargetDependency;
 			target = 3DD4A08220F8C6240086EB36 /* tutanota */;
 			targetProxy = 3DD4A09C20F8C6260086EB36 /* PBXContainerItemProxy */;
+		};
+		3DE1144A2AAF1C0E000D75B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3DE114442AAF1C0D000D75B2 /* argon2 */;
+			targetProxy = 3DE114492AAF1C0E000D75B2 /* PBXContainerItemProxy */;
 		};
 		3DEF18F92924E1F1009C4B55 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2598,6 +2782,96 @@
 			};
 			name = Release;
 		};
+		3DE1144E2AAF1C0E000D75B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 Tutao GmbH. All rights reserved.";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.argon2;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		3DE1144F2AAF1C0E000D75B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 Tutao GmbH. All rights reserved.";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.argon2;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
 		3DEF18FC2924E1F1009C4B55 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2693,6 +2967,15 @@
 			buildConfigurations = (
 				3DD4A0A820F8C6260086EB36 /* Debug */,
 				3DD4A0A920F8C6260086EB36 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3DE1144D2AAF1C0E000D75B2 /* Build configuration list for PBXNativeTarget "argon2" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3DE1144E2AAF1C0E000D75B2 /* Debug */,
+				3DE1144F2AAF1C0E000D75B2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

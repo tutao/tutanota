@@ -11,6 +11,7 @@ import de.tutao.tutanota.ipc.wrap
 import de.tutao.tutanota.testdata.TestData
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.io.output.ByteArrayOutputStream
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.BeforeClass
@@ -21,6 +22,11 @@ import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.math.BigInteger
 import java.security.SecureRandom
+
+const val ARGON2ID_TIME_COST = 4
+const val ARGON2ID_MEMORY_COST = 32 * 1024
+const val ARGON2ID_PARALLELISM = 1
+const val ARGON2ID_HASH_LENGTH = 32
 
 @RunWith(AndroidJUnit4::class)
 class CompatibilityTest {
@@ -80,6 +86,16 @@ class CompatibilityTest {
 			val decryptedBytes = ByteArrayOutputStream()
 			crypto.aesDecrypt(key, ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size().toLong())
 			assertEquals(td.plainTextBase64, decryptedBytes.toByteArray().toBase64())
+		}
+	}
+
+	@Test
+	fun argon2idTest() {
+		for (td in testData.argon2idTests) {
+			val key = hexToBytes(td.keyHex)
+			val salt = hexToBytes(td.saltHex)
+			val password = td.password.toByteArray()
+			assertArrayEquals(key, crypto.argon2idHashRawImpl(password, salt, ARGON2ID_TIME_COST, ARGON2ID_MEMORY_COST, ARGON2ID_PARALLELISM, ARGON2ID_HASH_LENGTH))
 		}
 	}
 
@@ -191,6 +207,10 @@ class CompatibilityTest {
 					}
 				}
 			}
+		}
+
+		init {
+			System.loadLibrary("tutanota")
 		}
 	}
 }

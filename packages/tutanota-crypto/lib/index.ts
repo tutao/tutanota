@@ -13,7 +13,13 @@ export {
 	aes256EncryptSearchIndexEntry,
 } from "./encryption/Aes.js"
 export { generateRandomSalt, generateKeyFromPassphrase as generateKeyFromPassphraseBcrypt } from "./hashes/Bcrypt.js"
-export { generateKeyFromPassphrase as generateKeyFromPassphraseArgon2id } from "./hashes/Argon2id/Argon2id.js"
+export {
+	generateKeyFromPassphrase as generateKeyFromPassphraseArgon2id,
+	ARGON2ID_ITERATIONS,
+	ARGON2ID_KEY_LENGTH,
+	ARGON2ID_MEMORY_IN_KiB,
+	ARGON2ID_PARALLELISM,
+} from "./hashes/Argon2id/Argon2id.js"
 export { CryptoError } from "./misc/CryptoError.js"
 export { KeyLength, EntropySource } from "./misc/Constants.js"
 export {
