@@ -326,7 +326,8 @@ export class LoginFacade {
 			}
 		} catch (e) {
 			if (e instanceof ConnectionError && retryOnNetworkError < 10) {
-				// connection error can occur on ios when switching between apps, just retry in this case.
+				// Connection error can occur on ios when switching between apps or just as a timeout (our request timeout is shorter than the overall
+				// auth flow timeout). Just retry in this case.
 				return this.waitUntilSecondFactorApproved(accessToken, sessionId, retryOnNetworkError + 1)
 			}
 			throw e
