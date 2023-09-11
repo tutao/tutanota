@@ -393,9 +393,6 @@ styles.registerStyle("main", () => {
 		".pb-s": {
 			"padding-bottom": px(size.vpad_small),
 		},
-		".drag": {
-			"touch-action": "auto",
-		},
 		".pb-xs": {
 			"padding-bottom": px(size.vpad_xs),
 		},
