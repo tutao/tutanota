@@ -69,5 +69,5 @@ global.btoa = (str) => Buffer.from(str, "binary").toString("base64")
 global.atob = (b64) => Buffer.from(b64, "base64").toString("binary")
 
 export function mp() {
-	log.debug("the monkey has been patched")
+	log.debug("the monkey has been patched pid:", process.pid)
 }
