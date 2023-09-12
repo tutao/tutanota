@@ -1,5 +1,5 @@
 import { DAY_IN_MILLIS, downcast, filterInt, neverNull, Require } from "@tutao/tutanota-utils"
-import { DateTime, IANAZone } from "luxon"
+import { DateTime, Duration, IANAZone } from "luxon"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventAttendee, createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
 import type { AlarmInfo, DateWrapper, RepeatRule } from "../../api/entities/sys/TypeRefs.js"
@@ -21,7 +21,8 @@ import {
 import WindowsZones from "./WindowsZones"
 import type { ParsedCalendarData } from "./CalendarImporter"
 import { isMailAddress } from "../../misc/FormatValidator"
-import { AlarmInterval, CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, reverse } from "../../api/common/TutanotaConstants"
+import { CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, reverse } from "../../api/common/TutanotaConstants"
+import { AlarmInterval, AlarmIntervalUnit, serializeAlarmInterval } from "../date/CalendarUtils.js"
 
 function parseDateString(dateString: string): {
 	year: number
@@ -266,72 +267,59 @@ function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): AlarmInfo | 
 	}
 	const triggerValue = triggerProp.value
 	if (typeof triggerValue !== "string") throw new ParserError("expected TRIGGER property to be a string: " + JSON.stringify(triggerProp))
-	let trigger: AlarmInterval
+	let alarmInterval: AlarmInterval
 
 	// Absolute time
 	if (triggerValue.endsWith("Z")) {
+		// For absolute time we just convert the trigger to minutes. There might be a bigger unit that can express it but we don't have to take care about time
+		// zones or daylight saving in this case and it's simpler this way.
 		const triggerTime = parseTime(triggerValue).date
 		const tillEvent = event.startTime.getTime() - triggerTime.getTime()
-
-		if (tillEvent >= DAY_IN_MILLIS * 7) {
-			trigger = AlarmInterval.ONE_WEEK
-		} else if (tillEvent >= DAY_IN_MILLIS * 3) {
-			trigger = AlarmInterval.THREE_DAYS
-		} else if (tillEvent >= DAY_IN_MILLIS * 2) {
-			trigger = AlarmInterval.TWO_DAYS
-		} else if (tillEvent >= DAY_IN_MILLIS) {
-			trigger = AlarmInterval.ONE_DAY
-		} else if (tillEvent >= 60 * 60 * 1000) {
-			trigger = AlarmInterval.ONE_HOUR
-		} else if (tillEvent >= 30 * 60 * 1000) {
-			trigger = AlarmInterval.THIRTY_MINUTES
-		} else if (tillEvent >= 10 * 60 * 1000) {
-			trigger = AlarmInterval.TEN_MINUTES
-		} else if (tillEvent >= 0) {
-			trigger = AlarmInterval.FIVE_MINUTES
-		} else {
-			return null
-		}
+		const minutes = Duration.fromMillis(tillEvent).as("minutes")
+		alarmInterval = { unit: AlarmIntervalUnit.MINUTE, value: minutes }
 	} else {
+		// If we have relative trigger expressed in units we want to find the smallest unit that will fit. Unlike iCal we do not support multiple units so
+		// we have to pick one.
 		const duration = parseDuration(triggerValue)
 
 		if (duration.positive) {
 			return null
-		} else {
-			if (duration.week) {
-				trigger = AlarmInterval.ONE_WEEK
-			} else if (duration.day) {
-				if (duration.day >= 3) {
-					trigger = AlarmInterval.THREE_DAYS
-				} else if (duration.day === 2) {
-					trigger = AlarmInterval.TWO_DAYS
-				} else {
-					trigger = AlarmInterval.ONE_DAY
-				}
-			} else if (duration.hour) {
-				if (duration.hour > 1) {
-					trigger = AlarmInterval.ONE_DAY
-				} else {
-					trigger = AlarmInterval.ONE_HOUR
-				}
-			} else if (duration.minute) {
-				if (duration.minute > 30) {
-					trigger = AlarmInterval.ONE_HOUR
-				} else if (duration.minute > 10) {
-					trigger = AlarmInterval.THIRTY_MINUTES
-				} else if (duration.minute > 5) {
-					trigger = AlarmInterval.TEN_MINUTES
-				} else {
-					trigger = AlarmInterval.FIVE_MINUTES
-				}
-			} else {
-				trigger = AlarmInterval.THREE_DAYS
-			}
 		}
+
+		let smallestUnit: AlarmIntervalUnit = AlarmIntervalUnit.MINUTE
+		if (duration.week) {
+			smallestUnit = AlarmIntervalUnit.WEEK
+		}
+		if (duration.day) {
+			smallestUnit = AlarmIntervalUnit.DAY
+		}
+		if (duration.hour) {
+			smallestUnit = AlarmIntervalUnit.HOUR
+		}
+		if (duration.minute) {
+			smallestUnit = AlarmIntervalUnit.MINUTE
+		}
+		const luxonDuration = { week: duration.week, day: duration.day, minute: duration.minute, hour: duration.hour }
+		let value
+		switch (smallestUnit) {
+			case AlarmIntervalUnit.WEEK:
+				value = Duration.fromObject(luxonDuration).as("weeks")
+				break
+			case AlarmIntervalUnit.DAY:
+				value = Duration.fromObject(luxonDuration).as("days")
+				break
+			case AlarmIntervalUnit.HOUR:
+				value = Duration.fromObject(luxonDuration).as("hours")
+				break
+			case AlarmIntervalUnit.MINUTE:
+				value = Duration.fromObject(luxonDuration).as("minutes")
+				break
+		}
+		alarmInterval = { unit: smallestUnit, value }
 	}
 
-	return Object.assign(createAlarmInfo(), {
-		trigger,
+	return createAlarmInfo({
+		trigger: serializeAlarmInterval(alarmInterval),
 	})
 }
 
@@ -634,7 +622,7 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 	}
 }
 
-type Duration = {
+type ICalDuration = {
 	positive: boolean
 	day?: number
 	week?: number
@@ -914,7 +902,7 @@ const durationParser = mapParser(
 	},
 )
 
-export function parseDuration(value: string): Duration {
+export function parseDuration(value: string): ICalDuration {
 	const iterator = new StringIterator(value)
 	const duration = durationParser(iterator)
 

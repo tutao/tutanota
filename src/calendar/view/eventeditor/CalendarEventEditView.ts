@@ -12,7 +12,7 @@ import { DropDownSelector, DropDownSelectorAttrs } from "../../../gui/base/DropD
 import { getSharedGroupName } from "../../../sharing/GroupUtils.js"
 import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
-import { createAlarmIntervalItems } from "../../date/CalendarUtils.js"
+import { createAlarmIntervalItems, humanDescriptionForAlarmInterval } from "../../date/CalendarUtils.js"
 import { Icons } from "../../../gui/base/icons/Icons.js"
 import { IconButton } from "../../../gui/base/IconButton.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
@@ -197,41 +197,38 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private renderRemindersEditor(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
 		if (!vnode.attrs.model.editModels.alarmModel.canEditReminders) return null
 		const { alarmModel } = vnode.attrs.model.editModels
-		const { taken, available } = alarmModel.splitTriggers(createAlarmIntervalItems(), (i) => i.value)
-		const textFieldAttrs: Array<TextFieldAttrs> = taken.map((a) => ({
-			value: a.name,
+		const textFieldAttrs: Array<TextFieldAttrs> = alarmModel.alarms.map((a) => ({
+			value: humanDescriptionForAlarmInterval(a, lang.languageTag),
 			label: "emptyString_msg",
 			disabled: true,
 			injectionsRight: () =>
 				m(IconButton, {
 					title: "delete_action",
 					icon: Icons.Cancel,
-					click: () => alarmModel.removeAlarm(a.value),
+					click: () => alarmModel.removeAlarm(a),
 				}),
 		}))
 
-		if (available.length > 0) {
-			textFieldAttrs.push({
-				value: lang.get("add_action"),
-				label: "emptyString_msg",
-				disabled: true,
-				injectionsRight: () =>
-					m(
-						IconButton,
-						attachDropdown({
-							mainButtonAttrs: {
-								title: "add_action",
-								icon: Icons.Add,
-							},
-							childAttrs: () =>
-								available.map((i) => ({
-									label: () => i.name,
-									click: () => alarmModel.addAlarm(i.value),
-								})),
-						}),
-					),
-			})
-		}
+		textFieldAttrs.push({
+			value: lang.get("add_action"),
+			label: "emptyString_msg",
+			disabled: true,
+			injectionsRight: () =>
+				m(
+					IconButton,
+					attachDropdown({
+						mainButtonAttrs: {
+							title: "add_action",
+							icon: Icons.Add,
+						},
+						childAttrs: () =>
+							createAlarmIntervalItems(lang.languageTag).map((i) => ({
+								label: () => i.name,
+								click: () => alarmModel.addAlarm(i.value),
+							})),
+					}),
+				),
+		})
 
 		textFieldAttrs[0].label = "reminderBeforeEvent_label"
 

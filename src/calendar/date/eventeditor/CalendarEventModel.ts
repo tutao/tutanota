@@ -54,7 +54,7 @@
  *     * etc.
  */
 
-import { AccountType, AlarmInterval } from "../../../api/common/TutanotaConstants.js"
+import { AccountType } from "../../../api/common/TutanotaConstants.js"
 import {
 	CalendarEvent,
 	CalendarEventAttendee,
@@ -67,7 +67,16 @@ import {
 } from "../../../api/entities/tutanota/TypeRefs.js"
 import { AlarmInfo, DateWrapper, User } from "../../../api/entities/sys/TypeRefs.js"
 import { MailboxDetail } from "../../../mail/model/MailModel.js"
-import { CalendarEventValidity, checkEventValidity, DefaultDateProvider, getEventType, getTimeZone, incrementSequence } from "../CalendarUtils.js"
+import {
+	AlarmInterval,
+	CalendarEventValidity,
+	checkEventValidity,
+	DefaultDateProvider,
+	getEventType,
+	getTimeZone,
+	incrementSequence,
+	parseAlarmInterval,
+} from "../CalendarUtils.js"
 import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, getFirstOrThrow, identity, lazy, Require } from "@tutao/tutanota-utils"
 import { cleanMailAddress } from "../../../api/common/utils/CommonCalendarUtils.js"
 import { CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
@@ -537,7 +546,7 @@ export function assignEventIdentity(values: CalendarEventValues, identity: Requi
 
 async function resolveAlarmsForEvent(alarms: CalendarEvent["alarmInfos"], calendarModel: CalendarModel, user: User): Promise<Array<AlarmInterval>> {
 	const alarmInfos = await calendarModel.loadAlarms(alarms, user)
-	return alarmInfos.map(({ alarmInfo }) => alarmInfo.trigger as AlarmInterval)
+	return alarmInfos.map(({ alarmInfo }) => parseAlarmInterval(alarmInfo.trigger))
 }
 
 function cleanupInitialValuesForEditing(initialValues: Partial<CalendarEvent>): CalendarEvent {

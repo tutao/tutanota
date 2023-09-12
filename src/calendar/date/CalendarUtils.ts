@@ -15,10 +15,10 @@ import {
 	neverNull,
 	numberRange,
 	TIMESTAMP_ZERO_YEAR,
+	typedValues,
 } from "@tutao/tutanota-utils"
 import {
 	AccountType,
-	AlarmInterval,
 	CalendarAttendeeStatus,
 	defaultCalendarColor,
 	EndType,
@@ -29,7 +29,7 @@ import {
 	TimeFormat,
 	WeekStart,
 } from "../../api/common/TutanotaConstants"
-import { DateTime, FixedOffsetZone, IANAZone } from "luxon"
+import { DateTime, Duration, DurationLikeObject, FixedOffsetZone, IANAZone } from "luxon"
 import {
 	CalendarEvent,
 	CalendarEventTypeRef,
@@ -66,6 +66,7 @@ import { EventType } from "./eventeditor/CalendarEventModel.js"
 import { hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
+import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 
 assertMainOrNode()
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
@@ -155,62 +156,7 @@ export function getStartOfNextDayWithZone(date: Date, zone: string): Date {
 }
 
 export function calculateAlarmTime(date: Date, interval: AlarmInterval, ianaTimeZone?: string): Date {
-	let diff
-
-	switch (interval) {
-		case AlarmInterval.FIVE_MINUTES:
-			diff = {
-				minutes: 5,
-			}
-			break
-
-		case AlarmInterval.TEN_MINUTES:
-			diff = {
-				minutes: 10,
-			}
-			break
-
-		case AlarmInterval.THIRTY_MINUTES:
-			diff = {
-				minutes: 30,
-			}
-			break
-
-		case AlarmInterval.ONE_HOUR:
-			diff = {
-				hours: 1,
-			}
-			break
-
-		case AlarmInterval.ONE_DAY:
-			diff = {
-				days: 1,
-			}
-			break
-
-		case AlarmInterval.TWO_DAYS:
-			diff = {
-				days: 2,
-			}
-			break
-
-		case AlarmInterval.THREE_DAYS:
-			diff = {
-				days: 3,
-			}
-			break
-
-		case AlarmInterval.ONE_WEEK:
-			diff = {
-				weeks: 1,
-			}
-			break
-
-		default:
-			diff = {
-				minutes: 5,
-			}
-	}
+	const diff = alarmIntervalToLuxonDurationLikeObject(interval)
 
 	return DateTime.fromJSDate(date, {
 		zone: ianaTimeZone,
@@ -1241,40 +1187,17 @@ export const createRepeatRuleEndTypeValues = (): SelectorItemList<EndType> => {
 
 export const createIntervalValues = (): SelectorItemList<number> => numberRange(1, 256).map((n) => ({ name: String(n), value: n }))
 
-export const createAlarmIntervalItems = (): SelectorItemList<AlarmInterval> => [
-	{
-		name: lang.get("calendarReminderIntervalFiveMinutes_label"),
-		value: AlarmInterval.FIVE_MINUTES,
-	},
-	{
-		name: lang.get("calendarReminderIntervalTenMinutes_label"),
-		value: AlarmInterval.TEN_MINUTES,
-	},
-	{
-		name: lang.get("calendarReminderIntervalThirtyMinutes_label"),
-		value: AlarmInterval.THIRTY_MINUTES,
-	},
-	{
-		name: lang.get("calendarReminderIntervalOneHour_label"),
-		value: AlarmInterval.ONE_HOUR,
-	},
-	{
-		name: lang.get("calendarReminderIntervalOneDay_label"),
-		value: AlarmInterval.ONE_DAY,
-	},
-	{
-		name: lang.get("calendarReminderIntervalTwoDays_label"),
-		value: AlarmInterval.TWO_DAYS,
-	},
-	{
-		name: lang.get("calendarReminderIntervalThreeDays_label"),
-		value: AlarmInterval.THREE_DAYS,
-	},
-	{
-		name: lang.get("calendarReminderIntervalOneWeek_label"),
-		value: AlarmInterval.ONE_WEEK,
-	},
-]
+export function humanDescriptionForAlarmInterval<P>(value: AlarmInterval, locale: string): string {
+	return Duration.fromObject(alarmIntervalToLuxonDurationLikeObject(value)).reconfigure({ locale: locale }).toHuman()
+}
+
+export const createAlarmIntervalItems = (locale: string): SelectorItemList<AlarmInterval> =>
+	typedValues(StandardAlarmInterval).map((value) => {
+		return {
+			value,
+			name: humanDescriptionForAlarmInterval(value, locale),
+		}
+	})
 
 export const createAttendingItems = (): SelectorItemList<CalendarAttendeeStatus> => [
 	{
@@ -1381,4 +1304,70 @@ function clipRanges(start: number, end: number, min: number, max: number): Calen
 		end: Math.min(end, max),
 	}
 	return res.start < res.end ? res : null
+}
+
+export enum AlarmIntervalUnit {
+	MINUTE = "M",
+	HOUR = "H",
+	DAY = "D",
+	WEEK = "W",
+}
+
+export const StandardAlarmInterval = Object.freeze({
+	FIVE_MINUTES: { value: 5, unit: AlarmIntervalUnit.MINUTE },
+	TEN_MINUTES: { value: 10, unit: AlarmIntervalUnit.MINUTE },
+	THIRTY_MINUTES: { value: 30, unit: AlarmIntervalUnit.MINUTE },
+	ONE_HOUR: { value: 1, unit: AlarmIntervalUnit.HOUR },
+	ONE_DAY: { value: 1, unit: AlarmIntervalUnit.DAY },
+	TWO_DAYS: { value: 2, unit: AlarmIntervalUnit.DAY },
+	THREE_DAYS: { value: 3, unit: AlarmIntervalUnit.DAY },
+	ONE_WEEK: { value: 1, unit: AlarmIntervalUnit.WEEK },
+} as const satisfies Record<string, AlarmInterval>)
+
+/**
+ * Runtime representation of an alarm interval/alarm trigger.
+ * Unlike iCal we only support one unit and alarms in the past
+ * (represented here as non-negative numbers).
+ */
+export type AlarmInterval = Readonly<{
+	unit: AlarmIntervalUnit
+	value: number
+}>
+
+/**
+ * Converts db representation of alarm to a runtime one.
+ */
+export function parseAlarmInterval(serialized: string): AlarmInterval {
+	const matched = serialized.match(/^(\d+)([MHDW])$/)
+	if (matched) {
+		const [_, digits, unit] = matched
+		const value = filterInt(digits)
+		if (isNaN(value)) {
+			throw new ParserError(`Invalid value: ${value}`)
+		} else {
+			return { value, unit: unit as AlarmIntervalUnit }
+		}
+	} else {
+		throw new ParserError(`Invalid alarm interval: ${serialized}`)
+	}
+}
+
+/**
+ * Converts runtime representation of an alarm into a db one.
+ */
+export function serializeAlarmInterval(interval: AlarmInterval): string {
+	return `${interval.value}${interval.unit}`
+}
+
+export function alarmIntervalToLuxonDurationLikeObject(alarmInterval: AlarmInterval): DurationLikeObject {
+	switch (alarmInterval.unit) {
+		case AlarmIntervalUnit.MINUTE:
+			return { minutes: alarmInterval.value }
+		case AlarmIntervalUnit.HOUR:
+			return { hours: alarmInterval.value }
+		case AlarmIntervalUnit.DAY:
+			return { days: alarmInterval.value }
+		case AlarmIntervalUnit.WEEK:
+			return { weeks: alarmInterval.value }
+	}
 }

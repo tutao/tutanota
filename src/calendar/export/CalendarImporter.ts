@@ -1,5 +1,5 @@
 import type { CalendarAttendeeStatus, CalendarMethod } from "../../api/common/TutanotaConstants"
-import { AlarmInterval, assertEnumValue, EndType, RepeatPeriod, SECOND_MS } from "../../api/common/TutanotaConstants"
+import { assertEnumValue, EndType, RepeatPeriod, SECOND_MS } from "../../api/common/TutanotaConstants"
 import {
 	assertNotNull,
 	downcast,
@@ -13,7 +13,7 @@ import {
 } from "@tutao/tutanota-utils"
 import { calendarAttendeeStatusToParstat, iCalReplacements, parseCalendarEvents, parseICalendar, repeatPeriodToIcalFrequency } from "./CalendarParser"
 import { getAllDayDateLocal, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
-import { generateUid, getTimeZone } from "../date/CalendarUtils"
+import { AlarmIntervalUnit, generateUid, getTimeZone, parseAlarmInterval } from "../date/CalendarUtils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { createFile } from "../../api/entities/tutanota/TypeRefs.js"
 import { convertToDataFile, DataFile } from "../../api/common/DataFile"
@@ -222,35 +222,18 @@ function makeInvitationCalendar(versionNumber: string, event: CalendarEvent, met
 	return wrapIntoCalendar(versionNumber, method, eventSerialized)
 }
 
-function serializeTrigger(alarmInterval: AlarmInterval): string {
-	switch (alarmInterval) {
-		case AlarmInterval.FIVE_MINUTES:
-			return "-PT05M"
+export function serializeTrigger(dbAlarmInterval: string): string {
+	const alarmInterval = parseAlarmInterval(dbAlarmInterval)
 
-		case AlarmInterval.TEN_MINUTES:
-			return "-PT10M"
+	let serialized = "-P"
 
-		case AlarmInterval.THIRTY_MINUTES:
-			return "-PT30M"
-
-		case AlarmInterval.ONE_HOUR:
-			return "-PT01H"
-
-		case AlarmInterval.ONE_DAY:
-			return "-P1D"
-
-		case AlarmInterval.TWO_DAYS:
-			return "-P2D"
-
-		case AlarmInterval.THREE_DAYS:
-			return "-P3D"
-
-		case AlarmInterval.ONE_WEEK:
-			return "-P1W"
-
-		default:
-			throw new Error("unknown alarm interval: " + alarmInterval)
+	if (alarmInterval.unit === AlarmIntervalUnit.MINUTE || alarmInterval.unit === AlarmIntervalUnit.HOUR) {
+		serialized += "T" + pad2(alarmInterval.value) + alarmInterval.unit
+	} else {
+		serialized += alarmInterval.value.toString() + alarmInterval.unit
 	}
+
+	return serialized
 }
 
 function serializeParticipants(event: CalendarEvent): Array<string> {
@@ -301,11 +284,12 @@ function wrapIntoCalendar(versionNumber: string, method: string, contents: Array
 }
 
 function serializeAlarm(event: CalendarEvent, alarm: UserAlarmInfo): Array<string> {
+	// prettier-ignore
 	return [
 		"BEGIN:VALARM",
 		"ACTION:DISPLAY",
 		"DESCRIPTION:This is an event reminder",
-		`TRIGGER:${serializeTrigger(downcast(alarm.alarmInfo.trigger))}`,
+		`TRIGGER:${serializeTrigger(alarm.alarmInfo.trigger)}`,
 		"END:VALARM",
 	]
 }
