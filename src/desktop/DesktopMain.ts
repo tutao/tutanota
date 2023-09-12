@@ -156,6 +156,7 @@ async function createComponents(): Promise<Components> {
 		}
 	})
 
+	/** functions to create and delete the physical db file on disk */
 	const offlineDbFactory: OfflineDbFactory = {
 		async create(userId: string, key: Uint8Array, retry: boolean = true): Promise<SqlCipherFacade> {
 			const db = new WorkerSqlCipher(buildOptions.sqliteNativePath, makeDbPath(userId), true)

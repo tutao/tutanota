@@ -3,21 +3,35 @@ import { TaggedSqlValue } from "../../api/worker/offline/SqlValue.js"
 import { Worker } from "node:worker_threads"
 import path from "node:path"
 import { MessageDispatcher, NodeWorkerTransport, Request } from "../../api/common/MessageDispatcher.js"
-import { SqlCipherCommand } from "./sqlworker.js"
+import { SqlCipherCommandNames, WorkerLogCommandNames } from "./sqlworker.js"
 
 const TAG = "[WorkerSqlCipher]"
 
 /** impl for SqlCipherFacade that passes any requests to a node worker thread that's running the sqlite db for the given user id
  * this code is running in the main thread of the node process. */
 export class WorkerSqlCipher implements SqlCipherFacade {
-	private readonly dispatcher: MessageDispatcher<SqlCipherCommand, never>
+	private readonly dispatcher: MessageDispatcher<SqlCipherCommandNames, WorkerLogCommandNames>
+	private readonly worker: Worker
 
 	constructor(private readonly nativeBindingPath: string, private readonly dbPath: string, private readonly integrityCheck: boolean) {
-		console.log("new sqlcipherworker")
 		const worker = new Worker(path.join(__dirname, "db", "sqlworker.js"), {
 			workerData: { nativeBindingPath, dbPath, integrityCheck },
+		}).on("error", (error) => {
+			// this is where uncaught errors in the worker end up.
+			console.log(TAG, `error in sqlcipher-worker-${worker.threadId}:`, error)
+			worker.unref()
+			throw error
 		})
-		this.dispatcher = new MessageDispatcher<SqlCipherCommand, never>(new NodeWorkerTransport<SqlCipherCommand, never>(worker), {})
+		console.log(TAG, `started sqlcipher-worker-${worker.threadId}`)
+		this.dispatcher = new MessageDispatcher<SqlCipherCommandNames, WorkerLogCommandNames>(new NodeWorkerTransport<SqlCipherCommandNames, never>(worker), {
+			info: async (msg: Request<"info">) => console.info(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
+			log: async (msg: Request<"log">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
+			error: async (msg: Request<"error">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
+			warn: async (msg: Request<"warn">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
+			trace: async (msg: Request<"trace">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
+		})
+
+		this.worker = worker
 	}
 
 	async all(query: string, params: ReadonlyArray<TaggedSqlValue>): Promise<ReadonlyArray<Record<string, TaggedSqlValue>>> {

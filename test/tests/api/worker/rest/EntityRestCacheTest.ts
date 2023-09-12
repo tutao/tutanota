@@ -85,7 +85,6 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 
 	const migratorMock = instance(OfflineStorageMigrator)
 
-	const nativePath = buildOptions.sqliteNativePath
 	const sqlCipherFacade = new PerWindowSqlCipherFacade(odbManager)
 	const interWindowEventSender = instance(InterWindowEventFacadeSendDispatcher)
 	const offlineStorage = new OfflineStorage(sqlCipherFacade, interWindowEventSender, new NoZoneDateProvider(), migratorMock)
