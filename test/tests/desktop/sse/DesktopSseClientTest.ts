@@ -4,7 +4,6 @@ import type { DeferredObject } from "@tutao/tutanota-utils"
 import type { TimeoutMock } from "@tutao/tutanota-test-utils"
 import { makeTimeoutMock, spy } from "@tutao/tutanota-test-utils"
 import { defer, delay, downcast, neverNull, noOp, numberRange } from "@tutao/tutanota-utils"
-import { AlarmInterval } from "../../../../src/api/common/TutanotaConstants.js"
 import * as url from "node:url"
 import * as querystring from "node:querystring"
 import { createMissedNotification } from "../../../../src/api/entities/sys/TypeRefs.js"
@@ -20,6 +19,7 @@ import type { LanguageViewModel } from "../../../../src/misc/LanguageViewModel.j
 import type { DesktopNetworkClient } from "../../../../src/desktop/net/DesktopNetworkClient.js"
 import { ServiceUnavailableError, TooManyRequestsError } from "../../../../src/api/common/error/RestError.js"
 import modelInfo from "../../../../src/api/entities/sys/ModelInfo.js"
+import { StandardAlarmInterval } from "../../../../src/calendar/date/CalendarUtils.js"
 
 o.spec("DesktopSseClient Test", function () {
 	const identifier = "identifier"
@@ -625,7 +625,7 @@ o.spec("DesktopSseClient Test", function () {
 					eventEnd: new Date("2019-10-08T09:38:14.900Z"),
 					operation: "0",
 					summary: "this is a summary",
-					alarmInfo: { alarmIdentifier: "alarmId", trigger: AlarmInterval.FIVE_MINUTES },
+					alarmInfo: { alarmIdentifier: "alarmId", trigger: StandardAlarmInterval.FIVE_MINUTES },
 					notificationSessionKeys: [
 						{
 							pushIdentifierSessionEncSessionKey: Uint8Array.from(numberRange(0, 255)),
@@ -670,7 +670,7 @@ o.spec("DesktopSseClient Test", function () {
 			eventEnd: "2019-10-08T09:38:14.900Z",
 			operation: "0",
 			summary: "this is a summary",
-			alarmInfo: { alarmIdentifier: "alarmId", trigger: AlarmInterval.FIVE_MINUTES },
+			alarmInfo: { alarmIdentifier: "alarmId", trigger: StandardAlarmInterval.FIVE_MINUTES },
 			notificationSessionKeys: [
 				{
 					pushIdentifierSessionEncSessionKey: Object.assign({}, downcast(numberRange(0, 255))),

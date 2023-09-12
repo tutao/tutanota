@@ -4,7 +4,7 @@ import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter"
 import { EndType } from "../../api/common/TutanotaConstants"
 import type { AlarmInfo, RepeatRule } from "../../api/entities/sys/TypeRefs.js"
 import type { ScheduledTimeoutId, Scheduler } from "../../api/common/utils/Scheduler.js"
-import { calculateAlarmTime, findNextAlarmOccurrence, getEventStartByTimes, getValidTimeZone } from "./CalendarUtils"
+import { calculateAlarmTime, findNextAlarmOccurrence, getEventStartByTimes, getValidTimeZone, parseAlarmInterval } from "./CalendarUtils"
 import { DateProvider } from "../../api/common/DateProvider"
 
 type NotificationSender = (title: string, message: string) => void
@@ -47,7 +47,7 @@ export class AlarmSchedulerImpl implements AlarmScheduler {
 				downcast(repeatRule.endType) || EndType.Never,
 				Number(repeatRule.endValue),
 				repeatRule.excludedDates.map(({ date }) => date),
-				downcast(alarmInfo.trigger),
+				parseAlarmInterval(alarmInfo.trigger),
 				calculationLocalZone,
 			)
 
@@ -63,7 +63,7 @@ export class AlarmSchedulerImpl implements AlarmScheduler {
 			const eventStart = getEventStartByTimes(event.startTime, event.endTime, localZone)
 
 			if (eventStart.getTime() > this._dateProvider.now()) {
-				this._scheduleAction(alarmInfo.alarmIdentifier, calculateAlarmTime(eventStart, downcast(alarmInfo.trigger)), () =>
+				this._scheduleAction(alarmInfo.alarmIdentifier, calculateAlarmTime(eventStart, parseAlarmInterval(alarmInfo.trigger)), () =>
 					this._sendNotification(eventStart, event.summary, notificationSender),
 				)
 			}

@@ -1,57 +1,45 @@
 import o from "@tutao/otest"
-import { AlarmInterval } from "../../../../src/api/common/TutanotaConstants.js"
 import { CalendarEventAlarmModel } from "../../../../src/calendar/date/eventeditor/CalendarEventAlarmModel.js"
-import { createAlarmIntervalItems } from "../../../../src/calendar/date/CalendarUtils.js"
 import { lang } from "../../../../src/misc/LanguageViewModel.js"
 import en from "../../../../src/translations/en.js"
 import { EventType } from "../../../../src/calendar/date/eventeditor/CalendarEventModel.js"
 import { object, when } from "testdouble"
 import { DateProvider } from "../../../../src/api/common/DateProvider.js"
+import { StandardAlarmInterval } from "../../../../src/calendar/date/CalendarUtils.js"
 
 const dateProvider: DateProvider = object()
 when(dateProvider.now()).thenReturn(42)
 
 o.spec("CalendarEventAlarmModel", function () {
+	const languageTag = "en"
 	o.before(async function () {
 		await lang.init(en)
 		await lang.setLanguage({
-			code: "en",
-			languageTag: "en",
+			code: languageTag,
+			languageTag: languageTag,
 		})
 	})
 	o.spec("alarm trigger sets", function () {
 		o("alarm initialization works", function () {
-			const model = new CalendarEventAlarmModel(EventType.OWN, [AlarmInterval.ONE_HOUR], dateProvider)
-			o(model.splitTriggers(createAlarmIntervalItems(), (i) => i.value).taken.map((i) => i.value)).deepEquals([AlarmInterval.ONE_HOUR])
-			o(model.result.alarms.map(({ trigger }) => trigger)).deepEquals([AlarmInterval.ONE_HOUR])
-		})
-
-		o("setting an alarm with the same trigger multiple times does not change the result", function () {
-			const model = new CalendarEventAlarmModel(EventType.OWN, [], dateProvider)
-
-			model.addAlarm(AlarmInterval.ONE_HOUR)
-			model.addAlarm(AlarmInterval.ONE_HOUR)
-			o(model.splitTriggers(createAlarmIntervalItems(), (i) => i.value).taken.map((i) => i.value)).deepEquals([AlarmInterval.ONE_HOUR])
-			o(model.result.alarms.map(({ trigger }) => trigger)).deepEquals([AlarmInterval.ONE_HOUR])
+			const model = new CalendarEventAlarmModel(EventType.OWN, [StandardAlarmInterval.ONE_HOUR], dateProvider)
+			o(model.alarms).deepEquals([StandardAlarmInterval.ONE_HOUR])
+			o(model.result.alarms.map(({ trigger }) => trigger)).deepEquals(["1H"])
 		})
 
 		o("adding alarms works", function () {
-			const model = new CalendarEventAlarmModel(EventType.OWN, [AlarmInterval.ONE_HOUR], dateProvider)
+			const model = new CalendarEventAlarmModel(EventType.OWN, [StandardAlarmInterval.ONE_HOUR], dateProvider)
 
-			model.addAlarm(AlarmInterval.ONE_DAY)
-			o(model.splitTriggers(createAlarmIntervalItems(), (i) => i.value).taken.map((i) => i.value)).deepEquals([
-				AlarmInterval.ONE_HOUR,
-				AlarmInterval.ONE_DAY,
-			])
+			model.addAlarm(StandardAlarmInterval.ONE_DAY)
+			o(model.alarms).deepEquals([StandardAlarmInterval.ONE_HOUR, StandardAlarmInterval.ONE_DAY])
 			const { alarms } = model.result
-			o(alarms.map(({ trigger }) => trigger)).deepEquals([AlarmInterval.ONE_HOUR, AlarmInterval.ONE_DAY])
+			o(alarms.map(({ trigger }) => trigger)).deepEquals(["1H", "1D"])
 		})
 
 		o("removing an alarm works", function () {
-			const model = new CalendarEventAlarmModel(EventType.OWN, [AlarmInterval.ONE_HOUR], dateProvider)
-			model.removeAlarm(AlarmInterval.ONE_HOUR)
-			model.removeAlarm(AlarmInterval.ONE_DAY)
-			o(model.splitTriggers(createAlarmIntervalItems(), (i) => i.value).taken.map((i) => i.value)).deepEquals([])
+			const model = new CalendarEventAlarmModel(EventType.OWN, [StandardAlarmInterval.ONE_HOUR], dateProvider)
+			model.removeAlarm(StandardAlarmInterval.ONE_HOUR)
+			model.removeAlarm(StandardAlarmInterval.ONE_DAY)
+			o(model.alarms).deepEquals([])
 			const { alarms } = model.result
 			o(alarms).deepEquals([])
 		})

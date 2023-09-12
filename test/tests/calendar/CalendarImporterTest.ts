@@ -5,6 +5,7 @@ import {
 	serializeEvent,
 	serializeExcludedDates,
 	serializeRepeatRule,
+	serializeTrigger,
 } from "../../../src/calendar/export/CalendarImporter.js"
 import {
 	CalendarEvent,
@@ -15,7 +16,7 @@ import {
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { DateTime } from "luxon"
 import { createAlarmInfo, createDateWrapper, createRepeatRule, createUserAlarmInfo } from "../../../src/api/entities/sys/TypeRefs.js"
-import { AlarmInterval, CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
 import { getAllDayDateUTC } from "../../../src/api/common/utils/CommonCalendarUtils.js"
 import { getAllDayDateUTCFromZone } from "../../../src/calendar/date/CalendarUtils.js"
 import { EventImportRejectionReason, sortOutParsedEvents } from "../../../src/calendar/export/CalendarImporterDialog.js"
@@ -188,13 +189,13 @@ o.spec("CalendarImporterTest", function () {
 			const alarmOne = createUserAlarmInfo({
 				alarmInfo: createAlarmInfo({
 					alarmIdentifier: "123",
-					trigger: AlarmInterval.ONE_DAY,
+					trigger: "1D",
 				}),
 			})
 			const alarmTwo = createUserAlarmInfo({
 				alarmInfo: createAlarmInfo({
 					alarmIdentifier: "102",
-					trigger: AlarmInterval.THIRTY_MINUTES,
+					trigger: "30M",
 				}),
 			})
 			o(
@@ -899,6 +900,136 @@ o.spec("CalendarImporterTest", function () {
 				},
 			)
 		})
+		o("with relative non-standard alarm", async function () {
+			testEventEquality(
+				parseCalendarStringData(
+					[
+						"BEGIN:VCALENDAR",
+						"PRODID:-//Tutao GmbH//Tutanota 3.57.6//EN",
+						"VERSION:2.0",
+						"CALSCALE:GREGORIAN",
+						"METHOD:PUBLISH",
+						"BEGIN:VEVENT",
+						`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
+						`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
+						`DTSTAMP:20190813T140100Z`,
+						`UID:test@tutanota.com`,
+						"SUMMARY:Word \\\\ \\; \\n",
+						"BEGIN:VALARM",
+						"ACTION:DISPLAY",
+						"TRIGGER:-P15D",
+						"END:VALARM",
+						"END:VEVENT",
+						"END:VCALENDAR",
+					].join("\r\n"),
+					zone,
+				),
+				{
+					method: "PUBLISH",
+					contents: [
+						{
+							event: createCalendarEvent({
+								summary: "Word \\ ; \n",
+								startTime: DateTime.fromObject(
+									{
+										year: 2019,
+										month: 8,
+										day: 13,
+										hour: 5,
+										minute: 6,
+									},
+									{ zone },
+								).toJSDate(),
+								endTime: DateTime.fromObject(
+									{
+										year: 2019,
+										month: 9,
+										day: 13,
+										hour: 5,
+										minute: 6,
+									},
+									{ zone },
+								).toJSDate(),
+								uid: "test@tutanota.com",
+								hashedUid: null,
+								repeatRule: null,
+							}),
+							alarms: [
+								createAlarmInfo({
+									trigger: "15D",
+								}),
+							],
+						},
+					],
+				},
+			)
+		})
+		o("with absolute alarm", async function () {
+			testEventEquality(
+				parseCalendarStringData(
+					[
+						"BEGIN:VCALENDAR",
+						"PRODID:-//Tutao GmbH//Tutanota 3.57.6//EN",
+						"VERSION:2.0",
+						"CALSCALE:GREGORIAN",
+						"METHOD:PUBLISH",
+						"BEGIN:VEVENT",
+						`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
+						`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
+						`DTSTAMP:20190813T140100Z`,
+						`UID:test@tutanota.com`,
+						"SUMMARY:Word \\\\ \\; \\n",
+						"BEGIN:VALARM",
+						"ACTION:DISPLAY",
+						// 20190813T050600 Europe/Berlin is 20190813T030600 in UTC
+						// 1H and 6M before
+						"TRIGGER;VALUE=DATE-TIME:20190813T020000Z",
+						"END:VALARM",
+						"END:VEVENT",
+						"END:VCALENDAR",
+					].join("\r\n"),
+					zone,
+				),
+				{
+					method: "PUBLISH",
+					contents: [
+						{
+							event: createCalendarEvent({
+								summary: "Word \\ ; \n",
+								startTime: DateTime.fromObject(
+									{
+										year: 2019,
+										month: 8,
+										day: 13,
+										hour: 5,
+										minute: 6,
+									},
+									{ zone },
+								).toJSDate(),
+								endTime: DateTime.fromObject(
+									{
+										year: 2019,
+										month: 9,
+										day: 13,
+										hour: 5,
+										minute: 6,
+									},
+									{ zone },
+								).toJSDate(),
+								uid: "test@tutanota.com",
+								hashedUid: null,
+								repeatRule: null,
+							}),
+							alarms: [
+								createAlarmInfo({
+									trigger: "66M",
+								}),
+							],
+						},
+					],
+				},
+			)
+		})
 		o("with alarm in the future", async function () {
 			testEventEquality(
 				parseCalendarStringData(
@@ -962,12 +1093,12 @@ o.spec("CalendarImporterTest", function () {
 		o("roundtrip export -> import", async function () {
 			const alarmOne = createUserAlarmInfo({
 				alarmInfo: createAlarmInfo({
-					trigger: AlarmInterval.ONE_DAY,
+					trigger: "1D",
 				}),
 			})
 			const alarmTwo = createUserAlarmInfo({
 				alarmInfo: createAlarmInfo({
-					trigger: AlarmInterval.THIRTY_MINUTES,
+					trigger: "30M",
 				}),
 			})
 			const events = [
@@ -1293,5 +1424,15 @@ END:VCALENDAR`
 				),
 			).deepEquals(["EXDATE;TZID=Europe/Berlin:20230114T230000,20230121T230000"])
 		})
+	})
+
+	o("serializeTrigger", () => {
+		o(serializeTrigger("5M")).equals("-PT05M")
+		o(serializeTrigger("3H")).equals("-PT03H")
+		o(serializeTrigger("30H")).equals("-PT30H")
+		o(serializeTrigger("1D")).equals("-P1D")
+		o(serializeTrigger("10D")).equals("-P10D")
+		o(serializeTrigger("5W")).equals("-P5W")
+		o(serializeTrigger("50W")).equals("-P50W")
 	})
 })

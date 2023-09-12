@@ -1,9 +1,9 @@
-import { AlarmInterval } from "../../../api/common/TutanotaConstants.js"
 import { AlarmInfo, createAlarmInfo } from "../../../api/entities/sys/TypeRefs.js"
 import { generateEventElementId } from "../../../api/common/utils/CommonCalendarUtils.js"
-import { noOp, partition } from "@tutao/tutanota-utils"
+import { noOp, remove } from "@tutao/tutanota-utils"
 import { EventType } from "./CalendarEventModel.js"
 import { DateProvider } from "../../../api/common/DateProvider.js"
+import { AlarmInterval, serializeAlarmInterval } from "../CalendarUtils.js"
 
 export type CalendarEventAlarmModelResult = {
 	alarms: Array<AlarmInfo>
@@ -13,7 +13,7 @@ export type CalendarEventAlarmModelResult = {
  * edit the alarms set on a calendar event.
  */
 export class CalendarEventAlarmModel {
-	private readonly _alarms: Set<AlarmInterval> = new Set()
+	private readonly _alarms: Array<AlarmInterval> = []
 	/** we can set reminders only if we're able to edit the event on the server because we have to add them to the entity. */
 	readonly canEditReminders: boolean
 
@@ -25,9 +25,7 @@ export class CalendarEventAlarmModel {
 	) {
 		this.canEditReminders =
 			eventType === EventType.OWN || eventType === EventType.SHARED_RW || eventType === EventType.LOCKED || eventType === EventType.INVITE
-		for (const alarm of alarms) {
-			this._alarms.add(alarm)
-		}
+		this._alarms = [...alarms]
 	}
 
 	/**
@@ -36,27 +34,20 @@ export class CalendarEventAlarmModel {
 	 */
 	addAlarm(trigger: AlarmInterval | null) {
 		if (trigger == null) return
-		this._alarms.add(trigger)
+		this._alarms.push(trigger)
 		this.uiUpdateCallback()
 	}
 
 	/**
 	 * deactivate the alarm for the given interval.
 	 */
-	removeAlarm(trigger: AlarmInterval) {
-		this._alarms.delete(trigger)
+	removeAlarm(alarmInterval: AlarmInterval) {
+		remove(this._alarms, alarmInterval)
 		this.uiUpdateCallback()
 	}
 
-	/**
-	 * split a collection of triggers into those that are already set and those that are not set.
-	 * @param items
-	 * @param unwrap
-	 */
-	splitTriggers<T>(items: ReadonlyArray<T>, unwrap: (item: T) => AlarmInterval): { taken: ReadonlyArray<T>; available: ReadonlyArray<T> } {
-		const [taken, available] = partition(items, (candidate) => this._alarms.has(unwrap(candidate)))
-
-		return { taken, available }
+	get alarms(): ReadonlyArray<AlarmInterval> {
+		return this._alarms
 	}
 
 	get result(): CalendarEventAlarmModelResult {
@@ -65,10 +56,10 @@ export class CalendarEventAlarmModel {
 		}
 	}
 
-	private makeNewAlarm(trigger: AlarmInterval) {
+	private makeNewAlarm(alarmInterval: AlarmInterval) {
 		return createAlarmInfo({
 			alarmIdentifier: generateEventElementId(this.dateProvider.now()),
-			trigger,
+			trigger: serializeAlarmInterval(alarmInterval),
 		})
 	}
 }

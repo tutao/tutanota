@@ -1,8 +1,9 @@
 import o from "@tutao/otest"
-import type { AlarmOccurrence, CalendarMonth } from "../../../src/calendar/date/CalendarUtils.js"
+import type { AlarmInterval, AlarmOccurrence, CalendarMonth } from "../../../src/calendar/date/CalendarUtils.js"
 import {
 	addDaysForEventInstance,
 	addDaysForRecurringEvent,
+	AlarmIntervalUnit,
 	calendarEventHasMoreThanOneOccurrencesLeft,
 	CalendarEventValidity,
 	checkEventValidity,
@@ -22,11 +23,14 @@ import {
 	getTimeZone,
 	getWeekNumber,
 	isEventBetweenDays,
+	parseAlarmInterval,
 	prepareCalendarDescription,
+	serializeAlarmInterval,
+	StandardAlarmInterval,
 } from "../../../src/calendar/date/CalendarUtils.js"
 import { lang } from "../../../src/misc/LanguageViewModel.js"
 import { createDateWrapper, createGroup, createGroupMembership, createUser, User } from "../../../src/api/entities/sys/TypeRefs.js"
-import { AccountType, AlarmInterval, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/api/common/TutanotaConstants.js"
+import { AccountType, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/api/common/TutanotaConstants.js"
 import { timeStringFromParts } from "../../../src/misc/Formatter.js"
 import { DateTime } from "luxon"
 import { generateEventElementId, getAllDayDateUTC } from "../../../src/api/common/utils/CommonCalendarUtils.js"
@@ -45,6 +49,7 @@ import { CalendarInfo } from "../../../src/calendar/model/CalendarModel.js"
 import { object, replace } from "testdouble"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/api/worker/facades/lazy/CalendarFacade.js"
 import { getDateInUTC, getDateInZone } from "./CalendarTestUtils.js"
+import { ParserError } from "../../../src/misc/parsing/ParserCombinator.js"
 
 const zone = "Europe/Berlin"
 
@@ -541,7 +546,7 @@ o.spec("calendar utils tests", function () {
 				EndType.Never,
 				0,
 				[],
-				AlarmInterval.ONE_HOUR,
+				StandardAlarmInterval.ONE_HOUR,
 				timeZone,
 				10,
 			)
@@ -627,7 +632,7 @@ o.spec("calendar utils tests", function () {
 				EndType.UntilDate,
 				repeatEnd.getTime(),
 				[],
-				AlarmInterval.ONE_DAY,
+				StandardAlarmInterval.ONE_DAY,
 				timeZone,
 				10,
 			)
@@ -1838,6 +1843,30 @@ o.spec("calendar utils tests", function () {
 		user.memberships = []
 		replace(user, "_id", ["userList", "userId"])
 		o(getEventType(event, calendars, ownMailAddresses, user)).equals(EventType.INVITE)
+	})
+
+	o.spec("parseAlarmInterval", () => {
+		o("accepts valid values", () => {
+			o(parseAlarmInterval("1M")).deepEquals({ unit: AlarmIntervalUnit.MINUTE, value: 1 })
+			o(parseAlarmInterval("10M")).deepEquals({ unit: AlarmIntervalUnit.MINUTE, value: 10 })
+			o(parseAlarmInterval("42H")).deepEquals({ unit: AlarmIntervalUnit.HOUR, value: 42 })
+			o(parseAlarmInterval("35D")).deepEquals({ unit: AlarmIntervalUnit.DAY, value: 35 })
+			o(parseAlarmInterval("6W")).deepEquals({ unit: AlarmIntervalUnit.WEEK, value: 6 })
+		})
+
+		o("does not accept invalid values", () => {
+			// it does accept values like "05M". should it tho?
+			for (const value of ["-1M", "M", "3G", "3", "H5"]) {
+				o(() => parseAlarmInterval(value)).throws(ParserError)(`Should throw on ${value}`)
+			}
+		})
+	})
+
+	o("serializeAlarmInterval", () => {
+		o(serializeAlarmInterval({ value: 2, unit: AlarmIntervalUnit.MINUTE })).equals("2M")
+		o(serializeAlarmInterval({ value: 2, unit: AlarmIntervalUnit.HOUR })).equals("2H")
+		o(serializeAlarmInterval({ value: 35, unit: AlarmIntervalUnit.DAY })).equals("35D")
+		o(serializeAlarmInterval({ value: 2, unit: AlarmIntervalUnit.WEEK })).equals("2W")
 	})
 })
 
