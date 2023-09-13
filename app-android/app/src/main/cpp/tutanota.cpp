@@ -34,6 +34,9 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_de_tutao_tutanota_AndroidNativeCryp
                                     outBytes,
                                     hashLength);
 
+    // zero out the password buffer (note: we can't do anything about the hash)
+    std::memset(inPassword, 0, passwordLength);
+
     env->ReleaseByteArrayElements(ret, outBytes, 0);
     env->ReleaseByteArrayElements(password, inPassword, 0);
     env->ReleaseByteArrayElements(salt, inSalt, 0);

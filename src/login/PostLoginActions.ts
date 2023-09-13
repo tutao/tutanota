@@ -157,29 +157,22 @@ export class PostLoginActions implements PostLoginAction {
 			label: "close_alt",
 		}
 		if (!client.webassembly()) {
-			let notificationMessage: Component
-			let buttons: ButtonAttrs[]
 			if (isIOSApp() || isAndroidApp()) {
 				// It's OK. We are not using WebAssembly on iOS/Android.
 				return
-			} else if (client.lockdownMode()) {
-				notificationMessage = {
-					view: () => [m(".pb", lang.get("lockdownModeNotSupported1_msg")), m("", lang.get("lockdownModeNotSupported2_msg"))],
-				}
-				buttons = []
 			} else {
-				notificationMessage = {
+				const notificationMessage = {
 					view: () => [m(".pb", lang.get("webAssemblyNotSupported1_msg")), m("", lang.get("webAssemblyNotSupported2_msg"))],
 				}
-				buttons = [
+				const buttons: ButtonAttrs[] = [
 					{
 						label: "download_action",
 						click: () => window.open(InfoLink.Download, "_blank"),
 						type: ButtonType.Primary,
 					},
 				]
+				notificationOverlay.show(notificationMessage, closeButton, buttons)
 			}
-			notificationOverlay.show(notificationMessage, closeButton, buttons)
 		}
 	}
 

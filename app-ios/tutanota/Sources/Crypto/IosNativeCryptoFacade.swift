@@ -75,7 +75,7 @@ actor IosNativeCryptoFacade: NativeCryptoFacade {
     _ hashLength: Int
   ) async throws -> DataWrapper {
     return TUTArgon2idFacade.generateHash(
-      ofPlaintext: password.data,
+      ofPassword: password.data,
       ofHashLength: size_t(hashLength),
       withSalt: salt.data,
       withIterations: UInt32(timeCost),

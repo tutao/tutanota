@@ -144,12 +144,12 @@ static int mock_rand_bytes(unsigned char *buf, int num)
     NSData *password = [TUTEncodingConverter stringToBytes:td[@"password"]];
     NSData *key = [TUTEncodingConverter hexToBytes:td[@"keyHex"]];
     NSData *salt = [TUTEncodingConverter hexToBytes:td[@"saltHex"]];
-    NSData *result = [TUTArgon2idFacade generateHashOfPlaintext:password
-                                                   ofHashLength:ARGON2ID_HASH_LENGTH
-                                                       withSalt:salt
-                                                 withIterations:ARGON2ID_ITERATIONS
-                                                withParallelism:ARGON2ID_PARALLELISM
-                                                 withMemoryCost:ARGON2ID_MEMORY_COST];
+    NSData *result = [TUTArgon2idFacade generateHashOfPassword:password
+                                                  ofHashLength:ARGON2ID_HASH_LENGTH
+                                                      withSalt:salt
+                                                withIterations:ARGON2ID_ITERATIONS
+                                               withParallelism:ARGON2ID_PARALLELISM
+                                                withMemoryCost:ARGON2ID_MEMORY_COST];
     XCTAssertEqualObjects(result, key);
   }
 }
