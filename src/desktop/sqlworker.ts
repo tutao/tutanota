@@ -12,9 +12,9 @@
  * the default console.log from a worker writes directly to stdout.
  * */
 import { parentPort, workerData } from "node:worker_threads"
-import { DesktopSqlCipher } from "./DesktopSqlCipher.js"
-import { Command, MessageDispatcher, NodeWorkerTransport, Request } from "../../api/common/MessageDispatcher.js"
-import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
+import { DesktopSqlCipher } from "./db/DesktopSqlCipher.js"
+import { Command, MessageDispatcher, NodeWorkerTransport, Request } from "../api/common/MessageDispatcher.js"
+import { SqlCipherFacade } from "../native/common/generatedipc/SqlCipherFacade.js"
 
 /** make this generic over all possible facades? The generic parameter needs some constraint to not expand this to any */
 export type SqlCipherCommandNames = keyof SqlCipherFacade
