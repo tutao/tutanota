@@ -28,7 +28,11 @@ if (parentPort != null) {
 		const sqlCipherFacade = new DesktopSqlCipher(workerData.nativeBindingPath, workerData.dbPath, workerData.integrityCheck)
 		const commands: SqlCipherCommandObject = {
 			all: (msg: Request<"all">) => sqlCipherFacade.all(msg.args[0], msg.args[1]),
-			closeDb: () => sqlCipherFacade.closeDb(),
+			closeDb: async () => {
+				await sqlCipherFacade.closeDb()
+				// this lets the thread exit once the port is the only thing on the event loop
+				parentPort?.unref()
+			},
 			deleteDb: (msg: Request<"deleteDb">) => sqlCipherFacade.deleteDb(msg.args[0]),
 			get: (msg: Request<"get">) => sqlCipherFacade.get(msg.args[0], msg.args[1]),
 			lockRangesDbAccess: (msg: Request<"lockRangesDbAccess">) => sqlCipherFacade.lockRangesDbAccess(msg.args[0]),
