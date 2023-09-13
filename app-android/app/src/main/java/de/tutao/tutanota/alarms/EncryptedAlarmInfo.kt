@@ -7,9 +7,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class EncryptedAlarmInfo(
-		val trigger: String,
-		@SerialName("alarmIdentifier")
-		val identifier: String,
+	val trigger: String,
+	@SerialName("alarmIdentifier")
+	val identifier: String,
 ) {
 
 	override fun equals(other: Any?): Boolean {
@@ -29,6 +29,6 @@ class EncryptedAlarmInfo(
 }
 
 fun EncryptedAlarmInfo.decrypt(crypto: AndroidNativeCryptoFacade, sessionKey: ByteArray) = AlarmInfo(
-		alarmIdentifier = identifier,
-		trigger = AlarmTrigger.get(crypto.decryptString(trigger, sessionKey)),
+	alarmIdentifier = identifier,
+	trigger = AlarmInterval.fromString(crypto.decryptString(trigger, sessionKey)),
 )

@@ -191,7 +191,7 @@ class AlarmNotificationsManager(
 		val endType = repeatRule.endType
 		val endValue = repeatRule.endValue
 		val excludedDates = repeatRule.excludedDates
-		val alarmTrigger: AlarmTrigger = alarmNotification.alarmInfo.trigger
+		val alarmTrigger: AlarmInterval = alarmNotification.alarmInfo.trigger
 		AlarmModel.iterateAlarmOccurrences(
 				Date(),
 				timeZone, eventStart, eventEnd, frequency, interval, endType,

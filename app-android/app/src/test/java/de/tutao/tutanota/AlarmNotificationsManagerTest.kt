@@ -76,7 +76,7 @@ class AlarmNotificationsManagerTest {
 		val startDate = Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(20))
 		val notTooFarSingle = createEncryptedAlarmNotification(userId, notFarIdentifier, startDate, null)
 		manager.scheduleNewAlarms(listOf(notTooFarSingle))
-		val alarmtime = calculateAlarmTime(startDate, null, AlarmTrigger.TEN_MINUTES)
+		val alarmtime = calculateAlarmTime(startDate, null, AlarmInterval(AlarmIntervalUnit.MINUTE, 10))
 		Mockito.verify(systemAlarmFacade).scheduleAlarmOccurrenceWithSystem(alarmtime, 0, notFarIdentifier, "summary", startDate, userId)
 	}
 
