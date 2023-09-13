@@ -1,5 +1,5 @@
 import { assertMainOrNode, isAndroidApp, isElectronClient, isIOSApp } from "../../api/common/Env"
-import type { Transport } from "../../api/common/threading/MessageDispatcher.js"
+import type { Transport } from "../../api/common/threading/Transport.js"
 import { MessageDispatcher, Request } from "../../api/common/threading/MessageDispatcher.js"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer } from "@tutao/tutanota-utils"

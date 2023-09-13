@@ -4,57 +4,13 @@
  *   <li>The worker sends {ClientCommands}s to the client. The commands are executed by the client (without any response to the worker).
  * </ul>
  */
-import { downcast } from "@tutao/tutanota-utils"
 import { objToError } from "../utils/Utils.js"
 import { isWorker } from "../Env.js"
+import { Transport } from "./Transport.js"
 
 export type Command<T> = (msg: Request<T>) => Promise<any>
 export type Commands<T extends string> = Record<T, Command<T>>
 export type Message<Type> = Request<Type> | Response<Type> | RequestError<Type>
-
-export interface Transport<OutgoingCommandType, IncomingCommandType> {
-	/**
-	 * Post a message to the other side of the transport
-	 */
-	postMessage(message: Message<OutgoingCommandType>): void
-
-	/**
-	 * Set the handler for messages coming from the other end of the transport
-	 */
-	setMessageHandler(handler: (message: Message<IncomingCommandType>) => unknown): unknown
-}
-
-/**
- * Queue transport for both WorkerClient and WorkerImpl
- */
-export class WebWorkerTransport<OutgoingCommandType, IncomingCommandType> implements Transport<OutgoingCommandType, IncomingCommandType> {
-	constructor(private readonly worker: Worker | DedicatedWorkerGlobalScope) {}
-
-	postMessage(message: Message<OutgoingCommandType>): void {
-		return downcast(this.worker).postMessage(message)
-	}
-
-	setMessageHandler(handler: (message: Message<IncomingCommandType>) => unknown) {
-		this.worker.onmessage = (ev: any) => handler(downcast(ev.data))
-	}
-}
-
-type NodeWorkerPort<O, I> = {
-	postMessage: (msg: Message<O>) => void
-	on: (channel: "message", listener: (ev: Message<I>) => unknown) => unknown
-}
-
-export class NodeWorkerTransport<OutgoingCommandType, IncomingCommandType> implements Transport<OutgoingCommandType, IncomingCommandType> {
-	constructor(private readonly worker: NodeWorkerPort<OutgoingCommandType, IncomingCommandType>) {}
-
-	postMessage(message: Message<OutgoingCommandType>): void {
-		return this.worker.postMessage(message)
-	}
-
-	setMessageHandler(handler: (message: Message<IncomingCommandType>) => unknown) {
-		this.worker.on("message", (ev: Message<IncomingCommandType>) => handler(ev))
-	}
-}
 
 export class Request<T> {
 	readonly type: "request"
