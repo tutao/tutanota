@@ -136,12 +136,16 @@ export class WebDialogController {
 	private async initRemoteFacade<FacadeType>(webContents: WebContents): Promise<FacadeType> {
 		const deferred = defer<void>()
 		const transport = new ElectronWebContentsTransport<WebDialogIpcConfig, "facade", "init">(webContents, webauthnIpcConfig)
-		const dispatcher = new MessageDispatcher<NativeToWebRequest, WebToNativeRequest>(transport, {
-			init: () => {
-				deferred.resolve()
-				return Promise.resolve()
+		const dispatcher = new MessageDispatcher<NativeToWebRequest, WebToNativeRequest>(
+			transport,
+			{
+				init: () => {
+					deferred.resolve()
+					return Promise.resolve()
+				},
 			},
-		})
+			"node-webauthn",
+		)
 		const facade = exposeRemote<FacadeType>((req) => dispatcher.postRequest(req))
 		await deferred.promise
 		return facade

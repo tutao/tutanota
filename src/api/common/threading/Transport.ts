@@ -27,20 +27,3 @@ export class WebWorkerTransport<OutgoingCommandType, IncomingCommandType> implem
 		this.worker.onmessage = (ev: any) => handler(downcast(ev.data))
 	}
 }
-
-type NodeWorkerPort<O, I> = {
-	postMessage: (msg: Message<O>) => void
-	on: (channel: "message", listener: (ev: Message<I>) => unknown) => unknown
-}
-
-export class NodeWorkerTransport<OutgoingCommandType, IncomingCommandType> implements Transport<OutgoingCommandType, IncomingCommandType> {
-	constructor(private readonly worker: NodeWorkerPort<OutgoingCommandType, IncomingCommandType>) {}
-
-	postMessage(message: Message<OutgoingCommandType>): void {
-		return this.worker.postMessage(message)
-	}
-
-	setMessageHandler(handler: (message: Message<IncomingCommandType>) => unknown) {
-		this.worker.on("message", (ev: Message<IncomingCommandType>) => handler(ev))
-	}
-}

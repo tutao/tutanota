@@ -55,12 +55,12 @@ import { DesktopPostLoginActions } from "./DesktopPostLoginActions.js"
 import { DesktopInterWindowEventFacade } from "./ipc/DesktopInterWindowEventFacade.js"
 import { OfflineDbFactory, PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
 import { SqlCipherFacade } from "../native/common/generatedipc/SqlCipherFacade.js"
-import { WorkerSqlCipher } from "./db/WorkerSqlCipher.js"
 import { lazyMemoized } from "@tutao/tutanota-utils"
 import dns from "node:dns"
 import { getConfigFile } from "./config/ConfigFile.js"
 import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
+import { WorkerSqlCipher } from "./db/WorkerSqlCipher.js"
 
 /**
  * Should be injected during build time.

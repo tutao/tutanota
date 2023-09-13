@@ -14,8 +14,8 @@
 import { parentPort, workerData } from "node:worker_threads"
 import { DesktopSqlCipher } from "./db/DesktopSqlCipher.js"
 import { Command, MessageDispatcher, Request } from "../api/common/threading/MessageDispatcher.js"
-import { NodeWorkerTransport } from "../api/common/threading/Transport.js"
 import { SqlCipherFacade } from "../native/common/generatedipc/SqlCipherFacade.js"
+import { NodeWorkerTransport } from "../api/common/threading/NodeWorkerTransport.js"
 
 /** make this generic over all possible facades? The generic parameter needs some constraint to not expand this to any */
 export type SqlCipherCommandNames = keyof SqlCipherFacade
@@ -41,7 +41,11 @@ if (parentPort != null) {
 			unlockRangesDbAccess: (msg: Request<"unlockRangesDbAccess">) => sqlCipherFacade.unlockRangesDbAccess(msg.args[0]),
 		}
 
-		const workerTransport = new MessageDispatcher(new NodeWorkerTransport<WorkerLogCommandNames, SqlCipherCommandNames>(parentPort), commands)
+		const workerTransport = new MessageDispatcher(
+			new NodeWorkerTransport<WorkerLogCommandNames, SqlCipherCommandNames>(parentPort),
+			commands,
+			"nodeworker-node",
+		)
 
 		;(console as any).info = (...args: any[]) => workerTransport.postRequest(new Request("info", args))
 		;(console as any).log = (...args: any[]) => workerTransport.postRequest(new Request("log", args))

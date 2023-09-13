@@ -33,13 +33,17 @@ export class RemoteBridge {
 		const facadeHandler = this.facadeHandlerFactory(window)
 
 		const transport = new ElectronWebContentsTransport<typeof primaryIpcConfig, JsRequestType, NativeRequestType>(webContents, primaryIpcConfig)
-		const messageDispatcher = new MessageDispatcher<JsRequestType, NativeRequestType>(transport, {
-			facade: facadeHandler,
-			ipc: async ({ args }) => {
-				const [facade, method, ...methodArgs] = args
-				return await dispatcher.dispatch(facade, method, methodArgs)
+		const messageDispatcher = new MessageDispatcher<JsRequestType, NativeRequestType>(
+			transport,
+			{
+				facade: facadeHandler,
+				ipc: async ({ args }) => {
+					const [facade, method, ...methodArgs] = args
+					return await dispatcher.dispatch(facade, method, methodArgs)
+				},
 			},
-		})
+			"node-main",
+		)
 		const nativeInterface = {
 			invokeNative: async (requestType: string, args: ReadonlyArray<unknown>): Promise<any> => {
 				await desktopCommonSystemFacade.awaitForInit()

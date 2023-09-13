@@ -15,13 +15,15 @@ export type Message<Type> = Request<Type> | Response<Type> | RequestError<Type>
 export class Request<T> {
 	readonly type: "request"
 	readonly requestType: T
-	readonly id: string
+	/** should be selected and assigned by the message dispatcher or on deserialization only. */
+	id: string | null = null
+
 	readonly args: any[]
 
-	constructor(type: T, args: ReadonlyArray<unknown>, requestId: string | null = null) {
+	constructor(type: T, args: ReadonlyArray<unknown>) {
 		this.type = "request"
 		this.requestType = type
-		this.id = requestId ?? _createRequestId()
+		this.id = null
 		this.args = args.slice()
 	}
 }
@@ -64,25 +66,28 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 	 * executed on the results sent by the worker.
 	 */
 	private readonly _messages: Record<string, MessageCallbacks>
-	private readonly _commands: Commands<IncomingRequestType>
-	readonly _transport: Transport<OutgoingRequestType, IncomingRequestType>
+	private readonly nextId: () => string
 
-	constructor(transport: Transport<OutgoingRequestType, IncomingRequestType>, commands: Commands<IncomingRequestType>) {
+	constructor(
+		private readonly transport: Transport<OutgoingRequestType, IncomingRequestType>,
+		private readonly commands: Commands<IncomingRequestType>,
+		private idPrefix: string,
+	) {
 		this._messages = {}
-		this._commands = commands
-		this._transport = transport
-		this._transport.setMessageHandler((msg) => this.handleMessage(msg))
+		this.nextId = makeRequestIdGenerator(idPrefix)
+		this.transport.setMessageHandler((msg) => this.handleMessage(msg))
 	}
 
 	postRequest(msg: Request<OutgoingRequestType>): Promise<any> {
+		msg.id = this.nextId()
 		return new Promise((resolve, reject) => {
-			this._messages[msg.id] = {
+			this._messages[msg.id!] = {
 				resolve,
 				reject,
 			}
 
 			try {
-				this._transport.postMessage(msg)
+				this.transport.postMessage(msg)
 			} catch (e) {
 				console.log("error payload:", msg)
 				throw e
@@ -108,7 +113,7 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 				console.warn(`Unexpected error response: ${message.id} (was the page reloaded?)`)
 			}
 		} else if (message.type === "request") {
-			const command = this._commands[message.requestType]
+			const command = this.commands[message.requestType]
 
 			if (command != null) {
 				const commandResult = command(message)
@@ -121,17 +126,17 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 
 				commandResult.then(
 					(value) => {
-						this._transport.postMessage(new Response(message.id, value))
+						this.transport.postMessage(new Response(message.id!, value))
 					},
 					(error) => {
-						this._transport.postMessage(new RequestError(message.id, error))
+						this.transport.postMessage(new RequestError(message.id!, error))
 					},
 				)
 			} else {
 				let error = new Error(`unexpected request: ${message.id}, ${message.requestType}`)
 
 				if (isWorker()) {
-					this._transport.postMessage(new RequestError(message.id, error))
+					this.transport.postMessage(new RequestError(message.id!, error))
 				} else {
 					throw error
 				}
@@ -142,24 +147,14 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 	}
 }
 
-let requestId = 0
-
-function _createRequestId() {
-	if (requestId >= Number.MAX_SAFE_INTEGER) {
-		requestId = 0
+export function makeRequestIdGenerator(prefix: string): () => string {
+	let requestId = 0
+	return () => {
+		if (requestId >= Number.MAX_SAFE_INTEGER) {
+			requestId = 0
+		}
+		return prefix + requestId++
 	}
-
-	let prefix: string
-
-	if (isWorker()) {
-		prefix = "worker"
-	} else if (typeof window != "undefined") {
-		prefix = "main"
-	} else {
-		prefix = "desktop"
-	}
-
-	return prefix + requestId++
 }
 
 // Serialize error stack traces, when they are sent via the websocket.
