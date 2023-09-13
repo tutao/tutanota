@@ -10,6 +10,7 @@
 		3D0EB1F626F489AD002E5102 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1F526F48854002E5102 /* KeychainManager.swift */; };
 		3D0EB1F926F49E36002E5102 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1F826F49E36002E5102 /* AppDelegate.swift */; };
 		3D0EB1FC26F4BEE4002E5102 /* AlarmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1FB26F4BEE4002E5102 /* AlarmManager.swift */; };
+		3D1801542AB0B85100C72613 /* AlarmEntitiesTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D1801532AB0B85100C72613 /* AlarmEntitiesTest.swift */; };
 		3D2201F7293F750D00366FD2 /* WebAuthnFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2201F5293F750D00366FD2 /* WebAuthnFacadeReceiveDispatcher.swift */; };
 		3D2201F8293F750D00366FD2 /* WebAuthnFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2201F6293F750D00366FD2 /* WebAuthnFacade.swift */; };
 		3D2201FE293F752D00366FD2 /* WebAuthnRegistrationResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2201F9293F752D00366FD2 /* WebAuthnRegistrationResult.swift */; };
@@ -274,6 +275,7 @@
 		3D0EB1F526F48854002E5102 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		3D0EB1F826F49E36002E5102 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3D0EB1FB26F4BEE4002E5102 /* AlarmManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmManager.swift; sourceTree = "<group>"; };
+		3D1801532AB0B85100C72613 /* AlarmEntitiesTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmEntitiesTest.swift; sourceTree = "<group>"; };
 		3D2201F5293F750D00366FD2 /* WebAuthnFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
 		3D2201F6293F750D00366FD2 /* WebAuthnFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnFacade.swift; sourceTree = "<group>"; };
 		3D2201F9293F752D00366FD2 /* WebAuthnRegistrationResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnRegistrationResult.swift; sourceTree = "<group>"; };
@@ -1417,6 +1419,7 @@
 				3D3B516529376E9E00C1B7DA /* ShareUtilsTest.swift */,
 				3D4A426029B638D700B10451 /* AlarmManagerTest.swift */,
 				3DF7FA5D2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift */,
+				3D1801532AB0B85100C72613 /* AlarmEntitiesTest.swift */,
 			);
 			path = tutanotaTests;
 			sourceTree = "<group>";
@@ -1892,6 +1895,7 @@
 				3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */,
 				3D63A0E5233D0C1400D05259 /* TUTLogTest.m in Sources */,
 				3D4A426129B638D700B10451 /* AlarmManagerTest.swift in Sources */,
+				3D1801542AB0B85100C72613 /* AlarmEntitiesTest.swift in Sources */,
 				3D4F1BFB26EBADE500E87BF5 /* TUTBigNum.m in Sources */,
 				3DAA23A9267A208200219051 /* UIColorExtensionsTest.swift in Sources */,
 				3DF7FA5E2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift in Sources */,
