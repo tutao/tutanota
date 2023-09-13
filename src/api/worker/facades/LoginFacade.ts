@@ -9,10 +9,8 @@ import {
 	base64UrlToBase64,
 	defer,
 	hexToUint8Array,
-	LazyLoaded,
 	neverNull,
 	ofClass,
-	stringToUtf8Uint8Array,
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
@@ -46,7 +44,7 @@ import {
 } from "../../entities/sys/TypeRefs.js"
 import { TutanotaPropertiesTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
-import { assertWorkerOrNode, isAndroidApp, isIOSApp } from "../../common/Env"
+import { assertWorkerOrNode } from "../../common/Env"
 import { ConnectMode, EventBusClient } from "../EventBusClient"
 import { EntityRestClient, typeRefToPath } from "../rest/EntityRestClient"
 import { AccessExpiredError, ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, SessionExpiredError } from "../../common/error/RestError"
@@ -62,15 +60,10 @@ import {
 	aes128RandomKey,
 	aes256DecryptKey,
 	Aes256Key,
-	ARGON2ID_ITERATIONS,
-	ARGON2ID_KEY_LENGTH,
-	ARGON2ID_MEMORY_IN_KiB,
-	ARGON2ID_PARALLELISM,
 	base64ToKey,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
 	encryptKey,
-	generateKeyFromPassphraseArgon2id,
 	generateKeyFromPassphraseBcrypt,
 	generateRandomSalt,
 	KeyLength,
@@ -94,7 +87,7 @@ import { BlobAccessTokenFacade } from "./BlobAccessTokenFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { DatabaseKeyFactory } from "../../../misc/credentials/DatabaseKeyFactory.js"
 import { ExternalUserKeyDeriver } from "../../../misc/LoginUtils.js"
-import { NativeCryptoFacade } from "../../../native/common/generatedipc/NativeCryptoFacade.js"
+import { Argon2idFacade } from "./Argon2idFacade.js"
 import { aes256DecryptLegacyRecoveryKey } from "@tutao/tutanota-crypto/dist/encryption/KeyEncryption.js"
 
 assertWorkerOrNode()
@@ -169,20 +162,6 @@ export class LoginFacade {
 	 */
 	private loggingInPromiseWrapper: DeferredObject<void> | null = null
 
-	/**
-	 * argon2 web assembly
-	 */
-	private argon2: LazyLoaded<WebAssembly.Exports> = new LazyLoaded(async () => {
-		const wasm = fetch("wasm/argon2.wasm")
-		if (WebAssembly.instantiateStreaming) {
-			return (await WebAssembly.instantiateStreaming(wasm)).instance.exports
-		} else {
-			// Fallback if the client does not support instantiateStreaming (e.g. iOS 14)
-			const buffer = await (await wasm).arrayBuffer()
-			return (await WebAssembly.instantiate(buffer)).instance.exports
-		}
-	})
-
 	/** On platforms with offline cache we do the actual login asynchronously and we can retry it. This is the state of such async login. */
 	asyncLoginState: AsyncLoginState = { state: "idle" }
 
@@ -204,7 +183,7 @@ export class LoginFacade {
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 		private readonly entropyFacade: EntropyFacade,
 		private readonly databaseKeyFactory: DatabaseKeyFactory,
-		private readonly nativeCryptoFacade: NativeCryptoFacade,
+		private readonly argon2idFacade: Argon2idFacade,
 	) {}
 
 	init(eventBusClient: EventBusClient) {
@@ -413,18 +392,7 @@ export class LoginFacade {
 				return generateKeyFromPassphraseBcrypt(passphrase, salt, KeyLength.b128)
 			}
 			case KdfType.Argon2id: {
-				if (isIOSApp() || isAndroidApp()) {
-					const hash = await this.nativeCryptoFacade.argon2idHashRaw(
-						stringToUtf8Uint8Array(passphrase),
-						salt,
-						ARGON2ID_ITERATIONS,
-						ARGON2ID_MEMORY_IN_KiB,
-						ARGON2ID_PARALLELISM,
-						ARGON2ID_KEY_LENGTH,
-					)
-					return uint8ArrayToBitArray(hash)
-				}
-				return generateKeyFromPassphraseArgon2id(await this.argon2.getAsync(), passphrase, salt)
+				return this.argon2idFacade.generateKeyFromPassphrase(passphrase, salt)
 			}
 		}
 	}

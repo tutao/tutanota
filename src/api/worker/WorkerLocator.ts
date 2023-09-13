@@ -11,7 +11,7 @@ import type { MailAddressFacade } from "./facades/lazy/MailAddressFacade.js"
 import type { CustomerFacade } from "./facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "./facades/lazy/CounterFacade.js"
 import { EventBusClient } from "./EventBusClient"
-import { assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isOfflineStorageAvailable, isTest } from "../common/Env"
+import { assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isAndroidApp, isIOSApp, isOfflineStorageAvailable, isTest } from "../common/Env"
 import { Const } from "../common/TutanotaConstants"
 import type { BrowserData } from "../../misc/ClientConstants"
 import type { CalendarFacade } from "./facades/lazy/CalendarFacade.js"
@@ -61,6 +61,7 @@ import { Challenge } from "../entities/sys/TypeRefs.js"
 import { LoginFailReason } from "../main/PageContextLoginListener.js"
 import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
 import { SessionType } from "../common/SessionType.js"
+import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "./facades/Argon2idFacade.js"
 
 assertWorkerOrNode()
 
@@ -205,6 +206,13 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		},
 	}
 
+	let argon2idFacade: Argon2idFacade
+	if (isIOSApp() || isAndroidApp()) {
+		argon2idFacade = new NativeArgon2idFacade(new NativeCryptoFacadeSendDispatcher(worker))
+	} else {
+		argon2idFacade = new WASMArgon2idFacade()
+	}
+
 	locator.deviceEncryptionFacade = new DeviceEncryptionFacade()
 	const { DatabaseKeyFactory } = await import("../../misc/credentials/DatabaseKeyFactory.js")
 	locator.login = new LoginFacade(
@@ -223,7 +231,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.blobAccessToken,
 		locator.entropyFacade,
 		new DatabaseKeyFactory(locator.deviceEncryptionFacade),
-		new NativeCryptoFacadeSendDispatcher(worker),
+		argon2idFacade,
 	)
 
 	locator.search = lazyMemoized(async () => {

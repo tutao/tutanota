@@ -33,7 +33,7 @@ import { createTutanotaProperties, TutanotaPropertiesTypeRef } from "../../../..
 import { BlobAccessTokenFacade } from "../../../../../src/api/worker/facades/BlobAccessTokenFacade.js"
 import { EntropyFacade } from "../../../../../src/api/worker/facades/EntropyFacade.js"
 import { DatabaseKeyFactory } from "../../../../../src/misc/credentials/DatabaseKeyFactory.js"
-import { NativeCryptoFacade } from "../../../../../src/native/common/generatedipc/NativeCryptoFacade.js"
+import { Argon2idFacade } from "../../../../../src/api/worker/facades/Argon2idFacade.js"
 
 const { anything } = matchers
 
@@ -94,7 +94,7 @@ o.spec("LoginFacadeTest", function () {
 	let entropyFacade: EntropyFacade
 	let blobAccessTokenFacade: BlobAccessTokenFacade
 	let databaseKeyFactoryMock: DatabaseKeyFactory
-	let nativeCryptoFacade: NativeCryptoFacade
+	let argon2idFacade: Argon2idFacade
 
 	const timeRangeDays = 42
 
@@ -133,7 +133,7 @@ o.spec("LoginFacadeTest", function () {
 		userFacade = object()
 		entropyFacade = object()
 		databaseKeyFactoryMock = object()
-		nativeCryptoFacade = object()
+		argon2idFacade = object()
 
 		facade = new LoginFacade(
 			workerMock,
@@ -148,7 +148,7 @@ o.spec("LoginFacadeTest", function () {
 			blobAccessTokenFacade,
 			entropyFacade,
 			databaseKeyFactoryMock,
-			nativeCryptoFacade,
+			argon2idFacade,
 		)
 
 		eventBusClientMock = instance(EventBusClient)
