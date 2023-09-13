@@ -27,7 +27,7 @@ import { EntityRestClient } from "../../../../../src/api/worker/rest/EntityRestC
 import { MembershipRemovedError } from "../../../../../src/api/common/error/MembershipRemovedError.js"
 import { GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { daysToMillis, defer, downcast, TypeRef } from "@tutao/tutanota-utils"
-import { aes128RandomKey, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt256Key, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aes128RandomKey, aes256RandomKey, decryptKey, encryptKey, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import o from "@tutao/otest"
 import { instance, matchers, object, replace, reset, verify, when } from "testdouble"
@@ -37,6 +37,7 @@ import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
 import { ContactIndexer } from "../../../../../src/api/worker/search/ContactIndexer.js"
 import { InfoMessageHandler } from "../../../../../src/gui/InfoMessageHandler.js"
 import { GroupDataOS, Metadata, MetaDataOS } from "../../../../../src/api/worker/search/IndexTables.js"
+import { aesEncrypt } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 let contactList = createContactList()
@@ -116,7 +117,7 @@ o.spec("Indexer test", () => {
 		o(indexer._loadGroupData.args).deepEquals([user])
 		o(indexer._initGroupData.args[0]).deepEquals(groupBatches)
 		o(metadata[Metadata.mailIndexingEnabled]).equals(false)
-		o(decrypt256Key(userGroupKey, metadata[Metadata.userEncDbKey])).deepEquals(indexer.db.key)
+		o(decryptKey(userGroupKey, metadata[Metadata.userEncDbKey])).deepEquals(indexer.db.key)
 		o(indexer._entity.loadRoot.args).deepEquals([ContactListTypeRef, user.userGroup.group])
 		o(indexer._contact.indexFullContactList.callCount).equals(1)
 		o(indexer._contact.indexFullContactList.args).deepEquals([contactList])
@@ -130,8 +131,8 @@ o.spec("Indexer test", () => {
 	o("init existing db", async function () {
 		let userGroupKey = aes128RandomKey()
 		let dbKey = aes256RandomKey()
-		let encDbIv = aes256Encrypt(dbKey, fixedIv, random.generateRandomData(IV_BYTE_LENGTH), true)
-		let userEncDbKey = encrypt256Key(userGroupKey, dbKey)
+		let encDbIv = aesEncrypt(dbKey, fixedIv, random.generateRandomData(IV_BYTE_LENGTH), true)
+		let userEncDbKey = encryptKey(userGroupKey, dbKey)
 		let transaction = {
 			get: (os, key) => {
 				if (os == MetaDataOS && key == Metadata.userEncDbKey) return Promise.resolve(userEncDbKey)
@@ -200,8 +201,8 @@ o.spec("Indexer test", () => {
 	o("init existing db out of sync", async () => {
 		let userGroupKey = aes128RandomKey()
 		let dbKey = aes256RandomKey()
-		let userEncDbKey = encrypt256Key(userGroupKey, dbKey)
-		let encDbIv = aes256Encrypt(dbKey, fixedIv, random.generateRandomData(IV_BYTE_LENGTH), true)
+		let userEncDbKey = encryptKey(userGroupKey, dbKey)
+		let encDbIv = aesEncrypt(dbKey, fixedIv, random.generateRandomData(IV_BYTE_LENGTH), true)
 		let transaction = {
 			get: async (os, key) => {
 				if (os == MetaDataOS && key == Metadata.userEncDbKey) return userEncDbKey

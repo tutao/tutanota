@@ -44,7 +44,7 @@ import { InvalidDatabaseStateError } from "../../common/error/InvalidDatabaseSta
 import { LocalTimeDateProvider } from "../DateProvider"
 import { EntityClient } from "../../common/EntityClient"
 import { deleteObjectStores } from "../utils/DbUtils"
-import { aes256Decrypt, aes256EncryptSearchIndexEntry, aes256RandomKey, decrypt256Key, encrypt256Key, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aesDecrypt, aes256EncryptSearchIndexEntry, aes256RandomKey, decryptKey, encryptKey, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CacheInfo } from "../facades/LoginFacade.js"
 import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"
@@ -317,7 +317,7 @@ export class Indexer {
 		this.db.iv = random.generateRandomData(IV_BYTE_LENGTH)
 		const groupBatches = await this._loadGroupData(user)
 		const transaction = await this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
-		await transaction.put(MetaDataOS, Metadata.userEncDbKey, encrypt256Key(userGroupKey, this.db.key))
+		await transaction.put(MetaDataOS, Metadata.userEncDbKey, encryptKey(userGroupKey, this.db.key))
 		await transaction.put(MetaDataOS, Metadata.mailIndexingEnabled, this._mail.mailIndexingEnabled)
 		await transaction.put(MetaDataOS, Metadata.excludedListIds, this._mail._excludedListIds)
 		await transaction.put(MetaDataOS, Metadata.encDbIv, aes256EncryptSearchIndexEntry(this.db.key, this.db.iv))
@@ -328,9 +328,9 @@ export class Indexer {
 	}
 
 	async _loadIndexTables(transaction: DbTransaction, user: User, userGroupKey: Aes128Key, userEncDbKey: Uint8Array): Promise<void> {
-		this.db.key = decrypt256Key(userGroupKey, userEncDbKey)
+		this.db.key = decryptKey(userGroupKey, userEncDbKey)
 		const encDbIv = await transaction.get(MetaDataOS, Metadata.encDbIv)
-		this.db.iv = aes256Decrypt(this.db.key, neverNull(encDbIv), true)
+		this.db.iv = aesDecrypt(this.db.key, neverNull(encDbIv), true)
 		await Promise.all([
 			transaction.get(MetaDataOS, Metadata.mailIndexingEnabled).then((mailIndexingEnabled) => {
 				this._mail.mailIndexingEnabled = neverNull(mailIndexingEnabled)

@@ -54,13 +54,13 @@ class AndroidKeyStoreFacade(
 			}
 		} else {
 			val key = getSymmetricKey()
-			crypto.encryptKey(key, sessionKey)
+			encryptKeyStoreKey(key, sessionKey)
 		}
 	}
 
 	@Throws(UnrecoverableEntryException::class, KeyStoreException::class, CryptoError::class)
 	fun decryptKey(encSessionKey: ByteArray): ByteArray? {
-		// If we started using asymmetric encryption on the previous Android version, we keep using uit
+		// If we started using asymmetric encryption on the previous Android version, we keep using it
 		return if (keyStore.containsAlias(ASYMMETRIC_KEY_ALIAS)) {
 			val privateKey: PrivateKey
 			try {
@@ -73,7 +73,37 @@ class AndroidKeyStoreFacade(
 			}
 		} else {
 			val key = getSymmetricKey()
-			crypto.decryptKey(key, encSessionKey)
+			decryptKeyStoreKey(key, encSessionKey)
+		}
+	}
+
+	private fun encryptKeyStoreKey(encryptionKey: Key, keyToEncryptWithoutIv: ByteArray): ByteArray {
+		return try {
+			val cipher = Cipher.getInstance(AndroidNativeCryptoFacade.AES_MODE_NO_PADDING)
+			val params = IvParameterSpec(AndroidNativeCryptoFacade.FIXED_IV)
+			cipher.init(Cipher.ENCRYPT_MODE, encryptionKey, params)
+			cipher.doFinal(keyToEncryptWithoutIv)
+		} catch (e: BadPaddingException) {
+			throw CryptoError(e)
+		} catch (e: IllegalBlockSizeException) {
+			throw CryptoError(e)
+		} catch (e: InvalidKeyException) {
+			throw CryptoError(e)
+		}
+	}
+
+	private fun decryptKeyStoreKey(encryptionKey: Key, encryptedKeyWithoutIV: ByteArray): ByteArray {
+		return try {
+			val cipher = Cipher.getInstance(AndroidNativeCryptoFacade.AES_MODE_NO_PADDING)
+			val params = IvParameterSpec(AndroidNativeCryptoFacade.FIXED_IV)
+			cipher.init(Cipher.DECRYPT_MODE, encryptionKey, params)
+			cipher.doFinal(encryptedKeyWithoutIV)
+		} catch (e: BadPaddingException) {
+			throw CryptoError(e)
+		} catch (e: IllegalBlockSizeException) {
+			throw CryptoError(e)
+		} catch (e: InvalidKeyException) {
+			throw CryptoError(e)
 		}
 	}
 

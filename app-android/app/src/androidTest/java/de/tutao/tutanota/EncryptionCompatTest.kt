@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.fasterxml.jackson.databind.ObjectMapper
+import de.tutao.tutanota.AndroidNativeCryptoFacade.Companion.AES256_KEY_LENGTH_BYTES
 import de.tutao.tutanota.AndroidNativeCryptoFacade.Companion.bytesToKey
 import de.tutao.tutanota.ipc.RsaPrivateKey
 import de.tutao.tutanota.ipc.RsaPublicKey
@@ -11,8 +12,7 @@ import de.tutao.tutanota.ipc.wrap
 import de.tutao.tutanota.testdata.TestData
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.io.output.ByteArrayOutputStream
-import org.junit.Assert.assertArrayEquals
-import org.junit.Assert.assertEquals
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
@@ -48,32 +48,66 @@ class CompatibilityTest {
 			crypto.aesEncrypt(key, ByteArrayInputStream(td.plainTextBase64.base64ToBytes()), encryptedBytes, td.ivBase64.base64ToBytes(), false)
 			assertEquals(td.cipherTextBase64, encryptedBytes.toByteArray().toBase64())
 			val decryptedBytes = ByteArrayOutputStream()
-			crypto.aesDecrypt(key, ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size().toLong())
+			crypto.aesDecrypt(key, ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size().toLong(), true)
 			assertEquals(td.plainTextBase64, decryptedBytes.toByteArray().toBase64())
+
+			// encrypt 128 key
+			val encryptedKey128 = crypto.encryptKey(bytesToKey(key), hexToBytes(td.keyToEncrypt128))
+			assertEquals(td.encryptedKey128, encryptedKey128.toBase64())
+			val decryptedKey128 = crypto.decryptKey(bytesToKey(key), td.encryptedKey128.base64ToBytes())
+			assertEquals(td.keyToEncrypt128, decryptedKey128.toHexString())
+
+			// encrypt 256 key
+			val encryptedKey256 = crypto.encryptKey(bytesToKey(key), hexToBytes(td.keyToEncrypt256))
+			assertEquals(td.encryptedKey256, encryptedKey256.toBase64())
+			val decryptedKey256 = crypto.decryptKey(bytesToKey(key), td.encryptedKey256.base64ToBytes())
+			assertEquals(td.keyToEncrypt256, decryptedKey256.toHexString())
 		}
 	}
 
-	@Test
-	@Throws(CryptoError::class, IOException::class)
-	fun aes128Key128Encryption() {
-		for (td in testData.aes128Tests) {
-			val key = bytesToKey(hexToBytes(td.hexKey))
-			val keyToEncrypt128 = hexToBytes(td.keyToEncrypt128)
-			val encryptedKey = crypto.encryptKey(key, keyToEncrypt128)
-			assertEquals(td.encryptedKey128, encryptedKey.toBase64())
-		}
-	}
 
 	@Test
 	@Throws(CryptoError::class, IOException::class)
-	fun aes128Key256Encryption() {
-		for (td in testData.aes128Tests) {
-			val key = bytesToKey(hexToBytes(td.hexKey))
-			val keyToEncrypt256 = hexToBytes(td.keyToEncrypt256)
-			val encryptedKey = crypto.encryptKey(key, keyToEncrypt256)
-			assertEquals(td.encryptedKey256, encryptedKey.toBase64())
+	fun aes256() {
+		for (td in testData.aes256Tests) {
+			val key = hexToBytes(td.hexKey)
+			val encryptedBytes = ByteArrayOutputStream()
+			crypto.aesEncrypt(key, ByteArrayInputStream(td.plainTextBase64.base64ToBytes()), encryptedBytes, td.ivBase64.base64ToBytes(), true)
+			assertEquals(td.cipherTextBase64, encryptedBytes.toByteArray().toBase64())
+			val decryptedBytes = ByteArrayOutputStream()
+			crypto.aesDecrypt(key, ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size().toLong(), true)
+			assertEquals(td.plainTextBase64, decryptedBytes.toByteArray().toBase64())
+
+			// encrypt 128 key
+			val encryptedKey128 = ByteArrayOutputStream()
+			crypto.aesEncrypt(key, ByteArrayInputStream(hexToBytes(td.keyToEncrypt128)), encryptedKey128, td.ivBase64.base64ToBytes(), true, false)
+			assertEquals(td.encryptedKey128, encryptedKey128.toByteArray().toBase64())
+			val decryptedKey128 = crypto.decryptKey(bytesToKey(key), td.encryptedKey128.base64ToBytes())
+			assertEquals(td.keyToEncrypt128, decryptedKey128.toHexString())
+
+			// encrypt 256 key
+			val encryptedKey256 = ByteArrayOutputStream()
+			crypto.aesEncrypt(key, ByteArrayInputStream(hexToBytes(td.keyToEncrypt256)), encryptedKey256, td.ivBase64.base64ToBytes(), true, false)
+			assertEquals(td.encryptedKey256, encryptedKey256.toByteArray().toBase64())
+			val decryptedKey256 = crypto.decryptKey(bytesToKey(key), td.encryptedKey256.base64ToBytes())
+			assertEquals(td.keyToEncrypt256, decryptedKey256.toHexString())
+
 		}
 	}
+
+
+	@Test
+	@Throws(CryptoError::class, IOException::class)
+	fun aes256EnforcesMac() {
+		crypto.aesEncrypt(ByteArray(AES256_KEY_LENGTH_BYTES), ByteArrayInputStream(ByteArray(16)), ByteArrayOutputStream(), ByteArray(16), true)
+		try {
+			crypto.aesEncrypt(ByteArray(AES256_KEY_LENGTH_BYTES), ByteArrayInputStream(ByteArray(16)), ByteArrayOutputStream(), ByteArray(16), false)
+			fail()
+		} catch (e: IllegalArgumentException) {
+			assertEquals("must use mac with AES-256", e.message)
+		}
+	}
+
 
 	@Test
 	@Throws(CryptoError::class, IOException::class)
@@ -84,7 +118,7 @@ class CompatibilityTest {
 			crypto.aesEncrypt(key, ByteArrayInputStream(td.plainTextBase64.base64ToBytes()), encryptedBytes, td.ivBase64.base64ToBytes(), true)
 			assertEquals(td.cipherTextBase64, encryptedBytes.toByteArray().toBase64())
 			val decryptedBytes = ByteArrayOutputStream()
-			crypto.aesDecrypt(key, ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size().toLong())
+			crypto.aesDecrypt(key, ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size().toLong(), true)
 			assertEquals(td.plainTextBase64, decryptedBytes.toByteArray().toBase64())
 		}
 	}

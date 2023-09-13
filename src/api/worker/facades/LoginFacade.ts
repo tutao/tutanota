@@ -55,10 +55,9 @@ import { EntityClient } from "../../common/EntityClient"
 import { GENERATED_ID_BYTES_LENGTH, isSameId } from "../../common/utils/EntityUtils"
 import type { Credentials } from "../../../misc/credentials/Credentials"
 import {
-	aes128Decrypt,
+	aesDecrypt,
 	Aes128Key,
 	aes128RandomKey,
-	aes256DecryptKey,
 	Aes256Key,
 	base64ToKey,
 	createAuthVerifier,
@@ -562,7 +561,7 @@ export class LoginFacade {
 		const sessionId = this.getSessionId(credentials)
 		const sessionData = await this.loadSessionData(credentials.accessToken)
 		const encryptedPassword = base64ToUint8Array(assertNotNull(credentials.encryptedPassword, "encryptedPassword was null!"))
-		const passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, encryptedPassword))
+		const passphrase = utf8Uint8ArrayToString(aesDecrypt(sessionData.accessKey, encryptedPassword))
 		let userPassphraseKey: Aes128Key | Aes256Key
 
 		if (externalUserKeyDeriver) {
@@ -773,7 +772,7 @@ export class LoginFacade {
 		return this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then((tutanotaProperties) => {
 			if (tutanotaProperties.groupEncEntropy) {
 				try {
-					let entropy = aes128Decrypt(this.userFacade.getUserGroupKey(), neverNull(tutanotaProperties.groupEncEntropy))
+					let entropy = aesDecrypt(this.userFacade.getUserGroupKey(), neverNull(tutanotaProperties.groupEncEntropy))
 					random.addStaticEntropy(entropy)
 				} catch (error) {
 					if (error instanceof CryptoError) {

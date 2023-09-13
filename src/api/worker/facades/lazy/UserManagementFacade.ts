@@ -20,14 +20,11 @@ import { CounterFacade } from "./CounterFacade.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import {
 	aes128RandomKey,
-	aes256EncryptKey,
 	aes256RandomKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
-	decrypt256Key,
 	decryptKey,
-	encrypt256Key,
 	encryptKey,
 	generateRandomSalt,
 	random,
@@ -312,8 +309,8 @@ export class UserManagementFacade {
 
 	generateRecoveryCode(userGroupKey: Aes128Key): RecoverData {
 		const recoveryCode = aes256RandomKey()
-		const userEncRecoverCode = encrypt256Key(userGroupKey, recoveryCode)
-		const recoverCodeEncUserGroupKey = aes256EncryptKey(recoveryCode, userGroupKey)
+		const userEncRecoverCode = encryptKey(userGroupKey, recoveryCode)
+		const recoverCodeEncUserGroupKey = encryptKey(recoveryCode, userGroupKey)
 		const recoveryCodeVerifier = createAuthVerifier(recoveryCode)
 		return {
 			userEncRecoverCode,
@@ -336,7 +333,7 @@ export class UserManagementFacade {
 		}
 
 		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, undefined, extraHeaders)
-		return uint8ArrayToHex(bitArrayToUint8Array(decrypt256Key(this.userFacade.getUserGroupKey(), recoveryCodeEntity.userEncRecoverCode)))
+		return uint8ArrayToHex(bitArrayToUint8Array(decryptKey(this.userFacade.getUserGroupKey(), recoveryCodeEntity.userEncRecoverCode)))
 	}
 
 	async createRecoveryCode(password: string): Promise<string> {

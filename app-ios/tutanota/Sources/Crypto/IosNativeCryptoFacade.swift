@@ -15,7 +15,7 @@ actor IosNativeCryptoFacade: NativeCryptoFacade {
     let fileName = (fileUri as NSString).lastPathComponent
     let encryptedFilePath = (encryptedFolder as NSString).appendingPathComponent(fileName)
     let plainTextData = try Data(contentsOf: URL(fileURLWithPath: fileUri))
-    let outputData = try TUTAes128Facade.encrypt(plainTextData, withKey: key.data, withIv: iv.data, withMac: true)
+    let outputData = try TUTAesFacade.encrypt(plainTextData, withKey: key.data, withIv: iv.data, withMac: true)
     let result = EncryptedFileInfo(uri: encryptedFilePath, unencryptedSize: plainTextData.count)
 
     try outputData.write(to: URL(fileURLWithPath: encryptedFilePath))
@@ -29,7 +29,7 @@ actor IosNativeCryptoFacade: NativeCryptoFacade {
     }
 
     let encryptedData = try Data(contentsOf: URL(fileURLWithPath: fileUri))
-    let plaintextData = try TUTAes128Facade.decrypt(encryptedData, withKey: key.data)
+    let plaintextData = try TUTAesFacade.decrypt(encryptedData, withKey: key.data)
 
     let decryptedFolder = try FileUtils.getDecryptedFolder()
     let fileName = (fileUri as NSString).lastPathComponent
