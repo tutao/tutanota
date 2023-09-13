@@ -155,15 +155,6 @@ export class ClientDetector {
 	}
 
 	/**
-	 * Apple's Lockdown mode disables some features, such as WebAssembly
-	 *
-	 * @returns true if lockdown mode is enabled
-	 */
-	lockdownMode(): boolean {
-		return (this.isIos() || this.isMacOS) && !this.webassembly()
-	}
-
-	/**
 	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/history.js
 	 */
 	history(): boolean {
