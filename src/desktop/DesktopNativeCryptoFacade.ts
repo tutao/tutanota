@@ -20,13 +20,13 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 
 	aesEncryptObject(encryptionKey: Aes256Key, object: number | string | boolean | ReadonlyArray<any> | {}): string {
 		const serializedObject = JSON.stringify(object)
-		const encryptedBytes = this.cryptoFns.aes256Encrypt(encryptionKey, stringToUtf8Uint8Array(serializedObject), true)
+		const encryptedBytes = this.cryptoFns.aesEncrypt(encryptionKey, stringToUtf8Uint8Array(serializedObject))
 		return uint8ArrayToBase64(encryptedBytes)
 	}
 
 	aesDecryptObject(encryptionKey: Aes256Key, serializedObject: string): {} {
 		const encryptedBytes = base64ToUint8Array(serializedObject)
-		const decryptedBytes = this.cryptoFns.aes256Decrypt(encryptionKey, encryptedBytes, true)
+		const decryptedBytes = this.cryptoFns.aesDecrypt(encryptionKey, encryptedBytes, true)
 		const stringObject = utf8Uint8ArrayToString(decryptedBytes)
 		return JSON.parse(stringObject)
 	}
@@ -40,7 +40,8 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 
 		const encData = await this.fs.promises.readFile(encryptedFileUri)
 		const bitKey = this.cryptoFns.bytesToKey(key)
-		const decData = await this.cryptoFns.aes128Decrypt(bitKey, encData, true)
+		const decData = this.cryptoFns.aesDecrypt(bitKey, encData, true)
+
 		const filesInDirectory = await this.fs.promises.readdir(targetDir)
 		const newFilename = nonClobberingFilename(filesInDirectory, path.basename(encryptedFileUri))
 		const decryptedFileUri = path.join(targetDir, newFilename)
@@ -51,16 +52,15 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	}
 
 	aes256DecryptKey(encryptionKey: Aes256Key, keyToDecrypt: Uint8Array): Uint8Array {
-		return this.cryptoFns.aes256Decrypt(encryptionKey, keyToDecrypt, false)
+		return this.cryptoFns.aesDecrypt(encryptionKey, keyToDecrypt, false)
 	}
 
 	aes256EncryptKey(encryptionKey: Aes256Key, keyToEncrypt: Uint8Array): Uint8Array {
-		return this.cryptoFns.aes256Encrypt(encryptionKey, keyToEncrypt, false)
+		return this.cryptoFns.aesEncrypt(encryptionKey, keyToEncrypt, undefined, false)
 	}
 
 	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, piSessionKey: Uint8Array, piSessionKeyEncSessionKey: Uint8Array): Promise<T> {
-		const sk = this._decrypt256KeyToArray(piSessionKey, piSessionKeyEncSessionKey)
-
+		const sk = this.cryptoFns.decryptKey(uint8ArrayToKey(piSessionKey), piSessionKeyEncSessionKey)
 		return this.cryptoFns.decryptAndMapToInstance(model, instance, sk)
 	}
 
@@ -70,11 +70,6 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 
 	verifySignature(pem: string, data: Uint8Array, sig: Uint8Array): boolean {
 		return this.cryptoFns.verifySignature(pem, data, sig)
-	}
-
-	_decrypt256KeyToArray(encryptionKey: Uint8Array, key: Uint8Array): Aes256Key {
-		const encryptionKeyArray = uint8ArrayToKey(encryptionKey)
-		return this.cryptoFns.decrypt256Key(encryptionKeyArray, key)
 	}
 
 	generateDeviceKey(): Aes256Key {
@@ -87,8 +82,8 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 
 	async aesEncryptFile(key: Uint8Array, fileUri: string): Promise<EncryptedFileInfo> {
 		const bytes = await this.fs.promises.readFile(fileUri)
-		const encrypted = this.cryptoFns.aes128Encrypt(this.cryptoFns.bytesToKey(key), bytes, this.cryptoFns.randomBytes(16), true, true)
-
+		const keyBits = this.cryptoFns.bytesToKey(key)
+		const encrypted = this.cryptoFns.aesEncrypt(keyBits, bytes)
 		const targetDir = path.join(this.utils.getTutanotaTempPath(), "encrypted")
 		await this.fs.promises.mkdir(targetDir, { recursive: true })
 		const filePath = path.join(targetDir, path.basename(fileUri))

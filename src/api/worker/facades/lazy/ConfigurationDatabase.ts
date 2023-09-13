@@ -2,9 +2,10 @@ import { b64UserIdHash, DbFacade } from "../../search/DbFacade.js"
 import { assertNotNull, concat, downcast, LazyLoaded, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import type { User } from "../../../entities/sys/TypeRefs.js"
 import { ExternalImageRule } from "../../../common/TutanotaConstants.js"
-import { aes256Decrypt, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt256Key, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aesDecrypt, aes256RandomKey, decryptKey, encryptKey, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { UserFacade } from "../UserFacade.js"
 import { Metadata, ObjectStoreName } from "../../search/IndexTables.js"
+import { aesEncrypt } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
 
 const VERSION: number = 2
 const DB_KEY_PREFIX: string = "ConfigStorage"
@@ -21,11 +22,11 @@ type ConfigDb = {
 
 /** @PublicForTesting */
 export async function encryptItem(item: string, key: Aes256Key, iv: Uint8Array): Promise<Uint8Array> {
-	return aes256Encrypt(key, stringToUtf8Uint8Array(item), iv, true)
+	return aesEncrypt(key, stringToUtf8Uint8Array(item), iv, true)
 }
 
 export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes256Key, iv: Uint8Array): Promise<string> {
-	return utf8Uint8ArrayToString(aes256Decrypt(key, concat(iv, encryptedAddress)))
+	return utf8Uint8ArrayToString(aesDecrypt(key, concat(iv, encryptedAddress)))
 }
 
 /**
@@ -132,8 +133,8 @@ async function loadEncryptionMetadata(db: DbFacade, id: string, userGroupKey: Ae
 		return null
 	}
 
-	const key = decrypt256Key(userGroupKey, encDbKey)
-	const iv = aes256Decrypt(key, encDbIv)
+	const key = decryptKey(userGroupKey, encDbKey)
+	const iv = aesDecrypt(key, encDbIv)
 	return {
 		key,
 		iv,
@@ -149,8 +150,8 @@ async function initializeDb(db: DbFacade, id: string, userGroupKey: Aes128Key): 
 	const key = aes256RandomKey()
 	const iv = random.generateRandomData(IV_BYTE_LENGTH)
 	const transaction = await db.createTransaction(false, [MetaDataOS, ExternalImageListOS])
-	await transaction.put(MetaDataOS, Metadata.userEncDbKey, encrypt256Key(userGroupKey, key))
-	await transaction.put(MetaDataOS, Metadata.encDbIv, aes256Encrypt(key, iv))
+	await transaction.put(MetaDataOS, Metadata.userEncDbKey, encryptKey(userGroupKey, key))
+	await transaction.put(MetaDataOS, Metadata.encDbIv, aesEncrypt(key, iv))
 	return {
 		key,
 		iv,

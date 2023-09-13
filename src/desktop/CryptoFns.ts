@@ -5,17 +5,8 @@ import crypto from "node:crypto"
 import { InstanceMapper } from "../api/worker/crypto/InstanceMapper"
 import type { TypeModel } from "../api/common/EntityTypes"
 import type { Base64 } from "@tutao/tutanota-utils"
-import {
-	aes128Decrypt,
-	aes128Encrypt,
-	aes256Decrypt,
-	aes256Encrypt,
-	aes256RandomKey,
-	base64ToKey,
-	decrypt256Key,
-	random,
-	uint8ArrayToKey,
-} from "@tutao/tutanota-crypto"
+import { Aes256Key, aes256RandomKey, aesDecrypt, base64ToKey, decryptKey, random, uint8ArrayToKey } from "@tutao/tutanota-crypto"
+import { aesEncrypt } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
 
 // the prng throws if it doesn't have enough entropy
 // it may be called very early, so we need to seed it
@@ -37,15 +28,11 @@ const seed = () => {
 seed()
 
 export interface CryptoFunctions {
-	aes128Encrypt(key: Aes128Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array
+	aesEncrypt(key: Aes128Key | Aes256Key, bytes: Uint8Array, iv?: Uint8Array, usePadding?: boolean, useMac?: boolean): Uint8Array
 
-	aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array
+	aesDecrypt(key: Aes128Key | Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array
 
-	aes256Encrypt(key: Aes256Key, bytes: Uint8Array, usePadding: boolean): Uint8Array
-
-	aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array
-
-	decrypt256Key(encryptionKey: Aes128Key, key: Uint8Array): Aes256Key
+	decryptKey(encryptionKey: Aes128Key | Aes256Key, key: Uint8Array): Aes128Key | Aes256Key
 
 	bytesToKey(bytes: Uint8Array): BitArray
 
@@ -62,23 +49,16 @@ export interface CryptoFunctions {
 
 const mapper = new InstanceMapper()
 export const cryptoFns: CryptoFunctions = {
-	aes128Encrypt(key: Aes128Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array {
-		return aes128Encrypt(key, bytes, iv, usePadding, useMac)
-	},
-	aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
-		return aes128Decrypt(key, encryptedBytes, usePadding)
+	aesEncrypt(key: Aes128Key | Aes256Key, bytes: Uint8Array, iv?: Uint8Array, usePadding?: boolean, useMac?: boolean): Uint8Array {
+		return aesEncrypt(key, bytes, iv, usePadding, useMac)
 	},
 
-	aes256Encrypt(key: Aes256Key, bytes: Uint8Array, usePadding: boolean): Uint8Array {
-		return aes256Encrypt(key, bytes, undefined, usePadding)
+	aesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
+		return aesDecrypt(key, encryptedBytes, usePadding)
 	},
 
-	aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
-		return aes256Decrypt(key, encryptedBytes, usePadding)
-	},
-
-	decrypt256Key(encryptionKey: Aes128Key, key: Uint8Array): Aes256Key {
-		return decrypt256Key(encryptionKey, key)
+	decryptKey(encryptionKey: Aes128Key | Aes256Key, key: Uint8Array): Aes128Key | Aes256Key {
+		return decryptKey(encryptionKey, key)
 	},
 
 	bytesToKey(bytes: Uint8Array): BitArray {

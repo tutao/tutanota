@@ -42,7 +42,7 @@ import { assertWorkerOrNode } from "../../common/Env"
 import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
 import {
-	aes128Encrypt,
+	aesEncrypt,
 	Aes128Key,
 	aes128RandomKey,
 	bitArrayToUint8Array,
@@ -68,11 +68,11 @@ import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue
 assertWorkerOrNode()
 
 export function encryptBytes(sk: Aes128Key, value: Uint8Array): Uint8Array {
-	return aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
+	return aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
 }
 
 export function encryptString(sk: Aes128Key, value: string): Uint8Array {
-	return aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
+	return aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
 }
 
 export class CryptoFacade {

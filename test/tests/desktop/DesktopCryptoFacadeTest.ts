@@ -5,7 +5,7 @@ import type { Base64 } from "@tutao/tutanota-utils"
 import { arrayEquals, downcast, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import type { CryptoFunctions } from "../../../src/desktop/CryptoFns.js"
 import type { TypeModel } from "../../../src/api/common/EntityTypes.js"
-import { keyToUint8Array, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { Aes256Key, keyToUint8Array, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import { object, when } from "testdouble"
 import { DesktopUtils } from "../../../src/desktop/DesktopUtils.js"
 
@@ -19,39 +19,27 @@ o.spec("DesktopCryptoFacadeTest", () => {
 	const decryptedUint8 = stringToUtf8Uint8Array("decrypted")
 	const someKey = new Uint8Array([1, 2])
 	const cryptoFns: CryptoFunctions = {
-		aes128Encrypt(key: Aes128Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array {
+		aesEncrypt(key: Aes128Key | Aes256Key, bytes: Uint8Array, iv?: Uint8Array, usePadding?: boolean, useMac?: boolean): Uint8Array {
 			if (key === aes128Key) {
 				return decryptedUint8
-			} else {
-				throw new Error("stub!")
-			}
-		},
-
-		aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
-			if (key === aes128Key) {
-				return decryptedUint8
-			} else {
-				throw new Error("stub!")
-			}
-		},
-
-		aes256Encrypt(key: Aes256Key, bytes: Uint8Array, usePadding: boolean): Uint8Array {
-			if (key === aes256Key && arrayEquals(aes256DecryptedKey, bytes)) {
+			} else if (key === aes256Key && arrayEquals(aes256DecryptedKey, bytes)) {
 				return aes256EncryptedKey
 			} else {
 				throw new Error("stub!")
 			}
 		},
 
-		aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
-			if (key === aes256Key && arrayEquals(encryptedBytes, aes256EncryptedKey)) {
+		aesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
+			if (key === aes128Key) {
+				return decryptedUint8
+			} else if (key === aes256Key && arrayEquals(encryptedBytes, aes256EncryptedKey)) {
 				return aes256DecryptedKey
 			} else {
 				throw new Error("stub!")
 			}
 		},
 
-		decrypt256Key(encryptionKey: Aes128Key, key: Uint8Array): Aes256Key {
+		decryptKey(encryptionKey: Aes128Key, key: Uint8Array): Aes256Key {
 			if (arrayEquals(encryptionKey, aes128Key) && arrayEquals(key, aes256EncryptedKey)) {
 				return uint8ArrayToBitArray(aes256DecryptedKey)
 			} else {
@@ -165,9 +153,9 @@ o.spec("DesktopCryptoFacadeTest", () => {
 			b: true,
 			c: 42,
 		})
-		o(cryptoFnsMock.decrypt256Key.callCount).equals(1)
-		o(cryptoFnsMock.decrypt256Key.args[0]).deepEquals(aes128Key)
-		o(uint8ArrayComp(cryptoFnsMock.decrypt256Key.args[1], aes256EncryptedKey)).equals(true)
+		o(cryptoFnsMock.decryptKey.callCount).equals(1)
+		o(cryptoFnsMock.decryptKey.args[0]).deepEquals(aes128Key)
+		o(uint8ArrayComp(cryptoFnsMock.decryptKey.args[1], aes256EncryptedKey)).equals(true)
 		o(cryptoFnsMock.decryptAndMapToInstance.callCount).equals(1)
 		o(cryptoFnsMock.decryptAndMapToInstance.args).deepEquals([
 			"somemodel",

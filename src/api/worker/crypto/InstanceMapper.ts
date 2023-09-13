@@ -9,7 +9,7 @@ import type { ModelValue, TypeModel } from "../../common/EntityTypes"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { Base64 } from "@tutao/tutanota-utils"
-import { aes128Decrypt, aes128Encrypt, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aesDecrypt, aesEncrypt, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -154,7 +154,7 @@ export function encryptValue(valueName: string, valueType: ModelValue, value: an
 			bytes = typeof dbType === "string" ? stringToUtf8Uint8Array(dbType) : dbType
 		}
 
-		return uint8ArrayToBase64(aes128Encrypt(assertNotNull(sk), bytes, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC))
+		return uint8ArrayToBase64(aesEncrypt(assertNotNull(sk), bytes, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC))
 	} else {
 		const dbType = convertJsToDbType(valueType.type, value)
 
@@ -177,7 +177,7 @@ export function decryptValue(valueName: string, valueType: ModelValue, value: (B
 	} else if (valueType.cardinality === Cardinality.One && value === "") {
 		return valueToDefault(valueType.type) // Migration for values added after the Type has been defined initially
 	} else if (valueType.encrypted) {
-		let decryptedBytes = aes128Decrypt(sk as any, base64ToUint8Array(value as any))
+		let decryptedBytes = aesDecrypt(sk as any, base64ToUint8Array(value as any))
 
 		if (valueType.type === ValueType.Bytes) {
 			return decryptedBytes

@@ -61,7 +61,7 @@ import {
 	removeBinaryBlockRanges,
 } from "./SearchIndexEncoding"
 import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
-import { aes256Decrypt, aes256EncryptSearchIndexEntry } from "@tutao/tutanota-crypto"
+import { aesDecrypt, aes256EncryptSearchIndexEntry } from "@tutao/tutanota-crypto"
 import { ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "./IndexTables.js"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
@@ -200,7 +200,7 @@ export class IndexerCore {
 
 				// We need to find SearchIndex rows which we want to update. In the ElementData we have references to the metadata and we can find
 				// corresponding SearchIndex row in it.
-				const metaDataRowKeysBinary = aes256Decrypt(this.db.key, elementData[1], true)
+				const metaDataRowKeysBinary = aesDecrypt(this.db.key, elementData[1], true)
 				// For every word we have a metadata reference and we want to update them all.
 				const metaDataRowKeys = decodeNumbers(metaDataRowKeysBinary)
 				for (const metaDataRowKey of metaDataRowKeys) {

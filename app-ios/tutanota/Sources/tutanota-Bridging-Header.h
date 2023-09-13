@@ -7,7 +7,7 @@
 #import "Utils/TUTEncodingConverter.h"
 #import "Utils/TUTLog.h"
 #import "Utils/WebviewHacks.h"
-#import "Crypto/TUTAes128Facade.h"
+#import "Crypto/TUTAesFacade.h"
 #import "Crypto/TUTCrypto.h"
 #include "Offline/sqlite3.h"
 #import "argon2.h"

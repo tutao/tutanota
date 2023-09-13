@@ -25,14 +25,14 @@ import { createEntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs
 import { containsEventOfType } from "../../../../../src/api/common/utils/Utils.js"
 import { MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { byteLength } from "@tutao/tutanota-utils"
-import { aes256Decrypt, aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
+import { aesDecrypt, aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { EntityUpdateData } from "../../../../../src/api/main/EventController.js"
 import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
 		let key = aes256RandomKey()
 		let encryptedKey = encryptIndexKeyBase64(key, "blubb", fixedIv)
-		let decrypted = aes256Decrypt(key, concat(fixedIv, base64ToUint8Array(encryptedKey)), true)
+		let decrypted = aesDecrypt(key, concat(fixedIv, base64ToUint8Array(encryptedKey)), true)
 		o(utf8Uint8ArrayToString(decrypted)).equals("blubb")
 	})
 	o("encryptSearchIndexEntry + decryptSearchIndexEntry", function () {
@@ -49,7 +49,7 @@ o.spec("Index Utils", () => {
 		// position[1] 536 = 0x218 => length of number = 2 | 0x80 = 0x82 numbers: 0x02, 0x18
 		// position[2] 3 => 0x03
 		const encodedIndexEntry = [0x54, 0xc, 0x82, 0x02, 0x18, 0x03]
-		const result = aes256Decrypt(key, encryptedEntry.slice(16), true)
+		const result = aesDecrypt(key, encryptedEntry.slice(16), true)
 		o(Array.from(result)).deepEquals(Array.from(encodedIndexEntry))
 		let decrypted = decryptSearchIndexEntry(key, encryptedEntry, fixedIv)
 		o(JSON.stringify(decrypted.encId)).equals(JSON.stringify(encId))
@@ -82,7 +82,7 @@ o.spec("Index Utils", () => {
 		const encryptedMeta = encryptMetaData(key, meta)
 		o(encryptedMeta.id).equals(meta.id)
 		o(encryptedMeta.word).equals(meta.word)
-		o(Array.from(aes256Decrypt(key, encryptedMeta.rows, true))).deepEquals([
+		o(Array.from(aesDecrypt(key, encryptedMeta.rows, true))).deepEquals([
 			// First row
 			1,
 			64,

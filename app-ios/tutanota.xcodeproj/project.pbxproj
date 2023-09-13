@@ -95,7 +95,7 @@
 		3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F0B2105B12F0031E528 /* TUTCrypto.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F002105B12E0031E528 /* TUTCrypto.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F022105B12E0031E528 /* TUTEncodingConverter.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
-		3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F032105B12F0031E528 /* TUTAes128Facade.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D891F0E2105B12F0031E528 /* TUTAesFacade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F032105B12F0031E528 /* TUTAesFacade.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D92867C273A7D19006B8FB2 /* TutanotaError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D92867B273A7D18006B8FB2 /* TutanotaError.swift */; };
 		3D92867F273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D92867E273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift */; };
 		3D97821A2739600700DB639C /* URLSession+Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9782192739600700DB639C /* URLSession+Sync.swift */; };
@@ -359,10 +359,10 @@
 		3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rsa_oaep_sha256.c; sourceTree = "<group>"; };
 		3D891F002105B12E0031E528 /* TUTCrypto.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTCrypto.m; sourceTree = "<group>"; };
 		3D891F022105B12E0031E528 /* TUTEncodingConverter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTEncodingConverter.m; sourceTree = "<group>"; };
-		3D891F032105B12F0031E528 /* TUTAes128Facade.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTAes128Facade.m; sourceTree = "<group>"; };
+		3D891F032105B12F0031E528 /* TUTAesFacade.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTAesFacade.m; sourceTree = "<group>"; };
 		3D891F1D2105BB200031E528 /* rsa_oaep_sha256.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rsa_oaep_sha256.h; sourceTree = "<group>"; };
 		3D891F232105BB210031E528 /* TUTEncodingConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTEncodingConverter.h; sourceTree = "<group>"; };
-		3D891F262105BB210031E528 /* TUTAes128Facade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTAes128Facade.h; sourceTree = "<group>"; };
+		3D891F262105BB210031E528 /* TUTAesFacade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTAesFacade.h; sourceTree = "<group>"; };
 		3D891F2A2106132B0031E528 /* tutanota.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = tutanota.entitlements; sourceTree = "<group>"; };
 		3D92867B273A7D18006B8FB2 /* TutanotaError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutanotaError.swift; sourceTree = "<group>"; };
 		3D92867E273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyGeneratorSecureEnclave.swift; sourceTree = "<group>"; };
@@ -676,8 +676,8 @@
 				3D891F002105B12E0031E528 /* TUTCrypto.m */,
 				3DE7B3422135855F003415BE /* TUTSubKeys.h */,
 				3DE7B3432135855F003415BE /* TUTSubKeys.m */,
-				3D891F262105BB210031E528 /* TUTAes128Facade.h */,
-				3D891F032105B12F0031E528 /* TUTAes128Facade.m */,
+				3D891F262105BB210031E528 /* TUTAesFacade.h */,
+				3D891F032105B12F0031E528 /* TUTAesFacade.m */,
 				3D891F1D2105BB200031E528 /* rsa_oaep_sha256.h */,
 				3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */,
 				3D648B0C2AB98BEA00893C8D /* phc-winner-argon2 */,
@@ -1823,7 +1823,7 @@
 				3DCB9B8728F711220042A6BB /* SqlCipherStatement.swift in Sources */,
 				3DC299FD2673668000E1E79F /* QueryUtils.swift in Sources */,
 				3D2201FE293F752D00366FD2 /* WebAuthnRegistrationResult.swift in Sources */,
-				3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */,
+				3D891F0E2105B12F0031E528 /* TUTAesFacade.m in Sources */,
 				3D3AFAE4285B0C350077F302 /* IntegrationInfo.swift in Sources */,
 				3DBA56D42850AAA6004416BE /* UploadTaskResponse.swift in Sources */,
 				3DBA56CC2850AAA6004416BE /* ThemeFacadeReceiveDispatcher.swift in Sources */,

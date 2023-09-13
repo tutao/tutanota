@@ -11,7 +11,7 @@ import { createFile, File as TutanotaFile } from "../../../../../src/api/entitie
 import { ServiceExecutor } from "../../../../../src/api/worker/rest/ServiceExecutor.js"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { HttpMethod } from "../../../../../src/api/common/EntityFunctions.js"
-import { aes128Decrypt, aes128Encrypt, aes128RandomKey, generateIV } from "@tutao/tutanota-crypto"
+import { aesDecrypt, aes128RandomKey, aesEncrypt, generateIV } from "@tutao/tutanota-crypto"
 import { arrayEquals, neverNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { Mode } from "../../../../../src/api/common/Env.js"
 import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
@@ -96,7 +96,7 @@ o.spec("BlobFacade test", function () {
 			const optionsCaptor = captor()
 			verify(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, optionsCaptor.capture()))
 			const encryptedData = optionsCaptor.value.body
-			const decryptedData = aes128Decrypt(sessionKey, encryptedData)
+			const decryptedData = aesDecrypt(sessionKey, encryptedData)
 			o(arrayEquals(decryptedData, blobData)).equals(true)
 			o(optionsCaptor.value.baseUrl).equals("w1")
 		})
@@ -151,7 +151,7 @@ o.spec("BlobFacade test", function () {
 			const sessionKey = aes128RandomKey()
 			const blobData = new Uint8Array([1, 2, 3])
 			file.blobs.push(createBlob())
-			const encryptedBlobData = aes128Encrypt(sessionKey, blobData, generateIV(), true, true)
+			const encryptedBlobData = aesEncrypt(sessionKey, blobData, generateIV(), true, true)
 
 			let blobAccessInfo = createBlobServerAccessInfo({ blobAccessToken: "123", servers: [createBlobServerUrl({ url: "someBaseUrl" })] })
 			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything())).thenResolve(blobAccessInfo)

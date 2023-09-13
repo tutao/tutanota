@@ -18,7 +18,7 @@ protocol SimpleStringDecodable: AesDecryptable {
 
 extension SimpleStringDecodable {
   static func aesDecrypt(base64: Base64, key: Key) throws -> Self {
-    let decValue = try TUTAes128Facade.decryptBase64String(base64, encryptionKey: key)
+    let decValue = try TUTAesFacade.decryptBase64String(base64, encryptionKey: key)
     if let value = Self.init(string: decValue) {
       return value
     } else {

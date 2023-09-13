@@ -15,7 +15,7 @@ import { typeModels as tutanotaTypeModels } from "../../entities/tutanota/TypeMo
 import type { GroupMembership, User } from "../../entities/sys/TypeRefs.js"
 import type { TypeModel } from "../../common/EntityTypes"
 import { isTest } from "../../common/Env"
-import { aes256Decrypt, aes256EncryptSearchIndexEntry } from "@tutao/tutanota-crypto"
+import { aesDecrypt, aes256EncryptSearchIndexEntry } from "@tutao/tutanota-crypto"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))
@@ -26,7 +26,7 @@ export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbIv
 }
 
 export function decryptIndexKey(key: Aes256Key, encIndexKey: Uint8Array, dbIv: Uint8Array): string {
-	return utf8Uint8ArrayToString(aes256Decrypt(key, concat(dbIv, encIndexKey), true))
+	return utf8Uint8ArrayToString(aesDecrypt(key, concat(dbIv, encIndexKey), true))
 }
 
 export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry, encryptedInstanceId: Uint8Array): EncryptedSearchIndexEntry {
@@ -44,7 +44,7 @@ export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry,
 export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIndexEntry, dbIv: Uint8Array): DecryptedSearchIndexEntry {
 	const encId = getIdFromEncSearchIndexEntry(entry)
 	let id = decryptIndexKey(key, encId, dbIv)
-	const data = aes256Decrypt(key, entry.subarray(16), true)
+	const data = aesDecrypt(key, entry.subarray(16), true)
 	let offset = 0
 	const attribute = decodeNumberBlock(data, offset)
 	offset += calculateNeededSpaceForNumber(attribute)
@@ -92,7 +92,7 @@ export function decryptMetaData(key: Aes256Key, encryptedMeta: SearchIndexMetaDa
 		}
 	}
 
-	const numbersBlock = aes256Decrypt(key, encryptedMeta.rows, true)
+	const numbersBlock = aesDecrypt(key, encryptedMeta.rows, true)
 	const numbers = decodeNumbers(numbersBlock)
 	const rows: SearchIndexMetadataEntry[] = []
 

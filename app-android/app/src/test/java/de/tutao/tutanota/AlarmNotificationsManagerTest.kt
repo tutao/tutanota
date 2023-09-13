@@ -42,7 +42,7 @@ class AlarmNotificationsManagerTest {
 		sseStorage = Mockito.mock(SseStorage::class.java)
 		crypto = Mockito.mock(AndroidNativeCryptoFacade::class.java)
 		manager = AlarmNotificationsManager(sseStorage, crypto, systemAlarmFacade, Mockito.mock(LocalNotificationsFacade::class.java))
-		Mockito.`when`(crypto.aesDecrypt(any(), Mockito.anyString())).thenAnswer(Answer { invocation: InvocationOnMock -> (invocation.getArgument<Any>(1) as String).toByteArray() } as Answer<ByteArray>)
+		Mockito.`when`(crypto.aesDecryptBase64String(any(), Mockito.anyString())).thenAnswer(Answer { invocation: InvocationOnMock -> (invocation.getArgument<Any>(1) as String).toByteArray() } as Answer<ByteArray>)
 		Mockito.`when`(sseStorage.getPushIdentifierSessionKey(pushIdentifierElementId)).thenReturn(pushIdentifierKey)
 	}
 

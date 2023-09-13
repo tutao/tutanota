@@ -51,9 +51,9 @@ import { assertThrows, spy } from "@tutao/tutanota-test-utils"
 import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
 import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
 import {
-	aes128Decrypt,
-	aes128Encrypt,
+	aesDecrypt,
 	aes128RandomKey,
+	aesEncrypt,
 	bitArrayToUint8Array,
 	decryptKey,
 	ENABLE_MAC,
@@ -123,66 +123,66 @@ o.spec("crypto facade", function () {
 		o("decrypt string / number value without mac", function () {
 			let sk = aes128RandomKey()
 			let value = "this is a string value"
-			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
 			o(decryptValue("test", createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk)).equals(value)
 			value = "516546"
-			encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
 			o(decryptValue("test", createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk)).equals(value)
 		})
 		o("decrypt string / number value with mac", function () {
 			let sk = aes128RandomKey()
 			let value = "this is a string value"
-			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk)).equals(value)
 			value = "516546"
-			encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk)).equals(value)
 		})
 		o("decrypt boolean value without mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Boolean, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = "0"
-			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(false)
 			value = "1"
-			encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(true)
 			value = "32498"
-			encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(true)
 		})
 		o("decrypt boolean value with mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Boolean, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = "0"
-			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(false)
 			value = "1"
-			encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(true)
 			value = "32498"
-			encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(true)
 		})
 		o("decrypt date value without mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Date, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = new Date().getTime().toString()
-			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
 			o(decryptValue("test", valueType, encryptedValue, sk)).deepEquals(new Date(parseInt(value)))
 		})
 		o("decrypt date value with mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Date, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = new Date().getTime().toString()
-			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", valueType, encryptedValue, sk)).deepEquals(new Date(parseInt(value)))
 		})
 		o("decrypt bytes value without mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Bytes, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = random.generateRandomData(5)
-			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, false))
 			let decryptedValue = decryptValue("test", valueType, encryptedValue, sk)
 			o(decryptedValue instanceof Uint8Array).equals(true)
 			o(Array.from(decryptedValue)).deepEquals(Array.from(value))
@@ -191,7 +191,7 @@ o.spec("crypto facade", function () {
 			let valueType: ModelValue = createValueType(ValueType.Bytes, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = random.generateRandomData(5)
-			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			let decryptedValue = decryptValue("test", valueType, encryptedValue, sk)
 			o(decryptedValue instanceof Uint8Array).equals(true)
 			o(Array.from(decryptedValue)).deepEquals(Array.from(value))
@@ -200,7 +200,7 @@ o.spec("crypto facade", function () {
 			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = base64ToUint8Array("QHRlc3Q=")
-			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			let decryptedValue = decryptValue("test", valueType, encryptedValue, sk)
 			o(typeof decryptedValue === "string").equals(true)
 			o(decryptedValue).equals("test")
@@ -209,7 +209,7 @@ o.spec("crypto facade", function () {
 			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = base64ToUint8Array("X3RleHQgBQD//1FQdGV4dCA=")
-			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			let decryptedValue = decryptValue("test", valueType, encryptedValue, sk)
 			o(typeof decryptedValue === "string").equals(true)
 			o(decryptedValue).equals(
@@ -219,7 +219,7 @@ o.spec("crypto facade", function () {
 		o("decrypt empty compressedString", function () {
 			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
 			let sk = aes128RandomKey()
-			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, new Uint8Array([]), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, new Uint8Array([]), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			let decryptedValue = decryptValue("test", valueType, encryptedValue, sk)
 			o(typeof decryptedValue === "string").equals(true)
 			o(decryptedValue).equals("")
@@ -284,7 +284,7 @@ o.spec("crypto facade", function () {
 			let value = "this is a string value"
 			let encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			let expected = uint8ArrayToBase64(
-				aes128Encrypt(
+				aesEncrypt(
 					sk,
 					stringToUtf8Uint8Array(value),
 					base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16),
@@ -301,7 +301,7 @@ o.spec("crypto facade", function () {
 			let value = false
 			let encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			let expected = uint8ArrayToBase64(
-				aes128Encrypt(
+				aesEncrypt(
 					sk,
 					stringToUtf8Uint8Array(value ? "1" : "0"),
 					base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16),
@@ -314,7 +314,7 @@ o.spec("crypto facade", function () {
 			value = true
 			encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			expected = uint8ArrayToBase64(
-				aes128Encrypt(
+				aesEncrypt(
 					sk,
 					stringToUtf8Uint8Array(value ? "1" : "0"),
 					base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16),
@@ -331,7 +331,7 @@ o.spec("crypto facade", function () {
 			let value = new Date()
 			let encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			let expected = uint8ArrayToBase64(
-				aes128Encrypt(
+				aesEncrypt(
 					sk,
 					stringToUtf8Uint8Array(value.getTime().toString()),
 					base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16),
@@ -348,7 +348,7 @@ o.spec("crypto facade", function () {
 			let value = random.generateRandomData(5)
 			let encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			let expected = uint8ArrayToBase64(
-				aes128Encrypt(sk, value, base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC),
+				aesEncrypt(sk, value, base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC),
 			)
 			o(encryptedValue).equals(expected)
 			o(Array.from(decryptValue("test", valueType, encryptedValue, sk))).deepEquals(Array.from(value))
@@ -426,15 +426,15 @@ o.spec("crypto facade", function () {
 			state: "",
 			trashed: false,
 			unread: true,
-			subject: uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(subject), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
+			subject: uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(subject), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
 			replyType: "",
 			confidential: uint8ArrayToBase64(
-				aes128Encrypt(sk, stringToUtf8Uint8Array(confidential ? "1" : "0"), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC),
+				aesEncrypt(sk, stringToUtf8Uint8Array(confidential ? "1" : "0"), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC),
 			),
 			sender: {
 				_id: "senderId",
 				address: "hello@tutao.de",
-				name: uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(senderName), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
+				name: uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(senderName), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
 			},
 			bccRecipients: [],
 			ccRecipients: [],
@@ -443,7 +443,7 @@ o.spec("crypto facade", function () {
 					_id: "recipientId",
 					address: "support@yahoo.com",
 					name: uint8ArrayToBase64(
-						aes128Encrypt(sk, stringToUtf8Uint8Array(recipientName), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC),
+						aesEncrypt(sk, stringToUtf8Uint8Array(recipientName), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC),
 					),
 				},
 			],
@@ -451,8 +451,8 @@ o.spec("crypto facade", function () {
 			bucketKey: null,
 			attachmentCount: "0",
 			authStatus: "0",
-			listUnsubscribe: uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(""), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
-			method: uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(""), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
+			listUnsubscribe: uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(""), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
+			method: uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(""), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
 			phishingStatus: "0",
 			recipientCount: "0",
 		}
@@ -505,15 +505,15 @@ o.spec("crypto facade", function () {
 		o(result._format).equals("0")
 		o(result._ownerGroup).equals(null)
 		o(result._ownerEncSessionKey).equals(null)
-		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].type)))).equals(contact.addresses[0].type)
-		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].address)))).equals(contact.addresses[0].address)
-		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].customTypeName)))).equals(contact.addresses[0].customTypeName)
-		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.title)))).equals(contact.title)
-		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.firstName)))).equals(contact.firstName)
-		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.lastName)))).equals(contact.lastName)
-		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.comment)))).equals(contact.comment)
-		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.company)))).equals(contact.company)
-		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.autoTransmitPassword)))).equals(contact.autoTransmitPassword)
+		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.addresses[0].type)))).equals(contact.addresses[0].type)
+		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.addresses[0].address)))).equals(contact.addresses[0].address)
+		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.addresses[0].customTypeName)))).equals(contact.addresses[0].customTypeName)
+		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.title)))).equals(contact.title)
+		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.firstName)))).equals(contact.firstName)
+		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.lastName)))).equals(contact.lastName)
+		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.comment)))).equals(contact.comment)
+		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.company)))).equals(contact.company)
+		o(utf8Uint8ArrayToString(aesDecrypt(sk, base64ToUint8Array(result.autoTransmitPassword)))).equals(contact.autoTransmitPassword)
 	})
 
 	o("map unencrypted to instance", async function () {

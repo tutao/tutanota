@@ -1,11 +1,9 @@
 export {
 	aes256RandomKey,
 	generateIV,
-	aes256Encrypt,
-	aes256Decrypt,
+	aesEncrypt,
+	aesDecrypt,
 	aes128RandomKey,
-	aes128Encrypt,
-	aes128Decrypt,
 	ENABLE_MAC,
 	IV_BYTE_LENGTH,
 	Aes128Key,
@@ -22,18 +20,7 @@ export {
 } from "./hashes/Argon2id/Argon2id.js"
 export { CryptoError } from "./misc/CryptoError.js"
 export { KeyLength, EntropySource } from "./misc/Constants.js"
-export {
-	encryptKey,
-	decryptKey,
-	encrypt256Key,
-	aes256EncryptKey,
-	aes256DecryptKey,
-	decrypt256Key,
-	encryptRsaKey,
-	decryptRsaKey,
-	aes256Decrypt256Key,
-	aes256Encrypt256Key,
-} from "./encryption/KeyEncryption.js"
+export { encryptKey, decryptKey, encryptRsaKey, decryptRsaKey } from "./encryption/KeyEncryption.js"
 export { Randomizer, random } from "./random/Randomizer.js"
 export { encode, generateRsaKey, hexToPublicKey, rsaDecrypt, hexToPrivateKey, privateKeyToHex, publicKeyToHex, rsaEncrypt } from "./encryption/Rsa.js"
 export { RsaKeyPair, PrivateKey, PublicKey } from "./encryption/RsaKeyPair.js"

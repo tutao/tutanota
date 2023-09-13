@@ -63,6 +63,8 @@ static NSInteger const PUBLIC_EXPONENT = 65537;
 
 + (NSData * )sha256:(NSData *)data;
 
++ (NSData * )sha512:(NSData *)data;
+
 + (NSData *)generateIv;
 
 @end

@@ -10,7 +10,7 @@
 #import "JFBCrypt.h"
 
 #import "TUTCrypto.h"
-#import "TUTAes128Facade.h"
+#import "TUTAesFacade.h"
 #import "TUTEncodingConverter.h"
 #import "TUTErrorFactory.h"
 #import "../Utils/TUTLog.h"
@@ -269,8 +269,17 @@ static const NSString *const PUBLIC_EXPONENT_STRING = @"65537";
 
 + (NSData *)sha256:(NSData *)data {
   unsigned char hash[CC_SHA256_DIGEST_LENGTH];
-  if (CC_SHA256([data bytes], (int) [data length], hash) ) {
-    return [NSData dataWithBytes:hash length:CC_SHA256_DIGEST_LENGTH];
+  if (CC_SHA256([data bytes], (CC_LONG) [data length], hash) ) {
+    return [NSData dataWithBytes:hash length:sizeof(hash)];
+  }
+  return nil;
+}
+
+
++ (NSData *)sha512:(NSData *)data {
+  unsigned char hash[CC_SHA512_DIGEST_LENGTH];
+  if (CC_SHA512([data bytes], (CC_LONG) [data length], hash) ) {
+    return [NSData dataWithBytes:hash length:sizeof(hash)];
   }
   return nil;
 }
