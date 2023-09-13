@@ -53,13 +53,14 @@ import { ExposedNativeInterface } from "../native/common/NativeInterface.js"
 import { DesktopWebauthnFacade } from "./2fa/DesktopWebauthnFacade.js"
 import { DesktopPostLoginActions } from "./DesktopPostLoginActions.js"
 import { DesktopInterWindowEventFacade } from "./ipc/DesktopInterWindowEventFacade.js"
-import { OfflineDbFactory, OfflineDbManager, PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
+import { OfflineDbFactory, PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
 import { SqlCipherFacade } from "../native/common/generatedipc/SqlCipherFacade.js"
 import { WorkerSqlCipher } from "./db/WorkerSqlCipher.js"
 import { lazyMemoized } from "@tutao/tutanota-utils"
 import dns from "node:dns"
 import { getConfigFile } from "./config/ConfigFile.js"
 import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
+import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
 
 /**
  * Should be injected during build time.
@@ -184,9 +185,9 @@ async function createComponents(): Promise<Components> {
 		},
 	}
 
-	const offlineDbManager = new OfflineDbManager(offlineDbFactory)
+	const offlineDbRefCounter = new OfflineDbRefCounter(offlineDbFactory)
 
-	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon, offlineDbManager)
+	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon, offlineDbRefCounter)
 	const themeFacade = new DesktopThemeFacade(conf, wm, electron.nativeTheme)
 	const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
@@ -223,7 +224,7 @@ async function createComponents(): Promise<Components> {
 			pushFacade,
 			new DesktopSearchTextInAppFacade(window),
 			settingsFacade,
-			new PerWindowSqlCipherFacade(offlineDbManager),
+			new PerWindowSqlCipherFacade(offlineDbRefCounter),
 			themeFacade,
 			new DesktopWebauthnFacade(window, webDialogController),
 		)

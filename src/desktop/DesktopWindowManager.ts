@@ -14,9 +14,9 @@ import { isRectContainedInRect } from "./DesktopUtils"
 import { DesktopThemeFacade } from "./DesktopThemeFacade"
 import { ElectronExports } from "./ElectronExportTypes"
 import { RemoteBridge } from "./ipc/RemoteBridge.js"
-import { OfflineDbManager } from "./db/PerWindowSqlCipherFacade.js"
 import { ASSET_PROTOCOL } from "./net/ProtocolProxy.js"
 import path from "node:path"
+import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
 
 const TAG = "[DesktopWindowManager]"
 
@@ -57,7 +57,7 @@ export class WindowManager {
 		electron: ElectronExports,
 		localShortcut: LocalShortcutManager,
 		private readonly icon: NativeImage,
-		private readonly offlineDbManager: OfflineDbManager,
+		private readonly offlineDbRefCounter: OfflineDbRefCounter,
 	) {
 		this._conf = conf
 
@@ -285,7 +285,7 @@ export class WindowManager {
 			electron,
 			localShortcut,
 			this.themeFacade,
-			this.offlineDbManager,
+			this.offlineDbRefCounter,
 			this.remoteBridge,
 			dictUrl,
 			noAutoLogin,
