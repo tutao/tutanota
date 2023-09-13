@@ -3,7 +3,7 @@ import { TaggedSqlValue } from "../../api/worker/offline/SqlValue.js"
 import { Worker } from "node:worker_threads"
 import path from "node:path"
 import { MessageDispatcher, NodeWorkerTransport, Request } from "../../api/common/MessageDispatcher.js"
-import { SqlCipherCommandNames, WorkerLogCommandNames } from "./sqlworker.js"
+import { SqlCipherCommandNames, WorkerLogCommandNames } from "../sqlworker.js"
 
 const TAG = "[WorkerSqlCipher]"
 
@@ -14,7 +14,9 @@ export class WorkerSqlCipher implements SqlCipherFacade {
 	private readonly worker: Worker
 
 	constructor(private readonly nativeBindingPath: string, private readonly dbPath: string, private readonly integrityCheck: boolean) {
-		const worker = new Worker(path.join(__dirname, "db", "sqlworker.js"), {
+		// this is not ../sqlworker.js because this file is bundled into DesktopMain.js in the dev build
+		// and the prod build dumps everything into the same dir anyway.
+		const worker = new Worker(path.join(__dirname, "./sqlworker.js"), {
 			workerData: { nativeBindingPath, dbPath, integrityCheck },
 		}).on("error", (error) => {
 			// this is where uncaught errors in the worker end up.
