@@ -3,8 +3,8 @@ import { TaggedSqlValue } from "../../api/worker/offline/SqlValue.js"
 import { Worker } from "node:worker_threads"
 import path from "node:path"
 import { MessageDispatcher, Request } from "../../api/common/threading/MessageDispatcher.js"
-import { NodeWorkerTransport } from "../../api/common/threading/Transport.js"
 import { SqlCipherCommandNames, WorkerLogCommandNames } from "../sqlworker.js"
+import { NodeWorkerTransport } from "../../api/common/threading/NodeWorkerTransport.js"
 
 const TAG = "[WorkerSqlCipher]"
 
@@ -26,13 +26,17 @@ export class WorkerSqlCipher implements SqlCipherFacade {
 			throw error
 		})
 		console.log(TAG, `started sqlcipher-worker-${worker.threadId}`)
-		this.dispatcher = new MessageDispatcher<SqlCipherCommandNames, WorkerLogCommandNames>(new NodeWorkerTransport<SqlCipherCommandNames, never>(worker), {
-			info: async (msg: Request<"info">) => console.info(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
-			log: async (msg: Request<"log">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
-			error: async (msg: Request<"error">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
-			warn: async (msg: Request<"warn">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
-			trace: async (msg: Request<"trace">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
-		})
+		this.dispatcher = new MessageDispatcher<SqlCipherCommandNames, WorkerLogCommandNames>(
+			new NodeWorkerTransport<SqlCipherCommandNames, never>(worker),
+			{
+				info: async (msg: Request<"info">) => console.info(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
+				log: async (msg: Request<"log">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
+				error: async (msg: Request<"error">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
+				warn: async (msg: Request<"warn">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
+				trace: async (msg: Request<"trace">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
+			},
+			"node-nodeworker",
+		)
 
 		this.worker = worker
 	}

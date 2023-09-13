@@ -103,7 +103,7 @@ export class WorkerImpl implements NativeInterface {
 
 	constructor(self: DedicatedWorkerGlobalScope) {
 		this._scope = self
-		this._dispatcher = new MessageDispatcher(new WebWorkerTransport(this._scope), this.queueCommands(this.exposedInterface))
+		this._dispatcher = new MessageDispatcher(new WebWorkerTransport(this._scope), this.queueCommands(this.exposedInterface), "worker-main")
 	}
 
 	async init(browserData: BrowserData): Promise<void> {

@@ -25,7 +25,7 @@ export class WebauthnNativeBridge {
 				},
 			}),
 		}
-		this.dispatcher = new MessageDispatcher<WebToNativeRequest, NativeToWebRequest>(transport, commands)
+		this.dispatcher = new MessageDispatcher<WebToNativeRequest, NativeToWebRequest>(transport, commands, "webauthn-node")
 	}
 
 	async init(impl: BrowserWebauthn): Promise<void> {

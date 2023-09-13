@@ -12,6 +12,7 @@ import { WebGlobalDispatcher } from "../common/generatedipc/WebGlobalDispatcher.
 
 assertMainOrNode()
 
+/** the side of the node-main interface that's running in the browser windows renderer/main thread. */
 export class NativeInterfaceMain implements NativeInterface {
 	private readonly _dispatchDeferred: DeferredObject<MessageDispatcher<NativeRequestType, JsRequestType>> = defer()
 	private _appUpdateListener: (() => void) | null = null
@@ -34,9 +35,13 @@ export class NativeInterfaceMain implements NativeInterface {
 		}
 
 		// Ensure that we have messaged native with "init" before we allow anyone else to make native requests
-		const queue = new MessageDispatcher<NativeRequestType, JsRequestType>(transport, {
-			ipc: (request: Request<JsRequestType>) => this.globalDispatcher.dispatch(request.args[0], request.args[1], request.args.slice(2)),
-		})
+		const queue = new MessageDispatcher<NativeRequestType, JsRequestType>(
+			transport,
+			{
+				ipc: (request: Request<JsRequestType>) => this.globalDispatcher.dispatch(request.args[0], request.args[1], request.args.slice(2)),
+			},
+			"main-worker",
+		)
 		await queue.postRequest(new Request("ipc", ["CommonSystemFacade", "initializeRemoteBridge"]))
 		this._dispatchDeferred.resolve(queue)
 	}

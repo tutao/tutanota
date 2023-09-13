@@ -50,7 +50,7 @@ export class WorkerClient {
 			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
 			const workerUrl = prefixWithoutFile + "/worker-bootstrap.js"
 			const worker = new Worker(workerUrl)
-			this._dispatcher = new MessageDispatcher(new WebWorkerTransport(worker), this.queueCommands(locator))
+			this._dispatcher = new MessageDispatcher(new WebWorkerTransport(worker), this.queueCommands(locator), "main-worker")
 			await this._dispatcher.postRequest(new Request("setup", [window.env, this.getInitialEntropy(), client.browserData()]))
 
 			worker.onerror = (e: any) => {
@@ -73,6 +73,7 @@ export class WorkerClient {
 					},
 				} as Transport<WorkerRequestType, MainRequestType>,
 				this.queueCommands(locator),
+				"main-worker",
 			)
 		}
 

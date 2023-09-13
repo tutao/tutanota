@@ -35,7 +35,7 @@ export type JsMessageHandler = (message: JsMessage) => unknown
 export function encodeNativeMessage(message: NativeMessage): string {
 	let encodedMessage: Array<string> = []
 	encodedMessage.push(message.type)
-	encodedMessage.push(message.id)
+	encodedMessage.push(message.id!)
 	switch (message.type) {
 		case "request":
 			encodedMessage.push(message.requestType)
@@ -120,8 +120,8 @@ export function decodeNativeMessage(encoded: string): JsMessage {
 			parsedMessage = new Request(
 				requestType,
 				args.map((s) => decodeValueFromNative(s)),
-				messageId,
 			)
+			parsedMessage.id = messageId
 			break
 		case "response":
 			const [value] = rest
