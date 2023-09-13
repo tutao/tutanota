@@ -2,7 +2,7 @@
  * @file Functions to automatically expose certain interfaces across the WorkerProtocol Queue.
  */
 import { downcast } from "@tutao/tutanota-utils"
-import { Request } from "./MessageDispatcher"
+import { Request } from "./threading/MessageDispatcher.js"
 import { ProgrammingError } from "./error/ProgrammingError"
 
 type RequestSender<RequestTypes> = (arg0: Request<RequestTypes>) => Promise<any>

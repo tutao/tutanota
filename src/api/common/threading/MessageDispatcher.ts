@@ -5,8 +5,8 @@
  * </ul>
  */
 import { downcast } from "@tutao/tutanota-utils"
-import { objToError } from "./utils/Utils"
-import { isWorker } from "./Env"
+import { objToError } from "../utils/Utils.js"
+import { isWorker } from "../Env.js"
 
 export type Command<T> = (msg: Request<T>) => Promise<any>
 export type Commands<T extends string> = Record<T, Command<T>>

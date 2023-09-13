@@ -1,4 +1,4 @@
-import { Commands, MessageDispatcher, Request } from "../../api/common/MessageDispatcher.js"
+import { Commands, MessageDispatcher, Request } from "../../api/common/threading/MessageDispatcher.js"
 import { exposeLocalDelayed } from "../../api/common/WorkerProxy"
 import { assertNotNull, defer, DeferredObject } from "@tutao/tutanota-utils"
 import { DesktopNativeTransport } from "./DesktopNativeTransport.js"

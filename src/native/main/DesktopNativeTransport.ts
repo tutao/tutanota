@@ -1,5 +1,5 @@
 import { assertMainOrNode } from "../../api/common/Env.js"
-import { Message, Transport } from "../../api/common/MessageDispatcher.js"
+import { Message, Transport } from "../../api/common/threading/MessageDispatcher.js"
 import { NativeApp } from "../../global.js"
 
 assertMainOrNode()

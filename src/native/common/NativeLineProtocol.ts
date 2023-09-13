@@ -20,7 +20,7 @@
  *  ...
  *  [n] 		request		<argx>				json-encoded last argument
  */
-import { Message, Request, RequestError, Response } from "../../api/common/MessageDispatcher.js"
+import { Message, Request, RequestError, Response } from "../../api/common/threading/MessageDispatcher.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 

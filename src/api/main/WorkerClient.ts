@@ -1,6 +1,6 @@
 import { CryptoError } from "../common/error/CryptoError"
-import type { Commands, Transport } from "../common/MessageDispatcher"
-import { MessageDispatcher, Request, WebWorkerTransport } from "../common/MessageDispatcher"
+import type { Commands, Transport } from "../common/threading/MessageDispatcher.js"
+import { MessageDispatcher, Request, WebWorkerTransport } from "../common/threading/MessageDispatcher.js"
 import { assertMainOrNode } from "../common/Env"
 import type { IMainLocator } from "./MainLocator"
 import { client } from "../../misc/ClientDetector"

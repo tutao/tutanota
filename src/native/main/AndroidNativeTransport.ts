@@ -1,4 +1,4 @@
-import { Transport } from "../../api/common/MessageDispatcher.js"
+import { Transport } from "../../api/common/threading/MessageDispatcher.js"
 import { decodeNativeMessage, encodeNativeMessage, JsMessageHandler, NativeMessage } from "../common/NativeLineProtocol.js"
 import { defer, DeferredObject } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env.js"

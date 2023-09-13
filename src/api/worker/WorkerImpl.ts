@@ -1,5 +1,5 @@
-import type { Commands } from "../common/MessageDispatcher"
-import { errorToObj, MessageDispatcher, Request, WebWorkerTransport } from "../common/MessageDispatcher"
+import type { Commands } from "../common/threading/MessageDispatcher.js"
+import { errorToObj, MessageDispatcher, Request, WebWorkerTransport } from "../common/threading/MessageDispatcher.js"
 import { CryptoError } from "../common/error/CryptoError"
 import { BookingFacade } from "./facades/lazy/BookingFacade.js"
 import { NotAuthenticatedError } from "../common/error/RestError"
