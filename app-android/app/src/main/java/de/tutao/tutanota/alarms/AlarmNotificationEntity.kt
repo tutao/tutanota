@@ -20,9 +20,8 @@ class RepeatRule(
 
 class AlarmInfo(
 		val alarmIdentifier: String,
-		val trigger: AlarmTrigger,
+		val trigger: AlarmInterval,
 )
-
 
 /**
  * used for actual scheduling

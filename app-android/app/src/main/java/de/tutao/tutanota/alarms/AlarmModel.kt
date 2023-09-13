@@ -7,18 +7,18 @@ object AlarmModel {
 
 	@JvmStatic
 	fun iterateAlarmOccurrences(
-			now: Date,
-			timeZone: TimeZone,
-			eventStart: Date,
-			eventEnd: Date,
-			frequency: RepeatPeriod,
-			interval: Int,
-			endType: EndType?,
-			endValue: Long?,
-			alarmTrigger: AlarmTrigger,
-			localTimeZone: TimeZone,
-			excludedDates: List<Date>,
-			callback: AlarmIterationCallback,
+		now: Date,
+		timeZone: TimeZone,
+		eventStart: Date,
+		eventEnd: Date,
+		frequency: RepeatPeriod,
+		interval: Int,
+		endType: EndType?,
+		endValue: Long?,
+		alarmTrigger: AlarmInterval,
+		localTimeZone: TimeZone,
+		excludedDates: List<Date>,
+		callback: AlarmIterationCallback,
 	) {
 		val isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd)
 		val calcEventStart = if (isAllDayEvent) {
@@ -46,8 +46,8 @@ object AlarmModel {
 		var occurrences = 0
 		var futureOccurrences = 0
 		while (
-				futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD &&
-				(endType != EndType.COUNT || occurrences < endValue!!)
+			futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD &&
+			(endType != EndType.COUNT || occurrences < endValue!!)
 		) {
 			calendar.time = calcEventStart
 			incrementByRepeatPeriod(calendar, frequency, interval * occurrences)
@@ -65,8 +65,8 @@ object AlarmModel {
 	}
 
 	private fun incrementByRepeatPeriod(
-			calendar: Calendar, period: RepeatPeriod?,
-			interval: Int,
+		calendar: Calendar, period: RepeatPeriod?,
+		interval: Int,
 	) {
 		val field: Int = when (period) {
 			RepeatPeriod.DAILY -> Calendar.DAY_OF_MONTH
@@ -80,28 +80,25 @@ object AlarmModel {
 
 	@JvmStatic
 	fun calculateAlarmTime(
-			eventStart: Date,
-			timeZone: TimeZone?,
-			alarmTrigger: AlarmTrigger,
+		eventStart: Date,
+		timeZone: TimeZone?,
+		alarmTrigger: AlarmInterval,
 	): Date {
 		val calendar: Calendar = calculateLocalStartTime(eventStart, timeZone)
-		when (alarmTrigger) {
-			AlarmTrigger.FIVE_MINUTES -> calendar.add(Calendar.MINUTE, -5)
-			AlarmTrigger.TEN_MINUTES -> calendar.add(Calendar.MINUTE, -10)
-			AlarmTrigger.THIRTY_MINUTES -> calendar.add(Calendar.MINUTE, -30)
-			AlarmTrigger.ONE_HOUR -> calendar.add(Calendar.HOUR, -1)
-			AlarmTrigger.ONE_DAY -> calendar.add(Calendar.DAY_OF_MONTH, -1)
-			AlarmTrigger.TWO_DAYS -> calendar.add(Calendar.DAY_OF_MONTH, -2)
-			AlarmTrigger.THREE_DAYS -> calendar.add(Calendar.DAY_OF_MONTH, -3)
-			AlarmTrigger.ONE_WEEK -> calendar.add(Calendar.WEEK_OF_MONTH, -1)
+		when (alarmTrigger.unit) {
+			AlarmIntervalUnit.MINUTE -> calendar.add(Calendar.MINUTE, -alarmTrigger.value)
+			AlarmIntervalUnit.HOUR -> calendar.add(Calendar.HOUR, -alarmTrigger.value)
+			AlarmIntervalUnit.DAY -> calendar.add(Calendar.DAY_OF_MONTH, -alarmTrigger.value)
+			AlarmIntervalUnit.WEEK -> calendar.add(Calendar.WEEK_OF_MONTH, -alarmTrigger.value)
 		}
+
 		return calendar.time
 	}
 
 	@JvmStatic
 	fun calculateLocalStartTime(
-			eventStart: Date,
-			timeZone: TimeZone?,
+		eventStart: Date,
+		timeZone: TimeZone?,
 	): Calendar {
 		val calendar: Calendar = if (timeZone != null) {
 			Calendar.getInstance(timeZone)
@@ -127,12 +124,12 @@ object AlarmModel {
 		utcCalendar.time = utcDate
 		val calendar = Calendar.getInstance(localTimeZone)
 		calendar.set(
-				utcCalendar[Calendar.YEAR],
-				utcCalendar[Calendar.MONTH],
-				utcCalendar[Calendar.DAY_OF_MONTH],
-				0,
-				0,
-				0
+			utcCalendar[Calendar.YEAR],
+			utcCalendar[Calendar.MONTH],
+			utcCalendar[Calendar.DAY_OF_MONTH],
+			0,
+			0,
+			0
 		)
 		calendar.set(Calendar.MILLISECOND, 0)
 		return calendar.time
