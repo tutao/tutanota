@@ -2,7 +2,7 @@ import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacad
 import { TaggedSqlValue } from "../../api/worker/offline/SqlValue.js"
 import { Worker } from "node:worker_threads"
 import path from "node:path"
-import { MessageDispatcher, NodeWorkerTransport, Request } from "../../api/common/MessageDispatcher.js"
+import { MessageDispatcher, NodeWorkerTransport, Request } from "../../api/common/threading/MessageDispatcher.js"
 import { SqlCipherCommandNames, WorkerLogCommandNames } from "../sqlworker.js"
 
 const TAG = "[WorkerSqlCipher]"

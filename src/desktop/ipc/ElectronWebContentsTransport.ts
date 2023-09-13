@@ -1,4 +1,4 @@
-import type { Message, Transport } from "../../api/common/MessageDispatcher.js"
+import type { Message, Transport } from "../../api/common/threading/MessageDispatcher.js"
 import type { WebContents } from "electron"
 
 export interface IpcConfig<RenderToMainEvent extends string, MainToRenderEvent extends string> {

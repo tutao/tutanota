@@ -3,7 +3,7 @@ import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativ
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { ElectronWebContentsTransport, IpcConfig } from "./ElectronWebContentsTransport.js"
 import { DesktopGlobalDispatcher } from "../../native/common/generatedipc/DesktopGlobalDispatcher.js"
-import { MessageDispatcher, Request } from "../../api/common/MessageDispatcher.js"
+import { MessageDispatcher, Request } from "../../api/common/threading/MessageDispatcher.js"
 import { DesktopFacadeSendDispatcher } from "../../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
 import { CommonNativeFacadeSendDispatcher } from "../../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
 import { DesktopCommonSystemFacade } from "../DesktopCommonSystemFacade.js"
