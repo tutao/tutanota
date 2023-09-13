@@ -40,7 +40,7 @@ class AlarmManagerTest : XCTestCase {
       summary: "summary",
       eventStart: date,
       eventEnd: date,
-      alarmInfo: AlarmInfo(alarmIdentifer: identifier, trigger: trigger),
+      alarmInfo: AlarmInfo(alarmIdentifer: identifier, trigger: AlarmInterval(string: trigger)!),
       repeatRule: repeatRule,
       user: userID
     )

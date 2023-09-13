@@ -130,27 +130,17 @@ class AlarmModel : AlarmCalculator {
     return LazyEventSequence(calcEventStart: calcEventStart, endDate: endDate, repeatRule: repeatRule, cal: cal, calendarComponent: calendarUnit)
   }
 
-  static func alarmTime(trigger: String, eventTime: Date) -> Date {
+  static func alarmTime(trigger: AlarmInterval, eventTime: Date) -> Date {
     let cal = Calendar.current
-    switch trigger {
-    case "5M":
-      return cal.date(byAdding: .minute, value: -5, to: eventTime)!
-    case "10M":
-      return cal.date(byAdding: .minute, value: -10, to: eventTime)!
-    case "30M":
-      return cal.date(byAdding: .minute, value: -30, to: eventTime)!
-    case "1H":
-      return cal.date(byAdding: .hour, value: -1, to: eventTime)!
-    case "1D":
-      return cal.date(byAdding: .day, value: -1, to: eventTime)!
-    case "2D":
-      return cal.date(byAdding: .day, value: -2, to: eventTime)!
-    case "3D":
-      return cal.date(byAdding: .day, value: -3, to: eventTime)!
-    case "1W":
-      return cal.date(byAdding: .weekOfYear, value: -1, to: eventTime)!
-    default:
-      return cal.date(byAdding: .minute, value: -5, to: eventTime)!
+    switch trigger.unit {
+    case .minute:
+      return cal.date(byAdding: .minute, value: -trigger.value, to: eventTime)!
+    case .hour:
+      return cal.date(byAdding: .hour, value: -trigger.value, to: eventTime)!
+    case .day:
+      return cal.date(byAdding: .day, value: -trigger.value, to: eventTime)!
+    case .week:
+      return cal.date(byAdding: .weekOfYear, value: -trigger.value, to: eventTime)!
     }
   }
 }

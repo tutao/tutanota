@@ -167,7 +167,7 @@ class AlarmManager {
   
   private func schedule(
     alarmOccurrence: AlarmOccurence,
-    trigger: String,
+    trigger: AlarmInterval,
     summary: String,
     alarmIdentifier: String
   ) {

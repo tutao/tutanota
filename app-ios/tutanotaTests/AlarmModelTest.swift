@@ -30,7 +30,7 @@ class AlarmModelTest : XCTestCase {
       summary: "summary",
       eventStart: date,
       eventEnd: date,
-      alarmInfo: AlarmInfo(alarmIdentifer: identifier, trigger: trigger),
+      alarmInfo: AlarmInfo(alarmIdentifer: identifier, trigger: AlarmInterval(string: trigger)!),
       repeatRule: repeatRule,
       user: "user"
     )
@@ -156,7 +156,7 @@ class AlarmModelTest : XCTestCase {
       summary: "summary",
       eventStart: eventStart,
       eventEnd: eventEnd,
-      alarmInfo: AlarmInfo(alarmIdentifer: "id", trigger: "5M"),
+      alarmInfo: AlarmInfo(alarmIdentifer: "id", trigger: AlarmInterval(unit: .minute, value: 5)),
       repeatRule: repeatRule,
       user: "user"
     ))
@@ -192,7 +192,7 @@ class AlarmModelTest : XCTestCase {
       summary: "summary",
       eventStart: eventStart,
       eventEnd: eventEnd,
-      alarmInfo: AlarmInfo(alarmIdentifer: "id", trigger: "5M"),
+      alarmInfo: AlarmInfo(alarmIdentifer: "id", trigger: AlarmInterval(unit: .minute, value: 5)),
       repeatRule: repeatRule,
       user: "user"
     ))
@@ -229,7 +229,7 @@ class AlarmModelTest : XCTestCase {
       summary: "summary",
       eventStart: eventStart,
       eventEnd: eventEnd,
-      alarmInfo: AlarmInfo(alarmIdentifer: "id", trigger: "5M"),
+      alarmInfo: AlarmInfo(alarmIdentifer: "id", trigger: AlarmInterval(unit: .minute, value: 5)),
       repeatRule: repeatRule,
       user: "user"
     ))
