@@ -25,7 +25,7 @@ class CompatibilityTestSwift: XCTestCase {
       let password = TUTEncodingConverter.string(toBytes: test["password"]!)
       let expectedHash = TUTEncodingConverter.hex(toBytes: test["keyHex"]!)
       let salt = TUTEncodingConverter.hex(toBytes: test["saltHex"]!)
-      let result = try! Argon2idFacade().generateHash(ofPassword: password, ofHashLength: ARGON2ID_HASH_LENGTH, withSalt: salt, withIterations: ARGON2ID_ITERATIONS, withParallelism: ARGON2ID_PARALLELISM, withMemoryCost: ARGON2ID_MEMORY_COST)
+      let result = try! generateArgon2idHash(ofPassword: password, ofHashLength: ARGON2ID_HASH_LENGTH, withSalt: salt, withIterations: ARGON2ID_ITERATIONS, withParallelism: ARGON2ID_PARALLELISM, withMemoryCost: ARGON2ID_MEMORY_COST)
       
       XCTAssertEqual(expectedHash, result)
     }

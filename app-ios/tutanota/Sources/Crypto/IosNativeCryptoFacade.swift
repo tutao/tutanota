@@ -74,7 +74,7 @@ actor IosNativeCryptoFacade: NativeCryptoFacade {
     _ parallelism: Int,
     _ hashLength: Int
   ) async throws -> DataWrapper {
-    return try Argon2idFacade().generateHash(
+    return try generateArgon2idHash(
       ofPassword: password.data,
       ofHashLength: hashLength,
       withSalt: salt.data,
