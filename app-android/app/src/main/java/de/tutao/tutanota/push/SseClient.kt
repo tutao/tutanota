@@ -196,7 +196,7 @@ class SseClient internal constructor(
 				.header("Accept", "text/event-stream")
 		addCommonHeaders(requestBuilder)
 
-		var req = requestBuilder.build()
+		val req = requestBuilder.build()
 
 		val response = defaultClient
 				.newBuilder()
