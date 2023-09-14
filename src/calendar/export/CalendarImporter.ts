@@ -225,15 +225,13 @@ function makeInvitationCalendar(versionNumber: string, event: CalendarEvent, met
 export function serializeTrigger(dbAlarmInterval: string): string {
 	const alarmInterval = parseAlarmInterval(dbAlarmInterval)
 
-	let serialized = "-P"
+	let timeMarker = ""
 
 	if (alarmInterval.unit === AlarmIntervalUnit.MINUTE || alarmInterval.unit === AlarmIntervalUnit.HOUR) {
-		serialized += "T" + pad2(alarmInterval.value) + alarmInterval.unit
-	} else {
-		serialized += alarmInterval.value.toString() + alarmInterval.unit
+		timeMarker += "T"
 	}
 
-	return serialized
+	return "-P" + timeMarker + alarmInterval.value.toString() + alarmInterval.unit
 }
 
 function serializeParticipants(event: CalendarEvent): Array<string> {

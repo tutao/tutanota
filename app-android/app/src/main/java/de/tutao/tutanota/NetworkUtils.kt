@@ -28,11 +28,18 @@ class NetworkUtils {
 					.connectTimeout(5, TimeUnit.SECONDS)
 					.writeTimeout(5, TimeUnit.SECONDS)
 					.readTimeout(5, TimeUnit.SECONDS)
-					.connectionSpecs(Collections.singletonList(ConnectionSpec.RESTRICTED_TLS))
+					.run {
+						if (BuildConfig.DEBUG) {
+							connectionSpecs(listOf(ConnectionSpec.CLEARTEXT, ConnectionSpec.RESTRICTED_TLS))
+						} else {
+							connectionSpecs(listOf(ConnectionSpec.RESTRICTED_TLS))
+						}
+					}
+
 			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
 				// setup TLSv1.3 for old android versions
 				val conscrypt = Conscrypt.newProvider()
-				var result = Security.insertProviderAt(conscrypt, 1)
+				val result = Security.insertProviderAt(conscrypt, 1)
 				if (result == 1) {
 					Log.i(TAG, "enabled conscrypt for TLS1.3 support on legacy android")
 				} else {
