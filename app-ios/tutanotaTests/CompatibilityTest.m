@@ -1,7 +1,6 @@
 #import <XCTest/XCTest.h>
 #import "TUTAes128Facade.h"
 #import "TUTEncodingConverter.h"
-#import "TUTArgon2idFacade.h"
 #import <Foundation/Foundation.h>
 #import "TUTCrypto.h"
 #import "TUTBigNum.h"
@@ -133,25 +132,6 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 		XCTAssertEqualObjects(plainTextAsHex, [TUTEncodingConverter bytesToHex:decryptedData]);
         XCTAssertEqualObjects(td[@"plainTextBase64"], [TUTEncodingConverter bytesToBase64:decryptedData]);
     }
-}
-
-- (void)testArgon2id {
-  static const size_t ARGON2ID_HASH_LENGTH = 32;
-  static const uint32_t ARGON2ID_ITERATIONS = 4;
-  static const uint32_t ARGON2ID_PARALLELISM = 1;
-  static const uint32_t ARGON2ID_MEMORY_COST = 32 * 1024;
-  for (id td in self.testData[@"argon2idTests"]) {
-    NSData *password = [TUTEncodingConverter stringToBytes:td[@"password"]];
-    NSData *key = [TUTEncodingConverter hexToBytes:td[@"keyHex"]];
-    NSData *salt = [TUTEncodingConverter hexToBytes:td[@"saltHex"]];
-    NSData *result = [TUTArgon2idFacade generateHashOfPassword:password
-                                                  ofHashLength:ARGON2ID_HASH_LENGTH
-                                                      withSalt:salt
-                                                withIterations:ARGON2ID_ITERATIONS
-                                               withParallelism:ARGON2ID_PARALLELISM
-                                                withMemoryCost:ARGON2ID_MEMORY_COST];
-    XCTAssertEqualObjects(result, key);
-  }
 }
 
 - (void)testUnicodeEncoding {

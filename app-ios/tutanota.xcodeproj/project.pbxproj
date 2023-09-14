@@ -66,7 +66,6 @@
 		3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA302731953E008E7A8A /* RemoteProtocol.swift */; };
 		3D73DA3427319A91008E7A8A /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA3327319A91008E7A8A /* Operation.swift */; };
-		3D74FD732AAF014C0097171B /* TUTArgon2idFacade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74FD722AAF014C0097171B /* TUTArgon2idFacade.m */; };
 		3D7A108029472A6000311B6B /* CancelledError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7A107F29472A6000311B6B /* CancelledError.swift */; };
 		3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56A2721B92C00858A58 /* MissedNotification.swift */; };
 		3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56C2722CEF900858A58 /* FileUtils.swift */; };
@@ -228,6 +227,8 @@
 		3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DE7B3432135855F003415BE /* TUTSubKeys.m */; };
 		3DEF18F32924E1F1009C4B55 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DEF18F22924E1F1009C4B55 /* ShareViewController.swift */; };
 		3DEF18FA2924E1F1009C4B55 /* TutanotaShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 3DEF18F02924E1F1009C4B55 /* TutanotaShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		3DF7FA5A2AB2EE3B00DB08D1 /* Argon2idFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF7FA592AB2EE3B00DB08D1 /* Argon2idFacade.swift */; };
+		3DF7FA5E2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF7FA5D2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -337,8 +338,6 @@
 		3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CompatibilityTest.m; sourceTree = "<group>"; };
 		3D73DA302731953E008E7A8A /* RemoteProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteProtocol.swift; sourceTree = "<group>"; };
 		3D73DA3327319A91008E7A8A /* Operation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
-		3D74FD722AAF014C0097171B /* TUTArgon2idFacade.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTArgon2idFacade.m; sourceTree = "<group>"; };
-		3D74FD742AAF016C0097171B /* TUTArgon2idFacade.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTArgon2idFacade.h; sourceTree = "<group>"; };
 		3D7A107F29472A6000311B6B /* CancelledError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CancelledError.swift; sourceTree = "<group>"; };
 		3D84F56A2721B92C00858A58 /* MissedNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissedNotification.swift; sourceTree = "<group>"; };
 		3D84F56C2722CEF900858A58 /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
@@ -513,6 +512,8 @@
 		3DEF18F72924E1F1009C4B55 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3DF304A62535D172002B9E79 /* tutanota copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "tutanota copy-Info.plist"; path = "/Users/tutao/dev/repositories/tutanota-3/app-ios/tutanota copy-Info.plist"; sourceTree = "<absolute>"; };
 		3DF3055B253853C300E942A8 /* TUTCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TUTCrypto.h; path = tutanota/Sources/Crypto/TUTCrypto.h; sourceTree = SOURCE_ROOT; };
+		3DF7FA592AB2EE3B00DB08D1 /* Argon2idFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Argon2idFacade.swift; sourceTree = "<group>"; };
+		3DF7FA5D2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityTestSwift.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -650,10 +651,9 @@
 				3DE7B3432135855F003415BE /* TUTSubKeys.m */,
 				3D891F262105BB210031E528 /* TUTAes128Facade.h */,
 				3D891F032105B12F0031E528 /* TUTAes128Facade.m */,
-				3D74FD742AAF016C0097171B /* TUTArgon2idFacade.h */,
-				3D74FD722AAF014C0097171B /* TUTArgon2idFacade.m */,
 				3D891F1D2105BB200031E528 /* rsa_oaep_sha256.h */,
 				3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */,
+				3DF7FA592AB2EE3B00DB08D1 /* Argon2idFacade.swift */,
 				3D9B12A22721926E002B46A1 /* ValueEncryption.swift */,
 				3D84F5722722F35600858A58 /* IosNativeCryptoFacade.swift */,
 				3DB07C7A27303F0600BFBB4D /* Keys.swift */,
@@ -1392,6 +1392,7 @@
 				3D84F58427268EDE00858A58 /* AlarmModelTest.swift */,
 				3D3B516529376E9E00C1B7DA /* ShareUtilsTest.swift */,
 				3D4A426029B638D700B10451 /* AlarmManagerTest.swift */,
+				3DF7FA5D2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift */,
 			);
 			path = tutanotaTests;
 			sourceTree = "<group>";
@@ -1840,7 +1841,6 @@
 				3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */,
 				3DB07C7B27303F0600BFBB4D /* Keys.swift in Sources */,
 				3D3AFAE5285B0C350077F302 /* MobileSystemFacadeReceiveDispatcher.swift in Sources */,
-				3D74FD732AAF014C0097171B /* TUTArgon2idFacade.m in Sources */,
 				3DC5DED62858CB58007364FF /* RsaPrivateKey.swift in Sources */,
 				3D3B516229376C2200C1B7DA /* SharingUtils.swift in Sources */,
 				3D220200293F752D00366FD2 /* WebAuthnSignResult.swift in Sources */,
@@ -1919,6 +1919,7 @@
 				3DCB9B8528F710CC0042A6BB /* TaggedSqlValue.swift in Sources */,
 				3D220201293F752D00366FD2 /* WebAuthnSignChallenge.swift in Sources */,
 				3D4E3CA628EC5C65001FA9D1 /* SqlCipherFacadeReceiveDispatcher.swift in Sources */,
+				3DF7FA5A2AB2EE3B00DB08D1 /* Argon2idFacade.swift in Sources */,
 				3DBE94BA273147830077A6EA /* RemoteBridge.swift in Sources */,
 				3D84F5762723112400858A58 /* FileViewer.swift in Sources */,
 				3DBA56C72850AAA6004416BE /* FileFacade.swift in Sources */,
@@ -1954,6 +1955,7 @@
 				3D4A426129B638D700B10451 /* AlarmManagerTest.swift in Sources */,
 				3D4F1BFB26EBADE500E87BF5 /* TUTBigNum.m in Sources */,
 				3DAA23A9267A208200219051 /* UIColorExtensionsTest.swift in Sources */,
+				3DF7FA5E2AB2FBE700DB08D1 /* CompatibilityTestSwift.swift in Sources */,
 				3D84F58527268EDE00858A58 /* AlarmModelTest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

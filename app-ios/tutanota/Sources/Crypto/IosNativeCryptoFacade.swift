@@ -74,13 +74,13 @@ actor IosNativeCryptoFacade: NativeCryptoFacade {
     _ parallelism: Int,
     _ hashLength: Int
   ) async throws -> DataWrapper {
-    return TUTArgon2idFacade.generateHash(
+    return try Argon2idFacade().generateHash(
       ofPassword: password.data,
-      ofHashLength: size_t(hashLength),
+      ofHashLength: hashLength,
       withSalt: salt.data,
-      withIterations: UInt32(timeCost),
-      withParallelism: UInt32(parallelism),
-      withMemoryCost: UInt32(memoryCost)
+      withIterations: UInt(timeCost),
+      withParallelism: UInt(parallelism),
+      withMemoryCost: UInt(memoryCost)
     ).wrap()
   }
 }
