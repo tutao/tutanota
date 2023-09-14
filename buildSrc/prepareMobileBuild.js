@@ -25,6 +25,11 @@ export async function prepareMobileBuild(buildType) {
 			throw new Error("Unknown build type " + buildType)
 	}
 
+	const wasmpath = prefix + "wasm"
+	if (fs.existsSync(wasmpath)) {
+		fs.rmdirSync(wasmpath)
+	}
+
 	const imagesPath = prefix + "images"
 	const imagesToKeep = ["font.ttf", "logo-solo-red.png"]
 	if (fs.existsSync(imagesPath)) {
