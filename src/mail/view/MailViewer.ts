@@ -463,8 +463,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		const domBody = await this.domBodyDeferred.promise
 		replaceCidsWithInlineImages(domBody, loadedInlineImages, (cid, event) => {
 			const inlineAttachment = this.viewModel.getAttachments().find((attachment) => attachment.cid === cid)
-
-			if (inlineAttachment) {
+			if (inlineAttachment && (!client.isMobileDevice() || !this.pinchZoomable || !this.pinchZoomable.isDraggingOrZooming())) {
 				const coords = getCoordsOfMouseOrTouchEvent(event)
 				showDropdownAtPosition(
 					[
