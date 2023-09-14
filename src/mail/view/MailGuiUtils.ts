@@ -22,6 +22,7 @@ import { modal } from "../../gui/base/Modal.js"
 import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../../api/common/mail/CommonMailUtils.js"
 import { ConversationViewModel } from "./ConversationViewModel.js"
 import { size } from "../../gui/size.js"
+import { PinchZoom } from "../../gui/PinchZoom.js"
 
 export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
 	let trashMails: Mail[] = []
@@ -202,6 +203,7 @@ export function replaceCidsWithInlineImages(
 							x: touch.clientX,
 							y: touch.clientY,
 						}
+						timeoutId && clearTimeout(timeoutId)
 						timeoutId = setTimeout(() => {
 							onContext(inlineImage.cid, e, imageElement)
 						}, 800)
@@ -210,12 +212,17 @@ export function replaceCidsWithInlineImages(
 						const touch = e.touches[0]
 						if (!touch || !startCoords || !timeoutId) return
 
-						if (Math.abs(touch.clientX - startCoords.x) > 40 || Math.abs(touch.clientY - startCoords.y) > 40) {
+						if (
+							Math.abs(touch.clientX - startCoords.x) > PinchZoom.DRAG_THRESHOLD ||
+							Math.abs(touch.clientY - startCoords.y) > PinchZoom.DRAG_THRESHOLD
+						) {
 							clearTimeout(timeoutId)
+							timeoutId = null
 						}
 					})
 					imageElement.addEventListener("touchend", () => {
 						timeoutId && clearTimeout(timeoutId)
+						timeoutId = null
 					})
 				}
 
