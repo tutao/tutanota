@@ -390,7 +390,7 @@ export class HtmlSanitizer {
 function isAllowedLink(link: string): boolean {
 	try {
 		// We create URL without explicit base (second argument). It is an error for relative links
-		return new URL(link).protocol !== "file"
+		return new URL(link).protocol !== "file:"
 	} catch (e) {
 		return false
 	}
