@@ -8,11 +8,13 @@ import { DesktopFacadeSendDispatcher } from "../../native/common/generatedipc/De
 import { CommonNativeFacadeSendDispatcher } from "../../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
 import { DesktopCommonSystemFacade } from "../DesktopCommonSystemFacade.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import { PerWindowSqlCipherFacade } from "../db/PerWindowSqlCipherFacade.js"
 
 export interface SendingFacades {
 	desktopFacade: DesktopFacade
 	commonNativeFacade: CommonNativeFacade
 	interWindowEventSender: InterWindowEventFacadeSendDispatcher
+	sqlCipherFacade: PerWindowSqlCipherFacade
 }
 
 const primaryIpcConfig: IpcConfig<"to-main", "to-renderer"> = {
@@ -20,7 +22,11 @@ const primaryIpcConfig: IpcConfig<"to-main", "to-renderer"> = {
 	mainToRenderEvent: "to-renderer",
 } as const
 
-export type DispatcherFactory = (window: ApplicationWindow) => { desktopCommonSystemFacade: DesktopCommonSystemFacade; dispatcher: DesktopGlobalDispatcher }
+export type DispatcherFactory = (window: ApplicationWindow) => {
+	desktopCommonSystemFacade: DesktopCommonSystemFacade
+	sqlCipherFacade: PerWindowSqlCipherFacade
+	dispatcher: DesktopGlobalDispatcher
+}
 export type FacadeHandler = (message: Request<"facade">) => Promise<any>
 export type FacadeHandlerFactory = (window: ApplicationWindow) => FacadeHandler
 
@@ -29,7 +35,7 @@ export class RemoteBridge {
 
 	createBridge(window: ApplicationWindow): SendingFacades {
 		const webContents = window._browserWindow.webContents
-		const { desktopCommonSystemFacade, dispatcher } = this.dispatcherFactory(window)
+		const { desktopCommonSystemFacade, sqlCipherFacade, dispatcher } = this.dispatcherFactory(window)
 		const facadeHandler = this.facadeHandlerFactory(window)
 
 		const transport = new ElectronWebContentsTransport<typeof primaryIpcConfig, JsRequestType, NativeRequestType>(webContents, primaryIpcConfig)
@@ -54,6 +60,7 @@ export class RemoteBridge {
 			desktopFacade: new DesktopFacadeSendDispatcher(nativeInterface),
 			commonNativeFacade: new CommonNativeFacadeSendDispatcher(nativeInterface),
 			interWindowEventSender: new InterWindowEventFacadeSendDispatcher(nativeInterface),
+			sqlCipherFacade,
 		}
 	}
 

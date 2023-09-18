@@ -20,16 +20,16 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 	 * @param dbPath the path to the database file to use
 	 * @param integrityCheck whether to check the integrity of the db file during initialization
 	 */
-	constructor(private readonly nativeBindingPath: string, private readonly dbPath: string, private readonly integrityCheck: boolean) {}
+	constructor(private readonly nativeBindingPath: string, private readonly dbPath: string, private readonly integrityCheck: boolean) {
+		process.on("exit", () => this._db?.close())
+	}
 
 	async openDb(userId: string, dbKey: Uint8Array): Promise<void> {
 		this._db = new Sqlite(this.dbPath, {
 			// Remove ts-ignore once proper definition of Options exists, see https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/59049#
 			// @ts-ignore missing type
 			nativeBinding: this.nativeBindingPath,
-			// verbose: (message, args) => {
-			// 	console.log("DB", message, args)
-			// }
+			// verbose: (message, args) => console.log("DB", message, args),
 		})
 		this.initSqlcipher({ databaseKey: dbKey, enableMemorySecurity: true, integrityCheck: this.integrityCheck })
 	}
@@ -38,6 +38,7 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 		// We are performing defragmentation (incremental_vacuum) the database before closing
 		this.db.pragma("incremental_vacuum")
 		this.db.close()
+		this._db = null
 	}
 
 	/**

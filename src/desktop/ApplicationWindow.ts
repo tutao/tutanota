@@ -18,8 +18,8 @@ import { CommonNativeFacade } from "../native/common/generatedipc/CommonNativeFa
 import { RemoteBridge } from "./ipc/RemoteBridge.js"
 import { InterWindowEventFacadeSendDispatcher } from "../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { handleProtocols } from "./net/ProtocolProxy.js"
+import { PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
 import HandlerDetails = Electron.HandlerDetails
-import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 export type UserInfo = {
@@ -50,6 +50,7 @@ export class ApplicationWindow {
 	private _desktopFacade!: DesktopFacade
 	private _commonNativeFacade!: CommonNativeFacade
 	private _interWindowEventSender!: InterWindowEventFacadeSendDispatcher
+	private _sqlCipherFacade!: PerWindowSqlCipherFacade
 
 	_browserWindow!: BrowserWindow
 
@@ -71,7 +72,6 @@ export class ApplicationWindow {
 		private readonly electron: typeof Electron.CrossProcessExports,
 		private readonly localShortcut: LocalShortcutManager,
 		private readonly themeFacade: DesktopThemeFacade,
-		private readonly offlineDbRefCounter: OfflineDbRefCounter,
 		private readonly remoteBridge: RemoteBridge,
 		dictUrl: string,
 		noAutoLogin?: boolean | null,
@@ -194,6 +194,7 @@ export class ApplicationWindow {
 		this._desktopFacade = sendingFacades.desktopFacade
 		this._commonNativeFacade = sendingFacades.commonNativeFacade
 		this._interWindowEventSender = sendingFacades.interWindowEventSender
+		this._sqlCipherFacade = sendingFacades.sqlCipherFacade
 	}
 
 	private async loadInitialUrl(noAutoLogin: boolean) {
@@ -392,9 +393,9 @@ export class ApplicationWindow {
 	}
 
 	async reload(queryParams: Record<string, string | boolean>) {
-		// do this immediately as to not get the window destroyed on us
-		this.remoteBridge.unsubscribe(this._browserWindow.webContents.ipc)
 		await this.closeDb()
+		// try to do this asap as to not get the window destroyed on us
+		this.remoteBridge.unsubscribe(this._browserWindow.webContents.ipc)
 		this.userId = null
 		this.initFacades()
 		const url = await this.getInitialUrl(queryParams)
@@ -403,8 +404,8 @@ export class ApplicationWindow {
 
 	private async closeDb() {
 		if (this.userId) {
-			log.debug(TAG, `closing offline db for ${this.userId}`)
-			await this.offlineDbRefCounter.disposeDb(this.userId)
+			log.debug(TAG, `closing offline db for userId ${this.userId}`)
+			await this._sqlCipherFacade.closeDb()
 		}
 	}
 

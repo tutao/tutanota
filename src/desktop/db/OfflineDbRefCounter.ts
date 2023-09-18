@@ -2,13 +2,21 @@ import { defer, DeferredObject, delay } from "@tutao/tutanota-utils"
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 import { log } from "../DesktopLog.js"
 import { OfflineDbFactory } from "./PerWindowSqlCipherFacade.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
+const TAG = "[OfflineDbRefCounter]"
 const MAX_WAIT_FOR_DB_CLOSE_MS = 1000
 
 interface CacheEntry {
 	readonly db: Promise<SqlCipherFacade>
 	/** Reference counting for db in case multiple windows open it. */
 	counter: number
+	/**
+	 * We want to lock the access to the "ranges" table when updating / reading the
+	 * offline available mail list ranges for each mail list (referenced using the listId).
+	 * We store locks with their corresponding listId in this Map.
+	 */
+	listIdLocks: Map<string, DeferredObject<void>>
 }
 
 /**
@@ -23,13 +31,6 @@ export class OfflineDbRefCounter {
 	 */
 	private readonly cache: Map<Id, CacheEntry> = new Map()
 
-	/**
-	 * We want to lock the access to the "ranges" db when updating / reading the
-	 * offline available mail list ranges for each mail list (referenced using the listId).
-	 * We store locks with their corresponding listId in this Map.
-	 */
-	private readonly listIdLocks: Map<Id, DeferredObject<void>> = new Map()
-
 	constructor(private readonly offlineDbFactory: OfflineDbFactory) {}
 
 	async getOrCreateDb(userId: Id, dbKey: Uint8Array): Promise<SqlCipherFacade> {
@@ -39,7 +40,7 @@ export class OfflineDbRefCounter {
 			return await entry.db
 		} else {
 			const db = this.offlineDbFactory.create(userId, dbKey)
-			entry = { db, counter: 1 }
+			entry = { db, counter: 1, listIdLocks: new Map() }
 			this.cache.set(userId, entry)
 			return await entry.db
 		}
@@ -47,16 +48,27 @@ export class OfflineDbRefCounter {
 		// not returning from here makes for better stack traces.
 	}
 
+	/*
+	 * de-reference the offline db belonging to the userId.
+	 * will release the db connection if this is the last reference.
+	 *
+	 * must only be called directly from PerWindowSqlCipherFacade or from within this class.
+	 *
+	 **/
 	async disposeDb(userId: Id) {
-		const entry = this.cache.get(userId)
+		let entry = this.cache.get(userId)
 		if (entry == null) {
 			return
 		}
 		entry.counter -= 1
+
 		if (entry.counter === 0) {
 			this.cache.delete(userId)
 			const db = await entry.db
 			await db.closeDb()
+			console.log(TAG, "closed db for", userId)
+		} else {
+			console.log(TAG, "dispose done, still ref'd")
 		}
 	}
 
@@ -79,29 +91,44 @@ export class OfflineDbRefCounter {
 			log.debug(`waiting for other windows to close db before deleting it for user ${userId}`)
 			await delay(100)
 		}
+		this.cache.delete(userId)
 		await this.offlineDbFactory.delete(userId)
 	}
 
 	/**
-	 * We want to lock the access to the "ranges" db when updating / reading the
+	 * We want to lock the access to the "ranges" table when updating / reading the
 	 * offline available mail list ranges for each mail list (referenced using the listId).
+	 * @param userId the user the mail list that we're locking belongs to
 	 * @param listId the mail list that we want to lock
 	 */
-	async lockRangesDbAccess(listId: Id): Promise<void> {
-		if (this.listIdLocks.get(listId)) {
-			await this.listIdLocks.get(listId)?.promise
-			this.listIdLocks.set(listId, defer())
+	async lockRangesDbAccess(userId: Id, listId: Id): Promise<void> {
+		const entry = this.cache.get(userId)
+		if (entry == null) {
+			// should not happen because why would we lock a table that we do not hold a ref for.
+			// the caller will probably run into a offlineDbClosedError very soon.
+			throw new ProgrammingError("tried to lock a db that's not open.")
+		}
+		if (entry.listIdLocks.get(listId)) {
+			await entry.listIdLocks.get(listId)?.promise
+			entry.listIdLocks.set(listId, defer())
 		} else {
-			this.listIdLocks.set(listId, defer())
+			entry.listIdLocks.set(listId, defer())
 		}
 	}
 
 	/**
-	 * This is the counterpart to the function "lockRangesDbAccess(listId)".
+	 * This is the counterpart to the function "lockRangesDbAccess(userId, listId)".
+	 * @param userId the user the mail list that we're locking belongs to
 	 * @param listId the mail list that we want to unlock
 	 */
-	async unlockRangesDbAccess(listId: Id): Promise<void> {
-		this.listIdLocks.get(listId)?.resolve()
-		this.listIdLocks.delete(listId)
+	async unlockRangesDbAccess(userId: Id, listId: Id): Promise<void> {
+		const entry = this.cache.get(userId)
+		if (entry == null) {
+			// should not happen because why would we lock a table that we do not hold a ref for.
+			// the caller will probably run into a offlineDbClosedError very soon.
+			throw new ProgrammingError("tried to unlock a db that's not open.")
+		}
+		entry.listIdLocks.get(listId)?.resolve()
+		entry.listIdLocks.delete(listId)
 	}
 }

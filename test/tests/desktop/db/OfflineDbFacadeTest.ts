@@ -68,17 +68,19 @@ o.spec("OfflineDbFacade", function () {
 	o("ranges database is locked when writing/reading to/from it", async function () {
 		const listId = "listId"
 
+		await offlineDbRefCounter.getOrCreateDb(userId, new Uint8Array())
+
 		// Hold the lock for the ranges database until @param defer is resolved.
 		async function holdRangesDbLock(promise: Promise<void> | null, startId: number): Promise<number> {
-			await offlineDbRefCounter.lockRangesDbAccess(listId)
+			await offlineDbRefCounter.lockRangesDbAccess(userId, listId)
 			await promise
-			await offlineDbRefCounter.unlockRangesDbAccess(listId)
+			await offlineDbRefCounter.unlockRangesDbAccess(userId, listId)
 			return startId
 		}
 
 		const finishOrder: Array<number> = []
 		// Delay Task 1
-		const longRunningTask1 = delay(200)
+		const longRunningTask1 = delay(100)
 
 		// Task 1
 		let task1 = holdRangesDbLock(longRunningTask1, 1).then((startId) => {
@@ -88,7 +90,6 @@ o.spec("OfflineDbFacade", function () {
 		let task2 = holdRangesDbLock(null, 2).then((startId) => {
 			finishOrder.push(startId)
 		})
-
 		await Promise.all([task1, task2])
 
 		// Assert that task 1 finishes before task 2
