@@ -1,5 +1,5 @@
 import { CounterType, GroupType } from "../../../common/TutanotaConstants.js"
-import type { InternalGroupData, ContactListGroupRoot, UserAreaGroupData } from "../../../entities/tutanota/TypeRefs.js"
+import type { ContactListGroupRoot, InternalGroupData, UserAreaGroupData } from "../../../entities/tutanota/TypeRefs.js"
 import {
 	createCreateMailGroupData,
 	createDeleteGroupData,
@@ -18,10 +18,17 @@ import { encryptString } from "../../crypto/CryptoFacade.js"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { aes128RandomKey, decryptKey, encryptKey, encryptRsaKey, publicKeyToHex, RsaKeyPair } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { LocalAdminGroupService, MailGroupService, ContactListGroupService, TemplateGroupService } from "../../../entities/tutanota/Services.js"
+import {
+	CalendarService,
+	ContactListGroupService,
+	LocalAdminGroupService,
+	MailGroupService,
+	TemplateGroupService,
+} from "../../../entities/tutanota/Services.js"
 import { MembershipService } from "../../../entities/sys/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
+import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 
 assertWorkerOrNode()
 
@@ -32,6 +39,7 @@ export class GroupManagementFacade {
 		private readonly entityClient: EntityClient,
 		private readonly rsa: RsaImplementation,
 		private readonly serviceExecutor: IServiceExecutor,
+		private readonly entityRestCache: DefaultEntityRestCache,
 	) {}
 
 	async readUsedSharedMailGroupStorage(group: Group): Promise<number> {
@@ -108,6 +116,18 @@ export class GroupManagementFacade {
 		})
 	}
 
+	async createCalendar(name: string): Promise<{ user: User; group: Group }> {
+		const groupData = await this.generateUserAreaGroupData(name)
+		const postData = createUserAreaGroupPostData({
+			groupData,
+		})
+		const postGroupData = await this.serviceExecutor.post(CalendarService, postData)
+		const group = await this.entityClient.load(GroupTypeRef, postGroupData.group)
+		const user = await this.reloadUser()
+
+		return { user, group }
+	}
+
 	createTemplateGroup(name: string): Promise<Id> {
 		return this.generateUserAreaGroupData(name).then((groupData) => {
 			const serviceData = createUserAreaGroupPostData({
@@ -117,12 +137,16 @@ export class GroupManagementFacade {
 		})
 	}
 
-	async createContactListGroup(name: string): Promise<Id> {
+	async createContactListGroup(name: string): Promise<Group> {
 		const groupData = await this.generateUserAreaGroupData(name)
 		const serviceData = createUserAreaGroupPostData({
-			groupData: groupData,
+			groupData,
 		})
-		return this.serviceExecutor.post(ContactListGroupService, serviceData).then((returnValue) => returnValue.group)
+		const postGroupData = await this.serviceExecutor.post(ContactListGroupService, serviceData)
+		const group = await this.entityClient.load(GroupTypeRef, postGroupData.group)
+		await this.reloadUser()
+
+		return group
 	}
 
 	async deleteContactListGroup(groupRoot: ContactListGroupRoot) {
@@ -239,5 +263,20 @@ export class GroupManagementFacade {
 					})
 			})
 		}
+	}
+
+	/*
+	 * Deletes the logged-in user from the cache, and reloads and returns the new user object.
+	 * Is used to ensure we have the latest version, there can be times when the object becomes a little outdated, resulting in errors.
+	 */
+	async reloadUser(): Promise<User> {
+		const userId = this.user.getLoggedInUser()._id
+
+		await this.entityRestCache.deleteFromCacheIfExists(UserTypeRef, null, userId)
+
+		const user = await this.entityClient.load(UserTypeRef, userId)
+		this.user.updateUser(user)
+
+		return user
 	}
 }
