@@ -27,7 +27,8 @@ export async function prepareMobileBuild(buildType) {
 
 	const wasmpath = prefix + "wasm"
 	if (fs.existsSync(wasmpath)) {
-		fs.rmdirSync(wasmpath)
+		console.log("unlinking ", wasmpath)
+		fs.rmSync(wasmpath, { force: true, recursive: true })
 	}
 
 	const imagesPath = prefix + "images"
