@@ -29,7 +29,6 @@ export class CalendarEventAlarmModel {
 	}
 
 	/**
-	 * idempotent: each event has at most one alarm of each alarm interval.
 	 * @param trigger the interval to add.
 	 */
 	addAlarm(trigger: AlarmInterval | null) {
