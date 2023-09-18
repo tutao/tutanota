@@ -246,7 +246,14 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	})
 	locator.groupManagement = lazyMemoized(async () => {
 		const { GroupManagementFacade } = await import("./facades/lazy/GroupManagementFacade.js")
-		return new GroupManagementFacade(locator.user, await locator.counters(), locator.cachingEntityClient, locator.rsa, locator.serviceExecutor)
+		return new GroupManagementFacade(
+			locator.user,
+			await locator.counters(),
+			locator.cachingEntityClient,
+			locator.rsa,
+			locator.serviceExecutor,
+			assertNotNull(cache),
+		)
 	})
 	locator.userManagement = lazyMemoized(async () => {
 		const { UserManagementFacade } = await import("./facades/lazy/UserManagementFacade.js")

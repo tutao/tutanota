@@ -163,8 +163,9 @@ export class ContactListViewModel {
 	}
 
 	async addContactList(name: string, recipients: string[]) {
-		const newId = await this.groupManagementFacade.createContactListGroup(name)
-		const newContactList = await this.entityClient.load(ContactListGroupRootTypeRef, newId)
+		const newGroup = await this.groupManagementFacade.createContactListGroup(name)
+		const newContactList = await this.entityClient.load(ContactListGroupRootTypeRef, newGroup._id)
+
 		this.addRecipientstoContactList(recipients, newContactList)
 	}
 

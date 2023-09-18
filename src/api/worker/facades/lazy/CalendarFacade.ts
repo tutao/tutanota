@@ -10,10 +10,8 @@ import {
 	createNotificationSessionKey,
 	createRepeatRule,
 	createUserAlarmInfo,
-	GroupTypeRef,
 	PushIdentifierTypeRef,
 	UserAlarmInfoTypeRef,
-	UserTypeRef,
 } from "../../../entities/sys/TypeRefs.js"
 import {
 	assertNotNull,
@@ -34,13 +32,7 @@ import {
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { GroupType, OperationType } from "../../../common/TutanotaConstants.js"
 import type { CalendarEvent, CalendarEventUidIndex, CalendarRepeatRule } from "../../../entities/tutanota/TypeRefs.js"
-import {
-	CalendarEventTypeRef,
-	CalendarEventUidIndexTypeRef,
-	CalendarGroupRootTypeRef,
-	createCalendarDeleteData,
-	createUserAreaGroupPostData,
-} from "../../../entities/tutanota/TypeRefs.js"
+import { CalendarEventTypeRef, CalendarEventUidIndexTypeRef, CalendarGroupRootTypeRef, createCalendarDeleteData } from "../../../entities/tutanota/TypeRefs.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError, PayloadTooLargeError } from "../../../common/error/RestError.js"
 import { EntityClient } from "../../../common/EntityClient.js"
@@ -245,24 +237,7 @@ export class CalendarFacade {
 	}
 
 	async addCalendar(name: string): Promise<{ user: User; group: Group }> {
-		const groupData = await this.groupManagementFacade.generateUserAreaGroupData(name)
-		const postData = createUserAreaGroupPostData({
-			groupData,
-		})
-		const returnData = await this.serviceExecutor.post(CalendarService, postData)
-		const group = await this.cachingEntityClient.load(GroupTypeRef, returnData.group)
-		// remove the user from the cache before loading it again to make sure we get the latest version.
-		// otherwise we might not see the new calendar in case it is created at login and the websocket is not connected yet
-		const userId = this.userFacade.getLoggedInUser()._id
-
-		await this.entityRestCache.deleteFromCacheIfExists(UserTypeRef, null, userId)
-
-		const user = await this.cachingEntityClient.load(UserTypeRef, userId)
-		this.userFacade.updateUser(user)
-		return {
-			user,
-			group,
-		}
+		return await this.groupManagementFacade.createCalendar(name)
 	}
 
 	async deleteCalendar(groupRootId: Id): Promise<void> {
