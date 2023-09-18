@@ -2,6 +2,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 static NSInteger const PUBLIC_EXPONENT = 65537;
+static NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 
 @interface TUTPublicKey : NSObject
 @property(nonatomic, readonly) NSInteger version;
@@ -62,8 +63,6 @@ static NSInteger const PUBLIC_EXPONENT = 65537;
                                         error:(NSError **)error;
 
 + (NSData * )sha256:(NSData *)data;
-
-+ (NSData * )sha512:(NSData *)data;
 
 + (NSData *)generateIv;
 
