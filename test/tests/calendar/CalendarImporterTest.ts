@@ -1427,8 +1427,8 @@ END:VCALENDAR`
 	})
 
 	o("serializeTrigger", () => {
-		o(serializeTrigger("5M")).equals("-PT05M")
-		o(serializeTrigger("3H")).equals("-PT03H")
+		o(serializeTrigger("5M")).equals("-PT5M")
+		o(serializeTrigger("3H")).equals("-PT3H")
 		o(serializeTrigger("30H")).equals("-PT30H")
 		o(serializeTrigger("1D")).equals("-P1D")
 		o(serializeTrigger("10D")).equals("-P10D")

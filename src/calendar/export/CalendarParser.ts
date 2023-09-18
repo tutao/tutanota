@@ -267,16 +267,24 @@ function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): AlarmInfo | 
 	}
 	const triggerValue = triggerProp.value
 	if (typeof triggerValue !== "string") throw new ParserError("expected TRIGGER property to be a string: " + JSON.stringify(triggerProp))
-	let alarmInterval: AlarmInterval
+	const alarmInterval: AlarmInterval | null = triggerToAlarmInterval(event.startTime, triggerValue)
+	return alarmInterval != null
+		? createAlarmInfo({
+				trigger: serializeAlarmInterval(alarmInterval),
+		  })
+		: null
+}
 
+/** visible for testing */
+export function triggerToAlarmInterval(eventStart: Date, triggerValue: string): AlarmInterval | null {
 	// Absolute time
 	if (triggerValue.endsWith("Z")) {
 		// For absolute time we just convert the trigger to minutes. There might be a bigger unit that can express it but we don't have to take care about time
 		// zones or daylight saving in this case and it's simpler this way.
 		const triggerTime = parseTime(triggerValue).date
-		const tillEvent = event.startTime.getTime() - triggerTime.getTime()
+		const tillEvent = eventStart.getTime() - triggerTime.getTime()
 		const minutes = Duration.fromMillis(tillEvent).as("minutes")
-		alarmInterval = { unit: AlarmIntervalUnit.MINUTE, value: minutes }
+		return { unit: AlarmIntervalUnit.MINUTE, value: minutes }
 	} else {
 		// If we have relative trigger expressed in units we want to find the smallest unit that will fit. Unlike iCal we do not support multiple units so
 		// we have to pick one.
@@ -315,12 +323,8 @@ function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): AlarmInfo | 
 				value = Duration.fromObject(luxonDuration).as("minutes")
 				break
 		}
-		alarmInterval = { unit: smallestUnit, value }
+		return { unit: smallestUnit, value }
 	}
-
-	return createAlarmInfo({
-		trigger: serializeAlarmInterval(alarmInterval),
-	})
 }
 
 export function parseRrule(rruleProp: Property, tzId: string | null): RepeatRule {

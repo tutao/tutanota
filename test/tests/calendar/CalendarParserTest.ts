@@ -10,11 +10,13 @@ import {
 	parseTime,
 	parseUntilRruleTime,
 	propertySequenceParser,
+	triggerToAlarmInterval,
 } from "../../../src/calendar/export/CalendarParser.js"
 import { ParserError, StringIterator } from "../../../src/misc/parsing/ParserCombinator.js"
 import { DateTime } from "luxon"
 import { createDateWrapper } from "../../../src/api/entities/sys/TypeRefs.js"
 import { getDateInUTC, zone } from "./CalendarTestUtils.js"
+import { AlarmIntervalUnit } from "../../../src/calendar/date/CalendarUtils.js"
 
 o.spec("CalendarParser", function () {
 	o.spec("propertySequenceParser", function () {
@@ -137,6 +139,24 @@ o.spec("CalendarParser", function () {
 			week: undefined,
 		})
 		o(() => parseDuration("P8W15M")).throws(Error)
+	})
+	o("triggerToAlarmInterval", function () {
+		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H30M")).deepEquals({
+			unit: AlarmIntervalUnit.MINUTE,
+			value: 5 * 60 + 30,
+		})
+		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H30M20S")).deepEquals({
+			unit: AlarmIntervalUnit.MINUTE,
+			value: 5 * 60 + 30,
+		})
+		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H0M")).deepEquals({
+			unit: AlarmIntervalUnit.HOUR,
+			value: 5,
+		})
+		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-P1DT5H0M")).deepEquals({
+			unit: AlarmIntervalUnit.HOUR,
+			value: 29,
+		})
 	})
 	o("parseTime", function () {
 		o(parseTime("20180115T214000Z", "Europe/Berlin")).deepEquals({
