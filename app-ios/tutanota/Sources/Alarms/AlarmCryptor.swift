@@ -29,7 +29,7 @@ class KeychainAlarmCryptor : AlarmCryptor {
           continue
         }
         let encSessionKey = Data(base64Encoded: notificationSessionKey.pushIdentifierSessionEncSessionKey)!
-        return try TUTAesFacade.decryptKey(encSessionKey, withEncryptionKey: pushIdentifierSessionKey)
+        return try aesDecryptKey(encSessionKey, withKey: pushIdentifierSessionKey)
       } catch {
         TUTSLog("Failed to decrypt key \(notificationSessionKey.pushIdentifier.elementId) \(error)")
         lastError = error

@@ -95,7 +95,6 @@
 		3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F0B2105B12F0031E528 /* TUTCrypto.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F002105B12E0031E528 /* TUTCrypto.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F022105B12E0031E528 /* TUTEncodingConverter.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
-		3D891F0E2105B12F0031E528 /* TUTAesFacade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F032105B12F0031E528 /* TUTAesFacade.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D92867C273A7D19006B8FB2 /* TutanotaError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D92867B273A7D18006B8FB2 /* TutanotaError.swift */; };
 		3D92867F273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D92867E273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift */; };
 		3D97821A2739600700DB639C /* URLSession+Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9782192739600700DB639C /* URLSession+Sync.swift */; };
@@ -220,10 +219,10 @@
 		3DD4EA3B2726F41200D58207 /* DictionaryCoding in Frameworks */ = {isa = PBXBuildFile; productRef = 3DD4EA3A2726F41200D58207 /* DictionaryCoding */; };
 		3DDB5E6F28FDA59100E1E4BE /* libcrypto.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DDB5E6E28FDA59100E1E4BE /* libcrypto.xcframework */; };
 		3DDE413B28F4665700837BE6 /* SqlCipherDb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DDE413A28F4665700837BE6 /* SqlCipherDb.swift */; };
+		3DDE55242AB88D8300A77D14 /* AES.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DDE55232AB88D8300A77D14 /* AES.swift */; };
 		3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */; };
 		3DE46D2B2848EBDA00DC9D43 /* IosFileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE46D2A2848EBDA00DC9D43 /* IosFileFacade.swift */; };
 		3DE46D2E2849E33000DC9D43 /* IosThemeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE46D2D2849E33000DC9D43 /* IosThemeFacade.swift */; };
-		3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DE7B3432135855F003415BE /* TUTSubKeys.m */; };
 		3DEF18F32924E1F1009C4B55 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DEF18F22924E1F1009C4B55 /* ShareViewController.swift */; };
 		3DEF18FA2924E1F1009C4B55 /* TutanotaShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 3DEF18F02924E1F1009C4B55 /* TutanotaShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3DF7FA5A2AB2EE3B00DB08D1 /* Argon2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF7FA592AB2EE3B00DB08D1 /* Argon2.swift */; };
@@ -359,10 +358,8 @@
 		3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rsa_oaep_sha256.c; sourceTree = "<group>"; };
 		3D891F002105B12E0031E528 /* TUTCrypto.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTCrypto.m; sourceTree = "<group>"; };
 		3D891F022105B12E0031E528 /* TUTEncodingConverter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTEncodingConverter.m; sourceTree = "<group>"; };
-		3D891F032105B12F0031E528 /* TUTAesFacade.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTAesFacade.m; sourceTree = "<group>"; };
 		3D891F1D2105BB200031E528 /* rsa_oaep_sha256.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rsa_oaep_sha256.h; sourceTree = "<group>"; };
 		3D891F232105BB210031E528 /* TUTEncodingConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTEncodingConverter.h; sourceTree = "<group>"; };
-		3D891F262105BB210031E528 /* TUTAesFacade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTAesFacade.h; sourceTree = "<group>"; };
 		3D891F2A2106132B0031E528 /* tutanota.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = tutanota.entitlements; sourceTree = "<group>"; };
 		3D92867B273A7D18006B8FB2 /* TutanotaError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutanotaError.swift; sourceTree = "<group>"; };
 		3D92867E273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyGeneratorSecureEnclave.swift; sourceTree = "<group>"; };
@@ -491,11 +488,10 @@
 		3DD4A0A120F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3DDB5E6E28FDA59100E1E4BE /* libcrypto.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = libcrypto.xcframework; sourceTree = "<group>"; };
 		3DDE413A28F4665700837BE6 /* SqlCipherDb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SqlCipherDb.swift; sourceTree = "<group>"; };
+		3DDE55232AB88D8300A77D14 /* AES.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AES.swift; sourceTree = "<group>"; };
 		3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+utils.swift"; sourceTree = "<group>"; };
 		3DE46D2A2848EBDA00DC9D43 /* IosFileFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosFileFacade.swift; sourceTree = "<group>"; };
 		3DE46D2D2849E33000DC9D43 /* IosThemeFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosThemeFacade.swift; sourceTree = "<group>"; };
-		3DE7B3422135855F003415BE /* TUTSubKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSubKeys.h; sourceTree = "<group>"; };
-		3DE7B3432135855F003415BE /* TUTSubKeys.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSubKeys.m; sourceTree = "<group>"; };
 		3DEF18DA2924E14A009C4B55 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
 		3DEF18F02924E1F1009C4B55 /* TutanotaShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TutanotaShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DEF18F22924E1F1009C4B55 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
@@ -674,13 +670,10 @@
 				3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */,
 				3DF3055B253853C300E942A8 /* TUTCrypto.h */,
 				3D891F002105B12E0031E528 /* TUTCrypto.m */,
-				3DE7B3422135855F003415BE /* TUTSubKeys.h */,
-				3DE7B3432135855F003415BE /* TUTSubKeys.m */,
-				3D891F262105BB210031E528 /* TUTAesFacade.h */,
-				3D891F032105B12F0031E528 /* TUTAesFacade.m */,
 				3D891F1D2105BB200031E528 /* rsa_oaep_sha256.h */,
 				3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */,
 				3D648B0C2AB98BEA00893C8D /* phc-winner-argon2 */,
+				3DDE55232AB88D8300A77D14 /* AES.swift */,
 				3DF7FA592AB2EE3B00DB08D1 /* Argon2.swift */,
 				3D9B12A22721926E002B46A1 /* ValueEncryption.swift */,
 				3D84F5722722F35600858A58 /* IosNativeCryptoFacade.swift */,
@@ -1823,13 +1816,13 @@
 				3DCB9B8728F711220042A6BB /* SqlCipherStatement.swift in Sources */,
 				3DC299FD2673668000E1E79F /* QueryUtils.swift in Sources */,
 				3D2201FE293F752D00366FD2 /* WebAuthnRegistrationResult.swift in Sources */,
-				3D891F0E2105B12F0031E528 /* TUTAesFacade.m in Sources */,
 				3D3AFAE4285B0C350077F302 /* IntegrationInfo.swift in Sources */,
 				3DBA56D42850AAA6004416BE /* UploadTaskResponse.swift in Sources */,
 				3DBA56CC2850AAA6004416BE /* ThemeFacadeReceiveDispatcher.swift in Sources */,
 				3D648B2A2AB98BEA00893C8D /* core.c in Sources */,
 				3DC299FA267358AF00E1E79F /* ThemeManager.swift in Sources */,
 				3D3AFAE8285B0DB60077F302 /* IosMobileSystemFacade.swift in Sources */,
+				3DDE55242AB88D8300A77D14 /* AES.swift in Sources */,
 				3D9B129727216D60002B46A1 /* ContactsSource.swift in Sources */,
 				3D9B12A927219538002B46A1 /* AlarmInfo.swift in Sources */,
 				3D3AFAEA285B292C0077F302 /* DataWrapper.swift in Sources */,
@@ -1841,7 +1834,6 @@
 				3D648B262AB98BEA00893C8D /* blake2b.c in Sources */,
 				3D84F57C27231F1F00858A58 /* Serialization.swift in Sources */,
 				3D2DB91B2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift in Sources */,
-				3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */,
 				3D4A426529B63E1E00B10451 /* AlarmPersistor.swift in Sources */,
 				3D4E3CA828EC63A6001FA9D1 /* sqlite3.c in Sources */,
 				3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */,
@@ -2666,6 +2658,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_MODULES = YES;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JKCH89Z3M9;
 				HEADER_SEARCH_PATHS = "\"${PROJECT_DIR}/tutanota/include\"/**";
@@ -2691,6 +2684,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_MODULES = YES;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JKCH89Z3M9;
 				HEADER_SEARCH_PATHS = "\"${PROJECT_DIR}/tutanota/include\"/**";
