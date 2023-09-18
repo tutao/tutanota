@@ -590,6 +590,7 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 	}
 
 	private async deleteIn(typeRef: TypeRef<unknown>, listId: Id | null, elementIds: Id[]): Promise<void> {
+		if (elementIds.length === 0) return
 		const typeModel = await resolveTypeReference(typeRef)
 		switch (typeModel.type) {
 			case TypeId.Element:
