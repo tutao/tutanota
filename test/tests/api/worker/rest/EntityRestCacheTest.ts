@@ -13,7 +13,7 @@ import {
 	listIdPart,
 	stringToCustomId,
 } from "../../../../../src/api/common/utils/EntityUtils.js"
-import { arrayOf, assertNotNull, clone, downcast, isSameTypeRef, neverNull, TypeRef } from "@tutao/tutanota-utils"
+import { arrayOf, clone, downcast, isSameTypeRef, neverNull, TypeRef } from "@tutao/tutanota-utils"
 import {
 	createBucketKey,
 	createCustomer,
@@ -58,6 +58,7 @@ import { OfflineStorageMigrator } from "../../../../../src/api/worker/offline/Of
 import { createEventElementId } from "../../../../../src/api/common/utils/CommonCalendarUtils.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { func, instance, matchers, object, replace, when } from "testdouble"
+import { SqlCipherFacade } from "../../../../../src/native/common/generatedipc/SqlCipherFacade.js"
 
 const { anything } = matchers
 
@@ -68,25 +69,22 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	const { OfflineDbRefCounter } = await import("../../../../../src/desktop/db/OfflineDbRefCounter.js")
 	const { DesktopSqlCipher } = await import("../../../../../src/desktop/db/DesktopSqlCipher.js")
 
-	const odbRefCouneter = new (class extends OfflineDbRefCounter {
-		async getOrCreateDb(userId: string, key: Uint8Array) {
-			assertNotNull(userId)
+	const odbRefCounter = new OfflineDbRefCounter({
+		async create(userid: string, key: Uint8Array, retry?: boolean): Promise<SqlCipherFacade> {
 			// @ts-ignore Added by sqliteNativeBannerPlugin
 			const nativePath = buildOptions.sqliteNativePath
 			const db = new DesktopSqlCipher(nativePath, ":memory:", false)
 			//integrity check breaks for in memory database
 			await db.openDb(userId, key)
 			return db
-		}
+		},
 
-		async deleteDb(userId: string) {}
-
-		async disposeDb(userId: string) {}
-	})(null as any)
-
+		async delete(userId: string): Promise<void> {},
+	})
 	const migratorMock = instance(OfflineStorageMigrator)
 
-	const sqlCipherFacade = new PerWindowSqlCipherFacade(odbRefCouneter)
+	const sqlCipherFacade = new PerWindowSqlCipherFacade(odbRefCounter)
+	await sqlCipherFacade.openDb(userId, offlineDatabaseTestKey)
 	const interWindowEventSender = instance(InterWindowEventFacadeSendDispatcher)
 	const offlineStorage = new OfflineStorage(sqlCipherFacade, interWindowEventSender, new NoZoneDateProvider(), migratorMock)
 	await offlineStorage.init({ userId, databaseKey: offlineDatabaseTestKey, timeRangeDays: 42, forceNewDatabase: false })

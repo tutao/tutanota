@@ -187,7 +187,7 @@ async function createComponents(): Promise<Components> {
 
 	const offlineDbRefCounter = new OfflineDbRefCounter(offlineDbFactory)
 
-	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon, offlineDbRefCounter)
+	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon)
 	const themeFacade = new DesktopThemeFacade(conf, wm, electron.nativeTheme)
 	const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
@@ -213,6 +213,7 @@ async function createComponents(): Promise<Components> {
 		// @ts-ignore
 		const logger: Logger = global.logger
 		const desktopCommonSystemFacade = new DesktopCommonSystemFacade(window, logger)
+		const sqlCipherFacade = new PerWindowSqlCipherFacade(offlineDbRefCounter)
 		const dispatcher = new DesktopGlobalDispatcher(
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
@@ -224,11 +225,11 @@ async function createComponents(): Promise<Components> {
 			pushFacade,
 			new DesktopSearchTextInAppFacade(window),
 			settingsFacade,
-			new PerWindowSqlCipherFacade(offlineDbRefCounter),
+			sqlCipherFacade,
 			themeFacade,
 			new DesktopWebauthnFacade(window, webDialogController),
 		)
-		return { desktopCommonSystemFacade, dispatcher }
+		return { desktopCommonSystemFacade, sqlCipherFacade, dispatcher }
 	}
 
 	const facadeHandlerFactory = (window: ApplicationWindow): FacadeHandler => {

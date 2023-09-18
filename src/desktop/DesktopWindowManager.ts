@@ -57,7 +57,6 @@ export class WindowManager {
 		electron: ElectronExports,
 		localShortcut: LocalShortcutManager,
 		private readonly icon: NativeImage,
-		private readonly offlineDbRefCounter: OfflineDbRefCounter,
 	) {
 		this._conf = conf
 
@@ -140,14 +139,6 @@ export class WindowManager {
 			})
 
 		w.setContextMenuHandler((params) => this._contextMenu.open(params))
-
-		const afterNavigation = (url: string) => {
-			if (url.includes("/login")) {
-				w.setUserId(null)
-			}
-		}
-		w._browserWindow.webContents.on("did-navigate", (_, url) => afterNavigation(url))
-		w._browserWindow.webContents.on("did-navigate-in-page", (_, url) => afterNavigation(url))
 
 		this._registerUserListener(w.id)
 
@@ -286,18 +277,7 @@ export class WindowManager {
 		const updateUrl = await this._conf.getConst(BuildConfigKey.updateUrl)
 		const dictUrl = updateUrl && updateUrl !== "" ? updateUrl : "https://mail.tutanota.com/desktop/"
 		// custom builds get the dicts from us as well
-		return new ApplicationWindow(
-			this,
-			absoluteWebAssetsPath,
-			this.icon,
-			electron,
-			localShortcut,
-			this.themeFacade,
-			this.offlineDbRefCounter,
-			this.remoteBridge,
-			dictUrl,
-			noAutoLogin,
-		)
+		return new ApplicationWindow(this, absoluteWebAssetsPath, this.icon, electron, localShortcut, this.themeFacade, this.remoteBridge, dictUrl, noAutoLogin)
 	}
 
 	private async getAbsoluteWebAssetsPath() {
