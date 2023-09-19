@@ -29,6 +29,7 @@ import {
 	addDaysForEventInstance,
 	addDaysForRecurringEvent,
 	getDiffIn60mIntervals,
+	getEventEnd,
 	getEventStart,
 	getMonthRange,
 	isEventBetweenDays,
@@ -381,11 +382,13 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			return
 		}
 		const eventListId = getListId(event)
-		const eventMonth = getMonthRange(getEventStart(event, this.timeZone), this.timeZone)
-		if (isSameId(calendarInfo.groupRoot.shortEvents, eventListId) && this._loadedMonths.has(eventMonth.start)) {
-			// If the month is not loaded, we don't want to put it into events.
-			// We will put it there when we load the month
-			this._addDaysForEvent(event, eventMonth)
+		if (isSameId(calendarInfo.groupRoot.shortEvents, eventListId)) {
+			// to prevent unnecessary churn, we only add the event if we have the months it covers loaded.
+			const eventStartMonth = getMonthRange(getEventStart(event, this.timeZone), this.timeZone)
+			const eventEndMonth = getMonthRange(getEventEnd(event, this.timeZone), this.timeZone)
+			if (this._loadedMonths.has(eventStartMonth.start)) this._addDaysForEvent(event, eventStartMonth)
+			// no short event covers more than two months, so this should cover everything.
+			if (eventEndMonth.start != eventStartMonth.start && this._loadedMonths.has(eventEndMonth.start)) this._addDaysForEvent(event, eventEndMonth)
 		} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
 			const loadedLongEvents = calendarInfo.longEvents.getLoaded()
 			this._removeExistingEvent(loadedLongEvents, event)
