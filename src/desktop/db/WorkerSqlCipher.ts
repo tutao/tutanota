@@ -31,9 +31,9 @@ export class WorkerSqlCipher implements SqlCipherFacade {
 			{
 				info: async (msg: Request<"info">) => console.info(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
 				log: async (msg: Request<"log">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
-				error: async (msg: Request<"error">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
-				warn: async (msg: Request<"warn">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
-				trace: async (msg: Request<"trace">) => console.log(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
+				error: async (msg: Request<"error">) => console.error(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
+				warn: async (msg: Request<"warn">) => console.warn(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
+				trace: async (msg: Request<"trace">) => console.trace(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
 			},
 			"node-nodeworker",
 		)
