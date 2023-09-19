@@ -1,5 +1,4 @@
 import Foundation
-import argon2
 
 /// Generate a hash using Argon2id with the given parameters
 ///
