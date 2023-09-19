@@ -68,6 +68,8 @@ global.btoa = (str) => Buffer.from(str, "binary").toString("base64")
 
 global.atob = (b64) => Buffer.from(b64, "base64").toString("binary")
 
+/** this file is only imported for its side effects, which some IDEs do not like.
+ * having this available keeps the imports around. */
 export function mp() {
 	log.debug("the monkey has been patched pid:", process.pid)
 }
