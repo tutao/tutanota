@@ -43,7 +43,7 @@ const CALENDAR_SHARING_TEXTS: lazy<GroupSharingTexts> = () => ({
 			"{recipientName}": userName,
 		}),
 	shareEmailSubject: lang.get("shareCalendarInvitationEmailSubject_msg"),
-	shareEmailBody: (calendarName, sender) =>
+	shareEmailBody: (sender, calendarName) =>
 		lang.get("shareCalendarInvitationEmailBody_msg", {
 			// Sender is displayed like Name <mail.address@tutanota.com>. Less-than and greater-than must be encoded for HTML
 			"{inviter}": sender,
