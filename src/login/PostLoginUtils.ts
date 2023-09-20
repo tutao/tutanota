@@ -5,26 +5,34 @@ import { assertNotNull } from "@tutao/tutanota-utils"
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
 
+// the customer may have been reminded when they were a free account, so we can't use lastUpgradeReminder being null as a marker.
+// we use a date that's shortly before we started issuing reminders for legacy accounts and after we started only allowing new plans as upgrades.
+// anyone who is still legacy and was reminded before this date must have seen the last reminder when they were a free account.
+// if we end up wanting to repeat this down the line, update this to some later date.
+export const reminderCutoffDate = new Date("2023-09-20T13:00:00.000Z")
+
 export async function shouldShowUpgradeReminder(userController: UserController, date: Date): Promise<boolean> {
-	if (
-		// If it's a free plan we want to show the upgrade reminder. But not in iOS app! There is no upgrade in iOS app.
-		(userController.isFreeAccount() && !isIOSApp()) ||
-		// If it's a legacy paid plan we also want to show it.
-		(userController.isPremiumAccount() && !(await userController.isNewPaidPlan()))
-	) {
-		const customerInfo = await userController.loadCustomerInfo()
-		const customerProperties = await userController.loadCustomerProperties()
-		// If it's a new signup show reminder after INITIAL_UPGRADE_REMINDER_INTERVAL_MS.
-		return (
-			(customerProperties.lastUpgradeReminder == null &&
-				date.getTime() - customerInfo.creationTime.getTime() > Const.INITIAL_UPGRADE_REMINDER_INTERVAL_MS) ||
-			// If we've shown the reminder before show it again every REPEATED_UPGRADE_REMINDER_INTERVAL_MS.
-			(customerProperties.lastUpgradeReminder != null &&
-				date.getTime() - customerProperties.lastUpgradeReminder.getTime() > Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS)
-		)
-	}
-	{
-		return false
+	// * do not show to normal users, they can't upgrade their account
+	// * do not show to new plans, they already switched
+	// * do not show in ios app, they can't upgrade there.
+	if (!userController.isGlobalAdmin() || (await userController.isNewPaidPlan()) || isIOSApp()) return false
+
+	const customerInfo = await userController.loadCustomerInfo()
+	const customerProperties = await userController.loadCustomerProperties()
+
+	if (userController.isFreeAccount()) {
+		// show repeatedly until upgraded
+		const isOldEnoughForInitialReminder =
+			customerProperties.lastUpgradeReminder == null && date.getTime() - customerInfo.creationTime.getTime() > Const.INITIAL_UPGRADE_REMINDER_INTERVAL_MS
+		// If we've shown the reminder before show it again every REPEATED_UPGRADE_REMINDER_INTERVAL_MS.
+		const wasRemindedLongAgo =
+			customerProperties.lastUpgradeReminder != null &&
+			date.getTime() - customerProperties.lastUpgradeReminder.getTime() > Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS
+		return isOldEnoughForInitialReminder || wasRemindedLongAgo
+	} else {
+		// i'm a legacy paid account. show once.
+		// we don't have to check account age - all legacy accounts are old enough by now.
+		return customerProperties.lastUpgradeReminder == null || customerProperties.lastUpgradeReminder.getTime() < reminderCutoffDate.getTime()
 	}
 }
 
