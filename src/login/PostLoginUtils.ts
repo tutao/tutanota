@@ -21,7 +21,7 @@ export async function shouldShowUpgradeReminder(userController: UserController, 
 	const customerProperties = await userController.loadCustomerProperties()
 
 	if (userController.isFreeAccount()) {
-		// show repeatedly until upgraded
+		// i'm any non-paying user - show repeatedly until upgraded, but only after INITIAL_UPGRADE_REMINDER_INTERVAL_MS
 		const isOldEnoughForInitialReminder =
 			customerProperties.lastUpgradeReminder == null && date.getTime() - customerInfo.creationTime.getTime() > Const.INITIAL_UPGRADE_REMINDER_INTERVAL_MS
 		// If we've shown the reminder before show it again every REPEATED_UPGRADE_REMINDER_INTERVAL_MS.
@@ -29,10 +29,13 @@ export async function shouldShowUpgradeReminder(userController: UserController, 
 			customerProperties.lastUpgradeReminder != null &&
 			date.getTime() - customerProperties.lastUpgradeReminder.getTime() > Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS
 		return isOldEnoughForInitialReminder || wasRemindedLongAgo
-	} else {
-		// i'm a legacy paid account. show once.
+	} else if (!(await userController.loadCustomer()).businessUse) {
+		// i'm a private legacy paid account. show once.
 		// we don't have to check account age - all legacy accounts are old enough by now.
 		return customerProperties.lastUpgradeReminder == null || customerProperties.lastUpgradeReminder.getTime() < reminderCutoffDate.getTime()
+	} else {
+		// i'm a business legacy paid account, so we don't show the reminder.
+		return false
 	}
 }
 
