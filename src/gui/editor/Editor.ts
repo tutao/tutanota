@@ -60,6 +60,14 @@ export class Editor implements ImageHandler, Component {
 	 * * "input" event on squire resets flag.
 	 */
 	private pasteListener: (e: ClipboardEvent) => void = (_: ClipboardEvent) => (this.userHasPasted = true)
+	private copyListener: (e: ClipboardEvent) => void = (e: ClipboardEvent) => {
+		if (e.clipboardData == null) return
+		// squire by default duplicates newlines when copying content from the editor, but .getSelectedText()
+		// contains the correct number of \n
+		// there's also another entry in the data that contains the "text/html" which is not affected by this.
+		if (!e.clipboardData.types.includes("text/plain")) return
+		e.clipboardData.setData("text/plain", this.squire.getSelectedText())
+	}
 
 	constructor(private minHeight: number | null, private sanitizer: SanitizerFn) {
 		this.onremove = this.onremove.bind(this)
@@ -74,6 +82,7 @@ export class Editor implements ImageHandler, Component {
 
 	onremove() {
 		this.domElement?.removeEventListener("paste", this.pasteListener)
+		this.domElement?.removeEventListener("copy", this.copyListener)
 		if (this.squire) {
 			this.squire.destroy()
 
@@ -148,6 +157,7 @@ export class Editor implements ImageHandler, Component {
 
 		this.squire.addEventListener("input", (_: CustomEvent<void>) => (this.userHasPasted = false))
 		domElement.addEventListener("paste", this.pasteListener)
+		domElement.addEventListener("copy", this.copyListener)
 
 		this.squire.addEventListener("pathChange", () => {
 			this.getStylesAtPath()
