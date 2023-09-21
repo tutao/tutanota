@@ -134,17 +134,18 @@ fSAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAAABJRU5ErkJggg==\r\n\
 		})
 
 		o("email with headers", function () {
-			const headers = `Received: from x.y.test
-   by example.net
-   via TCP
-   with ESMTP
-   id ABC12345
-   for <mary@example.net>;  21 Nov 1997 10:05:43 -0600
-Received: from node.example by x.y.test; 21 Nov 1997 10:01:22 -0600
-From: John Doe <jdoe@node.example>
-To: Mary Smith <mary@example.net>
-Subject: Saying Hello
-Date: Fri, 21 Nov 1997 09:55:06 -0600
+			// the first few lines have wrong line endings, but we should handle that
+			const headers = `Received: from x.y.test\n\
+   by example.net\n\
+   via TCP\n\
+   with ESMTP\r\n\
+   id ABC12345\r\n\
+   for <mary@example.net>;  21 Nov 1997 10:05:43 -0600\r\n\
+Received: from node.example by x.y.test; 21 Nov 1997 10:01:22 -0600\r\n\
+From: John Doe <jdoe@node.example>\r\n\
+To: Mary Smith <mary@example.net>\r\n\
+Subject: Saying Hello\r\n\
+Date: Fri, 21 Nov 1997 09:55:06 -0600\r\n\
 Message-ID: <1234@local.node.example>`
 
 			const now = Date.now()
@@ -166,17 +167,17 @@ Message-ID: <1234@local.node.example>`
 			}
 
 			const actual = mailToEml(bundle)
-			const expected = `Received: from x.y.test
-   by example.net
-   via TCP
-   with ESMTP
-   id ABC12345
-   for <mary@example.net>;  21 Nov 1997 10:05:43 -0600
-Received: from node.example by x.y.test; 21 Nov 1997 10:01:22 -0600
-From: John Doe <jdoe@node.example>
-To: Mary Smith <mary@example.net>
-Subject: Saying Hello
-Date: Fri, 21 Nov 1997 09:55:06 -0600
+			const expected = `Received: from x.y.test\r\n\
+   by example.net\r\n\
+   via TCP\r\n\
+   with ESMTP\r\n\
+   id ABC12345\r\n\
+   for <mary@example.net>;  21 Nov 1997 10:05:43 -0600\r\n\
+Received: from node.example by x.y.test; 21 Nov 1997 10:01:22 -0600\r\n\
+From: John Doe <jdoe@node.example>\r\n\
+To: Mary Smith <mary@example.net>\r\n\
+Subject: Saying Hello\r\n\
+Date: Fri, 21 Nov 1997 09:55:06 -0600\r\n\
 Message-ID: <1234@local.node.example>\r\n\
 Content-Type: multipart/related; boundary="------------79Bu5A16qPEYcVIZL@tutanota"\r\n\
 \r\n\
