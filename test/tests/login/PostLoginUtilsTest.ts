@@ -2,7 +2,14 @@ import o from "@tutao/otest"
 import { UserController } from "../../../src/api/main/UserController.js"
 import { reminderCutoffDate, shouldShowUpgradeReminder } from "../../../src/login/PostLoginUtils.js"
 import { object, when } from "testdouble"
-import { createCustomerInfo, createCustomerProperties, CustomerInfo, CustomerProperties } from "../../../src/api/entities/sys/TypeRefs.js"
+import {
+	createCustomer,
+	createCustomerInfo,
+	createCustomerProperties,
+	Customer,
+	CustomerInfo,
+	CustomerProperties,
+} from "../../../src/api/entities/sys/TypeRefs.js"
 import { Const } from "../../../src/api/common/TutanotaConstants.js"
 
 o.spec("PostLoginUtils", () => {
@@ -10,6 +17,7 @@ o.spec("PostLoginUtils", () => {
 		let userController: UserController
 		let customerInfo: CustomerInfo
 		let customerProperties: CustomerProperties
+		let customer: Customer
 		const date = new Date("2023-09-05")
 
 		o.beforeEach(() => {
@@ -17,9 +25,11 @@ o.spec("PostLoginUtils", () => {
 
 			customerInfo = createCustomerInfo({})
 			customerProperties = createCustomerProperties({})
+			customer = createCustomer()
 
 			when(userController.loadCustomerInfo()).thenResolve(customerInfo)
 			when(userController.loadCustomerProperties()).thenResolve(customerProperties)
+			when(userController.loadCustomer()).thenResolve(customer)
 		})
 
 		o("should show for free accounts for the first time if they are old enough", async () => {
@@ -50,7 +60,7 @@ o.spec("PostLoginUtils", () => {
 			o(await shouldShowUpgradeReminder(userController, date)).equals(true)
 		})
 
-		o("should show for legacy paid accounts if enough time has passed", async () => {
+		o("SHOULD show for PRIVATE legacy paid accounts if enough time has passed", async () => {
 			when(userController.isFreeAccount()).thenReturn(false)
 			when(userController.isGlobalAdmin()).thenReturn(true)
 			when(userController.isPremiumAccount()).thenReturn(true)
@@ -59,6 +69,18 @@ o.spec("PostLoginUtils", () => {
 			customerProperties.lastUpgradeReminder = new Date(date.getTime() - Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS - 10)
 
 			o(await shouldShowUpgradeReminder(userController, date)).equals(true)
+		})
+
+		o("SHOULD NOT show for BUSINESS legacy paid accounts even if enough time has passed", async () => {
+			when(userController.isFreeAccount()).thenReturn(false)
+			when(userController.isGlobalAdmin()).thenReturn(true)
+			when(userController.isPremiumAccount()).thenReturn(true)
+			when(userController.isNewPaidPlan()).thenResolve(false)
+			customer.businessUse = true
+
+			customerProperties.lastUpgradeReminder = new Date(date.getTime() - Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS - 10)
+
+			o(await shouldShowUpgradeReminder(userController, date)).equals(false)
 		})
 
 		o("should not show for legacy paid accounts if it has been reminded after the cutoff date", async () => {
