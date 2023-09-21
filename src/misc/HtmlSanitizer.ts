@@ -238,6 +238,14 @@ export class HtmlSanitizer {
 	}
 
 	private replaceAttributes(htmlNode: HTMLElement, config: SanitizeConfig) {
+		// Don't allow inline images to have a bigger width than the email itself
+		// Otherwise this would lead to weird rendering with very large images and pinch zoom
+		// The order of the replacement should not be changed since maxWidth=100% is replaced with 100px in case of
+		// placeholder images further below in the code
+		if (htmlNode.tagName === "IMG") {
+			htmlNode.style.maxWidth = "100%"
+		}
+
 		if (htmlNode.attributes) {
 			this.replaceAttributeValue(htmlNode, config)
 		}

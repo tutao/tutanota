@@ -24,11 +24,11 @@ o.spec(
 				},
 				{
 					html: "<IMG SRC=\"javascript:alert('XSS');\">",
-					expected: "<img>",
+					expected: `<img style="max-width: 100%;">`,
 				},
 				{
 					html: "<IMG SRC=javascript:alert('XSS')>",
-					expected: "<img>",
+					expected: `<img style="max-width: 100%;">`,
 				},
 			]
 			for (const test of tests) {
@@ -363,7 +363,7 @@ o.spec(
 
 			o(cleanHtml.html.includes('src="data:image/svg+xml;utf8,')).equals(true)
 		})
-		o("detect images", function () {
+		o("detect images and set maxWidth=100px for placeholder images", function () {
 			let result = htmlSanitizer.sanitizeHTML('<img src="https://emailprivacytester.com/cb/510828b5a8f43ab5">', {
 				blockExternalContent: true,
 			})
@@ -476,7 +476,7 @@ o.spec(
 			o(result.externalContent).equals(0)
 			o(result.inlineImageCids).deepEquals(["asbasdf-safd_d"])
 			o(result.html).equals(
-				`<img src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}" cid="asbasdf-safd_d" class="tutanota-placeholder"><img src="data:image/svg+xml;utf8,sadfsdasdf">`,
+				`<img src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}" style="max-width: 100%;" cid="asbasdf-safd_d" class="tutanota-placeholder"><img src="data:image/svg+xml;utf8,sadfsdasdf" style="max-width: 100%;">`,
 			)
 		})
 		o("audio tag", function () {
@@ -529,15 +529,39 @@ o.spec(
 			const r1 = htmlSanitizer.sanitizeHTML(`<img src="cid:123456">`, {
 				usePlaceholderForInlineImages: true,
 			}).html
-			o(r1).equals(`<img src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}" cid="123456" class="tutanota-placeholder">`)
+			o(r1).equals(`<img src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}" style="max-width: 100%;" cid="123456" class="tutanota-placeholder">`)
 			const r2 = htmlSanitizer.sanitizeHTML(`<img src="cid:123456">`).html
-			o(r2).equals(`<img src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}" cid="123456" class="tutanota-placeholder">`)
+			o(r2).equals(`<img src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}" style="max-width: 100%;" cid="123456" class="tutanota-placeholder">`)
 		})
 		o("don't use image loading placeholder", function () {
 			const result = htmlSanitizer.sanitizeHTML(`<img src="cid:123456">`, {
 				usePlaceholderForInlineImages: false,
 			}).html
-			o(result).equals(`<img src="cid:123456">`)
+			o(result).equals(`<img src="cid:123456" style="max-width: 100%;">`)
+		})
+		o("add max-width to images", function () {
+			const result = htmlSanitizer.sanitizeHTML(`<img src="cid:123456">`, {
+				usePlaceholderForInlineImages: false,
+			}).html
+			o(result).equals(`<img src="cid:123456" style="max-width: 100%;">`)
+		})
+		o("add max-width to images that have a given width", function () {
+			const result = htmlSanitizer.sanitizeHTML(`<img src="cid:123456" style="width: 150px;">`, {
+				usePlaceholderForInlineImages: false,
+			}).html
+			o(result).equals(`<img style="width: 150px; max-width: 100%;" src="cid:123456">`)
+		})
+		o("replace max-width for inline images", function () {
+			const result = htmlSanitizer.sanitizeHTML(`<img src="cid:123456" style="max-width: 60%;">`, {
+				usePlaceholderForInlineImages: false,
+			}).html
+			o(result).equals(`<img style="max-width: 100%;" src="cid:123456">`)
+		})
+		o("replace max-width for external images", function () {
+			const result = htmlSanitizer.sanitizeHTML(`<img src="https://tutanota.com/images/favicon/favicon.ico">`, {
+				blockExternalContent: false,
+			}).html
+			o(result).equals(`<img src="https://tutanota.com/images/favicon/favicon.ico" style="max-width: 100%;">`)
 		})
 		o("svg tag not removed", function () {
 			const result = htmlSanitizer.sanitizeSVG(`<svg> <rect x="10" y="10" width="10" height="10"> </rect> </svg>`).html.trim()
