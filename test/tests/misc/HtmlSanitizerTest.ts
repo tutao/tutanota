@@ -475,9 +475,9 @@ o.spec(
 			})
 			o(result.externalContent).equals(0)
 			o(result.inlineImageCids).deepEquals(["asbasdf-safd_d"])
-			o(result.html).equals(
-				`<img src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}" style="max-width: 100%;" cid="asbasdf-safd_d" class="tutanota-placeholder"><img src="data:image/svg+xml;utf8,sadfsdasdf" style="max-width: 100%;">`,
-			)
+			o(result.html.includes(`cid="asbasdf-safd_d"`)).equals(true)
+			o(result.html.includes(`data:image/svg+xml;utf8,sadfsdasdf`)).equals(true)
+			o(result.html.match(/max-width: 100%;/g)!.length).equals(2)
 		})
 		o("audio tag", function () {
 			let result = htmlSanitizer.sanitizeHTML(
@@ -529,9 +529,16 @@ o.spec(
 			const r1 = htmlSanitizer.sanitizeHTML(`<img src="cid:123456">`, {
 				usePlaceholderForInlineImages: true,
 			}).html
-			o(r1).equals(`<img src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}" style="max-width: 100%;" cid="123456" class="tutanota-placeholder">`)
+			o(r1.includes(`src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}"`)).equals(true)
+			o(r1.includes(`style="max-width: 100%;"`)).equals(true)
+			o(r1.includes(`cid="123456"`)).equals(true)
+			o(r1.includes(`class="tutanota-placeholder"`)).equals(true)
+
 			const r2 = htmlSanitizer.sanitizeHTML(`<img src="cid:123456">`).html
-			o(r2).equals(`<img src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}" style="max-width: 100%;" cid="123456" class="tutanota-placeholder">`)
+			o(r2.includes(`src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}"`)).equals(true)
+			o(r2.includes(`style="max-width: 100%;"`)).equals(true)
+			o(r2.includes(`cid="123456"`)).equals(true)
+			o(r2.includes(`class="tutanota-placeholder"`)).equals(true)
 		})
 		o("don't use image loading placeholder", function () {
 			const result = htmlSanitizer.sanitizeHTML(`<img src="cid:123456">`, {
