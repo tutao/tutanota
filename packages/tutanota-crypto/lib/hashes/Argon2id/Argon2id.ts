@@ -1,5 +1,5 @@
 import { Aes256Key } from "../../encryption/Aes.js"
-import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { zeroOut, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { uint8ArrayToBitArray } from "../../misc/Utils.js"
 
 // Per OWASP's recommendations @ https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
@@ -105,12 +105,12 @@ function argon2idHashRaw(
 	} finally {
 		// We should clear this, as the VM will otherwise remain in memory when we want to use it again, and we don't want a lingering password here.
 		if (!isNull(pwdBuf)) {
-			pwdBuf.fill(0x00)
+			zeroOut(pwdBuf)
 		}
 
 		// We also do not want to have the hash linger, either, as you can use it to derive a verifier as well as use it for decryption, thus it's secret as well.
 		if (!isNull(hashBuf)) {
-			hashBuf.fill(0x00)
+			zeroOut(hashBuf)
 		}
 
 		// Free allocations (prevent memory leakage as we may re-use this argon)
