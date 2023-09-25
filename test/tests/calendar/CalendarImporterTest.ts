@@ -81,7 +81,7 @@ o.spec("CalendarImporterTest", function () {
 							{ zone },
 						).toJSDate(),
 						description: "Descr \\ ; \n",
-						uid: "test@tutanota.com",
+						uid: "test@tuta.com",
 						location: "Some location",
 					}),
 					[],
@@ -93,7 +93,7 @@ o.spec("CalendarImporterTest", function () {
 				"DTSTART:20190813T030600Z",
 				"DTEND:20190913T030600Z",
 				`DTSTAMP:20190813T140100Z`,
-				"UID:test@tutanota.com",
+				"UID:test@tuta.com",
 				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"DESCRIPTION:Descr \\\\ \\; \\n",
@@ -136,7 +136,7 @@ o.spec("CalendarImporterTest", function () {
 				`DTSTART;VALUE=DATE:20190813`,
 				`DTEND;VALUE=DATE:20190914`,
 				`DTSTAMP:20190813T140100Z`,
-				`UID:ownerId${now.getTime()}@tutanota.com`,
+				`UID:ownerId${now.getTime()}@tuta.com`,
 				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"DESCRIPTION:Descr \\\\ \\; \\n",
@@ -178,7 +178,7 @@ o.spec("CalendarImporterTest", function () {
 				`DTSTART;VALUE=DATE:20200731`,
 				`DTEND;VALUE=DATE:20200801`,
 				`DTSTAMP:20190813T140100Z`,
-				`UID:ownerId${now.getTime()}@tutanota.com`,
+				`UID:ownerId${now.getTime()}@tuta.com`,
 				"SEQUENCE:0",
 				"SUMMARY:s",
 				"DESCRIPTION:d",
@@ -235,7 +235,7 @@ o.spec("CalendarImporterTest", function () {
 				"DTSTART:20190813T030600Z",
 				"DTEND:20190913T030600Z",
 				`DTSTAMP:20190813T140100Z`,
-				`UID:ownerId${now.getTime()}@tutanota.com`,
+				`UID:ownerId${now.getTime()}@tuta.com`,
 				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"DESCRIPTION:Descr \\\\ \\; \\n",
@@ -296,7 +296,7 @@ o.spec("CalendarImporterTest", function () {
 				`DTSTART;TZID=${zone}:20190813T050600`,
 				`DTEND;TZID=${zone}:20190913T050600`,
 				`DTSTAMP:20190813T140100Z`,
-				`UID:ownerId${now.getTime()}@tutanota.com`,
+				`UID:ownerId${now.getTime()}@tuta.com`,
 				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"RRULE:FREQ=WEEKLY;INTERVAL=3",
@@ -348,7 +348,7 @@ o.spec("CalendarImporterTest", function () {
 				`DTSTART;TZID=${zone}:20190813T050600`,
 				`DTEND;TZID=${zone}:20190913T050600`,
 				`DTSTAMP:20190813T140100Z`,
-				`UID:ownerId${now.getTime()}@tutanota.com`,
+				`UID:ownerId${now.getTime()}@tuta.com`,
 				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"RRULE:FREQ=DAILY;INTERVAL=3;COUNT=100",
@@ -408,7 +408,7 @@ o.spec("CalendarImporterTest", function () {
 				`DTSTART;TZID=${zone}:20190813T050600`,
 				`DTEND;TZID=${zone}:20190913T050600`,
 				`DTSTAMP:20190813T140100Z`,
-				`UID:ownerId${now.getTime()}@tutanota.com`,
+				`UID:ownerId${now.getTime()}@tuta.com`,
 				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919T215959Z",
@@ -462,7 +462,7 @@ o.spec("CalendarImporterTest", function () {
 				`DTSTART;VALUE=DATE:20190813`,
 				`DTEND;VALUE=DATE:20190815`,
 				`DTSTAMP:20190813T140100Z`,
-				`UID:ownerId${now.getTime()}@tutanota.com`,
+				`UID:ownerId${now.getTime()}@tuta.com`,
 				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919",
@@ -483,7 +483,7 @@ o.spec("CalendarImporterTest", function () {
 					`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
 					`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
 					`DTSTAMP:20190813T140100Z`,
-					`UID:test@tutanota.com`,
+					`UID:test@tuta.com`,
 					"SEQUENCE:0",
 					"SUMMARY:Word \\\\ \\; \\n",
 					"RRULE:FREQ=WEEKLY;INTERVAL=3",
@@ -518,7 +518,7 @@ o.spec("CalendarImporterTest", function () {
 								},
 								{ zone },
 							).toJSDate(),
-							uid: "test@tutanota.com",
+							uid: "test@tuta.com",
 							hashedUid: null,
 							repeatRule: createRepeatRule({
 								endType: EndType.Never,
@@ -545,10 +545,10 @@ o.spec("CalendarImporterTest", function () {
 					`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
 					`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
 					`DTSTAMP:20190813T140100Z`,
-					`UID:test@tutanota.com`,
+					`UID:test@tuta.com`,
 					"SEQUENCE:0",
 					"SUMMARY:s",
-					"ORGANIZER:mailto:organizer@tutanota.com",
+					"ORGANIZER:mailto:organizer@tuta.com",
 					"ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:test@example.com",
 					"END:VEVENT",
 					"END:VCALENDAR",
@@ -581,11 +581,11 @@ o.spec("CalendarImporterTest", function () {
 								},
 								{ zone },
 							).toJSDate(),
-							uid: "test@tutanota.com",
+							uid: "test@tuta.com",
 							hashedUid: null,
 							organizer: createEncryptedMailAddress({
 								name: "",
-								address: "organizer@tutanota.com",
+								address: "organizer@tuta.com",
 							}),
 							attendees: [
 								createCalendarEventAttendee({
@@ -616,10 +616,10 @@ o.spec("CalendarImporterTest", function () {
 					`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
 					`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
 					`DTSTAMP:20190813T140100Z`,
-					`UID:test@tutanota.com`,
+					`UID:test@tuta.com`,
 					"SEQUENCE:0",
 					"SUMMARY:s",
-					"ORGANIZER:MAILTO:organizer@tutanota.com",
+					"ORGANIZER:MAILTO:organizer@tuta.com",
 					"ATTENDEE;PARTSTAT=NEEDS-ACTION:MAILTO:test@example.com",
 					"END:VEVENT",
 					"END:VCALENDAR",
@@ -652,11 +652,11 @@ o.spec("CalendarImporterTest", function () {
 								},
 								{ zone },
 							).toJSDate(),
-							uid: "test@tutanota.com",
+							uid: "test@tuta.com",
 							hashedUid: null,
 							organizer: createEncryptedMailAddress({
 								name: "",
-								address: "organizer@tutanota.com",
+								address: "organizer@tuta.com",
 							}),
 							attendees: [
 								createCalendarEventAttendee({
@@ -689,10 +689,10 @@ o.spec("CalendarImporterTest", function () {
 					`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
 					`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
 					`DTSTAMP:20190813T140100Z`,
-					`UID:test@tutanota.com`,
+					`UID:test@tuta.com`,
 					"SEQUENCE:0",
 					"SUMMARY:s",
-					"ORGANIZER:MAILTO:organizer@tutanota.com",
+					"ORGANIZER:MAILTO:organizer@tuta.com",
 					"ATTENDEE:mailto:test@example.com",
 					"END:VEVENT",
 					"END:VCALENDAR",
@@ -725,11 +725,11 @@ o.spec("CalendarImporterTest", function () {
 								},
 								{ zone },
 							).toJSDate(),
-							uid: "test@tutanota.com",
+							uid: "test@tuta.com",
 							hashedUid: null,
 							organizer: createEncryptedMailAddress({
 								name: "",
-								address: "organizer@tutanota.com",
+								address: "organizer@tuta.com",
 							}),
 							attendees: [
 								createCalendarEventAttendee({
@@ -913,7 +913,7 @@ o.spec("CalendarImporterTest", function () {
 						`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
 						`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
 						`DTSTAMP:20190813T140100Z`,
-						`UID:test@tutanota.com`,
+						`UID:test@tuta.com`,
 						"SUMMARY:Word \\\\ \\; \\n",
 						"BEGIN:VALARM",
 						"ACTION:DISPLAY",
@@ -950,7 +950,7 @@ o.spec("CalendarImporterTest", function () {
 									},
 									{ zone },
 								).toJSDate(),
-								uid: "test@tutanota.com",
+								uid: "test@tuta.com",
 								hashedUid: null,
 								repeatRule: null,
 							}),
@@ -977,7 +977,7 @@ o.spec("CalendarImporterTest", function () {
 						`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
 						`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
 						`DTSTAMP:20190813T140100Z`,
-						`UID:test@tutanota.com`,
+						`UID:test@tuta.com`,
 						"SUMMARY:Word \\\\ \\; \\n",
 						"BEGIN:VALARM",
 						"ACTION:DISPLAY",
@@ -1016,7 +1016,7 @@ o.spec("CalendarImporterTest", function () {
 									},
 									{ zone },
 								).toJSDate(),
-								uid: "test@tutanota.com",
+								uid: "test@tuta.com",
 								hashedUid: null,
 								repeatRule: null,
 							}),
@@ -1043,7 +1043,7 @@ o.spec("CalendarImporterTest", function () {
 						`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
 						`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
 						`DTSTAMP:20190813T140100Z`,
-						`UID:test@tutanota.com`,
+						`UID:test@tuta.com`,
 						"SUMMARY:Word \\\\ \\; \\n",
 						"BEGIN:VALARM",
 						"ACTION:DISPLAY",
@@ -1080,7 +1080,7 @@ o.spec("CalendarImporterTest", function () {
 									},
 									{ zone },
 								).toJSDate(),
-								uid: "test@tutanota.com",
+								uid: "test@tuta.com",
 								hashedUid: null,
 								repeatRule: null,
 							}),
@@ -1127,7 +1127,7 @@ o.spec("CalendarImporterTest", function () {
 							{ zone },
 						).toJSDate(),
 						description: "Descr \\ ; \n",
-						uid: "test@tutanota.com",
+						uid: "test@tuta.com",
 						hashedUid: null,
 						sequence: "1",
 					}),
@@ -1159,7 +1159,7 @@ o.spec("CalendarImporterTest", function () {
 							{ zone },
 						).toJSDate(),
 						sequence: "2",
-						uid: "test@tutanota.com",
+						uid: "test@tuta.com",
 						hashedUid: null,
 					}),
 					alarms: [alarmOne, alarmTwo],
@@ -1189,7 +1189,7 @@ o.spec("CalendarImporterTest", function () {
 							},
 							{ zone },
 						).toJSDate(),
-						uid: "test@tutanota.com",
+						uid: "test@tuta.com",
 						hashedUid: null,
 						repeatRule: createRepeatRule({
 							endType: EndType.UntilDate,
@@ -1282,7 +1282,7 @@ BEGIN:VEVENT
 DTSTART:20190813T030600Z
 DTEND:20190913T030600Z
 DTSTAMP:20190813T140100Z
-UID:test@tutanota.com
+UID:test@tuta.com
 SEQUENCE:1
 SUMMARY:Word \\\\ \\; \\n simple
 DESCRIPTION:Descr \\\\ \\; \\n
@@ -1291,7 +1291,7 @@ BEGIN:VEVENT
 DTSTART:20190813T030600Z
 DTEND:20190913T030600Z
 DTSTAMP:20190813T140100Z
-UID:123456@tutanota.com
+UID:123456@tuta.com
 SEQUENCE:0
 SUMMARY:Word \\\\ \\; \\n alarms
 BEGIN:VALARM
@@ -1309,7 +1309,7 @@ BEGIN:VEVENT
 DTSTART;TZID=Europe/Berlin:20190813T050600
 DTEND;TZID=Europe/Berlin:20190913T050600
 DTSTAMP:20190813T140100Z
-UID:123456@tutanota.com
+UID:123456@tuta.com
 SEQUENCE:2
 SUMMARY:Word \\\\ \\; \\n repeating
 RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919T215959Z

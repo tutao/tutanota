@@ -472,7 +472,7 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 		} catch (e) {
 			if (e instanceof ParserError) {
 				// Also parse event and create new UID if none is set
-				event.uid = `import-${Date.now()}-${index}@tutanota.com`
+				event.uid = `import-${Date.now()}-${index}@tuta.com`
 			} else {
 				throw e
 			}

@@ -13,6 +13,10 @@ import { checkOfflineDatabaseMigrations } from "./buildSrc/checkOfflineDbMigrato
 import { domainConfigs } from "./buildSrc/DomainConfigs.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
+const tutanotaAppUrl = new URL("https://mail.tutanota.com")
+const tutanotaTestUrl = new URL("https://test.tutanota.com")
+const tutaTestUrl = new URL("https://test.tuta.com")
+const tutaAppUrl = new URL("https://app.tuta.com")
 
 await program
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
@@ -84,11 +88,13 @@ async function doBuild(opts) {
 
 async function buildDesktopClient(version, { stage, host, platform, customDesktopRelease, unpacked, outDir, disableMinify }) {
 	const { buildDesktop } = await import("./buildSrc/DesktopBuilder.js")
+	const updateUrl = new URL(tutaAppUrl)
+	updateUrl.pathname = "desktop"
 	const desktopBaseOpts = {
 		dirname: __dirname,
 		version,
 		platform: platform,
-		updateUrl: customDesktopRelease ? "" : "https://mail.tutanota.com/desktop",
+		updateUrl: customDesktopRelease ? "" : tutaAppUrl,
 		nameSuffix: "",
 		notarize: !customDesktopRelease,
 		outDir: outDir,
@@ -97,17 +103,19 @@ async function buildDesktopClient(version, { stage, host, platform, customDeskto
 	}
 
 	if (stage === "release") {
-		await createHtml(env.create({ staticUrl: "https://mail.tutanota.com", version, mode: "Desktop", dist: true, domainConfigs }))
+		await createHtml(env.create({ staticUrl: tutaAppUrl, version, mode: "Desktop", dist: true, domainConfigs }))
 		await buildDesktop(desktopBaseOpts)
 		if (!customDesktopRelease) {
+			const updateUrl = new URL(tutaTestUrl)
+			updateUrl.pathname = "desktop"
 			// don't build the test version for manual/custom builds
 			const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
-				updateUrl: "https://test.tutanota.com/desktop",
+				updateUrl,
 				nameSuffix: "-test",
 				// Do not notarize test build
 				notarize: false,
 			})
-			await createHtml(env.create({ staticUrl: "https://test.tutanota.com", version, mode: "Desktop", dist: true, domainConfigs }))
+			await createHtml(env.create({ staticUrl: tutaTestUrl, version, mode: "Desktop", dist: true, domainConfigs }))
 			await buildDesktop(desktopTestOpts)
 		}
 	} else if (stage === "local") {
@@ -126,12 +134,14 @@ async function buildDesktopClient(version, { stage, host, platform, customDeskto
 		await createHtml(env.create({ staticUrl: `http://${addr}:9000`, version, mode: "Desktop", dist: true, domainConfigs }))
 		await buildDesktop(desktopLocalOpts)
 	} else if (stage === "test") {
+		const updateUrl = new URL(tutaTestUrl)
+		updateUrl.pathname = "desktop"
 		const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
-			updateUrl: "https://test.tutanota.com/desktop",
+			updateUrl: tutaTestUrl,
 			nameSuffix: "-test",
 			notarize: false,
 		})
-		await createHtml(env.create({ staticUrl: "https://test.tutanota.com", version, mode: "Desktop", dist: true, domainConfigs }))
+		await createHtml(env.create({ staticUrl: tutaTestUrl, version, mode: "Desktop", dist: true, domainConfigs }))
 		await buildDesktop(desktopTestOpts)
 	} else if (stage === "prod") {
 		const desktopProdOpts = Object.assign({}, desktopBaseOpts, {
@@ -139,7 +149,7 @@ async function buildDesktopClient(version, { stage, host, platform, customDeskto
 			updateUrl: "http://localhost:9000/desktop",
 			notarize: false,
 		})
-		await createHtml(env.create({ staticUrl: "https://mail.tutanota.com", version, mode: "Desktop", dist: true, domainConfigs }))
+		await createHtml(env.create({ staticUrl: tutaAppUrl, version, mode: "Desktop", dist: true, domainConfigs }))
 		await buildDesktop(desktopProdOpts)
 	} else {
 		// stage = host

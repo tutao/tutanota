@@ -72,6 +72,7 @@ function csp(env) {
 
 			return `<meta http-equiv="Content-Security-Policy" content="${cspContent}">`
 		} else {
+			//  csp is in the response headers
 			return ""
 		}
 	} else {

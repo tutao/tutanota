@@ -67,7 +67,7 @@ o.spec("InboxRuleHandlerTest", function () {
 		const restClient: EntityRestClientMock = new EntityRestClientMock()
 		const entityClient = new EntityClient(restClient)
 		o("check FROM_EQUALS is applied to from", async function () {
-			const rules: InboxRule[] = [_createRule("sender@tutanota.com", InboxRuleType.FROM_EQUALS, ["ruleTarget", "ruleTarget"])]
+			const rules: InboxRule[] = [_createRule("sender@tuta.com", InboxRuleType.FROM_EQUALS, ["ruleTarget", "ruleTarget"])]
 
 			const mail = _createMailWithDifferentEnvelopeSender()
 
@@ -96,7 +96,7 @@ o.spec("InboxRuleHandlerTest", function () {
 function _createMailWithDifferentEnvelopeSender(): Mail {
 	let mail = createMail()
 	let sender = createMailAddress()
-	sender.address = "sender@tutanota.com"
+	sender.address = "sender@tuta.com"
 	mail.sender = sender
 	mail.differentEnvelopeSender = "differentenvelopsender@something.com"
 	return mail

@@ -361,18 +361,18 @@ END:VCARD`
 				"BEGIN:VCARD\n" +
 				"VERSION:4.0\n" +
 				"PRODID;VALUE=TEXT:-//ProtonMail//ProtonMail vCard 1.0.0//EN\n" +
-				"FN;PREF=1:johnsuser@test.tutanota.com\n" +
+				"FN;PREF=1:johnsuser@test.tuta.com\n" +
 				"UID:proton-autosave-19494094-e26d-4e59-b4fb-766afcf82fa5\n" +
-				"ITEM1.EMAIL;PREF=1:johnsuser@test.tutanota.com\n" +
+				"ITEM1.EMAIL;PREF=1:johnsuser@test.tuta.com\n" +
 				"END:VCARD"
 
 			let contacts = vCardListToContacts(neverNull(vCardFileToVCards(vCard)), "")
 			o(contacts.length).equals(1)
-			o(contacts[0].firstName).equals("johnsuser@test.tutanota.com")
+			o(contacts[0].firstName).equals("johnsuser@test.tuta.com")
 			o(contacts[0].lastName).equals("")
 			o(contacts[0].nickname).equals(null)
 			o(contacts[0].mailAddresses.length).equals(1)
-			o(contacts[0].mailAddresses[0].address).equals("johnsuser@test.tutanota.com")
+			o(contacts[0].mailAddresses[0].address).equals("johnsuser@test.tuta.com")
 		})
 		o("protonmail v4.0 complicated import", function () {
 			let vCard =

@@ -173,7 +173,7 @@ export function scrollListDom(scrollDom: HTMLElement, entryHeight: number, selec
 }
 
 /**
- * Executes the passed function if the user is allowed to see `tutanota.com` links.
+ * Executes the passed function if the user is allowed to see `tuta.com` links.
  * @param logins LoginController to ask about login information
  * @param linkId
  * @param render receives the resolved link

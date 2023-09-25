@@ -1,7 +1,7 @@
 ## Building and running your own Tutanota web client
 
 You can build your own Tutanota client and run it locally. Remember that you have to update your Tutanota client on your
-own. If you prefer the auto-update feature, you can use the official [mail](https://mail.tutanota.com) client.
+own. If you prefer the auto-update feature, you can use the official [mail](https://app.tuta.com) client.
 
 #### Pre-requisites:
 

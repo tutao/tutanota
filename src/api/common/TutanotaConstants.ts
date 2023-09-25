@@ -256,7 +256,7 @@ export const Const = {
 	U2F_APPID: "https://tutanota.com/u2f-appid.json",
 } as const
 
-export const TUTANOTA_MAIL_ADDRESS_DOMAINS = ["tutanota.com", "tutanota.de", "tutamail.com", "tuta.io", "keemail.me"]
+export const TUTANOTA_MAIL_ADDRESS_DOMAINS = ["tutanota.com", "tutanota.de", "tutamail.com", "tuta.io", "keemail.me", "tuta.com"]
 
 export const enum ConversationType {
 	NEW = "0",

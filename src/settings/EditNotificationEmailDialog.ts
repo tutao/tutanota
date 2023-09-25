@@ -154,10 +154,10 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 	]
 
 	const senderName = locator.logins.getUserController().userGroupInfo.name
-	let senderDomain = "https://mail.tutanota.com"
+	let senderDomain = "https://app.tuta.com"
 	loadCustomerInfo().then((customerInfo) => {
 		const whitelabelDomainInfo = customerInfo && getWhitelabelDomain(customerInfo)
-		senderDomain = "https://" + ((whitelabelDomainInfo && whitelabelDomainInfo.domain) || "mail.tutanota.com")
+		senderDomain = "https://" + ((whitelabelDomainInfo && whitelabelDomainInfo.domain) || "app.tuta.com")
 		m.redraw()
 	})
 	// Even though savedHtml is always sanitized changing it might lead to mXSS

@@ -111,7 +111,7 @@ o.spec("BlobFacade test", function () {
 
 			let blobAccessInfo = createBlobServerAccessInfo({
 				blobAccessToken: "123",
-				servers: [createBlobServerUrl({ url: "http://w1.api.tutanota.com" })],
+				servers: [createBlobServerUrl({ url: "http://w1.api.tuta.com" })],
 			})
 			when(blobAccessTokenFacade.requestWriteToken(anything(), anything())).thenResolve(blobAccessInfo)
 			let blobServiceResponse = createBlobPostOut({ blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken })
@@ -138,7 +138,7 @@ o.spec("BlobFacade test", function () {
 			verify(
 				fileAppMock.upload(
 					encryptedFileInfo.uri,
-					`http://w1.api.tutanota.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
+					`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
 					HttpMethod.POST,
 					{},
 				),
@@ -181,7 +181,7 @@ o.spec("BlobFacade test", function () {
 
 			let blobAccessInfo = createBlobServerAccessInfo({
 				blobAccessToken: "123",
-				servers: [createBlobServerUrl({ url: "http://w1.api.tutanota.com" })],
+				servers: [createBlobServerUrl({ url: "http://w1.api.tuta.com" })],
 			})
 			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything())).thenResolve(blobAccessInfo)
 			when(blobAccessTokenFacade.createQueryParams(anything(), anything(), anything())).thenResolve({ test: "theseAreTheParamsIPromise" })
@@ -215,7 +215,7 @@ o.spec("BlobFacade test", function () {
 				location: decryptedUri,
 			}
 			o(decryptedFileReference).deepEquals(expectedFileReference)
-			verify(fileAppMock.download(`http://w1.api.tutanota.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`, blobs[0].blobId + ".blob", {}))
+			verify(fileAppMock.download(`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`, blobs[0].blobId + ".blob", {}))
 			verify(fileAppMock.deleteFile(encryptedFileUri))
 			verify(fileAppMock.deleteFile(decryptedChunkUri))
 		})
@@ -227,7 +227,7 @@ o.spec("BlobFacade test", function () {
 
 			let blobAccessInfo = createBlobServerAccessInfo({
 				blobAccessToken: "123",
-				servers: [createBlobServerUrl({ url: "http://w1.api.tutanota.com" })],
+				servers: [createBlobServerUrl({ url: "http://w1.api.tuta.com" })],
 			})
 			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything())).thenResolve(blobAccessInfo)
 			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)

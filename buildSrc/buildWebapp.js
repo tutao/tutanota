@@ -122,9 +122,9 @@ self.onmessage = function (msg) {
 
 	let restUrl
 	if (stage === "test") {
-		restUrl = "https://test.tutanota.com"
+		restUrl = "https://test.tuta.com"
 	} else if (stage === "prod") {
-		restUrl = "https://mail.tutanota.com"
+		restUrl = "https://app.tuta.com"
 	} else if (stage === "local") {
 		restUrl = "http://" + os.hostname() + ":9000"
 	} else if (stage === "release") {
