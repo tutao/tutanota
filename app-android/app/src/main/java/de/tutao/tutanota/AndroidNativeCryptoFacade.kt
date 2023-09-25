@@ -119,6 +119,30 @@ constructor(
 	}
 
 	@Throws(CryptoError::class)
+	override suspend fun generateKyberKeypair(seed: DataWrapper): KyberKeyPair {
+		return generateKyberKeypairImpl(seed.data)
+	}
+
+	@Throws(CryptoError::class)
+	private external fun generateKyberKeypairImpl(seed: ByteArray): KyberKeyPair
+
+	@Throws(CryptoError::class)
+	override suspend fun kyberEncapsulate(publicKey: KyberPublicKey, seed: DataWrapper): KyberEncapsulation {
+		return this.kyberEncapsulateImpl(publicKey.raw.data, seed.data)
+	}
+
+	@Throws(CryptoError::class)
+	private external fun kyberEncapsulateImpl(publicKey: ByteArray, seed: ByteArray): KyberEncapsulation
+
+	@Throws(CryptoError::class)
+	override suspend fun kyberDecapsulate(privateKey: KyberPrivateKey, ciphertext: DataWrapper): DataWrapper {
+		return DataWrapper(this.kyberDecapsulateImpl(ciphertext.data, privateKey.raw.data))
+	}
+
+	@Throws(CryptoError::class)
+	private external fun kyberDecapsulateImpl(ciphertext: ByteArray, privateKey: ByteArray): ByteArray
+
+	@Throws(CryptoError::class)
 	override suspend fun argon2idHashRaw(password: DataWrapper, salt: DataWrapper, timeCost: Int, memoryCost: Int, parallelism: Int, hashLength: Int): DataWrapper {
 		return DataWrapper(this.argon2idHashRawImpl(password.data, salt.data, timeCost, memoryCost, parallelism, hashLength))
 	}

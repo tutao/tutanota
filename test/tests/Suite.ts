@@ -112,6 +112,7 @@ import "./mail/model/FolderSystemTest.js"
 import "./gui/ScopedRouterTest.js"
 import "./contacts/ContactListEditorTest.js"
 import "./login/PostLoginUtilsTest.js"
+import "./api/worker/facades/KyberFacadeTest.js"
 
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"

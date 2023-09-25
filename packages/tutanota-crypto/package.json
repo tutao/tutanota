@@ -20,6 +20,9 @@
 		"LICENSE.txt",
 		"tsconfig.json"
 	],
+	"dependencies": {
+		"@noble/curves": "1.2.0"
+	},
 	"devDependencies": {
 		"typescript": "5.0.3",
 		"@tutao/tutanota-utils": "3.119.10",

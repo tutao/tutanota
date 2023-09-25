@@ -42,4 +42,15 @@ interface NativeCryptoFacade {
 		parallelism: Int,
 		hashLength: Int,
 	): DataWrapper
+	 suspend fun generateKyberKeypair(
+		seed: DataWrapper,
+	): KyberKeyPair
+	 suspend fun kyberEncapsulate(
+		publicKey: KyberPublicKey,
+		seed: DataWrapper,
+	): KyberEncapsulation
+	 suspend fun kyberDecapsulate(
+		privateKey: KyberPrivateKey,
+		ciphertext: DataWrapper,
+	): DataWrapper
 }

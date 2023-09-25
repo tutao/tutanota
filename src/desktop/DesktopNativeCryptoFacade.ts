@@ -12,6 +12,10 @@ import { RsaPublicKey } from "../native/common/generatedipc/RsaPublicKey.js"
 import { RsaKeyPair } from "../native/common/generatedipc/RsaKeyPair.js"
 import { nonClobberingFilename } from "./PathUtils.js"
 import { TempFs } from "./files/TempFs.js"
+import { KyberKeyPair } from "../native/common/generatedipc/KyberKeyPair.js"
+import { KyberPublicKey } from "../native/common/generatedipc/KyberPublicKey.js"
+import { KyberEncapsulation } from "../native/common/generatedipc/KyberEncapsulation.js"
+import { KyberPrivateKey } from "../native/common/generatedipc/KyberPrivateKey.js"
 
 type FsExports = typeof FsModule
 
@@ -134,5 +138,17 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		hashLength: number,
 	): Promise<Uint8Array> {
 		return bitArrayToUint8Array(generateKeyFromPassphraseArgon2id(await this.argon2, utf8Uint8ArrayToString(password), salt))
+	}
+
+	generateKyberKeypair(seed: Uint8Array): Promise<KyberKeyPair> {
+		throw new Error("not implemented for this platform")
+	}
+
+	kyberEncapsulate(publicKey: KyberPublicKey, seed: Uint8Array): Promise<KyberEncapsulation> {
+		throw new Error("not implemented for this platform")
+	}
+
+	kyberDecapsulate(privateKey: KyberPrivateKey, ciphertext: Uint8Array): Promise<Uint8Array> {
+		throw new Error("not implemented for this platform")
 	}
 }

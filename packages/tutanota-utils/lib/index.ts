@@ -41,6 +41,7 @@ export {
 	arrayOf,
 	count,
 	mapMapAsync,
+	zeroOut,
 } from "./ArrayUtils.js"
 export { AsyncResult } from "./AsyncResult.js"
 export { intersection, trisectingDiff, setAddAll, max, maxBy, findBy, min, minBy, mapWith, mapWithout, setEquals, setMap } from "./CollectionUtils.js"
@@ -151,6 +152,19 @@ export {
 	BoundedExecutor,
 } from "./Utils.js"
 export type { Callback, DeferredObject, lazy, lazyAsync, Thunk, DeferredObjectWithHandler, MaybeLazy, TimeoutSetter, ErrorInfo } from "./Utils.js"
+
+export {
+	callWebAssemblyFunctionWithArguments,
+	allocateBuffer,
+	Ptr,
+	ConstPtr,
+	FreeFN,
+	MutableUint8Array,
+	SecureFreeUint8Array,
+	mutableSecureFree,
+	secureFree,
+	mutable,
+} from "./WebAssembly.js"
 
 export { mod, clamp } from "./MathUtils.js"
 

@@ -4,18 +4,67 @@ project("tutanota"
         )
 
 set(ARGON2_DIR "../../../../../libs/phc-winner-argon2")
+set(LIBOQS_DIR "../../../../../libs/liboqs")
+
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/oqs")
+file(COPY
+	"${LIBOQS_DIR}/src/oqs.h"
+	"${LIBOQS_DIR}/src/common/common.h"
+	"${LIBOQS_DIR}/src/common/rand/rand.h"
+	"${LIBOQS_DIR}/src/common/aes/aes.h"
+	"${LIBOQS_DIR}/src/common/sha2/sha2.h"
+	"${LIBOQS_DIR}/src/common/sha3/sha3.h"
+	"${LIBOQS_DIR}/src/common/sha3/sha3x4.h"
+	"${LIBOQS_DIR}/src/kem/kyber/kem_kyber.h"
+	"${LIBOQS_DIR}/src/kem/kem.h"
+	"${LIBOQS_DIR}/src/sig/sig.h"
+	DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/include/oqs"
+)
+file(TOUCH "${CMAKE_CURRENT_BINARY_DIR}/include/oqs/oqsconfig.h")
 
 add_library(tutanota SHARED
-        tutanota.cpp
+        argon2.cpp
+        liboqs.cpp
+        helpers/byte_array_accessor.cpp
         "${ARGON2_DIR}/src/argon2.c"
         "${ARGON2_DIR}/src/core.c"
         "${ARGON2_DIR}/src/encoding.c"
         "${ARGON2_DIR}/src/ref.c"
         "${ARGON2_DIR}/src/thread.c"
         "${ARGON2_DIR}/src/blake2/blake2b.c"
+        "${LIBOQS_DIR}/src/kem/kem.c"
+        "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/kem.c"
+        "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/verify.c"
+        "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/indcpa.c"
+        "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/symmetric-shake.c"
+        "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/poly.c"
+        "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/polyvec.c"
+        "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/cbd.c"
+        "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/ntt.c"
+        "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/reduce.c"
+        "${LIBOQS_DIR}/src/kem/kyber/kem_kyber_1024.c"
+        "${LIBOQS_DIR}/src/common/pqclean_shims/fips202.c"
+        "${LIBOQS_DIR}/src/common/sha3/xkcp_sha3.c"
+        "${LIBOQS_DIR}/src/common/sha3/xkcp_low/KeccakP-1600/plain-64bits/KeccakP-1600-opt64.c"
+        "${LIBOQS_DIR}/src/common/common.c"
+        "../../../../../packages/tutanota-crypto/lib/encryption/Liboqs/rand.c"
         )
 
-target_include_directories(tutanota PRIVATE "${ARGON2_DIR}/include")
+target_compile_definitions(tutanota
+        PRIVATE OQS_ENABLE_KEM_kyber_1024=1
+        PRIVATE OQS_VERSION_TEXT=\"tutakyber\"
+        PRIVATE OQS_ENABLE_KEM_kyber_1024=1
+        PRIVATE OQS_ENABLE_KEM_KYBER=1
+        PRIVATE KYBER_K=4
+        )
+
+target_include_directories(tutanota
+	PRIVATE "${ARGON2_DIR}/include"
+	PRIVATE "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref"
+	PRIVATE "${LIBOQS_DIR}/src/common/pqclean_shims"
+	PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/include"
+	)
+
 target_compile_options(tutanota PRIVATE "-O3")
 
 set_property(TARGET tutanota PROPERTY CXX_STANDARD 17)

@@ -1,0 +1,8 @@
+{
+	"name": "KyberKeyPair",
+	"type": "struct",
+	"fields": {
+		"publicKey": "KyberPublicKey",
+		"privateKey": "KyberPrivateKey"
+	}
+}
