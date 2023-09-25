@@ -322,7 +322,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 			this.selectedRedirect = args.requestedPath
 		} else if (args.action) {
 			// Action needs be forwarded this way in order to be able to deal with cases where a user is not logged in and clicks
-			// on the support link on our website (https://mail.tutanota.com?action=supportMail)
+			// on the support link on our website (https://app.tuta.com?action=supportMail)
 			this.selectedRedirect = `/mail?action=${args.action}`
 		} else {
 			this.selectedRedirect = this.defaultRedirect

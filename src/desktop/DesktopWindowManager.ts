@@ -16,7 +16,6 @@ import { ElectronExports } from "./ElectronExportTypes"
 import { RemoteBridge } from "./ipc/RemoteBridge.js"
 import { ASSET_PROTOCOL } from "./net/ProtocolProxy.js"
 import path from "node:path"
-import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
 
 const TAG = "[DesktopWindowManager]"
 
@@ -275,7 +274,7 @@ export class WindowManager {
 	private async _newWindow(electron: ElectronExports, localShortcut: LocalShortcutManager, noAutoLogin: boolean | null): Promise<ApplicationWindow> {
 		const absoluteWebAssetsPath = await this.getAbsoluteWebAssetsPath()
 		const updateUrl = await this._conf.getConst(BuildConfigKey.updateUrl)
-		const dictUrl = updateUrl && updateUrl !== "" ? updateUrl : "https://mail.tutanota.com/desktop/"
+		const dictUrl = updateUrl && updateUrl !== "" ? updateUrl : "https://app.tuta.com/desktop/"
 		// custom builds get the dicts from us as well
 		return new ApplicationWindow(this, absoluteWebAssetsPath, this.icon, electron, localShortcut, this.themeFacade, this.remoteBridge, dictUrl, noAutoLogin)
 	}

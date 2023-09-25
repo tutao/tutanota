@@ -18,7 +18,7 @@ o.spec("RecipientsModel", function () {
 	const contactElementId = "contactElementId"
 	const contactId = [contactListId, contactElementId] as const
 
-	const tutanotaAddress = "test@tutanota.com"
+	const tutanotaAddress = "test@tuta.com"
 	const otherAddress = "test@dudanoda.com"
 
 	let contactModelMock: ContactModel

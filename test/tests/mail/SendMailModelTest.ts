@@ -455,7 +455,7 @@ o.spec("SendMailModel", function () {
 				address: "test@address.com",
 				contact: null,
 			}
-			await model.initWithTemplate({ to: [recipient] }, "subject", "", [], true, "me@tutanota.com", false)
+			await model.initWithTemplate({ to: [recipient] }, "subject", "", [], true, "me@tuta.com", false)
 			model.setPassword("test@address.com", "abc")
 			o(model.getPassword(recipient.address)).equals("abc")
 			const method = MailMethod.NONE
@@ -571,7 +571,7 @@ o.spec("SendMailModel", function () {
 				},
 				{
 					name: "james hetfield",
-					address: "james@tutanota.com",
+					address: "james@tuta.com",
 					contact: existingContact,
 				},
 			]
@@ -595,7 +595,7 @@ o.spec("SendMailModel", function () {
 				lastName: "newlastname",
 				mailAddresses: [
 					createMailAddress({
-						address: "james@tutanota.com",
+						address: "james@tuta.com",
 					}),
 					createMailAddress({
 						address: "address2@hotmail.com",

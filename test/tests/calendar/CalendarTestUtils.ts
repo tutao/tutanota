@@ -100,7 +100,7 @@ export const otherRecipient2: Recipient = {
 	}),
 }
 
-export const thirdAddress = createEncryptedMailAddress({ address: "somethirdaddress@tutanota.com", name: "thirdperson" })
+export const thirdAddress = createEncryptedMailAddress({ address: "somethirdaddress@tuta.com", name: "thirdperson" })
 export const thirdRecipient: Recipient = {
 	address: thirdAddress.address,
 	name: thirdAddress.name,

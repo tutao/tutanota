@@ -175,9 +175,9 @@ function getStaticUrl(stage, mode, host) {
 		// This is only relevant for browser environment.
 		return null
 	} else if (stage === "test") {
-		return "https://test.tutanota.com"
+		return "https://test.tuta.com"
 	} else if (stage === "prod") {
-		return "https://mail.tutanota.com"
+		return "https://app.tuta.com"
 	} else if (stage === "local") {
 		return "http://" + os.hostname() + ":9000"
 	} else {

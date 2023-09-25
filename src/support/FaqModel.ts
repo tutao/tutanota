@@ -22,7 +22,7 @@ const FAQ_PREFIX = "faq."
 const MARKDOWN_SUFFIX = "_markdown"
 
 /**
- * Loads FAQ entries from tutanota.com for different languages and allows searching
+ * Loads FAQ entries from tuta.com for different languages and allows searching
  *
  * NOTE: it's only exported for testing!
  */

@@ -11,9 +11,18 @@ declare var customDomainCacheExclusions: () => Array<string>
 // test case
 var versionString = typeof version === "undefined" ? "test" : version()
 
-const isTutanotaDomain = () =>
-	// *.tutanota.com or without dots (e.g. localhost). otherwise it is a custom domain
-	self.location.hostname.endsWith("tutanota.com") || self.location.hostname.indexOf(".") === -1
+// either tuta.com or tutanota.com without or with a subdomain or a domain without dots (e.g. localhost).
+// otherwise it is a custom domain
+const isTutanotaDomain = () => {
+	const hostname = self.location.hostname
+	return (
+		hostname === "tutanota.com" ||
+		hostname === "tuta.com" ||
+		hostname.endsWith(".tutanota.com") ||
+		hostname.endsWith(".tuta.com") ||
+		hostname.indexOf(".") === -1
+	)
+}
 
 const urlWithoutQuery = (urlString: string) => {
 	const queryIndex = urlString.indexOf("?")

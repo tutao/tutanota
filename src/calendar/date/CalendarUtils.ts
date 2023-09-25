@@ -97,7 +97,7 @@ export function eventEndsAfterOrOn(currentDate: Date, zone: string, event: Calen
 }
 
 export function generateUid(groupId: Id, timestamp: number): string {
-	return `${groupId}${timestamp}@tutanota.com`
+	return `${groupId}${timestamp}@tuta.com`
 }
 
 export function timeString(date: Date, amPm: boolean): string {

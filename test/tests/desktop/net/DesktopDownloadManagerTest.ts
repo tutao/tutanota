@@ -441,7 +441,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 
 	o.spec("upload", async function () {
 		const fileToUploadPath = "/tutnaota/tmp/path/encrypted/toUpload.txt"
-		const targetUrl = "https://test.tutanota.com/rest/for/a/bit"
+		const targetUrl = "https://test.tuta.com/rest/for/a/bit"
 		let mocks
 		let dl
 
