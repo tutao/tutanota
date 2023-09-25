@@ -41,6 +41,7 @@ export {
 	arrayOf,
 	count,
 	mapMapAsync,
+	zeroOut,
 } from "./ArrayUtils.js"
 export { AsyncResult } from "./AsyncResult.js"
 export { intersection, trisectingDiff, setAddAll, max, maxBy, findBy, min, minBy, mapWith, mapWithout, setEquals, setMap } from "./CollectionUtils.js"
