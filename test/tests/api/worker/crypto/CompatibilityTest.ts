@@ -14,6 +14,10 @@ import {
 	rsaDecrypt,
 	rsaEncrypt,
 	uint8ArrayToBitArray,
+	x25519decapsulate,
+	x25519encapsulate,
+	x25519hexToPrivateKey,
+	x25519hexToPublicKey,
 } from "@tutao/tutanota-crypto"
 import {
 	base64ToUint8Array,
@@ -175,6 +179,21 @@ o.spec("crypto compatibility", function () {
 		for (const td of testData.compressionTests) {
 			o(utf8Uint8ArrayToString(uncompress(base64ToUint8Array(td.compressedBase64TextJava)))).equals(td.uncompressedText)
 			o(utf8Uint8ArrayToString(uncompress(base64ToUint8Array(td.compressedBase64TextJavaScript)))).equals(td.uncompressedText)
+		}
+	})
+	o("x25519", function () {
+		for (const td of testData.x25519Tests) {
+			const alicePrivateKeyBytes = x25519hexToPrivateKey(td.alicePrivateKeyHex)
+			const alicePublicKeyBytes = x25519hexToPublicKey(td.alicePublicKeyHex)
+			const aliceKeyPair = { priv: alicePrivateKeyBytes, pub: alicePublicKeyBytes }
+			const bobPrivateKeyBytes = x25519hexToPrivateKey(td.bobPrivateKeyHex)
+			const bobPublicKeyBytes = x25519hexToPublicKey(td.bobPublicKeyHex)
+
+			const aliceToBob = x25519encapsulate(aliceKeyPair, bobPublicKeyBytes)
+			const bobToAlice = x25519decapsulate(bobPrivateKeyBytes, alicePublicKeyBytes)
+			o(aliceToBob).deepEquals(bobToAlice)
+			o(td.sharedSecretHex).equals(uint8ArrayToHex(aliceToBob.sharedSecret))
+			o(td.alicePublicKeyHex).equals(uint8ArrayToHex(aliceToBob.senderPub))
 		}
 	})
 	/**

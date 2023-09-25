@@ -553,3 +553,12 @@ export async function partitionAsync<T>(array: Array<T>, predicate: (arg0: T) =>
 export function arrayOf<T>(n: number, factory: (idx: number) => T): Array<T> {
 	return numberRange(0, n - 1).map(factory)
 }
+
+/**
+ * Destroy contents of the byte arrays passed. Useful for purging unwanted memory.
+ */
+export function zeroOut(...arrays: (Uint8Array | Int8Array)[]) {
+	for (const a of arrays) {
+		a.fill(0)
+	}
+}

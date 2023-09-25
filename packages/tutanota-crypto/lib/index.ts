@@ -10,6 +10,19 @@ export {
 	Aes256Key,
 	aes256EncryptSearchIndexEntry,
 } from "./encryption/Aes.js"
+export {
+	X25519Private,
+	X25519Public,
+	X25519KeyPair,
+	X25519SharedSecret,
+	x25519generateKeyPair,
+	x25519privateKeyToHex,
+	x25519publicKeyToHex,
+	x25519hexToPrivateKey,
+	x25519hexToPublicKey,
+	x25519encapsulate,
+	x25519decapsulate,
+} from "./encryption/X25519.js"
 export { generateRandomSalt, generateKeyFromPassphrase as generateKeyFromPassphraseBcrypt } from "./hashes/Bcrypt.js"
 export {
 	generateKeyFromPassphrase as generateKeyFromPassphraseArgon2id,
