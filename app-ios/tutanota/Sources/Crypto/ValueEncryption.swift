@@ -20,7 +20,7 @@ extension SimpleStringDecodable {
   static func aesDecrypt(base64: Base64, key: Key) throws -> Self {
     let decoded = TUTEncodingConverter.base64(toBytes: base64)
     let decrypted = try aesDecryptData(decoded, withKey: key)
-    let decValue = TUTEncodingConverter.bytes(toBase64: decrypted)
+    let decValue = TUTEncodingConverter.bytes(toString: decrypted)
     if let value = Self.init(string: decValue) {
       return value
     } else {
