@@ -1,7 +1,6 @@
 import { COSEAlgorithmIdentifier } from "./WebauthnTypes.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { getApiOrigin, isApp } from "../../../api/common/Env.js"
-import { U2F_APPID, U2f_APPID_SUFFIX, WEBAUTHN_RP_ID } from "./WebAuthn.js"
 import { WebAuthnFacade } from "../../../native/common/generatedipc/WebAuthnFacade.js"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { CancelledError } from "../../../api/common/error/CancelledError.js"
@@ -10,6 +9,8 @@ import { WebAuthnRegistrationChallenge } from "../../../native/common/generatedi
 import { WebAuthnRegistrationResult } from "../../../native/common/generatedipc/WebAuthnRegistrationResult.js"
 import { WebAuthnSignChallenge } from "../../../native/common/generatedipc/WebAuthnSignChallenge.js"
 import { WebAuthnSignResult } from "../../../native/common/generatedipc/WebAuthnSignResult.js"
+import { rpIdFromHostname } from "../SecondFactorUtils.js"
+import { Const } from "../../../api/common/TutanotaConstants.js"
 
 const WEBAUTHN_TIMEOUT_MS = 60000
 
@@ -25,7 +26,7 @@ export class BrowserWebauthn implements WebAuthnFacade {
 	private currentOperationSignal: AbortController | null = null
 
 	constructor(private readonly api: CredentialsContainer, hostname: string) {
-		this.rpId = this.rpIdFromHostname(hostname)
+		this.rpId = rpIdFromHostname(hostname)
 		this.appId = this.appidFromHostname(hostname)
 	}
 
@@ -140,19 +141,11 @@ export class BrowserWebauthn implements WebAuthnFacade {
 		this.currentOperationSignal = null
 	}
 
-	private rpIdFromHostname(hostname: string): string {
-		if (hostname.endsWith(WEBAUTHN_RP_ID)) {
-			return WEBAUTHN_RP_ID
-		} else {
-			return hostname
-		}
-	}
-
 	private appidFromHostname(hostname: string): string {
-		if (hostname.endsWith(WEBAUTHN_RP_ID)) {
-			return U2F_APPID
+		if (hostname.endsWith(Const.LEGACY_WEBAUTHN_RP_ID)) {
+			return Const.U2F_APPID
 		} else {
-			return getApiOrigin() + U2f_APPID_SUFFIX
+			return getApiOrigin() + Const.U2f_APPID_SUFFIX
 		}
 	}
 }

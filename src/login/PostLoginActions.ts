@@ -2,7 +2,7 @@ import m, { Component } from "mithril"
 import type { LoggedInEvent, PostLoginAction } from "../api/main/LoginController"
 import { LoginController } from "../api/main/LoginController"
 import { isAdminClient, isAndroidApp, isApp, isDesktop, isIOSApp, LOGIN_TITLE } from "../api/common/Env"
-import { neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade"
 import { checkApprovalStatus } from "../misc/LoginUtils"
 import { locator } from "../api/main/MainLocator"
@@ -16,7 +16,7 @@ import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import { ButtonAttrs, ButtonType } from "../gui/base/Button.js"
 import { themeController } from "../gui/theme"
 import { Dialog } from "../gui/base/Dialog"
-import { CloseEventBusOption } from "../api/common/TutanotaConstants"
+import { CloseEventBusOption, Const, SecondFactorType } from "../api/common/TutanotaConstants"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs"
 import { notifications } from "../gui/Notifications"
 import { LockedError } from "../api/common/error/RestError"
@@ -31,7 +31,7 @@ import { StorageBehavior } from "../misc/UsageTestModel.js"
 import type { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
 import { client } from "../misc/ClientDetector.js"
 import { DateProvider } from "../api/common/DateProvider.js"
-import { createCustomerProperties } from "../api/entities/sys/TypeRefs.js"
+import { createCustomerProperties, SecondFactorTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { shouldShowStorageWarning, shouldShowUpgradeReminder } from "./PostLoginUtils.js"
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
@@ -256,11 +256,38 @@ export class PostLoginActions implements PostLoginAction {
 		}
 	}
 
-	private enforcePasswordChange(): void {
+	private async enforcePasswordChange(): Promise<void> {
 		if (this.logins.getUserController().user.requirePasswordUpdate) {
-			import("../settings/login/ChangePasswordDialogs.js").then(({ showChangeOwnPasswordDialog }) => {
-				return showChangeOwnPasswordDialog(false)
-			})
+			const { showChangeOwnPasswordDialog } = await import("../settings/login/ChangePasswordDialogs.js")
+			await showChangeOwnPasswordDialog(false)
+		}
+
+		if (location.hostname === Const.DEFAULT_APP_DOMAIN) {
+			const user = this.logins.getUserController().user
+			const secondFactors = await this.entityClient.loadAll(SecondFactorTypeRef, assertNotNull(user.auth).secondFactors)
+			const webauthnFactors = secondFactors.filter((f) => f.type === SecondFactorType.webauthn || SecondFactorType.u2f)
+			// If there are webauthn factors but none of them are for the default domain, show a message
+			if (webauthnFactors.length > 0 && !webauthnFactors.some((f) => f.u2f && f.u2f?.appId == Const.WEBAUTHN_RP_ID)) {
+				const dialog = Dialog.confirmMultiple(
+					// FIXME translate
+					() => "You do not have any security keys configured for this domain, please add one in login settings",
+					[
+						{
+							label: "skip_action",
+							type: ButtonType.Secondary,
+							click: () => dialog.close(),
+						},
+						{
+							label: "settings_label",
+							type: ButtonType.Primary,
+							click: () => {
+								dialog.close()
+								m.route.set("/settings/login")
+							},
+						},
+					],
+				)
+			}
 		}
 	}
 }
