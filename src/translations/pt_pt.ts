@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2023-09-20T12:53:04Z",
+	"updated_at": "2023-09-23T20:32:51Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1415,7 +1415,7 @@ export default {
 		"takeoverSuccess_msg": "Pode agora reutilizar o seu antigo endereço na conta especificada como endereço de email alternativo ou como utilizador adicional.",
 		"takeOverUnusedAddress_msg": "Pode utilizar o endereço de email da sua conta apagada para uma outra conta paga e reutilizá-lo assim. Para fazer isto, por favor especifique o endereço de email do administrador da conta paga. Por favor note: Caso tenha configurado o duplo fator de autentificação, por favor forneça o seu código de recuperação, o duplo fator de autentificação não pode ser usado numa conta apagada.",
 		"targetAddress_label": "Endereço da conta de destino",
-		"templateGroupDefaultName_label": "Os meus templates",
+		"templateGroupDefaultName_label": "Os meus modelos",
 		"templateGroupInvitations_label": "Convites da lista de modelos",
 		"templateGroupName_label": "Modelo de lista de nomes",
 		"templateGroup_label": "Modelo",

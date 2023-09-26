@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2023-09-20T13:13:06Z",
+	"updated_at": "2023-09-25T10:33:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1148,6 +1148,7 @@ export default {
 		"pricing.subscriptionPeriodInfoBusiness_msg": "De abonnementsperiode bedraagt één maand bij betaling per maand en één jaar bij betaling per jaar. Het abonnement wordt automatisch verlengd aan het einde van de abonnementsperiode.",
 		"pricing.subscriptionPeriodInfoPrivate_msg": "De periode voor een abonnement is één maand bij maandelijkse betaling en één jaar bij jaarlijkse betaling. Na de initiële periode wordt het abonnement omgezet in een contract van onbepaalde duur  en kan vervolgens op ieder moment geannuleerd worden.",
 		"pricing.team_label": "Teambeheer",
+		"pricing.unlimitedAddresses_label": "Onbeperkt aangepaste domeinadressen",
 		"pricing.upgradeLater_msg": "Gebruik Tutanota gratis, u kunt later upgraden. Alleen voor particulier gebruik.",
 		"pricing.usability_label": "Bruikbaarheid",
 		"pricing.yearly_label": "Jaarlijks",

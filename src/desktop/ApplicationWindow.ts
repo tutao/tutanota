@@ -417,24 +417,42 @@ export class ApplicationWindow {
 		} else if (parsedUrl.protocol === "file:") {
 			// this also works for raw file paths without protocol
 			log.warn(TAG, "prevented file url from being opened by shell")
-		} else {
-			// we never open any new windows directly from the renderer
-			// except for links in mails etc. so open them in the browser
-			this.electron.shell.openExternal(parsedUrl.toString()).catch((e) => {
-				log.warn("failed to open external url", details.url, e)
-				this.electron.dialog.showMessageBox({
-					title: lang.get("showURL_alt"),
-					buttons: [lang.get("ok_action")],
-					defaultId: 0,
-					message: lang.get("couldNotOpenLink_msg", { "{link}": details.url }),
-					type: "error",
+		} else if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+			this.electron.dialog
+				.showMessageBox({
+					type: "warning",
+					buttons: [lang.get("yes_label"), lang.get("no_label")],
+					title: lang.get("suspiciousLink_title"),
+					message: lang.get("suspiciousLink_msg", { "{url}": parsedUrl.toString() }),
+					defaultId: 1, // default button is "no"
 				})
-			})
+				.then(({ response }) => {
+					if (response === 0) {
+						this.doOpenLink(parsedUrl, details)
+					}
+				})
+		} else {
+			this.doOpenLink(parsedUrl, details)
 		}
 
 		return {
 			action: "deny",
 		}
+	}
+
+	private doOpenLink(parsedUrl: URL, details: Electron.HandlerDetails) {
+		// we never open any new windows directly from the renderer
+		// except for links in mails etc. so open them in the browser
+		this.electron.shell.openExternal(parsedUrl.toString()).catch((e) => {
+			log.warn("failed to open external url", details.url, e)
+			this.electron.dialog.showMessageBox({
+				title: lang.get("showURL_alt"),
+				buttons: [lang.get("ok_action")],
+				defaultId: 0,
+				message: lang.get("couldNotOpenLink_msg", { "{link}": details.url }),
+				type: "error",
+			})
+		})
 	}
 
 	private reRegisterShortcuts() {

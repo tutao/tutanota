@@ -1577,6 +1577,8 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"suspiciousLink_title": "Suspicious link",
+		"suspiciousLink_msg": "Are you sure you want to open \"{url}\"? It might run programs on your device. Only open links from trusted sources."
 	}
 }

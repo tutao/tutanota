@@ -1581,6 +1581,8 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"suspiciousLink_title": "Verdächtiger Link",
+		"suspiciousLink_msg": "Sind Sie sicher, dass Sie \"{url}\" öffnen möchten? Der Link könnte Programme auf Ihrem Gerät ausführen. Öffnen Sie nur Links, denen Sie vertrauen."
 	}
 }

@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2023-09-20T12:53:04Z",
+	"updated_at": "2023-09-20T17:13:04Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1093,6 +1093,7 @@ export default {
 		"pricing.comparisonUnlimitedDomains_msg": "Domenii personalizate nelimitate",
 		"pricing.comparisonUsersFree_msg": "Un singur utilizator",
 		"pricing.contactLists_label": "Liste de contacte",
+		"pricing.contactLists_tooltip": "Creează și împărtășește grupuri de contacte pentru a trimite cu ușurință e-mailuri către grupuri.",
 		"pricing.currentPlan_label": "Abonamentul actual",
 		"pricing.encryptedCalendar_label": "Calendar complet cifrat",
 		"pricing.encryptedCalendar_tooltip": "Toate datele din calendarele tale Tutanota sunt cifrate, chiar și notificările sunt trimise cifrate către aparatul tău.",
@@ -1141,6 +1142,7 @@ export default {
 		"pricing.servers_label": "Servere cu sediul în Germania",
 		"pricing.servers_tooltip": "Toate datele sunt stocate pe serverele noastre în centre de date certificate ISO, cu sediul în Germania.",
 		"pricing.sharedMailboxes_label": "Cutii Poștale comune",
+		"pricing.sharedMailboxes_tooltip": "Adaugă cutii poștale comune, pentru ca mai mulți utilizatori să poată gestiona simultan anumite adrese de e-mail ale firmei fără a se conecta ca utilizator diferit. Cutiile poștale comune sunt disponibile la același preț ca și un utilizator suplimentar și beneficiază de aceeași cantitate de stocare.",
 		"pricing.showAllFeatures": "Arată toate caracteristicile",
 		"pricing.signature_label": "Semnături HTML",
 		"pricing.signature_tooltip": "Personalizează-ți semnăturile cu imagini, embleme, legături și multe altele.",
@@ -1149,6 +1151,7 @@ export default {
 		"pricing.subscriptionPeriodInfoBusiness_msg": "Perioada abonamentului este de o lună în cazul plății lunare și de un an în cazul plății anuale. Abonamentul va fi reînnoit automat la sfârșitul perioadei de abonament.",
 		"pricing.subscriptionPeriodInfoPrivate_msg": "Perioada abonamentului este de o lună în cazul plății lunare și de un an în cazul plății anuale. După perioada inițială, abonamentul se va transforma într-un contract pe termen nedeterminat și poate fi anulat în orice moment.",
 		"pricing.team_label": "Gestionarea echipei",
+		"pricing.unlimitedAddresses_label": "Adrese nelimitate de domenii personalizate",
 		"pricing.upgradeLater_msg": "Folosești Tutanota gratis și poți face abonament ulterior. Numai pentru uz personal.",
 		"pricing.usability_label": "Utilizare",
 		"pricing.yearly_label": "Anual",
