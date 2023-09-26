@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2023-09-20T12:53:04Z",
+	"updated_at": "2023-09-20T14:44:37Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -130,6 +130,7 @@ export default {
 		"buyGiftCard_label": "ギフトカードを購入する",
 		"buy_action": "購入",
 		"by_label": "差出し人：",
+		"calendarAlarmsTooBigError_msg": "新しいリマインダーを設定できませんでした。 これは、通知が有効になっているデバイスが多すぎることが原因である可能性が高いです。 [設定] -> [電子メール] -> [通知] に移動して、通知リストから古いデバイスを削除してください。",
 		"calendarCustomName_label": "このカレンダーのカスタム名: {customName}",
 		"calendarInvitationProgress_msg": "招待状を送信しています。",
 		"calendarInvitations_label": "カレンダーへの招待",
@@ -802,6 +803,7 @@ export default {
 		"mobile_label": "携帯電話",
 		"modified_label": "変更",
 		"month_label": "月",
+		"moreCustomDomainsRequired_msg": "カスタム ドメインをさらに追加するには、次のいずれかのプランに切り替えてください。",
 		"moreInformation_action": "詳細情報",
 		"moreInfo_msg": "詳細情報:",
 		"moreResultsFound_msg": "{1} より多くの結果が見つかりました。",
@@ -1362,6 +1364,7 @@ export default {
 		"terminationForm_title": "解約書式",
 		"terminationInvalidDate_msg": "解約日は、本日或いは過去の日付であってはなりません。",
 		"terminationNoActiveSubscription_msg": "このアカウントには有効なサブスクリプションがありません。",
+		"terminationOptionEndOfSubscriptionInfo_msg": "現在の支払い期間が終了すると、アカウントは停止します。このプランは更新されません。",
 		"terminationOptionFutureDateInfo_msg": "お客様のアカウントは以下の日に終了します。お支払いの間隔によっては、その日まで課金される場合があります。",
 		"terminationSubject_msg": "アカウントの停止",
 		"termination_action": "契約を解除する",

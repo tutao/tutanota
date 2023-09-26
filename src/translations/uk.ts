@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2023-09-20T12:53:04Z",
+	"updated_at": "2023-09-23T18:37:03Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1088,6 +1088,7 @@ export default {
 		"pricing.comparisonUnlimitedDomains_msg": "Необмежена кількість власних доменів",
 		"pricing.comparisonUsersFree_msg": "Один користувач",
 		"pricing.contactLists_label": "Списки контактів",
+		"pricing.contactLists_tooltip": "Для легкого надсилання електронної пошти групам створюйте та діліться контактними групами. ",
 		"pricing.currentPlan_label": "Поточна підписка",
 		"pricing.encryptedCalendar_label": "Повністю зашифрований календар",
 		"pricing.encryptedCalendar_tooltip": "Всі дані в календарях Tutanota зашифровані, навіть сповіщення надсилаються на ваш пристрій у зашифрованому вигляді.",
@@ -1136,6 +1137,7 @@ export default {
 		"pricing.servers_label": "Сервери, що розташовані в Німеччині",
 		"pricing.servers_tooltip": "Усі дані зберігаються на наших власних серверах у сертифікованих ISO центрах обробки даних у Німеччині.",
 		"pricing.sharedMailboxes_label": "Спільні поштові скриньки",
+		"pricing.sharedMailboxes_tooltip": "Щоб кілька користувачів могли одночасно працювати з певними адресами електронної пошти компанії без необхідності входити в систему як інший користувач, додайте спільні поштові скриньки. Спільні поштові скриньки доступні за тією ж ціною, що й додатковий користувач і мають такий самий обсяг пам'яті.",
 		"pricing.showAllFeatures": "Показати всі функції",
 		"pricing.signature_label": "Підписи HTML",
 		"pricing.signature_tooltip": "Налаштовуйте свої підписи за допомогою картинок, логотипів, посилань тощо.",
@@ -1144,6 +1146,7 @@ export default {
 		"pricing.subscriptionPeriodInfoBusiness_msg": "Термін підписки – один місяць при щомісячній оплаті та рік – при щорічній оплаті. Підписка буде автоматично поновлена ​​в кінці періоду підписки.",
 		"pricing.subscriptionPeriodInfoPrivate_msg": "Термін підписки - один місяць при оплаті щомісяця й один рік при оплаті щорічно. Після закінчення початкового періоду підписка перейде на нефіксований строковий контракт і може бути скасована будь-коли.",
 		"pricing.team_label": "Управління персоналом",
+		"pricing.unlimitedAddresses_label": "Необмежена кількість власних доменних адрес",
 		"pricing.upgradeLater_msg": "Використайте сервіс Tutanota безплатно, а потім оновіть її пізніше. Тільки для особистого користування.",
 		"pricing.usability_label": "Зручність у використанні",
 		"pricing.yearly_label": "Щорічно",
