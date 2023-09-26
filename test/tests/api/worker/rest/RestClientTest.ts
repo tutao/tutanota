@@ -8,6 +8,7 @@ import { SuspensionHandler } from "../../../../../src/api/worker/SuspensionHandl
 import express from "express"
 import bodyParser from "body-parser"
 import type { AddressInfo } from "node:net"
+import { domainConfigStub } from "../../../TestUtils.js"
 
 // only runs in node, it spins up a local server and connects to it
 
@@ -20,7 +21,7 @@ o.spec("RestClient", function () {
 		isSuspended: () => false,
 		deferRequest: (request) => request(),
 	}
-	const restClient = new RestClient(suspensionHandlerMock as SuspensionHandler)
+	const restClient = new RestClient(suspensionHandlerMock as SuspensionHandler, domainConfigStub)
 	o.spec("integration tests", function () {
 		let app = express()
 		let server: http.Server

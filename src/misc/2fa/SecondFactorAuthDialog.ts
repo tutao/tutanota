@@ -13,6 +13,7 @@ import type { LoginFacade } from "../../api/worker/facades/LoginFacade.js"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { WebauthnError } from "../../api/common/error/WebauthnError.js"
 import { appIdToLoginDomain } from "./SecondFactorUtils.js"
+import { DomainConfigProvider } from "../../api/common/Env.js"
 
 type AuthData = {
 	readonly sessionId: IdTuple
@@ -44,18 +45,22 @@ export class SecondFactorAuthDialog {
 	private constructor(
 		private readonly webauthnClient: WebauthnClient,
 		private readonly loginFacade: LoginFacade,
+		private readonly domainConfigProvider: DomainConfigProvider,
 		private readonly authData: AuthData,
 		private readonly onClose: Thunk,
 	) {}
 
 	/**
-	 * @param webauthnClient
-	 * @param loginFacade
-	 * @param authData
 	 * @param onClose will be called when the dialog is closed (one way or another).
 	 */
-	static show(webauthnClient: WebauthnClient, loginFacade: LoginFacade, authData: AuthData, onClose: Thunk): SecondFactorAuthDialog {
-		const dialog = new SecondFactorAuthDialog(webauthnClient, loginFacade, authData, onClose)
+	static show(
+		webauthnClient: WebauthnClient,
+		loginFacade: LoginFacade,
+		domainConfigProvider: DomainConfigProvider,
+		authData: AuthData,
+		onClose: Thunk,
+	): SecondFactorAuthDialog {
+		const dialog = new SecondFactorAuthDialog(webauthnClient, loginFacade, domainConfigProvider, authData, onClose)
 
 		dialog.show()
 
@@ -88,7 +93,7 @@ export class SecondFactorAuthDialog {
 		if (u2fChallenge?.u2f != null && u2fSupported) {
 			const { canAttempt, cannotAttempt } = await this.webauthnClient.canAttemptChallenge(u2fChallenge.u2f)
 			canLoginWithU2f = canAttempt.length !== 0
-			otherLoginDomain = cannotAttempt.length > 0 ? appIdToLoginDomain(getFirstOrThrow(cannotAttempt).appId) : null
+			otherLoginDomain = cannotAttempt.length > 0 ? appIdToLoginDomain(getFirstOrThrow(cannotAttempt).appId, this.domainConfigProvider) : null
 		} else {
 			canLoginWithU2f = false
 			otherLoginDomain = null
@@ -170,13 +175,13 @@ export class SecondFactorAuthDialog {
 		const challenge = assertNotNull(u2fChallenge.u2f)
 
 		try {
-			const webauthnResponseData = await this.webauthnClient.authenticate(challenge)
+			const { responseData, apiBaseUrl } = await this.webauthnClient.authenticate(challenge)
 			const authData = createSecondFactorAuthData({
 				type: SecondFactorType.webauthn,
 				session: sessionId,
-				webauthn: webauthnResponseData,
+				webauthn: responseData,
 			})
-			await this.loginFacade.authenticateWithSecondFactor(authData)
+			await this.loginFacade.authenticateWithSecondFactor(authData, apiBaseUrl)
 		} catch (e) {
 			if (e instanceof CancelledError) {
 				this.webauthnState = {

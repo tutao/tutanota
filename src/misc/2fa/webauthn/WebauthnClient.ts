@@ -4,11 +4,12 @@ import type { U2fChallenge, U2fRegisteredDevice, WebauthnResponseData } from "..
 import { createU2fRegisteredDevice, createWebauthnResponseData, U2fKey } from "../../../api/entities/sys/TypeRefs.js"
 import { WebAuthnFacade } from "../../../native/common/generatedipc/WebAuthnFacade.js"
 import { WebauthnKeyDescriptor } from "../../../native/common/generatedipc/WebauthnKeyDescriptor.js"
+import { DomainConfigProvider, getApiBaseUrl } from "../../../api/common/Env.js"
 import { Const } from "../../../api/common/TutanotaConstants.js"
 
 /** Web authentication entry point for the rest of the app. */
 export class WebauthnClient {
-	constructor(private readonly webauthn: WebAuthnFacade, private readonly clientWebRoot: string) {}
+	constructor(private readonly webauthn: WebAuthnFacade, private readonly domainConfigProvider: DomainConfigProvider) {}
 
 	isSupported(): Promise<boolean> {
 		return this.webauthn.isSupported()
@@ -32,7 +33,7 @@ export class WebauthnClient {
 		// this must be at most 64 bytes because the authenticators are allowed to truncate it
 		// https://www.w3.org/TR/webauthn-2/#user-handle
 		const name = `userId="${userId}"`
-		const registrationResult = await this.webauthn.register({ challenge, userId, name, displayName, domain: this.clientWebRoot })
+		const registrationResult = await this.webauthn.register({ challenge, userId, name, displayName, domain: this.selectRegistrationUrl() })
 		const attestationObject = this.parseAttestationObject(registrationResult.attestationObject)
 		const publicKey = this.parsePublicKey(downcast(attestationObject).authData)
 
@@ -46,25 +47,42 @@ export class WebauthnClient {
 		})
 	}
 
-	async authenticate(challenge: U2fChallenge, signal?: AbortSignal): Promise<WebauthnResponseData> {
+	private selectRegistrationUrl() {
+		const domainConfig = this.domainConfigProvider.getCurrentDomainConfig()
+		return domainConfig.webauthnUrl
+	}
+
+	/**
+	 * Attempt to complete Webauthn challenge (the local part, signing of the data).
+	 * U2fChallenge might have multiple keys for different domains and this method takes care of picking the one we can attempt to solve.
+	 * @return responseData to send to the server and base api url which should be contacted in order to finish the challenge
+	 * @throws CancelledError
+	 * @throws WebauthnError
+	 */
+	async authenticate(challenge: U2fChallenge): Promise<{ responseData: WebauthnResponseData; apiBaseUrl: string }> {
 		const allowedKeys: WebauthnKeyDescriptor[] = challenge.keys.map((key) => {
 			return {
 				id: key.keyHandle,
 			}
 		})
 
+		const authenticationUrl = this.selectAuthenticationUrl(challenge)
 		const signResult = await this.webauthn.sign({
 			challenge: challenge.challenge,
 			keys: allowedKeys,
-			domain: this.selectAuthenticationUrl(challenge),
+			domain: authenticationUrl,
 		})
 
-		return createWebauthnResponseData({
+		const responseData = createWebauthnResponseData({
 			keyHandle: new Uint8Array(signResult.rawId),
 			clientData: new Uint8Array(signResult.clientDataJSON),
 			signature: new Uint8Array(signResult.signature),
 			authenticatorData: new Uint8Array(signResult.authenticatorData),
 		})
+		// take https://app.tuta.com/webauthn and convert it to apis://app.tuta.com
+		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getDomainConfigForHostname(new URL(authenticationUrl).hostname))
+
+		return { responseData, apiBaseUrl: apiUrl }
 	}
 
 	abortCurrentOperation(): Promise<void> {
@@ -75,28 +93,29 @@ export class WebauthnClient {
 		// We need to figure our for which page we need to open authentication based on the keys that user has added because users can register keys for our
 		// domains as well as for whitelabel domains.
 
-		let selectedClientUrl
+		const domainConfig = this.domainConfigProvider.getCurrentDomainConfig()
 		if (challenge.keys.some((k) => k.appId === Const.LEGACY_WEBAUTHN_RP_ID)) {
-			// First, if we find our own key then open web client on our URL.
-			// Even if it's a different subdomain of ours it can still match because it is scoped for all tutanota.com subdomains
-			selectedClientUrl = this.clientWebRoot
-		} else if (this.clientWebRoot.startsWith("http://")) {
-			// for local http server we want the whole origin, including the port
-			selectedClientUrl = this.clientWebRoot
+			// If there's a Webauthn key for our old domain we need to open the webapp on the old domain.
+
+			return domainConfig.legacyWebauthnUrl
+		} else if (challenge.keys.some((k) => k.appId === Const.WEBAUTHN_RP_ID)) {
+			// This function is not needed for the webapp! We can safely assume that our clientWebRoot is a new domain.
+			return domainConfig.webauthnUrl
 		} else {
 			// If it isn't there, look for any Webauthn key. Legacy U2F key ids ends with json subpath.
 			const webauthnKey = challenge.keys.find((k) => !this.isLegacyU2fKey(k))
 			if (webauthnKey) {
-				selectedClientUrl = `https://${webauthnKey.appId}`
+				return this.domainConfigProvider.getDomainConfigForHostname(webauthnKey.appId).webauthnUrl
 			} else if (challenge.keys.some((k) => k.appId === Const.U2F_APPID)) {
 				// There are only legacy U2F keys but there is one for our domain, take it
-				selectedClientUrl = this.clientWebRoot
+				return domainConfig.legacyWebauthnUrl
 			} else {
 				// Nothing else worked, select legacy U2F key for whitelabel domain
-				selectedClientUrl = this.legacyU2fKeyToBaseUrl(getFirstOrThrow(challenge.keys))
+				const keyToUse = getFirstOrThrow(challenge.keys)
+				const keyHostname = new URL(keyToUse.appId).hostname
+				return this.domainConfigProvider.getDomainConfigForHostname(keyHostname).webauthnUrl
 			}
 		}
-		return selectedClientUrl
 	}
 
 	private isLegacyU2fKey(key: U2fKey): boolean {

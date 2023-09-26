@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, getApiOrigin, isAdminClient, isAndroidApp, isWebClient, isWorker } from "../../common/Env"
+import { assertWorkerOrNode, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "../../common/Env"
 import { ConnectionError, handleRestError, PayloadTooLargeError, ServiceUnavailableError, TooManyRequestsError } from "../../common/error/RestError"
 import { HttpMethod, MediaType } from "../../common/EntityFunctions"
 import { assertNotNull, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
@@ -43,13 +43,11 @@ export interface RestClientOptions {
  */
 export class RestClient {
 	private id: number
-	private suspensionHandler: SuspensionHandler
 	// accurate to within a few seconds, depending on network speed
 	private serverTimeOffsetMs: number | null = null
 
-	constructor(suspensionHandler: SuspensionHandler) {
+	constructor(private readonly suspensionHandler: SuspensionHandler, private readonly domainConfig: DomainConfig) {
 		this.id = 0
-		this.suspensionHandler = suspensionHandler
 	}
 
 	request(path: string, method: HttpMethod, options: RestClientOptions = {}): Promise<any | null> {
@@ -75,7 +73,7 @@ export class RestClient {
 					queryParams["cv"] = env.versionNumber
 				}
 
-				const origin = options.baseUrl ?? getApiOrigin()
+				const origin = options.baseUrl ?? getApiBaseUrl(this.domainConfig)
 				const resourceURL = new URL(origin + path)
 				const url = addParamsToUrl(resourceURL, queryParams)
 				const xhr = new XMLHttpRequest()

@@ -15,6 +15,7 @@ import { AccessExpiredError, NotAuthenticatedError } from "../../../src/api/comm
 import { DatabaseKeyFactory } from "../../../src/misc/credentials/DatabaseKeyFactory"
 import { DeviceConfig } from "../../../src/misc/DeviceConfig"
 import { ResumeSessionErrorReason } from "../../../src/api/worker/facades/LoginFacade"
+import { domainConfigStub } from "../TestUtils.js"
 
 const { anything } = matchers
 
@@ -136,7 +137,7 @@ o.spec("LoginViewModelTest", () => {
 	 * on a per test basis, so instead of having a global viewModel to test we just have a factory function to get one in each test
 	 */
 	async function getViewModel() {
-		const viewModel = new LoginViewModel(loginControllerMock, credentialsProviderMock, secondFactorHandlerMock, deviceConfigMock)
+		const viewModel = new LoginViewModel(loginControllerMock, credentialsProviderMock, secondFactorHandlerMock, deviceConfigMock, domainConfigStub)
 		await viewModel.init()
 		return viewModel
 	}

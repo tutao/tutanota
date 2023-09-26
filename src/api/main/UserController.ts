@@ -2,12 +2,12 @@ import { AccountType, FeatureType, GroupType, LegacyPlans, OperationType, PlanTy
 import type { Base64Url } from "@tutao/tutanota-utils"
 import { assertNotNull, downcast, first, mapAndFilterNull, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { MediaType } from "../common/EntityFunctions"
-import { assertMainOrNode, getApiOrigin, isDesktop } from "../common/Env"
+import { assertMainOrNode, getApiBaseUrl, isDesktop } from "../common/Env"
 import type { EntityUpdateData } from "./EventController"
 import { isUpdateForTypeRef } from "./EventController"
 import { NotFoundError } from "../common/error/RestError"
 import { locator } from "./MainLocator"
-import { isSameId } from "../common/utils/EntityUtils"
+import { elementIdPart, isSameId, listIdPart } from "../common/utils/EntityUtils"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations"
 import { EntityClient } from "../common/EntityClient"
 import { CloseSessionService, PlanService } from "../entities/sys/Services"
@@ -269,7 +269,8 @@ export class UserController {
 
 			if (sendBeacon) {
 				try {
-					const path = `${getApiOrigin()}/rest/sys/${CloseSessionService.name.toLowerCase()}`
+					const apiUrl = new URL(getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
+					apiUrl.pathname += `/rest/sys/${CloseSessionService.name.toLowerCase()}`
 					const requestObject = createCloseSessionServicePost({
 						accessToken: this.accessToken,
 						sessionId: this.sessionId,
@@ -279,7 +280,7 @@ export class UserController {
 					// Send as Blob to be able to set content type otherwise sends 'text/plain'
 					const queued = sendBeacon.call(
 						navigator,
-						path,
+						apiUrl,
 						new Blob([JSON.stringify(requestObject)], {
 							type: MediaType.Json,
 						}),
@@ -292,9 +293,10 @@ export class UserController {
 				}
 			} else {
 				// Fall back to sync XHR if
-				const path = "/rest/sys/session/" + this.sessionId[0] + "/" + this.sessionId[1]
+				const apiUrl = new URL(getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
+				apiUrl.pathname += `/rest/sys/session/${listIdPart(this.sessionId)}/${elementIdPart(this.sessionId)}`
 				const xhr = new XMLHttpRequest()
-				xhr.open("DELETE", getApiOrigin() + path, false) // sync requests increase reliability when invoked in onunload
+				xhr.open("DELETE", apiUrl, false) // sync requests increase reliability when invoked in onunload
 
 				xhr.setRequestHeader("accessToken", this.accessToken)
 				xhr.setRequestHeader("v", sysTypeModels.Session.version)

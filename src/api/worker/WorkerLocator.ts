@@ -11,7 +11,16 @@ import type { MailAddressFacade } from "./facades/lazy/MailAddressFacade.js"
 import type { CustomerFacade } from "./facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "./facades/lazy/CounterFacade.js"
 import { EventBusClient } from "./EventBusClient"
-import { assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isAndroidApp, isIOSApp, isOfflineStorageAvailable, isTest } from "../common/Env"
+import {
+	assertWorkerOrNode,
+	DomainConfigProvider,
+	getWebsocketBaseUrl,
+	isAdminClient,
+	isAndroidApp,
+	isIOSApp,
+	isOfflineStorageAvailable,
+	isTest,
+} from "../common/Env"
 import { Const } from "../common/TutanotaConstants"
 import type { BrowserData } from "../../misc/ClientConstants"
 import type { CalendarFacade } from "./facades/lazy/CalendarFacade.js"
@@ -127,7 +136,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const suspensionHandler = new SuspensionHandler(mainInterface.infoMessageHandler, self)
 	locator.instanceMapper = new InstanceMapper()
 	locator.rsa = await createRsaImplementation(worker)
-	locator.restClient = new RestClient(suspensionHandler)
+
+	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
+
+	locator.restClient = new RestClient(suspensionHandler, domainConfig)
 	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instanceMapper, () => locator.crypto)
 	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random)
 	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, dateProvider, locator.user)
@@ -350,7 +362,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.user,
 		locator.cachingEntityClient,
 		locator.instanceMapper,
-		(path) => new WebSocket(getWebsocketOrigin() + path),
+		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
 		mainInterface.progressTracker,
 	)

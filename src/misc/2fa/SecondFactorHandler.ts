@@ -9,7 +9,7 @@ import { NotFoundError } from "../../api/common/error/RestError"
 import type { EntityUpdateData, EventController } from "../../api/main/EventController"
 import { isUpdateForTypeRef } from "../../api/main/EventController"
 import { isSameId } from "../../api/common/utils/EntityUtils"
-import { assertMainOrNode } from "../../api/common/Env"
+import { assertMainOrNode, DomainConfigProvider } from "../../api/common/Env"
 import type { EntityClient } from "../../api/common/EntityClient"
 import { WebauthnClient } from "./webauthn/WebauthnClient"
 import { SecondFactorAuthDialog } from "./SecondFactorAuthDialog"
@@ -33,7 +33,13 @@ export class SecondFactorHandler {
 	_otherLoginListenerInitialized: boolean
 	_waitingForSecondFactorDialog: SecondFactorAuthDialog | null
 
-	constructor(eventController: EventController, entityClient: EntityClient, webauthnClient: WebauthnClient, loginFacade: LoginFacade) {
+	constructor(
+		eventController: EventController,
+		entityClient: EntityClient,
+		webauthnClient: WebauthnClient,
+		loginFacade: LoginFacade,
+		private readonly domainConfigProvider: DomainConfigProvider,
+	) {
 		this._eventController = eventController
 		this._entityClient = entityClient
 		this._webauthnClient = webauthnClient
@@ -182,6 +188,7 @@ export class SecondFactorHandler {
 		this._waitingForSecondFactorDialog = SecondFactorAuthDialog.show(
 			this._webauthnClient,
 			this._loginFacade,
+			this.domainConfigProvider,
 			{
 				sessionId,
 				challenges,

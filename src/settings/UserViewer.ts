@@ -55,7 +55,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 
 		this.mailAddressTableExpanded = false
 
-		this.secondFactorsForm = new SecondFactorsEditForm(this.user)
+		this.secondFactorsForm = new SecondFactorsEditForm(this.user, locator.domainConfigProvider())
 
 		this.teamGroupInfos.getAsync().then(async (availableTeamGroupInfos) => {
 			if (availableTeamGroupInfos.length > 0) {

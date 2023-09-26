@@ -1,4 +1,4 @@
-import { assertMainOrNodeBoot, isApp, isDesktop, isTutanotaDomain } from "../api/common/Env"
+import { assertMainOrNodeBoot, isApp, isDesktop } from "../api/common/Env"
 import { lang } from "../misc/LanguageViewModel"
 import { windowFacade } from "../misc/WindowFacade"
 import m, { Component } from "mithril"
@@ -7,13 +7,13 @@ import { isNotSupportedError, isSecurityError, objToError } from "../api/common/
 
 assertMainOrNodeBoot()
 
-function showUpdateOverlay(onUpdate: () => void) {
+function showUpdateOverlay({ showChangelogLink, onUpdate }: { showChangelogLink: boolean; onUpdate: () => void }) {
 	const notificationMessage: Component = {
 		view: () => {
 			return m("span", [
 				lang.get("updateFound_label"),
 				" ",
-				isTutanotaDomain(location.hostname)
+				showChangelogLink
 					? m(
 							"a",
 							{
@@ -43,33 +43,36 @@ function showUpdateOverlay(onUpdate: () => void) {
 	})
 }
 
-function showUpdateMessageIfNeeded(registration: ServiceWorkerRegistration) {
+function showUpdateMessageIfNeeded(registration: ServiceWorkerRegistration, domainConfig: DomainConfig) {
 	const pending = registration.waiting || registration.installing
 
 	if (pending && registration.active) {
-		showUpdateOverlay(() => {
-			// user has confirmed update so we have to notify the service worker to force update of version.
-			console.log("registration.waiting: ", registration.waiting)
-			registration.waiting && registration.waiting.postMessage("update")
+		showUpdateOverlay({
+			showChangelogLink: domainConfig.firstPartyDomain,
+			onUpdate: () => {
+				// user has confirmed update so we have to notify the service worker to force update of version.
+				console.log("registration.waiting: ", registration.waiting)
+				registration.waiting && registration.waiting.postMessage("update")
+			},
 		})
 	}
 }
 
-export function init() {
+export function init(domainConfig: DomainConfig) {
 	const serviceWorker = navigator.serviceWorker
 
 	if (serviceWorker) {
-		// We don't want service worker in certain envirtonments
+		// We don't want service worker in certain environments
 		if (env.dist && !isApp() && !isDesktop() && window.nativeAppWebDialog == null) {
 			console.log("Registering ServiceWorker")
 			serviceWorker
 				.register(window.tutao.appState.prefixWithoutFile + "/sw.js")
 				.then((registration) => {
 					console.log("ServiceWorker has been installed")
-					showUpdateMessageIfNeeded(registration)
+					showUpdateMessageIfNeeded(registration, domainConfig)
 					registration.addEventListener("updatefound", () => {
 						console.log("updatefound")
-						showUpdateMessageIfNeeded(registration)
+						showUpdateMessageIfNeeded(registration, domainConfig)
 					})
 					const active = registration.active // Upon registration, check if we had an sw.
 

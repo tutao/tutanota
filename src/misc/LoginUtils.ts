@@ -3,7 +3,6 @@ import { Dialog } from "../gui/base/Dialog"
 import { generatedIdToTimestamp } from "../api/common/utils/EntityUtils"
 import type { TranslationText } from "./LanguageViewModel"
 import { lang } from "./LanguageViewModel"
-import { getApiOrigin } from "../api/common/Env"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -62,9 +61,7 @@ export function checkApprovalStatus(logins: LoginController, includeInvoiceNotPa
 				if (logins.getUserController().isGlobalAdmin()) {
 					if (includeInvoiceNotPaidForAdmin) {
 						return Dialog.message(() => {
-							return lang.get("invoiceNotPaid_msg", {
-								"{1}": getApiOrigin(),
-							})
+							return lang.get("invoiceNotPaid_msg")
 						})
 							.then(() => {
 								// TODO: navigate to payment site in settings

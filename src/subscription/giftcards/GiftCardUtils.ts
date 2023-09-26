@@ -14,7 +14,7 @@ import { theme } from "../../gui/theme"
 import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import { copyToClipboard } from "../../misc/ClipboardUtils"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
-import { getWebRoot, isAndroidApp, isApp } from "../../api/common/Env"
+import { isAndroidApp, isApp } from "../../api/common/Env"
 import { Checkbox } from "../../gui/base/Checkbox.js"
 import { Keys } from "../../api/common/TutanotaConstants"
 import { formatPrice } from "../PriceUtils"
@@ -58,7 +58,10 @@ export function loadGiftCards(customerId: Id): Promise<GiftCard[]> {
 
 export async function generateGiftCardLink(giftCard: GiftCard): Promise<string> {
 	const token = await locator.giftCardFacade.encodeGiftCardToken(giftCard)
-	return getWebRoot() + `/giftcard/#${token}`
+	const giftCardBaseUrl = locator.domainConfigProvider().getCurrentDomainConfig().giftCardBaseUrl
+	const giftCardUrl = new URL(giftCardBaseUrl)
+	giftCardUrl.hash = token
+	return giftCardUrl.href
 }
 
 export function showGiftCardToShare(giftCard: GiftCard) {

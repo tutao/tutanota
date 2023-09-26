@@ -182,6 +182,7 @@ export class SecondFactorEditDialog {
 			lang,
 			locator.loginFacade,
 			location.hostname,
+			locator.domainConfigProvider().getCurrentDomainConfig(),
 			m.redraw,
 		)
 		return new SecondFactorEditDialog(model)

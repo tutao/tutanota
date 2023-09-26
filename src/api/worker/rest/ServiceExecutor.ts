@@ -96,6 +96,7 @@ export class ServiceExecutor implements IServiceExecutor {
 			responseType: MediaType.Json,
 			body: encryptedEntity ?? undefined,
 			suspensionBehavior: params?.suspensionBehavior,
+			baseUrl: params?.baseUrl,
 		})
 
 		if (methodDefinition.return) {

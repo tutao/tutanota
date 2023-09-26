@@ -22,7 +22,6 @@ import type { Country } from "../api/common/CountryList"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
 import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef } from "../api/main/EventController"
 import { locator } from "../api/main/MainLocator"
-import { getPaymentWebRoot } from "../api/common/Env"
 import { Credentials } from "../misc/credentials/Credentials"
 import { SessionType } from "../api/common/SessionType.js"
 import { UsageTest } from "@tutao/tutanota-usagetests"
@@ -405,7 +404,10 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 			braintree3ds.bin,
 		)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${getClientType()}`
 		Dialog.message("creditCardVerificationNeededPopup_msg").then(() => {
-			window.open(`${getPaymentWebRoot()}/braintree.html#${params}`)
+			const paymentUrlString = locator.domainConfigProvider().getCurrentDomainConfig().paymentUrl
+			const paymentUrl = new URL(paymentUrlString)
+			paymentUrl.hash += params
+			window.open(paymentUrl)
 			progressDialog.show()
 		})
 		return progressDialogPromise.finally(() => locator.eventController.removeEntityListener(entityEventListener))

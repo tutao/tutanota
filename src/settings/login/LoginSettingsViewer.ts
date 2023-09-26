@@ -39,7 +39,10 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	private readonly _stars = stream("***")
 	private readonly _closedSessionsExpanded = stream(false)
 	private _sessions: Session[] = []
-	private readonly _secondFactorsForm = new SecondFactorsEditForm(new LazyLoaded(() => Promise.resolve(locator.logins.getUserController().user)))
+	private readonly _secondFactorsForm = new SecondFactorsEditForm(
+		new LazyLoaded(() => Promise.resolve(locator.logins.getUserController().user)),
+		locator.domainConfigProvider(),
+	)
 	private readonly credentialsEncryptionModeHelpLabel: (() => string) | null
 	private readonly _usageTestModel: UsageTestModel
 

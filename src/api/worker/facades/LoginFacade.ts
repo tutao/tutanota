@@ -426,8 +426,8 @@ export class LoginFacade {
 	}
 
 	/** Finishes 2FA process either using second factor or approving session on another client. */
-	async authenticateWithSecondFactor(data: SecondFactorAuthData): Promise<void> {
-		await this.serviceExecutor.post(SecondFactorAuthService, data)
+	async authenticateWithSecondFactor(data: SecondFactorAuthData, host?: string): Promise<void> {
+		await this.serviceExecutor.post(SecondFactorAuthService, data, { baseUrl: host })
 	}
 
 	/**

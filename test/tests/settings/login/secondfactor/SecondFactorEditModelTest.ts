@@ -14,6 +14,7 @@ import { noOp } from "@tutao/tutanota-utils"
 import { LanguageViewModel } from "../../../../../src/misc/LanguageViewModel.js"
 import { LoginFacade } from "../../../../../src/api/worker/facades/LoginFacade.js"
 import { SecondFactorType } from "../../../../../src/api/common/TutanotaConstants.js"
+import { domainConfigStub } from "../../../TestUtils.js"
 
 function createTotpKeys(): TotpSecret {
 	const key = new Uint8Array(16)
@@ -45,6 +46,7 @@ o.spec("SecondFactorEditModel", function () {
 			langMock,
 			loginFacadeMock,
 			hostname,
+			domainConfigStub,
 			params.updateView ?? noOp,
 		)
 		await model.otpInfo.getAsync()

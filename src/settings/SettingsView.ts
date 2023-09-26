@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
-import { assertMainOrNode, isApp, isDesktop, isIOSApp, isTutanotaDomain } from "../api/common/Env"
+import { assertMainOrNode, isApp, isDesktop, isIOSApp } from "../api/common/Env"
 import { ColumnType, ViewColumn } from "../gui/base/ViewColumn"
 import { ViewSlider } from "../gui/nav/ViewSlider.js"
 import { SettingsFolder } from "./SettingsFolder"
@@ -250,7 +250,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 										this._renderSidebarSectionChildren(this._knowledgeBaseFolders),
 								  )
 								: null,
-							isTutanotaDomain(location.hostname) ? this._aboutThisSoftwareLink() : null,
+							locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain ? this._aboutThisSoftwareLink() : null,
 						]),
 						ariaLabel: "settings_label",
 					})

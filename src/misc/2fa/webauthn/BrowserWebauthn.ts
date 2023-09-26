@@ -1,6 +1,6 @@
 import { COSEAlgorithmIdentifier } from "./WebauthnTypes.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
-import { getApiOrigin, isApp } from "../../../api/common/Env.js"
+import { isApp } from "../../../api/common/Env.js"
 import { WebAuthnFacade } from "../../../native/common/generatedipc/WebAuthnFacade.js"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { CancelledError } from "../../../api/common/error/CancelledError.js"
@@ -9,8 +9,6 @@ import { WebAuthnRegistrationChallenge } from "../../../native/common/generatedi
 import { WebAuthnRegistrationResult } from "../../../native/common/generatedipc/WebAuthnRegistrationResult.js"
 import { WebAuthnSignChallenge } from "../../../native/common/generatedipc/WebAuthnSignChallenge.js"
 import { WebAuthnSignResult } from "../../../native/common/generatedipc/WebAuthnSignResult.js"
-import { rpIdFromHostname } from "../SecondFactorUtils.js"
-import { Const } from "../../../api/common/TutanotaConstants.js"
 
 const WEBAUTHN_TIMEOUT_MS = 60000
 
@@ -25,9 +23,9 @@ export class BrowserWebauthn implements WebAuthnFacade {
 	private readonly appId: string
 	private currentOperationSignal: AbortController | null = null
 
-	constructor(private readonly api: CredentialsContainer, hostname: string) {
-		this.rpId = rpIdFromHostname(hostname)
-		this.appId = this.appidFromHostname(hostname)
+	constructor(private readonly api: CredentialsContainer, domainConfig: DomainConfig) {
+		this.rpId = domainConfig.webauthnRpId
+		this.appId = domainConfig.u2fAppId
 	}
 
 	async canAttemptChallengeForRpId(rpId: string): Promise<boolean> {
@@ -139,13 +137,5 @@ export class BrowserWebauthn implements WebAuthnFacade {
 	async abortCurrentOperation(): Promise<void> {
 		this.currentOperationSignal?.abort()
 		this.currentOperationSignal = null
-	}
-
-	private appidFromHostname(hostname: string): string {
-		if (hostname.endsWith(Const.LEGACY_WEBAUTHN_RP_ID)) {
-			return Const.U2F_APPID
-		} else {
-			return getApiOrigin() + Const.U2f_APPID_SUFFIX
-		}
 	}
 }

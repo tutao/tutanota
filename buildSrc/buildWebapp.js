@@ -12,6 +12,7 @@ import { bundleDependencyCheckPlugin, getChunkName, resolveLibs } from "./Rollup
 import os from "node:os"
 import * as env from "./env.js"
 import { createHtml } from "./createHtml.js"
+import { domainConfigs } from "./DomainConfigs.js"
 
 /**
  * Builds the web app for production.
@@ -138,10 +139,11 @@ self.onmessage = function (msg) {
 			version,
 			mode: "Browser",
 			dist: true,
+			domainConfigs,
 		}),
 	)
 	if (stage !== "release") {
-		await createHtml(env.create({ staticUrl: restUrl, version, mode: "App", dist: true }))
+		await createHtml(env.create({ staticUrl: restUrl, version, mode: "App", dist: true, domainConfigs }))
 	}
 
 	await bundleServiceWorker(chunks, version, minify)

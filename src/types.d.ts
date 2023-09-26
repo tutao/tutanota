@@ -31,6 +31,22 @@ declare type Base32 = string
 declare type EnvMode = "Browser" | "App" | "Test" | "Playground" | "Desktop" | "Admin"
 declare type PlatformId = "ios" | "android" | "darwin" | "linux" | "win32"
 
+type DomainConfig = {
+	firstPartyDomain: boolean
+	/** Important! You probably do not want to use it directly but rather through the accessor function */
+	apiUrl: string
+	webauthnUrl: string
+	legacyWebauthnUrl: string
+	paymentUrl: string
+	webauthnRpId: string
+	u2fAppId: string
+	giftCardBaseUrl: string
+	referralBaseUrl: string
+}
+
+/** A map from hostname to parameters for that domain. */
+type DomainConfigMap = Record<string, DomainConfig>
+
 declare var env: {
 	staticUrl?: string // if null the url from the browser is used
 	mode: EnvMode
@@ -38,7 +54,7 @@ declare var env: {
 	dist: boolean
 	versionNumber: string
 	timeout: number
-	systemConfig: any
+	domainConfigs: DomainConfigMap
 }
 
 type EventRedraw<T extends Event> = T & { redraw?: boolean }

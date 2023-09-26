@@ -3,7 +3,7 @@ import { createSecondFactor, GroupInfoTypeRef, U2fRegisteredDevice, User } from 
 import { validateWebauthnDisplayName, WebauthnClient } from "../../../misc/2fa/webauthn/WebauthnClient.js"
 import { TotpSecret } from "@tutao/tutanota-crypto"
 import { assertNotNull, LazyLoaded, neverNull } from "@tutao/tutanota-utils"
-import { isApp, isTutanotaDomain } from "../../../api/common/Env.js"
+import { isApp } from "../../../api/common/Env.js"
 import { htmlSanitizer } from "../../../misc/HtmlSanitizer.js"
 import { LanguageViewModel, TranslationKey } from "../../../misc/LanguageViewModel.js"
 import { SecondFactorType } from "../../../api/common/TutanotaConstants.js"
@@ -55,6 +55,7 @@ export class SecondFactorEditModel {
 		private readonly lang: LanguageViewModel,
 		private readonly loginFacade: LoginFacade,
 		private readonly hostname: string,
+		private readonly domainConfig: DomainConfig,
 		private readonly updateViewCallback: () => void,
 	) {
 		this.selectedType = webauthnSupported ? SecondFactorType.webauthn : SecondFactorType.totp
@@ -213,7 +214,7 @@ export class SecondFactorEditModel {
 	/** see https://github.com/google/google-authenticator/wiki/Key-Uri-Format */
 	private async getOtpAuthUrl(secret: string): Promise<string> {
 		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.user.userGroup.groupInfo)
-		const issuer = isTutanotaDomain(this.hostname) ? "Tutanota" : this.hostname
+		const issuer = this.domainConfig.firstPartyDomain ? "Tutanota" : this.hostname
 		const account = encodeURI(issuer + ":" + neverNull(userGroupInfo.mailAddress))
 		const url = new URL("otpauth://totp/" + account)
 		url.searchParams.set("issuer", issuer)
