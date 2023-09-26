@@ -227,35 +227,29 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	}
 
 	_renderLoginForm(): Children {
-		return m(
-			".flex.col.pb",
-			{
+		return m(".flex.col.pb", [
+			m(LoginForm, {
 				oncreate: (vnode) => {
-					const children = vnode.children as ChildArray
-					const firstChild = children[0] as Vnode<unknown, LoginForm>
-					this.loginForm.resolve(firstChild.state)
+					const form = vnode as Vnode<unknown, LoginForm>
+					this.loginForm.resolve(form.state)
 				},
-			},
-			[
-				m(LoginForm, {
-					oninit: () => {
-						// we need to re-resolve this promise sometimes and for that we
-						// need a new promise. otherwise, callbacks that are registered after
-						// this point never get called because they have been registered after
-						// it was resolved the first time.
-						this.loginForm = defer()
-					},
-					onSubmit: () => this._loginWithProgressDialog(),
-					mailAddress: this.viewModel.mailAddress,
-					password: this.viewModel.password,
-					savePassword: this.viewModel.savePassword,
-					helpText: lang.getMaybeLazy(this.viewModel.helpText),
-					invalidCredentials: this.viewModel.state === LoginState.InvalidCredentials,
-					showRecoveryOption: this._recoverLoginVisible(),
-					accessExpired: this.viewModel.state === LoginState.AccessExpired,
-				}),
-			],
-		)
+				onremove: () => {
+					// we need to re-resolve this promise sometimes and for that we
+					// need a new promise. otherwise, callbacks that are registered after
+					// this point never get called because they have been registered after
+					// it was resolved the first time.
+					this.loginForm = defer()
+				},
+				onSubmit: () => this._loginWithProgressDialog(),
+				mailAddress: this.viewModel.mailAddress,
+				password: this.viewModel.password,
+				savePassword: this.viewModel.savePassword,
+				helpText: lang.getMaybeLazy(this.viewModel.helpText),
+				invalidCredentials: this.viewModel.state === LoginState.InvalidCredentials,
+				showRecoveryOption: this._recoverLoginVisible(),
+				accessExpired: this.viewModel.state === LoginState.AccessExpired,
+			}),
+		])
 	}
 
 	async _loginWithProgressDialog() {
