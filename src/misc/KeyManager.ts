@@ -134,24 +134,28 @@ class KeyManager {
 	}
 
 	_handleKeydown(e: KeyboardEvent): void {
-		let keysToShortcuts = this._keyToModalShortcut.size > 1 ? this._keyToModalShortcut : this._keyToShortcut
-		let shortcut = e.key ? keysToShortcuts.get(createKeyIdentifier(e.key.toLowerCase(), e.ctrlKey, e.altKey, e.shiftKey, e.metaKey)) : null
+		// If we get a keyboard event while in a composition system (such as an input method editor),
+		// it should be ignored (since the system should be handling key commands for that).
+		if (!e.isComposing) {
+			let keysToShortcuts = this._keyToModalShortcut.size > 1 ? this._keyToModalShortcut : this._keyToShortcut
+			let shortcut = e.key ? keysToShortcuts.get(createKeyIdentifier(e.key.toLowerCase(), e.ctrlKey, e.altKey, e.shiftKey, e.metaKey)) : null
 
-		if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
-			if (
-				shortcut.exec({
-					key: e.key,
-					ctrl: e.ctrlKey,
-					// @ts-ignore
-					alt: e.altKey,
-					shift: e.shiftKey,
-					meta: e.metaKey,
-				}) !== true
-			) {
-				e.preventDefault()
+			if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
+				if (
+					shortcut.exec({
+						key: e.key,
+						ctrl: e.ctrlKey,
+						// @ts-ignore
+						alt: e.altKey,
+						shift: e.shiftKey,
+						meta: e.metaKey,
+					}) !== true
+				) {
+					e.preventDefault()
+				}
 			}
+			m.redraw()
 		}
-		m.redraw()
 	}
 
 	/**
