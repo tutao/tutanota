@@ -1,5 +1,5 @@
 import { InfoLink, lang } from "../../LanguageViewModel.js"
-import { getWebRoot, isApp } from "../../../api/common/Env.js"
+import { isApp } from "../../../api/common/Env.js"
 import { locator } from "../../../api/main/MainLocator.js"
 import { copyToClipboard } from "../../ClipboardUtils.js"
 import { showSnackBar } from "../../../gui/base/SnackBar.js"
@@ -100,7 +100,10 @@ export class ReferralLinkViewer implements Component<ReferralLinkAttrs> {
 export async function getReferralLink(userController: UserController): Promise<string> {
 	const customer = await userController.loadCustomer()
 	const referralCode = customer.referralCode ? customer.referralCode : await requestNewReferralCode()
-	return `${getWebRoot()}/signup?ref=${referralCode}`
+	const referralBaseUrl = locator.domainConfigProvider().getCurrentDomainConfig().referralBaseUrl
+	const referralUrl = new URL(referralBaseUrl)
+	referralUrl.searchParams.set("ref", referralCode)
+	return referralUrl.href
 }
 
 async function requestNewReferralCode(): Promise<string> {

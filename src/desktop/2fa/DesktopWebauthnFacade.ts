@@ -43,7 +43,7 @@ export class DesktopWebauthnFacade implements WebAuthnFacade {
 	}
 
 	private async withDialog<T>(baseDomain: string, request: (webauthn: WebAuthnFacade) => Promise<T>): Promise<T> {
-		this.currentDialog = this.webDialogController.create(this.parentWindow.id, new URL(baseDomain + "/webauthn"))
+		this.currentDialog = this.webDialogController.create(this.parentWindow.id, new URL(baseDomain))
 
 		const dialog = await this.currentDialog
 		try {

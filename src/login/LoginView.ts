@@ -1,6 +1,6 @@
 import m, { ChildArray, Children, Vnode } from "mithril"
 import { client } from "../misc/ClientDetector"
-import { assertMainOrNode, isApp, isDesktop, isTutanotaDomain } from "../api/common/Env"
+import { assertMainOrNode, isApp, isDesktop } from "../api/common/Env"
 import { InfoLink, lang } from "../misc/LanguageViewModel"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer, mapNullable } from "@tutao/tutanota-utils"
@@ -95,7 +95,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 								this.renderMoreOptions(),
 							),
 							m(".flex-grow"),
-							!(isApp() || isDesktop()) && isTutanotaDomain(location.hostname) ? this._renderAppButtons() : null,
+							!(isApp() || isDesktop()) && this.viewModel.shouldShowAppButtons() ? this._renderAppButtons() : null,
 							renderInfoLinks(),
 						],
 					),
@@ -189,7 +189,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	}
 
 	_signupLinkVisible(): boolean {
-		return this.viewModel.displayMode === DisplayMode.Form && (isTutanotaDomain(location.hostname) || getWhitelabelRegistrationDomains().length > 0)
+		return this.viewModel.displayMode === DisplayMode.Form && this.viewModel.shouldShowSignup()
 	}
 
 	_loginAnotherLinkVisible(): boolean {
@@ -209,7 +209,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	}
 
 	_recoverLoginVisible(): boolean {
-		return isTutanotaDomain(location.hostname)
+		return this.viewModel.shouldShowRecover()
 	}
 
 	_renderLoginForm(): Children {

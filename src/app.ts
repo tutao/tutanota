@@ -1,9 +1,10 @@
 import { client } from "./misc/ClientDetector"
+import type Mithril from "mithril"
 import m, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "./misc/LanguageViewModel"
 import { root } from "./RootView"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "./misc/ErrorHandler"
-import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable, isTutanotaDomain } from "./api/common/Env"
+import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable } from "./api/common/Env"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { windowFacade } from "./misc/WindowFacade"
 import { styles } from "./gui/styles"
@@ -36,7 +37,6 @@ import type { MailViewModel } from "./mail/view/MailViewModel.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
-import type Mithril from "mithril"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -182,10 +182,12 @@ import("./translations/en")
 					prepareRoute: async () => {
 						const { LoginViewModel } = await import("./login/LoginViewModel.js")
 						const { LoginView } = await import("./login/LoginView.js")
+						const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
 						return {
 							component: LoginView,
 							cache: {
-								makeViewModel: () => new LoginViewModel(locator.logins, locator.credentialsProvider, locator.secondFactorHandler, deviceConfig),
+								makeViewModel: () =>
+									new LoginViewModel(locator.logins, locator.credentialsProvider, locator.secondFactorHandler, deviceConfig, domainConfig),
 							},
 						}
 					},
@@ -391,8 +393,12 @@ import("./translations/en")
 					const { BrowserWebauthn } = await import("./misc/2fa/webauthn/BrowserWebauthn.js")
 					const { NativeWebauthnView } = await import("./login/NativeWebauthnView.js")
 					const { WebauthnNativeBridge } = await import("./native/main/WebauthnNativeBridge.js")
+					// getCurrentDomainConfig() takes env.staticUrl into account but we actually don't care about it in this case.
+					// Scenario when it can differ: local desktop client which opens webauthn window and that window is also built with the static URL because
+					// it is the same client build.
+					const domainConfig = locator.domainConfigProvider().getDomainConfigForHostname(location.hostname)
 					const creds = navigator.credentials
-					return new NativeWebauthnView(new BrowserWebauthn(creds, window.location.hostname), new WebauthnNativeBridge())
+					return new NativeWebauthnView(new BrowserWebauthn(creds, domainConfig), new WebauthnNativeBridge())
 				},
 				{
 					requireLogin: false,
@@ -405,10 +411,12 @@ import("./translations/en")
 					prepareRoute: async () => {
 						const { MobileWebauthnView } = await import("./login/MobileWebauthnView.js")
 						const { BrowserWebauthn } = await import("./misc/2fa/webauthn/BrowserWebauthn.js")
+						// see /webauthn view resolver for the explanation
+						const domainConfig = locator.domainConfigProvider().getDomainConfigForHostname(location.hostname)
 						return {
 							component: MobileWebauthnView,
 							cache: {
-								browserWebauthn: new BrowserWebauthn(navigator.credentials, window.location.hostname),
+								browserWebauthn: new BrowserWebauthn(navigator.credentials, domainConfig),
 							},
 						}
 					},
@@ -457,7 +465,10 @@ import("./translations/en")
 			locator.logins.addPostLoginAction(async () => exposeNativeInterface(locator.native).postLoginActions)
 		}
 		// after we set up prefixWithoutFile
-		initSW()
+		const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
+		initSW(domainConfig)
+
+		printJobsMessage(domainConfig)
 	})
 
 function forceLogin(args: Record<string, Dict>, requestedPath: string) {
@@ -715,9 +726,9 @@ function registerForMailto() {
 	}
 }
 
-env.dist &&
-	isTutanotaDomain(location.hostname) &&
-	setTimeout(() => {
+function printJobsMessage(domainConfig: DomainConfig) {
+	env.dist &&
+		domainConfig.firstPartyDomain &&
 		console.log(`
 
 ''''''''''''''''''''''''''''''''''''''''
@@ -742,4 +753,4 @@ ldk0XWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 WWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 
 `)
-	}, 5000)
+}

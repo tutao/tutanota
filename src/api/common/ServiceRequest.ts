@@ -59,4 +59,6 @@ export interface ExtraServiceParams {
 	sessionKey?: Aes128Key
 	extraHeaders?: Dict
 	suspensionBehavior?: SuspensionBehavior
+	/** override origin for the request */
+	baseUrl?: string
 }

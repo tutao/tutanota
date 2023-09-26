@@ -13,58 +13,22 @@ export const Mode: Record<EnvMode, EnvMode> = Object.freeze({
 	Admin: "Admin",
 })
 
-export function getWebsocketOrigin(): string {
+export function getWebsocketBaseUrl(domainConfig: DomainConfig): string {
 	return (
-		getApiOrigin()
+		domainConfig.apiUrl
 			// replaces http: with ws: and https: with wss:
 			.replace(/^http/, "ws")
-			// for ios app custom protocol
-			.replace(/^api/, "ws")
 	)
 }
 
 /** Returns the origin which should be used for API requests. */
-export function getApiOrigin(): string {
-	if (env.staticUrl) {
-		if (isIOSApp()) {
-			// http:// -> api:// and https:// -> apis://
-			return env.staticUrl.replace(/^http/, "api")
-		} else {
-			return env.staticUrl
-		}
+export function getApiBaseUrl(domainConfig: DomainConfig): string {
+	if (isIOSApp()) {
+		// http:// -> api:// and https:// -> apis://
+		return domainConfig.apiUrl.replace(/^http/, "api")
 	} else {
-		return location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")
+		return domainConfig.apiUrl
 	}
-}
-
-/**
- * root used for gift cards, referral links, and as the webauthn registered domain
- */
-export function getWebRoot(): string {
-	if (!env.staticUrl) {
-		return location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")
-	}
-
-	let origin = env.staticUrl
-	if (origin.startsWith("http://localhost:") || origin.startsWith("https://local.tutanota.com:")) {
-		origin += "/client/build"
-	}
-	return origin
-}
-
-export function getPaymentWebRoot(): string {
-	if (env.staticUrl === "mail.tutanota.com") {
-		return "https://pay.tutanota.com"
-	} else if (env.staticUrl === "test.tutanota.com") {
-		return "https://pay.test.tutanota.com"
-	} else {
-		return getWebRoot()
-	}
-}
-
-export function isTutanotaDomain(hostname: string): boolean {
-	// *.tutanota.com or without dots (e.g. localhost). otherwise it is a custom domain
-	return hostname.endsWith("tutanota.com") || hostname.indexOf(".") === -1
 }
 
 export function isIOSApp(): boolean {
@@ -186,9 +150,25 @@ export function isOfflineStorageAvailable(): boolean {
 	return !isBrowser()
 }
 
-export function assertOfflineStorageAvailable() {
-	if (!isOfflineStorageAvailable()) {
-		throw new Error("Offline storage is not available")
+export class DomainConfigProvider {
+	getCurrentDomainConfig(): DomainConfig {
+		// it is ambigious what to do when we run website on one domain but have static URL for another
+		//   one but this actually shouldn't happen.
+		const hostname = new URL(env.staticUrl ?? location.href).hostname
+		return this.getDomainConfigForHostname(hostname)
 	}
-	return isDesktop()
+
+	getDomainConfigForHostname(hostname: string): DomainConfig {
+		const staticConfig = env.domainConfigs[hostname]
+		if (staticConfig) {
+			return staticConfig
+		} else {
+			const dynamicConfig = env.domainConfigs["{hostname}"]
+			const entries = Object.entries(dynamicConfig).map(([key, value]) => {
+				const replacedValue = typeof value === "string" ? value.replace("{hostname}", hostname) : value
+				return [key, replacedValue]
+			})
+			return Object.fromEntries(entries)
+		}
+	}
 }

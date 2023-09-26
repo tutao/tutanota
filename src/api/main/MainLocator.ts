@@ -4,7 +4,7 @@ import { EventController } from "./EventController"
 import { EntropyCollector } from "./EntropyCollector"
 import { SearchModel } from "../../search/model/SearchModel"
 import { MailboxDetail, MailModel } from "../../mail/model/MailModel"
-import { assertMainOrNode, getWebRoot, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp } from "../common/Env"
+import { assertMainOrNode, DomainConfigProvider, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp } from "../common/Env"
 import { notifications } from "../../gui/Notifications"
 import { LoginController } from "./LoginController"
 import type { ContactModel } from "../../contacts/model/ContactModel"
@@ -484,6 +484,10 @@ class MainLocator {
 		})
 	}
 
+	domainConfigProvider(): DomainConfigProvider {
+		return new DomainConfigProvider()
+	}
+
 	private getExposedNativeInterface(): ExposedNativeInterface {
 		if (isBrowser()) {
 			throw new ProgrammingError("Tried to access native interfaces in browser")
@@ -622,20 +626,29 @@ class MainLocator {
 				const desktopInterfaces = createDesktopInterfaces(this.native)
 				this.searchTextFacade = desktopInterfaces.searchTextFacade
 				this.interWindowEventSender = desktopInterfaces.interWindowEventSender
-				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), getWebRoot())
+				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider())
 				if (isDesktop()) {
 					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
 				}
 			} else if (isAndroidApp() || isIOSApp()) {
-				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), getWebRoot())
+				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider())
 			}
 		}
 
 		if (this.webAuthn == null) {
-			this.webAuthn = new WebauthnClient(new BrowserWebauthn(navigator.credentials, window.location.hostname), getWebRoot())
+			this.webAuthn = new WebauthnClient(
+				new BrowserWebauthn(navigator.credentials, this.domainConfigProvider().getCurrentDomainConfig()),
+				this.domainConfigProvider(),
+			)
 		}
-		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webAuthn, this.loginFacade)
+		this.secondFactorHandler = new SecondFactorHandler(
+			this.eventController,
+			this.entityClient,
+			this.webAuthn,
+			this.loginFacade,
+			this.domainConfigProvider(),
+		)
 		this.loginListener = new PageContextLoginListener(this.secondFactorHandler)
 		this.credentialsProvider = await createCredentialsProvider(
 			deviceEncryptionFacade,

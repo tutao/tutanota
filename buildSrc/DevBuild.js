@@ -10,6 +10,7 @@ import * as LaunchHtml from "./LaunchHtml.js"
 import os from "node:os"
 import { checkOfflineDatabaseMigrations } from "./checkOfflineDbMigratons.js"
 import { buildRuntimePackages } from "./packageBuilderFunctions.js"
+import { domainConfigs } from "./DomainConfigs.js"
 
 export async function runDevBuild({ stage, host, desktop, clean, ignoreMigrations }) {
 	if (clean) {
@@ -104,7 +105,7 @@ async function buildDesktopPart({ version }) {
 					nativeBindingPath: "./keytar.node",
 					platform: process.platform,
 				}),
-				preludeEnvPlugin(env.create({ staticUrl: null, version, mode: "Desktop", dist: false })),
+				preludeEnvPlugin(env.create({ staticUrl: null, version, mode: "Desktop", dist: false, domainConfigs })),
 				externalTranslationsPlugin(),
 			],
 		})
@@ -205,6 +206,6 @@ export async function prepareAssets(stage, host, version) {
 	await fs.writeFile("build/polyfill.js", "")
 
 	for (const mode of ["Browser", "App", "Desktop"]) {
-		await createBootstrap(env.create({ staticUrl: getStaticUrl(stage, mode, host), version, mode, dist: false }))
+		await createBootstrap(env.create({ staticUrl: getStaticUrl(stage, mode, host), version, mode, dist: false, domainConfigs }))
 	}
 }

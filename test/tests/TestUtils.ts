@@ -95,3 +95,15 @@ export class SchedulerMock implements Scheduler {
 		return this.alarmId++
 	}
 }
+
+export const domainConfigStub: DomainConfig = {
+	firstPartyDomain: true,
+	apiUrl: "",
+	u2fAppId: "",
+	webauthnRpId: "",
+	referralBaseUrl: "",
+	giftCardBaseUrl: "",
+	paymentUrl: "",
+	webauthnUrl: "",
+	legacyWebauthnUrl: "",
+}

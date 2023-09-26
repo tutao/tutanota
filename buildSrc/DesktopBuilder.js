@@ -13,6 +13,7 @@ import typescript from "@rollup/plugin-typescript"
 import { copyNativeModulePlugin, nativeBannerPlugin } from "./nativeLibraryRollupPlugin.js"
 import { fileURLToPath } from "node:url"
 import { getCanonicalPlatformName } from "./buildUtils.js"
+import { domainConfigs } from "./DomainConfigs.js"
 
 const exec = util.promisify(cp.exec)
 const buildSrc = dirname(fileURLToPath(import.meta.url))
@@ -139,7 +140,7 @@ async function rollupDesktop(dirname, outDir, version, platform, disableMinify) 
 				resolveOnly: [/^@tutao\/.*$/],
 			}),
 			disableMinify ? undefined : terser(),
-			preludeEnvPlugin(createEnv({ staticUrl: null, version, mode: "Desktop", dist: true })),
+			preludeEnvPlugin(createEnv({ staticUrl: null, version, mode: "Desktop", dist: true, domainConfigs })),
 			nativeBannerPlugin({
 				// Relative to the source file from which the .node file is loaded.
 				// In our case it will be desktop/DesktopMain.js, which is located in the same directory.

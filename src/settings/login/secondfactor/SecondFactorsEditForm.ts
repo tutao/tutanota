@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, isTutanotaDomain } from "../../../api/common/Env.js"
+import { assertMainOrNode, DomainConfigProvider } from "../../../api/common/Env.js"
 import type { User } from "../../../api/entities/sys/TypeRefs.js"
 import { SecondFactorTypeRef } from "../../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/tutanota-utils"
@@ -25,11 +25,9 @@ assertMainOrNode()
 
 export class SecondFactorsEditForm {
 	_2FALineAttrs: TableLineAttrs[]
-	_user: LazyLoaded<User>
 
-	constructor(user: LazyLoaded<User>) {
+	constructor(private readonly user: LazyLoaded<User>, private readonly domainConfigProvider: DomainConfigProvider) {
 		this._2FALineAttrs = []
-		this._user = user
 
 		this._updateSecondFactors()
 	}
@@ -50,7 +48,7 @@ export class SecondFactorsEditForm {
 		return [
 			m(".h4.mt-l", lang.get("secondFactorAuthentication_label")),
 			m(Table, secondFactorTableAttrs),
-			isTutanotaDomain(location.hostname)
+			this.domainConfigProvider.getCurrentDomainConfig().firstPartyDomain
 				? [
 						m("span.small", lang.get("moreInfo_msg") + " "),
 						ifAllowedTutanotaLinks(locator.logins, InfoLink.SecondFactor, (link) =>
@@ -62,7 +60,7 @@ export class SecondFactorsEditForm {
 	}
 
 	async _updateSecondFactors(): Promise<void> {
-		const user = await this._user.getAsync()
+		const user = await this.user.getAsync()
 		const factors = await locator.entityClient.loadAll(SecondFactorTypeRef, neverNull(user.auth).secondFactors)
 		// If we have keys registered on multiple domains (read: whitelabel) then we display domain for each
 		const loginDomains = new Set<string>()
@@ -71,7 +69,7 @@ export class SecondFactorsEditForm {
 			const isU2F = f.type === SecondFactorType.u2f || f.type === SecondFactorType.webauthn
 
 			if (isU2F) {
-				const loginDomain = appIdToLoginDomain(assertNotNull(f.u2f).appId)
+				const loginDomain = appIdToLoginDomain(assertNotNull(f.u2f).appId, this.domainConfigProvider)
 				loginDomains.add(loginDomain)
 			}
 		}
@@ -87,7 +85,8 @@ export class SecondFactorsEditForm {
 				icon: Icons.Cancel,
 				size: ButtonSize.Compact,
 			}
-			const domainInfo = isU2F && loginDomains.size > 1 ? (f.name.length > 0 ? " - " : "") + appIdToLoginDomain(neverNull(f.u2f).appId) : ""
+			const domainInfo =
+				isU2F && loginDomains.size > 1 ? (f.name.length > 0 ? " - " : "") + appIdToLoginDomain(neverNull(f.u2f).appId, this.domainConfigProvider) : ""
 			const type = assertEnumValue(SecondFactorType, f.type)
 			return {
 				cells: [f.name + domainInfo, lang.get(SecondFactorTypeToNameTextId[type])],
@@ -99,7 +98,7 @@ export class SecondFactorsEditForm {
 
 	_showAddSecondFactorDialog() {
 		const mailAddress = assertNotNull(locator.logins.getUserController().userGroupInfo.mailAddress)
-		SecondFactorEditDialog.loadAndShow(locator.entityClient, this._user, mailAddress)
+		SecondFactorEditDialog.loadAndShow(locator.entityClient, this.user, mailAddress)
 	}
 
 	entityEventReceived(update: EntityUpdateData): Promise<void> {

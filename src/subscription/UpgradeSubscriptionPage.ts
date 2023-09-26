@@ -3,7 +3,7 @@ import stream from "mithril/stream"
 import { lang } from "../misc/LanguageViewModel"
 import type { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
-import { isApp, isTutanotaDomain } from "../api/common/Env"
+import { isApp } from "../api/common/Env"
 import { client } from "../misc/ClientDetector"
 import { Button, ButtonAttrs, ButtonType } from "../gui/base/Button.js"
 import { UpgradeType } from "./SubscriptionUtils"
@@ -274,6 +274,6 @@ export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubs
 	}
 
 	isEnabled(): boolean {
-		return isTutanotaDomain(location.hostname) && !(isApp() && client.isIos())
+		return locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain && !(isApp() && client.isIos())
 	}
 }

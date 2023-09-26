@@ -8,6 +8,7 @@ import { aliasPath as esbuildPluginAliasPath } from "esbuild-plugin-alias-path"
 import { keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin } from "../buildSrc/esbuildUtils.js"
 import { buildPackages } from "../buildSrc/packageBuilderFunctions.js"
 import watPlugin from "esbuild-plugin-wat"
+import { domainConfigs } from "../buildSrc/DomainConfigs.js"
 
 export async function runTestBuild({ clean, fast = false }) {
 	if (clean) {
@@ -27,7 +28,7 @@ export async function runTestBuild({ clean, fast = false }) {
 	}
 
 	const version = getTutanotaAppVersion()
-	const localEnv = env.create({ staticUrl: "http://localhost:9000", version, mode: "Test", dist: false })
+	const localEnv = env.create({ staticUrl: "http://localhost:9000", version, mode: "Test", dist: false, domainConfigs })
 
 	await runStep("Assets", async () => {
 		const pjPath = path.join("..", "package.json")

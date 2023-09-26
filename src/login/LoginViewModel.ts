@@ -14,6 +14,7 @@ import { assertMainOrNode } from "../api/common/Env"
 import { SessionType } from "../api/common/SessionType"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
 import { DeviceConfig } from "../misc/DeviceConfig"
+import { getWhitelabelRegistrationDomains } from "./LoginView.js"
 
 assertMainOrNode()
 
@@ -133,6 +134,7 @@ export class LoginViewModel implements ILoginViewModel {
 		private readonly credentialsProvider: CredentialsProvider,
 		private readonly secondFactorHandler: SecondFactorHandler,
 		private readonly deviceConfig: DeviceConfig,
+		private readonly domainConfig: DomainConfig,
 	) {
 		this.state = LoginState.NotAuthenticated
 		this.displayMode = DisplayMode.Form
@@ -252,6 +254,18 @@ export class LoginViewModel implements ILoginViewModel {
 	showCredentials() {
 		this.displayMode = DisplayMode.Credentials
 		this.helpText = "emptyString_msg"
+	}
+
+	shouldShowRecover(): boolean {
+		return this.domainConfig.firstPartyDomain
+	}
+
+	shouldShowSignup(): boolean {
+		return this.domainConfig.firstPartyDomain || getWhitelabelRegistrationDomains().length > 0
+	}
+
+	shouldShowAppButtons(): boolean {
+		return this.domainConfig.firstPartyDomain
 	}
 
 	async _updateCachedCredentials() {
