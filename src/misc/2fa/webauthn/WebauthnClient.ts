@@ -3,8 +3,8 @@ import { assert, downcast, getFirstOrThrow, partitionAsync, stringToUtf8Uint8Arr
 import type { U2fChallenge, U2fRegisteredDevice, WebauthnResponseData } from "../../../api/entities/sys/TypeRefs.js"
 import { createU2fRegisteredDevice, createWebauthnResponseData, U2fKey } from "../../../api/entities/sys/TypeRefs.js"
 import { WebAuthnFacade } from "../../../native/common/generatedipc/WebAuthnFacade.js"
-import { U2F_APPID, U2f_APPID_SUFFIX, WEBAUTHN_RP_ID } from "./WebAuthn.js"
 import { WebauthnKeyDescriptor } from "../../../native/common/generatedipc/WebauthnKeyDescriptor.js"
+import { Const } from "../../../api/common/TutanotaConstants.js"
 
 /** Web authentication entry point for the rest of the app. */
 export class WebauthnClient {
@@ -76,7 +76,7 @@ export class WebauthnClient {
 		// domains as well as for whitelabel domains.
 
 		let selectedClientUrl
-		if (challenge.keys.some((k) => k.appId === WEBAUTHN_RP_ID)) {
+		if (challenge.keys.some((k) => k.appId === Const.LEGACY_WEBAUTHN_RP_ID)) {
 			// First, if we find our own key then open web client on our URL.
 			// Even if it's a different subdomain of ours it can still match because it is scoped for all tutanota.com subdomains
 			selectedClientUrl = this.clientWebRoot
@@ -88,7 +88,7 @@ export class WebauthnClient {
 			const webauthnKey = challenge.keys.find((k) => !this.isLegacyU2fKey(k))
 			if (webauthnKey) {
 				selectedClientUrl = `https://${webauthnKey.appId}`
-			} else if (challenge.keys.some((k) => k.appId === U2F_APPID)) {
+			} else if (challenge.keys.some((k) => k.appId === Const.U2F_APPID)) {
 				// There are only legacy U2F keys but there is one for our domain, take it
 				selectedClientUrl = this.clientWebRoot
 			} else {
@@ -100,13 +100,13 @@ export class WebauthnClient {
 	}
 
 	private isLegacyU2fKey(key: U2fKey): boolean {
-		return key.appId.endsWith(U2f_APPID_SUFFIX)
+		return key.appId.endsWith(Const.U2f_APPID_SUFFIX)
 	}
 
 	private legacyU2fKeyToBaseUrl(key: U2fKey): string {
 		assert(this.isLegacyU2fKey(key), "Is not a legacy u2f key")
 
-		return key.appId.slice(0, -U2f_APPID_SUFFIX.length)
+		return key.appId.slice(0, -Const.U2f_APPID_SUFFIX.length)
 	}
 
 	private getChallenge(): Uint8Array {
