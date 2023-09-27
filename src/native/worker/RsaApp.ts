@@ -1,4 +1,4 @@
-import type { PrivateKey, PublicKey, Randomizer, RsaKeyPair } from "@tutao/tutanota-crypto"
+import type { RsaPrivateKey, RsaPublicKey, Randomizer, RsaKeyPair } from "@tutao/tutanota-crypto"
 import type { RsaImplementation } from "../../api/worker/crypto/RsaImplementation"
 import { NativeCryptoFacade } from "../common/generatedipc/NativeCryptoFacade"
 
@@ -14,7 +14,7 @@ export class RsaApp implements RsaImplementation {
 	/**
 	 * Encrypt bytes with the provided publicKey
 	 */
-	async encrypt(publicKey: PublicKey, bytes: Uint8Array): Promise<Uint8Array> {
+	async encrypt(publicKey: RsaPublicKey, bytes: Uint8Array): Promise<Uint8Array> {
 		const seed = this.rng.generateRandomData(32)
 
 		return await this.nativeCryptoFacade.rsaEncrypt(publicKey, bytes, seed)
@@ -23,7 +23,7 @@ export class RsaApp implements RsaImplementation {
 	/**
 	 * Decrypt bytes with the provided privateKey
 	 */
-	async decrypt(privateKey: PrivateKey, bytes: Uint8Array): Promise<Uint8Array> {
+	async decrypt(privateKey: RsaPrivateKey, bytes: Uint8Array): Promise<Uint8Array> {
 		return await this.nativeCryptoFacade.rsaDecrypt(privateKey, bytes)
 	}
 }

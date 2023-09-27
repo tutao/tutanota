@@ -64,6 +64,7 @@ import { ConnectionError, ServiceUnavailableError } from "../common/error/RestEr
 import { SessionType } from "../common/SessionType.js"
 import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "./facades/Argon2idFacade.js"
 import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
+import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "./facades/KyberFacade.js"
 
 assertWorkerOrNode()
 
@@ -78,6 +79,7 @@ export type WorkerLocatorType = {
 	cachingEntityClient: EntityClient
 	eventBusClient: EventBusClient
 	rsa: RsaImplementation
+	kyberFacade: KyberFacade
 	entropyFacade: EntropyFacade
 	blobAccessToken: BlobAccessTokenFacade
 
@@ -178,6 +180,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { Indexer } = await import("./search/Indexer.js")
 		return new Indexer(entityRestClient, mainInterface.infoMessageHandler, browserData, locator.cache as DefaultEntityRestCache)
 	})
+
+	if (isIOSApp() || isAndroidApp()) {
+		locator.kyberFacade = new NativeKyberFacade(new NativeCryptoFacadeSendDispatcher(worker))
+	} else {
+		locator.kyberFacade = new WASMKyberFacade()
+	}
 
 	locator.crypto = new CryptoFacade(
 		locator.user,

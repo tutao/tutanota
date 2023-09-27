@@ -1,0 +1,7 @@
+{
+	"name": "KyberPublicKey",
+	"type": "struct",
+	"fields": {
+		"raw": "bytes"
+	}
+}

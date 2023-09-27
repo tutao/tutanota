@@ -1,32 +1,9 @@
 import o from "@tutao/otest"
-import { bitArrayToUint8Array, generateRandomSalt, uint8ArrayToBitArray } from "../lib/index.js"
+import { bitArrayToUint8Array, generateRandomSalt } from "../lib/index.js"
 import { generateKeyFromPassphrase } from "../lib/hashes/Argon2id/Argon2id.js"
-import { Hex, hexToUint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
-import { Aes256Key } from "../lib/encryption/Aes.js"
+import { loadWasmModuleFromFile } from "./WebAssemblyTestUtils.js"
 
-async function loadArgon2ModuleFromFile(path: string): Promise<WebAssembly.Exports> {
-	if (typeof process !== "undefined") {
-		try {
-			const { readFile } = await import("node:fs/promises")
-			const wasmBuffer = await readFile(path)
-			return (await WebAssembly.instantiate(wasmBuffer)).instance.exports
-		} catch (e) {
-			throw new Error(`Can't load argon2 module: ${e}`)
-		}
-	} else {
-		return (await WebAssembly.instantiateStreaming(await fetch(path))).instance.exports
-	}
-}
-
-const argon2 = await loadArgon2ModuleFromFile("../lib/hashes/Argon2id/argon2.wasm")
-
-function _hexToKey(hex: Hex): Aes256Key {
-	return uint8ArrayToBitArray(hexToUint8Array(hex))
-}
-
-function _keyToHex(key: Aes256Key): Hex {
-	return uint8ArrayToHex(bitArrayToUint8Array(key))
-}
+const argon2 = await loadWasmModuleFromFile("../lib/hashes/Argon2id/argon2.wasm")
 
 o.spec("Argon2id", async function () {
 	o("GenerateKeyFromPassphrase", async function () {

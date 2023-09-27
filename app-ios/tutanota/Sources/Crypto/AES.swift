@@ -108,17 +108,14 @@ private func aesDecrypt(data: Data, withKey key: Data, withPadding: Bool) throws
   let data = [UInt8](data) // to allow for slicing
   
   let useMAC = hasMAC(data)
-  let cKey: Data
+  let subKeys = try getSubKeys(withAESKey: key, withMAC: useMAC)
   let ivOffset: Int
   
   if useMAC {
-    let subKeys = try getSubKeys(withAESKey: key, withMAC: useMAC)
     try verifyMAC(forData: data, withMKey: subKeys.mKey!)
-    cKey = subKeys.cKey
     ivOffset = MAC_IDENTIFIER.count
   }
   else {
-    cKey = key
     ivOffset = 0
   }
   
@@ -134,7 +131,7 @@ private func aesDecrypt(data: Data, withKey key: Data, withPadding: Bool) throws
   
   var output: [UInt8] = []
   output.reserveCapacity(encryptedData.count) // allocate upfront to avoid reallocation cost; this may be slightly more due to padding but that's OK
-  try aesDoCrypt(operation: CCOperation(kCCDecrypt), withKey: cKey, withData: encryptedData, toOutput: &output, withIV: Data(iv), withPadding: withPadding)
+  try aesDoCrypt(operation: CCOperation(kCCDecrypt), withKey: subKeys.cKey, withData: encryptedData, toOutput: &output, withIV: Data(iv), withPadding: withPadding)
   return Data(output)
 }
 

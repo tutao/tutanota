@@ -3,7 +3,9 @@ import {
 	aesDecrypt,
 	aesEncrypt,
 	bitArrayToUint8Array,
+	decapsulateKyber,
 	decryptKey,
+	encapsulateKyber,
 	encryptKey,
 	generateKeyFromPassphraseArgon2id,
 	generateKeyFromPassphraseBcrypt,
@@ -11,6 +13,7 @@ import {
 	hexToPublicKey,
 	KeyLength,
 	random,
+	Randomizer,
 	rsaDecrypt,
 	rsaEncrypt,
 	uint8ArrayToBitArray,
@@ -30,6 +33,9 @@ import {
 } from "@tutao/tutanota-utils"
 import testData from "./CompatibilityTestData.json"
 import { uncompress } from "../../../../../src/api/worker/Compression.js"
+import { hexToKyberPrivateKey, hexToKyberPublicKey, kyberPrivateKeyToHex, kyberPublicKeyToHex } from "../../../../../src/api/worker/facades/KyberFacade.js"
+import { matchers, object, when } from "testdouble"
+import { loadWasmModuleFromFile } from "../../../../../packages/tutanota-crypto/test/WebAssemblyTestUtils.js"
 
 const originalRandom = random.generateRandomData
 
@@ -47,6 +53,28 @@ o.spec("crypto compatibility", function () {
 			let privateKey = hexToPrivateKey(td.privateKey)
 			let data = rsaDecrypt(privateKey, encryptedData)
 			o(uint8ArrayToHex(data)).equals(td.input)
+		}
+	})
+	o("kyber", async () => {
+		const liboqs = await loadWasmModuleFromFile("../packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm")
+
+		for (const td of testData.kyberEncryptionTests) {
+			const publicKey = hexToKyberPublicKey(td.publicKey)
+			const privateKey = hexToKyberPrivateKey(td.privateKey)
+			o(kyberPublicKeyToHex(publicKey)).deepEquals(td.publicKey)
+			o(kyberPrivateKeyToHex(privateKey)).deepEquals(td.privateKey)
+
+			const seed = hexToUint8Array(td.seed)
+
+			const randomizer = object<Randomizer>()
+			when(randomizer.generateRandomData(matchers.anything())).thenReturn(seed)
+
+			const encapsulation = encapsulateKyber(liboqs, publicKey, randomizer)
+			o(encapsulation.sharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
+			o(encapsulation.ciphertext).deepEquals(hexToUint8Array(td.cipherText))
+
+			const decapsulatedSharedSecret = decapsulateKyber(liboqs, privateKey, hexToUint8Array(td.cipherText))
+			o(decapsulatedSharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
 		}
 	})
 	o("aes 256", function () {
@@ -151,24 +179,7 @@ o.spec("crypto compatibility", function () {
 		}
 	})
 	o("argon2id", async function () {
-		let argon2: WebAssembly.Exports
-
-		// @ts-ignore
-		const { default: argon2Source } = await import("../../../../../packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm")
-
-		if (typeof process !== "undefined") {
-			try {
-				const { join, dirname } = await import("node:path")
-				const { fileURLToPath } = await import("node:url")
-				const { readFile } = await import("node:fs/promises")
-				const path = join(dirname(fileURLToPath(import.meta.url)), argon2Source)
-				argon2 = (await WebAssembly.instantiate(await readFile(path))).instance.exports
-			} catch (e) {
-				throw new Error(`failed to load argon2: ${e}`)
-			}
-		} else {
-			argon2 = (await WebAssembly.instantiateStreaming(fetch(argon2Source))).instance.exports
-		}
+		const argon2 = await loadWasmModuleFromFile("../packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm")
 
 		for (let td of testData.argon2idTests) {
 			let key = generateKeyFromPassphraseArgon2id(argon2, td.password, hexToUint8Array(td.saltHex))
