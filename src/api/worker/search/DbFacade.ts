@@ -42,6 +42,7 @@ function extractErrorProperties(e: any): string {
 	return JSON.stringify(requestErrorEntries)
 }
 
+/** facade to manage a single named indexedDb */
 export class DbFacade {
 	private _id!: string
 	private _db: LazyLoaded<IDBDatabase>
@@ -51,8 +52,6 @@ export class DbFacade {
 	constructor(version: number, onupgrade: (event: any, db: IDBDatabase, dbFacade: DbFacade) => void) {
 		this._activeTransactions = 0
 		this._db = new LazyLoaded(() => {
-			// If indexedDB is disabled in Firefox, the browser crashes when accessing indexedDB in worker process
-			// ask the main thread if indexedDB is supported.
 			if (!this.indexingSupported) {
 				return Promise.reject(new IndexingNotSupportedError("indexedDB not supported"))
 			} else {
@@ -122,9 +121,9 @@ export class DbFacade {
 		})
 	}
 
-	open(id: string): Promise<any> {
+	async open(id: string): Promise<void> {
 		this._id = id
-		return this._db.getAsync()
+		await this._db.getAsync()
 	}
 
 	/**
@@ -160,30 +159,25 @@ export class DbFacade {
 	/**
 	 * @pre open() must have been called before, but the promise does not need to have returned.
 	 */
-	createTransaction(readOnly: boolean, objectStores: ObjectStoreName[]): Promise<DbTransaction> {
-		return this._db.getAsync().then((db) => {
-			try {
-				const idbTransaction = db.transaction(objectStores as string[], readOnly ? "readonly" : "readwrite")
-				const transaction = new IndexedDbTransaction(idbTransaction, () => {
-					this.indexingSupported = false
+	async createTransaction(readOnly: boolean, objectStores: ObjectStoreName[]): Promise<DbTransaction> {
+		try {
+			const db = await this._db.getAsync()
+			// we might have failed at this, but we'll not set indexingNotSupported to be able to retry later
+			const idbTransaction = db.transaction(objectStores as string[], readOnly ? "readonly" : "readwrite")
+			const transaction = new IndexedDbTransaction(idbTransaction, () => {
+				this.indexingSupported = false
 
-					this._db.reset()
-				})
-				this._activeTransactions++
-				transaction.wait().finally(() => {
-					this._activeTransactions--
-				})
-				return transaction
-			} catch (e) {
-				throw new DbError("could not create transaction", e)
-			}
-		})
+				this._db.reset()
+			})
+			this._activeTransactions++
+			transaction.wait().finally(() => {
+				this._activeTransactions--
+			})
+			return transaction
+		} catch (e) {
+			throw new DbError("could not create transaction", e)
+		}
 	}
-}
-
-type DbRequest = {
-	action: (...args: Array<any>) => any
-	objectStore: string
 }
 
 /**
