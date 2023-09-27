@@ -11,7 +11,7 @@ class FileFacadeReceiveDispatcher(
 	private val json: Json,
 	private val facade: FileFacade,
 ) {
-	
+
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
 			"open" -> {
@@ -58,7 +58,7 @@ class FileFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
-			"getSize" -> {
+			"getLength" -> {
 				val file: String = json.decodeFromString(arg[0])
 				val result: Int = this.facade.getSize(
 					file,

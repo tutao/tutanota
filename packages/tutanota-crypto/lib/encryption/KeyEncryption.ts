@@ -3,7 +3,7 @@ import { aesDecrypt, aesEncrypt, getKeyLengthBytes, KEY_LENGTH_BYTES_AES_128, KE
 import { bitArrayToUint8Array, fixedIv, uint8ArrayToBitArray } from "../misc/Utils.js"
 import { concat, hexToUint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import { hexToPrivateKey, privateKeyToHex } from "./Rsa.js"
-import type { PrivateKey } from "./RsaKeyPair.js"
+import type { RsaPrivateKey } from "./RsaKeyPair.js"
 
 export function encryptKey(encryptionKey: Aes128Key | Aes256Key, keyToBeEncrypted: Aes128Key | Aes256Key): Uint8Array {
 	const keyLength = getKeyLengthBytes(encryptionKey)
@@ -36,10 +36,10 @@ export function aes256DecryptLegacyRecoveryKey(encryptionKey: Aes256Key, keyToBe
 	}
 }
 
-export function encryptRsaKey(encryptionKey: Aes128Key | Aes256Key, privateKey: PrivateKey, iv?: Uint8Array): Uint8Array {
+export function encryptRsaKey(encryptionKey: Aes128Key | Aes256Key, privateKey: RsaPrivateKey, iv?: Uint8Array): Uint8Array {
 	return aesEncrypt(encryptionKey, hexToUint8Array(privateKeyToHex(privateKey)), iv, true, false)
 }
 
-export function decryptRsaKey(encryptionKey: Aes128Key | Aes256Key, encryptedPrivateKey: Uint8Array): PrivateKey {
+export function decryptRsaKey(encryptionKey: Aes128Key | Aes256Key, encryptedPrivateKey: Uint8Array): RsaPrivateKey {
 	return hexToPrivateKey(uint8ArrayToHex(aesDecrypt(encryptionKey, encryptedPrivateKey, true)))
 }

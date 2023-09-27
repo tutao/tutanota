@@ -39,4 +39,15 @@ public protocol NativeCryptoFacade {
 		_ parallelism: Int,
 		_ hashLength: Int
 	) async throws -> DataWrapper
+	func generateKyberKeypair(
+		_ seed: DataWrapper
+	) async throws -> KyberKeyPair
+	func kyberEncapsulate(
+		_ publicKey: KyberPublicKey,
+		_ seed: DataWrapper
+	) async throws -> KyberEncapsulation
+	func kyberDecapsulate(
+		_ privateKey: KyberPrivateKey,
+		_ ciphertext: DataWrapper
+	) async throws -> DataWrapper
 }

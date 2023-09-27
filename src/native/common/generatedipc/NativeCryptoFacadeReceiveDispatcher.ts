@@ -2,6 +2,8 @@
 
 import { RsaPublicKey } from "./RsaPublicKey.js"
 import { RsaPrivateKey } from "./RsaPrivateKey.js"
+import { KyberPublicKey } from "./KyberPublicKey.js"
+import { KyberPrivateKey } from "./KyberPrivateKey.js"
 import { NativeCryptoFacade } from "./NativeCryptoFacade.js"
 
 export class NativeCryptoFacadeReceiveDispatcher {
@@ -42,6 +44,20 @@ export class NativeCryptoFacadeReceiveDispatcher {
 				const parallelism: number = arg[4]
 				const hashLength: number = arg[5]
 				return this.facade.argon2idHashRaw(password, salt, timeCost, memoryCost, parallelism, hashLength)
+			}
+			case "generateKyberKeypair": {
+				const seed: Uint8Array = arg[0]
+				return this.facade.generateKyberKeypair(seed)
+			}
+			case "kyberEncapsulate": {
+				const publicKey: KyberPublicKey = arg[0]
+				const seed: Uint8Array = arg[1]
+				return this.facade.kyberEncapsulate(publicKey, seed)
+			}
+			case "kyberDecapsulate": {
+				const privateKey: KyberPrivateKey = arg[0]
+				const ciphertext: Uint8Array = arg[1]
+				return this.facade.kyberDecapsulate(privateKey, ciphertext)
 			}
 		}
 	}

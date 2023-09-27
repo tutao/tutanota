@@ -6,9 +6,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.fasterxml.jackson.databind.ObjectMapper
 import de.tutao.tutanota.AndroidNativeCryptoFacade.Companion.AES256_KEY_LENGTH_BYTES
 import de.tutao.tutanota.AndroidNativeCryptoFacade.Companion.bytesToKey
-import de.tutao.tutanota.ipc.RsaPrivateKey
-import de.tutao.tutanota.ipc.RsaPublicKey
-import de.tutao.tutanota.ipc.wrap
+import de.tutao.tutanota.ipc.*
 import de.tutao.tutanota.testdata.TestData
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.io.output.ByteArrayOutputStream
@@ -149,6 +147,31 @@ class CompatibilityTest {
 		}
 	}
 
+	@Test
+	@Throws(CryptoError::class)
+	fun kyber() = runBlocking {
+		for (td in testData.kyberEncryptionTests) {
+			// we need to use the same seed so that we always obtain the same encapsulation
+			val privateKey: KyberPrivateKey = hexToKyberPrivateKey(td.privateKey)
+			val publicKey: KyberPublicKey = hexToKyberPublicKey(td.publicKey)
+			val encapsulation = crypto.kyberEncapsulate(publicKey, hexToBytes(td.seed).wrap())
+			assertEquals(td.cipherText, bytesToHex(encapsulation.ciphertext.data))
+			assertEquals(td.sharedSecret, bytesToHex(encapsulation.sharedSecret.data))
+			val sharedSecret = crypto.kyberDecapsulate(privateKey, hexToBytes(td.cipherText).wrap())
+			assertEquals(td.sharedSecret, bytesToHex(sharedSecret.data))
+		}
+	}
+
+	private fun hexToKyberPrivateKey(privateKey: String): KyberPrivateKey {
+		val keyComponents = parseEncodedBytes(privateKey, 5)
+		return KyberPrivateKey(DataWrapper(keyComponents[0] + keyComponents[3] + keyComponents[4] + keyComponents[1] + keyComponents[2]))
+	}
+
+	private fun hexToKyberPublicKey(publicKey: String): KyberPublicKey {
+		val keyComponents = parseEncodedBytes(publicKey, 2)
+		return KyberPublicKey(DataWrapper(keyComponents[0] + keyComponents[1]))
+	}
+
 	companion object {
 		private const val TEST_DATA = "CompatibilityTestData.json"
 		private val om = ObjectMapper()
@@ -227,6 +250,24 @@ class CompatibilityTest {
 				hexChars[j * 2 + 1] = hexArray[v and 0x0F]
 			}
 			return String(hexChars)
+		}
+
+		fun parseEncodedBytes(hexKey: String, expectedParameters: Int): ArrayList<ByteArray> {
+			val paramBuffer = ArrayList<ByteArray>()
+			var pos = 0
+			while (pos < hexKey.length) {
+				val len = hexKey.substring(pos, pos + 4).toInt(16)
+				pos += 4
+				paramBuffer.add(hexToBytes(hexKey.substring(pos, pos + len)))
+				pos += len
+			}
+			if (hexKey.length != pos) {
+				throw CryptoError("invalid private key hex length")
+			}
+			if (paramBuffer.size != expectedParameters) {
+				throw CryptoError("invalid amount of key parameters. Expected: " + expectedParameters + " actual:" + paramBuffer.size)
+			}
+			return paramBuffer
 		}
 
 		private fun stubRandom(seed: String): SecureRandom {
