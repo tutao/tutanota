@@ -37,13 +37,15 @@ interface ConfigObject {
 	_testAssignments: PersistedAssignmentData | null
 	offlineTimeRangeDaysByUser: Record<Id, number>
 	conversationViewShowOnlySelectedMail: boolean
+	// true on old domain if it sent the credentials, true on new if it tried to receive them
+	hasParticipatedInCredentialsMigration: boolean
 }
 
 /**
  * Device config for internal user auto login. Only one config per device is stored.
  */
 export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsItemStorage {
-	public static Version = 3
+	public static Version = 4
 	public static LocalStorageKey = "tutanotaConfig"
 
 	private config!: ConfigObject
@@ -89,11 +91,12 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 			_signupToken: signupToken,
 			offlineTimeRangeDaysByUser: loadedConfig.offlineTimeRangeDaysByUser ?? {},
 			conversationViewShowOnlySelectedMail: loadedConfig.conversationViewShowOnlySelectedMail ?? false,
+			hasParticipatedInCredentialsMigration: loadedConfig.hasParticipatedInCredentialsMigration ?? false,
 		}
 
 		// We need to write the config if there was a migration and if we generate the signup token and if.
 		// We do not save the config if there was no config. The config is stored when some value changes.
-		if (doSave) {
+		if (doSave && window.parent === window) {
 			this.writeToStorage()
 		}
 	}
@@ -308,6 +311,15 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 		this.config.conversationViewShowOnlySelectedMail = setting
 		this.writeToStorage()
 	}
+
+	getHasAttemptedCredentialsMigration(): boolean {
+		return this.config.hasParticipatedInCredentialsMigration
+	}
+
+	setHasAttemptedCredentialsMigration(v: boolean): void {
+		this.config.hasParticipatedInCredentialsMigration = v
+		this.writeToStorage()
+	}
 }
 
 export function migrateConfig(loadedConfig: any) {
@@ -357,4 +369,4 @@ export function migrateConfigV2to3(loadedConfig: any) {
 	}
 }
 
-export const deviceConfig: DeviceConfig = new DeviceConfig(DeviceConfig.Version, client.localStorage() ? localStorage : null)
+export const deviceConfig: DeviceConfig = new DeviceConfig(DeviceConfig.Version, client.localStorage() && window.parent === window ? localStorage : null)

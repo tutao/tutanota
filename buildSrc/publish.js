@@ -14,7 +14,7 @@ import "zx/globals"
 		await packageAndPublishDeb({
 			version: tutanotaVersion,
 			name: "tutanota",
-			fpmRootMapping: "./build/dist/=/opt/tutanota",
+			fpmRootMapping: "./build/=/opt/tutanota",
 			fpmAfterInstallScript: "./resources/scripts/after-install.sh",
 			destinationDir: `/opt/repository/tutanota`,
 		})

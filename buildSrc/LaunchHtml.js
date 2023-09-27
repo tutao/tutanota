@@ -63,7 +63,9 @@ function csp(env) {
 			const cspContent =
 				"default-src 'none';" +
 				" script-src 'self' 'wasm-unsafe-eval';" +
-				" child-src 'self';" +
+				" worker-src 'self';" +
+				" frame-src 'none;" +
+				" frame-ancestors 'none';" +
 				" font-src 'self';" +
 				" img-src http: blob: data: *;" +
 				" style-src 'unsafe-inline';" +
@@ -83,7 +85,7 @@ function csp(env) {
 			" media-src * data: blob: 'unsafe-inline';" +
 			" style-src * 'unsafe-inline';" +
 			" frame-src *;" +
-			` connect-src 'self' 'unsafe-inline' ${getCspUrls(env)} ws://localhost:9001 https://tutanota.com;`
+			` connect-src 'self' 'unsafe-inline' ${getCspUrls(env)} https://tutanota.com;`
 
 		return `<meta http-equiv="Content-Security-Policy" content="${cspContent}">`
 	}

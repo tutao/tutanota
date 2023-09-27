@@ -101,7 +101,7 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 				to: "./icons/",
 			},
 			win: {
-				// relative to the project dirm which is ./build/dist/
+				// relative to the project dirm which is ./build/
 				extraFiles: ["mapirs.dll"],
 				verifyUpdateCodeSignature: sign,
 				signDlls: sign,

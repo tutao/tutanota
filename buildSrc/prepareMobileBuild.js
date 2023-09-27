@@ -16,7 +16,7 @@ export async function prepareMobileBuild(buildType) {
 	let prefix
 	switch (buildType) {
 		case "dist":
-			prefix = "build/dist/"
+			prefix = "build/"
 			break
 		case "make":
 			prefix = "build/"

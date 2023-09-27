@@ -38,10 +38,7 @@ export async function createHtml(env) {
 	const index = `window.whitelabelCustomizations = null
 window.env = ${JSON.stringify(env, null, 2)}
 ${indexTemplate}`
-	return Promise.all([
-		_writeFile(`./build/dist/${jsFileName}`, index),
-		renderHtml(imports, env).then((content) => _writeFile(`./build/dist/${htmlFileName}`, content)),
-	])
+	return Promise.all([_writeFile(`./build/${jsFileName}`, index), renderHtml(imports, env).then((content) => _writeFile(`./build/${htmlFileName}`, content))])
 }
 
 async function _writeFile(targetFile, content) {

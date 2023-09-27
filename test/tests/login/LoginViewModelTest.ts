@@ -109,7 +109,10 @@ o.spec("LoginViewModelTest", () => {
 	let databaseKeyFactory: DatabaseKeyFactory
 	let deviceConfigMock: DeviceConfig
 
+
 	o.beforeEach(async () => {
+		// @ts-ignore dont need all props from location
+		global.location = new URL("https://app.tuta.com")
 		loginControllerMock = object<LoginController>()
 		const userControllerMock = object<UserController>()
 
@@ -130,6 +133,11 @@ o.spec("LoginViewModelTest", () => {
 		databaseKeyFactory = instance(DatabaseKeyFactory)
 
 		deviceConfigMock = instance(DeviceConfig)
+	})
+
+	o.afterEach(function() {
+		// @ts-ignore weŕe not on the window object here
+		delete global.location
 	})
 
 	/**

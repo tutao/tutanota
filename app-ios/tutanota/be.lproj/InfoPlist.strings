@@ -1,5 +1,5 @@
 NSCameraUsageDescription = "Зрабі фота ці відэа, каб далучыць яго да ліста.";
-NSPhotoLibraryUsageDescription = "Далучы відарыс са сваёй бібліятэкі.";
+NSPhotoLibraryUsageDescription = "Далучы відарыс са сваёй бібліятэкі ў якасьці далучэння.";
 NSMicrophoneUsageDescription = "Патрэбна для запісу відэа.";
 NSContactsUsageDescription = "Знайсьці імэйл-адрас атрымальніка ў кантактах.";
 NSRemindersUsageDescription = "Паказваць абвесткі пры атрыманні новага паведамлення.";

@@ -10,7 +10,7 @@ import { windowFacade } from "../misc/WindowFacade"
 import { DeviceType } from "../misc/ClientConstants"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { AriaLandmarks, landmarkAttrs, liveDataAttrs } from "../gui/AriaUtils"
-import { DisplayMode, LoginState, LoginViewModel } from "./LoginViewModel"
+import { DisplayMode, getNewDomainOrigin, isLegacyDomain, LoginState, LoginViewModel } from "./LoginViewModel"
 import { LoginForm } from "./LoginForm"
 import { CredentialsSelector } from "./CredentialsSelector"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
@@ -24,6 +24,7 @@ import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { px } from "../gui/size.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 import { styles } from "../gui/styles.js"
+import { MigratingCredentialsBanner } from "./MigratingCredentialsBanner.js"
 
 assertMainOrNode()
 
@@ -73,6 +74,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 			},
 			[
 				m(LoginScreenHeader),
+				this._renderMigratingCredentialsMessage(),
 				m(
 					".flex-grow.flex-center.scroll",
 					m(
@@ -89,9 +91,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 								{
 									class: styles.isSingleColumnLayout() ? "plr-l" : "plr-2l",
 								},
-								this.viewModel.displayMode === DisplayMode.Credentials || this.viewModel.displayMode === DisplayMode.DeleteCredentials
-									? this._renderCredentialsSelector()
-									: this._renderLoginForm(),
+								this._renderFormForDisplayMode(),
 								this.renderMoreOptions(),
 							),
 							m(".flex-grow"),
@@ -102,6 +102,20 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				),
 			],
 		)
+	}
+
+	private _renderFormForDisplayMode(): Children {
+		switch (this.viewModel.displayMode) {
+			case DisplayMode.DeleteCredentials:
+			case DisplayMode.Credentials:
+				return this._renderCredentialsSelector()
+			case DisplayMode.Form:
+				return this._renderLoginForm()
+		}
+	}
+
+	private _renderMigratingCredentialsMessage(): Children {
+		return m(MigratingCredentialsBanner, { viewModel: this.viewModel })
 	}
 
 	private renderMoreOptions(): Children {
@@ -133,7 +147,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				? m(Button, {
 						label: "register_label",
 						type: ButtonType.Secondary,
-						click: () => m.route.set("/signup"),
+						click: () => (isLegacyDomain() ? window.open(getNewDomainOrigin() + "/signup", "_self") : m.route.set("/signup")),
 				  })
 				: null,
 			this._switchThemeLinkVisible()
@@ -318,6 +332,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {
+		console.log("onNewUrl")
 		if (args.requestedPath) {
 			this.selectedRedirect = args.requestedPath
 		} else if (args.action) {
@@ -336,7 +351,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 		// we shouldn't handle any outdated URL changes.
 		if (m.route.get() !== requestedPath) return
 
-		const autoLogin = args.noAutoLogin == null || args.noAutoLogin === false
+		const autoLogin = args.noAutoLogin == null || (args.noAutoLogin === false && !isLegacyDomain())
 
 		if (autoLogin) {
 			if (args.userId) {

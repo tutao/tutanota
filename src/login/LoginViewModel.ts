@@ -6,11 +6,11 @@ import type { LoginController } from "../api/main/LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
-import type { CredentialsInfo, CredentialsProvider } from "../misc/credentials/CredentialsProvider.js"
+import type { CredentialsInfo, CredentialsProvider, PersistentCredentials } from "../misc/credentials/CredentialsProvider.js"
 import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
 import { first, noOp } from "@tutao/tutanota-utils"
 import { KeyPermanentlyInvalidatedError } from "../api/common/error/KeyPermanentlyInvalidatedError"
-import { assertMainOrNode } from "../api/common/Env"
+import { assertMainOrNode, isBrowser } from "../api/common/Env"
 import { SessionType } from "../api/common/SessionType"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
 import { DeviceConfig } from "../misc/DeviceConfig"
@@ -232,6 +232,34 @@ export class LoginViewModel implements ILoginViewModel {
 		}
 	}
 
+	/** only used to put the credentials we got from the old domain into the storage, unaltered. */
+	async addAllCredentials(credentials: Array<PersistentCredentials>) {
+		for (const cred of credentials) this.credentialsProvider.storeRaw(cred)
+		this.setHasAttemptedCredentialsFlag()
+		await this._updateCachedCredentials()
+	}
+
+	getAllCredentials(): Array<PersistentCredentials> {
+		return this.deviceConfig.loadAll()
+	}
+
+	async deleteAllCredentials(): Promise<void> {
+		for (const creds of this.deviceConfig.loadAll()) {
+			this.deviceConfig.deleteByUserId(creds.credentialInfo.userId)
+		}
+		this.setHasAttemptedCredentialsFlag()
+	}
+
+	/** store that the credentials migration banner on the login page should not be shown anymore */
+	setHasAttemptedCredentialsFlag() {
+		this.deviceConfig.setHasAttemptedCredentialsMigration(true)
+	}
+
+	/** check if the credentials migration banner on the login page should be shown anymore */
+	hasAttemptedCredentials() {
+		return this.deviceConfig.getHasAttemptedCredentialsMigration()
+	}
+
 	getSavedCredentials(): ReadonlyArray<CredentialsInfo> {
 		return this.savedInternalCredentials
 	}
@@ -288,7 +316,9 @@ export class LoginViewModel implements ILoginViewModel {
 				this._autoLoginCredentials = first(allCredentials)
 			}
 
-			if (this._autoLoginCredentials) {
+			// we don't want to auto-login on the legacy domain, there's a banner
+			// there to move people to the new domain.
+			if (this._autoLoginCredentials && !isLegacyDomain()) {
 				const credentials = await this.credentialsProvider.getCredentialsByUserId(this._autoLoginCredentials.userId)
 
 				if (credentials) {
@@ -301,6 +331,8 @@ export class LoginViewModel implements ILoginViewModel {
 						this.helpText = "offlineLoginPremiumOnly_msg"
 					}
 				}
+			} else {
+				this.state = LoginState.NotAuthenticated
 			}
 		} catch (e) {
 			if (e instanceof NotAuthenticatedError && this._autoLoginCredentials) {
@@ -402,4 +434,29 @@ export class LoginViewModel implements ILoginViewModel {
 
 		handleExpectedLoginError(error, noOp)
 	}
+
+	canPullCredentials(): boolean {
+		return !this.deviceConfig.getHasAttemptedCredentialsMigration() && !isLegacyDomain()
+	}
+}
+
+/** are we on *.tutanota.com?
+ * influences whether we should allow saving credentials and show the credentials migration box.
+ * also turns off auto login with a single stored credential. */
+export function isLegacyDomain(): boolean {
+	return new URL(location.origin).hostname.endsWith(".tutanota.com") && isBrowser()
+}
+
+/** get the new domain origin according to the staging level of the calling application. */
+export function getNewDomainOrigin(): string {
+	// mail.tutanota.com -> app.tuta.com
+	// test.tutanota.com -> app.test.tuta.com
+	// local.tutanota.com has gone away
+	// app.local.tutanota.com -> app.local.tuta.com
+	return location.origin.replace(".tutanota.com", ".tuta.com").replace("mail.", "app.")
+}
+
+/** get the old domain according to the staging level of the calling application. */
+export function getOldDomainOrigin(): string {
+	return location.origin.replace(".tuta.com", ".tutanota.com").replace("app.tutanota.", "mail.tutanota.")
 }

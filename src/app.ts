@@ -1,11 +1,11 @@
 import { client } from "./misc/ClientDetector"
-import type Mithril from "mithril"
-import m, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
+import m from "mithril"
+import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "./misc/LanguageViewModel"
 import { root } from "./RootView"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "./misc/ErrorHandler"
 import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable } from "./api/common/Env"
-import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, neverNull } from "@tutao/tutanota-utils"
 import { windowFacade } from "./misc/WindowFacade"
 import { styles } from "./gui/styles"
 import { deviceConfig } from "./misc/DeviceConfig"
@@ -37,6 +37,8 @@ import type { MailViewModel } from "./mail/view/MailViewModel.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
+import type { CredentialsMigrationView, CredentialsMigrationViewAttrs } from "./login/CredentialsMigrationView.js"
+import type { CredentialsMigrationViewModel } from "./login/CredentialsMigrationViewModel.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -347,9 +349,20 @@ import("./translations/en")
 			signup: {
 				async onmatch() {
 					const { showSignupDialog } = await import("./misc/LoginUtils")
-					// We have to manually parse it because mithril does not put hash into args of onmatch
-					const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
-					showSignupDialog(urlParams)
+					const { getNewDomainOrigin, isLegacyDomain } = await import("./login/LoginViewModel.js")
+					if (isLegacyDomain()) {
+						const target = new URL(getNewDomainOrigin())
+						target.pathname = "signup"
+						target.search = location.search
+						console.log("redirect to", target.toString())
+						await delay(1500)
+						window.open(target, "_self")
+						return null
+					} else {
+						// We have to manually parse it because mithril does not put hash into args of onmatch
+						const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
+						showSignupDialog(urlParams)
+					}
 					// when the user presses the browser back button, we would get a /login route without arguments
 					// in the popstate event, logging us out and reloading the page before we have a chance to (asynchronously) ask for confirmation
 					// onmatch of the login view is called after the popstate handler, but before any asynchronous operations went ahead.
@@ -418,6 +431,33 @@ import("./translations/en")
 							cache: {
 								browserWebauthn: new BrowserWebauthn(navigator.credentials, domainConfig),
 							},
+						}
+					},
+					prepareAttrs: (cache) => cache,
+					requireLogin: false,
+				},
+				locator.logins,
+			),
+			migrate: makeViewResolver<
+				CredentialsMigrationViewAttrs,
+				CredentialsMigrationView,
+				{
+					credentialsMigrationViewModel: CredentialsMigrationViewModel
+				}
+			>(
+				{
+					prepareRoute: async () => {
+						const { CredentialsMigrationViewModel } = await import("./login/CredentialsMigrationViewModel.js")
+						const { CredentialsMigrationView } = await import("./login/CredentialsMigrationView.js")
+						const { LoginViewModel } = await import("./login/LoginViewModel.js")
+						const { getNewDomainOrigin, getOldDomainOrigin, isLegacyDomain } = await import("./login/LoginViewModel.js")
+						const parentOrigin = isLegacyDomain() ? getNewDomainOrigin() : getOldDomainOrigin()
+						const domainConfig = locator.domainConfigProvider().getDomainConfigForHostname(location.hostname)
+						const logins = new LoginViewModel(locator.logins, locator.credentialsProvider, locator.secondFactorHandler, deviceConfig, domainConfig)
+						const credentialsMigrationViewModel = new CredentialsMigrationViewModel(logins, parentOrigin)
+						return {
+							component: CredentialsMigrationView,
+							cache: { credentialsMigrationViewModel },
 						}
 					},
 					prepareAttrs: (cache) => cache,
@@ -710,12 +750,9 @@ function getStartUrl(urlQueryParams: Mithril.Params): string {
 }
 
 function registerForMailto() {
-	if (!isDesktop() && typeof navigator.registerProtocolHandler === "function") {
+	// don't do this if we're in an iframe, in an app or the navigator doesn't allow us to do this.
+	if (window.parent === window && !isDesktop() && typeof navigator.registerProtocolHandler === "function") {
 		let origin = location.origin
-
-		if (location.origin.indexOf("localhost") !== -1) {
-			origin += "/client/build/index"
-		}
 		try {
 			// @ts-ignore third argument removed from spec, but use is still recommended
 			navigator.registerProtocolHandler("mailto", origin + "/mailto#url=%s", "Tutanota")
@@ -728,8 +765,8 @@ function registerForMailto() {
 
 function printJobsMessage(domainConfig: DomainConfig) {
 	env.dist &&
-		domainConfig.firstPartyDomain &&
-		console.log(`
+	domainConfig.firstPartyDomain &&
+	console.log(`
 
 ''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''
