@@ -127,6 +127,10 @@ export class CredentialsProvider {
 		this.storage.store(encryptedCredentials)
 	}
 
+	storeRaw(persistentCredentials: PersistentCredentials) {
+		this.storage.store(persistentCredentials)
+	}
+
 	async getCredentialsInfoByUserId(userId: Id): Promise<CredentialsInfo | null> {
 		const persistentCredentials = this.storage.loadByUserId(userId)
 

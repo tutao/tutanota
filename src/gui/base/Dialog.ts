@@ -475,10 +475,12 @@ export class Dialog implements ModalComponent {
 		dialog = new Dialog(DialogType.Alert, {
 			view: () => [
 				m("#dialog-message.dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll", getContent()),
-				m(
-					".flex-center.dialog-buttons",
-					buttons.map((a) => m(Button, a)),
-				),
+				buttons.length === 0
+					? null
+					: m(
+							".flex-center.dialog-buttons",
+							buttons.map((a) => m(Button, a)),
+					  ),
 			],
 		})
 			.setCloseHandler(() => closeAction(false))
@@ -517,6 +519,25 @@ export class Dialog implements ModalComponent {
 				}
 			})
 			const dialog = Dialog.confirmMultiple(message, buttonAttrs)
+		})
+	}
+
+	/**
+	 * show a dialog (resp. monologue) with no buttons that can not be closed, not even with ESC.
+	 */
+	static deadEnd(message: TranslationText) {
+		const dialog = Dialog.confirmMultiple(message, [])
+		dialog.addShortcut({
+			key: Keys.ESC,
+			shift: false,
+			exec: noOp,
+			help: "emptyString_msg",
+		})
+		dialog.addShortcut({
+			key: Keys.F1,
+			shift: false,
+			exec: noOp,
+			help: "emptyString_msg",
 		})
 	}
 

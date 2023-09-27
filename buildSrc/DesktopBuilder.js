@@ -32,7 +32,7 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  */
 export async function buildDesktop({ dirname, version, platform, updateUrl, nameSuffix, notarize, outDir, unpacked, disableMinify }) {
 	// The idea is that we
-	// - build desktop code into build/dist/desktop
+	// - build desktop code into build/desktop
 	// - package the whole dist directory into the app
 	// - move installers out of the dist into build/desktop-whatever
 	// - cleanup dist directory
@@ -59,7 +59,7 @@ export async function buildDesktop({ dirname, version, platform, updateUrl, name
 		linux: platform === "linux",
 	})
 	console.log("updateUrl is", updateUrl)
-	await fs.promises.writeFile("./build/dist/package.json", JSON.stringify(content), "utf-8")
+	await fs.promises.writeFile("./build/package.json", JSON.stringify(content), "utf-8")
 	if (platform === "win32") await getMapirs(distDir)
 
 	// prepare files
@@ -120,13 +120,13 @@ async function rollupDesktop(dirname, outDir, version, platform, disableMinify) 
 		plugins: [
 			copyNativeModulePlugin({
 				rootDir: projectRoot,
-				dstPath: "./build/dist/desktop/",
+				dstPath: "./build/desktop/",
 				platform,
 				nodeModule: "better-sqlite3",
 			}),
 			copyNativeModulePlugin({
 				rootDir: projectRoot,
-				dstPath: "./build/dist/desktop/",
+				dstPath: "./build/desktop/",
 				platform,
 				nodeModule: "keytar",
 			}),

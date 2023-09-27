@@ -43,6 +43,10 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 	if (desktop) {
 		await buildDesktopPart({ version })
 	}
+
+	await runStep("rm /build/dist", async () => {
+		await fs.rm("build/dist", { recursive: true })
+	})
 }
 
 async function buildWebPart({ stage, host, version }) {

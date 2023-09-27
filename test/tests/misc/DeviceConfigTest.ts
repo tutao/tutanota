@@ -98,6 +98,7 @@ o.spec("DeviceConfig", function () {
 				_signupToken: "signupToken",
 				offlineTimeRangeDaysByUser: { userId1: 42 },
 				conversationViewShowOnlySelectedMail: false,
+				hasParticipatedInCredentialsMigration: false,
 			}
 
 			when(localStorageMock.getItem(DeviceConfig.LocalStorageKey)).thenReturn(JSON.stringify(storedInLocalStorage))

@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2023-09-20T17:13:04Z",
+	"updated_at": "2023-09-27T19:06:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1292,6 +1292,7 @@ export default {
 		"secondReminderAutomatic_msg": "din păcate, încă nu am primit plata pentru contul tău Tutanota. Prin urmare, te rugăm să verifici detaliile de plată în 'Opțiuni' -> 'Plată'. Pentru detalii suplimentare despre factură, poți verifica facturile pe pagina respectivă. Trebuie să-ți dezactivăm contul dacă nu primim plata în două săptămâni.",
 		"secondReminderSubject_msg": "A doua notificare / plată întârziată",
 		"secureNow_action": "Protejează acum",
+		"securityKeyForThisDomainMissing_msg": "Nu este configurată nicio parolă de protecție pentru acest domeniu, adaugă una în opțiunile de autentificare.",
 		"security_title": "Protecție",
 		"selectAllLoaded_action": "Alege toate elementele încărcate",
 		"selectionNotAvailable_msg": "Nicio selecție disponibilă.",
@@ -1399,6 +1400,8 @@ export default {
 		"subscriptionChange_msg": "Abonamentul tău va fi modificat la sfîrșitul actualei perioade de abonament.",
 		"subscription_label": "Abonament",
 		"supportMenu_label": "Asistență",
+		"suspiciousLink_msg": "Sigur vrei să deschizi „{url}”? Legătura ar putea instala programe în aparatul tău. Deschide numai legături din surse de încredere.",
+		"suspiciousLink_title": "Legătură suspectă",
 		"switchAgendaView_action": "Vezi agenda",
 		"switchArchive_action": "Schimbă la dosarul Arhivă",
 		"switchColorTheme_action": "Schimbă culoarea",

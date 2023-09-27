@@ -24,6 +24,7 @@ export const enum ColumnWidth {
 /**
  * @param columnHeading The texts that shall appear as headers of each column. Either a textId or function that returns the translation
  * @param columnWidths The sizes of the columns in px. If 0 is specified the column shares the remaining space with all other '0' width columns.
+ * @param columnAlignments true for a column that's aligned opposite the default, false for one with the default alignment.
  * @param showActionButtonColumn True if addButton is specified or the table lines may contain action buttons.
  * @param addButton If set, this button appears beside the expander button.
  * @param lines the lines of the table

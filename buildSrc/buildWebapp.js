@@ -54,16 +54,16 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	await polyfillBundle.write({
 		sourcemap: false,
 		format: "iife",
-		file: "build/dist/polyfill.js",
+		file: "build/polyfill.js",
 	})
 
 	console.log("started copying images", measure())
-	await fs.copy(path.join(projectDir, "/resources/images"), path.join(projectDir, "/build/dist/images"))
-	await fs.copy(path.join(projectDir, "/resources/favicon"), path.join(projectDir, "build/dist/images"))
-	await fs.copy(path.join(projectDir, "/resources/wordlibrary.json"), path.join(projectDir, "build/dist/wordlibrary.json"))
-	await fs.copy(path.join(projectDir, "/src/braintree.html"), path.join(projectDir, "/build/dist/braintree.html"))
+	await fs.copy(path.join(projectDir, "/resources/images"), path.join(projectDir, "/build/images"))
+	await fs.copy(path.join(projectDir, "/resources/favicon"), path.join(projectDir, "build/images"))
+	await fs.copy(path.join(projectDir, "/resources/wordlibrary.json"), path.join(projectDir, "build/wordlibrary.json"))
+	await fs.copy(path.join(projectDir, "/src/braintree.html"), path.join(projectDir, "/build/braintree.html"))
 
-	const wasmDir = path.join(projectDir, "/build/dist/wasm")
+	const wasmDir = path.join(projectDir, "/build/wasm")
 	await fs.emptyDir(wasmDir)
 	await fs.copy(path.join(projectDir, "/packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm"), path.join(wasmDir, "argon2.wasm"))
 
@@ -109,7 +109,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	// we have to use System.import here because bootstrap is not executed until we actually import()
 	// unlike nollup+es format where it just runs on being loaded like you expect
 	await fs.promises.writeFile(
-		"build/dist/worker-bootstrap.js",
+		"build/worker-bootstrap.js",
 		`importScripts("./polyfill.js")
 const importPromise = System.import("./worker.js")
 self.onmessage = function (msg) {
@@ -180,7 +180,7 @@ async function bundleServiceWorker(bundles, version, minify) {
 	await swBundle.write({
 		sourcemap: true,
 		format: "iife",
-		file: "build/dist/sw.js",
+		file: "build/sw.js",
 	})
 }
 

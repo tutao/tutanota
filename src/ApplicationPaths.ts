@@ -19,6 +19,7 @@ type ViewResolvers = {
 	recover: RouteResolver
 	webauthn: RouteResolver
 	webauthnmobile: RouteResolver
+	migrate: RouteResolver
 }
 
 export function applicationPaths({
@@ -37,6 +38,7 @@ export function applicationPaths({
 	recover,
 	webauthn,
 	webauthnmobile,
+	migrate,
 }: ViewResolvers): ApplicationPaths {
 	return {
 		"/login": login,
@@ -66,6 +68,7 @@ export function applicationPaths({
 		"/giftcard/": giftcard,
 		"/webauthn": webauthn,
 		"/webauthnmobile": webauthnmobile,
+		"/migrate": migrate,
 	}
 }
 

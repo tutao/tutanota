@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2023-09-20T12:53:04Z",
+	"updated_at": "2023-09-28T04:59:41Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1289,6 +1289,7 @@ export default {
 		"secondReminderAutomatic_msg": "К сожалению, мы всё ещё не получили оплату по вашей учётной записи Tutanota. Поэтому мы просим вас проверить подробности платежа в «Настройки» -> «Оплата». Также на этой странице вы можете получить дополнительную информацию по счетам. Мы будем вынуждены деактивировать вашу учётную запись, если не получим оплату в течение двух недель.",
 		"secondReminderSubject_msg": "Второе уведомление / просроченный платеж",
 		"secureNow_action": "Защитите сейчас",
+		"securityKeyForThisDomainMissing_msg": "Для данного домена не настроены ключи безопасности, пожалуйста, добавьте их в Настройках входа в систему.",
 		"security_title": "Безопасность",
 		"selectAllLoaded_action": "Выбрать все загруженные элементы",
 		"selectionNotAvailable_msg": "Выбор недоступен.",
@@ -1396,6 +1397,8 @@ export default {
 		"subscriptionChange_msg": "Ваша подписка будет изменена после окончания текущего периода подписки.",
 		"subscription_label": "Подписка",
 		"supportMenu_label": "Помощь",
+		"suspiciousLink_msg": "Вы уверены, что хотите открыть \"{url}\"? Ссылка может запустить программы на вашем устройстве. Открывайте ссылки только из надежных источников.",
+		"suspiciousLink_title": "Suspicious link",
 		"switchAgendaView_action": "Переключиться на просмотр повестки дня",
 		"switchArchive_action": "Переключиться в архивную папку",
 		"switchColorTheme_action": "Изменить цвет темы",
