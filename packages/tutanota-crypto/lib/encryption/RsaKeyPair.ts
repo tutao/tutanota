@@ -1,9 +1,9 @@
 import type { Base64 } from "@tutao/tutanota-utils"
 export type RsaKeyPair = {
-	publicKey: PublicKey
-	privateKey: PrivateKey
+	publicKey: RsaPublicKey
+	privateKey: RsaPrivateKey
 }
-export type PrivateKey = {
+export type RsaPrivateKey = {
 	version: number
 	keyLength: number
 	modulus: Base64
@@ -14,7 +14,7 @@ export type PrivateKey = {
 	primeExponentQ: Base64
 	crtCoefficient: Base64
 }
-export type PublicKey = {
+export type RsaPublicKey = {
 	version: number
 	keyLength: number
 	modulus: Base64

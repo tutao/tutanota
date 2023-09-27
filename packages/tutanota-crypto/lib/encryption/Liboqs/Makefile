@@ -1,0 +1,61 @@
+# Makefile for building liboqs.wasm
+
+# If you run out of memory and it's not being caused by a memory leak, try increasing this.
+TOTAL_MEMORY=48MB
+
+CC=emcc
+WASM=liboqs.wasm
+
+LIBOQS_DIR=../../../../../libs/liboqs
+
+all: ${WASM}
+clean:
+	rm -f ${WASM}
+	rm -rf include
+include:
+	mkdir -p include/oqs
+	cp "${LIBOQS_DIR}/src/oqs.h" include/oqs
+	cp "${LIBOQS_DIR}/src/common/common.h" include/oqs
+	cp "${LIBOQS_DIR}/src/common/rand/rand.h" include/oqs
+	cp "${LIBOQS_DIR}/src/common/aes/aes.h" include/oqs
+	cp "${LIBOQS_DIR}/src/common/sha2/sha2.h" include/oqs
+	cp "${LIBOQS_DIR}/src/common/sha3/sha3.h" include/oqs
+	cp "${LIBOQS_DIR}/src/common/sha3/sha3x4.h" include/oqs
+	cp "${LIBOQS_DIR}/src/kem/kyber/kem_kyber.h" include/oqs
+	cp "${LIBOQS_DIR}/src/kem/kem.h" include/oqs
+	cp "${LIBOQS_DIR}/src/sig/sig.h" include/oqs
+	touch include/oqs/oqsconfig.h
+${WASM}: include
+	${CC} \
+    	"${LIBOQS_DIR}/src/kem/kem.c" \
+    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/kem.c" \
+    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/verify.c" \
+    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/indcpa.c" \
+    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/symmetric-shake.c" \
+    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/poly.c" \
+    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/polyvec.c" \
+    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/cbd.c" \
+    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/ntt.c" \
+    	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/reduce.c" \
+    	"${LIBOQS_DIR}/src/kem/kyber/kem_kyber_1024.c" \
+    	"${LIBOQS_DIR}/src/common/pqclean_shims/fips202.c" \
+    	"${LIBOQS_DIR}/src/common/sha3/xkcp_sha3.c" \
+    	"${LIBOQS_DIR}/src/common/sha3/xkcp_low/KeccakP-1600/plain-64bits/KeccakP-1600-opt64.c" \
+    	"${LIBOQS_DIR}/src/common/common.c" \
+    	"rand.c" \
+    	"exit.c" \
+    	-I "include" \
+    	-I "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref" \
+    	-I "${LIBOQS_DIR}/src/common/pqclean_shims" \
+    	-DOQS_VERSION_TEXT=\"tutakyber\" \
+    	-DOQS_ENABLE_KEM_kyber_1024=1 \
+    	-DOQS_ENABLE_KEM_KYBER=1 \
+    	-DKYBER_K=4 \
+    	-flto \
+    	-O3 \
+    	-s STANDALONE_WASM \
+    	--no-entry \
+    	-s TOTAL_MEMORY=${TOTAL_MEMORY} \
+    	-s EXPORTED_FUNCTIONS="['_OQS_KEM_new', '_OQS_KEM_free', '_OQS_KEM_keypair', '_OQS_KEM_encaps', '_OQS_KEM_decaps', '_TUTA_inject_entropy', '_malloc', '_free']" \
+    	-o ${WASM}
+

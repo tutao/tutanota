@@ -65,6 +65,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	const wasmDir = path.join(projectDir, "/build/dist/wasm")
 	await fs.emptyDir(wasmDir)
 	await fs.copy(path.join(projectDir, "/packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm"), path.join(wasmDir, "argon2.wasm"))
+	await fs.copy(path.join(projectDir, "/packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm"), path.join(wasmDir, "liboqs.wasm"))
 
 	console.log("started bundling", measure())
 	const bundle = await rollup({

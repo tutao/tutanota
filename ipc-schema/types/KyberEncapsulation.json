@@ -1,0 +1,8 @@
+{
+	"name": "KyberEncapsulation",
+	"type": "struct",
+	"fields": {
+		"ciphertext": "bytes",
+		"sharedSecret": "bytes"
+	}
+}

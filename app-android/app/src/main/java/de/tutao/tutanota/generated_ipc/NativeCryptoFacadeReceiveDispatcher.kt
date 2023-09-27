@@ -78,6 +78,31 @@ class NativeCryptoFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"generateKyberKeypair" -> {
+				val seed: DataWrapper = json.decodeFromString(arg[0])
+				val result: KyberKeyPair = this.facade.generateKyberKeypair(
+					seed,
+				)
+				return json.encodeToString(result)
+			}
+			"kyberEncapsulate" -> {
+				val publicKey: KyberPublicKey = json.decodeFromString(arg[0])
+				val seed: DataWrapper = json.decodeFromString(arg[1])
+				val result: KyberEncapsulation = this.facade.kyberEncapsulate(
+					publicKey,
+					seed,
+				)
+				return json.encodeToString(result)
+			}
+			"kyberDecapsulate" -> {
+				val privateKey: KyberPrivateKey = json.decodeFromString(arg[0])
+				val ciphertext: DataWrapper = json.decodeFromString(arg[1])
+				val result: DataWrapper = this.facade.kyberDecapsulate(
+					privateKey,
+					ciphertext,
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for NativeCryptoFacade: $method")
 		}
 	}

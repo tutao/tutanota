@@ -10,3 +10,6 @@
 #import "Crypto/TUTCrypto.h"
 #include "Offline/sqlite3.h"
 #import "argon2.h"
+#include "rand.h"
+#include <oqs/kem.h>
+#include <oqs/kem_kyber.h>

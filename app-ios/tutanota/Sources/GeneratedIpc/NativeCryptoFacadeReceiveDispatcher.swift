@@ -68,6 +68,28 @@ public class NativeCryptoFacadeReceiveDispatcher {
 				hashLength
 			)
 			return toJson(result)
+		case "generateKyberKeypair":
+			let seed = try! JSONDecoder().decode(DataWrapper.self, from: arg[0].data(using: .utf8)!)
+			let result = try await self.facade.generateKyberKeypair(
+				seed
+			)
+			return toJson(result)
+		case "kyberEncapsulate":
+			let publicKey = try! JSONDecoder().decode(KyberPublicKey.self, from: arg[0].data(using: .utf8)!)
+			let seed = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)
+			let result = try await self.facade.kyberEncapsulate(
+				publicKey,
+				seed
+			)
+			return toJson(result)
+		case "kyberDecapsulate":
+			let privateKey = try! JSONDecoder().decode(KyberPrivateKey.self, from: arg[0].data(using: .utf8)!)
+			let ciphertext = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)
+			let result = try await self.facade.kyberDecapsulate(
+				privateKey,
+				ciphertext
+			)
+			return toJson(result)
 		default:
 			fatalError("licc messed up! \(method)")
 		}

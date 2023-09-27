@@ -3,11 +3,13 @@ package de.tutao.tutanota.testdata;
 import java.util.LinkedList;
 import java.util.List;
 
+
 /**
  * Don't convert to records as this is copied to app-android!
  */
 public class TestData {
 	List<EncryptionTestData> rsaEncryptionTests = new LinkedList<>();
+	List<KyberTestData> kyberEncryptionTests = new LinkedList<>();
 	List<SignatureTestData> rsaSignatureTests = new LinkedList<>();
 	List<AesTestData> aes256Tests = new LinkedList<>();
 	List<AesTestData> aes128Tests = new LinkedList<>();
@@ -73,6 +75,10 @@ public class TestData {
 		return rsaEncryptionTests;
 	}
 
+	public List<KyberTestData> getKyberEncryptionTests() {
+		return kyberEncryptionTests;
+	}
+
 	public List<SignatureTestData> getRsaSignatureTests() {
 		return rsaSignatureTests;
 	}
@@ -104,6 +110,7 @@ public class TestData {
 	public List<KdfTestData> getArgon2idTests() {
 		return argon2idTests;
 	}
+
 	public List<CompressionTestData> getCompressionTests() {
 		return compressionTests;
 	}
