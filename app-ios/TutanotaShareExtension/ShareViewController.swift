@@ -44,7 +44,7 @@ class ShareViewController: UIViewController {
         }
       }
 
-      info.fileUrls = await copyToSharedStorage(subdir: info.identifier, fileUrls: info.fileUrls)
+      info.fileUrls = try await copyToSharedStorage(subdir: info.identifier, fileUrls: info.fileUrls)
       try writeSharingInfo(info: info, infoLocation: info.identifier)
       openMainAppWithOpenUrl(info.identifier)
     }
