@@ -138,8 +138,9 @@ export function getNextHalfHour(): Date {
  * @param startDate the start time to use for the event (defaults to the next full half hour)
  */
 export function getEventWithDefaultTimes(startDate: Date = getNextHalfHour()): CalendarEventTimes {
+	let endDate = new Date(startDate)
 	return {
 		startTime: new Date(startDate),
-		endTime: new Date(startDate.setMinutes(startDate.getMinutes() + 30)),
+		endTime: new Date(endDate.setMinutes(endDate.getMinutes() + 30)),
 	}
 }
