@@ -37,7 +37,21 @@ class IosFileFacade : FileFacade {
   
   func openFileChooser(_ boundingRect: IpcClientRect, _ filter: [String]?) async throws -> [String] {
     let anchor = CGRect(x: boundingRect.x, y: boundingRect.y, width: boundingRect.width, height: boundingRect.height)
-    return try await self.chooser.open(withAnchorRect: anchor)
+    let files = try await self.chooser.open(withAnchorRect: anchor)
+    var returnfiles = [String]()
+    for file in files {
+      let fileUrl = URL(fileURLWithPath: file)
+      let isDirectory: Bool = (try? fileUrl.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
+      // This should only be for files, but sometimes a directory masquerading as a file can slip through (such as a .band file).
+      // In those cases we just zip and add it.
+      if isDirectory {
+        let destinationPath = try zipDirectory(fileUrl: fileUrl)
+        returnfiles.append(destinationPath)
+      } else {
+        returnfiles.append(file)
+      }
+    }
+    return returnfiles
   }
   
   func deleteFile(_ file: String) async throws {
@@ -141,8 +155,30 @@ class IosFileFacade : FileFacade {
     try data.write(to: URL(fileURLWithPath: filePath), options: .atomicWrite)
     return filePath
   }
+  
   func hashFile(_ fileUri: String) async throws -> String {
     return try await BlobUtil().hashFile(fileUri: fileUri)
+  }
+  
+  func zipDirectory(fileUrl: URL) throws -> String {
+    var returnPath: String = ""
+    var err: NSError? = nil
+    var ourError: Error? = nil
+    NSFileCoordinator().coordinate(readingItemAt: fileUrl, options: [.forUploading], error: &err) { (zipUrl) in
+      do {
+        let decryptedFolder = try FileUtils.getDecryptedFolder()
+        let destinationPath = (decryptedFolder as NSString).appendingPathComponent((zipUrl.path as NSString).lastPathComponent)
+        try FileManager.default.copyItem(at: zipUrl, to: URL(fileURLWithPath: destinationPath))
+        returnPath = destinationPath
+      } catch {
+        ourError = error
+        return
+      }
+    }
+    if let e = err ?? ourError {
+      throw TutanotaError(message: "could not read directory at \(fileUrl)", underlyingError: e)
+    }
+    return returnPath
   }
   
   func clearFileData() async throws {

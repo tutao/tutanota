@@ -98,27 +98,15 @@ func writeToSharedStorage(subdir: String, name: String, content: Data) throws ->
 /// returning a new list of URLs pointing to the new locations
 /// file URLs pointing to directories lead to zipped directories and are appended to the list
 /// any files or directories that fail to be copied are ignored and omitted from the return value
-func copyToSharedStorage(subdir: String, fileUrls: [URL]) async -> [URL] {
+func copyToSharedStorage(subdir: String, fileUrls: [URL]) async throws -> [URL] {
   var newLocations: [URL] = []
   for fileUrl in fileUrls {
     let isDirectory: Bool = (try? fileUrl.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
     if (isDirectory) {
-      var error: NSError? = nil
-      NSFileCoordinator().coordinate(readingItemAt: fileUrl, options: [.forUploading], error: &error) { (zipUrl) in
-        guard let contentData = try? Data(contentsOf: zipUrl) else {
-          TUTSLog("could not read directory at \(zipUrl) to share")
-          return
-        }
-        let fileName = zipUrl.lastPathComponent
-        guard let newLocation = try? writeToSharedStorage(subdir: subdir, name: fileName, content: contentData) else {
-          TUTSLog("could not copy directory at \(zipUrl) to share")
-          return
-        }
-        newLocations.append(newLocation)
+      guard let newLocation = zipSharedStorageFile(fileUrl: fileUrl, subdir: subdir) else {
+        continue
       }
-      if (error != nil) {
-        TUTSLog("could not read directory at \(fileUrl) to share due to \(error!)")
-      }
+      newLocations.append(newLocation)
     } else {
       guard let contentData = try? Data(contentsOf: fileUrl) else {
         TUTSLog("could not read file at \(fileUrl) to share")
@@ -134,6 +122,27 @@ func copyToSharedStorage(subdir: String, fileUrls: [URL]) async -> [URL] {
   }
   
   return newLocations
+}
+
+func zipSharedStorageFile(fileUrl: URL, subdir: String) -> URL? {
+  var returnURL: URL?
+  var error: NSError? = nil
+  NSFileCoordinator().coordinate(readingItemAt: fileUrl, options: [.forUploading], error: &error) { (zipUrl) in
+    guard let contentData = try? Data(contentsOf: zipUrl) else {
+      TUTSLog("could not read directory at \(zipUrl) to share")
+      return
+    }
+    let fileName = zipUrl.lastPathComponent
+    guard let writeURL = try? writeToSharedStorage(subdir: subdir, name: fileName, content: contentData) else {
+      TUTSLog("could not copy directory at \(zipUrl) to share")
+      return
+    }
+    returnURL = writeURL
+  }
+  if (error != nil) {
+    TUTSLog("could not read directory at \(fileUrl) to share due to \(error!)")
+  }
+  return returnURL
 }
 
 /// write the text and file paths for this share request to shared UserDefaults

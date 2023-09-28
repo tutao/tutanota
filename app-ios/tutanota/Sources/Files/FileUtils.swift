@@ -8,11 +8,13 @@ let DECRYPTED_DIRNAME = "decrypted"
 class FileUtils {
   
   /// temporary storage for encrypted files after download or before upload
+  /// - Returns path to folder with encrypted content
   static func getEncryptedFolder() throws -> String {
     return try Self.makeTempDir(name: ENCRYPTED_DIRNAME)
   }
   
   /// temporary storage for decrypted files before displaying them or encrypting them
+  /// - Returns path to folder with decrypted content
   static func getDecryptedFolder() throws -> String {
     return try Self.makeTempDir(name: DECRYPTED_DIRNAME)
   }

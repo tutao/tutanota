@@ -39,10 +39,14 @@ class BlobUtil {
 
   
   func splitFile(fileUri: String, maxBlobSize: Int) async throws -> [String] {
-    let fileHandle = FileHandle(forReadingAtPath: fileUri)!
+    let fileHandle = FileHandle(forReadingAtPath: fileUri)
+    if fileHandle == nil {
+      throw TUTErrorFactory.createError("Tried to attach invalid file: \(fileUri)")
+    }
+    
     var result = [String]()
     while true {
-      let chunk = fileHandle.readData(ofLength: maxBlobSize)
+      let chunk = fileHandle!.readData(ofLength: maxBlobSize)
       
       if chunk.isEmpty {
         // End of file
