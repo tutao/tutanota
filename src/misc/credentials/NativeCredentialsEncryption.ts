@@ -26,7 +26,16 @@ export class NativeCredentialsEncryption implements CredentialsEncryption {
 			throw new Error("Trying to encrypt non-persistent credentials")
 		}
 
-		const credentialsKey = await this.credentialsKeyProvider.getCredentialsKey()
+		let credentialsKey
+		try {
+			credentialsKey = await this.credentialsKeyProvider.getCredentialsKey()
+		} catch (e) {
+			if (e instanceof CryptoError) {
+				throw new KeyPermanentlyInvalidatedError(`Could not get credentials key to encrypt credentials ${e.stack || e.message}`)
+			} else {
+				throw e
+			}
+		}
 
 		const base64accessToken = stringToUtf8Uint8Array(credentials.accessToken)
 		const encryptedAccessToken = await this.deviceEncryptionFacade.encrypt(credentialsKey, base64accessToken)
@@ -51,9 +60,9 @@ export class NativeCredentialsEncryption implements CredentialsEncryption {
 	}
 
 	async decrypt(encryptedCredentials: PersistentCredentials): Promise<CredentialsAndDatabaseKey> {
-		const credentialsKey = await this.credentialsKeyProvider.getCredentialsKey()
-
 		try {
+			const credentialsKey = await this.credentialsKeyProvider.getCredentialsKey()
+
 			const accessToken = utf8Uint8ArrayToString(
 				await this.deviceEncryptionFacade.decrypt(credentialsKey, base64ToUint8Array(encryptedCredentials.accessToken)),
 			)
