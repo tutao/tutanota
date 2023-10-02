@@ -109,12 +109,12 @@ export async function showPlanUpgradeRequiredDialog(acceptedPlans: AvailablePlan
 	}
 }
 
-export async function showUpgradeWizardOrSwitchSubscriptionDialog(userController: UserController): Promise<PlanType> {
+export async function showUpgradeWizardOrSwitchSubscriptionDialog(userController: UserController): Promise<void> {
 	if (userController.isFreeAccount()) {
 		const { showUpgradeWizard } = await import("../subscription/UpgradeSubscriptionWizard")
-		return showUpgradeWizard(locator.logins)
+		await showUpgradeWizard(locator.logins)
 	} else {
-		return showSwitchPlanDialog(userController, NewPaidPlans)
+		await showSwitchPlanDialog(userController, NewPaidPlans)
 	}
 }
 
