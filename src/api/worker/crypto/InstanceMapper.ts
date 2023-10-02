@@ -1,14 +1,21 @@
 import { resolveTypeReference } from "../../common/EntityFunctions"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
-import { base64ToBase64Url, base64ToUint8Array, downcast, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import type { Base64 } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	base64ToBase64Url,
+	base64ToUint8Array,
+	downcast,
+	promiseMap,
+	stringToUtf8Uint8Array,
+	TypeRef,
+	uint8ArrayToBase64,
+	utf8Uint8ArrayToString,
+} from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, Type, ValueType } from "../../common/EntityConstants"
 import { compress, uncompress } from "../Compression"
-import { TypeRef } from "@tutao/tutanota-utils"
-import { promiseMap } from "@tutao/tutanota-utils"
 import type { ModelValue, TypeModel } from "../../common/EntityTypes"
-import { assertNotNull } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
-import type { Base64 } from "@tutao/tutanota-utils"
 import { aesDecrypt, aesEncrypt, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()

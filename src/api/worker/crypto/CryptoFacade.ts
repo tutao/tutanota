@@ -42,9 +42,9 @@ import { assertWorkerOrNode } from "../../common/Env"
 import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
 import {
-	aesEncrypt,
 	Aes128Key,
 	aes128RandomKey,
+	aesEncrypt,
 	bitArrayToUint8Array,
 	decryptKey,
 	decryptRsaKey,
@@ -174,6 +174,11 @@ export class CryptoFacade {
 		return decryptKey(ownerKey, key)
 	}
 
+	decryptSessionKey(instance: Record<string, any>, ownerEncSessionKey: Uint8Array): Aes128Key {
+		const gk = this.userFacade.getGroupKey(instance._ownerGroup)
+		return decryptKey(gk, ownerEncSessionKey)
+	}
+
 	/**
 	 * Returns the session key for the provided type/instance:
 	 * * null, if the instance is unencrypted
@@ -282,6 +287,9 @@ export class CryptoFacade {
 		this.ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(instanceSessionKeys)
 
 		if (resolvedSessionKeyForInstance) {
+			// for symmetrically encrypted instances _ownerEncSessionKey is sent from the server.
+			// in this case it is not yet and we need to set it because the rest of the app expects it.
+			instance._ownerEncSessionKey = uint8ArrayToBase64(encryptKey(this.userFacade.getGroupKey(instance._ownerGroup), resolvedSessionKeyForInstance))
 			return resolvedSessionKeyForInstance
 		} else {
 			throw new SessionKeyNotFoundError("no session key for instance " + instance._id)

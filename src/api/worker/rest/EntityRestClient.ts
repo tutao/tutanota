@@ -13,7 +13,7 @@ import {
 	PayloadTooLargeError,
 } from "../../common/error/RestError"
 import type { lazy } from "@tutao/tutanota-utils"
-import { isSameTypeRef, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, isSameTypeRef, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { getElementId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
@@ -273,7 +273,7 @@ export class EntityRestClient implements EntityRestInterface {
 			loadedEntities,
 			(instance) => {
 				if (providedOwnerEncSessionKeys) {
-					instance._ownerEncSessionKey = providedOwnerEncSessionKeys.get(getElementId(instance))
+					return this._decryptMapAndMigrate(instance, model, assertNotNull(providedOwnerEncSessionKeys.get(getElementId(instance))))
 				}
 				return this._decryptMapAndMigrate(instance, model)
 			},
@@ -281,16 +281,20 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 	}
 
-	async _decryptMapAndMigrate<T>(instance: any, model: TypeModel): Promise<T> {
+	async _decryptMapAndMigrate<T>(instance: any, model: TypeModel, providedOwnerEncSessionKey?: Uint8Array): Promise<T> {
 		let sessionKey
-		try {
-			sessionKey = await this._crypto.resolveSessionKey(model, instance)
-		} catch (e) {
-			if (e instanceof SessionKeyNotFoundError) {
-				console.log("could not resolve session key", e)
-				sessionKey = null // will result in _errors being set on the instance
-			} else {
-				throw e
+		if (providedOwnerEncSessionKey) {
+			sessionKey = this._crypto.decryptSessionKey(instance, providedOwnerEncSessionKey)
+		} else {
+			try {
+				sessionKey = await this._crypto.resolveSessionKey(model, instance)
+			} catch (e) {
+				if (e instanceof SessionKeyNotFoundError) {
+					console.log("could not resolve session key", e)
+					sessionKey = null // will result in _errors being set on the instance
+				} else {
+					throw e
+				}
 			}
 		}
 		const decryptedInstance = await this.instanceMapper.decryptAndMapToInstance<T>(model, instance, sessionKey)
