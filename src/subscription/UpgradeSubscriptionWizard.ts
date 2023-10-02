@@ -66,7 +66,7 @@ export type UpgradeSubscriptionData = {
 	msg: TranslationText | null
 }
 
-export async function showUpgradeWizard(logins: LoginController, acceptedPlans: AvailablePlanType[] = NewPaidPlans, msg?: TranslationText): Promise<PlanType> {
+export async function showUpgradeWizard(logins: LoginController, acceptedPlans: AvailablePlanType[] = NewPaidPlans, msg?: TranslationText): Promise<void> {
 	const [customer, accountingInfo] = await Promise.all([logins.getUserController().loadCustomer(), logins.getUserController().loadAccountingInfo()])
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
 
@@ -109,11 +109,10 @@ export async function showUpgradeWizard(logins: LoginController, acceptedPlans: 
 		wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
 		wizardPageWrapper(UpgradeConfirmSubscriptionPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
 	]
-	const deferred = defer<PlanType>()
+	const deferred = defer<void>()
 
 	const wizardBuilder = createWizardDialog(upgradeData, wizardPages, async () => {
-		const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
-		deferred.resolve(customerInfo.plan as PlanType)
+		deferred.resolve()
 	})
 	wizardBuilder.dialog.show()
 	return deferred.promise
