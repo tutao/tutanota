@@ -33,16 +33,17 @@ export class MigratingCredentialsBanner implements Component<CredentialsBannerAt
 	}
 
 	view(vnode: Vnode<CredentialsBannerAttrs>) {
-		// do not show anything if we already attempted migration or we got directly
+		const legacy = isLegacyDomain()
+		// do not show anything on the new domain if we already attempted migration or we got directly
 		// to the login page from being opened by another this/tab (this happens if there are no creds on old domain)
-		if (vnode.attrs.viewModel.hasAttemptedCredentials() || window.opener != null) return null
+		if (!legacy && (vnode.attrs.viewModel.hasAttemptedCredentials() || window.opener != null)) return null
 		return m(
 			".flex-center",
 			m(
 				".flex.col.flex-grow-shrink-auto.max-width-m.hide-outline.plr-l",
 				m(".plr-l.pt-s.pb.content-bg.border-radius-big", { style: { color: theme.navigation_button } }, [
 					m(".flex.row.items-center", [m("h6.flex-grow.b.mb-s", lang.get("tutanotaToTuta_msg")), this.renderDismissButton(vnode.attrs)]),
-					m("div", isLegacyDomain() ? lang.get("movedDomainLegacy_msg") : lang.get("getCredsFromLegacy_msg")),
+					m("div", legacy ? lang.get("movedDomainLegacy_msg") : lang.get("getCredsFromLegacy_msg")),
 					this.renderLinkToOtherDomain(vnode),
 				]),
 			),

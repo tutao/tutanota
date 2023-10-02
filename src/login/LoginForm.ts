@@ -10,6 +10,7 @@ import { Checkbox } from "../gui/base/Checkbox.js"
 import { client } from "../misc/ClientDetector"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
 import { isOfflineStorageAvailable } from "../api/common/Env"
+import { isLegacyDomain } from "./LoginViewModel.js"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown
@@ -53,7 +54,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 
 	_passwordDisabled(): boolean {
 		const customizations = getWhitelabelCustomizations(window)
-		return Boolean(customizations && customizations.bootstrapCustomizations.includes(BootstrapFeatureType.DisableSavePassword))
+		return Boolean(customizations && customizations.bootstrapCustomizations.includes(BootstrapFeatureType.DisableSavePassword)) || isLegacyDomain()
 	}
 
 	view(vnode: Vnode<LoginFormAttrs>): Children {
