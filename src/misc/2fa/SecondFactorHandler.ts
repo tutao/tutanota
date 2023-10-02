@@ -24,42 +24,29 @@ assertMainOrNode()
  *      If the dialog is visible and another client tries to login at the same time, that second login is ignored.
  */
 export class SecondFactorHandler {
-	readonly _eventController: EventController
-	readonly _entityClient: EntityClient
-	readonly _webauthnClient: WebauthnClient
-	readonly _loginFacade: LoginFacade
-	_otherLoginSessionId: IdTuple | null
-	_otherLoginDialog: Dialog | null
-	_otherLoginListenerInitialized: boolean
-	_waitingForSecondFactorDialog: SecondFactorAuthDialog | null
+	private otherLoginSessionId: IdTuple | null = null
+	private otherLoginDialog: Dialog | null = null
+	private otherLoginListenerInitialized: boolean = false
+	private waitingForSecondFactorDialog: SecondFactorAuthDialog | null = null
 
 	constructor(
-		eventController: EventController,
-		entityClient: EntityClient,
-		webauthnClient: WebauthnClient,
-		loginFacade: LoginFacade,
+		private readonly eventController: EventController,
+		private readonly entityClient: EntityClient,
+		private readonly webauthnClient: WebauthnClient,
+		private readonly loginFacade: LoginFacade,
 		private readonly domainConfigProvider: DomainConfigProvider,
-	) {
-		this._eventController = eventController
-		this._entityClient = entityClient
-		this._webauthnClient = webauthnClient
-		this._loginFacade = loginFacade
-		this._otherLoginSessionId = null
-		this._otherLoginDialog = null
-		this._otherLoginListenerInitialized = false
-		this._waitingForSecondFactorDialog = null
-	}
+	) {}
 
 	setupAcceptOtherClientLoginListener() {
-		if (this._otherLoginListenerInitialized) {
+		if (this.otherLoginListenerInitialized) {
 			return
 		}
 
-		this._otherLoginListenerInitialized = true
-		this._eventController.addEntityListener((updates) => this._entityEventsReceived(updates))
+		this.otherLoginListenerInitialized = true
+		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
 	}
 
-	async _entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
+	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
 		for (const update of updates) {
 			const sessionId: IdTuple = [neverNull(update.instanceListId), update.instanceId]
 
@@ -68,7 +55,7 @@ export class SecondFactorHandler {
 					let session
 
 					try {
-						session = await this._entityClient.load(SessionTypeRef, sessionId)
+						session = await this.entityClient.load(SessionTypeRef, sessionId)
 					} catch (e) {
 						if (e instanceof NotFoundError) {
 							console.log("Failed to load session", e)
@@ -80,19 +67,19 @@ export class SecondFactorHandler {
 					}
 
 					if (session.state === SessionState.SESSION_STATE_PENDING) {
-						if (this._otherLoginDialog != null) {
-							this._otherLoginDialog.close()
+						if (this.otherLoginDialog != null) {
+							this.otherLoginDialog.close()
 						}
 
-						this._otherLoginSessionId = session._id
+						this.otherLoginSessionId = session._id
 
-						this._showConfirmLoginDialog(session)
+						this.showConfirmLoginDialog(session)
 					}
-				} else if (update.operation === OperationType.UPDATE && this._otherLoginSessionId && isSameId(this._otherLoginSessionId, sessionId)) {
+				} else if (update.operation === OperationType.UPDATE && this.otherLoginSessionId && isSameId(this.otherLoginSessionId, sessionId)) {
 					let session
 
 					try {
-						session = await this._entityClient.load(SessionTypeRef, sessionId)
+						session = await this.entityClient.load(SessionTypeRef, sessionId)
 					} catch (e) {
 						if (e instanceof NotFoundError) {
 							console.log("Failed to load session", e)
@@ -105,27 +92,27 @@ export class SecondFactorHandler {
 
 					if (
 						session.state !== SessionState.SESSION_STATE_PENDING &&
-						this._otherLoginDialog &&
-						isSameId(neverNull(this._otherLoginSessionId), sessionId)
+						this.otherLoginDialog &&
+						isSameId(neverNull(this.otherLoginSessionId), sessionId)
 					) {
-						this._otherLoginDialog.close()
+						this.otherLoginDialog.close()
 
-						this._otherLoginSessionId = null
-						this._otherLoginDialog = null
+						this.otherLoginSessionId = null
+						this.otherLoginDialog = null
 					}
-				} else if (update.operation === OperationType.DELETE && this._otherLoginSessionId && isSameId(this._otherLoginSessionId, sessionId)) {
-					if (this._otherLoginDialog) {
-						this._otherLoginDialog.close()
+				} else if (update.operation === OperationType.DELETE && this.otherLoginSessionId && isSameId(this.otherLoginSessionId, sessionId)) {
+					if (this.otherLoginDialog) {
+						this.otherLoginDialog.close()
 
-						this._otherLoginSessionId = null
-						this._otherLoginDialog = null
+						this.otherLoginSessionId = null
+						this.otherLoginDialog = null
 					}
 				}
 			}
 		}
 	}
 
-	_showConfirmLoginDialog(session: Session) {
+	private showConfirmLoginDialog(session: Session) {
 		let text: string
 
 		if (session.loginIpAddress) {
@@ -139,55 +126,55 @@ export class SecondFactorHandler {
 			})
 		}
 
-		this._otherLoginDialog = Dialog.showActionDialog({
+		this.otherLoginDialog = Dialog.showActionDialog({
 			title: lang.get("secondFactorConfirmLogin_label"),
 			child: {
 				view: () => m(".text-break.pt", text),
 			},
 			okAction: async () => {
-				await this._loginFacade.authenticateWithSecondFactor(
+				await this.loginFacade.authenticateWithSecondFactor(
 					createSecondFactorAuthData({
 						session: session._id,
 						type: null, // Marker for confirming another session
 					}),
 				)
 
-				if (this._otherLoginDialog) {
-					this._otherLoginDialog.close()
+				if (this.otherLoginDialog) {
+					this.otherLoginDialog.close()
 
-					this._otherLoginSessionId = null
-					this._otherLoginDialog = null
+					this.otherLoginSessionId = null
+					this.otherLoginDialog = null
 				}
 			},
 		})
 		// close the dialog manually after 1 min because the session is not updated if the other client is closed
 		let sessionId = session._id
 		setTimeout(() => {
-			if (this._otherLoginDialog && isSameId(neverNull(this._otherLoginSessionId), sessionId)) {
-				this._otherLoginDialog.close()
+			if (this.otherLoginDialog && isSameId(neverNull(this.otherLoginSessionId), sessionId)) {
+				this.otherLoginDialog.close()
 
-				this._otherLoginSessionId = null
-				this._otherLoginDialog = null
+				this.otherLoginSessionId = null
+				this.otherLoginDialog = null
 			}
 		}, 60 * 1000)
 	}
 
 	closeWaitingForSecondFactorDialog() {
-		this._waitingForSecondFactorDialog?.close()
-		this._waitingForSecondFactorDialog = null
+		this.waitingForSecondFactorDialog?.close()
+		this.waitingForSecondFactorDialog = null
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	async showSecondFactorAuthenticationDialog(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null) {
-		if (this._waitingForSecondFactorDialog) {
+		if (this.waitingForSecondFactorDialog) {
 			return
 		}
 
-		this._waitingForSecondFactorDialog = SecondFactorAuthDialog.show(
-			this._webauthnClient,
-			this._loginFacade,
+		this.waitingForSecondFactorDialog = SecondFactorAuthDialog.show(
+			this.webauthnClient,
+			this.loginFacade,
 			this.domainConfigProvider,
 			{
 				sessionId,
@@ -195,7 +182,7 @@ export class SecondFactorHandler {
 				mailAddress,
 			},
 			() => {
-				this._waitingForSecondFactorDialog = null
+				this.waitingForSecondFactorDialog = null
 			},
 		)
 	}
