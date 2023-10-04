@@ -5,8 +5,7 @@ import { px } from "../size"
 import { Dialog } from "../base/Dialog"
 import { isMailAddress } from "../../misc/FormatValidator"
 import type { ImageHandler } from "../../mail/model/MailUtils"
-import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
-import { isKeyPressed } from "../../misc/KeyManager"
+import { TabIndex } from "../../api/common/TutanotaConstants"
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 export type ImagePasteEvent = CustomEvent<{ clipboardData: DataTransfer }>
@@ -120,24 +119,12 @@ export class Editor implements ImageHandler, Component {
 	}
 
 	initSquire(domElement: HTMLElement) {
-		let squire = new SquireEditor(domElement, {
+		this.squire = new SquireEditor(domElement, {
 			sanitizeToDOMFragment: (html: string) => this.sanitizer(html, this.userHasPasted),
 			blockAttributes: {
 				dir: "auto",
 			},
-		}).addEventListener("keyup", (e: KeyboardEvent) => {
-			if (this.createsLists && isKeyPressed(e.key, Keys.SPACE)) {
-				let blocks: HTMLElement[] = []
-				squire.forEachBlock((block: HTMLElement) => {
-					blocks.push(block)
-				})
-				createList(blocks, /^1\.\s$/, true) // create an ordered list if a line is started with '1. '
-
-				createList(blocks, /^\*\s$/, false) // create an unordered list if a line is started with '* '
-			}
 		})
-
-		this.squire = squire
 
 		// Suppress paste events if pasting while disabled
 		this.squire.addEventListener("willPaste", (e: TextPasteEvent) => {
@@ -158,32 +145,6 @@ export class Editor implements ImageHandler, Component {
 		// the _editor might have been disabled before the dom element was there
 		this.setEnabled(this.enabled)
 		this.initialized.resolve()
-
-		function createList(blocks: HTMLElement[], regex: RegExp, ordered: boolean) {
-			if (blocks.length === 1 && blocks[0].textContent?.match(regex)) {
-				squire.modifyBlocks(function (fragment: DocumentFragment) {
-					if (fragment.firstChild && fragment.firstChild.firstChild) {
-						let textNode = fragment.firstChild.firstChild
-
-						while (textNode.nodeType !== Node.TEXT_NODE && textNode.firstChild !== null && textNode.nodeName.toLowerCase() !== "li") {
-							textNode = textNode.firstChild
-						}
-
-						if (textNode.nodeType === Node.TEXT_NODE) {
-							textNode.textContent = textNode.textContent?.replace(regex, "") ?? null
-						}
-					}
-
-					return fragment
-				})
-
-				if (ordered) {
-					squire.makeOrderedList()
-				} else {
-					squire.makeUnorderedList()
-				}
-			}
-		}
 	}
 
 	setEnabled(enabled: boolean) {
@@ -312,14 +273,6 @@ export class Editor implements ImageHandler, Component {
 
 	isAttached(): boolean {
 		return this.squire != null
-	}
-
-	removeAllFormatting(): void {
-		// Create a range which contains the whole editor
-		const range = document.createRange()
-		range.selectNode(this.squire.getRoot())
-
-		this.squire.removeAllFormatting(range)
 	}
 
 	getSelectedText(): string {
