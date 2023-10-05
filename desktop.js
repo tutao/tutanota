@@ -13,8 +13,6 @@ import { checkOfflineDatabaseMigrations } from "./buildSrc/checkOfflineDbMigrato
 import { domainConfigs } from "./buildSrc/DomainConfigs.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const tutanotaAppUrl = new URL("https://mail.tutanota.com")
-const tutanotaTestUrl = new URL("https://test.tutanota.com")
 const tutaTestUrl = new URL("https://test.tuta.com")
 const tutaAppUrl = new URL("https://app.tuta.com")
 
@@ -23,7 +21,7 @@ await program
 	.description("Main build tool for distributable tutanota desktop artifacts.")
 	.addArgument(new Argument("stage").choices(["test", "prod", "local", "host", "release"]).default("release").argOptional())
 	.addArgument(new Argument("host").argOptional())
-	.option("-e, --existing", "Use existing prebuilt Webapp files in /build/dist/")
+	.option("-e, --existing", "Use existing prebuilt Webapp files in /build/")
 	.option("-p, --platform <platform>", "For which platform to build: linux|win|mac", process.platform)
 	.option(
 		"-c,--custom-desktop-release",

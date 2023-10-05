@@ -5,7 +5,7 @@ import { getElectronVersion } from "./buildUtils.js"
 /**
  * This is used for launching electron:
  * 1. copied to app-desktop/build from make.js
- * 2. copied to app-desktop/build/dist from dist.js (DesktopBuilder)
+ * 2. copied to app-desktop/build from dist.js (DesktopBuilder)
  */
 
 export default async function generateTemplate({ nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked, linux }) {

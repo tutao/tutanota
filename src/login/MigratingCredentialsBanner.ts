@@ -10,6 +10,7 @@ import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { defer, DeferredObject } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { Dialog } from "../gui/base/Dialog.js"
+import { isBrowser } from "../api/common/Env.js"
 
 export type CredentialsBannerAttrs = {
 	viewModel: LoginViewModel
@@ -28,7 +29,6 @@ export class MigratingCredentialsBanner implements Component<CredentialsBannerAt
 
 	onremove(vnode: VnodeDOM<CredentialsBannerAttrs>) {
 		// close channel - we don't want to handle inter-frame
-		console.log("done with credentialsframe")
 		this.dispatcher?.postRequest(new Request("abort", [])).then(() => this.transport?.dispose())
 	}
 
@@ -36,7 +36,7 @@ export class MigratingCredentialsBanner implements Component<CredentialsBannerAt
 		const legacy = isLegacyDomain()
 		// do not show anything on the new domain if we already attempted migration or we got directly
 		// to the login page from being opened by another this/tab (this happens if there are no creds on old domain)
-		if (!legacy && (vnode.attrs.viewModel.hasAttemptedCredentials() || window.opener != null)) return null
+		if (vnode.attrs.viewModel.hasAttemptedCredentials() || window.opener != null || !isBrowser()) return null
 		return m(
 			".flex-center",
 			m(

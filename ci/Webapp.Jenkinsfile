@@ -38,7 +38,7 @@ pipeline {
             	sh 'npm run build-packages'
 				sh 'node webapp.js release'
 				// excluding web-specific and mobile specific parts which we don't need in desktop
-				stash includes: 'build/dist/**', excludes: '**/app.html, **/desktop.html, **/index-app.js, **/index-desktop.js', name: 'webapp_built'
+				stash includes: 'build/**', excludes: '**/app.html, **/desktop.html, **/index-app.js, **/index-desktop.js', name: 'webapp_built'
 
 				// Bundle size stats
 				publishHTML target: [

@@ -54,7 +54,7 @@ pipeline {
 						sh 'node webapp.js release'
 
 						// excluding web-specific and mobile specific parts which we don't need in desktop
-						stash includes: 'build/dist/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/dist/sw.js', name: 'web_base'
+						stash includes: 'build/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/sw.js', name: 'web_base'
 					}
 				}
 
