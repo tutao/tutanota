@@ -98,7 +98,7 @@ export function measure() {
  * @returns {string}
  */
 export function getDefaultDistDirectory() {
-	return path.resolve("build/dist")
+	return path.resolve("build")
 }
 
 /** Throws if result has a value other than 0. **/

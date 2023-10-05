@@ -123,6 +123,7 @@ o.spec("DeviceConfig", function () {
 						encryptedPassword: "internalEncPassword",
 					},
 				},
+				hasParticipatedInCredentialsMigration: false,
 			})
 
 			// We can't just call verify on localStorageMock.setItem because the JSON string may not match perfectly

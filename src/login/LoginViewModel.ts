@@ -318,7 +318,7 @@ export class LoginViewModel implements ILoginViewModel {
 
 			// we don't want to auto-login on the legacy domain, there's a banner
 			// there to move people to the new domain.
-			if (this._autoLoginCredentials && !isLegacyDomain()) {
+			if (this._autoLoginCredentials) {
 				const credentials = await this.credentialsProvider.getCredentialsByUserId(this._autoLoginCredentials.userId)
 
 				if (credentials) {
@@ -451,7 +451,7 @@ export function isLegacyDomain(): boolean {
 export function getNewDomainOrigin(): string {
 	// mail.tutanota.com -> app.tuta.com
 	// test.tutanota.com -> app.test.tuta.com
-	// local.tutanota.com has gone away
+	// local.tutanota.com/client/build has gone away
 	// app.local.tutanota.com -> app.local.tuta.com
 	return location.origin.replace(".tutanota.com", ".tuta.com").replace("mail.", "app.")
 }

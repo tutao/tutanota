@@ -40,8 +40,8 @@ export async function buildDesktop({ dirname, version, platform, updateUrl, name
 
 	console.log(`Building ${platform} desktop client for v${version}`)
 	const updateSubDir = `desktop${nameSuffix}`
-	const distDir = path.join(dirname, "build", "dist")
-	outDir = path.join(outDir ?? path.join(distDir, ".."), updateSubDir)
+	const distDir = path.join(dirname, "build")
+	outDir = path.join(outDir ?? distDir, updateSubDir)
 	await fs.promises.mkdir(outDir, { recursive: true })
 
 	// We need to get the right build of native dependencies. There's a tool called node-gyp which can build for different architectures
@@ -64,7 +64,7 @@ export async function buildDesktop({ dirname, version, platform, updateUrl, name
 
 	// prepare files
 	try {
-		await fs.promises.rm(path.join(distDir, "..", updateSubDir), { recursive: true })
+		await fs.promises.rm(path.join(distDir, updateSubDir), { recursive: true })
 	} catch (e) {
 		if (e.code !== "ENOENT") {
 			throw e

@@ -332,7 +332,11 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {
-		console.log("onNewUrl")
+		if (isLegacyDomain()) {
+			// we want people to see the banner even if the only have
+			// one set of stored credentials.
+			args.noAutoLogin = true
+		}
 		if (args.requestedPath) {
 			this.selectedRedirect = args.requestedPath
 		} else if (args.action) {
@@ -351,7 +355,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 		// we shouldn't handle any outdated URL changes.
 		if (m.route.get() !== requestedPath) return
 
-		const autoLogin = args.noAutoLogin == null || (args.noAutoLogin === false && !isLegacyDomain())
+		const autoLogin = args.noAutoLogin == null || args.noAutoLogin === false
 
 		if (autoLogin) {
 			if (args.userId) {
