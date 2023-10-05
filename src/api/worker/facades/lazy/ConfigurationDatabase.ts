@@ -2,10 +2,9 @@ import { b64UserIdHash, DbFacade } from "../../search/DbFacade.js"
 import { assertNotNull, concat, downcast, LazyLoaded, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import type { User } from "../../../entities/sys/TypeRefs.js"
 import { ExternalImageRule } from "../../../common/TutanotaConstants.js"
-import { aesDecrypt, aes256RandomKey, decryptKey, encryptKey, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, aesDecrypt, aesEncrypt, decryptKey, encryptKey, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { UserFacade } from "../UserFacade.js"
 import { Metadata, ObjectStoreName } from "../../search/IndexTables.js"
-import { aesEncrypt } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
 
 const VERSION: number = 2
 const DB_KEY_PREFIX: string = "ConfigStorage"

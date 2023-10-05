@@ -1,6 +1,5 @@
-import { aesDecrypt, aes256RandomKey, bitArrayToUint8Array, CryptoError, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, aesDecrypt, aesEncrypt, bitArrayToUint8Array, CryptoError, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import { CryptoError as TutanotaCryptoError } from "../../common/error/CryptoError.js"
-import { aesEncrypt } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
 
 export class DeviceEncryptionFacade {
 	/**

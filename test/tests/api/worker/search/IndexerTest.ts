@@ -27,7 +27,7 @@ import { EntityRestClient } from "../../../../../src/api/worker/rest/EntityRestC
 import { MembershipRemovedError } from "../../../../../src/api/common/error/MembershipRemovedError.js"
 import { GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { daysToMillis, defer, downcast, TypeRef } from "@tutao/tutanota-utils"
-import { aes128RandomKey, aes256RandomKey, decryptKey, encryptKey, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aes128RandomKey, aes256RandomKey, aesEncrypt, decryptKey, encryptKey, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import o from "@tutao/otest"
 import { instance, matchers, object, replace, reset, verify, when } from "testdouble"
@@ -37,7 +37,6 @@ import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
 import { ContactIndexer } from "../../../../../src/api/worker/search/ContactIndexer.js"
 import { InfoMessageHandler } from "../../../../../src/gui/InfoMessageHandler.js"
 import { GroupDataOS, Metadata, MetaDataOS } from "../../../../../src/api/worker/search/IndexTables.js"
-import { aesEncrypt } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 let contactList = createContactList()
