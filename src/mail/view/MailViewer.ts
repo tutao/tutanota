@@ -358,6 +358,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		wrapNode.className = "drag selectable touch-callout break-word-links" + (client.isMobileDevice() ? " break-pre" : "")
 		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height)
 		wrapNode.style.transformOrigin = "top left"
+		wrapNode.style.minWidth = "100%"
+		wrapNode.style.width = "fit-content"
 		wrapNode.appendChild(sanitizedMailBody.cloneNode(true))
 		this.shadowDomMailContent = wrapNode
 
