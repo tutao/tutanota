@@ -7,7 +7,10 @@ class ApiSchemeHandler : NSObject, WKURLSchemeHandler {
   
   private let regex: NSRegularExpression
   private let urlSession: URLSession
-  private var taskMap = [URLRequest : URLSessionDataTask]()
+  // We need to synchronize access to the dictionary because tasks start/get cancelled/complete on diffent threads.
+  // It *should* be fine to just lock it without resorting to a serial queue.
+  private let dictLock = UnfairLock()
+  private var taskDict = [URLRequest : URLSessionDataTask]()
   
   override init() {
     // docs say that schemes are case insensitive
@@ -27,11 +30,27 @@ class ApiSchemeHandler : NSObject, WKURLSchemeHandler {
     newRequest.url = newUrl
     return newRequest
   }
-  
+
   func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
     let newRequest = self.rewriteRequest(urlSchemeTask.request)
     let task = self.urlSession.dataTask(with: newRequest) { data, response, err in
-      defer {self.taskMap.removeValue(forKey: urlSchemeTask.request)}
+      defer {
+        self.dictLock.locked {
+          self.taskDict.removeValue(forKey: urlSchemeTask.request)
+        }
+      }
+
+      // It is an error to call anything on WKURLSchemeTask after
+      // webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask)
+      // was called. It is unclear how cancel() works so to avoid crashes
+      // we manually check for it.
+      let taskFromDict = self.dictLock.locked {
+        return self.taskDict[urlSchemeTask.request]
+      }
+      if taskFromDict == nil {
+        return
+      }
+
       if let err = err {
         if (err as NSError).domain == NSURLErrorDomain && (err as NSError).code == NSURLErrorCancelled {
           return
@@ -43,17 +62,21 @@ class ApiSchemeHandler : NSObject, WKURLSchemeHandler {
       urlSchemeTask.didReceive(data!)
       urlSchemeTask.didFinish()
     }
-    self.taskMap[urlSchemeTask.request] = task
+    self.dictLock.locked {
+      self.taskDict[urlSchemeTask.request] = task
+    }
     task.resume()
   }
   
   func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {
-    guard let task = self.taskMap[urlSchemeTask.request] else {
-      return
-    }
-    if task.state == .running || task.state == .suspended {
-      task.cancel()
-      self.taskMap.removeValue(forKey: urlSchemeTask.request)
+    self.dictLock.locked {
+      guard let task = self.taskDict[urlSchemeTask.request] else {
+        return
+      }
+      if task.state == .running || task.state == .suspended {
+        task.cancel()
+        self.taskDict.removeValue(forKey: urlSchemeTask.request)
+      }
     }
   }
   

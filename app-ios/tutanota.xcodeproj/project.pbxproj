@@ -209,6 +209,7 @@
 		3DCA05602AAF0F1A0038B944 /* NativeCredentialsFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFADB285B0C340077F302 /* NativeCredentialsFacadeReceiveDispatcher.swift */; };
 		3DCB9B8528F710CC0042A6BB /* TaggedSqlValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCB9B8428F710CC0042A6BB /* TaggedSqlValue.swift */; };
 		3DCB9B8728F711220042A6BB /* SqlCipherStatement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCB9B8628F711220042A6BB /* SqlCipherStatement.swift */; };
+		3DCC3F472ACED5DB00C9C27E /* UnfairLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCC3F462ACED5DB00C9C27E /* UnfairLock.swift */; };
 		3DCE7AA22719D04B0085E40D /* UserPreferenceFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA12719D04B0085E40D /* UserPreferenceFacade.swift */; };
 		3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA6271D63BF0085E40D /* ViewController.swift */; };
 		3DCE7AAB27200E0A0085E40D /* WebviewHacks.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DCE7AA927200E0A0085E40D /* WebviewHacks.h */; };
@@ -475,6 +476,7 @@
 		3DC5DEDA2858D6A9007364FF /* RsaKeyPair.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaKeyPair.swift; sourceTree = "<group>"; };
 		3DCB9B8428F710CC0042A6BB /* TaggedSqlValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaggedSqlValue.swift; sourceTree = "<group>"; };
 		3DCB9B8628F711220042A6BB /* SqlCipherStatement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SqlCipherStatement.swift; sourceTree = "<group>"; };
+		3DCC3F462ACED5DB00C9C27E /* UnfairLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnfairLock.swift; sourceTree = "<group>"; };
 		3DCE7AA12719D04B0085E40D /* UserPreferenceFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPreferenceFacade.swift; sourceTree = "<group>"; };
 		3DCE7AA6271D63BF0085E40D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		3DCE7AA927200E0A0085E40D /* WebviewHacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebviewHacks.h; sourceTree = "<group>"; };
@@ -722,6 +724,7 @@
 				3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */,
 				3D7A107F29472A6000311B6B /* CancelledError.swift */,
 				3D4A426829B6513900B10451 /* DateProvider.swift */,
+				3DCC3F462ACED5DB00C9C27E /* UnfairLock.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -1778,6 +1781,7 @@
 				3DBA56CE2850AAA6004416BE /* IosGlobalDispatcher.swift in Sources */,
 				3DBA56CD2850AAA6004416BE /* NativeShortcut.swift in Sources */,
 				3D220205293F75C100366FD2 /* IosWebauthnFacade.swift in Sources */,
+				3DCC3F472ACED5DB00C9C27E /* UnfairLock.swift in Sources */,
 				3DC5DECD2858C1F5007364FF /* IosNativePushFacade.swift in Sources */,
 				3D3AFAEC285C5C6E0077F302 /* DataFile.swift in Sources */,
 				3D84F5822723225C00858A58 /* Utils.swift in Sources */,
