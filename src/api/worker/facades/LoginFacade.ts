@@ -87,7 +87,7 @@ import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { DatabaseKeyFactory } from "../../../misc/credentials/DatabaseKeyFactory.js"
 import { ExternalUserKeyDeriver } from "../../../misc/LoginUtils.js"
 import { Argon2idFacade } from "./Argon2idFacade.js"
-import { aes256DecryptLegacyRecoveryKey } from "@tutao/tutanota-crypto/dist/encryption/KeyEncryption.js"
+import { aes256DecryptLegacyRecoveryKey } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 

@@ -5,8 +5,7 @@ import crypto from "node:crypto"
 import { InstanceMapper } from "../api/worker/crypto/InstanceMapper"
 import type { TypeModel } from "../api/common/EntityTypes"
 import type { Base64 } from "@tutao/tutanota-utils"
-import { Aes256Key, aes256RandomKey, aesDecrypt, base64ToKey, decryptKey, random, uint8ArrayToKey } from "@tutao/tutanota-crypto"
-import { aesEncrypt } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
+import { Aes256Key, aes256RandomKey, aesDecrypt, aesEncrypt, base64ToKey, decryptKey, random, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 
 // the prng throws if it doesn't have enough entropy
 // it may be called very early, so we need to seed it
