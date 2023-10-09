@@ -9,7 +9,7 @@ import { Const } from "../../../api/common/TutanotaConstants.js"
 
 /** Web authentication entry point for the rest of the app. */
 export class WebauthnClient {
-	constructor(private readonly webauthn: WebAuthnFacade, private readonly domainConfigProvider: DomainConfigProvider) {}
+	constructor(private readonly webauthn: WebAuthnFacade, private readonly domainConfigProvider: DomainConfigProvider, private readonly isApp: boolean) {}
 
 	isSupported(): Promise<boolean> {
 		return this.webauthn.isSupported()
@@ -49,7 +49,7 @@ export class WebauthnClient {
 
 	private selectRegistrationUrl() {
 		const domainConfig = this.domainConfigProvider.getCurrentDomainConfig()
-		return domainConfig.webauthnUrl
+		return this.getWebauthnUrl(domainConfig, "new")
 	}
 
 	/**
@@ -97,24 +97,34 @@ export class WebauthnClient {
 		if (challenge.keys.some((k) => k.appId === Const.LEGACY_WEBAUTHN_RP_ID)) {
 			// If there's a Webauthn key for our old domain we need to open the webapp on the old domain.
 
-			return domainConfig.legacyWebauthnUrl
+			return this.getWebauthnUrl(domainConfig, "legacy")
 		} else if (challenge.keys.some((k) => k.appId === Const.WEBAUTHN_RP_ID)) {
 			// This function is not needed for the webapp! We can safely assume that our clientWebRoot is a new domain.
-			return domainConfig.webauthnUrl
+			return this.getWebauthnUrl(domainConfig, "new")
 		} else {
 			// If it isn't there, look for any Webauthn key. Legacy U2F key ids ends with json subpath.
 			const webauthnKey = challenge.keys.find((k) => !this.isLegacyU2fKey(k))
 			if (webauthnKey) {
-				return this.domainConfigProvider.getDomainConfigForHostname(webauthnKey.appId).webauthnUrl
+				const domainConfigForHostname = this.domainConfigProvider.getDomainConfigForHostname(webauthnKey.appId)
+				return this.getWebauthnUrl(domainConfigForHostname, "new")
 			} else if (challenge.keys.some((k) => k.appId === Const.U2F_APPID)) {
 				// There are only legacy U2F keys but there is one for our domain, take it
-				return domainConfig.legacyWebauthnUrl
+				return this.getWebauthnUrl(domainConfig, "legacy")
 			} else {
 				// Nothing else worked, select legacy U2F key for whitelabel domain
 				const keyToUse = getFirstOrThrow(challenge.keys)
 				const keyHostname = new URL(keyToUse.appId).hostname
-				return this.domainConfigProvider.getDomainConfigForHostname(keyHostname).webauthnUrl
+				const domainConfigForHostname = this.domainConfigProvider.getDomainConfigForHostname(keyHostname)
+				return this.getWebauthnUrl(domainConfigForHostname, "new")
 			}
+		}
+	}
+
+	private getWebauthnUrl(domainConfig: DomainConfig, type: "legacy" | "new") {
+		if (type === "legacy") {
+			return this.isApp ? domainConfig.legacyWebauthnMobileUrl : domainConfig.legacyWebauthnUrl
+		} else {
+			return this.isApp ? domainConfig.webauthnMobileUrl : domainConfig.webauthnUrl
 		}
 	}
 

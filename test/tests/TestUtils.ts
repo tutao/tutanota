@@ -106,4 +106,6 @@ export const domainConfigStub: DomainConfig = {
 	paymentUrl: "",
 	webauthnUrl: "",
 	legacyWebauthnUrl: "",
+	webauthnMobileUrl: "",
+	legacyWebauthnMobileUrl: "",
 }

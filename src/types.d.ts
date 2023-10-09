@@ -37,6 +37,8 @@ type DomainConfig = {
 	apiUrl: string
 	webauthnUrl: string
 	legacyWebauthnUrl: string
+	webauthnMobileUrl: string
+	legacyWebauthnMobileUrl: string
 	paymentUrl: string
 	webauthnRpId: string
 	u2fAppId: string
