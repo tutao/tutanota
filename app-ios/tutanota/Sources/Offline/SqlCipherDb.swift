@@ -51,7 +51,8 @@ class SqlCipherDb {
     let rc_prep = sqlite3_prepare_v2(self.db, sqlCStr, -1, &stmt, nil)
     if rc_prep != SQLITE_OK || stmt == nil {
       let errmsg = self.getLastErrorMessage()
-      fatalError("failed to prepare stmt: \(errmsg)")
+      
+      throw TUTErrorFactory.createError("Could not prepare statement: \(errmsg). Query: \(query)")
     }
     return SqlCipherStatement(db: self, query: query, stmt: stmt.unsafelyUnwrapped)
   }
