@@ -125,6 +125,10 @@ private func aesDecrypt(data: Data, withKey key: Data, withPadding: Bool) throws
   let dataOffset = ivOffset + TUTAO_CRYPT_BLOCK_SIZE
   let macOffset = data.count - (useMAC ? MAC_DIGEST_LENGTH : 0)
   
+  guard dataOffset < data.count && macOffset <= data.count else {
+    throw TUTErrorFactory.createError(withDomain: TUT_CRYPTO_ERROR, message: "Invalid data length: \(data.count), macOffset: \(macOffset)")
+  }
+  
   let iv = data[ivOffset..<dataOffset]
   let encryptedData = data[dataOffset..<macOffset]
   
@@ -140,6 +144,9 @@ private func verifyMAC(forData data: [UInt8], withMKey key: SymmetricKey) throws
   }
   
   let macOffset = data.count - MAC_DIGEST_LENGTH
+  guard macOffset < data.count && MAC_IDENTIFIER.count < macOffset else {
+    throw TUTErrorFactory.createError("invalid mac, data.count \(data.count)")
+  }
   let dataToCheck = data[MAC_IDENTIFIER.count..<macOffset]
   let mac = data[macOffset..<data.count]
   
