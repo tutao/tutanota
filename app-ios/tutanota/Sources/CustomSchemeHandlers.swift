@@ -75,8 +75,8 @@ class ApiSchemeHandler : NSObject, WKURLSchemeHandler {
       }
       if task.state == .running || task.state == .suspended {
         task.cancel()
-        self.taskDict.removeValue(forKey: urlSchemeTask.request)
       }
+      self.taskDict.removeValue(forKey: urlSchemeTask.request)
     }
   }
   
