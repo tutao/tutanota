@@ -249,7 +249,6 @@ export const Const = {
 	// Sets the current date for testing date dependent services. Only available in test environments.
 	CURRENT_DATE: null,
 	CURRENCY_SYMBOL_EUR: "€",
-	LEGACY_APP_DOMAIN: "mail.tutanota.com",
 	DEFAULT_APP_DOMAIN: "app.tuta.com",
 	LEGACY_WEBAUTHN_RP_ID: "tutanota.com",
 	WEBAUTHN_RP_ID: "tuta.com",
