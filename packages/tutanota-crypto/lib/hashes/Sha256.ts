@@ -11,7 +11,7 @@ export const SHA256_HASH_LENGTH_BYTES = 32
  */
 export function sha256Hash(uint8Array: Uint8Array): Uint8Array {
 	try {
-		sha256.update(sjcl.codec.arrayBuffer.toBits(uint8Array.buffer))
+		sha256.update(sjcl.codec.arrayBuffer.toBits(uint8Array.buffer, uint8Array.byteOffset, uint8Array.byteLength))
 		return new Uint8Array(sjcl.codec.arrayBuffer.fromBits(sha256.finalize(), false))
 	} finally {
 		sha256.reset()
