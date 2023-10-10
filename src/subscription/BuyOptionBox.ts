@@ -8,13 +8,13 @@ import { SegmentControl } from "../gui/base/SegmentControl"
 import type { ButtonAttrs } from "../gui/base/Button.js"
 import { Button } from "../gui/base/Button.js"
 import type { BookingItemFeatureType } from "../api/common/TutanotaConstants"
+import { Keys } from "../api/common/TutanotaConstants"
 import { asPaymentInterval, formatMonthlyPrice, getCountFromPriceData, getPriceFromPriceData, PaymentInterval } from "./PriceUtils"
 import type { BookingFacade } from "../api/worker/facades/lazy/BookingFacade.js"
 import Stream from "mithril/stream"
 import { Icons } from "../gui/base/icons/Icons"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { isKeyPressed } from "../misc/KeyManager.js"
-import { Keys } from "../api/common/TutanotaConstants"
 
 export type BuyOptionBoxAttr = {
 	heading: string | Children
@@ -85,7 +85,9 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 					".buyOptionBox" + (attrs.highlighted ? ".highlighted" : ""),
 					{
 						style: {
-							height: px(attrs.height),
+							display: "flex",
+							"flex-direction": "column",
+							"min-height": px(attrs.height),
 							"border-radius": "3px",
 						},
 					},
@@ -101,10 +103,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 									".button-min-height",
 									{
 										style: {
-											position: "absolute",
-											bottom: px(10),
-											left: px(10),
-											right: px(10),
+											"margin-top": "auto",
 										},
 									},
 									attrs.actionButton
