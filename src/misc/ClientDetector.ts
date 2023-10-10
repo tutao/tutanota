@@ -1,4 +1,4 @@
-import { assertMainOrNodeBoot, Mode } from "../api/common/Env"
+import { assertMainOrNodeBoot, isApp, Mode } from "../api/common/Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 
 assertMainOrNodeBoot()
@@ -118,7 +118,7 @@ export class ClientDetector {
 	 */
 	isSupported(): boolean {
 		this.syntaxChecks()
-		return this.isSupportedBrowserVersion() && this.testBuiltins() && this.websockets() && this.testCss()
+		return this.isSupportedBrowserVersion() && this.testBuiltins() && this.websockets() && this.testCss() && (isApp() || this.webassembly())
 	}
 
 	isMobileDevice(): boolean {
