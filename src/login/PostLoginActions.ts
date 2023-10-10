@@ -125,7 +125,6 @@ export class PostLoginActions implements PostLoginAction {
 			await locator.mailModel.init()
 			const calendarModel = await locator.calendarModel()
 			await calendarModel.init()
-			await this.checkWebAssemblyEnabled()
 			await this.remindActiveOutOfOfficeNotification()
 		}
 
@@ -161,30 +160,6 @@ export class PostLoginActions implements PostLoginAction {
 	private deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {
 		notification.enabled = false
 		return this.entityClient.update(notification)
-	}
-
-	private async checkWebAssemblyEnabled() {
-		const closeButton: Partial<ButtonAttrs> = {
-			label: "close_alt",
-		}
-		if (!client.webassembly()) {
-			if (isIOSApp() || isAndroidApp()) {
-				// It's OK. We are not using WebAssembly on iOS/Android.
-				return
-			} else {
-				const notificationMessage = {
-					view: () => [m(".pb", lang.get("webAssemblyNotSupported1_msg")), m("", lang.get("webAssemblyNotSupported2_msg"))],
-				}
-				const buttons: ButtonAttrs[] = [
-					{
-						label: "download_action",
-						click: () => window.open(InfoLink.Download, "_blank"),
-						type: ButtonType.Primary,
-					},
-				]
-				notificationOverlay.show(notificationMessage, closeButton, buttons)
-			}
-		}
 	}
 
 	private remindActiveOutOfOfficeNotification(): Promise<void> {
