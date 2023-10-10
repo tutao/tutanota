@@ -41,7 +41,7 @@ class IosWebauthnFacade:WebAuthnFacade {
   @MainActor
   private func sendRequest(challengeDomain: String, challengeJson: String, actionType: String) async throws -> URL {
     return try await withCheckedThrowingContinuation { continuation in
-      var urlComponents = URLComponents(string: challengeDomain + "/webauthnmobile")!
+      var urlComponents = URLComponents(string: challengeDomain)!
       urlComponents.queryItems = [
         URLQueryItem(name: "action", value: actionType),
         URLQueryItem(name: "challenge", value: challengeJson),
