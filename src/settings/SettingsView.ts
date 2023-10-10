@@ -448,7 +448,14 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	oncreate(vnode: Vnode<SettingsViewAttrs>) {
 		locator.eventController.addEntityListener(this.entityListener)
 
-		this.populateAdminFolders()
+		const currentRoute = m.route.get()
+		this.populateAdminFolders().then(() => {
+			// We have to wait for the folders to be initialized before setting the URL,
+			// otherwise we won't find the requested folder and will just pick the default folder
+			if (currentRoute !== this._userFolders[0].url) {
+				this.onNewUrl({ folder: m.route.param("folder") }, currentRoute)
+			}
+		})
 	}
 
 	onremove(vnode: VnodeDOM<SettingsViewAttrs>) {
@@ -588,6 +595,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				m.redraw()
 			} else {
 				// folder path has changed
+				this._setUrl(folder.url)
 				this._selectedFolder = folder
 				this._currentViewer = null
 				this.detailsViewer = null
