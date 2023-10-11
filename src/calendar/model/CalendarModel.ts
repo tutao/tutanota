@@ -41,6 +41,7 @@ import { IServiceExecutor } from "../../api/common/ServiceRequest"
 import { MembershipService } from "../../api/entities/sys/Services"
 import { FileController } from "../../file/FileController"
 import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUtils.js"
+import { TutanotaError } from "../../api/common/error/TutanotaError.js"
 
 const TAG = "[CalendarModel]"
 
@@ -59,6 +60,7 @@ export class CalendarModel {
 	/** Map from calendar event element id to the deferred object with a promise of getting CREATE event for this calendar event */
 	private pendingAlarmRequests: Map<string, DeferredObject<void>> = new Map()
 	private readonly userAlarmToAlarmInfo: Map<string, string> = new Map()
+	private readonly fileIdToSkippedCalendarEventUpdates: Map<Id, CalendarEventUpdate> = new Map()
 
 	constructor(
 		private readonly notifications: Notifications,
@@ -242,6 +244,10 @@ export class CalendarModel {
 	private async getCalendarDataForUpdate(fileId: IdTuple): Promise<ParsedCalendarData | null> {
 		try {
 			const file = await this.entityClient.load(FileTypeRef, fileId)
+			if (file._ownerEncSessionKey == null) {
+				// owner enc session key not updated yet - see NoOwnerEncSessionKeyForCalendarEventError's comment
+				return Promise.reject(new NoOwnerEncSessionKeyForCalendarEventError("no owner enc session key found on the calendar data's file"))
+			}
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const { parseCalendarFile } = await import("../export/CalendarImporter")
 			return await parseCalendarFile(dataFile)
@@ -270,6 +276,9 @@ export class CalendarModel {
 				console.warn(TAG, "could not process calendar update: locked", e)
 			} else if (e instanceof NotFoundError) {
 				console.warn(TAG, "could not process calendar update: not found", e)
+			} else if (e instanceof NoOwnerEncSessionKeyForCalendarEventError) {
+				this.fileIdToSkippedCalendarEventUpdates.set(elementIdPart(update.file), update)
+				console.warn(TAG, `could not process calendar update: ${e.message}`, e)
 			} else {
 				throw e
 			}
@@ -622,6 +631,23 @@ export class CalendarModel {
 						throw e
 					}
 				}
+			} else if (isUpdateForTypeRef(FileTypeRef, entityEventData)) {
+				// with a file update, the owner enc session key should be present now so we can try to process any skipped calendar event updates
+				// (see NoOwnerEncSessionKeyForCalendarEventError's comment)
+				const skippedCalendarEventUpdate = this.fileIdToSkippedCalendarEventUpdates.get(entityEventData.instanceId)
+				if (skippedCalendarEventUpdate) {
+					try {
+						await this.handleCalendarEventUpdate(skippedCalendarEventUpdate)
+					} catch (e) {
+						if (e instanceof NotFoundError) {
+							console.log(TAG, "invite not found", [entityEventData.instanceListId, entityEventData.instanceId], e)
+						} else {
+							throw e
+						}
+					} finally {
+						this.fileIdToSkippedCalendarEventUpdates.delete(entityEventData.instanceId)
+					}
+				}
 			}
 		}
 	}
@@ -652,6 +678,11 @@ export class CalendarModel {
 			alarmScheduler.cancelAlarm(identifier)
 		}
 	}
+
+	// VisibleForTesting
+	getFileIdToSkippedCalendarEventUpdates(): Map<Id, CalendarEventUpdate> {
+		return this.fileIdToSkippedCalendarEventUpdates
+	}
 }
 
 /** return false when the given events (representing the new and old version of the same event) are both long events
@@ -659,4 +690,16 @@ export class CalendarModel {
 async function didLongStateChange(newEvent: CalendarEvent, existingEvent: CalendarEvent, zone: string): Promise<boolean> {
 	const { isLongEvent } = await import("../date/CalendarUtils.js")
 	return isLongEvent(newEvent, zone) !== isLongEvent(existingEvent, zone)
+}
+
+/**
+ * This is used due us receiving calendar events before updateOwnerEncSessionKey gets triggered, and thus we can't load calendar data attachments. This is
+ * required due to our permission system and the fact that bucket keys are not immediately accessible from File, only Mail.
+ *
+ * This is a limitation that should be addressed in the future.
+ */
+class NoOwnerEncSessionKeyForCalendarEventError extends TutanotaError {
+	constructor(message: string) {
+		super("NoOwnerEncSessionKeyForCalendarEventError", message)
+	}
 }
