@@ -434,29 +434,35 @@ export class LoginViewModel implements ILoginViewModel {
 
 		handleExpectedLoginError(error, noOp)
 	}
-
-	canPullCredentials(): boolean {
-		return !this.deviceConfig.getHasAttemptedCredentialsMigration() && !isLegacyDomain()
-	}
 }
 
 /** are we on *.tutanota.com?
  * influences whether we should allow saving credentials and show the credentials migration box.
  * also turns off auto login with a single stored credential. */
-export function isLegacyDomain(): boolean {
-	return new URL(location.origin).hostname.endsWith(".tutanota.com") && isBrowser()
+export function isLegacyDomain(o: string = location.origin): boolean {
+	return new URL(o).hostname.endsWith(".tutanota.com") && isBrowser()
 }
 
-/** get the new domain origin according to the staging level of the calling application. */
-export function getNewDomainOrigin(): string {
-	// mail.tutanota.com -> app.tuta.com
-	// test.tutanota.com -> app.test.tuta.com
-	// local.tutanota.com/client/build has gone away
-	// app.local.tutanota.com -> app.local.tuta.com
-	return location.origin.replace(".tutanota.com", ".tuta.com").replace("mail.", "app.")
+const OldToNew: Record<string, string> = Object.freeze({
+	"https://mail.tutanota.com": "https://app.tuta.com",
+	"https://test.tutanota.com": "https://app.test.tuta.com",
+	"https://app.local.tutanota.com:9000": "https://app.local.tuta.com:9000",
+})
+
+const NewToOld: Record<string, string> = Object.freeze({
+	"https://app.tuta.com": "https://mail.tutanota.com",
+	"https://app.test.tuta.com": "https://test.tutanota.com",
+	"https://app.local.tuta.com:9000": "https://app.local.tutanota.com:9000",
+})
+
+/** get the new domain origin according to the staging level of the calling application.
+ * in a whitelabel context, this returns location.origin unchanged.
+ * */
+export function getNewDomainOrigin(o: string = location.origin): string {
+	return OldToNew[o] ?? o
 }
 
 /** get the old domain according to the staging level of the calling application. */
-export function getOldDomainOrigin(): string {
-	return location.origin.replace(".tuta.com", ".tutanota.com").replace("app.tutanota.", "mail.tutanota.")
+export function getOldDomainOrigin(o: string = location.origin): string {
+	return NewToOld[o] ?? o
 }

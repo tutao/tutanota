@@ -16,7 +16,7 @@ import * as RecoverCodeDialog from "./RecoverCodeDialog.js"
 import { attachDropdown } from "../../gui/base/Dropdown.js"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
 import { ColumnWidth, Table } from "../../gui/base/Table.js"
-import { ifAllowedTutanotaLinks } from "../../gui/base/GuiUtils.js"
+import { ifAllowedTutaLinks } from "../../gui/base/GuiUtils.js"
 import type { UpdatableSettingsViewer } from "../SettingsView.js"
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
 import type { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
@@ -97,7 +97,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		const recoveryCodeFieldAttrs: TextFieldAttrs = {
 			label: "recoveryCode_label",
 			helpLabel: () => {
-				return ifAllowedTutanotaLinks(locator.logins, InfoLink.RecoverCode, (link) => [
+				return ifAllowedTutaLinks(locator.logins, InfoLink.RecoverCode, (link) => [
 					m("span", lang.get("moreInfo_msg") + " "),
 					m("span.text-break", [m(`a[href=${link}][target=_blank]`, link)]),
 				])
@@ -129,7 +129,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				this._usageTestModel.setOptInDecision(assertNotNull(v))
 			},
 			helpLabel: () => {
-				return ifAllowedTutanotaLinks(locator.logins, InfoLink.Usage, (link) => [
+				return ifAllowedTutaLinks(locator.logins, InfoLink.Usage, (link) => [
 					m("span", lang.get("userUsageDataOptInInfo_msg") + " " + lang.get("moreInfo_msg") + " "),
 					m("span.text-break", [
 						m(

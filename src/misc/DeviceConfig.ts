@@ -96,7 +96,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 
 		// We need to write the config if there was a migration and if we generate the signup token and if.
 		// We do not save the config if there was no config. The config is stored when some value changes.
-		if (doSave && window.parent === window) {
+		if (doSave) {
 			this.writeToStorage()
 		}
 	}
@@ -369,4 +369,4 @@ export function migrateConfigV2to3(loadedConfig: any) {
 	}
 }
 
-export const deviceConfig: DeviceConfig = new DeviceConfig(DeviceConfig.Version, client.localStorage() && window.parent === window ? localStorage : null)
+export const deviceConfig: DeviceConfig = new DeviceConfig(DeviceConfig.Version, client.localStorage() ? localStorage : null)

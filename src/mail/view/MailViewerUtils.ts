@@ -20,7 +20,7 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { client } from "../../misc/ClientDetector.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { LockedError } from "../../api/common/error/RestError.js"
-import { ifAllowedTutanotaLinks } from "../../gui/base/GuiUtils.js"
+import { ifAllowedTutaLinks } from "../../gui/base/GuiUtils.js"
 
 export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
 	showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
@@ -252,7 +252,7 @@ function reportMail(viewModel: MailViewerViewModel) {
 				},
 				[
 					m("div", lang.get("phishingReport_msg")),
-					ifAllowedTutanotaLinks(locator.logins, InfoLink.Phishing, (link) =>
+					ifAllowedTutaLinks(locator.logins, InfoLink.Phishing, (link) =>
 						m(
 							"a.mt-s",
 							{

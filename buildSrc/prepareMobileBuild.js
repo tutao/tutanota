@@ -14,15 +14,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 export async function prepareMobileBuild(buildType) {
 	console.log("prepare mobile build for build type", buildType)
 	let prefix
-	switch (buildType) {
-		case "dist":
-			prefix = "build/"
-			break
-		case "make":
-			prefix = "build/"
-			break
-		default:
-			throw new Error("Unknown build type " + buildType)
+	if (["dist", "make"].includes(buildType)) {
+		prefix = "build/"
+	} else {
+		throw new Error("Unknown build type " + buildType)
 	}
 
 	const wasmpath = prefix + "wasm"
