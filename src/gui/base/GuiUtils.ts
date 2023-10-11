@@ -179,10 +179,10 @@ export function scrollListDom(scrollDom: HTMLElement, entryHeight: number, selec
  * @param render receives the resolved link
  * @returns {Children|null}
  */
-export function ifAllowedTutanotaLinks(logins: LoginController, linkId: InfoLink, render: (arg0: string) => Children): Children | null {
+export function ifAllowedTutaLinks(logins: LoginController, linkId: InfoLink, render: (arg0: string) => Children): Children | null {
 	// this is currently in gui-base, preventing us from accessing logins ourselves.
 	// may be subject to change
-	if (canSeeTutanotaLinks(logins)) {
+	if (canSeeTutaLinks(logins)) {
 		return render(linkId)
 	}
 	return null
@@ -195,7 +195,7 @@ export function ifAllowedTutanotaLinks(logins: LoginController, linkId: InfoLink
  * @param logins LoginController to ask about login information
  * @returns true if the user should see tutanota links or false if they should not
  */
-export function canSeeTutanotaLinks(logins: LoginController): boolean {
+export function canSeeTutaLinks(logins: LoginController): boolean {
 	return !logins.isWhitelabel() || logins.getUserController().isGlobalAdmin()
 }
 

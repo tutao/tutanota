@@ -17,7 +17,7 @@ import { isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env.js"
 import { Button, ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
 import Badge from "../../gui/base/Badge.js"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
-import { canSeeTutanotaLinks, createMoreSecondaryButtonAttrs } from "../../gui/base/GuiUtils.js"
+import { canSeeTutaLinks, createMoreSecondaryButtonAttrs } from "../../gui/base/GuiUtils.js"
 import { isNotNull, noOp } from "@tutao/tutanota-utils"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
@@ -577,7 +577,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				message: "phishingMessageBody_msg",
 				icon: Icons.Warning,
 				type: BannerType.Warning,
-				helpLink: canSeeTutanotaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
 				buttons: [
 					{
 						label: "markAsNotPhishing_action",
@@ -593,7 +593,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			return m(InfoBanner, {
 				message: "mailAuthFailed_msg",
 				icon: Icons.Warning,
-				helpLink: canSeeTutanotaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
+				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
 				type: BannerType.Warning,
 				buttons: [
 					{
@@ -615,7 +615,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						  })
 						: lang.get("mailAuthMissing_label"),
 				icon: Icons.Warning,
-				helpLink: canSeeTutanotaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
+				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
 				buttons: [
 					{
 						label: "close_alt",
@@ -660,7 +660,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return m(InfoBanner, {
 			message: "contentBlocked_msg",
 			icon: Icons.Picture,
-			helpLink: canSeeTutanotaLinks(attrs.viewModel.logins) ? InfoLink.LoadImages : null,
+			helpLink: canSeeTutaLinks(attrs.viewModel.logins) ? InfoLink.LoadImages : null,
 			buttons: [showButton, ...maybeDropdownButtons],
 		})
 	}

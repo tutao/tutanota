@@ -2,7 +2,7 @@ import type { InfoLink, TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
 import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
-import { ifAllowedTutanotaLinks } from "../gui/base/GuiUtils"
+import { ifAllowedTutaLinks } from "../gui/base/GuiUtils"
 import type { lazy, Thunk } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 import { locator } from "../api/main/MainLocator.js"
@@ -44,9 +44,7 @@ export class SettingsExpander implements Component<SettingsExpanderAttrs> {
 				vnode.children,
 			),
 			infoMsg ? m("small", lang.getMaybeLazy(infoMsg)) : null,
-			infoLinkId
-				? ifAllowedTutanotaLinks(locator.logins, infoLinkId, (link) => m("small.text-break", [m(`a[href=${link}][target=_blank]`, link)]))
-				: null,
+			infoLinkId ? ifAllowedTutaLinks(locator.logins, infoLinkId, (link) => m("small.text-break", [m(`a[href=${link}][target=_blank]`, link)])) : null,
 		]
 	}
 }

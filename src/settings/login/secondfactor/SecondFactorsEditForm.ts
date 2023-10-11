@@ -13,7 +13,7 @@ import { ColumnWidth, Table } from "../../../gui/base/Table.js"
 import { NotFoundError } from "../../../api/common/error/RestError.js"
 import type { EntityUpdateData } from "../../../api/main/EventController.js"
 import { isUpdateForTypeRef } from "../../../api/main/EventController.js"
-import { ifAllowedTutanotaLinks } from "../../../gui/base/GuiUtils.js"
+import { ifAllowedTutaLinks } from "../../../gui/base/GuiUtils.js"
 import { locator } from "../../../api/main/MainLocator.js"
 import { SecondFactorEditDialog } from "./SecondFactorEditDialog.js"
 import { SecondFactorTypeToNameTextId } from "./SecondFactorEditModel.js"
@@ -52,7 +52,7 @@ export class SecondFactorsEditForm {
 			this.domainConfigProvider.getCurrentDomainConfig().firstPartyDomain
 				? [
 						m("span.small", lang.get("moreInfo_msg") + " "),
-						ifAllowedTutanotaLinks(locator.logins, InfoLink.SecondFactor, (link) =>
+						ifAllowedTutaLinks(locator.logins, InfoLink.SecondFactor, (link) =>
 							m("span.small.text-break", [m(`a[href=${link}][target=_blank]`, link)]),
 						),
 				  ]

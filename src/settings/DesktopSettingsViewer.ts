@@ -16,7 +16,7 @@ import { DesktopUpdateHelpLabel } from "./DesktopUpdateHelpLabel"
 import type { MailExportMode } from "../mail/export/Exporter"
 import { DesktopConfigKey } from "../desktop/config/ConfigKeys"
 import { getCurrentSpellcheckLanguageLabel, showSpellcheckLanguageDialog } from "../gui/dialogs/SpellcheckLanguageDialog"
-import { ifAllowedTutanotaLinks } from "../gui/base/GuiUtils"
+import { ifAllowedTutaLinks } from "../gui/base/GuiUtils"
 import type { UpdatableSettingsViewer } from "./SettingsView"
 import { assertMainOrNode } from "../api/common/Env"
 import { locator } from "../api/main/MainLocator"
@@ -87,7 +87,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		const setRunInBackgroundAttrs: DropDownSelectorAttrs<boolean> = {
 			label: "runInBackground_action",
 			helpLabel: () => {
-				return ifAllowedTutanotaLinks(locator.logins, InfoLink.RunInBackground, (link) => [
+				return ifAllowedTutaLinks(locator.logins, InfoLink.RunInBackground, (link) => [
 					m("span", lang.get("runInBackground_msg") + " "),
 					m("span", lang.get("moreInfo_msg") + " "),
 					m("span.text-break", [m(`a[href=${link}][target=_blank]`, link)]),

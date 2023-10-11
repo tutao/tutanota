@@ -11,7 +11,7 @@ import { IconButton } from "../../../gui/base/IconButton.js"
 import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { Icons } from "../../../gui/base/icons/Icons.js"
-import { ifAllowedTutanotaLinks } from "../../../gui/base/GuiUtils.js"
+import { ifAllowedTutaLinks } from "../../../gui/base/GuiUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
 
 export type ReferralLinkAttrs = {
@@ -37,7 +37,7 @@ export class ReferralLinkViewer implements Component<ReferralLinkAttrs> {
 			value: referralLink,
 			injectionsRight: () => this.renderButtons(referralLink),
 			helpLabel: () =>
-				ifAllowedTutanotaLinks(locator.logins, InfoLink.ReferralLink, (link) => [
+				ifAllowedTutaLinks(locator.logins, InfoLink.ReferralLink, (link) => [
 					m("span", lang.get("moreInfo_msg") + " "),
 					m("span.text-break", [m(`a[href=${link}][target=_blank]`, link)]),
 				]),

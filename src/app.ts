@@ -5,7 +5,7 @@ import { lang, languageCodeToTag, languages } from "./misc/LanguageViewModel"
 import { root } from "./RootView"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "./misc/ErrorHandler"
 import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable } from "./api/common/Env"
-import { assertNotNull, delay, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { windowFacade } from "./misc/WindowFacade"
 import { styles } from "./gui/styles"
 import { deviceConfig } from "./misc/DeviceConfig"
@@ -355,7 +355,6 @@ import("./translations/en")
 						target.pathname = "signup"
 						target.search = location.search
 						console.log("redirect to", target.toString())
-						await delay(1500)
 						window.open(target, "_self")
 						return null
 					} else {
