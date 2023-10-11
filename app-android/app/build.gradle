@@ -49,28 +49,19 @@ android {
 	buildTypes {
 		debug {
 			manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.debug']
-			buildConfigField 'String', 'RES_ADDRESS', "\"tutanota\""
 			applicationIdSuffix ".debug"
 		}
-		debugDist {
-			initWith debug
-			manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.debugdist']
-			buildConfigField 'String', 'RES_ADDRESS', "\"tutanota/dist\""
-			applicationIdSuffix ".debugdist"
+		release {
+			minifyEnabled true
+			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+			manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider']
 		}
 		releaseTest {
 			initWith release
 			minifyEnabled true
 			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 			manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.test']
-			buildConfigField 'String', 'RES_ADDRESS', "\"tutanota/dist\""
 			applicationIdSuffix ".test"
-		}
-		release {
-			minifyEnabled true
-			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-			manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider']
-			buildConfigField 'String', 'RES_ADDRESS', "\"tutanota/dist\""
 		}
 	}
 
@@ -85,6 +76,7 @@ android {
 		it.buildConfigField 'String', 'FILE_PROVIDER_AUTHORITY', '"' + it.manifestPlaceholders['contentProviderAuthority'] + '"'
 		// keep in sync with src/native/main/NativePushServiceApp.ts
 		it.buildConfigField 'String', "SYS_MODEL_VERSION", '"85"'
+		it.buildConfigField 'String', 'RES_ADDRESS', '"tutanota"'
 	}
 
 	compileOptions {
