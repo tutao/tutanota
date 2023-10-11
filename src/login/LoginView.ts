@@ -10,7 +10,7 @@ import { windowFacade } from "../misc/WindowFacade"
 import { DeviceType } from "../misc/ClientConstants"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { AriaLandmarks, landmarkAttrs, liveDataAttrs } from "../gui/AriaUtils"
-import { DisplayMode, getNewDomainOrigin, isLegacyDomain, LoginState, LoginViewModel } from "./LoginViewModel"
+import { ACTIVATED_MIGRATION, DisplayMode, getNewDomainOrigin, isLegacyDomain, LoginState, LoginViewModel } from "./LoginViewModel"
 import { LoginForm } from "./LoginForm"
 import { CredentialsSelector } from "./CredentialsSelector"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
@@ -332,7 +332,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {
-		if (isLegacyDomain()) {
+		if (isLegacyDomain() && ACTIVATED_MIGRATION()) {
 			// we want people to see the banner even if the only have
 			// one set of stored credentials.
 			args.noAutoLogin = true

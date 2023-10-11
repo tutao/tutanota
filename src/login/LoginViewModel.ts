@@ -14,6 +14,7 @@ import { assertMainOrNode, isBrowser } from "../api/common/Env"
 import { SessionType } from "../api/common/SessionType"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
 import { DeviceConfig } from "../misc/DeviceConfig"
+import { Const } from "../api/common/TutanotaConstants.js"
 import { getWhitelabelRegistrationDomains } from "./LoginView.js"
 
 assertMainOrNode()
@@ -436,13 +437,6 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 }
 
-/** are we on *.tutanota.com?
- * influences whether we should allow saving credentials and show the credentials migration box.
- * also turns off auto login with a single stored credential. */
-export function isLegacyDomain(o: string = location.origin): boolean {
-	return new URL(o).hostname.endsWith(".tutanota.com") && isBrowser()
-}
-
 const OldToNew: Record<string, string> = Object.freeze({
 	"https://mail.tutanota.com": "https://app.tuta.com",
 	"https://test.tutanota.com": "https://app.test.tuta.com",
@@ -454,6 +448,18 @@ const NewToOld: Record<string, string> = Object.freeze({
 	"https://app.test.tuta.com": "https://test.tutanota.com",
 	"https://app.local.tuta.com:9000": "https://app.local.tutanota.com:9000",
 })
+
+/** to give people time to visit the old domain and refresh to a web app that knows about the
+ * /migrate route without them being prompted to migrate right away, we have a time delay on
+ * the start of the migration. */
+export const ACTIVATED_MIGRATION = () => (Const.CURRENT_DATE?.getTime() ?? Date.now()) > new Date("2023-11-07T00:00:00.000Z").getTime()
+
+/** are we on *.tutanota.com?
+ * influences whether we should allow saving credentials and show the credentials migration box.
+ * also turns off auto login with a single stored credential. */
+export function isLegacyDomain(o: string = location.origin): boolean {
+	return new URL(o).hostname.endsWith(".tutanota.com") && isBrowser()
+}
 
 /** get the new domain origin according to the staging level of the calling application.
  * in a whitelabel context, this returns location.origin unchanged.

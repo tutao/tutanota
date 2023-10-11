@@ -590,7 +590,7 @@ function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType
 	//  - we either need to call updateUrl or pass requestedPath and args as attributes
 	return {
 		// onmatch() is called for every URL change
-		async onmatch(args: Record<string, Dict>, requestedPath: string, route: string): Promise<Class<ComponentType> | null> {
+		async onmatch(args: Record<string, Dict>, requestedPath: string): Promise<Class<ComponentType> | null> {
 			// enforce valid login state first.
 			// we have views with requireLogin: true and views with requireLogin: false, each of which enforce being logged in or being logged out respectively.
 			// in the logout case (where requireLogin: false) this will force a reload.
@@ -674,7 +674,6 @@ function makeOldViewResolver(
 
 				Promise.all([promise]).then(([view]) => {
 					view.updateUrl?.(args, requestedPath)
-					const currentPath = m.route.get()
 					window.tutao.currentView = view
 				})
 				return promise
