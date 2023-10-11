@@ -1,19 +1,23 @@
 import o from "@tutao/otest"
-import type { CalendarEvent, CalendarGroupRoot } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import type { CalendarEvent, CalendarEventUpdate, CalendarGroupRoot } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	CalendarEventTypeRef,
+	CalendarEventUpdateTypeRef,
 	createCalendarEvent,
 	createCalendarEventAttendee,
+	createCalendarEventUpdate,
 	createCalendarGroupRoot,
 	createEncryptedMailAddress,
+	createFile,
+	FileTypeRef,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { incrementByRepeatPeriod } from "../../../src/calendar/date/CalendarUtils.js"
-import { clone, downcast, neverNull, noOp } from "@tutao/tutanota-utils"
+import { downcast, hexToUint8Array, neverNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { CalendarModel } from "../../../src/calendar/model/CalendarModel.js"
-import { CalendarAttendeeStatus, CalendarMethod, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, CalendarMethod, OperationType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
 import { DateTime } from "luxon"
 import type { EntityUpdateData } from "../../../src/api/main/EventController.js"
-import { EventController } from "../../../src/api/main/EventController.js"
+import { EntityEventsListener, EventController } from "../../../src/api/main/EventController.js"
 import { Notifications } from "../../../src/gui/Notifications.js"
 import { AlarmInfo, createAlarmInfo, createUser, createUserAlarmInfo, createUserAlarmInfoListType } from "../../../src/api/entities/sys/TypeRefs.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
@@ -29,6 +33,8 @@ import { verify } from "@tutao/tutanota-test-utils"
 import type { WorkerClient } from "../../../src/api/main/WorkerClient.js"
 import { FileController } from "../../../src/file/FileController.js"
 import { func, matchers, when } from "testdouble"
+import { elementIdPart, getElementId, listIdPart } from "../../../src/api/common/utils/EntityUtils.js"
+import { createDataFile } from "../../../src/api/common/DataFile.js"
 
 o.spec("CalendarModel", function () {
 	o.spec("incrementByRepeatPeriod", function () {
@@ -589,6 +595,79 @@ o.spec("CalendarModel", function () {
 				o(await restClientMock.load(CalendarEventTypeRef, existingEvent._id, null)).equals(existingEvent)("Calendar event was not deleted")
 			})
 		})
+		o("reprocess deferred calendar events with no owner enc session key", async function () {
+			const calendarFile = createFile({
+				_id: ["fileListId", "fileId"],
+			})
+
+			const eventUpdate = createCalendarEventUpdate({
+				_id: ["calendarEventUpdateListId", "calendarEventUpdateId"],
+				file: calendarFile._id,
+			})
+
+			const uid = "uid"
+			const sender = "sender@example.com"
+			const existingEvent = createCalendarEvent({
+				_id: ["calendarListId", "eventId"],
+				_ownerGroup: groupRoot._id,
+				sequence: "1",
+				uid,
+				organizer: createEncryptedMailAddress({
+					address: sender,
+				}),
+			})
+
+			const fileControllerMock = makeFileController()
+
+			const workerClient = makeWorkerClient()
+			const eventControllerMock = makeEventController()
+
+			fileControllerMock.getAsDataFile = func<FileController["getAsDataFile"]>()
+			when(fileControllerMock.getAsDataFile(matchers.anything())).thenDo((event) => {
+				return Promise.resolve(createDataFile("event.ics", "ical", stringToUtf8Uint8Array("UID: " + uid), "cid"))
+			})
+
+			const actuallyErase = restClientMock.erase
+			restClientMock.erase = func<EntityRestClientMock["erase"]>()
+			when(restClientMock.erase(matchers.anything())).thenDo((what) => {
+				return actuallyErase.apply(restClientMock, [what])
+			})
+
+			const model = init({
+				workerClient,
+				restClientMock,
+				fileFacade: fileControllerMock,
+				eventController: eventControllerMock.eventController,
+			})
+
+			restClientMock.addListInstances(calendarFile, eventUpdate, existingEvent)
+
+			// calendar update create event
+			await eventControllerMock.sendEvent({
+				application: CalendarEventUpdateTypeRef.app,
+				type: CalendarEventUpdateTypeRef.type,
+				instanceListId: listIdPart(eventUpdate._id),
+				instanceId: elementIdPart(eventUpdate._id),
+				operation: OperationType.CREATE,
+			})
+
+			o(model.getFileIdToSkippedCalendarEventUpdates().get(getElementId(calendarFile)) as CalendarEventUpdate).deepEquals(eventUpdate)
+			verify(restClientMock.erase(eventUpdate), { times: 0 })
+
+			// set owner enc session key to ensure that we can process the calendar event file
+			calendarFile._ownerEncSessionKey = hexToUint8Array("01")
+			await eventControllerMock.sendEvent({
+				application: FileTypeRef.app,
+				type: FileTypeRef.type,
+				instanceListId: listIdPart(calendarFile._id),
+				instanceId: elementIdPart(calendarFile._id),
+				operation: OperationType.UPDATE,
+			})
+
+			o(model.getFileIdToSkippedCalendarEventUpdates().size).deepEquals(0)
+			verify(fileControllerMock.getAsDataFile(matchers.anything()), { times: 1 })
+			verify(restClientMock.erase(eventUpdate))
+		})
 	})
 })
 
@@ -606,16 +685,18 @@ function makeEventController(): {
 	eventController: EventController
 	sendEvent: (arg0: EntityUpdateData) => void
 } {
-	const listeners = []
+	const listeners = new Array<EntityEventsListener>()
 	return {
 		eventController: downcast({
 			listeners,
-			addEntityListener: noOp,
+			addEntityListener(listener: EntityEventsListener) {
+				listeners.push(listener)
+			},
 		}),
-		sendEvent: (update) => {
+		sendEvent: async (update) => {
 			for (let listener of listeners) {
 				// @ts-ignore
-				listener([update])
+				await listener([update])
 			}
 		},
 	}
