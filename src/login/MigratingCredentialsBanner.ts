@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { getNewDomainOrigin, getOldDomainOrigin, isLegacyDomain, LoginViewModel } from "./LoginViewModel.js"
+import { ACTIVATED_MIGRATION, getNewDomainOrigin, getOldDomainOrigin, isLegacyDomain, LoginViewModel } from "./LoginViewModel.js"
 import { MessageDispatcher, Request } from "../api/common/threading/MessageDispatcher.js"
 import { CrossOriginTransport } from "../api/common/threading/CrossOriginTransport.js"
 import { theme } from "../gui/theme.js"
@@ -24,7 +24,6 @@ export class MigratingCredentialsBanner implements Component<CredentialsBannerAt
 
 	oncreate(vnode: VnodeDOM<CredentialsBannerAttrs>): any {
 		this.childOrigin = isLegacyDomain() ? getNewDomainOrigin() : getOldDomainOrigin()
-		console.log("child", this.childOrigin)
 	}
 
 	onremove(vnode: VnodeDOM<CredentialsBannerAttrs>) {
@@ -35,8 +34,9 @@ export class MigratingCredentialsBanner implements Component<CredentialsBannerAt
 	view(vnode: Vnode<CredentialsBannerAttrs>) {
 		const legacy = isLegacyDomain()
 		// do not show anything on the new domain if we already attempted migration or we got directly
-		// to the login page from being opened by another this/tab (this happens if there are no creds on old domain)
-		if (vnode.attrs.viewModel.hasAttemptedCredentials() || window.opener != null || !isBrowser()) return null
+		// to the login page from being opened by another/this tab (this happens if there are no creds on the old domain)
+		// also, we have a time delay on the migration for a two-stage rollout.
+		if (vnode.attrs.viewModel.hasAttemptedCredentials() || window.opener != null || !isBrowser() || !ACTIVATED_MIGRATION()) return null
 		return m(
 			".flex-center",
 			m(

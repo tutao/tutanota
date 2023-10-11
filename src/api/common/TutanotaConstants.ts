@@ -241,7 +241,21 @@ export enum PaymentMethodType {
 
 export const PaymentMethodTypeToName = reverse(PaymentMethodType)
 
-export const Const = {
+type ConstType = {
+	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: number
+	REPEATED_UPGRADE_REMINDER_INTERVAL_MS: number
+	MEMORY_GB_FACTOR: number
+	MEMORY_WARNING_FACTOR: number
+	CURRENT_DATE: Date | null
+	CURRENCY_SYMBOL_EUR: string
+	DEFAULT_APP_DOMAIN: string,
+	LEGACY_WEBAUTHN_RP_ID: string,
+	WEBAUTHN_RP_ID: string,
+	U2f_APPID_SUFFIX: string,
+	U2F_APPID: string,
+}
+
+export const Const: ConstType = {
 	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: 14 * DAY_IN_MILLIS,
 	REPEATED_UPGRADE_REMINDER_INTERVAL_MS: 90 * DAY_IN_MILLIS,
 	MEMORY_GB_FACTOR: 1000000000,

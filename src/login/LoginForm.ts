@@ -10,7 +10,7 @@ import { Checkbox } from "../gui/base/Checkbox.js"
 import { client } from "../misc/ClientDetector"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
 import { isOfflineStorageAvailable } from "../api/common/Env"
-import { isLegacyDomain } from "./LoginViewModel.js"
+import { ACTIVATED_MIGRATION, isLegacyDomain } from "./LoginViewModel.js"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown
@@ -53,13 +53,16 @@ export class LoginForm implements Component<LoginFormAttrs> {
 	}
 
 	_passwordDisabled(): boolean {
-		const customizations = getWhitelabelCustomizations(window)
-		return Boolean(customizations && customizations.bootstrapCustomizations.includes(BootstrapFeatureType.DisableSavePassword)) || isLegacyDomain()
+		// some whitelabel customers have disabled password saving
+		const hasCustomDisabled = getWhitelabelCustomizations(window)?.bootstrapCustomizations?.includes(BootstrapFeatureType.DisableSavePassword) != null
+		// on the old domain, we don't want to save new credentials.
+		const noSaveLegacyDomain = ACTIVATED_MIGRATION() && isLegacyDomain()
+		return hasCustomDisabled || noSaveLegacyDomain
 	}
 
 	view(vnode: Vnode<LoginFormAttrs>): Children {
 		const a = vnode.attrs
-		const canSaveCredentials = !!client.localStorage()
+		const canSaveCredentials = client.localStorage()
 		return m(
 			"form",
 			{
