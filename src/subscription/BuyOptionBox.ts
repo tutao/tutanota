@@ -25,13 +25,6 @@ export type BuyOptionBoxAttr = {
 	price?: string
 	priceHint?: TranslationKey | lazy<string>
 	helpLabel: TranslationKey | lazy<string>
-	categories: Array<{
-		title: string | null
-		key: string
-		featureCount: { max: number }
-		features: Array<{ text: string; toolTip?: Child; key: string; antiFeature?: boolean; omit: boolean; heart: boolean }>
-	}>
-	featuresExpanded?: boolean
 	width: number
 	height: number
 	/**
@@ -40,9 +33,19 @@ export type BuyOptionBoxAttr = {
 	paymentInterval: Stream<PaymentInterval> | null
 	highlighted?: boolean
 	showReferenceDiscount: boolean
-	renderCategoryTitle: boolean
 	mobile: boolean
 	bonusMonths: number
+}
+
+export type BuyOptionDetailsAttr = {
+	categories: Array<{
+		title: string | null
+		key: string
+		featureCount: { max: number }
+		features: Array<{ text: string; toolTip?: Child; key: string; antiFeature?: boolean; omit: boolean; heart: boolean }>
+	}>
+	featuresExpanded?: boolean
+	renderCategoryTitle: boolean
 }
 
 export function getActiveSubscriptionActionButtonReplacement(): {
@@ -65,19 +68,80 @@ export function getActiveSubscriptionActionButtonReplacement(): {
 
 export const BOX_MARGIN = 10
 
-export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
-	private featureListItemSelector: string = ".flex"
+export class BuyOptionDetails implements Component<BuyOptionDetailsAttr> {
 	private featuresExpanded: boolean = false
+	private featureListItemSelector: string = ".flex"
 
-	view(vnode: Vnode<BuyOptionBoxAttr>) {
+	onbeforeupdate(vnode: Vnode<BuyOptionDetailsAttr>, old: VnodeDOM<BuyOptionDetailsAttr>) {
+		// the expand css class renders an animation which is used when the feature list is expanded
+		// the animation should only be shown when the user clicked on the feature expansion button which changes the expanded state
+		// thus to check whether the button was pressed, the BuyOptionBox before update must not be expanded but the BuyOptionBox after update is
+		// otherwise mithril sometimes updates the view and renders the animation even though nothing changed
+		if (vnode.attrs.featuresExpanded && !old.attrs.featuresExpanded) {
+			this.featureListItemSelector = ".flex.expand"
+		} else {
+			this.featureListItemSelector = ".flex"
+		}
+	}
+
+	view(vnode: Vnode<BuyOptionDetailsAttr>) {
 		const { attrs } = vnode
 		this.featuresExpanded = attrs.featuresExpanded || false
+
+		return m(
+			".mt.pl",
+			attrs.categories.map((fc) => {
+				return [
+					this.renderCategoryTitle(fc, attrs.renderCategoryTitle),
+					fc.features
+						.filter((f) => !f.omit || this.featuresExpanded)
+						.map((f) =>
+							m(this.featureListItemSelector, { key: f.key }, [
+								f.heart ? m(Icon, { icon: BootIcons.Heart }) : m(Icon, { icon: f.antiFeature ? Icons.Cancel : Icons.Checkmark }),
+								m(".small.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", [m("span", f.text)]),
+								f.toolTip
+									? //@ts-ignore
+									  m(InfoIcon, { text: f.toolTip })
+									: null,
+							]),
+						),
+					this.renderPlaceholders(fc),
+				]
+			}),
+		)
+	}
+
+	private renderCategoryTitle(fc: BuyOptionDetailsAttr["categories"][0], renderCategoryTitle: boolean): Children {
+		if (fc.title && this.featuresExpanded) {
+			return [
+				m(".b.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", ""),
+				m(".b.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", renderCategoryTitle ? fc.title : ""),
+			]
+		} else {
+			return []
+		}
+	}
+
+	private renderPlaceholders(fc: BuyOptionDetailsAttr["categories"][0]): Children {
+		if (!this.featuresExpanded) {
+			return []
+		} else {
+			const placeholderCount = fc.featureCount.max - fc.features.length
+			return [...Array(placeholderCount)].map(() => m(".button-height", ""))
+		}
+	}
+}
+
+export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
+	view(vnode: Vnode<BuyOptionBoxAttr>) {
+		const { attrs } = vnode
 		return m(
 			".fg-black",
 			{
 				style: {
 					width: px(attrs.width),
 					padding: "10px",
+					height: "100%",
 				},
 			},
 			[
@@ -89,6 +153,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							"flex-direction": "column",
 							"min-height": px(attrs.height),
 							"border-radius": "3px",
+							height: "100%",
 						},
 					},
 					[
@@ -115,21 +180,8 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							: null,
 					],
 				),
-				this.renderFeatureList(attrs),
 			],
 		)
-	}
-
-	onbeforeupdate(vnode: Vnode<BuyOptionBoxAttr>, old: VnodeDOM<BuyOptionBoxAttr>) {
-		// the expand css class renders an animation which is used when the feature list is expanded
-		// the animation should only be shown when the user clicked on the feature expansion button which changes the expanded state
-		// thus to check whether the button was pressed, the BuyOptionBox before update must not be expanded but the BuyOptionBox after update is
-		// otherwise mithril sometimes updates the view and renders the animation even though nothing changed
-		if (vnode.attrs.featuresExpanded && !old.attrs.featuresExpanded) {
-			this.featureListItemSelector = ".flex.expand"
-		} else {
-			this.featureListItemSelector = ".flex"
-		}
 	}
 
 	private renderRibbon(bonusMonths: number): Children {
@@ -155,41 +207,6 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			: null
 	}
 
-	private renderFeatureList(attrs: BuyOptionBoxAttr): Children {
-		return m(
-			".mt.pl",
-			attrs.categories.map((fc) => {
-				return [
-					this.renderCategoryTitle(fc, attrs.renderCategoryTitle),
-					fc.features
-						.filter((f) => !f.omit || this.featuresExpanded)
-						.map((f) =>
-							m(this.featureListItemSelector, { key: f.key }, [
-								f.heart ? m(Icon, { icon: BootIcons.Heart }) : m(Icon, { icon: f.antiFeature ? Icons.Cancel : Icons.Checkmark }),
-								m(".small.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", [m("span", f.text)]),
-								f.toolTip
-									? //@ts-ignore
-									  m(InfoIcon, { text: f.toolTip })
-									: null,
-							]),
-						),
-					this.renderPlaceholders(fc),
-				]
-			}),
-		)
-	}
-
-	private renderCategoryTitle(fc: BuyOptionBoxAttr["categories"][0], renderCategoryTitle: boolean): Children {
-		if (fc.title && this.featuresExpanded) {
-			return [
-				m(".b.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", ""),
-				m(".b.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", renderCategoryTitle ? fc.title : ""),
-			]
-		} else {
-			return []
-		}
-	}
-
 	private renderHeading(heading: string): Children {
 		return m(
 			".h4.text-center.dialog-header.flex.col.center-horizontally",
@@ -212,15 +229,6 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 				heading,
 			),
 		)
-	}
-
-	private renderPlaceholders(fc: BuyOptionBoxAttr["categories"][0]): Children {
-		if (!this.featuresExpanded) {
-			return []
-		} else {
-			const placeholderCount = fc.featureCount.max - fc.features.length
-			return [...Array(placeholderCount)].map(() => m(".button-height", ""))
-		}
 	}
 }
 
