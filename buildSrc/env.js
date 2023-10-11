@@ -8,7 +8,7 @@ export function create(params) {
 		throw new Error(`Invalid env parameters: ${JSON.stringify(params)}`)
 	}
 	return {
-		staticUrl,
+		staticUrl: staticUrl?.toString(),
 		versionNumber: version,
 		dist,
 		mode: mode ?? "Browser",

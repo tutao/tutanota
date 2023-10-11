@@ -39,6 +39,7 @@ export async function buildDesktop({ dirname, version, platform, updateUrl, name
 	// It's messy
 
 	console.log(`Building ${platform} desktop client for v${version}`)
+	updateUrl = updateUrl?.toString()
 	const updateSubDir = `desktop${nameSuffix}`
 	const distDir = path.join(dirname, "build")
 	outDir = path.join(outDir ?? distDir, updateSubDir)

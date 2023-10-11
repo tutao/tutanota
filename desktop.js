@@ -92,7 +92,7 @@ async function buildDesktopClient(version, { stage, host, platform, customDeskto
 		dirname: __dirname,
 		version,
 		platform: platform,
-		updateUrl: customDesktopRelease ? "" : tutaAppUrl,
+		updateUrl: customDesktopRelease ? "" : updateUrl,
 		nameSuffix: "",
 		notarize: !customDesktopRelease,
 		outDir: outDir,
@@ -125,7 +125,7 @@ async function buildDesktopClient(version, { stage, host, platform, customDeskto
 			.filter((net) => !net.internal && net.address.startsWith("192.168."))[0].address
 		const desktopLocalOpts = Object.assign({}, desktopBaseOpts, {
 			version,
-			updateUrl: `http://${addr}:9000/client/build/desktop-snapshot`,
+			updateUrl: `http://${addr}:9000/desktop-snapshot`,
 			nameSuffix: "-snapshot",
 			notarize: false,
 		})
@@ -135,7 +135,7 @@ async function buildDesktopClient(version, { stage, host, platform, customDeskto
 		const updateUrl = new URL(tutaTestUrl)
 		updateUrl.pathname = "desktop"
 		const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
-			updateUrl: tutaTestUrl,
+			updateUrl: updateUrl,
 			nameSuffix: "-test",
 			notarize: false,
 		})
@@ -153,7 +153,7 @@ async function buildDesktopClient(version, { stage, host, platform, customDeskto
 		// stage = host
 		const desktopHostOpts = Object.assign({}, desktopBaseOpts, {
 			version,
-			updateUrl: `${host}/client/build/desktop-snapshot`,
+			updateUrl: `${host}/desktop-snapshot`,
 			nameSuffix: "-snapshot",
 			notarize: false,
 		})
