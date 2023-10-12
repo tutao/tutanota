@@ -103,6 +103,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	private _selectedFolder: SettingsFolder<unknown>
 	private _currentViewer: UpdatableSettingsViewer | null = null
 	private showBusinessSettings: stream<boolean> = stream(false)
+	private readonly _targetFolder: string
+	private readonly _targetRoute: string
 	detailsViewer: UpdatableSettingsDetailsViewer | null = null // the component for the details column. can be set by settings views
 
 	_customDomains: LazyLoaded<string[]>
@@ -322,6 +324,9 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		})
 
 		this._customDomains.getAsync().then(() => m.redraw())
+
+		this._targetFolder = m.route.param("folder")
+		this._targetRoute = m.route.get()
 	}
 
 	private async populateAdminFolders() {
@@ -447,13 +452,12 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 	oncreate(vnode: Vnode<SettingsViewAttrs>) {
 		locator.eventController.addEntityListener(this.entityListener)
-
-		const currentRoute = m.route.get()
 		this.populateAdminFolders().then(() => {
 			// We have to wait for the folders to be initialized before setting the URL,
 			// otherwise we won't find the requested folder and will just pick the default folder
-			if (currentRoute !== this._userFolders[0].url) {
-				this.onNewUrl({ folder: m.route.param("folder") }, currentRoute)
+			const stillAtDefaultUrl = m.route.get() === this._userFolders[0].url
+			if (stillAtDefaultUrl) {
+				this.onNewUrl({ folder: this._targetFolder }, this._targetRoute)
 			}
 		})
 	}
@@ -595,6 +599,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				m.redraw()
 			} else {
 				// folder path has changed
+				// to avoid misleading information, set the url to the folder's url, so the browser url
+				// is changed to correctly represents the displayed content
 				this._setUrl(folder.url)
 				this._selectedFolder = folder
 				this._currentViewer = null
