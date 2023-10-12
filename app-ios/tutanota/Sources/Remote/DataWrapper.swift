@@ -15,10 +15,6 @@ extension DataWrapper: Codable {
     self.data = try decoder.container(keyedBy: Self.CodingKeys).decode(Data.self, forKey: .data)
   }
   
-  public init(from bytes: [UInt8]) {
-    self.data = Data(bytes)
-  }
-  
   enum CodingKeys: String, CodingKey {
       case data
       case marker

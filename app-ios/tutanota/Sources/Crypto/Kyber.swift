@@ -22,8 +22,8 @@ func generateKyberKeypair(withSeed seed: Data) -> KyberKeyPair {
     fatalError("OQS_KEM_keypair failed to generate a key: \(result)")
   }
 
-  let publicKey = KyberPublicKey(raw: DataWrapper(from: publicKeyBytes))
-  let privateKey = KyberPrivateKey(raw: DataWrapper(from: privateKeyBytes))
+  let publicKey = KyberPublicKey(raw: Data(publicKeyBytes).wrap())
+  let privateKey = KyberPrivateKey(raw: Data(privateKeyBytes).wrap())
 
   return KyberKeyPair(publicKey: publicKey, privateKey: privateKey)
 }
@@ -48,7 +48,7 @@ func kyberEncapsulate(publicKey: KyberPublicKey, withSeed seed: Data) throws -> 
     throw TUTErrorFactory.createError(withDomain: TUT_CRYPTO_ERROR, message: "OQS_KEM_encaps failed to derive a shared secret and ciphertext: \(result)")
   }
 
-  return KyberEncapsulation(ciphertext: DataWrapper(from:cipherTextBytes), sharedSecret: DataWrapper(from:sharedSecretBytes))
+  return KyberEncapsulation(ciphertext: Data(cipherTextBytes).wrap(), sharedSecret: Data(sharedSecretBytes).wrap())
 }
 
 /// Decrypt the ciphertext with the private key to get the shared secret
@@ -72,7 +72,7 @@ func kyberDecapsulate(ciphertext: Data, withPrivateKey privateKey: KyberPrivateK
     throw TUTErrorFactory.createError(withDomain: TUT_CRYPTO_ERROR, message: "OQS_KEM_encaps failed to derive a shared secret from ciphertext and private key: \(result)")
   }
 
-  return DataWrapper(from:sharedSecretBytes)
+  return Data(sharedSecretBytes).wrap()
 }
 
 private class KEM {
