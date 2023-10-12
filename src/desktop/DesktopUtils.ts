@@ -1,40 +1,41 @@
 import path from "node:path"
 import { spawn } from "node:child_process"
 import type { Rectangle } from "electron"
-import { NativeImage } from "electron"
-import { base64ToBase64Url, defer, delay, noOp, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { app, NativeImage } from "electron"
+import { defer, delay } from "@tutao/tutanota-utils"
 import { log } from "./DesktopLog"
-import { fileExists, swapFilename } from "./PathUtils"
+import { swapFilename } from "./PathUtils"
 import { makeRegisterKeysScript, makeUnregisterKeysScript, RegistryRoot } from "./reg-templater"
-import type { ElectronExports, FsExports } from "./ElectronExportTypes"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
-import { CryptoFunctions } from "./CryptoFns"
 import { getResourcePath } from "./resources.js"
+import { TempFs } from "./files/TempFs.js"
+import { ElectronExports } from "./ElectronExportTypes.js"
+import { WindowManager } from "./DesktopWindowManager.js"
 
 export class DesktopUtils {
-	private readonly topLevelTempDir = "tutanota"
-	/** we store all temporary files in a directory with a random name, so that the download location is not predictable */
-	private readonly randomDirectoryName: string
+	private mailtoArg: string | null
 
-	constructor(private readonly fs: FsExports, private readonly electron: ElectronExports, private readonly cryptoFunctions: CryptoFunctions) {
-		this.randomDirectoryName = base64ToBase64Url(uint8ArrayToBase64(cryptoFunctions.randomBytes(16)))
+	constructor(argv: Array<string>, private readonly tfs: TempFs, private readonly electron: ElectronExports) {
+		this.mailtoArg = findMailToUrlInArgv(process.argv)
+	}
+
+	/**
+	 * make sure we are allowed to take single-instance lock and clear up remaining tmp data
+	 * from previous runs if so.
+	 */
+	async cleanupOldInstance(): Promise<boolean> {
+		if (!(await this.makeSingleInstance())) return false
+		/**
+		 * doesn't clear tmp if:
+		 * * we're a second instance, the main instance may be using the tmp (we returned by now)
+		 * * there's a mailto link in the cli args, attachments may be located in the tmp
+		 * */
+		if (this.mailtoArg == null) this.tfs.clear()
+		return true
 	}
 
 	checkIsMailtoHandler(): Promise<boolean> {
 		return Promise.resolve(this.electron.app.isDefaultProtocolClient("mailto"))
-	}
-
-	checkIsPerUserInstall(): Promise<boolean> {
-		const markerPath = swapFilename(process.execPath, "per_user")
-		return fileExists(markerPath)
-	}
-
-	/**
-	 * open and close a file to make sure it exists
-	 * @param path: the file to touch
-	 */
-	touch(path: string): void {
-		this.fs.closeSync(this.fs.openSync(path, "a"))
 	}
 
 	async registerAsMailtoHandler(): Promise<void> {
@@ -77,20 +78,6 @@ export class DesktopUtils {
 	}
 
 	/**
-	 * reads the lockfile and then writes the own version into the lockfile
-	 * @returns {Promise<boolean>} whether the lock was overridden by another version
-	 */
-	singleInstanceLockOverridden(): Promise<boolean> {
-		const lockfilePath = this.getLockFilePath()
-		return this.fs.promises
-			.readFile(lockfilePath, "utf8")
-			.then((version) => {
-				return this.fs.promises.writeFile(lockfilePath, this.electron.app.getVersion(), "utf8").then(() => version !== this.electron.app.getVersion())
-			})
-			.catch(() => false)
-	}
-
-	/**
 	 * checks that there's only one instance running while
 	 * allowing different versions to steal the single instance lock
 	 * from each other.
@@ -101,33 +88,40 @@ export class DesktopUtils {
 	 *
 	 * @returns {Promise<boolean>} whether the app was successful in getting the lock
 	 */
-	makeSingleInstance(): Promise<boolean> {
-		const lockfilePath = this.getLockFilePath()
-		// first, put down a file in temp that contains our version.
-		// will overwrite if it already exists.
-		// errors are ignored and we fall back to a version agnostic single instance lock.
-		return this.fs.promises
-			.writeFile(lockfilePath, this.electron.app.getVersion(), "utf8")
-			.catch(noOp)
-			.then(() => {
-				// try to get the lock, if there's already an instance running,
-				// give the other instance time to see if it wants to release the lock.
-				// if it changes the version back, it was a different version and
-				// will terminate itself.
-				return this.electron.app.requestSingleInstanceLock()
-					? Promise.resolve(true)
-					: delay(1500)
-							.then(() => this.singleInstanceLockOverridden())
-							.then((canStay) => {
-								if (canStay) {
-									this.electron.app.requestSingleInstanceLock()
-								} else {
-									this.electron.app.quit()
-								}
+	async makeSingleInstance(): Promise<boolean> {
+		const isOnlyInstance = await this.tfs.acquireSingleInstanceLock()
+		if (isOnlyInstance) {
+			return true
+		}
+		// the other instance will decide if it's going to terminate and override
+		// the lock again in this time.
+		await delay(1500)
+		const otherInstanceWillTerminate = await this.tfs.singleInstanceLockOverridden()
+		if (otherInstanceWillTerminate) {
+			this.electron.app.requestSingleInstanceLock()
+		} else {
+			this.electron.app.quit()
+		}
 
-								return canStay
-							})
-			})
+		return otherInstanceWillTerminate
+	}
+
+	/** after we receive notification about another app instance being started, we need to decide
+	 * whether to quit or continue and if we do the latter, handle that instance's cli args and/or
+	 * create a new window. */
+	async handleSecondInstance(wm: WindowManager, args: Array<string>): Promise<void> {
+		const otherInstanceMailToArg = findMailToUrlInArgv(args)
+		if (await this.tfs.singleInstanceLockOverridden()) {
+			app.quit()
+		} else {
+			if (wm.getAll().length === 0) {
+				await wm.newWindow(true)
+			} else {
+				for (const w of wm.getAll()) w.show()
+			}
+
+			await this.handleMailto(wm, otherInstanceMailToArg)
+		}
 	}
 
 	/**
@@ -135,16 +129,21 @@ export class DesktopUtils {
 	 * @param script: source of the registry script
 	 * @private
 	 */
-	private async _executeRegistryScript(script: string): Promise<void> {
+	private async executeRegistryScript(script: string): Promise<void> {
 		const deferred = defer<void>()
 
-		const file = await this._writeToDisk(script)
+		const file = await this.tfs.writeToDisk(script, "reg", {
+			encoding: "utf-8",
+			// read only by owner, because the most we're doing with this is
+			// passing it to reg.exe and then delete it
+			mode: 0o400,
+		})
 
 		spawn("reg.exe", ["import", file], {
 			stdio: ["ignore", "inherit", "inherit"],
 			detached: false,
 		}).on("exit", (code, signal) => {
-			this.fs.unlinkSync(file)
+			this.tfs.clearTmpSub("reg")
 
 			if (code === 0) {
 				deferred.resolve(undefined)
@@ -153,25 +152,6 @@ export class DesktopUtils {
 			}
 		})
 		return deferred.promise
-	}
-
-	/**
-	 * Writes contents with a random file name into the tmp directory
-	 * @param contents
-	 * @returns path to the written file
-	 */
-	private async _writeToDisk(contents: string): Promise<string> {
-		const filename = uint8ArrayToHex(this.cryptoFunctions.randomBytes(12))
-		const tmpPath = path.join(this.getTutanotaTempPath(), "reg")
-		await this.fs.promises.mkdir(tmpPath, { recursive: true })
-		const filePath = path.join(tmpPath, filename)
-
-		await this.fs.promises.writeFile(filePath, contents, {
-			encoding: "utf-8",
-			mode: 0o400,
-		})
-
-		return filePath
 	}
 
 	async doRegisterMailtoOnWin32WithCurrentUser(): Promise<void> {
@@ -190,9 +170,9 @@ export class DesktopUtils {
 		// with the value of the USERPROFILE env var.
 		const appData = path.join("%USERPROFILE%", "AppData")
 		const logPath = path.join(appData, "Roaming", this.electron.app.getName(), "logs")
-		const tmpPath = path.join(appData, "Local", "Temp", this.topLevelTempDir, "attach")
+		const tmpPath = path.join(this.tfs.getTutanotaTempPath(), "attach")
 		const tmpRegScript = makeRegisterKeysScript(RegistryRoot.CURRENT_USER, { execPath, dllPath, logPath, tmpPath })
-		await this._executeRegistryScript(tmpRegScript)
+		await this.executeRegistryScript(tmpRegScript)
 		this.electron.app.setAsDefaultProtocolClient("mailto")
 		await this._openDefaultAppsSettings()
 	}
@@ -203,7 +183,7 @@ export class DesktopUtils {
 		}
 		this.electron.app.removeAsDefaultProtocolClient("mailto")
 		const tmpRegScript = makeUnregisterKeysScript(RegistryRoot.CURRENT_USER)
-		await this._executeRegistryScript(tmpRegScript)
+		await this.executeRegistryScript(tmpRegScript)
 		await this._openDefaultAppsSettings()
 	}
 
@@ -216,58 +196,17 @@ export class DesktopUtils {
 		}
 	}
 
-	/**
-	 * Get a path to the tutanota temporary directory
-	 * the hierarchy is
-	 * [electron tmp dir]
-	 * [tutanota tmp]
-	 *
-	 * the directory will be created if it doesn't already exist
-	 *
-	 * a randomly named subdirectory will be included
-	 *
-	 * if `noRandomDirectory` then random directory will not be included in the path,
-	 * and the whole directory will not be created
-	 * @returns {string}
-	 */
-	getTutanotaTempPath(): string {
-		const directory = path.join(this.electron.app.getPath("temp"), this.topLevelTempDir, this.randomDirectoryName)
-
-		// only readable by owner (current user)
-		this.fs.mkdirSync(directory, { recursive: true, mode: 0o700 })
-
-		return path.join(directory)
-	}
-
-	deleteTutanotaTempDir() {
-		const topLvlTmpDir = path.join(this.electron.app.getPath("temp"), this.topLevelTempDir)
-		try {
-			const tmps = this.fs.readdirSync(topLvlTmpDir)
-			for (const tmp of tmps) {
-				const tmpSubPath = path.join(topLvlTmpDir, tmp)
-				try {
-					this.fs.rmSync(tmpSubPath, { recursive: true })
-				} catch (e) {
-					// ignore if the file was deleted between readdir and delete
-					// or if it's not our tmp dir
-					if (e.code !== "ENOENT" && e.code !== "EACCES") throw e
-				}
-			}
-		} catch (e) {
-			// the tmp dir doesn't exist, everything's fine
-			if (e.code !== "ENOENT") throw e
-		}
-	}
-
-	getLockFilePath() {
-		// don't get temp dir path from DesktopDownloadManager because the path returned from there may be deleted at some point,
-		// we want to put the lockfile in root tmp so it persists
-		return path.join(this.electron.app.getPath("temp"), "tutanota_desktop_lockfile")
-	}
-
 	getIconByName(iconName: string): NativeImage {
 		const iconPath = getResourcePath(`icons/${iconName}`)
 		return this.electron.nativeImage.createFromPath(iconPath)
+	}
+
+	async handleMailto(wm: WindowManager, mailToArg = this.mailtoArg) {
+		if (mailToArg) {
+			/*[filesUris, text, addresses, subject, mailToUrl]*/
+			const w = await wm.getLastFocused(true)
+			return w.commonNativeFacade.createMailEditor([], "", [], "", mailToArg)
+		}
 	}
 }
 
@@ -278,4 +217,8 @@ export function isRectContainedInRect(closestRect: Rectangle, lastBounds: Rectan
 		lastBounds.width + lastBounds.x <= closestRect.width + 10 &&
 		lastBounds.height + lastBounds.y <= closestRect.height + 10
 	)
+}
+
+function findMailToUrlInArgv(argv: string[]): string | null {
+	return argv.find((arg) => arg.startsWith("mailto")) ?? null
 }

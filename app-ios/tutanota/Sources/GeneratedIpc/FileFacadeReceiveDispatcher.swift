@@ -56,8 +56,10 @@ public class FileFacadeReceiveDispatcher {
 			return toJson(result)
 		case "putFileIntoDownloadsFolder":
 			let localFileUri = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let fileNameToUse = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
 			let result = try await self.facade.putFileIntoDownloadsFolder(
-				localFileUri
+				localFileUri,
+				fileNameToUse
 			)
 			return toJson(result)
 		case "upload":

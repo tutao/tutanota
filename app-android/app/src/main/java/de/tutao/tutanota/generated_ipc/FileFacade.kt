@@ -6,6 +6,9 @@ package de.tutao.tutanota.ipc
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
+/**
+ * filesystem-related operations. none of the methods writing files to disk guarantee a fixed file name or location, except for putFileIntoDownloadsFolder.
+ */
 interface FileFacade {
 	/**
 	 * Opens the file with the built-in viewer or external program.
@@ -35,11 +38,18 @@ interface FileFacade {
 	 suspend fun getMimeType(
 		file: String,
 	): String
+	/**
+	 * get the absolute size in bytes of the file at the given location
+	 */
 	 suspend fun getSize(
 		file: String,
 	): Int
+	/**
+	 * move and rename a decrypted file from the decryption location to the download location preferred by the user and return the absolute path to the moved file
+	 */
 	 suspend fun putFileIntoDownloadsFolder(
 		localFileUri: String,
+		fileNameToUse: String,
 	): String
 	 suspend fun upload(
 		fileUrl: String,
@@ -47,6 +57,9 @@ interface FileFacade {
 		method: String,
 		headers: Map<String, String>,
 	): UploadTaskResponse
+	/**
+	 * download an encrypted file to the file system and return the location of the data
+	 */
 	 suspend fun download(
 		sourceUrl: String,
 		filename: String,
@@ -60,17 +73,29 @@ interface FileFacade {
 	): String
 	 suspend fun clearFileData(
 	): Unit
+	/**
+	 * given a list of chunk file locations, will re-join them in order to reconstruct a single file and returns the location of that file on disk.
+	 */
 	 suspend fun joinFiles(
 		filename: String,
 		files: List<String>,
 	): String
+	/**
+	 * split a given file on disk into as many chunks as necessary to limit their size to the max byte size. returns the list of chunk file locations.
+	 */
 	 suspend fun splitFile(
 		fileUri: String,
 		maxChunkSizeBytes: Int,
 	): List<String>
+	/**
+	 * Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir.
+	 */
 	 suspend fun writeDataFile(
 		file: DataFile,
 	): String
+	/**
+	 * read the file at the given location into a DataFile. Returns null if reading fails for any reason.
+	 */
 	 suspend fun readDataFile(
 		filePath: String,
 	): DataFile?

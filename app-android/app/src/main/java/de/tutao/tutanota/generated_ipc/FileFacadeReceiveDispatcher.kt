@@ -67,8 +67,10 @@ class FileFacadeReceiveDispatcher(
 			}
 			"putFileIntoDownloadsFolder" -> {
 				val localFileUri: String = json.decodeFromString(arg[0])
+				val fileNameToUse: String = json.decodeFromString(arg[1])
 				val result: String = this.facade.putFileIntoDownloadsFolder(
 					localFileUri,
+					fileNameToUse,
 				)
 				return json.encodeToString(result)
 			}

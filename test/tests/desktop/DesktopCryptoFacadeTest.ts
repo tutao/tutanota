@@ -7,7 +7,7 @@ import type { CryptoFunctions } from "../../../src/desktop/CryptoFns.js"
 import type { TypeModel } from "../../../src/api/common/EntityTypes.js"
 import { Aes256Key, keyToUint8Array, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import { object, when } from "testdouble"
-import { DesktopUtils } from "../../../src/desktop/DesktopUtils.js"
+import { TempFs } from "../../../src/desktop/files/TempFs.js"
 
 o.spec("DesktopCryptoFacadeTest", () => {
 	const data = "uint8_somedata"
@@ -107,9 +107,11 @@ o.spec("DesktopCryptoFacadeTest", () => {
 
 	const setupSubject = () => {
 		const sm = standardMocks()
-		const utils = object<DesktopUtils>()
-		when(utils.getTutanotaTempPath()).thenReturn("/some/other/path/to")
-		const desktopCrypto = new DesktopNativeCryptoFacade(sm.fsMock, sm.cryptoFnsMock, utils)
+		const tfs = object<TempFs>()
+		when(tfs.getTutanotaTempPath()).thenReturn("/some/other/path/to")
+		when(tfs.ensureEncryptedDir()).thenResolve("/some/other/path/to/encrypted")
+		when(tfs.ensureUnencrytpedDir()).thenResolve("/some/other/path/to/decrypted")
+		const desktopCrypto = new DesktopNativeCryptoFacade(sm.fsMock, sm.cryptoFnsMock, tfs)
 		return Object.assign({}, sm, {
 			desktopCrypto,
 		})

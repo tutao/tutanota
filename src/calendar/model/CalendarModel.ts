@@ -271,7 +271,12 @@ export class CalendarModel {
 				await this.processCalendarData(update.sender, parsedCalendarData)
 			}
 		} catch (e) {
-			if (e instanceof NotAuthorizedError) {
+			if (e instanceof NoOwnerEncSessionKeyForCalendarEventError) {
+				// we will get an update with the mail and sk soon
+				this.fileIdToSkippedCalendarEventUpdates.set(elementIdPart(update.file), update)
+				console.warn(TAG, `could not process calendar update: ${e.message}`, e)
+				erase = false
+			} else if (e instanceof NotAuthorizedError) {
 				// we might be authorized in the near future if some permission is delayed, unlikely to be permanent.
 				erase = false
 				console.warn(TAG, "could not process calendar update: not authorized", e)

@@ -69,7 +69,7 @@ class IosFileFacade : FileFacade {
     return Int(size)
   }
   
-  func putFileIntoDownloadsFolder(_ localFileUri: String) async throws -> String {
+  func putFileIntoDownloadsFolder(_ localFileUri: String, _ fileNameToSave: String) async throws -> String {
     fatalError("not implemented on this platform")
   }
   

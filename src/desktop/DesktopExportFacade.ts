@@ -11,13 +11,13 @@ import { ApplicationWindow } from "./ApplicationWindow.js"
 import { Attachment, Email, MessageEditorFormat } from "@tutao/oxmsg"
 import { sanitizeFilename } from "../api/common/utils/FileUtils.js"
 import { promises as fs } from "node:fs"
-import { DesktopUtils } from "./DesktopUtils.js"
+import { TempFs } from "./files/TempFs.js"
 
 const EXPORT_DIR = "export"
 
 export class DesktopExportFacade implements ExportFacade {
 	constructor(
-		private readonly desktopUtils: DesktopUtils,
+		private readonly tfs: TempFs,
 		private readonly conf: DesktopConfig,
 		private readonly window: ApplicationWindow,
 		private readonly dragIcons: Record<MailExportMode, NativeImage>,
@@ -72,7 +72,7 @@ export class DesktopExportFacade implements ExportFacade {
 	}
 
 	private async getExportDirectoryPath(): Promise<string> {
-		const directory = path.join(this.desktopUtils.getTutanotaTempPath(), EXPORT_DIR)
+		const directory = path.join(this.tfs.getTutanotaTempPath(), EXPORT_DIR)
 		await fs.mkdir(directory, { recursive: true })
 		return directory
 	}
