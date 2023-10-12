@@ -404,9 +404,11 @@ export class MailListView implements Component<MailListViewAttrs> {
 		} else {
 			const folders = await locator.mailModel.getMailboxFolders(listElement)
 			if (folders) {
+				//Check if the user is in the trash/spam folder or if it's in Inbox or Archive
+				//to determinate the target folder
 				const targetMailFolder = this.showingSpamOrTrash
 					? this.getRecoverFolder(listElement, folders)
-					: assertNotNull(folders.getSystemFolderByType(MailFolderType.ARCHIVE))
+					: assertNotNull(folders.getSystemFolderByType(this.targetInbox() ? MailFolderType.INBOX : MailFolderType.ARCHIVE))
 				const wereMoved = await moveMails({
 					mailModel: locator.mailModel,
 					mails: [listElement],
