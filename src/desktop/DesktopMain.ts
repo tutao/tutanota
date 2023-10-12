@@ -14,7 +14,6 @@ import { DesktopAlarmScheduler } from "./sse/DesktopAlarmScheduler"
 import { lang } from "../misc/LanguageViewModel"
 import { DesktopNetworkClient } from "./net/DesktopNetworkClient.js"
 import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
-import { DesktopDownloadManager } from "./net/DesktopDownloadManager.js"
 import { DesktopTray } from "./tray/DesktopTray"
 import { log } from "./DesktopLog"
 import { UpdaterWrapper } from "./UpdaterWrapper"
@@ -46,7 +45,7 @@ import { DesktopCommonSystemFacade } from "./DesktopCommonSystemFacade.js"
 import { DesktopGlobalDispatcher } from "../native/common/generatedipc/DesktopGlobalDispatcher.js"
 import { DesktopDesktopSystemFacade } from "./DesktopDesktopSystemFacade.js"
 import { DesktopExportFacade } from "./DesktopExportFacade.js"
-import { DesktopFileFacade } from "./DesktopFileFacade.js"
+import { DesktopFileFacade } from "./files/DesktopFileFacade.js"
 import { DesktopSearchTextInAppFacade } from "./DesktopSearchTextInAppFacade.js"
 import { DelayedImpls, exposeLocalDelayed } from "../api/common/WorkerProxy.js"
 import { ExposedNativeInterface } from "../native/common/NativeInterface.js"
@@ -61,6 +60,7 @@ import { getConfigFile } from "./config/ConfigFile.js"
 import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
 import { WorkerSqlCipher } from "./db/WorkerSqlCipher.js"
+import { TempFs } from "./files/TempFs.js"
 
 /**
  * Should be injected during build time.
@@ -77,7 +77,7 @@ setupAssetProtocol(electron)
 mp()
 type Components = {
 	readonly wm: WindowManager
-	readonly dl: DesktopDownloadManager
+	readonly tfs: TempFs
 	readonly sse: DesktopSseClient
 	readonly conf: DesktopConfig
 	readonly keyStoreFacade: DesktopKeyStoreFacade
@@ -89,12 +89,12 @@ type Components = {
 	readonly desktopThemeFacade: DesktopThemeFacade
 	readonly credentialsEncryption: NativeCredentialsFacade
 }
-const desktopUtils = new DesktopUtils(fs, electron, cryptoFns)
-const desktopCrypto = new DesktopNativeCryptoFacade(fs, cryptoFns, desktopUtils)
+const tfs = new TempFs(fs, electron, cryptoFns)
+const desktopUtils = new DesktopUtils(process.argv, tfs, electron)
+const desktopCrypto = new DesktopNativeCryptoFacade(fs, cryptoFns, tfs)
 const opts = {
 	registerAsMailHandler: process.argv.some((arg) => arg === "-r"),
 	unregisterAsMailHandler: process.argv.some((arg) => arg === "-u"),
-	mailTo: findMailToUrlInArgv(process.argv),
 	wasAutoLaunched: process.platform !== "darwin" ? process.argv.some((arg) => arg === "-a") : app.getLoginItemSettings().wasOpenedAtLogin,
 }
 
@@ -145,7 +145,6 @@ async function createComponents(): Promise<Components> {
 	const tray = new DesktopTray(conf)
 	const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
 	const dateProvider = new DefaultDateProvider()
-	const dl = new DesktopDownloadManager(conf, desktopNet, desktopUtils, dateProvider, fs, electron)
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
@@ -173,15 +172,9 @@ async function createComponents(): Promise<Components> {
 		},
 		async delete(userId: string): Promise<void> {
 			const dbPath = makeDbPath(userId)
-			try {
-				await fs.promises.rm(dbPath)
-			} catch (e) {
-				if (e.code === "ENOENT") {
-					// No database, no problems
-				} else {
-					throw e
-				}
-			}
+			// force to suppress ENOENT which is not a problem.
+			// maxRetries should reduce EBUSY
+			await fs.promises.rm(dbPath, { maxRetries: 3, force: true })
 		},
 	}
 
@@ -217,8 +210,8 @@ async function createComponents(): Promise<Components> {
 		const dispatcher = new DesktopGlobalDispatcher(
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
-			new DesktopExportFacade(desktopUtils, conf, window, dragIcons),
-			new DesktopFileFacade(window, dl, electron),
+			new DesktopExportFacade(tfs, conf, window, dragIcons),
+			new DesktopFileFacade(window, conf, desktopUtils, dateProvider, desktopNet, electron, tfs, fs),
 			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,
 			desktopCrypto,
@@ -252,7 +245,7 @@ async function createComponents(): Promise<Components> {
 	log.debug("version:  ", app.getVersion())
 	return {
 		wm,
-		dl,
+		tfs,
 		sse,
 		conf,
 		keyStoreFacade: keyStoreFacade,
@@ -267,40 +260,20 @@ async function createComponents(): Promise<Components> {
 }
 
 async function startupInstance(components: Components) {
-	const { dl, wm, sse } = components
-	if (!(await desktopUtils.makeSingleInstance())) return
-	// Delete the temp directory on startup because we may not always be able to do it on shutdown.
-	//
-	// don't do it if:
-	// * we're a second instance, the main instance may be using the tmp
-	// * there's a mailto link, attachments may be located in the tmp
-	if (opts.mailTo == null) dl.deleteTutanotaTempDirectory()
+	const { wm, sse, tfs } = components
+	if (!(await desktopUtils.cleanupOldInstance())) return
 	sse.start().catch((e) => log.warn("unable to start sse client", e))
 	// The second-instance event fires when we call app.requestSingleInstanceLock inside of DesktopUtils.makeSingleInstance
-	app.on("second-instance", async (ev, args) => {
-		if (await desktopUtils.singleInstanceLockOverridden()) {
-			app.quit()
-		} else {
-			if (wm.getAll().length === 0) {
-				await wm.newWindow(true)
-			} else {
-				for (const w of wm.getAll()) w.show()
-			}
+	app.on("second-instance", async (_ev, args) => desktopUtils.handleSecondInstance(wm, args))
+	app.on("open-url", (e, url) => {
+		// MacOS mailto handling
+		e.preventDefault()
 
-			await handleMailto(findMailToUrlInArgv(args), components)
+		if (url.startsWith("mailto:")) {
+			app.whenReady().then(() => desktopUtils.handleMailto(wm, url))
 		}
 	})
-		.on("open-url", (e, url) => {
-			// MacOS mailto handling
-			e.preventDefault()
-
-			if (url.startsWith("mailto:")) {
-				app.whenReady().then(() => handleMailto(url, components))
-			}
-		})
-		.on("will-quit", (e) => {
-			dl.deleteTutanotaTempDirectory()
-		})
+	app.on("will-quit", () => tfs.clear())
 	await app.whenReady()
 	await onAppReady(components)
 }
@@ -344,20 +317,5 @@ async function main(components: Components) {
 	notifier.start(2000)
 	updater.start()
 	integrator.runIntegration(wm)
-
-	if (opts.mailTo) {
-		await handleMailto(opts.mailTo, components)
-	}
-}
-
-function findMailToUrlInArgv(argv: string[]): string | null {
-	return argv.find((arg) => arg.startsWith("mailto")) ?? null
-}
-
-async function handleMailto(mailtoArg: string | null, { wm }: Components) {
-	if (mailtoArg) {
-		/*[filesUris, text, addresses, subject, mailToUrl]*/
-		const w = await wm.getLastFocused(true)
-		return w.commonNativeFacade.createMailEditor([], "", [], "", mailtoArg)
-	}
+	await desktopUtils.handleMailto(components.wm)
 }

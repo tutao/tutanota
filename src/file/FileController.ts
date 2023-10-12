@@ -68,7 +68,8 @@ export abstract class FileController {
 				throw new ConnectionError("currently offline")
 			}
 		} finally {
-			// we don't necessarily know when the user is done with the temporary file that was opened.
+			// we don't necessarily know when the user is done with the temporary file that was opened
+			// because we don't have a handle to the opening application/process.
 			if (action !== DownloadPostProcessing.Open) await this.cleanUp(downloadedFiles)
 		}
 	}

@@ -4,7 +4,7 @@ import { log } from "../DesktopLog.js"
 import { Session } from "electron"
 import { errorToObj } from "../../api/common/threading/MessageDispatcher.js"
 import { lazyMemoized } from "@tutao/tutanota-utils"
-import { getMimeTypeForFile } from "../DesktopFileFacade.js"
+import { getMimeTypeForFile } from "../files/DesktopFileFacade.js"
 import { ServiceUnavailableError } from "../../api/common/error/RestError.js"
 
 const TAG = "[ProtocolProxy]"

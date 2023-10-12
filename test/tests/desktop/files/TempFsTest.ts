@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { DesktopUtils } from "../../../src/desktop/DesktopUtils.js"
 import { base64ToUint8Array, base64UrlToBase64 } from "@tutao/tutanota-utils"
+import { TempFs } from "../../../../src/desktop/files/TempFs.js"
 
-o.spec("DesktopUtilsTest", function () {
+o.spec("TempFsTest", function () {
 	o("delete tutanotaTempDir can handle multiple subfolders, some of which aren't ours", function () {
 		const fs: any = object()
 		const app: any = object()
@@ -17,8 +17,8 @@ o.spec("DesktopUtilsTest", function () {
 		when(fs.rmSync("/tmp/tutanota/anothermine", { recursive: true })).thenReturn(null)
 		when(fs.rmSync("/tmp/tutanota/removed", { recursive: true })).thenThrow({ code: "ENOENT" } as any)
 		when(fs.rmSync("/tmp/tutanota/lastmine", { recursive: true })).thenReturn(null)
-		const utils = new DesktopUtils(fs, electron, cryptoFns)
-		utils.deleteTutanotaTempDir()
+		const tfs = new TempFs(fs, electron, cryptoFns)
+		tfs.clear()
 		verify(fs.rmSync(matchers.anything(), { recursive: true }), { times: 5 })
 	})
 })

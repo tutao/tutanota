@@ -144,7 +144,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		// setup the Entropy for all testcases
 		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
 		await import("./desktop/PathUtilsTest.js")
-		await import("./desktop/DesktopUtilsTest.js")
+		await import("./desktop/files/TempFsTest.js")
 		await import("./desktop/config/migrations/DesktopConfigMigratorTest.js")
 		await import("./desktop/ElectronUpdaterTest.js")
 		await import("./desktop/DesktopNotifierTest.js")
@@ -152,7 +152,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/sse/DesktopSseClientTest.js")
 		await import("./desktop/sse/DesktopAlarmStorageTest.js")
 		await import("./desktop/sse/DesktopAlarmSchedulerTest.js")
-		await import("./desktop/net/DesktopDownloadManagerTest.js")
+		await import("./desktop/files/DesktopFileFacadeTest.js")
 		await import("./desktop/net/ProtocolProxyTest.js")
 		await import("./desktop/SocketeerTest.js")
 		await import("./desktop/integration/DesktopIntegratorTest.js")
@@ -169,6 +169,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./mail/view/ConversationViewModelTest.js")
 		await import("./desktop/config/DesktopConfigTest.js")
 		await import("./api/worker/rest/RestClientTest.js")
+		await import("./desktop/files/TempFsTest.js")
 	}
 
 	// testdouble complains about certain mocking related code smells, and also prints a warning whenever you replace a property on an object.

@@ -39,7 +39,8 @@ export class FileFacadeReceiveDispatcher {
 			}
 			case "putFileIntoDownloadsFolder": {
 				const localFileUri: string = arg[0]
-				return this.facade.putFileIntoDownloadsFolder(localFileUri)
+				const fileNameToUse: string = arg[1]
+				return this.facade.putFileIntoDownloadsFolder(localFileUri, fileNameToUse)
 			}
 			case "upload": {
 				const fileUrl: string = arg[0]

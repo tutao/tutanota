@@ -83,8 +83,8 @@ export class NativeFileApp {
 	 * @param localFileUri URI for the source file
 	 * @returns {*} absolute path of the destination file
 	 */
-	putFileIntoDownloadsFolder(localFileUri: FileUri): Promise<string> {
-		return this.fileFacade.putFileIntoDownloadsFolder(localFileUri)
+	putFileIntoDownloadsFolder(localFileUri: FileUri, fileNameToUse: string): Promise<string> {
+		return this.fileFacade.putFileIntoDownloadsFolder(localFileUri, fileNameToUse)
 	}
 
 	async writeDataFile(data: DataFile): Promise<FileReference> {

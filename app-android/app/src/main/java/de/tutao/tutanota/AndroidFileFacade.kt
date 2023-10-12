@@ -137,17 +137,17 @@ class AndroidFileFacade(
 
 	override suspend fun getMimeType(fileUri: String): String = getMimeType(fileUri.toUri(), activity)
 
-	override suspend fun putFileIntoDownloadsFolder(localFileUri: String): String = withContext(Dispatchers.IO) {
+	override suspend fun putFileIntoDownloadsFolder(localFileUri: String, fileNameToUse: String): String = withContext(Dispatchers.IO) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-			addFileToDownloadsMediaStore(localFileUri)
+			addFileToDownloadsMediaStore(localFileUri, fileNameToUse)
 		} else {
 			activity.getPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-			addFileToDownloadsOld(localFileUri)
+			addFileToDownloadsOld(localFileUri, fileNameToUse)
 		}
 	}
 
 	@RequiresApi(Build.VERSION_CODES.Q)
-	private suspend fun addFileToDownloadsMediaStore(fileUriString: String): String {
+	private suspend fun addFileToDownloadsMediaStore(fileUriString: String, fileNameToUse: String): String {
 		val contentResolver = activity.contentResolver
 		val fileUri = fileUriString.toUri()
 		val fileInfo = getFileInfo(activity, fileUri)
@@ -156,7 +156,7 @@ class AndroidFileFacade(
 				ContentValues().apply {
 					put(MediaStore.MediaColumns.IS_PENDING, 1)
 					put(MediaStore.MediaColumns.MIME_TYPE, getMimeType(fileUri.toString()))
-					put(MediaStore.MediaColumns.DISPLAY_NAME, fileInfo.name)
+					put(MediaStore.MediaColumns.DISPLAY_NAME, fileNameToUse)
 					put(MediaStore.MediaColumns.SIZE, fileInfo.size)
 				},
 		) ?: throw FileOpenException("Could not insert into downloads, no output URI")
@@ -174,15 +174,15 @@ class AndroidFileFacade(
 				null
 		)
 		Log.d(TAG, "Updated with not pending: $updated")
-		localNotificationsFacade.sendDownloadFinishedNotification(fileInfo.name)
+		localNotificationsFacade.sendDownloadFinishedNotification(fileNameToUse)
 		return outputUri.toString()
 	}
 
-	private fun addFileToDownloadsOld(fileUri: String): String {
+	private fun addFileToDownloadsOld(fileUri: String, fileNameToUse: String): String {
 		val downloadsDir = ensureRandomDownloadDir()
 		val file = Uri.parse(fileUri)
 		val fileInfo = getFileInfo(activity, file)
-		val newFile = File(downloadsDir, fileInfo.name)
+		val newFile = File(downloadsDir, fileNameToUse)
 		IOUtils.copyLarge(activity.contentResolver.openInputStream(file), FileOutputStream(newFile), ByteArray(4096))
 		showDownloadNotification(activity, newFile)
 		return Uri.fromFile(newFile).toString()

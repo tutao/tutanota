@@ -1,5 +1,6 @@
 {
 	"name": "FileFacade",
+	"doc": "filesystem-related operations. none of the methods writing files to disk guarantee a fixed file name or location, except for putFileIntoDownloadsFolder.",
 	"type": "facade",
 	"receivers": ["ios", "desktop", "android"],
 	"senders": ["web"],
@@ -58,6 +59,7 @@
 			"ret": "string"
 		},
 		"getSize": {
+			"doc": "get the absolute size in bytes of the file at the given location",
 			"arg": [
 				{
 					"file": "string"
@@ -66,9 +68,13 @@
 			"ret": "number"
 		},
 		"putFileIntoDownloadsFolder": {
+			"doc": "move and rename a decrypted file from the decryption location to the download location preferred by the user and return the absolute path to the moved file",
 			"arg": [
 				{
 					"localFileUri": "string"
+				},
+				{
+					"fileNameToUse": "string"
 				}
 			],
 			"ret": "string"
@@ -91,6 +97,7 @@
 			"ret": "UploadTaskResponse"
 		},
 		"download": {
+			"doc": "download an encrypted file to the file system and return the location of the data",
 			"arg": [
 				{
 					"sourceUrl": "string"
@@ -118,6 +125,7 @@
 			"ret": "void"
 		},
 		"joinFiles": {
+			"doc": "given a list of chunk file locations, will re-join them in order to reconstruct a single file and returns the location of that file on disk.",
 			"arg": [
 				{
 					"filename": "string"
@@ -129,6 +137,7 @@
 			"ret": "string"
 		},
 		"splitFile": {
+			"doc": "split a given file on disk into as many chunks as necessary to limit their size to the max byte size. returns the list of chunk file locations.",
 			"arg": [
 				{
 					"fileUri": "string"
@@ -140,6 +149,7 @@
 			"ret": "List<string>"
 		},
 		"writeDataFile": {
+			"doc": "Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir.",
 			"arg": [
 				{
 					"file": "DataFile"
@@ -148,6 +158,7 @@
 			"ret": "string"
 		},
 		"readDataFile": {
+			"doc": "read the file at the given location into a DataFile. Returns null if reading fails for any reason.",
 			"arg": [
 				{
 					"filePath": "string"

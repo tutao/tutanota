@@ -43,7 +43,7 @@ export class FileControllerNative extends FileController {
 		try {
 			const fileReference = await this.fileApp.writeDataFile(file)
 			if (isAndroidApp() || isDesktop()) {
-				await this.fileApp.putFileIntoDownloadsFolder(fileReference.location)
+				await this.fileApp.putFileIntoDownloadsFolder(fileReference.location, fileReference.name)
 				return
 			} else if (isIOSApp()) {
 				return this.fileApp.open(fileReference)
@@ -75,7 +75,7 @@ export class FileControllerNative extends FileController {
 		} else if (isDesktop()) {
 			await this.processDownloadedFilesDesktop(downloadedFiles)
 		} else if (isAndroidApp()) {
-			await promiseMap(downloadedFiles, (file) => this.fileApp.putFileIntoDownloadsFolder(file.location))
+			await promiseMap(downloadedFiles, (file) => this.fileApp.putFileIntoDownloadsFolder(file.location, file.name))
 		} else {
 			throw new ProgrammingError("in filecontroller native but not in ios, android or desktop? - tried to write")
 		}
@@ -108,7 +108,8 @@ export class FileControllerNative extends FileController {
 			dataFiles.length === 1
 				? downloadedFiles[0]
 				: await this.fileApp.writeDataFile(await zipDataFiles(dataFiles as Array<DataFile>, `${sortableTimestamp()}-attachments.zip`))
-		await this.fileApp.putFileIntoDownloadsFolder(fileInTemp.location).finally(async () => {
+		// fixme make a commit without delete
+		await this.fileApp.putFileIntoDownloadsFolder(fileInTemp.location, fileInTemp.name).finally(async () => {
 			try {
 				await this.fileApp.deleteFile(fileInTemp.location)
 			} catch (e) {
