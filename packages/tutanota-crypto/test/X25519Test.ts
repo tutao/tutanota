@@ -24,6 +24,7 @@ o.spec("x25519", function () {
 	 */
 	let _keyPairAlice: X25519KeyPair
 	let _keyPairBob: X25519KeyPair
+	let _keyPairEphemeral: X25519KeyPair
 
 	function _getKeyPair(who: string): X25519KeyPair {
 		switch (who) {
@@ -31,6 +32,8 @@ o.spec("x25519", function () {
 				return _keyPairAlice ? _keyPairAlice : (_keyPairAlice = x25519generateKeyPair())
 			case "Bob":
 				return _keyPairBob ? _keyPairBob : (_keyPairBob = x25519generateKeyPair())
+			case "Ephemeral":
+				return _keyPairEphemeral ? _keyPairEphemeral : (_keyPairEphemeral = x25519generateKeyPair())
 			default:
 				throw new Error(`I don't know who ${who} is`)
 		}
@@ -51,10 +54,11 @@ o.spec("x25519", function () {
 	})
 	o("ECDH secret exchange", function () {
 		let keyPairAlice = _getKeyPair("Alice")
+		let keyPairEphemeral = _getKeyPair("Ephemeral")
 		let keyPairBob = _getKeyPair("Bob")
 
-		const aliceEncapsulate = x25519encapsulate(keyPairAlice, keyPairBob.pub)
-		const bobDecapsulate = x25519decapsulate(keyPairBob.priv, keyPairAlice.pub)
+		const aliceEncapsulate = x25519encapsulate(keyPairAlice.priv, keyPairEphemeral.priv, keyPairBob.pub)
+		const bobDecapsulate = x25519decapsulate(keyPairAlice.pub, keyPairEphemeral.pub, keyPairBob.priv)
 		o(aliceEncapsulate).deepEquals(bobDecapsulate)
 	})
 	o("key is clamped", function () {

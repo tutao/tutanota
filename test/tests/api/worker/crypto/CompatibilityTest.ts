@@ -186,14 +186,18 @@ o.spec("crypto compatibility", function () {
 			const alicePrivateKeyBytes = x25519hexToPrivateKey(td.alicePrivateKeyHex)
 			const alicePublicKeyBytes = x25519hexToPublicKey(td.alicePublicKeyHex)
 			const aliceKeyPair = { priv: alicePrivateKeyBytes, pub: alicePublicKeyBytes }
+			const ephemeralPrivateKeyBytes = x25519hexToPrivateKey(td.ephemeralPrivateKeyHex)
+			const ephemeralPublicKeyBytes = x25519hexToPublicKey(td.ephemeralPublicKeyHex)
+			const ephemeralKeyPair = { priv: ephemeralPrivateKeyBytes, pub: ephemeralPublicKeyBytes }
 			const bobPrivateKeyBytes = x25519hexToPrivateKey(td.bobPrivateKeyHex)
 			const bobPublicKeyBytes = x25519hexToPublicKey(td.bobPublicKeyHex)
+			const bobKeyPair = { priv: bobPrivateKeyBytes, pub: bobPublicKeyBytes }
 
-			const aliceToBob = x25519encapsulate(aliceKeyPair, bobPublicKeyBytes)
-			const bobToAlice = x25519decapsulate(bobPrivateKeyBytes, alicePublicKeyBytes)
+			const aliceToBob = x25519encapsulate(aliceKeyPair.priv, ephemeralKeyPair.priv, bobKeyPair.pub)
+			const bobToAlice = x25519decapsulate(aliceKeyPair.pub, ephemeralKeyPair.pub, bobKeyPair.priv)
 			o(aliceToBob).deepEquals(bobToAlice)
-			o(td.sharedSecretHex).equals(uint8ArrayToHex(aliceToBob.sharedSecret))
-			o(td.alicePublicKeyHex).equals(uint8ArrayToHex(aliceToBob.senderPub))
+			o(td.ephemeralSharedSecretHex).equals(uint8ArrayToHex(aliceToBob.ephemeralSharedSecret))
+			o(td.authSharedSecretHex).equals(uint8ArrayToHex(aliceToBob.authSharedSecret))
 		}
 	})
 	/**

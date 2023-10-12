@@ -14,7 +14,7 @@ export {
 	X25519Private,
 	X25519Public,
 	X25519KeyPair,
-	X25519SharedSecret,
+	X25519SharedSecrets,
 	x25519generateKeyPair,
 	x25519privateKeyToHex,
 	x25519publicKeyToHex,
