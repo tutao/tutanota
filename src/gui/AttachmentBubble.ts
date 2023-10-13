@@ -212,7 +212,14 @@ export class AttachmentDetailsPopup implements ModalComponent {
 		domPanel.style.height = px(initialHeight)
 		// add half the difference between .button height of 44px and 30px for pixel-perfect positioning
 		domPanel.style.top = px(targetRect.top + 7)
-		domPanel.style.left = px(targetRect.left)
+
+		//Verify if the attachment bubble is going to overflow the screen
+		//if yes, invert the side of the margin and discount the bubble width
+		if (targetRect.left + targetWidth > window.innerWidth) {
+			domPanel.style.right = px(targetRect.right - targetWidth)
+		} else {
+			domPanel.style.left = px(targetRect.left)
+		}
 
 		const mutations = [opacity(0, 1, true), height(initialHeight, targetHeight)]
 		if (targetRect.width !== targetWidth) {
