@@ -111,7 +111,7 @@ export default {
 		"archive_label": "Archief",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "U kunt geen globale beheersrechten toekennen aan een lokaal aangemaakte gebruiker.",
 		"attachFiles_action": "Bestanden toeevoegen",
-		"attachmentAmount_label": "{aantal) bijlages",
+		"attachmentAmount_label": "{aantal} bijlages",
 		"attachmentName_label": "Bijlage naam",
 		"attachmentWarning_msg": "Een andere applicatie will het volgende bestanden aan een nieuwe e-mail toevoegen:",
 		"attendeeNotFound_msg": "U neemt  niet deel  aan deze afspraak.",
