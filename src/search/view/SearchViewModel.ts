@@ -406,12 +406,19 @@ export class SearchViewModel {
 	}
 
 	private createList(): ListModel<SearchResultListEntry> {
+		// since we recreate the list every time we set a new result object,
+		// we bind the value of result for the lifetime of this list model
+		// at this point
+		const lastResult = this._searchResult
 		return new ListModel<SearchResultListEntry>({
 			topId: GENERATED_MAX_ID,
 			fetch: async (startId: Id, count: number) => {
+				if (lastResult !== this._searchResult) {
+					console.warn("got a fetch request for outdated results object, ignoring")
+					// this._searchResults was reassigned, we'll create a new ListModel soon
+					return { items: [], complete: true }
+				}
 				await awaitSearchInitialized(this.search)
-
-				const lastResult = this._searchResult
 
 				if (!lastResult || (lastResult.results.length === 0 && !hasMoreResults(lastResult))) {
 					return { items: [], complete: true }
@@ -424,12 +431,10 @@ export class SearchViewModel {
 				return { items: entries, complete }
 			},
 			loadSingle: async (elementId: Id) => {
-				const lastResult = this._searchResult
 				if (!lastResult) {
 					return null
 				}
 				const id = lastResult.results.find((r) => r[1] === elementId)
-
 				if (id) {
 					return this.entityClient
 						.load(lastResult.restriction.type, id)
@@ -474,13 +479,15 @@ export class SearchViewModel {
 			let startIndex = 0
 
 			if (startId !== GENERATED_MAX_ID) {
-				startIndex = result.results.findIndex((id) => id[1] === startId)
-
-				if (startIndex === -1) {
-					throw new Error("start index not found")
-				} else {
-					// the start index is already in the list of loaded elements load from the next element
+				// this relies on the results being sorted from newest to oldest ID
+				startIndex = result.results.findIndex((id) => id[1] <= startId)
+				if (elementIdPart(result.results[startIndex]) === startId) {
+					// the start element is already loaded, so we exclude it from the next load
 					startIndex++
+				} else if (startIndex === -1) {
+					// there is nothing in our result that's not loaded yet, so we
+					// have nothing to do
+					startIndex = Math.max(result.results.length - 1, 0)
 				}
 			}
 
