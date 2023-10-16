@@ -9,11 +9,12 @@ import { NotFoundError } from "../../api/common/error/RestError"
 import type { EntityUpdateData, EventController } from "../../api/main/EventController"
 import { isUpdateForTypeRef } from "../../api/main/EventController"
 import { isSameId } from "../../api/common/utils/EntityUtils"
-import { assertMainOrNode, DomainConfigProvider } from "../../api/common/Env"
+import { assertMainOrNode } from "../../api/common/Env"
 import type { EntityClient } from "../../api/common/EntityClient"
 import { WebauthnClient } from "./webauthn/WebauthnClient"
 import { SecondFactorAuthDialog } from "./SecondFactorAuthDialog"
 import type { LoginFacade } from "../../api/worker/facades/LoginFacade"
+import { DomainConfigProvider } from "../../api/common/DomainConfigProvider.js"
 
 assertMainOrNode()
 

@@ -4,8 +4,9 @@ import type { U2fChallenge, U2fRegisteredDevice, WebauthnResponseData } from "..
 import { createU2fRegisteredDevice, createWebauthnResponseData, U2fKey } from "../../../api/entities/sys/TypeRefs.js"
 import { WebAuthnFacade } from "../../../native/common/generatedipc/WebAuthnFacade.js"
 import { WebauthnKeyDescriptor } from "../../../native/common/generatedipc/WebauthnKeyDescriptor.js"
-import { DomainConfigProvider, getApiBaseUrl } from "../../../api/common/Env.js"
+import { getApiBaseUrl } from "../../../api/common/Env.js"
 import { Const } from "../../../api/common/TutanotaConstants.js"
+import { DomainConfigProvider } from "../../../api/common/DomainConfigProvider.js"
 
 /** Web authentication entry point for the rest of the app. */
 export class WebauthnClient {

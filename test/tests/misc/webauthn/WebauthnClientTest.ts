@@ -4,8 +4,8 @@ import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { WebauthnClient } from "../../../../src/misc/2fa/webauthn/WebauthnClient.js"
 import { WebAuthnFacade } from "../../../../src/native/common/generatedipc/WebAuthnFacade.js"
 import { createU2fChallenge, createU2fKey } from "../../../../src/api/entities/sys/TypeRefs.js"
-import { DomainConfigProvider } from "../../../../src/api/common/Env.js"
 import { domainConfigStub } from "../../TestUtils.js"
+import { DomainConfigProvider } from "../../../../src/api/common/DomainConfigProvider.js"
 
 o.spec("WebauthnClient", function () {
 	let webauthn: WebAuthnFacade

@@ -1,4 +1,8 @@
-/** @type DomainConfigMap */
+/**
+ * Domain configurations: different parameters depending on which URLs the app is running on.
+ *
+ * @type DomainConfigMap
+ * */
 export const domainConfigs = {
 	"mail.tutanota.com": {
 		firstPartyDomain: true,
