@@ -268,25 +268,21 @@ export class PostLoginActions implements PostLoginAction {
 			const webauthnFactors = secondFactors.filter((f) => f.type === SecondFactorType.webauthn || SecondFactorType.u2f)
 			// If there are webauthn factors but none of them are for the default domain, show a message
 			if (webauthnFactors.length > 0 && !webauthnFactors.some((f) => f.u2f && f.u2f?.appId == Const.WEBAUTHN_RP_ID)) {
-				const dialog = Dialog.confirmMultiple(
-					// FIXME translate
-					() => "You do not have any security keys configured for this domain, please add one in login settings",
-					[
-						{
-							label: "skip_action",
-							type: ButtonType.Secondary,
-							click: () => dialog.close(),
+				const dialog = Dialog.confirmMultiple("noKeysForThisDomain_msg", [
+					{
+						label: "skip_action",
+						type: ButtonType.Secondary,
+						click: () => dialog.close(),
+					},
+					{
+						label: "settings_label",
+						type: ButtonType.Primary,
+						click: () => {
+							dialog.close()
+							m.route.set("/settings/login")
 						},
-						{
-							label: "settings_label",
-							type: ButtonType.Primary,
-							click: () => {
-								dialog.close()
-								m.route.set("/settings/login")
-							},
-						},
-					],
-				)
+					},
+				])
 			}
 		}
 	}

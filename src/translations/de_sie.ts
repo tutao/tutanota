@@ -1583,6 +1583,7 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"suspiciousLink_title": "Verdächtiger Link",
-		"suspiciousLink_msg": "Sind Sie sicher, dass Sie \"{url}\" öffnen möchten? Der Link könnte Programme auf Ihrem Gerät ausführen. Öffnen Sie nur Links, denen Sie vertrauen."
+		"suspiciousLink_msg": "Sind Sie sicher, dass Sie \"{url}\" öffnen möchten? Der Link könnte Programme auf Ihrem Gerät ausführen. Öffnen Sie nur Links, denen Sie vertrauen.",
+		"noKeysForThisDomain_msg": "Sie haben keine Sicherheitsschlüssel für diese Domäne konfiguriert. Bitte fügen Sie einen in den Anmeldeeinstellungen hinzu.",
 	}
 }

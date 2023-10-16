@@ -1565,3 +1565,4 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "suspiciousLink_title"
 	| "suspiciousLink_msg"
+	| "noKeysForThisDomain_msg"

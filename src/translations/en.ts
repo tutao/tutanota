@@ -1579,6 +1579,7 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"suspiciousLink_title": "Suspicious link",
-		"suspiciousLink_msg": "Are you sure you want to open \"{url}\"? It might run programs on your device. Only open links from trusted sources."
+		"suspiciousLink_msg": "Are you sure you want to open \"{url}\"? It might run programs on your device. Only open links from trusted sources.",
+		"noKeysForThisDomain_msg": "You do not have any security keys configured for this domain. Please add one in login settings.",
 	}
 }
