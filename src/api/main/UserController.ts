@@ -292,7 +292,7 @@ export class UserController {
 					reject(e)
 				}
 			} else {
-				// Fall back to sync XHR if
+				// Fall back to sync XHR if Beacon API is not available (which it should be everywhere by now but maybe it is suppressed somehow)
 				const apiUrl = new URL(getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
 				apiUrl.pathname += `/rest/sys/session/${listIdPart(this.sessionId)}/${elementIdPart(this.sessionId)}`
 				const xhr = new XMLHttpRequest()
