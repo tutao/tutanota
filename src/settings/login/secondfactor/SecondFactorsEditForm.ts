@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, DomainConfigProvider } from "../../../api/common/Env.js"
+import { assertMainOrNode } from "../../../api/common/Env.js"
 import type { User } from "../../../api/entities/sys/TypeRefs.js"
 import { SecondFactorTypeRef } from "../../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/tutanota-utils"
@@ -20,6 +20,7 @@ import { SecondFactorTypeToNameTextId } from "./SecondFactorEditModel.js"
 import { IconButtonAttrs } from "../../../gui/base/IconButton.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { appIdToLoginDomain } from "../../../misc/2fa/SecondFactorUtils.js"
+import { DomainConfigProvider } from "../../../api/common/DomainConfigProvider.js"
 
 assertMainOrNode()
 

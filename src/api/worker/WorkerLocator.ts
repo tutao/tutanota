@@ -11,16 +11,7 @@ import type { MailAddressFacade } from "./facades/lazy/MailAddressFacade.js"
 import type { CustomerFacade } from "./facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "./facades/lazy/CounterFacade.js"
 import { EventBusClient } from "./EventBusClient"
-import {
-	assertWorkerOrNode,
-	DomainConfigProvider,
-	getWebsocketBaseUrl,
-	isAdminClient,
-	isAndroidApp,
-	isIOSApp,
-	isOfflineStorageAvailable,
-	isTest,
-} from "../common/Env"
+import { assertWorkerOrNode, getWebsocketBaseUrl, isAdminClient, isAndroidApp, isIOSApp, isOfflineStorageAvailable, isTest } from "../common/Env"
 import { Const } from "../common/TutanotaConstants"
 import type { BrowserData } from "../../misc/ClientConstants"
 import type { CalendarFacade } from "./facades/lazy/CalendarFacade.js"
@@ -72,6 +63,7 @@ import { LoginFailReason } from "../main/PageContextLoginListener.js"
 import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
 import { SessionType } from "../common/SessionType.js"
 import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "./facades/Argon2idFacade.js"
+import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
 
 assertWorkerOrNode()
 

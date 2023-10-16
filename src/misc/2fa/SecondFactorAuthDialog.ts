@@ -13,7 +13,8 @@ import type { LoginFacade } from "../../api/worker/facades/LoginFacade.js"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { WebauthnError } from "../../api/common/error/WebauthnError.js"
 import { appIdToLoginDomain } from "./SecondFactorUtils.js"
-import { DomainConfigProvider } from "../../api/common/Env.js"
+
+import { DomainConfigProvider } from "../../api/common/DomainConfigProvider.js"
 
 type AuthData = {
 	readonly sessionId: IdTuple
