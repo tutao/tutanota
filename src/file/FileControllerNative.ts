@@ -108,14 +108,7 @@ export class FileControllerNative extends FileController {
 			dataFiles.length === 1
 				? downloadedFiles[0]
 				: await this.fileApp.writeDataFile(await zipDataFiles(dataFiles as Array<DataFile>, `${sortableTimestamp()}-attachments.zip`))
-		// fixme make a commit without delete
-		await this.fileApp.putFileIntoDownloadsFolder(fileInTemp.location, fileInTemp.name).finally(async () => {
-			try {
-				await this.fileApp.deleteFile(fileInTemp.location)
-			} catch (e) {
-				console.log("failed to delete file", fileInTemp.location, e)
-			}
-		})
+		await this.fileApp.putFileIntoDownloadsFolder(fileInTemp.location, fileInTemp.name)
 	}
 
 	// on iOS, we don't actually show downloadAll and open the attachment immediately
