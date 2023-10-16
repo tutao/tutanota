@@ -205,7 +205,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 		//Verify if the attachment bubble is going to overflow the screen
 		//if yes, invert the side of the margin and discount the bubble width
 		if (targetRect.left + targetWidth > window.innerWidth) {
-			domPanel.style.right = px(targetRect.right - targetWidth)
+			domPanel.style.right = px(24)
 		} else {
 			domPanel.style.left = px(targetRect.left)
 		}
