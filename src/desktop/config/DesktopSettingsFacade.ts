@@ -51,8 +51,7 @@ export class DesktopSettingsFacade implements SettingsFacade {
 	}
 
 	async getIntegrationInfo(): Promise<IntegrationInfo> {
-		const [isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable] = await Promise.all([
-			this.utils.checkIsMailtoHandler(),
+		const [isAutoLaunchEnabled, isIntegrated, isUpdateAvailable] = await Promise.all([
 			this.integrator.isAutoLaunchEnabled(),
 			this.integrator.isIntegrated(),
 			this.updater!.updateInfo != null,
@@ -60,7 +59,7 @@ export class DesktopSettingsFacade implements SettingsFacade {
 		return {
 			isIntegrated,
 			isAutoLaunchEnabled,
-			isMailtoHandler,
+			isMailtoHandler: this.utils.checkIsMailtoHandler(),
 			isUpdateAvailable,
 		}
 	}

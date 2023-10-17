@@ -18,13 +18,13 @@ type FsExports = typeof FsModule
 export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	constructor(private readonly fs: FsExports, private readonly cryptoFns: CryptoFunctions, private readonly tfs: TempFs) {}
 
-	aesEncryptObject(encryptionKey: Aes256Key, object: number | string | boolean | ReadonlyArray<any> | {}): string {
+	aesEncryptObject(encryptionKey: Aes256Key, object: number | string | boolean | ReadonlyArray<unknown> | {}): string {
 		const serializedObject = JSON.stringify(object)
 		const encryptedBytes = this.cryptoFns.aesEncrypt(encryptionKey, stringToUtf8Uint8Array(serializedObject))
 		return uint8ArrayToBase64(encryptedBytes)
 	}
 
-	aesDecryptObject(encryptionKey: Aes256Key, serializedObject: string): Record<string, unknown> {
+	aesDecryptObject(encryptionKey: Aes256Key, serializedObject: string): number | string | boolean | ReadonlyArray<unknown> | {} {
 		const encryptedBytes = base64ToUint8Array(serializedObject)
 		const decryptedBytes = this.cryptoFns.aesDecrypt(encryptionKey, encryptedBytes, true)
 		const stringObject = utf8Uint8ArrayToString(decryptedBytes)
