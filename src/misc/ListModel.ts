@@ -328,8 +328,17 @@ export class ListModel<ElementType extends ListElement> {
 	}
 
 	/** An element was added to the selection. If multiselect was not on, add previous single selection and newly added selected item to the selection. */
-	onSingleInclusiveSelection(item: ElementType): void {
+	onSingleInclusiveSelection(item: ElementType, clearSelectionOnMultiSelectStart?: boolean): void {
+		// If it isn't in MultiSelect, we discard all previous items
+		// and start a new set of selected items in MultiSelect mode
+		// we do it only if the user is on singleColumnMode, because
+		// there are different expected behaviors there
+		if (!this.state.inMultiselect && clearSelectionOnMultiSelectStart) {
+			this.selectNone()
+		}
+
 		const selectedItems = new Set(this.state.selectedItems)
+
 		if (this.state.inMultiselect && selectedItems.has(item)) {
 			selectedItems.delete(item)
 		} else {

@@ -3,12 +3,13 @@ import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
 import { size } from "../../gui/size"
 import { ListColumnWrapper } from "../../gui/ListColumnWrapper"
 import { assertMainOrNode } from "../../api/common/Env"
-import { MultiselectMode, List, ListAttrs, RenderConfig, ViewHolder } from "../../gui/base/List.js"
+import { List, ListAttrs, MultiselectMode, RenderConfig, ViewHolder } from "../../gui/base/List.js"
 import { ContactRow } from "./ContactRow.js"
 import { ContactViewModel } from "./ContactViewModel.js"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../gui/theme.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
+import { styles } from "../../gui/styles.js"
 
 assertMainOrNode()
 
@@ -46,7 +47,7 @@ export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 							onSingleSelection()
 						},
 						onSingleTogglingMultiselection: (item: Contact) => {
-							contactViewModel.listModel.onSingleInclusiveSelection(item)
+							contactViewModel.listModel.onSingleInclusiveSelection(item, styles.isSingleColumnLayout())
 						},
 						onRangeSelectionTowards: (item: Contact) => {
 							contactViewModel.listModel.selectRangeTowards(item)

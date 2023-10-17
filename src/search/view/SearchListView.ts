@@ -13,6 +13,7 @@ import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { theme } from "../../gui/theme.js"
 import { VirtualRow } from "../../gui/base/ListUtils.js"
+import { styles } from "../../gui/styles.js"
 
 assertMainOrNode()
 
@@ -64,7 +65,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 							attrs.onSingleSelection(item)
 						},
 						onSingleTogglingMultiselection: (item: SearchResultListEntry) => {
-							attrs.listModel.onSingleInclusiveSelection(item)
+							attrs.listModel.onSingleInclusiveSelection(item, styles.isSingleColumnLayout())
 						},
 						onRangeSelectionTowards: (item: SearchResultListEntry) => {
 							attrs.listModel.selectRangeTowards(item)
