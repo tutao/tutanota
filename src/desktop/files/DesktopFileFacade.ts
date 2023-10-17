@@ -26,6 +26,7 @@ import { DesktopConfig } from "../config/DesktopConfig.js"
 import { DesktopUtils } from "../DesktopUtils.js"
 import { DateProvider } from "../../api/common/DateProvider.js"
 import { TempFs } from "./TempFs.js"
+import OpenDialogOptions = Electron.OpenDialogOptions
 
 const TAG = "[DesktopFileFacade]"
 
@@ -172,9 +173,9 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	async openFileChooser(boundingRect: IpcClientRect, filter: ReadonlyArray<string> | null): Promise<Array<string>> {
-		const opts: Record<string, unknown> = { properties: ["openFile", "multiSelections"] }
+		const opts: OpenDialogOptions = { properties: ["openFile", "multiSelections"] }
 		if (filter != null) {
-			opts.filters = [{ name: "Filter", extensions: filter }]
+			opts.filters = [{ name: "Filter", extensions: filter.slice() }]
 		}
 		const { filePaths } = await this.electron.dialog.showOpenDialog(this.win._browserWindow, opts)
 		return filePaths
