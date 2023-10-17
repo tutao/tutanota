@@ -3,7 +3,7 @@ import { Attachment } from "../mail/editor/SendMailModel.js"
 import { Button, ButtonType } from "./base/Button.js"
 import { Icons } from "./base/icons/Icons.js"
 import { formatStorageSize } from "../misc/Formatter.js"
-import { defer, DeferredObject, Thunk } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, NBSP, noOp, Thunk } from "@tutao/tutanota-utils"
 import { modal, ModalComponent } from "./base/Modal.js"
 import { focusNext, focusPrevious, Shortcut } from "../misc/KeyManager.js"
 import { PosRect } from "./base/Dropdown.js"
@@ -13,8 +13,9 @@ import { Icon } from "./base/Icon.js"
 import { theme } from "./theme.js"
 import { animations, height, opacity, transform, TransformEnum, width } from "./animation/Animations.js"
 import { ease } from "./animation/Easing.js"
-import { getFileBaseName, getFileExtension } from "../api/common/utils/FileUtils.js"
+import { getFileBaseName, getFileExtension, isTutanotaFile } from "../api/common/utils/FileUtils.js"
 import { getSafeAreaInsetBottom } from "./HtmlUtils.js"
+import { hasError } from "../api/common/utils/ErrorCheckUtils.js"
 
 export type AttachmentBubbleAttrs = {
 	attachment: Attachment
@@ -28,19 +29,29 @@ export class AttachmentBubble implements Component<AttachmentBubbleAttrs> {
 
 	view(vnode: Vnode<AttachmentBubbleAttrs>): Children {
 		const { attachment } = vnode.attrs
-		const extension = getFileExtension(attachment.name)
-		const rest = getFileBaseName(attachment.name)
-		return m(Button, {
-			label: () => rest,
-			title: () => attachment.name,
-			icon: () => Icons.Attachment,
-			type: ButtonType.Bubble,
-			staticRightText: `${extension}, ${formatStorageSize(Number(attachment.size))}`,
-			click: async () => {
-				await showAttachmentDetailsPopup(this.dom!, vnode.attrs)
-				this.dom?.focus()
-			},
-		})
+		if (isTutanotaFile(attachment) && hasError(attachment)) {
+			return m(Button, {
+				label: "emptyString_msg",
+				title: "corrupted_msg",
+				icon: () => Icons.Warning,
+				type: ButtonType.Bubble,
+				click: noOp,
+			})
+		} else {
+			const extension = getFileExtension(attachment.name)
+			const rest = getFileBaseName(attachment.name)
+			return m(Button, {
+				label: () => rest,
+				title: () => attachment.name,
+				icon: () => Icons.Attachment,
+				type: ButtonType.Bubble,
+				staticRightText: `${extension}, ${formatStorageSize(Number(attachment.size))}`,
+				click: async () => {
+					await showAttachmentDetailsPopup(this.dom!, vnode.attrs)
+					this.dom?.focus()
+				},
+			})
+		}
 	}
 
 	oncreate(vnode: VnodeDOM<AttachmentBubbleAttrs>): void {
