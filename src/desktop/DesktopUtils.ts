@@ -22,20 +22,20 @@ export class DesktopUtils {
 	/**
 	 * make sure we are allowed to take single-instance lock and clear up remaining tmp data
 	 * from previous runs if so.
+	 *
+	 * @returns true if there is no other instance or we managed to steal the lock
 	 */
 	async cleanupOldInstance(): Promise<boolean> {
 		if (!(await this.makeSingleInstance())) return false
-		/**
-		 * doesn't clear tmp if:
-		 * * we're a second instance, the main instance may be using the tmp (we returned by now)
-		 * * there's a mailto link in the cli args, attachments may be located in the tmp
-		 * */
+		// doesn't clear tmp if:
+		// * we're a second instance, the main instance may be using the tmp (we returned by now)
+		// * there's a mailto link in the cli args, attachments may be located in the tmp
 		if (this.mailtoArg == null) this.tfs.clear()
 		return true
 	}
 
-	checkIsMailtoHandler(): Promise<boolean> {
-		return Promise.resolve(this.electron.app.isDefaultProtocolClient("mailto"))
+	checkIsMailtoHandler(): boolean {
+		return this.electron.app.isDefaultProtocolClient("mailto")
 	}
 
 	async registerAsMailtoHandler(): Promise<void> {
@@ -106,9 +106,11 @@ export class DesktopUtils {
 		return otherInstanceWillTerminate
 	}
 
-	/** after we receive notification about another app instance being started, we need to decide
+	/**
+	 * after we receive notification about another app instance being started, we need to decide
 	 * whether to quit or continue and if we do the latter, handle that instance's cli args and/or
-	 * create a new window. */
+	 * create a new window.
+	 */
 	async handleSecondInstance(wm: WindowManager, args: Array<string>): Promise<void> {
 		const otherInstanceMailToArg = findMailToUrlInArgv(args)
 		if (await this.tfs.singleInstanceLockOverridden()) {
@@ -142,7 +144,7 @@ export class DesktopUtils {
 		spawn("reg.exe", ["import", file], {
 			stdio: ["ignore", "inherit", "inherit"],
 			detached: false,
-		}).on("exit", (code, signal) => {
+		}).on("exit", (code, _signal) => {
 			this.tfs.clearTmpSub("reg")
 
 			if (code === 0) {
@@ -203,9 +205,8 @@ export class DesktopUtils {
 
 	async handleMailto(wm: WindowManager, mailToArg = this.mailtoArg) {
 		if (mailToArg) {
-			/*[filesUris, text, addresses, subject, mailToUrl]*/
 			const w = await wm.getLastFocused(true)
-			return w.commonNativeFacade.createMailEditor([], "", [], "", mailToArg)
+			return w.commonNativeFacade.createMailEditor(/* filesUris */ [], /* text */ "", /* addresses */ [], /* subject */ "", /* mailtoURL */ mailToArg)
 		}
 	}
 }

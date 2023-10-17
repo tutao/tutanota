@@ -264,30 +264,24 @@ export class CalendarModel {
 
 	private async handleCalendarEventUpdate(update: CalendarEventUpdate): Promise<void> {
 		// we want to delete the CalendarEventUpdate after we are done, even, in some cases, if something went wrong.
-		let erase = true
 		try {
 			const parsedCalendarData = await this.getCalendarDataForUpdate(update.file)
 			if (parsedCalendarData != null) {
 				await this.processCalendarData(update.sender, parsedCalendarData)
 			}
 		} catch (e) {
-			if (e instanceof NoOwnerEncSessionKeyForCalendarEventError) {
-				// we will get an update with the mail and sk soon
-				this.fileIdToSkippedCalendarEventUpdates.set(elementIdPart(update.file), update)
-				console.warn(TAG, `could not process calendar update: ${e.message}`, e)
-				erase = false
-			} else if (e instanceof NotAuthorizedError) {
+			if (e instanceof NotAuthorizedError) {
 				// we might be authorized in the near future if some permission is delayed, unlikely to be permanent.
-				erase = false
 				console.warn(TAG, "could not process calendar update: not authorized", e)
+				return
 			} else if (e instanceof PreconditionFailedError) {
 				// unclear where precon would be thrown, probably in the blob store?
-				erase = false
 				console.warn(TAG, "could not process calendar update: precondition failed", e)
+				return
 			} else if (e instanceof LockedError) {
 				// we can try again after the lock is released
-				erase = false
 				console.warn(TAG, "could not process calendar update: locked", e)
+				return
 			} else if (e instanceof NotFoundError) {
 				// either the updated event(s) or the file data could not be found,
 				// so we should try to delete since the update itself is obsolete.
@@ -303,16 +297,24 @@ export class CalendarModel {
 				// this includes CryptoErrors due to #5753 that we want to still monitor
 				// but now they only occur once
 				console.warn(TAG, "could not process calendar update:", e)
+				await this.eraseUpdate(update)
 				throw e
 			}
-		} finally {
-			if (erase) {
-				try {
-					await this.entityClient.erase(update)
-				} catch (e) {
-					console.log(TAG, "failed to delete update:", e.name)
-				}
-			}
+		}
+
+		await this.eraseUpdate(update)
+	}
+
+	/**
+	 * try to delete a calendar update from the server, ignoring errors
+	 * @param update the update to erase
+	 * @private
+	 */
+	private async eraseUpdate(update: CalendarEventUpdate): Promise<void> {
+		try {
+			await this.entityClient.erase(update)
+		} catch (e) {
+			console.log(TAG, "failed to delete update:", e.name)
 		}
 	}
 
