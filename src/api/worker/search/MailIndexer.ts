@@ -14,7 +14,19 @@ import {
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
 import { typeModels } from "../../entities/tutanota/TypeModels"
 import { containsEventOfType } from "../../common/utils/Utils"
-import { assertNotNull, groupBy, groupByAndMap, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	getFirstOrThrow,
+	groupBy,
+	groupByAndMap,
+	isNotNull,
+	neverNull,
+	noOp,
+	ofClass,
+	promiseMap,
+	splitInChunks,
+	TypeRef,
+} from "@tutao/tutanota-utils"
 import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../../common/utils/EntityUtils"
 import { _createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo } from "./IndexUtils"
 import type { Db, GroupData, IndexUpdate, SearchIndexEntry } from "./SearchTypes"
@@ -161,7 +173,14 @@ export class MailIndexer {
 						.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsBlobId), [elementIdPart(mailDetailsBlobId)], providedOwnerEncSessionKeys)
 						.then((d) => MailWrapper.details(mail, d[0].details))
 				}
-				const files = await promiseMap(mail.attachments, (attachmentId) => this._defaultCachingEntity.load(FileTypeRef, attachmentId))
+				const files =
+					mail.attachments.length > 0
+						? await this._defaultCachingEntity.loadMultiple(
+								FileTypeRef,
+								listIdPart(getFirstOrThrow(mail.attachments)),
+								mail.attachments.map(elementIdPart),
+						  )
+						: []
 				let keyToIndexEntries = this.createMailIndexEntries(mailWrapper, files)
 				return {
 					mail,
