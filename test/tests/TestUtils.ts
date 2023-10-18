@@ -98,6 +98,7 @@ export class SchedulerMock implements Scheduler {
 
 export const domainConfigStub: DomainConfig = {
 	firstPartyDomain: true,
+	partneredDomainTransitionUrl: "",
 	apiUrl: "",
 	u2fAppId: "",
 	webauthnRpId: "",

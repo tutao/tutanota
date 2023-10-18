@@ -248,11 +248,11 @@ type ConstType = {
 	MEMORY_WARNING_FACTOR: number
 	CURRENT_DATE: Date | null
 	CURRENCY_SYMBOL_EUR: string
-	DEFAULT_APP_DOMAIN: string,
-	LEGACY_WEBAUTHN_RP_ID: string,
-	WEBAUTHN_RP_ID: string,
-	U2f_APPID_SUFFIX: string,
-	U2F_APPID: string,
+	DEFAULT_APP_DOMAIN: string
+	LEGACY_WEBAUTHN_RP_ID: string
+	WEBAUTHN_RP_ID: string
+	U2f_APPID_SUFFIX: string
+	U2F_APPID: string
 }
 
 export const Const: ConstType = {

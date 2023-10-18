@@ -233,6 +233,11 @@ export class LoginViewModel implements ILoginViewModel {
 		}
 	}
 
+	/** get the origin that the current domain should open to start the credentials migration */
+	getMigrationChildOrigin(): string {
+		return this.domainConfig.partneredDomainTransitionUrl
+	}
+
 	/** only used to put the credentials we got from the old domain into the storage, unaltered. */
 	async addAllCredentials(credentials: Array<PersistentCredentials>) {
 		for (const cred of credentials) this.credentialsProvider.storeRaw(cred)
@@ -437,18 +442,6 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 }
 
-const OldToNew: Record<string, string> = Object.freeze({
-	"https://mail.tutanota.com": "https://app.tuta.com",
-	"https://test.tutanota.com": "https://app.test.tuta.com",
-	"https://app.local.tutanota.com:9000": "https://app.local.tuta.com:9000",
-})
-
-const NewToOld: Record<string, string> = Object.freeze({
-	"https://app.tuta.com": "https://mail.tutanota.com",
-	"https://app.test.tuta.com": "https://test.tutanota.com",
-	"https://app.local.tuta.com:9000": "https://app.local.tutanota.com:9000",
-})
-
 /** to give people time to visit the old domain and refresh to a web app that knows about the
  * /migrate route without them being prompted to migrate right away, we have a time delay on
  * the start of the migration. */
@@ -459,16 +452,4 @@ export const ACTIVATED_MIGRATION = () => (Const.CURRENT_DATE?.getTime() ?? Date.
  * also turns off auto login with a single stored credential. */
 export function isLegacyDomain(o: string = location.origin): boolean {
 	return new URL(o).hostname.endsWith(".tutanota.com") && isBrowser()
-}
-
-/** get the new domain origin according to the staging level of the calling application.
- * in a whitelabel context, this returns location.origin unchanged.
- * */
-export function getNewDomainOrigin(o: string = location.origin): string {
-	return OldToNew[o] ?? o
-}
-
-/** get the old domain according to the staging level of the calling application. */
-export function getOldDomainOrigin(o: string = location.origin): string {
-	return NewToOld[o] ?? o
 }

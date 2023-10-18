@@ -193,7 +193,7 @@ import("./translations/en")
 							},
 						}
 					},
-					prepareAttrs: ({ makeViewModel }) => ({ targetPath: "/mail", makeViewModel }),
+					prepareAttrs: ({ makeViewModel }) => ({ targetPath: "/mail", makeViewModel, domainConfig }),
 					requireLogin: false,
 				},
 				locator.logins,
@@ -349,9 +349,10 @@ import("./translations/en")
 			signup: {
 				async onmatch() {
 					const { showSignupDialog } = await import("./misc/LoginUtils")
-					const { getNewDomainOrigin, isLegacyDomain } = await import("./login/LoginViewModel.js")
+					const { isLegacyDomain } = await import("./login/LoginViewModel.js")
 					if (isLegacyDomain()) {
-						const target = new URL(getNewDomainOrigin())
+						const domainConfigProvider = locator.domainConfigProvider()
+						const target = new URL(domainConfigProvider.getCurrentDomainConfig().partneredDomainTransitionUrl)
 						target.pathname = "signup"
 						target.search = location.search
 						console.log("redirect to", target.toString())
@@ -449,9 +450,8 @@ import("./translations/en")
 						const { CredentialsMigrationViewModel } = await import("./login/CredentialsMigrationViewModel.js")
 						const { CredentialsMigrationView } = await import("./login/CredentialsMigrationView.js")
 						const { LoginViewModel } = await import("./login/LoginViewModel.js")
-						const { getNewDomainOrigin, getOldDomainOrigin, isLegacyDomain } = await import("./login/LoginViewModel.js")
-						const parentOrigin = isLegacyDomain() ? getNewDomainOrigin() : getOldDomainOrigin()
 						const domainConfig = locator.domainConfigProvider().getDomainConfigForHostname(location.hostname)
+						const parentOrigin = domainConfig.partneredDomainTransitionUrl
 						const logins = new LoginViewModel(locator.logins, locator.credentialsProvider, locator.secondFactorHandler, deviceConfig, domainConfig)
 						const credentialsMigrationViewModel = new CredentialsMigrationViewModel(logins, parentOrigin)
 						return {
@@ -763,8 +763,8 @@ function registerForMailto() {
 
 function printJobsMessage(domainConfig: DomainConfig) {
 	env.dist &&
-	domainConfig.firstPartyDomain &&
-	console.log(`
+		domainConfig.firstPartyDomain &&
+		console.log(`
 
 ''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''

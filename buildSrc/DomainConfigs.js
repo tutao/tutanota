@@ -6,6 +6,7 @@
 export const domainConfigs = {
 	"mail.tutanota.com": {
 		firstPartyDomain: true,
+		partneredDomainTransitionUrl: "https://app.tuta.com",
 		apiUrl: "https://mail.tutanota.com",
 		paymentUrl: "https://pay.tutanota.com/braintree.html",
 		webauthnUrl: "https://app.tuta.com/webauthn",
@@ -19,6 +20,7 @@ export const domainConfigs = {
 	},
 	"test.tutanota.com": {
 		firstPartyDomain: true,
+		partneredDomainTransitionUrl: "https://app.test.tuta.com",
 		apiUrl: "https://test.tutanota.com",
 		paymentUrl: "https://pay.test.tutanota.com/braintree.html",
 		webauthnUrl: "https://app.test.tuta.com/webauthn",
@@ -32,6 +34,7 @@ export const domainConfigs = {
 	},
 	"local.tutanota.com": {
 		firstPartyDomain: true,
+		partneredDomainTransitionUrl: "https://app.local.tuta.com:9000",
 		apiUrl: "https://local.tutanota.com:9000",
 		paymentUrl: "https://local.tutanota.com:9000/client/build/braintree.html",
 		webauthnUrl: "https://app.local.tuta.com:9000/client/build/webauthn",
@@ -45,6 +48,7 @@ export const domainConfigs = {
 	},
 	"app.tuta.com": {
 		firstPartyDomain: true,
+		partneredDomainTransitionUrl: "https://mail.tutanota.com",
 		apiUrl: "https://app.tuta.com",
 		paymentUrl: "https://pay.tutanota.com/braintree.html",
 		webauthnUrl: "https://app.tuta.com/webauthn",
@@ -58,6 +62,7 @@ export const domainConfigs = {
 	},
 	"app.test.tuta.com": {
 		firstPartyDomain: true,
+		partneredDomainTransitionUrl: "https://test.tutanota.com",
 		apiUrl: "https://app.test.tuta.com",
 		paymentUrl: "https://pay.test.tutanota.com/braintree.html",
 		webauthnUrl: "https://app.test.tuta.com/webauthn",
@@ -71,6 +76,7 @@ export const domainConfigs = {
 	},
 	"app.local.tuta.com": {
 		firstPartyDomain: true,
+		partneredDomainTransitionUrl: "https://app.local.tutanota.com:9000",
 		apiUrl: "https://app.local.tuta.com:9000",
 		paymentUrl: "https://app.local.tuta.com:9000/client/build/braintree.html",
 		webauthnUrl: "https://app.local.tuta.com:9000/client/build/webauthn",
@@ -84,6 +90,7 @@ export const domainConfigs = {
 	},
 	localhost: {
 		firstPartyDomain: true,
+		partneredDomainTransitionUrl: "http://localhost:9000",
 		apiUrl: "http://localhost:9000",
 		paymentUrl: "http://localhost:9000/client/build/braintree.html",
 		webauthnUrl: "http://localhost:9000/client/build/webauthn",
@@ -97,6 +104,7 @@ export const domainConfigs = {
 	},
 	"{hostname}": {
 		firstPartyDomain: false,
+		partneredDomainTransitionUrl: "https://{hostname}",
 		apiUrl: "https://{hostname}",
 		paymentUrl: "https://pay.tutanota.com/braintree.html",
 		webauthnUrl: "https://{hostname}/webauthn",

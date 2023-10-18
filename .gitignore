@@ -14,3 +14,4 @@ app-ios/releases
 native-cache
 test/native-cache
 test/testdatabase.sqlite
+test/undefined/*

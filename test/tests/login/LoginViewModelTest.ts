@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { DisplayMode, getNewDomainOrigin, getOldDomainOrigin, isLegacyDomain, LoginState, LoginViewModel } from "../../../src/login/LoginViewModel.js"
+import { DisplayMode, isLegacyDomain, LoginState, LoginViewModel } from "../../../src/login/LoginViewModel.js"
 import type { LoginController } from "../../../src/api/main/LoginController.js"
 import { createGroupInfo, createUser } from "../../../src/api/entities/sys/TypeRefs.js"
 import type { UserController } from "../../../src/api/main/UserController.js"
@@ -110,10 +110,7 @@ o.spec("LoginViewModelTest", () => {
 	let databaseKeyFactory: DatabaseKeyFactory
 	let deviceConfigMock: DeviceConfig
 
-
 	o.beforeEach(async () => {
-		// @ts-ignore dont need all props from location
-		global.location = new URL("https://app.tuta.com")
 		loginControllerMock = object<LoginController>()
 		const userControllerMock = object<UserController>()
 
@@ -134,11 +131,6 @@ o.spec("LoginViewModelTest", () => {
 		databaseKeyFactory = instance(DatabaseKeyFactory)
 
 		deviceConfigMock = instance(DeviceConfig)
-	})
-
-	o.afterEach(function () {
-		// @ts-ignore weŕe not on the window object here
-		delete global.location
 	})
 
 	/**
@@ -475,30 +467,6 @@ o.spec("LoginViewModelTest", () => {
 	})
 
 	o.spec("newDomain", function () {
-		o("getNewDomainOrigin", function () {
-			// https
-			o(getNewDomainOrigin("https://mail.tutanota.com")).equals("https://app.tuta.com")
-			o(getNewDomainOrigin("https://app.tuta.com")).equals("https://app.tuta.com")
-			o(getNewDomainOrigin("https://test.tutanota.com")).equals("https://app.test.tuta.com")
-			o(getNewDomainOrigin("https://app.local.tutanota.com:9000")).equals("https://app.local.tuta.com:9000")
-
-			// whitelabel domains that contain mail/app and tutanota still don't get changed
-			o(getNewDomainOrigin("https://mail.nottutanota.com")).equals("https://mail.nottutanota.com")
-			o(getNewDomainOrigin("https://app.nottutanota.com")).equals("https://app.nottutanota.com")
-			o(getNewDomainOrigin("https://app.mail.nottutanota.com")).equals("https://app.mail.nottutanota.com")
-		})
-
-		o("getOldDomainOrigin", function () {
-			o(getOldDomainOrigin("https://mail.tutanota.com")).equals("https://mail.tutanota.com")
-			o(getOldDomainOrigin("https://app.tuta.com")).equals("https://mail.tutanota.com")
-			o(getOldDomainOrigin("https://app.test.tuta.com")).equals("https://test.tutanota.com")
-
-			// pathological whitelabel domains
-			o(getOldDomainOrigin("https://mail.nottuta.com")).equals("https://mail.nottuta.com")
-			o(getOldDomainOrigin("https://app.nottuta.com")).equals("https://app.nottuta.com")
-			o(getOldDomainOrigin("https://app.mail.nottuta.com")).equals("https://app.mail.nottuta.com")
-		})
-
 		o("isLegacyDomain", function () {
 			const oldmode = env.mode
 			env.mode = Mode.Browser
