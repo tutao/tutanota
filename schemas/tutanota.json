@@ -185,24 +185,44 @@
 			"version": 65,
 			"changes": [
 				{
-					"name": "RemoveAssociation",
-					"sourceType": "MailboxGroupRoot",
-					"info": "RemoveAssociation MailboxGroupRoot/contactFormUserContactForm."
+					"name": "RenameAttribute",
+					"sourceType": "InternalGroupData",
+					"info": "RenameAttribute InternalGroupData: publicKey -> pubRsaKey."
 				},
 				{
-					"name": "RemoveAssociation",
-					"sourceType": "MailboxGroupRoot",
-					"info": "RemoveAssociation MailboxGroupRoot/targetMailGroupContactForm."
+					"name": "ChangeValueCardinality",
+					"sourceType": "InternalGroupData",
+					"info": "ChangeValueCardinality InternalGroupData/pubRsaKey/ZeroOrOne."
 				},
 				{
-					"name": "RemoveAssociation",
-					"sourceType": "MailboxGroupRoot",
-					"info": "RemoveAssociation MailboxGroupRoot/participatingContactForms."
+					"name": "RenameAttribute",
+					"sourceType": "InternalGroupData",
+					"info": "RenameAttribute InternalGroupData: groupEncPrivateKey -> groupEncPrivRsaKey."
 				},
 				{
-					"name": "RemoveAssociation",
-					"sourceType": "Mail",
-					"info": "RemoveAssociation Mail/restrictions."
+					"name": "ChangeValueCardinality",
+					"sourceType": "InternalGroupData",
+					"info": "ChangeValueCardinality InternalGroupData/groupEncPrivRsaKey/ZeroOrOne."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "InternalGroupData",
+					"info": "AddValue InternalGroupData/pubEccKey/1342."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "InternalGroupData",
+					"info": "AddValue InternalGroupData/groupEncPrivEccKey/1343."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "InternalGroupData",
+					"info": "AddValue InternalGroupData/pubKyberKey/1344."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "InternalGroupData",
+					"info": "AddValue InternalGroupData/groupEncPrivKyberKey/1345."
 				}
 			]
 		}

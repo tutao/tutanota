@@ -1069,9 +1069,13 @@ export type InternalGroupData = {
 
 	_id: Id;
 	adminEncGroupKey: Uint8Array;
-	groupEncPrivateKey: Uint8Array;
+	groupEncPrivEccKey: null | Uint8Array;
+	groupEncPrivKyberKey: null | Uint8Array;
+	groupEncPrivRsaKey: null | Uint8Array;
 	ownerEncGroupInfoSessionKey: Uint8Array;
-	publicKey: Uint8Array;
+	pubEccKey: null | Uint8Array;
+	pubKyberKey: null | Uint8Array;
+	pubRsaKey: null | Uint8Array;
 
 	adminGroup:  null | Id;
 }

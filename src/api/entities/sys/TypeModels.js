@@ -6326,22 +6326,58 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "pubKey": {
+            "pubEccKey": {
                 "final": true,
-                "name": "pubKey",
+                "name": "pubEccKey",
+                "id": 2137,
+                "since": 91,
+                "type": "Bytes",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "pubKyberKey": {
+                "final": true,
+                "name": "pubKyberKey",
+                "id": 2139,
+                "since": 91,
+                "type": "Bytes",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "pubRsaKey": {
+                "final": true,
+                "name": "pubRsaKey",
                 "id": 2,
                 "since": 1,
                 "type": "Bytes",
-                "cardinality": "One",
+                "cardinality": "ZeroOrOne",
                 "encrypted": false
             },
-            "symEncPrivKey": {
+            "symEncPrivEccKey": {
                 "final": true,
-                "name": "symEncPrivKey",
+                "name": "symEncPrivEccKey",
+                "id": 2138,
+                "since": 91,
+                "type": "Bytes",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "symEncPrivKyberKey": {
+                "final": true,
+                "name": "symEncPrivKyberKey",
+                "id": 2140,
+                "since": 91,
+                "type": "Bytes",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "symEncPrivRsaKey": {
+                "final": true,
+                "name": "symEncPrivRsaKey",
                 "id": 3,
                 "since": 1,
                 "type": "Bytes",
-                "cardinality": "One",
+                "cardinality": "ZeroOrOne",
                 "encrypted": false
             },
             "version": {
@@ -8625,13 +8661,13 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "pubKey": {
-                "final": false,
-                "name": "pubKey",
-                "id": 414,
-                "since": 1,
+            "pubEccKey": {
+                "final": true,
+                "name": "pubEccKey",
+                "id": 2141,
+                "since": 91,
                 "type": "Bytes",
-                "cardinality": "One",
+                "cardinality": "ZeroOrOne",
                 "encrypted": false
             },
             "pubKeyVersion": {
@@ -8641,6 +8677,24 @@ export const typeModels = {
                 "since": 1,
                 "type": "Number",
                 "cardinality": "One",
+                "encrypted": false
+            },
+            "pubKyberKey": {
+                "final": true,
+                "name": "pubKyberKey",
+                "id": 2142,
+                "since": 91,
+                "type": "Bytes",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "pubRsaKey": {
+                "final": false,
+                "name": "pubRsaKey",
+                "id": 414,
+                "since": 1,
+                "type": "Bytes",
+                "cardinality": "ZeroOrOne",
                 "encrypted": false
             }
         },

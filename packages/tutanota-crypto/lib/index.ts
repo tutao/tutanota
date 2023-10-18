@@ -32,7 +32,16 @@ export {
 	KYBER_POLYVECBYTES,
 	KYBER_SYMBYTES,
 } from "./encryption/Liboqs/Kyber.js"
-export { KyberEncapsulation, KyberPrivateKey, KyberPublicKey, KyberKeyPair } from "./encryption/Liboqs/KyberKeyPair.js"
+export {
+	KyberEncapsulation,
+	KyberPrivateKey,
+	KyberPublicKey,
+	KyberKeyPair,
+	hexToKyberPrivateKey,
+	kyberPublicKeyToHex,
+	kyberPrivateKeyToHex,
+	hexToKyberPublicKey,
+} from "./encryption/Liboqs/KyberKeyPair.js"
 export {
 	generateKeyFromPassphrase as generateKeyFromPassphraseArgon2id,
 	ARGON2ID_ITERATIONS,
@@ -42,10 +51,11 @@ export {
 } from "./hashes/Argon2id/Argon2id.js"
 export { CryptoError } from "./misc/CryptoError.js"
 export { KeyLength, EntropySource } from "./misc/Constants.js"
-export { encryptKey, decryptKey, encryptRsaKey, decryptRsaKey, aes256DecryptLegacyRecoveryKey } from "./encryption/KeyEncryption.js"
+export { encryptKey, decryptKey, encryptRsaKey, decryptRsaKey, decryptKeyPair, aes256DecryptLegacyRecoveryKey } from "./encryption/KeyEncryption.js"
 export { Randomizer, random } from "./random/Randomizer.js"
 export { encode, generateRsaKey, hexToPublicKey, rsaDecrypt, hexToPrivateKey, privateKeyToHex, publicKeyToHex, rsaEncrypt } from "./encryption/Rsa.js"
 export { RsaKeyPair, RsaPrivateKey, RsaPublicKey } from "./encryption/RsaKeyPair.js"
+export { PQKeyPairs, PQPublicKeys } from "./encryption/PQKeyPairs.js"
 export { sha1Hash } from "./hashes/Sha1.js"
 export { sha256Hash } from "./hashes/Sha256.js"
 export { sha512Hash } from "./hashes/Sha512.js"
@@ -66,3 +76,4 @@ export {
 	uint8ArrayToKey,
 } from "./misc/Utils.js"
 export { murmurHash } from "./hashes/MurmurHash.js"
+export { hkdf } from "./hashes/HKDF.js"

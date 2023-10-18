@@ -59,7 +59,7 @@ export class ShareFacade {
 		const notFoundRecipients: Array<string> = []
 
 		for (let mailAddress of recipientMailAddresses) {
-			const keyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipient(bucketKey, mailAddress, notFoundRecipients)
+			const keyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipient(userGroupInfo.group, bucketKey, mailAddress, notFoundRecipients)
 
 			if (keyData) {
 				invitationData.internalKeyData.push(keyData)

@@ -230,19 +230,44 @@
 			"version": 91,
 			"changes": [
 				{
-					"name": "RemoveAssociation",
-					"sourceType": "Customer",
-					"info": "RemoveAssociation Customer/contactFormUserGroups."
+					"name": "RenameAttribute",
+					"sourceType": "KeyPair",
+					"info": "RenameAttribute KeyPair: pubKey -> pubRsaKey."
 				},
 				{
-					"name": "RemoveAssociation",
-					"sourceType": "Customer",
-					"info": "RemoveAssociation Customer/contactFormUserAreaGroups."
+					"name": "ChangeValueCardinality",
+					"sourceType": "KeyPair",
+					"info": "ChangeValueCardinality KeyPair/pubRsaKey/ZeroOrOne."
 				},
 				{
-					"name": "RemoveValue",
-					"sourceType": "PlanPrices",
-					"info": "RemoveValue PlanPrices/contactFormPriceMonthly/1466."
+					"name": "RenameAttribute",
+					"sourceType": "KeyPair",
+					"info": "RenameAttribute KeyPair: symEncPrivKey -> symEncPrivRsaKey."
+				},
+				{
+					"name": "ChangeValueCardinality",
+					"sourceType": "KeyPair",
+					"info": "ChangeValueCardinality KeyPair/symEncPrivRsaKey/ZeroOrOne."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "KeyPair",
+					"info": "AddValue KeyPair/pubEccKey/2137."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "KeyPair",
+					"info": "AddValue KeyPair/symEncPrivEccKey/2138."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "KeyPair",
+					"info": "AddValue KeyPair/pubKyberKey/2139."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "KeyPair",
+					"info": "AddValue KeyPair/symEncPrivKyberKey/2140."
 				}
 			]
 		}

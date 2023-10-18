@@ -9,9 +9,13 @@ import {
 	encryptKey,
 	generateKeyFromPassphraseArgon2id,
 	generateKeyFromPassphraseBcrypt,
+	hexToKyberPrivateKey,
+	hexToKyberPublicKey,
 	hexToPrivateKey,
 	hexToPublicKey,
 	KeyLength,
+	kyberPrivateKeyToHex,
+	kyberPublicKeyToHex,
 	random,
 	Randomizer,
 	rsaDecrypt,
@@ -33,7 +37,6 @@ import {
 } from "@tutao/tutanota-utils"
 import testData from "./CompatibilityTestData.json"
 import { uncompress } from "../../../../../src/api/worker/Compression.js"
-import { hexToKyberPrivateKey, hexToKyberPublicKey, kyberPrivateKeyToHex, kyberPublicKeyToHex } from "../../../../../src/api/worker/facades/KyberFacade.js"
 import { matchers, object, when } from "testdouble"
 import { loadWasmModuleFromFile } from "../../../../../packages/tutanota-crypto/test/WebAssemblyTestUtils.js"
 

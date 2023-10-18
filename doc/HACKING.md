@@ -133,7 +133,7 @@ npm run test:app -- -f 'CalendarModel'
 To run only specific tests without npm:
 
 ```bash
-node run test -f CalendarModel
+node test -f CalendarModel
 ```
 
 To run tests in browser:
