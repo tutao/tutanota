@@ -37,6 +37,8 @@ declare type PlatformId = "ios" | "android" | "darwin" | "linux" | "win32"
 type DomainConfig = {
 	/** Whether it is a well-known domain provided by us. */
 	firstPartyDomain: boolean
+	/** the other domain in the domain migration for the current staging level */
+	partneredDomainTransitionUrl: string
 	/**
 	 *  What URL should be used for REST requests.
 	 * Important! You probably do not want to use it directly but rather through the accessor function

@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { ACTIVATED_MIGRATION, getNewDomainOrigin, getOldDomainOrigin, isLegacyDomain, LoginViewModel } from "./LoginViewModel.js"
+import { ACTIVATED_MIGRATION, isLegacyDomain, LoginViewModel } from "./LoginViewModel.js"
 import { MessageDispatcher, Request } from "../api/common/threading/MessageDispatcher.js"
 import { CrossOriginTransport } from "../api/common/threading/CrossOriginTransport.js"
 import { theme } from "../gui/theme.js"
@@ -23,7 +23,7 @@ export class MigratingCredentialsBanner implements Component<CredentialsBannerAt
 	private migrationPromise: DeferredObject<void> = defer()
 
 	oncreate(vnode: VnodeDOM<CredentialsBannerAttrs>): any {
-		this.childOrigin = isLegacyDomain() ? getNewDomainOrigin() : getOldDomainOrigin()
+		this.childOrigin = vnode.attrs.viewModel.getMigrationChildOrigin()
 	}
 
 	onremove(vnode: VnodeDOM<CredentialsBannerAttrs>) {
