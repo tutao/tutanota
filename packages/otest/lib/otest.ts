@@ -165,7 +165,7 @@ class OTest {
 
 					return testResult
 				} else {
-					console.log("  ", fancy("SKIP", ansiSequences.yellowBg), fancy(test.name, ansiSequences.faint))
+					// console.log("  ", fancy("SKIP", ansiSequences.yellowBg), fancy(test.name, ansiSequences.faint))
 					return { name: test.name, errors: [], timeout: null, skipped: true }
 				}
 			}),

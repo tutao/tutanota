@@ -65,6 +65,7 @@ import { SessionType } from "../common/SessionType.js"
 import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "./facades/Argon2idFacade.js"
 import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
 import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "./facades/KyberFacade.js"
+import { PQFacade } from "./facades/PQFacade.js"
 
 assertWorkerOrNode()
 
@@ -80,6 +81,7 @@ export type WorkerLocatorType = {
 	eventBusClient: EventBusClient
 	rsa: RsaImplementation
 	kyberFacade: KyberFacade
+	pqFacade: PQFacade
 	entropyFacade: EntropyFacade
 	blobAccessToken: BlobAccessTokenFacade
 
@@ -187,6 +189,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.kyberFacade = new WASMKyberFacade()
 	}
 
+	locator.pqFacade = new PQFacade(locator.kyberFacade)
+
 	locator.crypto = new CryptoFacade(
 		locator.user,
 		locator.cachingEntityClient,
@@ -195,6 +199,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.serviceExecutor,
 		locator.instanceMapper,
 		new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor),
+		locator.pqFacade,
 	)
 
 	const loginListener: LoginListener = {

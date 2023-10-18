@@ -80,7 +80,9 @@ o.spec("EntityRestClient", async function () {
 			return Promise.resolve({ ...decryptedInstance, migratedForInstance: true })
 		})
 		when(cryptoFacadeMock.setNewOwnerEncSessionKey(anything(), anything())).thenResolve([])
-		when(cryptoFacadeMock.encryptBucketKeyForInternalRecipient(anything(), anything(), anything())).thenResolve(createInternalRecipientKeyData())
+		when(cryptoFacadeMock.encryptBucketKeyForInternalRecipient(anything(), anything(), anything(), anything())).thenResolve(
+			createInternalRecipientKeyData(),
+		)
 		when(cryptoFacadeMock.resolveSessionKey(anything(), anything())).thenResolve([])
 
 		instanceMapperMock = object()

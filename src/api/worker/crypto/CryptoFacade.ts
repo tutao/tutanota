@@ -13,7 +13,7 @@ import {
 } from "@tutao/tutanota-utils"
 import { BucketPermissionType, GroupType, PermissionType } from "../../common/TutanotaConstants"
 import { HttpMethod, resolveTypeReference } from "../../common/EntityFunctions"
-import type { BucketKey, BucketPermission, GroupMembership, InstanceSessionKey, Permission } from "../../entities/sys/TypeRefs.js"
+import type { BucketKey, BucketPermission, GroupMembership, InstanceSessionKey, Permission, PublicKeyReturn } from "../../entities/sys/TypeRefs.js"
 import {
 	BucketKeyTypeRef,
 	BucketPermissionTypeRef,
@@ -47,13 +47,19 @@ import {
 	aesEncrypt,
 	bitArrayToUint8Array,
 	decryptKey,
-	decryptRsaKey,
 	ENABLE_MAC,
 	encryptKey,
+	hexToKyberPublicKey,
 	hexToPublicKey,
 	IV_BYTE_LENGTH,
+	PQKeyPairs,
+	PQPublicKeys,
 	random,
+	RsaKeyPair,
+	RsaPublicKey,
 	uint8ArrayToBitArray,
+	x25519generateKeyPair,
+	x25519hexToPublicKey,
 } from "@tutao/tutanota-crypto"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
 import type { RsaImplementation } from "./RsaImplementation"
@@ -64,6 +70,9 @@ import { UserFacade } from "../facades/UserFacade"
 import { elementIdPart } from "../../common/utils/EntityUtils.js"
 import { InstanceMapper } from "./InstanceMapper.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
+import { decryptKeyPair } from "@tutao/tutanota-crypto/dist/encryption/KeyEncryption.js"
+import { PQFacade } from "../facades/PQFacade.js"
+import { decodePQMessage, encodePQMessage } from "../facades/PQMessage.js"
 
 assertWorkerOrNode()
 
@@ -76,16 +85,6 @@ export function encryptString(sk: Aes128Key, value: string): Uint8Array {
 }
 
 export class CryptoFacade {
-	constructor(
-		private readonly userFacade: UserFacade,
-		private readonly entityClient: EntityClient,
-		private readonly restClient: RestClient,
-		private readonly rsa: RsaImplementation,
-		private readonly serviceExecutor: IServiceExecutor,
-		private readonly instanceMapper: InstanceMapper,
-		private readonly ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue,
-	) {}
-
 	async applyMigrations<T>(typeRef: TypeRef<T>, data: any): Promise<T> {
 		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && data._ownerGroup == null) {
 			let customerGroupMembership = this.userFacade.getLoggedInUser().memberships.find((g: GroupMembership) => g.groupType === GroupType.Customer) as any
@@ -118,6 +117,17 @@ export class CryptoFacade {
 
 		return data
 	}
+
+	constructor(
+		private readonly userFacade: UserFacade,
+		private readonly entityClient: EntityClient,
+		private readonly restClient: RestClient,
+		private readonly rsa: RsaImplementation,
+		private readonly serviceExecutor: IServiceExecutor,
+		private readonly instanceMapper: InstanceMapper,
+		private readonly ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue,
+		private readonly pq: PQFacade,
+	) {}
 
 	applyMigrationsForInstance<T>(decryptedInstance: T): Promise<T> {
 		const instanceType = downcast<Entity>(decryptedInstance)._type
@@ -365,16 +375,24 @@ export class CryptoFacade {
 		return decryptKey(bucketKey, neverNull(pubOrExtPermission.bucketEncSessionKey))
 	}
 
-	private async decryptBucketKeyWithKeyPairOfGroup(keyPairGroupId: Id, pubEncBucketKey: Uint8Array): Promise<Aes128Key> {
+	private async loadKeypair(keyPairGroupId: Id): Promise<RsaKeyPair | PQKeyPairs> {
 		const group = await this.entityClient.load(GroupTypeRef, keyPairGroupId)
-		const keypair = group.keys[0]
 		try {
-			const privKey = decryptRsaKey(this.userFacade.getGroupKey(group._id), keypair.symEncPrivKey)
-			const decryptedBytes = await this.rsa.decrypt(privKey, pubEncBucketKey)
-			return uint8ArrayToBitArray(decryptedBytes)
+			return decryptKeyPair(this.userFacade.getGroupKey(group._id), group.keys[0])
 		} catch (e) {
-			console.log("failed to decrypt rsa key for group with id " + group._id)
+			console.log("failed to decrypt keypair for group with id " + group._id)
 			throw e
+		}
+	}
+
+	private async decryptBucketKeyWithKeyPairOfGroup(keyPairGroupId: Id, pubEncBucketKey: Uint8Array): Promise<Aes128Key | Aes256Key> {
+		const keyPair = await this.loadKeypair(keyPairGroupId)
+		if (keyPair instanceof PQKeyPairs) {
+			const decryptedBucketKey = await this.pq.decapsulate(decodePQMessage(pubEncBucketKey), keyPair)
+			return uint8ArrayToBitArray(decryptedBucketKey)
+		} else {
+			const decryptedBucketKey = await this.rsa.decrypt(keyPair.privateKey, pubEncBucketKey)
+			return uint8ArrayToBitArray(decryptedBucketKey)
 		}
 	}
 
@@ -430,24 +448,17 @@ export class CryptoFacade {
 	 * @param instance The unencrypted (client-side) or encrypted (server-side) instance
 	 *
 	 */
-	resolveServiceSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<Aes128Key | null> {
+	async resolveServiceSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<Aes128Key | Aes256Key | null> {
 		if (instance._ownerPublicEncSessionKey) {
-			return this.entityClient.load(GroupTypeRef, instance._ownerGroup).then((group) => {
-				let keypair = group.keys[0]
-				let gk = this.userFacade.getGroupKey(instance._ownerGroup)
-				let privKey
+			const keypair = await this.loadKeypair(instance._ownerGroup)
 
-				try {
-					privKey = decryptRsaKey(gk, keypair.symEncPrivKey)
-				} catch (e) {
-					console.log("failed to decrypt rsa key for group with id " + group._id)
-					throw e
-				}
-
-				return this.rsa
-					.decrypt(privKey, base64ToUint8Array(instance._ownerPublicEncSessionKey))
-					.then((decryptedBytes) => uint8ArrayToBitArray(decryptedBytes))
-			})
+			let decryptedBytes: Uint8Array
+			if (keypair instanceof PQKeyPairs) {
+				decryptedBytes = await this.pq.decapsulate(decodePQMessage(base64ToUint8Array(instance._ownerPublicEncSessionKey)), keypair)
+			} else {
+				decryptedBytes = await this.rsa.decrypt(keypair.privateKey, base64ToUint8Array(instance._ownerPublicEncSessionKey))
+			}
+			return uint8ArrayToBitArray(decryptedBytes)
 		}
 
 		return Promise.resolve(null)
@@ -478,6 +489,7 @@ export class CryptoFacade {
 	}
 
 	encryptBucketKeyForInternalRecipient(
+		senderUserGroupId: Id,
 		bucketKey: Aes128Key,
 		recipientMailAddress: string,
 		notFoundRecipients: Array<string>,
@@ -486,18 +498,23 @@ export class CryptoFacade {
 		keyData.mailAddress = recipientMailAddress
 		return this.serviceExecutor
 			.get(PublicKeyService, keyData)
-			.then((publicKeyData) => {
-				let publicKey = hexToPublicKey(uint8ArrayToHex(publicKeyData.pubKey))
-				let uint8ArrayBucketKey = bitArrayToUint8Array(bucketKey)
-
+			.then(async (publicKeyData) => {
+				let encrypted: Uint8Array
 				if (notFoundRecipients.length === 0) {
-					return this.rsa.encrypt(publicKey, uint8ArrayBucketKey).then((encrypted) => {
-						let data = createInternalRecipientKeyData()
-						data.mailAddress = recipientMailAddress
-						data.pubEncBucketKey = encrypted
-						data.pubKeyVersion = publicKeyData.pubKeyVersion
-						return data
-					})
+					const pub = this.getPublicKey(publicKeyData)
+					let uint8ArrayBucketKey = bitArrayToUint8Array(bucketKey)
+					if (pub instanceof PQPublicKeys) {
+						const senderKeyPair = await this.loadKeypair(senderUserGroupId)
+						const senderIdentityKeyPair = senderKeyPair instanceof PQKeyPairs ? senderKeyPair.x25519KeyPair : x25519generateKeyPair()
+						encrypted = encodePQMessage(await this.pq.encapsulate(senderIdentityKeyPair, x25519generateKeyPair(), pub, uint8ArrayBucketKey))
+					} else {
+						encrypted = await this.rsa.encrypt(pub, uint8ArrayBucketKey)
+					}
+					let data = createInternalRecipientKeyData()
+					data.mailAddress = recipientMailAddress
+					data.pubEncBucketKey = encrypted
+					data.pubKeyVersion = publicKeyData.pubKeyVersion
+					return data
 				}
 			})
 			.catch(
@@ -576,6 +593,18 @@ export class CryptoFacade {
 		} else {
 			const idTuple = instance._id as IdTuple
 			return elementIdPart(idTuple)
+		}
+	}
+
+	public getPublicKey(keyPair: PublicKeyReturn): RsaPublicKey | PQPublicKeys {
+		if (keyPair.pubRsaKey) {
+			return hexToPublicKey(uint8ArrayToHex(keyPair.pubRsaKey))
+		} else if (keyPair.pubKyberKey && keyPair.pubEccKey) {
+			var eccPublicKey = x25519hexToPublicKey(uint8ArrayToHex(keyPair.pubEccKey))
+			var kyberPublicKey = hexToKyberPublicKey(uint8ArrayToHex(keyPair.pubKyberKey))
+			return new PQPublicKeys(eccPublicKey, kyberPublicKey)
+		} else {
+			throw new Error("Inconsistent Keypair")
 		}
 	}
 }

@@ -200,6 +200,7 @@ export async function prepareAssets(stage, host, version) {
 	await Promise.all([
 		await fs.emptyDir(wasmDir),
 		fs.copy(path.join(root, "/packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm"), path.join(wasmDir, "argon2.wasm")),
+		fs.copy(path.join(root, "/packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm"), path.join(wasmDir, "liboqs.wasm")),
 	])
 
 	// write empty file

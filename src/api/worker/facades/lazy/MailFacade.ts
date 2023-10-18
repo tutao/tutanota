@@ -645,7 +645,12 @@ export class MailFacade {
 				data.pwEncCommunicationKey = encryptKey(passwordKey, externalGroupKeys.externalUserGroupKey)
 				service.secureExternalRecipientKeyData.push(data)
 			} else {
-				const keyData = await this.crypto.encryptBucketKeyForInternalRecipient(bucketKey, recipient.address, notFoundRecipients)
+				const keyData = await this.crypto.encryptBucketKeyForInternalRecipient(
+					this.userFacade.getLoggedInUser().userGroup.group,
+					bucketKey,
+					recipient.address,
+					notFoundRecipients,
+				)
 
 				if (keyData) {
 					service.internalRecipientKeyData.push(keyData)

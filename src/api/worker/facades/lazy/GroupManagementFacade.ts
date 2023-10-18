@@ -157,7 +157,7 @@ export class GroupManagementFacade {
 	}
 
 	generateInternalGroupData(
-		keyPair: RsaKeyPair,
+		keyPair: RsaKeyPair, // FIXME change to generic keypair
 		groupKey: Aes128Key,
 		groupInfoSessionKey: Aes128Key,
 		adminGroupId: Id | null,
@@ -165,8 +165,12 @@ export class GroupManagementFacade {
 		ownerGroupKey: Aes128Key,
 	): InternalGroupData {
 		let groupData = createInternalGroupData()
-		groupData.publicKey = hexToUint8Array(publicKeyToHex(keyPair.publicKey))
-		groupData.groupEncPrivateKey = encryptRsaKey(groupKey, keyPair.privateKey)
+		groupData.pubRsaKey = hexToUint8Array(publicKeyToHex(keyPair.publicKey))
+		groupData.groupEncPrivRsaKey = encryptRsaKey(groupKey, keyPair.privateKey)
+		groupData.pubEccKey = null
+		groupData.groupEncPrivEccKey = null
+		groupData.pubKyberKey = null
+		groupData.groupEncPrivKyberKey = null
 		groupData.adminGroup = adminGroupId
 		groupData.adminEncGroupKey = encryptKey(adminGroupKey, groupKey)
 		groupData.ownerEncGroupInfoSessionKey = encryptKey(ownerGroupKey, groupInfoSessionKey)

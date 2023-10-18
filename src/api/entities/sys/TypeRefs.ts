@@ -1538,8 +1538,12 @@ export type KeyPair = {
 	_type: TypeRef<KeyPair>;
 
 	_id: Id;
-	pubKey: Uint8Array;
-	symEncPrivKey: Uint8Array;
+	pubEccKey: null | Uint8Array;
+	pubKyberKey: null | Uint8Array;
+	pubRsaKey: null | Uint8Array;
+	symEncPrivEccKey: null | Uint8Array;
+	symEncPrivKyberKey: null | Uint8Array;
+	symEncPrivRsaKey: null | Uint8Array;
 	version: NumberString;
 }
 export const LocationServiceGetReturnTypeRef: TypeRef<LocationServiceGetReturn> = new TypeRef("sys", "LocationServiceGetReturn")
@@ -2161,8 +2165,10 @@ export type PublicKeyReturn = {
 	_type: TypeRef<PublicKeyReturn>;
 
 	_format: NumberString;
-	pubKey: Uint8Array;
+	pubEccKey: null | Uint8Array;
 	pubKeyVersion: NumberString;
+	pubKyberKey: null | Uint8Array;
+	pubRsaKey: null | Uint8Array;
 }
 export const PushIdentifierTypeRef: TypeRef<PushIdentifier> = new TypeRef("sys", "PushIdentifier")
 

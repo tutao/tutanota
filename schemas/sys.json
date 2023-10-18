@@ -225,6 +225,51 @@
 					"info": "AddValue PlanConfiguration/contactList/2136."
 				}
 			]
+		},
+		{
+			"version": 91,
+			"changes": [
+				{
+					"name": "RenameAttribute",
+					"sourceType": "KeyPair",
+					"info": "RenameAttribute KeyPair: pubKey -> pubRsaKey."
+				},
+				{
+					"name": "ChangeValueCardinality",
+					"sourceType": "KeyPair",
+					"info": "ChangeValueCardinality KeyPair/pubRsaKey/ZeroOrOne."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "KeyPair",
+					"info": "RenameAttribute KeyPair: symEncPrivKey -> symEncPrivRsaKey."
+				},
+				{
+					"name": "ChangeValueCardinality",
+					"sourceType": "KeyPair",
+					"info": "ChangeValueCardinality KeyPair/symEncPrivRsaKey/ZeroOrOne."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "KeyPair",
+					"info": "AddValue KeyPair/pubEccKey/2137."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "KeyPair",
+					"info": "AddValue KeyPair/symEncPrivEccKey/2138."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "KeyPair",
+					"info": "AddValue KeyPair/pubKyberKey/2139."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "KeyPair",
+					"info": "AddValue KeyPair/symEncPrivKyberKey/2140."
+				}
+			]
 		}
 	]
 }
