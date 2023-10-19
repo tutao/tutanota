@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/tutanota-test-utils",
-	"version": "3.118.17",
+	"version": "3.118.18",
 	"license": "GPL-3.0",
 	"main": "./dist/index.js",
 	"repository": {
@@ -21,7 +21,7 @@
 		"tsconfig.json"
 	],
 	"dependencies": {
-		"@tutao/otest": "3.118.17",
+		"@tutao/otest": "3.118.18",
 		"testdouble": "3.18.0"
 	},
 	"devDependencies": {
