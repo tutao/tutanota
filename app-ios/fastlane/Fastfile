@@ -28,7 +28,7 @@ platform :ios do
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
 		)
 		build_app(
-			scheme: "tutanota-dist",
+			scheme: "tutanota",
 			output_directory: "releases",
 			output_name: "tutanota-" + get_version_number(target: "tutanota"),
 			include_symbols: true,
@@ -58,7 +58,7 @@ platform :ios do
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
 		)
 		build_app(
-			scheme: "tutanota-dist",
+			scheme: "tutanota",
 			output_directory: "releases",
 			output_name: "tutanota-" + get_version_number(target: "tutanota") + "-adhoc",
 			export_options: {
@@ -80,7 +80,7 @@ platform :ios do
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
 		)
 		build_app(
-			scheme: "tutanota-dist",
+			scheme: "tutanota",
 			output_directory: "releases",
 			output_name: "tutanota-" + get_version_number(target: "tutanota") + "-test",
 			export_options: {
