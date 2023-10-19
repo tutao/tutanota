@@ -96,7 +96,7 @@ pipeline {
 							node desktop --existing --platform win '''
 						}
 
-						dir('build') {
+						dir('artifacts') {
 							stash includes: 'desktop-test/*', name:'win_installer_test'
 							stash includes: 'desktop/*', name:'win_installer'
 						}
@@ -126,7 +126,7 @@ pipeline {
 								export APPLEIDPASS=${APPLEIDPASSVAR};
 								export APPLETEAMID=${APPLETEAMIDVAR};
 								node desktop --existing --platform mac ''' + "${stage}"
-								dir('build') {
+								dir('artifacts') {
 									if (params.RELEASE) {
 										stash includes: 'desktop-test/*', name:'mac_installer_test'
 									}
@@ -149,7 +149,7 @@ pipeline {
 
                         sh 'node desktop --existing --platform linux'
 
-                        dir('build') {
+                        dir('artifacts') {
                         	stash includes: 'desktop-test/*', name:'linux_installer_test'
                         	stash includes: 'desktop/*', name:'linux_installer'
                         }
