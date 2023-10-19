@@ -175,7 +175,7 @@ function getStaticUrl(stage, mode, host) {
 		// This is only relevant for browser environment.
 		return null
 	} else if (stage === "test") {
-		return "https://test.tuta.com"
+		return "https://app.test.tuta.com"
 	} else if (stage === "prod") {
 		return "https://app.tuta.com"
 	} else if (stage === "local") {

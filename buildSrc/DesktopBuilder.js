@@ -45,6 +45,7 @@ export async function buildDesktop({ dirname, version, platform, updateUrl, name
 
 	// this prevents us from outputting artifacts into the "desktop" build folder that contains the desktop clients js files that get bundled
 	outDir = path.join(outDir ?? distDir, "..", "artifacts", updateSubDir)
+	await fs.promises.rm(outDir, { recursive: true, force: true })
 	await fs.promises.mkdir(outDir, { recursive: true })
 
 	// We need to get the right build of native dependencies. There's a tool called node-gyp which can build for different architectures
@@ -97,7 +98,6 @@ export async function buildDesktop({ dirname, version, platform, updateUrl, name
 		project: distDir,
 	})
 	console.log("Move output to ", outDir)
-	await fs.promises.mkdir(outDir, { recursive: true })
 	await Promise.all(
 		fs
 			.readdirSync(path.join(distDir, "/installers"))

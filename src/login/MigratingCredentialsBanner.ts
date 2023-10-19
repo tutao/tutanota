@@ -33,10 +33,9 @@ export class MigratingCredentialsBanner implements Component<CredentialsBannerAt
 
 	view(vnode: Vnode<CredentialsBannerAttrs>) {
 		const legacy = isLegacyDomain()
-		// do not show anything on the new domain if we already attempted migration or we got directly
-		// to the login page from being opened by another/this tab (this happens if there are no creds on the old domain)
+		// do not show anything on the new domain if we already attempted migration
 		// also, we have a time delay on the migration for a two-stage rollout.
-		if (vnode.attrs.viewModel.hasAttemptedCredentials() || window.opener != null || !isBrowser() || !ACTIVATED_MIGRATION()) return null
+		if (vnode.attrs.viewModel.hasAttemptedCredentials() || !isBrowser() || !ACTIVATED_MIGRATION()) return null
 		return m(
 			".flex-center",
 			m(
