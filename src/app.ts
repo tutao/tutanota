@@ -4,7 +4,7 @@ import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver,
 import { lang, languageCodeToTag, languages } from "./misc/LanguageViewModel"
 import { root } from "./RootView"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "./misc/ErrorHandler"
-import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable } from "./api/common/Env"
+import { assertMainOrNodeBoot, bootFinished, isApp, isBrowser, isDesktop, isOfflineStorageAvailable } from "./api/common/Env"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { windowFacade } from "./misc/WindowFacade"
 import { styles } from "./gui/styles"
@@ -184,7 +184,10 @@ import("./translations/en")
 					prepareRoute: async () => {
 						const { LoginViewModel } = await import("./login/LoginViewModel.js")
 						const { LoginView } = await import("./login/LoginView.js")
-						const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
+						const domainConfig = isBrowser()
+							? locator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
+							: // in this case, we know that we have a staticUrl set that we need to use
+							  locator.domainConfigProvider().getCurrentDomainConfig()
 						return {
 							component: LoginView,
 							cache: {
@@ -409,7 +412,7 @@ import("./translations/en")
 					// getCurrentDomainConfig() takes env.staticUrl into account but we actually don't care about it in this case.
 					// Scenario when it can differ: local desktop client which opens webauthn window and that window is also built with the static URL because
 					// it is the same client build.
-					const domainConfig = locator.domainConfigProvider().getDomainConfigForHostname(location.hostname)
+					const domainConfig = locator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 					const creds = navigator.credentials
 					return new NativeWebauthnView(new BrowserWebauthn(creds, domainConfig), new WebauthnNativeBridge())
 				},
@@ -425,7 +428,7 @@ import("./translations/en")
 						const { MobileWebauthnView } = await import("./login/MobileWebauthnView.js")
 						const { BrowserWebauthn } = await import("./misc/2fa/webauthn/BrowserWebauthn.js")
 						// see /webauthn view resolver for the explanation
-						const domainConfig = locator.domainConfigProvider().getDomainConfigForHostname(location.hostname)
+						const domainConfig = locator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 						return {
 							component: MobileWebauthnView,
 							cache: {
@@ -450,7 +453,7 @@ import("./translations/en")
 						const { CredentialsMigrationViewModel } = await import("./login/CredentialsMigrationViewModel.js")
 						const { CredentialsMigrationView } = await import("./login/CredentialsMigrationView.js")
 						const { LoginViewModel } = await import("./login/LoginViewModel.js")
-						const domainConfig = locator.domainConfigProvider().getDomainConfigForHostname(location.hostname)
+						const domainConfig = locator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 						const parentOrigin = domainConfig.partneredDomainTransitionUrl
 						const logins = new LoginViewModel(locator.logins, locator.credentialsProvider, locator.secondFactorHandler, deviceConfig, domainConfig)
 						const credentialsMigrationViewModel = new CredentialsMigrationViewModel(logins, parentOrigin)

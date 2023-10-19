@@ -81,7 +81,9 @@ export class WebauthnClient {
 			authenticatorData: new Uint8Array(signResult.authenticatorData),
 		})
 		// take https://app.tuta.com/webauthn and convert it to apis://app.tuta.com
-		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getDomainConfigForHostname(new URL(authenticationUrl).hostname))
+		const authUrlObject = new URL(authenticationUrl)
+		const domainConfig = this.domainConfigProvider.getDomainConfigForHostname(authUrlObject.hostname, authUrlObject.protocol, authUrlObject.port)
+		const apiUrl = getApiBaseUrl(domainConfig)
 
 		return { responseData, apiBaseUrl: apiUrl }
 	}
@@ -106,7 +108,7 @@ export class WebauthnClient {
 			// If it isn't there, look for any Webauthn key. Legacy U2F key ids ends with json subpath.
 			const webauthnKey = challenge.keys.find((k) => !this.isLegacyU2fKey(k))
 			if (webauthnKey) {
-				const domainConfigForHostname = this.domainConfigProvider.getDomainConfigForHostname(webauthnKey.appId)
+				const domainConfigForHostname = this.domainConfigProvider.getDomainConfigForHostname(webauthnKey.appId, "https:")
 				return this.getWebauthnUrl(domainConfigForHostname, "new")
 			} else if (challenge.keys.some((k) => k.appId === Const.U2F_APPID)) {
 				// There are only legacy U2F keys but there is one for our domain, take it
@@ -114,8 +116,8 @@ export class WebauthnClient {
 			} else {
 				// Nothing else worked, select legacy U2F key for whitelabel domain
 				const keyToUse = getFirstOrThrow(challenge.keys)
-				const keyHostname = new URL(keyToUse.appId).hostname
-				const domainConfigForHostname = this.domainConfigProvider.getDomainConfigForHostname(keyHostname)
+				const keyUrl = new URL(keyToUse.appId)
+				const domainConfigForHostname = this.domainConfigProvider.getDomainConfigForHostname(keyUrl.hostname, keyUrl.protocol, keyUrl.port)
 				return this.getWebauthnUrl(domainConfigForHostname, "new")
 			}
 		}
