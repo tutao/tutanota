@@ -783,7 +783,7 @@ function printJobsMessage(domainConfig: DomainConfig) {
 '''''''''''':kXWXkoc::;,,'''''''''''''''
 '''''''''''',cdk0KKK00kxdolc;,''''''''''    Work at Tutanota! Fight for our rights!
 '''''''''''''''';coxOKNMMWWNK0kdl:,'''''
-'''''''''''''''''''',;oKMMMMMMMMWX0dc,''    https://tutanota.com/jobs
+'''''''''''''''''''',;oKMMMMMMMMWX0dc,''    https://tuta.com/jobs
 '''''''''''''''''''''';kWMMMMMMMMMMWXk:'
 '''''''''''''''''''',:xXMMMMMMMMMMMMMWKl
 ''''''''''''''''';lk0KWMMMMMMMMMMMMMMMWK

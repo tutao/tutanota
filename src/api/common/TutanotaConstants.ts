@@ -252,7 +252,7 @@ type ConstType = {
 	LEGACY_WEBAUTHN_RP_ID: string
 	WEBAUTHN_RP_ID: string
 	U2f_APPID_SUFFIX: string
-	U2F_APPID: string
+	U2F_LEGACY_APPID: string
 }
 
 export const Const: ConstType = {
@@ -267,7 +267,12 @@ export const Const: ConstType = {
 	LEGACY_WEBAUTHN_RP_ID: "tutanota.com",
 	WEBAUTHN_RP_ID: "tuta.com",
 	U2f_APPID_SUFFIX: "/u2f-appid.json",
-	U2F_APPID: "https://tutanota.com/u2f-appid.json",
+	// this is fetched from the website assets (even though the server has a hardcoded response for this)
+	// we keep it at tutanota.com since we're matching on it in the code and old keys are saved with this
+	// URL as appId.
+	// we'll still get the contents
+	// because it will be redirected to tuta.com after new domain deploy.
+	U2F_LEGACY_APPID: "https://tutanota.com/u2f-appid.json",
 } as const
 
 export const TUTANOTA_MAIL_ADDRESS_DOMAINS = Object.freeze(["tutanota.com", "tutanota.de", "tutamail.com", "tuta.io", "keemail.me", "tuta.com"])

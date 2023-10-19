@@ -9,6 +9,7 @@ import { Dialog } from "../gui/base/Dialog"
 import { htmlSanitizer } from "../misc/HtmlSanitizer"
 import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 import { ButtonType } from "../gui/base/Button.js"
+import { locator } from "../api/main/MainLocator.js"
 
 /**
  * The most up-to-date versions of the terms and conditions, privacy statement, and gift card terms
@@ -65,7 +66,7 @@ export const enum TermsSection {
 
 export async function showServiceTerms(section: TermsSection, version: string) {
 	const path = `/${section}/${version}.json`
-	const termsFromWebsite = await requestFromWebsite(path).then((res) => res.json())
+	const termsFromWebsite = await requestFromWebsite(path, locator.domainConfigProvider().getCurrentDomainConfig()).then((res) => res.json())
 	let visibleLang: "en" | "de" = lang.code.startsWith("de") ? "de" : "en"
 	let dialog: Dialog
 	let sanitizedTerms: string

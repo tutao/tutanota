@@ -69,7 +69,7 @@ export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 						m(".mt-m", ""),
 						m("span.small", lang.get("moreInfo_msg") + " "),
 						m("span.small.text-break", [
-							m(`a[href=https://tutanota.com/support/#shared-mailboxes][target=_blank]`, "https://tutanota.com/support/#shared-mailboxes"),
+							m(`a[href=https://tuta.com/support/#shared-mailboxes][target=_blank]`, "https://tuta.com/support/#shared-mailboxes"),
 						]),
 				  ])
 				: m(""),

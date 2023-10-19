@@ -31,6 +31,7 @@ export class FaqModel {
 	private currentLanguageCode: string | null = null
 	private faqLanguages: LanguageViewModelType | null = null
 	private lazyLoaded: LazyLoaded<void>
+	private websiteBaseUrl: string = "https://tuta.com"
 
 	private get faqLang(): LanguageViewModel {
 		if (this.faqLanguages == null) {
@@ -51,7 +52,8 @@ export class FaqModel {
 		})
 	}
 
-	async init(): Promise<void> {
+	async init(websiteBaseUrl: string): Promise<void> {
+		this.websiteBaseUrl = websiteBaseUrl
 		await this.lazyLoaded.getAsync()
 		this.getList()
 	}
@@ -98,7 +100,7 @@ export class FaqModel {
 	 * fetch the entries for the given lang code from the web site
 	 */
 	private async fetchFAQ(langCode: string): Promise<Translation> {
-		const faqPath = `https://tutanota.com/faq-entries/${langCode}.json`
+		const faqPath = `${this.websiteBaseUrl}/faq-entries/${langCode}.json`
 		const translations: Record<string, string> = await fetch(faqPath)
 			.then((response) => response.json())
 			.then((language) => language.keys)

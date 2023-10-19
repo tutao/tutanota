@@ -138,26 +138,26 @@ export const languages: ReadonlyArray<{
 })
 
 export const enum InfoLink {
-	HomePage = "https://tutanota.com",
-	About = "https://tutanota.com/imprint",
+	HomePage = "https://tuta.com",
+	About = "https://tuta.com/imprint",
 	//terms
-	Terms = "https://tutanota.com/terms",
-	Privacy = "https://tutanota.com/privacy-policy",
-	GiftCardsTerms = "https://tutanota.com/giftCardsTerms",
+	Terms = "https://tuta.com/terms",
+	Privacy = "https://tuta.com/privacy-policy",
+	GiftCardsTerms = "https://tuta.com/giftCardsTerms",
 	//faq
-	RecoverCode = "https://tutanota.com/faq#reset",
-	SecondFactor = "https://tutanota.com/faq#2fa",
-	SpamRules = "https://tutanota.com/faq#spam",
-	DomainInfo = "https://tutanota.com/faq#custom-domain",
-	Whitelabel = "https://tutanota.com/faq#whitelabel",
-	ReferralLink = "https://tutanota.com/faq#refer-a-friend",
-	Webview = "https://tutanota.com/faq#webview",
-	Phishing = "https://tutanota.com/faq#phishing",
-	MailAuth = "https://tutanota.com/faq#mail-auth",
-	RunInBackground = "https://tutanota.com/faq#tray-desktop",
-	LoadImages = "https://tutanota.com/faq#load-images",
-	Usage = "https://tutanota.com/faq#usage",
-	Download = "https://tutanota.com/#download",
+	RecoverCode = "https://tuta.com/faq#reset",
+	SecondFactor = "https://tuta.com/faq#2fa",
+	SpamRules = "https://tuta.com/faq#spam",
+	DomainInfo = "https://tuta.com/faq#custom-domain",
+	Whitelabel = "https://tuta.com/faq#whitelabel",
+	ReferralLink = "https://tuta.com/faq#refer-a-friend",
+	Webview = "https://tuta.com/faq#webview",
+	Phishing = "https://tuta.com/faq#phishing",
+	MailAuth = "https://tuta.com/faq#mail-auth",
+	RunInBackground = "https://tuta.com/faq#tray-desktop",
+	LoadImages = "https://tuta.com/faq#load-images",
+	Usage = "https://tuta.com/faq#usage",
+	Download = "https://tuta.com/#download",
 }
 
 /**

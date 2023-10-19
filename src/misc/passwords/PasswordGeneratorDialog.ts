@@ -76,7 +76,7 @@ class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs>
 				m(
 					"a",
 					{
-						href: "https://tutanota.com/faq#passphrase-generator",
+						href: "https://tuta.com/faq#passphrase-generator",
 						target: "_blank",
 						rel: "nooopener noreferer",
 					},
