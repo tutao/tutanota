@@ -176,7 +176,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.cachingEntityClient = new EntityClient(locator.cache)
 	locator.indexer = lazyMemoized(async () => {
 		const { Indexer } = await import("./search/Indexer.js")
-		return new Indexer(entityRestClient, mainInterface.infoMessageHandler, browserData, locator.cache as DefaultEntityRestCache)
+		return new Indexer(entityRestClient, mainInterface.infoMessageHandler, browserData, locator.cache as DefaultEntityRestCache, await locator.mail())
 	})
 
 	locator.crypto = new CryptoFacade(

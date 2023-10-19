@@ -55,6 +55,8 @@ import {
 	createSendDraftData,
 	createUpdateMailFolderData,
 	FileTypeRef,
+	MailDetails,
+	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
 	MailTypeRef,
 	TutanotaPropertiesTypeRef,
@@ -79,6 +81,7 @@ import {
 	defer,
 	isNotNull,
 	isSameTypeRefByAttr,
+	lazyMemoized,
 	noOp,
 	ofClass,
 	promiseFilter,
@@ -88,7 +91,7 @@ import { BlobFacade } from "./BlobFacade.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships } from "../../../common/utils/GroupUtils.js"
-import { containsId, getLetId, isSameId, stringToCustomId } from "../../../common/utils/EntityUtils.js"
+import { containsId, elementIdPart, getLetId, isSameId, listIdPart, stringToCustomId } from "../../../common/utils/EntityUtils.js"
 import { htmlToText } from "../../search/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
 import { UNCOMPRESSED_MAX_SIZE } from "../../Compression.js"
@@ -113,9 +116,10 @@ import { createWriteCounterData } from "../../../entities/monitor/TypeRefs.js"
 import { UserFacade } from "../UserFacade.js"
 import { PartialRecipient, Recipient, RecipientList, RecipientType } from "../../../common/recipients/Recipient.js"
 import { NativeFileApp } from "../../../../native/common/FileApp.js"
-import { isLegacyMail } from "../../../common/MailWrapper.js"
+import { isDetailsDraft, isLegacyMail } from "../../../common/MailWrapper.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
+import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -503,15 +507,15 @@ export class MailFacade {
 		if (isLegacyMail(draft)) {
 			return draft.replyTos
 		} else {
-			const mailDetails = await this.entityClient.load(
+			const ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider = async (instanceElementId: Id) => assertNotNull(draft._ownerEncSessionKey)
+			const mailDetailsDraftId = assertNotNull(draft.mailDetailsDraft, "draft without mailDetailsDraft")
+			const mailDetails = await this.entityClient.loadMultiple(
 				MailDetailsDraftTypeRef,
-				assertNotNull(draft.mailDetailsDraft, "draft without mailDetailsDraft"),
-				undefined,
-				undefined,
-				undefined,
-				draft._ownerEncSessionKey,
+				listIdPart(mailDetailsDraftId),
+				[elementIdPart(mailDetailsDraftId)],
+				ownerEncSessionKeyProvider,
 			)
-			return mailDetails.details.replyTos
+			return mailDetails[0].details.replyTos
 		}
 	}
 
@@ -825,6 +829,73 @@ export class MailFacade {
 			headers: headers.join("\n"),
 		})
 		await this.serviceExecutor.post(ListUnsubscribeService, postData)
+	}
+
+	async loadAttachments(mail: Mail): Promise<TutanotaFile[]> {
+		if (mail.attachments.length === 0) {
+			return []
+		}
+		const attachmentsListId = listIdPart(mail.attachments[0])
+		const attachmentElementIds = mail.attachments.map(elementIdPart)
+
+		const bucketKey = mail.bucketKey
+		let ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider | undefined
+		if (bucketKey) {
+			const mailOwnerGroupId = assertNotNull(mail._ownerGroup)
+			const decBucketKey = lazyMemoized(() => this.crypto.decryptBucketKey(assertNotNull(mail.bucketKey), mailOwnerGroupId, FileTypeRef.type))
+			ownerEncSessionKeyProvider = async (instanceElementId: Id) => {
+				const instanceSessionKey = assertNotNull(
+					bucketKey.bucketEncSessionKeys.find((instanceSessionKey) => instanceElementId === instanceSessionKey.instanceId),
+				)
+				const decryptedSessionKey = decryptKey(await decBucketKey(), instanceSessionKey.symEncSessionKey)
+				return encryptKey(this.userFacade.getGroupKey(mailOwnerGroupId), decryptedSessionKey)
+			}
+		}
+		return await this.entityClient.loadMultiple(FileTypeRef, attachmentsListId, attachmentElementIds, ownerEncSessionKeyProvider)
+	}
+
+	/**
+	 * @param mail in case it is a mailDetailsBlob
+	 */
+	async loadMailDetailsBlob(mail: Mail): Promise<MailDetails> {
+		if (isLegacyMail(mail) || isDetailsDraft(mail)) {
+			throw new ProgrammingError("not supported, must be mail details blob")
+		} else {
+			const mailDetailsBlobId = assertNotNull(mail.mailDetails)
+
+			const mailDetailsBlobs = await this.entityClient.loadMultiple(
+				MailDetailsBlobTypeRef,
+				listIdPart(mailDetailsBlobId),
+				[elementIdPart(mailDetailsBlobId)],
+				async () => assertNotNull(mail._ownerEncSessionKey),
+			)
+			if (mailDetailsBlobs.length === 0) {
+				throw new NotFoundError(`MailDetailsBlob ${mailDetailsBlobId}`)
+			}
+			return mailDetailsBlobs[0].details
+		}
+	}
+
+	/**
+	 * @param mail in case it is a mailDetailsDraft
+	 */
+	async loadMailDetailsDraft(mail: Mail): Promise<MailDetails> {
+		if (isLegacyMail(mail) || !isDetailsDraft(mail)) {
+			throw new ProgrammingError("not supported, must be mail details draft")
+		} else {
+			const detailsDraftId = assertNotNull(mail.mailDetailsDraft)
+
+			const mailDetailsDrafts = await this.entityClient.loadMultiple(
+				MailDetailsDraftTypeRef,
+				listIdPart(detailsDraftId),
+				[elementIdPart(detailsDraftId)],
+				async () => assertNotNull(mail._ownerEncSessionKey),
+			)
+			if (mailDetailsDrafts.length === 0) {
+				throw new NotFoundError(`MailDetailsDraft ${detailsDraftId}`)
+			}
+			return mailDetailsDrafts[0].details
+		}
 	}
 }
 

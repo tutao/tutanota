@@ -14,16 +14,19 @@ import { HtmlSanitizer } from "../../../../src/misc/HtmlSanitizer.js"
 import { EntityClient } from "../../../../src/api/common/EntityClient.js"
 import { FileController } from "../../../../src/file/FileController.js"
 import { object, when } from "testdouble"
+import { MailFacade } from "../../../../src/api/worker/facades/lazy/MailFacade.js"
 
 o.spec("Bundler", function () {
 	let entityClientMock: EntityClient
 	let fileControllerMock: FileController
 	let sanitizerMock: HtmlSanitizer
+	let mailFacadeMock: MailFacade
 
 	o.beforeEach(function () {
 		entityClientMock = object()
 		fileControllerMock = object()
 		sanitizerMock = object()
+		mailFacadeMock = object()
 	})
 	o("make mail bundle non compressed headers", async function () {
 		const mailId: IdTuple = ["maillistid", "maillid"]
@@ -87,7 +90,7 @@ o.spec("Bundler", function () {
 			}),
 		).thenReturn({ html: sanitizedBodyText })
 
-		const bundle = await makeMailBundle(mail, entityClientMock, fileControllerMock, sanitizerMock)
+		const bundle = await makeMailBundle(mail, mailFacadeMock, entityClientMock, fileControllerMock, sanitizerMock)
 
 		o(bundle).deepEquals({
 			mailId: mailId,

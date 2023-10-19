@@ -1,13 +1,12 @@
-import type { EntityRestInterface } from "../worker/rest/EntityRestClient"
+import type { EntityRestInterface, OwnerEncSessionKeyProvider } from "../worker/rest/EntityRestClient"
+import { EntityRestClientSetupOptions } from "../worker/rest/EntityRestClient"
 import type { RootInstance } from "../entities/sys/TypeRefs.js"
 import { RootInstanceTypeRef } from "../entities/sys/TypeRefs.js"
 import { CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MIN_ID, getElementId, getLetId, RANGE_ITEM_LIMIT } from "./utils/EntityUtils"
 import { Type, ValueType } from "./EntityConstants"
-import { last, TypeRef } from "@tutao/tutanota-utils"
+import { downcast, last, TypeRef } from "@tutao/tutanota-utils"
 import { resolveTypeReference } from "./EntityFunctions"
 import type { ElementEntity, ListElementEntity, SomeEntity } from "./EntityTypes"
-import { downcast } from "@tutao/tutanota-utils"
-import { EntityRestClientSetupOptions } from "../worker/rest/EntityRestClient"
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -16,15 +15,8 @@ export class EntityClient {
 		this._target = target
 	}
 
-	load<T extends SomeEntity>(
-		typeRef: TypeRef<T>,
-		id: PropertyType<T, "_id">,
-		query?: Dict,
-		extraHeaders?: Dict,
-		ownerKey?: Aes128Key,
-		providedOwnerEncSessionKey?: Uint8Array | null,
-	): Promise<T> {
-		return this._target.load(typeRef, id, query, extraHeaders, ownerKey, providedOwnerEncSessionKey)
+	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, query?: Dict, extraHeaders?: Dict, ownerKey?: Aes128Key): Promise<T> {
+		return this._target.load(typeRef, id, query, extraHeaders, ownerKey)
 	}
 
 	async loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start?: Id): Promise<T[]> {
@@ -85,9 +77,9 @@ export class EntityClient {
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		elementIds: Id[],
-		providedOwnerEncSessionKeys?: Map<Id, Uint8Array>,
+		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
 	): Promise<T[]> {
-		return this._target.loadMultiple(typeRef, listId, elementIds, providedOwnerEncSessionKeys)
+		return this._target.loadMultiple(typeRef, listId, elementIds, ownerEncSessionKeyProvider)
 	}
 
 	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id> {

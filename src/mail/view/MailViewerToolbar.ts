@@ -130,7 +130,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		if (!isApp() && attrs.mailModel.isExportingMailsAllowed()) {
 			return m(IconButton, {
 				title: "export_action",
-				click: () => showProgressDialog("pleaseWait_msg", exportMails(attrs.mails, locator.entityClient, locator.fileController)),
+				click: () => showProgressDialog("pleaseWait_msg", exportMails(attrs.mails, locator.mailFacade, locator.entityClient, locator.fileController)),
 				icon: Icons.Export,
 			})
 		}

@@ -16,7 +16,7 @@ import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import { encryptString } from "../../crypto/CryptoFacade.js"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
-import { aes128RandomKey, decryptKey, encryptKey, encryptRsaKey, publicKeyToHex, RsaKeyPair } from "@tutao/tutanota-crypto"
+import { aes128RandomKey, aes256RandomKey, decryptKey, encryptKey, encryptRsaKey, publicKeyToHex, RsaKeyPair } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import {
 	CalendarService,
@@ -121,7 +121,7 @@ export class GroupManagementFacade {
 		const postData = createUserAreaGroupPostData({
 			groupData,
 		})
-		const postGroupData = await this.serviceExecutor.post(CalendarService, postData)
+		const postGroupData = await this.serviceExecutor.post(CalendarService, postData, { sessionKey: aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
 		const group = await this.entityClient.load(GroupTypeRef, postGroupData.group)
 		const user = await this.reloadUser()
 
@@ -133,7 +133,9 @@ export class GroupManagementFacade {
 			const serviceData = createUserAreaGroupPostData({
 				groupData: groupData,
 			})
-			return this.serviceExecutor.post(TemplateGroupService, serviceData).then((returnValue) => returnValue.group)
+			return this.serviceExecutor
+				.post(TemplateGroupService, serviceData, { sessionKey: aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
+				.then((returnValue) => returnValue.group)
 		})
 	}
 
@@ -142,7 +144,7 @@ export class GroupManagementFacade {
 		const serviceData = createUserAreaGroupPostData({
 			groupData,
 		})
-		const postGroupData = await this.serviceExecutor.post(ContactListGroupService, serviceData)
+		const postGroupData = await this.serviceExecutor.post(ContactListGroupService, serviceData, { sessionKey: aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
 		const group = await this.entityClient.load(GroupTypeRef, postGroupData.group)
 		await this.reloadUser()
 

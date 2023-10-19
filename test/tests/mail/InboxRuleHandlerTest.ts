@@ -71,7 +71,7 @@ o.spec("InboxRuleHandlerTest", function () {
 
 			const mail = _createMailWithDifferentEnvelopeSender()
 
-			const rule = await _findMatchingRule(entityClient, mail, rules)
+			const rule = await _findMatchingRule(this.mailFacade, entityClient, mail, rules)
 			o(rule).notEquals(null)
 
 			if (rule) {
@@ -83,7 +83,7 @@ o.spec("InboxRuleHandlerTest", function () {
 
 			const mail = _createMailWithDifferentEnvelopeSender()
 
-			const rule = await _findMatchingRule(entityClient, mail, rules)
+			const rule = await _findMatchingRule(this.mailFacade, entityClient, mail, rules)
 			o(rule).notEquals(null)
 
 			if (rule) {

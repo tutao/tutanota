@@ -264,7 +264,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 				const key = mapKey(mail)
 				const downloadPromise = Promise.resolve().then(async () => {
 					const { htmlSanitizer } = await import("../../misc/HtmlSanitizer")
-					const bundle = await makeMailBundle(mail, locator.entityClient, locator.fileController, htmlSanitizer)
+					const bundle = await makeMailBundle(mail, locator.mailFacade, locator.entityClient, locator.fileController, htmlSanitizer)
 					progressMonitor.workDone(1)
 					const file = await generateMailFile(bundle, name, exportMode)
 					progressMonitor.workDone(1)

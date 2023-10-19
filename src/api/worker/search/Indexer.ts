@@ -14,6 +14,7 @@ import {
 	isNotNull,
 	isSameTypeRef,
 	isSameTypeRefByAttr,
+	lazyAsync,
 	millisToDays,
 	neverNull,
 	noOp,
@@ -44,7 +45,7 @@ import { InvalidDatabaseStateError } from "../../common/error/InvalidDatabaseSta
 import { LocalTimeDateProvider } from "../DateProvider"
 import { EntityClient } from "../../common/EntityClient"
 import { deleteObjectStores } from "../utils/DbUtils"
-import { aesDecrypt, aes256EncryptSearchIndexEntry, aes256RandomKey, decryptKey, encryptKey, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aes256EncryptSearchIndexEntry, aes256RandomKey, aesDecrypt, decryptKey, encryptKey, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CacheInfo } from "../facades/LoginFacade.js"
 import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"
@@ -58,6 +59,7 @@ import {
 	SearchIndexWordsIndex,
 	SearchTermSuggestionsOS,
 } from "./IndexTables.js"
+import { MailFacade } from "../facades/lazy/MailFacade.js"
 
 export type InitParams = {
 	user: User
@@ -126,6 +128,7 @@ export class Indexer {
 		private readonly infoMessageHandler: InfoMessageHandler,
 		browserData: BrowserData,
 		defaultEntityRestCache: DefaultEntityRestCache,
+		mailFacade: MailFacade,
 	) {
 		let deferred = defer<void>()
 		this._dbInitializedDeferredObject = deferred
@@ -142,7 +145,7 @@ export class Indexer {
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))
 		const dateProvider = new LocalTimeDateProvider()
-		this._mail = new MailIndexer(this._core, this.db, this.infoMessageHandler, entityRestClient, defaultEntityRestCache, dateProvider)
+		this._mail = new MailIndexer(this._core, this.db, this.infoMessageHandler, entityRestClient, defaultEntityRestCache, dateProvider, mailFacade)
 		this._groupInfo = new GroupInfoIndexer(this._core, this.db, this._entity, new SuggestionFacade(GroupInfoTypeRef, this.db))
 		this._indexedGroupIds = []
 		this._initiallyLoadedBatchIdsPerGroup = new Map()
