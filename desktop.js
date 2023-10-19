@@ -13,7 +13,7 @@ import { checkOfflineDatabaseMigrations } from "./buildSrc/checkOfflineDbMigrato
 import { domainConfigs } from "./buildSrc/DomainConfigs.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const tutaTestUrl = new URL("https://test.tuta.com")
+const tutaTestUrl = new URL("https://app.test.tuta.com")
 const tutaAppUrl = new URL("https://app.tuta.com")
 
 await program
