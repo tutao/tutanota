@@ -8,6 +8,7 @@ import { promiseMap } from "@tutao/tutanota-utils"
 import { DataFile } from "../../api/common/DataFile"
 import { FileController } from "../../file/FileController"
 import { loadMailDetails, loadMailHeaders } from "../model/MailUtils.js"
+import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as a file
@@ -39,8 +40,14 @@ export type MailBundle = {
 /**
  * Downloads the mail body and the attachments for an email, to prepare for exporting
  */
-export async function makeMailBundle(mail: Mail, entityClient: EntityClient, fileController: FileController, sanitizer: HtmlSanitizer): Promise<MailBundle> {
-	const mailWrapper = await loadMailDetails(entityClient, mail)
+export async function makeMailBundle(
+	mail: Mail,
+	mailFacade: MailFacade,
+	entityClient: EntityClient,
+	fileController: FileController,
+	sanitizer: HtmlSanitizer,
+): Promise<MailBundle> {
+	const mailWrapper = await loadMailDetails(mailFacade, entityClient, mail)
 	const body = sanitizer.sanitizeHTML(mailWrapper.getMailBodyText(), {
 		blockExternalContent: false,
 		allowRelativeLinks: false,

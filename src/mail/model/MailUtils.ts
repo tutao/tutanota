@@ -4,8 +4,6 @@ import {
 	createContactMailAddress,
 	createEncryptedMailAddress,
 	MailBodyTypeRef,
-	MailDetailsBlobTypeRef,
-	MailDetailsDraftTypeRef,
 	MailHeadersTypeRef,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import {
@@ -35,11 +33,12 @@ import type { EntityClient } from "../../api/common/EntityClient"
 import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "../../api/common/utils/GroupUtils"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../../misc/parsing/MailAddressParser"
 import type { Attachment } from "../editor/SendMailModel"
-import { elementIdPart, getListId, listIdPart } from "../../api/common/utils/EntityUtils"
+import { getListId } from "../../api/common/utils/EntityUtils"
 import { isDetailsDraft, isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { getLegacyMailHeaders, getMailHeaders } from "../../api/common/utils/Utils.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
 import { ListFilter } from "../../misc/ListModel.js"
+import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -394,21 +393,15 @@ export function getPathToFolderString(folderSystem: FolderSystem, folder: MailFo
 	return folderPath.map(getFolderName).join(" · ")
 }
 
-export async function loadMailDetails(entityClient: EntityClient, mail: Mail): Promise<MailWrapper> {
+export async function loadMailDetails(mailFacade: MailFacade, entityClient: EntityClient, mail: Mail): Promise<MailWrapper> {
 	if (isLegacyMail(mail)) {
 		return entityClient.load(MailBodyTypeRef, neverNull(mail.body)).then((b) => MailWrapper.body(mail, b))
 	} else if (isDetailsDraft(mail)) {
-		return entityClient
-			.load(MailDetailsDraftTypeRef, neverNull(mail.mailDetailsDraft), undefined, undefined, undefined, mail._ownerEncSessionKey)
-			.then((d) => MailWrapper.details(mail, d.details))
+		const detailsDraftId = assertNotNull(mail.mailDetailsDraft)
+		return mailFacade.loadMailDetailsDraft(mail).then((d) => MailWrapper.details(mail, d))
 	} else {
 		const mailDetailsId = neverNull(mail.mailDetails)
-
-		const providedOwnerEncSessionKeys = new Map<Id, Uint8Array>()
-		providedOwnerEncSessionKeys.set(elementIdPart(mailDetailsId), assertNotNull(mail._ownerEncSessionKey))
-		return entityClient
-			.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsId), [elementIdPart(mailDetailsId)], providedOwnerEncSessionKeys)
-			.then((d) => MailWrapper.details(mail, d[0].details))
+		return mailFacade.loadMailDetailsBlob(mail).then((d) => MailWrapper.details(mail, d))
 	}
 }
 

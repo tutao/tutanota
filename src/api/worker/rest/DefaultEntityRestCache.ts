@@ -1,4 +1,4 @@
-import type { EntityRestInterface } from "./EntityRestClient"
+import type { EntityRestInterface, OwnerEncSessionKeyProvider } from "./EntityRestClient"
 import { EntityRestClient, EntityRestClientSetupOptions } from "./EntityRestClient"
 import { resolveTypeReference } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
@@ -223,7 +223,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		queryParameters?: Dict,
 		extraHeaders?: Dict,
 		ownerKey?: Aes128Key,
-		providedOwnerEncSessionKey?: Uint8Array | null,
 	): Promise<T> {
 		const { listId, elementId } = expandId(id)
 
@@ -232,7 +231,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			queryParameters?.version != null || //if a specific version is requested we have to load again
 			cachedEntity == null
 		) {
-			const entity = await this.entityRestClient.load(typeRef, id, queryParameters, extraHeaders, ownerKey, providedOwnerEncSessionKey)
+			const entity = await this.entityRestClient.load(typeRef, id, queryParameters, extraHeaders, ownerKey)
 			if (queryParameters?.version == null && !isIgnoredType(typeRef)) {
 				await this.storage.put(entity)
 			}
@@ -245,13 +244,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		elementIds: Array<Id>,
-		providedOwnerEncSessionKeys?: Map<Id, Uint8Array>,
+		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
 	): Promise<Array<T>> {
 		if (isIgnoredType(typeRef)) {
-			return this.entityRestClient.loadMultiple(typeRef, listId, elementIds, providedOwnerEncSessionKeys)
+			return this.entityRestClient.loadMultiple(typeRef, listId, elementIds, ownerEncSessionKeyProvider)
 		}
 
-		return this._loadMultiple(typeRef, listId, elementIds, providedOwnerEncSessionKeys)
+		return this._loadMultiple(typeRef, listId, elementIds, ownerEncSessionKeyProvider)
 	}
 
 	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id> {
@@ -324,7 +323,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		ids: Array<Id>,
-		providedOwnerEncSessionKeys?: Map<Id, Uint8Array>,
+		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
 	): Promise<Array<T>> {
 		const entitiesInCache: T[] = []
 		const idsToLoad: Id[] = []
@@ -338,7 +337,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		}
 		const entitiesFromServer: T[] = []
 		if (idsToLoad.length > 0) {
-			const entities = await this.entityRestClient.loadMultiple(typeRef, listId, idsToLoad, providedOwnerEncSessionKeys)
+			const entities = await this.entityRestClient.loadMultiple(typeRef, listId, idsToLoad, ownerEncSessionKeyProvider)
 			for (let entity of entities) {
 				await this.storage.put(entity)
 				entitiesFromServer.push(entity)

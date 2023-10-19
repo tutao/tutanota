@@ -4,7 +4,6 @@ import {
 	createMailAddress,
 	EncryptedMailAddress,
 	File as TutanotaFile,
-	FileTypeRef,
 	Mail,
 	MailAddress,
 	MailTypeRef,
@@ -44,7 +43,7 @@ import {
 import { LoginController } from "../../api/main/LoginController"
 import m from "mithril"
 import { LockedError, NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError"
-import { elementIdPart, getListId, haveSameId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
+import { getListId, haveSameId, isSameId } from "../../api/common/utils/EntityUtils"
 import { getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../file/FileController"
@@ -67,6 +66,7 @@ import { WorkerFacade } from "../../api/worker/facades/WorkerFacade.js"
 import { SearchModel } from "../../search/model/SearchModel.js"
 import { assertSystemFolderOfType } from "../../api/common/mail/CommonMailUtils.js"
 import { ParsedIcalFileContent } from "../../calendar/date/CalendarInvites.js"
+import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -130,6 +130,7 @@ export class MailViewerViewModel {
 		private readonly eventController: EventController,
 		private readonly workerFacade: WorkerFacade,
 		private readonly searchModel: SearchModel,
+		private readonly mailFacade: MailFacade,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
@@ -525,7 +526,7 @@ export class MailViewerViewModel {
 	}
 
 	async exportMail(): Promise<void> {
-		await exportMails([this.mail], this.entityClient, this.fileController)
+		await exportMails([this.mail], this.mailFacade, this.entityClient, this.fileController)
 	}
 
 	async getHeaders(): Promise<string | null> {
@@ -535,7 +536,7 @@ export class MailViewerViewModel {
 	}
 
 	private loadMailWrapper() {
-		return loadMailDetails(this.entityClient, this.mail)
+		return loadMailDetails(this.mailFacade, this.entityClient, this.mail)
 	}
 
 	isUnread(): boolean {
@@ -643,11 +644,9 @@ export class MailViewerViewModel {
 			m.redraw()
 		} else {
 			this.loadingAttachments = true
-			const attachmentsListId = listIdPart(mail.attachments[0])
-			const attachmentElementIds = mail.attachments.map((attachment) => elementIdPart(attachment))
 
 			try {
-				const files = await this.entityClient.loadMultiple(FileTypeRef, attachmentsListId, attachmentElementIds)
+				const files = await this.mailFacade.loadAttachments(mail)
 
 				this.handleCalendarFile(files, mail)
 

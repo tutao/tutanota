@@ -44,6 +44,7 @@ import { RestClient } from "../rest/RestClient"
 import {
 	Aes128Key,
 	aes128RandomKey,
+	Aes256Key,
 	aesEncrypt,
 	bitArrayToUint8Array,
 	decryptKey,
@@ -174,7 +175,7 @@ export class CryptoFacade {
 		return decryptKey(ownerKey, key)
 	}
 
-	decryptSessionKey(instance: Record<string, any>, ownerEncSessionKey: Uint8Array): Aes128Key {
+	decryptSessionKey(instance: Record<string, any>, ownerEncSessionKey: Uint8Array): Aes128Key | Aes256Key {
 		const gk = this.userFacade.getGroupKey(instance._ownerGroup)
 		return decryptKey(gk, ownerEncSessionKey)
 	}
@@ -261,28 +262,10 @@ export class CryptoFacade {
 		}
 	}
 
-	private async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<string, any>, typeModel: TypeModel): Promise<Aes128Key> {
+	private async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<string, any>, typeModel: TypeModel): Promise<Aes128Key | Aes256Key> {
 		const instanceElementId = this.getElementIdFromInstance(instance)
-
-		let decBucketKey: Aes128Key
-		if (bucketKey.keyGroup && bucketKey.pubEncBucketKey) {
-			// bucket key is encrypted with public key for internal recipient
-			decBucketKey = await this.decryptBucketKeyWithKeyPairOfGroup(bucketKey.keyGroup, bucketKey.pubEncBucketKey)
-		} else if (bucketKey.groupEncBucketKey) {
-			// secure external recipient
-			let keyGroup
-			if (bucketKey.keyGroup) {
-				// legacy code path for old external clients that used to encrypt bucket keys with user group keys.
-				// should be dropped once all old external mailboxes are cleared
-				keyGroup = bucketKey.keyGroup
-			} else {
-				// by default, we try to decrypt the bucket key with the ownerGroupKey
-				keyGroup = neverNull(instance._ownerGroup)
-			}
-			decBucketKey = decryptKey(this.userFacade.getGroupKey(keyGroup), bucketKey.groupEncBucketKey)
-		} else {
-			throw new SessionKeyNotFoundError(`encrypted bucket key not set on instance ${typeModel.name}`)
-		}
+		const ownerGroupId = neverNull(instance._ownerGroup)
+		let decBucketKey = await this.decryptBucketKey(bucketKey, ownerGroupId, typeModel.name)
 		const { resolvedSessionKeyForInstance, instanceSessionKeys } = this.collectAllInstanceSessionKeys(bucketKey, decBucketKey, instanceElementId, instance)
 		this.ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(instanceSessionKeys)
 
@@ -293,6 +276,27 @@ export class CryptoFacade {
 			return resolvedSessionKeyForInstance
 		} else {
 			throw new SessionKeyNotFoundError("no session key for instance " + instance._id)
+		}
+	}
+
+	public async decryptBucketKey(bucketKey: BucketKey, ownerGroupId: Id, typeName: string): Promise<Aes128Key | Aes256Key> {
+		if (bucketKey.keyGroup && bucketKey.pubEncBucketKey) {
+			// bucket key is encrypted with public key for internal recipient
+			return await this.decryptBucketKeyWithKeyPairOfGroup(bucketKey.keyGroup, bucketKey.pubEncBucketKey)
+		} else if (bucketKey.groupEncBucketKey) {
+			// secure external recipient
+			let keyGroup
+			if (bucketKey.keyGroup) {
+				// legacy code path for old external clients that used to encrypt bucket keys with user group keys.
+				// should be dropped once all old external mailboxes are cleared
+				keyGroup = bucketKey.keyGroup
+			} else {
+				// by default, we try to decrypt the bucket key with the ownerGroupKey
+				keyGroup = ownerGroupId
+			}
+			return decryptKey(this.userFacade.getGroupKey(keyGroup), bucketKey.groupEncBucketKey)
+		} else {
+			throw new SessionKeyNotFoundError(`encrypted bucket key not set on instance ${typeName}`)
 		}
 	}
 

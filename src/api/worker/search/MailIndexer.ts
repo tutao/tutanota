@@ -14,19 +14,7 @@ import {
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
 import { typeModels } from "../../entities/tutanota/TypeModels"
 import { containsEventOfType } from "../../common/utils/Utils"
-import {
-	assertNotNull,
-	getFirstOrThrow,
-	groupBy,
-	groupByAndMap,
-	isNotNull,
-	neverNull,
-	noOp,
-	ofClass,
-	promiseMap,
-	splitInChunks,
-	TypeRef,
-} from "@tutao/tutanota-utils"
+import { assertNotNull, first, groupBy, groupByAndMap, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../../common/utils/EntityUtils"
 import { _createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo } from "./IndexUtils"
 import type { Db, GroupData, IndexUpdate, SearchIndexEntry } from "./SearchTypes"
@@ -37,7 +25,7 @@ import { DbError } from "../../common/error/DbError"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import type { DateProvider } from "../DateProvider"
 import type { EntityUpdate, GroupMembership, User } from "../../entities/sys/TypeRefs.js"
-import { EntityRestClient } from "../rest/EntityRestClient"
+import { EntityRestClient, OwnerEncSessionKeyProvider } from "../rest/EntityRestClient"
 import { EntityClient } from "../../common/EntityClient"
 import { ProgressMonitor } from "../../common/utils/ProgressMonitor"
 import type { SomeEntity } from "../../common/EntityTypes"
@@ -46,6 +34,7 @@ import { EntityUpdateData } from "../../main/EventController"
 import { EphemeralCacheStorage } from "../rest/EphemeralCacheStorage"
 import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"
 import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "./IndexTables.js"
+import { MailFacade } from "../facades/lazy/MailFacade.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
@@ -76,6 +65,7 @@ export class MailIndexer {
 		entityRestClient: EntityRestClient,
 		defaultCachingRestClient: DefaultEntityRestCache,
 		dateProvider: DateProvider,
+		private readonly mailFacade: MailFacade,
 	) {
 		this._core = core
 		this._db = db
@@ -162,25 +152,43 @@ export class MailIndexer {
 				if (isLegacyMail(mail)) {
 					mailWrapper = await this._defaultCachingEntity.load(MailBodyTypeRef, neverNull(mail.body)).then((b) => MailWrapper.body(mail, b))
 				} else if (isDetailsDraft(mail)) {
+					// Will be always there, if it was not updated yet it will still be set by CryptoFacade
+					const mailOwnerEncSessionKey = assertNotNull(mail._ownerEncSessionKey)
+					const mailDetailsDraftId = assertNotNull(mail.mailDetailsDraft)
 					mailWrapper = await this._defaultCachingEntity
-						.load(MailDetailsDraftTypeRef, neverNull(mail.mailDetailsDraft), undefined, undefined, undefined, mail._ownerEncSessionKey)
-						.then((d) => MailWrapper.details(mail, d.details))
+						.loadMultiple(
+							MailDetailsDraftTypeRef,
+							listIdPart(mailDetailsDraftId),
+							[elementIdPart(mailDetailsDraftId)],
+							async () => mailOwnerEncSessionKey,
+						)
+						.then((d) => {
+							const draft = first(d)
+							if (draft == null) {
+								throw new NotFoundError(`MailDetailsDraft ${mailDetailsDraftId}`)
+							}
+							return MailWrapper.details(mail, draft.details)
+						})
 				} else {
+					// Will be always there, if it was not updated yet it will still be set by CryptoFacade
+					const mailOwnerEncSessionKey = assertNotNull(mail._ownerEncSessionKey)
 					const mailDetailsBlobId = neverNull(mail.mailDetails)
-					const providedOwnerEncSessionKeys = new Map<Id, Uint8Array>()
-					providedOwnerEncSessionKeys.set(elementIdPart(mailDetailsBlobId), assertNotNull(mail._ownerEncSessionKey))
 					mailWrapper = await this._defaultCachingEntity
-						.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsBlobId), [elementIdPart(mailDetailsBlobId)], providedOwnerEncSessionKeys)
-						.then((d) => MailWrapper.details(mail, d[0].details))
+						.loadMultiple(
+							MailDetailsBlobTypeRef,
+							listIdPart(mailDetailsBlobId),
+							[elementIdPart(mailDetailsBlobId)],
+							async () => mailOwnerEncSessionKey,
+						)
+						.then((d) => {
+							const blob = first(d)
+							if (blob == null) {
+								throw new NotFoundError(`MailDetailsBlob ${mailDetailsBlobId}`)
+							}
+							return MailWrapper.details(mail, blob.details)
+						})
 				}
-				const files =
-					mail.attachments.length > 0
-						? await this._defaultCachingEntity.loadMultiple(
-								FileTypeRef,
-								listIdPart(getFirstOrThrow(mail.attachments)),
-								mail.attachments.map(elementIdPart),
-						  )
-						: []
+				const files = await this.mailFacade.loadAttachments(mail)
 				let keyToIndexEntries = this.createMailIndexEntries(mailWrapper, files)
 				return {
 					mail,
@@ -749,7 +757,11 @@ class IndexLoader {
 			(m) => neverNull(m.mailDetails)[1],
 		)
 		for (let [listId, ids] of listIdToMailDetailsBlobIds) {
-			const mailDetailsBlobs = await this.loadInChunks(MailDetailsBlobTypeRef, listId, ids)
+			const ownerEncSessionKeyProvider = async (instanceElementId: Id) => {
+				const mail = assertNotNull(mailDetailsBlobMails.find((m) => elementIdPart(assertNotNull(m.mailDetails)) === instanceElementId))
+				return assertNotNull(mail._ownerEncSessionKey)
+			}
+			const mailDetailsBlobs = await this.loadInChunks(MailDetailsBlobTypeRef, listId, ids, ownerEncSessionKeyProvider)
 			result.push(
 				...mailDetailsBlobs.map((mailDetailsBlob) => {
 					const mail = assertNotNull(mailDetailsBlobMails.find((m) => isSameId(m.mailDetails, mailDetailsBlob._id)))
@@ -765,7 +777,11 @@ class IndexLoader {
 			(m) => neverNull(m.mailDetailsDraft)[1],
 		)
 		for (let [listId, ids] of listIdToMailDetailsDraftIds) {
-			const mailDetailsDrafts = await this.loadInChunks(MailDetailsDraftTypeRef, listId, ids)
+			const ownerEncSessionKeyProvider = async (instanceElementId: Id) => {
+				const mail = assertNotNull(mailDetailsDraftMails.find((m) => elementIdPart(assertNotNull(m.mailDetails)) === instanceElementId))
+				return assertNotNull(mail._ownerEncSessionKey)
+			}
+			const mailDetailsDrafts = await this.loadInChunks(MailDetailsDraftTypeRef, listId, ids, ownerEncSessionKeyProvider)
 			result.push(
 				...mailDetailsDrafts.map((draftDetails) => {
 					const mail = assertNotNull(mailDetailsDraftMails.find((m) => isSameId(m.mailDetailsDraft, draftDetails._id)))
@@ -796,12 +812,17 @@ class IndexLoader {
 		return Promise.all(fileLoadingPromises).then((filesResults: TutanotaFile[][]) => filesResults.flat())
 	}
 
-	private loadInChunks<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, ids: Id[]): Promise<T[]> {
+	private loadInChunks<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id | null,
+		ids: Id[],
+		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+	): Promise<T[]> {
 		const byChunk = splitInChunks(ENTITY_INDEXER_CHUNK, ids)
 		return promiseMap(
 			byChunk,
 			(chunk) => {
-				return chunk.length > 0 ? this._entity.loadMultiple(typeRef, listId, chunk) : Promise.resolve([])
+				return chunk.length > 0 ? this._entity.loadMultiple(typeRef, listId, chunk, ownerEncSessionKeyProvider) : Promise.resolve([])
 			},
 			{
 				concurrency: 2,

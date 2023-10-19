@@ -405,6 +405,7 @@ class MainLocator {
 				this.eventController,
 				this.workerFacade,
 				this.search,
+				this.mailFacade,
 			)
 	}
 

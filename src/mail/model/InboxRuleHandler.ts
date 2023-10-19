@@ -1,15 +1,15 @@
-import type { InboxRule, Mail, MailDetails, MoveMailData } from "../../api/entities/tutanota/TypeRefs.js"
-import { createMoveMailData, MailDetailsBlobTypeRef, MailHeadersTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import type { InboxRule, Mail, MoveMailData } from "../../api/entities/tutanota/TypeRefs.js"
+import { createMoveMailData, MailHeadersTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { InboxRuleType, MailFolderType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE } from "../../api/common/TutanotaConstants"
 import { isDomainName, isRegularExpression } from "../../misc/FormatValidator"
 import { getLegacyMailHeaders, getMailHeaders } from "../../api/common/utils/Utils"
-import { assertNotNull, asyncFind, debounce, neverNull, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import { assertNotNull, asyncFind, debounce, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 import type { MailboxDetail } from "./MailModel"
 import { LockedError, NotFoundError, PreconditionFailedError } from "../../api/common/error/RestError"
 import type { SelectorItemList } from "../../gui/base/DropDownSelector.js"
 import { EntityClient } from "../../api/common/EntityClient"
-import { elementIdPart, getElementId, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
+import { getElementId, getListId, isSameId } from "../../api/common/utils/EntityUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 import { isLegacyMail } from "../../api/common/MailWrapper.js"
@@ -104,7 +104,7 @@ export class InboxRuleHandler {
 			return null
 		}
 
-		const inboxRule = await _findMatchingRule(this.entityClient, mail, this.logins.getUserController().props.inboxRules)
+		const inboxRule = await _findMatchingRule(this.mailFacade, this.entityClient, mail, this.logins.getUserController().props.inboxRules)
 		if (inboxRule) {
 			let targetFolder = mailboxDetail.folders.getFolderById(inboxRule.targetFolder)
 
@@ -138,35 +138,11 @@ export class InboxRuleHandler {
  * Finds the first matching inbox rule for the mail and returns it.
  * export only for testing
  */
-export async function _findMatchingRule(entityClient: EntityClient, mail: Mail, rules: InboxRule[]): Promise<InboxRule | null> {
-	return asyncFind(rules, (rule) => checkInboxRule(entityClient, mail, rule)).then((v) => v ?? null)
+export async function _findMatchingRule(mailFacade: MailFacade, entityClient: EntityClient, mail: Mail, rules: InboxRule[]): Promise<InboxRule | null> {
+	return asyncFind(rules, (rule) => checkInboxRule(mailFacade, entityClient, mail, rule)).then((v) => v ?? null)
 }
 
-async function getMailDetails(entityClient: EntityClient, mail: Mail): Promise<MailDetails | null> {
-	if (!isLegacyMail(mail)) {
-		try {
-			let mailDetailsBlobId = neverNull(mail.mailDetails)
-
-			const providedOwnerEncSessionKeys = new Map<Id, Uint8Array>()
-			providedOwnerEncSessionKeys.set(elementIdPart(mailDetailsBlobId), assertNotNull(mail._ownerEncSessionKey))
-			let mailDetailsBlobs = await entityClient.loadMultiple(
-				MailDetailsBlobTypeRef,
-				listIdPart(mailDetailsBlobId),
-				[elementIdPart(mailDetailsBlobId)],
-				providedOwnerEncSessionKeys,
-			)
-			return mailDetailsBlobs[0].details
-		} catch (e) {
-			if (!(e instanceof NotFoundError)) {
-				// Does the outer catch already handle this case?
-				console.error("Error processing inbox rule:", e.message)
-			}
-		}
-	}
-	return Promise.resolve(null)
-}
-
-async function checkInboxRule(entityClient: EntityClient, mail: Mail, inboxRule: InboxRule): Promise<boolean> {
+async function checkInboxRule(mailFacade: MailFacade, entityClient: EntityClient, mail: Mail, inboxRule: InboxRule): Promise<boolean> {
 	const ruleType = inboxRule.type
 	try {
 		if (ruleType === InboxRuleType.FROM_EQUALS) {
@@ -178,22 +154,19 @@ async function checkInboxRule(entityClient: EntityClient, mail: Mail, inboxRule:
 
 			return _checkEmailAddresses(mailAddresses, inboxRule)
 		} else if (ruleType === InboxRuleType.RECIPIENT_TO_EQUALS) {
-			const details = await getMailDetails(entityClient, mail)
-			const toRecipients = details !== null ? details.recipients.toRecipients : mail.toRecipients
+			const toRecipients = !isLegacyMail(mail) ? (await mailFacade.loadMailDetailsBlob(mail)).recipients.toRecipients : mail.toRecipients
 			return _checkEmailAddresses(
 				toRecipients.map((m) => m.address),
 				inboxRule,
 			)
 		} else if (ruleType === InboxRuleType.RECIPIENT_CC_EQUALS) {
-			const details = await getMailDetails(entityClient, mail)
-			const ccRecipients = details !== null ? details.recipients.ccRecipients : mail.ccRecipients
+			const ccRecipients = !isLegacyMail(mail) ? (await mailFacade.loadMailDetailsBlob(mail)).recipients.ccRecipients : mail.ccRecipients
 			return _checkEmailAddresses(
 				ccRecipients.map((m) => m.address),
 				inboxRule,
 			)
 		} else if (ruleType === InboxRuleType.RECIPIENT_BCC_EQUALS) {
-			const details = await getMailDetails(entityClient, mail)
-			const bccRecipients = details !== null ? details.recipients.ccRecipients : mail.bccRecipients
+			const bccRecipients = !isLegacyMail(mail) ? (await mailFacade.loadMailDetailsBlob(mail)).recipients.ccRecipients : mail.bccRecipients
 			return _checkEmailAddresses(
 				bccRecipients.map((m) => m.address),
 				inboxRule,
@@ -216,8 +189,8 @@ async function checkInboxRule(entityClient: EntityClient, mail: Mail, inboxRule:
 						return false
 					})
 			} else if (!isLegacyMail(mail)) {
-				const details = await getMailDetails(entityClient, mail)
-				if (details?.headers != null) {
+				const details = await mailFacade.loadMailDetailsBlob(mail)
+				if (details.headers != null) {
 					return _checkContainsRule(getMailHeaders(details.headers), inboxRule)
 				} else {
 					return false
