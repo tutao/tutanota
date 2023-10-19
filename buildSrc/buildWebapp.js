@@ -122,7 +122,7 @@ self.onmessage = function (msg) {
 
 	let restUrl
 	if (stage === "test") {
-		restUrl = "https://test.tuta.com"
+		restUrl = "https://app.test.tuta.com"
 	} else if (stage === "prod") {
 		restUrl = "https://app.tuta.com"
 	} else if (stage === "local") {
