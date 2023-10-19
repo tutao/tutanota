@@ -50,7 +50,7 @@ o.spec("WebauthnClient", function () {
 	o.beforeEach(function () {
 		webauthn = object()
 		domainConfigProvider = object()
-		when(domainConfigProvider.getDomainConfigForHostname("mail.tutanota.com")).thenReturn({
+		when(domainConfigProvider.getDomainConfigForHostname("mail.tutanota.com", "https:", matchers.anything())).thenReturn({
 			...domainConfigStub,
 			legacyWebauthnUrl: tutanotaWebauthnUrl,
 			webauthnUrl: tutanotaWebauthnUrl,
@@ -85,7 +85,8 @@ o.spec("WebauthnClient", function () {
 						apiUrl: "https://another.domain.com",
 					}
 					when(domainConfigProvider.getCurrentDomainConfig()).thenReturn(domainConfig)
-					when(domainConfigProvider.getDomainConfigForHostname("another.domain.com")).thenReturn(domainConfig)
+					when(domainConfigProvider.getDomainConfigForHostname("another.domain.com", "https:", matchers.anything())).thenReturn(domainConfig)
+					when(domainConfigProvider.getDomainConfigForHostname("another.domain.com", "https:")).thenReturn(domainConfig)
 					const result = await testSelectedKey(
 						["another.domain.com", "https://tutanota.com/u2f-appid.json", "https://legacy.another.domain/u2f-appid.json"],
 						"https://another.domain.com/webauthn",
@@ -113,7 +114,7 @@ o.spec("WebauthnClient", function () {
 						apiUrl: "https:///legacy.another.domain",
 					}
 					when(domainConfigProvider.getCurrentDomainConfig()).thenReturn(domainConfig)
-					when(domainConfigProvider.getDomainConfigForHostname("legacy.another.domain")).thenReturn(domainConfig)
+					when(domainConfigProvider.getDomainConfigForHostname("legacy.another.domain", "https:", matchers.anything())).thenReturn(domainConfig)
 					const result = await testSelectedKey(
 						["https://legacy.another.domain/u2f-appid.json", "https://legacy.more.domain/u2f-appid.json"],
 						"https://legacy.another.domain/webauthn", // just the first one
@@ -129,7 +130,8 @@ o.spec("WebauthnClient", function () {
 						apiUrl: "https:///app.tuta.com",
 					}
 					when(domainConfigProvider.getCurrentDomainConfig()).thenReturn(domainConfig)
-					when(domainConfigProvider.getDomainConfigForHostname("app.tuta.com")).thenReturn(domainConfig)
+					when(domainConfigProvider.getDomainConfigForHostname("app.tuta.com", "https:", matchers.anything())).thenReturn(domainConfig)
+					when(domainConfigProvider.getDomainConfigForHostname("app.tuta.com", "https:")).thenReturn(domainConfig)
 					const result = await testSelectedKey(
 						["app.tuta.com"],
 						"https://app.tuta.com/webauthn", // just the first one
@@ -145,7 +147,7 @@ o.spec("WebauthnClient", function () {
 						apiUrl: "https:///app.tuta.com",
 					}
 					when(domainConfigProvider.getCurrentDomainConfig()).thenReturn(tutaDomainConfig)
-					when(domainConfigProvider.getDomainConfigForHostname("app.tuta.com")).thenReturn(tutaDomainConfig)
+					when(domainConfigProvider.getDomainConfigForHostname("app.tuta.com", "https:", matchers.anything())).thenReturn(tutaDomainConfig)
 					const result = await testSelectedKey(
 						["tuta.com"],
 						"https://app.tuta.com/webauthn", // just the first one

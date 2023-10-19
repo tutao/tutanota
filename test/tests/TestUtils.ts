@@ -109,4 +109,5 @@ export const domainConfigStub: DomainConfig = {
 	legacyWebauthnUrl: "",
 	webauthnMobileUrl: "",
 	legacyWebauthnMobileUrl: "",
+	websiteBaseUrl: "",
 }
