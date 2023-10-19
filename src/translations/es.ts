@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2023-10-17T12:14:53Z",
+	"updated_at": "2023-10-19T08:11:52Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -560,6 +560,7 @@ export default {
 		"futureDate": "Fecha futura",
 		"generatePassphrase_action": "Opcional: Generar contraseña",
 		"germanLanguageFile_label": "Archivo de idioma alemán",
+		"getCredsFromLegacy_msg": "Puedes transferir y reutilizar cualquier credencial de Tutanota guardada desde la antigua página de inicio de sesión haciendo clic aquí:",
 		"giftCardCopied_msg": "¡Enlace de tarjeta de regalo copiado al portapapeles!",
 		"giftCardCreditNotify_msg": "Tu cuenta recibirá {credit} de crédito.",
 		"giftCardLoginError_msg": "Tu nueva cuenta fue creada, pero tuvimos problemas para iniciar sesión al canjear tu tarjeta regalo. Intenta iniciar sesión de nuevo más tarde con el mismo enlace de la tarjeta regalo, para canjearla.",
@@ -888,6 +889,7 @@ export default {
 		"noEntries_msg": "<no hay entradas>",
 		"noEntryFound_label": "No se encontraron entradas",
 		"noInputWasMade_msg": "¡El campo de entrada está vacío!",
+		"noKeysForThisDomain_msg": "No tienes ninguna clave de seguridad configurada para este dominio. Añade una en la configuración de inicio de sesión.",
 		"noMails_msg": "Sin mensajes.",
 		"noMail_msg": "Ningún correo seleccionado.",
 		"noMoreSimilarContacts_msg": "No se encuentran más contactos similares.",
