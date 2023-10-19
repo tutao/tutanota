@@ -71,7 +71,8 @@ export async function showUpgradeWizard(logins: LoginController, acceptedPlans: 
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
 
 	const prices = priceDataProvider.getRawPricingData()
-	const featureListProvider = await FeatureListProvider.getInitializedInstance()
+	const dc = locator.domainConfigProvider().getCurrentDomainConfig()
+	const featureListProvider = await FeatureListProvider.getInitializedInstance(dc)
 	const upgradeData: UpgradeSubscriptionData = {
 		options: {
 			businessUse: stream(prices.business),
@@ -130,7 +131,8 @@ export async function loadSignupWizard(
 
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(registrationDataId, locator.serviceExecutor, referralCode)
 	const prices = priceDataProvider.getRawPricingData()
-	const featureListProvider = await FeatureListProvider.getInitializedInstance()
+	const dc = locator.domainConfigProvider().getCurrentDomainConfig()
+	const featureListProvider = await FeatureListProvider.getInitializedInstance(dc)
 
 	const signupData: UpgradeSubscriptionData = {
 		options: {

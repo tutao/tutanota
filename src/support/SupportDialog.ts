@@ -12,10 +12,11 @@ import { clear, debounce } from "@tutao/tutanota-utils"
 import { writeSupportMail } from "../mail/editor/MailEditor"
 import { assertMainOrNode } from "../api/common/Env"
 import { LoginController } from "../api/main/LoginController.js"
+import { locator } from "../api/main/MainLocator.js"
 
 assertMainOrNode()
 
-export function showSupportDialog(logins: LoginController) {
+export async function showSupportDialog(logins: LoginController) {
 	const canHaveEmailSupport = logins.isInternalUserLoggedIn()
 	const searchValue = stream("")
 	const searchResult: Array<FaqEntry> = []
@@ -98,8 +99,7 @@ export function showSupportDialog(logins: LoginController) {
 			]
 		},
 	}
-	// noinspection JSIgnoredPromiseFromCall
-	faq.init()
+	await faq.init(locator.domainConfigProvider().getCurrentDomainConfig().websiteBaseUrl)
 	const dialog = Dialog.largeDialog(header, child).addShortcut({
 		key: Keys.ESC,
 		exec: () => {

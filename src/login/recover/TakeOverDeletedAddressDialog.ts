@@ -31,10 +31,10 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 						m(
 							"a",
 							{
-								href: "https://tutanota.com/faq/#inactive-accounts",
+								href: "https://tuta.com/faq/#inactive-accounts",
 								target: "_blank",
 							},
-							"https://tutanota.com/faq/#inactive-accounts",
+							"https://tuta.com/faq/#inactive-accounts",
 						),
 					]),
 					m(TextField, {

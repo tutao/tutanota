@@ -1,6 +1,4 @@
-const WEBSITE_BASE_URL = "https://tutanota.com"
-
-export async function requestFromWebsite(path: string): Promise<Response> {
-	const url = new URL(path, WEBSITE_BASE_URL)
+export async function requestFromWebsite(path: string, domainConfig: DomainConfig): Promise<Response> {
+	const url = new URL(path, domainConfig.websiteBaseUrl)
 	return fetch(url.href)
 }

@@ -5,19 +5,18 @@ import { PaymentInterval } from "./PriceUtils.js"
 import { PlanName, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants.js"
 import { downcast, getFromMap } from "@tutao/tutanota-utils"
 
-const FEATURE_LIST_RESOURCE_URL = "https://tutanota.com/resources/data/features.json"
-// const FEATURE_LIST_RESOURCE_URL = "http://localhost:9000/resources/data/features.json"
 let dataProvider: FeatureListProvider | null = null
 
 export class FeatureListProvider {
 	private featureList: FeatureLists | null = null
 
-	private constructor() {}
+	private constructor(private readonly domainConfig: DomainConfig) {}
 
 	private async init(): Promise<void> {
 		if ("undefined" === typeof fetch) return
+		const listResourceUrl = `${this.domainConfig.websiteBaseUrl}/resources/data/features.json`
 		this.featureList = await resolveOrNull(
-			() => fetch(FEATURE_LIST_RESOURCE_URL).then((r) => r.json()),
+			() => fetch(listResourceUrl).then((r) => r.json()),
 			(e) => console.log("failed to fetch feature list:", e),
 		).then((featureList) => {
 			this.countFeatures([...featureList.Free.categories, ...featureList.Revolutionary.categories, ...featureList.Legend.categories])
@@ -42,9 +41,9 @@ export class FeatureListProvider {
 		}
 	}
 
-	static async getInitializedInstance(): Promise<FeatureListProvider> {
+	static async getInitializedInstance(domainConfig: DomainConfig): Promise<FeatureListProvider> {
 		if (dataProvider == null) {
-			dataProvider = new FeatureListProvider()
+			dataProvider = new FeatureListProvider(domainConfig)
 			await dataProvider.init()
 		}
 		return dataProvider

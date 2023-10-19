@@ -31,9 +31,9 @@ function unsupported(e) {
 
 	const link = document.createElement("a")
 	if (isAndroidApp) {
-		link.href = "https://tutanota.com/faq/#webview"
+		link.href = "https://tuta.com/faq/#webview"
 	} else {
-		link.href = "https://tutanota.com/faq/#browser-support"
+		link.href = "https://tuta.com/faq/#browser-support"
 	}
 
 	link.target = "_blank"

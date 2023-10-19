@@ -1,10 +1,23 @@
 global.window = undefined
 
 function getCspUrls(env) {
+	// we want to have the following allowed connect-src for a given staticUrl like https://app(.local/.test).tuta.com:
+	//
+	// wss://app(.local/.test).tuta.com for websocket
+	// http(s)://*.api(.local/.test).tuta.com for the web app
+	// api://app(.local/.test).tuta.com for the mobile apps api protocol (intercepted by native part)
+	// https://app(.local/.test).tuta.com for the staticUrl itself
+	// https://(local./test.)tuta.com for the website
 	if (env.staticUrl) {
 		const staticUrlParts = env.staticUrl.split("//")
 		const apiUrl = staticUrlParts[0] + "//*.api." + staticUrlParts[1]
-		return `${env.staticUrl} ws${env.staticUrl.substring(4)} ${apiUrl} ${env.staticUrl.replace(/^https?/, "api")}`
+		const webSocketUrl = `ws${env.staticUrl.substring(4)}`
+		const appApiUrl = `${env.staticUrl.replace(/^https?/, "api")}`
+		const websiteUrl = env.staticUrl.includes("app.")
+			? env.staticUrl.replace("app.", "")
+			: // this is useful for a mobile dev build with a static url like "http://nig.desktop.office.tutao.de"
+			  "https://tuta.com"
+		return `${env.staticUrl} ${webSocketUrl} ${apiUrl} ${appApiUrl} ${websiteUrl}`
 	} else {
 		return ""
 	}
@@ -33,20 +46,20 @@ export async function renderHtml(scripts, env) {
 	<link rel="icon" sizes="192x192" href="/images/logo-favicon-192.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@TutanotaTeam">
-    <meta name="twitter:domain" content="tutanota.com">
-    <meta name="twitter:image" content="https://tutanota.com/resources/images/share-tutanota-twitter-thumbnail.png">
+    <meta name="twitter:domain" content="tuta.com">
+    <meta name="twitter:image" content="https://tuta.com/resources/images/share-tutanota-twitter-thumbnail.png">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Tutanota">
     <meta property="og:title" content="Secure Emails Become a Breeze">
     <meta property="og:description"
           content="Tutanota is the secure email service, built in Germany. Use encrypted emails on all devices with our open source email client, mobile apps &amp; desktop clients.">
     <meta property="og:locale" content="en">
-    <meta property="og:url" content="https://tutanota.com/">
-    <meta property="og:image" content="https://tutanota.com/resources/images/share-tutanota-fb-thumbnail.png">
+    <meta property="og:url" content="https://tuta.com/">
+    <meta property="og:image" content="https://tuta.com/resources/images/share-tutanota-fb-thumbnail.png">
     <meta property="article:publisher" content="https://www.facebook.com/tutanota">
 	<meta itemprop="name" content="Secure Emails Become a Breeze.">
 	<meta itemprop="description" content="Get your encrypted mailbox for free and show the Internet spies that you won&amp;#39;t make it easy for them! Why? Because you simply can.">
-	<meta itemprop="image" content="https://tutanota.com/images/share_image.png">
+	<meta itemprop="image" content="https://tuta.com/images/share_image.png">
 	<meta name="apple-itunes-app" content="app-id=id922429609, affiliate-data=10lSfb">
 </head>
 <body style="background-color:transparent">
@@ -64,13 +77,13 @@ function csp(env) {
 				"default-src 'none';" +
 				" script-src 'self' 'wasm-unsafe-eval';" +
 				" worker-src 'self';" +
-				" frame-src 'none;" +
+				" frame-src 'none';" +
 				" frame-ancestors 'none';" +
 				" font-src 'self';" +
 				" img-src http: blob: data: *;" +
 				" style-src 'unsafe-inline';" +
 				"base-uri 'none';" +
-				` connect-src 'self' ${getCspUrls(env)} https://tutanota.com;`
+				` connect-src 'self' ${getCspUrls(env)};`
 
 			return `<meta http-equiv="Content-Security-Policy" content="${cspContent}">`
 		} else {
@@ -85,7 +98,7 @@ function csp(env) {
 			" media-src * data: blob: 'unsafe-inline';" +
 			" style-src * 'unsafe-inline';" +
 			" frame-src *;" +
-			` connect-src 'self' 'unsafe-inline' ${getCspUrls(env)} https://tutanota.com;`
+			` connect-src 'self' 'unsafe-inline' ${getCspUrls(env)} https://tuta.com;`
 
 		return `<meta http-equiv="Content-Security-Policy" content="${cspContent}">`
 	}

@@ -308,7 +308,7 @@ async function startupInstance(components: Components) {
 async function onAppReady(components: Components) {
 	const { wm, keyStoreFacade, conf } = components
 	keyStoreFacade.getDeviceKey().catch(() => {
-		electron.dialog.showErrorBox("Could not access secret storage", "Please see the FAQ at tutanota.com/faq/#secretstorage")
+		electron.dialog.showErrorBox("Could not access secret storage", "Please see the FAQ at tuta.com/faq/#secretstorage")
 	})
 	app.on("window-all-closed", async () => {
 		if (!(await conf.getVar(DesktopConfigKey.runAsTrayApp))) {

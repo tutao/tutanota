@@ -47,7 +47,10 @@ export async function showSwitchDialog(
 	const deferred = defer<PlanType>()
 	const [featureListProvider, priceAndConfigProvider] = await showProgressDialog(
 		"pleaseWait_msg",
-		Promise.all([FeatureListProvider.getInitializedInstance(), PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)]),
+		Promise.all([
+			FeatureListProvider.getInitializedInstance(locator.domainConfigProvider().getCurrentDomainConfig()),
+			PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null),
+		]),
 	)
 	const model = new SwitchSubscriptionDialogModel(customer, accountingInfo, await locator.logins.getUserController().getPlanType(), lastBooking)
 	const cancelAction = () => {

@@ -109,7 +109,7 @@ export class WebauthnClient {
 			if (webauthnKey) {
 				const domainConfigForHostname = this.domainConfigProvider.getDomainConfigForHostname(webauthnKey.appId, "https:")
 				return this.getWebauthnUrl(domainConfigForHostname, "new")
-			} else if (challenge.keys.some((k) => k.appId === Const.U2F_APPID)) {
+			} else if (challenge.keys.some((k) => k.appId === Const.U2F_LEGACY_APPID)) {
 				// There are only legacy U2F keys but there is one for our domain, take it
 				return this.getWebauthnUrl(domainConfig, "legacy")
 			} else {

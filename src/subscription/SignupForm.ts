@@ -23,7 +23,7 @@ import { UsageTest } from "@tutao/tutanota-usagetests"
 import { runCaptchaFlow } from "./Captcha.js"
 import { SelectMailAddressFormWithSuggestions } from "../settings/SelectMailAddressFormWithSuggestions.js"
 
-const faqCustomDomainLink = "https://tutanota.com/faq#custom-domain"
+const faqCustomDomainLink = "https://tuta.com/faq#custom-domain"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
