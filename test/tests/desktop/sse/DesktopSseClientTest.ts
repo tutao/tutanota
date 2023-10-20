@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
 import n from "../../nodemocker.js"
 import type { DeferredObject } from "@tutao/tutanota-utils"
+import { defer, delay, downcast, neverNull, noOp, numberRange } from "@tutao/tutanota-utils"
 import type { TimeoutMock } from "@tutao/tutanota-test-utils"
 import { makeTimeoutMock, spy } from "@tutao/tutanota-test-utils"
-import { defer, delay, downcast, neverNull, noOp, numberRange } from "@tutao/tutanota-utils"
 import * as url from "node:url"
 import * as querystring from "node:querystring"
 import { createMissedNotification } from "../../../../src/api/entities/sys/TypeRefs.js"
@@ -934,5 +934,54 @@ o.spec("DesktopSseClient Test", function () {
 		o(confMock.setVar.calls[2]).deepEquals([DesktopConfigEncKey.sseInfo, { identifier, userIds: [], sseOrigin: sseInfo.sseOrigin }])
 		o(alarmStorageMock.removePushIdentifierKeys.callCount).equals(1)
 		o(timeoutSpy.callCount).equals(1)
+	})
+
+	o("construct urls", function () {
+		const lastNotificationCheckTime = Date.now() - 1000 * 60 * 60 * 24 * 31 // 31 day
+		const sseInfo = { identifier, userIds, sseOrigin: "origin" }
+		const confMock = n
+			.mock<DesktopConfig>("__conf", conf)
+			.with({
+				getVar: (key: string) => {
+					switch (key) {
+						case "heartbeatTimeoutInSeconds":
+							return 30
+						case DesktopConfigKey.lastMissedNotificationCheckTime:
+							return String(lastNotificationCheckTime)
+						case DesktopConfigEncKey.sseInfo:
+							return sseInfo
+						default:
+							throw new Error(`unexpected getVar key ${key}`)
+					}
+				},
+			})
+			.set()
+		const timeoutSpy = spy(timeoutMock)
+		const sse = new DesktopSseClient(
+			electronMock.app,
+			confMock,
+			notifierMock,
+			wmMock,
+			alarmSchedulerMock,
+			netMock,
+			cryptoMock,
+			alarmStorageMock,
+			langMock,
+			timeoutSpy,
+		)
+
+		const info = {
+			identifier: "identifier",
+			sseOrigin: "https://someorigin.com",
+			userIds: ["userId"],
+		}
+		const sseurl = sse.getSseUrl(info, "userId")
+		const url = new URL(sseurl)
+		o(url.searchParams.get("_body")).notEquals(null)
+
+		const notifyUrl = sse.makeAlarmNotificationUrl(info)
+		const url2 = new URL(notifyUrl)
+		// when we just take searchParams.size, its sometimes 0 and sometimes undefined depending on runtime
+		o(Array.from(url2.searchParams.keys()).length).equals(0)
 	})
 })

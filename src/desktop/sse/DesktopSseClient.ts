@@ -1,6 +1,15 @@
 import type { App } from "electron"
 import type { TimeoutSetter } from "@tutao/tutanota-utils"
-import { base64ToBase64Url, filterInt, neverNull, randomIntFromInterval, remove, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	base64ToBase64Url,
+	filterInt,
+	neverNull,
+	randomIntFromInterval,
+	remove,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
+} from "@tutao/tutanota-utils"
 import type { DesktopNotifier } from "../DesktopNotifier"
 import { NotificationResult } from "../DesktopNotifier"
 import type { WindowManager } from "../DesktopWindowManager"
@@ -173,8 +182,7 @@ export class DesktopSseClient {
 			return Promise.resolve()
 		}
 
-		const url = sseInfo.sseOrigin + "/sse?_body=" + this._requestJson(sseInfo.identifier, userId)
-
+		const url = this.getSseUrl(sseInfo, userId)
 		log.debug("starting sse connection")
 		this._connection = this._net.request(url, {
 			headers: {
@@ -431,7 +439,7 @@ export class DesktopSseClient {
 				reject(e)
 			}
 
-			const url = this._makeAlarmNotificationUrl()
+			const url = this.makeAlarmNotificationUrl(assertNotNull(this._connectedSseInfo))
 
 			log.debug("downloading missed notification")
 			const headers: Record<string, string> = {
@@ -507,9 +515,13 @@ export class DesktopSseClient {
 		})
 	}
 
-	_makeAlarmNotificationUrl(): string {
-		const customId = uint8ArrayToBase64(stringToUtf8Uint8Array(neverNull(this._connectedSseInfo).identifier))
-		return neverNull(this._connectedSseInfo).sseOrigin + "/rest/sys/missednotification/" + base64ToBase64Url(customId)
+	/** public for testing */
+	makeAlarmNotificationUrl(sseInfo: SseInfo): string {
+		const { identifier, sseOrigin } = sseInfo
+		const customId = uint8ArrayToBase64(stringToUtf8Uint8Array(identifier))
+		const url = new URL(sseOrigin)
+		url.pathname = "rest/sys/missednotification/" + base64ToBase64Url(customId)
+		return url.toString()
 	}
 
 	_disconnect() {
@@ -535,17 +547,23 @@ export class DesktopSseClient {
 	}
 
 	_requestJson(identifier: string, userId: string): string {
-		return encodeURIComponent(
-			JSON.stringify({
-				_format: "0",
-				identifier: identifier,
-				userIds: [
-					{
-						_id: this._crypto.generateId(4),
-						value: userId,
-					},
-				],
-			}),
-		)
+		return JSON.stringify({
+			_format: "0",
+			identifier: identifier,
+			userIds: [
+				{
+					_id: this._crypto.generateId(4),
+					value: userId,
+				},
+			],
+		})
+	}
+
+	/** public for testing */
+	getSseUrl(sseInfo: SseInfo, userId: string): string {
+		const url = new URL(sseInfo.sseOrigin)
+		url.pathname = "sse"
+		url.searchParams.append("_body", this._requestJson(sseInfo.identifier, userId))
+		return url.toString()
 	}
 }
