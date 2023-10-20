@@ -23,7 +23,7 @@ class AndroidWebauthnFacade(
 	override suspend fun sign(challenge: WebAuthnSignChallenge): WebAuthnSignResult {
 		val response = sendRequest<_, TaggedWebauthnSignResult>(
 				"sign",
-				baseUrlToBrowserUrl(challenge.domain),
+				challenge.domain,
 				challenge,
 		)
 		when (response) {
@@ -35,7 +35,7 @@ class AndroidWebauthnFacade(
 	override suspend fun register(challenge: WebAuthnRegistrationChallenge): WebAuthnRegistrationResult {
 		val response = sendRequest<_, TaggedWebauthnRegistrationResult>(
 				"register",
-				baseUrlToBrowserUrl(challenge.domain),
+				challenge.domain,
 				challenge,
 		)
 		when (response) {
@@ -43,9 +43,6 @@ class AndroidWebauthnFacade(
 			is TaggedWebauthnRegistrationResult.Error -> throw  WebauthnError(response.stack)
 		}
 	}
-
-	private fun baseUrlToBrowserUrl(baseUrl: String) =
-			Uri.parse(baseUrl).buildUpon().appendPath("webauthnmobile").build().toString()
 
 	private suspend inline fun <reified Req, reified Res> sendRequest(
 			action: String,
