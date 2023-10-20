@@ -196,7 +196,7 @@ import("./translations/en")
 							},
 						}
 					},
-					prepareAttrs: ({ makeViewModel }) => ({ targetPath: "/mail", makeViewModel, domainConfig }),
+					prepareAttrs: ({ makeViewModel }) => ({ targetPath: "/mail", makeViewModel }),
 					requireLogin: false,
 				},
 				locator.logins,

@@ -15,7 +15,7 @@ export class DomainConfigProvider {
 		if (staticConfig) {
 			return staticConfig
 		} else {
-			const fullHostName = hostname + (port ? `:${port}` : " ")
+			const fullHostName = hostname + (port ? `:${port}` : "")
 			const dynamicConfig = env.domainConfigs["{hostname}"]
 			const entries = Object.entries(dynamicConfig).map(([key, value]) => {
 				const replacedValue = typeof value === "string" ? value.replace("{hostname}", fullHostName).replace("{protocol}", protocol) : value
