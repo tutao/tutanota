@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode } from "../../../api/common/Env.js"
-import type { User } from "../../../api/entities/sys/TypeRefs.js"
+import type { SecondFactor, User } from "../../../api/entities/sys/TypeRefs.js"
 import { SecondFactorTypeRef } from "../../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { Icons } from "../../../gui/base/icons/Icons.js"
@@ -19,7 +19,7 @@ import { SecondFactorEditDialog } from "./SecondFactorEditDialog.js"
 import { SecondFactorTypeToNameTextId } from "./SecondFactorEditModel.js"
 import { IconButtonAttrs } from "../../../gui/base/IconButton.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
-import { appIdToLoginDomain } from "../../../misc/2fa/SecondFactorUtils.js"
+import { appIdToLoginUrl } from "../../../misc/2fa/SecondFactorUtils.js"
 import { DomainConfigProvider } from "../../../api/common/DomainConfigProvider.js"
 
 assertMainOrNode()
@@ -70,13 +70,12 @@ export class SecondFactorsEditForm {
 			const isU2F = f.type === SecondFactorType.u2f || f.type === SecondFactorType.webauthn
 
 			if (isU2F) {
-				const loginDomain = appIdToLoginDomain(assertNotNull(f.u2f).appId, this.domainConfigProvider)
+				const loginDomain = appIdToLoginUrl(assertNotNull(f.u2f).appId, this.domainConfigProvider)
 				loginDomains.add(loginDomain)
 			}
 		}
 
 		this._2FALineAttrs = factors.map((f) => {
-			const isU2F = f.type === SecondFactorType.u2f || f.type === SecondFactorType.webauthn
 			const removeButtonAttrs: IconButtonAttrs = {
 				title: "remove_action",
 				click: () =>
@@ -86,15 +85,30 @@ export class SecondFactorsEditForm {
 				icon: Icons.Cancel,
 				size: ButtonSize.Compact,
 			}
-			const domainInfo =
-				isU2F && loginDomains.size > 1 ? (f.name.length > 0 ? " - " : "") + appIdToLoginDomain(neverNull(f.u2f).appId, this.domainConfigProvider) : ""
+
+			const factorName = this.formatSecondFactorName(f, loginDomains)
 			const type = assertEnumValue(SecondFactorType, f.type)
 			return {
-				cells: [f.name + domainInfo, lang.get(SecondFactorTypeToNameTextId[type])],
+				cells: [factorName, lang.get(SecondFactorTypeToNameTextId[type])],
 				actionButtonAttrs: locator.logins.getUserController().isGlobalOrLocalAdmin() ? removeButtonAttrs : null,
 			}
 		})
 		m.redraw()
+	}
+
+	private formatSecondFactorName(factor: SecondFactor, loginDomains: ReadonlySet<string>): string {
+		const isU2F = factor.type === SecondFactorType.u2f || factor.type === SecondFactorType.webauthn
+		// we only show the domains when we have keys registered for different domains
+		const requiresDomainDisambiguation = isU2F && loginDomains.size > 1
+
+		if (requiresDomainDisambiguation) {
+			const prefix = factor.name.length > 0 ? " - " : ""
+			const loginUrlString = appIdToLoginUrl(neverNull(factor.u2f).appId, this.domainConfigProvider)
+			const loginDomain = new URL(loginUrlString).hostname
+			return factor.name + prefix + loginDomain
+		} else {
+			return factor.name
+		}
 	}
 
 	_showAddSecondFactorDialog() {

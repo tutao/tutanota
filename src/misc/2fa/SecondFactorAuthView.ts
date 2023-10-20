@@ -12,7 +12,7 @@ type WebauthnState = { state: "init" } | { state: "progress" } | { state: "error
 
 type WebauthnAnotherDomainParams = {
 	canLogin: false
-	otherLoginDomain: string
+	otherDomainLoginUrl: string
 }
 type WebauthnLoginParams = {
 	canLogin: true
@@ -123,15 +123,14 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 		return [m(".flex-center", m("img", { src: SecondFactorImage })), m(".mt.flex.col", items)]
 	}
 
-	_renderOtherDomainLogin(attrs: WebauthnAnotherDomainParams): Children {
-		const href = `https://${attrs.otherLoginDomain}`
+	_renderOtherDomainLogin({ otherDomainLoginUrl }: WebauthnAnotherDomainParams): Children {
 		return m(
 			"a",
 			{
-				href,
+				href: otherDomainLoginUrl,
 			},
 			lang.get("differentSecurityKeyDomain_msg", {
-				"{domain}": href,
+				"{domain}": otherDomainLoginUrl,
 			}),
 		)
 	}
