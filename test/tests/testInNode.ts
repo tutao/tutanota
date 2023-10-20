@@ -51,12 +51,15 @@ globalThis.performance = {
 	measure: noOp,
 }
 const crypto = await import("node:crypto")
-globalThis.crypto = {
-	getRandomValues: function (bytes) {
-		let randomBytes = crypto.randomBytes(bytes.length)
-		bytes.set(randomBytes)
+Object.defineProperty(globalThis, "crypto", {
+	value: {
+		getRandomValues: function (bytes) {
+			let randomBytes = crypto.randomBytes(bytes.length)
+			bytes.set(randomBytes)
+		},
 	},
-}
+})
+
 globalThis.XMLHttpRequest = (await import("xhr2")).default
 process.on("unhandledRejection", function (e) {
 	console.log("Uncaught (in promise) " + e.stack)
