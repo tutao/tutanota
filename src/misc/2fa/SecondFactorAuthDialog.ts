@@ -12,7 +12,7 @@ import { WebauthnClient } from "./webauthn/WebauthnClient.js"
 import type { LoginFacade } from "../../api/worker/facades/LoginFacade.js"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { WebauthnError } from "../../api/common/error/WebauthnError.js"
-import { appIdToLoginDomain } from "./SecondFactorUtils.js"
+import { appIdToLoginUrl } from "./SecondFactorUtils.js"
 
 import { DomainConfigProvider } from "../../api/common/DomainConfigProvider.js"
 
@@ -90,14 +90,16 @@ export class SecondFactorAuthDialog {
 		console.log("webauthn supported: ", u2fSupported)
 
 		let canLoginWithU2f: boolean
-		let otherLoginDomain: string | null
+		let otherDomainLoginUrl: string | null
 		if (u2fChallenge?.u2f != null && u2fSupported) {
 			const { canAttempt, cannotAttempt } = await this.webauthnClient.canAttemptChallenge(u2fChallenge.u2f)
 			canLoginWithU2f = canAttempt.length !== 0
-			otherLoginDomain = cannotAttempt.length > 0 ? appIdToLoginDomain(getFirstOrThrow(cannotAttempt).appId, this.domainConfigProvider) : null
+			// If we don't have any key we can use to log in we need to show a message to attempt the login on another domain.
+
+			otherDomainLoginUrl = cannotAttempt.length > 0 ? appIdToLoginUrl(getFirstOrThrow(cannotAttempt).appId, this.domainConfigProvider) : null
 		} else {
 			canLoginWithU2f = false
-			otherLoginDomain = null
+			otherDomainLoginUrl = null
 		}
 
 		const { mailAddress } = this.authData
@@ -113,10 +115,10 @@ export class SecondFactorAuthDialog {
 									state: this.webauthnState,
 									doWebauthn: () => this.doWebauthn(assertNotNull(u2fChallenge)),
 							  }
-							: otherLoginDomain
+							: otherDomainLoginUrl
 							? {
 									canLogin: false,
-									otherLoginDomain,
+									otherDomainLoginUrl: otherDomainLoginUrl,
 							  }
 							: null,
 						otp: otpChallenge
