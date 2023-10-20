@@ -37,7 +37,7 @@ export const domainConfigs = {
 	"app.local.tutanota.com": {
 		firstPartyDomain: true,
 		partneredDomainTransitionUrl: "https://app.local.tuta.com:9000",
-		apiUrl: "https://local.tutanota.com:9000",
+		apiUrl: "https://app.local.tutanota.com:9000",
 		paymentUrl: "https://local.tutanota.com:9000/client/build/braintree.html",
 		webauthnUrl: "https://app.local.tuta.com:9000/client/build/webauthn",
 		legacyWebauthnUrl: "https://local.tutanota.com:9000/client/build/webauthn",
