@@ -134,12 +134,6 @@ export class WebauthnClient {
 		return key.appId.endsWith(Const.U2f_APPID_SUFFIX)
 	}
 
-	private legacyU2fKeyToBaseUrl(key: U2fKey): string {
-		assert(this.isLegacyU2fKey(key), "Is not a legacy u2f key")
-
-		return key.appId.slice(0, -Const.U2f_APPID_SUFFIX.length)
-	}
-
 	private getChallenge(): Uint8Array {
 		// Should be replaced with our own entropy generator in the future.
 		const random = new Uint8Array(32)
