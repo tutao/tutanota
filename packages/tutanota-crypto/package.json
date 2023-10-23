@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/tutanota-crypto",
-	"version": "3.118.19",
+	"version": "3.118.20",
 	"license": "GPL-3.0",
 	"main": "./dist/index.js",
 	"repository": {
@@ -22,7 +22,7 @@
 	],
 	"devDependencies": {
 		"typescript": "5.0.3",
-		"@tutao/tutanota-utils": "3.118.19",
-		"@tutao/otest": "3.118.19"
+		"@tutao/tutanota-utils": "3.118.20",
+		"@tutao/otest": "3.118.20"
 	}
 }
