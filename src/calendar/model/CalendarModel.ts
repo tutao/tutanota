@@ -42,6 +42,7 @@ import { MembershipService } from "../../api/entities/sys/Services"
 import { FileController } from "../../file/FileController"
 import { findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUtils.js"
 import { TutanotaError } from "../../api/common/error/TutanotaError.js"
+import { SessionKeyNotFoundError } from "../../api/common/error/SessionKeyNotFoundError.js"
 
 const TAG = "[CalendarModel]"
 
@@ -243,15 +244,17 @@ export class CalendarModel {
 
 	private async getCalendarDataForUpdate(fileId: IdTuple): Promise<ParsedCalendarData | null> {
 		try {
+			// We are not supposed to load files without the key provider, but we hope that the key
+			// was already resolved and the entity updated.
 			const file = await this.entityClient.load(FileTypeRef, fileId)
-			if (file._ownerEncSessionKey == null) {
-				// owner enc session key not updated yet - see NoOwnerEncSessionKeyForCalendarEventError's comment
-				return Promise.reject(new NoOwnerEncSessionKeyForCalendarEventError("no owner enc session key found on the calendar data's file"))
-			}
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const { parseCalendarFile } = await import("../export/CalendarImporter")
 			return await parseCalendarFile(dataFile)
 		} catch (e) {
+			if (e instanceof SessionKeyNotFoundError) {
+				// owner enc session key not updated yet - see NoOwnerEncSessionKeyForCalendarEventError's comment
+				throw new NoOwnerEncSessionKeyForCalendarEventError("no owner enc session key found on the calendar data's file")
+			}
 			if (e instanceof ParserError || e instanceof NotFoundError) {
 				console.warn(TAG, "could not get calendar update data", e)
 				return null

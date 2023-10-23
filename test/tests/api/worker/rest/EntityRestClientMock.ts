@@ -99,7 +99,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: T["_id"], queryParameters: Dict | null | undefined, extraHeaders?: Dict): Promise<T> {
+	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: T["_id"], queryParameters?: Dict | null | undefined, extraHeaders?: Dict): Promise<T> {
 		if (id instanceof Array && id.length === 2) {
 			// list element request
 			const listId = id[0]
