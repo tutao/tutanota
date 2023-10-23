@@ -1,14 +1,14 @@
-import { X25519Public } from "@tutao/tutanota-crypto"
+import { X25519PublicKey } from "@tutao/tutanota-crypto"
 
 export type PQMessage = {
-	senderIdentityPubKey: X25519Public
-	ephemeralPubKey: X25519Public
+	senderIdentityPubKey: X25519PublicKey
+	ephemeralPubKey: X25519PublicKey
 	encapsulation: PQBucketKeyEncapsulation
 }
 
 export type PQBucketKeyEncapsulation = {
 	kyberCipherText: Uint8Array
-	bucketKeyCipherText: Uint8Array
+	kekEncBucketKey: Uint8Array
 }
 
 export function decodePQMessage(encoded: Uint8Array): PQMessage {
@@ -22,19 +22,19 @@ export function decodePQMessage(encoded: Uint8Array): PQMessage {
 		ephemeralPubKey: ephemeralPubKey.attribute,
 		encapsulation: {
 			kyberCipherText: kyberCipherText.attribute,
-			bucketKeyCipherText: bucketKeyCipherText.attribute,
+			kekEncBucketKey: bucketKeyCipherText.attribute,
 		},
 	}
 }
 
 export function encodePQMessage({ senderIdentityPubKey, ephemeralPubKey, encapsulation }: PQMessage): Uint8Array {
 	const result = new Uint8Array(
-		4 + senderIdentityPubKey.length + 4 + ephemeralPubKey.length + 4 + encapsulation.kyberCipherText.length + 4 + encapsulation.bucketKeyCipherText.length,
+		4 + senderIdentityPubKey.length + 4 + ephemeralPubKey.length + 4 + encapsulation.kyberCipherText.length + 4 + encapsulation.kekEncBucketKey.length,
 	)
 	let index = writeAttribute(result, senderIdentityPubKey, 0)
 	index = writeAttribute(result, ephemeralPubKey, index)
 	index = writeAttribute(result, encapsulation.kyberCipherText, index)
-	writeAttribute(result, encapsulation.bucketKeyCipherText, index)
+	writeAttribute(result, encapsulation.kekEncBucketKey, index)
 
 	return result
 }

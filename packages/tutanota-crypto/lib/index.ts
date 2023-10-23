@@ -11,8 +11,8 @@ export {
 	aes256EncryptSearchIndexEntry,
 } from "./encryption/Aes.js"
 export {
-	X25519Private,
-	X25519Public,
+	X25519PrivateKey,
+	X25519PublicKey,
 	X25519KeyPair,
 	X25519SharedSecrets,
 	x25519generateKeyPair,

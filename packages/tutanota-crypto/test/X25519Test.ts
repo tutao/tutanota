@@ -42,8 +42,8 @@ o.spec("x25519", function () {
 	o("hex key conversion", function () {
 		let keyPairAlice = _getKeyPair("Alice")
 
-		let hexPrivateKey = x25519privateKeyToHex(keyPairAlice.priv)
-		let hexPublicKey = x25519publicKeyToHex(keyPairAlice.pub)
+		let hexPrivateKey = x25519privateKeyToHex(keyPairAlice.privateKey)
+		let hexPublicKey = x25519publicKeyToHex(keyPairAlice.publicKey)
 		o(x25519privateKeyToHex(x25519hexToPrivateKey(hexPrivateKey))).equals(hexPrivateKey)
 		o(x25519publicKeyToHex(x25519hexToPublicKey(hexPublicKey))).equals(hexPublicKey)
 	})
@@ -57,8 +57,8 @@ o.spec("x25519", function () {
 		let keyPairEphemeral = _getKeyPair("Ephemeral")
 		let keyPairBob = _getKeyPair("Bob")
 
-		const aliceEncapsulate = x25519encapsulate(keyPairAlice.priv, keyPairEphemeral.priv, keyPairBob.pub)
-		const bobDecapsulate = x25519decapsulate(keyPairAlice.pub, keyPairEphemeral.pub, keyPairBob.priv)
+		const aliceEncapsulate = x25519encapsulate(keyPairAlice.privateKey, keyPairEphemeral.privateKey, keyPairBob.publicKey)
+		const bobDecapsulate = x25519decapsulate(keyPairAlice.publicKey, keyPairEphemeral.publicKey, keyPairBob.privateKey)
 		o(aliceEncapsulate).deepEquals(bobDecapsulate)
 	})
 	o("key is clamped", function () {
@@ -66,9 +66,9 @@ o.spec("x25519", function () {
 		// a 1 in 32 chance for a 256-bit key to happen to be already clamped, assuming the RNG is uniform
 		for (let i = 0; i < 10; i++) {
 			let key = x25519generateKeyPair()
-			o(key.priv[0] & 0b00000111).equals(0b00000000)("lowest 3 bits needs to be cleared (to be divisible by the cofactor)")
-			o(key.priv[key.priv.length - 1] & 0b10000000).equals(0b00000000)("the highest bit needs to be cleared")
-			o(key.priv[key.priv.length - 1] & 0b01000000).equals(0b01000000)("the second-highest bit needs to be set")
+			o(key.privateKey[0] & 0b00000111).equals(0b00000000)("lowest 3 bits needs to be cleared (to be divisible by the cofactor)")
+			o(key.privateKey[key.privateKey.length - 1] & 0b10000000).equals(0b00000000)("the highest bit needs to be cleared")
+			o(key.privateKey[key.privateKey.length - 1] & 0b01000000).equals(0b01000000)("the second-highest bit needs to be set")
 		}
 	})
 })

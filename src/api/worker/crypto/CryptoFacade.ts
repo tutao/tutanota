@@ -505,7 +505,7 @@ export class CryptoFacade {
 					let uint8ArrayBucketKey = bitArrayToUint8Array(bucketKey)
 					if (pub instanceof PQPublicKeys) {
 						const senderKeyPair = await this.loadKeypair(senderUserGroupId)
-						const senderIdentityKeyPair = senderKeyPair instanceof PQKeyPairs ? senderKeyPair.x25519KeyPair : x25519generateKeyPair()
+						const senderIdentityKeyPair = senderKeyPair instanceof PQKeyPairs ? senderKeyPair.x25519KeyPair : await rotateKeys() //x25519generateKeyPair()
 						encrypted = encodePQMessage(await this.pq.encapsulate(senderIdentityKeyPair, x25519generateKeyPair(), pub, uint8ArrayBucketKey))
 					} else {
 						encrypted = await this.rsa.encrypt(pub, uint8ArrayBucketKey)
