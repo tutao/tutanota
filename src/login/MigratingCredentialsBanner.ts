@@ -32,18 +32,20 @@ export class MigratingCredentialsBanner implements Component<CredentialsBannerAt
 	}
 
 	view(vnode: Vnode<CredentialsBannerAttrs>) {
-		const legacy = isLegacyDomain()
-		// do not show anything on the new domain if we already attempted migration
+		const isLegacy = isLegacyDomain()
+		const hasAttempted = vnode.attrs.viewModel.hasAttemptedCredentials()
+		// do not show anything on the new domain if we already attempted migration,
+		// but always show it on the old domain
 		// also, we have a time delay on the migration for a two-stage rollout.
-		if (vnode.attrs.viewModel.hasAttemptedCredentials() || !isBrowser() || !ACTIVATED_MIGRATION()) return null
+		if ((hasAttempted && !isLegacy) || !isBrowser() || !ACTIVATED_MIGRATION()) return null
 		return m(
 			".flex-center",
 			m(
 				".flex.col.flex-grow-shrink-auto.max-width-m.hide-outline.plr-l",
 				m(".plr-l.pt-s.pb.content-bg.border-radius-big", { style: { color: theme.navigation_button } }, [
 					m(".flex.row.items-center", [m("h6.flex-grow.b.mb-s", lang.get("tutanotaToTuta_msg")), this.renderDismissButton(vnode.attrs)]),
-					m("div", legacy ? lang.get("movedDomainLegacy_msg") : lang.get("getCredsFromLegacy_msg")),
-					this.renderLinkToOtherDomain(vnode),
+					m("div", isLegacy ? lang.get("movedDomainLegacy_msg") : lang.get("getCredsFromLegacy_msg")),
+					this.renderLinkToOtherDomain(vnode, isLegacy && hasAttempted),
 				]),
 			),
 		)
@@ -64,8 +66,12 @@ export class MigratingCredentialsBanner implements Component<CredentialsBannerAt
 		)
 	}
 
-	private renderLinkToOtherDomain(vnode: Vnode<CredentialsBannerAttrs>): Children {
-		const href = this.childOrigin + "/migrate"
+	/**
+	 * @param vnode
+	 * @param directToLogin {boolean} whether to skip linking to /migrate
+	 */
+	private renderLinkToOtherDomain(vnode: Vnode<CredentialsBannerAttrs>, directToLogin: boolean): Children {
+		const href = directToLogin ? this.childOrigin : this.childOrigin + "/migrate"
 		return m(
 			"a",
 			{
