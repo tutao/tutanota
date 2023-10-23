@@ -74,7 +74,8 @@ export class RestClient {
 				}
 
 				const origin = options.baseUrl ?? getApiBaseUrl(this.domainConfig)
-				const resourceURL = new URL(origin + path)
+				const resourceURL = new URL(origin)
+				resourceURL.pathname = path
 				const url = addParamsToUrl(resourceURL, queryParams)
 				const xhr = new XMLHttpRequest()
 				xhr.open(method, url.toString())
