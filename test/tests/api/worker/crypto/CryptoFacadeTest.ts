@@ -666,8 +666,8 @@ o.spec("crypto facade", function () {
 
 		const recipientKeyPair = createKeyPair({
 			_id: "keyPairId",
-			pubEccKey: hexToUint8Array(x25519publicKeyToHex(pqKeyPairs.x25519KeyPair.pub)),
-			symEncPrivEccKey: aesEncrypt(gk, hexToUint8Array(x25519privateKeyToHex(pqKeyPairs.x25519KeyPair.priv))),
+			pubEccKey: hexToUint8Array(x25519publicKeyToHex(pqKeyPairs.x25519KeyPair.publicKey)),
+			symEncPrivEccKey: aesEncrypt(gk, hexToUint8Array(x25519privateKeyToHex(pqKeyPairs.x25519KeyPair.privateKey))),
 			pubKyberKey: hexToUint8Array(kyberPublicKeyToHex(pqKeyPairs.kyberKeyPair.publicKey)),
 			symEncPrivKyberKey: aesEncrypt(gk, hexToUint8Array(kyberPrivateKeyToHex(pqKeyPairs.kyberKeyPair.privateKey))),
 		})
@@ -1250,8 +1250,8 @@ o.spec("crypto facade", function () {
 
 		const recipientKeyPair = createKeyPair({
 			_id: "keyPairId",
-			pubEccKey: hexToUint8Array(x25519publicKeyToHex(pqKeyPairs.x25519KeyPair.pub)),
-			symEncPrivEccKey: aesEncrypt(userGk, hexToUint8Array(x25519privateKeyToHex(pqKeyPairs.x25519KeyPair.priv))),
+			pubEccKey: hexToUint8Array(x25519publicKeyToHex(pqKeyPairs.x25519KeyPair.publicKey)),
+			symEncPrivEccKey: aesEncrypt(userGk, hexToUint8Array(x25519privateKeyToHex(pqKeyPairs.x25519KeyPair.privateKey))),
 			pubKyberKey: hexToUint8Array(kyberPublicKeyToHex(pqKeyPairs.kyberKeyPair.publicKey)),
 			symEncPrivKyberKey: aesEncrypt(userGk, hexToUint8Array(kyberPrivateKeyToHex(pqKeyPairs.kyberKeyPair.privateKey))),
 		})

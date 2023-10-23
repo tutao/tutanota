@@ -10,7 +10,7 @@ o.spec("PQMessage test", function () {
 				ephemeralPubKey: stringToUtf8Uint8Array("eph"),
 				encapsulation: {
 					kyberCipherText: stringToUtf8Uint8Array("kyberCipherText"),
-					bucketKeyCipherText: stringToUtf8Uint8Array("bucketKeyCipherText"),
+					kekEncBucketKey: stringToUtf8Uint8Array("bucketKeyCipherText"),
 				},
 			}
 

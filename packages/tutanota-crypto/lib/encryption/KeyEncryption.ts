@@ -70,7 +70,7 @@ export function decryptKeyPair(
 		const kyberPrivateKey = hexToKyberPrivateKey(uint8ArrayToHex(aesDecrypt(encryptionKey, assertNotNull(keyPair.symEncPrivKyberKey))))
 
 		return new PQKeyPairs(
-			{ pub: eccPublicKey, priv: eccPrivateKey },
+			{ publicKey: eccPublicKey, privateKey: eccPrivateKey },
 			{
 				publicKey: kyberPublicKey,
 				privateKey: kyberPrivateKey,
