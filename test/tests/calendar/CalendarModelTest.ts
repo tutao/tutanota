@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import type { CalendarEvent, CalendarEventUpdate, CalendarGroupRoot } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import type { CalendarEvent, CalendarGroupRoot } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	CalendarEventTypeRef,
 	CalendarEventUpdateTypeRef,
@@ -35,6 +35,7 @@ import { FileController } from "../../../src/file/FileController.js"
 import { func, matchers, when } from "testdouble"
 import { elementIdPart, getElementId, listIdPart } from "../../../src/api/common/utils/EntityUtils.js"
 import { createDataFile } from "../../../src/api/common/DataFile.js"
+import { SessionKeyNotFoundError } from "../../../src/api/common/error/SessionKeyNotFoundError.js"
 
 o.spec("CalendarModel", function () {
 	o.spec("incrementByRepeatPeriod", function () {
@@ -623,15 +624,22 @@ o.spec("CalendarModel", function () {
 			const eventControllerMock = makeEventController()
 
 			fileControllerMock.getAsDataFile = func<FileController["getAsDataFile"]>()
-			when(fileControllerMock.getAsDataFile(matchers.anything())).thenDo((event) => {
-				return Promise.resolve(createDataFile("event.ics", "ical", stringToUtf8Uint8Array("UID: " + uid), "cid"))
-			})
+			when(fileControllerMock.getAsDataFile(matchers.anything())).thenResolve(
+				createDataFile("event.ics", "ical", stringToUtf8Uint8Array("UID: " + uid), "cid"),
+			)
 
 			const actuallyErase = restClientMock.erase
 			restClientMock.erase = func<EntityRestClientMock["erase"]>()
 			when(restClientMock.erase(matchers.anything())).thenDo((what) => {
 				return actuallyErase.apply(restClientMock, [what])
 			})
+
+			const actuallyLoad = restClientMock.load
+			restClientMock.load = func<EntityRestClientMock["load"]>()
+			when(restClientMock.load(matchers.anything(), matchers.anything()), { ignoreExtraArgs: true }).thenDo((...args) =>
+				actuallyLoad.apply(restClientMock, args),
+			)
+			when(restClientMock.load(FileTypeRef, calendarFile._id), { ignoreExtraArgs: true }).thenReject(new SessionKeyNotFoundError("test"))
 
 			const model = init({
 				workerClient,
@@ -651,8 +659,10 @@ o.spec("CalendarModel", function () {
 				operation: OperationType.CREATE,
 			})
 
-			o(model.getFileIdToSkippedCalendarEventUpdates().get(getElementId(calendarFile)) as CalendarEventUpdate).deepEquals(eventUpdate)
+			o(model.getFileIdToSkippedCalendarEventUpdates().get(getElementId(calendarFile))!).deepEquals(eventUpdate)
 			verify(restClientMock.erase(eventUpdate), { times: 0 })
+
+			restClientMock.load = actuallyLoad
 
 			// set owner enc session key to ensure that we can process the calendar event file
 			calendarFile._ownerEncSessionKey = hexToUint8Array("01")
