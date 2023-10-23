@@ -15,6 +15,7 @@
 		"build-packages": "node buildSrc/buildPackages.js all",
 		"build-runtime-packages": "node buildSrc/buildPackages.js runtime",
 		"start": "./start-desktop.sh",
+		"test-ci": "npm run --if-present test -ws && cd test && node test",
 		"test": "npm run --if-present test -ws && cd test && node --enable-source-maps test",
 		"test:app": "cd test && node --enable-source-maps test",
 		"types": "tsc --incremental true --noEmit true",

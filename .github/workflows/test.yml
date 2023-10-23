@@ -28,7 +28,7 @@ jobs:
       - name: run test in node
         run: |
           npm run build-packages
-          npm test
+          npm run test-ci
       - name: install chrome
         id: setup-chrome
         uses: browser-actions/setup-chrome@v1
