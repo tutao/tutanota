@@ -355,9 +355,12 @@ import("./translations/en")
 					const { isLegacyDomain } = await import("./login/LoginViewModel.js")
 					if (isLegacyDomain()) {
 						const domainConfigProvider = locator.domainConfigProvider()
-						const target = new URL(domainConfigProvider.getCurrentDomainConfig().partneredDomainTransitionUrl)
+						const target = new URL(
+							domainConfigProvider.getDomainConfigForHostname(location.hostname, location.protocol, location.port).partneredDomainTransitionUrl,
+						)
 						target.pathname = "signup"
 						target.search = location.search
+						target.hash = location.hash
 						console.log("redirect to", target.toString())
 						window.open(target, "_self")
 						return null
