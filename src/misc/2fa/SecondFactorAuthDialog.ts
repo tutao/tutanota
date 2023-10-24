@@ -96,7 +96,14 @@ export class SecondFactorAuthDialog {
 			canLoginWithU2f = canAttempt.length !== 0
 			// If we don't have any key we can use to log in we need to show a message to attempt the login on another domain.
 
-			otherDomainLoginUrl = cannotAttempt.length > 0 ? appIdToLoginUrl(getFirstOrThrow(cannotAttempt).appId, this.domainConfigProvider) : null
+			if (cannotAttempt.length > 0) {
+				const loginUrlString = appIdToLoginUrl(getFirstOrThrow(cannotAttempt).appId, this.domainConfigProvider)
+				const loginUrl = new URL(loginUrlString)
+				loginUrl.searchParams.set("noAutoLogin", "true")
+				otherDomainLoginUrl = loginUrl.toString()
+			} else {
+				otherDomainLoginUrl = null
+			}
 		} else {
 			canLoginWithU2f = false
 			otherDomainLoginUrl = null
