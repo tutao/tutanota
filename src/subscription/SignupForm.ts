@@ -7,7 +7,7 @@ import { Button, ButtonType } from "../gui/base/Button.js"
 import { getWhitelabelRegistrationDomains } from "../login/LoginView"
 import type { NewAccountData } from "./UpgradeSubscriptionWizard"
 import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../settings/SelectMailAddressForm"
-import { AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../api/common/TutanotaConstants"
+import { AccountType, TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "../api/common/TutanotaConstants"
 import { PasswordForm, PasswordModel } from "../settings/PasswordForm"
 import type { CheckboxAttrs } from "../gui/base/Checkbox.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
@@ -79,7 +79,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		const a = vnode.attrs
 		const mailAddressFormAttrs: SelectMailAddressFormAttrs = {
 			availableDomains: locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
-				? TUTANOTA_MAIL_ADDRESS_DOMAINS
+				? TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS
 				: getWhitelabelRegistrationDomains(),
 			onValidationResult: (email, validationResult) => {
 				this.__mailValid(validationResult.isValid)

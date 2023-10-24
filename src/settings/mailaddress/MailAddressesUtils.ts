@@ -1,6 +1,6 @@
 import { CustomerInfoTypeRef, CustomerTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { getCustomMailDomains } from "../../api/common/utils/Utils.js"
-import { AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../../api/common/TutanotaConstants.js"
+import { AccountType, TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "../../api/common/TutanotaConstants.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { addAll, neverNull } from "@tutao/tutanota-utils"
@@ -15,7 +15,7 @@ export function getAvailableDomains(entityClient: EntityClient, logins: LoginCon
 				logins.getUserController().user.accountType !== AccountType.STARTER &&
 				(availableDomains.length === 0 || logins.getUserController().isGlobalAdmin())
 			) {
-				addAll(availableDomains, TUTANOTA_MAIL_ADDRESS_DOMAINS)
+				addAll(availableDomains, TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS)
 			}
 
 			return availableDomains
