@@ -113,7 +113,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 
 	showNextPage(): void {
 		if (this._dom) {
-			emitWizardEvent(this._dom, WizardEventType.SHOWNEXTPAGE)
+			emitWizardEvent(this._dom, WizardEventType.SHOW_NEXT_PAGE)
 		}
 	}
 

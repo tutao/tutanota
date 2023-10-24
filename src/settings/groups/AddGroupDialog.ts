@@ -17,25 +17,27 @@ import { getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
 import type { GroupManagementFacade } from "../../api/worker/facades/lazy/GroupManagementFacade.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
-import { getAvailableDomains } from "../mailaddress/MailAddressesUtils.js"
+import { EmailDomainData, getAvailableDomains } from "../mailaddress/MailAddressesUtils.js"
 import { getAvailablePlansWithTemplates, toFeatureType } from "../../subscription/SubscriptionUtils.js"
 
 assertMainOrNode()
 
 export type AddGroupDialogAttrs = {
 	groupType: GroupType
-	availableDomains: Array<string>
+	selectedDomain: EmailDomainData
+	availableDomains: Array<EmailDomainData>
 	availableGroupTypes: Array<GroupType>
 	name: string
 	onGroupNameChanged: (name: string) => unknown
 	onGroupTypeChanged: (type: GroupType) => unknown
-	onEmailChanged: (arg0: string, arg1: ValidationResult) => unknown
-	onBusyStateChanged: (arg0: boolean) => unknown
+	onEmailChanged: (emailAddress: string, validationResult: ValidationResult) => unknown
+	onBusyStateChanged: (busy: boolean) => unknown
+	onDomainChanged: (domain: EmailDomainData) => unknown
 }
 
 export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 	view(vnode: Vnode<AddGroupDialogAttrs>): Children {
-		const { availableGroupTypes, groupType, availableDomains, onEmailChanged, onBusyStateChanged } = vnode.attrs
+		const { availableGroupTypes, groupType, availableDomains, onEmailChanged, onBusyStateChanged, selectedDomain, onDomainChanged } = vnode.attrs
 		return [
 			availableGroupTypes.length > 1
 				? m(DropDownSelector, {
@@ -58,9 +60,11 @@ export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 			groupType === GroupType.Mail
 				? m("", [
 						m(SelectMailAddressForm, {
+							selectedDomain,
 							availableDomains,
 							onValidationResult: onEmailChanged,
 							onBusyStateChanged,
+							onDomainChanged,
 						}),
 						m(".mt-m", ""),
 						m("span.small", lang.get("moreInfo_msg") + " "),
@@ -78,12 +82,13 @@ export class AddGroupDialogViewModel {
 	mailAddress: string
 	groupTypes: Array<GroupType>
 	errorMessageId: TranslationKey | null
-	availableDomains: Array<string>
+	availableDomains: Array<EmailDomainData>
+	selectedDomain: EmailDomainData
 	groupType: GroupType
 	isVerifactionBusy: boolean
 	_groupManagementFacade: GroupManagementFacade
 
-	constructor(availableDomains: Array<string>, groupManagementFacade: GroupManagementFacade) {
+	constructor(availableDomains: Array<EmailDomainData>, groupManagementFacade: GroupManagementFacade) {
 		this.availableDomains = availableDomains
 		this._groupManagementFacade = groupManagementFacade
 		this.groupTypes = this.getAvailableGroupTypes()
@@ -92,6 +97,8 @@ export class AddGroupDialogViewModel {
 		this.mailAddress = ""
 		this.errorMessageId = "mailAddressNeutral_msg"
 		this.isVerifactionBusy = false
+
+		this.selectedDomain = getFirstOrThrow(availableDomains)
 	}
 
 	createMailGroup(): Promise<void> {
@@ -126,7 +133,7 @@ export class AddGroupDialogViewModel {
 }
 
 export function show(): void {
-	getAvailableDomains(locator.entityClient, locator.logins).then((availableDomains) => {
+	getAvailableDomains(locator.logins).then((availableDomains) => {
 		const viewModel = new AddGroupDialogViewModel(availableDomains, locator.groupManagementFacade)
 		if (viewModel.getAvailableGroupTypes().length === 0) return Dialog.message("selectionNotAvailable_msg")
 
@@ -172,6 +179,7 @@ export function show(): void {
 			title: viewModel.groupType == GroupType.Mail ? lang.get("createSharedMailbox_label") : lang.get("addGroup_label"),
 			child: () =>
 				m(AddGroupDialog, {
+					selectedDomain: viewModel.selectedDomain,
 					groupType: viewModel.groupType,
 					availableDomains: availableDomains,
 					availableGroupTypes: viewModel.groupTypes,
@@ -180,6 +188,7 @@ export function show(): void {
 					onGroupTypeChanged: (newType) => (viewModel.groupType = newType),
 					onEmailChanged: (mailAddress, validationResult) => viewModel.onEmailChanged(mailAddress, validationResult),
 					onBusyStateChanged: (isBusy) => (viewModel.isVerifactionBusy = isBusy),
+					onDomainChanged: (domain) => (viewModel.selectedDomain = domain),
 				}),
 			okAction: addGroupOkAction,
 		})

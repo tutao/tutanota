@@ -57,8 +57,9 @@ export interface WizardPageAttrs<T> {
 export type WizardPageN<T> = Component<WizardPageAttrs<T>>
 
 export const enum WizardEventType {
-	SHOWNEXTPAGE = "showNextWizardDialogPage",
-	CLOSEDIALOG = "closeWizardDialog",
+	SHOW_NEXT_PAGE = "showNextWizardDialogPage",
+	SHOW_PREVIOUS_PAGE = "showPreviousWizardDialogPage",
+	CLOSE_DIALOG = "closeWizardDialog",
 }
 
 // A WizardPage dispatches this event to inform the parent WizardDialogN to close the dialog
@@ -75,6 +76,7 @@ export function emitWizardEvent(dom: HTMLElement | null, eventType: WizardEventT
 class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 	private _closeWizardDialogListener!: EventListener
 	private _showNextWizardDialogPageListener!: EventListener
+	private _showPreviousWizardDialogPageListener!: EventListener
 
 	oncreate(vnode: VnodeDOM<WizardDialogAttrs<T>>) {
 		// We listen for events triggered by the child WizardPages to close the dialog or show the next page
@@ -95,14 +97,24 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 			}
 		}
 
-		dom.addEventListener(WizardEventType.CLOSEDIALOG, this._closeWizardDialogListener)
-		dom.addEventListener(WizardEventType.SHOWNEXTPAGE, this._showNextWizardDialogPageListener)
+		this._showPreviousWizardDialogPageListener = (e: Event) => {
+			e.stopPropagation()
+
+			if (!vnode.attrs.currentPage?.attrs.preventGoBack) {
+				vnode.attrs.goToPreviousPageOrClose()
+			}
+		}
+
+		dom.addEventListener(WizardEventType.CLOSE_DIALOG, this._closeWizardDialogListener)
+		dom.addEventListener(WizardEventType.SHOW_NEXT_PAGE, this._showNextWizardDialogPageListener)
+		dom.addEventListener(WizardEventType.SHOW_PREVIOUS_PAGE, this._showPreviousWizardDialogPageListener)
 	}
 
 	onremove(vnode: VnodeDOM<WizardDialogAttrs<T>>) {
 		const dom: HTMLElement = vnode.dom as HTMLElement
-		if (this._closeWizardDialogListener) dom.removeEventListener(WizardEventType.CLOSEDIALOG, this._closeWizardDialogListener)
-		if (this._showNextWizardDialogPageListener) dom.removeEventListener(WizardEventType.SHOWNEXTPAGE, this._showNextWizardDialogPageListener)
+		if (this._closeWizardDialogListener) dom.removeEventListener(WizardEventType.CLOSE_DIALOG, this._closeWizardDialogListener)
+		if (this._showNextWizardDialogPageListener) dom.removeEventListener(WizardEventType.SHOW_NEXT_PAGE, this._showNextWizardDialogPageListener)
+		if (this._showPreviousWizardDialogPageListener) dom.removeEventListener(WizardEventType.SHOW_PREVIOUS_PAGE, this._showPreviousWizardDialogPageListener)
 	}
 
 	view(vnode: Vnode<WizardDialogAttrs<T>>) {

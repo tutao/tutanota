@@ -53,7 +53,7 @@ export class EnterDomainPage implements WizardPageN<AddDomainData> {
 					m(Button, {
 						type: ButtonType.Login,
 						label: "next_action",
-						click: () => emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOWNEXTPAGE),
+						click: () => emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE),
 					}),
 				),
 			),

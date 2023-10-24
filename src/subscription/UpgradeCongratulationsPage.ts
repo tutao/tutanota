@@ -75,7 +75,7 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 		}
 
 		promise.then(() => {
-			emitWizardEvent(dom, WizardEventType.SHOWNEXTPAGE)
+			emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 		})
 	}
 }

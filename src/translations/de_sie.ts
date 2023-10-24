@@ -1599,6 +1599,9 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"paidEmailDomainSignup_msg": "Für die Nutzung der tuta.com-Domain ist ein kostenpflichtiges Abonnement erforderlich.",
+		"paidEmailDomainLegacy_msg": "Um die tuta.com-Domain zu nutzen, ist eines der neuen Abonnements erforderlich.",
+		"changePaidPlan_msg": "Möchtest du dein Abonnement jetzt wechseln?"
 	}
 }

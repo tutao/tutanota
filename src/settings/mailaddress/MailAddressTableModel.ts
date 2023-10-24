@@ -4,7 +4,7 @@ import { MailAddressFacade } from "../../api/worker/facades/lazy/MailAddressFaca
 import { LoginController } from "../../api/main/LoginController.js"
 import { EntityUpdateData, EventController, isUpdateFor, isUpdateForTypeRef } from "../../api/main/EventController.js"
 import { OperationType } from "../../api/common/TutanotaConstants.js"
-import { getAvailableDomains } from "./MailAddressesUtils.js"
+import { EmailDomainData, getAvailableDomains } from "./MailAddressesUtils.js"
 import { GroupInfo, GroupInfoTypeRef, MailAddressAliasServiceReturn } from "../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, lazyMemoized } from "@tutao/tutanota-utils"
 import { isTutanotaMailAddress } from "../../mail/model/MailUtils.js"
@@ -122,8 +122,8 @@ export class MailAddressTableModel {
 		}
 	}
 
-	getAvailableDomains(): Promise<string[]> {
-		return getAvailableDomains(this.entityClient, this.logins)
+	getAvailableDomains(): Promise<EmailDomainData[]> {
+		return getAvailableDomains(this.logins)
 	}
 
 	async setAliasStatus(address: string, restore: boolean): Promise<void> {

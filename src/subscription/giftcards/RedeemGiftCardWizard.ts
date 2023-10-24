@@ -184,7 +184,7 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 		const nextPage = (method: GetCredentialsMethod) => {
 			locator.logins.logout(false).then(() => {
 				a.data.credentialsMethod = method
-				emitWizardEvent(this.dom, WizardEventType.SHOWNEXTPAGE)
+				emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
 			})
 		}
 
@@ -286,7 +286,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 					try {
 						// If they try to login with a mail address that is stored, we want to swap out the old session with a new one
 						await showProgressDialog("pleaseWait_msg", model.loginWithFormCredentials(this.mailAddress(), this.password()))
-						emitWizardEvent(this.domElement, WizardEventType.SHOWNEXTPAGE)
+						emitWizardEvent(this.domElement, WizardEventType.SHOW_NEXT_PAGE)
 					} catch (e) {
 						if (e instanceof UserError) {
 							showUserError(e)
@@ -312,7 +312,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 			onCredentialsSelected: async (encryptedCredentials) => {
 				try {
 					await showProgressDialog("pleaseWait_msg", model.loginWithStoredCredentials(encryptedCredentials))
-					emitWizardEvent(this.domElement, WizardEventType.SHOWNEXTPAGE)
+					emitWizardEvent(this.domElement, WizardEventType.SHOW_NEXT_PAGE)
 				} catch (e) {
 					if (e instanceof UserError) {
 						showUserError(e)
@@ -328,13 +328,13 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 	private renderSignupPage(model: RedeemGiftCardModel): Children {
 		return m(SignupForm, {
 			// After having an account created we log them in to be in the same state as if they had selected an existing account
-			newSignupHandler: (newAccountData) => {
+			onComplete: (newAccountData) => {
 				showProgressDialog(
 					"pleaseWait_msg",
 					model
 						.handleNewSignup(newAccountData)
 						.then(() => {
-							emitWizardEvent(this.domElement, WizardEventType.SHOWNEXTPAGE)
+							emitWizardEvent(this.domElement, WizardEventType.SHOW_NEXT_PAGE)
 							m.redraw()
 						})
 						.catch((e) => {
@@ -345,6 +345,9 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 							})
 						}),
 				)
+			},
+			onChangePlan: () => {
+				emitWizardEvent(this.domElement, WizardEventType.SHOW_PREVIOUS_PAGE)
 			},
 			readonly: model.newAccountData != null,
 			prefilledMailAddress: model.newAccountData ? model.newAccountData.mailAddress : "",
@@ -429,7 +432,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 
 							model
 								.redeemGiftCard(this.country)
-								.then(() => emitWizardEvent(this.dom, WizardEventType.CLOSEDIALOG))
+								.then(() => emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG))
 								.catch(ofClass(UserError, showUserError))
 								.catch(ofClass(CancelledError, noOp))
 						},

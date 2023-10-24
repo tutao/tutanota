@@ -17,6 +17,7 @@ import { AddressInfo, AddressStatus, MailAddressTableModel } from "./MailAddress
 import { showAddAliasDialog } from "./AddAliasDialog.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
+import { PlanType } from "../../api/common/TutanotaConstants.js"
 
 assertMainOrNode()
 
@@ -83,12 +84,13 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 		]
 	}
 
-	private onAddAlias(attrs: MailAddressTableAttrs) {
+	private async onAddAlias(attrs: MailAddressTableAttrs) {
 		const userController = locator.logins.getUserController()
 		if (userController.isFreeAccount()) {
 			showNotAvailableForFreeDialog()
 		} else {
-			showAddAliasDialog(attrs.model)
+			const isNewPaidPlan = await userController.isNewPaidPlan()
+			showAddAliasDialog(attrs.model, isNewPaidPlan)
 		}
 	}
 }

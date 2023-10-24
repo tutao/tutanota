@@ -3,10 +3,8 @@ import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import { isMailAddress } from "../misc/FormatValidator"
 import { AccessDeactivatedError } from "../api/common/error/RestError"
-import { getFirstOrThrow } from "@tutao/tutanota-utils"
 import { formatMailAddressFromParts } from "../misc/Formatter"
 import { Icon } from "../gui/base/Icon"
-import { BootIcons } from "../gui/base/icons/BootIcons"
 import { locator } from "../api/main/MainLocator"
 import { assertMainOrNode } from "../api/common/Env"
 import { isTutanotaMailAddress } from "../mail/model/MailUtils.js"
@@ -15,17 +13,20 @@ import { Autocomplete, inputLineHeight, TextField } from "../gui/base/TextField.
 import { attachDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
+import { EmailDomainData } from "./mailaddress/MailAddressesUtils.js"
+import { BootIcons } from "../gui/base/icons/BootIcons.js"
 
 assertMainOrNode()
 
 const VALID_MESSAGE_ID = "mailAddressAvailable_msg"
 
 export interface SelectMailAddressFormAttrs {
-	availableDomains: Array<string>
+	selectedDomain: EmailDomainData
+	availableDomains: readonly EmailDomainData[]
 	onValidationResult: (emailAddress: string, validationResult: ValidationResult) => unknown
 	onBusyStateChanged: (isBusy: boolean) => unknown
 	injectionsRightButtonAttrs?: IconButtonAttrs | null
-	onDomainChanged?: (domain: string) => unknown
+	onDomainChanged: (domain: EmailDomainData) => unknown
 	mailAddressNAError?: TranslationKey
 }
 
@@ -36,17 +37,24 @@ export interface ValidationResult {
 
 export class SelectMailAddressForm implements Component<SelectMailAddressFormAttrs> {
 	private username: string
-	private domain: string
 	private messageId: TranslationKey | null
 	private checkAddressTimeout: TimeoutID | null
 	private isVerificationBusy: boolean
+	private lastAttrs: SelectMailAddressFormAttrs
 
 	constructor({ attrs }: Vnode<SelectMailAddressFormAttrs>) {
+		this.lastAttrs = attrs
 		this.isVerificationBusy = false
 		this.checkAddressTimeout = null
-		this.domain = getFirstOrThrow(attrs.availableDomains)
 		this.username = ""
 		this.messageId = "mailAddressNeutral_msg"
+	}
+
+	onupdate(vnode: Vnode<SelectMailAddressFormAttrs>) {
+		if (this.lastAttrs.selectedDomain !== vnode.attrs.selectedDomain) {
+			this.verifyMailAddress(vnode.attrs)
+		}
+		this.lastAttrs = vnode.attrs
 	}
 
 	view({ attrs }: Vnode<SelectMailAddressFormAttrs>): Children {
@@ -85,7 +93,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 							lineHeight: px(inputLineHeight),
 						},
 					},
-					`@${this.domain}`,
+					`@${attrs.selectedDomain.domain}`,
 				),
 				attrs.availableDomains.length > 1
 					? m(
@@ -108,8 +116,8 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		})
 	}
 
-	private getCleanMailAddress() {
-		return formatMailAddressFromParts(this.username, this.domain)
+	private getCleanMailAddress(attrs: SelectMailAddressFormAttrs) {
+		return formatMailAddressFromParts(this.username, attrs.selectedDomain.domain)
 	}
 
 	private addressHelpLabel(): Children {
@@ -125,14 +133,13 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		})
 	}
 
-	private createDropdownItemAttrs(domain: string, attrs: SelectMailAddressFormAttrs): DropdownButtonAttrs {
+	private createDropdownItemAttrs(domainData: EmailDomainData, attrs: SelectMailAddressFormAttrs): DropdownButtonAttrs {
 		return {
-			label: () => domain,
+			label: () => domainData.domain,
 			click: () => {
-				attrs.onDomainChanged?.(domain)
-				this.domain = domain
-				this.verifyMailAddress(attrs)
+				attrs.onDomainChanged(domainData)
 			},
+			icon: domainData.isPaid ? BootIcons.Premium : undefined,
 		}
 	}
 
@@ -155,7 +162,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		const { onValidationResult, onBusyStateChanged } = attrs
 		this.checkAddressTimeout && clearTimeout(this.checkAddressTimeout)
 
-		const cleanMailAddress = this.getCleanMailAddress()
+		const cleanMailAddress = this.getCleanMailAddress(attrs)
 		const cleanUsername = this.username.trim().toLowerCase()
 
 		if (cleanUsername === "") {
@@ -187,7 +194,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		this.onBusyStateChanged(true, onBusyStateChanged)
 
 		this.checkAddressTimeout = setTimeout(async () => {
-			if (this.getCleanMailAddress() !== cleanMailAddress) return
+			if (this.getCleanMailAddress(attrs) !== cleanMailAddress) return
 
 			let result: ValidationResult
 			try {
@@ -200,12 +207,12 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 					throw e
 				}
 			} finally {
-				if (this.getCleanMailAddress() === cleanMailAddress) {
+				if (this.getCleanMailAddress(attrs) === cleanMailAddress) {
 					this.onBusyStateChanged(false, onBusyStateChanged)
 				}
 			}
 
-			if (this.getCleanMailAddress() === cleanMailAddress) {
+			if (this.getCleanMailAddress(attrs) === cleanMailAddress) {
 				this.onValidationFinished(cleanMailAddress, result, onValidationResult)
 			}
 		}, 500)

@@ -77,12 +77,12 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 			},
 			okAction: (dialog: Dialog) => {
 				dialog.close()
-				emitWizardEvent(dom, WizardEventType.CLOSEDIALOG)
+				emitWizardEvent(dom, WizardEventType.CLOSE_DIALOG)
 			},
 		}
 		return _updateDnsStatus(data.domainStatus).then(() => {
 			if (data.domainStatus.areRecordsFine()) {
-				emitWizardEvent(dom, WizardEventType.SHOWNEXTPAGE) // The wizard will close the dialog as this is the last page
+				emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE) // The wizard will close the dialog as this is the last page
 			} else {
 				Dialog.showActionDialog(leaveUnfinishedDialogAttrs)
 			}
