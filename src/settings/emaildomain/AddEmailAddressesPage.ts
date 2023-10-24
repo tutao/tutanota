@@ -18,12 +18,14 @@ import { InvalidDataError, LimitReachedError } from "../../api/common/error/Rest
 import { assertMainOrNode } from "../../api/common/Env"
 import { Icons } from "../../gui/base/icons/Icons"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
-import type Stream from "mithril/stream"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 
 assertMainOrNode()
 
+/**
+ * Part of the custom domain wizard where user can add mail addresses for the new domain.
+ */
 export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAttrs> {
 	oncreate({ attrs }: VnodeDOM<AddEmailAddressesPageAttrs>) {
 		attrs.data.editAliasFormAttrs.model.init()
@@ -46,8 +48,11 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 				}
 			}),
 		}
+		let domainInfo = { domain: a.data.domain(), isPaid: false }
 		const mailFormAttrs: SelectMailAddressFormAttrs = {
-			availableDomains: [a.data.domain()],
+			selectedDomain: domainInfo,
+			// it is a custom domain so it's not a special one
+			availableDomains: [domainInfo],
 			onValidationResult: (email, validationResult) => {
 				if (validationResult.isValid) {
 					a.mailAddress = email
@@ -56,6 +61,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 					a.errorMessageId = validationResult.errorId
 				}
 			},
+			onDomainChanged: (domain) => (domainInfo = domain),
 			onBusyStateChanged: (isBusy) => (a.isMailVerificationBusy = isBusy),
 			injectionsRightButtonAttrs: {
 				title: "addEmailAlias_label",
@@ -84,7 +90,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 					m(Button, {
 						type: ButtonType.Login,
 						label: "next_action",
-						click: () => emitWizardEvent((vnode as VnodeDOM<AddEmailAddressesPageAttrs>).dom as HTMLElement, WizardEventType.SHOWNEXTPAGE),
+						click: () => emitWizardEvent((vnode as VnodeDOM<AddEmailAddressesPageAttrs>).dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE),
 					}),
 				),
 			),

@@ -1,7 +1,6 @@
 import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
-import stream from "mithril/stream"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../../api/common/TutanotaConstants.js"
+import { PlanType, TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../../api/common/TutanotaConstants.js"
 import m from "mithril"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
@@ -15,12 +14,12 @@ import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js
 
 const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 
-export function showAddAliasDialog(model: MailAddressTableModel) {
+export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: boolean) {
 	model.getAvailableDomains().then((domains) => {
 		let isVerificationBusy = false
 		let mailAddress: string
 		let formErrorId: TranslationKey | null = "mailAddressNeutral_msg"
-		let formDomain = stream(getFirstOrThrow(domains))
+		let formDomain = getFirstOrThrow(domains)
 		let senderName = model.defaultSenderName()
 
 		const addEmailAliasOkAction = (dialog: Dialog) => {
@@ -36,14 +35,13 @@ export function showAddAliasDialog(model: MailAddressTableModel) {
 			dialog.close()
 		}
 
-		const isTutanotaDomain = formDomain.map((d) => TUTANOTA_MAIL_ADDRESS_DOMAINS.includes(d))
-
 		Dialog.showActionDialog({
 			title: lang.get("addEmailAlias_label"),
 			child: {
 				view: () => {
 					return [
 						m(SelectMailAddressForm, {
+							selectedDomain: formDomain,
 							availableDomains: domains,
 							onValidationResult: (email, validationResult) => {
 								if (validationResult.isValid) {
@@ -54,12 +52,30 @@ export function showAddAliasDialog(model: MailAddressTableModel) {
 								}
 							},
 							onBusyStateChanged: (isBusy) => (isVerificationBusy = isBusy),
-							onDomainChanged: (domain) => formDomain(domain),
+							onDomainChanged: (domain) => {
+								if (!domain.isPaid || isNewPaidPlan) {
+									formDomain = domain
+								} else {
+									Dialog.confirm(() => `${lang.get("paidEmailDomainLegacy_msg")}\n${lang.get("changePaidPlan_msg")}`).then(
+										async (confirmed) => {
+											if (confirmed) {
+												isNewPaidPlan = await showPlanUpgradeRequiredDialog([
+													PlanType.Revolutionary,
+													PlanType.Legend,
+													PlanType.Essential,
+													PlanType.Advanced,
+													PlanType.Unlimited,
+												])
+											}
+										},
+									)
+								}
+							},
 						}),
 						m(
 							ExpanderPanel,
 							{
-								expanded: isTutanotaDomain(),
+								expanded: TUTANOTA_MAIL_ADDRESS_DOMAINS.includes(formDomain.domain),
 							},
 							m(".pt", lang.get("permanentAliasWarning_msg")),
 						),

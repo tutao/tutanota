@@ -95,7 +95,8 @@ export async function showUpgradeWizard(logins: LoginController, acceptedPlans: 
 		registrationDataId: null,
 		priceInfoTextId: priceDataProvider.getPriceInfoMessage(),
 		upgradeType: UpgradeType.Initial,
-		currentPlan: PlanType.Free,
+		// Free used to be always selected here for current plan, but resulted in it displaying "free" as current plan for legacy users
+		currentPlan: logins.getUserController().isFreeAccount() ? PlanType.Free : null,
 		subscriptionParameters: null,
 		planPrices: priceDataProvider,
 		featureListProvider: featureListProvider,

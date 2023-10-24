@@ -1586,6 +1586,9 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"paidEmailDomainSignup_msg": "In order to register an address with the tuta.com domain, a subscription is needed.",
+		"paidEmailDomainLegacy_msg": "In order to use the tuta.com domain, one of the new subscriptions is needed.",
+		"changePaidPlan_msg": "Would you like to switch your plan now?"
 	}
 }

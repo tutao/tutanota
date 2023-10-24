@@ -7,12 +7,12 @@ import { Button, ButtonType } from "../gui/base/Button.js"
 import { getWhitelabelRegistrationDomains } from "../login/LoginView"
 import type { NewAccountData } from "./UpgradeSubscriptionWizard"
 import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../settings/SelectMailAddressForm"
-import { AccountType, TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "../api/common/TutanotaConstants"
+import { AccountType, DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN, TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "../api/common/TutanotaConstants"
 import { PasswordForm, PasswordModel } from "../settings/PasswordForm"
 import type { CheckboxAttrs } from "../gui/base/Checkbox.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import type { lazy } from "@tutao/tutanota-utils"
-import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
+import { getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -21,13 +21,15 @@ import { locator } from "../api/main/MainLocator"
 import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { runCaptchaFlow } from "./Captcha.js"
-import { SelectMailAddressFormWithSuggestions } from "../settings/SelectMailAddressFormWithSuggestions.js"
+import { EmailDomainData, isPaidPlanDomain } from "../settings/mailaddress/MailAddressesUtils.js"
+import { isIOSApp } from "../api/common/Env.js"
 
 const faqCustomDomainLink = "https://tutanota.com/faq#custom-domain"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
-	newSignupHandler: (arg0: NewAccountData | null) => void
+	onComplete: (arg0: NewAccountData | null) => void
+	onChangePlan: () => void
 	isBusinessUse: lazy<boolean>
 	isPaidSubscription: lazy<boolean>
 	campaign: lazy<string | null>
@@ -41,6 +43,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private readonly _confirmTerms: Stream<boolean>
 	private readonly _confirmAge: Stream<boolean>
 	private readonly _code: Stream<string>
+	private selectedDomain: EmailDomainData
 	private _mailAddressFormErrorId: TranslationKey | null = null
 	private _mailAddress!: string
 	private _isMailVerificationBusy: boolean
@@ -48,9 +51,22 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private readonly __lastMailValidationError: Stream<TranslationKey | null>
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
-	private __signupEmailDomainsTest: UsageTest
 
-	constructor() {
+	private readonly availableDomains: readonly EmailDomainData[] = (locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
+		? TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS
+		: getWhitelabelRegistrationDomains()
+	)
+		.map((domain) => ({ domain, isPaid: isPaidPlanDomain(domain) }))
+		// hide paid domains for iOS
+		.filter(isIOSApp() ? (domainData) => !domainData.isPaid : () => true)
+
+	constructor(vnode: Vnode<SignupFormAttrs>) {
+		this.selectedDomain = getFirstOrThrow(this.availableDomains)
+		// tuta.com gets preference user is signing up for a paid account and it is available
+		if (vnode.attrs.isPaidSubscription()) {
+			this.selectedDomain = this.availableDomains.find((domain) => domain.domain === DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN) ?? this.selectedDomain
+		}
+
 		this.__mailValid = stream(false)
 		this.__lastMailValidationError = stream(null)
 		this.passwordModel = new PasswordModel(
@@ -66,7 +82,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
-		this.__signupEmailDomainsTest = locator.usageTestController.getTest("signup.emaildomains")
 
 		this._confirmTerms = stream<boolean>(false)
 		this._confirmAge = stream<boolean>(false)
@@ -77,10 +92,21 @@ export class SignupForm implements Component<SignupFormAttrs> {
 
 	view(vnode: Vnode<SignupFormAttrs>): Children {
 		const a = vnode.attrs
+
 		const mailAddressFormAttrs: SelectMailAddressFormAttrs = {
-			availableDomains: locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
-				? TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS
-				: getWhitelabelRegistrationDomains(),
+			selectedDomain: this.selectedDomain,
+			onDomainChanged: (domain) => {
+				if (!domain.isPaid || a.isPaidSubscription()) {
+					this.selectedDomain = domain
+				} else {
+					Dialog.confirm(() => `${lang.get("paidEmailDomainSignup_msg")}\n${lang.get("changePaidPlan_msg")}`).then((confirmed) => {
+						if (confirmed) {
+							vnode.attrs.onChangePlan()
+						}
+					})
+				}
+			},
+			availableDomains: this.availableDomains,
 			onValidationResult: (email, validationResult) => {
 				this.__mailValid(validationResult.isValid)
 
@@ -88,12 +114,8 @@ export class SignupForm implements Component<SignupFormAttrs> {
 					this._mailAddress = email
 					this.passwordModel.recalculatePasswordStrength()
 					this._mailAddressFormErrorId = null
-					this.__signupEmailDomainsTest.getStage(2).complete()
 				} else {
 					this._mailAddressFormErrorId = validationResult.errorId
-					if (["mailAddressNANudge_msg", "mailAddressNA_msg"].includes(assertNotNull(validationResult.errorId))) {
-						this.__signupEmailDomainsTest.getStage(1).complete()
-					}
 				}
 			},
 			onBusyStateChanged: (isBusy) => {
@@ -118,7 +140,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				// Email field is read-only, account has already been created but user switched from different subscription.
 				this.__completePreviousStages()
 
-				return a.newSignupHandler(null)
+				return a.onComplete(null)
 			}
 
 			const errorMessage =
@@ -142,7 +164,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 						a.isPaidSubscription(),
 						a.campaign(),
 					).then((newAccountData) => {
-						a.newSignupHandler(newAccountData ? newAccountData : null)
+						a.onComplete(newAccountData ? newAccountData : null)
 					})
 				}
 			})
@@ -150,11 +172,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 
 		return m(
 			"#signup-account-dialog.flex-center",
-			{
-				oncreate: () => {
-					this.__signupEmailDomainsTest.getStage(0).complete()
-				},
-			},
 			m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
 				a.readonly
 					? m(TextField, {
@@ -164,23 +181,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 							disabled: true,
 					  })
 					: [
-							this.__signupEmailDomainsTest.getVariant({
-								[0]: () => m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
-								[1]: () => m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
-								[2]: () => m(SelectMailAddressForm, { ...mailAddressFormAttrs, mailAddressNAError: "mailAddressNANudge_msg" }), // Extended supporting text
-								[3]: () =>
-									m(SelectMailAddressFormWithSuggestions, {
-										...mailAddressFormAttrs,
-										displayUnavailableMailAddresses: true,
-										maxSuggestionsToShow: 3,
-									}), // New UI with suggestions
-								[4]: () =>
-									m(SelectMailAddressFormWithSuggestions, {
-										...mailAddressFormAttrs,
-										displayUnavailableMailAddresses: false,
-										maxSuggestionsToShow: 3,
-									}), // New UI with suggestions, do not show unavailable emails
-							}),
+							m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
 							a.isPaidSubscription()
 								? m(".small.mt-s", lang.get("configureCustomDomainAfterSignup_msg"), [
 										m("a", { href: faqCustomDomainLink, target: "_blank" }, faqCustomDomainLink),

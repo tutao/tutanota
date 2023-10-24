@@ -1,16 +1,10 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import type { TranslationKey } from "../misc/LanguageViewModel"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { SignupForm } from "./SignupForm"
 import { getDisplayNameOfPlanType } from "./FeatureListProvider"
 import { PlanType } from "../api/common/TutanotaConstants.js"
-
-type ConfirmStatus = {
-	type: string
-	text: TranslationKey
-}
 
 export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -25,9 +19,12 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 		let mailAddress: undefined | string = undefined
 		if (newAccountData) mailAddress = newAccountData.mailAddress
 		return m(SignupForm, {
-			newSignupHandler: (newAccountData) => {
+			onComplete: (newAccountData) => {
 				if (newAccountData) data.newAccountData = newAccountData
-				emitWizardEvent(this.dom, WizardEventType.SHOWNEXTPAGE)
+				emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
+			},
+			onChangePlan: () => {
+				emitWizardEvent(this.dom, WizardEventType.SHOW_PREVIOUS_PAGE)
 			},
 			isBusinessUse: data.options.businessUse,
 			isPaidSubscription: () => data.type !== PlanType.Free,

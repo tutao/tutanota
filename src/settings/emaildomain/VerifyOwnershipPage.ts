@@ -60,7 +60,7 @@ export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
 					m(Button, {
 						type: ButtonType.Login,
 						label: "next_action",
-						click: () => emitWizardEvent(this.dom, WizardEventType.SHOWNEXTPAGE),
+						click: () => emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE),
 					}),
 				),
 			),

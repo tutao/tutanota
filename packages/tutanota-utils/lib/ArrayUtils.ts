@@ -235,7 +235,7 @@ export function findLastIndex<T>(array: ReadonlyArray<T>, predicate: (arg0: T) =
 	return -1
 }
 
-export function contains(theArray: Array<any>, elementToCheck: any): boolean {
+export function contains(theArray: ReadonlyArray<any>, elementToCheck: any): boolean {
 	return theArray.indexOf(elementToCheck) !== -1
 }
 

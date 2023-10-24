@@ -159,7 +159,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 										value: PaymentMethodTypeToName[a.data.paymentData.paymentMethod],
 									})
 									paymentMethodConfirmationStage?.complete()
-									emitWizardEvent(this.dom, WizardEventType.SHOWNEXTPAGE)
+									emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
 								}
 							}),
 						),

@@ -154,7 +154,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 		}
 
 		promise.then(() => {
-			emitWizardEvent(dom, WizardEventType.SHOWNEXTPAGE)
+			emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 		})
 	}
 }

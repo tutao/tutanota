@@ -270,8 +270,9 @@ export const Const: ConstType = {
 	U2F_APPID: "https://tutanota.com/u2f-appid.json",
 } as const
 
-export const TUTANOTA_MAIL_ADDRESS_DOMAINS = ["tutanota.com", "tutanota.de", "tutamail.com", "tuta.io", "keemail.me", "tuta.com"]
-export const TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS = ["tutanota.com", "tutanota.de", "tutamail.com", "tuta.io", "keemail.me"]
+export const TUTANOTA_MAIL_ADDRESS_DOMAINS = Object.freeze(["tutanota.com", "tutanota.de", "tutamail.com", "tuta.io", "keemail.me", "tuta.com"])
+export const TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS = TUTANOTA_MAIL_ADDRESS_DOMAINS
+export const DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN = "tuta.com"
 
 export const enum ConversationType {
 	NEW = "0",

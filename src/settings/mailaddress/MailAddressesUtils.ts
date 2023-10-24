@@ -1,24 +1,27 @@
-import { CustomerInfoTypeRef, CustomerTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { getCustomMailDomains } from "../../api/common/utils/Utils.js"
 import { AccountType, TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "../../api/common/TutanotaConstants.js"
-import { EntityClient } from "../../api/common/EntityClient.js"
 import { LoginController } from "../../api/main/LoginController.js"
-import { addAll, neverNull } from "@tutao/tutanota-utils"
 
-export function getAvailableDomains(entityClient: EntityClient, logins: LoginController, onlyCustomDomains?: boolean): Promise<string[]> {
-	return entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
-		return entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then((customerInfo) => {
-			let availableDomains = getCustomMailDomains(customerInfo).map((info) => info.domain)
+export interface EmailDomainData {
+	domain: string
+	isPaid: boolean
+}
 
-			if (
-				!onlyCustomDomains &&
-				logins.getUserController().user.accountType !== AccountType.STARTER &&
-				(availableDomains.length === 0 || logins.getUserController().isGlobalAdmin())
-			) {
-				addAll(availableDomains, TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS)
-			}
+export async function getAvailableDomains(logins: LoginController, onlyCustomDomains?: boolean): Promise<EmailDomainData[]> {
+	const customerInfo = await logins.getUserController().loadCustomerInfo()
+	let availableDomains = getCustomMailDomains(customerInfo).map((info) => info.domain)
 
-			return availableDomains
-		})
-	})
+	if (
+		!onlyCustomDomains &&
+		logins.getUserController().user.accountType !== AccountType.STARTER &&
+		(availableDomains.length === 0 || logins.getUserController().isGlobalAdmin())
+	) {
+		availableDomains.push(...TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS)
+	}
+
+	return availableDomains.map((domain) => ({ domain, isPaid: isPaidPlanDomain(domain) }))
+}
+
+export function isPaidPlanDomain(domain: String): boolean {
+	return domain === "tuta.com"
 }

@@ -1572,3 +1572,6 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "changePaidPlan_msg"
+	| "paidEmailDomainLegacy_msg"
+	| "paidEmailDomainSignup_msg"
