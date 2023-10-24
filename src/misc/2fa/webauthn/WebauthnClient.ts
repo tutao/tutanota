@@ -97,13 +97,12 @@ export class WebauthnClient {
 		// domains as well as for whitelabel domains.
 
 		const domainConfig = this.domainConfigProvider.getCurrentDomainConfig()
-		if (challenge.keys.some((k) => k.appId === Const.LEGACY_WEBAUTHN_RP_ID)) {
-			// If there's a Webauthn key for our old domain we need to open the webapp on the old domain.
-
-			return this.getWebauthnUrl(domainConfig, "legacy")
-		} else if (challenge.keys.some((k) => k.appId === Const.WEBAUTHN_RP_ID)) {
+		if (challenge.keys.some((k) => k.appId === Const.WEBAUTHN_RP_ID)) {
 			// This function is not needed for the webapp! We can safely assume that our clientWebRoot is a new domain.
 			return this.getWebauthnUrl(domainConfig, "new")
+		} else if (challenge.keys.some((k) => k.appId === Const.LEGACY_WEBAUTHN_RP_ID)) {
+			// If there's a Webauthn key for our old domain we need to open the webapp on the old domain.
+			return this.getWebauthnUrl(domainConfig, "legacy")
 		} else {
 			// If it isn't there, look for any Webauthn key. Legacy U2F key ids ends with json subpath.
 			const webauthnKey = challenge.keys.find((k) => !this.isLegacyU2fKey(k))
