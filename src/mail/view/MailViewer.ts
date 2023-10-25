@@ -6,7 +6,7 @@ import { FeatureType, InboxRuleType, Keys, MailFolderType, SpamRuleFieldType, Sp
 import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../misc/LanguageViewModel"
 import { assertMainOrNode } from "../../api/common/Env"
-import { assertNonNull, assertNotNull, defer, DeferredObject, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNonNull, assertNotNull, defer, DeferredObject, noOp, ofClass } from "@tutao/tutanota-utils"
 import { createNewContact, getExistingRuleForType, isTutanotaTeamMail } from "../model/MailUtils"
 import { IconMessageBox } from "../../gui/base/ColumnEmptyMessageBox"
 import type { Shortcut } from "../../misc/KeyManager"
@@ -304,9 +304,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				this.currentQuoteBehavior = attrs.defaultQuoteBehavior
 
 				if (client.isMobileDevice() && !this.pinchZoomable && this.shadowDomMailContent) {
-					this.pinchZoomable = new PinchZoom(this.shadowDomMailContent, vnode.dom as HTMLElement, true, (e, target) => {
-						this.handleAnchorClick(e, target, true)
-					})
+					this.createPinchZoom(this.shadowDomMailContent, vnode.dom as HTMLElement)
 				}
 			},
 			onbeforeremove: () => {
@@ -326,6 +324,16 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		})
 	}
 
+	private createPinchZoom(zoomable: HTMLElement, viewport: HTMLElement, recreate: boolean = false) {
+		// the PinchZoom class does not allow a changing zoomable rect size (mail body content). When we show previously unloaded images the size
+		// of the mail body changes. So we have to create a new PinchZoom object
+		recreate && this.pinchZoomable?.remove()
+
+		this.pinchZoomable = new PinchZoom(zoomable, viewport, true, (e, target) => {
+			this.handleAnchorClick(e, target, true)
+		})
+	}
+
 	private updateCollapsedQuotes(dom: ParentNode, showQuote: boolean) {
 		const quotes: NodeListOf<HTMLElement> = dom.querySelectorAll("[tuta-collapsed-quote]")
 		for (const quoteWrap of Array.from(quotes)) {
@@ -333,6 +341,10 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			quote.style.display = showQuote ? "" : "none"
 			const quoteIndicator = quoteWrap.children[1] as HTMLElement
 			quoteIndicator.style.display = showQuote ? "none" : ""
+		}
+
+		if (this.pinchZoomable) {
+			this.createPinchZoom(this.pinchZoomable.getZoomable(), this.pinchZoomable.getViewport(), true)
 		}
 	}
 
@@ -378,12 +390,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		if (client.isMobileDevice()) {
 			this.pinchZoomable = null
 			new ResizeObserver((entries) => {
-				// the PinchZoom class does not allow a changing zoomable rect size (mail body content). When we show previously unloaded images the size
-				// of the mail body changes. So we have to create a new PinchZoom object
-				this.pinchZoomable?.remove()
-				this.pinchZoomable = new PinchZoom(wrapNode, parent as HTMLElement, true, (e, target) => {
-					this.handleAnchorClick(e, target, true)
-				})
+				this.createPinchZoom(wrapNode, parent, true)
 			}).observe(wrapNode)
 		} else {
 			wrapNode.addEventListener("click", (event) => {

@@ -69,7 +69,7 @@ export class PinchZoom {
 	 * @precondition zoomable must have been rendered already at least once.
 	 * @param zoomable The HTMLElement that shall be zoomed inside the viewport.
 	 * @param viewport The HTMLElement in which the zoomable is zoomed and dragged.
-	 * @param initiallyZoomToViewportWidth If true and the width of the zoomable is bigger than the viewport width, the zoomable is zoomed out to match the viewport __width__ and not the height!
+	 * @param initiallyZoomToViewportWidth If true and the width of the zoomable is bigger than the viewport width, the zoomable is zoomed out to match the viewport __width__ and not the height! the viewport height is adapted to match the zoomed zoomable height (calling PinchZoom.remove() resets the height)
 	 * @param singleClickAction This function is called whenever a single click on the zoomable is detected, e.g. on a link. Since the PinchZoom class prevents all default actions these clicks need to be handled outside of this class.
 	 */
 	constructor(
@@ -153,6 +153,14 @@ export class PinchZoom {
 		}
 	}
 
+	getViewport() {
+		return this.viewport
+	}
+
+	getZoomable() {
+		return this.zoomable
+	}
+
 	isDraggingOrZooming() {
 		return this.draggingOrZooming
 	}
@@ -173,6 +181,9 @@ export class PinchZoom {
 		if (this.onTouchMoveListener) {
 			this.zoomable.removeEventListener("ontouchmove", this.onTouchMoveListener)
 		}
+		this.currentScale = this.zoomBoundaries.min
+		this.update({ x: 0, y: 0 })
+		this.viewport.style.height = "auto"
 	}
 
 	private touchmove_handler(ev: TouchEvent) {
