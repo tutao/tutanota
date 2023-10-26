@@ -635,7 +635,6 @@ export class CalendarModel {
 								}
 							}
 						})
-						return
 					} catch (e) {
 						if (e instanceof NotFoundError) {
 							console.log(TAG, e, "Event or alarm were not found: ", entityEventData, e)
