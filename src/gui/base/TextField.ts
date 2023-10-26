@@ -32,6 +32,8 @@ export type TextFieldAttrs = {
 	onclick?: clickHandler
 	doShowBorder?: boolean | null
 	fontSize?: string
+	min?: number
+	max?: number
 }
 
 export const enum TextFieldType {
@@ -224,6 +226,8 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 					m("input.input" + (a.alignRight ? ".right" : ""), {
 						autocomplete: a.autocompleteAs ?? "",
 						type: a.type,
+						min: a.min,
+						max: a.max,
 						"aria-label": lang.getMaybeLazy(a.label),
 						oncreate: (vnode) => {
 							this.domInput = vnode.dom as HTMLInputElement

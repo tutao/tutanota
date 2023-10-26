@@ -4,7 +4,7 @@ import { AttendeeListEditor, AttendeeListEditorAttrs } from "./AttendeeListEdito
 import { locator } from "../../../api/main/MainLocator.js"
 import { EventTimeEditor, EventTimeEditorAttrs } from "./EventTimeEditor.js"
 import { RepeatRuleEditor, RepeatRuleEditorAttrs } from "./RepeatRuleEditor.js"
-import { TextField, TextFieldAttrs } from "../../../gui/base/TextField.js"
+import { TextField, TextFieldAttrs, TextFieldType } from "../../../gui/base/TextField.js"
 import { defaultCalendarColor, TimeFormat } from "../../../api/common/TutanotaConstants.js"
 import { lang, TranslationKey } from "../../../misc/LanguageViewModel.js"
 import { RecipientsSearchModel } from "../../../misc/RecipientsSearchModel.js"
@@ -12,7 +12,13 @@ import { DropDownSelector, DropDownSelectorAttrs } from "../../../gui/base/DropD
 import { getSharedGroupName } from "../../../sharing/GroupUtils.js"
 import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
-import { createAlarmIntervalItems, humanDescriptionForAlarmInterval } from "../../date/CalendarUtils.js"
+import {
+	AlarmIntervalUnit,
+	createAlarmIntervalItems,
+	createCustomRepeatRuleUnitValues,
+	humanDescriptionForAlarmInterval,
+	humanDescriptionForAlarmIntervalUnit,
+} from "../../date/CalendarUtils.js"
 import { Icons } from "../../../gui/base/icons/Icons.js"
 import { IconButton } from "../../../gui/base/IconButton.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
@@ -20,6 +26,7 @@ import { HtmlEditor } from "../../../gui/editor/HtmlEditor.js"
 import { attachDropdown } from "../../../gui/base/Dropdown.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../gui/base/InfoBanner.js"
 import { CalendarEventModel, ReadonlyReason } from "../../date/eventeditor/CalendarEventModel.js"
+import { Dialog } from "../../../gui/base/Dialog.js"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel
@@ -221,11 +228,23 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 							title: "add_action",
 							icon: Icons.Add,
 						},
-						childAttrs: () =>
-							createAlarmIntervalItems(lang.languageTag).map((i) => ({
+						childAttrs: () => [
+							...createAlarmIntervalItems(lang.languageTag).map((i) => ({
 								label: () => i.name,
 								click: () => alarmModel.addAlarm(i.value),
 							})),
+							{
+								label: () => lang.get("calendarReminderIntervalDropdownCustomItem_label"),
+								click: () => {
+									this.showCustomReminderIntervalDialog((value, unit) => {
+										alarmModel.addAlarm({
+											value,
+											unit,
+										})
+									})
+								},
+							},
+						],
 					}),
 				),
 		})
@@ -269,5 +288,59 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		const { model } = vnode.attrs
 		vnode.attrs.descriptionEditor.setEnabled(model.isFullyWritable())
 		return m(vnode.attrs.descriptionEditor)
+	}
+
+	private showCustomReminderIntervalDialog(onAddAction: (value: number, unit: AlarmIntervalUnit) => void) {
+		let timeReminderValue = 0
+		let timeReminderUnit: AlarmIntervalUnit = AlarmIntervalUnit.MINUTE
+
+		Dialog.showActionDialog({
+			title: () => lang.get("calendarReminderIntervalCustomDialog_title"),
+			allowOkWithReturn: true,
+			child: {
+				view: () =>
+					m(".flex full-width pt-s", [
+						m(TextField, {
+							type: TextFieldType.Number,
+							min: 0,
+							label: "calendarReminderIntervalValue_label",
+							value: timeReminderValue.toString(),
+							oninput: (v) => {
+								const time = Number.parseInt(v)
+								const isEmpty = v === ""
+								if (!Number.isNaN(time) || isEmpty) timeReminderValue = isEmpty ? 0 : time
+							},
+							class: "text flex-half no-appearance", //Removes the up/down arrow from input number. Pressing arrow up/down key still working
+						}),
+						m(TextField, {
+							value: humanDescriptionForAlarmIntervalUnit(timeReminderUnit),
+							disabled: true,
+							label: "emptyString_msg",
+							class: "text flex-half pl-s",
+							injectionsRight: () =>
+								m(
+									IconButton,
+									attachDropdown({
+										mainButtonAttrs: {
+											title: "selectTemplate_action",
+											icon: BootIcons.Expand,
+											size: ButtonSize.Compact,
+										},
+										childAttrs: () =>
+											createCustomRepeatRuleUnitValues().map((i) => ({
+												label: () => i.name,
+												click: () => (timeReminderUnit = i.value ?? AlarmIntervalUnit.MINUTE),
+											})),
+									}),
+								),
+						}),
+					]),
+			},
+			okActionTextId: "add_action",
+			okAction: (dialog: Dialog) => {
+				onAddAction(timeReminderValue, timeReminderUnit)
+				dialog.close()
+			},
+		})
 	}
 }

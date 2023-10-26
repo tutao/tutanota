@@ -1994,6 +1994,10 @@ styles.registerStyle("main", () => {
 		".text-fade": {
 			color: theme.content_button,
 		},
+		".no-appearance input, .no-appearance input::-webkit-outer-spin-button, .no-appearance input::-webkit-inner-spin-button": {
+			"-webkit-appearance": "none",
+			"-moz-appearance": "textfield",
+		},
 		// media query for small devices where elements should be arranged in one column
 		// also adaptions for table column widths
 		"@media (max-width: 400px)": {

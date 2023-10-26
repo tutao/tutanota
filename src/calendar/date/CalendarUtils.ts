@@ -1371,3 +1371,37 @@ export function alarmIntervalToLuxonDurationLikeObject(alarmInterval: AlarmInter
 			return { weeks: alarmInterval.value }
 	}
 }
+
+export const createCustomRepeatRuleUnitValues = (): SelectorItemList<AlarmIntervalUnit | null> => {
+	return [
+		{
+			name: humanDescriptionForAlarmIntervalUnit(AlarmIntervalUnit.MINUTE),
+			value: AlarmIntervalUnit.MINUTE,
+		},
+		{
+			name: humanDescriptionForAlarmIntervalUnit(AlarmIntervalUnit.HOUR),
+			value: AlarmIntervalUnit.HOUR,
+		},
+		{
+			name: humanDescriptionForAlarmIntervalUnit(AlarmIntervalUnit.DAY),
+			value: AlarmIntervalUnit.DAY,
+		},
+		{
+			name: humanDescriptionForAlarmIntervalUnit(AlarmIntervalUnit.WEEK),
+			value: AlarmIntervalUnit.WEEK,
+		},
+	]
+}
+
+export function humanDescriptionForAlarmIntervalUnit(unit: AlarmIntervalUnit): string {
+	switch (unit) {
+		case AlarmIntervalUnit.MINUTE:
+			return lang.get("calendarReminderIntervalUnitMinutes_label")
+		case AlarmIntervalUnit.HOUR:
+			return lang.get("calendarReminderIntervalUnitHours_label")
+		case AlarmIntervalUnit.DAY:
+			return lang.get("calendarReminderIntervalUnitDays_label")
+		case AlarmIntervalUnit.WEEK:
+			return lang.get("calendarReminderIntervalUnitWeeks_label")
+	}
+}
