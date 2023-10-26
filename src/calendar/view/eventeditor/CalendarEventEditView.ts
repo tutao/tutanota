@@ -12,13 +12,7 @@ import { DropDownSelector, DropDownSelectorAttrs } from "../../../gui/base/DropD
 import { getSharedGroupName } from "../../../sharing/GroupUtils.js"
 import { BootIcons } from "../../../gui/base/icons/BootIcons.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
-import {
-	AlarmIntervalUnit,
-	createAlarmIntervalItems,
-	createCustomRepeatRuleUnitValues,
-	humanDescriptionForAlarmInterval,
-	humanDescriptionForAlarmIntervalUnit,
-} from "../../date/CalendarUtils.js"
+import { AlarmIntervalUnit, createAlarmIntervalItems, createCustomRepeatRuleUnitValues, humanDescriptionForAlarmInterval } from "../../date/CalendarUtils.js"
 import { Icons } from "../../../gui/base/icons/Icons.js"
 import { IconButton } from "../../../gui/base/IconButton.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
@@ -298,8 +292,9 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			title: () => lang.get("calendarReminderIntervalCustomDialog_title"),
 			allowOkWithReturn: true,
 			child: {
-				view: () =>
-					m(".flex full-width pt-s", [
+				view: () => {
+					const unitItems = createCustomRepeatRuleUnitValues() ?? []
+					return m(".flex full-width pt-s", [
 						m(TextField, {
 							type: TextFieldType.Number,
 							min: 0,
@@ -312,29 +307,16 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 							},
 							class: "text flex-half no-appearance", //Removes the up/down arrow from input number. Pressing arrow up/down key still working
 						}),
-						m(TextField, {
-							value: humanDescriptionForAlarmIntervalUnit(timeReminderUnit),
-							disabled: true,
+						m(DropDownSelector, {
 							label: "emptyString_msg",
-							class: "text flex-half pl-s",
-							injectionsRight: () =>
-								m(
-									IconButton,
-									attachDropdown({
-										mainButtonAttrs: {
-											title: "selectTemplate_action",
-											icon: BootIcons.Expand,
-											size: ButtonSize.Compact,
-										},
-										childAttrs: () =>
-											createCustomRepeatRuleUnitValues().map((i) => ({
-												label: () => i.name,
-												click: () => (timeReminderUnit = i.value ?? AlarmIntervalUnit.MINUTE),
-											})),
-									}),
-								),
+							selectedValue: timeReminderUnit,
+							items: unitItems,
+							class: "flex-half pl-s",
+							selectionChangedHandler: (selectedValue: AlarmIntervalUnit) => (timeReminderUnit = selectedValue as AlarmIntervalUnit),
+							disabled: false,
 						}),
-					]),
+					])
+				},
 			},
 			okActionTextId: "add_action",
 			okAction: (dialog: Dialog) => {

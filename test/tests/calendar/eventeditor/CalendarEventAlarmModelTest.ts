@@ -5,7 +5,7 @@ import en from "../../../../src/translations/en.js"
 import { EventType } from "../../../../src/calendar/date/eventeditor/CalendarEventModel.js"
 import { object, when } from "testdouble"
 import { DateProvider } from "../../../../src/api/common/DateProvider.js"
-import { StandardAlarmInterval } from "../../../../src/calendar/date/CalendarUtils.js"
+import { AlarmIntervalUnit, StandardAlarmInterval } from "../../../../src/calendar/date/CalendarUtils.js"
 
 const dateProvider: DateProvider = object()
 when(dateProvider.now()).thenReturn(42)
@@ -52,6 +52,18 @@ o.spec("CalendarEventAlarmModel", function () {
 			o(new CalendarEventAlarmModel(EventType.SHARED_RW, [], dateProvider).canEditReminders).equals(true)
 			o(new CalendarEventAlarmModel(EventType.INVITE, [], dateProvider).canEditReminders).equals(true)
 			o(new CalendarEventAlarmModel(EventType.OWN, [], dateProvider).canEditReminders).equals(true)
+		})
+	})
+
+	o.spec("isEqualAlarms", function () {
+		o("two equal alarms", function () {
+			const model = new CalendarEventAlarmModel(EventType.OWN, [StandardAlarmInterval.ONE_HOUR], dateProvider)
+			o(model.isEqualAlarms(StandardAlarmInterval.ONE_HOUR, { value: 60, unit: AlarmIntervalUnit.MINUTE })).equals(true)
+		})
+
+		o("two different alarms", function () {
+			const model = new CalendarEventAlarmModel(EventType.OWN, [StandardAlarmInterval.ONE_HOUR], dateProvider)
+			o(model.isEqualAlarms(StandardAlarmInterval.ONE_HOUR, { value: 1, unit: AlarmIntervalUnit.DAY })).equals(false)
 		})
 	})
 })
