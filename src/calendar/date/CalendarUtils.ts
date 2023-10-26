@@ -1188,6 +1188,8 @@ export const createRepeatRuleEndTypeValues = (): SelectorItemList<EndType> => {
 export const createIntervalValues = (): SelectorItemList<number> => numberRange(1, 256).map((n) => ({ name: String(n), value: n }))
 
 export function humanDescriptionForAlarmInterval<P>(value: AlarmInterval, locale: string): string {
+	if (value.value === 0) return lang.get("calendarReminderIntervalAtEventStart_label")
+
 	return Duration.fromObject(alarmIntervalToLuxonDurationLikeObject(value)).reconfigure({ locale: locale }).toHuman()
 }
 
@@ -1314,6 +1316,7 @@ export enum AlarmIntervalUnit {
 }
 
 export const StandardAlarmInterval = Object.freeze({
+	ZERO_MINUTES: { value: 0, unit: AlarmIntervalUnit.MINUTE },
 	FIVE_MINUTES: { value: 5, unit: AlarmIntervalUnit.MINUTE },
 	TEN_MINUTES: { value: 10, unit: AlarmIntervalUnit.MINUTE },
 	THIRTY_MINUTES: { value: 30, unit: AlarmIntervalUnit.MINUTE },

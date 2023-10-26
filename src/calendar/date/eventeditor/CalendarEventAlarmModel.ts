@@ -73,10 +73,9 @@ export class CalendarEventAlarmModel {
 	 * eg: 60 minutes === 1 hour
 	 * @param alarmOne base interval
 	 * @param alarmTwo interval to be compared with
-	 * @private
 	 * @return true if they have the same duration
 	 */
-	private isEqualAlarms(alarmOne: AlarmInterval, alarmTwo: AlarmInterval): boolean {
+	isEqualAlarms(alarmOne: AlarmInterval, alarmTwo: AlarmInterval): boolean {
 		const luxonAlarmOne = Duration.fromDurationLike(alarmIntervalToLuxonDurationLikeObject(alarmOne)).shiftToAll()
 		const luxonAlarmTwo = Duration.fromDurationLike(alarmIntervalToLuxonDurationLikeObject(alarmTwo)).shiftToAll()
 

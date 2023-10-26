@@ -1579,3 +1579,4 @@ export type TranslationKeyType =
 	| "calendarReminderIntervalUnitWeeks_label"
 	| "calendarReminderIntervalValue_label"
 	| "calendarReminderIntervalCustomDialog_title"
+	| "calendarReminderIntervalAtEventStart_label"

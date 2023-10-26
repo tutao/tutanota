@@ -1586,6 +1586,15 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"calendarReminderIntervalDropdownCustomItem_label": "Custom",
+		"calendarReminderIntervalCustomDialog_title": "Custom Interval",
+		"calendarReminderIntervalUnitMinutes_label": "minutes",
+		"calendarReminderIntervalUnitHours_label": "hours",
+		"calendarReminderIntervalUnitDays_label": "days",
+		"calendarReminderIntervalUnitWeeks_label": "weeks",
+		"calendarReminderIntervalValue_label": "Amount of time",
+		"calendarReminderIntervalAtEventStart_label": "At event start"
+
 	}
 }

@@ -613,7 +613,7 @@ export class CalendarModel {
 						}
 					}
 				} else if (entityEventData.operation === OperationType.DELETE) {
-					return await this.cancelUserAlarmInfo(entityEventData.instanceId)
+					await this.cancelUserAlarmInfo(entityEventData.instanceId)
 				}
 			} else if (
 				isUpdateForTypeRef(CalendarEventTypeRef, entityEventData) &&
