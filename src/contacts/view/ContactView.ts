@@ -340,7 +340,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		return this.contactViewModel.listModel.getSelectedAsArray()
 	}
 
-	private async getContactListId() {
+	private async getContactListId(): Promise<Id | null> {
 		if (this.inContactListView()) {
 			return assertNotNull(await this.contactListViewModel.getContactListId())
 		} else {
@@ -349,8 +349,10 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 
 	async createNewContact() {
-		let listId = await this.getContactListId()
-		new ContactEditor(locator.entityClient, null, listId).show()
+		const listId = await this.getContactListId()
+		if (listId) {
+			new ContactEditor(locator.entityClient, null, listId).show()
+		}
 	}
 
 	private editSelectedContact() {
@@ -395,8 +397,10 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 						contactEdit: (c: Contact) => this.editContact(c),
 						contactDelete: deleteContacts,
 						contactCreate: async (c: Contact) => {
-							let listId = await this.getContactListId()
-							this.editContact(c, listId)
+							const listId = await this.getContactListId()
+							if (listId) {
+								this.editContact(c, listId)
+							}
 						},
 						onWriteMail: writeMail,
 						selectNone: () => this.contactListViewModel.listModel?.selectNone(),

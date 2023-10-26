@@ -583,7 +583,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 							this.viewModel.contactModel.getContactListId().then((contactListId) => {
 								import("../../contacts/ContactEditor").then(({ ContactEditor }) => {
 									const contact = createNewContact(locator.logins.getUserController().user, mailAddress.address, mailAddress.name)
-									new ContactEditor(this.viewModel.entityClient, contact, contactListId ?? undefined).show()
+									new ContactEditor(this.viewModel.entityClient, contact, assertNotNull(contactListId)).show()
 								})
 							})
 						},
