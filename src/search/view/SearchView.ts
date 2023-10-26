@@ -15,7 +15,7 @@ import { getFreeSearchStartDate, SEARCH_MAIL_FIELDS } from "../model/SearchUtils
 import { Dialog } from "../../gui/base/Dialog"
 import { locator } from "../../api/main/MainLocator"
 import { getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils"
-import { getFirstOrThrow, isSameDay, isSameTypeRef, isSameTypeRefNullable, lazyMemoized, noOp, ofClass, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, isSameDay, isSameTypeRef, isSameTypeRefNullable, lazyMemoized, noOp, ofClass, TypeRef } from "@tutao/tutanota-utils"
 import { formatDateWithMonth, formatDateWithTimeIfNotEven } from "../../misc/Formatter"
 import { Icons } from "../../gui/base/icons/Icons"
 import { AppHeaderAttrs, Header } from "../../gui/Header.js"
@@ -515,7 +515,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				? m(IconButton, {
 						click: () => {
 							locator.contactModel.getContactListId().then((contactListId) => {
-								new ContactEditor(locator.entityClient, null, contactListId ?? undefined).show()
+								new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
 							})
 						},
 						title: "newContact_action",
@@ -609,7 +609,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						.catch(ofClass(PermissionError, noOp))
 				} else if (type && isSameTypeRef(type, ContactTypeRef)) {
 					locator.contactModel.getContactListId().then((contactListId) => {
-						new ContactEditor(locator.entityClient, null, contactListId ?? undefined).show()
+						new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
 					})
 				}
 			},
@@ -678,7 +678,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				type: ButtonType.FolderColumnHeader,
 				click: () => {
 					locator.contactModel.getContactListId().then((contactListId) => {
-						new ContactEditor(locator.entityClient, null, contactListId ?? undefined).show()
+						new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
 					})
 				},
 				label: "newContact_action",

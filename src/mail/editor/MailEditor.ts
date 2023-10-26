@@ -39,7 +39,7 @@ import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import type { InlineImages } from "../view/MailViewer"
 import { FileOpenError } from "../../api/common/error/FileOpenError"
 import type { lazy } from "@tutao/tutanota-utils"
-import { cleanMatch, downcast, isNotNull, noOp, ofClass, typedValues } from "@tutao/tutanota-utils"
+import { assertNotNull, cleanMatch, downcast, isNotNull, noOp, ofClass, typedValues } from "@tutao/tutanota-utils"
 import { isCustomizationEnabledForCustomer } from "../../api/common/utils/Utils"
 import { createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids } from "../view/MailGuiUtils"
 import { client } from "../../misc/ClientDetector"
@@ -732,7 +732,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						contactModel.getContactListId().then((contactListId) => {
 							const newContact = createNewContact(locator.logins.getUserController().user, recipient.address, recipient.name)
 							import("../../contacts/ContactEditor").then(({ ContactEditor }) => {
-								new ContactEditor(entity, newContact, contactListId ?? undefined, createdContactReceiver).show()
+								// external users don't see edit buttons
+								new ContactEditor(entity, newContact, assertNotNull(contactListId), createdContactReceiver).show()
 							})
 						})
 					},
