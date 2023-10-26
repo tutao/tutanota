@@ -78,9 +78,11 @@ export class PinchZoom {
 		private readonly initiallyZoomToViewportWidth: boolean,
 		private readonly singleClickAction: (e: Event, target: EventTarget | null) => void,
 	) {
-		this.zoomable.style.touchAction = "pan-y pan-x" // makes zooming smooth
 		this.viewport.style.overflow = "hidden" // disable default scroll behavior
-		this.zoomable.style.transformOrigin = "0px 0px" // transform origin needs to be initially set. can lead to wrong transform origins otherwise
+		this.update({ x: 0, y: 0 }) // transform origin needs to be initially set. can lead to wrong transform origins otherwise
+		this.zoomable.style.touchAction = "pan-y pan-x" // makes zooming smooth
+		this.zoomable.style.minWidth = "100%" // for correct zooming behavior the content of the zoomable should match the zoomable
+		this.zoomable.style.width = "fit-content" // prevents overflowing issues
 
 		const initialZoomableCoords = this.getCoords(this.zoomable) // already needs to be rendered
 		// the content of the zoomable rect can be bigger than the rect itself due to overflow
@@ -167,6 +169,7 @@ export class PinchZoom {
 
 	/**
 	 * call this method before throwing away the reference to the pinch zoom object
+	 * changes to the viewport needs to be reverted. Otherwise, future operations would be influenced
 	 */
 	remove() {
 		if (this.onTouchEndListener) {
