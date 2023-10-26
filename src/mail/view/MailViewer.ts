@@ -72,6 +72,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private delayProgressSpinner = true
 
 	private readonly resizeListener: windowSizeListener
+	private resizeObserverViewport: ResizeObserver | null = null // needed to detect orientation change to recreate pinchzoom at the right time
+	private resizeObserverZoomable: ResizeObserver | null = null // needed to recreate pinchzoom e.g. when loading images
 
 	private viewModel!: MailViewerViewModel
 	private pinchZoomable: PinchZoom | null = null
@@ -111,6 +113,13 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 	onremove({ attrs }: Vnode<MailViewerAttrs>) {
 		windowFacade.removeResizeListener(this.resizeListener)
+		if (this.resizeObserverZoomable) {
+			this.resizeObserverZoomable.disconnect()
+		}
+		if (this.resizeObserverViewport) {
+			this.resizeObserverViewport.disconnect()
+		}
+		this.pinchZoomable?.remove() // remove the listeners
 		this.clearDomBody()
 		if (attrs.isPrimary) {
 			keyManager.unregisterShortcuts(this.shortcuts)
@@ -283,6 +292,16 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				this.setDomBody(dom)
 				this.updateLineHeight(dom)
 				this.renderShadowMailBody(sanitizedMailBody, attrs, vnode.dom as HTMLElement)
+				if (client.isMobileDevice()) {
+					this.resizeObserverViewport?.disconnect()
+					this.resizeObserverViewport = new ResizeObserver((entries) => {
+						if (this.pinchZoomable) {
+							// recreate if the orientation of the device changes -> size of the viewport / mail-body changes
+							this.createPinchZoom(this.pinchZoomable.getZoomable(), vnode.dom as HTMLElement)
+						}
+					})
+					this.resizeObserverViewport.observe(vnode.dom as HTMLElement)
+				}
 			},
 			onupdate: (vnode) => {
 				const dom = vnode.dom as HTMLElement
@@ -324,10 +343,10 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		})
 	}
 
-	private createPinchZoom(zoomable: HTMLElement, viewport: HTMLElement, recreate: boolean = false) {
+	private createPinchZoom(zoomable: HTMLElement, viewport: HTMLElement) {
 		// the PinchZoom class does not allow a changing zoomable rect size (mail body content). When we show previously unloaded images the size
 		// of the mail body changes. So we have to create a new PinchZoom object
-		recreate && this.pinchZoomable?.remove()
+		this.pinchZoomable?.remove()
 
 		this.pinchZoomable = new PinchZoom(zoomable, viewport, true, (e, target) => {
 			this.handleAnchorClick(e, target, true)
@@ -344,7 +363,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		}
 
 		if (this.pinchZoomable) {
-			this.createPinchZoom(this.pinchZoomable.getZoomable(), this.pinchZoomable.getViewport(), true)
+			this.createPinchZoom(this.pinchZoomable.getZoomable(), this.pinchZoomable.getViewport())
 		}
 	}
 
@@ -369,9 +388,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		const wrapNode = document.createElement("div")
 		wrapNode.className = "drag selectable touch-callout break-word-links" + (client.isMobileDevice() ? " break-pre" : "")
 		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height)
-		wrapNode.style.transformOrigin = "top left"
-		wrapNode.style.minWidth = "100%"
-		wrapNode.style.width = "fit-content"
+		wrapNode.style.transformOrigin = "0px 0px"
 		wrapNode.appendChild(sanitizedMailBody.cloneNode(true))
 		this.shadowDomMailContent = wrapNode
 
@@ -389,9 +406,11 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 		if (client.isMobileDevice()) {
 			this.pinchZoomable = null
-			new ResizeObserver((entries) => {
-				this.createPinchZoom(wrapNode, parent, true)
-			}).observe(wrapNode)
+			this.resizeObserverZoomable?.disconnect()
+			this.resizeObserverZoomable = new ResizeObserver((entries) => {
+				this.createPinchZoom(wrapNode, parent) // recreate for example if images are loaded slowly
+			})
+			this.resizeObserverZoomable.observe(wrapNode)
 		} else {
 			wrapNode.addEventListener("click", (event) => {
 				this.handleAnchorClick(event, event.target, false)
