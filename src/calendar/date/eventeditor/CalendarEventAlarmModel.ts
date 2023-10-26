@@ -3,7 +3,8 @@ import { generateEventElementId } from "../../../api/common/utils/CommonCalendar
 import { noOp, remove } from "@tutao/tutanota-utils"
 import { EventType } from "./CalendarEventModel.js"
 import { DateProvider } from "../../../api/common/DateProvider.js"
-import { AlarmInterval, serializeAlarmInterval } from "../CalendarUtils.js"
+import { AlarmInterval, alarmIntervalToLuxonDurationLikeObject, serializeAlarmInterval } from "../CalendarUtils.js"
+import { Duration } from "luxon"
 
 export type CalendarEventAlarmModelResult = {
 	alarms: Array<AlarmInfo>
@@ -33,6 +34,11 @@ export class CalendarEventAlarmModel {
 	 */
 	addAlarm(trigger: AlarmInterval | null) {
 		if (trigger == null) return
+
+		// Checks if an alarm with the same duration already exists
+		const alreadyHasAlarm = this._alarms.some((e) => this.isEqualAlarms(trigger, e))
+		if (alreadyHasAlarm) return
+
 		this._alarms.push(trigger)
 		this.uiUpdateCallback()
 	}
@@ -60,5 +66,20 @@ export class CalendarEventAlarmModel {
 			alarmIdentifier: generateEventElementId(this.dateProvider.now()),
 			trigger: serializeAlarmInterval(alarmInterval),
 		})
+	}
+
+	/**
+	 * Compares two AlarmIntervals if they have the same duration
+	 * eg: 60 minutes === 1 hour
+	 * @param alarmOne base interval
+	 * @param alarmTwo interval to be compared with
+	 * @private
+	 * @return true if they have the same duration
+	 */
+	private isEqualAlarms(alarmOne: AlarmInterval, alarmTwo: AlarmInterval): boolean {
+		const luxonAlarmOne = Duration.fromDurationLike(alarmIntervalToLuxonDurationLikeObject(alarmOne)).shiftToAll()
+		const luxonAlarmTwo = Duration.fromDurationLike(alarmIntervalToLuxonDurationLikeObject(alarmTwo)).shiftToAll()
+
+		return luxonAlarmOne.equals(luxonAlarmTwo)
 	}
 }
