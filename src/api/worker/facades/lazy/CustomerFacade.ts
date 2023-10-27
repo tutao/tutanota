@@ -45,7 +45,7 @@ import type { Country } from "../../../common/CountryList.js"
 import { getByAbbreviation } from "../../../common/CountryList.js"
 import { LockedError } from "../../../common/error/RestError.js"
 import type { RsaKeyPair } from "@tutao/tutanota-crypto"
-import { aes128RandomKey, bitArrayToUint8Array, encryptKey, hexToPublicKey, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { aes128RandomKey, bitArrayToUint8Array, encryptKey, hexToRsaPublicKey, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { DataFile } from "../../../common/DataFile.js"
@@ -117,7 +117,7 @@ export class CustomerFacade {
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		let existingBrandingDomain = getWhitelabelDomain(customerInfo, domainName)
 		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
-		let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
+		let systemAdminPubKey = hexToRsaPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
 		let sessionKey = aes128RandomKey()
 		const systemAdminPubEncAccountingInfoSessionKey = await this.rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(sessionKey))
 
@@ -251,7 +251,7 @@ export class CustomerFacade {
 		kdfType: KdfType,
 	): Promise<Hex> {
 		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
-		const systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
+		const systemAdminPubKey = hexToRsaPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
 		const userGroupKey = aes128RandomKey()
 		const adminGroupKey = aes128RandomKey()
 		const customerGroupKey = aes128RandomKey()

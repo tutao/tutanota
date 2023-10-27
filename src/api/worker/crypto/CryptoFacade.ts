@@ -50,7 +50,7 @@ import {
 	ENABLE_MAC,
 	encryptKey,
 	hexToKyberPublicKey,
-	hexToPublicKey,
+	hexToRsaPublicKey,
 	IV_BYTE_LENGTH,
 	PQKeyPairs,
 	PQPublicKeys,
@@ -58,8 +58,8 @@ import {
 	RsaKeyPair,
 	RsaPublicKey,
 	uint8ArrayToBitArray,
-	x25519generateKeyPair,
-	x25519hexToPublicKey,
+	generateEccKeyPair,
+	hexToEccPublicKey,
 } from "@tutao/tutanota-crypto"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
 import type { RsaImplementation } from "./RsaImplementation"
@@ -505,8 +505,8 @@ export class CryptoFacade {
 					let uint8ArrayBucketKey = bitArrayToUint8Array(bucketKey)
 					if (pub instanceof PQPublicKeys) {
 						const senderKeyPair = await this.loadKeypair(senderUserGroupId)
-						const senderIdentityKeyPair = senderKeyPair instanceof PQKeyPairs ? senderKeyPair.x25519KeyPair : await rotateKeys() //x25519generateKeyPair()
-						encrypted = encodePQMessage(await this.pq.encapsulate(senderIdentityKeyPair, x25519generateKeyPair(), pub, uint8ArrayBucketKey))
+						const senderIdentityKeyPair = senderKeyPair instanceof PQKeyPairs ? senderKeyPair.eccKeyPair : generateEccKeyPair()
+						encrypted = encodePQMessage(await this.pq.encapsulate(senderIdentityKeyPair, generateEccKeyPair(), pub, uint8ArrayBucketKey))
 					} else {
 						encrypted = await this.rsa.encrypt(pub, uint8ArrayBucketKey)
 					}
@@ -598,9 +598,9 @@ export class CryptoFacade {
 
 	public getPublicKey(keyPair: PublicKeyReturn): RsaPublicKey | PQPublicKeys {
 		if (keyPair.pubRsaKey) {
-			return hexToPublicKey(uint8ArrayToHex(keyPair.pubRsaKey))
+			return hexToRsaPublicKey(uint8ArrayToHex(keyPair.pubRsaKey))
 		} else if (keyPair.pubKyberKey && keyPair.pubEccKey) {
-			var eccPublicKey = x25519hexToPublicKey(uint8ArrayToHex(keyPair.pubEccKey))
+			var eccPublicKey = hexToEccPublicKey(uint8ArrayToHex(keyPair.pubEccKey))
 			var kyberPublicKey = hexToKyberPublicKey(uint8ArrayToHex(keyPair.pubKyberKey))
 			return new PQPublicKeys(eccPublicKey, kyberPublicKey)
 		} else {

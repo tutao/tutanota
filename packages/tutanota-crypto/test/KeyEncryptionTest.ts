@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { aes256DecryptLegacyRecoveryKey, decryptKey, decryptRsaKey, encryptKey, encryptRsaKey } from "../lib/encryption/KeyEncryption.js"
-import { hexToPrivateKey } from "../lib/encryption/Rsa.js"
+import { hexToRsaPrivateKey } from "../lib/encryption/Rsa.js"
 import { bitArrayToUint8Array, fixedIv, uint8ArrayToBitArray } from "../lib/misc/Utils.js"
 import { aes128RandomKey, aes256RandomKey } from "../lib/encryption/Aes.js"
 import { aes256EncryptLegacy } from "./AesTest.js"
@@ -21,7 +21,7 @@ o.spec("key encryption", function () {
 	})
 	o("encrypt / decrypt private rsa key with aes128", function () {
 		let gk = [3957386659, 354339016, 3786337319, 3366334248]
-		let privateKey = hexToPrivateKey(rsaPrivateHexKey)
+		let privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
 		let iv = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
 		var encryptedPrivateKey = encryptRsaKey(gk, privateKey, iv)
 		o(uint8ArrayToBase64(encryptedPrivateKey)).equals(
