@@ -445,7 +445,7 @@ export class LoginViewModel implements ILoginViewModel {
 /** to give people time to visit the old domain and refresh to a web app that knows about the
  * /migrate route without them being prompted to migrate right away, we have a time delay on
  * the start of the migration. */
-export const ACTIVATED_MIGRATION = () => (Const.CURRENT_DATE?.getTime() ?? Date.now()) > new Date("2023-11-07T00:00:00.000Z").getTime()
+export const ACTIVATED_MIGRATION = () => (Const.CURRENT_DATE?.getTime() ?? Date.now()) > new Date("2023-11-07T13:00:00.000Z").getTime()
 
 /** are we on *.tutanota.com?
  * influences whether we should allow saving credentials and show the credentials migration box.
