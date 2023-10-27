@@ -8,12 +8,12 @@ import {
 	PQKeyPairs,
 	PQPublicKeys,
 	uint8ArrayToKey,
-	x25519decapsulate,
-	x25519encapsulate,
-	x25519generateKeyPair,
-	X25519KeyPair,
-	X25519PublicKey,
-	X25519SharedSecrets,
+	eccDecapsulate,
+	eccEncapsulate,
+	generateEccKeyPair,
+	EccKeyPair,
+	EccPublicKey,
+	EccSharedSecrets,
 } from "@tutao/tutanota-crypto"
 import { concat, hexToUint8Array, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
@@ -28,16 +28,16 @@ export class PQFacade {
 	}
 
 	public async generateKeyPairs(): Promise<PQKeyPairs> {
-		return new PQKeyPairs(x25519generateKeyPair(), await this.kyberFacade.generateKeypair())
+		return new PQKeyPairs(generateEccKeyPair(), await this.kyberFacade.generateKeypair())
 	}
 
 	public async encapsulate(
-		senderIdentityKeyPair: X25519KeyPair,
-		ephemeralKeyPair: X25519KeyPair,
+		senderIdentityKeyPair: EccKeyPair,
+		ephemeralKeyPair: EccKeyPair,
 		recipientPublicKeys: PQPublicKeys,
 		bucketKey: Uint8Array,
 	): Promise<PQMessage> {
-		const eccSharedSecret = x25519encapsulate(senderIdentityKeyPair.privateKey, ephemeralKeyPair.privateKey, recipientPublicKeys.eccPublicKey)
+		const eccSharedSecret = eccEncapsulate(senderIdentityKeyPair.privateKey, ephemeralKeyPair.privateKey, recipientPublicKeys.eccPublicKey)
 		const kyberEncapsulation = await this.kyberFacade.encapsulate(recipientPublicKeys.kyberPublicKey)
 		const kyberCipherText = kyberEncapsulation.ciphertext
 
@@ -63,7 +63,7 @@ export class PQFacade {
 
 	public async decapsulate(message: PQMessage, recipientKeys: PQKeyPairs): Promise<Uint8Array> {
 		const kyberCipherText = message.encapsulation.kyberCipherText
-		const eccSharedSecret = x25519decapsulate(message.senderIdentityPubKey, message.ephemeralPubKey, recipientKeys.x25519KeyPair.privateKey)
+		const eccSharedSecret = eccDecapsulate(message.senderIdentityPubKey, message.ephemeralPubKey, recipientKeys.eccKeyPair.privateKey)
 		const kyberSharedSecret = await this.kyberFacade.decapsulate(recipientKeys.kyberKeyPair.privateKey, kyberCipherText)
 
 		const kek = this.derivePQKEK(
@@ -79,12 +79,12 @@ export class PQFacade {
 	}
 
 	private derivePQKEK(
-		senderIdentityPublicKey: X25519PublicKey,
-		ephemeralPublicKey: X25519PublicKey,
+		senderIdentityPublicKey: EccPublicKey,
+		ephemeralPublicKey: EccPublicKey,
 		recipientPublicKeys: PQPublicKeys,
 		kyberCipherText: Uint8Array,
 		kyberSharedSecret: Uint8Array,
-		eccSharedSecret: X25519SharedSecrets,
+		eccSharedSecret: EccSharedSecrets,
 	): Aes256Key {
 		var context = concat(
 			senderIdentityPublicKey,

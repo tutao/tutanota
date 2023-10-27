@@ -1,8 +1,8 @@
-import { X25519PublicKey } from "@tutao/tutanota-crypto"
+import { EccPublicKey } from "@tutao/tutanota-crypto"
 
 export type PQMessage = {
-	senderIdentityPubKey: X25519PublicKey
-	ephemeralPubKey: X25519PublicKey
+	senderIdentityPubKey: EccPublicKey
+	ephemeralPubKey: EccPublicKey
 	encapsulation: PQBucketKeyEncapsulation
 }
 

@@ -10,7 +10,7 @@ import "./RsaTest.js"
 import "./Sha1Test.js"
 import "./Sha256Test.js"
 import "./TotpVerifierTest.js"
-import "./X25519Test.js"
+import "./EccTest.js"
 import "./KyberTest.js"
 import { bootstrapTests } from "./bootstrap.js"
 

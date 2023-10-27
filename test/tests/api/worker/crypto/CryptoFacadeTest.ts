@@ -52,15 +52,15 @@ import {
 	ENABLE_MAC,
 	encryptKey,
 	encryptRsaKey,
-	hexToPrivateKey,
-	hexToPublicKey,
+	hexToRsaPrivateKey,
+	hexToRsaPublicKey,
 	IV_BYTE_LENGTH,
 	kyberPrivateKeyToHex,
 	kyberPublicKeyToHex,
 	random,
-	x25519generateKeyPair,
-	x25519privateKeyToHex,
-	x25519publicKeyToHex,
+	generateEccKeyPair,
+	eccPrivateKeyToHex,
+	eccPublicKeyToHex,
 } from "@tutao/tutanota-crypto"
 import { RsaWeb } from "../../../../../src/api/worker/crypto/RsaImplementation.js"
 import { decryptValue, encryptValue, InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
@@ -590,8 +590,8 @@ o.spec("CryptoFacade", function () {
 		let gk = aes128RandomKey()
 		let sk = aes128RandomKey()
 		let bk = aes128RandomKey()
-		let privateKey = hexToPrivateKey(rsaPrivateHexKey)
-		let publicKey = hexToPublicKey(rsaPublicHexKey)
+		let privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
+		let publicKey = hexToRsaPublicKey(rsaPublicHexKey)
 		const keyPair = createTestEntity(KeyPairTypeRef, {
 			_id: "keyPairId",
 			symEncPrivRsaKey: encryptRsaKey(gk, privateKey),
@@ -666,13 +666,13 @@ o.spec("CryptoFacade", function () {
 
 		const recipientKeyPair = createKeyPair({
 			_id: "keyPairId",
-			pubEccKey: hexToUint8Array(x25519publicKeyToHex(pqKeyPairs.x25519KeyPair.publicKey)),
-			symEncPrivEccKey: aesEncrypt(gk, hexToUint8Array(x25519privateKeyToHex(pqKeyPairs.x25519KeyPair.privateKey))),
+			pubEccKey: hexToUint8Array(eccPublicKeyToHex(pqKeyPairs.eccKeyPair.publicKey)),
+			symEncPrivEccKey: aesEncrypt(gk, hexToUint8Array(eccPrivateKeyToHex(pqKeyPairs.eccKeyPair.privateKey))),
 			pubKyberKey: hexToUint8Array(kyberPublicKeyToHex(pqKeyPairs.kyberKeyPair.publicKey)),
 			symEncPrivKyberKey: aesEncrypt(gk, hexToUint8Array(kyberPrivateKeyToHex(pqKeyPairs.kyberKeyPair.privateKey))),
 		})
 
-		const senderIdentityKeyPair = x25519generateKeyPair()
+		const senderIdentityKeyPair = generateEccKeyPair()
 
 		const userGroup = createGroup({
 			_id: "userGroupId",
@@ -691,7 +691,7 @@ o.spec("CryptoFacade", function () {
 			bucket,
 			type: PermissionType.Public,
 		})
-		const pqMessage = await pqFacade.encapsulate(senderIdentityKeyPair, x25519generateKeyPair(), pqKeyPairs.toPublicKeys(), bitArrayToUint8Array(bk))
+		const pqMessage = await pqFacade.encapsulate(senderIdentityKeyPair, generateEccKeyPair(), pqKeyPairs.toPublicKeys(), bitArrayToUint8Array(bk))
 		const pubEncBucketKey = encodePQMessage(pqMessage)
 		const bucketPermission = createBucketPermission({
 			_id: ["bucketPermissionListId", "bucketPermissionId"],
@@ -1140,8 +1140,8 @@ o.spec("CryptoFacade", function () {
 		let userGk = aes128RandomKey()
 		let sk = aes128RandomKey()
 		let bk = aes128RandomKey()
-		let privateKey = hexToPrivateKey(rsaPrivateHexKey)
-		let publicKey = hexToPublicKey(rsaPublicHexKey)
+		let privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
+		let publicKey = hexToRsaPublicKey(rsaPublicHexKey)
 		const keyPair = createTestEntity(KeyPairTypeRef, {
 			_id: "keyPairId",
 			symEncPrivRsaKey: encryptRsaKey(userGk, privateKey),
@@ -1246,12 +1246,12 @@ o.spec("CryptoFacade", function () {
 		let bk = aes128RandomKey()
 
 		let pqKeyPairs = await pqFacade.generateKeyPairs()
-		const senderIdentityKeyPair = x25519generateKeyPair()
+		const senderIdentityKeyPair = generateEccKeyPair()
 
 		const recipientKeyPair = createKeyPair({
 			_id: "keyPairId",
-			pubEccKey: hexToUint8Array(x25519publicKeyToHex(pqKeyPairs.x25519KeyPair.publicKey)),
-			symEncPrivEccKey: aesEncrypt(userGk, hexToUint8Array(x25519privateKeyToHex(pqKeyPairs.x25519KeyPair.privateKey))),
+			pubEccKey: hexToUint8Array(eccPublicKeyToHex(pqKeyPairs.eccKeyPair.publicKey)),
+			symEncPrivEccKey: aesEncrypt(userGk, hexToUint8Array(eccPrivateKeyToHex(pqKeyPairs.eccKeyPair.privateKey))),
 			pubKyberKey: hexToUint8Array(kyberPublicKeyToHex(pqKeyPairs.kyberKeyPair.publicKey)),
 			symEncPrivKyberKey: aesEncrypt(userGk, hexToUint8Array(kyberPrivateKeyToHex(pqKeyPairs.kyberKeyPair.privateKey))),
 		})
@@ -1264,7 +1264,7 @@ o.spec("CryptoFacade", function () {
 		// @ts-ignore
 		mailLiteral._ownerEncSessionKey = null
 
-		const pqMessage = await pqFacade.encapsulate(senderIdentityKeyPair, x25519generateKeyPair(), pqKeyPairs.toPublicKeys(), bitArrayToUint8Array(bk))
+		const pqMessage = await pqFacade.encapsulate(senderIdentityKeyPair, generateEccKeyPair(), pqKeyPairs.toPublicKeys(), bitArrayToUint8Array(bk))
 		const pubEncBucketKey = encodePQMessage(pqMessage)
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
 

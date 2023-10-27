@@ -11,8 +11,8 @@ import {
 	generateKeyFromPassphraseBcrypt,
 	hexToKyberPrivateKey,
 	hexToKyberPublicKey,
-	hexToPrivateKey,
-	hexToPublicKey,
+	hexToRsaPrivateKey,
+	hexToRsaPublicKey,
 	KeyLength,
 	kyberPrivateKeyToHex,
 	kyberPublicKeyToHex,
@@ -21,10 +21,10 @@ import {
 	rsaDecrypt,
 	rsaEncrypt,
 	uint8ArrayToBitArray,
-	x25519decapsulate,
-	x25519encapsulate,
-	x25519hexToPrivateKey,
-	x25519hexToPublicKey,
+	eccDecapsulate,
+	eccEncapsulate,
+	hexToEccPrivateKey,
+	hexToEccPublicKey,
 } from "@tutao/tutanota-crypto"
 import {
 	base64ToUint8Array,
@@ -50,10 +50,10 @@ o.spec("crypto compatibility", function () {
 		for (const td of testData.rsaEncryptionTests) {
 			random.generateRandomData = (number) => hexToUint8Array(td.seed)
 
-			let publicKey = hexToPublicKey(td.publicKey)
+			let publicKey = hexToRsaPublicKey(td.publicKey)
 			let encryptedData = rsaEncrypt(publicKey, hexToUint8Array(td.input), hexToUint8Array(td.seed))
 			o(uint8ArrayToHex(encryptedData)).equals(td.result)
-			let privateKey = hexToPrivateKey(td.privateKey)
+			let privateKey = hexToRsaPrivateKey(td.privateKey)
 			let data = rsaDecrypt(privateKey, encryptedData)
 			o(uint8ArrayToHex(data)).equals(td.input)
 		}
@@ -197,18 +197,18 @@ o.spec("crypto compatibility", function () {
 	})
 	o("x25519", function () {
 		for (const td of testData.x25519Tests) {
-			const alicePrivateKeyBytes = x25519hexToPrivateKey(td.alicePrivateKeyHex)
-			const alicePublicKeyBytes = x25519hexToPublicKey(td.alicePublicKeyHex)
+			const alicePrivateKeyBytes = hexToEccPrivateKey(td.alicePrivateKeyHex)
+			const alicePublicKeyBytes = hexToEccPublicKey(td.alicePublicKeyHex)
 			const aliceKeyPair = { priv: alicePrivateKeyBytes, pub: alicePublicKeyBytes }
-			const ephemeralPrivateKeyBytes = x25519hexToPrivateKey(td.ephemeralPrivateKeyHex)
-			const ephemeralPublicKeyBytes = x25519hexToPublicKey(td.ephemeralPublicKeyHex)
+			const ephemeralPrivateKeyBytes = hexToEccPrivateKey(td.ephemeralPrivateKeyHex)
+			const ephemeralPublicKeyBytes = hexToEccPublicKey(td.ephemeralPublicKeyHex)
 			const ephemeralKeyPair = { priv: ephemeralPrivateKeyBytes, pub: ephemeralPublicKeyBytes }
-			const bobPrivateKeyBytes = x25519hexToPrivateKey(td.bobPrivateKeyHex)
-			const bobPublicKeyBytes = x25519hexToPublicKey(td.bobPublicKeyHex)
+			const bobPrivateKeyBytes = hexToEccPrivateKey(td.bobPrivateKeyHex)
+			const bobPublicKeyBytes = hexToEccPublicKey(td.bobPublicKeyHex)
 			const bobKeyPair = { priv: bobPrivateKeyBytes, pub: bobPublicKeyBytes }
 
-			const aliceToBob = x25519encapsulate(aliceKeyPair.priv, ephemeralKeyPair.priv, bobKeyPair.pub)
-			const bobToAlice = x25519decapsulate(aliceKeyPair.pub, ephemeralKeyPair.pub, bobKeyPair.priv)
+			const aliceToBob = eccEncapsulate(aliceKeyPair.priv, ephemeralKeyPair.priv, bobKeyPair.pub)
+			const bobToAlice = eccDecapsulate(aliceKeyPair.pub, ephemeralKeyPair.pub, bobKeyPair.priv)
 			o(aliceToBob).deepEquals(bobToAlice)
 			o(td.ephemeralSharedSecretHex).equals(uint8ArrayToHex(aliceToBob.ephemeralSharedSecret))
 			o(td.authSharedSecretHex).equals(uint8ArrayToHex(aliceToBob.authSharedSecret))

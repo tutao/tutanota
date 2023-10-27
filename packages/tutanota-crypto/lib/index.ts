@@ -11,18 +11,18 @@ export {
 	aes256EncryptSearchIndexEntry,
 } from "./encryption/Aes.js"
 export {
-	X25519PrivateKey,
-	X25519PublicKey,
-	X25519KeyPair,
-	X25519SharedSecrets,
-	x25519generateKeyPair,
-	x25519privateKeyToHex,
-	x25519publicKeyToHex,
-	x25519hexToPrivateKey,
-	x25519hexToPublicKey,
-	x25519encapsulate,
-	x25519decapsulate,
-} from "./encryption/X25519.js"
+	EccPrivateKey,
+	EccPublicKey,
+	EccKeyPair,
+	EccSharedSecrets,
+	generateEccKeyPair,
+	eccPrivateKeyToHex,
+	eccPublicKeyToHex,
+	hexToEccPrivateKey,
+	hexToEccPublicKey,
+	eccEncapsulate,
+	eccDecapsulate,
+} from "./encryption/Ecc.js"
 export { generateRandomSalt, generateKeyFromPassphrase as generateKeyFromPassphraseBcrypt } from "./hashes/Bcrypt.js"
 export {
 	generateKeyPair as generateKeyPairKyber,
@@ -53,7 +53,16 @@ export { CryptoError } from "./misc/CryptoError.js"
 export { KeyLength, EntropySource } from "./misc/Constants.js"
 export { encryptKey, decryptKey, encryptRsaKey, decryptRsaKey, decryptKeyPair, aes256DecryptLegacyRecoveryKey } from "./encryption/KeyEncryption.js"
 export { Randomizer, random } from "./random/Randomizer.js"
-export { encode, generateRsaKey, hexToPublicKey, rsaDecrypt, hexToPrivateKey, privateKeyToHex, publicKeyToHex, rsaEncrypt } from "./encryption/Rsa.js"
+export {
+	encode,
+	generateRsaKey,
+	hexToRsaPublicKey,
+	rsaDecrypt,
+	hexToRsaPrivateKey,
+	rsaPrivateKeyToHex,
+	rsaPublicKeyToHex,
+	rsaEncrypt,
+} from "./encryption/Rsa.js"
 export { RsaKeyPair, RsaPrivateKey, RsaPublicKey } from "./encryption/RsaKeyPair.js"
 export { PQKeyPairs, PQPublicKeys } from "./encryption/PQKeyPairs.js"
 export { sha1Hash } from "./hashes/Sha1.js"
