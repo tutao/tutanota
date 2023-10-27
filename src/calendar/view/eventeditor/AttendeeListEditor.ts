@@ -26,6 +26,7 @@ import { DropDownSelector } from "../../../gui/base/DropDownSelector.js"
 import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
 import { hasPlanWithInvites } from "../../date/eventeditor/CalendarNotificationModel.js"
 import { scaleToVisualPasswordStrength } from "../../../misc/passwords/PasswordUtils.js"
+import { Dialog } from "../../../gui/base/Dialog.js"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */
@@ -63,13 +64,17 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 				onRecipientAdded: async (address, name, contact) => {
 					if (!(await hasPlanWithInvites(logins)) && !this.hasPlanWithInvites) {
 						if (logins.getUserController().user.accountType === AccountType.EXTERNAL) return
-						const { getAvailablePlansWithEventInvites } = await import("../../../subscription/SubscriptionUtils.js")
-						const plansWithEventInvites = await getAvailablePlansWithEventInvites()
-						if (plansWithEventInvites.length === 0) return
-						//entity event updates are too slow to call updateBusinessFeature()
-						this.hasPlanWithInvites = await showPlanUpgradeRequiredDialog(plansWithEventInvites)
-						// the user could have, but did not upgrade.
-						if (!this.hasPlanWithInvites) return
+						if (logins.getUserController().isGlobalAdmin()) {
+							const { getAvailablePlansWithEventInvites } = await import("../../../subscription/SubscriptionUtils.js")
+							const plansWithEventInvites = await getAvailablePlansWithEventInvites()
+							if (plansWithEventInvites.length === 0) return
+							//entity event updates are too slow to call updateBusinessFeature()
+							this.hasPlanWithInvites = await showPlanUpgradeRequiredDialog(plansWithEventInvites)
+							// the user could have, but did not upgrade.
+							if (!this.hasPlanWithInvites) return
+						} else {
+							Dialog.message(() => lang.get("contactAdmin_msg"))
+						}
 					} else {
 						model.editModels.whoModel.addAttendee(address, contact)
 					}
