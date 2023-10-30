@@ -10,19 +10,7 @@ export {
 	Aes256Key,
 	aes256EncryptSearchIndexEntry,
 } from "./encryption/Aes.js"
-export {
-	EccPrivateKey,
-	EccPublicKey,
-	EccKeyPair,
-	EccSharedSecrets,
-	generateEccKeyPair,
-	eccPrivateKeyToHex,
-	eccPublicKeyToHex,
-	hexToEccPrivateKey,
-	hexToEccPublicKey,
-	eccEncapsulate,
-	eccDecapsulate,
-} from "./encryption/Ecc.js"
+export { EccPrivateKey, EccPublicKey, EccKeyPair, EccSharedSecrets, generateEccKeyPair, eccEncapsulate, eccDecapsulate } from "./encryption/Ecc.js"
 export { generateRandomSalt, generateKeyFromPassphrase as generateKeyFromPassphraseBcrypt } from "./hashes/Bcrypt.js"
 export {
 	generateKeyPair as generateKeyPairKyber,
@@ -37,10 +25,10 @@ export {
 	KyberPrivateKey,
 	KyberPublicKey,
 	KyberKeyPair,
-	hexToKyberPrivateKey,
-	kyberPublicKeyToHex,
-	kyberPrivateKeyToHex,
-	hexToKyberPublicKey,
+	bytesToKyberPrivateKey,
+	kyberPublicKeyToBytes,
+	kyberPrivateKeyToBytes,
+	bytesToKyberPublicKey,
 } from "./encryption/Liboqs/KyberKeyPair.js"
 export {
 	generateKeyFromPassphrase as generateKeyFromPassphraseArgon2id,

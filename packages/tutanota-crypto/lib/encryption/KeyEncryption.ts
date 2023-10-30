@@ -5,8 +5,8 @@ import { assertNotNull, concat, hexToUint8Array, uint8ArrayToHex } from "@tutao/
 import { hexToRsaPrivateKey, hexToRsaPublicKey, rsaPrivateKeyToHex } from "./Rsa.js"
 import type { RsaKeyPair, RsaPrivateKey } from "./RsaKeyPair.js"
 import { PQKeyPairs } from "./PQKeyPairs.js"
-import { EccPrivateKey, eccPrivateKeyToHex, hexToEccPrivateKey, hexToEccPublicKey } from "./Ecc.js"
-import { hexToKyberPrivateKey, hexToKyberPublicKey } from "./Liboqs/KyberKeyPair.js"
+import { bytesToKyberPrivateKey, bytesToKyberPublicKey } from "./Liboqs/KyberKeyPair.js"
+import { EccPrivateKey} from "./Ecc.js"
 
 export function encryptKey(encryptionKey: Aes128Key | Aes256Key, keyToBeEncrypted: Aes128Key | Aes256Key): Uint8Array {
 	const keyLength = getKeyLengthBytes(encryptionKey)
@@ -44,7 +44,7 @@ export function encryptRsaKey(encryptionKey: Aes128Key | Aes256Key, privateKey: 
 }
 
 export function encryptEccKey(encryptionKey: Aes128Key | Aes256Key, privateKey: EccPrivateKey): Uint8Array {
-	return aesEncrypt(encryptionKey, hexToUint8Array(eccPrivateKeyToHex(privateKey)), undefined, true, true)
+	return aesEncrypt(encryptionKey, privateKey, undefined, true, true)
 }
 
 export function decryptRsaKey(encryptionKey: Aes128Key | Aes256Key, encryptedPrivateKey: Uint8Array): RsaPrivateKey {
@@ -68,10 +68,10 @@ export function decryptKeyPair(
 
 		return { publicKey: rsaPublicKey, privateKey: rsaPrivateKey }
 	} else {
-		const eccPublicKey = hexToEccPublicKey(uint8ArrayToHex(assertNotNull(keyPair.pubEccKey)))
-		const eccPrivateKey = hexToEccPrivateKey(uint8ArrayToHex(aesDecrypt(encryptionKey, assertNotNull(keyPair.symEncPrivEccKey))))
-		const kyberPublicKey = hexToKyberPublicKey(uint8ArrayToHex(assertNotNull(keyPair.pubKyberKey)))
-		const kyberPrivateKey = hexToKyberPrivateKey(uint8ArrayToHex(aesDecrypt(encryptionKey, assertNotNull(keyPair.symEncPrivKyberKey))))
+		const eccPublicKey = assertNotNull(keyPair.pubEccKey)
+		const eccPrivateKey = aesDecrypt(encryptionKey, assertNotNull(keyPair.symEncPrivEccKey))
+		const kyberPublicKey = bytesToKyberPublicKey(assertNotNull(keyPair.pubKyberKey))
+		const kyberPrivateKey = bytesToKyberPrivateKey(aesDecrypt(encryptionKey, assertNotNull(keyPair.symEncPrivKyberKey)))
 
 		return new PQKeyPairs(
 			{ publicKey: eccPublicKey, privateKey: eccPrivateKey },

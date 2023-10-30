@@ -1,5 +1,4 @@
 import { x25519 } from "@noble/curves/ed25519"
-import { Hex, hexToUint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
 
 export type EccPrivateKey = Uint8Array
 export type EccPublicKey = Uint8Array
@@ -68,26 +67,6 @@ export function eccDecapsulate(
 	const ephemeralSharedSecret = generateSharedSecret(recipientIdentityPrivateKey, ephemeralPublicKey)
 	const authSharedSecret = generateSharedSecret(recipientIdentityPrivateKey, senderIdentityPublicKey)
 	return { ephemeralSharedSecret, authSharedSecret }
-}
-
-/** visible for testing */
-export function eccPrivateKeyToHex(privateKey: EccPrivateKey): Hex {
-	return uint8ArrayToHex(privateKey)
-}
-
-/** visible for testing */
-export function eccPublicKeyToHex(publicKey: EccPrivateKey): Hex {
-	return uint8ArrayToHex(publicKey)
-}
-
-/** visible for testing */
-export function hexToEccPrivateKey(hex: Hex): EccPrivateKey {
-	return hexToUint8Array(hex)
-}
-
-/** visible for testing */
-export function hexToEccPublicKey(hex: Hex): EccPublicKey {
-	return hexToUint8Array(hex)
 }
 
 /**

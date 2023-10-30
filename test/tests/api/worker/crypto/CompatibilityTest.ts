@@ -3,28 +3,26 @@ import {
 	aesDecrypt,
 	aesEncrypt,
 	bitArrayToUint8Array,
+	bytesToKyberPrivateKey,
+	bytesToKyberPublicKey,
 	decapsulateKyber,
 	decryptKey,
+	eccDecapsulate,
+	eccEncapsulate,
 	encapsulateKyber,
 	encryptKey,
 	generateKeyFromPassphraseArgon2id,
 	generateKeyFromPassphraseBcrypt,
-	hexToKyberPrivateKey,
-	hexToKyberPublicKey,
 	hexToRsaPrivateKey,
 	hexToRsaPublicKey,
 	KeyLength,
-	kyberPrivateKeyToHex,
-	kyberPublicKeyToHex,
+	kyberPrivateKeyToBytes,
+	kyberPublicKeyToBytes,
 	random,
 	Randomizer,
 	rsaDecrypt,
 	rsaEncrypt,
 	uint8ArrayToBitArray,
-	eccDecapsulate,
-	eccEncapsulate,
-	hexToEccPrivateKey,
-	hexToEccPublicKey,
 } from "@tutao/tutanota-crypto"
 import {
 	base64ToUint8Array,
@@ -39,6 +37,7 @@ import testData from "./CompatibilityTestData.json"
 import { uncompress } from "../../../../../src/api/worker/Compression.js"
 import { matchers, object, when } from "testdouble"
 import { loadWasmModuleFromFile } from "../../../../../packages/tutanota-crypto/test/WebAssemblyTestUtils.js"
+import { byteArraysToBytes, bytesToByteArrays } from "@tutao/tutanota-utils/dist/Encoding.js"
 
 const originalRandom = random.generateRandomData
 
@@ -62,10 +61,10 @@ o.spec("crypto compatibility", function () {
 		const liboqs = await loadWasmModuleFromFile("../packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm")
 
 		for (const td of testData.kyberEncryptionTests) {
-			const publicKey = hexToKyberPublicKey(td.publicKey)
-			const privateKey = hexToKyberPrivateKey(td.privateKey)
-			o(kyberPublicKeyToHex(publicKey)).deepEquals(td.publicKey)
-			o(kyberPrivateKeyToHex(privateKey)).deepEquals(td.privateKey)
+			const publicKey = bytesToKyberPublicKey(hexToUint8Array(td.publicKey))
+			const privateKey = bytesToKyberPrivateKey(hexToUint8Array(td.privateKey))
+			o(uint8ArrayToHex(kyberPublicKeyToBytes(publicKey))).deepEquals(td.publicKey)
+			o(uint8ArrayToHex(kyberPrivateKeyToBytes(privateKey))).deepEquals(td.privateKey)
 
 			const seed = hexToUint8Array(td.seed)
 
@@ -197,14 +196,14 @@ o.spec("crypto compatibility", function () {
 	})
 	o("x25519", function () {
 		for (const td of testData.x25519Tests) {
-			const alicePrivateKeyBytes = hexToEccPrivateKey(td.alicePrivateKeyHex)
-			const alicePublicKeyBytes = hexToEccPublicKey(td.alicePublicKeyHex)
+			const alicePrivateKeyBytes = hexToUint8Array(td.alicePrivateKeyHex)
+			const alicePublicKeyBytes = hexToUint8Array(td.alicePublicKeyHex)
 			const aliceKeyPair = { priv: alicePrivateKeyBytes, pub: alicePublicKeyBytes }
-			const ephemeralPrivateKeyBytes = hexToEccPrivateKey(td.ephemeralPrivateKeyHex)
-			const ephemeralPublicKeyBytes = hexToEccPublicKey(td.ephemeralPublicKeyHex)
+			const ephemeralPrivateKeyBytes = hexToUint8Array(td.ephemeralPrivateKeyHex)
+			const ephemeralPublicKeyBytes = hexToUint8Array(td.ephemeralPublicKeyHex)
 			const ephemeralKeyPair = { priv: ephemeralPrivateKeyBytes, pub: ephemeralPublicKeyBytes }
-			const bobPrivateKeyBytes = hexToEccPrivateKey(td.bobPrivateKeyHex)
-			const bobPublicKeyBytes = hexToEccPublicKey(td.bobPublicKeyHex)
+			const bobPrivateKeyBytes = hexToUint8Array(td.bobPrivateKeyHex)
+			const bobPublicKeyBytes = hexToUint8Array(td.bobPublicKeyHex)
 			const bobKeyPair = { priv: bobPrivateKeyBytes, pub: bobPublicKeyBytes }
 
 			const aliceToBob = eccEncapsulate(aliceKeyPair.priv, ephemeralKeyPair.priv, bobKeyPair.pub)
@@ -214,6 +213,28 @@ o.spec("crypto compatibility", function () {
 			o(td.authSharedSecretHex).equals(uint8ArrayToHex(aliceToBob.authSharedSecret))
 		}
 	})
+
+	o("byteArrayEncoding", function () {
+		for (const td of testData.byteArrayEncodingTests) {
+			var byteArrays = td.byteArraysAsHex.map((byteArrayAsHex) => hexToUint8Array(byteArrayAsHex))
+			if (td.encodedByteArrayAsHex) {
+				o(td.encodedByteArrayAsHex).equals(uint8ArrayToHex(byteArraysToBytes(byteArrays)))
+
+				const decodedByteArrays = bytesToByteArrays(hexToUint8Array(td.encodedByteArrayAsHex), td.byteArraysAsHex.length)
+				for (var i = 0; i < td.byteArraysAsHex.length; i++) {
+					o(td.byteArraysAsHex[i]).equals(uint8ArrayToHex(decodedByteArrays[i]))
+				}
+			} else {
+				try {
+					byteArraysToBytes(byteArrays)
+					throw new Error(" encoding error no thrown")
+				} catch (e) {
+					o(td.encodingError).equals(e.message)
+				}
+			}
+		}
+	})
+
 	/**
 	 * Creates the Javascript compatibility test data for compression. See CompatibilityTest.writeCompressionTestData() in Java for
 	 * instructions how to update the test data.

@@ -2,6 +2,7 @@ export type Base64 = string
 export type Base64Ext = string
 export type Base64Url = string
 export type Hex = string
+
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
 export function uint8ArrayToArrayBuffer(uint8Array: Uint8Array): ArrayBuffer {
 	if (uint8Array.byteLength === uint8Array.buffer.byteLength) {
@@ -127,6 +128,7 @@ export function base64UrlToBase64(base64url: Base64Url): Base64 {
 
 	throw new Error("Illegal base64 string.")
 }
+
 // just for edge, as it does not support TextEncoder yet
 export function _stringToUtf8Uint8ArrayLegacy(string: string): Uint8Array {
 	let fixedString
@@ -146,7 +148,9 @@ export function _stringToUtf8Uint8ArrayLegacy(string: string): Uint8Array {
 
 	return uint8Array
 }
+
 const REPLACEMENT_CHAR = "\uFFFD"
+
 export function _replaceLoneSurrogates(s: string | null | undefined): string {
 	if (s == null) {
 		return ""
@@ -183,6 +187,7 @@ export function _replaceLoneSurrogates(s: string | null | undefined): string {
 
 	return result.join("")
 }
+
 const encoder =
 	typeof TextEncoder == "function"
 		? new TextEncoder()
@@ -205,6 +210,7 @@ const decoder =
 export function stringToUtf8Uint8Array(string: string): Uint8Array {
 	return encoder.encode(string)
 }
+
 // just for edge, as it does not support TextDecoder yet
 export function _utf8Uint8ArrayToStringLegacy(uint8Array: Uint8Array): string {
 	let stringArray: string[] = []
@@ -226,6 +232,7 @@ export function _utf8Uint8ArrayToStringLegacy(uint8Array: Uint8Array): string {
 export function utf8Uint8ArrayToString(uint8Array: Uint8Array): string {
 	return decoder.decode(uint8Array)
 }
+
 export function hexToUint8Array(hex: Hex): Uint8Array {
 	let bufView = new Uint8Array(hex.length / 2)
 
@@ -235,7 +242,9 @@ export function hexToUint8Array(hex: Hex): Uint8Array {
 
 	return bufView
 }
+
 const hexDigits = "0123456789abcdef"
+
 export function uint8ArrayToHex(uint8Array: Uint8Array): Hex {
 	let hex = ""
 
@@ -269,6 +278,7 @@ export function uint8ArrayToBase64(bytes: Uint8Array): Base64 {
 
 	return btoa(binary)
 }
+
 export function int8ArrayToBase64(bytes: Int8Array): Base64 {
 	// Values 0 to 127 are the same for signed and unsigned bytes
 	// and -128 to -1 are mapped to the same chars as 128 to 255.
@@ -341,9 +351,87 @@ export function decodeQuotedPrintable(charset: string, input: string): string {
 			})
 	)
 }
+
 export function decodeBase64(charset: string, input: string): string {
 	return uint8ArrayToString(charset, base64ToUint8Array(input))
 }
+
 export function stringToBase64(str: string): string {
 	return uint8ArrayToBase64(stringToUtf8Uint8Array(str))
+}
+
+/**
+ * Encodes a variable number of byte arrays as a single byte array. Format:
+ * short(length of byteArray[0]) | byteArray[0] | ... | short(length of byteArray[n]) | byteArray[n]
+ *
+ * @return encoded byte array
+ */
+export function byteArraysToBytes(byteArrays: Array<Uint8Array>): Uint8Array {
+	const totalBytesLength = byteArrays.reduce((acc, element) => acc + element.length, 0)
+	const encodingOverhead = byteArrays.length * 2 // two byte length overhead for each byte array
+	const encodedByteArrays = new Uint8Array(encodingOverhead + totalBytesLength)
+	let index = 0
+	for (var byteArray of byteArrays) {
+		if (byteArray.length > MAX_ENCODED_BYTES_LENGTH) {
+			throw new Error("byte array is to long for encoding")
+		}
+		index = writeByteArray(encodedByteArrays, byteArray, index)
+	}
+	return encodedByteArrays
+}
+
+/**
+ * Decodes a byte array encoded by #byteArraysToBytes.
+ *
+ * @return list of byte arrays
+ */
+export function bytesToByteArrays(encodedByteArrays: Uint8Array, expectedByteArrays: Number): Array<Uint8Array> {
+	const byteArrays = new Array<Uint8Array>()
+	let index = 0
+	while (index < encodedByteArrays.length) {
+		const readResult = readByteArray(encodedByteArrays, index)
+		byteArrays.push(readResult.byteArray)
+		index = readResult.index
+	}
+	if (byteArrays.length != expectedByteArrays) {
+		throw new Error("invalid amount of key parameters. Expected: " + expectedByteArrays + " actual:" + byteArrays.length)
+	}
+	return byteArrays
+}
+
+// Size of the length field for encoded byte arrays
+const BYTE_ARRAY_LENGTH_FIELD_SIZE = 2
+const MAX_ENCODED_BYTES_LENGTH = 65535
+
+function writeByteArray(result: Uint8Array, byteArray: Uint8Array, index: number): number {
+	writeShort(result, byteArray.length, index)
+	index += BYTE_ARRAY_LENGTH_FIELD_SIZE
+	result.set(byteArray, index)
+	index += byteArray.length
+	return index
+}
+
+function readByteArray(encoded: Uint8Array, index: number): { index: number; byteArray: Uint8Array } {
+	const length = readShort(encoded, index)
+	index += BYTE_ARRAY_LENGTH_FIELD_SIZE
+	const byteArray = encoded.slice(index, length + index)
+	index += length
+	if (byteArray.length != length) {
+		throw new Error("cannot read encoded byte array at pos:" + index + " expected bytes:" + length + " read bytes:" + byteArray.length)
+	}
+	return { index, byteArray }
+}
+
+function writeShort(array: Uint8Array, value: number, index: number) {
+	array[index] = (value & 0x0000ff00) >> 8
+	array[index + 1] = (value & 0x000000ff) >> 0
+}
+
+function readShort(array: Uint8Array, index: number): number {
+	const bytes = array.subarray(index, index + BYTE_ARRAY_LENGTH_FIELD_SIZE)
+	let n = 0
+	for (const byte of bytes.values()) {
+		n = (n << 8) | byte
+	}
+	return n
 }
