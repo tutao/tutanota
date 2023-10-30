@@ -44,11 +44,13 @@ import { byteArraysToBytes, bytesToByteArrays } from "@tutao/tutanota-utils/dist
 import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
 import { decodePQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
+import { loadArgon2WASM, loadLibOQSWASM } from "../WASMTestUtils.js"
 
 const originalRandom = random.generateRandomData
-const liboqs = await loadWasmModuleFromFile("../packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm")
 
-o.spec("crypto compatibility", function () {
+o.spec("crypto compatibility", async function () {
+	const liboqs = await loadLibOQSWASM()
+
 	o.afterEach(function () {
 		random.generateRandomData = originalRandom
 	})
@@ -187,8 +189,7 @@ o.spec("crypto compatibility", function () {
 		}
 	})
 	o("argon2id", async function () {
-		const argon2 = await loadWasmModuleFromFile("../packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm")
-
+		const argon2 = await loadArgon2WASM()
 		for (let td of testData.argon2idTests) {
 			let key = generateKeyFromPassphraseArgon2id(argon2, td.password, hexToUint8Array(td.saltHex))
 			o(uint8ArrayToHex(bitArrayToUint8Array(key))).equals(td.keyHex)

@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
 import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
-import { loadWasmModuleFromFile } from "../../../../../packages/tutanota-crypto/test/WebAssemblyTestUtils.js"
 import { bytesToKyberPrivateKey, bytesToKyberPublicKey, kyberPrivateKeyToBytes, kyberPublicKeyToBytes } from "@tutao/tutanota-crypto"
+import { loadLibOQSWASM } from "../WASMTestUtils.js"
 
 o.spec("KyberFacade", async function () {
 	let kyberFacade: WASMKyberFacade
 	o.before(async () => {
-		kyberFacade = new WASMKyberFacade(await loadWasmModuleFromFile("../packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm"))
+		kyberFacade = new WASMKyberFacade(await loadLibOQSWASM())
 	})
 	o("encoding roundtrip", async function () {
 		const keyPair = await kyberFacade.generateKeypair()

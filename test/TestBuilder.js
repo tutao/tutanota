@@ -36,6 +36,7 @@ export async function runTestBuild({ clean, fast = false }) {
 		await fs.mkdir(inBuildDir(), { recursive: true })
 		await fs.copyFile(pjPath, inBuildDir("package.json"))
 		await fs.copyFile(path.join("..", "packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm"), inBuildDir("argon2.wasm"))
+		await fs.copyFile(path.join("..", "packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm"), inBuildDir("liboqs.wasm"))
 		await createUnitTestHtml(localEnv)
 	})
 	await runStep("Esbuild", async () => {
