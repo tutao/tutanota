@@ -59,15 +59,13 @@ import {
 	ENABLE_MAC,
 	encryptKey,
 	encryptRsaKey,
+	generateEccKeyPair,
 	hexToRsaPrivateKey,
 	hexToRsaPublicKey,
 	IV_BYTE_LENGTH,
-	kyberPrivateKeyToHex,
-	kyberPublicKeyToHex,
+	kyberPrivateKeyToBytes,
+	kyberPublicKeyToBytes,
 	random,
-	generateEccKeyPair,
-	eccPrivateKeyToHex,
-	eccPublicKeyToHex,
 } from "@tutao/tutanota-crypto"
 import { RsaWeb } from "../../../../../src/api/worker/crypto/RsaImplementation.js"
 import { decryptValue, encryptValue, InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
@@ -672,10 +670,10 @@ o.spec("CryptoFacade", function () {
 
 		const recipientKeyPair = createKeyPair({
 			_id: "keyPairId",
-			pubEccKey: hexToUint8Array(eccPublicKeyToHex(pqKeyPairs.eccKeyPair.publicKey)),
-			symEncPrivEccKey: aesEncrypt(gk, hexToUint8Array(eccPrivateKeyToHex(pqKeyPairs.eccKeyPair.privateKey))),
-			pubKyberKey: hexToUint8Array(kyberPublicKeyToHex(pqKeyPairs.kyberKeyPair.publicKey)),
-			symEncPrivKyberKey: aesEncrypt(gk, hexToUint8Array(kyberPrivateKeyToHex(pqKeyPairs.kyberKeyPair.privateKey))),
+			pubEccKey: pqKeyPairs.eccKeyPair.publicKey,
+			symEncPrivEccKey: aesEncrypt(gk, pqKeyPairs.eccKeyPair.privateKey),
+			pubKyberKey: kyberPublicKeyToBytes(pqKeyPairs.kyberKeyPair.publicKey),
+			symEncPrivKyberKey: aesEncrypt(gk, kyberPrivateKeyToBytes(pqKeyPairs.kyberKeyPair.privateKey)),
 		})
 
 		const senderIdentityKeyPair = generateEccKeyPair()
@@ -1256,10 +1254,10 @@ o.spec("CryptoFacade", function () {
 
 		const recipientKeyPair = createKeyPair({
 			_id: "keyPairId",
-			pubEccKey: hexToUint8Array(eccPublicKeyToHex(pqKeyPairs.eccKeyPair.publicKey)),
-			symEncPrivEccKey: aesEncrypt(userGk, hexToUint8Array(eccPrivateKeyToHex(pqKeyPairs.eccKeyPair.privateKey))),
-			pubKyberKey: hexToUint8Array(kyberPublicKeyToHex(pqKeyPairs.kyberKeyPair.publicKey)),
-			symEncPrivKyberKey: aesEncrypt(userGk, hexToUint8Array(kyberPrivateKeyToHex(pqKeyPairs.kyberKeyPair.privateKey))),
+			pubEccKey: pqKeyPairs.eccKeyPair.publicKey,
+			symEncPrivEccKey: aesEncrypt(userGk, pqKeyPairs.eccKeyPair.privateKey),
+			pubKyberKey: kyberPublicKeyToBytes(pqKeyPairs.kyberKeyPair.publicKey),
+			symEncPrivKyberKey: aesEncrypt(userGk, kyberPrivateKeyToBytes(pqKeyPairs.kyberKeyPair.privateKey)),
 		})
 
 		const userGroup = createGroup({

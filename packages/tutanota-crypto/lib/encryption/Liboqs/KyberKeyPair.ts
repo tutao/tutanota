@@ -1,6 +1,6 @@
-import { concat, Hex, hexToUint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { concat } from "@tutao/tutanota-utils"
 import { KYBER_POLYVECBYTES, KYBER_SYMBYTES } from "./Kyber.js"
-import { CryptoError } from "../../misc/CryptoError.js"
+import { byteArraysToBytes, bytesToByteArrays } from "@tutao/tutanota-utils/dist/Encoding.js"
 
 export type KyberKeyPair = {
 	publicKey: KyberPublicKey
@@ -18,7 +18,7 @@ export type KyberEncapsulation = {
 	sharedSecret: Uint8Array
 }
 
-export function kyberPrivateKeyToHex(key: KyberPrivateKey): Hex {
+export function kyberPrivateKeyToBytes(key: KyberPrivateKey): Uint8Array {
 	const keyBytes = key.raw
 	//liboqs: s, t, rho, hpk, nonce
 	//encoded: s, hpk, nonce, t, rho
@@ -27,67 +27,25 @@ export function kyberPrivateKeyToHex(key: KyberPrivateKey): Hex {
 	const rho = keyBytes.slice(2 * KYBER_POLYVECBYTES, 2 * KYBER_POLYVECBYTES + KYBER_SYMBYTES)
 	const hpk = keyBytes.slice(2 * KYBER_POLYVECBYTES + KYBER_SYMBYTES, 2 * KYBER_POLYVECBYTES + 2 * KYBER_SYMBYTES)
 	const nonce = keyBytes.slice(2 * KYBER_POLYVECBYTES + 2 * KYBER_SYMBYTES, 2 * KYBER_POLYVECBYTES + 3 * KYBER_SYMBYTES)
-	return formatHexString([s, hpk, nonce, t, rho])
+	return byteArraysToBytes([s, hpk, nonce, t, rho])
 }
 
-export function kyberPublicKeyToHex(key: KyberPublicKey): Hex {
-	const keyComponents: Uint8Array[] = []
+export function kyberPublicKeyToBytes(key: KyberPublicKey): Uint8Array {
 	const keyBytes = key.raw
-	keyComponents.push(keyBytes.slice(0, KYBER_POLYVECBYTES))
-	keyComponents.push(keyBytes.slice(KYBER_POLYVECBYTES, KYBER_POLYVECBYTES + KYBER_SYMBYTES))
-	return formatHexString(keyComponents)
+	const t = keyBytes.slice(0, KYBER_POLYVECBYTES)
+	const rho = keyBytes.slice(KYBER_POLYVECBYTES, KYBER_POLYVECBYTES + KYBER_SYMBYTES)
+	return byteArraysToBytes([t, rho])
 }
 
-function formatHexString(keyComponent: Uint8Array[]): Hex {
-	let result = ""
-	for (const comp of keyComponent) {
-		const hex = uint8ArrayToHex(comp)
-		result += getHexLen(hex) + hex
-	}
-	return result
-}
-
-function getHexLen(data: Hex): Hex {
-	let hexLen = data.length.toString(16)
-	while (hexLen.length < 4) {
-		hexLen = "0" + hexLen
-	}
-	return hexLen
-}
-
-export function hexToKyberPublicKey(hex: Hex): KyberPublicKey {
-	const keyComponents = _hexToKyberKeyArray(hex)
-	if (keyComponents.length != 2) {
-		throw new Error("invalid public key hex encoding")
-	}
+export function bytesToKyberPublicKey(encodedPublicKey: Uint8Array): KyberPublicKey {
+	const keyComponents = bytesToByteArrays(encodedPublicKey, 2)
 	// key is expected by oqs in the same order t, rho
 	return { raw: concat(...keyComponents) }
 }
 
-export function hexToKyberPrivateKey(hex: Hex): KyberPrivateKey {
-	const keyComponents = _hexToKyberKeyArray(hex)
-	if (keyComponents.length != 5) {
-		throw new Error("invalid private key hex encoding")
-	}
+export function bytesToKyberPrivateKey(encodedPrivateKey: Uint8Array): KyberPrivateKey {
+	const keyComponents = bytesToByteArrays(encodedPrivateKey, 5)
 
 	// key is expected by oqs in this order (vs how we encode it on the server): s, t, rho, hpk, nonce
 	return { raw: concat(keyComponents[0], keyComponents[3], keyComponents[4], keyComponents[1], keyComponents[2]) }
-}
-
-function _hexToKyberKeyArray(hex: Hex): Uint8Array[] {
-	try {
-		var key: Uint8Array[] = []
-		var pos = 0
-
-		while (pos < hex.length) {
-			var nextParamLen = parseInt(hex.substring(pos, pos + 4), 16)
-			pos += 4
-			key.push(hexToUint8Array(hex.substring(pos, pos + nextParamLen)))
-			pos += nextParamLen
-		}
-
-		return key
-	} catch (e) {
-		throw new CryptoError("hex to kyber key failed", e as Error)
-	}
 }

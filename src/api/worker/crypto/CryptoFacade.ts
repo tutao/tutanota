@@ -46,10 +46,11 @@ import {
 	aes128RandomKey,
 	aesEncrypt,
 	bitArrayToUint8Array,
+	bytesToKyberPublicKey,
 	decryptKey,
 	ENABLE_MAC,
 	encryptKey,
-	hexToKyberPublicKey,
+	generateEccKeyPair,
 	hexToRsaPublicKey,
 	IV_BYTE_LENGTH,
 	PQKeyPairs,
@@ -58,8 +59,6 @@ import {
 	RsaKeyPair,
 	RsaPublicKey,
 	uint8ArrayToBitArray,
-	generateEccKeyPair,
-	hexToEccPublicKey,
 } from "@tutao/tutanota-crypto"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
 import type { RsaImplementation } from "./RsaImplementation"
@@ -600,8 +599,8 @@ export class CryptoFacade {
 		if (keyPair.pubRsaKey) {
 			return hexToRsaPublicKey(uint8ArrayToHex(keyPair.pubRsaKey))
 		} else if (keyPair.pubKyberKey && keyPair.pubEccKey) {
-			var eccPublicKey = hexToEccPublicKey(uint8ArrayToHex(keyPair.pubEccKey))
-			var kyberPublicKey = hexToKyberPublicKey(uint8ArrayToHex(keyPair.pubKyberKey))
+			var eccPublicKey = keyPair.pubEccKey
+			var kyberPublicKey = bytesToKyberPublicKey(keyPair.pubKyberKey)
 			return new PQPublicKeys(eccPublicKey, kyberPublicKey)
 		} else {
 			throw new Error("Inconsistent Keypair")

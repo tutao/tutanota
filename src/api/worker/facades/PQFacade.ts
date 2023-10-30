@@ -3,19 +3,18 @@ import {
 	Aes256Key,
 	aesDecrypt,
 	aesEncrypt,
-	KyberPublicKey,
-	kyberPublicKeyToHex,
-	PQKeyPairs,
-	PQPublicKeys,
-	uint8ArrayToKey,
 	eccDecapsulate,
 	eccEncapsulate,
-	generateEccKeyPair,
 	EccKeyPair,
 	EccPublicKey,
 	EccSharedSecrets,
+	generateEccKeyPair,
+	kyberPublicKeyToBytes,
+	PQKeyPairs,
+	PQPublicKeys,
+	uint8ArrayToKey,
 } from "@tutao/tutanota-crypto"
-import { concat, hexToUint8Array, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { concat, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
 import { PQMessage } from "./PQMessage.js"
 import { hkdf } from "@tutao/tutanota-crypto/dist/hashes/HKDF.js"
@@ -90,7 +89,7 @@ export class PQFacade {
 			senderIdentityPublicKey,
 			ephemeralPublicKey,
 			recipientPublicKeys.eccPublicKey,
-			hexToUint8Array(kyberPublicKeyToHex(recipientPublicKeys.kyberPublicKey)),
+			kyberPublicKeyToBytes(recipientPublicKeys.kyberPublicKey),
 			kyberCipherText,
 		)
 

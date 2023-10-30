@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
 import { loadWasmModuleFromFile } from "../../../../../packages/tutanota-crypto/test/WebAssemblyTestUtils.js"
-import { hexToKyberPrivateKey, hexToKyberPublicKey, kyberPrivateKeyToHex, kyberPublicKeyToHex } from "@tutao/tutanota-crypto"
+import { bytesToKyberPrivateKey, bytesToKyberPublicKey, kyberPrivateKeyToBytes, kyberPublicKeyToBytes } from "@tutao/tutanota-crypto"
 
 o.spec("KyberFacade", async function () {
 	let kyberFacade: WASMKyberFacade
@@ -10,8 +10,8 @@ o.spec("KyberFacade", async function () {
 	})
 	o("encoding roundtrip", async function () {
 		const keyPair = await kyberFacade.generateKeypair()
-		o(hexToKyberPublicKey(kyberPublicKeyToHex(keyPair.publicKey))).deepEquals(keyPair.publicKey)
-		o(hexToKyberPrivateKey(kyberPrivateKeyToHex(keyPair.privateKey))).deepEquals(keyPair.privateKey)
+		o(bytesToKyberPublicKey(kyberPublicKeyToBytes(keyPair.publicKey))).deepEquals(keyPair.publicKey)
+		o(bytesToKyberPrivateKey(kyberPrivateKeyToBytes(keyPair.privateKey))).deepEquals(keyPair.privateKey)
 	})
 
 	o("encryptionDecryptionRoundtrip", async function () {
