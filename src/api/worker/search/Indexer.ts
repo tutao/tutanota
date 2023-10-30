@@ -396,8 +396,19 @@ export class Indexer {
 						value: GroupData
 					}[],
 				) => {
+					if (!Array.isArray(loadedGroups)) {
+						throw new InvalidDatabaseStateError("loadedGroups is not an array")
+					}
 					let oldGroups = loadedGroups.map((group) => {
-						const id: Id = downcast(group.key)
+						if (
+							typeof group !== "object" ||
+							typeof group.key !== "string" ||
+							typeof group.value !== "object" ||
+							typeof group.value.groupType !== "string"
+						) {
+							throw new InvalidDatabaseStateError(`loaded group is malformed: ${group} ${JSON.stringify(group)}`)
+						}
+						const id: Id = group.key
 						return {
 							id,
 							type: group.value.groupType,

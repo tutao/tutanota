@@ -26,7 +26,7 @@ import type { QueuedBatch } from "../../../../../src/api/worker/EventQueue.js"
 import { EntityRestClient } from "../../../../../src/api/worker/rest/EntityRestClient.js"
 import { MembershipRemovedError } from "../../../../../src/api/common/error/MembershipRemovedError.js"
 import { GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
-import { daysToMillis, defer, downcast, lazyAsync, lazyMemoized, TypeRef } from "@tutao/tutanota-utils"
+import { daysToMillis, defer, downcast, TypeRef } from "@tutao/tutanota-utils"
 import { aes128RandomKey, aes256RandomKey, aesEncrypt, decryptKey, encryptKey, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import o from "@tutao/otest"
@@ -286,7 +286,9 @@ o.spec("Indexer test", () => {
 					},
 					{
 						key: user.memberships[1].group,
-						value: {},
+						value: {
+							groupType: GroupType.Mail,
+						},
 					},
 				])
 			},
