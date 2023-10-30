@@ -1,5 +1,5 @@
 import { lang } from "./LanguageViewModel"
-import { DAY_IN_MILLIS, pad } from "@tutao/tutanota-utils"
+import { pad } from "@tutao/tutanota-utils"
 import type { UserSettingsGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
 import { TimeFormat } from "../api/common/TutanotaConstants"
 import { assertMainOrNode } from "../api/common/Env"
@@ -59,7 +59,10 @@ export function formatTimeOrDateOrYesterday(date: Date): string {
 	const startOfToday = new Date().setHours(0, 0, 0, 0)
 	if (date.getTime() >= startOfToday) {
 		return formatTime(date)
-	} else if (date.getTime() >= startOfToday - DAY_IN_MILLIS) {
+	}
+	const yesterday = new Date(startOfToday)
+	yesterday.setDate(yesterday.getDate() - 1)
+	if (date.getDate() === yesterday.getDate()) {
 		return lang.get("yesterday_label")
 	} else if (date.getFullYear() === new Date().getFullYear()) {
 		return lang.formats.dateWithoutYear.format(date)
