@@ -778,7 +778,7 @@ class IndexLoader {
 		)
 		for (let [listId, ids] of listIdToMailDetailsDraftIds) {
 			const ownerEncSessionKeyProvider = async (instanceElementId: Id) => {
-				const mail = assertNotNull(mailDetailsDraftMails.find((m) => elementIdPart(assertNotNull(m.mailDetails)) === instanceElementId))
+				const mail = assertNotNull(mailDetailsDraftMails.find((m) => elementIdPart(assertNotNull(m.mailDetailsDraft)) === instanceElementId))
 				return assertNotNull(mail._ownerEncSessionKey)
 			}
 			const mailDetailsDrafts = await this.loadInChunks(MailDetailsDraftTypeRef, listId, ids, ownerEncSessionKeyProvider)
