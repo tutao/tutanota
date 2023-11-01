@@ -318,6 +318,19 @@ export function generatedIdToTimestamp(base64Ext: Id): number {
 	return numberResult
 }
 
+/**
+ * Extracts the serverId from a GeneratedId
+ * @param base64Ext The id as base64Ext
+ * @returns The serverId part of the GeneratedId
+ */
+export function generatedIdToServerId(base64Ext: Id): number {
+	const base64 = base64ExtToBase64(base64Ext)
+	const decodedbB4 = atob(base64)
+	// serverId is in the last 14 bits of the 9-byte id
+	// look at tutadb / DataFactory.getServerId as to why the -1 is there
+	return (decodedbB4.charCodeAt(7) & 0b00111111) * 256 + decodedbB4.charCodeAt(8) - 1
+}
+
 // We can't import EntityUtils here, otherwise we should say GENERATED_MAX_ID.length or something like it
 const base64extEncodedIdLength = 12
 const base64extAlphabet = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz"

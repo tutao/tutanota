@@ -2,6 +2,7 @@ import o from "@tutao/otest"
 import {
 	create,
 	GENERATED_MIN_ID,
+	generatedIdToServerId,
 	generatedIdToTimestamp,
 	removeTechnicalFields,
 	timestampToGeneratedId,
@@ -28,6 +29,12 @@ o.spec("EntityUtils", function () {
 		o(generatedIdToTimestamp(timestampToGeneratedId(0))).equals(0)
 		o(generatedIdToTimestamp("zzzzzzzzzzzz")).equals(maxTimestamp)
 		o(generatedIdToTimestamp("IwQvgF------")).equals(1370563200000)
+	})
+
+	o("generatedIdToServerId", function () {
+		o(generatedIdToServerId("-----0_-0R-2")).equals(2)
+		o(generatedIdToServerId("----NPW-0Uzz")).equals(16382)
+		o(generatedIdToServerId("----NPW-0R3-")).equals(255)
 	})
 
 	o("create new entity without error object ", function () {
