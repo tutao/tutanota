@@ -13,7 +13,6 @@ o.spec("RsaPqPerformanceTest", function () {
 		function formatNumber(x) {
 			return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 		}
-		console.log("######################################")
 
 		o("pq", async function () {
 			const kyberFacade = new WASMKyberFacade(await loadWasmModuleFromFile("../packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm"))
