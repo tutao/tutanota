@@ -21,7 +21,7 @@ export type KyberEncapsulation = {
 export function kyberPrivateKeyToBytes(key: KyberPrivateKey): Uint8Array {
 	const keyBytes = key.raw
 	//liboqs: s, t, rho, hpk, nonce
-	//encoded: s, hpk, nonce, t, rho
+	//tuta encoded: s, hpk, nonce, t, rho
 	const s = keyBytes.slice(0, KYBER_POLYVECBYTES)
 	const t = keyBytes.slice(KYBER_POLYVECBYTES, 2 * KYBER_POLYVECBYTES)
 	const rho = keyBytes.slice(2 * KYBER_POLYVECBYTES, 2 * KYBER_POLYVECBYTES + KYBER_SYMBYTES)
@@ -45,7 +45,11 @@ export function bytesToKyberPublicKey(encodedPublicKey: Uint8Array): KyberPublic
 
 export function bytesToKyberPrivateKey(encodedPrivateKey: Uint8Array): KyberPrivateKey {
 	const keyComponents = bytesToByteArrays(encodedPrivateKey, 5)
-
+	const s = keyComponents[0]
+	const hpk = keyComponents[1]
+	const nonce = keyComponents[2]
+	const t = keyComponents[3]
+	const rho = keyComponents[4]
 	// key is expected by oqs in this order (vs how we encode it on the server): s, t, rho, hpk, nonce
-	return { raw: concat(keyComponents[0], keyComponents[3], keyComponents[4], keyComponents[1], keyComponents[2]) }
+	return { raw: concat(s, t, rho, hpk, nonce) }
 }
