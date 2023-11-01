@@ -2,11 +2,8 @@ import sjcl from "../internal/sjcl.js"
 import { bitArrayToUint8Array, uint8ArrayToBitArray } from "../misc/Utils.js"
 
 /**
- *
- * @param salt
- * @param inputKeyMaterial
- * @param info
- * @param lengthInBytes
+ * Derives a key of a defined length from salt, inputKeyMaterial and info.
+ * @return the derived salt
  */
 export function hkdf(salt: Uint8Array, inputKeyMaterial: Uint8Array, info: Uint8Array, lengthInBytes: number): Uint8Array {
 	const saltHmac = new sjcl.misc.hmac(uint8ArrayToBitArray(salt), sjcl.hash.sha256)

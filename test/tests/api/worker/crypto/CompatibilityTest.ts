@@ -15,6 +15,7 @@ import {
 	generateKeyFromPassphraseBcrypt,
 	hexToRsaPrivateKey,
 	hexToRsaPublicKey,
+	hkdf,
 	KeyLength,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
@@ -233,6 +234,17 @@ o.spec("crypto compatibility", function () {
 				}
 			}
 		}
+	})
+
+	o("hkdf", function () {
+		type HkdfTestData = { saltHex: string, inputKeyMaterialHex: string, infoHex: string, lengthInBytes: number, hkdfHex: string }
+		testData.hkdfTests.forEach((td : HkdfTestData) => {
+			const salt = hexToUint8Array(td.saltHex)
+			const inputKeyMaterialHex = hexToUint8Array(td.inputKeyMaterialHex)
+			const info = hexToUint8Array(td.infoHex)
+			const lengthInBytes = td.lengthInBytes
+			o(uint8ArrayToHex(hkdf(salt, inputKeyMaterialHex, info, lengthInBytes))).equals(td.hkdfHex)
+		})
 	})
 
 	/**
