@@ -63,10 +63,10 @@ import {
 } from "../../../entities/tutanota/TypeRefs.js"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
 import { NotFoundError } from "../../../common/error/RestError.js"
-import type { EntityUpdate, PublicKeyReturn, User } from "../../../entities/sys/TypeRefs.js"
+import type { EntityUpdate, PublicKeyGetOut, User } from "../../../entities/sys/TypeRefs.js"
 import {
 	BlobReferenceTokenWrapper,
-	createPublicKeyData,
+	createPublicKeyGetIn,
 	ExternalUserReferenceTypeRef,
 	GroupInfoTypeRef,
 	GroupRootTypeRef,
@@ -808,11 +808,11 @@ export class MailFacade {
 		}
 	}
 
-	getRecipientKeyData(mailAddress: string): Promise<PublicKeyReturn | null> {
+	getRecipientKeyData(mailAddress: string): Promise<PublicKeyGetOut | null> {
 		return this.serviceExecutor
 			.get(
 				PublicKeyService,
-				createPublicKeyData({
+				createPublicKeyGetIn({
 					mailAddress,
 				}),
 			)

@@ -2140,32 +2140,45 @@ export type PriceServiceReturn = {
 	currentPriceThisPeriod:  null | PriceData;
 	futurePriceNextPeriod:  null | PriceData;
 }
-export const PublicKeyDataTypeRef: TypeRef<PublicKeyData> = new TypeRef("sys", "PublicKeyData")
+export const PublicKeyGetInTypeRef: TypeRef<PublicKeyGetIn> = new TypeRef("sys", "PublicKeyGetIn")
 
-export function createPublicKeyData(values: StrippedEntity<PublicKeyData>): PublicKeyData {
-	return Object.assign(create(typeModels.PublicKeyData, PublicKeyDataTypeRef), values)
+export function createPublicKeyGetIn(values: StrippedEntity<PublicKeyGetIn>): PublicKeyGetIn {
+	return Object.assign(create(typeModels.PublicKeyGetIn, PublicKeyGetInTypeRef), values)
 }
 
-export type PublicKeyData = {
-	_type: TypeRef<PublicKeyData>;
+export type PublicKeyGetIn = {
+	_type: TypeRef<PublicKeyGetIn>;
 
 	_format: NumberString;
 	mailAddress: string;
 }
-export const PublicKeyReturnTypeRef: TypeRef<PublicKeyReturn> = new TypeRef("sys", "PublicKeyReturn")
+export const PublicKeyGetOutTypeRef: TypeRef<PublicKeyGetOut> = new TypeRef("sys", "PublicKeyGetOut")
 
-export function createPublicKeyReturn(values: StrippedEntity<PublicKeyReturn>): PublicKeyReturn {
-	return Object.assign(create(typeModels.PublicKeyReturn, PublicKeyReturnTypeRef), values)
+export function createPublicKeyGetOut(values: StrippedEntity<PublicKeyGetOut>): PublicKeyGetOut {
+	return Object.assign(create(typeModels.PublicKeyGetOut, PublicKeyGetOutTypeRef), values)
 }
 
-export type PublicKeyReturn = {
-	_type: TypeRef<PublicKeyReturn>;
+export type PublicKeyGetOut = {
+	_type: TypeRef<PublicKeyGetOut>;
 
 	_format: NumberString;
 	pubEccKey: null | Uint8Array;
 	pubKeyVersion: NumberString;
 	pubKyberKey: null | Uint8Array;
 	pubRsaKey: null | Uint8Array;
+}
+export const PublicKeyPutInTypeRef: TypeRef<PublicKeyPutIn> = new TypeRef("sys", "PublicKeyPutIn")
+
+export function createPublicKeyPutIn(values?: Partial<PublicKeyPutIn>): PublicKeyPutIn {
+	return Object.assign(create(typeModels.PublicKeyPutIn, PublicKeyPutInTypeRef), values)
+}
+
+export type PublicKeyPutIn = {
+	_type: TypeRef<PublicKeyPutIn>;
+
+	_format: NumberString;
+	pubEccKey: Uint8Array;
+	symEncPrivEccKey: Uint8Array;
 }
 export const PushIdentifierTypeRef: TypeRef<PushIdentifier> = new TypeRef("sys", "PushIdentifier")
 

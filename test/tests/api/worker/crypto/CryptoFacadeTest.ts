@@ -28,6 +28,19 @@ import {
 	BucketKey,
 	BucketKeyTypeRef,
 	BucketPermissionTypeRef,
+	createBucket,
+	createBucketKey,
+	createBucketPermission,
+	createGroup,
+	createGroupMembership,
+	createInstanceSessionKey,
+	createKeyPair,
+	createPermission,
+	createPublicKeyGetIn,
+	createPublicKeyGetOut,
+	createTypeInfo,
+	createUser,
+	createUserIdReturn,
 	BucketTypeRef,
 	GroupMembershipTypeRef,
 	GroupTypeRef,
@@ -49,25 +62,27 @@ import {
 	aesEncrypt,
 	bitArrayToUint8Array,
 	decryptKey,
+	eccPrivateKeyToHex,
+	eccPublicKeyToHex,
 	ENABLE_MAC,
 	encryptKey,
 	encryptRsaKey,
+	generateEccKeyPair,
 	hexToRsaPrivateKey,
 	hexToRsaPublicKey,
 	IV_BYTE_LENGTH,
 	kyberPrivateKeyToHex,
 	kyberPublicKeyToHex,
 	random,
-	generateEccKeyPair,
-	eccPrivateKeyToHex,
-	eccPublicKeyToHex,
+	rsaPrivateKeyToHex,
+	rsaPublicKeyToHex,
 } from "@tutao/tutanota-crypto"
 import { RsaWeb } from "../../../../../src/api/worker/crypto/RsaImplementation.js"
 import { decryptValue, encryptValue, InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
 import type { ModelValue, TypeModel } from "../../../../../src/api/common/EntityTypes.js"
 import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest.js"
-import { matchers, object, verify, when } from "testdouble"
-import { UpdatePermissionKeyService } from "../../../../../src/api/entities/sys/Services.js"
+import { instance, matchers, object, verify, when } from "testdouble"
+import { PublicKeyService, UpdatePermissionKeyService } from "../../../../../src/api/entities/sys/Services.js"
 import { getListId, isSameId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { resolveTypeReference, typeModels } from "../../../../../src/api/common/EntityFunctions.js"
 import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
@@ -76,7 +91,7 @@ import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/api/worker/cr
 import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
 import { loadWasmModuleFromFile } from "../../../../../packages/tutanota-crypto/test/WebAssemblyTestUtils.js"
 import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
-import { encodePQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
+import { encodePQMessage, PQBucketKeyEncapsulation, PQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
 import { createTestEntity } from "../../../TestUtils.js"
 
 const { captor } = matchers
@@ -727,6 +742,249 @@ o.spec("CryptoFacade", function () {
 		const sessionKey = neverNull(await crypto.resolveSessionKey(MailTypeModel, mail))
 
 		o(sessionKey).deepEquals(sk)
+	})
+
+	o("encryptBucketKeyForInternalRecipient with existing PQKeys for sender and recipient", async () => {
+		const pqFacadeMock = instance(PQFacade)
+		const cryptoFacadeTmp = new CryptoFacade(
+			userFacade,
+			entityClient,
+			restClient,
+			rsa,
+			serviceExecutor,
+			instanceMapper,
+			ownerEncSessionKeysUpdateQueue,
+			pqFacadeMock,
+		)
+		let senderMailAddress = "alice@tutanota.com"
+		let recipientMailAddress = "bob@tutanota.com"
+		let senderGroupKey = aes256RandomKey()
+		let bk = aes256RandomKey()
+
+		const recipientKeyPairs = await pqFacade.generateKeyPairs()
+
+		const recipientKeyPair = createKeyPair({
+			_id: "recipientKeyPairId",
+			pubEccKey: hexToUint8Array(eccPublicKeyToHex(recipientKeyPairs.eccKeyPair.publicKey)),
+			pubKyberKey: hexToUint8Array(kyberPublicKeyToHex(recipientKeyPairs.kyberKeyPair.publicKey)),
+		})
+
+		const senderKeyPairs = await pqFacade.generateKeyPairs()
+
+		const senderKeyPair = createKeyPair({
+			_id: "senderKeyPairId",
+			pubEccKey: hexToUint8Array(eccPublicKeyToHex(senderKeyPairs.eccKeyPair.publicKey)),
+			symEncPrivEccKey: aesEncrypt(senderGroupKey, hexToUint8Array(eccPrivateKeyToHex(senderKeyPairs.eccKeyPair.privateKey))),
+			pubKyberKey: hexToUint8Array(kyberPublicKeyToHex(senderKeyPairs.kyberKeyPair.publicKey)),
+			symEncPrivKyberKey: aesEncrypt(senderGroupKey, hexToUint8Array(kyberPrivateKeyToHex(senderKeyPairs.kyberKeyPair.privateKey))),
+		})
+
+		const senderUserGroup = createGroup({
+			_id: "userGroupId",
+			keys: [senderKeyPair],
+		})
+		const notFoundRecipients = []
+		const pqEncapsulation: PQBucketKeyEncapsulation = {
+			kyberCipherText: new Uint8Array([1]),
+			kekEncBucketKey: new Uint8Array([2]),
+		}
+
+		const pqMessage: PQMessage = {
+			senderIdentityPubKey: senderKeyPair.pubEccKey!,
+			ephemeralPubKey: senderKeyPair.pubEccKey!,
+			encapsulation: pqEncapsulation,
+		}
+
+		when(serviceExecutor.get(PublicKeyService, createPublicKeyGetIn({ mailAddress: recipientMailAddress }))).thenResolve(
+			createPublicKeyGetOut({
+				pubKeyVersion: "0",
+				pubEccKey: recipientKeyPair.pubEccKey,
+				pubKyberKey: recipientKeyPair.pubKyberKey,
+			}),
+		)
+		when(serviceExecutor.get(PublicKeyService, createPublicKeyGetIn({ mailAddress: senderMailAddress }))).thenResolve(
+			createPublicKeyGetOut({
+				pubKeyVersion: "0",
+				pubEccKey: senderKeyPair.pubEccKey,
+				pubKyberKey: senderKeyPair.pubKyberKey,
+			}),
+		)
+		when(pqFacadeMock.encapsulate(senderKeyPairs.eccKeyPair, matchers.anything(), recipientKeyPairs.toPublicKeys(), bitArrayToUint8Array(bk))).thenResolve(
+			pqMessage,
+		)
+		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
+		when(userFacade.getGroupKey(senderUserGroup._id)).thenReturn(senderGroupKey)
+
+		const internalRecipientKeyData = await cryptoFacadeTmp.encryptBucketKeyForInternalRecipient(
+			senderUserGroup._id,
+			bk,
+			recipientMailAddress,
+			notFoundRecipients,
+		)
+
+		o(internalRecipientKeyData!.pubKeyVersion).equals("0")
+		o(internalRecipientKeyData!.mailAddress).equals(recipientMailAddress)
+		o(internalRecipientKeyData!.pubEncBucketKey).deepEquals(encodePQMessage(pqMessage))
+		verify(serviceExecutor.put(PublicKeyService, matchers.anything()), { times: 0 })
+	})
+
+	o("encryptBucketKeyForInternalRecipient with existing PQKeys for recipient", async () => {
+		const pqFacadeMock = instance(PQFacade)
+		const cryptoFacadeTmp = new CryptoFacade(
+			userFacade,
+			entityClient,
+			restClient,
+			rsa,
+			serviceExecutor,
+			instanceMapper,
+			ownerEncSessionKeysUpdateQueue,
+			pqFacadeMock,
+		)
+		let senderMailAddress = "alice@tutanota.com"
+		let recipientMailAddress = "bob@tutanota.com"
+		let senderGroupKey = aes256RandomKey()
+		let bk = aes256RandomKey()
+
+		const recipientKeyPairs = await pqFacade.generateKeyPairs()
+
+		const recipientKeyPair = createKeyPair({
+			_id: "recipientKeyPairId",
+			pubEccKey: hexToUint8Array(eccPublicKeyToHex(recipientKeyPairs.eccKeyPair.publicKey)),
+			pubKyberKey: hexToUint8Array(kyberPublicKeyToHex(recipientKeyPairs.kyberKeyPair.publicKey)),
+		})
+
+		const senderKeyPairs = await rsa.generateKey()
+
+		const senderKeyPair = createKeyPair({
+			_id: "senderKeyPairId",
+			pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(senderKeyPairs.publicKey)),
+			symEncPrivRsaKey: aesEncrypt(senderGroupKey, hexToUint8Array(rsaPrivateKeyToHex(senderKeyPairs.privateKey))),
+		})
+
+		const senderUserGroup = createGroup({
+			_id: "userGroupId",
+			keys: [senderKeyPair],
+		})
+		const notFoundRecipients = []
+		const pqEncapsulation: PQBucketKeyEncapsulation = {
+			kyberCipherText: new Uint8Array([1]),
+			kekEncBucketKey: new Uint8Array([2]),
+		}
+
+		const dummyEccPubKey = generateEccKeyPair().publicKey
+		const pqMessage: PQMessage = {
+			senderIdentityPubKey: dummyEccPubKey,
+			ephemeralPubKey: dummyEccPubKey,
+			encapsulation: pqEncapsulation,
+		}
+
+		when(serviceExecutor.get(PublicKeyService, createPublicKeyGetIn({ mailAddress: recipientMailAddress }))).thenResolve(
+			createPublicKeyGetOut({
+				pubKeyVersion: "0",
+				pubEccKey: recipientKeyPair.pubEccKey,
+				pubKyberKey: recipientKeyPair.pubKyberKey,
+			}),
+		)
+		when(serviceExecutor.get(PublicKeyService, createPublicKeyGetIn({ mailAddress: senderMailAddress }))).thenResolve(
+			createPublicKeyGetOut({
+				pubKeyVersion: "0",
+				pubRsaKey: senderKeyPair.pubRsaKey,
+			}),
+		)
+		when(pqFacadeMock.encapsulate(matchers.anything(), matchers.anything(), recipientKeyPairs.toPublicKeys(), bitArrayToUint8Array(bk))).thenResolve(
+			pqMessage,
+		)
+		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
+		when(userFacade.getGroupKey(senderUserGroup._id)).thenReturn(senderGroupKey)
+		when(userFacade.getUserGroupKey()).thenReturn(senderGroupKey)
+
+		const internalRecipientKeyData = await cryptoFacadeTmp.encryptBucketKeyForInternalRecipient(
+			senderUserGroup._id,
+			bk,
+			recipientMailAddress,
+			notFoundRecipients,
+		)
+
+		o(internalRecipientKeyData!.pubKeyVersion).equals("0")
+		o(internalRecipientKeyData!.mailAddress).equals(recipientMailAddress)
+		o(internalRecipientKeyData!.pubEncBucketKey).deepEquals(encodePQMessage(pqMessage))
+		const pubKeyPutIn = matchers.captor()
+		verify(serviceExecutor.put(PublicKeyService, pubKeyPutIn.capture()), { times: 1 })
+		const eccKeyPair = matchers.captor()
+		verify(pqFacadeMock.encapsulate(eccKeyPair.capture(), matchers.anything(), recipientKeyPairs.toPublicKeys(), bitArrayToUint8Array(bk)), { times: 1 })
+		o(pubKeyPutIn.value.pubEccKey).deepEquals(eccKeyPair.value.publicKey)
+		o(aesDecrypt(senderGroupKey, pubKeyPutIn.value.symEncPrivEccKey)).deepEquals(eccKeyPair.value.privateKey)
+	})
+
+	o("encryptBucketKeyForInternalRecipient with existing PQKeys for sender", async () => {
+		const pqFacadeMock = instance(PQFacade)
+		const cryptoFacadeTmp = new CryptoFacade(
+			userFacade,
+			entityClient,
+			restClient,
+			rsa,
+			serviceExecutor,
+			instanceMapper,
+			ownerEncSessionKeysUpdateQueue,
+			pqFacadeMock,
+		)
+		let senderMailAddress = "alice@tutanota.com"
+		let recipientMailAddress = "bob@tutanota.com"
+		let senderGroupKey = aes256RandomKey()
+		let bk = aes256RandomKey()
+
+		const recipientKeyPairs = await rsa.generateKey()
+
+		const recipientKeyPair = createKeyPair({
+			_id: "recipientKeyPairId",
+			pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(recipientKeyPairs.publicKey)),
+			symEncPrivRsaKey: aesEncrypt(senderGroupKey, hexToUint8Array(rsaPrivateKeyToHex(recipientKeyPairs.privateKey))),
+		})
+
+		const senderKeyPairs = await pqFacade.generateKeyPairs()
+
+		const senderKeyPair = createKeyPair({
+			_id: "senderKeyPairId",
+			pubEccKey: hexToUint8Array(eccPublicKeyToHex(senderKeyPairs.eccKeyPair.publicKey)),
+			symEncPrivEccKey: aesEncrypt(senderGroupKey, hexToUint8Array(eccPrivateKeyToHex(senderKeyPairs.eccKeyPair.privateKey))),
+			pubKyberKey: hexToUint8Array(kyberPublicKeyToHex(senderKeyPairs.kyberKeyPair.publicKey)),
+			symEncPrivKyberKey: aesEncrypt(senderGroupKey, hexToUint8Array(kyberPrivateKeyToHex(senderKeyPairs.kyberKeyPair.privateKey))),
+		})
+
+		const senderUserGroup = createGroup({
+			_id: "userGroupId",
+			keys: [senderKeyPair],
+		})
+		const notFoundRecipients = []
+
+		when(serviceExecutor.get(PublicKeyService, createPublicKeyGetIn({ mailAddress: recipientMailAddress }))).thenResolve(
+			createPublicKeyGetOut({
+				pubKeyVersion: "0",
+				pubRsaKey: recipientKeyPair.pubRsaKey,
+			}),
+		)
+		when(serviceExecutor.get(PublicKeyService, createPublicKeyGetIn({ mailAddress: senderMailAddress }))).thenResolve(
+			createPublicKeyGetOut({
+				pubKeyVersion: "0",
+				pubEccKey: senderKeyPair.pubEccKey,
+				pubKyberKey: senderKeyPair.pubKyberKey,
+			}),
+		)
+		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
+		when(userFacade.getGroupKey(senderUserGroup._id)).thenReturn(senderGroupKey)
+
+		const internalRecipientKeyData = await cryptoFacadeTmp.encryptBucketKeyForInternalRecipient(
+			senderUserGroup._id,
+			bk,
+			recipientMailAddress,
+			notFoundRecipients,
+		)
+
+		o(internalRecipientKeyData!.pubKeyVersion).equals("0")
+		o(internalRecipientKeyData!.mailAddress).equals(recipientMailAddress)
+		o(await rsa.decrypt(recipientKeyPairs.privateKey, internalRecipientKeyData!.pubEncBucketKey)).deepEquals(bitArrayToUint8Array(bk))
+		verify(pqFacadeMock, { times: 0 })
+		verify(serviceExecutor.put(PublicKeyService, matchers.anything()), { times: 0 })
 	})
 
 	o("decryption errors should be written to _errors field", async function () {
