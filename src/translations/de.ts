@@ -1601,7 +1601,6 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
 		"paidEmailDomainSignup_msg": "Für die Nutzung der tuta.com-Domain ist ein kostenpflichtiges Abonnement erforderlich.",
-		"paidEmailDomainLegacy_msg": "Um die tuta.com-Domain zu nutzen, ist eines der neuen Abonnements erforderlich.",
-		"changePaidPlan_msg": "Möchtest du dein Abonnement jetzt wechseln?"
+		"paidEmailDomainLegacy_msg": "Um die tuta.com-Domain zu nutzen, ist eines der neuen Abonnements erforderlich."
 	}
 }
