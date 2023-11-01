@@ -15,6 +15,7 @@ import { isApp } from "../../api/common/Env.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { exportMails } from "../export/Exporter.js"
+import { lang } from "../../misc/LanguageViewModel.js"
 
 /*
 	note that mailViewerViewModel has a mailModel, so you do not need to pass both if you pass a mailViewerViewModel
@@ -128,9 +129,19 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 
 	private renderExportButton(attrs: MailViewerToolbarAttrs) {
 		if (!isApp() && attrs.mailModel.isExportingMailsAllowed()) {
+			const operation = locator.operationProgressTracker.startNewOperation()
 			return m(IconButton, {
 				title: "export_action",
-				click: () => showProgressDialog("pleaseWait_msg", exportMails(attrs.mails, locator.mailFacade, locator.entityClient, locator.fileController)),
+				click: () =>
+					showProgressDialog(
+						() =>
+							lang.get("mailExportProgress_msg", {
+								"{current}": Math.round((operation.progress() / 100) * attrs.mails.length).toFixed(0),
+								"{total}": attrs.mails.length,
+							}),
+						exportMails(attrs.mails, locator.mailFacade, locator.entityClient, locator.fileController, operation.id).finally(operation.done),
+						operation.progress,
+					),
 				icon: Icons.Export,
 			})
 		}
