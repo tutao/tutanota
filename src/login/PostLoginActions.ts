@@ -1,19 +1,19 @@
 import m, { Component } from "mithril"
 import type { LoggedInEvent, PostLoginAction } from "../api/main/LoginController"
 import { LoginController } from "../api/main/LoginController"
-import { isAdminClient, isAndroidApp, isApp, isDesktop, isIOSApp, LOGIN_TITLE } from "../api/common/Env"
+import { isAdminClient, isApp, isDesktop, LOGIN_TITLE } from "../api/common/Env"
 import { assertNotNull, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade"
 import { checkApprovalStatus } from "../misc/LoginUtils"
 import { locator } from "../api/main/MainLocator"
 import { ReceiveInfoService } from "../api/entities/tutanota/Services"
-import { InfoLink, lang } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
 import { getHourCycle } from "../misc/Formatter"
 import type { OutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
 import { createReceiveInfoServiceData } from "../api/entities/tutanota/TypeRefs.js"
 import { isNotificationCurrentlyActive, loadOutOfOfficeNotification } from "../misc/OutOfOfficeNotificationUtils"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
-import { ButtonAttrs, ButtonType } from "../gui/base/Button.js"
+import { ButtonType } from "../gui/base/Button.js"
 import { themeController } from "../gui/theme"
 import { Dialog } from "../gui/base/Dialog"
 import { CloseEventBusOption, Const, SecondFactorType } from "../api/common/TutanotaConstants"
@@ -29,7 +29,6 @@ import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler"
 import { SessionType } from "../api/common/SessionType"
 import { StorageBehavior } from "../misc/UsageTestModel.js"
 import type { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
-import { client } from "../misc/ClientDetector.js"
 import { DateProvider } from "../api/common/DateProvider.js"
 import { createCustomerProperties, SecondFactorTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { EntityClient } from "../api/common/EntityClient.js"
@@ -240,7 +239,7 @@ export class PostLoginActions implements PostLoginAction {
 		if (location.hostname === Const.DEFAULT_APP_DOMAIN) {
 			const user = this.logins.getUserController().user
 			const secondFactors = await this.entityClient.loadAll(SecondFactorTypeRef, assertNotNull(user.auth).secondFactors)
-			const webauthnFactors = secondFactors.filter((f) => f.type === SecondFactorType.webauthn || SecondFactorType.u2f)
+			const webauthnFactors = secondFactors.filter((f) => f.type === SecondFactorType.webauthn || f.type === SecondFactorType.u2f)
 			// If there are webauthn factors but none of them are for the default domain, show a message
 			if (webauthnFactors.length > 0 && !webauthnFactors.some((f) => f.u2f && f.u2f?.appId == Const.WEBAUTHN_RP_ID)) {
 				const dialog = Dialog.confirmMultiple("noKeysForThisDomain_msg", [
