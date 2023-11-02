@@ -5,12 +5,18 @@ import { Session } from "electron"
 import { errorToObj } from "../../api/common/threading/MessageDispatcher.js"
 import { lazyMemoized } from "@tutao/tutanota-utils"
 import { getMimeTypeForFile } from "../files/DesktopFileFacade.js"
-import { ServiceUnavailableError } from "../../api/common/error/RestError.js"
+import { Agent, fetch, RequestInfo as UndiciRequestInfo, RequestInit as UndiciRequestInit } from "undici"
+
+type GlobalFetch = typeof global.fetch
 
 const TAG = "[ProtocolProxy]"
 
 export const ASSET_PROTOCOL = "asset"
-const PROXIED_REQUEST_READ_TIMEOUT = 20000
+
+/** How long the socket should stay open without any data sent over it. See IDLE_TIMEOUT_MS in tutadb. */
+const SOCKET_IDLE_TIMEOUT_MS = 5 * 60 * 10_000 + 1000
+/** Timeout between reading data. */
+const READ_TIMEOUT_MS = 20_000
 
 /**
  * intercept & proxy https, http and asset requests on a session
@@ -18,13 +24,27 @@ const PROXIED_REQUEST_READ_TIMEOUT = 20000
  * @param assetDir the base directory of allowable scripts, images and other resources that the app may load.
  */
 export function handleProtocols(session: Session, assetDir: string): void {
-	doHandleProtocols(session, assetDir, fetch, path, fs)
+	// We do not enable HTTP2 yet because it is still experimental (and buggy).
+	const agent = new Agent({
+		connections: 3,
+		keepAliveTimeout: SOCKET_IDLE_TIMEOUT_MS,
+		bodyTimeout: READ_TIMEOUT_MS,
+		headersTimeout: READ_TIMEOUT_MS,
+	})
+	const customFetch: typeof fetch = (info: UndiciRequestInfo, requestInit?: UndiciRequestInit) => {
+		return fetch(info, {
+			...(requestInit ?? {}),
+			dispatcher: agent,
+		})
+	}
+	// It's a little crime to say that our fetch is like builtin fetch but it actually is, it's just TS is a bit uncooperative.
+	doHandleProtocols(session, assetDir, customFetch as GlobalFetch, path, fs)
 }
 
 /**
  *  exported for testing
  */
-export function doHandleProtocols(session: Session, assetDir: string, fetchImpl: typeof fetch, pathModule: typeof path, fsModule: typeof fs): void {
+export function doHandleProtocols(session: Session, assetDir: string, fetchImpl: GlobalFetch, pathModule: typeof path, fsModule: typeof fs): void {
 	if (!interceptProtocol("http", session, fetchImpl)) throw new Error("could not intercept http protocol")
 	if (!interceptProtocol("https", session, fetchImpl)) throw new Error("could not intercept https protocol")
 	if (!handleAssetProtocol(session, assetDir, pathModule, fsModule)) throw new Error("could not register asset protocol")
@@ -37,12 +57,11 @@ export function doHandleProtocols(session: Session, assetDir: string, fetchImpl:
  * @param protocol http and https use different modules, so we need to intercept them separately.
  * @param fetchImpl an implementation of the fetch API (Request) => Promise<Response>
  */
-function interceptProtocol(protocol: string, session: Session, fetchImpl: typeof fetch): boolean {
+function interceptProtocol(protocol: string, session: Session, fetchImpl: GlobalFetch): boolean {
 	if (session.protocol.isProtocolHandled(protocol)) return true
-	session.protocol.handle(protocol, async (request: Request): Promise<Response> => {
+	session.protocol.handle(protocol, async (request: GlobalRequest): Promise<Response> => {
 		const { method, url, headers } = request
 		const startTime: number = Date.now()
-
 		if (!url.startsWith(protocol)) {
 			return new Response(null, { status: 400 })
 		} else if (method == "OPTIONS") {
@@ -56,7 +75,6 @@ function interceptProtocol(protocol: string, session: Session, fetchImpl: typeof
 					headers,
 					method,
 					keepalive: true,
-					signal: AbortSignal.timeout(PROXIED_REQUEST_READ_TIMEOUT),
 				}
 				const body = await request.arrayBuffer()
 				if (body.byteLength > 0) {
