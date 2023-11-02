@@ -2757,8 +2757,10 @@ export type SystemKeysReturn = {
 	freeGroupKey: Uint8Array;
 	premiumGroupKey: Uint8Array;
 	starterGroupKey: Uint8Array;
-	systemAdminPubKey: Uint8Array;
+	systemAdminPubEccKey: null | Uint8Array;
 	systemAdminPubKeyVersion: NumberString;
+	systemAdminPubKyberKey: null | Uint8Array;
+	systemAdminPubRsaKey: null | Uint8Array;
 
 	freeGroup:  null | Id;
 	premiumGroup:  null | Id;

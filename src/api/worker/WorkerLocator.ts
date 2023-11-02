@@ -300,6 +300,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			await locator.booking(),
 			locator.crypto,
 			mainInterface.operationProgressTracker,
+			locator.pqFacade,
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
