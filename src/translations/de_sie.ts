@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2023-11-01T09:19:28Z",
+	"updated_at": "2023-11-02T08:17:02Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -145,7 +145,7 @@ export default {
 		"calendarInvitations_label": "Kalender-Einladungen",
 		"calendarName_label": "Kalender-Name",
 		"calendarParticipants_label": "Teilnehmer des Kalenders \"{name}\"",
-		"calendarReminderIntervalAtEventStart_label": "Ereignisbeginn",
+		"calendarReminderIntervalAtEventStart_label": "Zu Ereignisbeginn",
 		"calendarReminderIntervalCustomDialog_title": "Eigenes Intervall",
 		"calendarReminderIntervalDropdownCustomItem_label": "Eigene…",
 		"calendarReminderIntervalFiveMinutes_label": "5 Minuten",
@@ -814,6 +814,7 @@ export default {
 		"mailbox_label": "Postfach",
 		"mailExportModeHelp_msg": "Dateiformat beim Exportieren und bei Drag & Drop",
 		"mailExportMode_label": "Dateiformat für E-Mail-Export",
+		"mailExportProgress_msg": "Bereite {current} von {total} E-Mails für den Export vor...",
 		"mailFolder_label": "E-Mail-Ordner",
 		"mailHeaders_title": "E-Mail-Header",
 		"mailName_label": "Absendername",
@@ -979,6 +980,8 @@ export default {
 		"pageBackward_label": "Seite zurück",
 		"pageForward_label": "Seite vorwärts",
 		"pageTitle_label": "Titel",
+		"paidEmailDomainLegacy_msg": "Um die tuta.com-Domain zu nutzen, ist eines der neuen Abonnements erforderlich.",
+		"paidEmailDomainSignup_msg": "Für die Nutzung der tuta.com-Domain ist ein kostenpflichtiges Abonnement erforderlich.",
 		"parentConfirmation_msg": "Die EU-Datenschutzgrundverordnung (DSGVO) verlangt für Kinder unter 16 Jahren die Zustimmung ihrer Eltern ihre personenbezogenen Daten verarbeiten zu lassen. Daher hole bitte einen deiner Eltern oder Erziehungsberechtigten her und lasse sie folgendes bestätigen:\n\n\"Ich bin Elternteil oder Erziehungsberechtigte(r) meines Kindes, erlaube ihm Tutanota zu verwenden und stimme damit der Verarbeitung der personenbezogenen Daten meines Kindes zu.\"",
 		"parentFolder_label": "Übergeordneter Ordner",
 		"participant_label": "Teilnehmer",
@@ -1599,8 +1602,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		"paidEmailDomainSignup_msg": "Für die Nutzung der tuta.com-Domain ist ein kostenpflichtiges Abonnement erforderlich.",
-		"paidEmailDomainLegacy_msg": "Um die tuta.com-Domain zu nutzen, ist eines der neuen Abonnements erforderlich."
+		"you_label": "Sie"
 	}
 }

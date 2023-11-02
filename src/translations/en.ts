@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2023-11-01T09:19:27Z",
+	"updated_at": "2023-11-02T08:17:01Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -810,6 +810,7 @@ export default {
 		"mailbox_label": "Mailbox",
 		"mailExportModeHelp_msg": "Email file format to use when exporting or drag & dropping",
 		"mailExportMode_label": "Email export file format",
+		"mailExportProgress_msg": "Preparing {current} of {total} emails for export...",
 		"mailFolder_label": "Email folder",
 		"mailHeaders_title": "Email headers",
 		"mailName_label": "Sender name",
@@ -975,6 +976,8 @@ export default {
 		"pageBackward_label": "Page backward",
 		"pageForward_label": "Page forward",
 		"pageTitle_label": "Page title",
+		"paidEmailDomainLegacy_msg": "In order to use the tuta.com domain, one of the new subscriptions is needed.",
+		"paidEmailDomainSignup_msg": "In order to register an address with the  tuta.com domain, a subscription is needed.",
 		"parentConfirmation_msg": "According to the EU General Data Protection Regulation (GDPR) children below 16 years need the confirmation of their parents to allow processing of their personal data. So please get hold of one of your parents or legal guardians and let them confirm the following:\n\n\"I am the parent or legal guardian of my child and allow it to use Tutanota which includes processing of its personal data.\"",
 		"parentFolder_label": "Parent folder",
 		"participant_label": "Participant",
@@ -1595,8 +1598,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"paidEmailDomainSignup_msg": "In order to register an address with the tuta.com domain, a subscription is needed.",
-		"paidEmailDomainLegacy_msg": "In order to use the tuta.com domain, one of the new subscriptions is needed.",
+		"you_label": "You"
 	}
 }
