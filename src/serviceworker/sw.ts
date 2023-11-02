@@ -1,6 +1,6 @@
 /// <reference no-default-lib="true"/>
 /// <reference lib="ES2020" />
-/// <reference lib="webworker" />
+/// <reference lib="WebWorker" />
 
 // set by the build script
 import { getPathBases } from "../ApplicationPaths"
@@ -8,6 +8,7 @@ import { getPathBases } from "../ApplicationPaths"
 declare var filesToCache: () => Array<string>
 declare var version: () => string
 declare var customDomainCacheExclusions: () => Array<string>
+declare var shouldTakeOverImmediately: () => boolean
 // test case
 var versionString = typeof version === "undefined" ? "test" : version()
 
@@ -188,7 +189,13 @@ const init = (sw: ServiceWorker) => {
 
 	scope.addEventListener("install", (evt: ExtendableEvent) => {
 		console.log("SW: being installed", versionString)
-		evt.waitUntil(sw.precache())
+		evt.waitUntil(
+			sw.precache().then(() => {
+				if (shouldTakeOverImmediately()) {
+					scope.skipWaiting()
+				}
+			}),
+		)
 	})
 	scope.addEventListener("activate", (event) => {
 		console.log("sw activate", versionString)
@@ -211,7 +218,6 @@ const init = (sw: ServiceWorker) => {
 			stack: error.stack,
 			data: error.data,
 		}
-		// @ts-ignore
 		return scope.clients.matchAll().then((allClients) => {
 			for (const c of allClients) {
 				c.postMessage({
