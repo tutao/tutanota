@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2023-10-27T21:21:14Z",
+	"updated_at": "2023-11-01T11:58:53Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -145,6 +145,7 @@ export default {
 		"calendarInvitations_label": "Convites para calendário",
 		"calendarName_label": "Nome calendário",
 		"calendarParticipants_label": "Participantes do calendário \"{name}\"",
+		"calendarReminderIntervalAtEventStart_label": "No início do evento",
 		"calendarReminderIntervalCustomDialog_title": "Intervalo entre lembretes personalizado",
 		"calendarReminderIntervalDropdownCustomItem_label": "Personalizado...",
 		"calendarReminderIntervalFiveMinutes_label": "5 minutos",

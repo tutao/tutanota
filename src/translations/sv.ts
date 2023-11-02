@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2023-10-27T12:58:40Z",
+	"updated_at": "2023-11-01T19:11:35Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -141,6 +141,7 @@ export default {
 		"calendarInvitations_label": "Kalenderinbjudningar",
 		"calendarName_label": "Kalender namn",
 		"calendarParticipants_label": "Deltagare i kalender  \"{name}\"",
+		"calendarReminderIntervalAtEventStart_label": "Vid händelsens början",
 		"calendarReminderIntervalCustomDialog_title": "Anpassat intervall för påminnelse",
 		"calendarReminderIntervalDropdownCustomItem_label": "Anpassa...",
 		"calendarReminderIntervalFiveMinutes_label": "5 minuter",
