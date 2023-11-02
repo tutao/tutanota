@@ -75,6 +75,7 @@ export class ApplicationWindow {
 		private readonly remoteBridge: RemoteBridge,
 		dictUrl: string,
 		noAutoLogin?: boolean | null,
+		preloadOverridePath?: string,
 	) {
 		this.lastSearchPromiseReject = noOp
 		const isMac = process.platform === "darwin"
@@ -163,7 +164,7 @@ export class ApplicationWindow {
 				  ],
 		)
 		log.debug(TAG, "webAssetsPath: ", this.absoluteAssetsPath)
-		const preloadPath = path.join(this.electron.app.getAppPath(), "./desktop/preload.js")
+		const preloadPath = preloadOverridePath ?? path.join(this.electron.app.getAppPath(), "./desktop/preload.js")
 
 		this.createBrowserWindow(wm, {
 			preloadPath,
