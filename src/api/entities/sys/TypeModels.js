@@ -10932,13 +10932,13 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "systemAdminPubKey": {
+            "systemAdminPubEccKey": {
                 "final": false,
-                "name": "systemAdminPubKey",
-                "id": 303,
-                "since": 1,
+                "name": "systemAdminPubEccKey",
+                "id": 2147,
+                "since": 91,
                 "type": "Bytes",
-                "cardinality": "One",
+                "cardinality": "ZeroOrOne",
                 "encrypted": false
             },
             "systemAdminPubKeyVersion": {
@@ -10948,6 +10948,24 @@ export const typeModels = {
                 "since": 1,
                 "type": "Number",
                 "cardinality": "One",
+                "encrypted": false
+            },
+            "systemAdminPubKyberKey": {
+                "final": false,
+                "name": "systemAdminPubKyberKey",
+                "id": 2148,
+                "since": 91,
+                "type": "Bytes",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "systemAdminPubRsaKey": {
+                "final": false,
+                "name": "systemAdminPubRsaKey",
+                "id": 303,
+                "since": 1,
+                "type": "Bytes",
+                "cardinality": "ZeroOrOne",
                 "encrypted": false
             }
         },
