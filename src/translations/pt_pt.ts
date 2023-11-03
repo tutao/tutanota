@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2023-11-01T11:58:53Z",
+	"updated_at": "2023-11-03T09:29:08Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -812,6 +812,7 @@ export default {
 		"mailbox_label": "Caixa de correio",
 		"mailExportModeHelp_msg": "Formato de ficheiro de email a utilizar ao exportar ou arrastar e largar",
 		"mailExportMode_label": "Formato do tipo de ficheiro a exportar do Email",
+		"mailExportProgress_msg": "A preparar {current} de {total} emails para exportação...",
 		"mailFolder_label": "Pasta de email",
 		"mailHeaders_title": "Cabeçalhos do email",
 		"mailName_label": "Remetente",
@@ -977,6 +978,8 @@ export default {
 		"pageBackward_label": "Página anterior",
 		"pageForward_label": "Avançar página",
 		"pageTitle_label": "Título da página",
+		"paidEmailDomainLegacy_msg": "Para utilizar o domínio tuta.com, é necessária uma das novas subscrições.",
+		"paidEmailDomainSignup_msg": "Para registar um endereço com o domínio tuta.com, é necessária uma subscrição.",
 		"parentConfirmation_msg": "De acordo com o Regulamento Geral sobre a Proteção de Dados (RGPD) da UE crianças com menos de 16 anos necessitam de confirmação por parte dos pais para permitirem o processamento dos seus dados pessoais.  Por favor assegure a presença de um dos seus pais ou guardião legal e permita que eles confirmem o seguinte:\n\n\"Sou o progenitor ou guardião legal desta criança e permito-lhe que uso o Tutanota que inclui o processamento dos seus dados pessoais.\"",
 		"parentFolder_label": "Pasta acima",
 		"participant_label": "Participante",

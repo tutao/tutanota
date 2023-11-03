@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2023-11-02T08:17:02Z",
+	"updated_at": "2023-11-03T09:29:20Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -429,7 +429,7 @@ export default {
 		"desktop_label": "Desktop",
 		"details_label": "Details",
 		"deviceEncryptionSaveCredentialsHelpText_msg": "Um die Geräteverschlüsselung (Pin/biometrische Entsperrung) zu aktivieren, müssen die Anmeldedaten auf dem Gerät gespeichert werden. Du kannst dies bei der nächsten Anmeldung tun.",
-		"differentSecurityKeyDomain_msg": "Dein Sicherheitsschlüssel ist nicht für diese Domain registriert. Bitte melde dich unter {domain} an.",
+		"differentSecurityKeyDomain_msg": "Dein Sicherheitsschlüssel ist nicht für diese Domain registriert. Bitte melde dich in einem anderen Tab unter {Domain} an.\n\nMelde dich dann erneut hier an und akzeptiere die Anmeldung aus dem anderen Tab.",
 		"disallowExternalContent_action": "Bilder blockieren",
 		"display_action": "Anzeige",
 		"dnsRecordHostOrName_label": "Host/Name",
@@ -1302,8 +1302,8 @@ export default {
 		"secondFactorConfirmLogin_label": "Anmeldung bestätigen",
 		"secondFactorConfirmLogin_msg": "Möchtest du die Anmeldung von dem Client \"{clientIdentifier}\" mit der IP-Adresse {ipAddress} erlauben?",
 		"secondFactorNameInfo_msg": "Optional: Name zur Identifizierung.",
-		"secondFactorPendingOtherClientOnly_msg": "Bitte bestätige diese Anmeldung von einem anderen Client aus.",
-		"secondFactorPending_msg": "Bitte authentifiziere dich mit deinem zweiten Faktor oder bestätige diese Anmeldung von einem anderen Client aus.",
+		"secondFactorPendingOtherClientOnly_msg": "Bitte bestätige diese Anmeldung von einem anderen Tab oder über die App.\n",
+		"secondFactorPending_msg": "Bitte authentifiziere dich mit deinem zweiten Faktor oder bestätige diese Anmeldung von einem anderen Tab oder über die App.",
 		"secondMergeContact_label": "Kontakt 2",
 		"secondReminderAutomatic_msg": "leider haben wir die Zahlung für deinen Tutanota-Account noch immer nicht erhalten. Bitte prüfe deine Zahlungsdaten unter 'Einstellungen' -> 'Bezahlung'. Für weitere Rechnungsdetails kannst du dort auch alle deine Rechnungen einsehen. \n\nDein Account wird gesperrt, wenn wir die Zahlung nicht innerhalb von zwei Wochen erhalten.",
 		"secondReminderSubject_msg": "Zweite Zahlungserinnerung",
