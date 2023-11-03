@@ -3,7 +3,7 @@
 import { ProgrammingError } from "./error/ProgrammingError.js"
 
 // keep in sync with LaunchHtml.js meta tag title
-export const LOGIN_TITLE = "Mail. Done. Right. Tutanota Login & Sign up for an Ad-free Mailbox"
+export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
 export const Mode: Record<EnvMode, EnvMode> = Object.freeze({
 	Browser: "Browser",
 	App: "App",

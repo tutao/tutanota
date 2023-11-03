@@ -4,7 +4,7 @@ import path from "node:path"
 import { fileExists } from "./buildUtils.js"
 await program
 	.addArgument(
-		new Argument("app", "Which tutanota application needs a migration").choices(["accounting", "base", "gossip", "monitor", "storage", "sys", "tutanota"]),
+		new Argument("app", "Which tuta application needs a migration").choices(["accounting", "base", "gossip", "monitor", "storage", "sys", "tutanota"]),
 	)
 	.addArgument(new Argument("version", "Which version of the given app needs a migration").argParser(validateNumberArg))
 	.action(run)

@@ -36,10 +36,10 @@ export async function renderHtml(scripts, env) {
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 	${scripts.map(renderScriptImport).join("\n\t")}
 	<!-- TutanotaTags -->
-	<title>${env.mode === "App" ? "Tutanota" : "Mail. Done. Right. Tutanota Login &amp; Sign up for an Ad-free Mailbox"}</title>
-	<meta name="description" content="Mail. Done. Right. Get a free mail account that does not abuse your emails for advertising. Tutanota is fast, easy, secure and free of ads.">
+	<title>${env.mode === "App" ? "Tuta Mail" : "Mail. Done. Right. Tuta Mail Login &amp; Sign up for an Ad-free Mailbox"}</title>
+	<meta name="description" content="Mail. Done. Right. Get a free mail account that does not abuse your emails for advertising. Tuta Mail is fast, easy, secure and free of ads.">
 	<link rel="shortcut icon" type="image/x-icon" href="images/logo-favicon-152.png">
-	<meta name="application-name" content="Tutanota">
+	<meta name="application-name" content="Tuta Mail">
 	<link rel="apple-touch-icon" sizes="152x152" href="images/logo-favicon-152.png">
 	<link rel="icon" sizes="192x192" href="/images/logo-favicon-192.png">
     <meta name="twitter:card" content="summary_large_image">
@@ -47,10 +47,10 @@ export async function renderHtml(scripts, env) {
     <meta name="twitter:domain" content="tuta.com">
     <meta name="twitter:image" content="https://tuta.com/resources/images/share-tutanota-twitter-thumbnail.png">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Tutanota">
+    <meta property="og:site_name" content="Tuta Mail">
     <meta property="og:title" content="Secure Emails Become a Breeze">
     <meta property="og:description"
-          content="Tutanota is the secure email service, built in Germany. Use encrypted emails on all devices with our open source email client, mobile apps &amp; desktop clients.">
+          content="Tuta Mail is the secure email service, built in Germany. Use encrypted emails on all devices with our open source email client, mobile apps &amp; desktop clients.">
     <meta property="og:locale" content="en">
     <meta property="og:url" content="https://tuta.com/">
     <meta property="og:image" content="https://tuta.com/resources/images/share-tutanota-fb-thumbnail.png">

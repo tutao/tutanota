@@ -24,7 +24,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 await program
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
-	.description("Utility to build the web part of tutanota")
+	.description("Utility to build the web part of tuta")
 	.addArgument(new Argument("stage").choices(["test", "prod", "local", "host", "release"]).default("prod").argOptional())
 	.addArgument(new Argument("host").argOptional())
 	.option("--disable-minify", "disable minification")

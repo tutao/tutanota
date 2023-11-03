@@ -1,14 +1,14 @@
 <div align="center">
-	<a href="https://tutanota.com/" target="_blank"><img src="resources/images/logo-red.svg" alt="Tutanota logo" width="300"></a>
+	<a href="https://tuta.com/" target="_blank"><img src="resources/images/logo-red.svg" alt="Tuta Mail logo" width="300"></a>
 	<br/>
-	<h1>Tutanota makes encryption easy</h1>
+	<h1>Tuta Mail makes encryption easy</h1>
 </div>
 
-Tutanota is the [secure email](https://tutanota.com) service with built-in end-to-end encryption that enables you to
+Tuta Mail is the [secure email](https://tuta.com) service with built-in end-to-end encryption that enables you to
 communicate securely with anyone on all your devices.
 
 * Forum for bug reports/feature requests: https://www.reddit.com/r/tutanota
-* Roadmap: https://tutanota.com/roadmap/
+* Roadmap: https://tuta.com/roadmap/
 * Issue and feature tracker: https://github.com/tutao/tutanota/issues. Please submit your feature requests via Reddit or
   via support mail.
 
@@ -19,7 +19,7 @@ communicate securely with anyone on all your devices.
 •
 <a href="https://itunes.apple.com/us/app/tutanota/id922429609">iOS App Store</a>
 •
-<a href="https://tutanota.com/#download">Desktop Client</a>
+<a href="https://tuta.com/#download">Desktop Client</a>
 
 </div>
 
@@ -27,7 +27,7 @@ communicate securely with anyone on all your devices.
 
 See [BUILDING.md](doc/BUILDING.md).
 
-### Developing Tutanota
+### Developing Tuta Mail
 
 See [HACKING.md](doc/HACKING.md).
 
