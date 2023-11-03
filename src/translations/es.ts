@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2023-11-01T12:06:47Z",
+	"updated_at": "2023-11-03T09:29:08Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -814,6 +814,7 @@ export default {
 		"mailbox_label": "Buzón",
 		"mailExportModeHelp_msg": "Formato de archivo de correo para usar al exportar o, arrastrar y soltar",
 		"mailExportMode_label": "Formato de archivo de exportación de correo",
+		"mailExportProgress_msg": "Preparando {current} de {total} correos electrónicos para exportar ...",
 		"mailFolder_label": "Carpeta de correo",
 		"mailHeaders_title": "Encabezamientos de mensaje",
 		"mailName_label": "Remitente",
@@ -979,6 +980,8 @@ export default {
 		"pageBackward_label": "Página hacia atrás",
 		"pageForward_label": "Página hacia delante",
 		"pageTitle_label": "Título de página",
+		"paidEmailDomainLegacy_msg": "Para utilizar el dominio tuta.com, se necesita una de las nuevas suscripciones.",
+		"paidEmailDomainSignup_msg": "Para registrar una dirección con el dominio tuta.com, se necesita una suscripción.",
 		"parentConfirmation_msg": "En cumplimiento del RGPD (Reglamento General de Protección de Datos de la UE) los menores de 16 años necesitan la confirmación de sus padres para que permitan el procesamiento de sus datos personales. Por tanto, por favor pide a uno de tus padres o tutores legales que confirme lo siguiente:\n\n«Soy el padre o tutor legal de mi hijo y le permito hacer uso de Tutanota incluyendo el tratamiento de sus datos personales.»",
 		"parentFolder_label": "Carpeta padre",
 		"participant_label": "Miembro",

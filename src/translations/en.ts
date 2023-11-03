@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2023-11-02T08:17:01Z",
+	"updated_at": "2023-11-03T09:29:08Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -425,7 +425,7 @@ export default {
 		"desktop_label": "Desktop",
 		"details_label": "Details",
 		"deviceEncryptionSaveCredentialsHelpText_msg": "To activate device encryption (pin/biometric unlock), you need to store your credentials to the device. You can do this the next time you log in.",
-		"differentSecurityKeyDomain_msg": "Your security key is not registered for this domain. Please login at {domain}.",
+		"differentSecurityKeyDomain_msg": "Your security key is not registered for this domain. Please login in another tab at {domain}.\n\nThen login here again and accept the login from the other tab.",
 		"disallowExternalContent_action": "Block external content",
 		"display_action": "Display",
 		"dnsRecordHostOrName_label": "Host/Name",
@@ -1298,8 +1298,8 @@ export default {
 		"secondFactorConfirmLogin_label": "Confirm login",
 		"secondFactorConfirmLogin_msg": "Would you like to allow the login from the client \"{clientIdentifier}\" with the IP address {ipAddress}?",
 		"secondFactorNameInfo_msg": "Name for identification.",
-		"secondFactorPendingOtherClientOnly_msg": "Please accept this login from another client.",
-		"secondFactorPending_msg": "Please authenticate with your second factor or accept this login from another client.",
+		"secondFactorPendingOtherClientOnly_msg": "Please accept this login from another tab or via the app.\n",
+		"secondFactorPending_msg": "Please authenticate with your second factor or accept this login from another tab or via the app.",
 		"secondMergeContact_label": "Contact 2",
 		"secondReminderAutomatic_msg": "Unfortunately, we still haven't received the payment for your Tutanota account. Therefore, we kindly ask you to verify your payment details in 'Settings' -> 'Payment'. For further invoice details you can also check your invoices there. \n\nYour account will be suspended if we do not receive the payment within two weeks.",
 		"secondReminderSubject_msg": "Second reminder / overdue payment",

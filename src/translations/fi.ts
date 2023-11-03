@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2023-10-26T06:54:12Z",
+	"updated_at": "2023-11-03T09:29:08Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
