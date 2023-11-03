@@ -15,14 +15,14 @@ export class FeatureListProvider {
 	private async init(): Promise<void> {
 		if ("undefined" === typeof fetch) return
 		const listResourceUrl = `${this.domainConfig.websiteBaseUrl}/resources/data/features.json`
-		this.featureList = await resolveOrNull(
-			() => fetch(listResourceUrl).then((r) => r.json()),
-			(e) => console.log("failed to fetch feature list:", e),
-		).then((featureList) => {
+		try {
+			const featureList = await fetch(listResourceUrl).then((r) => r.json())
 			this.countFeatures([...featureList.Free.categories, ...featureList.Revolutionary.categories, ...featureList.Legend.categories])
 			this.countFeatures([...featureList.Essential.categories, ...featureList.Advanced.categories, ...featureList.Unlimited.categories])
-			return featureList
-		})
+			this.featureList = featureList
+		} catch (e) {
+			console.warn(`failed to fetch feature list from  ${listResourceUrl}`, e)
+		}
 	}
 
 	private countFeatures(categories: FeatureCategory[]): void {
@@ -71,28 +71,9 @@ export type WebsitePlanPrices = Pick<
 	"additionalUserPriceMonthly" | "contactFormPriceMonthly" | "firstYearDiscount" | "monthlyPrice" | "monthlyReferencePrice"
 >
 
-async function resolveOrNull<T>(fn: () => Promise<T>, handler: (a: Error) => void): Promise<T | null> {
-	try {
-		return await fn()
-	} catch (e) {
-		handler(e)
-		return null
-	}
-}
-
 export type SelectedSubscriptionOptions = {
 	businessUse: Stream<boolean>
 	paymentInterval: Stream<PaymentInterval>
-}
-
-export type SubscriptionConfig = {
-	nbrOfAliases: number
-	orderNbrOfAliases: number
-	storageGb: number
-	orderStorageGb: number
-	sharing: boolean
-	business: boolean
-	whitelabel: boolean
 }
 
 /**
