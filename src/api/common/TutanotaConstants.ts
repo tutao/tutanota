@@ -276,7 +276,7 @@ export const Const: ConstType = {
 } as const
 
 export const TUTANOTA_MAIL_ADDRESS_DOMAINS = Object.freeze(["tutanota.com", "tutanota.de", "tutamail.com", "tuta.io", "keemail.me", "tuta.com"])
-export const TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS = TUTANOTA_MAIL_ADDRESS_DOMAINS
+export const TUTANOTA_MAIL_ADDRESS_SIGNUP_DOMAINS = Object.freeze(["tutanota.com", "tutanota.de", "tutamail.com", "tuta.io", "keemail.me"])
 export const DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN = "tuta.com"
 
 export const enum ConversationType {
