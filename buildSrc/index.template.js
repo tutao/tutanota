@@ -8,7 +8,7 @@ function unsupported(e) {
 	document.body.appendChild(img)
 
 	const h1 = document.createElement("h1")
-	h1.innerText = "Tutanota"
+	h1.innerText = "Tuta Mail"
 	h1.style.fontFamily = "sans-serif"
 	h1.style.fontSize = "40px"
 	h1.style.textAlign = "center"

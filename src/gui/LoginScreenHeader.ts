@@ -14,7 +14,7 @@ export const LoginScreenHeader = pureComponent(() =>
 				m(
 					".logo.logo-height.mt-safe-inset",
 					{
-						...landmarkAttrs(AriaLandmarks.Banner, "Tutanota logo"),
+						...landmarkAttrs(AriaLandmarks.Banner, "Tuta Mail logo"),
 					},
 					m.trust(theme.logo),
 				),

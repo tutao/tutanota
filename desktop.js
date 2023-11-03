@@ -18,7 +18,7 @@ const tutaAppUrl = new URL("https://app.tuta.com")
 
 await program
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
-	.description("Main build tool for distributable tutanota desktop artifacts.")
+	.description("Main build tool for distributable tuta desktop artifacts.")
 	.addArgument(new Argument("stage").choices(["test", "prod", "local", "host", "release"]).default("release").argOptional())
 	.addArgument(new Argument("host").argOptional())
 	.option("-e, --existing", "Use existing prebuilt Webapp files in /build/")

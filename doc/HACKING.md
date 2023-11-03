@@ -1,4 +1,4 @@
-# Hacking on the Tutanota client
+# Hacking on the Tuta Mail client
 
 ![Overview](Overview.svg)
 

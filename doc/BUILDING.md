@@ -1,6 +1,6 @@
-## Building and running your own Tutanota web client
+## Building and running your own Tuta Mail web client
 
-You can build your own Tutanota client and run it locally. Remember that you have to update your Tutanota client on your
+You can build your own Tuta Mail client and run it locally. Remember that you have to update your Tuta Mail client on your
 own. If you prefer the auto-update feature, you can use the official [mail](https://app.tuta.com) client.
 
 #### Pre-requisites:
@@ -20,9 +20,9 @@ own. If you prefer the auto-update feature, you can use the official [mail](http
 8. Run the local server. Either use `node server` or `python -m SimpleHTTPServer 9000`.
 9. Open `localhost:9000` with your favorite browser (tested: Firefox, Chrome/Chromium, Safari).
 
-## Building and running your own Tutanota Android app
+## Building and running your own Tuta Mail Android app
 
-If you build and install the Tutanota Android app by yourself, keep in mind that you will not get updates automatically.
+If you build and install the Tuta Mail Android app by yourself, keep in mind that you will not get updates automatically.
 If you prefer the auto-update feature, download the app from the Google Play Store or F-Droid.
 The APK is also published on the GitHub releases page https://github.com/tutao/tutanota/releases.
 You can add https://github.com/tutao/tutanota/releases.atom to your feed reader to get notified about available updates.
@@ -48,9 +48,9 @@ run `APK_SIGN_ALIAS="tutaKey" APK_SIGN_STORE='MyKeystore.jks' APK_SIGN_STORE_PAS
 
 7. Install the app on your device: `adb install -r <path-to-apk>` (path as printed by the build script)
 
-## Building and running your own Tutanota Desktop client
+## Building and running your own Tuta Mail Desktop client
 
-Keep in mind that your own build of Tutanota Desktop will not update automatically.
+Keep in mind that your own build of Tuta Mail Desktop will not update automatically.
 
 ### Pre-requisites:
 

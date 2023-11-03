@@ -759,7 +759,7 @@ function registerForMailto() {
 		let origin = location.origin
 		try {
 			// @ts-ignore third argument removed from spec, but use is still recommended
-			navigator.registerProtocolHandler("mailto", origin + "/mailto#url=%s", "Tutanota")
+			navigator.registerProtocolHandler("mailto", origin + "/mailto#url=%s", "Tuta Mail")
 		} catch (e) {
 			// Catch SecurityError's and some other cases when we are not allowed to register a handler
 			console.log("Failed to register a mailto: protocol handler ", e)
@@ -781,7 +781,7 @@ function printJobsMessage(domainConfig: DomainConfig) {
 ''''''''''''''''''''''''',:,''''''''''''
 ''''''''''''';:llllcccccccc,''''''''''''    Do you care about privacy?
 '''''''''''':kXWXkoc::;,,'''''''''''''''
-'''''''''''',cdk0KKK00kxdolc;,''''''''''    Work at Tutanota! Fight for our rights!
+'''''''''''',cdk0KKK00kxdolc;,''''''''''    Work at Tuta! Fight for our rights!
 '''''''''''''''';coxOKNMMWWNK0kdl:,'''''
 '''''''''''''''''''',;oKMMMMMMMMWX0dc,''    https://tuta.com/jobs
 '''''''''''''''''''''';kWMMMMMMMMMMWXk:'
