@@ -132,8 +132,8 @@ export async function loadSignupWizard(
 
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(registrationDataId, locator.serviceExecutor, referralCode)
 	const prices = priceDataProvider.getRawPricingData()
-	const dc = locator.domainConfigProvider().getCurrentDomainConfig()
-	const featureListProvider = await FeatureListProvider.getInitializedInstance(dc)
+	const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
+	const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
 
 	const signupData: UpgradeSubscriptionData = {
 		options: {
