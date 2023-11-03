@@ -125,15 +125,20 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 
 	_renderOtherDomainLogin({ otherDomainLoginUrl }: WebauthnAnotherDomainParams): Children {
 		const hostname = new URL(otherDomainLoginUrl).hostname
-		return m(
-			"a",
-			{
-				href: otherDomainLoginUrl,
-			},
+		return [
 			lang.get("differentSecurityKeyDomain_msg", {
 				"{domain}": hostname,
 			}),
-		)
+			m("br"),
+			m(
+				"a.text-center",
+				{
+					href: otherDomainLoginUrl,
+					target: "_blank",
+				},
+				hostname,
+			),
+		]
 	}
 
 	_renderRecover(attrs: SecondFactorViewAttrs): Children {
