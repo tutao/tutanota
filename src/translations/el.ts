@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2023-11-03T09:29:08Z",
+	"updated_at": "2023-11-04T09:59:40Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -429,7 +429,7 @@ export default {
 		"desktop_label": "Επιφάνεια εργασίας ",
 		"details_label": "Λεπτομέριες",
 		"deviceEncryptionSaveCredentialsHelpText_msg": "Για να ενεργοποιήσετε την κρυπτογράφηση συσκευής (PIN/βιομετρικό ξεκλείδωμα), χρειάζεται να αποθηκεύσετε τα στοιχεία σας στη συσκευή. Αυτό μπορεί να γίνει την επόμενη φορά που θα συνδεθείτε. ",
-		"differentSecurityKeyDomain_msg": "Το κλειδί ασφαλείας σας δεν είναι εγγεγραμμένο για αυτό το domain. Εισέλθετε στο {domain}. ",
+		"differentSecurityKeyDomain_msg": "Δεν έχετε καταχωρημένο κλειδί ασφαλείας για αυτό το domain. Συνδεθείτε στο {domain} από άλλη καρτέλα του browser.\n\n Μετά, ξανασυνδεθείτε εδώ και αποδεχθείτε τη σύνδεση από την άλλη καρτέλα.",
 		"disallowExternalContent_action": "Αποκλεισμός εξωτερικού περιεχομένου",
 		"display_action": "Προβολή ",
 		"dnsRecordHostOrName_label": "Κεντρικός υπολογιστής / Όνομα",
@@ -1301,8 +1301,8 @@ export default {
 		"secondFactorConfirmLogin_label": "Επιβεβαίωση εισόδου",
 		"secondFactorConfirmLogin_msg": "Θα θέλατε να επιτρέψετε την σύνδεση από τον client \"{clientIdentifier}\" με διεύθυνση IP {ipAddress};",
 		"secondFactorNameInfo_msg": "Όνομα για ταυτοποίηση.",
-		"secondFactorPendingOtherClientOnly_msg": "Αποδεχτείτε αυτή την σύνδεση από άλλο πρόγραμμα πελάτη.",
-		"secondFactorPending_msg": "Επαληθεύστε την ταυτότητά σας με το δεύτερο παράγοντα ή αποδεχτείτε αυτήν τη σύνδεση από άλλο πρόγραμμα πελάτη.",
+		"secondFactorPendingOtherClientOnly_msg": "Παρακαλούμε αποδεχτείτε αυτή την σύνδεση από άλλη καρτέλα ή μέσω της εφαρμογής.",
+		"secondFactorPending_msg": "Παρακαλούμε επαληθεύστε την ταυτότητά σας με τον δεύτερο παράγοντα ή αποδεχτείτε αυτή την σύνδεση από άλλη καρτέλα ή μέσω της εφαρμογής.",
 		"secondMergeContact_label": "Επαφή 2",
 		"secondReminderAutomatic_msg": "Δυστυχώς, δεν έχουμε λάβει ακόμη το συνολικό ποσό για το λογαριασμό Tutanota σας. Ως εκ τούτου, σας παρακαλούμε να ενημερώσετε τα στοιχεία πληρωμής σας στο 'Ρυθμίσεις' -> 'Πληρωμή'. Για επιπλέον στοιχεία τιμολογίων, μπορείτε να δείτε τα τιμολόγια σας εκεί.\n\nΑν δεν λάβουμε τη πληρωμή εντός δύο εβδομάδων, ο λογαριασμός σας θα απενεργοποιηθεί.",
 		"secondReminderSubject_msg": "Δεύτερη υπενθύμιση πληρωμής",
