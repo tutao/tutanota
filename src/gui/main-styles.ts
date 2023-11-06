@@ -496,6 +496,9 @@ styles.registerStyle("main", () => {
 		".mr-negative-s": {
 			"margin-right": px(-size.hpad_button),
 		},
+		".mr-negative-l": {
+			"margin-right": px(-size.hpad_large),
+		},
 		".ml-negative-s": {
 			"margin-left": px(-size.hpad_button),
 		},

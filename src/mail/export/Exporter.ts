@@ -65,16 +65,36 @@ export async function exportMails(
 	entityClient: EntityClient,
 	fileController: FileController,
 	operationId?: OperationId,
+	signal?: AbortSignal,
 ): Promise<void> {
 	// Considering that the effort for generating the bundle is higher
 	// than generating the files, we need to consider it twice, so the
 	// total effort would be (mailsToBundle * 2) + filesToGenerate
 	const totalMails = mails.length * 3
 	let doneMails = 0
+	let cancel = false
+
+	const onAbort = () => {
+		cancel = true
+	}
+
+	//We use once here to let the AbortController remove the
+	//listener after dispatch the abort function
+	signal?.addEventListener("abort", onAbort, { once: true })
 
 	const updateProgress = operationId !== undefined ? () => locator.operationProgressTracker.onProgress(operationId, (++doneMails / totalMails) * 100) : noOp
 
+	//The only way to skip a Promise is throwing an error.
+	//this throws just the error name to be handled by the try/catch statement.
+
+	//This function must be called in each iteration across all promises since
+	//throwing it inside the onAbort function doesn't interrupt the pending promises.
+	const checkAbortSignal = () => {
+		if (cancel) throw { name: "AbortSignal" }
+	}
+
 	const downloadPromise = promiseMap(mails, async (mail) => {
+		checkAbortSignal()
 		const { htmlSanitizer } = await import("../../misc/HtmlSanitizer")
 		const bundle = await makeMailBundle(mail, mailFacade, entityClient, fileController, htmlSanitizer)
 		updateProgress()
@@ -85,6 +105,7 @@ export async function exportMails(
 	const [mode, bundles] = await Promise.all([getMailExportMode(), downloadPromise])
 	const dataFiles: DataFile[] = []
 	for (const bundle of bundles) {
+		checkAbortSignal()
 		const mailFile = await generateMailFile(bundle, generateExportFileName(bundle.subject, new Date(bundle.receivedOn), mode), mode)
 		dataFiles.push(mailFile)
 		updateProgress()
@@ -93,6 +114,7 @@ export async function exportMails(
 	const zipName = `${sortableTimestamp()}-${mode}-mail-export.zip`
 	const outputFile = await (dataFiles.length === 1 ? dataFiles[0] : zipDataFiles(dataFiles, zipName))
 
+	signal?.removeEventListener("abort", onAbort)
 	return fileController.saveDataFile(outputFile)
 }
 

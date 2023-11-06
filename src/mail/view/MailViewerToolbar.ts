@@ -10,12 +10,13 @@ import { UserError } from "../../api/main/UserError.js"
 import { showUserError } from "../../misc/ErrorHandlerImpl.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { editDraft, mailViewerMoreActions, makeAssignMailsButtons } from "./MailViewerUtils.js"
-import { ButtonColor } from "../../gui/base/Button.js"
+import { ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { isApp } from "../../api/common/Env.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { exportMails } from "../export/Exporter.js"
 import { lang } from "../../misc/LanguageViewModel.js"
+import { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar.js"
 
 /*
 	note that mailViewerViewModel has a mailModel, so you do not need to pass both if you pass a mailViewerViewModel
@@ -130,6 +131,18 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 	private renderExportButton(attrs: MailViewerToolbarAttrs) {
 		if (!isApp() && attrs.mailModel.isExportingMailsAllowed()) {
 			const operation = locator.operationProgressTracker.startNewOperation()
+			const ac = new AbortController()
+			const headerBarAttrs: DialogHeaderBarAttrs = {
+				left: [
+					{
+						label: "cancel_action",
+						click: () => ac.abort(),
+						type: ButtonType.Secondary,
+					},
+				],
+				middle: () => "",
+			}
+
 			return m(IconButton, {
 				title: "export_action",
 				click: () =>
@@ -139,9 +152,15 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 								"{current}": Math.round((operation.progress() / 100) * attrs.mails.length).toFixed(0),
 								"{total}": attrs.mails.length,
 							}),
-						exportMails(attrs.mails, locator.mailFacade, locator.entityClient, locator.fileController, operation.id).finally(operation.done),
+						exportMails(attrs.mails, locator.mailFacade, locator.entityClient, locator.fileController, operation.id, ac.signal).finally(
+							operation.done,
+						),
 						operation.progress,
-					),
+						true,
+						headerBarAttrs,
+					).catch((e) => {
+						if (e.name !== "AbortSignal") throw e
+					}),
 				icon: Icons.Export,
 			})
 		}
