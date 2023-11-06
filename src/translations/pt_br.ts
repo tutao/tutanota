@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2023-11-03T09:29:08Z",
+	"updated_at": "2023-11-05T16:05:46Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -395,7 +395,7 @@ export default {
 		"desktop_label": "Desktop",
 		"details_label": "Detalhes",
 		"deviceEncryptionSaveCredentialsHelpText_msg": "Para ativar a criptografia no dispositivo(pin/liberação biométrica), você precisa armazenar suas credenciais no dispositivo. Você poderá fazer isto na próxima vez que iniciar a sessão.\n",
-		"differentSecurityKeyDomain_msg": "Sua chave de segurança não está registrada para esse domínio. Por favor faça login em {domain}.",
+		"differentSecurityKeyDomain_msg": "Sua chave de segurança não está registrada para esse domínio. Por favor faça login em {domain}.\n\nEntã faça login de novo e aprove o login da outra aba.",
 		"disallowExternalContent_action": "Bloquear conteúdo externo",
 		"display_action": "Mostrar",
 		"dnsRecordHostOrName_label": "Servidor/Nome",
@@ -1209,7 +1209,7 @@ export default {
 		"secondFactorConfirmLogin_label": "Confirmar login",
 		"secondFactorConfirmLogin_msg": "Gostaria de permitir login do cliente \"{clientIdentifier}\" com o endereço de IP {ipAddress}?",
 		"secondFactorNameInfo_msg": "Nome para identificação.",
-		"secondFactorPendingOtherClientOnly_msg": "Por favor, aprove este login a partir de outro cliente.",
+		"secondFactorPendingOtherClientOnly_msg": "Por favor, aprove este login a partir da outra aba ou via aplicativo.",
 		"secondFactorPending_msg": "Por favor utilize autenticação de dois fatores ou aceite este login em outro cliente.",
 		"secondMergeContact_label": "Contato 2",
 		"secondReminderAutomatic_msg": "Infelizmente ainda não recebemos o valor relativo ao pagamento de sua conta Tutanota. Por esse motivo, favor verificar seus dados de pagamento em 'Configurações' -> 'Pagamento'. Para detlhes de suas próximas faturas você  pode ver na página. Se o pagamento não for realizado em até duas semanas, seremos obrigados a desativar sua conta.",
