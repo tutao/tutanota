@@ -158,9 +158,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 						operation.progress,
 						true,
 						headerBarAttrs,
-					).catch((e) => {
-						if (e.name !== "AbortSignal") throw e
-					}),
+					),
 				icon: Icons.Export,
 			})
 		}
