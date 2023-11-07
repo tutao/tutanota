@@ -19,6 +19,8 @@ import {
 	KeyLength,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
+	PQKeyPairs,
+	PQPublicKeys,
 	random,
 	Randomizer,
 	rsaDecrypt,
@@ -29,6 +31,8 @@ import {
 	base64ToUint8Array,
 	hexToUint8Array,
 	neverNull,
+	splitInChunks,
+	splitUint8ArrayInChunks,
 	stringToUtf8Uint8Array,
 	uint8ArrayToBase64,
 	uint8ArrayToHex,
@@ -39,13 +43,19 @@ import { uncompress } from "../../../../../src/api/worker/Compression.js"
 import { matchers, object, when } from "testdouble"
 import { loadWasmModuleFromFile } from "../../../../../packages/tutanota-crypto/test/WebAssemblyTestUtils.js"
 import { byteArraysToBytes, bytesToByteArrays } from "@tutao/tutanota-utils/dist/Encoding.js"
+import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
+import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
+import de from "../../../../../src/translations/de.js"
+import { decodePQMessage, encodePQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
 
 const originalRandom = random.generateRandomData
+const liboqs = await loadWasmModuleFromFile("../packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm")
 
 o.spec("crypto compatibility", function () {
 	o.afterEach(function () {
 		random.generateRandomData = originalRandom
 	})
+
 	o("rsa encryption", () => {
 		for (const td of testData.rsaEncryptionTests) {
 			random.generateRandomData = (number) => hexToUint8Array(td.seed)
@@ -59,8 +69,6 @@ o.spec("crypto compatibility", function () {
 		}
 	})
 	o("kyber", async () => {
-		const liboqs = await loadWasmModuleFromFile("../packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm")
-
 		for (const td of testData.kyberEncryptionTests) {
 			const publicKey = bytesToKyberPublicKey(hexToUint8Array(td.publicKey))
 			const privateKey = bytesToKyberPrivateKey(hexToUint8Array(td.privateKey))
@@ -217,12 +225,12 @@ o.spec("crypto compatibility", function () {
 
 	o("byteArrayEncoding", function () {
 		for (const td of testData.byteArrayEncodingTests) {
-			var byteArrays = td.byteArraysAsHex.map((byteArrayAsHex) => hexToUint8Array(byteArrayAsHex))
+			const byteArrays = td.byteArraysAsHex.map((byteArrayAsHex) => hexToUint8Array(byteArrayAsHex))
 			if (td.encodedByteArrayAsHex) {
 				o(td.encodedByteArrayAsHex).equals(uint8ArrayToHex(byteArraysToBytes(byteArrays)))
 
 				const decodedByteArrays = bytesToByteArrays(hexToUint8Array(td.encodedByteArrayAsHex), td.byteArraysAsHex.length)
-				for (var i = 0; i < td.byteArraysAsHex.length; i++) {
+				for (let i = 0; i < td.byteArraysAsHex.length; i++) {
 					o(td.byteArraysAsHex[i]).equals(uint8ArrayToHex(decodedByteArrays[i]))
 				}
 			} else {
@@ -237,14 +245,46 @@ o.spec("crypto compatibility", function () {
 	})
 
 	o("hkdf", function () {
-		type HkdfTestData = { saltHex: string, inputKeyMaterialHex: string, infoHex: string, lengthInBytes: number, hkdfHex: string }
-		testData.hkdfTests.forEach((td : HkdfTestData) => {
+		for (const td of testData.hkdfTests) {
 			const salt = hexToUint8Array(td.saltHex)
 			const inputKeyMaterialHex = hexToUint8Array(td.inputKeyMaterialHex)
 			const info = hexToUint8Array(td.infoHex)
 			const lengthInBytes = td.lengthInBytes
 			o(uint8ArrayToHex(hkdf(salt, inputKeyMaterialHex, info, lengthInBytes))).equals(td.hkdfHex)
-		})
+		}
+	})
+
+	o("pqcrypt", async function () {
+		for (const td of testData.pqcryptEncryptionTests) {
+			random.generateRandomData = (number) => hexToUint8Array(td.seed).slice(0, number)
+
+			const bucketKey = hexToUint8Array(td.bucketKey)
+
+			const eccKeyPair = {
+				publicKey: hexToUint8Array(td.publicX25519Key),
+				privateKey: hexToUint8Array(td.privateX25519Key),
+			}
+
+			const ephemeralKeyPair = {
+				publicKey: hexToUint8Array(td.epheremalPublicX25519Key),
+				privateKey: hexToUint8Array(td.epheremalPrivateX25519Key),
+			}
+
+			const kyberKeyPair = {
+				publicKey: bytesToKyberPublicKey(hexToUint8Array(td.publicKyberKey)),
+				privateKey: bytesToKyberPrivateKey(hexToUint8Array(td.privateKyberKey)),
+			}
+
+			const pqPublicKeys = new PQPublicKeys(eccKeyPair.publicKey, kyberKeyPair.publicKey)
+			const pqKeyPairs = new PQKeyPairs(eccKeyPair, kyberKeyPair)
+			const pqFacade = new PQFacade(new WASMKyberFacade(liboqs))
+
+			const encapsulation = await pqFacade.encapsulate(eccKeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
+			o(encapsulation).deepEquals(decodePQMessage(hexToUint8Array(td.pqMessage)))
+
+			const decapsulation = await pqFacade.decapsulate(encapsulation, pqKeyPairs)
+			o(decapsulation).deepEquals(bucketKey)
+		}
 	})
 
 	/**
