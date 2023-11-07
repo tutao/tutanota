@@ -8,16 +8,19 @@ import { px } from "../size"
 import { theme } from "../theme"
 import { BootIcons } from "../base/icons/BootIcons"
 import { Icon } from "../base/Icon"
-import { getStartOfDay, isSameDayOfDate } from "@tutao/tutanota-utils"
+import { assertNotNull, getStartOfDay, isSameDayOfDate } from "@tutao/tutanota-utils"
 import { DateTime } from "luxon"
 import { getAllDayDateLocal } from "../../api/common/utils/CommonCalendarUtils"
 import { TextField } from "../base/TextField.js"
 import { Keys } from "../../api/common/TutanotaConstants"
-import type { CalendarDay } from "../../calendar/date/CalendarUtils"
+import type { CalendarDay, CalendarMonth } from "../../calendar/date/CalendarUtils"
 import { getCalendarMonth, getDateIndicator } from "../../calendar/date/CalendarUtils"
 import { parseDate } from "../../misc/DateParser"
-import Stream from "mithril/stream"
 import { isKeyPressed } from "../../misc/KeyManager.js"
+import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
+import { ExpanderPanel } from "../base/Expander.js"
+import { DefaultAnimationTime } from "../animation/Animations.js"
+import { CalendarSwipeHandler } from "../base/CalendarSwipeHandler.js"
 
 export interface DatePickerAttrs {
 	date: Date
@@ -212,20 +215,34 @@ type VisualDatePickerAttrs = {
 	onDateSelected?: (date: Date, dayClick: boolean) => unknown
 	wide: boolean
 	startOfTheWeekOffset: number
+	isDaySelectorExpanded?: boolean
+	isExpandableDatePicker?: boolean
+	eventsForDays?: Map<number, Array<CalendarEvent>>
+	handleDayPickerSwipe?: (isNext: boolean) => void
+}
+
+enum SwipeCalendarOrder {
+	BEFORE = -1,
+	CURRENT,
+	AFTER,
 }
 
 /** Date picker used on desktop. Displays a month and ability to select a month. */
 export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	private displayingDate: Date
 	private lastSelectedDate: Date | null = null
+	private containerDom: HTMLElement | null = null
+	private swipeHandler!: CalendarSwipeHandler
+	private handleDayPickerSwipe: VisualDatePickerAttrs["handleDayPickerSwipe"] | null
 
 	constructor(vnode: Vnode<VisualDatePickerAttrs>) {
 		this.displayingDate = vnode.attrs.selectedDate || getStartOfDay(new Date())
 	}
 
 	view(vnode: Vnode<VisualDatePickerAttrs>): Children {
+		this.handleDayPickerSwipe = vnode.attrs.handleDayPickerSwipe
 		const selectedDate = vnode.attrs.selectedDate
-
+		const isExpandableDatePicker = vnode.attrs.isExpandableDatePicker ?? false
 		if (selectedDate && !isSameDayOfDate(this.lastSelectedDate, selectedDate)) {
 			this.lastSelectedDate = selectedDate
 			this.displayingDate = new Date(selectedDate)
@@ -234,21 +251,9 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		}
 
 		let date = new Date(this.displayingDate)
-		const { weeks, weekdays } = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, true)
+		let { weeks, weekdays } = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, true)
 		return m(".flex.flex-column", [
-			m(".flex.flex-space-between.pt-s.pb-s.items-center", [
-				this.renderSwitchMonthArrowIcon(false, vnode.attrs),
-				m(
-					".b",
-					{
-						style: {
-							fontSize: px(14),
-						},
-					},
-					formatMonthWithFullYear(date),
-				),
-				this.renderSwitchMonthArrowIcon(true, vnode.attrs),
-			]),
+			!isExpandableDatePicker ? this.renderPickerHeader(vnode, date) : null,
 			m(".flex.flex-space-between", this.renderWeekDays(vnode.attrs.wide, weekdays)),
 			m(
 				".flex.flex-column.flex-space-around",
@@ -258,9 +263,124 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 						lineHeight: px(this.getElementWidth(vnode.attrs)),
 					},
 				},
-				weeks.map((w) => this.renderWeek(w, vnode.attrs)),
+				isExpandableDatePicker ? this.renderDayPickerCarousel(vnode) : weeks.map((w) => this.renderWeek(w, vnode.attrs)),
 			),
 		])
+	}
+
+	private renderPickerHeader(vnode: Vnode<VisualDatePickerAttrs>, date: Date): Children {
+		return m(".flex.flex-space-between.pt-s.pb-s.items-center", [
+			this.renderSwitchMonthArrowIcon(false, vnode.attrs),
+			m(
+				".b",
+				{
+					style: {
+						fontSize: px(14),
+					},
+				},
+				formatMonthWithFullYear(date),
+			),
+			this.renderSwitchMonthArrowIcon(true, vnode.attrs),
+		])
+	}
+
+	private renderDayPickerCarousel(vnode: Vnode<VisualDatePickerAttrs>) {
+		const isExpanded = vnode.attrs.isDaySelectorExpanded ?? true
+		const date = vnode.attrs.selectedDate ?? new Date()
+
+		const lastWeekDate = DateTime.fromJSDate(date).minus({ week: 1 }).toJSDate()
+
+		const nextWeekDate = DateTime.fromJSDate(date).minus({ week: 1 }).toJSDate()
+
+		return m(
+			".rel",
+			{
+				oncreate: (swiperNode) => {
+					this.containerDom = swiperNode.dom as HTMLElement
+					this.swipeHandler = new CalendarSwipeHandler(this.containerDom!, (isNext: boolean) => this.handleDayPickerSwipe?.(isNext))
+					this.swipeHandler?.attach()
+				},
+			},
+			// visible view and two off-screen pages for scrolling
+			[
+				m(
+					".abs",
+					{
+						"aria-hidden": "true",
+						style: {
+							// Set the display none until the containerDom is initialized
+							// this prevents that this shows up to the user and been hidden until needed
+							display: "none",
+							...(this.containerDom &&
+								this.containerDom.offsetWidth > 0 && {
+									width: px(this.containerDom.offsetWidth),
+									display: "block",
+									// put it to the top of the view and not below
+									top: 0,
+									transform: `translateX(${-this.containerDom.offsetWidth}px)`,
+								}),
+						},
+					},
+					this.renderCarouselPage(isExpanded, lastWeekDate, vnode.attrs),
+				),
+				this.renderCarouselPage(isExpanded, date, vnode.attrs),
+				m(
+					".abs",
+					{
+						"aria-hidden": "true",
+						style: {
+							// Set the display none until the containerDom is initialized
+							// this prevents that this shows up to the user and been hidden until needed
+							display: "none",
+							...(this.containerDom &&
+								this.containerDom.offsetWidth > 0 && {
+									width: px(this.containerDom.offsetWidth),
+									display: "block",
+									// put it to the top of the view and not below
+									top: 0,
+									transform: `translateX(${this.containerDom.offsetWidth}px)`,
+								}),
+						},
+					},
+					this.renderCarouselPage(isExpanded, nextWeekDate, vnode.attrs),
+				),
+			],
+		)
+	}
+
+	private renderCarouselPage(isExpanded: boolean, currentDate: Date, attrs: VisualDatePickerAttrs) {
+		const calendarMonth = getCalendarMonth(currentDate, attrs.startOfTheWeekOffset, true)
+		const weeks = calendarMonth.weeks
+		const selectedWeek = assertNotNull(weeks.find((w) => w.some((calendarDay) => currentDate.getTime() === calendarDay.date.getTime())))
+
+		return m("", [
+			m(
+				"",
+				{
+					style: {
+						height: isExpanded ? 0 : undefined,
+						opacity: isExpanded ? 0 : 1,
+						overflow: "clip",
+						transition: `opacity ${1.5 * DefaultAnimationTime}ms ease-in-out, margin-top ${DefaultAnimationTime}ms ease-in, height ${
+							1.5 * DefaultAnimationTime
+						}ms ease-out`,
+					},
+				},
+				this.renderWeek(selectedWeek, attrs),
+			),
+			m(
+				ExpanderPanel,
+				{
+					expanded: isExpanded,
+				},
+				this.renderExpandedMonth(calendarMonth, attrs),
+			),
+		])
+	}
+
+	private renderExpandedMonth(calendarMonth: CalendarMonth, attrs: VisualDatePickerAttrs) {
+		const { weeks } = calendarMonth
+		return m("", [weeks.map((w) => this.renderWeek(w, attrs))])
 	}
 
 	private renderSwitchMonthArrowIcon(forward: boolean, attrs: VisualDatePickerAttrs): Children {
@@ -294,20 +414,27 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 
 	private renderDay({ date, day, isPaddingDay }: CalendarDay, attrs: VisualDatePickerAttrs): Children {
 		const size = px(this.getElementWidth(attrs))
+		const eventForDay = attrs.eventsForDays?.get(date.getTime())
+		const hasEvent = eventForDay && eventForDay.length > 0
+		const isExpandableDatePicker = attrs.isExpandableDatePicker ?? false
+
 		return m(
-			".center.click" + (isPaddingDay ? "" : getDateIndicator(date, attrs.selectedDate)),
+			".center.click" +
+				(isPaddingDay && !isExpandableDatePicker ? "" : getDateIndicator(date, attrs.selectedDate)) +
+				(hasEvent ? ".day-has-event.rel" : "") +
+				(isPaddingDay && isExpandableDatePicker ? ".faded-day" : ""),
 			{
 				style: {
 					height: size,
 					width: size,
 				},
 				onclick:
-					!isPaddingDay &&
+					(!isPaddingDay || isExpandableDatePicker) &&
 					(() => {
 						attrs.onDateSelected && attrs.onDateSelected(date, true)
 					}),
 			},
-			isPaddingDay ? null : day,
+			isPaddingDay && !isExpandableDatePicker ? null : day,
 		)
 	}
 
@@ -334,7 +461,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 						height: size,
 						width: size,
 						lineHeight: size,
-						color: theme.content_border,
+						color: theme.navigation_menu_icon,
 					},
 				},
 				wd,

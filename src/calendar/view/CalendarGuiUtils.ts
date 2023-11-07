@@ -8,9 +8,10 @@ import type { MousePosAndBounds } from "../../gui/base/GuiUtils"
 import { Time } from "../date/Time.js"
 import { assert, clamp, incrementDate, lastThrow } from "@tutao/tutanota-utils"
 import { IconButton } from "../../gui/base/IconButton.js"
-import { formatDateWithWeekday, formatMonthWithFullYear } from "../../misc/Formatter.js"
+import { formatDateWithWeekday, formatMonthShortWithFullYear, formatMonthWithFullYear } from "../../misc/Formatter.js"
 import { getStartOfTheWeekOffset, getStartOfWeek, getWeekNumber } from "../date/CalendarUtils.js"
 import { WeekStart } from "../../api/common/TutanotaConstants.js"
+import { AllIcons } from "../../gui/base/Icon.js"
 
 export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () => unknown): Child {
 	return m(IconButton, {
@@ -92,6 +93,7 @@ export function calendarNavConfiguration(
 	viewType: CalendarViewType,
 	date: Date,
 	weekStart: WeekStart,
+	agendaTitleType: "day" | "range",
 	switcher: (viewType: CalendarViewType, next: boolean) => unknown,
 ): CalendarNavConfiguration {
 	const onBack = () => switcher(viewType, false)
@@ -122,7 +124,7 @@ export function calendarNavConfiguration(
 			return {
 				back: null,
 				forward: null,
-				title: agendaTitle(date),
+				title: agendaTitleType === "day" ? formatDateWithWeekday(date) : agendaTitle(date),
 				week: null,
 			}
 	}
@@ -193,3 +195,13 @@ export function getTimeFromMousePos({ y, targetHeight }: MousePosAndBounds, hour
 }
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
+
+export function getIconForViewType(viewType: CalendarViewType): AllIcons {
+	const lookupTable: Record<CalendarViewType, AllIcons> = {
+		[CalendarViewType.DAY]: Icons.TableSingle,
+		[CalendarViewType.WEEK]: Icons.TableColumns,
+		[CalendarViewType.MONTH]: Icons.Table,
+		[CalendarViewType.AGENDA]: Icons.ListUnordered,
+	}
+	return lookupTable[viewType]
+}

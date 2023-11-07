@@ -276,7 +276,7 @@ export function makeCalendarModel(): CalendarModel {
 	})
 }
 
-function id(element): IdTuple {
+function id(element: string): IdTuple {
 	return ["list", element]
 }
 

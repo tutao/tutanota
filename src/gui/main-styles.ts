@@ -890,6 +890,9 @@ styles.registerStyle("main", () => {
 		".column-gap": {
 			"column-gap": px(size.hpad),
 		},
+		".gap-vpad": {
+			gap: px(size.vpad),
+		},
 		".flex": {
 			display: "flex",
 		},
@@ -1019,6 +1022,9 @@ styles.registerStyle("main", () => {
 		},
 		".border-radius-top-left-big": {
 			"border-top-left-radius": px(size.border_radius_big),
+		},
+		".border-radius-top-right-big": {
+			"border-top-right-radius": px(size.border_radius_big),
 		},
 		".border-radius-bottom": {
 			"border-bottom-left-radius": px(size.border_radius),
@@ -2280,6 +2286,22 @@ styles.registerStyle("main", () => {
 			height: px(100),
 			"min-height": px(100),
 			"border-radius": px(100),
+		},
+		".day-has-event:after": {
+			"background-color": theme.content_accent,
+			"border-radius": "50%",
+			content: "''",
+			display: "inline-block",
+			height: px(5),
+			width: px(5),
+			position: "absolute",
+			bottom: px(2.5),
+			margin: "0 auto",
+			left: px(0),
+			right: px(0),
+		},
+		".faded-day": {
+			color: theme.navigation_menu_icon,
 		},
 	}
 })
