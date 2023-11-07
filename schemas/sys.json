@@ -268,6 +268,11 @@
 					"name": "AddValue",
 					"sourceType": "KeyPair",
 					"info": "AddValue KeyPair/symEncPrivKyberKey/2140."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "InstanceSessionKey",
+					"info": "AddValue InstanceSessionKey/encryptionAuthStatus/2149."
 				}
 			]
 		}

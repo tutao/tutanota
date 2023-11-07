@@ -4573,6 +4573,15 @@ export const typeModels = {
                 "cardinality": "ZeroOrOne",
                 "encrypted": true
             },
+            "encryptionAuthStatus": {
+                "final": true,
+                "name": "encryptionAuthStatus",
+                "id": 1346,
+                "since": 65,
+                "type": "Number",
+                "cardinality": "ZeroOrOne",
+                "encrypted": true
+            },
             "listUnsubscribe": {
                 "final": true,
                 "name": "listUnsubscribe",

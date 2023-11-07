@@ -223,6 +223,11 @@
 					"name": "AddValue",
 					"sourceType": "InternalGroupData",
 					"info": "AddValue InternalGroupData/groupEncPrivKyberKey/1345."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Mail",
+					"info": "AddValue Mail/encryptionAuthStatus/1346."
 				}
 			]
 		}

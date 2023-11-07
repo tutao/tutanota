@@ -5793,6 +5793,15 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
+            "encryptionAuthStatus": {
+                "final": true,
+                "name": "encryptionAuthStatus",
+                "id": 2149,
+                "since": 91,
+                "type": "Bytes",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
             "instanceId": {
                 "final": true,
                 "name": "instanceId",

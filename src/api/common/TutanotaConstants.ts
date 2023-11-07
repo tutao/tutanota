@@ -917,6 +917,17 @@ export enum MailAuthenticationStatus {
 	MISSING_MAIL_FROM = "4",
 }
 
+/**
+ * The status of the authentication when decrypting an end-to-end encrypted message.
+ * Authentication was only introduced when switching to PQ.
+ */
+export enum EncryptionAuthStatus {
+	RSA_NO_AUTHENTICATION = "0",
+	PQ_AUTHENTICATION_SUCCEEDED = "1",
+	PQ_AUTHENTICATION_FAILED = "2",
+	AES_NO_AUTHENTICATION = "3",
+}
+
 export const enum MailReportType {
 	PHISHING = "0",
 	SPAM = "1",

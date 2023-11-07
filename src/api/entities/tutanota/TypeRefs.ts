@@ -1158,6 +1158,7 @@ export type Mail = {
 	authStatus: null | NumberString;
 	confidential: boolean;
 	differentEnvelopeSender: null | string;
+	encryptionAuthStatus: null | NumberString;
 	listUnsubscribe: boolean;
 	method: NumberString;
 	movedTime: null | Date;
