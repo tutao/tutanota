@@ -16,7 +16,7 @@ import {
 } from "@tutao/tutanota-crypto"
 import { concat, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
-import { PQMessage } from "./PQMessage.js"
+import { PQMessage, PQMESSAGE_VERSION } from "./PQMessage.js"
 import { hkdf } from "@tutao/tutanota-crypto/dist/hashes/HKDF.js"
 
 export class PQFacade {
@@ -51,6 +51,7 @@ export class PQFacade {
 
 		const kekEncBucketKey = aesEncrypt(kek, bucketKey)
 		return {
+			version: PQMESSAGE_VERSION,
 			senderIdentityPubKey: senderIdentityKeyPair.publicKey,
 			ephemeralPubKey: ephemeralKeyPair.publicKey,
 			encapsulation: {

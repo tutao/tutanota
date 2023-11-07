@@ -91,7 +91,7 @@ import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/api/worker/cr
 import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
 import { loadWasmModuleFromFile } from "../../../../../packages/tutanota-crypto/test/WebAssemblyTestUtils.js"
 import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
-import { encodePQMessage, PQBucketKeyEncapsulation, PQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
+import { encodePQMessage, PQBucketKeyEncapsulation, PQMessage, PQMESSAGE_VERSION } from "../../../../../src/api/worker/facades/PQMessage.js"
 import { createTestEntity } from "../../../TestUtils.js"
 
 const { captor } = matchers
@@ -790,6 +790,7 @@ o.spec("CryptoFacade", function () {
 		}
 
 		const pqMessage: PQMessage = {
+			version: PQMESSAGE_VERSION,
 			senderIdentityPubKey: senderKeyPair.pubEccKey!,
 			ephemeralPubKey: senderKeyPair.pubEccKey!,
 			encapsulation: pqEncapsulation,
@@ -873,6 +874,7 @@ o.spec("CryptoFacade", function () {
 
 		const dummyEccPubKey = generateEccKeyPair().publicKey
 		const pqMessage: PQMessage = {
+			version: PQMESSAGE_VERSION,
 			senderIdentityPubKey: dummyEccPubKey,
 			ephemeralPubKey: dummyEccPubKey,
 			encapsulation: pqEncapsulation,

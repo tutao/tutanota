@@ -1,6 +1,11 @@
 import { EccPublicKey } from "@tutao/tutanota-crypto"
+import { byteArraysToBytes, bytesToByteArrays } from "@tutao/tutanota-utils/dist/Encoding.js"
+import { assert, concat } from "@tutao/tutanota-utils"
+
+export const PQMESSAGE_VERSION: number = 0
 
 export type PQMessage = {
+	version: number
 	senderIdentityPubKey: EccPublicKey
 	ephemeralPubKey: EccPublicKey
 	encapsulation: PQBucketKeyEncapsulation
@@ -12,61 +17,24 @@ export type PQBucketKeyEncapsulation = {
 }
 
 export function decodePQMessage(encoded: Uint8Array): PQMessage {
-	const senderIdentityPubKey = readAttribute(encoded, 0)
-	const ephemeralPubKey = readAttribute(encoded, senderIdentityPubKey.index)
-	const kyberCipherText = readAttribute(encoded, ephemeralPubKey.index)
-	const bucketKeyCipherText = readAttribute(encoded, kyberCipherText.index)
+	assert(() => encoded.length > 1, "encoded pq message is too short: " + encoded.length)
+	const version = encoded[0]
+	assert(() => version === PQMESSAGE_VERSION, `can't decode unknown or unsupported PQMessage version ${version}`)
 
+	const pqMessageParts = bytesToByteArrays(encoded.subarray(1), 4)
 	return {
-		senderIdentityPubKey: senderIdentityPubKey.attribute,
-		ephemeralPubKey: ephemeralPubKey.attribute,
+		version: version,
+		senderIdentityPubKey: pqMessageParts[0],
+		ephemeralPubKey: pqMessageParts[1],
 		encapsulation: {
-			kyberCipherText: kyberCipherText.attribute,
-			kekEncBucketKey: bucketKeyCipherText.attribute,
+			kyberCipherText: pqMessageParts[2],
+			kekEncBucketKey: pqMessageParts[3],
 		},
 	}
 }
 
-export function encodePQMessage({ senderIdentityPubKey, ephemeralPubKey, encapsulation }: PQMessage): Uint8Array {
-	const result = new Uint8Array(
-		4 + senderIdentityPubKey.length + 4 + ephemeralPubKey.length + 4 + encapsulation.kyberCipherText.length + 4 + encapsulation.kekEncBucketKey.length,
-	)
-	let index = writeAttribute(result, senderIdentityPubKey, 0)
-	index = writeAttribute(result, ephemeralPubKey, index)
-	index = writeAttribute(result, encapsulation.kyberCipherText, index)
-	writeAttribute(result, encapsulation.kekEncBucketKey, index)
-
-	return result
-}
-
-function writeAttribute(result: Uint8Array, attribute: Uint8Array, index: number): number {
-	writeInt(result, attribute.length, index)
-	index += 4
-	result.set(attribute, index)
-	index += attribute.length
-	return index
-}
-
-function readAttribute(encoded: Uint8Array, index: number): { index: number; attribute: Uint8Array } {
-	const length = readInt(encoded, index)
-	index += 4
-	const attribute = encoded.slice(index, length + index)
-	index += length
-	return { index, attribute }
-}
-
-function writeInt(array: Uint8Array, value: number, index: number) {
-	array[index] = (value & 0xff000000) >> 24
-	array[index + 1] = (value & 0x00ff0000) >> 16
-	array[index + 2] = (value & 0x0000ff00) >> 8
-	array[index + 3] = (value & 0x000000ff) >> 0
-}
-
-function readInt(array: Uint8Array, index: number): number {
-	const bytes = array.subarray(index, index + 4)
-	let n = 0
-	for (const byte of bytes.values()) {
-		n = (n << 8) | byte
-	}
-	return n
+export function encodePQMessage({ version, senderIdentityPubKey, ephemeralPubKey, encapsulation }: PQMessage): Uint8Array {
+	assert(() => version === PQMESSAGE_VERSION, `can't encode unknown or unsupported PQMessage version ${version}`)
+	const encodedPqMessageParts = byteArraysToBytes([senderIdentityPubKey, ephemeralPubKey, encapsulation.kyberCipherText, encapsulation.kekEncBucketKey])
+	return concat(new Uint8Array([version]), encodedPqMessageParts)
 }
