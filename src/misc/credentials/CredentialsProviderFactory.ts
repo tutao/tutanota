@@ -49,7 +49,7 @@ export async function createCredentialsProvider(
 		)
 	} else {
 		return new CredentialsProvider(
-			new CredentialsEncryptionStub(),
+			new NoopCredentialsEncryption(),
 			deviceConfig,
 			new StubCredentialsKeyMigrator(),
 			new DatabaseKeyFactory(deviceEncryptionFacade),
@@ -65,7 +65,7 @@ export async function createCredentialsProvider(
  * additional mechanism for credentials encryption using an access key stored server side. This is done in LoginFacade.
  */
 
-class CredentialsEncryptionStub implements CredentialsEncryption {
+class NoopCredentialsEncryption implements CredentialsEncryption {
 	async encrypt({ credentials, databaseKey }: CredentialsAndDatabaseKey): Promise<PersistentCredentials> {
 		const { encryptedPassword } = credentials
 
