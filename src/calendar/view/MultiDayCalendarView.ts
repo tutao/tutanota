@@ -39,6 +39,8 @@ import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarVi
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { locator } from "../../api/main/MainLocator.js"
+import { VisualDatePicker } from "../../gui/date/DatePicker.js"
+import { DateTime } from "luxon"
 
 export type Attrs = {
 	selectedDate: Date
@@ -53,6 +55,9 @@ export type Attrs = {
 	onChangeViewPeriod: (next: boolean) => unknown
 	temporaryEvents: Array<CalendarEvent>
 	dragHandlerCallbacks: EventDragHandlerCallbacks
+	eventsForDays?: Map<number, Array<CalendarEvent>>
+	isDaySelectorExpanded?: boolean
+	startOfTheWeekOffset?: number
 }
 
 export class MultiDayCalendarView implements Component<Attrs> {
@@ -91,21 +96,53 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		const previousPageEvents = attrs.getEventsOnDays(previousRange)
 		const currentPageEvents = attrs.getEventsOnDays(currentRange)
 		const nextPageEvents = attrs.getEventsOnDays(nextRange)
-		return m(PageView, {
-			previousPage: {
-				key: previousRange[0].getTime(),
-				nodes: this._renderWeek(attrs, previousPageEvents, currentPageEvents),
-			},
-			currentPage: {
-				key: currentRange[0].getTime(),
-				nodes: this._renderWeek(attrs, currentPageEvents, currentPageEvents),
-			},
-			nextPage: {
-				key: nextRange[0].getTime(),
-				nodes: this._renderWeek(attrs, nextPageEvents, currentPageEvents),
-			},
-			onChangePage: (next) => attrs.onChangeViewPeriod(next),
-		})
+		return m(".flex.col.fill-absolute", [
+			this.renderDateSelector(attrs),
+			m(
+				".rel.flex-grow",
+				m(PageView, {
+					previousPage: {
+						key: previousRange[0].getTime(),
+						nodes: this._renderWeek(attrs, previousPageEvents, currentPageEvents),
+					},
+					currentPage: {
+						key: currentRange[0].getTime(),
+						nodes: this._renderWeek(attrs, currentPageEvents, currentPageEvents),
+					},
+					nextPage: {
+						key: nextRange[0].getTime(),
+						nodes: this._renderWeek(attrs, nextPageEvents, currentPageEvents),
+					},
+					onChangePage: (next) => attrs.onChangeViewPeriod(next),
+				}),
+			),
+		])
+	}
+
+	private renderDateSelector(attrs: Attrs): Children {
+		return styles.isSingleColumnLayout() && attrs.daysInPeriod === 1
+			? m(
+					".header-bg.pb-s.overflow-hidden",
+					m(VisualDatePicker, {
+						eventsForDays: attrs.eventsForDays,
+						selectedDate: attrs.selectedDate,
+						onDateSelected: (date) => attrs.onDateSelected(date),
+						wide: true,
+						startOfTheWeekOffset: attrs.startOfTheWeekOffset ?? 0,
+						isDaySelectorExpanded: attrs.isDaySelectorExpanded,
+						isExpandableDatePicker: true,
+						handleDayPickerSwipe: (isNext: boolean) => {
+							const sign = isNext ? 1 : -1
+							const duration = {
+								month: sign * (attrs.isDaySelectorExpanded ? 1 : 0),
+								week: sign * (attrs.isDaySelectorExpanded ? 0 : 1),
+							}
+
+							attrs.onDateSelected(DateTime.fromJSDate(attrs.selectedDate).plus(duration).toJSDate())
+						},
+					}),
+			  )
+			: null
 	}
 
 	_getTodayTimestamp(): number {
@@ -114,7 +151,8 @@ export class MultiDayCalendarView implements Component<Attrs> {
 
 	_renderWeek(attrs: Attrs, thisWeek: EventsOnDays, mainWeek: EventsOnDays): Children {
 		return m(
-			".fill-absolute.flex.col.calendar-column-border.mlr-safe-inset.content-bg",
+			".fill-absolute.flex.col.calendar-column-border.mlr-safe-inset.content-bg.overflow-hidden" +
+				(styles.isUsingBottomNavigation() ? `.border-radius-top-left-big.border-radius-top-right-big` : ""),
 			{
 				oncreate: () => {
 					this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)

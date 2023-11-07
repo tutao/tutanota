@@ -111,6 +111,10 @@ export function dateWithWeekdayWoMonth(date: Date): string {
 	return lang.formats.dateWithWeekdayWoMonth.format(date)
 }
 
+export function formatMonthShortWithFullYear(date: Date): string {
+	return lang.formats.monthShortWithFullYear.format(date)
+}
+
 /**
  * Formats the given size in bytes to a better human readable string using B, KB, MB, GB, TB.
  */

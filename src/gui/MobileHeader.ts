@@ -67,11 +67,11 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 	}
 }
 
-export const MobileHeaderTitle = pureComponent(({ title, bottom }: { title?: string; bottom: Children }) => {
+export const MobileHeaderTitle = pureComponent(({ title, bottom, onTap }: { title?: string | Children; bottom: Children; onTap?: () => unknown }) => {
 	// normally min-width: is 0 but inside flex it's auto and we need to teach it how to shrink
 	// align-self: stretch restrict the child to the parent width
 	// text-ellipsis already sets min-width to 0
-	return m(".flex.col.items-start.min-width-0", [m(".font-weight-600.text-ellipsis.align-self-stretch", title ?? NBSP), bottom])
+	return m(".flex.col.items-start.min-width-0", [m(".font-weight-600.text-ellipsis.align-self-stretch", { onclick: onTap }, title ?? NBSP), bottom])
 })
 
 export const MobileHeaderMenuButton = pureComponent(({ newsModel, backAction }: { newsModel: NewsModel; backAction: () => unknown }) => {
