@@ -5,31 +5,23 @@ import { assert } from "@tutao/tutanota-utils"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade.js"
 
 export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
-	private readonly _desktopKeyStoreFacade: DesktopKeyStoreFacade
-	private readonly _crypto: DesktopNativeCryptoFacade
-
-	constructor(keyStoreFacade: DesktopKeyStoreFacade, crypto: DesktopNativeCryptoFacade) {
-		this._desktopKeyStoreFacade = keyStoreFacade
-		this._crypto = crypto
-	}
+	constructor(private readonly desktopKeyStoreFacade: DesktopKeyStoreFacade, private readonly crypto: DesktopNativeCryptoFacade) {}
 
 	async decryptUsingKeychain(data: Uint8Array, encryptionMode: CredentialEncryptionMode.DEVICE_LOCK): Promise<Uint8Array> {
 		// making extra sure that the mode is the right one since this comes over IPC
 		assert(encryptionMode === CredentialEncryptionMode.DEVICE_LOCK, "should not use unsupported encryption mode")
-		const key = await this._desktopKeyStoreFacade.getCredentialsKey()
-		const decryptedData = this._crypto.aes256DecryptKey(key, data)
-		return Promise.resolve(decryptedData)
+		const key = await this.desktopKeyStoreFacade.getCredentialsKey()
+		return this.crypto.aes256DecryptKey(key, data)
 	}
 
 	async encryptUsingKeychain(data: Uint8Array, encryptionMode: CredentialEncryptionMode.DEVICE_LOCK): Promise<Uint8Array> {
 		// making extra sure that the mode is the right one since this comes over IPC
 		assert(encryptionMode === CredentialEncryptionMode.DEVICE_LOCK, "should not use unsupported encryption mode")
-		const key = await this._desktopKeyStoreFacade.getCredentialsKey()
-		const encryptedData = this._crypto.aes256EncryptKey(key, data)
-		return Promise.resolve(encryptedData)
+		const key = await this.desktopKeyStoreFacade.getCredentialsKey()
+		return this.crypto.aes256EncryptKey(key, data)
 	}
 
-	getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionMode>> {
-		return Promise.resolve([CredentialEncryptionMode.DEVICE_LOCK])
+	async getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionMode>> {
+		return [CredentialEncryptionMode.DEVICE_LOCK]
 	}
 }
