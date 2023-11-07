@@ -12,7 +12,7 @@ import {
 import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
 import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
 import { Cardinality, ValueType } from "../../../../../src/api/common/EntityConstants.js"
-import { BucketPermissionType, PermissionType } from "../../../../../src/api/common/TutanotaConstants.js"
+import { BucketPermissionType, EncryptionAuthStatus, PermissionType } from "../../../../../src/api/common/TutanotaConstants.js"
 import {
 	BirthdayTypeRef,
 	ContactAddressTypeRef,
@@ -46,6 +46,7 @@ import {
 	GroupTypeRef,
 	InstanceSessionKeyTypeRef,
 	KeyPairTypeRef,
+	InstanceSessionKey,
 	PermissionTypeRef,
 	TypeInfoTypeRef,
 	UpdatePermissionKeyData,
@@ -67,7 +68,6 @@ import {
 	encryptKey,
 	encryptRsaKey,
 	generateEccKeyPair,
-	generateKeyPairKyber,
 	hexToRsaPrivateKey,
 	hexToRsaPublicKey,
 	IV_BYTE_LENGTH,
@@ -987,6 +987,93 @@ o.spec("CryptoFacade", function () {
 		o(await rsa.decrypt(recipientKeyPairs.privateKey, internalRecipientKeyData!.pubEncBucketKey)).deepEquals(bitArrayToUint8Array(bk))
 		verify(pqFacadeMock, { times: 0 })
 		verify(serviceExecutor.put(PublicKeyService, matchers.anything()), { times: 0 })
+	})
+
+	o("authenticateSender | sender is authenticated for correct SenderIdentityKey", async function () {
+		o.timeout(500) // in CI or with debugging it can take a while
+		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
+		Object.assign(testData.mailLiteral, { body: "bodyId" })
+
+		when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(
+			createPublicKeyGetOut({
+				pubEccKey: testData.senderIdentityKeyPair.publicKey,
+				pubKeyVersion: "0",
+				pubKyberKey: null,
+				pubRsaKey: null,
+			}),
+		)
+
+		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+
+		o(sessionKey).deepEquals(testData.sk)
+
+		const updatedInstanceSessionKeysCaptor = captor()
+		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture()))
+		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
+		o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
+		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
+			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mailLiteral._id),
+		)
+
+		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
+		o(actualAutStatus).deepEquals(EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED)
+	})
+
+	o("authenticateSender | sender is not authenticated for incorrect SenderIdentityKey", async function () {
+		o.timeout(500) // in CI or with debugging it can take a while
+		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
+		Object.assign(testData.mailLiteral, { body: "bodyId" })
+
+		const wrongSenderIdentityKeyPair = generateEccKeyPair()
+
+		when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(
+			createPublicKeyGetOut({
+				pubEccKey: wrongSenderIdentityKeyPair.publicKey,
+				pubKeyVersion: "0",
+				pubKyberKey: null,
+				pubRsaKey: null,
+			}),
+		)
+
+		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+
+		o(sessionKey).deepEquals(testData.sk)
+
+		const updatedInstanceSessionKeysCaptor = captor()
+		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture()))
+		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
+		o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
+		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
+			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mailLiteral._id),
+		)
+
+		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
+		o(actualAutStatus).deepEquals(EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED)
+	})
+
+	o("authenticateSender | no authentication needed for sender with RSAKeypair", async function () {
+		o.timeout(500) // in CI or with debugging it can take a while
+		const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
+		Object.assign(testData.mailLiteral, { body: "bodyId" })
+
+		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+		o(sessionKey).deepEquals(testData.sk)
+
+		const updatedInstanceSessionKeysCaptor = captor()
+		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture()))
+		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
+		o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
+		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
+			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mailLiteral._id),
+		)
+
+		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
+		o(actualAutStatus).deepEquals(EncryptionAuthStatus.RSA_NO_AUTHENTICATION)
+	})
+
+	o("AES_NO_AUTHENTICATION? ", async function () {
+		// TODO also implement this?
+		//  What about InstanceSessionKeys for non mail instances? Those InstanceSessionKeys should have null for EncrpytionAuthStatus
 	})
 
 	o("decryption errors should be written to _errors field", async function () {

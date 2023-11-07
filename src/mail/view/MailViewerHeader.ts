@@ -10,7 +10,7 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { EventBanner, EventBannerAttrs } from "./EventBanner.js"
 import { RecipientButton } from "../../gui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
-import { InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../api/common/TutanotaConstants.js"
+import { EncryptionAuthStatus, InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../api/common/TutanotaConstants.js"
 import { Icon, progressIcon } from "../../gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../misc/Formatter.js"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env.js"
@@ -594,6 +594,19 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				message: "mailAuthFailed_msg",
 				icon: Icons.Warning,
 				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
+				type: BannerType.Warning,
+				buttons: [
+					{
+						label: "close_alt",
+						click: () => viewModel.setWarningDismissed(true),
+					},
+				],
+			})
+		} else if (viewModel.mail.encryptionAuthStatus === EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED) {
+			return m(InfoBanner, {
+				message: () => "PQ Authentication has failed!",
+				icon: Icons.Warning,
+				helpLink: canSeeTutanotaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
 				type: BannerType.Warning,
 				buttons: [
 					{
