@@ -230,7 +230,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 						attrs.onDateSelected(new Date(day.date), CalendarViewType.MONTH)
 						attrs.onNewEvent(newDate)
 					} else {
-						attrs.onDateSelected(new Date(day.date), CalendarViewType.DAY)
+						attrs.onDateSelected(new Date(day.date), CalendarViewType.AGENDA)
 					}
 
 					e.preventDefault()
@@ -257,7 +257,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				".calendar-day-indicator.circle" + getDateIndicator(date, today),
 				{
 					onclick: (e: MouseEvent) => {
-						onDateSelected(new Date(date), CalendarViewType.DAY)
+						onDateSelected(new Date(date), client.isDesktopDevice() ? CalendarViewType.DAY : CalendarViewType.AGENDA)
 						e.stopPropagation()
 					},
 					style: {
