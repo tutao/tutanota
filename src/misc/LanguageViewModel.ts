@@ -195,6 +195,7 @@ export class LanguageViewModel {
 		priceWithoutCurrency: Intl.NumberFormat
 		priceWithoutCurrencyWithoutFractionDigits: Intl.NumberFormat
 		monthLong: Intl.DateTimeFormat
+		monthShortWithFullYear: Intl.DateTimeFormat
 		monthWithYear: Intl.DateTimeFormat
 		monthWithFullYear: Intl.DateTimeFormat
 		yearNumeric: Intl.DateTimeFormat
@@ -376,6 +377,10 @@ export class LanguageViewModel {
 			}),
 			monthLong: new Intl.DateTimeFormat(tag, {
 				month: "long",
+			}),
+			monthShortWithFullYear: new Intl.DateTimeFormat(tag, {
+				month: "short",
+				year: "numeric",
 			}),
 			monthWithYear: new Intl.DateTimeFormat(tag, {
 				month: "long",
