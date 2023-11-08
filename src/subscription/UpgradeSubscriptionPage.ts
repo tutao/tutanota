@@ -280,6 +280,6 @@ export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubs
 	}
 
 	isEnabled(): boolean {
-		return locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain && !(isApp() && client.isIos())
+		return !(isApp() && client.isIos())
 	}
 }
