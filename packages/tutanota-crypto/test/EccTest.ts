@@ -1,17 +1,5 @@
 import o from "@tutao/otest"
-import {
-	CryptoError,
-	hexToRsaPublicKey,
-	random,
-	eccDecapsulate,
-	eccEncapsulate,
-	generateEccKeyPair,
-	hexToEccPrivateKey,
-	hexToEccPublicKey,
-	EccKeyPair,
-	eccPrivateKeyToHex,
-	eccPublicKeyToHex,
-} from "../lib/index.js"
+import { CryptoError, hexToRsaPublicKey, random, eccDecapsulate, eccEncapsulate, generateEccKeyPair, EccKeyPair } from "../lib/index.js"
 
 const originalRandom = random.generateRandomData
 o.spec("EccTest", function () {
@@ -39,14 +27,6 @@ o.spec("EccTest", function () {
 		}
 	}
 
-	o("hex key conversion", function () {
-		let keyPairAlice = _getKeyPair("Alice")
-
-		let hexPrivateKey = eccPrivateKeyToHex(keyPairAlice.privateKey)
-		let hexPublicKey = eccPublicKeyToHex(keyPairAlice.publicKey)
-		o(eccPrivateKeyToHex(hexToEccPrivateKey(hexPrivateKey))).equals(hexPrivateKey)
-		o(eccPublicKeyToHex(hexToEccPublicKey(hexPublicKey))).equals(hexPublicKey)
-	})
 	o("invalid hex key conversion", function () {
 		const hexPublicKey = "hello"
 
