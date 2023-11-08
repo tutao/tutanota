@@ -39,7 +39,7 @@ export {
 } from "./hashes/Argon2id/Argon2id.js"
 export { CryptoError } from "./misc/CryptoError.js"
 export { KeyLength, EntropySource } from "./misc/Constants.js"
-export { encryptKey, decryptKey, encryptRsaKey, decryptRsaKey, decryptKeyPair, aes256DecryptLegacyRecoveryKey } from "./encryption/KeyEncryption.js"
+export { EncryptedKeyPairs, encryptKey, decryptKey, encryptRsaKey, decryptRsaKey, decryptKeyPair, encryptEccKey, aes256DecryptLegacyRecoveryKey } from "./encryption/KeyEncryption.js"
 export { Randomizer, random } from "./random/Randomizer.js"
 export {
 	encode,
@@ -51,7 +51,7 @@ export {
 	rsaPublicKeyToHex,
 	rsaEncrypt,
 } from "./encryption/Rsa.js"
-export { RsaKeyPair, RsaPrivateKey, RsaPublicKey } from "./encryption/RsaKeyPair.js"
+export { RsaKeyPair, RsaEccKeyPair, RsaPrivateKey, RsaPublicKey } from "./encryption/RsaKeyPair.js"
 export { PQKeyPairs, PQPublicKeys } from "./encryption/PQKeyPairs.js"
 export { sha1Hash } from "./hashes/Sha1.js"
 export { sha256Hash } from "./hashes/Sha256.js"

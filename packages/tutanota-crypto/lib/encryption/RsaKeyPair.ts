@@ -1,7 +1,14 @@
 import type { Base64 } from "@tutao/tutanota-utils"
+import { EccPrivateKey, EccPublicKey } from "./Ecc.js"
 export type RsaKeyPair = {
 	publicKey: RsaPublicKey
 	privateKey: RsaPrivateKey
+}
+export type RsaEccKeyPair = {
+	publicRsaKey: RsaPublicKey
+	privateRsaKey: RsaPrivateKey
+	publicEccKey: EccPublicKey
+	privateEccKey: EccPrivateKey
 }
 export type RsaPrivateKey = {
 	version: number

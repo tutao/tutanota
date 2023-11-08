@@ -15,7 +15,7 @@ import {
 } from "@tutao/tutanota-utils"
 import { BucketPermissionType, EncryptionAuthStatus, GroupType, PermissionType } from "../../common/TutanotaConstants"
 import { HttpMethod, resolveTypeReference } from "../../common/EntityFunctions"
-import type { BucketKey, BucketPermission, GroupMembership, InstanceSessionKey, Permission } from "../../entities/sys/TypeRefs.js"
+import type { BucketKey, BucketPermission, GroupMembership, InstanceSessionKey, KeyPair, Permission } from "../../entities/sys/TypeRefs.js"
 import {
 	BucketKeyTypeRef,
 	BucketPermissionTypeRef,
@@ -63,9 +63,13 @@ import {
 	PQPublicKeys,
 	random,
 	RsaKeyPair,
+	RsaEccKeyPair,
 	RsaPublicKey,
 	sha256Hash,
+	decryptKeyPair,
+	encryptEccKey,
 	uint8ArrayToBitArray,
+	RsaPrivateKey,
 } from "@tutao/tutanota-crypto"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
 import type { RsaImplementation } from "./RsaImplementation"
@@ -76,7 +80,6 @@ import { UserFacade } from "../facades/UserFacade"
 import { elementIdPart } from "../../common/utils/EntityUtils.js"
 import { InstanceMapper } from "./InstanceMapper.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
-import { decryptKeyPair, encryptEccKey } from "@tutao/tutanota-crypto/dist/encryption/KeyEncryption.js"
 import { PQFacade } from "../facades/PQFacade.js"
 import { decodePQMessage, encodePQMessage } from "../facades/PQMessage.js"
 
@@ -408,7 +411,7 @@ export class CryptoFacade {
 		return decryptKey(bucketKey, neverNull(pubOrExtPermission.bucketEncSessionKey))
 	}
 
-	async loadKeypair(keyPairGroupId: Id): Promise<RsaKeyPair | PQKeyPairs> {
+	async loadKeypair(keyPairGroupId: Id): Promise<RsaKeyPair | RsaEccKeyPair | PQKeyPairs> {
 		const group = await this.entityClient.load(GroupTypeRef, keyPairGroupId)
 		try {
 			return decryptKeyPair(this.userFacade.getGroupKey(group._id), group.keys[0])
@@ -436,7 +439,9 @@ export class CryptoFacade {
 			}
 			return { decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey), encryptionAuthStatus: senderAuthStatus }
 		} else {
-			const decryptedBucketKey = await this.rsa.decrypt(keyPair.privateKey, pubEncBucketKey)
+			const rsaKeys = keyPair as any // TODO is this ok?
+			const privateKey: RsaPrivateKey = rsaKeys.privateKey ? rsaKeys.privateKey : rsaKeys.privateRsaKey
+			const decryptedBucketKey = await this.rsa.decrypt(privateKey, pubEncBucketKey)
 			return { decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey), encryptionAuthStatus: EncryptionAuthStatus.RSA_NO_AUTHENTICATION }
 		}
 	}
@@ -501,7 +506,11 @@ export class CryptoFacade {
 			if (keypair instanceof PQKeyPairs) {
 				decryptedBytes = await this.pq.decapsulate(decodePQMessage(base64ToUint8Array(instance._ownerPublicEncSessionKey)), keypair)
 			} else {
-				decryptedBytes = await this.rsa.decrypt(keypair.privateKey, base64ToUint8Array(instance._ownerPublicEncSessionKey))
+				const keyPairs = keypair as any
+				decryptedBytes = await this.rsa.decrypt(
+					keyPairs.privateKey ? keyPairs.privateKey : keyPairs.privateRsaKey,
+					base64ToUint8Array(instance._ownerPublicEncSessionKey),
+				)
 			}
 			return uint8ArrayToBitArray(decryptedBytes)
 		}
@@ -576,10 +585,14 @@ export class CryptoFacade {
 			)
 	}
 
-	async getOrMakeSenderIdentityKeyPair(senderKeyPair: RsaKeyPair | PQKeyPairs): Promise<EccKeyPair> {
+	async getOrMakeSenderIdentityKeyPair(senderKeyPair: RsaEccKeyPair | RsaKeyPair | PQKeyPairs): Promise<EccKeyPair> {
 		if (senderKeyPair instanceof PQKeyPairs) {
 			return senderKeyPair.eccKeyPair
 		} else {
+			const senderKeys = senderKeyPair as any
+			if (senderKeys.publicEccKey) {
+				return { publicKey: senderKeys.publicEccKey, privateKey: senderKeys.privateEccKey }
+			}
 			const newIdentityKeyPair = generateEccKeyPair()
 			const symEncPrivEccKey = encryptEccKey(this.userFacade.getUserGroupKey(), newIdentityKeyPair.privateKey)
 			const data = createPublicKeyPutIn({ pubEccKey: newIdentityKeyPair.publicKey, symEncPrivEccKey })
