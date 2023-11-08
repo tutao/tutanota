@@ -589,24 +589,15 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderHardAuthenticationFailWarning(viewModel: MailViewerViewModel): Children | null {
-		if (!viewModel.isWarningDismissed() && viewModel.mail.authStatus === MailAuthenticationStatus.HARD_FAIL) {
+		if (
+			!viewModel.isWarningDismissed() &&
+			(viewModel.mail.authStatus === MailAuthenticationStatus.HARD_FAIL ||
+				viewModel.mail.encryptionAuthStatus === EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED)
+		) {
 			return m(InfoBanner, {
 				message: "mailAuthFailed_msg",
 				icon: Icons.Warning,
 				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
-				type: BannerType.Warning,
-				buttons: [
-					{
-						label: "close_alt",
-						click: () => viewModel.setWarningDismissed(true),
-					},
-				],
-			})
-		} else if (viewModel.mail.encryptionAuthStatus === EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED) {
-			return m(InfoBanner, {
-				message: () => "PQ Authentication has failed!",
-				icon: Icons.Warning,
-				helpLink: canSeeTutanotaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
 				type: BannerType.Warning,
 				buttons: [
 					{

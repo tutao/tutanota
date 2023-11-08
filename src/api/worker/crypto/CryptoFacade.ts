@@ -8,14 +8,15 @@ import {
 	neverNull,
 	noOp,
 	ofClass,
+	promiseMap,
 	stringToUtf8Uint8Array,
 	TypeRef,
 	uint8ArrayToBase64,
 	uint8ArrayToHex,
 } from "@tutao/tutanota-utils"
-import { BucketPermissionType, EncryptionAuthStatus, GroupType, PermissionType } from "../../common/TutanotaConstants"
+import { BucketPermissionType, EncryptionAuthStatus, GroupType, PermissionType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../common/TutanotaConstants"
 import { HttpMethod, resolveTypeReference } from "../../common/EntityFunctions"
-import type { BucketKey, BucketPermission, GroupMembership, InstanceSessionKey, KeyPair, Permission } from "../../entities/sys/TypeRefs.js"
+import type { BucketKey, BucketPermission, GroupMembership, InstanceSessionKey, Permission } from "../../entities/sys/TypeRefs.js"
 import {
 	BucketKeyTypeRef,
 	BucketPermissionTypeRef,
@@ -28,7 +29,7 @@ import {
 	PermissionTypeRef,
 	PushIdentifierTypeRef,
 } from "../../entities/sys/TypeRefs.js"
-import type { Contact, InternalRecipientKeyData } from "../../entities/tutanota/TypeRefs.js"
+import type { Contact, InternalRecipientKeyData, Mail } from "../../entities/tutanota/TypeRefs.js"
 import {
 	ContactTypeRef,
 	createEncryptTutanotaPropertiesData,
@@ -53,8 +54,11 @@ import {
 	bitArrayToUint8Array,
 	bytesToKyberPublicKey,
 	decryptKey,
+	decryptKeyPair,
 	EccKeyPair,
+	EccPublicKey,
 	ENABLE_MAC,
+	encryptEccKey,
 	encryptKey,
 	generateEccKeyPair,
 	hexToRsaPublicKey,
@@ -62,14 +66,12 @@ import {
 	PQKeyPairs,
 	PQPublicKeys,
 	random,
-	RsaKeyPair,
 	RsaEccKeyPair,
+	RsaKeyPair,
+	RsaPrivateKey,
 	RsaPublicKey,
 	sha256Hash,
-	decryptKeyPair,
-	encryptEccKey,
 	uint8ArrayToBitArray,
-	RsaPrivateKey,
 } from "@tutao/tutanota-crypto"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
 import type { RsaImplementation } from "./RsaImplementation"
@@ -284,18 +286,16 @@ export class CryptoFacade {
 	private async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<string, any>, typeModel: TypeModel): Promise<Aes128Key | Aes256Key> {
 		const instanceElementId = this.getElementIdFromInstance(instance)
 		let decBucketKey: Aes128Key
-		let isMailInstance: boolean = isSameTypeRefByAttr(MailTypeRef, typeModel.app, typeModel.name)
-		let senderAddress: string = isMailInstance ? instance.sender.address : ""
-		let unencryptedSenderAuthStatus: EncryptionAuthStatus | null
+		let unencryptedSenderAuthStatus: EncryptionAuthStatus | null = null
+		let pqMessageSenderKey: EccPublicKey | null = null
 		if (bucketKey.keyGroup && bucketKey.pubEncBucketKey) {
 			// bucket key is encrypted with public key for internal recipient
-			const { decryptedBucketKey, encryptionAuthStatus } = await this.decryptBucketKeyWithKeyPairOfGroupAndPrepareAuthentication(
+			const { decryptedBucketKey, pqMessageSenderIdentityPubKey } = await this.decryptBucketKeyWithKeyPairOfGroupAndPrepareAuthentication(
 				bucketKey.keyGroup,
 				bucketKey.pubEncBucketKey,
-				senderAddress,
 			)
 			decBucketKey = decryptedBucketKey
-			unencryptedSenderAuthStatus = encryptionAuthStatus
+			pqMessageSenderKey = pqMessageSenderIdentityPubKey
 		} else if (bucketKey.groupEncBucketKey) {
 			// secure external recipient
 			let keyGroup
@@ -312,13 +312,16 @@ export class CryptoFacade {
 		} else {
 			throw new SessionKeyNotFoundError(`encrypted bucket key not set on instance ${typeModel.name}`)
 		}
-		const { resolvedSessionKeyForInstance, instanceSessionKeys } = this.collectAllInstanceSessionKeys(
+		const { resolvedSessionKeyForInstance, instanceSessionKeys } = await this.collectAllInstanceSessionKeysAndAuthenticate(
 			bucketKey,
 			decBucketKey,
 			instanceElementId,
 			instance,
+			typeModel,
 			unencryptedSenderAuthStatus,
+			pqMessageSenderKey,
 		)
+
 		this.ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(instanceSessionKeys)
 
 		if (resolvedSessionKeyForInstance) {
@@ -342,28 +345,70 @@ export class CryptoFacade {
 	 * Resolves the session key for the provided instance and collects all other instances'
 	 * session keys in order to update them.
 	 */
-	private collectAllInstanceSessionKeys(
+	private async collectAllInstanceSessionKeysAndAuthenticate(
 		bucketKey: BucketKey,
 		decBucketKey: number[],
 		instanceElementId: string,
 		instance: Record<string, any>,
+		typeModel: TypeModel,
 		encryptionAuthStatus: EncryptionAuthStatus | null,
-	): { resolvedSessionKeyForInstance: Aes128Key | undefined; instanceSessionKeys: InstanceSessionKey[] } {
-		let resolvedSessionKeyForInstance: Aes128Key | undefined = undefined
-		const instanceSessionKeys = bucketKey.bucketEncSessionKeys.map((instanceSessionKey) => {
+		pqMessageSenderKey: EccPublicKey | null,
+	): Promise<{ resolvedSessionKeyForInstance: Aes128Key | Aes256Key | undefined; instanceSessionKeys: InstanceSessionKey[] }> {
+		let resolvedSessionKeyForInstance: Aes128Key | Aes256Key | undefined = undefined
+		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {
 			const decryptedSessionKey = decryptKey(decBucketKey, instanceSessionKey.symEncSessionKey)
-			if (instanceElementId == instanceSessionKey.instanceId) {
-				resolvedSessionKeyForInstance = decryptedSessionKey
-			}
 			const ownerEncSessionKey = encryptKey(this.userFacade.getGroupKey(instance._ownerGroup), decryptedSessionKey)
 			const instanceSessionKeyWithOwnerEncSessionKey = createInstanceSessionKey(instanceSessionKey)
-			if (encryptionAuthStatus) {
-				instanceSessionKeyWithOwnerEncSessionKey.encryptionAuthStatus = aesEncrypt(decryptedSessionKey, stringToUtf8Uint8Array(encryptionAuthStatus))
+			if (instanceElementId == instanceSessionKey.instanceId) {
+				resolvedSessionKeyForInstance = decryptedSessionKey
+				// we can only authenticate once we have the session key
+				// because we need to check if the confidential flag is set, which is encrypted still
+				// we need to do it here at the latest because we must write the flag when updating the session key on the instance
+				await this.authenticateMainInstance(
+					typeModel,
+					encryptionAuthStatus,
+					pqMessageSenderKey,
+					instance,
+					resolvedSessionKeyForInstance,
+					instanceSessionKeyWithOwnerEncSessionKey,
+					decryptedSessionKey,
+				)
 			}
 			instanceSessionKeyWithOwnerEncSessionKey.symEncSessionKey = ownerEncSessionKey
 			return instanceSessionKeyWithOwnerEncSessionKey
 		})
 		return { resolvedSessionKeyForInstance, instanceSessionKeys }
+	}
+
+	private async authenticateMainInstance(
+		typeModel: TypeModel,
+		encryptionAuthStatus:
+			| EncryptionAuthStatus
+			| null
+			| EncryptionAuthStatus.RSA_NO_AUTHENTICATION
+			| EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED
+			| EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED
+			| EncryptionAuthStatus.AES_NO_AUTHENTICATION,
+		pqMessageSenderKey: Uint8Array | null,
+		instance: Record<string, any>,
+		resolvedSessionKeyForInstance: number[],
+		instanceSessionKeyWithOwnerEncSessionKey: InstanceSessionKey,
+		decryptedSessionKey: number[],
+	) {
+		// TODO for which other type do we need to write this? ReceivedGroupInvitation etc.
+		const isMailInstance = isSameTypeRefByAttr(MailTypeRef, typeModel.app, typeModel.name)
+		if (isMailInstance) {
+			if (!encryptionAuthStatus) {
+				if (!pqMessageSenderKey) {
+					encryptionAuthStatus = EncryptionAuthStatus.RSA_NO_AUTHENTICATION
+				} else {
+					const mail = (await this.instanceMapper.decryptAndMapToInstance(typeModel, instance, resolvedSessionKeyForInstance)) as Mail
+					const senderMailAddress = mail.confidential ? mail.sender.address : SYSTEM_GROUP_MAIL_ADDRESS
+					encryptionAuthStatus = await this.authenticateSender(senderMailAddress, pqMessageSenderKey)
+				}
+			}
+			instanceSessionKeyWithOwnerEncSessionKey.encryptionAuthStatus = aesEncrypt(decryptedSessionKey, stringToUtf8Uint8Array(encryptionAuthStatus))
+		}
 	}
 
 	private async resolveWithPublicOrExternalPermission(
@@ -424,25 +469,20 @@ export class CryptoFacade {
 	private async decryptBucketKeyWithKeyPairOfGroupAndPrepareAuthentication(
 		keyPairGroupId: Id,
 		pubEncBucketKey: Uint8Array,
-		senderMailAddress: string = "",
 	): Promise<{
 		decryptedBucketKey: Aes128Key | Aes256Key
-		encryptionAuthStatus: EncryptionAuthStatus | null
+		pqMessageSenderIdentityPubKey: EccPublicKey | null
 	}> {
 		const keyPair = await this.loadKeypair(keyPairGroupId)
 		if (keyPair instanceof PQKeyPairs) {
 			const pqMessage = decodePQMessage(pubEncBucketKey)
 			const decryptedBucketKey = await this.pq.decapsulate(pqMessage, keyPair)
-			let senderAuthStatus: EncryptionAuthStatus | null = null
-			if (senderMailAddress) {
-				senderAuthStatus = await this.authenticateSender(senderMailAddress, pqMessage.senderIdentityPubKey)
-			}
-			return { decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey), encryptionAuthStatus: senderAuthStatus }
+			return { decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey), pqMessageSenderIdentityPubKey: pqMessage.senderIdentityPubKey }
 		} else {
 			const rsaKeys = keyPair as any // TODO is this ok?
 			const privateKey: RsaPrivateKey = rsaKeys.privateKey ? rsaKeys.privateKey : rsaKeys.privateRsaKey
 			const decryptedBucketKey = await this.rsa.decrypt(privateKey, pubEncBucketKey)
-			return { decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey), encryptionAuthStatus: EncryptionAuthStatus.RSA_NO_AUTHENTICATION }
+			return { decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey), pqMessageSenderIdentityPubKey: null }
 		}
 	}
 

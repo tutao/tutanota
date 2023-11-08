@@ -22,6 +22,7 @@ import {
 	OperationType,
 	PhishingMarkerStatus,
 	ReportedMailFieldType,
+	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../../common/TutanotaConstants.js"
 import type {
 	Contact,
@@ -636,7 +637,7 @@ export class MailFacade {
 		const notFoundRecipients: string[] = []
 
 		for (let recipient of recipients) {
-			if (recipient.address === "system@tutanota.de" || !recipient) {
+			if (recipient.address === SYSTEM_GROUP_MAIL_ADDRESS || !recipient) {
 				notFoundRecipients.push(recipient.address)
 				continue
 			}

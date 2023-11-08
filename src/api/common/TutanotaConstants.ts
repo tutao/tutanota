@@ -20,6 +20,8 @@ export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
 	["/rest/tutanota/draftservice", 1024 * 1024], // should be large enough
 ])
 
+export const SYSTEM_GROUP_MAIL_ADDRESS = "system@tutanota.de"
+
 export const getMailFolderType = (folder: MailFolder): MailFolderType => downcast(folder.folderType)
 
 type ObjectPropertyKey = string | number | symbol
