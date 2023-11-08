@@ -11,6 +11,18 @@
 		"./*": "./build/prebuilt/*",
 		"./buildSrc/*": "./buildSrc/*"
 	},
+	"browser": {
+		"node:crypto": false,
+		"node:url": false,
+		"node:querystring": false,
+		"node:path": false,
+		"node:fs": false,
+		"node:util": false,
+		"node:buffer": false,
+		"node:child_process": false,
+		"fs": false,
+		"path": false
+	},
 	"scripts": {
 		"build-packages": "node buildSrc/buildPackages.js all",
 		"build-runtime-packages": "node buildSrc/buildPackages.js runtime",

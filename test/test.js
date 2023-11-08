@@ -9,7 +9,7 @@ await program
 	.addOption(new Option("-br, --browser", "Start the web server and run the tests in browser").default(false))
 	.addOption(new Option("--browser-cmd <path>", "Command used to run the browser").default("xdg-open"))
 	.action(async ({ clean, integration, filter, run, browser, browserCmd }) => {
-		await runTestBuild({ clean })
+		await runTestBuild({ clean, browser })
 		console.log("build finished!")
 
 		let nodeOk
