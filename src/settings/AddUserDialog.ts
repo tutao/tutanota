@@ -1,6 +1,6 @@
 import m from "mithril"
 import { lang, TranslationText } from "../misc/LanguageViewModel"
-import { BookingItemFeatureType, NewPaidPlans } from "../api/common/TutanotaConstants"
+import { BookingItemFeatureType, NewPaidPlans, PlanType } from "../api/common/TutanotaConstants"
 import { Dialog } from "../gui/base/Dialog"
 import { PasswordForm, PasswordModel } from "./PasswordForm"
 import { SelectMailAddressForm } from "./SelectMailAddressForm"
