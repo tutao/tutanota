@@ -39,6 +39,7 @@ export class PQFacade {
 		const eccSharedSecret = eccEncapsulate(senderIdentityKeyPair.privateKey, ephemeralKeyPair.privateKey, recipientPublicKeys.eccPublicKey)
 		const kyberEncapsulation = await this.kyberFacade.encapsulate(recipientPublicKeys.kyberPublicKey)
 		const kyberCipherText = kyberEncapsulation.ciphertext
+		const version = PQMESSAGE_VERSION
 
 		const kek = this.derivePQKEK(
 			senderIdentityKeyPair.publicKey,
@@ -47,11 +48,12 @@ export class PQFacade {
 			kyberCipherText,
 			kyberEncapsulation.sharedSecret,
 			eccSharedSecret,
+			version,
 		)
 
 		const kekEncBucketKey = aesEncrypt(kek, bucketKey)
 		return {
-			version: PQMESSAGE_VERSION,
+			version,
 			senderIdentityPubKey: senderIdentityKeyPair.publicKey,
 			ephemeralPubKey: ephemeralKeyPair.publicKey,
 			encapsulation: {
@@ -73,6 +75,7 @@ export class PQFacade {
 			kyberCipherText,
 			kyberSharedSecret,
 			eccSharedSecret,
+			message.version,
 		)
 
 		return aesDecrypt(kek, message.encapsulation.kekEncBucketKey)
@@ -85,6 +88,7 @@ export class PQFacade {
 		kyberCipherText: Uint8Array,
 		kyberSharedSecret: Uint8Array,
 		eccSharedSecret: EccSharedSecrets,
+		pqMessageVersion: number,
 	): Aes256Key {
 		var context = concat(
 			senderIdentityPublicKey,
@@ -92,6 +96,7 @@ export class PQFacade {
 			recipientPublicKeys.eccPublicKey,
 			kyberPublicKeyToBytes(recipientPublicKeys.kyberPublicKey),
 			kyberCipherText,
+			new Uint8Array([pqMessageVersion]),
 		)
 
 		var inputKeyMaterial = concat(eccSharedSecret.ephemeralSharedSecret, eccSharedSecret.authSharedSecret, kyberSharedSecret)

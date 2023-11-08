@@ -31,8 +31,6 @@ import {
 	base64ToUint8Array,
 	hexToUint8Array,
 	neverNull,
-	splitInChunks,
-	splitUint8ArrayInChunks,
 	stringToUtf8Uint8Array,
 	uint8ArrayToBase64,
 	uint8ArrayToHex,
@@ -45,8 +43,7 @@ import { loadWasmModuleFromFile } from "../../../../../packages/tutanota-crypto/
 import { byteArraysToBytes, bytesToByteArrays } from "@tutao/tutanota-utils/dist/Encoding.js"
 import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
-import de from "../../../../../src/translations/de.js"
-import { decodePQMessage, encodePQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
+import { decodePQMessage } from "../../../../../src/api/worker/facades/PQMessage.js"
 
 const originalRandom = random.generateRandomData
 const liboqs = await loadWasmModuleFromFile("../packages/tutanota-crypto/lib/encryption/Liboqs/liboqs.wasm")
