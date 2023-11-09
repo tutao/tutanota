@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { DesktopConfig } from "../../../../src/desktop/config/DesktopConfig.js"
 import { DesktopConfigMigrator } from "../../../../src/desktop/config/migrations/DesktopConfigMigrator.js"
 import { downcast, noOp } from "@tutao/tutanota-utils"
-import { KeyStoreFacade } from "../../../../src/desktop/DesktopKeyStoreFacade.js"
+import { DesktopKeyStoreFacade } from "../../../../src/desktop/DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
 import { DesktopConfigKey } from "../../../../src/desktop/config/ConfigKeys.js"
 import { ConfigFile } from "../../../../src/desktop/config/ConfigFile.js"
@@ -11,7 +11,7 @@ import { spy } from "@tutao/tutanota-test-utils"
 o.spec("DesktopConfigTest", function () {
 	let desktopConfig: DesktopConfig
 	let configMigrator: DesktopConfigMigrator
-	let keyStoreFacade: KeyStoreFacade
+	let keyStoreFacade: DesktopKeyStoreFacade
 	let desktopCrypto: DesktopNativeCryptoFacade
 	let desktopConfigFile: ConfigFile
 

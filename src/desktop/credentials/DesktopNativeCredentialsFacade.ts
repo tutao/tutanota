@@ -1,11 +1,11 @@
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode"
-import { KeyStoreFacade } from "../DesktopKeyStoreFacade.js"
+import { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
 import { assert } from "@tutao/tutanota-utils"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade.js"
 
 export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
-	constructor(private readonly desktopKeyStoreFacade: KeyStoreFacade, private readonly crypto: DesktopNativeCryptoFacade) {}
+	constructor(private readonly desktopKeyStoreFacade: DesktopKeyStoreFacade, private readonly crypto: DesktopNativeCryptoFacade) {}
 
 	async decryptUsingKeychain(data: Uint8Array, encryptionMode: CredentialEncryptionMode.DEVICE_LOCK): Promise<Uint8Array> {
 		// making extra sure that the mode is the right one since this comes over IPC
