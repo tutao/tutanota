@@ -1,5 +1,6 @@
 export {
 	aes256RandomKey,
+	aes128RandomKey,
 	generateIV,
 	aesEncrypt,
 	aesDecrypt,
@@ -7,6 +8,7 @@ export {
 	IV_BYTE_LENGTH,
 	Aes128Key,
 	Aes256Key,
+	AesKey,
 	aes256EncryptSearchIndexEntry,
 	authenticatedAesDecrypt,
 	unauthenticatedAesDecrypt,

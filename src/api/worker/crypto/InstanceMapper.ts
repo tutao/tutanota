@@ -16,7 +16,7 @@ import { AssociationType, Cardinality, Type, ValueType } from "../../common/Enti
 import { compress, uncompress } from "../Compression"
 import type { ModelValue, TypeModel } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
-import { aesDecrypt, aesEncrypt, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 assertWorkerOrNode()
@@ -175,7 +175,7 @@ export function encryptValue(valueName: string, valueType: ModelValue, value: an
 }
 
 // Exported for testing
-export function decryptValue(valueName: string, valueType: ModelValue, value: (Base64 | null) | string, sk: Aes128Key | Aes256Key | null): any {
+export function decryptValue(valueName: string, valueType: ModelValue, value: (Base64 | null) | string, sk: AesKey | null): any {
 	if (value == null) {
 		if (valueType.cardinality === Cardinality.ZeroOrOne) {
 			return null

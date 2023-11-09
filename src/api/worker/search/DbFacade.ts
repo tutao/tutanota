@@ -2,8 +2,6 @@ import { DbError } from "../../common/error/DbError"
 import { delay, downcast, LazyLoaded, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { IndexingNotSupportedError } from "../../common/error/IndexingNotSupportedError"
 import { QuotaExceededError } from "../../common/error/QuotaExceededError"
-import type { User } from "../../entities/sys/TypeRefs.js"
-import { getEtId } from "../../common/utils/EntityUtils"
 import { sha256Hash } from "@tutao/tutanota-crypto"
 import { IndexName, ObjectStoreName } from "./IndexTables.js"
 
@@ -124,6 +122,10 @@ export class DbFacade {
 	async open(id: string): Promise<void> {
 		this._id = id
 		await this._db.getAsync()
+	}
+
+	isSameDbId(dbId: string): boolean {
+		return this._id === dbId
 	}
 
 	/**

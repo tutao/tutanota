@@ -1,34 +1,29 @@
 import { KyberFacade } from "./KyberFacade.js"
 import {
 	Aes256Key,
-	aesDecrypt,
 	aesEncrypt,
-	KeyPairType,
+	authenticatedAesDecrypt,
 	eccDecapsulate,
 	eccEncapsulate,
 	EccKeyPair,
 	EccPublicKey,
 	EccSharedSecrets,
 	generateEccKeyPair,
+	hkdf,
+	KEY_LENGTH_BYTES_AES_256,
+	KeyPairType,
 	kyberPublicKeyToBytes,
 	PQKeyPairs,
+	pqKeyPairsToPublicKeys,
 	PQPublicKeys,
 	uint8ArrayToKey,
-	authenticatedAesDecrypt,
 } from "@tutao/tutanota-crypto"
 import { concat, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto"
-import { PQMessage } from "./PQMessage.js"
-import { hkdf } from "@tutao/tutanota-crypto"
+import { decodePQMessage, encodePQMessage, PQMessage } from "./PQMessage.js"
 import { CryptoProtocolVersion } from "../../common/TutanotaConstants.js"
-import { pqKeyPairsToPublicKeys } from "@tutao/tutanota-crypto"
 
 export class PQFacade {
-	private kyberFacade: KyberFacade
-
-	constructor(kyberFacade: KyberFacade) {
-		this.kyberFacade = kyberFacade
-	}
+	constructor(private readonly kyberFacade: KyberFacade) {}
 
 	public async generateKeyPairs(): Promise<PQKeyPairs> {
 		return {
@@ -36,6 +31,16 @@ export class PQFacade {
 			eccKeyPair: generateEccKeyPair(),
 			kyberKeyPair: await this.kyberFacade.generateKeypair(),
 		}
+	}
+
+	public async encapsulateEncoded(
+		senderIdentityKeyPair: EccKeyPair,
+		ephemeralKeyPair: EccKeyPair,
+		recipientPublicKeys: PQPublicKeys,
+		bucketKey: Uint8Array,
+	): Promise<Uint8Array> {
+		const encapsulated = await this.encapsulate(senderIdentityKeyPair, ephemeralKeyPair, recipientPublicKeys, bucketKey)
+		return encodePQMessage(encapsulated)
 	}
 
 	public async encapsulate(
@@ -67,6 +72,11 @@ export class PQFacade {
 				kekEncBucketKey: kekEncBucketKey,
 			},
 		}
+	}
+
+	public async decapsulateEncoded(encodedPQMessage: Uint8Array, recipientKeys: PQKeyPairs): Promise<Uint8Array> {
+		const decoded = decodePQMessage(encodedPQMessage)
+		return this.decapsulate(decoded, recipientKeys)
 	}
 
 	public async decapsulate(message: PQMessage, recipientKeys: PQKeyPairs): Promise<Uint8Array> {

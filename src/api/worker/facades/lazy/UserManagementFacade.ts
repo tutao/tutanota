@@ -9,7 +9,7 @@ import {
 	GroupTypeRef,
 	RecoverCodeTypeRef,
 } from "../../../entities/sys/TypeRefs.js"
-import { encryptBytes, encryptString } from "../../crypto/CryptoFacade.js"
+import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoFacade.js"
 import { assertNotNull, neverNull, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import type { UserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
 import { createUserAccountCreateData, createUserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
@@ -20,6 +20,7 @@ import { CounterFacade } from "./CounterFacade.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import {
 	aes256RandomKey,
+	AesKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
@@ -35,6 +36,7 @@ import { UserAccountService } from "../../../entities/tutanota/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { PQFacade } from "../PQFacade.js"
+import { freshVersioned } from "@tutao/tutanota-utils/dist/Utils.js"
 
 assertWorkerOrNode()
 
@@ -55,7 +57,7 @@ export class UserManagementFacade {
 		const salt = generateRandomSalt()
 		const kdfType = DEFAULT_KDF_TYPE
 		const passwordKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase: newPassword, salt })
-		const pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
+		const pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey.object)
 		const passwordVerifier = createAuthVerifier(passwordKey)
 		const data = createResetPasswordData({
 			user: user._id,
@@ -68,23 +70,27 @@ export class UserManagementFacade {
 	}
 
 	async changeAdminFlag(user: User, admin: boolean): Promise<void> {
-		let adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
-
-		let adminGroupKey = this.userFacade.getGroupKey(adminGroupId)
+		const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
+		const adminGroupKey = this.userFacade.getGroupKey(adminGroupId)
 
 		const userGroup = await this.entityClient.load(GroupTypeRef, user.userGroup.group)
-		let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
+		const userGroupKey = { object: decryptKey(adminGroupKey.object, neverNull(userGroup.adminGroupEncGKey)), version: Number(userGroup.groupKeyVersion) }
 
 		if (admin) {
 			await this.groupManagement.addUserToGroup(user, adminGroupId)
 
 			if (user.accountType !== AccountType.SYSTEM) {
 				const keyData = await this._getAccountKeyData()
+				const groupKey = decryptKey(this.userFacade.getUserGroupKey().object, keyData.symEncGKey)
+				const symEncGKey = encryptKeyWithVersionedKey(userGroupKey, groupKey)
+
 				// we can not use addUserToGroup here because the admin is not admin of the account group
 				const addAccountGroup = createMembershipAddData({
 					user: user._id,
 					group: keyData.group,
-					symEncGKey: encryptKey(userGroupKey, decryptKey(this.userFacade.getUserGroupKey(), keyData.symEncGKey)),
+					symEncGKey: symEncGKey.key,
+					symKeyVersion: symEncGKey.encryptingKeyVersion.toString(),
+					groupKeyVersion: keyData.groupKeyVersion,
 				})
 				await this.serviceExecutor.post(MembershipService, addAccountGroup)
 			}
@@ -99,12 +105,12 @@ export class UserManagementFacade {
 	}
 
 	/**
-	 * Get key and id of premium or starter group.
+	 * Get key and id of premium group.
 	 * @throws Error if account type is not premium or starter
 	 *
 	 * @private
 	 */
-	async _getAccountKeyData(): Promise<{ group: Id; symEncGKey: Uint8Array }> {
+	async _getAccountKeyData(): Promise<{ group: Id; groupKeyVersion: string; symEncGKey: Uint8Array }> {
 		const keysReturn = await this.serviceExecutor.get(SystemKeysService, null)
 		const user = this.userFacade.getLoggedInUser()
 
@@ -112,12 +118,7 @@ export class UserManagementFacade {
 			return {
 				group: neverNull(keysReturn.premiumGroup),
 				symEncGKey: keysReturn.premiumGroupKey,
-			}
-		} else if (user.accountType === AccountType.STARTER) {
-			// We don't have starterGroup on SystemKeyReturn so we hardcode it for now.
-			return {
-				group: "JDpWrwG----0",
-				symEncGKey: keysReturn.starterGroupKey,
+				groupKeyVersion: keysReturn.premiumGroupKeyVersion,
 			}
 		} else {
 			throw new Error(`Trying to get keyData for user with account type ${user.accountType}`)
@@ -125,34 +126,37 @@ export class UserManagementFacade {
 	}
 
 	async updateAdminship(groupId: Id, newAdminGroupId: Id): Promise<void> {
-		let adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
+		const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
 		const newAdminGroup = await this.entityClient.load(GroupTypeRef, newAdminGroupId)
 		const group = await this.entityClient.load(GroupTypeRef, groupId)
 		const oldAdminGroup = await this.entityClient.load(GroupTypeRef, neverNull(group.admin))
-
 		const adminGroupKey = this.userFacade.getGroupKey(adminGroupId)
 
 		let groupKey
 		if (oldAdminGroup._id === adminGroupId) {
-			groupKey = decryptKey(adminGroupKey, neverNull(group.adminGroupEncGKey))
+			groupKey = decryptKey(adminGroupKey.object, neverNull(group.adminGroupEncGKey))
 		} else {
-			let localAdminGroupKey = decryptKey(adminGroupKey, neverNull(oldAdminGroup.adminGroupEncGKey))
+			let localAdminGroupKey = decryptKey(adminGroupKey.object, neverNull(oldAdminGroup.adminGroupEncGKey))
 			groupKey = decryptKey(localAdminGroupKey, neverNull(group.adminGroupEncGKey))
 		}
 
-		let newAdminGroupEncGKey
+		let newAdminGroupEncGKey: VersionedEncryptedKey
 		if (newAdminGroup._id === adminGroupId) {
-			newAdminGroupEncGKey = encryptKey(adminGroupKey, groupKey)
+			newAdminGroupEncGKey = encryptKeyWithVersionedKey(adminGroupKey, groupKey)
 		} else {
-			let localAdminGroupKey = decryptKey(adminGroupKey, neverNull(newAdminGroup.adminGroupEncGKey))
-			newAdminGroupEncGKey = encryptKey(localAdminGroupKey, groupKey)
+			const localAdminGroupKey: VersionedKey = {
+				object: decryptKey(adminGroupKey.object, neverNull(newAdminGroup.adminGroupEncGKey)),
+				version: Number(newAdminGroup.groupKeyVersion),
+			}
+			newAdminGroupEncGKey = encryptKeyWithVersionedKey(localAdminGroupKey, groupKey)
 		}
 
 		const data = createUpdateAdminshipData({
 			group: group._id,
 			newAdminGroup: newAdminGroup._id,
-			newAdminGroupEncGKey,
+			newAdminGroupEncGKey: newAdminGroupEncGKey.key,
 		})
+
 		await this.serviceExecutor.post(UpdateAdminshipService, data)
 	}
 
@@ -204,12 +208,12 @@ export class UserManagementFacade {
 
 		const customerGroupKey = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Customer))
 
-		const userGroupKey = aes256RandomKey()
+		const userGroupKey = freshVersioned(aes256RandomKey())
 		const userGroupInfoSessionKey = aes256RandomKey()
 		const keyPair = await this.pqFacade.generateKeyPairs()
 		const userGroupData = await this.groupManagement.generateInternalGroupData(
 			keyPair,
-			userGroupKey,
+			userGroupKey.object,
 			userGroupInfoSessionKey,
 			adminGroupId,
 			adminGroupKey,
@@ -227,7 +231,7 @@ export class UserManagementFacade {
 				mailAddress,
 				password,
 				name,
-				this.generateRecoveryCode(userGroupKey),
+				this.generateRecoveryCode(userGroupKey.object),
 			),
 		})
 		await this.serviceExecutor.post(UserAccountService, data)
@@ -235,20 +239,20 @@ export class UserManagementFacade {
 	}
 
 	async generateUserAccountData(
-		userGroupKey: Aes128Key,
-		userGroupInfoSessionKey: Aes128Key,
-		customerGroupKey: Aes128Key,
+		userGroupKey: VersionedKey,
+		userGroupInfoSessionKey: AesKey,
+		customerGroupKey: VersionedKey,
 		mailAddress: string,
 		passphrase: string,
 		userName: string,
 		recoverData: RecoverData,
 	): Promise<UserAccountUserData> {
-		const salt = generateRandomSalt()
 		const kdfType = DEFAULT_KDF_TYPE
+		const salt = generateRandomSalt()
 		const userPassphraseKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase, salt })
-		const mailGroupKey = aes256RandomKey()
-		const contactGroupKey = aes256RandomKey()
-		const fileGroupKey = aes256RandomKey()
+		const mailGroupKey = freshVersioned(aes256RandomKey())
+		const contactGroupKey = freshVersioned(aes256RandomKey())
+		const fileGroupKey = freshVersioned(aes256RandomKey())
 		const clientKey = aes256RandomKey()
 		const mailboxSessionKey = aes256RandomKey()
 		const contactListSessionKey = aes256RandomKey()
@@ -257,35 +261,60 @@ export class UserManagementFacade {
 		const contactGroupInfoSessionKey = aes256RandomKey()
 		const fileGroupInfoSessionKey = aes256RandomKey()
 		const tutanotaPropertiesSessionKey = aes256RandomKey()
-		const userEncEntropy = encryptBytes(userGroupKey, random.generateRandomData(32))
-		const userData = createUserAccountUserData({
+
+		const userEncCustomerGroupKey = encryptKeyWithVersionedKey(userGroupKey, customerGroupKey.object)
+		const userEncMailGroupKey = encryptKeyWithVersionedKey(userGroupKey, mailGroupKey.object)
+		const userEncContactGroupKey = encryptKeyWithVersionedKey(userGroupKey, contactGroupKey.object)
+		const userEncFileGroupKey = encryptKeyWithVersionedKey(userGroupKey, fileGroupKey.object)
+		const userEncTutanotaPropertiesSessionKey = encryptKeyWithVersionedKey(userGroupKey, tutanotaPropertiesSessionKey)
+		const userEncClientKey = encryptKeyWithVersionedKey(userGroupKey, clientKey)
+		const userEncEntropy = encryptBytes(userGroupKey.object, random.generateRandomData(32))
+
+		const customerEncMailGroupInfoSessionKey = encryptKeyWithVersionedKey(customerGroupKey, mailGroupInfoSessionKey)
+		const customerEncContactGroupInfoSessionKey = encryptKeyWithVersionedKey(customerGroupKey, contactGroupInfoSessionKey)
+		const customerEncFileGroupInfoSessionKey = encryptKeyWithVersionedKey(customerGroupKey, fileGroupInfoSessionKey)
+
+		const contactEncContactListSessionKey = encryptKeyWithVersionedKey(contactGroupKey, contactListSessionKey)
+		const fileEncFileSystemSessionKey = encryptKeyWithVersionedKey(fileGroupKey, fileSystemSessionKey)
+		const mailEncMailBoxSessionKey = encryptKeyWithVersionedKey(mailGroupKey, mailboxSessionKey)
+
+		return createUserAccountUserData({
 			mailAddress: mailAddress,
 			encryptedName: encryptString(userGroupInfoSessionKey, userName),
 			salt: salt,
 			kdfVersion: kdfType,
+
 			verifier: createAuthVerifier(userPassphraseKey),
-			userEncClientKey: encryptKey(userGroupKey, clientKey),
-			pwEncUserGroupKey: encryptKey(userPassphraseKey, userGroupKey),
-			userEncCustomerGroupKey: encryptKey(userGroupKey, customerGroupKey),
-			userEncMailGroupKey: encryptKey(userGroupKey, mailGroupKey),
-			userEncContactGroupKey: encryptKey(userGroupKey, contactGroupKey),
-			userEncFileGroupKey: encryptKey(userGroupKey, fileGroupKey),
+			pwEncUserGroupKey: encryptKey(userPassphraseKey, userGroupKey.object),
+
+			userEncCustomerGroupKey: userEncCustomerGroupKey.key,
+			userEncMailGroupKey: userEncMailGroupKey.key,
+			userEncContactGroupKey: userEncContactGroupKey.key,
+			userEncFileGroupKey: userEncFileGroupKey.key,
 			userEncEntropy: userEncEntropy,
-			userEncTutanotaPropertiesSessionKey: encryptKey(userGroupKey, tutanotaPropertiesSessionKey),
-			mailEncMailBoxSessionKey: encryptKey(mailGroupKey, mailboxSessionKey),
-			contactEncContactListSessionKey: encryptKey(contactGroupKey, contactListSessionKey),
-			fileEncFileSystemSessionKey: encryptKey(fileGroupKey, fileSystemSessionKey),
-			customerEncMailGroupInfoSessionKey: encryptKey(customerGroupKey, mailGroupInfoSessionKey),
-			customerEncContactGroupInfoSessionKey: encryptKey(customerGroupKey, contactGroupInfoSessionKey),
-			customerEncFileGroupInfoSessionKey: encryptKey(customerGroupKey, fileGroupInfoSessionKey),
-			userEncRecoverCode: recoverData.userEncRecoverCode,
+			userEncClientKey: userEncClientKey.key,
+			userEncTutanotaPropertiesSessionKey: userEncTutanotaPropertiesSessionKey.key,
+
+			contactEncContactListSessionKey: contactEncContactListSessionKey.key,
+
+			fileEncFileSystemSessionKey: fileEncFileSystemSessionKey.key,
+
+			mailEncMailBoxSessionKey: mailEncMailBoxSessionKey.key,
+
+			customerEncMailGroupInfoSessionKey: customerEncMailGroupInfoSessionKey.key,
+			customerEncContactGroupInfoSessionKey: customerEncContactGroupInfoSessionKey.key,
+			customerEncFileGroupInfoSessionKey: customerEncFileGroupInfoSessionKey.key,
+			customerKeyVersion: customerEncContactGroupInfoSessionKey.encryptingKeyVersion.toString(),
+
 			recoverCodeEncUserGroupKey: recoverData.recoverCodeEncUserGroupKey,
 			recoverCodeVerifier: recoverData.recoveryCodeVerifier,
+			userEncRecoverCode: recoverData.userEncRecoverCode,
 		})
-		return userData
 	}
 
-	generateRecoveryCode(userGroupKey: Aes128Key): RecoverData {
+	// always pass the current user group key. if the key is rotated, the recovery code must be reencrypted.
+	// If we don't reencrypt, we can store the user group key version to be able to find out who ever had access to it
+	generateRecoveryCode(userGroupKey: AesKey): RecoverData {
 		const recoveryCode = aes256RandomKey()
 		const userEncRecoverCode = encryptKey(userGroupKey, recoveryCode)
 		const recoverCodeEncUserGroupKey = encryptKey(recoveryCode, userGroupKey)
@@ -316,7 +345,7 @@ export class UserManagementFacade {
 		}
 
 		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, undefined, extraHeaders)
-		return uint8ArrayToHex(bitArrayToUint8Array(decryptKey(this.userFacade.getUserGroupKey(), recoveryCodeEntity.userEncRecoverCode)))
+		return uint8ArrayToHex(bitArrayToUint8Array(decryptKey(this.userFacade.getUserGroupKey().object, recoveryCodeEntity.userEncRecoverCode)))
 	}
 
 	async createRecoveryCode(passphrase: string): Promise<string> {
@@ -326,7 +355,9 @@ export class UserManagementFacade {
 			throw new Error("Invalid state: no user or no user.auth")
 		}
 
-		const { userEncRecoverCode, recoverCodeEncUserGroupKey, hexCode, recoveryCodeVerifier } = this.generateRecoveryCode(this.userFacade.getUserGroupKey())
+		const { userEncRecoverCode, recoverCodeEncUserGroupKey, hexCode, recoveryCodeVerifier } = this.generateRecoveryCode(
+			this.userFacade.getUserGroupKey().object,
+		)
 		const recoverPasswordEntity = createRecoverCode({
 			userEncRecoverCode: userEncRecoverCode,
 			recoverCodeEncUserGroupKey: recoverCodeEncUserGroupKey,

@@ -43,7 +43,8 @@ export class EntropyFacade {
 		if (!this.userFacade.isFullyLoggedIn() || !this.userFacade.isLeader()) return Promise.resolve()
 		const userGroupKey = this.userFacade.getUserGroupKey()
 		const entropyData = createEntropyData({
-			groupEncEntropy: encryptBytes(userGroupKey, this.random.generateRandomData(32)),
+			userEncEntropy: encryptBytes(userGroupKey.object, this.random.generateRandomData(32)),
+			userKeyVersion: userGroupKey.version.toString(),
 		})
 		return this.serviceExecutor
 			.put(EntropyService, entropyData)

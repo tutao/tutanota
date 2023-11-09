@@ -15,8 +15,9 @@ import {
 import { Type, ValueType } from "./EntityConstants"
 import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { resolveTypeReference } from "./EntityFunctions"
-import { ElementEntity, ListElementEntity, SomeEntity } from "./EntityTypes"
+import type { ElementEntity, ListElementEntity, SomeEntity } from "./EntityTypes"
 import { NotAuthorizedError, NotFoundError } from "./error/RestError.js"
+import { VersionedKey } from "../worker/crypto/CryptoFacade.js"
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -100,7 +101,7 @@ export class EntityClient {
 		return this._target.setupMultiple(listId, instances)
 	}
 
-	update<T extends SomeEntity>(instance: T, ownerKey?: Aes128Key): Promise<void> {
+	update<T extends SomeEntity>(instance: T, ownerKey?: VersionedKey): Promise<void> {
 		return this._target.update(instance, ownerKey)
 	}
 
