@@ -26,8 +26,8 @@ import child_process from "node:child_process"
 import { LocalShortcutManager } from "./electron-localshortcut/LocalShortcut"
 import { cryptoFns } from "./CryptoFns"
 import { DesktopConfigMigrator } from "./config/migrations/DesktopConfigMigrator"
-import type { DesktopKeyStoreFacade } from "./KeyStoreFacadeImpl"
-import { KeyStoreFacadeImpl } from "./KeyStoreFacadeImpl"
+import type { KeyStoreFacade } from "./DesktopKeyStoreFacade.js"
+import { DesktopKeyStoreFacade } from "./DesktopKeyStoreFacade.js"
 import { AlarmSchedulerImpl } from "../calendar/date/AlarmScheduler"
 import { SchedulerImpl } from "../api/common/utils/Scheduler.js"
 import { DesktopThemeFacade } from "./DesktopThemeFacade"
@@ -80,7 +80,7 @@ type Components = {
 	readonly tfs: TempFs
 	readonly sse: DesktopSseClient
 	readonly conf: DesktopConfig
-	readonly keyStoreFacade: DesktopKeyStoreFacade
+	readonly keyStoreFacade: KeyStoreFacade
 	readonly notifier: DesktopNotifier
 	readonly sock: Socketeer
 	readonly updater: ElectronUpdater
@@ -131,7 +131,7 @@ async function createComponents(): Promise<Components> {
 	const en = (await import("../translations/en.js")).default
 	lang.init(en)
 	const secretStorage = new KeytarSecretStorage()
-	const keyStoreFacade = new KeyStoreFacadeImpl(secretStorage, desktopCrypto)
+	const keyStoreFacade = new DesktopKeyStoreFacade(secretStorage, desktopCrypto)
 	const configMigrator = new DesktopConfigMigrator(desktopCrypto, keyStoreFacade, electron)
 	const conf = new DesktopConfig(configMigrator, keyStoreFacade, desktopCrypto)
 	// Fire config loading, dont wait for it

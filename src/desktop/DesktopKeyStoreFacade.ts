@@ -33,7 +33,7 @@ export const CredentialsKeySpec: NativeKeySpec = Object.freeze({
 })
 
 /** Interface for accessing/generating/caching keys. */
-export interface DesktopKeyStoreFacade {
+export interface KeyStoreFacade {
 	/**
 	 * get the key used to encrypt alarms and settings
 	 */
@@ -45,7 +45,7 @@ export interface DesktopKeyStoreFacade {
 	getCredentialsKey(): Promise<Aes256Key>
 }
 
-export class KeyStoreFacadeImpl implements DesktopKeyStoreFacade {
+export class DesktopKeyStoreFacade implements KeyStoreFacade {
 	private readonly resolvedKeys: Map<NativeKeySpec, Promise<Aes256Key>> = new Map()
 
 	constructor(private readonly secretStorage: SecretStorage, private readonly crypto: DesktopNativeCryptoFacade) {}

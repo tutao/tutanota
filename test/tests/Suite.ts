@@ -159,7 +159,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/integration/RegistryScriptGeneratorTest.js")
 		await import("./desktop/DesktopCryptoFacadeTest.js")
 		await import("./desktop/DesktopContextMenuTest.js")
-		await import("./desktop/KeyStoreFacadeTest.js")
+		await import("./desktop/DesktopKeyStoreFacadeTest.js")
 		await import("./desktop/config/ConfigFileTest.js")
 		await import("./desktop/db/OfflineDbFacadeTest.js")
 		await import("./desktop/credentials/DesktopCredentialsEncryptionTest.js")

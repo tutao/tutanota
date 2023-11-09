@@ -2,7 +2,7 @@ import type { DesktopConfig } from "../config/DesktopConfig"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { DesktopConfigKey } from "../config/ConfigKeys"
-import type { DesktopKeyStoreFacade } from "../KeyStoreFacadeImpl"
+import type { KeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import type { Base64 } from "@tutao/tutanota-utils"
 import { base64ToUint8Array, findAllAndRemove, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { log } from "../DesktopLog"
@@ -19,7 +19,7 @@ export class DesktopAlarmStorage {
 	constructor(
 		private readonly conf: DesktopConfig,
 		private readonly cryptoFacade: DesktopNativeCryptoFacade,
-		private readonly keyStoreFacade: DesktopKeyStoreFacade,
+		private readonly keyStoreFacade: KeyStoreFacade,
 	) {
 		this.sessionKeys = {}
 	}

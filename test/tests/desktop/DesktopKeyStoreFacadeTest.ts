@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { CredentialsKeySpec, DeviceKeySpec, KeyStoreFacadeImpl } from "../../../src/desktop/KeyStoreFacadeImpl.js"
+import { CredentialsKeySpec, DeviceKeySpec, DesktopKeyStoreFacade } from "../../../src/desktop/DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../../../src/desktop/DesktopNativeCryptoFacade.js"
 import type { SecretStorage } from "../../../src/desktop/sse/SecretStorage.js"
 import { spyify } from "../nodemocker.js"
@@ -8,11 +8,11 @@ import { CancelledError } from "../../../src/api/common/error/CancelledError.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { DeviceStorageUnavailableError } from "../../../src/api/common/error/DeviceStorageUnavailableError.js"
 
-function initKeyStoreFacade(secretStorage: SecretStorage, crypto: DesktopNativeCryptoFacade): KeyStoreFacadeImpl {
-	return new KeyStoreFacadeImpl(secretStorage, crypto)
+function initKeyStoreFacade(secretStorage: SecretStorage, crypto: DesktopNativeCryptoFacade): DesktopKeyStoreFacade {
+	return new DesktopKeyStoreFacade(secretStorage, crypto)
 }
 
-o.spec("KeyStoreFacade test", function () {
+o.spec("DesktopKeyStoreFacade", function () {
 	const aes256Key = uint8ArrayToKey(new Uint8Array([1, 2]))
 	let cryptoFacadeSpy: DesktopNativeCryptoFacade
 

@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import n from "../../nodemocker.js"
 
 import { DesktopNativeCredentialsFacade } from "../../../../src/desktop/credentials/DesktopNativeCredentialsFacade.js"
-import { DesktopKeyStoreFacade } from "../../../../src/desktop/KeyStoreFacadeImpl.js"
+import { KeyStoreFacade } from "../../../../src/desktop/DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
 import { CredentialEncryptionMode } from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
 import { makeKeyStoreFacade } from "../../TestUtils.js"
@@ -19,7 +19,7 @@ o.spec("DesktopCredentialsEncryption Test", () => {
 
 	const getSubject = (): NativeCredentialsFacade =>
 		new DesktopNativeCredentialsFacade(
-			n.mock<DesktopKeyStoreFacade>("__keyStoreFacade", keyStoreFacade).set(),
+			n.mock<KeyStoreFacade>("__keyStoreFacade", keyStoreFacade).set(),
 			n.mock<DesktopNativeCryptoFacade>("__crypto", crypto).set(),
 		)
 
