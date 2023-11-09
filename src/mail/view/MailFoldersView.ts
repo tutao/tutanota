@@ -33,6 +33,7 @@ export interface MailFolderViewAttrs {
 	onDeleteCustomMailFolder: (folder: MailFolder) => unknown
 	inEditMode: boolean
 	onEditMailbox: () => unknown
+	onEditingDone: () => unknown
 }
 
 type Counters = Record<string, number>
