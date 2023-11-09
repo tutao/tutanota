@@ -28,6 +28,7 @@ import { getEnabledMailAddressesForGroupInfo } from "../../../common/utils/Group
 import { PreconditionFailedError } from "../../../common/error/RestError.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
+import { VersionedKey } from "../../crypto/CryptoFacade.js"
 
 assertWorkerOrNode()
 
@@ -138,6 +139,7 @@ export class MailAddressFacade {
 		const groupKey = viaUser
 			? await this.groupManagement.getGroupKeyViaUser(mailGroupId, viaUser)
 			: await this.groupManagement.getGroupKeyViaAdminEncGKey(mailGroupId)
+
 		// Using non-caching entityClient because we are not a member of the user's mail group and we won't receive updates for it
 		const mailboxGroupRoot = await this.nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)
 		if (mailboxGroupRoot.mailboxProperties == null) {
@@ -148,7 +150,7 @@ export class MailAddressFacade {
 			mailboxGroupRoot.mailboxProperties,
 			undefined,
 			undefined,
-			groupKey,
+			groupKey.object,
 		)
 
 		return mailboxProperties.mailAddressProperties.length === 0 ? this.mailboxPropertiesWithLegacySenderName(mailboxProperties, viaUser) : mailboxProperties
@@ -183,7 +185,7 @@ export class MailAddressFacade {
 		return await this.nonCachingEntityClient.load(GroupInfoTypeRef, group.groupInfo)
 	}
 
-	private async createMailboxProperties(mailboxGroupRoot: MailboxGroupRoot, groupKey: Aes128Key): Promise<Id> {
+	private async createMailboxProperties(mailboxGroupRoot: MailboxGroupRoot, groupKey: VersionedKey): Promise<Id> {
 		const _ownerGroup = mailboxGroupRoot._ownerGroup
 		const mailboxProperties = createMailboxProperties({
 			...(_ownerGroup != null ? { _ownerGroup } : null), // only set it if it is not null
@@ -210,7 +212,7 @@ export class MailAddressFacade {
 			? await this.groupManagement.getGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), viaUser)
 			: await this.groupManagement.getGroupKeyViaAdminEncGKey(assertNotNull(mailboxProperties._ownerGroup))
 		await this.nonCachingEntityClient.update(mailboxProperties, groupKey)
-		return await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxProperties._id, undefined, undefined, groupKey)
+		return await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxProperties._id, undefined, undefined, groupKey.object)
 	}
 
 	private async collectSenderNames(mailboxProperties: MailboxProperties): Promise<Map<string, string>> {

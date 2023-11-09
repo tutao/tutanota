@@ -13,6 +13,7 @@ import { OperationType } from "../common/TutanotaConstants.js"
 import { isSameTypeRefByAttr, lazyAsync } from "@tutao/tutanota-utils"
 import { isSameId } from "../common/utils/EntityUtils.js"
 import { ExposedEventController } from "../main/EventController.js"
+import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
@@ -24,6 +25,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: ExposedEventController,
+		private readonly configurationDatabase: lazyAsync<ConfigurationDatabase>,
 	) {}
 
 	onWebsocketStateChanged(state: WsConnectionState) {
@@ -38,6 +40,8 @@ export class EventBusEventCoordinator implements EventBusListener {
 		// shall not receive the event twice.
 		if (!isTest() && !isAdminClient()) {
 			const queuedBatch = { groupId, batchId, events }
+			const configurationDatabase = await this.configurationDatabase()
+			await configurationDatabase.onEntityEventsReceived(queuedBatch)
 			const indexer = await this.indexer()
 			indexer.addBatchesToQueue([queuedBatch])
 			indexer.startProcessing()

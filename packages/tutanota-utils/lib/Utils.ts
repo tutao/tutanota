@@ -10,6 +10,21 @@ export type lazy<T> = () => T
 export type lazyAsync<T> = () => Promise<T>
 export type Thunk = () => unknown
 
+/**
+ * A group key and its version.
+ */
+export type Versioned<T> = {
+	object: T
+	version: number
+}
+
+/**
+ * Create a versioned object with version 0
+ */
+export function freshVersioned<T>(object: T): Versioned<T> {
+	return { object, version: 0 }
+}
+
 /** specifies a set of keys to be required, even if they're originally optional on a type.
  * requires nullable fields to be non-null, this may not be desired for all use cases.
  * Use "RequireNullable<K, T>" for cases where null is a meaningful value.

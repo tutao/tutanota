@@ -1,10 +1,10 @@
 // @ts-ignore[untyped-import]
 import sjcl from "../internal/sjcl.js"
-import { base64ToBase64Url, base64ToUint8Array, concat, hexToUint8Array, uint8ArrayToArrayBuffer, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import type { Base64, Base64Url } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, base64ToUint8Array, concat, hexToUint8Array, uint8ArrayToArrayBuffer, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { CryptoError } from "./CryptoError.js"
 import { sha256Hash } from "../hashes/Sha256.js"
-import { Aes128Key, Aes256Key } from "../encryption/Aes.js"
+import { AesKey } from "../encryption/Aes.js"
 
 export type BitArray = number[]
 
@@ -34,11 +34,11 @@ export function unpadAes(bytes: Uint8Array): Uint8Array {
  * @param passwordKey The key.
  * @returns The auth verifier
  */
-export function createAuthVerifier(passwordKey: Aes128Key | Aes256Key): Uint8Array {
+export function createAuthVerifier(passwordKey: AesKey): Uint8Array {
 	// TODO Compatibility Test
 	return sha256Hash(bitArrayToUint8Array(passwordKey))
 }
-export function createAuthVerifierAsBase64Url(passwordKey: Aes128Key | Aes256Key): Base64Url {
+export function createAuthVerifierAsBase64Url(passwordKey: AesKey): Base64Url {
 	return base64ToBase64Url(uint8ArrayToBase64(createAuthVerifier(passwordKey)))
 }
 
@@ -48,7 +48,7 @@ export function createAuthVerifierAsBase64Url(passwordKey: Aes128Key | Aes256Key
  * @returns True if the key length is 128, false if the key length is 256 bit.
  * @throws If the key is not 128 bit and not 256 bit.
  */
-export function checkIs128BitKey(key: Aes128Key | Aes256Key): boolean {
+export function checkIs128BitKey(key: AesKey): boolean {
 	let bitLength = sjcl.bitArray.bitLength(key)
 
 	if (bitLength === 128) {
