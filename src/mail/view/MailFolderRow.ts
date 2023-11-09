@@ -118,7 +118,10 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 				rightButton && (editMode || (!client.isMobileDevice() && this.hovered))
 					? m(IconButton, {
 							...rightButton,
-							onblur: () => (this.rightButtonClicked = false),
+							onblur: () => {
+								this.rightButtonClicked = false
+								m.redraw()
+							},
 							click: (event, dom) => {
 								rightButton.click(event, dom)
 								this.rightButtonClicked = true
