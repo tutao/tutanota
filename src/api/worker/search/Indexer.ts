@@ -14,7 +14,6 @@ import {
 	isNotNull,
 	isSameTypeRef,
 	isSameTypeRefByAttr,
-	lazyAsync,
 	millisToDays,
 	neverNull,
 	noOp,
@@ -400,12 +399,7 @@ export class Indexer {
 						throw new InvalidDatabaseStateError("loadedGroups is not an array")
 					}
 					let oldGroups = loadedGroups.map((group) => {
-						if (
-							typeof group !== "object" ||
-							typeof group.key !== "string" ||
-							typeof group.value !== "object" ||
-							typeof group.value.groupType !== "string"
-						) {
+						if (typeof group?.key !== "string" || typeof group?.value?.groupType !== "string") {
 							throw new InvalidDatabaseStateError(`loaded group is malformed: ${group} ${JSON.stringify(group)}`)
 						}
 						const id: Id = group.key
