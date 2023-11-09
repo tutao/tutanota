@@ -432,12 +432,13 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 
 	getCreditCardData(): CreditCard {
 		const expiration = getExpirationMonthAndYear(this._expirationDate)
-		let cc = createCreditCard()
-		cc.number = stripWhitespace(this._creditCardNumber)
-		cc.cardHolderName = this._cardHolderName
-		cc.cvv = this._cvv
-		cc.expirationMonth = expiration ? String(expiration.month) : ""
-		cc.expirationYear = expiration ? String(expiration.year) : ""
+		let cc = createCreditCard({
+			number: stripWhitespace(this._creditCardNumber),
+			cardHolderName: this._cardHolderName,
+			cvv: this._cvv,
+			expirationMonth: expiration ? String(expiration.month) : "",
+			expirationYear: expiration ? String(expiration.year) : "",
+		})
 		return cc
 	}
 

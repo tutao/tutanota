@@ -1,13 +1,14 @@
 import o from "@tutao/otest"
 import { _findMatchingRule, _matchesRegularExpression } from "../../../src/mail/model/InboxRuleHandler.js"
 import type { InboxRule } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { createInboxRule } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { createInboxRule, InboxRuleTypeRef, MailAddressTypeRef, MailTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import type { Mail } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { createMail } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { createMailAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { InboxRuleType } from "../../../src/api/common/TutanotaConstants.js"
+import { createTestEntity } from "../TestUtils.js"
 o.spec("InboxRuleHandlerTest", function () {
 	o.spec("Test _matchesRegularExpression", function () {
 		o(" check invalid regular expressions", function () {
@@ -94,8 +95,8 @@ o.spec("InboxRuleHandlerTest", function () {
 })
 
 function _createMailWithDifferentEnvelopeSender(): Mail {
-	let mail = createMail()
-	let sender = createMailAddress()
+	let mail = createTestEntity(MailTypeRef)
+	let sender = createTestEntity(MailAddressTypeRef)
 	sender.address = "sender@tuta.com"
 	mail.sender = sender
 	mail.differentEnvelopeSender = "differentenvelopsender@something.com"
@@ -103,7 +104,7 @@ function _createMailWithDifferentEnvelopeSender(): Mail {
 }
 
 function _createRule(value: string, type?: string, targetFolder?: IdTuple): InboxRule {
-	let rule = createInboxRule()
+	let rule = createTestEntity(InboxRuleTypeRef)
 	rule.value = value
 	rule.type = type ? type : InboxRuleType.SUBJECT_CONTAINS
 	rule.targetFolder = targetFolder ? targetFolder : ["empty", "empty"]

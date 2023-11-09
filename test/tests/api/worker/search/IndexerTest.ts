@@ -4,7 +4,9 @@ import {
 	createGroupMembership,
 	createUser,
 	EntityEventBatchTypeRef,
+	EntityUpdateTypeRef,
 	GroupInfoTypeRef,
+	GroupMembershipTypeRef,
 	UserTypeRef,
 	WhitelabelChildTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
@@ -21,7 +23,7 @@ import { NotAuthorizedError } from "../../../../../src/api/common/error/RestErro
 import { ContactListTypeRef, ContactTypeRef, createContactList, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { OutOfSyncError } from "../../../../../src/api/common/error/OutOfSyncError.js"
 import { assertThrows, mock, spy } from "@tutao/tutanota-test-utils"
-import { browserDataStub } from "../../../TestUtils.js"
+import { browserDataStub, createTestEntity } from "../../../TestUtils.js"
 import type { QueuedBatch } from "../../../../../src/api/worker/EventQueue.js"
 import { EntityRestClient } from "../../../../../src/api/worker/rest/EntityRestClient.js"
 import { MembershipRemovedError } from "../../../../../src/api/common/error/MembershipRemovedError.js"
@@ -40,7 +42,7 @@ import { GroupDataOS, Metadata, MetaDataOS } from "../../../../../src/api/worker
 import { MailFacade } from "../../../../../src/api/worker/facades/lazy/MailFacade.js"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
-let contactList = createContactList()
+let contactList = createTestEntity(ContactListTypeRef)
 contactList._ownerGroup = "ownerGroupId"
 contactList.contacts = "contactListId"
 o.spec("Indexer test", () => {
@@ -110,8 +112,8 @@ o.spec("Indexer test", () => {
 			mock._loadNewEntities = spy(async () => {})
 			mock._entity.loadRoot = spy(() => Promise.resolve(contactList))
 		})
-		let user = createUser()
-		user.userGroup = createGroupMembership()
+		let user = createTestEntity(UserTypeRef)
+		user.userGroup = createTestEntity(GroupMembershipTypeRef)
 		user.userGroup.group = "user-group-id"
 		let userGroupKey = aes128RandomKey()
 
@@ -184,8 +186,8 @@ o.spec("Indexer test", () => {
 			mock._loadNewEntities = spy(async () => {})
 			mock._entity.loadRoot = spy(() => Promise.resolve(contactList))
 		})
-		let user = createUser()
-		user.userGroup = createGroupMembership()
+		let user = createTestEntity(UserTypeRef)
+		user.userGroup = createTestEntity(GroupMembershipTypeRef)
 		user.userGroup.group = "user-group-id"
 		await indexer.init({ user, userGroupKey })
 		o(indexer.db.key).deepEquals(dbKey)
@@ -252,8 +254,8 @@ o.spec("Indexer test", () => {
 			mock.disableMailIndexing = spy()
 			mock._entity.loadRoot = spy(() => Promise.resolve(contactList))
 		})
-		let user = createUser()
-		user.userGroup = createGroupMembership()
+		let user = createTestEntity(UserTypeRef)
+		user.userGroup = createTestEntity(GroupMembershipTypeRef)
 		user.userGroup.group = "user-group-id"
 		await indexer.init({ user, userGroupKey })
 		o(indexer.db.key).deepEquals(dbKey)
@@ -266,8 +268,8 @@ o.spec("Indexer test", () => {
 		o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
 	})
 	o("_loadGroupDiff", async function () {
-		let user = createUser()
-		user.memberships = [createGroupMembership(), createGroupMembership(), createGroupMembership()]
+		let user = createTestEntity(UserTypeRef)
+		user.memberships = [createTestEntity(GroupMembershipTypeRef), createTestEntity(GroupMembershipTypeRef), createTestEntity(GroupMembershipTypeRef)]
 		user.memberships[0].groupType = GroupType.Mail
 		user.memberships[0].group = "new-group-id"
 		user.memberships[1].groupType = GroupType.Contact
@@ -321,7 +323,7 @@ o.spec("Indexer test", () => {
 		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, mailFacade), (mock) => {
 			mock.disableMailIndexing = spy(() => Promise.resolve())
 		})
-		let user = createUser()
+		let user = createTestEntity(UserTypeRef)
 		let groupDiff = {
 			deletedGroups: [
 				{
@@ -339,7 +341,7 @@ o.spec("Indexer test", () => {
 		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, mailFacade), (mock) => {
 			mock.disableMailIndexing = spy(() => Promise.resolve())
 		})
-		let user = createUser()
+		let user = createTestEntity(UserTypeRef)
 		let groupDiff = {
 			deletedGroups: [
 				{
@@ -357,7 +359,7 @@ o.spec("Indexer test", () => {
 		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, mailFacade), (mock) => {
 			mock.disableMailIndexing = spy()
 		})
-		let user = createUser()
+		let user = createTestEntity(UserTypeRef)
 		let groupDiff = {
 			deletedGroups: [
 				{
@@ -384,7 +386,7 @@ o.spec("Indexer test", () => {
 			mock._mail.indexMailboxes = spy()
 			mock._mail.currentIndexTimestamp = new Date().getTime()
 		})
-		let user = createUser()
+		let user = createTestEntity(UserTypeRef)
 		let groupDiff = {
 			deletedGroups: [],
 			newGroups: [
@@ -414,7 +416,7 @@ o.spec("Indexer test", () => {
 			} as any
 			mock._mail.indexMailboxes = spy()
 		})
-		let user = createUser()
+		let user = createTestEntity(UserTypeRef)
 		let groupDiff = {
 			deletedGroups: [],
 			newGroups: [
@@ -433,8 +435,13 @@ o.spec("Indexer test", () => {
 		o(indexer._mail.indexMailboxes.callCount).equals(0)
 	})
 	o("_loadGroupData", async function () {
-		let user = createUser()
-		user.memberships = [createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership()]
+		let user = createTestEntity(UserTypeRef)
+		user.memberships = [
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+		]
 		user.memberships[0].groupType = GroupType.Mail
 		user.memberships[0].group = "group-mail"
 		user.memberships[1].groupType = GroupType.MailingList
@@ -490,8 +497,8 @@ o.spec("Indexer test", () => {
 	})
 
 	o("_loadGroupData not authorized", async function () {
-		let user = createUser()
-		user.memberships = [createGroupMembership(), createGroupMembership()]
+		let user = createTestEntity(UserTypeRef)
+		user.memberships = [createTestEntity(GroupMembershipTypeRef), createTestEntity(GroupMembershipTypeRef)]
 		user.memberships[0].groupType = GroupType.Mail
 		user.memberships[0].group = "group-mail"
 		user.memberships[1].groupType = GroupType.MailingList
@@ -567,12 +574,12 @@ o.spec("Indexer test", () => {
 				eventBatchIds: [newestBatchId, oldestBatchId],
 			},
 		]
-		let batches = [createEntityEventBatch(), createEntityEventBatch()]
+		let batches = [createTestEntity(EntityEventBatchTypeRef), createTestEntity(EntityEventBatchTypeRef)]
 		batches[0]._id = ["group-mail", "L0JcCmw----1"] // bigger than last
 
-		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
+		batches[0].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
 		batches[1]._id = ["group-mail", oldestBatchId]
-		batches[1].events = [createEntityUpdate(), createEntityUpdate()]
+		batches[1].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
 		let transaction = {
 			get: async (os, key) => {
 				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return SERVER_TIME
@@ -626,13 +633,13 @@ o.spec("Indexer test", () => {
 				eventBatchIds: [newestBatchId, oldestBatchId],
 			},
 		]
-		let batches = [createEntityEventBatch(), createEntityEventBatch()]
+		let batches = [createTestEntity(EntityEventBatchTypeRef), createTestEntity(EntityEventBatchTypeRef)]
 		const loadedNewBatchId = "L0JcCmw----1"
 		batches[0]._id = ["group-mail", loadedNewBatchId] // newer than oldest but older than newest
 
-		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
+		batches[0].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
 		batches[1]._id = ["group-mail", oldestBatchId]
-		batches[1].events = [createEntityUpdate(), createEntityUpdate()]
+		batches[1].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
 		let transaction = {
 			get: async (os, key) => {
 				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return SERVER_TIME
@@ -668,7 +675,7 @@ o.spec("Indexer test", () => {
 		])
 		o(transaction.put.args).deepEquals([MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME])
 		// say we received the same batch via ws
-		const realtimeEvents = [createEntityUpdate()]
+		const realtimeEvents = [createTestEntity(EntityUpdateTypeRef)]
 		indexer.addBatchesToQueue([
 			{
 				groupId,
@@ -689,13 +696,13 @@ o.spec("Indexer test", () => {
 				eventBatchIds: [newestBatchId, oldestBatchId],
 			},
 		]
-		let batches = [createEntityEventBatch(), createEntityEventBatch()]
+		let batches = [createTestEntity(EntityEventBatchTypeRef), createTestEntity(EntityEventBatchTypeRef)]
 		const loadedNewBatchId = "L0JcCmy-----" // newer than newest
 
 		batches[0]._id = ["group-mail", loadedNewBatchId]
-		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
+		batches[0].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
 		batches[1]._id = ["group-mail", oldestBatchId]
-		batches[1].events = [createEntityUpdate(), createEntityUpdate()]
+		batches[1].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
 		let transaction = {
 			get: async (os, key) => {
 				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return SERVER_TIME
@@ -760,7 +767,7 @@ o.spec("Indexer test", () => {
 		let loadedBatches = [
 			createEntityEventBatch({
 				_id: ["group-mail", loadedNewBatchId],
-				events: [createEntityUpdate(), createEntityUpdate()],
+				events: [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)],
 			}),
 			createEntityEventBatch({
 				_id: ["group-mail", oldestBatchId],
@@ -836,9 +843,9 @@ o.spec("Indexer test", () => {
 				eventBatchIds: [newestBatchId, oldestBatchId],
 			},
 		]
-		let batches = [createEntityEventBatch()]
+		let batches = [createTestEntity(EntityEventBatchTypeRef)]
 		batches[0]._id = ["group-mail", oldestBatchId]
-		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
+		batches[0].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
 		let transaction = {
 			get: async (os, key) => {
 				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return SERVER_TIME
@@ -878,10 +885,10 @@ o.spec("Indexer test", () => {
 				eventBatchIds: [newestBatchId, oldestBatchId],
 			},
 		]
-		let batches = [createEntityEventBatch()]
+		let batches = [createTestEntity(EntityEventBatchTypeRef)]
 		batches[0]._id = ["group-mail", "L0JcCmw----1"] // bigger than last
 
-		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
+		batches[0].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
 		let transaction = {
 			get: async (os, key) => {
 				return null
@@ -919,10 +926,10 @@ o.spec("Indexer test", () => {
 				eventBatchIds: [newestBatchId, oldestBatchId],
 			},
 		]
-		let batches = [createEntityEventBatch()]
+		let batches = [createTestEntity(EntityEventBatchTypeRef)]
 		batches[0]._id = ["group-mail", "L0JcCmw----1"] // bigger than last
 
-		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
+		batches[0].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
 		let transaction = {
 			get: async (os, key) => {
 				if (os === MetaDataOS && key === Metadata.lastEventIndexTimeMs) return OUT_OF_DATE_SERVER_TIME
@@ -953,8 +960,13 @@ o.spec("Indexer test", () => {
 				return Promise.resolve(groupData)
 			},
 		}
-		let user = createUser()
-		user.memberships = [createGroupMembership(), createGroupMembership(), createGroupMembership(), createGroupMembership()]
+		let user = createTestEntity(UserTypeRef)
+		user.memberships = [
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+		]
 		user.memberships[0].groupType = GroupType.Mail
 		user.memberships[0].group = "group-mail"
 		user.memberships[1].groupType = GroupType.MailingList
@@ -989,8 +1001,8 @@ o.spec("Indexer test", () => {
 	o("_processEntityEvents_1", async function () {
 		const groupId = "group-id"
 		const batchId = "batch-id"
-		let user = createUser()
-		user.memberships = [createGroupMembership()]
+		let user = createTestEntity(UserTypeRef)
+		user.memberships = [createTestEntity(GroupMembershipTypeRef)]
 		user.memberships[0].groupType = GroupType.Mail
 		user.memberships[0].group = groupId
 		const infoMessageHandler = object<InfoMessageHandler>()
@@ -1010,7 +1022,7 @@ o.spec("Indexer test", () => {
 			}
 			indexerMock._processUserEntityEvents = spy(() => Promise.resolve())
 			indexerMock._initParams = {
-				user: createUser(),
+				user: createTestEntity(UserTypeRef),
 			}
 			indexerMock._core.writeIndexUpdateWithBatchId = spy(() => Promise.resolve())
 			indexerMock._initParams = {
@@ -1019,7 +1031,7 @@ o.spec("Indexer test", () => {
 		})
 
 		function newUpdate<T>(typeRef: TypeRef<T>) {
-			let u = createEntityUpdate()
+			let u = createTestEntity(EntityUpdateTypeRef)
 			u.application = typeRef.app
 			u.type = typeRef.type
 			return u
@@ -1049,8 +1061,8 @@ o.spec("Indexer test", () => {
 		o(indexer._whitelabelChildIndexer.processEntityEvents.args).deepEquals([[events[4]], groupId, batchId, indexUpdateWhitelabel, user])
 	})
 	o("processEntityEvents non indexed group", async function () {
-		let user = createUser()
-		user.memberships = [createGroupMembership()]
+		let user = createTestEntity(UserTypeRef)
+		user.memberships = [createTestEntity(GroupMembershipTypeRef)]
 		user.memberships[0].groupType = GroupType.MailingList
 		user.memberships[0].group = "group-id"
 		const infoMessageHandler = object<InfoMessageHandler>()
@@ -1067,7 +1079,7 @@ o.spec("Indexer test", () => {
 			}
 			mock._processUserEntityEvents = spy(() => Promise.resolve())
 			mock._initParams = {
-				user: createUser(),
+				user: createTestEntity(UserTypeRef),
 			}
 			mock._core.writeIndexUpdate = spy(() => Promise.resolve())
 			mock._initParams = {
@@ -1076,7 +1088,7 @@ o.spec("Indexer test", () => {
 		})
 
 		function update(typeRef: TypeRef<any>) {
-			let u = createEntityUpdate()
+			let u = createTestEntity(EntityUpdateTypeRef)
 			u.application = typeRef.app
 			u.type = typeRef.type
 			return u
@@ -1114,11 +1126,11 @@ o.spec("Indexer test", () => {
 			}
 			mock._processUserEntityEvents = spy(() => Promise.resolve())
 			mock._initParams = {
-				user: createUser(),
+				user: createTestEntity(UserTypeRef),
 			}
 			mock._core.writeIndexUpdateWithBatchId = spy(() => Promise.resolve())
-			let user = createUser()
-			user.memberships = [createGroupMembership()]
+			let user = createTestEntity(UserTypeRef)
+			user.memberships = [createTestEntity(GroupMembershipTypeRef)]
 			user.memberships[0].groupType = GroupType.Mail
 			user.memberships[0].group = "group-id"
 			mock._initParams = {
@@ -1204,8 +1216,8 @@ o.spec("Indexer test", () => {
 
 	o.spec("Contact indexing and caching", function () {
 		let indexer: Indexer
-		let user = createUser()
-		user.userGroup = createGroupMembership()
+		let user = createTestEntity(UserTypeRef)
+		user.userGroup = createTestEntity(GroupMembershipTypeRef)
 		user.userGroup.group = "user-group-id"
 		let userGroupKey
 

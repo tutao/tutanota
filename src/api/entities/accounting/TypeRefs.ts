@@ -5,7 +5,7 @@ import {typeModels} from "./TypeModels.js"
 
 export const CustomerAccountPostingTypeRef: TypeRef<CustomerAccountPosting> = new TypeRef("accounting", "CustomerAccountPosting")
 
-export function createCustomerAccountPosting(values?: Partial<CustomerAccountPosting>): CustomerAccountPosting {
+export function createCustomerAccountPosting(values: Partial<CustomerAccountPosting>): CustomerAccountPosting {
 	return Object.assign(create(typeModels.CustomerAccountPosting, CustomerAccountPostingTypeRef), values)
 }
 
@@ -20,7 +20,7 @@ export type CustomerAccountPosting = {
 }
 export const CustomerAccountReturnTypeRef: TypeRef<CustomerAccountReturn> = new TypeRef("accounting", "CustomerAccountReturn")
 
-export function createCustomerAccountReturn(values?: Partial<CustomerAccountReturn>): CustomerAccountReturn {
+export function createCustomerAccountReturn(values: Partial<CustomerAccountReturn>): CustomerAccountReturn {
 	return Object.assign(create(typeModels.CustomerAccountReturn, CustomerAccountReturnTypeRef), values)
 }
 

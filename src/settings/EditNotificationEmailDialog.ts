@@ -80,11 +80,12 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 	let template: NotificationMailTemplate
 
 	if (!existingTemplate) {
-		template = createNotificationMailTemplate()
-		template.language = "en"
-		template.body = getDefaultNotificationMail()
-		template.subject = lang.get("externalNotificationMailSubject_msg", {
-			"{1}": "{sender}",
+		template = createNotificationMailTemplate({
+			language: "en",
+			body: getDefaultNotificationMail(),
+			subject: lang.get("externalNotificationMailSubject_msg", {
+				"{1}": "{sender}",
+			}),
 		})
 	} else {
 		template = existingTemplate

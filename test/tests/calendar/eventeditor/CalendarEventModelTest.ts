@@ -17,10 +17,10 @@ import {
 	createCalendarEvent,
 	createCalendarEventAttendee,
 	createEncryptedMailAddress,
-	createMailBox,
-	createMailboxGroupRoot,
 	createMailboxProperties,
+	MailboxGroupRootTypeRef,
 	MailboxProperties,
+	MailBoxTypeRef,
 } from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../../src/api/common/EntityClient.js"
 import { calendars, getDateInZone, makeUserController, otherAddress, ownerAddress, ownerAlias, ownerId, ownerMailAddress } from "../CalendarTestUtils.js"
@@ -29,10 +29,10 @@ import {
 	createCalendarEventRef,
 	createDateWrapper,
 	createGroup,
-	createGroupInfo,
 	createRepeatRule,
 	createUserAlarmInfo,
 	DateWrapper,
+	GroupInfoTypeRef,
 } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { clone, identity, noOp } from "@tutao/tutanota-utils"
 import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../../../../src/api/main/RecipientsModel.js"
@@ -40,6 +40,7 @@ import { LoginController } from "../../../../src/api/main/LoginController.js"
 import { MailboxDetail } from "../../../../src/mail/model/MailModel.js"
 import { FolderSystem } from "../../../../src/api/common/mail/FolderSystem.js"
 import { SendMailModel } from "../../../../src/mail/editor/SendMailModel.js"
+import { createTestEntity } from "../../TestUtils.js"
 
 o.spec("CalendarEventModelTest", function () {
 	let userController: UserController
@@ -128,13 +129,13 @@ o.spec("CalendarEventModelTest", function () {
 			let tryCount = 0
 			when(recipientsModel.resolve(matchers.anything(), ResolveMode.Eager)).thenDo(() => resolvables[tryCount++])
 			const mailboxDetail: MailboxDetail = {
-				mailbox: createMailBox(),
+				mailbox: createTestEntity(MailBoxTypeRef),
 				folders: new FolderSystem([]),
-				mailGroupInfo: createGroupInfo(),
+				mailGroupInfo: createTestEntity(GroupInfoTypeRef),
 				mailGroup: createGroup({
 					user: ownerId,
 				}),
-				mailboxGroupRoot: createMailboxGroupRoot(),
+				mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
 			}
 			const mailboxProperties: MailboxProperties = createMailboxProperties({})
 			const sendModelFac: () => SendMailModel = func<() => SendMailModel>()

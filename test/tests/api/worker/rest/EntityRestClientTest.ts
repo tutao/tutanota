@@ -29,11 +29,13 @@ import {
 	ContactTypeRef,
 	createContact,
 	createInternalRecipientKeyData,
+	InternalRecipientKeyDataTypeRef,
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { DateProvider } from "../../../../../src/api/common/DateProvider.js"
 import { DefaultDateProvider } from "../../../../../src/calendar/date/CalendarUtils.js"
+import { createTestEntity } from "../../../TestUtils.js"
 
 const { anything, argThat } = matchers
 
@@ -80,7 +82,9 @@ o.spec("EntityRestClient", async function () {
 			return Promise.resolve({ ...decryptedInstance, migratedForInstance: true })
 		})
 		when(cryptoFacadeMock.setNewOwnerEncSessionKey(anything(), anything())).thenResolve([])
-		when(cryptoFacadeMock.encryptBucketKeyForInternalRecipient(anything(), anything(), anything())).thenResolve(createInternalRecipientKeyData())
+		when(cryptoFacadeMock.encryptBucketKeyForInternalRecipient(anything(), anything(), anything())).thenResolve(
+			createTestEntity(InternalRecipientKeyDataTypeRef),
+		)
 		when(cryptoFacadeMock.resolveSessionKey(anything(), anything())).thenResolve([])
 
 		instanceMapperMock = object()
@@ -458,7 +462,7 @@ o.spec("EntityRestClient", async function () {
 	o.spec("Setup", async function () {
 		o("Setup list entity", async function () {
 			const v = (await resolveTypeReference(ContactTypeRef)).version
-			const newContact = createContact()
+			const newContact = createTestEntity(ContactTypeRef)
 			const resultId = "id"
 			when(
 				restClient.request(`/rest/tutanota/contact/listId`, HttpMethod.POST, {
@@ -476,14 +480,14 @@ o.spec("EntityRestClient", async function () {
 		})
 
 		o("Setup list entity throws when no listid is passed", async function () {
-			const newContact = createContact()
+			const newContact = createTestEntity(ContactTypeRef)
 			const result = await assertThrows(Error, async () => await entityRestClient.setup(null, newContact))
 			o(result.message).equals("List id must be defined for LETs")
 		})
 
 		o("Setup entity", async function () {
 			const v = (await resolveTypeReference(CustomerTypeRef)).version
-			const newCustomer = createCustomer()
+			const newCustomer = createTestEntity(CustomerTypeRef)
 			const resultId = "id"
 			when(
 				restClient.request(`/rest/sys/customer`, HttpMethod.POST, {
@@ -501,14 +505,14 @@ o.spec("EntityRestClient", async function () {
 		})
 
 		o("Setup entity throws when listid is passed", async function () {
-			const newCustomer = createCustomer()
+			const newCustomer = createTestEntity(CustomerTypeRef)
 			const result = await assertThrows(Error, async () => await entityRestClient.setup("listId", newCustomer))
 			o(result.message).equals("List id must not be defined for ETs")
 		})
 
 		o("Base URL option is passed to the rest client", async function () {
 			when(restClient.request(anything(), anything(), anything()), { times: 1 }).thenResolve(JSON.stringify({ generatedId: null }))
-			await entityRestClient.setup("listId", createContact(), undefined, { baseUrl: "some url" })
+			await entityRestClient.setup("listId", createTestEntity(ContactTypeRef), undefined, { baseUrl: "some url" })
 			verify(
 				restClient.request(
 					anything(),
@@ -521,7 +525,7 @@ o.spec("EntityRestClient", async function () {
 		o("when ownerKey is passed it is used instead for session key resolution", async function () {
 			const typeModel = await resolveTypeReference(CustomerTypeRef)
 			const v = typeModel.version
-			const newCustomer = createCustomer()
+			const newCustomer = createTestEntity(CustomerTypeRef)
 			const resultId = "id"
 			when(
 				restClient.request(`/rest/sys/customer`, HttpMethod.POST, {
@@ -758,7 +762,7 @@ o.spec("EntityRestClient", async function () {
 			let instances: Contact[] = []
 
 			for (let i = 0; i < idArray.length; i++) {
-				instances.push(createContact())
+				instances.push(createTestEntity(ContactTypeRef))
 			}
 
 			let step = 0
@@ -803,7 +807,7 @@ o.spec("EntityRestClient", async function () {
 		})
 
 		o("Update entity throws if entity does not have an id", async function () {
-			const newCustomer = createCustomer()
+			const newCustomer = createTestEntity(CustomerTypeRef)
 			const result = await assertThrows(Error, async () => await entityRestClient.update(newCustomer))
 			o(result.message).equals("Id must be defined")
 		})

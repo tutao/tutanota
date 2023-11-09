@@ -215,10 +215,11 @@ function exportCalendarEvents(
 ) {
 	const stringValue = serializeCalendar(env.versionNumber, events, now, zone)
 	const data = stringToUtf8Uint8Array(stringValue)
-	const tmpFile = createFile()
-	tmpFile.name = calendarName === "" ? "export.ics" : calendarName + "-export.ics"
-	tmpFile.mimeType = CALENDAR_MIME_TYPE
-	tmpFile.size = String(data.byteLength)
+	const tmpFile = createFile({
+		name: calendarName === "" ? "export.ics" : calendarName + "-export.ics",
+		mimeType: CALENDAR_MIME_TYPE,
+		size: String(data.byteLength),
+	})
 	return locator.fileController.saveDataFile(convertToDataFile(tmpFile, data))
 }
 

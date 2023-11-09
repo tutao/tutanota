@@ -1,6 +1,14 @@
 import o from "@tutao/otest"
 import type { Contact } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { createContact } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	BirthdayTypeRef,
+	ContactAddressTypeRef,
+	ContactMailAddressTypeRef,
+	ContactPhoneNumberTypeRef,
+	ContactSocialIdTypeRef,
+	ContactTypeRef,
+	createContactPhoneNumber,
+} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	_areResidualContactFieldsEqual,
 	_compareBirthdays,
@@ -17,8 +25,6 @@ import {
 	getMergeableContacts,
 	mergeContacts,
 } from "../../../src/contacts/ContactMergeUtils.js"
-import { createContactMailAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { createContactPhoneNumber } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	ContactAddressType,
 	ContactComparisonResult,
@@ -26,13 +32,12 @@ import {
 	ContactSocialType,
 	IndifferentContactComparisonResult,
 } from "../../../src/api/common/TutanotaConstants.js"
-import { createContactAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { createContactSocialId } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { createFilledContact } from "./VCardExporterTest.js"
 import { downcast, neverNull } from "@tutao/tutanota-utils"
 import { _contactToVCard } from "../../../src/contacts/VCardExporter.js"
-import { createBirthday } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { birthdayToIsoDate } from "../../../src/api/common/utils/BirthdayUtils.js"
+import { createTestEntity } from "../TestUtils.js"
+
 o.spec("ContactMergeUtilsTest", function () {
 	// tests are made for the validation of the comparison functions to find mergable contacts
 	// tests all ContactMergeUtils functions
@@ -172,7 +177,7 @@ o.spec("ContactMergeUtilsTest", function () {
 
 	function createFilledContactMailAddresses(mailAddresses: string[]) {
 		return mailAddresses.map((m) => {
-			let a = createContactMailAddress()
+			let a = createTestEntity(ContactMailAddressTypeRef)
 			a.address = m
 			a.type = ContactAddressType.WORK
 			a.customTypeName = ""
@@ -237,7 +242,7 @@ o.spec("ContactMergeUtilsTest", function () {
 
 	function createFilledContactPhoneNumbers(phoneNumbers: string[]) {
 		return phoneNumbers.map((n) => {
-			let a = createContactPhoneNumber()
+			let a = createTestEntity(ContactPhoneNumberTypeRef)
 			a.number = n
 			a.type = ContactAddressType.WORK
 			a.customTypeName = ""
@@ -280,7 +285,7 @@ o.spec("ContactMergeUtilsTest", function () {
 
 		if (addresses) {
 			addresses.map((m) => {
-				let a = createContactAddress()
+				let a = createTestEntity(ContactAddressTypeRef)
 				a.address = m
 				a.type = ContactAddressType.WORK
 				a.customTypeName = ""
@@ -290,7 +295,7 @@ o.spec("ContactMergeUtilsTest", function () {
 
 		if (socialIds) {
 			socialIds.map((m) => {
-				let a = createContactSocialId()
+				let a = createTestEntity(ContactSocialIdTypeRef)
 				a.socialId = m
 				a.type = ContactSocialType.TWITTER
 				a.customTypeName = ""
@@ -601,12 +606,12 @@ o.spec("ContactMergeUtilsTest", function () {
 	})
 	o("testCompareContactsWithPresharedPasswordForMerge", function () {
 		let allContacts: Contact[] = []
-		allContacts[0] = createContact()
-		allContacts[1] = createContact()
-		allContacts[0].mailAddresses[0] = createContactMailAddress()
-		allContacts[1].mailAddresses[0] = createContactMailAddress()
-		allContacts[0].phoneNumbers[0] = createContactPhoneNumber()
-		allContacts[1].phoneNumbers[0] = createContactPhoneNumber()
+		allContacts[0] = createTestEntity(ContactTypeRef)
+		allContacts[1] = createTestEntity(ContactTypeRef)
+		allContacts[0].mailAddresses[0] = createTestEntity(ContactMailAddressTypeRef)
+		allContacts[1].mailAddresses[0] = createTestEntity(ContactMailAddressTypeRef)
+		allContacts[0].phoneNumbers[0] = createTestEntity(ContactPhoneNumberTypeRef)
+		allContacts[1].phoneNumbers[0] = createTestEntity(ContactPhoneNumberTypeRef)
 		allContacts[0].phoneNumbers[0].number = "017999854654"
 		allContacts[1].phoneNumbers[0].number = "017999854654"
 		allContacts[0].mailAddresses[0].address = "anton@mail.de"
@@ -621,8 +626,8 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(_compareContactsForMerge(allContacts[0], allContacts[1])).equals(ContactComparisonResult.Similar)
 		allContacts[1].presharedPassword = "B"
 		o(_compareContactsForMerge(allContacts[0], allContacts[1])).equals(ContactComparisonResult.Unique)
-		allContacts[0] = createContact()
-		allContacts[1] = createContact()
+		allContacts[0] = createTestEntity(ContactTypeRef)
+		allContacts[1] = createTestEntity(ContactTypeRef)
 		allContacts[1].presharedPassword = "B"
 		o(_compareContactsForMerge(allContacts[0], allContacts[1])).equals(ContactComparisonResult.Unique)
 		allContacts[0].presharedPassword = "B"
@@ -631,12 +636,12 @@ o.spec("ContactMergeUtilsTest", function () {
 	//typeRef should not affect the result of the comparison the value is most important
 	o("testContactTypeValuesForUnimportance", function () {
 		let allContacts: Contact[] = []
-		allContacts[0] = createContact()
-		allContacts[1] = createContact()
-		allContacts[0].mailAddresses[0] = createContactMailAddress()
-		allContacts[1].mailAddresses[0] = createContactMailAddress()
-		allContacts[0].phoneNumbers[0] = createContactPhoneNumber()
-		allContacts[1].phoneNumbers[0] = createContactPhoneNumber()
+		allContacts[0] = createTestEntity(ContactTypeRef)
+		allContacts[1] = createTestEntity(ContactTypeRef)
+		allContacts[0].mailAddresses[0] = createTestEntity(ContactMailAddressTypeRef)
+		allContacts[1].mailAddresses[0] = createTestEntity(ContactMailAddressTypeRef)
+		allContacts[0].phoneNumbers[0] = createTestEntity(ContactPhoneNumberTypeRef)
+		allContacts[1].phoneNumbers[0] = createTestEntity(ContactPhoneNumberTypeRef)
 		allContacts[0].phoneNumbers[0].number = "017999854654"
 		allContacts[1].phoneNumbers[0].number = "017999854654"
 		allContacts[0].mailAddresses[0].address = "anton@mail.de"
@@ -682,8 +687,8 @@ o.spec("ContactMergeUtilsTest", function () {
 	}
 
 	o("getMergedNameFieldTest", function () {
-		let c1 = createContact()
-		let c2 = createContact()
+		let c1 = createTestEntity(ContactTypeRef)
+		let c2 = createTestEntity(ContactTypeRef)
 		c1.firstName = _getMergedNameField(c1.firstName, c2.firstName)
 		o(c1.firstName).equals(c1.firstName)
 		c1.firstName = "bob"
@@ -706,8 +711,8 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(c1.lastName).equals("qop")
 	})
 	o("getMergedOtherFieldTitleTest", function () {
-		let c1 = createContact()
-		let c2 = createContact()
+		let c1 = createTestEntity(ContactTypeRef)
+		let c2 = createTestEntity(ContactTypeRef)
 		c1.title = _getMergedOtherField(c1.title, c2.title, ", ")
 		o(c1.title).equals(null)
 		c1.title = "bob"
@@ -721,8 +726,8 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(c1.title).equals("flop")
 	})
 	o("getMergedOtherFieldCommentTest", function () {
-		let c1 = createContact()
-		let c2 = createContact()
+		let c1 = createTestEntity(ContactTypeRef)
+		let c2 = createTestEntity(ContactTypeRef)
 		c1.comment = neverNull(_getMergedOtherField(c1.comment, c2.comment, "\n\n"))
 		o(c1.comment).equals("")
 		c1.comment = "bob"
@@ -736,8 +741,8 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(c1.comment).equals("flop")
 	})
 	o("getMergedOtherFieldCompanyTest", function () {
-		let c1 = createContact()
-		let c2 = createContact()
+		let c1 = createTestEntity(ContactTypeRef)
+		let c2 = createTestEntity(ContactTypeRef)
 		c1.company = neverNull(_getMergedOtherField(c1.company, c2.company, ", "))
 		o(c1.company).equals("")
 		c1.company = "bob"
@@ -751,8 +756,8 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(c1.company).equals("flop")
 	})
 	o("getMergedOtherFieldNicknameTest", function () {
-		let c1 = createContact()
-		let c2 = createContact()
+		let c1 = createTestEntity(ContactTypeRef)
+		let c2 = createTestEntity(ContactTypeRef)
 		c1.nickname = _getMergedOtherField(c1.nickname, c2.nickname, ", ")
 		o(c1.nickname).equals(null)
 		c1.nickname = "bob"
@@ -766,8 +771,8 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(c1.nickname).equals("flop")
 	})
 	o("getMergedOtherFieldRoleTest", function () {
-		let c1 = createContact()
-		let c2 = createContact()
+		let c1 = createTestEntity(ContactTypeRef)
+		let c2 = createTestEntity(ContactTypeRef)
 		c1.role = neverNull(_getMergedOtherField(c1.role, c2.role, ", "))
 		o(c1.role).equals("")
 		c1.role = "bob"
@@ -781,8 +786,8 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(c1.role).equals("flop")
 	})
 	o("getMergedOtherFieldPresharedPasswordTest", function () {
-		let c1 = createContact()
-		let c2 = createContact()
+		let c1 = createTestEntity(ContactTypeRef)
+		let c2 = createTestEntity(ContactTypeRef)
 		c1.presharedPassword = _getMergedOtherField(c1.presharedPassword, c2.presharedPassword, "")
 		o(c1.presharedPassword).equals(null)
 		c1.presharedPassword = "bob"
@@ -1070,8 +1075,8 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(_contactToVCard(keptContact)).equals(_contactToVCard(compareContact))
 	})
 	o("_compareBirthdaysForComparisonResultTest", function () {
-		let c1 = createContact()
-		let c2 = createContact()
+		let c1 = createTestEntity(ContactTypeRef)
+		let c2 = createTestEntity(ContactTypeRef)
 		c1.birthdayIso = fillBirthday("14", "11", "1999")
 		c2.birthdayIso = fillBirthday("14", "11", "1999")
 		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Equal)
@@ -1084,18 +1089,18 @@ o.spec("ContactMergeUtilsTest", function () {
 		c1.birthdayIso = fillBirthday("14", "11", "1999")
 		c2.birthdayIso = null
 		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.OneEmpty)
-		c1 = createContact()
+		c1 = createTestEntity(ContactTypeRef)
 		c2.birthdayIso = fillBirthday("14", "11", "1999")
 		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.OneEmpty)
-		c1 = createContact()
-		c2 = createContact()
+		c1 = createTestEntity(ContactTypeRef)
+		c2 = createTestEntity(ContactTypeRef)
 		c2.birthdayIso = fillBirthday("14", "11", null)
 		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.OneEmpty)
 		c1.birthdayIso = fillBirthday("14", "11", "2000")
 		c2.birthdayIso = fillBirthday("14", "11", null)
 		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Similar)
-		c1 = createContact()
-		c2 = createContact()
+		c1 = createTestEntity(ContactTypeRef)
+		c2 = createTestEntity(ContactTypeRef)
 		c1.birthdayIso = fillBirthday("12", "8", null)
 		c2.birthdayIso = fillBirthday("12", "8", "1999")
 		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Similar)
@@ -1106,7 +1111,7 @@ o.spec("ContactMergeUtilsTest", function () {
 })
 
 function fillBirthday(day: NumberString, month: NumberString, year: NumberString | null | undefined): string | null {
-	let bday = createBirthday()
+	let bday = createTestEntity(BirthdayTypeRef)
 	bday.day = day
 	bday.month = month
 	bday.year = year ?? null

@@ -251,10 +251,11 @@ export class DefaultDateProvider implements DateProvider {
 }
 
 export function createRepeatRuleWithValues(frequency: RepeatPeriod, interval: number, timeZone: string = getTimeZone()): CalendarRepeatRule {
-	const rule = createCalendarRepeatRule()
-	rule.timeZone = timeZone
-	rule.frequency = frequency
-	rule.interval = String(interval)
+	const rule = createCalendarRepeatRule({
+		timeZone: timeZone,
+		frequency: frequency,
+		interval: String(interval),
+	})
 	return rule
 }
 

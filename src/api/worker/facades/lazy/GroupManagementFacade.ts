@@ -166,13 +166,13 @@ export class GroupManagementFacade {
 		adminGroupKey: Aes128Key,
 		ownerGroupKey: Aes128Key,
 	): InternalGroupData {
-		let groupData = createInternalGroupData()
-		groupData.publicKey = hexToUint8Array(publicKeyToHex(keyPair.publicKey))
-		groupData.groupEncPrivateKey = encryptRsaKey(groupKey, keyPair.privateKey)
-		groupData.adminGroup = adminGroupId
-		groupData.adminEncGroupKey = encryptKey(adminGroupKey, groupKey)
-		groupData.ownerEncGroupInfoSessionKey = encryptKey(ownerGroupKey, groupInfoSessionKey)
-		return groupData
+		return createInternalGroupData({
+			publicKey: hexToUint8Array(publicKeyToHex(keyPair.publicKey)),
+			groupEncPrivateKey: encryptRsaKey(groupKey, keyPair.privateKey),
+			adminGroup: adminGroupId,
+			adminEncGroupKey: encryptKey(adminGroupKey, groupKey),
+			ownerEncGroupInfoSessionKey: encryptKey(ownerGroupKey, groupInfoSessionKey),
+		})
 	}
 
 	async addUserToGroup(user: User, groupId: Id): Promise<void> {

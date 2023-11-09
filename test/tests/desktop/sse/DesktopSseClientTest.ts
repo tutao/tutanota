@@ -6,7 +6,7 @@ import type { TimeoutMock } from "@tutao/tutanota-test-utils"
 import { makeTimeoutMock, spy } from "@tutao/tutanota-test-utils"
 import * as url from "node:url"
 import * as querystring from "node:querystring"
-import { createMissedNotification } from "../../../../src/api/entities/sys/TypeRefs.js"
+import { createMissedNotification, MissedNotificationTypeRef } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { DesktopSseClient } from "../../../../src/desktop/sse/DesktopSseClient.js"
 import { DesktopConfigEncKey, DesktopConfigKey } from "../../../../src/desktop/config/ConfigKeys.js"
 import type { DesktopConfig } from "../../../../src/desktop/config/DesktopConfig.js"
@@ -20,6 +20,7 @@ import type { DesktopNetworkClient } from "../../../../src/desktop/net/DesktopNe
 import { ServiceUnavailableError, TooManyRequestsError } from "../../../../src/api/common/error/RestError.js"
 import modelInfo from "../../../../src/api/entities/sys/ModelInfo.js"
 import { StandardAlarmInterval } from "../../../../src/calendar/date/CalendarUtils.js"
+import { createTestEntity } from "../../TestUtils.js"
 
 o.spec("DesktopSseClient Test", function () {
 	const identifier = "identifier"
@@ -709,7 +710,7 @@ o.spec("DesktopSseClient Test", function () {
 		// wait for missedNotification request to be sent...
 		let missedNotificationResponse = new net.Response(200)
 		await net.ClientRequest.mockedInstances[1].callbacks["response"](missedNotificationResponse)
-		missedNotificationResponse.callbacks["data"](JSON.stringify(createMissedNotification()) + "\n")
+		missedNotificationResponse.callbacks["data"](JSON.stringify(createTestEntity(MissedNotificationTypeRef)) + "\n")
 
 		await Promise.resolve()
 		o(notifierMock.submitGroupedNotification.callCount).equals(0)
@@ -838,7 +839,7 @@ o.spec("DesktopSseClient Test", function () {
 		// wait for missedNotification request to be sent...
 		let successfulResponse = new net.Response(200)
 		await net.ClientRequest.mockedInstances[1].callbacks["response"](successfulResponse)
-		successfulResponse.callbacks["data"](JSON.stringify(createMissedNotification()) + "\n")
+		successfulResponse.callbacks["data"](JSON.stringify(createTestEntity(MissedNotificationTypeRef)) + "\n")
 
 		await Promise.resolve()
 		o(notifierMock.submitGroupedNotification.callCount).equals(0)
@@ -883,7 +884,7 @@ o.spec("DesktopSseClient Test", function () {
 		// wait for missedNotification request to be sent...
 		let successfulResponse = new net.Response(200)
 		await net.ClientRequest.mockedInstances[1].callbacks["response"](successfulResponse)
-		successfulResponse.callbacks["data"](JSON.stringify(createMissedNotification()) + "\n")
+		successfulResponse.callbacks["data"](JSON.stringify(createTestEntity(MissedNotificationTypeRef)) + "\n")
 
 		await Promise.resolve()
 		o(notifierMock.submitGroupedNotification.callCount).equals(0)

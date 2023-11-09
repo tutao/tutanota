@@ -26,7 +26,7 @@ export class KnowledgeBaseEditorModel {
 		this.keywords = stream(entry ? keywordsToString(entry.keywords) : "")
 		this._entityClient = entityClient
 		this._templateGroupRoot = templateGroupInstances
-		this.entry = entry ? clone(entry) : createKnowledgeBaseEntry()
+		this.entry = entry ? clone(entry) : createKnowledgeBaseEntry({})
 		this._descriptionProvider = null
 		this.availableTemplates = new LazyLoaded(() => {
 			return this._entityClient.loadAll(EmailTemplateTypeRef, this._templateGroupRoot.templates)

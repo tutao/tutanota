@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { CustomColorsEditorViewModel } from "../../../../src/settings/whitelabel/CustomColorsEditorViewModel.js"
 import { ThemeController } from "../../../../src/gui/ThemeController.js"
-import { createWhitelabelConfig } from "../../../../src/api/entities/sys/TypeRefs.js"
+import { createWhitelabelConfig, DomainInfoTypeRef, WhitelabelConfigTypeRef } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { createDomainInfo } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { downcast } from "@tutao/tutanota-utils"
 import type { ThemeCustomizations } from "../../../../src/misc/WhitelabelCustomizations.js"
@@ -9,6 +9,7 @@ import { EntityClient } from "../../../../src/api/common/EntityClient.js"
 import { themes } from "../../../../src/gui/builtinThemes.js"
 import type { LoginController } from "../../../../src/api/main/LoginController.js"
 import { spy } from "@tutao/tutanota-test-utils"
+import { createTestEntity } from "../../TestUtils.js"
 
 o.spec("SimpleColorEditor", function () {
 	let model: CustomColorsEditorViewModel
@@ -36,8 +37,8 @@ o.spec("SimpleColorEditor", function () {
 				return themes["light"]
 			},
 		} as Partial<ThemeController> as ThemeController
-		whitelabelConfig = createWhitelabelConfig()
-		whitelabelDomainInfo = createDomainInfo()
+		whitelabelConfig = createTestEntity(WhitelabelConfigTypeRef)
+		whitelabelDomainInfo = createTestEntity(DomainInfoTypeRef)
 		whitelabelDomainInfo.domain = "test.domain.com"
 		defaultTheme = themeController.getDefaultTheme()
 		entityClient = downcast({

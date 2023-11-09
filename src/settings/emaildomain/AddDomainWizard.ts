@@ -29,7 +29,7 @@ export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo, 
 	const domainData: AddDomainData = {
 		domain: stream(domain),
 		customerInfo: customerInfo,
-		expectedVerificationRecord: createDnsRecord(),
+		expectedVerificationRecord: createDnsRecord({}),
 		editAliasFormAttrs: {
 			model: mailAddressTableModel,
 			expanded: mailAddressTableExpanded,

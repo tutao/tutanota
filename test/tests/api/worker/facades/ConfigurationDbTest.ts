@@ -3,8 +3,9 @@ import { ConfigurationDatabase, encryptItem } from "../../../../../src/api/worke
 import { downcast } from "@tutao/tutanota-utils"
 import { DbStub } from "../search/DbStub.js"
 import { ExternalImageRule } from "../../../../../src/api/common/TutanotaConstants.js"
-import { createUser } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { aes256RandomKey, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { createTestEntity } from "../../../TestUtils.js"
 
 o.spec("ConfigurationDbTest", function () {
 	function makeMocks(
@@ -17,7 +18,7 @@ o.spec("ConfigurationDbTest", function () {
 		const iv = random.generateRandomData(IV_BYTE_LENGTH)
 		const logins = downcast({
 			getLoggedInUser() {
-				return createUser()
+				return createTestEntity(UserTypeRef)
 			},
 
 			getUserGroupKey() {},

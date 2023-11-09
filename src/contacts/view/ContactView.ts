@@ -658,8 +658,8 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		if (existingGroupSettings) {
 			existingGroupSettings.name = newName
 		} else {
-			const newGroupSettings = Object.assign(createGroupSettings(), {
-				group: contactListInfo.group,
+			const newGroupSettings = createGroupSettings({
+				group: contactListInfo.group._id,
 				name: newName,
 			})
 		}
