@@ -9,7 +9,7 @@ import { isSelectedPrefix, NavButtonAttrs, NavButtonColor } from "../../gui/base
 import { getFolderIcon, getFolderName, MAX_FOLDER_INDENT_LEVEL } from "../model/MailUtils.js"
 import { MAIL_PREFIX } from "../../misc/RouteChange.js"
 import { MailFolderRow } from "./MailFolderRow.js"
-import { last, noOp } from "@tutao/tutanota-utils"
+import { last, noOp, Thunk } from "@tutao/tutanota-utils"
 import { MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
 import { attachDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
@@ -39,6 +39,8 @@ type Counters = Record<string, number>
 
 /** Displays a tree of all folders. */
 export class MailFoldersView implements Component<MailFolderViewAttrs> {
+	private areRightButtonsVisible = new Map<string, boolean>()
+
 	view({ attrs }: Vnode<MailFolderViewAttrs>): Children {
 		const { mailboxDetail } = attrs
 		const groupCounters = locator.mailModel.mailboxCounters()[mailboxDetail.mailGroup._id] || {}
@@ -112,6 +114,11 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				hasChildren && currentExpansionState
 					? this.renderFolderTree(system.children, groupCounters, attrs, path, indentationLevel + 1)
 					: { children: null, numRows: 0 }
+			const rightButton = !(system.folder.folderType === MailFolderType.TRASH || system.folder.folderType === MailFolderType.SPAM)
+				? this.createFolderMoreButton(system.folder, attrs, () => {
+						this.areRightButtonsVisible.set(id, false)
+				  })
+				: null
 			const render = m.fragment(
 				{
 					key: id,
@@ -121,9 +128,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						count: attrs.inEditMode ? 0 : summedCount,
 						button,
 						icon: getFolderIcon(system.folder),
-						rightButton: !(system.folder.folderType === MailFolderType.TRASH || system.folder.folderType === MailFolderType.SPAM)
-							? this.createFolderMoreButton(system.folder, attrs)
-							: null,
+						rightButton: this.areRightButtonsVisible.get(id) ? rightButton : null,
 						expanded: hasChildren ? currentExpansionState : null,
 						indentationLevel: Math.min(indentationLevel, MAX_FOLDER_INDENT_LEVEL),
 						onExpanderClick: hasChildren ? () => attrs.onFolderExpanded(system.folder, currentExpansionState) : noOp,
@@ -132,6 +137,9 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						numberOfPreviousRows: result.numRows,
 						isLastSibling: last(subSystems) === system,
 						editMode: attrs.inEditMode,
+						onHover: () => {
+							this.areRightButtonsVisible.set(id, true)
+						},
 					}),
 					childResult.children,
 				],
@@ -172,7 +180,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		return (counters[system.folder.mails] ?? 0) + system.children.reduce((acc, child) => acc + this.getTotalFolderCounter(counters, child), 0)
 	}
 
-	private createFolderMoreButton(folder: MailFolder, attrs: MailFolderViewAttrs): IconButtonAttrs {
+	private createFolderMoreButton(folder: MailFolder, attrs: MailFolderViewAttrs, onClose: Thunk): IconButtonAttrs {
 		return attachDropdown({
 			mainButtonAttrs: {
 				title: "more_label",
@@ -188,6 +196,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						: [this.editButtonAttrs(attrs, folder), this.addButtonAttrs(attrs, folder), this.deleteButtonAttrs(attrs, folder)]
 					: [this.addButtonAttrs(attrs, folder)]
 			},
+			onClose,
 		})
 	}
 
