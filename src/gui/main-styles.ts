@@ -61,7 +61,7 @@ styles.registerStyle("main", () => {
 			? {
 					opacity: 1,
 					transition: "opacity .1s linear",
-					"z-index": 100,
+					"z-index": 9999,
 			  }
 			: {},
 		"*:not(input):not(textarea)": isAdminClient()
