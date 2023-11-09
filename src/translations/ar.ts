@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2023-11-03T09:29:08Z",
+	"updated_at": "2023-11-08T15:54:14Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1332,7 +1332,7 @@ export default {
 		"to_label": "إلى",
 		"trash_action": "المحذوفات",
 		"tutanotaAddressDoesNotExist_msg": "عناوين توتانوتا للبريد الإلكتروني التالية غير موجودة.",
-		"tutaoInfo_msg": "Tutao GmbH هي الشركة التي توفر لك Tutanota.",
+		"tutaoInfo_msg": "Tutao GmbH هي الشركة التي توفر لك Tuta.",
 		"twitter_label": "تويتر",
 		"typeToFilter_label": "ابدء في الكتابة لتُرشّح ...",
 		"type_label": "نوع",
