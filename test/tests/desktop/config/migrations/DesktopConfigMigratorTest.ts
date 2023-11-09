@@ -3,12 +3,12 @@ import { DesktopConfigMigrator } from "../../../../../src/desktop/config/migrati
 import { DesktopNativeCryptoFacade } from "../../../../../src/desktop/DesktopNativeCryptoFacade.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { makeKeyStoreFacade } from "../../../TestUtils.js"
-import { KeyStoreFacade } from "../../../../../src/desktop/DesktopKeyStoreFacade.js"
+import { DesktopKeyStoreFacade } from "../../../../../src/desktop/DesktopKeyStoreFacade.js"
 
 o.spec("DesktopConfigMigrator", function () {
 	let migrator
 	let crypto: DesktopNativeCryptoFacade
-	let keyStoreFacade: KeyStoreFacade
+	let keyStoreFacade: DesktopKeyStoreFacade
 	const key = new Uint8Array([1, 2, 3])
 
 	o.before(function () {

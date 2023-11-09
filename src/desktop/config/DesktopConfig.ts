@@ -4,7 +4,7 @@ import type { MigrationKind } from "./migrations/DesktopConfigMigrator"
 import { DesktopConfigMigrator } from "./migrations/DesktopConfigMigrator"
 import type { Config } from "./ConfigCommon"
 import { BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey } from "./ConfigKeys"
-import type { KeyStoreFacade } from "../DesktopKeyStoreFacade.js"
+import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
 import { CryptoError } from "../../api/common/error/CryptoError"
 import { log } from "../DesktopLog"
@@ -32,7 +32,7 @@ export class DesktopConfig {
 
 	constructor(
 		private readonly migrator: DesktopConfigMigrator,
-		private readonly keyStoreFacade: KeyStoreFacade,
+		private readonly keyStoreFacade: DesktopKeyStoreFacade,
 		private readonly cryptoFacade: DesktopNativeCryptoFacade,
 	) {
 		this.buildConfig = defer()

@@ -26,7 +26,6 @@ import child_process from "node:child_process"
 import { LocalShortcutManager } from "./electron-localshortcut/LocalShortcut"
 import { cryptoFns } from "./CryptoFns"
 import { DesktopConfigMigrator } from "./config/migrations/DesktopConfigMigrator"
-import type { KeyStoreFacade } from "./DesktopKeyStoreFacade.js"
 import { DesktopKeyStoreFacade } from "./DesktopKeyStoreFacade.js"
 import { AlarmSchedulerImpl } from "../calendar/date/AlarmScheduler"
 import { SchedulerImpl } from "../api/common/utils/Scheduler.js"
@@ -80,7 +79,7 @@ type Components = {
 	readonly tfs: TempFs
 	readonly sse: DesktopSseClient
 	readonly conf: DesktopConfig
-	readonly keyStoreFacade: KeyStoreFacade
+	readonly keyStoreFacade: DesktopKeyStoreFacade
 	readonly notifier: DesktopNotifier
 	readonly sock: Socketeer
 	readonly updater: ElectronUpdater

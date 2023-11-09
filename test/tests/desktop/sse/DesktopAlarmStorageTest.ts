@@ -3,7 +3,7 @@ import { instance, matchers, object, verify, when } from "testdouble"
 import { DesktopAlarmStorage } from "../../../../src/desktop/sse/DesktopAlarmStorage.js"
 import { DesktopConfig } from "../../../../src/desktop/config/DesktopConfig.js"
 import { DesktopNativeCryptoFacade } from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
-import type { KeyStoreFacade } from "../../../../src/desktop/DesktopKeyStoreFacade.js"
+import type { DesktopKeyStoreFacade } from "../../../../src/desktop/DesktopKeyStoreFacade.js"
 import { makeKeyStoreFacade } from "../../TestUtils.js"
 import { DesktopConfigKey } from "../../../../src/desktop/config/ConfigKeys.js"
 import { assertNotNull, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
@@ -33,7 +33,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 		})
 	})
 
-	const keyStoreFacade: KeyStoreFacade = makeKeyStoreFacade(new Uint8Array([1, 2, 3]))
+	const keyStoreFacade: DesktopKeyStoreFacade = makeKeyStoreFacade(new Uint8Array([1, 2, 3]))
 
 	o("getPushIdentifierSessionKey with uncached sessionKey", async function () {
 		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, keyStoreFacade)

@@ -1,10 +1,10 @@
 import { DesktopNativeCryptoFacade } from "../../DesktopNativeCryptoFacade"
 import type { Config } from "../ConfigCommon"
 import { downcast } from "@tutao/tutanota-utils"
-import type { KeyStoreFacade } from "../../DesktopKeyStoreFacade.js"
+import type { DesktopKeyStoreFacade } from "../../DesktopKeyStoreFacade.js"
 import { log } from "../../DesktopLog"
 
-async function migrate(oldConfig: Config, crypto: DesktopNativeCryptoFacade, keyStoreFacade: KeyStoreFacade): Promise<void> {
+async function migrate(oldConfig: Config, crypto: DesktopNativeCryptoFacade, keyStoreFacade: DesktopKeyStoreFacade): Promise<void> {
 	Object.assign(oldConfig, {
 		desktopConfigVersion: 3,
 	})
