@@ -6,8 +6,8 @@ import { NativeFileApp } from "../../../../../src/native/common/FileApp.js"
 import { AesApp } from "../../../../../src/native/worker/AesApp.js"
 import { InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../../../src/api/common/TutanotaConstants.js"
-import { BlobReferenceTokenWrapperTypeRef, BlobTypeRef, createBlob, createBlobReferenceTokenWrapper } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { createFile, File as TutanotaFile, FileTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { BlobReferenceTokenWrapperTypeRef, BlobTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { File as TutanotaFile, FileTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { ServiceExecutor } from "../../../../../src/api/worker/rest/ServiceExecutor.js"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { HttpMethod } from "../../../../../src/api/common/EntityFunctions.js"
@@ -18,14 +18,7 @@ import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.
 import { FileReference } from "../../../../../src/api/common/utils/FileUtils.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
-import {
-	BlobPostOutTypeRef,
-	BlobServerAccessInfoTypeRef,
-	BlobServerUrlTypeRef,
-	createBlobPostOut,
-	createBlobServerAccessInfo,
-	createBlobServerUrl,
-} from "../../../../../src/api/entities/storage/TypeRefs.js"
+import { BlobPostOutTypeRef, BlobServerAccessInfoTypeRef, BlobServerUrlTypeRef } from "../../../../../src/api/entities/storage/TypeRefs.js"
 import type { AuthDataProvider } from "../../../../../src/api/worker/facades/UserFacade.js"
 import { BlobAccessTokenFacade, BlobReferencingInstance } from "../../../../../src/api/worker/facades/BlobAccessTokenFacade.js"
 import { DateProvider } from "../../../../../src/api/common/DateProvider.js"

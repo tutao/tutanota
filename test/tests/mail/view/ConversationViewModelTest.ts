@@ -3,17 +3,12 @@ import { ConversationItem, ConversationPrefProvider, ConversationViewModel } fro
 import {
 	ConversationEntry,
 	ConversationEntryTypeRef,
-	createConversationEntry,
-	createMail,
-	createMailboxProperties,
-	createMailFolder,
 	Mail,
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
 	MailFolderTypeRef,
 	MailTypeRef,
 } from "../../../../src/api/entities/tutanota/TypeRefs.js"
-import { ownerId } from "../../calendar/CalendarTestUtils.js"
 import { CreateMailViewerOptions } from "../../../../src/mail/view/MailViewer.js"
 import { MailboxDetail, MailModel } from "../../../../src/mail/model/MailModel.js"
 import { MailViewerViewModel } from "../../../../src/mail/view/MailViewerViewModel.js"

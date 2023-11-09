@@ -2,16 +2,6 @@ import { AccountType, ContactAddressType, FeatureType, GroupType, ShareCapabilit
 import type { UserController } from "../../../src/api/main/UserController.js"
 import {
 	BookingsRefTypeRef,
-	createBookingsRef,
-	createCustomer,
-	createCustomerInfo,
-	createFeature,
-	createGroup,
-	createGroupInfo,
-	createGroupMembership,
-	createMailAddressAlias,
-	createPlanConfiguration,
-	createUser,
 	CustomerInfoTypeRef,
 	CustomerTypeRef,
 	Feature,
@@ -32,14 +22,6 @@ import {
 	CalendarGroupRootTypeRef,
 	ContactAddressTypeRef,
 	ContactTypeRef,
-	createCalendarEvent,
-	createCalendarGroupRoot,
-	createContact,
-	createContactAddress,
-	createEncryptedMailAddress,
-	createMailBox,
-	createMailboxGroupRoot,
-	createTutanotaProperties,
 	EncryptedMailAddress,
 	EncryptedMailAddressTypeRef,
 	MailboxGroupRootTypeRef,
@@ -47,7 +29,6 @@ import {
 	TutanotaPropertiesTypeRef,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import type { MailboxDetail } from "../../../src/mail/model/MailModel.js"
-import o from "@tutao/otest"
 import type { CalendarInfo } from "../../../src/calendar/model/CalendarModel"
 import { CalendarModel } from "../../../src/calendar/model/CalendarModel"
 import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
