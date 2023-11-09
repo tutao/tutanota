@@ -361,11 +361,13 @@ export function createAsyncDropdown({
 	overrideOrigin,
 	width = 200,
 	withBackground = false,
+	onClose = undefined,
 }: {
 	lazyButtons: lazyAsync<ReadonlyArray<DropdownChildAttrs | null>>
 	overrideOrigin?: (original: PosRect) => PosRect
 	width?: number
 	withBackground?: boolean
+	onClose?: Thunk
 }): clickHandler {
 	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 	return (_, dom) => {
@@ -388,7 +390,12 @@ export function createAsyncDropdown({
 		])
 		buttons.then((buttons) => {
 			let dropdown = new Dropdown(() => buttons, width)
-
+			if (onClose) {
+				dropdown.setCloseHandler(() => {
+					onClose()
+					dropdown.close()
+				})
+			}
 			let buttonRect
 			if (overrideOrigin) {
 				buttonRect = overrideOrigin(dom.getBoundingClientRect())
@@ -396,7 +403,6 @@ export function createAsyncDropdown({
 				// When new instance is created and the old DOM is detached we may have incorrect positioning
 				buttonRect = dom.getBoundingClientRect()
 			}
-
 			dropdown.setOrigin(buttonRect)
 			modal.displayUnique(dropdown, withBackground)
 		})
@@ -427,6 +433,7 @@ type AttachDropdownParams = {
 	showDropdown?: lazy<boolean>
 	width?: number
 	overrideOrigin?: (original: PosRect) => PosRect
+	onClose?: Thunk
 }
 
 /**
@@ -435,14 +442,22 @@ type AttachDropdownParams = {
  * @param childAttrs the attributes of the children shown in the dropdown
  * @param showDropdown this will be checked before showing the dropdown
  * @param width width of the dropdown
+ * @param onClose callback that is called when the dropdown closes
  * @returns {ButtonAttrs} modified mainButtonAttrs that shows a dropdown on click or
  * button doesn't do anything if showDropdown returns false
  */
-export function attachDropdown({ mainButtonAttrs, childAttrs, showDropdown = () => true, width, overrideOrigin }: AttachDropdownParams): IconButtonAttrs {
+export function attachDropdown({
+	mainButtonAttrs,
+	childAttrs,
+	showDropdown = () => true,
+	width,
+	overrideOrigin,
+	onClose,
+}: AttachDropdownParams): IconButtonAttrs {
 	return Object.assign({}, mainButtonAttrs, {
 		click: (e: MouseEvent, dom: HTMLElement) => {
 			if (showDropdown()) {
-				const dropDownFn = createAsyncDropdown({ lazyButtons: () => Promise.resolve(childAttrs()), overrideOrigin, width })
+				const dropDownFn = createAsyncDropdown({ lazyButtons: () => Promise.resolve(childAttrs()), overrideOrigin, width, onClose })
 				dropDownFn(e, dom)
 				e.stopPropagation()
 			}

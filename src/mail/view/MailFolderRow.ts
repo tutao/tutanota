@@ -23,13 +23,15 @@ export type MailFolderRowAttrs = {
 	numberOfPreviousRows: number
 	isLastSibling: boolean
 	editMode: boolean
+	onHover: () => void
 }
 
 export class MailFolderRow implements Component<MailFolderRowAttrs> {
+	private clicked: boolean = false
 	private hovered: boolean = false
 
 	view(vnode: Vnode<MailFolderRowAttrs>): Children {
-		const { count, button, rightButton, expanded, indentationLevel, icon, hasChildren, editMode } = vnode.attrs
+		const { count, button, rightButton, expanded, indentationLevel, icon, hasChildren, editMode, onHover } = vnode.attrs
 
 		const indentationMargin = indentationLevel * size.hpad
 		const paddingNeeded = size.hpad_button
@@ -42,10 +44,13 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 					background: isNavButtonSelected(button) ? stateBgHover : "",
 				},
 				onmouseenter: () => {
+					onHover()
 					this.hovered = true
 				},
 				onmouseleave: () => {
-					this.hovered = false
+					if (!this.clicked) {
+						this.hovered = false
+					}
 				},
 			},
 			[
@@ -91,7 +96,10 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 				),
 				m(NavButton, {
 					...button,
-					onfocus: () => (this.hovered = true),
+					onfocus: () => {
+						onHover()
+						this.hovered = true
+					},
 					onblur: () => {
 						// The setTimout is so that there is some time to tab to the rightButton
 						// otherwise it disappears immediately and is unreachable on keyboard
@@ -105,7 +113,12 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 					? m(IconButton, {
 							...rightButton,
 							onblur: () => {
+								this.clicked = false
 								m.redraw()
+							},
+							click: (event, dom) => {
+								rightButton.click(event, dom)
+								this.clicked = true
 							},
 					  })
 					: m("", { style: { marginRight: px(size.hpad_button) } }, [
