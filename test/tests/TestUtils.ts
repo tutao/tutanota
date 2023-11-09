@@ -4,7 +4,7 @@ import { IndexerCore } from "../../src/api/worker/search/IndexerCore.js"
 import { EventQueue } from "../../src/api/worker/EventQueue.js"
 import { DbFacade, DbTransaction } from "../../src/api/worker/search/DbFacade.js"
 import { Thunk } from "@tutao/tutanota-utils"
-import type { DesktopKeyStoreFacade } from "../../src/desktop/KeyStoreFacadeImpl.js"
+import type { KeyStoreFacade } from "../../src/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/tutanota-test-utils"
 import { aes256RandomKey, fixedIv, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/api/common/utils/Scheduler.js"
@@ -42,7 +42,7 @@ export function makeCore(
 	return core
 }
 
-export function makeKeyStoreFacade(uint8ArrayKey: Uint8Array): DesktopKeyStoreFacade {
+export function makeKeyStoreFacade(uint8ArrayKey: Uint8Array): KeyStoreFacade {
 	return {
 		getDeviceKey() {
 			return Promise.resolve(uint8ArrayToKey(uint8ArrayKey))
