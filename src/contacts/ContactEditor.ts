@@ -76,7 +76,7 @@ export class ContactEditor {
 		listId?: Id,
 		private readonly newContactIdReceiver: ((contactId: Id) => unknown) | null = null,
 	) {
-		this.contact = contact ? clone(contact) : createContact()
+		this.contact = contact ? clone(contact) : createContact({})
 		this.isNewContact = contact?._id == null
 
 		if (this.isNewContact && listId == null) {
@@ -364,10 +364,11 @@ export class ContactEditor {
 
 	private renderBirthdayField(): Children {
 		let birthdayHelpText = () => {
-			let bday = createBirthday()
-			bday.day = "22"
-			bday.month = "9"
-			bday.year = "2000"
+			let bday = createBirthday({
+				day: "22",
+				month: "9",
+				year: "2000",
+			})
 			return this.hasInvalidBirthday
 				? lang.get("invalidDateFormat_msg", {
 						"{1}": formatBirthdayNumeric(bday),

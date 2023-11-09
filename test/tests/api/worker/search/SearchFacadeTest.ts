@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { SearchFacade } from "../../../../../src/api/worker/search/SearchFacade.js"
 import { ContactTypeRef, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { createUser } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import type { TypeInfo } from "../../../../../src/api/worker/search/IndexUtils.js"
 import {
 	encryptIndexKeyBase64,
@@ -24,7 +24,7 @@ import { downcast, groupBy, numberRange, splitInChunks } from "@tutao/tutanota-u
 import { appendBinaryBlocks } from "../../../../../src/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import type { BrowserData } from "../../../../../src/misc/ClientConstants.js"
-import { browserDataStub } from "../../../TestUtils.js"
+import { browserDataStub, createTestEntity } from "../../../TestUtils.js"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/api/worker/search/IndexTables.js"
 
@@ -41,7 +41,7 @@ const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 const browserData: BrowserData = browserDataStub
 const entityClinet = downcast({})
 o.spec("SearchFacade test", () => {
-	let user = createUser()
+	let user = createTestEntity(UserTypeRef)
 	let id1 = "L0YED5d----1"
 	let id2 = "L0YED5d----2"
 	let id3 = "L0YED5d----3"

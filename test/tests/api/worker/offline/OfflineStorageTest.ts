@@ -34,6 +34,7 @@ import { expandId } from "../../../../../src/api/worker/rest/DefaultEntityRestCa
 import { WorkerImpl } from "../../../../../src/api/worker/WorkerImpl.js"
 import { createUser, UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { DesktopSqlCipher } from "../../../../../src/desktop/db/DesktopSqlCipher.js"
+import { createTestEntity } from "../../../TestUtils.js"
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)
@@ -199,7 +200,7 @@ o.spec("OfflineStorage", function () {
 				o("put, get and delete", async function () {
 					const archiveId = "archiveId"
 					const blobElementId = "id1"
-					const storableMailDetails = createMailDetailsBlob({ _id: [archiveId, blobElementId], details: createMailDetails() })
+					const storableMailDetails = createMailDetailsBlob({ _id: [archiveId, blobElementId], details: createTestEntity(MailDetailsTypeRef) })
 
 					await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
@@ -222,7 +223,11 @@ o.spec("OfflineStorage", function () {
 					const archiveId = "archiveId"
 					const blobElementId = "id1"
 					const _ownerGroup = "ownerGroup"
-					const storableMailDetails = createMailDetailsBlob({ _id: [archiveId, blobElementId], _ownerGroup, details: createMailDetails() })
+					const storableMailDetails = createMailDetailsBlob({
+						_id: [archiveId, blobElementId],
+						_ownerGroup,
+						details: createTestEntity(MailDetailsTypeRef),
+					})
 
 					await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
@@ -258,7 +263,7 @@ o.spec("OfflineStorage", function () {
 				const lower = offsetId(-2)
 				const mailDetailsBlobId: IdTuple = ["mailDetailsList", "mailDetailsBlobId"]
 				await insertEntity(createMailFolder({ _id: ["mailFolderList", "mailFolderId"], mails: listId }))
-				await insertEntity(createMailDetailsBlob({ _id: mailDetailsBlobId, details: createMailDetails() }))
+				await insertEntity(createMailDetailsBlob({ _id: mailDetailsBlobId, details: createTestEntity(MailDetailsTypeRef) }))
 				await insertEntity(createMail({ _id: [listId, "anything"], mailDetails: mailDetailsBlobId }))
 				await insertRange(MailTypeRef, listId, lower, upper)
 
@@ -399,8 +404,8 @@ o.spec("OfflineStorage", function () {
 
 				await insertEntity(spamMail)
 				await insertEntity(trashMail)
-				await insertEntity(createMailDetailsBlob({ _id: spamDetailsId, details: createMailDetails() }))
-				await insertEntity(createMailDetailsBlob({ _id: trashDetailsId, details: createMailDetails() }))
+				await insertEntity(createMailDetailsBlob({ _id: spamDetailsId, details: createTestEntity(MailDetailsTypeRef) }))
+				await insertEntity(createMailDetailsBlob({ _id: trashDetailsId, details: createTestEntity(MailDetailsTypeRef) }))
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)

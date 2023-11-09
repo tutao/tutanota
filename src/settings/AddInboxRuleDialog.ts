@@ -66,10 +66,11 @@ export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRule) {
 		const isNewRule = ruleOrTemplate._id === null
 
 		const addInboxRuleOkAction = (dialog: Dialog) => {
-			let rule = createInboxRule()
-			rule.type = inboxRuleType()
-			rule.value = getCleanedValue(inboxRuleType(), inboxRuleValue())
-			rule.targetFolder = inboxRuleTarget()._id
+			let rule = createInboxRule({
+				type: inboxRuleType(),
+				value: getCleanedValue(inboxRuleType(), inboxRuleValue()),
+				targetFolder: inboxRuleTarget()._id,
+			})
 			const props = locator.logins.getUserController().props
 			const inboxRules = props.inboxRules
 			props.inboxRules = isNewRule
@@ -107,10 +108,10 @@ export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRule) {
 }
 
 export function createInboxRuleTemplate(ruleType: string | null, value: string | null): InboxRule {
-	const template = createInboxRule()
-	template.type = ruleType || InboxRuleType.FROM_EQUALS
-	template.value = getCleanedValue(neverNull(ruleType), value || "")
-	return template
+	return createInboxRule({
+		type: ruleType || InboxRuleType.FROM_EQUALS,
+		value: getCleanedValue(neverNull(ruleType), value || ""),
+	})
 }
 
 function validateInboxRuleInput(type: string, value: string, ruleId: Id): TranslationKey | null {

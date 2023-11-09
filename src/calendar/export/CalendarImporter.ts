@@ -51,11 +51,12 @@ export function parseCalendarFile(file: DataFile): ParsedCalendarData {
 export function makeInvitationCalendarFile(event: CalendarEvent, method: CalendarMethod, now: Date, zone: string): DataFile {
 	const stringValue = makeInvitationCalendar(env.versionNumber, event, method, now, zone)
 	const data = stringToUtf8Uint8Array(stringValue)
-	const tmpFile = createFile()
 	const date = new Date()
-	tmpFile.name = `${method.toLowerCase()}-${date.getFullYear()}${date.getMonth() + 1}${date.getDate()}.ics`
-	tmpFile.mimeType = CALENDAR_MIME_TYPE
-	tmpFile.size = String(data.byteLength)
+	const tmpFile = createFile({
+		name: `${method.toLowerCase()}-${date.getFullYear()}${date.getMonth() + 1}${date.getDate()}.ics`,
+		mimeType: CALENDAR_MIME_TYPE,
+		size: String(data.byteLength),
+	})
 	return convertToDataFile(tmpFile, data)
 }
 

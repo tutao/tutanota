@@ -57,19 +57,22 @@ export function createNewContact(user: User, mailAddress: string, name: string):
 	// prepare some contact information. it is only saved if the mail is sent securely
 	// use the name or mail address to extract first and last name. first part is used as first name, all other parts as last name
 	let firstAndLastName = name.trim() !== "" ? fullNameToFirstAndLastName(name) : mailAddressToFirstAndLastName(mailAddress)
-	let contact = createContact()
-	contact._owner = user._id
-	contact._ownerGroup = assertNotNull(
-		user.memberships.find((m) => m.groupType === GroupType.Contact),
-		"called createNewContact as user without contact group mship",
-	).group
-	contact.firstName = firstAndLastName.firstName
-	contact.lastName = firstAndLastName.lastName
-	let ma = createContactMailAddress()
-	ma.address = mailAddress
-	ma.type = ContactAddressType.OTHER
-	ma.customTypeName = ""
-	contact.mailAddresses.push(ma)
+	let contact = createContact({
+		_ownerGroup: assertNotNull(
+			user.memberships.find((m) => m.groupType === GroupType.Contact),
+			"called createNewContact as user without contact group mship",
+		).group,
+		_owner: user._id,
+		firstName: firstAndLastName.firstName,
+		lastName: firstAndLastName.lastName,
+		mailAddresses: [
+			createContactMailAddress({
+				address: mailAddress,
+				type: ContactAddressType.OTHER,
+				customTypeName: "",
+			}),
+		],
+	})
 	return contact
 }
 

@@ -9,8 +9,10 @@ import {
 	Customer,
 	CustomerInfo,
 	CustomerProperties,
+	CustomerTypeRef,
 } from "../../../src/api/entities/sys/TypeRefs.js"
 import { Const } from "../../../src/api/common/TutanotaConstants.js"
+import { createTestEntity } from "../TestUtils.js"
 
 o.spec("PostLoginUtils", () => {
 	o.spec("shouldShowUpgradeReminder", () => {
@@ -25,7 +27,7 @@ o.spec("PostLoginUtils", () => {
 
 			customerInfo = createCustomerInfo({})
 			customerProperties = createCustomerProperties({})
-			customer = createCustomer()
+			customer = createTestEntity(CustomerTypeRef)
 
 			when(userController.loadCustomerInfo()).thenResolve(customerInfo)
 			when(userController.loadCustomerProperties()).thenResolve(customerProperties)

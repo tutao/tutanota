@@ -107,6 +107,6 @@ export async function getReferralLink(userController: UserController): Promise<s
 }
 
 async function requestNewReferralCode(): Promise<string> {
-	const { referralCode } = await locator.serviceExecutor.post(ReferralCodeService, createReferralCodePostIn())
+	const { referralCode } = await locator.serviceExecutor.post(ReferralCodeService, createReferralCodePostIn({}))
 	return referralCode
 }

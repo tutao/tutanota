@@ -26,6 +26,7 @@ import {
 	createUser,
 	CustomerTypeRef,
 	EntityUpdate,
+	EntityUpdateTypeRef,
 	ExternalUserReferenceTypeRef,
 	PermissionTypeRef,
 	UserTypeRef,
@@ -59,6 +60,7 @@ import { createEventElementId } from "../../../../../src/api/common/utils/Common
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { func, instance, matchers, object, replace, when } from "testdouble"
 import { SqlCipherFacade } from "../../../../../src/native/common/generatedipc/SqlCipherFacade.js"
+import { createTestEntity } from "../../../TestUtils.js"
 
 const { anything } = matchers
 
@@ -111,7 +113,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 		let userId: Id | null
 
 		let createUpdate = function (typeRef: TypeRef<any>, listId: Id, id: Id, operation: OperationType): EntityUpdate {
-			let eu = createEntityUpdate()
+			let eu = createTestEntity(EntityUpdateTypeRef)
 			eu.application = typeRef.app
 			eu.type = typeRef.type
 			eu.instanceListId = listId
@@ -125,14 +127,14 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 		}
 
 		let createBodyInstance = function (id, bodyText): MailBody {
-			let body = createMailBody()
+			let body = createTestEntity(MailBodyTypeRef)
 			body._id = createId(id)
 			body.text = bodyText
 			return body
 		}
 
 		let createMailInstance = function (listId, id, subject): Mail {
-			let mail = createMail()
+			let mail = createTestEntity(MailTypeRef)
 			mail._id = [listId, createId(id)]
 			mail.subject = subject ?? ""
 			return mail
@@ -1236,7 +1238,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 		})
 
 		o("custom id range is not stored", async function () {
-			let ref = clone(createExternalUserReference())
+			let ref = clone(createTestEntity(ExternalUserReferenceTypeRef))
 			ref._id = ["listId1", stringToCustomId("custom")]
 			const loadRange = spy(function (typeRef, listId, start, count, reverse) {
 				o(isSameTypeRef(typeRef, ExternalUserReferenceTypeRef)).equals(true)

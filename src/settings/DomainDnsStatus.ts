@@ -16,9 +16,10 @@ export class DomainDnsStatus {
 	constructor(cleanDomainName: string, customerId?: Id) {
 		this.domain = cleanDomainName
 		this.status = new LazyLoaded(() => {
-			let data = createCustomDomainCheckGetIn()
-			data.domain = cleanDomainName
-			data.customer = customerId ?? null
+			let data = createCustomDomainCheckGetIn({
+				domain: cleanDomainName,
+				customer: customerId ?? null,
+			})
 			return locator.serviceExecutor.get(CustomDomainCheckService, data)
 		})
 	}

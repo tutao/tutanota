@@ -12,10 +12,11 @@ assertMainOrNode()
 export function exportContacts(contacts: Contact[]): Promise<void> {
 	let vCardFile = contactsToVCard(contacts)
 	let data = stringToUtf8Uint8Array(vCardFile)
-	let tmpFile = createFile()
-	tmpFile.name = "vCard3.0.vcf"
-	tmpFile.mimeType = "vCard/rfc2426"
-	tmpFile.size = String(data.byteLength)
+	let tmpFile = createFile({
+		name: "vCard3.0.vcf",
+		mimeType: "vCard/rfc2426",
+		size: String(data.byteLength),
+	})
 	return locator.fileController.saveDataFile(convertToDataFile(tmpFile, data))
 }
 

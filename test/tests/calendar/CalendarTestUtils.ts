@@ -12,6 +12,7 @@ import {
 	createPlanConfiguration,
 	createUser,
 	Feature,
+	GroupInfoTypeRef,
 	User,
 } from "../../../src/api/entities/sys/TypeRefs.js"
 import { GENERATED_MAX_ID } from "../../../src/api/common/utils/EntityUtils.js"
@@ -27,6 +28,8 @@ import {
 	createMailboxGroupRoot,
 	createTutanotaProperties,
 	EncryptedMailAddress,
+	MailboxGroupRootTypeRef,
+	MailBoxTypeRef,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import type { MailboxDetail } from "../../../src/mail/model/MailModel.js"
 import o from "@tutao/otest"
@@ -36,6 +39,7 @@ import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
 import { Recipient, RecipientType } from "../../../src/api/common/recipients/Recipient.js"
 import { DateTime } from "luxon"
 import { spy } from "@tutao/tutanota-test-utils"
+import { createTestEntity } from "../TestUtils.js"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const
@@ -228,13 +232,13 @@ export function makeUserController(
 
 export function makeMailboxDetail(): MailboxDetail {
 	return {
-		mailbox: createMailBox(),
+		mailbox: createTestEntity(MailBoxTypeRef),
 		folders: new FolderSystem([]),
-		mailGroupInfo: createGroupInfo(),
+		mailGroupInfo: createTestEntity(GroupInfoTypeRef),
 		mailGroup: createGroup({
 			user: ownerId,
 		}),
-		mailboxGroupRoot: createMailboxGroupRoot(),
+		mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
 	}
 }
 

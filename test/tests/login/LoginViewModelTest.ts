@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { DisplayMode, isLegacyDomain, LoginState, LoginViewModel } from "../../../src/login/LoginViewModel.js"
 import type { LoginController } from "../../../src/api/main/LoginController.js"
-import { createGroupInfo, createUser } from "../../../src/api/entities/sys/TypeRefs.js"
+import { createGroupInfo, createUser, UserTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
 import type { UserController } from "../../../src/api/main/UserController.js"
 import { KeyPermanentlyInvalidatedError } from "../../../src/api/common/error/KeyPermanentlyInvalidatedError.js"
 import { CredentialAuthenticationError } from "../../../src/api/common/error/CredentialAuthenticationError.js"
@@ -16,7 +16,7 @@ import { DatabaseKeyFactory } from "../../../src/misc/credentials/DatabaseKeyFac
 import { DeviceConfig } from "../../../src/misc/DeviceConfig"
 import { ResumeSessionErrorReason } from "../../../src/api/worker/facades/LoginFacade"
 import { Mode } from "../../../src/api/common/Env.js"
-import { domainConfigStub } from "../TestUtils.js"
+import { createTestEntity, domainConfigStub } from "../TestUtils.js"
 
 const { anything } = matchers
 
@@ -114,7 +114,7 @@ o.spec("LoginViewModelTest", () => {
 		loginControllerMock = object<LoginController>()
 		const userControllerMock = object<UserController>()
 
-		replace(userControllerMock, "user", createUser())
+		replace(userControllerMock, "user", createTestEntity(UserTypeRef))
 		replace(
 			userControllerMock,
 			"userGroupInfo",

@@ -115,9 +115,10 @@ export class InboxRuleHandler {
 					if (moveMailData) {
 						moveMailData.mails.push(mail._id)
 					} else {
-						moveMailData = createMoveMailData()
-						moveMailData.targetFolder = inboxRule.targetFolder
-						moveMailData.mails.push(mail._id)
+						moveMailData = createMoveMailData({
+							targetFolder: inboxRule.targetFolder,
+							mails: [mail._id],
+						})
 						moveMailDataPerFolder.push(moveMailData)
 					}
 

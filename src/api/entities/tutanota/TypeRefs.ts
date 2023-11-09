@@ -8,7 +8,7 @@ import {BlobReferenceTokenWrapper} from '../sys/TypeRefs.js'
 
 export const AttachmentKeyDataTypeRef: TypeRef<AttachmentKeyData> = new TypeRef("tutanota", "AttachmentKeyData")
 
-export function createAttachmentKeyData(values?: Partial<AttachmentKeyData>): AttachmentKeyData {
+export function createAttachmentKeyData(values: Partial<AttachmentKeyData>): AttachmentKeyData {
 	return Object.assign(create(typeModels.AttachmentKeyData, AttachmentKeyDataTypeRef), values)
 }
 
@@ -23,7 +23,7 @@ export type AttachmentKeyData = {
 }
 export const BirthdayTypeRef: TypeRef<Birthday> = new TypeRef("tutanota", "Birthday")
 
-export function createBirthday(values?: Partial<Birthday>): Birthday {
+export function createBirthday(values: Partial<Birthday>): Birthday {
 	return Object.assign(create(typeModels.Birthday, BirthdayTypeRef), values)
 }
 
@@ -37,7 +37,7 @@ export type Birthday = {
 }
 export const BodyTypeRef: TypeRef<Body> = new TypeRef("tutanota", "Body")
 
-export function createBody(values?: Partial<Body>): Body {
+export function createBody(values: Partial<Body>): Body {
 	return Object.assign(create(typeModels.Body, BodyTypeRef), values)
 }
 
@@ -50,7 +50,7 @@ export type Body = {
 }
 export const CalendarDeleteDataTypeRef: TypeRef<CalendarDeleteData> = new TypeRef("tutanota", "CalendarDeleteData")
 
-export function createCalendarDeleteData(values?: Partial<CalendarDeleteData>): CalendarDeleteData {
+export function createCalendarDeleteData(values: Partial<CalendarDeleteData>): CalendarDeleteData {
 	return Object.assign(create(typeModels.CalendarDeleteData, CalendarDeleteDataTypeRef), values)
 }
 
@@ -63,7 +63,7 @@ export type CalendarDeleteData = {
 }
 export const CalendarEventTypeRef: TypeRef<CalendarEvent> = new TypeRef("tutanota", "CalendarEvent")
 
-export function createCalendarEvent(values?: Partial<CalendarEvent>): CalendarEvent {
+export function createCalendarEvent(values: Partial<CalendarEvent>): CalendarEvent {
 	return Object.assign(create(typeModels.CalendarEvent, CalendarEventTypeRef), values)
 }
 
@@ -94,7 +94,7 @@ export type CalendarEvent = {
 }
 export const CalendarEventAttendeeTypeRef: TypeRef<CalendarEventAttendee> = new TypeRef("tutanota", "CalendarEventAttendee")
 
-export function createCalendarEventAttendee(values?: Partial<CalendarEventAttendee>): CalendarEventAttendee {
+export function createCalendarEventAttendee(values: Partial<CalendarEventAttendee>): CalendarEventAttendee {
 	return Object.assign(create(typeModels.CalendarEventAttendee, CalendarEventAttendeeTypeRef), values)
 }
 
@@ -108,7 +108,7 @@ export type CalendarEventAttendee = {
 }
 export const CalendarEventIndexRefTypeRef: TypeRef<CalendarEventIndexRef> = new TypeRef("tutanota", "CalendarEventIndexRef")
 
-export function createCalendarEventIndexRef(values?: Partial<CalendarEventIndexRef>): CalendarEventIndexRef {
+export function createCalendarEventIndexRef(values: Partial<CalendarEventIndexRef>): CalendarEventIndexRef {
 	return Object.assign(create(typeModels.CalendarEventIndexRef, CalendarEventIndexRefTypeRef), values)
 }
 
@@ -121,7 +121,7 @@ export type CalendarEventIndexRef = {
 }
 export const CalendarEventUidIndexTypeRef: TypeRef<CalendarEventUidIndex> = new TypeRef("tutanota", "CalendarEventUidIndex")
 
-export function createCalendarEventUidIndex(values?: Partial<CalendarEventUidIndex>): CalendarEventUidIndex {
+export function createCalendarEventUidIndex(values: Partial<CalendarEventUidIndex>): CalendarEventUidIndex {
 	return Object.assign(create(typeModels.CalendarEventUidIndex, CalendarEventUidIndexTypeRef), values)
 }
 
@@ -138,7 +138,7 @@ export type CalendarEventUidIndex = {
 }
 export const CalendarEventUpdateTypeRef: TypeRef<CalendarEventUpdate> = new TypeRef("tutanota", "CalendarEventUpdate")
 
-export function createCalendarEventUpdate(values?: Partial<CalendarEventUpdate>): CalendarEventUpdate {
+export function createCalendarEventUpdate(values: Partial<CalendarEventUpdate>): CalendarEventUpdate {
 	return Object.assign(create(typeModels.CalendarEventUpdate, CalendarEventUpdateTypeRef), values)
 }
 
@@ -157,7 +157,7 @@ export type CalendarEventUpdate = {
 }
 export const CalendarEventUpdateListTypeRef: TypeRef<CalendarEventUpdateList> = new TypeRef("tutanota", "CalendarEventUpdateList")
 
-export function createCalendarEventUpdateList(values?: Partial<CalendarEventUpdateList>): CalendarEventUpdateList {
+export function createCalendarEventUpdateList(values: Partial<CalendarEventUpdateList>): CalendarEventUpdateList {
 	return Object.assign(create(typeModels.CalendarEventUpdateList, CalendarEventUpdateListTypeRef), values)
 }
 
@@ -170,7 +170,7 @@ export type CalendarEventUpdateList = {
 }
 export const CalendarGroupRootTypeRef: TypeRef<CalendarGroupRoot> = new TypeRef("tutanota", "CalendarGroupRoot")
 
-export function createCalendarGroupRoot(values?: Partial<CalendarGroupRoot>): CalendarGroupRoot {
+export function createCalendarGroupRoot(values: Partial<CalendarGroupRoot>): CalendarGroupRoot {
 	return Object.assign(create(typeModels.CalendarGroupRoot, CalendarGroupRootTypeRef), values)
 }
 
@@ -190,7 +190,7 @@ export type CalendarGroupRoot = {
 }
 export const CalendarRepeatRuleTypeRef: TypeRef<CalendarRepeatRule> = new TypeRef("tutanota", "CalendarRepeatRule")
 
-export function createCalendarRepeatRule(values?: Partial<CalendarRepeatRule>): CalendarRepeatRule {
+export function createCalendarRepeatRule(values: Partial<CalendarRepeatRule>): CalendarRepeatRule {
 	return Object.assign(create(typeModels.CalendarRepeatRule, CalendarRepeatRuleTypeRef), values)
 }
 
@@ -208,7 +208,7 @@ export type CalendarRepeatRule = {
 }
 export const ContactTypeRef: TypeRef<Contact> = new TypeRef("tutanota", "Contact")
 
-export function createContact(values?: Partial<Contact>): Contact {
+export function createContact(values: Partial<Contact>): Contact {
 	return Object.assign(create(typeModels.Contact, ContactTypeRef), values)
 }
 
@@ -244,7 +244,7 @@ export type Contact = {
 }
 export const ContactAddressTypeRef: TypeRef<ContactAddress> = new TypeRef("tutanota", "ContactAddress")
 
-export function createContactAddress(values?: Partial<ContactAddress>): ContactAddress {
+export function createContactAddress(values: Partial<ContactAddress>): ContactAddress {
 	return Object.assign(create(typeModels.ContactAddress, ContactAddressTypeRef), values)
 }
 
@@ -258,7 +258,7 @@ export type ContactAddress = {
 }
 export const ContactListTypeRef: TypeRef<ContactList> = new TypeRef("tutanota", "ContactList")
 
-export function createContactList(values?: Partial<ContactList>): ContactList {
+export function createContactList(values: Partial<ContactList>): ContactList {
 	return Object.assign(create(typeModels.ContactList, ContactListTypeRef), values)
 }
 
@@ -277,7 +277,7 @@ export type ContactList = {
 }
 export const ContactListEntryTypeRef: TypeRef<ContactListEntry> = new TypeRef("tutanota", "ContactListEntry")
 
-export function createContactListEntry(values?: Partial<ContactListEntry>): ContactListEntry {
+export function createContactListEntry(values: Partial<ContactListEntry>): ContactListEntry {
 	return Object.assign(create(typeModels.ContactListEntry, ContactListEntryTypeRef), values)
 }
 
@@ -294,7 +294,7 @@ export type ContactListEntry = {
 }
 export const ContactListGroupRootTypeRef: TypeRef<ContactListGroupRoot> = new TypeRef("tutanota", "ContactListGroupRoot")
 
-export function createContactListGroupRoot(values?: Partial<ContactListGroupRoot>): ContactListGroupRoot {
+export function createContactListGroupRoot(values: Partial<ContactListGroupRoot>): ContactListGroupRoot {
 	return Object.assign(create(typeModels.ContactListGroupRoot, ContactListGroupRootTypeRef), values)
 }
 
@@ -312,7 +312,7 @@ export type ContactListGroupRoot = {
 }
 export const ContactMailAddressTypeRef: TypeRef<ContactMailAddress> = new TypeRef("tutanota", "ContactMailAddress")
 
-export function createContactMailAddress(values?: Partial<ContactMailAddress>): ContactMailAddress {
+export function createContactMailAddress(values: Partial<ContactMailAddress>): ContactMailAddress {
 	return Object.assign(create(typeModels.ContactMailAddress, ContactMailAddressTypeRef), values)
 }
 
@@ -326,7 +326,7 @@ export type ContactMailAddress = {
 }
 export const ContactPhoneNumberTypeRef: TypeRef<ContactPhoneNumber> = new TypeRef("tutanota", "ContactPhoneNumber")
 
-export function createContactPhoneNumber(values?: Partial<ContactPhoneNumber>): ContactPhoneNumber {
+export function createContactPhoneNumber(values: Partial<ContactPhoneNumber>): ContactPhoneNumber {
 	return Object.assign(create(typeModels.ContactPhoneNumber, ContactPhoneNumberTypeRef), values)
 }
 
@@ -340,7 +340,7 @@ export type ContactPhoneNumber = {
 }
 export const ContactSocialIdTypeRef: TypeRef<ContactSocialId> = new TypeRef("tutanota", "ContactSocialId")
 
-export function createContactSocialId(values?: Partial<ContactSocialId>): ContactSocialId {
+export function createContactSocialId(values: Partial<ContactSocialId>): ContactSocialId {
 	return Object.assign(create(typeModels.ContactSocialId, ContactSocialIdTypeRef), values)
 }
 
@@ -354,7 +354,7 @@ export type ContactSocialId = {
 }
 export const ConversationEntryTypeRef: TypeRef<ConversationEntry> = new TypeRef("tutanota", "ConversationEntry")
 
-export function createConversationEntry(values?: Partial<ConversationEntry>): ConversationEntry {
+export function createConversationEntry(values: Partial<ConversationEntry>): ConversationEntry {
 	return Object.assign(create(typeModels.ConversationEntry, ConversationEntryTypeRef), values)
 }
 
@@ -373,7 +373,7 @@ export type ConversationEntry = {
 }
 export const CreateExternalUserGroupDataTypeRef: TypeRef<CreateExternalUserGroupData> = new TypeRef("tutanota", "CreateExternalUserGroupData")
 
-export function createCreateExternalUserGroupData(values?: Partial<CreateExternalUserGroupData>): CreateExternalUserGroupData {
+export function createCreateExternalUserGroupData(values: Partial<CreateExternalUserGroupData>): CreateExternalUserGroupData {
 	return Object.assign(create(typeModels.CreateExternalUserGroupData, CreateExternalUserGroupDataTypeRef), values)
 }
 
@@ -387,7 +387,7 @@ export type CreateExternalUserGroupData = {
 }
 export const CreateGroupPostReturnTypeRef: TypeRef<CreateGroupPostReturn> = new TypeRef("tutanota", "CreateGroupPostReturn")
 
-export function createCreateGroupPostReturn(values?: Partial<CreateGroupPostReturn>): CreateGroupPostReturn {
+export function createCreateGroupPostReturn(values: Partial<CreateGroupPostReturn>): CreateGroupPostReturn {
 	return Object.assign(create(typeModels.CreateGroupPostReturn, CreateGroupPostReturnTypeRef), values)
 }
 
@@ -401,7 +401,7 @@ export type CreateGroupPostReturn = {
 }
 export const CreateLocalAdminGroupDataTypeRef: TypeRef<CreateLocalAdminGroupData> = new TypeRef("tutanota", "CreateLocalAdminGroupData")
 
-export function createCreateLocalAdminGroupData(values?: Partial<CreateLocalAdminGroupData>): CreateLocalAdminGroupData {
+export function createCreateLocalAdminGroupData(values: Partial<CreateLocalAdminGroupData>): CreateLocalAdminGroupData {
 	return Object.assign(create(typeModels.CreateLocalAdminGroupData, CreateLocalAdminGroupDataTypeRef), values)
 }
 
@@ -415,7 +415,7 @@ export type CreateLocalAdminGroupData = {
 }
 export const CreateMailFolderDataTypeRef: TypeRef<CreateMailFolderData> = new TypeRef("tutanota", "CreateMailFolderData")
 
-export function createCreateMailFolderData(values?: Partial<CreateMailFolderData>): CreateMailFolderData {
+export function createCreateMailFolderData(values: Partial<CreateMailFolderData>): CreateMailFolderData {
 	return Object.assign(create(typeModels.CreateMailFolderData, CreateMailFolderDataTypeRef), values)
 }
 
@@ -432,7 +432,7 @@ export type CreateMailFolderData = {
 }
 export const CreateMailFolderReturnTypeRef: TypeRef<CreateMailFolderReturn> = new TypeRef("tutanota", "CreateMailFolderReturn")
 
-export function createCreateMailFolderReturn(values?: Partial<CreateMailFolderReturn>): CreateMailFolderReturn {
+export function createCreateMailFolderReturn(values: Partial<CreateMailFolderReturn>): CreateMailFolderReturn {
 	return Object.assign(create(typeModels.CreateMailFolderReturn, CreateMailFolderReturnTypeRef), values)
 }
 
@@ -446,7 +446,7 @@ export type CreateMailFolderReturn = {
 }
 export const CreateMailGroupDataTypeRef: TypeRef<CreateMailGroupData> = new TypeRef("tutanota", "CreateMailGroupData")
 
-export function createCreateMailGroupData(values?: Partial<CreateMailGroupData>): CreateMailGroupData {
+export function createCreateMailGroupData(values: Partial<CreateMailGroupData>): CreateMailGroupData {
 	return Object.assign(create(typeModels.CreateMailGroupData, CreateMailGroupDataTypeRef), values)
 }
 
@@ -462,7 +462,7 @@ export type CreateMailGroupData = {
 }
 export const CustomerAccountCreateDataTypeRef: TypeRef<CustomerAccountCreateData> = new TypeRef("tutanota", "CustomerAccountCreateData")
 
-export function createCustomerAccountCreateData(values?: Partial<CustomerAccountCreateData>): CustomerAccountCreateData {
+export function createCustomerAccountCreateData(values: Partial<CustomerAccountCreateData>): CustomerAccountCreateData {
 	return Object.assign(create(typeModels.CustomerAccountCreateData, CustomerAccountCreateDataTypeRef), values)
 }
 
@@ -487,7 +487,7 @@ export type CustomerAccountCreateData = {
 }
 export const DeleteGroupDataTypeRef: TypeRef<DeleteGroupData> = new TypeRef("tutanota", "DeleteGroupData")
 
-export function createDeleteGroupData(values?: Partial<DeleteGroupData>): DeleteGroupData {
+export function createDeleteGroupData(values: Partial<DeleteGroupData>): DeleteGroupData {
 	return Object.assign(create(typeModels.DeleteGroupData, DeleteGroupDataTypeRef), values)
 }
 
@@ -501,7 +501,7 @@ export type DeleteGroupData = {
 }
 export const DeleteMailDataTypeRef: TypeRef<DeleteMailData> = new TypeRef("tutanota", "DeleteMailData")
 
-export function createDeleteMailData(values?: Partial<DeleteMailData>): DeleteMailData {
+export function createDeleteMailData(values: Partial<DeleteMailData>): DeleteMailData {
 	return Object.assign(create(typeModels.DeleteMailData, DeleteMailDataTypeRef), values)
 }
 
@@ -515,7 +515,7 @@ export type DeleteMailData = {
 }
 export const DeleteMailFolderDataTypeRef: TypeRef<DeleteMailFolderData> = new TypeRef("tutanota", "DeleteMailFolderData")
 
-export function createDeleteMailFolderData(values?: Partial<DeleteMailFolderData>): DeleteMailFolderData {
+export function createDeleteMailFolderData(values: Partial<DeleteMailFolderData>): DeleteMailFolderData {
 	return Object.assign(create(typeModels.DeleteMailFolderData, DeleteMailFolderDataTypeRef), values)
 }
 
@@ -529,7 +529,7 @@ export type DeleteMailFolderData = {
 }
 export const DraftAttachmentTypeRef: TypeRef<DraftAttachment> = new TypeRef("tutanota", "DraftAttachment")
 
-export function createDraftAttachment(values?: Partial<DraftAttachment>): DraftAttachment {
+export function createDraftAttachment(values: Partial<DraftAttachment>): DraftAttachment {
 	return Object.assign(create(typeModels.DraftAttachment, DraftAttachmentTypeRef), values)
 }
 
@@ -544,7 +544,7 @@ export type DraftAttachment = {
 }
 export const DraftCreateDataTypeRef: TypeRef<DraftCreateData> = new TypeRef("tutanota", "DraftCreateData")
 
-export function createDraftCreateData(values?: Partial<DraftCreateData>): DraftCreateData {
+export function createDraftCreateData(values: Partial<DraftCreateData>): DraftCreateData {
 	return Object.assign(create(typeModels.DraftCreateData, DraftCreateDataTypeRef), values)
 }
 
@@ -562,7 +562,7 @@ export type DraftCreateData = {
 }
 export const DraftCreateReturnTypeRef: TypeRef<DraftCreateReturn> = new TypeRef("tutanota", "DraftCreateReturn")
 
-export function createDraftCreateReturn(values?: Partial<DraftCreateReturn>): DraftCreateReturn {
+export function createDraftCreateReturn(values: Partial<DraftCreateReturn>): DraftCreateReturn {
 	return Object.assign(create(typeModels.DraftCreateReturn, DraftCreateReturnTypeRef), values)
 }
 
@@ -575,7 +575,7 @@ export type DraftCreateReturn = {
 }
 export const DraftDataTypeRef: TypeRef<DraftData> = new TypeRef("tutanota", "DraftData")
 
-export function createDraftData(values?: Partial<DraftData>): DraftData {
+export function createDraftData(values: Partial<DraftData>): DraftData {
 	return Object.assign(create(typeModels.DraftData, DraftDataTypeRef), values)
 }
 
@@ -600,7 +600,7 @@ export type DraftData = {
 }
 export const DraftRecipientTypeRef: TypeRef<DraftRecipient> = new TypeRef("tutanota", "DraftRecipient")
 
-export function createDraftRecipient(values?: Partial<DraftRecipient>): DraftRecipient {
+export function createDraftRecipient(values: Partial<DraftRecipient>): DraftRecipient {
 	return Object.assign(create(typeModels.DraftRecipient, DraftRecipientTypeRef), values)
 }
 
@@ -613,7 +613,7 @@ export type DraftRecipient = {
 }
 export const DraftUpdateDataTypeRef: TypeRef<DraftUpdateData> = new TypeRef("tutanota", "DraftUpdateData")
 
-export function createDraftUpdateData(values?: Partial<DraftUpdateData>): DraftUpdateData {
+export function createDraftUpdateData(values: Partial<DraftUpdateData>): DraftUpdateData {
 	return Object.assign(create(typeModels.DraftUpdateData, DraftUpdateDataTypeRef), values)
 }
 
@@ -628,7 +628,7 @@ export type DraftUpdateData = {
 }
 export const DraftUpdateReturnTypeRef: TypeRef<DraftUpdateReturn> = new TypeRef("tutanota", "DraftUpdateReturn")
 
-export function createDraftUpdateReturn(values?: Partial<DraftUpdateReturn>): DraftUpdateReturn {
+export function createDraftUpdateReturn(values: Partial<DraftUpdateReturn>): DraftUpdateReturn {
 	return Object.assign(create(typeModels.DraftUpdateReturn, DraftUpdateReturnTypeRef), values)
 }
 
@@ -642,7 +642,7 @@ export type DraftUpdateReturn = {
 }
 export const EmailTemplateTypeRef: TypeRef<EmailTemplate> = new TypeRef("tutanota", "EmailTemplate")
 
-export function createEmailTemplate(values?: Partial<EmailTemplate>): EmailTemplate {
+export function createEmailTemplate(values: Partial<EmailTemplate>): EmailTemplate {
 	return Object.assign(create(typeModels.EmailTemplate, EmailTemplateTypeRef), values)
 }
 
@@ -662,7 +662,7 @@ export type EmailTemplate = {
 }
 export const EmailTemplateContentTypeRef: TypeRef<EmailTemplateContent> = new TypeRef("tutanota", "EmailTemplateContent")
 
-export function createEmailTemplateContent(values?: Partial<EmailTemplateContent>): EmailTemplateContent {
+export function createEmailTemplateContent(values: Partial<EmailTemplateContent>): EmailTemplateContent {
 	return Object.assign(create(typeModels.EmailTemplateContent, EmailTemplateContentTypeRef), values)
 }
 
@@ -675,7 +675,7 @@ export type EmailTemplateContent = {
 }
 export const EncryptTutanotaPropertiesDataTypeRef: TypeRef<EncryptTutanotaPropertiesData> = new TypeRef("tutanota", "EncryptTutanotaPropertiesData")
 
-export function createEncryptTutanotaPropertiesData(values?: Partial<EncryptTutanotaPropertiesData>): EncryptTutanotaPropertiesData {
+export function createEncryptTutanotaPropertiesData(values: Partial<EncryptTutanotaPropertiesData>): EncryptTutanotaPropertiesData {
 	return Object.assign(create(typeModels.EncryptTutanotaPropertiesData, EncryptTutanotaPropertiesDataTypeRef), values)
 }
 
@@ -689,7 +689,7 @@ export type EncryptTutanotaPropertiesData = {
 }
 export const EncryptedMailAddressTypeRef: TypeRef<EncryptedMailAddress> = new TypeRef("tutanota", "EncryptedMailAddress")
 
-export function createEncryptedMailAddress(values?: Partial<EncryptedMailAddress>): EncryptedMailAddress {
+export function createEncryptedMailAddress(values: Partial<EncryptedMailAddress>): EncryptedMailAddress {
 	return Object.assign(create(typeModels.EncryptedMailAddress, EncryptedMailAddressTypeRef), values)
 }
 
@@ -702,7 +702,7 @@ export type EncryptedMailAddress = {
 }
 export const EntropyDataTypeRef: TypeRef<EntropyData> = new TypeRef("tutanota", "EntropyData")
 
-export function createEntropyData(values?: Partial<EntropyData>): EntropyData {
+export function createEntropyData(values: Partial<EntropyData>): EntropyData {
 	return Object.assign(create(typeModels.EntropyData, EntropyDataTypeRef), values)
 }
 
@@ -714,7 +714,7 @@ export type EntropyData = {
 }
 export const ExternalUserDataTypeRef: TypeRef<ExternalUserData> = new TypeRef("tutanota", "ExternalUserData")
 
-export function createExternalUserData(values?: Partial<ExternalUserData>): ExternalUserData {
+export function createExternalUserData(values: Partial<ExternalUserData>): ExternalUserData {
 	return Object.assign(create(typeModels.ExternalUserData, ExternalUserDataTypeRef), values)
 }
 
@@ -738,7 +738,7 @@ export type ExternalUserData = {
 }
 export const FileTypeRef: TypeRef<File> = new TypeRef("tutanota", "File")
 
-export function createFile(values?: Partial<File>): File {
+export function createFile(values: Partial<File>): File {
 	return Object.assign(create(typeModels.File, FileTypeRef), values)
 }
 
@@ -764,7 +764,7 @@ export type File = {
 }
 export const FileSystemTypeRef: TypeRef<FileSystem> = new TypeRef("tutanota", "FileSystem")
 
-export function createFileSystem(values?: Partial<FileSystem>): FileSystem {
+export function createFileSystem(values: Partial<FileSystem>): FileSystem {
 	return Object.assign(create(typeModels.FileSystem, FileSystemTypeRef), values)
 }
 
@@ -782,7 +782,7 @@ export type FileSystem = {
 }
 export const GroupInvitationDeleteDataTypeRef: TypeRef<GroupInvitationDeleteData> = new TypeRef("tutanota", "GroupInvitationDeleteData")
 
-export function createGroupInvitationDeleteData(values?: Partial<GroupInvitationDeleteData>): GroupInvitationDeleteData {
+export function createGroupInvitationDeleteData(values: Partial<GroupInvitationDeleteData>): GroupInvitationDeleteData {
 	return Object.assign(create(typeModels.GroupInvitationDeleteData, GroupInvitationDeleteDataTypeRef), values)
 }
 
@@ -795,7 +795,7 @@ export type GroupInvitationDeleteData = {
 }
 export const GroupInvitationPostDataTypeRef: TypeRef<GroupInvitationPostData> = new TypeRef("tutanota", "GroupInvitationPostData")
 
-export function createGroupInvitationPostData(values?: Partial<GroupInvitationPostData>): GroupInvitationPostData {
+export function createGroupInvitationPostData(values: Partial<GroupInvitationPostData>): GroupInvitationPostData {
 	return Object.assign(create(typeModels.GroupInvitationPostData, GroupInvitationPostDataTypeRef), values)
 }
 
@@ -809,7 +809,7 @@ export type GroupInvitationPostData = {
 }
 export const GroupInvitationPostReturnTypeRef: TypeRef<GroupInvitationPostReturn> = new TypeRef("tutanota", "GroupInvitationPostReturn")
 
-export function createGroupInvitationPostReturn(values?: Partial<GroupInvitationPostReturn>): GroupInvitationPostReturn {
+export function createGroupInvitationPostReturn(values: Partial<GroupInvitationPostReturn>): GroupInvitationPostReturn {
 	return Object.assign(create(typeModels.GroupInvitationPostReturn, GroupInvitationPostReturnTypeRef), values)
 }
 
@@ -824,7 +824,7 @@ export type GroupInvitationPostReturn = {
 }
 export const GroupInvitationPutDataTypeRef: TypeRef<GroupInvitationPutData> = new TypeRef("tutanota", "GroupInvitationPutData")
 
-export function createGroupInvitationPutData(values?: Partial<GroupInvitationPutData>): GroupInvitationPutData {
+export function createGroupInvitationPutData(values: Partial<GroupInvitationPutData>): GroupInvitationPutData {
 	return Object.assign(create(typeModels.GroupInvitationPutData, GroupInvitationPutDataTypeRef), values)
 }
 
@@ -839,7 +839,7 @@ export type GroupInvitationPutData = {
 }
 export const GroupSettingsTypeRef: TypeRef<GroupSettings> = new TypeRef("tutanota", "GroupSettings")
 
-export function createGroupSettings(values?: Partial<GroupSettings>): GroupSettings {
+export function createGroupSettings(values: Partial<GroupSettings>): GroupSettings {
 	return Object.assign(create(typeModels.GroupSettings, GroupSettingsTypeRef), values)
 }
 
@@ -854,7 +854,7 @@ export type GroupSettings = {
 }
 export const HeaderTypeRef: TypeRef<Header> = new TypeRef("tutanota", "Header")
 
-export function createHeader(values?: Partial<Header>): Header {
+export function createHeader(values: Partial<Header>): Header {
 	return Object.assign(create(typeModels.Header, HeaderTypeRef), values)
 }
 
@@ -867,7 +867,7 @@ export type Header = {
 }
 export const ImapFolderTypeRef: TypeRef<ImapFolder> = new TypeRef("tutanota", "ImapFolder")
 
-export function createImapFolder(values?: Partial<ImapFolder>): ImapFolder {
+export function createImapFolder(values: Partial<ImapFolder>): ImapFolder {
 	return Object.assign(create(typeModels.ImapFolder, ImapFolderTypeRef), values)
 }
 
@@ -883,7 +883,7 @@ export type ImapFolder = {
 }
 export const ImapSyncConfigurationTypeRef: TypeRef<ImapSyncConfiguration> = new TypeRef("tutanota", "ImapSyncConfiguration")
 
-export function createImapSyncConfiguration(values?: Partial<ImapSyncConfiguration>): ImapSyncConfiguration {
+export function createImapSyncConfiguration(values: Partial<ImapSyncConfiguration>): ImapSyncConfiguration {
 	return Object.assign(create(typeModels.ImapSyncConfiguration, ImapSyncConfigurationTypeRef), values)
 }
 
@@ -900,7 +900,7 @@ export type ImapSyncConfiguration = {
 }
 export const ImapSyncStateTypeRef: TypeRef<ImapSyncState> = new TypeRef("tutanota", "ImapSyncState")
 
-export function createImapSyncState(values?: Partial<ImapSyncState>): ImapSyncState {
+export function createImapSyncState(values: Partial<ImapSyncState>): ImapSyncState {
 	return Object.assign(create(typeModels.ImapSyncState, ImapSyncStateTypeRef), values)
 }
 
@@ -916,7 +916,7 @@ export type ImapSyncState = {
 }
 export const InboxRuleTypeRef: TypeRef<InboxRule> = new TypeRef("tutanota", "InboxRule")
 
-export function createInboxRule(values?: Partial<InboxRule>): InboxRule {
+export function createInboxRule(values: Partial<InboxRule>): InboxRule {
 	return Object.assign(create(typeModels.InboxRule, InboxRuleTypeRef), values)
 }
 
@@ -931,7 +931,7 @@ export type InboxRule = {
 }
 export const InternalGroupDataTypeRef: TypeRef<InternalGroupData> = new TypeRef("tutanota", "InternalGroupData")
 
-export function createInternalGroupData(values?: Partial<InternalGroupData>): InternalGroupData {
+export function createInternalGroupData(values: Partial<InternalGroupData>): InternalGroupData {
 	return Object.assign(create(typeModels.InternalGroupData, InternalGroupDataTypeRef), values)
 }
 
@@ -948,7 +948,7 @@ export type InternalGroupData = {
 }
 export const InternalRecipientKeyDataTypeRef: TypeRef<InternalRecipientKeyData> = new TypeRef("tutanota", "InternalRecipientKeyData")
 
-export function createInternalRecipientKeyData(values?: Partial<InternalRecipientKeyData>): InternalRecipientKeyData {
+export function createInternalRecipientKeyData(values: Partial<InternalRecipientKeyData>): InternalRecipientKeyData {
 	return Object.assign(create(typeModels.InternalRecipientKeyData, InternalRecipientKeyDataTypeRef), values)
 }
 
@@ -962,7 +962,7 @@ export type InternalRecipientKeyData = {
 }
 export const KnowledgeBaseEntryTypeRef: TypeRef<KnowledgeBaseEntry> = new TypeRef("tutanota", "KnowledgeBaseEntry")
 
-export function createKnowledgeBaseEntry(values?: Partial<KnowledgeBaseEntry>): KnowledgeBaseEntry {
+export function createKnowledgeBaseEntry(values: Partial<KnowledgeBaseEntry>): KnowledgeBaseEntry {
 	return Object.assign(create(typeModels.KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef), values)
 }
 
@@ -982,7 +982,7 @@ export type KnowledgeBaseEntry = {
 }
 export const KnowledgeBaseEntryKeywordTypeRef: TypeRef<KnowledgeBaseEntryKeyword> = new TypeRef("tutanota", "KnowledgeBaseEntryKeyword")
 
-export function createKnowledgeBaseEntryKeyword(values?: Partial<KnowledgeBaseEntryKeyword>): KnowledgeBaseEntryKeyword {
+export function createKnowledgeBaseEntryKeyword(values: Partial<KnowledgeBaseEntryKeyword>): KnowledgeBaseEntryKeyword {
 	return Object.assign(create(typeModels.KnowledgeBaseEntryKeyword, KnowledgeBaseEntryKeywordTypeRef), values)
 }
 
@@ -994,7 +994,7 @@ export type KnowledgeBaseEntryKeyword = {
 }
 export const ListUnsubscribeDataTypeRef: TypeRef<ListUnsubscribeData> = new TypeRef("tutanota", "ListUnsubscribeData")
 
-export function createListUnsubscribeData(values?: Partial<ListUnsubscribeData>): ListUnsubscribeData {
+export function createListUnsubscribeData(values: Partial<ListUnsubscribeData>): ListUnsubscribeData {
 	return Object.assign(create(typeModels.ListUnsubscribeData, ListUnsubscribeDataTypeRef), values)
 }
 
@@ -1009,7 +1009,7 @@ export type ListUnsubscribeData = {
 }
 export const MailTypeRef: TypeRef<Mail> = new TypeRef("tutanota", "Mail")
 
-export function createMail(values?: Partial<Mail>): Mail {
+export function createMail(values: Partial<Mail>): Mail {
 	return Object.assign(create(typeModels.Mail, MailTypeRef), values)
 }
 
@@ -1053,7 +1053,7 @@ export type Mail = {
 }
 export const MailAddressTypeRef: TypeRef<MailAddress> = new TypeRef("tutanota", "MailAddress")
 
-export function createMailAddress(values?: Partial<MailAddress>): MailAddress {
+export function createMailAddress(values: Partial<MailAddress>): MailAddress {
 	return Object.assign(create(typeModels.MailAddress, MailAddressTypeRef), values)
 }
 
@@ -1068,7 +1068,7 @@ export type MailAddress = {
 }
 export const MailAddressPropertiesTypeRef: TypeRef<MailAddressProperties> = new TypeRef("tutanota", "MailAddressProperties")
 
-export function createMailAddressProperties(values?: Partial<MailAddressProperties>): MailAddressProperties {
+export function createMailAddressProperties(values: Partial<MailAddressProperties>): MailAddressProperties {
 	return Object.assign(create(typeModels.MailAddressProperties, MailAddressPropertiesTypeRef), values)
 }
 
@@ -1081,7 +1081,7 @@ export type MailAddressProperties = {
 }
 export const MailBodyTypeRef: TypeRef<MailBody> = new TypeRef("tutanota", "MailBody")
 
-export function createMailBody(values?: Partial<MailBody>): MailBody {
+export function createMailBody(values: Partial<MailBody>): MailBody {
 	return Object.assign(create(typeModels.MailBody, MailBodyTypeRef), values)
 }
 
@@ -1101,7 +1101,7 @@ export type MailBody = {
 }
 export const MailBoxTypeRef: TypeRef<MailBox> = new TypeRef("tutanota", "MailBox")
 
-export function createMailBox(values?: Partial<MailBox>): MailBox {
+export function createMailBox(values: Partial<MailBox>): MailBox {
 	return Object.assign(create(typeModels.MailBox, MailBoxTypeRef), values)
 }
 
@@ -1126,7 +1126,7 @@ export type MailBox = {
 }
 export const MailDetailsTypeRef: TypeRef<MailDetails> = new TypeRef("tutanota", "MailDetails")
 
-export function createMailDetails(values?: Partial<MailDetails>): MailDetails {
+export function createMailDetails(values: Partial<MailDetails>): MailDetails {
 	return Object.assign(create(typeModels.MailDetails, MailDetailsTypeRef), values)
 }
 
@@ -1144,7 +1144,7 @@ export type MailDetails = {
 }
 export const MailDetailsBlobTypeRef: TypeRef<MailDetailsBlob> = new TypeRef("tutanota", "MailDetailsBlob")
 
-export function createMailDetailsBlob(values?: Partial<MailDetailsBlob>): MailDetailsBlob {
+export function createMailDetailsBlob(values: Partial<MailDetailsBlob>): MailDetailsBlob {
 	return Object.assign(create(typeModels.MailDetailsBlob, MailDetailsBlobTypeRef), values)
 }
 
@@ -1162,7 +1162,7 @@ export type MailDetailsBlob = {
 }
 export const MailDetailsDraftTypeRef: TypeRef<MailDetailsDraft> = new TypeRef("tutanota", "MailDetailsDraft")
 
-export function createMailDetailsDraft(values?: Partial<MailDetailsDraft>): MailDetailsDraft {
+export function createMailDetailsDraft(values: Partial<MailDetailsDraft>): MailDetailsDraft {
 	return Object.assign(create(typeModels.MailDetailsDraft, MailDetailsDraftTypeRef), values)
 }
 
@@ -1180,7 +1180,7 @@ export type MailDetailsDraft = {
 }
 export const MailDetailsDraftsRefTypeRef: TypeRef<MailDetailsDraftsRef> = new TypeRef("tutanota", "MailDetailsDraftsRef")
 
-export function createMailDetailsDraftsRef(values?: Partial<MailDetailsDraftsRef>): MailDetailsDraftsRef {
+export function createMailDetailsDraftsRef(values: Partial<MailDetailsDraftsRef>): MailDetailsDraftsRef {
 	return Object.assign(create(typeModels.MailDetailsDraftsRef, MailDetailsDraftsRefTypeRef), values)
 }
 
@@ -1193,7 +1193,7 @@ export type MailDetailsDraftsRef = {
 }
 export const MailFolderTypeRef: TypeRef<MailFolder> = new TypeRef("tutanota", "MailFolder")
 
-export function createMailFolder(values?: Partial<MailFolder>): MailFolder {
+export function createMailFolder(values: Partial<MailFolder>): MailFolder {
 	return Object.assign(create(typeModels.MailFolder, MailFolderTypeRef), values)
 }
 
@@ -1215,7 +1215,7 @@ export type MailFolder = {
 }
 export const MailFolderRefTypeRef: TypeRef<MailFolderRef> = new TypeRef("tutanota", "MailFolderRef")
 
-export function createMailFolderRef(values?: Partial<MailFolderRef>): MailFolderRef {
+export function createMailFolderRef(values: Partial<MailFolderRef>): MailFolderRef {
 	return Object.assign(create(typeModels.MailFolderRef, MailFolderRefTypeRef), values)
 }
 
@@ -1228,7 +1228,7 @@ export type MailFolderRef = {
 }
 export const MailHeadersTypeRef: TypeRef<MailHeaders> = new TypeRef("tutanota", "MailHeaders")
 
-export function createMailHeaders(values?: Partial<MailHeaders>): MailHeaders {
+export function createMailHeaders(values: Partial<MailHeaders>): MailHeaders {
 	return Object.assign(create(typeModels.MailHeaders, MailHeadersTypeRef), values)
 }
 
@@ -1246,7 +1246,7 @@ export type MailHeaders = {
 }
 export const MailboxGroupRootTypeRef: TypeRef<MailboxGroupRoot> = new TypeRef("tutanota", "MailboxGroupRoot")
 
-export function createMailboxGroupRoot(values?: Partial<MailboxGroupRoot>): MailboxGroupRoot {
+export function createMailboxGroupRoot(values: Partial<MailboxGroupRoot>): MailboxGroupRoot {
 	return Object.assign(create(typeModels.MailboxGroupRoot, MailboxGroupRootTypeRef), values)
 }
 
@@ -1268,7 +1268,7 @@ export type MailboxGroupRoot = {
 }
 export const MailboxPropertiesTypeRef: TypeRef<MailboxProperties> = new TypeRef("tutanota", "MailboxProperties")
 
-export function createMailboxProperties(values?: Partial<MailboxProperties>): MailboxProperties {
+export function createMailboxProperties(values: Partial<MailboxProperties>): MailboxProperties {
 	return Object.assign(create(typeModels.MailboxProperties, MailboxPropertiesTypeRef), values)
 }
 
@@ -1287,7 +1287,7 @@ export type MailboxProperties = {
 }
 export const MailboxServerPropertiesTypeRef: TypeRef<MailboxServerProperties> = new TypeRef("tutanota", "MailboxServerProperties")
 
-export function createMailboxServerProperties(values?: Partial<MailboxServerProperties>): MailboxServerProperties {
+export function createMailboxServerProperties(values: Partial<MailboxServerProperties>): MailboxServerProperties {
 	return Object.assign(create(typeModels.MailboxServerProperties, MailboxServerPropertiesTypeRef), values)
 }
 
@@ -1302,7 +1302,7 @@ export type MailboxServerProperties = {
 }
 export const MoveMailDataTypeRef: TypeRef<MoveMailData> = new TypeRef("tutanota", "MoveMailData")
 
-export function createMoveMailData(values?: Partial<MoveMailData>): MoveMailData {
+export function createMoveMailData(values: Partial<MoveMailData>): MoveMailData {
 	return Object.assign(create(typeModels.MoveMailData, MoveMailDataTypeRef), values)
 }
 
@@ -1316,7 +1316,7 @@ export type MoveMailData = {
 }
 export const NewDraftAttachmentTypeRef: TypeRef<NewDraftAttachment> = new TypeRef("tutanota", "NewDraftAttachment")
 
-export function createNewDraftAttachment(values?: Partial<NewDraftAttachment>): NewDraftAttachment {
+export function createNewDraftAttachment(values: Partial<NewDraftAttachment>): NewDraftAttachment {
 	return Object.assign(create(typeModels.NewDraftAttachment, NewDraftAttachmentTypeRef), values)
 }
 
@@ -1332,7 +1332,7 @@ export type NewDraftAttachment = {
 }
 export const NewsIdTypeRef: TypeRef<NewsId> = new TypeRef("tutanota", "NewsId")
 
-export function createNewsId(values?: Partial<NewsId>): NewsId {
+export function createNewsId(values: Partial<NewsId>): NewsId {
 	return Object.assign(create(typeModels.NewsId, NewsIdTypeRef), values)
 }
 
@@ -1345,7 +1345,7 @@ export type NewsId = {
 }
 export const NewsInTypeRef: TypeRef<NewsIn> = new TypeRef("tutanota", "NewsIn")
 
-export function createNewsIn(values?: Partial<NewsIn>): NewsIn {
+export function createNewsIn(values: Partial<NewsIn>): NewsIn {
 	return Object.assign(create(typeModels.NewsIn, NewsInTypeRef), values)
 }
 
@@ -1357,7 +1357,7 @@ export type NewsIn = {
 }
 export const NewsOutTypeRef: TypeRef<NewsOut> = new TypeRef("tutanota", "NewsOut")
 
-export function createNewsOut(values?: Partial<NewsOut>): NewsOut {
+export function createNewsOut(values: Partial<NewsOut>): NewsOut {
 	return Object.assign(create(typeModels.NewsOut, NewsOutTypeRef), values)
 }
 
@@ -1370,7 +1370,7 @@ export type NewsOut = {
 }
 export const NotificationMailTypeRef: TypeRef<NotificationMail> = new TypeRef("tutanota", "NotificationMail")
 
-export function createNotificationMail(values?: Partial<NotificationMail>): NotificationMail {
+export function createNotificationMail(values: Partial<NotificationMail>): NotificationMail {
 	return Object.assign(create(typeModels.NotificationMail, NotificationMailTypeRef), values)
 }
 
@@ -1386,7 +1386,7 @@ export type NotificationMail = {
 }
 export const OutOfOfficeNotificationTypeRef: TypeRef<OutOfOfficeNotification> = new TypeRef("tutanota", "OutOfOfficeNotification")
 
-export function createOutOfOfficeNotification(values?: Partial<OutOfOfficeNotification>): OutOfOfficeNotification {
+export function createOutOfOfficeNotification(values: Partial<OutOfOfficeNotification>): OutOfOfficeNotification {
 	return Object.assign(create(typeModels.OutOfOfficeNotification, OutOfOfficeNotificationTypeRef), values)
 }
 
@@ -1405,7 +1405,7 @@ export type OutOfOfficeNotification = {
 }
 export const OutOfOfficeNotificationMessageTypeRef: TypeRef<OutOfOfficeNotificationMessage> = new TypeRef("tutanota", "OutOfOfficeNotificationMessage")
 
-export function createOutOfOfficeNotificationMessage(values?: Partial<OutOfOfficeNotificationMessage>): OutOfOfficeNotificationMessage {
+export function createOutOfOfficeNotificationMessage(values: Partial<OutOfOfficeNotificationMessage>): OutOfOfficeNotificationMessage {
 	return Object.assign(create(typeModels.OutOfOfficeNotificationMessage, OutOfOfficeNotificationMessageTypeRef), values)
 }
 
@@ -1419,7 +1419,7 @@ export type OutOfOfficeNotificationMessage = {
 }
 export const OutOfOfficeNotificationRecipientListTypeRef: TypeRef<OutOfOfficeNotificationRecipientList> = new TypeRef("tutanota", "OutOfOfficeNotificationRecipientList")
 
-export function createOutOfOfficeNotificationRecipientList(values?: Partial<OutOfOfficeNotificationRecipientList>): OutOfOfficeNotificationRecipientList {
+export function createOutOfOfficeNotificationRecipientList(values: Partial<OutOfOfficeNotificationRecipientList>): OutOfOfficeNotificationRecipientList {
 	return Object.assign(create(typeModels.OutOfOfficeNotificationRecipientList, OutOfOfficeNotificationRecipientListTypeRef), values)
 }
 
@@ -1432,7 +1432,7 @@ export type OutOfOfficeNotificationRecipientList = {
 }
 export const PasswordAutoAuthenticationReturnTypeRef: TypeRef<PasswordAutoAuthenticationReturn> = new TypeRef("tutanota", "PasswordAutoAuthenticationReturn")
 
-export function createPasswordAutoAuthenticationReturn(values?: Partial<PasswordAutoAuthenticationReturn>): PasswordAutoAuthenticationReturn {
+export function createPasswordAutoAuthenticationReturn(values: Partial<PasswordAutoAuthenticationReturn>): PasswordAutoAuthenticationReturn {
 	return Object.assign(create(typeModels.PasswordAutoAuthenticationReturn, PasswordAutoAuthenticationReturnTypeRef), values)
 }
 
@@ -1443,7 +1443,7 @@ export type PasswordAutoAuthenticationReturn = {
 }
 export const PasswordChannelPhoneNumberTypeRef: TypeRef<PasswordChannelPhoneNumber> = new TypeRef("tutanota", "PasswordChannelPhoneNumber")
 
-export function createPasswordChannelPhoneNumber(values?: Partial<PasswordChannelPhoneNumber>): PasswordChannelPhoneNumber {
+export function createPasswordChannelPhoneNumber(values: Partial<PasswordChannelPhoneNumber>): PasswordChannelPhoneNumber {
 	return Object.assign(create(typeModels.PasswordChannelPhoneNumber, PasswordChannelPhoneNumberTypeRef), values)
 }
 
@@ -1455,7 +1455,7 @@ export type PasswordChannelPhoneNumber = {
 }
 export const PasswordChannelReturnTypeRef: TypeRef<PasswordChannelReturn> = new TypeRef("tutanota", "PasswordChannelReturn")
 
-export function createPasswordChannelReturn(values?: Partial<PasswordChannelReturn>): PasswordChannelReturn {
+export function createPasswordChannelReturn(values: Partial<PasswordChannelReturn>): PasswordChannelReturn {
 	return Object.assign(create(typeModels.PasswordChannelReturn, PasswordChannelReturnTypeRef), values)
 }
 
@@ -1468,7 +1468,7 @@ export type PasswordChannelReturn = {
 }
 export const PasswordMessagingDataTypeRef: TypeRef<PasswordMessagingData> = new TypeRef("tutanota", "PasswordMessagingData")
 
-export function createPasswordMessagingData(values?: Partial<PasswordMessagingData>): PasswordMessagingData {
+export function createPasswordMessagingData(values: Partial<PasswordMessagingData>): PasswordMessagingData {
 	return Object.assign(create(typeModels.PasswordMessagingData, PasswordMessagingDataTypeRef), values)
 }
 
@@ -1482,7 +1482,7 @@ export type PasswordMessagingData = {
 }
 export const PasswordMessagingReturnTypeRef: TypeRef<PasswordMessagingReturn> = new TypeRef("tutanota", "PasswordMessagingReturn")
 
-export function createPasswordMessagingReturn(values?: Partial<PasswordMessagingReturn>): PasswordMessagingReturn {
+export function createPasswordMessagingReturn(values: Partial<PasswordMessagingReturn>): PasswordMessagingReturn {
 	return Object.assign(create(typeModels.PasswordMessagingReturn, PasswordMessagingReturnTypeRef), values)
 }
 
@@ -1494,7 +1494,7 @@ export type PasswordMessagingReturn = {
 }
 export const PasswordRetrievalDataTypeRef: TypeRef<PasswordRetrievalData> = new TypeRef("tutanota", "PasswordRetrievalData")
 
-export function createPasswordRetrievalData(values?: Partial<PasswordRetrievalData>): PasswordRetrievalData {
+export function createPasswordRetrievalData(values: Partial<PasswordRetrievalData>): PasswordRetrievalData {
 	return Object.assign(create(typeModels.PasswordRetrievalData, PasswordRetrievalDataTypeRef), values)
 }
 
@@ -1506,7 +1506,7 @@ export type PasswordRetrievalData = {
 }
 export const PasswordRetrievalReturnTypeRef: TypeRef<PasswordRetrievalReturn> = new TypeRef("tutanota", "PasswordRetrievalReturn")
 
-export function createPasswordRetrievalReturn(values?: Partial<PasswordRetrievalReturn>): PasswordRetrievalReturn {
+export function createPasswordRetrievalReturn(values: Partial<PasswordRetrievalReturn>): PasswordRetrievalReturn {
 	return Object.assign(create(typeModels.PasswordRetrievalReturn, PasswordRetrievalReturnTypeRef), values)
 }
 
@@ -1518,7 +1518,7 @@ export type PasswordRetrievalReturn = {
 }
 export const PhishingMarkerWebsocketDataTypeRef: TypeRef<PhishingMarkerWebsocketData> = new TypeRef("tutanota", "PhishingMarkerWebsocketData")
 
-export function createPhishingMarkerWebsocketData(values?: Partial<PhishingMarkerWebsocketData>): PhishingMarkerWebsocketData {
+export function createPhishingMarkerWebsocketData(values: Partial<PhishingMarkerWebsocketData>): PhishingMarkerWebsocketData {
 	return Object.assign(create(typeModels.PhishingMarkerWebsocketData, PhishingMarkerWebsocketDataTypeRef), values)
 }
 
@@ -1532,7 +1532,7 @@ export type PhishingMarkerWebsocketData = {
 }
 export const PhotosRefTypeRef: TypeRef<PhotosRef> = new TypeRef("tutanota", "PhotosRef")
 
-export function createPhotosRef(values?: Partial<PhotosRef>): PhotosRef {
+export function createPhotosRef(values: Partial<PhotosRef>): PhotosRef {
 	return Object.assign(create(typeModels.PhotosRef, PhotosRefTypeRef), values)
 }
 
@@ -1545,7 +1545,7 @@ export type PhotosRef = {
 }
 export const ReceiveInfoServiceDataTypeRef: TypeRef<ReceiveInfoServiceData> = new TypeRef("tutanota", "ReceiveInfoServiceData")
 
-export function createReceiveInfoServiceData(values?: Partial<ReceiveInfoServiceData>): ReceiveInfoServiceData {
+export function createReceiveInfoServiceData(values: Partial<ReceiveInfoServiceData>): ReceiveInfoServiceData {
 	return Object.assign(create(typeModels.ReceiveInfoServiceData, ReceiveInfoServiceDataTypeRef), values)
 }
 
@@ -1557,7 +1557,7 @@ export type ReceiveInfoServiceData = {
 }
 export const RecipientsTypeRef: TypeRef<Recipients> = new TypeRef("tutanota", "Recipients")
 
-export function createRecipients(values?: Partial<Recipients>): Recipients {
+export function createRecipients(values: Partial<Recipients>): Recipients {
 	return Object.assign(create(typeModels.Recipients, RecipientsTypeRef), values)
 }
 
@@ -1572,7 +1572,7 @@ export type Recipients = {
 }
 export const RemoteImapSyncInfoTypeRef: TypeRef<RemoteImapSyncInfo> = new TypeRef("tutanota", "RemoteImapSyncInfo")
 
-export function createRemoteImapSyncInfo(values?: Partial<RemoteImapSyncInfo>): RemoteImapSyncInfo {
+export function createRemoteImapSyncInfo(values: Partial<RemoteImapSyncInfo>): RemoteImapSyncInfo {
 	return Object.assign(create(typeModels.RemoteImapSyncInfo, RemoteImapSyncInfoTypeRef), values)
 }
 
@@ -1589,7 +1589,7 @@ export type RemoteImapSyncInfo = {
 }
 export const ReportMailPostDataTypeRef: TypeRef<ReportMailPostData> = new TypeRef("tutanota", "ReportMailPostData")
 
-export function createReportMailPostData(values?: Partial<ReportMailPostData>): ReportMailPostData {
+export function createReportMailPostData(values: Partial<ReportMailPostData>): ReportMailPostData {
 	return Object.assign(create(typeModels.ReportMailPostData, ReportMailPostDataTypeRef), values)
 }
 
@@ -1604,7 +1604,7 @@ export type ReportMailPostData = {
 }
 export const ReportedMailFieldMarkerTypeRef: TypeRef<ReportedMailFieldMarker> = new TypeRef("tutanota", "ReportedMailFieldMarker")
 
-export function createReportedMailFieldMarker(values?: Partial<ReportedMailFieldMarker>): ReportedMailFieldMarker {
+export function createReportedMailFieldMarker(values: Partial<ReportedMailFieldMarker>): ReportedMailFieldMarker {
 	return Object.assign(create(typeModels.ReportedMailFieldMarker, ReportedMailFieldMarkerTypeRef), values)
 }
 
@@ -1617,7 +1617,7 @@ export type ReportedMailFieldMarker = {
 }
 export const SecureExternalRecipientKeyDataTypeRef: TypeRef<SecureExternalRecipientKeyData> = new TypeRef("tutanota", "SecureExternalRecipientKeyData")
 
-export function createSecureExternalRecipientKeyData(values?: Partial<SecureExternalRecipientKeyData>): SecureExternalRecipientKeyData {
+export function createSecureExternalRecipientKeyData(values: Partial<SecureExternalRecipientKeyData>): SecureExternalRecipientKeyData {
 	return Object.assign(create(typeModels.SecureExternalRecipientKeyData, SecureExternalRecipientKeyDataTypeRef), values)
 }
 
@@ -1639,7 +1639,7 @@ export type SecureExternalRecipientKeyData = {
 }
 export const SendDraftDataTypeRef: TypeRef<SendDraftData> = new TypeRef("tutanota", "SendDraftData")
 
-export function createSendDraftData(values?: Partial<SendDraftData>): SendDraftData {
+export function createSendDraftData(values: Partial<SendDraftData>): SendDraftData {
 	return Object.assign(create(typeModels.SendDraftData, SendDraftDataTypeRef), values)
 }
 
@@ -1661,7 +1661,7 @@ export type SendDraftData = {
 }
 export const SendDraftReturnTypeRef: TypeRef<SendDraftReturn> = new TypeRef("tutanota", "SendDraftReturn")
 
-export function createSendDraftReturn(values?: Partial<SendDraftReturn>): SendDraftReturn {
+export function createSendDraftReturn(values: Partial<SendDraftReturn>): SendDraftReturn {
 	return Object.assign(create(typeModels.SendDraftReturn, SendDraftReturnTypeRef), values)
 }
 
@@ -1677,7 +1677,7 @@ export type SendDraftReturn = {
 }
 export const SharedGroupDataTypeRef: TypeRef<SharedGroupData> = new TypeRef("tutanota", "SharedGroupData")
 
-export function createSharedGroupData(values?: Partial<SharedGroupData>): SharedGroupData {
+export function createSharedGroupData(values: Partial<SharedGroupData>): SharedGroupData {
 	return Object.assign(create(typeModels.SharedGroupData, SharedGroupDataTypeRef), values)
 }
 
@@ -1696,7 +1696,7 @@ export type SharedGroupData = {
 }
 export const SpamResultsTypeRef: TypeRef<SpamResults> = new TypeRef("tutanota", "SpamResults")
 
-export function createSpamResults(values?: Partial<SpamResults>): SpamResults {
+export function createSpamResults(values: Partial<SpamResults>): SpamResults {
 	return Object.assign(create(typeModels.SpamResults, SpamResultsTypeRef), values)
 }
 
@@ -1709,7 +1709,7 @@ export type SpamResults = {
 }
 export const SubfilesTypeRef: TypeRef<Subfiles> = new TypeRef("tutanota", "Subfiles")
 
-export function createSubfiles(values?: Partial<Subfiles>): Subfiles {
+export function createSubfiles(values: Partial<Subfiles>): Subfiles {
 	return Object.assign(create(typeModels.Subfiles, SubfilesTypeRef), values)
 }
 
@@ -1722,7 +1722,7 @@ export type Subfiles = {
 }
 export const TemplateGroupRootTypeRef: TypeRef<TemplateGroupRoot> = new TypeRef("tutanota", "TemplateGroupRoot")
 
-export function createTemplateGroupRoot(values?: Partial<TemplateGroupRoot>): TemplateGroupRoot {
+export function createTemplateGroupRoot(values: Partial<TemplateGroupRoot>): TemplateGroupRoot {
 	return Object.assign(create(typeModels.TemplateGroupRoot, TemplateGroupRootTypeRef), values)
 }
 
@@ -1741,7 +1741,7 @@ export type TemplateGroupRoot = {
 }
 export const TutanotaPropertiesTypeRef: TypeRef<TutanotaProperties> = new TypeRef("tutanota", "TutanotaProperties")
 
-export function createTutanotaProperties(values?: Partial<TutanotaProperties>): TutanotaProperties {
+export function createTutanotaProperties(values: Partial<TutanotaProperties>): TutanotaProperties {
 	return Object.assign(create(typeModels.TutanotaProperties, TutanotaPropertiesTypeRef), values)
 }
 
@@ -1770,7 +1770,7 @@ export type TutanotaProperties = {
 }
 export const UpdateMailFolderDataTypeRef: TypeRef<UpdateMailFolderData> = new TypeRef("tutanota", "UpdateMailFolderData")
 
-export function createUpdateMailFolderData(values?: Partial<UpdateMailFolderData>): UpdateMailFolderData {
+export function createUpdateMailFolderData(values: Partial<UpdateMailFolderData>): UpdateMailFolderData {
 	return Object.assign(create(typeModels.UpdateMailFolderData, UpdateMailFolderDataTypeRef), values)
 }
 
@@ -1784,7 +1784,7 @@ export type UpdateMailFolderData = {
 }
 export const UserAccountCreateDataTypeRef: TypeRef<UserAccountCreateData> = new TypeRef("tutanota", "UserAccountCreateData")
 
-export function createUserAccountCreateData(values?: Partial<UserAccountCreateData>): UserAccountCreateData {
+export function createUserAccountCreateData(values: Partial<UserAccountCreateData>): UserAccountCreateData {
 	return Object.assign(create(typeModels.UserAccountCreateData, UserAccountCreateDataTypeRef), values)
 }
 
@@ -1799,7 +1799,7 @@ export type UserAccountCreateData = {
 }
 export const UserAccountUserDataTypeRef: TypeRef<UserAccountUserData> = new TypeRef("tutanota", "UserAccountUserData")
 
-export function createUserAccountUserData(values?: Partial<UserAccountUserData>): UserAccountUserData {
+export function createUserAccountUserData(values: Partial<UserAccountUserData>): UserAccountUserData {
 	return Object.assign(create(typeModels.UserAccountUserData, UserAccountUserDataTypeRef), values)
 }
 
@@ -1832,7 +1832,7 @@ export type UserAccountUserData = {
 }
 export const UserAreaGroupDataTypeRef: TypeRef<UserAreaGroupData> = new TypeRef("tutanota", "UserAreaGroupData")
 
-export function createUserAreaGroupData(values?: Partial<UserAreaGroupData>): UserAreaGroupData {
+export function createUserAreaGroupData(values: Partial<UserAreaGroupData>): UserAreaGroupData {
 	return Object.assign(create(typeModels.UserAreaGroupData, UserAreaGroupDataTypeRef), values)
 }
 
@@ -1850,7 +1850,7 @@ export type UserAreaGroupData = {
 }
 export const UserAreaGroupDeleteDataTypeRef: TypeRef<UserAreaGroupDeleteData> = new TypeRef("tutanota", "UserAreaGroupDeleteData")
 
-export function createUserAreaGroupDeleteData(values?: Partial<UserAreaGroupDeleteData>): UserAreaGroupDeleteData {
+export function createUserAreaGroupDeleteData(values: Partial<UserAreaGroupDeleteData>): UserAreaGroupDeleteData {
 	return Object.assign(create(typeModels.UserAreaGroupDeleteData, UserAreaGroupDeleteDataTypeRef), values)
 }
 
@@ -1863,7 +1863,7 @@ export type UserAreaGroupDeleteData = {
 }
 export const UserAreaGroupPostDataTypeRef: TypeRef<UserAreaGroupPostData> = new TypeRef("tutanota", "UserAreaGroupPostData")
 
-export function createUserAreaGroupPostData(values?: Partial<UserAreaGroupPostData>): UserAreaGroupPostData {
+export function createUserAreaGroupPostData(values: Partial<UserAreaGroupPostData>): UserAreaGroupPostData {
 	return Object.assign(create(typeModels.UserAreaGroupPostData, UserAreaGroupPostDataTypeRef), values)
 }
 
@@ -1876,7 +1876,7 @@ export type UserAreaGroupPostData = {
 }
 export const UserSettingsGroupRootTypeRef: TypeRef<UserSettingsGroupRoot> = new TypeRef("tutanota", "UserSettingsGroupRoot")
 
-export function createUserSettingsGroupRoot(values?: Partial<UserSettingsGroupRoot>): UserSettingsGroupRoot {
+export function createUserSettingsGroupRoot(values: Partial<UserSettingsGroupRoot>): UserSettingsGroupRoot {
 	return Object.assign(create(typeModels.UserSettingsGroupRoot, UserSettingsGroupRootTypeRef), values)
 }
 

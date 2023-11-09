@@ -47,7 +47,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 						existingGroupSettings.color = newColor
 						existingGroupSettings.name = newName
 					} else {
-						const groupSettings = Object.assign(createGroupSettings(), {
+						const groupSettings = createGroupSettings({
 							group: invitation.sharedGroup,
 							color: newColor,
 							name: newName,

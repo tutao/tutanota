@@ -176,8 +176,9 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 				clear(neverNull(this._whitelabelConfig).whitelabelRegistrationDomains)
 
 				if (domain) {
-					const domainWrapper = createStringWrapper()
-					domainWrapper.value = domain
+					const domainWrapper = createStringWrapper({
+						value: domain,
+					})
 					neverNull(this._whitelabelConfig).whitelabelRegistrationDomains.push(domainWrapper)
 				}
 

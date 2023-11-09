@@ -423,12 +423,15 @@ export class CalendarFacade {
 			})
 
 			for (const alarmInfo of alarms) {
-				const userAlarmInfo = createUserAlarmInfo()
-				userAlarmInfo._ownerGroup = ownerGroup
-				userAlarmInfo.alarmInfo = createAlarmInfo()
-				userAlarmInfo.alarmInfo.alarmIdentifier = alarmInfo.alarmIdentifier
-				userAlarmInfo.alarmInfo.trigger = alarmInfo.trigger
-				userAlarmInfo.alarmInfo.calendarRef = calendarRef
+				const userAlarmInfo = createUserAlarmInfo({
+					_ownerGroup: ownerGroup,
+					alarmInfo: createAlarmInfo({
+						alarmIdentifier: alarmInfo.alarmIdentifier,
+						trigger: alarmInfo.trigger,
+						calendarRef: calendarRef,
+					}),
+				})
+
 				const alarmNotification = createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id)
 				userAlarmInfoAndNotification.push({
 					alarm: userAlarmInfo,
@@ -485,11 +488,11 @@ function createAlarmNotificationForEvent(event: CalendarEvent, alarmInfo: AlarmI
 }
 
 function createAlarmInfoForAlarmInfo(alarmInfo: AlarmInfo): AlarmInfo {
-	const calendarRef = Object.assign(createCalendarEventRef(), {
+	const calendarRef = createCalendarEventRef({
 		elementId: alarmInfo.calendarRef.elementId,
 		listId: alarmInfo.calendarRef.listId,
 	})
-	return Object.assign(createAlarmInfo(), {
+	return createAlarmInfo({
 		alarmIdentifier: alarmInfo.alarmIdentifier,
 		trigger: alarmInfo.trigger,
 		calendarRef,
@@ -497,7 +500,7 @@ function createAlarmInfoForAlarmInfo(alarmInfo: AlarmInfo): AlarmInfo {
 }
 
 function createRepeatRuleForCalendarRepeatRule(calendarRepeatRule: CalendarRepeatRule): RepeatRule {
-	return Object.assign(createRepeatRule(), {
+	return createRepeatRule({
 		endType: calendarRepeatRule.endType,
 		endValue: calendarRepeatRule.endValue,
 		frequency: calendarRepeatRule.frequency,
