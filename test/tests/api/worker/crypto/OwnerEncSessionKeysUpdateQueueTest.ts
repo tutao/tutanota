@@ -3,10 +3,11 @@ import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest.j
 import { matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
 import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
-import { createInstanceSessionKey, createTypeInfo } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { createInstanceSessionKey, createTypeInfo, InstanceSessionKeyTypeRef, TypeInfoTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { UpdateSessionKeysService } from "../../../../../src/api/entities/sys/Services.js"
 import { delay } from "@tutao/tutanota-utils"
 import { LockedError } from "../../../../../src/api/common/error/RestError.js"
+import { createTestEntity } from "../../../TestUtils.js"
 
 const { anything, captor } = matchers
 
@@ -28,13 +29,13 @@ o.spec("OwnerEncSessionKeysUpdateQueue", function () {
 				createInstanceSessionKey({
 					instanceId: "mailInstanceId",
 					instanceList: "mailInstanceList",
-					typeInfo: createTypeInfo(),
+					typeInfo: createTestEntity(TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([1, 2, 3]),
 				}),
 				createInstanceSessionKey({
 					instanceId: "fileInstanceId",
 					instanceList: "fileInstanceList",
-					typeInfo: createTypeInfo(),
+					typeInfo: createTestEntity(TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([4, 5, 6]),
 				}),
 			]
@@ -47,7 +48,7 @@ o.spec("OwnerEncSessionKeysUpdateQueue", function () {
 
 		o("no updates sent if not leader", async function () {
 			when(userFacade.isLeader()).thenReturn(false)
-			const updatableInstanceSessionKeys = [createInstanceSessionKey()]
+			const updatableInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef)]
 			ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatableInstanceSessionKeys)
 			await delay(0)
 			verify(serviceExecutor.post(anything(), anything()), { times: 0 })
@@ -66,13 +67,13 @@ o.spec("OwnerEncSessionKeysUpdateQueue", function () {
 				createInstanceSessionKey({
 					instanceId: "mailInstanceId",
 					instanceList: "mailInstanceList",
-					typeInfo: createTypeInfo(),
+					typeInfo: createTestEntity(TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([1, 2, 3]),
 				}),
 				createInstanceSessionKey({
 					instanceId: "fileInstanceId",
 					instanceList: "fileInstanceList",
-					typeInfo: createTypeInfo(),
+					typeInfo: createTestEntity(TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([4, 5, 6]),
 				}),
 			]
@@ -95,13 +96,13 @@ o.spec("OwnerEncSessionKeysUpdateQueue", function () {
 				createInstanceSessionKey({
 					instanceId: "mailInstanceId",
 					instanceList: "mailInstanceList",
-					typeInfo: createTypeInfo(),
+					typeInfo: createTestEntity(TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([1, 2, 3]),
 				}),
 				createInstanceSessionKey({
 					instanceId: "fileInstanceId",
 					instanceList: "fileInstanceList",
-					typeInfo: createTypeInfo(),
+					typeInfo: createTestEntity(TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([4, 5, 6]),
 				}),
 			]

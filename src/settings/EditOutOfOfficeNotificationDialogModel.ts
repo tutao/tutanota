@@ -54,7 +54,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 
 		if (!outOfOfficeNotification) {
 			this.startDate(getStartOfDay(new Date()))
-			this.outOfOfficeNotification = createOutOfOfficeNotification()
+			this.outOfOfficeNotification = createOutOfOfficeNotification({})
 		} else {
 			this.outOfOfficeNotification = outOfOfficeNotification
 			this.enabled(outOfOfficeNotification.enabled)

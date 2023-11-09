@@ -4,14 +4,10 @@ import { lang } from "../misc/LanguageViewModel"
 import { assertMainOrNode, isApp } from "../api/common/Env"
 import { formatDate } from "../misc/Formatter"
 import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
-import { HttpMethod } from "../api/common/EntityFunctions"
+import type { AccountingInfo, Customer, GroupInfo, OrderProcessingAgreement } from "../api/entities/sys/TypeRefs.js"
 import { createSignOrderProcessingAgreementData } from "../api/entities/sys/TypeRefs.js"
 import { getMailAddressDisplayText } from "../mail/model/MailUtils"
 import { neverNull } from "@tutao/tutanota-utils"
-import type { OrderProcessingAgreement } from "../api/entities/sys/TypeRefs.js"
-import type { GroupInfo } from "../api/entities/sys/TypeRefs.js"
-import type { Customer } from "../api/entities/sys/TypeRefs.js"
-import type { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
 import { locator } from "../api/main/MainLocator"
 import { SignOrderProcessingAgreementService } from "../api/entities/sys/Services"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
@@ -41,9 +37,10 @@ const agreementTexts = {
 
 export function showForSigning(customer: Customer, accountingInfo: AccountingInfo) {
 	const signAction = (dialog: Dialog) => {
-		let data = createSignOrderProcessingAgreementData()
-		data.version = version
-		data.customerAddress = addressEditor.getValue()
+		let data = createSignOrderProcessingAgreementData({
+			version: version,
+			customerAddress: addressEditor.getValue(),
+		})
 
 		if (addressEditor.getValue().trim().split("\n").length < 3) {
 			Dialog.message("contractorInfo_msg")

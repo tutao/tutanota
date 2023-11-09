@@ -34,6 +34,7 @@ import { BlobAccessTokenFacade } from "../../../../../src/api/worker/facades/Blo
 import { EntropyFacade } from "../../../../../src/api/worker/facades/EntropyFacade.js"
 import { DatabaseKeyFactory } from "../../../../../src/misc/credentials/DatabaseKeyFactory.js"
 import { Argon2idFacade } from "../../../../../src/api/worker/facades/Argon2idFacade.js"
+import { createTestEntity } from "../../../TestUtils.js"
 
 const { anything } = matchers
 
@@ -105,7 +106,7 @@ o.spec("LoginFacadeTest", function () {
 
 		restClientMock = instance(RestClient)
 		entityClientMock = instance(EntityClient)
-		when(entityClientMock.loadRoot(TutanotaPropertiesTypeRef, anything())).thenResolve(createTutanotaProperties())
+		when(entityClientMock.loadRoot(TutanotaPropertiesTypeRef, anything())).thenResolve(createTestEntity(TutanotaPropertiesTypeRef))
 
 		loginListener = object<LoginListener>()
 		instanceMapperMock = instance(InstanceMapper)
@@ -537,7 +538,7 @@ o.spec("LoginFacadeTest", function () {
 			})
 
 			o("When successfully logged in, userFacade is initialised", async function () {
-				const groupInfo = createGroupInfo()
+				const groupInfo = createTestEntity(GroupInfoTypeRef)
 				when(entityClientMock.load(GroupInfoTypeRef, user.userGroup.groupInfo)).thenResolve(groupInfo)
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
 					JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) }),
@@ -556,7 +557,7 @@ o.spec("LoginFacadeTest", function () {
 				const deferred = defer()
 				when(loginListener.onLoginFailure(matchers.anything())).thenDo(() => deferred.resolve(null))
 
-				const groupInfo = createGroupInfo()
+				const groupInfo = createTestEntity(GroupInfoTypeRef)
 				when(entityClientMock.load(GroupInfoTypeRef, user.userGroup.groupInfo)).thenResolve(groupInfo)
 				const connectionError = new ConnectionError("test")
 				when(userFacade.isFullyLoggedIn()).thenReturn(false)

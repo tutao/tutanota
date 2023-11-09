@@ -37,6 +37,7 @@ import { generateEventElementId, getAllDayDateUTC } from "../../../src/api/commo
 import { hasCapabilityOnGroup } from "../../../src/sharing/GroupUtils.js"
 import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
+	CalendarEventTypeRef,
 	createCalendarEvent,
 	createCalendarEventAttendee,
 	createCalendarRepeatRule,
@@ -50,6 +51,7 @@ import { object, replace } from "testdouble"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/api/worker/facades/lazy/CalendarFacade.js"
 import { getDateInUTC, getDateInZone } from "./CalendarTestUtils.js"
 import { ParserError } from "../../../src/misc/parsing/ParserCombinator.js"
+import { createTestEntity } from "../TestUtils.js"
 
 const zone = "Europe/Berlin"
 
@@ -1907,7 +1909,7 @@ function iterateAlarmOccurrences(
 }
 
 function createEvent(startTime: Date, endTime: Date): CalendarEvent {
-	const event = createCalendarEvent()
+	const event = createTestEntity(CalendarEventTypeRef)
 	event.startTime = startTime // 1 May 8:00
 
 	event.endTime = endTime

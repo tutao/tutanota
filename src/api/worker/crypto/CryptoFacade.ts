@@ -102,12 +102,13 @@ export class CryptoFacade {
 			})
 		} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && data._ownerEncSessionKey == null) {
 			// EncryptTutanotaPropertiesService could be removed and replaced with an Migration that writes the key
-			let migrationData = createEncryptTutanotaPropertiesData()
 			data._ownerGroup = this.userFacade.getUserGroupId()
 			let groupEncSessionKey = encryptKey(this.userFacade.getUserGroupKey(), aes128RandomKey())
 			data._ownerEncSessionKey = uint8ArrayToBase64(groupEncSessionKey)
-			migrationData.properties = data._id
-			migrationData.symEncSessionKey = groupEncSessionKey
+			let migrationData = createEncryptTutanotaPropertiesData({
+				properties: data._id,
+				symEncSessionKey: groupEncSessionKey,
+			})
 			const result = await this.serviceExecutor.post(EncryptTutanotaPropertiesService, migrationData)
 			return data
 		} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef) && data._ownerEncSessionKey == null) {
@@ -486,8 +487,9 @@ export class CryptoFacade {
 		recipientMailAddress: string,
 		notFoundRecipients: Array<string>,
 	): Promise<InternalRecipientKeyData | void> {
-		let keyData = createPublicKeyData()
-		keyData.mailAddress = recipientMailAddress
+		let keyData = createPublicKeyData({
+			mailAddress: recipientMailAddress,
+		})
 		return this.serviceExecutor
 			.get(PublicKeyService, keyData)
 			.then((publicKeyData) => {
@@ -496,10 +498,11 @@ export class CryptoFacade {
 
 				if (notFoundRecipients.length === 0) {
 					return this.rsa.encrypt(publicKey, uint8ArrayBucketKey).then((encrypted) => {
-						let data = createInternalRecipientKeyData()
-						data.mailAddress = recipientMailAddress
-						data.pubEncBucketKey = encrypted
-						data.pubKeyVersion = publicKeyData.pubKeyVersion
+						let data = createInternalRecipientKeyData({
+							mailAddress: recipientMailAddress,
+							pubEncBucketKey: encrypted,
+							pubKeyVersion: publicKeyData.pubKeyVersion,
+						})
 						return data
 					})
 				}
@@ -545,12 +548,12 @@ export class CryptoFacade {
 			return this.updateOwnerEncSessionKey(typeModel, instance, permissionOwnerGroupKey, sessionKey)
 		} else {
 			// instances shared via permissions (e.g. body)
-			let updateService = createUpdatePermissionKeyData()
-			updateService.permission = permission._id
-			updateService.bucketPermission = bucketPermission._id
-			updateService.ownerEncSessionKey = encryptKey(permissionOwnerGroupKey, sessionKey)
-			updateService.symEncSessionKey = encryptKey(permissionGroupKey, sessionKey) // legacy can be removed
-
+			let updateService = createUpdatePermissionKeyData({
+				permission: permission._id,
+				bucketPermission: bucketPermission._id,
+				ownerEncSessionKey: encryptKey(permissionOwnerGroupKey, sessionKey),
+				symEncSessionKey: encryptKey(permissionGroupKey, sessionKey), // legacy can be removed
+			})
 			return this.serviceExecutor.post(UpdatePermissionKeyService, updateService).then(noOp)
 		}
 	}

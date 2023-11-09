@@ -8,7 +8,11 @@ import {
 	createMailAddressAlias,
 	createUser,
 	CustomerTypeRef,
+	EntityUpdateTypeRef,
 	GroupInfoTypeRef,
+	GroupMembershipTypeRef,
+	MailAddressAliasTypeRef,
+	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { NotFoundError } from "../../../../../src/api/common/error/RestError.js"
 import type { Db } from "../../../../../src/api/worker/search/SearchTypes.js"
@@ -16,7 +20,7 @@ import { FULL_INDEXED_TIMESTAMP, GroupType, NOTHING_INDEXED_TIMESTAMP, Operation
 import { IndexerCore } from "../../../../../src/api/worker/search/IndexerCore.js"
 import { _createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo } from "../../../../../src/api/worker/search/IndexUtils.js"
 import { GroupInfoIndexer } from "../../../../../src/api/worker/search/GroupInfoIndexer.js"
-import { browserDataStub } from "../../../TestUtils.js"
+import { browserDataStub, createTestEntity } from "../../../TestUtils.js"
 import { isSameId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
@@ -36,7 +40,7 @@ o.spec("GroupInfoIndexer test", function () {
 	})
 
 	o("createGroupInfoIndexEntries without entries", function () {
-		let g = createGroupInfo()
+		let g = createTestEntity(GroupInfoTypeRef)
 		let indexer = new GroupInfoIndexer(new IndexerCore(dbMock, null as any, browserDataStub), null as any, null as any, suggestionFacadeMock)
 		let keyToIndexEntries = indexer.createGroupInfoIndexEntries(g)
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("")
@@ -44,7 +48,7 @@ o.spec("GroupInfoIndexer test", function () {
 	})
 
 	o("createGroupInfoIndexEntries with one entry", function () {
-		let g = createGroupInfo()
+		let g = createTestEntity(GroupInfoTypeRef)
 		g.name = "test"
 		let indexer = new GroupInfoIndexer(new IndexerCore(dbMock, null as any, browserDataStub), null as any, null as any, suggestionFacadeMock)
 		let keyToIndexEntries = indexer.createGroupInfoIndexEntries(g)
@@ -57,10 +61,10 @@ o.spec("GroupInfoIndexer test", function () {
 			createIndexEntriesForAttributes: spy(),
 		} as any
 		let indexer = new GroupInfoIndexer(core, dbMock, null as any, suggestionFacadeMock)
-		let mailAddressAliases = [createMailAddressAlias(), createMailAddressAlias()]
+		let mailAddressAliases = [createTestEntity(MailAddressAliasTypeRef), createTestEntity(MailAddressAliasTypeRef)]
 		mailAddressAliases[0].mailAddress = "MA0"
 		mailAddressAliases[1].mailAddress = "MA1"
-		let g = createGroupInfo()
+		let g = createTestEntity(GroupInfoTypeRef)
 		g.name = "N"
 		g.mailAddress = "MA"
 		g.mailAddressAliases = mailAddressAliases
@@ -97,7 +101,7 @@ o.spec("GroupInfoIndexer test", function () {
 	})
 
 	o("processNewGroupInfo", function () {
-		let groupInfo = createGroupInfo()
+		let groupInfo = createTestEntity(GroupInfoTypeRef)
 		let keyToIndexEntries = new Map()
 		let core = {
 			createIndexEntriesForAttributes: () => keyToIndexEntries,
@@ -169,17 +173,17 @@ o.spec("GroupInfoIndexer test", function () {
 		)
 		core.writeIndexUpdate = spy()
 		let userGroupId = "userGroupId"
-		let user = createUser()
-		user.memberships.push(createGroupMembership())
+		let user = createTestEntity(UserTypeRef)
+		user.memberships.push(createTestEntity(GroupMembershipTypeRef))
 		user.memberships[0].groupType = GroupType.Admin
 		user.customer = "customer-id"
-		let customer = createCustomer()
+		let customer = createTestEntity(CustomerTypeRef)
 		customer.customerGroup = "customerGroupId"
 		customer.userGroups = "userGroupsId"
 		customer.teamGroups = "teamGroupsId"
-		let userGroupInfo = createGroupInfo()
+		let userGroupInfo = createTestEntity(GroupInfoTypeRef)
 		userGroupInfo._id = [customer.userGroups, "ug"]
-		let teamGroupInfo = createGroupInfo()
+		let teamGroupInfo = createTestEntity(GroupInfoTypeRef)
 		teamGroupInfo._id = [customer.teamGroups, "tg"]
 		let entity = {
 			load: (type, customerId) => {
@@ -236,8 +240,8 @@ o.spec("GroupInfoIndexer test", function () {
 		)
 		core.writeIndexUpdate = spy()
 		let userGroupId = "userGroupId"
-		let user = createUser()
-		user.memberships.push(createGroupMembership())
+		let user = createTestEntity(UserTypeRef)
+		user.memberships.push(createTestEntity(GroupMembershipTypeRef))
 		user.memberships[0].groupType = GroupType.User
 		user.customer = "customer-id"
 		const indexer = new GroupInfoIndexer(core, db, null as any, suggestionFacadeMock)
@@ -263,11 +267,11 @@ o.spec("GroupInfoIndexer test", function () {
 		)
 		core.writeIndexUpdate = spy()
 		let userGroupId = "userGroupId"
-		let user = createUser()
-		user.memberships.push(createGroupMembership())
+		let user = createTestEntity(UserTypeRef)
+		user.memberships.push(createTestEntity(GroupMembershipTypeRef))
 		user.memberships[0].groupType = GroupType.Admin
 		user.customer = "customer-id"
-		let customer = createCustomer()
+		let customer = createTestEntity(CustomerTypeRef)
 		customer.customerGroup = "customerGroupId"
 		customer.userGroups = "userGroupsId"
 		customer.teamGroups = "teamGroupsId"
@@ -317,8 +321,8 @@ o.spec("GroupInfoIndexer test", function () {
 			createUpdate(OperationType.UPDATE, "groupInfo-list", "2"),
 			createUpdate(OperationType.DELETE, "groupInfo-list", "3"),
 		]
-		let user = createUser()
-		user.memberships = [createGroupMembership()]
+		let user = createTestEntity(UserTypeRef)
+		user.memberships = [createTestEntity(GroupMembershipTypeRef)]
 		user.memberships[0].groupType = GroupType.User
 		await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user)
 		// nothing changed
@@ -342,7 +346,7 @@ o.spec("GroupInfoIndexer test", function () {
 		)
 		core.writeIndexUpdate = spy()
 		core._processDeleted = spy()
-		let groupInfo = createGroupInfo()
+		let groupInfo = createTestEntity(GroupInfoTypeRef)
 		groupInfo._id = ["groupInfo-list", "L-dNNLe----0"]
 		let entity: any = {
 			load: (type, id) => {
@@ -355,8 +359,8 @@ o.spec("GroupInfoIndexer test", function () {
 		let indexUpdate = _createNewIndexUpdate(groupTypeInfo)
 
 		let events = [createUpdate(OperationType.CREATE, "groupInfo-list", "L-dNNLe----0")]
-		let user = createUser()
-		user.memberships = [createGroupMembership()]
+		let user = createTestEntity(UserTypeRef)
+		user.memberships = [createTestEntity(GroupMembershipTypeRef)]
 		user.memberships[0].groupType = GroupType.Admin
 		await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user)
 		// nothing changed
@@ -379,7 +383,7 @@ o.spec("GroupInfoIndexer test", function () {
 		)
 		core.writeIndexUpdate = spy()
 		core._processDeleted = spy()
-		let groupInfo = createGroupInfo()
+		let groupInfo = createTestEntity(GroupInfoTypeRef)
 		groupInfo._id = ["groupInfo-list", "L-dNNLe----0"]
 		let entity: any = {
 			load: (type, id) => {
@@ -392,8 +396,8 @@ o.spec("GroupInfoIndexer test", function () {
 		let indexUpdate = _createNewIndexUpdate(groupTypeInfo)
 
 		let events = [createUpdate(OperationType.UPDATE, "groupInfo-list", "L-dNNLe----0")]
-		let user = createUser()
-		user.memberships = [createGroupMembership()]
+		let user = createTestEntity(UserTypeRef)
+		user.memberships = [createTestEntity(GroupMembershipTypeRef)]
 		user.memberships[0].groupType = GroupType.Admin
 		await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user)
 		// nothing changed
@@ -419,7 +423,7 @@ o.spec("GroupInfoIndexer test", function () {
 		)
 		core.writeIndexUpdate = spy()
 		core._processDeleted = spy()
-		let groupInfo = createGroupInfo()
+		let groupInfo = createTestEntity(GroupInfoTypeRef)
 		groupInfo._id = ["groupInfo-list", "1"]
 		let entity: any = {
 			load: (type, id) => {
@@ -432,8 +436,8 @@ o.spec("GroupInfoIndexer test", function () {
 		let indexUpdate = _createNewIndexUpdate(groupTypeInfo)
 
 		let events = [createUpdate(OperationType.DELETE, "groupInfo-list", "1")]
-		let user = createUser()
-		user.memberships = [createGroupMembership()]
+		let user = createTestEntity(UserTypeRef)
+		user.memberships = [createTestEntity(GroupMembershipTypeRef)]
 		user.memberships[0].groupType = GroupType.Admin
 		await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate, user)
 		// nothing changed
@@ -445,7 +449,7 @@ o.spec("GroupInfoIndexer test", function () {
 })
 
 function createUpdate(type: OperationType, listId: Id, id: Id) {
-	let update = createEntityUpdate()
+	let update = createTestEntity(EntityUpdateTypeRef)
 	update.operation = type
 	update.instanceListId = listId
 	update.instanceId = id

@@ -218,19 +218,21 @@ export class UserManagementFacade {
 		)
 		await this.operationProgressTracker.onProgress(operationId, ((userIndex + 0.8) / overallNbrOfUsersToCreate) * 100)
 
-		let data = createUserAccountCreateData()
-		data.date = Const.CURRENT_DATE
-		data.userGroupData = userGroupData
-		data.userData = await this.generateUserAccountData(
-			userGroupKey,
-			userGroupInfoSessionKey,
-			customerGroupKey,
-			mailAddress,
-			password,
-			name,
-			this.generateRecoveryCode(userGroupKey),
-			kdfType,
-		)
+		let data = createUserAccountCreateData({
+			date: Const.CURRENT_DATE,
+			userGroupData: userGroupData,
+			userData: await this.generateUserAccountData(
+				userGroupKey,
+				userGroupInfoSessionKey,
+				customerGroupKey,
+				mailAddress,
+				password,
+				name,
+				this.generateRecoveryCode(userGroupKey),
+				kdfType,
+			),
+		})
+
 		await this.serviceExecutor.post(UserAccountService, data)
 		return this.operationProgressTracker.onProgress(operationId, ((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
 	}
@@ -259,29 +261,30 @@ export class UserManagementFacade {
 		const fileGroupInfoSessionKey = aes128RandomKey()
 		const tutanotaPropertiesSessionKey = aes128RandomKey()
 		const userEncEntropy = encryptBytes(userGroupKey, random.generateRandomData(32))
-		const userData = createUserAccountUserData()
-		userData.mailAddress = mailAddress
-		userData.encryptedName = encryptString(userGroupInfoSessionKey, userName)
-		userData.salt = salt
-		userData.kdfVersion = kdfType
-		userData.verifier = createAuthVerifier(userPassphraseKey)
-		userData.userEncClientKey = encryptKey(userGroupKey, clientKey)
-		userData.pwEncUserGroupKey = encryptKey(userPassphraseKey, userGroupKey)
-		userData.userEncCustomerGroupKey = encryptKey(userGroupKey, customerGroupKey)
-		userData.userEncMailGroupKey = encryptKey(userGroupKey, mailGroupKey)
-		userData.userEncContactGroupKey = encryptKey(userGroupKey, contactGroupKey)
-		userData.userEncFileGroupKey = encryptKey(userGroupKey, fileGroupKey)
-		userData.userEncEntropy = userEncEntropy
-		userData.userEncTutanotaPropertiesSessionKey = encryptKey(userGroupKey, tutanotaPropertiesSessionKey)
-		userData.mailEncMailBoxSessionKey = encryptKey(mailGroupKey, mailboxSessionKey)
-		userData.contactEncContactListSessionKey = encryptKey(contactGroupKey, contactListSessionKey)
-		userData.fileEncFileSystemSessionKey = encryptKey(fileGroupKey, fileSystemSessionKey)
-		userData.customerEncMailGroupInfoSessionKey = encryptKey(customerGroupKey, mailGroupInfoSessionKey)
-		userData.customerEncContactGroupInfoSessionKey = encryptKey(customerGroupKey, contactGroupInfoSessionKey)
-		userData.customerEncFileGroupInfoSessionKey = encryptKey(customerGroupKey, fileGroupInfoSessionKey)
-		userData.userEncRecoverCode = recoverData.userEncRecoverCode
-		userData.recoverCodeEncUserGroupKey = recoverData.recoverCodeEncUserGroupKey
-		userData.recoverCodeVerifier = recoverData.recoveryCodeVerifier
+		const userData = createUserAccountUserData({
+			mailAddress: mailAddress,
+			encryptedName: encryptString(userGroupInfoSessionKey, userName),
+			salt: salt,
+			kdfVersion: kdfType,
+			verifier: createAuthVerifier(userPassphraseKey),
+			userEncClientKey: encryptKey(userGroupKey, clientKey),
+			pwEncUserGroupKey: encryptKey(userPassphraseKey, userGroupKey),
+			userEncCustomerGroupKey: encryptKey(userGroupKey, customerGroupKey),
+			userEncMailGroupKey: encryptKey(userGroupKey, mailGroupKey),
+			userEncContactGroupKey: encryptKey(userGroupKey, contactGroupKey),
+			userEncFileGroupKey: encryptKey(userGroupKey, fileGroupKey),
+			userEncEntropy: userEncEntropy,
+			userEncTutanotaPropertiesSessionKey: encryptKey(userGroupKey, tutanotaPropertiesSessionKey),
+			mailEncMailBoxSessionKey: encryptKey(mailGroupKey, mailboxSessionKey),
+			contactEncContactListSessionKey: encryptKey(contactGroupKey, contactListSessionKey),
+			fileEncFileSystemSessionKey: encryptKey(fileGroupKey, fileSystemSessionKey),
+			customerEncMailGroupInfoSessionKey: encryptKey(customerGroupKey, mailGroupInfoSessionKey),
+			customerEncContactGroupInfoSessionKey: encryptKey(customerGroupKey, contactGroupInfoSessionKey),
+			customerEncFileGroupInfoSessionKey: encryptKey(customerGroupKey, fileGroupInfoSessionKey),
+			userEncRecoverCode: recoverData.userEncRecoverCode,
+			recoverCodeEncUserGroupKey: recoverData.recoverCodeEncUserGroupKey,
+			recoverCodeVerifier: recoverData.recoveryCodeVerifier,
+		})
 		return userData
 	}
 
@@ -322,11 +325,12 @@ export class UserManagementFacade {
 		}
 
 		const { userEncRecoverCode, recoverCodeEncUserGroupKey, hexCode, recoveryCodeVerifier } = this.generateRecoveryCode(this.userFacade.getUserGroupKey())
-		const recoverPasswordEntity = createRecoverCode()
-		recoverPasswordEntity.userEncRecoverCode = userEncRecoverCode
-		recoverPasswordEntity.recoverCodeEncUserGroupKey = recoverCodeEncUserGroupKey
-		recoverPasswordEntity._ownerGroup = this.userFacade.getUserGroupId()
-		recoverPasswordEntity.verifier = recoveryCodeVerifier
+		const recoverPasswordEntity = createRecoverCode({
+			userEncRecoverCode: userEncRecoverCode,
+			recoverCodeEncUserGroupKey: recoverCodeEncUserGroupKey,
+			_ownerGroup: this.userFacade.getUserGroupId(),
+			verifier: recoveryCodeVerifier,
+		})
 		const pwKey = await this.loginFacade.deriveUserPassphraseKey(asKdfType(user.kdfVersion), password, assertNotNull(user.salt))
 		const authVerifier = createAuthVerifierAsBase64Url(pwKey)
 		await this.entityClient.setup(null, recoverPasswordEntity, {

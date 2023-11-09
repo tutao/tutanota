@@ -17,7 +17,7 @@ import {
 import { base64ToUint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { concat } from "@tutao/tutanota-utils"
 import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/api/worker/search/SearchTypes.js"
-import { createUser, UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { createUser, EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { ContactTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { createGroupMembership } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { GroupType, OperationType } from "../../../../../src/api/common/TutanotaConstants.js"
@@ -28,6 +28,7 @@ import { byteLength } from "@tutao/tutanota-utils"
 import { aesDecrypt, aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { EntityUpdateData } from "../../../../../src/api/main/EventController.js"
 import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
+import { createTestEntity } from "../../../TestUtils.js"
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
 		let key = aes256RandomKey()
@@ -127,8 +128,8 @@ o.spec("Index Utils", () => {
 		o(typeRefToTypeInfo(ContactTypeRef).typeId).equals(ContactTypeModel.id)
 	})
 	o("userIsLocalOrGlobalAdmin", function () {
-		let user = createUser()
-		user.memberships.push(createGroupMembership())
+		let user = createTestEntity(UserTypeRef)
+		user.memberships.push(createTestEntity(GroupMembershipTypeRef))
 		user.memberships[0].groupType = GroupType.Admin
 		o(userIsLocalOrGlobalAdmin(user)).equals(true)
 		user.memberships[0].groupType = GroupType.LocalAdmin
@@ -137,8 +138,8 @@ o.spec("Index Utils", () => {
 		o(userIsLocalOrGlobalAdmin(user)).equals(false)
 	})
 	o("userIsGlobalAdmin", function () {
-		let user = createUser()
-		user.memberships.push(createGroupMembership())
+		let user = createTestEntity(UserTypeRef)
+		user.memberships.push(createTestEntity(GroupMembershipTypeRef))
 		user.memberships[0].groupType = GroupType.Admin
 		o(userIsGlobalAdmin(user)).equals(true)
 		user.memberships[0].groupType = GroupType.LocalAdmin
@@ -147,16 +148,16 @@ o.spec("Index Utils", () => {
 		o(userIsGlobalAdmin(user)).equals(false)
 	})
 	o("filterIndexMemberships", function () {
-		let user = createUser()
+		let user = createTestEntity(UserTypeRef)
 		user.memberships = [
-			createGroupMembership(),
-			createGroupMembership(),
-			createGroupMembership(),
-			createGroupMembership(),
-			createGroupMembership(),
-			createGroupMembership(),
-			createGroupMembership(),
-			createGroupMembership(),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
 		]
 		user.memberships[0].groupType = GroupType.Admin
 		user.memberships[1].groupType = GroupType.Contact
@@ -169,17 +170,17 @@ o.spec("Index Utils", () => {
 		o(filterIndexMemberships(user)).deepEquals([user.memberships[0], user.memberships[1], user.memberships[2], user.memberships[5]])
 	})
 	o("filterMailMemberships", function () {
-		let user = createUser()
+		let user = createTestEntity(UserTypeRef)
 		user.memberships = [
-			createGroupMembership(),
-			createGroupMembership(),
-			createGroupMembership(),
-			createGroupMembership(),
-			createGroupMembership(),
-			createGroupMembership(),
-			createGroupMembership(),
-			createGroupMembership(),
-			createGroupMembership(),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
+			createTestEntity(GroupMembershipTypeRef),
 		]
 		user.memberships[0].groupType = GroupType.Admin
 		user.memberships[1].groupType = GroupType.Contact
@@ -194,7 +195,7 @@ o.spec("Index Utils", () => {
 	})
 	o("containsEventOfType", function () {
 		function createUpdate(type: OperationType, id: Id): EntityUpdateData {
-			let update = createEntityUpdate()
+			let update = createTestEntity(EntityUpdateTypeRef)
 			update.operation = type
 			update.instanceId = id
 			return update as EntityUpdateData

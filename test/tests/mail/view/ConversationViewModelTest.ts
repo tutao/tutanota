@@ -8,6 +8,7 @@ import {
 	createMailFolder,
 	Mail,
 	MailboxProperties,
+	MailboxPropertiesTypeRef,
 } from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import { ownerId } from "../../calendar/CalendarTestUtils.js"
 import { CreateMailViewerOptions } from "../../../../src/mail/view/MailViewer.js"
@@ -20,6 +21,7 @@ import { defer, DeferredObject, delay, noOp } from "@tutao/tutanota-utils"
 import { matchers, object, when } from "testdouble"
 import { MailFolderType, MailState, OperationType } from "../../../../src/api/common/TutanotaConstants.js"
 import { isSameId } from "../../../../src/api/common/utils/EntityUtils.js"
+import { createTestEntity } from "../../TestUtils.js"
 
 o.spec("ConversationViewModel", function () {
 	let conversation: ConversationEntry[]
@@ -51,7 +53,7 @@ o.spec("ConversationViewModel", function () {
 
 	async function makeViewModel(pMail: Mail): Promise<void> {
 		const factory = await viewModelFactory()
-		const mailboxProperties = createMailboxProperties()
+		const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef)
 		const entityClient = new EntityClient(entityRestClientMock)
 
 		const eventController: EventController = {

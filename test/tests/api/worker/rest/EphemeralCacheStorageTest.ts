@@ -1,6 +1,7 @@
 import o from "@tutao/otest"
 import { EphemeralCacheStorage } from "../../../../../src/api/worker/rest/EphemeralCacheStorage.js"
-import { createMailDetails, createMailDetailsBlob, MailDetailsBlobTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { createMailDetailsBlob, MailDetailsBlobTypeRef, MailDetailsTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { createTestEntity } from "../../../TestUtils.js"
 
 o.spec("EphemeralCacheStorageTest", function () {
 	const userId = "userId"
@@ -12,7 +13,7 @@ o.spec("EphemeralCacheStorageTest", function () {
 	o.spec("BlobElementType", function () {
 		o("cache roundtrip: put, get, delete", async function () {
 			storage.init({ userId })
-			const storableMailDetailsBlob = createMailDetailsBlob({ _id: [archiveId, blobElementId], details: createMailDetails() })
+			const storableMailDetailsBlob = createMailDetailsBlob({ _id: [archiveId, blobElementId], details: createTestEntity(MailDetailsTypeRef) })
 			let mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
 			o(mailDetailsBlob).equals(null)
 
@@ -30,7 +31,11 @@ o.spec("EphemeralCacheStorageTest", function () {
 		o("cache roundtrip: put, get, deleteAllOwnedBy", async function () {
 			const _ownerGroup = "owenerGroup"
 			storage.init({ userId })
-			const storableMailDetailsBlob = createMailDetailsBlob({ _id: [archiveId, blobElementId], _ownerGroup, details: createMailDetails() })
+			const storableMailDetailsBlob = createMailDetailsBlob({
+				_id: [archiveId, blobElementId],
+				_ownerGroup,
+				details: createTestEntity(MailDetailsTypeRef),
+			})
 
 			await storage.put(storableMailDetailsBlob)
 

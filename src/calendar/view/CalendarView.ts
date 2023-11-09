@@ -725,7 +725,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					existingGroupSettings.color = properties.color
 					existingGroupSettings.name = shared && properties.name !== groupInfo.name ? properties.name : null
 				} else {
-					const newGroupSettings = Object.assign(createGroupSettings(), {
+					const newGroupSettings = createGroupSettings({
 						group: groupInfo.group,
 						color: properties.color,
 						name: shared && properties.name !== groupInfo.name ? properties.name : null,

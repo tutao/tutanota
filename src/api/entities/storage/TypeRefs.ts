@@ -6,7 +6,7 @@ import {BlobReferenceTokenWrapper} from '../sys/TypeRefs.js'
 
 export const BlobAccessTokenPostInTypeRef: TypeRef<BlobAccessTokenPostIn> = new TypeRef("storage", "BlobAccessTokenPostIn")
 
-export function createBlobAccessTokenPostIn(values?: Partial<BlobAccessTokenPostIn>): BlobAccessTokenPostIn {
+export function createBlobAccessTokenPostIn(values: Partial<BlobAccessTokenPostIn>): BlobAccessTokenPostIn {
 	return Object.assign(create(typeModels.BlobAccessTokenPostIn, BlobAccessTokenPostInTypeRef), values)
 }
 
@@ -21,7 +21,7 @@ export type BlobAccessTokenPostIn = {
 }
 export const BlobAccessTokenPostOutTypeRef: TypeRef<BlobAccessTokenPostOut> = new TypeRef("storage", "BlobAccessTokenPostOut")
 
-export function createBlobAccessTokenPostOut(values?: Partial<BlobAccessTokenPostOut>): BlobAccessTokenPostOut {
+export function createBlobAccessTokenPostOut(values: Partial<BlobAccessTokenPostOut>): BlobAccessTokenPostOut {
 	return Object.assign(create(typeModels.BlobAccessTokenPostOut, BlobAccessTokenPostOutTypeRef), values)
 }
 
@@ -34,7 +34,7 @@ export type BlobAccessTokenPostOut = {
 }
 export const BlobArchiveRefTypeRef: TypeRef<BlobArchiveRef> = new TypeRef("storage", "BlobArchiveRef")
 
-export function createBlobArchiveRef(values?: Partial<BlobArchiveRef>): BlobArchiveRef {
+export function createBlobArchiveRef(values: Partial<BlobArchiveRef>): BlobArchiveRef {
 	return Object.assign(create(typeModels.BlobArchiveRef, BlobArchiveRefTypeRef), values)
 }
 
@@ -50,7 +50,7 @@ export type BlobArchiveRef = {
 }
 export const BlobGetInTypeRef: TypeRef<BlobGetIn> = new TypeRef("storage", "BlobGetIn")
 
-export function createBlobGetIn(values?: Partial<BlobGetIn>): BlobGetIn {
+export function createBlobGetIn(values: Partial<BlobGetIn>): BlobGetIn {
 	return Object.assign(create(typeModels.BlobGetIn, BlobGetInTypeRef), values)
 }
 
@@ -65,7 +65,7 @@ export type BlobGetIn = {
 }
 export const BlobIdTypeRef: TypeRef<BlobId> = new TypeRef("storage", "BlobId")
 
-export function createBlobId(values?: Partial<BlobId>): BlobId {
+export function createBlobId(values: Partial<BlobId>): BlobId {
 	return Object.assign(create(typeModels.BlobId, BlobIdTypeRef), values)
 }
 
@@ -77,7 +77,7 @@ export type BlobId = {
 }
 export const BlobPostOutTypeRef: TypeRef<BlobPostOut> = new TypeRef("storage", "BlobPostOut")
 
-export function createBlobPostOut(values?: Partial<BlobPostOut>): BlobPostOut {
+export function createBlobPostOut(values: Partial<BlobPostOut>): BlobPostOut {
 	return Object.assign(create(typeModels.BlobPostOut, BlobPostOutTypeRef), values)
 }
 
@@ -89,7 +89,7 @@ export type BlobPostOut = {
 }
 export const BlobReadDataTypeRef: TypeRef<BlobReadData> = new TypeRef("storage", "BlobReadData")
 
-export function createBlobReadData(values?: Partial<BlobReadData>): BlobReadData {
+export function createBlobReadData(values: Partial<BlobReadData>): BlobReadData {
 	return Object.assign(create(typeModels.BlobReadData, BlobReadDataTypeRef), values)
 }
 
@@ -104,7 +104,7 @@ export type BlobReadData = {
 }
 export const BlobReferenceDeleteInTypeRef: TypeRef<BlobReferenceDeleteIn> = new TypeRef("storage", "BlobReferenceDeleteIn")
 
-export function createBlobReferenceDeleteIn(values?: Partial<BlobReferenceDeleteIn>): BlobReferenceDeleteIn {
+export function createBlobReferenceDeleteIn(values: Partial<BlobReferenceDeleteIn>): BlobReferenceDeleteIn {
 	return Object.assign(create(typeModels.BlobReferenceDeleteIn, BlobReferenceDeleteInTypeRef), values)
 }
 
@@ -120,7 +120,7 @@ export type BlobReferenceDeleteIn = {
 }
 export const BlobReferencePutInTypeRef: TypeRef<BlobReferencePutIn> = new TypeRef("storage", "BlobReferencePutIn")
 
-export function createBlobReferencePutIn(values?: Partial<BlobReferencePutIn>): BlobReferencePutIn {
+export function createBlobReferencePutIn(values: Partial<BlobReferencePutIn>): BlobReferencePutIn {
 	return Object.assign(create(typeModels.BlobReferencePutIn, BlobReferencePutInTypeRef), values)
 }
 
@@ -136,7 +136,7 @@ export type BlobReferencePutIn = {
 }
 export const BlobServerAccessInfoTypeRef: TypeRef<BlobServerAccessInfo> = new TypeRef("storage", "BlobServerAccessInfo")
 
-export function createBlobServerAccessInfo(values?: Partial<BlobServerAccessInfo>): BlobServerAccessInfo {
+export function createBlobServerAccessInfo(values: Partial<BlobServerAccessInfo>): BlobServerAccessInfo {
 	return Object.assign(create(typeModels.BlobServerAccessInfo, BlobServerAccessInfoTypeRef), values)
 }
 
@@ -151,7 +151,7 @@ export type BlobServerAccessInfo = {
 }
 export const BlobServerUrlTypeRef: TypeRef<BlobServerUrl> = new TypeRef("storage", "BlobServerUrl")
 
-export function createBlobServerUrl(values?: Partial<BlobServerUrl>): BlobServerUrl {
+export function createBlobServerUrl(values: Partial<BlobServerUrl>): BlobServerUrl {
 	return Object.assign(create(typeModels.BlobServerUrl, BlobServerUrlTypeRef), values)
 }
 
@@ -163,7 +163,7 @@ export type BlobServerUrl = {
 }
 export const BlobWriteDataTypeRef: TypeRef<BlobWriteData> = new TypeRef("storage", "BlobWriteData")
 
-export function createBlobWriteData(values?: Partial<BlobWriteData>): BlobWriteData {
+export function createBlobWriteData(values: Partial<BlobWriteData>): BlobWriteData {
 	return Object.assign(create(typeModels.BlobWriteData, BlobWriteDataTypeRef), values)
 }
 
@@ -175,7 +175,7 @@ export type BlobWriteData = {
 }
 export const InstanceIdTypeRef: TypeRef<InstanceId> = new TypeRef("storage", "InstanceId")
 
-export function createInstanceId(values?: Partial<InstanceId>): InstanceId {
+export function createInstanceId(values: Partial<InstanceId>): InstanceId {
 	return Object.assign(create(typeModels.InstanceId, InstanceIdTypeRef), values)
 }
 

@@ -13,12 +13,11 @@ import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.
 import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
 import { Cardinality, ValueType } from "../../../../../src/api/common/EntityConstants.js"
 import { BucketPermissionType, PermissionType } from "../../../../../src/api/common/TutanotaConstants.js"
-import * as Contact from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import {
+	ContactAddressTypeRef,
 	ContactTypeRef,
 	createBirthday,
 	createContact,
-	createContactAddress,
 	FileTypeRef,
 	Mail,
 	MailAddressTypeRef,
@@ -40,7 +39,6 @@ import {
 	createPermission,
 	createTypeInfo,
 	createUser,
-	createUserIdReturn,
 	GroupTypeRef,
 	PermissionTypeRef,
 	UpdatePermissionKeyData,
@@ -74,6 +72,7 @@ import { resolveTypeReference, typeModels } from "../../../../../src/api/common/
 import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
 import { SessionKeyNotFoundError } from "../../../../../src/api/common/error/SessionKeyNotFoundError.js"
 import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
+import { createTestEntity } from "../../../TestUtils.js"
 
 const { captor } = matchers
 
@@ -485,11 +484,11 @@ o.spec("crypto facade", function () {
 
 	o("encrypt instance", async function () {
 		let sk = aes128RandomKey()
-		let address = createContactAddress()
+		let address = createTestEntity(ContactAddressTypeRef)
 		address.type = "0"
 		address.address = "Entenhausen"
 		address.customTypeName = "0"
-		let contact = Contact.createContact()
+		let contact = createTestEntity(ContactTypeRef)
 		contact._area = "0"
 		contact._owner = "123"
 		contact.title = "Dr."
@@ -527,7 +526,7 @@ o.spec("crypto facade", function () {
 	})
 
 	o("map unencrypted to DB literal", async function () {
-		let userIdReturn = createUserIdReturn()
+		let userIdReturn = createTestEntity(UserIdReturnTypeRef)
 		userIdReturn._format = "0"
 		userIdReturn.userId = "KOBqO7a----0"
 		let userIdLiteral = {
@@ -663,7 +662,7 @@ o.spec("crypto facade", function () {
 			when(entityClient.update(matchers.anything())).thenResolve(undefined)
 		})
 		o("contact migration without birthday", async function () {
-			const contact = createContact()
+			const contact = createTestEntity(ContactTypeRef)
 
 			const migratedContact = await crypto.applyMigrationsForInstance(contact)
 

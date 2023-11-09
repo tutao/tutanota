@@ -2,12 +2,13 @@ import o from "@tutao/otest"
 import type { QueuedBatch } from "../../../../../src/api/worker/EventQueue.js"
 import { EventQueue } from "../../../../../src/api/worker/EventQueue.js"
 import type { EntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { createEntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { EntityUpdateTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { OperationType } from "../../../../../src/api/common/TutanotaConstants.js"
 import { defer, delay } from "@tutao/tutanota-utils"
 import { ConnectionError } from "../../../../../src/api/common/error/RestError.js"
 import { MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { spy } from "@tutao/tutanota-test-utils"
+import { createTestEntity } from "../../../TestUtils.js"
 
 o.spec("EventQueueTest", function () {
 	let queue: EventQueue
@@ -15,7 +16,7 @@ o.spec("EventQueueTest", function () {
 	let lastProcess: { resolve: () => void; reject: (Error) => void; promise: Promise<void> }
 
 	const newUpdate = (type: OperationType, instanceId: string) => {
-		const update = createEntityUpdate()
+		const update = createTestEntity(EntityUpdateTypeRef)
 		update.operation = type
 		update.instanceId = instanceId
 		return update
@@ -406,7 +407,7 @@ o.spec("EventQueueTest", function () {
 		})
 
 		function createUpdate(type: OperationType, listId: Id, instanceId: Id, eventId?: Id): EntityUpdate {
-			let update = createEntityUpdate()
+			let update = createTestEntity(EntityUpdateTypeRef)
 			update.operation = type
 			update.instanceListId = listId
 			update.instanceId = instanceId

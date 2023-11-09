@@ -23,16 +23,16 @@ import {
 } from "../../../../../src/api/worker/search/IndexUtils.js"
 import { base64ToUint8Array, concat, defer, downcast, neverNull, noOp, PromisableWrapper, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { spy } from "@tutao/tutanota-test-utils"
-import { ContactTypeRef, createContact, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { ContactTypeRef, MailTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { DbTransaction } from "../../../../../src/api/worker/search/DbFacade.js"
 import { appendBinaryBlocks } from "../../../../../src/api/worker/search/SearchIndexEncoding.js"
-import { createEntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { EntityUpdateTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { EventQueue } from "../../../../../src/api/worker/EventQueue.js"
 import { CancelledError } from "../../../../../src/api/common/error/CancelledError.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import { IndexerCore } from "../../../../../src/api/worker/search/IndexerCore.js"
 import { elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
-import { makeCore } from "../../../TestUtils.js"
+import { createTestEntity, makeCore } from "../../../TestUtils.js"
 import { aes256RandomKey, aesDecrypt, aesEncrypt, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
 import { ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/api/worker/search/IndexTables.js"
@@ -63,7 +63,7 @@ function compareBinaryBlocks(actual: Uint8Array, expected: Uint8Array) {
 o.spec("IndexerCore test", () => {
 	o("createIndexEntriesForAttributes", async function () {
 		let core = makeCore()
-		let contact = createContact()
+		let contact = createTestEntity(ContactTypeRef)
 		contact._id = ["", "L-dNNLe----0"]
 		contact.firstName = "Max Tim"
 		contact.lastName = "Meier" // not indexed
@@ -1023,7 +1023,7 @@ o.spec("IndexerCore test", () => {
 
 		const instanceId = "L-dNNLe----1"
 		const instanceIdTimestamp = generatedIdToTimestamp(instanceId)
-		const event = createEntityUpdate()
+		const event = createTestEntity(EntityUpdateTypeRef)
 		event.application = MailTypeRef.app
 		event.type = MailTypeRef.type
 		const metaRowId = 3
@@ -1086,7 +1086,7 @@ o.spec("IndexerCore test", () => {
 		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 
 		let instanceId = "123"
-		let event = createEntityUpdate()
+		let event = createTestEntity(EntityUpdateTypeRef)
 		event.instanceId = instanceId
 		event.application = MailTypeRef.app
 		event.type = MailTypeRef.type

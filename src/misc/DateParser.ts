@@ -134,17 +134,17 @@ export function parseBirthday(text: string): Birthday | null {
 
 		let birthdayValues = _cleanupAndSplit(text)
 
-		let birthday = createBirthday()
+		let day, month, year
 
 		if (String(birthdayValues[dayPos]).length < 3 && String(birthdayValues[monthPos]).length < 3) {
 			if (birthdayValues[dayPos] < 32) {
-				birthday.day = String(birthdayValues[dayPos])
+				day = String(birthdayValues[dayPos])
 			} else {
 				return null
 			}
 
 			if (birthdayValues[monthPos] < 13) {
-				birthday.month = String(birthdayValues[monthPos])
+				month = String(birthdayValues[monthPos])
 			} else {
 				return null
 			}
@@ -154,21 +154,20 @@ export function parseBirthday(text: string): Birthday | null {
 
 		if (birthdayValues[yearPos]) {
 			if (String(birthdayValues[yearPos]).length === 4) {
-				birthday.year = String(birthdayValues[yearPos])
+				year = String(birthdayValues[yearPos])
 			} else if (String(birthdayValues[yearPos]).length === 2) {
 				if (birthdayValues[yearPos] > Number(String(new Date().getFullYear()).substring(2))) {
-					birthday.year = "19" + String(birthdayValues[yearPos])
+					year = "19" + String(birthdayValues[yearPos])
 				} else {
-					birthday.year = "20" + String(birthdayValues[yearPos])
+					year = "20" + String(birthdayValues[yearPos])
 				}
 			} else {
 				return null
 			}
 		} else {
-			birthday.year = null
+			year = null
 		}
-
-		return birthday
+		return createBirthday({ day, month, year })
 	} catch (e) {
 		return null
 	}

@@ -1,15 +1,16 @@
 import o from "@tutao/otest"
-import { createContact } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { BirthdayTypeRef, ContactMailAddressTypeRef, ContactTypeRef, createContact } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { formatBirthdayNumeric } from "../../../src/contacts/model/ContactUtils.js"
 import { createContactMailAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { createBirthday } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../../src/misc/LanguageViewModel.js"
 import { compareContacts } from "../../../src/contacts/view/ContactGuiUtils.js"
+import { createTestEntity } from "../TestUtils.js"
 
 o.spec("ContactUtilsTest", function () {
 	let compare = function (c1Firstname, c1Lastname, c1MailAddress, c2Firstname, c2Lastname, c2MailAddress, byFirstName, expectedResult) {
-		let c1 = createContact()
-		let c2 = createContact()
+		let c1 = createTestEntity(ContactTypeRef)
+		let c2 = createTestEntity(ContactTypeRef)
 		c1._id = ["a", "1"]
 		c2._id = ["a", "2"]
 		c1.firstName = c1Firstname
@@ -18,13 +19,13 @@ o.spec("ContactUtilsTest", function () {
 		c2.lastName = c2Lastname
 
 		if (c1MailAddress) {
-			let m = createContactMailAddress()
+			let m = createTestEntity(ContactMailAddressTypeRef)
 			m.address = c1MailAddress
 			c1.mailAddresses.push(m)
 		}
 
 		if (c2MailAddress) {
-			let m = createContactMailAddress()
+			let m = createTestEntity(ContactMailAddressTypeRef)
 			m.address = c2MailAddress
 			c2.mailAddresses.push(m)
 		}
@@ -124,7 +125,7 @@ o.spec("ContactUtilsTest", function () {
 			languageTag: "en",
 		})
 		lang.updateFormats({})
-		let bday = createBirthday()
+		let bday = createTestEntity(BirthdayTypeRef)
 		bday.day = "12"
 		bday.month = "10"
 		bday.year = "2009"
@@ -137,24 +138,24 @@ o.spec("ContactUtilsTest", function () {
 		bday.month = "7"
 		bday.year = null
 		o(formatBirthdayNumeric(bday)).equals("7/9")
-		bday = createBirthday()
+		bday = createTestEntity(BirthdayTypeRef)
 		bday.day = "12"
 		bday.month = "10"
 		bday.year = "2009"
 	})
 
 	o("formatBirthdayNumeric", function () {
-		const leapYearBirthday = createBirthday()
+		const leapYearBirthday = createTestEntity(BirthdayTypeRef)
 		leapYearBirthday.year = "2016"
 		leapYearBirthday.month = "2"
 		leapYearBirthday.day = "29"
 
-		const leapYearBirthdayNoYear = createBirthday()
+		const leapYearBirthdayNoYear = createTestEntity(BirthdayTypeRef)
 		leapYearBirthdayNoYear.month = "2"
 		leapYearBirthdayNoYear.day = "29"
 
 		// Chrome date bug issue: https://github.com/tutao/tutanota/issues/414
-		const chromeBugBirthday = createBirthday()
+		const chromeBugBirthday = createTestEntity(BirthdayTypeRef)
 		chromeBugBirthday.year = "1911"
 		chromeBugBirthday.month = "8"
 		chromeBugBirthday.day = "15"

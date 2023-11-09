@@ -55,10 +55,11 @@ import { EntityClient } from "../../common/EntityClient"
 import { GENERATED_ID_BYTES_LENGTH, isSameId } from "../../common/utils/EntityUtils"
 import type { Credentials } from "../../../misc/credentials/Credentials"
 import {
-	aesDecrypt,
 	Aes128Key,
 	aes128RandomKey,
+	aes256DecryptLegacyRecoveryKey,
 	Aes256Key,
+	aesDecrypt,
 	base64ToKey,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
@@ -87,7 +88,6 @@ import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { DatabaseKeyFactory } from "../../../misc/credentials/DatabaseKeyFactory.js"
 import { ExternalUserKeyDeriver } from "../../../misc/LoginUtils.js"
 import { Argon2idFacade } from "./Argon2idFacade.js"
-import { aes256DecryptLegacyRecoveryKey } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -298,8 +298,9 @@ export class LoginFacade {
 	}
 
 	private async waitUntilSecondFactorApproved(accessToken: Base64Url, sessionId: IdTuple, retryOnNetworkError: number): Promise<void> {
-		let secondFactorAuthGetData = createSecondFactorAuthGetData()
-		secondFactorAuthGetData.accessToken = accessToken
+		let secondFactorAuthGetData = createSecondFactorAuthGetData({
+			accessToken,
+		})
 		try {
 			const secondFactorAuthGetReturn = await this.serviceExecutor.get(SecondFactorAuthService, secondFactorAuthGetData)
 			if (!this.loginRequestSessionId || !isSameId(this.loginRequestSessionId, sessionId)) {
@@ -340,11 +341,12 @@ export class LoginFacade {
 		// the verifier is always sent as url parameter, so it must be url encoded
 		const authVerifier = createAuthVerifierAsBase64Url(userPassphraseKey)
 		const authToken = base64ToBase64Url(uint8ArrayToBase64(sha256Hash(salt)))
-		const sessionData = createCreateSessionData()
-		sessionData.user = userId
-		sessionData.authToken = authToken
-		sessionData.clientIdentifier = clientIdentifier
-		sessionData.authVerifier = authVerifier
+		const sessionData = createCreateSessionData({
+			user: userId,
+			authToken,
+			clientIdentifier,
+			authVerifier,
+		})
 		let accessKey: Aes128Key | null = null
 
 		if (persistentSession) {
@@ -792,24 +794,27 @@ export class LoginFacade {
 		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newKdfType, newPassword, salt)
 		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey())
 		const authVerifier = createAuthVerifier(newUserPassphraseKey)
-		const service = createChangePasswordData()
+		const service = createChangePasswordData({
+			kdfVersion: newKdfType,
+			oldVerifier: currentAuthVerifier,
+			salt: salt,
+			verifier: authVerifier,
+			pwEncUserGroupKey: pwEncUserGroupKey,
+		})
 
-		service.kdfVersion = newKdfType
-		service.oldVerifier = currentAuthVerifier
-		service.salt = salt
-		service.verifier = authVerifier
-		service.pwEncUserGroupKey = pwEncUserGroupKey
 		await this.serviceExecutor.post(ChangePasswordService, service)
 	}
 
 	async deleteAccount(password: string, reason: string, takeover: string): Promise<void> {
-		const deleteCustomerData = createDeleteCustomerData()
 		const userSalt = assertNotNull(this.userFacade.getLoggedInUser().salt)
+
 		const passwordKey = await this.deriveUserPassphraseKey(asKdfType(this.userFacade.getLoggedInUser().kdfVersion), password, userSalt)
-		deleteCustomerData.authVerifier = createAuthVerifier(passwordKey)
-		deleteCustomerData.undelete = false
-		deleteCustomerData.customer = neverNull(neverNull(this.userFacade.getLoggedInUser()).customer)
-		deleteCustomerData.reason = reason
+		const deleteCustomerData = createDeleteCustomerData({
+			authVerifier: createAuthVerifier(passwordKey),
+			undelete: false,
+			customer: neverNull(neverNull(this.userFacade.getLoggedInUser()).customer),
+			reason: reason,
+		})
 
 		if (takeover !== "") {
 			deleteCustomerData.takeoverMailAddress = takeover
@@ -821,13 +826,14 @@ export class LoginFacade {
 
 	/** Changes user password to another one using recoverCode instead of the old password. */
 	async recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, newKdfType: KdfType, clientIdentifier: string): Promise<void> {
-		const sessionData = createCreateSessionData()
 		const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
 		const recoverCodeVerifier = createAuthVerifier(recoverCodeKey)
 		const recoverCodeVerifierBase64 = base64ToBase64Url(uint8ArrayToBase64(recoverCodeVerifier))
-		sessionData.mailAddress = mailAddress.toLowerCase().trim()
-		sessionData.clientIdentifier = clientIdentifier
-		sessionData.recoverCodeVerifier = recoverCodeVerifierBase64
+		const sessionData = createCreateSessionData({
+			mailAddress: mailAddress.toLowerCase().trim(),
+			clientIdentifier: clientIdentifier,
+			recoverCodeVerifier: recoverCodeVerifierBase64,
+		})
 		// we need a separate entity rest client because to avoid caching of the user instance which is updated on password change. the web socket is not connected because we
 		// don't do a normal login and therefore we would not get any user update events. we can not use permanentLogin=false with initSession because caching would be enabled
 		// and therefore we would not be able to read the updated user
@@ -871,12 +877,13 @@ export class LoginFacade {
 			const userPassphraseKey = await this.deriveUserPassphraseKey(newKdfType, newPassword, salt)
 			const pwEncUserGroupKey = encryptKey(userPassphraseKey, groupKey)
 			const newPasswordVerifier = createAuthVerifier(userPassphraseKey)
-			const postData = createChangePasswordData()
-			postData.salt = salt
-			postData.kdfVersion = newKdfType
-			postData.pwEncUserGroupKey = pwEncUserGroupKey
-			postData.verifier = newPasswordVerifier
-			postData.recoverCodeVerifier = recoverCodeVerifier
+			const postData = createChangePasswordData({
+				salt: salt,
+				kdfVersion: newKdfType,
+				pwEncUserGroupKey: pwEncUserGroupKey,
+				verifier: newPasswordVerifier,
+				recoverCodeVerifier: recoverCodeVerifier,
+			})
 
 			const extraHeaders = {
 				accessToken,
@@ -893,10 +900,11 @@ export class LoginFacade {
 			const authVerifier = createAuthVerifierAsBase64Url(passphraseReturn)
 			const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
 			const recoverCodeVerifier = createAuthVerifierAsBase64Url(recoverCodeKey)
-			const deleteData = createResetFactorsDeleteData()
-			deleteData.mailAddress = mailAddress
-			deleteData.authVerifier = authVerifier
-			deleteData.recoverCodeVerifier = recoverCodeVerifier
+			const deleteData = createResetFactorsDeleteData({
+				mailAddress,
+				authVerifier,
+				recoverCodeVerifier,
+			})
 			return this.serviceExecutor.delete(ResetFactorsService, deleteData)
 		})
 	}
@@ -911,11 +919,12 @@ export class LoginFacade {
 				recoverCodeVerifier = createAuthVerifierAsBase64Url(recoverCodeKey)
 			}
 
-			let data = createTakeOverDeletedAddressData()
-			data.mailAddress = mailAddress
-			data.authVerifier = authVerifier
-			data.recoverCodeVerifier = recoverCodeVerifier
-			data.targetAccountMailAddress = targetAccountMailAddress
+			let data = createTakeOverDeletedAddressData({
+				mailAddress,
+				authVerifier,
+				recoverCodeVerifier,
+				targetAccountMailAddress,
+			})
 			return this.serviceExecutor.post(TakeOverDeletedAddressService, data)
 		})
 	}

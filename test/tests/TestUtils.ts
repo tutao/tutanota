@@ -3,12 +3,15 @@ import type { Db } from "../../src/api/worker/search/SearchTypes.js"
 import { IndexerCore } from "../../src/api/worker/search/IndexerCore.js"
 import { EventQueue } from "../../src/api/worker/EventQueue.js"
 import { DbFacade, DbTransaction } from "../../src/api/worker/search/DbFacade.js"
-import { Thunk } from "@tutao/tutanota-utils"
+import { Thunk, TypeRef } from "@tutao/tutanota-utils"
 import type { DesktopKeyStoreFacade } from "../../src/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/tutanota-test-utils"
 import { aes256RandomKey, fixedIv, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/api/common/utils/Scheduler.js"
 import { object, when } from "testdouble"
+import { Entity, TypeModel } from "../../src/api/common/EntityTypes.js"
+import { create } from "../../src/api/common/utils/EntityUtils.js"
+import { typeModels } from "../../src/api/common/EntityFunctions.js"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -107,4 +110,27 @@ export const domainConfigStub: DomainConfig = {
 	webauthnMobileUrl: "",
 	legacyWebauthnMobileUrl: "",
 	websiteBaseUrl: "",
+}
+
+// non-async copy
+function resolveTypeReference(typeRef: TypeRef<any>): TypeModel {
+	// @ts-ignore
+	const modelMap = typeModels[typeRef.app]
+
+	const typeModel = modelMap[typeRef.type]
+	if (typeModel == null) {
+		throw new Error("Cannot find TypeRef: " + JSON.stringify(typeRef))
+	} else {
+		return typeModel
+	}
+}
+
+export function createTestEntity<T extends Entity>(typeRef: TypeRef<T>, values?: Partial<T>): T {
+	const typeModel = resolveTypeReference(typeRef as TypeRef<any>)
+	const entity = create(typeModel, typeRef)
+	if (values) {
+		return { ...entity, values }
+	} else {
+		return entity
+	}
 }

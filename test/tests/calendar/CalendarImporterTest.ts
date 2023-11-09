@@ -9,19 +9,21 @@ import {
 } from "../../../src/calendar/export/CalendarImporter.js"
 import {
 	CalendarEvent,
+	CalendarGroupRootTypeRef,
 	createCalendarEvent,
 	createCalendarEventAttendee,
-	createCalendarGroupRoot,
 	createEncryptedMailAddress,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { DateTime } from "luxon"
-import { createAlarmInfo, createDateWrapper, createRepeatRule, createUserAlarmInfo } from "../../../src/api/entities/sys/TypeRefs.js"
+import { createAlarmInfo, createDateWrapper, createRepeatRule, createUserAlarmInfo, RepeatRuleTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
 import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
 import { getAllDayDateUTC } from "../../../src/api/common/utils/CommonCalendarUtils.js"
 import { getAllDayDateUTCFromZone } from "../../../src/calendar/date/CalendarUtils.js"
 import { EventImportRejectionReason, sortOutParsedEvents } from "../../../src/calendar/export/CalendarImporterDialog.js"
 import { getDateInZone } from "./CalendarTestUtils.js"
 import { Require } from "@tutao/tutanota-utils"
+import { createTestEntity } from "../TestUtils.js"
+import { writeFile, writeFileSync } from "fs-extra"
 
 const zone = "Europe/Berlin"
 const now = new Date("2019-08-13T14:01:00.630Z")
@@ -1362,7 +1364,7 @@ END:VCALENDAR`
 					},
 				],
 				[],
-				createCalendarGroupRoot(),
+				createTestEntity(CalendarGroupRootTypeRef),
 				zone,
 			)
 			o(eventsForCreation[0].event).equals(progenitor1)
@@ -1372,7 +1374,7 @@ END:VCALENDAR`
 			const progenitor = createCalendarEvent({
 				uid: "hello",
 				startTime: getDateInZone("2023-01-02T13:00"),
-				repeatRule: createRepeatRule(),
+				repeatRule: createTestEntity(RepeatRuleTypeRef),
 			}) as Require<"uid", CalendarEvent>
 			const altered = createCalendarEvent({
 				uid: "hello",
@@ -1385,7 +1387,7 @@ END:VCALENDAR`
 					{ event: altered, alarms: [] },
 				],
 				[],
-				createCalendarGroupRoot(),
+				createTestEntity(CalendarGroupRootTypeRef),
 				zone,
 			)
 			o(rejectedEvents.size).equals(0)

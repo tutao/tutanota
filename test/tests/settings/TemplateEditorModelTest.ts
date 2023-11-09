@@ -1,11 +1,12 @@
 import o from "@tutao/otest"
-import { createEmailTemplate } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { createEmailTemplate, TemplateGroupRootTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { TemplateEditorModel } from "../../../src/settings/TemplateEditorModel.js"
 import { createTemplateGroupRoot } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { createEmailTemplateContent } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { LanguageNames, languages } from "../../../src/misc/LanguageViewModel.js"
+import { createTestEntity } from "../TestUtils.js"
 o.spec("TemplateEditorModel", function () {
 	let entityClient: EntityClient
 	o.beforeEach(function () {
@@ -24,7 +25,7 @@ o.spec("TemplateEditorModel", function () {
 				}),
 			],
 		})
-		const templateGroupRoot = createTemplateGroupRoot()
+		const templateGroupRoot = createTestEntity(TemplateGroupRootTypeRef)
 		const model = new TemplateEditorModel(template, templateGroupRoot, entityClient)
 		const addedLanguages = model.getAddedLanguages()
 		const additionalLanguages = model.getAdditionalLanguages()
