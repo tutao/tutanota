@@ -98,6 +98,7 @@ import { Router, ScopedRouter, ThrottledRouter } from "../../gui/ScopedRouter.js
 import { ShareableGroupType } from "../../sharing/GroupUtils.js"
 import { KdfPicker } from "../../misc/KdfPicker.js"
 import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
+import { getDisplayedSender } from "../../mail/model/MailUtils.js"
 
 assertMainOrNode()
 
@@ -252,7 +253,7 @@ class MainLocator {
 	readonly mailOpenedListener: MailOpenedListener = {
 		onEmailOpened: isDesktop()
 			? (mail) => {
-					this.desktopSystemFacade.sendSocketMessage(mail.sender.address)
+					this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
 			  }
 			: noOp,
 	}

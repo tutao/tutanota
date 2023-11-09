@@ -16,6 +16,7 @@ import {
 	ConversationType,
 	getMailFolderType,
 	GroupType,
+	MailAuthenticationStatus,
 	MailFolderType,
 	MailState,
 	MAX_ATTACHMENT_SIZE,
@@ -47,6 +48,11 @@ import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
+
+export interface MailAddressAndName {
+	name: string
+	address: string
+}
 
 export function isTutanotaMailAddress(mailAddress: string): boolean {
 	return TUTANOTA_MAIL_ADDRESS_DOMAINS.some((tutaDomain) => mailAddress.endsWith("@" + tutaDomain))
@@ -106,18 +112,19 @@ export function getMailAddressDisplayText(name: string | null, mailAddress: stri
 }
 
 export function getSenderHeading(mail: Mail, preferNameOnly: boolean) {
-	if (isExcludedMailAddress(mail.sender.address)) {
+	const sender = getDisplayedSender(mail)
+	if (isExcludedMailAddress(sender.address)) {
 		return ""
 	} else {
-		return getMailAddressDisplayText(mail.sender.name, mail.sender.address, preferNameOnly)
+		return getMailAddressDisplayText(sender.name, sender.address, preferNameOnly)
 	}
 }
 
-export function getSenderAddressDisplay(mail: Mail): string {
-	if (isExcludedMailAddress(mail.sender.address)) {
+export function getSenderAddressDisplay(sender: MailAddressAndName): string {
+	if (isExcludedMailAddress(sender.address)) {
 		return ""
 	} else {
-		return mail.sender.address
+		return sender.address
 	}
 }
 
@@ -149,20 +156,38 @@ export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean)
 	}
 }
 
-export function getSenderOrRecipientHeadingTooltip(mail: Mail): string {
-	if (isTutanotaTeamMail(mail) && !isExcludedMailAddress(mail.sender.address)) {
-		return lang.get("tutaoInfo_msg")
-	} else {
-		return ""
+/**
+ * Some internal messages come from system@tutanota.de which were sent on behalf of another internal e-mail address (e.g. automated messages from sales.tutao.de)
+ */
+export function getDisplayedSender(mail: Mail): MailAddressAndName {
+	const realSender = mail.sender
+	const replyTos = mail.replyTos
+	if (
+		mail.state === MailState.RECEIVED &&
+		mail.authStatus === MailAuthenticationStatus.AUTHENTICATED &&
+		realSender.address === "system@tutanota.de" &&
+		replyTos.length === 1 &&
+		isTutanotaTeamAddress(replyTos[0].address)
+	) {
+		return { address: replyTos[0].address, name: replyTos[0].name }
 	}
+	return { address: realSender.address, name: realSender.name }
+}
+
+/**
+ * NOTE: DOES NOT VERIFY IF THE MESSAGE IS AUTHENTIC - DO NOT USE THIS OUTSIDE OF THIS FILE OR FOR TESTING
+ * @VisibleForTesting
+ */
+export function isTutanotaTeamAddress(address: string): boolean {
+	return endsWith(address, "@tutao.de") || address === "no-reply@tutanota.de"
 }
 
 export function isTutanotaTeamMail(mail: Mail): boolean {
-	return mail.confidential && mail.state === MailState.RECEIVED && endsWith(mail.sender.address, "@tutao.de")
+	return mail.confidential && mail.state === MailState.RECEIVED && isTutanotaTeamAddress(getDisplayedSender(mail).address)
 }
 
 export function isExcludedMailAddress(mailAddress: string): boolean {
-	return mailAddress === "no-reply@tutao.de"
+	return mailAddress === "no-reply@tutao.de" || mailAddress === "no-reply@tutanota.de"
 }
 
 /**
