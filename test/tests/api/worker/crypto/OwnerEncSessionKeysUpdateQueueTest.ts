@@ -26,13 +26,13 @@ o.spec("OwnerEncSessionKeysUpdateQueue", function () {
 	o.spec("updateInstanceSessionKeys", function () {
 		o("send updates from queue", async function () {
 			const updatableInstanceSessionKeys = [
-				createInstanceSessionKey({
+				createTestEntity(InstanceSessionKeyTypeRef, {
 					instanceId: "mailInstanceId",
 					instanceList: "mailInstanceList",
 					typeInfo: createTestEntity(TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([1, 2, 3]),
 				}),
-				createInstanceSessionKey({
+				createTestEntity(InstanceSessionKeyTypeRef, {
 					instanceId: "fileInstanceId",
 					instanceList: "fileInstanceList",
 					typeInfo: createTestEntity(TypeInfoTypeRef),
@@ -64,13 +64,13 @@ o.spec("OwnerEncSessionKeysUpdateQueue", function () {
 				}
 			})
 			const updatableInstanceSessionKeys = [
-				createInstanceSessionKey({
+				createTestEntity(InstanceSessionKeyTypeRef, {
 					instanceId: "mailInstanceId",
 					instanceList: "mailInstanceList",
 					typeInfo: createTestEntity(TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([1, 2, 3]),
 				}),
-				createInstanceSessionKey({
+				createTestEntity(InstanceSessionKeyTypeRef, {
 					instanceId: "fileInstanceId",
 					instanceList: "fileInstanceList",
 					typeInfo: createTestEntity(TypeInfoTypeRef),
@@ -93,13 +93,13 @@ o.spec("OwnerEncSessionKeysUpdateQueue", function () {
 
 		o("debounced request sends entire queue", async function () {
 			const updatableInstanceSessionKeys = [
-				createInstanceSessionKey({
+				createTestEntity(InstanceSessionKeyTypeRef, {
 					instanceId: "mailInstanceId",
 					instanceList: "mailInstanceList",
 					typeInfo: createTestEntity(TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([1, 2, 3]),
 				}),
-				createInstanceSessionKey({
+				createTestEntity(InstanceSessionKeyTypeRef, {
 					instanceId: "fileInstanceId",
 					instanceList: "fileInstanceList",
 					typeInfo: createTestEntity(TypeInfoTypeRef),

@@ -180,6 +180,7 @@ function attendeesLine(event: CalendarEvent): string {
 			organizer,
 			createCalendarEventAttendee({
 				address: organizer,
+				status: "0",
 			}),
 		)
 	}

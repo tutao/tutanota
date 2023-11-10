@@ -1,8 +1,8 @@
 import { convertToDataFile } from "../api/common/DataFile"
+import type { Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId } from "../api/entities/tutanota/TypeRefs.js"
 import { createFile } from "../api/entities/tutanota/TypeRefs.js"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { ContactAddressType, ContactPhoneNumberType } from "../api/common/TutanotaConstants"
-import type { Contact, ContactSocialId, ContactPhoneNumber, ContactAddress, ContactMailAddress } from "../api/entities/tutanota/TypeRefs.js"
 import { assertMainOrNode } from "../api/common/Env"
 import { locator } from "../api/main/MainLocator"
 import { getSocialUrl } from "./model/ContactUtils.js"
@@ -16,10 +16,13 @@ export function exportContacts(contacts: Contact[]): Promise<void> {
 		name: "vCard3.0.vcf",
 		mimeType: "vCard/rfc2426",
 		size: String(data.byteLength),
+		blobs: [],
+		cid: null,
+		parent: null,
+		subFiles: null,
 	})
 	return locator.fileController.saveDataFile(convertToDataFile(tmpFile, data))
 }
-
 /**
  * Converts an array of contacts to a vCard 3.0 compatible string.
  *

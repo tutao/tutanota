@@ -5,6 +5,7 @@ import type { UserController } from "../../../src/api/main/UserController.js"
 import type { LoginController } from "../../../src/api/main/LoginController.js"
 import { MailboxDetail, MailModel } from "../../../src/mail/model/MailModel.js"
 import {
+	BodyTypeRef,
 	Contact,
 	ContactListTypeRef,
 	ContactTypeRef,
@@ -24,8 +25,10 @@ import {
 	MailboxGroupRootTypeRef,
 	MailboxPropertiesTypeRef,
 	MailBoxTypeRef,
+	MailDetailsTypeRef,
 	MailTypeRef,
 	NotificationMailTypeRef,
+	TutanotaPropertiesTypeRef,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { ContactModel } from "../../../src/contacts/model/ContactModel.js"
 import { assertThrows, verify } from "@tutao/tutanota-test-utils"
@@ -39,6 +42,8 @@ import {
 	createGroupMembership,
 	createUser,
 	CustomerTypeRef,
+	GroupInfoTypeRef,
+	GroupMembershipTypeRef,
 	GroupTypeRef,
 	UserTypeRef,
 } from "../../../src/api/entities/sys/TypeRefs.js"
@@ -134,19 +139,19 @@ o.spec("SendMailModel", function () {
 		when(mailFacade.getRecipientKeyData(anything())).thenResolve(null)
 		when(mailFacade.getAttachmentIds(anything())).thenResolve([])
 
-		const tutanotaProperties = createTutanotaProperties({
+		const tutanotaProperties = createTestEntity(TutanotaPropertiesTypeRef, {
 			defaultSender: DEFAULT_SENDER_FOR_TESTING,
 			defaultUnconfidential: true,
 			notificationMailLanguage: "en",
 			noAutomaticContacts: false,
 		})
-		const user = createUser({
-			userGroup: createGroupMembership({
+		const user = createTestEntity(UserTypeRef, {
+			userGroup: createTestEntity(GroupMembershipTypeRef, {
 				_id: testIdGenerator.newId(),
 				group: testIdGenerator.newId(),
 			}),
 			memberships: [
-				createGroupMembership({
+				createTestEntity(GroupMembershipTypeRef, {
 					_id: testIdGenerator.newId(),
 					groupType: GroupType.Contact,
 				}),
@@ -167,7 +172,7 @@ o.spec("SendMailModel", function () {
 		const mailboxDetails: MailboxDetail = {
 			mailbox: createTestEntity(MailBoxTypeRef),
 			folders: new FolderSystem([]),
-			mailGroupInfo: createGroupInfo({
+			mailGroupInfo: createTestEntity(GroupInfoTypeRef, {
 				mailAddress: "mailgroup@addre.ss",
 			}),
 			mailGroup: createTestEntity(GroupTypeRef),
@@ -270,7 +275,7 @@ o.spec("SendMailModel", function () {
 			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 		o("initWithDraft with blank data", async function () {
-			const draftMail = createMail({
+			const draftMail = createTestEntity(MailTypeRef, {
 				confidential: false,
 				sender: createTestEntity(MailAddressTypeRef),
 				toRecipients: [],
@@ -282,14 +287,14 @@ o.spec("SendMailModel", function () {
 			})
 			const mailWrapper = MailWrapper.details(
 				draftMail,
-				createMailDetails({
-					body: createBody({
+				createTestEntity(MailDetailsTypeRef, {
+					body: createTestEntity(BodyTypeRef, {
 						text: BODY_TEXT_1,
 					}),
 				}),
 			)
 			when(entity.load(ConversationEntryTypeRef, draftMail.conversationEntry)).thenResolve(
-				createConversationEntry({ conversationType: ConversationType.REPLY }),
+				createTestEntity(ConversationEntryTypeRef, { conversationType: ConversationType.REPLY }),
 			)
 			const initializedModel = await model.initWithDraft([], mailWrapper, new Map())
 			o(initializedModel.getConversationType()).equals(ConversationType.REPLY)
@@ -304,19 +309,19 @@ o.spec("SendMailModel", function () {
 			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 		o("initWithDraft with some data", async function () {
-			const draftMail = createMail({
+			const draftMail = createTestEntity(MailTypeRef, {
 				confidential: true,
 				sender: createTestEntity(MailAddressTypeRef),
 				toRecipients: [
-					createMailAddress({
+					createTestEntity(MailAddressTypeRef, {
 						address: "",
 					}),
-					createMailAddress({
+					createTestEntity(MailAddressTypeRef, {
 						address: EXTERNAL_ADDRESS_1,
 					}),
 				],
 				ccRecipients: [
-					createMailAddress({
+					createTestEntity(MailAddressTypeRef, {
 						address: EXTERNAL_ADDRESS_2,
 					}),
 				],
@@ -325,10 +330,13 @@ o.spec("SendMailModel", function () {
 				replyTos: [],
 				conversationEntry: testIdGenerator.newIdTuple(),
 			})
-			const mailWrapper = MailWrapper.details(draftMail, createMailDetails({ body: createBody({ text: BODY_TEXT_1 }) }))
+			const mailWrapper = MailWrapper.details(
+				draftMail,
+				createTestEntity(MailDetailsTypeRef, { body: createTestEntity(BodyTypeRef, { text: BODY_TEXT_1 }) }),
+			)
 
 			when(entity.load(ConversationEntryTypeRef, draftMail.conversationEntry)).thenResolve(
-				createConversationEntry({ conversationType: ConversationType.FORWARD }),
+				createTestEntity(ConversationEntryTypeRef, { conversationType: ConversationType.FORWARD }),
 			)
 
 			const initializedModel = await model.initWithDraft([], mailWrapper, new Map())
@@ -539,7 +547,7 @@ o.spec("SendMailModel", function () {
 		o("when a recipient has an existing contact, and the saved password changes, then the contact will be updated", async function () {
 			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
 
-			const contact = createContact({
+			const contact = createTestEntity(ContactTypeRef, {
 				_id: testIdGenerator.newIdTuple(),
 				firstName: "my",
 				lastName: "chippie",
@@ -563,7 +571,7 @@ o.spec("SendMailModel", function () {
 		let existingContact
 		let recipients
 		o.before(function () {
-			existingContact = createContact({
+			existingContact = createTestEntity(ContactTypeRef, {
 				_id: testIdGenerator.newIdTuple(),
 				firstName: "james",
 				lastName: "hetfield",
@@ -600,10 +608,10 @@ o.spec("SendMailModel", function () {
 				firstName: "newfirstname",
 				lastName: "newlastname",
 				mailAddresses: [
-					createMailAddress({
+					createTestEntity(MailAddressTypeRef, {
 						address: "james@tuta.com",
 					}),
-					createMailAddress({
+					createTestEntity(MailAddressTypeRef, {
 						address: "address2@hotmail.com",
 					}),
 				],
@@ -633,7 +641,7 @@ o.spec("SendMailModel", function () {
 				firstName: "james",
 				lastName: "hetfield",
 				mailAddresses: [
-					createMailAddress({
+					createTestEntity(MailAddressTypeRef, {
 						address: "nolongerjames@hotmail.com",
 					}),
 				],

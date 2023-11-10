@@ -1,11 +1,11 @@
-import {create} from "../../common/utils/EntityUtils.js"
+import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
 import {TypeRef} from "@tutao/tutanota-utils"
 import {typeModels} from "./TypeModels.js"
 
 
 export const ApprovalMailTypeRef: TypeRef<ApprovalMail> = new TypeRef("monitor", "ApprovalMail")
 
-export function createApprovalMail(values: Partial<ApprovalMail>): ApprovalMail {
+export function createApprovalMail(values: StrippedEntity<ApprovalMail>): ApprovalMail {
 	return Object.assign(create(typeModels.ApprovalMail, ApprovalMailTypeRef), values)
 }
 
@@ -24,7 +24,7 @@ export type ApprovalMail = {
 }
 export const CounterValueTypeRef: TypeRef<CounterValue> = new TypeRef("monitor", "CounterValue")
 
-export function createCounterValue(values: Partial<CounterValue>): CounterValue {
+export function createCounterValue(values: StrippedEntity<CounterValue>): CounterValue {
 	return Object.assign(create(typeModels.CounterValue, CounterValueTypeRef), values)
 }
 
@@ -37,7 +37,7 @@ export type CounterValue = {
 }
 export const ReadCounterDataTypeRef: TypeRef<ReadCounterData> = new TypeRef("monitor", "ReadCounterData")
 
-export function createReadCounterData(values: Partial<ReadCounterData>): ReadCounterData {
+export function createReadCounterData(values: StrippedEntity<ReadCounterData>): ReadCounterData {
 	return Object.assign(create(typeModels.ReadCounterData, ReadCounterDataTypeRef), values)
 }
 
@@ -51,7 +51,7 @@ export type ReadCounterData = {
 }
 export const ReadCounterReturnTypeRef: TypeRef<ReadCounterReturn> = new TypeRef("monitor", "ReadCounterReturn")
 
-export function createReadCounterReturn(values: Partial<ReadCounterReturn>): ReadCounterReturn {
+export function createReadCounterReturn(values: StrippedEntity<ReadCounterReturn>): ReadCounterReturn {
 	return Object.assign(create(typeModels.ReadCounterReturn, ReadCounterReturnTypeRef), values)
 }
 
@@ -65,7 +65,7 @@ export type ReadCounterReturn = {
 }
 export const WriteCounterDataTypeRef: TypeRef<WriteCounterData> = new TypeRef("monitor", "WriteCounterData")
 
-export function createWriteCounterData(values: Partial<WriteCounterData>): WriteCounterData {
+export function createWriteCounterData(values: StrippedEntity<WriteCounterData>): WriteCounterData {
 	return Object.assign(create(typeModels.WriteCounterData, WriteCounterDataTypeRef), values)
 }
 

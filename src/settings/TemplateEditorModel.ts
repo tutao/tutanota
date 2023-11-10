@@ -23,7 +23,7 @@ export class TemplateEditorModel {
 	_contentProvider: (() => string) | null
 
 	constructor(template: EmailTemplate | null, templateGroupRoot: TemplateGroupRoot, entityClient: EntityClient) {
-		this.template = template ? clone(template) : createEmailTemplate({})
+		this.template = template ? clone(template) : createEmailTemplate({ tag: "", title: "", contents: [] })
 		this.title = stream("")
 		this.tag = stream("")
 		const contents = this.template.contents

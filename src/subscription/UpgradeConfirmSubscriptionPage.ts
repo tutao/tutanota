@@ -37,9 +37,11 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 	private upgrade(data: UpgradeSubscriptionData) {
 		const serviceData = createSwitchAccountTypePostIn({
 			accountType: AccountType.PAID,
+			customer: null,
 			plan: data.type,
 			date: Const.CURRENT_DATE,
 			referralCode: data.referralCode,
+			specialPriceUserSingle: null,
 		})
 		showProgressDialog(
 			"pleaseWait_msg",

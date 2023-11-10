@@ -219,6 +219,10 @@ function exportCalendarEvents(
 		name: calendarName === "" ? "export.ics" : calendarName + "-export.ics",
 		mimeType: CALENDAR_MIME_TYPE,
 		size: String(data.byteLength),
+		subFiles: null,
+		parent: null,
+		cid: null,
+		blobs: [],
 	})
 	return locator.fileController.saveDataFile(convertToDataFile(tmpFile, data))
 }

@@ -215,9 +215,13 @@ export class LoginFacade {
 		// the verifier is always sent as url parameter, so it must be url encoded
 		const authVerifier = createAuthVerifierAsBase64Url(userPassphraseKey)
 		const createSessionData = createCreateSessionData({
-			mailAddress: mailAddress.toLowerCase().trim(),
-			clientIdentifier,
+			accessKey: null,
+			authToken: null,
 			authVerifier,
+			clientIdentifier,
+			mailAddress: mailAddress.toLowerCase().trim(),
+			recoverCodeVerifier: null,
+			user: null,
 		})
 
 		let accessKey: Aes128Key | null = null
@@ -342,10 +346,13 @@ export class LoginFacade {
 		const authVerifier = createAuthVerifierAsBase64Url(userPassphraseKey)
 		const authToken = base64ToBase64Url(uint8ArrayToBase64(sha256Hash(salt)))
 		const sessionData = createCreateSessionData({
-			user: userId,
+			accessKey: null,
 			authToken,
-			clientIdentifier,
 			authVerifier,
+			clientIdentifier,
+			mailAddress: null,
+			recoverCodeVerifier: null,
+			user: userId,
 		})
 		let accessKey: Aes128Key | null = null
 
@@ -795,11 +802,13 @@ export class LoginFacade {
 		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, this.userFacade.getUserGroupKey())
 		const authVerifier = createAuthVerifier(newUserPassphraseKey)
 		const service = createChangePasswordData({
+			code: null,
 			kdfVersion: newKdfType,
 			oldVerifier: currentAuthVerifier,
+			pwEncUserGroupKey: pwEncUserGroupKey,
+			recoverCodeVerifier: null,
 			salt: salt,
 			verifier: authVerifier,
-			pwEncUserGroupKey: pwEncUserGroupKey,
 		})
 
 		await this.serviceExecutor.post(ChangePasswordService, service)
@@ -811,9 +820,10 @@ export class LoginFacade {
 		const passwordKey = await this.deriveUserPassphraseKey(asKdfType(this.userFacade.getLoggedInUser().kdfVersion), password, userSalt)
 		const deleteCustomerData = createDeleteCustomerData({
 			authVerifier: createAuthVerifier(passwordKey),
+			reason: reason,
+			takeoverMailAddress: null,
 			undelete: false,
 			customer: neverNull(neverNull(this.userFacade.getLoggedInUser()).customer),
-			reason: reason,
 		})
 
 		if (takeover !== "") {
@@ -830,9 +840,13 @@ export class LoginFacade {
 		const recoverCodeVerifier = createAuthVerifier(recoverCodeKey)
 		const recoverCodeVerifierBase64 = base64ToBase64Url(uint8ArrayToBase64(recoverCodeVerifier))
 		const sessionData = createCreateSessionData({
-			mailAddress: mailAddress.toLowerCase().trim(),
+			accessKey: null,
+			authToken: null,
+			authVerifier: null,
 			clientIdentifier: clientIdentifier,
+			mailAddress: mailAddress.toLowerCase().trim(),
 			recoverCodeVerifier: recoverCodeVerifierBase64,
+			user: null,
 		})
 		// we need a separate entity rest client because to avoid caching of the user instance which is updated on password change. the web socket is not connected because we
 		// don't do a normal login and therefore we would not get any user update events. we can not use permanentLogin=false with initSession because caching would be enabled
@@ -878,8 +892,10 @@ export class LoginFacade {
 			const pwEncUserGroupKey = encryptKey(userPassphraseKey, groupKey)
 			const newPasswordVerifier = createAuthVerifier(userPassphraseKey)
 			const postData = createChangePasswordData({
-				salt: salt,
+				code: null,
 				kdfVersion: newKdfType,
+				oldVerifier: null,
+				salt: salt,
 				pwEncUserGroupKey: pwEncUserGroupKey,
 				verifier: newPasswordVerifier,
 				recoverCodeVerifier: recoverCodeVerifier,

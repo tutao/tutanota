@@ -13,7 +13,10 @@ o.spec("EphemeralCacheStorageTest", function () {
 	o.spec("BlobElementType", function () {
 		o("cache roundtrip: put, get, delete", async function () {
 			storage.init({ userId })
-			const storableMailDetailsBlob = createMailDetailsBlob({ _id: [archiveId, blobElementId], details: createTestEntity(MailDetailsTypeRef) })
+			const storableMailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
+				_id: [archiveId, blobElementId],
+				details: createTestEntity(MailDetailsTypeRef),
+			})
 			let mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
 			o(mailDetailsBlob).equals(null)
 
@@ -31,7 +34,7 @@ o.spec("EphemeralCacheStorageTest", function () {
 		o("cache roundtrip: put, get, deleteAllOwnedBy", async function () {
 			const _ownerGroup = "owenerGroup"
 			storage.init({ userId })
-			const storableMailDetailsBlob = createMailDetailsBlob({
+			const storableMailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
 				_id: [archiveId, blobElementId],
 				_ownerGroup,
 				details: createTestEntity(MailDetailsTypeRef),

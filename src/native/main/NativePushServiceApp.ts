@@ -115,6 +115,9 @@ export class NativePushServiceApp {
 			pushServiceType: pushServiceType,
 			identifier,
 			language: lang.code,
+			disabled: false,
+			lastUsageTime: new Date(),
+			lastNotificationDate: null,
 		})
 		const id = await this.entityClient.setup(list, pushIdentifier)
 		return this.entityClient.load(PushIdentifierTypeRef, [list, id])

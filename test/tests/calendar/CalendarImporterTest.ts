@@ -9,13 +9,13 @@ import {
 } from "../../../src/calendar/export/CalendarImporter.js"
 import {
 	CalendarEvent,
+	CalendarEventAttendeeTypeRef,
+	CalendarEventTypeRef,
 	CalendarGroupRootTypeRef,
-	createCalendarEvent,
-	createCalendarEventAttendee,
-	createEncryptedMailAddress,
+	EncryptedMailAddressTypeRef,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { DateTime } from "luxon"
-import { createAlarmInfo, createDateWrapper, createRepeatRule, createUserAlarmInfo, RepeatRuleTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
+import { AlarmInfoTypeRef, DateWrapperTypeRef, RepeatRuleTypeRef, UserAlarmInfoTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
 import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
 import { getAllDayDateUTC } from "../../../src/api/common/utils/CommonCalendarUtils.js"
 import { getAllDayDateUTCFromZone } from "../../../src/calendar/date/CalendarUtils.js"
@@ -23,7 +23,6 @@ import { EventImportRejectionReason, sortOutParsedEvents } from "../../../src/ca
 import { getDateInZone } from "./CalendarTestUtils.js"
 import { Require } from "@tutao/tutanota-utils"
 import { createTestEntity } from "../TestUtils.js"
-import { writeFile, writeFileSync } from "fs-extra"
 
 const zone = "Europe/Berlin"
 const now = new Date("2019-08-13T14:01:00.630Z")
@@ -58,7 +57,7 @@ o.spec("CalendarImporterTest", function () {
 		o("simple one", function () {
 			o(
 				serializeEvent(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
@@ -107,7 +106,7 @@ o.spec("CalendarImporterTest", function () {
 			const zone = "utc"
 			o(
 				serializeEvent(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
@@ -151,7 +150,7 @@ o.spec("CalendarImporterTest", function () {
 			const zone = "America/New_York"
 			o(
 				serializeEvent(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "s",
@@ -188,21 +187,21 @@ o.spec("CalendarImporterTest", function () {
 			])
 		})
 		o("with alarms", function () {
-			const alarmOne = createUserAlarmInfo({
-				alarmInfo: createAlarmInfo({
+			const alarmOne = createTestEntity(UserAlarmInfoTypeRef, {
+				alarmInfo: createTestEntity(AlarmInfoTypeRef, {
 					alarmIdentifier: "123",
 					trigger: "1D",
 				}),
 			})
-			const alarmTwo = createUserAlarmInfo({
-				alarmInfo: createAlarmInfo({
+			const alarmTwo = createTestEntity(UserAlarmInfoTypeRef, {
+				alarmInfo: createTestEntity(AlarmInfoTypeRef, {
 					alarmIdentifier: "102",
 					trigger: "30M",
 				}),
 			})
 			o(
 				serializeEvent(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
@@ -258,7 +257,7 @@ o.spec("CalendarImporterTest", function () {
 		o("with repeat rule (never ends)", function () {
 			o(
 				serializeEvent(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
@@ -282,7 +281,7 @@ o.spec("CalendarImporterTest", function () {
 							},
 							{ zone },
 						).toJSDate(),
-						repeatRule: createRepeatRule({
+						repeatRule: createTestEntity(RepeatRuleTypeRef, {
 							endType: EndType.Never,
 							interval: "3",
 							frequency: RepeatPeriod.WEEKLY,
@@ -309,7 +308,7 @@ o.spec("CalendarImporterTest", function () {
 		o("with repeat rule (ends after occurrences)", function () {
 			o(
 				serializeEvent(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
@@ -333,7 +332,7 @@ o.spec("CalendarImporterTest", function () {
 							},
 							{ zone },
 						).toJSDate(),
-						repeatRule: createRepeatRule({
+						repeatRule: createTestEntity(RepeatRuleTypeRef, {
 							endType: EndType.Count,
 							interval: "3",
 							frequency: RepeatPeriod.DAILY,
@@ -360,7 +359,7 @@ o.spec("CalendarImporterTest", function () {
 		o("with repeat rule (ends on a date)", function () {
 			o(
 				serializeEvent(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
@@ -384,7 +383,7 @@ o.spec("CalendarImporterTest", function () {
 							},
 							{ zone },
 						).toJSDate(),
-						repeatRule: createRepeatRule({
+						repeatRule: createTestEntity(RepeatRuleTypeRef, {
 							endType: EndType.UntilDate,
 							interval: "3",
 							frequency: RepeatPeriod.MONTHLY,
@@ -420,7 +419,7 @@ o.spec("CalendarImporterTest", function () {
 		o("with repeat rule (ends on a date, all-day)", function () {
 			o(
 				serializeEvent(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
@@ -438,7 +437,7 @@ o.spec("CalendarImporterTest", function () {
 								day: 15,
 							}).toJSDate(),
 						),
-						repeatRule: createRepeatRule({
+						repeatRule: createTestEntity(RepeatRuleTypeRef, {
 							endType: EndType.UntilDate,
 							interval: "3",
 							frequency: RepeatPeriod.MONTHLY,
@@ -498,7 +497,7 @@ o.spec("CalendarImporterTest", function () {
 				method: "PUBLISH",
 				contents: [
 					{
-						event: createCalendarEvent({
+						event: createTestEntity(CalendarEventTypeRef, {
 							summary: "Word \\ ; \n",
 							startTime: DateTime.fromObject(
 								{
@@ -522,7 +521,7 @@ o.spec("CalendarImporterTest", function () {
 							).toJSDate(),
 							uid: "test@tuta.com",
 							hashedUid: null,
-							repeatRule: createRepeatRule({
+							repeatRule: createTestEntity(RepeatRuleTypeRef, {
 								endType: EndType.Never,
 								interval: "3",
 								frequency: RepeatPeriod.WEEKLY,
@@ -561,7 +560,7 @@ o.spec("CalendarImporterTest", function () {
 				method: "PUBLISH",
 				contents: [
 					{
-						event: createCalendarEvent({
+						event: createTestEntity(CalendarEventTypeRef, {
 							summary: "s",
 							startTime: DateTime.fromObject(
 								{
@@ -585,13 +584,13 @@ o.spec("CalendarImporterTest", function () {
 							).toJSDate(),
 							uid: "test@tuta.com",
 							hashedUid: null,
-							organizer: createEncryptedMailAddress({
+							organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 								name: "",
 								address: "organizer@tuta.com",
 							}),
 							attendees: [
-								createCalendarEventAttendee({
-									address: createEncryptedMailAddress({
+								createTestEntity(CalendarEventAttendeeTypeRef, {
+									address: createTestEntity(EncryptedMailAddressTypeRef, {
 										name: "",
 										address: "test@example.com",
 									}),
@@ -632,7 +631,7 @@ o.spec("CalendarImporterTest", function () {
 				method: "PUBLISH",
 				contents: [
 					{
-						event: createCalendarEvent({
+						event: createTestEntity(CalendarEventTypeRef, {
 							summary: "s",
 							startTime: DateTime.fromObject(
 								{
@@ -656,13 +655,13 @@ o.spec("CalendarImporterTest", function () {
 							).toJSDate(),
 							uid: "test@tuta.com",
 							hashedUid: null,
-							organizer: createEncryptedMailAddress({
+							organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 								name: "",
 								address: "organizer@tuta.com",
 							}),
 							attendees: [
-								createCalendarEventAttendee({
-									address: createEncryptedMailAddress({
+								createTestEntity(CalendarEventAttendeeTypeRef, {
+									address: createTestEntity(EncryptedMailAddressTypeRef, {
 										name: "",
 										address: "test@example.com",
 									}),
@@ -705,7 +704,7 @@ o.spec("CalendarImporterTest", function () {
 				method: "PUBLISH",
 				contents: [
 					{
-						event: createCalendarEvent({
+						event: createTestEntity(CalendarEventTypeRef, {
 							summary: "s",
 							startTime: DateTime.fromObject(
 								{
@@ -729,13 +728,13 @@ o.spec("CalendarImporterTest", function () {
 							).toJSDate(),
 							uid: "test@tuta.com",
 							hashedUid: null,
-							organizer: createEncryptedMailAddress({
+							organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 								name: "",
 								address: "organizer@tuta.com",
 							}),
 							attendees: [
-								createCalendarEventAttendee({
-									address: createEncryptedMailAddress({
+								createTestEntity(CalendarEventAttendeeTypeRef, {
+									address: createTestEntity(EncryptedMailAddressTypeRef, {
 										name: "",
 										address: "test@example.com",
 									}),
@@ -775,7 +774,7 @@ o.spec("CalendarImporterTest", function () {
 					zone,
 				).contents[0],
 				{
-					event: createCalendarEvent({
+					event: createTestEntity(CalendarEventTypeRef, {
 						summary: "Labor Day / May Day",
 						startTime: getAllDayDateUTCFromZone(
 							DateTime.fromObject(
@@ -810,7 +809,7 @@ o.spec("CalendarImporterTest", function () {
 		})
 		o("recurrence id on event without UID will be deleted", async function () {
 			const expected = {
-				event: createCalendarEvent({
+				event: createTestEntity(CalendarEventTypeRef, {
 					startTime: new Date("2023-07-04T15:00:00.000Z"),
 					endTime: new Date("2023-07-04T15:30:00.000Z"),
 					sequence: "1",
@@ -869,7 +868,7 @@ o.spec("CalendarImporterTest", function () {
 					zone,
 				).contents[0],
 				{
-					event: createCalendarEvent({
+					event: createTestEntity(CalendarEventTypeRef, {
 						summary: "Labor Day / May Day",
 						startTime: getAllDayDateUTCFromZone(
 							DateTime.fromObject(
@@ -930,7 +929,7 @@ o.spec("CalendarImporterTest", function () {
 					method: "PUBLISH",
 					contents: [
 						{
-							event: createCalendarEvent({
+							event: createTestEntity(CalendarEventTypeRef, {
 								summary: "Word \\ ; \n",
 								startTime: DateTime.fromObject(
 									{
@@ -957,7 +956,7 @@ o.spec("CalendarImporterTest", function () {
 								repeatRule: null,
 							}),
 							alarms: [
-								createAlarmInfo({
+								createTestEntity(AlarmInfoTypeRef, {
 									trigger: "15D",
 								}),
 							],
@@ -996,7 +995,7 @@ o.spec("CalendarImporterTest", function () {
 					method: "PUBLISH",
 					contents: [
 						{
-							event: createCalendarEvent({
+							event: createTestEntity(CalendarEventTypeRef, {
 								summary: "Word \\ ; \n",
 								startTime: DateTime.fromObject(
 									{
@@ -1023,7 +1022,7 @@ o.spec("CalendarImporterTest", function () {
 								repeatRule: null,
 							}),
 							alarms: [
-								createAlarmInfo({
+								createTestEntity(AlarmInfoTypeRef, {
 									trigger: "66M",
 								}),
 							],
@@ -1060,7 +1059,7 @@ o.spec("CalendarImporterTest", function () {
 					method: "PUBLISH",
 					contents: [
 						{
-							event: createCalendarEvent({
+							event: createTestEntity(CalendarEventTypeRef, {
 								summary: "Word \\ ; \n",
 								startTime: DateTime.fromObject(
 									{
@@ -1093,19 +1092,19 @@ o.spec("CalendarImporterTest", function () {
 			)
 		})
 		o("roundtrip export -> import", async function () {
-			const alarmOne = createUserAlarmInfo({
-				alarmInfo: createAlarmInfo({
+			const alarmOne = createTestEntity(UserAlarmInfoTypeRef, {
+				alarmInfo: createTestEntity(AlarmInfoTypeRef, {
 					trigger: "1D",
 				}),
 			})
-			const alarmTwo = createUserAlarmInfo({
-				alarmInfo: createAlarmInfo({
+			const alarmTwo = createTestEntity(UserAlarmInfoTypeRef, {
+				alarmInfo: createTestEntity(AlarmInfoTypeRef, {
 					trigger: "30M",
 				}),
 			})
 			const events = [
 				{
-					event: createCalendarEvent({
+					event: createTestEntity(CalendarEventTypeRef, {
 						_id: ["123", "456"],
 						summary: "Word \\ ; \n simple",
 						startTime: DateTime.fromObject(
@@ -1136,7 +1135,7 @@ o.spec("CalendarImporterTest", function () {
 					alarms: [],
 				},
 				{
-					event: createCalendarEvent({
+					event: createTestEntity(CalendarEventTypeRef, {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n alarms",
@@ -1167,7 +1166,7 @@ o.spec("CalendarImporterTest", function () {
 					alarms: [alarmOne, alarmTwo],
 				},
 				{
-					event: createCalendarEvent({
+					event: createTestEntity(CalendarEventTypeRef, {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
@@ -1193,7 +1192,7 @@ o.spec("CalendarImporterTest", function () {
 						).toJSDate(),
 						uid: "test@tuta.com",
 						hashedUid: null,
-						repeatRule: createRepeatRule({
+						repeatRule: createTestEntity(RepeatRuleTypeRef, {
 							endType: EndType.UntilDate,
 							interval: "3",
 							frequency: RepeatPeriod.MONTHLY,
@@ -1213,7 +1212,7 @@ o.spec("CalendarImporterTest", function () {
 					alarms: [],
 				},
 				{
-					event: createCalendarEvent({
+					event: createTestEntity(CalendarEventTypeRef, {
 						_id: ["123", "456"],
 						_ownerGroup: "ownerId",
 						summary: "Word \\ ; \n",
@@ -1233,7 +1232,7 @@ o.spec("CalendarImporterTest", function () {
 						),
 						uid: "b64lookingValue==",
 						hashedUid: null,
-						repeatRule: createRepeatRule({
+						repeatRule: createTestEntity(RepeatRuleTypeRef, {
 							endType: EndType.UntilDate,
 							interval: "3",
 							frequency: RepeatPeriod.MONTHLY,
@@ -1339,7 +1338,7 @@ END:VCALENDAR`
 							_id: ["123", "456"],
 						}),
 						alarms: alarms.map((alarmInfo) =>
-							createUserAlarmInfo({
+							createTestEntity(UserAlarmInfoTypeRef, {
 								alarmInfo,
 							}),
 						),
@@ -1353,8 +1352,14 @@ END:VCALENDAR`
 	})
 	o.spec("sortOutParsedEvents", function () {
 		o("repeated progenitors are skipped", function () {
-			const progenitor1 = createCalendarEvent({ uid: "hello", startTime: getDateInZone("2023-01-02T13:00") }) as Require<"uid", CalendarEvent>
-			const progenitor2 = createCalendarEvent({ uid: "hello", startTime: getDateInZone("2023-01-01T13:00") }) as Require<"uid", CalendarEvent>
+			const progenitor1 = createTestEntity(CalendarEventTypeRef, { uid: "hello", startTime: getDateInZone("2023-01-02T13:00") }) as Require<
+				"uid",
+				CalendarEvent
+			>
+			const progenitor2 = createTestEntity(CalendarEventTypeRef, { uid: "hello", startTime: getDateInZone("2023-01-01T13:00") }) as Require<
+				"uid",
+				CalendarEvent
+			>
 			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
 				[
 					{ event: progenitor1, alarms: [] },
@@ -1371,12 +1376,12 @@ END:VCALENDAR`
 			o(rejectedEvents.get(EventImportRejectionReason.Duplicate)?.[0]).equals(progenitor2)
 		})
 		o("imported altered instances are added as exclusions", function () {
-			const progenitor = createCalendarEvent({
+			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				uid: "hello",
 				startTime: getDateInZone("2023-01-02T13:00"),
 				repeatRule: createTestEntity(RepeatRuleTypeRef),
 			}) as Require<"uid", CalendarEvent>
-			const altered = createCalendarEvent({
+			const altered = createTestEntity(CalendarEventTypeRef, {
 				uid: "hello",
 				startTime: getDateInZone("2023-01-02T14:00"),
 				recurrenceId: getDateInZone("2023-01-02T13:00"),
@@ -1397,7 +1402,7 @@ END:VCALENDAR`
 
 	o.spec("serializeRepeatRule", function () {
 		o("when RRULE is UNTIL and not all date the timestamp of the end of last day is written", function () {
-			const repeatRule = createRepeatRule({
+			const repeatRule = createTestEntity(RepeatRuleTypeRef, {
 				endType: EndType.UntilDate,
 				endValue: String(DateTime.fromObject({ year: 2019, month: 9, day: 20 }, { zone: "UTC" }).toMillis()),
 				frequency: RepeatPeriod.MONTHLY,
@@ -1413,7 +1418,7 @@ END:VCALENDAR`
 		})
 
 		o("one excluded date", function () {
-			o(serializeExcludedDates([createDateWrapper({ date: new Date("2023-01-14T22:00:00Z") })], "Europe/Berlin")).deepEquals([
+			o(serializeExcludedDates([createTestEntity(DateWrapperTypeRef, { date: new Date("2023-01-14T22:00:00Z") })], "Europe/Berlin")).deepEquals([
 				"EXDATE;TZID=Europe/Berlin:20230114T230000",
 			])
 		})
@@ -1421,7 +1426,10 @@ END:VCALENDAR`
 		o("more than one excluded date", function () {
 			o(
 				serializeExcludedDates(
-					[createDateWrapper({ date: new Date("2023-01-14T22:00:00Z") }), createDateWrapper({ date: new Date("2023-01-21T22:00:00Z") })],
+					[
+						createTestEntity(DateWrapperTypeRef, { date: new Date("2023-01-14T22:00:00Z") }),
+						createTestEntity(DateWrapperTypeRef, { date: new Date("2023-01-21T22:00:00Z") }),
+					],
 					"Europe/Berlin",
 				),
 			).deepEquals(["EXDATE;TZID=Europe/Berlin:20230114T230000,20230121T230000"])

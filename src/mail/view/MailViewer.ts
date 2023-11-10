@@ -6,7 +6,7 @@ import { FeatureType, InboxRuleType, Keys, MailFolderType, SpamRuleFieldType, Sp
 import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../misc/LanguageViewModel"
 import { assertMainOrNode } from "../../api/common/Env"
-import { assertNonNull, assertNotNull, defer, DeferredObject, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNonNull, assertNotNull, defer, DeferredObject, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { createNewContact, getExistingRuleForType, isTutanotaTeamMail } from "../model/MailUtils"
 import { IconMessageBox } from "../../gui/base/ColumnEmptyMessageBox"
 import type { Shortcut } from "../../misc/KeyManager"
@@ -671,12 +671,14 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				break
 		}
 
-		import("../../settings/AddSpamRuleDialog").then(({ showAddSpamRuleDialog }) => {
+		Promise.all([import("../../settings/AddSpamRuleDialog"), import("@tutao/tutanota-crypto")]).then(([{ showAddSpamRuleDialog }, { sha256Hash }]) => {
+			const value = address.trim().toLowerCase()
 			showAddSpamRuleDialog(
 				createEmailSenderListElement({
-					value: address.trim().toLowerCase(),
+					value,
 					type: spamRuleType,
 					field: spamRuleField,
+					hashedValue: uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(value))),
 				}),
 			)
 		})

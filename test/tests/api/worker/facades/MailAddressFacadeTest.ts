@@ -11,6 +11,7 @@ import {
 	createMailAddressProperties,
 	createMailboxGroupRoot,
 	createMailboxProperties,
+	MailAddressPropertiesTypeRef,
 	MailboxGroupRootTypeRef,
 	MailboxPropertiesTypeRef,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
@@ -21,9 +22,12 @@ import {
 	createMailAddressAlias,
 	createUser,
 	GroupInfoTypeRef,
+	GroupMembershipTypeRef,
+	MailAddressAliasTypeRef,
 	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { MailAddressFacade } from "../../../../../src/api/worker/facades/lazy/MailAddressFacade.js"
+import { createTestEntity } from "../../../TestUtils.js"
 
 o.spec("MailAddressFacadeTest", function () {
 	let worker: WorkerImpl
@@ -51,18 +55,18 @@ o.spec("MailAddressFacadeTest", function () {
 			const mailGroupId = "mailGroupId"
 			const viaUser = "viaUser"
 			const mailboxPropertiesId = "mailboxPropertiesId"
-			const mailboxGroupRoot = createMailboxGroupRoot({
+			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
 				_ownerGroup: mailGroupId,
 				mailboxProperties: mailboxPropertiesId,
 			})
 			const mailGroupKey = [1, 2, 3]
-			const mailboxProperties = createMailboxProperties({
+			const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {
 				mailAddressProperties: [
-					createMailAddressProperties({
+					createTestEntity(MailAddressPropertiesTypeRef, {
 						mailAddress: "a@a.com",
 						senderName: "a",
 					}),
-					createMailAddressProperties({
+					createTestEntity(MailAddressPropertiesTypeRef, {
 						mailAddress: "b@b.com",
 						senderName: "b",
 					}),
@@ -84,30 +88,30 @@ o.spec("MailAddressFacadeTest", function () {
 			const mailGroupId = "mailGroupId"
 			const viaUser = "viaUser"
 			const mailboxPropertiesId = "mailboxProeprtiesId"
-			const mailboxGroupRoot = createMailboxGroupRoot({
+			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
 				_ownerGroup: mailGroupId,
 				mailboxProperties: null,
 			})
 			const mailGroupKey = [1, 2, 3]
-			const mailboxProperties = createMailboxProperties({
+			const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {
 				_id: mailboxPropertiesId,
 				_ownerGroup: mailGroupId,
 				reportMovedMails: "",
 				mailAddressProperties: [],
 			})
 			const userGroupInfoId: IdTuple = ["groupInfoListId", "groupInfoId"]
-			const user = createUser({
+			const user = createTestEntity(UserTypeRef, {
 				_id: viaUser,
-				userGroup: createGroupMembership({
+				userGroup: createTestEntity(GroupMembershipTypeRef, {
 					groupInfo: userGroupInfoId,
 				}),
 			})
-			const userGroupInfo = createGroupInfo({
+			const userGroupInfo = createTestEntity(GroupInfoTypeRef, {
 				_id: userGroupInfoId,
 				name: "User name",
 				mailAddress: "primary@example.com",
 				mailAddressAliases: [
-					createMailAddressAlias({
+					createTestEntity(MailAddressAliasTypeRef, {
 						mailAddress: "a@a.com",
 						enabled: true,
 					}),

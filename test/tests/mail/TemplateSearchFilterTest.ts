@@ -1,46 +1,52 @@
 import o from "@tutao/otest"
 import type { EmailTemplate } from "../../../src/api/entities/tutanota/TypeRefs.js"
-import { createEmailTemplate, createEmailTemplateContent } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	createEmailTemplate,
+	createEmailTemplateContent,
+	EmailTemplateContentTypeRef,
+	EmailTemplateTypeRef,
+} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { searchInTemplates } from "../../../src/templates/model/TemplatePopupModel.js"
+import { createTestEntity } from "../TestUtils.js"
 
 o.spec("TemplateSearchFilter", function () {
-	const abcTemplate = createEmailTemplate({
+	const abcTemplate = createTestEntity(EmailTemplateTypeRef, {
 		tag: "aBc_tag",
 		title: "aBc_title",
 		contents: [
-			createEmailTemplateContent({
+			createTestEntity(EmailTemplateContentTypeRef, {
 				languageCode: "en",
 				text: "aBc english",
 			}),
-			createEmailTemplateContent({
+			createTestEntity(EmailTemplateContentTypeRef, {
 				languageCode: "de",
 				text: "aBc deutsch",
 			}),
 		],
 	})
-	const defTemplate = createEmailTemplate({
+	const defTemplate = createTestEntity(EmailTemplateTypeRef, {
 		tag: "dEf_tag",
 		title: "dEf_title",
 		contents: [
-			createEmailTemplateContent({
+			createTestEntity(EmailTemplateContentTypeRef, {
 				languageCode: "en",
 				text: "dEf english",
 			}),
-			createEmailTemplateContent({
+			createTestEntity(EmailTemplateContentTypeRef, {
 				languageCode: "de",
 				text: "dEf deutsch",
 			}),
 		],
 	})
-	const abcdefTemplate = createEmailTemplate({
+	const abcdefTemplate = createTestEntity(EmailTemplateTypeRef, {
 		tag: "abcdef_tag",
 		title: "abcdef_title",
 		contents: [
-			createEmailTemplateContent({
+			createTestEntity(EmailTemplateContentTypeRef, {
 				languageCode: "en",
 				text: "abcdef english",
 			}),
-			createEmailTemplateContent({
+			createTestEntity(EmailTemplateContentTypeRef, {
 				languageCode: "de",
 				text: "abcdef deutsch",
 			}),

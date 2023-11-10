@@ -5,8 +5,10 @@ import {
 	createMail,
 	createMailAddress,
 	FileTypeRef,
+	MailAddressTypeRef,
 	MailBodyTypeRef,
 	MailHeadersTypeRef,
+	MailTypeRef,
 } from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import { MailState } from "../../../../src/api/common/TutanotaConstants.js"
 import { DataFile } from "../../../../src/api/common/DataFile.js"
@@ -15,6 +17,7 @@ import { EntityClient } from "../../../../src/api/common/EntityClient.js"
 import { FileController } from "../../../../src/file/FileController.js"
 import { object, when } from "testdouble"
 import { MailFacade } from "../../../../src/api/worker/facades/lazy/MailFacade.js"
+import { createTestEntity } from "../../TestUtils.js"
 
 o.spec("Bundler", function () {
 	let entityClientMock: EntityClient
@@ -43,8 +46,8 @@ o.spec("Bundler", function () {
 		const receivedOn = new Date()
 		const headers = "this is the headers"
 		const mailHeadersId = "mailheadersid"
-		const attachmentListId = "attachmentListId"
-		const attachmentIds = ["attachmentId1", "attachmentId2", "attachmentId3"]
+		const attachmentListId: Id = "attachmentListId"
+		const attachmentIds: Id[] = ["attachmentId1", "attachmentId2", "attachmentId3"]
 		const attachments: Array<DataFile> = attachmentIds.map((id) => {
 			return {
 				_type: "DataFile",
@@ -56,11 +59,11 @@ o.spec("Bundler", function () {
 				mimeType: "test",
 			}
 		})
-		const mail = createMail({
+		const mail = createTestEntity(MailTypeRef, {
 			_id: mailId,
 			body: mailBodyId,
 			subject,
-			sender: createMailAddress(sender),
+			sender: createTestEntity(MailAddressTypeRef, sender),
 			toRecipients: to.map(createMailAddress),
 			ccRecipients: cc.map(createMailAddress),
 			bccRecipients: bcc.map(createMailAddress),
@@ -70,7 +73,7 @@ o.spec("Bundler", function () {
 			receivedDate: receivedOn,
 			sentDate: sentOn,
 			headers: mailHeadersId,
-			attachments: attachmentIds.map((id) => [attachmentListId, id]),
+			attachments: attachmentIds.map((id) => [attachmentListId, id] as IdTuple),
 		})
 
 		when(entityClientMock.load(MailHeadersTypeRef, mailHeadersId)).thenResolve({ headers })

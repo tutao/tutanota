@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { DisplayMode, isLegacyDomain, LoginState, LoginViewModel } from "../../../src/login/LoginViewModel.js"
 import type { LoginController } from "../../../src/api/main/LoginController.js"
-import { createGroupInfo, createUser, UserTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef, UserTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
 import type { UserController } from "../../../src/api/main/UserController.js"
 import { KeyPermanentlyInvalidatedError } from "../../../src/api/common/error/KeyPermanentlyInvalidatedError.js"
 import { CredentialAuthenticationError } from "../../../src/api/common/error/CredentialAuthenticationError.js"
@@ -118,7 +118,7 @@ o.spec("LoginViewModelTest", () => {
 		replace(
 			userControllerMock,
 			"userGroupInfo",
-			createGroupInfo({
+			createTestEntity(GroupInfoTypeRef, {
 				mailAddress: "test@example.com",
 			}),
 		)

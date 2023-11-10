@@ -1,11 +1,11 @@
-import {create} from "../../common/utils/EntityUtils.js"
+import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
 import {TypeRef} from "@tutao/tutanota-utils"
 import {typeModels} from "./TypeModels.js"
 
 
 export const AccountingInfoTypeRef: TypeRef<AccountingInfo> = new TypeRef("sys", "AccountingInfo")
 
-export function createAccountingInfo(values: Partial<AccountingInfo>): AccountingInfo {
+export function createAccountingInfo(values: StrippedEntity<AccountingInfo>): AccountingInfo {
 	return Object.assign(create(typeModels.AccountingInfo, AccountingInfoTypeRef), values)
 }
 
@@ -37,7 +37,7 @@ export type AccountingInfo = {
 }
 export const AdministratedGroupTypeRef: TypeRef<AdministratedGroup> = new TypeRef("sys", "AdministratedGroup")
 
-export function createAdministratedGroup(values: Partial<AdministratedGroup>): AdministratedGroup {
+export function createAdministratedGroup(values: StrippedEntity<AdministratedGroup>): AdministratedGroup {
 	return Object.assign(create(typeModels.AdministratedGroup, AdministratedGroupTypeRef), values)
 }
 
@@ -55,7 +55,7 @@ export type AdministratedGroup = {
 }
 export const AdministratedGroupsRefTypeRef: TypeRef<AdministratedGroupsRef> = new TypeRef("sys", "AdministratedGroupsRef")
 
-export function createAdministratedGroupsRef(values: Partial<AdministratedGroupsRef>): AdministratedGroupsRef {
+export function createAdministratedGroupsRef(values: StrippedEntity<AdministratedGroupsRef>): AdministratedGroupsRef {
 	return Object.assign(create(typeModels.AdministratedGroupsRef, AdministratedGroupsRefTypeRef), values)
 }
 
@@ -68,7 +68,7 @@ export type AdministratedGroupsRef = {
 }
 export const AlarmInfoTypeRef: TypeRef<AlarmInfo> = new TypeRef("sys", "AlarmInfo")
 
-export function createAlarmInfo(values: Partial<AlarmInfo>): AlarmInfo {
+export function createAlarmInfo(values: StrippedEntity<AlarmInfo>): AlarmInfo {
 	return Object.assign(create(typeModels.AlarmInfo, AlarmInfoTypeRef), values)
 }
 
@@ -83,7 +83,7 @@ export type AlarmInfo = {
 }
 export const AlarmNotificationTypeRef: TypeRef<AlarmNotification> = new TypeRef("sys", "AlarmNotification")
 
-export function createAlarmNotification(values: Partial<AlarmNotification>): AlarmNotification {
+export function createAlarmNotification(values: StrippedEntity<AlarmNotification>): AlarmNotification {
 	return Object.assign(create(typeModels.AlarmNotification, AlarmNotificationTypeRef), values)
 }
 
@@ -103,7 +103,7 @@ export type AlarmNotification = {
 }
 export const AlarmServicePostTypeRef: TypeRef<AlarmServicePost> = new TypeRef("sys", "AlarmServicePost")
 
-export function createAlarmServicePost(values: Partial<AlarmServicePost>): AlarmServicePost {
+export function createAlarmServicePost(values: StrippedEntity<AlarmServicePost>): AlarmServicePost {
 	return Object.assign(create(typeModels.AlarmServicePost, AlarmServicePostTypeRef), values)
 }
 
@@ -117,7 +117,7 @@ export type AlarmServicePost = {
 }
 export const ArchiveRefTypeRef: TypeRef<ArchiveRef> = new TypeRef("sys", "ArchiveRef")
 
-export function createArchiveRef(values: Partial<ArchiveRef>): ArchiveRef {
+export function createArchiveRef(values: StrippedEntity<ArchiveRef>): ArchiveRef {
 	return Object.assign(create(typeModels.ArchiveRef, ArchiveRefTypeRef), values)
 }
 
@@ -129,7 +129,7 @@ export type ArchiveRef = {
 }
 export const ArchiveTypeTypeRef: TypeRef<ArchiveType> = new TypeRef("sys", "ArchiveType")
 
-export function createArchiveType(values: Partial<ArchiveType>): ArchiveType {
+export function createArchiveType(values: StrippedEntity<ArchiveType>): ArchiveType {
 	return Object.assign(create(typeModels.ArchiveType, ArchiveTypeTypeRef), values)
 }
 
@@ -144,7 +144,7 @@ export type ArchiveType = {
 }
 export const AuditLogEntryTypeRef: TypeRef<AuditLogEntry> = new TypeRef("sys", "AuditLogEntry")
 
-export function createAuditLogEntry(values: Partial<AuditLogEntry>): AuditLogEntry {
+export function createAuditLogEntry(values: StrippedEntity<AuditLogEntry>): AuditLogEntry {
 	return Object.assign(create(typeModels.AuditLogEntry, AuditLogEntryTypeRef), values)
 }
 
@@ -168,7 +168,7 @@ export type AuditLogEntry = {
 }
 export const AuditLogRefTypeRef: TypeRef<AuditLogRef> = new TypeRef("sys", "AuditLogRef")
 
-export function createAuditLogRef(values: Partial<AuditLogRef>): AuditLogRef {
+export function createAuditLogRef(values: StrippedEntity<AuditLogRef>): AuditLogRef {
 	return Object.assign(create(typeModels.AuditLogRef, AuditLogRefTypeRef), values)
 }
 
@@ -181,7 +181,7 @@ export type AuditLogRef = {
 }
 export const AuthenticatedDeviceTypeRef: TypeRef<AuthenticatedDevice> = new TypeRef("sys", "AuthenticatedDevice")
 
-export function createAuthenticatedDevice(values: Partial<AuthenticatedDevice>): AuthenticatedDevice {
+export function createAuthenticatedDevice(values: StrippedEntity<AuthenticatedDevice>): AuthenticatedDevice {
 	return Object.assign(create(typeModels.AuthenticatedDevice, AuthenticatedDeviceTypeRef), values)
 }
 
@@ -195,7 +195,7 @@ export type AuthenticatedDevice = {
 }
 export const AuthenticationTypeRef: TypeRef<Authentication> = new TypeRef("sys", "Authentication")
 
-export function createAuthentication(values: Partial<Authentication>): Authentication {
+export function createAuthentication(values: StrippedEntity<Authentication>): Authentication {
 	return Object.assign(create(typeModels.Authentication, AuthenticationTypeRef), values)
 }
 
@@ -211,7 +211,7 @@ export type Authentication = {
 }
 export const AutoLoginDataDeleteTypeRef: TypeRef<AutoLoginDataDelete> = new TypeRef("sys", "AutoLoginDataDelete")
 
-export function createAutoLoginDataDelete(values: Partial<AutoLoginDataDelete>): AutoLoginDataDelete {
+export function createAutoLoginDataDelete(values: StrippedEntity<AutoLoginDataDelete>): AutoLoginDataDelete {
 	return Object.assign(create(typeModels.AutoLoginDataDelete, AutoLoginDataDeleteTypeRef), values)
 }
 
@@ -223,7 +223,7 @@ export type AutoLoginDataDelete = {
 }
 export const AutoLoginDataGetTypeRef: TypeRef<AutoLoginDataGet> = new TypeRef("sys", "AutoLoginDataGet")
 
-export function createAutoLoginDataGet(values: Partial<AutoLoginDataGet>): AutoLoginDataGet {
+export function createAutoLoginDataGet(values: StrippedEntity<AutoLoginDataGet>): AutoLoginDataGet {
 	return Object.assign(create(typeModels.AutoLoginDataGet, AutoLoginDataGetTypeRef), values)
 }
 
@@ -237,7 +237,7 @@ export type AutoLoginDataGet = {
 }
 export const AutoLoginDataReturnTypeRef: TypeRef<AutoLoginDataReturn> = new TypeRef("sys", "AutoLoginDataReturn")
 
-export function createAutoLoginDataReturn(values: Partial<AutoLoginDataReturn>): AutoLoginDataReturn {
+export function createAutoLoginDataReturn(values: StrippedEntity<AutoLoginDataReturn>): AutoLoginDataReturn {
 	return Object.assign(create(typeModels.AutoLoginDataReturn, AutoLoginDataReturnTypeRef), values)
 }
 
@@ -249,7 +249,7 @@ export type AutoLoginDataReturn = {
 }
 export const AutoLoginPostReturnTypeRef: TypeRef<AutoLoginPostReturn> = new TypeRef("sys", "AutoLoginPostReturn")
 
-export function createAutoLoginPostReturn(values: Partial<AutoLoginPostReturn>): AutoLoginPostReturn {
+export function createAutoLoginPostReturn(values: StrippedEntity<AutoLoginPostReturn>): AutoLoginPostReturn {
 	return Object.assign(create(typeModels.AutoLoginPostReturn, AutoLoginPostReturnTypeRef), values)
 }
 
@@ -261,7 +261,7 @@ export type AutoLoginPostReturn = {
 }
 export const BlobTypeRef: TypeRef<Blob> = new TypeRef("sys", "Blob")
 
-export function createBlob(values: Partial<Blob>): Blob {
+export function createBlob(values: StrippedEntity<Blob>): Blob {
 	return Object.assign(create(typeModels.Blob, BlobTypeRef), values)
 }
 
@@ -275,7 +275,7 @@ export type Blob = {
 }
 export const BlobReferenceTokenWrapperTypeRef: TypeRef<BlobReferenceTokenWrapper> = new TypeRef("sys", "BlobReferenceTokenWrapper")
 
-export function createBlobReferenceTokenWrapper(values: Partial<BlobReferenceTokenWrapper>): BlobReferenceTokenWrapper {
+export function createBlobReferenceTokenWrapper(values: StrippedEntity<BlobReferenceTokenWrapper>): BlobReferenceTokenWrapper {
 	return Object.assign(create(typeModels.BlobReferenceTokenWrapper, BlobReferenceTokenWrapperTypeRef), values)
 }
 
@@ -287,7 +287,7 @@ export type BlobReferenceTokenWrapper = {
 }
 export const BookingTypeRef: TypeRef<Booking> = new TypeRef("sys", "Booking")
 
-export function createBooking(values: Partial<Booking>): Booking {
+export function createBooking(values: StrippedEntity<Booking>): Booking {
 	return Object.assign(create(typeModels.Booking, BookingTypeRef), values)
 }
 
@@ -310,7 +310,7 @@ export type Booking = {
 }
 export const BookingItemTypeRef: TypeRef<BookingItem> = new TypeRef("sys", "BookingItem")
 
-export function createBookingItem(values: Partial<BookingItem>): BookingItem {
+export function createBookingItem(values: StrippedEntity<BookingItem>): BookingItem {
 	return Object.assign(create(typeModels.BookingItem, BookingItemTypeRef), values)
 }
 
@@ -328,7 +328,7 @@ export type BookingItem = {
 }
 export const BookingsRefTypeRef: TypeRef<BookingsRef> = new TypeRef("sys", "BookingsRef")
 
-export function createBookingsRef(values: Partial<BookingsRef>): BookingsRef {
+export function createBookingsRef(values: StrippedEntity<BookingsRef>): BookingsRef {
 	return Object.assign(create(typeModels.BookingsRef, BookingsRefTypeRef), values)
 }
 
@@ -341,7 +341,7 @@ export type BookingsRef = {
 }
 export const BootstrapFeatureTypeRef: TypeRef<BootstrapFeature> = new TypeRef("sys", "BootstrapFeature")
 
-export function createBootstrapFeature(values: Partial<BootstrapFeature>): BootstrapFeature {
+export function createBootstrapFeature(values: StrippedEntity<BootstrapFeature>): BootstrapFeature {
 	return Object.assign(create(typeModels.BootstrapFeature, BootstrapFeatureTypeRef), values)
 }
 
@@ -353,7 +353,7 @@ export type BootstrapFeature = {
 }
 export const Braintree3ds2RequestTypeRef: TypeRef<Braintree3ds2Request> = new TypeRef("sys", "Braintree3ds2Request")
 
-export function createBraintree3ds2Request(values: Partial<Braintree3ds2Request>): Braintree3ds2Request {
+export function createBraintree3ds2Request(values: StrippedEntity<Braintree3ds2Request>): Braintree3ds2Request {
 	return Object.assign(create(typeModels.Braintree3ds2Request, Braintree3ds2RequestTypeRef), values)
 }
 
@@ -367,7 +367,7 @@ export type Braintree3ds2Request = {
 }
 export const Braintree3ds2ResponseTypeRef: TypeRef<Braintree3ds2Response> = new TypeRef("sys", "Braintree3ds2Response")
 
-export function createBraintree3ds2Response(values: Partial<Braintree3ds2Response>): Braintree3ds2Response {
+export function createBraintree3ds2Response(values: StrippedEntity<Braintree3ds2Response>): Braintree3ds2Response {
 	return Object.assign(create(typeModels.Braintree3ds2Response, Braintree3ds2ResponseTypeRef), values)
 }
 
@@ -380,7 +380,7 @@ export type Braintree3ds2Response = {
 }
 export const BrandingDomainDataTypeRef: TypeRef<BrandingDomainData> = new TypeRef("sys", "BrandingDomainData")
 
-export function createBrandingDomainData(values: Partial<BrandingDomainData>): BrandingDomainData {
+export function createBrandingDomainData(values: StrippedEntity<BrandingDomainData>): BrandingDomainData {
 	return Object.assign(create(typeModels.BrandingDomainData, BrandingDomainDataTypeRef), values)
 }
 
@@ -395,7 +395,7 @@ export type BrandingDomainData = {
 }
 export const BrandingDomainDeleteDataTypeRef: TypeRef<BrandingDomainDeleteData> = new TypeRef("sys", "BrandingDomainDeleteData")
 
-export function createBrandingDomainDeleteData(values: Partial<BrandingDomainDeleteData>): BrandingDomainDeleteData {
+export function createBrandingDomainDeleteData(values: StrippedEntity<BrandingDomainDeleteData>): BrandingDomainDeleteData {
 	return Object.assign(create(typeModels.BrandingDomainDeleteData, BrandingDomainDeleteDataTypeRef), values)
 }
 
@@ -407,7 +407,7 @@ export type BrandingDomainDeleteData = {
 }
 export const BrandingDomainGetReturnTypeRef: TypeRef<BrandingDomainGetReturn> = new TypeRef("sys", "BrandingDomainGetReturn")
 
-export function createBrandingDomainGetReturn(values: Partial<BrandingDomainGetReturn>): BrandingDomainGetReturn {
+export function createBrandingDomainGetReturn(values: StrippedEntity<BrandingDomainGetReturn>): BrandingDomainGetReturn {
 	return Object.assign(create(typeModels.BrandingDomainGetReturn, BrandingDomainGetReturnTypeRef), values)
 }
 
@@ -420,7 +420,7 @@ export type BrandingDomainGetReturn = {
 }
 export const BucketTypeRef: TypeRef<Bucket> = new TypeRef("sys", "Bucket")
 
-export function createBucket(values: Partial<Bucket>): Bucket {
+export function createBucket(values: StrippedEntity<Bucket>): Bucket {
 	return Object.assign(create(typeModels.Bucket, BucketTypeRef), values)
 }
 
@@ -433,7 +433,7 @@ export type Bucket = {
 }
 export const BucketKeyTypeRef: TypeRef<BucketKey> = new TypeRef("sys", "BucketKey")
 
-export function createBucketKey(values: Partial<BucketKey>): BucketKey {
+export function createBucketKey(values: StrippedEntity<BucketKey>): BucketKey {
 	return Object.assign(create(typeModels.BucketKey, BucketKeyTypeRef), values)
 }
 
@@ -449,7 +449,7 @@ export type BucketKey = {
 }
 export const BucketPermissionTypeRef: TypeRef<BucketPermission> = new TypeRef("sys", "BucketPermission")
 
-export function createBucketPermission(values: Partial<BucketPermission>): BucketPermission {
+export function createBucketPermission(values: StrippedEntity<BucketPermission>): BucketPermission {
 	return Object.assign(create(typeModels.BucketPermission, BucketPermissionTypeRef), values)
 }
 
@@ -470,7 +470,7 @@ export type BucketPermission = {
 }
 export const CalendarEventRefTypeRef: TypeRef<CalendarEventRef> = new TypeRef("sys", "CalendarEventRef")
 
-export function createCalendarEventRef(values: Partial<CalendarEventRef>): CalendarEventRef {
+export function createCalendarEventRef(values: StrippedEntity<CalendarEventRef>): CalendarEventRef {
 	return Object.assign(create(typeModels.CalendarEventRef, CalendarEventRefTypeRef), values)
 }
 
@@ -483,7 +483,7 @@ export type CalendarEventRef = {
 }
 export const CertificateInfoTypeRef: TypeRef<CertificateInfo> = new TypeRef("sys", "CertificateInfo")
 
-export function createCertificateInfo(values: Partial<CertificateInfo>): CertificateInfo {
+export function createCertificateInfo(values: StrippedEntity<CertificateInfo>): CertificateInfo {
 	return Object.assign(create(typeModels.CertificateInfo, CertificateInfoTypeRef), values)
 }
 
@@ -499,7 +499,7 @@ export type CertificateInfo = {
 }
 export const ChallengeTypeRef: TypeRef<Challenge> = new TypeRef("sys", "Challenge")
 
-export function createChallenge(values: Partial<Challenge>): Challenge {
+export function createChallenge(values: StrippedEntity<Challenge>): Challenge {
 	return Object.assign(create(typeModels.Challenge, ChallengeTypeRef), values)
 }
 
@@ -514,7 +514,7 @@ export type Challenge = {
 }
 export const ChangePasswordDataTypeRef: TypeRef<ChangePasswordData> = new TypeRef("sys", "ChangePasswordData")
 
-export function createChangePasswordData(values: Partial<ChangePasswordData>): ChangePasswordData {
+export function createChangePasswordData(values: StrippedEntity<ChangePasswordData>): ChangePasswordData {
 	return Object.assign(create(typeModels.ChangePasswordData, ChangePasswordDataTypeRef), values)
 }
 
@@ -532,7 +532,7 @@ export type ChangePasswordData = {
 }
 export const ChatTypeRef: TypeRef<Chat> = new TypeRef("sys", "Chat")
 
-export function createChat(values: Partial<Chat>): Chat {
+export function createChat(values: StrippedEntity<Chat>): Chat {
 	return Object.assign(create(typeModels.Chat, ChatTypeRef), values)
 }
 
@@ -546,7 +546,7 @@ export type Chat = {
 }
 export const CloseSessionServicePostTypeRef: TypeRef<CloseSessionServicePost> = new TypeRef("sys", "CloseSessionServicePost")
 
-export function createCloseSessionServicePost(values: Partial<CloseSessionServicePost>): CloseSessionServicePost {
+export function createCloseSessionServicePost(values: StrippedEntity<CloseSessionServicePost>): CloseSessionServicePost {
 	return Object.assign(create(typeModels.CloseSessionServicePost, CloseSessionServicePostTypeRef), values)
 }
 
@@ -560,7 +560,7 @@ export type CloseSessionServicePost = {
 }
 export const CreateCustomerServerPropertiesDataTypeRef: TypeRef<CreateCustomerServerPropertiesData> = new TypeRef("sys", "CreateCustomerServerPropertiesData")
 
-export function createCreateCustomerServerPropertiesData(values: Partial<CreateCustomerServerPropertiesData>): CreateCustomerServerPropertiesData {
+export function createCreateCustomerServerPropertiesData(values: StrippedEntity<CreateCustomerServerPropertiesData>): CreateCustomerServerPropertiesData {
 	return Object.assign(create(typeModels.CreateCustomerServerPropertiesData, CreateCustomerServerPropertiesDataTypeRef), values)
 }
 
@@ -572,7 +572,7 @@ export type CreateCustomerServerPropertiesData = {
 }
 export const CreateCustomerServerPropertiesReturnTypeRef: TypeRef<CreateCustomerServerPropertiesReturn> = new TypeRef("sys", "CreateCustomerServerPropertiesReturn")
 
-export function createCreateCustomerServerPropertiesReturn(values: Partial<CreateCustomerServerPropertiesReturn>): CreateCustomerServerPropertiesReturn {
+export function createCreateCustomerServerPropertiesReturn(values: StrippedEntity<CreateCustomerServerPropertiesReturn>): CreateCustomerServerPropertiesReturn {
 	return Object.assign(create(typeModels.CreateCustomerServerPropertiesReturn, CreateCustomerServerPropertiesReturnTypeRef), values)
 }
 
@@ -585,7 +585,7 @@ export type CreateCustomerServerPropertiesReturn = {
 }
 export const CreateGroupDataTypeRef: TypeRef<CreateGroupData> = new TypeRef("sys", "CreateGroupData")
 
-export function createCreateGroupData(values: Partial<CreateGroupData>): CreateGroupData {
+export function createCreateGroupData(values: StrippedEntity<CreateGroupData>): CreateGroupData {
 	return Object.assign(create(typeModels.CreateGroupData, CreateGroupDataTypeRef), values)
 }
 
@@ -604,7 +604,7 @@ export type CreateGroupData = {
 }
 export const CreateGroupListDataTypeRef: TypeRef<CreateGroupListData> = new TypeRef("sys", "CreateGroupListData")
 
-export function createCreateGroupListData(values: Partial<CreateGroupListData>): CreateGroupListData {
+export function createCreateGroupListData(values: StrippedEntity<CreateGroupListData>): CreateGroupListData {
 	return Object.assign(create(typeModels.CreateGroupListData, CreateGroupListDataTypeRef), values)
 }
 
@@ -619,7 +619,7 @@ export type CreateGroupListData = {
 }
 export const CreateSessionDataTypeRef: TypeRef<CreateSessionData> = new TypeRef("sys", "CreateSessionData")
 
-export function createCreateSessionData(values: Partial<CreateSessionData>): CreateSessionData {
+export function createCreateSessionData(values: StrippedEntity<CreateSessionData>): CreateSessionData {
 	return Object.assign(create(typeModels.CreateSessionData, CreateSessionDataTypeRef), values)
 }
 
@@ -638,7 +638,7 @@ export type CreateSessionData = {
 }
 export const CreateSessionReturnTypeRef: TypeRef<CreateSessionReturn> = new TypeRef("sys", "CreateSessionReturn")
 
-export function createCreateSessionReturn(values: Partial<CreateSessionReturn>): CreateSessionReturn {
+export function createCreateSessionReturn(values: StrippedEntity<CreateSessionReturn>): CreateSessionReturn {
 	return Object.assign(create(typeModels.CreateSessionReturn, CreateSessionReturnTypeRef), values)
 }
 
@@ -653,7 +653,7 @@ export type CreateSessionReturn = {
 }
 export const CreditCardTypeRef: TypeRef<CreditCard> = new TypeRef("sys", "CreditCard")
 
-export function createCreditCard(values: Partial<CreditCard>): CreditCard {
+export function createCreditCard(values: StrippedEntity<CreditCard>): CreditCard {
 	return Object.assign(create(typeModels.CreditCard, CreditCardTypeRef), values)
 }
 
@@ -669,7 +669,7 @@ export type CreditCard = {
 }
 export const CustomDomainCheckGetInTypeRef: TypeRef<CustomDomainCheckGetIn> = new TypeRef("sys", "CustomDomainCheckGetIn")
 
-export function createCustomDomainCheckGetIn(values: Partial<CustomDomainCheckGetIn>): CustomDomainCheckGetIn {
+export function createCustomDomainCheckGetIn(values: StrippedEntity<CustomDomainCheckGetIn>): CustomDomainCheckGetIn {
 	return Object.assign(create(typeModels.CustomDomainCheckGetIn, CustomDomainCheckGetInTypeRef), values)
 }
 
@@ -683,7 +683,7 @@ export type CustomDomainCheckGetIn = {
 }
 export const CustomDomainCheckGetOutTypeRef: TypeRef<CustomDomainCheckGetOut> = new TypeRef("sys", "CustomDomainCheckGetOut")
 
-export function createCustomDomainCheckGetOut(values: Partial<CustomDomainCheckGetOut>): CustomDomainCheckGetOut {
+export function createCustomDomainCheckGetOut(values: StrippedEntity<CustomDomainCheckGetOut>): CustomDomainCheckGetOut {
 	return Object.assign(create(typeModels.CustomDomainCheckGetOut, CustomDomainCheckGetOutTypeRef), values)
 }
 
@@ -699,7 +699,7 @@ export type CustomDomainCheckGetOut = {
 }
 export const CustomDomainDataTypeRef: TypeRef<CustomDomainData> = new TypeRef("sys", "CustomDomainData")
 
-export function createCustomDomainData(values: Partial<CustomDomainData>): CustomDomainData {
+export function createCustomDomainData(values: StrippedEntity<CustomDomainData>): CustomDomainData {
 	return Object.assign(create(typeModels.CustomDomainData, CustomDomainDataTypeRef), values)
 }
 
@@ -713,7 +713,7 @@ export type CustomDomainData = {
 }
 export const CustomDomainReturnTypeRef: TypeRef<CustomDomainReturn> = new TypeRef("sys", "CustomDomainReturn")
 
-export function createCustomDomainReturn(values: Partial<CustomDomainReturn>): CustomDomainReturn {
+export function createCustomDomainReturn(values: StrippedEntity<CustomDomainReturn>): CustomDomainReturn {
 	return Object.assign(create(typeModels.CustomDomainReturn, CustomDomainReturnTypeRef), values)
 }
 
@@ -727,7 +727,7 @@ export type CustomDomainReturn = {
 }
 export const CustomerTypeRef: TypeRef<Customer> = new TypeRef("sys", "Customer")
 
-export function createCustomer(values: Partial<Customer>): Customer {
+export function createCustomer(values: StrippedEntity<Customer>): Customer {
 	return Object.assign(create(typeModels.Customer, CustomerTypeRef), values)
 }
 
@@ -764,7 +764,7 @@ export type Customer = {
 }
 export const CustomerAccountTerminationPostInTypeRef: TypeRef<CustomerAccountTerminationPostIn> = new TypeRef("sys", "CustomerAccountTerminationPostIn")
 
-export function createCustomerAccountTerminationPostIn(values: Partial<CustomerAccountTerminationPostIn>): CustomerAccountTerminationPostIn {
+export function createCustomerAccountTerminationPostIn(values: StrippedEntity<CustomerAccountTerminationPostIn>): CustomerAccountTerminationPostIn {
 	return Object.assign(create(typeModels.CustomerAccountTerminationPostIn, CustomerAccountTerminationPostInTypeRef), values)
 }
 
@@ -776,7 +776,7 @@ export type CustomerAccountTerminationPostIn = {
 }
 export const CustomerAccountTerminationPostOutTypeRef: TypeRef<CustomerAccountTerminationPostOut> = new TypeRef("sys", "CustomerAccountTerminationPostOut")
 
-export function createCustomerAccountTerminationPostOut(values: Partial<CustomerAccountTerminationPostOut>): CustomerAccountTerminationPostOut {
+export function createCustomerAccountTerminationPostOut(values: StrippedEntity<CustomerAccountTerminationPostOut>): CustomerAccountTerminationPostOut {
 	return Object.assign(create(typeModels.CustomerAccountTerminationPostOut, CustomerAccountTerminationPostOutTypeRef), values)
 }
 
@@ -789,7 +789,7 @@ export type CustomerAccountTerminationPostOut = {
 }
 export const CustomerAccountTerminationRequestTypeRef: TypeRef<CustomerAccountTerminationRequest> = new TypeRef("sys", "CustomerAccountTerminationRequest")
 
-export function createCustomerAccountTerminationRequest(values: Partial<CustomerAccountTerminationRequest>): CustomerAccountTerminationRequest {
+export function createCustomerAccountTerminationRequest(values: StrippedEntity<CustomerAccountTerminationRequest>): CustomerAccountTerminationRequest {
 	return Object.assign(create(typeModels.CustomerAccountTerminationRequest, CustomerAccountTerminationRequestTypeRef), values)
 }
 
@@ -807,7 +807,7 @@ export type CustomerAccountTerminationRequest = {
 }
 export const CustomerDataTypeRef: TypeRef<CustomerData> = new TypeRef("sys", "CustomerData")
 
-export function createCustomerData(values: Partial<CustomerData>): CustomerData {
+export function createCustomerData(values: StrippedEntity<CustomerData>): CustomerData {
 	return Object.assign(create(typeModels.CustomerData, CustomerDataTypeRef), values)
 }
 
@@ -835,7 +835,7 @@ export type CustomerData = {
 }
 export const CustomerInfoTypeRef: TypeRef<CustomerInfo> = new TypeRef("sys", "CustomerInfo")
 
-export function createCustomerInfo(values: Partial<CustomerInfo>): CustomerInfo {
+export function createCustomerInfo(values: StrippedEntity<CustomerInfo>): CustomerInfo {
 	return Object.assign(create(typeModels.CustomerInfo, CustomerInfoTypeRef), values)
 }
 
@@ -877,7 +877,7 @@ export type CustomerInfo = {
 }
 export const CustomerInfoReturnTypeRef: TypeRef<CustomerInfoReturn> = new TypeRef("sys", "CustomerInfoReturn")
 
-export function createCustomerInfoReturn(values: Partial<CustomerInfoReturn>): CustomerInfoReturn {
+export function createCustomerInfoReturn(values: StrippedEntity<CustomerInfoReturn>): CustomerInfoReturn {
 	return Object.assign(create(typeModels.CustomerInfoReturn, CustomerInfoReturnTypeRef), values)
 }
 
@@ -889,7 +889,7 @@ export type CustomerInfoReturn = {
 }
 export const CustomerPropertiesTypeRef: TypeRef<CustomerProperties> = new TypeRef("sys", "CustomerProperties")
 
-export function createCustomerProperties(values: Partial<CustomerProperties>): CustomerProperties {
+export function createCustomerProperties(values: StrippedEntity<CustomerProperties>): CustomerProperties {
 	return Object.assign(create(typeModels.CustomerProperties, CustomerPropertiesTypeRef), values)
 }
 
@@ -910,7 +910,7 @@ export type CustomerProperties = {
 }
 export const CustomerReturnTypeRef: TypeRef<CustomerReturn> = new TypeRef("sys", "CustomerReturn")
 
-export function createCustomerReturn(values: Partial<CustomerReturn>): CustomerReturn {
+export function createCustomerReturn(values: StrippedEntity<CustomerReturn>): CustomerReturn {
 	return Object.assign(create(typeModels.CustomerReturn, CustomerReturnTypeRef), values)
 }
 
@@ -924,7 +924,7 @@ export type CustomerReturn = {
 }
 export const CustomerServerPropertiesTypeRef: TypeRef<CustomerServerProperties> = new TypeRef("sys", "CustomerServerProperties")
 
-export function createCustomerServerProperties(values: Partial<CustomerServerProperties>): CustomerServerProperties {
+export function createCustomerServerProperties(values: StrippedEntity<CustomerServerProperties>): CustomerServerProperties {
 	return Object.assign(create(typeModels.CustomerServerProperties, CustomerServerPropertiesTypeRef), values)
 }
 
@@ -947,7 +947,7 @@ export type CustomerServerProperties = {
 }
 export const DateWrapperTypeRef: TypeRef<DateWrapper> = new TypeRef("sys", "DateWrapper")
 
-export function createDateWrapper(values: Partial<DateWrapper>): DateWrapper {
+export function createDateWrapper(values: StrippedEntity<DateWrapper>): DateWrapper {
 	return Object.assign(create(typeModels.DateWrapper, DateWrapperTypeRef), values)
 }
 
@@ -959,7 +959,7 @@ export type DateWrapper = {
 }
 export const DebitServicePutDataTypeRef: TypeRef<DebitServicePutData> = new TypeRef("sys", "DebitServicePutData")
 
-export function createDebitServicePutData(values: Partial<DebitServicePutData>): DebitServicePutData {
+export function createDebitServicePutData(values: StrippedEntity<DebitServicePutData>): DebitServicePutData {
 	return Object.assign(create(typeModels.DebitServicePutData, DebitServicePutDataTypeRef), values)
 }
 
@@ -972,7 +972,7 @@ export type DebitServicePutData = {
 }
 export const DeleteCustomerDataTypeRef: TypeRef<DeleteCustomerData> = new TypeRef("sys", "DeleteCustomerData")
 
-export function createDeleteCustomerData(values: Partial<DeleteCustomerData>): DeleteCustomerData {
+export function createDeleteCustomerData(values: StrippedEntity<DeleteCustomerData>): DeleteCustomerData {
 	return Object.assign(create(typeModels.DeleteCustomerData, DeleteCustomerDataTypeRef), values)
 }
 
@@ -989,7 +989,7 @@ export type DeleteCustomerData = {
 }
 export const DnsRecordTypeRef: TypeRef<DnsRecord> = new TypeRef("sys", "DnsRecord")
 
-export function createDnsRecord(values: Partial<DnsRecord>): DnsRecord {
+export function createDnsRecord(values: StrippedEntity<DnsRecord>): DnsRecord {
 	return Object.assign(create(typeModels.DnsRecord, DnsRecordTypeRef), values)
 }
 
@@ -1003,7 +1003,7 @@ export type DnsRecord = {
 }
 export const DomainInfoTypeRef: TypeRef<DomainInfo> = new TypeRef("sys", "DomainInfo")
 
-export function createDomainInfo(values: Partial<DomainInfo>): DomainInfo {
+export function createDomainInfo(values: StrippedEntity<DomainInfo>): DomainInfo {
 	return Object.assign(create(typeModels.DomainInfo, DomainInfoTypeRef), values)
 }
 
@@ -1019,7 +1019,7 @@ export type DomainInfo = {
 }
 export const DomainMailAddressAvailabilityDataTypeRef: TypeRef<DomainMailAddressAvailabilityData> = new TypeRef("sys", "DomainMailAddressAvailabilityData")
 
-export function createDomainMailAddressAvailabilityData(values: Partial<DomainMailAddressAvailabilityData>): DomainMailAddressAvailabilityData {
+export function createDomainMailAddressAvailabilityData(values: StrippedEntity<DomainMailAddressAvailabilityData>): DomainMailAddressAvailabilityData {
 	return Object.assign(create(typeModels.DomainMailAddressAvailabilityData, DomainMailAddressAvailabilityDataTypeRef), values)
 }
 
@@ -1031,7 +1031,7 @@ export type DomainMailAddressAvailabilityData = {
 }
 export const DomainMailAddressAvailabilityReturnTypeRef: TypeRef<DomainMailAddressAvailabilityReturn> = new TypeRef("sys", "DomainMailAddressAvailabilityReturn")
 
-export function createDomainMailAddressAvailabilityReturn(values: Partial<DomainMailAddressAvailabilityReturn>): DomainMailAddressAvailabilityReturn {
+export function createDomainMailAddressAvailabilityReturn(values: StrippedEntity<DomainMailAddressAvailabilityReturn>): DomainMailAddressAvailabilityReturn {
 	return Object.assign(create(typeModels.DomainMailAddressAvailabilityReturn, DomainMailAddressAvailabilityReturnTypeRef), values)
 }
 
@@ -1043,7 +1043,7 @@ export type DomainMailAddressAvailabilityReturn = {
 }
 export const DomainsRefTypeRef: TypeRef<DomainsRef> = new TypeRef("sys", "DomainsRef")
 
-export function createDomainsRef(values: Partial<DomainsRef>): DomainsRef {
+export function createDomainsRef(values: StrippedEntity<DomainsRef>): DomainsRef {
 	return Object.assign(create(typeModels.DomainsRef, DomainsRefTypeRef), values)
 }
 
@@ -1056,7 +1056,7 @@ export type DomainsRef = {
 }
 export const EmailSenderListElementTypeRef: TypeRef<EmailSenderListElement> = new TypeRef("sys", "EmailSenderListElement")
 
-export function createEmailSenderListElement(values: Partial<EmailSenderListElement>): EmailSenderListElement {
+export function createEmailSenderListElement(values: StrippedEntity<EmailSenderListElement>): EmailSenderListElement {
 	return Object.assign(create(typeModels.EmailSenderListElement, EmailSenderListElementTypeRef), values)
 }
 
@@ -1071,7 +1071,7 @@ export type EmailSenderListElement = {
 }
 export const EntityEventBatchTypeRef: TypeRef<EntityEventBatch> = new TypeRef("sys", "EntityEventBatch")
 
-export function createEntityEventBatch(values: Partial<EntityEventBatch>): EntityEventBatch {
+export function createEntityEventBatch(values: StrippedEntity<EntityEventBatch>): EntityEventBatch {
 	return Object.assign(create(typeModels.EntityEventBatch, EntityEventBatchTypeRef), values)
 }
 
@@ -1087,7 +1087,7 @@ export type EntityEventBatch = {
 }
 export const EntityUpdateTypeRef: TypeRef<EntityUpdate> = new TypeRef("sys", "EntityUpdate")
 
-export function createEntityUpdate(values: Partial<EntityUpdate>): EntityUpdate {
+export function createEntityUpdate(values: StrippedEntity<EntityUpdate>): EntityUpdate {
 	return Object.assign(create(typeModels.EntityUpdate, EntityUpdateTypeRef), values)
 }
 
@@ -1103,7 +1103,7 @@ export type EntityUpdate = {
 }
 export const ExceptionTypeRef: TypeRef<Exception> = new TypeRef("sys", "Exception")
 
-export function createException(values: Partial<Exception>): Exception {
+export function createException(values: StrippedEntity<Exception>): Exception {
 	return Object.assign(create(typeModels.Exception, ExceptionTypeRef), values)
 }
 
@@ -1116,7 +1116,7 @@ export type Exception = {
 }
 export const ExternalPropertiesReturnTypeRef: TypeRef<ExternalPropertiesReturn> = new TypeRef("sys", "ExternalPropertiesReturn")
 
-export function createExternalPropertiesReturn(values: Partial<ExternalPropertiesReturn>): ExternalPropertiesReturn {
+export function createExternalPropertiesReturn(values: StrippedEntity<ExternalPropertiesReturn>): ExternalPropertiesReturn {
 	return Object.assign(create(typeModels.ExternalPropertiesReturn, ExternalPropertiesReturnTypeRef), values)
 }
 
@@ -1132,7 +1132,7 @@ export type ExternalPropertiesReturn = {
 }
 export const ExternalUserReferenceTypeRef: TypeRef<ExternalUserReference> = new TypeRef("sys", "ExternalUserReference")
 
-export function createExternalUserReference(values: Partial<ExternalUserReference>): ExternalUserReference {
+export function createExternalUserReference(values: StrippedEntity<ExternalUserReference>): ExternalUserReference {
 	return Object.assign(create(typeModels.ExternalUserReference, ExternalUserReferenceTypeRef), values)
 }
 
@@ -1149,7 +1149,7 @@ export type ExternalUserReference = {
 }
 export const FeatureTypeRef: TypeRef<Feature> = new TypeRef("sys", "Feature")
 
-export function createFeature(values: Partial<Feature>): Feature {
+export function createFeature(values: StrippedEntity<Feature>): Feature {
 	return Object.assign(create(typeModels.Feature, FeatureTypeRef), values)
 }
 
@@ -1161,7 +1161,7 @@ export type Feature = {
 }
 export const FileTypeRef: TypeRef<File> = new TypeRef("sys", "File")
 
-export function createFile(values: Partial<File>): File {
+export function createFile(values: StrippedEntity<File>): File {
 	return Object.assign(create(typeModels.File, FileTypeRef), values)
 }
 
@@ -1175,7 +1175,7 @@ export type File = {
 }
 export const GeneratedIdWrapperTypeRef: TypeRef<GeneratedIdWrapper> = new TypeRef("sys", "GeneratedIdWrapper")
 
-export function createGeneratedIdWrapper(values: Partial<GeneratedIdWrapper>): GeneratedIdWrapper {
+export function createGeneratedIdWrapper(values: StrippedEntity<GeneratedIdWrapper>): GeneratedIdWrapper {
 	return Object.assign(create(typeModels.GeneratedIdWrapper, GeneratedIdWrapperTypeRef), values)
 }
 
@@ -1187,7 +1187,7 @@ export type GeneratedIdWrapper = {
 }
 export const GiftCardTypeRef: TypeRef<GiftCard> = new TypeRef("sys", "GiftCard")
 
-export function createGiftCard(values: Partial<GiftCard>): GiftCard {
+export function createGiftCard(values: StrippedEntity<GiftCard>): GiftCard {
 	return Object.assign(create(typeModels.GiftCard, GiftCardTypeRef), values)
 }
 
@@ -1208,7 +1208,7 @@ export type GiftCard = {
 }
 export const GiftCardCreateDataTypeRef: TypeRef<GiftCardCreateData> = new TypeRef("sys", "GiftCardCreateData")
 
-export function createGiftCardCreateData(values: Partial<GiftCardCreateData>): GiftCardCreateData {
+export function createGiftCardCreateData(values: StrippedEntity<GiftCardCreateData>): GiftCardCreateData {
 	return Object.assign(create(typeModels.GiftCardCreateData, GiftCardCreateDataTypeRef), values)
 }
 
@@ -1224,7 +1224,7 @@ export type GiftCardCreateData = {
 }
 export const GiftCardCreateReturnTypeRef: TypeRef<GiftCardCreateReturn> = new TypeRef("sys", "GiftCardCreateReturn")
 
-export function createGiftCardCreateReturn(values: Partial<GiftCardCreateReturn>): GiftCardCreateReturn {
+export function createGiftCardCreateReturn(values: StrippedEntity<GiftCardCreateReturn>): GiftCardCreateReturn {
 	return Object.assign(create(typeModels.GiftCardCreateReturn, GiftCardCreateReturnTypeRef), values)
 }
 
@@ -1237,7 +1237,7 @@ export type GiftCardCreateReturn = {
 }
 export const GiftCardDeleteDataTypeRef: TypeRef<GiftCardDeleteData> = new TypeRef("sys", "GiftCardDeleteData")
 
-export function createGiftCardDeleteData(values: Partial<GiftCardDeleteData>): GiftCardDeleteData {
+export function createGiftCardDeleteData(values: StrippedEntity<GiftCardDeleteData>): GiftCardDeleteData {
 	return Object.assign(create(typeModels.GiftCardDeleteData, GiftCardDeleteDataTypeRef), values)
 }
 
@@ -1250,7 +1250,7 @@ export type GiftCardDeleteData = {
 }
 export const GiftCardGetReturnTypeRef: TypeRef<GiftCardGetReturn> = new TypeRef("sys", "GiftCardGetReturn")
 
-export function createGiftCardGetReturn(values: Partial<GiftCardGetReturn>): GiftCardGetReturn {
+export function createGiftCardGetReturn(values: StrippedEntity<GiftCardGetReturn>): GiftCardGetReturn {
 	return Object.assign(create(typeModels.GiftCardGetReturn, GiftCardGetReturnTypeRef), values)
 }
 
@@ -1265,7 +1265,7 @@ export type GiftCardGetReturn = {
 }
 export const GiftCardOptionTypeRef: TypeRef<GiftCardOption> = new TypeRef("sys", "GiftCardOption")
 
-export function createGiftCardOption(values: Partial<GiftCardOption>): GiftCardOption {
+export function createGiftCardOption(values: StrippedEntity<GiftCardOption>): GiftCardOption {
 	return Object.assign(create(typeModels.GiftCardOption, GiftCardOptionTypeRef), values)
 }
 
@@ -1277,7 +1277,7 @@ export type GiftCardOption = {
 }
 export const GiftCardRedeemDataTypeRef: TypeRef<GiftCardRedeemData> = new TypeRef("sys", "GiftCardRedeemData")
 
-export function createGiftCardRedeemData(values: Partial<GiftCardRedeemData>): GiftCardRedeemData {
+export function createGiftCardRedeemData(values: StrippedEntity<GiftCardRedeemData>): GiftCardRedeemData {
 	return Object.assign(create(typeModels.GiftCardRedeemData, GiftCardRedeemDataTypeRef), values)
 }
 
@@ -1292,7 +1292,7 @@ export type GiftCardRedeemData = {
 }
 export const GiftCardRedeemGetReturnTypeRef: TypeRef<GiftCardRedeemGetReturn> = new TypeRef("sys", "GiftCardRedeemGetReturn")
 
-export function createGiftCardRedeemGetReturn(values: Partial<GiftCardRedeemGetReturn>): GiftCardRedeemGetReturn {
+export function createGiftCardRedeemGetReturn(values: StrippedEntity<GiftCardRedeemGetReturn>): GiftCardRedeemGetReturn {
 	return Object.assign(create(typeModels.GiftCardRedeemGetReturn, GiftCardRedeemGetReturnTypeRef), values)
 }
 
@@ -1308,7 +1308,7 @@ export type GiftCardRedeemGetReturn = {
 }
 export const GiftCardsRefTypeRef: TypeRef<GiftCardsRef> = new TypeRef("sys", "GiftCardsRef")
 
-export function createGiftCardsRef(values: Partial<GiftCardsRef>): GiftCardsRef {
+export function createGiftCardsRef(values: StrippedEntity<GiftCardsRef>): GiftCardsRef {
 	return Object.assign(create(typeModels.GiftCardsRef, GiftCardsRefTypeRef), values)
 }
 
@@ -1321,7 +1321,7 @@ export type GiftCardsRef = {
 }
 export const GroupTypeRef: TypeRef<Group> = new TypeRef("sys", "Group")
 
-export function createGroup(values: Partial<Group>): Group {
+export function createGroup(values: StrippedEntity<Group>): Group {
 	return Object.assign(create(typeModels.Group, GroupTypeRef), values)
 }
 
@@ -1350,7 +1350,7 @@ export type Group = {
 }
 export const GroupInfoTypeRef: TypeRef<GroupInfo> = new TypeRef("sys", "GroupInfo")
 
-export function createGroupInfo(values: Partial<GroupInfo>): GroupInfo {
+export function createGroupInfo(values: StrippedEntity<GroupInfo>): GroupInfo {
 	return Object.assign(create(typeModels.GroupInfo, GroupInfoTypeRef), values)
 }
 
@@ -1376,7 +1376,7 @@ export type GroupInfo = {
 }
 export const GroupMemberTypeRef: TypeRef<GroupMember> = new TypeRef("sys", "GroupMember")
 
-export function createGroupMember(values: Partial<GroupMember>): GroupMember {
+export function createGroupMember(values: StrippedEntity<GroupMember>): GroupMember {
 	return Object.assign(create(typeModels.GroupMember, GroupMemberTypeRef), values)
 }
 
@@ -1395,7 +1395,7 @@ export type GroupMember = {
 }
 export const GroupMembershipTypeRef: TypeRef<GroupMembership> = new TypeRef("sys", "GroupMembership")
 
-export function createGroupMembership(values: Partial<GroupMembership>): GroupMembership {
+export function createGroupMembership(values: StrippedEntity<GroupMembership>): GroupMembership {
 	return Object.assign(create(typeModels.GroupMembership, GroupMembershipTypeRef), values)
 }
 
@@ -1414,7 +1414,7 @@ export type GroupMembership = {
 }
 export const GroupRootTypeRef: TypeRef<GroupRoot> = new TypeRef("sys", "GroupRoot")
 
-export function createGroupRoot(values: Partial<GroupRoot>): GroupRoot {
+export function createGroupRoot(values: StrippedEntity<GroupRoot>): GroupRoot {
 	return Object.assign(create(typeModels.GroupRoot, GroupRootTypeRef), values)
 }
 
@@ -1432,7 +1432,7 @@ export type GroupRoot = {
 }
 export const InstanceSessionKeyTypeRef: TypeRef<InstanceSessionKey> = new TypeRef("sys", "InstanceSessionKey")
 
-export function createInstanceSessionKey(values: Partial<InstanceSessionKey>): InstanceSessionKey {
+export function createInstanceSessionKey(values: StrippedEntity<InstanceSessionKey>): InstanceSessionKey {
 	return Object.assign(create(typeModels.InstanceSessionKey, InstanceSessionKeyTypeRef), values)
 }
 
@@ -1448,7 +1448,7 @@ export type InstanceSessionKey = {
 }
 export const InvoiceTypeRef: TypeRef<Invoice> = new TypeRef("sys", "Invoice")
 
-export function createInvoice(values: Partial<Invoice>): Invoice {
+export function createInvoice(values: StrippedEntity<Invoice>): Invoice {
 	return Object.assign(create(typeModels.Invoice, InvoiceTypeRef), values)
 }
 
@@ -1481,7 +1481,7 @@ export type Invoice = {
 }
 export const InvoiceInfoTypeRef: TypeRef<InvoiceInfo> = new TypeRef("sys", "InvoiceInfo")
 
-export function createInvoiceInfo(values: Partial<InvoiceInfo>): InvoiceInfo {
+export function createInvoiceInfo(values: StrippedEntity<InvoiceInfo>): InvoiceInfo {
 	return Object.assign(create(typeModels.InvoiceInfo, InvoiceInfoTypeRef), values)
 }
 
@@ -1510,7 +1510,7 @@ export type InvoiceInfo = {
 }
 export const InvoiceItemTypeRef: TypeRef<InvoiceItem> = new TypeRef("sys", "InvoiceItem")
 
-export function createInvoiceItem(values: Partial<InvoiceItem>): InvoiceItem {
+export function createInvoiceItem(values: StrippedEntity<InvoiceItem>): InvoiceItem {
 	return Object.assign(create(typeModels.InvoiceItem, InvoiceItemTypeRef), values)
 }
 
@@ -1528,7 +1528,7 @@ export type InvoiceItem = {
 }
 export const KeyPairTypeRef: TypeRef<KeyPair> = new TypeRef("sys", "KeyPair")
 
-export function createKeyPair(values: Partial<KeyPair>): KeyPair {
+export function createKeyPair(values: StrippedEntity<KeyPair>): KeyPair {
 	return Object.assign(create(typeModels.KeyPair, KeyPairTypeRef), values)
 }
 
@@ -1542,7 +1542,7 @@ export type KeyPair = {
 }
 export const LocationServiceGetReturnTypeRef: TypeRef<LocationServiceGetReturn> = new TypeRef("sys", "LocationServiceGetReturn")
 
-export function createLocationServiceGetReturn(values: Partial<LocationServiceGetReturn>): LocationServiceGetReturn {
+export function createLocationServiceGetReturn(values: StrippedEntity<LocationServiceGetReturn>): LocationServiceGetReturn {
 	return Object.assign(create(typeModels.LocationServiceGetReturn, LocationServiceGetReturnTypeRef), values)
 }
 
@@ -1554,7 +1554,7 @@ export type LocationServiceGetReturn = {
 }
 export const LoginTypeRef: TypeRef<Login> = new TypeRef("sys", "Login")
 
-export function createLogin(values: Partial<Login>): Login {
+export function createLogin(values: StrippedEntity<Login>): Login {
 	return Object.assign(create(typeModels.Login, LoginTypeRef), values)
 }
 
@@ -1569,7 +1569,7 @@ export type Login = {
 }
 export const MailAddressAliasTypeRef: TypeRef<MailAddressAlias> = new TypeRef("sys", "MailAddressAlias")
 
-export function createMailAddressAlias(values: Partial<MailAddressAlias>): MailAddressAlias {
+export function createMailAddressAlias(values: StrippedEntity<MailAddressAlias>): MailAddressAlias {
 	return Object.assign(create(typeModels.MailAddressAlias, MailAddressAliasTypeRef), values)
 }
 
@@ -1582,7 +1582,7 @@ export type MailAddressAlias = {
 }
 export const MailAddressAliasGetInTypeRef: TypeRef<MailAddressAliasGetIn> = new TypeRef("sys", "MailAddressAliasGetIn")
 
-export function createMailAddressAliasGetIn(values: Partial<MailAddressAliasGetIn>): MailAddressAliasGetIn {
+export function createMailAddressAliasGetIn(values: StrippedEntity<MailAddressAliasGetIn>): MailAddressAliasGetIn {
 	return Object.assign(create(typeModels.MailAddressAliasGetIn, MailAddressAliasGetInTypeRef), values)
 }
 
@@ -1595,7 +1595,7 @@ export type MailAddressAliasGetIn = {
 }
 export const MailAddressAliasServiceDataTypeRef: TypeRef<MailAddressAliasServiceData> = new TypeRef("sys", "MailAddressAliasServiceData")
 
-export function createMailAddressAliasServiceData(values: Partial<MailAddressAliasServiceData>): MailAddressAliasServiceData {
+export function createMailAddressAliasServiceData(values: StrippedEntity<MailAddressAliasServiceData>): MailAddressAliasServiceData {
 	return Object.assign(create(typeModels.MailAddressAliasServiceData, MailAddressAliasServiceDataTypeRef), values)
 }
 
@@ -1609,7 +1609,7 @@ export type MailAddressAliasServiceData = {
 }
 export const MailAddressAliasServiceDataDeleteTypeRef: TypeRef<MailAddressAliasServiceDataDelete> = new TypeRef("sys", "MailAddressAliasServiceDataDelete")
 
-export function createMailAddressAliasServiceDataDelete(values: Partial<MailAddressAliasServiceDataDelete>): MailAddressAliasServiceDataDelete {
+export function createMailAddressAliasServiceDataDelete(values: StrippedEntity<MailAddressAliasServiceDataDelete>): MailAddressAliasServiceDataDelete {
 	return Object.assign(create(typeModels.MailAddressAliasServiceDataDelete, MailAddressAliasServiceDataDeleteTypeRef), values)
 }
 
@@ -1624,7 +1624,7 @@ export type MailAddressAliasServiceDataDelete = {
 }
 export const MailAddressAliasServiceReturnTypeRef: TypeRef<MailAddressAliasServiceReturn> = new TypeRef("sys", "MailAddressAliasServiceReturn")
 
-export function createMailAddressAliasServiceReturn(values: Partial<MailAddressAliasServiceReturn>): MailAddressAliasServiceReturn {
+export function createMailAddressAliasServiceReturn(values: StrippedEntity<MailAddressAliasServiceReturn>): MailAddressAliasServiceReturn {
 	return Object.assign(create(typeModels.MailAddressAliasServiceReturn, MailAddressAliasServiceReturnTypeRef), values)
 }
 
@@ -1639,7 +1639,7 @@ export type MailAddressAliasServiceReturn = {
 }
 export const MailAddressAvailabilityTypeRef: TypeRef<MailAddressAvailability> = new TypeRef("sys", "MailAddressAvailability")
 
-export function createMailAddressAvailability(values: Partial<MailAddressAvailability>): MailAddressAvailability {
+export function createMailAddressAvailability(values: StrippedEntity<MailAddressAvailability>): MailAddressAvailability {
 	return Object.assign(create(typeModels.MailAddressAvailability, MailAddressAvailabilityTypeRef), values)
 }
 
@@ -1652,7 +1652,7 @@ export type MailAddressAvailability = {
 }
 export const MailAddressToGroupTypeRef: TypeRef<MailAddressToGroup> = new TypeRef("sys", "MailAddressToGroup")
 
-export function createMailAddressToGroup(values: Partial<MailAddressToGroup>): MailAddressToGroup {
+export function createMailAddressToGroup(values: StrippedEntity<MailAddressToGroup>): MailAddressToGroup {
 	return Object.assign(create(typeModels.MailAddressToGroup, MailAddressToGroupTypeRef), values)
 }
 
@@ -1668,7 +1668,7 @@ export type MailAddressToGroup = {
 }
 export const MembershipAddDataTypeRef: TypeRef<MembershipAddData> = new TypeRef("sys", "MembershipAddData")
 
-export function createMembershipAddData(values: Partial<MembershipAddData>): MembershipAddData {
+export function createMembershipAddData(values: StrippedEntity<MembershipAddData>): MembershipAddData {
 	return Object.assign(create(typeModels.MembershipAddData, MembershipAddDataTypeRef), values)
 }
 
@@ -1683,7 +1683,7 @@ export type MembershipAddData = {
 }
 export const MembershipRemoveDataTypeRef: TypeRef<MembershipRemoveData> = new TypeRef("sys", "MembershipRemoveData")
 
-export function createMembershipRemoveData(values: Partial<MembershipRemoveData>): MembershipRemoveData {
+export function createMembershipRemoveData(values: StrippedEntity<MembershipRemoveData>): MembershipRemoveData {
 	return Object.assign(create(typeModels.MembershipRemoveData, MembershipRemoveDataTypeRef), values)
 }
 
@@ -1697,7 +1697,7 @@ export type MembershipRemoveData = {
 }
 export const MissedNotificationTypeRef: TypeRef<MissedNotification> = new TypeRef("sys", "MissedNotification")
 
-export function createMissedNotification(values: Partial<MissedNotification>): MissedNotification {
+export function createMissedNotification(values: StrippedEntity<MissedNotification>): MissedNotification {
 	return Object.assign(create(typeModels.MissedNotification, MissedNotificationTypeRef), values)
 }
 
@@ -1719,7 +1719,7 @@ export type MissedNotification = {
 }
 export const MultipleMailAddressAvailabilityDataTypeRef: TypeRef<MultipleMailAddressAvailabilityData> = new TypeRef("sys", "MultipleMailAddressAvailabilityData")
 
-export function createMultipleMailAddressAvailabilityData(values: Partial<MultipleMailAddressAvailabilityData>): MultipleMailAddressAvailabilityData {
+export function createMultipleMailAddressAvailabilityData(values: StrippedEntity<MultipleMailAddressAvailabilityData>): MultipleMailAddressAvailabilityData {
 	return Object.assign(create(typeModels.MultipleMailAddressAvailabilityData, MultipleMailAddressAvailabilityDataTypeRef), values)
 }
 
@@ -1732,7 +1732,7 @@ export type MultipleMailAddressAvailabilityData = {
 }
 export const MultipleMailAddressAvailabilityReturnTypeRef: TypeRef<MultipleMailAddressAvailabilityReturn> = new TypeRef("sys", "MultipleMailAddressAvailabilityReturn")
 
-export function createMultipleMailAddressAvailabilityReturn(values: Partial<MultipleMailAddressAvailabilityReturn>): MultipleMailAddressAvailabilityReturn {
+export function createMultipleMailAddressAvailabilityReturn(values: StrippedEntity<MultipleMailAddressAvailabilityReturn>): MultipleMailAddressAvailabilityReturn {
 	return Object.assign(create(typeModels.MultipleMailAddressAvailabilityReturn, MultipleMailAddressAvailabilityReturnTypeRef), values)
 }
 
@@ -1745,7 +1745,7 @@ export type MultipleMailAddressAvailabilityReturn = {
 }
 export const NotificationInfoTypeRef: TypeRef<NotificationInfo> = new TypeRef("sys", "NotificationInfo")
 
-export function createNotificationInfo(values: Partial<NotificationInfo>): NotificationInfo {
+export function createNotificationInfo(values: StrippedEntity<NotificationInfo>): NotificationInfo {
 	return Object.assign(create(typeModels.NotificationInfo, NotificationInfoTypeRef), values)
 }
 
@@ -1759,7 +1759,7 @@ export type NotificationInfo = {
 }
 export const NotificationMailTemplateTypeRef: TypeRef<NotificationMailTemplate> = new TypeRef("sys", "NotificationMailTemplate")
 
-export function createNotificationMailTemplate(values: Partial<NotificationMailTemplate>): NotificationMailTemplate {
+export function createNotificationMailTemplate(values: StrippedEntity<NotificationMailTemplate>): NotificationMailTemplate {
 	return Object.assign(create(typeModels.NotificationMailTemplate, NotificationMailTemplateTypeRef), values)
 }
 
@@ -1773,7 +1773,7 @@ export type NotificationMailTemplate = {
 }
 export const NotificationSessionKeyTypeRef: TypeRef<NotificationSessionKey> = new TypeRef("sys", "NotificationSessionKey")
 
-export function createNotificationSessionKey(values: Partial<NotificationSessionKey>): NotificationSessionKey {
+export function createNotificationSessionKey(values: StrippedEntity<NotificationSessionKey>): NotificationSessionKey {
 	return Object.assign(create(typeModels.NotificationSessionKey, NotificationSessionKeyTypeRef), values)
 }
 
@@ -1787,7 +1787,7 @@ export type NotificationSessionKey = {
 }
 export const OrderProcessingAgreementTypeRef: TypeRef<OrderProcessingAgreement> = new TypeRef("sys", "OrderProcessingAgreement")
 
-export function createOrderProcessingAgreement(values: Partial<OrderProcessingAgreement>): OrderProcessingAgreement {
+export function createOrderProcessingAgreement(values: StrippedEntity<OrderProcessingAgreement>): OrderProcessingAgreement {
 	return Object.assign(create(typeModels.OrderProcessingAgreement, OrderProcessingAgreementTypeRef), values)
 }
 
@@ -1809,7 +1809,7 @@ export type OrderProcessingAgreement = {
 }
 export const OtpChallengeTypeRef: TypeRef<OtpChallenge> = new TypeRef("sys", "OtpChallenge")
 
-export function createOtpChallenge(values: Partial<OtpChallenge>): OtpChallenge {
+export function createOtpChallenge(values: StrippedEntity<OtpChallenge>): OtpChallenge {
 	return Object.assign(create(typeModels.OtpChallenge, OtpChallengeTypeRef), values)
 }
 
@@ -1822,7 +1822,7 @@ export type OtpChallenge = {
 }
 export const PaymentDataServiceGetDataTypeRef: TypeRef<PaymentDataServiceGetData> = new TypeRef("sys", "PaymentDataServiceGetData")
 
-export function createPaymentDataServiceGetData(values: Partial<PaymentDataServiceGetData>): PaymentDataServiceGetData {
+export function createPaymentDataServiceGetData(values: StrippedEntity<PaymentDataServiceGetData>): PaymentDataServiceGetData {
 	return Object.assign(create(typeModels.PaymentDataServiceGetData, PaymentDataServiceGetDataTypeRef), values)
 }
 
@@ -1834,7 +1834,7 @@ export type PaymentDataServiceGetData = {
 }
 export const PaymentDataServiceGetReturnTypeRef: TypeRef<PaymentDataServiceGetReturn> = new TypeRef("sys", "PaymentDataServiceGetReturn")
 
-export function createPaymentDataServiceGetReturn(values: Partial<PaymentDataServiceGetReturn>): PaymentDataServiceGetReturn {
+export function createPaymentDataServiceGetReturn(values: StrippedEntity<PaymentDataServiceGetReturn>): PaymentDataServiceGetReturn {
 	return Object.assign(create(typeModels.PaymentDataServiceGetReturn, PaymentDataServiceGetReturnTypeRef), values)
 }
 
@@ -1846,7 +1846,7 @@ export type PaymentDataServiceGetReturn = {
 }
 export const PaymentDataServicePostDataTypeRef: TypeRef<PaymentDataServicePostData> = new TypeRef("sys", "PaymentDataServicePostData")
 
-export function createPaymentDataServicePostData(values: Partial<PaymentDataServicePostData>): PaymentDataServicePostData {
+export function createPaymentDataServicePostData(values: StrippedEntity<PaymentDataServicePostData>): PaymentDataServicePostData {
 	return Object.assign(create(typeModels.PaymentDataServicePostData, PaymentDataServicePostDataTypeRef), values)
 }
 
@@ -1859,7 +1859,7 @@ export type PaymentDataServicePostData = {
 }
 export const PaymentDataServicePutDataTypeRef: TypeRef<PaymentDataServicePutData> = new TypeRef("sys", "PaymentDataServicePutData")
 
-export function createPaymentDataServicePutData(values: Partial<PaymentDataServicePutData>): PaymentDataServicePutData {
+export function createPaymentDataServicePutData(values: StrippedEntity<PaymentDataServicePutData>): PaymentDataServicePutData {
 	return Object.assign(create(typeModels.PaymentDataServicePutData, PaymentDataServicePutDataTypeRef), values)
 }
 
@@ -1882,7 +1882,7 @@ export type PaymentDataServicePutData = {
 }
 export const PaymentDataServicePutReturnTypeRef: TypeRef<PaymentDataServicePutReturn> = new TypeRef("sys", "PaymentDataServicePutReturn")
 
-export function createPaymentDataServicePutReturn(values: Partial<PaymentDataServicePutReturn>): PaymentDataServicePutReturn {
+export function createPaymentDataServicePutReturn(values: StrippedEntity<PaymentDataServicePutReturn>): PaymentDataServicePutReturn {
 	return Object.assign(create(typeModels.PaymentDataServicePutReturn, PaymentDataServicePutReturnTypeRef), values)
 }
 
@@ -1896,7 +1896,7 @@ export type PaymentDataServicePutReturn = {
 }
 export const PaymentErrorInfoTypeRef: TypeRef<PaymentErrorInfo> = new TypeRef("sys", "PaymentErrorInfo")
 
-export function createPaymentErrorInfo(values: Partial<PaymentErrorInfo>): PaymentErrorInfo {
+export function createPaymentErrorInfo(values: StrippedEntity<PaymentErrorInfo>): PaymentErrorInfo {
 	return Object.assign(create(typeModels.PaymentErrorInfo, PaymentErrorInfoTypeRef), values)
 }
 
@@ -1910,7 +1910,7 @@ export type PaymentErrorInfo = {
 }
 export const PdfInvoiceServiceDataTypeRef: TypeRef<PdfInvoiceServiceData> = new TypeRef("sys", "PdfInvoiceServiceData")
 
-export function createPdfInvoiceServiceData(values: Partial<PdfInvoiceServiceData>): PdfInvoiceServiceData {
+export function createPdfInvoiceServiceData(values: StrippedEntity<PdfInvoiceServiceData>): PdfInvoiceServiceData {
 	return Object.assign(create(typeModels.PdfInvoiceServiceData, PdfInvoiceServiceDataTypeRef), values)
 }
 
@@ -1924,7 +1924,7 @@ export type PdfInvoiceServiceData = {
 }
 export const PdfInvoiceServiceReturnTypeRef: TypeRef<PdfInvoiceServiceReturn> = new TypeRef("sys", "PdfInvoiceServiceReturn")
 
-export function createPdfInvoiceServiceReturn(values: Partial<PdfInvoiceServiceReturn>): PdfInvoiceServiceReturn {
+export function createPdfInvoiceServiceReturn(values: StrippedEntity<PdfInvoiceServiceReturn>): PdfInvoiceServiceReturn {
 	return Object.assign(create(typeModels.PdfInvoiceServiceReturn, PdfInvoiceServiceReturnTypeRef), values)
 }
 
@@ -1939,7 +1939,7 @@ export type PdfInvoiceServiceReturn = {
 }
 export const PermissionTypeRef: TypeRef<Permission> = new TypeRef("sys", "Permission")
 
-export function createPermission(values: Partial<Permission>): Permission {
+export function createPermission(values: StrippedEntity<Permission>): Permission {
 	return Object.assign(create(typeModels.Permission, PermissionTypeRef), values)
 }
 
@@ -1963,7 +1963,7 @@ export type Permission = {
 }
 export const PhoneNumberTypeRef: TypeRef<PhoneNumber> = new TypeRef("sys", "PhoneNumber")
 
-export function createPhoneNumber(values: Partial<PhoneNumber>): PhoneNumber {
+export function createPhoneNumber(values: StrippedEntity<PhoneNumber>): PhoneNumber {
 	return Object.assign(create(typeModels.PhoneNumber, PhoneNumberTypeRef), values)
 }
 
@@ -1975,7 +1975,7 @@ export type PhoneNumber = {
 }
 export const PlanConfigurationTypeRef: TypeRef<PlanConfiguration> = new TypeRef("sys", "PlanConfiguration")
 
-export function createPlanConfiguration(values: Partial<PlanConfiguration>): PlanConfiguration {
+export function createPlanConfiguration(values: StrippedEntity<PlanConfiguration>): PlanConfiguration {
 	return Object.assign(create(typeModels.PlanConfiguration, PlanConfigurationTypeRef), values)
 }
 
@@ -1996,7 +1996,7 @@ export type PlanConfiguration = {
 }
 export const PlanPricesTypeRef: TypeRef<PlanPrices> = new TypeRef("sys", "PlanPrices")
 
-export function createPlanPrices(values: Partial<PlanPrices>): PlanPrices {
+export function createPlanPrices(values: StrippedEntity<PlanPrices>): PlanPrices {
 	return Object.assign(create(typeModels.PlanPrices, PlanPricesTypeRef), values)
 }
 
@@ -2021,7 +2021,7 @@ export type PlanPrices = {
 }
 export const PlanServiceGetOutTypeRef: TypeRef<PlanServiceGetOut> = new TypeRef("sys", "PlanServiceGetOut")
 
-export function createPlanServiceGetOut(values: Partial<PlanServiceGetOut>): PlanServiceGetOut {
+export function createPlanServiceGetOut(values: StrippedEntity<PlanServiceGetOut>): PlanServiceGetOut {
 	return Object.assign(create(typeModels.PlanServiceGetOut, PlanServiceGetOutTypeRef), values)
 }
 
@@ -2034,7 +2034,7 @@ export type PlanServiceGetOut = {
 }
 export const PremiumFeatureDataTypeRef: TypeRef<PremiumFeatureData> = new TypeRef("sys", "PremiumFeatureData")
 
-export function createPremiumFeatureData(values: Partial<PremiumFeatureData>): PremiumFeatureData {
+export function createPremiumFeatureData(values: StrippedEntity<PremiumFeatureData>): PremiumFeatureData {
 	return Object.assign(create(typeModels.PremiumFeatureData, PremiumFeatureDataTypeRef), values)
 }
 
@@ -2047,7 +2047,7 @@ export type PremiumFeatureData = {
 }
 export const PremiumFeatureReturnTypeRef: TypeRef<PremiumFeatureReturn> = new TypeRef("sys", "PremiumFeatureReturn")
 
-export function createPremiumFeatureReturn(values: Partial<PremiumFeatureReturn>): PremiumFeatureReturn {
+export function createPremiumFeatureReturn(values: StrippedEntity<PremiumFeatureReturn>): PremiumFeatureReturn {
 	return Object.assign(create(typeModels.PremiumFeatureReturn, PremiumFeatureReturnTypeRef), values)
 }
 
@@ -2059,7 +2059,7 @@ export type PremiumFeatureReturn = {
 }
 export const PriceDataTypeRef: TypeRef<PriceData> = new TypeRef("sys", "PriceData")
 
-export function createPriceData(values: Partial<PriceData>): PriceData {
+export function createPriceData(values: StrippedEntity<PriceData>): PriceData {
 	return Object.assign(create(typeModels.PriceData, PriceDataTypeRef), values)
 }
 
@@ -2075,7 +2075,7 @@ export type PriceData = {
 }
 export const PriceItemDataTypeRef: TypeRef<PriceItemData> = new TypeRef("sys", "PriceItemData")
 
-export function createPriceItemData(values: Partial<PriceItemData>): PriceItemData {
+export function createPriceItemData(values: StrippedEntity<PriceItemData>): PriceItemData {
 	return Object.assign(create(typeModels.PriceItemData, PriceItemDataTypeRef), values)
 }
 
@@ -2090,7 +2090,7 @@ export type PriceItemData = {
 }
 export const PriceRequestDataTypeRef: TypeRef<PriceRequestData> = new TypeRef("sys", "PriceRequestData")
 
-export function createPriceRequestData(values: Partial<PriceRequestData>): PriceRequestData {
+export function createPriceRequestData(values: StrippedEntity<PriceRequestData>): PriceRequestData {
 	return Object.assign(create(typeModels.PriceRequestData, PriceRequestDataTypeRef), values)
 }
 
@@ -2107,7 +2107,7 @@ export type PriceRequestData = {
 }
 export const PriceServiceDataTypeRef: TypeRef<PriceServiceData> = new TypeRef("sys", "PriceServiceData")
 
-export function createPriceServiceData(values: Partial<PriceServiceData>): PriceServiceData {
+export function createPriceServiceData(values: StrippedEntity<PriceServiceData>): PriceServiceData {
 	return Object.assign(create(typeModels.PriceServiceData, PriceServiceDataTypeRef), values)
 }
 
@@ -2121,7 +2121,7 @@ export type PriceServiceData = {
 }
 export const PriceServiceReturnTypeRef: TypeRef<PriceServiceReturn> = new TypeRef("sys", "PriceServiceReturn")
 
-export function createPriceServiceReturn(values: Partial<PriceServiceReturn>): PriceServiceReturn {
+export function createPriceServiceReturn(values: StrippedEntity<PriceServiceReturn>): PriceServiceReturn {
 	return Object.assign(create(typeModels.PriceServiceReturn, PriceServiceReturnTypeRef), values)
 }
 
@@ -2138,7 +2138,7 @@ export type PriceServiceReturn = {
 }
 export const PublicKeyDataTypeRef: TypeRef<PublicKeyData> = new TypeRef("sys", "PublicKeyData")
 
-export function createPublicKeyData(values: Partial<PublicKeyData>): PublicKeyData {
+export function createPublicKeyData(values: StrippedEntity<PublicKeyData>): PublicKeyData {
 	return Object.assign(create(typeModels.PublicKeyData, PublicKeyDataTypeRef), values)
 }
 
@@ -2150,7 +2150,7 @@ export type PublicKeyData = {
 }
 export const PublicKeyReturnTypeRef: TypeRef<PublicKeyReturn> = new TypeRef("sys", "PublicKeyReturn")
 
-export function createPublicKeyReturn(values: Partial<PublicKeyReturn>): PublicKeyReturn {
+export function createPublicKeyReturn(values: StrippedEntity<PublicKeyReturn>): PublicKeyReturn {
 	return Object.assign(create(typeModels.PublicKeyReturn, PublicKeyReturnTypeRef), values)
 }
 
@@ -2163,7 +2163,7 @@ export type PublicKeyReturn = {
 }
 export const PushIdentifierTypeRef: TypeRef<PushIdentifier> = new TypeRef("sys", "PushIdentifier")
 
-export function createPushIdentifier(values: Partial<PushIdentifier>): PushIdentifier {
+export function createPushIdentifier(values: StrippedEntity<PushIdentifier>): PushIdentifier {
 	return Object.assign(create(typeModels.PushIdentifier, PushIdentifierTypeRef), values)
 }
 
@@ -2188,7 +2188,7 @@ export type PushIdentifier = {
 }
 export const PushIdentifierListTypeRef: TypeRef<PushIdentifierList> = new TypeRef("sys", "PushIdentifierList")
 
-export function createPushIdentifierList(values: Partial<PushIdentifierList>): PushIdentifierList {
+export function createPushIdentifierList(values: StrippedEntity<PushIdentifierList>): PushIdentifierList {
 	return Object.assign(create(typeModels.PushIdentifierList, PushIdentifierListTypeRef), values)
 }
 
@@ -2201,7 +2201,7 @@ export type PushIdentifierList = {
 }
 export const ReceivedGroupInvitationTypeRef: TypeRef<ReceivedGroupInvitation> = new TypeRef("sys", "ReceivedGroupInvitation")
 
-export function createReceivedGroupInvitation(values: Partial<ReceivedGroupInvitation>): ReceivedGroupInvitation {
+export function createReceivedGroupInvitation(values: StrippedEntity<ReceivedGroupInvitation>): ReceivedGroupInvitation {
 	return Object.assign(create(typeModels.ReceivedGroupInvitation, ReceivedGroupInvitationTypeRef), values)
 }
 
@@ -2227,7 +2227,7 @@ export type ReceivedGroupInvitation = {
 }
 export const RecoverCodeTypeRef: TypeRef<RecoverCode> = new TypeRef("sys", "RecoverCode")
 
-export function createRecoverCode(values: Partial<RecoverCode>): RecoverCode {
+export function createRecoverCode(values: StrippedEntity<RecoverCode>): RecoverCode {
 	return Object.assign(create(typeModels.RecoverCode, RecoverCodeTypeRef), values)
 }
 
@@ -2244,7 +2244,7 @@ export type RecoverCode = {
 }
 export const ReferralCodeGetInTypeRef: TypeRef<ReferralCodeGetIn> = new TypeRef("sys", "ReferralCodeGetIn")
 
-export function createReferralCodeGetIn(values: Partial<ReferralCodeGetIn>): ReferralCodeGetIn {
+export function createReferralCodeGetIn(values: StrippedEntity<ReferralCodeGetIn>): ReferralCodeGetIn {
 	return Object.assign(create(typeModels.ReferralCodeGetIn, ReferralCodeGetInTypeRef), values)
 }
 
@@ -2257,7 +2257,7 @@ export type ReferralCodeGetIn = {
 }
 export const ReferralCodePostInTypeRef: TypeRef<ReferralCodePostIn> = new TypeRef("sys", "ReferralCodePostIn")
 
-export function createReferralCodePostIn(values: Partial<ReferralCodePostIn>): ReferralCodePostIn {
+export function createReferralCodePostIn(values: StrippedEntity<ReferralCodePostIn>): ReferralCodePostIn {
 	return Object.assign(create(typeModels.ReferralCodePostIn, ReferralCodePostInTypeRef), values)
 }
 
@@ -2268,7 +2268,7 @@ export type ReferralCodePostIn = {
 }
 export const ReferralCodePostOutTypeRef: TypeRef<ReferralCodePostOut> = new TypeRef("sys", "ReferralCodePostOut")
 
-export function createReferralCodePostOut(values: Partial<ReferralCodePostOut>): ReferralCodePostOut {
+export function createReferralCodePostOut(values: StrippedEntity<ReferralCodePostOut>): ReferralCodePostOut {
 	return Object.assign(create(typeModels.ReferralCodePostOut, ReferralCodePostOutTypeRef), values)
 }
 
@@ -2281,7 +2281,7 @@ export type ReferralCodePostOut = {
 }
 export const RegistrationCaptchaServiceDataTypeRef: TypeRef<RegistrationCaptchaServiceData> = new TypeRef("sys", "RegistrationCaptchaServiceData")
 
-export function createRegistrationCaptchaServiceData(values: Partial<RegistrationCaptchaServiceData>): RegistrationCaptchaServiceData {
+export function createRegistrationCaptchaServiceData(values: StrippedEntity<RegistrationCaptchaServiceData>): RegistrationCaptchaServiceData {
 	return Object.assign(create(typeModels.RegistrationCaptchaServiceData, RegistrationCaptchaServiceDataTypeRef), values)
 }
 
@@ -2294,7 +2294,7 @@ export type RegistrationCaptchaServiceData = {
 }
 export const RegistrationCaptchaServiceGetDataTypeRef: TypeRef<RegistrationCaptchaServiceGetData> = new TypeRef("sys", "RegistrationCaptchaServiceGetData")
 
-export function createRegistrationCaptchaServiceGetData(values: Partial<RegistrationCaptchaServiceGetData>): RegistrationCaptchaServiceGetData {
+export function createRegistrationCaptchaServiceGetData(values: StrippedEntity<RegistrationCaptchaServiceGetData>): RegistrationCaptchaServiceGetData {
 	return Object.assign(create(typeModels.RegistrationCaptchaServiceGetData, RegistrationCaptchaServiceGetDataTypeRef), values)
 }
 
@@ -2310,7 +2310,7 @@ export type RegistrationCaptchaServiceGetData = {
 }
 export const RegistrationCaptchaServiceReturnTypeRef: TypeRef<RegistrationCaptchaServiceReturn> = new TypeRef("sys", "RegistrationCaptchaServiceReturn")
 
-export function createRegistrationCaptchaServiceReturn(values: Partial<RegistrationCaptchaServiceReturn>): RegistrationCaptchaServiceReturn {
+export function createRegistrationCaptchaServiceReturn(values: StrippedEntity<RegistrationCaptchaServiceReturn>): RegistrationCaptchaServiceReturn {
 	return Object.assign(create(typeModels.RegistrationCaptchaServiceReturn, RegistrationCaptchaServiceReturnTypeRef), values)
 }
 
@@ -2323,7 +2323,7 @@ export type RegistrationCaptchaServiceReturn = {
 }
 export const RegistrationConfigReturnTypeRef: TypeRef<RegistrationConfigReturn> = new TypeRef("sys", "RegistrationConfigReturn")
 
-export function createRegistrationConfigReturn(values: Partial<RegistrationConfigReturn>): RegistrationConfigReturn {
+export function createRegistrationConfigReturn(values: StrippedEntity<RegistrationConfigReturn>): RegistrationConfigReturn {
 	return Object.assign(create(typeModels.RegistrationConfigReturn, RegistrationConfigReturnTypeRef), values)
 }
 
@@ -2336,7 +2336,7 @@ export type RegistrationConfigReturn = {
 }
 export const RegistrationReturnTypeRef: TypeRef<RegistrationReturn> = new TypeRef("sys", "RegistrationReturn")
 
-export function createRegistrationReturn(values: Partial<RegistrationReturn>): RegistrationReturn {
+export function createRegistrationReturn(values: StrippedEntity<RegistrationReturn>): RegistrationReturn {
 	return Object.assign(create(typeModels.RegistrationReturn, RegistrationReturnTypeRef), values)
 }
 
@@ -2348,7 +2348,7 @@ export type RegistrationReturn = {
 }
 export const RegistrationServiceDataTypeRef: TypeRef<RegistrationServiceData> = new TypeRef("sys", "RegistrationServiceData")
 
-export function createRegistrationServiceData(values: Partial<RegistrationServiceData>): RegistrationServiceData {
+export function createRegistrationServiceData(values: StrippedEntity<RegistrationServiceData>): RegistrationServiceData {
 	return Object.assign(create(typeModels.RegistrationServiceData, RegistrationServiceDataTypeRef), values)
 }
 
@@ -2362,7 +2362,7 @@ export type RegistrationServiceData = {
 }
 export const RejectedSenderTypeRef: TypeRef<RejectedSender> = new TypeRef("sys", "RejectedSender")
 
-export function createRejectedSender(values: Partial<RejectedSender>): RejectedSender {
+export function createRejectedSender(values: StrippedEntity<RejectedSender>): RejectedSender {
 	return Object.assign(create(typeModels.RejectedSender, RejectedSenderTypeRef), values)
 }
 
@@ -2381,7 +2381,7 @@ export type RejectedSender = {
 }
 export const RejectedSendersRefTypeRef: TypeRef<RejectedSendersRef> = new TypeRef("sys", "RejectedSendersRef")
 
-export function createRejectedSendersRef(values: Partial<RejectedSendersRef>): RejectedSendersRef {
+export function createRejectedSendersRef(values: StrippedEntity<RejectedSendersRef>): RejectedSendersRef {
 	return Object.assign(create(typeModels.RejectedSendersRef, RejectedSendersRefTypeRef), values)
 }
 
@@ -2394,7 +2394,7 @@ export type RejectedSendersRef = {
 }
 export const RepeatRuleTypeRef: TypeRef<RepeatRule> = new TypeRef("sys", "RepeatRule")
 
-export function createRepeatRule(values: Partial<RepeatRule>): RepeatRule {
+export function createRepeatRule(values: StrippedEntity<RepeatRule>): RepeatRule {
 	return Object.assign(create(typeModels.RepeatRule, RepeatRuleTypeRef), values)
 }
 
@@ -2412,7 +2412,7 @@ export type RepeatRule = {
 }
 export const ResetFactorsDeleteDataTypeRef: TypeRef<ResetFactorsDeleteData> = new TypeRef("sys", "ResetFactorsDeleteData")
 
-export function createResetFactorsDeleteData(values: Partial<ResetFactorsDeleteData>): ResetFactorsDeleteData {
+export function createResetFactorsDeleteData(values: StrippedEntity<ResetFactorsDeleteData>): ResetFactorsDeleteData {
 	return Object.assign(create(typeModels.ResetFactorsDeleteData, ResetFactorsDeleteDataTypeRef), values)
 }
 
@@ -2426,7 +2426,7 @@ export type ResetFactorsDeleteData = {
 }
 export const ResetPasswordDataTypeRef: TypeRef<ResetPasswordData> = new TypeRef("sys", "ResetPasswordData")
 
-export function createResetPasswordData(values: Partial<ResetPasswordData>): ResetPasswordData {
+export function createResetPasswordData(values: StrippedEntity<ResetPasswordData>): ResetPasswordData {
 	return Object.assign(create(typeModels.ResetPasswordData, ResetPasswordDataTypeRef), values)
 }
 
@@ -2443,7 +2443,7 @@ export type ResetPasswordData = {
 }
 export const RootInstanceTypeRef: TypeRef<RootInstance> = new TypeRef("sys", "RootInstance")
 
-export function createRootInstance(values: Partial<RootInstance>): RootInstance {
+export function createRootInstance(values: StrippedEntity<RootInstance>): RootInstance {
 	return Object.assign(create(typeModels.RootInstance, RootInstanceTypeRef), values)
 }
 
@@ -2458,7 +2458,7 @@ export type RootInstance = {
 }
 export const SaltDataTypeRef: TypeRef<SaltData> = new TypeRef("sys", "SaltData")
 
-export function createSaltData(values: Partial<SaltData>): SaltData {
+export function createSaltData(values: StrippedEntity<SaltData>): SaltData {
 	return Object.assign(create(typeModels.SaltData, SaltDataTypeRef), values)
 }
 
@@ -2470,7 +2470,7 @@ export type SaltData = {
 }
 export const SaltReturnTypeRef: TypeRef<SaltReturn> = new TypeRef("sys", "SaltReturn")
 
-export function createSaltReturn(values: Partial<SaltReturn>): SaltReturn {
+export function createSaltReturn(values: StrippedEntity<SaltReturn>): SaltReturn {
 	return Object.assign(create(typeModels.SaltReturn, SaltReturnTypeRef), values)
 }
 
@@ -2483,7 +2483,7 @@ export type SaltReturn = {
 }
 export const SecondFactorTypeRef: TypeRef<SecondFactor> = new TypeRef("sys", "SecondFactor")
 
-export function createSecondFactor(values: Partial<SecondFactor>): SecondFactor {
+export function createSecondFactor(values: StrippedEntity<SecondFactor>): SecondFactor {
 	return Object.assign(create(typeModels.SecondFactor, SecondFactorTypeRef), values)
 }
 
@@ -2502,7 +2502,7 @@ export type SecondFactor = {
 }
 export const SecondFactorAuthAllowedReturnTypeRef: TypeRef<SecondFactorAuthAllowedReturn> = new TypeRef("sys", "SecondFactorAuthAllowedReturn")
 
-export function createSecondFactorAuthAllowedReturn(values: Partial<SecondFactorAuthAllowedReturn>): SecondFactorAuthAllowedReturn {
+export function createSecondFactorAuthAllowedReturn(values: StrippedEntity<SecondFactorAuthAllowedReturn>): SecondFactorAuthAllowedReturn {
 	return Object.assign(create(typeModels.SecondFactorAuthAllowedReturn, SecondFactorAuthAllowedReturnTypeRef), values)
 }
 
@@ -2514,7 +2514,7 @@ export type SecondFactorAuthAllowedReturn = {
 }
 export const SecondFactorAuthDataTypeRef: TypeRef<SecondFactorAuthData> = new TypeRef("sys", "SecondFactorAuthData")
 
-export function createSecondFactorAuthData(values: Partial<SecondFactorAuthData>): SecondFactorAuthData {
+export function createSecondFactorAuthData(values: StrippedEntity<SecondFactorAuthData>): SecondFactorAuthData {
 	return Object.assign(create(typeModels.SecondFactorAuthData, SecondFactorAuthDataTypeRef), values)
 }
 
@@ -2531,7 +2531,7 @@ export type SecondFactorAuthData = {
 }
 export const SecondFactorAuthDeleteDataTypeRef: TypeRef<SecondFactorAuthDeleteData> = new TypeRef("sys", "SecondFactorAuthDeleteData")
 
-export function createSecondFactorAuthDeleteData(values: Partial<SecondFactorAuthDeleteData>): SecondFactorAuthDeleteData {
+export function createSecondFactorAuthDeleteData(values: StrippedEntity<SecondFactorAuthDeleteData>): SecondFactorAuthDeleteData {
 	return Object.assign(create(typeModels.SecondFactorAuthDeleteData, SecondFactorAuthDeleteDataTypeRef), values)
 }
 
@@ -2544,7 +2544,7 @@ export type SecondFactorAuthDeleteData = {
 }
 export const SecondFactorAuthGetDataTypeRef: TypeRef<SecondFactorAuthGetData> = new TypeRef("sys", "SecondFactorAuthGetData")
 
-export function createSecondFactorAuthGetData(values: Partial<SecondFactorAuthGetData>): SecondFactorAuthGetData {
+export function createSecondFactorAuthGetData(values: StrippedEntity<SecondFactorAuthGetData>): SecondFactorAuthGetData {
 	return Object.assign(create(typeModels.SecondFactorAuthGetData, SecondFactorAuthGetDataTypeRef), values)
 }
 
@@ -2556,7 +2556,7 @@ export type SecondFactorAuthGetData = {
 }
 export const SecondFactorAuthGetReturnTypeRef: TypeRef<SecondFactorAuthGetReturn> = new TypeRef("sys", "SecondFactorAuthGetReturn")
 
-export function createSecondFactorAuthGetReturn(values: Partial<SecondFactorAuthGetReturn>): SecondFactorAuthGetReturn {
+export function createSecondFactorAuthGetReturn(values: StrippedEntity<SecondFactorAuthGetReturn>): SecondFactorAuthGetReturn {
 	return Object.assign(create(typeModels.SecondFactorAuthGetReturn, SecondFactorAuthGetReturnTypeRef), values)
 }
 
@@ -2568,7 +2568,7 @@ export type SecondFactorAuthGetReturn = {
 }
 export const SecondFactorAuthenticationTypeRef: TypeRef<SecondFactorAuthentication> = new TypeRef("sys", "SecondFactorAuthentication")
 
-export function createSecondFactorAuthentication(values: Partial<SecondFactorAuthentication>): SecondFactorAuthentication {
+export function createSecondFactorAuthentication(values: StrippedEntity<SecondFactorAuthentication>): SecondFactorAuthentication {
 	return Object.assign(create(typeModels.SecondFactorAuthentication, SecondFactorAuthenticationTypeRef), values)
 }
 
@@ -2586,7 +2586,7 @@ export type SecondFactorAuthentication = {
 }
 export const SendRegistrationCodeDataTypeRef: TypeRef<SendRegistrationCodeData> = new TypeRef("sys", "SendRegistrationCodeData")
 
-export function createSendRegistrationCodeData(values: Partial<SendRegistrationCodeData>): SendRegistrationCodeData {
+export function createSendRegistrationCodeData(values: StrippedEntity<SendRegistrationCodeData>): SendRegistrationCodeData {
 	return Object.assign(create(typeModels.SendRegistrationCodeData, SendRegistrationCodeDataTypeRef), values)
 }
 
@@ -2601,7 +2601,7 @@ export type SendRegistrationCodeData = {
 }
 export const SendRegistrationCodeReturnTypeRef: TypeRef<SendRegistrationCodeReturn> = new TypeRef("sys", "SendRegistrationCodeReturn")
 
-export function createSendRegistrationCodeReturn(values: Partial<SendRegistrationCodeReturn>): SendRegistrationCodeReturn {
+export function createSendRegistrationCodeReturn(values: StrippedEntity<SendRegistrationCodeReturn>): SendRegistrationCodeReturn {
 	return Object.assign(create(typeModels.SendRegistrationCodeReturn, SendRegistrationCodeReturnTypeRef), values)
 }
 
@@ -2613,7 +2613,7 @@ export type SendRegistrationCodeReturn = {
 }
 export const SentGroupInvitationTypeRef: TypeRef<SentGroupInvitation> = new TypeRef("sys", "SentGroupInvitation")
 
-export function createSentGroupInvitation(values: Partial<SentGroupInvitation>): SentGroupInvitation {
+export function createSentGroupInvitation(values: StrippedEntity<SentGroupInvitation>): SentGroupInvitation {
 	return Object.assign(create(typeModels.SentGroupInvitation, SentGroupInvitationTypeRef), values)
 }
 
@@ -2632,7 +2632,7 @@ export type SentGroupInvitation = {
 }
 export const SessionTypeRef: TypeRef<Session> = new TypeRef("sys", "Session")
 
-export function createSession(values: Partial<Session>): Session {
+export function createSession(values: StrippedEntity<Session>): Session {
 	return Object.assign(create(typeModels.Session, SessionTypeRef), values)
 }
 
@@ -2657,7 +2657,7 @@ export type Session = {
 }
 export const SignOrderProcessingAgreementDataTypeRef: TypeRef<SignOrderProcessingAgreementData> = new TypeRef("sys", "SignOrderProcessingAgreementData")
 
-export function createSignOrderProcessingAgreementData(values: Partial<SignOrderProcessingAgreementData>): SignOrderProcessingAgreementData {
+export function createSignOrderProcessingAgreementData(values: StrippedEntity<SignOrderProcessingAgreementData>): SignOrderProcessingAgreementData {
 	return Object.assign(create(typeModels.SignOrderProcessingAgreementData, SignOrderProcessingAgreementDataTypeRef), values)
 }
 
@@ -2670,7 +2670,7 @@ export type SignOrderProcessingAgreementData = {
 }
 export const SseConnectDataTypeRef: TypeRef<SseConnectData> = new TypeRef("sys", "SseConnectData")
 
-export function createSseConnectData(values: Partial<SseConnectData>): SseConnectData {
+export function createSseConnectData(values: StrippedEntity<SseConnectData>): SseConnectData {
 	return Object.assign(create(typeModels.SseConnectData, SseConnectDataTypeRef), values)
 }
 
@@ -2684,7 +2684,7 @@ export type SseConnectData = {
 }
 export const StringConfigValueTypeRef: TypeRef<StringConfigValue> = new TypeRef("sys", "StringConfigValue")
 
-export function createStringConfigValue(values: Partial<StringConfigValue>): StringConfigValue {
+export function createStringConfigValue(values: StrippedEntity<StringConfigValue>): StringConfigValue {
 	return Object.assign(create(typeModels.StringConfigValue, StringConfigValueTypeRef), values)
 }
 
@@ -2697,7 +2697,7 @@ export type StringConfigValue = {
 }
 export const StringWrapperTypeRef: TypeRef<StringWrapper> = new TypeRef("sys", "StringWrapper")
 
-export function createStringWrapper(values: Partial<StringWrapper>): StringWrapper {
+export function createStringWrapper(values: StrippedEntity<StringWrapper>): StringWrapper {
 	return Object.assign(create(typeModels.StringWrapper, StringWrapperTypeRef), values)
 }
 
@@ -2709,7 +2709,7 @@ export type StringWrapper = {
 }
 export const SwitchAccountTypePostInTypeRef: TypeRef<SwitchAccountTypePostIn> = new TypeRef("sys", "SwitchAccountTypePostIn")
 
-export function createSwitchAccountTypePostIn(values: Partial<SwitchAccountTypePostIn>): SwitchAccountTypePostIn {
+export function createSwitchAccountTypePostIn(values: StrippedEntity<SwitchAccountTypePostIn>): SwitchAccountTypePostIn {
 	return Object.assign(create(typeModels.SwitchAccountTypePostIn, SwitchAccountTypePostInTypeRef), values)
 }
 
@@ -2727,7 +2727,7 @@ export type SwitchAccountTypePostIn = {
 }
 export const SystemKeysReturnTypeRef: TypeRef<SystemKeysReturn> = new TypeRef("sys", "SystemKeysReturn")
 
-export function createSystemKeysReturn(values: Partial<SystemKeysReturn>): SystemKeysReturn {
+export function createSystemKeysReturn(values: StrippedEntity<SystemKeysReturn>): SystemKeysReturn {
 	return Object.assign(create(typeModels.SystemKeysReturn, SystemKeysReturnTypeRef), values)
 }
 
@@ -2746,7 +2746,7 @@ export type SystemKeysReturn = {
 }
 export const TakeOverDeletedAddressDataTypeRef: TypeRef<TakeOverDeletedAddressData> = new TypeRef("sys", "TakeOverDeletedAddressData")
 
-export function createTakeOverDeletedAddressData(values: Partial<TakeOverDeletedAddressData>): TakeOverDeletedAddressData {
+export function createTakeOverDeletedAddressData(values: StrippedEntity<TakeOverDeletedAddressData>): TakeOverDeletedAddressData {
 	return Object.assign(create(typeModels.TakeOverDeletedAddressData, TakeOverDeletedAddressDataTypeRef), values)
 }
 
@@ -2761,7 +2761,7 @@ export type TakeOverDeletedAddressData = {
 }
 export const TypeInfoTypeRef: TypeRef<TypeInfo> = new TypeRef("sys", "TypeInfo")
 
-export function createTypeInfo(values: Partial<TypeInfo>): TypeInfo {
+export function createTypeInfo(values: StrippedEntity<TypeInfo>): TypeInfo {
 	return Object.assign(create(typeModels.TypeInfo, TypeInfoTypeRef), values)
 }
 
@@ -2774,7 +2774,7 @@ export type TypeInfo = {
 }
 export const U2fChallengeTypeRef: TypeRef<U2fChallenge> = new TypeRef("sys", "U2fChallenge")
 
-export function createU2fChallenge(values: Partial<U2fChallenge>): U2fChallenge {
+export function createU2fChallenge(values: StrippedEntity<U2fChallenge>): U2fChallenge {
 	return Object.assign(create(typeModels.U2fChallenge, U2fChallengeTypeRef), values)
 }
 
@@ -2788,7 +2788,7 @@ export type U2fChallenge = {
 }
 export const U2fKeyTypeRef: TypeRef<U2fKey> = new TypeRef("sys", "U2fKey")
 
-export function createU2fKey(values: Partial<U2fKey>): U2fKey {
+export function createU2fKey(values: StrippedEntity<U2fKey>): U2fKey {
 	return Object.assign(create(typeModels.U2fKey, U2fKeyTypeRef), values)
 }
 
@@ -2803,7 +2803,7 @@ export type U2fKey = {
 }
 export const U2fRegisteredDeviceTypeRef: TypeRef<U2fRegisteredDevice> = new TypeRef("sys", "U2fRegisteredDevice")
 
-export function createU2fRegisteredDevice(values: Partial<U2fRegisteredDevice>): U2fRegisteredDevice {
+export function createU2fRegisteredDevice(values: StrippedEntity<U2fRegisteredDevice>): U2fRegisteredDevice {
 	return Object.assign(create(typeModels.U2fRegisteredDevice, U2fRegisteredDeviceTypeRef), values)
 }
 
@@ -2819,7 +2819,7 @@ export type U2fRegisteredDevice = {
 }
 export const U2fResponseDataTypeRef: TypeRef<U2fResponseData> = new TypeRef("sys", "U2fResponseData")
 
-export function createU2fResponseData(values: Partial<U2fResponseData>): U2fResponseData {
+export function createU2fResponseData(values: StrippedEntity<U2fResponseData>): U2fResponseData {
 	return Object.assign(create(typeModels.U2fResponseData, U2fResponseDataTypeRef), values)
 }
 
@@ -2833,7 +2833,7 @@ export type U2fResponseData = {
 }
 export const UpdateAdminshipDataTypeRef: TypeRef<UpdateAdminshipData> = new TypeRef("sys", "UpdateAdminshipData")
 
-export function createUpdateAdminshipData(values: Partial<UpdateAdminshipData>): UpdateAdminshipData {
+export function createUpdateAdminshipData(values: StrippedEntity<UpdateAdminshipData>): UpdateAdminshipData {
 	return Object.assign(create(typeModels.UpdateAdminshipData, UpdateAdminshipDataTypeRef), values)
 }
 
@@ -2848,7 +2848,7 @@ export type UpdateAdminshipData = {
 }
 export const UpdatePermissionKeyDataTypeRef: TypeRef<UpdatePermissionKeyData> = new TypeRef("sys", "UpdatePermissionKeyData")
 
-export function createUpdatePermissionKeyData(values: Partial<UpdatePermissionKeyData>): UpdatePermissionKeyData {
+export function createUpdatePermissionKeyData(values: StrippedEntity<UpdatePermissionKeyData>): UpdatePermissionKeyData {
 	return Object.assign(create(typeModels.UpdatePermissionKeyData, UpdatePermissionKeyDataTypeRef), values)
 }
 
@@ -2864,7 +2864,7 @@ export type UpdatePermissionKeyData = {
 }
 export const UpdateSessionKeysPostInTypeRef: TypeRef<UpdateSessionKeysPostIn> = new TypeRef("sys", "UpdateSessionKeysPostIn")
 
-export function createUpdateSessionKeysPostIn(values: Partial<UpdateSessionKeysPostIn>): UpdateSessionKeysPostIn {
+export function createUpdateSessionKeysPostIn(values: StrippedEntity<UpdateSessionKeysPostIn>): UpdateSessionKeysPostIn {
 	return Object.assign(create(typeModels.UpdateSessionKeysPostIn, UpdateSessionKeysPostInTypeRef), values)
 }
 
@@ -2877,7 +2877,7 @@ export type UpdateSessionKeysPostIn = {
 }
 export const UpgradePriceServiceDataTypeRef: TypeRef<UpgradePriceServiceData> = new TypeRef("sys", "UpgradePriceServiceData")
 
-export function createUpgradePriceServiceData(values: Partial<UpgradePriceServiceData>): UpgradePriceServiceData {
+export function createUpgradePriceServiceData(values: StrippedEntity<UpgradePriceServiceData>): UpgradePriceServiceData {
 	return Object.assign(create(typeModels.UpgradePriceServiceData, UpgradePriceServiceDataTypeRef), values)
 }
 
@@ -2892,7 +2892,7 @@ export type UpgradePriceServiceData = {
 }
 export const UpgradePriceServiceReturnTypeRef: TypeRef<UpgradePriceServiceReturn> = new TypeRef("sys", "UpgradePriceServiceReturn")
 
-export function createUpgradePriceServiceReturn(values: Partial<UpgradePriceServiceReturn>): UpgradePriceServiceReturn {
+export function createUpgradePriceServiceReturn(values: StrippedEntity<UpgradePriceServiceReturn>): UpgradePriceServiceReturn {
 	return Object.assign(create(typeModels.UpgradePriceServiceReturn, UpgradePriceServiceReturnTypeRef), values)
 }
 
@@ -2919,7 +2919,7 @@ export type UpgradePriceServiceReturn = {
 }
 export const UserTypeRef: TypeRef<User> = new TypeRef("sys", "User")
 
-export function createUser(values: Partial<User>): User {
+export function createUser(values: StrippedEntity<User>): User {
 	return Object.assign(create(typeModels.User, UserTypeRef), values)
 }
 
@@ -2953,7 +2953,7 @@ export type User = {
 }
 export const UserAlarmInfoTypeRef: TypeRef<UserAlarmInfo> = new TypeRef("sys", "UserAlarmInfo")
 
-export function createUserAlarmInfo(values: Partial<UserAlarmInfo>): UserAlarmInfo {
+export function createUserAlarmInfo(values: StrippedEntity<UserAlarmInfo>): UserAlarmInfo {
 	return Object.assign(create(typeModels.UserAlarmInfo, UserAlarmInfoTypeRef), values)
 }
 
@@ -2971,7 +2971,7 @@ export type UserAlarmInfo = {
 }
 export const UserAlarmInfoListTypeTypeRef: TypeRef<UserAlarmInfoListType> = new TypeRef("sys", "UserAlarmInfoListType")
 
-export function createUserAlarmInfoListType(values: Partial<UserAlarmInfoListType>): UserAlarmInfoListType {
+export function createUserAlarmInfoListType(values: StrippedEntity<UserAlarmInfoListType>): UserAlarmInfoListType {
 	return Object.assign(create(typeModels.UserAlarmInfoListType, UserAlarmInfoListTypeTypeRef), values)
 }
 
@@ -2984,7 +2984,7 @@ export type UserAlarmInfoListType = {
 }
 export const UserAreaGroupsTypeRef: TypeRef<UserAreaGroups> = new TypeRef("sys", "UserAreaGroups")
 
-export function createUserAreaGroups(values: Partial<UserAreaGroups>): UserAreaGroups {
+export function createUserAreaGroups(values: StrippedEntity<UserAreaGroups>): UserAreaGroups {
 	return Object.assign(create(typeModels.UserAreaGroups, UserAreaGroupsTypeRef), values)
 }
 
@@ -2997,7 +2997,7 @@ export type UserAreaGroups = {
 }
 export const UserAuthenticationTypeRef: TypeRef<UserAuthentication> = new TypeRef("sys", "UserAuthentication")
 
-export function createUserAuthentication(values: Partial<UserAuthentication>): UserAuthentication {
+export function createUserAuthentication(values: StrippedEntity<UserAuthentication>): UserAuthentication {
 	return Object.assign(create(typeModels.UserAuthentication, UserAuthenticationTypeRef), values)
 }
 
@@ -3012,7 +3012,7 @@ export type UserAuthentication = {
 }
 export const UserDataTypeRef: TypeRef<UserData> = new TypeRef("sys", "UserData")
 
-export function createUserData(values: Partial<UserData>): UserData {
+export function createUserData(values: StrippedEntity<UserData>): UserData {
 	return Object.assign(create(typeModels.UserData, UserDataTypeRef), values)
 }
 
@@ -3031,7 +3031,7 @@ export type UserData = {
 }
 export const UserDataDeleteTypeRef: TypeRef<UserDataDelete> = new TypeRef("sys", "UserDataDelete")
 
-export function createUserDataDelete(values: Partial<UserDataDelete>): UserDataDelete {
+export function createUserDataDelete(values: StrippedEntity<UserDataDelete>): UserDataDelete {
 	return Object.assign(create(typeModels.UserDataDelete, UserDataDeleteTypeRef), values)
 }
 
@@ -3046,7 +3046,7 @@ export type UserDataDelete = {
 }
 export const UserExternalAuthInfoTypeRef: TypeRef<UserExternalAuthInfo> = new TypeRef("sys", "UserExternalAuthInfo")
 
-export function createUserExternalAuthInfo(values: Partial<UserExternalAuthInfo>): UserExternalAuthInfo {
+export function createUserExternalAuthInfo(values: StrippedEntity<UserExternalAuthInfo>): UserExternalAuthInfo {
 	return Object.assign(create(typeModels.UserExternalAuthInfo, UserExternalAuthInfoTypeRef), values)
 }
 
@@ -3063,7 +3063,7 @@ export type UserExternalAuthInfo = {
 }
 export const UserGroupRootTypeRef: TypeRef<UserGroupRoot> = new TypeRef("sys", "UserGroupRoot")
 
-export function createUserGroupRoot(values: Partial<UserGroupRoot>): UserGroupRoot {
+export function createUserGroupRoot(values: StrippedEntity<UserGroupRoot>): UserGroupRoot {
 	return Object.assign(create(typeModels.UserGroupRoot, UserGroupRootTypeRef), values)
 }
 
@@ -3079,7 +3079,7 @@ export type UserGroupRoot = {
 }
 export const UserIdDataTypeRef: TypeRef<UserIdData> = new TypeRef("sys", "UserIdData")
 
-export function createUserIdData(values: Partial<UserIdData>): UserIdData {
+export function createUserIdData(values: StrippedEntity<UserIdData>): UserIdData {
 	return Object.assign(create(typeModels.UserIdData, UserIdDataTypeRef), values)
 }
 
@@ -3091,7 +3091,7 @@ export type UserIdData = {
 }
 export const UserIdReturnTypeRef: TypeRef<UserIdReturn> = new TypeRef("sys", "UserIdReturn")
 
-export function createUserIdReturn(values: Partial<UserIdReturn>): UserIdReturn {
+export function createUserIdReturn(values: StrippedEntity<UserIdReturn>): UserIdReturn {
 	return Object.assign(create(typeModels.UserIdReturn, UserIdReturnTypeRef), values)
 }
 
@@ -3104,7 +3104,7 @@ export type UserIdReturn = {
 }
 export const UserReturnTypeRef: TypeRef<UserReturn> = new TypeRef("sys", "UserReturn")
 
-export function createUserReturn(values: Partial<UserReturn>): UserReturn {
+export function createUserReturn(values: StrippedEntity<UserReturn>): UserReturn {
 	return Object.assign(create(typeModels.UserReturn, UserReturnTypeRef), values)
 }
 
@@ -3118,7 +3118,7 @@ export type UserReturn = {
 }
 export const VariableExternalAuthInfoTypeRef: TypeRef<VariableExternalAuthInfo> = new TypeRef("sys", "VariableExternalAuthInfo")
 
-export function createVariableExternalAuthInfo(values: Partial<VariableExternalAuthInfo>): VariableExternalAuthInfo {
+export function createVariableExternalAuthInfo(values: StrippedEntity<VariableExternalAuthInfo>): VariableExternalAuthInfo {
 	return Object.assign(create(typeModels.VariableExternalAuthInfo, VariableExternalAuthInfoTypeRef), values)
 }
 
@@ -3138,7 +3138,7 @@ export type VariableExternalAuthInfo = {
 }
 export const VerifyRegistrationCodeDataTypeRef: TypeRef<VerifyRegistrationCodeData> = new TypeRef("sys", "VerifyRegistrationCodeData")
 
-export function createVerifyRegistrationCodeData(values: Partial<VerifyRegistrationCodeData>): VerifyRegistrationCodeData {
+export function createVerifyRegistrationCodeData(values: StrippedEntity<VerifyRegistrationCodeData>): VerifyRegistrationCodeData {
 	return Object.assign(create(typeModels.VerifyRegistrationCodeData, VerifyRegistrationCodeDataTypeRef), values)
 }
 
@@ -3151,7 +3151,7 @@ export type VerifyRegistrationCodeData = {
 }
 export const VersionTypeRef: TypeRef<Version> = new TypeRef("sys", "Version")
 
-export function createVersion(values: Partial<Version>): Version {
+export function createVersion(values: StrippedEntity<Version>): Version {
 	return Object.assign(create(typeModels.Version, VersionTypeRef), values)
 }
 
@@ -3168,7 +3168,7 @@ export type Version = {
 }
 export const VersionDataTypeRef: TypeRef<VersionData> = new TypeRef("sys", "VersionData")
 
-export function createVersionData(values: Partial<VersionData>): VersionData {
+export function createVersionData(values: StrippedEntity<VersionData>): VersionData {
 	return Object.assign(create(typeModels.VersionData, VersionDataTypeRef), values)
 }
 
@@ -3183,7 +3183,7 @@ export type VersionData = {
 }
 export const VersionInfoTypeRef: TypeRef<VersionInfo> = new TypeRef("sys", "VersionInfo")
 
-export function createVersionInfo(values: Partial<VersionInfo>): VersionInfo {
+export function createVersionInfo(values: StrippedEntity<VersionInfo>): VersionInfo {
 	return Object.assign(create(typeModels.VersionInfo, VersionInfoTypeRef), values)
 }
 
@@ -3206,7 +3206,7 @@ export type VersionInfo = {
 }
 export const VersionReturnTypeRef: TypeRef<VersionReturn> = new TypeRef("sys", "VersionReturn")
 
-export function createVersionReturn(values: Partial<VersionReturn>): VersionReturn {
+export function createVersionReturn(values: StrippedEntity<VersionReturn>): VersionReturn {
 	return Object.assign(create(typeModels.VersionReturn, VersionReturnTypeRef), values)
 }
 
@@ -3219,7 +3219,7 @@ export type VersionReturn = {
 }
 export const WebauthnResponseDataTypeRef: TypeRef<WebauthnResponseData> = new TypeRef("sys", "WebauthnResponseData")
 
-export function createWebauthnResponseData(values: Partial<WebauthnResponseData>): WebauthnResponseData {
+export function createWebauthnResponseData(values: StrippedEntity<WebauthnResponseData>): WebauthnResponseData {
 	return Object.assign(create(typeModels.WebauthnResponseData, WebauthnResponseDataTypeRef), values)
 }
 
@@ -3234,7 +3234,7 @@ export type WebauthnResponseData = {
 }
 export const WebsocketCounterDataTypeRef: TypeRef<WebsocketCounterData> = new TypeRef("sys", "WebsocketCounterData")
 
-export function createWebsocketCounterData(values: Partial<WebsocketCounterData>): WebsocketCounterData {
+export function createWebsocketCounterData(values: StrippedEntity<WebsocketCounterData>): WebsocketCounterData {
 	return Object.assign(create(typeModels.WebsocketCounterData, WebsocketCounterDataTypeRef), values)
 }
 
@@ -3248,7 +3248,7 @@ export type WebsocketCounterData = {
 }
 export const WebsocketCounterValueTypeRef: TypeRef<WebsocketCounterValue> = new TypeRef("sys", "WebsocketCounterValue")
 
-export function createWebsocketCounterValue(values: Partial<WebsocketCounterValue>): WebsocketCounterValue {
+export function createWebsocketCounterValue(values: StrippedEntity<WebsocketCounterValue>): WebsocketCounterValue {
 	return Object.assign(create(typeModels.WebsocketCounterValue, WebsocketCounterValueTypeRef), values)
 }
 
@@ -3261,7 +3261,7 @@ export type WebsocketCounterValue = {
 }
 export const WebsocketEntityDataTypeRef: TypeRef<WebsocketEntityData> = new TypeRef("sys", "WebsocketEntityData")
 
-export function createWebsocketEntityData(values: Partial<WebsocketEntityData>): WebsocketEntityData {
+export function createWebsocketEntityData(values: StrippedEntity<WebsocketEntityData>): WebsocketEntityData {
 	return Object.assign(create(typeModels.WebsocketEntityData, WebsocketEntityDataTypeRef), values)
 }
 
@@ -3276,7 +3276,7 @@ export type WebsocketEntityData = {
 }
 export const WebsocketLeaderStatusTypeRef: TypeRef<WebsocketLeaderStatus> = new TypeRef("sys", "WebsocketLeaderStatus")
 
-export function createWebsocketLeaderStatus(values: Partial<WebsocketLeaderStatus>): WebsocketLeaderStatus {
+export function createWebsocketLeaderStatus(values: StrippedEntity<WebsocketLeaderStatus>): WebsocketLeaderStatus {
 	return Object.assign(create(typeModels.WebsocketLeaderStatus, WebsocketLeaderStatusTypeRef), values)
 }
 
@@ -3288,7 +3288,7 @@ export type WebsocketLeaderStatus = {
 }
 export const WhitelabelChildTypeRef: TypeRef<WhitelabelChild> = new TypeRef("sys", "WhitelabelChild")
 
-export function createWhitelabelChild(values: Partial<WhitelabelChild>): WhitelabelChild {
+export function createWhitelabelChild(values: StrippedEntity<WhitelabelChild>): WhitelabelChild {
 	return Object.assign(create(typeModels.WhitelabelChild, WhitelabelChildTypeRef), values)
 }
 
@@ -3310,7 +3310,7 @@ export type WhitelabelChild = {
 }
 export const WhitelabelChildrenRefTypeRef: TypeRef<WhitelabelChildrenRef> = new TypeRef("sys", "WhitelabelChildrenRef")
 
-export function createWhitelabelChildrenRef(values: Partial<WhitelabelChildrenRef>): WhitelabelChildrenRef {
+export function createWhitelabelChildrenRef(values: StrippedEntity<WhitelabelChildrenRef>): WhitelabelChildrenRef {
 	return Object.assign(create(typeModels.WhitelabelChildrenRef, WhitelabelChildrenRefTypeRef), values)
 }
 
@@ -3323,7 +3323,7 @@ export type WhitelabelChildrenRef = {
 }
 export const WhitelabelConfigTypeRef: TypeRef<WhitelabelConfig> = new TypeRef("sys", "WhitelabelConfig")
 
-export function createWhitelabelConfig(values: Partial<WhitelabelConfig>): WhitelabelConfig {
+export function createWhitelabelConfig(values: StrippedEntity<WhitelabelConfig>): WhitelabelConfig {
 	return Object.assign(create(typeModels.WhitelabelConfig, WhitelabelConfigTypeRef), values)
 }
 
@@ -3347,7 +3347,7 @@ export type WhitelabelConfig = {
 }
 export const WhitelabelParentTypeRef: TypeRef<WhitelabelParent> = new TypeRef("sys", "WhitelabelParent")
 
-export function createWhitelabelParent(values: Partial<WhitelabelParent>): WhitelabelParent {
+export function createWhitelabelParent(values: StrippedEntity<WhitelabelParent>): WhitelabelParent {
 	return Object.assign(create(typeModels.WhitelabelParent, WhitelabelParentTypeRef), values)
 }
 

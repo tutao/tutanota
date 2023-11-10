@@ -1,25 +1,24 @@
 import o from "@tutao/otest"
-import { createEmailTemplate, TemplateGroupRootTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { EmailTemplateContentTypeRef, EmailTemplateTypeRef, TemplateGroupRootTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { TemplateEditorModel } from "../../../src/settings/TemplateEditorModel.js"
-import { createTemplateGroupRoot } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import { downcast } from "@tutao/tutanota-utils"
-import { createEmailTemplateContent } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { LanguageNames, languages } from "../../../src/misc/LanguageViewModel.js"
 import { createTestEntity } from "../TestUtils.js"
+
 o.spec("TemplateEditorModel", function () {
 	let entityClient: EntityClient
 	o.beforeEach(function () {
 		entityClient = downcast({})
 	})
 	o("content languages", function () {
-		const template = createEmailTemplate({
+		const template = createTestEntity(EmailTemplateTypeRef, {
 			contents: [
-				createEmailTemplateContent({
+				createTestEntity(EmailTemplateContentTypeRef, {
 					languageCode: "en",
 					text: "",
 				}),
-				createEmailTemplateContent({
+				createTestEntity(EmailTemplateContentTypeRef, {
 					languageCode: "de",
 					text: "",
 				}),

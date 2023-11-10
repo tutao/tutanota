@@ -63,6 +63,7 @@ export class BlobAccessTokenFacade {
 				write: createBlobWriteData({
 					archiveOwnerGroup: ownerGroupId,
 				}),
+				read: null,
 			})
 			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest)
 			return blobAccessInfo
@@ -104,6 +105,7 @@ export class BlobAccessTokenFacade {
 					instanceListId,
 					instanceIds,
 				}),
+				write: null,
 			})
 			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest)
 			return blobAccessInfo
@@ -130,7 +132,9 @@ export class BlobAccessTokenFacade {
 				read: createBlobReadData({
 					archiveId,
 					instanceIds: [],
+					instanceListId: null,
 				}),
+				write: null,
 			})
 			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest)
 			return blobAccessInfo

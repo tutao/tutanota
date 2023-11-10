@@ -1,14 +1,11 @@
 import o from "@tutao/otest"
 import type { CalendarEvent, CalendarGroupRoot } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
+	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
 	CalendarEventUpdateTypeRef,
-	createCalendarEvent,
-	createCalendarEventAttendee,
-	createCalendarEventUpdate,
-	createCalendarGroupRoot,
-	createEncryptedMailAddress,
-	createFile,
+	CalendarGroupRootTypeRef,
+	EncryptedMailAddressTypeRef,
 	FileTypeRef,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { incrementByRepeatPeriod } from "../../../src/calendar/date/CalendarUtils.js"
@@ -19,7 +16,7 @@ import { DateTime } from "luxon"
 import type { EntityUpdateData } from "../../../src/api/main/EventController.js"
 import { EntityEventsListener, EventController } from "../../../src/api/main/EventController.js"
 import { Notifications } from "../../../src/gui/Notifications.js"
-import { AlarmInfo, createAlarmInfo, createUser, createUserAlarmInfo, createUserAlarmInfoListType } from "../../../src/api/entities/sys/TypeRefs.js"
+import { AlarmInfo, AlarmInfoTypeRef, UserAlarmInfoListTypeTypeRef, UserAlarmInfoTypeRef, UserTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import type { UserController } from "../../../src/api/main/UserController.js"
 import { NotFoundError } from "../../../src/api/common/error/RestError.js"
@@ -36,6 +33,7 @@ import { func, matchers, when } from "testdouble"
 import { elementIdPart, getElementId, listIdPart } from "../../../src/api/common/utils/EntityUtils.js"
 import { createDataFile } from "../../../src/api/common/DataFile.js"
 import { SessionKeyNotFoundError } from "../../../src/api/common/error/SessionKeyNotFoundError.js"
+import { createTestEntity } from "../TestUtils.js"
 
 o.spec("CalendarModel", function () {
 	o.spec("incrementByRepeatPeriod", function () {
@@ -189,7 +187,7 @@ o.spec("CalendarModel", function () {
 		const loginController = makeLoginController()
 		const alarmsListId = neverNull(loginController.getUserController().user.alarmInfoList).alarms
 		o.beforeEach(function () {
-			groupRoot = createCalendarGroupRoot({
+			groupRoot = createTestEntity(CalendarGroupRootTypeRef, {
 				_id: "groupRootId",
 				longEvents: "longEvents",
 				shortEvents: "shortEvents",
@@ -199,7 +197,7 @@ o.spec("CalendarModel", function () {
 		})
 		o("reply but sender is not a guest", async function () {
 			const uid = "uid"
-			const existingEvent = createCalendarEvent({ uid })
+			const existingEvent = createTestEntity(CalendarEventTypeRef, { uid })
 			const calendarFacade = makeCalendarFacade(
 				{
 					getEventsByUid: (loadUid) =>
@@ -217,7 +215,7 @@ o.spec("CalendarModel", function () {
 				method: CalendarMethod.REPLY,
 				contents: [
 					{
-						event: createCalendarEvent({
+						event: createTestEntity(CalendarEventTypeRef, {
 							uid,
 						}) as CalendarEventProgenitor,
 						alarms: [],
@@ -230,23 +228,23 @@ o.spec("CalendarModel", function () {
 			const uid = "uid"
 			const sender = "sender@example.com"
 			const anotherGuest = "another-attendee"
-			const alarm = createAlarmInfo({
+			const alarm = createTestEntity(AlarmInfoTypeRef, {
 				_id: "alarm-id",
 			})
-			const existingEvent = createCalendarEvent({
+			const existingEvent = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "eventId"],
 				uid,
 				_ownerGroup: groupRoot._id,
 				summary: "v1",
 				attendees: [
-					createCalendarEventAttendee({
-						address: createEncryptedMailAddress({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						address: createTestEntity(EncryptedMailAddressTypeRef, {
 							address: sender,
 						}),
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 					}),
-					createCalendarEventAttendee({
-						address: createEncryptedMailAddress({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						address: createTestEntity(EncryptedMailAddressTypeRef, {
 							address: anotherGuest,
 						}),
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
@@ -255,7 +253,7 @@ o.spec("CalendarModel", function () {
 				alarmInfos: [[alarmsListId, alarm._id]],
 			})
 			restClientMock.addListInstances(
-				createUserAlarmInfo({
+				createTestEntity(UserAlarmInfoTypeRef, {
 					_id: [alarmsListId, alarm._id],
 					alarmInfo: alarm,
 				}),
@@ -278,18 +276,18 @@ o.spec("CalendarModel", function () {
 				method: CalendarMethod.REPLY,
 				contents: [
 					{
-						event: createCalendarEvent({
+						event: createTestEntity(CalendarEventTypeRef, {
 							uid,
 							attendees: [
-								createCalendarEventAttendee({
-									address: createEncryptedMailAddress({
+								createTestEntity(CalendarEventAttendeeTypeRef, {
+									address: createTestEntity(EncryptedMailAddressTypeRef, {
 										address: sender,
 									}),
 									status: CalendarAttendeeStatus.ACCEPTED,
 								}),
-								createCalendarEventAttendee({
+								createTestEntity(CalendarEventAttendeeTypeRef, {
 									// should be ignored
-									address: createEncryptedMailAddress({
+									address: createTestEntity(EncryptedMailAddressTypeRef, {
 										address: anotherGuest,
 									}),
 									status: CalendarAttendeeStatus.DECLINED,
@@ -308,14 +306,14 @@ o.spec("CalendarModel", function () {
 			o(createdEvent.uid).equals(existingEvent.uid)
 			o(createdEvent.summary).equals(existingEvent.summary)
 			o(createdEvent.attendees).deepEquals([
-				createCalendarEventAttendee({
-					address: createEncryptedMailAddress({
+				createTestEntity(CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(EncryptedMailAddressTypeRef, {
 						address: sender,
 					}),
 					status: CalendarAttendeeStatus.ACCEPTED,
 				}),
-				createCalendarEventAttendee({
-					address: createEncryptedMailAddress({
+				createTestEntity(CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(EncryptedMailAddressTypeRef, {
 						address: "another-attendee",
 					}),
 					status: CalendarAttendeeStatus.NEEDS_ACTION,
@@ -343,11 +341,11 @@ o.spec("CalendarModel", function () {
 				method: CalendarMethod.REQUEST,
 				contents: [
 					{
-						event: createCalendarEvent({
+						event: createTestEntity(CalendarEventTypeRef, {
 							uid,
 							attendees: [
-								createCalendarEventAttendee({
-									address: createEncryptedMailAddress({
+								createTestEntity(CalendarEventAttendeeTypeRef, {
+									address: createTestEntity(EncryptedMailAddressTypeRef, {
 										address: sender,
 									}),
 									status: CalendarAttendeeStatus.ACCEPTED,
@@ -363,23 +361,23 @@ o.spec("CalendarModel", function () {
 		o("request as an update", async function () {
 			const uid = "uid"
 			const sender = "sender@example.com"
-			const alarm = createAlarmInfo({
+			const alarm = createTestEntity(AlarmInfoTypeRef, {
 				_id: "alarm-id",
 			})
 			restClientMock.addListInstances(
-				createUserAlarmInfo({
+				createTestEntity(UserAlarmInfoTypeRef, {
 					_id: [alarmsListId, alarm._id],
 					alarmInfo: alarm,
 				}),
 			)
 			const startTime = new Date()
-			const existingEvent = createCalendarEvent({
+			const existingEvent = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "eventId"],
 				_ownerGroup: groupRoot._id,
 				summary: "v1",
 				sequence: "1",
 				uid,
-				organizer: createEncryptedMailAddress({
+				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 					address: sender,
 				}),
 				alarmInfos: [[alarmsListId, alarm._id]],
@@ -398,11 +396,11 @@ o.spec("CalendarModel", function () {
 				restClientMock,
 				calendarFacade,
 			})
-			const sentEvent = createCalendarEvent({
+			const sentEvent = createTestEntity(CalendarEventTypeRef, {
 				summary: "v2",
 				uid,
 				sequence: "2",
-				organizer: createEncryptedMailAddress({
+				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 					address: sender,
 				}),
 				startTime,
@@ -431,22 +429,22 @@ o.spec("CalendarModel", function () {
 		o("event is re-created when the start time changes", async function () {
 			const uid = "uid"
 			const sender = "sender@example.com"
-			const alarm = createAlarmInfo({
+			const alarm = createTestEntity(AlarmInfoTypeRef, {
 				_id: "alarm-id",
 			})
 			restClientMock.addListInstances(
-				createUserAlarmInfo({
+				createTestEntity(UserAlarmInfoTypeRef, {
 					_id: [alarmsListId, alarm._id],
 					alarmInfo: alarm,
 				}),
 			)
-			const existingEvent = createCalendarEvent({
+			const existingEvent = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "eventId"],
 				_ownerGroup: groupRoot._id,
 				summary: "v1",
 				sequence: "1",
 				uid,
-				organizer: createEncryptedMailAddress({
+				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 					address: sender,
 				}),
 				startTime: DateTime.fromObject(
@@ -472,7 +470,7 @@ o.spec("CalendarModel", function () {
 				restClientMock,
 				calendarFacade,
 			})
-			const sentEvent = createCalendarEvent({
+			const sentEvent = createTestEntity(CalendarEventTypeRef, {
 				summary: "v2",
 				uid,
 				sequence: "2",
@@ -484,7 +482,7 @@ o.spec("CalendarModel", function () {
 					},
 					{ zone: "UTC" },
 				).toJSDate(),
-				organizer: createEncryptedMailAddress({
+				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 					address: sender,
 				}),
 			})
@@ -518,12 +516,12 @@ o.spec("CalendarModel", function () {
 			o("event is cancelled by organizer", async function () {
 				const uid = "uid"
 				const sender = "sender@example.com"
-				const existingEvent = createCalendarEvent({
+				const existingEvent = createTestEntity(CalendarEventTypeRef, {
 					_id: ["listId", "eventId"],
 					_ownerGroup: groupRoot._id,
 					sequence: "1",
 					uid,
-					organizer: createEncryptedMailAddress({
+					organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 						address: sender,
 					}),
 				})
@@ -541,10 +539,10 @@ o.spec("CalendarModel", function () {
 					restClientMock,
 					calendarFacade: calendarFacade,
 				})
-				const sentEvent = createCalendarEvent({
+				const sentEvent = createTestEntity(CalendarEventTypeRef, {
 					uid,
 					sequence: "2",
-					organizer: createEncryptedMailAddress({
+					organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 						address: sender,
 					}),
 				})
@@ -562,12 +560,12 @@ o.spec("CalendarModel", function () {
 			o("event is cancelled by someone else than organizer", async function () {
 				const uid = "uid"
 				const sender = "sender@example.com"
-				const existingEvent = createCalendarEvent({
+				const existingEvent = createTestEntity(CalendarEventTypeRef, {
 					_id: ["listId", "eventId"],
 					_ownerGroup: groupRoot._id,
 					sequence: "1",
 					uid,
-					organizer: createEncryptedMailAddress({
+					organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 						address: sender,
 					}),
 				})
@@ -577,10 +575,10 @@ o.spec("CalendarModel", function () {
 					workerClient,
 					restClientMock,
 				})
-				const sentEvent = createCalendarEvent({
+				const sentEvent = createTestEntity(CalendarEventTypeRef, {
 					uid,
 					sequence: "2",
-					organizer: createEncryptedMailAddress({
+					organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 						address: sender,
 					}),
 				})
@@ -597,23 +595,23 @@ o.spec("CalendarModel", function () {
 			})
 		})
 		o("reprocess deferred calendar events with no owner enc session key", async function () {
-			const calendarFile = createFile({
+			const calendarFile = createTestEntity(FileTypeRef, {
 				_id: ["fileListId", "fileId"],
 			})
 
-			const eventUpdate = createCalendarEventUpdate({
+			const eventUpdate = createTestEntity(CalendarEventUpdateTypeRef, {
 				_id: ["calendarEventUpdateListId", "calendarEventUpdateId"],
 				file: calendarFile._id,
 			})
 
 			const uid = "uid"
 			const sender = "sender@example.com"
-			const existingEvent = createCalendarEvent({
+			const existingEvent = createTestEntity(CalendarEventTypeRef, {
 				_id: ["calendarListId", "eventId"],
 				_ownerGroup: groupRoot._id,
 				sequence: "1",
 				uid,
-				organizer: createEncryptedMailAddress({
+				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 					address: sender,
 				}),
 			})
@@ -717,13 +715,14 @@ function makeWorkerClient(): WorkerClient {
 }
 
 function makeLoginController(props: Partial<UserController> = {}): LoginController {
+	const alarmInfoList = createTestEntity(UserAlarmInfoListTypeTypeRef, {
+		alarms: "alarms",
+	})
 	const userController = downcast(
 		Object.assign(props, {
-			user: createUser({
+			user: createTestEntity(UserTypeRef, {
 				_id: "user-id",
-				alarmInfoList: createUserAlarmInfoListType({
-					alarms: "alarms",
-				}),
+				alarmInfoList,
 			}),
 		}),
 	)

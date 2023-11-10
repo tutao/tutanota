@@ -193,6 +193,7 @@ export class CalendarModel {
 			const newGroupSettings = createGroupSettings({
 				group: group._id,
 				color: color,
+				name: null,
 			})
 			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 			await this.entityClient.update(userSettingsGroupRoot)
