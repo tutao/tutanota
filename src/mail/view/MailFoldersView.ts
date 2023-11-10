@@ -119,7 +119,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			const isTrashOrSpam = system.folder.folderType === MailFolderType.TRASH || system.folder.folderType === MailFolderType.SPAM
 			const isRightButtonVisible = this.areRightButtonsVisible.get(id)
 			const rightButton =
-				!isTrashOrSpam && isRightButtonVisible
+				!isTrashOrSpam && (isRightButtonVisible || attrs.inEditMode)
 					? this.createFolderMoreButton(system.folder, attrs, () => {
 							this.areRightButtonsVisible.set(id, false)
 					  })
