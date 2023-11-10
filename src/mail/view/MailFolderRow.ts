@@ -26,20 +26,22 @@ export type MailFolderRowAttrs = {
 	onHover: () => void
 }
 
-// TODO: rename clicked, create function to call onHover() & set hovered
 export class MailFolderRow implements Component<MailFolderRowAttrs> {
-	private clicked: boolean = false
+	private rightButtonClicked: boolean = false
 	private hovered: boolean = false
 
 	onupdate(vnode: Vnode<MailFolderRowAttrs>): any {
-		const button = vnode.attrs.button
-		if (isNavButtonSelected(button)) {
+		if (isNavButtonSelected(vnode.attrs.button)) {
 			this.hovered = true
 		}
 	}
 
 	view(vnode: Vnode<MailFolderRowAttrs>): Children {
-		const { count, button, rightButton, expanded, indentationLevel, icon, hasChildren, editMode, onHover } = vnode.attrs
+		const { count, button, rightButton, expanded, indentationLevel, icon, hasChildren, editMode } = vnode.attrs
+		const onHover = () => {
+			vnode.attrs.onHover()
+			this.hovered = true
+		}
 
 		const indentationMargin = indentationLevel * size.hpad
 		const paddingNeeded = size.hpad_button
@@ -51,12 +53,9 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 				style: {
 					background: isNavButtonSelected(button) ? stateBgHover : "",
 				},
-				onmouseenter: () => {
-					onHover()
-					this.hovered = true
-				},
+				onmouseenter: onHover,
 				onmouseleave: () => {
-					if (!this.clicked) {
+					if (!this.rightButtonClicked) {
 						this.hovered = false
 					}
 				},
@@ -104,10 +103,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 				),
 				m(NavButton, {
 					...button,
-					onfocus: () => {
-						onHover()
-						this.hovered = true
-					},
+					onfocus: onHover,
 					onblur: () => {
 						// The setTimout is so that there is some time to tab to the rightButton
 						// otherwise it disappears immediately and is unreachable on keyboard
@@ -120,13 +116,10 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 				rightButton && (editMode || (!client.isMobileDevice() && this.hovered))
 					? m(IconButton, {
 							...rightButton,
-							onblur: () => {
-								this.clicked = false
-								m.redraw()
-							},
+							onblur: () => (this.rightButtonClicked = false),
 							click: (event, dom) => {
 								rightButton.click(event, dom)
-								this.clicked = true
+								this.rightButtonClicked = true
 							},
 					  })
 					: m("", { style: { marginRight: px(size.hpad_button) } }, [
