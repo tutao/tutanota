@@ -43,7 +43,7 @@ export async function renderHtml(scripts, env) {
 	<link rel="apple-touch-icon" sizes="152x152" href="images/logo-favicon-152.png">
 	<link rel="icon" sizes="192x192" href="/images/logo-favicon-192.png">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@TutanotaTeam">
+    <meta name="twitter:site" content="@TutaPrivacy">
     <meta name="twitter:domain" content="tuta.com">
     <meta name="twitter:image" content="https://tuta.com/resources/images/share-tutanota-twitter-thumbnail.png">
     <meta property="og:type" content="website">

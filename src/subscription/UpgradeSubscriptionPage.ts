@@ -57,6 +57,12 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
 		const data = vnode.attrs.data
+		let availablePlans = vnode.attrs.data.acceptedPlans
+		// newAccountData is filled in when signing up and then going back in the signup process
+		// If the user has selected a tuta.com address we want to prevent them from selecting a free plan at this point
+		if (!!data.newAccountData && data.newAccountData.mailAddress.includes("tuta.com") && availablePlans.includes(PlanType.Free)) {
+			availablePlans = availablePlans.filter((plan) => plan != PlanType.Free)
+		}
 		const subscriptionActionButtons: SubscriptionActionButtons = {
 			[PlanType.Free]: () => {
 				return {
@@ -77,7 +83,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 				priceInfoTextId: data.priceInfoTextId,
 				boxWidth: 230,
 				boxHeight: 270,
-				acceptedPlans: vnode.attrs.data.acceptedPlans,
+				acceptedPlans: availablePlans,
 				allowSwitchingPaymentInterval: data.upgradeType !== UpgradeType.Switch,
 				currentPlanType: data.currentPlan,
 				actionButtons: subscriptionActionButtons,
@@ -274,6 +280,6 @@ export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubs
 	}
 
 	isEnabled(): boolean {
-		return locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain && !(isApp() && client.isIos())
+		return !(isApp() && client.isIos())
 	}
 }

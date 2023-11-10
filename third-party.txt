@@ -1,4 +1,4 @@
-This document contains a list of all third party libraries, fonts and images used by Tutanota, including their licences.
+This document contains a list of all third party libraries, fonts and images used by Tuta, including their licences.
 
 QRCode-svg - https://github.com/papnkukn/qrcode-svg
 License: MIT
