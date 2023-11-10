@@ -21,7 +21,7 @@ import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs"
 import { notifications } from "../gui/Notifications"
 import { LockedError } from "../api/common/error/RestError"
 import type { CredentialsProvider } from "../misc/credentials/CredentialsProvider.js"
-import { usingKeychainAuthentication } from "../misc/credentials/CredentialsProviderFactory"
+import { usingKeychainAuthenticationWithOptions } from "../misc/credentials/CredentialsProviderFactory"
 import type { ThemeCustomizations } from "../misc/WhitelabelCustomizations"
 import { getThemeCustomizations } from "../misc/WhitelabelCustomizations"
 import { CredentialEncryptionMode } from "../misc/credentials/CredentialEncryptionMode"
@@ -84,7 +84,7 @@ export class PostLoginActions implements PostLoginAction {
 
 		if (
 			loggedInEvent.sessionType === SessionType.Persistent &&
-			usingKeychainAuthentication() &&
+			usingKeychainAuthenticationWithOptions() &&
 			this.credentialsProvider.getCredentialsEncryptionMode() == null
 		) {
 			// If the encryption mode is not selected, we opt user into automatic mode.

@@ -34,6 +34,15 @@ export class CommonNativeFacadeReceiveDispatcher {
 			case "updateTheme": {
 				return this.facade.updateTheme()
 			}
+			case "promptForNewPassword": {
+				const title: string = arg[0]
+				const oldPassword: string | null = arg[1]
+				return this.facade.promptForNewPassword(title, oldPassword)
+			}
+			case "promptForPassword": {
+				const title: string = arg[0]
+				return this.facade.promptForPassword(title)
+			}
 		}
 	}
 }

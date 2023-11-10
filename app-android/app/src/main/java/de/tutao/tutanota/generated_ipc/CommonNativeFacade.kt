@@ -41,4 +41,17 @@ interface CommonNativeFacade {
 	 */
 	 suspend fun updateTheme(
 	): Unit
+	/**
+	 * prompt the user to enter a new password and a confirmation, taking an optional old password into account
+	 */
+	 suspend fun promptForNewPassword(
+		title: String,
+		oldPassword: String?,
+	): String
+	/**
+	 * prompt the user to enter a password
+	 */
+	 suspend fun promptForPassword(
+		title: String,
+	): String
 }

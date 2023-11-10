@@ -1598,6 +1598,8 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"credentialsEncryptionModeAppPin_label": "App PIN",
+		"credentialsEncryptionModeAppPinHelp_msg": "Protect your stored credentials with a separate password."
 	}
 }

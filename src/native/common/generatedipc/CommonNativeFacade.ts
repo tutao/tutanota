@@ -24,4 +24,14 @@ export interface CommonNativeFacade {
 	 * Called when the system theme preference has changed
 	 */
 	updateTheme(): Promise<void>
+
+	/**
+	 * prompt the user to enter a new password and a confirmation, taking an optional old password into account
+	 */
+	promptForNewPassword(title: string, oldPassword: string | null): Promise<string>
+
+	/**
+	 * prompt the user to enter a password
+	 */
+	promptForPassword(title: string): Promise<string>
 }

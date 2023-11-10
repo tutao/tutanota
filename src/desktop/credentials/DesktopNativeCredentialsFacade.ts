@@ -1,27 +1,110 @@
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode"
 import { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
-import { assert } from "@tutao/tutanota-utils"
+import { assert, base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade.js"
+import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativeFacade.js"
+import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
+import { DesktopConfig } from "../config/DesktopConfig.js"
+import { DesktopConfigKey } from "../config/ConfigKeys.js"
+import { Argon2idFacade } from "../../api/worker/facades/Argon2idFacade.js"
+import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
 
+/** the single source of truth for this configuration */
+const SUPPORTED_MODES = [CredentialEncryptionMode.DEVICE_LOCK, CredentialEncryptionMode.APP_PIN] as const
+export type DesktopCredentialsMode = typeof SUPPORTED_MODES[number]
+
+/**
+ *
+ */
 export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
-	constructor(private readonly desktopKeyStoreFacade: DesktopKeyStoreFacade, private readonly crypto: DesktopNativeCryptoFacade) {}
+	/**
+	 * @param desktopKeyStoreFacade
+	 * @param crypto
+	 * @param argon2idFacade
+	 * @param lang
+	 * @param conf
+	 * @param getCurrentCommonNativeFacade a "factory" that returns the commonNativeFacade for the window that would be most suited to serve a given request
+	 */
+	constructor(
+		private readonly desktopKeyStoreFacade: DesktopKeyStoreFacade,
+		private readonly crypto: DesktopNativeCryptoFacade,
+		private readonly argon2idFacade: Argon2idFacade,
+		private readonly lang: LanguageViewModel,
+		private readonly conf: DesktopConfig,
+		private readonly getCurrentCommonNativeFacade: () => Promise<CommonNativeFacade>,
+	) {}
 
-	async decryptUsingKeychain(data: Uint8Array, encryptionMode: CredentialEncryptionMode.DEVICE_LOCK): Promise<Uint8Array> {
+	async decryptUsingKeychain(data: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
 		// making extra sure that the mode is the right one since this comes over IPC
-		assert(encryptionMode === CredentialEncryptionMode.DEVICE_LOCK, "should not use unsupported encryption mode")
-		const key = await this.desktopKeyStoreFacade.getCredentialsKey()
-		return this.crypto.aes256DecryptKey(key, data)
+		this.assertSupportedEncryptionMode(encryptionMode)
+		data = await this.maybeDecryptUsingAppPin(data, encryptionMode)
+		const credentialsKey = await this.desktopKeyStoreFacade.getCredentialsKey()
+		data = this.crypto.aes256DecryptKey(credentialsKey, data)
+		return data
 	}
 
-	async encryptUsingKeychain(data: Uint8Array, encryptionMode: CredentialEncryptionMode.DEVICE_LOCK): Promise<Uint8Array> {
+	async encryptUsingKeychain(data: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
 		// making extra sure that the mode is the right one since this comes over IPC
-		assert(encryptionMode === CredentialEncryptionMode.DEVICE_LOCK, "should not use unsupported encryption mode")
-		const key = await this.desktopKeyStoreFacade.getCredentialsKey()
-		return this.crypto.aes256EncryptKey(key, data)
+		this.assertSupportedEncryptionMode(encryptionMode)
+		const credentialsKey = await this.desktopKeyStoreFacade.getCredentialsKey()
+		data = this.crypto.aes256EncryptKey(credentialsKey, data)
+		data = await this.maybeEncryptUsingAppPin(data, encryptionMode)
+		return data
 	}
 
-	async getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionMode>> {
-		return [CredentialEncryptionMode.DEVICE_LOCK]
+	private async maybeDecryptUsingAppPin(data: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
+		if (encryptionMode === CredentialEncryptionMode.APP_PIN) {
+			const appPinKey = await this.resolveKeyFromAppPin()
+			data = this.crypto.aesDecryptBytes(appPinKey, data)
+			return data
+		} else {
+			// our mode is not app pin, so the app pin should not be set.
+			// this is technically not required because we're deleting it when
+			// encrypting with another mode, but things might have gone wrong.
+			await this.conf.setVar(DesktopConfigKey.appPinSalt, null)
+			return data
+		}
+	}
+
+	private async maybeEncryptUsingAppPin(data: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
+		if (encryptionMode === CredentialEncryptionMode.APP_PIN) {
+			const appPinKey = await this.resolveKeyFromAppPin()
+			data = this.crypto.aesEncryptBytes(appPinKey, data)
+			return data
+		} else {
+			// our mode is not app pin, so the app pin should not be set
+			await this.conf.setVar(DesktopConfigKey.appPinSalt, null)
+			return data
+		}
+	}
+
+	/**
+	 * if there is a salt stored, use it and a password prompt to derive the app pin key.
+	 * if there isn't, ask for a new password, generate a salt & store it, then derive the key.
+	 * @return the derived 256 bit key
+	 */
+	private async resolveKeyFromAppPin(): Promise<Aes256Key> {
+		const storedAppPinSaltB64 = await this.conf.getVar(DesktopConfigKey.appPinSalt)
+		const commonNativeFacade = await this.getCurrentCommonNativeFacade()
+		if (storedAppPinSaltB64 == null) {
+			const newSalt = this.crypto.randomBytes(KEY_LENGTH_BYTES_AES_256)
+			const newPw = await commonNativeFacade.promptForNewPassword(this.lang.get("credentialsEncryptionModeAppPin_label"), null)
+			const newAppPinSaltB64 = uint8ArrayToBase64(newSalt)
+			await this.conf.setVar(DesktopConfigKey.appPinSalt, newAppPinSaltB64)
+			return await this.argon2idFacade.generateKeyFromPassphrase(newPw, newSalt)
+		} else {
+			const pw = await commonNativeFacade.promptForPassword(this.lang.get("credentialsEncryptionModeAppPin_label"))
+			const salt = base64ToUint8Array(storedAppPinSaltB64)
+			return await this.argon2idFacade.generateKeyFromPassphrase(pw, salt)
+		}
+	}
+
+	async getSupportedEncryptionModes(): Promise<Array<DesktopCredentialsMode>> {
+		return SUPPORTED_MODES.slice()
+	}
+
+	private assertSupportedEncryptionMode(encryptionMode: DesktopCredentialsMode) {
+		assert(SUPPORTED_MODES.includes(encryptionMode), `should not use unsupported encryption mode ${encryptionMode}`)
 	}
 }

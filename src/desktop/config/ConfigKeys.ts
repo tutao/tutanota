@@ -16,6 +16,8 @@ export enum DesktopConfigKey {
 	spellcheck = "spellcheck",
 	selectedTheme = "selectedTheme",
 	themes = "themes",
+	/** the app pin salt for encrypting the credentials key */
+	appPinSalt = "appPinSalt",
 	webConfigLocation = "webConfigLocation",
 }
 
