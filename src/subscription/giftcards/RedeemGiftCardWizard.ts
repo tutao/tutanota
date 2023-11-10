@@ -35,6 +35,7 @@ import { EntityClient } from "../../api/common/EntityClient.js"
 import { Country, getByAbbreviation } from "../../api/common/CountryList.js"
 import { renderCountryDropdown } from "../../gui/base/GuiUtils.js"
 import { UpgradePriceType } from "../FeatureListProvider"
+import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
 
 const enum GetCredentialsMethod {
 	Login,
@@ -58,6 +59,7 @@ class RedeemGiftCardModel {
 		},
 		private readonly giftCardFacade: GiftCardFacade,
 		private readonly credentialsProvider: CredentialsProvider,
+		private readonly secondFactorHandler: SecondFactorHandler,
 		private readonly logins: LoginController,
 		private readonly entityClient: EntityClient,
 	) {}
@@ -155,6 +157,7 @@ class RedeemGiftCardModel {
 			throw new UserError("onlyAccountAdminFeature_msg")
 		}
 
+		await this.secondFactorHandler.closeWaitingForSecondFactorDialog()
 		const customer = await this.logins.getUserController().loadCustomer()
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		this.accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
@@ -567,6 +570,7 @@ async function loadModel(hashFromUrl: string): Promise<RedeemGiftCardModel> {
 		},
 		locator.giftCardFacade,
 		locator.credentialsProvider,
+		locator.secondFactorHandler,
 		locator.logins,
 		locator.entityClient,
 	)
