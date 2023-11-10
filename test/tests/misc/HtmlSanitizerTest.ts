@@ -342,7 +342,8 @@ o.spec(
 				blockExternalContent: true,
 			})
 			o(cleanHtml.externalContent).equals(1)
-			o(cleanHtml.html.includes("image.jpg")).equals(false)
+			o(cleanHtml.html.split(" ").some((e) => e === 'background="https://tutanota.com/image.jpg"')).equals(false)
+			o(cleanHtml.html.includes("draft-background")).equals(true)
 			o(
 				htmlSanitizer
 					.sanitizeHTML(plainHtml, {
@@ -350,6 +351,13 @@ o.spec(
 					})
 					.html.includes("background="),
 			).equals(true)
+			o(
+				htmlSanitizer
+					.sanitizeHTML(plainHtml, {
+						blockExternalContent: false,
+					})
+					.html.includes("draft-background="),
+			).equals(false)
 		})
 		o("srcset attribute", function () {
 			const plainHtml =
@@ -358,9 +366,21 @@ o.spec(
 				blockExternalContent: true,
 			})
 			o(cleanHtml.externalContent).equals(2)
-			o(cleanHtml.html.includes("srcSet")).equals(false)
-			o(cleanHtml.html.includes("srcset")).equals(false) // srcSet attribute is removed when writing node
 
+			o(
+				cleanHtml.html
+					.split(" ")
+					.some(
+						(e) =>
+							e === 'srcSet="https://tutanota.com/image1.jpg 1x, https://tutanota.com/image2.jpg 2x, https://tutanota.com/image3.jpg 3x"' ||
+							e === 'srcset="https://tutanota.com/image1.jpg 1x, https://tutanota.com/image2.jpg 2x, https://tutanota.com/image3.jpg 3x"',
+					),
+			).equals(false)
+			o(
+				cleanHtml.html.includes(
+					'draft-srcset="https://tutanota.com/image1.jpg 1x, https://tutanota.com/image2.jpg 2x, https://tutanota.com/image3.jpg 3x',
+				),
+			).equals(true)
 			o(cleanHtml.html.includes('src="data:image/svg+xml;utf8,')).equals(true)
 		})
 		o("detect images and set maxWidth=100px for placeholder images", function () {
@@ -377,7 +397,8 @@ o.spec(
 				blockExternalContent: true,
 			})
 			o(result.externalContent).equals(1)
-			o(result.html.includes('src="https://tutanota.com')).equals(false)
+			o(result.html.split(" ").some((e) => e === 'src="https://tutanota.com')).equals(false)
+			o(result.html.includes('draft-src="https://tutanota.com')).equals(true)
 		})
 		o("detect video posters", function () {
 			let result = htmlSanitizer.sanitizeHTML(
