@@ -14,10 +14,11 @@ import { liveDataAttrs } from "../AriaUtils"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer } from "@tutao/tutanota-utils"
 import { windowFacade } from "../../misc/WindowFacade"
+import { CancelledError } from "../../api/common/error/CancelledError.js"
 
 const DEFAULT_MODE = CredentialEncryptionMode.DEVICE_LOCK
 
-export async function showCredentialsEncryptionModeDialog(credentialsProvider: CredentialsProvider) {
+export async function showCredentialsEncryptionModeDialog(credentialsProvider: CredentialsProvider): Promise<void> {
 	await CredentialEncryptionMethodDialog.showAndWaitForSelection(credentialsProvider)
 }
 
@@ -108,6 +109,8 @@ class CredentialEncryptionMethodDialog {
 
 				await Dialog.message("credentialsKeyInvalidated_msg")
 				windowFacade.reload({})
+			} else if (e instanceof CancelledError) {
+				// ignore. this can happen if we switch app pin -> device lock and the user cancels the pin prompt.
 			} else {
 				throw e
 			}
