@@ -11,7 +11,7 @@ import type { MailAddressFacade } from "./facades/lazy/MailAddressFacade.js"
 import type { CustomerFacade } from "./facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "./facades/lazy/CounterFacade.js"
 import { EventBusClient } from "./EventBusClient"
-import { assertWorkerOrNode, getWebsocketBaseUrl, isAdminClient, isAndroidApp, isIOSApp, isOfflineStorageAvailable, isTest } from "../common/Env"
+import { assertWorkerOrNode, getWebsocketBaseUrl, isAdminClient, isBrowser, isOfflineStorageAvailable, isTest } from "../common/Env"
 import { Const } from "../common/TutanotaConstants"
 import type { BrowserData } from "../../misc/ClientConstants"
 import type { CalendarFacade } from "./facades/lazy/CalendarFacade.js"
@@ -213,10 +213,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	}
 
 	let argon2idFacade: Argon2idFacade
-	if (isIOSApp() || isAndroidApp()) {
+	if (!isBrowser()) {
 		argon2idFacade = new NativeArgon2idFacade(new NativeCryptoFacadeSendDispatcher(worker))
 	} else {
-		argon2idFacade = new WASMArgon2idFacade()
+		argon2idFacade = new WASMArgon2idFacade(() => fetch("wasm/argon2.wasm"))
 	}
 
 	locator.deviceEncryptionFacade = new DeviceEncryptionFacade()
