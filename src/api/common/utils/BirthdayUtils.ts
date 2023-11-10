@@ -41,8 +41,6 @@ export function isoDateToBirthday(birthdayIso: string): Birthday {
 		birthdayInitializer.day = yearMonthAndDay[2]
 	}
 
-	const birthday = createBirthday(birthdayInitializer)
-
 	if (!isValidBirthday(birthdayInitializer)) {
 		throw new ParsingError("Invalid birthday format: " + birthdayIso)
 	}

@@ -110,6 +110,8 @@ export function createInboxRuleTemplate(ruleType: string | null, value: string |
 	return {
 		type: ruleType ?? InboxRuleType.FROM_EQUALS,
 		value: getCleanedValue(neverNull(ruleType), value || ""),
+		// @ts-ignore
+		targetFolder: null, // FIXME
 	}
 }
 

@@ -108,6 +108,27 @@ export class CustomColorEditorPreview implements Component {
 			replyType: "0",
 			confidential: true,
 			...mailTemplate,
+			mailDetails: null,
+			body: null,
+			authStatus: null,
+			method: "0",
+			bccRecipients: [],
+			bucketKey: null,
+			ccRecipients: [],
+			headers: null,
+			// @ts-ignore
+			conversationEntry: null, // FIXME
+			differentEnvelopeSender: null,
+			firstRecipient: null,
+			listUnsubscribe: false,
+			mailDetailsDraft: null,
+			movedTime: null,
+			phishingStatus: "0",
+			recipientCount: "0",
+			replyTos: [],
+			restrictions: null,
+			sentDate: null,
+			toRecipients: [],
 		})
 		const mail2 = createMail({
 			sender: createMailAddress({
@@ -120,6 +141,14 @@ export class CustomColorEditorPreview implements Component {
 			replyType: "1",
 			confidential: false,
 			...mailTemplate,
+			authStatus: null,
+			sentDate: null,
+			phishingStatus: "0",
+			mailDetailsDraft: null,
+			// @ts-ignore
+			conversationEntry: null, // FIXME
+			headers: null,
+			mailDetails: null,
 		})
 		return m(
 			".rel",
