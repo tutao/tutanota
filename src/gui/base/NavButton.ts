@@ -35,6 +35,7 @@ export type NavButtonAttrs = {
 	persistentBackground?: boolean
 	onfocus?: () => unknown
 	onblur?: () => unknown
+	onkeydown?: (event: KeyboardEvent) => unknown
 }
 
 export class NavButton implements Component<NavButtonAttrs> {
@@ -131,6 +132,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 			},
 			onfocus: a.onfocus,
 			onblur: a.onblur,
+			onkeydown: a.onkeydown,
 		}
 
 		if (a.dropHandler) {
