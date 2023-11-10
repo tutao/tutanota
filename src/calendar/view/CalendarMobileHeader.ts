@@ -36,17 +36,24 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 			left: m(MobileHeaderMenuButton, { newsModel: attrs.newsModel, backAction: () => attrs.viewSlider.focusPreviousColumn() }),
 			center: m(MobileHeaderTitle, {
 				title: attrs.showExpandIcon
-					? m(".flex.items-center", [
-							attrs.navConfiguration.title,
-							m(Icon, {
-								icon: BootIcons.Expand,
-								large: true,
-								style: {
-									fill: theme.content_fg,
-									transform: attrs.isDaySelectorExpanded ? "rotate(180deg)" : "",
-								},
-							}),
-					  ])
+					? m(
+							".flex.items-center",
+							{
+								"aria-expanded": `${attrs.isDaySelectorExpanded}`,
+								role: "button",
+							},
+							[
+								attrs.navConfiguration.title,
+								m(Icon, {
+									icon: BootIcons.Expand,
+									large: true,
+									style: {
+										fill: theme.content_fg,
+										transform: attrs.isDaySelectorExpanded ? "rotate(180deg)" : "",
+									},
+								}),
+							],
+					  )
 					: attrs.navConfiguration.title,
 				bottom: m(OfflineIndicatorMobile, attrs.offlineIndicatorModel.getCurrentAttrs()),
 				onTap: attrs.onTap,
