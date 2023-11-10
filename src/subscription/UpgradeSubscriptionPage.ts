@@ -207,7 +207,7 @@ function confirmFreeSubscription(): Promise<boolean> {
 			dialog.close()
 			setTimeout(() => resolve(confirmed), DefaultAnimationTime)
 		}
-		const isFormValid = stream.lift((_oneAccountValue, _privateUseValue) => _oneAccountValue && _privateUseValue, oneAccountValue, privateUseValue)
+		const isFormValid = () => oneAccountValue() && privateUseValue()
 		dialog = new Dialog(DialogType.Alert, {
 			view: () => [
 				// m(".h2.pb", lang.get("confirmFreeAccount_label")),
