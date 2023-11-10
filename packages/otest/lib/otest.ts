@@ -137,7 +137,10 @@ class OTest {
 		const newPath = [...path, spec]
 		const newPathSerialized = newPath.map((s) => s.name).join(" > ")
 
-		console.log(fancy("SPEC", ansiSequences.greenBg), newPathSerialized)
+		let printSpecOnce = () => {
+			printSpecOnce = () => {}
+			console.log(fancy("SPEC", ansiSequences.greenBg), newPathSerialized)
+		}
 
 		for (const before of spec.before) {
 			await before()
@@ -150,6 +153,8 @@ class OTest {
 			specResults: await promiseMap(spec.specs, (nestedSpec) => this.runSpec(nestedSpec, newPath, specMatches ? "" : filter)),
 			testResults: await promiseMap(spec.tests, async (test) => {
 				if (specMatches || test.name.includes(filter)) {
+					printSpecOnce()
+					printSpecOnce = () => {}
 					const allBeforeEach = [...path.flatMap((s) => s.beforeEach), ...spec.beforeEach]
 					for (const beforeEach of allBeforeEach) {
 						await beforeEach()
@@ -165,7 +170,6 @@ class OTest {
 
 					return testResult
 				} else {
-					console.log("  ", fancy("SKIP", ansiSequences.yellowBg), fancy(test.name, ansiSequences.faint))
 					return { name: test.name, errors: [], timeout: null, skipped: true }
 				}
 			}),
@@ -298,8 +302,7 @@ export type CallableOTest = OTest & {
 	/** An alias for {@link OTest.test}. Discouraged. */
 	(name: string, definition: () => Promise<void> | void): void
 
-	/** An alias for {@link OTest.check}. Discouraged. */
-	<T>(actual: T): Assertion<T>
+	/** An alias for {@link OTest.check}. Discouraged. */ <T>(actual: T): Assertion<T>
 }
 
 const otest = new OTest()
