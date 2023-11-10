@@ -5,10 +5,14 @@ import {
 	createGroupInfo,
 	createGroupMembership,
 	createSaltReturn,
+	CreateSessionReturnTypeRef,
 	createUser,
 	createUserExternalAuthInfo,
 	GroupInfoTypeRef,
+	GroupMembershipTypeRef,
+	SaltReturnTypeRef,
 	User,
+	UserExternalAuthInfoTypeRef,
 	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs"
 import { createAuthVerifier, encryptKey, keyToBase64, sha256Hash } from "@tutao/tutanota-crypto"
@@ -65,15 +69,15 @@ async function makeUser({ id, passphrase, salt }, facade: LoginFacade): Promise<
 
 	const groupKey = encryptKey(userPassphraseKey, [3229306880, 2716953871, 4072167920, 3901332676])
 
-	return createUser({
+	return createTestEntity(UserTypeRef, {
 		_id: id,
 		verifier: sha256Hash(createAuthVerifier(userPassphraseKey)),
-		userGroup: createGroupMembership({
+		userGroup: createTestEntity(GroupMembershipTypeRef, {
 			group: "groupId",
 			symEncGKey: groupKey,
 			groupInfo: ["groupInfoListId", "groupInfoElId"],
 		}),
-		externalAuthInfo: createUserExternalAuthInfo({
+		externalAuthInfo: createTestEntity(UserExternalAuthInfoTypeRef, {
 			latestSaltHash: SALT,
 		}),
 	})
@@ -102,7 +106,7 @@ o.spec("LoginFacadeTest", function () {
 	o.beforeEach(function () {
 		workerMock = instance(WorkerImpl)
 		serviceExecutor = object()
-		when(serviceExecutor.get(SaltService, anything()), { ignoreExtraArgs: true }).thenResolve(createSaltReturn({ salt: SALT }))
+		when(serviceExecutor.get(SaltService, anything()), { ignoreExtraArgs: true }).thenResolve(createTestEntity(SaltReturnTypeRef, { salt: SALT }))
 
 		restClientMock = instance(RestClient)
 		entityClientMock = instance(EntityClient)
@@ -165,7 +169,7 @@ o.spec("LoginFacadeTest", function () {
 
 			o.beforeEach(async function () {
 				when(serviceExecutor.post(SessionService, anything()), { ignoreExtraArgs: true }).thenResolve(
-					createCreateSessionReturn({ user: userId, accessToken: "accessToken", challenges: [] }),
+					createTestEntity(CreateSessionReturnTypeRef, { user: userId, accessToken: "accessToken", challenges: [] }),
 				)
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(
 					await makeUser(
@@ -618,7 +622,7 @@ o.spec("LoginFacadeTest", function () {
 					},
 					facade,
 				)
-				user.externalAuthInfo = createUserExternalAuthInfo({
+				user.externalAuthInfo = createTestEntity(UserExternalAuthInfoTypeRef, {
 					latestSaltHash: sha256Hash(SALT),
 				})
 

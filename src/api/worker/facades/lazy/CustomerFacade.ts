@@ -83,6 +83,7 @@ export class CustomerFacade {
 	addDomain(domainName: string): Promise<CustomDomainReturn> {
 		const data = createCustomDomainData({
 			domain: domainName.trim().toLowerCase(),
+			catchAllMailGroup: null,
 		})
 		return this.serviceExecutor.post(CustomDomainService, data)
 	}
@@ -90,6 +91,7 @@ export class CustomerFacade {
 	async removeDomain(domainName: string): Promise<void> {
 		const data = createCustomDomainData({
 			domain: domainName.trim().toLowerCase(),
+			catchAllMailGroup: null,
 		})
 		await this.serviceExecutor.delete(CustomDomainService, data)
 	}
@@ -115,6 +117,8 @@ export class CustomerFacade {
 		const data = createBrandingDomainData({
 			domain: domainName,
 			systemAdminPubEncSessionKey: systemAdminPubEncAccountingInfoSessionKey,
+			sessionEncPemPrivateKey: null,
+			sessionEncPemCertificateChain: null,
 		})
 		if (existingBrandingDomain) {
 			await this.serviceExecutor.put(BrandingDomainService, data)
@@ -303,6 +307,7 @@ export class CustomerFacade {
 			adminEncAccountingInfoSessionKey: encryptKey(adminGroupKey, accountingInfoSessionKey),
 			systemAdminPubEncAccountingInfoSessionKey,
 			adminEncCustomerServerPropertiesSessionKey: encryptKey(adminGroupKey, customerServerPropertiesSessionKey),
+			userEncAccountGroupKey: new Uint8Array(0),
 		})
 		await this.serviceExecutor.post(CustomerAccountService, data)
 		return recoverData.hexCode
@@ -398,6 +403,7 @@ export class CustomerFacade {
 	async downloadInvoice(invoiceNumber: string): Promise<DataFile> {
 		const data = createPdfInvoiceServiceData({
 			invoiceNumber,
+			invoice: null,
 		})
 		return this.serviceExecutor.get(PdfInvoiceService, data).then((returnData) => {
 			return {

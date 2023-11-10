@@ -305,6 +305,7 @@ function prepareAttendees(attendees: Array<CalendarEventAttendee>, organizer: En
 			createCalendarEventAttendee({
 				address: createEncryptedMailAddress({
 					address: organizer.address,
+					name: "",
 				}),
 				status: CalendarAttendeeStatus.ADDED, // We don't know whether the organizer will be attending or not in this case
 			}),

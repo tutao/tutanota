@@ -18,10 +18,11 @@ export class OwnMailAddressNameChanger implements MailAddressNameChanger {
 		const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 		let aliasConfig = mailboxProperties.mailAddressProperties.find((p) => p.mailAddress === address)
 		if (aliasConfig == null) {
-			aliasConfig = createMailAddressProperties({ mailAddress: address })
+			aliasConfig = createMailAddressProperties({ mailAddress: address, senderName: name })
 			mailboxProperties.mailAddressProperties.push(aliasConfig)
+		} else {
+			aliasConfig.senderName = name
 		}
-		aliasConfig.senderName = name
 		await this.entityClient.update(mailboxProperties)
 		return this.collectMap(mailboxProperties)
 	}

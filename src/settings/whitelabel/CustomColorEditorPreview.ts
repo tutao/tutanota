@@ -1,8 +1,7 @@
 import m, { Children, Component } from "mithril"
 import { px, size } from "../../gui/size"
 import { Button, ButtonType } from "../../gui/base/Button.js"
-import { createMail } from "../../api/entities/tutanota/TypeRefs.js"
-import { createMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
+import { createMail, createMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
 import { MailRow } from "../../mail/view/MailRow"
 import { noOp } from "@tutao/tutanota-utils"
 import { IconButton } from "../../gui/base/IconButton.js"
@@ -78,6 +77,7 @@ export class CustomColorEditorPreview implements Component {
 			sender: createMailAddress({
 				address: "m.mustermann@example.com",
 				name: "Max Mustermann",
+				contact: null,
 			}),
 			receivedDate: new Date(),
 			subject: "Mail 1",
@@ -86,11 +86,33 @@ export class CustomColorEditorPreview implements Component {
 			confidential: true,
 			attachments: [],
 			state: "2",
+			mailDetails: null,
+			body: null,
+			authStatus: null,
+			method: "0",
+			bccRecipients: [],
+			bucketKey: null,
+			ccRecipients: [],
+			headers: null,
+			// @ts-ignore
+			conversationEntry: null, // FIXME
+			differentEnvelopeSender: null,
+			firstRecipient: null,
+			listUnsubscribe: false,
+			mailDetailsDraft: null,
+			movedTime: null,
+			phishingStatus: "0",
+			recipientCount: "0",
+			replyTos: [],
+			restrictions: null,
+			sentDate: null,
+			toRecipients: [],
 		})
 		const mail2 = createMail({
 			sender: createMailAddress({
 				address: "m.mustermann@example.com",
 				name: "Max Mustermann",
+				contact: null,
 			}),
 			receivedDate: new Date(),
 			subject: "Mail 2",
@@ -99,6 +121,14 @@ export class CustomColorEditorPreview implements Component {
 			confidential: false,
 			attachments: [],
 			state: "2",
+			authStatus: null,
+			sentDate: null,
+			phishingStatus: "0",
+			mailDetailsDraft: null,
+			// @ts-ignore
+			conversationEntry: null, // FIXME
+			headers: null,
+			mailDetails: null,
 		})
 		return m(
 			".rel",

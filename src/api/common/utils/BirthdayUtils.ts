@@ -20,7 +20,7 @@ export function isoDateToBirthday(birthdayIso: string): Birthday {
 	//return new Date(Number(newBirthday.year), Number(newBirthday.month) - 1, Number(newBirthday.day))
 	const birthdayInitializer: Partial<Birthday> = {}
 	if (birthdayIso.startsWith("--")) {
-		const monthAndDay = birthdayIso.substr(2).split("-")
+		const monthAndDay = birthdayIso.substring(2).split("-")
 
 		if (monthAndDay.length !== 2) {
 			throw new ParsingError("invalid birthday without year: " + birthdayIso)
@@ -41,16 +41,14 @@ export function isoDateToBirthday(birthdayIso: string): Birthday {
 		birthdayInitializer.day = yearMonthAndDay[2]
 	}
 
-	const birthday = createBirthday(birthdayInitializer)
-
-	if (!isValidBirthday(birthday)) {
+	if (!isValidBirthday(birthdayInitializer)) {
 		throw new ParsingError("Invalid birthday format: " + birthdayIso)
 	}
 
-	return birthday
+	return createBirthday(birthdayInitializer)
 }
 
-export function isValidBirthday(birthday: Birthday): boolean {
+export function isValidBirthday(birthday: Partial<Birthday>): birthday is Birthday {
 	const day = Number(birthday.day)
 	const month = Number(birthday.month)
 	const year = birthday.year ? Number(birthday.year) : null

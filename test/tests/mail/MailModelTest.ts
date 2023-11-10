@@ -5,7 +5,7 @@ import { spy } from "@tutao/tutanota-test-utils"
 import type { MailboxDetail } from "../../../src/mail/model/MailModel.js"
 import { MailModel } from "../../../src/mail/model/MailModel.js"
 import { MailFolderType, OperationType } from "../../../src/api/common/TutanotaConstants.js"
-import { createMailFolder, MailTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { MailFolderTypeRef, MailTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import type { EntityUpdateData } from "../../../src/api/main/EventController.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
@@ -18,15 +18,16 @@ import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
 import { WebsocketConnectivityModel } from "../../../src/misc/WebsocketConnectivityModel.js"
 import { InboxRuleHandler } from "../../../src/mail/model/InboxRuleHandler.js"
 import { UserController } from "../../../src/api/main/UserController.js"
+import { createTestEntity } from "../TestUtils.js"
 
 o.spec("MailModelTest", function () {
 	let notifications: Partial<Notifications>
 	let showSpy: Spy
 	let model: MailModel
-	const inboxFolder = createMailFolder({ _id: ["folderListId", "inboxId"] })
+	const inboxFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "inboxId"] })
 	inboxFolder.mails = "instanceListId"
 	inboxFolder.folderType = MailFolderType.INBOX
-	const anotherFolder = createMailFolder({ _id: ["folderListId", "archiveId"] })
+	const anotherFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "archiveId"] })
 	anotherFolder.mails = "anotherListId"
 	anotherFolder.folderType = MailFolderType.ARCHIVE
 	let mailboxDetails: Partial<MailboxDetail>[]

@@ -1,31 +1,32 @@
 import o from "@tutao/otest"
-import { createMailFolder } from "../../../../src/api/entities/tutanota/TypeRefs.js"
+import { createMailFolder, MailFolderTypeRef } from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import { MailFolderType } from "../../../../src/api/common/TutanotaConstants.js"
 import { FolderSystem } from "../../../../src/api/common/mail/FolderSystem.js"
+import { createTestEntity } from "../../TestUtils.js"
 
 o.spec("FolderSystem", function () {
 	const listId = "listId"
-	const inbox = createMailFolder({ _id: [listId, "inbox"], folderType: MailFolderType.INBOX })
-	const archive = createMailFolder({ _id: [listId, "archive"], folderType: MailFolderType.ARCHIVE })
-	const customFolder = createMailFolder({
+	const inbox = createTestEntity(MailFolderTypeRef, { _id: [listId, "inbox"], folderType: MailFolderType.INBOX })
+	const archive = createTestEntity(MailFolderTypeRef, { _id: [listId, "archive"], folderType: MailFolderType.ARCHIVE })
+	const customFolder = createTestEntity(MailFolderTypeRef, {
 		_id: [listId, "custom"],
 		folderType: MailFolderType.CUSTOM,
 		name: "X",
 	})
-	const customSubfolder = createMailFolder({
+	const customSubfolder = createTestEntity(MailFolderTypeRef, {
 		_id: [listId, "customSub"],
 		folderType: MailFolderType.CUSTOM,
 		parentFolder: customFolder._id,
 		name: "AA",
 		mails: "customSubMailList",
 	})
-	const customSubSubfolder = createMailFolder({
+	const customSubSubfolder = createTestEntity(MailFolderTypeRef, {
 		_id: [listId, "customSubSub"],
 		folderType: MailFolderType.CUSTOM,
 		parentFolder: customSubfolder._id,
 		name: "B",
 	})
-	const customSubSubfolderAnother = createMailFolder({
+	const customSubSubfolderAnother = createTestEntity(MailFolderTypeRef, {
 		_id: [listId, "customSubSubAnother"],
 		folderType: MailFolderType.CUSTOM,
 		parentFolder: customSubfolder._id,
@@ -71,12 +72,12 @@ o.spec("FolderSystem", function () {
 	})
 
 	o("indented list sorts stepsiblings correctly", function () {
-		const customFolderAnother = createMailFolder({
+		const customFolderAnother = createTestEntity(MailFolderTypeRef, {
 			_id: [listId, "customAnother"],
 			folderType: MailFolderType.CUSTOM,
 			name: "Another top-level custom",
 		})
-		const customFolderAnotherSub = createMailFolder({
+		const customFolderAnotherSub = createTestEntity(MailFolderTypeRef, {
 			_id: [listId, "customAnotherSub"],
 			folderType: MailFolderType.CUSTOM,
 			parentFolder: customFolderAnother._id,

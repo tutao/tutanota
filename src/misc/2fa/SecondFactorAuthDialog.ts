@@ -150,6 +150,8 @@ export class SecondFactorAuthDialog {
 			type: SecondFactorType.totp,
 			session: this.authData.sessionId,
 			otpCode: this.otpState.code.replace(/ /g, ""),
+			u2f: null,
+			webauthn: null,
 		})
 
 		try {
@@ -190,6 +192,8 @@ export class SecondFactorAuthDialog {
 				type: SecondFactorType.webauthn,
 				session: sessionId,
 				webauthn: responseData,
+				u2f: null,
+				otpCode: null,
 			})
 			await this.loginFacade.authenticateWithSecondFactor(authData, apiBaseUrl)
 		} catch (e) {

@@ -2,6 +2,7 @@ import o from "@tutao/otest"
 import { ConversationItem, ConversationPrefProvider, ConversationViewModel } from "../../../../src/mail/view/ConversationViewModel.js"
 import {
 	ConversationEntry,
+	ConversationEntryTypeRef,
 	createConversationEntry,
 	createMail,
 	createMailboxProperties,
@@ -9,6 +10,8 @@ import {
 	Mail,
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
+	MailFolderTypeRef,
+	MailTypeRef,
 } from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import { ownerId } from "../../calendar/CalendarTestUtils.js"
 import { CreateMailViewerOptions } from "../../../../src/mail/view/MailViewer.js"
@@ -82,12 +85,12 @@ o.spec("ConversationViewModel", function () {
 
 	const addMail = (mailId: string): Mail => {
 		const conversationId = "conversation" + mailId
-		const newMail = createMail({
+		const newMail = createTestEntity(MailTypeRef, {
 			_id: [listId, mailId],
 			conversationEntry: [listId, conversationId],
 			state: MailState.RECEIVED,
 		})
-		const mailConversationEntry = createConversationEntry({
+		const mailConversationEntry = createTestEntity(ConversationEntryTypeRef, {
 			_id: [listId, conversationId],
 			mail: newMail._id,
 			previous: primaryMail?._id,
@@ -175,7 +178,7 @@ o.spec("ConversationViewModel", function () {
 			const trashDraftMail = addMail("trashDraftMail")
 			trashDraftMail.state = MailState.DRAFT
 
-			const trash = createMailFolder({ _id: [listId, "trashFolder"], folderType: MailFolderType.TRASH })
+			const trash = createTestEntity(MailFolderTypeRef, { _id: [listId, "trashFolder"], folderType: MailFolderType.TRASH })
 			entityRestClientMock.addListInstances(trash)
 
 			when(mailModel.getMailboxDetailsForMail(matchers.anything())).thenResolve(mailboxDetail)
@@ -197,7 +200,7 @@ o.spec("ConversationViewModel", function () {
 			const trashDraftMail = addMail("trashDraftMail")
 			trashDraftMail.state = MailState.DRAFT
 
-			const trash = createMailFolder({ _id: [listId, "trashFolder"], folderType: MailFolderType.TRASH })
+			const trash = createTestEntity(MailFolderTypeRef, { _id: [listId, "trashFolder"], folderType: MailFolderType.TRASH })
 			entityRestClientMock.addListInstances(trash)
 
 			when(mailModel.getMailboxDetailsForMail(trashDraftMail)).thenResolve(mailboxDetail)
@@ -248,13 +251,13 @@ o.spec("ConversationViewModel", function () {
 			await loadingDefer.promise
 
 			conversation.pop() // "deleting" the mail
-			const mailConversationEntry = createConversationEntry({
+			const mailConversationEntry = createTestEntity(ConversationEntryTypeRef, {
 				_id: anotherMail.conversationEntry,
 				mail: anotherMail._id,
 				previous: primaryMail?._id,
 			})
 			await entityRestClientMock.erase(mailConversationEntry)
-			const deletedmailConversationEntry = createConversationEntry({
+			const deletedmailConversationEntry = createTestEntity(ConversationEntryTypeRef, {
 				_id: anotherMail.conversationEntry,
 				previous: primaryMail?._id,
 			})
@@ -313,7 +316,7 @@ o.spec("ConversationViewModel", function () {
 			await loadingDefer.promise
 
 			conversation.pop()
-			const trash = createMailFolder({ _id: ["newListId", "trashFolder"], folderType: MailFolderType.TRASH })
+			const trash = createTestEntity(MailFolderTypeRef, { _id: ["newListId", "trashFolder"], folderType: MailFolderType.TRASH })
 			entityRestClientMock.addListInstances(trash)
 			// adding new mail (is the same mail, just moved to trash)
 			const newTrashDraftMail = addMail("trashDraftMail")

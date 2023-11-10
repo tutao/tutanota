@@ -11,9 +11,15 @@ import {
 	createWebsocketCounterValue,
 	createWebsocketEntityData,
 	EntityEventBatchTypeRef,
+	EntityUpdateTypeRef,
+	GroupMembershipTypeRef,
 	User,
+	UserTypeRef,
 	WebsocketCounterData,
+	WebsocketCounterDataTypeRef,
+	WebsocketCounterValueTypeRef,
 	WebsocketEntityData,
+	WebsocketEntityDataTypeRef,
 } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { EntityRestClientMock } from "./rest/EntityRestClientMock.js"
 import { EntityClient } from "../../../../src/api/common/EntityClient.js"
@@ -28,6 +34,7 @@ import { SleepDetector } from "../../../../src/api/worker/utils/SleepDetector.js
 import { WsConnectionState } from "../../../../src/api/main/WorkerClient.js"
 import { UserFacade } from "../../../../src/api/worker/facades/UserFacade"
 import { ExposedProgressTracker } from "../../../../src/api/main/ProgressTracker.js"
+import { createTestEntity } from "../../TestUtils.js"
 
 o.spec("EventBusClient test", function () {
 	let ebc: EventBusClient
@@ -86,8 +93,8 @@ o.spec("EventBusClient test", function () {
 			},
 		} as DefaultEntityRestCache)
 
-		user = createUser({
-			userGroup: createGroupMembership({
+		user = createTestEntity(UserTypeRef, {
+			userGroup: createTestEntity(GroupMembershipTypeRef, {
 				group: "userGroupId",
 			}),
 		})
@@ -111,7 +118,7 @@ o.spec("EventBusClient test", function () {
 
 		o.beforeEach(function () {
 			user.memberships = [
-				createGroupMembership({
+				createTestEntity(GroupMembershipTypeRef, {
 					groupType: GroupType.Mail,
 					group: mailGroupId,
 				}),
@@ -121,7 +128,7 @@ o.spec("EventBusClient test", function () {
 		o("initial connect: when the cache is clean it downloads one batch and initializes cache", async function () {
 			when(cacheMock.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve(null)
 			when(cacheMock.timeSinceLastSyncMs()).thenResolve(null)
-			const batch = createEntityEventBatch({ _id: [mailGroupId, "-----------1"] })
+			const batch = createTestEntity(EntityEventBatchTypeRef, { _id: [mailGroupId, "-----------1"] })
 			restClient.addListInstances(batch)
 
 			await ebc.connect(ConnectMode.Initial)
@@ -136,13 +143,13 @@ o.spec("EventBusClient test", function () {
 		o("initial connect: when the cache is initialized, missed events are loaded", async function () {
 			when(cacheMock.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve("------------")
 			when(cacheMock.timeSinceLastSyncMs()).thenResolve(1)
-			const update = createEntityUpdate({
+			const update = createTestEntity(EntityUpdateTypeRef, {
 				type: "Mail",
 				application: "tutanota",
 				instanceListId: mailGroupId,
 				instanceId: "newBatchId",
 			})
-			const batch = createEntityEventBatch({
+			const batch = createTestEntity(EntityEventBatchTypeRef, {
 				_id: [mailGroupId, "-----------1"],
 				events: [update],
 			})
@@ -267,11 +274,11 @@ o.spec("EventBusClient test", function () {
 	})
 
 	function createEntityMessage(eventBatchId: number): string {
-		const event: WebsocketEntityData = createWebsocketEntityData({
+		const event: WebsocketEntityData = createTestEntity(WebsocketEntityDataTypeRef, {
 			eventBatchId: String(eventBatchId),
 			eventBatchOwner: "ownerId",
 			eventBatch: [
-				createEntityUpdate({
+				createTestEntity(EntityUpdateTypeRef, {
 					_id: "eventbatchid",
 					application: "tutanota",
 					type: "Mail",
@@ -287,11 +294,11 @@ o.spec("EventBusClient test", function () {
 	type CounterMessageParams = { mailGroupId: Id; counterValue: number; listId: Id }
 
 	function createCounterData({ mailGroupId, counterValue, listId }: CounterMessageParams): WebsocketCounterData {
-		return createWebsocketCounterData({
+		return createTestEntity(WebsocketCounterDataTypeRef, {
 			_format: "0",
 			mailGroup: mailGroupId,
 			counterValues: [
-				createWebsocketCounterValue({
+				createTestEntity(WebsocketCounterValueTypeRef, {
 					_id: "counterupdateid",
 					count: String(counterValue),
 					mailListId: listId,

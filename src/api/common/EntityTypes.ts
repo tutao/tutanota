@@ -66,4 +66,5 @@ export interface BlobElementEntity extends Entity, BlobElement {
 	_ownerGroup: null | Id
 }
 
+// FIXME ask willow about Entity
 export type SomeEntity = ElementEntity | ListElementEntity | BlobElementEntity

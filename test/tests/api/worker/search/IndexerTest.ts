@@ -765,11 +765,11 @@ o.spec("Indexer test", () => {
 			},
 		]
 		let loadedBatches = [
-			createEntityEventBatch({
+			createTestEntity(EntityEventBatchTypeRef, {
 				_id: ["group-mail", loadedNewBatchId],
 				events: [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)],
 			}),
-			createEntityEventBatch({
+			createTestEntity(EntityEventBatchTypeRef, {
 				_id: ["group-mail", oldestBatchId],
 			}),
 		]
@@ -798,7 +798,7 @@ o.spec("Indexer test", () => {
 		const loadPromise = indexer._loadNewEntities(groupIdToEventBatches)
 
 		const realtimeUpdates = [
-			createEntityUpdate({
+			createTestEntity(EntityUpdateTypeRef, {
 				instanceId: "realtime",
 			}),
 		]
@@ -1148,7 +1148,7 @@ o.spec("Indexer test", () => {
 			})
 		})
 		const events1 = [
-			createEntityUpdate({
+			createTestEntity(EntityUpdateTypeRef, {
 				application: MailTypeRef.app,
 				type: MailTypeRef.type,
 				operation: OperationType.CREATE,
@@ -1162,7 +1162,7 @@ o.spec("Indexer test", () => {
 			batchId: "batch-id-1",
 		}
 		const events2 = [
-			createEntityUpdate({
+			createTestEntity(EntityUpdateTypeRef, {
 				application: MailTypeRef.app,
 				type: MailTypeRef.type,
 				operation: OperationType.CREATE,

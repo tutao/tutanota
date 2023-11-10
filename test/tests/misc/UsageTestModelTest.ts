@@ -13,6 +13,10 @@ import {
 	createUsageTestAssignmentOut,
 	createUsageTestMetricData,
 	createUsageTestParticipationIn,
+	UsageTestAssignmentInTypeRef,
+	UsageTestAssignmentOutTypeRef,
+	UsageTestAssignmentTypeRef,
+	UsageTestParticipationInTypeRef,
 } from "../../../src/api/entities/usage/TypeRefs.js"
 import { matchers, object, replace, verify, when } from "testdouble"
 import { clone } from "@tutao/tutanota-utils"
@@ -23,10 +27,11 @@ import { IServiceExecutor } from "../../../src/api/common/ServiceRequest.js"
 import modelInfo from "../../../src/api/entities/usage/ModelInfo.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import { LoginController } from "../../../src/api/main/LoginController.js"
-import { createCustomerProperties } from "../../../src/api/entities/sys/TypeRefs.js"
+import { createCustomerProperties, CustomerPropertiesTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
 import { UserController } from "../../../src/api/main/UserController.js"
-import { createUserSettingsGroupRoot } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { EventController } from "../../../src/api/main/EventController.js"
+import { createTestEntity } from "../TestUtils.js"
 
 const { anything } = matchers
 
@@ -51,7 +56,7 @@ o.spec("UsageTestModel", function () {
 		},
 	}
 
-	const oldAssignment = createUsageTestAssignment({
+	const oldAssignment = createTestEntity(UsageTestAssignmentTypeRef, {
 		name: "oldAssignment",
 		variant: "3",
 		stages: [],
@@ -64,7 +69,7 @@ o.spec("UsageTestModel", function () {
 		assignments: [oldAssignment],
 	}
 
-	const newAssignment = createUsageTestAssignment({
+	const newAssignment = createTestEntity(UsageTestAssignmentTypeRef, {
 		name: "assignment1",
 		variant: "1",
 		stages: [],
@@ -101,8 +106,8 @@ o.spec("UsageTestModel", function () {
 			() => usageTestController,
 		)
 
-		replace(usageTestModel, "customerProperties", createCustomerProperties({ usageDataOptedOut: false }))
-		replace(userControllerMock, "userSettingsGroupRoot", createUserSettingsGroupRoot({ usageDataOptedIn: true }))
+		replace(usageTestModel, "customerProperties", createTestEntity(CustomerPropertiesTypeRef, { usageDataOptedOut: false }))
+		replace(userControllerMock, "userSettingsGroupRoot", createTestEntity(UserSettingsGroupRootTypeRef, { usageDataOptedIn: true }))
 	})
 
 	async function assertStored(storage, result, assignment) {
@@ -116,11 +121,11 @@ o.spec("UsageTestModel", function () {
 		o.spec("usage test model loading assignments", function () {
 			o("when there's no deviceId it does POST", async function () {
 				when(
-					serviceExecutor.post(UsageTestAssignmentService, createUsageTestAssignmentIn({}), {
+					serviceExecutor.post(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
-					createUsageTestAssignmentOut({
+					createTestEntity(UsageTestAssignmentOutTypeRef, {
 						assignments: [newAssignment],
 						testDeviceId: testDeviceId,
 					}),
@@ -139,11 +144,11 @@ o.spec("UsageTestModel", function () {
 				})
 
 				when(
-					serviceExecutor.put(UsageTestAssignmentService, createUsageTestAssignmentIn({ testDeviceId }), {
+					serviceExecutor.put(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, { testDeviceId }), {
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
-					createUsageTestAssignmentOut({
+					createTestEntity(UsageTestAssignmentOutTypeRef, {
 						assignments: [newAssignment],
 						testDeviceId: testDeviceId,
 					}),
@@ -155,11 +160,11 @@ o.spec("UsageTestModel", function () {
 
 			o("loads from server and stores if nothing is stored", async function () {
 				when(
-					serviceExecutor.put(UsageTestAssignmentService, createUsageTestAssignmentIn({ testDeviceId }), {
+					serviceExecutor.put(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, { testDeviceId }), {
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
-					createUsageTestAssignmentOut({
+					createTestEntity(UsageTestAssignmentOutTypeRef, {
 						assignments: [newAssignment],
 						testDeviceId: testDeviceId,
 					}),
@@ -187,11 +192,11 @@ o.spec("UsageTestModel", function () {
 				await ephemeralStorage.storeAssignments(assignmentData)
 
 				when(
-					serviceExecutor.put(UsageTestAssignmentService, createUsageTestAssignmentIn({ testDeviceId }), {
+					serviceExecutor.put(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, { testDeviceId }), {
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
-					createUsageTestAssignmentOut({
+					createTestEntity(UsageTestAssignmentOutTypeRef, {
 						assignments: [newAssignment],
 						testDeviceId: testDeviceId,
 					}),
@@ -228,7 +233,7 @@ o.spec("UsageTestModel", function () {
 				when(
 					serviceExecutor.post(
 						UsageTestParticipationService,
-						createUsageTestParticipationIn({
+						createTestEntity(UsageTestParticipationInTypeRef, {
 							testId: usageTest.testId,
 							metrics: [createUsageTestMetricData(metric)],
 							stage: stage.number.toString(),
@@ -258,7 +263,7 @@ o.spec("UsageTestModel", function () {
 				when(
 					serviceExecutor.post(
 						UsageTestParticipationService,
-						createUsageTestParticipationIn({
+						createTestEntity(UsageTestParticipationInTypeRef, {
 							testId: usageTest.testId,
 							stage: "0",
 							testDeviceId: testDeviceId,
@@ -274,7 +279,7 @@ o.spec("UsageTestModel", function () {
 				when(
 					serviceExecutor.post(
 						UsageTestParticipationService,
-						createUsageTestParticipationIn({
+						createTestEntity(UsageTestParticipationInTypeRef, {
 							testId: usageTest.testId,
 							stage: "1",
 							testDeviceId: testDeviceId,
@@ -290,7 +295,7 @@ o.spec("UsageTestModel", function () {
 				when(
 					serviceExecutor.post(
 						UsageTestParticipationService,
-						createUsageTestParticipationIn({
+						createTestEntity(UsageTestParticipationInTypeRef, {
 							testId: usageTest.testId,
 							stage: "2",
 							testDeviceId: testDeviceId,
@@ -314,11 +319,11 @@ o.spec("UsageTestModel", function () {
 				usageTestModel.setStorageBehavior(StorageBehavior.Persist)
 
 				when(
-					serviceExecutor.post(UsageTestAssignmentService, createUsageTestAssignmentIn({}), {
+					serviceExecutor.post(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
-					createUsageTestAssignmentOut({
+					createTestEntity(UsageTestAssignmentOutTypeRef, {
 						assignments: [newAssignment],
 						testDeviceId: testDeviceId,
 					}),
@@ -331,16 +336,16 @@ o.spec("UsageTestModel", function () {
 			})
 
 			o("nothing is stored if customer has opted out", async function () {
-				replace(usageTestModel, "customerProperties", createCustomerProperties({ usageDataOptedOut: true }))
+				replace(usageTestModel, "customerProperties", createTestEntity(CustomerPropertiesTypeRef, { usageDataOptedOut: true }))
 
 				usageTestModel.setStorageBehavior(StorageBehavior.Persist)
 
 				when(
-					serviceExecutor.post(UsageTestAssignmentService, createUsageTestAssignmentIn({}), {
+					serviceExecutor.post(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
-					createUsageTestAssignmentOut({
+					createTestEntity(UsageTestAssignmentOutTypeRef, {
 						assignments: [newAssignment],
 						testDeviceId: testDeviceId,
 					}),
@@ -353,16 +358,16 @@ o.spec("UsageTestModel", function () {
 			})
 
 			o("nothing is stored if user has not opted in", async function () {
-				replace(userControllerMock, "userSettingsGroupRoot", createUserSettingsGroupRoot({ usageDataOptedIn: false }))
+				replace(userControllerMock, "userSettingsGroupRoot", createTestEntity(UserSettingsGroupRootTypeRef, { usageDataOptedIn: false }))
 
 				usageTestModel.setStorageBehavior(StorageBehavior.Persist)
 
 				when(
-					serviceExecutor.post(UsageTestAssignmentService, createUsageTestAssignmentIn({}), {
+					serviceExecutor.post(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
-					createUsageTestAssignmentOut({
+					createTestEntity(UsageTestAssignmentOutTypeRef, {
 						assignments: [newAssignment],
 						testDeviceId: testDeviceId,
 					}),

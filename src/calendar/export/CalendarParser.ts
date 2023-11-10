@@ -271,6 +271,9 @@ function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): AlarmInfo | 
 	return alarmInterval != null
 		? createAlarmInfo({
 				trigger: serializeAlarmInterval(alarmInterval),
+				alarmIdentifier: "",
+				// @ts-ignore
+				calendarRef: null, // FIXME
 		  })
 		: null
 }
@@ -350,6 +353,8 @@ export function parseRrule(rruleProp: Property, tzId: string | null): RepeatRule
 		endType: endType,
 		interval: String(interval),
 		frequency: frequency,
+		excludedDates: [],
+		timeZone: "",
 	})
 
 	if (typeof tzId === "string") {
@@ -628,6 +633,9 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 			sequence,
 			attendees,
 			organizer,
+			hashedUid: null,
+			invitedConfidentially: null,
+			alarmInfos: [],
 		}) as Require<"uid", CalendarEvent>
 
 		const alarms: AlarmInfo[] = []

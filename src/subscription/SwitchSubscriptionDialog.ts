@@ -258,6 +258,8 @@ async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanIn
 		date: Const.CURRENT_DATE,
 		customer: customer._id,
 		specialPriceUserSingle: null,
+		referralCode: null,
+		plan: PlanType.Free,
 	})
 	try {
 		await showProgressDialog(

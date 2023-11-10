@@ -937,6 +937,9 @@ export class SendMailModel {
 			_id: [listId, stringToCustomId(this.senderAddress)],
 			_ownerGroup: this.user().user.userGroup.group,
 			text: `Subject: ${this.getSubject()}<br>${body}`,
+			date: null,
+			range: null,
+			customer: null,
 		})
 		return this.entity.setup(listId, m).catch(ofClass(NotAuthorizedError, (e) => console.log("not authorized for approval message")))
 	}

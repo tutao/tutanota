@@ -403,6 +403,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 													value: domainPart ? domainPart : "",
 													type: SpamRuleType.WHITELIST,
 													field: SpamRuleFieldType.FROM,
+													hashedValue: "",
 												}),
 											)
 										},

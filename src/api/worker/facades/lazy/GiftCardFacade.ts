@@ -61,6 +61,7 @@ export class GiftCardFacade {
 			createGiftCardRedeemData({
 				giftCardInfo: id,
 				keyHash: sha256Hash(bitArrayToUint8Array(base64ToKey(key))),
+				countryCode: "",
 			}),
 			{
 				sessionKey: base64ToKey(key),

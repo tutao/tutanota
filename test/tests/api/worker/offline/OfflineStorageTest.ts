@@ -150,7 +150,7 @@ o.spec("OfflineStorage", function () {
 			o.spec("ElementType", function () {
 				o("deleteAllOfType", async function () {
 					const userId = "id1"
-					const storableUser = createUser({ _id: userId })
+					const storableUser = createTestEntity(UserTypeRef, { _id: userId })
 
 					await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
@@ -173,7 +173,7 @@ o.spec("OfflineStorage", function () {
 				o("deleteAllOfType", async function () {
 					const listId = "listId1"
 					const elementId = "id1"
-					const storableMail = createMail({ _id: [listId, elementId] })
+					const storableMail = createTestEntity(MailTypeRef, { _id: [listId, elementId] })
 
 					await storage.init({ userId: elementId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
@@ -200,7 +200,10 @@ o.spec("OfflineStorage", function () {
 				o("put, get and delete", async function () {
 					const archiveId = "archiveId"
 					const blobElementId = "id1"
-					const storableMailDetails = createMailDetailsBlob({ _id: [archiveId, blobElementId], details: createTestEntity(MailDetailsTypeRef) })
+					const storableMailDetails = createTestEntity(MailDetailsBlobTypeRef, {
+						_id: [archiveId, blobElementId],
+						details: createTestEntity(MailDetailsTypeRef),
+					})
 
 					await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
@@ -223,7 +226,7 @@ o.spec("OfflineStorage", function () {
 					const archiveId = "archiveId"
 					const blobElementId = "id1"
 					const _ownerGroup = "ownerGroup"
-					const storableMailDetails = createMailDetailsBlob({
+					const storableMailDetails = createTestEntity(MailDetailsBlobTypeRef, {
 						_id: [archiveId, blobElementId],
 						_ownerGroup,
 						details: createTestEntity(MailDetailsTypeRef),
@@ -254,17 +257,21 @@ o.spec("OfflineStorage", function () {
 			o.beforeEach(async function () {
 				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
-				await insertEntity(createMailFolder({ _id: ["mailFolderList", spamFolderId], mails: spamListId, folderType: MailFolderType.SPAM }))
-				await insertEntity(createMailFolder({ _id: ["mailFolderList", trashFolderId], mails: trashListId, folderType: MailFolderType.TRASH }))
+				await insertEntity(
+					createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", spamFolderId], mails: spamListId, folderType: MailFolderType.SPAM }),
+				)
+				await insertEntity(
+					createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", trashFolderId], mails: trashListId, folderType: MailFolderType.TRASH }),
+				)
 			})
 
 			o("old ranges will be deleted", async function () {
 				const upper = offsetId(-1)
 				const lower = offsetId(-2)
 				const mailDetailsBlobId: IdTuple = ["mailDetailsList", "mailDetailsBlobId"]
-				await insertEntity(createMailFolder({ _id: ["mailFolderList", "mailFolderId"], mails: listId }))
-				await insertEntity(createMailDetailsBlob({ _id: mailDetailsBlobId, details: createTestEntity(MailDetailsTypeRef) }))
-				await insertEntity(createMail({ _id: [listId, "anything"], mailDetails: mailDetailsBlobId }))
+				await insertEntity(createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", "mailFolderId"], mails: listId }))
+				await insertEntity(createTestEntity(MailDetailsBlobTypeRef, { _id: mailDetailsBlobId, details: createTestEntity(MailDetailsTypeRef) }))
+				await insertEntity(createTestEntity(MailTypeRef, { _id: [listId, "anything"], mailDetails: mailDetailsBlobId }))
 				await insertRange(MailTypeRef, listId, lower, upper)
 
 				// Here we clear the excluded data
@@ -281,7 +288,7 @@ o.spec("OfflineStorage", function () {
 			o("modified ranges will be shrunk", async function () {
 				const upper = offsetId(2)
 				const lower = offsetId(-2)
-				await insertEntity(createMailFolder({ _id: ["mailFolderListId", "mailFolderId"], mails: listId }))
+				await insertEntity(createTestEntity(MailFolderTypeRef, { _id: ["mailFolderListId", "mailFolderId"], mails: listId }))
 				await insertRange(MailTypeRef, listId, lower, upper)
 
 				// Here we clear the excluded data
@@ -295,7 +302,7 @@ o.spec("OfflineStorage", function () {
 				const upper = offsetId(2)
 				const lower = offsetId(1)
 
-				await insertEntity(createMailFolder({ _id: ["mailFolderList", "mailFolderId"], mails: listId }))
+				await insertEntity(createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", "mailFolderId"], mails: listId }))
 				await insertRange(MailTypeRef, listId, lower, upper)
 
 				// Here we clear the excluded data
@@ -308,8 +315,8 @@ o.spec("OfflineStorage", function () {
 			o("complete ranges won't be lost if entities are all newer than cutoff", async function () {
 				const upper = offsetId(2)
 				const lower = GENERATED_MIN_ID
-				const mail = createMail({ _id: [listId, offsetId(1)] })
-				const mailFolder = createMailFolder({ _id: ["mailFolderList", "folderId"], mails: listId })
+				const mail = createTestEntity(MailTypeRef, { _id: [listId, offsetId(1)] })
+				const mailFolder = createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", "folderId"], mails: listId })
 				await insertEntity(mailFolder)
 				await insertEntity(mail)
 				await insertRange(MailTypeRef, listId, lower, upper)
@@ -331,14 +338,14 @@ o.spec("OfflineStorage", function () {
 				const trashMailBodyId = "trashMailBodyId"
 
 				const spamMailId = offsetId(2)
-				const spamMail = createMail({ _id: [spamListId, spamMailId], body: spamMailBodyId })
+				const spamMail = createTestEntity(MailTypeRef, { _id: [spamListId, spamMailId], body: spamMailBodyId })
 				const trashMailId = offsetId(2)
-				const trashMail = createMail({ _id: [trashListId, trashMailId], body: trashMailBodyId })
+				const trashMail = createTestEntity(MailTypeRef, { _id: [trashListId, trashMailId], body: trashMailBodyId })
 
 				await insertEntity(spamMail)
 				await insertEntity(trashMail)
-				await insertEntity(createMailBody({ _id: spamMailBodyId }))
-				await insertEntity(createMailBody({ _id: trashMailBodyId }))
+				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: spamMailBodyId }))
+				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: trashMailBodyId }))
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
@@ -359,14 +366,14 @@ o.spec("OfflineStorage", function () {
 				const trashSubfolderMailBodyId = "trashSubfolderMailBodyId"
 
 				const spamMailId = offsetId(2)
-				const spamMail = createMail({ _id: [spamListId, spamMailId], body: spamMailBodyId })
+				const spamMail = createTestEntity(MailTypeRef, { _id: [spamListId, spamMailId], body: spamMailBodyId })
 				const trashMailId = offsetId(2)
-				const trashMail = createMail({ _id: [trashListId, trashMailId], body: trashMailBodyId })
+				const trashMail = createTestEntity(MailTypeRef, { _id: [trashListId, trashMailId], body: trashMailBodyId })
 				const trashSubfolderMailId = offsetId(2)
-				const trashSubfolderMail = createMail({ _id: [trashSubfolderListId, trashSubfolderMailId], body: trashSubfolderMailBodyId })
+				const trashSubfolderMail = createTestEntity(MailTypeRef, { _id: [trashSubfolderListId, trashSubfolderMailId], body: trashSubfolderMailBodyId })
 
 				await insertEntity(
-					createMailFolder({
+					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", trashSubfolderId],
 						parentFolder: ["mailFolderList", trashFolderId],
 						mails: trashSubfolderListId,
@@ -376,9 +383,9 @@ o.spec("OfflineStorage", function () {
 				await insertEntity(spamMail)
 				await insertEntity(trashMail)
 				await insertEntity(trashSubfolderMail)
-				await insertEntity(createMailBody({ _id: spamMailBodyId }))
-				await insertEntity(createMailBody({ _id: trashMailBodyId }))
-				await insertEntity(createMailBody({ _id: trashSubfolderMailBodyId }))
+				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: spamMailBodyId }))
+				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: trashMailBodyId }))
+				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: trashSubfolderMailBodyId }))
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
@@ -397,15 +404,15 @@ o.spec("OfflineStorage", function () {
 
 				const spamMailId = offsetId(2)
 				const trashMailId = offsetId(2)
-				const spamMail = createMail({ _id: [spamListId, spamMailId], mailDetails: spamDetailsId })
-				const trashMail = createMail({ _id: [trashListId, trashMailId], mailDetails: trashDetailsId })
+				const spamMail = createTestEntity(MailTypeRef, { _id: [spamListId, spamMailId], mailDetails: spamDetailsId })
+				const trashMail = createTestEntity(MailTypeRef, { _id: [trashListId, trashMailId], mailDetails: trashDetailsId })
 
 				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
 				await insertEntity(spamMail)
 				await insertEntity(trashMail)
-				await insertEntity(createMailDetailsBlob({ _id: spamDetailsId, details: createTestEntity(MailDetailsTypeRef) }))
-				await insertEntity(createMailDetailsBlob({ _id: trashDetailsId, details: createTestEntity(MailDetailsTypeRef) }))
+				await insertEntity(createTestEntity(MailDetailsBlobTypeRef, { _id: spamDetailsId, details: createTestEntity(MailDetailsTypeRef) }))
+				await insertEntity(createTestEntity(MailDetailsBlobTypeRef, { _id: trashDetailsId, details: createTestEntity(MailDetailsTypeRef) }))
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
@@ -423,14 +430,16 @@ o.spec("OfflineStorage", function () {
 				const beforeMailBodyId = "beforeMailBodyId"
 				const afterMailBodyId = "afterMailBodyId"
 
-				const mailBefore = createMail({ _id: [inboxMailList, offsetId(-2)], body: beforeMailBodyId })
-				const mailAfter = createMail({ _id: [inboxMailList, offsetId(2)], body: afterMailBodyId })
+				const mailBefore = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(-2)], body: beforeMailBodyId })
+				const mailAfter = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(2)], body: afterMailBodyId })
 
-				await insertEntity(createMailFolder({ _id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX }))
+				await insertEntity(
+					createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX }),
+				)
 				await insertEntity(mailBefore)
 				await insertEntity(mailAfter)
-				await insertEntity(createMailBody({ _id: beforeMailBodyId }))
-				await insertEntity(createMailBody({ _id: afterMailBodyId }))
+				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: beforeMailBodyId }))
+				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: afterMailBodyId }))
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
@@ -446,14 +455,16 @@ o.spec("OfflineStorage", function () {
 				const mailBodyId1 = "mailBodyId1"
 				const mailBodyId2 = "afterMailBodyId"
 
-				const mail1 = createMail({ _id: [inboxMailList, offsetId(-2)], body: mailBodyId1 })
-				const mail2 = createMail({ _id: [inboxMailList, offsetId(-3)], body: mailBodyId2 })
+				const mail1 = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(-2)], body: mailBodyId1 })
+				const mail2 = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(-3)], body: mailBodyId2 })
 
-				await insertEntity(createMailFolder({ _id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX }))
+				await insertEntity(
+					createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX }),
+				)
 				await insertEntity(mail1)
 				await insertEntity(mail2)
-				await insertEntity(createMailBody({ _id: mailBodyId1 }))
-				await insertEntity(createMailBody({ _id: mailBodyId2 }))
+				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: mailBodyId1 }))
+				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: mailBodyId2 }))
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
@@ -468,18 +479,20 @@ o.spec("OfflineStorage", function () {
 				const afterMailBodyId = "afterMailBodyId"
 				const fileListId = "fileListId"
 
-				const fileBefore = createFile({ _id: [fileListId, "fileBefore"] })
-				const fileAfter = createFile({ _id: [fileListId, "fileAfter"] })
-				const mailBefore = createMail({ _id: [inboxMailList, offsetId(-2)], body: beforeMailBodyId, attachments: [fileBefore._id] })
-				const mailAfter = createMail({ _id: [inboxMailList, offsetId(2)], body: afterMailBodyId, attachments: [fileAfter._id] })
+				const fileBefore = createTestEntity(FileTypeRef, { _id: [fileListId, "fileBefore"] })
+				const fileAfter = createTestEntity(FileTypeRef, { _id: [fileListId, "fileAfter"] })
+				const mailBefore = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(-2)], body: beforeMailBodyId, attachments: [fileBefore._id] })
+				const mailAfter = createTestEntity(MailTypeRef, { _id: [inboxMailList, offsetId(2)], body: afterMailBodyId, attachments: [fileAfter._id] })
 
-				await insertEntity(createMailFolder({ _id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX }))
+				await insertEntity(
+					createTestEntity(MailFolderTypeRef, { _id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX }),
+				)
 				await insertEntity(mailBefore)
 				await insertEntity(mailAfter)
 				await insertEntity(fileBefore)
 				await insertEntity(fileAfter)
-				await insertEntity(createMailBody({ _id: beforeMailBodyId }))
-				await insertEntity(createMailBody({ _id: afterMailBodyId }))
+				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: beforeMailBodyId }))
+				await insertEntity(createTestEntity(MailBodyTypeRef, { _id: afterMailBodyId }))
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
@@ -498,14 +511,14 @@ o.spec("OfflineStorage", function () {
 				const mailId = idGenerator.getNext()
 				const bodyId = idGenerator.getNext()
 				mails.push(
-					createMail({
+					createTestEntity(MailTypeRef, {
 						_id: [listId, mailId],
 						subject: getSubject(i),
 						body: bodyId,
 					}),
 				)
 				mailBodies.push(
-					createMailBody({
+					createTestEntity(MailBodyTypeRef, {
 						_id: bodyId,
 						text: getBody(i),
 					}),
@@ -520,7 +533,7 @@ o.spec("OfflineStorage", function () {
 			const newIds = new IdGenerator(offsetId(5))
 
 			const inboxListId = oldIds.getNext()
-			const inboxFolder = createMailFolder({
+			const inboxFolder = createTestEntity(MailFolderTypeRef, {
 				_id: [userId, oldIds.getNext()],
 				mails: inboxListId,
 				folderType: MailFolderType.INBOX,
@@ -542,7 +555,7 @@ o.spec("OfflineStorage", function () {
 			)
 
 			const trashListId = oldIds.getNext()
-			const trashFolder = createMailFolder({
+			const trashFolder = createTestEntity(MailFolderTypeRef, {
 				_id: [userId, oldIds.getNext()],
 				mails: trashListId,
 				folderType: MailFolderType.TRASH,
@@ -556,7 +569,7 @@ o.spec("OfflineStorage", function () {
 			)
 
 			const spamListId = oldIds.getNext()
-			const spamFolder = createMailFolder({
+			const spamFolder = createTestEntity(MailFolderTypeRef, {
 				_id: [userId, oldIds.getNext()],
 				mails: spamListId,
 				folderType: MailFolderType.SPAM,

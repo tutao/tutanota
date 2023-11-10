@@ -19,7 +19,12 @@ import tutanotaModelInfo from "../../../../../src/api/entities/tutanota/ModelInf
 import sysModelInfo from "../../../../../src/api/entities/sys/ModelInfo.js"
 import { AuthDataProvider } from "../../../../../src/api/worker/facades/UserFacade.js"
 import { LoginIncompleteError } from "../../../../../src/api/common/error/LoginIncompleteError.js"
-import { createBlobServerAccessInfo, createBlobServerUrl } from "../../../../../src/api/entities/storage/TypeRefs.js"
+import {
+	BlobServerAccessInfoTypeRef,
+	BlobServerUrlTypeRef,
+	createBlobServerAccessInfo,
+	createBlobServerUrl,
+} from "../../../../../src/api/entities/storage/TypeRefs.js"
 import { Mapper, ofClass } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
 import { BlobAccessTokenFacade } from "../../../../../src/api/worker/facades/BlobAccessTokenFacade.js"
@@ -57,7 +62,7 @@ const countFrom = (start, count) => createArrayOf(count, (idx) => String(idx + s
 
 function contacts(count) {
 	const contactFactory = (idx) =>
-		createContact({
+		createTestEntity(ContactTypeRef, {
 			firstName: `Contact${idx}`,
 		})
 
@@ -343,9 +348,9 @@ o.spec("EntityRestClient", async function () {
 			const firstServer = "firstServer"
 
 			const blobAccessToken = "123"
-			let blobServerAccessInfo = createBlobServerAccessInfo({
+			let blobServerAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken,
-				servers: [createBlobServerUrl({ url: firstServer }), createBlobServerUrl({ url: "otherServer" })],
+				servers: [createTestEntity(BlobServerUrlTypeRef, { url: firstServer }), createTestEntity(BlobServerUrlTypeRef, { url: "otherServer" })],
 			})
 			when(blobAccessTokenFacade.requestReadTokenArchive(archiveId)).thenResolve(blobServerAccessInfo)
 
@@ -399,9 +404,9 @@ o.spec("EntityRestClient", async function () {
 
 			const blobAccessToken = "123"
 			const otherServer = "otherServer"
-			const blobServerAccessInfo = createBlobServerAccessInfo({
+			const blobServerAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken,
-				servers: [createBlobServerUrl({ url: firstServer }), createBlobServerUrl({ url: otherServer })],
+				servers: [createTestEntity(BlobServerUrlTypeRef, { url: firstServer }), createTestEntity(BlobServerUrlTypeRef, { url: otherServer })],
 			})
 			when(blobAccessTokenFacade.requestReadTokenArchive(archiveId)).thenResolve(blobServerAccessInfo)
 
@@ -793,7 +798,7 @@ o.spec("EntityRestClient", async function () {
 	o.spec("Update", function () {
 		o("Update entity", async function () {
 			const { version } = await resolveTypeReference(CustomerTypeRef)
-			const newCustomer = createCustomer({
+			const newCustomer = createTestEntity(CustomerTypeRef, {
 				_id: "id",
 			})
 			when(
@@ -815,7 +820,7 @@ o.spec("EntityRestClient", async function () {
 		o("when ownerKey is passed it is used instead for session key resolution", async function () {
 			const typeModel = await resolveTypeReference(CustomerTypeRef)
 			const version = typeModel.version
-			const newCustomer = createCustomer({
+			const newCustomer = createTestEntity(CustomerTypeRef, {
 				_id: "id",
 			})
 			when(
@@ -840,7 +845,7 @@ o.spec("EntityRestClient", async function () {
 		o("Delete entity", async function () {
 			const { version } = await resolveTypeReference(CustomerTypeRef)
 			const id = "id"
-			const newCustomer = createCustomer({
+			const newCustomer = createTestEntity(CustomerTypeRef, {
 				_id: id,
 			})
 			when(
@@ -855,7 +860,7 @@ o.spec("EntityRestClient", async function () {
 
 	o.spec("tryServers", function () {
 		o("tryServers successful", async function () {
-			let servers = [createBlobServerUrl({ url: "w1" }), createBlobServerUrl({ url: "w2" })]
+			let servers = [createTestEntity(BlobServerUrlTypeRef, { url: "w1" }), createTestEntity(BlobServerUrlTypeRef, { url: "w2" })]
 			const mapperMock = func<Mapper<string, object>>()
 			const expectedResult = { response: "response-from-server" }
 			when(mapperMock(anything(), anything())).thenResolve(expectedResult)
@@ -866,7 +871,7 @@ o.spec("EntityRestClient", async function () {
 		})
 
 		o("tryServers error", async function () {
-			let servers = [createBlobServerUrl({ url: "w1" }), createBlobServerUrl({ url: "w2" })]
+			let servers = [createTestEntity(BlobServerUrlTypeRef, { url: "w1" }), createTestEntity(BlobServerUrlTypeRef, { url: "w2" })]
 			const mapperMock = func<Mapper<string, object>>()
 			when(mapperMock("w1", 0)).thenReject(new ProgrammingError("test"))
 			const e = await assertThrows(ProgrammingError, () => tryServers(servers, mapperMock, "error"))
@@ -875,7 +880,7 @@ o.spec("EntityRestClient", async function () {
 		})
 
 		o("tryServers ConnectionError and successful response", async function () {
-			let servers = [createBlobServerUrl({ url: "w1" }), createBlobServerUrl({ url: "w2" })]
+			let servers = [createTestEntity(BlobServerUrlTypeRef, { url: "w1" }), createTestEntity(BlobServerUrlTypeRef, { url: "w2" })]
 			const mapperMock = func<Mapper<string, object>>()
 			const expectedResult = { response: "response-from-server" }
 			when(mapperMock("w1", 0)).thenReject(new ConnectionError("test"))
@@ -886,7 +891,7 @@ o.spec("EntityRestClient", async function () {
 		})
 
 		o("tryServers multiple ConnectionError", async function () {
-			let servers = [createBlobServerUrl({ url: "w1" }), createBlobServerUrl({ url: "w2" })]
+			let servers = [createTestEntity(BlobServerUrlTypeRef, { url: "w1" }), createTestEntity(BlobServerUrlTypeRef, { url: "w2" })]
 			const mapperMock = func<Mapper<string, object>>()
 			when(mapperMock("w1", 0)).thenReject(new ConnectionError("test"))
 			when(mapperMock("w2", 1)).thenReject(new ConnectionError("test"))

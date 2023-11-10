@@ -7,6 +7,7 @@ import { EntityRestClient } from "../../../../../src/api/worker/rest/EntityRestC
 import { LateInitializedCacheStorageImpl } from "../../../../../src/api/worker/rest/CacheStorageProxy.js"
 import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, LOAD_MULTIPLE_LIMIT } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { numberRange } from "@tutao/tutanota-utils"
+import { createTestEntity } from "../../../TestUtils.js"
 
 o.spec("Custom calendar events handler", function () {
 	const entityRestClientMock = instance(EntityRestClient)
@@ -15,11 +16,11 @@ o.spec("Custom calendar events handler", function () {
 	const listId = "listId"
 	let timestamp = Date.now()
 	const ids = [0, 1, 2, 3, 4, 5, 6].map((n) => createEventElementId(timestamp, n))
-	const allList = [0, 1, 2, 3, 4, 5, 6].map((n) => createCalendarEvent({ _id: [listId, ids[n]] }))
+	const allList = [0, 1, 2, 3, 4, 5, 6].map((n) => createTestEntity(CalendarEventTypeRef, { _id: [listId, ids[n]] }))
 
 	const bigListId = "bigListId"
 	const bigListIds = numberRange(0, 299).map((n) => createEventElementId(timestamp, n))
-	const bigList = numberRange(0, 299).map((n) => createCalendarEvent({ _id: [bigListId, bigListIds[n]] }))
+	const bigList = numberRange(0, 299).map((n) => createTestEntity(CalendarEventTypeRef, { _id: [bigListId, bigListIds[n]] }))
 	const toElementId = (e) => e._id[1]
 
 	o.spec("Load elements from cache", function () {

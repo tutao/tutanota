@@ -137,6 +137,9 @@ export class SecondFactorHandler {
 					createSecondFactorAuthData({
 						session: session._id,
 						type: null, // Marker for confirming another session
+						otpCode: null,
+						u2f: null,
+						webauthn: null,
 					}),
 				)
 

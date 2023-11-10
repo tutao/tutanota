@@ -1,6 +1,7 @@
 import { AccountType, ContactAddressType, FeatureType, GroupType, ShareCapability, TimeFormat } from "../../../src/api/common/TutanotaConstants.js"
 import type { UserController } from "../../../src/api/main/UserController.js"
 import {
+	BookingsRefTypeRef,
 	createBookingsRef,
 	createCustomer,
 	createCustomerInfo,
@@ -11,14 +12,26 @@ import {
 	createMailAddressAlias,
 	createPlanConfiguration,
 	createUser,
+	CustomerInfoTypeRef,
+	CustomerTypeRef,
 	Feature,
+	FeatureTypeRef,
 	GroupInfoTypeRef,
+	GroupMembershipTypeRef,
+	GroupTypeRef,
+	MailAddressAliasTypeRef,
+	PlanConfigurationTypeRef,
 	User,
+	UserTypeRef,
 } from "../../../src/api/entities/sys/TypeRefs.js"
 import { GENERATED_MAX_ID } from "../../../src/api/common/utils/EntityUtils.js"
 import { downcast, LazyLoaded } from "@tutao/tutanota-utils"
 import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
+	CalendarEventTypeRef,
+	CalendarGroupRootTypeRef,
+	ContactAddressTypeRef,
+	ContactTypeRef,
 	createCalendarEvent,
 	createCalendarGroupRoot,
 	createContact,
@@ -28,8 +41,10 @@ import {
 	createMailboxGroupRoot,
 	createTutanotaProperties,
 	EncryptedMailAddress,
+	EncryptedMailAddressTypeRef,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
+	TutanotaPropertiesTypeRef,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import type { MailboxDetail } from "../../../src/mail/model/MailModel.js"
 import o from "@tutao/otest"
@@ -45,7 +60,7 @@ export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const
 export const calendarGroupId = "0" as const
 
-export const ownerAddress = createEncryptedMailAddress({
+export const ownerAddress = createTestEntity(EncryptedMailAddressTypeRef, {
 	address: ownerMailAddress,
 	name: "Calendar Owner",
 })
@@ -55,7 +70,7 @@ export const ownerRecipient: Recipient = {
 	type: RecipientType.INTERNAL,
 	contact: null,
 }
-export const ownerAlias = createEncryptedMailAddress({
+export const ownerAlias = createTestEntity(EncryptedMailAddressTypeRef, {
 	address: "calendarowneralias@tutanota.de",
 	name: "Calendar Owner Alias",
 })
@@ -65,7 +80,7 @@ export const ownerAliasRecipient: Recipient = {
 	type: RecipientType.INTERNAL,
 	contact: null,
 }
-export const otherAddress = createEncryptedMailAddress({
+export const otherAddress = createTestEntity(EncryptedMailAddressTypeRef, {
 	address: "someone@tutanota.de",
 	name: "Some One",
 })
@@ -73,18 +88,18 @@ export const otherRecipient: Recipient = {
 	address: otherAddress.address,
 	name: otherAddress.name,
 	type: RecipientType.EXTERNAL,
-	contact: createContact({
+	contact: createTestEntity(ContactTypeRef, {
 		nickname: otherAddress.name,
 		presharedPassword: "otherPassword",
 		addresses: [
-			createContactAddress({
+			createTestEntity(ContactAddressTypeRef, {
 				address: otherAddress.address,
 				type: ContactAddressType.WORK,
 			}),
 		],
 	}),
 }
-export const otherAddress2 = createEncryptedMailAddress({
+export const otherAddress2 = createTestEntity(EncryptedMailAddressTypeRef, {
 	address: "someoneelse@tutanota.de",
 	name: "Some One Else",
 })
@@ -92,11 +107,11 @@ export const otherRecipient2: Recipient = {
 	address: otherAddress2.address,
 	name: otherAddress2.name,
 	type: RecipientType.INTERNAL,
-	contact: createContact({
+	contact: createTestEntity(ContactTypeRef, {
 		nickname: otherAddress2.name,
 		presharedPassword: "otherPassword2",
 		addresses: [
-			createContactAddress({
+			createTestEntity(ContactAddressTypeRef, {
 				address: otherAddress2.address,
 				type: ContactAddressType.WORK,
 			}),
@@ -104,16 +119,16 @@ export const otherRecipient2: Recipient = {
 	}),
 }
 
-export const thirdAddress = createEncryptedMailAddress({ address: "somethirdaddress@tuta.com", name: "thirdperson" })
+export const thirdAddress = createTestEntity(EncryptedMailAddressTypeRef, { address: "somethirdaddress@tuta.com", name: "thirdperson" })
 export const thirdRecipient: Recipient = {
 	address: thirdAddress.address,
 	name: thirdAddress.name,
 	type: RecipientType.INTERNAL,
-	contact: createContact({
+	contact: createTestEntity(ContactTypeRef, {
 		nickname: "drei",
 		presharedPassword: "noPassword",
 		addresses: [
-			createContactAddress({
+			createTestEntity(ContactAddressTypeRef, {
 				address: thirdAddress.address,
 				type: ContactAddressType.OTHER,
 			}),
@@ -125,11 +140,11 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 	[
 		"ownCalendar",
 		{
-			groupRoot: createCalendarGroupRoot({}),
+			groupRoot: createTestEntity(CalendarGroupRootTypeRef, {}),
 			shared: false,
 			longEvents: new LazyLoaded(() => Promise.resolve([])),
-			groupInfo: createGroupInfo({}),
-			group: createGroup({
+			groupInfo: createTestEntity(GroupInfoTypeRef, {}),
+			group: createTestEntity(GroupTypeRef, {
 				_id: "ownCalendar",
 				user: "ownerId",
 				type: GroupType.Calendar,
@@ -139,11 +154,11 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 	[
 		"sharedCalendar",
 		{
-			groupRoot: createCalendarGroupRoot({}),
+			groupRoot: createTestEntity(CalendarGroupRootTypeRef, {}),
 			shared: true,
 			longEvents: new LazyLoaded(() => Promise.resolve([])),
-			groupInfo: createGroupInfo({}),
-			group: createGroup({
+			groupInfo: createTestEntity(GroupInfoTypeRef, {}),
+			group: createTestEntity(GroupTypeRef, {
 				_id: "sharedCalendar",
 				user: "otherId",
 				type: GroupType.Calendar,
@@ -161,38 +176,38 @@ export function makeUserController(
 	businessFeatureOrdered: boolean = false,
 	isNewPaidPlan: boolean = false,
 ): UserController {
-	const bookingsRef = createBookingsRef({
+	const bookingsRef = createTestEntity(BookingsRefTypeRef, {
 		items: GENERATED_MAX_ID,
 	})
 	const customizations: Feature[] = []
 
 	if (businessFeatureOrdered) {
 		customizations.push(
-			createFeature({
+			createTestEntity(FeatureTypeRef, {
 				feature: FeatureType.BusinessFeatureEnabled,
 			}),
 		)
 	}
 
 	return downcast({
-		user: createUser({
+		user: createTestEntity(UserTypeRef, {
 			_id: ownerId,
 			memberships: [
-				createGroupMembership({
+				createTestEntity(GroupMembershipTypeRef, {
 					groupType: GroupType.Mail,
 				}),
-				createGroupMembership({
+				createTestEntity(GroupMembershipTypeRef, {
 					groupType: GroupType.Contact,
 				}),
 			],
 			accountType,
 		}),
-		props: createTutanotaProperties({
+		props: createTestEntity(TutanotaPropertiesTypeRef, {
 			defaultSender: defaultSender || ownerMailAddress,
 		}),
-		userGroupInfo: createGroupInfo({
+		userGroupInfo: createTestEntity(GroupInfoTypeRef, {
 			mailAddressAliases: aliases.map((address) =>
-				createMailAddressAlias({
+				createTestEntity(MailAddressAliasTypeRef, {
 					mailAddress: address,
 					enabled: true,
 				}),
@@ -207,13 +222,13 @@ export function makeUserController(
 		isNewPaidPlan: () => isNewPaidPlan,
 		loadCustomer: () =>
 			Promise.resolve(
-				createCustomer({
+				createTestEntity(CustomerTypeRef, {
 					customizations: customizations,
 				}),
 			),
 		loadCustomerInfo: () =>
 			Promise.resolve(
-				createCustomerInfo({
+				createTestEntity(CustomerInfoTypeRef, {
 					bookings: bookingsRef,
 				}),
 			),
@@ -223,7 +238,7 @@ export function makeUserController(
 		},
 		getPlanConfig: () =>
 			Promise.resolve(
-				createPlanConfiguration({
+				createTestEntity(PlanConfigurationTypeRef, {
 					eventInvites: businessFeatureOrdered || isNewPaidPlan,
 				}),
 			),
@@ -235,7 +250,7 @@ export function makeMailboxDetail(): MailboxDetail {
 		mailbox: createTestEntity(MailBoxTypeRef),
 		folders: new FolderSystem([]),
 		mailGroupInfo: createTestEntity(GroupInfoTypeRef),
-		mailGroup: createGroup({
+		mailGroup: createTestEntity(GroupTypeRef, {
 			user: ownerId,
 		}),
 		mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
@@ -250,7 +265,7 @@ export function makeCalendarInfo(type: "own" | "shared", id: string): CalendarIn
 		}),
 		longEvents: new LazyLoaded(() => Promise.resolve([])),
 		groupInfo: downcast({}),
-		group: createGroup({
+		group: createTestEntity(GroupTypeRef, {
 			_id: id,
 			type: GroupType.Calendar,
 			user: type === "own" ? ownerId : "anotherUserId",
@@ -285,7 +300,7 @@ function id(element: string): IdTuple {
 }
 
 export function makeEvent(_id: string, startTime: Date, endTime: Date, uid: string = ""): CalendarEvent {
-	return createCalendarEvent({
+	return createTestEntity(CalendarEventTypeRef, {
 		_ownerGroup: "ownerGroup",
 		_id: id(_id),
 		startTime,
@@ -296,7 +311,7 @@ export function makeEvent(_id: string, startTime: Date, endTime: Date, uid: stri
 
 export function addCapability(user: User, groupId: Id, capability: ShareCapability) {
 	user.memberships.push(
-		createGroupMembership({
+		createTestEntity(GroupMembershipTypeRef, {
 			group: groupId,
 			capability,
 		}),

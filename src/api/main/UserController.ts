@@ -382,15 +382,22 @@ export async function initUserController({ user, userGroupInfo, sessionId, acces
 	const entityClient = locator.entityClient
 	const [props, userSettingsGroupRoot] = await Promise.all([
 		entityClient.loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group),
-		entityClient
-			.load(UserSettingsGroupRootTypeRef, user.userGroup.group)
-			.catch(
-				ofClass(NotFoundError, () =>
-					entityClient
-						.setup(null, createUserSettingsGroupRoot({ _ownerGroup: user.userGroup.group }))
-						.then(() => entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group)),
-				),
+		entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group).catch(
+			ofClass(NotFoundError, () =>
+				entityClient
+					.setup(
+						null,
+						createUserSettingsGroupRoot({
+							_ownerGroup: user.userGroup.group,
+							startOfTheWeek: "0",
+							timeFormat: "0",
+							groupSettings: [],
+							usageDataOptedIn: null,
+						}),
+					)
+					.then(() => entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group)),
 			),
+		),
 	])
 	return new UserController(user, userGroupInfo, sessionId, props, accessToken, userSettingsGroupRoot, sessionType, entityClient, locator.serviceExecutor)
 }

@@ -76,7 +76,27 @@ export class ContactEditor {
 		listId?: Id,
 		private readonly newContactIdReceiver: ((contactId: Id) => unknown) | null = null,
 	) {
-		this.contact = contact ? clone(contact) : createContact({})
+		this.contact = contact
+			? clone(contact)
+			: createContact({
+					mailAddresses: [],
+					title: null,
+					socialIds: [],
+					role: "",
+					presharedPassword: null,
+					photo: null,
+					phoneNumbers: [],
+					oldBirthdayDate: null,
+					nickname: null,
+					lastName: "",
+					firstName: "",
+					company: "",
+					comment: "",
+					birthdayIso: null,
+					addresses: [],
+					autoTransmitPassword: "",
+					oldBirthdayAggregate: null,
+			  })
 		this.isNewContact = contact?._id == null
 
 		if (this.isNewContact && listId == null) {

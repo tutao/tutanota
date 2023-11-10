@@ -8,7 +8,8 @@ import { CustomerTypeRef, Group, GroupInfo, GroupInfoTypeRef, GroupTypeRef, User
 import { formatDateTimeUTC } from "../../../src/calendar/export/CalendarImporter.js"
 import { CounterFacade } from "../../../src/api/worker/facades/lazy/CounterFacade.js"
 import { CounterType } from "../../../src/api/common/TutanotaConstants.js"
-import { createCounterValue } from "../../../src/api/entities/monitor/TypeRefs.js"
+import { CounterValueTypeRef } from "../../../src/api/entities/monitor/TypeRefs.js"
+import { createTestEntity } from "../TestUtils.js"
 
 o.spec("user data export", function () {
 	const customerId = "customerId"
@@ -54,8 +55,8 @@ o.spec("user data export", function () {
 		addUser("eman ym", "mail2@mail.com", twoCreated, null, null, [], "user2", "group2", "storage2")
 
 		when(counterFacadeMock.readAllCustomerCounterValues(CounterType.UserStorageLegacy, customerId)).thenResolve([
-			createCounterValue({ counterId: "storage1", value: "100" }),
-			createCounterValue({ counterId: "wrongId", value: "42" }), // some other counter
+			createTestEntity(CounterValueTypeRef, { counterId: "storage1", value: "100" }),
+			createTestEntity(CounterValueTypeRef, { counterId: "wrongId", value: "42" }), // some other counter
 			// missing counter for second user!
 		])
 

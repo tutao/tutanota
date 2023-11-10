@@ -3,12 +3,11 @@ import { UserController } from "../../../src/api/main/UserController.js"
 import { reminderCutoffDate, shouldShowUpgradeReminder } from "../../../src/login/PostLoginUtils.js"
 import { object, when } from "testdouble"
 import {
-	createCustomer,
-	createCustomerInfo,
-	createCustomerProperties,
 	Customer,
 	CustomerInfo,
+	CustomerInfoTypeRef,
 	CustomerProperties,
+	CustomerPropertiesTypeRef,
 	CustomerTypeRef,
 } from "../../../src/api/entities/sys/TypeRefs.js"
 import { Const } from "../../../src/api/common/TutanotaConstants.js"
@@ -25,8 +24,8 @@ o.spec("PostLoginUtils", () => {
 		o.beforeEach(() => {
 			userController = object()
 
-			customerInfo = createCustomerInfo({})
-			customerProperties = createCustomerProperties({})
+			customerInfo = createTestEntity(CustomerInfoTypeRef, {})
+			customerProperties = createTestEntity(CustomerPropertiesTypeRef, {})
 			customer = createTestEntity(CustomerTypeRef)
 
 			when(userController.loadCustomerInfo()).thenResolve(customerInfo)

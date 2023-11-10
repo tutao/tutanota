@@ -266,6 +266,7 @@ export class CalendarEventWhenModel {
 						endValue: "1",
 						frequency: RepeatPeriod.DAILY,
 						excludedDates: [],
+						timeZone: "",
 				  })
 			this.repeatRule.frequency = repeatPeriod
 		}
@@ -468,7 +469,20 @@ export class CalendarEventWhenModel {
 
 	get result(): CalendarEventWhenModelResult {
 		// we got a stripped repeat rule, so we re-create a fresh one with all fields but overwrite it with our values.
-		const repeatRule: RepeatRule | null = this.repeatRule ? { ...createRepeatRule({}), ...this.repeatRule, timeZone: this.zone } : null
+		const repeatRule: RepeatRule | null = this.repeatRule
+			? {
+					...createRepeatRule({
+						timeZone: "",
+						excludedDates: [],
+						endType: "0",
+						endValue: null,
+						interval: "0",
+						frequency: "0",
+					}),
+					...this.repeatRule,
+					timeZone: this.zone,
+			  }
+			: null
 		this.deleteExcludedDatesIfNecessary(repeatRule)
 		const { startTime, endTime } = this.getTimes()
 		return { startTime, endTime, repeatRule }

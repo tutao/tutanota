@@ -355,7 +355,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					return showProgressDialog(
 						"pleaseWait_msg",
 						locator.serviceExecutor
-							.put(DebitService, createDebitServicePutData({}))
+							.put(DebitService, createDebitServicePutData({ invoice: null }))
 							.catch(ofClass(LockedError, () => "operationStillActive_msg" as TranslationKey))
 							.catch(
 								ofClass(PreconditionFailedError, (error) => {
