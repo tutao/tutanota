@@ -27,9 +27,17 @@ export type MailFolderRowAttrs = {
 	onHover: () => void
 }
 
+// TODO: rename clicked, create function to call onHover() & set hovered
 export class MailFolderRow implements Component<MailFolderRowAttrs> {
 	private clicked: boolean = false
 	private hovered: boolean = false
+
+	onupdate(vnode: Vnode<MailFolderRowAttrs>): any {
+		const button = vnode.attrs.button
+		if (isNavButtonSelected(button)) {
+			this.hovered = true
+		}
+	}
 
 	view(vnode: Vnode<MailFolderRowAttrs>): Children {
 		const { count, button, rightButton, expanded, indentationLevel, icon, hasChildren, editMode, onHover } = vnode.attrs
