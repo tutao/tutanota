@@ -10,6 +10,7 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Rect
 import android.net.MailTo
+import android.net.ParseException
 import android.net.Uri
 import android.os.Bundle
 import android.os.PowerManager
@@ -600,11 +601,16 @@ class MainActivity : FragmentActivity() {
 		} else {
 			files = listOf()
 		}
-		val mailToUrlString: String = if (intent.data != null && MailTo.isMailTo(intent.dataString)) {
-			intent.dataString ?: ""
-		} else {
-			""
+
+		val mailTo = try {
+			MailTo.parse(intent.dataString.orEmpty())
+		} catch (e: ParseException) {
+			Log.w(TAG, e)
+			null
 		}
+
+		val mailToUrlString: String = if (mailTo != null && !mailTo.isEmpty) intent.dataString.orEmpty() else ""
+
 		try {
 			commonNativeFacade.createMailEditor(
 					files,
