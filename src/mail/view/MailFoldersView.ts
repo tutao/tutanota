@@ -39,6 +39,7 @@ type Counters = Record<string, number>
 
 /** Displays a tree of all folders. */
 export class MailFoldersView implements Component<MailFolderViewAttrs> {
+	// This maps the ids of folder rows to whether their right buttons are hovered or not
 	private areRightButtonsVisible = new Map<string, boolean>()
 
 	view({ attrs }: Vnode<MailFolderViewAttrs>): Children {
@@ -114,11 +115,14 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				hasChildren && currentExpansionState
 					? this.renderFolderTree(system.children, groupCounters, attrs, path, indentationLevel + 1)
 					: { children: null, numRows: 0 }
-			const rightButton = !(system.folder.folderType === MailFolderType.TRASH || system.folder.folderType === MailFolderType.SPAM)
-				? this.createFolderMoreButton(system.folder, attrs, () => {
-						this.areRightButtonsVisible.set(id, false)
-				  })
-				: null
+			const isTrashOrSpam = system.folder.folderType === MailFolderType.TRASH || system.folder.folderType === MailFolderType.SPAM
+			const isRightButtonVisible = this.areRightButtonsVisible.get(id)
+			const rightButton =
+				!isTrashOrSpam && isRightButtonVisible
+					? this.createFolderMoreButton(system.folder, attrs, () => {
+							this.areRightButtonsVisible.set(id, false)
+					  })
+					: null
 			const render = m.fragment(
 				{
 					key: id,
@@ -128,7 +132,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						count: attrs.inEditMode ? 0 : summedCount,
 						button,
 						icon: getFolderIcon(system.folder),
-						rightButton: this.areRightButtonsVisible.get(id) ? rightButton : null,
+						rightButton,
 						expanded: hasChildren ? currentExpansionState : null,
 						indentationLevel: Math.min(indentationLevel, MAX_FOLDER_INDENT_LEVEL),
 						onExpanderClick: hasChildren ? () => attrs.onFolderExpanded(system.folder, currentExpansionState) : noOp,
@@ -138,8 +142,8 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						isLastSibling: last(subSystems) === system,
 						editMode: attrs.inEditMode,
 						onHover: () => {
-							for (const [buttonId] of this.areRightButtonsVisible) {
-								this.areRightButtonsVisible.set(buttonId, false)
+							for (const [rowId] of this.areRightButtonsVisible) {
+								this.areRightButtonsVisible.set(rowId, false)
 							}
 							this.areRightButtonsVisible.set(id, true)
 						},
