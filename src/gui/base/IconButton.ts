@@ -18,6 +18,7 @@ export interface IconButtonAttrs {
 	colors?: ButtonColor
 	size?: ButtonSize
 	onblur?: () => unknown
+	onkeydown?: (event: KeyboardEvent) => unknown
 }
 
 export class IconButton implements Component<IconButtonAttrs> {
@@ -37,6 +38,7 @@ export class IconButton implements Component<IconButtonAttrs> {
 					e.stopPropagation()
 				},
 				onblur: attrs.onblur,
+				onkeydown: attrs.onkeydown,
 				title: lang.getMaybeLazy(attrs.title),
 				class: attrs.size === ButtonSize.Compact ? "compact" : "",
 			},
