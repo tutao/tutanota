@@ -139,6 +139,9 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						isLastSibling: last(subSystems) === system,
 						editMode: attrs.inEditMode,
 						onHover: () => {
+							for (const [buttonId] of this.areRightButtonsVisible) {
+								this.areRightButtonsVisible.set(buttonId, false)
+							}
 							this.areRightButtonsVisible.set(id, true)
 						},
 					}),
