@@ -357,6 +357,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 			m(
 				"",
 				{
+					"aria-hidden": `${isExpanded}`,
 					style: {
 						height: isExpanded ? 0 : undefined,
 						opacity: isExpanded ? 0 : 1,
@@ -417,7 +418,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		const eventForDay = attrs.eventsForDays?.get(date.getTime())
 		const hasEvent = eventForDay && eventForDay.length > 0
 		const isExpandableDatePicker = attrs.isExpandableDatePicker ?? false
-
+		const isSelectedDay = isSameDayOfDate(date, attrs.selectedDate)
 		return m(
 			".center.click" +
 				(isPaddingDay && !isExpandableDatePicker ? "" : getDateIndicator(date, attrs.selectedDate)) +
@@ -428,6 +429,10 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 					height: size,
 					width: size,
 				},
+				"aria-hidden": `${isPaddingDay && !isExpandableDatePicker}`,
+				"aria-label": date.toLocaleDateString(),
+				"aria-selected": `${isSelectedDay}`,
+				role: "option",
 				onclick:
 					(!isPaddingDay || isExpandableDatePicker) &&
 					(() => {
@@ -456,6 +461,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 			m(
 				".center",
 				{
+					"aria-hidden": "true",
 					style: {
 						fontSize,
 						height: size,
