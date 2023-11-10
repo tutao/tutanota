@@ -9,6 +9,9 @@ import { DesktopConfig } from "../config/DesktopConfig.js"
 import { DesktopConfigKey } from "../config/ConfigKeys.js"
 import { Argon2idFacade } from "../../api/worker/facades/Argon2idFacade.js"
 import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
+import { CryptoError } from "@tutao/tutanota-crypto"
+import { CancelledError } from "../../api/common/error/CancelledError.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 /** the single source of truth for this configuration */
 const SUPPORTED_MODES = [CredentialEncryptionMode.DEVICE_LOCK, CredentialEncryptionMode.APP_PIN] as const
@@ -55,8 +58,24 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 
 	private async maybeDecryptUsingAppPin(data: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
 		if (encryptionMode === CredentialEncryptionMode.APP_PIN) {
-			const appPinKey = await this.resolveKeyFromAppPin()
-			data = this.crypto.aesDecryptBytes(appPinKey, data)
+			const appPinKey = await this.resolveKeyFromAppPin(false)
+			if (appPinKey == null) {
+				// there is no salt, so someone might have turned off app pin in the meantime.
+				// if we actually have pin-encrypted credentials and just lost the salt, we
+				// will get a decryption failure and delete the credentials further up the stack.
+				return data
+			}
+			try {
+				data = this.crypto.aesDecryptBytes(appPinKey, data)
+			} catch (e) {
+				if (e instanceof CryptoError) {
+					const nativeFacade = await this.getCurrentCommonNativeFacade()
+					nativeFacade.showAlertDialog("invalidPassword_msg")
+					throw new CancelledError("app pin verification failed")
+				} else {
+					throw e
+				}
+			}
 			return data
 		} else {
 			// our mode is not app pin, so the app pin should not be set.
@@ -69,11 +88,14 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 
 	private async maybeEncryptUsingAppPin(data: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
 		if (encryptionMode === CredentialEncryptionMode.APP_PIN) {
-			const appPinKey = await this.resolveKeyFromAppPin()
+			const appPinKey = await this.resolveKeyFromAppPin(true)
+			if (appPinKey == null) {
+				throw new ProgrammingError("we should have generated a new key or thrown a CancelledErrorq")
+			}
 			data = this.crypto.aesEncryptBytes(appPinKey, data)
 			return data
 		} else {
-			// our mode is not app pin, so the app pin should not be set
+			// our mode is not app pin, so the app pin salt should not be set
 			await this.conf.setVar(DesktopConfigKey.appPinSalt, null)
 			return data
 		}
@@ -82,12 +104,16 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 	/**
 	 * if there is a salt stored, use it and a password prompt to derive the app pin key.
 	 * if there isn't, ask for a new password, generate a salt & store it, then derive the key.
-	 * @return the derived 256 bit key
+	 * @param generate whether to generate a new key if no salt is found
+	 * @return the derived 256 bit key or null if none is found and generate is false
 	 */
-	private async resolveKeyFromAppPin(): Promise<Aes256Key> {
+	private async resolveKeyFromAppPin(generate: boolean): Promise<Aes256Key | null> {
 		const storedAppPinSaltB64 = await this.conf.getVar(DesktopConfigKey.appPinSalt)
 		const commonNativeFacade = await this.getCurrentCommonNativeFacade()
 		if (storedAppPinSaltB64 == null) {
+			if (!generate) {
+				return null
+			}
 			const newSalt = this.crypto.randomBytes(KEY_LENGTH_BYTES_AES_256)
 			const newPw = await commonNativeFacade.promptForNewPassword(this.lang.get("credentialsEncryptionModeAppPin_label"), null)
 			const newAppPinSaltB64 = uint8ArrayToBase64(newSalt)

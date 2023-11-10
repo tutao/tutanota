@@ -16,6 +16,7 @@ import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorage
 import { DeviceConfig } from "../misc/DeviceConfig"
 import { Const } from "../api/common/TutanotaConstants.js"
 import { getWhitelabelRegistrationDomains } from "./LoginView.js"
+import { CancelledError } from "../api/common/error/CancelledError.js"
 
 assertMainOrNode()
 
@@ -217,6 +218,10 @@ export class LoginViewModel implements ILoginViewModel {
 				await this.credentialsProvider.clearCredentials(e)
 				await this._updateCachedCredentials()
 				this.state = LoginState.NotAuthenticated
+				return
+			} else if (e instanceof CancelledError) {
+				// ignore, happens if we have app pin activated and the user
+				// cancels the prompt or provides a wrong password.
 				return
 			} else if (e instanceof CredentialAuthenticationError) {
 				this.helpText = getLoginErrorMessage(e, false)
