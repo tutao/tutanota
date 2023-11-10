@@ -29,7 +29,9 @@ export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo, 
 	const domainData: AddDomainData = {
 		domain: stream(domain),
 		customerInfo: customerInfo,
-		expectedVerificationRecord: createDnsRecord({}),
+		// will be filled oncreate by the page
+		// not actually spf, but the type TXT only matters here
+		expectedVerificationRecord: createDnsRecord({ subdomain: null, type: DnsRecordType.DNS_RECORD_TYPE_TXT_SPF, value: "" }),
 		editAliasFormAttrs: {
 			model: mailAddressTableModel,
 			expanded: mailAddressTableExpanded,
@@ -37,10 +39,6 @@ export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo, 
 		},
 		domainStatus: new DomainDnsStatus(domain),
 	}
-	domainData.expectedVerificationRecord.type = DnsRecordType.DNS_RECORD_TYPE_TXT_SPF // not actually spf, but the type TXT only matters here
-
-	domainData.expectedVerificationRecord.subdomain = null
-	domainData.expectedVerificationRecord.value = "" // will be filled oncreate by the page
 
 	const wizardPages = [
 		wizardPageWrapper(EnterDomainPage, new EnterDomainPageAttrs(domainData)),

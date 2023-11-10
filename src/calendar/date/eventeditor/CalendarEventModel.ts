@@ -95,7 +95,7 @@ import { CalendarEventWhenModel } from "./CalendarEventWhenModel.js"
 import { CalendarEventWhoModel } from "./CalendarEventWhoModel.js"
 import { CalendarEventAlarmModel } from "./CalendarEventAlarmModel.js"
 import { SanitizedTextViewModel } from "../../../misc/SanitizedTextViewModel.js"
-import { getStrippedClone, Stripped } from "../../../api/common/utils/EntityUtils.js"
+import { getStrippedClone, Stripped, StrippedEntity } from "../../../api/common/utils/EntityUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
 import { CalendarNotificationModel, CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
 import { CalendarEventApplyStrategies, CalendarEventModelStrategy } from "./CalendarEventModelStrategy.js"
@@ -186,7 +186,6 @@ export async function makeCalendarEventModel(
 			initialValues = index.progenitor
 		}
 	}
-	const cleanInitialValues = cleanupInitialValuesForEditing(initialValues)
 
 	const user = logins.getUserController().user
 	const [alarms, calendars] = await Promise.all([
@@ -231,18 +230,27 @@ export async function makeCalendarEventModel(
 		uid == null ? [] : (await calendarModel.getEventsByUid(uid))?.alteredInstances.map((i) => i.recurrenceId) ?? []
 	const notificationModel = new CalendarNotificationModel(notificationSender, logins)
 	const applyStrategies = new CalendarEventApplyStrategies(calendarModel, logins, notificationModel, recurrenceIds, showProgress, zone)
+	const initialOrDefaultValues = Object.assign(makeEmptyCalendarEvent(), initialValues)
+	const cleanInitialValues = cleanupInitialValuesForEditing(initialOrDefaultValues)
 	const progenitor = () => calendarModel.resolveCalendarEventProgenitor(cleanInitialValues)
-	const strategy = await selectStrategy(makeEditModels, applyStrategies, operation, progenitor, createCalendarEvent(initialValues), cleanInitialValues)
+	const strategy = await selectStrategy(
+		makeEditModels,
+		applyStrategies,
+		operation,
+		progenitor,
+		createCalendarEvent(initialOrDefaultValues),
+		cleanInitialValues,
+	)
 	return strategy && new CalendarEventModel(strategy, eventType, operation, logins.getUserController(), notificationSender, entityClient, calendars)
 }
 
 async function selectStrategy(
-	makeEditModels: (i: CalendarEvent) => CalendarEventEditModels,
+	makeEditModels: (i: StrippedEntity<CalendarEvent>) => CalendarEventEditModels,
 	applyStrategies: CalendarEventApplyStrategies,
 	operation: CalendarOperation,
 	resolveProgenitor: () => Promise<CalendarEvent | null>,
 	existingInstanceIdentity: CalendarEvent,
-	cleanInitialValues: CalendarEvent,
+	cleanInitialValues: StrippedEntity<CalendarEvent>,
 ): Promise<CalendarEventModelStrategy | null> {
 	let editModels: CalendarEventEditModels
 	let apply: () => Promise<void>
@@ -540,11 +548,27 @@ export function assembleEditResultAndAssignFromExisting(existingEvent: CalendarE
  * @param identity sequence (default "0") and recurrenceId (default null) are optional, but the uid must be specified.
  */
 export function assignEventIdentity(values: CalendarEventValues, identity: Require<"uid", Partial<CalendarEventIdentity>>): CalendarEvent {
-	return createCalendarEvent({
-		...values,
-		sequence: "0",
-		...identity,
-	})
+	return Object.assign(
+		createCalendarEvent({
+			sequence: "0",
+			organizer: null,
+			attendees: [],
+			description: "",
+			repeatRule: null,
+			location: "",
+			summary: "",
+			endTime: new Date(),
+			uid: null,
+			startTime: new Date(),
+			recurrenceId: null,
+			invitedConfidentially: null,
+			// @ts-ignore
+			alarmInfos: null, // FIXME
+			hashedUid: null,
+		}),
+		values,
+		identity,
+	)
 }
 
 async function resolveAlarmsForEvent(alarms: CalendarEvent["alarmInfos"], calendarModel: CalendarModel, user: User): Promise<Array<AlarmInterval>> {
@@ -552,7 +576,27 @@ async function resolveAlarmsForEvent(alarms: CalendarEvent["alarmInfos"], calend
 	return alarmInfos.map(({ alarmInfo }) => parseAlarmInterval(alarmInfo.trigger))
 }
 
-function cleanupInitialValuesForEditing(initialValues: Partial<CalendarEvent>): CalendarEvent {
+function makeEmptyCalendarEvent(): StrippedEntity<CalendarEvent> {
+	return {
+		// @ts-ignore
+		alarmInfos: null, // FIXME
+		invitedConfidentially: null,
+		hashedUid: null,
+		uid: null,
+		recurrenceId: null,
+		endTime: new Date(),
+		summary: "",
+		startTime: new Date(),
+		location: "",
+		repeatRule: null,
+		description: "",
+		attendees: [],
+		organizer: null,
+		sequence: "",
+	}
+}
+
+function cleanupInitialValuesForEditing(initialValues: StrippedEntity<CalendarEvent>): CalendarEvent {
 	// the event we got passed may already have some technical fields assigned, so we remove them.
 	const stripped = getStrippedClone<CalendarEvent>(initialValues)
 	const result = createCalendarEvent(stripped)

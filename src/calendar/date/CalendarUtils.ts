@@ -251,12 +251,14 @@ export class DefaultDateProvider implements DateProvider {
 }
 
 export function createRepeatRuleWithValues(frequency: RepeatPeriod, interval: number, timeZone: string = getTimeZone()): CalendarRepeatRule {
-	const rule = createCalendarRepeatRule({
+	return createCalendarRepeatRule({
 		timeZone: timeZone,
 		frequency: frequency,
 		interval: String(interval),
+		endValue: null,
+		endType: "0",
+		excludedDates: [],
 	})
-	return rule
 }
 
 export function colorForBg(color: string): string {

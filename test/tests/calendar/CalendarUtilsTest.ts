@@ -29,7 +29,7 @@ import {
 	StandardAlarmInterval,
 } from "../../../src/calendar/date/CalendarUtils.js"
 import { lang } from "../../../src/misc/LanguageViewModel.js"
-import { createDateWrapper, createGroup, createGroupMembership, createUser, User } from "../../../src/api/entities/sys/TypeRefs.js"
+import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupTypeRef, User, UserTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
 import { AccountType, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/api/common/TutanotaConstants.js"
 import { timeStringFromParts } from "../../../src/misc/Formatter.js"
 import { DateTime } from "luxon"
@@ -37,11 +37,11 @@ import { generateEventElementId, getAllDayDateUTC } from "../../../src/api/commo
 import { hasCapabilityOnGroup } from "../../../src/sharing/GroupUtils.js"
 import type { CalendarEvent } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
+	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
-	createCalendarEvent,
-	createCalendarEventAttendee,
+	CalendarRepeatRuleTypeRef,
 	createCalendarRepeatRule,
-	createEncryptedMailAddress,
+	EncryptedMailAddressTypeRef,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { clone, getStartOfDay, identity, lastThrow, neverNull } from "@tutao/tutanota-utils"
 import { Time } from "../../../src/calendar/date/Time.js"
@@ -427,22 +427,23 @@ o.spec("calendar utils tests", function () {
 		let groupMembership
 		let groupOwnerMembership
 		o.before(function () {
-			group = createGroup({
+			// @ts-ignore
+			group = createTestEntity(GroupTypeRef, {
 				_id: "g1",
 				type: GroupType.Calendar,
 				user: "groupOwner",
 			})
-			groupMembership = createGroupMembership({
+			groupMembership = createTestEntity(GroupMembershipTypeRef, {
 				group: group._id,
 			})
-			groupOwnerMembership = createGroupMembership({
+			groupOwnerMembership = createTestEntity(GroupMembershipTypeRef, {
 				group: group._id,
 			})
-			ownerUser = createUser({
+			ownerUser = createTestEntity(UserTypeRef, {
 				_id: "groupOwner",
 				memberships: [groupOwnerMembership],
 			})
-			user = createUser({
+			user = createTestEntity(UserTypeRef, {
 				_id: "groupMember",
 				memberships: [groupMembership],
 			})
@@ -679,7 +680,7 @@ o.spec("calendar utils tests", function () {
 		const zone = getTimeZone()
 
 		function eventOn(start: Date, end: Date): CalendarEvent {
-			return createCalendarEvent({
+			return createTestEntity(CalendarEventTypeRef, {
 				startTime: start,
 				endTime: end,
 			})
@@ -734,7 +735,7 @@ o.spec("calendar utils tests", function () {
 		o("events with invalid dates are detected", function () {
 			o(
 				checkEventValidity(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						startTime: new Date("nan"),
 						endTime: new Date("1990"),
 					}),
@@ -742,7 +743,7 @@ o.spec("calendar utils tests", function () {
 			).equals(CalendarEventValidity.InvalidContainsInvalidDate)
 			o(
 				checkEventValidity(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						startTime: new Date("1991"),
 						endTime: new Date("nan"),
 					}),
@@ -750,7 +751,7 @@ o.spec("calendar utils tests", function () {
 			).equals(CalendarEventValidity.InvalidContainsInvalidDate)
 			o(
 				checkEventValidity(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						startTime: new Date("nan"),
 						endTime: new Date("nan"),
 					}),
@@ -760,7 +761,7 @@ o.spec("calendar utils tests", function () {
 		o("events with start date not before end date are detected", function () {
 			o(
 				checkEventValidity(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						startTime: new Date("1990"),
 						endTime: new Date("1990"),
 					}),
@@ -768,7 +769,7 @@ o.spec("calendar utils tests", function () {
 			).equals(CalendarEventValidity.InvalidEndBeforeStart)
 			o(
 				checkEventValidity(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						startTime: new Date("1990"),
 						endTime: new Date("1980"),
 					}),
@@ -778,7 +779,7 @@ o.spec("calendar utils tests", function () {
 		o("events with date before 1970 are detected", function () {
 			o(
 				checkEventValidity(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						startTime: new Date("1969"),
 						endTime: new Date("1990"),
 					}),
@@ -786,7 +787,7 @@ o.spec("calendar utils tests", function () {
 			).equals(CalendarEventValidity.InvalidPre1970)
 			o(
 				checkEventValidity(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						startTime: new Date("1960"),
 						endTime: new Date("1966"),
 					}),
@@ -794,7 +795,7 @@ o.spec("calendar utils tests", function () {
 			).equals(CalendarEventValidity.InvalidPre1970)
 			o(
 				checkEventValidity(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						startTime: new Date("1970"),
 						endTime: new Date("1966"),
 					}),
@@ -804,7 +805,7 @@ o.spec("calendar utils tests", function () {
 		o("valid events are detected", function () {
 			o(
 				checkEventValidity(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						startTime: getDateInUTC("1970"),
 						endTime: getDateInUTC("1990"),
 					}),
@@ -812,7 +813,7 @@ o.spec("calendar utils tests", function () {
 			).equals(CalendarEventValidity.Valid)("events on the cusp of 1970 UTC are valid")
 			o(
 				checkEventValidity(
-					createCalendarEvent({
+					createTestEntity(CalendarEventTypeRef, {
 						startTime: getDateInZone("1971"),
 						endTime: getDateInZone("2022"),
 					}),
@@ -934,7 +935,7 @@ o.spec("calendar utils tests", function () {
 			event.repeatRule.endValue = "2"
 			addDaysForRecurringEvent(eventsForDays, event, getMonthRange(getDateInZone("2023-07-01"), zone), zone)
 			o(countDaysWithEvents(eventsForDays)).equals(2)
-			event.repeatRule.excludedDates = [createDateWrapper({ date: getDateInZone("2023-07-21T12:00") })]
+			event.repeatRule.excludedDates = [createTestEntity(DateWrapperTypeRef, { date: getDateInZone("2023-07-21T12:00") })]
 			addDaysForRecurringEvent(eventsForDays, event, getMonthRange(getDateInZone("2023-07-01"), zone), zone)
 			o(countDaysWithEvents(eventsForDays)).equals(1)
 		})
@@ -1317,7 +1318,7 @@ o.spec("calendar utils tests", function () {
 			const repeatRule = createRepeatRuleWithValues(RepeatPeriod.DAILY, 1, zone)
 			repeatRule.endValue = "2"
 			repeatRule.endType = EndType.Count
-			repeatRule.excludedDates = [createDateWrapper({ date: event.startTime })]
+			repeatRule.excludedDates = [createTestEntity(DateWrapperTypeRef, { date: event.startTime })]
 			event.repeatRule = repeatRule
 			const alteredEvent = clone(event)
 			alteredEvent._id = ["shortEvents", generateEventElementId(alteredEvent.startTime.getTime())]
@@ -1441,30 +1442,34 @@ o.spec("calendar utils tests", function () {
 	})
 	o.spec("calendarEventHasMoreThanOneOccurrencesLeft", function () {
 		o("event without end condition has more than one occurrence", function () {
-			const repeatRule = createCalendarRepeatRule({
+			const repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
 				endType: EndType.Never,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
 			})
-			const progenitor = createCalendarEvent({ startTime: new Date(), endTime: new Date(), repeatRule }) as CalendarEventProgenitor
+			const progenitor = createTestEntity(CalendarEventTypeRef, { startTime: new Date(), endTime: new Date(), repeatRule }) as CalendarEventProgenitor
 			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(true)
 		})
 
 		o("event without repeat rule has less than two occurrences", function () {
-			const progenitor = createCalendarEvent({ startTime: new Date(), endTime: new Date(), repeatRule: null }) as CalendarEventProgenitor
+			const progenitor = createTestEntity(CalendarEventTypeRef, {
+				startTime: new Date(),
+				endTime: new Date(),
+				repeatRule: null,
+			}) as CalendarEventProgenitor
 			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(false)
 		})
 
 		o("event with higher count than exclusions+1 has more left", function () {
-			const repeatRule = createCalendarRepeatRule({
+			const repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
 				endType: EndType.Count,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
 				endValue: "3",
-				excludedDates: [createDateWrapper({ date: new Date("2023-03-03T22:00:00Z") })],
+				excludedDates: [createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-03T22:00:00Z") })],
 				timeZone: zone,
 			})
-			const progenitor = createCalendarEvent({
+			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -1473,15 +1478,18 @@ o.spec("calendar utils tests", function () {
 		})
 
 		o("event with count and enough exclusions has less than two left", function () {
-			const repeatRule = createCalendarRepeatRule({
+			const repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
 				endType: EndType.Count,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
 				endValue: "3",
-				excludedDates: [createDateWrapper({ date: new Date("2023-03-03T22:00:00Z") }), createDateWrapper({ date: new Date("2023-03-04T22:00:00Z") })],
+				excludedDates: [
+					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-03T22:00:00Z") }),
+					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
+				],
 				timeZone: zone,
 			})
-			const progenitor = createCalendarEvent({
+			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -1490,15 +1498,18 @@ o.spec("calendar utils tests", function () {
 		})
 
 		o("event with count and enough exclusions has less than two left, first is excluded", function () {
-			const repeatRule = createCalendarRepeatRule({
+			const repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
 				endType: EndType.Count,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
 				endValue: "3",
-				excludedDates: [createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }), createDateWrapper({ date: new Date("2023-03-04T22:00:00Z") })],
+				excludedDates: [
+					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-02T22:00:00Z") }),
+					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
+				],
 				timeZone: zone,
 			})
-			const progenitor = createCalendarEvent({
+			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -1522,9 +1533,12 @@ o.spec("calendar utils tests", function () {
 					).toMillis(),
 				),
 				timeZone: zone,
-				excludedDates: [createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }), createDateWrapper({ date: new Date("2023-03-04T22:00:00Z") })],
+				excludedDates: [
+					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-02T22:00:00Z") }),
+					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
+				],
 			})
-			const progenitor = createCalendarEvent({
+			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -1548,9 +1562,12 @@ o.spec("calendar utils tests", function () {
 					).toMillis(),
 				),
 				timeZone: zone,
-				excludedDates: [createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }), createDateWrapper({ date: new Date("2023-03-04T22:00:00Z") })],
+				excludedDates: [
+					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-02T22:00:00Z") }),
+					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
+				],
 			})
-			const progenitor = createCalendarEvent({
+			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -1575,15 +1592,15 @@ o.spec("calendar utils tests", function () {
 				),
 				timeZone: zone,
 				excludedDates: [
-					createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }),
+					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-02T22:00:00Z") }),
 					// 2023-03-03T22:00:00Z not excluded
-					createDateWrapper({ date: new Date("2023-03-04T22:00:00Z") }),
-					createDateWrapper({ date: new Date("2023-03-05T22:00:00Z") }),
+					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
+					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-05T22:00:00Z") }),
 					// 2023-03-06T22:00:00Z not excluded
 					// 2023-03-07T22:00:00Z not excluded
 				],
 			})
-			const progenitor = createCalendarEvent({
+			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -1598,18 +1615,18 @@ o.spec("calendar utils tests", function () {
 		})
 
 		o("event with end date after 2 occurrences and an altered instance is considered to have more than one occurrence", function () {
-			const repeatRule = createCalendarRepeatRule({
+			const repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
 				endType: EndType.UntilDate,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
 				endValue: getDateInUTC("2023-03-04").getTime().toString(),
 				timeZone: zone,
 				excludedDates: [
-					createDateWrapper({ date: getDateInZone("2023-03-02T22:00") }),
+					createTestEntity(DateWrapperTypeRef, { date: getDateInZone("2023-03-02T22:00") }),
 					// 2023-03-03T22:00:00Z not excluded
 				],
 			})
-			const progenitor = createCalendarEvent({
+			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				startTime: getDateInZone("2023-03-02T22:00"),
 				endTime: getDateInZone("2023-03-02T23:00"),
 				repeatRule,
@@ -1624,15 +1641,15 @@ o.spec("calendar utils tests", function () {
 		})
 
 		o("event with exclusions that are not occurrences", function () {
-			const repeatRule = createCalendarRepeatRule({
+			const repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
 				endType: EndType.Count,
 				frequency: RepeatPeriod.DAILY,
 				interval: "2",
 				endValue: "2",
 				timeZone: zone,
-				excludedDates: [createDateWrapper({ date: new Date("2023-03-03T22:00:00Z") })],
+				excludedDates: [createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-03T22:00:00Z") })],
 			})
-			const progenitor = createCalendarEvent({
+			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -1641,7 +1658,7 @@ o.spec("calendar utils tests", function () {
 		})
 
 		o("event with one occurrence (count), no exclusions", function () {
-			const repeatRule = createCalendarRepeatRule({
+			const repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
 				endType: EndType.Count,
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
@@ -1649,7 +1666,7 @@ o.spec("calendar utils tests", function () {
 				timeZone: zone,
 				excludedDates: [],
 			})
-			const progenitor = createCalendarEvent({
+			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -1675,7 +1692,7 @@ o.spec("calendar utils tests", function () {
 				timeZone: zone,
 				excludedDates: [],
 			})
-			const progenitor = createCalendarEvent({
+			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
@@ -1694,7 +1711,7 @@ o.spec("calendar utils tests", function () {
 		})
 
 		o("if no ownergroup but organizer, gets OWN", function () {
-			const event: Partial<CalendarEvent> = { organizer: createEncryptedMailAddress({ address: "my@address.to", name: "my" }) }
+			const event: Partial<CalendarEvent> = { organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "my@address.to", name: "my" }) }
 			const calendars = new Map()
 			const ownMailAddresses = ["my@address.to"]
 			const user: User = object()
@@ -1703,7 +1720,7 @@ o.spec("calendar utils tests", function () {
 		})
 
 		o("if no ownergroup and not organizer, gets INVITE", function () {
-			const event: Partial<CalendarEvent> = { organizer: createEncryptedMailAddress({ address: "no@address.to", name: "my" }) }
+			const event: Partial<CalendarEvent> = { organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "no@address.to", name: "my" }) }
 			const calendars = new Map()
 			const ownMailAddresses = ["my@address.to"]
 			const user: User = object()
@@ -1712,7 +1729,10 @@ o.spec("calendar utils tests", function () {
 		})
 
 		o("event in not any of our calendars gets SHARED_RO", function () {
-			const event: Partial<CalendarEvent> = { organizer: createEncryptedMailAddress({ address: "no@address.to", name: "my" }), _ownerGroup: "ownergroup" }
+			const event: Partial<CalendarEvent> = {
+				organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "no@address.to", name: "my" }),
+				_ownerGroup: "ownergroup",
+			}
 			const calendars = new Map()
 			const ownMailAddresses = ["my@address.to"]
 			const user: User = object()
@@ -1721,11 +1741,14 @@ o.spec("calendar utils tests", function () {
 		})
 
 		o("event in rw-shared calendar w/o attendees gets SHARED_RW", function () {
-			const event: Partial<CalendarEvent> = { organizer: createEncryptedMailAddress({ address: "no@address.to", name: "my" }), _ownerGroup: "ownergroup" }
+			const event: Partial<CalendarEvent> = {
+				organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "no@address.to", name: "my" }),
+				_ownerGroup: "ownergroup",
+			}
 			const calendars = new Map()
 			calendars.set("ownergroup", {
 				shared: true,
-				group: createGroup({
+				group: createTestEntity(GroupTypeRef, {
 					_id: "calendarGroup",
 					type: GroupType.Calendar,
 					user: "otherUser",
@@ -1735,7 +1758,7 @@ o.spec("calendar utils tests", function () {
 			const user: User = object()
 			user.accountType = AccountType.PAID
 			user.memberships = [
-				createGroupMembership({
+				createTestEntity(GroupMembershipTypeRef, {
 					group: "calendarGroup",
 					capability: ShareCapability.Write,
 				}),
@@ -1746,14 +1769,18 @@ o.spec("calendar utils tests", function () {
 
 		o("event in rw-shared calendar w attendees gets LOCKED", function () {
 			const event: Partial<CalendarEvent> = {
-				organizer: createEncryptedMailAddress({ address: "no@address.to", name: "my" }),
+				organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "no@address.to", name: "my" }),
 				_ownerGroup: "ownergroup",
-				attendees: [createCalendarEventAttendee({ address: createEncryptedMailAddress({ address: "bla", name: "blabla" }) })],
+				attendees: [
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						address: createTestEntity(EncryptedMailAddressTypeRef, { address: "bla", name: "blabla" }),
+					}),
+				],
 			}
 			const calendars = new Map()
 			calendars.set("ownergroup", {
 				shared: true,
-				group: createGroup({
+				group: createTestEntity(GroupTypeRef, {
 					_id: "calendarGroup",
 					type: GroupType.Calendar,
 					user: "otherUser",
@@ -1763,7 +1790,7 @@ o.spec("calendar utils tests", function () {
 			const user: User = object()
 			user.accountType = AccountType.PAID
 			user.memberships = [
-				createGroupMembership({
+				createTestEntity(GroupMembershipTypeRef, {
 					group: "calendarGroup",
 					capability: ShareCapability.Write,
 				}),
@@ -1774,14 +1801,18 @@ o.spec("calendar utils tests", function () {
 
 		o("event with ownergroup in own calendar where we're organizer gets OWN", function () {
 			const event: Partial<CalendarEvent> = {
-				organizer: createEncryptedMailAddress({ address: "my@address.to", name: "my" }),
+				organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "my@address.to", name: "my" }),
 				_ownerGroup: "ownergroup",
-				attendees: [createCalendarEventAttendee({ address: createEncryptedMailAddress({ address: "bla", name: "blabla" }) })],
+				attendees: [
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						address: createTestEntity(EncryptedMailAddressTypeRef, { address: "bla", name: "blabla" }),
+					}),
+				],
 			}
 			const calendars = new Map()
 			calendars.set("ownergroup", {
 				shared: false,
-				group: createGroup({
+				group: createTestEntity(GroupTypeRef, {
 					_id: "calendarGroup",
 					type: GroupType.Calendar,
 					user: "userId",
@@ -1798,14 +1829,16 @@ o.spec("calendar utils tests", function () {
 
 	o("event with ownergroup in ro-shared calendar gets shared_ro", function () {
 		const event: Partial<CalendarEvent> = {
-			organizer: createEncryptedMailAddress({ address: "no@address.to", name: "my" }),
+			organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "no@address.to", name: "my" }),
 			_ownerGroup: "ownergroup",
-			attendees: [createCalendarEventAttendee({ address: createEncryptedMailAddress({ address: "bla", name: "blabla" }) })],
+			attendees: [
+				createTestEntity(CalendarEventAttendeeTypeRef, { address: createTestEntity(EncryptedMailAddressTypeRef, { address: "bla", name: "blabla" }) }),
+			],
 		}
 		const calendars = new Map()
 		calendars.set("ownergroup", {
 			shared: true,
-			group: createGroup({
+			group: createTestEntity(GroupTypeRef, {
 				_id: "calendarGroup",
 				type: GroupType.Calendar,
 				user: "otherUser",
@@ -1815,7 +1848,7 @@ o.spec("calendar utils tests", function () {
 		const user: User = object()
 		user.accountType = AccountType.PAID
 		user.memberships = [
-			createGroupMembership({
+			createTestEntity(GroupMembershipTypeRef, {
 				group: "calendarGroup",
 				capability: ShareCapability.Read,
 			}),
@@ -1826,14 +1859,16 @@ o.spec("calendar utils tests", function () {
 
 	o("event with ownergroup in own calendar and a different organizer gets INVITE", function () {
 		const event: Partial<CalendarEvent> = {
-			organizer: createEncryptedMailAddress({ address: "other@address.to", name: "other" }),
+			organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "other@address.to", name: "other" }),
 			_ownerGroup: "ownergroup",
-			attendees: [createCalendarEventAttendee({ address: createEncryptedMailAddress({ address: "bla", name: "blabla" }) })],
+			attendees: [
+				createTestEntity(CalendarEventAttendeeTypeRef, { address: createTestEntity(EncryptedMailAddressTypeRef, { address: "bla", name: "blabla" }) }),
+			],
 		}
 		const calendars = new Map()
 		calendars.set("ownergroup", {
 			shared: false,
-			group: createGroup({
+			group: createTestEntity(GroupTypeRef, {
 				_id: "calendarGroup",
 				type: GroupType.Calendar,
 				user: "userId",

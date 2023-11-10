@@ -129,7 +129,7 @@ export function createTestEntity<T extends Entity>(typeRef: TypeRef<T>, values?:
 	const typeModel = resolveTypeReference(typeRef as TypeRef<any>)
 	const entity = create(typeModel, typeRef)
 	if (values) {
-		return { ...entity, values }
+		return Object.assign(entity, values)
 	} else {
 		return entity
 	}

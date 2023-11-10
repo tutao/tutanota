@@ -38,6 +38,8 @@ import {
 	MailBoxTypeRef,
 	MailFolderRefTypeRef,
 	MailboxGroupRootTypeRef,
+	MailDetailsBlobTypeRef,
+	MailDetailsTypeRef,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { mock, spy } from "@tutao/tutanota-test-utils"
 import { browserDataStub, createTestEntity, makeCore } from "../../../TestUtils.js"
@@ -92,7 +94,10 @@ o.spec("MailIndexer test", () => {
 	o("createMailIndexEntries without entries", function () {
 		let mail = createTestEntity(MailTypeRef)
 		mail.mailDetails = ["details-list-id", "details-id"]
-		let details = MailWrapper.details(mail, createMailDetails({ body: createTestEntity(BodyTypeRef), recipients: createTestEntity(RecipientsTypeRef) }))
+		let details = MailWrapper.details(
+			mail,
+			createTestEntity(MailDetailsTypeRef, { body: createTestEntity(BodyTypeRef), recipients: createTestEntity(RecipientsTypeRef) }),
+		)
 		let files = [createTestEntity(FileTypeRef)]
 		let indexer = new MailIndexer(
 			new IndexerCore(dbMock, null as any, browserDataStub),
@@ -110,7 +115,10 @@ o.spec("MailIndexer test", () => {
 		let mail = createTestEntity(MailTypeRef)
 		mail.subject = "Hello"
 		mail.mailDetails = ["details-list-id", "details-id"]
-		let details = MailWrapper.details(mail, createMailDetails({ body: createTestEntity(BodyTypeRef), recipients: createTestEntity(RecipientsTypeRef) }))
+		let details = MailWrapper.details(
+			mail,
+			createTestEntity(MailDetailsTypeRef, { body: createTestEntity(BodyTypeRef), recipients: createTestEntity(RecipientsTypeRef) }),
+		)
 		let files = [createTestEntity(FileTypeRef)]
 		let indexer = new MailIndexer(
 			new IndexerCore(dbMock, null as any, browserDataStub),
@@ -163,7 +171,7 @@ o.spec("MailIndexer test", () => {
 
 		mail.sender = sender
 		mail.mailDetails = ["details-list-id", "details-id"]
-		let details = MailWrapper.details(mail, createMailDetails({ body: createTestEntity(BodyTypeRef), recipients }))
+		let details = MailWrapper.details(mail, createTestEntity(MailDetailsTypeRef, { body: createTestEntity(BodyTypeRef), recipients }))
 		details.getDetails().body.text = "BT"
 		let files = [createTestEntity(FileTypeRef)]
 		files[0].mimeType = "binary" // not indexed
@@ -925,15 +933,15 @@ function createMailInstances(
 	mailDetailsBlob: MailDetailsBlob
 	files: Array<TutanotaFile>
 } {
-	let mail = createMail({
+	let mail = createTestEntity(MailTypeRef, {
 		_id: mailId,
 		_ownerEncSessionKey: new Uint8Array(),
 		mailDetails: mailDetailsBlobId,
 		attachments: attachmentIds,
 	})
-	let mailDetailsBlob = createMailDetailsBlob({
+	let mailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
 		_id: mailDetailsBlobId,
-		details: createMailDetails({
+		details: createTestEntity(MailDetailsTypeRef, {
 			body: createTestEntity(BodyTypeRef),
 			recipients: createTestEntity(RecipientsTypeRef),
 		}),

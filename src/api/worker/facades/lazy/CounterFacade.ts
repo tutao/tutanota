@@ -23,6 +23,7 @@ export class CounterFacade {
 		const counterData = createReadCounterData({
 			counterType,
 			rowName: customerId,
+			columnName: null,
 		})
 		const counterReturn = await this.serviceExecutor.get(CounterService, counterData)
 		return counterReturn.counterValues

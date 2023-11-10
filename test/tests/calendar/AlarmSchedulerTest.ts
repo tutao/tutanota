@@ -1,10 +1,10 @@
 import { AlarmScheduler, AlarmSchedulerImpl } from "../../../src/calendar/date/AlarmScheduler.js"
 import o from "@tutao/otest"
 import { DateTime } from "luxon"
-import { createAlarmInfo, createDateWrapper, createRepeatRule } from "../../../src/api/entities/sys/TypeRefs.js"
+import { AlarmInfoTypeRef, DateWrapperTypeRef, RepeatRuleTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
 import { EndType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
 import { DateProvider } from "../../../src/api/common/DateProvider.js"
-import { SchedulerMock } from "../TestUtils.js"
+import { createTestEntity, SchedulerMock } from "../TestUtils.js"
 import { spy } from "@tutao/tutanota-test-utils"
 
 o.spec("AlarmScheduler", function () {
@@ -27,7 +27,7 @@ o.spec("AlarmScheduler", function () {
 				endTime: DateTime.fromISO("2021-04-21T20:30Z").toJSDate(),
 				summary: "summary",
 			}
-			const alarmInfo = createAlarmInfo({
+			const alarmInfo = createTestEntity(AlarmInfoTypeRef, {
 				trigger: "10M",
 			})
 			const notificationSender = spy()
@@ -48,10 +48,10 @@ o.spec("AlarmScheduler", function () {
 				endTime: DateTime.fromISO("2021-04-21T20:30Z").toJSDate(),
 				summary: "summary",
 			}
-			const alarmInfo = createAlarmInfo({
+			const alarmInfo = createTestEntity(AlarmInfoTypeRef, {
 				trigger: "30M",
 			})
-			const repeatRule = createRepeatRule({
+			const repeatRule = createTestEntity(RepeatRuleTypeRef, {
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
 				endType: EndType.Count,
@@ -83,16 +83,16 @@ o.spec("AlarmScheduler", function () {
 				endTime: DateTime.fromISO("2021-04-21T20:30Z").toJSDate(),
 				summary: "summary",
 			}
-			const alarmInfo = createAlarmInfo({
+			const alarmInfo = createTestEntity(AlarmInfoTypeRef, {
 				trigger: "30M",
 			})
-			const repeatRule = createRepeatRule({
+			const repeatRule = createTestEntity(RepeatRuleTypeRef, {
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
 				endType: EndType.Count,
 				endValue: "3",
 				timeZone: "Europe/Berlin",
-				excludedDates: [createDateWrapper({ date: DateTime.fromISO("2021-04-22T20:00Z").toJSDate() })],
+				excludedDates: [createTestEntity(DateWrapperTypeRef, { date: DateTime.fromISO("2021-04-22T20:00Z").toJSDate() })],
 			})
 			const notificationSender = spy()
 			alarmScheduler.scheduleAlarm(eventInfo, alarmInfo, repeatRule, notificationSender)
@@ -121,7 +121,7 @@ o.spec("AlarmScheduler", function () {
 				endTime: DateTime.fromISO("2021-04-21T20:30Z").toJSDate(),
 				summary: "summary",
 			}
-			const alarmInfo = createAlarmInfo({
+			const alarmInfo = createTestEntity(AlarmInfoTypeRef, {
 				trigger: "10M",
 				alarmIdentifier: "identifier",
 			})
@@ -143,10 +143,10 @@ o.spec("AlarmScheduler", function () {
 				endTime: DateTime.fromISO("2021-04-21T20:30Z").toJSDate(),
 				summary: "summary",
 			}
-			const alarmInfo = createAlarmInfo({
+			const alarmInfo = createTestEntity(AlarmInfoTypeRef, {
 				trigger: "30M",
 			})
-			const repeatRule = createRepeatRule({
+			const repeatRule = createTestEntity(RepeatRuleTypeRef, {
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
 				endType: EndType.Count,

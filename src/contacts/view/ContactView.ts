@@ -5,7 +5,7 @@ import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { ContactEditor } from "../ContactEditor"
 import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
-import { ContactTypeRef, createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
+import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactListView } from "./ContactListView"
 import { lang } from "../../misc/LanguageViewModel"
 import { assertNotNull, clear, getFirstOrThrow, noOp, ofClass } from "@tutao/tutanota-utils"
@@ -657,11 +657,6 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 		if (existingGroupSettings) {
 			existingGroupSettings.name = newName
-		} else {
-			const newGroupSettings = createGroupSettings({
-				group: contactListInfo.group._id,
-				name: newName,
-			})
 		}
 
 		locator.entityClient.update(userSettingsGroupRoot)

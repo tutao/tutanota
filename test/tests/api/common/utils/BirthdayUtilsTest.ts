@@ -1,12 +1,13 @@
 import o from "@tutao/otest"
-import { createBirthday } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { BirthdayTypeRef, createBirthday } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { birthdayToIsoDate, isoDateToBirthday } from "../../../../../src/api/common/utils/BirthdayUtils.js"
 import { ParsingError } from "../../../../../src/api/common/error/ParsingError.js"
 import { TutanotaError } from "../../../../../src/api/common/error/TutanotaError.js"
+import { createTestEntity } from "../../../TestUtils.js"
 
 o.spec("BirthdayUtilsTest", function () {
 	o("birthdayToIsoDate", function () {
-		const bday = createBirthday({
+		const bday = createTestEntity(BirthdayTypeRef, {
 			day: "12",
 			month: "10",
 			year: null,
@@ -23,28 +24,28 @@ o.spec("BirthdayUtilsTest", function () {
 	})
 	o("isoDateToBirthday", function () {
 		o(isoDateToBirthday("--10-12")).deepEquals(
-			createBirthday({
+			createTestEntity(BirthdayTypeRef, {
 				day: "12",
 				month: "10",
 				year: null,
 			}),
 		)
 		o(isoDateToBirthday("2009-10-12")).deepEquals(
-			createBirthday({
+			createTestEntity(BirthdayTypeRef, {
 				day: "12",
 				month: "10",
 				year: "2009",
 			}),
 		)
 		o(isoDateToBirthday("2009-12-31")).deepEquals(
-			createBirthday({
+			createTestEntity(BirthdayTypeRef, {
 				day: "31",
 				month: "12",
 				year: "2009",
 			}),
 		)
 		o(isoDateToBirthday("2009-01-01")).deepEquals(
-			createBirthday({
+			createTestEntity(BirthdayTypeRef, {
 				day: "01",
 				month: "01",
 				year: "2009",

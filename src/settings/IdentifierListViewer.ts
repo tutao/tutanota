@@ -210,6 +210,9 @@ export class IdentifierListViewer {
 			identifier: assertNotNull(getCleanedMailAddress(mailAddress)),
 			language: lang.code,
 			pushServiceType: PushServiceType.EMAIL,
+			lastUsageTime: new Date(),
+			lastNotificationDate: null,
+			disabled: false,
 		})
 
 		let p = locator.entityClient.setup(assertNotNull(user.pushIdentifierList).list, pushIdentifier)

@@ -2,11 +2,12 @@ import o from "@tutao/otest"
 import { ListModel, ListModelConfig } from "../../../src/misc/ListModel.js"
 import { GENERATED_MAX_ID, getElementId, sortCompareById, timestampToGeneratedId } from "../../../src/api/common/utils/EntityUtils.js"
 import { defer, DeferredObject } from "@tutao/tutanota-utils"
-import { createKnowledgeBaseEntry, KnowledgeBaseEntry } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { createKnowledgeBaseEntry, KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { ListFetchResult } from "../../../src/gui/base/ListUtils.js"
 import { ListLoadingState } from "../../../src/gui/base/List.js"
 import { ConnectionError } from "../../../src/api/common/error/RestError.js"
 import { OperationType } from "../../../src/api/common/TutanotaConstants.js"
+import { createTestEntity } from "../TestUtils.js"
 
 o.spec("ListModel", function () {
 	const listId = "listId"
@@ -21,19 +22,19 @@ o.spec("ListModel", function () {
 		},
 	}
 
-	const itemA = createKnowledgeBaseEntry({
+	const itemA = createTestEntity(KnowledgeBaseEntryTypeRef, {
 		_id: [listId, "a"],
 		title: "a",
 	})
-	const itemB = createKnowledgeBaseEntry({
+	const itemB = createTestEntity(KnowledgeBaseEntryTypeRef, {
 		_id: [listId, "b"],
 		title: "b",
 	})
-	const itemC = createKnowledgeBaseEntry({
+	const itemC = createTestEntity(KnowledgeBaseEntryTypeRef, {
 		_id: [listId, "c"],
 		title: "c",
 	})
-	const itemD = createKnowledgeBaseEntry({
+	const itemD = createTestEntity(KnowledgeBaseEntryTypeRef, {
 		_id: [listId, "d"],
 		title: "d",
 	})
@@ -84,7 +85,7 @@ o.spec("ListModel", function () {
 			const moreLoading = listModel.loadMore()
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Loading)
 
-			const knowledgeBaseEntry = createKnowledgeBaseEntry({
+			const knowledgeBaseEntry = createTestEntity(KnowledgeBaseEntryTypeRef, {
 				_id: [listId, timestampToGeneratedId(10)],
 			})
 			fetchDefer.resolve({
@@ -736,7 +737,7 @@ o.spec("ListModel", function () {
 
 	o.spec("Updating items", function () {
 		o("update for item with id sorting updates item", async function () {
-			const updatedItemD = createKnowledgeBaseEntry({ ...itemD, title: "AA" })
+			const updatedItemD = createTestEntity(KnowledgeBaseEntryTypeRef, { ...itemD, title: "AA" })
 
 			const newConfig: ListModelConfig<KnowledgeBaseEntry> = {
 				...defaultListConfig,
@@ -758,7 +759,7 @@ o.spec("ListModel", function () {
 		})
 
 		o("update for item with custom sorting changes position", async function () {
-			const updatedItemD = createKnowledgeBaseEntry({ ...itemD, title: "AA" })
+			const updatedItemD = createTestEntity(KnowledgeBaseEntryTypeRef, { ...itemD, title: "AA" })
 
 			const newConfig: ListModelConfig<KnowledgeBaseEntry> = {
 				...defaultListConfig,

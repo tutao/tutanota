@@ -250,6 +250,7 @@ export class BlobFacade {
 		const getData = createBlobGetIn({
 			archiveId,
 			blobId,
+			blobIds: [],
 		})
 		const BlobGetInTypeModel = await resolveTypeReference(BlobGetInTypeRef)
 		const literalGetData = await this.instanceMapper.encryptAndMapToLiteral(BlobGetInTypeModel, getData, null)
@@ -276,6 +277,7 @@ export class BlobFacade {
 		const getData = createBlobGetIn({
 			archiveId,
 			blobId,
+			blobIds: [],
 		})
 		const BlobGetInTypeModel = await resolveTypeReference(BlobGetInTypeRef)
 		const literalGetData = await this.instanceMapper.encryptAndMapToLiteral(BlobGetInTypeModel, getData, null)

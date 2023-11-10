@@ -14,10 +14,9 @@ import { ProgrammingError } from "../../../../../src/api/common/error/Programmin
 import { Cardinality, ValueType } from "../../../../../src/api/common/EntityConstants.js"
 import { BucketPermissionType, PermissionType } from "../../../../../src/api/common/TutanotaConstants.js"
 import {
+	BirthdayTypeRef,
 	ContactAddressTypeRef,
 	ContactTypeRef,
-	createBirthday,
-	createContact,
 	FileTypeRef,
 	Mail,
 	MailAddressTypeRef,
@@ -29,20 +28,16 @@ import {
 	BucketKey,
 	BucketKeyTypeRef,
 	BucketPermissionTypeRef,
-	createBucket,
-	createBucketKey,
-	createBucketPermission,
-	createGroup,
-	createGroupMembership,
-	createInstanceSessionKey,
-	createKeyPair,
-	createPermission,
-	createTypeInfo,
-	createUser,
+	BucketTypeRef,
+	GroupMembershipTypeRef,
 	GroupTypeRef,
+	InstanceSessionKeyTypeRef,
+	KeyPairTypeRef,
 	PermissionTypeRef,
+	TypeInfoTypeRef,
 	UpdatePermissionKeyData,
 	UserIdReturnTypeRef,
+	UserTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { assertThrows, spy } from "@tutao/tutanota-test-utils"
 import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
@@ -556,8 +551,8 @@ o.spec("crypto facade", function () {
 		const gk = aes128RandomKey()
 		const sk = aes128RandomKey()
 		when(userFacade.getGroupKey("mailGroupId")).thenReturn(gk)
-		const user = createUser({
-			userGroup: createGroupMembership({
+		const user = createTestEntity(UserTypeRef, {
+			userGroup: createTestEntity(GroupMembershipTypeRef, {
 				group: "mailGroupId",
 			}),
 		})
@@ -584,22 +579,22 @@ o.spec("crypto facade", function () {
 		let bk = aes128RandomKey()
 		let privateKey = hexToPrivateKey(rsaPrivateHexKey)
 		let publicKey = hexToPublicKey(rsaPublicHexKey)
-		const keyPair = createKeyPair({
+		const keyPair = createTestEntity(KeyPairTypeRef, {
 			_id: "keyPairId",
 			symEncPrivKey: encryptRsaKey(gk, privateKey),
 			pubKey: hexToUint8Array(rsaPublicHexKey),
 		})
-		const userGroup = createGroup({
+		const userGroup = createTestEntity(GroupTypeRef, {
 			_id: "userGroupId",
 			keys: [keyPair],
 		})
 		const mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
 		// @ts-ignore
 		mail._ownerEncSessionKey = null
-		const bucket = createBucket({
+		const bucket = createTestEntity(BucketTypeRef, {
 			bucketPermissions: "bucketPermissionListId",
 		})
-		const permission = createPermission({
+		const permission = createTestEntity(PermissionTypeRef, {
 			_id: ["permissionListId", "permissionId"],
 			_ownerGroup: userGroup._id,
 			bucketEncSessionKey: encryptKey(bk, sk),
@@ -607,18 +602,18 @@ o.spec("crypto facade", function () {
 			type: PermissionType.Public,
 		})
 		const pubEncBucketKey = await rsaEncrypt(publicKey, bitArrayToUint8Array(bk))
-		const bucketPermission = createBucketPermission({
+		const bucketPermission = createTestEntity(BucketPermissionTypeRef, {
 			_id: ["bucketPermissionListId", "bucketPermissionId"],
 			_ownerGroup: userGroup._id,
 			type: BucketPermissionType.Public,
 			group: userGroup._id,
 			pubEncBucketKey,
 		})
-		const mem = createGroupMembership({
+		const mem = createTestEntity(GroupMembershipTypeRef, {
 			group: userGroup._id,
 		})
 
-		const user = createUser({
+		const user = createTestEntity(UserTypeRef, {
 			userGroup: mem,
 		})
 		when(userFacade.getLoggedInUser()).thenReturn(user)
@@ -671,7 +666,7 @@ o.spec("crypto facade", function () {
 		})
 
 		o("contact migration without existing birthday", async function () {
-			const contact = createContact({
+			const contact = createTestEntity(ContactTypeRef, {
 				birthdayIso: "2019-05-01",
 			})
 
@@ -682,7 +677,7 @@ o.spec("crypto facade", function () {
 		})
 
 		o("contact migration without existing birthday and oldBirthdayDate", async function () {
-			const contact = createContact({
+			const contact = createTestEntity(ContactTypeRef, {
 				_id: ["listid", "id"],
 				birthdayIso: "2019-05-01",
 				oldBirthdayDate: new Date(2000, 4, 1),
@@ -696,10 +691,10 @@ o.spec("crypto facade", function () {
 		})
 
 		o("contact migration with existing birthday and oldBirthdayAggregate", async function () {
-			const contact = createContact({
+			const contact = createTestEntity(ContactTypeRef, {
 				_id: ["listid", "id"],
 				birthdayIso: "2019-05-01",
-				oldBirthdayAggregate: createBirthday({
+				oldBirthdayAggregate: createTestEntity(BirthdayTypeRef, {
 					day: "01",
 					month: "05",
 					year: "2000",
@@ -715,10 +710,10 @@ o.spec("crypto facade", function () {
 		})
 
 		o("contact migration from oldBirthdayAggregate", async function () {
-			const contact = createContact({
+			const contact = createTestEntity(ContactTypeRef, {
 				_id: ["listid", "id"],
 				oldBirthdayDate: new Date(1800, 4, 1),
-				oldBirthdayAggregate: createBirthday({
+				oldBirthdayAggregate: createTestEntity(BirthdayTypeRef, {
 					day: "01",
 					month: "05",
 					year: "2000",
@@ -734,7 +729,7 @@ o.spec("crypto facade", function () {
 		})
 
 		o("contact migration from oldBirthdayDate", async function () {
-			const contact = createContact({
+			const contact = createTestEntity(ContactTypeRef, {
 				_id: ["listid", "id"],
 				birthdayIso: null,
 				oldBirthdayDate: new Date(1800, 4, 1),
@@ -750,11 +745,11 @@ o.spec("crypto facade", function () {
 		})
 
 		o("contact migration from oldBirthdayAggregate without year", async function () {
-			const contact = createContact({
+			const contact = createTestEntity(ContactTypeRef, {
 				_id: ["listid", "id"],
 				birthdayIso: null,
 				oldBirthdayDate: null,
-				oldBirthdayAggregate: createBirthday({
+				oldBirthdayAggregate: createTestEntity(BirthdayTypeRef, {
 					day: "01",
 					month: "05",
 					year: null,
@@ -947,12 +942,12 @@ o.spec("crypto facade", function () {
 		let bk = aes128RandomKey()
 		let privateKey = hexToPrivateKey(rsaPrivateHexKey)
 		let publicKey = hexToPublicKey(rsaPublicHexKey)
-		const keyPair = createKeyPair({
+		const keyPair = createTestEntity(KeyPairTypeRef, {
 			_id: "keyPairId",
 			symEncPrivKey: encryptRsaKey(userGk, privateKey),
 			pubKey: hexToUint8Array(rsaPublicHexKey),
 		})
-		const userGroup = createGroup({
+		const userGroup = createTestEntity(GroupTypeRef, {
 			_id: "userGroupId",
 			keys: [keyPair],
 		})
@@ -966,8 +961,8 @@ o.spec("crypto facade", function () {
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 
 		typeModels.tutanota
-		const mailInstanceSessionKey = createInstanceSessionKey({
-			typeInfo: createTypeInfo({
+		const mailInstanceSessionKey = createTestEntity(InstanceSessionKeyTypeRef, {
+			typeInfo: createTestEntity(TypeInfoTypeRef, {
 				application: MailTypeModel.app,
 				typeId: String(MailTypeModel.id),
 			}),
@@ -977,8 +972,8 @@ o.spec("crypto facade", function () {
 		})
 		const FileTypeModel = await resolveTypeReference(FileTypeRef)
 		const bucketEncSessionKeys = fileSessionKeys.map((fileSessionKey, index) => {
-			return createInstanceSessionKey({
-				typeInfo: createTypeInfo({
+			return createTestEntity(InstanceSessionKeyTypeRef, {
+				typeInfo: createTestEntity(TypeInfoTypeRef, {
 					application: FileTypeModel.app,
 					typeId: String(FileTypeModel.id),
 				}),
@@ -989,7 +984,7 @@ o.spec("crypto facade", function () {
 		})
 		bucketEncSessionKeys.push(mailInstanceSessionKey)
 
-		const bucketKey = createBucketKey({
+		const bucketKey = createTestEntity(BucketKeyTypeRef, {
 			pubEncBucketKey: pubEncBucketKey,
 			keyGroup: userGroup._id,
 			bucketEncSessionKeys: bucketEncSessionKeys,
@@ -999,11 +994,11 @@ o.spec("crypto facade", function () {
 		const bucketKeyLiteral = await instanceMapper.encryptAndMapToLiteral(BucketKeyModel, bucketKey, null)
 		Object.assign(mailLiteral, { bucketKey: bucketKeyLiteral })
 
-		const mem = createGroupMembership({
+		const mem = createTestEntity(GroupMembershipTypeRef, {
 			group: userGroup._id,
 		})
 
-		const user = createUser({
+		const user = createTestEntity(UserTypeRef, {
 			userGroup: mem,
 		})
 
@@ -1050,7 +1045,7 @@ o.spec("crypto facade", function () {
 		let bk = aes128RandomKey()
 		const ugk = aes128RandomKey()
 
-		const userGroup = createGroup({
+		const userGroup = createTestEntity(GroupTypeRef, {
 			_id: "userGroupId",
 			keys: [],
 		})
@@ -1066,8 +1061,8 @@ o.spec("crypto facade", function () {
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 
 		typeModels.tutanota
-		const mailInstanceSessionKey = createInstanceSessionKey({
-			typeInfo: createTypeInfo({
+		const mailInstanceSessionKey = createTestEntity(InstanceSessionKeyTypeRef, {
+			typeInfo: createTestEntity(TypeInfoTypeRef, {
 				application: MailTypeModel.app,
 				typeId: String(MailTypeModel.id),
 			}),
@@ -1077,8 +1072,8 @@ o.spec("crypto facade", function () {
 		})
 		const FileTypeModel = await resolveTypeReference(FileTypeRef)
 		const bucketEncSessionKeys = fileSessionKeys.map((fileSessionKey, index) => {
-			return createInstanceSessionKey({
-				typeInfo: createTypeInfo({
+			return createTestEntity(InstanceSessionKeyTypeRef, {
+				typeInfo: createTestEntity(TypeInfoTypeRef, {
 					application: FileTypeModel.app,
 					typeId: String(FileTypeModel.id),
 				}),
@@ -1089,7 +1084,7 @@ o.spec("crypto facade", function () {
 		})
 		bucketEncSessionKeys.push(mailInstanceSessionKey)
 
-		const bucketKey = createBucketKey({
+		const bucketKey = createTestEntity(BucketKeyTypeRef, {
 			pubEncBucketKey: null,
 			keyGroup: externalUserGroupEncBucketKey ? userGroup._id : null,
 			groupEncBucketKey: groupEncBucketKey,
@@ -1100,11 +1095,11 @@ o.spec("crypto facade", function () {
 		const bucketKeyLiteral = await instanceMapper.encryptAndMapToLiteral(BucketKeyModel, bucketKey, null)
 		Object.assign(mailLiteral, { bucketKey: bucketKeyLiteral })
 
-		const mem = createGroupMembership({
+		const mem = createTestEntity(GroupMembershipTypeRef, {
 			group: userGroup._id,
 		})
 
-		const user = createUser({
+		const user = createTestEntity(UserTypeRef, {
 			userGroup: mem,
 		})
 

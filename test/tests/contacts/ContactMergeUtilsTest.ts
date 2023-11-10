@@ -909,17 +909,17 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(keptContact.phoneNumbers.length).equals(3)
 	})
 	o("getMergedPhoneNumber should ignore whitespace", function () {
-		const numberWithoutWhitespace = createContactPhoneNumber({
+		const numberWithoutWhitespace = createTestEntity(ContactPhoneNumberTypeRef, {
 			number: "789654123",
 		})
-		const numberWithWhitespace = createContactPhoneNumber({
+		const numberWithWhitespace = createTestEntity(ContactPhoneNumberTypeRef, {
 			number: " 789 654123 ",
 		})
 
 		const mergedPhoneNumbers = _getMergedPhoneNumbers([numberWithoutWhitespace], [numberWithWhitespace])
 
 		o(mergedPhoneNumbers).deepEquals([
-			createContactPhoneNumber({
+			createTestEntity(ContactPhoneNumberTypeRef, {
 				number: "789654123",
 			}),
 		])

@@ -936,6 +936,7 @@ export class MailViewerViewModel {
 		const recipient = createMailAddress({
 			address: neverNull(userGroupInfo.mailAddress),
 			name: userGroupInfo.name,
+			contact: null,
 		})
 		let newReplyTos
 

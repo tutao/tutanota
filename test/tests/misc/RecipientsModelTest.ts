@@ -5,9 +5,18 @@ import { LoginController } from "../../../src/api/main/LoginController.js"
 import { MailFacade } from "../../../src/api/worker/facades/lazy/MailFacade.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import { func, instance, object, when } from "testdouble"
-import { createGroupInfo, createGroupMembership, createPublicKeyReturn, createUser, PublicKeyReturnTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
+import {
+	createGroupInfo,
+	createGroupMembership,
+	createPublicKeyReturn,
+	createUser,
+	GroupInfoTypeRef,
+	GroupMembershipTypeRef,
+	PublicKeyReturnTypeRef,
+	UserTypeRef,
+} from "../../../src/api/entities/sys/TypeRefs.js"
 import { Recipient, RecipientType } from "../../../src/api/common/recipients/Recipient.js"
-import { ContactTypeRef, createContact, createContactMailAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { ContactMailAddressTypeRef, ContactTypeRef, createContact, createContactMailAddress } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { UserController } from "../../../src/api/main/UserController.js"
 import { GroupType } from "../../../src/api/common/TutanotaConstants.js"
 import { verify } from "@tutao/tutanota-test-utils"
@@ -34,14 +43,14 @@ o.spec("RecipientsModel", function () {
 		contactModelMock = object()
 
 		userControllerMock = {
-			user: createUser({
+			user: createTestEntity(UserTypeRef, {
 				memberships: [
-					createGroupMembership({
+					createTestEntity(GroupMembershipTypeRef, {
 						groupType: GroupType.Contact,
 					}),
 				],
 			}),
-			userGroupInfo: createGroupInfo({
+			userGroupInfo: createTestEntity(GroupInfoTypeRef, {
 				mailAddress: "test@example.com",
 			}),
 		} satisfies Partial<UserController> as UserController
@@ -182,9 +191,9 @@ o.spec("RecipientsModel", function () {
 })
 
 function makeContactStub(id: IdTuple, mailAddress: string, firstName?: string, lastName?: string) {
-	return createContact({
+	return createTestEntity(ContactTypeRef, {
 		_id: id,
-		mailAddresses: [createContactMailAddress({ address: mailAddress })],
+		mailAddresses: [createTestEntity(ContactMailAddressTypeRef, { address: mailAddress })],
 		firstName: firstName ?? "",
 		lastName: lastName ?? "",
 	})

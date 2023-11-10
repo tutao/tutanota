@@ -40,7 +40,10 @@ export class BookingFacade {
 	 * @return Resolves to PriceServiceReturn or an exception if the loading failed.
 	 */
 	getCurrentPrice(): Promise<PriceServiceReturn> {
-		const serviceData = createPriceServiceData({})
+		const serviceData = createPriceServiceData({
+			date: null,
+			priceRequest: null,
+		})
 		return this.serviceExecutor.get(PriceService, serviceData)
 	}
 

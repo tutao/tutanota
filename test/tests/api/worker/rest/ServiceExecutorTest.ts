@@ -5,19 +5,14 @@ import { InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMap
 import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
 import { matchers, object, when } from "testdouble"
 import { DeleteService, GetService, PostService, PutService } from "../../../../../src/api/common/ServiceRequest.js"
-import {
-	AlarmServicePostTypeRef,
-	createGiftCardCreateData,
-	createSaltData,
-	GiftCardCreateDataTypeRef,
-	SaltDataTypeRef,
-} from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { AlarmServicePostTypeRef, GiftCardCreateDataTypeRef, SaltDataTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { HttpMethod, MediaType, resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
 import { deepEqual } from "@tutao/tutanota-utils"
 import { assertThrows, verify } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError"
 import { AuthDataProvider } from "../../../../../src/api/worker/facades/UserFacade"
 import { LoginIncompleteError } from "../../../../../src/api/common/error/LoginIncompleteError.js"
+import { createTestEntity } from "../../../TestUtils.js"
 
 const { anything } = matchers
 
@@ -68,7 +63,7 @@ o.spec("ServiceExecutor", function () {
 					return: null,
 				},
 			}
-			const data = createSaltData({ mailAddress: "test" })
+			const data = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			when(instanceMapper.encryptAndMapToLiteral(saltTypeModel, data, null)).thenResolve(literal)
@@ -95,7 +90,7 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const returnData = createSaltData({ mailAddress: "test" })
+			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null)).thenResolve(returnData)
@@ -121,7 +116,7 @@ o.spec("ServiceExecutor", function () {
 					return: AlarmServicePostTypeRef,
 				},
 			}
-			const returnData = createSaltData({ mailAddress: "test" })
+			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(AlarmServicePostTypeRef)
 			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null)).thenResolve(returnData)
@@ -162,7 +157,7 @@ o.spec("ServiceExecutor", function () {
 			}
 			const sessionKey = [1, 2, 3]
 			fullyLoggedIn = false
-			const returnData = createSaltData({ mailAddress: "test" })
+			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(AlarmServicePostTypeRef)
 			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, sessionKey)).thenResolve(returnData)
@@ -190,7 +185,7 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			fullyLoggedIn = false
-			const returnData = createSaltData({ mailAddress: "test" })
+			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null)).thenResolve(returnData)
@@ -219,7 +214,7 @@ o.spec("ServiceExecutor", function () {
 					return: null,
 				},
 			}
-			const data = createSaltData({ mailAddress: "test" })
+			const data = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			when(instanceMapper.encryptAndMapToLiteral(saltTypeModel, data, null)).thenResolve(literal)
@@ -246,7 +241,7 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const returnData = createSaltData({ mailAddress: "test" })
+			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null)).thenResolve(returnData)
@@ -287,7 +282,7 @@ o.spec("ServiceExecutor", function () {
 			}
 			const sessionKey = [1, 2, 3]
 			fullyLoggedIn = false
-			const returnData = createSaltData({ mailAddress: "test" })
+			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(AlarmServicePostTypeRef)
 			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, sessionKey)).thenResolve(returnData)
@@ -316,7 +311,7 @@ o.spec("ServiceExecutor", function () {
 					return: null,
 				},
 			}
-			const data = createSaltData({ mailAddress: "test" })
+			const data = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			when(instanceMapper.encryptAndMapToLiteral(saltTypeModel, data, null)).thenResolve(literal)
@@ -343,7 +338,7 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const returnData = createSaltData({ mailAddress: "test" })
+			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null)).thenResolve(returnData)
@@ -384,7 +379,7 @@ o.spec("ServiceExecutor", function () {
 					return: null,
 				},
 			}
-			const data = createSaltData({ mailAddress: "test" })
+			const data = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			when(instanceMapper.encryptAndMapToLiteral(saltTypeModel, data, null)).thenResolve(literal)
@@ -411,7 +406,7 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const returnData = createSaltData({ mailAddress: "test" })
+			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, null)).thenResolve(returnData)
@@ -453,7 +448,7 @@ o.spec("ServiceExecutor", function () {
 					return: null,
 				},
 			}
-			const data = createSaltData({ mailAddress: "test" })
+			const data = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const query = Object.freeze({ myQueryParam: "2" })
 			when(instanceMapper.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve({})
 			respondWith(undefined)
@@ -478,7 +473,7 @@ o.spec("ServiceExecutor", function () {
 					return: null,
 				},
 			}
-			const data = createSaltData({ mailAddress: "test" })
+			const data = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const headers = Object.freeze({ myHeader: "2" })
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			when(instanceMapper.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve({})
@@ -505,7 +500,7 @@ o.spec("ServiceExecutor", function () {
 					return: null,
 				},
 			}
-			const data = createSaltData({ mailAddress: "test" })
+			const data = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const accessToken = "myAccessToken"
 			authHeaders = { accessToken }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
@@ -534,7 +529,7 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const returnData = createSaltData({ mailAddress: "test" })
+			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			const sessionKey = [1, 2, 3]
@@ -563,7 +558,7 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const returnData = createSaltData({ mailAddress: "test" })
+			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: true }
 			const saltTypeModel = await resolveTypeReference(SaltDataTypeRef)
 			const sessionKey = [1, 2, 3]
@@ -592,7 +587,7 @@ o.spec("ServiceExecutor", function () {
 					return: null,
 				},
 			}
-			const giftCardCreateData = createGiftCardCreateData({ message: "test" })
+			const giftCardCreateData = createTestEntity(GiftCardCreateDataTypeRef, { message: "test" })
 			const dataTypeModel = await resolveTypeReference(GiftCardCreateDataTypeRef)
 			const sessionKey = [1, 2, 3]
 			const encrypted = { encrypted: true }
@@ -620,7 +615,7 @@ o.spec("ServiceExecutor", function () {
 					return: null,
 				},
 			}
-			const giftCardCreateData = createGiftCardCreateData({ message: "test" })
+			const giftCardCreateData = createTestEntity(GiftCardCreateDataTypeRef, { message: "test" })
 
 			await o(() => executor.get(getService, giftCardCreateData)).asyncThrows(ProgrammingError)
 			verify(restClient.request(anything(), anything()), { ignoreExtraArgs: true, times: 0 })

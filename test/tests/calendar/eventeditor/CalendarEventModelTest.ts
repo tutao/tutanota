@@ -14,17 +14,23 @@ import {
 import { CalendarNotificationSender } from "../../../../src/calendar/date/CalendarNotificationSender.js"
 import { CalendarModel } from "../../../../src/calendar/model/CalendarModel.js"
 import {
+	CalendarEventAttendeeTypeRef,
+	CalendarEventTypeRef,
 	createCalendarEvent,
 	createCalendarEventAttendee,
 	createEncryptedMailAddress,
 	createMailboxProperties,
+	EncryptedMailAddressTypeRef,
 	MailboxGroupRootTypeRef,
 	MailboxProperties,
+	MailboxPropertiesTypeRef,
 	MailBoxTypeRef,
 } from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../../src/api/common/EntityClient.js"
 import { calendars, getDateInZone, makeUserController, otherAddress, ownerAddress, ownerAlias, ownerId, ownerMailAddress } from "../CalendarTestUtils.js"
 import {
+	AlarmInfoTypeRef,
+	CalendarEventRefTypeRef,
 	createAlarmInfo,
 	createCalendarEventRef,
 	createDateWrapper,
@@ -32,7 +38,11 @@ import {
 	createRepeatRule,
 	createUserAlarmInfo,
 	DateWrapper,
+	DateWrapperTypeRef,
 	GroupInfoTypeRef,
+	GroupTypeRef,
+	RepeatRuleTypeRef,
+	UserAlarmInfoTypeRef,
 } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { clone, identity, noOp } from "@tutao/tutanota-utils"
 import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../../../../src/api/main/RecipientsModel.js"
@@ -68,7 +78,7 @@ o.spec("CalendarEventModelTest", function () {
 	o.spec("integration tests", function () {
 		o("doing no edit operation on an existing event updates it as expected, no updates.", async function () {
 			// this test case is insane and only serves as a warning example to not do such things.
-			const event = createCalendarEvent({
+			const event = createTestEntity(CalendarEventTypeRef, {
 				sequence: "0",
 				_id: ["eventListId", "eventElementId"],
 				_ownerGroup: "ownCalendar",
@@ -81,7 +91,7 @@ o.spec("CalendarEventModelTest", function () {
 				startTime: new Date("2023-04-27T15:00:00.000Z"),
 				invitedConfidentially: false,
 				endTime: new Date("2023-04-27T15:30:00.000Z"),
-				repeatRule: createRepeatRule({
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
 					interval: "10",
 					_id: "repeatRuleId",
 					endType: EndType.Count,
@@ -92,11 +102,11 @@ o.spec("CalendarEventModelTest", function () {
 				organizer: ownerAddress,
 				alarmInfos: [["alarmListId", "alarmElementId"]],
 				attendees: [
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						address: ownerAddress,
 						status: CalendarAttendeeStatus.ACCEPTED,
 					}),
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						address: otherAddress,
 						status: CalendarAttendeeStatus.ACCEPTED,
 					}),
@@ -107,12 +117,12 @@ o.spec("CalendarEventModelTest", function () {
 			const userController = makeUserController([ownerAlias.address], AccountType.PAID, ownerMailAddress, true)
 			when(logins.getUserController()).thenReturn(userController)
 			when(calendarModel.loadAlarms(event.alarmInfos, userController.user)).thenResolve([
-				createUserAlarmInfo({
+				createTestEntity(UserAlarmInfoTypeRef, {
 					_id: event.alarmInfos[0],
-					alarmInfo: createAlarmInfo({
+					alarmInfo: createTestEntity(AlarmInfoTypeRef, {
 						alarmIdentifier: "alarmIdentifier",
 						trigger: "5M",
-						calendarRef: createCalendarEventRef({
+						calendarRef: createTestEntity(CalendarEventRefTypeRef, {
 							elementId: event._id[1],
 							listId: event._id[0],
 						}),
@@ -132,12 +142,12 @@ o.spec("CalendarEventModelTest", function () {
 				mailbox: createTestEntity(MailBoxTypeRef),
 				folders: new FolderSystem([]),
 				mailGroupInfo: createTestEntity(GroupInfoTypeRef),
-				mailGroup: createGroup({
+				mailGroup: createTestEntity(GroupTypeRef, {
 					user: ownerId,
 				}),
 				mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
 			}
-			const mailboxProperties: MailboxProperties = createMailboxProperties({})
+			const mailboxProperties: MailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {})
 			const sendModelFac: () => SendMailModel = func<() => SendMailModel>()
 			const model = await makeCalendarEventModel(
 				CalendarOperation.EditAll,
@@ -180,13 +190,13 @@ o.spec("CalendarEventModelTest", function () {
 	})
 
 	o.spec("eventHasChanged", function () {
-		const fixedOrganizer = createEncryptedMailAddress({
+		const fixedOrganizer = createTestEntity(EncryptedMailAddressTypeRef, {
 			address: "moo@d.de",
 			name: "bla",
 		})
 		const att = (a, n, s) =>
-			createCalendarEventAttendee({
-				address: createEncryptedMailAddress({ address: a, name: n }),
+			createTestEntity(CalendarEventAttendeeTypeRef, {
+				address: createTestEntity(EncryptedMailAddressTypeRef, { address: a, name: n }),
 				status: s,
 			})
 		// attr, now, previous, expected, msg
@@ -200,9 +210,27 @@ o.spec("CalendarEventModelTest", function () {
 			["endTime", getDateInZone("2023-05-26"), getDateInZone("2023-05-27"), true],
 			["uid", "newUid", "oldUid", true],
 			["organizer", fixedOrganizer, fixedOrganizer, false, "same object in organizer"],
-			["organizer", fixedOrganizer, createEncryptedMailAddress({ address: "moo@d.de", name: "bla" }), false, "same organizer, different object"],
-			["organizer", fixedOrganizer, createEncryptedMailAddress({ address: "moo@d.de", name: "blabla" }), false, "different address, same name"],
-			["organizer", fixedOrganizer, createEncryptedMailAddress({ address: "moo@d.io", name: "bla" }), true, "same name, different address"],
+			[
+				"organizer",
+				fixedOrganizer,
+				createTestEntity(EncryptedMailAddressTypeRef, { address: "moo@d.de", name: "bla" }),
+				false,
+				"same organizer, different object",
+			],
+			[
+				"organizer",
+				fixedOrganizer,
+				createTestEntity(EncryptedMailAddressTypeRef, { address: "moo@d.de", name: "blabla" }),
+				false,
+				"different address, same name",
+			],
+			[
+				"organizer",
+				fixedOrganizer,
+				createTestEntity(EncryptedMailAddressTypeRef, { address: "moo@d.io", name: "bla" }),
+				true,
+				"same name, different address",
+			],
 			["attendees", [], [], false, "no attendees in either event"],
 			[
 				"attendees",
@@ -233,7 +261,7 @@ o.spec("CalendarEventModelTest", function () {
 			o(`${attr} changed -> ${expected}`, function () {
 				// createCalendarEvent will create events with a startTime and endTime created by "new Date()",
 				// which is not repeatable, so we only do it once.
-				const template = createCalendarEvent({ [attr]: previous })
+				const template = createTestEntity(CalendarEventTypeRef, { [attr]: previous })
 				const copy = Object.assign({}, template, { [attr]: now })
 				o(eventHasChanged(copy, template)).equals(expected)(msg ?? attr)
 				o(eventHasChanged(copy, clone(copy))).equals(false)(`do not change ${msg}`)
@@ -241,12 +269,12 @@ o.spec("CalendarEventModelTest", function () {
 		}
 
 		o("same object -> false", function () {
-			const event = createCalendarEvent({})
+			const event = createTestEntity(CalendarEventTypeRef, {})
 			o(eventHasChanged(event, event)).equals(false)
 		})
 	})
 
-	const dw = (d) => createDateWrapper({ date: getDateInZone(d) })
+	const dw = (d) => createTestEntity(DateWrapperTypeRef, { date: getDateInZone(d) })
 	o.spec("areRepeatRulesEqual", function () {
 		// property, now, previous, expected, msg
 		const cases = [
@@ -261,12 +289,16 @@ o.spec("CalendarEventModelTest", function () {
 
 		for (const [attr, now, previous, expected, msg] of cases) {
 			o(`${attr} changed -> ${expected}`, function () {
-				o(areRepeatRulesEqual(createRepeatRule({ [attr]: now }), createRepeatRule({ [attr]: previous }))).equals(expected)(msg ?? attr)
-				o(areRepeatRulesEqual(createRepeatRule({ [attr]: now }), createRepeatRule({ [attr]: now }))).equals(true)(`do not change ${msg}`)
+				o(areRepeatRulesEqual(createTestEntity(RepeatRuleTypeRef, { [attr]: now }), createTestEntity(RepeatRuleTypeRef, { [attr]: previous }))).equals(
+					expected,
+				)(msg ?? attr)
+				o(areRepeatRulesEqual(createTestEntity(RepeatRuleTypeRef, { [attr]: now }), createTestEntity(RepeatRuleTypeRef, { [attr]: now }))).equals(true)(
+					`do not change ${msg}`,
+				)
 			})
 		}
 		o("same object -> true", function () {
-			const r1 = createRepeatRule({})
+			const r1 = createTestEntity(RepeatRuleTypeRef, {})
 			o(areRepeatRulesEqual(r1, r1)).equals(true)
 		})
 	})

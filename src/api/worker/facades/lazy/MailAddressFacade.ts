@@ -112,7 +112,10 @@ export class MailAddressFacade {
 		const mailboxProperties = await this.getOrCreateMailboxProperties(mailGroupId, viaUser)
 		let mailAddressProperty = mailboxProperties.mailAddressProperties.find((p) => p.mailAddress === mailAddress)
 		if (mailAddressProperty == null) {
-			mailAddressProperty = createMailAddressProperties({ mailAddress })
+			mailAddressProperty = createMailAddressProperties({
+				mailAddress,
+				senderName: "",
+			})
 			mailboxProperties.mailAddressProperties.push(mailAddressProperty)
 		}
 		mailAddressProperty.senderName = senderName
@@ -181,12 +184,13 @@ export class MailAddressFacade {
 	}
 
 	private async createMailboxProperties(mailboxGroupRoot: MailboxGroupRoot, groupKey: Aes128Key): Promise<Id> {
-		// Using non-caching entityClient because we are not a member of the user's mail group and we won't receive updates for it
+		const _ownerGroup = mailboxGroupRoot._ownerGroup
 		const mailboxProperties = createMailboxProperties({
-			_ownerGroup: mailboxGroupRoot._ownerGroup,
+			...(_ownerGroup != null ? { _ownerGroup } : null), // only set it if it is not null
 			reportMovedMails: "",
 			mailAddressProperties: [],
 		})
+		// Using non-caching entityClient because we are not a member of the user's mail group and we won't receive updates for it
 		return this.nonCachingEntityClient.setup(null, mailboxProperties, undefined, { ownerKey: groupKey }).catch(
 			ofClass(PreconditionFailedError, (e) => {
 				// in admin case it is much harder to run into it because we use non-caching entityClient but it is still possible

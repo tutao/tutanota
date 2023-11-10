@@ -165,6 +165,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 						bDayDetails = createBirthday({
 							month: tagValue.substring(2, 4),
 							day: tagValue.substring(4, 6),
+							year: null,
 						})
 					} else if (tagValue.match(/\d{4}-\d{2}-\d{2}/g)) {
 						let bDay = tagValue.substring(0, indexOfT !== -1 ? indexOfT : tagValue.length).split("-")
@@ -310,6 +311,10 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 			mailAddresses,
 			phoneNumbers,
 			socialIds,
+			presharedPassword: null,
+			photo: null,
+			oldBirthdayDate: null,
+			oldBirthdayAggregate: null,
 		})
 	}
 

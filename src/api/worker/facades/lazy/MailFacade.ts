@@ -260,6 +260,8 @@ export class MailFacade {
 				bccRecipients: bccRecipients.map(recipientToDraftRecipient),
 				replyTos: replyTos.map(recipientToEncryptedMailAddress),
 				addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey),
+				bodyText: "",
+				removedAttachments: [],
 			}),
 		})
 		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, { sessionKey: sk })
@@ -318,6 +320,7 @@ export class MailFacade {
 				replyTos: replyTos,
 				removedAttachments: this._getRemovedAttachments(attachments, currentAttachments),
 				addedAttachments: await this._createAddedAttachments(attachments, currentAttachments, senderMailGroupId, mailGroupKey),
+				bodyText: "",
 			}),
 		})
 		this.deferredDraftId = draft._id
@@ -417,6 +420,7 @@ export class MailFacade {
 					const attachment = createDraftAttachment({
 						existingFile: getLetId(providedFile),
 						ownerEncFileSessionKey: encryptKey(mailGroupKey, assertNotNull(fileSessionKey, "filesessionkey was not resolved")),
+						newFile: null,
 					})
 					return attachment
 				})
@@ -449,6 +453,7 @@ export class MailFacade {
 				encCid: providedFile.cid == null ? null : encryptString(fileSessionKey, providedFile.cid),
 			}),
 			ownerEncFileSessionKey: encryptKey(mailGroupKey, fileSessionKey),
+			existingFile: null,
 		})
 	}
 
@@ -458,6 +463,14 @@ export class MailFacade {
 		const sendDraftData = createSendDraftData({
 			language: language,
 			mail: draft._id,
+			mailSessionKey: null,
+			attachmentKeyData: [],
+			calendarMethod: false,
+			internalRecipientKeyData: [],
+			plaintext: false,
+			bucketEncMailSessionKey: null,
+			senderNameUnencrypted: null,
+			secureExternalRecipientKeyData: [],
 		})
 
 		const attachments = await this.getAttachmentIds(draft)
@@ -466,6 +479,8 @@ export class MailFacade {
 			const fileSessionKey = assertNotNull(await this.crypto.resolveSessionKeyForInstance(file), "fileSessionKey was null")
 			const data = createAttachmentKeyData({
 				file: fileId,
+				fileSessionKey: null,
+				bucketEncFileSessionKey: null,
 			})
 
 			if (draft.confidential) {
@@ -650,6 +665,8 @@ export class MailFacade {
 					salt: salt,
 					saltHash: sha256Hash(salt),
 					pwEncCommunicationKey: encryptKey(passwordKey, externalGroupKeys.externalUserGroupKey),
+					autoTransmitPassword: null,
+					passwordChannelPhoneNumbers: [],
 				})
 				service.secureExternalRecipientKeyData.push(data)
 			} else {
@@ -742,6 +759,7 @@ export class MailFacade {
 							externalUserEncTutanotaPropertiesSessionKey: encryptKey(externalUserGroupKey, tutanotaPropertiesSessionKey),
 							externalMailEncMailBoxSessionKey: encryptKey(externalMailGroupKey, mailboxSessionKey),
 							userGroupData: userGroupData,
+							kdfVersion: "0",
 						})
 						return this.serviceExecutor.post(ExternalUserService, d).then(() => {
 							return {
@@ -824,6 +842,7 @@ export class MailFacade {
 	async clearFolder(folderId: IdTuple) {
 		const deleteMailData = createDeleteMailData({
 			folder: folderId,
+			mails: [],
 		})
 		await this.serviceExecutor.delete(MailService, deleteMailData)
 	}

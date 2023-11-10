@@ -1,11 +1,19 @@
 import o from "@tutao/otest"
-import { CalendarEvent, createCalendarEvent, createCalendarEventAttendee, createContact } from "../../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	CalendarEvent,
+	CalendarEventAttendeeTypeRef,
+	CalendarEventTypeRef,
+	ContactTypeRef,
+	createCalendarEvent,
+	createCalendarEventAttendee,
+	createContact,
+} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import { CalendarEventWhoModel } from "../../../../src/calendar/date/eventeditor/CalendarEventWhoModel.js"
 import { matchers, object, verify, when } from "testdouble"
 import { RecipientsModel } from "../../../../src/api/main/RecipientsModel.js"
 import { Recipient, RecipientType } from "../../../../src/api/common/recipients/Recipient.js"
 import { AccountType, CalendarAttendeeStatus, ShareCapability } from "../../../../src/api/common/TutanotaConstants.js"
-import { createUser } from "../../../../src/api/entities/sys/TypeRefs.js"
+import { createUser, UserTypeRef } from "../../../../src/api/entities/sys/TypeRefs.js"
 import { SendMailModel } from "../../../../src/mail/editor/SendMailModel.js"
 import { UserController } from "../../../../src/api/main/UserController.js"
 import { CalendarOperation, EventType } from "../../../../src/calendar/date/eventeditor/CalendarEventModel.js"
@@ -29,6 +37,7 @@ import {
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { RecipientField } from "../../../../src/mail/model/MailUtils.js"
 import { ProgrammingError } from "../../../../src/api/common/error/ProgrammingError.js"
+import { createTestEntity } from "../../TestUtils.js"
 
 o.spec("CalendarEventWhoModel", function () {
 	const passwordStrengthModel = () => 1
@@ -152,18 +161,18 @@ o.spec("CalendarEventWhoModel", function () {
 
 	o.spec("invite capabilities for different events", function () {
 		o("invite in our own calendar can only modify own attendance", async function () {
-			const existingEvent = createCalendarEvent({
+			const existingEvent = createTestEntity(CalendarEventTypeRef, {
 				summary: "existing event",
 				startTime: new Date(2020, 4, 26, 12),
 				endTime: new Date(2020, 4, 26, 13),
 				organizer: otherAddress,
 				_ownerGroup: "ownCalendar",
 				attendees: [
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						address: ownerAddress,
 						status: CalendarAttendeeStatus.ACCEPTED,
 					}),
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						address: otherAddress,
 					}),
 				],
@@ -178,18 +187,18 @@ o.spec("CalendarEventWhoModel", function () {
 		o("existing normal event in writable calendar can not modify guests", async function () {
 			const userController = makeUserController()
 			addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
-			const existingEvent = createCalendarEvent({
+			const existingEvent = createTestEntity(CalendarEventTypeRef, {
 				summary: "existing event",
 				startTime: new Date(2020, 4, 26, 12),
 				endTime: new Date(2020, 4, 26, 13),
 				organizer: otherAddress,
 				_ownerGroup: "sharedCalendar",
 				attendees: [
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						address: ownerAddress,
 						status: CalendarAttendeeStatus.ACCEPTED,
 					}),
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						address: otherAddress,
 					}),
 				],
@@ -203,17 +212,17 @@ o.spec("CalendarEventWhoModel", function () {
 		o("for an invite in writable calendar, we cannot modify guests", async function () {
 			const userController = makeUserController()
 			addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
-			const existingEvent = createCalendarEvent({
+			const existingEvent = createTestEntity(CalendarEventTypeRef, {
 				summary: "existing event",
 				startTime: new Date(2020, 4, 26, 12),
 				endTime: new Date(2020, 4, 26, 13),
 				organizer: otherAddress,
 				_ownerGroup: "sharedCalendar",
 				attendees: [
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						address: otherAddress,
 					}),
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						address: otherAddress2,
 					}),
 				],
@@ -225,7 +234,7 @@ o.spec("CalendarEventWhoModel", function () {
 		o("in readonly calendar, cannot modify guests", async function () {
 			const userController = makeUserController()
 			addCapability(userController.user, "sharedCalendar", ShareCapability.Read)
-			const existingEvent = createCalendarEvent({
+			const existingEvent = createTestEntity(CalendarEventTypeRef, {
 				_ownerGroup: "sharedCalendar",
 			})
 			const model = getOldSharedModel(existingEvent, EventType.SHARED_RO)
@@ -235,17 +244,17 @@ o.spec("CalendarEventWhoModel", function () {
 		o("in writable calendar w/ guests, we cannot modify guests", async function () {
 			const userController = makeUserController()
 			addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
-			const existingEvent = createCalendarEvent({
+			const existingEvent = createTestEntity(CalendarEventTypeRef, {
 				summary: "existing event",
 				startTime: new Date(2020, 4, 26, 12),
 				endTime: new Date(2020, 4, 26, 13),
 				organizer: otherAddress,
 				_ownerGroup: "sharedCalendar",
 				attendees: [
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						address: otherAddress,
 					}),
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						address: ownerAddress,
 					}),
 				],
@@ -258,7 +267,10 @@ o.spec("CalendarEventWhoModel", function () {
 	o.spec("adding and removing attendees", function () {
 		o("adding another alias on your own event replaces the old attendee and updates the organizer", async function () {
 			const model = getNewModel({
-				attendees: [createCalendarEventAttendee({ address: ownAddresses[0] }), createCalendarEventAttendee({ address: otherAddress })],
+				attendees: [
+					createTestEntity(CalendarEventAttendeeTypeRef, { address: ownAddresses[0] }),
+					createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress }),
+				],
 				organizer: ownAddresses[0],
 			})
 
@@ -280,14 +292,17 @@ o.spec("CalendarEventWhoModel", function () {
 			o(result.cancelModel).equals(null)
 			o(result.responseModel).equals(null)
 			o(result.attendees).deepEquals([
-				createCalendarEventAttendee({ address: ownerAlias, status: CalendarAttendeeStatus.ACCEPTED }),
-				createCalendarEventAttendee({ address: otherAddress, status: CalendarAttendeeStatus.ADDED }),
+				createTestEntity(CalendarEventAttendeeTypeRef, { address: ownerAlias, status: CalendarAttendeeStatus.ACCEPTED }),
+				createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress, status: CalendarAttendeeStatus.ADDED }),
 			])("the result contains all attendees including the organizer")
 			o(result.organizer).deepEquals(ownerAlias)
 		})
 		o("setting multiple ownAddresses correctly gives the possible organizers", function () {
 			const model = getNewModel({
-				attendees: [createCalendarEventAttendee({ address: ownAddresses[0] }), createCalendarEventAttendee({ address: otherAddress })],
+				attendees: [
+					createTestEntity(CalendarEventAttendeeTypeRef, { address: ownAddresses[0] }),
+					createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress }),
+				],
 				organizer: ownAddresses[0],
 			})
 			o(model.possibleOrganizers).deepEquals([ownerAddress, ownerAlias])
@@ -324,7 +339,10 @@ o.spec("CalendarEventWhoModel", function () {
 		})
 		o("trying to remove the organizer while there are other attendees does nothing", function () {
 			const model = getNewModel({
-				attendees: [createCalendarEventAttendee({ address: ownAddresses[0] }), createCalendarEventAttendee({ address: otherAddress })],
+				attendees: [
+					createTestEntity(CalendarEventAttendeeTypeRef, { address: ownAddresses[0] }),
+					createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress }),
+				],
 				organizer: ownerAddress,
 			})
 			model.removeAttendee(ownerAddress.address)
@@ -335,8 +353,8 @@ o.spec("CalendarEventWhoModel", function () {
 		o("getting the result on an old model is idempotent", function () {
 			const model = getOldModel({
 				attendees: [
-					createCalendarEventAttendee({ address: ownAddresses[0], status: CalendarAttendeeStatus.ACCEPTED }),
-					createCalendarEventAttendee({ address: otherAddress, status: CalendarAttendeeStatus.ACCEPTED }),
+					createTestEntity(CalendarEventAttendeeTypeRef, { address: ownAddresses[0], status: CalendarAttendeeStatus.ACCEPTED }),
+					createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress, status: CalendarAttendeeStatus.ACCEPTED }),
 				],
 				organizer: ownerAddress,
 			})
@@ -347,8 +365,8 @@ o.spec("CalendarEventWhoModel", function () {
 		o("removing an attendee while there are other attendees removes only that attendee", async function () {
 			const model = getOldModel({
 				attendees: [
-					createCalendarEventAttendee({ address: ownAddresses[0], status: CalendarAttendeeStatus.ACCEPTED }),
-					createCalendarEventAttendee({ address: otherAddress }),
+					createTestEntity(CalendarEventAttendeeTypeRef, { address: ownAddresses[0], status: CalendarAttendeeStatus.ACCEPTED }),
+					createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress }),
 				],
 				organizer: ownerAddress,
 			})
@@ -357,24 +375,24 @@ o.spec("CalendarEventWhoModel", function () {
 			await model.recipientsSettled
 			const resultBeforeRemove = model.result
 			o(resultBeforeRemove.attendees).deepEquals([
-				createCalendarEventAttendee({ address: ownerAddress, status: CalendarAttendeeStatus.ACCEPTED }),
-				createCalendarEventAttendee({ address: otherAddress, status: CalendarAttendeeStatus.ADDED }),
-				createCalendarEventAttendee({ address: otherAddress2, status: CalendarAttendeeStatus.ADDED }),
+				createTestEntity(CalendarEventAttendeeTypeRef, { address: ownerAddress, status: CalendarAttendeeStatus.ACCEPTED }),
+				createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress, status: CalendarAttendeeStatus.ADDED }),
+				createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress2, status: CalendarAttendeeStatus.ADDED }),
 			])("there are three attendees in the event")
 			o(resultBeforeRemove.organizer).deepEquals(ownerAddress)
 			model.removeAttendee(otherAddress.address)
 			const result = model.result
 			o(result.attendees).deepEquals([
-				createCalendarEventAttendee({ address: ownerAddress, status: CalendarAttendeeStatus.ACCEPTED }),
-				createCalendarEventAttendee({ address: otherAddress2, status: CalendarAttendeeStatus.ADDED }),
+				createTestEntity(CalendarEventAttendeeTypeRef, { address: ownerAddress, status: CalendarAttendeeStatus.ACCEPTED }),
+				createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress2, status: CalendarAttendeeStatus.ADDED }),
 			])
 			o(result.organizer).deepEquals(ownerAddress)
 		})
 		o("setting external passwords is reflected in the getters and result", async function () {
 			const model = getNewModel({
 				attendees: [
-					createCalendarEventAttendee({ address: ownAddresses[0] }),
-					createCalendarEventAttendee({ address: otherAddress, status: CalendarAttendeeStatus.NEEDS_ACTION }),
+					createTestEntity(CalendarEventAttendeeTypeRef, { address: ownAddresses[0] }),
+					createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress, status: CalendarAttendeeStatus.NEEDS_ACTION }),
 				],
 				organizer: ownerAddress,
 				invitedConfidentially: true,
@@ -403,11 +421,11 @@ o.spec("CalendarEventWhoModel", function () {
 			o(model.getPresharedPassword(otherAddress.address)).deepEquals({ password: "otherPassword", strength: 1 })
 			const { attendees } = model.result
 			o(attendees).deepEquals([
-				createCalendarEventAttendee({
+				createTestEntity(CalendarEventAttendeeTypeRef, {
 					address: ownerAddress,
 					status: CalendarAttendeeStatus.ADDED,
 				}),
-				createCalendarEventAttendee({
+				createTestEntity(CalendarEventAttendeeTypeRef, {
 					address: otherAddress,
 					status: CalendarAttendeeStatus.NEEDS_ACTION,
 				}),
@@ -424,9 +442,9 @@ o.spec("CalendarEventWhoModel", function () {
 		o("organizer is replaced with ourselves when an own event with someone else as organizer is opened", function () {
 			const model = getNewModel({
 				attendees: [
-					createCalendarEventAttendee({ address: ownAddresses[0], status: CalendarAttendeeStatus.ACCEPTED }),
-					createCalendarEventAttendee({ address: otherAddress, status: CalendarAttendeeStatus.ACCEPTED }),
-					createCalendarEventAttendee({ address: otherAddress2, status: CalendarAttendeeStatus.NEEDS_ACTION }),
+					createTestEntity(CalendarEventAttendeeTypeRef, { address: ownAddresses[0], status: CalendarAttendeeStatus.ACCEPTED }),
+					createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress, status: CalendarAttendeeStatus.ACCEPTED }),
+					createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress2, status: CalendarAttendeeStatus.NEEDS_ACTION }),
 				],
 				organizer: otherAddress,
 			})
@@ -439,21 +457,21 @@ o.spec("CalendarEventWhoModel", function () {
 			const sendModels: Array<SendMailModel> = [object<SendMailModel>("first"), object<SendMailModel>("second"), object<SendMailModel>("third")]
 			const userController = makeUserController([], AccountType.PAID)
 
-			const existingEvent = createCalendarEvent({
+			const existingEvent = createTestEntity(CalendarEventTypeRef, {
 				_ownerGroup: "ownCalendar",
 				startTime: getDateInZone("2020-06-01"),
 				endTime: getDateInZone("2020-06-02"),
 				organizer: ownerAddress,
 				attendees: [
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 						address: ownerAddress,
 					}),
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 						address: otherAddress2,
 					}),
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 						address: thirdAddress,
 					}),
@@ -475,7 +493,7 @@ o.spec("CalendarEventWhoModel", function () {
 			)
 			model.shouldSendUpdates = true
 			model.removeAttendee(otherAddress2.address)
-			model.addAttendee(otherAddress.address, createContact({ nickname: otherAddress.name }))
+			model.addAttendee(otherAddress.address, createTestEntity(ContactTypeRef, { nickname: otherAddress.name }))
 			const result = model.result
 			// this is not an invite to us, so we do not respond
 			o(result.responseModel).equals(null)
@@ -491,17 +509,17 @@ o.spec("CalendarEventWhoModel", function () {
 		o("adding attendees on new event correctly creates invite model", function () {
 			const sendModels: Array<SendMailModel> = [object()]
 			const userController = makeUserController([], AccountType.PAID)
-			const existingEvent = createCalendarEvent({
+			const existingEvent = createTestEntity(CalendarEventTypeRef, {
 				_ownerGroup: "ownCalendar",
 				startTime: new Date(2020, 5, 1),
 				endTime: new Date(2020, 5, 2),
 				organizer: ownerAddress,
 				attendees: [
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 						address: ownerAddress,
 					}),
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 						address: otherAddress2,
 					}),
@@ -521,7 +539,7 @@ o.spec("CalendarEventWhoModel", function () {
 				passwordStrengthModel,
 				() => sendModels.pop()!,
 			)
-			model.addAttendee(otherAddress.address, createContact({ nickname: otherAddress.name }))
+			model.addAttendee(otherAddress.address, createTestEntity(ContactTypeRef, { nickname: otherAddress.name }))
 			const result = model.result
 			o(result.responseModel).equals(null)
 			o(sendModels.length).equals(0)
@@ -535,7 +553,7 @@ o.spec("CalendarEventWhoModel", function () {
 	o.spec("calendar selection", function () {
 		o.spec("getAvailableCalendars", function () {
 			o("it returns the shared calendars we have write access to when there are no attendees", function () {
-				userController.user = createUser({ _id: "ownerId" })
+				userController.user = createTestEntity(UserTypeRef, { _id: "ownerId" })
 				// add it as a writable calendar so that we see that it's filtered out
 				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
 				const model = getNewModel({})
@@ -543,7 +561,7 @@ o.spec("CalendarEventWhoModel", function () {
 			})
 
 			o("it returns only the calendars we have write access to", function () {
-				userController.user = createUser({ _id: "ownerId" })
+				userController.user = createTestEntity(UserTypeRef, { _id: "ownerId" })
 				// add it as a writable calendar so that we see that it's filtered out
 				addCapability(userController.user, "sharedCalendar", ShareCapability.Read)
 				const model = getNewModel({})
@@ -551,7 +569,7 @@ o.spec("CalendarEventWhoModel", function () {
 			})
 
 			o("it returns only own calendars after adding attendees to an existing event", function () {
-				userController.user = createUser({ _id: "ownerId" })
+				userController.user = createTestEntity(UserTypeRef, { _id: "ownerId" })
 				// add it as a writable calendar so that we see that it's filtered out
 				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
 				const model = getOldModel({})
@@ -560,17 +578,17 @@ o.spec("CalendarEventWhoModel", function () {
 			})
 
 			o("it returns only own calendars for existing own event with attendees ", function () {
-				userController.user = createUser({ _id: "ownerId" })
+				userController.user = createTestEntity(UserTypeRef, { _id: "ownerId" })
 				// add it as a writable calendar so that we see that it's filtered out
 				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
 				const model = getOldModel({
-					attendees: [createCalendarEventAttendee({ address: otherAddress, status: CalendarAttendeeStatus.NEEDS_ACTION })],
+					attendees: [createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress, status: CalendarAttendeeStatus.NEEDS_ACTION })],
 				})
 				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!])
 			})
 
 			o("it returns only own calendars for invite", function () {
-				userController.user = createUser({ _id: "ownerId" })
+				userController.user = createTestEntity(UserTypeRef, { _id: "ownerId" })
 				// add it as a writable calendar so that we see that it's filtered out
 				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
 				const model = getOldInviteModel({})
@@ -578,12 +596,12 @@ o.spec("CalendarEventWhoModel", function () {
 			})
 
 			o("it returns only existing calendar if it's existing shared event with attendees", function () {
-				userController.user = createUser({ _id: "ownerId" })
+				userController.user = createTestEntity(UserTypeRef, { _id: "ownerId" })
 				// add it as a writable calendar so that we see that it's filtered out
 				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
 				const model = getOldSharedModel(
 					{
-						attendees: [createCalendarEventAttendee({ address: otherAddress, status: CalendarAttendeeStatus.NEEDS_ACTION })],
+						attendees: [createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress, status: CalendarAttendeeStatus.NEEDS_ACTION })],
 					},
 					EventType.LOCKED,
 				)
@@ -591,7 +609,7 @@ o.spec("CalendarEventWhoModel", function () {
 			})
 
 			o("it returns only the current calendar for single-instance editing", function () {
-				userController.user = createUser({ _id: "ownerId" })
+				userController.user = createTestEntity(UserTypeRef, { _id: "ownerId" })
 				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
 				const model = getOldModelWithSingleEdit({ attendees: [] })
 				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!])
@@ -609,21 +627,21 @@ o.spec("CalendarEventWhoModel", function () {
 	o.spec("invites in own calendar, changing own attendance", function () {
 		o("changing own attendance on new event results in responseModel and correct status", async function () {
 			const userController = makeUserController([], AccountType.PAID)
-			const existingEvent = createCalendarEvent({
+			const existingEvent = createTestEntity(CalendarEventTypeRef, {
 				_ownerGroup: "ownCalendar",
 				startTime: getDateInZone("2020-06-01"),
 				endTime: getDateInZone("2020-06-02"),
 				organizer: otherAddress,
 				attendees: [
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						status: CalendarAttendeeStatus.DECLINED,
 						address: otherAddress,
 					}),
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 						address: ownerAddress,
 					}),
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 						address: otherAddress2,
 					}),
@@ -654,21 +672,21 @@ o.spec("CalendarEventWhoModel", function () {
 		})
 		o("changing own attendance on existing event results in responseModel and correct status", async function () {
 			const userController = makeUserController([], AccountType.PAID)
-			const existingEvent = createCalendarEvent({
+			const existingEvent = createTestEntity(CalendarEventTypeRef, {
 				_ownerGroup: "ownCalendar",
 				startTime: new Date(2020, 5, 1),
 				endTime: new Date(2020, 5, 2),
 				organizer: otherAddress,
 				attendees: [
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						status: CalendarAttendeeStatus.DECLINED,
 						address: otherAddress,
 					}),
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 						address: ownerAddress,
 					}),
-					createCalendarEventAttendee({
+					createTestEntity(CalendarEventAttendeeTypeRef, {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 						address: otherAddress2,
 					}),

@@ -56,6 +56,10 @@ export function makeInvitationCalendarFile(event: CalendarEvent, method: Calenda
 		name: `${method.toLowerCase()}-${date.getFullYear()}${date.getMonth() + 1}${date.getDate()}.ics`,
 		mimeType: CALENDAR_MIME_TYPE,
 		size: String(data.byteLength),
+		cid: null,
+		blobs: [],
+		parent: null,
+		subFiles: null,
 	})
 	return convertToDataFile(tmpFile, data)
 }

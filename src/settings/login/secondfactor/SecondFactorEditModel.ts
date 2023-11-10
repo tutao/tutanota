@@ -70,7 +70,7 @@ export class SecondFactorEditModel {
 					width: 150,
 					content: url,
 					padding: 2,
-					// We don't want <xml> around the content, we actually enforce <svg> namespace and we want it to be parsed as such.
+					// We don't want <xml> around the content, we actually enforce <svg> namespace, and we want it to be parsed as such.
 					xmlDeclaration: false,
 				})
 				totpQRCodeSvg = htmlSanitizer.sanitizeSVG(qrcodeGenerator.svg()).html
@@ -181,16 +181,18 @@ export class SecondFactorEditModel {
 		}
 
 		this.updateViewCallback()
-		const sf = createSecondFactor({
-			_ownerGroup: this.user._ownerGroup,
-			name: this.name,
-		})
 
 		if (this.selectedType === SecondFactorType.u2f) {
 			throw new ProgrammingError(`invalid factor type: ${this.selectedType}`)
-		} else {
-			sf.type = this.selectedType
 		}
+
+		const sf = createSecondFactor({
+			_ownerGroup: this.user._ownerGroup!,
+			name: this.name,
+			type: this.selectedType,
+			otpSecret: null,
+			u2f: null,
+		})
 
 		if (this.selectedType === SecondFactorType.webauthn) {
 			if (this.verificationStatus !== VerificationStatus.Success) {

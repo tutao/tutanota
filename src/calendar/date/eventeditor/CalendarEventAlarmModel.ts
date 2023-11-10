@@ -65,6 +65,8 @@ export class CalendarEventAlarmModel {
 		return createAlarmInfo({
 			alarmIdentifier: generateEventElementId(this.dateProvider.now()),
 			trigger: serializeAlarmInterval(alarmInterval),
+			// @ts-ignore
+			calendarRef: null, // FIXME
 		})
 	}
 

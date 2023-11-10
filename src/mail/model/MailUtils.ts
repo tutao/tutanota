@@ -1,5 +1,10 @@
 import type { Contact, EncryptedMailAddress, InboxRule, Mail, MailFolder, TutanotaProperties } from "../../api/entities/tutanota/TypeRefs.js"
 import {
+	Birthday,
+	ContactAddress,
+	ContactMailAddress,
+	ContactPhoneNumber,
+	ContactSocialId,
 	createContact,
 	createContactMailAddress,
 	createEncryptedMailAddress,
@@ -72,6 +77,20 @@ export function createNewContact(user: User, mailAddress: string, name: string):
 				customTypeName: "",
 			}),
 		],
+		autoTransmitPassword: "",
+		birthdayIso: null,
+		comment: "",
+		company: "",
+		nickname: null,
+		oldBirthdayDate: null,
+		presharedPassword: null,
+		role: "",
+		title: null,
+		addresses: [],
+		oldBirthdayAggregate: null,
+		phoneNumbers: [],
+		photo: null,
+		socialIds: [],
 	})
 	return contact
 }

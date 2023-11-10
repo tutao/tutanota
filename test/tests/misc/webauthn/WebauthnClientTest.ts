@@ -3,8 +3,8 @@ import { matchers, object, when } from "testdouble"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { WebauthnClient } from "../../../../src/misc/2fa/webauthn/WebauthnClient.js"
 import { WebAuthnFacade } from "../../../../src/native/common/generatedipc/WebAuthnFacade.js"
-import { createU2fChallenge, createU2fKey } from "../../../../src/api/entities/sys/TypeRefs.js"
-import { domainConfigStub } from "../../TestUtils.js"
+import { U2fChallengeTypeRef, U2fKeyTypeRef } from "../../../../src/api/entities/sys/TypeRefs.js"
+import { createTestEntity, domainConfigStub } from "../../TestUtils.js"
 import { DomainConfigProvider } from "../../../../src/api/common/DomainConfigProvider.js"
 
 o.spec("WebauthnClient", function () {
@@ -18,12 +18,12 @@ o.spec("WebauthnClient", function () {
 
 	async function testSelectedKey(givenKeys, expectedDomain): ReturnType<WebauthnClient["authenticate"]> {
 		const keys = givenKeys.map((appId) =>
-			createU2fKey({
+			createTestEntity(U2fKeyTypeRef, {
 				appId,
 				keyHandle: stringToUtf8Uint8Array(appId),
 			}),
 		)
-		const challenge = createU2fChallenge({
+		const challenge = createTestEntity(U2fChallengeTypeRef, {
 			keys,
 		})
 		const expectedKeys = keys.map((key) => {
