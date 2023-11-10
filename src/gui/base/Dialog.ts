@@ -15,7 +15,7 @@ import type { ButtonAttrs } from "./Button.js"
 import { Button, ButtonType } from "./Button.js"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
 import { DialogHeaderBar } from "./DialogHeaderBar"
-import { Autocomplete, TextField, TextFieldType } from "./TextField.js"
+import { Autocomplete, TextField, TextFieldAttrs, TextFieldType } from "./TextField.js"
 import type { DropDownSelectorAttrs, SelectorItemList } from "./DropDownSelector.js"
 import { DropDownSelector } from "./DropDownSelector.js"
 import { Keys } from "../../api/common/TutanotaConstants"
@@ -932,12 +932,14 @@ export class Dialog implements ModalComponent {
 	 * @param props.action will be executed as an attempt to apply new password. Error message is the return value.
 	 */
 	static showRequestPasswordDialog(props: {
+		title?: string
 		action: (pw: string) => Promise<string>
 		cancel: {
 			textId: TranslationKey
 			action: () => void
 		} | null
 	}): Dialog {
+		const title = props.title != null ? () => props.title! : () => lang.get("password_label")
 		let value = ""
 		let state: { type: "progress" } | { type: "idle"; message: string } = { type: "idle", message: "" }
 
@@ -954,7 +956,7 @@ export class Dialog implements ModalComponent {
 				const savedState = state
 				return savedState.type == "idle"
 					? m(TextField, {
-							label: "password_label",
+							label: title,
 							helpLabel: () => savedState.message,
 							value: value,
 							oninput: (newValue) => (value = newValue),
@@ -968,7 +970,7 @@ export class Dialog implements ModalComponent {
 
 								return true
 							},
-					  })
+					  } satisfies TextFieldAttrs)
 					: m(Icon, {
 							icon: BootIcons.Progress,
 							class: "icon-xl icon-progress block mt mb",
@@ -980,7 +982,7 @@ export class Dialog implements ModalComponent {
 			},
 		}
 		const dialog = Dialog.showActionDialog({
-			title: lang.get("password_label"),
+			title,
 			child: child,
 			allowOkWithReturn: true,
 			okAction: () => doAction(),

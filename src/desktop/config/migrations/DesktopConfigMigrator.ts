@@ -11,6 +11,8 @@ import * as migration0004 from "./migration-0004"
 import * as migration0005 from "./migration-0005"
 import * as migration0006 from "./migration-0006"
 import * as migration0007 from "./migration-0007"
+import * as migration0008 from "./migration-0008"
+
 import type { Config, ConfigMigration } from "../ConfigCommon"
 import { DesktopNativeCryptoFacade } from "../../DesktopNativeCryptoFacade"
 import type { DesktopKeyStoreFacade } from "../../DesktopKeyStoreFacade.js"
@@ -57,10 +59,11 @@ export class DesktopConfigMigrator {
 			case 6:
 				await applyMigration(migration0007[migrationFunction], oldConfig)
 			case 7:
+				await applyMigration(migration0008[migrationFunction], oldConfig)
+			case 8:
 				log.debug("config up to date")
 				/* add new migrations as needed */
 				break
-
 			default:
 				throw new Error(`unknown config version ${String(oldConfig.desktopConfigVersion)}`)
 		}

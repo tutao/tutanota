@@ -20,7 +20,7 @@ import { ifAllowedTutaLinks } from "../../gui/base/GuiUtils.js"
 import type { UpdatableSettingsViewer } from "../SettingsView.js"
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
 import type { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
-import { hasKeychainAuthenticationOptions } from "../../misc/credentials/CredentialsProviderFactory.js"
+import { usingKeychainAuthenticationWithOptions } from "../../misc/credentials/CredentialsProviderFactory.js"
 import { showCredentialsEncryptionModeDialog } from "../../gui/dialogs/SelectCredentialsEncryptionModeDialog.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 import { locator } from "../../api/main/MainLocator.js"
@@ -189,7 +189,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private _renderEncryptionModeField(): Children {
-		if (!hasKeychainAuthenticationOptions()) {
+		if (!usingKeychainAuthenticationWithOptions()) {
 			return null
 		}
 
@@ -198,7 +198,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		return m(TextField, {
 			label: "credentialsEncryptionMode_label",
 			helpLabel: this.credentialsEncryptionModeHelpLabel,
-			value: this._credentialsEncryptionModeName(usedMode ?? CredentialEncryptionMode.DEVICE_LOCK),
+			value: this._credentialsEncryptionModeName(usedMode),
 			disabled: true,
 			injectionsRight: () =>
 				m(IconButton, {
@@ -272,6 +272,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			[CredentialEncryptionMode.DEVICE_LOCK]: "credentialsEncryptionModeDeviceLock_label",
 			[CredentialEncryptionMode.SYSTEM_PASSWORD]: "credentialsEncryptionModeDeviceCredentials_label",
 			[CredentialEncryptionMode.BIOMETRICS]: "credentialsEncryptionModeBiometrics_label",
+			[CredentialEncryptionMode.APP_PIN]: "credentialsEncryptionModeAppPin_label",
 		} as const
 		return lang.get(mapping[credentialsEncryptionMode])
 	}

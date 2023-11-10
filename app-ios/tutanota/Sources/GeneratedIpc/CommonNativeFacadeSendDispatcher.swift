@@ -81,4 +81,30 @@ class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
 		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
+	func promptForNewPassword(
+		_ title: String,
+		_ oldPassword: String?
+	) async throws -> String
+		{
+		var args = [String]()
+		args.append(toJson(title))
+		args.append(toJson(oldPassword))
+		let encodedFacadeName = toJson("CommonNativeFacade")
+		let encodedMethodName = toJson("promptForNewPassword")
+		let returnValue = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		return try! JSONDecoder().decode(String.self, from: returnValue.data(using: .utf8)!)
+		}
+	
+	func promptForPassword(
+		_ title: String
+	) async throws -> String
+		{
+		var args = [String]()
+		args.append(toJson(title))
+		let encodedFacadeName = toJson("CommonNativeFacade")
+		let encodedMethodName = toJson("promptForPassword")
+		let returnValue = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		return try! JSONDecoder().decode(String.self, from: returnValue.data(using: .utf8)!)
+		}
+	
 }

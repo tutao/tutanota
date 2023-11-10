@@ -3,9 +3,10 @@ import { IMainLocator } from "../../api/main/MainLocator.js"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
-import { Dialog } from "../../gui/base/Dialog.js"
 import { UserError } from "../../api/main/UserError.js"
 import { themeController } from "../../gui/theme.js"
+import m from "mithril"
+import { Dialog } from "../../gui/base/Dialog.js"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	/**
@@ -93,6 +94,57 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 
 	async updateTheme(): Promise<void> {
 		await themeController.reloadTheme()
+	}
+
+	/**
+	 * largely modeled after ChangePasswordOkAction, except that we're never changing the password with it and
+	 * don't support bcrypt for this one.
+	 */
+	async promptForNewPassword(title: string, oldPassword: string | null): Promise<string> {
+		const [{ Dialog }, { PasswordForm, PasswordModel }] = await Promise.all([import("../../gui/base/Dialog.js"), import("../../settings/PasswordForm.js")])
+		const locator = await WebCommonNativeFacade.getInitializedLocator()
+		const model = new PasswordModel(locator.usageTestController, locator.logins, { checkOldPassword: false, enforceStrength: false })
+
+		return new Promise((resolve, reject) => {
+			const changePasswordOkAction = async (dialog: Dialog) => {
+				const error = model.getErrorMessageId()
+
+				if (error) {
+					Dialog.message(error)
+				} else {
+					resolve(model.getNewPassword())
+					dialog.close()
+				}
+			}
+
+			Dialog.showActionDialog({
+				title: () => title,
+				child: () => m(PasswordForm, { model }),
+				validator: () => model.getErrorMessageId(),
+				okAction: changePasswordOkAction,
+				cancelAction: () => reject(new CancelledError("user cancelled operation")),
+				allowCancel: true,
+			})
+		})
+	}
+
+	async promptForPassword(title: string): Promise<string> {
+		const { Dialog } = await import("../../gui/base/Dialog.js")
+
+		return new Promise((resolve, reject) => {
+			const dialog = Dialog.showRequestPasswordDialog({
+				title,
+				action: async (pw) => {
+					resolve(pw)
+					dialog.close()
+					return ""
+				},
+				cancel: {
+					textId: "cancel_action",
+					action: () => reject(new CancelledError("user cancelled operation")),
+				},
+			})
+		})
 	}
 
 	private static async getInitializedLocator(): Promise<IMainLocator> {

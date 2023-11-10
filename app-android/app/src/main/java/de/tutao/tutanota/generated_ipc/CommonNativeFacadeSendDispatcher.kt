@@ -79,4 +79,28 @@ class CommonNativeFacadeSendDispatcher (
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	
+	override suspend fun promptForNewPassword(
+		title: String,
+		oldPassword: String?,
+	): String
+	{
+		val encodedMethod = json.encodeToString("promptForNewPassword")
+		val args : MutableList<String> = mutableListOf()
+		args.add(json.encodeToString(title))
+		args.add(json.encodeToString(oldPassword))
+		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
+		return json.decodeFromString(result)
+	}
+	
+	override suspend fun promptForPassword(
+		title: String,
+	): String
+	{
+		val encodedMethod = json.encodeToString("promptForPassword")
+		val args : MutableList<String> = mutableListOf()
+		args.add(json.encodeToString(title))
+		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
+		return json.decodeFromString(result)
+	}
+	
 }

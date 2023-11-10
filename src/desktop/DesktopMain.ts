@@ -158,7 +158,10 @@ async function createComponents(): Promise<Components> {
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
-	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto)
+	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto, argon2, lang, conf, async () => {
+		const last = await wm.getLastFocused(true)
+		return last.commonNativeFacade
+	})
 
 	updater.setUpdateDownloadedListener(() => {
 		for (let applicationWindow of wm.getAll()) {

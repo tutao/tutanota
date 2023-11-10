@@ -1,7 +1,7 @@
 import type { CredentialsAndDatabaseKey, CredentialsEncryption, PersistentCredentials } from "./CredentialsProvider.js"
 import { CredentialsProvider } from "./CredentialsProvider.js"
 import { deviceConfig } from "../DeviceConfig"
-import { isApp, isDesktop } from "../../api/common/Env"
+import { isBrowser, isDesktop } from "../../api/common/Env"
 import type { DeviceEncryptionFacade } from "../../api/worker/facades/DeviceEncryptionFacade"
 import { CredentialsKeyProvider } from "./CredentialsKeyProvider"
 import { NativeCredentialsEncryption } from "./NativeCredentialsEncryption"
@@ -12,12 +12,8 @@ import { DefaultCredentialsKeyMigrator, StubCredentialsKeyMigrator } from "./Cre
 import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 
-export function usingKeychainAuthentication(): boolean {
-	return isApp() || isDesktop()
-}
-
-export function hasKeychainAuthenticationOptions(): boolean {
-	return isApp()
+export function usingKeychainAuthenticationWithOptions(): boolean {
+	return !isBrowser()
 }
 
 /**
@@ -33,7 +29,7 @@ export async function createCredentialsProvider(
 	sqlCipherFacade: SqlCipherFacade | null,
 	interWindowEventSender: InterWindowEventFacadeSendDispatcher | null,
 ): Promise<CredentialsProvider> {
-	if (usingKeychainAuthentication()) {
+	if (usingKeychainAuthenticationWithOptions()) {
 		const { NativeCredentialsFacadeSendDispatcher } = await import("../../native/common/generatedipc/NativeCredentialsFacadeSendDispatcher.js")
 		const nativeCredentials = new NativeCredentialsFacadeSendDispatcher(assertNotNull(nativeApp))
 		const credentialsKeyProvider = new CredentialsKeyProvider(nativeCredentials, deviceConfig, deviceEncryptionFacade)

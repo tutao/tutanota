@@ -38,4 +38,17 @@ public protocol CommonNativeFacade {
 	 */
 	func updateTheme(
 	) async throws -> Void
+	/**
+	 * prompt the user to enter a new password and a confirmation, taking an optional old password into account
+	 */
+	func promptForNewPassword(
+		_ title: String,
+		_ oldPassword: String?
+	) async throws -> String
+	/**
+	 * prompt the user to enter a password
+	 */
+	func promptForPassword(
+		_ title: String
+	) async throws -> String
 }

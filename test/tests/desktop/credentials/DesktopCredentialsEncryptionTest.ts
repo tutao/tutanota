@@ -21,6 +21,8 @@ o.spec("DesktopCredentialsEncryption Test", () => {
 		new DesktopNativeCredentialsFacade(
 			n.mock<DesktopKeyStoreFacade>("__keyStoreFacade", keyStoreFacade).set(),
 			n.mock<DesktopNativeCryptoFacade>("__crypto", crypto).set(),
+			lang,
+			() => "unimplemented",
 		)
 
 	o("throws when using wrong encryption mode", async function () {
