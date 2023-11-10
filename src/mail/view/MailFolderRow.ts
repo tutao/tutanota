@@ -125,6 +125,10 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 					? m(IconButton, {
 							...rightButton,
 							click: (event, dom) => {
+								// Don't ask me why, but you need to set this to true twice
+								// to have hovering off the folder row work correctly on web
+								// certified JavaScript moment™
+								this.rightButtonClicked = true
 								rightButton.click(event, dom)
 								this.rightButtonClicked = true
 							},
