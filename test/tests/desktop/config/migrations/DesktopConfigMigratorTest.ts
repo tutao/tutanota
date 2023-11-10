@@ -45,11 +45,12 @@ o.spec("DesktopConfigMigrator", function () {
 		}
 
 		const requiredResult = {
+			appPinSalt: null,
 			heartbeatTimeoutInSeconds: 30,
 			defaultDownloadPath: null,
 			enableAutoUpdate: true,
 			runAsTrayApp: true,
-			desktopConfigVersion: 7,
+			desktopConfigVersion: 8,
 			showAutoUpdateOption: true,
 			spellcheck: "de-DE",
 			offlineStorageEnabled: false,
@@ -70,8 +71,9 @@ o.spec("DesktopConfigMigrator", function () {
 			runAsTrayApp: true,
 		}
 		const requiredResult = {
+			appPinSalt: null,
 			runAsTrayApp: true,
-			desktopConfigVersion: 7,
+			desktopConfigVersion: 8,
 			showAutoUpdateOption: true,
 			mailExportMode: "eml",
 			spellcheck: "",
