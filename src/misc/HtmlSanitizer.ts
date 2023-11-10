@@ -15,7 +15,7 @@ export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string =
 		.replace(/\s+/g, " ")
 
 // background attribute is deprecated but still used in common browsers
-const EXTERNAL_CONTENT_ATTRS = Object.freeze(["src", "poster", "srcset", "background"])
+const EXTERNAL_CONTENT_ATTRS = Object.freeze(["src", "poster", "srcset", "background", "draft-src", "draft-srcset"])
 
 type SanitizeConfigExtra = {
 	blockExternalContent: boolean
@@ -65,6 +65,9 @@ const ADD_ATTR = Object.freeze([
 	"controls",
 	// for embedded images
 	"cid",
+	// to persist not loaded images
+	"draft-src",
+	"draft-srcset",
 ] as const)
 
 /** These must be safe for URI-like values */
@@ -314,14 +317,26 @@ export class HtmlSanitizer {
 				} else if (config.blockExternalContent && attribute.name === "srcset") {
 					this.externalContent++
 
+					htmlNode.setAttribute("draft-srcset", attribute.value)
 					htmlNode.removeAttribute("srcset")
 					htmlNode.setAttribute("src", PREVENT_EXTERNAL_IMAGE_LOADING_ICON)
 					htmlNode.style.maxWidth = "100px"
-				} else if (config.blockExternalContent && !attribute.value.startsWith("data:") && !attribute.value.startsWith("cid:")) {
+				} else if (
+					config.blockExternalContent &&
+					!attribute.value.startsWith("data:") &&
+					!attribute.value.startsWith("cid:") &&
+					!attribute.name.startsWith("draft-")
+				) {
 					this.externalContent++
 
+					htmlNode.setAttribute("draft-" + attribute.name, attribute.value)
 					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
 					htmlNode.attributes.setNamedItem(attribute)
+					htmlNode.style.maxWidth = "100px"
+				} else if (!config.blockExternalContent && attribute.name.startsWith("draft-")) {
+					const originalAttribute = attribute.name.split("-")
+					htmlNode.setAttribute(originalAttribute[1], attribute.value)
+					htmlNode.removeAttribute(attribute.name)
 					htmlNode.style.maxWidth = "100px"
 				}
 			}

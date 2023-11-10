@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import { Editor, ImagePasteEvent } from "../../gui/editor/Editor"
 import type { Attachment, InitAsResponseArgs, SendMailModel } from "./SendMailModel"
 import { Dialog } from "../../gui/base/Dialog"
-import { lang } from "../../misc/LanguageViewModel"
+import { InfoLink, lang } from "../../misc/LanguageViewModel"
 import type { MailboxDetail } from "../model/MailModel"
 import { checkApprovalStatus } from "../../misc/LoginUtils"
 import {
@@ -17,10 +17,18 @@ import {
 	RecipientField,
 } from "../model/MailUtils"
 import { locator } from "../../api/main/MainLocator"
-import { ALLOWED_IMAGE_FORMATS, ConversationType, FeatureType, Keys, MailMethod } from "../../api/common/TutanotaConstants"
+import {
+	ALLOWED_IMAGE_FORMATS,
+	ConversationType,
+	ExternalImageRule,
+	FeatureType,
+	Keys,
+	MailAuthenticationStatus,
+	MailMethod,
+} from "../../api/common/TutanotaConstants"
 import { TooManyRequestsError } from "../../api/common/error/RestError"
 import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
-import { ButtonType } from "../../gui/base/Button.js"
+import { ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../gui/base/Dropdown.js"
 import { isApp, isBrowser, isDesktop } from "../../api/common/Env"
 import { Icons } from "../../gui/base/icons/Icons"
@@ -77,6 +85,9 @@ import { createDataFile, DataFile } from "../../api/common/DataFile.js"
 import { AttachmentBubble } from "../../gui/AttachmentBubble.js"
 import { isSecurePassword, scaleToVisualPasswordStrength } from "../../misc/passwords/PasswordUtils.js"
 import { Status, StatusField } from "../../gui/base/StatusField.js"
+import { ContentBlockingStatus } from "../view/MailViewerViewModel.js"
+import { canSeeTutaLinks } from "../../gui/base/GuiUtils.js"
+import { InfoBanner } from "../../gui/base/InfoBanner.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -130,6 +141,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	sendMailModel: SendMailModel
 	private areDetailsExpanded: boolean
 	private recipientShowConfidential: Map<string, boolean> = new Map()
+	private blockExternalContent: boolean
 
 	constructor(vnode: Vnode<MailEditorAttrs>) {
 		const a = vnode.attrs
@@ -139,14 +151,29 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const model = a.model
 		this.sendMailModel = model
 		this.templateModel = a.templateModel
+		this.blockExternalContent = a.doBlockExternalContent()
 
 		// if we have any CC/BCC recipients, we should show these so, should the user send the mail, they know where it will be going to
 		this.areDetailsExpanded = model.bccRecipients().length + model.ccRecipients().length > 0
 
 		this.editor = new Editor(200, (html, isPaste) => {
 			const sanitized = htmlSanitizer.sanitizeFragment(html, {
-				blockExternalContent: !isPaste && a.doBlockExternalContent(),
+				blockExternalContent: !isPaste && this.blockExternalContent,
 			})
+
+			model.getExternalImageRule().then(async (externalImageRule) => {
+				const contentBlockingStatus =
+					externalImageRule === ExternalImageRule.Block
+						? ContentBlockingStatus.AlwaysBlock
+						: externalImageRule === ExternalImageRule.Allow && model.getPreviousMail()?.authStatus === MailAuthenticationStatus.AUTHENTICATED
+						? ContentBlockingStatus.AlwaysShow
+						: sanitized.externalContent > 0
+						? ContentBlockingStatus.Block
+						: ContentBlockingStatus.NoExternalContent
+
+				await model.setContentBlockingStatus(contentBlockingStatus)
+			})
+
 			this.mentionedInlineImages = sanitized.inlineImageCids
 			return sanitized.fragment
 		})
@@ -482,6 +509,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					attachmentBubbleAttrs.map((a) => m(AttachmentBubble, a)),
 				),
 				model.getAttachments().length > 0 ? m("hr.hr") : null,
+				this.renderExternalContentBanner(this.attrs),
 				a.doShowToolbar() ? this.renderToolbar(model) : null,
 				m(
 					".pt-s.text.scroll-x.break-word-links.flex.flex-column.flex-grow",
@@ -493,6 +521,35 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				m(".pb"),
 			],
 		)
+	}
+
+	private renderExternalContentBanner(attrs: MailEditorAttrs): Children | null {
+		// only show banner when there are blocked images and the user hasn't made a decision about how to handle them
+		if (attrs.model.getContentBlockingStatus() !== ContentBlockingStatus.Block) {
+			return null
+		}
+
+		const showButton: ButtonAttrs = {
+			label: "showBlockedContent_action",
+			click: () => this.updateExternalContentStatus(ContentBlockingStatus.Show),
+		}
+
+		return m(InfoBanner, {
+			message: "contentBlocked_msg",
+			icon: Icons.Picture,
+			helpLink: canSeeTutaLinks(attrs.model.logins) ? InfoLink.LoadImages : null,
+			buttons: [showButton],
+		})
+	}
+
+	private async updateExternalContentStatus(status: ContentBlockingStatus) {
+		this.blockExternalContent = status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock
+		this.sendMailModel.setContentBlockingStatus(status)
+		const sanitized = await htmlSanitizer.sanitizeHTML(this.editor.getHTML(), {
+			blockExternalContent: status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock,
+		})
+
+		this.editor.setHTML(sanitized.html)
 	}
 
 	private renderToggleKnowledgeBase(knowledgeBaseInjection: DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs>) {

@@ -324,6 +324,7 @@ class MainLocator {
 				dateProvider,
 				mailboxProperties,
 				this.kdfPicker,
+				this.configFacade,
 			)
 	}
 
