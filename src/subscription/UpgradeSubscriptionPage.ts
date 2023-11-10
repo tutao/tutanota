@@ -207,7 +207,7 @@ function confirmFreeSubscription(): Promise<boolean> {
 			dialog.close()
 			setTimeout(() => resolve(confirmed), DefaultAnimationTime)
 		}
-
+		const isFormValid = stream.lift((_oneAccountValue, _privateUseValue) => _oneAccountValue && _privateUseValue, oneAccountValue, privateUseValue)
 		dialog = new Dialog(DialogType.Alert, {
 			view: () => [
 				// m(".h2.pb", lang.get("confirmFreeAccount_label")),
@@ -233,9 +233,7 @@ function confirmFreeSubscription(): Promise<boolean> {
 					m(Button, {
 						label: "ok_action",
 						click: () => {
-							if (oneAccountValue() && privateUseValue()) {
-								closeAction(true)
-							}
+							if (isFormValid()) closeAction(true)
 						},
 						type: ButtonType.Primary,
 					}),
@@ -252,7 +250,9 @@ function confirmFreeSubscription(): Promise<boolean> {
 			.addShortcut({
 				key: Keys.RETURN,
 				shift: false,
-				exec: () => closeAction(true),
+				exec: () => {
+					if (isFormValid()) closeAction(true)
+				},
 				help: "ok_action",
 			})
 			.show()
