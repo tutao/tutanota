@@ -43,6 +43,19 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 			this.hovered = true
 		}
 
+		// because onblur is fired upon changing folder due to the route change
+		// these functions can be used to handle keyboard navigation
+		const handleForwardsTab = (event: KeyboardEvent) => {
+			if (event.key === "Tab" && !event.shiftKey) {
+				setTimeout(() => {
+					this.hovered = false
+				}, 5)
+			}
+		}
+		const handleBackwardsTab = (event: KeyboardEvent) => {
+			if (event.key === "Tab" && event.shiftKey) this.hovered = false
+		}
+
 		const indentationMargin = indentationLevel * size.hpad
 		const paddingNeeded = size.hpad_button
 		const buttonWidth = size.icon_size_large + paddingNeeded * 2
@@ -92,6 +105,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 							zIndex: 3,
 						},
 						onclick: vnode.attrs.onExpanderClick,
+						onkeydown: handleBackwardsTab,
 					},
 					m(Icon, {
 						icon,
@@ -104,23 +118,17 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 				m(NavButton, {
 					...button,
 					onfocus: onHover,
-					onblur: () => {
-						// The setTimout is so that there is some time to tab to the rightButton
-						// otherwise it disappears immediately and is unreachable on keyboard
-						setTimeout(() => {
-							this.hovered = false
-						}, 5)
-					},
+					onkeydown: handleBackwardsTab,
 				}),
 				// show the edit button in either edit mode or on hover (excluding hover on mobile)
 				rightButton && (editMode || (!client.isMobileDevice() && this.hovered))
 					? m(IconButton, {
 							...rightButton,
-							onblur: () => (this.rightButtonClicked = false),
 							click: (event, dom) => {
 								rightButton.click(event, dom)
 								this.rightButtonClicked = true
 							},
+							onkeydown: handleForwardsTab,
 					  })
 					: m("", { style: { marginRight: px(size.hpad_button) } }, [
 							m(CounterBadge, {
