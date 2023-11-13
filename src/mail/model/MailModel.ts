@@ -313,6 +313,10 @@ export class MailModel {
 			if (sourceMailFolder) {
 				if (isSpamOrTrashFolder(folders, sourceMailFolder)) {
 					await this._finallyDeleteMails(mails)
+					const numberOfUnread = mails.filter((mail) => mail.unread).length
+					const counterValue = (await this.getCounterValue(listId)) ?? 0
+					const newCounterValue = counterValue >= numberOfUnread ? counterValue - numberOfUnread : 0
+					await this.fixupCounterForMailList(listId, newCounterValue)
 				} else {
 					await this._moveMails(mails, trashFolder)
 				}
