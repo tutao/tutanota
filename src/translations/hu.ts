@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2023-11-08T16:04:09Z",
+	"updated_at": "2023-11-13T11:11:54Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1112,7 +1112,7 @@ export default {
 		"pricing.gdpr_tooltip": "Minden adatot a GDPR szerinti szigorú európai adatvédelmi előírásoknak megfelelően tárolunk.",
 		"pricing.includesTaxes_msg": "Tartalmazza az adókat",
 		"pricing.mailAddressAliasesShort_label": "{amount} További e-mail címek",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Az e-mail aliascímek csökkenthetik a spamet, és felgyorsíthatják a bejövő e-mailek rendezését. További tippek <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">a blogunkon</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Az e-mail aliascímek csökkenthetik a spamet, és felgyorsíthatják a bejövő e-mailek rendezését. További tippek <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">a blogunkon</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 ingyenes Tuta e-mail cím",
 		"pricing.management_label": "Felhasználó kezelése",
 		"pricing.management_tooltip": "A felhasználók jelszavainak és második tényezőinek visszaállítása, e-mail címek létrehozása a felhasználók számára, felhasználók deaktiválása és még sok más.",

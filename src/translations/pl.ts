@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2023-11-08T16:07:54Z",
+	"updated_at": "2023-11-13T11:16:29Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1128,7 +1128,7 @@ export default {
 		"pricing.gdpr_tooltip": "Wszystkie dane są przechowywane zgodnie z surowymi europejskimi przepisami o ochronie danych osobowych, zgodnie z RODO.",
 		"pricing.includesTaxes_msg": "Zawiera podatek.",
 		"pricing.mailAddressAliasesShort_label": "{amount} dodatkowych adresów e-mail",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Adresy aliasów e-mail mogą zmniejszyć ilość spamu i przyspieszyć sortowanie przychodzących wiadomości e-mail. Przeczytaj więcej wskazówek <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">na naszym blogu</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Adresy aliasów e-mail mogą zmniejszyć ilość spamu i przyspieszyć sortowanie przychodzących wiadomości e-mail. Przeczytaj więcej wskazówek <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">na naszym blogu</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 bezpłatny adres e-mail Tuta",
 		"pricing.management_label": "Zarządzanie użytkownikami",
 		"pricing.management_tooltip": "Resetuj hasła i drugie czynniki użytkowników, twórz adresy e-mail dla użytkowników, dezaktywuj użytkowników i inne.",

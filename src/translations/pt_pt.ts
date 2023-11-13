@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2023-11-08T16:08:11Z",
+	"updated_at": "2023-11-13T11:16:38Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -392,7 +392,7 @@ export default {
 		"defaultEmailSignature_msg": "--\n<br>\nEnviado com o Tuta; desfrute de emails seguros e sem publicidade:\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Definição padrão para o envio de novos emails para destinatários externos: confidencial (encriptado ponta a ponta) ou não-confidencial (não encriptado ponta a ponta).",
 		"defaultExternalDelivery_label": "Entrega padrão",
-		"defaultGiftCardMessage_msg": "Espero que disfrute da segurança e privacidade que terá com Tuta!",
+		"defaultGiftCardMessage_msg": "Espero que goste da segurança e privacidade que obtém com Tuta!",
 		"defaultMailHandler_label": "Aplicação de email predefinida",
 		"defaultMailHandler_msg": "Registar Tuta Desktop como o gestor de email padrão, p. ex., para abrir ligações de endereços de email. Esta operação pode requerer permissões de administrador.",
 		"defaultSenderMailAddressInfo_msg": "Endereço de email padrão e nome do remetente para novas mensagens. Pode definir o nome do remetente na tabela de endereços de email abaixo.",
@@ -1128,7 +1128,7 @@ export default {
 		"pricing.gdpr_tooltip": "Todos os dados são armazenados em conformidade com os rigorosos regulamentos europeus de protecção de dados, de acordo com o RGPD.",
 		"pricing.includesTaxes_msg": "Inclui impostos.",
 		"pricing.mailAddressAliasesShort_label": "{amount} endereços adicionais",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Endereços de email alternativos podem reduzir o spam e ajudar a acelerar a triagem dos emails recebidos. Leia mais dicas <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">no nosso blogue</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Endereços de email alternativos podem reduzir o spam e ajudar a acelerar a triagem dos emails recebidos. Leia mais dicas <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">no nosso blogue</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 Endereço de email Tuta gratuito ",
 		"pricing.management_label": "Gestão de utilizador",
 		"pricing.management_tooltip": "Redefinir senhas e segundos factores dos utilizadores, criar endereços de email para os utilizadores, desabilitar utilizadores e muito mais.",

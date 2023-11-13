@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2023-11-08T15:58:51Z",
+	"updated_at": "2023-11-13T11:10:33Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1129,7 +1129,7 @@ export default {
 		"pricing.gdpr_tooltip": "Alle Daten werden in Übereinstimmung mit den strengen europäischen Datenschutzbestimmungen gemäß der DSGVO gespeichert.",
 		"pricing.includesTaxes_msg": "Inklusive MwSt.",
 		"pricing.mailAddressAliasesShort_label": "{amount} extra E-Mail-Adressen",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>E-Mail-Alias-Adressen können Spam reduzieren und helfen, das Sortieren eingehender E-Mails zu beschleunigen. Weiterführende Tipps gibt es <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">auf unserem Blog</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>E-Mail-Alias-Adressen können Spam reduzieren und helfen, das Sortieren eingehender E-Mails zu beschleunigen. Weiterführende Tipps gibt es <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">auf unserem Blog</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 Tuta E-Mail-Adresse",
 		"pricing.management_label": "Benutzerverwaltung",
 		"pricing.management_tooltip": "Setzen Sie Passwörter und zweite Faktoren zurück, erstellen Sie E-Mail-Adressen, deaktivieren Sie Benutzer*innen und vieles mehr.",

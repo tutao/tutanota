@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2023-11-08T16:13:03Z",
+	"updated_at": "2023-11-13T11:18:20Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1125,7 +1125,7 @@ export default {
 		"pricing.gdpr_tooltip": "Всі дані зберігаються з дотриманням суворих європейських правил захисту даних відповідно до GDPR.",
 		"pricing.includesTaxes_msg": "Включно з податками.",
 		"pricing.mailAddressAliasesShort_label": "{amount} додаткові адреси електронної пошти",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Псевдоніми адрес електронної пошти можуть зменшити кількість спаму та прискорити сортування вхідних електронних листів. Читайте більше порад <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">у нашому блозі</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Псевдоніми адрес електронної пошти можуть зменшити кількість спаму та прискорити сортування вхідних електронних листів. Читайте більше порад <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">у нашому блозі</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 безплатна електронна адреса Tuta",
 		"pricing.management_label": "Управління користувачами",
 		"pricing.management_tooltip": "Скидайте паролі та другі фактори користувачів, створюйте адреси електронної пошти для користувачів, вимикайте користувачів та багато іншого.",

@@ -1110,7 +1110,7 @@ export default {
 		"pricing.gdpr_tooltip": "GDPR අනුව දැඩි යුරෝපීය දත්ත රැකවරණ නියාමන වලට අනුකූලව සියළුම දත්ත ගබඩා කර ඇත.",
 		"pricing.includesTaxes_msg": "බදු ඇතුළත් වේ.",
 		"pricing.mailAddressAliasesShort_label": "අමතර වි-තැපැල් ලිපින {amount}",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>අයාචිත තැපැල් අවමයට හා ලැබෙන වි-තැපැල් ඉක්මනින් වර්ග කිරීමට වි-තැපැල් අපනාම  උපකාරී වේ. තවත් ඉඟි <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">අපගේ ලිපිවල</a> කියවන්න.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>අයාචිත තැපැල් අවමයට හා ලැබෙන වි-තැපැල් ඉක්මනින් වර්ග කිරීමට වි-තැපැල් අපනාම  උපකාරී වේ. තවත් ඉඟි <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">අපගේ ලිපිවල</a> කියවන්න.</p>\n",
 		"pricing.mailAddressFree_label": "නොමිලේ ටුටානෝටා වි-තැපෑලක්",
 		"pricing.management_label": "පරිශ්‍රීලක කළමනාකරණය",
 		"pricing.management_tooltip": "පරිශ්‍රීලකයින්ගේ මුරපද සහ ද්වි සාධක නැවත සකසන්න, වි-තැපැල් ලිපින සාදන්න, පරිශ්‍රීලකයින් අක්‍රිය කරන්න සහ තවත් බොහෝ දෑ.",
