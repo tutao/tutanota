@@ -1494,7 +1494,7 @@ export default {
 		"transferCredentials_msg": "Ahora puedes transferir tus credenciales de Tuta a la nueva página de inicio de sesión:",
 		"trash_action": "Papelera",
 		"tutanotaAddressDoesNotExist_msg": "Las siguientes direcciones de correo de Tuta no existen.",
-		"tutanotaToTuta_msg": "Tuta es ahora Tuta",
+		"tutanotaToTuta_msg": "Tutanota es ahora Tuta",
 		"tutaoInfo_msg": "Tutao GmbH es la compañía que te provee Tuta.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Tipo de filtro …",

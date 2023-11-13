@@ -1494,7 +1494,7 @@ export default {
 		"transferCredentials_msg": "Artık Tuta kimlik bilgilerinizi yeni giriş sayfasına aktarabilirsiniz:",
 		"trash_action": "Çöp Kutusu",
 		"tutanotaAddressDoesNotExist_msg": "Belirtilen Tuta e-posta adresleri mevcut değil.",
-		"tutanotaToTuta_msg": "Tuta artık Tuta",
+		"tutanotaToTuta_msg": "Tutanota artık Tuta",
 		"tutaoInfo_msg": "Tutao GmbH, size Tuta sağlayan şirkettir.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Filtrelemek için yazın ...",

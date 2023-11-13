@@ -1486,7 +1486,7 @@ export default {
 		"transferCredentials_msg": "Giờ bạn có thể chuyển thông tin đăng nhập Tuta sang trang đăng nhập mới:",
 		"trash_action": "Thùng rác",
 		"tutanotaAddressDoesNotExist_msg": "Các địa chỉ thư Tuta sau không tồn tại.",
-		"tutanotaToTuta_msg": "Tuta giờ là Tuta",
+		"tutanotaToTuta_msg": "Tutanota giờ là Tuta",
 		"tutaoInfo_msg": "Tutao GmbH là công ti cung cấp Tuta cho bạn.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Gõ để lọc ...",

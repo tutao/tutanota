@@ -1490,7 +1490,7 @@ export default {
 		"transferCredentials_msg": "Du kan nu överföra din inloggningsinformation för Tuta till den nya inloggningssidan:",
 		"trash_action": "Papperskorg",
 		"tutanotaAddressDoesNotExist_msg": "Följande Tuta e-postadresser finns inte.",
-		"tutanotaToTuta_msg": "Tuta är nu Tuta",
+		"tutanotaToTuta_msg": "Tutanota är nu Tuta",
 		"tutaoInfo_msg": "Tutao GmbH är företaget som skapat Tuta åt dig.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Skriv för filtrera ...",
