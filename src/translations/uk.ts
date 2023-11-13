@@ -1489,7 +1489,7 @@ export default {
 		"transferCredentials_msg": "Тепер ви можете перенести свої облікові дані Tuta на нову сторінку входу:",
 		"trash_action": "Кошик",
 		"tutanotaAddressDoesNotExist_msg": "Наступні адреси електронної пошти сервісу Tuta не існують.",
-		"tutanotaToTuta_msg": "Tuta тепер стала Tuta",
+		"tutanotaToTuta_msg": "Tutanota тепер стала Tuta",
 		"tutaoInfo_msg": "Tutao GmbH - це компанія, яка надає Вам сервіс Tuta.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Фільтрувати...",

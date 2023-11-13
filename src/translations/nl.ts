@@ -1487,7 +1487,7 @@ export default {
 		"transferCredentials_msg": "U kunt nu uw Tuta gegevens overbrengen naar de nieuwe inlogpagina:",
 		"trash_action": "Prullenmand",
 		"tutanotaAddressDoesNotExist_msg": "De volgende Tuta e-mailadressen bestaan ​​niet.",
-		"tutanotaToTuta_msg": "Tuta heet nu Tuta",
+		"tutanotaToTuta_msg": "Tutanota heet nu Tuta",
 		"tutaoInfo_msg": "Tutao GmbH is het bedrijf dat u Tuta levert.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Filteren...",

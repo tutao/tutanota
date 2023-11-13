@@ -1492,7 +1492,7 @@ export default {
 		"transferCredentials_msg": "Τώρα, μπορείτε να μεταφέρετε τα διαπιστευτήρια της Tuta στη νέα σελίδα σύνδεσης:",
 		"trash_action": "Κάδος",
 		"tutanotaAddressDoesNotExist_msg": "Οι ακόλουθες διευθύνσεις ηλεκτρονικού ταχυδρομείου Tuta δεν υπάρχουν.",
-		"tutanotaToTuta_msg": "Το Tuta τώρα είναι Tuta",
+		"tutanotaToTuta_msg": "Το Tutanota τώρα είναι Tuta",
 		"tutaoInfo_msg": "Η Tutao GmbH είναι η εταιρεία που σας προφέρει το Tuta",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Φιλτράρισμα ...",

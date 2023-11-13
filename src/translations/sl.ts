@@ -1478,7 +1478,7 @@ export default {
 		"transferCredentials_msg": "Poverilnice Tuta lahko sedaj prenesete na novo prijavno stran:",
 		"trash_action": "Smeti",
 		"tutanotaAddressDoesNotExist_msg": "Naslednji Tutanotini poštni naslovi ne obstajajo.",
-		"tutanotaToTuta_msg": "Tuta je sedaj Tuta",
+		"tutanotaToTuta_msg": "Tutanota je sedaj Tuta",
 		"tutaoInfo_msg": "Tutao GmbH je podjetje, ki skrbi za Tutanoto.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Za filtriranje začnite pisati...",

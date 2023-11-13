@@ -1478,7 +1478,7 @@ export default {
 		"transferCredentials_msg": "Voit siirtää Tuta-kirjautumistietosi uudelle kirjautumissivulle:",
 		"trash_action": "Poistetut",
 		"tutanotaAddressDoesNotExist_msg": "Seuraavia Tuta-sähköpostiosoitteita ei ole olemassa.",
-		"tutanotaToTuta_msg": "Tuta on nykyään Tuta",
+		"tutanotaToTuta_msg": "Tutanota on nykyään Tuta",
 		"tutaoInfo_msg": "Tuta-palvelun tarjoaa Tutao GmbH.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Suodata ...",
