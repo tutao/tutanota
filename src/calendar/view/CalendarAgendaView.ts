@@ -39,15 +39,16 @@ export class CalendarAgendaView implements Component<Attrs> {
 		const selectedDate = attrs.selectedDate
 		return m(".fill-absolute.flex.col.mlr-safe-inset", [
 			this.renderDateSelector(attrs, selectedDate),
-			m(`.rel.flex-grow.content-bg${styles.isUsingBottomNavigation() ? ".border-radius-top-left-big.border-radius-top-right-big" : ""}`, [
-				styles.isUsingBottomNavigation() ? this.renderAgendaForDay(attrs) : this.renderAgendaForDateRange(attrs),
+			m(`.rel.flex-grow.content-bg${styles.isDesktopLayout() ? "" : ".border-radius-top-left-big.border-radius-top-right-big"}`, [
+				styles.isDesktopLayout() ? this.renderAgendaForDateRange(attrs) : this.renderAgendaForDay(attrs),
 			]),
 		])
 	}
 
 	private renderDateSelector(attrs: Attrs, selectedDate: Date): Children {
-		return styles.isUsingBottomNavigation()
-			? m(
+		return styles.isDesktopLayout()
+			? null
+			: m(
 					".pb-s",
 					m(VisualDatePicker, {
 						eventsForDays: attrs.eventsForDays,
@@ -70,7 +71,6 @@ export class CalendarAgendaView implements Component<Attrs> {
 						},
 					}),
 			  )
-			: null
 	}
 
 	private renderAgendaForDay(attrs: Attrs): Children {

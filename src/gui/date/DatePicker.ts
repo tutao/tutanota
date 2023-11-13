@@ -290,7 +290,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 
 		const lastWeekDate = DateTime.fromJSDate(date).minus({ week: 1 }).toJSDate()
 
-		const nextWeekDate = DateTime.fromJSDate(date).minus({ week: 1 }).toJSDate()
+		const nextWeekDate = DateTime.fromJSDate(date).plus({ week: 1 }).toJSDate()
 
 		return m(
 			".rel",
@@ -321,9 +321,9 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 								}),
 						},
 					},
-					this.renderCarouselPage(isExpanded, lastWeekDate, vnode.attrs),
+					this.renderCarouselPage(isExpanded, lastWeekDate, vnode.attrs, SwipeCalendarOrder.BEFORE),
 				),
-				this.renderCarouselPage(isExpanded, date, vnode.attrs),
+				this.renderCarouselPage(isExpanded, date, vnode.attrs, SwipeCalendarOrder.CURRENT),
 				m(
 					".abs",
 					{
@@ -342,16 +342,24 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 								}),
 						},
 					},
-					this.renderCarouselPage(isExpanded, nextWeekDate, vnode.attrs),
+					this.renderCarouselPage(isExpanded, nextWeekDate, vnode.attrs, SwipeCalendarOrder.AFTER),
 				),
 			],
 		)
 	}
 
-	private renderCarouselPage(isExpanded: boolean, currentDate: Date, attrs: VisualDatePickerAttrs) {
-		const calendarMonth = getCalendarMonth(currentDate, attrs.startOfTheWeekOffset, true)
+	private renderCarouselPage(isExpanded: boolean, date: Date, attrs: VisualDatePickerAttrs, position: SwipeCalendarOrder) {
+		let calendarMonth = getCalendarMonth(date, attrs.startOfTheWeekOffset, true)
 		const weeks = calendarMonth.weeks
-		const selectedWeek = assertNotNull(weeks.find((w) => w.some((calendarDay) => currentDate.getTime() === calendarDay.date.getTime())))
+		const selectedWeek = assertNotNull(weeks.find((w) => w.some((calendarDay) => date.getTime() === calendarDay.date.getTime())))
+
+		// We need to recalculate the month since when the previous/next week
+		// should render the previous/next month when expanded, and we need to recalculate the
+		// whole month just in case we have the same month as the selected date
+		// otherwise the month is already correct
+		if (date.getMonth() === attrs.selectedDate?.getMonth() || position !== SwipeCalendarOrder.CURRENT) {
+			calendarMonth = getCalendarMonth(DateTime.fromJSDate(date).plus({ month: position }).toJSDate(), attrs.startOfTheWeekOffset, true)
+		}
 
 		return m("", [
 			m(
@@ -414,20 +422,23 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	}
 
 	private renderDay({ date, day, isPaddingDay }: CalendarDay, attrs: VisualDatePickerAttrs): Children {
-		const size = px(this.getElementWidth(attrs))
 		const eventForDay = attrs.eventsForDays?.get(date.getTime())
 		const hasEvent = eventForDay && eventForDay.length > 0
 		const isExpandableDatePicker = attrs.isExpandableDatePicker ?? false
+		const size = this.getElementWidth(attrs)
 		const isSelectedDay = isSameDayOfDate(date, attrs.selectedDate)
+		const dateIndicator =
+			isPaddingDay && !isExpandableDatePicker
+				? ""
+				: getDateIndicator(date, attrs.selectedDate).replace("accent-bg", isExpandableDatePicker ? "accent-bg-translucent" : ".accent-bg")
 		return m(
-			".center.click" +
-				(isPaddingDay && !isExpandableDatePicker ? "" : getDateIndicator(date, attrs.selectedDate)) +
+			".rel.click.flex.items-center.justify-center" +
 				(hasEvent ? ".day-has-event.rel" : "") +
 				(isPaddingDay && isExpandableDatePicker ? ".faded-day" : ""),
 			{
 				style: {
-					height: size,
-					width: size,
+					height: px(size),
+					width: px(size),
 				},
 				"aria-hidden": `${isPaddingDay && !isExpandableDatePicker}`,
 				"aria-label": date.toLocaleDateString(),
@@ -439,7 +450,19 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 						attrs.onDateSelected && attrs.onDateSelected(date, true)
 					}),
 			},
-			isPaddingDay && !isExpandableDatePicker ? null : day,
+			[
+				m(".abs.z1" + dateIndicator, {
+					style: {
+						width: px(isExpandableDatePicker ? size - 10 : size),
+						height: px(isExpandableDatePicker ? size - 10 : size),
+					},
+				}),
+				m(
+					dateIndicator + ".full-width.height-100p.center.z2",
+					{ style: { "background-color": "transparent" } },
+					isPaddingDay && !isExpandableDatePicker ? null : day,
+				),
+			],
 		)
 	}
 
