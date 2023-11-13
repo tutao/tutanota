@@ -141,59 +141,63 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 	_renderCalendar(attrs: CalendarMonthAttrs, month: CalendarMonth, currentlyVisibleMonth: CalendarMonth, zone: string): Children {
 		const { weekdays, weeks } = month
 		const today = getStartOfDayWithZone(new Date(), getTimeZone())
-		return m(".fill-absolute.flex.col.mlr-safe-inset.content-bg", [
-			styles.isDesktopLayout() ? null : m(".pt-s"),
-			m(
-				".flex.mb-s",
-				weekdays.map((wd) => m(".flex-grow", m(".calendar-day-indicator.b", wd))),
-			),
-			m(
-				".flex.col.flex-grow",
-				{
-					oncreate: (vnode) => {
-						if (month === currentlyVisibleMonth) {
-							this._monthDom = vnode.dom as HTMLElement
-							m.redraw()
-						}
-					},
-					onupdate: (vnode) => {
-						if (month === currentlyVisibleMonth) {
-							this._monthDom = vnode.dom as HTMLElement
-						}
-					},
-					onmousemove: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
-						mouseEvent.redraw = false
-						const posAndBoundsFromMouseEvent = getPosAndBoundsFromMouseEvent(mouseEvent)
-						this._lastMousePos = posAndBoundsFromMouseEvent
-						this._dayUnderMouse = getDateFromMousePos(
-							posAndBoundsFromMouseEvent,
-							weeks.map((week) => week.map((day) => day.date)),
-						)
-
-						this._eventDragHandler.handleDrag(this._dayUnderMouse, posAndBoundsFromMouseEvent)
-					},
-					onmouseup: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
-						mouseEvent.redraw = false
-
-						this._endDrag(mouseEvent)
-					},
-					onmouseleave: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
-						mouseEvent.redraw = false
-
-						this._endDrag(mouseEvent)
-					},
-				},
-				weeks.map((week) => {
-					return m(
-						".flex.flex-grow.rel",
-						{
-							key: week[0].date.getTime(),
+		return m(
+			".fill-absolute.flex.col.mlr-safe-inset" +
+				(!styles.isUsingBottomNavigation() ? ".content-bg" : ".border-radius-top-left-big.border-radius-top-right-big"),
+			[
+				styles.isDesktopLayout() ? null : m(".pt-s"),
+				m(
+					".flex.mb-s",
+					weekdays.map((wd) => m(".flex-grow", m(".calendar-day-indicator.b", wd))),
+				),
+				m(
+					".flex.col.flex-grow",
+					{
+						oncreate: (vnode) => {
+							if (month === currentlyVisibleMonth) {
+								this._monthDom = vnode.dom as HTMLElement
+								m.redraw()
+							}
 						},
-						[week.map((day, i) => this._renderDay(attrs, day, today, i)), this._monthDom ? this._renderWeekEvents(attrs, week, zone) : null],
-					)
-				}),
-			),
-		])
+						onupdate: (vnode) => {
+							if (month === currentlyVisibleMonth) {
+								this._monthDom = vnode.dom as HTMLElement
+							}
+						},
+						onmousemove: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
+							mouseEvent.redraw = false
+							const posAndBoundsFromMouseEvent = getPosAndBoundsFromMouseEvent(mouseEvent)
+							this._lastMousePos = posAndBoundsFromMouseEvent
+							this._dayUnderMouse = getDateFromMousePos(
+								posAndBoundsFromMouseEvent,
+								weeks.map((week) => week.map((day) => day.date)),
+							)
+
+							this._eventDragHandler.handleDrag(this._dayUnderMouse, posAndBoundsFromMouseEvent)
+						},
+						onmouseup: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
+							mouseEvent.redraw = false
+
+							this._endDrag(mouseEvent)
+						},
+						onmouseleave: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
+							mouseEvent.redraw = false
+
+							this._endDrag(mouseEvent)
+						},
+					},
+					weeks.map((week) => {
+						return m(
+							".flex.flex-grow.rel",
+							{
+								key: week[0].date.getTime(),
+							},
+							[week.map((day, i) => this._renderDay(attrs, day, today, i)), this._monthDom ? this._renderWeekEvents(attrs, week, zone) : null],
+						)
+					}),
+				),
+			],
+		)
 	}
 
 	_endDrag(pos: MousePos) {
@@ -230,7 +234,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 						attrs.onDateSelected(new Date(day.date), CalendarViewType.MONTH)
 						attrs.onNewEvent(newDate)
 					} else {
-						attrs.onDateSelected(new Date(day.date), CalendarViewType.AGENDA)
+						attrs.onDateSelected(new Date(day.date), styles.isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA)
 					}
 
 					e.preventDefault()
@@ -257,7 +261,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				".calendar-day-indicator.circle" + getDateIndicator(date, today),
 				{
 					onclick: (e: MouseEvent) => {
-						onDateSelected(new Date(date), client.isDesktopDevice() ? CalendarViewType.DAY : CalendarViewType.AGENDA)
+						onDateSelected(new Date(date), client.isDesktopDevice() || styles.isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA)
 						e.stopPropagation()
 					},
 					style: {

@@ -94,13 +94,13 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				view: () =>
 					m(FolderColumnView, {
 						drawer: vnode.attrs.drawerAttrs,
-						button: styles.isUsingBottomNavigation()
-							? null
-							: {
+						button: styles.isDesktopLayout()
+							? {
 									type: ButtonType.FolderColumnHeader,
 									label: "newEvent_action",
 									click: () => this._createNewEventDialog(),
-							  },
+							  }
+							: null,
 						content: [
 							this.renderViewTypeSection(),
 							m(
@@ -291,7 +291,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private renderViewTypeSection(): Children {
-		if (styles.isUsingBottomNavigation()) {
+		if (!styles.isDesktopLayout()) {
 			return null
 		} else {
 			return m(
@@ -328,8 +328,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			...header,
 			viewType: this.currentViewType,
 			viewSlider: this.viewSlider,
-			showExpandIcon:
-				styles.isUsingBottomNavigation() && (this.currentViewType === CalendarViewType.AGENDA || this.currentViewType === CalendarViewType.DAY),
+			showExpandIcon: !styles.isDesktopLayout() && (this.currentViewType === CalendarViewType.AGENDA || this.currentViewType === CalendarViewType.DAY),
 			isDaySelectorExpanded: this.isDaySelectorExpanded,
 			navConfiguration: calendarNavConfiguration(this.currentViewType, this.viewModel.selectedDate(), this.viewModel.weekStart, "day", (viewType, next) =>
 				this._viewPeriod(viewType, next),
@@ -758,7 +757,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							second: 0,
 						}),
 					) &&
-					!styles.isUsingBottomNavigation()
+					styles.isDesktopLayout()
 				) {
 					this._setUrl(CalendarViewType.AGENDA, new Date())
 				}

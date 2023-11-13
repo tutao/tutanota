@@ -152,7 +152,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 	_renderWeek(attrs: Attrs, thisWeek: EventsOnDays, mainWeek: EventsOnDays): Children {
 		return m(
 			".fill-absolute.flex.col.calendar-column-border.mlr-safe-inset.content-bg.overflow-hidden" +
-				(styles.isUsingBottomNavigation() ? `.border-radius-top-left-big.border-radius-top-right-big` : ""),
+				(!styles.isDesktopLayout() ? `.border-radius-top-left-big.border-radius-top-right-big` : ""),
 			{
 				oncreate: () => {
 					this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
