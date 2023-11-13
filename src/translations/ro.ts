@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2023-11-08T16:08:54Z",
+	"updated_at": "2023-11-13T12:29:07Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -101,7 +101,7 @@ export default {
 		"alwaysAsk_action": "Întreabă întodeauna",
 		"alwaysReport_action": "Raportează mereu",
 		"amountUsedAndActivatedOf_label": "{used} folosit, {active} activat din {totalAmount}",
-		"amountUsedOf_label": "{amount} folosit din {totalAmount}",
+		"amountUsedOf_label": "{amount} folosiți din {totalAmount}",
 		"amount_label": "Suma",
 		"appearanceSettings_label": "Aspect",
 		"appInfoAndroidImageAlt_alt": "Aplicatie Android pe Google Play",
@@ -1130,7 +1130,7 @@ export default {
 		"pricing.gdpr_tooltip": "Toate datele sunt stocate în conformitate cu reglementările europene stricte privind protecția datelor, în conformitate cu GDPR.",
 		"pricing.includesTaxes_msg": "Taxe incluse.",
 		"pricing.mailAddressAliasesShort_label": "{amount} adrese de e-mail suplimentare",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Adresele alias de e-mail pot reduce numărul de e-mailuri nedorite și pot contribui la accelerarea sortării e-mailurilor primite. Citiți mai multe sfaturi <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">pe blogul nostru</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Adresele alias de e-mail pot reduce numărul de e-mailuri nedorite și pot contribui la accelerarea sortării e-mailurilor primite. Citiți mai multe sfaturi <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">pe blogul nostru</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 adresă gratuită de e-mail Tuta",
 		"pricing.management_label": "Gestionare utilizatori",
 		"pricing.management_tooltip": "Schimbă parolele și al doilea factor al utilizatorilor, creează adrese de e-mail pentru utilizatori, dezactivează utilizatori și multe altele.",

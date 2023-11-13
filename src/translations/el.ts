@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2023-11-08T15:59:10Z",
+	"updated_at": "2023-11-13T11:10:44Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1129,7 +1129,7 @@ export default {
 		"pricing.gdpr_tooltip": "Όλα τα δεδομένα είναι αποθηκευμένα σύμφωνα με τους αυστηρούς Ευρωπαϊκούς κανόνες προστασίας δεδομένων όπως ορίζει ο ΓΚΠΔ",
 		"pricing.includesTaxes_msg": "Συμπεριλαμβανομένων των φόρων.",
 		"pricing.mailAddressAliasesShort_label": "{amount} επιπλέον διευθύνσεις ηλεκτρονικού ταχυδρομίου ",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Τα ψευδώνυμα email μπορούν να μειώσουν την ανεπιθύμητη αλληλογραφία και να επιταχύνουν την οργάνωση εισερχόμενων email. Διαβάστε περισσότερες συμβουλές <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">onourblog</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Τα ψευδώνυμα email μπορούν να μειώσουν την ανεπιθύμητη αλληλογραφία και να επιταχύνουν την οργάνωση εισερχόμενων email. Διαβάστε περισσότερες συμβουλές <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">onourblog</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 δωρεάν διεύθυνση email Tuta",
 		"pricing.management_label": "Διαχείριση χρηστών",
 		"pricing.management_tooltip": "Επαναφέρετε τους κωδικούς πρόσβασης και τους δεύτερους παράγοντες των χρηστών, δημιουργήστε ηλεκτρονικές διευθύνσεις για τους χρήστες, απενεργοποιήστε χρήστες και πολλά άλλα.",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2023-11-08T15:59:51Z",
+	"updated_at": "2023-11-13T11:10:56Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1129,7 +1129,7 @@ export default {
 		"pricing.gdpr_tooltip": "Todos los datos se almacenan de conformidad con las estrictas regulaciones europeas de protección de datos de acuerdo con el RGPD.",
 		"pricing.includesTaxes_msg": "Impuestos incluidos.",
 		"pricing.mailAddressAliasesShort_label": "{amount} dirección/es de correo extra",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Las direcciones de alias de correo pueden reducir el spam y ayudar a acelerar la clasificación de los correos entrantes. Lee más consejos <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">en nuestro blog</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Las direcciones de alias de correo pueden reducir el spam y ayudar a acelerar la clasificación de los correos entrantes. Lee más consejos <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">en nuestro blog</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 dirección de correo gratuita de Tuta",
 		"pricing.management_label": "Administración de usuarios",
 		"pricing.management_tooltip": "Restablece las contraseñas y los segundos factores de los usuarios, crea alias para los usuarios, desactiva usuarios y mucho más.",
