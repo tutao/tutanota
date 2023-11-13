@@ -14,7 +14,7 @@ const TAG = "[ProtocolProxy]"
 export const ASSET_PROTOCOL = "asset"
 
 /** How long the socket should stay open without any data sent over it. See IDLE_TIMEOUT_MS in tutadb. */
-const SOCKET_IDLE_TIMEOUT_MS = 5 * 60 * 10_000 + 1000
+const SOCKET_IDLE_TIMEOUT_MS = 5 * 60 * 1000 + 1000
 /** Timeout between reading data. */
 const READ_TIMEOUT_MS = 20_000
 
