@@ -653,6 +653,11 @@ styles.registerStyle("main", () => {
 		".list-border-bottom": {
 			"border-bottom": `1px solid ${theme.list_border}`,
 		},
+		".accent-bg-translucent": {
+			background: `${theme.content_accent}2C`,
+			color: theme.content_accent,
+			"font-weight": "bold",
+		},
 		".accent-bg": {
 			"background-color": theme.content_accent,
 			color: theme.content_button_icon_selected,
