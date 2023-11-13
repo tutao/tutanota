@@ -3,7 +3,7 @@ import { MailboxDetail, MailModel } from "../model/MailModel.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { Mail, MailFolder, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId, sortCompareByReverseId } from "../../api/common/utils/EntityUtils.js"
-import { assertNotNull, count, debounce, lastThrow, lazyMemoized, memoized, ofClass, promiseFilter } from "@tutao/tutanota-utils"
+import { assertNotNull, count, debounce, lastThrow, lazyMemoized, mapWith, mapWithout, memoized, ofClass, promiseFilter } from "@tutao/tutanota-utils"
 import { ListState } from "../../gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
@@ -11,7 +11,6 @@ import { EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
 import { MailFolderType } from "../../api/common/TutanotaConstants.js"
 import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../../api/common/mail/CommonMailUtils.js"
-import { mapWith, mapWithout } from "@tutao/tutanota-utils"
 import { WsConnectionState } from "../../api/main/WorkerClient.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { ExposedCacheStorage } from "../../api/worker/rest/DefaultEntityRestCache.js"
@@ -358,11 +357,16 @@ export class MailViewModel {
 
 		// the request is handled a little differently if it is the system folder vs a subfolder
 		if (folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM) {
-			return this.mailModel.clearFolder(folder).catch(
-				ofClass(PreconditionFailedError, () => {
-					throw new UserError("operationStillActive_msg")
-				}),
-			)
+			return this.mailModel
+				.clearFolder(folder)
+				.then(async () => {
+					if (this._listId) await this.mailModel.fixupCounterForMailList(this._listId, 0)
+				})
+				.catch(
+					ofClass(PreconditionFailedError, () => {
+						throw new UserError("operationStillActive_msg")
+					}),
+				)
 		} else if (
 			isSubfolderOfType(mailboxDetail.folders, folder, MailFolderType.TRASH) ||
 			isSubfolderOfType(mailboxDetail.folders, folder, MailFolderType.SPAM)
