@@ -1480,7 +1480,7 @@ export default {
 		"transferCredentials_msg": "Ora puoi trasferire le tue credenziali di Tuta alla nuova pagina di accesso:",
 		"trash_action": "Cestino",
 		"tutanotaAddressDoesNotExist_msg": "I seguenti indirizzi email di Tuta non esistono.",
-		"tutanotaToTuta_msg": "Tuta è ora Tuta",
+		"tutanotaToTuta_msg": "Tutanota è ora Tuta",
 		"tutaoInfo_msg": "Tutao GmbH è l'azienda che fornisce Tuta a te.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Digita per filtrare ...",

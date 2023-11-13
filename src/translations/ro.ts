@@ -1494,7 +1494,7 @@ export default {
 		"transferCredentials_msg": "Acum poți transfera datele tale de acces la Tuta pe noua pagină de conectare:",
 		"trash_action": "Gunoi",
 		"tutanotaAddressDoesNotExist_msg": "Următoarele adrese de e-mail Tuta nu există.",
-		"tutanotaToTuta_msg": "Tuta este acum Tuta",
+		"tutanotaToTuta_msg": "Tutanota este acum Tuta",
 		"tutaoInfo_msg": "Serviciul Tuta îți este este oferit de compania Tutao GmbH.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Scrie aici pentru a filtra...",

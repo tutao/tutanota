@@ -1477,7 +1477,7 @@ export default {
 		"transferCredentials_msg": "Most már átviheti Tuta hitelesítő adatait az új bejelentkezési oldalra:",
 		"trash_action": "Kuka",
 		"tutanotaAddressDoesNotExist_msg": "A következő Tuta e-mail címek nem léteznek.",
-		"tutanotaToTuta_msg": "A Tuta mostantól Tuta",
+		"tutanotaToTuta_msg": "A Tutanota mostantól Tuta",
 		"tutaoInfo_msg": "A Tutao GmbH biztosítja a Tuta-t az Ön számára.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "A szűréshez kezdjen el gépelni ...",

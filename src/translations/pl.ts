@@ -1492,7 +1492,7 @@ export default {
 		"transferCredentials_msg": "Możesz teraz przenieść swoje poświadczenia Tuta na nową stronę logowania:",
 		"trash_action": "Kosz",
 		"tutanotaAddressDoesNotExist_msg": "Następujące adresy e-mail Tuta nie istnieją.",
-		"tutanotaToTuta_msg": "Tuta to teraz Tuta",
+		"tutanotaToTuta_msg": "Tutanota to teraz Tuta",
 		"tutaoInfo_msg": "Tutao GmbH to firma dostarczająca Tuta.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Pisz, aby filtrować ...",

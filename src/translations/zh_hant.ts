@@ -1486,7 +1486,7 @@ export default {
 		"transferCredentials_msg": "您現在可以將您的Tuta登入資料轉移到新的登入頁面：",
 		"trash_action": "垃圾桶",
 		"tutanotaAddressDoesNotExist_msg": "以下Tuta電郵地址不存在。",
-		"tutanotaToTuta_msg": "Tuta現在是Tuta",
+		"tutanotaToTuta_msg": "Tutanota現在是Tuta",
 		"tutaoInfo_msg": "Tutao GmbH為向您提供Tuta服務的公司。",
 		"twitter_label": "推特",
 		"typeToFilter_label": "鍵入過濾關鍵字…",
