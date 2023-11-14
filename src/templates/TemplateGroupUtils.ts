@@ -4,6 +4,8 @@ import { showPlanUpgradeRequiredDialog } from "../misc/SubscriptionDialogs"
 import { locator } from "../api/main/MainLocator"
 import { FeatureType } from "../api/common/TutanotaConstants"
 import { isCustomizationEnabledForCustomer } from "../api/common/utils/Utils"
+import { Dialog } from "../gui/base/Dialog.js"
+import { lang } from "../misc/LanguageViewModel.js"
 
 /**
  * @return True if the group has been created.
@@ -12,10 +14,12 @@ export async function createInitialTemplateListIfAllowed(): Promise<TemplateGrou
 	const userController = locator.logins.getUserController()
 	const customer = await userController.loadCustomer()
 	const { getAvailablePlansWithTemplates } = await import("../subscription/SubscriptionUtils.js")
-	const allowed =
-		(await userController.getPlanConfig()).templates ||
-		isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) ||
-		(await showPlanUpgradeRequiredDialog(await getAvailablePlansWithTemplates()))
+	let allowed = (await userController.getPlanConfig()).templates || isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled)
+	if (!allowed && userController.isGlobalAdmin()) {
+		allowed = await showPlanUpgradeRequiredDialog(await getAvailablePlansWithTemplates())
+	} else {
+		Dialog.message(() => lang.get("contactAdmin_msg"))
+	}
 	if (allowed) {
 		const groupId = await locator.groupManagementFacade.createTemplateGroup("")
 		return locator.entityClient.load<TemplateGroupRoot>(TemplateGroupRootTypeRef, groupId)
