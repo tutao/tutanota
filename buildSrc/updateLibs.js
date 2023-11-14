@@ -34,6 +34,7 @@ const clientDependencies = [
 	{ src: "../node_modules/better-sqlite3/lib/index.js", target: "better-sqlite3.mjs", rollup: rollDesktopDep },
 	{ src: "../node_modules/keytar/lib/keytar.js", target: "keytar.mjs", rollup: rollDesktopDep },
 	{ src: "../node_modules/winreg/lib/registry.js", target: "winreg.mjs", rollup: rollDesktopDep },
+	{ src: "../node_modules/undici/index.js", target: "undici.mjs", rollup: rollDesktopDep },
 ]
 
 run()
