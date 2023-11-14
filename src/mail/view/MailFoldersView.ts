@@ -40,8 +40,8 @@ type Counters = Record<string, number>
 
 /** Displays a tree of all folders. */
 export class MailFoldersView implements Component<MailFolderViewAttrs> {
-	// This maps the ids of folder rows to whether their right buttons are hovered or not
-	private areRightButtonsVisible = new Map<string, boolean>()
+	// Contains the id of the visible row
+	private visibleRow: string | null = null
 
 	view({ attrs }: Vnode<MailFolderViewAttrs>): Children {
 		const { mailboxDetail } = attrs
@@ -117,11 +117,11 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 					? this.renderFolderTree(system.children, groupCounters, attrs, path, indentationLevel + 1)
 					: { children: null, numRows: 0 }
 			const isTrashOrSpam = system.folder.folderType === MailFolderType.TRASH || system.folder.folderType === MailFolderType.SPAM
-			const isRightButtonVisible = this.areRightButtonsVisible.get(id)
+			const isRightButtonVisible = this.visibleRow === id
 			const rightButton =
 				!isTrashOrSpam && (isRightButtonVisible || attrs.inEditMode)
 					? this.createFolderMoreButton(system.folder, attrs, () => {
-							this.areRightButtonsVisible.set(id, false)
+							this.visibleRow = null
 					  })
 					: null
 			const render = m.fragment(
@@ -143,10 +143,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						isLastSibling: last(subSystems) === system,
 						editMode: attrs.inEditMode,
 						onHover: () => {
-							for (const [rowId] of this.areRightButtonsVisible) {
-								this.areRightButtonsVisible.set(rowId, false)
-							}
-							this.areRightButtonsVisible.set(id, true)
+							this.visibleRow = id
 						},
 					}),
 					childResult.children,
