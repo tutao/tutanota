@@ -261,7 +261,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return this.entityRestClient.setupMultiple(listId, instances)
 	}
 
-	update<T extends SomeEntity>(instance: T): Promise<void> {
+	async update<T extends SomeEntity>(instance: T): Promise<void> {
+		await this.storage.put(instance)
 		return this.entityRestClient.update(instance)
 	}
 
