@@ -1,6 +1,7 @@
 import { assertNotNull, downcast, isEmpty, neverNull } from "@tutao/tutanota-utils"
 import { Dialog } from "../gui/base/Dialog"
 import type { TranslationKey, TranslationText } from "./LanguageViewModel"
+import { lang } from "./LanguageViewModel"
 import { isIOSApp } from "../api/common/Env"
 import type { clickHandler } from "../gui/base/GuiUtils"
 import { locator } from "../api/main/MainLocator"
@@ -94,6 +95,9 @@ export async function showPlanUpgradeRequiredDialog(acceptedPlans: AvailablePlan
 	const userController = locator.logins.getUserController()
 	if (userController.isFreeAccount()) {
 		showNotAvailableForFreeDialog(acceptedPlans)
+		return false
+	} else if (!userController.isGlobalAdmin()) {
+		Dialog.message(() => lang.get("contactAdmin_msg"))
 		return false
 	} else {
 		if (reason == null) {
