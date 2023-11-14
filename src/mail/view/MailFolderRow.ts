@@ -48,11 +48,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 		// these functions can be used to handle keyboard navigation
 		const handleForwardsTab = (event: KeyboardEvent) => {
 			if (event.key === "Tab" && !event.shiftKey) {
-				// The setTimeout is so that there is some time to tab to the rightButton
-				// otherwise it disappears immediately and is unreachable on keyboard
-				setTimeout(() => {
-					this.hovered = false
-				}, 5)
+				this.hovered = false
 			}
 		}
 		const handleBackwardsTab = (event: KeyboardEvent) => {
