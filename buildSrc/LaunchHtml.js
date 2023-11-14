@@ -76,7 +76,6 @@ function csp(env) {
 				" script-src 'self' 'wasm-unsafe-eval';" +
 				" worker-src 'self';" +
 				" frame-src 'none';" +
-				" frame-ancestors 'none';" +
 				" font-src 'self';" +
 				" img-src http: blob: data: *;" +
 				" style-src 'unsafe-inline';" +
@@ -96,7 +95,7 @@ function csp(env) {
 			" media-src * data: blob: 'unsafe-inline';" +
 			" style-src * 'unsafe-inline';" +
 			" frame-src *;" +
-			` connect-src 'self' 'unsafe-inline' ${getCspUrls(env)} https://tuta.com;`
+			` connect-src *;`
 
 		return `<meta http-equiv="Content-Security-Policy" content="${cspContent}">`
 	}

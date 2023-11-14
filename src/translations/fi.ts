@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2023-11-08T16:01:47Z",
+	"updated_at": "2023-11-13T11:11:15Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1113,7 +1113,7 @@ export default {
 		"pricing.gdpr_tooltip": "Kaikki tiedot tallennetaan Euroopan unionin yleisen tietosuoja-asetuksen (GDPR) tiukkojen sääntöjen mukaisesti.",
 		"pricing.includesTaxes_msg": "Sisältää verot.",
 		"pricing.mailAddressAliasesShort_label": "{amount} alias-osoitetta",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Aliasosoitteilla voit karsia roskapostia ja lajitella viestejäsi helpommin. Lue lisää vinkkejä <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">blogistamme</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Aliasosoitteilla voit karsia roskapostia ja lajitella viestejäsi helpommin. Lue lisää vinkkejä <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">blogistamme</a>.</p>\n",
 		"pricing.mailAddressFree_label": "Yksi ilmainen Tuta-sähköpostiosoite",
 		"pricing.management_label": "Käyttäjähallinta",
 		"pricing.management_tooltip": "Nollaa salasana tai toisen asteen tunnistautumiskeino, luo käyttäjille sähköpostiosoitteita, poista käyttäjiä käytöstä, ym.",
@@ -1478,7 +1478,7 @@ export default {
 		"transferCredentials_msg": "Voit siirtää Tuta-kirjautumistietosi uudelle kirjautumissivulle:",
 		"trash_action": "Poistetut",
 		"tutanotaAddressDoesNotExist_msg": "Seuraavia Tuta-sähköpostiosoitteita ei ole olemassa.",
-		"tutanotaToTuta_msg": "Tuta on nykyään Tuta",
+		"tutanotaToTuta_msg": "Tutanota on nykyään Tuta",
 		"tutaoInfo_msg": "Tuta-palvelun tarjoaa Tutao GmbH.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Suodata ...",

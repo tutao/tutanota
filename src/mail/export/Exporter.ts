@@ -19,6 +19,8 @@ import type { EntityClient } from "../../api/common/EntityClient"
 import { locator } from "../../api/main/MainLocator"
 import { FileController, zipDataFiles } from "../../file/FileController"
 import { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
+import { OperationId } from "../../api/main/OperationProgressTracker.js"
+import { CancelledError } from "../../api/common/error/CancelledError.js"
 // .msg export is handled in DesktopFileExport because it uses APIs that can't be loaded web side
 export type MailExportMode = "msg" | "eml"
 
@@ -58,19 +60,66 @@ export function generateExportFileName(subject: string, sentOn: Date, mode: Mail
  * @returns {Promise<void>} resolved after the fileController
  * was instructed to open the new zip File containing the exported files
  */
-export function exportMails(mails: Array<Mail>, mailFacade: MailFacade, entityClient: EntityClient, fileController: FileController): Promise<void> {
-	const downloadPromise = promiseMap(mails, (mail) =>
-		import("../../misc/HtmlSanitizer").then(({ htmlSanitizer }) => makeMailBundle(mail, mailFacade, entityClient, fileController, htmlSanitizer)),
-	)
-	return Promise.all([getMailExportMode(), downloadPromise]).then(([mode, bundles]) => {
-		promiseMap(bundles, (bundle) => generateMailFile(bundle, generateExportFileName(bundle.subject, new Date(bundle.receivedOn), mode), mode)).then(
-			(files) => {
-				const zipName = `${sortableTimestamp()}-${mode}-mail-export.zip`
-				const maybeZipPromise = files.length === 1 ? Promise.resolve(files[0]) : zipDataFiles(files, zipName)
-				maybeZipPromise.then((outputFile) => fileController.saveDataFile(outputFile))
-			},
-		)
-	})
+export async function exportMails(
+	mails: Array<Mail>,
+	mailFacade: MailFacade,
+	entityClient: EntityClient,
+	fileController: FileController,
+	operationId?: OperationId,
+	signal?: AbortSignal,
+): Promise<void> {
+	let cancelled = false
+
+	const onAbort = () => {
+		cancelled = true
+	}
+
+	try {
+		// Considering that the effort for generating the bundle is higher
+		// than generating the files, we need to consider it twice, so the
+		// total effort would be (mailsToBundle * 2) + filesToGenerate
+		const totalMails = mails.length * 3
+		let doneMails = 0
+
+		signal?.addEventListener("abort", onAbort)
+		const updateProgress =
+			operationId !== undefined ? () => locator.operationProgressTracker.onProgress(operationId, (++doneMails / totalMails) * 100) : noOp
+
+		//The only way to skip a Promise is throwing an error.
+		//this throws just a CancelledError to be handled by the try/catch statement.
+
+		//This function must be called in each iteration across all promises since
+		//throwing it inside the onAbort function doesn't interrupt the pending promises.
+		const checkAbortSignal = () => {
+			if (cancelled) throw new CancelledError("export cancelled")
+		}
+
+		const downloadPromise = promiseMap(mails, async (mail) => {
+			checkAbortSignal()
+			const { htmlSanitizer } = await import("../../misc/HtmlSanitizer")
+			const bundle = await makeMailBundle(mail, mailFacade, entityClient, fileController, htmlSanitizer)
+			updateProgress()
+			updateProgress()
+			return bundle
+		})
+
+		const [mode, bundles] = await Promise.all([getMailExportMode(), downloadPromise])
+		const dataFiles: DataFile[] = []
+		for (const bundle of bundles) {
+			checkAbortSignal()
+			const mailFile = await generateMailFile(bundle, generateExportFileName(bundle.subject, new Date(bundle.receivedOn), mode), mode)
+			dataFiles.push(mailFile)
+			updateProgress()
+		}
+
+		const zipName = `${sortableTimestamp()}-${mode}-mail-export.zip`
+		const outputFile = await (dataFiles.length === 1 ? dataFiles[0] : zipDataFiles(dataFiles, zipName))
+		return fileController.saveDataFile(outputFile)
+	} catch (e) {
+		if (e.name !== "CancelledError") throw e
+	} finally {
+		signal?.removeEventListener("abort", onAbort)
+	}
 }
 
 export function mailToEmlFile(mail: MailBundle, fileName: string): DataFile {

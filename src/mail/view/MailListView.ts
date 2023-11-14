@@ -23,7 +23,7 @@ import { makeMailBundle } from "../export/Bundler"
 import { ListColumnWrapper } from "../../gui/ListColumnWrapper"
 import { assertMainOrNode } from "../../api/common/Env"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
-import { assertSystemFolderOfType } from "../../api/common/mail/CommonMailUtils.js"
+import { assertSystemFolderOfType, isOfTypeOrSubfolderOf } from "../../api/common/mail/CommonMailUtils.js"
 import { MailViewModel } from "./MailViewModel.js"
 import { List, ListAttrs, ListSwipeDecision, MultiselectMode, RenderConfig, SwipeConfiguration } from "../../gui/base/List.js"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
@@ -60,6 +60,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 	_listDom: HTMLElement | null
 	showingSpamOrTrash: boolean = false
 	showingDraft: boolean = false
+	showingArchive: boolean = false
 	private mailViewModel: MailViewModel
 
 	private readonly renderConfig: RenderConfig<Mail, MailRow> = {
@@ -94,6 +95,11 @@ export class MailListView implements Component<MailListViewAttrs> {
 			this.showingDraft = result
 			m.redraw()
 		})
+		this.targetInbox().then((result) => {
+			this.showingArchive = result
+			m.redraw()
+		})
+
 		// "this" is incorrectly bound if we don't do it this way
 		this.view = this.view.bind(this)
 	}
@@ -382,10 +388,11 @@ export class MailListView implements Component<MailListViewAttrs> {
 		])
 	}
 
-	private targetInbox(): boolean {
+	private async targetInbox(): Promise<boolean> {
 		const selectedFolder = this.mailViewModel.getSelectedFolder()
 		if (selectedFolder) {
-			return selectedFolder.folderType === MailFolderType.ARCHIVE || selectedFolder.folderType === MailFolderType.TRASH
+			const mailDetails = await this.mailViewModel.getMailboxDetails()
+			return isOfTypeOrSubfolderOf(mailDetails.folders, selectedFolder, MailFolderType.ARCHIVE) || selectedFolder.folderType === MailFolderType.TRASH
 		} else {
 			return false
 		}
@@ -408,7 +415,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 				//to determinate the target folder
 				const targetMailFolder = this.showingSpamOrTrash
 					? this.getRecoverFolder(listElement, folders)
-					: assertNotNull(folders.getSystemFolderByType(this.targetInbox() ? MailFolderType.INBOX : MailFolderType.ARCHIVE))
+					: assertNotNull(folders.getSystemFolderByType(this.showingArchive ? MailFolderType.INBOX : MailFolderType.ARCHIVE))
 				const wereMoved = await moveMails({
 					mailModel: locator.mailModel,
 					mails: [listElement],
@@ -437,7 +444,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 						".pl-s",
 						this.showingSpamOrTrash
 							? lang.get("recover_label") // show "recover" if this is the trash/spam folder
-							: this.targetInbox() // otherwise show "inbox" or "archive" depending on the folder
+							: this.showingArchive // otherwise show "inbox" or "archive" depending on the folder
 							? lang.get("received_action")
 							: lang.get("archive_action"),
 					),

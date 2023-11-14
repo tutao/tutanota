@@ -3,6 +3,7 @@
 package de.tutao.tutanota
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.res.Resources
 import android.net.Uri
 import android.os.Build
@@ -143,3 +144,8 @@ fun parseColor(color: String): Int {
 fun Int.toPx(): Int = (this * Resources.getSystem().displayMetrics.density).toInt()
 
 fun Int.toDp(): Int = (this / Resources.getSystem().displayMetrics.density).toInt()
+
+fun getDefaultSharedPreferences(context: Context): SharedPreferences {
+	val name = context.packageName + "_preferences"
+	return context.getSharedPreferences(name, Context.MODE_PRIVATE)
+}

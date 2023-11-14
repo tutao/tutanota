@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2023-11-09T08:12:52Z",
+	"updated_at": "2023-11-13T11:17:03Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1116,7 +1116,7 @@ export default {
 		"pricing.gdpr_tooltip": "Все данные хранятся в соответствии со строгими европейскими правилами защиты данных согласно GDPR.",
 		"pricing.includesTaxes_msg": "Включая налоги.",
 		"pricing.mailAddressAliasesShort_label": "{amount} дополнительных адресов электронной почты",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Псевдонимы адресов электронной почты могут уменьшить количество спама и ускорить сортировку входящих писем. Читайте больше советов <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">в нашем блоге</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Псевдонимы адресов электронной почты могут уменьшить количество спама и ускорить сортировку входящих писем. Читайте больше советов <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">в нашем блоге</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 бесплатный адрес электронной почты Tuta",
 		"pricing.management_label": "Управление пользователями",
 		"pricing.management_tooltip": "Сброс паролей и вторых факторов пользователей, создание адресов электронной почты для пользователей, деактивация пользователей и многое другое.",
@@ -1479,7 +1479,7 @@ export default {
 		"transferCredentials_msg": "Теперь вы можете перенести свои учетные данные Tuta на новую страницу входа:",
 		"trash_action": "Корзина",
 		"tutanotaAddressDoesNotExist_msg": "Следующие адреса электронной почты Tuta не существуют.",
-		"tutanotaToTuta_msg": "Tuta теперь Tuta",
+		"tutanotaToTuta_msg": "Tutanota теперь Tuta",
 		"tutaoInfo_msg": "Tuta GmbH это компания обеспечивающая Tuta для Вас.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Наберите для фильтрации…",
