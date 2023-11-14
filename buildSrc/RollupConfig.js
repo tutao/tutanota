@@ -17,6 +17,7 @@ export const dependencyMap = {
 	"better-sqlite3": path.normalize("./libs/better-sqlite3.mjs"),
 	keytar: path.normalize("./libs/keytar.mjs"),
 	winreg: path.normalize("./libs/winreg.mjs"),
+	undici: path.normalize("./libs/undici.mjs"),
 }
 
 /**
