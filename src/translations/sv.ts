@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2023-11-13T11:17:47Z",
+	"updated_at": "2023-11-14T10:25:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1434,7 +1434,7 @@ export default {
 		"takeOverUnusedAddress_msg": "Du kan ta över e-postadressen för ditt raderade konto till ett annat betalt konto och återanvända den där. För att göra det ange administratörens mejladress för det betalda målkontot. Observera: I fall du hade konfigurerat tvåstegsverifiering för autentisering ange då din återställningskod istället eftersom 2FA inte kan användas för ett borttaget konto.",
 		"targetAddress_label": "Adress till målkonto",
 		"templateGroupDefaultName_label": "Mina Mallar",
-		"templateGroupInvitations_label": "Inbjudningar mall lista",
+		"templateGroupInvitations_label": "Mall lista inbjudningar",
 		"templateGroupName_label": "Namn på mall lista",
 		"templateGroup_label": "Mall",
 		"templateHelp_msg": "I formuläret nedan kan du konfigurera en anpassad mall för dina aviseringsmeddelanden som innehåller en länk till den krypterade brevlådan. Mallens brödtext måste innehålla en \"{link}\" platshållare som kommer att ersättas med den faktiska länken till det krypterade e-postmeddelandet. Du kan också inkludera en \"{sender}\" platshållare i brödtexten eller i ämnet som kommer att ersättas med avsändarens namn.",
