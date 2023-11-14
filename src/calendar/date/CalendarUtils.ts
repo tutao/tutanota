@@ -901,20 +901,20 @@ export type CalendarDay = {
 }
 
 export type CalendarMonth = {
-	weekdays: Array<string>
-	weeks: Array<Array<CalendarDay>>
+	weekdays: ReadonlyArray<string>
+	weeks: ReadonlyArray<ReadonlyArray<CalendarDay>>
+	/** the 1st of the month, might not be the first date in {@link weeks} because of the padding days. */
+	beginningOfMonth: Date
 }
 
 /**
  * get an object representing the calendar month the given date is in.
- * @param date
- * @param firstDayOfWeekFromOffset
- * @return {{weeks: Array[], weekdays: Array}}
  */
 export function getCalendarMonth(date: Date, firstDayOfWeekFromOffset: number, weekdayNarrowFormat: boolean): CalendarMonth {
 	const weeks: Array<Array<CalendarDay>> = [[]]
 	const calculationDate = getStartOfDay(date)
 	calculationDate.setDate(1)
+	const beginningOfMonth = new Date(calculationDate)
 	let currentYear = calculationDate.getFullYear()
 	let month = calculationDate.getMonth()
 	// add "padding" days
@@ -987,6 +987,7 @@ export function getCalendarMonth(date: Date, firstDayOfWeekFromOffset: number, w
 	}
 
 	return {
+		beginningOfMonth,
 		weekdays,
 		weeks,
 	}
