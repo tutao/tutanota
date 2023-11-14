@@ -39,9 +39,10 @@ export class CalendarAgendaView implements Component<Attrs> {
 		const selectedDate = attrs.selectedDate
 		return m(".fill-absolute.flex.col.mlr-safe-inset", [
 			this.renderDateSelector(attrs, selectedDate),
-			m(`.rel.flex-grow.content-bg${styles.isDesktopLayout() ? "" : ".border-radius-top-left-big.border-radius-top-right-big"}`, [
-				styles.isDesktopLayout() ? this.renderAgendaForDateRange(attrs) : this.renderAgendaForDay(attrs),
-			]),
+			styles.isDesktopLayout()
+				? m(`.rel.flex-grow.content-bg`, [this.renderAgendaForDateRange(attrs)])
+				: // if the scroll is not on the child but on the nested one it will overflow
+				  m(`.rel.flex-grow.content-bg.scroll.border-radius-top-left-big.border-radius-top-right-big"`, [this.renderAgendaForDay(attrs)]),
 		])
 	}
 
@@ -82,10 +83,7 @@ export class CalendarAgendaView implements Component<Attrs> {
 				color: theme.list_message_bg,
 			})
 		} else {
-			return m(
-				".scroll.pt-s.flex.mlr.calendar-agenda-row.mb-s.col",
-				this.renderEventsForDay(events, attrs.selectedDate, getTimeZone(), attrs.groupColors, attrs.onEventClicked),
-			)
+			return m(".pt-s.flex.mlr.mb-s.col", this.renderEventsForDay(events, attrs.selectedDate, getTimeZone(), attrs.groupColors, attrs.onEventClicked))
 		}
 	}
 
@@ -176,9 +174,10 @@ export class CalendarAgendaView implements Component<Attrs> {
 					events.map((event) => {
 						return m(
 							"",
-							{
-								key: event._id.toString(),
-							},
+							// this causes mithril to crash on some days, not clear why yet
+							// {
+							// 	key: event._id.toString(),
+							// },
 							m(CalendarAgendaItemView, {
 								event: event,
 								color: getEventColor(event, colors),
