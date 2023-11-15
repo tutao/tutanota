@@ -1584,4 +1584,5 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "failedToExport_label"
 	| "eventNoLongerExists_msg"

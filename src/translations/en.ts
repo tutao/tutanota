@@ -1599,6 +1599,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"eventNoLongerExists_msg": "The requested event no longer exists"
+		"failedToExport_label": "Failed to export emails"
 	}
 }
