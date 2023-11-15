@@ -165,7 +165,9 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				const contentBlockingStatus =
 					externalImageRule === ExternalImageRule.Block
 						? ContentBlockingStatus.AlwaysBlock
-						: externalImageRule === ExternalImageRule.Allow && model.getPreviousMail()?.authStatus === MailAuthenticationStatus.AUTHENTICATED
+						: externalImageRule === ExternalImageRule.Allow &&
+						  model.getPreviousMail()?.authStatus === MailAuthenticationStatus.AUTHENTICATED &&
+						  !model.isUserPreviousSender()
 						? ContentBlockingStatus.AlwaysShow
 						: sanitized.externalContent > 0
 						? ContentBlockingStatus.Block
