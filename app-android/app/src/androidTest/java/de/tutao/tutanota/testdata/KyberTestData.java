@@ -6,8 +6,8 @@ package de.tutao.tutanota.testdata;
 public class KyberTestData {
 	String publicKey;
 	String privateKey;
-	String cipherText;
 	String seed;
+	String cipherText;
 	String sharedSecret;
 
 	public String getPublicKey() {
@@ -18,12 +18,12 @@ public class KyberTestData {
 		return privateKey;
 	}
 
-	public String getCipherText() {
-		return cipherText;
-	}
-
 	public String getSeed() {
 		return seed;
+	}
+
+	public String getCipherText() {
+		return cipherText;
 	}
 
 	public String getSharedSecret() {
@@ -40,13 +40,13 @@ public class KyberTestData {
 		return this;
 	}
 
-	public KyberTestData setCipherText(String cipherText) {
-		this.cipherText = cipherText;
+	public KyberTestData setSeed(String seed) {
+		this.seed = seed;
 		return this;
 	}
 
-	public KyberTestData setSeed(String seed) {
-		this.seed = seed;
+	public KyberTestData setCipherText(String cipherText) {
+		this.cipherText = cipherText;
 		return this;
 	}
 
