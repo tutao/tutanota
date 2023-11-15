@@ -283,7 +283,7 @@ export class CryptoFacade {
 		}
 	}
 
-	private async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<string, any>, typeModel: TypeModel): Promise<Aes128Key | Aes256Key> {
+	public async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<string, any>, typeModel: TypeModel): Promise<Aes128Key | Aes256Key> {
 		const instanceElementId = this.getElementIdFromInstance(instance)
 		let decBucketKey: Aes128Key
 		let unencryptedSenderAuthStatus: EncryptionAuthStatus | null = null
@@ -606,10 +606,10 @@ export class CryptoFacade {
 					} else {
 						encrypted = await this.rsa.encrypt(recipientPubKey, uint8ArrayBucketKey)
 					}
-					let data = createInternalRecipientKeyData({
-					mailAddress: recipientMailAddress,
-					pubEncBucketKey: encrypted,
-					pubKeyVersion: publicKeyGetOut.pubKeyVersion
+					return createInternalRecipientKeyData({
+						mailAddress: recipientMailAddress,
+						pubEncBucketKey: encrypted,
+						pubKeyVersion: publicKeyGetOut.pubKeyVersion,
 					})
 				}
 			})

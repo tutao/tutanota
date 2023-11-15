@@ -121,6 +121,7 @@ import { isDetailsDraft, isLegacyMail } from "../../../common/MailWrapper.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
+import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -873,7 +874,8 @@ export class MailFacade {
 		let ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider | undefined
 		if (bucketKey) {
 			const mailOwnerGroupId = assertNotNull(mail._ownerGroup)
-			const decBucketKey = lazyMemoized(() => this.crypto.decryptBucketKey(assertNotNull(mail.bucketKey), mailOwnerGroupId, FileTypeRef.type))
+			const typeModel = await resolveTypeReference(FileTypeRef)
+			const decBucketKey = lazyMemoized(() => this.crypto.resolveWithBucketKey(assertNotNull(mail.bucketKey), mail, typeModel))
 			ownerEncSessionKeyProvider = async (instanceElementId: Id) => {
 				const instanceSessionKey = assertNotNull(
 					bucketKey.bucketEncSessionKeys.find((instanceSessionKey) => instanceElementId === instanceSessionKey.instanceId),

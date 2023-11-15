@@ -5,17 +5,7 @@ import { LoginController } from "../../../src/api/main/LoginController.js"
 import { MailFacade } from "../../../src/api/worker/facades/lazy/MailFacade.js"
 import { EntityClient } from "../../../src/api/common/EntityClient.js"
 import { func, instance, object, when } from "testdouble"
-import {
-	createGroupInfo,
-	createGroupMembership,
-	createPublicKeyGetOut,
-	createUser,
-	GroupInfoTypeRef,
-	GroupMembershipTypeRef,
-	PublicKeyReturnTypeRef,
-	UserTypeRef,
-} from "../../../src/api/entities/sys/TypeRefs.js"
-import { GroupInfoTypeRef, GroupMembershipTypeRef, PublicKeyReturnTypeRef, UserTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef, GroupMembershipTypeRef, PublicKeyGetOutTypeRef, UserTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
 import { Recipient, RecipientType } from "../../../src/api/common/recipients/Recipient.js"
 import { ContactMailAddressTypeRef, ContactTypeRef } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { UserController } from "../../../src/api/main/UserController.js"
