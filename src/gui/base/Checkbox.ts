@@ -47,44 +47,44 @@ export class Checkbox implements Component<CheckboxAttrs> {
 						},
 					},
 					[
-						// the real checkbox is transparent and only used to allow keyboard focusing and selection
-						m("input[type=checkbox]", {
-							oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
-							onchange: (e: Event) => this.toggle(e, a),
-							checked: a.checked,
-							onfocus: () => (this.focused = true),
-							onblur: () => (this.focused = false),
-							onremove: (e) => {
-								// workaround for chrome error on login with return shortcut "Error: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?"
-								// TODO test if still needed with mithril 1.1.1
-								if (this._domInput) this._domInput.onblur = null
-							},
-							style: {
-								opacity: 0,
-								position: "absolute",
-								cursor: a.disabled ? "default" : "pointer",
-								z_index: -1,
-							},
-							disabled: a.disabled,
-							"aria-disabled": String(a.disabled),
-						}),
 						m(Icon, {
 							icon: a.checked ? BootIcons.CheckboxSelected : BootIcons.Checkbox,
 							class: this.focused ? "svg-content-accent-fg" : "svg-content-fg",
 							oncreate: (vnode) => (this._domIcon = vnode.dom as HTMLElement),
 						}),
 						m(
-							".pl",
+							"label.pl",
 							{
 								class: this.focused ? "content-accent-fg" : "content-fg",
 								onclick: (e: MouseEvent) => {
-									// if the label contains a link, then stop the event so that the checkbox doesn't get toggled upon clicking
+									// if the label contains a link, then stop the event so that the checkbox doesnt get toggled upon clicking
 									// we still allow it to be checked if they click on the non-link part of the label
 									if (e.target instanceof HTMLElement && e.target.tagName.toUpperCase() === "A") {
 										e.stopPropagation()
 									}
 								},
 							},
+							// the real checkbox is transparent and only used to allow keyboard focusing and selection
+							m("input[type=checkbox]", {
+								oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
+								onchange: (e: Event) => this.toggle(e, a),
+								checked: a.checked,
+								onfocus: () => (this.focused = true),
+								onblur: () => (this.focused = false),
+								onremove: (e) => {
+									// workaround for chrome error on login with return shortcut "Error: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?"
+									// TODO test if still needed with mithril 1.1.1
+									if (this._domInput) this._domInput.onblur = null
+								},
+								style: {
+									opacity: 0,
+									position: "absolute",
+									cursor: a.disabled ? "default" : "pointer",
+									z_index: -1,
+								},
+								disabled: a.disabled,
+								"aria-disabled": String(a.disabled),
+							}),
 							a.label(),
 						),
 					],
