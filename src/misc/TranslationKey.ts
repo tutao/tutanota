@@ -1585,4 +1585,6 @@ export type TranslationKeyType =
 	| "you_label"
 	| "emptyString_msg"
 	| "failedToExport_label"
+	| "failedToExport_msg"
+	| "failedToExport_title"
 	| "eventNoLongerExists_msg"
