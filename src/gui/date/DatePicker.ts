@@ -301,6 +301,9 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		const beginningOfNextWeek = incrementDate(new Date(date), 7)
 		const nextWeek =
 			beginningOfNextWeek < nextMonth.beginningOfMonth ? findWeek(currentMonth, beginningOfNextWeek) : findWeek(nextMonth, beginningOfNextWeek)
+
+		//Size of the day square by two
+		const spacing = this.getElementWidth(vnode.attrs) / 2
 		return m(
 			".rel",
 			{
@@ -326,6 +329,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 									display: "block",
 									// put it to the top of the view and not below
 									top: 0,
+									right: px(spacing),
 									transform: `translateX(${-this.containerDom.offsetWidth}px)`,
 								}),
 						},
@@ -347,6 +351,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 									display: "block",
 									// put it to the top of the view and not below
 									top: 0,
+									left: px(spacing),
 									transform: `translateX(${this.containerDom.offsetWidth}px)`,
 								}),
 						},
