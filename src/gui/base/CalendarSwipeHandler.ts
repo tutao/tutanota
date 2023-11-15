@@ -14,7 +14,7 @@ export class CalendarSwipeHandler extends SwipeHandler {
 	}
 
 	onHorizontalDrag(xDelta: number, yDelta: number) {
-		this._xoffset = Math.abs(xDelta) > 40 ? xDelta : 0
+		this._xoffset = Math.abs(xDelta) > 20 ? xDelta : 0
 		this.touchArea.style.transform = `translateX(${this._xoffset}px)`
 	}
 
@@ -36,7 +36,7 @@ export class CalendarSwipeHandler extends SwipeHandler {
 	}
 
 	reset(delta: { x: number; y: number }): Promise<any> {
-		if (Math.abs(this._xoffset) > 40) {
+		if (Math.abs(this._xoffset) > 20) {
 			animations.add(this.touchArea, transform(TransformEnum.TranslateX, delta.x, 0))
 		} else {
 			this.touchArea.style.transform = ""
