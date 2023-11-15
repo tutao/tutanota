@@ -27,7 +27,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 		const a = vnode.attrs
 		const helpLabel = a.helpLabel ? m("small.block.content-fg", lang.getMaybeLazy(a.helpLabel)) : []
 		return m(
-			".click.pt",
+			`${a.disabled ? ".click-disabled" : ".click"}.pt`,
 			{
 				onclick: (e: MouseEvent) => {
 					if (e.target !== this._domInput) {
@@ -39,8 +39,13 @@ export class Checkbox implements Component<CheckboxAttrs> {
 				m(
 					".wrapper.flex.items-center",
 					{
-						oncreate: (vnode) => addFlash(vnode.dom),
-						onremove: (vnode) => removeFlash(vnode.dom),
+						style: { opacity: a.disabled ? 0.2 : 1 },
+						oncreate: (vnode) => {
+							if (!a.disabled) addFlash(vnode.dom)
+						},
+						onremove: (vnode) => {
+							if (!a.disabled) removeFlash(vnode.dom)
+						},
 					},
 					[
 						// the real checkbox is transparent and only used to allow keyboard focusing and selection
@@ -58,9 +63,11 @@ export class Checkbox implements Component<CheckboxAttrs> {
 							style: {
 								opacity: 0,
 								position: "absolute",
-								cursor: "pointer",
+								cursor: a.disabled ? "default" : "pointer",
 								z_index: -1,
 							},
+							disabled: a.disabled,
+							"aria-disabled": String(a.disabled),
 						}),
 						m(Icon, {
 							icon: a.checked ? BootIcons.CheckboxSelected : BootIcons.Checkbox,
