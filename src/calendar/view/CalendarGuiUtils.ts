@@ -8,7 +8,7 @@ import type { MousePosAndBounds } from "../../gui/base/GuiUtils"
 import { Time } from "../date/Time.js"
 import { assert, clamp, incrementDate, lastThrow } from "@tutao/tutanota-utils"
 import { IconButton } from "../../gui/base/IconButton.js"
-import { formatDateWithWeekday, formatMonthShortWithFullYear, formatMonthWithFullYear } from "../../misc/Formatter.js"
+import { formatDateWithWeekday, formatMonthWithFullYear } from "../../misc/Formatter.js"
 import { getStartOfTheWeekOffset, getStartOfWeek, getWeekNumber } from "../date/CalendarUtils.js"
 import { WeekStart } from "../../api/common/TutanotaConstants.js"
 import { AllIcons } from "../../gui/base/Icon.js"
@@ -95,6 +95,7 @@ export function calendarNavConfiguration(
 	weekStart: WeekStart,
 	agendaTitleType: "day" | "range",
 	switcher: (viewType: CalendarViewType, next: boolean) => unknown,
+	showNavigationOnAgenda: boolean = false,
 ): CalendarNavConfiguration {
 	const onBack = () => switcher(viewType, false)
 	const onForward = () => switcher(viewType, true)
@@ -122,8 +123,8 @@ export function calendarNavConfiguration(
 			}
 		case CalendarViewType.AGENDA:
 			return {
-				back: null,
-				forward: null,
+				back: showNavigationOnAgenda ? renderCalendarSwitchLeftButton("prevWeek_label", onBack) : null,
+				forward: showNavigationOnAgenda ? renderCalendarSwitchRightButton("nextWeek_label", onForward) : null,
 				title: agendaTitleType === "day" ? formatDateWithWeekday(date) : agendaTitle(date),
 				week: null,
 			}

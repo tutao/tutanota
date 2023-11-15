@@ -330,8 +330,13 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			viewSlider: this.viewSlider,
 			showExpandIcon: !styles.isDesktopLayout() && (this.currentViewType === CalendarViewType.AGENDA || this.currentViewType === CalendarViewType.DAY),
 			isDaySelectorExpanded: this.isDaySelectorExpanded,
-			navConfiguration: calendarNavConfiguration(this.currentViewType, this.viewModel.selectedDate(), this.viewModel.weekStart, "day", (viewType, next) =>
-				this._viewPeriod(viewType, next),
+			navConfiguration: calendarNavConfiguration(
+				this.currentViewType,
+				this.viewModel.selectedDate(),
+				this.viewModel.weekStart,
+				"day",
+				(viewType, next) => this._viewPeriod(viewType, next),
+				true,
 			),
 			onCreateEvent: () => this._createNewEventDialog(),
 			onToday: () => this._setUrl(m.route.param("view"), new Date()),
@@ -434,6 +439,13 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			case CalendarViewType.DAY:
 				duration = {
 					day: 1,
+				}
+				unit = "day"
+				break
+			case CalendarViewType.AGENDA:
+				duration = {
+					week: this.isDaySelectorExpanded ? 0 : 1,
+					month: this.isDaySelectorExpanded ? 1 : 0,
 				}
 				unit = "day"
 				break
