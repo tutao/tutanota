@@ -1172,6 +1172,9 @@ styles.registerStyle("main", () => {
 			background: stateBgActive,
 			"transition-duration": ".3s",
 		},
+		".disabled": {
+			opacity: "0.3",
+		},
 		".translucent": {
 			opacity: "0.4",
 		},
