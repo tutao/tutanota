@@ -262,8 +262,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	}
 
 	async update<T extends SomeEntity>(instance: T): Promise<void> {
-		await this.storage.put(instance)
-		return this.entityRestClient.update(instance)
+		return this.entityRestClient.update(instance).then(async () => await this.storage.put(instance))
 	}
 
 	erase<T extends SomeEntity>(instance: T): Promise<void> {
