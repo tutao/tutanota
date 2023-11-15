@@ -1081,7 +1081,7 @@ export default {
 		"pricing.gdpr_tooltip": "Všetky údaje sa uchovávajú v súlade s prísnymi európskymi nariadeniami o ochrane údajov podľa GDPR.",
 		"pricing.includesTaxes_msg": "Vrátane daní.",
 		"pricing.mailAddressAliasesShort_label": "{amount} e-mailových adries navyše",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>E-mailové aliasové adresy môžu redukovať spam a urýchľujú triedenie prichádzajúcich e-mailov. Prečítaj si ďalšie tipy <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">na našom blogu</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>E-mailové aliasové adresy môžu redukovať spam a urýchľujú triedenie prichádzajúcich e-mailov. Prečítaj si ďalšie tipy <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">na našom blogu</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 e-mailová adresa Tuta zadarmo",
 		"pricing.management_label": "Správa používateľov",
 		"pricing.management_tooltip": "Resetuj heslá a druhé faktory používateľov, vytváraj aliasy pre používateľov, deaktivuj používateľov a ďalšie.",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2023-11-08T15:57:33Z",
+	"updated_at": "2023-11-13T11:09:35Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1125,7 +1125,7 @@ export default {
 		"pricing.gdpr_tooltip": "Všechna data jsou uchovávána v souladu s přísnými evropskými předpisy o ochraně osobních údajů podle GDPR.",
 		"pricing.includesTaxes_msg": "Včetně daně.",
 		"pricing.mailAddressAliasesShort_label": "{amount} dalších e-mailových adres",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>E-mailové aliasy mohou snížit množství nevyžádané pošty a urychlit roztřízení příchozích e-mailů. Přečtěte si další tipy <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">na našem blogu</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>E-mailové aliasy mohou snížit množství nevyžádané pošty a urychlit roztřízení příchozích e-mailů. Přečtěte si další tipy <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">na našem blogu</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 bezplatná e-mailová adresa od Tutanoty",
 		"pricing.management_label": "Správa uživatelů",
 		"pricing.management_tooltip": "Obnovujte hesla i druhé faktory uživatelů, vytvářejte e-mailové adresy pro uživatele, deaktivujte uživatele apod.",

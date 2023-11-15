@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2023-11-08T16:05:07Z",
+	"updated_at": "2023-11-13T11:15:35Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1116,7 +1116,7 @@ export default {
 		"pricing.gdpr_tooltip": "Tutti i dati sono conservati in conformità alle severe norme europee sulla protezione dei dati secondo il GDPR.",
 		"pricing.includesTaxes_msg": "Tasse incluse.",
 		"pricing.mailAddressAliasesShort_label": "{amount} indirizzi email extra",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Gli indirizzi alias email possono ridurre lo spam e contribuire a velocizzare lo smistamento delle email in arrivo. Leggi altri suggerimenti <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">sul nostro blog</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Gli indirizzi alias email possono ridurre lo spam e contribuire a velocizzare lo smistamento delle email in arrivo. Leggi altri suggerimenti <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">sul nostro blog</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 indirizzo email gratuito Tuta",
 		"pricing.management_label": "Gestione utente",
 		"pricing.management_tooltip": "Reimpostare le password e i secondi fattori degli utenti, creare indirizzi email per gli utenti, disattivare gli utenti e altro ancora.",
@@ -1480,7 +1480,7 @@ export default {
 		"transferCredentials_msg": "Ora puoi trasferire le tue credenziali di Tuta alla nuova pagina di accesso:",
 		"trash_action": "Cestino",
 		"tutanotaAddressDoesNotExist_msg": "I seguenti indirizzi email di Tuta non esistono.",
-		"tutanotaToTuta_msg": "Tuta è ora Tuta",
+		"tutanotaToTuta_msg": "Tutanota è ora Tuta",
 		"tutaoInfo_msg": "Tutao GmbH è l'azienda che fornisce Tuta a te.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Digita per filtrare ...",

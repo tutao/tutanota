@@ -1084,7 +1084,7 @@ export default {
 		"pricing.gdpr_tooltip": "Tódolos datos gárdanse seguindo as estritas regulacións de protección de datos Europeas de acordo coa GDPR.",
 		"pricing.includesTaxes_msg": "Inclúe as taxas.",
 		"pricing.mailAddressAliasesShort_label": "{amount} enderezos extra de email",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Os enderezos de email tipo alias poden reducir o spam e axudar a ordenar os correos entrantes. Le máis trucos <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">no noso blog</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Os enderezos de email tipo alias poden reducir o spam e axudar a ordenar os correos entrantes. Le máis trucos <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">no noso blog</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 enderezo de correo de Tuta gratis",
 		"pricing.management_label": "Xestión de Usuarias",
 		"pricing.management_tooltip": "Restablecer contrasinal e segundo factor das usuarias, crear enderezos de email para usuarias, desactivar usuarias e máis.",

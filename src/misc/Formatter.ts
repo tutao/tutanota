@@ -1,5 +1,5 @@
 import { lang } from "./LanguageViewModel"
-import { pad } from "@tutao/tutanota-utils"
+import { isSameDayOfDate, pad } from "@tutao/tutanota-utils"
 import type { UserSettingsGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
 import { TimeFormat } from "../api/common/TutanotaConstants"
 import { assertMainOrNode } from "../api/common/Env"
@@ -62,7 +62,7 @@ export function formatTimeOrDateOrYesterday(date: Date): string {
 	}
 	const yesterday = new Date(startOfToday)
 	yesterday.setDate(yesterday.getDate() - 1)
-	if (date.getDate() === yesterday.getDate()) {
+	if (isSameDayOfDate(date, yesterday)) {
 		return lang.get("yesterday_label")
 	} else if (date.getFullYear() === new Date().getFullYear()) {
 		return lang.formats.dateWithoutYear.format(date)

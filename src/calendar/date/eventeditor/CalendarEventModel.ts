@@ -101,6 +101,7 @@ import { CalendarNotificationModel, CalendarNotificationSendModels } from "./Cal
 import { CalendarEventApplyStrategies, CalendarEventModelStrategy } from "./CalendarEventModelStrategy.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { getDefaultSender } from "../../../mail/model/MailUtils.js"
+import { SimpleTextViewModel } from "../../../misc/SimpleTextViewModel.js"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {
@@ -221,8 +222,8 @@ export async function makeCalendarEventModel(
 			uiUpdateCallback,
 		),
 		alarmModel: new CalendarEventAlarmModel(eventType, alarms, new DefaultDateProvider(), uiUpdateCallback),
-		location: new SanitizedTextViewModel(initializationEvent.location, htmlSanitizer, uiUpdateCallback),
-		summary: new SanitizedTextViewModel(initializationEvent.summary, htmlSanitizer, uiUpdateCallback),
+		location: new SimpleTextViewModel(initializationEvent.location, uiUpdateCallback),
+		summary: new SimpleTextViewModel(initializationEvent.summary, uiUpdateCallback),
 		description: new SanitizedTextViewModel(initializationEvent.description, htmlSanitizer, uiUpdateCallback),
 	})
 
@@ -575,8 +576,8 @@ export type CalendarEventEditModels = {
 	whenModel: CalendarEventWhenModel
 	whoModel: CalendarEventWhoModel
 	alarmModel: CalendarEventAlarmModel
-	location: SanitizedTextViewModel
-	summary: SanitizedTextViewModel
+	location: SimpleTextViewModel
+	summary: SimpleTextViewModel
 	description: SanitizedTextViewModel
 }
 

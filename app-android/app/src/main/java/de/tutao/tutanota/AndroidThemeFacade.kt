@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import android.content.res.Configuration.UI_MODE_NIGHT_MASK
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.graphics.drawable.ColorDrawable
-import android.preference.PreferenceManager
 import android.util.Log
 import android.view.View
 import androidx.annotation.ColorInt
@@ -19,23 +18,23 @@ typealias ThemeId = String
 typealias ThemePreference = String
 
 class AndroidThemeFacade(
-	private val context: Context,
-	private val activity: MainActivity,
+		private val context: Context,
+		private val activity: MainActivity,
 ) : ThemeFacade {
 	companion object {
 		private const val CURRENT_THEME_KEY = "theme"
 		private const val THEMES_KEY = "themes"
 		private const val TAG = "AndroidThemeFacade"
 		private val LIGHT_FALLBACK_THEME = mapOf(
-			"themeId" to "light-fallback",
-			"content_bg" to "#ffffff",
-			"header_bg" to "#ffffff",
-			"navigation_bg" to "#f6f6f6",
+				"themeId" to "light-fallback",
+				"content_bg" to "#ffffff",
+				"header_bg" to "#ffffff",
+				"navigation_bg" to "#f6f6f6",
 		)
 	}
 
 	private val prefs: SharedPreferences
-		get() = PreferenceManager.getDefaultSharedPreferences(context)
+		get() = getDefaultSharedPreferences(context)
 
 	private var themePreference: ThemePreference?
 		get() = prefs.getString(CURRENT_THEME_KEY, null)
@@ -138,7 +137,7 @@ class AndroidThemeFacade(
 	}
 
 	private fun getColor(theme: Map<String, String>, key: String): String =
-		theme[key] ?: LIGHT_FALLBACK_THEME[key] ?: "#FFFFFF"
+			theme[key] ?: LIGHT_FALLBACK_THEME[key] ?: "#FFFFFF"
 
 	override suspend fun getThemes(): List<Map<String, String>> {
 		return this.themes

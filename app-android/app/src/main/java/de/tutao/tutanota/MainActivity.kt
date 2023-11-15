@@ -432,8 +432,7 @@ class MainActivity : FragmentActivity() {
 	suspend fun askBatteryOptimizationsIfNeeded() {
 		val powerManager = getSystemService(POWER_SERVICE) as PowerManager
 
-		@Suppress("DEPRECATION")
-		val preferences = android.preference.PreferenceManager.getDefaultSharedPreferences(this)
+		val preferences = getDefaultSharedPreferences(this)
 
 		if (
 				!preferences.getBoolean(ASKED_BATTERY_OPTIMIZATIONS_PREF, false)
