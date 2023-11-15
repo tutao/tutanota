@@ -79,7 +79,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 							{
 								class: this.focused ? "content-accent-fg" : "content-fg",
 								onclick: (e: MouseEvent) => {
-									// if the label contains a link, then stop the event so that the checkbox doesnt get toggled upon clicking
+									// if the label contains a link, then stop the event so that the checkbox doesn't get toggled upon clicking
 									// we still allow it to be checked if they click on the non-link part of the label
 									if (e.target instanceof HTMLElement && e.target.tagName.toUpperCase() === "A") {
 										e.stopPropagation()
