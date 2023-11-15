@@ -151,8 +151,11 @@ export class MultiDayCalendarView implements Component<Attrs> {
 
 	_renderWeek(attrs: Attrs, thisWeek: EventsOnDays, mainWeek: EventsOnDays): Children {
 		return m(
-			".fill-absolute.flex.col.calendar-column-border.mlr-safe-inset.content-bg.overflow-hidden" +
-				(!styles.isDesktopLayout() ? `.border-radius-top-left-big.border-radius-top-right-big` : ""),
+			".fill-absolute.flex.col.calendar-column-border.mlr-safe-inset.overflow-hidden" +
+				(!styles.isDesktopLayout() && !(styles.isTwoColumnLayout() && attrs.daysInPeriod > 1)
+					? `.border-radius-top-left-big.border-radius-top-right-big.content-bg`
+					: "") +
+				(styles.isTwoColumnLayout() && attrs.daysInPeriod > 1 ? ".pt-s" : ""),
 			{
 				oncreate: () => {
 					this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
@@ -183,13 +186,13 @@ export class MultiDayCalendarView implements Component<Attrs> {
 				},
 			},
 			[
-				styles.isDesktopLayout()
+				styles.isDesktopLayout() || (styles.isTwoColumnLayout() && attrs.daysInPeriod > 1)
 					? this.renderHeaderDesktop(attrs, thisWeek, mainWeek)
 					: this.renderHeaderMobile(thisWeek, mainWeek, attrs.groupColors, attrs.onEventClicked, attrs.temporaryEvents),
 				// using .scroll-no-overlay because of a browser bug in Chromium where scroll wouldn't work at all
 				// see https://github.com/tutao/tutanota/issues/4846
 				m(
-					".flex.scroll-no-overlay",
+					".flex.scroll-no-overlay" + (styles.isDesktopLayout() || (styles.isTwoColumnLayout() && attrs.daysInPeriod > 1) ? ".content-bg" : ""),
 					{
 						oncreate: (vnode) => {
 							vnode.dom.scrollTop = this._scrollPosition
@@ -327,36 +330,38 @@ export class MultiDayCalendarView implements Component<Attrs> {
 
 	private renderHeaderDesktop(attrs: Attrs, thisPageEvents: EventsOnDays, mainPageEvents: EventsOnDays): Children {
 		const { selectedDate, groupColors, onEventClicked } = attrs
-		return m(".calendar-long-events-header.flex-fixed", [
-			m(
-				".calendar-hour-margin",
-				{
-					onmousemove: (mouseEvent: MouseEvent) => {
-						const { x, targetWidth } = getPosAndBoundsFromMouseEvent(mouseEvent)
-						const dayWidth = targetWidth / attrs.daysInPeriod
-						const dayNumber = Math.floor(x / dayWidth)
-						const date = new Date(thisPageEvents.days[dayNumber])
-						const dateUnderMouse = this._dateUnderMouse
+		return m(".calendar-long-events-header.flex-fixed" + (styles.isDesktopLayout() ? ".content-bg" : ""), [
+			m(".calendar-hour-margin", [this.renderDayNamesRow(thisPageEvents.days, attrs.onDateSelected)]),
+			m(".content-bg" + (styles.isTwoColumnLayout() && attrs.daysInPeriod > 1 ? ".border-radius-top-left-big.border-radius-top-right-big.pt-s" : ""), [
+				m(
+					".calendar-hour-margin.content-bg",
+					{
+						onmousemove: (mouseEvent: MouseEvent) => {
+							const { x, targetWidth } = getPosAndBoundsFromMouseEvent(mouseEvent)
+							const dayWidth = targetWidth / attrs.daysInPeriod
+							const dayNumber = Math.floor(x / dayWidth)
+							const date = new Date(thisPageEvents.days[dayNumber])
+							const dateUnderMouse = this._dateUnderMouse
 
-						// When dragging short events, dont cause the mouse position date to drop to 00:00 when dragging over the header
-						if (dateUnderMouse && this._eventDragHandler.isDragging && !this._isHeaderEventBeingDragged) {
-							date.setHours(dateUnderMouse.getHours())
-							date.setMinutes(dateUnderMouse.getMinutes())
-						}
+							// When dragging short events, dont cause the mouse position date to drop to 00:00 when dragging over the header
+							if (dateUnderMouse && this._eventDragHandler.isDragging && !this._isHeaderEventBeingDragged) {
+								date.setHours(dateUnderMouse.getHours())
+								date.setMinutes(dateUnderMouse.getMinutes())
+							}
 
-						this._dateUnderMouse = date
+							this._dateUnderMouse = date
+						},
 					},
-				},
-				// this section is tricky with margins. We use this view for both week and day view.
-				// in day view there's no days row and no selection indicator.
-				// it all must work with and without long events.
-				// thread carefully and test all the cases.
-				[
-					this.renderDayNamesRow(thisPageEvents.days, attrs.onDateSelected),
-					this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, attrs.temporaryEvents),
-					this.renderSelectedDateIndicatorRow(selectedDate, thisPageEvents.days),
-				],
-			),
+					// this section is tricky with margins. We use this view for both week and day view.
+					// in day view there's no days row and no selection indicator.
+					// it all must work with and without long events.
+					// thread carefully and test all the cases.
+					[
+						this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, attrs.temporaryEvents),
+						this.renderSelectedDateIndicatorRow(selectedDate, thisPageEvents.days),
+					],
+				),
+			]),
 		])
 	}
 
