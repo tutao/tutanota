@@ -27,17 +27,12 @@ export interface Argon2idFacade {
 }
 
 /**
- * WebAssembly implementation of Argon2id for the web app and node
+ * WebAssembly implementation of Argon2id
  */
 export class WASMArgon2idFacade implements Argon2idFacade {
-	/**
-	 * @param fetcher to fetch the WASM binary response
-	 */
-	constructor(private readonly fetcher: () => Promise<Response>) {}
-
 	// loads argon2 WASM
 	private argon2: LazyLoaded<WebAssembly.Exports> = new LazyLoaded(async () => {
-		const wasm = this.fetcher()
+		const wasm = fetch("wasm/argon2.wasm")
 		if (WebAssembly.instantiateStreaming) {
 			return (await WebAssembly.instantiateStreaming(wasm)).instance.exports
 		} else {

@@ -32,8 +32,6 @@ export enum BuildConfigKey {
 	initialSseConnectTimeoutInSeconds = "initialSseConnectTimeoutInSeconds",
 	maxSseConnectTimeoutInSeconds = "maxSseConnectTimeoutInSeconds",
 	defaultDesktopConfig = "defaultDesktopConfig",
-	webAssetsPath = "webAssetsPath",
-	preloadjs = "preloadjs",
 	iconName = "iconName",
 	fileManagerTimeout = "fileManagerTimeout",
 	pubKeys = "pubKeys",
