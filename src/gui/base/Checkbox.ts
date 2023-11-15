@@ -37,7 +37,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 			},
 			[
 				m(
-					`.wrapper.flex.items-center${a.disabled ? ".disabled" : undefined}`,
+					`.wrapper.flex.items-center${a.disabled ? ".disabled" : ""}`,
 					{
 						oncreate: (vnode) => {
 							if (!a.disabled) addFlash(vnode.dom)
