@@ -499,6 +499,7 @@ export class PinchZoom {
 					Math.abs(touch.clientY - this.currentTouchStart.y) < this.SAME_POSITION_RADIUS
 				) {
 					// at this point we are sure that there is no second tap for a double tap
+					window.getSelection()?.empty() // deselect any selected text
 					singleClickAction(event, target)
 				}
 			}, this.DOUBLE_TAP_TIME_MS)
