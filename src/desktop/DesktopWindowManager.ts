@@ -49,6 +49,16 @@ export class WindowManager {
 	private _currentBounds: WindowBounds
 	private remoteBridge!: RemoteBridge
 
+	/**
+	 *
+	 * @param conf
+	 * @param tray
+	 * @param notifier
+	 * @param electron
+	 * @param localShortcut
+	 * @param icon
+	 * @param preloadOverride the path to a replacement of the default preload script
+	 */
 	constructor(
 		conf: DesktopConfig,
 		tray: DesktopTray,
@@ -56,6 +66,7 @@ export class WindowManager {
 		electron: ElectronExports,
 		localShortcut: LocalShortcutManager,
 		private readonly icon: NativeImage,
+		private readonly preloadOverride?: string,
 	) {
 		this._conf = conf
 
@@ -276,7 +287,18 @@ export class WindowManager {
 		const updateUrl = await this._conf.getConst(BuildConfigKey.updateUrl)
 		const dictUrl = updateUrl && updateUrl !== "" ? updateUrl : "https://app.tuta.com/desktop/"
 		// custom builds get the dicts from us as well
-		return new ApplicationWindow(this, absoluteWebAssetsPath, this.icon, electron, localShortcut, this.themeFacade, this.remoteBridge, dictUrl, noAutoLogin)
+		return new ApplicationWindow(
+			this,
+			absoluteWebAssetsPath,
+			this.icon,
+			electron,
+			localShortcut,
+			this.themeFacade,
+			this.remoteBridge,
+			dictUrl,
+			noAutoLogin,
+			this.preloadOverride,
+		)
 	}
 
 	private async getAbsoluteWebAssetsPath() {

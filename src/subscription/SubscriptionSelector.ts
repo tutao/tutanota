@@ -1,8 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationKey, TranslationText } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
-import type { BuyOptionBoxAttr } from "./BuyOptionBox"
-import { BOX_MARGIN, BuyOptionBox, getActiveSubscriptionActionButtonReplacement } from "./BuyOptionBox"
+import type { BuyOptionBoxAttr, BuyOptionDetailsAttr } from "./BuyOptionBox"
+import { BOX_MARGIN, BuyOptionBox, BuyOptionDetails, getActiveSubscriptionActionButtonReplacement } from "./BuyOptionBox"
 import type { SegmentControlItem } from "../gui/base/SegmentControl"
 import { SegmentControl } from "../gui/base/SegmentControl"
 import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
@@ -122,7 +122,10 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			.filter((plan) => acceptedPlans.includes(plan) || vnode.attrs.currentPlanType === plan)
 			.map((personalPlan, i) => {
 				// only show category title for the leftmost item
-				return this.renderBuyOptionBox(vnode.attrs, i === 0, inMobileView, personalPlan, featureExpander)
+				return [
+					this.renderBuyOptionBox(vnode.attrs, inMobileView, personalPlan),
+					this.renderBuyOptionDetails(vnode.attrs, i === 0, personalPlan, featureExpander),
+				]
 			})
 
 		const isYearly = vnode.attrs.options.paymentInterval() === 12
@@ -152,35 +155,42 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 						"column-gap": px(BOX_MARGIN),
 					},
 				},
-				buyBoxesViewPlacement,
+				m(".plans-grid", buyBoxesViewPlacement.flat()),
 				additionalInfo,
 			),
 		])
 	}
 
-	private renderBuyOptionBox(
+	private renderBuyOptionBox(attrs: SubscriptionSelectorAttr, inMobileView: boolean, planType: AvailablePlanType): Children {
+		return m(
+			"",
+			{
+				style: {
+					width: attrs.boxWidth ? px(attrs.boxWidth) : px(230),
+				},
+			},
+			m(BuyOptionBox, this.createBuyOptionBoxAttr(attrs, planType, inMobileView)),
+		)
+	}
+
+	private renderBuyOptionDetails(
 		attrs: SubscriptionSelectorAttr,
 		renderCategoryTitle: boolean,
-		inMobileView: boolean,
 		planType: AvailablePlanType,
 		featureExpander: Record<ExpanderTargets, m.Children>,
 	): Children {
-		return m("", m(BuyOptionBox, this.createBuyOptionBoxAttr(attrs, planType, renderCategoryTitle, inMobileView)), featureExpander[planType])
+		return m(
+			"",
+			{
+				style: { width: attrs.boxWidth ? px(attrs.boxWidth) : px(230) },
+			},
+			m(BuyOptionDetails, this.createBuyOptionBoxDetailsAttr(attrs, planType, renderCategoryTitle)),
+			featureExpander[planType],
+		)
 	}
 
-	private createBuyOptionBoxAttr(
-		selectorAttrs: SubscriptionSelectorAttr,
-		targetSubscription: AvailablePlanType,
-		renderCategoryTitle: boolean,
-		mobile: boolean,
-	): BuyOptionBoxAttr {
-		const { featureListProvider, priceAndConfigProvider } = selectorAttrs
-		const subscriptionFeatures = featureListProvider.getFeatureList(targetSubscription)
-		const categoriesToShow = subscriptionFeatures.categories
-			.map((fc) => {
-				return localizeFeatureCategory(fc, targetSubscription, selectorAttrs)
-			})
-			.filter((fc): fc is BuyOptionBoxAttr["categories"][0] => fc != null)
+	private createBuyOptionBoxAttr(selectorAttrs: SubscriptionSelectorAttr, targetSubscription: AvailablePlanType, mobile: boolean): BuyOptionBoxAttr {
+		const { priceAndConfigProvider } = selectorAttrs
 
 		// we highlight the center box if this is a signup or the current subscription type is Free
 		const upgradingToPaidAccount = !selectorAttrs.currentPlanType || selectorAttrs.currentPlanType === PlanType.Free
@@ -200,19 +210,35 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			price: formatMonthlyPrice(subscriptionPrice, selectorAttrs.options.paymentInterval()),
 			priceHint: getPriceHint(subscriptionPrice, selectorAttrs.options.paymentInterval(), multiuser),
 			helpLabel: getHelpLabel(targetSubscription, selectorAttrs.options.businessUse()),
-			categories: categoriesToShow,
-			featuresExpanded: this.featuresExpanded[targetSubscription] || this.featuresExpanded.All,
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,
 			paymentInterval: selectorAttrs.allowSwitchingPaymentInterval && targetSubscription !== PlanType.Free ? selectorAttrs.options.paymentInterval : null,
 			highlighted: highlighted,
 			showReferenceDiscount: selectorAttrs.allowSwitchingPaymentInterval,
-			renderCategoryTitle,
 			mobile,
 			bonusMonths:
 				targetSubscription !== PlanType.Free && selectorAttrs.options.paymentInterval() === PaymentInterval.Yearly
 					? Number(selectorAttrs.priceAndConfigProvider.getRawPricingData().bonusMonthsForYearlyPlan)
 					: 0,
+		}
+	}
+
+	private createBuyOptionBoxDetailsAttr(
+		selectorAttrs: SubscriptionSelectorAttr,
+		targetSubscription: AvailablePlanType,
+		renderCategoryTitle: boolean,
+	): BuyOptionDetailsAttr {
+		const { featureListProvider, priceAndConfigProvider } = selectorAttrs
+		const subscriptionFeatures = featureListProvider.getFeatureList(targetSubscription)
+		const categoriesToShow = subscriptionFeatures.categories
+			.map((fc) => {
+				return localizeFeatureCategory(fc, targetSubscription, selectorAttrs)
+			})
+			.filter((fc): fc is BuyOptionDetailsAttr["categories"][0] => fc != null)
+		return {
+			categories: categoriesToShow,
+			featuresExpanded: this.featuresExpanded[targetSubscription] || this.featuresExpanded.All,
+			renderCategoryTitle,
 		}
 	}
 
@@ -283,7 +309,7 @@ function localizeFeatureListItem(
 	item: FeatureListItem,
 	targetSubscription: PlanType,
 	attrs: SubscriptionSelectorAttr,
-): BuyOptionBoxAttr["categories"][0]["features"][0] | null {
+): BuyOptionDetailsAttr["categories"][0]["features"][0] | null {
 	let text = tryGetTranslation(item.text, getReplacement(item.replacements, targetSubscription, attrs))
 	if (text == null) {
 		return null
@@ -304,7 +330,7 @@ function localizeFeatureCategory(
 	category: FeatureCategory,
 	targetSubscription: PlanType,
 	attrs: SubscriptionSelectorAttr,
-): BuyOptionBoxAttr["categories"][0] | null {
+): BuyOptionDetailsAttr["categories"][0] | null {
 	const title = tryGetTranslation(category.title)
 	const features = downcast<{ text: string; toolTip?: m.Child; key: string; antiFeature?: boolean | undefined; omit: boolean; heart: boolean }[]>(
 		category.features.map((f) => localizeFeatureListItem(f, targetSubscription, attrs)).filter((it) => it != null),

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2023-11-08T15:59:31Z",
+	"updated_at": "2023-11-13T11:09:35Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1125,7 +1125,7 @@ export default {
 		"pricing.gdpr_tooltip": "All data is stored in compliance with strict European data protection regulations according to the GDPR.",
 		"pricing.includesTaxes_msg": "Includes taxes.",
 		"pricing.mailAddressAliasesShort_label": "{amount} extra email addresses",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Email alias addresses can reduce spam and help speed up sorting of incoming emails. Read more tips <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tutanota.com/blog/posts/secure-email-alias\">on our blog</a>.</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Email alias addresses can reduce spam and help speed up sorting of incoming emails. Read more tips <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/posts/secure-email-alias\">on our blog</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 free Tuta email address",
 		"pricing.management_label": "User management",
 		"pricing.management_tooltip": "Reset passwords and second factors of users, create email addresses for users, deactivate users and more.",
@@ -1490,7 +1490,7 @@ export default {
 		"transferCredentials_msg": "You can now transfer your Tuta credentials to the new login page:",
 		"trash_action": "Trash",
 		"tutanotaAddressDoesNotExist_msg": "The following Tuta email addresses do not exist.",
-		"tutanotaToTuta_msg": "Tuta is now Tuta",
+		"tutanotaToTuta_msg": "Tutanota is now Tuta",
 		"tutaoInfo_msg": "Tutao GmbH is the company providing Tuta to you.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Type to filter ...",

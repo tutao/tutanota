@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2023-11-08T16:12:45Z",
+	"updated_at": "2023-11-13T11:18:09Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1494,7 +1494,7 @@ export default {
 		"transferCredentials_msg": "Artık Tuta kimlik bilgilerinizi yeni giriş sayfasına aktarabilirsiniz:",
 		"trash_action": "Çöp Kutusu",
 		"tutanotaAddressDoesNotExist_msg": "Belirtilen Tuta e-posta adresleri mevcut değil.",
-		"tutanotaToTuta_msg": "Tuta artık Tuta",
+		"tutanotaToTuta_msg": "Tutanota artık Tuta",
 		"tutaoInfo_msg": "Tutao GmbH, size Tuta sağlayan şirkettir.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Filtrelemek için yazın ...",

@@ -14,8 +14,6 @@ import { UserError } from "../../api/main/UserError"
 import { Keys, PaymentMethodType, PlanType } from "../../api/common/TutanotaConstants"
 import { lang } from "../../misc/LanguageViewModel"
 import { BadGatewayError, PreconditionFailedError } from "../../api/common/error/RestError"
-import { Icons } from "../../gui/base/icons/Icons"
-import { Icon } from "../../gui/base/Icon"
 import { GiftCardMessageEditorField } from "./GiftCardMessageEditorField"
 import { client } from "../../misc/ClientDetector"
 import { count, filterInt, noOp, ofClass } from "@tutao/tutanota-utils"
@@ -24,7 +22,9 @@ import { formatPrice, PaymentInterval, PriceAndConfigProvider } from "../PriceUt
 import { GiftCardService } from "../../api/entities/sys/Services"
 import { UpgradePriceType } from "../FeatureListProvider"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
-import { px } from "../../gui/size.js"
+import { px } from "../../gui/size"
+import { Icon } from "../../gui/base/Icon"
+import { Icons } from "../../gui/base/icons/Icons"
 
 class PurchaseGiftCardModel {
 	message = lang.get("defaultGiftCardMessage_msg")
@@ -123,6 +123,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 				},
 				model.availablePackages.map((option, index) => {
 					const value = parseFloat(option.value)
+
 					return m(BuyOptionBox, {
 						heading: m(
 							".flex-center",
@@ -144,13 +145,11 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 						},
 						price: formatPrice(value, true),
 						helpLabel: () => this.getGiftCardHelpText(model.revolutionaryPrice, value),
-						categories: [],
 						width: 230,
 						height: 250,
 						paymentInterval: null,
 						highlighted: model.selectedPackage === index,
 						showReferenceDiscount: false,
-						renderCategoryTitle: false,
 						mobile: false,
 						bonusMonths: 0,
 					})

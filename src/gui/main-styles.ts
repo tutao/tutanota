@@ -61,7 +61,7 @@ styles.registerStyle("main", () => {
 			? {
 					opacity: 1,
 					transition: "opacity .1s linear",
-					"z-index": 100,
+					"z-index": 9999,
 			  }
 			: {},
 		"*:not(input):not(textarea)": isAdminClient()
@@ -495,6 +495,9 @@ styles.registerStyle("main", () => {
 		},
 		".mr-negative-s": {
 			"margin-right": px(-size.hpad_button),
+		},
+		".mr-negative-l": {
+			"margin-right": px(-size.hpad_large),
 		},
 		".ml-negative-s": {
 			"margin-left": px(-size.hpad_button),
@@ -1676,6 +1679,47 @@ styles.registerStyle("main", () => {
 			border: `1px solid ${theme.content_border}`,
 			width: "100%",
 			padding: px(10),
+		},
+		".plans-grid": {
+			display: "grid",
+			"grid-template-columns": "1fr",
+			"grid-auto-flow": "column",
+			"grid-template-rows": "auto 1fr",
+		},
+		"@media (max-width: 992px)": {
+			".plans-grid": {
+				"grid-template-rows": "auto 1fr auto 1fr",
+			},
+			".plans-grid > div:nth-child(3), .plans-grid > div:nth-child(4)": {
+				order: 1,
+			},
+			".plans-grid > div:nth-child(5), .plans-grid > div:nth-child(6)": {
+				"grid-column": "1 / 3",
+				"justify-self": "center",
+			},
+			".plans-grid > div:nth-child(5)": {
+				"grid-row-start": 3,
+			},
+			".plans-grid > div:nth-child(6)": {
+				"grid-row-start": 4,
+			},
+		},
+		"@media (max-width: 600px)": {
+			".plans-grid": {
+				"grid-template-rows": "auto min-content auto min-content auto min-content",
+			},
+			".plans-grid > div:nth-child(3), .plans-grid > div:nth-child(4)": {
+				order: "unset",
+			},
+			".plans-grid > div:nth-child(5), .plans-grid > div:nth-child(6)": {
+				"grid-column": "unset",
+			},
+			".plans-grid > div:nth-child(5)": {
+				"grid-row-start": "unset",
+			},
+			".plans-grid > div:nth-child(6)": {
+				"grid-row-start": "unset",
+			},
 		},
 		".buyOptionBox.active": {
 			border: `1px solid ${theme.content_accent}`,
