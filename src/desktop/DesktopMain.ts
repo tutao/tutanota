@@ -60,8 +60,6 @@ import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
 import { WorkerSqlCipher } from "./db/WorkerSqlCipher.js"
 import { TempFs } from "./files/TempFs.js"
-import { WASMArgon2idFacade } from "../api/worker/facades/Argon2idFacade.js"
-import { fileFetch } from "./net/ProtocolProxy.js"
 
 /**
  * Should be injected during build time.
@@ -93,15 +91,15 @@ type Components = {
 const tfs = new TempFs(fs, electron, cryptoFns)
 const desktopUtils = new DesktopUtils(process.argv, tfs, electron)
 const secretStorage = new KeytarSecretStorage()
-const argon2 = new WASMArgon2idFacade(async () => {
-	// this is kinda prone to deadlock if we use argon2 before
-	// conf is ready since wasm -> conf -> crypto -> wasm in an async way
-	const webAssetsPath = await conf.getConst(BuildConfigKey.webAssetsPath)
-	const absWebAssetsPath = path.join(electron.app.getAppPath(), webAssetsPath)
-	const wasmPath = path.join(absWebAssetsPath, "wasm/argon2.wasm")
-	return fileFetch(wasmPath, fs)
-})
-const desktopCrypto = new DesktopNativeCryptoFacade(fs, cryptoFns, tfs, argon2)
+
+const wasmLoader = async () => {
+	const wasmSourcePath = path.join(electron.app.getAppPath(), "wasm/argon2.wasm")
+	const wasmSource: Buffer = await fs.promises.readFile(wasmSourcePath)
+	const { exports } = (await WebAssembly.instantiate(wasmSource)).instance
+	return exports
+}
+
+const desktopCrypto = new DesktopNativeCryptoFacade(fs, cryptoFns, tfs, wasmLoader())
 const keyStoreFacade = new DesktopKeyStoreFacade(secretStorage, desktopCrypto)
 const configMigrator = new DesktopConfigMigrator(desktopCrypto, keyStoreFacade, electron)
 const conf = new DesktopConfig(configMigrator, keyStoreFacade, desktopCrypto)
@@ -158,7 +156,7 @@ async function createComponents(): Promise<Components> {
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
-	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto, argon2, lang, conf, async () => {
+	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto, wasmLoader(), lang, conf, async () => {
 		const last = await wm.getLastFocused(true)
 		return last.commonNativeFacade
 	})

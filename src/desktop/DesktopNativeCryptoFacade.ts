@@ -2,7 +2,7 @@ import { base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, uint8Arr
 import type { CryptoFunctions } from "./CryptoFns.js"
 import type { TypeModel } from "../api/common/EntityTypes.js"
 import type * as FsModule from "node:fs"
-import { Aes256Key, bitArrayToUint8Array, uint8ArrayToKey } from "@tutao/tutanota-crypto"
+import { Aes256Key, bitArrayToUint8Array, generateKeyFromPassphraseArgon2id, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { FileUri } from "../native/common/FileApp.js"
 import path from "node:path"
 import { NativeCryptoFacade } from "../native/common/generatedipc/NativeCryptoFacade.js"
@@ -12,7 +12,6 @@ import { RsaPublicKey } from "../native/common/generatedipc/RsaPublicKey.js"
 import { RsaKeyPair } from "../native/common/generatedipc/RsaKeyPair.js"
 import { nonClobberingFilename } from "./PathUtils.js"
 import { TempFs } from "./files/TempFs.js"
-import { Argon2idFacade } from "../api/worker/facades/Argon2idFacade.js"
 
 type FsExports = typeof FsModule
 
@@ -21,7 +20,7 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		private readonly fs: FsExports,
 		private readonly cryptoFns: CryptoFunctions,
 		private readonly tfs: TempFs,
-		private readonly argon2: Argon2idFacade,
+		private readonly argon2: Promise<WebAssembly.Exports>,
 	) {}
 
 	aesEncryptObject(encryptionKey: Aes256Key, object: number | string | boolean | ReadonlyArray<unknown> | {}): string {
@@ -134,8 +133,6 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		parallelism: number,
 		hashLength: number,
 	): Promise<Uint8Array> {
-		/** the fact that we don't want to define the cost parameters on four platforms makes it difficult to have the native
-		 * impl of argon2 be a drop-in replacement for the wasm impl that can run in the renderer thread. */
-		return bitArrayToUint8Array(await this.argon2.generateKeyFromPassphrase(utf8Uint8ArrayToString(password), salt))
+		return bitArrayToUint8Array(generateKeyFromPassphraseArgon2id(await this.argon2, utf8Uint8ArrayToString(password), salt))
 	}
 }

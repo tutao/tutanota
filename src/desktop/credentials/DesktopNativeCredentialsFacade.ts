@@ -7,9 +7,8 @@ import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativ
 import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
 import { DesktopConfig } from "../config/DesktopConfig.js"
 import { DesktopConfigKey } from "../config/ConfigKeys.js"
-import { Argon2idFacade } from "../../api/worker/facades/Argon2idFacade.js"
 import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
-import { CryptoError } from "@tutao/tutanota-crypto"
+import { CryptoError, generateKeyFromPassphraseArgon2id } from "@tutao/tutanota-crypto"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
@@ -32,7 +31,7 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 	constructor(
 		private readonly desktopKeyStoreFacade: DesktopKeyStoreFacade,
 		private readonly crypto: DesktopNativeCryptoFacade,
-		private readonly argon2idFacade: Argon2idFacade,
+		private readonly argon2idFacade: Promise<WebAssembly.Exports>,
 		private readonly lang: LanguageViewModel,
 		private readonly conf: DesktopConfig,
 		private readonly getCurrentCommonNativeFacade: () => Promise<CommonNativeFacade>,
@@ -118,11 +117,11 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 			const newPw = await commonNativeFacade.promptForNewPassword(this.lang.get("credentialsEncryptionModeAppPin_label"), null)
 			const newAppPinSaltB64 = uint8ArrayToBase64(newSalt)
 			await this.conf.setVar(DesktopConfigKey.appPinSalt, newAppPinSaltB64)
-			return await this.argon2idFacade.generateKeyFromPassphrase(newPw, newSalt)
+			return generateKeyFromPassphraseArgon2id(await this.argon2idFacade, newPw, newSalt)
 		} else {
 			const pw = await commonNativeFacade.promptForPassword(this.lang.get("credentialsEncryptionModeAppPin_label"))
 			const salt = base64ToUint8Array(storedAppPinSaltB64)
-			return await this.argon2idFacade.generateKeyFromPassphrase(pw, salt)
+			return generateKeyFromPassphraseArgon2id(await this.argon2idFacade, pw, salt)
 		}
 	}
 

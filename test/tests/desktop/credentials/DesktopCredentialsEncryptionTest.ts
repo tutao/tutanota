@@ -7,7 +7,6 @@ import { makeKeyStoreFacade } from "../../TestUtils.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { NativeCredentialsFacade } from "../../../../src/native/common/generatedipc/NativeCredentialsFacade.js"
 import { object } from "testdouble"
-import { Argon2idFacade } from "../../../../src/api/worker/facades/Argon2idFacade.js"
 import { LanguageViewModel } from "../../../../src/misc/LanguageViewModel.js"
 import { DesktopConfig } from "../../../../src/desktop/config/DesktopConfig.js"
 
@@ -17,7 +16,7 @@ o.spec("DesktopCredentialsEncryption Test", () => {
 
 	const getSubject = (): NativeCredentialsFacade => {
 		const crypto: DesktopNativeCryptoFacade = object()
-		const argon2: Argon2idFacade = object()
+		const argon2: Promise<WebAssembly.Exports> = Promise.resolve(object())
 		const lang: LanguageViewModel = object()
 		const conf: DesktopConfig = object()
 

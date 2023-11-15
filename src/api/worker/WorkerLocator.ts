@@ -216,7 +216,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	if (!isBrowser()) {
 		argon2idFacade = new NativeArgon2idFacade(new NativeCryptoFacadeSendDispatcher(worker))
 	} else {
-		argon2idFacade = new WASMArgon2idFacade(() => fetch("wasm/argon2.wasm"))
+		argon2idFacade = new WASMArgon2idFacade()
 	}
 
 	locator.deviceEncryptionFacade = new DeviceEncryptionFacade()

@@ -6,7 +6,6 @@ import type { CryptoFunctions } from "../../../src/desktop/CryptoFns.js"
 import { keyToUint8Array, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import { matchers, object, verify, when } from "testdouble"
 import { TempFs } from "../../../src/desktop/files/TempFs.js"
-import { Argon2idFacade } from "../../../src/api/worker/facades/Argon2idFacade.js"
 
 o.spec("DesktopCryptoFacadeTest", () => {
 	const data = Buffer.from([42])
@@ -68,7 +67,7 @@ o.spec("DesktopCryptoFacadeTest", () => {
 		when(tfs.ensureEncryptedDir()).thenResolve("/some/other/path/to/encrypted")
 		when(tfs.ensureUnencrytpedDir()).thenResolve("/some/other/path/to/decrypted")
 
-		const argon2: Argon2idFacade = object()
+		const argon2: Promise<WebAssembly.Exports> = Promise.resolve(object())
 		const desktopCrypto = new DesktopNativeCryptoFacade(fsMock, cryptoFnsMock, tfs, argon2)
 		return Object.assign({}, sm, {
 			fsMock,
