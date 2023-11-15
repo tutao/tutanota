@@ -67,7 +67,7 @@ export async function exportMails(
 	fileController: FileController,
 	operationId?: OperationId,
 	signal?: AbortSignal,
-): Promise<void> {
+): Promise<Mail[] | undefined> {
 	let cancelled = false
 
 	const onAbort = () => {
@@ -80,6 +80,7 @@ export async function exportMails(
 		// total effort would be (mailsToBundle * 2) + filesToGenerate
 		const totalMails = mails.length * 3
 		let doneMails = 0
+		const errorMails: Mail[] = []
 
 		signal?.addEventListener("abort", onAbort)
 		const updateProgress =
@@ -96,16 +97,22 @@ export async function exportMails(
 
 		const downloadPromise = promiseMap(mails, async (mail) => {
 			checkAbortSignal()
-			const { htmlSanitizer } = await import("../../misc/HtmlSanitizer")
-			const bundle = await makeMailBundle(mail, mailFacade, entityClient, fileController, htmlSanitizer)
-			updateProgress()
-			updateProgress()
-			return bundle
+			try {
+				const { htmlSanitizer } = await import("../../misc/HtmlSanitizer")
+				return await makeMailBundle(mail, mailFacade, entityClient, fileController, htmlSanitizer)
+			} catch (e) {
+				errorMails.push(mail)
+			} finally {
+				updateProgress()
+				updateProgress()
+			}
 		})
 
 		const [mode, bundles] = await Promise.all([getMailExportMode(), downloadPromise])
 		const dataFiles: DataFile[] = []
 		for (const bundle of bundles) {
+			if (!bundle) continue
+
 			checkAbortSignal()
 			const mailFile = await generateMailFile(bundle, generateExportFileName(bundle.subject, new Date(bundle.receivedOn), mode), mode)
 			dataFiles.push(mailFile)
@@ -114,7 +121,9 @@ export async function exportMails(
 
 		const zipName = `${sortableTimestamp()}-${mode}-mail-export.zip`
 		const outputFile = await (dataFiles.length === 1 ? dataFiles[0] : zipDataFiles(dataFiles, zipName))
-		return fileController.saveDataFile(outputFile)
+		await fileController.saveDataFile(outputFile)
+
+		return errorMails
 	} catch (e) {
 		if (e.name !== "CancelledError") throw e
 	} finally {

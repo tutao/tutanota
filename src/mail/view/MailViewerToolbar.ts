@@ -8,15 +8,18 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { UserError } from "../../api/main/UserError.js"
 import { showUserError } from "../../misc/ErrorHandlerImpl.js"
-import { createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
+import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { editDraft, mailViewerMoreActions } from "./MailViewerUtils.js"
-import { ButtonType } from "../../gui/base/Button.js"
+import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { isApp } from "../../api/common/Env.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { exportMails } from "../export/Exporter.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar.js"
+import { Dialog, DialogType } from "../../gui/base/Dialog.js"
+import { ExpandableTable } from "../../settings/ExpandableTable.js"
+import { ColumnWidth } from "../../gui/base/Table.js"
 
 /*
 	note that mailViewerViewModel has a mailModel, so you do not need to pass both if you pass a mailViewerViewModel
@@ -150,9 +153,13 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 								"{current}": Math.round((operation.progress() / 100) * attrs.mails.length).toFixed(0),
 								"{total}": attrs.mails.length,
 							}),
-						exportMails(attrs.mails, locator.mailFacade, locator.entityClient, locator.fileController, operation.id, ac.signal).finally(
-							operation.done,
-						),
+						exportMails(attrs.mails, locator.mailFacade, locator.entityClient, locator.fileController, operation.id, ac.signal)
+							.then((result) => {
+								if (result && result.length > 0) {
+									this.renderExportFailedEmailsDialog(result)
+								}
+							})
+							.finally(operation.done),
 						operation.progress,
 						true,
 						headerBarAttrs,
@@ -160,6 +167,41 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 				icon: Icons.Export,
 			})
 		}
+	}
+
+	private renderExportFailedEmailsDialog(mailList: Mail[]) {
+		const lines = mailList.map((mail) => ({
+			cells: [mail.sender.address, mail.subject],
+			actionButtonAttrs: null,
+		}))
+
+		const dialog = new Dialog(DialogType.EditMedium, {
+			view: () =>
+				m(".dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll", [
+					m(ExpandableTable, {
+						title: "failedToExport_label",
+						table: {
+							columnHeading: ["email_label", "subject_label"],
+							columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
+							showActionButtonColumn: false,
+							lines,
+						},
+						infoMsg: "emptyString_msg",
+					}),
+					m(
+						".flex-center.dialog-buttons",
+						m(Button, {
+							label: "ok_action",
+							click: () => {
+								dialog.close()
+							},
+							type: ButtonType.Primary,
+						}),
+					),
+				]),
+		})
+
+		dialog.show()
 	}
 
 	private renderReplyButton(viewModel: MailViewerViewModel) {
