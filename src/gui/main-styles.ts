@@ -2020,7 +2020,6 @@ styles.registerStyle("main", () => {
 		},
 		".calendar-long-events-header": {
 			overflow: "hidden",
-			"background-color": theme.content_bg,
 			"border-bottom": `1px solid ${theme.content_border}`,
 		},
 		".calendar-month-week-number": {

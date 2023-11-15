@@ -102,7 +102,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 						},
 					]
 
-					if (styles.isDesktopLayout()) {
+					if (styles.isDesktopLayout() || styles.isTwoColumnLayout()) {
 						calendarViewValues.unshift({
 							name: "week_label",
 							value: CalendarViewType.WEEK,
