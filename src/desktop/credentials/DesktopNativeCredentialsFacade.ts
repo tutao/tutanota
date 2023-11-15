@@ -10,10 +10,9 @@ import { DesktopConfigKey } from "../config/ConfigKeys.js"
 import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
 import { CryptoError, generateKeyFromPassphraseArgon2id } from "@tutao/tutanota-crypto"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
-import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 /** the single source of truth for this configuration */
-const SUPPORTED_MODES = [CredentialEncryptionMode.DEVICE_LOCK, CredentialEncryptionMode.APP_PIN] as const
+const SUPPORTED_MODES = Object.freeze([CredentialEncryptionMode.DEVICE_LOCK, CredentialEncryptionMode.APP_PIN] as const)
 export type DesktopCredentialsMode = typeof SUPPORTED_MODES[number]
 
 /**
@@ -37,96 +36,82 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 		private readonly getCurrentCommonNativeFacade: () => Promise<CommonNativeFacade>,
 	) {}
 
-	async decryptUsingKeychain(data: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
+	async decryptUsingKeychain(encryptedDataWithAppPinWrapper: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
 		// making extra sure that the mode is the right one since this comes over IPC
 		this.assertSupportedEncryptionMode(encryptionMode)
-		data = await this.maybeDecryptUsingAppPin(data, encryptionMode)
+		const encryptedData = await this.removeAppPinWrapper(encryptedDataWithAppPinWrapper, encryptionMode)
 		const credentialsKey = await this.desktopKeyStoreFacade.getCredentialsKey()
-		data = this.crypto.aes256DecryptKey(credentialsKey, data)
-		return data
+		return this.crypto.aes256DecryptKey(credentialsKey, encryptedData)
 	}
 
 	async encryptUsingKeychain(data: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
 		// making extra sure that the mode is the right one since this comes over IPC
 		this.assertSupportedEncryptionMode(encryptionMode)
 		const credentialsKey = await this.desktopKeyStoreFacade.getCredentialsKey()
-		data = this.crypto.aes256EncryptKey(credentialsKey, data)
-		data = await this.maybeEncryptUsingAppPin(data, encryptionMode)
-		return data
+		const encryptedData = this.crypto.aes256EncryptKey(credentialsKey, data)
+		return this.addAppPinWrapper(encryptedData, encryptionMode)
 	}
 
-	private async maybeDecryptUsingAppPin(data: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
-		if (encryptionMode === CredentialEncryptionMode.APP_PIN) {
-			const appPinKey = await this.resolveKeyFromAppPin(false)
-			if (appPinKey == null) {
-				// there is no salt, so someone might have turned off app pin in the meantime.
-				// if we actually have pin-encrypted credentials and just lost the salt, we
-				// will get a decryption failure and delete the credentials further up the stack.
-				return data
+	private async removeAppPinWrapper(dataWithAppPinWrapper: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
+		// our mode is not app pin, so there is no wrapper to remove
+		if (encryptionMode !== CredentialEncryptionMode.APP_PIN) return dataWithAppPinWrapper
+		const appPinKey = await this.deriveKeyFromAppPin()
+		// if there is no salt, some other window might have turned off app pin
+		// between us entering this function and the user entering their pin.
+		// if we actually have pin-encrypted credentials and just lost the salt, we
+		// will get a decryption failure and delete the credentials further up the stack.
+		if (appPinKey == null) return dataWithAppPinWrapper
+
+		try {
+			return this.crypto.aesDecryptBytes(appPinKey, dataWithAppPinWrapper)
+		} catch (e) {
+			if (e instanceof CryptoError) {
+				const nativeFacade = await this.getCurrentCommonNativeFacade()
+				//noinspection ES6MissingAwait
+				nativeFacade.showAlertDialog("invalidPassword_msg")
+				throw new CancelledError("app pin verification failed")
+			} else {
+				throw e
 			}
-			try {
-				data = this.crypto.aesDecryptBytes(appPinKey, data)
-			} catch (e) {
-				if (e instanceof CryptoError) {
-					const nativeFacade = await this.getCurrentCommonNativeFacade()
-					nativeFacade.showAlertDialog("invalidPassword_msg")
-					throw new CancelledError("app pin verification failed")
-				} else {
-					throw e
-				}
-			}
-			return data
-		} else {
-			// our mode is not app pin, so the app pin should not be set.
-			// this is technically not required because we're deleting it when
-			// encrypting with another mode, but things might have gone wrong.
-			await this.conf.setVar(DesktopConfigKey.appPinSalt, null)
-			return data
 		}
 	}
 
-	private async maybeEncryptUsingAppPin(data: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
+	private async addAppPinWrapper(dataWithoutAppPinWrapper: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
 		if (encryptionMode === CredentialEncryptionMode.APP_PIN) {
-			const appPinKey = await this.resolveKeyFromAppPin(true)
-			if (appPinKey == null) {
-				throw new ProgrammingError("we should have generated a new key or thrown a CancelledErrorq")
-			}
-			data = this.crypto.aesEncryptBytes(appPinKey, data)
-			return data
+			const appPinKey = (await this.deriveKeyFromAppPin()) ?? (await this.enrollForAppPin())
+			return this.crypto.aesEncryptBytes(appPinKey, dataWithoutAppPinWrapper)
 		} else {
 			// our mode is not app pin, so the app pin salt should not be set
 			await this.conf.setVar(DesktopConfigKey.appPinSalt, null)
-			return data
+			return dataWithoutAppPinWrapper
 		}
 	}
 
 	/**
 	 * if there is a salt stored, use it and a password prompt to derive the app pin key.
 	 * if there isn't, ask for a new password, generate a salt & store it, then derive the key.
-	 * @param generate whether to generate a new key if no salt is found
-	 * @return the derived 256 bit key or null if none is found and generate is false
+	 * @return the derived 256 bit key or null if none is found
 	 */
-	private async resolveKeyFromAppPin(generate: boolean): Promise<Aes256Key | null> {
+	private async deriveKeyFromAppPin(): Promise<Aes256Key | null> {
 		const storedAppPinSaltB64 = await this.conf.getVar(DesktopConfigKey.appPinSalt)
+		if (storedAppPinSaltB64 == null) return null
 		const commonNativeFacade = await this.getCurrentCommonNativeFacade()
-		if (storedAppPinSaltB64 == null) {
-			if (!generate) {
-				return null
-			}
-			const newSalt = this.crypto.randomBytes(KEY_LENGTH_BYTES_AES_256)
-			const newPw = await commonNativeFacade.promptForNewPassword(this.lang.get("credentialsEncryptionModeAppPin_label"), null)
-			const newAppPinSaltB64 = uint8ArrayToBase64(newSalt)
-			await this.conf.setVar(DesktopConfigKey.appPinSalt, newAppPinSaltB64)
-			return generateKeyFromPassphraseArgon2id(await this.argon2idFacade, newPw, newSalt)
-		} else {
-			const pw = await commonNativeFacade.promptForPassword(this.lang.get("credentialsEncryptionModeAppPin_label"))
-			const salt = base64ToUint8Array(storedAppPinSaltB64)
-			return generateKeyFromPassphraseArgon2id(await this.argon2idFacade, pw, salt)
-		}
+		const pw = await commonNativeFacade.promptForPassword(this.lang.get("credentialsEncryptionModeAppPin_label"))
+		const salt = base64ToUint8Array(storedAppPinSaltB64)
+		return generateKeyFromPassphraseArgon2id(await this.argon2idFacade, pw, salt)
 	}
 
-	async getSupportedEncryptionModes(): Promise<Array<DesktopCredentialsMode>> {
-		return SUPPORTED_MODES.slice()
+	private async enrollForAppPin(): Promise<Aes256Key> {
+		const newSalt = this.crypto.randomBytes(KEY_LENGTH_BYTES_AES_256)
+		const commonNativeFacade = await this.getCurrentCommonNativeFacade()
+		const newPw = await commonNativeFacade.promptForNewPassword(this.lang.get("credentialsEncryptionModeAppPin_label"), null)
+		const newAppPinSaltB64 = uint8ArrayToBase64(newSalt)
+		await this.conf.setVar(DesktopConfigKey.appPinSalt, newAppPinSaltB64)
+		return generateKeyFromPassphraseArgon2id(await this.argon2idFacade, newPw, newSalt)
+	}
+
+	async getSupportedEncryptionModes(): Promise<ReadonlyArray<DesktopCredentialsMode>> {
+		return SUPPORTED_MODES
 	}
 
 	private assertSupportedEncryptionMode(encryptionMode: DesktopCredentialsMode) {
