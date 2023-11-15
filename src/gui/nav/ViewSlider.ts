@@ -389,6 +389,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 
 	focusPreviousColumn(): Promise<unknown> {
 		if (this.isFocusPreviousPossible()) {
+			window.getSelection()?.empty() // try to deselect text
 			return this.focus(assertNotNull(this.getPreviousColumn(), "previous column was null!"))
 		} else {
 			return Promise.resolve()
