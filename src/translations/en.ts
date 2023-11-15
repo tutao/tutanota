@@ -1599,6 +1599,8 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"failedToExport_label": "Failed to export emails"
+		"failedToExport_label": "{0} failures",
+		"failedToExport_msg": "Some emails failed to export. You can check the list of failed emails below",
+		"failedToExport_title": "Export finished with errors"
 	}
 }

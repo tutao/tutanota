@@ -175,11 +175,13 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			actionButtonAttrs: null,
 		}))
 
-		const dialog = new Dialog(DialogType.EditMedium, {
-			view: () =>
-				m(".dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll", [
+		const dialog = Dialog.createActionDialog({
+			title: lang.get("failedToExport_title"),
+			child: () =>
+				m("", [
+					m(".pt-m", lang.get("failedToExport_msg")),
 					m(ExpandableTable, {
-						title: "failedToExport_label",
+						title: () => lang.get("failedToExport_label", { "{0}": mailList.length }),
 						table: {
 							columnHeading: ["email_label", "subject_label"],
 							columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
@@ -188,17 +190,11 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 						},
 						infoMsg: "emptyString_msg",
 					}),
-					m(
-						".flex-center.dialog-buttons",
-						m(Button, {
-							label: "ok_action",
-							click: () => {
-								dialog.close()
-							},
-							type: ButtonType.Primary,
-						}),
-					),
 				]),
+			okAction: () => dialog.close(),
+			allowCancel: false,
+			okActionTextId: "ok_action",
+			type: DialogType.EditMedium,
 		})
 
 		dialog.show()
