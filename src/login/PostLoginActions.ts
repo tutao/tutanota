@@ -97,7 +97,7 @@ export class PostLoginActions implements PostLoginAction {
 			hourCycle: getHourCycle(this.logins.getUserController().userSettingsGroupRoot),
 		})
 
-		if (isApp() || isDesktop()) {
+		if (isApp()) {
 			// don't wait for it, just invoke
 			locator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 		}
