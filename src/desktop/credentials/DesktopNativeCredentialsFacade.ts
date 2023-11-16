@@ -1,7 +1,7 @@
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode"
 import { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
-import { assert, base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { assert, base64ToUint8Array, Thunk, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade.js"
 import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativeFacade.js"
 import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
@@ -10,6 +10,7 @@ import { DesktopConfigKey } from "../config/ConfigKeys.js"
 import { KEY_LENGTH_BYTES_AES_256 } from "@tutao/tutanota-crypto/dist/encryption/Aes.js"
 import { CryptoError, generateKeyFromPassphraseArgon2id } from "@tutao/tutanota-crypto"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
+import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
 
 /** the single source of truth for this configuration */
 const SUPPORTED_MODES = Object.freeze([CredentialEncryptionMode.DEVICE_LOCK, CredentialEncryptionMode.APP_PASSWORD] as const)
@@ -56,11 +57,7 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 		// our mode is not app Pass, so there is no wrapper to remove
 		if (encryptionMode !== CredentialEncryptionMode.APP_PASSWORD) return dataWithAppPassWrapper
 		const appPassKey = await this.deriveKeyFromAppPass()
-		// if there is no salt, some other window might have turned off app Pass
-		// between us entering this function and the user entering their Pass.
-		// if we actually have Pass-encrypted credentials and just lost the salt, we
-		// will get a decryption failure and delete the credentials further up the stack.
-		if (appPassKey == null) return dataWithAppPassWrapper
+		if (appPassKey == null) throw new KeyPermanentlyInvalidatedError("can't remove app pass wrapper without salt")
 
 		try {
 			return this.crypto.aesDecryptBytes(appPassKey, dataWithAppPassWrapper)
@@ -96,7 +93,7 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 		const storedAppPassSaltB64 = await this.conf.getVar(DesktopConfigKey.appPassSalt)
 		if (storedAppPassSaltB64 == null) return null
 		const commonNativeFacade = await this.getCurrentCommonNativeFacade()
-		const pw = await commonNativeFacade.promptForPassword(this.lang.get("credentialsEncryptionModeAppPassword_label"))
+		const pw = await this.tryWhileSaltNotChanged(commonNativeFacade.promptForPassword(this.lang.get("credentialsEncryptionModeAppPassword_label")))
 		const salt = base64ToUint8Array(storedAppPassSaltB64)
 		return generateKeyFromPassphraseArgon2id(await this.argon2idFacade, pw, salt)
 	}
@@ -104,10 +101,25 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 	private async enrollForAppPass(): Promise<Aes256Key> {
 		const newSalt = this.crypto.randomBytes(KEY_LENGTH_BYTES_AES_256)
 		const commonNativeFacade = await this.getCurrentCommonNativeFacade()
-		const newPw = await commonNativeFacade.promptForNewPassword(this.lang.get("credentialsEncryptionModeAppPassword_label"), null)
+		const newPw = await this.tryWhileSaltNotChanged(
+			commonNativeFacade.promptForNewPassword(this.lang.get("credentialsEncryptionModeAppPassword_label"), null),
+		)
 		const newAppPassSaltB64 = uint8ArrayToBase64(newSalt)
 		await this.conf.setVar(DesktopConfigKey.appPassSalt, newAppPassSaltB64)
 		return generateKeyFromPassphraseArgon2id(await this.argon2idFacade, newPw, newSalt)
+	}
+
+	private async tryWhileSaltNotChanged(pwPromise: Promise<string>): Promise<string> {
+		const commonNativeFacade = await this.getCurrentCommonNativeFacade()
+		return resolveChecked<string>(
+			pwPromise,
+			new Promise((_, reject) =>
+				this.conf.once(DesktopConfigKey.appPassSalt, () => {
+					reject(new CancelledError("salt changed during pw prompt"))
+				}),
+			),
+			() => commonNativeFacade.showAlertDialog("retry_action"),
+		)
 	}
 
 	async getSupportedEncryptionModes(): Promise<ReadonlyArray<DesktopCredentialsMode>> {
@@ -117,4 +129,22 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 	private assertSupportedEncryptionMode(encryptionMode: DesktopCredentialsMode) {
 		assert(SUPPORTED_MODES.includes(encryptionMode), `should not use unsupported encryption mode ${encryptionMode}`)
 	}
+}
+
+/**
+ * resolve a promise, but inject another action if whileNot did reject in the meantime.
+ * if whileNot did reject, the returned promise will reject as well.
+ */
+export async function resolveChecked<R>(promise: Promise<R>, whileNotRejected: Promise<never>, otherWiseAlso: Thunk): Promise<R> {
+	let cancelled = false
+	return await Promise.race<R>([
+		promise.then((value) => {
+			if (cancelled) otherWiseAlso()
+			return value
+		}),
+		whileNotRejected.catch((e) => {
+			cancelled = true
+			throw e
+		}),
+	])
 }
