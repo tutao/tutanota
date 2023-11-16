@@ -1584,5 +1584,5 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
-	| "credentialsEncryptionModeAppPin_label"
-	| "credentialsEncryptionModeAppPinHelp_msg"
+	| "credentialsEncryptionModeAppPassword_label"
+	| "credentialsEncryptionModeAppPasswordHelp_msg"

@@ -182,9 +182,9 @@ class SelectCredentialsEncryptionModeView implements Component<SelectCredentialE
 				helpText: "credentialsEncryptionModeBiometricsHelp_msg",
 			},
 			{
-				name: "credentialsEncryptionModeAppPin_label",
-				value: CredentialEncryptionMode.APP_PIN,
-				helpText: "credentialsEncryptionModeAppPinHelp_msg",
+				name: "credentialsEncryptionModeAppPassword_label",
+				value: CredentialEncryptionMode.APP_PASSWORD,
+				helpText: "credentialsEncryptionModeAppPasswordHelp_msg",
 			},
 		] as const
 		return options.filter((option) => attrs.supportedModes.includes(option.value))

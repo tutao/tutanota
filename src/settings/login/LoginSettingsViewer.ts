@@ -272,7 +272,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			[CredentialEncryptionMode.DEVICE_LOCK]: "credentialsEncryptionModeDeviceLock_label",
 			[CredentialEncryptionMode.SYSTEM_PASSWORD]: "credentialsEncryptionModeDeviceCredentials_label",
 			[CredentialEncryptionMode.BIOMETRICS]: "credentialsEncryptionModeBiometrics_label",
-			[CredentialEncryptionMode.APP_PIN]: "credentialsEncryptionModeAppPin_label",
+			[CredentialEncryptionMode.APP_PASSWORD]: "credentialsEncryptionModeAppPassword_label",
 		} as const
 		return lang.get(mapping[credentialsEncryptionMode])
 	}

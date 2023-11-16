@@ -1599,7 +1599,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"credentialsEncryptionModeAppPin_label": "App PIN",
-		"credentialsEncryptionModeAppPinHelp_msg": "Protect your stored credentials with a separate password."
+		"credentialsEncryptionModeAppPassword_label": "App password",
+		"credentialsEncryptionModeAppPasswordHelp_msg": "Protect your stored credentials with a separate password."
 	}
 }
