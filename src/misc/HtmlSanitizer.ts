@@ -333,11 +333,14 @@ export class HtmlSanitizer {
 					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
 					htmlNode.attributes.setNamedItem(attribute)
 					htmlNode.style.maxWidth = "100px"
-				} else if (!config.blockExternalContent && attribute.name.startsWith("draft-")) {
-					const originalAttribute = attribute.name.split("-")
-					htmlNode.setAttribute(originalAttribute[1], attribute.value)
-					htmlNode.removeAttribute(attribute.name)
-					htmlNode.style.maxWidth = "100px"
+				} else if (!config.blockExternalContent && (attribute.name === "draft-src" || attribute.name === "draft-srcset")) {
+					if (attribute.name === "draft-src") {
+						htmlNode.setAttribute("src", attribute.value)
+						htmlNode.removeAttribute(attribute.name)
+					} else {
+						htmlNode.setAttribute("srcset", attribute.value)
+						htmlNode.removeAttribute(attribute.name)
+					}
 				}
 			}
 		}
