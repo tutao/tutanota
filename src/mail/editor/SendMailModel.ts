@@ -75,7 +75,6 @@ import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/uti
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { KdfPicker } from "../../misc/KdfPicker.js"
 import { ContentBlockingStatus } from "../view/MailViewerViewModel.js"
-import { IndexingNotSupportedError } from "../../api/common/error/IndexingNotSupportedError.js"
 import { ConfigurationDatabase } from "../../api/worker/facades/lazy/ConfigurationDatabase.js"
 
 assertMainOrNode()
@@ -1092,32 +1091,6 @@ export class SendMailModel {
 			this.previousMail.sender.address === userEmailAddress ||
 			this.mailboxDetails.mailGroupInfo.mailAddressAliases.some((e) => e.mailAddress === this.previousMail?.sender.address)
 		)
-	}
-
-	setContentBlockingStatus(status: ContentBlockingStatus): void {
-		// We can only be set to NoExternalContent when initially loading the mailbody (_loadMailBody)
-		// so we ignore it here, and don't do anything if we were already set to NoExternalContent
-		if (
-			status === ContentBlockingStatus.NoExternalContent ||
-			this.contentBlockingStatus === ContentBlockingStatus.NoExternalContent ||
-			this.contentBlockingStatus === status ||
-			!this.previousMail ||
-			this.isUserPreviousSender()
-		) {
-			return
-		}
-
-		if (status === ContentBlockingStatus.AlwaysShow) {
-			this.configFacade.addExternalImageRule(this.previousMail.sender.address, ExternalImageRule.Allow).catch(ofClass(IndexingNotSupportedError, noOp))
-		} else if (status === ContentBlockingStatus.AlwaysBlock) {
-			this.configFacade.addExternalImageRule(this.previousMail.sender.address, ExternalImageRule.Block).catch(ofClass(IndexingNotSupportedError, noOp))
-		} else {
-			// we are going from allow or block to something else it means we're resetting to the default rule for the given sender
-			this.configFacade.addExternalImageRule(this.previousMail.sender.address, ExternalImageRule.None).catch(ofClass(IndexingNotSupportedError, noOp))
-		}
-
-		//follow-up actions resulting from a changed blocking status must start after sanitization finished
-		this.contentBlockingStatus = status
 	}
 
 	getExternalImageRule = async () => {

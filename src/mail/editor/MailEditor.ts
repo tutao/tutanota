@@ -142,6 +142,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	private areDetailsExpanded: boolean
 	private recipientShowConfidential: Map<string, boolean> = new Map()
 	private blockExternalContent: boolean
+	private alwaysBlockExternalContent: boolean = false
 
 	constructor(vnode: Vnode<MailEditorAttrs>) {
 		const a = vnode.attrs
@@ -161,20 +162,19 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				blockExternalContent: !isPaste && this.blockExternalContent,
 			})
 
-			model.getExternalImageRule().then(async (externalImageRule) => {
-				const contentBlockingStatus =
-					externalImageRule === ExternalImageRule.Block
-						? ContentBlockingStatus.AlwaysBlock
-						: externalImageRule === ExternalImageRule.Allow &&
-						  model.getPreviousMail()?.authStatus === MailAuthenticationStatus.AUTHENTICATED &&
-						  !model.isUserPreviousSender()
-						? ContentBlockingStatus.AlwaysShow
-						: sanitized.externalContent > 0
-						? ContentBlockingStatus.Block
-						: ContentBlockingStatus.NoExternalContent
-
-				await model.setContentBlockingStatus(contentBlockingStatus)
-			})
+			if (a.doBlockExternalContent()) {
+				model.getExternalImageRule().then(async (externalImageRule) => {
+					if (externalImageRule === ExternalImageRule.Block || sanitized.externalContent > 0) {
+						this.blockExternalContent = true
+						if (externalImageRule === ExternalImageRule.Block) this.alwaysBlockExternalContent = true
+					} else if (
+						externalImageRule === ExternalImageRule.Allow &&
+						model.getPreviousMail()?.authStatus === MailAuthenticationStatus.AUTHENTICATED
+					) {
+						this.blockExternalContent = false
+					}
+				})
+			}
 
 			this.mentionedInlineImages = sanitized.inlineImageCids
 			return sanitized.fragment
@@ -526,8 +526,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private renderExternalContentBanner(attrs: MailEditorAttrs): Children | null {
-		// only show banner when there are blocked images and the user hasn't made a decision about how to handle them
-		if (attrs.model.getContentBlockingStatus() !== ContentBlockingStatus.Block) {
+		if (!this.blockExternalContent || this.alwaysBlockExternalContent) {
 			return null
 		}
 
@@ -546,7 +545,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 	private async updateExternalContentStatus(status: ContentBlockingStatus) {
 		this.blockExternalContent = status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock
-		this.sendMailModel.setContentBlockingStatus(status)
 		const sanitized = await htmlSanitizer.sanitizeHTML(this.editor.getHTML(), {
 			blockExternalContent: status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock,
 		})
