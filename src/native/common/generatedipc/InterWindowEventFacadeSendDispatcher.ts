@@ -10,4 +10,7 @@ export class InterWindowEventFacadeSendDispatcher implements InterWindowEventFac
 	async localUserDataInvalidated(...args: Parameters<InterWindowEventFacade["localUserDataInvalidated"]>) {
 		return this.transport.invokeNative("ipc", ["InterWindowEventFacade", "localUserDataInvalidated", ...args])
 	}
+	async reloadDeviceConfig(...args: Parameters<InterWindowEventFacade["reloadDeviceConfig"]>) {
+		return this.transport.invokeNative("ipc", ["InterWindowEventFacade", "reloadDeviceConfig", ...args])
+	}
 }

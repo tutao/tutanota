@@ -612,7 +612,7 @@ class MainLocator {
 			this.nativeInterfaces = createNativeInterfaces(
 				new WebMobileFacade(this.connectivityModel, this.mailModel),
 				new WebDesktopFacade(),
-				new WebInterWindowEventFacade(this.logins, windowFacade),
+				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(),
 				cryptoFacade,
 				calendarFacade,
