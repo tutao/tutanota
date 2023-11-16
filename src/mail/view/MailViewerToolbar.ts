@@ -18,8 +18,9 @@ import { exportMails } from "../export/Exporter.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog.js"
-import { ExpandableTable } from "../../settings/ExpandableTable.js"
-import { ColumnWidth } from "../../gui/base/Table.js"
+import { ColumnWidth, Table } from "../../gui/base/Table.js"
+import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
+import stream from "mithril/stream"
 
 /*
 	note that mailViewerViewModel has a mailModel, so you do not need to pass both if you pass a mailViewerViewModel
@@ -154,11 +155,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 								"{total}": attrs.mails.length,
 							}),
 						exportMails(attrs.mails, locator.mailFacade, locator.entityClient, locator.fileController, operation.id, ac.signal)
-							.then((result) => {
-								if (result && result.length > 0) {
-									this.renderExportFailedEmailsDialog(result)
-								}
-							})
+							.then(this.handleExportEmailsResult)
 							.finally(operation.done),
 						operation.progress,
 						true,
@@ -169,35 +166,48 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		}
 	}
 
-	private renderExportFailedEmailsDialog(mailList: Mail[]) {
-		const lines = mailList.map((mail) => ({
-			cells: [mail.sender.address, mail.subject],
-			actionButtonAttrs: null,
-		}))
+	private handleExportEmailsResult(mailList: Mail[]) {
+		if (mailList && mailList.length > 0) {
+			const lines = mailList.map((mail) => ({
+				cells: [mail.sender.address, mail.subject],
+				actionButtonAttrs: null,
+			}))
 
-		const dialog = Dialog.createActionDialog({
-			title: lang.get("failedToExport_title"),
-			child: () =>
-				m("", [
-					m(".pt-m", lang.get("failedToExport_msg")),
-					m(ExpandableTable, {
-						title: () => lang.get("failedToExport_label", { "{0}": mailList.length }),
-						table: {
-							columnHeading: ["email_label", "subject_label"],
-							columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
-							showActionButtonColumn: false,
-							lines,
-						},
-						infoMsg: "emptyString_msg",
-					}),
-				]),
-			okAction: () => dialog.close(),
-			allowCancel: false,
-			okActionTextId: "ok_action",
-			type: DialogType.EditMedium,
-		})
+			const expanded = stream<boolean>(false)
+			const dialog = Dialog.createActionDialog({
+				title: lang.get("failedToExport_title"),
+				child: () =>
+					m("", [
+						m(".pt-m", lang.get("failedToExport_msg")),
+						m(".flex-start.items-center", [
+							m(ExpanderButton, {
+								label: () =>
+									`${lang.get(expanded() ? "hide_action" : "show_action")} ${lang.get("failedToExport_label", { "{0}": mailList.length })}`,
+								expanded: expanded(),
+								onExpandedChange: expanded,
+							}),
+						]),
+						m(
+							ExpanderPanel,
+							{
+								expanded: expanded(),
+							},
+							m(Table, {
+								columnHeading: ["email_label", "subject_label"],
+								columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
+								showActionButtonColumn: false,
+								lines,
+							}),
+						),
+					]),
+				okAction: () => dialog.close(),
+				allowCancel: false,
+				okActionTextId: "ok_action",
+				type: DialogType.EditMedium,
+			})
 
-		dialog.show()
+			dialog.show()
+		}
 	}
 
 	private renderReplyButton(viewModel: MailViewerViewModel) {

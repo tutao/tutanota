@@ -1601,6 +1601,7 @@ export default {
 		"you_label": "You",
 		"failedToExport_label": "{0} failures",
 		"failedToExport_msg": "Some emails failed to export. You can check the list of failed emails below",
-		"failedToExport_title": "Export finished with errors"
+		"failedToExport_title": "Export finished with errors",
+		"hide_action": "Hide",
 	}
 }
