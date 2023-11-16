@@ -9,7 +9,7 @@ import {
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { SetupMultipleError } from "../../../../../src/api/common/error/SetupMultipleError.js"
 import { HttpMethod, MediaType, resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
-import { createCustomer, CustomerTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { CustomerTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeRefToPath } from "../../../../../src/api/worker/rest/EntityRestClient.js"
 import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
 import type { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
@@ -19,12 +19,7 @@ import tutanotaModelInfo from "../../../../../src/api/entities/tutanota/ModelInf
 import sysModelInfo from "../../../../../src/api/entities/sys/ModelInfo.js"
 import { AuthDataProvider } from "../../../../../src/api/worker/facades/UserFacade.js"
 import { LoginIncompleteError } from "../../../../../src/api/common/error/LoginIncompleteError.js"
-import {
-	BlobServerAccessInfoTypeRef,
-	BlobServerUrlTypeRef,
-	createBlobServerAccessInfo,
-	createBlobServerUrl,
-} from "../../../../../src/api/entities/storage/TypeRefs.js"
+import { BlobServerAccessInfoTypeRef, BlobServerUrlTypeRef } from "../../../../../src/api/entities/storage/TypeRefs.js"
 import { Mapper, ofClass } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
 import { BlobAccessTokenFacade } from "../../../../../src/api/worker/facades/BlobAccessTokenFacade.js"
@@ -32,8 +27,6 @@ import {
 	CalendarEventTypeRef,
 	Contact,
 	ContactTypeRef,
-	createContact,
-	createInternalRecipientKeyData,
 	InternalRecipientKeyDataTypeRef,
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
@@ -87,7 +80,9 @@ o.spec("EntityRestClient", async function () {
 			return Promise.resolve({ ...decryptedInstance, migratedForInstance: true })
 		})
 		when(cryptoFacadeMock.setNewOwnerEncSessionKey(anything(), anything())).thenResolve([])
-		when(cryptoFacadeMock.encryptBucketKeyForInternalRecipient(anything(), anything(), anything(), anything())).thenResolve(createTestEntity(InternalRecipientKeyDataTypeRef))
+		when(cryptoFacadeMock.encryptBucketKeyForInternalRecipient(anything(), anything(), anything(), anything())).thenResolve(
+			createTestEntity(InternalRecipientKeyDataTypeRef),
+		)
 		when(cryptoFacadeMock.resolveSessionKey(anything(), anything())).thenResolve([])
 
 		instanceMapperMock = object()

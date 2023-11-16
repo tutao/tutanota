@@ -16,7 +16,7 @@ import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import { encryptString } from "../../crypto/CryptoFacade.js"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
-import { aes128RandomKey, aes256RandomKey, decryptKey, encryptKey, encryptRsaKey, rsaPublicKeyToHex, RsaKeyPair } from "@tutao/tutanota-crypto"
+import { aes128RandomKey, aes256RandomKey, decryptKey, encryptKey, encryptRsaKey, RsaKeyPair, rsaPublicKeyToHex } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import {
 	CalendarService,
@@ -40,8 +40,7 @@ export class GroupManagementFacade {
 		private readonly rsa: RsaImplementation,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly entityRestCache: DefaultEntityRestCache,
-	) {
-	}
+	) {}
 
 	async readUsedSharedMailGroupStorage(group: Group): Promise<number> {
 		return this.counters.readCounterValue(CounterType.UserStorageLegacy, neverNull(group.customer), group._id)
@@ -135,8 +134,8 @@ export class GroupManagementFacade {
 				groupData: groupData,
 			})
 			return this.serviceExecutor
-					   .post(TemplateGroupService, serviceData, { sessionKey: aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
-					   .then((returnValue) => returnValue.group)
+				.post(TemplateGroupService, serviceData, { sessionKey: aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
+				.then((returnValue) => returnValue.group)
 		})
 	}
 
@@ -246,28 +245,28 @@ export class GroupManagementFacade {
 					throw new ProgrammingError("Group doesn't have adminGroupEncGKey, you can't get group key this way")
 				}
 				return Promise.resolve()
-							  .then(() => {
-								  if (group.admin && this.user.hasGroup(group.admin)) {
-									  // e.g. I am a member of the group that administrates group G and want to add a new member to G
-									  return this.user.getGroupKey(assertNotNull(group.admin))
-								  } else {
-									  // e.g. I am a global admin but group G is administrated by a local admin group and want to add a new member to G
-									  let globalAdminGroupId = this.user.getGroupId(GroupType.Admin)
+					.then(() => {
+						if (group.admin && this.user.hasGroup(group.admin)) {
+							// e.g. I am a member of the group that administrates group G and want to add a new member to G
+							return this.user.getGroupKey(assertNotNull(group.admin))
+						} else {
+							// e.g. I am a global admin but group G is administrated by a local admin group and want to add a new member to G
+							let globalAdminGroupId = this.user.getGroupId(GroupType.Admin)
 
-									  let globalAdminGroupKey = this.user.getGroupKey(globalAdminGroupId)
+							let globalAdminGroupKey = this.user.getGroupKey(globalAdminGroupId)
 
-									  return this.entityClient.load(GroupTypeRef, assertNotNull(group.admin)).then((localAdminGroup) => {
-										  if (localAdminGroup.admin === globalAdminGroupId) {
-											  return decryptKey(globalAdminGroupKey, assertNotNull(localAdminGroup.adminGroupEncGKey))
-										  } else {
-											  throw new Error(`local admin group ${localAdminGroup._id} is not administrated by global admin group ${globalAdminGroupId}`)
-										  }
-									  })
-								  }
-							  })
-							  .then((adminGroupKey) => {
-								  return decryptKey(adminGroupKey, assertNotNull(group.adminGroupEncGKey))
-							  })
+							return this.entityClient.load(GroupTypeRef, assertNotNull(group.admin)).then((localAdminGroup) => {
+								if (localAdminGroup.admin === globalAdminGroupId) {
+									return decryptKey(globalAdminGroupKey, assertNotNull(localAdminGroup.adminGroupEncGKey))
+								} else {
+									throw new Error(`local admin group ${localAdminGroup._id} is not administrated by global admin group ${globalAdminGroupId}`)
+								}
+							})
+						}
+					})
+					.then((adminGroupKey) => {
+						return decryptKey(adminGroupKey, assertNotNull(group.adminGroupEncGKey))
+					})
 			})
 		}
 	}

@@ -124,7 +124,9 @@ export class CustomerFacade {
 			const senderKeyPair = await this.cryptoFacade.loadKeypair(this.userFacade.getUserGroupId())
 			const senderIdentityKeyPair = await this.cryptoFacade.getOrMakeSenderIdentityKeyPair(senderKeyPair)
 			const ephemeralKeyPair = generateEccKeyPair()
-			systemAdminPubEncAccountingInfoSessionKey = encodePQMessage(await this.pq.encapsulate(senderIdentityKeyPair, ephemeralKeyPair, systemAdminPubKey, bitArrayToUint8Array(sessionKey)))
+			systemAdminPubEncAccountingInfoSessionKey = encodePQMessage(
+				await this.pq.encapsulate(senderIdentityKeyPair, ephemeralKeyPair, systemAdminPubKey, bitArrayToUint8Array(sessionKey)),
+			)
 		} else {
 			systemAdminPubEncAccountingInfoSessionKey = await this.rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(sessionKey))
 		}
@@ -278,7 +280,9 @@ export class CustomerFacade {
 		if (systemAdminPubKey instanceof PQPublicKeys) {
 			const senderIdentityKeyPair = generateEccKeyPair() // TODO use real users keypair after switching to pq here
 			const ephemeralKeyPair = generateEccKeyPair()
-			systemAdminPubEncAccountingInfoSessionKey = encodePQMessage(await this.pq.encapsulate(senderIdentityKeyPair, ephemeralKeyPair, systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey)))
+			systemAdminPubEncAccountingInfoSessionKey = encodePQMessage(
+				await this.pq.encapsulate(senderIdentityKeyPair, ephemeralKeyPair, systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey)),
+			)
 		} else {
 			systemAdminPubEncAccountingInfoSessionKey = await this.rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey))
 		}
