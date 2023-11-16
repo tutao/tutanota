@@ -155,7 +155,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 								"{total}": attrs.mails.length,
 							}),
 						exportMails(attrs.mails, locator.mailFacade, locator.entityClient, locator.fileController, operation.id, ac.signal)
-							.then(this.handleExportEmailsResult)
+							.then((result) => this.handleExportEmailsResult(result.failed))
 							.finally(operation.done),
 						operation.progress,
 						true,

@@ -67,7 +67,7 @@ export async function exportMails(
 	fileController: FileController,
 	operationId?: OperationId,
 	signal?: AbortSignal,
-): Promise<Mail[]> {
+): Promise<{ failed: Mail[] }> {
 	let cancelled = false
 
 	const onAbort = () => {
@@ -123,14 +123,16 @@ export async function exportMails(
 		const outputFile = await (dataFiles.length === 1 ? dataFiles[0] : zipDataFiles(dataFiles, zipName))
 		await fileController.saveDataFile(outputFile)
 
-		return errorMails
+		return {
+			failed: errorMails,
+		}
 	} catch (e) {
 		if (e.name !== "CancelledError") throw e
 	} finally {
 		signal?.removeEventListener("abort", onAbort)
 	}
 
-	return []
+	return { failed: [] }
 }
 
 export function mailToEmlFile(mail: MailBundle, fileName: string): DataFile {
