@@ -64,7 +64,7 @@ export class Dialog implements ModalComponent {
 	private _shortcuts: Shortcut[]
 	view: ModalComponent["view"]
 	visible: boolean
-	private _focusOnLoadFunction: Thunk
+	private _focusOnLoadFunction: (dom: HTMLElement) => void
 	private _wasFocusOnLoadCalled: boolean
 	private _closeHandler: Thunk | null = null
 	private _focusedBeforeShown: HTMLElement | null = null
@@ -73,7 +73,7 @@ export class Dialog implements ModalComponent {
 	constructor(dialogType: DialogType, childComponent: Component) {
 		this.visible = false
 
-		this._focusOnLoadFunction = () => this._defaultFocusOnLoad()
+		this._focusOnLoadFunction = () => this._defaultFocusOnLoad(assertNotNull(this._domDialog))
 
 		this._wasFocusOnLoadCalled = false
 		this._shortcuts = [
@@ -158,7 +158,7 @@ export class Dialog implements ModalComponent {
 										}
 									})
 									animation.then(() => {
-										this._focusOnLoadFunction()
+										this._focusOnLoadFunction(assertNotNull(this._domDialog))
 
 										this._wasFocusOnLoadCalled = true
 									})
@@ -177,8 +177,7 @@ export class Dialog implements ModalComponent {
 		this._injectionRightAttrs = injectionRightAttrs
 	}
 
-	_defaultFocusOnLoad() {
-		const dom = assertNotNull(this._domDialog)
+	_defaultFocusOnLoad(dom: HTMLElement) {
 		let inputs = Array.from(dom.querySelectorAll(INPUT)) as Array<HTMLElement>
 
 		if (inputs.length > 0) {
@@ -200,7 +199,7 @@ export class Dialog implements ModalComponent {
 		this._focusOnLoadFunction = callback
 
 		if (this._wasFocusOnLoadCalled) {
-			this._focusOnLoadFunction()
+			this._focusOnLoadFunction(assertNotNull(this._domDialog))
 		}
 	}
 
@@ -992,6 +991,13 @@ export class Dialog implements ModalComponent {
 				props?.cancel?.action?.()
 				dialog.close()
 			},
+		})
+
+		// the password form contains some dummy inputs that would be focused by
+		// the default focusOnLoad
+		dialog.setFocusOnLoadFunction((dom: HTMLElement) => {
+			const inputs = Array.from(dom.querySelectorAll(INPUT)) as Array<HTMLElement>
+			inputs[inputs.length - 1].focus()
 		})
 		return dialog
 	}
