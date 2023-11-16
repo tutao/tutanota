@@ -15,6 +15,7 @@ import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer } from "@tutao/tutanota-utils"
 import { windowFacade } from "../../misc/WindowFacade"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
+import { Keys } from "../../api/common/TutanotaConstants.js"
 
 const DEFAULT_MODE = CredentialEncryptionMode.DEVICE_LOCK
 
@@ -74,6 +75,10 @@ class CredentialEncryptionMethodDialog {
 					),
 				])
 			},
+		}).addShortcut({
+			help: "close_alt",
+			key: Keys.ESC,
+			exec: () => this._dialog.close(),
 		})
 		this._dialog.setCloseHandler(() => {
 			this._finished.resolve()
