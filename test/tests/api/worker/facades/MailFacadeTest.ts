@@ -12,7 +12,6 @@ import { NativeFileApp } from "../../../../../src/native/common/FileApp.js"
 import { LoginFacade } from "../../../../../src/api/worker/facades/LoginFacade.js"
 import { DataFile } from "../../../../../src/api/common/DataFile.js"
 import { downcast } from "@tutao/tutanota-utils"
-import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
 
 o.spec("MailFacade test", function () {
@@ -402,29 +401,38 @@ o.spec("MailFacade test", function () {
 
 		o("valid mimetypes", () => {
 			validateMimeTypesForAttachments([attach("application/json", "something.json")])
+			validateMimeTypesForAttachments([attach("audio/ogg; codec=opus", "something.opus")])
+			validateMimeTypesForAttachments([attach('video/webm; codecs="vp8, opus"', "something.webm")])
 			validateMimeTypesForAttachments([attach("something/orrather", "something.somethingorrather")])
 			validateMimeTypesForAttachments([attach("thisisvalid/technically+this_is-ok_even-if-YOU-dont-like-it", "something.valid")])
+			validateMimeTypesForAttachments([attach("anotherthing/youcando;ishave=multiple;parameters=in;a=mimetype", "something.technicallyvalidaswell")])
 		})
 
-		o("invalid mimetypes", async () => {
-			await assertThrows(ProgrammingError, async () => {
+		o("invalid mimetypes", () => {
+			o(() => {
 				validateMimeTypesForAttachments([attach("applicationjson", "something.json")])
-			})
-			await assertThrows(ProgrammingError, async () => {
+			}).throws(ProgrammingError)
+			o(() => {
 				validateMimeTypesForAttachments([attach("application/json", "something.json"), attach("applicationjson", "something.json")])
-			})
-			await assertThrows(ProgrammingError, async () => {
+			}).throws(ProgrammingError)
+			o(() => {
 				validateMimeTypesForAttachments([attach("applicationjson", "something.json"), attach("application/json", "something.json")])
-			})
-			await assertThrows(ProgrammingError, async () => {
+			}).throws(ProgrammingError)
+			o(() => {
 				validateMimeTypesForAttachments([attach("", "bad.json")])
-			})
-			await assertThrows(ProgrammingError, async () => {
+			}).throws(ProgrammingError)
+			o(() => {
 				validateMimeTypesForAttachments([attach("a/b/c", "no.json")])
-			})
-			await assertThrows(ProgrammingError, async () => {
+			}).throws(ProgrammingError)
+			o(() => {
 				validateMimeTypesForAttachments([attach("a/b?c", "please stop.json")])
-			})
+			}).throws(ProgrammingError)
+			o(() => {
+				validateMimeTypesForAttachments([attach('video/webm; codecs="vp8, opus oh no i forgot the quote; oops=mybad', "why.webm")])
+			}).throws(ProgrammingError)
+			o(() => {
+				validateMimeTypesForAttachments([attach("video/webm; parameterwithoutavalue", "bad.webm")])
+			}).throws(ProgrammingError)
 		})
 	})
 })
