@@ -35,7 +35,7 @@ import { EphemeralCacheStorage } from "../rest/EphemeralCacheStorage"
 import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"
 import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "./IndexTables.js"
 import { MailFacade } from "../facades/lazy/MailFacade.js"
-import { getDisplayedSender } from "../../../mail/model/MailUtils.js"
+import { getDisplayedSender, MailAddressAndName } from "../../../mail/model/MailUtils.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
@@ -90,7 +90,10 @@ export class MailIndexer {
 		const mail = mailWrapper.getMail()
 
 		// avoid caching system@tutanota.de since the user wouldn't be searching for this
-		const senderToIndex = getDisplayedSender(mail)
+		let senderToIndex: MailAddressAndName
+
+		const hasSender = mail.sender != null
+		if (hasSender) senderToIndex = getDisplayedSender(mail)
 
 		const MailModel = typeModels.Mail
 		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(mail, [
@@ -124,7 +127,7 @@ export class MailIndexer {
 			},
 			{
 				attribute: MailModel.associations["sender"],
-				value: () => senderToIndex.name + " <" + senderToIndex.address + ">",
+				value: () => (hasSender ? senderToIndex.name + " <" + senderToIndex.address + ">" : ""),
 			},
 			{
 				attribute: MailModel.associations["body"],
