@@ -211,6 +211,7 @@ export class CredentialsProvider {
 		}
 
 		this.storage.setCredentialEncryptionMode(encryptionMode)
+		this.interWindowEventSender?.reloadDeviceConfig()
 	}
 
 	/**
