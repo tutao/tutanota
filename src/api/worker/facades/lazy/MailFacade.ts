@@ -938,7 +938,7 @@ function recipientToEncryptedMailAddress(recipient: PartialRecipient): Encrypted
  * @throws {ProgrammingError} if a MIME type is somehow not correctly formatted for at least one attachment
  */
 export function validateMimeTypesForAttachments(attachments: Attachments) {
-	const regex = /^\w+\/[\w.+-]+$/g
+	const regex = /^\w+\/[\w.+-]+?(;\s*[\w.+-]+=([\w.+-]+|"[\w\s,.+-]+"))*$/g
 	for (const attachment of attachments) {
 		if (isDataFile(attachment) || isFileReference(attachment)) {
 			if (!attachment.mimeType.match(regex)) {
