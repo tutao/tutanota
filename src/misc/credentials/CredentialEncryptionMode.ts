@@ -25,5 +25,5 @@ export const enum CredentialEncryptionMode {
 	 * Credentials key is secured with a separate password / pin that is independent of the state of the system
 	 * keychain.
 	 */
-	APP_PIN = "APP_PIN",
+	APP_PASSWORD = "APP_PASSWORD",
 }

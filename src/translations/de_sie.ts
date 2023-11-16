@@ -1603,7 +1603,7 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
-		"credentialsEncryptionModeAppPin_label": "App PIN",
-		"credentialsEncryptionModeAppPinHelp_msg": "Schützen Sie Ihre gespeicherten Zugangsdaten mit einem separaten Password."
+		"credentialsEncryptionModeAppPassword_label": "App-Passwort",
+		"credentialsEncryptionModeAppPasswordHelp_msg": "Schützen Sie Ihre gespeicherten Zugangsdaten mit einem separaten Passwort."
 	}
 }

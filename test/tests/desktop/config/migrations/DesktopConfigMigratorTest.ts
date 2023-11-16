@@ -45,7 +45,7 @@ o.spec("DesktopConfigMigrator", function () {
 		}
 
 		const requiredResult = {
-			appPinSalt: null,
+			appPassSalt: null,
 			heartbeatTimeoutInSeconds: 30,
 			defaultDownloadPath: null,
 			enableAutoUpdate: true,
@@ -71,7 +71,7 @@ o.spec("DesktopConfigMigrator", function () {
 			runAsTrayApp: true,
 		}
 		const requiredResult = {
-			appPinSalt: null,
+			appPassSalt: null,
 			runAsTrayApp: true,
 			desktopConfigVersion: 8,
 			showAutoUpdateOption: true,
