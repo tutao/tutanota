@@ -163,7 +163,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			})
 
 			if (a.doBlockExternalContent()) {
-				model.getExternalImageRule().then(async (externalImageRule) => {
+				model.getExternalImageRule().then((externalImageRule) => {
 					if (externalImageRule === ExternalImageRule.Block || sanitized.externalContent > 0) {
 						this.blockExternalContent = true
 						if (externalImageRule === ExternalImageRule.Block) this.alwaysBlockExternalContent = true
