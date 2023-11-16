@@ -57,7 +57,7 @@ export function generateExportFileName(subject: string, sentOn: Date, mode: Mail
 /**
  * export mails. a single one will be exported as is, multiple will be put into a zip file
  * a save dialog will then be shown
- * @returns {Promise<void>} resolved after the fileController
+ * @returns {Promise<Mail[]>} resolved with failed mails or empty after the fileController
  * was instructed to open the new zip File containing the exported files
  */
 export async function exportMails(
@@ -67,7 +67,7 @@ export async function exportMails(
 	fileController: FileController,
 	operationId?: OperationId,
 	signal?: AbortSignal,
-): Promise<Mail[] | undefined> {
+): Promise<Mail[]> {
 	let cancelled = false
 
 	const onAbort = () => {
@@ -129,6 +129,8 @@ export async function exportMails(
 	} finally {
 		signal?.removeEventListener("abort", onAbort)
 	}
+
+	return []
 }
 
 export function mailToEmlFile(mail: MailBundle, fileName: string): DataFile {

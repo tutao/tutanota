@@ -1587,4 +1587,5 @@ export type TranslationKeyType =
 	| "failedToExport_label"
 	| "failedToExport_msg"
 	| "failedToExport_title"
+	| "hide_action"
 	| "eventNoLongerExists_msg"
