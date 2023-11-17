@@ -39,7 +39,6 @@ import {
 import testData from "./CompatibilityTestData.json"
 import { uncompress } from "../../../../../src/api/worker/Compression.js"
 import { matchers, object, when } from "testdouble"
-import { loadWasmModuleFromFile } from "../../../../../packages/tutanota-crypto/test/WebAssemblyTestUtils.js"
 import { byteArraysToBytes, bytesToByteArrays } from "@tutao/tutanota-utils/dist/Encoding.js"
 import { PQFacade } from "../../../../../src/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFacade.js"
@@ -48,9 +47,9 @@ import { loadArgon2WASM, loadLibOQSWASM } from "../WASMTestUtils.js"
 
 const originalRandom = random.generateRandomData
 
-o.spec("crypto compatibility", async function () {
-	const liboqs = await loadLibOQSWASM()
+const liboqs = await loadLibOQSWASM()
 
+o.spec("crypto compatibility", function () {
 	o.afterEach(function () {
 		random.generateRandomData = originalRandom
 	})

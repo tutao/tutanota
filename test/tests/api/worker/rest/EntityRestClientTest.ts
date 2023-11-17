@@ -62,7 +62,7 @@ function contacts(count) {
 	return createArrayOf(count, contactFactory)
 }
 
-o.spec("EntityRestClient", async function () {
+o.spec("EntityRestClient", function () {
 	let entityRestClient: EntityRestClient
 	let restClient: RestClient
 	let instanceMapperMock: InstanceMapper
@@ -457,7 +457,7 @@ o.spec("EntityRestClient", async function () {
 		})
 	})
 
-	o.spec("Setup", async function () {
+	o.spec("Setup", function () {
 		o("Setup list entity", async function () {
 			const v = (await resolveTypeReference(ContactTypeRef)).version
 			const newContact = createTestEntity(ContactTypeRef)
@@ -549,7 +549,7 @@ o.spec("EntityRestClient", async function () {
 		})
 	})
 
-	o.spec("Setup multiple", async function () {
+	o.spec("Setup multiple", function () {
 		o("Less than 100 entities created should result in a single rest request", async function () {
 			const newContacts = contacts(1)
 			const resultId = "id1"

@@ -460,7 +460,7 @@ o.spec("ApplicationWindow Test", function () {
 		})
 	}
 
-	o.spec("shortcuts are used, linux & win", async function () {
+	o.spec("shortcuts are used, linux & win", function () {
 		o.beforeEach(() => n.setPlatform("linux"))
 		testShortcut(["Control+F"], ({ desktopFacade }) => {
 			verify(desktopFacade.openFindInPage())
@@ -503,7 +503,7 @@ o.spec("ApplicationWindow Test", function () {
 		})
 	})
 
-	o.spec("shortcuts are used, mac", async function () {
+	o.spec("shortcuts are used, mac", function () {
 		o.beforeEach(() => n.setPlatform("darwin"))
 		testShortcut(["Command+F"], ({ desktopFacade }) => {
 			verify(desktopFacade.openFindInPage())

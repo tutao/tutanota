@@ -733,7 +733,7 @@ o.spec("MailIndexer test", () => {
 		o(now).equals(_getCurrentIndexTimestamp([now, NOTHING_INDEXED_TIMESTAMP, now, FULL_INDEXED_TIMESTAMP]))
 		o(now).equals(_getCurrentIndexTimestamp([now, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP]))
 	})
-	o.spec("extendIndexIfNeeded", async function () {
+	o.spec("extendIndexIfNeeded", function () {
 		o("not extends if fully indexed", function () {
 			const core = makeCore()
 			const db = null as any

@@ -20,7 +20,7 @@ o.spec("CalendarNotificationModel", function () {
 		when(logins.getUserController()).thenReturn(userController)
 	})
 
-	o.spec("hasPlanWithInvites", async function () {
+	o.spec("hasPlanWithInvites", function () {
 		o("available for users with new paid plan that contains invites", async function () {
 			when(userController.isNewPaidPlan()).thenResolve(true)
 			when(userController.getPlanConfig()).thenResolve(createTestEntity(PlanConfigurationTypeRef, { eventInvites: true }))

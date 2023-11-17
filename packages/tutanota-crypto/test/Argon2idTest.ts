@@ -5,7 +5,7 @@ import { loadWasmModuleFromFile } from "./WebAssemblyTestUtils.js"
 
 const argon2 = await loadWasmModuleFromFile("../lib/hashes/Argon2id/argon2.wasm")
 
-o.spec("Argon2id", async function () {
+o.spec("Argon2id", function () {
 	o("GenerateKeyFromPassphrase", async function () {
 		let salt1 = generateRandomSalt()
 		let salt2 = generateRandomSalt()

@@ -439,7 +439,7 @@ o.spec("ServiceExecutor", function () {
 		})
 	})
 
-	o.spec("params", async function () {
+	o.spec("params", function () {
 		o("adds query params", async function () {
 			const getService: GetService = {
 				...service,

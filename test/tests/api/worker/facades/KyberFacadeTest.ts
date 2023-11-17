@@ -3,7 +3,7 @@ import { WASMKyberFacade } from "../../../../../src/api/worker/facades/KyberFaca
 import { bytesToKyberPrivateKey, bytesToKyberPublicKey, kyberPrivateKeyToBytes, kyberPublicKeyToBytes } from "@tutao/tutanota-crypto"
 import { loadLibOQSWASM } from "../WASMTestUtils.js"
 
-o.spec("KyberFacade", async function () {
+o.spec("KyberFacade", function () {
 	let kyberFacade: WASMKyberFacade
 	o.before(async () => {
 		kyberFacade = new WASMKyberFacade(await loadLibOQSWASM())

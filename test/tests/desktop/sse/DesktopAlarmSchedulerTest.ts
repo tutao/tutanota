@@ -115,7 +115,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 		})
 	})
 
-	o.spec("handleAlarmNotification", async function () {
+	o.spec("handleAlarmNotification", function () {
 		o("handle multiple events", async function () {
 			const { wmMock, notifierMock, alarmStorageMock, cryptoMock } = standardMocks()
 
