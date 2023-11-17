@@ -36,7 +36,7 @@ import {
 	remove,
 	typedValues,
 } from "@tutao/tutanota-utils"
-import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, RecipientField } from "../model/MailUtils"
+import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, isUserEmail, RecipientField } from "../model/MailUtils"
 import type { EncryptedMailAddress, File as TutanotaFile, Mail, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef, ConversationEntryTypeRef, File, FileTypeRef, MailboxPropertiesTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"
@@ -1086,11 +1086,7 @@ export class SendMailModel {
 	isUserPreviousSender(): boolean {
 		if (!this.previousMail) return false
 
-		const userEmailAddress = this.mailboxDetails.mailGroupInfo.mailAddress
-		return (
-			this.previousMail.sender.address === userEmailAddress ||
-			this.mailboxDetails.mailGroupInfo.mailAddressAliases.some((e) => e.mailAddress === this.previousMail?.sender.address)
-		)
+		return isUserEmail(this.logins, this.mailboxDetails, this.previousMail.sender.address)
 	}
 
 	getExternalImageRule = async () => {
