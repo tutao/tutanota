@@ -53,7 +53,7 @@ export function encryptRsaKey(encryptionKey: Aes128Key | Aes256Key, privateKey: 
 }
 
 export function encryptEccKey(encryptionKey: Aes128Key | Aes256Key, privateKey: EccPrivateKey): Uint8Array {
-	return aesEncrypt(encryptionKey, privateKey, undefined, true, true)
+	return aesEncrypt(encryptionKey, privateKey, undefined, true, true) // passing IV as undefined here is fine, as it will generate a new one for each encryption
 }
 
 export function decryptKeyPair(encryptionKey: Aes128Key | Aes256Key, keyPair: EncryptedKeyPairs): RsaKeyPair | RsaEccKeyPair | PQKeyPairs {
