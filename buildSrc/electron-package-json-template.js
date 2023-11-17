@@ -8,7 +8,7 @@ import { getElectronVersion } from "./buildUtils.js"
  * 2. copied to app-desktop/build from dist.js (DesktopBuilder)
  */
 
-export default async function generateTemplate({ nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked, linux }) {
+export default async function generateTemplate({ nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked, linux, architecture }) {
 	const appName = "tutanota-desktop" + nameSuffix
 	const appId = "de.tutao.tutanota" + nameSuffix
 	if (process.env.JENKINS_HOME && process.env.DEBUG_SIGN) throw new Error("Tried to DEBUG_SIGN in CI!")
@@ -111,7 +111,7 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 				target: [
 					{
 						target: unpacked ? "dir" : "nsis",
-						arch: "x64",
+						arch: architecture,
 					},
 				],
 			},
@@ -135,26 +135,15 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 					LSUIElement: 1, //hide dock icon on startup
 				},
 				target: unpacked
-					? [
-							{ target: "dir", arch: "x64" },
-							{ target: "dir", arch: "arm64" },
-					  ]
+					? [{ target: "dir", arch: architecture }]
 					: [
 							{
 								target: "zip",
-								arch: "x64",
+								arch: architecture,
 							},
 							{
 								target: "dmg",
-								arch: "x64",
-							},
-							{
-								target: "zip",
-								arch: "arm64",
-							},
-							{
-								target: "dmg",
-								arch: "arm64",
+								arch: architecture,
 							},
 					  ],
 			},
@@ -168,7 +157,7 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 				target: [
 					{
 						target: unpacked ? "dir" : "AppImage",
-						arch: "x64",
+						arch: architecture,
 					},
 				],
 			},
