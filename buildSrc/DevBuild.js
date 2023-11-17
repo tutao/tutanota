@@ -122,6 +122,7 @@ async function buildDesktopPart({ version }) {
 			iconPath: path.join(desktopIconsPath, "logo-solo-red.png"),
 			sign: false,
 			linux: process.platform === "linux",
+			architecture: "x64",
 		})
 		const content = JSON.stringify(packageJSON, null, 2)
 
