@@ -6,7 +6,6 @@ import { NotAuthenticatedError } from "../common/error/RestError"
 import { ProgrammingError } from "../common/error/ProgrammingError"
 import { initLocator, locator, resetLocator } from "./WorkerLocator"
 import { assertWorkerOrNode, isMainOrNode } from "../common/Env"
-import type { ContactFormFacade } from "./facades/lazy/ContactFormFacade.js"
 import type { BrowserData } from "../../misc/ClientConstants"
 import { CryptoFacade } from "./crypto/CryptoFacade"
 import type { GiftCardFacade } from "./facades/lazy/GiftCardFacade.js"
@@ -72,7 +71,6 @@ export interface WorkerInterface {
 	readonly blobAccessTokenFacade: BlobAccessTokenFacade
 	readonly blobFacade: BlobFacade
 	readonly userManagementFacade: UserManagementFacade
-	readonly contactFormFacade: ContactFormFacade
 	readonly deviceEncryptionFacade: DeviceEncryptionFacade
 	readonly restInterface: EntityRestInterface
 	readonly serviceExecutor: IServiceExecutor
@@ -204,10 +202,6 @@ export class WorkerImpl implements NativeInterface {
 
 			async userManagementFacade() {
 				return locator.userManagement()
-			},
-
-			async contactFormFacade() {
-				return locator.contactFormFacade()
 			},
 
 			async deviceEncryptionFacade() {

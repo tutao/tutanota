@@ -21,7 +21,6 @@ o.spec("PriceUtilsTest", function () {
 		o(formatPrice(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Premium, UpgradePriceType.PlanReferencePrice), false)).equals("14.40")
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Premium, UpgradePriceType.PlanActualPrice)).equals(12)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Premium, UpgradePriceType.AdditionalUserPrice)).equals(12)
-		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Premium, UpgradePriceType.ContactFormPrice)).equals(240)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Premium, UpgradePriceType.PlanNextYearsPrice)).equals(12)
 	})
 	o("getSubscriptionPrice premium monthly price", async function () {
@@ -29,7 +28,6 @@ o.spec("PriceUtilsTest", function () {
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Premium, UpgradePriceType.PlanReferencePrice)).equals(1.2)
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Premium, UpgradePriceType.PlanActualPrice)).equals(1.2)
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Premium, UpgradePriceType.AdditionalUserPrice)).equals(1.2)
-		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Premium, UpgradePriceType.ContactFormPrice)).equals(24)
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Premium, UpgradePriceType.PlanNextYearsPrice)).equals(1.2)
 	})
 	o("getSubscriptionPrice Premium discount yearly", async function () {
@@ -40,7 +38,6 @@ o.spec("PriceUtilsTest", function () {
 		o(formatPrice(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Premium, UpgradePriceType.PlanReferencePrice), false)).equals("14.40")
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Premium, UpgradePriceType.PlanActualPrice)).equals(0)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Premium, UpgradePriceType.AdditionalUserPrice)).equals(12)
-		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Premium, UpgradePriceType.ContactFormPrice)).equals(240)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Premium, UpgradePriceType.PlanNextYearsPrice)).equals(12)
 	})
 	o("getSubscriptionPrice Pro discount yearly", async function () {
@@ -51,7 +48,6 @@ o.spec("PriceUtilsTest", function () {
 		o(formatPrice(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Pro, UpgradePriceType.PlanReferencePrice), false)).equals("100.80")
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Pro, UpgradePriceType.PlanActualPrice)).equals(0)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Pro, UpgradePriceType.AdditionalUserPrice)).equals(48)
-		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Pro, UpgradePriceType.ContactFormPrice)).equals(240)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Pro, UpgradePriceType.PlanNextYearsPrice)).equals(84)
 	})
 	o("getSubscriptionPrice Premium discount monthly", async function () {
@@ -62,7 +58,6 @@ o.spec("PriceUtilsTest", function () {
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Premium, UpgradePriceType.PlanReferencePrice)).equals(1.2)
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Premium, UpgradePriceType.PlanActualPrice)).equals(1.2)
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Premium, UpgradePriceType.AdditionalUserPrice)).equals(1.2)
-		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Premium, UpgradePriceType.ContactFormPrice)).equals(24)
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Premium, UpgradePriceType.PlanNextYearsPrice)).equals(1.2)
 	})
 
@@ -74,7 +69,6 @@ o.spec("PriceUtilsTest", function () {
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Revolutionary, UpgradePriceType.PlanReferencePrice)).equals(3.6)
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Revolutionary, UpgradePriceType.PlanActualPrice)).equals(3.6)
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Revolutionary, UpgradePriceType.AdditionalUserPrice)).equals(3.6)
-		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Revolutionary, UpgradePriceType.ContactFormPrice)).equals(24)
 		o(provider.getSubscriptionPrice(PaymentInterval.Monthly, PlanType.Revolutionary, UpgradePriceType.PlanNextYearsPrice)).equals(3.6)
 	})
 
@@ -86,7 +80,6 @@ o.spec("PriceUtilsTest", function () {
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.PlanReferencePrice)).equals(43.2)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.PlanActualPrice)).equals(0)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.AdditionalUserPrice)).equals(36)
-		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.ContactFormPrice)).equals(240)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.PlanNextYearsPrice)).equals(36)
 	})
 

@@ -198,8 +198,8 @@ function getPriceForUpgradeType(upgrade: UpgradePriceType, prices: WebsitePlanPr
 			return Number(prices.monthlyPrice)
 		case UpgradePriceType.AdditionalUserPrice:
 			return Number(prices.additionalUserPriceMonthly)
-		case UpgradePriceType.ContactFormPrice:
-			return Number(prices.contactFormPriceMonthly)
+		case UpgradePriceType.ContactFormPrice_UNUSED:
+			throw new ProgrammingError("invalid price type")
 	}
 }
 

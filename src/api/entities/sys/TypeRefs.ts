@@ -747,8 +747,6 @@ export type Customer = {
 	adminGroup: Id;
 	adminGroups: Id;
 	auditLog:  null | AuditLogRef;
-	contactFormUserAreaGroups:  null | UserAreaGroups;
-	contactFormUserGroups:  null | UserAreaGroups;
 	customerGroup: Id;
 	customerGroups: Id;
 	customerInfo: IdTuple;
@@ -2009,7 +2007,6 @@ export type PlanPrices = {
 	additionalUserPriceMonthly: NumberString;
 	business: boolean;
 	businessPlan: boolean;
-	contactFormPriceMonthly: NumberString;
 	customDomains: NumberString;
 	firstYearDiscount: NumberString;
 	includedAliases: NumberString;

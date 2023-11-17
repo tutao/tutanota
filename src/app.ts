@@ -310,17 +310,6 @@ import("./translations/en")
 				},
 				locator.logins,
 			),
-			contactForm: makeOldViewResolver(
-				async () => {
-					const { ContactFormView } = await import("./login/contactform/ContactFormView.js")
-					const header = await locator.appHeaderAttrs()
-					return new ContactFormView(header)
-				},
-				{
-					requireLogin: false,
-				},
-				locator.logins,
-			),
 			calendar: makeViewResolver<
 				CalendarViewAttrs,
 				CalendarView,

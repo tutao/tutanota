@@ -21,7 +21,6 @@ import { SuspensionHandler } from "./SuspensionHandler"
 import { EntityClient } from "../common/EntityClient"
 import type { GiftCardFacade } from "./facades/lazy/GiftCardFacade.js"
 import type { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
-import type { ContactFormFacade } from "./facades/lazy/ContactFormFacade.js"
 import { DeviceEncryptionFacade } from "./facades/DeviceEncryptionFacade"
 import type { NativeInterface } from "../../native/common/NativeInterface"
 import { NativeFileApp } from "../../native/common/FileApp"
@@ -102,7 +101,6 @@ export type WorkerLocatorType = {
 	customer: lazyAsync<CustomerFacade>
 	giftCards: lazyAsync<GiftCardFacade>
 	mailAddress: lazyAsync<MailAddressFacade>
-	contactFormFacade: lazyAsync<ContactFormFacade>
 	booking: lazyAsync<BookingFacade>
 	share: lazyAsync<ShareFacade>
 
@@ -371,10 +369,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.configFacade = lazyMemoized(async () => {
 		const { ConfigurationDatabase } = await import("./facades/lazy/ConfigurationDatabase.js")
 		return new ConfigurationDatabase(locator.user)
-	})
-	locator.contactFormFacade = lazyMemoized(async () => {
-		const { ContactFormFacade } = await import("./facades/lazy/ContactFormFacade.js")
-		return new ContactFormFacade(locator.restClient, locator.instanceMapper)
 	})
 }
 

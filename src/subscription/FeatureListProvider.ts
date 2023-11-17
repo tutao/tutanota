@@ -66,10 +66,7 @@ export class FeatureListProvider {
  * tutanota-3 has a typeRef for plan prices, while the web site defines the type with only
  * some of the properties of the model type. using this method to maintain symmetry.
  */
-export type WebsitePlanPrices = Pick<
-	PlanPrices,
-	"additionalUserPriceMonthly" | "contactFormPriceMonthly" | "firstYearDiscount" | "monthlyPrice" | "monthlyReferencePrice"
->
+export type WebsitePlanPrices = Pick<PlanPrices, "additionalUserPriceMonthly" | "firstYearDiscount" | "monthlyPrice" | "monthlyReferencePrice">
 
 export type SelectedSubscriptionOptions = {
 	businessUse: Stream<boolean>
@@ -82,7 +79,7 @@ export type SelectedSubscriptionOptions = {
  * we have to provide functions to produce it. these
  * are used to select the correct one.
  **/
-export type ReplacementKey = "customDomains" | "mailAddressAliases" | "storage" | "contactForm"
+export type ReplacementKey = "customDomains" | "mailAddressAliases" | "storage"
 
 /**
  * A category of features to be shown
@@ -141,5 +138,5 @@ export const enum UpgradePriceType {
 	PlanActualPrice = "1",
 	PlanNextYearsPrice = "2",
 	AdditionalUserPrice = "3",
-	ContactFormPrice = "4",
+	ContactFormPrice_UNUSED = "4",
 }

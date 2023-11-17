@@ -225,6 +225,26 @@
 					"info": "AddValue PlanConfiguration/contactList/2136."
 				}
 			]
+		},
+		{
+			"version": 91,
+			"changes": [
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "Customer",
+					"info": "RemoveAssociation Customer/contactFormUserGroups."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "Customer",
+					"info": "RemoveAssociation Customer/contactFormUserAreaGroups."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "PlanPrices",
+					"info": "RemoveValue PlanPrices/contactFormPriceMonthly/1466."
+				}
+			]
 		}
 	]
 }
