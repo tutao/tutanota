@@ -243,6 +243,17 @@ export function getDefaultSender(logins: LoginController, mailboxDetails: Mailbo
 	}
 }
 
+export function isUserEmail(logins: LoginController, mailboxDetails: MailboxDetail, address: string): boolean {
+	if (isUserMailbox(mailboxDetails)) {
+		return (
+			contains(getEnabledMailAddressesWithUser(mailboxDetails, logins.getUserController().userGroupInfo), address) ||
+			logins.getUserController().userGroupInfo.mailAddress === address
+		)
+	} else {
+		return mailboxDetails.mailGroupInfo.mailAddress === address
+	}
+}
+
 export function getSenderNameForUser(mailboxDetails: MailboxDetail, userController: UserController): string {
 	if (isUserMailbox(mailboxDetails)) {
 		// external users do not have access to the user group info

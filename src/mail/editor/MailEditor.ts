@@ -162,20 +162,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				blockExternalContent: !isPaste && this.blockExternalContent,
 			})
 
-			if (a.doBlockExternalContent()) {
-				model.getExternalImageRule().then((externalImageRule) => {
-					if (externalImageRule === ExternalImageRule.Block || sanitized.externalContent > 0) {
-						this.blockExternalContent = true
-						if (externalImageRule === ExternalImageRule.Block) this.alwaysBlockExternalContent = true
-					} else if (
-						externalImageRule === ExternalImageRule.Allow &&
-						model.getPreviousMail()?.authStatus === MailAuthenticationStatus.AUTHENTICATED
-					) {
-						this.blockExternalContent = false
-					}
-				})
-			}
-
 			this.mentionedInlineImages = sanitized.inlineImageCids
 			return sanitized.fragment
 		})
@@ -188,59 +174,72 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 		// call this async because the editor is not initialized before this mail editor dialog is shown
 		this.editor.initialized.promise.then(() => {
-			this.editor.setHTML(model.getBody())
-			// Add mutation observer to remove attachments when corresponding DOM element is removed
-			new MutationObserver(onEditorChanged).observe(this.editor.getDOM(), {
-				attributes: false,
-				childList: true,
-				subtree: true,
-			})
-			// since the editor is the source for the body text, the model won't know if the body has changed unless we tell it
-			this.editor.addChangeListener(() => model.setBody(replaceInlineImagesWithCids(this.editor.getDOM()).innerHTML))
-			this.editor.addEventListener("pasteImage", ({ detail }: ImagePasteEvent) => {
-				const items = Array.from(detail.clipboardData.items)
-				const imageItems = items.filter((item) => /image/.test(item.type))
-				if (!imageItems.length) {
-					return false
-				}
-				const file = imageItems[0]?.getAsFile()
-				if (file == null) {
-					return false
-				}
-				const reader = new FileReader()
-				reader.onload = () => {
-					if (reader.result == null || "string" === typeof reader.result) {
-						return
+			model.getExternalImageRule().then((externalImageRule) => {
+				this.editor.setHTML(model.getBody())
+
+				if (externalImageRule === ExternalImageRule.Block) {
+					this.blockExternalContent = true
+					let blockingStatus = ContentBlockingStatus.Block
+
+					if (externalImageRule === ExternalImageRule.Block) {
+						this.alwaysBlockExternalContent = true
+						blockingStatus = ContentBlockingStatus.AlwaysBlock
 					}
-					const newInlineImages = [createDataFile(file.name, file.type, new Uint8Array(reader.result))]
-					model.attachFiles(newInlineImages)
-					this.insertInlineImages(model, newInlineImages)
+
+					this.updateExternalContentStatus(blockingStatus)
+				} else if (externalImageRule === ExternalImageRule.Allow && model.getPreviousMail()?.authStatus === MailAuthenticationStatus.AUTHENTICATED) {
+					this.blockExternalContent = false
+					this.updateExternalContentStatus(ContentBlockingStatus.AlwaysShow)
+				} else if (externalImageRule === ExternalImageRule.None && model.isUserPreviousSender()) {
+					this.blockExternalContent = true
+					this.updateExternalContentStatus(ContentBlockingStatus.Block)
+				} else {
+					this.blockExternalContent = a.doBlockExternalContent()
+
+					// As we don't have a defined rule we lead the decision
+					// to show external content to the user and just process the inline images
+					this.processInlineImages()
 				}
-				reader.readAsArrayBuffer(file)
-			})
 
-			if (a.templateModel) {
-				a.templateModel.init().then((templateModel) => {
-					// add this event listener to handle quick selection of templates inside the editor
-					registerTemplateShortcutListener(this.editor, templateModel)
+				// Add mutation observer to remove attachments when corresponding DOM element is removed
+				new MutationObserver(onEditorChanged).observe(this.editor.getDOM(), {
+					attributes: false,
+					childList: true,
+					subtree: true,
 				})
-			}
+				// since the editor is the source for the body text, the model won't know if the body has changed unless we tell it
+				this.editor.addChangeListener(() => model.setBody(replaceInlineImagesWithCids(this.editor.getDOM()).innerHTML))
+				this.editor.addEventListener("pasteImage", ({ detail }: ImagePasteEvent) => {
+					const items = Array.from(detail.clipboardData.items)
+					const imageItems = items.filter((item) => /image/.test(item.type))
+					if (!imageItems.length) {
+						return false
+					}
+					const file = imageItems[0]?.getAsFile()
+					if (file == null) {
+						return false
+					}
+					const reader = new FileReader()
+					reader.onload = () => {
+						if (reader.result == null || "string" === typeof reader.result) {
+							return
+						}
+						const newInlineImages = [createDataFile(file.name, file.type, new Uint8Array(reader.result))]
+						model.attachFiles(newInlineImages)
+						this.insertInlineImages(model, newInlineImages)
+					}
+					reader.readAsArrayBuffer(file)
+				})
+
+				if (a.templateModel) {
+					a.templateModel.init().then((templateModel) => {
+						// add this event listener to handle quick selection of templates inside the editor
+						registerTemplateShortcutListener(this.editor, templateModel)
+					})
+				}
+			})
 		})
 
-		this.editor.initialized.promise.then(() => {
-			const dom = this.editor.getDOM()
-			this.inlineImageElements = replaceCidsWithInlineImages(dom, model.loadedInlineImages, (cid, event, dom) => {
-				const downloadClickHandler = createDropdown({
-					lazyButtons: () => [
-						{
-							label: "download_action",
-							click: () => this.downloadInlineImage(model, cid),
-						},
-					],
-				})
-				downloadClickHandler(downcast(event), dom)
-			})
-		})
 		model.onMailChanged.map(() => m.redraw())
 		// Leftover text in recipient field is an error
 		model.setOnBeforeSendFunction(() => {
@@ -543,13 +542,29 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		})
 	}
 
-	private async updateExternalContentStatus(status: ContentBlockingStatus) {
+	private updateExternalContentStatus(status: ContentBlockingStatus) {
 		this.blockExternalContent = status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock
-		const sanitized = await htmlSanitizer.sanitizeHTML(this.editor.getHTML(), {
+
+		const sanitized = htmlSanitizer.sanitizeHTML(this.editor.getHTML(), {
 			blockExternalContent: status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock,
 		})
 
 		this.editor.setHTML(sanitized.html)
+		this.processInlineImages()
+	}
+
+	private processInlineImages() {
+		this.inlineImageElements = replaceCidsWithInlineImages(this.editor.getDOM(), this.sendMailModel.loadedInlineImages, (cid, event, dom) => {
+			const downloadClickHandler = createDropdown({
+				lazyButtons: () => [
+					{
+						label: "download_action",
+						click: () => this.downloadInlineImage(this.sendMailModel, cid),
+					},
+				],
+			})
+			downloadClickHandler(downcast(event), dom)
+		})
 	}
 
 	private renderToggleKnowledgeBase(knowledgeBaseInjection: DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs>) {
