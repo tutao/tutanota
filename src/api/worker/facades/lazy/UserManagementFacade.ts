@@ -11,8 +11,8 @@ import {
 } from "../../../entities/sys/TypeRefs.js"
 import { encryptBytes, encryptString } from "../../crypto/CryptoFacade.js"
 import { assertNotNull, neverNull, uint8ArrayToHex } from "@tutao/tutanota-utils"
-import type { ContactFormUserData, UserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
-import { createContactFormUserData, createUserAccountCreateData, createUserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
+import type { UserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
+import { createUserAccountCreateData, createUserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
 import type { GroupManagementFacade } from "./GroupManagementFacade.js"
 import type { RecoverData } from "../LoginFacade.js"
 import { LoginFacade } from "../LoginFacade.js"
@@ -282,28 +282,6 @@ export class UserManagementFacade {
 		userData.userEncRecoverCode = recoverData.userEncRecoverCode
 		userData.recoverCodeEncUserGroupKey = recoverData.recoverCodeEncUserGroupKey
 		userData.recoverCodeVerifier = recoverData.recoveryCodeVerifier
-		return userData
-	}
-
-	async generateContactFormUserAccountData(userGroupKey: Aes128Key, password: string): Promise<ContactFormUserData> {
-		const salt = generateRandomSalt()
-		const userPassphraseKey = await this.loginFacade.deriveUserPassphraseKey(KdfType.Bcrypt, password, salt)
-		const mailGroupKey = aes128RandomKey()
-		const clientKey = aes128RandomKey()
-		const mailboxSessionKey = aes128RandomKey()
-		const mailGroupInfoSessionKey = aes128RandomKey()
-		const tutanotaPropertiesSessionKey = aes128RandomKey()
-		const userEncEntropy = encryptBytes(userGroupKey, random.generateRandomData(32))
-		const userData = createContactFormUserData()
-		userData.salt = salt
-		userData.verifier = createAuthVerifier(userPassphraseKey)
-		userData.userEncClientKey = encryptKey(userGroupKey, clientKey)
-		userData.pwEncUserGroupKey = encryptKey(userPassphraseKey, userGroupKey)
-		userData.userEncMailGroupKey = encryptKey(userGroupKey, mailGroupKey)
-		userData.userEncEntropy = userEncEntropy
-		userData.userEncTutanotaPropertiesSessionKey = encryptKey(userGroupKey, tutanotaPropertiesSessionKey)
-		userData.mailEncMailBoxSessionKey = encryptKey(mailGroupKey, mailboxSessionKey)
-		userData.ownerEncMailGroupInfoSessionKey = encryptKey(mailGroupKey, mailGroupInfoSessionKey)
 		return userData
 	}
 

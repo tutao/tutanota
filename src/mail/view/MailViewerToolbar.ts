@@ -8,9 +8,9 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { UserError } from "../../api/main/UserError.js"
 import { showUserError } from "../../misc/ErrorHandlerImpl.js"
-import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
-import { editDraft, mailViewerMoreActions, makeAssignMailsButtons } from "./MailViewerUtils.js"
-import { ButtonColor, ButtonType } from "../../gui/base/Button.js"
+import { createDropdown, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
+import { editDraft, mailViewerMoreActions } from "./MailViewerUtils.js"
+import { ButtonType } from "../../gui/base/Button.js"
 import { isApp } from "../../api/common/Env.js"
 import { locator } from "../../api/main/MainLocator.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
@@ -72,8 +72,6 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 				return [this.renderEditButton(attrs.mailViewerViewModel)]
 			} else if (attrs.mailViewerViewModel.canForwardOrMove()) {
 				return [this.renderReplyButton(attrs.mailViewerViewModel), this.renderForwardButton(attrs.mailViewerViewModel)]
-			} else if (attrs.mailViewerViewModel.canAssignMails()) {
-				return [this.renderReplyButton(attrs.mailViewerViewModel), this.renderAssignButton(attrs.mailViewerViewModel)]
 			} else {
 				return [this.renderReplyButton(attrs.mailViewerViewModel)]
 			}
@@ -211,18 +209,6 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 					}),
 			  })
 			: null
-	}
-
-	private renderAssignButton(viewModel: MailViewerViewModel) {
-		return m(IconButton, {
-			title: "forward_action",
-			icon: Icons.Forward,
-			colors: ButtonColor.Content,
-			click: createAsyncDropdown({
-				width: 250,
-				lazyButtons: () => makeAssignMailsButtons(viewModel),
-			}),
-		})
 	}
 
 	private renderEditButton(viewModel: MailViewerViewModel) {

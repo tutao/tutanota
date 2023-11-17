@@ -125,19 +125,6 @@ export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
 	}
 }
 
-/** Make options for "assign" buttons (for cases for mails with restricted participants). */
-export async function makeAssignMailsButtons(viewModel: MailViewerViewModel): Promise<DropdownButtonAttrs[]> {
-	const assignmentGroupInfos = await viewModel.getAssignmentGroupInfos()
-
-	return assignmentGroupInfos.map((userOrMailGroupInfo) => {
-		return {
-			label: () => getMailAddressDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true),
-			icon: BootIcons.Contacts,
-			click: () => viewModel.assignMail(userOrMailGroupInfo),
-		}
-	})
-}
-
 export function mailViewerMoreActions(viewModel: MailViewerViewModel, showReadButton: boolean = true): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
 	if (showReadButton) {

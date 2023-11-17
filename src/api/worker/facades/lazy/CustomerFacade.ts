@@ -24,7 +24,7 @@ import {
 } from "../../../entities/sys/TypeRefs.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import type { Hex } from "@tutao/tutanota-utils"
-import { assertNotNull, downcast, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { assertNotNull, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import { getWhitelabelDomain } from "../../../common/utils/Utils.js"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
@@ -36,8 +36,8 @@ import {
 	PdfInvoiceService,
 	SystemKeysService,
 } from "../../../entities/sys/Services.js"
-import type { ContactFormAccountReturn, InternalGroupData } from "../../../entities/tutanota/TypeRefs.js"
-import { createContactFormAccountData, createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
+import type { InternalGroupData } from "../../../entities/tutanota/TypeRefs.js"
+import { createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
 import type { UserManagementFacade } from "./UserManagementFacade.js"
 import type { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { CounterFacade } from "./CounterFacade.js"
@@ -50,7 +50,7 @@ import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { DataFile } from "../../../common/DataFile.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { ContactFormAccountService, CustomerAccountService } from "../../../entities/tutanota/Services.js"
+import { CustomerAccountService } from "../../../entities/tutanota/Services.js"
 import { BookingFacade } from "./BookingFacade.js"
 import { UserFacade } from "../UserFacade.js"
 import { PaymentInterval } from "../../../../subscription/PriceUtils.js"
@@ -59,14 +59,7 @@ import { formatNameAndAddress } from "../../../common/utils/CommonFormatter.js"
 
 assertWorkerOrNode()
 
-interface ContactFormUserGroupData {
-	userGroupKey: Aes128Key
-	userGroupData: InternalGroupData
-}
-
 export class CustomerFacade {
-	private contactFormUserGroupData: Promise<ContactFormUserGroupData> | null
-
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly groupManagement: GroupManagementFacade,
@@ -78,9 +71,7 @@ export class CustomerFacade {
 		private readonly bookingFacade: BookingFacade,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
-	) {
-		this.contactFormUserGroupData = null
-	}
+	) {}
 
 	async getDomainValidationRecord(domainName: string): Promise<string> {
 		const customer = this.getCustomerId()
@@ -315,47 +306,6 @@ export class CustomerFacade {
 		})
 		await this.serviceExecutor.post(CustomerAccountService, data)
 		return recoverData.hexCode
-	}
-
-	createContactFormUserGroupData(): Promise<void> {
-		let userGroupKey = aes128RandomKey()
-		let userGroupInfoSessionKey = aes128RandomKey()
-		this.contactFormUserGroupData = this.rsa
-			.generateKey()
-			.then((keyPair) => this.groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, null, userGroupKey, userGroupKey))
-			.then((userGroupData) => {
-				return {
-					userGroupKey,
-					userGroupData,
-				}
-			})
-		return Promise.resolve()
-	}
-
-	private async getContactFormUserGroupData(): Promise<ContactFormUserGroupData> {
-		if (this.contactFormUserGroupData) {
-			return this.contactFormUserGroupData
-		} else {
-			await this.createContactFormUserGroupData()
-			return downcast(this.contactFormUserGroupData)
-		}
-	}
-
-	/**
-	 * @pre CustomerFacade#createContactFormUserGroupData has been invoked before
-	 */
-	async createContactFormUser(password: string, contactFormId: IdTuple, operationId: OperationId): Promise<ContactFormAccountReturn> {
-		const contactFormUserGroupData = await this.getContactFormUserGroupData()
-		let { userGroupKey, userGroupData } = contactFormUserGroupData
-		await this.operationProgressTracker.onProgress(operationId, 35)
-		let data = createContactFormAccountData()
-		data.userData = await this.userManagement.generateContactFormUserAccountData(userGroupKey, password)
-		await this.operationProgressTracker.onProgress(operationId, 95)
-		data.userGroupData = userGroupData
-		data.contactForm = contactFormId
-		const result = this.serviceExecutor.post(ContactFormAccountService, data)
-		this.contactFormUserGroupData = null
-		return result
 	}
 
 	async switchFreeToPremiumGroup(): Promise<void> {

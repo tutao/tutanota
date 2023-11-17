@@ -256,91 +256,6 @@ export type ContactAddress = {
 	customTypeName: string;
 	type: NumberString;
 }
-export const ContactFormTypeRef: TypeRef<ContactForm> = new TypeRef("tutanota", "ContactForm")
-
-export function createContactForm(values?: Partial<ContactForm>): ContactForm {
-	return Object.assign(create(typeModels.ContactForm, ContactFormTypeRef), values)
-}
-
-export type ContactForm = {
-	_type: TypeRef<ContactForm>;
-
-	_format: NumberString;
-	_id: IdTuple;
-	_ownerGroup: null | Id;
-	_permissions: Id;
-	path: string;
-
-	delegationGroups_removed: Id[];
-	languages: ContactFormLanguage[];
-	participantGroupInfos: IdTuple[];
-	targetGroup: Id;
-	targetGroupInfo:  null | IdTuple;
-}
-export const ContactFormAccountDataTypeRef: TypeRef<ContactFormAccountData> = new TypeRef("tutanota", "ContactFormAccountData")
-
-export function createContactFormAccountData(values?: Partial<ContactFormAccountData>): ContactFormAccountData {
-	return Object.assign(create(typeModels.ContactFormAccountData, ContactFormAccountDataTypeRef), values)
-}
-
-export type ContactFormAccountData = {
-	_type: TypeRef<ContactFormAccountData>;
-
-	_format: NumberString;
-
-	contactForm: IdTuple;
-	userData: ContactFormUserData;
-	userGroupData: InternalGroupData;
-}
-export const ContactFormAccountReturnTypeRef: TypeRef<ContactFormAccountReturn> = new TypeRef("tutanota", "ContactFormAccountReturn")
-
-export function createContactFormAccountReturn(values?: Partial<ContactFormAccountReturn>): ContactFormAccountReturn {
-	return Object.assign(create(typeModels.ContactFormAccountReturn, ContactFormAccountReturnTypeRef), values)
-}
-
-export type ContactFormAccountReturn = {
-	_type: TypeRef<ContactFormAccountReturn>;
-
-	_format: NumberString;
-	requestMailAddress: string;
-	responseMailAddress: string;
-}
-export const ContactFormLanguageTypeRef: TypeRef<ContactFormLanguage> = new TypeRef("tutanota", "ContactFormLanguage")
-
-export function createContactFormLanguage(values?: Partial<ContactFormLanguage>): ContactFormLanguage {
-	return Object.assign(create(typeModels.ContactFormLanguage, ContactFormLanguageTypeRef), values)
-}
-
-export type ContactFormLanguage = {
-	_type: TypeRef<ContactFormLanguage>;
-
-	_id: Id;
-	code: string;
-	footerHtml: string;
-	headerHtml: string;
-	helpHtml: string;
-	pageTitle: string;
-}
-export const ContactFormUserDataTypeRef: TypeRef<ContactFormUserData> = new TypeRef("tutanota", "ContactFormUserData")
-
-export function createContactFormUserData(values?: Partial<ContactFormUserData>): ContactFormUserData {
-	return Object.assign(create(typeModels.ContactFormUserData, ContactFormUserDataTypeRef), values)
-}
-
-export type ContactFormUserData = {
-	_type: TypeRef<ContactFormUserData>;
-
-	_id: Id;
-	mailEncMailBoxSessionKey: Uint8Array;
-	ownerEncMailGroupInfoSessionKey: Uint8Array;
-	pwEncUserGroupKey: Uint8Array;
-	salt: Uint8Array;
-	userEncClientKey: Uint8Array;
-	userEncEntropy: Uint8Array;
-	userEncMailGroupKey: Uint8Array;
-	userEncTutanotaPropertiesSessionKey: Uint8Array;
-	verifier: Uint8Array;
-}
 export const ContactListTypeRef: TypeRef<ContactList> = new TypeRef("tutanota", "ContactList")
 
 export function createContactList(values?: Partial<ContactList>): ContactList {
@@ -569,50 +484,6 @@ export type CustomerAccountCreateData = {
 	customerGroupData: InternalGroupData;
 	userData: UserAccountUserData;
 	userGroupData: InternalGroupData;
-}
-export const CustomerContactFormGroupRootTypeRef: TypeRef<CustomerContactFormGroupRoot> = new TypeRef("tutanota", "CustomerContactFormGroupRoot")
-
-export function createCustomerContactFormGroupRoot(values?: Partial<CustomerContactFormGroupRoot>): CustomerContactFormGroupRoot {
-	return Object.assign(create(typeModels.CustomerContactFormGroupRoot, CustomerContactFormGroupRootTypeRef), values)
-}
-
-export type CustomerContactFormGroupRoot = {
-	_type: TypeRef<CustomerContactFormGroupRoot>;
-
-	_format: NumberString;
-	_id: Id;
-	_ownerGroup: null | Id;
-	_permissions: Id;
-
-	contactFormConversations:  null | DeleteContactFormConversationIndex;
-	contactForms: Id;
-}
-export const DeleteContactFormConversationIndexTypeRef: TypeRef<DeleteContactFormConversationIndex> = new TypeRef("tutanota", "DeleteContactFormConversationIndex")
-
-export function createDeleteContactFormConversationIndex(values?: Partial<DeleteContactFormConversationIndex>): DeleteContactFormConversationIndex {
-	return Object.assign(create(typeModels.DeleteContactFormConversationIndex, DeleteContactFormConversationIndexTypeRef), values)
-}
-
-export type DeleteContactFormConversationIndex = {
-	_type: TypeRef<DeleteContactFormConversationIndex>;
-
-	_id: Id;
-
-	items: Id;
-}
-export const DeleteContactFormConversationIndexEntryTypeRef: TypeRef<DeleteContactFormConversationIndexEntry> = new TypeRef("tutanota", "DeleteContactFormConversationIndexEntry")
-
-export function createDeleteContactFormConversationIndexEntry(values?: Partial<DeleteContactFormConversationIndexEntry>): DeleteContactFormConversationIndexEntry {
-	return Object.assign(create(typeModels.DeleteContactFormConversationIndexEntry, DeleteContactFormConversationIndexEntryTypeRef), values)
-}
-
-export type DeleteContactFormConversationIndexEntry = {
-	_type: TypeRef<DeleteContactFormConversationIndexEntry>;
-
-	_format: NumberString;
-	_id: IdTuple;
-	_ownerGroup: null | Id;
-	_permissions: Id;
 }
 export const DeleteGroupDataTypeRef: TypeRef<DeleteGroupData> = new TypeRef("tutanota", "DeleteGroupData")
 
@@ -1177,7 +1048,6 @@ export type Mail = {
 	mailDetails:  null | IdTuple;
 	mailDetailsDraft:  null | IdTuple;
 	replyTos: EncryptedMailAddress[];
-	restrictions:  null | MailRestriction;
 	sender: MailAddress;
 	toRecipients: MailAddress[];
 }
@@ -1374,20 +1244,6 @@ export type MailHeaders = {
 	compressedHeaders: null | string;
 	headers: null | string;
 }
-export const MailRestrictionTypeRef: TypeRef<MailRestriction> = new TypeRef("tutanota", "MailRestriction")
-
-export function createMailRestriction(values?: Partial<MailRestriction>): MailRestriction {
-	return Object.assign(create(typeModels.MailRestriction, MailRestrictionTypeRef), values)
-}
-
-export type MailRestriction = {
-	_type: TypeRef<MailRestriction>;
-
-	_id: Id;
-
-	delegationGroups_removed: Id[];
-	participantGroupInfos: IdTuple[];
-}
 export const MailboxGroupRootTypeRef: TypeRef<MailboxGroupRoot> = new TypeRef("tutanota", "MailboxGroupRoot")
 
 export function createMailboxGroupRoot(values?: Partial<MailboxGroupRoot>): MailboxGroupRoot {
@@ -1403,14 +1259,11 @@ export type MailboxGroupRoot = {
 	_permissions: Id;
 
 	calendarEventUpdates:  null | CalendarEventUpdateList;
-	contactFormUserContactForm:  null | IdTuple;
 	mailbox: Id;
 	mailboxProperties:  null | Id;
 	outOfOfficeNotification:  null | Id;
 	outOfOfficeNotificationRecipientList:  null | OutOfOfficeNotificationRecipientList;
-	participatingContactForms: IdTuple[];
 	serverProperties: Id;
-	targetMailGroupContactForm:  null | IdTuple;
 	whitelistRequests: Id;
 }
 export const MailboxPropertiesTypeRef: TypeRef<MailboxProperties> = new TypeRef("tutanota", "MailboxProperties")

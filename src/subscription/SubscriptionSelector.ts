@@ -364,13 +364,6 @@ export function getReplacement(
 			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).includedAliases }
 		case "storage":
 			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).includedStorage }
-		case "contactForm":
-			const subscriptionPriceContact = priceAndConfigProvider.getSubscriptionPrice(
-				options.paymentInterval(),
-				subscription,
-				UpgradePriceType.ContactFormPrice,
-			)
-			return { "{price}": formatMonthlyPrice(subscriptionPriceContact, attrs.options.paymentInterval()) }
 	}
 }
 

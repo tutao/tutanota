@@ -212,14 +212,6 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 				detailMsg = lang.get("whitelabelDomainExisting_msg")
 				break
 
-			case UnsubscribeFailureReason.HAS_CONTACT_LIST_GROUP:
-				detailMsg = lang.get("contactListExisting_msg")
-				break
-
-			case UnsubscribeFailureReason.HAS_CONTACT_FORM:
-				detailMsg = lang.get("contactFormLegacy_msg")
-				break
-
 			case UnsubscribeFailureReason.NOT_ENOUGH_CREDIT:
 				return Dialog.message("insufficientBalanceError_msg")
 

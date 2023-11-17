@@ -691,11 +691,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 		const canEditBubbleRecipient = locator.logins.getUserController().isInternalUser() && !locator.logins.isEnabled(FeatureType.DisableContacts)
 
-		const previousMail = this.sendMailModel.getPreviousMail()
-
-		const canRemoveBubble =
-			locator.logins.getUserController().isInternalUser() &&
-			(!previousMail || !previousMail.restrictions || previousMail.restrictions.participantGroupInfos.length === 0)
+		const canRemoveBubble = locator.logins.getUserController().isInternalUser()
 
 		const createdContactReceiver = (contactElementId: Id) => {
 			const mailAddress = recipient.address

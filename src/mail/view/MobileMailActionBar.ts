@@ -1,14 +1,14 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { IconButton } from "../../gui/base/IconButton.js"
-import { createAsyncDropdown, createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
+import { createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { UserError } from "../../api/main/UserError.js"
 import { showUserError } from "../../misc/ErrorHandlerImpl.js"
 import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { modal } from "../../gui/base/Modal.js"
-import { editDraft, mailViewerMoreActions, makeAssignMailsButtons } from "./MailViewerUtils.js"
+import { editDraft, mailViewerMoreActions } from "./MailViewerUtils.js"
 import { px, size } from "../../gui/size.js"
 
 export interface MobileMailActionBarAttrs {
@@ -29,8 +29,6 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 			actions = [this.placeholder(), this.placeholder(), this.deleteButton(attrs), this.moveButton(attrs), this.editButton(attrs)]
 		} else if (viewModel.canForwardOrMove()) {
 			actions = [this.replyButton(attrs), this.forwardButton(attrs), this.deleteButton(attrs), this.moveButton(attrs), this.moreButton(attrs)]
-		} else if (viewModel.canAssignMails()) {
-			actions = [this.replyButton(attrs), this.assignButton(attrs), this.deleteButton(attrs), this.placeholder(), this.moreButton(attrs)]
 		} else {
 			actions = [this.replyButton(attrs), this.placeholder(), this.deleteButton(attrs), this.placeholder(), this.moreButton(attrs)]
 		}
@@ -133,18 +131,6 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 			title: "edit_action",
 			icon: Icons.Edit,
 			click: () => editDraft(attrs.viewModel),
-		})
-	}
-
-	private assignButton(attrs: MobileMailActionBarAttrs) {
-		return m(IconButton, {
-			title: "forward_action",
-			icon: Icons.Forward,
-			click: createAsyncDropdown({
-				lazyButtons: () => makeAssignMailsButtons(attrs.viewModel),
-				width: this.dropdownWidth(),
-				withBackground: true,
-			}),
 		})
 	}
 }

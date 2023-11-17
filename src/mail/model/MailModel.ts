@@ -26,7 +26,7 @@ import { elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, lis
 import { LockedError, NotFoundError, PreconditionFailedError } from "../../api/common/error/RestError"
 import type { MailFacade } from "../../api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../api/main/LoginController.js"
-import { areParticipantsRestricted, getEnabledMailAddressesWithUser } from "./MailUtils.js"
+import { getEnabledMailAddressesWithUser } from "./MailUtils.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { FolderSystem } from "../../api/common/mail/FolderSystem.js"
@@ -224,13 +224,7 @@ export class MailModel {
 	 * Finally deletes all given mails. Caller must ensure that mails are only from one folder
 	 */
 	async _moveMails(mails: Mail[], targetMailFolder: MailFolder): Promise<void> {
-		let moveMails = mails.filter(
-			(m) =>
-				m._id[0] !== targetMailFolder.mails &&
-				targetMailFolder._ownerGroup === m._ownerGroup &&
-				// there is a chance to get here without going through that check when using multiselect, so checking again here.
-				!areParticipantsRestricted(m),
-		) // prevent moving mails between mail boxes.
+		let moveMails = mails.filter((m) => m._id[0] !== targetMailFolder.mails && targetMailFolder._ownerGroup === m._ownerGroup) // prevent moving mails between mail boxes.
 
 		// Do not move if target is the same as the current mailFolder
 		const sourceMailFolder = this.getMailFolder(getListId(mails[0]))

@@ -81,7 +81,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private _storageFieldValue: Stream<string>
 	private _emailAliasFieldValue: Stream<string>
 	private _groupsFieldValue: Stream<string>
-	private _contactFormsFieldValue: Stream<string>
 	private _whitelabelFieldValue: Stream<string>
 	private _sharingFieldValue: Stream<string>
 	private _eventInvitesFieldValue: Stream<string>
@@ -240,7 +239,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._sharingFieldValue = stream(loadingString)
 		this._eventInvitesFieldValue = stream(loadingString)
 		this._autoResponderFieldValue = stream(loadingString)
-		this._contactFormsFieldValue = stream(loadingString)
 		this._selectedSubscriptionInterval = stream<PaymentInterval | null>(null)
 
 		this.updatePriceInfo()
@@ -366,7 +364,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			this.updateSharingField(planConfig),
 			this.updateEventInvitesField(planConfig),
 			this.updateAutoResponderField(planConfig),
-			this.updateContactFormsField(),
 		])
 		m.redraw()
 	}
@@ -414,12 +411,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		} else {
 			this._groupsFieldValue(localAdminText)
 		}
-	}
-
-	private async updateContactFormsField(): Promise<void> {
-		const totalAmount = getCurrentCount(BookingItemFeatureType.ContactForm, this._lastBooking)
-
-		this._contactFormsFieldValue(totalAmount.toString())
 	}
 
 	private async updateWhitelabelField(planConfig: PlanConfiguration): Promise<void> {

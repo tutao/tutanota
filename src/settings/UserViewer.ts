@@ -5,11 +5,9 @@ import { formatDateWithMonth, formatStorageSize } from "../misc/Formatter"
 import { lang } from "../misc/LanguageViewModel"
 import type { Customer, GroupInfo, GroupMembership, User } from "../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap, remove } from "@tutao/tutanota-utils"
+import { asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { BookingItemFeatureType, GroupType, OperationType } from "../api/common/TutanotaConstants"
 import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../api/common/error/RestError"
-import type { ContactForm } from "../api/entities/tutanota/TypeRefs.js"
-import { ContactFormTypeRef, CustomerContactFormGroupRootTypeRef, MailboxGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { ColumnWidth, Table, TableAttrs } from "../gui/base/Table.js"
 import { getGroupTypeDisplayName } from "./groups/GroupDetailsView.js"
 import { Icons } from "../gui/base/icons/Icons"
@@ -18,11 +16,10 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { EntityUpdateData } from "../api/main/EventController"
 import { isUpdateForTypeRef } from "../api/main/EventController"
 import { HtmlEditor as Editor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
-import { filterContactFormsForLocalAdmin } from "./contactform/ContactFormListView.js"
 import { checkAndImportUserData, CSV_USER_FORMAT } from "./ImportUsersViewer"
 import { MailAddressTable } from "./mailaddress/MailAddressTable.js"
 import { compareGroupInfos, getGroupInfoDisplayName } from "../api/common/utils/GroupUtils"
-import { CUSTOM_MIN_ID, isSameId } from "../api/common/utils/EntityUtils"
+import { isSameId } from "../api/common/utils/EntityUtils"
 import { showBuyDialog } from "../subscription/BuyDialog"
 import { TextField } from "../gui/base/TextField.js"
 import { locator } from "../api/main/MainLocator"
@@ -42,7 +39,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private readonly customer = new LazyLoaded(() => this.loadCustomer())
 	private readonly teamGroupInfos = new LazyLoaded(() => this.loadTeamGroupInfos())
 	private groupsTableAttrs: TableAttrs | null = null
-	private contactFormsTableAttrs: TableAttrs | null = null
 	private readonly secondFactorsForm: SecondFactorsEditForm
 	private usedStorage: number | null = null
 	private administratedBy: Id | null = null
@@ -73,25 +69,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				}
 
 				await this.updateGroups()
-			}
-		})
-
-		this.customer.getAsync().then(async (customer) => {
-			const contactFormGroupRoot = await locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup)
-			const contactForm = await locator.entityClient.loadRange(ContactFormTypeRef, contactFormGroupRoot.contactForms, CUSTOM_MIN_ID, 1, false)
-			if (contactForm.length > 0) {
-				this.contactFormsTableAttrs = {
-					columnHeading: ["contactForms_label"],
-					columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
-					showActionButtonColumn: true,
-					addButtonAttrs: {
-						title: "addResponsiblePerson_label",
-						icon: Icons.Add,
-						click: () => this.showAddUserToContactFormDialog(),
-					},
-					lines: [],
-				}
-				await this.updateContactForms()
 			}
 		})
 
@@ -153,8 +130,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			m(this.secondFactorsForm),
 			this.groupsTableAttrs ? m(".h4.mt-l.mb-s", lang.get("groups_label")) : null,
 			this.groupsTableAttrs ? m(Table, this.groupsTableAttrs) : null,
-			this.contactFormsTableAttrs ? m(".h4.mt-l.mb-s", lang.get("contactForms_label")) : null,
-			this.contactFormsTableAttrs ? m(Table, this.contactFormsTableAttrs) : null,
 			this.mailAddressTableModel
 				? m(MailAddressTable, {
 						model: this.mailAddressTableModel,
@@ -326,37 +301,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		}
 	}
 
-	private async updateContactForms() {
-		if (this.contactFormsTableAttrs) {
-			const user = await this.user.getAsync()
-			const userMailGroupMembership = neverNull(user.memberships.find((m) => m.groupType === GroupType.Mail))
-			const mailboxGroupRoot = await locator.entityClient.load(MailboxGroupRootTypeRef, userMailGroupMembership.group)
-			if (mailboxGroupRoot.participatingContactForms.length > 0) {
-				const forms = await locator.entityClient.loadMultiple(
-					ContactFormTypeRef,
-					mailboxGroupRoot.participatingContactForms[0][0],
-					mailboxGroupRoot.participatingContactForms.map((idTuple) => idTuple[1]),
-				)
-				this.contactFormsTableAttrs.lines = forms.map((cf) => ({
-					cells: [cf.path],
-					actionButtonAttrs: {
-						title: "remove_action",
-						click: () => {
-							let match = cf.participantGroupInfos.find((id) => isSameId(id, user.userGroup.groupInfo))
-
-							if (match) {
-								remove(cf.participantGroupInfos, match)
-							}
-
-							showProgressDialog("pleaseWait_msg", locator.entityClient.update(cf))
-						},
-						icon: Icons.Cancel,
-					},
-				}))
-			}
-		}
-	}
-
 	private async showAddUserToGroupDialog(): Promise<void> {
 		const user = await this.user.getAsync()
 		if (this.userGroupInfo.deleted) {
@@ -408,40 +352,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				})
 			}
 		}
-	}
-
-	private async showAddUserToContactFormDialog() {
-		const user = await this.user.getAsync()
-		const customer = await this.customer.getAsync()
-		const contactFormGroupRoot = await locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup)
-		const allContactForms = await locator.entityClient.loadAll(ContactFormTypeRef, contactFormGroupRoot.contactForms)
-		const contactForms = await filterContactFormsForLocalAdmin(allContactForms)
-
-		const dropdownItems = contactForms.map((cf) => ({ name: cf.path, value: cf }))
-		let selectedContactForm = contactForms[0]
-
-		Dialog.showActionDialog({
-			title: lang.get("responsiblePersons_label"),
-			child: {
-				view: () =>
-					m(DropDownSelector, {
-						label: "contactForms_label",
-						items: dropdownItems,
-						selectedValue: selectedContactForm,
-						selectionChangedHandler: (selection: ContactForm) => (selectedContactForm = selection),
-						dropdownWidth: 250,
-					}),
-			},
-			allowOkWithReturn: true,
-			okAction: (dialog: Dialog) => {
-				if (!selectedContactForm.participantGroupInfos.includes(user.userGroup.groupInfo)) {
-					selectedContactForm.participantGroupInfos.push(user.userGroup.groupInfo)
-				}
-
-				showProgressDialog("pleaseWait_msg", locator.entityClient.update(selectedContactForm))
-				dialog.close()
-			},
-		})
 	}
 
 	private async updateUsedStorageAndAdminFlag(): Promise<void> {
@@ -522,8 +432,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				this.user.reset()
 				await this.updateUsedStorageAndAdminFlag()
 				await this.updateGroups()
-			} else if (isUpdateForTypeRef(MailboxGroupRootTypeRef, update)) {
-				await this.updateContactForms()
 			}
 			await this.secondFactorsForm.entityEventReceived(update)
 		}

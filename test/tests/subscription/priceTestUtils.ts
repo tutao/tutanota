@@ -7,7 +7,6 @@ export const PLAN_PRICES = {
 	Free: createPlanPrices({
 		additionalUserPriceMonthly: "0.00",
 		business: false,
-		contactFormPriceMonthly: "0.00",
 		firstYearDiscount: "0",
 		includedAliases: "0",
 		includedStorage: "1",
@@ -30,7 +29,6 @@ export const PLAN_PRICES = {
 		whitelabel: false,
 		additionalUserPriceMonthly: "2.40",
 		business: true,
-		contactFormPriceMonthly: "24.00",
 		firstYearDiscount: "0",
 		includedAliases: "5",
 		includedStorage: "1",
@@ -46,7 +44,6 @@ export const PLAN_PRICES = {
 	Premium: createPlanPrices({
 		additionalUserPriceMonthly: "1.20",
 		business: false,
-		contactFormPriceMonthly: "24.00",
 		firstYearDiscount: "0",
 		includedAliases: "5",
 		includedStorage: "1",
@@ -62,7 +59,6 @@ export const PLAN_PRICES = {
 	Pro: createPlanPrices({
 		additionalUserPriceMonthly: "4.80",
 		business: true,
-		contactFormPriceMonthly: "24.00",
 		firstYearDiscount: "0",
 		includedAliases: "20",
 		includedStorage: "10",
@@ -78,7 +74,6 @@ export const PLAN_PRICES = {
 	TeamsBusiness: createPlanPrices({
 		additionalUserPriceMonthly: "3.60",
 		business: true,
-		contactFormPriceMonthly: "24.00",
 		firstYearDiscount: "0",
 		includedAliases: "5",
 		includedStorage: "10",
@@ -94,7 +89,6 @@ export const PLAN_PRICES = {
 	Teams: createPlanPrices({
 		additionalUserPriceMonthly: "2.40",
 		business: false,
-		contactFormPriceMonthly: "24.00",
 		firstYearDiscount: "0",
 		includedAliases: "5",
 		includedStorage: "10",
@@ -110,7 +104,6 @@ export const PLAN_PRICES = {
 	Revolutionary: createPlanPrices({
 		additionalUserPriceMonthly: "3.60",
 		business: true,
-		contactFormPriceMonthly: "24.00",
 		firstYearDiscount: "0",
 		includedAliases: "15",
 		includedStorage: "20",
@@ -128,7 +121,6 @@ export const PLAN_PRICES = {
 	Legend: createPlanPrices({
 		additionalUserPriceMonthly: "9.60",
 		business: true,
-		contactFormPriceMonthly: "24.00",
 		firstYearDiscount: "0",
 		includedAliases: "30",
 		includedStorage: "500",
@@ -146,7 +138,6 @@ export const PLAN_PRICES = {
 	Essential: createPlanPrices({
 		additionalUserPriceMonthly: "7.20",
 		business: true,
-		contactFormPriceMonthly: "24.00",
 		firstYearDiscount: "0",
 		includedAliases: "15",
 		includedStorage: "50",
@@ -164,7 +155,6 @@ export const PLAN_PRICES = {
 	Advanced: createPlanPrices({
 		additionalUserPriceMonthly: "9.60",
 		business: true,
-		contactFormPriceMonthly: "24.00",
 		firstYearDiscount: "0",
 		includedAliases: "30",
 		includedStorage: "500",
@@ -182,7 +172,6 @@ export const PLAN_PRICES = {
 	Unlimited: createPlanPrices({
 		additionalUserPriceMonthly: "14.40",
 		business: true,
-		contactFormPriceMonthly: "24.00",
 		firstYearDiscount: "0",
 		includedAliases: "30",
 		includedStorage: "1000",
