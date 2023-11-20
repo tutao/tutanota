@@ -46,6 +46,7 @@
 		"@types/winreg": "1.2.31",
 		"better-sqlite3": "git+https://github.com/tutao/better-sqlite3-sqlcipher#a3e79ddcb3ac198be0c1e93cc660a56e319219ba",
 		"cborg": "1.5.4",
+		"dmg-license": "^1.0.11",
 		"dompurify": "3.0.4",
 		"electron": "27.0.4",
 		"electron-updater": "6.1.1",

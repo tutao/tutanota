@@ -78,7 +78,7 @@ export async function buildDesktop({ dirname, version, platform, architecture, u
 	}
 
 	console.log("Bundling desktop client")
-	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform, disableMinify)
+	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform, architecture, disableMinify)
 
 	console.log("Starting installer build...")
 	if (process.platform.startsWith("darwin")) {
@@ -114,7 +114,7 @@ export async function buildDesktop({ dirname, version, platform, architecture, u
 	])
 }
 
-async function rollupDesktop(dirname, outDir, version, platform, disableMinify) {
+async function rollupDesktop(dirname, outDir, version, platform, architecture, disableMinify) {
 	platform = getCanonicalPlatformName(platform)
 	const mainBundle = await rollup({
 		input: [path.join(dirname, "src/desktop/DesktopMain.ts"), path.join(dirname, "src/desktop/sqlworker.ts")],
@@ -127,12 +127,14 @@ async function rollupDesktop(dirname, outDir, version, platform, disableMinify) 
 				rootDir: projectRoot,
 				dstPath: "./build/desktop/",
 				platform,
+				architecture,
 				nodeModule: "better-sqlite3",
 			}),
 			copyNativeModulePlugin({
 				rootDir: projectRoot,
 				dstPath: "./build/desktop/",
 				platform,
+				architecture,
 				nodeModule: "keytar",
 			}),
 			typescript({

@@ -97,6 +97,7 @@ async function buildDesktopPart({ version }) {
 					environment: "electron",
 					dstPath: "./build/desktop/better_sqlite3.node",
 					platform: process.platform,
+					architecture: process.arch,
 					nativeBindingPath: "./better_sqlite3.node",
 				}),
 				keytarNativePlugin({
@@ -104,6 +105,7 @@ async function buildDesktopPart({ version }) {
 					dstPath: "./build/desktop/keytar.node",
 					nativeBindingPath: "./keytar.node",
 					platform: process.platform,
+					architecture: process.arch,
 				}),
 				preludeEnvPlugin(env.create({ staticUrl: null, version, mode: "Desktop", dist: false, domainConfigs })),
 				externalTranslationsPlugin(),
