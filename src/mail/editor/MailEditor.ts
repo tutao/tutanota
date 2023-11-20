@@ -100,6 +100,7 @@ export type MailEditorAttrs = {
 	templateModel: TemplatePopupModel | null
 	knowledgeBaseInjection: (editor: Editor) => Promise<DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs> | null>
 	search: RecipientsSearchModel
+	isReplyingFromEmailView: boolean
 }
 
 export function createMailEditorAttrs(
@@ -110,6 +111,7 @@ export function createMailEditorAttrs(
 	templateModel: TemplatePopupModel | null,
 	knowledgeBaseInjection: (editor: Editor) => Promise<DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs> | null>,
 	search: RecipientsSearchModel,
+	isReplyingFromEmailView: boolean = false,
 ): MailEditorAttrs {
 	return {
 		model,
@@ -120,6 +122,7 @@ export function createMailEditorAttrs(
 		templateModel,
 		knowledgeBaseInjection: knowledgeBaseInjection,
 		search,
+		isReplyingFromEmailView,
 	}
 }
 
@@ -178,28 +181,25 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				this.editor.setHTML(model.getBody())
 
 				if (externalImageRule === ExternalImageRule.Block) {
-					this.blockExternalContent = true
-					let blockingStatus = ContentBlockingStatus.Block
-
-					if (externalImageRule === ExternalImageRule.Block) {
-						this.alwaysBlockExternalContent = true
-						blockingStatus = ContentBlockingStatus.AlwaysBlock
-					}
-
-					this.updateExternalContentStatus(blockingStatus)
+					// When we have an explicit rule for blocking images we don´t
+					// want to prompt the user about showing images again
+					this.alwaysBlockExternalContent = true
+					this.updateExternalContentStatus(ContentBlockingStatus.AlwaysBlock)
 				} else if (externalImageRule === ExternalImageRule.Allow && model.getPreviousMail()?.authStatus === MailAuthenticationStatus.AUTHENTICATED) {
-					this.blockExternalContent = false
 					this.updateExternalContentStatus(ContentBlockingStatus.AlwaysShow)
 				} else if (externalImageRule === ExternalImageRule.None && model.isUserPreviousSender()) {
-					this.blockExternalContent = true
 					this.updateExternalContentStatus(ContentBlockingStatus.Block)
-				} else {
+				} else if (this.attrs.isReplyingFromEmailView) {
+					// If users are on the email view, maybe it selected
+					// to show the images, so we can respect it
 					this.blockExternalContent = a.doBlockExternalContent()
-
-					// As we don't have a defined rule we lead the decision
-					// to show external content to the user and just process the inline images
-					this.processInlineImages()
+				} else {
+					// User is opening the draft from somewhere else, so maybe we
+					// have a false negative a.doBlockExternalContent(), better prompt user again
+					this.updateExternalContentStatus(ContentBlockingStatus.Block)
 				}
+
+				this.processInlineImages()
 
 				// Add mutation observer to remove attachments when corresponding DOM element is removed
 				new MutationObserver(onEditorChanged).observe(this.editor.getDOM(), {
@@ -531,7 +531,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 		const showButton: ButtonAttrs = {
 			label: "showBlockedContent_action",
-			click: () => this.updateExternalContentStatus(ContentBlockingStatus.Show),
+			click: () => {
+				this.updateExternalContentStatus(ContentBlockingStatus.Show)
+				this.processInlineImages()
+			},
 		}
 
 		return m(InfoBanner, {
@@ -546,11 +549,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		this.blockExternalContent = status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock
 
 		const sanitized = htmlSanitizer.sanitizeHTML(this.editor.getHTML(), {
-			blockExternalContent: status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock,
+			blockExternalContent: this.blockExternalContent,
 		})
 
 		this.editor.setHTML(sanitized.html)
-		this.processInlineImages()
 	}
 
 	private processInlineImages() {
@@ -851,10 +853,11 @@ export class MailEditor implements Component<MailEditorAttrs> {
  * Creates a new Dialog with a MailEditor inside.
  * @param model
  * @param blockExternalContent
+ * @param isReplyingFromEmailView Inform if it's a reply to an email
  * @returns {Dialog}
  * @private
  */
-async function createMailEditorDialog(model: SendMailModel, blockExternalContent: boolean = false): Promise<Dialog> {
+async function createMailEditorDialog(model: SendMailModel, blockExternalContent: boolean = false, isReplyingFromEmailView: boolean = false): Promise<Dialog> {
 	let dialog: Dialog
 	let mailEditorAttrs: MailEditorAttrs
 
@@ -1007,6 +1010,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		templatePopupModel,
 		createKnowledgebaseButtonAttrs,
 		await locator.recipientsSearchModel(),
+		isReplyingFromEmailView,
 	)
 	const shortcuts: Shortcut[] = [
 		{
@@ -1078,7 +1082,8 @@ export async function newMailEditorAsResponse(
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	const model = await locator.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 	await model.initAsResponse(args, inlineImages)
-	return createMailEditorDialog(model, blockExternalContent)
+
+	return createMailEditorDialog(model, blockExternalContent, true)
 }
 
 export async function newMailEditorFromDraft(
