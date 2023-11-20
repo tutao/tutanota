@@ -645,10 +645,10 @@ export class MailFacade {
 
 			// copy password information if this is an external contact
 			// otherwise load the key information from the server
+			const isSharedMailboxSender = !isSameId(this.userFacade.getGroupId(GroupType.Mail), senderMailGroupId)
 			if (recipient.type === RecipientType.EXTERNAL) {
 				const password = this.getContactPassword(recipient.contact)
-
-				if (password == null || !isSameId(this.userFacade.getGroupId(GroupType.Mail), senderMailGroupId)) {
+				if (password == null || isSharedMailboxSender) {
 					// no password given and prevent sending to secure externals from shared group
 					notFoundRecipients.push(recipient.address)
 					continue
@@ -673,7 +673,7 @@ export class MailFacade {
 				service.secureExternalRecipientKeyData.push(data)
 			} else {
 				const keyData = await this.crypto.encryptBucketKeyForInternalRecipient(
-					this.userFacade.getLoggedInUser().userGroup.group,
+					isSharedMailboxSender ? senderMailGroupId : this.userFacade.getLoggedInUser().userGroup.group,
 					bucketKey,
 					recipient.address,
 					notFoundRecipients,

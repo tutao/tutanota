@@ -600,7 +600,7 @@ export class CryptoFacade {
 					let uint8ArrayBucketKey = bitArrayToUint8Array(bucketKey)
 					if (recipientPubKey instanceof PQPublicKeys) {
 						const senderKeyPair = await this.loadKeypair(senderUserGroupId)
-						const senderIdentityKeyPair = await this.getOrMakeSenderIdentityKeyPair(senderKeyPair)
+						const senderIdentityKeyPair = await this.getOrMakeSenderIdentityKeyPair(senderKeyPair, senderUserGroupId)
 						const ephemeralKeyPair = generateEccKeyPair()
 						encrypted = encodePQMessage(await this.pq.encapsulate(senderIdentityKeyPair, ephemeralKeyPair, recipientPubKey, uint8ArrayBucketKey))
 					} else {
@@ -625,7 +625,7 @@ export class CryptoFacade {
 			)
 	}
 
-	async getOrMakeSenderIdentityKeyPair(senderKeyPair: RsaEccKeyPair | RsaKeyPair | PQKeyPairs): Promise<EccKeyPair> {
+	async getOrMakeSenderIdentityKeyPair(senderKeyPair: RsaEccKeyPair | RsaKeyPair | PQKeyPairs, senderUserGroupId: Id | null = null): Promise<EccKeyPair> {
 		if (senderKeyPair instanceof PQKeyPairs) {
 			return senderKeyPair.eccKeyPair
 		} else {
@@ -633,9 +633,10 @@ export class CryptoFacade {
 			if (senderKeys.publicEccKey) {
 				return { publicKey: senderKeys.publicEccKey, privateKey: senderKeys.privateEccKey }
 			}
+			let userGroupKey = senderUserGroupId ? this.userFacade.getGroupKey(senderUserGroupId) : this.userFacade.getUserGroupKey()
 			const newIdentityKeyPair = generateEccKeyPair()
-			const symEncPrivEccKey = encryptEccKey(this.userFacade.getUserGroupKey(), newIdentityKeyPair.privateKey)
-			const data = createPublicKeyPutIn({ pubEccKey: newIdentityKeyPair.publicKey, symEncPrivEccKey })
+			const symEncPrivEccKey = encryptEccKey(userGroupKey, newIdentityKeyPair.privateKey)
+			const data = createPublicKeyPutIn({ pubEccKey: newIdentityKeyPair.publicKey, symEncPrivEccKey, senderUserGroupId: senderUserGroupId })
 			await this.serviceExecutor.put(PublicKeyService, data)
 			return newIdentityKeyPair
 		}
