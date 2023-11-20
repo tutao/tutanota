@@ -8,13 +8,14 @@ import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
 import type { CalendarEventBubbleClickHandler } from "./CalendarViewModel"
 import { getNextFourteenDays } from "./CalendarGuiUtils.js"
-import { VisualDatePicker } from "../../gui/date/DatePicker.js"
 import { styles } from "../../gui/styles.js"
 import { DateTime } from "luxon"
 import { CalendarAgendaItemView } from "./CalendarAgendaItemView.js"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { theme } from "../../gui/theme.js"
+import { px, size } from "../../gui/size.js"
+import { DaySelector } from "../date/DaySelector.js"
 
 type Attrs = {
 	selectedDate: Date
@@ -47,30 +48,47 @@ export class CalendarAgendaView implements Component<Attrs> {
 	}
 
 	private renderDateSelector(attrs: Attrs, selectedDate: Date): Children {
+		// This time width is used to create a container above the day slider
+		// So the hidden dates "seems" to be following the same margin of the view
+		const timeWidth = styles.isSingleColumnLayout() ? size.calendar_hour_width_mobile : size.calendar_hour_width
 		return styles.isDesktopLayout()
 			? null
 			: m(
-					".pb-s",
-					m(VisualDatePicker, {
-						eventsForDays: attrs.eventsForDays,
-						selectedDate: selectedDate,
-						onDateSelected: (selectedDate: Date) => {
-							attrs.onDateSelected(selectedDate)
+					".flex.full-width.items-center",
+					m(
+						".full-width.overflow-hidden",
+						{
+							style: {
+								"margin-left": px(timeWidth),
+							},
 						},
-						wide: true,
-						startOfTheWeekOffset: attrs.startOfTheWeekOffset,
-						isDaySelectorExpanded: attrs.isDaySelectorExpanded,
-						isExpandableDatePicker: true,
-						handleDayPickerSwipe: (isNext: boolean) => {
-							const sign = isNext ? 1 : -1
-							const duration = {
-								month: sign * (attrs.isDaySelectorExpanded ? 1 : 0),
-								week: sign * (attrs.isDaySelectorExpanded ? 0 : 1),
-							}
+						[
+							m(
+								".pb-s.full-width",
 
-							attrs.onDateSelected(DateTime.fromJSDate(attrs.selectedDate).plus(duration).toJSDate())
-						},
-					}),
+								m(DaySelector, {
+									eventsForDays: attrs.eventsForDays,
+									selectedDate: selectedDate,
+									onDateSelected: (selectedDate: Date) => {
+										attrs.onDateSelected(selectedDate)
+									},
+									wide: true,
+									startOfTheWeekOffset: attrs.startOfTheWeekOffset,
+									isDaySelectorExpanded: attrs.isDaySelectorExpanded,
+									handleDayPickerSwipe: (isNext: boolean) => {
+										const sign = isNext ? 1 : -1
+										const duration = {
+											month: sign * (attrs.isDaySelectorExpanded ? 1 : 0),
+											week: sign * (attrs.isDaySelectorExpanded ? 0 : 1),
+										}
+
+										attrs.onDateSelected(DateTime.fromJSDate(attrs.selectedDate).plus(duration).toJSDate())
+									},
+									showDaySelection: true,
+								}),
+							),
+						],
+					),
 			  )
 	}
 

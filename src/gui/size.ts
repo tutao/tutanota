@@ -59,7 +59,7 @@ export const size = {
 	},
 
 	calendar_hour_width: 80,
-	calendar_hour_width_mobile: 60,
+	calendar_hour_width_mobile: 30,
 	calendar_event_margin: 6,
 	calendar_event_margin_mobile: 2,
 	calendar_event_border: 1,
