@@ -23,7 +23,7 @@ await program
 	.addArgument(new Argument("host").argOptional())
 	.option("-e, --existing", "Use existing prebuilt Webapp files in /build/")
 	.option("-p, --platform <platform>", "For which platform to build: linux|win|mac", process.platform)
-	.option("-a, --architecture <architecture>", "For which CPU architecture to build: x64|arm_64", process.arch)
+	.option("-a, --architecture <architecture>", "For which CPU architecture to build: x64|arm_64|universal", process.arch)
 	.option(
 		"-c,--custom-desktop-release",
 		"use if manually building desktop client from source. doesn't install auto updates, but may still notify about new releases.",
