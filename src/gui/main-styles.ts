@@ -342,6 +342,9 @@ styles.registerStyle("main", () => {
 			"margin-left": px(size.hpad_small),
 			"margin-right": px(size.hpad_small),
 		},
+		".ml-hpad_small": {
+			"margin-left": px(size.hpad_small),
+		},
 		".mtb-0": {
 			"margin-top": px(0),
 			"margin-bottom": px(0),
@@ -653,7 +656,11 @@ styles.registerStyle("main", () => {
 		".accent-bg-translucent": {
 			background: `${theme.content_accent}2C`,
 			color: theme.content_accent,
-			"font-weight": "bold",
+		},
+		".button-bg": {
+			background: theme.content_button,
+			color: theme.navigation_bg,
+			opacity: "0.5",
 		},
 		".accent-bg": {
 			"background-color": theme.content_accent,

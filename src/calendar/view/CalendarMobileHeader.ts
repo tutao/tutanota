@@ -93,6 +93,14 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 				childAttrs: () => {
 					const calendarViewValues: Array<{ name: TranslationKey; value: CalendarViewType }> = [
 						{
+							name: "day_label",
+							value: CalendarViewType.DAY,
+						},
+						{
+							name: "week_label",
+							value: CalendarViewType.WEEK,
+						},
+						{
 							name: "month_label",
 							value: CalendarViewType.MONTH,
 						},
@@ -102,17 +110,6 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 						},
 					]
 
-					if (styles.isDesktopLayout() || styles.isTwoColumnLayout()) {
-						calendarViewValues.unshift({
-							name: "week_label",
-							value: CalendarViewType.WEEK,
-						})
-					}
-
-					calendarViewValues.unshift({
-						name: "day_label",
-						value: CalendarViewType.DAY,
-					})
 					return calendarViewValues.map(({ name, value }) => ({
 						label: name,
 						selected: value === attrs.viewType,

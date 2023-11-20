@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { getStartOfDay, incrementDate, isSameDay, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
-import { formatTime } from "../../misc/Formatter"
+import { getStartOfDay, incrementDate, isSameDay, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { formatShortTime, formatTime } from "../../misc/Formatter"
 import {
 	CALENDAR_EVENT_HEIGHT,
 	combineDateWithTime,
@@ -39,8 +39,8 @@ import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarVi
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { locator } from "../../api/main/MainLocator.js"
-import { VisualDatePicker } from "../../gui/date/DatePicker.js"
 import { DateTime } from "luxon"
+import { DaySelector } from "../date/DaySelector.js"
 
 export type Attrs = {
 	selectedDate: Date
@@ -55,9 +55,8 @@ export type Attrs = {
 	onChangeViewPeriod: (next: boolean) => unknown
 	temporaryEvents: Array<CalendarEvent>
 	dragHandlerCallbacks: EventDragHandlerCallbacks
-	eventsForDays?: Map<number, Array<CalendarEvent>>
-	isDaySelectorExpanded?: boolean
-	startOfTheWeekOffset?: number
+	eventsForDays: Map<number, Array<CalendarEvent>>
+	isDaySelectorExpanded: boolean
 }
 
 export class MultiDayCalendarView implements Component<Attrs> {
@@ -120,28 +119,36 @@ export class MultiDayCalendarView implements Component<Attrs> {
 	}
 
 	private renderDateSelector(attrs: Attrs): Children {
-		return styles.isSingleColumnLayout() && attrs.daysInPeriod === 1
-			? m(
-					".header-bg.pb-s.overflow-hidden",
-					m(VisualDatePicker, {
-						eventsForDays: attrs.eventsForDays,
-						selectedDate: attrs.selectedDate,
-						onDateSelected: (date) => attrs.onDateSelected(date),
-						wide: true,
-						startOfTheWeekOffset: attrs.startOfTheWeekOffset ?? 0,
-						isDaySelectorExpanded: attrs.isDaySelectorExpanded,
-						isExpandableDatePicker: true,
-						handleDayPickerSwipe: (isNext: boolean) => {
-							const sign = isNext ? 1 : -1
-							const duration = {
-								month: sign * (attrs.isDaySelectorExpanded ? 1 : 0),
-								week: sign * (attrs.isDaySelectorExpanded ? 0 : 1),
-							}
-
-							attrs.onDateSelected(DateTime.fromJSDate(attrs.selectedDate).plus(duration).toJSDate())
+		const timeWidth = styles.isSingleColumnLayout() ? size.calendar_hour_width_mobile : size.calendar_hour_width
+		return !styles.isDesktopLayout()
+			? m("", [
+					m(
+						".header-bg.pb-s.overflow-hidden",
+						{
+							style: {
+								"margin-left": px(timeWidth),
+							},
 						},
-					}),
-			  )
+						m(DaySelector, {
+							eventsForDays: attrs.eventsForDays,
+							selectedDate: attrs.selectedDate,
+							onDateSelected: (date) => attrs.onDateSelected(date),
+							wide: true,
+							startOfTheWeekOffset: getStartOfTheWeekOffset(attrs.startOfTheWeek),
+							isDaySelectorExpanded: attrs.isDaySelectorExpanded,
+							handleDayPickerSwipe: (isNext: boolean) => {
+								const sign = isNext ? 1 : -1
+								const duration = {
+									month: sign * (attrs.isDaySelectorExpanded ? 1 : 0),
+									week: sign * (attrs.isDaySelectorExpanded ? 0 : 1),
+								}
+
+								attrs.onDateSelected(DateTime.fromJSDate(attrs.selectedDate).plus(duration).toJSDate())
+							},
+							showDaySelection: attrs.daysInPeriod === 1,
+						}),
+					),
+			  ])
 			: null
 	}
 
@@ -186,7 +193,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 				},
 			},
 			[
-				styles.isDesktopLayout() || (styles.isTwoColumnLayout() && attrs.daysInPeriod > 1)
+				styles.isDesktopLayout()
 					? this.renderHeaderDesktop(attrs, thisWeek, mainWeek)
 					: this.renderHeaderMobile(thisWeek, mainWeek, attrs.groupColors, attrs.onEventClicked, attrs.temporaryEvents),
 				// using .scroll-no-overlay because of a browser bug in Chromium where scroll wouldn't work at all
@@ -215,7 +222,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 						m(
 							".flex.col",
 							calendarDayTimes.map((time) => {
-								const width = styles.isDesktopLayout() ? size.calendar_hour_width : size.calendar_hour_width_mobile
+								const width = !styles.isSingleColumnLayout() ? size.calendar_hour_width : size.calendar_hour_width_mobile
 								return m(
 									".calendar-hour.flex.cursor-pointer",
 									{
@@ -225,7 +232,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 										},
 									},
 									m(
-										".pl-s.pr-s.center.small",
+										".pl-s.pr-s.center.small.flex.flex-column.justify-center",
 										{
 											style: {
 												"line-height": styles.isDesktopLayout() ? px(size.calendar_hour_height) : "unset",
@@ -234,7 +241,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 												"border-right": `2px solid ${theme.content_border}`,
 											},
 										},
-										formatTime(time.toDate()),
+										styles.isSingleColumnLayout() ? formatShortTime(time.toDate()) : formatTime(time.toDate()),
 									),
 								)
 							}),
@@ -356,10 +363,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 					// in day view there's no days row and no selection indicator.
 					// it all must work with and without long events.
 					// thread carefully and test all the cases.
-					[
-						this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, attrs.temporaryEvents),
-						this.renderSelectedDateIndicatorRow(selectedDate, thisPageEvents.days),
-					],
+					[this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, attrs.temporaryEvents)],
 				),
 			]),
 		])
@@ -586,11 +590,24 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		return m(
 			".flex.mb-s",
 			days.map((day) => {
-				const dayNumberClass =
-					".calendar-day-indicator.calendar-day-number.clickable.circle" + (this._getTodayTimestamp() === day.getTime() ? ".accent-bg" : "")
-
 				// the click handler is set on each child individually so as to not make the entire flex container clickable, only the text
 				const onclick = () => onDateSelected(day, CalendarViewType.DAY)
+
+				let circleStyle
+				let textStyle
+
+				if (isToday(day)) {
+					circleStyle = {
+						backgroundColor: theme.content_button,
+						opacity: "0.25",
+					}
+					textStyle = {
+						fontWeight: "bold",
+					}
+				} else {
+					circleStyle = {}
+					textStyle = {}
+				}
 
 				return m(".flex.center-horizontally.flex-grow.center.b", [
 					m(
@@ -604,14 +621,31 @@ export class MultiDayCalendarView implements Component<Attrs> {
 						lang.formats.weekdayShort.format(day) + " ",
 					),
 					m(
-						dayNumberClass,
+						".rel.click.flex.items-center.justify-center.rel.ml-hpad_small",
 						{
+							"aria-label": day.toLocaleDateString(),
 							onclick,
-							style: {
-								margin: "0",
-							},
 						},
-						day.getDate(),
+						[
+							m(".abs.z1.circle", {
+								style: {
+									...circleStyle,
+									width: px(25),
+									height: px(25),
+								},
+							}),
+							m(
+								".full-width.height-100p.center.z2",
+								{
+									style: {
+										...textStyle,
+										fontSize: "14px",
+										lineHeight: "25px",
+									},
+								},
+								day.getDate(),
+							),
+						],
 					),
 				])
 			}),

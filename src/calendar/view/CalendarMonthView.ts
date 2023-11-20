@@ -7,7 +7,6 @@ import {
 	EventLayoutMode,
 	getAllDayDateForTimezone,
 	getCalendarMonth,
-	getDateIndicator,
 	getDiffIn24hIntervals,
 	getEventColor,
 	getEventEnd,
@@ -20,7 +19,7 @@ import {
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
 } from "../date/CalendarUtils"
-import { incrementDate, incrementMonth, isSameDay, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { incrementDate, incrementMonth, isSameDay, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { styles } from "../../gui/styles"
 import { isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
@@ -33,12 +32,12 @@ import { EventDragHandler } from "./EventDragHandler"
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
-import { theme } from "../../gui/theme"
 import { CalendarViewType, getDateFromMousePos, SELECTED_DATE_INDICATOR_THICKNESS } from "./CalendarGuiUtils"
 import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarViewModel"
 import { Time } from "../date/Time.js"
 import { client } from "../../misc/ClientDetector"
 import { locator } from "../../api/main/MainLocator.js"
+import { theme } from "../../gui/theme.js"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date
@@ -244,7 +243,6 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				m(".mb-xs", {
 					style: {
 						height: px(SELECTED_DATE_INDICATOR_THICKNESS),
-						background: isSelectedDate ? theme.content_accent : "none",
 					},
 				}),
 				this._renderDayHeader(day, today, attrs.onDateSelected), // According to ISO 8601, weeks always start on Monday. Week numbering systems for
@@ -256,21 +254,69 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 	}
 
 	_renderDayHeader({ date, day }: CalendarDay, today: Date, onDateSelected: (date: Date, calendarViewTypeToShow: CalendarViewType) => unknown): Children {
-		return m(".flex-center", [
-			m(
-				".calendar-day-indicator.circle" + getDateIndicator(date, today),
-				{
-					onclick: (e: MouseEvent) => {
-						onDateSelected(new Date(date), client.isDesktopDevice() || styles.isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA)
-						e.stopPropagation()
-					},
-					style: {
-						width: px(22),
-					},
+		let circleStyle
+		let textStyle
+		if (isToday(date)) {
+			circleStyle = {
+				backgroundColor: theme.content_button,
+				opacity: "0.25",
+			}
+			textStyle = {
+				fontWeight: "bold",
+			}
+		} else {
+			circleStyle = {}
+			textStyle = {}
+		}
+
+		const size = styles.isDesktopLayout() ? px(22) : px(20)
+		return m(
+			".rel.click.flex.items-center.justify-center.rel.ml-hpad_small",
+			{
+				"aria-label": date.toLocaleDateString(),
+				onclick: (e: MouseEvent) => {
+					onDateSelected(new Date(date), client.isDesktopDevice() || styles.isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA)
+					e.stopPropagation()
 				},
-				String(day),
-			),
-		])
+			},
+			[
+				m(".abs.z1.circle", {
+					style: {
+						...circleStyle,
+						width: size,
+						height: size,
+					},
+				}),
+				m(
+					".full-width.height-100p.center.z2",
+					{
+						style: {
+							...textStyle,
+							fontSize: styles.isDesktopLayout() ? "14px" : "12px",
+							lineHeight: size,
+						},
+					},
+					String(day),
+				),
+			],
+		)
+
+		// return m(".flex-center", [
+		// 	m(
+		// 		".circle",
+		// 		{
+		// 			onclick: (e: MouseEvent) => {
+		// 				onDateSelected(new Date(date), client.isDesktopDevice() || styles.isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA)
+		// 				e.stopPropagation()
+		// 			},
+		// 			style: {
+		// 				width: px(22),
+		//
+		// 			},
+		// 		},
+		// 		String(day),
+		// 	),
+		// ])
 	}
 
 	/** render the events for the given week */
