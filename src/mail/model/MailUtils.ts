@@ -167,7 +167,7 @@ export function getFolderName(folder: MailFolder): string {
 			return lang.get("trash_action")
 
 		case "4":
-			return lang.get("archive_action")
+			return lang.get("archive_label")
 
 		case "5":
 			return lang.get("spam_action")
