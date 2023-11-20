@@ -96,12 +96,14 @@ export async function runTestBuild({ clean, fast = false }) {
 					// We put it back into node_modules because we don't bundle it. If we remove node_modules but keep the cached one we will not run build.
 					dstPath: "../node_modules/better-sqlite3/build/Release/better_sqlite3.node",
 					platform: process.platform,
+					architecture: process.arch,
 					nativeBindingPath: path.resolve("../node_modules/better-sqlite3/build/Release/better_sqlite3.node"),
 				}),
 				keytarNativePlugin({
 					environment: "node",
 					dstPath: "./build/keytar.node",
 					platform: process.platform,
+					architecture: process.arch,
 				}),
 				watPlugin({
 					loader: "file",
