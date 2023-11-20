@@ -74,7 +74,6 @@ import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { KdfPicker } from "../../misc/KdfPicker.js"
-import { ContentBlockingStatus } from "../view/MailViewerViewModel.js"
 import { ConfigurationDatabase } from "../../api/worker/facades/lazy/ConfigurationDatabase.js"
 
 assertMainOrNode()
@@ -149,8 +148,6 @@ export class SendMailModel {
 	// If saveDraft is called while the previous call is still running, then flag to call again afterwards
 	private doSaveAgain: boolean = false
 	private recipientsResolved = new LazyLoaded<void>(async () => {})
-
-	private contentBlockingStatus: ContentBlockingStatus | null = null
 
 	/**
 	 * creates a new empty draft message. calling an init method will fill in all the blank data
@@ -333,6 +330,7 @@ export class SendMailModel {
 		// if we reuse the same image references, changing the displayed mail in mail view will cause the minimized draft to lose
 		// that reference, because it will be revoked
 		this.loadedInlineImages = cloneInlineImages(inlineImages)
+
 		return this.init({
 			conversationType,
 			subject,
@@ -1077,10 +1075,6 @@ export class SendMailModel {
 
 	setOnBeforeSendFunction(fun: () => unknown) {
 		this.onBeforeSend = fun
-	}
-
-	getContentBlockingStatus(): ContentBlockingStatus | null {
-		return this.contentBlockingStatus
 	}
 
 	isUserPreviousSender(): boolean {
