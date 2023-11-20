@@ -112,7 +112,7 @@ export const domainConfigStub: DomainConfig = {
 	websiteBaseUrl: "",
 }
 
-// non-async copy
+// non-async copy of the function
 function resolveTypeReference(typeRef: TypeRef<any>): TypeModel {
 	// @ts-ignore
 	const modelMap = typeModels[typeRef.app]
