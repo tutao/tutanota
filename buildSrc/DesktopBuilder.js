@@ -23,7 +23,7 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @param dirname directory this was called from
  * @param version application version that gets built
  * @param platform: {"linux"|"win32"|"darwin"} - Canonical platform name of the desktop target to be built
- * @param architecture: {"arm64"|"x64"} the instruction set used in the built desktop binary
+ * @param architecture: {"arm64"|"x64"|"universal"} the instruction set used in the built desktop binary
  * @param updateUrl where the client should pull its updates from, if any
  * @param nameSuffix suffix used to distinguish test-, prod- or snapshot builds on the same machine
  * @param notarize for the MacOs notarization feature
