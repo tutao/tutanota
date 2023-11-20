@@ -671,14 +671,14 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				break
 		}
 
-		Promise.all([import("../../settings/AddSpamRuleDialog"), import("@tutao/tutanota-crypto")]).then(([{ showAddSpamRuleDialog }, { sha256Hash }]) => {
+		import("../../settings/AddSpamRuleDialog").then(async ({ showAddSpamRuleDialog }) => {
 			const value = address.trim().toLowerCase()
 			showAddSpamRuleDialog(
 				createEmailSenderListElement({
 					value,
 					type: spamRuleType,
 					field: spamRuleField,
-					hashedValue: uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(value))),
+					hashedValue: await locator.worker.getWorkerInterface().cryptoFacade.sha256(value),
 				}),
 			)
 		})
