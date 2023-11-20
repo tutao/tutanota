@@ -54,6 +54,7 @@ import {
 	hexToPublicKey,
 	IV_BYTE_LENGTH,
 	random,
+	sha256Hash,
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
@@ -299,6 +300,13 @@ export class CryptoFacade {
 		} else {
 			throw new SessionKeyNotFoundError(`encrypted bucket key not set on instance ${typeName}`)
 		}
+	}
+
+	/**
+	 * Calculates the SHA-256 checksum of a string value as UTF-8 bytes and returns it as a base64-encoded string
+	 */
+	public async sha256(value: string): Promise<string> {
+		return uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(value)))
 	}
 
 	/**

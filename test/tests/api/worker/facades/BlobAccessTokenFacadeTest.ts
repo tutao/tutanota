@@ -29,7 +29,6 @@ o.spec("BlobAccessTokenFacade test", function () {
 	let authDataProvider: AuthDataProvider
 	const archiveId = "archiveId1"
 	const blobId1 = "blobId1"
-	// @ts-ignore
 	const blobs = [
 		createTestEntity(BlobTypeRef, { archiveId, blobId: blobId1 }),
 		createTestEntity(BlobTypeRef, { archiveId, blobId: "blobId2" }),
