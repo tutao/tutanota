@@ -57,8 +57,14 @@ export type CalendarInfo = {
 }
 
 export class CalendarModel {
-	/** Map from calendar event element id to the deferred object with a promise of getting CREATE event for this calendar event */
-	private pendingAlarmRequests: Map<string, DeferredObject<void>> = new Map()
+	/**
+	 * Map from calendar event element id to the deferred object with a promise of getting CREATE event for this calendar event. We need to do that because
+	 * entity updates for CalendarEvent and UserAlarmInfo come in different batches and we need to wait for the event when we want to process new alarm.
+	 *
+	 * We use the counter to remove the pending request from map when all alarms are processed. We want to do that in case the event gets updated and we need
+	 * to wait for the new version of the event.
+	 */
+	private pendingAlarmRequests: Map<string, { pendingAlarmCounter: number; deferred: DeferredObject<void> }> = new Map()
 	private readonly userAlarmToAlarmInfo: Map<string, string> = new Map()
 	private readonly fileIdToSkippedCalendarEventUpdates: Map<Id, CalendarEventUpdate> = new Map()
 
@@ -605,6 +611,8 @@ export class CalendarModel {
 	}
 
 	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		// We iterate over the alarms twice: once to collect them and to set the counter correctly and the second time to actually process them.
+		const alarmEventsToProcess: UserAlarmInfo[] = []
 		for (const entityEventData of updates) {
 			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, entityEventData)) {
 				if (entityEventData.operation === OperationType.CREATE) {
@@ -614,27 +622,12 @@ export class CalendarModel {
 					// We try to load UserAlarmInfo. Then we wait until the
 					// CalendarEvent is there (which might already be true)
 					// and load it.
+					// All alarms for the same event come in the same batch so
 					try {
 						const userAlarmInfo = await this.entityClient.load(UserAlarmInfoTypeRef, [entityEventData.instanceListId, entityEventData.instanceId])
-
-						const { listId, elementId } = userAlarmInfo.alarmInfo.calendarRef
-						const deferredEvent = getFromMap(this.pendingAlarmRequests, elementId, defer)
-						// Don't wait for the deferred event promise because it can lead to a deadlock.
-						// Since issue #2264 we process event batches sequentially and the
-						// deferred event can never be resolved until the calendar event update is received.
-						deferredEvent.promise = deferredEvent.promise.then(async () => {
-							const calendarEvent = await this.entityClient.load(CalendarEventTypeRef, [listId, elementId])
-							const scheduler = await this.alarmScheduler()
-							try {
-								this.scheduleUserAlarmInfo(calendarEvent, userAlarmInfo, scheduler)
-							} catch (e) {
-								if (e instanceof NotFoundError) {
-									console.log(TAG, "event not found", [listId, elementId])
-								} else {
-									throw e
-								}
-							}
-						})
+						alarmEventsToProcess.push(userAlarmInfo)
+						const deferredEvent = this.getPendingAlarmRequest(userAlarmInfo.alarmInfo.calendarRef.elementId)
+						deferredEvent.pendingAlarmCounter++
 					} catch (e) {
 						if (e instanceof NotFoundError) {
 							console.log(TAG, e, "Event or alarm were not found: ", entityEventData, e)
@@ -649,9 +642,8 @@ export class CalendarModel {
 				isUpdateForTypeRef(CalendarEventTypeRef, entityEventData) &&
 				(entityEventData.operation === OperationType.CREATE || entityEventData.operation === OperationType.UPDATE)
 			) {
-				const deferredEvent = getFromMap(this.pendingAlarmRequests, entityEventData.instanceId, defer)
-				deferredEvent.resolve(undefined)
-				await deferredEvent.promise
+				const deferredEvent = this.getPendingAlarmRequest(entityEventData.instanceId)
+				deferredEvent.deferred.resolve(undefined)
 			} else if (isUpdateForTypeRef(CalendarEventUpdateTypeRef, entityEventData) && entityEventData.operation === OperationType.CREATE) {
 				try {
 					const invite = await this.entityClient.load(CalendarEventUpdateTypeRef, [entityEventData.instanceListId, entityEventData.instanceId])
@@ -682,6 +674,35 @@ export class CalendarModel {
 				}
 			}
 		}
+
+		for (const userAlarmInfo of alarmEventsToProcess) {
+			const { listId, elementId } = userAlarmInfo.alarmInfo.calendarRef
+			const deferredEvent = this.getPendingAlarmRequest(elementId)
+			// Don't wait for the deferred event promise because it can lead to a deadlock.
+			// Since issue #2264 we process event batches sequentially and the
+			// deferred event can never be resolved until the calendar event update is received.
+			deferredEvent.deferred.promise = deferredEvent.deferred.promise.then(async () => {
+				deferredEvent.pendingAlarmCounter--
+				if (deferredEvent.pendingAlarmCounter === 0) {
+					this.pendingAlarmRequests.delete(elementId)
+				}
+				const calendarEvent = await this.entityClient.load(CalendarEventTypeRef, [listId, elementId])
+				const scheduler = await this.alarmScheduler()
+				try {
+					this.scheduleUserAlarmInfo(calendarEvent, userAlarmInfo, scheduler)
+				} catch (e) {
+					if (e instanceof NotFoundError) {
+						console.log(TAG, "event not found", [listId, elementId])
+					} else {
+						throw e
+					}
+				}
+			})
+		}
+	}
+
+	private getPendingAlarmRequest(elementId: string) {
+		return getFromMap(this.pendingAlarmRequests, elementId, () => ({ pendingAlarmCounter: 0, deferred: defer() }))
 	}
 
 	private localAlarmsEnabled(): boolean {
