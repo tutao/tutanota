@@ -41,7 +41,6 @@ import { showNewCalendarEventEditDialog } from "./eventeditor/CalendarEventEditD
 import { CalendarEventPopup } from "./eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import type { CalendarInfo } from "../model/CalendarModel"
-import { client } from "../../misc/ClientDetector"
 import type Stream from "mithril/stream"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { createDropdown } from "../../gui/base/Dropdown.js"
@@ -205,7 +204,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									hiddenCalendars: this.viewModel.hiddenCalendars,
 									onChangeViewPeriod: (next) => this._viewPeriod(CalendarViewType.DAY, next),
 									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
-									startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(locator.logins.getUserController().userSettingsGroupRoot),
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.isDaySelectorExpanded,
 									eventsForDays: this.viewModel.eventsForDays,
@@ -234,6 +232,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									hiddenCalendars: this.viewModel.hiddenCalendars,
 									onChangeViewPeriod: (next) => this._viewPeriod(CalendarViewType.WEEK, next),
 									dragHandlerCallbacks: this.viewModel,
+									isDaySelectorExpanded: this.isDaySelectorExpanded,
+									eventsForDays: this.viewModel.eventsForDays,
 								}),
 							})
 
@@ -328,7 +328,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			...header,
 			viewType: this.currentViewType,
 			viewSlider: this.viewSlider,
-			showExpandIcon: !styles.isDesktopLayout() && (this.currentViewType === CalendarViewType.AGENDA || this.currentViewType === CalendarViewType.DAY),
+			showExpandIcon: !styles.isDesktopLayout() && this.currentViewType !== CalendarViewType.MONTH,
 			isDaySelectorExpanded: this.isDaySelectorExpanded,
 			navConfiguration: calendarNavConfiguration(
 				this.currentViewType,
@@ -342,7 +342,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			onToday: () => this._setUrl(m.route.param("view"), new Date()),
 			onViewTypeSelected: (viewType) => this._setUrl(viewType, this.viewModel.selectedDate()),
 			onTap: () => {
-				if (this.currentViewType === CalendarViewType.AGENDA || this.currentViewType === CalendarViewType.DAY) {
+				if (this.currentViewType !== CalendarViewType.MONTH) {
 					this.isDaySelectorExpanded = !this.isDaySelectorExpanded
 				}
 			},
@@ -467,6 +467,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	_renderCalendarViewButtons(): Children {
 		const calendarViewValues: Array<{ name: string; viewType: CalendarViewType }> = [
 			{
+				name: lang.get("day_label"),
+				viewType: CalendarViewType.DAY,
+			},
+			{
+				name: lang.get("week_label"),
+				viewType: CalendarViewType.WEEK,
+			},
+			{
 				name: lang.get("month_label"),
 				viewType: CalendarViewType.MONTH,
 			},
@@ -475,20 +483,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				viewType: CalendarViewType.AGENDA,
 			},
 		]
-
-		if (styles.isDesktopLayout()) {
-			calendarViewValues.unshift({
-				name: lang.get("week_label"),
-				viewType: CalendarViewType.WEEK,
-			})
-		}
-
-		if (client.isDesktopDevice()) {
-			calendarViewValues.unshift({
-				name: lang.get("day_label"),
-				viewType: CalendarViewType.DAY,
-			})
-		}
 
 		return calendarViewValues.map((viewData) =>
 			m(

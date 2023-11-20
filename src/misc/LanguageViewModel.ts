@@ -188,6 +188,7 @@ export class LanguageViewModel {
 		weekdayShort: Intl.DateTimeFormat
 		weekdayNarrow: Intl.DateTimeFormat
 		time: Intl.DateTimeFormat
+		shortTime: Intl.DateTimeFormat
 		dateTime: Intl.DateTimeFormat
 		dateTimeShort: Intl.DateTimeFormat
 		priceWithCurrency: Intl.NumberFormat
@@ -318,6 +319,16 @@ export class LanguageViewModel {
 					{
 						hour: "numeric",
 						minute: "numeric",
+					} as const,
+					options,
+				),
+			),
+			shortTime: new Intl.DateTimeFormat(
+				tag,
+				Object.assign(
+					{},
+					{
+						hour: "numeric",
 					} as const,
 					options,
 				),
