@@ -1,5 +1,6 @@
 pipeline {
     environment {
+    	// on m1 macs, this is a symlink that must be updated. see wiki.
         NODE_MAC_PATH = '/usr/local/opt/node@18/bin/'
         VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
     }
