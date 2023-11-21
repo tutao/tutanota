@@ -159,24 +159,27 @@ export class DbFacade {
 	/**
 	 * @pre open() must have been called before, but the promise does not need to have returned.
 	 */
-	async createTransaction(readOnly: boolean, objectStores: ObjectStoreName[]): Promise<DbTransaction> {
-		try {
-			const db = await this._db.getAsync()
-			// we might have failed at this, but we'll not set indexingNotSupported to be able to retry later
-			const idbTransaction = db.transaction(objectStores as string[], readOnly ? "readonly" : "readwrite")
-			const transaction = new IndexedDbTransaction(idbTransaction, () => {
-				this.indexingSupported = false
+	createTransaction(readOnly: boolean, objectStores: ObjectStoreName[]): Promise<DbTransaction> {
+		// WARNING
+		// Do not make this method async because Safari likes to close the transaction if it's not used right away and async somehow influences that.
+		// Would be great if we couldn't even call `createTransaction` without having a database beforehand, then this method could be sync.
+		return this._db.getAsync().then((db) => {
+			try {
+				const idbTransaction = db.transaction(objectStores as string[], readOnly ? "readonly" : "readwrite")
+				const transaction = new IndexedDbTransaction(idbTransaction, () => {
+					this.indexingSupported = false
 
-				this._db.reset()
-			})
-			this._activeTransactions++
-			transaction.wait().finally(() => {
-				this._activeTransactions--
-			})
-			return transaction
-		} catch (e) {
-			throw new DbError("could not create transaction", e)
-		}
+					this._db.reset()
+				})
+				this._activeTransactions++
+				transaction.wait().finally(() => {
+					this._activeTransactions--
+				})
+				return transaction
+			} catch (e) {
+				throw new DbError("could not create transaction", e)
+			}
+		})
 	}
 }
 
