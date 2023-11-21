@@ -62,7 +62,7 @@
 		"winreg": "1.2.4"
 	},
 	"devDependencies": {
-		"@electron/notarize": "1.2.3",
+		"@electron/notarize": "2.2.0",
 		"@octokit/auth-token": "2.5.0",
 		"@octokit/rest": "18.12.0",
 		"@rollup/plugin-commonjs": "24.0.1",
@@ -78,7 +78,7 @@
 		"body-parser": "1.20.0",
 		"chokidar": "3.5.2",
 		"commander": "9.2.0",
-		"electron-builder": "24.8.1",
+		"electron-builder": "24.9.1",
 		"electron-packager": "17.1.2",
 		"esbuild": "0.17.15",
 		"esbuild-plugin-alias-path": "2.0.2",
