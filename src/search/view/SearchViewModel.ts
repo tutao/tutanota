@@ -248,7 +248,7 @@ export class SearchViewModel {
 		}
 	}
 
-	async selectMailFolder(folder: string | null): Promise<PaidFunctionResult> {
+	selectMailFolder(folder: string | null): PaidFunctionResult {
 		if (this.logins.getUserController().isFreeAccount() && folder != null) {
 			return PaidFunctionResult.PaidSubscriptionNeeded
 		} else {
@@ -424,7 +424,7 @@ export class SearchViewModel {
 					return { items: [], complete: true }
 				}
 
-				const { items, newSearchResult } = await this.loadSearchResults(lastResult, startId !== GENERATED_MAX_ID, startId, count)
+				const { items, newSearchResult } = await this.loadSearchResults(lastResult, startId, count)
 				const entries = items.map((instance) => new SearchResultListEntry(instance))
 				const complete = !hasMoreResults(newSearchResult)
 
@@ -465,11 +465,10 @@ export class SearchViewModel {
 
 	private async loadSearchResults<T extends SearchableTypes>(
 		currentResult: SearchResult,
-		getMoreFromSearch: boolean,
 		startId: Id,
 		count: number,
 	): Promise<{ items: T[]; newSearchResult: SearchResult }> {
-		const result = getMoreFromSearch && hasMoreResults(currentResult) ? await this.searchFacade.getMoreSearchResults(currentResult, count) : currentResult
+		const result = hasMoreResults(currentResult) ? await this.searchFacade.getMoreSearchResults(currentResult, count) : currentResult
 
 		// we need to override global reference for other functions
 		this._searchResult = result
