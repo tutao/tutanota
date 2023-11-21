@@ -377,8 +377,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	handleBackButton(): boolean {
-		if (this.viewSlider.focusedColumn === this.listColumn) {
-			this.mailViewModel.listModel?.selectNone()
+		const listModel = this.mailViewModel.listModel
+		if (listModel && listModel.state.inMultiselect) {
+			listModel.selectNone()
 			return true
 		}
 		return false
