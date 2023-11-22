@@ -146,6 +146,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 								attrs.onDateSelected(DateTime.fromJSDate(attrs.selectedDate).plus(duration).toJSDate())
 							},
 							showDaySelection: attrs.daysInPeriod === 1,
+							highlightToday: attrs.daysInPeriod > 1,
 						}),
 					),
 			  ])

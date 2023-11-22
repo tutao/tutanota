@@ -19,7 +19,7 @@ import {
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
 } from "../date/CalendarUtils"
-import { incrementDate, incrementMonth, isSameDay, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { styles } from "../../gui/styles"
 import { isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
@@ -95,11 +95,11 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 
 	view({ attrs }: Vnode<CalendarMonthAttrs>): Children {
 		const startOfTheWeekOffset = getStartOfTheWeekOffset(attrs.startOfTheWeek)
-		const thisMonth = getCalendarMonth(attrs.selectedDate, startOfTheWeekOffset, false)
+		const thisMonth = getCalendarMonth(attrs.selectedDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
 		const lastMonthDate = incrementMonth(attrs.selectedDate, -1)
 		const nextMonthDate = incrementMonth(attrs.selectedDate, 1)
-		const previousMonth = getCalendarMonth(lastMonthDate, startOfTheWeekOffset, false)
-		const nextMonth = getCalendarMonth(nextMonthDate, startOfTheWeekOffset, false)
+		const previousMonth = getCalendarMonth(lastMonthDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
+		const nextMonth = getCalendarMonth(nextMonthDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
 		return m(PageView, {
 			previousPage: {
 				key: getFirstDayOfMonth(lastMonthDate).getTime(),
@@ -214,11 +214,12 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 	/** render the grid of days */
 	_renderDay(attrs: CalendarMonthAttrs, day: CalendarDay, today: Date, weekDayNumber: number): Children {
 		const { selectedDate } = attrs
-		const isSelectedDate = isSameDay(selectedDate, day.date)
 		return m(
-			".calendar-day.calendar-column-border.flex-grow.rel.overflow-hidden.fill-absolute.cursor-pointer" +
-				(day.isPaddingDay ? ".calendar-alternate-background" : ""),
+			".calendar-day.calendar-column-border.flex-grow.rel.overflow-hidden.fill-absolute.cursor-pointer",
 			{
+				style: {
+					background: day.isPaddingDay && styles.isDesktopLayout() ? theme.list_alternate_bg : null,
+				},
 				key: day.date.getTime(),
 				onclick: (e: MouseEvent) => {
 					if (client.isDesktopDevice()) {
@@ -253,7 +254,11 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		)
 	}
 
-	_renderDayHeader({ date, day }: CalendarDay, today: Date, onDateSelected: (date: Date, calendarViewTypeToShow: CalendarViewType) => unknown): Children {
+	_renderDayHeader(
+		{ date, day, isPaddingDay }: CalendarDay,
+		today: Date,
+		onDateSelected: (date: Date, calendarViewTypeToShow: CalendarViewType) => unknown,
+	): Children {
 		let circleStyle
 		let textStyle
 		if (isToday(date)) {
@@ -292,6 +297,8 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					{
 						style: {
 							...textStyle,
+							opacity: isPaddingDay ? (!styles.isDesktopLayout() ? 0.6 : 1) : 1,
+							fontWeight: isPaddingDay ? (!styles.isDesktopLayout() ? "500" : null) : null,
 							fontSize: styles.isDesktopLayout() ? "14px" : "12px",
 							lineHeight: size,
 						},
@@ -300,23 +307,6 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				),
 			],
 		)
-
-		// return m(".flex-center", [
-		// 	m(
-		// 		".circle",
-		// 		{
-		// 			onclick: (e: MouseEvent) => {
-		// 				onDateSelected(new Date(date), client.isDesktopDevice() || styles.isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA)
-		// 				e.stopPropagation()
-		// 			},
-		// 			style: {
-		// 				width: px(22),
-		//
-		// 			},
-		// 		},
-		// 		String(day),
-		// 	),
-		// ])
 	}
 
 	/** render the events for the given week */

@@ -14,6 +14,7 @@ import { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { styles } from "../../gui/styles.js"
 import { Icon } from "../../gui/base/Icon.js"
 import { theme } from "../../gui/theme.js"
+import { clickHandler } from "../../gui/base/GuiUtils.js"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	viewType: CalendarViewType
@@ -22,7 +23,7 @@ export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	onCreateEvent: () => unknown
 	onToday: () => unknown
 	onViewTypeSelected: (viewType: CalendarViewType) => unknown
-	onTap?: () => unknown
+	onTap?: clickHandler
 	showExpandIcon: boolean
 	isDaySelectorExpanded: boolean
 }
