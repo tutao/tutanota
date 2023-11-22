@@ -80,6 +80,7 @@ export const enum Icons {
 	Filter = "Filter",
 	ReplyAll = "ReplyAll",
 	Forward = "Forward",
+	Today = "Today",
 }
 
 export const IconsSvg: Record<Icons, string> = Object.freeze({
@@ -164,6 +165,10 @@ export const IconsSvg: Record<Icons, string> = Object.freeze({
 	Filter: `<svg viewBox="0 0 512 512" class="ionicon" xmlns="http://www.w3.org/2000/svg"><path d="M32 144h448M112 256h288M208 368h96" stroke-width="32" stroke-linejoin="round" stroke-linecap="round" stroke="currentColor" fill="none"/></svg>`,
 	ReplyAll: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="ionicon"><path style="-inkscape-stroke:none" fill-opacity=".986" color="#000" d="M191.85 70.455a18 18 0 0 0-8.176 4.467L7.404 243.032a18 18 0 0 0-.603 25.449 18 18 0 0 0 25.449.603l176.27-168.11a18 18 0 0 0 .603-25.449 18 18 0 0 0-17.27-5.068zM24.06 238.565a18 18 0 0 0-17.271 5.074 18 18 0 0 0 .61 25.45l176.24 167.99a18 18 0 0 0 25.448-.61 18 18 0 0 0-.609-25.45L32.238 243.03a18 18 0 0 0-8.178-4.464zm470.12 201.41a16 16 0 0 1-12.61-6.15c-22.86-29.27-44.07-51.86-73.32-67-27.07-13.97-61.07-21.26-106.07-22.62v79.77a16 16 0 0 1-27 11.57l-176-168a16 16 0 0 1 0-23.14l176-168a16 16 0 0 1 27 11.57v80.36c74.14 3.41 129.38 30.91 164.35 81.87 28.97 42.21 43.65 100.67 43.65 173.77a16 16 0 0 1-16 16z"/></svg>`,
 	Forward: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="ionicon"><path d="M80.001 168.4c31.312.072 102.64.19 160-.041v-80.36c.001-14.077 16.87-21.292 27.05-11.57l176 168c6.598 6.302 6.598 16.838 0 23.14l-176 168c-10.18 9.721-32.049 2.506-32.05-11.57v-79.77c-62.998-.008-120.66-.002-155 0-8.837 0-16-7.164-16-16V184.36c0-8.836 7.163-15.979 16-15.959z"/></svg>`,
+	Today: `<svg viewBox="0 0 23 20" fill="none" xmlns="http://www.w3.org/2000/svg"><g><path id="MyPath" fill-rule="evenodd" clip-rule="evenodd" d="M2.89258 0.687561C1.78801 0.687561 0.892578 1.58299 0.892578 2.68756V16.6876C0.892578 17.7921 1.78801 18.6876 2.89258 18.6876L16.815 18.6876C17.3766 18.6876 17.9123 18.4515 18.2912 18.037L22.3687 13.5764C22.7057 13.2078 22.8926 12.7265 22.8926 12.227V2.68756C22.8926 1.58299 21.9971 0.687561 20.8926 0.687561H2.89258Z" fill="#707070"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-weight="bold" fill="white" font-size="10px">${new Date()
+		.getDate()
+		.toString()
+		.padStart(2, "0")}</text></g></svg>`,
 } as const)
 
 export const SecondFactorImage =
