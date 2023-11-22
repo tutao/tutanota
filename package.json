@@ -60,6 +60,9 @@
 		"undici": "5.27.2",
 		"winreg": "1.2.4"
 	},
+	"optionalDependencies": {
+		"dmg-license": "^1.0.11"
+	},
 	"devDependencies": {
 		"@electron/notarize": "2.2.0",
 		"@octokit/auth-token": "2.5.0",
