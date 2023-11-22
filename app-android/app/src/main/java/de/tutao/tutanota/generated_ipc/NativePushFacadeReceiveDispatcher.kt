@@ -34,6 +34,13 @@ class NativePushFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"removeUser" -> {
+				val userId: String = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.removeUser(
+					userId,
+				)
+				return json.encodeToString(result)
+			}
 			"initPushNotifications" -> {
 				val result: Unit = this.facade.initPushNotifications(
 				)

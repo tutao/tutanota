@@ -1,15 +1,15 @@
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { BootstrapFeatureType } from "../api/common/TutanotaConstants"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { liveDataAttrs } from "../gui/AriaUtils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { client } from "../misc/ClientDetector"
-import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
-import { isOfflineStorageAvailable } from "../api/common/Env"
+import { isApp, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
+import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js"
+import { BootstrapFeatureType } from "../api/common/TutanotaConstants.js"
 import { ACTIVATED_MIGRATION, isLegacyDomain } from "./LoginViewModel.js"
 
 export type LoginFormAttrs = {
@@ -63,6 +63,9 @@ export class LoginForm implements Component<LoginFormAttrs> {
 	view(vnode: Vnode<LoginFormAttrs>): Children {
 		const a = vnode.attrs
 		const canSaveCredentials = client.localStorage()
+		if (a.savePassword && (isApp() || isDesktop()) && !this._passwordDisabled()) {
+			a.savePassword(true)
+		}
 		return m(
 			"form",
 			{
@@ -100,20 +103,22 @@ export class LoginForm implements Component<LoginFormAttrs> {
 					}),
 				),
 				a.savePassword && !this._passwordDisabled()
-					? m(Checkbox, {
-							label: () => lang.get("storePassword_action"),
-							checked: a.savePassword(),
-							onChecked: a.savePassword,
-							helpLabel: canSaveCredentials
-								? () => lang.get("onlyPrivateComputer_msg") + (isOfflineStorageAvailable() ? "\n" + lang.get("dataWillBeStored_msg") : "")
-								: "functionNotSupported_msg",
-							disabled: !canSaveCredentials,
-					  })
+					? isApp() || isDesktop()
+						? m("small.block.content-fg", lang.get("dataWillBeStored_msg"))
+						: m(Checkbox, {
+								label: () => lang.get("storePassword_action"),
+								checked: a.savePassword(),
+								onChecked: a.savePassword,
+								helpLabel: canSaveCredentials
+									? () => lang.get("onlyPrivateComputer_msg") + (isOfflineStorageAvailable() ? "\n" + lang.get("dataWillBeStored_msg") : "")
+									: "functionNotSupported_msg",
+								disabled: !canSaveCredentials,
+						  })
 					: null,
 				m(
 					".pt",
 					m(Button, {
-						label: "login_action",
+						label: isApp() || isDesktop() ? "addAccount_action" : "login_action",
 						click: () => a.onSubmit(a.mailAddress(), a.password()),
 						type: ButtonType.Login,
 					}),

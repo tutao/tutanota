@@ -18,6 +18,10 @@ export class NativePushFacadeReceiveDispatcher {
 				const pushIdentifierSessionKey: Uint8Array = arg[4]
 				return this.facade.storePushIdentifierLocally(identifier, userId, sseOrigin, pushIdentifierId, pushIdentifierSessionKey)
 			}
+			case "removeUser": {
+				const userId: string = arg[0]
+				return this.facade.removeUser(userId)
+			}
 			case "initPushNotifications": {
 				return this.facade.initPushNotifications()
 			}

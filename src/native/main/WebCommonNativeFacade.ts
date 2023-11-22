@@ -74,7 +74,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 
 	async invalidateAlarms(): Promise<void> {
 		const locator = await WebCommonNativeFacade.getInitializedLocator()
-		await locator.pushService.invalidateAlarms()
+		await locator.pushService.reRegister()
 	}
 
 	async openCalendar(userId: string): Promise<void> {

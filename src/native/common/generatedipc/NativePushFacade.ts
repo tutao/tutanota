@@ -15,6 +15,8 @@ export interface NativePushFacade {
 		pushIdentifierSessionKey: Uint8Array,
 	): Promise<void>
 
+	removeUser(userId: string): Promise<void>
+
 	/**
 	 * Called at some point after login to initialize push notifications.
 	 */

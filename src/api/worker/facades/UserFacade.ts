@@ -38,6 +38,10 @@ export class UserFacade implements AuthDataProvider {
 		this.accessToken = accessToken
 	}
 
+	getAccessToken(): string | null {
+		return this.accessToken
+	}
+
 	setUser(user: User) {
 		if (this.accessToken == null) {
 			throw new ProgrammingError("invalid state: no access token")

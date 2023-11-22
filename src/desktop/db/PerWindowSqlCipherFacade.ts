@@ -38,6 +38,7 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 	constructor(private readonly refCounter: OfflineDbRefCounter) {}
 
 	async openDb(userId: string, dbKey: Uint8Array): Promise<void> {
+		log.debug(TAG, "open db for", userId)
 		if (this.state != null) {
 			if (this.state.userId != userId) {
 				throw new ProgrammingError(`Already opened database for user ${this.state.userId} when trying to open db for ${userId}!`)
@@ -54,6 +55,7 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 	}
 
 	async closeDb(): Promise<void> {
+		log.debug(TAG, "close db for", this.state?.userId)
 		if (this.state == null) return
 
 		// if this method is called, we certainly don't want anything

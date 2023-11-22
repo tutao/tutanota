@@ -85,6 +85,7 @@ export class OfflineDbRefCounter {
 	 * the database is not necessarily open or in the cache; it may be deleted directly from the login screen.
 	 */
 	async deleteDb(userId: string): Promise<void> {
+		log.debug(TAG, `Deleting db for user ${userId}`)
 		await this.disposeDb(userId)
 		const waitUntilMax = Date.now() + MAX_WAIT_FOR_DB_CLOSE_MS
 		while (this.cache.has(userId) && Date.now() < waitUntilMax) {
@@ -93,6 +94,7 @@ export class OfflineDbRefCounter {
 		}
 		this.cache.delete(userId)
 		await this.offlineDbFactory.delete(userId)
+		log.debug(TAG, `Deleted db for user ${userId}`)
 	}
 
 	/**

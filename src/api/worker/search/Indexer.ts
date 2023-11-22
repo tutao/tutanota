@@ -6,6 +6,7 @@ import type { DatabaseEntry, DbKey, DbTransaction } from "./DbFacade"
 import { b64UserIdHash, DbFacade } from "./DbFacade"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import {
+	assertNotNull,
 	contains,
 	daysToMillis,
 	defer,
@@ -170,13 +171,16 @@ export class Indexer {
 			if (cacheInfo?.isPersistent) {
 				this._mail.setIsUsingOfflineCache(cacheInfo.isPersistent)
 			}
-			await this.db.dbFacade.open(b64UserIdHash(user))
+			await this.db.dbFacade.open(b64UserIdHash(user._id))
 			const transaction = await this.db.dbFacade.createTransaction(true, [MetaDataOS])
 			const userEncDbKey = await transaction.get(MetaDataOS, Metadata.userEncDbKey)
 
 			if (!userEncDbKey) {
 				// database was opened for the first time - create new tables
 				await this._createIndexTables(user, userGroupKey)
+				if (cacheInfo?.isPersistent) {
+					await this._mail.enableMailIndexing(user)
+				}
 			} else {
 				await this._loadIndexTables(transaction, user, userGroupKey, userEncDbKey)
 			}
@@ -197,9 +201,7 @@ export class Indexer {
 			await this._mail.mailboxIndexingPromise
 			await this._mail.indexMailboxes(user, this._mail.currentIndexTimestamp)
 			const groupIdToEventBatches = await this._loadPersistentGroupData(user)
-			await this._loadNewEntities(groupIdToEventBatches).catch(
-				ofClass(OutOfSyncError, (e) => this.disableMailIndexing("OutOfSyncError when loading new entities. " + e.message)),
-			)
+			await this._loadNewEntities(groupIdToEventBatches).catch(ofClass(OutOfSyncError, (e) => this.disableMailIndexing(user._id)))
 		} catch (e) {
 			if (retryOnError !== false && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
 				// in case of MembershipRemovedError mail or contact group has been removed from user.
@@ -256,18 +258,18 @@ export class Indexer {
 		})
 	}
 
-	/**
-	 * @param reason: To pass to the debug logger for find the reason that this is happening at updates
-	 * @returns {Promise<R>|Promise<void>}
-	 */
-	async disableMailIndexing(reason: string): Promise<void> {
+	async disableMailIndexing(userId: string): Promise<void> {
 		await this.db.initialized
 
 		if (!this._core.isStoppedProcessing()) {
-			this._core.stopProcessing()
-			await this._mail.disableMailIndexing()
+			await this.deleteIndex(userId)
 			await this.init({ user: this._initParams.user, userGroupKey: this._initParams.groupKey })
 		}
+	}
+
+	async deleteIndex(userId: string): Promise<void> {
+		this._core.stopProcessing()
+		await this._mail.disableMailIndexing(userId)
 	}
 
 	extendMailIndex(newOldestTimestamp: number): Promise<void> {
@@ -292,7 +294,7 @@ export class Indexer {
 
 	_reCreateIndex(): Promise<void> {
 		const mailIndexingWasEnabled = this._mail.mailIndexingEnabled
-		return this._mail.disableMailIndexing().then(() => {
+		return this._mail.disableMailIndexing(assertNotNull(this._initParams.user._id)).then(() => {
 			// do not try to init again on error
 			return this.init({
 				user: this._initParams.user,
@@ -317,7 +319,7 @@ export class Indexer {
 		await transaction.put(MetaDataOS, Metadata.encDbIv, aes256EncryptSearchIndexEntry(this.db.key, this.db.iv))
 		await transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, this._entityRestClient.getRestClient().getServerTimestampMs())
 		await this._initGroupData(groupBatches, transaction)
-		await this._updateIndexedGroups()
+		await this._updateIndexedGroups(user._id)
 		await this._dbInitializedDeferredObject.resolve()
 	}
 
@@ -336,21 +338,21 @@ export class Indexer {
 				.then((groupDiff) => this._updateGroups(user, groupDiff))
 				.then(() => this._mail.updateCurrentIndexTimestamp(user)),
 		])
-		await this._updateIndexedGroups()
+		await this._updateIndexedGroups(user._id)
 
 		this._dbInitializedDeferredObject.resolve()
 
 		await Promise.all([this._contact.suggestionFacade.load()])
 	}
 
-	async _updateIndexedGroups(): Promise<void> {
+	async _updateIndexedGroups(userId: Id): Promise<void> {
 		const t: DbTransaction = await this.db.dbFacade.createTransaction(true, [GroupDataOS])
 		const indexedGroupIds = await promiseMap(await t.getAll(GroupDataOS), (groupDataEntry: DatabaseEntry) => downcast<Id>(groupDataEntry.key))
 
 		if (indexedGroupIds.length === 0) {
 			// tried to index twice, this is probably not our fault
 			console.log("no group ids in database, disabling indexer")
-			this.disableMailIndexing("no group ids were found in the database")
+			this.disableMailIndexing(userId)
 		}
 
 		this._indexedGroupIds = indexedGroupIds

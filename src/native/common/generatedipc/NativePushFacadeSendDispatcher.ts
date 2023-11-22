@@ -13,6 +13,9 @@ export class NativePushFacadeSendDispatcher implements NativePushFacade {
 	async storePushIdentifierLocally(...args: Parameters<NativePushFacade["storePushIdentifierLocally"]>) {
 		return this.transport.invokeNative("ipc", ["NativePushFacade", "storePushIdentifierLocally", ...args])
 	}
+	async removeUser(...args: Parameters<NativePushFacade["removeUser"]>) {
+		return this.transport.invokeNative("ipc", ["NativePushFacade", "removeUser", ...args])
+	}
 	async initPushNotifications(...args: Parameters<NativePushFacade["initPushNotifications"]>) {
 		return this.transport.invokeNative("ipc", ["NativePushFacade", "initPushNotifications", ...args])
 	}
