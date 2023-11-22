@@ -9,6 +9,7 @@ import { px } from "../../gui/size.js"
 import { DefaultAnimationTime } from "../../gui/animation/Animations.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
 import { theme } from "../../gui/theme.js"
+import { styles } from "../../gui/styles.js"
 
 export interface DaySelectorAttrs {
 	selectedDate: Date | null
@@ -19,6 +20,7 @@ export interface DaySelectorAttrs {
 	eventsForDays: Map<number, Array<CalendarEvent>>
 	handleDayPickerSwipe: (isNext: boolean) => void
 	showDaySelection: boolean
+	highlightToday: boolean
 }
 
 /** Date picker used on desktop. Displays a month and ability to select a month. */
@@ -45,10 +47,9 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 			this.displayingDate.setDate(1)
 		}
 
-		let date = new Date(this.displayingDate)
-		let { weeks, weekdays } = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, true)
+		let { weeks, weekdays } = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, styles.isSingleColumnLayout())
 		return m(".flex.flex-column", [
-			m(".flex.flex-space-between", this.renderWeekDays(vnode.attrs.wide, weekdays)),
+			m(".flex.flex-space-around", this.renderWeekDays(vnode.attrs.wide, weekdays)),
 			m(
 				".flex.flex-column.flex-space-around",
 				{
@@ -156,9 +157,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 						height: isExpanded ? 0 : undefined,
 						opacity: isExpanded ? 0 : 1,
 						overflow: "clip",
-						transition: `opacity ${1.5 * DefaultAnimationTime}ms ease-in-out, margin-top ${DefaultAnimationTime}ms ease-in, height ${
-							1.5 * DefaultAnimationTime
-						}ms ease-out`,
+						transition: `opacity ${1.5 * DefaultAnimationTime}ms ease-in-out`,
 					},
 				},
 				this.renderExpandableWeek(week, attrs),
@@ -193,7 +192,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 				color: theme.content_accent,
 				fontWeight: "bold",
 			}
-		} else if (isToday(date)) {
+		} else if (isToday(date) && attrs.highlightToday) {
 			circleStyle = {
 				backgroundColor: theme.content_button,
 				opacity: "0.25",
@@ -238,7 +237,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 
 	private renderExpandableWeek(week: ReadonlyArray<CalendarDay>, attrs: DaySelectorAttrs): Children {
 		return m(
-			".flex.flex-space-between",
+			".flex.flex-space-around",
 			week.map((d) => this.renderDay(d, attrs)),
 		)
 	}
@@ -253,10 +252,10 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 					"aria-hidden": "true",
 					style: {
 						fontSize,
-						height: size,
+						fontWeight: "bold",
+						height: "20px",
 						width: size,
-						lineHeight: size,
-						color: theme.navigation_menu_icon,
+						lineHeight: "20px",
 					},
 				},
 				wd,

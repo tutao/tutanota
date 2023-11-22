@@ -93,7 +93,7 @@ export function calendarNavConfiguration(
 	viewType: CalendarViewType,
 	date: Date,
 	weekStart: WeekStart,
-	agendaTitleType: "day" | "range",
+	titleType: "short" | "detailed",
 	switcher: (viewType: CalendarViewType, next: boolean) => unknown,
 	showNavigationOnAgenda: boolean = false,
 ): CalendarNavConfiguration {
@@ -104,7 +104,7 @@ export function calendarNavConfiguration(
 			return {
 				back: renderCalendarSwitchLeftButton("prevDay_label", onBack),
 				forward: renderCalendarSwitchRightButton("nextDay_label", onForward),
-				title: formatDateWithWeekday(date),
+				title: titleType === "short" ? formatMonthWithFullYear(date) : formatDateWithWeekday(date),
 				week: calendarWeek(date, weekStart),
 			}
 		case CalendarViewType.MONTH:
@@ -118,14 +118,14 @@ export function calendarNavConfiguration(
 			return {
 				back: renderCalendarSwitchLeftButton("prevWeek_label", onBack),
 				forward: renderCalendarSwitchRightButton("nextWeek_label", onForward),
-				title: weekTitle(date, weekStart),
+				title: titleType === "short" ? formatMonthWithFullYear(date) : weekTitle(date, weekStart),
 				week: calendarWeek(date, weekStart),
 			}
 		case CalendarViewType.AGENDA:
 			return {
 				back: showNavigationOnAgenda ? renderCalendarSwitchLeftButton("prevWeek_label", onBack) : null,
 				forward: showNavigationOnAgenda ? renderCalendarSwitchRightButton("nextWeek_label", onForward) : null,
-				title: agendaTitleType === "day" ? formatDateWithWeekday(date) : agendaTitle(date),
+				title: titleType === "short" ? formatMonthWithFullYear(date) : agendaTitle(date),
 				week: null,
 			}
 	}

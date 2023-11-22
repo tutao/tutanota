@@ -9,9 +9,9 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { downcast, getStartOfDay, memoized, ofClass } from "@tutao/tutanota-utils"
 import type { CalendarEvent, CalendarEventAttendee, GroupSettings, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
-import { defaultCalendarColor, FeatureType, GroupType, Keys, reverse, ShareCapability, TimeFormat } from "../../api/common/TutanotaConstants"
+import { defaultCalendarColor, FeatureType, GroupType, Keys, reverse, ShareCapability, TimeFormat, WeekStart } from "../../api/common/TutanotaConstants"
 import { locator } from "../../api/main/MainLocator"
-import { getEventType, getStartOfTheWeekOffsetForUser, getTimeZone, shouldDefaultToAmPmTimeFormat } from "../date/CalendarUtils"
+import { getEventType, getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser, getTimeZone, shouldDefaultToAmPmTimeFormat } from "../date/CalendarUtils"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { NavButton, NavButtonColor } from "../../gui/base/NavButton.js"
 import { CalendarMonthView } from "./CalendarMonthView"
@@ -58,6 +58,7 @@ import { theme } from "../../gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
 import { CalendarDesktopToolbar } from "./CalendarDesktopToolbar.js"
 import { CalendarOperation } from "../date/eventeditor/CalendarEventModel.js"
+import { DaySelectorPopup } from "../date/DaySelectorPopup.js"
 
 export type GroupColors = Map<Id, string>
 
@@ -317,8 +318,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private renderDesktopToolbar(): Children {
-		const navConfig = calendarNavConfiguration(this.currentViewType, this.viewModel.selectedDate(), this.viewModel.weekStart, "range", (viewType, next) =>
-			this._viewPeriod(viewType, next),
+		const navConfig = calendarNavConfiguration(
+			this.currentViewType,
+			this.viewModel.selectedDate(),
+			this.viewModel.weekStart,
+			"detailed",
+			(viewType, next) => this._viewPeriod(viewType, next),
 		)
 		return m(CalendarDesktopToolbar, { navConfig })
 	}
@@ -334,16 +339,20 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				this.currentViewType,
 				this.viewModel.selectedDate(),
 				this.viewModel.weekStart,
-				"day",
+				"short",
 				(viewType, next) => this._viewPeriod(viewType, next),
 				true,
 			),
 			onCreateEvent: () => this._createNewEventDialog(),
 			onToday: () => this._setUrl(m.route.param("view"), new Date()),
 			onViewTypeSelected: (viewType) => this._setUrl(viewType, this.viewModel.selectedDate()),
-			onTap: () => {
-				if (this.currentViewType !== CalendarViewType.MONTH) {
-					this.isDaySelectorExpanded = !this.isDaySelectorExpanded
+			onTap: (_event, dom) => {
+				if (this.currentViewType !== CalendarViewType.MONTH && styles.isSingleColumnLayout()) {
+					return (this.isDaySelectorExpanded = !this.isDaySelectorExpanded)
+				}
+
+				if (!styles.isDesktopLayout()) {
+					this._showCalendarPopup(dom)
 				}
 			},
 		})
@@ -844,5 +853,24 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			async (mode: CalendarOperation) => locator.calendarEventModel(mode, selectedEvent, mailboxDetails, mailboxProperties, null),
 		)
 		new CalendarEventPopup(popupModel, rect, htmlSanitizer).show()
+	}
+
+	_showCalendarPopup(dom: HTMLElement) {
+		const elementRect = dom.getBoundingClientRect()
+
+		const selector = new DaySelectorPopup(elementRect, {
+			selectedDate: getStartOfDay(this.viewModel.selectedDate()),
+			onDateSelected: (date: Date) => {
+				this.viewModel.selectedDate(date)
+				this._setUrl(this.currentViewType, date)
+				selector.close()
+			},
+			startOfTheWeekOffset: getStartOfTheWeekOffset(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek as WeekStart),
+			eventsForDays: this.viewModel.eventsForDays,
+			showDaySelection: true,
+			highlightToday: true,
+		})
+
+		selector.show()
 	}
 }
