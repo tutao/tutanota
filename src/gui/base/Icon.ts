@@ -28,7 +28,7 @@ import("./icons/Icons.js").then((IconsModule) => {
 })
 
 export class Icon implements Component<IconAttrs> {
-	private root?: HTMLElement
+	private root: HTMLElement | null = null
 	private tooltip?: HTMLElement
 
 	oncreate(vnode: VnodeDOM<IconAttrs>): any {
