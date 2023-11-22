@@ -18,8 +18,9 @@ import { DesktopTray } from "./tray/DesktopTray"
 import { log } from "./DesktopLog"
 import { UpdaterWrapper } from "./UpdaterWrapper"
 import { ElectronNotificationFactory } from "./NotificatonFactory"
-import { KeytarSecretStorage } from "./sse/SecretStorage"
+import { KeytarSecretStorage, SafeStorageSecretStorage } from "./sse/SecretStorage"
 import fs from "node:fs"
+import * as keytar from "keytar"
 import { DesktopIntegrator, getDesktopIntegratorForPlatform } from "./integration/DesktopIntegrator"
 import net from "node:net"
 import child_process from "node:child_process"
@@ -90,7 +91,7 @@ type Components = {
 }
 const tfs = new TempFs(fs, electron, cryptoFns)
 const desktopUtils = new DesktopUtils(process.argv, tfs, electron)
-const secretStorage = new KeytarSecretStorage()
+const secretStorage = new KeytarSecretStorage(keytar)
 
 const wasmLoader = async () => {
 	const wasmSourcePath = path.join(electron.app.getAppPath(), "wasm/argon2.wasm")
@@ -147,6 +148,10 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 async function createComponents(): Promise<Components> {
 	const en = (await import("../translations/en.js")).default
 	lang.init(en)
+	const { default: keytar } = await import("keytar")
+	const secretStorage = new KeytarSecretStorage(keytar)
+	const safeStorageSecretStorage = new SafeStorageSecretStorage(electron, fs, path, secretStorage)
+	const keyStoreFacade = new DesktopKeyStoreFacade(safeStorageSecretStorage, desktopCrypto)
 	const appIcon = desktopUtils.getIconByName(await conf.getConst(BuildConfigKey.iconName))
 	const desktopNet = new DesktopNetworkClient()
 	const sock = new Socketeer(net, app)
