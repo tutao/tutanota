@@ -1,0 +1,162 @@
+import { modal, ModalComponent } from "../../gui/base/Modal.js"
+import { Shortcut } from "../../misc/KeyManager.js"
+import { PosRect } from "../../gui/base/Dropdown.js"
+import m, { Children } from "mithril"
+import { Keys } from "../../api/common/TutanotaConstants.js"
+import { DaySelector } from "./DaySelector.js"
+import { animations, opacity, transform, TransformEnum } from "../../gui/animation/Animations.js"
+import { ease } from "../../gui/animation/Easing.js"
+import { px } from "../../gui/size.js"
+import { formatMonthWithFullYear } from "../../misc/Formatter.js"
+import { theme } from "../../gui/theme.js"
+import { Icon } from "../../gui/base/Icon.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { BootIcons } from "../../gui/base/icons/BootIcons.js"
+import { hexToRgb } from "../../gui/base/Color.js"
+import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
+import { incrementMonth } from "@tutao/tutanota-utils"
+
+export interface DaySelectorPopupAttrs {
+	selectedDate: Date
+	onDateSelected: (date: Date, dayClick: boolean) => unknown
+	startOfTheWeekOffset: number
+	eventsForDays: Map<number, Array<CalendarEvent>>
+	showDaySelection: boolean
+	highlightToday: boolean
+}
+
+export class DaySelectorPopup implements ModalComponent {
+	private readonly _shortcuts: Shortcut[] = []
+	private dom: HTMLElement | null = null
+	private currentDate: Date
+
+	/**
+	 * @param rect The rect where the event bubble was displayed that was clicked
+	 * @param attrs The attributes for the component
+	 */
+	constructor(private readonly rect: PosRect, private readonly attrs: DaySelectorPopupAttrs) {
+		this.setupShortcuts()
+		this.view = this.view.bind(this)
+		this.currentDate = attrs.selectedDate
+	}
+
+	view(): Children {
+		return m(
+			".abs.elevated-bg.plr.pt-s.pb-m.border-radius.dropdown-shadow.flex.flex-column",
+			{
+				style: {
+					opacity: "0",
+					left: px(this.rect.left),
+					top: px(this.rect.bottom),
+				},
+				oncreate: (vnode) => {
+					this.dom = vnode.dom as HTMLElement
+					animations.add(this.dom, [opacity(0, 1, true), transform(TransformEnum.Scale, 0.5, 1)], {
+						easing: ease.out,
+					})
+				},
+			},
+			[
+				this.renderPickerHeader(this.currentDate),
+				m(".flex-grow.overflow-hidden", [
+					m(DaySelector, {
+						selectedDate: this.currentDate,
+						onDateSelected: this.attrs.onDateSelected,
+						wide: true,
+						startOfTheWeekOffset: this.attrs.startOfTheWeekOffset,
+						isDaySelectorExpanded: true,
+						eventsForDays: this.attrs.eventsForDays,
+						handleDayPickerSwipe: (isNext) => {
+							this.onMonthChange(isNext)
+							m.redraw()
+						},
+						showDaySelection: false,
+						highlightToday: this.attrs.highlightToday,
+					}),
+				]),
+			],
+		)
+	}
+
+	private renderPickerHeader(date: Date): Children {
+		return m(".flex.flex-space-between.pb-s.items-center", [
+			m(
+				".b",
+				{
+					style: {
+						fontSize: "14px",
+						marginLeft: "6px",
+					},
+				},
+				formatMonthWithFullYear(date),
+			),
+			m(".flex.items-center", [this.renderSwitchMonthArrowIcon(false), this.renderSwitchMonthArrowIcon(true)]),
+		])
+	}
+
+	private renderSwitchMonthArrowIcon(forward: boolean): Children {
+		const bgColor = hexToRgb(theme.content_button)
+		return m(
+			".icon.flex.justify-center.items-center.click.ml-s.state-bg",
+			{
+				onclick: () => this.onMonthChange(forward),
+				style: {
+					// backgroundColor: `rgba(${bgColor.r}, ${bgColor.g}, ${bgColor.b}, .1)`,
+					borderRadius: "50%",
+					fill: theme.content_fg,
+					width: "24px",
+					height: "24px",
+				},
+			},
+			m(Icon, {
+				icon: forward ? Icons.ArrowForward : BootIcons.Back,
+				style: {
+					fill: theme.content_fg,
+				},
+			}),
+		)
+	}
+
+	private onMonthChange(forward: boolean) {
+		this.currentDate = incrementMonth(this.currentDate, forward ? 1 : -1)
+	}
+
+	show() {
+		modal.display(this, false)
+	}
+
+	close() {
+		modal.remove(this)
+	}
+
+	backgroundClick(e: MouseEvent): void {
+		modal.remove(this)
+	}
+
+	hideAnimation(): Promise<void> {
+		return Promise.resolve()
+	}
+
+	onClose(): void {
+		this.close()
+	}
+
+	shortcuts(): Shortcut[] {
+		return this._shortcuts
+	}
+
+	popState(e: Event): boolean {
+		modal.remove(this)
+		return false
+	}
+
+	private setupShortcuts() {
+		const close: Shortcut = {
+			key: Keys.ESC,
+			exec: () => this.close(),
+			help: "close_alt",
+		}
+
+		this._shortcuts.push(close)
+	}
+}

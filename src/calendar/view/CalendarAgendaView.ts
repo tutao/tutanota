@@ -85,6 +85,7 @@ export class CalendarAgendaView implements Component<Attrs> {
 										attrs.onDateSelected(DateTime.fromJSDate(attrs.selectedDate).plus(duration).toJSDate())
 									},
 									showDaySelection: true,
+									highlightToday: false,
 								}),
 							),
 						],
