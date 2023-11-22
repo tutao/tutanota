@@ -1,4 +1,4 @@
-import m, { ChildArray, Children, Vnode } from "mithril"
+import m, { Children, Vnode } from "mithril"
 import { client } from "../misc/ClientDetector"
 import { assertMainOrNode, isApp, isDesktop } from "../api/common/Env"
 import { InfoLink, lang } from "../misc/LanguageViewModel"
@@ -80,7 +80,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 					m(
 						".flex.col.flex-grow-shrink-auto.max-width-m.plr-l." + (styles.isSingleColumnLayout() ? "pt" : "pt-l"),
 						{
-							...landmarkAttrs(AriaLandmarks.Main, lang.get("login_label")),
+							...landmarkAttrs(AriaLandmarks.Main, isApp() || isDesktop() ? lang.get("addAccount_action") : lang.get("login_label")),
 							oncreate: (vnode) => {
 								;(vnode.dom as HTMLElement).focus()
 							},
@@ -131,7 +131,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				: null,
 			this._deleteCredentialsLinkVisible()
 				? m(Button, {
-						label: this.viewModel.displayMode === DisplayMode.DeleteCredentials ? "cancel_action" : "deleteCredentials_action",
+						label: this.viewModel.displayMode === DisplayMode.DeleteCredentials ? "cancel_action" : "removeAccount_action",
 						type: ButtonType.Secondary,
 						click: () => this._switchDeleteCredentialsState(),
 				  })

@@ -37,6 +37,7 @@ import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "./IndexTables.
 import { MailFacade } from "../facades/lazy/MailFacade.js"
 import { getDisplayedSender, MailAddressAndName } from "../../common/mail/CommonMailUtils.js"
 import { hasError } from "../../common/utils/ErrorCheckUtils.js"
+import { b64UserIdHash } from "./DbFacade.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
@@ -274,11 +275,11 @@ export class MailIndexer {
 		})
 	}
 
-	disableMailIndexing(): Promise<void> {
+	disableMailIndexing(userId: Id): Promise<void> {
 		this.mailIndexingEnabled = false
 		this._indexingCancelled = true
 		this._excludedListIds = []
-		return this._db.dbFacade.deleteDatabase()
+		return this._db.dbFacade.deleteDatabase(b64UserIdHash(userId))
 	}
 
 	cancelMailIndexing(): Promise<void> {

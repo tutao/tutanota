@@ -249,11 +249,16 @@ export class LoginController {
 		return this._isWhitelabel
 	}
 
-	async deleteOldSession(credentials: Credentials): Promise<void> {
+	/**
+	 * Deletes the session on the server.
+	 * @param credentials
+	 * @param pushIdentifier identifier associated with this device, if any, to delete PushIdentifier on the server
+	 */
+	async deleteOldSession(credentials: Credentials, pushIdentifier: string | null = null): Promise<void> {
 		const loginFacade = await this.getLoginFacade()
 
 		try {
-			await loginFacade.deleteSession(credentials.accessToken)
+			await loginFacade.deleteSession(credentials.accessToken, pushIdentifier)
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				console.log("session already deleted")

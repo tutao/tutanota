@@ -56,9 +56,9 @@ import { GENERATED_ID_BYTES_LENGTH, isSameId } from "../../common/utils/EntityUt
 import type { Credentials } from "../../../misc/credentials/Credentials"
 import {
 	Aes128Key,
-	aes256RandomKey,
 	aes256DecryptLegacyRecoveryKey,
 	Aes256Key,
+	aes256RandomKey,
 	aesDecrypt,
 	base64ToKey,
 	createAuthVerifier,
@@ -713,8 +713,10 @@ export class LoginFacade {
 
 	/**
 	 * We use the accessToken that should be deleted for authentication. Therefore it can be invoked while logged in or logged out.
+	 *
+	 * @param pushIdentifier identifier associated with this device, if any, to delete PushIdentifier on the server
 	 */
-	async deleteSession(accessToken: Base64Url): Promise<void> {
+	async deleteSession(accessToken: Base64Url, pushIdentifier: string | null = null): Promise<void> {
 		let path = typeRefToPath(SessionTypeRef) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
 		const sessionTypeModel = await resolveTypeReference(SessionTypeRef)
 
@@ -722,10 +724,12 @@ export class LoginFacade {
 			accessToken: neverNull(accessToken),
 			v: sessionTypeModel.version,
 		}
+		const queryParams: Dict = pushIdentifier == null ? {} : { pushIdentifier }
 		return this.restClient
 			.request(path, HttpMethod.DELETE, {
 				headers,
 				responseType: MediaType.Json,
+				queryParams,
 			})
 			.catch(
 				ofClass(NotAuthenticatedError, () => {
@@ -792,7 +796,7 @@ export class LoginFacade {
 		})
 	}
 
-	async changePassword(currentPassword: string, newPassword: string, currentKdfType: KdfType): Promise<void> {
+	async changePassword(currentPassword: string, newPassword: string, currentKdfType: KdfType): Promise<{ encryptedPassword: string }> {
 		const currentSalt = assertNotNull(this.userFacade.getLoggedInUser().salt)
 		const currentUserPassphraseKey = await this.deriveUserPassphraseKey(currentKdfType, currentPassword, currentSalt)
 		const currentAuthVerifier = createAuthVerifier(currentUserPassphraseKey)
@@ -813,6 +817,9 @@ export class LoginFacade {
 		})
 
 		await this.serviceExecutor.post(ChangePasswordService, service)
+		const accessToken = assertNotNull(this.userFacade.getAccessToken())
+		const sessionData = await this.loadSessionData(accessToken)
+		return { encryptedPassword: uint8ArrayToBase64(encryptString(sessionData.accessKey, newPassword)) }
 	}
 
 	async deleteAccount(password: string, reason: string, takeover: string): Promise<void> {

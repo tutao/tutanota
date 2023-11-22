@@ -4,7 +4,6 @@ import { locator } from "../../api/main/MainLocator.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import m from "mithril"
-import { getEtId } from "../../api/common/utils/EntityUtils.js"
 import { NotAuthenticatedError } from "../../api/common/error/RestError.js"
 import { PasswordForm, PasswordModel } from "../PasswordForm.js"
 import { ofClass } from "@tutao/tutanota-utils"
@@ -37,6 +36,13 @@ export async function showChangeUserPasswordAsAdminDialog(user: User) {
 	})
 }
 
+async function storeNewPassword(encryptedPassword: string) {
+	const storedCredentials = await locator.credentialsProvider.getCredentialsInfoByUserId(locator.logins.getUserController().userId)
+	if (storedCredentials != null) {
+		await locator.credentialsProvider.replacePassword(storedCredentials, encryptedPassword)
+	}
+}
+
 /**
  * The user must enter the old password in addition to the new password (twice). The password strength is enforced.
  */
@@ -51,10 +57,12 @@ export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
 		} else {
 			const currentKdfType = asKdfType(locator.logins.getUserController().user.kdfVersion)
 			showProgressDialog("pleaseWait_msg", locator.loginFacade.changePassword(model.getOldPassword(), model.getNewPassword(), currentKdfType))
-				.then(() => {
-					locator.credentialsProvider.deleteByUserId(getEtId(locator.logins.getUserController().user))
+				.then(({ encryptedPassword }) => {
 					Dialog.message("pwChangeValid_msg")
 					dialog.close()
+
+					// do not wait for it or catch the errors, we do not want to confuse the user with the password change if anything goes wrong
+					storeNewPassword(encryptedPassword)
 				})
 				.catch(
 					ofClass(NotAuthenticatedError, (e) => {
@@ -62,6 +70,7 @@ export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
 					}),
 				)
 				.catch((e) => {
+					console.error(e)
 					Dialog.message("passwordResetFailed_msg")
 				})
 		}

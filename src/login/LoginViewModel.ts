@@ -6,7 +6,7 @@ import type { LoginController } from "../api/main/LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
-import type { CredentialsInfo, CredentialsProvider, PersistentCredentials } from "../misc/credentials/CredentialsProvider.js"
+import type { CredentialsAndDatabaseKey, CredentialsInfo, CredentialsProvider, PersistentCredentials } from "../misc/credentials/CredentialsProvider.js"
 import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
 import { first, noOp } from "@tutao/tutanota-utils"
 import { KeyPermanentlyInvalidatedError } from "../api/common/error/KeyPermanentlyInvalidatedError"
@@ -17,6 +17,8 @@ import { DeviceConfig } from "../misc/DeviceConfig"
 import { Const } from "../api/common/TutanotaConstants.js"
 import { getWhitelabelRegistrationDomains } from "./LoginView.js"
 import { CancelledError } from "../api/common/error/CancelledError.js"
+import { CredentialRemovalHandler } from "./CredentialRemovalHandler.js"
+import { NativePushServiceApp } from "../native/main/NativePushServiceApp.js"
 
 assertMainOrNode()
 
@@ -137,6 +139,8 @@ export class LoginViewModel implements ILoginViewModel {
 		private readonly secondFactorHandler: SecondFactorHandler,
 		private readonly deviceConfig: DeviceConfig,
 		private readonly domainConfig: DomainConfig,
+		private readonly credentialRemovalHandler: CredentialRemovalHandler,
+		private readonly pushServiceApp: NativePushServiceApp | null,
 	) {
 		this.state = LoginState.NotAuthenticated
 		this.displayMode = DisplayMode.Form
@@ -232,8 +236,9 @@ export class LoginViewModel implements ILoginViewModel {
 		}
 
 		if (credentials) {
-			await this.loginController.deleteOldSession(credentials.credentials)
+			await this.loginController.deleteOldSession(credentials.credentials, (await this.pushServiceApp?.loadPushIdentifierFromNative()) ?? null)
 			await this.credentialsProvider.deleteByUserId(credentials.credentials.userId)
+			await this.credentialRemovalHandler.onCredentialsRemoved(credentials)
 			await this._updateCachedCredentials()
 		}
 	}
@@ -321,6 +326,7 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 
 	async _autologin(): Promise<void> {
+		let credentials: CredentialsAndDatabaseKey | null = null
 		try {
 			if (this._autoLoginCredentials == null) {
 				const allCredentials = await this.credentialsProvider.getInternalCredentialsInfos()
@@ -330,7 +336,7 @@ export class LoginViewModel implements ILoginViewModel {
 			// we don't want to auto-login on the legacy domain, there's a banner
 			// there to move people to the new domain.
 			if (this._autoLoginCredentials) {
-				const credentials = await this.credentialsProvider.getCredentialsByUserId(this._autoLoginCredentials.userId)
+				credentials = await this.credentialsProvider.getCredentialsByUserId(this._autoLoginCredentials.userId)
 
 				if (credentials) {
 					const offlineTimeRange = this.deviceConfig.getOfflineTimeRangeDays(this._autoLoginCredentials.userId)
@@ -347,7 +353,11 @@ export class LoginViewModel implements ILoginViewModel {
 			}
 		} catch (e) {
 			if (e instanceof NotAuthenticatedError && this._autoLoginCredentials) {
-				await this.credentialsProvider.deleteByUserId(this._autoLoginCredentials.userId)
+				const autoLoginCredentials = this._autoLoginCredentials
+				await this.credentialsProvider.deleteByUserId(autoLoginCredentials.userId)
+				if (credentials) {
+					await this.credentialRemovalHandler.onCredentialsRemoved(credentials)
+				}
 				await this._updateCachedCredentials()
 				await this._onLoginFailed(e)
 			} else if (e instanceof KeyPermanentlyInvalidatedError) {

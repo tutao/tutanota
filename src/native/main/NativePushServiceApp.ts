@@ -75,8 +75,8 @@ export class NativePushServiceApp {
 		}
 	}
 
-	async invalidateAlarms(): Promise<void> {
-		console.log("invalidating alarms")
+	async reRegister(): Promise<void> {
+		console.log("re-registering for push notifications, setting no alarms as scheduled")
 		this.deviceConfig.setNoAlarmsScheduled()
 
 		if (this.logins.isUserLoggedIn()) {
@@ -87,7 +87,15 @@ export class NativePushServiceApp {
 		}
 	}
 
-	private loadPushIdentifierFromNative(): Promise<string | null> {
+	async invalidateAlarmsForUser(userId: Id) {
+		return this.nativePushFacade.invalidateAlarmsForUser(userId)
+	}
+
+	removeUserFromNotifications(userId: Id): Promise<void> {
+		return this.nativePushFacade.removeUser(userId)
+	}
+
+	loadPushIdentifierFromNative(): Promise<string | null> {
 		return this.nativePushFacade.getPushIdentifier()
 	}
 
@@ -127,7 +135,7 @@ export class NativePushServiceApp {
 		await this.nativePushFacade.closePushNotifications(addresses)
 	}
 
-	getPushIdentifier(): string | null {
+	getLoadedPushIdentifier(): string | null {
 		return this._currentIdentifier
 	}
 

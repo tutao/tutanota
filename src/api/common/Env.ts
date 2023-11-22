@@ -1,6 +1,9 @@
 //@bundleInto:common-min
 
 import { ProgrammingError } from "./error/ProgrammingError.js"
+import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations.js"
+import { BootstrapFeatureType } from "./TutanotaConstants.js"
+import { ACTIVATED_MIGRATION, isLegacyDomain } from "../../login/LoginViewModel.js"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"

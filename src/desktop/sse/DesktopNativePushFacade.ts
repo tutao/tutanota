@@ -42,6 +42,10 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		await this.alarmStorage.storePushIdentifierSessionKey(pushIdentifierId, pushIdentifierSessionKey)
 	}
 
+	removeUser(userId: string): Promise<void> {
+		return this.sse.removeUser(userId)
+	}
+
 	async invalidateAlarmsForUser(userId: string): Promise<void> {
 		await this.alarmScheduler.unscheduleAllAlarms(userId)
 	}

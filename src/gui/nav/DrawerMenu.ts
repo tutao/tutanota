@@ -128,7 +128,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					: null,
 				m(Button, {
 					icon: () => BootIcons.Logout,
-					label: "logout_label",
+					label: "switchAccount_action",
 					click: () => m.route.set(LogoutUrl),
 					type: ButtonType.ActionLarge,
 					colors: ButtonColor.DrawerNav,

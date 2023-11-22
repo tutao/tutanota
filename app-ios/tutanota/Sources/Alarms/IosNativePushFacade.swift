@@ -1,7 +1,7 @@
 import Foundation
 
 class IosNativePushFacade : NativePushFacade {
-  
+
 
   private let appDelegate: AppDelegate
   private let alarmManager: AlarmManager
@@ -29,7 +29,7 @@ class IosNativePushFacade : NativePushFacade {
       self.notificationStorage.clear()
       try await self.commonNativeFacade.invalidateAlarms()
     }
-    
+
     return try await self.appDelegate.registerForPushNotifications()
   }
 
@@ -55,8 +55,12 @@ class IosNativePushFacade : NativePushFacade {
   func scheduleAlarms(_ alarms: [EncryptedAlarmNotification]) async throws {
     try self.alarmManager.processNewAlarms(alarms)
   }
-  
+
   func invalidateAlarmsForUser(_ userId: String) async throws {
     alarmManager.unscheduleAllAlarms(userId: userId)
+  }
+
+  func removeUser(_ userId: String) async throws {
+  	self.notificationStorage.removeUser(userId)
   }
 }

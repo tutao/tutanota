@@ -42,6 +42,7 @@ export class ScopedRouter<Scope extends string> implements Router {
 	}
 
 	routeTo(path: string, params: Record<string, any>) {
+		console.log("scoped router", params)
 		if (routeMatchesPrefix(this.scope, this.router.getFullPath())) {
 			this.router.routeTo(path, params)
 		}

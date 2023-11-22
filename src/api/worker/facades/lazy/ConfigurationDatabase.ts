@@ -36,6 +36,7 @@ export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes25
  * Or when the configuration is only required in the Worker
  */
 export class ConfigurationDatabase {
+	// visible for testing
 	readonly db: LazyLoaded<ConfigDb>
 
 	constructor(
@@ -78,7 +79,7 @@ export class ConfigurationDatabase {
 	}
 
 	async loadConfigDb(user: User, userGroupKey: Aes128Key): Promise<ConfigDb> {
-		const id = `${DB_KEY_PREFIX}_${b64UserIdHash(user)}`
+		const id = this.getDbId(user._id)
 		const db = new DbFacade(VERSION, async (event, db, dbFacade) => {
 			if (event.oldVersion === 0) {
 				db.createObjectStore(MetaDataOS)
@@ -106,6 +107,20 @@ export class ConfigurationDatabase {
 			db,
 			metaData,
 		}
+	}
+
+	async delete(userId: Id): Promise<void> {
+		const dbId = this.getDbId(userId)
+		if (this.db.isLoadedOrLoading()) {
+			const { db } = await this.db.getAsync()
+			await db.deleteDatabase(dbId)
+		} else {
+			await DbFacade.deleteDb(dbId)
+		}
+	}
+
+	private getDbId(userId: Id): string {
+		return `${DB_KEY_PREFIX}_${b64UserIdHash(userId)}`
 	}
 }
 
@@ -136,7 +151,7 @@ async function loadEncryptionMetadata(db: DbFacade, id: string, userGroupKey: Ae
  * @return the newly generated key and iv for the database contents
  */
 async function initializeDb(db: DbFacade, id: string, userGroupKey: Aes128Key): Promise<EncryptionMetadata> {
-	await db.deleteDatabase().then(() => db.open(id))
+	await db.deleteDatabase(id).then(() => db.open(id))
 	const key = aes256RandomKey()
 	const iv = random.generateRandomData(IV_BYTE_LENGTH)
 	const transaction = await db.createTransaction(false, [MetaDataOS, ExternalImageListOS])

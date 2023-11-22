@@ -36,6 +36,8 @@ export type SseInfo = {
 }
 const MISSED_NOTIFICATION_TTL = 30 * 24 * 60 * 60 * 1000 // 30 days
 
+const TAG = "[DesktopSseClient]"
+
 export class DesktopSseClient {
 	private readonly _app: App
 	private readonly _conf: DesktopConfig
@@ -101,7 +103,7 @@ export class DesktopSseClient {
 	}
 
 	storePushIdentifier(identifier: string, userId: string, sseOrigin: string): Promise<void> {
-		log.debug("storing push identifier")
+		log.debug(TAG, "storing push identifier")
 		let userIds
 
 		if (!this._connectedSseInfo) {
@@ -126,6 +128,10 @@ export class DesktopSseClient {
 		})
 	}
 
+	async removeUser(userId: string): Promise<void> {
+		await this._removeUserId(userId)
+	}
+
 	/**
 	 * return the stored SseInfo if we can decrypt one.
 	 * If not, we'll assume that all stored
@@ -136,7 +142,7 @@ export class DesktopSseClient {
 		const sseInfo: SseInfo | null = await this._conf.getVar(DesktopConfigEncKey.sseInfo)
 
 		if (this._tryToReconnect && sseInfo == null) {
-			log.warn("sseInfo corrupted or not present, making sure pushEncSessionKeys and scheduled alarms are cleared")
+			log.warn(TAG, "sseInfo corrupted or not present, making sure pushEncSessionKeys and scheduled alarms are cleared")
 			// we either never had a device identifier or we couldn't decrypt
 			// the one we had. either way, any pushEncSessionKeys from conf
 			// are probably useless now.
@@ -154,14 +160,14 @@ export class DesktopSseClient {
 		if (!this._connectedSseInfo) {
 			this._reschedule(10)
 
-			log.debug("sse info not available, skip reconnect")
+			log.debug(TAG, "sse info not available, skip reconnect")
 			return Promise.resolve()
 		}
 
 		const sseInfo = this._connectedSseInfo
 
 		if (await this.hasNotificationTTLExpired()) {
-			log.debug("invalidating alarms on connect")
+			log.debug(TAG, "invalidating alarms on connect")
 			return this.resetStoredState()
 		}
 
@@ -178,12 +184,12 @@ export class DesktopSseClient {
 		const userId = sseInfo.userIds[0]
 
 		if (userId == null) {
-			log.debug("No user IDs, skip reconnect")
+			log.debug(TAG, "No user IDs, skip reconnect")
 			return Promise.resolve()
 		}
 
 		const url = this.getSseUrl(sseInfo, userId)
-		log.debug("starting sse connection")
+		log.debug(TAG, "starting sse connection")
 		this._connection = this._net.request(url, {
 			headers: {
 				"Content-Type": "application/json",
@@ -246,14 +252,15 @@ export class DesktopSseClient {
 					})
 					.on("error", (e) => console.error("sse response error:", e))
 			})
-			.on("information", (e) => log.debug("sse information"))
-			.on("connect", (e) => log.debug("sse connect:"))
+			.on("information", (e) => log.debug(TAG, "sse information"))
+			.on("connect", (e) => log.debug(TAG, "sse connect:"))
 			.on("error", (e) => console.error("sse error:", e.message))
 			.end()
 		return Promise.resolve()
 	}
 
 	async _removeUserId(userId: string): Promise<SseInfo | null> {
+		log.debug(TAG, "Removing user", userId)
 		this._alarmScheduler.unscheduleAllAlarms(userId)
 
 		const sseInfo: SseInfo | null = await this.getSseInfo()
@@ -269,7 +276,7 @@ export class DesktopSseClient {
 
 	_processSseData(data: string, userId: string): void {
 		if (!data.startsWith("data")) {
-			log.debug("sse heartbeat", this._readTimeoutInSeconds)
+			log.debug(TAG, "sse heartbeat", this._readTimeoutInSeconds)
 
 			this._reschedule()
 
@@ -282,7 +289,7 @@ export class DesktopSseClient {
 
 		// check for heartbeat settings
 		if (data.startsWith("heartbeatTimeout:")) {
-			log.debug("received new timeout:", data)
+			log.debug(TAG, "received new timeout:", data)
 			const newTimeout = Number(data.split(":")[1])
 
 			if (typeof newTimeout === "number" && !Number.isNaN(newTimeout)) {
@@ -290,7 +297,7 @@ export class DesktopSseClient {
 
 				this._conf.setVar(DesktopConfigKey.heartbeatTimeoutInSeconds, newTimeout)
 			} else {
-				log.error("got invalid heartbeat timeout from server")
+				log.error(TAG, "got invalid heartbeat timeout from server")
 			}
 
 			this._reschedule()
@@ -303,14 +310,14 @@ export class DesktopSseClient {
 				.then(() => this._reschedule())
 				.catch(async (e) => {
 					if (e instanceof NotAuthenticatedError || e instanceof NotAuthorizedError) {
-						log.error("Not authorized or not authenticated")
+						log.error(TAG, "Not authorized or not authenticated")
 						// Reset the queue so that the previous error will not be handled again
 						await this._removeUserId(userId)
 						this._handlingPushMessage = Promise.resolve()
 
 						this._disconnect()
 					} else {
-						log.error("failed to handle push message:", e)
+						log.error(TAG, "failed to handle push message:", e)
 
 						this._notifier.showOneShot({
 							title: "Failed to handle PushMessage",
@@ -327,7 +334,7 @@ export class DesktopSseClient {
 	 */
 	async hasNotificationTTLExpired(): Promise<boolean> {
 		const lastMissedNotificationCheckTime = await this._conf.getVar(DesktopConfigKey.lastMissedNotificationCheckTime)
-		log.debug("last missed notification check:", {
+		log.debug(TAG, "last missed notification check:", {
 			lastMissedNotificationCheckTime,
 		})
 		return lastMissedNotificationCheckTime && Date.now() - lastMissedNotificationCheckTime > MISSED_NOTIFICATION_TTL
@@ -344,7 +351,7 @@ export class DesktopSseClient {
 	 *  and then disconnects the sse
 	 */
 	async resetStoredState(): Promise<void> {
-		log.debug("Resetting stored state")
+		log.debug(TAG, "Resetting stored state")
 		const tryToReconnect = this._tryToReconnect
 		this._tryToReconnect = false
 
@@ -380,7 +387,7 @@ export class DesktopSseClient {
 					this._conf.setVar(DesktopConfigKey.lastMissedNotificationCheckTime, Date.now())
 
 					if (mn.notificationInfos && mn.notificationInfos.length === 0 && mn.alarmNotifications && mn.alarmNotifications.length === 0) {
-						log.debug("MissedNotification is empty")
+						log.debug(TAG, "MissedNotification is empty")
 					} else {
 						for (const ni of mn.notificationInfos as Array<NotificationInfo>) {
 							this._handleNotificationInfo(this._lang.get("pushNewMail_msg"), ni)
@@ -392,7 +399,7 @@ export class DesktopSseClient {
 				})
 				.catch((e) => {
 					if (e instanceof FileNotFoundError) {
-						log.debug("MissedNotification 404:", e)
+						log.debug(TAG, "MissedNotification 404:", e)
 					} else if (e instanceof ServiceUnavailableError) {
 					} else {
 						throw e
@@ -403,7 +410,7 @@ export class DesktopSseClient {
 			if (e instanceof NotAuthenticatedError) {
 				throw e
 			} else {
-				log.debug("Error while downloading missed notification", e)
+				log.debug(TAG, "Error while downloading missed notification", e)
 				return process()
 			}
 		})
@@ -441,7 +448,7 @@ export class DesktopSseClient {
 
 			const url = this.makeAlarmNotificationUrl(assertNotNull(this._connectedSseInfo))
 
-			log.debug("downloading missed notification")
+			log.debug(TAG, "downloading missed notification")
 			const headers: Record<string, string> = {
 				userIds: userId,
 				v: typeModels.MissedNotification.version,
@@ -461,7 +468,7 @@ export class DesktopSseClient {
 					timeout: 20000,
 				})
 				.on("timeout", () => {
-					log.debug("Missed notification download timeout")
+					log.debug(TAG, "Missed notification download timeout")
 					req.abort()
 				})
 				.on("socket", (s) => {
@@ -469,10 +476,10 @@ export class DesktopSseClient {
 					// The problem is that sometimes request gets stuck after handshake - does not process unless some event
 					// handler is called (and it works more reliably with console.log()).
 					// This makes the request magically unstuck, probably console.log does some I/O and/or socket things.
-					s.on("lookup", () => log.debug("lookup"))
+					s.on("lookup", () => log.debug(TAG, "lookup"))
 				})
 				.on("response", (res) => {
-					log.debug("missed notification response", res.statusCode)
+					log.debug(TAG, "missed notification response", res.statusCode)
 
 					if (
 						(res.statusCode === ServiceUnavailableError.CODE || TooManyRequestsError.CODE) &&
@@ -480,7 +487,7 @@ export class DesktopSseClient {
 					) {
 						// headers are lowercased, see https://nodejs.org/api/http.html#http_message_headers
 						const time = filterInt((res.headers["retry-after"] ?? res.headers["suspension-time"]) as string)
-						log.debug(`ServiceUnavailable when downloading missed notification, waiting ${time}s`)
+						log.debug(TAG, `ServiceUnavailable when downloading missed notification, waiting ${time}s`)
 						res.destroy()
 						req.abort()
 
@@ -507,7 +514,7 @@ export class DesktopSseClient {
 								fail(req, res, e)
 							}
 						})
-						.on("close", () => log.debug("dl missed notification response closed"))
+						.on("close", () => log.debug(TAG, "dl missed notification response closed"))
 						.on("error", (e) => fail(req, res, e))
 				})
 				.on("error", (e) => fail(req, null, e))
@@ -542,7 +549,7 @@ export class DesktopSseClient {
 			delaySeconds = 10
 		}
 
-		log.debug("scheduling to check sse in", delaySeconds, "seconds")
+		log.debug(TAG, "scheduling to check sse in", delaySeconds, "seconds")
 		this._nextReconnect = this._delayHandler(() => this.connect(), delaySeconds * 1000)
 	}
 
