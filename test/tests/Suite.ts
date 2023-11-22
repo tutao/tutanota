@@ -150,6 +150,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/DesktopNotifierTest.js")
 		await import("./desktop/ApplicationWindowTest.js")
 		await import("./desktop/sse/DesktopSseClientTest.js")
+		await import("./desktop/sse/SecretStorageTest.js")
 		await import("./desktop/sse/DesktopAlarmStorageTest.js")
 		await import("./desktop/sse/DesktopAlarmSchedulerTest.js")
 		await import("./desktop/files/DesktopFileFacadeTest.js")
