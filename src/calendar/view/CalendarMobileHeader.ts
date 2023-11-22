@@ -66,7 +66,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 				...(!styles.isDesktopLayout()
 					? [
 							m(IconButton, {
-								icon: BootIcons.Calendar,
+								icon: Icons.Today,
 								title: "today_label",
 								click: attrs.onToday,
 							}),

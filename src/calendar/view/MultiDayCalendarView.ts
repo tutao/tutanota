@@ -315,6 +315,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 			".calendar-long-events-header.flex-fixed.calendar-hour-margin.pr-l",
 			{
 				style: {
+					borderBottom: thisPageEvents.longEvents.length === 0 ? "none" : undefined,
 					height: px(height),
 					paddingTop: px(padding),
 					transition: "height 200ms ease-in-out",
