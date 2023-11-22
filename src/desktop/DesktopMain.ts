@@ -172,14 +172,16 @@ async function createComponents(): Promise<Components> {
 			try {
 				await db.openDb(userId, key)
 			} catch (e) {
+				log.warn("failed to open db for", userId, e)
 				if (!retry) throw e
-				console.log("retrying")
+				log.debug("retrying")
 				await this.delete(userId)
 				return this.create(userId, key, false)
 			}
 			return db
 		},
 		async delete(userId: string): Promise<void> {
+			log.debug("deleting db for", userId)
 			const dbPath = makeDbPath(userId)
 			// force to suppress ENOENT which is not a problem.
 			// maxRetries should reduce EBUSY

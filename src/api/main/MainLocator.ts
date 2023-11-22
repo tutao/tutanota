@@ -41,7 +41,6 @@ import { WebauthnClient } from "../../misc/2fa/webauthn/WebauthnClient"
 import type { UserManagementFacade } from "../worker/facades/lazy/UserManagementFacade.js"
 import type { GroupManagementFacade } from "../worker/facades/lazy/GroupManagementFacade.js"
 import { WorkerRandomizer } from "../worker/WorkerImpl"
-import { exposeRemote } from "../common/WorkerProxy"
 import { ExposedNativeInterface } from "../../native/common/NativeInterface"
 import { BrowserWebauthn } from "../../misc/2fa/webauthn/BrowserWebauthn.js"
 import { UsageTestController } from "@tutao/tutanota-usagetests"
@@ -98,6 +97,8 @@ import { InboxRuleHandler } from "../../mail/model/InboxRuleHandler.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../../gui/ScopedRouter.js"
 import { ShareableGroupType } from "../../sharing/GroupUtils.js"
 import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
+import type { AppsCredentialRemovalHandler, CredentialRemovalHandler, NoopCredentialRemovalHandler } from "../../login/CredentialRemovalHandler.js"
+import { LoginViewModel } from "../../login/LoginViewModel.js"
 import { getEnabledMailAddressesWithUser } from "../../mail/model/MailUtils.js"
 import { isCustomizationEnabledForCustomer } from "../common/utils/Utils.js"
 import type { CalendarEventPreviewViewModel } from "../../calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
@@ -503,16 +504,29 @@ class MainLocator {
 		return new DomainConfigProvider()
 	}
 
-	private getExposedNativeInterface(): ExposedNativeInterface {
-		if (isBrowser()) {
-			throw new ProgrammingError("Tried to access native interfaces in browser")
-		}
+	async credentialsRemovalHandler(): Promise<CredentialRemovalHandler> {
+		const { NoopCredentialRemovalHandler, AppsCredentialRemovalHandler } = await import("../../login/CredentialRemovalHandler.js")
+		return isBrowser() ? new NoopCredentialRemovalHandler() : new AppsCredentialRemovalHandler(this.indexerFacade, this.pushService, this.configFacade)
+	}
 
-		if (this.exposedNativeInterfaces == null) {
-			this.exposedNativeInterfaces = exposeRemote<ExposedNativeInterface>((msg) => this.native.invokeNative(msg.requestType, msg.args))
+	async loginViewModelFactory(): Promise<lazy<LoginViewModel>> {
+		const { LoginViewModel } = await import("../../login/LoginViewModel.js")
+		const credentialsRemovalHandler = await locator.credentialsRemovalHandler()
+		return () => {
+			const domainConfig = isBrowser()
+				? locator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
+				: // in this case, we know that we have a staticUrl set that we need to use
+				  locator.domainConfigProvider().getCurrentDomainConfig()
+			return new LoginViewModel(
+				locator.logins,
+				locator.credentialsProvider,
+				locator.secondFactorHandler,
+				deviceConfig,
+				domainConfig,
+				credentialsRemovalHandler,
+				isBrowser() ? null : this.pushService,
+			)
 		}
-
-		return this.exposedNativeInterfaces
 	}
 
 	private getNativeInterface<T extends keyof NativeInterfaces>(name: T): NativeInterfaces[T] {

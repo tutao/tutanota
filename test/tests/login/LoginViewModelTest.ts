@@ -17,6 +17,8 @@ import { DeviceConfig } from "../../../src/misc/DeviceConfig"
 import { ResumeSessionErrorReason } from "../../../src/api/worker/facades/LoginFacade"
 import { Mode } from "../../../src/api/common/Env.js"
 import { createTestEntity, domainConfigStub } from "../TestUtils.js"
+import { CredentialRemovalHandler } from "../../../src/login/CredentialRemovalHandler.js"
+import { NativePushServiceApp } from "../../../src/native/main/NativePushServiceApp.js"
 
 const { anything } = matchers
 
@@ -109,6 +111,8 @@ o.spec("LoginViewModelTest", () => {
 	let secondFactorHandlerMock: SecondFactorHandler
 	let databaseKeyFactory: DatabaseKeyFactory
 	let deviceConfigMock: DeviceConfig
+	let credentialRemovalHandler: CredentialRemovalHandler
+	let pushServiceApp: NativePushServiceApp
 
 	o.beforeEach(async () => {
 		loginControllerMock = object<LoginController>()
@@ -131,6 +135,10 @@ o.spec("LoginViewModelTest", () => {
 		databaseKeyFactory = instance(DatabaseKeyFactory)
 
 		deviceConfigMock = instance(DeviceConfig)
+
+		credentialRemovalHandler = object()
+
+		pushServiceApp = object()
 	})
 
 	/**
@@ -138,7 +146,15 @@ o.spec("LoginViewModelTest", () => {
 	 * on a per test basis, so instead of having a global viewModel to test we just have a factory function to get one in each test
 	 */
 	async function getViewModel() {
-		const viewModel = new LoginViewModel(loginControllerMock, credentialsProviderMock, secondFactorHandlerMock, deviceConfigMock, domainConfigStub)
+		const viewModel = new LoginViewModel(
+			loginControllerMock,
+			credentialsProviderMock,
+			secondFactorHandlerMock,
+			deviceConfigMock,
+			domainConfigStub,
+			credentialRemovalHandler,
+			pushServiceApp,
+		)
 		await viewModel.init()
 		return viewModel
 	}
@@ -223,6 +239,19 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.getSavedCredentials()).deepEquals([])
 			verify(credentialsProviderMock.clearCredentials(anything()), { times: 1 })
 		})
+		o("Deletes push identifier", async function () {
+			const viewModel = await getViewModel()
+			viewModel.displayMode = DisplayMode.DeleteCredentials
+			const pushIdentifier = "iAmPushIdentifier"
+			const credentialsAndKey = { credentials: testCredentials, databaseKey: null }
+			await credentialsProviderMock.store(credentialsAndKey)
+			when(pushServiceApp.loadPushIdentifierFromNative()).thenResolve(pushIdentifier)
+
+			await viewModel.deleteCredentials(encryptedTestCredentials.credentialInfo)
+
+			verify(credentialRemovalHandler.onCredentialsRemoved(credentialsAndKey))
+			verify(loginControllerMock.deleteOldSession(testCredentials, pushIdentifier))
+		})
 	})
 	o.spec("Login with stored credentials", function () {
 		const offlineTimeRangeDays = 42
@@ -267,7 +296,8 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.state).equals(LoginState.LoggedIn)
 		})
 		o("login should fail with invalid stored credentials", async function () {
-			await credentialsProviderMock.store({ credentials: testCredentials, databaseKey: null })
+			const credentialsAndKey = { credentials: testCredentials, databaseKey: null }
+			await credentialsProviderMock.store(credentialsAndKey)
 			when(loginControllerMock.resumeSession(anything(), null, offlineTimeRangeDays)).thenReject(new NotAuthenticatedError("test"))
 			const viewModel = await getViewModel()
 
@@ -277,6 +307,7 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.state).equals(LoginState.InvalidCredentials)
 			o(viewModel.displayMode).equals(DisplayMode.Form)
 			verify(credentialsProviderMock.deleteByUserId(testCredentials.userId))
+			verify(credentialRemovalHandler.onCredentialsRemoved(credentialsAndKey))
 			o(viewModel.getSavedCredentials()).deepEquals([])
 			o(viewModel._autoLoginCredentials).equals(null)
 		})

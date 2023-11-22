@@ -19,6 +19,9 @@ interface NativePushFacade {
 		pushIdentifierId: String,
 		pushIdentifierSessionKey: DataWrapper,
 	): Unit
+	 suspend fun removeUser(
+		userId: String,
+	): Unit
 	/**
 	 * Called at some point after login to initialize push notifications.
 	 */

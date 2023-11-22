@@ -127,33 +127,33 @@ export class DbFacade {
 	}
 
 	/**
-	 * Deletes the database if it has been opened.
+	 * Closes the db if it's open and deletes it.
 	 */
-	deleteDatabase(): Promise<void> {
-		if (this._db.isLoaded()) {
-			if (this._activeTransactions > 0) {
-				return delay(150).then(() => this.deleteDatabase())
+	deleteDatabase(id: string): Promise<void> {
+		const ensureDbIsClosed = (): Promise<void> => {
+			if (this._db.isLoaded()) {
+				if (this._activeTransactions > 0) {
+					return delay(150).then(ensureDbIsClosed)
+				} else {
+					this._db.getLoaded().close()
+					return Promise.resolve()
+				}
 			} else {
-				this._db.getLoaded().close()
-
-				return new Promise((resolve, reject) => {
-					let deleteRequest = self.indexedDB.deleteDatabase(this._db.getLoaded().name)
-
-					// @ts-ignore
-					deleteRequest.onerror = (event: ErrorEvent) => {
-						reject(new DbError(`could not delete database ${this._db.getLoaded().name}`, downcast<Error>(event)))
-					}
-
-					deleteRequest.onsuccess = (event) => {
-						this._db.reset()
-
-						resolve()
-					}
-				})
+				return Promise.resolve()
 			}
-		} else {
-			return Promise.resolve()
 		}
+
+		return ensureDbIsClosed()
+			.then(() => DbFacade.deleteDb(id))
+			.then(() => this._db.reset())
+	}
+
+	static deleteDb(id: string): Promise<void> {
+		return new Promise((resolve, reject) => {
+			const deleteRequest = self.indexedDB.deleteDatabase(id)
+			deleteRequest.onerror = (event: ErrorEvent) => reject(new DbError(`could not delete database ${id}`, downcast<Error>(event)))
+			deleteRequest.onsuccess = () => resolve()
+		})
 	}
 
 	/**
@@ -381,6 +381,6 @@ export class IndexedDbTransaction implements DbTransaction {
 	}
 }
 
-export function b64UserIdHash(user: User): string {
-	return uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(getEtId(user))))
+export function b64UserIdHash(userId: Id): string {
+	return uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(userId)))
 }

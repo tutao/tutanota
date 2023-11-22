@@ -16,6 +16,9 @@ public protocol NativePushFacade {
 		_ pushIdentifierId: String,
 		_ pushIdentifierSessionKey: DataWrapper
 	) async throws -> Void
+	func removeUser(
+		_ userId: String
+	) async throws -> Void
 	/**
 	 * Called at some point after login to initialize push notifications.
 	 */

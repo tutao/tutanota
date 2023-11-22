@@ -11,11 +11,29 @@
 		},
 		"storePushIdentifierLocally": {
 			"arg": [
-				{ "identifier": "string" },
-				{ "userId": "string" },
-				{ "sseOrigin": "string" },
-				{ "pushIdentifierId": "string" },
-				{ "pushIdentifierSessionKey": "bytes" }
+				{
+					"identifier": "string"
+				},
+				{
+					"userId": "string"
+				},
+				{
+					"sseOrigin": "string"
+				},
+				{
+					"pushIdentifierId": "string"
+				},
+				{
+					"pushIdentifierSessionKey": "bytes"
+				}
+			],
+			"ret": "void"
+		},
+		"removeUser": {
+			"arg": [
+				{
+					"userId": "string"
+				}
 			],
 			"ret": "void"
 		},
@@ -25,15 +43,27 @@
 			"ret": "void"
 		},
 		"closePushNotifications": {
-			"arg": [{ "addressesArray": "List<string>" }],
+			"arg": [
+				{
+					"addressesArray": "List<string>"
+				}
+			],
 			"ret": "void"
 		},
 		"scheduleAlarms": {
-			"arg": [{ "alarms": "List<EncryptedAlarmNotification>" }],
+			"arg": [
+				{
+					"alarms": "List<EncryptedAlarmNotification>"
+				}
+			],
 			"ret": "void"
 		},
 		"invalidateAlarmsForUser": {
-			"arg": [{ "userId": "string" }],
+			"arg": [
+				{
+					"userId": "string"
+				}
+			],
 			"ret": "void",
 			"doc": "Unschedule and remove alarms belonging to a specific user from the persistent storage"
 		}

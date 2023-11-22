@@ -36,7 +36,7 @@ export function setupNavShortcuts() {
 			ctrl: true,
 			enabled: () => locator.logins.isUserLoggedIn(),
 			exec: (key) => m.route.set(LogoutUrl),
-			help: "logout_label",
+			help: "switchAccount_action",
 		},
 	])
 }

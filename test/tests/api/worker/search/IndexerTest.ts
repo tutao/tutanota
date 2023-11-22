@@ -21,7 +21,7 @@ import { daysToMillis, defer, downcast, TypeRef } from "@tutao/tutanota-utils"
 import { aes256RandomKey, aesEncrypt, decryptKey, encryptKey, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import o from "@tutao/otest"
-import { instance, matchers, object, replace, reset, verify, when } from "testdouble"
+import { func, instance, matchers, object, replace, reset, verify, when } from "testdouble"
 import { CacheInfo } from "../../../../../src/api/worker/facades/LoginFacade.js"
 import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
 import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
@@ -29,6 +29,7 @@ import { ContactIndexer } from "../../../../../src/api/worker/search/ContactInde
 import { InfoMessageHandler } from "../../../../../src/gui/InfoMessageHandler.js"
 import { GroupDataOS, Metadata, MetaDataOS } from "../../../../../src/api/worker/search/IndexTables.js"
 import { MailFacade } from "../../../../../src/api/worker/facades/lazy/MailFacade.js"
+import { MailIndexer } from "../../../../../src/api/worker/search/MailIndexer.js"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 let contactList = createTestEntity(ContactListTypeRef)
@@ -1234,8 +1235,12 @@ o.spec("Indexer test", () => {
 				isNewOfflineDb: true,
 			}
 
+			indexer._mail.enableMailIndexing = func<MailIndexer["enableMailIndexing"]>()
+			when(indexer._mail.enableMailIndexing(matchers.anything())).thenResolve(undefined)
+
 			await indexer.init({ user, userGroupKey, cacheInfo })
 			verify(indexer._entity.loadAll(ContactTypeRef, contactList.contacts))
+			verify(indexer._mail.enableMailIndexing(matchers.anything()))
 		})
 
 		o("When init() is called with a fresh db and contacts are not yet indexed, they will be indexed and not downloaded", async function () {
@@ -1244,9 +1249,27 @@ o.spec("Indexer test", () => {
 				isPersistent: true,
 				isNewOfflineDb: true,
 			}
+			indexer._mail.enableMailIndexing = func<MailIndexer["enableMailIndexing"]>()
+			when(indexer._mail.enableMailIndexing(matchers.anything())).thenResolve(undefined)
+
 			await indexer.init({ user, userGroupKey, cacheInfo })
+
 			verify(indexer._contact.indexFullContactList(contactList))
 			verify(indexer._entity.loadAll(ContactTypeRef, contactList.contacts), { times: 0 })
+		})
+
+		o("When init() is called with a fresh db and the cache is not persisted the indexing is not enabled", async function () {
+			when(indexer._contact.getIndexTimestamp(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
+			const cacheInfo: CacheInfo = {
+				isPersistent: false,
+				isNewOfflineDb: true,
+			}
+
+			indexer._mail.enableMailIndexing = func<MailIndexer["enableMailIndexing"]>()
+			when(indexer._mail.enableMailIndexing(matchers.anything())).thenResolve(undefined)
+
+			await indexer.init({ user, userGroupKey, cacheInfo })
+			verify(indexer._mail.enableMailIndexing(matchers.anything()), { times: 0 })
 		})
 	})
 })

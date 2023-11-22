@@ -55,4 +55,8 @@ class AndroidNativePushFacade(
 	override suspend fun invalidateAlarmsForUser(userId: String) {
 		alarmNotificationsManager.unscheduleAlarms(userId)
 	}
+
+	override suspend fun removeUser(userId: String) {
+		this.sseStorage.removeUser(userId)
+	}
 }

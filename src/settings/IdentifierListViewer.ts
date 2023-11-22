@@ -170,7 +170,7 @@ export class IdentifierListViewer {
 	}
 
 	private getCurrentIdentifier(): string | null {
-		return isApp() || isDesktop() ? locator.pushService.getPushIdentifier() : null
+		return isApp() || isDesktop() ? locator.pushService.getLoadedPushIdentifier() : null
 	}
 
 	_showAddNotificationEmailAddressDialog(user: User) {

@@ -28,6 +28,12 @@ public class NativePushFacadeReceiveDispatcher {
 				pushIdentifierSessionKey
 			)
 			return "null"
+		case "removeUser":
+			let userId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.removeUser(
+				userId
+			)
+			return "null"
 		case "initPushNotifications":
 			try await self.facade.initPushNotifications(
 			)
