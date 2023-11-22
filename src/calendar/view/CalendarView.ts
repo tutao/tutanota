@@ -351,7 +351,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					return (this.isDaySelectorExpanded = !this.isDaySelectorExpanded)
 				}
 
-				if (!styles.isDesktopLayout()) {
+				if (!styles.isDesktopLayout() && this.currentViewType !== CalendarViewType.MONTH) {
 					this._showCalendarPopup(dom)
 				}
 			},
@@ -856,7 +856,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	_showCalendarPopup(dom: HTMLElement) {
-		const elementRect = dom.getBoundingClientRect()
+		const elementRect = { ...dom.getBoundingClientRect(), left: size.button_height }
 
 		const selector = new DaySelectorPopup(elementRect, {
 			selectedDate: getStartOfDay(this.viewModel.selectedDate()),
