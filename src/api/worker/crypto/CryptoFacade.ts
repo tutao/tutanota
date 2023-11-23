@@ -625,7 +625,15 @@ export class CryptoFacade {
 			)
 	}
 
-	async getOrMakeSenderIdentityKeyPair(senderKeyPair: RsaEccKeyPair | RsaKeyPair | PQKeyPairs, senderUserGroupId: Id | null = null): Promise<EccKeyPair> {
+	/**
+	 * Returns the SenderIdentityKeyPair that is either already on the KeyPair that is being passed in,
+	 * or creates a new one and writes it to the respective Group.
+	 * @param senderKeyPair
+	 * @param keyGroupId Id for the Group that Public Key Service might write a new IdentityKeyPair for.
+	 * 						This is necessary as a User might send an E-Mail from a shared mailbox,
+	 * 						for which the KeyPair should be created.
+	 */
+	async getOrMakeSenderIdentityKeyPair(senderKeyPair: RsaEccKeyPair | RsaKeyPair | PQKeyPairs, keyGroupId: Id): Promise<EccKeyPair> {
 		if (senderKeyPair instanceof PQKeyPairs) {
 			return senderKeyPair.eccKeyPair
 		} else {
@@ -633,10 +641,10 @@ export class CryptoFacade {
 			if (senderKeys.publicEccKey) {
 				return { publicKey: senderKeys.publicEccKey, privateKey: senderKeys.privateEccKey }
 			}
-			let userGroupKey = senderUserGroupId ? this.userFacade.getGroupKey(senderUserGroupId) : this.userFacade.getUserGroupKey()
+			let userGroupKey = keyGroupId ? this.userFacade.getGroupKey(keyGroupId) : this.userFacade.getUserGroupKey()
 			const newIdentityKeyPair = generateEccKeyPair()
 			const symEncPrivEccKey = encryptEccKey(userGroupKey, newIdentityKeyPair.privateKey)
-			const data = createPublicKeyPutIn({ pubEccKey: newIdentityKeyPair.publicKey, symEncPrivEccKey, senderUserGroupId: senderUserGroupId })
+			const data = createPublicKeyPutIn({ pubEccKey: newIdentityKeyPair.publicKey, symEncPrivEccKey, keyGroup: keyGroupId })
 			await this.serviceExecutor.put(PublicKeyService, data)
 			return newIdentityKeyPair
 		}

@@ -8738,15 +8738,6 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "senderUserGroupId": {
-                "final": true,
-                "name": "senderUserGroupId",
-                "id": 2147,
-                "since": 91,
-                "type": "CustomId",
-                "cardinality": "ZeroOrOne",
-                "encrypted": false
-            },
             "symEncPrivEccKey": {
                 "final": true,
                 "name": "symEncPrivEccKey",
@@ -8757,7 +8748,18 @@ export const typeModels = {
                 "encrypted": false
             }
         },
-        "associations": {},
+        "associations": {
+            "keyGroup": {
+                "final": false,
+                "name": "keyGroup",
+                "id": 2147,
+                "since": 91,
+                "type": "ELEMENT_ASSOCIATION",
+                "cardinality": "One",
+                "refType": "Group",
+                "dependency": null
+            }
+        },
         "app": "sys",
         "version": "91"
     },

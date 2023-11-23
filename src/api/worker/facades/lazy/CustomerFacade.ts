@@ -21,6 +21,7 @@ import {
 	CustomerInfoTypeRef,
 	CustomerServerPropertiesTypeRef,
 	CustomerTypeRef,
+	GroupInfoTypeRef,
 } from "../../../entities/sys/TypeRefs.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import type { Hex } from "@tutao/tutanota-utils"
@@ -121,8 +122,9 @@ export class CustomerFacade {
 		const systemAdminPubKey = this.cryptoFacade.getPublicKey({ pubEccKey, pubKyberKey, pubRsaKey })
 		let systemAdminPubEncAccountingInfoSessionKey
 		if (systemAdminPubKey instanceof PQPublicKeys) {
-			const senderKeyPair = await this.cryptoFacade.loadKeypair(this.userFacade.getUserGroupId())
-			const senderIdentityKeyPair = await this.cryptoFacade.getOrMakeSenderIdentityKeyPair(senderKeyPair)
+			const userGroupId = this.userFacade.getUserGroupId()
+			const senderKeyPair = await this.cryptoFacade.loadKeypair(userGroupId)
+			const senderIdentityKeyPair = await this.cryptoFacade.getOrMakeSenderIdentityKeyPair(senderKeyPair, userGroupId)
 			const ephemeralKeyPair = generateEccKeyPair()
 			systemAdminPubEncAccountingInfoSessionKey = encodePQMessage(
 				await this.pq.encapsulate(senderIdentityKeyPair, ephemeralKeyPair, systemAdminPubKey, bitArrayToUint8Array(sessionKey)),
