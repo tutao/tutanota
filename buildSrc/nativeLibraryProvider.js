@@ -149,19 +149,41 @@ export async function buildNativeModule({ nodeModule, copyTarget, environment, r
 		})
 
 	if (architecture === "universal") {
-		const artifactPath = path.join(moduleDir, "build/Release", `${copyTarget}.node`)
-		const intelArtifactPath = path.join(moduleDir, `${copyTarget}-x64.node`)
-		const armArtifactPath = path.join(moduleDir, `${copyTarget}-arm64.node`)
-		await doBuild("x64")
-		await fs.promises.copyFile(artifactPath, intelArtifactPath)
-		await doBuild("arm64")
-		await fs.promises.copyFile(artifactPath, armArtifactPath)
-		await callProgram({
-			command: "lipo",
-			args: ["-create", "-output", artifactPath, intelArtifactPath, armArtifactPath],
-			cwd: path.join(rootDir, "native-cache"),
-			log,
-		})
+		if (copyTarget === "keytar") {
+			// this is a hack to get us out of a pickle with incompatible macos SDKs
+			// we reuse the keytar of tutanota-desktop 3.118.13 for the
+			// mac build because any newer build crashes the process when loaded.
+			// we will replace keytar very soon.
+			const artifactPath = path.join(moduleDir, "build/Release", `${copyTarget}.node`)
+			const armArtifactPath = path.join(moduleDir, `${copyTarget}-arm64.node`)
+			const intelArtifactPath = path.join(moduleDir, `${copyTarget}-3.118.13.node`)
+			await doBuild("arm64")
+			await fs.promises.copyFile(artifactPath, armArtifactPath)
+			await callProgram({
+				command: "lipo",
+				args: ["-create", "-output", artifactPath, intelArtifactPath, armArtifactPath],
+				cwd: path.join(rootDir, "native-cache"),
+				log,
+			})
+		} else {
+			const artifactPath = path.join(moduleDir, "build/Release", `${copyTarget}.node`)
+			const armArtifactPath = path.join(moduleDir, `${copyTarget}-arm64.node`)
+			const intelArtifactPath = path.join(moduleDir, `${copyTarget}-x64.node`)
+			// this is a hack to get us out of a pickle with incompatible macos SDKs
+			// we reuse the keytar of tutanota-desktop 3.118.13 for the
+			// mac build because any newer build crashes the process when loaded.
+			// we will replace keytar very soon.
+			await doBuild("x64")
+			await fs.promises.copyFile(artifactPath, intelArtifactPath)
+			await doBuild("arm64")
+			await fs.promises.copyFile(artifactPath, armArtifactPath)
+			await callProgram({
+				command: "lipo",
+				args: ["-create", "-output", artifactPath, intelArtifactPath, armArtifactPath],
+				cwd: path.join(rootDir, "native-cache"),
+				log,
+			})
+		}
 	} else {
 		await doBuild(architecture)
 	}
