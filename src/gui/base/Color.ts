@@ -44,6 +44,11 @@ export function rgbToHex(color: { r: number; g: number; b: number }): string {
 	return "#" + ((1 << 24) + (color.r << 16) + (color.g << 8) + color.b).toString(16).slice(1)
 }
 
+export function hexToRGBAString(color: string, alpha: number) {
+	const { r, g, b } = hexToRgb(color)
+	return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
 /**
  * Convert RGB to RRGGBB
  */

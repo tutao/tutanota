@@ -352,7 +352,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				}
 
 				if (!styles.isDesktopLayout() && this.currentViewType !== CalendarViewType.MONTH) {
-					this._showCalendarPopup(dom)
+					if (this.isDaySelectorExpanded) this.isDaySelectorExpanded = false
+
+					this.showCalendarPopup(dom)
 				}
 			},
 		})
@@ -855,7 +857,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		new CalendarEventPopup(popupModel, rect, htmlSanitizer).show()
 	}
 
-	_showCalendarPopup(dom: HTMLElement) {
+	private showCalendarPopup(dom: HTMLElement) {
+		// When the user clicks the month name in the header, the target can be the month's name or the icon on the right
+		// side of month's name, so we hardcoded the left spacing to be the same used by the month name, so doesn't matter
+		// if the user clicks on month's name or on the icon
 		const elementRect = { ...dom.getBoundingClientRect(), left: size.button_height }
 
 		const selector = new DaySelectorPopup(elementRect, {
@@ -869,6 +874,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			eventsForDays: this.viewModel.eventsForDays,
 			showDaySelection: true,
 			highlightToday: true,
+			highlightSelectedWeek: this.currentViewType === CalendarViewType.WEEK,
 		})
 
 		selector.show()

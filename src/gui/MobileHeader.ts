@@ -73,7 +73,11 @@ export const MobileHeaderTitle = pureComponent(({ title, bottom, onTap }: { titl
 	// align-self: stretch restrict the child to the parent width
 	// text-ellipsis already sets min-width to 0
 	return m(".flex.col.items-start.min-width-0", [
-		m(".font-weight-600.text-ellipsis.align-self-stretch", { onclick: (event: MouseEvent) => onTap?.(event, event.target as HTMLElement) }, title ?? NBSP),
+		m(
+			(onTap ? "button" : "") + ".font-weight-600.text-ellipsis.align-self-stretch",
+			{ onclick: (event: MouseEvent) => onTap?.(event, event.target as HTMLElement) },
+			title ?? NBSP,
+		),
 		bottom,
 	])
 })

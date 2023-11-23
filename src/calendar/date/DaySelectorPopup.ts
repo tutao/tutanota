@@ -23,6 +23,7 @@ export interface DaySelectorPopupAttrs {
 	eventsForDays: Map<number, Array<CalendarEvent>>
 	showDaySelection: boolean
 	highlightToday: boolean
+	highlightSelectedWeek: boolean
 }
 
 export class DaySelectorPopup implements ModalComponent {
@@ -31,7 +32,7 @@ export class DaySelectorPopup implements ModalComponent {
 	private currentDate: Date
 
 	/**
-	 * @param rect The rect where the event bubble was displayed that was clicked
+	 * @param rect The rect with coordinates about where the popup should be rendered
 	 * @param attrs The attributes for the component
 	 */
 	constructor(private readonly rect: PosRect, private readonly attrs: DaySelectorPopupAttrs) {
@@ -49,11 +50,18 @@ export class DaySelectorPopup implements ModalComponent {
 					left: px(this.rect.left),
 					top: px(this.rect.bottom),
 				},
+				tabIndex: 0,
+				autoFocus: "true",
 				oncreate: (vnode) => {
 					this.dom = vnode.dom as HTMLElement
+
 					animations.add(this.dom, [opacity(0, 1, true), transform(TransformEnum.Scale, 0.5, 1)], {
 						easing: ease.out,
 					})
+
+					// We need a little timeout to focus the modal, this will wait
+					// the necessary time to the popup be visible on screen
+					setTimeout(() => this.dom?.focus(), 200)
 				},
 			},
 			[
@@ -72,6 +80,7 @@ export class DaySelectorPopup implements ModalComponent {
 						},
 						showDaySelection: false,
 						highlightToday: this.attrs.highlightToday,
+						highlightSelectedWeek: this.attrs.highlightSelectedWeek,
 					}),
 				]),
 			],
@@ -97,7 +106,7 @@ export class DaySelectorPopup implements ModalComponent {
 	private renderSwitchMonthArrowIcon(forward: boolean): Children {
 		const bgColor = hexToRgb(theme.content_button)
 		return m(
-			".icon.flex.justify-center.items-center.click.ml-s.state-bg",
+			"button.icon.flex.justify-center.items-center.click.ml-s.state-bg",
 			{
 				onclick: () => this.onMonthChange(forward),
 				style: {
@@ -106,6 +115,7 @@ export class DaySelectorPopup implements ModalComponent {
 					fill: theme.content_fg,
 					width: "24px",
 					height: "24px",
+					tabIndex: 0,
 				},
 			},
 			m(Icon, {
