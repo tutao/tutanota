@@ -4,12 +4,15 @@ import android.app.job.JobParameters
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.lifecycle.lifecycleScope
 import de.tutao.tutanota.*
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.SseInfo
 import de.tutao.tutanota.push.SseClient.SseListener
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 
@@ -92,20 +95,24 @@ class PushNotificationService : LifecycleJobService() {
 		)
 		sseStorage.observeUsers().observeForever { userInfos ->
 			Log.d(TAG, "sse storage updated " + userInfos.size)
-			val userIds = userInfos.mapTo(HashSet()) { it.userId }
+			// Closing the connection sends RST packets over network and it triggers StrictMode
+			// violations so we dispatch it to another thread.
+			lifecycleScope.launch(Dispatchers.IO) {
+				val userIds = userInfos.mapTo(HashSet()) { it.userId }
 
-			if (userIds.isEmpty()) {
-				sseClient.stopConnection()
-				removeForegroundNotification()
-				finishJobIfNeeded()
-			} else {
-				sseClient.restartConnectionIfNeeded(
-					SseInfo(
-						sseStorage.getPushIdentifier()!!,
-						userIds,
-						sseStorage.getSseOrigin()!!
+				if (userIds.isEmpty()) {
+					sseClient.stopConnection()
+					removeForegroundNotification()
+					finishJobIfNeeded()
+				} else {
+					sseClient.restartConnectionIfNeeded(
+						SseInfo(
+							sseStorage.getPushIdentifier()!!,
+							userIds,
+							sseStorage.getSseOrigin()!!
+						)
 					)
-				)
+				}
 			}
 		}
 
@@ -113,6 +120,7 @@ class PushNotificationService : LifecycleJobService() {
 			localNotificationsFacade.createNotificationChannels()
 		}
 	}
+
 
 	private fun removeForegroundNotification() {
 		Log.d(TAG, "removeForegroundNotification")
