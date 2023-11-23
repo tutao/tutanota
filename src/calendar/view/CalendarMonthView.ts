@@ -24,7 +24,6 @@ import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { styles } from "../../gui/styles"
 import { isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
 import { windowFacade } from "../../misc/WindowFacade"
-import { PageView } from "../../gui/base/PageView"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
 import type { EventDragHandlerCallbacks, MousePos } from "./EventDragHandler"
@@ -38,6 +37,7 @@ import { Time } from "../date/Time.js"
 import { client } from "../../misc/ClientDetector"
 import { locator } from "../../api/main/MainLocator.js"
 import { theme } from "../../gui/theme.js"
+import { PageView } from "../../gui/base/PageView.js"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date
@@ -100,21 +100,36 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		const nextMonthDate = incrementMonth(attrs.selectedDate, 1)
 		const previousMonth = getCalendarMonth(lastMonthDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
 		const nextMonth = getCalendarMonth(nextMonthDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
-		return m(PageView, {
-			previousPage: {
-				key: getFirstDayOfMonth(lastMonthDate).getTime(),
-				nodes: this._monthDom ? this._renderCalendar(attrs, previousMonth, thisMonth, this._zone) : null,
-			},
-			currentPage: {
-				key: getFirstDayOfMonth(attrs.selectedDate).getTime(),
-				nodes: this._renderCalendar(attrs, thisMonth, thisMonth, this._zone),
-			},
-			nextPage: {
-				key: getFirstDayOfMonth(nextMonthDate).getTime(),
-				nodes: this._monthDom ? this._renderCalendar(attrs, nextMonth, thisMonth, this._zone) : null,
-			},
-			onChangePage: (next) => attrs.onChangeMonth(next),
-		})
+
+		return m(
+			".fill-absolute.flex.col.mlr-safe-inset" +
+				(!styles.isUsingBottomNavigation() ? ".content-bg" : ".border-radius-top-left-big.border-radius-top-right-big"),
+			[
+				styles.isDesktopLayout() ? null : m(".pt-s"),
+				m(
+					".flex.mb-s",
+					thisMonth.weekdays.map((wd) => m(".flex-grow", m(".calendar-day-indicator.b", wd))),
+				),
+				m(
+					".rel.flex-grow",
+					m(PageView, {
+						previousPage: {
+							key: getFirstDayOfMonth(lastMonthDate).getTime(),
+							nodes: this._monthDom ? this._renderCalendar(attrs, previousMonth, thisMonth, this._zone) : null,
+						},
+						currentPage: {
+							key: getFirstDayOfMonth(attrs.selectedDate).getTime(),
+							nodes: this._renderCalendar(attrs, thisMonth, thisMonth, this._zone),
+						},
+						nextPage: {
+							key: getFirstDayOfMonth(nextMonthDate).getTime(),
+							nodes: this._monthDom ? this._renderCalendar(attrs, nextMonth, thisMonth, this._zone) : null,
+						},
+						onChangePage: (next) => attrs.onChangeMonth(next),
+					}),
+				),
+			],
+		)
 	}
 
 	onbeforeupdate(newVnode: Vnode<CalendarMonthAttrs>, oldVnode: VnodeDOM<CalendarMonthAttrs>): boolean {
@@ -138,64 +153,53 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 	}
 
 	_renderCalendar(attrs: CalendarMonthAttrs, month: CalendarMonth, currentlyVisibleMonth: CalendarMonth, zone: string): Children {
-		const { weekdays, weeks } = month
+		const { weeks } = month
 		const today = getStartOfDayWithZone(new Date(), getTimeZone())
 		return m(
-			".fill-absolute.flex.col.mlr-safe-inset" +
-				(!styles.isUsingBottomNavigation() ? ".content-bg" : ".border-radius-top-left-big.border-radius-top-right-big"),
-			[
-				styles.isDesktopLayout() ? null : m(".pt-s"),
-				m(
-					".flex.mb-s",
-					weekdays.map((wd) => m(".flex-grow", m(".calendar-day-indicator.b", wd))),
-				),
-				m(
-					".flex.col.flex-grow",
+			".fill-absolute.flex.col.flex-grow",
+			{
+				oncreate: (vnode) => {
+					if (month === currentlyVisibleMonth) {
+						this._monthDom = vnode.dom as HTMLElement
+						m.redraw()
+					}
+				},
+				onupdate: (vnode) => {
+					if (month === currentlyVisibleMonth) {
+						this._monthDom = vnode.dom as HTMLElement
+					}
+				},
+				onmousemove: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
+					mouseEvent.redraw = false
+					const posAndBoundsFromMouseEvent = getPosAndBoundsFromMouseEvent(mouseEvent)
+					this._lastMousePos = posAndBoundsFromMouseEvent
+					this._dayUnderMouse = getDateFromMousePos(
+						posAndBoundsFromMouseEvent,
+						weeks.map((week) => week.map((day) => day.date)),
+					)
+
+					this._eventDragHandler.handleDrag(this._dayUnderMouse, posAndBoundsFromMouseEvent)
+				},
+				onmouseup: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
+					mouseEvent.redraw = false
+
+					this._endDrag(mouseEvent)
+				},
+				onmouseleave: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
+					mouseEvent.redraw = false
+
+					this._endDrag(mouseEvent)
+				},
+			},
+			weeks.map((week) => {
+				return m(
+					".flex.flex-grow.rel",
 					{
-						oncreate: (vnode) => {
-							if (month === currentlyVisibleMonth) {
-								this._monthDom = vnode.dom as HTMLElement
-								m.redraw()
-							}
-						},
-						onupdate: (vnode) => {
-							if (month === currentlyVisibleMonth) {
-								this._monthDom = vnode.dom as HTMLElement
-							}
-						},
-						onmousemove: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
-							mouseEvent.redraw = false
-							const posAndBoundsFromMouseEvent = getPosAndBoundsFromMouseEvent(mouseEvent)
-							this._lastMousePos = posAndBoundsFromMouseEvent
-							this._dayUnderMouse = getDateFromMousePos(
-								posAndBoundsFromMouseEvent,
-								weeks.map((week) => week.map((day) => day.date)),
-							)
-
-							this._eventDragHandler.handleDrag(this._dayUnderMouse, posAndBoundsFromMouseEvent)
-						},
-						onmouseup: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
-							mouseEvent.redraw = false
-
-							this._endDrag(mouseEvent)
-						},
-						onmouseleave: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
-							mouseEvent.redraw = false
-
-							this._endDrag(mouseEvent)
-						},
+						key: week[0].date.getTime(),
 					},
-					weeks.map((week) => {
-						return m(
-							".flex.flex-grow.rel",
-							{
-								key: week[0].date.getTime(),
-							},
-							[week.map((day, i) => this._renderDay(attrs, day, today, i)), this._monthDom ? this._renderWeekEvents(attrs, week, zone) : null],
-						)
-					}),
-				),
-			],
+					[week.map((day, i) => this._renderDay(attrs, day, today, i)), this._monthDom ? this._renderWeekEvents(attrs, week, zone) : null],
+				)
+			}),
 		)
 	}
 
