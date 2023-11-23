@@ -28,7 +28,7 @@ export const DesktopViewerToolbar = pureComponent((__, children) => {
 	//
 	// see comment for .scrollbar-gutter-stable-or-fallback
 	return m(
-		".scrollbar-gutter-stable-or-fallback.overflow-y-hidden",
+		".scrollbar-gutter-stable-or-fallback.overflow-y-hidden.noprint",
 		{
 			class: responsiveCardHMargin(),
 			style: {
