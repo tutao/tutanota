@@ -5,7 +5,7 @@ import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import { BaseMobileHeader } from "../../gui/BaseMobileHeader.js"
 import { OfflineIndicatorMobile } from "../../gui/base/OfflineIndicator.js"
 import { ProgressBar } from "../../gui/base/ProgressBar.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
+import { Icons, IconsSvg } from "../../gui/base/icons/Icons.js"
 import { CalendarNavConfiguration, CalendarViewType, getIconForViewType } from "./CalendarGuiUtils.js"
 import { MobileHeaderMenuButton, MobileHeaderTitle } from "../../gui/MobileHeader.js"
 import { AppHeaderAttrs } from "../../gui/Header.js"
@@ -15,6 +15,7 @@ import { styles } from "../../gui/styles.js"
 import { Icon } from "../../gui/base/Icon.js"
 import { theme } from "../../gui/theme.js"
 import { clickHandler } from "../../gui/base/GuiUtils.js"
+import { assertNotNull, memoized } from "@tutao/tutanota-utils"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	viewType: CalendarViewType
@@ -65,9 +66,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 					: []),
 				...(!styles.isDesktopLayout()
 					? [
-							m(IconButton, {
-								icon: Icons.Today,
-								title: "today_label",
+							m(TodayIconButton, {
 								click: attrs.onToday,
 							}),
 							this.renderViewSelector(attrs),
@@ -121,4 +120,49 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 			}),
 		)
 	}
+}
+
+export interface TodayIconButtonAttrs {
+	click: clickHandler
+}
+
+/**
+ * Button that has a current day number displayed in it.
+ *
+ * Implemented as a custom class because we need to manipulate the icon directly
+ */
+export class TodayIconButton implements Component<TodayIconButtonAttrs> {
+	private dom: HTMLElement | null = null
+
+	view(vnode: Vnode<TodayIconButtonAttrs>): Children {
+		const { attrs } = vnode
+		const icon = this.getIcon(new Date().getDate())
+		return m(
+			"button.icon-button.state-bg",
+			{
+				oncreate: ({ dom }) => {
+					this.dom = dom as HTMLElement
+				},
+				onclick: (e: MouseEvent) => {
+					attrs.click(e, assertNotNull(this.dom))
+					// It doesn't make sense to propagate click events if we are the button
+					e.stopPropagation()
+				},
+				title: "today_label",
+			},
+			m(
+				".icon.icon-large.center-h",
+				{
+					style: {
+						fill: theme.content_button,
+					},
+				},
+				m.trust(icon),
+			),
+		)
+	}
+
+	private getIcon = memoized((dayNumber: number) => {
+		return IconsSvg.Today.replace("{date}", dayNumber.toString())
+	})
 }

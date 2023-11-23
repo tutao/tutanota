@@ -10,6 +10,7 @@ import { DefaultAnimationTime } from "../../gui/animation/Animations.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
 import { theme } from "../../gui/theme.js"
 import { styles } from "../../gui/styles.js"
+import { hexToRGBAString } from "../../gui/base/Color.js"
 
 export interface DaySelectorAttrs {
 	selectedDate: Date | null
@@ -21,9 +22,13 @@ export interface DaySelectorAttrs {
 	handleDayPickerSwipe: (isNext: boolean) => void
 	showDaySelection: boolean
 	highlightToday: boolean
+	highlightSelectedWeek: boolean
 }
 
-/** Date picker used on desktop. Displays a month and ability to select a month. */
+/**
+ *  Expandable Date picker used on single/two column layouts.
+ * Displays the week, and if expanded displays the month.
+ */
 export class DaySelector implements Component<DaySelectorAttrs> {
 	private displayingDate: Date
 	private lastSelectedDate: Date | null = null
@@ -119,9 +124,9 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 								}),
 						},
 					},
-					this.renderCarouselPage(isExpanded, vnode.attrs, lastWeek, lastMonth),
+					this.renderCarouselPage(isExpanded, vnode.attrs, lastWeek, lastMonth, true),
 				),
-				this.renderCarouselPage(isExpanded, vnode.attrs, currentWeek, currentMonth),
+				this.renderCarouselPage(isExpanded, vnode.attrs, currentWeek, currentMonth, false),
 				m(
 					".abs",
 					{
@@ -141,13 +146,13 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 								}),
 						},
 					},
-					this.renderCarouselPage(isExpanded, vnode.attrs, nextWeek, nextMonth),
+					this.renderCarouselPage(isExpanded, vnode.attrs, nextWeek, nextMonth, true),
 				),
 			],
 		)
 	}
 
-	private renderCarouselPage(isExpanded: boolean, attrs: DaySelectorAttrs, week: readonly CalendarDay[], month: CalendarMonth) {
+	private renderCarouselPage(isExpanded: boolean, attrs: DaySelectorAttrs, week: readonly CalendarDay[], month: CalendarMonth, hidden: boolean) {
 		return m("", [
 			m(
 				"",
@@ -160,24 +165,30 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 						transition: `opacity ${1.5 * DefaultAnimationTime}ms ease-in-out`,
 					},
 				},
-				this.renderExpandableWeek(week, attrs),
+				this.renderExpandableWeek(week, attrs, false, attrs.isDaySelectorExpanded || hidden),
 			),
 			m(
 				ExpanderPanel,
 				{
 					expanded: isExpanded,
 				},
-				this.renderExpandedMonth(month, attrs),
+				this.renderExpandedMonth(month, attrs, hidden),
 			),
 		])
 	}
 
-	private renderExpandedMonth(calendarMonth: CalendarMonth, attrs: DaySelectorAttrs) {
+	private renderExpandedMonth(calendarMonth: CalendarMonth, attrs: DaySelectorAttrs, hidden: boolean) {
 		const { weeks } = calendarMonth
-		return m("", [weeks.map((w) => this.renderExpandableWeek(w, attrs))])
+		let weekToHighlight = -1
+
+		if (attrs.highlightSelectedWeek) {
+			weekToHighlight = weeks.findIndex((week) => week.find((day) => day.date.getTime() === attrs.selectedDate?.getTime()))
+		}
+
+		return m("", [weeks.map((w, index) => this.renderExpandableWeek(w, attrs, weekToHighlight === index, attrs.isDaySelectorExpanded && hidden))])
 	}
 
-	private renderDay({ date, day, isPaddingDay }: CalendarDay, attrs: DaySelectorAttrs): Children {
+	private renderDay({ date, day, isPaddingDay }: CalendarDay, attrs: DaySelectorAttrs, hidden: boolean): Children {
 		const eventForDay = attrs.eventsForDays?.get(date.getTime())
 		const isSelectedDay = isSameDayOfDate(date, attrs.selectedDate)
 		const hasEvent = eventForDay && eventForDay.length > 0
@@ -205,7 +216,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 			textStyle = {}
 		}
 		return m(
-			".rel.click.flex.items-center.justify-center.rel" + (isPaddingDay ? ".faded-day" : ""),
+			"button.rel.click.flex.items-center.justify-center.rel" + (isPaddingDay ? ".faded-day" : ""),
 			{
 				style: {
 					height: px(40),
@@ -215,6 +226,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 				"aria-label": date.toLocaleDateString(),
 				"aria-selected": `${isSelectedDay}`,
 				role: "option",
+				tabIndex: hidden ? -1 : 0,
 				onclick: () => attrs.onDateSelected?.(date, true),
 			},
 			[
@@ -235,11 +247,26 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 		return attrs.wide ? 40 : 24
 	}
 
-	private renderExpandableWeek(week: ReadonlyArray<CalendarDay>, attrs: DaySelectorAttrs): Children {
-		return m(
-			".flex.flex-space-around",
-			week.map((d) => this.renderDay(d, attrs)),
-		)
+	private renderExpandableWeek(week: ReadonlyArray<CalendarDay>, attrs: DaySelectorAttrs, highlight: boolean, hidden: boolean): Children {
+		let style
+
+		if (highlight) {
+			style = {
+				backgroundColor: hexToRGBAString(theme.content_accent, 0.4),
+				borderRadius: "5px",
+				height: "25px",
+				width: "95%",
+			}
+		} else {
+			style = {}
+		}
+
+		return m(".flex.flex-space-around.rel.items-center", [
+			m(".abs", {
+				style,
+			}),
+			...week.map((d) => this.renderDay(d, attrs, hidden)),
+		])
 	}
 
 	private renderWeekDays(wide: boolean, weekdays: readonly string[]): Children {
