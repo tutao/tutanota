@@ -1,4 +1,4 @@
-import { AccountType, asKdfType, Const, CounterType, GroupType, KdfType } from "../../../common/TutanotaConstants.js"
+import { AccountType, asKdfType, Const, CounterType, DEFAULT_KDF_TYPE, GroupType } from "../../../common/TutanotaConstants.js"
 import type { User } from "../../../entities/sys/TypeRefs.js"
 import {
 	createMembershipAddData,
@@ -50,10 +50,11 @@ export class UserManagementFacade {
 		private readonly loginFacade: LoginFacade,
 	) {}
 
-	async changeUserPassword(user: User, newPassword: string, kdfType: KdfType): Promise<void> {
+	async changeUserPassword(user: User, newPassword: string): Promise<void> {
 		const userGroupKey = await this.groupManagement.getGroupKeyViaAdminEncGKey(user.userGroup.group)
 		const salt = generateRandomSalt()
-		const passwordKey = await this.loginFacade.deriveUserPassphraseKey(kdfType, newPassword, salt)
+		const kdfVersion = DEFAULT_KDF_TYPE
+		const passwordKey = await this.loginFacade.deriveUserPassphraseKey(kdfVersion, newPassword, salt)
 		const pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
 		const passwordVerifier = createAuthVerifier(passwordKey)
 		const data = createResetPasswordData({
@@ -61,7 +62,7 @@ export class UserManagementFacade {
 			salt,
 			verifier: passwordVerifier,
 			pwEncUserGroupKey,
-			kdfVersion: kdfType,
+			kdfVersion,
 		})
 		await this.serviceExecutor.post(ResetPasswordService, data)
 	}
@@ -187,7 +188,6 @@ export class UserManagementFacade {
 		name: string,
 		mailAddress: string,
 		password: string,
-		kdfType: KdfType,
 		userIndex: number,
 		overallNbrOfUsersToCreate: number,
 		operationId: OperationId,
@@ -228,10 +228,8 @@ export class UserManagementFacade {
 				password,
 				name,
 				this.generateRecoveryCode(userGroupKey),
-				kdfType,
 			),
 		})
-
 		await this.serviceExecutor.post(UserAccountService, data)
 		return this.operationProgressTracker.onProgress(operationId, ((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
 	}
@@ -244,9 +242,9 @@ export class UserManagementFacade {
 		password: string,
 		userName: string,
 		recoverData: RecoverData,
-		kdfType: KdfType,
 	): Promise<UserAccountUserData> {
 		const salt = generateRandomSalt()
+		const kdfType = DEFAULT_KDF_TYPE
 		const userPassphraseKey = await this.loginFacade.deriveUserPassphraseKey(kdfType, password, salt)
 		const mailGroupKey = aes256RandomKey()
 		const contactGroupKey = aes256RandomKey()
@@ -307,9 +305,9 @@ export class UserManagementFacade {
 			throw new Error("Auth is missing")
 		}
 
-		const key = await this.loginFacade.deriveUserPassphraseKey(asKdfType(user.kdfVersion), password, assertNotNull(user.salt))
+		const passwordKey = await this.loginFacade.deriveUserPassphraseKey(asKdfType(user.kdfVersion), password, assertNotNull(user.salt))
 		const extraHeaders = {
-			authVerifier: createAuthVerifierAsBase64Url(key),
+			authVerifier: createAuthVerifierAsBase64Url(passwordKey),
 		}
 
 		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, undefined, extraHeaders)

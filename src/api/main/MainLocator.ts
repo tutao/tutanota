@@ -97,7 +97,6 @@ import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
 import { InboxRuleHandler } from "../../mail/model/InboxRuleHandler.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../../gui/ScopedRouter.js"
 import { ShareableGroupType } from "../../sharing/GroupUtils.js"
-import { KdfPicker } from "../../misc/KdfPicker.js"
 import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
 import { getEnabledMailAddressesWithUser } from "../../mail/model/MailUtils.js"
 import { isCustomizationEnabledForCustomer } from "../common/utils/Utils.js"
@@ -140,7 +139,6 @@ class MainLocator {
 	deviceEncryptionFacade!: DeviceEncryptionFacade
 	usageTestController!: UsageTestController
 	usageTestModel!: UsageTestModel
-	kdfPicker!: KdfPicker
 	newsModel!: NewsModel
 	serviceExecutor!: IServiceExecutor
 	cryptoFacade!: CryptoFacade
@@ -328,7 +326,6 @@ class MainLocator {
 				recipientsModel,
 				dateProvider,
 				mailboxProperties,
-				this.kdfPicker,
 			)
 	}
 
@@ -720,7 +717,6 @@ class MainLocator {
 		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.usageTestController = new UsageTestController(this.usageTestModel)
-		this.kdfPicker = new KdfPicker(this.usageTestController)
 	}
 
 	readonly calendarModel: () => Promise<CalendarModel> = lazyMemoized(async () => {

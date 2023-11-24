@@ -17,8 +17,7 @@ export async function showChangeUserPasswordAsAdminDialog(user: User) {
 	const model = new PasswordModel(locator.usageTestController, locator.logins, { checkOldPassword: false, enforceStrength: false, hideConfirmation: true })
 
 	const changeUserPasswordAsAdminOkAction = async (dialog: Dialog) => {
-		const kdfType = await locator.kdfPicker.pickKdfType(asKdfType(user.kdfVersion))
-		showProgressDialog("pleaseWait_msg", locator.userManagementFacade.changeUserPassword(user, model.getNewPassword(), kdfType)).then(
+		showProgressDialog("pleaseWait_msg", locator.userManagementFacade.changeUserPassword(user, model.getNewPassword())).then(
 			() => {
 				Dialog.message("pwChangeValid_msg")
 				dialog.close()
@@ -51,8 +50,7 @@ export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
 			Dialog.message(error)
 		} else {
 			const currentKdfType = asKdfType(locator.logins.getUserController().user.kdfVersion)
-			const newKdfType = await locator.kdfPicker.pickKdfType(currentKdfType)
-			showProgressDialog("pleaseWait_msg", locator.loginFacade.changePassword(model.getOldPassword(), model.getNewPassword(), currentKdfType, newKdfType))
+			showProgressDialog("pleaseWait_msg", locator.loginFacade.changePassword(model.getOldPassword(), model.getNewPassword(), currentKdfType))
 				.then(() => {
 					locator.credentialsProvider.deleteByUserId(getEtId(locator.logins.getUserController().user))
 					Dialog.message("pwChangeValid_msg")

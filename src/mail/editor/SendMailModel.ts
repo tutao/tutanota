@@ -64,7 +64,6 @@ import { getSenderName } from "../../misc/MailboxPropertiesUtils.js"
 import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
-import { KdfPicker } from "../../misc/KdfPicker.js"
 import { ConfigurationDatabase } from "../../api/worker/facades/lazy/ConfigurationDatabase.js"
 
 assertMainOrNode()
@@ -154,7 +153,6 @@ export class SendMailModel {
 		private readonly recipientsModel: RecipientsModel,
 		private readonly dateProvider: DateProvider,
 		private mailboxProperties: MailboxProperties,
-		private readonly kdfPicker: KdfPicker,
 	) {
 		const userProps = logins.getUserController().props
 		this.senderAddress = this.getDefaultSender()
@@ -774,8 +772,7 @@ export class SendMailModel {
 
 			await this.saveDraft(true, mailMethod)
 			await this.updateContacts(recipients)
-			const kdfVersion = await this.kdfPicker.pickKdfType()
-			await this.mailFacade.sendDraft(assertNotNull(this.draft, "draft was null?"), recipients, this.selectedNotificationLanguage, kdfVersion)
+			await this.mailFacade.sendDraft(assertNotNull(this.draft, "draft was null?"), recipients, this.selectedNotificationLanguage)
 			await this.updatePreviousMail()
 			await this.updateExternalLanguage()
 			return true
