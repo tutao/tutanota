@@ -1603,7 +1603,6 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
-		"credentialsEncryptionModeAppPassword_label": "App-Passwort",
-		"credentialsEncryptionModeAppPasswordHelp_msg": "Schützen Sie Ihre gespeicherten Zugangsdaten mit einem separaten Passwort."
+		"eventNoLongerExists_msg": "Das angeforderte Ereignis existiert nicht mehr"
 	}
 }

@@ -1599,7 +1599,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"credentialsEncryptionModeAppPassword_label": "App password",
-		"credentialsEncryptionModeAppPasswordHelp_msg": "Protect your stored credentials with a separate password."
+		"eventNoLongerExists_msg": "The requested event no longer exists"
 	}
 }
