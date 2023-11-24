@@ -92,9 +92,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private countersStream: Stream<unknown> | null = null
 
-	private expandedState: Set<Id>
-	private mailboxSubscription: Stream<void> | null = null
-	private mailViewModel: MailViewModel
+	private readonly expandedState: Set<Id>
+	private readonly mailViewModel: MailViewModel
 
 	get conversationViewModel(): ConversationViewModel | null {
 		return this.mailViewModel.getConversationViewModel()
@@ -215,7 +214,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 		vnode.attrs.mailViewModel.init()
 
-		this.oncreate = (vnode) => {
+		this.oncreate = () => {
 			this.countersStream = locator.mailModel.mailboxCounters.map(m.redraw)
 			keyManager.registerShortcuts(shortcuts)
 			this.cache.conversationViewPreference = deviceConfig.getConversationViewShowOnlySelectedMail()
@@ -229,8 +228,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			this.countersStream = null
 
 			keyManager.unregisterShortcuts(shortcuts)
-			// this is safe to pause because if we are recreated we will subscribe and get a new value right away
-			this.mailboxSubscription?.end(true)
 		}
 	}
 
@@ -314,7 +311,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			"#mail.main-view",
 			{
 				ondragover: (ev: DragEvent) => {
-					// do not check the datatransfer here because it is not always filled, e.g. in Safari
+					// do not check the data transfer here because it is not always filled, e.g. in Safari
 					ev.stopPropagation()
 					ev.preventDefault()
 				},
@@ -553,8 +550,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		const details = locator.mailModel.mailboxDetails() ?? []
 		return [
 			...details.map((mailboxDetail) => {
+				const inEditMode = editingFolderForMailGroup === mailboxDetail.mailGroup._id
 				// Only show folders for mailbox in which edit was selected
-				if (editingFolderForMailGroup && editingFolderForMailGroup != mailboxDetail.mailGroup._id) {
+				if (editingFolderForMailGroup && !inEditMode) {
 					return null
 				} else {
 					return m(
@@ -562,20 +560,22 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 						{
 							name: () => getMailboxName(locator.logins, mailboxDetail),
 						},
-						this.createMailboxFolderItems(mailboxDetail, editingFolderForMailGroup),
+						this.createMailboxFolderItems(mailboxDetail, inEditMode, () => {
+							EditFoldersDialog.showEdit(() => this.renderFolders(mailboxDetail.mailGroup._id))
+						}),
 					)
 				}
 			}),
 		]
 	}
 
-	private createMailboxFolderItems(mailboxDetail: MailboxDetail, editingFolderForMailGroup: Id | null = null): Children {
+	private createMailboxFolderItems(mailboxDetail: MailboxDetail, inEditMode: boolean, onEditMailbox: () => void): Children {
 		return m(MailFoldersView, {
 			mailboxDetail,
 			expandedFolders: this.expandedState,
 			mailListToSelectedMail: this.mailViewModel.getMailListToSelectedMail(),
 			onFolderClick: () => {
-				if (!editingFolderForMailGroup) {
+				if (!inEditMode) {
 					this.viewSlider.focus(this.listColumn)
 				}
 			},
@@ -583,13 +583,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			onShowFolderAddEditDialog: (...args) => this.showFolderAddEditDialog(...args),
 			onDeleteCustomMailFolder: (folder) => this.deleteCustomMailFolder(mailboxDetail, folder),
 			onFolderDrop: (mailId, folder) => this.handleFolderDrop(mailId, folder),
-			inEditMode: editingFolderForMailGroup === mailboxDetail.mailGroup._id,
-			onEditMailbox: () => {
-				EditFoldersDialog.showEdit(() => this.renderFolders(mailboxDetail.mailGroup._id))
-			},
-			onEditingDone: () => {
-				editingFolderForMailGroup = null
-			},
+			inEditMode,
+			onEditMailbox,
 		})
 	}
 
