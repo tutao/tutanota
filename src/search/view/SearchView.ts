@@ -622,6 +622,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			help: "delete_action",
 		},
 		{
+			key: Keys.BACKSPACE,
+			exec: () => this.deleteSelected(),
+			help: "delete_action",
+		},
+		{
 			key: Keys.A,
 			exec: () => this.archiveSelected(),
 			help: "archive_action",
