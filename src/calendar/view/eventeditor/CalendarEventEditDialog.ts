@@ -26,6 +26,7 @@ import { CalendarEventIdentity, CalendarEventModel, EventSaveResult } from "../.
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { UpgradeRequiredError } from "../../../api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs.js"
+import { convertTextToHtml } from "../../../misc/Formatter.js"
 
 const enum ConfirmationResult {
 	Cancel,
@@ -45,12 +46,13 @@ async function showCalendarEventEditDialog(model: CalendarEventModel, responseMa
 		acc.set(gc.group, gc.color)
 		return acc
 	}, new Map())
+	const descriptionText = convertTextToHtml(model.editModels.description.content)
 	const descriptionEditor: HtmlEditor = new HtmlEditor("description_label")
 		.setMinHeight(400)
 		.showBorders()
 		.setEnabled(true)
 		// We only set it once, we don't viewModel on every change, that would be slow
-		.setValue(model.editModels.description.content)
+		.setValue(descriptionText)
 		.setToolbarOptions({
 			alignmentEnabled: false,
 			fontSizeEnabled: false,
