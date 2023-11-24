@@ -184,7 +184,7 @@ styles.registerStyle("main", () => {
 			"-webkit-tap-highlight-color": "rgba(255, 255, 255, 0)",
 		},
 		".click-disabled": {
-			cursor: "default",
+			cursor: "default !important",
 		},
 		".text": {
 			cursor: "text",
@@ -1497,6 +1497,7 @@ styles.registerStyle("main", () => {
 		},
 		"button, .nav-button": {
 			border: 0,
+			cursor: "pointer",
 			overflow: "hidden",
 			"white-space": "nowrap",
 			margin: 0,
