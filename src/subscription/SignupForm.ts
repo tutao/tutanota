@@ -261,16 +261,13 @@ function signup(
 		customerFacade.generateSignupKeys(operation.id).then((keyPairs) => {
 			return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign).then(async (regDataId) => {
 				if (regDataId) {
-					const kdfType = await locator.kdfPicker.pickKdfType()
-					return customerFacade
-						.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code, kdfType)
-						.then((recoverCode) => {
-							return {
-								mailAddress,
-								password: pw,
-								recoverCode,
-							}
-						})
+					return customerFacade.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code).then((recoverCode) => {
+						return {
+							mailAddress,
+							password: pw,
+							recoverCode,
+						}
+					})
 				}
 			})
 		}),

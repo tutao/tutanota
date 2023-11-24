@@ -138,6 +138,9 @@ export enum KdfType {
 	Argon2id = "1",
 }
 
+// The Kdf type to use when deriving new(!) keys from passwords
+export const DEFAULT_KDF_TYPE = KdfType.Argon2id
+
 export enum AccountType {
 	SYSTEM = "0",
 	FREE = "1",
