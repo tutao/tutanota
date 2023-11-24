@@ -80,7 +80,7 @@ import {
 import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, getFirstOrThrow, identity, lazy, Require } from "@tutao/tutanota-utils"
 import { cleanMailAddress } from "../../../api/common/utils/CommonCalendarUtils.js"
 import { CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
-import { PayloadTooLargeError } from "../../../api/common/error/RestError.js"
+import { NotFoundError, PayloadTooLargeError } from "../../../api/common/error/RestError.js"
 import { CalendarNotificationSender } from "../CalendarNotificationSender.js"
 import { SendMailModel } from "../../../mail/editor/SendMailModel.js"
 import { UserError } from "../../../api/main/UserError.js"
@@ -357,6 +357,8 @@ export class CalendarEventModel {
 		} catch (e) {
 			if (e instanceof PayloadTooLargeError) {
 				throw new UserError("requestTooLarge_msg")
+			} else if (e instanceof NotFoundError) {
+				return EventSaveResult.NotFound
 			} else {
 				throw e
 			}
@@ -566,6 +568,7 @@ function cleanupInitialValuesForEditing(initialValues: Partial<CalendarEvent>): 
 export const enum EventSaveResult {
 	Saved,
 	Failed,
+	NotFound,
 }
 
 /** generic function that asynchronously returns whatever type the caller passed in, but not necessarily the same promise. */

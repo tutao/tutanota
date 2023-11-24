@@ -181,9 +181,12 @@ export async function showExistingCalendarEventEditDialog(
 
 		try {
 			const result = await model.apply()
-			if (result === EventSaveResult.Saved) {
+			if (result === EventSaveResult.Saved || result === EventSaveResult.NotFound) {
 				finished = true
 				finish()
+
+				// Inform the user that the event was deleted, avoiding misunderstanding that the event was saved
+				if (EventSaveResult.NotFound) Dialog.message("eventNoLongerExists_msg")
 			}
 		} catch (e) {
 			if (e instanceof UserError) {
