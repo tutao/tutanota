@@ -18,9 +18,8 @@ import { DesktopTray } from "./tray/DesktopTray"
 import { log } from "./DesktopLog"
 import { UpdaterWrapper } from "./UpdaterWrapper"
 import { ElectronNotificationFactory } from "./NotificatonFactory"
-import { KeytarSecretStorage, SafeStorageSecretStorage } from "./sse/SecretStorage"
+import { buildSecretStorage } from "./sse/SecretStorage"
 import fs from "node:fs"
-import * as keytar from "keytar"
 import { DesktopIntegrator, getDesktopIntegratorForPlatform } from "./integration/DesktopIntegrator"
 import net from "node:net"
 import child_process from "node:child_process"
@@ -61,6 +60,7 @@ import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
 import { WorkerSqlCipher } from "./db/WorkerSqlCipher.js"
 import { TempFs } from "./files/TempFs.js"
+import { WASMArgon2idFacade } from "../api/worker/facades/Argon2idFacade.js"
 
 /**
  * Should be injected during build time.
@@ -91,25 +91,13 @@ type Components = {
 }
 const tfs = new TempFs(fs, electron, cryptoFns)
 const desktopUtils = new DesktopUtils(process.argv, tfs, electron)
-const secretStorage = new KeytarSecretStorage(keytar)
-
 const wasmLoader = async () => {
 	const wasmSourcePath = path.join(electron.app.getAppPath(), "wasm/argon2.wasm")
 	const wasmSource: Buffer = await fs.promises.readFile(wasmSourcePath)
 	const { exports } = (await WebAssembly.instantiate(wasmSource)).instance
 	return exports
 }
-
 const desktopCrypto = new DesktopNativeCryptoFacade(fs, cryptoFns, tfs, wasmLoader())
-const keyStoreFacade = new DesktopKeyStoreFacade(secretStorage, desktopCrypto)
-const configMigrator = new DesktopConfigMigrator(desktopCrypto, keyStoreFacade, electron)
-const conf = new DesktopConfig(configMigrator, keyStoreFacade, desktopCrypto)
-// Fire config loading, dont wait for it
-conf.init(getConfigFile(app.getAppPath(), "package.json", fs), getConfigFile(app.getPath("userData"), "conf.json", fs)).catch((e) => {
-	console.error("Could not load config", e)
-	process.exit(1)
-})
-
 const opts = {
 	registerAsMailHandler: process.argv.some((arg) => arg === "-r"),
 	unregisterAsMailHandler: process.argv.some((arg) => arg === "-u"),
@@ -148,10 +136,15 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 async function createComponents(): Promise<Components> {
 	const en = (await import("../translations/en.js")).default
 	lang.init(en)
-	const { default: keytar } = await import("keytar")
-	const secretStorage = new KeytarSecretStorage(keytar)
-	const safeStorageSecretStorage = new SafeStorageSecretStorage(electron, fs, path, secretStorage)
-	const keyStoreFacade = new DesktopKeyStoreFacade(safeStorageSecretStorage, desktopCrypto)
+	const secretStorage = await buildSecretStorage(electron, fs, path)
+	const keyStoreFacade = new DesktopKeyStoreFacade(secretStorage, desktopCrypto)
+	const configMigrator = new DesktopConfigMigrator(desktopCrypto, keyStoreFacade, electron)
+	const conf = new DesktopConfig(configMigrator, keyStoreFacade, desktopCrypto)
+	// Fire config loading, dont wait for it
+	conf.init(getConfigFile(app.getAppPath(), "package.json", fs), getConfigFile(app.getPath("userData"), "conf.json", fs)).catch((e) => {
+		console.error("Could not load config", e)
+		process.exit(1)
+	})
 	const appIcon = desktopUtils.getIconByName(await conf.getConst(BuildConfigKey.iconName))
 	const desktopNet = new DesktopNetworkClient()
 	const sock = new Socketeer(net, app)

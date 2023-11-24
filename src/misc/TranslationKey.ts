@@ -1585,3 +1585,5 @@ export type TranslationKeyType =
 	| "you_label"
 	| "emptyString_msg"
 	| "eventNoLongerExists_msg"
+	| "credentialsEncryptionModeAppPassword_label"
+	| "credentialsEncryptionModeAppPasswordHelp_msg"

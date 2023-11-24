@@ -4,6 +4,55 @@ import * as PathModule from "node:path"
 import * as FsModule from "node:fs"
 import { DeviceStorageUnavailableError } from "../../api/common/error/DeviceStorageUnavailableError.js"
 import type { default as Keytar } from "keytar"
+import os from "node:os"
+
+export async function buildSecretStorage(electron: typeof Electron.CrossProcessExports, fs: typeof FsModule, path: typeof PathModule): Promise<SecretStorage> {
+	const mode = determineMode(electron)
+	switch (mode) {
+		case "dummy":
+			return new SafeStorageSecretStorage(electron, fs, path, new DummySecretStorage())
+		case "quit":
+			electron.app.quit()
+			return new SafeStorageSecretStorage(electron, fs, path, new DummySecretStorage())
+		case "keytar": {
+			const { default: keytar } = await import("keytar")
+			const secretStorage = new KeytarSecretStorage(keytar)
+			return new SafeStorageSecretStorage(electron, fs, path, secretStorage)
+		}
+	}
+}
+
+function determineMode(electron: typeof Electron.CrossProcessExports): "dummy" | "keytar" | "quit" {
+	const release = Number(os.release().split(".")[0])
+	// on macos, the last working keytar build was for 3.118.13, which
+	// only supported x64. we cannot get a working keytar for old macos
+	// on arm64 devices, but all of them can upgrade and use the new arm64 binary.
+	const isBroken =
+		process.platform === "darwin" &&
+		// only arm64 must use a keytar.node post-breakage
+		process.arch === "arm64" &&
+		// basically big sur (do M1s even come with catalina?)
+		release < 21
+
+	if (!isBroken) return "keytar"
+
+	switch (
+		electron.dialog.showMessageBoxSync({
+			buttons: ["Don't decrypt", "Decrypt anyway", "Quit Tuta"],
+			cancelId: 2,
+			defaultId: 0,
+			message: "Your MacOS version is outdated and decrypting stored credentials may crash Tuta.",
+			title: "SecretStorage",
+		})
+	) {
+		case 0:
+			return "dummy"
+		case 1:
+			return "keytar"
+		default:
+			return "quit"
+	}
+}
 
 export interface SecretStorage {
 	getPassword(service: string, account: string): Promise<string | null>
@@ -66,7 +115,7 @@ export class SafeStorageSecretStorage implements SecretStorage {
 		private readonly electron: typeof Electron.CrossProcessExports,
 		private readonly fs: typeof FsModule,
 		private readonly path: typeof PathModule,
-		private readonly keytarSecretStorage: KeytarSecretStorage,
+		private readonly keytarSecretStorage: SecretStorage,
 	) {}
 
 	async getPassword(service: string, account: string): Promise<string | null> {
@@ -142,5 +191,25 @@ export class SafeStorageSecretStorage implements SecretStorage {
 		}
 
 		return keytarPw
+	}
+}
+
+/**
+ * used as an ephemeral storage that prevets outdated arm64 macs
+ * from crashing when they attempt to load keytar.
+ * */
+class DummySecretStorage implements SecretStorage {
+	private readonly map: Map<string, string> = new Map()
+
+	async getPassword(service: string, account: string): Promise<string | null> {
+		return this.map.get(DummySecretStorage.getName(service, account)) ?? null
+	}
+
+	async setPassword(service: string, account: string, password: string): Promise<void> {
+		this.map.set(DummySecretStorage.getName(service, account), password)
+	}
+
+	private static getName(service: string, account: string): string {
+		return service.concat("-", account)
 	}
 }
