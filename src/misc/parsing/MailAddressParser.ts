@@ -1,5 +1,6 @@
 import { isMailAddress } from "../FormatValidator"
 import { PartialRecipient } from "../../api/common/recipients/Recipient"
+import { convertTextToHtml } from "../Formatter.js"
 
 export type ParsedMailto = {
 	recipients: {
@@ -66,7 +67,7 @@ export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
 				break
 
 			case "body":
-				result.body = paramValue.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>")
+				result.body = convertTextToHtml(paramValue)
 				break
 
 			case "to":

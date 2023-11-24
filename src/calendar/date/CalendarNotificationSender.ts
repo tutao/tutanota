@@ -1,5 +1,5 @@
 import { lang } from "../../misc/LanguageViewModel"
-import { makeInvitationCalendarFile } from "../export/CalendarImporter"
+import { makeInvitationCalendarFile } from "../export/CalendarExporter.js"
 import { getAttendeeStatus, MailMethod, mailMethodToCalendarMethod } from "../../api/common/TutanotaConstants"
 import { calendarAttendeeStatusSymbol, formatEventDuration, getTimeZone } from "./CalendarUtils"
 import type { CalendarEvent, CalendarEventAttendee, EncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
