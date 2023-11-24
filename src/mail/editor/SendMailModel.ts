@@ -1,13 +1,4 @@
-import {
-	ApprovalStatus,
-	ConversationType,
-	ExternalImageRule,
-	MailFolderType,
-	MailMethod,
-	MAX_ATTACHMENT_SIZE,
-	OperationType,
-	ReplyType,
-} from "../../api/common/TutanotaConstants"
+import { ApprovalStatus, ConversationType, MailFolderType, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType } from "../../api/common/TutanotaConstants"
 import {
 	AccessBlockedError,
 	LockedError,
@@ -1081,15 +1072,6 @@ export class SendMailModel {
 		if (!this.previousMail) return false
 
 		return isUserEmail(this.logins, this.mailboxDetails, this.previousMail.sender.address)
-	}
-
-	getExternalImageRule = async () => {
-		if (!this.previousMail?.sender.address) return ExternalImageRule.None
-
-		return await this.configFacade.getExternalImageRule(this.previousMail.sender.address).catch((e: unknown) => {
-			console.log("Error getting external image rule:", e)
-			return ExternalImageRule.None
-		})
 	}
 }
 
