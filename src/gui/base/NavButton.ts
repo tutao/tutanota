@@ -63,7 +63,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 						},
 				  })
 				: null,
-			!a.hideLabel ? m("span.label.text-ellipsis" + (!a.vertical && icon ? ".pl-m" : ""), this.getLabel(a.label)) : null,
+			!a.hideLabel ? m("span.label.click.text-ellipsis" + (!a.vertical && icon ? ".pl-m" : ""), this.getLabel(a.label)) : null,
 		]
 
 		// allow nav button without label for registration button on mobile devices
@@ -84,11 +84,11 @@ export class NavButton implements Component<NavButtonAttrs> {
 
 	_getNavButtonClass(a: NavButtonAttrs): string {
 		return (
-			"a.nav-button.noselect.flex-no-shrink.items-center.plr-button.no-text-decoration.button-height.border-radius" +
+			"a.nav-button.noselect.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height.border-radius" +
 			(a.vertical ? ".col" : "") +
 			(!a.centred ? ".flex-start" : ".flex-center") +
 			(a.disableHoverBackground ? "" : ".state-bg") +
-			(a.disabled ? ".click-disabled" : ".click")
+			(a.disabled ? ".no-hover" : "")
 		)
 	}
 
