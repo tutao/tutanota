@@ -1497,7 +1497,6 @@ styles.registerStyle("main", () => {
 		},
 		"button, .nav-button": {
 			border: 0,
-			cursor: "pointer",
 			overflow: "hidden",
 			"white-space": "nowrap",
 			margin: 0,
