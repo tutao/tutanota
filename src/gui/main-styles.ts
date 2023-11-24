@@ -183,9 +183,6 @@ styles.registerStyle("main", () => {
 			cursor: "pointer",
 			"-webkit-tap-highlight-color": "rgba(255, 255, 255, 0)",
 		},
-		".click-disabled": {
-			cursor: "default !important",
-		},
 		".text": {
 			cursor: "text",
 		},
