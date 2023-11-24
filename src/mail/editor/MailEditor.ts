@@ -100,7 +100,7 @@ export type MailEditorAttrs = {
 	templateModel: TemplatePopupModel | null
 	knowledgeBaseInjection: (editor: Editor) => Promise<DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs> | null>
 	search: RecipientsSearchModel
-	isReplyingFromEmailView: boolean
+	alwaysBlockExternalContent: boolean
 }
 
 export function createMailEditorAttrs(
@@ -111,7 +111,7 @@ export function createMailEditorAttrs(
 	templateModel: TemplatePopupModel | null,
 	knowledgeBaseInjection: (editor: Editor) => Promise<DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs> | null>,
 	search: RecipientsSearchModel,
-	isReplyingFromEmailView: boolean = false,
+	alwaysBlockExternalContent: boolean,
 ): MailEditorAttrs {
 	return {
 		model,
@@ -122,7 +122,7 @@ export function createMailEditorAttrs(
 		templateModel,
 		knowledgeBaseInjection: knowledgeBaseInjection,
 		search,
-		isReplyingFromEmailView,
+		alwaysBlockExternalContent,
 	}
 }
 
@@ -145,7 +145,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	private areDetailsExpanded: boolean
 	private recipientShowConfidential: Map<string, boolean> = new Map()
 	private blockExternalContent: boolean
-	private alwaysBlockExternalContent: boolean = false
+	private readonly alwaysBlockExternalContent: boolean = false
 
 	constructor(vnode: Vnode<MailEditorAttrs>) {
 		const a = vnode.attrs
@@ -156,6 +156,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		this.sendMailModel = model
 		this.templateModel = a.templateModel
 		this.blockExternalContent = a.doBlockExternalContent()
+		this.alwaysBlockExternalContent = a.alwaysBlockExternalContent
 
 		// if we have any CC/BCC recipients, we should show these so, should the user send the mail, they know where it will be going to
 		this.areDetailsExpanded = model.bccRecipients().length + model.ccRecipients().length > 0
@@ -177,67 +178,45 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 		// call this async because the editor is not initialized before this mail editor dialog is shown
 		this.editor.initialized.promise.then(() => {
-			model.getExternalImageRule().then((externalImageRule) => {
-				this.editor.setHTML(model.getBody())
+			this.editor.setHTML(model.getBody())
+			this.processInlineImages()
 
-				if (externalImageRule === ExternalImageRule.Block) {
-					// When we have an explicit rule for blocking images we don´t
-					// want to prompt the user about showing images again
-					this.alwaysBlockExternalContent = true
-					this.updateExternalContentStatus(ContentBlockingStatus.AlwaysBlock)
-				} else if (externalImageRule === ExternalImageRule.Allow && model.getPreviousMail()?.authStatus === MailAuthenticationStatus.AUTHENTICATED) {
-					this.updateExternalContentStatus(ContentBlockingStatus.AlwaysShow)
-				} else if (externalImageRule === ExternalImageRule.None && model.isUserPreviousSender()) {
-					this.updateExternalContentStatus(ContentBlockingStatus.Block)
-				} else if (this.attrs.isReplyingFromEmailView) {
-					// If users are on the email view, maybe it selected
-					// to show the images, so we can respect it
-					this.blockExternalContent = a.doBlockExternalContent()
-				} else {
-					// User is opening the draft from somewhere else, so maybe we
-					// have a false negative a.doBlockExternalContent(), better prompt user again
-					this.updateExternalContentStatus(ContentBlockingStatus.Block)
-				}
-
-				this.processInlineImages()
-
-				// Add mutation observer to remove attachments when corresponding DOM element is removed
-				new MutationObserver(onEditorChanged).observe(this.editor.getDOM(), {
-					attributes: false,
-					childList: true,
-					subtree: true,
-				})
-				// since the editor is the source for the body text, the model won't know if the body has changed unless we tell it
-				this.editor.addChangeListener(() => model.setBody(replaceInlineImagesWithCids(this.editor.getDOM()).innerHTML))
-				this.editor.addEventListener("pasteImage", ({ detail }: ImagePasteEvent) => {
-					const items = Array.from(detail.clipboardData.items)
-					const imageItems = items.filter((item) => /image/.test(item.type))
-					if (!imageItems.length) {
-						return false
-					}
-					const file = imageItems[0]?.getAsFile()
-					if (file == null) {
-						return false
-					}
-					const reader = new FileReader()
-					reader.onload = () => {
-						if (reader.result == null || "string" === typeof reader.result) {
-							return
-						}
-						const newInlineImages = [createDataFile(file.name, file.type, new Uint8Array(reader.result))]
-						model.attachFiles(newInlineImages)
-						this.insertInlineImages(model, newInlineImages)
-					}
-					reader.readAsArrayBuffer(file)
-				})
-
-				if (a.templateModel) {
-					a.templateModel.init().then((templateModel) => {
-						// add this event listener to handle quick selection of templates inside the editor
-						registerTemplateShortcutListener(this.editor, templateModel)
-					})
-				}
+			// Add mutation observer to remove attachments when corresponding DOM element is removed
+			new MutationObserver(onEditorChanged).observe(this.editor.getDOM(), {
+				attributes: false,
+				childList: true,
+				subtree: true,
 			})
+			// since the editor is the source for the body text, the model won't know if the body has changed unless we tell it
+			this.editor.addChangeListener(() => model.setBody(replaceInlineImagesWithCids(this.editor.getDOM()).innerHTML))
+			this.editor.addEventListener("pasteImage", ({ detail }: ImagePasteEvent) => {
+				const items = Array.from(detail.clipboardData.items)
+				const imageItems = items.filter((item) => /image/.test(item.type))
+				if (!imageItems.length) {
+					return false
+				}
+				const file = imageItems[0]?.getAsFile()
+				if (file == null) {
+					return false
+				}
+				const reader = new FileReader()
+				reader.onload = () => {
+					if (reader.result == null || "string" === typeof reader.result) {
+						return
+					}
+					const newInlineImages = [createDataFile(file.name, file.type, new Uint8Array(reader.result))]
+					model.attachFiles(newInlineImages)
+					this.insertInlineImages(model, newInlineImages)
+				}
+				reader.readAsArrayBuffer(file)
+			})
+
+			if (a.templateModel) {
+				a.templateModel.init().then((templateModel) => {
+					// add this event listener to handle quick selection of templates inside the editor
+					registerTemplateShortcutListener(this.editor, templateModel)
+				})
+			}
 		})
 
 		model.onMailChanged.map(() => m.redraw())
@@ -849,11 +828,11 @@ export class MailEditor implements Component<MailEditorAttrs> {
  * Creates a new Dialog with a MailEditor inside.
  * @param model
  * @param blockExternalContent
- * @param isReplyingFromEmailView Inform if it's a reply to an email
+ * @param alwaysBlockExternalContent
  * @returns {Dialog}
  * @private
  */
-async function createMailEditorDialog(model: SendMailModel, blockExternalContent: boolean = false, isReplyingFromEmailView: boolean = false): Promise<Dialog> {
+async function createMailEditorDialog(model: SendMailModel, blockExternalContent = false, alwaysBlockExternalContent = false): Promise<Dialog> {
 	let dialog: Dialog
 	let mailEditorAttrs: MailEditorAttrs
 
@@ -1006,7 +985,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		templatePopupModel,
 		createKnowledgebaseButtonAttrs,
 		await locator.recipientsSearchModel(),
-		isReplyingFromEmailView,
+		alwaysBlockExternalContent,
 	)
 	const shortcuts: Shortcut[] = [
 		{
@@ -1069,6 +1048,44 @@ export async function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dial
 	return newMailEditorFromTemplate(detailsProperties.mailboxDetails, {}, "", signature)
 }
 
+async function getExternalContentRules(model: SendMailModel, currentStatus: boolean) {
+	let contentRules
+	const previousMail = model.getPreviousMail()
+
+	if (!previousMail) {
+		contentRules = {
+			alwaysBlockExternalContent: false,
+			blockExternalContent: true,
+		}
+	} else {
+		const externalImageRule = await locator.configFacade.getExternalImageRule(previousMail.sender.address).catch((e: unknown) => {
+			console.log("Error getting external image rule:", e)
+			return ExternalImageRule.None
+		})
+
+		if (externalImageRule === ExternalImageRule.Block || (externalImageRule === ExternalImageRule.None && model.isUserPreviousSender())) {
+			contentRules = {
+				// When we have an explicit rule for blocking images we don´t
+				// want to prompt the user about showing images again
+				alwaysBlockExternalContent: externalImageRule === ExternalImageRule.Block,
+				blockExternalContent: true,
+			}
+		} else if (externalImageRule === ExternalImageRule.Allow && model.getPreviousMail()?.authStatus === MailAuthenticationStatus.AUTHENTICATED) {
+			contentRules = {
+				alwaysBlockExternalContent: false,
+				blockExternalContent: false,
+			}
+		} else {
+			contentRules = {
+				alwaysBlockExternalContent: false,
+				blockExternalContent: currentStatus,
+			}
+		}
+	}
+
+	return contentRules
+}
+
 export async function newMailEditorAsResponse(
 	args: InitAsResponseArgs,
 	blockExternalContent: boolean,
@@ -1079,7 +1096,8 @@ export async function newMailEditorAsResponse(
 	const model = await locator.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 	await model.initAsResponse(args, inlineImages)
 
-	return createMailEditorDialog(model, blockExternalContent, true)
+	const externalImageRules = await getExternalContentRules(model, blockExternalContent)
+	return createMailEditorDialog(model, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
 }
 
 export async function newMailEditorFromDraft(
@@ -1092,7 +1110,8 @@ export async function newMailEditorFromDraft(
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	const model = await locator.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 	await model.initWithDraft(attachments, mailWrapper, inlineImages)
-	return createMailEditorDialog(model, blockExternalContent)
+	const externalImageRules = await getExternalContentRules(model, blockExternalContent)
+	return createMailEditorDialog(model, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
 }
 
 export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean, mailboxDetails?: MailboxDetail): Promise<Dialog> {
