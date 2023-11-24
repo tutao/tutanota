@@ -437,6 +437,18 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				help: "deleteContacts_action",
 			},
 			{
+				key: Keys.BACKSPACE,
+				exec: () => {
+					if (this.inContactListView()) {
+						this.contactListViewModel.deleteSelectedEntries()
+					} else {
+						this.deleteSelectedContacts()
+					}
+					return true
+				},
+				help: "deleteContacts_action",
+			},
+			{
 				key: Keys.N,
 				exec: () => {
 					this.createNewContact()
