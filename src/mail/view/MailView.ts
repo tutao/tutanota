@@ -407,6 +407,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				help: "deleteEmails_action",
 			},
 			{
+				key: Keys.BACKSPACE,
+				exec: () => {
+					this.mailViewModel.listModel && this.deleteMails(this.mailViewModel.listModel.getSelectedAsArray())
+				},
+				help: "deleteEmails_action",
+			},
+			{
 				key: Keys.A,
 				exec: () => {
 					this.mailViewModel.listModel && archiveMails(this.mailViewModel.listModel.getSelectedAsArray())
