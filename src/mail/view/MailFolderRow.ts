@@ -9,6 +9,7 @@ import { AllIcons, Icon } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { stateBgHover } from "../../gui/builtinThemes.js"
 import { client } from "../../misc/ClientDetector.js"
+import { lang } from "../../misc/LanguageViewModel.js"
 
 export type MailFolderRowAttrs = {
 	count: number
@@ -41,6 +42,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 				style: {
 					background: isNavButtonSelected(button) ? stateBgHover : "",
 				},
+				title: lang.getMaybeLazy(button.label),
 				onmouseenter: () => {
 					this.hovered = true
 				},
