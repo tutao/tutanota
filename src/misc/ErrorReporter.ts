@@ -17,6 +17,7 @@ import { RecipientType } from "../api/common/recipients/Recipient.js"
 import { Attachment } from "../mail/editor/SendMailModel.js"
 import { createLogFile } from "../api/common/Logger.js"
 import { DataFile } from "../api/common/DataFile.js"
+import { convertTextToHtml } from "./Formatter.js"
 
 type FeedbackContent = {
 	message: string
@@ -229,7 +230,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 	const logins = locator.logins
 	const draft = await locator.mailFacade.createDraft({
 		subject: content.subject,
-		bodyText: escapedBody.split("\n").join("<br>"),
+		bodyText: convertTextToHtml(escapedBody),
 		senderMailAddress: neverNull(logins.getUserController().userGroupInfo.mailAddress),
 		senderName: "",
 		toRecipients: [

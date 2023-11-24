@@ -52,16 +52,21 @@ type ICalObject = {
 	children: Array<ICalObject>
 }
 
-function getProp(obj: ICalObject, tag: string): Property {
+function getProp(obj: ICalObject, tag: string, optional: false): Property
+function getProp(obj: ICalObject, tag: string, optional: true): Property | null | undefined
+function getProp(obj: ICalObject, tag: string, optional: boolean): Property | null | undefined
+function getProp(obj: ICalObject, tag: string, optional: boolean): Property | null | undefined {
 	const prop = obj.properties.find((p) => p.name === tag)
-	if (prop == null) throw new ParserError(`Missing prop ${tag}`)
+	if (!optional && prop == null) throw new ParserError(`Missing prop ${tag}`)
 	return prop
 }
 
-function getPropStringValue(obj: ICalObject, tag: string): string {
-	const prop = getProp(obj, tag)
-	if (typeof prop.value !== "string") throw new ParserError(`value of ${tag} is not of type string`)
-	return prop.value
+function getPropStringValue(obj: ICalObject, tag: string, optional: false): string
+function getPropStringValue(obj: ICalObject, tag: string, optional: true): string | null | undefined
+function getPropStringValue(obj: ICalObject, tag: string, optional: boolean): string | null | undefined {
+	const prop = getProp(obj, tag, optional)
+	if (!optional && typeof prop?.value !== "string") throw new ParserError(`value of ${tag} is not of type string, got ${JSON.stringify(prop)}`)
+	return prop?.value
 }
 
 // Left side of the semicolon
@@ -110,7 +115,10 @@ export const iCalReplacements = {
 	";": "\\;",
 	"\\": "\\\\",
 	"\n": "\\n",
+	",": "\\,",
 }
+
+const revICalReplacements = reverse(iCalReplacements)
 
 // Right side of the semicolon
 
@@ -258,17 +266,9 @@ export function parseICalendar(stringData: string): ICalObject {
 	return parseIcalObject("VCALENDAR", iterator)
 }
 
-function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): AlarmInfoTemplate | null {
-	const triggerProp = getProp(alarmObject, "TRIGGER")
-	// Tutacalendar currently only supports the DISPLAY value for action
-	const actionProp = {
-		name: "ACTION",
-		params: {},
-		value: "DISPLAY",
-	}
-	const triggerValue = triggerProp.value
-	if (typeof triggerValue !== "string") throw new ParserError("expected TRIGGER property to be a string: " + JSON.stringify(triggerProp))
-	const alarmInterval: AlarmInterval | null = triggerToAlarmInterval(event.startTime, triggerValue)
+function parseAlarm(alarmObject: ICalObject, startTime: Date): AlarmInfoTemplate | null {
+	const triggerValue = getPropStringValue(alarmObject, "TRIGGER", false)
+	const alarmInterval: AlarmInterval | null = triggerToAlarmInterval(startTime, triggerValue)
 	return alarmInterval != null
 		? {
 				trigger: serializeAlarmInterval(alarmInterval),
@@ -329,11 +329,11 @@ export function triggerToAlarmInterval(eventStart: Date, triggerValue: string): 
 	}
 }
 
-export function parseRrule(rruleProp: Property, tzId: string | null): RepeatRule {
+export function parseRrule(rawRruleValue: string, tzId: string | null): RepeatRule {
 	let rruleValue
 
 	try {
-		rruleValue = parsePropertyKeyValue(rruleProp.value)
+		rruleValue = parsePropertyKeyValue(rawRruleValue)
 	} catch (e) {
 		if (e instanceof ParserError) {
 			throw new ParserError("RRULE is not an object " + e.message)
@@ -394,9 +394,8 @@ export function parseRecurrenceId(recurrenceIdProp: Property, tzId: string | nul
 /**
  * @returns new end time
  */
-function parseEventDuration(durationProp: Property, startTime: Date): Date {
-	if (typeof durationProp.value !== "string") throw new ParserError("DURATION value is not a string")
-	const duration = parseDuration(durationProp.value)
+function parseEventDuration(durationValue: string, startTime: Date): Date {
+	const duration = parseDuration(durationValue)
 	let durationInMillis = 0
 
 	if (duration.week) {
@@ -461,14 +460,28 @@ export const calendarAttendeeStatusToParstat: Record<CalendarAttendeeStatus, str
 const parstatToCalendarAttendeeStatus: Record<string, CalendarAttendeeStatus> = reverse(calendarAttendeeStatusToParstat)
 
 export function parseCalendarEvents(icalObject: ICalObject, zone: string): ParsedCalendarData {
-	const methodProp = icalObject.properties.find((prop) => prop.name === "METHOD")
+	const methodProp = getProp(icalObject, "METHOD", true)
 	const method = methodProp ? methodProp.value : CalendarMethod.PUBLISH
 	const eventObjects = icalObject.children.filter((obj) => obj.type === "VEVENT")
-	const contents = eventObjects.map((eventObj, index) => {
+	const contents = getContents(eventObjects, zone)
+
+	return {
+		method,
+		contents,
+	}
+}
+
+function getContents(eventObjects: ICalObject[], zone: string) {
+	return eventObjects.map((eventObj, index) => {
+		const startProp = getProp(eventObj, "DTSTART", false)
+		const tzId = getTzId(startProp)
+		const { date: startTime, allDay } = parseTime(startProp.value, tzId ?? undefined)
+
+		// start time and tzid is sorted, so we can worry about event identity now before proceeding...
 		let hasValidUid = false
 		let uid: string | null = null
 		try {
-			uid = getPropStringValue(eventObj, "UID")
+			uid = getPropStringValue(eventObj, "UID", false)
 			hasValidUid = true
 		} catch (e) {
 			if (e instanceof ParserError) {
@@ -478,74 +491,26 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 				throw e
 			}
 		}
-		const startProp = getProp(eventObj, "DTSTART")
-		if (typeof startProp.value !== "string") throw new ParserError("DTSTART value is not a string")
-		const tzId = getTzId(startProp)
-		const { date: startTime, allDay } = parseTime(startProp.value, tzId ?? undefined)
 
-		const recurrenceIdProp = eventObj.properties.find((p) => p.name === "RECURRENCE-ID")
+		const recurrenceIdProp = getProp(eventObj, "RECURRENCE-ID", true)
 		let recurrenceId: Date | null = null
 		if (recurrenceIdProp != null && hasValidUid) {
 			// if we generated the UID, we have no way of knowing which event series this recurrenceId refers to.
-			// in that case, we just don't add the recurrence Id and import the event as a standalone.
+			// in that case, we just don't add the recurrenceId and import the event as a standalone.
 			recurrenceId = parseRecurrenceId(recurrenceIdProp, tzId)
 		}
-		// start time and tzid is sorted, so we can worry about event identity now before proceeding...
 
-		const endProp = eventObj.properties.find((p) => p.name === "DTEND")
-
-		let endTime: Date | null = null
-		if (endProp) {
-			if (typeof endProp.value !== "string") throw new ParserError("DTEND value is not a string")
-			const endTzId = getTzId(endProp)
-			const parsedEndTime = parseTime(endProp.value, typeof endTzId === "string" ? endTzId : undefined)
-			endTime = parsedEndTime.date
-
-			if (endTime <= startTime) {
-				// as per RFC, these are _technically_ illegal: https://tools.ietf.org/html/rfc5545#section-3.8.2.2
-				if (allDay) {
-					// if the startTime indicates an all-day event, we want to preserve that.
-					// we'll assume a 1-day duration.
-					endTime = DateTime.fromJSDate(startTime).plus({ day: 1 }).toJSDate()
-				} else {
-					// we make a best effort to deliver alarms at the set interval before startTime and set the
-					// event duration to be 1 second
-					// as of now:
-					// * this displays as ending the same minute it starts in the tutanota calendar
-					// * gets exported with a duration of 1 second
-					endTime = DateTime.fromJSDate(startTime).plus({ second: 1 }).toJSDate()
-				}
-			}
-		} else {
-			const durationProp = eventObj.properties.find((p) => p.name === "DURATION")
-
-			if (durationProp) {
-				endTime = parseEventDuration(durationProp, startTime)
-			} else {
-				// >For cases where a "VEVENT" calendar component specifies a "DTSTART" property with a DATE value type but no "DTEND" nor
-				// "DURATION" property, the event's duration is taken to be one day.
-				//
-				// https://tools.ietf.org/html/rfc5545#section-3.6.1
-				endTime = oneDayDurationEnd(startTime, allDay, tzId, zone)
-			}
-		}
-
-		const summaryProp = eventObj.properties.find((p) => p.name === "SUMMARY")
+		const endTime = parseEndTime(eventObj, allDay, startTime, tzId, zone)
 
 		let summary: string = ""
-		if (summaryProp && typeof summaryProp.value === "string") {
-			summary = summaryProp.value
-		}
-
-		const locationProp = eventObj.properties.find((p) => p.name === "LOCATION")
+		const maybeSummary = parseICalText(eventObj, "SUMMARY")
+		if (maybeSummary) summary = maybeSummary
 
 		let location: string = ""
-		if (locationProp) {
-			if (typeof locationProp.value !== "string") throw new ParserError("LOCATION value is not a string")
-			location = locationProp.value
-		}
+		const maybeLocation = parseICalText(eventObj, "LOCATION")
+		if (maybeLocation) location = maybeLocation
 
-		const rruleProp = eventObj.properties.find((p) => p.name === "RRULE")
+		const rruleProp = getPropStringValue(eventObj, "RRULE", true)
 		const excludedDateProps = eventObj.properties.filter((p) => p.name === "EXDATE")
 
 		let repeatRule: RepeatRule | null = null
@@ -554,15 +519,9 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 			repeatRule.excludedDates = parseExDates(excludedDateProps)
 		}
 
-		const descriptionProp = eventObj.properties.find((p) => p.name === "DESCRIPTION")
+		const description = parseICalText(eventObj, "DESCRIPTION") ?? ""
 
-		let description: string = ""
-		if (descriptionProp) {
-			if (typeof descriptionProp.value !== "string") throw new ParserError("DESCRIPTION value is not a string")
-			description = descriptionProp.value
-		}
-
-		const sequenceProp = eventObj.properties.find((p) => p.name === "SEQUENCE")
+		const sequenceProp = getProp(eventObj, "SEQUENCE", true)
 		let sequence: string = "0"
 		if (sequenceProp) {
 			const sequenceNumber = filterInt(sequenceProp.value)
@@ -575,37 +534,9 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 			sequence = String(sequenceNumber)
 		}
 
-		let attendees: CalendarEventAttendee[] = []
-		for (const property of eventObj.properties) {
-			if (property.name === "ATTENDEE") {
-				const attendeeAddress = parseMailtoValue(property.value)
+		const attendees = getAttendees(eventObj)
 
-				if (!attendeeAddress || !isMailAddress(attendeeAddress, false)) {
-					console.log("attendee has no address or address is invalid, ignoring: ", attendeeAddress)
-					continue
-				}
-
-				const partStatString = property.params["PARTSTAT"]
-				const status = partStatString ? parstatToCalendarAttendeeStatus[partStatString] : CalendarAttendeeStatus.NEEDS_ACTION
-
-				if (!status) {
-					console.log(`attendee has invalid partsat: ${partStatString}, ignoring`)
-					continue
-				}
-
-				attendees.push(
-					createCalendarEventAttendee({
-						address: createEncryptedMailAddress({
-							address: attendeeAddress,
-							name: property.params["CN"] || "",
-						}),
-						status,
-					}),
-				)
-			}
-		}
-
-		const organizerProp = eventObj.properties.find((p) => p.name === "ORGANIZER")
+		const organizerProp = getProp(eventObj, "ORGANIZER", true)
 		let organizer: EncryptedMailAddress | null = null
 		if (organizerProp) {
 			const organizerAddress = parseMailtoValue(organizerProp.value)
@@ -637,22 +568,111 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 			alarmInfos: [],
 		}) as Require<"uid", CalendarEvent>
 
-		const alarms: AlarmInfoTemplate[] = []
-		for (const alarmChild of eventObj.children) {
-			if (alarmChild.type === "VALARM") {
-				const newAlarm = parseAlarm(alarmChild, event)
-				if (newAlarm) alarms.push(newAlarm)
-			}
-		}
+		const alarms: AlarmInfoTemplate[] = getAlarms(eventObj, startTime)
 
 		return {
 			event,
 			alarms,
 		}
 	})
-	return {
-		method,
-		contents,
+}
+
+function getAttendees(eventObj: ICalObject) {
+	let attendees: CalendarEventAttendee[] = []
+	for (const property of eventObj.properties) {
+		if (property.name === "ATTENDEE") {
+			const attendeeAddress = parseMailtoValue(property.value)
+
+			if (!attendeeAddress || !isMailAddress(attendeeAddress, false)) {
+				console.log("attendee has no address or address is invalid, ignoring: ", attendeeAddress)
+				continue
+			}
+
+			const partStatString = property.params["PARTSTAT"]
+			const status = partStatString ? parstatToCalendarAttendeeStatus[partStatString] : CalendarAttendeeStatus.NEEDS_ACTION
+
+			if (!status) {
+				console.log(`attendee has invalid partsat: ${partStatString}, ignoring`)
+				continue
+			}
+
+			attendees.push(
+				createCalendarEventAttendee({
+					address: createEncryptedMailAddress({
+						address: attendeeAddress,
+						name: property.params["CN"] || "",
+					}),
+					status,
+				}),
+			)
+		}
+	}
+	return attendees
+}
+
+function getAlarms(eventObj: ICalObject, startTime: Date): AlarmInfoTemplate[] {
+	const alarms: AlarmInfoTemplate[] = []
+	for (const alarmChild of eventObj.children) {
+		if (alarmChild.type === "VALARM") {
+			const newAlarm = parseAlarm(alarmChild, startTime)
+			if (newAlarm) alarms.push(newAlarm)
+		}
+	}
+	return alarms
+}
+
+/**
+ * Parses text properties according to the iCal standard.
+ * https://icalendar.org/iCalendar-RFC-5545/3-3-11-text.html
+ * @param eventObj
+ * @param tag
+ */
+function parseICalText(eventObj: ICalObject, tag: string) {
+	let text = getPropStringValue(eventObj, tag, true)
+	for (const rawEscape in revICalReplacements) {
+		if (rawEscape === "\\n") {
+			text = text?.replace("\\N", revICalReplacements[rawEscape])
+		}
+		text = text?.replace(rawEscape, revICalReplacements[rawEscape])
+	}
+	return text
+}
+
+function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, tzId: string | null, zone: string): Date {
+	const endProp = getProp(eventObj, "DTEND", true)
+
+	if (endProp) {
+		if (typeof endProp.value !== "string") throw new ParserError("DTEND value is not a string")
+		const endTzId = getTzId(endProp)
+		const parsedEndTime = parseTime(endProp.value, typeof endTzId === "string" ? endTzId : undefined)
+		const endTime = parsedEndTime.date
+		if (endTime > startTime) return endTime
+
+		// as per RFC, these are _technically_ illegal: https://tools.ietf.org/html/rfc5545#section-3.8.2.2
+		if (allDay) {
+			// if the startTime indicates an all-day event, we want to preserve that.
+			// we'll assume a 1-day duration.
+			return DateTime.fromJSDate(startTime).plus({ day: 1 }).toJSDate()
+		} else {
+			// we make a best effort to deliver alarms at the set interval before startTime and set the
+			// event duration to be 1 second
+			// as of now:
+			// * this displays as ending the same minute it starts in the tutanota calendar
+			// * gets exported with a duration of 1 second
+			return DateTime.fromJSDate(startTime).plus({ second: 1 }).toJSDate()
+		}
+	} else {
+		const durationValue = getPropStringValue(eventObj, "DURATION", true)
+
+		if (durationValue) {
+			return parseEventDuration(durationValue, startTime)
+		} else {
+			// >For cases where a "VEVENT" calendar component specifies a "DTSTART" property with a DATE value type but no "DTEND" nor
+			// "DURATION" property, the event's duration is taken to be one day.
+			//
+			// https://tools.ietf.org/html/rfc5545#section-3.6.1
+			return oneDayDurationEnd(startTime, allDay, tzId, zone)
+		}
 	}
 }
 

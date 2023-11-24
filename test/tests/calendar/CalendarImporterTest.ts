@@ -1,12 +1,11 @@
 import o from "@tutao/otest"
 import {
-	parseCalendarStringData,
 	serializeCalendar,
 	serializeEvent,
 	serializeExcludedDates,
 	serializeRepeatRule,
 	serializeTrigger,
-} from "../../../src/calendar/export/CalendarImporter.js"
+} from "../../../src/calendar/export/CalendarExporter.js"
 import {
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
@@ -22,6 +21,7 @@ import { getAllDayDateUTCFromZone } from "../../../src/calendar/date/CalendarUti
 import { EventImportRejectionReason, sortOutParsedEvents } from "../../../src/calendar/export/CalendarImporterDialog.js"
 import { getDateInZone } from "./CalendarTestUtils.js"
 import { Require } from "@tutao/tutanota-utils"
+import { parseCalendarStringData } from "../../../src/calendar/export/CalendarImporter.js"
 import { createTestEntity } from "../TestUtils.js"
 
 const zone = "Europe/Berlin"
@@ -81,7 +81,7 @@ o.spec("CalendarImporterTest", function () {
 							},
 							{ zone },
 						).toJSDate(),
-						description: "Descr \\ ; \n",
+						description: "Descr \\ ;, \n",
 						uid: "test@tuta.com",
 						location: "Some location",
 					}),
@@ -97,7 +97,7 @@ o.spec("CalendarImporterTest", function () {
 				"UID:test@tuta.com",
 				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
-				"DESCRIPTION:Descr \\\\ \\; \\n",
+				"DESCRIPTION:Descr \\\\ \\;\\, \\n",
 				"LOCATION:Some location",
 				"END:VEVENT",
 			])
@@ -486,7 +486,7 @@ o.spec("CalendarImporterTest", function () {
 					`DTSTAMP:20190813T140100Z`,
 					`UID:test@tuta.com`,
 					"SEQUENCE:0",
-					"SUMMARY:Word \\\\ \\; \\n",
+					"SUMMARY:Word \\N \\\\ \\;\\, \\n",
 					"RRULE:FREQ=WEEKLY;INTERVAL=3",
 					"END:VEVENT",
 					"END:VCALENDAR",
@@ -498,7 +498,7 @@ o.spec("CalendarImporterTest", function () {
 				contents: [
 					{
 						event: createTestEntity(CalendarEventTypeRef, {
-							summary: "Word \\ ; \n",
+							summary: "Word \n \\ ;, \n",
 							startTime: DateTime.fromObject(
 								{
 									year: 2019,
