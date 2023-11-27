@@ -4,7 +4,7 @@
 import * as env from "./buildSrc/env.js"
 import os from "node:os"
 import { buildWebapp } from "./buildSrc/buildWebapp.js"
-import { getCanonicalPlatformName, getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
+import { checkArchitectureIsSupported, getCanonicalPlatformName, getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
 import { dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 import { createHtml } from "./buildSrc/createHtml.js"
@@ -23,6 +23,7 @@ await program
 	.addArgument(new Argument("host").argOptional())
 	.option("-e, --existing", "Use existing prebuilt Webapp files in /build/")
 	.option("-p, --platform <platform>", "For which platform to build: linux|win|mac", process.platform)
+	.option("-a, --architecture <architecture>", "For which CPU architecture to build: x64|arm_64|universal", process.arch)
 	.option(
 		"-c,--custom-desktop-release",
 		"use if manually building desktop client from source. doesn't install auto updates, but may still notify about new releases.",
@@ -45,6 +46,10 @@ await program
 		}
 
 		opts.platform = getCanonicalPlatformName(opts.platform)
+
+		if (!checkArchitectureIsSupported(opts.platform, opts.architecture)) {
+			throw new Error(`Platform ${opts.platform} on ${opts.architecture} is not supported`)
+		}
 
 		await doBuild(opts)
 	})
@@ -84,7 +89,7 @@ async function doBuild(opts) {
 	}
 }
 
-async function buildDesktopClient(version, { stage, host, platform, customDesktopRelease, unpacked, outDir, disableMinify }) {
+async function buildDesktopClient(version, { stage, host, platform, architecture, customDesktopRelease, unpacked, outDir, disableMinify }) {
 	const { buildDesktop } = await import("./buildSrc/DesktopBuilder.js")
 	const updateUrl = new URL(tutaAppUrl)
 	updateUrl.pathname = "desktop"
@@ -92,6 +97,7 @@ async function buildDesktopClient(version, { stage, host, platform, customDeskto
 		dirname: __dirname,
 		version,
 		platform: platform,
+		architecture,
 		updateUrl: customDesktopRelease ? "" : updateUrl,
 		nameSuffix: "",
 		notarize: !customDesktopRelease,

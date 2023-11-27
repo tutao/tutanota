@@ -3,7 +3,7 @@ import path from "node:path"
 import { getNativeLibModulePath } from "./nativeLibraryProvider.js"
 
 /** copy either a fresh build or a cached version of a native module for the platform client being built into the build directory.*/
-export function copyNativeModulePlugin({ rootDir, dstPath, platform, nodeModule }, log = console.log.bind(console)) {
+export function copyNativeModulePlugin({ rootDir, dstPath, platform, architecture, nodeModule }, log = console.log.bind(console)) {
 	return {
 		name: "copy-native-module-plugin",
 		async buildStart() {
@@ -13,7 +13,8 @@ export function copyNativeModulePlugin({ rootDir, dstPath, platform, nodeModule 
 				rootDir,
 				log,
 				platform,
-				// for some reason, the binary produced by better-sqlite3 is called better_sqlite3.node
+				architecture,
+				// because its name is used as a C identifier, the binary produced by better-sqlite3 is called better_sqlite3.node
 				copyTarget: nodeModule.replace("-", "_"),
 			})
 			const normalDst = path.join(path.normalize(dstPath), `${nodeModule}.node`)

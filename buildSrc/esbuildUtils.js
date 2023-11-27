@@ -8,7 +8,7 @@ import { aliasPath as esbuildPluginAliasPath } from "esbuild-plugin-alias-path"
  * Little plugin that obtains compiled keytar, copies it to dstPath and sets the path to nativeBindingPath.
  * We do not use default file loader from esbuild, it is much simpler and reliable to do it manually.
  */
-export function keytarNativePlugin({ environment, dstPath, nativeBindingPath, platform }) {
+export function keytarNativePlugin({ environment, dstPath, nativeBindingPath, platform, architecture }) {
 	return {
 		name: "keytar-native-plugin",
 		setup(build) {
@@ -19,6 +19,7 @@ export function keytarNativePlugin({ environment, dstPath, nativeBindingPath, pl
 					rootDir: process.cwd(),
 					log: console.log.bind(console),
 					platform,
+					architecture,
 					copyTarget: "keytar",
 				})
 				await fs.promises.mkdir(path.dirname(dstPath), { recursive: true })
@@ -41,7 +42,7 @@ export function keytarNativePlugin({ environment, dstPath, nativeBindingPath, pl
  * anyway.
  * It will also replace `buildOptions.sqliteNativePath` with the nativeBindingPath
  */
-export function sqliteNativePlugin({ environment, dstPath, nativeBindingPath, platform }) {
+export function sqliteNativePlugin({ environment, dstPath, nativeBindingPath, platform, architecture }) {
 	return {
 		name: "sqlite-native-plugin",
 		setup(build) {
@@ -58,6 +59,7 @@ export function sqliteNativePlugin({ environment, dstPath, nativeBindingPath, pl
 					rootDir: process.cwd(),
 					log: console.log.bind(console),
 					platform,
+					architecture,
 					copyTarget: "better_sqlite3",
 				})
 				await fs.promises.mkdir(path.dirname(dstPath), { recursive: true })

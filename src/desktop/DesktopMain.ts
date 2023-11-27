@@ -18,7 +18,7 @@ import { DesktopTray } from "./tray/DesktopTray"
 import { log } from "./DesktopLog"
 import { UpdaterWrapper } from "./UpdaterWrapper"
 import { ElectronNotificationFactory } from "./NotificatonFactory"
-import { KeytarSecretStorage } from "./sse/SecretStorage"
+import { buildSecretStorage } from "./sse/SecretStorage"
 import fs from "node:fs"
 import { DesktopIntegrator, getDesktopIntegratorForPlatform } from "./integration/DesktopIntegrator"
 import net from "node:net"
@@ -130,7 +130,7 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 async function createComponents(): Promise<Components> {
 	const en = (await import("../translations/en.js")).default
 	lang.init(en)
-	const secretStorage = new KeytarSecretStorage()
+	const secretStorage = await buildSecretStorage(electron, fs, path)
 	const keyStoreFacade = new KeyStoreFacadeImpl(secretStorage, desktopCrypto)
 	const configMigrator = new DesktopConfigMigrator(desktopCrypto, keyStoreFacade, electron)
 	const conf = new DesktopConfig(configMigrator, keyStoreFacade, desktopCrypto)

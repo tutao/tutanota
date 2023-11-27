@@ -40,7 +40,8 @@ function validateOpts(opts) {
 
 async function cli(nodeModule, { environment, rootDir, forceRebuild, useExisting, copyTarget }) {
 	const platform = getCanonicalPlatformName(process.platform)
-	const path = await getCachedLibPath({ rootDir, nodeModule, environment, platform }, console.log.bind(console))
+	const architecture = process.arch
+	const path = await getCachedLibPath({ rootDir, nodeModule, environment, platform, architecture }, console.log.bind(console))
 
 	if (forceRebuild) {
 		await fs.promises.rm(path, { force: true })
@@ -53,6 +54,7 @@ async function cli(nodeModule, { environment, rootDir, forceRebuild, useExisting
 		log: console.log.bind(console),
 		useExisting,
 		platform,
+		architecture,
 		copyTarget,
 	})
 }
@@ -64,6 +66,7 @@ async function cli(nodeModule, { environment, rootDir, forceRebuild, useExisting
  * to avoid rebuilding between different invocations (e.g. running desktop and running tests).
  * @param environment {"electron"|"node"}
  * @param platform {"win32"|"linux"|"darwin"} platform to compile for in case of cross compilation
+ * @param architecture: {"arm64"|"x64"|"universal"} the instruction set used in the built desktop binary
  * @param rootDir {string} path to the root of the project
  * @param nodeModule {string} name of the npm module to rebuild
  * @param log {(...string) => void}
@@ -72,8 +75,8 @@ async function cli(nodeModule, { environment, rootDir, forceRebuild, useExisting
  * @param prebuildTarget: {{ runtime: string, version: number} | undefined} Target parameters to use when getting a prebuild
  * @returns {Promise<string>} path to cached native module
  */
-export async function getNativeLibModulePath({ environment, platform, rootDir, nodeModule, log, noBuild, copyTarget }) {
-	const libPath = await getCachedLibPath({ rootDir, nodeModule, environment, platform }, log)
+export async function getNativeLibModulePath({ environment, platform, architecture, rootDir, nodeModule, log, noBuild, copyTarget }) {
+	const libPath = await getCachedLibPath({ rootDir, nodeModule, environment, platform, architecture }, log)
 
 	if (await fileExists(libPath)) {
 		log(`Using cached ${nodeModule} at`, libPath)
@@ -104,6 +107,8 @@ export async function getNativeLibModulePath({ environment, platform, rootDir, n
 				rootDir,
 				log,
 				nodeModule,
+				copyTarget,
+				architecture,
 			})
 		}
 
@@ -120,26 +125,68 @@ export async function getNativeLibModulePath({ environment, platform, rootDir, n
  * @param nodeModule {string} the node module being built. Must be installed, and must be a native module project with a `binding.gyp` at the root
  * @param environment {"node"|"electron"} Used to determine which node version to use
  * @param rootDir {string} the root dir of the project
+ * @param architecture the architecture to build for: "x64" | "arm64" | "universal"
  * @param log {(string) => void} a logger
  * @returns {Promise<void>}
  */
-export async function buildNativeModule({ nodeModule, environment, rootDir, log }) {
-	await callProgram({
-		command: "npm exec",
-		args: [
-			"--",
-			"node-gyp",
-			"rebuild",
-			"--release",
-			"--build-from-source",
-			`--arch=${process.arch}`,
-			...(environment === "electron"
-				? ["--runtime=electron", "--dist-url=https://www.electronjs.org/headers", `--target=${await getElectronVersion(log)}`]
-				: []),
-		],
-		cwd: await getModuleDir(rootDir, nodeModule),
-		log,
-	})
+export async function buildNativeModule({ nodeModule, copyTarget, environment, rootDir, log, architecture }) {
+	const moduleDir = await getModuleDir(rootDir, nodeModule)
+	const electronVersion = await getElectronVersion(log)
+	const doBuild = (arch) =>
+		callProgram({
+			command: "npm exec",
+			args: [
+				"--",
+				"node-gyp",
+				"rebuild",
+				"--release",
+				"--build-from-source",
+				`--arch=${arch}`,
+				...(environment === "electron" ? ["--runtime=electron", "--dist-url=https://www.electronjs.org/headers", `--target=${electronVersion}`] : []),
+			],
+			cwd: moduleDir,
+			log,
+		})
+
+	if (architecture === "universal") {
+		if (copyTarget === "keytar") {
+			// this is a hack to get us out of a pickle with incompatible macos SDKs
+			// we reuse the keytar of tutanota-desktop 3.118.13 for the
+			// mac build because any newer build crashes the process when loaded.
+			// we will replace keytar very soon.
+			const artifactPath = path.join(moduleDir, "build/Release", `${copyTarget}.node`)
+			const armArtifactPath = path.join(moduleDir, `${copyTarget}-arm64.node`)
+			const intelArtifactPath = path.join(moduleDir, `${copyTarget}-3.118.13.node`)
+			await doBuild("arm64")
+			await fs.promises.copyFile(artifactPath, armArtifactPath)
+			await callProgram({
+				command: "lipo",
+				args: ["-create", "-output", artifactPath, intelArtifactPath, armArtifactPath],
+				cwd: path.join(rootDir, "native-cache"),
+				log,
+			})
+		} else {
+			const artifactPath = path.join(moduleDir, "build/Release", `${copyTarget}.node`)
+			const armArtifactPath = path.join(moduleDir, `${copyTarget}-arm64.node`)
+			const intelArtifactPath = path.join(moduleDir, `${copyTarget}-x64.node`)
+			// this is a hack to get us out of a pickle with incompatible macos SDKs
+			// we reuse the keytar of tutanota-desktop 3.118.13 for the
+			// mac build because any newer build crashes the process when loaded.
+			// we will replace keytar very soon.
+			await doBuild("x64")
+			await fs.promises.copyFile(artifactPath, intelArtifactPath)
+			await doBuild("arm64")
+			await fs.promises.copyFile(artifactPath, armArtifactPath)
+			await callProgram({
+				command: "lipo",
+				args: ["-create", "-output", artifactPath, intelArtifactPath, armArtifactPath],
+				cwd: path.join(rootDir, "native-cache"),
+				log,
+			})
+		}
+	} else {
+		await doBuild(architecture)
+	}
 }
 
 /**
@@ -241,15 +288,19 @@ function callProgram({ command, args, cwd, log }) {
  * @param nodeModule
  * @param environment
  * @param platform
+ * @param architecture: {"arm64"|"x64"|"universal"} the instruction set used in the built desktop binary
  * @returns {Promise<string>}
  */
-async function getCachedLibPath({ rootDir, nodeModule, environment, platform }, log) {
+async function getCachedLibPath({ rootDir, nodeModule, environment, platform, architecture }, log) {
 	const dir = path.join(rootDir, "native-cache", environment)
 	const libraryVersion = await getInstalledModuleVersion(nodeModule, log)
 	await fs.promises.mkdir(dir, { recursive: true })
 
 	if (environment === "electron") {
-		return path.resolve(dir, `${nodeModule}-${libraryVersion}-electron-${await getInstalledModuleVersion("electron", log)}-${platform}.node`)
+		return path.resolve(
+			dir,
+			`${nodeModule}-${libraryVersion}-electron-${await getInstalledModuleVersion("electron", log)}-${platform}-${architecture}.node`,
+		)
 	} else {
 		return path.resolve(dir, `${nodeModule}-${libraryVersion}-${platform}.node`)
 	}
