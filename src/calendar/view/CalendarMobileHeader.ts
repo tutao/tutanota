@@ -10,7 +10,7 @@ import { CalendarNavConfiguration, CalendarViewType, getIconForViewType } from "
 import { MobileHeaderMenuButton, MobileHeaderTitle } from "../../gui/MobileHeader.js"
 import { AppHeaderAttrs } from "../../gui/Header.js"
 import { attachDropdown } from "../../gui/base/Dropdown.js"
-import { TranslationKey } from "../../misc/LanguageViewModel.js"
+import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { styles } from "../../gui/styles.js"
 import { Icon } from "../../gui/base/Icon.js"
 import { theme } from "../../gui/theme.js"
@@ -93,6 +93,10 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 				childAttrs: () => {
 					const calendarViewValues: Array<{ name: TranslationKey; value: CalendarViewType }> = [
 						{
+							name: "agenda_label",
+							value: CalendarViewType.AGENDA,
+						},
+						{
 							name: "day_label",
 							value: CalendarViewType.DAY,
 						},
@@ -103,10 +107,6 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 						{
 							name: "month_label",
 							value: CalendarViewType.MONTH,
-						},
-						{
-							name: "agenda_label",
-							value: CalendarViewType.AGENDA,
 						},
 					]
 
@@ -148,10 +148,10 @@ export class TodayIconButton implements Component<TodayIconButtonAttrs> {
 					// It doesn't make sense to propagate click events if we are the button
 					e.stopPropagation()
 				},
-				title: "today_label",
+				title: lang.get("today_label"),
 			},
 			m(
-				".icon.icon-large.center-h",
+				".icon.icon-large.center-h.svg-text-content-bg",
 				{
 					style: {
 						fill: theme.content_button,

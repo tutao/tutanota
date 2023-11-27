@@ -50,7 +50,7 @@ export class CalendarAgendaView implements Component<Attrs> {
 	private renderDateSelector(attrs: Attrs, selectedDate: Date): Children {
 		// This time width is used to create a container above the day slider
 		// So the hidden dates "seems" to be following the same margin of the view
-		const timeWidth = styles.isSingleColumnLayout() ? size.calendar_hour_width_mobile : size.calendar_hour_width
+		const timeWidth = !styles.isDesktopLayout() ? size.calendar_hour_width_mobile : size.calendar_hour_width
 		return styles.isDesktopLayout()
 			? null
 			: m(
@@ -103,7 +103,11 @@ export class CalendarAgendaView implements Component<Attrs> {
 				color: theme.list_message_bg,
 			})
 		} else {
-			return m(".pt-s.flex.mlr.mb-s.col", this.renderEventsForDay(events, attrs.selectedDate, getTimeZone(), attrs.groupColors, attrs.onEventClicked))
+			return m(
+				".pt-s.flex.mlr.mb-s.col",
+				{ style: { ...(!styles.isDesktopLayout() ? { marginLeft: px(size.calendar_hour_width_mobile) } : {}) } },
+				this.renderEventsForDay(events, attrs.selectedDate, getTimeZone(), attrs.groupColors, attrs.onEventClicked),
+			)
 		}
 	}
 
