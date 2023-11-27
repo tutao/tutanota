@@ -5,14 +5,12 @@ import * as FsModule from "node:fs"
 import { DeviceStorageUnavailableError } from "../../api/common/error/DeviceStorageUnavailableError.js"
 import type { default as Keytar } from "keytar"
 import os from "node:os"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 export async function buildSecretStorage(electron: typeof Electron.CrossProcessExports, fs: typeof FsModule, path: typeof PathModule): Promise<SecretStorage> {
-	const mode = determineMode(electron)
+	const mode = determineNativeBackendMode()
 	switch (mode) {
 		case "dummy":
-			return new SafeStorageSecretStorage(electron, fs, path, new DummySecretStorage())
-		case "quit":
-			electron.app.quit()
 			return new SafeStorageSecretStorage(electron, fs, path, new DummySecretStorage())
 		case "keytar": {
 			const { default: keytar } = await import("keytar")
@@ -22,36 +20,22 @@ export async function buildSecretStorage(electron: typeof Electron.CrossProcessE
 	}
 }
 
-function determineMode(electron: typeof Electron.CrossProcessExports): "dummy" | "keytar" | "quit" {
+/**
+ * on macos big sur, the last working keytar build was for 3.118.13, which
+ * only supported x64. we cannot get a working keytar for old macos
+ * on arm64 devices, but all of them can upgrade and use the new arm64 binary.
+ *
+ * should be removed once keytar is no more
+ * */
+function determineNativeBackendMode(): "dummy" | "keytar" {
 	const release = Number(os.release().split(".")[0])
-	// on macos, the last working keytar build was for 3.118.13, which
-	// only supported x64. we cannot get a working keytar for old macos
-	// on arm64 devices, but all of them can upgrade and use the new arm64 binary.
 	const isBroken =
 		process.platform === "darwin" &&
 		// only arm64 must use a keytar.node post-breakage
 		process.arch === "arm64" &&
 		// basically big sur (do M1s even come with catalina?)
 		release < 21
-
-	if (!isBroken) return "keytar"
-
-	switch (
-		electron.dialog.showMessageBoxSync({
-			buttons: ["Don't decrypt", "Decrypt anyway", "Quit Tuta"],
-			cancelId: 2,
-			defaultId: 0,
-			message: "Your MacOS version is outdated and decrypting stored credentials may crash Tuta.",
-			title: "SecretStorage",
-		})
-	) {
-		case 0:
-			return "dummy"
-		case 1:
-			return "keytar"
-		default:
-			return "quit"
-	}
+	return isBroken ? "dummy" : "keytar"
 }
 
 export interface SecretStorage {
@@ -197,19 +181,16 @@ export class SafeStorageSecretStorage implements SecretStorage {
 /**
  * used as an ephemeral storage that prevets outdated arm64 macs
  * from crashing when they attempt to load keytar.
+ *
+ * It's used in a read-only mode because new and migrated passwords
+ * are written to safeStorage.
  * */
 class DummySecretStorage implements SecretStorage {
-	private readonly map: Map<string, string> = new Map()
-
 	async getPassword(service: string, account: string): Promise<string | null> {
-		return this.map.get(DummySecretStorage.getName(service, account)) ?? null
+		return null
 	}
 
 	async setPassword(service: string, account: string, password: string): Promise<void> {
-		this.map.set(DummySecretStorage.getName(service, account), password)
-	}
-
-	private static getName(service: string, account: string): string {
-		return service.concat("-", account)
+		throw new ProgrammingError("code that uses this should not be writing through to keytar anymore")
 	}
 }
