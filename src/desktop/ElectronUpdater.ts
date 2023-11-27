@@ -257,7 +257,9 @@ export class ElectronUpdater {
 	 * @returns {Promise<boolean>} True if an update is available and the next call will install it, false otherwise.
 	 */
 	manualUpdate(): Promise<boolean> {
-		if (this.errorCount >= 5) return Promise.reject(new Error("Update failed 5 times"))
+		// After 5 unsuccessful attempts to update, resolve the promise as false
+		// as the updater had its listeners removed
+		if (this.errorCount >= 5) return Promise.resolve(false)
 		if (!this.updateInfo) {
 			return this.checkUpdate()
 		}
