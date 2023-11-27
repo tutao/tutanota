@@ -197,7 +197,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 		if (isSelectedDay && attrs.showDaySelection) {
 			circleStyle = {
 				backgroundColor: theme.content_accent,
-				opacity: "0.35",
+				opacity: "0.20",
 			}
 			textStyle = {
 				color: theme.content_accent,
@@ -216,13 +216,13 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 			textStyle = {}
 		}
 		return m(
-			"button.rel.click.flex.items-center.justify-center.rel" + (isPaddingDay ? ".faded-day" : ""),
+			"button.rel.click.flex.items-center.justify-center.rel" + (isPaddingDay && attrs.isDaySelectorExpanded ? ".faded-day" : ""),
 			{
 				style: {
 					height: px(40),
 					width: px(40),
 				},
-				"aria-hidden": `${isPaddingDay}`,
+				"aria-hidden": `${isPaddingDay && attrs.isDaySelectorExpanded}`,
 				"aria-label": date.toLocaleDateString(),
 				"aria-selected": `${isSelectedDay}`,
 				role: "option",
@@ -252,8 +252,8 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 
 		if (highlight) {
 			style = {
-				backgroundColor: hexToRGBAString(theme.content_accent, 0.4),
-				borderRadius: "5px",
+				backgroundColor: hexToRGBAString(theme.content_accent, 0.2),
+				borderRadius: "25px",
 				height: "25px",
 				width: "95%",
 			}

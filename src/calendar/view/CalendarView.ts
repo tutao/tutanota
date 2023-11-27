@@ -478,6 +478,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	_renderCalendarViewButtons(): Children {
 		const calendarViewValues: Array<{ name: string; viewType: CalendarViewType }> = [
 			{
+				name: lang.get("agenda_label"),
+				viewType: CalendarViewType.AGENDA,
+			},
+			{
 				name: lang.get("day_label"),
 				viewType: CalendarViewType.DAY,
 			},
@@ -488,10 +492,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			{
 				name: lang.get("month_label"),
 				viewType: CalendarViewType.MONTH,
-			},
-			{
-				name: lang.get("agenda_label"),
-				viewType: CalendarViewType.AGENDA,
 			},
 		]
 
