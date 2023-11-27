@@ -1609,7 +1609,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		"eventNoLongerExists_msg": "Das angeforderte Ereignis existiert nicht mehr"
+		"you_label": "Sie"
 	}
 }
