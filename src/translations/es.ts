@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2023-11-13T11:10:56Z",
+	"updated_at": "2023-11-23T10:06:13Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -527,6 +527,9 @@ export default {
 		"externalNotificationMailSubject_msg": "Correo confidencial de {1}",
 		"facebook_label": "Facebook",
 		"failedDebitAttempt_msg": "Si nuestro intento de débito falló, lo intentaremos de nuevo en unos días. Por favor, asegúrate de que tu cuenta está cubierta.",
+		"failedToExport_label": "{0} errores",
+		"failedToExport_msg": "Algunos correos electrónicos no se han podido exportar. Puedes comprobar la lista más abajo.",
+		"failedToExport_title": "La exportación ha finalizado con errores",
 		"faqEntry_label": "Entrada de preguntas frecuentes",
 		"fax_label": "Fax",
 		"featureTutanotaOnly_msg": "Solo puedes usar esta función con otros usuarios de Tuta.",
@@ -603,6 +606,7 @@ export default {
 		"help_label": "Ayuda",
 		"hideText_action": "Ocultar texto",
 		"hideWindows_action": "Ocultar ventanas",
+		"hide_action": "Ocultar",
 		"howCanWeHelp_title": "¿Cómo podemos ayudarte?",
 		"howtoMailBody_markdown": "Felicidades por unirte a Tuta, donde la comunicación segura está sólo a un clic. Prepárate para experimentar la comodidad de enviar correos electrónicos encriptados a cualquiera., en cualquier parte del mundo; tanto si tus destinatarios usan Tuta, como si no.\n\nEn Tuta, tu privacidad es nuestra mayor prioridad. Incluso los correos electrónicos enviados sin cifrado, se almacenan encriptados en nuestros servidores establecidos en Alemania, manteniendo tus datos seguros y confidenciales.\n\nPara sacar el mejor partido a tu buzón seguro, hemos hecho una selección de recursos para ti.\n\n* Preguntas frecuentes ([FAQ]({faqLink})): Sumérgete en nuestra sencilla sección de preguntas, para encontrar respuesta a todas tus acuciantes preguntas. Es tu fuente de conocimiento para todo lo que necesitas saber sobre Tuta.\n\n* [Foro de asistencia]({redditLink}): Únete a nuestra vibrante comunidad en el foro de soporte, donde podrás conectar con otros usuarios de Tuta, compartir consejos y trucos y, explorar un tesoro de conocimiento. Nuestra amistosa comunidad está siempre lista para ayudar.\n\n**¡Descubre el gran potencial de Tuta!**\n\n**Búsqueda en datos cifrados**\n\nTuta te permite buscar desde tu dispositivo en tu buzón cifrado localmente, para garantizar la confidencialidad de tus datos. Haz clic clic en la barra de búsqueda en la parte superior. La búsqueda estándar se remonta a un mes en el pasado. Para desbloquear la búsqueda ilimitada, el modo fuera de línea ilimitado y otras funciones, necesitas una cuenta de pago de Tuta. Puedes verificar tu suscripción y actualizarla en Ajustes -&gt; Suscripción.\n\nPuedes encontrar más información sobre cómo mejorar tus resultados de búsqueda [aquí]({howtosearchLink}).\n\n **Asistencia**\n\nEn Tuta queremos que todos tenga un buzón de correo seguro. Con millones de usuarios, no podemos responder todas tus preguntas por correo. Sin embargo, nuestra extensa base de preguntas frecuentes, así como nuestra amigable comunidad, pueden ayudarte en tu viaje a través de Tuta. En caso de que no encuentres respuesta en nuestro FAQ, pregunta a la comunidad. \nLa asistencia directa por correo está disponible solo para los usuarios de pago. \n\n**Perfecto para uso profesional.**\n\nComo profesional de negocios, puedes ahorrar tiempo y dinero alojando todos los correos de tu empresa con cifrado de extremo a extremo en los servidores seguros. Con Tuta, puedes usar tu propio dominio, gestionar usuarios, integrar Tuta en tu negocio y colocar el inicio de sesión en tu propio sitio web. Obtén más información sobre las funciones comerciales integrales de Tuta [en nuestro sitio web]({businessLink}).\n\nAsegura tus comunicaciones y toma el control de tu vida digital con Tuta.\n\nMantente seguro,\\\nTu equipo de Tuta.",
 		"howtoMailSubject_msg": "Descubre el poder de tu buzón seguro de Tuta",

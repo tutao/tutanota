@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2023-11-08T16:08:30Z",
+	"updated_at": "2023-11-21T16:25:24Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -955,7 +955,7 @@ export default {
 		"payPaypalConfirmAgainError_msg": "A transação de pagamento falhou. Por favor atualize e confirme suas informações de pagamento.",
 		"pending_label": "Pendente",
 		"periodOfTime_label": "Período",
-		"permanentAliasWarning_msg": "Este é um endereço de email da Tuta, no qual em contratste para com endereços de email personalizados, podem ser somente desativados, não excluídos. Isso contará permanentemente para os seus endereços de email.",
+		"permanentAliasWarning_msg": "Este é um endereço de email da Tuta, no qual em contraste para com endereços de email personalizados, podem ser somente desativados, não excluídos. Isso contará permanentemente para os seus endereços de email.",
 		"permissions_label": "Permissão",
 		"phishingMessageBody_msg": "Esta mensagem é similar ao outras mensagens que foram reportadas como phishing.",
 		"phishingReport_msg": "O conteúdo dessa mensagem será transmitido para o servidor de forma descriptografada para que possamos melhorar nossa proteção contra phishing e spam. Tem certeza que deseja denunciar essa mensagem?",
