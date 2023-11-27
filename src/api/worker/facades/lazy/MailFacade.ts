@@ -30,10 +30,12 @@ import type {
 	DraftRecipient,
 	EncryptedMailAddress,
 	File as TutanotaFile,
+	InternalRecipientKeyData,
 	Mail,
 	MailFolder,
 	ReportedMailFieldMarker,
 	SendDraftData,
+	SymEncInternalRecipientKeyData,
 } from "../../../entities/tutanota/TypeRefs.js"
 import {
 	createAttachmentKeyData,
@@ -56,10 +58,12 @@ import {
 	createSendDraftData,
 	createUpdateMailFolderData,
 	FileTypeRef,
+	InternalRecipientKeyDataTypeRef,
 	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
 	MailTypeRef,
+	SymEncInternalRecipientKeyDataTypeRef,
 	TutanotaPropertiesTypeRef,
 } from "../../../entities/tutanota/TypeRefs.js"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
@@ -81,6 +85,7 @@ import {
 	contains,
 	defer,
 	isNotNull,
+	isSameTypeRef,
 	isSameTypeRefByAttr,
 	lazyMemoized,
 	noOp,
@@ -631,7 +636,7 @@ export class MailFacade {
 	async _addRecipientKeyData(
 		kdfVersion: KdfType,
 		bucketKey: Aes128Key,
-		service: SendDraftData,
+		sendDraftData: SendDraftData,
 		recipients: Array<Recipient>,
 		senderMailGroupId: Id,
 	): Promise<void> {
@@ -646,6 +651,7 @@ export class MailFacade {
 			// copy password information if this is an external contact
 			// otherwise load the key information from the server
 			const isSharedMailboxSender = !isSameId(this.userFacade.getGroupId(GroupType.Mail), senderMailGroupId)
+
 			if (recipient.type === RecipientType.EXTERNAL) {
 				const password = this.getContactPassword(recipient.contact)
 				if (password == null || isSharedMailboxSender) {
@@ -670,7 +676,7 @@ export class MailFacade {
 					autoTransmitPassword: null,
 					passwordChannelPhoneNumbers: [],
 				})
-				service.secureExternalRecipientKeyData.push(data)
+				sendDraftData.secureExternalRecipientKeyData.push(data)
 			} else {
 				const keyData = await this.crypto.encryptBucketKeyForInternalRecipient(
 					isSharedMailboxSender ? senderMailGroupId : this.userFacade.getLoggedInUser().userGroup.group,
@@ -678,9 +684,13 @@ export class MailFacade {
 					recipient.address,
 					notFoundRecipients,
 				)
-
-				if (keyData) {
-					service.internalRecipientKeyData.push(keyData)
+				if (keyData == null) {
+					// cannot add recipient because of notFoundError
+					// we do not throw here because we want to collect all not found recipients first
+				} else if (isSameTypeRef(keyData._type, SymEncInternalRecipientKeyDataTypeRef)) {
+					sendDraftData.symEncInternalRecipientKeyData.push(keyData as SymEncInternalRecipientKeyData)
+				} else if (isSameTypeRef(keyData._type, InternalRecipientKeyDataTypeRef)) {
+					sendDraftData.internalRecipientKeyData.push(keyData as InternalRecipientKeyData)
 				}
 			}
 		}

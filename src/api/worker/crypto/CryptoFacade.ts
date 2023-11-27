@@ -14,9 +14,9 @@ import {
 	uint8ArrayToBase64,
 	uint8ArrayToHex,
 } from "@tutao/tutanota-utils"
-import { BucketPermissionType, EncryptionAuthStatus, GroupType, PermissionType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../common/TutanotaConstants"
+import { AccountType, BucketPermissionType, EncryptionAuthStatus, GroupType, PermissionType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../common/TutanotaConstants"
 import { HttpMethod, resolveTypeReference } from "../../common/EntityFunctions"
-import type { BucketKey, BucketPermission, GroupMembership, InstanceSessionKey, Permission } from "../../entities/sys/TypeRefs.js"
+import type { BucketKey, BucketPermission, GroupMembership, InstanceSessionKey, Permission, PublicKeyGetOut } from "../../entities/sys/TypeRefs.js"
 import {
 	BucketKeyTypeRef,
 	BucketPermissionTypeRef,
@@ -29,11 +29,12 @@ import {
 	PermissionTypeRef,
 	PushIdentifierTypeRef,
 } from "../../entities/sys/TypeRefs.js"
-import type { Contact, InternalRecipientKeyData, Mail } from "../../entities/tutanota/TypeRefs.js"
+import type { Contact, InternalRecipientKeyData, Mail, SymEncInternalRecipientKeyData } from "../../entities/tutanota/TypeRefs.js"
 import {
 	ContactTypeRef,
 	createEncryptTutanotaPropertiesData,
 	createInternalRecipientKeyData,
+	createSymEncInternalRecipientKeyData,
 	MailTypeRef,
 	TutanotaPropertiesTypeRef,
 } from "../../entities/tutanota/TypeRefs.js"
@@ -264,10 +265,6 @@ export class CryptoFacade {
 		return typeof elementOrLiteral._type === "undefined"
 	}
 
-	private isTuple(element: unknown): element is IdTuple {
-		return element != null && Array.isArray(element)
-	}
-
 	private trySymmetricPermission(listPermissions: Permission[]) {
 		const symmetricPermission: Permission | null =
 			listPermissions.find(
@@ -297,17 +294,18 @@ export class CryptoFacade {
 			decBucketKey = decryptedBucketKey
 			pqMessageSenderKey = pqMessageSenderIdentityPubKey
 		} else if (bucketKey.groupEncBucketKey) {
-			// secure external recipient
+			// received as secure external recipient or reply from secure external sender
 			let keyGroup
 			if (bucketKey.keyGroup) {
-				// legacy code path for old external clients that used to encrypt bucket keys with user group keys.
-				// should be dropped once all old external mailboxes are cleared
+				// 1. Uses when receiving confidential replies from external users.
+				// 2. legacy code path for old external clients that used to encrypt bucket keys with user group keys.
 				keyGroup = bucketKey.keyGroup
 			} else {
-				// by default, we try to decrypt the bucket key with the ownerGroupKey
+				// by default, we try to decrypt the bucket key with the ownerGroupKey (e.g. secure external recipient)
 				keyGroup = neverNull(instance._ownerGroup)
 			}
-			decBucketKey = decryptKey(this.userFacade.getGroupKey(keyGroup), bucketKey.groupEncBucketKey)
+
+			decBucketKey = await this.resolveWithGroupReference(keyGroup, bucketKey.groupEncBucketKey)
 			unencryptedSenderAuthStatus = EncryptionAuthStatus.AES_NO_AUTHENTICATION
 		} else {
 			throw new SessionKeyNotFoundError(`encrypted bucket key not set on instance ${typeModel.name}`)
@@ -339,6 +337,36 @@ export class CryptoFacade {
 	 */
 	public async sha256(value: string): Promise<string> {
 		return uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(value)))
+	}
+
+	/**
+	 * Decrypts the given encrypted bucket key with the group key of the given group. In case the current user is not
+	 * member of the key group the function tries to resolve the group key using the adminEncGroupKey.
+	 * This is necessary for resolving the BucketKey when receiving a reply from an external Mailbox.
+	 * @param keyGroup The group that holds the encryption key.
+	 * @param groupEncBucketKey The group key encrypted bucket key.
+	 */
+	private async resolveWithGroupReference(keyGroup: Id, groupEncBucketKey: Uint8Array): Promise<Aes128Key | Aes256Key> {
+		if (this.userFacade.hasGroup(keyGroup)) {
+			// the logged-in user (most likely external) is a member of that group. Then we have the group key from the memberships
+			return decryptKey(this.userFacade.getGroupKey(keyGroup), groupEncBucketKey)
+		} else {
+			// internal user receiving a mail from secure external:
+			// internal user group key -> external user group key -> external mail group key -> bucket key
+			const keyGroupInstance = await this.entityClient.load(GroupTypeRef, keyGroup)
+			if (keyGroupInstance.admin) {
+				const adminGroup = await this.entityClient.load(GroupTypeRef, keyGroupInstance.admin) // admin of the external mailbox is the external user group.
+				if (adminGroup.admin && this.userFacade.hasGroup(adminGroup.admin)) {
+					const adminGroupKey = decryptKey(this.userFacade.getGroupKey(adminGroup.admin), assertNotNull(adminGroup.adminGroupEncGKey))
+					const groupKey = decryptKey(adminGroupKey, assertNotNull(keyGroupInstance.adminGroupEncGKey))
+					return decryptKey(groupKey, groupEncBucketKey)
+				} else {
+					throw new SessionKeyNotFoundError("no admin group or no membership of admin group: " + adminGroup.admin)
+				}
+			} else {
+				throw new SessionKeyNotFoundError("no admin group on key group: " + keyGroup)
+			}
+		}
 	}
 
 	/**
@@ -436,7 +464,7 @@ export class CryptoFacade {
 		if (bucketPermission.type === BucketPermissionType.External) {
 			return this.decryptWithExternalBucket(bucketPermission, pubOrExtPermission, instance)
 		} else {
-			return await this.decryptWithPublicBucket(bucketPermission, instance, pubOrExtPermission, typeModel)
+			return this.decryptWithPublicBucket(bucketPermission, instance, pubOrExtPermission, typeModel)
 		}
 	}
 
@@ -446,6 +474,10 @@ export class CryptoFacade {
 		if (bucketPermission.ownerEncBucketKey != null) {
 			bucketKey = decryptKey(this.userFacade.getGroupKey(neverNull(bucketPermission._ownerGroup)), bucketPermission.ownerEncBucketKey)
 		} else if (bucketPermission.symEncBucketKey) {
+			// legacy case: for very old email sent to external user we used symEncBucketKey on the bucket permission.
+			// The bucket key is encrypted with the user group key of the external user.
+			// We maintain this code as we still have some old BucketKeys in some external mailboxes.
+			// Can be removed if we finished mail details migration or when we do cleanup of external mailboxes.
 			bucketKey = decryptKey(this.userFacade.getUserGroupKey(), bucketPermission.symEncBucketKey)
 		} else {
 			throw new SessionKeyNotFoundError(
@@ -582,47 +614,92 @@ export class CryptoFacade {
 		}
 	}
 
-	encryptBucketKeyForInternalRecipient(
+	async encryptBucketKeyForInternalRecipient(
 		senderUserGroupId: Id,
 		bucketKey: Aes128Key | Aes256Key,
 		recipientMailAddress: string,
 		notFoundRecipients: Array<string>,
-	): Promise<InternalRecipientKeyData | void> {
+	): Promise<InternalRecipientKeyData | SymEncInternalRecipientKeyData | null> {
 		let keyData = createPublicKeyGetIn({
 			mailAddress: recipientMailAddress,
 		})
-		return this.serviceExecutor
-			.get(PublicKeyService, keyData)
-			.then(async (publicKeyGetOut) => {
-				let encrypted: Uint8Array
-				if (notFoundRecipients.length === 0) {
-					const recipientPubKey = this.getPublicKey(publicKeyGetOut)
-					let uint8ArrayBucketKey = bitArrayToUint8Array(bucketKey)
-					if (recipientPubKey instanceof PQPublicKeys) {
-						const senderKeyPair = await this.loadKeypair(senderUserGroupId)
-						const senderIdentityKeyPair = await this.getOrMakeSenderIdentityKeyPair(senderKeyPair, senderUserGroupId)
-						const ephemeralKeyPair = generateEccKeyPair()
-						encrypted = encodePQMessage(await this.pq.encapsulate(senderIdentityKeyPair, ephemeralKeyPair, recipientPubKey, uint8ArrayBucketKey))
-					} else {
-						encrypted = await this.rsa.encrypt(recipientPubKey, uint8ArrayBucketKey)
-					}
-					return createInternalRecipientKeyData({
-						mailAddress: recipientMailAddress,
-						pubEncBucketKey: encrypted,
-						pubKeyVersion: publicKeyGetOut.pubKeyVersion,
-					})
+		try {
+			const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
+			// We do not create any key data in case there is one not found recipient, but we want to
+			// collect ALL not found recipients when iterating a recipient list.
+			if (notFoundRecipients.length !== 0) {
+				return null
+			}
+			const recipientPubKey = this.getPublicKey(publicKeyGetOut)
+			let uint8ArrayBucketKey = bitArrayToUint8Array(bucketKey)
+			if (recipientPubKey instanceof PQPublicKeys) {
+				const isExternalSender = this.userFacade.getUser()?.accountType === AccountType.EXTERNAL
+				if (isExternalSender) {
+					return this.createSymEncInternalRecipientKeyData(recipientMailAddress, bucketKey)
+				} else {
+					return this.createPubEncPQInternalRecipientKeyData(
+						senderUserGroupId,
+						recipientPubKey,
+						uint8ArrayBucketKey,
+						recipientMailAddress,
+						publicKeyGetOut,
+					)
 				}
-			})
-			.catch(
-				ofClass(NotFoundError, (e) => {
-					notFoundRecipients.push(recipientMailAddress)
-				}),
-			)
-			.catch(
-				ofClass(TooManyRequestsError, (e) => {
-					throw new RecipientNotResolvedError("")
-				}),
-			)
+			} else {
+				return await this.createPubEncRsaInternalRecipientKeyData(recipientPubKey, uint8ArrayBucketKey, recipientMailAddress, publicKeyGetOut)
+			}
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				notFoundRecipients.push(recipientMailAddress)
+				return null
+			} else if (e instanceof TooManyRequestsError) {
+				throw new RecipientNotResolvedError("")
+			} else {
+				throw e
+			}
+		}
+	}
+
+	private async createPubEncRsaInternalRecipientKeyData(
+		recipientPubKey: RsaPublicKey,
+		uint8ArrayBucketKey: Uint8Array,
+		recipientMailAddress: string,
+		publicKeyGetOut: PublicKeyGetOut,
+	) {
+		const encrypted = await this.rsa.encrypt(recipientPubKey, uint8ArrayBucketKey)
+		return createInternalRecipientKeyData({
+			mailAddress: recipientMailAddress,
+			pubEncBucketKey: encrypted,
+			pubKeyVersion: publicKeyGetOut.pubKeyVersion,
+		})
+	}
+
+	private async createPubEncPQInternalRecipientKeyData(
+		senderUserGroupId: string,
+		recipientPubKey: PQPublicKeys,
+		uint8ArrayBucketKey: Uint8Array,
+		recipientMailAddress: string,
+		publicKeyGetOut: PublicKeyGetOut,
+	) {
+		const senderKeyPair = await this.loadKeypair(senderUserGroupId)
+		const senderIdentityKeyPair = await this.getOrMakeSenderIdentityKeyPair(senderKeyPair, senderUserGroupId)
+		const ephemeralKeyPair = generateEccKeyPair()
+		const encrypted = encodePQMessage(await this.pq.encapsulate(senderIdentityKeyPair, ephemeralKeyPair, recipientPubKey, uint8ArrayBucketKey))
+		return createInternalRecipientKeyData({
+			mailAddress: recipientMailAddress,
+			pubEncBucketKey: encrypted,
+			pubKeyVersion: publicKeyGetOut.pubKeyVersion,
+		})
+	}
+
+	private createSymEncInternalRecipientKeyData(recipientMailAddress: string, bucketKey: number[]) {
+		const keyGroup = this.userFacade.getGroupId(GroupType.Mail)
+		const externalMailGroupKey = this.userFacade.getGroupKey(keyGroup)
+		return createSymEncInternalRecipientKeyData({
+			mailAddress: recipientMailAddress,
+			symEncBucketKey: encryptKey(externalMailGroupKey, bucketKey),
+			keyGroup,
+		})
 	}
 
 	/**

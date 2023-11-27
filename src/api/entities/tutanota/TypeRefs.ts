@@ -1810,6 +1810,7 @@ export type SendDraftData = {
 	internalRecipientKeyData: InternalRecipientKeyData[];
 	mail: IdTuple;
 	secureExternalRecipientKeyData: SecureExternalRecipientKeyData[];
+	symEncInternalRecipientKeyData: SymEncInternalRecipientKeyData[];
 }
 export const SendDraftReturnTypeRef: TypeRef<SendDraftReturn> = new TypeRef("tutanota", "SendDraftReturn")
 
@@ -1871,6 +1872,21 @@ export type Subfiles = {
 	_id: Id;
 
 	files: Id;
+}
+export const SymEncInternalRecipientKeyDataTypeRef: TypeRef<SymEncInternalRecipientKeyData> = new TypeRef("tutanota", "SymEncInternalRecipientKeyData")
+
+export function createSymEncInternalRecipientKeyData(values?: Partial<SymEncInternalRecipientKeyData>): SymEncInternalRecipientKeyData {
+	return Object.assign(create(typeModels.SymEncInternalRecipientKeyData, SymEncInternalRecipientKeyDataTypeRef), values)
+}
+
+export type SymEncInternalRecipientKeyData = {
+	_type: TypeRef<SymEncInternalRecipientKeyData>;
+
+	_id: Id;
+	mailAddress: string;
+	symEncBucketKey: Uint8Array;
+
+	keyGroup: Id;
 }
 export const TemplateGroupRootTypeRef: TypeRef<TemplateGroupRoot> = new TypeRef("tutanota", "TemplateGroupRoot")
 

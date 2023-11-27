@@ -7202,6 +7202,16 @@ export const typeModels = {
                 "cardinality": "Any",
                 "refType": "SecureExternalRecipientKeyData",
                 "dependency": null
+            },
+            "symEncInternalRecipientKeyData": {
+                "final": true,
+                "name": "symEncInternalRecipientKeyData",
+                "id": 1352,
+                "since": 65,
+                "type": "AGGREGATION",
+                "cardinality": "Any",
+                "refType": "SymEncInternalRecipientKeyData",
+                "dependency": null
             }
         },
         "app": "tutanota",
@@ -7426,6 +7436,58 @@ export const typeModels = {
                 "type": "LIST_ASSOCIATION",
                 "cardinality": "One",
                 "refType": "File",
+                "dependency": null
+            }
+        },
+        "app": "tutanota",
+        "version": "65"
+    },
+    "SymEncInternalRecipientKeyData": {
+        "name": "SymEncInternalRecipientKeyData",
+        "since": 65,
+        "type": "AGGREGATED_TYPE",
+        "id": 1347,
+        "rootId": "CHR1dGFub3RhAAVD",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 1348,
+                "since": 65,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "mailAddress": {
+                "final": true,
+                "name": "mailAddress",
+                "id": 1349,
+                "since": 65,
+                "type": "String",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "symEncBucketKey": {
+                "final": true,
+                "name": "symEncBucketKey",
+                "id": 1350,
+                "since": 65,
+                "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "keyGroup": {
+                "final": true,
+                "name": "keyGroup",
+                "id": 1351,
+                "since": 65,
+                "type": "ELEMENT_ASSOCIATION",
+                "cardinality": "One",
+                "refType": "Group",
                 "dependency": null
             }
         },

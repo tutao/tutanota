@@ -1,16 +1,17 @@
 import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { encryptBytes, encryptString } from "../../crypto/CryptoFacade.js"
-import { GroupInfoTypeRef } from "../../../entities/sys/TypeRefs.js"
 import type { GroupInfo, ReceivedGroupInvitation } from "../../../entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef } from "../../../entities/sys/TypeRefs.js"
 import type { ShareCapability } from "../../../common/TutanotaConstants.js"
-import type { GroupInvitationPostReturn } from "../../../entities/tutanota/TypeRefs.js"
+import type { GroupInvitationPostReturn, InternalRecipientKeyData } from "../../../entities/tutanota/TypeRefs.js"
 import {
 	createGroupInvitationDeleteData,
 	createGroupInvitationPostData,
 	createGroupInvitationPutData,
 	createSharedGroupData,
+	InternalRecipientKeyDataTypeRef,
 } from "../../../entities/tutanota/TypeRefs.js"
-import { neverNull } from "@tutao/tutanota-utils"
+import { isSameTypeRef, neverNull } from "@tutao/tutanota-utils"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import { aes128RandomKey, bitArrayToUint8Array, encryptKey, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
@@ -61,8 +62,8 @@ export class ShareFacade {
 		for (let mailAddress of recipientMailAddresses) {
 			const keyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipient(userGroupInfo.group, bucketKey, mailAddress, notFoundRecipients)
 
-			if (keyData) {
-				invitationData.internalKeyData.push(keyData)
+			if (keyData && isSameTypeRef(keyData._type, InternalRecipientKeyDataTypeRef)) {
+				invitationData.internalKeyData.push(keyData as InternalRecipientKeyData)
 			}
 		}
 
