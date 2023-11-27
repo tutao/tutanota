@@ -191,13 +191,16 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					this._endDrag(mouseEvent)
 				},
 			},
-			weeks.map((week) => {
+			weeks.map((week, weekIndex) => {
 				return m(
 					".flex.flex-grow.rel",
 					{
 						key: week[0].date.getTime(),
 					},
-					[week.map((day, i) => this._renderDay(attrs, day, today, i)), this._monthDom ? this._renderWeekEvents(attrs, week, zone) : null],
+					[
+						week.map((day, i) => this._renderDay(attrs, day, today, i, weekIndex === 0)),
+						this._monthDom ? this._renderWeekEvents(attrs, week, zone) : null,
+					],
 				)
 			}),
 		)
@@ -216,13 +219,14 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 	}
 
 	/** render the grid of days */
-	_renderDay(attrs: CalendarMonthAttrs, day: CalendarDay, today: Date, weekDayNumber: number): Children {
+	_renderDay(attrs: CalendarMonthAttrs, day: CalendarDay, today: Date, weekDayNumber: number, firstWeek: boolean): Children {
 		const { selectedDate } = attrs
 		return m(
 			".calendar-day.calendar-column-border.flex-grow.rel.overflow-hidden.fill-absolute.cursor-pointer",
 			{
 				style: {
 					background: day.isPaddingDay && styles.isDesktopLayout() ? theme.list_alternate_bg : null,
+					...(firstWeek && !styles.isDesktopLayout() ? { borderTop: "none" } : {}),
 				},
 				key: day.date.getTime(),
 				onclick: (e: MouseEvent) => {
@@ -301,7 +305,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					{
 						style: {
 							...textStyle,
-							opacity: isPaddingDay ? (!styles.isDesktopLayout() ? 0.6 : 1) : 1,
+							opacity: isPaddingDay ? (!styles.isDesktopLayout() ? 0.4 : 1) : 1,
 							fontWeight: isPaddingDay ? (!styles.isDesktopLayout() ? "500" : null) : null,
 							fontSize: styles.isDesktopLayout() ? "14px" : "12px",
 							lineHeight: size,
