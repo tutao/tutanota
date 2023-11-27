@@ -104,7 +104,14 @@ export class MultiDayCalendarView implements Component<Attrs> {
 
 		return m(".flex.col.fill-absolute", [
 			this.renderDateSelector(attrs),
-			!styles.isDesktopLayout() ? this.renderHeaderMobile(weekEvents, attrs.groupColors, attrs.onEventClicked, attrs.temporaryEvents) : null,
+			!styles.isDesktopLayout()
+				? this.renderHeaderMobile(
+						attrs.daysInPeriod === 1 ? currentPageEvents : weekEvents,
+						attrs.groupColors,
+						attrs.onEventClicked,
+						attrs.temporaryEvents,
+				  )
+				: null,
 			m(
 				".rel.flex-grow",
 				m(PageView, {

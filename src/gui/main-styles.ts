@@ -1926,7 +1926,7 @@ styles.registerStyle("main", () => {
 			background: theme.list_alternate_bg,
 		},
 		".calendar-column-border": {
-			"border-right": `1px solid ${theme.content_border}`,
+			"border-right": `1px solid ${theme.list_border}`,
 		},
 		".calendar-column-border:nth-child(7)": {
 			"border-right": "none",
@@ -1935,7 +1935,7 @@ styles.registerStyle("main", () => {
 			"margin-left": px(size.calendar_hour_width),
 		},
 		".calendar-day": {
-			"border-top": `1px solid ${theme.content_border}`,
+			"border-top": `1px solid ${theme.list_border}`,
 			transition: "background 0.4s",
 			background: theme.list_bg,
 		},
@@ -2312,6 +2312,9 @@ styles.registerStyle("main", () => {
 		},
 		".faded-day": {
 			color: theme.navigation_menu_icon,
+		},
+		".svg-text-content-bg text": {
+			fill: theme.content_bg,
 		},
 	}
 })
