@@ -2,7 +2,7 @@ import type { DesktopNotifier } from "./DesktopNotifier"
 import { NotificationResult } from "./DesktopNotifier"
 import { lang } from "../misc/LanguageViewModel"
 import type { DesktopConfig } from "./config/DesktopConfig"
-import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, downcast, neverNull } from "@tutao/tutanota-utils"
 import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import type { App, NativeImage } from "electron"
 import type { UpdaterWrapper } from "./UpdaterWrapper"
@@ -109,12 +109,11 @@ export class ElectronUpdater {
 				this.errorCount += 1
 				const messageEvent: { message: string } = downcast(e)
 				if (this.errorCount >= 5) {
-					this.logger.error(`Auto Update Error ${this.errorCount}, shutting down updater:\n${messageEvent.message}`)
-					autoUpdater.removeAllListeners("update-available")
-					autoUpdater.removeAllListeners("update-downloaded")
-					autoUpdater.removeAllListeners("checking-for-update")
-					autoUpdater.removeAllListeners("error")
-					this.notifyUpdateError()
+					this.logger.error(`Auto Update Error ${this.errorCount}, polling is stopped:\n${messageEvent.message}`)
+
+					// Avoid spamming the notification to the user
+					if (this.errorCount === 5) this.notifyUpdateError()
+
 					this.logger.error(`Update failed multiple times. Last error:\n${messageEvent.message}`)
 				} else {
 					this.logger.error(`Auto Update Error ${this.errorCount}, continuing polling:\n${messageEvent.message}`)
@@ -215,6 +214,17 @@ export class ElectronUpdater {
 		}
 	}
 
+	private async checkUpdateThrottleTime() {
+		// After 5 unsuccessful attempts to update, we start throttling the user
+		// to avoid too many calls to our servers
+		if (this.errorCount >= 5) {
+			// Half of a second * errorCount
+			const throttleTime = 500 * this.errorCount
+			this.logger.debug(`Auto Update: throttling manual update attempt # ${this.errorCount} by ${throttleTime}`)
+			await delay(throttleTime)
+		}
+	}
+
 	private stopPolling() {
 		clearInterval(neverNull(this.updatePollInterval))
 		this.updatePollInterval = null
@@ -257,14 +267,13 @@ export class ElectronUpdater {
 	 * @returns {Promise<boolean>} True if an update is available and the next call will install it, false otherwise.
 	 */
 	manualUpdate(): Promise<boolean> {
-		// After 5 unsuccessful attempts to update, resolve the promise as false
-		// as the updater had its listeners removed
-		if (this.errorCount >= 5) return Promise.resolve(false)
-		if (!this.updateInfo) {
-			return this.checkUpdate()
-		}
-		this.installUpdate()
-		return Promise.resolve(false)
+		return this.checkUpdateThrottleTime().then(() => {
+			if (!this.updateInfo) {
+				return this.checkUpdate()
+			}
+			this.installUpdate()
+			return Promise.resolve(false)
+		})
 	}
 
 	private async downloadUpdate(): Promise<Array<string>> {

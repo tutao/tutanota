@@ -275,7 +275,6 @@ o.spec("ElectronUpdater Test", function () {
 		// @ts-ignore
 		upd.stopPolling()
 
-		o(autoUpdater.removeAllListeners.callCount).equals(4)("removeAllListeners")
 		o(notifier.showOneShot.callCount).equals(1)("showOneShot")
 	})
 	o("works if second key is right one", async function () {
