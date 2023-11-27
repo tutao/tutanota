@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2023-11-13T11:10:23Z",
+	"updated_at": "2023-11-27T09:57:12Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -232,7 +232,7 @@ export default {
 		"concealPassword_action": "Passwort verbergen",
 		"confidentialStatus_msg": "Diese Nachricht wird Ende-zu-Ende verschlüsselt.",
 		"confidential_action": "Vertraulich",
-		"configureCustomDomainAfterSignup_msg": "Eigene E-Mail-Domains können nach dem Erstellen des Accounts eingerichtet werden:\n",
+		"configureCustomDomainAfterSignup_msg": "Eigene E-Mail-Domains mit unlimitierten E-Mail-Adressen können nach dem Erstellen des Accounts eingerichtet werden:\n",
 		"confirmCountry_msg": "Zur Bestimmung der zu berechnenden Mehrwertsteuer benötigen wir die Bestätigung, dass du in diesem Land wohnst: {1}.",
 		"confirmCustomDomainDeletion_msg": "Bist du sicher, dass du die eigene Domain \"{domain}\" entfernen möchtest?",
 		"confirmDeactivateCustomColors_msg": "Möchtest du wirklich deine eigenen Farben deaktivieren?",
@@ -306,6 +306,8 @@ export default {
 		"createTemplate_action": "Vorlage erstellen",
 		"createUserFailed_msg": "Benutzer konnte nicht erstellt werden. Bitte kontaktiere den Support.",
 		"credentialMigrationDone_msg": "Gratulation! Du kannst jetzt deine Zugangsdaten auf der neuen Login-Seite verwenden.",
+		"credentialsEncryptionModeAppPasswordHelp_msg": "Schütze deine gespeicherten Zugangsdaten mit einem separaten Passwort.",
+		"credentialsEncryptionModeAppPassword_label": "App-Passwort",
 		"credentialsEncryptionModeBiometricsHelp_msg": "Die sicherste Variante. Die gespeicherten Zugangsdaten werden entfernt, wenn die Biometrieeinstellungen geändert werden.",
 		"credentialsEncryptionModeBiometrics_label": "Ausschließlich biometrische Authentifizierung",
 		"credentialsEncryptionModeDeviceCredentialsHelp_msg": "Gerätepasswort, PIN oder biometrische Authentifizierung verwenden.",
@@ -500,6 +502,7 @@ export default {
 		"errorReport_label": "Oh nein!",
 		"eventCancelled_msg": "Abgesagt: {event}",
 		"eventInviteMail_msg": "Einladung: {event}",
+		"eventNoLongerExists_msg": "Der bearbeitete Termin existiert nicht mehr und konnte nicht aktualisiert werden.",
 		"eventNotificationUpdated_msg": "Der Termin wurde in Ihrem Kalender aktualisiert.",
 		"eventUpdated_msg": "Aktualisiert: {event}",
 		"everyone_label": "Jeder",
@@ -527,6 +530,9 @@ export default {
 		"externalNotificationMailSubject_msg": "Vertrauliche Nachricht von {1}",
 		"facebook_label": "Facebook",
 		"failedDebitAttempt_msg": "Bei fehlgeschlagener Abbuchung,  werden wir es in einigen Tagen erneut versuchen. Sorge bitte dafür, dass ausreichend Guthaben vorhanden ist.",
+		"failedToExport_label": "{0} Fehler",
+		"failedToExport_msg": "Einige E-Mails konnten nicht exportiert werden. Du kannst sie dir unten ansehen.",
+		"failedToExport_title": "Export mit Fehlern beendet",
 		"faqEntry_label": "FAQ Artikel",
 		"fax_label": "Fax",
 		"featureTutanotaOnly_msg": "Du kannst diese Funktion nur mit anderen Tuta-Benutzer verwenden.",
@@ -603,6 +609,7 @@ export default {
 		"help_label": "Hilfe",
 		"hideText_action": "Text verbergen",
 		"hideWindows_action": "Alle Fenster verstecken",
+		"hide_action": "Ausblenden",
 		"howCanWeHelp_title": "Wie können wir helfen?",
 		"howtoMailBody_markdown": "Herzlichen Glückwunsch zu deiner Tuta-Mailbox, wo sichere Kommunikation nur einen Klick entfernt ist. Genieße den Komfort, ganz einfach verschlüsselte E-Mails zu senden. Egal, ob deine Empfänger*innen Tuta oder einen anderen Dienst nutzen, bei Tuta ist alles sicher!\n\nDeine Privatsphäre hat hier höchste Priorität. Selbst unverschlüsselt gesendete E-Mails werden sicher verschlüsselt auf unseren Servern in Deutschland gespeichert, damit deine Daten stets vertraulich bleiben.\n\nWir haben eine Auswahl an hilfreichen Ressourcen für dich zusammengestellt, damit du dein neues sicheres Postfach optimal nutzen kannst:\n\n* Häufig gestellte Fragen ([FAQ]({faqLink})): In unserem umfassenden FAQ-Bereich findest du Antworten auf alle deine Fragen.\n\n* [Support Forum]({redditLink}): Schließe dich unserer lebendigen Gemeinschaft im Support-Forum an, wo du mit anderen Tuta-Nutzer*innen in Kontakt treten, Tipps und Tricks austauschen und eine Fülle von Wissen entdecken kannst. Unsere freundliche Community ist immer bereit zu helfen!\n\n**Schalte das volle Potential von Tuta frei!**\n\n**Suche in verschlüsselten Daten**\n\nMit Tuta kannst du deine verschlüsselte Mailbox lokal auf deinem Gerät durchsuchen, um die Vertraulichkeit deiner Daten zu gewährleisten. Klicke einfach auf die Suchleiste oben, um das zu finden, was du suchst. Die Standardsuche reicht einen Monat in die Vergangenheit zurück. Um die unbegrenzte Suche, den unbegrenzten Offline-Modus und viele andere tolle Funktionen freizuschalten, ist ein kostenpflichtiges Abonnement von Tuta erforderlich. Du kannst dein Abonnement unter Einstellungen -> Abonnement überprüfen und aktualisieren.\n\nTipps zur Optimierung deiner Suchergebnisse findest du [hier]({howtosearchLink}).\n\n**Support**\n\nBei Tuta ermöglichen wir es allen auf der Welt, ein sicheres Postfach zu besitzen. Bei Millionen von Nutzer*innen können wir nicht alle Fragen per E-Mail beantworten. Unser umfangreiches FAQ und unsere hilfsbereite Community können dir jedoch mit deinem neuen Tuta-Account weiterhelfen. Falls du die Antworten auf deine Fragen in unseren FAQ nicht findest, frage bitte die Community. E-Mail-Support ist ausschließlich für zahlende Kunden verfügbar.\n\n**Perfekt für Professionals**\n\nAuch bei der geschäftlichen Nutzung kannst du Zeit und Geld sparen, indem du alle deine Firmen-E-Mails mit Ende-zu-Ende-Verschlüsselung auf Tutas sicheren Servern in Deutschland hostest: Mit Tuta kannst du deine eigene Domain verwenden, Benutzer*innen verwalten, die Plattform an dein Branding anpassen und sogar das Login auf deiner eigenen Webseite platzieren. Erfahre mehr über die umfassenden Business-Funktionen von Tuta [auf unserer Website]({businessLink}).\n\nSichere deine Kommunikation und übernimm die Kontrolle über dein digitales Leben!\n\nViele Grüße,\\\ndein Tuta-Team",
 		"howtoMailSubject_msg": "Entdecke die Leistungsfähigkeit deines sicheren Tuta-Accounts",
@@ -1602,7 +1609,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du",
-		"eventNoLongerExists_msg": "Das angeforderte Ereignis existiert nicht mehr"
+		"you_label": "Du"
 	}
 }
