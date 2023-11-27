@@ -24,6 +24,11 @@ pipeline {
 			defaultValue: '',
 			description: 'Which github milestone to reference for generating release notes. leave empty to use version number.'
 		)
+		booleanParam(
+			name: "dictionaries",
+			defaultValue: false,
+			description "download, update and package the current desktop dictionaries"
+		)
         booleanParam(
             name: 'web',
             defaultValue: true,
@@ -80,6 +85,14 @@ pipeline {
 		} // stage web app & packages
 		stage("other clients") {
 			parallel {
+				stage("Desktop Dicts") {
+					when { expression { params.dictionaries } }
+					steps {
+						script {
+							build job: 'tutanota-3-desktop-dictionaries', parameters: [booleanParam(name: "RELEASE", value: !params.dryRun)]
+						} // script
+					}
+				}
 				stage("Desktop Client") {
 					when { expression { params.desktop } }
 					steps {
@@ -87,10 +100,8 @@ pipeline {
 							build job: 'tutanota-3-desktop', parameters: params.generateReleaseNotes ? [
 								booleanParam(name: "RELEASE", value: !params.dryRun),
 								text(name: "releaseNotes", value: releaseNotes.desktop),
-								booleanParam(name: "UPDATE_DICTIONARIES", value: false),
 							] : [
 								booleanParam(name: "RELEASE", value: !params.dryRun),
-								booleanParam(name: "UPDATE_DICTIONARIES", value: false),
 							]
 						} // script
 					} // steps

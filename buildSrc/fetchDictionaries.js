@@ -15,7 +15,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 		.usage("[options]")
 		.description("Utility to update the app dictionaries")
 		.option("--out-dir <outDir>", "Base dir of client build")
-		.option("--local", "Build dictionaries for local/debug version of a desktop client")
 		.option("--publish", "Build and publish .deb package for dictionaries.")
 		.action(async (options) => {
 			const outDir = typeof options.outDir !== "undefined" ? options.outDir : getDefaultDistDirectory()
@@ -41,16 +40,12 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 /**
  *
  * @param outDir
- * @param local If true, dictionaries will also be built for debug desktop clients. If false, they will be only built for the production app.
  * @returns {Promise<*>}
  */
-async function getDictionaries(outDir, local) {
+async function getDictionaries(outDir) {
 	const electronVersion = await getElectronVersion()
-	const baseTarget = path.join(outDir, "..")
-
-	const targets = local ? await globby(path.join(baseTarget, "desktop*")) : [baseTarget]
-	const targetPaths = targets.map((d) => path.join(d, "dictionaries"))
-	return fetchDictionaries(electronVersion, targetPaths)
+	const targetPath = path.join(outDir, "dictionaries")
+	return fetchDictionaries(electronVersion, targetPath)
 }
 
 async function publishDebPackage() {
@@ -88,26 +83,19 @@ async function publishDebPackage() {
 /**
  * get the electron spell check dictionaries from the github release page.
  * @param electronVersion {string} which dictionaries to fetch
- * @param targets {Array<string>} the target folders for the dictionaries
+ * @param target the target folder for the dictionaries
  * @returns {Promise<*>}
  */
-export async function fetchDictionaries(electronVersion, targets) {
-	console.log("downloading dictionaries into:\n", targets.join("\n"))
+export async function fetchDictionaries(electronVersion, target) {
+	console.log("downloading dictionaries into:", target)
 	const url = `https://github.com/electron/electron/releases/download/v${electronVersion}/hunspell_dictionaries.zip`
 	const jszip = await import("jszip")
-	return Promise.all([fetch(url).then(jszip.default.loadAsync), ...targets.map((t) => fs.mkdirp(t).then(() => t))]).then(([zipArchive]) => {
-		// async extract each file in the archive
-		const zipFilePromises = Object.keys(zipArchive.files).map((name) => {
-			// write each of them into each of the target locations
-			return zipArchive
-				.file(name)
-				.async("nodebuffer")
-				.then((contents) => {
-					return Promise.all(targets.map((target) => fs.writeFile(path.join(target, name.toLowerCase()), contents)))
-				})
-		})
-		return Promise.all(zipFilePromises)
-	})
+	await fs.promises.mkdir(target, { recursive: true })
+	const zipArchive = await fetch(url).then(jszip.default.loadAsync)
+	for (const name of Object.keys(zipArchive.files)) {
+		const contents = await zipArchive.files[name].async("nodebuffer")
+		await fs.promises.writeFile(path.join(target, name.toLowerCase()), contents)
+	}
 }
 
 async function fetch(url) {

@@ -14,11 +14,6 @@ pipeline {
             defaultValue: false,
             description: "Prepare a release version (doesn't publish to production, this is done manually)"
         )
-        booleanParam(
-            name: 'UPDATE_DICTIONARIES',
-            defaultValue: false,
-            description: 'pull the spellcheck dictionaries from github when producing .debs'
-        )
 		persistentText(
 			name: "releaseNotes",
 			defaultValue: "",
@@ -175,12 +170,6 @@ pipeline {
 					unstash 'linux_installer_test'
 					unstash 'mac_installer_test'
 					unstash 'win_installer_test'
-				}
-
-				script {
-					if (params.UPDATE_DICTIONARIES) {
-						sh 'node buildSrc/fetchDictionaries.js --publish'
-					}
 				}
 
 				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
