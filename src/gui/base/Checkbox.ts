@@ -27,7 +27,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 		const a = vnode.attrs
 		const helpLabel = a.helpLabel ? m("small.block.content-fg", lang.getMaybeLazy(a.helpLabel)) : []
 		return m(
-			".click.pt",
+			`${a.disabled ? ".click-disabled" : ".click"}.pt`,
 			{
 				onclick: (e: MouseEvent) => {
 					if (e.target !== this._domInput) {
@@ -37,38 +37,23 @@ export class Checkbox implements Component<CheckboxAttrs> {
 			},
 			[
 				m(
-					".wrapper.flex.items-center",
+					`.wrapper.flex.items-center${a.disabled ? ".disabled" : ""}`,
 					{
-						oncreate: (vnode) => addFlash(vnode.dom),
-						onremove: (vnode) => removeFlash(vnode.dom),
+						oncreate: (vnode) => {
+							if (!a.disabled) addFlash(vnode.dom)
+						},
+						onremove: (vnode) => {
+							if (!a.disabled) removeFlash(vnode.dom)
+						},
 					},
 					[
-						// the real checkbox is transparent and only used to allow keyboard focusing and selection
-						m("input[type=checkbox]", {
-							oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
-							onchange: (e: Event) => this.toggle(e, a),
-							checked: a.checked,
-							onfocus: () => (this.focused = true),
-							onblur: () => (this.focused = false),
-							onremove: (e) => {
-								// workaround for chrome error on login with return shortcut "Error: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?"
-								// TODO test if still needed with mithril 1.1.1
-								if (this._domInput) this._domInput.onblur = null
-							},
-							style: {
-								opacity: 0,
-								position: "absolute",
-								cursor: "pointer",
-								z_index: -1,
-							},
-						}),
 						m(Icon, {
 							icon: a.checked ? BootIcons.CheckboxSelected : BootIcons.Checkbox,
 							class: this.focused ? "svg-content-accent-fg" : "svg-content-fg",
 							oncreate: (vnode) => (this._domIcon = vnode.dom as HTMLElement),
 						}),
 						m(
-							".pl",
+							"label.pl",
 							{
 								class: this.focused ? "content-accent-fg" : "content-fg",
 								onclick: (e: MouseEvent) => {
@@ -79,6 +64,27 @@ export class Checkbox implements Component<CheckboxAttrs> {
 									}
 								},
 							},
+							// the real checkbox is transparent and only used to allow keyboard focusing and selection
+							m("input[type=checkbox]", {
+								oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
+								onchange: (e: Event) => this.toggle(e, a),
+								checked: a.checked,
+								onfocus: () => (this.focused = true),
+								onblur: () => (this.focused = false),
+								onremove: (e) => {
+									// workaround for chrome error on login with return shortcut "Error: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?"
+									// TODO test if still needed with mithril 1.1.1
+									if (this._domInput) this._domInput.onblur = null
+								},
+								style: {
+									opacity: 0,
+									position: "absolute",
+									cursor: a.disabled ? "default" : "pointer",
+									z_index: -1,
+								},
+								disabled: a.disabled,
+								"aria-disabled": String(a.disabled),
+							}),
 							a.label(),
 						),
 					],

@@ -188,6 +188,7 @@ export class LanguageViewModel {
 		weekdayShort: Intl.DateTimeFormat
 		weekdayNarrow: Intl.DateTimeFormat
 		time: Intl.DateTimeFormat
+		shortTime: Intl.DateTimeFormat
 		dateTime: Intl.DateTimeFormat
 		dateTimeShort: Intl.DateTimeFormat
 		priceWithCurrency: Intl.NumberFormat
@@ -195,6 +196,7 @@ export class LanguageViewModel {
 		priceWithoutCurrency: Intl.NumberFormat
 		priceWithoutCurrencyWithoutFractionDigits: Intl.NumberFormat
 		monthLong: Intl.DateTimeFormat
+		monthShortWithFullYear: Intl.DateTimeFormat
 		monthWithYear: Intl.DateTimeFormat
 		monthWithFullYear: Intl.DateTimeFormat
 		yearNumeric: Intl.DateTimeFormat
@@ -321,6 +323,16 @@ export class LanguageViewModel {
 					options,
 				),
 			),
+			shortTime: new Intl.DateTimeFormat(
+				tag,
+				Object.assign(
+					{},
+					{
+						hour: "numeric",
+					} as const,
+					options,
+				),
+			),
 			dateTime: new Intl.DateTimeFormat(
 				tag,
 				Object.assign(
@@ -376,6 +388,10 @@ export class LanguageViewModel {
 			}),
 			monthLong: new Intl.DateTimeFormat(tag, {
 				month: "long",
+			}),
+			monthShortWithFullYear: new Intl.DateTimeFormat(tag, {
+				month: "short",
+				year: "numeric",
 			}),
 			monthWithYear: new Intl.DateTimeFormat(tag, {
 				month: "long",

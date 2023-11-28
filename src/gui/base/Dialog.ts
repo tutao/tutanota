@@ -15,7 +15,7 @@ import type { ButtonAttrs } from "./Button.js"
 import { Button, ButtonType } from "./Button.js"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
 import { DialogHeaderBar } from "./DialogHeaderBar"
-import { Autocomplete, TextField, TextFieldType } from "./TextField.js"
+import { Autocomplete, TextField, TextFieldAttrs, TextFieldType } from "./TextField.js"
 import type { DropDownSelectorAttrs, SelectorItemList } from "./DropDownSelector.js"
 import { DropDownSelector } from "./DropDownSelector.js"
 import { Keys } from "../../api/common/TutanotaConstants"
@@ -64,7 +64,7 @@ export class Dialog implements ModalComponent {
 	private _shortcuts: Shortcut[]
 	view: ModalComponent["view"]
 	visible: boolean
-	private _focusOnLoadFunction: Thunk
+	private _focusOnLoadFunction: (dom: HTMLElement) => void
 	private _wasFocusOnLoadCalled: boolean
 	private _closeHandler: Thunk | null = null
 	private _focusedBeforeShown: HTMLElement | null = null
@@ -73,7 +73,7 @@ export class Dialog implements ModalComponent {
 	constructor(dialogType: DialogType, childComponent: Component) {
 		this.visible = false
 
-		this._focusOnLoadFunction = () => this._defaultFocusOnLoad()
+		this._focusOnLoadFunction = () => this._defaultFocusOnLoad(assertNotNull(this._domDialog))
 
 		this._wasFocusOnLoadCalled = false
 		this._shortcuts = [
@@ -158,7 +158,7 @@ export class Dialog implements ModalComponent {
 										}
 									})
 									animation.then(() => {
-										this._focusOnLoadFunction()
+										this._focusOnLoadFunction(assertNotNull(this._domDialog))
 
 										this._wasFocusOnLoadCalled = true
 									})
@@ -177,8 +177,7 @@ export class Dialog implements ModalComponent {
 		this._injectionRightAttrs = injectionRightAttrs
 	}
 
-	_defaultFocusOnLoad() {
-		const dom = assertNotNull(this._domDialog)
+	_defaultFocusOnLoad(dom: HTMLElement) {
 		let inputs = Array.from(dom.querySelectorAll(INPUT)) as Array<HTMLElement>
 
 		if (inputs.length > 0) {
@@ -200,7 +199,7 @@ export class Dialog implements ModalComponent {
 		this._focusOnLoadFunction = callback
 
 		if (this._wasFocusOnLoadCalled) {
-			this._focusOnLoadFunction()
+			this._focusOnLoadFunction(assertNotNull(this._domDialog))
 		}
 	}
 
@@ -932,12 +931,14 @@ export class Dialog implements ModalComponent {
 	 * @param props.action will be executed as an attempt to apply new password. Error message is the return value.
 	 */
 	static showRequestPasswordDialog(props: {
+		title?: string
 		action: (pw: string) => Promise<string>
 		cancel: {
 			textId: TranslationKey
 			action: () => void
 		} | null
 	}): Dialog {
+		const title = props.title != null ? () => props.title! : () => lang.get("password_label")
 		let value = ""
 		let state: { type: "progress" } | { type: "idle"; message: string } = { type: "idle", message: "" }
 
@@ -954,7 +955,7 @@ export class Dialog implements ModalComponent {
 				const savedState = state
 				return savedState.type == "idle"
 					? m(TextField, {
-							label: "password_label",
+							label: title,
 							helpLabel: () => savedState.message,
 							value: value,
 							oninput: (newValue) => (value = newValue),
@@ -968,7 +969,7 @@ export class Dialog implements ModalComponent {
 
 								return true
 							},
-					  })
+					  } satisfies TextFieldAttrs)
 					: m(Icon, {
 							icon: BootIcons.Progress,
 							class: "icon-xl icon-progress block mt mb",
@@ -980,7 +981,7 @@ export class Dialog implements ModalComponent {
 			},
 		}
 		const dialog = Dialog.showActionDialog({
-			title: lang.get("password_label"),
+			title,
 			child: child,
 			allowOkWithReturn: true,
 			okAction: () => doAction(),
@@ -990,6 +991,13 @@ export class Dialog implements ModalComponent {
 				props?.cancel?.action?.()
 				dialog.close()
 			},
+		})
+
+		// the password form contains some dummy inputs that would be focused by
+		// the default focusOnLoad
+		dialog.setFocusOnLoadFunction((dom: HTMLElement) => {
+			const inputs = Array.from(dom.querySelectorAll(INPUT)) as Array<HTMLElement>
+			inputs[inputs.length - 1].focus()
 		})
 		return dialog
 	}

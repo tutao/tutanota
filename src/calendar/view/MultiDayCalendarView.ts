@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { getStartOfDay, incrementDate, isSameDay, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
-import { formatTime } from "../../misc/Formatter"
+import { getStartOfDay, incrementDate, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { formatShortTime, formatTime } from "../../misc/Formatter"
 import {
 	CALENDAR_EVENT_HEIGHT,
 	combineDateWithTime,
@@ -34,11 +34,13 @@ import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { styles } from "../../gui/styles"
-import { CalendarViewType, SELECTED_DATE_INDICATOR_THICKNESS } from "./CalendarGuiUtils"
+import { CalendarViewType } from "./CalendarGuiUtils"
 import type { CalendarEventBubbleClickHandler, EventsOnDays } from "./CalendarViewModel"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { locator } from "../../api/main/MainLocator.js"
+import { DateTime } from "luxon"
+import { DaySelector } from "../date/DaySelector.js"
 
 export type Attrs = {
 	selectedDate: Date
@@ -53,6 +55,8 @@ export type Attrs = {
 	onChangeViewPeriod: (next: boolean) => unknown
 	temporaryEvents: Array<CalendarEvent>
 	dragHandlerCallbacks: EventDragHandlerCallbacks
+	eventsForDays: Map<number, Array<CalendarEvent>>
+	isDaySelectorExpanded: boolean
 }
 
 export class MultiDayCalendarView implements Component<Attrs> {
@@ -81,31 +85,98 @@ export class MultiDayCalendarView implements Component<Attrs> {
 
 	view({ attrs }: Vnode<Attrs>): Children {
 		// Special case for week view
+
 		const startOfThisPeriod =
 			attrs.daysInPeriod === 7 ? getStartOfWeek(attrs.selectedDate, getStartOfTheWeekOffset(attrs.startOfTheWeek)) : attrs.selectedDate
 		const startOfPreviousPeriod = incrementDate(new Date(startOfThisPeriod), -attrs.daysInPeriod)
 		const startOfNextPeriod = incrementDate(new Date(startOfThisPeriod), attrs.daysInPeriod)
-		const previousRange = getRangeOfDays(startOfPreviousPeriod, attrs.daysInPeriod)
-		const currentRange = getRangeOfDays(startOfThisPeriod, attrs.daysInPeriod)
-		const nextRange = getRangeOfDays(startOfNextPeriod, attrs.daysInPeriod)
-		const previousPageEvents = attrs.getEventsOnDays(previousRange)
-		const currentPageEvents = attrs.getEventsOnDays(currentRange)
-		const nextPageEvents = attrs.getEventsOnDays(nextRange)
-		return m(PageView, {
-			previousPage: {
-				key: previousRange[0].getTime(),
-				nodes: this._renderWeek(attrs, previousPageEvents, currentPageEvents),
-			},
-			currentPage: {
-				key: currentRange[0].getTime(),
-				nodes: this._renderWeek(attrs, currentPageEvents, currentPageEvents),
-			},
-			nextPage: {
-				key: nextRange[0].getTime(),
-				nodes: this._renderWeek(attrs, nextPageEvents, currentPageEvents),
-			},
-			onChangePage: (next) => attrs.onChangeViewPeriod(next),
-		})
+
+		const previousPageEvents = this.getEventsForWeek(
+			attrs.startOfTheWeek,
+			attrs.selectedDate,
+			attrs.getEventsOnDays,
+			attrs.daysInPeriod,
+			startOfPreviousPeriod,
+		)
+		const currentPageEvents = this.getEventsForWeek(attrs.startOfTheWeek, attrs.selectedDate, attrs.getEventsOnDays, attrs.daysInPeriod, startOfThisPeriod)
+		const nextPageEvents = this.getEventsForWeek(attrs.startOfTheWeek, attrs.selectedDate, attrs.getEventsOnDays, attrs.daysInPeriod, startOfNextPeriod)
+		const weekEvents = this.getEventsForWeek(attrs.startOfTheWeek, attrs.selectedDate, attrs.getEventsOnDays, 7)
+
+		return m(".flex.col.fill-absolute", [
+			this.renderDateSelector(attrs),
+			!styles.isDesktopLayout()
+				? this.renderHeaderMobile(
+						attrs.daysInPeriod === 1 ? currentPageEvents : weekEvents,
+						attrs.groupColors,
+						attrs.onEventClicked,
+						attrs.temporaryEvents,
+				  )
+				: null,
+			m(
+				".rel.flex-grow",
+				m(PageView, {
+					previousPage: {
+						key: startOfPreviousPeriod.getTime(),
+						nodes: this._renderWeek(attrs, previousPageEvents, currentPageEvents),
+					},
+					currentPage: {
+						key: startOfThisPeriod.getTime(),
+						nodes: this._renderWeek(attrs, currentPageEvents, currentPageEvents),
+					},
+					nextPage: {
+						key: startOfNextPeriod.getTime(),
+						nodes: this._renderWeek(attrs, nextPageEvents, currentPageEvents),
+					},
+					onChangePage: (next) => attrs.onChangeViewPeriod(next),
+				}),
+			),
+		])
+	}
+
+	private getEventsForWeek(
+		startOfTheWeek: WeekStart,
+		date: Date,
+		getEventsFunction: (range: Date[]) => EventsOnDays,
+		daysInPeriod: number,
+		startOfPeriod: Date = getStartOfWeek(date, getStartOfTheWeekOffset(startOfTheWeek)),
+	) {
+		const weekRange = getRangeOfDays(startOfPeriod, daysInPeriod)
+		return getEventsFunction(weekRange)
+	}
+
+	private renderDateSelector(attrs: Attrs): Children {
+		return !styles.isDesktopLayout()
+			? m("", [
+					m(
+						".header-bg.pb-s.overflow-hidden",
+						{
+							style: {
+								"margin-left": px(size.calendar_hour_width_mobile),
+							},
+						},
+						m(DaySelector, {
+							eventsForDays: attrs.eventsForDays,
+							selectedDate: attrs.selectedDate,
+							onDateSelected: (date) => attrs.onDateSelected(date),
+							wide: true,
+							startOfTheWeekOffset: getStartOfTheWeekOffset(attrs.startOfTheWeek),
+							isDaySelectorExpanded: attrs.isDaySelectorExpanded,
+							handleDayPickerSwipe: (isNext: boolean) => {
+								const sign = isNext ? 1 : -1
+								const duration = {
+									month: sign * (attrs.isDaySelectorExpanded ? 1 : 0),
+									week: sign * (attrs.isDaySelectorExpanded ? 0 : 1),
+								}
+
+								attrs.onDateSelected(DateTime.fromJSDate(attrs.selectedDate).plus(duration).toJSDate())
+							},
+							showDaySelection: attrs.daysInPeriod === 1,
+							highlightToday: true,
+							highlightSelectedWeek: attrs.daysInPeriod > 1,
+						}),
+					),
+			  ])
+			: null
 	}
 
 	_getTodayTimestamp(): number {
@@ -114,7 +185,8 @@ export class MultiDayCalendarView implements Component<Attrs> {
 
 	_renderWeek(attrs: Attrs, thisWeek: EventsOnDays, mainWeek: EventsOnDays): Children {
 		return m(
-			".fill-absolute.flex.col.calendar-column-border.mlr-safe-inset.content-bg",
+			".fill-absolute.flex.col.calendar-column-border.mlr-safe-inset.overflow-hidden" +
+				(!styles.isDesktopLayout() ? `.border-radius-top-left-big.border-radius-top-right-big.content-bg` : ""),
 			{
 				oncreate: () => {
 					this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
@@ -145,13 +217,11 @@ export class MultiDayCalendarView implements Component<Attrs> {
 				},
 			},
 			[
-				styles.isDesktopLayout()
-					? this.renderHeaderDesktop(attrs, thisWeek, mainWeek)
-					: this.renderHeaderMobile(thisWeek, mainWeek, attrs.groupColors, attrs.onEventClicked, attrs.temporaryEvents),
+				styles.isDesktopLayout() ? this.renderHeaderDesktop(attrs, thisWeek, mainWeek) : null,
 				// using .scroll-no-overlay because of a browser bug in Chromium where scroll wouldn't work at all
 				// see https://github.com/tutao/tutanota/issues/4846
 				m(
-					".flex.scroll-no-overlay",
+					".flex.scroll-no-overlay.content-bg",
 					{
 						oncreate: (vnode) => {
 							vnode.dom.scrollTop = this._scrollPosition
@@ -184,16 +254,16 @@ export class MultiDayCalendarView implements Component<Attrs> {
 										},
 									},
 									m(
-										".pl-s.pr-s.center.small",
+										".pl-s.pr-s.center.small.flex.flex-column.justify-center",
 										{
 											style: {
 												"line-height": styles.isDesktopLayout() ? px(size.calendar_hour_height) : "unset",
 												width: px(width),
 												height: px(size.calendar_hour_height),
-												"border-right": `2px solid ${theme.content_border}`,
+												"border-right": `1px solid ${theme.content_border}`,
 											},
 										},
-										formatTime(time.toDate()),
+										styles.isDesktopLayout() ? formatTime(time.toDate()) : formatShortTime(time.toDate()),
 									),
 								)
 							}),
@@ -250,37 +320,25 @@ export class MultiDayCalendarView implements Component<Attrs> {
 
 	private renderHeaderMobile(
 		thisPageEvents: EventsOnDays,
-		mainPageEvents: EventsOnDays,
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
 		temporaryEvents: Array<CalendarEvent>,
 	): Children {
 		// We calculate the height manually because we want the header to transition between heights when swiping left and right
 		// Hardcoding some styles instead of classes so that we can avoid nasty magic numbers
-		const mainPageEventsCount = mainPageEvents.longEvents.length
+		const mainPageEventsCount = thisPageEvents.longEvents.length
 		const padding = mainPageEventsCount !== 0 ? size.vpad_small : 0
 		// Set bottom padding in height, because it will be ignored in the style
-		const heightAdjustForPadding = 2 * padding
-		const height = mainPageEventsCount * CALENDAR_EVENT_HEIGHT + heightAdjustForPadding
+		const height = mainPageEventsCount * CALENDAR_EVENT_HEIGHT + padding
 		return m(
-			".calendar-long-events-header.flex-fixed.calendar-hour-margin.pr-l",
+			".calendar-long-events-header.flex-fixed.calendar-hour-margin.pr-l.rel",
 			{
 				style: {
+					marginLeft: size.calendar_hour_width_mobile,
+					borderBottom: "none",
 					height: px(height),
 					paddingTop: px(padding),
 					transition: "height 200ms ease-in-out",
-				},
-				oncreate: (vnode) => {
-					if (mainPageEvents === thisPageEvents) {
-						this._longEventsDom = vnode.dom as HTMLElement
-					}
-
-					m.redraw()
-				},
-				onupdate: (vnode) => {
-					if (mainPageEvents === thisPageEvents) {
-						this._longEventsDom = vnode.dom as HTMLElement
-					}
 				},
 			},
 			this.renderLongEvents(thisPageEvents.days, thisPageEvents.longEvents, groupColors, onEventClicked, temporaryEvents).children,
@@ -289,36 +347,35 @@ export class MultiDayCalendarView implements Component<Attrs> {
 
 	private renderHeaderDesktop(attrs: Attrs, thisPageEvents: EventsOnDays, mainPageEvents: EventsOnDays): Children {
 		const { selectedDate, groupColors, onEventClicked } = attrs
-		return m(".calendar-long-events-header.flex-fixed", [
-			m(
-				".calendar-hour-margin",
-				{
-					onmousemove: (mouseEvent: MouseEvent) => {
-						const { x, targetWidth } = getPosAndBoundsFromMouseEvent(mouseEvent)
-						const dayWidth = targetWidth / attrs.daysInPeriod
-						const dayNumber = Math.floor(x / dayWidth)
-						const date = new Date(thisPageEvents.days[dayNumber])
-						const dateUnderMouse = this._dateUnderMouse
+		return m(".calendar-long-events-header.flex-fixed" + (styles.isDesktopLayout() ? ".content-bg" : ""), [
+			m(".calendar-hour-margin", [this.renderDayNamesRow(thisPageEvents.days, attrs.onDateSelected)]),
+			m(".content-bg" + (styles.isTwoColumnLayout() && attrs.daysInPeriod > 1 ? ".border-radius-top-left-big.border-radius-top-right-big" : ""), [
+				m(
+					".calendar-hour-margin.content-bg",
+					{
+						onmousemove: (mouseEvent: MouseEvent) => {
+							const { x, targetWidth } = getPosAndBoundsFromMouseEvent(mouseEvent)
+							const dayWidth = targetWidth / attrs.daysInPeriod
+							const dayNumber = Math.floor(x / dayWidth)
+							const date = new Date(thisPageEvents.days[dayNumber])
+							const dateUnderMouse = this._dateUnderMouse
 
-						// When dragging short events, dont cause the mouse position date to drop to 00:00 when dragging over the header
-						if (dateUnderMouse && this._eventDragHandler.isDragging && !this._isHeaderEventBeingDragged) {
-							date.setHours(dateUnderMouse.getHours())
-							date.setMinutes(dateUnderMouse.getMinutes())
-						}
+							// When dragging short events, dont cause the mouse position date to drop to 00:00 when dragging over the header
+							if (dateUnderMouse && this._eventDragHandler.isDragging && !this._isHeaderEventBeingDragged) {
+								date.setHours(dateUnderMouse.getHours())
+								date.setMinutes(dateUnderMouse.getMinutes())
+							}
 
-						this._dateUnderMouse = date
+							this._dateUnderMouse = date
+						},
 					},
-				},
-				// this section is tricky with margins. We use this view for both week and day view.
-				// in day view there's no days row and no selection indicator.
-				// it all must work with and without long events.
-				// thread carefully and test all the cases.
-				[
-					this.renderDayNamesRow(thisPageEvents.days, attrs.onDateSelected),
-					this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, attrs.temporaryEvents),
-					this.renderSelectedDateIndicatorRow(selectedDate, thisPageEvents.days),
-				],
-			),
+					// this section is tricky with margins. We use this view for both week and day view.
+					// in day view there's no days row and no selection indicator.
+					// it all must work with and without long events.
+					// thread carefully and test all the cases.
+					[this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, attrs.temporaryEvents)],
+				),
+			]),
 		])
 	}
 
@@ -356,38 +413,6 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		)
 	}
 
-	private renderSelectedDateIndicatorRow(selectedDate: Date, dates: Array<Date>): Children {
-		if (dates.length === 1) return null
-
-		return m(
-			".flex",
-			dates.map((day) =>
-				m(
-					".flex-grow.flex.col",
-					{
-						style: {
-							justifyContent: "flex-end",
-						},
-					},
-					m("", {
-						style: {
-							// Don't render the selected date if there is only one day shown, since it's obvious
-							background: isSameDay(selectedDate, day) ? theme.content_accent : "none",
-							// Browsers which don't support overflow:overlay (looking at you, FF) will shrink the contents of the event grid and it
-							// will shift relative to the header (with indicator). It's noticeable when it's close to borders but it's not as bad
-							// when it's smaller than the grid.
-							width: "50%",
-							// The calendar-long-events-header has a 1px border on the bottom that overlaps this selection indicator
-							// therefore we need to make it +1px thicker so that it looks correct (consistent with the indicator in month view)
-							height: px(SELECTED_DATE_INDICATOR_THICKNESS + 1),
-							alignSelf: "center",
-						},
-					}),
-				),
-			),
-		)
-	}
-
 	/**
 	 *
 	 * @returns the rendered calendar bubble children, and the maximum number of events that occur on a day (out of all days)
@@ -402,12 +427,16 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		children: Children
 		maxEventsInColumn: number
 	} {
-		return dayRange.length === 1
-			? {
-					children: this.renderLongEventsForSingleDay(dayRange[0], events, groupColors, onEventClicked, temporaryEvents),
-					maxEventsInColumn: events.length,
-			  }
-			: this.renderLongEventsForMultipleDays(dayRange, events, groupColors, onEventClicked, temporaryEvents)
+		if (styles.isDesktopLayout()) {
+			return dayRange.length === 1
+				? {
+						children: this.renderLongEventsForSingleDay(dayRange[0], events, groupColors, onEventClicked, temporaryEvents),
+						maxEventsInColumn: events.length,
+				  }
+				: this.renderLongEventsForMultipleDays(dayRange, events, groupColors, onEventClicked, temporaryEvents)
+		} else {
+			return this.renderLongEventsForMultipleDays(dayRange, events, groupColors, onEventClicked, temporaryEvents)
+		}
 	}
 
 	/**
@@ -449,14 +478,14 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		children: Children
 		maxEventsInColumn: number
 	} {
-		if (this._longEventsDom == null) {
+		if (this._longEventsDom == null && this._viewDom == null) {
 			return {
 				children: null,
 				maxEventsInColumn: 0,
 			}
 		}
-
-		const dayWidth = this._longEventsDom.offsetWidth / dayRange.length
+		const dayWidth =
+			(this._longEventsDom != null ? this._longEventsDom.offsetWidth : this._viewDom!.offsetWidth - size.calendar_hour_width_mobile) / dayRange.length
 		let maxEventsInColumn = 0
 		const firstDay = dayRange[0]
 		const lastDay = lastThrow(dayRange)
@@ -543,11 +572,24 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		return m(
 			".flex.mb-s",
 			days.map((day) => {
-				const dayNumberClass =
-					".calendar-day-indicator.calendar-day-number.clickable.circle" + (this._getTodayTimestamp() === day.getTime() ? ".accent-bg" : "")
-
 				// the click handler is set on each child individually so as to not make the entire flex container clickable, only the text
 				const onclick = () => onDateSelected(day, CalendarViewType.DAY)
+
+				let circleStyle
+				let textStyle
+
+				if (isToday(day)) {
+					circleStyle = {
+						backgroundColor: theme.content_button,
+						opacity: "0.25",
+					}
+					textStyle = {
+						fontWeight: "bold",
+					}
+				} else {
+					circleStyle = {}
+					textStyle = {}
+				}
 
 				return m(".flex.center-horizontally.flex-grow.center.b", [
 					m(
@@ -561,14 +603,31 @@ export class MultiDayCalendarView implements Component<Attrs> {
 						lang.formats.weekdayShort.format(day) + " ",
 					),
 					m(
-						dayNumberClass,
+						".rel.click.flex.items-center.justify-center.rel.ml-hpad_small",
 						{
+							"aria-label": day.toLocaleDateString(),
 							onclick,
-							style: {
-								margin: "0",
-							},
 						},
-						day.getDate(),
+						[
+							m(".abs.z1.circle", {
+								style: {
+									...circleStyle,
+									width: px(25),
+									height: px(25),
+								},
+							}),
+							m(
+								".full-width.height-100p.center.z2",
+								{
+									style: {
+										...textStyle,
+										fontSize: "14px",
+										lineHeight: "25px",
+									},
+								},
+								day.getDate(),
+							),
+						],
 					),
 				])
 			}),

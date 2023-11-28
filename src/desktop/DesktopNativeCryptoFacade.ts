@@ -2,7 +2,7 @@ import { base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, uint8Arr
 import type { CryptoFunctions } from "./CryptoFns.js"
 import type { TypeModel } from "../api/common/EntityTypes.js"
 import type * as FsModule from "node:fs"
-import { Aes256Key, uint8ArrayToKey } from "@tutao/tutanota-crypto"
+import { Aes256Key, bitArrayToUint8Array, generateKeyFromPassphraseArgon2id, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { FileUri } from "../native/common/FileApp.js"
 import path from "node:path"
 import { NativeCryptoFacade } from "../native/common/generatedipc/NativeCryptoFacade.js"
@@ -16,7 +16,12 @@ import { TempFs } from "./files/TempFs.js"
 type FsExports = typeof FsModule
 
 export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
-	constructor(private readonly fs: FsExports, private readonly cryptoFns: CryptoFunctions, private readonly tfs: TempFs) {}
+	constructor(
+		private readonly fs: FsExports,
+		private readonly cryptoFns: CryptoFunctions,
+		private readonly tfs: TempFs,
+		private readonly argon2: Promise<WebAssembly.Exports>,
+	) {}
 
 	aesEncryptObject(encryptionKey: Aes256Key, object: number | string | boolean | ReadonlyArray<unknown> | {}): string {
 		const serializedObject = JSON.stringify(object)
@@ -79,6 +84,14 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		return this.cryptoFns.aesEncrypt(encryptionKey, keyToEncrypt, undefined, false)
 	}
 
+	aesDecryptBytes(encryptionKey: Aes256Key, data: Uint8Array): Uint8Array {
+		return this.cryptoFns.aesDecrypt(encryptionKey, data, true)
+	}
+
+	aesEncryptBytes(encryptionKey: Aes256Key, data: Uint8Array): Uint8Array {
+		return this.cryptoFns.aesEncrypt(encryptionKey, data, undefined, true, true)
+	}
+
 	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, piSessionKey: Uint8Array, piSessionKeyEncSessionKey: Uint8Array): Promise<T> {
 		const sk = this.cryptoFns.decryptKey(uint8ArrayToKey(piSessionKey), piSessionKeyEncSessionKey)
 		return this.cryptoFns.decryptAndMapToInstance(model, instance, sk)
@@ -120,6 +133,6 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		parallelism: number,
 		hashLength: number,
 	): Promise<Uint8Array> {
-		throw new Error("not implemented for this platform")
+		return bitArrayToUint8Array(generateKeyFromPassphraseArgon2id(await this.argon2, utf8Uint8ArrayToString(password), salt))
 	}
 }

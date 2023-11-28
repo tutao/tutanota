@@ -53,6 +53,7 @@ import { NoZoneDateProvider } from "../../../src/api/common/utils/NoZoneDateProv
 import { MailWrapper } from "../../../src/api/common/MailWrapper.js"
 import { FolderSystem } from "../../../src/api/common/mail/FolderSystem.js"
 import { KdfPicker } from "../../../src/misc/KdfPicker.js"
+import { ConfigurationDatabase } from "../../../src/api/worker/facades/lazy/ConfigurationDatabase.js"
 
 const { anything, argThat } = matchers
 
@@ -182,7 +183,7 @@ o.spec("SendMailModel", function () {
 		})
 
 		const mailboxProperties = createMailboxProperties()
-
+		const configFacade = object<ConfigurationDatabase>()
 		model = new SendMailModel(
 			mailFacade,
 			entity,
@@ -195,6 +196,7 @@ o.spec("SendMailModel", function () {
 			new NoZoneDateProvider(),
 			mailboxProperties,
 			kdfPicker,
+			configFacade,
 		)
 
 		replace(model, "getDefaultSender", () => DEFAULT_SENDER_FOR_TESTING)

@@ -159,6 +159,24 @@ export function getCanonicalPlatformName(platformName) {
 	}
 }
 
+/**
+ * Checks whether the combination of OS & architecture is supported by the build system
+ * @param platformName {"darwin"|"win32"|"linux"}
+ * @param architecture {"arm"|"arm64"|"ia32"|"mips"|"mipsel"|"ppc"|"ppc64"|"riscv64"|"s390"|"s390x"|"x64"|"universal"}
+ * @returns {boolean}
+ */
+export function checkArchitectureIsSupported(platformName, architecture) {
+	switch (architecture) {
+		case "x64":
+			return true
+		case "arm64":
+		case "universal":
+			return platformName === "darwin"
+		default:
+			return false
+	}
+}
+
 export async function runStep(name, cmd) {
 	const before = Date.now()
 	console.log("Build >", name)

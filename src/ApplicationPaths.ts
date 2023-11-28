@@ -12,7 +12,6 @@ type ViewResolvers = {
 	contactList: RouteResolver
 	search: RouteResolver
 	settings: RouteResolver
-	contactForm: RouteResolver
 	calendar: RouteResolver
 	signup: RouteResolver
 	giftcard: RouteResolver
@@ -31,7 +30,6 @@ export function applicationPaths({
 	contactList,
 	search,
 	settings,
-	contactForm,
 	calendar,
 	signup,
 	giftcard,
@@ -61,7 +59,6 @@ export function applicationPaths({
 		"/settings": settings,
 		"/settings/:folder": settings,
 		"/settings/:folder/:id": settings,
-		"/contactform/:formId": contactForm,
 		"/calendar": calendar,
 		"/calendar/:view": calendar,
 		"/calendar/:view/:date": calendar,

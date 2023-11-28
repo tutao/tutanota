@@ -55,6 +55,10 @@ class Styles {
 		return this.bodyWidth < size.two_column_layout_width
 	}
 
+	isTwoColumnLayout(): boolean {
+		return this.bodyWidth >= size.two_column_layout_width && this.bodyWidth < size.desktop_layout_width
+	}
+
 	isUsingBottomNavigation(): boolean {
 		return !isAdminClient() && (client.isMobileDevice() || !this.isDesktopLayout())
 	}

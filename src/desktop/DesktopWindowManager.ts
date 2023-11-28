@@ -15,7 +15,6 @@ import { DesktopThemeFacade } from "./DesktopThemeFacade"
 import { ElectronExports } from "./ElectronExportTypes"
 import { RemoteBridge } from "./ipc/RemoteBridge.js"
 import { ASSET_PROTOCOL } from "./net/ProtocolProxy.js"
-import path from "node:path"
 
 const TAG = "[DesktopWindowManager]"
 
@@ -283,7 +282,7 @@ export class WindowManager {
 	}
 
 	private async _newWindow(electron: ElectronExports, localShortcut: LocalShortcutManager, noAutoLogin: boolean | null): Promise<ApplicationWindow> {
-		const absoluteWebAssetsPath = await this.getAbsoluteWebAssetsPath()
+		const absoluteWebAssetsPath = this._electron.app.getAppPath()
 		const updateUrl = await this._conf.getConst(BuildConfigKey.updateUrl)
 		const dictUrl = updateUrl && updateUrl !== "" ? updateUrl : "https://app.tuta.com/desktop/"
 		// custom builds get the dicts from us as well
@@ -299,10 +298,5 @@ export class WindowManager {
 			noAutoLogin,
 			this.preloadOverride,
 		)
-	}
-
-	private async getAbsoluteWebAssetsPath() {
-		const webAssetsPath = await this._conf.getConst(BuildConfigKey.webAssetsPath)
-		return path.join(this._electron.app.getAppPath(), webAssetsPath)
 	}
 }

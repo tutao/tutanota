@@ -10,6 +10,9 @@ export class InterWindowEventFacadeReceiveDispatcher {
 				const userId: string = arg[0]
 				return this.facade.localUserDataInvalidated(userId)
 			}
+			case "reloadDeviceConfig": {
+				return this.facade.reloadDeviceConfig()
+			}
 		}
 	}
 }

@@ -479,8 +479,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							label: "mailFolder_label",
 							items: availableMailFolders,
 							selectedValue: this.searchViewModel.selectedMailFolder,
-							selectionChangedHandler: async (newValue: string | null) => {
-								const result = await this.searchViewModel.selectMailFolder(newValue)
+							selectionChangedHandler: (newValue: string | null) => {
+								const result = this.searchViewModel.selectMailFolder(newValue)
 								if (result === PaidFunctionResult.PaidSubscriptionNeeded) {
 									showNotAvailableForFreeDialog()
 								} else {
@@ -618,6 +618,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		},
 		{
 			key: Keys.DELETE,
+			exec: () => this.deleteSelected(),
+			help: "delete_action",
+		},
+		{
+			key: Keys.BACKSPACE,
 			exec: () => this.deleteSelected(),
 			help: "delete_action",
 		},

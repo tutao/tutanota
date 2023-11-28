@@ -5,7 +5,12 @@
  */
 export interface InterWindowEventFacade {
 	/**
-	 * stored credentials for this user Id were deleted, so they are unusable
+	 * stored credentials for this user Id were deleted, so they are unusable. other windows should do the same.
 	 */
 	localUserDataInvalidated(userId: string): Promise<void>
+
+	/**
+	 * the encryption mode on the credentials was changed, so we need to replace them.
+	 */
+	reloadDeviceConfig(): Promise<void>
 }

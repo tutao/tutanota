@@ -14,10 +14,12 @@ import { liveDataAttrs } from "../AriaUtils"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer } from "@tutao/tutanota-utils"
 import { windowFacade } from "../../misc/WindowFacade"
+import { CancelledError } from "../../api/common/error/CancelledError.js"
+import { Keys } from "../../api/common/TutanotaConstants.js"
 
 const DEFAULT_MODE = CredentialEncryptionMode.DEVICE_LOCK
 
-export async function showCredentialsEncryptionModeDialog(credentialsProvider: CredentialsProvider) {
+export async function showCredentialsEncryptionModeDialog(credentialsProvider: CredentialsProvider): Promise<void> {
 	await CredentialEncryptionMethodDialog.showAndWaitForSelection(credentialsProvider)
 }
 
@@ -73,6 +75,10 @@ class CredentialEncryptionMethodDialog {
 					),
 				])
 			},
+		}).addShortcut({
+			help: "close_alt",
+			key: Keys.ESC,
+			exec: () => this._dialog.close(),
 		})
 		this._dialog.setCloseHandler(() => {
 			this._finished.resolve()
@@ -108,6 +114,8 @@ class CredentialEncryptionMethodDialog {
 
 				await Dialog.message("credentialsKeyInvalidated_msg")
 				windowFacade.reload({})
+			} else if (e instanceof CancelledError) {
+				// ignore. this can happen if we switch app pin -> device lock and the user cancels the pin prompt.
 			} else {
 				throw e
 			}
@@ -177,6 +185,11 @@ class SelectCredentialsEncryptionModeView implements Component<SelectCredentialE
 				name: "credentialsEncryptionModeBiometrics_label",
 				value: CredentialEncryptionMode.BIOMETRICS,
 				helpText: "credentialsEncryptionModeBiometricsHelp_msg",
+			},
+			{
+				name: "credentialsEncryptionModeAppPassword_label",
+				value: CredentialEncryptionMode.APP_PASSWORD,
+				helpText: "credentialsEncryptionModeAppPasswordHelp_msg",
 			},
 		] as const
 		return options.filter((option) => attrs.supportedModes.includes(option.value))

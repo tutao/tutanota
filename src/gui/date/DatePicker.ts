@@ -14,9 +14,8 @@ import { getAllDayDateLocal } from "../../api/common/utils/CommonCalendarUtils"
 import { TextField } from "../base/TextField.js"
 import { Keys } from "../../api/common/TutanotaConstants"
 import type { CalendarDay } from "../../calendar/date/CalendarUtils"
-import { getCalendarMonth, getDateIndicator } from "../../calendar/date/CalendarUtils"
+import { getCalendarMonth } from "../../calendar/date/CalendarUtils"
 import { parseDate } from "../../misc/DateParser"
-import Stream from "mithril/stream"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 
 export interface DatePickerAttrs {
@@ -225,7 +224,6 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 
 	view(vnode: Vnode<VisualDatePickerAttrs>): Children {
 		const selectedDate = vnode.attrs.selectedDate
-
 		if (selectedDate && !isSameDayOfDate(this.lastSelectedDate, selectedDate)) {
 			this.lastSelectedDate = selectedDate
 			this.displayingDate = new Date(selectedDate)
@@ -234,21 +232,9 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		}
 
 		let date = new Date(this.displayingDate)
-		const { weeks, weekdays } = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, true)
+		let { weeks, weekdays } = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, true)
 		return m(".flex.flex-column", [
-			m(".flex.flex-space-between.pt-s.pb-s.items-center", [
-				this.renderSwitchMonthArrowIcon(false, vnode.attrs),
-				m(
-					".b",
-					{
-						style: {
-							fontSize: px(14),
-						},
-					},
-					formatMonthWithFullYear(date),
-				),
-				this.renderSwitchMonthArrowIcon(true, vnode.attrs),
-			]),
+			this.renderPickerHeader(vnode, date),
 			m(".flex.flex-space-between", this.renderWeekDays(vnode.attrs.wide, weekdays)),
 			m(
 				".flex.flex-column.flex-space-around",
@@ -260,6 +246,22 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 				},
 				weeks.map((w) => this.renderWeek(w, vnode.attrs)),
 			),
+		])
+	}
+
+	private renderPickerHeader(vnode: Vnode<VisualDatePickerAttrs>, date: Date): Children {
+		return m(".flex.flex-space-between.pt-s.pb-s.items-center", [
+			this.renderSwitchMonthArrowIcon(false, vnode.attrs),
+			m(
+				".b",
+				{
+					style: {
+						fontSize: px(14),
+					},
+				},
+				formatMonthWithFullYear(date),
+			),
+			this.renderSwitchMonthArrowIcon(true, vnode.attrs),
 		])
 	}
 
@@ -293,21 +295,31 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	}
 
 	private renderDay({ date, day, isPaddingDay }: CalendarDay, attrs: VisualDatePickerAttrs): Children {
-		const size = px(this.getElementWidth(attrs))
+		const isSelectedDay = isSameDayOfDate(date, attrs.selectedDate)
+		const size = this.getElementWidth(attrs)
+		const selector = isSelectedDay ? ".circle.accent-bg" : ""
 		return m(
-			".center.click" + (isPaddingDay ? "" : getDateIndicator(date, attrs.selectedDate)),
+			".rel.click.flex.items-center.justify-center",
 			{
 				style: {
-					height: size,
-					width: size,
+					height: px(size),
+					width: px(size),
 				},
-				onclick:
-					!isPaddingDay &&
-					(() => {
-						attrs.onDateSelected && attrs.onDateSelected(date, true)
-					}),
+				"aria-hidden": `${isPaddingDay}`,
+				"aria-label": date.toLocaleDateString(),
+				"aria-selected": `${isSelectedDay}`,
+				role: "option",
+				onclick: isPaddingDay ? undefined : () => attrs.onDateSelected?.(date, true),
 			},
-			isPaddingDay ? null : day,
+			[
+				m(".abs.z1" + selector, {
+					style: {
+						width: px(size),
+						height: px(size),
+					},
+				}),
+				m(selector + ".full-width.height-100p.center.z2", { style: { "background-color": "transparent" } }, isPaddingDay ? null : day),
+			],
 		)
 	}
 
@@ -315,26 +327,27 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		return attrs.wide ? 40 : 24
 	}
 
-	private renderWeek(week: Array<CalendarDay>, attrs: VisualDatePickerAttrs): Children {
+	private renderWeek(week: ReadonlyArray<CalendarDay>, attrs: VisualDatePickerAttrs): Children {
 		return m(
 			".flex.flex-space-between",
 			week.map((d) => this.renderDay(d, attrs)),
 		)
 	}
 
-	private renderWeekDays(wide: boolean, weekdays: string[]): Children {
+	private renderWeekDays(wide: boolean, weekdays: readonly string[]): Children {
 		const size = px(wide ? 40 : 24)
 		const fontSize = px(14)
 		return weekdays.map((wd) =>
 			m(
 				".center",
 				{
+					"aria-hidden": "true",
 					style: {
 						fontSize,
 						height: size,
 						width: size,
 						lineHeight: size,
-						color: theme.content_border,
+						color: theme.navigation_menu_icon,
 					},
 				},
 				wd,

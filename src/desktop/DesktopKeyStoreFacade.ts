@@ -1,7 +1,7 @@
 import type { SecretStorage } from "./sse/SecretStorage"
 import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import { log } from "./DesktopLog"
-import { Base64, base64ToUint8Array, getFromMap, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { getFromMap } from "@tutao/tutanota-utils"
 import { base64ToKey, keyToBase64 } from "@tutao/tutanota-crypto"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError.js"
 import { CancelledError } from "../api/common/error/CancelledError"
@@ -33,30 +33,22 @@ export const CredentialsKeySpec: NativeKeySpec = Object.freeze({
 })
 
 /** Interface for accessing/generating/caching keys. */
-export interface DesktopKeyStoreFacade {
-	/**
-	 * get the key used to encrypt alarms and settings
-	 */
-	getDeviceKey(): Promise<Aes256Key>
-
-	/**
-	 * get the key used to encrypt saved credentials
-	 */
-	getCredentialsKey(): Promise<Aes256Key>
-}
-
-export class KeyStoreFacadeImpl implements DesktopKeyStoreFacade {
+export class DesktopKeyStoreFacade {
 	private readonly resolvedKeys: Map<NativeKeySpec, Promise<Aes256Key>> = new Map()
 
 	constructor(private readonly secretStorage: SecretStorage, private readonly crypto: DesktopNativeCryptoFacade) {}
 
-	/** @inheritDoc */
+	/**
+	 * get the key used to encrypt alarms and settings
+	 */
 	async getDeviceKey(): Promise<Aes256Key> {
 		// Device key can be cached
 		return this.resolveKey(DeviceKeySpec)
 	}
 
-	/** @inheritDoc */
+	/**
+	 * get the key used to encrypt saved credentials
+	 */
 	async getCredentialsKey(): Promise<Aes256Key> {
 		return this.resolveKey(CredentialsKeySpec)
 	}

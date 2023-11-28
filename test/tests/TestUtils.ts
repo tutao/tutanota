@@ -4,10 +4,11 @@ import { IndexerCore } from "../../src/api/worker/search/IndexerCore.js"
 import { EventQueue } from "../../src/api/worker/EventQueue.js"
 import { DbFacade, DbTransaction } from "../../src/api/worker/search/DbFacade.js"
 import { Thunk } from "@tutao/tutanota-utils"
-import type { DesktopKeyStoreFacade } from "../../src/desktop/KeyStoreFacadeImpl.js"
+import type { DesktopKeyStoreFacade } from "../../src/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/tutanota-test-utils"
 import { aes256RandomKey, fixedIv, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/api/common/utils/Scheduler.js"
+import { object, when } from "testdouble"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -43,14 +44,10 @@ export function makeCore(
 }
 
 export function makeKeyStoreFacade(uint8ArrayKey: Uint8Array): DesktopKeyStoreFacade {
-	return {
-		getDeviceKey() {
-			return Promise.resolve(uint8ArrayToKey(uint8ArrayKey))
-		},
-		getCredentialsKey(): Promise<Aes256Key> {
-			return Promise.resolve(uint8ArrayToKey(uint8ArrayKey))
-		},
-	}
+	const o: DesktopKeyStoreFacade = object()
+	when(o.getDeviceKey()).thenResolve(uint8ArrayToKey(uint8ArrayKey))
+	when(o.getCredentialsKey()).thenResolve(uint8ArrayToKey(uint8ArrayKey))
+	return o
 }
 
 type IdThunk = {

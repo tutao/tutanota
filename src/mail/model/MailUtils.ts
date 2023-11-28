@@ -139,12 +139,6 @@ export function isTutanotaTeamMail(mail: Mail): boolean {
 	return mail.confidential && mail.state === MailState.RECEIVED && endsWith(mail.sender.address, "@tutao.de")
 }
 
-/** this is used for contact form messages to prevent them from being sent to recipients that are not the contact forms target mail group */
-export function areParticipantsRestricted(mail: Mail): boolean {
-	const { restrictions } = mail
-	return restrictions != null && restrictions.participantGroupInfos.length > 0
-}
-
 export function isExcludedMailAddress(mailAddress: string): boolean {
 	return mailAddress === "no-reply@tutao.de"
 }
@@ -173,7 +167,7 @@ export function getFolderName(folder: MailFolder): string {
 			return lang.get("trash_action")
 
 		case "4":
-			return lang.get("archive_action")
+			return lang.get("archive_label")
 
 		case "5":
 			return lang.get("spam_action")
@@ -240,6 +234,17 @@ export function getDefaultSender(logins: LoginController, mailboxDetails: Mailbo
 			: assertNotNull(logins.getUserController().userGroupInfo.mailAddress)
 	} else {
 		return assertNotNull(mailboxDetails.mailGroupInfo.mailAddress)
+	}
+}
+
+export function isUserEmail(logins: LoginController, mailboxDetails: MailboxDetail, address: string): boolean {
+	if (isUserMailbox(mailboxDetails)) {
+		return (
+			contains(getEnabledMailAddressesWithUser(mailboxDetails, logins.getUserController().userGroupInfo), address) ||
+			logins.getUserController().userGroupInfo.mailAddress === address
+		)
+	} else {
+		return mailboxDetails.mailGroupInfo.mailAddress === address
 	}
 }
 

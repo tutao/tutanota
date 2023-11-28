@@ -267,7 +267,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage, NewsI
 	}
 
 	setCredentialsEncryptionKey(value: Uint8Array | null) {
-		if (value) {
+		if (value != null) {
 			this.config._encryptedCredentialsKey = uint8ArrayToBase64(value)
 		} else {
 			this.config._encryptedCredentialsKey = null

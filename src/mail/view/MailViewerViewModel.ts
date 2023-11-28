@@ -29,7 +29,6 @@ import stream from "mithril/stream"
 import { addAll, assertNonNull, contains, downcast, filterInt, first, neverNull, noOp, ofClass, startsWith } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 import {
-	areParticipantsRestricted,
 	getDefaultSender,
 	getEnabledMailAddressesWithUser,
 	getFolderName,
@@ -930,25 +929,10 @@ export class MailViewerViewModel {
 	}
 
 	private async getAssignableMailRecipients(): Promise<GroupInfo[]> {
-		if (this.mail.restrictions != null && this.mail.restrictions.participantGroupInfos.length > 0) {
-			const participantGroupInfos = this.mail.restrictions.participantGroupInfos
-			const customer = await this.entityClient.load(CustomerTypeRef, neverNull(this.logins.getUserController().user.customer))
-			const { loadGroupInfos } = await import("../../settings/LoadingUtils")
-			const groupInfos = await loadGroupInfos(
-				participantGroupInfos.filter((groupInfoId) => {
-					return neverNull(customer.contactFormUserGroups).list !== groupInfoId[0]
-				}),
-			)
-			return groupInfos.filter((groupInfo) => groupInfo.deleted == null)
-		} else {
-			return []
-		}
+		return []
 	}
 
 	async assignMail(userGroupInfo: GroupInfo): Promise<boolean> {
-		if (!this.canAssignMails()) {
-			throw new ProgrammingError("Cannot assign mails")
-		}
 		const recipient = createMailAddress()
 		recipient.address = neverNull(userGroupInfo.mailAddress)
 		recipient.name = userGroupInfo.name
@@ -1018,26 +1002,15 @@ export class MailViewerViewModel {
 		}
 	}
 
-	/** Special feature for contact forms with shared mailboxes. */
-	canAssignMails(): boolean {
-		// do not allow re-assigning from personal mailbox
-		return (
-			this.logins.getUserController().isInternalUser() &&
-			areParticipantsRestricted(this.mail) &&
-			this.logins.getUserController().getUserMailGroupMembership().group !== this.getMailOwnerGroup()
-		)
-	}
-
 	canReplyAll(): boolean {
 		return (
 			this.logins.getUserController().isInternalUser() &&
-			this.getToRecipients().length + this.getCcRecipients().length + this.getBccRecipients().length > 1 &&
-			!areParticipantsRestricted(this.mail)
+			this.getToRecipients().length + this.getCcRecipients().length + this.getBccRecipients().length > 1
 		)
 	}
 
 	canForwardOrMove(): boolean {
-		return this.logins.getUserController().isInternalUser() && !areParticipantsRestricted(this.mail)
+		return this.logins.getUserController().isInternalUser()
 	}
 
 	shouldDelayRendering(): boolean {
@@ -1058,18 +1031,6 @@ export class MailViewerViewModel {
 
 	collapseMail(): void {
 		this.collapsed = true
-	}
-
-	async getAssignmentGroupInfos(): Promise<GroupInfo[]> {
-		// remove the current mailbox/owner from the recipients list.
-		const userOrMailGroupInfos = await this.getAssignableMailRecipients()
-		return userOrMailGroupInfos.filter((userOrMailGroupInfo) => {
-			if (this.logins.getUserController().getUserMailGroupMembership().group === this.getMailOwnerGroup()) {
-				return userOrMailGroupInfo.group !== this.logins.getUserController().userGroupInfo.group && userOrMailGroupInfo.group !== this.mail._ownerGroup
-			} else {
-				return userOrMailGroupInfo.group !== this.mail._ownerGroup
-			}
-		})
 	}
 
 	private getMailOwnerGroup(): Id | null {

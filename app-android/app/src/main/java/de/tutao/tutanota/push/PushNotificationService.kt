@@ -4,12 +4,15 @@ import android.app.job.JobParameters
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.lifecycle.lifecycleScope
 import de.tutao.tutanota.*
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.SseInfo
 import de.tutao.tutanota.push.SseClient.SseListener
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 
@@ -72,37 +75,44 @@ class PushNotificationService : LifecycleJobService() {
 		val keyStoreFacade = createAndroidKeyStoreFacade(crypto)
 		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
 		val alarmNotificationsManager = AlarmNotificationsManager(
-				sseStorage,
-				crypto,
-				SystemAlarmFacade(this),
-				localNotificationsFacade
+			sseStorage,
+			crypto,
+			SystemAlarmFacade(this),
+			localNotificationsFacade
 		)
 		alarmNotificationsManager.reScheduleAlarms()
 		sseClient = SseClient(
-				crypto,
+			crypto,
+			sseStorage,
+			NetworkObserver(this, this),
+			NotificationSseListener(
+				localNotificationsFacade,
 				sseStorage,
-				NetworkObserver(this, this),
-				NotificationSseListener(localNotificationsFacade, sseStorage, alarmNotificationsManager, NetworkUtils.defaultClient),
+				alarmNotificationsManager,
 				NetworkUtils.defaultClient
+			),
+			NetworkUtils.defaultClient
 		)
 		sseStorage.observeUsers().observeForever { userInfos ->
 			Log.d(TAG, "sse storage updated " + userInfos.size)
-			val userIds: MutableSet<String> = HashSet()
-			for (userInfo in userInfos) {
-				userIds.add(userInfo.userId)
-			}
-			if (userIds.isEmpty()) {
-				sseClient.stopConnection()
-				removeForegroundNotification()
-				finishJobIfNeeded()
-			} else {
-				sseClient.restartConnectionIfNeeded(
+			// Closing the connection sends RST packets over network and it triggers StrictMode
+			// violations so we dispatch it to another thread.
+			lifecycleScope.launch(Dispatchers.IO) {
+				val userIds = userInfos.mapTo(HashSet()) { it.userId }
+
+				if (userIds.isEmpty()) {
+					sseClient.stopConnection()
+					removeForegroundNotification()
+					finishJobIfNeeded()
+				} else {
+					sseClient.restartConnectionIfNeeded(
 						SseInfo(
-								sseStorage.getPushIdentifier()!!,
-								userIds,
-								sseStorage.getSseOrigin()!!
+							sseStorage.getPushIdentifier()!!,
+							userIds,
+							sseStorage.getSseOrigin()!!
 						)
-				)
+					)
+				}
 			}
 		}
 
@@ -110,6 +120,7 @@ class PushNotificationService : LifecycleJobService() {
 			localNotificationsFacade.createNotificationChannels()
 		}
 	}
+
 
 	private fun removeForegroundNotification() {
 		Log.d(TAG, "removeForegroundNotification")
@@ -134,10 +145,10 @@ class PushNotificationService : LifecycleJobService() {
 
 		if (intent != null && intent.hasExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)) {
 			val dismissAddresses =
-					intent.getStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)
+				intent.getStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)
 			localNotificationsFacade.notificationDismissed(
-					dismissAddresses,
-					intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false)
+				dismissAddresses,
+				intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false)
 			)
 		}
 
@@ -209,13 +220,14 @@ class PushNotificationService : LifecycleJobService() {
 	}
 
 	private inner class NotificationSseListener(
-			notificationsFacade: LocalNotificationsFacade,
-			sseStorage: SseStorage,
-			alarmNotificationsManager: AlarmNotificationsManager,
-			defaultClient: OkHttpClient
+		notificationsFacade: LocalNotificationsFacade,
+		sseStorage: SseStorage,
+		alarmNotificationsManager: AlarmNotificationsManager,
+		defaultClient: OkHttpClient
 	) : SseListener {
 
-		private val tutanotaNotificationsHandler = TutanotaNotificationsHandler(notificationsFacade, sseStorage, alarmNotificationsManager, defaultClient)
+		private val tutanotaNotificationsHandler =
+			TutanotaNotificationsHandler(notificationsFacade, sseStorage, alarmNotificationsManager, defaultClient)
 
 		override fun onStartingConnection(): Boolean {
 			Log.d(TAG, "onStartingConnection")

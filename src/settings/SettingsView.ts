@@ -14,7 +14,6 @@ import { UserListView } from "./UserListView"
 import type { ReceivedGroupInvitation, User } from "../api/entities/sys/TypeRefs.js"
 import { CustomerInfoTypeRef, CustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { GroupListView } from "./groups/GroupListView.js"
-import { ContactFormListView } from "./contactform/ContactFormListView.js"
 import { WhitelabelSettingsViewer } from "./whitelabel/WhitelabelSettingsViewer"
 import { Icons } from "../gui/base/icons/Icons"
 import { theme } from "../gui/theme"
@@ -67,7 +66,6 @@ import { styles } from "../gui/styles.js"
 import { MobileHeader } from "../gui/MobileHeader.js"
 import { GroupDetailsView } from "./groups/GroupDetailsView.js"
 import { TemplateDetailsViewer } from "./TemplateDetailsViewer.js"
-import { ContactFormViewer } from "./contactform/ContactFormViewer.js"
 
 assertMainOrNode()
 
@@ -394,22 +392,6 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		}
 
 		if (!this.logins.isEnabled(FeatureType.WhitelabelChild)) {
-			if (isLegacyPlan) {
-				this._adminFolders.push(
-					new SettingsFolder(
-						"contactForms_label",
-						() => Icons.Chat,
-						"contactforms",
-						() =>
-							new ContactFormListView(
-								(viewer) => this.replaceDetailsViewer(viewer),
-								() => this.focusSettingsDetailsColumn(),
-							),
-						undefined,
-					),
-				)
-			}
-
 			if (this.logins.getUserController().isGlobalAdmin()) {
 				this._adminFolders.push(
 					new SettingsFolder<void>(
@@ -445,9 +427,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		m.redraw()
 	}
 
-	private replaceDetailsViewer(
-		viewer: UserViewer | GroupDetailsView | TemplateDetailsViewer | KnowledgeBaseSettingsDetailsViewer | ContactFormViewer | null,
-	) {
+	private replaceDetailsViewer(viewer: UserViewer | GroupDetailsView | TemplateDetailsViewer | KnowledgeBaseSettingsDetailsViewer | null) {
 		return (this.detailsViewer = viewer)
 	}
 

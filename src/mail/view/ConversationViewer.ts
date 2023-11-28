@@ -94,7 +94,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 		// We reduce space by 100 for the header of the viewer and a bit more
 		const height =
 			document.body.offsetHeight - (styles.isUsingBottomNavigation() ? size.navbar_height_mobile + size.bottom_nav_bar : size.navbar_height) - 300
-		return m(".mt-l", {
+		return m(".mt-l.noprint", {
 			style: {
 				height: px(height),
 			},

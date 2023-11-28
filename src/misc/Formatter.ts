@@ -75,6 +75,10 @@ export function formatTime(date: Date): string {
 	return lang.formats.time.format(date)
 }
 
+export function formatShortTime(date: Date): string {
+	return lang.formats.shortTime.format(date)
+}
+
 export function formatDateTime(date: Date): string {
 	return lang.formats.dateTime.format(date)
 }
@@ -109,6 +113,10 @@ export function formatWeekdayNarrow(date: Date): string {
 
 export function dateWithWeekdayWoMonth(date: Date): string {
 	return lang.formats.dateWithWeekdayWoMonth.format(date)
+}
+
+export function formatMonthShortWithFullYear(date: Date): string {
+	return lang.formats.monthShortWithFullYear.format(date)
 }
 
 /**

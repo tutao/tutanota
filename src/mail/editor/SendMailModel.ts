@@ -27,7 +27,7 @@ import {
 	remove,
 	typedValues,
 } from "@tutao/tutanota-utils"
-import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, RecipientField } from "../model/MailUtils"
+import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, isUserEmail, RecipientField } from "../model/MailUtils"
 import type { EncryptedMailAddress, File as TutanotaFile, Mail, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef, ConversationEntryTypeRef, File, FileTypeRef, MailboxPropertiesTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"
@@ -65,6 +65,7 @@ import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { KdfPicker } from "../../misc/KdfPicker.js"
+import { ConfigurationDatabase } from "../../api/worker/facades/lazy/ConfigurationDatabase.js"
 
 assertMainOrNode()
 
@@ -154,6 +155,7 @@ export class SendMailModel {
 		private readonly dateProvider: DateProvider,
 		private mailboxProperties: MailboxProperties,
 		private readonly kdfPicker: KdfPicker,
+		private readonly configFacade: ConfigurationDatabase,
 	) {
 		const userProps = logins.getUserController().props
 		this.senderAddress = this.getDefaultSender()
@@ -319,6 +321,7 @@ export class SendMailModel {
 		// if we reuse the same image references, changing the displayed mail in mail view will cause the minimized draft to lose
 		// that reference, because it will be revoked
 		this.loadedInlineImages = cloneInlineImages(inlineImages)
+
 		return this.init({
 			conversationType,
 			subject,
@@ -1063,6 +1066,12 @@ export class SendMailModel {
 
 	setOnBeforeSendFunction(fun: () => unknown) {
 		this.onBeforeSend = fun
+	}
+
+	isUserPreviousSender(): boolean {
+		if (!this.previousMail) return false
+
+		return isUserEmail(this.logins, this.mailboxDetails, this.previousMail.sender.address)
 	}
 }
 

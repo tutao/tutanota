@@ -11,7 +11,7 @@ import type { MailAddressFacade } from "./facades/lazy/MailAddressFacade.js"
 import type { CustomerFacade } from "./facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "./facades/lazy/CounterFacade.js"
 import { EventBusClient } from "./EventBusClient"
-import { assertWorkerOrNode, getWebsocketBaseUrl, isAdminClient, isAndroidApp, isIOSApp, isOfflineStorageAvailable, isTest } from "../common/Env"
+import { assertWorkerOrNode, getWebsocketBaseUrl, isAdminClient, isBrowser, isOfflineStorageAvailable, isTest } from "../common/Env"
 import { Const } from "../common/TutanotaConstants"
 import type { BrowserData } from "../../misc/ClientConstants"
 import type { CalendarFacade } from "./facades/lazy/CalendarFacade.js"
@@ -21,7 +21,6 @@ import { SuspensionHandler } from "./SuspensionHandler"
 import { EntityClient } from "../common/EntityClient"
 import type { GiftCardFacade } from "./facades/lazy/GiftCardFacade.js"
 import type { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
-import type { ContactFormFacade } from "./facades/lazy/ContactFormFacade.js"
 import { DeviceEncryptionFacade } from "./facades/DeviceEncryptionFacade"
 import type { NativeInterface } from "../../native/common/NativeInterface"
 import { NativeFileApp } from "../../native/common/FileApp"
@@ -102,7 +101,6 @@ export type WorkerLocatorType = {
 	customer: lazyAsync<CustomerFacade>
 	giftCards: lazyAsync<GiftCardFacade>
 	mailAddress: lazyAsync<MailAddressFacade>
-	contactFormFacade: lazyAsync<ContactFormFacade>
 	booking: lazyAsync<BookingFacade>
 	share: lazyAsync<ShareFacade>
 
@@ -215,7 +213,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	}
 
 	let argon2idFacade: Argon2idFacade
-	if (isIOSApp() || isAndroidApp()) {
+	if (!isBrowser()) {
 		argon2idFacade = new NativeArgon2idFacade(new NativeCryptoFacadeSendDispatcher(worker))
 	} else {
 		argon2idFacade = new WASMArgon2idFacade()
@@ -371,10 +369,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.configFacade = lazyMemoized(async () => {
 		const { ConfigurationDatabase } = await import("./facades/lazy/ConfigurationDatabase.js")
 		return new ConfigurationDatabase(locator.user)
-	})
-	locator.contactFormFacade = lazyMemoized(async () => {
-		const { ContactFormFacade } = await import("./facades/lazy/ContactFormFacade.js")
-		return new ContactFormFacade(locator.restClient, locator.instanceMapper)
 	})
 }
 

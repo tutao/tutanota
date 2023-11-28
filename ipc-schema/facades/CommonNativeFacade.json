@@ -8,24 +8,52 @@
 		"createMailEditor": {
 			"doc": "Opens mail editor to write a new email. If `mailToUrlString` is specified it takes priority.",
 			"arg": [
-				{ "filesUris": "List<string>" },
-				{ "text": "string" },
-				{ "addresses": "List<string>" },
-				{ "subject": "string" },
-				{ "mailToUrlString": "string" }
+				{
+					"filesUris": "List<string>"
+				},
+				{
+					"text": "string"
+				},
+				{
+					"addresses": "List<string>"
+				},
+				{
+					"subject": "string"
+				},
+				{
+					"mailToUrlString": "string"
+				}
 			],
 			"ret": "void"
 		},
 		"openMailBox": {
-			"arg": [{ "userId": "string" }, { "address": "string" }, { "requestedPath": "string?" }],
+			"arg": [
+				{
+					"userId": "string"
+				},
+				{
+					"address": "string"
+				},
+				{
+					"requestedPath": "string?"
+				}
+			],
 			"ret": "void"
 		},
 		"openCalendar": {
-			"arg": [{ "userId": "string" }],
+			"arg": [
+				{
+					"userId": "string"
+				}
+			],
 			"ret": "void"
 		},
 		"showAlertDialog": {
-			"arg": [{ "translationKey": "string" }],
+			"arg": [
+				{
+					"translationKey": "string"
+				}
+			],
 			"ret": "void"
 		},
 		"invalidateAlarms": {
@@ -37,6 +65,27 @@
 			"doc": "Called when the system theme preference has changed",
 			"arg": [],
 			"ret": "void"
+		},
+		"promptForNewPassword": {
+			"doc": "prompt the user to enter a new password and a confirmation, taking an optional old password into account",
+			"arg": [
+				{
+					"title": "string"
+				},
+				{
+					"oldPassword": "string?"
+				}
+			],
+			"ret": "string"
+		},
+		"promptForPassword": {
+			"doc": "prompt the user to enter a password",
+			"arg": [
+				{
+					"title": "string"
+				}
+			],
+			"ret": "string"
 		}
 	}
 }

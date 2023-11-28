@@ -18,7 +18,7 @@ import { DesktopTray } from "./tray/DesktopTray"
 import { log } from "./DesktopLog"
 import { UpdaterWrapper } from "./UpdaterWrapper"
 import { ElectronNotificationFactory } from "./NotificatonFactory"
-import { KeytarSecretStorage } from "./sse/SecretStorage"
+import { buildSecretStorage } from "./sse/SecretStorage"
 import fs from "node:fs"
 import { DesktopIntegrator, getDesktopIntegratorForPlatform } from "./integration/DesktopIntegrator"
 import net from "node:net"
@@ -26,8 +26,7 @@ import child_process from "node:child_process"
 import { LocalShortcutManager } from "./electron-localshortcut/LocalShortcut"
 import { cryptoFns } from "./CryptoFns"
 import { DesktopConfigMigrator } from "./config/migrations/DesktopConfigMigrator"
-import type { DesktopKeyStoreFacade } from "./KeyStoreFacadeImpl"
-import { KeyStoreFacadeImpl } from "./KeyStoreFacadeImpl"
+import { DesktopKeyStoreFacade } from "./DesktopKeyStoreFacade.js"
 import { AlarmSchedulerImpl } from "../calendar/date/AlarmScheduler"
 import { SchedulerImpl } from "../api/common/utils/Scheduler.js"
 import { DesktopThemeFacade } from "./DesktopThemeFacade"
@@ -61,6 +60,7 @@ import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
 import { WorkerSqlCipher } from "./db/WorkerSqlCipher.js"
 import { TempFs } from "./files/TempFs.js"
+import { WASMArgon2idFacade } from "../api/worker/facades/Argon2idFacade.js"
 
 /**
  * Should be injected during build time.
@@ -91,7 +91,13 @@ type Components = {
 }
 const tfs = new TempFs(fs, electron, cryptoFns)
 const desktopUtils = new DesktopUtils(process.argv, tfs, electron)
-const desktopCrypto = new DesktopNativeCryptoFacade(fs, cryptoFns, tfs)
+const wasmLoader = async () => {
+	const wasmSourcePath = path.join(electron.app.getAppPath(), "wasm/argon2.wasm")
+	const wasmSource: Buffer = await fs.promises.readFile(wasmSourcePath)
+	const { exports } = (await WebAssembly.instantiate(wasmSource)).instance
+	return exports
+}
+const desktopCrypto = new DesktopNativeCryptoFacade(fs, cryptoFns, tfs, wasmLoader())
 const opts = {
 	registerAsMailHandler: process.argv.some((arg) => arg === "-r"),
 	unregisterAsMailHandler: process.argv.some((arg) => arg === "-u"),
@@ -130,8 +136,8 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 async function createComponents(): Promise<Components> {
 	const en = (await import("../translations/en.js")).default
 	lang.init(en)
-	const secretStorage = new KeytarSecretStorage()
-	const keyStoreFacade = new KeyStoreFacadeImpl(secretStorage, desktopCrypto)
+	const secretStorage = await buildSecretStorage(electron, fs, path)
+	const keyStoreFacade = new DesktopKeyStoreFacade(secretStorage, desktopCrypto)
 	const configMigrator = new DesktopConfigMigrator(desktopCrypto, keyStoreFacade, electron)
 	const conf = new DesktopConfig(configMigrator, keyStoreFacade, desktopCrypto)
 	// Fire config loading, dont wait for it
@@ -148,7 +154,10 @@ async function createComponents(): Promise<Components> {
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
-	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto)
+	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto, wasmLoader(), lang, conf, async () => {
+		const last = await wm.getLastFocused(true)
+		return last.commonNativeFacade
+	})
 
 	updater.setUpdateDownloadedListener(() => {
 		for (let applicationWindow of wm.getAll()) {

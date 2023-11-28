@@ -1,5 +1,6 @@
 pipeline {
     environment {
+    	// on m1 macs, this is a symlink that must be updated. see wiki.
         NODE_MAC_PATH = '/usr/local/opt/node@18/bin/'
         VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
     }
@@ -108,7 +109,7 @@ pipeline {
                         PATH = "${env.NODE_MAC_PATH}:${env.PATH}"
                     }
                     agent {
-                        label 'mac'
+                        label 'mac-m1'
                     }
                     steps {
 						initBuildArea()
@@ -125,7 +126,7 @@ pipeline {
 								export APPLEID=${APPLEIDVAR};
 								export APPLEIDPASS=${APPLEIDPASSVAR};
 								export APPLETEAMID=${APPLETEAMIDVAR};
-								node desktop --existing --platform mac ''' + "${stage}"
+								node desktop --existing --architecture universal --platform mac ''' + "${stage}"
 								dir('artifacts') {
 									if (params.RELEASE) {
 										stash includes: 'desktop-test/*', name:'mac_installer_test'

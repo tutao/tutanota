@@ -6,8 +6,17 @@
 	"receivers": ["web", "desktop"],
 	"methods": {
 		"localUserDataInvalidated": {
-			"doc": "stored credentials for this user Id were deleted, so they are unusable",
-			"arg": [{ "userId": "string" }],
+			"doc": "stored credentials for this user Id were deleted, so they are unusable. other windows should do the same.",
+			"arg": [
+				{
+					"userId": "string"
+				}
+			],
+			"ret": "void"
+		},
+		"reloadDeviceConfig": {
+			"doc": "reload the deviceConfig for all windows, for example when the encryption mode on the credentials was changed, so we need to replace them.",
+			"arg": [],
 			"ret": "void"
 		}
 	}

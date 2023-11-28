@@ -11,6 +11,7 @@ import { IconButton } from "../../gui/base/IconButton.js"
 import { formatDateWithWeekday, formatMonthWithFullYear } from "../../misc/Formatter.js"
 import { getStartOfTheWeekOffset, getStartOfWeek, getWeekNumber } from "../date/CalendarUtils.js"
 import { WeekStart } from "../../api/common/TutanotaConstants.js"
+import { AllIcons } from "../../gui/base/Icon.js"
 
 export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () => unknown): Child {
 	return m(IconButton, {
@@ -92,7 +93,9 @@ export function calendarNavConfiguration(
 	viewType: CalendarViewType,
 	date: Date,
 	weekStart: WeekStart,
+	titleType: "short" | "detailed",
 	switcher: (viewType: CalendarViewType, next: boolean) => unknown,
+	showNavigationOnAgenda: boolean = false,
 ): CalendarNavConfiguration {
 	const onBack = () => switcher(viewType, false)
 	const onForward = () => switcher(viewType, true)
@@ -101,7 +104,7 @@ export function calendarNavConfiguration(
 			return {
 				back: renderCalendarSwitchLeftButton("prevDay_label", onBack),
 				forward: renderCalendarSwitchRightButton("nextDay_label", onForward),
-				title: formatDateWithWeekday(date),
+				title: titleType === "short" ? formatMonthWithFullYear(date) : formatDateWithWeekday(date),
 				week: calendarWeek(date, weekStart),
 			}
 		case CalendarViewType.MONTH:
@@ -115,14 +118,14 @@ export function calendarNavConfiguration(
 			return {
 				back: renderCalendarSwitchLeftButton("prevWeek_label", onBack),
 				forward: renderCalendarSwitchRightButton("nextWeek_label", onForward),
-				title: weekTitle(date, weekStart),
+				title: titleType === "short" ? formatMonthWithFullYear(date) : weekTitle(date, weekStart),
 				week: calendarWeek(date, weekStart),
 			}
 		case CalendarViewType.AGENDA:
 			return {
-				back: null,
-				forward: null,
-				title: agendaTitle(date),
+				back: showNavigationOnAgenda ? renderCalendarSwitchLeftButton("prevWeek_label", onBack) : null,
+				forward: showNavigationOnAgenda ? renderCalendarSwitchRightButton("nextWeek_label", onForward) : null,
+				title: titleType === "short" ? formatMonthWithFullYear(date) : agendaTitle(date),
 				week: null,
 			}
 	}
@@ -193,3 +196,13 @@ export function getTimeFromMousePos({ y, targetHeight }: MousePosAndBounds, hour
 }
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
+
+export function getIconForViewType(viewType: CalendarViewType): AllIcons {
+	const lookupTable: Record<CalendarViewType, AllIcons> = {
+		[CalendarViewType.DAY]: Icons.TableSingle,
+		[CalendarViewType.WEEK]: Icons.TableColumns,
+		[CalendarViewType.MONTH]: Icons.Table,
+		[CalendarViewType.AGENDA]: Icons.ListUnordered,
+	}
+	return lookupTable[viewType]
+}

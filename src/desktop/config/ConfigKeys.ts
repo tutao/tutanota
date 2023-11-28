@@ -16,6 +16,8 @@ export enum DesktopConfigKey {
 	spellcheck = "spellcheck",
 	selectedTheme = "selectedTheme",
 	themes = "themes",
+	/** the app password salt for encrypting the credentials key */
+	appPassSalt = "appPassSalt",
 	webConfigLocation = "webConfigLocation",
 }
 
@@ -30,8 +32,6 @@ export enum BuildConfigKey {
 	initialSseConnectTimeoutInSeconds = "initialSseConnectTimeoutInSeconds",
 	maxSseConnectTimeoutInSeconds = "maxSseConnectTimeoutInSeconds",
 	defaultDesktopConfig = "defaultDesktopConfig",
-	webAssetsPath = "webAssetsPath",
-	preloadjs = "preloadjs",
 	iconName = "iconName",
 	fileManagerTimeout = "fileManagerTimeout",
 	pubKeys = "pubKeys",

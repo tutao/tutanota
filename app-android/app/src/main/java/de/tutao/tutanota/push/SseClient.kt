@@ -16,11 +16,11 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 
 class SseClient internal constructor(
-		private val crypto: AndroidNativeCryptoFacade,
-		private val sseStorage: SseStorage,
-		private val networkObserver: NetworkObserver,
-		private val sseListener: SseListener,
-		private val defaultClient: OkHttpClient
+	private val crypto: AndroidNativeCryptoFacade,
+	private val sseStorage: SseStorage,
+	private val networkObserver: NetworkObserver,
+	private val sseListener: SseListener,
+	private val defaultClient: OkHttpClient
 ) {
 	@Volatile
 	private var connectedSseInfo: SseInfo? = null
@@ -46,13 +46,16 @@ class SseClient internal constructor(
 			Log.d(TAG, "restart requested and connectionRef is not available, schedule connect")
 			reschedule(0)
 		} else if (
-				oldConnectedInfo == null ||
-				oldConnectedInfo.pushIdentifier != sseInfo.pushIdentifier ||
-				oldConnectedInfo.sseOrigin != sseInfo.sseOrigin
+			oldConnectedInfo == null ||
+			oldConnectedInfo.pushIdentifier != sseInfo.pushIdentifier ||
+			oldConnectedInfo.sseOrigin != sseInfo.sseOrigin
 		) {
 			// If pushIdentifier or SSE origin have changed for some reason, restart the connect.
 			// If user IDs have changed, do not restart, if current user is invalid we have either oldConnectedInfo
-			Log.d(TAG, "restart requested, connectionRef is available, but sseInfo has changed, call disconnect to reschedule connection")
+			Log.d(
+				TAG,
+				"restart requested, connectionRef is available, but sseInfo has changed, call disconnect to reschedule connection"
+			)
 			response.close()
 		} else {
 			Log.d(TAG, "restart requested but connectionRef available and didn't change, do nothing")
@@ -78,8 +81,12 @@ class SseClient internal constructor(
 		try {
 			var shouldNotifyAboutEstablishedConnection = true
 			val response = openSseConnection(connectionData)
-			Log.d(TAG, "connected, listening for events")
-			// 		BufferedReader(InputStreamReader(BufferedInputStream(this.inputStream))).forEachLine(action)
+			Log.d(TAG, "connected, listening for events, ${response.code} ${response.isSuccessful}")
+			if (!response.isSuccessful) {
+				handleFailedConnection(random, connectionData.userId, null)
+				return
+			}
+
 			BufferedReader(InputStreamReader(response.body!!.byteStream())).forEachLine {
 				handleLine(it)
 				if (shouldNotifyAboutEstablishedConnection) {
@@ -90,19 +97,21 @@ class SseClient internal constructor(
 				}
 			}
 		} catch (exception: Exception) {
-			handleException(random, exception, connectionData.userId)
+			handleFailedConnection(random, connectionData.userId, exception)
 		} finally {
 			sseListener.onConnectionBroken()
 			response.set(null)
 		}
 	}
 
-	private fun handleException(random: Random, exception: Exception, userId: String) {
+	private fun handleFailedConnection(random: Random, userId: String, exception: Exception?) {
 		val response = response.get()
+		Log.d(TAG, "connection failed, $userId $exception ${response?.code}")
 		try {
 			// we get not authorized for the stored identifier and user ids, so remove them
-			if (response != null && response.code == 403) {
-				Log.e(TAG, "not authorized to connect, disable reconnect for $userId")
+			if (response != null && response.code == 401) {
+				// unless there is another user id added there is no reason to try to reconnect
+				Log.e(TAG, "not authorized to connect, disable reconnect")
 				sseListener.onNotAuthorized(userId)
 				return
 			}
@@ -116,16 +125,16 @@ class SseClient internal constructor(
 			failedConnectionAttempts > RECONNECTION_ATTEMPTS -> {
 				failedConnectionAttempts = 0
 				Log.e(
-						TAG,
-						"Too many failed connection attempts, will try to sync notifications next time system wakes app up"
+					TAG,
+					"Too many failed connection attempts, will try to sync notifications next time system wakes app up"
 				)
 				sseListener.onStoppingReconnectionAttempts()
 			}
 			networkObserver.hasNetworkConnection() -> {
 				Log.e(
-						TAG,
-						"error opening sse, rescheduling after $delay, failedConnectionAttempts: $failedConnectionAttempts",
-						exception
+					TAG,
+					"error opening sse, rescheduling after $delay, failedConnectionAttempts: $failedConnectionAttempts",
+					exception
 				)
 				reschedule(delay)
 			}
@@ -189,23 +198,23 @@ class SseClient internal constructor(
 	@Throws(IOException::class)
 	private fun openSseConnection(connectionData: ConnectionData): Response {
 		val requestBuilder = Request.Builder()
-				.url(connectionData.url)
-				.method("GET", null)
-				.header("Content-Type", "application/json")
-				.header("Connection", "Keep-Alive")
-				.header("Accept", "text/event-stream")
+			.url(connectionData.url)
+			.method("GET", null)
+			.header("Content-Type", "application/json")
+			.header("Connection", "Keep-Alive")
+			.header("Accept", "text/event-stream")
 		addCommonHeaders(requestBuilder)
 
 		val req = requestBuilder.build()
 
 		val response = defaultClient
-				.newBuilder()
-				.connectTimeout(5, TimeUnit.SECONDS)
-				.writeTimeout(5, TimeUnit.SECONDS)
-				.readTimeout((timeoutInSeconds * 1.2).toLong(), TimeUnit.SECONDS)
-				.build()
-				.newCall(req)
-				.execute()
+			.newBuilder()
+			.connectTimeout(5, TimeUnit.SECONDS)
+			.writeTimeout(5, TimeUnit.SECONDS)
+			.readTimeout((timeoutInSeconds * 1.2).toLong(), TimeUnit.SECONDS)
+			.build()
+			.newCall(req)
+			.execute()
 		this.response.set(response)
 		return response
 	}

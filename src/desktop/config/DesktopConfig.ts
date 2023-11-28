@@ -4,22 +4,20 @@ import type { MigrationKind } from "./migrations/DesktopConfigMigrator"
 import { DesktopConfigMigrator } from "./migrations/DesktopConfigMigrator"
 import type { Config } from "./ConfigCommon"
 import { BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey } from "./ConfigKeys"
-import type { DesktopKeyStoreFacade } from "../KeyStoreFacadeImpl"
+import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
 import { CryptoError } from "../../api/common/error/CryptoError"
 import { log } from "../DesktopLog"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import type { ConfigFileType } from "./ConfigFile"
 import { ConfigFile } from "./ConfigFile"
-import type * as FsModule from "node:fs"
-
-type FsExports = typeof FsModule
 
 export type AllConfigKeys = DesktopConfigKey | DesktopConfigEncKey
 
 type ConfigValue = string | number | {} | boolean | ReadonlyArray<ConfigValue>
-
-type OnValueSetListeners = { [k in AllConfigKeys]: Array<(val: ConfigValue | null) => void> }
+// a callback function and a note marking if it should be called more than once
+type Listener = { cb: (val: ConfigValue | null) => void; once: boolean }
+type OnValueSetListeners = { [k in AllConfigKeys]: Array<Listener> }
 
 /**
  * manages build and user config
@@ -70,11 +68,11 @@ export class DesktopConfig {
 		if (key in DesktopConfigKey) {
 			return desktopConfig[key]
 		} else if (key in DesktopConfigEncKey) {
-			return this._getEncryptedVar(key as DesktopConfigEncKey)
+			return this.getEncryptedVar(key as DesktopConfigEncKey)
 		}
 	}
 
-	async _getEncryptedVar(key: DesktopConfigEncKey): Promise<any> {
+	private async getEncryptedVar(key: DesktopConfigEncKey): Promise<any> {
 		const desktopConfig = await this.desktopConfig.promise
 		const encryptedValue = desktopConfig[key]
 
@@ -94,7 +92,7 @@ export class DesktopConfig {
 		}
 	}
 
-	async _setEncryptedVar(key: DesktopConfigEncKey, value: ConfigValue | null) {
+	private async setEncryptedVar(key: DesktopConfigEncKey, value: ConfigValue | null) {
 		const deviceKey = await this.keyStoreFacade.getDeviceKey()
 		let encryptedValue
 		if (value != null) {
@@ -121,19 +119,19 @@ export class DesktopConfig {
 			if (value == null) {
 				desktopConfig[key] = value
 			} else {
-				await this._setEncryptedVar(key as DesktopConfigEncKey, value)
+				await this.setEncryptedVar(key as DesktopConfigEncKey, value)
 			}
 		} else {
 			throw new ProgrammingError("Unknown config key: " + key)
 		}
 
-		await this._saveAndNotify(key, value)
+		await this.saveAndNotify(key, value)
 	}
 
-	async _saveAndNotify(key: AllConfigKeys, value: ConfigValue | null): Promise<void> {
+	private async saveAndNotify(key: AllConfigKeys, value: ConfigValue | null): Promise<void> {
 		const desktopConfig = await this.desktopConfig.promise
 		await this.desktopConfigFile.writeJSON(desktopConfig)
-		this._notifyChangeListeners(key, value)
+		this.notifyChangeListeners(key, value)
 	}
 
 	/**
@@ -143,10 +141,18 @@ export class DesktopConfig {
 	 * @returns {DesktopConfig}
 	 */
 	on(key: AllConfigKeys, cb: (val: any) => void): DesktopConfig {
+		return this.addListener(key, { cb, once: false })
+	}
+
+	once(key: AllConfigKeys, cb: (val: any) => void): DesktopConfig {
+		return this.addListener(key, { cb, once: true })
+	}
+
+	private addListener(key: AllConfigKeys, callback: Listener) {
 		if (!this.onValueSetListeners[key]) {
-			this.onValueSetListeners[key] = [cb]
+			this.onValueSetListeners[key] = [callback]
 		} else {
-			this.onValueSetListeners[key].push(cb)
+			this.onValueSetListeners[key].push(callback)
 		}
 		return this
 	}
@@ -163,15 +169,15 @@ export class DesktopConfig {
 
 	removeListener(key: AllConfigKeys, cb: (val: any) => void): this {
 		if (!this.onValueSetListeners[key]) return this
-		this.onValueSetListeners[key].splice(this.onValueSetListeners[key].indexOf(cb), 1)
+		const indexOfListener = this.onValueSetListeners[key].findIndex((listener) => listener.cb === cb)
+		this.onValueSetListeners[key].splice(indexOfListener, 1)
 		return this
 	}
 
-	_notifyChangeListeners(key: AllConfigKeys, value: ConfigValue | null) {
-		if (this.onValueSetListeners[key]) {
-			for (const cb of this.onValueSetListeners[key]) {
-				cb(value)
-			}
-		}
+	private notifyChangeListeners(key: AllConfigKeys, value: ConfigValue | null) {
+		const listeners = this.onValueSetListeners[key]
+		if (listeners == null) return
+		for (const { cb } of listeners) cb(value)
+		this.onValueSetListeners[key] = listeners.filter((listener) => !listener.once)
 	}
 }

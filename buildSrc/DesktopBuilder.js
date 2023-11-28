@@ -23,6 +23,7 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @param dirname directory this was called from
  * @param version application version that gets built
  * @param platform: {"linux"|"win32"|"darwin"} - Canonical platform name of the desktop target to be built
+ * @param architecture: {"arm64"|"x64"|"universal"} the instruction set used in the built desktop binary
  * @param updateUrl where the client should pull its updates from, if any
  * @param nameSuffix suffix used to distinguish test-, prod- or snapshot builds on the same machine
  * @param notarize for the MacOs notarization feature
@@ -30,7 +31,7 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @param unpacked output desktop client without packing it into an installer
  * @returns {Promise<void>}
  */
-export async function buildDesktop({ dirname, version, platform, updateUrl, nameSuffix, notarize, outDir, unpacked, disableMinify }) {
+export async function buildDesktop({ dirname, version, platform, architecture, updateUrl, nameSuffix, notarize, outDir, unpacked, disableMinify }) {
 	// The idea is that we
 	// - build desktop code into build/desktop
 	// - package the whole dist directory into the app
@@ -38,7 +39,7 @@ export async function buildDesktop({ dirname, version, platform, updateUrl, name
 	// - cleanup dist directory
 	// It's messy
 
-	console.log(`Building ${platform} desktop client for v${version}`)
+	console.log(`Building ${architecture} ${platform} desktop client for v${version}`)
 	updateUrl = updateUrl?.toString()
 	const updateSubDir = `desktop${nameSuffix}`
 	const distDir = path.join(dirname, "build")
@@ -61,6 +62,7 @@ export async function buildDesktop({ dirname, version, platform, updateUrl, name
 		unpacked,
 		sign: (process.env.DEBUG_SIGN && updateUrl !== "") || !!process.env.JENKINS_HOME,
 		linux: platform === "linux",
+		architecture,
 	})
 	console.log("updateUrl is", updateUrl)
 	await fs.promises.writeFile("./build/package.json", JSON.stringify(content), "utf-8")
@@ -76,7 +78,7 @@ export async function buildDesktop({ dirname, version, platform, updateUrl, name
 	}
 
 	console.log("Bundling desktop client")
-	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform, disableMinify)
+	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform, architecture, disableMinify)
 
 	console.log("Starting installer build...")
 	if (process.platform.startsWith("darwin")) {
@@ -112,7 +114,7 @@ export async function buildDesktop({ dirname, version, platform, updateUrl, name
 	])
 }
 
-async function rollupDesktop(dirname, outDir, version, platform, disableMinify) {
+async function rollupDesktop(dirname, outDir, version, platform, architecture, disableMinify) {
 	platform = getCanonicalPlatformName(platform)
 	const mainBundle = await rollup({
 		input: [path.join(dirname, "src/desktop/DesktopMain.ts"), path.join(dirname, "src/desktop/sqlworker.ts")],
@@ -125,12 +127,14 @@ async function rollupDesktop(dirname, outDir, version, platform, disableMinify) 
 				rootDir: projectRoot,
 				dstPath: "./build/desktop/",
 				platform,
+				architecture,
 				nodeModule: "better-sqlite3",
 			}),
 			copyNativeModulePlugin({
 				rootDir: projectRoot,
 				dstPath: "./build/desktop/",
 				platform,
+				architecture,
 				nodeModule: "keytar",
 			}),
 			typescript({

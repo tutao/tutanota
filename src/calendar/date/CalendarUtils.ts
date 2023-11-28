@@ -67,6 +67,7 @@ import { hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
@@ -153,6 +154,10 @@ export function getStartOfDayWithZone(date: Date, zone: string): Date {
  * @returns a date object representing the start of the next calendar date (2nd of May 2023 00:00) in {@param zone} */
 export function getStartOfNextDayWithZone(date: Date, zone: string): Date {
 	return DateTime.fromJSDate(date, { zone }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).plus({ day: 1 }).toJSDate()
+}
+
+export function getEndOfDayWithZone(date: Date, zone: string): Date {
+	return DateTime.fromJSDate(date, { zone }).set({ hour: 23, minute: 59, second: 59, millisecond: 0 }).toJSDate()
 }
 
 export function calculateAlarmTime(date: Date, interval: AlarmInterval, ianaTimeZone?: string): Date {
@@ -409,19 +414,19 @@ function visuallyOverlaps(firstEventStart: Date, firstEventEnd: Date, secondEven
 	return firstEventEnd.getTime() === secondEventStart.getTime() && height < size.calendar_line_height
 }
 
-export function formatEventTime(event: CalendarEvent, showTime: EventTextTimeOption): string {
+export function formatEventTime({ endTime, startTime }: CalendarEventTimes, showTime: EventTextTimeOption): string {
 	switch (showTime) {
 		case EventTextTimeOption.START_TIME:
-			return formatTime(event.startTime)
+			return formatTime(startTime)
 
 		case EventTextTimeOption.END_TIME:
-			return ` - ${formatTime(event.endTime)}`
+			return ` - ${formatTime(endTime)}`
 
 		case EventTextTimeOption.START_END_TIME:
-			return `${formatTime(event.startTime)} - ${formatTime(event.endTime)}`
+			return `${formatTime(startTime)} - ${formatTime(endTime)}`
 
 		default:
-			throw new Error("Unknown time option " + showTime)
+			throw new ProgrammingError(`Unknown time option: ${showTime}`)
 	}
 }
 
@@ -896,20 +901,20 @@ export type CalendarDay = {
 }
 
 export type CalendarMonth = {
-	weekdays: Array<string>
-	weeks: Array<Array<CalendarDay>>
+	weekdays: ReadonlyArray<string>
+	weeks: ReadonlyArray<ReadonlyArray<CalendarDay>>
+	/** the 1st of the month, might not be the first date in {@link weeks} because of the padding days. */
+	beginningOfMonth: Date
 }
 
 /**
  * get an object representing the calendar month the given date is in.
- * @param date
- * @param firstDayOfWeekFromOffset
- * @return {{weeks: Array[], weekdays: Array}}
  */
 export function getCalendarMonth(date: Date, firstDayOfWeekFromOffset: number, weekdayNarrowFormat: boolean): CalendarMonth {
 	const weeks: Array<Array<CalendarDay>> = [[]]
 	const calculationDate = getStartOfDay(date)
 	calculationDate.setDate(1)
+	const beginningOfMonth = new Date(calculationDate)
 	let currentYear = calculationDate.getFullYear()
 	let month = calculationDate.getMonth()
 	// add "padding" days
@@ -982,6 +987,7 @@ export function getCalendarMonth(date: Date, firstDayOfWeekFromOffset: number, w
 	}
 
 	return {
+		beginningOfMonth,
 		weekdays,
 		weeks,
 	}

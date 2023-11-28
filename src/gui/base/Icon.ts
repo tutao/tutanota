@@ -1,9 +1,10 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { theme } from "../theme"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { BootIcons, BootIconsSvg } from "./icons/BootIcons"
 import { Icons } from "./icons/Icons"
+import { px } from "../size.js"
 
 assertMainOrNode()
 
@@ -27,6 +28,13 @@ import("./icons/Icons.js").then((IconsModule) => {
 })
 
 export class Icon implements Component<IconAttrs> {
+	private root: HTMLElement | null = null
+	private tooltip?: HTMLElement
+
+	oncreate(vnode: VnodeDOM<IconAttrs>): any {
+		this.root = vnode.dom as HTMLElement
+	}
+
 	view(vnode: Vnode<IconAttrs>): Children {
 		// @ts-ignore
 		const icon = BootIconsSvg[vnode.attrs.icon] ?? IconsSvg[vnode.attrs.icon]
@@ -38,10 +46,32 @@ export class Icon implements Component<IconAttrs> {
 				"aria-hidden": "true",
 				class: this.getClass(vnode.attrs),
 				style: this.getStyle(vnode.attrs.style ?? null),
+				onmouseenter: () => {
+					if (this.root && this.tooltip) this.moveElementIfOffscreen(this.root, this.tooltip)
+				},
 			},
 			m.trust(icon),
-			vnode.attrs.hoverText ? m("span.tooltiptext.no-wrap", vnode.attrs.hoverText) : null,
+			vnode.attrs.hoverText &&
+				m(
+					"span.tooltiptext.no-wrap",
+					{
+						oncreate: (vnode) => {
+							this.tooltip = vnode.dom as HTMLElement
+						},
+					},
+					vnode.attrs.hoverText,
+				),
 		) // icon is typed, so we may not embed untrusted data
+	}
+
+	private moveElementIfOffscreen(root: HTMLElement, tooltip: HTMLElement): void {
+		const tooltipRect = tooltip.getBoundingClientRect()
+		// Get the width of the area in pixels that the tooltip penetrates the viewport
+		const distanceOver = tooltipRect.x + tooltipRect.width - window.innerWidth
+		if (distanceOver > 0) {
+			const parentRect = root.getBoundingClientRect()
+			tooltip.style.left = px(-distanceOver - parentRect.width)
+		}
 	}
 
 	getStyle(style: Record<string, any> | null): {

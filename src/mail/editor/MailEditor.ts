@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import { Editor, ImagePasteEvent } from "../../gui/editor/Editor"
 import type { Attachment, InitAsResponseArgs, SendMailModel } from "./SendMailModel"
 import { Dialog } from "../../gui/base/Dialog"
-import { lang } from "../../misc/LanguageViewModel"
+import { InfoLink, lang } from "../../misc/LanguageViewModel"
 import type { MailboxDetail } from "../model/MailModel"
 import { checkApprovalStatus } from "../../misc/LoginUtils"
 import {
@@ -17,10 +17,18 @@ import {
 	RecipientField,
 } from "../model/MailUtils"
 import { locator } from "../../api/main/MainLocator"
-import { ALLOWED_IMAGE_FORMATS, ConversationType, FeatureType, Keys, MailMethod } from "../../api/common/TutanotaConstants"
+import {
+	ALLOWED_IMAGE_FORMATS,
+	ConversationType,
+	ExternalImageRule,
+	FeatureType,
+	Keys,
+	MailAuthenticationStatus,
+	MailMethod,
+} from "../../api/common/TutanotaConstants"
 import { TooManyRequestsError } from "../../api/common/error/RestError"
 import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
-import { ButtonType } from "../../gui/base/Button.js"
+import { ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../gui/base/Dropdown.js"
 import { isApp, isBrowser, isDesktop } from "../../api/common/Env"
 import { Icons } from "../../gui/base/icons/Icons"
@@ -77,6 +85,9 @@ import { createDataFile, DataFile } from "../../api/common/DataFile.js"
 import { AttachmentBubble } from "../../gui/AttachmentBubble.js"
 import { isSecurePassword, scaleToVisualPasswordStrength } from "../../misc/passwords/PasswordUtils.js"
 import { Status, StatusField } from "../../gui/base/StatusField.js"
+import { ContentBlockingStatus } from "../view/MailViewerViewModel.js"
+import { canSeeTutaLinks } from "../../gui/base/GuiUtils.js"
+import { InfoBanner } from "../../gui/base/InfoBanner.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -89,6 +100,7 @@ export type MailEditorAttrs = {
 	templateModel: TemplatePopupModel | null
 	knowledgeBaseInjection: (editor: Editor) => Promise<DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs> | null>
 	search: RecipientsSearchModel
+	alwaysBlockExternalContent: boolean
 }
 
 export function createMailEditorAttrs(
@@ -99,6 +111,7 @@ export function createMailEditorAttrs(
 	templateModel: TemplatePopupModel | null,
 	knowledgeBaseInjection: (editor: Editor) => Promise<DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs> | null>,
 	search: RecipientsSearchModel,
+	alwaysBlockExternalContent: boolean,
 ): MailEditorAttrs {
 	return {
 		model,
@@ -109,6 +122,7 @@ export function createMailEditorAttrs(
 		templateModel,
 		knowledgeBaseInjection: knowledgeBaseInjection,
 		search,
+		alwaysBlockExternalContent,
 	}
 }
 
@@ -130,6 +144,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	sendMailModel: SendMailModel
 	private areDetailsExpanded: boolean
 	private recipientShowConfidential: Map<string, boolean> = new Map()
+	private blockExternalContent: boolean
+	private readonly alwaysBlockExternalContent: boolean = false
 
 	constructor(vnode: Vnode<MailEditorAttrs>) {
 		const a = vnode.attrs
@@ -139,14 +155,17 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const model = a.model
 		this.sendMailModel = model
 		this.templateModel = a.templateModel
+		this.blockExternalContent = a.doBlockExternalContent()
+		this.alwaysBlockExternalContent = a.alwaysBlockExternalContent
 
 		// if we have any CC/BCC recipients, we should show these so, should the user send the mail, they know where it will be going to
 		this.areDetailsExpanded = model.bccRecipients().length + model.ccRecipients().length > 0
 
 		this.editor = new Editor(200, (html, isPaste) => {
 			const sanitized = htmlSanitizer.sanitizeFragment(html, {
-				blockExternalContent: !isPaste && a.doBlockExternalContent(),
+				blockExternalContent: !isPaste && this.blockExternalContent,
 			})
+
 			this.mentionedInlineImages = sanitized.inlineImageCids
 			return sanitized.fragment
 		})
@@ -160,6 +179,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		// call this async because the editor is not initialized before this mail editor dialog is shown
 		this.editor.initialized.promise.then(() => {
 			this.editor.setHTML(model.getBody())
+			this.processInlineImages()
+
 			// Add mutation observer to remove attachments when corresponding DOM element is removed
 			new MutationObserver(onEditorChanged).observe(this.editor.getDOM(), {
 				attributes: false,
@@ -198,20 +219,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			}
 		})
 
-		this.editor.initialized.promise.then(() => {
-			const dom = this.editor.getDOM()
-			this.inlineImageElements = replaceCidsWithInlineImages(dom, model.loadedInlineImages, (cid, event, dom) => {
-				const downloadClickHandler = createDropdown({
-					lazyButtons: () => [
-						{
-							label: "download_action",
-							click: () => this.downloadInlineImage(model, cid),
-						},
-					],
-				})
-				downloadClickHandler(downcast(event), dom)
-			})
-		})
 		model.onMailChanged.map(() => m.redraw())
 		// Leftover text in recipient field is an error
 		model.setOnBeforeSendFunction(() => {
@@ -482,6 +489,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					attachmentBubbleAttrs.map((a) => m(AttachmentBubble, a)),
 				),
 				model.getAttachments().length > 0 ? m("hr.hr") : null,
+				this.renderExternalContentBanner(this.attrs),
 				a.doShowToolbar() ? this.renderToolbar(model) : null,
 				m(
 					".pt-s.text.scroll-x.break-word-links.flex.flex-column.flex-grow",
@@ -493,6 +501,51 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				m(".pb"),
 			],
 		)
+	}
+
+	private renderExternalContentBanner(attrs: MailEditorAttrs): Children | null {
+		if (!this.blockExternalContent || this.alwaysBlockExternalContent) {
+			return null
+		}
+
+		const showButton: ButtonAttrs = {
+			label: "showBlockedContent_action",
+			click: () => {
+				this.updateExternalContentStatus(ContentBlockingStatus.Show)
+				this.processInlineImages()
+			},
+		}
+
+		return m(InfoBanner, {
+			message: "contentBlocked_msg",
+			icon: Icons.Picture,
+			helpLink: canSeeTutaLinks(attrs.model.logins) ? InfoLink.LoadImages : null,
+			buttons: [showButton],
+		})
+	}
+
+	private updateExternalContentStatus(status: ContentBlockingStatus) {
+		this.blockExternalContent = status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock
+
+		const sanitized = htmlSanitizer.sanitizeHTML(this.editor.getHTML(), {
+			blockExternalContent: this.blockExternalContent,
+		})
+
+		this.editor.setHTML(sanitized.html)
+	}
+
+	private processInlineImages() {
+		this.inlineImageElements = replaceCidsWithInlineImages(this.editor.getDOM(), this.sendMailModel.loadedInlineImages, (cid, event, dom) => {
+			const downloadClickHandler = createDropdown({
+				lazyButtons: () => [
+					{
+						label: "download_action",
+						click: () => this.downloadInlineImage(this.sendMailModel, cid),
+					},
+				],
+			})
+			downloadClickHandler(downcast(event), dom)
+		})
 	}
 
 	private renderToggleKnowledgeBase(knowledgeBaseInjection: DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs>) {
@@ -691,11 +744,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 		const canEditBubbleRecipient = locator.logins.getUserController().isInternalUser() && !locator.logins.isEnabled(FeatureType.DisableContacts)
 
-		const previousMail = this.sendMailModel.getPreviousMail()
-
-		const canRemoveBubble =
-			locator.logins.getUserController().isInternalUser() &&
-			(!previousMail || !previousMail.restrictions || previousMail.restrictions.participantGroupInfos.length === 0)
+		const canRemoveBubble = locator.logins.getUserController().isInternalUser()
 
 		const createdContactReceiver = (contactElementId: Id) => {
 			const mailAddress = recipient.address
@@ -779,10 +828,11 @@ export class MailEditor implements Component<MailEditorAttrs> {
  * Creates a new Dialog with a MailEditor inside.
  * @param model
  * @param blockExternalContent
+ * @param alwaysBlockExternalContent
  * @returns {Dialog}
  * @private
  */
-async function createMailEditorDialog(model: SendMailModel, blockExternalContent: boolean = false): Promise<Dialog> {
+async function createMailEditorDialog(model: SendMailModel, blockExternalContent = false, alwaysBlockExternalContent = false): Promise<Dialog> {
 	let dialog: Dialog
 	let mailEditorAttrs: MailEditorAttrs
 
@@ -935,6 +985,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		templatePopupModel,
 		createKnowledgebaseButtonAttrs,
 		await locator.recipientsSearchModel(),
+		alwaysBlockExternalContent,
 	)
 	const shortcuts: Shortcut[] = [
 		{
@@ -997,6 +1048,44 @@ export async function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dial
 	return newMailEditorFromTemplate(detailsProperties.mailboxDetails, {}, "", signature)
 }
 
+async function getExternalContentRules(model: SendMailModel, currentStatus: boolean) {
+	let contentRules
+	const previousMail = model.getPreviousMail()
+
+	if (!previousMail) {
+		contentRules = {
+			alwaysBlockExternalContent: false,
+			blockExternalContent: true,
+		}
+	} else {
+		const externalImageRule = await locator.configFacade.getExternalImageRule(previousMail.sender.address).catch((e: unknown) => {
+			console.log("Error getting external image rule:", e)
+			return ExternalImageRule.None
+		})
+
+		if (externalImageRule === ExternalImageRule.Block || (externalImageRule === ExternalImageRule.None && model.isUserPreviousSender())) {
+			contentRules = {
+				// When we have an explicit rule for blocking images we don´t
+				// want to prompt the user about showing images again
+				alwaysBlockExternalContent: externalImageRule === ExternalImageRule.Block,
+				blockExternalContent: true,
+			}
+		} else if (externalImageRule === ExternalImageRule.Allow && model.getPreviousMail()?.authStatus === MailAuthenticationStatus.AUTHENTICATED) {
+			contentRules = {
+				alwaysBlockExternalContent: false,
+				blockExternalContent: false,
+			}
+		} else {
+			contentRules = {
+				alwaysBlockExternalContent: false,
+				blockExternalContent: currentStatus,
+			}
+		}
+	}
+
+	return contentRules
+}
+
 export async function newMailEditorAsResponse(
 	args: InitAsResponseArgs,
 	blockExternalContent: boolean,
@@ -1006,7 +1095,9 @@ export async function newMailEditorAsResponse(
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	const model = await locator.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 	await model.initAsResponse(args, inlineImages)
-	return createMailEditorDialog(model, blockExternalContent)
+
+	const externalImageRules = await getExternalContentRules(model, blockExternalContent)
+	return createMailEditorDialog(model, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
 }
 
 export async function newMailEditorFromDraft(
@@ -1019,7 +1110,8 @@ export async function newMailEditorFromDraft(
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	const model = await locator.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 	await model.initWithDraft(attachments, mailWrapper, inlineImages)
-	return createMailEditorDialog(model, blockExternalContent)
+	const externalImageRules = await getExternalContentRules(model, blockExternalContent)
+	return createMailEditorDialog(model, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
 }
 
 export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean, mailboxDetails?: MailboxDetail): Promise<Dialog> {

@@ -29,7 +29,6 @@ import type { Indexer } from "../worker/search/Indexer"
 import type { SearchFacade } from "../worker/search/SearchFacade"
 import type { BookingFacade } from "../worker/facades/lazy/BookingFacade.js"
 import type { MailAddressFacade } from "../worker/facades/lazy/MailAddressFacade.js"
-import type { ContactFormFacade } from "../worker/facades/lazy/ContactFormFacade.js"
 import type { DeviceEncryptionFacade } from "../worker/facades/DeviceEncryptionFacade"
 import { FileController, guiDownload } from "../../file/FileController"
 import type { NativeFileApp } from "../../native/common/FileApp"
@@ -132,7 +131,6 @@ class MainLocator {
 	mailAddressFacade!: MailAddressFacade
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
-	contactFormFacade!: ContactFormFacade
 	deviceEncryptionFacade!: DeviceEncryptionFacade
 	usageTestController!: UsageTestController
 	usageTestModel!: UsageTestModel
@@ -324,6 +322,7 @@ class MainLocator {
 				dateProvider,
 				mailboxProperties,
 				this.kdfPicker,
+				this.configFacade,
 			)
 	}
 
@@ -552,7 +551,6 @@ class MainLocator {
 			mailAddressFacade,
 			blobFacade,
 			userManagementFacade,
-			contactFormFacade,
 			deviceEncryptionFacade,
 			restInterface,
 			serviceExecutor,
@@ -579,7 +577,6 @@ class MainLocator {
 		this.mailAddressFacade = mailAddressFacade
 		this.blobFacade = blobFacade
 		this.userManagementFacade = userManagementFacade
-		this.contactFormFacade = contactFormFacade
 		this.deviceEncryptionFacade = deviceEncryptionFacade
 		this.serviceExecutor = serviceExecutor
 		this.logins = new LoginController()
@@ -616,7 +613,7 @@ class MainLocator {
 			this.nativeInterfaces = createNativeInterfaces(
 				new WebMobileFacade(this.connectivityModel, this.mailModel),
 				new WebDesktopFacade(),
-				new WebInterWindowEventFacade(this.logins, windowFacade),
+				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(),
 				cryptoFacade,
 				calendarFacade,

@@ -119,14 +119,8 @@ function handleAssetProtocol(session: Session, assetDir: string, pathModule: typ
 			if (!filePath.startsWith(assetDir)) {
 				return fail(`Invalid asset URL ${request.url} w/ pathname ${url.pathname} got resolved to ${filePath})`)
 			} else {
-				// fetch for file:/// is not implemented in node 18 apparently, so we're getting it by hand.
 				try {
-					const content = await fsModule.promises.readFile(filePath)
-					const headers = new Headers({
-						"Content-Length": String(content.byteLength),
-						"Content-Type": await getMimeTypeForFile(filePath),
-					})
-					return new Response(content, { status: 200, headers })
+					return fileFetch(filePath, fsModule)
 				} catch (e) {
 					return fail(`failed to read asset at ${request.url}: ${e.message}`)
 				}
@@ -146,3 +140,13 @@ const optionsResponse = lazyMemoized<Response>(() => {
 		headers,
 	})
 })
+
+/** fetch for file:// is not implemented in node 18, so we're getting it by hand. */
+export async function fileFetch(filePath: string, fsModule: typeof fs): Promise<Response> {
+	const content = await fsModule.promises.readFile(filePath)
+	const headers = new Headers({
+		"Content-Length": String(content.byteLength),
+		"Content-Type": await getMimeTypeForFile(filePath),
+	})
+	return new Response(content, { status: 200, headers })
+}

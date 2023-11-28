@@ -20,4 +20,10 @@ export const enum CredentialEncryptionMode {
 	 * mode every access to the credentials key must be individually authenticated - even when using the fallback.
 	 */
 	BIOMETRICS = "BIOMETRICS",
+
+	/**
+	 * Credentials key is secured with a separate password / pin that is independent of the state of the system
+	 * keychain.
+	 */
+	APP_PASSWORD = "APP_PASSWORD",
 }

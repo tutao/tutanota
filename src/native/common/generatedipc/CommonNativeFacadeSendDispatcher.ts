@@ -25,4 +25,10 @@ export class CommonNativeFacadeSendDispatcher implements CommonNativeFacade {
 	async updateTheme(...args: Parameters<CommonNativeFacade["updateTheme"]>) {
 		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "updateTheme", ...args])
 	}
+	async promptForNewPassword(...args: Parameters<CommonNativeFacade["promptForNewPassword"]>) {
+		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "promptForNewPassword", ...args])
+	}
+	async promptForPassword(...args: Parameters<CommonNativeFacade["promptForPassword"]>) {
+		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "promptForPassword", ...args])
+	}
 }

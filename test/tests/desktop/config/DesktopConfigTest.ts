@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
 import { DesktopConfig } from "../../../../src/desktop/config/DesktopConfig.js"
 import { DesktopConfigMigrator } from "../../../../src/desktop/config/migrations/DesktopConfigMigrator.js"
-import { downcast, noOp } from "@tutao/tutanota-utils"
-import { DesktopKeyStoreFacade } from "../../../../src/desktop/KeyStoreFacadeImpl.js"
+import { noOp } from "@tutao/tutanota-utils"
+import { DesktopKeyStoreFacade } from "../../../../src/desktop/DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
 import { DesktopConfigKey } from "../../../../src/desktop/config/ConfigKeys.js"
 import { ConfigFile } from "../../../../src/desktop/config/ConfigFile.js"
-import { spy } from "@tutao/tutanota-test-utils"
+import { function as fn, matchers, object, verify, when } from "testdouble"
 
 o.spec("DesktopConfigTest", function () {
 	let desktopConfig: DesktopConfig
@@ -16,85 +16,54 @@ o.spec("DesktopConfigTest", function () {
 	let desktopConfigFile: ConfigFile
 
 	o.beforeEach(async function () {
-		const buildConfigFile: ConfigFile = downcast({
-			readJSON: () => {
-				return Promise.resolve({
-					"tutao-config": {
-						defaultDesktopConfig: "hello",
-						configMigrationFunction: "",
-					},
-				})
-			},
-			writeJSON: (obj: any) => {
-				return Promise.resolve()
-			},
-			ensurePresence: () => {
-				return Promise.resolve()
+		const buildConfigFile: ConfigFile = object()
+		when(buildConfigFile.readJSON()).thenResolve({
+			"tutao-config": {
+				defaultDesktopConfig: {},
+				configMigrationFunction: "",
 			},
 		})
+		when(buildConfigFile.writeJSON(matchers.anything())).thenResolve(undefined)
+		when(buildConfigFile.ensurePresence(matchers.anything())).thenResolve(undefined)
 
-		desktopConfigFile = downcast({
-			readJSON: () => {
-				return Promise.resolve({
-					"tutao-config": {
-						defaultDesktopConfig: "hello",
-						configMigrationFunction: "",
-					},
-				})
-			},
-			writeJSON: spy((obj: any) => {
-				return Promise.resolve()
-			}),
-			ensurePresence: () => {
-				return Promise.resolve()
+		desktopConfigFile = object()
+		when(desktopConfigFile.readJSON()).thenResolve({
+			"tutao-config": {
+				defaultDesktopConfig: {},
+				configMigrationFunction: "",
 			},
 		})
+		when(desktopConfigFile.writeJSON(matchers.anything())).thenResolve(undefined)
+		when(desktopConfigFile.ensurePresence(matchers.anything())).thenResolve(undefined)
 
-		configMigrator = downcast({
-			applyMigrations: spy((migrationFunction, oldConfig) => {
-				return oldConfig
-			}),
-		})
+		configMigrator = object()
+		const configCaptor = matchers.captor()
+		when(configMigrator.applyMigrations(matchers.anything(), configCaptor.capture())).thenDo(() => Promise.resolve(configCaptor.value))
 
-		keyStoreFacade = downcast({
-			getDeviceKey: () => {
-				return "test"
-			},
-			getCredentialsKey: () => {
-				return "test"
-			},
-		})
+		keyStoreFacade = object()
+		when(keyStoreFacade.getDeviceKey()).thenResolve([1, 2, 3])
+		when(keyStoreFacade.getCredentialsKey()).thenResolve([4, 5, 6])
 
-		desktopCrypto = downcast({
-			aesDecryptObject: spy((key, value) => {
-				return "decrypted"
-			}),
-			aesEncryptObject: spy((key, value) => {
-				return "encrypted"
-			}),
-		})
+		desktopCrypto = object()
+		when(desktopCrypto.aesDecryptObject(matchers.anything(), matchers.anything())).thenReturn("decrypted")
+		when(desktopCrypto.aesEncryptObject(matchers.anything(), matchers.anything())).thenReturn("encrypted")
 
 		desktopConfig = new DesktopConfig(configMigrator, keyStoreFacade, desktopCrypto)
 		await desktopConfig.init(buildConfigFile, desktopConfigFile)
 	})
 
 	o("setVar updates config value", async function () {
-		const cb1 = spy(() => noOp())
+		const cb1 = fn<(a: any) => void>()
 		desktopConfig.on(DesktopConfigKey.lastBounds, cb1)
-
-		o(await desktopConfig.getVar(DesktopConfigKey.lastBounds)).equals(undefined)
-
 		await desktopConfig.setVar(DesktopConfigKey.lastBounds, "change")
-
-		o(await desktopConfig.getVar(DesktopConfigKey.lastBounds)).equals("change")
+		verify(cb1("change"), { times: 1 })
 		// writeJSON is called twice, because it is called once in the init
-		o(desktopConfigFile.writeJSON.callCount).equals(2)
-		o(cb1.callCount).equals(1)
+		verify(desktopConfigFile.writeJSON(matchers.argThat((a) => a.lastBounds === "change")), { times: 2 })
 	})
 
 	o("setVar updates correct config value", async function () {
-		const cb1 = spy(() => noOp())
-		const cb2 = spy(() => noOp())
+		const cb1 = fn<(a: any) => void>()
+		const cb2 = fn<(a: any) => void>()
 		desktopConfig.on(DesktopConfigKey.lastBounds, cb1)
 		desktopConfig.on(DesktopConfigKey.spellcheck, cb2)
 
@@ -105,10 +74,10 @@ o.spec("DesktopConfigTest", function () {
 
 		o(await desktopConfig.getVar(DesktopConfigKey.lastBounds)).equals("change")
 		o(await desktopConfig.getVar(DesktopConfigKey.spellcheck)).equals(undefined)
+		verify(cb1("change"), { times: 1 })
+		verify(cb2(matchers.anything()), { times: 0 })
 		// writeJSON is called twice, because it is called once in the init
-		o(desktopConfigFile.writeJSON.callCount).equals(2)
-		o(cb1.callCount).equals(1)
-		o(cb2.callCount).equals(0)
+		verify(desktopConfigFile.writeJSON(matchers.argThat((a) => a.lastBounds === "change")), { times: 2 })
 	})
 
 	o("removeAllListeners creates empty OnValueSetListeners object", function () {
@@ -135,6 +104,26 @@ o.spec("DesktopConfigTest", function () {
 
 		desktopConfig.removeListener(DesktopConfigKey.lastBounds, cb2)
 		o(desktopConfig.onValueSetListeners[DesktopConfigKey.lastBounds].length).equals(1)
-		o(desktopConfig.onValueSetListeners[DesktopConfigKey.lastBounds][0]).equals(cb1)
+		o(desktopConfig.onValueSetListeners[DesktopConfigKey.lastBounds][0]).deepEquals({ cb: cb1, once: false })
+	})
+
+	o("once listeners are only called once", async function () {
+		const onceCb = fn<(a: any) => void>()
+		desktopConfig.once(DesktopConfigKey.runAsTrayApp, onceCb)
+		verify(onceCb(matchers.anything()), { times: 0 })
+		await desktopConfig.setVar(DesktopConfigKey.runAsTrayApp, true)
+		verify(onceCb(matchers.anything()), { times: 1 })
+		await desktopConfig.setVar(DesktopConfigKey.runAsTrayApp, false)
+		verify(onceCb(matchers.anything()), { times: 1 })
+	})
+
+	o("on listeners are called multiple times", async function () {
+		const onCb = fn<(a: any) => void>()
+		desktopConfig.on(DesktopConfigKey.runAsTrayApp, onCb)
+		verify(onCb(matchers.anything()), { times: 0 })
+		await desktopConfig.setVar(DesktopConfigKey.runAsTrayApp, true)
+		verify(onCb(matchers.anything()), { times: 1 })
+		await desktopConfig.setVar(DesktopConfigKey.runAsTrayApp, false)
+		verify(onCb(matchers.anything()), { times: 2 })
 	})
 })
