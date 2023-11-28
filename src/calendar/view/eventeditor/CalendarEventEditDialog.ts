@@ -186,7 +186,7 @@ export async function showExistingCalendarEventEditDialog(
 				finish()
 
 				// Inform the user that the event was deleted, avoiding misunderstanding that the event was saved
-				if (EventSaveResult.NotFound) Dialog.message("eventNoLongerExists_msg")
+				if (result === EventSaveResult.NotFound) Dialog.message("eventNoLongerExists_msg")
 			}
 		} catch (e) {
 			if (e instanceof UserError) {
