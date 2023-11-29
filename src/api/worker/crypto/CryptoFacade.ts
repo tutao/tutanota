@@ -227,8 +227,7 @@ export class CryptoFacade {
 					const gk = this.userFacade.getGroupKey(instance._ownerGroup)
 					return this.resolveSessionKeyWithOwnerKey(instance, gk)
 				} else if (instance.ownerEncSessionKey) {
-					// TODO this is a service instance: Rename all ownerEncSessionKey attributes to _ownerEncSessionKey	 and add _ownerGroupId (set ownerEncSessionKey here automatically after resolving the group)
-					// add to payment data service
+					// this is a service instance
 					const gk = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Mail))
 					return this.resolveSessionKeyWithOwnerKey(instance, gk)
 				} else {
@@ -423,7 +422,7 @@ export class CryptoFacade {
 		instanceSessionKeyWithOwnerEncSessionKey: InstanceSessionKey,
 		decryptedSessionKey: number[],
 	) {
-		// TODO for which other type do we need to write this? ReceivedGroupInvitation etc.
+		// we only authenticate mail instances
 		const isMailInstance = isSameTypeRefByAttr(MailTypeRef, typeModel.app, typeModel.name)
 		if (isMailInstance) {
 			if (!encryptionAuthStatus) {
@@ -511,8 +510,7 @@ export class CryptoFacade {
 			const decryptedBucketKey = await this.pq.decapsulate(pqMessage, keyPair)
 			return { decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey), pqMessageSenderIdentityPubKey: pqMessage.senderIdentityPubKey }
 		} else {
-			const rsaKeys = keyPair as any // TODO is this ok?
-			const privateKey: RsaPrivateKey = rsaKeys.privateKey ? rsaKeys.privateKey : rsaKeys.privateRsaKey
+			const privateKey: RsaPrivateKey = keyPair.privateKey
 			const decryptedBucketKey = await this.rsa.decrypt(privateKey, pubEncBucketKey)
 			return { decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey), pqMessageSenderIdentityPubKey: null }
 		}
@@ -572,17 +570,13 @@ export class CryptoFacade {
 	 */
 	async resolveServiceSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<Aes128Key | Aes256Key | null> {
 		if (instance._ownerPublicEncSessionKey) {
-			const keypair = await this.loadKeypair(instance._ownerGroup)
+			const keyPair = await this.loadKeypair(instance._ownerGroup)
 
 			let decryptedBytes: Uint8Array
-			if (keypair instanceof PQKeyPairs) {
-				decryptedBytes = await this.pq.decapsulate(decodePQMessage(base64ToUint8Array(instance._ownerPublicEncSessionKey)), keypair)
+			if (keyPair instanceof PQKeyPairs) {
+				decryptedBytes = await this.pq.decapsulate(decodePQMessage(base64ToUint8Array(instance._ownerPublicEncSessionKey)), keyPair)
 			} else {
-				const keyPairs = keypair as any
-				decryptedBytes = await this.rsa.decrypt(
-					keyPairs.privateKey ? keyPairs.privateKey : keyPairs.privateRsaKey,
-					base64ToUint8Array(instance._ownerPublicEncSessionKey),
-				)
+				decryptedBytes = await this.rsa.decrypt(keyPair.privateKey, base64ToUint8Array(instance._ownerPublicEncSessionKey))
 			}
 			return uint8ArrayToBitArray(decryptedBytes)
 		}
@@ -729,18 +723,15 @@ export class CryptoFacade {
 
 	async authenticateSender(mailSenderAddress: string, senderIdentityPubKey: Uint8Array): Promise<EncryptionAuthStatus> {
 		let keyData = createPublicKeyGetIn()
-		// TODO use the correct version
 		keyData.mailAddress = mailSenderAddress
-
 		try {
 			const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
 			return publicKeyGetOut.pubEccKey != null && arrayEquals(publicKeyGetOut.pubEccKey, senderIdentityPubKey)
 				? EncryptionAuthStatus.PQ_AUTHENTICATION_SUCCEEDED
 				: EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED
 		} catch (e) {
-			// if (e instanceof NotFoundError) {
+			console.error("Could not authenticate sender", e)
 			return EncryptionAuthStatus.PQ_AUTHENTICATION_FAILED
-			// }
 		}
 	}
 

@@ -64,7 +64,7 @@ export function decryptKeyPair(encryptionKey: Aes128Key | Aes256Key, keyPair: En
 		if (keyPair.symEncPrivEccKey) {
 			const publicEccKey = assertNotNull(keyPair.pubEccKey)
 			const privateEccKey = aesDecrypt(encryptionKey, assertNotNull(keyPair.symEncPrivEccKey))
-			rsaKeyPair = { publicRsaKey: rsaKeyPair.publicKey, privateRsaKey: rsaKeyPair.privateKey, publicEccKey, privateEccKey }
+			rsaKeyPair = { publicKey: rsaKeyPair.publicKey, privateKey: rsaKeyPair.privateKey, publicEccKey, privateEccKey }
 		}
 		return rsaKeyPair
 	} else {
