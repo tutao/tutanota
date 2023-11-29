@@ -21,7 +21,6 @@ import {
 	CustomerInfoTypeRef,
 	CustomerServerPropertiesTypeRef,
 	CustomerTypeRef,
-	GroupInfoTypeRef,
 } from "../../../entities/sys/TypeRefs.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import type { Hex } from "@tutao/tutanota-utils"
@@ -59,6 +58,7 @@ import { ExposedOperationProgressTracker, OperationId } from "../../../main/Oper
 import { formatNameAndAddress } from "../../../common/utils/CommonFormatter.js"
 import { encodePQMessage } from "../PQMessage.js"
 import { PQFacade } from "../PQFacade.js"
+import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 
 assertWorkerOrNode()
 
@@ -280,11 +280,8 @@ export class CustomerFacade {
 		const systemAdminPubKey = this.cryptoFacade.getPublicKey({ pubEccKey, pubKyberKey, pubRsaKey })
 		let systemAdminPubEncAccountingInfoSessionKey
 		if (systemAdminPubKey instanceof PQPublicKeys) {
-			const senderIdentityKeyPair = generateEccKeyPair() // TODO use real users keypair after switching to pq here
-			const ephemeralKeyPair = generateEccKeyPair()
-			systemAdminPubEncAccountingInfoSessionKey = encodePQMessage(
-				await this.pq.encapsulate(senderIdentityKeyPair, ephemeralKeyPair, systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey)),
-			)
+			// we need to release tuta-crypt by default first before we can generate tuta-crypt keys for the system admin.
+			throw new ProgrammingError("system admin having pq key pair is not supported")
 		} else {
 			systemAdminPubEncAccountingInfoSessionKey = await this.rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey))
 		}

@@ -159,7 +159,7 @@ export class GroupManagementFacade {
 	}
 
 	generateInternalGroupData(
-		keyPair: RsaKeyPair, // FIXME change to generic keypair
+		keyPair: RsaKeyPair,
 		groupKey: Aes128Key,
 		groupInfoSessionKey: Aes128Key,
 		adminGroupId: Id | null,
