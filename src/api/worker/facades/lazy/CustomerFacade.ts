@@ -1,40 +1,29 @@
 import type { InvoiceData, PaymentData, SpamRuleFieldType, SpamRuleType } from "../../../common/TutanotaConstants.js"
 import { AccountType, BookingItemFeatureType, Const, CounterType, CryptoProtocolVersion, GroupType } from "../../../common/TutanotaConstants.js"
-import type {
-	AccountingInfo,
-	CustomDomainReturn,
-	CustomerServerProperties,
-	EmailSenderListElement,
-	PaymentDataServicePutReturn,
-} from "../../../entities/sys/TypeRefs.js"
 import {
+	AccountingInfo,
 	AccountingInfoTypeRef,
 	createBrandingDomainData,
 	createBrandingDomainDeleteData,
 	createCreateCustomerServerPropertiesData,
 	createCustomDomainData,
 	createEmailSenderListElement,
+	createInvoiceDataGetIn,
 	createMembershipAddData,
 	createMembershipRemoveData,
 	createPaymentDataServicePutData,
-	createPdfInvoiceServiceData,
+	CustomDomainReturn,
 	CustomerInfoTypeRef,
+	CustomerServerProperties,
 	CustomerServerPropertiesTypeRef,
 	CustomerTypeRef,
+	EmailSenderListElement,
+	PaymentDataServicePutReturn,
 } from "../../../entities/sys/TypeRefs.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import type { Hex } from "@tutao/tutanota-utils"
 import { assertNotNull, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
-import {
-	BrandingDomainService,
-	CreateCustomerServerProperties,
-	CustomDomainService,
-	MembershipService,
-	PaymentDataService,
-	PdfInvoiceService,
-	SystemKeysService,
-} from "../../../entities/sys/Services.js"
 import { createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
 import type { UserManagementFacade } from "./UserManagementFacade.js"
 import type { GroupManagementFacade } from "./GroupManagementFacade.js"
@@ -57,6 +46,17 @@ import { formatNameAndAddress } from "../../../common/utils/CommonFormatter.js"
 import { PQFacade } from "../PQFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { getWhitelabelDomainInfo } from "../../../common/utils/CustomerUtils.js"
+import {
+	BrandingDomainService,
+	CreateCustomerServerProperties,
+	CustomDomainService,
+	InvoiceDataService,
+	MembershipService,
+	PaymentDataService,
+	SystemKeysService,
+} from "../../../entities/sys/Services.js"
+import { PdfInvoiceGenerator } from "../../invoicegen/PdfInvoiceGenerator.js"
+import { PdfWriter } from "../../pdf/PdfWriter.js"
 
 assertWorkerOrNode()
 
@@ -72,6 +72,7 @@ export class CustomerFacade {
 		private readonly bookingFacade: BookingFacade,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
+		private readonly pdfWriter: PdfWriter,
 		private readonly pq: PQFacade,
 	) {}
 
@@ -424,21 +425,18 @@ export class CustomerFacade {
 		)
 	}
 
-	async downloadInvoice(invoiceNumber: string): Promise<DataFile> {
-		const data = createPdfInvoiceServiceData({
-			invoiceNumber,
-			invoice: null,
-		})
-		return this.serviceExecutor.get(PdfInvoiceService, data).then((returnData) => {
-			return {
-				_type: "DataFile",
-				name: String(invoiceNumber) + ".pdf",
-				mimeType: "application/pdf",
-				data: returnData.data,
-				size: returnData.data.byteLength,
-				id: undefined,
-			}
-		})
+	async generatePdfInvoice(invoiceNumber: string): Promise<DataFile> {
+		const invoiceData = await this.serviceExecutor.get(InvoiceDataService, createInvoiceDataGetIn({ invoiceNumber }))
+		const pdfGenerator = new PdfInvoiceGenerator(this.pdfWriter, invoiceData, invoiceNumber, this.getCustomerId())
+		const pdfFile = await pdfGenerator.generate()
+		return {
+			_type: "DataFile",
+			name: String(invoiceNumber) + ".pdf",
+			mimeType: "application/pdf",
+			data: pdfFile,
+			size: pdfFile.byteLength,
+			id: undefined,
+		}
 	}
 
 	async loadAccountingInfo(): Promise<AccountingInfo> {

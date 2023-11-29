@@ -1483,6 +1483,60 @@ export type Invoice = {
 	customer: Id;
 	items: InvoiceItem[];
 }
+export const InvoiceDataGetInTypeRef: TypeRef<InvoiceDataGetIn> = new TypeRef("sys", "InvoiceDataGetIn")
+
+export function createInvoiceDataGetIn(values: StrippedEntity<InvoiceDataGetIn>): InvoiceDataGetIn {
+	return Object.assign(create(typeModels.InvoiceDataGetIn, InvoiceDataGetInTypeRef), values)
+}
+
+export type InvoiceDataGetIn = {
+	_type: TypeRef<InvoiceDataGetIn>;
+
+	_format: NumberString;
+	invoiceNumber: string;
+}
+export const InvoiceDataGetOutTypeRef: TypeRef<InvoiceDataGetOut> = new TypeRef("sys", "InvoiceDataGetOut")
+
+export function createInvoiceDataGetOut(values: StrippedEntity<InvoiceDataGetOut>): InvoiceDataGetOut {
+	return Object.assign(create(typeModels.InvoiceDataGetOut, InvoiceDataGetOutTypeRef), values)
+}
+
+export type InvoiceDataGetOut = {
+	_type: TypeRef<InvoiceDataGetOut>;
+
+	_format: NumberString;
+	address: string;
+	country: string;
+	date: Date;
+	grandTotal: NumberString;
+	invoiceId: Id;
+	paymentMethod: NumberString;
+	subTotal: NumberString;
+	type: NumberString;
+	vat: NumberString;
+	vatIdNumber: null | string;
+	vatRate: NumberString;
+	vatType: NumberString;
+
+	items: InvoiceDataItem[];
+}
+export const InvoiceDataItemTypeRef: TypeRef<InvoiceDataItem> = new TypeRef("sys", "InvoiceDataItem")
+
+export function createInvoiceDataItem(values: StrippedEntity<InvoiceDataItem>): InvoiceDataItem {
+	return Object.assign(create(typeModels.InvoiceDataItem, InvoiceDataItemTypeRef), values)
+}
+
+export type InvoiceDataItem = {
+	_type: TypeRef<InvoiceDataItem>;
+
+	_id: Id;
+	amount: NumberString;
+	endDate: null | Date;
+	singlePrice: null | NumberString;
+	startDate: null | Date;
+	totalPrice: NumberString;
+	type: NumberString;
+}
 export const InvoiceInfoTypeRef: TypeRef<InvoiceInfo> = new TypeRef("sys", "InvoiceInfo")
 
 export function createInvoiceInfo(values: StrippedEntity<InvoiceInfo>): InvoiceInfo {

@@ -38,6 +38,7 @@ globalThis.requestAnimationFrame = globalThis.requestAnimationFrame || ((callbac
 globalThis.btoa = (str) => Buffer.from(str, "binary").toString("base64")
 globalThis.atob = (b64Encoded) => Buffer.from(b64Encoded, "base64").toString("binary")
 globalThis.WebSocket = noOp
+globalThis.window.CompressionStream = CompressionStream
 
 const nowOffset = Date.now()
 globalThis.performance = {

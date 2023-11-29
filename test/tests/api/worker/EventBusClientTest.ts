@@ -3,13 +3,6 @@ import { ConnectMode, EventBusClient, EventBusListener } from "../../../../src/a
 import { GroupType, OperationType } from "../../../../src/api/common/TutanotaConstants.js"
 import type { EntityUpdate } from "../../../../src/api/entities/sys/TypeRefs.js"
 import {
-	createEntityEventBatch,
-	createEntityUpdate,
-	createGroupMembership,
-	createUser,
-	createWebsocketCounterData,
-	createWebsocketCounterValue,
-	createWebsocketEntityData,
 	EntityEventBatchTypeRef,
 	EntityUpdateTypeRef,
 	GroupMembershipTypeRef,
