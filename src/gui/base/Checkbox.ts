@@ -17,7 +17,6 @@ export type CheckboxAttrs = {
 export class Checkbox implements Component<CheckboxAttrs> {
 	private focused: boolean
 	private _domInput: HTMLElement | null = null
-	private _domIcon: HTMLElement | null = null
 
 	constructor() {
 		this.focused = false
@@ -39,6 +38,9 @@ export class Checkbox implements Component<CheckboxAttrs> {
 				m(
 					`.wrapper.flex.items-center${a.disabled ? ".disabled" : ""}`,
 					{
+						role: "checkbox",
+						"aria-checked": String(a.checked),
+						"aria-disabled": String(a.disabled),
 						oncreate: (vnode) => {
 							if (!a.disabled) addFlash(vnode.dom)
 						},
@@ -49,15 +51,14 @@ export class Checkbox implements Component<CheckboxAttrs> {
 					[
 						m(Icon, {
 							icon: a.checked ? BootIcons.CheckboxSelected : BootIcons.Checkbox,
-							class: this.focused ? "svg-content-accent-fg" : "svg-content-fg",
-							oncreate: (vnode) => (this._domIcon = vnode.dom as HTMLElement),
+							class: "abs",
 						}),
 						m(
-							"label.pl",
+							"label",
 							{
 								class: this.focused ? "content-accent-fg" : "content-fg",
 								onclick: (e: MouseEvent) => {
-									// if the label contains a link, then stop the event so that the checkbox doesnt get toggled upon clicking
+									// if the label contains a link, then stop the event so that the checkbox doesn't get toggled upon clicking
 									// we still allow it to be checked if they click on the non-link part of the label
 									if (e.target instanceof HTMLElement && e.target.tagName.toUpperCase() === "A") {
 										e.stopPropagation()
@@ -71,19 +72,17 @@ export class Checkbox implements Component<CheckboxAttrs> {
 								checked: a.checked,
 								onfocus: () => (this.focused = true),
 								onblur: () => (this.focused = false),
-								onremove: (e) => {
+								onremove: () => {
 									// workaround for chrome error on login with return shortcut "Error: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?"
 									// TODO test if still needed with mithril 1.1.1
 									if (this._domInput) this._domInput.onblur = null
 								},
 								style: {
 									opacity: 0,
-									position: "absolute",
 									cursor: a.disabled ? "default" : "pointer",
 									z_index: -1,
 								},
 								disabled: a.disabled,
-								"aria-disabled": String(a.disabled),
 							}),
 							a.label(),
 						),
