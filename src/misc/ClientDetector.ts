@@ -382,6 +382,10 @@ export class ClientDetector {
 			indexedDbSupported: this.indexedDb(),
 		}
 	}
+
+	compressionStreamSupported(): boolean {
+		return typeof CompressionStream !== "undefined"
+	}
 }
 
 export const client: ClientDetector = new ClientDetector()
