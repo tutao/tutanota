@@ -60,6 +60,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	console.log("started copying images", measure())
 	await fs.copy(path.join(projectDir, "/resources/images"), path.join(projectDir, "/build/images"))
 	await fs.copy(path.join(projectDir, "/resources/favicon"), path.join(projectDir, "build/images"))
+	await fs.copy(path.join(projectDir, "/resources/pdf"), path.join(projectDir, "build/pdf"))
 	await fs.copy(path.join(projectDir, "/resources/wordlibrary.json"), path.join(projectDir, "build/wordlibrary.json"))
 	await fs.copy(path.join(projectDir, "/src/braintree.html"), path.join(projectDir, "/build/braintree.html"))
 

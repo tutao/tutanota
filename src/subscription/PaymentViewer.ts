@@ -35,6 +35,8 @@ import { DebitService } from "../api/entities/sys/Services"
 import { IconButton } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
+import { client } from "../misc/ClientDetector.js"
+import { DeviceType } from "../misc/ClientConstants.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
@@ -255,9 +257,26 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 							icon: Icons.Download,
 							size: ButtonSize.Compact,
 							click: () => {
-								showProgressDialog("pleaseWait_msg", locator.customerFacade.downloadInvoice(neverNull(posting.invoiceNumber))).then(
-									(pdfInvoice) => locator.fileController.saveDataFile(pdfInvoice),
-								)
+								if (client.compressionStreamSupported()) {
+									showProgressDialog("pleaseWait_msg", locator.customerFacade.generatePdfInvoice(neverNull(posting.invoiceNumber))).then(
+										(pdfInvoice) => locator.fileController.saveDataFile(pdfInvoice),
+									)
+								} else {
+									if (client.device == DeviceType.ANDROID) {
+										// fixme: clickable link, phrase
+										Dialog.confirm(
+											() =>
+												"Can not generate invoice PDF due to outdated system WebView. Please see FAQ entry for more information: https://tuta.com/faq/#webview",
+										)
+									} else if (client.isIos()) {
+										Dialog.confirm(
+											() =>
+												"Can not generate invoice PDF due to outdated iOS version. Exporting invoices is supported from iOS 16.4 on. Please update your iOS or export the invoice from another device.",
+										)
+									} else {
+										Dialog.confirm(() => "Seems like your browser is not supported or outdated.")
+									}
+								}
 							},
 					  }
 					: null,

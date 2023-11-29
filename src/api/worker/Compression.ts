@@ -269,7 +269,7 @@ export function compress(source: Uint8Array): Uint8Array {
 	return dest.slice(0, destPos)
 }
 
-export class CompressionError extends Error {
+export class zCompressionError extends Error {
 	constructor(message: string) {
 		super(message)
 	}
