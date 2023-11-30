@@ -65,6 +65,7 @@ export class Icon implements Component<IconAttrs> {
 	}
 
 	private moveElementIfOffscreen(root: HTMLElement, tooltip: HTMLElement): void {
+		tooltip.style.removeProperty("left")
 		const tooltipRect = tooltip.getBoundingClientRect()
 		// Get the width of the area in pixels that the tooltip penetrates the viewport
 		const distanceOver = tooltipRect.x + tooltipRect.width - window.innerWidth
