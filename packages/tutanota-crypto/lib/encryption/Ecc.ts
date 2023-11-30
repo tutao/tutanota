@@ -1,4 +1,5 @@
 import { x25519 } from "@noble/curves/ed25519"
+import { random } from "../random/Randomizer.js"
 
 export type EccPrivateKey = Uint8Array
 export type EccPublicKey = Uint8Array
@@ -24,13 +25,17 @@ export type EccSharedSecrets = {
 	authSharedSecret: Uint8Array
 }
 
+// The number of bytes for a private key in the curve
+// the byte length of the modulus
+const X25519_N_BYTE_LENGTH = 32
+
 /**
  * @return randomly generated X25519 key pair
  */
 export function generateEccKeyPair(): EccKeyPair {
-	// noble-curves appears to clamp the private key when using it, but not when generating it, so for safety, we do not want to store it un-clamped in case we
-	// use a different implementation later
-	const privateKey = clampPrivateKey(x25519.utils.randomPrivateKey())
+	// noble-curves appears to clamp the private key when using it, but not when generating it, so for safety,
+	// we do not want to store it un-clamped in case we use a different implementation later
+	const privateKey = clampPrivateKey(random.generateRandomData(X25519_N_BYTE_LENGTH))
 	const publicKey = derivePublicKey(privateKey)
 	return { privateKey, publicKey }
 }
