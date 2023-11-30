@@ -1,3 +1,12 @@
+/**
+ * this script finds a given native modules version as found in package-lock.json and
+ * outputs the path where a cached build would be expected to stdout.
+ * We can then restore that path from cache.
+ *
+ * This is useful in CI to know the location of the build before
+ * we install the dependencies and rebuild from scratch.
+ * (see .github/workflows/test.yml)
+ * */
 import fs from "node:fs/promises"
 import { buildCachedLibPath } from "./nativeLibraryProvider.js"
 
