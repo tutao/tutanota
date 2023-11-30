@@ -118,23 +118,12 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 				m(NavButton, {
 					...button,
 					onfocus: onHover,
-					onblur: () => {
-						// The setTimout is so that there is some time to tab to the rightButton
-						// otherwise it disappears immediately and is unreachable on keyboard
-						setTimeout(() => {
-							this.hovered = false
-						}, 5)
-					},
 					onkeydown: handleBackwardsTab,
 				}),
 				// show the edit button in either edit mode or on hover (excluding hover on mobile)
 				rightButton && (editMode || (!client.isMobileDevice() && this.hovered))
 					? m(IconButton, {
 							...rightButton,
-							onblur: () => {
-								this.rightButtonClicked = false
-								m.redraw()
-							},
 							click: (event, dom) => {
 								// Don't ask me why, but you need to set this to true twice
 								// to have hovering off the folder row work correctly on web
