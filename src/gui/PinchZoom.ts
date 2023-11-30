@@ -33,7 +33,8 @@ export class PinchZoom {
 	private currentTouchStart: {
 		x: number
 		y: number
-	} = { x: 0, y: 0 }
+		startTime: number
+	} = { x: 0, y: 0, startTime: 0 }
 	// dragging below this threshold is not considered dragging, but noise
 	static DRAG_THRESHOLD = 10
 
@@ -51,6 +52,12 @@ export class PinchZoom {
 	/// dragging
 	// null if there was no previous touch position related to dragging
 	private lastDragTouchPosition: CoordinatePair | null = null
+
+	// Apple considers that a press event is a long press after 500ms
+	// Google considers after 400ms
+	// https://developer.apple.com/documentation/uikit/uilongpressgesturerecognizer/1616423-minimumpressduration
+	// https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/view/ViewConfiguration.java
+	private readonly LONG_PRESS_MIN_MS = 400
 
 	/// double tap
 	// Two consecutive taps are recognized as double tap if they occur within this time span
@@ -131,7 +138,7 @@ export class PinchZoom {
 		this.onTouchStartListener = this.zoomable.ontouchstart = (e) => {
 			const touch = e.touches[0]
 
-			this.currentTouchStart = { x: touch.clientX, y: touch.clientY }
+			this.currentTouchStart = { x: touch.clientX, y: touch.clientY, startTime: Date.now() }
 
 			if (e.touches.length >= 2) {
 				this.draggingOrZooming = true
@@ -499,7 +506,10 @@ export class PinchZoom {
 					Math.abs(touch.clientY - this.currentTouchStart.y) < this.SAME_POSITION_RADIUS
 				) {
 					// at this point we are sure that there is no second tap for a double tap
-					window.getSelection()?.empty() // deselect any selected text
+
+					// We need to verify if it was a long press, so we don't clear the text selection in this case
+					if (now - this.currentTouchStart.startTime < this.LONG_PRESS_MIN_MS) window.getSelection()?.empty() // deselect any selected text
+
 					singleClickAction(event, target)
 				}
 			}, this.DOUBLE_TAP_TIME_MS)
