@@ -410,8 +410,8 @@ export class LoginViewModel implements ILoginViewModel {
 					if (e instanceof KeyPermanentlyInvalidatedError) {
 						await this.credentialsProvider.clearCredentials(e)
 						await this._updateCachedCredentials()
-					} else if (e instanceof DeviceStorageUnavailableError) {
-						console.warn("device storage unavailable, cannot save credentials:", e)
+					} else if (e instanceof DeviceStorageUnavailableError || e instanceof CancelledError) {
+						console.warn("will proceed with ephemeral credentials because device storage is unavailable:", e)
 					} else {
 						throw e
 					}
