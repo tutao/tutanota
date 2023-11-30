@@ -59,7 +59,7 @@ export function showTemplatePopupInEditor(templateModel: TemplatePopupModel, edi
 		rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom, popUpWidth, cursorRect.height)
 	}
 
-	const popup = new TemplatePopup(templateModel, rect, onSelect, initialSearchString)
+	const popup = new TemplatePopup(templateModel, rect, onSelect, initialSearchString, () => editor.focus())
 	templateModel.search(initialSearchString)
 	popup.show()
 }
@@ -77,7 +77,13 @@ export class TemplatePopup implements ModalComponent {
 	private _inputDom: HTMLElement | null = null
 	private _debounceFilter: (_: string) => void
 
-	constructor(templateModel: TemplatePopupModel, rect: PosRect, onSelect: (arg0: string) => void, initialSearchString: string) {
+	constructor(
+		templateModel: TemplatePopupModel,
+		rect: PosRect,
+		onSelect: (arg0: string) => void,
+		initialSearchString: string,
+		private readonly restoreEditorFocus?: () => void,
+	) {
 		this._rect = rect
 		this._onSelect = onSelect
 		this._initialWindowWidth = window.innerWidth
@@ -93,7 +99,7 @@ export class TemplatePopup implements ModalComponent {
 				key: Keys.ESC,
 				enabled: () => true,
 				exec: () => {
-					this._onSelect("")
+					this.restoreEditorFocus?.()
 
 					this._close()
 
@@ -434,8 +440,7 @@ export class TemplatePopup implements ModalComponent {
 	}
 
 	backgroundClick(e: MouseEvent): void {
-		this._onSelect("")
-
+		this.restoreEditorFocus?.()
 		this._close()
 	}
 
