@@ -324,9 +324,10 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		onEventClicked: CalendarEventBubbleClickHandler,
 		temporaryEvents: Array<CalendarEvent>,
 	): Children {
+		const longEventsResult = this.renderLongEvents(thisPageEvents.days, thisPageEvents.longEvents, groupColors, onEventClicked, temporaryEvents)
 		// We calculate the height manually because we want the header to transition between heights when swiping left and right
 		// Hardcoding some styles instead of classes so that we can avoid nasty magic numbers
-		const mainPageEventsCount = thisPageEvents.longEvents.length
+		const mainPageEventsCount = longEventsResult.maxEventsInColumn
 		const padding = mainPageEventsCount !== 0 ? size.vpad_small : 0
 		// Set bottom padding in height, because it will be ignored in the style
 		const height = mainPageEventsCount * CALENDAR_EVENT_HEIGHT + padding
@@ -341,7 +342,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 					transition: "height 200ms ease-in-out",
 				},
 			},
-			this.renderLongEvents(thisPageEvents.days, thisPageEvents.longEvents, groupColors, onEventClicked, temporaryEvents).children,
+			longEventsResult.children,
 		)
 	}
 
