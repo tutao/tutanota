@@ -1,7 +1,7 @@
 import m, { Children, Component } from "mithril"
 import { px, size } from "../../gui/size"
 import { Button, ButtonType } from "../../gui/base/Button.js"
-import { createMail, createMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
+import { createMail, createMailAddress, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { MailRow } from "../../mail/view/MailRow"
 import { noOp } from "@tutao/tutanota-utils"
 import { IconButton } from "../../gui/base/IconButton.js"
@@ -73,17 +73,8 @@ export class CustomColorEditorPreview implements Component {
 	}
 
 	renderPreviewMailRow(): Children {
-		const mail = createMail({
-			sender: createMailAddress({
-				address: "m.mustermann@example.com",
-				name: "Max Mustermann",
-				contact: null,
-			}),
+		const mailTemplate = {
 			receivedDate: new Date(),
-			subject: "Mail 1",
-			unread: false,
-			replyType: "0",
-			confidential: true,
 			attachments: [],
 			state: "2",
 			mailDetails: null,
@@ -94,8 +85,7 @@ export class CustomColorEditorPreview implements Component {
 			bucketKey: null,
 			ccRecipients: [],
 			headers: null,
-			// @ts-ignore
-			conversationEntry: null, // FIXME
+			conversationEntry: ["listId", "conversationId"],
 			differentEnvelopeSender: null,
 			firstRecipient: null,
 			listUnsubscribe: false,
@@ -107,6 +97,18 @@ export class CustomColorEditorPreview implements Component {
 			restrictions: null,
 			sentDate: null,
 			toRecipients: [],
+		} satisfies Partial<Mail>
+		const mail = createMail({
+			sender: createMailAddress({
+				address: "m.mustermann@example.com",
+				name: "Max Mustermann",
+				contact: null,
+			}),
+			subject: "Mail 1",
+			unread: false,
+			replyType: "0",
+			confidential: true,
+			...mailTemplate,
 		})
 		const mail2 = createMail({
 			sender: createMailAddress({
@@ -114,21 +116,11 @@ export class CustomColorEditorPreview implements Component {
 				name: "Max Mustermann",
 				contact: null,
 			}),
-			receivedDate: new Date(),
 			subject: "Mail 2",
 			unread: true,
 			replyType: "1",
 			confidential: false,
-			attachments: [],
-			state: "2",
-			authStatus: null,
-			sentDate: null,
-			phishingStatus: "0",
-			mailDetailsDraft: null,
-			// @ts-ignore
-			conversationEntry: null, // FIXME
-			headers: null,
-			mailDetails: null,
+			...mailTemplate,
 		})
 		return m(
 			".rel",

@@ -22,7 +22,9 @@ import { assertSystemFolderOfType } from "../api/common/mail/CommonMailUtils.js"
 
 assertMainOrNode()
 
-export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRule) {
+export type InboxRuleTemplate = Pick<InboxRule, "type" | "value"> & { _id?: InboxRule["_id"]; targetFolder?: InboxRule["targetFolder"] }
+
+export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemplate) {
 	if (locator.logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog()
 	} else if (mailBoxDetail) {
@@ -34,7 +36,7 @@ export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRule) {
 		})
 		const inboxRuleType = stream(ruleOrTemplate.type)
 		const inboxRuleValue = stream(ruleOrTemplate.value)
-		const selectedFolder = mailBoxDetail.folders.getFolderById(ruleOrTemplate.targetFolder)
+		const selectedFolder = ruleOrTemplate.targetFolder == null ? null : mailBoxDetail.folders.getFolderById(ruleOrTemplate.targetFolder)
 		const inboxRuleTarget = stream(selectedFolder ?? assertSystemFolderOfType(mailBoxDetail.folders, MailFolderType.ARCHIVE))
 
 		let form = () => [
@@ -63,8 +65,6 @@ export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRule) {
 			}),
 		]
 
-		const isNewRule = ruleOrTemplate._id === null
-
 		const addInboxRuleOkAction = (dialog: Dialog) => {
 			let rule = createInboxRule({
 				type: inboxRuleType(),
@@ -73,9 +73,8 @@ export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRule) {
 			})
 			const props = locator.logins.getUserController().props
 			const inboxRules = props.inboxRules
-			props.inboxRules = isNewRule
-				? [...inboxRules, rule]
-				: inboxRules.map((inboxRule) => (isSameId(inboxRule._id, ruleOrTemplate._id) ? rule : inboxRule))
+			const ruleId = ruleOrTemplate._id
+			props.inboxRules = ruleId == null ? [...inboxRules, rule] : inboxRules.map((inboxRule) => (isSameId(inboxRule._id, ruleId) ? rule : inboxRule))
 
 			locator.entityClient
 				.update(props)
@@ -107,16 +106,14 @@ export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRule) {
 	}
 }
 
-export function createInboxRuleTemplate(ruleType: string | null, value: string | null): InboxRule {
-	return createInboxRule({
-		type: ruleType || InboxRuleType.FROM_EQUALS,
+export function createInboxRuleTemplate(ruleType: string | null, value: string | null): InboxRuleTemplate {
+	return {
+		type: ruleType ?? InboxRuleType.FROM_EQUALS,
 		value: getCleanedValue(neverNull(ruleType), value || ""),
-		// @ts-ignore
-		targetFolder: null, // FIXME
-	})
+	}
 }
 
-function validateInboxRuleInput(type: string, value: string, ruleId: Id): TranslationKey | null {
+function validateInboxRuleInput(type: string, value: string, ruleId: Id | undefined): TranslationKey | null {
 	let currentCleanedValue = getCleanedValue(type, value)
 
 	if (currentCleanedValue === "") {

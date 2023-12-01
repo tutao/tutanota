@@ -1,13 +1,13 @@
-import { AlarmInfo, createAlarmInfo } from "../../../api/entities/sys/TypeRefs.js"
 import { generateEventElementId } from "../../../api/common/utils/CommonCalendarUtils.js"
 import { noOp, remove } from "@tutao/tutanota-utils"
 import { EventType } from "./CalendarEventModel.js"
 import { DateProvider } from "../../../api/common/DateProvider.js"
 import { AlarmInterval, alarmIntervalToLuxonDurationLikeObject, serializeAlarmInterval } from "../CalendarUtils.js"
 import { Duration } from "luxon"
+import { AlarmInfoTemplate } from "../../../api/worker/facades/lazy/CalendarFacade.js"
 
 export type CalendarEventAlarmModelResult = {
-	alarms: Array<AlarmInfo>
+	alarms: Array<AlarmInfoTemplate>
 }
 
 /**
@@ -61,13 +61,11 @@ export class CalendarEventAlarmModel {
 		}
 	}
 
-	private makeNewAlarm(alarmInterval: AlarmInterval) {
-		return createAlarmInfo({
+	private makeNewAlarm(alarmInterval: AlarmInterval): AlarmInfoTemplate {
+		return {
 			alarmIdentifier: generateEventElementId(this.dateProvider.now()),
 			trigger: serializeAlarmInterval(alarmInterval),
-			// @ts-ignore
-			calendarRef: null, // FIXME
-		})
+		}
 	}
 
 	/**

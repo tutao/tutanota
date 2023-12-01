@@ -17,15 +17,16 @@ import { AlarmIntervalUnit, generateUid, getTimeZone, parseAlarmInterval } from 
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { createFile } from "../../api/entities/tutanota/TypeRefs.js"
 import { convertToDataFile, DataFile } from "../../api/common/DataFile"
-import type { AlarmInfo, DateWrapper, RepeatRule, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
+import type { DateWrapper, RepeatRule, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator"
 import { DateTime } from "luxon"
 import { CALENDAR_MIME_TYPE } from "../../file/FileController"
 import { getLetId } from "../../api/common/utils/EntityUtils"
+import { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
 
 export type ParsedEvent = {
 	event: Require<"uid", CalendarEvent>
-	alarms: Array<AlarmInfo>
+	alarms: Array<AlarmInfoTemplate>
 }
 
 export type ParsedCalendarData = {
