@@ -27,7 +27,7 @@ pipeline {
 		booleanParam(
 			name: "dictionaries",
 			defaultValue: false,
-			description "download, update and package the current desktop dictionaries"
+			description: "download, update and package the current desktop dictionaries"
 		)
         booleanParam(
             name: 'web',
