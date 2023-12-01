@@ -420,11 +420,7 @@ export class MailViewerViewModel {
 	}
 
 	isBlockingExternalImages(): boolean {
-		return (
-			this.contentBlockingStatus === ContentBlockingStatus.Block ||
-			this.contentBlockingStatus === ContentBlockingStatus.AlwaysBlock ||
-			this.contentBlockingStatus === ContentBlockingStatus.NoExternalContent
-		)
+		return this.contentBlockingStatus === ContentBlockingStatus.Block || this.contentBlockingStatus === ContentBlockingStatus.AlwaysBlock
 	}
 
 	getDifferentEnvelopeSender(): string | null {
