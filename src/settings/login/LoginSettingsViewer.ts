@@ -30,6 +30,7 @@ import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
 import { UsageTestModel } from "../../misc/UsageTestModel.js"
 import { UserSettingsGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { Dialog } from "../../gui/base/Dialog.js"
 
 assertMainOrNode()
 
@@ -217,8 +218,8 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 
 	private _renderActiveSessions(): Children {
 		return m(Table, {
-			columnHeading: ["client_label", "lastAccess_label", "IpAddress_label"],
-			columnWidths: [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small],
+			columnHeading: ["client_label"],
+			columnWidths: [ColumnWidth.Largest],
 			showActionButtonColumn: true,
 			lines: this._sessions
 				.filter((session) => session.state === SessionState.SESSION_STATE_ACTIVE)
@@ -226,10 +227,15 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					const thisSession = elementIdPart(locator.logins.getUserController().sessionId) === getElementId(session)
 
 					return {
-						cells: [
-							thisSession ? lang.get("thisClient_label") : session.clientIdentifier,
-							formatDateTimeFromYesterdayOn(session.lastAccessTime),
-							session.loginIpAddress ? session.loginIpAddress : "",
+						cells: () => [
+							{
+								main: thisSession ? lang.get("thisClient_label") : session.clientIdentifier,
+								info: [
+									`${lang.get("lastAccess_label")}: ${formatDateTimeFromYesterdayOn(session.lastAccessTime)}`,
+									session.loginIpAddress ? session.loginIpAddress : "",
+								],
+								click: () => this.showActiveSessionInfoDialog(session, thisSession),
+							},
 						],
 						actionButtonAttrs: thisSession
 							? null
@@ -244,6 +250,38 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					}
 				}),
 		})
+	}
+
+	private showActiveSessionInfoDialog(session: Session, isThisSession: boolean) {
+		const actionDialogProperties = {
+			title: () => lang.get("details_label"),
+			child: {
+				view: () => {
+					return [
+						m(TextField, {
+							label: "client_label",
+							value: isThisSession ? lang.get("thisClient_label") : session.clientIdentifier,
+							disabled: true,
+						}),
+						m(TextField, {
+							label: "lastAccess_label",
+							value: `${formatDateTimeFromYesterdayOn(session.lastAccessTime)}`,
+							disabled: true,
+						}),
+						m(TextField, {
+							label: "IpAddress_label",
+							value: session.loginIpAddress ? session.loginIpAddress : "",
+							disabled: true,
+						}),
+					]
+				},
+			},
+			okAction: null,
+			allowCancel: true,
+			allowOkWithReturn: false,
+			cancelActionTextId: "close_alt",
+		} as const
+		Dialog.showActionDialog(actionDialogProperties)
 	}
 
 	private _closeSession(session: Session) {
