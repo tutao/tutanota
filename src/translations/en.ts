@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2023-11-27T09:57:12Z",
+	"updated_at": "2023-11-29T09:57:17Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -39,6 +39,7 @@ export default {
 		"activeSessions_label": "Active sessions",
 		"active_label": "Active",
 		"actor_label": "Actor",
+		"addAccount_action": "Add account",
 		"addAliasUserDisabled_msg": "The email address could not be added to the user or group because the user is currently deactivated.",
 		"addCalendar_action": "Add calendar",
 		"addContactList_action": "Add contact list",
@@ -1236,6 +1237,7 @@ export default {
 		"reminderBeforeEvent_label": "Reminder before event",
 		"remindersUsageDescription_msg": "Shows notification when new email arrives.",
 		"reminder_label": "Reminder",
+		"removeAccount_action": "Remove account",
 		"removeCalendarParticipantConfirm_msg": "Are you sure you want to remove {participant} from the calendar \"{calendarName}\"?",
 		"removeDNSValue_label": "Remove value",
 		"removeFormatting_action": "Remove formatting from selection",
@@ -1421,6 +1423,7 @@ export default {
 		"supportMenu_label": "Support",
 		"suspiciousLink_msg": "Are you sure you want to open \"{url}\"? The link might run programs on your device. Only open links from trusted sources.",
 		"suspiciousLink_title": "Suspicious link",
+		"switchAccount_action": "Switch account",
 		"switchAgendaView_action": "Switch to agenda view",
 		"switchArchive_action": "Switch to archive folder",
 		"switchColorTheme_action": "Switch color theme",
