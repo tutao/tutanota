@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2023-11-29T09:57:17Z",
+	"updated_at": "2023-12-01T09:51:42Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -108,7 +108,7 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Android App bei F-Droid",
 		"appInfoIosImageAlt_alt": "iOS App im Apple store",
 		"apply_action": "Übernehmen",
-		"archive_action": "Archiv",
+		"archive_action": "Archivieren",
 		"archive_label": "Archiv",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Du kannst lokal administrierte Benutzer nicht zum globalen Admin machen.",
 		"attachFiles_action": "Dateien anhängen",
