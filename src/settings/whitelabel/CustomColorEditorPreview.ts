@@ -94,7 +94,6 @@ export class CustomColorEditorPreview implements Component {
 			phishingStatus: "0",
 			recipientCount: "0",
 			replyTos: [],
-			restrictions: null,
 			sentDate: null,
 			toRecipients: [],
 		} satisfies Partial<Mail>
