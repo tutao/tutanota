@@ -185,7 +185,7 @@ export class CalendarFacade {
 		}
 	}
 
-	async saveCalendarEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfo>, oldEvent: CalendarEvent | null): Promise<void> {
+	async saveCalendarEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>, oldEvent: CalendarEvent | null): Promise<void> {
 		if (event._id == null) throw new Error("No id set on the event")
 		if (event._ownerGroup == null) throw new Error("No _ownerGroup is set on the event")
 		if (event.uid == null) throw new Error("no uid set on the event")
@@ -206,7 +206,7 @@ export class CalendarFacade {
 		)
 	}
 
-	async updateCalendarEvent(event: CalendarEvent, newAlarms: ReadonlyArray<AlarmInfo>, existingEvent: CalendarEvent): Promise<void> {
+	async updateCalendarEvent(event: CalendarEvent, newAlarms: ReadonlyArray<AlarmInfoTemplate>, existingEvent: CalendarEvent): Promise<void> {
 		event._id = existingEvent._id
 		event._ownerEncSessionKey = existingEvent._ownerEncSessionKey
 		event._permissions = existingEvent._permissions
@@ -399,7 +399,7 @@ export class CalendarFacade {
 		user: User,
 		eventsWrapper: Array<{
 			event: CalendarEvent
-			alarms: ReadonlyArray<AlarmInfo>
+			alarms: ReadonlyArray<AlarmInfoTemplate>
 		}>,
 	): Promise<Array<AlarmNotificationsPerEvent>> {
 		const userAlarmInfosAndNotificationsPerEvent: Array<{
@@ -561,3 +561,5 @@ export const enum CachingMode {
 	Cached,
 	Bypass,
 }
+
+export type AlarmInfoTemplate = Pick<AlarmInfo, "alarmIdentifier" | "trigger">

@@ -65,7 +65,7 @@ import {
 	Mail,
 	MailboxProperties,
 } from "../../../api/entities/tutanota/TypeRefs.js"
-import { AlarmInfo, DateWrapper, User } from "../../../api/entities/sys/TypeRefs.js"
+import { DateWrapper, User } from "../../../api/entities/sys/TypeRefs.js"
 import { MailboxDetail } from "../../../mail/model/MailModel.js"
 import {
 	AlarmInterval,
@@ -102,6 +102,7 @@ import { CalendarEventApplyStrategies, CalendarEventModelStrategy } from "./Cale
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { getDefaultSender } from "../../../mail/model/MailUtils.js"
 import { SimpleTextViewModel } from "../../../misc/SimpleTextViewModel.js"
+import { AlarmInfoTemplate } from "../../../api/worker/facades/lazy/CalendarFacade.js"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {
@@ -477,7 +478,7 @@ export function assertEventValidity(event: CalendarEvent) {
  */
 export function assembleCalendarEventEditResult(models: CalendarEventEditModels): {
 	eventValues: CalendarEventValues
-	newAlarms: ReadonlyArray<AlarmInfo>
+	newAlarms: ReadonlyArray<AlarmInfoTemplate>
 	sendModels: CalendarNotificationSendModels
 	calendar: CalendarInfo
 } {
@@ -548,27 +549,13 @@ export function assembleEditResultAndAssignFromExisting(existingEvent: CalendarE
  * @param identity sequence (default "0") and recurrenceId (default null) are optional, but the uid must be specified.
  */
 export function assignEventIdentity(values: CalendarEventValues, identity: Require<"uid", Partial<CalendarEventIdentity>>): CalendarEvent {
-	return Object.assign(
-		createCalendarEvent({
-			sequence: "0",
-			organizer: null,
-			attendees: [],
-			description: "",
-			repeatRule: null,
-			location: "",
-			summary: "",
-			endTime: new Date(),
-			uid: null,
-			startTime: new Date(),
-			recurrenceId: null,
-			invitedConfidentially: null,
-			// @ts-ignore
-			alarmInfos: null, // FIXME
-			hashedUid: null,
-		}),
-		values,
-		identity,
-	)
+	return createCalendarEvent({
+		sequence: "0",
+		recurrenceId: null,
+		hashedUid: null,
+		...values,
+		...identity,
+	})
 }
 
 async function resolveAlarmsForEvent(alarms: CalendarEvent["alarmInfos"], calendarModel: CalendarModel, user: User): Promise<Array<AlarmInterval>> {
@@ -578,8 +565,7 @@ async function resolveAlarmsForEvent(alarms: CalendarEvent["alarmInfos"], calend
 
 function makeEmptyCalendarEvent(): StrippedEntity<CalendarEvent> {
 	return {
-		// @ts-ignore
-		alarmInfos: null, // FIXME
+		alarmInfos: [],
 		invitedConfidentially: null,
 		hashedUid: null,
 		uid: null,

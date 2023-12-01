@@ -15,7 +15,7 @@ import {
 	EncryptedMailAddressTypeRef,
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import { DateTime } from "luxon"
-import { AlarmInfoTypeRef, DateWrapperTypeRef, RepeatRuleTypeRef, UserAlarmInfoTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
+import { AlarmInfo, AlarmInfoTypeRef, DateWrapperTypeRef, RepeatRuleTypeRef, UserAlarmInfoTypeRef } from "../../../src/api/entities/sys/TypeRefs.js"
 import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../src/api/common/TutanotaConstants.js"
 import { getAllDayDateUTC } from "../../../src/api/common/utils/CommonCalendarUtils.js"
 import { getAllDayDateUTCFromZone } from "../../../src/calendar/date/CalendarUtils.js"
@@ -956,9 +956,10 @@ o.spec("CalendarImporterTest", function () {
 								repeatRule: null,
 							}),
 							alarms: [
-								createTestEntity(AlarmInfoTypeRef, {
+								{
 									trigger: "15D",
-								}),
+									alarmIdentifier: "",
+								},
 							],
 						},
 					],
@@ -1022,9 +1023,10 @@ o.spec("CalendarImporterTest", function () {
 								repeatRule: null,
 							}),
 							alarms: [
-								createTestEntity(AlarmInfoTypeRef, {
+								{
 									trigger: "66M",
-								}),
+									alarmIdentifier: "",
+								},
 							],
 						},
 					],
@@ -1264,7 +1266,7 @@ o.spec("CalendarImporterTest", function () {
 						hashedUid: event.hashedUid,
 						_ownerGroup: null,
 					}),
-					alarms: alarms.map((a) => a.alarmInfo),
+					alarms: alarms.map((a) => ({ trigger: a.alarmInfo.trigger, alarmIdentifier: a.alarmInfo.alarmIdentifier })),
 				}
 			})
 			const parsed = parseCalendarStringData(serialized, zone)
@@ -1339,7 +1341,7 @@ END:VCALENDAR`
 						}),
 						alarms: alarms.map((alarmInfo) =>
 							createTestEntity(UserAlarmInfoTypeRef, {
-								alarmInfo,
+								alarmInfo: alarmInfo as AlarmInfo,
 							}),
 						),
 					}

@@ -2,8 +2,8 @@ import { DAY_IN_MILLIS, downcast, filterInt, neverNull, Require } from "@tutao/t
 import { DateTime, Duration, IANAZone } from "luxon"
 import type { CalendarEvent, EncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventAttendee, createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
-import type { AlarmInfo, DateWrapper, RepeatRule } from "../../api/entities/sys/TypeRefs.js"
-import { createAlarmInfo, createDateWrapper, createRepeatRule } from "../../api/entities/sys/TypeRefs.js"
+import type { DateWrapper, RepeatRule } from "../../api/entities/sys/TypeRefs.js"
+import { createDateWrapper, createRepeatRule } from "../../api/entities/sys/TypeRefs.js"
 import type { Parser } from "../../misc/parsing/ParserCombinator"
 import {
 	combineParsers,
@@ -23,6 +23,7 @@ import type { ParsedCalendarData } from "./CalendarImporter"
 import { isMailAddress } from "../../misc/FormatValidator"
 import { CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, reverse } from "../../api/common/TutanotaConstants"
 import { AlarmInterval, AlarmIntervalUnit, serializeAlarmInterval } from "../date/CalendarUtils.js"
+import { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
 
 function parseDateString(dateString: string): {
 	year: number
@@ -257,7 +258,7 @@ export function parseICalendar(stringData: string): ICalObject {
 	return parseIcalObject("VCALENDAR", iterator)
 }
 
-function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): AlarmInfo | null {
+function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): AlarmInfoTemplate | null {
 	const triggerProp = getProp(alarmObject, "TRIGGER")
 	// Tutacalendar currently only supports the DISPLAY value for action
 	const actionProp = {
@@ -269,12 +270,10 @@ function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): AlarmInfo | 
 	if (typeof triggerValue !== "string") throw new ParserError("expected TRIGGER property to be a string: " + JSON.stringify(triggerProp))
 	const alarmInterval: AlarmInterval | null = triggerToAlarmInterval(event.startTime, triggerValue)
 	return alarmInterval != null
-		? createAlarmInfo({
+		? {
 				trigger: serializeAlarmInterval(alarmInterval),
 				alarmIdentifier: "",
-				// @ts-ignore
-				calendarRef: null, // FIXME
-		  })
+		  }
 		: null
 }
 
@@ -638,7 +637,7 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 			alarmInfos: [],
 		}) as Require<"uid", CalendarEvent>
 
-		const alarms: AlarmInfo[] = []
+		const alarms: AlarmInfoTemplate[] = []
 		for (const alarmChild of eventObj.children) {
 			if (alarmChild.type === "VALARM") {
 				const newAlarm = parseAlarm(alarmChild, event)
