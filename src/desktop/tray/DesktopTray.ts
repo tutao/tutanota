@@ -36,21 +36,29 @@ export class DesktopTray {
 	constructor(config: DesktopConfig) {
 		this._conf = config
 		this.getAppIcon()
-		app.on("will-quit", (e: Event) => {
-			if (this._tray) {
-				this._tray.destroy()
-
-				this._tray = null
-			}
-		})
+		app.on("will-quit", this.destroy)
 			.whenReady()
 			.then(async () => {
-				if (!this._wm) log.warn("Tray: No WM set before 'ready'!")
-				const runAsTrayApp = await this._conf.getVar(DesktopConfigKey.runAsTrayApp)
-				if (runAsTrayApp) {
-					this._tray = platformTray.getTray(this._wm, await this.getAppIcon())
-				}
+				// Need this wrapper so that `create()` will be called
+				await this.create()
 			})
+	}
+
+	async create() {
+		if (!this._wm) log.warn("Tray: No WM set before 'ready'!")
+		const runAsTrayApp = await this._conf.getVar(DesktopConfigKey.runAsTrayApp)
+		console.log("Create tray:" + runAsTrayApp)
+		if (runAsTrayApp) {
+			this._tray = platformTray.getTray(this._wm, await this.getAppIcon())
+		}
+	}
+
+	destroy() {
+		if (this._tray) {
+			this._tray.destroy()
+			console.log("Tray destroyed")
+			this._tray = null
+		}
 	}
 
 	async update(notifier: DesktopNotifier): Promise<void> {
