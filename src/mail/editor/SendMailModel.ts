@@ -155,7 +155,6 @@ export class SendMailModel {
 		private readonly dateProvider: DateProvider,
 		private mailboxProperties: MailboxProperties,
 		private readonly kdfPicker: KdfPicker,
-		private readonly configFacade: ConfigurationDatabase,
 	) {
 		const userProps = logins.getUserController().props
 		this.senderAddress = this.getDefaultSender()
@@ -883,10 +882,22 @@ export class SendMailModel {
 			const attachments = saveAttachments ? this.attachments : null
 
 			// We also want to create new drafts for drafts edited from trash or spam folder
+			const { htmlSanitizer } = await import("../../misc/HtmlSanitizer")
+			const unsanitized_body = this.getBody()
+			const body = htmlSanitizer.sanitizeHTML(unsanitized_body, {
+				// store the draft always with external links preserved. this reverts
+				// the draft-src and draft-srcset attribute stow.
+				blockExternalContent: false,
+				// since we're not displaying this, this is fine.
+				allowRelativeLinks: true,
+				// do not touch inline images, we just want to store this.
+				usePlaceholderForInlineImages: false,
+			}).html
+
 			this.draft =
 				this.draft == null || (await this.isMailInTrashOrSpam(this.draft))
-					? await this.createDraft(this.getBody(), attachments, mailMethod)
-					: await this.updateDraft(this.getBody(), attachments, this.draft)
+					? await this.createDraft(body, attachments, mailMethod)
+					: await this.updateDraft(body, attachments, this.draft)
 
 			const attachmentIds = await this.mailFacade.getAttachmentIds(this.draft)
 			const newAttachments = await promiseMap(attachmentIds, (fileId) => this.entity.load<TutanotaFile>(FileTypeRef, fileId), {

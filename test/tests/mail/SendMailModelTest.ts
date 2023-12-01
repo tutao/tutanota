@@ -183,7 +183,6 @@ o.spec("SendMailModel", function () {
 		})
 
 		const mailboxProperties = createMailboxProperties()
-		const configFacade = object<ConfigurationDatabase>()
 		model = new SendMailModel(
 			mailFacade,
 			entity,
@@ -196,7 +195,6 @@ o.spec("SendMailModel", function () {
 			new NoZoneDateProvider(),
 			mailboxProperties,
 			kdfPicker,
-			configFacade,
 		)
 
 		replace(model, "getDefaultSender", () => DEFAULT_SENDER_FOR_TESTING)
