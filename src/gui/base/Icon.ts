@@ -5,8 +5,6 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { BootIcons, BootIconsSvg } from "./icons/BootIcons"
 import { Icons } from "./icons/Icons"
 import { px } from "../size.js"
-import { client } from "../../misc/ClientDetector.js"
-import { BrowserType } from "../../misc/ClientConstants.js"
 
 assertMainOrNode()
 
@@ -75,7 +73,7 @@ export class Icon implements Component<IconAttrs> {
 			const parentRect = root.getBoundingClientRect()
 			// Chromium based browsers return a different value for tooltipRect
 			// Compensate by shifting further to the right
-			const chromeShift = client.browser !== BrowserType.FIREFOX ? 20 : 0
+			const chromeShift = 20
 			tooltip.style.left = px(-distanceOver - parentRect.width - chromeShift)
 		}
 	}
