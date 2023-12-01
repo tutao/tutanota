@@ -2,9 +2,17 @@
 
 # pre-commit hook to check & fix formatting. does not deal with spaces in paths.
 
-#     get staged files     exclude deleted files    | only match what prettier matches  | transform newline & whitespace into spaces
-CHG=$(git diff --name-only --diff-filter=d --cached | grep -E ".*\.(ts|js|json|json5)$" | tr [:space:] " ")
-# run prettier fix on them
+#     get staged files     exclude deleted files    | only match what biome matches     | remove ignored files from the list                         | transform newline & whitespace into spaces
+CHG=$(git diff --name-only --diff-filter=d --cached | grep -E ".*\.(ts|js|json|json5)$" | grep -vE 'package\.json|package-lock\.json|tsconfig\.json' | tr [:space:] " ")
+# exit if no files were added
+REM=$(echo "$CHG" | wc -w)
+if [ $REM -eq 0 ]; then
+	exit 0
+else
+	echo formatting $REM files
+fi
+
+# run biome on them (if there are some left)
 npx @biomejs/biome format --write  $CHG > /dev/null
 # re-add the fixed files
 git add $CHG > /dev/null
