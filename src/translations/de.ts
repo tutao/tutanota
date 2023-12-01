@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2023-11-27T09:57:12Z",
+	"updated_at": "2023-11-29T09:57:17Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -43,6 +43,7 @@ export default {
 		"activeSessions_label": "Aktive Sessions",
 		"active_label": "Aktiv",
 		"actor_label": "Akteur",
+		"addAccount_action": "Account hinzufügen",
 		"addAliasUserDisabled_msg": "Die E-Mail-Adresse konnte dem Benutzer bzw. der Gruppe nicht hinzugefügt werden, weil der Benutzer deaktiviert ist.",
 		"addCalendar_action": "Kalender hinzufügen",
 		"addContactList_action": "Kontaktliste hinzufügen",
@@ -1240,6 +1241,7 @@ export default {
 		"reminderBeforeEvent_label": "Erinnerung bevor Ereignis",
 		"remindersUsageDescription_msg": "Zeige eine Nachricht beim Empfang von E-Mails an.",
 		"reminder_label": "Erinnerung",
+		"removeAccount_action": "Account entfernen",
 		"removeCalendarParticipantConfirm_msg": "Bist du sicher, dass du den Teilnehmer {participant} aus dem Kalender {calendarName} entfernen möchtest?",
 		"removeDNSValue_label": "Wert entfernen",
 		"removeFormatting_action": "Textformatierung der Auswahl entfernen",
@@ -1425,6 +1427,7 @@ export default {
 		"supportMenu_label": "Support",
 		"suspiciousLink_msg": "Bist du sicher, dass du \"{url}\" öffnen möchtest? Der Link könnte Programme auf deinem Gerät ausführen. Öffne nur Links, denen du vertraust.",
 		"suspiciousLink_title": "Verdächtiger Link",
+		"switchAccount_action": "Account wechseln",
 		"switchAgendaView_action": "Zur Agenda-Ansicht wechseln",
 		"switchArchive_action": "Zum Archiv-Ordner wechseln",
 		"switchColorTheme_action": "Farben wechseln",
