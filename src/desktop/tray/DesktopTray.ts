@@ -46,7 +46,10 @@ export class DesktopTray {
 			.whenReady()
 			.then(async () => {
 				if (!this._wm) log.warn("Tray: No WM set before 'ready'!")
-				this._tray = platformTray.getTray(this._wm, await this.getAppIcon())
+				const runAsTrayApp = await this._conf.getVar(DesktopConfigKey.runAsTrayApp)
+				if (runAsTrayApp) {
+					this._tray = platformTray.getTray(this._wm, await this.getAppIcon())
+				}
 			})
 	}
 
