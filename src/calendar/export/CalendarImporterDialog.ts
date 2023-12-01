@@ -8,7 +8,7 @@ import { Dialog } from "../../gui/base/Dialog"
 import { lang } from "../../misc/LanguageViewModel"
 import { parseCalendarFile, ParsedEvent, serializeCalendar } from "./CalendarImporter"
 import { elementIdPart, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
-import type { AlarmInfo, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
+import type { UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
 import { createDateWrapper, UserAlarmInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { convertToDataFile } from "../../api/common/DataFile"
 import { locator } from "../../api/main/MainLocator"
@@ -16,6 +16,7 @@ import { getFromMap, groupBy, insertIntoSortedArray, ofClass, promiseMap, string
 import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils"
 import { ImportError } from "../../api/common/error/ImportError"
 import { TranslationKeyType } from "../../misc/TranslationKey"
+import { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
 
 export const enum EventImportRejectionReason {
 	Pre1970,
@@ -27,7 +28,7 @@ export const enum EventImportRejectionReason {
 type RejectedEvents = Map<EventImportRejectionReason, Array<CalendarEvent>>
 export type EventWrapper = {
 	event: CalendarEvent
-	alarms: ReadonlyArray<AlarmInfo>
+	alarms: ReadonlyArray<AlarmInfoTemplate>
 }
 
 /**
@@ -99,10 +100,10 @@ export function sortOutParsedEvents(
 	}
 
 	const rejectedEvents: RejectedEvents = new Map()
-	const eventsForCreation: Array<{ event: CalendarEvent; alarms: Array<AlarmInfo> }> = []
+	const eventsForCreation: Array<{ event: CalendarEvent; alarms: Array<AlarmInfoTemplate> }> = []
 	for (const [_, flatParsedEvents] of groupBy(parsedEvents, (e) => e.event.uid)) {
-		let progenitor: { event: CalendarEvent; alarms: Array<AlarmInfo> } | null = null
-		let alteredInstances: Array<{ event: CalendarEvent; alarms: Array<AlarmInfo> }> = []
+		let progenitor: { event: CalendarEvent; alarms: Array<AlarmInfoTemplate> } | null = null
+		let alteredInstances: Array<{ event: CalendarEvent; alarms: Array<AlarmInfoTemplate> }> = []
 
 		for (const { event, alarms } of flatParsedEvents) {
 			const rejectionReason = shouldBeSkipped(event, instanceIdentifierToEventMap)

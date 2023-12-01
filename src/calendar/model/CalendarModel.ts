@@ -3,7 +3,7 @@ import { assertNotNull, clone, defer, downcast, filterInt, getFromMap, LazyLoade
 import { CalendarMethod, FeatureType, GroupType, OperationType } from "../../api/common/TutanotaConstants"
 import type { EntityUpdateData } from "../../api/main/EventController"
 import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
-import type { AlarmInfo, Group, GroupInfo, User, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
+import type { Group, GroupInfo, User, UserAlarmInfo } from "../../api/entities/sys/TypeRefs.js"
 import {
 	createDateWrapper,
 	createMembershipRemoveData,
@@ -36,7 +36,7 @@ import type { AlarmScheduler } from "../date/AlarmScheduler"
 import type { Notifications } from "../../gui/Notifications"
 import m from "mithril"
 import type { CalendarEventInstance, CalendarEventProgenitor, CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
-import { CachingMode, CalendarEventAlteredInstance, CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
+import { AlarmInfoTemplate, CachingMode, CalendarEventAlteredInstance, CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest"
 import { MembershipService } from "../../api/entities/sys/Services"
 import { FileController } from "../../file/FileController"
@@ -85,14 +85,14 @@ export class CalendarModel {
 		eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
 	}
 
-	async createEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfo>, zone: string, groupRoot: CalendarGroupRoot): Promise<void> {
+	async createEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>, zone: string, groupRoot: CalendarGroupRoot): Promise<void> {
 		await this.doCreate(event, zone, groupRoot, alarmInfos)
 	}
 
 	/** Update existing event when time did not change */
 	async updateEvent(
 		newEvent: CalendarEvent,
-		newAlarms: ReadonlyArray<AlarmInfo>,
+		newAlarms: ReadonlyArray<AlarmInfoTemplate>,
 		zone: string,
 		groupRoot: CalendarGroupRoot,
 		existingEvent: CalendarEvent,
@@ -204,7 +204,7 @@ export class CalendarModel {
 		event: CalendarEvent,
 		zone: string,
 		groupRoot: CalendarGroupRoot,
-		alarmInfos: ReadonlyArray<AlarmInfo>,
+		alarmInfos: ReadonlyArray<AlarmInfoTemplate>,
 		existingEvent?: CalendarEvent,
 	): Promise<void> {
 		// If the event was copied it might still carry some fields for re-encryption. We can't reuse them.
@@ -399,7 +399,7 @@ export class CalendarModel {
 		sender: string,
 		method: string,
 		updateEvent: Require<"uid", CalendarEvent>,
-		updateAlarms: Array<AlarmInfo>,
+		updateAlarms: Array<AlarmInfoTemplate>,
 		target: CalendarEventUidIndexEntry,
 	): Promise<void> {
 		const updateEventTime = updateEvent.recurrenceId?.getTime()
@@ -476,7 +476,7 @@ export class CalendarModel {
 	private async processCalendarAccept(
 		dbTarget: CalendarEventUidIndexEntry,
 		updateEvent: Require<"uid", CalendarEvent>,
-		alarms: Array<AlarmInfo>,
+		alarms: Array<AlarmInfoTemplate>,
 	): Promise<void> {
 		console.log(TAG, "processing new instance request")
 		const { repeatRuleWithExcludedAlteredInstances } = await import("../date/eventeditor/CalendarEventWhenModel.js")
