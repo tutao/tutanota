@@ -327,7 +327,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		const longEventsResult = this.renderLongEvents(thisPageEvents.days, thisPageEvents.longEvents, groupColors, onEventClicked, temporaryEvents)
 		// We calculate the height manually because we want the header to transition between heights when swiping left and right
 		// Hardcoding some styles instead of classes so that we can avoid nasty magic numbers
-		const mainPageEventsCount = longEventsResult.maxEventsInColumn
+		const mainPageEventsCount = longEventsResult.rows
 		const padding = mainPageEventsCount !== 0 ? size.vpad_small : 0
 		// Set bottom padding in height, because it will be ignored in the style
 		const height = mainPageEventsCount * CALENDAR_EVENT_HEIGHT + padding
@@ -405,7 +405,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 					}
 				},
 				style: {
-					height: px(mainPageLongEvents.maxEventsInColumn * CALENDAR_EVENT_HEIGHT),
+					height: px(mainPageLongEvents.rows * CALENDAR_EVENT_HEIGHT),
 					width: "100%",
 					transition: "height 200ms ease-in-out",
 				},
@@ -426,13 +426,13 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		temporaryEvents: Array<CalendarEvent>,
 	): {
 		children: Children
-		maxEventsInColumn: number
+		rows: number
 	} {
 		if (styles.isDesktopLayout()) {
 			return dayRange.length === 1
 				? {
 						children: this.renderLongEventsForSingleDay(dayRange[0], events, groupColors, onEventClicked, temporaryEvents),
-						maxEventsInColumn: events.length,
+						rows: events.length,
 				  }
 				: this.renderLongEventsForMultipleDays(dayRange, events, groupColors, onEventClicked, temporaryEvents)
 		} else {
@@ -477,12 +477,12 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		temporaryEvents: Array<CalendarEvent>,
 	): {
 		children: Children
-		maxEventsInColumn: number
+		rows: number
 	} {
 		if (this._longEventsDom == null && this._viewDom == null) {
 			return {
 				children: null,
-				maxEventsInColumn: 0,
+				rows: 0,
 			}
 		}
 		const dayWidth =
@@ -537,7 +537,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 		)
 		return {
 			children,
-			maxEventsInColumn: maxEventsInColumn,
+			rows: maxEventsInColumn,
 		}
 	}
 
