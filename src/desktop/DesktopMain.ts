@@ -199,6 +199,16 @@ async function createComponents(): Promise<Components> {
 	})
 	const webDialogController = new WebDialogController()
 
+	// Insert or remove the icon when the 'run in background' setting is changed
+	conf.on(DesktopConfigKey.runAsTrayApp, async (value: boolean) => {
+		if (value) {
+			await tray.create()
+			await tray.update(notifier)
+		} else {
+			tray.destroy()
+		}
+	})
+
 	tray.setWindowManager(wm)
 	const sse = new DesktopSseClient(app, conf, notifier, wm, desktopAlarmScheduler, desktopNet, desktopCrypto, alarmStorage, lang)
 	// It should be ok to await this, all we are waiting for is dynamic imports
