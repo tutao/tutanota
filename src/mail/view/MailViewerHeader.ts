@@ -566,7 +566,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					{
 						classes: ".mr-s",
 					},
-					"Tutanota Team",
+					"Tuta Team",
 			  )
 			: null
 	}
