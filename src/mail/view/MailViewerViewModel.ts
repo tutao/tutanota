@@ -387,11 +387,16 @@ export class MailViewerViewModel {
 	}
 
 	isMailAuthenticated() {
-		return this.mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
-	}
-
-	setAuthenticationStatus(status: MailAuthenticationStatus) {
-		this.mail.authStatus = status
+		// all legacy mail should have authStatus set, non-legacy mail can have it set to null. then the wrapper should have
+		// the value. if the wrapper is not loaded yet, this returns false.
+		if (this.mail.authStatus != null) {
+			return this.mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
+		} else if (this.mailWrapper?.isLegacy() === false) {
+			return this.mailWrapper.getDetails().authStatus === MailAuthenticationStatus.AUTHENTICATED
+		} else {
+			// mailWrapper not loaded yet or it's a legacy mail without authStatus
+			return false
+		}
 	}
 
 	canCreateSpamRule(): boolean {
