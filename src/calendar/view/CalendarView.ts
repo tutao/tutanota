@@ -12,7 +12,7 @@ import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import { defaultCalendarColor, FeatureType, GroupType, Keys, reverse, ShareCapability, TimeFormat, WeekStart } from "../../api/common/TutanotaConstants"
 import { locator } from "../../api/main/MainLocator"
 import { getEventType, getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser, getTimeZone, shouldDefaultToAmPmTimeFormat } from "../date/CalendarUtils"
-import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
+import { ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { NavButton, NavButtonColor } from "../../gui/base/NavButton.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
@@ -59,6 +59,7 @@ import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
 import { CalendarDesktopToolbar } from "./CalendarDesktopToolbar.js"
 import { CalendarOperation } from "../date/eventeditor/CalendarEventModel.js"
 import { DaySelectorPopup } from "../date/DaySelectorPopup.js"
+import { DaySelectorSidebar } from "../date/DaySelectorSidebar.js"
 
 export type GroupColors = Map<Id, string>
 
@@ -102,7 +103,22 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							  }
 							: null,
 						content: [
-							this.renderViewTypeSection(),
+							styles.isDesktopLayout()
+								? m(DaySelectorSidebar, {
+										selectedDate: this.viewModel.selectedDate(),
+										onDateSelected: (date) => {
+											this._setUrl(this.currentViewType, date)
+											m.redraw()
+										},
+										startOfTheWeekOffset: getStartOfTheWeekOffset(
+											downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
+										),
+										eventsForDays: this.viewModel.eventsForDays,
+										showDaySelection: this.currentViewType !== CalendarViewType.MONTH && this.currentViewType !== CalendarViewType.WEEK,
+										highlightToday: true,
+										highlightSelectedWeek: this.currentViewType === CalendarViewType.WEEK,
+								  })
+								: null,
 							m(
 								SidebarSection,
 								{
@@ -254,6 +270,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									isDaySelectorExpanded: this.isDaySelectorExpanded,
 									onDateSelected: (date) => this._setUrl(CalendarViewType.AGENDA, date),
 									onShowDate: (date: Date) => this._setUrl(CalendarViewType.DAY, date),
+									htmlSanitizer: this.htmlSanitizer,
 								}),
 							})
 
@@ -291,32 +308,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 	}
 
-	private renderViewTypeSection(): Children {
-		if (!styles.isDesktopLayout()) {
-			return null
-		} else {
-			return m(
-				SidebarSection,
-				{
-					name: "view_label",
-					button:
-						this.currentViewType !== CalendarViewType.AGENDA
-							? m(Button, {
-									label: "today_label",
-									click: () => {
-										this._setUrl(m.route.param("view"), new Date())
-										this.viewSlider.focus(this.contentColumn)
-									},
-									colors: ButtonColor.Nav,
-									type: ButtonType.Primary,
-							  })
-							: null,
-				},
-				this._renderCalendarViewButtons(),
-			)
-		}
-	}
-
 	private renderDesktopToolbar(): Children {
 		const navConfig = calendarNavConfiguration(
 			this.currentViewType,
@@ -325,7 +316,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			"detailed",
 			(viewType, next) => this._viewPeriod(viewType, next),
 		)
-		return m(CalendarDesktopToolbar, { navConfig })
+		return m(CalendarDesktopToolbar, {
+			navConfig,
+			viewType: this.currentViewType,
+			onToday: () => this._setUrl(m.route.param("view"), new Date()),
+			onViewTypeSelected: (viewType) => this._setUrl(viewType, this.viewModel.selectedDate()),
+		})
 	}
 
 	private renderMobileHeader(header: AppHeaderAttrs) {
@@ -341,7 +337,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				this.viewModel.weekStart,
 				"short",
 				(viewType, next) => this._viewPeriod(viewType, next),
-				true,
 			),
 			onCreateEvent: () => this._createNewEventDialog(),
 			onToday: () => this._setUrl(m.route.param("view"), new Date()),
@@ -454,10 +449,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				unit = "day"
 				break
 			case CalendarViewType.AGENDA:
-				duration = {
-					week: this.isDaySelectorExpanded ? 0 : 1,
-					month: this.isDaySelectorExpanded ? 1 : 0,
-				}
+				duration = styles.isDesktopLayout()
+					? { day: 1 }
+					: {
+							week: this.isDaySelectorExpanded ? 0 : 1,
+							month: this.isDaySelectorExpanded ? 1 : 0,
+					  }
 				unit = "day"
 				break
 
@@ -469,10 +466,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		const newDate = next ? dateTime.plus(duration).startOf(unit).toJSDate() : dateTime.minus(duration).startOf(unit).toJSDate()
 
 		this.viewModel.selectedDate(newDate)
+		this._setUrl(viewType, newDate)
 
 		m.redraw()
-
-		this._setUrl(viewType, newDate)
 	}
 
 	_renderCalendarViewButtons(): Children {
@@ -765,20 +761,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				// Unlike JS Luxon assumes local time zone when parsing and not UTC. That's what we want
 				const luxonDate = DateTime.fromISO(urlDateParam)
 
-				if (
-					this.currentViewType === CalendarViewType.AGENDA &&
-					!luxonDate.equals(
-						DateTime.now().set({
-							hour: 0,
-							minute: 0,
-							second: 0,
-						}),
-					) &&
-					styles.isDesktopLayout()
-				) {
-					this._setUrl(CalendarViewType.AGENDA, new Date())
-				}
-
 				let date = new Date()
 
 				if (luxonDate.isValid) {
@@ -872,7 +854,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			startOfTheWeekOffset: getStartOfTheWeekOffset(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek as WeekStart),
 			eventsForDays: this.viewModel.eventsForDays,
-			showDaySelection: true,
 			highlightToday: true,
 			highlightSelectedWeek: this.currentViewType === CalendarViewType.WEEK,
 		})

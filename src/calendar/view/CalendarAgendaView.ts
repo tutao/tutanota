@@ -1,13 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { incrementDate, lastThrow, neverNull } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
-import { formatDate, formatDateWithWeekday } from "../../misc/Formatter"
-import { getEventColor, getStartOfDayWithZone, getTimeZone } from "../date/CalendarUtils"
-import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
+import { getEventColor, getTimeZone } from "../date/CalendarUtils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
 import type { CalendarEventBubbleClickHandler } from "./CalendarViewModel"
-import { getNextFourteenDays } from "./CalendarGuiUtils.js"
 import { styles } from "../../gui/styles.js"
 import { DateTime } from "luxon"
 import { CalendarAgendaItemView } from "./CalendarAgendaItemView.js"
@@ -16,6 +13,8 @@ import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { theme } from "../../gui/theme.js"
 import { px, size } from "../../gui/size.js"
 import { DaySelector } from "../date/DaySelector.js"
+import { EventPreviewView } from "./eventpopup/EventPreviewView.js"
+import type { HtmlSanitizer } from "../../misc/HtmlSanitizer.js"
 
 type Attrs = {
 	selectedDate: Date
@@ -33,17 +32,39 @@ type Attrs = {
 	onShowDate: (date: Date) => unknown
 	/**  when the selected date was changed  */
 	onDateSelected: (date: Date) => unknown
+	htmlSanitizer: Promise<HtmlSanitizer>
 }
 
 export class CalendarAgendaView implements Component<Attrs> {
+	private selectedEvent: CalendarEvent | null = null
+	private eventDescription: string = ""
+	private htmlSanitizer: Promise<HtmlSanitizer>
+
+	constructor(vnode: Vnode<Attrs>) {
+		this.htmlSanitizer = vnode.attrs.htmlSanitizer
+	}
+
 	view({ attrs }: Vnode<Attrs>): Children {
 		const selectedDate = attrs.selectedDate
-		return m(".fill-absolute.flex.col.mlr-safe-inset", [
+
+		let containerStyle
+
+		if (styles.isDesktopLayout()) {
+			containerStyle = {
+				marginLeft: "5px",
+				overflow: "hidden",
+				marginBottom: px(size.hpad_large),
+			}
+		} else {
+			containerStyle = {}
+		}
+
+		return m(".fill-absolute.flex.col" + (styles.isDesktopLayout() ? ".mlr-l" : ".mlr-safe-inset"), { style: containerStyle }, [
 			this.renderDateSelector(attrs, selectedDate),
-			styles.isDesktopLayout()
-				? m(`.rel.flex-grow.content-bg`, [this.renderAgendaForDateRange(attrs)])
-				: // if the scroll is not on the child but on the nested one it will overflow
-				  m(`.rel.flex-grow.content-bg.scroll.border-radius-top-left-big.border-radius-top-right-big"`, [this.renderAgendaForDay(attrs)]),
+			m(
+				`.rel.flex-grow.flex.col` + (styles.isDesktopLayout() ? "" : ".content-bg.scroll.border-radius-top-left-big.border-radius-top-right-big"),
+				this.renderAgenda(attrs),
+			),
 		])
 	}
 
@@ -87,6 +108,7 @@ export class CalendarAgendaView implements Component<Attrs> {
 									showDaySelection: true,
 									highlightToday: true,
 									highlightSelectedWeek: false,
+									useNarrowWeekName: styles.isSingleColumnLayout(),
 								}),
 							),
 						],
@@ -94,7 +116,7 @@ export class CalendarAgendaView implements Component<Attrs> {
 			  )
 	}
 
-	private renderAgendaForDay(attrs: Attrs): Children {
+	private renderEventList(attrs: Attrs): Children {
 		const events = (attrs.eventsForDays.get(attrs.selectedDate.getTime()) ?? []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
 		if (events.length === 0) {
 			return m(ColumnEmptyMessageBox, {
@@ -111,72 +133,45 @@ export class CalendarAgendaView implements Component<Attrs> {
 		}
 	}
 
-	private renderAgendaForDateRange(attrs: Attrs): Children {
-		const now = new Date()
-		const zone = getTimeZone()
-		const today = getStartOfDayWithZone(now, zone)
-		const tomorrow = incrementDate(new Date(today), 1)
-		const days = getNextFourteenDays(today)
-		const lastDay = lastThrow(days)
-
-		const lastDayFormatted = formatDate(lastDay)
-		return m(
-			".scroll.pt-s",
-			days
-				.map((day: Date) => {
-					let events = (attrs.eventsForDays.get(day.getTime()) || []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
-
-					if (day.getTime() === today.getTime()) {
-						// only show future and currently running events
-						events = events.filter((ev) => isAllDayEvent(ev) || attrs.selectedDate < ev.endTime)
-					} else if (day.getTime() > tomorrow.getTime() && events.length === 0) {
-						return null
-					}
-
-					const dateDescription =
-						day.getTime() === today.getTime()
-							? lang.get("today_label")
-							: day.getTime() === tomorrow.getTime()
-							? lang.get("tomorrow_label")
-							: formatDateWithWeekday(day)
-					return m(
-						".flex.mlr-l.calendar-agenda-row.mb-s.col",
-						{
-							key: day.getTime(),
-						},
-						[
-							m(
-								"button.pb-s.b",
-								{
-									onclick: () => attrs.onShowDate(new Date(day)),
-								},
-								dateDescription,
-							),
-							m(
-								".flex-grow",
-								{
-									style: {
-										"max-width": "600px",
-									},
-								},
-								this.renderEventsForDay(events, day, zone, attrs.groupColors, attrs.onEventClicked),
-							),
-						],
-					)
-				})
-				.filter(Boolean) // mithril doesn't allow mixing keyed elements with null (for perf reasons it seems)
-				.concat(
-					m(
-						".mlr-l",
-						{
-							key: "events_until",
-						},
-						lang.get("showingEventsUntil_msg", {
-							"{untilDay}": lastDayFormatted,
-						}),
-					),
-				),
-		)
+	private renderAgenda(attrs: Attrs): Children {
+		if (!styles.isDesktopLayout()) return this.renderEventList(attrs)
+		return m(".flex.flex-grow", [
+			m(
+				".content-bg.border-radius-big.flex-grow.rel",
+				{
+					style: {
+						"min-width": px(size.second_col_min_width),
+						"max-width": px(size.second_col_max_width),
+					},
+				},
+				[this.renderEventList(attrs)],
+			),
+			m(
+				".border-radius-big.ml-l.flex.flex-grow" + (this.selectedEvent == null ? "" : ".content-bg"),
+				{
+					style: {
+						"min-width": px(size.third_col_min_width),
+						"max-width": px(size.third_col_max_width),
+						height: this.selectedEvent == null ? "100%" : "max-content",
+					},
+				},
+				this.selectedEvent == null
+					? m(
+							".rel.flex-grow.height-100p",
+							m(ColumnEmptyMessageBox, {
+								icon: BootIcons.Calendar,
+								message: () => lang.get("noEventSelect_msg"),
+								color: theme.list_message_bg,
+							}),
+					  )
+					: m(".flex-grow.plr-l.pt-s", [
+							m(EventPreviewView, {
+								event: this.selectedEvent,
+								sanitizedDescription: this.eventDescription,
+							}),
+					  ]),
+			),
+		])
 	}
 
 	private renderEventsForDay(
@@ -198,14 +193,19 @@ export class CalendarAgendaView implements Component<Attrs> {
 					events.map((event) => {
 						return m(
 							"",
-							// this causes mithril to crash on some days, not clear why yet
-							// {
-							// 	key: event._id.toString(),
-							// },
 							m(CalendarAgendaItemView, {
 								event: event,
 								color: getEventColor(event, colors),
-								click: (domEvent) => click(event, domEvent),
+								click: (domEvent) => {
+									if (styles.isDesktopLayout()) {
+										this.htmlSanitizer.then((sanitizer) => {
+											this.eventDescription = sanitizer.sanitizeHTML(event.description).html
+											this.selectedEvent = event
+										})
+									} else {
+										click(event, domEvent)
+									}
+								},
 								zone,
 								day: day,
 							}),

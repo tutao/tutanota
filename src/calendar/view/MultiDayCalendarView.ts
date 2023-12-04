@@ -113,7 +113,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 				  )
 				: null,
 			m(
-				".rel.flex-grow",
+				".rel.flex-grow.overflow-hidden",
 				m(PageView, {
 					previousPage: {
 						key: startOfPreviousPeriod.getTime(),
@@ -173,6 +173,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 							showDaySelection: attrs.daysInPeriod === 1,
 							highlightToday: true,
 							highlightSelectedWeek: attrs.daysInPeriod > 1,
+							useNarrowWeekName: styles.isSingleColumnLayout(),
 						}),
 					),
 			  ])
@@ -184,10 +185,25 @@ export class MultiDayCalendarView implements Component<Attrs> {
 	}
 
 	_renderWeek(attrs: Attrs, thisWeek: EventsOnDays, mainWeek: EventsOnDays): Children {
+		let containerStyle
+
+		if (styles.isDesktopLayout()) {
+			containerStyle = {
+				marginLeft: "5px",
+				overflow: "hidden",
+				marginBottom: px(size.hpad_large),
+			}
+		} else {
+			containerStyle = {}
+		}
+
 		return m(
-			".fill-absolute.flex.col.calendar-column-border.mlr-safe-inset.overflow-hidden" +
-				(!styles.isDesktopLayout() ? `.border-radius-top-left-big.border-radius-top-right-big.content-bg` : ""),
+			".fill-absolute.flex.col.calendar-column-border.overflow-hidden",
 			{
+				class: styles.isDesktopLayout()
+					? ".mlr-l.border-radius-big"
+					: ".border-radius-top-left-big.border-radius-top-right-big.content-bg.mlr-safe-inset",
+				style: containerStyle,
 				oncreate: () => {
 					this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
 				},
@@ -348,9 +364,9 @@ export class MultiDayCalendarView implements Component<Attrs> {
 
 	private renderHeaderDesktop(attrs: Attrs, thisPageEvents: EventsOnDays, mainPageEvents: EventsOnDays): Children {
 		const { selectedDate, groupColors, onEventClicked } = attrs
-		return m(".calendar-long-events-header.flex-fixed" + (styles.isDesktopLayout() ? ".content-bg" : ""), [
+		return m(".calendar-long-events-header.flex-fixed.content-bg.pt-s", [
 			m(".calendar-hour-margin", [this.renderDayNamesRow(thisPageEvents.days, attrs.onDateSelected)]),
-			m(".content-bg" + (styles.isTwoColumnLayout() && attrs.daysInPeriod > 1 ? ".border-radius-top-left-big.border-radius-top-right-big" : ""), [
+			m(".content-bg", [
 				m(
 					".calendar-hour-margin.content-bg",
 					{

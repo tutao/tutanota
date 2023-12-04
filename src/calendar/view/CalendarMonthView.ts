@@ -101,13 +101,29 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		const previousMonth = getCalendarMonth(lastMonthDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
 		const nextMonth = getCalendarMonth(nextMonthDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
 
+		let containerStyle
+
+		if (styles.isDesktopLayout()) {
+			containerStyle = {
+				marginLeft: "5px",
+				overflow: "hidden",
+				marginBottom: px(size.hpad_large),
+			}
+		} else {
+			containerStyle = {}
+		}
+
 		return m(
-			".fill-absolute.flex.col.mlr-safe-inset" +
-				(!styles.isUsingBottomNavigation() ? ".content-bg" : ".border-radius-top-left-big.border-radius-top-right-big"),
+			".fill-absolute.flex.col",
+			{
+				style: containerStyle,
+				class:
+					(!styles.isUsingBottomNavigation() ? "content-bg" : "") +
+					(styles.isDesktopLayout() ? " mlr-l border-radius-big" : " mlr-safe-inset border-radius-top-left-big border-radius-top-right-big"),
+			},
 			[
-				styles.isDesktopLayout() ? null : m(".pt-s"),
 				m(
-					".flex.mb-s",
+					".flex.mb-s.pt-s",
 					thisMonth.weekdays.map((wd) => m(".flex-grow", m(".calendar-day-indicator.b", wd))),
 				),
 				m(
@@ -225,7 +241,6 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			".calendar-day.calendar-column-border.flex-grow.rel.overflow-hidden.fill-absolute.cursor-pointer",
 			{
 				style: {
-					background: day.isPaddingDay && styles.isDesktopLayout() ? theme.list_alternate_bg : null,
 					...(firstWeek && !styles.isDesktopLayout() ? { borderTop: "none" } : {}),
 				},
 				key: day.date.getTime(),
@@ -305,8 +320,8 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					{
 						style: {
 							...textStyle,
-							opacity: isPaddingDay ? (!styles.isDesktopLayout() ? 0.4 : 1) : 1,
-							fontWeight: isPaddingDay ? (!styles.isDesktopLayout() ? "500" : null) : null,
+							opacity: isPaddingDay ? 0.4 : 1,
+							fontWeight: isPaddingDay ? "500" : null,
 							fontSize: styles.isDesktopLayout() ? "14px" : "12px",
 							lineHeight: size,
 						},

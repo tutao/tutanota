@@ -885,6 +885,7 @@ export type TranslationKeyType =
 	| "noContacts_msg"
 	| "noContact_msg"
 	| "noEntries_msg"
+	| "noEventSelect_msg"
 	| "noEntryFound_label"
 	| "noInputWasMade_msg"
 	| "noKeysForThisDomain_msg"

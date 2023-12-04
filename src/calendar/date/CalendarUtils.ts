@@ -1417,3 +1417,19 @@ export function humanDescriptionForAlarmIntervalUnit(unit: AlarmIntervalUnit): s
 			return lang.get("calendarReminderIntervalUnitWeeks_label")
 	}
 }
+
+export function formatEventTimes(day: Date, event: CalendarEvent, zone: string, allDay: boolean): string {
+	if (isAllDayEvent(event)) {
+		return lang.get("allDay_label")
+	} else {
+		const startsBefore = eventStartsBefore(day, zone, event)
+		const endsAfter = eventEndsAfterDay(day, zone, event)
+		if (startsBefore && endsAfter) {
+			return lang.get("allDay_label")
+		} else {
+			const startTime: Date = startsBefore ? day : event.startTime
+			const endTime: Date = endsAfter ? getEndOfDayWithZone(day, zone) : event.endTime
+			return formatEventTime({ startTime, endTime }, EventTextTimeOption.START_END_TIME)
+		}
+	}
+}

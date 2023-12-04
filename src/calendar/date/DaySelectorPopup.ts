@@ -15,13 +15,13 @@ import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { hexToRgb } from "../../gui/base/Color.js"
 import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { incrementMonth } from "@tutao/tutanota-utils"
+import { styles } from "../../gui/styles.js"
 
 export interface DaySelectorPopupAttrs {
 	selectedDate: Date
 	onDateSelected: (date: Date, dayClick: boolean) => unknown
 	startOfTheWeekOffset: number
 	eventsForDays: Map<number, Array<CalendarEvent>>
-	showDaySelection: boolean
 	highlightToday: boolean
 	highlightSelectedWeek: boolean
 }
@@ -81,6 +81,7 @@ export class DaySelectorPopup implements ModalComponent {
 						showDaySelection: false,
 						highlightToday: this.attrs.highlightToday,
 						highlightSelectedWeek: this.attrs.highlightSelectedWeek,
+						useNarrowWeekName: styles.isSingleColumnLayout(),
 					}),
 				]),
 			],
@@ -110,7 +111,6 @@ export class DaySelectorPopup implements ModalComponent {
 			{
 				onclick: () => this.onMonthChange(forward),
 				style: {
-					// backgroundColor: `rgba(${bgColor.r}, ${bgColor.g}, ${bgColor.b}, .1)`,
 					borderRadius: "50%",
 					fill: theme.content_fg,
 					width: "24px",
