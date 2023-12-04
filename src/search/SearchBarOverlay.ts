@@ -195,7 +195,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 								{
 									classes: ".small.mr-s",
 								},
-								"Tutanota Team",
+								"Tuta Team",
 						  )
 						: null,
 					m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
