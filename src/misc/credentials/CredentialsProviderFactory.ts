@@ -1,7 +1,7 @@
 import type { CredentialsAndDatabaseKey, CredentialsEncryption, PersistentCredentials } from "./CredentialsProvider.js"
 import { CredentialsProvider } from "./CredentialsProvider.js"
 import { deviceConfig } from "../DeviceConfig"
-import { isBrowser, isDesktop } from "../../api/common/Env"
+import { isAdminClient, isBrowser, isDesktop } from "../../api/common/Env"
 import type { DeviceEncryptionFacade } from "../../api/worker/facades/DeviceEncryptionFacade"
 import { CredentialsKeyProvider } from "./CredentialsKeyProvider"
 import { NativeCredentialsEncryption } from "./NativeCredentialsEncryption"
@@ -13,7 +13,7 @@ import { InterWindowEventFacadeSendDispatcher } from "../../native/common/genera
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
 
 export function usingKeychainAuthenticationWithOptions(): boolean {
-	return !isBrowser()
+	return !isBrowser() && !isAdminClient()
 }
 
 /**
@@ -26,7 +26,7 @@ export function usingKeychainAuthenticationWithOptions(): boolean {
 export async function createCredentialsProvider(
 	deviceEncryptionFacade: DeviceEncryptionFacade,
 	nativeApp: NativeInterface | null,
-	sqlCipherFacade: SqlCipherFacade | null,
+	sqlCipherFacade: SqlCipherFacade,
 	interWindowEventSender: InterWindowEventFacadeSendDispatcher | null,
 ): Promise<CredentialsProvider> {
 	if (usingKeychainAuthenticationWithOptions()) {
