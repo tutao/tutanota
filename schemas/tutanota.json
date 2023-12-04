@@ -185,6 +185,31 @@
 			"version": 65,
 			"changes": [
 				{
+					"name": "RemoveAssociation",
+					"sourceType": "MailboxGroupRoot",
+					"info": "RemoveAssociation MailboxGroupRoot/contactFormUserContactForm."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "MailboxGroupRoot",
+					"info": "RemoveAssociation MailboxGroupRoot/targetMailGroupContactForm."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "MailboxGroupRoot",
+					"info": "RemoveAssociation MailboxGroupRoot/participatingContactForms."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "Mail",
+					"info": "RemoveAssociation Mail/restrictions."
+				}
+			]
+		},
+		{
+			"version": 66,
+			"changes": [
+				{
 					"name": "RenameAttribute",
 					"sourceType": "InternalGroupData",
 					"info": "RenameAttribute InternalGroupData: publicKey -> pubRsaKey."

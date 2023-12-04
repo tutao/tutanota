@@ -230,6 +230,26 @@
 			"version": 91,
 			"changes": [
 				{
+					"name": "RemoveAssociation",
+					"sourceType": "Customer",
+					"info": "RemoveAssociation Customer/contactFormUserGroups."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "Customer",
+					"info": "RemoveAssociation Customer/contactFormUserAreaGroups."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "PlanPrices",
+					"info": "RemoveValue PlanPrices/contactFormPriceMonthly/1466."
+				}
+			]
+		},
+		{
+			"version": 92,
+			"changes": [
+				{
 					"name": "RenameAttribute",
 					"sourceType": "KeyPair",
 					"info": "RenameAttribute KeyPair: pubKey -> pubRsaKey."
@@ -252,27 +272,27 @@
 				{
 					"name": "AddValue",
 					"sourceType": "KeyPair",
-					"info": "AddValue KeyPair/pubEccKey/2137."
+					"info": "AddValue KeyPair/pubEccKey/2144."
 				},
 				{
 					"name": "AddValue",
 					"sourceType": "KeyPair",
-					"info": "AddValue KeyPair/symEncPrivEccKey/2138."
+					"info": "AddValue KeyPair/symEncPrivEccKey/2145."
 				},
 				{
 					"name": "AddValue",
 					"sourceType": "KeyPair",
-					"info": "AddValue KeyPair/pubKyberKey/2139."
+					"info": "AddValue KeyPair/pubKyberKey/2146."
 				},
 				{
 					"name": "AddValue",
 					"sourceType": "KeyPair",
-					"info": "AddValue KeyPair/symEncPrivKyberKey/2140."
+					"info": "AddValue KeyPair/symEncPrivKyberKey/2147."
 				},
 				{
 					"name": "AddValue",
 					"sourceType": "InstanceSessionKey",
-					"info": "AddValue InstanceSessionKey/encryptionAuthStatus/2150."
+					"info": "AddValue InstanceSessionKey/encryptionAuthStatus/2157."
 				}
 			]
 		}

@@ -21,8 +21,6 @@ import {
 	MailFolderTypeRef,
 	MailTypeRef,
 	RecipientsTypeRef,
-	MailDetailsBlobTypeRef,
-	MailDetailsTypeRef,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import { mock, spy } from "@tutao/tutanota-test-utils"
 import { browserDataStub, createTestEntity, makeCore } from "../../../TestUtils.js"
