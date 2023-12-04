@@ -1,8 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils.js"
-import { lang } from "../../misc/LanguageViewModel.js"
-import { eventEndsAfterDay, eventStartsBefore, formatEventTime, getEndOfDayWithZone } from "../date/CalendarUtils.js"
-import { EventTextTimeOption } from "../../api/common/TutanotaConstants.js"
+import { formatEventTimes } from "../date/CalendarUtils.js"
 import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 
 interface CalendarAgendaItemViewAttrs {
@@ -29,24 +27,8 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 						backgroundColor: `#${attrs.color}`,
 					},
 				}),
-				m(".flex.col", [m(".b", attrs.event.summary), m("", this.formatTimes(attrs))]),
+				m(".flex.col", [m(".b", attrs.event.summary), m("", formatEventTimes(attrs.day, attrs.event, attrs.zone, isAllDayEvent(attrs.event)))]),
 			],
 		)
-	}
-
-	private formatTimes({ day, event, zone }: CalendarAgendaItemViewAttrs): string {
-		if (isAllDayEvent(event)) {
-			return lang.get("allDay_label")
-		} else {
-			const startsBefore = eventStartsBefore(day, zone, event)
-			const endsAfter = eventEndsAfterDay(day, zone, event)
-			if (startsBefore && endsAfter) {
-				return lang.get("allDay_label")
-			} else {
-				const startTime: Date = startsBefore ? day : event.startTime
-				const endTime: Date = endsAfter ? getEndOfDayWithZone(day, zone) : event.endTime
-				return formatEventTime({ startTime, endTime }, EventTextTimeOption.START_END_TIME)
-			}
-		}
 	}
 }

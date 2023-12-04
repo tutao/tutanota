@@ -9,8 +9,8 @@ import { px } from "../../gui/size.js"
 import { DefaultAnimationTime } from "../../gui/animation/Animations.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
 import { theme } from "../../gui/theme.js"
-import { styles } from "../../gui/styles.js"
 import { hexToRGBAString } from "../../gui/base/Color.js"
+import { styles } from "../../gui/styles.js"
 
 export interface DaySelectorAttrs {
 	selectedDate: Date | null
@@ -23,6 +23,7 @@ export interface DaySelectorAttrs {
 	showDaySelection: boolean
 	highlightToday: boolean
 	highlightSelectedWeek: boolean
+	useNarrowWeekName: boolean
 }
 
 /**
@@ -52,7 +53,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 			this.displayingDate.setDate(1)
 		}
 
-		let { weeks, weekdays } = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, styles.isSingleColumnLayout())
+		let { weeks, weekdays } = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, vnode.attrs.useNarrowWeekName)
 		return m(".flex.flex-column", [
 			m(".flex.flex-space-around", this.renderWeekDays(vnode.attrs.wide, weekdays)),
 			m(
@@ -60,7 +61,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 				{
 					style: {
 						fontSize: px(14),
-						lineHeight: px(this.getElementWidth(vnode.attrs)),
+						lineHeight: px(this.getElementSize(vnode.attrs)),
 					},
 				},
 				this.renderDayPickerCarousel(vnode),
@@ -72,7 +73,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 		// We get the size of the slider minus the days container size multiplied by seven (Days of week) then we divide
 		// by the number of empty spaces (6), so we get the size of our spacing
 		// F: [sliderSize - (dayContainerSize * numberOfDays)] / (numberOfDays - 1)
-		const daysSize = this.getElementWidth(attrs)
+		const daysSize = this.getElementSize(attrs)
 		return this.containerDom ? (this.containerDom.offsetWidth - daysSize * 7) / 6 : daysSize / 2
 	}
 
@@ -215,12 +216,15 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 			circleStyle = {}
 			textStyle = {}
 		}
+
+		const size = this.getElementSize(attrs)
+
 		return m(
 			"button.rel.click.flex.items-center.justify-center.rel" + (isPaddingDay && attrs.isDaySelectorExpanded ? ".faded-day" : ""),
 			{
 				style: {
-					height: px(40),
-					width: px(40),
+					height: px(size),
+					width: px(size),
 				},
 				"aria-hidden": `${isPaddingDay && attrs.isDaySelectorExpanded}`,
 				"aria-label": date.toLocaleDateString(),
@@ -233,18 +237,27 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 				m(".abs.z1.circle", {
 					style: {
 						...circleStyle,
-						width: px(25),
-						height: px(25),
+						width: px(size * 0.625),
+						height: px(size * 0.625),
 					},
 				}),
-				m(".full-width.height-100p.center.z2", { style: textStyle }, day),
-				hasEvent ? m(".day-events-indicator") : null,
+				m(
+					".full-width.height-100p.center.z2",
+					{
+						style: {
+							...textStyle,
+							fontSize: px(attrs.wide ? 14 : 12),
+						},
+					},
+					day,
+				),
+				hasEvent ? m(".day-events-indicator", { style: styles.isDesktopLayout() ? { width: "3px", height: "3px" } : {} }) : null,
 			],
 		)
 	}
 
-	private getElementWidth(attrs: DaySelectorAttrs): number {
-		return attrs.wide ? 40 : 24
+	private getElementSize(attrs: DaySelectorAttrs): number {
+		return attrs.wide ? 40 : 30
 	}
 
 	private renderExpandableWeek(week: ReadonlyArray<CalendarDay>, attrs: DaySelectorAttrs, highlight: boolean, hidden: boolean): Children {
@@ -253,8 +266,8 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 		if (highlight) {
 			style = {
 				backgroundColor: hexToRGBAString(theme.content_accent, 0.2),
-				borderRadius: "25px",
-				height: "25px",
+				borderRadius: px(styles.isDesktopLayout() ? 19 : 25),
+				height: px(styles.isDesktopLayout() ? 19 : 25),
 				width: "95%",
 			}
 		} else {

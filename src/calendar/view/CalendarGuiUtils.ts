@@ -6,7 +6,7 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { Dialog } from "../../gui/base/Dialog"
 import type { MousePosAndBounds } from "../../gui/base/GuiUtils"
 import { Time } from "../date/Time.js"
-import { assert, clamp, incrementDate, lastThrow } from "@tutao/tutanota-utils"
+import { assert, clamp, incrementDate } from "@tutao/tutanota-utils"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { formatDateWithWeekday, formatMonthWithFullYear } from "../../misc/Formatter.js"
 import { getStartOfTheWeekOffset, getStartOfWeek, getWeekNumber } from "../date/CalendarUtils.js"
@@ -57,16 +57,6 @@ export function getNextFourteenDays(startOfToday: Date): Array<Date> {
 	return days
 }
 
-function agendaTitle(date: Date): string {
-	const days = getNextFourteenDays(date)
-	const lastDay = lastThrow(days)
-	const dateRangeText =
-		days[0].getFullYear() === lastDay.getFullYear()
-			? `${lang.formats.dateWithWeekday.format(days[0])} - ${lang.formats.dateWithWeekdayAndYear.format(lastDay)}`
-			: `${lang.formats.dateWithWeekdayAndYear.format(days[0])} - ${lang.formats.dateWithWeekdayAndYear.format(lastDay)}`
-	return `${lang.get("agenda_label")} ${dateRangeText}`
-}
-
 export type CalendarNavConfiguration = { back: Child; title: string; forward: Child; week: string | null }
 
 function calendarWeek(date: Date, weekStart: WeekStart) {
@@ -95,7 +85,6 @@ export function calendarNavConfiguration(
 	weekStart: WeekStart,
 	titleType: "short" | "detailed",
 	switcher: (viewType: CalendarViewType, next: boolean) => unknown,
-	showNavigationOnAgenda: boolean = false,
 ): CalendarNavConfiguration {
 	const onBack = () => switcher(viewType, false)
 	const onForward = () => switcher(viewType, true)
@@ -123,9 +112,9 @@ export function calendarNavConfiguration(
 			}
 		case CalendarViewType.AGENDA:
 			return {
-				back: showNavigationOnAgenda ? renderCalendarSwitchLeftButton("prevWeek_label", onBack) : null,
-				forward: showNavigationOnAgenda ? renderCalendarSwitchRightButton("nextWeek_label", onForward) : null,
-				title: titleType === "short" ? formatMonthWithFullYear(date) : agendaTitle(date),
+				back: renderCalendarSwitchLeftButton("prevWeek_label", onBack),
+				forward: renderCalendarSwitchRightButton("nextWeek_label", onForward),
+				title: titleType === "short" ? formatMonthWithFullYear(date) : formatDateWithWeekday(date),
 				week: null,
 			}
 	}

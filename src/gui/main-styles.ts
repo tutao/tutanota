@@ -2038,6 +2038,27 @@ styles.registerStyle("main", () => {
 			top: "8px",
 			left: "6px",
 		},
+		".calendar-segment-control > .segmentControl": {
+			display: "grid",
+			"min-width": "276px",
+			"grid-template-columns": "1fr 1fr 1fr 1fr",
+		},
+		".calendar-segment-control .segmentControlItem:first-child": {
+			"border-bottom-left-radius": px(size.border_radius_big),
+			"border-top-left-radius": px(size.border_radius_big),
+		},
+		".calendar-segment-control .segmentControlItem:last-child": {
+			"border-bottom-right-radius": px(size.border_radius_big),
+			"border-top-right-radius": px(size.border_radius_big),
+		},
+		".calendar-segment-control > .segmentControl > button": {
+			"padding-left": px(size.hpad),
+			"padding-right": px(size.hpad),
+		},
+		".calendar-segment-control .active-segment": {
+			background: stateBgHover,
+			"transition-duration": ".3s",
+		},
 		".color-picker": {
 			height: px(30),
 			width: px(100),
