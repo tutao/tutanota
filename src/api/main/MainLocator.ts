@@ -652,7 +652,7 @@ class MainLocator {
 		this.credentialsProvider = await createCredentialsProvider(
 			deviceEncryptionFacade,
 			this.nativeInterfaces?.native ?? null,
-			sqlCipherFacade ?? null,
+			sqlCipherFacade,
 			isDesktop() ? this.interWindowEventSender : null,
 		)
 		this.random = random
