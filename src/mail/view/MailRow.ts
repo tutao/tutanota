@@ -224,7 +224,7 @@ export class MailRow implements VirtualRow<Mail> {
 									classes: ".small.mr-s",
 									oncreate: (vnode) => (this.teamLabelDom = vnode.dom as HTMLElement),
 								},
-								"Tutanota Team",
+								"Tuta Team",
 							),
 							m(".text-ellipsis", {
 								oncreate: (vnode) => (this.senderDom = vnode.dom as HTMLElement),
