@@ -590,7 +590,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderHardAuthenticationFailWarning(viewModel: MailViewerViewModel): Children | null {
-		if (!viewModel.isWarningDismissed() && viewModel.mail.authStatus === MailAuthenticationStatus.HARD_FAIL) {
+		if (!viewModel.isWarningDismissed() && viewModel.checkMailAuthenticationStatus(MailAuthenticationStatus.HARD_FAIL)) {
 			return m(InfoBanner, {
 				message: "mailAuthFailed_msg",
 				icon: Icons.Warning,
@@ -607,7 +607,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderSoftAuthenticationFailWarning(viewModel: MailViewerViewModel): Children | null {
-		if (!viewModel.isWarningDismissed() && viewModel.mail.authStatus === MailAuthenticationStatus.SOFT_FAIL) {
+		if (!viewModel.isWarningDismissed() && viewModel.checkMailAuthenticationStatus(MailAuthenticationStatus.SOFT_FAIL)) {
 			return m(InfoBanner, {
 				message: () =>
 					viewModel.mail.differentEnvelopeSender
@@ -641,7 +641,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 		const alwaysOrNeverAllowButtons = attrs.viewModel.canPersistBlockingStatus()
 			? [
-					attrs.viewModel.isMailAuthenticated()
+					attrs.viewModel.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED)
 						? {
 								label: "allowExternalContentSender_action" as const,
 								click: () => attrs.viewModel.setContentBlockingStatus(ContentBlockingStatus.AlwaysShow),
