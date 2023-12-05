@@ -4,9 +4,10 @@
 TOTAL_MEMORY=48MB
 
 CC=emcc
-WASM=liboqs.wasm
+TUTA_CRYPTO_LIB=../../packages/tutanota-crypto/lib/encryption/Liboqs
+WASM=${TUTA_CRYPTO_LIB}/liboqs.wasm
 
-LIBOQS_DIR=../../../../../libs/liboqs
+LIBOQS_DIR=liboqs
 
 all: ${WASM}
 clean:
@@ -42,8 +43,8 @@ ${WASM}: include
     	"${LIBOQS_DIR}/src/common/sha3/xkcp_sha3.c" \
     	"${LIBOQS_DIR}/src/common/sha3/xkcp_low/KeccakP-1600/plain-64bits/KeccakP-1600-opt64.c" \
     	"${LIBOQS_DIR}/src/common/common.c" \
-    	"rand.c" \
-    	"exit.c" \
+    	"${TUTA_CRYPTO_LIB}/rand.c" \
+    	"${TUTA_CRYPTO_LIB}/exit.c" \
     	-I "include" \
     	-I "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref" \
     	-I "${LIBOQS_DIR}/src/common/pqclean_shims" \
@@ -58,4 +59,4 @@ ${WASM}: include
     	-s TOTAL_MEMORY=${TOTAL_MEMORY} \
     	-s EXPORTED_FUNCTIONS="['_OQS_KEM_new', '_OQS_KEM_free', '_OQS_KEM_keypair', '_OQS_KEM_encaps', '_OQS_KEM_decaps', '_TUTA_inject_entropy', '_malloc', '_free']" \
     	-o ${WASM}
-
+	rm -r "include/"

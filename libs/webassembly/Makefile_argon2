@@ -4,9 +4,8 @@
 TOTAL_MEMORY=48MB
 
 CC=emcc
-WASM=argon2.wasm
-
-ARGON2_DIR=../../../../../libs/phc-winner-argon2
+WASM=../../packages/tutanota-crypto/lib/hashes/Argon2id/argon2.wasm
+ARGON2_DIR=phc-winner-argon2
 
 all: ${WASM}
 clean:

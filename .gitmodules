@@ -1,0 +1,6 @@
+[submodule "libs/phc-winner-argon2"]
+	path = libs/webassembly/phc-winner-argon2
+	url = https://github.com/tutao/phc-winner-argon2
+[submodule "libs/webassembly/liboqs"]
+	path = libs/webassembly/liboqs
+	url = https://github.com/tutao/liboqs.git
