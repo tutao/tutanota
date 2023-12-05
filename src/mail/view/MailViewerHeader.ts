@@ -27,6 +27,7 @@ import { liveDataAttrs } from "../../gui/AriaUtils.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 import { AttachmentBubble } from "../../gui/AttachmentBubble.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../gui/cards.js"
+import { companyTeamLabel } from "../../misc/ClientConstants.js"
 
 export interface MailAddressAndName {
 	name: string
@@ -566,7 +567,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					{
 						classes: ".mr-s",
 					},
-					"Tuta Team",
+					companyTeamLabel,
 			  )
 			: null
 	}
