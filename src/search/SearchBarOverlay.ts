@@ -21,6 +21,7 @@ import { getContactListName } from "../contacts/model/ContactUtils"
 import { getMailFolderIcon } from "../mail/view/MailGuiUtils"
 import { locator } from "../api/main/MainLocator"
 import { IndexingErrorReason } from "../api/worker/search/SearchTypes"
+import { companyTeamLabel } from "../misc/ClientConstants.js"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState
@@ -195,7 +196,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 								{
 									classes: ".small.mr-s",
 								},
-								"Tuta Team",
+								companyTeamLabel,
 						  )
 						: null,
 					m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
