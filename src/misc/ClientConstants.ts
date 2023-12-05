@@ -36,3 +36,5 @@ export type BrowserData = {
 	needsExplicitIDBIds: boolean
 	indexedDbSupported: boolean
 }
+
+export const companyTeamLabel = "Tuta Team"
