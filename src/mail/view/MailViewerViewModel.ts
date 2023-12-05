@@ -386,13 +386,13 @@ export class MailViewerViewModel {
 		this.mail.phishingStatus = status
 	}
 
-	isMailAuthenticated() {
+	checkMailAuthenticationStatus(status: MailAuthenticationStatus) {
 		// all legacy mail should have authStatus set, non-legacy mail can have it set to null. then the wrapper should have
 		// the value. if the wrapper is not loaded yet, this returns false.
 		if (this.mail.authStatus != null) {
-			return this.mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
+			return this.mail.authStatus === status
 		} else if (this.mailWrapper?.isLegacy() === false) {
-			return this.mailWrapper.getDetails().authStatus === MailAuthenticationStatus.AUTHENTICATED
+			return this.mailWrapper.getDetails().authStatus === status
 		} else {
 			// mailWrapper not loaded yet or it's a legacy mail without authStatus
 			return false
@@ -620,7 +620,7 @@ export class MailViewerViewModel {
 			return ExternalImageRule.None
 		})
 		const isAllowedAndAuthenticatedExternalSender =
-			externalImageRule === ExternalImageRule.Allow && mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
+			externalImageRule === ExternalImageRule.Allow && this.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED)
 		// We should not try to sanitize body while we still animate because it's a heavy operation.
 		await delayBodyRenderingUntil
 		this.renderIsDelayed = false
