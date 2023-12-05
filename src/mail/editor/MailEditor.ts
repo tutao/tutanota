@@ -1048,14 +1048,16 @@ export async function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dial
 	return newMailEditorFromTemplate(detailsProperties.mailboxDetails, {}, "", signature)
 }
 
-async function getExternalContentRules(model: SendMailModel, currentStatus: boolean) {
+async function getExternalContentRulesForEditor(model: SendMailModel, currentStatus: boolean) {
 	let contentRules
 	const previousMail = model.getPreviousMail()
 
 	if (!previousMail) {
 		contentRules = {
 			alwaysBlockExternalContent: false,
-			blockExternalContent: true,
+			// external content in a mail for which we don't have a
+			// previous mail must have been put there by us.
+			blockExternalContent: false,
 		}
 	} else {
 		const externalImageRule = await locator.configFacade.getExternalImageRule(previousMail.sender.address).catch((e: unknown) => {
@@ -1096,7 +1098,7 @@ export async function newMailEditorAsResponse(
 	const model = await locator.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 	await model.initAsResponse(args, inlineImages)
 
-	const externalImageRules = await getExternalContentRules(model, blockExternalContent)
+	const externalImageRules = await getExternalContentRulesForEditor(model, blockExternalContent)
 	return createMailEditorDialog(model, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
 }
 
@@ -1110,7 +1112,7 @@ export async function newMailEditorFromDraft(
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	const model = await locator.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 	await model.initWithDraft(attachments, mailWrapper, inlineImages)
-	const externalImageRules = await getExternalContentRules(model, blockExternalContent)
+	const externalImageRules = await getExternalContentRulesForEditor(model, blockExternalContent)
 	return createMailEditorDialog(model, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
 }
 
