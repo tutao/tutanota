@@ -20,11 +20,13 @@ export class TemplatePopupResultRow implements Component<TemplateResultRowAttrs>
 				style: {
 					height: px(TEMPLATE_LIST_ENTRY_HEIGHT),
 				},
+				// this title is for the hover text
+				title: title,
 			},
 			[
 				// marginLeft 4px because border-radius of tag has margin of 4px
 				m(
-					".text-ellipsis",
+					".text-ellipsis.smaller",
 					{
 						style: {
 							marginLeft: "4px",
