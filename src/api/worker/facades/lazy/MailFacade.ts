@@ -102,7 +102,7 @@ import { htmlToText } from "../../search/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
 import { UNCOMPRESSED_MAX_SIZE } from "../../Compression.js"
 import {
-	aes128RandomKey,
+	aes256RandomKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
 	decryptKey,
@@ -178,7 +178,7 @@ export class MailFacade {
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
 		const mailGroupKey = this.userFacade.getGroupKey(ownerGroupId)
 
-		const sk = aes128RandomKey()
+		const sk = aes256RandomKey()
 		const newFolder = createCreateMailFolderData({
 			folderName: name,
 			parentFolder: parent,
@@ -249,7 +249,7 @@ export class MailFacade {
 
 		const mailGroupKey = this.userFacade.getGroupKey(senderMailGroupId)
 
-		const sk = aes128RandomKey()
+		const sk = aes256RandomKey()
 		const service = createDraftCreateData({
 			previousMessageId: previousMessageId,
 			conversationType: conversationType,
@@ -402,7 +402,7 @@ export class MailFacade {
 			// check if this is a new attachment or an existing one
 			if (isDataFile(providedFile)) {
 				// user added attachment
-				const fileSessionKey = aes128RandomKey()
+				const fileSessionKey = aes256RandomKey()
 				let referenceTokens: Array<BlobReferenceTokenWrapper>
 				if (isApp() || isDesktop()) {
 					const { location } = await this.fileApp.writeDataFile(providedFile)
@@ -413,7 +413,7 @@ export class MailFacade {
 				}
 				return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, providedFile, mailGroupKey)
 			} else if (isFileReference(providedFile)) {
-				const fileSessionKey = aes128RandomKey()
+				const fileSessionKey = aes256RandomKey()
 				const referenceTokens = await this.blobFacade.encryptAndUploadNative(
 					ArchiveDataType.Attachments,
 					providedFile.location,
@@ -466,7 +466,7 @@ export class MailFacade {
 
 	async sendDraft(draft: Mail, recipients: Array<Recipient>, language: string, kdfVersion: KdfType): Promise<void> {
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), draft.sender.address)
-		const bucketKey = aes128RandomKey()
+		const bucketKey = aes256RandomKey()
 		const sendDraftData = createSendDraftData({
 			language: language,
 			mail: draft._id,
@@ -764,13 +764,13 @@ export class MailFacade {
 						// it does not exist, so create it
 						let internalMailGroupKey = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Mail))
 
-						let externalUserGroupKey = aes128RandomKey()
-						let externalMailGroupKey = aes128RandomKey()
-						let externalUserGroupInfoSessionKey = aes128RandomKey()
-						let externalMailGroupInfoSessionKey = aes128RandomKey()
-						let clientKey = aes128RandomKey()
-						let tutanotaPropertiesSessionKey = aes128RandomKey()
-						let mailboxSessionKey = aes128RandomKey()
+						let externalUserGroupKey = aes256RandomKey()
+						let externalMailGroupKey = aes256RandomKey()
+						let externalUserGroupInfoSessionKey = aes256RandomKey()
+						let externalMailGroupInfoSessionKey = aes256RandomKey()
+						let clientKey = aes256RandomKey()
+						let tutanotaPropertiesSessionKey = aes256RandomKey()
+						let mailboxSessionKey = aes256RandomKey()
 						let userEncEntropy = encryptBytes(externalUserGroupKey, random.generateRandomData(32))
 						let userGroupData = createCreateExternalUserGroupData({
 							mailAddress: cleanedMailAddress,

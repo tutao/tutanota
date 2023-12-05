@@ -16,7 +16,7 @@ import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import { encryptString } from "../../crypto/CryptoFacade.js"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
-import { aes128RandomKey, aes256RandomKey, decryptKey, encryptKey, encryptRsaKey, RsaKeyPair, rsaPublicKeyToHex } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, decryptKey, encryptKey, encryptRsaKey, RsaKeyPair, rsaPublicKeyToHex } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import {
 	CalendarService,
@@ -57,9 +57,9 @@ export class GroupManagementFacade {
 
 		let customerGroupKey = this.user.getGroupKey(this.user.getGroupId(GroupType.Customer))
 
-		let mailGroupKey = aes128RandomKey()
-		let mailGroupInfoSessionKey = aes128RandomKey()
-		let mailboxSessionKey = aes128RandomKey()
+		let mailGroupKey = aes256RandomKey()
+		let mailGroupInfoSessionKey = aes256RandomKey()
+		let mailboxSessionKey = aes256RandomKey()
 		const keyPair = await this.rsa.generateKey()
 		const mailGroupData = await this.generateInternalGroupData(
 			keyPair,
@@ -102,9 +102,9 @@ export class GroupManagementFacade {
 
 			const userGroupKey = this.user.getUserGroupKey()
 
-			const groupRootSessionKey = aes128RandomKey()
-			const groupInfoSessionKey = aes128RandomKey()
-			const groupKey = aes128RandomKey()
+			const groupRootSessionKey = aes256RandomKey()
+			const groupInfoSessionKey = aes256RandomKey()
+			const groupKey = aes256RandomKey()
 			return createUserAreaGroupData({
 				groupEncGroupRootSessionKey: encryptKey(groupKey, groupRootSessionKey),
 				customerEncGroupInfoSessionKey: encryptKey(customerGroupKey, groupInfoSessionKey),

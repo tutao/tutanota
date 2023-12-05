@@ -50,7 +50,13 @@ export function aes256DecryptLegacyRecoveryKey(encryptionKey: Aes256Key, keyToBe
 }
 
 export function encryptRsaKey(encryptionKey: Aes128Key | Aes256Key, privateKey: RsaPrivateKey, iv?: Uint8Array): Uint8Array {
-	return aesEncrypt(encryptionKey, hexToUint8Array(rsaPrivateKeyToHex(privateKey)), iv, true, false)
+	// BitArrays are arrays of numbers. Each number encodes 4 bytes. See https://bitwiseshiftleft.github.io/sjcl/doc/sjcl.bitArray.html.
+	if (encryptionKey.length === KEY_LENGTH_BYTES_AES_128 / 4) {
+		// legacy case: private key without mac
+		return aesEncrypt(encryptionKey, hexToUint8Array(rsaPrivateKeyToHex(privateKey)), iv, true, false)
+	} else {
+		return aesEncrypt(encryptionKey, hexToUint8Array(rsaPrivateKeyToHex(privateKey)), iv, true, true)
+	}
 }
 
 export function encryptEccKey(encryptionKey: Aes128Key | Aes256Key, privateKey: EccPrivateKey): Uint8Array {

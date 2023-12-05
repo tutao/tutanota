@@ -30,6 +30,14 @@ o.spec("key encryption", function () {
 		o(decryptRsaKey(gk, encryptedPrivateKey)).deepEquals(privateKey)
 	})
 
+	o("encrypt / decrypt private rsa key with aes256", function () {
+		let gk = aes256RandomKey()
+		let privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
+		let iv = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
+		var encryptedPrivateKey = encryptRsaKey(gk, privateKey, iv)
+		o(decryptRsaKey(gk, encryptedPrivateKey)).deepEquals(privateKey)
+	})
+
 	o("encrypt / decrypt aes256 key with aes256", function () {
 		const key = aes256RandomKey()
 		const encryptionKey = aes256RandomKey()

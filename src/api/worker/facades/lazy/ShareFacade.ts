@@ -14,7 +14,7 @@ import {
 import { isSameTypeRef, neverNull } from "@tutao/tutanota-utils"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
-import { aes128RandomKey, bitArrayToUint8Array, encryptKey, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, bitArrayToUint8Array, encryptKey, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { GroupInvitationService } from "../../../entities/tutanota/Services.js"
 import { UserFacade } from "../UserFacade.js"
@@ -41,8 +41,8 @@ export class ShareFacade {
 
 		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(userGroupInfo)
 		const sharedGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(sharedGroupInfo)
-		const bucketKey = aes128RandomKey()
-		const invitationSessionKey = aes128RandomKey()
+		const bucketKey = aes256RandomKey()
+		const invitationSessionKey = aes256RandomKey()
 		const sharedGroupData = createSharedGroupData({
 			sessionEncInviterName: encryptString(invitationSessionKey, userGroupInfo.name),
 			sessionEncSharedGroupKey: encryptBytes(invitationSessionKey, bitArrayToUint8Array(sharedGroupKey)),

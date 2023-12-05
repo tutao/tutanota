@@ -58,7 +58,7 @@ import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
 import {
 	Aes128Key,
-	aes128RandomKey,
+	aes256RandomKey,
 	Aes256Key,
 	aesEncrypt,
 	bitArrayToUint8Array,
@@ -134,7 +134,7 @@ export class CryptoFacade {
 		} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && data._ownerEncSessionKey == null) {
 			// EncryptTutanotaPropertiesService could be removed and replaced with an Migration that writes the key
 			data._ownerGroup = this.userFacade.getUserGroupId()
-			let groupEncSessionKey = encryptKey(this.userFacade.getUserGroupKey(), aes128RandomKey())
+			let groupEncSessionKey = encryptKey(this.userFacade.getUserGroupKey(), aes256RandomKey())
 			data._ownerEncSessionKey = uint8ArrayToBase64(groupEncSessionKey)
 			let migrationData = createEncryptTutanotaPropertiesData({
 				properties: data._id,
@@ -145,7 +145,7 @@ export class CryptoFacade {
 		} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef) && data._ownerEncSessionKey == null) {
 			// set sessionKey for allowing encryption when old instance (< v43) is updated
 			return resolveTypeReference(typeRef)
-				.then((typeModel) => this.updateOwnerEncSessionKey(typeModel, data, this.userFacade.getUserGroupKey(), aes128RandomKey()))
+				.then((typeModel) => this.updateOwnerEncSessionKey(typeModel, data, this.userFacade.getUserGroupKey(), aes256RandomKey()))
 				.then(() => data)
 		}
 
@@ -653,7 +653,7 @@ export class CryptoFacade {
 				throw new Error(`ownerEncSessionKey already set ${JSON.stringify(entity)}`)
 			}
 
-			const sessionKey = aes128RandomKey()
+			const sessionKey = aes256RandomKey()
 			const effectiveKeyToEncryptSessionKey = keyToEncryptSessionKey ?? this.userFacade.getGroupKey(entity._ownerGroup)
 			entity._ownerEncSessionKey = encryptKey(effectiveKeyToEncryptSessionKey, sessionKey)
 			return sessionKey

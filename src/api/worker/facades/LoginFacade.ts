@@ -56,7 +56,7 @@ import { GENERATED_ID_BYTES_LENGTH, isSameId } from "../../common/utils/EntityUt
 import type { Credentials } from "../../../misc/credentials/Credentials"
 import {
 	Aes128Key,
-	aes128RandomKey,
+	aes256RandomKey,
 	aes256DecryptLegacyRecoveryKey,
 	Aes256Key,
 	aesDecrypt,
@@ -227,7 +227,7 @@ export class LoginFacade {
 		let accessKey: Aes128Key | null = null
 
 		if (sessionType === SessionType.Persistent) {
-			accessKey = aes128RandomKey()
+			accessKey = aes256RandomKey()
 			createSessionData.accessKey = keyToUint8Array(accessKey)
 		}
 		const createSessionReturn = await this.serviceExecutor.post(SessionService, createSessionData)
@@ -357,7 +357,7 @@ export class LoginFacade {
 		let accessKey: Aes128Key | null = null
 
 		if (persistentSession) {
-			accessKey = aes128RandomKey()
+			accessKey = aes256RandomKey()
 			sessionData.accessKey = keyToUint8Array(accessKey)
 		}
 

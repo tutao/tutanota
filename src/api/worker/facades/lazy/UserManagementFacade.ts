@@ -19,7 +19,6 @@ import { LoginFacade } from "../LoginFacade.js"
 import { CounterFacade } from "./CounterFacade.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import {
-	aes128RandomKey,
 	aes256RandomKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
@@ -205,8 +204,8 @@ export class UserManagementFacade {
 
 		const customerGroupKey = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Customer))
 
-		const userGroupKey = aes128RandomKey()
-		const userGroupInfoSessionKey = aes128RandomKey()
+		const userGroupKey = aes256RandomKey()
+		const userGroupInfoSessionKey = aes256RandomKey()
 		const keyPair = await this.rsa.generateKey()
 		const userGroupData = await this.groupManagement.generateInternalGroupData(
 			keyPair,
@@ -249,17 +248,17 @@ export class UserManagementFacade {
 	): Promise<UserAccountUserData> {
 		const salt = generateRandomSalt()
 		const userPassphraseKey = await this.loginFacade.deriveUserPassphraseKey(kdfType, password, salt)
-		const mailGroupKey = aes128RandomKey()
-		const contactGroupKey = aes128RandomKey()
-		const fileGroupKey = aes128RandomKey()
-		const clientKey = aes128RandomKey()
-		const mailboxSessionKey = aes128RandomKey()
-		const contactListSessionKey = aes128RandomKey()
-		const fileSystemSessionKey = aes128RandomKey()
-		const mailGroupInfoSessionKey = aes128RandomKey()
-		const contactGroupInfoSessionKey = aes128RandomKey()
-		const fileGroupInfoSessionKey = aes128RandomKey()
-		const tutanotaPropertiesSessionKey = aes128RandomKey()
+		const mailGroupKey = aes256RandomKey()
+		const contactGroupKey = aes256RandomKey()
+		const fileGroupKey = aes256RandomKey()
+		const clientKey = aes256RandomKey()
+		const mailboxSessionKey = aes256RandomKey()
+		const contactListSessionKey = aes256RandomKey()
+		const fileSystemSessionKey = aes256RandomKey()
+		const mailGroupInfoSessionKey = aes256RandomKey()
+		const contactGroupInfoSessionKey = aes256RandomKey()
+		const fileGroupInfoSessionKey = aes256RandomKey()
+		const tutanotaPropertiesSessionKey = aes256RandomKey()
 		const userEncEntropy = encryptBytes(userGroupKey, random.generateRandomData(32))
 		const userData = createUserAccountUserData({
 			mailAddress: mailAddress,

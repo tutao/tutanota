@@ -11,7 +11,7 @@ import {
 } from "@tutao/tutanota-utils"
 import type { GiftCardRedeemGetReturn } from "../../../entities/sys/TypeRefs.js"
 import { createGiftCardCreateData, createGiftCardRedeemData, GiftCard } from "../../../entities/sys/TypeRefs.js"
-import { aes128RandomKey, base64ToKey, bitArrayToUint8Array, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, base64ToKey, bitArrayToUint8Array, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { GiftCardRedeemService, GiftCardService } from "../../../entities/sys/Services.js"
 import { elementIdPart, GENERATED_MAX_ID } from "../../../common/utils/EntityUtils.js"
@@ -40,7 +40,7 @@ export class GiftCardFacade {
 
 		const ownerKey = this.user.getGroupKey(getFirstOrThrow(adminGroupIds)) // adminGroupKey
 
-		const sessionKey = aes128RandomKey()
+		const sessionKey = aes256RandomKey()
 		const { giftCard } = await this.serviceExecutor.post(
 			GiftCardService,
 			createGiftCardCreateData({

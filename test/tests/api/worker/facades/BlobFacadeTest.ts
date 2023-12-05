@@ -11,7 +11,7 @@ import { createFile, File as TutanotaFile, FileTypeRef } from "../../../../../sr
 import { ServiceExecutor } from "../../../../../src/api/worker/rest/ServiceExecutor.js"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { HttpMethod } from "../../../../../src/api/common/EntityFunctions.js"
-import { aes128RandomKey, aesDecrypt, aesEncrypt, generateIV } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, aesDecrypt, aesEncrypt, generateIV } from "@tutao/tutanota-crypto"
 import { arrayEquals, neverNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { Mode } from "../../../../../src/api/common/Env.js"
 import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
@@ -93,7 +93,7 @@ o.spec("BlobFacade test", function () {
 	o.spec("upload", function () {
 		o("encryptAndUpload single blob", async function () {
 			const ownerGroup = "ownerId"
-			const sessionKey = aes128RandomKey()
+			const sessionKey = aes256RandomKey()
 			const blobData = new Uint8Array([1, 2, 3])
 
 			const expectedReferenceTokens = [createTestEntity(BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: "blobRefToken" })]
@@ -120,7 +120,7 @@ o.spec("BlobFacade test", function () {
 
 		o("encryptAndUploadNative", async function () {
 			const ownerGroup = "ownerId"
-			const sessionKey = aes128RandomKey()
+			const sessionKey = aes256RandomKey()
 
 			const expectedReferenceTokens = [createTestEntity(BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: "blobRefToken" })]
 			const uploadedFileUri = "rawFileUri"
@@ -165,7 +165,7 @@ o.spec("BlobFacade test", function () {
 
 	o.spec("download", function () {
 		o("downloadAndDecrypt", async function () {
-			const sessionKey = aes128RandomKey()
+			const sessionKey = aes256RandomKey()
 			const blobData = new Uint8Array([1, 2, 3])
 			file.blobs.push(createTestEntity(BlobTypeRef))
 			const encryptedBlobData = aesEncrypt(sessionKey, blobData, generateIV(), true, true)
@@ -195,7 +195,7 @@ o.spec("BlobFacade test", function () {
 		})
 
 		o("downloadAndDecryptNative", async function () {
-			const sessionKey = aes128RandomKey()
+			const sessionKey = aes256RandomKey()
 
 			file.blobs.push(blobs[0])
 
@@ -241,7 +241,7 @@ o.spec("BlobFacade test", function () {
 		})
 
 		o("downloadAndDecryptNative_delete_on_error", async function () {
-			const sessionKey = aes128RandomKey()
+			const sessionKey = aes256RandomKey()
 			file.blobs.push(blobs[0])
 			file.blobs.push(blobs[1])
 

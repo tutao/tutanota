@@ -40,7 +40,7 @@ import { elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToC
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
 import { ImportError } from "../../../common/error/ImportError.js"
-import { aes128RandomKey, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
 import { InstanceMapper } from "../../crypto/InstanceMapper.js"
 import { TutanotaError } from "../../../common/error/TutanotaError.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
@@ -255,7 +255,7 @@ export class CalendarFacade {
 		)
 		// Theoretically we don't need to encrypt anything if we are sending things locally but we use already encrypted data on the client
 		// to store alarms securely.
-		const notificationKey = aes128RandomKey()
+		const notificationKey = aes256RandomKey()
 		await this.encryptNotificationKeyForDevices(notificationKey, alarmNotifications, [pushIdentifier])
 		const requestEntity = createAlarmServicePost({
 			alarmNotifications,
@@ -345,7 +345,7 @@ export class CalendarFacade {
 	}
 
 	private async sendAlarmNotifications(alarmNotifications: Array<AlarmNotification>, pushIdentifierList: Array<PushIdentifier>): Promise<void> {
-		const notificationSessionKey = aes128RandomKey()
+		const notificationSessionKey = aes256RandomKey()
 		return this.encryptNotificationKeyForDevices(notificationSessionKey, alarmNotifications, pushIdentifierList).then(async () => {
 			const requestEntity = createAlarmServicePost({
 				alarmNotifications,
