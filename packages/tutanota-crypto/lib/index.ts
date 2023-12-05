@@ -3,7 +3,6 @@ export {
 	generateIV,
 	aesEncrypt,
 	aesDecrypt,
-	aes128RandomKey,
 	ENABLE_MAC,
 	IV_BYTE_LENGTH,
 	Aes128Key,

@@ -59,7 +59,6 @@ import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
 import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
 import {
 	Aes128Key,
-	aes128RandomKey,
 	Aes256Key,
 	aes256RandomKey,
 	aesDecrypt,
@@ -158,16 +157,16 @@ o.spec("CryptoFacade", function () {
 
 	o.spec("decrypt value", function () {
 		o("decrypt string / number value without mac", function () {
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			let value = "this is a string value"
-			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk)).equals(value)
 			value = "516546"
-			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk)).equals(value)
 		})
 		o("decrypt string / number value with mac", function () {
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			let value = "this is a string value"
 			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk)).equals(value)
@@ -177,20 +176,20 @@ o.spec("CryptoFacade", function () {
 		})
 		o("decrypt boolean value without mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Boolean, true, Cardinality.One)
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			let value = "0"
-			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(false)
 			value = "1"
-			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(true)
 			value = "32498"
-			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(true)
 		})
 		o("decrypt boolean value with mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Boolean, true, Cardinality.One)
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			let value = "0"
 			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(false)
@@ -203,30 +202,30 @@ o.spec("CryptoFacade", function () {
 		})
 		o("decrypt date value without mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Date, true, Cardinality.One)
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			let value = new Date().getTime().toString()
-			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", valueType, encryptedValue, sk)).deepEquals(new Date(parseInt(value)))
 		})
 		o("decrypt date value with mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Date, true, Cardinality.One)
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			let value = new Date().getTime().toString()
 			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", valueType, encryptedValue, sk)).deepEquals(new Date(parseInt(value)))
 		})
 		o("decrypt bytes value without mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Bytes, true, Cardinality.One)
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			let value = random.generateRandomData(5)
-			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			let decryptedValue = decryptValue("test", valueType, encryptedValue, sk)
 			o(decryptedValue instanceof Uint8Array).equals(true)
 			o(Array.from(decryptedValue)).deepEquals(Array.from(value))
 		})
 		o("decrypt bytes value with mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Bytes, true, Cardinality.One)
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			let value = random.generateRandomData(5)
 			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			let decryptedValue = decryptValue("test", valueType, encryptedValue, sk)
@@ -235,7 +234,7 @@ o.spec("CryptoFacade", function () {
 		})
 		o("decrypt compressedString", function () {
 			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			let value = base64ToUint8Array("QHRlc3Q=")
 			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			let decryptedValue = decryptValue("test", valueType, encryptedValue, sk)
@@ -244,7 +243,7 @@ o.spec("CryptoFacade", function () {
 		})
 		o("decrypt compressedString w resize", function () {
 			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			let value = base64ToUint8Array("X3RleHQgBQD//1FQdGV4dCA=")
 			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			let decryptedValue = decryptValue("test", valueType, encryptedValue, sk)
@@ -255,14 +254,14 @@ o.spec("CryptoFacade", function () {
 		})
 		o("decrypt empty compressedString", function () {
 			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, new Uint8Array([]), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			let decryptedValue = decryptValue("test", valueType, encryptedValue, sk)
 			o(typeof decryptedValue === "string").equals(true)
 			o(decryptedValue).equals("")
 		})
 		o("do not decrypt null values", function () {
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			o(decryptValue("test", createValueType(ValueType.String, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
 			o(decryptValue("test", createValueType(ValueType.Date, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
 			o(decryptValue("test", createValueType(ValueType.Bytes, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
@@ -277,7 +276,7 @@ o.spec("CryptoFacade", function () {
 
 		function makeTestForErrorOnNull(type) {
 			return async () => {
-				let sk = aes128RandomKey()
+				let sk = aes256RandomKey()
 
 				const e = await assertThrows(ProgrammingError, () => decryptValue("test", createValueType(type, true, Cardinality.One), null, sk))
 				o(e.message).equals("Value test with cardinality ONE can not be null")
@@ -317,7 +316,7 @@ o.spec("CryptoFacade", function () {
 	o.spec("encryptValue", function () {
 		o("encrypt string / number value", function () {
 			const valueType = createValueType(ValueType.String, true, Cardinality.One)
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			let value = "this is a string value"
 			let encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			let expected = uint8ArrayToBase64(
@@ -334,7 +333,7 @@ o.spec("CryptoFacade", function () {
 		})
 		o("encrypt boolean value", function () {
 			let valueType: ModelValue = createValueType(ValueType.Boolean, true, Cardinality.One)
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			let value = false
 			let encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			let expected = uint8ArrayToBase64(
@@ -364,7 +363,7 @@ o.spec("CryptoFacade", function () {
 		})
 		o("encrypt date value", function () {
 			let valueType: ModelValue = createValueType(ValueType.Date, true, Cardinality.One)
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			let value = new Date()
 			let encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			let expected = uint8ArrayToBase64(
@@ -381,7 +380,7 @@ o.spec("CryptoFacade", function () {
 		})
 		o("encrypt bytes value", function () {
 			let valueType: ModelValue = createValueType(ValueType.Bytes, true, Cardinality.One)
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			let value = random.generateRandomData(5)
 			let encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			let expected = uint8ArrayToBase64(
@@ -391,7 +390,7 @@ o.spec("CryptoFacade", function () {
 			o(Array.from(decryptValue("test", valueType, encryptedValue, sk))).deepEquals(Array.from(value))
 		})
 		o("do not encrypt null values", function () {
-			let sk = aes128RandomKey()
+			let sk = aes256RandomKey()
 			o(encryptValue("test", createValueType(ValueType.String, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
 			o(encryptValue("test", createValueType(ValueType.Date, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
 			o(encryptValue("test", createValueType(ValueType.Bytes, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
@@ -417,7 +416,7 @@ o.spec("CryptoFacade", function () {
 
 		function makeTestForErrorOnNull(type) {
 			return async () => {
-				let sk = aes128RandomKey()
+				let sk = aes256RandomKey()
 
 				const e = await assertThrows(ProgrammingError, async () => encryptValue("test", createValueType(type, true, Cardinality.One), null, sk))
 				o(e.message).equals("Value test with cardinality ONE can not be null")
@@ -513,7 +512,7 @@ o.spec("CryptoFacade", function () {
 		let confidential = true
 		let senderName = "TutanotaTeam"
 		const user = createTestUser("Alice")
-		const sk = aes128RandomKey()
+		const sk = aes256RandomKey()
 		let mail = createMailLiteral(user.mailGroupKey, sk, subject, confidential, senderName, user.name, user.mailGroup._id)
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 		return instanceMapper.decryptAndMapToInstance<Mail>(MailTypeModel, mail, sk).then((decrypted) => {
@@ -533,7 +532,7 @@ o.spec("CryptoFacade", function () {
 	})
 
 	o("encrypt instance", async function () {
-		let sk = aes128RandomKey()
+		let sk = aes256RandomKey()
 		let address = createTestEntity(ContactAddressTypeRef)
 		address.type = "0"
 		address.address = "Entenhausen"
@@ -604,7 +603,7 @@ o.spec("CryptoFacade", function () {
 		let subject = "this is our subject"
 		let confidential = true
 		let senderName = "TutanotaTeam"
-		const sk = aes128RandomKey()
+		const sk = aes256RandomKey()
 
 		const mail = createMailLiteral(recipientUser.mailGroupKey, sk, subject, confidential, senderName, recipientUser.name, recipientUser.mailGroup._id)
 
@@ -622,8 +621,8 @@ o.spec("CryptoFacade", function () {
 		let subject = "this is our subject"
 		let confidential = true
 		let senderName = "TutanotaTeam"
-		let sk = aes128RandomKey()
-		let bk = aes128RandomKey()
+		let sk = aes256RandomKey()
+		let bk = aes256RandomKey()
 		let privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
 		let publicKey = hexToRsaPublicKey(rsaPublicHexKey)
 		const keyPair = createTestEntity(KeyPairTypeRef, {
@@ -1089,8 +1088,8 @@ o.spec("CryptoFacade", function () {
 
 	o("authenticateSender | no authentication needed for secure external recipient", async function () {
 		o.timeout(500) // in CI or with debugging it can take a while
-		const file1SessionKey = aes128RandomKey()
-		const file2SessionKey = aes128RandomKey()
+		const file1SessionKey = aes256RandomKey()
+		const file2SessionKey = aes256RandomKey()
 		const testData = await prepareConfidentialMailToExternalRecipient([file1SessionKey, file2SessionKey])
 		Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
@@ -1134,7 +1133,7 @@ o.spec("CryptoFacade", function () {
 		let subject = "this is our subject"
 		let confidential = true
 		let senderName = "TutanotaTeam"
-		let sk = aes128RandomKey()
+		let sk = aes256RandomKey()
 		let mail = createMailLiteral(testUser.mailGroupKey, sk, subject, confidential, senderName, testUser.name, testUser.mailGroup._id)
 		mail.subject = "asdf"
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
@@ -1312,8 +1311,8 @@ o.spec("CryptoFacade", function () {
 		"resolve session key: rsa public key decryption of session key using BucketKey aggregated type - Mail referencing MailDetailsBlob with attachments",
 		async function () {
 			o.timeout(500) // in CI or with debugging it can take a while
-			const file1SessionKey = aes128RandomKey()
-			const file2SessionKey = aes128RandomKey()
+			const file1SessionKey = aes256RandomKey()
+			const file2SessionKey = aes256RandomKey()
 			const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest([file1SessionKey, file2SessionKey])
 			Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
@@ -1326,16 +1325,18 @@ o.spec("CryptoFacade", function () {
 			const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value
 			o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
 			for (const isk of testData.bucketKey.bucketEncSessionKeys) {
-				isk.symEncSessionKey = encryptKey(testData.mailGroupKey, decryptKey(testData.bk, isk.symEncSessionKey))
+				const expectedSessionKey = decryptKey(testData.bk, isk.symEncSessionKey)
 				o(
-					updatedInstanceSessionKeys.some(
-						(updatedKey) =>
+					updatedInstanceSessionKeys.some((updatedKey) => {
+						let updatedSessionKey = decryptKey(testData.mailGroupKey, updatedKey.symEncSessionKey)
+						return (
 							updatedKey.instanceId === isk.instanceId &&
 							updatedKey.instanceList === isk.instanceList &&
 							updatedKey.typeInfo.application === isk.typeInfo.application &&
 							updatedKey.typeInfo.typeId === isk.typeInfo.typeId &&
-							arrayEquals(updatedKey.symEncSessionKey, isk.symEncSessionKey),
-					),
+							arrayEquals(updatedSessionKey, expectedSessionKey)
+						)
+					}),
 				).equals(true)
 			}
 		},
@@ -1437,8 +1438,8 @@ o.spec("CryptoFacade", function () {
 		"resolve session key: pq public key decryption of session key using BucketKey aggregated type - Mail referencing MailDetailsBlob with attachments",
 		async function () {
 			o.timeout(500) // in CI or with debugging it can take a while
-			const file1SessionKey = aes128RandomKey()
-			const file2SessionKey = aes128RandomKey()
+			const file1SessionKey = aes256RandomKey()
+			const file2SessionKey = aes256RandomKey()
 			const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest([file1SessionKey, file2SessionKey])
 			Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
@@ -1460,37 +1461,42 @@ o.spec("CryptoFacade", function () {
 			const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value
 			o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
 			for (const isk of testData.bucketKey.bucketEncSessionKeys) {
-				isk.symEncSessionKey = encryptKey(testData.mailGroupKey, decryptKey(testData.bk, isk.symEncSessionKey))
+				const expectedSessionKey = decryptKey(testData.bk, isk.symEncSessionKey)
 				if (
-					!updatedInstanceSessionKeys.some(
-						(updatedKey) =>
+					!updatedInstanceSessionKeys.some((updatedKey) => {
+						const updatedSessionKey = decryptKey(testData.mailGroupKey, updatedKey.symEncSessionKey)
+						return (
 							updatedKey.instanceId === isk.instanceId &&
 							updatedKey.instanceList === isk.instanceList &&
 							updatedKey.typeInfo.application === isk.typeInfo.application &&
 							updatedKey.typeInfo.typeId === isk.typeInfo.typeId &&
-							arrayEquals(updatedKey.symEncSessionKey, isk.symEncSessionKey),
-					)
+							arrayEquals(updatedSessionKey, expectedSessionKey)
+						)
+					})
 				) {
 					console.log("===============================")
 					updatedInstanceSessionKeys.some((updatedKey) => {
+						const updatedSessionKey = decryptKey(testData.mailGroupKey, updatedKey.symEncSessionKey)
 						console.log(">>>>>>>>>>>>>>>>>>>>>>>")
 						console.log("1 ", updatedKey.instanceId, isk.instanceId)
 						console.log("2 ", updatedKey.instanceList, isk.instanceList)
 						console.log("3 ", updatedKey.typeInfo.application, isk.typeInfo.application)
 						console.log("4 ", updatedKey.typeInfo.typeId, isk.typeInfo.typeId)
-						console.log("5 ", updatedKey.symEncSessionKey, isk.symEncSessionKey)
+						console.log("5 ", updatedSessionKey, expectedSessionKey)
 					})
 				}
 
 				o(
-					updatedInstanceSessionKeys.some(
-						(updatedKey) =>
+					updatedInstanceSessionKeys.some((updatedKey) => {
+						const updatedSessionKey = decryptKey(testData.mailGroupKey, updatedKey.symEncSessionKey)
+						return (
 							updatedKey.instanceId === isk.instanceId &&
 							updatedKey.instanceList === isk.instanceList &&
 							updatedKey.typeInfo.application === isk.typeInfo.application &&
 							updatedKey.typeInfo.typeId === isk.typeInfo.typeId &&
-							arrayEquals(updatedKey.symEncSessionKey, isk.symEncSessionKey),
-					),
+							arrayEquals(updatedSessionKey, expectedSessionKey)
+						)
+					}),
 				).equals(true)
 			}
 		},
@@ -1500,8 +1506,8 @@ o.spec("CryptoFacade", function () {
 		"resolve session key: external user key decryption of session key using BucketKey aggregated type encrypted with MailGroupKey - Mail referencing MailDetailsBlob with attachments",
 		async function () {
 			o.timeout(500) // in CI or with debugging it can take a while
-			const file1SessionKey = aes128RandomKey()
-			const file2SessionKey = aes128RandomKey()
+			const file1SessionKey = aes256RandomKey()
+			const file2SessionKey = aes256RandomKey()
 			const testData = await prepareConfidentialMailToExternalRecipient([file1SessionKey, file2SessionKey])
 			Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
@@ -1514,8 +1520,8 @@ o.spec("CryptoFacade", function () {
 		"resolve session key: external user key decryption of session key using BucketKey aggregated type encrypted with UserGroupKey - Mail referencing MailDetailsBlob with attachments",
 		async function () {
 			o.timeout(500) // in CI or with debugging it can take a while
-			const file1SessionKey = aes128RandomKey()
-			const file2SessionKey = aes128RandomKey()
+			const file1SessionKey = aes256RandomKey()
+			const file2SessionKey = aes256RandomKey()
 			const testData = await prepareConfidentialMailToExternalRecipient([file1SessionKey, file2SessionKey], true)
 			Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
@@ -1526,8 +1532,8 @@ o.spec("CryptoFacade", function () {
 	)
 
 	o("resolve session key: MailDetailsBlob", async function () {
-		const gk = aes128RandomKey()
-		const sk = aes128RandomKey()
+		const gk = aes256RandomKey()
+		const sk = aes256RandomKey()
 		when(userFacade.getGroupKey("mailGroupId")).thenReturn(gk)
 		when(userFacade.hasGroup("mailGroupId")).thenReturn(true)
 		when(userFacade.isFullyLoggedIn()).thenReturn(true)
@@ -1568,12 +1574,12 @@ o.spec("CryptoFacade", function () {
 	 *
 	 * @param fileSessionKeys List of session keys for the attachments. When the list is empty there are no attachments
 	 */
-	async function prepareRsaPubEncBucketKeyResolveSessionKeyTest(fileSessionKeys: Array<Aes128Key> = []): Promise<{
+	async function prepareRsaPubEncBucketKeyResolveSessionKeyTest(fileSessionKeys: Array<Aes256Key> = []): Promise<{
 		mailLiteral: Record<string, any>
 		bucketKey: BucketKey
-		sk: Aes128Key
-		bk: Aes128Key
-		mailGroupKey: Aes128Key
+		sk: Aes256Key
+		bk: Aes256Key
+		mailGroupKey: Aes256Key
 		MailTypeModel: TypeModel
 	}> {
 		// configure test user
@@ -1594,8 +1600,8 @@ o.spec("CryptoFacade", function () {
 		let confidential = true
 		let senderName = "TutanotaTeam"
 
-		let sk = aes128RandomKey()
-		let bk = aes128RandomKey()
+		let sk = aes256RandomKey()
+		let bk = aes256RandomKey()
 
 		const mailLiteral = createMailLiteral(null, sk, subject, confidential, senderName, recipientUser.name, recipientUser.mailGroup._id)
 
@@ -1691,8 +1697,8 @@ o.spec("CryptoFacade", function () {
 		let subject = "this is our subject"
 		let senderName = "TutanotaTeam"
 
-		let sk = aes128RandomKey()
-		let bk = aes128RandomKey()
+		let sk = aes256RandomKey()
+		let bk = aes256RandomKey()
 
 		const mailLiteral = createMailLiteral(
 			recipientUser.mailGroupKey,
@@ -1784,8 +1790,8 @@ o.spec("CryptoFacade", function () {
 		let subject = "this is our subject"
 		let confidential = true
 		let senderName = "TutanotaTeam"
-		let sk = aes128RandomKey()
-		let bk = aes128RandomKey()
+		let sk = aes256RandomKey()
+		let bk = aes256RandomKey()
 
 		const mailLiteral = createMailLiteral(null, sk, subject, confidential, senderName, externalUser.name, externalUser.mailGroup._id)
 
@@ -1872,8 +1878,8 @@ o.spec("CryptoFacade", function () {
 
 		let subject = "this is our subject"
 		let confidential = true
-		let sk = aes128RandomKey()
-		let bk = aes128RandomKey()
+		let sk = aes256RandomKey()
+		let bk = aes256RandomKey()
 		const mailLiteral = createMailLiteral(null, sk, subject, confidential, externalUser.name, internalUser.name, internalUser.mailGroup._id)
 
 		const keyGroup = externalUser.mailGroup._id
@@ -1918,8 +1924,8 @@ o.spec("CryptoFacade", function () {
 	}
 
 	function createTestUser(name: string): TestUser {
-		const userGroupKey = aes128RandomKey()
-		const mailGroupKey = aes128RandomKey()
+		const userGroupKey = aes256RandomKey()
+		const mailGroupKey = aes256RandomKey()
 
 		const userGroup = createTestEntity(GroupTypeRef, {
 			_id: "userGroup" + name,

@@ -45,7 +45,7 @@ import type { Country } from "../../../common/CountryList.js"
 import { getByAbbreviation } from "../../../common/CountryList.js"
 import { LockedError } from "../../../common/error/RestError.js"
 import type { RsaKeyPair } from "@tutao/tutanota-crypto"
-import { aes128RandomKey, bitArrayToUint8Array, encryptKey, generateEccKeyPair, PQPublicKeys, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, bitArrayToUint8Array, encryptKey, generateEccKeyPair, PQPublicKeys, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { DataFile } from "../../../common/DataFile.js"
@@ -113,7 +113,7 @@ export class CustomerFacade {
 		const customer = await this.entityClient.load(CustomerTypeRef, customerId)
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		let existingBrandingDomain = getWhitelabelDomain(customerInfo, domainName)
-		let sessionKey = aes128RandomKey()
+		let sessionKey = aes256RandomKey()
 
 		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
 		const pubRsaKey = keyData.systemAdminPubRsaKey
@@ -203,7 +203,7 @@ export class CustomerFacade {
 			cspId = customer.serverProperties
 		} else {
 			// create properties
-			const sessionKey = aes128RandomKey()
+			const sessionKey = aes256RandomKey()
 			const adminGroupKey = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Admin))
 
 			const groupEncSessionKey = encryptKey(adminGroupKey, sessionKey)
@@ -264,14 +264,14 @@ export class CustomerFacade {
 		currentLanguage: string,
 		kdfType: KdfType,
 	): Promise<Hex> {
-		const userGroupKey = aes128RandomKey()
-		const adminGroupKey = aes128RandomKey()
-		const customerGroupKey = aes128RandomKey()
-		const userGroupInfoSessionKey = aes128RandomKey()
-		const adminGroupInfoSessionKey = aes128RandomKey()
-		const customerGroupInfoSessionKey = aes128RandomKey()
-		const accountingInfoSessionKey = aes128RandomKey()
-		const customerServerPropertiesSessionKey = aes128RandomKey()
+		const userGroupKey = aes256RandomKey()
+		const adminGroupKey = aes256RandomKey()
+		const customerGroupKey = aes256RandomKey()
+		const userGroupInfoSessionKey = aes256RandomKey()
+		const adminGroupInfoSessionKey = aes256RandomKey()
+		const customerGroupInfoSessionKey = aes256RandomKey()
+		const accountingInfoSessionKey = aes256RandomKey()
+		const customerServerPropertiesSessionKey = aes256RandomKey()
 
 		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
 		const pubRsaKey = keyData.systemAdminPubRsaKey

@@ -29,7 +29,7 @@ import { EntityRestClient } from "../../../../../src/api/worker/rest/EntityRestC
 import { MembershipRemovedError } from "../../../../../src/api/common/error/MembershipRemovedError.js"
 import { GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
 import { daysToMillis, defer, downcast, TypeRef } from "@tutao/tutanota-utils"
-import { aes128RandomKey, aes256RandomKey, aesEncrypt, decryptKey, encryptKey, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, aesEncrypt, decryptKey, encryptKey, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { DefaultEntityRestCache } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import o from "@tutao/otest"
 import { instance, matchers, object, replace, reset, verify, when } from "testdouble"
@@ -115,7 +115,7 @@ o.spec("Indexer test", () => {
 		let user = createTestEntity(UserTypeRef)
 		user.userGroup = createTestEntity(GroupMembershipTypeRef)
 		user.userGroup.group = "user-group-id"
-		let userGroupKey = aes128RandomKey()
+		let userGroupKey = aes256RandomKey()
 
 		await indexer.init({ user, userGroupKey })
 		o(indexer._loadGroupData.args).deepEquals([user])
@@ -133,7 +133,7 @@ o.spec("Indexer test", () => {
 	})
 
 	o("init existing db", async function () {
-		let userGroupKey = aes128RandomKey()
+		let userGroupKey = aes256RandomKey()
 		let dbKey = aes256RandomKey()
 		let encDbIv = aesEncrypt(dbKey, fixedIv, random.generateRandomData(IV_BYTE_LENGTH), true)
 		let userEncDbKey = encryptKey(userGroupKey, dbKey)
@@ -203,7 +203,7 @@ o.spec("Indexer test", () => {
 	})
 
 	o("init existing db out of sync", async () => {
-		let userGroupKey = aes128RandomKey()
+		let userGroupKey = aes256RandomKey()
 		let dbKey = aes256RandomKey()
 		let userEncDbKey = encryptKey(userGroupKey, dbKey)
 		let encDbIv = aesEncrypt(dbKey, fixedIv, random.generateRandomData(IV_BYTE_LENGTH), true)
@@ -1222,7 +1222,7 @@ o.spec("Indexer test", () => {
 		let userGroupKey
 
 		function makeIndexer() {
-			userGroupKey = aes128RandomKey()
+			userGroupKey = aes256RandomKey()
 			const infoMessageHandlerDouble = object<InfoMessageHandler>()
 
 			const entityRestClientDouble: EntityRestClient = instance(EntityRestClient)
