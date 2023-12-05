@@ -7,6 +7,7 @@ import type { EmailTemplate } from "../../api/entities/tutanota/TypeRefs.js"
 import { TEMPLATE_POPUP_HEIGHT } from "./TemplateConstants.js"
 import { memoized } from "@tutao/tutanota-utils"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
+import { theme } from "../../gui/theme.js"
 
 /**
  * TemplateExpander is the right side that is rendered within the Popup. Consists of Dropdown, Content and Button.
@@ -27,7 +28,7 @@ export class TemplateExpander implements Component<TemplateExpanderAttrs> {
 	)
 
 	view({ attrs }: Vnode<TemplateExpanderAttrs>): Children {
-		const { model } = attrs
+		const { model, template } = attrs
 		const selectedContent = model.getSelectedContent()
 		return m(
 			".flex.flex-column.flex-grow.scroll.ml-s",
@@ -42,7 +43,18 @@ export class TemplateExpander implements Component<TemplateExpanderAttrs> {
 					}
 				},
 			},
-			[m(".text-break.flex-grow.pr.overflow-y-visible", selectedContent ? m.trust(this.sanitizedText(selectedContent.text)) : null)],
+			[
+				m(
+					".text-break.smaller.b.text-center",
+					{
+						style: {
+							"border-bottom": `1px solid ${theme.content_border}`,
+						},
+					},
+					template.title,
+				),
+				m(".text-break.flex-grow.pr.overflow-y-visible.pt", selectedContent ? m.trust(this.sanitizedText(selectedContent.text)) : null),
+			],
 		)
 	}
 }
