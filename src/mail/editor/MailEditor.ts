@@ -79,7 +79,7 @@ import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { DialogInjectionRightAttrs } from "../../gui/base/DialogInjectionRight.js"
 import { KnowledgebaseDialogContentAttrs } from "../../knowledgebase/view/KnowledgeBaseDialogContent.js"
-import { MailWrapper } from "../../api/common/MailWrapper.js"
+import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
 import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 import { createDataFile, DataFile } from "../../api/common/DataFile.js"
 import { AttachmentBubble } from "../../gui/AttachmentBubble.js"
@@ -1070,6 +1070,16 @@ async function getExternalContentRulesForEditor(model: SendMailModel, currentSta
 			return ExternalImageRule.None
 		})
 
+		let isAuthenticatedMail
+		if (previousMail.authStatus !== null) {
+			isAuthenticatedMail = previousMail.authStatus === MailAuthenticationStatus.AUTHENTICATED
+		} else if (!isLegacyMail(previousMail)) {
+			const mailDetails = await locator.mailFacade.loadMailDetailsBlob(previousMail)
+			isAuthenticatedMail = mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED
+		} else {
+			isAuthenticatedMail = false
+		}
+
 		if (externalImageRule === ExternalImageRule.Block || (externalImageRule === ExternalImageRule.None && model.isUserPreviousSender())) {
 			contentRules = {
 				// When we have an explicit rule for blocking images we don´t
@@ -1077,7 +1087,7 @@ async function getExternalContentRulesForEditor(model: SendMailModel, currentSta
 				alwaysBlockExternalContent: externalImageRule === ExternalImageRule.Block,
 				blockExternalContent: true,
 			}
-		} else if (externalImageRule === ExternalImageRule.Allow && model.getPreviousMail()?.authStatus === MailAuthenticationStatus.AUTHENTICATED) {
+		} else if (externalImageRule === ExternalImageRule.Allow && isAuthenticatedMail) {
 			contentRules = {
 				alwaysBlockExternalContent: false,
 				blockExternalContent: false,

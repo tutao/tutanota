@@ -16,7 +16,7 @@ import {
 	CounterType,
 	GroupType,
 	KdfType,
-	MailAuthenticationStatus as MailAuthStatus,
+	MailAuthenticationStatus,
 	MailMethod,
 	MailReportType,
 	OperationType,
@@ -537,7 +537,7 @@ export class MailFacade {
 		}
 	}
 
-	checkMailForPhishing(
+	async checkMailForPhishing(
 		mail: Mail,
 		links: Array<{
 			href: string
@@ -546,7 +546,16 @@ export class MailFacade {
 	): Promise<boolean> {
 		let score = 0
 		const senderAddress = mail.sender.address
-		const senderAuthenticated = mail.authStatus === MailAuthStatus.AUTHENTICATED
+
+		let senderAuthenticated
+		if (mail.authStatus !== null) {
+			senderAuthenticated = mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
+		} else if (!isLegacyMail(mail)) {
+			const mailDetails = await this.loadMailDetailsBlob(mail)
+			senderAuthenticated = mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED
+		} else {
+			senderAuthenticated = false
+		}
 
 		if (senderAuthenticated) {
 			if (this._checkFieldForPhishing(ReportedMailFieldType.FROM_ADDRESS, senderAddress)) {
