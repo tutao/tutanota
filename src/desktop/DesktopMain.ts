@@ -18,7 +18,7 @@ import { DesktopTray } from "./tray/DesktopTray"
 import { log } from "./DesktopLog"
 import { UpdaterWrapper } from "./UpdaterWrapper"
 import { ElectronNotificationFactory } from "./NotificatonFactory"
-import { buildSecretStorage } from "./sse/SecretStorage"
+import { buildSecretStorage, preselectGnomeLibsecret } from "./sse/SecretStorage"
 import fs from "node:fs"
 import { DesktopIntegrator, getDesktopIntegratorForPlatform } from "./integration/DesktopIntegrator"
 import net from "node:net"
@@ -60,7 +60,6 @@ import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
 import { WorkerSqlCipher } from "./db/WorkerSqlCipher.js"
 import { TempFs } from "./files/TempFs.js"
-import { WASMArgon2idFacade } from "../api/worker/facades/Argon2idFacade.js"
 
 /**
  * Should be injected during build time.
@@ -136,6 +135,7 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 async function createComponents(): Promise<Components> {
 	const en = (await import("../translations/en.js")).default
 	lang.init(en)
+	preselectGnomeLibsecret(electron)
 	const secretStorage = await buildSecretStorage(electron, fs, path)
 	const keyStoreFacade = new DesktopKeyStoreFacade(secretStorage, desktopCrypto)
 	const configMigrator = new DesktopConfigMigrator(desktopCrypto, keyStoreFacade, electron)
