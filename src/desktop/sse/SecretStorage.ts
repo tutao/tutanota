@@ -7,6 +7,21 @@ import type { default as Keytar } from "keytar"
 import os from "node:os"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
+export function preselectGnomeLibsecret(electron: typeof Electron.CrossProcessExports) {
+	// this is how chromium selects a backend:
+	// https://chromium.googlesource.com/chromium/src/+/main/components/os_crypt/sync/key_storage_util_linux.cc
+	// also for DE detection, which happens before:
+	// https://chromium.googlesource.com/chromium/src/+/main/base/nix/xdg_util.cc
+	// I'm 90% sure that it's the deprecated "GNOME_DESKTOP_SESSION_ID" env var that's set once you have logged into gnome
+	// and back out that makes it suddenly work with i3 since chromium falls back to that if none of the more modern vars
+	// contain something it recognizes.
+	// if no explicit backend is given, we default to trying gnome-libsecret since that was what we required before.
+	// the code that keytar used to do its thing is virtually identical to what chromium is doing when using gnome-libsecret.
+	if (process.platform === "linux" && !process.argv.some((a) => a.startsWith("--password-store="))) {
+		electron.app.commandLine.appendSwitch("password-store", "gnome-libsecret")
+	}
+}
+
 export async function buildSecretStorage(electron: typeof Electron.CrossProcessExports, fs: typeof FsModule, path: typeof PathModule): Promise<SecretStorage> {
 	const mode = determineNativeBackendMode()
 	switch (mode) {
