@@ -12,6 +12,7 @@ import {
 	isSameDay,
 	isSameDayOfDate,
 	isValidDate,
+	memoized,
 	neverNull,
 	numberRange,
 	TIMESTAMP_ZERO_YEAR,
@@ -1418,7 +1419,7 @@ export function humanDescriptionForAlarmIntervalUnit(unit: AlarmIntervalUnit): s
 	}
 }
 
-export function formatEventTimes(day: Date, event: CalendarEvent, zone: string, allDay: boolean): string {
+export function formatEventTimes(day: Date, event: CalendarEvent, zone: string): string {
 	if (isAllDayEvent(event)) {
 		return lang.get("allDay_label")
 	} else {
@@ -1433,3 +1434,10 @@ export function formatEventTimes(day: Date, event: CalendarEvent, zone: string, 
 		}
 	}
 }
+
+export const getGroupColors = memoized((userSettingsGroupRoot: UserSettingsGroupRoot) => {
+	return userSettingsGroupRoot.groupSettings.reduce((acc, gc) => {
+		acc.set(gc.group, gc.color)
+		return acc
+	}, new Map())
+})

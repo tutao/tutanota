@@ -1,13 +1,17 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { NOTHING_INDEXED_TIMESTAMP } from "../../api/common/TutanotaConstants"
 import { DbError } from "../../api/common/error/DbError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../api/worker/search/SearchTypes"
-import { arrayEquals, isSameTypeRef, ofClass } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazy, ofClass } from "@tutao/tutanota-utils"
 import type { SearchFacade } from "../../api/worker/search/SearchFacade"
 import { assertMainOrNode } from "../../api/common/Env"
 import { GroupInfo, WhitelabelChild } from "../../api/entities/sys/TypeRefs.js"
+import { tokenize } from "../../api/worker/search/Tokenizer.js"
+import { isSameEventInstance } from "../../calendar/date/CalendarUtils.js"
+import { CalendarViewModel } from "../../calendar/view/CalendarViewModel.js"
+import { listIdPart } from "../../api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -29,7 +33,7 @@ export class SearchModel {
 	_lastSearchPromise: Promise<SearchResult | void>
 	_groupInfoRestrictionListId: Id | null
 
-	constructor(searchFacade: SearchFacade) {
+	constructor(searchFacade: SearchFacade, private readonly calendarViewModelFactory: lazy<Promise<CalendarViewModel>>) {
 		this._searchFacade = searchFacade
 		this.result = stream()
 		this.lastQuery = stream<string | null>("")
@@ -81,6 +85,77 @@ export class SearchModel {
 				moreResults: [],
 				moreResultsEntries: [],
 			}
+			this.result(result)
+			this._lastSearchPromise = Promise.resolve(result)
+		} else if (isSameTypeRef(CalendarEventTypeRef, restriction.type)) {
+			const calendarViewModel = await this.calendarViewModelFactory()
+
+			// FIXME: load the correct time range
+			// we interpret restriction.start as the start of the first day of the first month we want to search
+			// restriction.end is the end of the last day of the last month we want to search
+			let currentDate = new Date(assertNotNull(restriction.start))
+			const endDate = new Date(assertNotNull(restriction.end))
+			while (currentDate.getTime() <= endDate.getTime()) {
+				await calendarViewModel.loadMonthIfNeeded(currentDate)
+				currentDate = incrementMonth(currentDate, 1)
+			}
+			const eventsForDays = calendarViewModel.eventsForDays
+
+			const result: SearchResult = {
+				// index related, keep empty
+				currentIndexTimestamp: 0,
+				moreResults: [],
+				moreResultsEntries: [],
+				lastReadSearchIndexRow: [],
+				// data that is relevant to calendar search
+				matchWordOrder: false,
+				restriction,
+				results: [],
+				query,
+			}
+
+			assertNonNull(restriction.start)
+			assertNonNull(restriction.end)
+
+			const tokens = tokenize(query.trim())
+			// we want event instances that occur on multiple days to only appear once, but want
+			// separate instances of event series to occur on their own.
+			const alreadyAdded: Map<number, Array<CalendarEvent>> = new Map()
+
+			if (tokens.length > 0) {
+				for (const [startOfDay, eventsOnDay] of eventsForDays) {
+					for (const event of eventsOnDay) {
+						if (!(startOfDay >= restriction.start && startOfDay <= restriction.end)) {
+							continue
+						}
+						const startTime = event.startTime.getTime()
+						const addedEventsForThisTime = alreadyAdded.get(startTime) ?? []
+						if (addedEventsForThisTime.some((e) => isSameEventInstance(e, event))) {
+							continue
+						}
+
+						if (restriction.listIds.length > 0 && !restriction.listIds.includes(listIdPart(event._id))) {
+							continue
+						}
+
+						console.log(restriction.eventSeries, event.repeatRule)
+						if (restriction.eventSeries === false && event.repeatRule != null) {
+							console.log("excluded")
+							continue
+						}
+
+						for (const token of tokens) {
+							if (event.summary.includes(token) || event.description.includes(token)) {
+								addedEventsForThisTime.push(event)
+								alreadyAdded.set(startTime, addedEventsForThisTime)
+								result.results.push(event._id)
+								break
+							}
+						}
+					}
+				}
+			}
+
 			this.result(result)
 			this._lastSearchPromise = Promise.resolve(result)
 		} else {
@@ -147,7 +222,15 @@ function searchQueryEquals(a: SearchQuery, b: SearchQuery) {
 
 export function isSameSearchRestriction(a: SearchRestriction, b: SearchRestriction): boolean {
 	const isSameAttributeIds = a.attributeIds === b.attributeIds || (!!a.attributeIds && !!b.attributeIds && arrayEquals(a.attributeIds, b.attributeIds))
-	return isSameTypeRef(a.type, b.type) && a.start === b.start && a.end === b.end && a.field === b.field && isSameAttributeIds && a.listId === b.listId
+	return (
+		isSameTypeRef(a.type, b.type) &&
+		a.start === b.start &&
+		a.end === b.end &&
+		a.field === b.field &&
+		isSameAttributeIds &&
+		a.eventSeries === b.eventSeries &&
+		arrayEquals(a.listIds, b.listIds)
+	)
 }
 
 export function areResultsForTheSameQuery(a: SearchResult, b: SearchResult) {

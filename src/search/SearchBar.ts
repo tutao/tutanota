@@ -4,8 +4,8 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { PositionRect } from "../gui/base/Overlay"
 import { displayOverlay } from "../gui/base/Overlay"
-import type { Contact, Mail } from "../api/entities/tutanota/TypeRefs.js"
-import { ContactTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import type { CalendarEvent, Contact, Mail } from "../api/entities/tutanota/TypeRefs.js"
+import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import type { Shortcut } from "../misc/KeyManager"
 import { isKeyPressed, keyManager } from "../misc/KeyManager"
 import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError"
@@ -45,7 +45,7 @@ export type SearchBarAttrs = {
 }
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
-export type Entry = Mail | Contact | WhitelabelChild | ShowMoreAction
+export type Entry = Mail | Contact | CalendarEvent | WhitelabelChild | ShowMoreAction
 type Entries = Array<Entry>
 export type SearchBarState = {
 	query: string
@@ -343,7 +343,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			.then((a) => a.flat())
 	}
 
-	private selectResult(result: (Mail | null) | Contact | WhitelabelChild | ShowMoreAction) {
+	private selectResult(result: (Mail | null) | Contact | WhitelabelChild | CalendarEvent | ShowMoreAction) {
 		const { query } = this.state()
 
 		if (result != null) {
@@ -357,6 +357,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			} else if (isSameTypeRef(MailTypeRef, type)) {
 				this.updateSearchUrl(query, downcast(result))
 			} else if (isSameTypeRef(ContactTypeRef, type)) {
+				this.updateSearchUrl(query, downcast(result))
+			} else if (isSameTypeRef(CalendarEventTypeRef, type)) {
 				this.updateSearchUrl(query, downcast(result))
 			} else if (isSameTypeRef(WhitelabelChildTypeRef, type)) {
 				this.lastSelectedWhitelabelChildrenInfoResult(downcast(result))
@@ -394,7 +396,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		let restriction = this.getRestriction()
 
 		if (isSameTypeRef(restriction.type, GroupInfoTypeRef)) {
-			restriction.listId = locator.search.getGroupInfoRestrictionListId()
+			const restrictionListId = locator.search.getGroupInfoRestrictionListId()
+			restriction.listIds = restrictionListId ? [restrictionListId] : []
 		}
 
 		if (!locator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef) && !this.confirmDialogShown) {

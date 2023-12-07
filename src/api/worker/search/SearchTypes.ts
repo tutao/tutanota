@@ -125,12 +125,14 @@ export type SearchRestriction = {
 	start: number | null
 	// timestamp
 	end: number | null
-	// timestamp
+	// must be kept in sync with field
 	field: string | null
 	// must be kept in sync with attributeIds
 	attributeIds: number[] | null
-	// must be kept in sync with field
-	listId: Id | null
+	// if empty, match anything. otherwise it's an OR-match.
+	listIds: Array<Id>
+	// fixme if true, include repeating events in the search
+	eventSeries: boolean | null
 }
 export type SearchResult = {
 	query: string

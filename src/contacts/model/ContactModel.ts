@@ -6,13 +6,13 @@ import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestEr
 import { DbError } from "../../api/common/error/DbError"
 import { EntityClient } from "../../api/common/EntityClient"
 import type { LoginController } from "../../api/main/LoginController"
-import { compareOldestFirst, elementIdPart, getEtId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
+import { compareOldestFirst, elementIdPart, getEtId, listIdPart } from "../../api/common/utils/EntityUtils"
 import type { SearchFacade } from "../../api/worker/search/SearchFacade"
 import { assertMainOrNode } from "../../api/common/Env"
 import { LoginIncompleteError } from "../../api/common/error/LoginIncompleteError"
 import { cleanMailAddress } from "../../api/common/utils/CommonCalendarUtils.js"
-import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef, UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { EntityEventsListener, EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
+import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { EntityEventsListener, EntityUpdateData, EventController } from "../../api/main/EventController.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { ShareCapability } from "../../api/common/TutanotaConstants.js"
@@ -78,13 +78,12 @@ export class ContactModel {
 		const cleanedMailAddress = cleanMailAddress(mailAddress)
 		let result
 		try {
-			result = await this.searchFacade.search('"' + cleanedMailAddress + '"', createRestriction("contact", null, null, "mailAddress", null), 0)
+			result = await this.searchFacade.search('"' + cleanedMailAddress + '"', createRestriction("contact", null, null, "mailAddress", [], null), 0)
 		} catch (e) {
 			// If IndexedDB is not supported or isn't working for some reason we load contacts from the server and
 			// search manually.
 			if (e instanceof DbError) {
 				const listId = await this.getContactListId()
-
 				if (listId) {
 					const contacts = await this.entityClient.loadAll(ContactTypeRef, listId)
 					return contacts.find((contact) => contact.mailAddresses.some((a) => cleanMailAddress(a.address) === cleanedMailAddress)) ?? null
@@ -122,7 +121,7 @@ export class ContactModel {
 		if (!this.loginController.isFullyLoggedIn()) {
 			throw new LoginIncompleteError("cannot search for contacts as online login is not completed")
 		}
-		const result = await this.searchFacade.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount)
+		const result = await this.searchFacade.search(query, createRestriction("contact", null, null, field, [], null), minSuggestionCount)
 		const resultsByListId = groupBy(result.results, listIdPart)
 		const loadedContacts = await promiseMap(
 			resultsByListId,

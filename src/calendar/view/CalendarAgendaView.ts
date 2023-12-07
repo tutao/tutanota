@@ -1,7 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { neverNull } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
-import { getEventColor, getTimeZone } from "../date/CalendarUtils"
+import { formatDate, formatDateWithWeekday } from "../../misc/Formatter"
+import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
+import { getEventColor, getTimeZone, getStartOfDayWithZone, formatEventTimes } from "../date/CalendarUtils"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
 import type { CalendarEventBubbleClickHandler } from "./CalendarViewModel"
@@ -205,6 +207,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							click: (domEvent) => click(event, domEvent),
 							zone,
 							day: day,
+							timeText: formatEventTimes(day, event, zone),
 						})
 					}),
 			  )

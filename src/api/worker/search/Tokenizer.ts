@@ -1,3 +1,7 @@
+/**
+ * return a list of words contained in a text, lowercased.
+ * @param text
+ */
 export function tokenize(text: string | null): string[] {
 	if (text == null) return []
 	let currentWord: string[] = []

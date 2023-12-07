@@ -7,13 +7,15 @@ import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../gui/base/L
 import { size } from "../../gui/size.js"
 import { KindaContactRow } from "../../contacts/view/ContactListView.js"
 import { SearchableTypes } from "./SearchViewModel.js"
-import { Contact, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { theme } from "../../gui/theme.js"
 import { VirtualRow } from "../../gui/base/ListUtils.js"
 import { styles } from "../../gui/styles.js"
+import { KindaCalendarRow } from "../../calendar/view/CalendarRow.js"
+import { AllIcons } from "../../gui/base/Icon.js"
 
 assertMainOrNode()
 
@@ -28,7 +30,7 @@ export class SearchResultListEntry {
 export interface SearchListViewAttrs {
 	listModel: ListModel<SearchResultListEntry>
 	onSingleSelection: (item: SearchResultListEntry) => unknown
-	currentType: TypeRef<Mail> | TypeRef<Contact>
+	currentType: TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent>
 	isFreeAccount: boolean
 }
 
@@ -41,19 +43,18 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 
 	view({ attrs }: Vnode<SearchListViewAttrs>): Children {
 		this.listModel = attrs.listModel
-
-		const showingMail = isSameTypeRef(attrs.currentType, MailTypeRef)
+		const { icon, renderConfig } = this.getRenderItems(attrs.currentType)
 		return attrs.listModel
 			? attrs.listModel.isEmptyAndDone()
 				? m(ColumnEmptyMessageBox, {
-						icon: showingMail ? BootIcons.Mail : BootIcons.Contacts,
+						icon,
 						message: () =>
 							lang.get("searchNoResults_msg") + "\n" + (attrs.isFreeAccount ? lang.get("goPremium_msg") : lang.get("switchSearchInMenu_label")),
 						color: theme.list_message_bg,
 				  })
 				: m(List, {
 						state: attrs.listModel.state,
-						renderConfig: showingMail ? this.mailRenderConfig : this.contactRenderConfig,
+						renderConfig,
 						onLoadMore: () => {
 							attrs.listModel?.loadMore()
 						},
@@ -75,6 +76,42 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 						},
 				  } satisfies ListAttrs<SearchResultListEntry, SearchResultListRow>)
 			: null
+	}
+
+	private getRenderItems(type: TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent>): {
+		icon: AllIcons
+		renderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow>
+	} {
+		if (isSameTypeRef(type, ContactTypeRef)) {
+			return {
+				icon: BootIcons.Contacts,
+				renderConfig: this.contactRenderConfig,
+			}
+		} else if (isSameTypeRef(type, CalendarEventTypeRef)) {
+			return {
+				icon: BootIcons.Calendar,
+				renderConfig: this.calendarRenderConfig,
+			}
+		} else {
+			return {
+				icon: BootIcons.Mail,
+				renderConfig: this.mailRenderConfig,
+			}
+		}
+	}
+
+	private readonly calendarRenderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow> = {
+		//fixme Calculate the height using list_row_height
+		itemHeight: 92,
+		multiselectionAllowed: MultiselectMode.Disabled,
+		swipe: null,
+		createElement: (dom) => {
+			const row: SearchResultListRow = new SearchResultListRow(
+				new KindaCalendarRow(dom, () => row.entity && this.listModel.onSingleExclusiveSelection(row.entity)),
+			)
+			m.render(dom, row.render())
+			return row
+		},
 	}
 
 	private readonly mailRenderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow> = {
@@ -106,7 +143,8 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 
 export class SearchResultListRow implements VirtualRow<SearchResultListEntry> {
 	top: number
-	domElement: HTMLElement | null = null // set from List
+	// set from List
+	domElement: HTMLElement | null = null
 
 	// this is our own entry which we need for some reason (probably easier to deal with than a lot of sum type entries)
 	private _entity: SearchResultListEntry | null = null
@@ -114,9 +152,9 @@ export class SearchResultListRow implements VirtualRow<SearchResultListEntry> {
 		return this._entity
 	}
 
-	private _delegate: MailRow | KindaContactRow
+	private _delegate: MailRow | KindaContactRow | KindaCalendarRow
 
-	constructor(delegate: MailRow | KindaContactRow) {
+	constructor(delegate: MailRow | KindaContactRow | KindaCalendarRow) {
 		this._delegate = delegate
 		this.top = 0
 	}
