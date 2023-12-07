@@ -8,15 +8,28 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { keyManager, Shortcut } from "../../misc/KeyManager"
 import { NavButton, NavButtonColor } from "../../gui/base/NavButton.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
-import { Contact, ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
 import { size } from "../../gui/size"
 import { getFreeSearchStartDate, SEARCH_MAIL_FIELDS } from "../model/SearchUtils"
 import { Dialog } from "../../gui/base/Dialog"
 import { locator } from "../../api/main/MainLocator"
 import { getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils"
-import { assertNotNull, getFirstOrThrow, isSameDay, isSameTypeRef, isSameTypeRefNullable, lazyMemoized, noOp, ofClass, TypeRef } from "@tutao/tutanota-utils"
-import { formatDateWithMonth, formatDateWithTimeIfNotEven } from "../../misc/Formatter"
+import {
+	assertNotNull,
+	getFirstOrThrow,
+	incrementMonth,
+	isSameDay,
+	isSameTypeRef,
+	isSameTypeRefNullable,
+	LazyLoaded,
+	lazyMemoized,
+	memoized,
+	noOp,
+	ofClass,
+	TypeRef,
+} from "@tutao/tutanota-utils"
+import { formatDateWithMonth, formatDateWithTimeIfNotEven, formatMonthWithYear } from "../../misc/Formatter"
 import { Icons } from "../../gui/base/icons/Icons"
 import { AppHeaderAttrs, Header } from "../../gui/Header.js"
 import { ButtonType } from "../../gui/base/Button.js"
@@ -29,7 +42,7 @@ import { isNewMailActionAvailable } from "../../gui/nav/NavFunctions"
 import { TextField } from "../../gui/base/TextField.js"
 import { SidebarSection } from "../../gui/SidebarSection"
 import type { clickHandler } from "../../gui/base/GuiUtils"
-import { DropDownSelector, SelectorItem } from "../../gui/base/DropDownSelector.js"
+import { DropDownSelector, DropDownSelectorAttrs, SelectorItem } from "../../gui/base/DropDownSelector.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { BottomNav } from "../../gui/nav/BottomNav.js"
@@ -76,6 +89,12 @@ import { showDateRangeSelectionDialog } from "../../gui/date/DatePickerDialog.js
 import { MailFilterButton } from "../../mail/view/MailFilterButton.js"
 import { listSelectionKeyboardShortcuts } from "../../gui/base/ListUtils.js"
 import { getElementId, isSameId } from "../../api/common/utils/EntityUtils.js"
+import { CalendarInfo } from "../../calendar/model/CalendarModel.js"
+import { NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
+import { Checkbox, CheckboxAttrs } from "../../gui/base/Checkbox.js"
+import { EventPreviewView, EventPreviewViewAttrs } from "../../calendar/view/eventpopup/EventPreviewView.js"
+import { progressIcon } from "../../gui/base/Icon.js"
+import { getSharedGroupName } from "../../sharing/GroupUtils.js"
 
 assertMainOrNode()
 
@@ -91,6 +110,20 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private readonly folderColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
 	private readonly searchViewModel: SearchViewModel
+	private readonly lazyCalendarInfos: LazyLoaded<Array<CalendarInfo>> = new LazyLoaded<Array<CalendarInfo>>(async () => {
+		const calendarModel = await locator.calendarModel()
+		const calendarInfos = await calendarModel.loadCalendarInfos(new NoopProgressMonitor())
+		m.redraw()
+		return Array.from(calendarInfos.values())
+	})
+	private sanitizedSelectedEventDescription: (event: CalendarEvent) => LazyLoaded<string> = memoized((event: CalendarEvent) =>
+		new LazyLoaded(async () => {
+			const { htmlSanitizer } = await import("../../misc/HtmlSanitizer.js")
+			return htmlSanitizer.sanitizeHTML(event.description, {
+				blockExternalContent: true,
+			}).html
+		}).load(),
+	)
 
 	constructor(vnode: Vnode<SearchViewAttrs>) {
 		super()
@@ -131,17 +164,19 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 											persistentBackground: true,
 										}),
 									),
+									m(
+										".folder-row.flex-start.mlr-button",
+										m(NavButton, {
+											label: "calendar_label",
+											icon: () => BootIcons.Calendar,
+											href: "/search/calendar",
+											colors: NavButtonColor.Nav,
+											persistentBackground: true,
+										}),
+									),
 								],
 							),
-							this.searchViewModel.lastType && isSameTypeRef(this.searchViewModel.lastType, MailTypeRef)
-								? m(
-										SidebarSection,
-										{
-											name: "filter_label",
-										},
-										this.renderSearchFilters(),
-								  )
-								: null,
+							this.renderFilterSection(),
 						],
 						ariaLabel: "search_label",
 					})
@@ -160,7 +195,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						backgroundColor: theme.navigation_bg,
 						desktopToolbar: () =>
 							m(DesktopListToolbar, [
-								this.searchViewModel.listModel
+								this.searchViewModel.listModel && getCurrentSearchMode() !== "calendar"
 									? [
 											m(SelectAllCheckbox, selectionAttrsForList(this.searchViewModel.listModel)),
 											isSameTypeRefNullable(this.searchViewModel.lastType, MailTypeRef) ? this.renderFilterButton() : null,
@@ -189,7 +224,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 									},
 									isFreeAccount: locator.logins.getUserController().isFreeAccount(),
 							  } satisfies SearchListViewAttrs)
-							: null,
+							: this.renderInitialLoadingIcon(),
 					})
 				},
 			},
@@ -207,6 +242,25 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			size.third_col_max_width,
 		)
 		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn])
+	}
+
+	private renderFilterSection() {
+		if (this.searchViewModel.lastType) {
+			if (isSameTypeRef(this.searchViewModel.lastType, MailTypeRef)) {
+				return m(
+					SidebarSection,
+					{
+						name: "filter_label",
+					},
+					this.renderMailFilterSection(),
+				)
+			} else if (isSameTypeRef(this.searchViewModel.lastType, CalendarEventTypeRef)) {
+				this.lazyCalendarInfos.load()
+				return m(SidebarSection, { name: "filter_label" }, this.renderCalendarFilterSection())
+			}
+		}
+
+		return null
 	}
 
 	oncreate(): void {
@@ -250,6 +304,15 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					),
 					injections: m(ProgressBar, { progress: header.offlineIndicatorModel.getProgress() }),
 			  })
+	}
+
+	/**
+	 * shown while lastType is not set (before we can create our first list model). happens if there is no result yet, eg when directly accessing a
+	 * search URL.
+	 * @private
+	 */
+	private renderInitialLoadingIcon(): Children {
+		return m(".center", progressIcon())
 	}
 
 	/** depending on the search and selection state we want to render a
@@ -356,6 +419,40 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					}),
 				})
 			}
+		} else if (getCurrentSearchMode() === "calendar") {
+			const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
+			if (selectedEvent == null || !this.sanitizedSelectedEventDescription(selectedEvent).isLoaded()) {
+				return m(ColumnEmptyMessageBox, {
+					// FIXME
+					message: () => "no event selected",
+					icon: BootIcons.Calendar,
+					color: theme.content_message_bg,
+					backgroundColor: theme.navigation_bg,
+				})
+			}
+			return m(BackgroundColumnLayout, {
+				backgroundColor: theme.navigation_bg,
+				desktopToolbar: () => m(DesktopViewerToolbar, []),
+				mobileHeader: () =>
+					m(MobileHeader, {
+						...header,
+						backAction: () => this.viewSlider.focusPreviousColumn(),
+						columnType: "other",
+						title: lang.get("search_label"),
+						actions: null,
+						multicolumnActions: () => [],
+						primaryAction: () => this.renderHeaderRightView(),
+					}),
+				columnLayout:
+					// see comment for .scrollbar-gutter-stable-or-fallback
+					m(
+						".fill-absolute.flex.col.overflow-y-scroll",
+						m(EventPreviewView, {
+							event: selectedEvent,
+							sanitizedDescription: this.sanitizedSelectedEventDescription(selectedEvent).getSync(),
+						} satisfies EventPreviewViewAttrs),
+					),
+			})
 		} else {
 			return m(
 				".flex.col.fill-absolute",
@@ -424,7 +521,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private searchBarPlaceholder() {
-		return lang.get(m.route.get().startsWith("/search/mail") ? "searchEmails_placeholder" : "searchContacts_placeholder")
+		const route = m.route.get()
+		if (route.startsWith("/search/calendar")) {
+			return lang.get("searchCalendar_placeholder")
+		} else if (route.startsWith("/search/contacts")) {
+			lang.get("searchContacts_placeholder")
+		} else {
+			return lang.get("searchEmails_placeholder")
+		}
 	}
 
 	private getAvailableMailFolders(): SelectorItem<Id | null>[] {
@@ -454,11 +558,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return availableMailFolders
 	}
 
-	private renderSearchFilters(): Children {
+	private renderMailFilterSection(): Children {
 		const availableMailFolders = this.getAvailableMailFolders()
 		const availableMailFields = SEARCH_MAIL_FIELDS.map((f) => ({ name: lang.get(f.textId), value: f.field }))
 		return [
-			this.renderTimeField(),
+			this.renderMailTimeRangeField(),
 			m("div.mlr-button", [
 				m(DropDownSelector, {
 					label: "field_label",
@@ -478,9 +582,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					? m(DropDownSelector, {
 							label: "mailFolder_label",
 							items: availableMailFolders,
-							selectedValue: this.searchViewModel.selectedMailFolder,
+							selectedValue: this.searchViewModel.selectedMailFolder[0] ?? null,
 							selectionChangedHandler: (newValue: string | null) => {
-								const result = this.searchViewModel.selectMailFolder(newValue)
+								const result = this.searchViewModel.selectMailFolder(newValue ? [newValue] : [])
 								if (result === PaidFunctionResult.PaidSubscriptionNeeded) {
 									showNotAvailableForFreeDialog()
 								} else {
@@ -492,6 +596,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					: null,
 			]),
 		].map((row) => m(".folder-row.plr-button.content-fg", row))
+	}
+
+	private renderCalendarFilterSection(): Children {
+		return [this.renderCalendarTimeRangeField(), this.renderCalendarFilter(), this.renderRepeatingFilter()].map((row) =>
+			m(".folder-row.plr-button.content-fg", row),
+		)
 	}
 
 	getViewSlider(): ViewSlider | null {
@@ -525,7 +635,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			: null
 	}
 
-	private renderTimeField(): Children {
+	private renderMailTimeRangeField(): Children {
 		let end: string
 		let start: string
 
@@ -581,6 +691,37 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						} else {
 							await showNotAvailableForFreeDialog()
 						}
+					},
+					icon: Icons.Edit,
+					size: ButtonSize.Compact,
+				}),
+		})
+	}
+
+	private renderCalendarTimeRangeField(): Children {
+		const startDate = new Date()
+		const start = this.searchViewModel.startDate == null ? lang.get("today_label") : formatMonthWithYear(this.searchViewModel.startDate)
+		const endDate = incrementMonth(new Date(), 2)
+		const end = this.searchViewModel.endDate == null ? formatMonthWithYear(endDate) : formatMonthWithYear(this.searchViewModel.endDate)
+		const timeDisplayValue = start + " - " + end
+		return m(TextField, {
+			label: "periodOfTime_label",
+			value: timeDisplayValue,
+			disabled: true,
+			class: "plr-button",
+			injectionsRight: () =>
+				m(IconButton, {
+					title: "selectPeriodOfTime_label",
+					click: async () => {
+						const period = await showDateRangeSelectionDialog(
+							this.searchViewModel.getStartOfTheWeekOffset(),
+							this.searchViewModel.startDate ?? startDate,
+							this.searchViewModel.endDate ?? endDate,
+						)
+						this.searchViewModel.startDate = period.start
+						this.searchViewModel.endDate = period.end
+
+						this.searchViewModel.searchAgain(async () => true)
 					},
 					icon: Icons.Edit,
 					size: ButtonSize.Compact,
@@ -778,10 +919,60 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private renderFilterButton(): Children {
 		return m(MailFilterButton, { filter: this.searchViewModel.mailFilter, setFilter: (filter) => this.searchViewModel.setMailFilter(filter) })
 	}
+
+	private renderCalendarFilter(): Children {
+		if (this.lazyCalendarInfos.isLoaded()) {
+			const calendarInfos = this.lazyCalendarInfos.getSync() ?? []
+
+			return m(
+				".mlr-button",
+				m(DropDownSelector, {
+					label: "calendar_label",
+					items: [
+						{ name: lang.get("all_label"), value: null },
+						...Array.from(calendarInfos.values()).map((ci) => ({
+							name: getSharedGroupName(ci.groupInfo, locator.logins.getUserController(), true),
+							value: ci,
+						})),
+					],
+					selectedValue: this.searchViewModel.selectedCalendar,
+					selectionChangedHandler: (value: CalendarInfo) => {
+						// re-search with new list ids
+						this.searchViewModel.selectedCalendar = value
+						this.searchViewModel.searchAgain(async () => true)
+					},
+				} satisfies DropDownSelectorAttrs<CalendarInfo | null>),
+			)
+		} else {
+			return null
+		}
+	}
+
+	private renderRepeatingFilter(): Children {
+		// fixme: phrase
+		return m(
+			".mlr-button",
+			m(Checkbox, {
+				label: () => "Repeating Events",
+				checked: this.searchViewModel.includeRepeatingEvents,
+				onChecked: (value: boolean) => {
+					this.searchViewModel.includeRepeatingEvents = value
+					this.searchViewModel.searchAgain(async () => true)
+				},
+			} satisfies CheckboxAttrs),
+		)
+	}
 }
 
 function getCurrentSearchMode() {
-	return m.route.get().startsWith("/search/contact") ? "contact" : "mail"
+	const route = m.route.get()
+	if (route.startsWith("/search/contact")) {
+		return "contact"
+	} else if (route.startsWith("/search/calendar")) {
+		return "calendar"
+	} else {
+		return "mail"
+	}
 }
 
 async function newMailEditor(): Promise<Dialog> {

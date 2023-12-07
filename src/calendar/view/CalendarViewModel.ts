@@ -72,7 +72,7 @@ export type DraggedEvent = {
 
 export type MouseOrPointerEvent = MouseEvent | PointerEvent
 export type CalendarEventBubbleClickHandler = (arg0: CalendarEvent, arg1: MouseOrPointerEvent) => unknown
-type EventsForDays = ReadonlyMap<number, Array<CalendarEvent>>
+export type DaysToEvents = ReadonlyMap<number, Array<CalendarEvent>>
 export const LIMIT_PAST_EVENTS_YEARS = 100
 export type CalendarEventEditModelsFactory = (mode: CalendarOperation, event: CalendarEvent) => Promise<CalendarEventModel | null>
 export type CalendarEventPreviewModelFactory = (
@@ -86,7 +86,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	/** Mmap from group/groupRoot ID to the calendar info */
 	_calendarInfos: LazyLoaded<ReadonlyMap<Id, CalendarInfo>>
-	_eventsForDays: EventsForDays
+	_eventsForDays: DaysToEvents
 
 	/**
 	 * An event currently being displayed (non-modally)
@@ -158,11 +158,11 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			const nextMonthDate = new Date(thisMonthStart)
 			nextMonthDate.setMonth(new Date(thisMonthStart).getMonth() + 1)
 
-			this._loadMonthIfNeeded(new Date(thisMonthStart))
+			this.loadMonthIfNeeded(new Date(thisMonthStart))
 				.then(() => progressMonitor.workDone(1))
-				.then(() => this._loadMonthIfNeeded(nextMonthDate))
+				.then(() => this.loadMonthIfNeeded(nextMonthDate))
 				.then(() => progressMonitor.workDone(1))
-				.then(() => this._loadMonthIfNeeded(previousMonthDate))
+				.then(() => this.loadMonthIfNeeded(previousMonthDate))
 				.finally(() => {
 					progressMonitor.completed()
 					// We don't want to report progress after initial month, it shows completed progress bar for a second every time the
@@ -189,7 +189,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this._hiddenCalendars
 	}
 
-	get eventsForDays(): EventsForDays {
+	get eventsForDays(): DaysToEvents {
 		return this._eventsForDays
 	}
 
@@ -488,9 +488,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 									previousMonthDate.setMonth(selectedDate.getMonth() - 1)
 									const nextMonthDate = new Date(selectedDate)
 									nextMonthDate.setMonth(selectedDate.getMonth() + 1)
-									return this._loadMonthIfNeeded(selectedDate)
-										.then(() => this._loadMonthIfNeeded(nextMonthDate))
-										.then(() => this._loadMonthIfNeeded(previousMonthDate))
+									return this.loadMonthIfNeeded(selectedDate)
+										.then(() => this.loadMonthIfNeeded(nextMonthDate))
+										.then(() => this.loadMonthIfNeeded(previousMonthDate))
 								})
 								.then(() => this._redraw())
 						}
@@ -540,7 +540,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		})
 	}
 
-	async _loadMonthIfNeeded(dayInMonth: Date): Promise<void> {
+	async loadMonthIfNeeded(dayInMonth: Date): Promise<void> {
+		// FIXME: make sure we're not doing this in parallel
 		const month = getMonthRange(dayInMonth, this.timeZone)
 
 		if (!this._loadedMonths.has(month.start)) {
@@ -629,7 +630,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this._replaceEvents(newMap)
 	}
 
-	_replaceEvents(newMap: EventsForDays) {
+	_replaceEvents(newMap: DaysToEvents) {
 		this._eventsForDays = freezeMap(newMap)
 	}
 

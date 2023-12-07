@@ -6,12 +6,12 @@ import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
 import { Icons } from "../../gui/base/icons/Icons"
-import { assertNotNull, downcast, getStartOfDay, memoized, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, getStartOfDay, ofClass } from "@tutao/tutanota-utils"
 import type { CalendarEvent, GroupSettings, UserSettingsGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import { defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TimeFormat, WeekStart } from "../../api/common/TutanotaConstants"
 import { locator } from "../../api/main/MainLocator"
-import { getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser, getTimeZone, shouldDefaultToAmPmTimeFormat } from "../date/CalendarUtils"
+import { getGroupColors, getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser, getTimeZone, shouldDefaultToAmPmTimeFormat } from "../date/CalendarUtils"
 import { ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
@@ -55,6 +55,7 @@ import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
 import { CalendarDesktopToolbar } from "./CalendarDesktopToolbar.js"
 import { CalendarOperation } from "../date/eventeditor/CalendarEventModel.js"
 import { DaySelectorPopup } from "../date/DaySelectorPopup.js"
+import { LazySearchBar } from "../../misc/LazySearchBar.js"
 import { DaySelectorSidebar } from "../date/DaySelectorSidebar.js"
 
 export type GroupColors = Map<Id, string>
@@ -104,7 +105,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 										selectedDate: this.viewModel.selectedDate(),
 										onDateSelected: (date) => {
 											this._setUrl(this.currentViewType, date)
-
 											m.redraw()
 										},
 										startOfTheWeekOffset: getStartOfTheWeekOffset(
@@ -159,12 +159,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			size.first_col_max_width,
 			() => (this.currentViewType === CalendarViewType.WEEK ? lang.get("month_label") : lang.get("calendar_label")),
 		)
-		const getGroupColors = memoized((userSettingsGroupRoot: UserSettingsGroupRoot) => {
-			return userSettingsGroupRoot.groupSettings.reduce((acc, gc) => {
-				acc.set(gc.group, gc.color)
-				return acc
-			}, new Map())
-		})
+
 		this.contentColumn = new ViewColumn(
 			{
 				view: () => {
@@ -680,6 +675,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			".main-view",
 			m(this.viewSlider, {
 				header: m(Header, {
+					searchBar: () =>
+						m(LazySearchBar, {
+							placeholder: lang.get("searchCalendar_placeholder"),
+						}),
 					...attrs.header,
 				}),
 				bottomNav: m(BottomNav),

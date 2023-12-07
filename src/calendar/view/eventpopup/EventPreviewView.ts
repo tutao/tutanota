@@ -28,7 +28,7 @@ import { showPlanUpgradeRequiredDialog } from "../../../misc/SubscriptionDialogs
 export type EventPreviewViewAttrs = {
 	event: Omit<CalendarEvent, "description">
 	sanitizedDescription: string | null
-	participation: ReturnType<typeof CalendarEventPreviewViewModel.prototype.getParticipationSetterAndThen>
+	participation?: ReturnType<typeof CalendarEventPreviewViewModel.prototype.getParticipationSetterAndThen>
 }
 
 /** the buttons enabling the user to view their current participation status on an event and to trigger a change to it, including

@@ -2,7 +2,7 @@ import { ListFilter, ListModel } from "../../misc/ListModel.js"
 import { SearchResultListEntry } from "./SearchListView.js"
 import { SearchRestriction, SearchResult } from "../../api/worker/search/SearchTypes.js"
 import { EntityEventsListener, EntityUpdateData, EventController, isUpdateForTypeRef } from "../../api/main/EventController.js"
-import { Contact, ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { ListElementEntity, SomeEntity } from "../../api/common/EntityTypes.js"
 import { FULL_INDEXED_TIMESTAMP, MailFolderType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../api/common/TutanotaConstants.js"
 import {
@@ -45,10 +45,11 @@ import { EntityClient } from "../../api/common/EntityClient.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/model/MailUtils.js"
 import { SearchRouter } from "./SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
+import { CalendarInfo } from "../../calendar/model/CalendarModel.js"
 
 const SEARCH_PAGE_SIZE = 100
 
-export type SearchableTypes = Mail | Contact
+export type SearchableTypes = Mail | Contact | CalendarEvent
 
 export enum PaidFunctionResult {
 	Success,
@@ -64,15 +65,17 @@ export class SearchViewModel {
 	// Load more should probably be moved to the model to update it's result stream.
 	_searchResult: SearchResult | null = null
 	private _mailFilterType: MailFilterType | null = null
+	includeRepeatingEvents: boolean = true
 
-	get lastType(): TypeRef<Mail> | TypeRef<Contact> | null {
+	get lastType(): TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent> | null {
 		return this._searchResult?.restriction.type ?? null
 	}
 
 	conversationViewModel: ConversationViewModel | null = null
 	startDate: Date | null = null // null = current mail index date. this allows us to start the search (and the url) without end date set
 	endDate: Date | null = null // null = today
-	selectedMailFolder: Id | null = null
+	selectedMailFolder: Array<Id> = []
+	selectedCalendar: CalendarInfo | null = null
 	mailboxes: MailboxDetail[] = []
 	selectedMailField: string | null = null
 	private mailboxSubscription: Stream<void> | null = null
@@ -136,7 +139,7 @@ export class SearchViewModel {
 			restriction = getRestriction(requestedPath)
 		} catch (e) {
 			// if restriction is broken replace it with non-broken version
-			this.router.routeTo(args.query, createRestriction("mail", null, null, null, null))
+			this.router.routeTo(args.query, createRestriction("mail", null, null, null, [], null))
 			return
 		}
 
@@ -164,11 +167,16 @@ export class SearchViewModel {
 		}
 
 		// update the filters
-		if (isSameTypeRef(restriction.type, MailTypeRef)) {
-			this.endDate = restriction.start ? new Date(restriction.start) : null
-			this.startDate = restriction.end ? new Date(restriction.end) : null
-			this.selectedMailField = restriction.field
-			this.selectedMailFolder = restriction.listId
+		if (!isSameTypeRef(restriction.type, ContactTypeRef)) {
+			this.startDate = restriction.start ? new Date(restriction.start) : null
+			this.endDate = restriction.end ? new Date(restriction.end) : null
+			this.selectedMailFolder = restriction.listIds
+
+			if (isSameTypeRef(restriction.type, MailTypeRef)) {
+				this.selectedMailField = restriction.field
+			} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
+				this.includeRepeatingEvents = restriction.eventSeries ?? true
+			}
 		}
 
 		if (args.id && !this.listModel.isItemSelected(args.id)) {
@@ -248,7 +256,7 @@ export class SearchViewModel {
 		}
 	}
 
-	selectMailFolder(folder: string | null): PaidFunctionResult {
+	selectMailFolder(folder: Array<string>): PaidFunctionResult {
 		if (this.logins.getUserController().isFreeAccount() && folder != null) {
 			return PaidFunctionResult.PaidSubscriptionNeeded
 		} else {
@@ -274,7 +282,6 @@ export class SearchViewModel {
 
 	searchAgain(confirmCallback: ConfirmCallback): void {
 		const startDate = this.startDate
-
 		if (startDate && startDate.getTime() < this.search.indexState().currentMailIndexTimestamp) {
 			confirmCallback().then(async (confirmed) => {
 				if (confirmed) {
@@ -315,9 +322,19 @@ export class SearchViewModel {
 				this.startDate ? getStartOfDay(this.startDate).getTime() : null,
 				this.selectedMailField,
 				this.selectedMailFolder,
+				null,
+			)
+		} else if (isSameTypeRefNullable(this.lastType, CalendarEventTypeRef)) {
+			restriction = createRestriction(
+				this.getCategory(),
+				this.endDate ? getEndOfDay(this.endDate).getTime() : null,
+				this.startDate ? getStartOfDay(this.startDate).getTime() : null,
+				null,
+				this.selectedCalendar == null ? [] : [this.selectedCalendar.groupRoot.longEvents, this.selectedCalendar.groupRoot.shortEvents],
+				this.includeRepeatingEvents,
 			)
 		} else {
-			restriction = createRestriction(this.getCategory(), null, null, null, null)
+			restriction = createRestriction(this.getCategory(), null, null, null, [], null)
 		}
 		this.router.routeTo(this.search.lastQuery() ?? "", restriction, this.getSingleSelectionId())
 	}
@@ -332,8 +349,8 @@ export class SearchViewModel {
 
 		// if selected folder no longer exist select another one
 		const selectedMailFolder = this.selectedMailFolder
-		if (selectedMailFolder && mailboxes.every((mailbox) => mailbox.folders.getFolderByMailListId(selectedMailFolder) == null)) {
-			this.selectedMailFolder = assertNotNull(mailboxes[0].folders.getSystemFolderByType(MailFolderType.INBOX)).mails
+		if (selectedMailFolder[0] && mailboxes.every((mailbox) => mailbox.folders.getFolderByMailListId(selectedMailFolder[0]) == null)) {
+			this.selectedMailFolder = [assertNotNull(mailboxes[0].folders.getSystemFolderByType(MailFolderType.INBOX)).mails]
 		}
 	}
 
@@ -371,6 +388,13 @@ export class SearchViewModel {
 			.getSelectedAsArray()
 			.map((e) => e.entry)
 			.filter(assertIsEntity2(ContactTypeRef))
+	}
+
+	getSelectedEvents(): CalendarEvent[] {
+		return this.listModel
+			.getSelectedAsArray()
+			.map((e) => e.entry)
+			.filter(assertIsEntity2(CalendarEventTypeRef))
 	}
 
 	private onListStateChange(newState: ListState<SearchResultListEntry>) {
@@ -496,6 +520,14 @@ export class SearchViewModel {
 			try {
 				// load all contacts to sort them by name afterwards
 				items = await this.loadAndFilterInstances(currentResult.restriction.type, result.results, result, 0)
+			} finally {
+				this.updateUi()
+			}
+		} else if (isSameTypeRef(currentResult.restriction.type, CalendarEventTypeRef)) {
+			try {
+				const loadedInstances = await this.loadAndFilterInstances(currentResult.restriction.type, result.results, result, 0)
+				console.log(loadedInstances)
+				items = loadedInstances
 			} finally {
 				this.updateUi()
 			}

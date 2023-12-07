@@ -3,11 +3,11 @@ import { px, size } from "../gui/size"
 import { lang } from "../misc/LanguageViewModel"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { Icons } from "../gui/base/icons/Icons"
-import { isEmpty, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
-import { FULL_INDEXED_TIMESTAMP } from "../api/common/TutanotaConstants"
+import { downcast, isEmpty, isSameDay, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
+import { EventTextTimeOption, FULL_INDEXED_TIMESTAMP } from "../api/common/TutanotaConstants"
 import { formatDate, formatDateWithMonth, formatTimeOrDateOrYesterday } from "../misc/Formatter"
-import type { Contact, Mail } from "../api/entities/tutanota/TypeRefs.js"
-import { ContactTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import type { CalendarEvent, Contact, Mail } from "../api/entities/tutanota/TypeRefs.js"
+import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { getSenderOrRecipientHeading } from "../mail/model/MailUtils"
 import Badge from "../gui/base/Badge"
 import { Icon } from "../gui/base/Icon"
@@ -23,6 +23,8 @@ import { locator } from "../api/main/MainLocator"
 import { IndexingErrorReason } from "../api/worker/search/SearchTypes"
 import { companyTeamLabel } from "../misc/ClientConstants.js"
 import { isTutanotaTeamMail } from "../api/common/mail/CommonMailUtils.js"
+import { formatEventTime } from "../calendar/date/CalendarUtils.js"
+import { isAllDayEvent } from "../api/common/utils/CommonCalendarUtils.js"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState
@@ -161,129 +163,173 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 		let type: TypeRef<any> | null = "_type" in result ? result._type : null
 
 		if (!type) {
-			// show more action
-			let showMoreAction = result as any as ShowMoreAction
-			let infoText
-			let indexInfo
-
-			if (showMoreAction.resultCount === 0) {
-				infoText = lang.get("searchNoResults_msg")
-
-				if (locator.logins.getUserController().isFreeAccount()) {
-					indexInfo = lang.get("changeTimeFrame_msg")
-				}
-			} else if (showMoreAction.allowShowMore) {
-				infoText = lang.get("showMore_action")
-			} else {
-				infoText = lang.get("moreResultsFound_msg", {
-					"{1}": showMoreAction.resultCount - showMoreAction.shownCount,
-				})
-			}
-
-			if (showMoreAction.indexTimestamp > FULL_INDEXED_TIMESTAMP && !indexInfo) {
-				indexInfo = lang.get("searchedUntil_msg") + " " + formatDate(new Date(showMoreAction.indexTimestamp))
-			}
-
-			return indexInfo
-				? [m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)]
-				: m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))
+			return this.renderShowMoreAction(downcast(result))
 		} else if (isSameTypeRef(MailTypeRef, type)) {
-			let mail = result as any as Mail
-			return [
-				m(".top.flex-space-between.badge-line-height", [
-					isTutanotaTeamMail(mail)
-						? m(
-								Badge,
-								{
-									classes: ".small.mr-s",
-								},
-								companyTeamLabel,
-						  )
-						: null,
-					m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
-					m("small.text-ellipsis.flex-fixed", formatTimeOrDateOrYesterday(mail.receivedDate)),
-				]),
-				m(".bottom.flex-space-between", [
-					m(".text-ellipsis", mail.subject),
-					m(
-						".icons.flex-fixed",
-						{
-							style: {
-								"margin-right": "-3px",
-							},
-						},
-						[
-							// 3px to neutralize the svg icons internal border
-							m(Icon, {
-								icon: getMailFolderIcon(mail),
-								class: state.selected === result ? "svg-content-accent-fg" : "svg-content-fg",
-							}),
-							m(Icon, {
-								icon: Icons.Attachment,
-								class: state.selected === result ? "svg-content-accent-fg" : "svg-content-fg",
-								style: {
-									display: mail.attachments.length > 0 ? "" : "none",
-								},
-							}),
-						],
-					),
-				]),
-			]
+			return this.renderMailResult(downcast(result), state)
 		} else if (isSameTypeRef(ContactTypeRef, type)) {
-			let contact = result as any as Contact
-			return [
-				m(".top.flex-space-between", m(".name", getContactListName(contact))),
-				m(
-					".bottom.flex-space-between",
-					m("small.mail-address", contact.mailAddresses && contact.mailAddresses.length > 0 ? contact.mailAddresses[0].address : ""),
-				),
-			]
+			return this.renderContactResult(downcast(result))
+		} else if (isSameTypeRef(CalendarEventTypeRef, type)) {
+			return this.renderCalendarEventResult(downcast(result))
 		} else if (isSameTypeRef(GroupInfoTypeRef, type)) {
-			let groupInfo = result as any as GroupInfo
-			return [
-				m(".top.flex-space-between", m(".name", groupInfo.name)),
-				m(".bottom.flex-space-between", [
-					m("small.mail-address", groupInfo.mailAddress),
-					m(".icons.flex", [
-						groupInfo.deleted
-							? m(Icon, {
-									icon: Icons.Trash,
-									class: "svg-list-accent-fg",
-							  })
-							: null,
-						!groupInfo.mailAddress && m.route.get().startsWith("/settings/groups")
-							? m(Icon, {
-									icon: BootIcons.Settings,
-									class: "svg-list-accent-fg",
-							  })
-							: null,
-						groupInfo.mailAddress && m.route.get().startsWith("/settings/groups")
-							? m(Icon, {
-									icon: BootIcons.Mail,
-									class: "svg-list-accent-fg",
-							  })
-							: null,
-					]),
-				]),
-			]
+			return this.renderGroupInfoResult(downcast(result))
 		} else if (isSameTypeRef(WhitelabelChildTypeRef, type)) {
-			let whitelabelChild = result as any as WhitelabelChild
-			return [
-				m(".top.flex-space-between", m(".name", whitelabelChild.mailAddress)),
-				m(".bottom.flex-space-between", [
-					m("small.mail-address", formatDateWithMonth(whitelabelChild.createdDate)),
-					m(".icons.flex", [
-						whitelabelChild.deletedDate
-							? m(Icon, {
-									icon: Icons.Trash,
-									class: "svg-list-accent-fg",
-							  })
-							: null,
-					]),
-				]),
-			]
+			return this.renderWhitelabelChildResult(downcast(result))
 		} else {
 			return []
+		}
+	}
+
+	private renderShowMoreAction(result: ShowMoreAction): Children {
+		// show more action
+		let showMoreAction = result as any as ShowMoreAction
+		let infoText
+		let indexInfo
+
+		if (showMoreAction.resultCount === 0) {
+			infoText = lang.get("searchNoResults_msg")
+
+			if (locator.logins.getUserController().isFreeAccount()) {
+				indexInfo = lang.get("changeTimeFrame_msg")
+			}
+		} else if (showMoreAction.allowShowMore) {
+			infoText = lang.get("showMore_action")
+		} else {
+			infoText = lang.get("moreResultsFound_msg", {
+				"{1}": showMoreAction.resultCount - showMoreAction.shownCount,
+			})
+		}
+
+		if (showMoreAction.indexTimestamp > FULL_INDEXED_TIMESTAMP && !indexInfo) {
+			indexInfo = lang.get("searchedUntil_msg") + " " + formatDate(new Date(showMoreAction.indexTimestamp))
+		}
+
+		return indexInfo
+			? [m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)]
+			: m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))
+	}
+
+	private renderWhitelabelChildResult(whitelabelChild: WhitelabelChild): Children {
+		return [
+			m(".top.flex-space-between", m(".name", whitelabelChild.mailAddress)),
+			m(".bottom.flex-space-between", [
+				m("small.mail-address", formatDateWithMonth(whitelabelChild.createdDate)),
+				m(".icons.flex", [
+					whitelabelChild.deletedDate
+						? m(Icon, {
+								icon: Icons.Trash,
+								class: "svg-list-accent-fg",
+						  })
+						: null,
+				]),
+			]),
+		]
+	}
+
+	private renderGroupInfoResult(groupInfo: GroupInfo): Children {
+		return [
+			m(".top.flex-space-between", m(".name", groupInfo.name)),
+			m(".bottom.flex-space-between", [
+				m("small.mail-address", groupInfo.mailAddress),
+				m(".icons.flex", [
+					groupInfo.deleted
+						? m(Icon, {
+								icon: Icons.Trash,
+								class: "svg-list-accent-fg",
+						  })
+						: null,
+					!groupInfo.mailAddress && m.route.get().startsWith("/settings/groups")
+						? m(Icon, {
+								icon: BootIcons.Settings,
+								class: "svg-list-accent-fg",
+						  })
+						: null,
+					groupInfo.mailAddress && m.route.get().startsWith("/settings/groups")
+						? m(Icon, {
+								icon: BootIcons.Mail,
+								class: "svg-list-accent-fg",
+						  })
+						: null,
+				]),
+			]),
+		]
+	}
+
+	private renderContactResult(contact: Contact): Children {
+		return [
+			m(".top.flex-space-between", m(".name", getContactListName(contact))),
+			m(
+				".bottom.flex-space-between",
+				m("small.mail-address", contact.mailAddresses && contact.mailAddresses.length > 0 ? contact.mailAddresses[0].address : ""),
+			),
+		]
+	}
+
+	private renderCalendarEventResult(event: CalendarEvent): Children {
+		return [
+			m(".top.flex-space-between", m(".name", event.summary)),
+			m(".bottom.flex-space-between", m("small.mail-address", renderCalendarEventTimesForDisplay(event))),
+		]
+	}
+
+	private renderMailResult(mail: Mail, state: SearchBarState): Children {
+		return [
+			m(".top.flex-space-between.badge-line-height", [
+				isTutanotaTeamMail(mail)
+					? m(
+							Badge,
+							{
+								classes: ".small.mr-s",
+							},
+							companyTeamLabel,
+					  )
+					: null,
+				m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
+				m("small.text-ellipsis.flex-fixed", formatTimeOrDateOrYesterday(mail.receivedDate)),
+			]),
+			m(".bottom.flex-space-between", [
+				m(".text-ellipsis", mail.subject),
+				m(
+					".icons.flex-fixed",
+					{
+						style: {
+							"margin-right": "-3px",
+						},
+					},
+					[
+						// 3px to neutralize the svg icons internal border
+						m(Icon, {
+							icon: getMailFolderIcon(mail),
+							class: state.selected === mail ? "svg-content-accent-fg" : "svg-content-fg",
+						}),
+						m(Icon, {
+							icon: Icons.Attachment,
+							class: state.selected === mail ? "svg-content-accent-fg" : "svg-content-fg",
+							style: {
+								display: mail.attachments.length > 0 ? "" : "none",
+							},
+						}),
+					],
+				),
+			]),
+		]
+	}
+}
+
+export function renderCalendarEventTimesForDisplay(event: CalendarEvent): string {
+	const isAllDay = isAllDayEvent(event)
+	if (isSameDay(event.startTime, event.endTime)) {
+		const datePart = event.startTime.toLocaleDateString()
+		const timesPart = isAllDay ? lang.get("allDay_label") : formatEventTime(event, EventTextTimeOption.START_END_TIME)
+		return datePart + " " + timesPart
+	} else {
+		const startDatePart = event.startTime.toLocaleDateString()
+		const endDatePart = event.endTime.toLocaleDateString()
+		if (isAllDay) {
+			return startDatePart + " - " + endDatePart + " " + lang.get("allDay_label")
+		} else {
+			const startTimePart = formatEventTime(event, EventTextTimeOption.START_TIME)
+			const endTimePart = formatEventTime(event, EventTextTimeOption.END_TIME)
+			return startDatePart + " " + startTimePart + " - " + endDatePart + " " + endTimePart
 		}
 	}
 }

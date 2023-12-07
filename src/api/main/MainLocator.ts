@@ -287,7 +287,7 @@ class MainLocator {
 		return new ReceivedGroupInvitationsModel<TypeOfGroup>(groupType, this.eventController, this.entityClient, this.logins)
 	}
 
-	async calendarViewModel(): Promise<CalendarViewModel> {
+	calendarViewModel = lazyMemoized<Promise<CalendarViewModel>>(async () => {
 		const { CalendarViewModel } = await import("../../calendar/view/CalendarViewModel.js")
 		const { DefaultDateProvider } = await import("../../calendar/date/CalendarUtils")
 		const timeZone = new DefaultDateProvider().timeZone()
@@ -307,7 +307,7 @@ class MainLocator {
 			await this.receivedGroupInvitationsModel(GroupType.Calendar),
 			timeZone,
 		)
-	}
+	})
 
 	/** This ugly bit exists because CalendarEventWhoModel wants a sync factory. */
 	private async sendMailModelSyncFactory(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): Promise<() => SendMailModel> {
@@ -587,7 +587,7 @@ class MainLocator {
 		this.logins.init()
 		this.eventController = new EventController(locator.logins)
 		this.progressTracker = new ProgressTracker()
-		this.search = new SearchModel(this.searchFacade)
+		this.search = new SearchModel(this.searchFacade, () => this.calendarViewModel())
 		this.entityClient = new EntityClient(restInterface)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
