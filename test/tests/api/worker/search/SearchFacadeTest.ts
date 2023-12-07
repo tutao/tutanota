@@ -138,7 +138,8 @@ o.spec("SearchFacade test", () => {
 			end: end ?? null,
 			field: null,
 			attributeIds: attributeIds ?? null,
-			listId: listId ?? null,
+			listIds: listId != null ? [listId] : [],
+			eventSeries: true,
 		}
 	}
 

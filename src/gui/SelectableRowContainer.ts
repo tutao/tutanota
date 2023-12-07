@@ -32,6 +32,7 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 				},
 				oncreate: ({ dom }) => {
 					this.dom = dom as HTMLElement
+					this.updateDomBg()
 					attrs.onSelectedChangeRef?.((selected, isInMultiselect) => {
 						this.selected = selected
 						this.isInMultiselect = isInMultiselect

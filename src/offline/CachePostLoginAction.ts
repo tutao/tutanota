@@ -22,6 +22,7 @@ export class CachePostLoginAction implements PostLoginAction {
 		// we use an ephemeral cache for non-persistent sessions which doesn't
 		// support or save calendar events, so it's pointless to preload them.
 		if (loggedInEvent.sessionType !== SessionType.Persistent) return
+		//
 		// 3 work to load calendar info, 2 work to load short and long events
 		const workPerCalendar = 3 + 2
 		const totalWork = this.logins.getUserController().getCalendarMemberships().length * workPerCalendar
