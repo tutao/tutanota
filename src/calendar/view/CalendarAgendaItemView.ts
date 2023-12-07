@@ -1,18 +1,18 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils.js"
-import { formatEventTimes } from "../date/CalendarUtils.js"
 import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { stateBgHover } from "../../gui/builtinThemes.js"
 import { theme } from "../../gui/theme.js"
 import { styles } from "../../gui/styles.js"
 import { DefaultAnimationTime } from "../../gui/animation/Animations.js"
 
-interface CalendarAgendaItemViewAttrs {
+export interface CalendarAgendaItemViewAttrs {
 	day: Date
 	zone: string
 	event: CalendarEvent
 	color: string
 	click: (domEvent: MouseEvent) => unknown
+	timeText: string
+	wrapSummary?: boolean
 	selected?: boolean
 }
 
@@ -21,7 +21,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 		return m(
 			".flex.items-center.gap-vpad.click.plr.border-radius.pt-s.pb-s",
 			{
-				class: styles.isDesktopLayout() ? "" : "state-bg",
+				class: (styles.isDesktopLayout() ? "" : "state-bg") + (attrs.wrapSummary ? "limit-width full-width" : ""),
 				onclick: attrs.click,
 				style: {
 					transition: `background ${DefaultAnimationTime}ms`,
@@ -37,7 +37,10 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 						backgroundColor: `#${attrs.color}`,
 					},
 				}),
-				m(".flex.col", [m(".b", attrs.event.summary), m("", formatEventTimes(attrs.day, attrs.event, attrs.zone, isAllDayEvent(attrs.event)))]),
+				m(".flex.col", { class: attrs.wrapSummary ? "min-width-0" : "" }, [
+					m("p.b.m-0", { class: attrs.wrapSummary ? "text-ellipsis" : "" }, attrs.event.summary),
+					m("", attrs.timeText),
+				]),
 			],
 		)
 	}

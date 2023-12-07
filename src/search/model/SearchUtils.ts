@@ -1,12 +1,12 @@
 import m from "mithril"
 import type { GroupInfo } from "../../api/entities/sys/TypeRefs.js"
-import { GroupInfoTypeRef, WhitelabelChildTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { assertNotNull, filterInt, getDayShifted, getStartOfDay, isSameTypeRef, neverNull } from "@tutao/tutanota-utils"
+import { WhitelabelChildTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { assertNotNull, filterInt, getDayShifted, getEndOfDay, getStartOfDay, incrementMonth, isSameTypeRef } from "@tutao/tutanota-utils"
 import { RouteSetFn, throttleRoute } from "../../misc/RouteChange"
 import type { SearchRestriction } from "../../api/worker/search/SearchTypes"
 import { assertMainOrNode } from "../../api/common/Env"
 import { TranslationKey } from "../../misc/LanguageViewModel"
-import { ContactTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs"
+import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs"
 import { typeModels } from "../../api/entities/tutanota/TypeModels.js"
 import { locator } from "../../api/main/MainLocator.js"
 
@@ -22,6 +22,10 @@ export const SEARCH_CATEGORIES = [
 	{
 		name: "contact",
 		typeRef: ContactTypeRef,
+	},
+	{
+		name: "calendar",
+		typeRef: CalendarEventTypeRef,
 	},
 	{
 		name: "whitelabelchild",
@@ -90,10 +94,10 @@ export function getSearchUrl(
 	selectedId?: Id,
 ): {
 	path: string
-	params: Record<string, string | number>
+	params: Record<string, string | number | Array<string>>
 } {
 	const category = searchCategoryForRestriction(restriction)
-	const params: Record<string, string | number> = {
+	const params: Record<string, string | number | Array<string>> = {
 		query: query ?? "",
 		category,
 	}
@@ -104,11 +108,14 @@ export function getSearchUrl(
 	if (restriction.end) {
 		params.end = restriction.end
 	}
-	if (restriction.listId) {
-		params.list = restriction.listId
+	if (restriction.listIds.length > 0) {
+		params.list = restriction.listIds
 	}
 	if (restriction.field) {
 		params.field = restriction.field
+	}
+	if (restriction.eventSeries != null) {
+		params.eventSeries = String(restriction.eventSeries)
 	}
 	return {
 		path: "/search/:category" + (selectedId ? "/" + selectedId : ""),
@@ -128,32 +135,41 @@ export function createRestriction(
 	start: number | null,
 	end: number | null,
 	field: string | null,
-	listId: string | null,
+	listIds: Array<string>,
+	eventSeries: boolean | null,
 ): SearchRestriction {
 	if (locator.logins.getUserController().isFreeAccount() && searchCategory === "mail") {
 		start = null
 		end = getFreeSearchStartDate().getTime()
 		field = null
-		listId = null
+		listIds = []
+		eventSeries = null
 	}
 
 	let r: SearchRestriction = {
-		type: neverNull(SEARCH_CATEGORIES.find((c) => c.name === searchCategory)).typeRef,
+		type: assertNotNull(SEARCH_CATEGORIES.find((c) => c.name === searchCategory)).typeRef,
 		start: start,
 		end: end,
 		field: null,
 		attributeIds: null,
-		listId: listId,
+		listIds,
+		eventSeries,
 	}
 
-	if (field && searchCategory === "mail") {
+	if (!field) {
+		return r
+	}
+
+	if (searchCategory === "mail") {
 		let fieldData = SEARCH_MAIL_FIELDS.find((f) => f.field === field)
 
 		if (fieldData) {
 			r.field = field
 			r.attributeIds = fieldData.attributeIds
 		}
-	} else if (field && searchCategory === "contact") {
+	} else if (searchCategory === "calendar") {
+		// FIXME: do we need to put the calendar to search here?
+	} else if (searchCategory === "contact") {
 		if (field === "recipient") {
 			r.field = field
 			r.attributeIds = [
@@ -178,7 +194,8 @@ export function getRestriction(route: string): SearchRestriction {
 	let start: number | null = null
 	let end: number | null = null
 	let field: string | null = null
-	let listId: string | null = null
+	let listIds: Array<string> = []
+	let eventSeries: boolean | null = null
 
 	if (route.startsWith("/mail") || route.startsWith("/search/mail")) {
 		category = "mail"
@@ -200,8 +217,8 @@ export function getRestriction(route: string): SearchRestriction {
 					field = SEARCH_MAIL_FIELDS.find((f) => f.field === fieldString)?.field ?? null
 				}
 
-				if (typeof params["list"] === "string") {
-					listId = params["list"]
+				if (Array.isArray(params["list"])) {
+					listIds = params["list"]
 				}
 			} catch (e) {
 				console.log("invalid query: " + route, e)
@@ -209,13 +226,35 @@ export function getRestriction(route: string): SearchRestriction {
 		}
 	} else if (route.startsWith("/contact") || route.startsWith("/search/contact")) {
 		category = "contact"
+	} else if (route.startsWith("/calendar") || route.startsWith("/search/calendar")) {
+		const { params } = m.parsePathname(route)
+		category = "calendar"
+		const now = new Date()
+		now.setDate(1)
+		start = getStartOfDay(now).getTime()
+
+		const endDate = incrementMonth(new Date(), 3)
+		endDate.setDate(0)
+		end = getEndOfDay(endDate).getTime()
+
+		try {
+			if (typeof params["eventSeries"] === "boolean") {
+				eventSeries = params["eventSeries"]
+			}
+			const list = params["list"]
+			if (Array.isArray(list)) {
+				listIds = list
+			}
+		} catch (e) {
+			console.log("invalid query: " + route, e)
+		}
 	} else if (route.startsWith("/settings/whitelabelaccounts")) {
 		category = "whitelabelchild"
 	} else {
 		throw new Error("invalid type " + route)
 	}
 
-	return createRestriction(category, start, end, field, listId)
+	return createRestriction(category, start, end, field, listIds, eventSeries)
 }
 
 export function isAdministratedGroup(localAdminGroupIds: Id[], gi: GroupInfo): boolean {
